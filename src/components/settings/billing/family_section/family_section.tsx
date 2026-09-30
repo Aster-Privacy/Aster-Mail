@@ -18,28 +18,37 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { ComponentType, ReactNode, SVGProps } from "react";
+
 import { useState, useEffect, useCallback, useRef } from "react";
 import {
   UserPlusIcon,
   UserGroupIcon,
-  Squares2X2Icon,
+  UsersIcon,
   LinkIcon,
   ArrowRightIcon,
+  ArrowRightOnRectangleIcon,
   XMarkIcon,
-  CircleStackIcon,
   ShieldCheckIcon,
   ArchiveBoxIcon,
   ExclamationTriangleIcon,
   CheckCircleIcon,
-  ChevronRightIcon,
-  InformationCircleIcon,
+  CreditCardIcon,
+  EnvelopeIcon,
+  FaceSmileIcon,
   GlobeAltIcon,
   FunnelIcon,
   ChartBarIcon,
-  UserIcon,
   InboxStackIcon,
 } from "@heroicons/react/24/outline";
-import { Button, Island, IslandSection } from "@aster/ui";
+import {
+  Button,
+  Island,
+  IslandDivider,
+  IslandEmpty,
+  IslandRow,
+  PillButton,
+} from "@aster/ui";
 
 import { family_seat_usage } from "../family_seats";
 import { KidsContent } from "../family_kids_addresses";
@@ -48,6 +57,16 @@ import { ActivityContent } from "./activity";
 import { DomainsContent } from "./domains";
 import { FiltersContent, MemberConsentPanel } from "./filters";
 import { GroupsContent } from "./groups";
+import { fetch_family_group, read_family_cache } from "./family_cache";
+import {
+  FamilyCreateBar,
+  FamilyMeter,
+  FamilyPageHeader,
+  FamilySkeleton,
+  FamilyStatusText,
+  family_row_icon,
+  use_family_seat_breakdown,
+} from "./family_ui";
 import {
   FamilySectionProps,
   FamilyTab,
@@ -57,15 +76,19 @@ import {
 
 import { SharedMailboxesTab } from "@/components/settings/billing/shared_mailboxes_tab";
 import { Input } from "@/components/ui/input";
-import { InfoPopover } from "@/components/ui/info_popover";
 import {
   TurnstileWidget,
   type TurnstileWidgetRef,
   TURNSTILE_SITE_KEY,
 } from "@/components/auth/turnstile_widget";
-import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { server_error_text } from "@/components/settings/billing/server_error_text";
+import {
+  BillingNotice,
+  BillingSectionLabel,
+} from "@/components/settings/billing/billing_layout";
+import { BillingMeter } from "@/components/settings/billing/billing_meter";
 import { change_plan } from "@/services/api/billing";
 import {
   list_org_filters,
@@ -78,7 +101,6 @@ import {
   type MemberComplianceInfo,
 } from "@/services/api/family_org";
 import {
-  get_family_group,
   invite_member,
   create_invite_link,
   revoke_invite,
@@ -88,11 +110,10 @@ import {
   type FamilyGroupResponse,
   type FamilyMemberInfo,
 } from "@/services/api/family";
-import { SettingsTabBar } from "@/components/settings/settings_tab_bar";
-import { StatRing } from "@/components/settings/stat_ring";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
+import { use_auth } from "@/contexts/auth_context";
 import type {} from "@/lib/i18n/types";
 import { format_bytes } from "@/lib/utils";
 import {
@@ -125,10 +146,15 @@ import { use_sticky_value } from "@/hooks/use_sticky_value";
 
 export function FamilySection({ is_family_plan }: FamilySectionProps) {
   const { t } = use_i18n();
+  const seat_breakdown_text = use_family_seat_breakdown();
   const { preferences, update_preference, has_loaded_from_server } =
     use_preferences();
-  const [group, set_group] = useState<FamilyGroupResponse | null>(null);
-  const [loading, set_loading] = useState(true);
+  const { user } = use_auth();
+  const user_id = user?.id ?? null;
+  const root_ref = useRef<HTMLDivElement>(null);
+  const [group, set_group] = useState<FamilyGroupResponse | null>(() =>
+    read_family_cache(user_id),
+  );
   const [group_load_failed, set_group_load_failed] = useState(false);
   const [tab, set_tab] = useState<FamilyTab>("overview");
   const [preloaded_filters, set_preloaded_filters] = useState<
@@ -267,16 +293,16 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
 
   const load_group = useCallback(async () => {
     try {
-      const res = await get_family_group();
+      const data = await fetch_family_group(user_id);
 
-      if (!res.data) {
+      if (!data) {
         set_group_load_failed(true);
       }
 
-      if (res.data) {
+      if (data) {
         set_group_load_failed(false);
-        set_group(res.data);
-        if (res.data.viewer_role === "owner") {
+        set_group(data);
+        if (data.viewer_role === "owner") {
           void Promise.all([
             list_org_filters()
               .then((r) => {
@@ -322,19 +348,19 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
         }
         const remaining_seats = Math.max(
           1,
-          family_seat_usage(res.data).seats_remaining,
+          family_seat_usage(data).seats_remaining,
         );
         const used_alloc =
-          res.data.members
+          data.members
             .filter((m) => m.status === "active")
             .reduce((s, m) => s + m.allocated_storage_bytes, 0) +
-          res.data.pending_invites.reduce(
+          data.pending_invites.reduce(
             (s, i) => s + (i.allocated_storage_bytes || 0),
             0,
           );
         const remaining_bytes = Math.max(
           0,
-          res.data.storage_pool_bytes - used_alloc,
+          data.storage_pool_bytes - used_alloc,
         );
         const default_gb = String(
           Math.max(
@@ -348,11 +374,11 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
           set_invite_storage_gb(default_gb);
           set_wizard_invite_gb(default_gb);
         }
-        const live_ids = new Set(res.data.pending_invites.map((i) => i.id));
+        const live_ids = new Set(data.pending_invites.map((i) => i.id));
 
         try {
           const raw = localStorage.getItem(
-            `aster_family_invite_urls_${res.data.id}`,
+            `aster_family_invite_urls_${data.id}`,
           );
           const stored: Record<string, string> = raw ? JSON.parse(raw) : {};
           const pruned = Object.fromEntries(
@@ -360,7 +386,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
           );
 
           localStorage.setItem(
-            `aster_family_invite_urls_${res.data.id}`,
+            `aster_family_invite_urls_${data.id}`,
             JSON.stringify(pruned),
           );
           set_invite_urls(pruned);
@@ -371,22 +397,19 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
           );
         }
         if (
-          res.data.viewer_role === "owner" &&
-          res.data.members.filter((m) => m.status === "active").length === 1
+          data.viewer_role === "owner" &&
+          data.members.filter((m) => m.status === "active").length === 1
         ) {
-          set_wizard_eligible_group_id(res.data.id);
+          set_wizard_eligible_group_id(data.id);
         }
       }
     } catch {
       set_group_load_failed(true);
-    } finally {
-      set_loading(false);
     }
-  }, []);
+  }, [user_id]);
 
   useEffect(() => {
     if (is_family_plan) load_group();
-    else set_loading(false);
   }, [is_family_plan, load_group]);
 
   useEffect(() => {
@@ -692,55 +715,49 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
     }
   };
 
-  if (!is_family_plan || loading) return null;
+  if (!is_family_plan) return null;
 
   if (left) {
     return (
-      <IslandSection padding="lg" title={t("settings.fam_org_heading")}>
-        <div className="flex flex-col items-center gap-2 py-6 text-center">
-          <CheckCircleIcon className="w-10 h-10 text-green-500" />
-          <p className="text-sm font-medium text-txt-primary">
-            {t("settings.fam_org_left_title")}
-          </p>
-          <p className="text-xs text-txt-muted max-w-xs">
-            {t("settings.fam_org_left_desc")}
-          </p>
-        </div>
-      </IslandSection>
+      <Island padding="lg">
+        <IslandEmpty
+          description={t("settings.fam_org_left_desc")}
+          icon={<CheckCircleIcon style={{ color: "var(--color-success)" }} />}
+          title={t("settings.fam_org_left_title")}
+        />
+      </Island>
     );
   }
 
   if (!group) {
+    if (!group_load_failed) return <FamilySkeleton />;
+
     return (
-      <IslandSection padding="lg" title={t("settings.fam_org_heading")}>
-        {group_load_failed ? (
-          <p className="py-4 text-center text-sm text-txt-muted">
-            {t("common.something_went_wrong_try_again")}
-          </p>
-        ) : (
-          <div className="flex justify-center items-center gap-2 py-4">
-            <Spinner size="sm" />
-            <span className="text-sm text-txt-muted">
-              {t("settings.fam_org_setting_up")}
-            </span>
-          </div>
-        )}
-        <div className="flex justify-center">
-          <button
-            className="aster_btn aster_btn_secondary aster_btn_sm"
-            onClick={() => {
-              set_group_load_failed(false);
-              void load_group();
-            }}
-          >
-            {t("settings.fam_org_refresh")}
-          </button>
-        </div>
-      </IslandSection>
+      <Island padding="lg">
+        <IslandEmpty
+          action={
+            <PillButton
+              size="sm"
+              type="button"
+              variant="tonal"
+              onClick={() => {
+                set_group_load_failed(false);
+                void load_group();
+              }}
+            >
+              {t("settings.fam_org_refresh")}
+            </PillButton>
+          }
+          description={t("common.something_went_wrong_try_again")}
+          icon={<ExclamationTriangleIcon />}
+          title={t("settings.fam_org_heading")}
+        />
+      </Island>
     );
   }
 
   const active_members = group.members.filter((m) => m.status === "active");
+  const other_members = active_members.filter((m) => m.role !== "owner");
   const pool_used = group.storage_used_bytes;
   const pool_pct = storage_pct(pool_used, group.storage_pool_bytes);
   const {
@@ -749,778 +766,700 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
     seats_full,
     breakdown: seat_breakdown,
   } = family_seat_usage(group);
-  const allocated_alloc =
-    active_members.reduce((s, m) => s + m.allocated_storage_bytes, 0) +
-    group.pending_invites.reduce(
-      (s, i) => s + (i.allocated_storage_bytes || 0),
-      0,
-    );
+  const member_alloc = active_members.reduce(
+    (s, m) => s + m.allocated_storage_bytes,
+    0,
+  );
+  const pending_alloc = group.pending_invites.reduce(
+    (s, i) => s + (i.allocated_storage_bytes || 0),
+    0,
+  );
+  const allocated_alloc = member_alloc + pending_alloc;
   const unassigned_bytes = Math.max(
     0,
     group.storage_pool_bytes - allocated_alloc,
   );
-  const unassigned_pct = storage_pct(
-    unassigned_bytes,
+  const allocated_pct = storage_pct(
+    Math.min(allocated_alloc, group.storage_pool_bytes),
     group.storage_pool_bytes,
   );
-
-  type OwnTab = { id: FamilyTab; label: string; Icon: React.ElementType };
-  const owner_tabs: OwnTab[] = is_owner
-    ? [
-        {
-          id: "overview",
-          label: t("settings.fam_org_tab_overview"),
-          Icon: Squares2X2Icon,
-        },
-        {
-          id: "members",
-          label: t("settings.fam_org_tab_members"),
-          Icon: UserPlusIcon,
-        },
-        { id: "kids", label: t("settings.fam_kids_tab"), Icon: UserIcon },
-        {
-          id: "shared",
-          label: t("shared_mailboxes.tab_label"),
-          Icon: InboxStackIcon,
-        },
-        {
-          id: "groups",
-          label: t("settings.fam_org_tab_groups"),
-          Icon: UserGroupIcon,
-        },
-        {
-          id: "activity",
-          label: t("settings.fam_org_tab_activity"),
-          Icon: ChartBarIcon,
-        },
-        {
-          id: "filters",
-          label: t("settings.fam_org_tab_filters"),
-          Icon: FunnelIcon,
-        },
-        {
-          id: "domains",
-          label: t("settings.fam_org_tab_domains"),
-          Icon: GlobeAltIcon,
-        },
-        {
-          id: "security",
-          label: t("settings.fam_org_tab_security"),
-          Icon: ShieldCheckIcon,
-        },
-        {
-          id: "retention",
-          label: t("settings.fam_org_tab_retention"),
-          Icon: ArchiveBoxIcon,
-        },
-      ]
-    : [];
 
   const grace_has_lapsed =
     group.status === "grace" &&
     !!group.grace_period_end &&
     new Date(group.grace_period_end).getTime() <= Date.now();
 
-  return (
-    <div className="flex w-full min-w-0 flex-col gap-4">
-      {group.status !== "active" && (
-        <Island
-          className="flex flex-wrap items-center gap-3 px-4 py-3"
-          tone={
-            group.status === "grace" && !grace_has_lapsed ? "warning" : "danger"
-          }
-        >
-          <ExclamationTriangleIcon
-            className={`w-4 h-4 flex-shrink-0 ${
-              group.status === "grace" && !grace_has_lapsed
-                ? "text-amber-500"
-                : "text-aster-danger"
-            }`}
-          />
-          <p className="text-sm font-medium flex-1 min-w-0 text-txt-primary">
-            {group.status === "grace"
-              ? group.grace_period_end
-                ? t(
-                    grace_has_lapsed
-                      ? "settings.fam_org_grace_banner_expired"
-                      : "settings.fam_org_grace_banner",
-                    {
-                      date: new Date(group.grace_period_end).toLocaleDateString(
-                        app_locale(),
-                        { timeZone: get_display_time_zone() },
-                      ),
-                    },
-                  )
-                : t("settings.fam_org_grace_banner_soon")
-              : t("settings.fam_org_cancelled_banner")}
+  const status_tone: "success" | "warning" | "danger" =
+    group.status === "active"
+      ? "success"
+      : group.status === "grace" && !grace_has_lapsed
+        ? "warning"
+        : "danger";
+  const status_label =
+    group.status === "active"
+      ? t("settings.fam_org_status_active")
+      : group.status === "grace" && !grace_has_lapsed
+        ? t("settings.fam_org_status_expiring")
+        : group.status === "grace"
+          ? t("settings.fam_org_status_expired")
+          : t("settings.fam_org_status_cancelled");
+
+  const go_billing = () =>
+    window.dispatchEvent(
+      new CustomEvent("navigate-settings", { detail: "billing" }),
+    );
+
+  const comp_values = Object.values(compliance_map);
+  const compliant_count = comp_values.filter((m) => m.has_2fa).length;
+  const security_value = !compliance_loaded
+    ? null
+    : compliance_failed || comp_values.length === 0
+      ? null
+      : compliant_count === comp_values.length
+        ? t("settings.fam_org_summary_all_2fa")
+        : t("settings.fam_org_summary_partial_2fa", {
+            compliant: compliant_count,
+            total: comp_values.length,
+          });
+
+  const page_titles: Partial<Record<FamilyTab, string>> = {
+    members: t("settings.fam_org_tab_members"),
+    kids: t("settings.fam_kids_tab"),
+    shared: t("shared_mailboxes.tab_label"),
+    groups: t("settings.fam_org_tab_groups"),
+    activity: t("settings.fam_org_tab_activity"),
+    filters: t("settings.fam_org_tab_filters"),
+    domains: t("settings.fam_org_tab_domains"),
+    security: t("settings.fam_org_tab_security"),
+    retention: t("settings.fam_org_tab_retention"),
+  };
+  const page_descriptions: Partial<Record<FamilyTab, string>> = {
+    members: t("settings.fam_org_row_members_desc"),
+    kids: t("settings.fam_org_row_kids_desc"),
+    shared: t("settings.fam_org_row_shared_desc"),
+    groups: t("settings.fam_org_row_groups_desc"),
+    activity: t("settings.fam_org_row_activity_desc"),
+    filters: t("settings.fam_org_row_filters_desc"),
+    domains: t("settings.fam_org_row_domains_desc"),
+    security: t("settings.fam_org_row_security_desc"),
+    retention: t("settings.fam_org_row_retention_desc"),
+  };
+
+  const open_tab = (next: FamilyTab) => {
+    set_tab(next);
+    requestAnimationFrame(() => {
+      root_ref.current?.scrollIntoView({ block: "start" });
+    });
+  };
+
+  const checklist = is_owner
+    ? [
+        {
+          label: t("settings.fam_org_checklist_subscribe"),
+          done: true,
+          tab_target: null as FamilyTab | null,
+        },
+        {
+          label: t("settings.fam_org_checklist_invite"),
+          done: active_members.length > 1 || group.pending_invites.length > 0,
+          tab_target: "members" as FamilyTab | null,
+        },
+        {
+          label: t("settings.fam_org_checklist_security"),
+          done: comp_values.length > 0 && comp_values.every((m) => m.has_2fa),
+          tab_target: "security" as FamilyTab | null,
+        },
+      ]
+    : [];
+  const checklist_completed = checklist.filter((c) => c.done).length;
+  const show_checklist =
+    is_owner && !checklist_dismissed && checklist_completed < checklist.length;
+
+  const hero = (
+    <Island padding="none">
+      <div className="mx-2 mt-2 flex h-[88px] items-center justify-between gap-4 rounded-[var(--aster-radius-field)] bg-[color-mix(in_srgb,var(--text-primary)_6%,transparent)] px-5">
+        <img
+          alt={t("common.aster_mail")}
+          className="h-8 w-auto select-none"
+          decoding="sync"
+          draggable={false}
+          height={199}
+          loading="eager"
+          src="/text_logo.png"
+          width={800}
+        />
+        <div className="flex items-center">
+          {active_members.slice(0, 4).map((m, i) => (
+            <span
+              key={m.user_id}
+              className="rounded-full"
+              style={{
+                marginInlineStart: i === 0 ? 0 : -8,
+                boxShadow:
+                  "0 0 0 2px var(--aster-floating-bg, var(--bg-primary))",
+              }}
+            >
+              <ProfileAvatar
+                email={`${m.username}@${m.email_domain}`}
+                name={m.username}
+                size="sm"
+              />
+            </span>
+          ))}
+        </div>
+      </div>
+      <div className="flex flex-col gap-5 px-5 pb-5 pt-4">
+        <div className="flex min-w-0 flex-col gap-1">
+          <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-0.5">
+            <h4 className="text-[21px] font-bold leading-7 tracking-[-0.02em] text-txt-primary">
+              {group.plan_name}
+            </h4>
+            <FamilyStatusText tone={status_tone}>
+              {status_label}
+            </FamilyStatusText>
+          </div>
+          <p className="text-[13px] text-txt-muted">
+            {is_owner
+              ? t("settings.fam_org_you_manage")
+              : t("settings.fam_org_you_are_member")}
           </p>
-          <button
-            className="text-xs font-semibold hover:underline flex-shrink-0 text-txt-primary"
-            onClick={() =>
-              window.dispatchEvent(
-                new CustomEvent("navigate-settings", { detail: "billing" }),
-              )
+        </div>
+
+        <div className="flex flex-col gap-4">
+          <FamilyMeter
+            label={t("settings.fam_org_meter_seats")}
+            percent={
+              group.max_members > 0
+                ? (seats_used / group.max_members) * 100
+                : 0
             }
-          >
-            {t("settings.fam_org_manage_billing")}
-          </button>
-        </Island>
-      )}
-      <div>
-        <h2 className="text-base font-semibold text-txt-primary flex flex-wrap items-center gap-2">
-          {t("settings.fam_org_heading")}
-          <span className="aster_badge aster_badge_blue">
-            {group.plan_name}
-          </span>
-          {group.status === "active" ? (
-            <span className="aster_badge aster_badge_green">
-              {t("settings.fam_org_status_active")}
-            </span>
-          ) : group.status === "grace" && !grace_has_lapsed ? (
-            <span className="aster_badge aster_badge_amber">
-              {t("settings.fam_org_status_expiring")}
-            </span>
-          ) : group.status === "grace" ? (
-            <span className="aster_badge aster_badge_red">
-              {t("settings.fam_org_status_expired")}
-            </span>
-          ) : (
-            <span className="aster_badge aster_badge_red">
-              {t("settings.fam_org_status_cancelled")}
-            </span>
-          )}
-        </h2>
-        <p className="text-sm text-txt-secondary mt-0.5">
-          {t("settings.fam_org_members_count", {
-            used: seats_used,
-            max: group.max_members,
-            count: seats_remaining,
-          })}
-        </p>
-        {seat_breakdown && (
-          <p className="text-xs text-txt-muted mt-0.5">
-            {t("settings.fam_seats_breakdown", {
-              members: seat_breakdown.active_members,
-              invites: seat_breakdown.pending_invites,
-              reserved: seat_breakdown.reserved_addresses,
+            value={t("settings.usage_of", {
+              current: seats_used,
+              limit: group.max_members,
             })}
-          </p>
+          />
+          {seat_breakdown && (
+            <p className="-mt-2 text-[12.5px] text-txt-muted">
+              {seat_breakdown_text(seat_breakdown)}
+            </p>
+          )}
+          <BillingMeter
+            label={t("settings.fam_org_stat_storage_used")}
+            limit_bytes={group.storage_pool_bytes}
+            percent={pool_pct}
+            used_bytes={pool_used}
+          />
+          {is_owner && (
+            <FamilyMeter
+              label={t("settings.fam_org_meter_assigned")}
+              percent={allocated_pct}
+              tone={
+                allocated_alloc > group.storage_pool_bytes ? "danger" : "accent"
+              }
+              trailing={
+                <span className="text-[12.5px] text-txt-muted">
+                  {t("settings.fam_org_unassigned_value", {
+                    size: format_bytes(unassigned_bytes),
+                  })}
+                </span>
+              }
+              value={t("settings.fam_org_assigned_of_total", {
+                used: format_bytes(allocated_alloc),
+                total: format_bytes(group.storage_pool_bytes),
+              })}
+            />
+          )}
+        </div>
+
+        {is_owner && seats_full && group.plan_name === "Duo" && (
+          <div
+            className="flex flex-col gap-3 rounded-[var(--aster-radius-field)] p-4 sm:flex-row sm:items-center"
+            style={{
+              backgroundColor:
+                "color-mix(in srgb, var(--accent-color) 9%, transparent)",
+            }}
+          >
+            <p className="min-w-0 flex-1 text-[13.5px] leading-5 text-txt-primary">
+              {t("settings.fam_org_seats_full_notice")}
+            </p>
+            <PillButton
+              className="self-start sm:self-auto"
+              disabled={changing_plan}
+              size="sm"
+              type="button"
+              variant="filled"
+              onClick={() => set_show_upgrade_confirm(true)}
+            >
+              {t("settings.fam_org_upgrade")}
+            </PillButton>
+          </div>
         )}
       </div>
 
+      <IslandDivider />
+
+      <div>
+        {is_owner ? (
+          <IslandRow
+            description={t("settings.fam_org_manage_billing_plan")}
+            icon={family_row_icon(CreditCardIcon)}
+            label={t("settings.fam_org_manage_billing")}
+            on_press={go_billing}
+          />
+        ) : (
+          <IslandRow
+            destructive
+            description={t("settings.fam_org_leave_desc")}
+            icon={family_row_icon(ArrowRightOnRectangleIcon)}
+            label={t("settings.family_leave")}
+            on_press={() => set_show_leave_dialog(true)}
+          />
+        )}
+      </div>
+    </Island>
+  );
+
+  const status_notice = group.status !== "active" && (
+    <BillingNotice
+      role="alert"
+      title={
+        group.status === "grace"
+          ? group.grace_period_end
+            ? t(
+                grace_has_lapsed
+                  ? "settings.fam_org_grace_banner_expired"
+                  : "settings.fam_org_grace_banner",
+                {
+                  date: new Date(group.grace_period_end).toLocaleDateString(
+                    app_locale(),
+                    { timeZone: get_display_time_zone() },
+                  ),
+                },
+              )
+            : t("settings.fam_org_grace_banner_soon")
+          : t("settings.fam_org_cancelled_banner")
+      }
+      tone={status_tone === "warning" ? "warning" : "danger"}
+    >
       {is_owner && (
-        <SettingsTabBar<FamilyTab>
-          active={tab}
-          layout_id="family"
-          on_change={set_tab}
-          tabs={owner_tabs.map((t_item) => ({
-            key: t_item.id,
-            label: t_item.label,
-            icon: <t_item.Icon className="w-3.5 h-3.5 flex-shrink-0" />,
-          }))}
-        />
+        <PillButton
+          size="sm"
+          type="button"
+          variant="filled"
+          onClick={go_billing}
+        >
+          {t("settings.fam_org_manage_billing")}
+        </PillButton>
       )}
+    </BillingNotice>
+  );
 
-      {!is_owner && (
-        <SettingsTabBar<FamilyTab>
-          active={tab}
-          layout_id="family-member"
-          on_change={set_tab}
-          tabs={[
-            { key: "overview", label: t("settings.fam_org_tab_overview") },
-            { key: "groups", label: t("settings.fam_org_tab_groups") },
-          ]}
-        />
-      )}
+  const checklist_island = show_checklist && (
+    <Island className="overflow-hidden" padding="none">
+      <div className="flex flex-col gap-3 px-4 pb-3 pt-4">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-[14.5px] font-semibold text-txt-primary">
+            {t("settings.fam_org_checklist_title")}
+          </p>
+          <div className="flex items-center gap-2">
+            <span className="text-[12.5px] tabular-nums text-txt-muted">
+              {checklist_completed}/{checklist.length}
+            </span>
+            <button
+              aria-label={t("settings.fam_org_2fa_dismiss")}
+              className="-me-1.5 flex h-7 w-7 items-center justify-center rounded-full text-txt-muted transition-colors hover:bg-[var(--aster-hover)] hover:text-txt-primary"
+              title={t("settings.fam_org_2fa_dismiss")}
+              type="button"
+              onClick={dismiss_checklist}
+            >
+              <XMarkIcon className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+        <div
+          className="h-1.5 w-full overflow-hidden rounded-full"
+          style={{
+            backgroundColor:
+              "color-mix(in srgb, var(--text-primary) 10%, transparent)",
+          }}
+        >
+          <div
+            className="h-full rounded-full transition-[width] duration-300"
+            style={{
+              width: `${(checklist_completed / checklist.length) * 100}%`,
+              backgroundColor: "var(--accent-color)",
+            }}
+          />
+        </div>
+      </div>
+      <IslandDivider />
+      <div>
+        {checklist.map((item) => (
+          <IslandRow
+            key={item.label}
+            chevron={!item.done && !!item.tab_target}
+            icon={
+              item.done ? (
+                <CheckCircleIcon
+                  className="h-[22px] w-[22px]"
+                  style={{ color: "var(--color-success)" }}
+                />
+              ) : (
+                <span className="flex h-[22px] w-[22px] items-center justify-center">
+                  <span className="h-[18px] w-[18px] rounded-full border-2 border-[color-mix(in_srgb,var(--text-primary)_22%,transparent)]" />
+                </span>
+              )
+            }
+            label={
+              <span className={item.done ? "text-txt-muted line-through" : ""}>
+                {item.label}
+              </span>
+            }
+            on_press={
+              !item.done && item.tab_target
+                ? () => open_tab(item.tab_target as FamilyTab)
+                : undefined
+            }
+          />
+        ))}
+      </div>
+    </Island>
+  );
 
-      {!is_owner && tab === "groups" && <MemberGroupsContent />}
+  const nav_row = (
+    id: FamilyTab,
+    Icon: ComponentType<SVGProps<SVGSVGElement>>,
+    value?: ReactNode,
+  ) => (
+    <IslandRow
+      key={id}
+      chevron
+      description={page_descriptions[id]}
+      icon={family_row_icon(Icon)}
+      label={page_titles[id]}
+      on_press={() => open_tab(id)}
+      value={value}
+    />
+  );
 
-      {(tab === "overview" || !is_owner) && tab !== "groups" && (
+  const home = (
+    <>
+      {status_notice}
+      {hero}
+      {checklist_island}
+      {is_owner ? (
         <>
-          {!is_owner && <MemberConsentPanel />}
-          {is_owner &&
-            (() => {
-              const has_members =
-                active_members.length > 1 || group.pending_invites.length > 0;
-              const comp_values = Object.values(compliance_map);
-              const security_done =
-                comp_values.length > 0 && comp_values.every((m) => m.has_2fa);
-              const checklist: {
-                label: string;
-                done: boolean;
-                tab_target: FamilyTab | null;
-              }[] = [
-                {
-                  label: t("settings.fam_org_checklist_subscribe"),
-                  done: true,
-                  tab_target: null,
-                },
-                {
-                  label: t("settings.fam_org_checklist_invite"),
-                  done: has_members,
-                  tab_target: "members",
-                },
-                {
-                  label: t("settings.fam_org_checklist_security"),
-                  done: security_done,
-                  tab_target: "security",
-                },
-              ];
-              const completed = checklist.filter((c) => c.done).length;
-
-              if (completed === checklist.length || checklist_dismissed)
-                return null;
-
-              return (
-                <Island padding="md">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-sm font-semibold text-txt-primary">
-                      {t("settings.fam_org_checklist_title")}
-                    </p>
-                    <button
-                      aria-label={t("settings.fam_org_2fa_dismiss")}
-                      className="p-0.5 -me-1 text-txt-muted hover:text-txt-secondary flex-shrink-0"
-                      title={t("settings.fam_org_2fa_dismiss")}
-                      onClick={dismiss_checklist}
-                    >
-                      <XMarkIcon className="w-4 h-4" />
-                    </button>
-                  </div>
-                  <div className="w-full h-1.5 bg-edge-secondary rounded-full mb-3">
-                    <div
-                      className="h-full bg-accent-blue rounded-full transition-all"
-                      style={{
-                        width: `${(completed / checklist.length) * 100}%`,
-                      }}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    {checklist.map((item) => (
-                      <div
-                        key={item.label}
-                        className={`flex items-center gap-2 ${!item.done && item.tab_target ? "cursor-pointer hover:bg-surf-primary rounded-lg px-1 -mx-1 transition-colors" : ""}`}
-                        role={
-                          !item.done && item.tab_target ? "button" : undefined
-                        }
-                        tabIndex={!item.done && item.tab_target ? 0 : undefined}
-                        onClick={
-                          !item.done && item.tab_target
-                            ? () => set_tab(item.tab_target!)
-                            : undefined
-                        }
-                        onKeyDown={
-                          !item.done && item.tab_target
-                            ? (e) => {
-                                if (e.key === "Enter" || e.key === " ")
-                                  set_tab(item.tab_target!);
-                              }
-                            : undefined
-                        }
-                      >
-                        {item.done ? (
-                          <CheckCircleIcon className="w-4 h-4 text-green-500 flex-shrink-0" />
-                        ) : (
-                          <div className="w-4 h-4 rounded-full border-2 border-edge-secondary flex-shrink-0" />
-                        )}
-                        <span
-                          className={`text-sm flex-1 ${item.done ? "text-txt-muted line-through" : "text-txt-primary"}`}
-                        >
-                          {item.label}
-                        </span>
-                        {!item.done && item.tab_target && (
-                          <ChevronRightIcon className="w-4 h-4 text-txt-muted flex-shrink-0 rtl:-scale-x-100" />
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </Island>
-              );
-            })()}
-          <div className="grid grid-cols-3 gap-2">
-            <StatRing
-              color_class="text-txt-secondary"
-              display_value={`${seats_used} / ${group.max_members}`}
-              icon={UserGroupIcon}
-              label={t("settings.fam_org_stat_members")}
-              max={group.max_members}
-              sublabel={
+          <div className="flex flex-col">
+            <BillingSectionLabel>
+              {t("settings.fam_org_section_people")}
+            </BillingSectionLabel>
+            <Island divided className="overflow-hidden" padding="none">
+              {nav_row(
+                "members",
+                UsersIcon,
                 group.pending_invites.length > 0
                   ? t("settings.fam_org_stat_pending", {
                       count: group.pending_invites.length,
                     })
-                  : t("settings.fam_org_stat_seats_available", {
-                      count: seats_remaining,
-                    })
-              }
-              value={seats_used}
-            />
-            <StatRing
-              color_class={
-                pool_pct >= 90
-                  ? "text-red-500"
-                  : pool_pct >= 70
-                    ? "text-amber-500"
-                    : "text-accent-blue"
-              }
-              display_value={format_bytes(pool_used)}
-              icon={CircleStackIcon}
-              label={t("settings.fam_org_stat_storage_used")}
-              max={100}
-              sublabel={t("settings.fam_org_stat_of_total", {
-                total: format_bytes(group.storage_pool_bytes),
-              })}
-              value={pool_pct}
-            />
-            <StatRing
-              color_class={
-                unassigned_pct <= 10
-                  ? "text-red-500"
-                  : unassigned_pct <= 30
-                    ? "text-amber-500"
-                    : "text-accent-blue"
-              }
-              display_value={format_bytes(unassigned_bytes)}
-              icon={ArchiveBoxIcon}
-              label={t("settings.fam_org_stat_unassigned")}
-              max={100}
-              sublabel={t("settings.fam_org_stat_of_total", {
-                total: format_bytes(group.storage_pool_bytes),
-              })}
-              value={unassigned_pct}
-            />
-          </div>
-
-          <Island className="space-y-2" padding="md">
-            {active_members.slice(0, 4).map((m) => (
-              <div key={m.user_id} className="flex items-center gap-2.5">
-                <ProfileAvatar
-                  email={`${m.username}@${m.email_domain}`}
-                  name={m.username}
-                  size="xs"
-                />
-                <span className="text-sm text-txt-primary truncate min-w-0 flex-1">
-                  {m.username}@{m.email_domain}
-                </span>
-                {m.role === "owner" ? (
-                  <span className="aster_badge aster_badge_blue flex-shrink-0">
-                    {t("settings.fam_org_preview_owner")}
-                  </span>
-                ) : m.status === "grace" ? (
-                  <span className="aster_badge aster_badge_amber flex-shrink-0">
-                    {t("settings.family_member_grace")}
-                  </span>
-                ) : (
-                  <span className="aster_badge aster_badge_gray flex-shrink-0">
-                    {t("settings.family_member_member")}
-                  </span>
-                )}
-              </div>
-            ))}
-            {active_members.length > 4 && (
-              <p className="text-xs text-txt-muted ps-9">
-                {t("settings.fam_org_preview_more", {
-                  count: active_members.length - 4,
-                })}
-              </p>
-            )}
-            {is_owner && (
-              <button
-                className="mt-1 aster_btn aster_btn_secondary aster_btn_sm flex items-center gap-1.5"
-                onClick={() => set_tab("members")}
-              >
-                <UserPlusIcon className="w-3.5 h-3.5" />{" "}
-                {t("settings.fam_org_preview_manage")}
-              </button>
-            )}
-          </Island>
-
-          {is_owner && (
-            <button
-              className="aster_island aster_island_interactive w-full text-start px-4 py-3.5 group"
-              onClick={() => set_tab("security")}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <ShieldCheckIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />
-                  <span className="text-sm font-medium text-txt-primary">
-                    {t("settings.fam_org_summary_security")}
-                  </span>
-                </div>
-                <ArrowRightIcon className="w-4 h-4 text-txt-muted group-hover:text-txt-secondary transition-colors rtl:-scale-x-100" />
-              </div>
-              {(() => {
-                const comp_members = Object.values(compliance_map);
-
-                if (!compliance_loaded) {
-                  return (
-                    <div className="flex items-center justify-between mt-2.5">
-                      <span className="flex items-center gap-1.5 text-xs text-txt-muted">
-                        <Spinner size="sm" />{" "}
-                        {t("settings.fam_org_summary_checking")}
-                      </span>
-                    </div>
-                  );
-                }
-                if (compliance_failed) {
-                  return (
-                    <div className="flex items-center justify-between mt-2.5">
-                      <span className="text-xs text-txt-muted">
-                        {t("common.something_went_wrong_try_again")}
-                      </span>
-                    </div>
-                  );
-                }
-                if (comp_members.length === 0) return null;
-                const compliant = comp_members.filter((m) => m.has_2fa).length;
-                const total = comp_members.length;
-                const all_ok = compliant === total;
-
-                return (
-                  <div className="flex items-center justify-between mt-2.5">
-                    <span
-                      className={
-                        all_ok
-                          ? "aster_badge aster_badge_green"
-                          : "aster_badge aster_badge_amber"
-                      }
-                    >
-                      {all_ok
-                        ? t("settings.fam_org_summary_all_2fa")
-                        : t("settings.fam_org_summary_partial_2fa", {
-                            compliant,
-                            total,
-                          })}
-                    </span>
-                  </div>
-                );
-              })()}
-            </button>
-          )}
-
-          {is_owner && seats_full && group.plan_name === "Duo" && (
-            <Island className="flex flex-wrap items-center gap-3 py-3 px-4">
-              <InformationCircleIcon className="w-4 h-4 flex-shrink-0 text-txt-muted" />
-              <p className="text-sm text-txt-secondary flex-1">
-                {t("settings.fam_org_seats_full_notice")}
-              </p>
-              <button
-                className="aster_btn aster_btn_primary aster_btn_sm flex-shrink-0 disabled:opacity-50"
-                disabled={changing_plan}
-                onClick={() => set_show_upgrade_confirm(true)}
-              >
-                {t("settings.fam_org_upgrade")}
-              </button>
+                  : `${seats_used}/${group.max_members}`,
+              )}
+              {nav_row("kids", FaceSmileIcon)}
+              {nav_row("shared", InboxStackIcon)}
+              {nav_row("groups", UserGroupIcon)}
             </Island>
-          )}
-
-          {is_owner && (
-            <button
-              className="flex items-center gap-2 text-xs text-accent-blue hover:underline py-1"
-              onClick={() =>
-                window.dispatchEvent(
-                  new CustomEvent("navigate-settings", { detail: "billing" }),
-                )
-              }
-            >
-              <ArrowRightIcon className="w-3.5 h-3.5 rtl:-scale-x-100" />
-              {t("settings.fam_org_manage_billing_plan")}
-            </button>
-          )}
-
-          {!is_owner && (
-            <button
-              className="aster_btn aster_btn_destructive aster_btn_sm"
-              onClick={() => set_show_leave_dialog(true)}
-            >
-              {t("settings.family_leave")}
-            </button>
-          )}
+          </div>
+          <div className="flex flex-col">
+            <BillingSectionLabel>
+              {t("settings.fam_org_section_controls")}
+            </BillingSectionLabel>
+            <Island divided className="overflow-hidden" padding="none">
+              {nav_row("security", ShieldCheckIcon, security_value)}
+              {nav_row("filters", FunnelIcon)}
+              {nav_row("domains", GlobeAltIcon)}
+              {nav_row("retention", ArchiveBoxIcon)}
+              {nav_row("activity", ChartBarIcon)}
+            </Island>
+          </div>
+        </>
+      ) : (
+        <>
+          <MemberConsentPanel />
+          <div className="flex flex-col">
+            <BillingSectionLabel>
+              {t("settings.fam_org_section_people")}
+            </BillingSectionLabel>
+            <Island divided className="overflow-hidden" padding="none">
+              {active_members.map((m) => (
+                <IslandRow
+                  key={m.user_id}
+                  description={`${m.username}@${m.email_domain}`}
+                  icon={
+                    <ProfileAvatar
+                      email={`${m.username}@${m.email_domain}`}
+                      name={m.username}
+                      size="sm"
+                    />
+                  }
+                  label={m.display_name || m.username}
+                  value={
+                    m.role === "owner"
+                      ? t("settings.fam_org_preview_owner")
+                      : t("settings.family_member_member")
+                  }
+                />
+              ))}
+            </Island>
+          </div>
+          <div className="flex flex-col">
+            <BillingSectionLabel>
+              {t("settings.fam_org_section_controls")}
+            </BillingSectionLabel>
+            <Island divided className="overflow-hidden" padding="none">
+              {nav_row("groups", UserGroupIcon)}
+              {nav_row("security", ShieldCheckIcon)}
+            </Island>
+          </div>
         </>
       )}
+    </>
+  );
 
-      {tab === "members" && is_owner && (
-        <>
-          <IslandSection
-            icon={<UserGroupIcon className="flex-shrink-0" />}
-            island_class_name="overflow-hidden"
-            title={t("settings.family_members")}
-            title_info={
-              <InfoPopover
-                description={t("settings.fam_org_members_info_desc")}
-                title={t("settings.fam_org_members_info_title")}
-              />
-            }
-            trailing={
-              <span className="text-xs font-normal text-txt-muted">
-                {seats_used} / {group.max_members}
-              </span>
-            }
-          >
-            <div>
-              {(() => {
-                const used_alloc = active_members.reduce(
-                  (s, m) => s + m.allocated_storage_bytes,
-                  0,
-                );
-                const pool_remaining_raw = Math.max(
-                  0,
-                  group.storage_pool_bytes - used_alloc,
-                );
+  const invite_bytes = Math.round(
+    (parseFloat(invite_storage_gb) || 0) * 1073741824,
+  );
+  const invite_over = allocated_alloc + invite_bytes > group.storage_pool_bytes;
+  const pool_remaining_raw = Math.max(
+    0,
+    group.storage_pool_bytes - member_alloc,
+  );
 
-                return (
-                  <>
-                    {active_members
-                      .filter((m) => m.role === "owner")
-                      .map((m) => (
-                        <MemberRow
-                          key={m.user_id}
-                          compliance={compliance_map[m.user_id]}
-                          is_owner_view={true}
-                          member={m}
-                          on_reload={load_group}
-                          on_remove={set_remove_target}
-                          on_transfer={set_transfer_target}
-                          pool_remaining_bytes={pool_remaining_raw}
-                        />
-                      ))}
-                    {active_members.filter((m) => m.role !== "owner").length ===
-                    0
-                      ? !show_invite_form && (
-                          <div className="flex flex-col items-center gap-3 py-8">
-                            <UserGroupIcon className="w-8 h-8 text-txt-muted" />
-                            <div className="text-center">
-                              <p className="text-base font-semibold text-txt-primary">
-                                {t("settings.fam_org_no_members_title")}
-                              </p>
-                              <p className="text-sm text-txt-muted mt-1">
-                                {t("settings.fam_org_no_members_desc")}
-                              </p>
-                            </div>
-                            <button
-                              className="aster_btn aster_btn_primary aster_btn_sm flex items-center gap-1.5"
-                              onClick={() => set_show_invite_form(true)}
-                            >
-                              <UserPlusIcon className="w-4 h-4" />
-                              {t("settings.family_invite_member")}
-                            </button>
-                          </div>
-                        )
-                      : active_members
-                          .filter((m) => m.role !== "owner")
-                          .map((m) => (
-                            <MemberRow
-                              key={m.user_id}
-                              compliance={compliance_map[m.user_id]}
-                              is_owner_view={true}
-                              member={m}
-                              on_reload={load_group}
-                              on_remove={set_remove_target}
-                              on_transfer={set_transfer_target}
-                              pool_remaining_bytes={pool_remaining_raw}
-                            />
-                          ))}
-                  </>
-                );
-              })()}
-            </div>
-          </IslandSection>
-
-          {!seats_full &&
-            (show_invite_form ||
-              active_members.filter((m) => m.role !== "owner").length > 0) && (
-              <div>
-                {!show_invite_form ? (
-                  <button
-                    className="aster_btn aster_btn_secondary aster_btn_sm flex items-center gap-1.5"
+  const members_page = (
+    <>
+      <Island className="overflow-hidden" padding="none">
+        {[
+          ...active_members.filter((m) => m.role === "owner"),
+          ...other_members,
+        ].map((m, i) => (
+          <div key={m.user_id}>
+            {i > 0 && <IslandDivider />}
+            <MemberRow
+              compliance={compliance_map[m.user_id]}
+              is_owner_view={true}
+              member={m}
+              on_reload={load_group}
+              on_remove={set_remove_target}
+              on_transfer={set_transfer_target}
+              pool_remaining_bytes={pool_remaining_raw}
+            />
+          </div>
+        ))}
+        {other_members.length === 0 && !show_invite_form && (
+          <>
+            <IslandDivider />
+            <IslandEmpty
+              action={
+                !seats_full && (
+                  <PillButton
+                    leading={<UserPlusIcon className="h-4 w-4" />}
+                    size="sm"
+                    type="button"
+                    variant="filled"
                     onClick={() => set_show_invite_form(true)}
                   >
-                    <UserPlusIcon className="w-3.5 h-3.5" />{" "}
-                    {t("settings.fam_org_add_member")}
-                  </button>
-                ) : (
-                  <Island className="space-y-3" padding="md">
-                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                      <div className="space-y-1">
-                        <label className="text-xs font-medium text-txt-muted mb-1 block">
-                          {t("settings.family_invite_email_placeholder")}
-                        </label>
-                        <Input
-                          autoFocus
-                          placeholder={t(
-                            "settings.family_invite_email_placeholder",
-                          )}
-                          type="email"
-                          value={invite_email}
-                          onChange={(e) => set_invite_email(e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-xs font-medium text-txt-muted mb-1 block">
-                          {t("settings.family_invite_storage")}
-                        </label>
-                        <div className="flex items-center gap-1">
-                          <Input
-                            min="1"
-                            style={{ width: "5rem", flex: "0 0 auto" }}
-                            type="number"
-                            value={invite_storage_gb}
-                            onChange={(e) =>
-                              set_invite_storage_gb(e.target.value)
-                            }
-                          />
-                          <span className="text-sm text-txt-muted">
-                            {t("settings.fam_org_gb")}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    {(() => {
-                      const pool = group.storage_pool_bytes;
-                      // Match the backend pool check: active members' allocations
-                      // PLUS outstanding pending-invite allocations.
-                      const member_alloc = active_members.reduce(
-                        (s, m) => s + m.allocated_storage_bytes,
-                        0,
-                      );
-                      const pending_alloc = group.pending_invites.reduce(
-                        (s, i) => s + (i.allocated_storage_bytes || 0),
-                        0,
-                      );
-                      const used_alloc = member_alloc + pending_alloc;
-                      const invite_bytes = Math.round(
-                        (parseFloat(invite_storage_gb) || 0) * 1073741824,
-                      );
-                      const free = Math.max(
-                        0,
-                        pool - used_alloc - invite_bytes,
-                      );
-                      const over = used_alloc + invite_bytes > pool;
+                    {t("settings.family_invite_member")}
+                  </PillButton>
+                )
+              }
+              description={t("settings.fam_org_no_members_desc")}
+              icon={<UsersIcon />}
+              title={t("settings.fam_org_no_members_title")}
+            />
+          </>
+        )}
+      </Island>
 
-                      return (
-                        <p
-                          className={`text-xs leading-relaxed mt-1 ${over ? "text-red-500 font-medium" : "text-txt-muted"}`}
-                        >
-                          {over
-                            ? t("settings.fam_org_invite_summary_over", {
-                                member: format_bytes(invite_bytes),
-                                avail: format_bytes(
-                                  Math.max(0, pool - used_alloc),
-                                ),
-                              })
-                            : t("settings.fam_org_invite_summary", {
-                                member: format_bytes(invite_bytes),
-                                free: format_bytes(free),
-                                pool: format_bytes(pool),
-                              })}
-                        </p>
-                      );
-                    })()}
-                    {turnstile_required && (
-                      <TurnstileWidget
-                        ref={turnstile_ref}
-                        class_name="flex justify-start mt-4"
-                        on_expire={() => set_invite_captcha(null)}
-                        on_verify={set_invite_captcha}
-                      />
-                    )}
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        className="aster_btn aster_btn_primary aster_btn_sm flex items-center gap-1.5 disabled:opacity-50"
-                        disabled={
-                          invite_loading ||
-                          (turnstile_required && !invite_captcha)
-                        }
-                        onClick={handle_invite_email}
-                      >
-                        <UserPlusIcon className="w-4 h-4" />{" "}
-                        {t("settings.family_invite_send")}
-                      </button>
-                      <button
-                        className="aster_btn aster_btn_secondary aster_btn_sm flex items-center gap-1.5 disabled:opacity-50"
-                        disabled={
-                          invite_loading ||
-                          has_pending_link ||
-                          (turnstile_required && !invite_captcha)
-                        }
-                        title={
-                          has_pending_link
-                            ? t("settings.fam_org_revoke_link_first")
-                            : undefined
-                        }
-                        onClick={handle_copy_link}
-                      >
-                        <LinkIcon className="w-4 h-4" />{" "}
-                        {t("settings.family_invite_copy_link")}
-                      </button>
-                      <button
-                        className="aster_btn aster_btn_ghost aster_btn_sm"
-                        onClick={() => set_show_invite_form(false)}
-                      >
-                        {t("settings.fam_org_invite_cancel")}
-                      </button>
-                    </div>
-                  </Island>
-                )}
+      {!seats_full && (show_invite_form || other_members.length > 0) && (
+        <div className="flex flex-col">
+          <BillingSectionLabel>
+            {t("settings.fam_org_invite_title")}
+          </BillingSectionLabel>
+          {!show_invite_form ? (
+            <Island className="overflow-hidden" padding="none">
+              <IslandRow
+                chevron
+                description={t("settings.fam_org_stat_seats_available", {
+                  count: seats_remaining,
+                })}
+                icon={family_row_icon(UserPlusIcon)}
+                label={t("settings.fam_org_add_member")}
+                on_press={() => set_show_invite_form(true)}
+              />
+            </Island>
+          ) : (
+            <Island className="flex flex-col gap-4" padding="md">
+              <FamilyCreateBar>
+                <Input
+                  autoFocus
+                  aria-label={t("settings.family_invite_email_placeholder")}
+                  className="aster_input_tonal sm:flex-1"
+                  placeholder={t("settings.family_invite_email_placeholder")}
+                  type="email"
+                  value={invite_email}
+                  onChange={(e) => set_invite_email(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !invite_loading)
+                      void handle_invite_email();
+                  }}
+                />
+                <div className="relative sm:w-32">
+                  <Input
+                    aria-label={t("settings.family_invite_storage")}
+                    className="aster_input_tonal pe-10"
+                    min="1"
+                    type="number"
+                    value={invite_storage_gb}
+                    onChange={(e) => set_invite_storage_gb(e.target.value)}
+                  />
+                  <span className="pointer-events-none absolute end-3.5 top-1/2 -translate-y-1/2 text-[13px] text-txt-muted">
+                    {t("settings.fam_org_gb")}
+                  </span>
+                </div>
+              </FamilyCreateBar>
+              <p
+                className="text-[12.5px] leading-5"
+                style={{
+                  color: invite_over
+                    ? "var(--color-danger)"
+                    : "var(--text-muted)",
+                }}
+              >
+                {invite_over
+                  ? t("settings.fam_org_invite_summary_over", {
+                      member: format_bytes(invite_bytes),
+                      avail: format_bytes(
+                        Math.max(0, group.storage_pool_bytes - allocated_alloc),
+                      ),
+                    })
+                  : t("settings.fam_org_invite_summary", {
+                      member: format_bytes(invite_bytes),
+                      free: format_bytes(
+                        Math.max(
+                          0,
+                          group.storage_pool_bytes -
+                            allocated_alloc -
+                            invite_bytes,
+                        ),
+                      ),
+                      pool: format_bytes(group.storage_pool_bytes),
+                    })}
+              </p>
+              {turnstile_required && (
+                <TurnstileWidget
+                  ref={turnstile_ref}
+                  class_name="flex justify-start"
+                  on_expire={() => set_invite_captcha(null)}
+                  on_verify={set_invite_captcha}
+                />
+              )}
+              <div className="flex flex-wrap items-center gap-2">
+                <PillButton
+                  disabled={
+                    invite_loading || (turnstile_required && !invite_captcha)
+                  }
+                  leading={
+                    invite_loading ? (
+                      <ButtonSpinner />
+                    ) : (
+                      <UserPlusIcon className="h-4 w-4" />
+                    )
+                  }
+                  type="button"
+                  variant="filled"
+                  onClick={handle_invite_email}
+                >
+                  {t("settings.family_invite_send")}
+                </PillButton>
+                <PillButton
+                  disabled={
+                    invite_loading ||
+                    has_pending_link ||
+                    (turnstile_required && !invite_captcha)
+                  }
+                  leading={<LinkIcon className="h-4 w-4" />}
+                  title={
+                    has_pending_link
+                      ? t("settings.fam_org_revoke_link_first")
+                      : undefined
+                  }
+                  type="button"
+                  variant="tonal"
+                  onClick={handle_copy_link}
+                >
+                  {t("settings.family_invite_copy_link")}
+                </PillButton>
+                <PillButton
+                  type="button"
+                  variant="ghost"
+                  onClick={() => set_show_invite_form(false)}
+                >
+                  {t("settings.fam_org_invite_cancel")}
+                </PillButton>
               </div>
-            )}
+            </Island>
+          )}
+        </div>
+      )}
 
-          {group.pending_invites.length > 0 && (
-            <IslandSection
-              island_class_name="overflow-hidden"
-              title={t("settings.family_invite_pending")}
-            >
-              <div>
-                {group.pending_invites.map((inv) => (
-                  <div
-                    key={inv.id}
-                    className="flex min-h-14 flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 py-3"
-                  >
-                    <div className="flex items-start gap-2 flex-1 min-w-0">
-                      {inv.link_only ? (
-                        <LinkIcon className="w-4 h-4 text-txt-muted flex-shrink-0 mt-0.5" />
-                      ) : (
-                        <UserPlusIcon className="w-4 h-4 text-txt-muted flex-shrink-0 mt-0.5" />
-                      )}
-                      <div>
-                        <p className="text-sm text-txt-primary">
-                          {inv.link_only
-                            ? t("settings.family_invite_link")
-                            : t("settings.family_invite_by_email")}
-                        </p>
-                        <p className="text-xs text-txt-muted">
-                          {t("settings.family_invite_expires", {
-                            date: new Date(inv.expires_at).toLocaleDateString(
-                              app_locale(),
-                              { timeZone: get_display_time_zone() },
-                            ),
-                          })}
-                          {inv.allocated_storage_bytes > 0 && (
-                            <span>
-                              {" "}
-                              ·{" "}
-                              {t("settings.fam_org_invite_allocated", {
-                                count: Math.round(
-                                  inv.allocated_storage_bytes / 1073741824,
-                                ),
-                              })}
-                            </span>
-                          )}
-                          {inv.created_at && (
-                            <span>
-                              {" "}
-                              ·{" "}
-                              {t("settings.fam_org_invite_sent_ago", {
-                                time: invite_sent_relative(inv.created_at, t),
-                              })}
-                            </span>
-                          )}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
+      {group.pending_invites.length > 0 && (
+        <div className="flex flex-col">
+          <BillingSectionLabel>
+            {t("settings.family_invite_pending")}
+          </BillingSectionLabel>
+          <Island divided className="overflow-hidden" padding="none">
+            {group.pending_invites.map((inv) => {
+              const meta = [
+                t("settings.family_invite_expires", {
+                  date: new Date(inv.expires_at).toLocaleDateString(
+                    app_locale(),
+                    { timeZone: get_display_time_zone() },
+                  ),
+                }),
+                inv.allocated_storage_bytes > 0
+                  ? t("settings.fam_org_invite_allocated", {
+                      count: Math.round(
+                        inv.allocated_storage_bytes / 1073741824,
+                      ),
+                    })
+                  : null,
+                inv.created_at
+                  ? t("settings.fam_org_invite_sent_ago", {
+                      time: invite_sent_relative(inv.created_at, t),
+                    })
+                  : null,
+              ]
+                .filter(Boolean)
+                .join(" · ");
+
+              return (
+                <IslandRow
+                  key={inv.id}
+                  description={meta}
+                  icon={family_row_icon(
+                    inv.link_only ? LinkIcon : EnvelopeIcon,
+                  )}
+                  label={
+                    inv.link_only
+                      ? t("settings.family_invite_link")
+                      : t("settings.family_invite_by_email")
+                  }
+                  trailing={
+                    <div className="flex items-center gap-1.5">
                       {invite_urls[inv.id] && (
-                        <button
-                          className="aster_btn aster_btn_ghost aster_btn_sm flex items-center gap-1.5"
+                        <PillButton
+                          leading={<LinkIcon className="h-3.5 w-3.5" />}
+                          size="sm"
+                          type="button"
+                          variant="tonal"
                           onClick={async () => {
                             if (await copy_text(invite_urls[inv.id])) {
                               show_toast(
@@ -1532,63 +1471,95 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                             }
                           }}
                         >
-                          <LinkIcon className="w-3.5 h-3.5" />
-                          {t("settings.family_invite_copy_link")}
-                        </button>
+                          {t("common.copy")}
+                        </PillButton>
                       )}
-                      <button
-                        className="aster_btn aster_btn_ghost aster_btn_sm text-red-500 hover:text-red-600 flex-shrink-0 disabled:opacity-50"
+                      <PillButton
                         disabled={revoking_invite_id === inv.id}
+                        size="sm"
+                        type="button"
+                        className="!text-[var(--color-danger)]"
+                        variant="ghost"
                         onClick={() => handle_revoke_invite(inv.id)}
                       >
                         {t("settings.family_invite_revoke")}
-                      </button>
+                      </PillButton>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </IslandSection>
+                  }
+                />
+              );
+            })}
+          </Island>
+        </div>
+      )}
+    </>
+  );
+
+  const is_home = tab === "overview";
+  const header_trailing =
+    tab === "members" ? (
+      <span className="text-[13px] tabular-nums text-txt-muted">
+        {t("settings.fam_org_members_count", {
+          used: seats_used,
+          max: group.max_members,
+          count: seats_remaining,
+        })}
+      </span>
+    ) : undefined;
+
+  return (
+    <div ref={root_ref} className="flex w-full min-w-0 flex-col gap-4">
+      {is_home ? (
+        home
+      ) : (
+        <>
+          <FamilyPageHeader
+            description={page_descriptions[tab]}
+            on_back={() => open_tab("overview")}
+            title={page_titles[tab]}
+            trailing={header_trailing}
+          />
+          {tab === "members" && is_owner && members_page}
+          {tab === "kids" && is_owner && <KidsContent group={group} />}
+          {tab === "shared" && is_owner && (
+            <SharedMailboxesTab
+              group={group}
+              my_user_id={
+                group.members.find((m) => m.role === "owner")?.user_id ?? ""
+              }
+            />
+          )}
+          {tab === "groups" && is_owner && (
+            <GroupsContent members={active_members} />
+          )}
+          {tab === "groups" && !is_owner && <MemberGroupsContent />}
+          {tab === "activity" && is_owner && (
+            <ActivityContent members={active_members} />
+          )}
+          {tab === "filters" && is_owner && (
+            <FiltersContent
+              initial_filters={preloaded_filters}
+              other_member_count={active_members.length - 1}
+            />
+          )}
+          {tab === "domains" && is_owner && (
+            <DomainsContent members={active_members} />
+          )}
+          {tab === "security" && is_owner && (
+            <SecurityContent
+              initial_compliance={preloaded_compliance}
+              initial_security={preloaded_security}
+              other_member_count={active_members.length - 1}
+            />
+          )}
+          {tab === "security" && !is_owner && <MemberSecurityView />}
+          {tab === "retention" && is_owner && (
+            <RetentionContent
+              initial_retention={preloaded_retention}
+              other_member_count={active_members.length - 1}
+            />
           )}
         </>
-      )}
-
-      {tab === "kids" && is_owner && <KidsContent group={group} />}
-      {tab === "shared" && is_owner && (
-        <SharedMailboxesTab
-          group={group}
-          my_user_id={
-            group.members.find((m) => m.role === "owner")?.user_id ?? ""
-          }
-        />
-      )}
-      {tab === "groups" && is_owner && (
-        <GroupsContent members={active_members} />
-      )}
-      {tab === "activity" && is_owner && (
-        <ActivityContent members={active_members} />
-      )}
-      {tab === "filters" && is_owner && (
-        <FiltersContent
-          initial_filters={preloaded_filters}
-          other_member_count={active_members.length - 1}
-        />
-      )}
-      {tab === "domains" && is_owner && (
-        <DomainsContent members={active_members} />
-      )}
-      {tab === "security" && is_owner && (
-        <SecurityContent
-          initial_compliance={preloaded_compliance}
-          initial_security={preloaded_security}
-          other_member_count={active_members.length - 1}
-        />
-      )}
-      {tab === "security" && !is_owner && <MemberSecurityView />}
-      {tab === "retention" && is_owner && (
-        <RetentionContent
-          initial_retention={preloaded_retention}
-          other_member_count={active_members.length - 1}
-        />
       )}
 
       {wizard_open && (
@@ -1623,7 +1594,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                     })}
                   </p>
                 </div>
-                <div className="rounded-xl border border-edge-secondary divide-y divide-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]">
+                <Island divided className="overflow-hidden" padding="none">
                   {(
                     [
                       {
@@ -1660,22 +1631,14 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                       },
                     ] as const
                   ).map(({ Icon, label, desc }) => (
-                    <div
+                    <IslandRow
                       key={label}
-                      className="flex items-center gap-3 px-4 py-3"
-                    >
-                      <Icon className="w-4 h-4 text-txt-muted flex-shrink-0" />
-                      <div className="min-w-0">
-                        <span className="text-sm font-medium text-txt-primary">
-                          {label}
-                        </span>
-                        <span className="text-xs text-txt-muted ms-2">
-                          {desc}
-                        </span>
-                      </div>
-                    </div>
+                      description={desc}
+                      icon={family_row_icon(Icon)}
+                      label={label}
+                    />
                   ))}
-                </div>
+                </Island>
               </div>
               <ModalFooter>
                 <Button variant="ghost" onClick={close_wizard}>
@@ -1733,7 +1696,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                         </label>
                         <div className="flex items-center gap-1">
                           <Input
-                            className="w-20 h-8 text-sm"
+                            className="aster_input_tonal w-20"
                             max={String(
                               Math.max(1, Math.floor(pool_gb - used_gb)),
                             )}
@@ -1750,7 +1713,12 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                         </div>
                       </div>
                       <p
-                        className={`text-xs mt-0.5 ${low_remaining ? "text-amber-500" : "text-txt-muted"}`}
+                        className="mt-0.5 text-xs"
+                        style={{
+                          color: low_remaining
+                            ? "var(--color-warning)"
+                            : "var(--text-muted)",
+                        }}
                       >
                         {t("settings.fam_org_wizard_pool_remaining", {
                           count: format_decimal(remaining_gb, 1),
@@ -1807,21 +1775,27 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                     : t("settings.fam_org_wizard_done_desc")}
                 </ModalDescription>
               </ModalHeader>
-              <div className="px-6 pb-4 space-y-3">
+              <div className="flex flex-col gap-3 px-6 pb-4">
                 {wizard_sent_email && (
                   <div
-                    className="flex items-center gap-2 px-3 py-2.5 rounded-lg"
-                    style={{ background: "#22c55e", border: "none" }}
+                    className="flex items-center gap-2.5 rounded-[var(--aster-radius-field)] px-4 py-3"
+                    style={{
+                      backgroundColor:
+                        "color-mix(in srgb, var(--color-success) 12%, transparent)",
+                    }}
                   >
-                    <CheckCircleIcon className="w-4 h-4 text-white flex-shrink-0" />
-                    <p className="text-sm font-medium text-white">
+                    <CheckCircleIcon
+                      className="h-5 w-5 flex-shrink-0"
+                      style={{ color: "var(--color-success)" }}
+                    />
+                    <p className="text-sm font-medium text-txt-primary">
                       {t("settings.fam_org_wizard_invite_sent_to", {
                         email: wizard_sent_email,
                       })}
                     </p>
                   </div>
                 )}
-                <div className="grid grid-cols-2 gap-2">
+                <Island divided className="overflow-hidden" padding="none">
                   {[
                     {
                       Icon: ShieldCheckIcon,
@@ -1860,27 +1834,19 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                       desc: t("settings.fam_org_wizard_grid_activity_desc"),
                     },
                   ].map(({ Icon, tab: target_tab, label, desc }) => (
-                    <button
+                    <IslandRow
                       key={label}
-                      className="flex flex-col gap-1.5 p-3 rounded-xl border border-edge-secondary bg-surf-primary hover:bg-surf-secondary text-start transition-colors group"
-                      onClick={() => {
+                      chevron
+                      description={desc}
+                      icon={family_row_icon(Icon)}
+                      label={label}
+                      on_press={() => {
                         close_wizard();
                         set_tab(target_tab);
                       }}
-                    >
-                      <div className="flex items-center gap-2">
-                        <Icon className="w-4 h-4 flex-shrink-0 text-txt-muted" />
-                        <span className="text-sm font-semibold text-txt-primary">
-                          {label}
-                        </span>
-                        <ArrowRightIcon className="w-3 h-3 text-txt-muted ms-auto opacity-0 group-hover:opacity-100 transition-opacity rtl:-scale-x-100" />
-                      </div>
-                      <p className="text-xs text-txt-muted leading-relaxed">
-                        {desc}
-                      </p>
-                    </button>
+                    />
                   ))}
-                </div>
+                </Island>
               </div>
               <ModalFooter>
                 <Button variant="ghost" onClick={() => set_wizard_step(2)}>

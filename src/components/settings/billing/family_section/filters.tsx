@@ -22,17 +22,27 @@ import { useState, useEffect, useCallback } from "react";
 import {
   TrashIcon,
   ExclamationTriangleIcon,
-  CheckCircleIcon,
-  XCircleIcon,
   PlusIcon,
   FunnelIcon,
+  ArrowRightIcon,
 } from "@heroicons/react/24/outline";
-import { Button, Island } from "@aster/ui";
+import {
+  Button,
+  Island,
+  IslandEmpty,
+  IslandIconButton,
+  IslandRow,
+  PillButton,
+} from "@aster/ui";
 
 import { TFn } from "./helpers";
+import {
+  FamilyCreateBar,
+  FamilySkeletonRows,
+  family_row_icon,
+} from "./family_ui";
 
 import { submit_on_enter } from "@/lib/commit_on_enter";
-import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { Input } from "@/components/ui/input";
 import { InfoPopover } from "@/components/ui/info_popover";
 import { ButtonSpinner } from "@/components/ui/spinner";
@@ -74,14 +84,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert_dialog";
+import {
+  BillingNotice,
+  BillingSectionLabel,
+} from "@/components/settings/billing/billing_layout";
 import { ignore_error } from "@/lib/ignore_error";
 
 export const FILTER_FIELD_COLORS: Record<string, string> = {
-  from: "#6366f1",
-  domain: "#8b5cf6",
-  to: "#3b82f6",
-  subject: "#f59e0b",
-  ip: "#0ea5e9",
+  from: "var(--accent-color)",
+  domain: "var(--accent-color)",
+  to: "var(--accent-color)",
+  subject: "var(--color-warning)",
+  ip: "var(--accent-color)",
 };
 
 export function filter_field_labels(t: TFn): Record<string, string> {
@@ -105,12 +119,38 @@ export function filter_action_labels(t: TFn): Record<string, string> {
 }
 
 export const FILTER_ACTION_COLORS: Record<string, string> = {
-  trash: "#ef4444",
-  block: "#ef4444",
-  archive: "#6366f1",
-  tag: "#f59e0b",
-  redirect: "#8b5cf6",
+  trash: "var(--color-danger)",
+  block: "var(--color-danger)",
+  archive: "var(--accent-color)",
+  tag: "var(--color-warning)",
+  redirect: "var(--accent-color)",
 };
+
+export const FAMILY_FIELD_LABEL_CLASS =
+  "flex items-center gap-1.5 text-[12.5px] font-medium text-txt-secondary";
+
+export function FamilyLoadFailed({ on_retry }: { on_retry: () => void }) {
+  const { t } = use_i18n();
+
+  return (
+    <Island padding="lg">
+      <IslandEmpty
+        action={
+          <PillButton
+            size="sm"
+            type="button"
+            variant="tonal"
+            onClick={on_retry}
+          >
+            {t("common.retry")}
+          </PillButton>
+        }
+        icon={<ExclamationTriangleIcon />}
+        title={t("common.something_went_wrong_try_again")}
+      />
+    </Island>
+  );
+}
 
 export interface FilterCardProps {
   filter: OrgFilter;
@@ -120,81 +160,55 @@ export interface FilterCardProps {
 
 export function FilterCard({ filter, on_toggle, on_delete }: FilterCardProps) {
   const { t } = use_i18n();
-  const dot_color = FILTER_FIELD_COLORS[filter.field] ?? "#a3a3a3";
-  const action_color = FILTER_ACTION_COLORS[filter.action] ?? "#a3a3a3";
+  const action_color =
+    FILTER_ACTION_COLORS[filter.action] ?? "var(--text-secondary)";
   const action_label = filter_action_labels(t)[filter.action] ?? filter.action;
   const field_label = filter_field_labels(t)[filter.field] ?? filter.field;
 
   return (
-    <Island
-      className={`group relative p-4 transition-opacity${!filter.is_enabled ? " opacity-60" : ""}`}
-    >
-      <div className="flex items-start gap-3">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 mb-1.5">
-            <span
-              className="w-2 h-2 rounded-full flex-shrink-0"
-              style={{ backgroundColor: dot_color }}
-            />
-            <span className="text-[13px] font-medium text-txt-primary truncate">
-              {filter.name}
-            </span>
-          </div>
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="inline-flex items-stretch h-7 rounded-[12px] border bg-transparent border-edge-secondary overflow-hidden">
-              <span className="h-full flex items-center gap-1.5 px-2.5 text-[12.5px] font-medium text-txt-secondary rounded-s-[11px]">
-                {field_label}
-              </span>
-              <span className="h-full flex items-center gap-1.5 px-2.5 text-[12.5px] font-medium text-txt-secondary border-s border-edge-secondary">
-                <span className="truncate max-w-[200px]">{filter.value}</span>
-              </span>
-            </span>
-            <span className="text-txt-muted text-[12px] px-0.5">→</span>
-            <span
-              className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-[12px] text-[12.5px] font-medium text-white"
-              style={{ backgroundColor: action_color }}
-            >
-              {action_label}
-            </span>
-          </div>
-        </div>
-        <div className="flex items-center gap-1 flex-shrink-0 opacity-40 group-hover:opacity-100 transition-opacity">
-          <button
-            className="p-1.5 text-txt-muted hover:text-txt-primary"
-            title={
-              filter.is_enabled
-                ? t("settings.fam_org_filter_disable")
-                : t("settings.fam_org_filter_enable")
-            }
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              on_toggle(filter);
-            }}
-          >
-            {filter.is_enabled ? (
-              <CheckCircleIcon
-                className="w-4 h-4"
-                style={{ color: "var(--accent-blue)" }}
-              />
-            ) : (
-              <XCircleIcon className="w-4 h-4" />
-            )}
-          </button>
-          <button
-            className="p-1.5 text-txt-muted hover:text-red-500"
-            title={t("settings.fam_org_filter_delete")}
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              on_delete(filter.id);
-            }}
-          >
-            <TrashIcon className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-    </Island>
+    <IslandRow
+      description={
+        <span className="inline-flex min-w-0 flex-wrap items-center gap-x-1.5">
+          <span>{field_label}</span>
+          <span className="max-w-[220px] truncate font-medium text-txt-secondary">
+            {filter.value}
+          </span>
+          <ArrowRightIcon
+            aria-hidden="true"
+            className="h-3 w-3 flex-shrink-0 rtl:-scale-x-100"
+          />
+          <span className="font-medium" style={{ color: action_color }}>
+            {action_label}
+          </span>
+        </span>
+      }
+      icon={family_row_icon(FunnelIcon)}
+      label={
+        <span className={filter.is_enabled ? "" : "text-txt-muted"}>
+          {filter.name}
+        </span>
+      }
+      toggle={{
+        checked: filter.is_enabled,
+        on_change: () => on_toggle(filter),
+        aria_label: filter.is_enabled
+          ? t("settings.fam_org_filter_disable")
+          : t("settings.fam_org_filter_enable"),
+      }}
+      trailing={
+        <IslandIconButton
+          label={t("settings.fam_org_filter_delete")}
+          size="sm"
+          title={t("settings.fam_org_filter_delete")}
+          onClick={(e) => {
+            e.stopPropagation();
+            on_delete(filter.id);
+          }}
+        >
+          <TrashIcon className="h-4 w-4" />
+        </IslandIconButton>
+      }
+    />
   );
 }
 
@@ -252,7 +266,7 @@ export function ConsentGateDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <div className="px-1 pb-2">
-          <div className="rounded-xl bg-surf-secondary px-3 py-2 text-sm text-txt-secondary">
+          <div className="rounded-[var(--aster-radius-field)] bg-[color-mix(in_srgb,var(--text-primary)_6%,transparent)] px-4 py-3 text-sm text-txt-secondary">
             {description}
           </div>
         </div>
@@ -320,51 +334,47 @@ export function MemberConsentPanel() {
   };
 
   if (requests.length === 0) {
-    if (load_failed) return <LoadFailedNotice on_retry={load_requests} />;
+    if (load_failed) return <FamilyLoadFailed on_retry={load_requests} />;
 
     return null;
   }
 
   return (
-    <Island className="space-y-3" padding="md" tone="warning">
-      <div className="flex items-center gap-2">
-        <ExclamationTriangleIcon className="w-4 h-4 text-amber-500 flex-shrink-0" />
-        <p className="text-sm font-semibold text-txt-primary">
-          {t("settings.fam_consent_member_title")}
-        </p>
-      </div>
-      <div className="space-y-2">
-        {requests.map((req) => (
-          <div key={req.id} className="rounded-xl bg-surf-primary p-3">
-            <p className="text-xs text-txt-muted mb-1">
-              {t("settings.fam_consent_member_from", {
-                name: req.admin_username,
-              })}
-            </p>
-            <p className="text-sm text-txt-primary mb-3">{req.description}</p>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                disabled={responding === req.id}
-                size="sm"
-                variant="depth"
-                onClick={() => respond(req.id, true)}
-              >
-                {t("settings.fam_consent_member_accept")}
-                {responding === req.id && <ButtonSpinner />}
-              </Button>
-              <Button
-                disabled={responding === req.id}
-                size="sm"
-                variant="outline"
-                onClick={() => respond(req.id, false)}
-              >
-                {t("settings.fam_consent_member_decline")}
-              </Button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </Island>
+    <div className="flex flex-col gap-2">
+      <BillingSectionLabel>
+        {t("settings.fam_consent_member_title")}
+      </BillingSectionLabel>
+      {requests.map((req) => (
+        <BillingNotice
+          key={req.id}
+          body={t("settings.fam_consent_member_from", {
+            name: req.admin_username,
+          })}
+          icon={ExclamationTriangleIcon}
+          title={req.description}
+          tone="warning"
+        >
+          <PillButton
+            disabled={responding === req.id}
+            leading={responding === req.id ? <ButtonSpinner /> : undefined}
+            size="sm"
+            type="button"
+            onClick={() => respond(req.id, true)}
+          >
+            {t("settings.fam_consent_member_accept")}
+          </PillButton>
+          <PillButton
+            disabled={responding === req.id}
+            size="sm"
+            type="button"
+            variant="tonal"
+            onClick={() => respond(req.id, false)}
+          >
+            {t("settings.fam_consent_member_decline")}
+          </PillButton>
+        </BillingNotice>
+      ))}
+    </div>
   );
 }
 
@@ -493,38 +503,64 @@ export function FiltersContent({
     }
   };
 
+  const open_form = () => set_show_form(true);
+
   return (
-    <div className="space-y-4">
-      <div>
-        <div className="mb-4">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
-              <FunnelIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
+    <div className="flex flex-col gap-4">
+      {loading && filters.length === 0 ? (
+        <FamilySkeletonRows count={3} />
+      ) : filters.length === 0 && filters_load_failed ? (
+        <FamilyLoadFailed on_retry={() => void load()} />
+      ) : filters.length === 0 ? (
+        <Island padding="lg">
+          <IslandEmpty
+            action={
+              <PillButton
+                leading={<PlusIcon className="h-4 w-4" />}
+                size="sm"
+                type="button"
+                onClick={open_form}
+              >
+                {t("settings.fam_org_filters_new")}
+              </PillButton>
+            }
+            description={t("settings.fam_org_filters_empty_desc")}
+            icon={<FunnelIcon />}
+            title={t("settings.fam_org_filters_empty_title")}
+          />
+        </Island>
+      ) : (
+        <div className="flex flex-col">
+          <BillingSectionLabel>
+            <span className="inline-flex items-center gap-1.5">
               {t("settings.fam_org_filters_heading")}
               <InfoPopover
                 description={t("settings.fam_org_filters_info_desc")}
                 title={t("settings.fam_org_filters_info_title")}
               />
-              <span className="text-xs font-normal text-txt-muted">
-                {loading ? null : filters.length}
+              <span className="font-normal tabular-nums text-txt-muted">
+                {filters.length}
               </span>
-            </h3>
-            <Button variant="depth" onClick={() => set_show_form(true)}>
-              <PlusIcon className="w-4 h-4" />
-              {t("settings.fam_org_filters_new")}
-            </Button>
-          </div>
-        </div>
-        <p className="text-sm mb-4 text-txt-muted">
-          {t("settings.fam_org_filters_subtitle")}
-        </p>
-      </div>
-
-      {loading && filters.length === 0 && (
-        <div className="flex flex-col gap-2">
-          {[0, 1, 2].map((i) => (
-            <div key={i} className="aster_island h-20 animate-pulse" />
-          ))}
+            </span>
+          </BillingSectionLabel>
+          <Island divided className="overflow-hidden" padding="none">
+            {filters.map((f) => (
+              <FilterCard
+                key={f.id}
+                filter={f}
+                on_delete={del_f}
+                on_toggle={toggle_f}
+              />
+            ))}
+            <IslandRow
+              icon={family_row_icon(PlusIcon)}
+              label={t("settings.fam_org_filters_new")}
+              on_press={open_form}
+            />
+          </Island>
+          <p className="ms-1 mt-2 text-[12.5px] text-txt-muted">
+            {t("settings.fam_org_filters_subtitle")}
+          </p>
         </div>
       )}
 
@@ -543,13 +579,14 @@ export function FiltersContent({
             {t("settings.fam_org_filters_modal_desc")}
           </ModalDescription>
         </ModalHeader>
-        <div className="px-6 pb-2 space-y-4">
-          <div className="space-y-1">
-            <label className="text-[11px] font-semibold uppercase tracking-wide text-txt-muted">
+        <div className="flex flex-col gap-4 px-6 pb-2">
+          <div className="flex flex-col gap-1.5">
+            <label className={FAMILY_FIELD_LABEL_CLASS}>
               {t("settings.fam_org_filters_name_label")}
             </label>
             <Input
               autoFocus
+              className="aster_input_tonal"
               placeholder={t("settings.fam_org_filters_name_placeholder")}
               value={form.name}
               onChange={(e) =>
@@ -558,21 +595,20 @@ export function FiltersContent({
               onKeyDown={submit_filter_form}
             />
           </div>
-          <div className="border-t border-edge-secondary" />
-          <div className="space-y-1">
-            <label className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-txt-muted">
+          <div className="flex flex-col gap-1.5">
+            <label className={FAMILY_FIELD_LABEL_CLASS}>
               {t("settings.fam_org_filters_condition_label")}
               <InfoPopover
                 description={t("settings.fam_org_filters_condition_info_desc")}
                 title={t("settings.fam_org_filters_condition_info_title")}
               />
             </label>
-            <div className="flex gap-2">
+            <FamilyCreateBar>
               <Select
                 value={form.field}
                 onValueChange={(v) => set_form((f) => ({ ...f, field: v }))}
               >
-                <SelectTrigger className="flex-1">
+                <SelectTrigger className="h-10 rounded-[var(--aster-radius-field)] sm:flex-1">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -594,20 +630,18 @@ export function FiltersContent({
                 </SelectContent>
               </Select>
               <Input
-                className="flex-1"
+                className="aster_input_tonal sm:flex-1"
                 placeholder={t("settings.fam_org_filters_value_placeholder")}
-                size="sm"
                 value={form.value}
                 onChange={(e) =>
                   set_form((f) => ({ ...f, value: e.target.value }))
                 }
                 onKeyDown={submit_filter_form}
               />
-            </div>
+            </FamilyCreateBar>
           </div>
-          <div className="border-t border-edge-secondary" />
-          <div className="space-y-1">
-            <label className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-txt-muted">
+          <div className="flex flex-col gap-1.5">
+            <label className={FAMILY_FIELD_LABEL_CLASS}>
               {t("settings.fam_org_filters_action_label")}
               <InfoPopover
                 description={t("settings.fam_org_filters_action_info_desc")}
@@ -618,7 +652,7 @@ export function FiltersContent({
               value={form.action}
               onValueChange={(v) => set_form((f) => ({ ...f, action: v }))}
             >
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="h-10 w-full rounded-[var(--aster-radius-field)]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -662,34 +696,6 @@ export function FiltersContent({
         </ModalFooter>
       </Modal>
 
-      {!loading && filters.length === 0 && filters_load_failed && (
-        <LoadFailedNotice on_retry={() => void load()} />
-      )}
-
-      {!loading && filters.length === 0 && !filters_load_failed && (
-        <Island className="text-center py-8" padding="lg">
-          <FunnelIcon className="w-12 h-12 mx-auto mb-2 text-txt-tertiary" />
-          <p className="text-sm text-txt-muted mb-1">
-            {t("settings.fam_org_filters_empty_title")}
-          </p>
-          <p className="text-xs text-txt-muted">
-            {t("settings.fam_org_filters_empty_desc")}
-          </p>
-        </Island>
-      )}
-
-      {filters.length > 0 && (
-        <div className="space-y-2">
-          {filters.map((f) => (
-            <FilterCard
-              key={f.id}
-              filter={f}
-              on_delete={del_f}
-              on_toggle={toggle_f}
-            />
-          ))}
-        </div>
-      )}
       <ConsentGateDialog
         description={
           consent_kind === "filter_enable"

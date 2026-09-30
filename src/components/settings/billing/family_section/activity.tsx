@@ -18,7 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { Island } from "@aster/ui";
+import type { ComponentType, SVGProps } from "react";
+
+import { Island, IslandEmpty, IslandRow, PillButton } from "@aster/ui";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   UserPlusIcon,
@@ -29,6 +31,7 @@ import {
   GlobeAltIcon,
   ChartBarIcon,
   ArrowsRightLeftIcon,
+  MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 
 import {
@@ -37,7 +40,12 @@ import {
   format_activity_time,
   last_seen_relative,
 } from "./helpers";
-import { SkeletonRows } from "./shared";
+import {
+  FamilyCreateBar,
+  FamilySkeletonRows,
+  family_row_icon,
+} from "./family_ui";
+import { FamilyLoadFailed } from "./filters";
 
 import { Input } from "@/components/ui/input";
 import { ButtonSpinner } from "@/components/ui/spinner";
@@ -55,9 +63,27 @@ import {
 } from "@/services/api/family_org";
 import { type FamilyMemberInfo } from "@/services/api/family";
 import { show_toast } from "@/components/toast/simple_toast";
-import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { use_i18n } from "@/lib/i18n/context";
 import type {} from "@/lib/i18n/types";
+
+function activity_event_icon(
+  event_type: string,
+): ComponentType<SVGProps<SVGSVGElement>> {
+  if (["member_joined", "invite_sent"].includes(event_type))
+    return UserPlusIcon;
+  if (
+    ["member_removed", "invite_revoked", "group_deleted"].includes(event_type)
+  )
+    return TrashIcon;
+  if (["admin_transferred", "storage_updated"].includes(event_type))
+    return ArrowsRightLeftIcon;
+  if (["security_policy_updated", "security_notify_sent"].includes(event_type))
+    return ShieldCheckIcon;
+  if (event_type === "retention_updated") return ArchiveBoxIcon;
+  if (event_type === "domain_shared") return GlobeAltIcon;
+
+  return PlusIcon;
+}
 
 export function ActivityContent({ members }: { members: FamilyMemberInfo[] }) {
   const { t } = use_i18n();
@@ -113,13 +139,15 @@ export function ActivityContent({ members }: { members: FamilyMemberInfo[] }) {
     );
   }, [entries, search, t]);
 
+  const initial_loading = loading && entries.length === 0;
+
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+    <div className="flex flex-col gap-4">
+      <FamilyCreateBar>
         <Input
-          className="flex-1"
+          aria-label={t("settings.fam_org_activity_search_placeholder")}
+          className="aster_input_tonal sm:flex-1"
           placeholder={t("settings.fam_org_activity_search_placeholder")}
-          size="sm"
           value={search}
           onChange={(e) => set_search(e.target.value)}
         />
@@ -127,7 +155,7 @@ export function ActivityContent({ members }: { members: FamilyMemberInfo[] }) {
           value={filter_type || "all"}
           onValueChange={(v) => set_filter_type(v === "all" ? "" : v)}
         >
-          <SelectTrigger className="w-full sm:w-48">
+          <SelectTrigger className="h-10 w-full rounded-[var(--aster-radius-field)] sm:w-52">
             <SelectValue
               placeholder={t("settings.fam_org_activity_all_events")}
             />
@@ -143,28 +171,22 @@ export function ActivityContent({ members }: { members: FamilyMemberInfo[] }) {
             ))}
           </SelectContent>
         </Select>
-      </div>
-      <span
-        className={`text-sm text-txt-muted ${loading && entries.length === 0 ? "invisible" : ""}`}
-      >
-        {t("settings.fam_org_activity_events", { count: total })}
-      </span>
-      {loading && entries.length === 0 ? (
-        <SkeletonRows count={4} />
+      </FamilyCreateBar>
+
+      {initial_loading ? (
+        <FamilySkeletonRows count={4} />
       ) : entries.length === 0 && load_failed ? (
-        <LoadFailedNotice
+        <FamilyLoadFailed
           on_retry={() => void load_page(1, filter_type || undefined)}
         />
       ) : entries.length === 0 ? (
-        <Island className="flex flex-col items-center gap-3 py-8" padding="lg">
-          <ChartBarIcon className="w-12 h-12 text-txt-muted" />
-          <p className="text-sm font-medium text-txt-primary">
-            {t("settings.fam_org_activity_empty_title")}
-          </p>
-          <p className="text-xs text-txt-muted text-center max-w-xs">
-            {t("settings.fam_org_activity_empty_desc")}
-          </p>
-          <div className="grid grid-cols-2 gap-x-4 gap-y-1 mt-1 text-start">
+        <Island padding="lg">
+          <IslandEmpty
+            description={t("settings.fam_org_activity_empty_desc")}
+            icon={<ChartBarIcon />}
+            title={t("settings.fam_org_activity_empty_title")}
+          />
+          <div className="mx-auto mt-1 grid w-fit grid-cols-2 gap-x-5 gap-y-1.5 text-start">
             {[
               t("settings.fam_org_activity_cat_member_joins"),
               t("settings.fam_org_activity_cat_security_changes"),
@@ -175,101 +197,82 @@ export function ActivityContent({ members }: { members: FamilyMemberInfo[] }) {
             ].map((e) => (
               <div
                 key={e}
-                className="flex items-center gap-1.5 text-xs text-txt-muted"
+                className="flex items-center gap-2 text-[12.5px] text-txt-muted"
               >
-                <div className="w-1 h-1 rounded-full bg-edge-secondary flex-shrink-0" />
+                <span
+                  className="h-1 w-1 flex-shrink-0 rounded-full"
+                  style={{ backgroundColor: "var(--text-muted)" }}
+                />
                 {e}
               </div>
             ))}
           </div>
         </Island>
-      ) : filtered_entries.length === 0 ? (
-        <Island className="text-center" padding="lg">
-          <p className="text-sm text-txt-muted">{t("common.no_results")}</p>
-        </Island>
       ) : (
-        <Island className="overflow-hidden">
-          {filtered_entries.map((entry) => {
-            const actor_member = entry.actor_username
-              ? members.find((m) => m.username === entry.actor_username)
-              : null;
-            const actor_email = actor_member
-              ? `${actor_member.username}@${actor_member.email_domain}`
-              : entry.actor_username
-                ? `${entry.actor_username}@astermail.org`
-                : null;
+        <div className="flex flex-col">
+          <p className="mb-2 ms-1 text-[12.5px] tabular-nums text-txt-muted">
+            {t("settings.fam_org_activity_events", { count: total })}
+          </p>
+          {filtered_entries.length === 0 ? (
+            <Island padding="lg">
+              <IslandEmpty
+                icon={<MagnifyingGlassIcon />}
+                title={t("common.no_results")}
+              />
+            </Island>
+          ) : (
+            <Island divided className="overflow-hidden" padding="none">
+              {filtered_entries.map((entry) => {
+                const actor_member = entry.actor_username
+                  ? members.find((m) => m.username === entry.actor_username)
+                  : null;
+                const actor_email = actor_member
+                  ? `${actor_member.username}@${actor_member.email_domain}`
+                  : entry.actor_username
+                    ? `${entry.actor_username}@astermail.org`
+                    : null;
 
-            return (
-              <div
-                key={entry.id}
-                className="flex min-h-14 items-center gap-3 px-4 py-3"
-              >
-                {actor_email && (
-                  <ProfileAvatar
-                    className="flex-shrink-0"
-                    email={actor_email}
-                    name={entry.actor_username!}
-                    size="sm"
+                return (
+                  <IslandRow
+                    key={entry.id}
+                    description={
+                      <span title={format_activity_time(entry.created_at)}>
+                        {last_seen_relative(entry.created_at, t)}
+                      </span>
+                    }
+                    icon={family_row_icon(
+                      activity_event_icon(entry.event_type),
+                    )}
+                    label={activity_event_text(t, entry)}
+                    trailing={
+                      actor_email ? (
+                        <ProfileAvatar
+                          className="flex-shrink-0"
+                          email={actor_email}
+                          name={entry.actor_username!}
+                          size="xs"
+                        />
+                      ) : undefined
+                    }
                   />
-                )}
-                {!entry.actor_username && (
-                  <div className="w-6 h-6 flex-shrink-0 flex items-center justify-center">
-                    <div className="w-2 h-2 rounded-full bg-edge-secondary" />
-                  </div>
-                )}
-                <div className="flex-shrink-0">
-                  {["member_joined", "invite_sent"].includes(
-                    entry.event_type,
-                  ) ? (
-                    <UserPlusIcon className="w-5 h-5 text-txt-muted" />
-                  ) : [
-                      "member_removed",
-                      "invite_revoked",
-                      "group_deleted",
-                    ].includes(entry.event_type) ? (
-                    <TrashIcon className="w-5 h-5 text-txt-muted" />
-                  ) : ["admin_transferred", "storage_updated"].includes(
-                      entry.event_type,
-                    ) ? (
-                    <ArrowsRightLeftIcon className="w-5 h-5 text-txt-muted" />
-                  ) : [
-                      "security_policy_updated",
-                      "security_notify_sent",
-                    ].includes(entry.event_type) ? (
-                    <ShieldCheckIcon className="w-5 h-5 text-txt-muted" />
-                  ) : ["retention_updated"].includes(entry.event_type) ? (
-                    <ArchiveBoxIcon className="w-5 h-5 text-txt-muted" />
-                  ) : ["domain_shared"].includes(entry.event_type) ? (
-                    <GlobeAltIcon className="w-5 h-5 text-txt-muted" />
-                  ) : (
-                    <PlusIcon className="w-5 h-5 text-txt-muted" />
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <span className="text-sm text-txt-primary">
-                    {activity_event_text(t, entry)}
-                  </span>
-                  <p
-                    className="text-xs text-txt-muted mt-0.5"
-                    title={format_activity_time(entry.created_at)}
-                  >
-                    {last_seen_relative(entry.created_at, t)}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
-        </Island>
+                );
+              })}
+            </Island>
+          )}
+        </div>
       )}
+
       {entries.length < total && (
-        <button
-          className="aster_btn aster_btn_secondary aster_btn_sm disabled:opacity-50"
+        <PillButton
+          className="self-center"
           disabled={loading}
+          leading={loading ? <ButtonSpinner /> : undefined}
+          type="button"
+          variant="tonal"
           onClick={() => load_page(page + 1, filter_type || undefined)}
         >
           {t("settings.fam_org_activity_load_more")}
-          {loading && <ButtonSpinner />}
-        </button>
+        </PillButton>
       )}
     </div>
   );

@@ -19,16 +19,22 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useEffect, useCallback, useRef } from "react";
-import { InformationCircleIcon } from "@heroicons/react/24/outline";
-import { Switch, Button, Island } from "@aster/ui";
+import {
+  InboxStackIcon,
+  NoSymbolIcon,
+  PaperAirplaneIcon,
+  ShieldCheckIcon,
+  TrashIcon,
+} from "@heroicons/react/24/outline";
+import { Island, IslandRow, PillButton } from "@aster/ui";
 
-import { ConsentGateDialog } from "./filters";
+import { ConsentGateDialog, FamilyLoadFailed } from "./filters";
+import { FamilySkeletonRows, family_row_icon } from "./family_ui";
 
 import { commit_on_enter } from "@/lib/commit_on_enter";
 import { Input } from "@/components/ui/input";
 import { InfoPopover } from "@/components/ui/info_popover";
-import { Spinner } from "@/components/ui/spinner";
-import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
+import { BillingNotice } from "@/components/settings/billing/billing_layout";
 import {
   get_data_retention,
   update_data_retention,
@@ -164,68 +170,67 @@ export function RetentionContent({
   );
 
   if (!policy && load_failed)
-    return <LoadFailedNotice on_retry={() => void load_policy()} />;
+    return <FamilyLoadFailed on_retry={() => void load_policy()} />;
 
-  if (!policy)
-    return (
-      <div className="flex justify-center items-center gap-2 py-8">
-        <Spinner size="sm" />
-        <span className="text-sm text-txt-muted">
-          {t("settings.fam_org_ret_loading")}
-        </span>
-      </div>
-    );
+  if (!policy) return <FamilySkeletonRows count={5} />;
+
+  const has_enforce_draft =
+    other_member_count > 0 &&
+    !!policy.enforce_on_members &&
+    server_policy !== null &&
+    JSON.stringify(policy) !== JSON.stringify(server_policy);
 
   return (
-    <div className="space-y-4">
-      <Island className="flex items-start gap-2 px-4 py-3">
-        <InformationCircleIcon className="w-4 h-4 text-txt-muted flex-shrink-0 mt-0.5" />
-        <p className="text-xs text-txt-muted">
-          {t("settings.fam_org_ret_intro")}
-        </p>
-      </Island>
-      <Island className="overflow-hidden">
+    <div className="flex flex-col gap-4">
+      <p className="ms-1 text-[13px] leading-relaxed text-txt-muted">
+        {t("settings.fam_org_ret_intro")}
+      </p>
+      <Island divided className="overflow-hidden" padding="none">
         {[
           {
             key: "trash_retention_days" as const,
+            icon: TrashIcon,
             label: t("settings.fam_org_ret_trash"),
             hint: t("settings.fam_org_ret_trash_hint"),
             info: t("settings.fam_org_ret_trash_info"),
           },
           {
             key: "spam_retention_days" as const,
+            icon: NoSymbolIcon,
             label: t("settings.fam_org_ret_spam"),
             hint: t("settings.fam_org_ret_spam_hint"),
             info: t("settings.fam_org_ret_spam_info"),
           },
           {
             key: "sent_retention_days" as const,
+            icon: PaperAirplaneIcon,
             label: t("settings.fam_org_ret_sent"),
             hint: t("settings.fam_org_ret_sent_hint"),
             info: t("settings.fam_org_ret_sent_info"),
           },
           {
             key: "all_mail_retention_days" as const,
+            icon: InboxStackIcon,
             label: t("settings.fam_org_ret_all_mail"),
             hint: t("settings.fam_org_ret_all_mail_hint"),
             info: t("settings.fam_org_ret_all_mail_info"),
           },
-        ].map(({ key, label, hint, info }) => {
-          return (
-            <div
-              key={key}
-              className="flex min-h-14 items-center justify-between gap-3 px-4 py-4"
-            >
-              <div className="flex-1 pe-4">
-                <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
-                  {label}
-                  <InfoPopover description={info} title={label} />
-                </p>
-                <p className="text-sm mt-0.5 text-txt-muted">{hint}</p>
-              </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
+        ].map(({ key, icon, label, hint, info }) => (
+          <IslandRow
+            key={key}
+            description={hint}
+            icon={family_row_icon(icon)}
+            label={
+              <span className="inline-flex items-center gap-1.5">
+                {label}
+                <InfoPopover description={info} title={label} />
+              </span>
+            }
+            trailing={
+              <span className="flex flex-shrink-0 items-center gap-2">
                 <Input
-                  className="w-20"
+                  aria-label={label}
+                  className="aster_input_tonal w-20"
                   min="1"
                   placeholder={t("settings.fam_org_ret_off")}
                   type="number"
@@ -252,39 +257,40 @@ export function RetentionContent({
                   }
                   onKeyDown={commit_on_enter}
                 />
-                <span className="text-xs text-txt-muted">
+                <span className="text-[12.5px] text-txt-muted">
                   {t("settings.fam_org_ret_days")}
                 </span>
-              </div>
-            </div>
-          );
-        })}
-        <div className="flex min-h-14 items-center justify-between gap-3 px-4 py-4">
-          <div className="flex-1 pe-4">
-            <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
+              </span>
+            }
+          />
+        ))}
+        <IslandRow
+          description={
+            policy.enforce_on_members ? (
+              <span
+                className="font-medium"
+                style={{ color: "var(--color-warning)" }}
+              >
+                {t("settings.fam_org_ret_enforce_on_desc")}
+              </span>
+            ) : (
+              t("settings.fam_org_ret_enforce_off_desc")
+            )
+          }
+          icon={family_row_icon(ShieldCheckIcon)}
+          label={
+            <span className="inline-flex items-center gap-1.5">
               {t("settings.fam_org_ret_enforce")}
               <InfoPopover
                 description={t("settings.fam_org_ret_enforce_info_desc")}
                 title={t("settings.fam_org_ret_enforce_info_title")}
               />
-            </p>
-            <p
-              className={
-                policy.enforce_on_members
-                  ? "text-sm mt-0.5 text-amber-500 dark:text-amber-400 font-medium"
-                  : "text-sm mt-0.5 text-txt-muted"
-              }
-            >
-              {policy.enforce_on_members
-                ? t("settings.fam_org_ret_enforce_on_desc")
-                : t("settings.fam_org_ret_enforce_off_desc")}
-            </p>
-          </div>
-          <Switch
-            aria-label={t("settings.fam_org_ret_enforce")}
-            checked={policy.enforce_on_members}
-            size="lg"
-            onCheckedChange={(val) => {
+            </span>
+          }
+          toggle={{
+            checked: policy.enforce_on_members,
+            aria_label: t("settings.fam_org_ret_enforce"),
+            on_change: (val) => {
               if (val) {
                 if (other_member_count > 0) {
                   set_consent_payload({ ...policy, enforce_on_members: true });
@@ -295,62 +301,37 @@ export function RetentionContent({
               } else {
                 apply({ ...policy, enforce_on_members: false });
               }
-            }}
-          />
-        </div>
+            },
+          }}
+        />
       </Island>
-      {(() => {
-        if (consent_sent_payload) {
-          return (
-            <Island
-              className="flex flex-wrap items-center justify-between gap-2 px-4 py-3"
-              tone="warning"
-            >
-              <p className="text-xs text-amber-700 dark:text-amber-300 flex-1 me-3">
-                {t("settings.fam_consent_sent_toast")}
-              </p>
-            </Island>
-          );
-        }
-
-        const has_enforce_draft =
-          other_member_count > 0 &&
-          !!policy.enforce_on_members &&
-          server_policy !== null &&
-          JSON.stringify(policy) !== JSON.stringify(server_policy);
-
-        return has_enforce_draft ? (
-          <Island
-            className="flex flex-wrap items-center justify-between gap-2 px-4 py-3"
-            tone="warning"
+      {consent_sent_payload ? (
+        <BillingNotice title={t("settings.fam_consent_sent_toast")} />
+      ) : has_enforce_draft ? (
+        <BillingNotice title={t("settings.fam_ret_unsaved_consent")}>
+          <PillButton
+            size="sm"
+            type="button"
+            variant="ghost"
+            onClick={() => set_policy(server_policy!)}
           >
-            <p className="text-xs text-amber-700 dark:text-amber-300 flex-1 me-3">
-              {t("settings.fam_ret_unsaved_consent")}
-            </p>
-            <div className="flex gap-2 flex-shrink-0">
-              <button
-                className="aster_btn aster_btn_ghost aster_btn_sm"
-                onClick={() => set_policy(server_policy!)}
-              >
-                {t("settings.fam_org_sec_discard")}
-              </button>
-              <Button
-                size="sm"
-                variant="depth"
-                onClick={() => {
-                  set_consent_payload(policy);
-                  set_consent_open(true);
-                }}
-              >
-                {t("settings.fam_ret_request_consent")}
-              </Button>
-            </div>
-          </Island>
-        ) : null;
-      })()}
+            {t("settings.fam_org_sec_discard")}
+          </PillButton>
+          <PillButton
+            size="sm"
+            type="button"
+            onClick={() => {
+              set_consent_payload(policy);
+              set_consent_open(true);
+            }}
+          >
+            {t("settings.fam_ret_request_consent")}
+          </PillButton>
+        </BillingNotice>
+      ) : null}
       {saving && (
-        <p className="flex items-center gap-1.5 text-xs text-txt-muted">
-          <Spinner size="sm" /> {t("settings.fam_org_ret_saving")}
+        <p className="ms-1 text-[12.5px] text-txt-muted">
+          {t("settings.fam_org_ret_saving")}
         </p>
       )}
 

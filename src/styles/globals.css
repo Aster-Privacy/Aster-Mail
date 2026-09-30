@@ -1910,6 +1910,17 @@ textarea.aster_input {
   padding: 10px 12px;
 }
 
+.aster_simple_toast_host .bg-modal-bg.border {
+  border: 0;
+  border-radius: var(--aster-radius-floating, 16px);
+  background-color: var(--aster-floating-bg, var(--modal-bg));
+  box-shadow: var(--aster-floating-shadow);
+}
+
+.aster_simple_toast_host .bg-modal-bg.border button {
+  border-radius: 9999px;
+}
+
 .aster_input.aster_input_tonal {
   border-radius: var(--aster-radius-field, 10px);
   border-color: transparent;

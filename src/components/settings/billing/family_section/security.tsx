@@ -23,15 +23,23 @@ import {
   XMarkIcon,
   ShieldCheckIcon,
   ExclamationTriangleIcon,
+  ClockIcon,
+  ComputerDesktopIcon,
+  ArrowRightStartOnRectangleIcon,
 } from "@heroicons/react/24/outline";
-import { Switch, Button, Island } from "@aster/ui";
+import { Island, IslandRow, PillButton } from "@aster/ui";
 
-import { ConsentGateDialog } from "./filters";
+import { ConsentGateDialog, FamilyLoadFailed } from "./filters";
+import {
+  FamilySkeletonRows,
+  FamilyStatusText,
+  family_row_icon,
+} from "./family_ui";
 
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
 import { Input } from "@/components/ui/input";
 import { InfoPopover } from "@/components/ui/info_popover";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import {
   get_security_policy,
@@ -47,7 +55,10 @@ import { parse_bounded_int } from "@/lib/parse_bounded_int";
 import type {} from "@/lib/i18n/types";
 
 import { ignore_error } from "@/lib/ignore_error";
-import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
+import {
+  BillingNotice,
+  BillingSectionLabel,
+} from "@/components/settings/billing/billing_layout";
 
 export function MemberSecurityView() {
   const { t } = use_i18n();
@@ -75,65 +86,51 @@ export function MemberSecurityView() {
   }, [load_policy]);
 
   if (!policy && load_failed) {
-    return <LoadFailedNotice on_retry={load_policy} />;
+    return <FamilyLoadFailed on_retry={load_policy} />;
   }
 
-  if (!policy) return null;
+  if (!policy) return <FamilySkeletonRows count={3} />;
 
   return (
-    <div className="space-y-4">
-      <Island className="flex items-center gap-2 p-3">
-        <ShieldCheckIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />
-        <p className="text-xs text-txt-muted">
-          {t("settings.fam_org_sec_member_notice")}
-        </p>
-      </Island>
-      <Island className="overflow-hidden">
-        <div className="flex min-h-14 items-center justify-between gap-3 px-4 py-4">
-          <p className="text-sm font-medium text-txt-primary">
-            {t("settings.fam_org_sec_require_2fa")}
-          </p>
-          <span
-            className={
-              policy.require_2fa
-                ? "aster_badge aster_badge_green"
-                : "aster_badge aster_badge_gray"
-            }
-          >
-            {policy.require_2fa
-              ? t("settings.fam_org_sec_confirm_on")
-              : t("settings.fam_org_sec_confirm_off")}
-          </span>
-        </div>
+    <div className="flex flex-col gap-4">
+      <p className="ms-1 text-[13px] leading-relaxed text-txt-muted">
+        {t("settings.fam_org_sec_member_notice")}
+      </p>
+      <Island divided className="overflow-hidden" padding="none">
+        <IslandRow
+          icon={family_row_icon(ShieldCheckIcon)}
+          label={t("settings.fam_org_sec_require_2fa")}
+          value={
+            <FamilyStatusText tone={policy.require_2fa ? "success" : "muted"}>
+              {policy.require_2fa
+                ? t("settings.fam_org_sec_confirm_on")
+                : t("settings.fam_org_sec_confirm_off")}
+            </FamilyStatusText>
+          }
+        />
         {policy.require_2fa && (
-          <div className="flex min-h-14 items-center justify-between gap-3 px-4 py-4">
-            <p className="text-sm font-medium text-txt-primary">
-              {t("settings.fam_org_sec_grace")}
-            </p>
-            <span className="text-sm text-txt-secondary">
-              {policy.require_2fa_grace_days} {t("settings.fam_org_sec_days")}
-            </span>
-          </div>
+          <IslandRow
+            icon={family_row_icon(ClockIcon)}
+            label={t("settings.fam_org_sec_grace")}
+            value={`${policy.require_2fa_grace_days} ${t("settings.fam_org_sec_days")}`}
+          />
         )}
-        <div className="flex min-h-14 items-center justify-between gap-3 px-4 py-4">
-          <p className="text-sm font-medium text-txt-primary">
-            {t("settings.fam_org_sec_max_sessions")}
-          </p>
-          <span className="text-sm text-txt-secondary">
-            {policy.max_sessions_per_member ??
-              t("settings.fam_org_sec_no_limit")}
-          </span>
-        </div>
-        <div className="flex min-h-14 items-center justify-between gap-3 px-4 py-4">
-          <p className="text-sm font-medium text-txt-primary">
-            {t("settings.fam_org_sec_auto_signout")}
-          </p>
-          <span className="text-sm text-txt-secondary">
-            {policy.session_timeout_hours
+        <IslandRow
+          icon={family_row_icon(ComputerDesktopIcon)}
+          label={t("settings.fam_org_sec_max_sessions")}
+          value={
+            policy.max_sessions_per_member ?? t("settings.fam_org_sec_no_limit")
+          }
+        />
+        <IslandRow
+          icon={family_row_icon(ArrowRightStartOnRectangleIcon)}
+          label={t("settings.fam_org_sec_auto_signout")}
+          value={
+            policy.session_timeout_hours
               ? `${policy.session_timeout_hours}h`
-              : t("settings.fam_org_sec_never")}
-          </span>
-        </div>
+              : t("settings.fam_org_sec_never")
+          }
+        />
       </Island>
     </div>
   );
@@ -275,270 +272,261 @@ export function SecurityContent({
 
   if (!policy)
     return load_failed ? (
-      <div className="text-center py-8">
-        <p className="text-sm text-txt-secondary mb-3">
-          {t("settings.fam_org_sec_load_failed")}
-        </p>
-        <Button size="sm" variant="outline" onClick={load_security}>
-          {t("common.retry")}
-        </Button>
-      </div>
+      <FamilyLoadFailed on_retry={load_security} />
     ) : (
-      <div className="flex justify-center items-center gap-2 py-8">
-        <Spinner size="sm" />
-        <span className="text-sm text-txt-muted">
-          {t("settings.fam_org_sec_loading")}
-        </span>
-      </div>
+      <FamilySkeletonRows count={4} />
     );
 
   const non_2fa = compliance.filter((m) => !m.has_2fa).length;
   const with_2fa = compliance.filter((m) => m.has_2fa).length;
   const total_members = compliance.length;
 
+  const send_reminder = async () => {
+    if (reminding) return;
+    set_reminding(true);
+    try {
+      const r = await notify_non_compliant_2fa();
+
+      if (r.data != null) {
+        set_reminder_sent(true);
+        show_toast(
+          t("settings.fam_org_2fa_reminder_sent_toast", {
+            count: r.data.notified,
+          }),
+          "success",
+        );
+      } else if (r.code === "RATE_LIMIT_EXCEEDED") {
+        set_reminder_sent(true);
+        show_toast(t("settings.fam_org_2fa_reminder_rate_limited"), "info");
+      } else {
+        show_toast(t("settings.fam_org_2fa_reminder_failed"), "error");
+      }
+    } catch {
+      show_toast(t("settings.fam_org_2fa_reminder_failed"), "error");
+    } finally {
+      set_reminding(false);
+    }
+  };
+
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4">
       {total_members > 0 && (
-        <Island className="space-y-2" padding="md">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-txt-primary font-medium">
+        <Island className="flex flex-col gap-2.5" padding="md">
+          <div className="flex items-center justify-between gap-3 text-sm">
+            <span className="font-medium text-txt-primary">
               {t("settings.fam_org_2fa_summary", {
                 withCount: with_2fa,
                 total: total_members,
               })}
             </span>
-            <span className="text-txt-muted text-xs font-semibold tabular-nums">
+            <span className="text-[12.5px] font-semibold tabular-nums text-txt-muted">
               {Math.round((with_2fa / total_members) * 100)}%
             </span>
           </div>
-          <div className="w-full h-2 bg-edge-secondary rounded-full overflow-hidden">
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--text-primary)_10%,transparent)]">
             <div
-              className={`h-2 rounded-full transition-all ${non_2fa === 0 ? "bg-green-500" : "bg-amber-500"}`}
-              style={{ width: `${(with_2fa / total_members) * 100}%` }}
+              className="h-full rounded-full transition-all"
+              style={{
+                width: `${(with_2fa / total_members) * 100}%`,
+                backgroundColor:
+                  non_2fa === 0
+                    ? "var(--color-success)"
+                    : "var(--color-warning)",
+              }}
             />
           </div>
         </Island>
       )}
       {non_2fa > 0 && !banner_dismissed && (
-        <Island
-          className="flex flex-wrap items-center gap-3 px-4 py-3"
-          tone="danger"
+        <BillingNotice
+          icon={ExclamationTriangleIcon}
+          role="alert"
+          title={t("settings.fam_org_2fa_banner", { count: non_2fa })}
+          tone="warning"
         >
-          <ExclamationTriangleIcon className="w-4 h-4 flex-shrink-0 text-aster-danger" />
-          <p className="text-sm font-semibold flex-1 min-w-0 text-txt-primary">
-            {t("settings.fam_org_2fa_banner", { count: non_2fa })}
-          </p>
-          <button
-            className="text-xs font-semibold text-txt-primary hover:underline flex-shrink-0 disabled:opacity-60 disabled:no-underline disabled:cursor-default"
+          <PillButton
             disabled={reminding || reminder_sent}
-            onClick={async () => {
-              if (reminding) return;
-              set_reminding(true);
-              try {
-                const r = await notify_non_compliant_2fa();
-
-                if (r.data != null) {
-                  set_reminder_sent(true);
-                  show_toast(
-                    t("settings.fam_org_2fa_reminder_sent_toast", {
-                      count: r.data.notified,
-                    }),
-                    "success",
-                  );
-                } else if (r.code === "RATE_LIMIT_EXCEEDED") {
-                  set_reminder_sent(true);
-                  show_toast(
-                    t("settings.fam_org_2fa_reminder_rate_limited"),
-                    "info",
-                  );
-                } else {
-                  show_toast(
-                    t("settings.fam_org_2fa_reminder_failed"),
-                    "error",
-                  );
-                }
-              } catch {
-                show_toast(t("settings.fam_org_2fa_reminder_failed"), "error");
-              } finally {
-                set_reminding(false);
-              }
-            }}
+            leading={reminding ? <ButtonSpinner /> : undefined}
+            size="sm"
+            type="button"
+            variant="tonal"
+            onClick={send_reminder}
           >
             {reminding
               ? t("settings.fam_org_2fa_sending")
               : reminder_sent
                 ? t("settings.fam_org_2fa_reminder_sent")
                 : t("settings.fam_org_2fa_send_reminder")}
-          </button>
-          <button
-            aria-label={t("settings.fam_org_2fa_dismiss")}
-            className="p-0.5 text-txt-muted hover:text-txt-primary flex-shrink-0"
-            title={t("settings.fam_org_2fa_dismiss")}
+          </PillButton>
+          <PillButton
+            leading={<XMarkIcon className="h-4 w-4" />}
+            size="sm"
+            type="button"
+            variant="ghost"
             onClick={dismiss_banner}
           >
-            <XMarkIcon className="w-4 h-4" />
-          </button>
-        </Island>
+            {t("settings.fam_org_2fa_dismiss")}
+          </PillButton>
+        </BillingNotice>
       )}
-      <Island className="overflow-hidden">
-        <div className="flex min-h-14 items-center justify-between gap-3 px-4 py-4">
-          <div className="flex-1 pe-4">
-            <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
+      <Island divided className="overflow-hidden" padding="none">
+        <IslandRow
+          description={t("settings.fam_org_sec_require_2fa_desc")}
+          icon={family_row_icon(ShieldCheckIcon)}
+          label={
+            <span className="inline-flex flex-wrap items-center gap-1.5">
               {t("settings.fam_org_sec_require_2fa")}
               <InfoPopover
                 description={t("settings.fam_org_sec_require_2fa_info_desc")}
                 title={t("settings.fam_org_sec_require_2fa_info_title")}
               />
-              {policy.require_2fa && (
-                <span className="aster_badge aster_badge_green text-[10px]">
-                  {t("settings.fam_org_sec_active")}
-                </span>
-              )}
-            </p>
-            <p className="text-sm mt-0.5 text-txt-muted">
-              {t("settings.fam_org_sec_require_2fa_desc")}
-            </p>
-          </div>
-          <Switch
-            aria-label={t("settings.fam_org_sec_require_2fa")}
-            checked={policy.require_2fa}
-            size="lg"
-            onCheckedChange={(val) => patch_draft({ require_2fa: val })}
-          />
-        </div>
+            </span>
+          }
+          toggle={{
+            checked: policy.require_2fa,
+            aria_label: t("settings.fam_org_sec_require_2fa"),
+            on_change: (val) => patch_draft({ require_2fa: val }),
+          }}
+        />
         {policy.require_2fa && (
-          <div className="flex min-h-14 items-center justify-between gap-3 px-4 py-4">
-            <div className="flex-1 pe-4">
-              <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
+          <IslandRow
+            description={t("settings.fam_org_sec_grace_desc")}
+            icon={family_row_icon(ClockIcon)}
+            label={
+              <span className="inline-flex items-center gap-1.5">
                 {t("settings.fam_org_sec_grace")}
                 <InfoPopover
                   description={t("settings.fam_org_sec_grace_info_desc")}
                   title={t("settings.fam_org_sec_grace_info_title")}
                 />
-              </p>
-              <p className="text-sm mt-0.5 text-txt-muted">
-                {t("settings.fam_org_sec_grace_desc")}
-              </p>
-            </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <Input
-                className="w-16"
-                max="30"
-                min="0"
-                type="number"
-                value={policy.require_2fa_grace_days}
-                onChange={(e) =>
-                  patch_draft({
-                    require_2fa_grace_days:
-                      parse_bounded_int(e.target.value, 0, 30) ?? 0,
-                  })
-                }
-              />
-              <span className="text-xs text-txt-muted">
-                {t("settings.fam_org_sec_days")}
               </span>
-            </div>
-          </div>
+            }
+            trailing={
+              <span className="flex flex-shrink-0 items-center gap-2">
+                <Input
+                  aria-label={t("settings.fam_org_sec_grace")}
+                  className="aster_input_tonal w-20"
+                  max="30"
+                  min="0"
+                  type="number"
+                  value={policy.require_2fa_grace_days}
+                  onChange={(e) =>
+                    patch_draft({
+                      require_2fa_grace_days:
+                        parse_bounded_int(e.target.value, 0, 30) ?? 0,
+                    })
+                  }
+                />
+                <span className="text-[12.5px] text-txt-muted">
+                  {t("settings.fam_org_sec_days")}
+                </span>
+              </span>
+            }
+          />
         )}
-        <div className="flex min-h-14 items-center justify-between gap-3 px-4 py-4">
-          <div className="flex-1 pe-4">
-            <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
+        <IslandRow
+          description={t("settings.fam_org_sec_max_sessions_desc")}
+          icon={family_row_icon(ComputerDesktopIcon)}
+          label={
+            <span className="inline-flex items-center gap-1.5">
               {t("settings.fam_org_sec_max_sessions")}
               <InfoPopover
                 description={t("settings.fam_org_sec_max_sessions_info_desc")}
                 title={t("settings.fam_org_sec_max_sessions_info_title")}
               />
-            </p>
-            <p className="text-sm mt-0.5 text-txt-muted">
-              {t("settings.fam_org_sec_max_sessions_desc")}
-            </p>
-          </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <Input
-              min="1"
-              placeholder={t("settings.fam_org_sec_no_limit")}
-              style={{ width: "4rem", flex: "0 0 auto" }}
-              type="number"
-              value={policy.max_sessions_per_member ?? ""}
-              onChange={(e) =>
-                patch_draft({
-                  max_sessions_per_member: parse_bounded_int(
-                    e.target.value,
-                    1,
-                    100,
-                  ),
-                })
-              }
-            />
-            <span className="text-xs text-txt-muted">
-              {t("settings.fam_org_sec_sessions")}
             </span>
-          </div>
-        </div>
-        <div className="flex min-h-14 items-center justify-between gap-3 px-4 py-4">
-          <div className="flex-1 pe-4">
-            <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
+          }
+          trailing={
+            <span className="flex flex-shrink-0 items-center gap-2">
+              <Input
+                aria-label={t("settings.fam_org_sec_max_sessions")}
+                className="aster_input_tonal w-20"
+                min="1"
+                placeholder={t("settings.fam_org_sec_no_limit")}
+                type="number"
+                value={policy.max_sessions_per_member ?? ""}
+                onChange={(e) =>
+                  patch_draft({
+                    max_sessions_per_member: parse_bounded_int(
+                      e.target.value,
+                      1,
+                      100,
+                    ),
+                  })
+                }
+              />
+              <span className="text-[12.5px] text-txt-muted">
+                {t("settings.fam_org_sec_sessions")}
+              </span>
+            </span>
+          }
+        />
+        <IslandRow
+          description={t("settings.fam_org_sec_auto_signout_desc")}
+          icon={family_row_icon(ArrowRightStartOnRectangleIcon)}
+          label={
+            <span className="inline-flex items-center gap-1.5">
               {t("settings.fam_org_sec_auto_signout")}
               <InfoPopover
                 description={t("settings.fam_org_sec_auto_signout_info_desc")}
                 title={t("settings.fam_org_sec_auto_signout_info_title")}
               />
-            </p>
-            <p className="text-sm mt-0.5 text-txt-muted">
-              {t("settings.fam_org_sec_auto_signout_desc")}
-            </p>
-          </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <Input
-              min="1"
-              placeholder={t("settings.fam_org_sec_never")}
-              style={{ width: "4rem", flex: "0 0 auto" }}
-              type="number"
-              value={policy.session_timeout_hours ?? ""}
-              onChange={(e) =>
-                patch_draft({
-                  session_timeout_hours: parse_bounded_int(
-                    e.target.value,
-                    1,
-                    8760,
-                  ),
-                })
-              }
-            />
-            <span className="text-xs text-txt-muted">
-              {t("settings.fam_org_sec_hours")}
             </span>
-          </div>
-        </div>
+          }
+          trailing={
+            <span className="flex flex-shrink-0 items-center gap-2">
+              <Input
+                aria-label={t("settings.fam_org_sec_auto_signout")}
+                className="aster_input_tonal w-20"
+                min="1"
+                placeholder={t("settings.fam_org_sec_never")}
+                type="number"
+                value={policy.session_timeout_hours ?? ""}
+                onChange={(e) =>
+                  patch_draft({
+                    session_timeout_hours: parse_bounded_int(
+                      e.target.value,
+                      1,
+                      8760,
+                    ),
+                  })
+                }
+              />
+              <span className="text-[12.5px] text-txt-muted">
+                {t("settings.fam_org_sec_hours")}
+              </span>
+            </span>
+          }
+        />
       </Island>
       {(has_changes || saving) && (
-        <div className="flex items-center justify-between gap-3 pt-1">
-          {saving ? (
-            <p className="flex items-center gap-1.5 text-xs text-txt-muted">
-              <Spinner size="sm" /> {t("settings.fam_org_sec_saving")}
-            </p>
-          ) : (
-            <p className="text-xs text-txt-muted">
-              {consent_sent
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="ms-1 text-[12.5px] text-txt-muted">
+            {saving
+              ? t("settings.fam_org_sec_saving")
+              : consent_sent
                 ? t("settings.fam_consent_sent_toast")
                 : t("settings.fam_org_sec_unsaved")}
-            </p>
-          )}
+          </p>
           <div className="flex gap-2">
-            <button
-              className="aster_btn aster_btn_ghost aster_btn_sm"
+            <PillButton
               disabled={saving}
+              size="sm"
+              type="button"
+              variant="ghost"
               onClick={() => {
                 set_consent_sent(false);
                 set_draft(committed);
               }}
             >
               {t("settings.fam_org_sec_discard")}
-            </button>
+            </PillButton>
             {!consent_sent && (
-              <button
-                className="aster_btn aster_btn_primary aster_btn_sm"
+              <PillButton
                 disabled={saving}
+                leading={saving ? <ButtonSpinner /> : undefined}
+                size="sm"
+                type="button"
                 onClick={
                   needs_consent
                     ? () => set_consent_open(true)
@@ -548,7 +536,7 @@ export function SecurityContent({
                 {needs_consent
                   ? t("settings.fam_ret_request_consent")
                   : t("settings.fam_org_sec_apply")}
-              </button>
+              </PillButton>
             )}
           </div>
         </div>
@@ -563,13 +551,13 @@ export function SecurityContent({
             className="relative w-full max-w-sm rounded-[var(--aster-radius-floating,16px)] bg-[var(--aster-floating-bg,var(--modal-bg))] p-6 shadow-[var(--aster-floating-shadow)]"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-base font-semibold text-txt-primary mb-2">
+            <h3 className="mb-2 text-base font-semibold text-txt-primary">
               {t("settings.fam_org_sec_confirm_title")}
             </h3>
-            <p className="text-sm text-txt-secondary mb-4">
+            <p className="mb-4 text-sm text-txt-secondary">
               {t("settings.fam_org_sec_confirm_desc")}
             </p>
-            <div className="space-y-1.5 mb-5 text-xs text-txt-muted">
+            <div className="mb-5 flex flex-col gap-1.5 text-[12.5px] text-txt-muted">
               {committed && draft.require_2fa !== committed.require_2fa && (
                 <p>
                   - {t("settings.fam_org_sec_require_2fa")}:{" "}
@@ -605,67 +593,60 @@ export function SecurityContent({
                 )}
             </div>
             <div className="flex gap-2">
-              <button
-                className="aster_btn aster_btn_ghost aster_btn_md flex-1"
+              <PillButton
+                className="flex-1"
+                type="button"
+                variant="tonal"
                 onClick={() => set_confirm_open(false)}
               >
                 {t("settings.fam_org_sec_confirm_cancel")}
-              </button>
-              <button
-                className="aster_btn aster_btn_primary aster_btn_md flex-1"
-                onClick={do_save}
-              >
+              </PillButton>
+              <PillButton className="flex-1" type="button" onClick={do_save}>
                 {t("settings.fam_org_sec_confirm_apply")}
-              </button>
+              </PillButton>
             </div>
           </div>
         </div>
       )}
       {compliance.length > 0 && (
-        <div className="space-y-2 pt-2">
-          <div className="aster_island_section_header">
-            <div className="aster_island_section_heading">
-              <h3 className="aster_island_section_title">
-                <span>{t("settings.fam_org_sec_compliance")}</span>
-              </h3>
-            </div>
-          </div>
-          <Island className="overflow-hidden">
-            {compliance.map((m) => {
-              return (
-                <div
-                  key={m.user_id}
-                  className="flex min-h-14 items-center gap-3 px-4 py-3"
-                >
+        <div className="flex flex-col">
+          <BillingSectionLabel>
+            {t("settings.fam_org_sec_compliance")}
+          </BillingSectionLabel>
+          <Island divided className="overflow-hidden" padding="none">
+            {compliance.map((m) => (
+              <IslandRow
+                key={m.user_id}
+                description={
+                  m.imap_enabled
+                    ? t("settings.fam_org_sec_imap_badge")
+                    : undefined
+                }
+                icon={
                   <ProfileAvatar
                     email={`${m.username}@${m.email_domain}`}
                     name={m.username}
-                    size="sm"
+                    size="xs"
                   />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-txt-primary truncate">
-                      {m.username}@{m.email_domain}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-1.5 flex-shrink-0">
-                    {m.has_2fa ? (
-                      <span className="aster_badge aster_badge_green">
-                        {t("settings.fam_org_sec_2fa_badge")}
-                      </span>
-                    ) : (
-                      <span className="aster_badge aster_badge_amber">
-                        {t("settings.fam_org_sec_no_2fa_badge")}
-                      </span>
-                    )}
-                    {m.imap_enabled && (
-                      <span className="aster_badge aster_badge_gray">
-                        {t("settings.fam_org_sec_imap_badge")}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+                }
+                label={
+                  <span className="block truncate">
+                    {m.username}@{m.email_domain}
+                  </span>
+                }
+                value={
+                  m.has_2fa ? (
+                    <FamilyStatusText tone="success">
+                      {t("settings.fam_org_sec_2fa_badge")}
+                    </FamilyStatusText>
+                  ) : (
+                    <FamilyStatusText tone="warning">
+                      {t("settings.fam_org_sec_no_2fa_badge")}
+                    </FamilyStatusText>
+                  )
+                }
+              />
+            ))}
           </Island>
         </div>
       )}
