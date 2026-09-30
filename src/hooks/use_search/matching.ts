@@ -45,6 +45,7 @@ import {
   address_list_includes,
   is_full_address,
 } from "@/utils/contact_mail_search";
+import { fold_search_text, includes_folded } from "@/utils/search_fold";
 
 export function preheader_html_source(envelope: DecryptedEnvelope): string {
   const html = envelope.body_html || envelope.html_body || "";
@@ -115,23 +116,39 @@ export function matches_operator(
   const hay = haystack ?? build_search_haystack(envelope);
 
   switch (op.type) {
-    case "from":
+    // A full address is matched exactly, accents included, so a look-alike
+    // sender never shows up in a contact's mail.
+    case "from": {
       if (is_full_address(val))
         return address_list_includes(hay.sender_email, val);
 
-      return hay.sender_email.includes(val) || hay.sender_name.includes(val);
+      const text = fold_search_text(val) || val;
+
+      return (
+        includes_folded(hay.sender_email, text) ||
+        includes_folded(hay.sender_name, text)
+      );
+    }
     case "to":
-      return hay.recipients.includes(val);
-    case "contact":
+      if (is_full_address(val)) return hay.recipients.includes(val);
+
+      return includes_folded(hay.recipients, fold_search_text(val) || val);
+    case "contact": {
       if (is_full_address(val))
         return (
           address_list_includes(hay.contact, val) ||
           address_list_includes(hay.recipients, val)
         );
 
-      return hay.contact.includes(val) || hay.recipients.includes(val);
+      const text = fold_search_text(val) || val;
+
+      return (
+        includes_folded(hay.contact, text) ||
+        includes_folded(hay.recipients, text)
+      );
+    }
     case "subject":
-      return hay.subject.includes(val);
+      return includes_folded(hay.subject, fold_search_text(val) || val);
     case "has": {
       if (val === "attachment" || val === "attachments")
         return metadata?.has_attachments ?? false;
@@ -397,26 +414,31 @@ export function matches_query(
       strip_html_tags(searchable_body_source(envelope)).toLowerCase())
     : "";
 
-  return terms.every((term) => {
+  return terms.every((raw_term) => {
+    const term = fold_search_text(raw_term) || raw_term;
+
     if (search_all) {
       return (
-        subject.includes(term) ||
-        sender_name.includes(term) ||
-        sender_email.includes(term) ||
-        recipients.includes(term) ||
-        (search_body && body.includes(term))
+        includes_folded(subject, term) ||
+        includes_folded(sender_name, term) ||
+        includes_folded(sender_email, term) ||
+        includes_folded(recipients, term) ||
+        (search_body && includes_folded(body, term))
       );
     }
     let match = false;
 
-    if (fields!.includes("subject")) match = match || subject.includes(term);
+    if (fields!.includes("subject"))
+      match = match || includes_folded(subject, term);
     if (fields!.includes("sender"))
       match =
-        match || sender_name.includes(term) || sender_email.includes(term);
+        match ||
+        includes_folded(sender_name, term) ||
+        includes_folded(sender_email, term);
     if (fields!.includes("recipient"))
-      match = match || recipients.includes(term);
+      match = match || includes_folded(recipients, term);
     if (search_body && fields!.includes("body"))
-      match = match || body.includes(term);
+      match = match || includes_folded(body, term);
 
     return match;
   });

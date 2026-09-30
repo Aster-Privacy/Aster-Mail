@@ -631,3 +631,66 @@ describe("normalized recipient and sender grams", () => {
     expect(gram_plan("zzzzqqqq").skip_by_grams(filter)).toBe(true);
   });
 });
+
+describe("accent folding in gram filters", () => {
+  function filter_for(entry: EntryOverrides) {
+    const { grams } = summarize_chunk([make_item()], [make_entry(entry)]);
+
+    return parse_gram_filter(grams)!;
+  }
+
+  function skipped(
+    filter: ReturnType<typeof filter_for>,
+    terms: string[],
+    query = "",
+  ): boolean {
+    const plan = build_chunk_skip_plan({
+      terms,
+      operators: parse_search_query(query).operators,
+      probe_terms: true,
+    });
+
+    return plan.uses_grams && plan.skip_by_grams(filter);
+  }
+
+  it("lets an unaccented term reach an accented subject", () => {
+    expect(
+      skipped(filter_for({ subject: "Mudança de morada" }), ["mudanca"]),
+    ).toBe(false);
+  });
+
+  it("lets an accented term reach an unaccented subject", () => {
+    expect(
+      skipped(filter_for({ subject: "Mudanca de morada" }), ["mudança"]),
+    ).toBe(false);
+  });
+
+  it("probes subject:, from: and to: with folded names", () => {
+    const filter = filter_for({
+      subject: "Transferência",
+      from_name: "João Silva",
+      to: [{ name: "Ana Conceição", email: "ana@recipient.test" }],
+    });
+
+    expect(skipped(filter, [], "subject:transferencia")).toBe(false);
+    expect(skipped(filter, [], "from:joao")).toBe(false);
+    expect(skipped(filter, [], "to:conceicao")).toBe(false);
+  });
+
+  it("keeps finding accented terms in chunks summarised before folding", () => {
+    const raw_only = new Set<string>();
+
+    collect_grams("Mudança de morada", raw_only);
+
+    const old_filter = parse_gram_filter(build_gram_filter(raw_only))!;
+
+    expect(skipped(old_filter, ["mudança"])).toBe(false);
+    expect(skipped(old_filter, ["morada"])).toBe(false);
+  });
+
+  it("still skips a chunk that cannot hold the term", () => {
+    expect(
+      skipped(filter_for({ subject: "Mudança de morada" }), ["transferencia"]),
+    ).toBe(true);
+  });
+});
