@@ -141,6 +141,66 @@ describe("reconcile_entry_fields", () => {
   });
 });
 
+describe("reconcile_entry_fields with the original contact", () => {
+  const original = {
+    first_name: "Ada",
+    last_name: "Lovelace",
+    emails: ["ada@astermail.org"],
+    phone: "222",
+    address: { street: "Work street", city: "Berlin" },
+    phone_entries: [
+      { value: "111", type: "mobile" as const },
+      { value: "222", type: "work" as const },
+    ],
+    address_entries: [
+      { street: "Work street", city: "Berlin", type: "work" as const },
+      { street: "Home street", city: "London", type: "home" as const },
+    ],
+  };
+
+  it("leaves typed phones and addresses alone when they were not edited", () => {
+    const result = reconcile_entry_fields(
+      { ...original, first_name: "Augusta" },
+      original,
+    );
+
+    expect(result.phone_entries).toEqual(original.phone_entries);
+    expect(result.address_entries).toEqual(original.address_entries);
+  });
+
+  it("edits the entry that matched the shown phone and address", () => {
+    const result = reconcile_entry_fields(
+      {
+        ...original,
+        phone: "333",
+        address: { street: "New work street", city: "Berlin" },
+      },
+      original,
+    );
+
+    expect(result.phone_entries).toEqual([
+      { value: "111", type: "mobile" },
+      { value: "333", type: "work" },
+    ]);
+    expect(result.address_entries).toEqual([
+      { street: "New work street", city: "Berlin", type: "work" },
+      { street: "Home street", city: "London", type: "home" },
+    ]);
+  });
+
+  it("removes only the cleared entry", () => {
+    const result = reconcile_entry_fields(
+      { ...original, phone: "", address: {} },
+      original,
+    );
+
+    expect(result.phone_entries).toEqual([{ value: "111", type: "mobile" }]);
+    expect(result.address_entries).toEqual([
+      { street: "Home street", city: "London", type: "home" },
+    ]);
+  });
+});
+
 describe("sync_legacy_fields", () => {
   it("derives the legacy fields from typed entries", () => {
     const result = sync_legacy_fields({

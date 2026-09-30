@@ -54,7 +54,8 @@ export function clean_entry_label<T extends LabeledEntry>(entry: T): T {
   const { label, ...rest } = entry;
   const trimmed = (label ?? "").trim();
 
-  if (entry.type === "other" && trimmed) return { ...rest, label: trimmed } as T;
+  if (entry.type === "other" && trimmed)
+    return { ...rest, label: trimmed } as T;
 
   return rest as T;
 }
@@ -64,10 +65,10 @@ function has_address_value(address?: Address | null): boolean {
 
   return Boolean(
     (address.street || "").trim() ||
-      (address.city || "").trim() ||
-      (address.state || "").trim() ||
-      (address.postal_code || "").trim() ||
-      (address.country || "").trim(),
+    (address.city || "").trim() ||
+    (address.state || "").trim() ||
+    (address.postal_code || "").trim() ||
+    (address.country || "").trim(),
   );
 }
 
@@ -97,14 +98,18 @@ export function sync_legacy_fields(form: ContactFormData): ContactFormData {
   if (form.email_entries) {
     next.email_entries = form.email_entries
       .filter((entry) => entry.value.trim())
-      .map((entry) => clean_entry_label({ ...entry, value: entry.value.trim() }));
+      .map((entry) =>
+        clean_entry_label({ ...entry, value: entry.value.trim() }),
+      );
     next.emails = next.email_entries.map((entry) => entry.value);
   }
 
   if (form.phone_entries) {
     next.phone_entries = form.phone_entries
       .filter((entry) => entry.value.trim())
-      .map((entry) => clean_entry_label({ ...entry, value: entry.value.trim() }));
+      .map((entry) =>
+        clean_entry_label({ ...entry, value: entry.value.trim() }),
+      );
     next.phone = next.phone_entries[0]?.value;
   }
 
@@ -166,24 +171,57 @@ function merge_email_entries(
   });
 }
 
+function same_address(a?: Address | null, b?: Address | null): boolean {
+  const left = a ? plain_address(a) : {};
+  const right = b ? plain_address(b) : {};
+  const keys: (keyof Address)[] = [
+    "street",
+    "city",
+    "state",
+    "postal_code",
+    "country",
+  ];
+
+  return keys.every(
+    (key) => (left[key] ?? "").trim() === (right[key] ?? "").trim(),
+  );
+}
+
 function merge_phone_entries(
   phone: string | undefined,
   existing: PhoneEntry[],
+  original?: ContactFormData,
 ): PhoneEntry[] {
   const value = (phone ?? "").trim();
-  const rest = existing.slice(1);
 
-  if (!value) return rest;
-  if (existing[0]) return [{ ...existing[0], value }, ...rest];
+  if (original && value === (original.phone ?? "").trim()) return existing;
 
-  return [{ value, type: "mobile" }];
+  const previous = (original?.phone ?? "").trim();
+  const matched = previous
+    ? existing.findIndex((entry) => entry.value.trim() === previous)
+    : -1;
+  const index = matched >= 0 ? matched : existing.length > 0 ? 0 : -1;
+
+  if (index < 0) return value ? [{ value, type: "mobile" }] : [];
+  if (!value) return existing.filter((_, i) => i !== index);
+
+  return existing.map((entry, i) =>
+    i === index ? { ...entry, value } : entry,
+  );
 }
 
 function merge_address_entries(
   address: Address | undefined,
   existing: AddressEntry[],
+  original?: ContactFormData,
 ): AddressEntry[] {
-  const index = primary_address_index(existing);
+  if (original && same_address(address, original.address)) return existing;
+
+  const matched =
+    original && has_address_value(original.address)
+      ? existing.findIndex((entry) => same_address(entry, original.address))
+      : -1;
+  const index = matched >= 0 ? matched : primary_address_index(existing);
   const has_value = has_address_value(address);
 
   if (index < 0) {
@@ -206,17 +244,25 @@ function merge_address_entries(
   return existing.map((entry, i) => (i === index ? replacement : entry));
 }
 
-export function reconcile_entry_fields(form: ContactFormData): ContactFormData {
+export function reconcile_entry_fields(
+  form: ContactFormData,
+  original?: ContactFormData,
+): ContactFormData {
   return sync_legacy_fields({
     ...form,
     email_entries: merge_email_entries(
       form.emails ?? [],
       form.email_entries ?? [],
     ),
-    phone_entries: merge_phone_entries(form.phone, form.phone_entries ?? []),
+    phone_entries: merge_phone_entries(
+      form.phone,
+      form.phone_entries ?? [],
+      original,
+    ),
     address_entries: merge_address_entries(
       form.address,
       form.address_entries ?? [],
+      original,
     ),
   });
 }

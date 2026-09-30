@@ -401,7 +401,10 @@ export function use_contacts_state() {
 
   const handle_form_submit = useCallback(
     async (submitted: ContactFormData) => {
-      const data = reconcile_entry_fields(submitted);
+      const data = reconcile_entry_fields(
+        submitted,
+        editing_contact ? contact_to_form_data(editing_contact) : undefined,
+      );
 
       set_is_submitting(true);
       set_error(null);

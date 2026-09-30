@@ -20,12 +20,23 @@
 //
 export const CONTACT_AVATAR_MAX_PX = 512;
 export const CONTACT_AVATAR_QUALITY = 0.85;
-export const CONTACT_AVATAR_MAX_DATA_URL_CHARS = 200_000;
+export const CONTACT_AVATAR_MAX_BYTES = 180 * 1024;
+export const CONTACT_AVATAR_MAX_SOURCE_CHARS = 16 * 1024 * 1024;
 
+const QUALITY_STEPS = [CONTACT_AVATAR_QUALITY, 0.7, 0.55, 0.4];
+const FALLBACK_MAX_PX = 256;
 const INLINE_IMAGE_PATTERN = /^data:image\/[a-z0-9.+-]+;base64,/i;
 
 export function is_inline_image_data_url(value: string | undefined): boolean {
   return Boolean(value && INLINE_IMAGE_PATTERN.test(value));
+}
+
+export function data_url_byte_size(value: string): number {
+  const comma = value.indexOf(",");
+  const payload = comma >= 0 ? value.slice(comma + 1) : value;
+  const padding = payload.endsWith("==") ? 2 : payload.endsWith("=") ? 1 : 0;
+
+  return Math.floor((payload.length * 3) / 4) - padding;
 }
 
 export function scaled_dimensions(
@@ -46,17 +57,18 @@ function load_image(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
 
+    img.decoding = "async";
     img.onload = () => resolve(img);
     img.onerror = () => reject(new Error("image_load_failed"));
     img.src = src;
   });
 }
 
-export async function compress_contact_avatar_source(
-  src: string,
-  max_px: number = CONTACT_AVATAR_MAX_PX,
-): Promise<string> {
-  const img = await load_image(src);
+function encode_image(
+  img: HTMLImageElement,
+  max_px: number,
+  quality: number,
+): string {
   const { width, height } = scaled_dimensions(
     img.naturalWidth || img.width,
     img.naturalHeight || img.height,
@@ -72,11 +84,41 @@ export async function compress_contact_avatar_source(
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, width, height);
   ctx.drawImage(img, 0, 0, width, height);
+  const result = canvas.toDataURL("image/jpeg", quality);
 
-  return canvas.toDataURL("image/jpeg", CONTACT_AVATAR_QUALITY);
+  canvas.width = 0;
+  canvas.height = 0;
+
+  return result;
 }
 
-export async function compress_contact_avatar_file(file: File): Promise<string> {
+function encode_within_limit(img: HTMLImageElement, max_px: number): string {
+  for (const size of [max_px, Math.min(max_px, FALLBACK_MAX_PX)]) {
+    for (const quality of QUALITY_STEPS) {
+      const result = encode_image(img, size, quality);
+
+      if (data_url_byte_size(result) <= CONTACT_AVATAR_MAX_BYTES) return result;
+    }
+  }
+  throw new Error("avatar_too_large");
+}
+
+export async function compress_contact_avatar_source(
+  src: string,
+  max_px: number = CONTACT_AVATAR_MAX_PX,
+): Promise<string> {
+  const img = await load_image(src);
+
+  try {
+    return encode_within_limit(img, max_px);
+  } finally {
+    img.src = "";
+  }
+}
+
+export async function compress_contact_avatar_file(
+  file: File,
+): Promise<string> {
   const url = URL.createObjectURL(file);
 
   try {
@@ -90,10 +132,23 @@ export async function prepare_imported_avatar(
   value: string | undefined,
 ): Promise<string | undefined> {
   if (!value || !is_inline_image_data_url(value)) return undefined;
-  if (value.length <= CONTACT_AVATAR_MAX_DATA_URL_CHARS) return value;
+  if (value.length > CONTACT_AVATAR_MAX_SOURCE_CHARS) return undefined;
 
   try {
-    return await compress_contact_avatar_source(value);
+    const img = await load_image(value);
+
+    try {
+      const width = img.naturalWidth || img.width;
+      const height = img.naturalHeight || img.height;
+      const fits =
+        width <= CONTACT_AVATAR_MAX_PX &&
+        height <= CONTACT_AVATAR_MAX_PX &&
+        data_url_byte_size(value) <= CONTACT_AVATAR_MAX_BYTES;
+
+      return fits ? value : encode_within_limit(img, CONTACT_AVATAR_MAX_PX);
+    } finally {
+      img.src = "";
+    }
   } catch {
     return undefined;
   }

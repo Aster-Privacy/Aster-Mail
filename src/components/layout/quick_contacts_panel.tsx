@@ -103,6 +103,10 @@ import {
 } from "@/services/api/contacts";
 import { is_contact_trashed } from "@/lib/contact_trash";
 import { use_panel_transition } from "@/components/layout/use_panel_transition";
+import {
+  contact_to_form_data,
+  reconcile_entry_fields,
+} from "@/components/common/hooks/contacts_state_helpers";
 
 const RELOAD_INTERVAL_MS = 30000;
 const CONTACT_PAGE_LIMIT = 200;
@@ -490,7 +494,12 @@ export function QuickContactsPanel({
   }, []);
 
   const save_contact = useCallback(
-    async (data: ContactFormData) => {
+    async (submitted: ContactFormData) => {
+      const data = reconcile_entry_fields(
+        submitted,
+        editor_contact ? contact_to_form_data(editor_contact) : undefined,
+      );
+
       set_is_saving(true);
       try {
         const response = editor_contact

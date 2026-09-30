@@ -72,7 +72,18 @@ const IGNORED_TYPE_TOKENS = new Set([
   "parcel",
   "dom",
   "intl",
+  "quoted-printable",
+  "8bit",
+  "7bit",
+  "base64",
+  "b",
 ]);
+
+function display_label(token: string): string {
+  const lower = token.toLowerCase();
+
+  return lower.charAt(0).toUpperCase() + lower.slice(1);
+}
 
 export interface VCardGroupCounter {
   value: number;
@@ -195,7 +206,7 @@ export function resolve_vcard_entry_type<T extends string>(
       }
       continue;
     }
-    if (unknown === undefined && token) unknown = token;
+    if (unknown === undefined && token) unknown = display_label(token);
   }
 
   if (unknown) return { type: other, label: unknown };

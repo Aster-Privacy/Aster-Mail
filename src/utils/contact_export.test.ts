@@ -375,18 +375,26 @@ describe("contact_to_vcard round trip", () => {
         "item3.X-ABLabel:_$!<Assistant>!$_",
         "TEL;TYPE=VOICE;TYPE=MAIN:+1 555 0102",
         "TEL;TYPE=CELL,VOICE,PREF:+1 555 0103",
+        "TEL;TYPE=x-school:+1 555 0104",
+        "TEL;WORK;8BIT:+1 555 0105",
+        "EMAIL;INTERNET;QUOTED-PRINTABLE:ada@qp.example",
         "END:VCARD",
       ].join("\r\n"),
     );
 
-    expect(parsed.email_entries).toEqual([
-      { value: "ada@home.example", type: "home" },
-    ]);
+    expect(parsed.email_entries?.[0]).toEqual({
+      value: "ada@home.example",
+      type: "home",
+    });
+    expect(parsed.email_entries?.[1]?.value).toBe("ada@qp.example");
+    expect(parsed.email_entries?.[1]?.label).toBeUndefined();
     expect(parsed.phone_entries).toEqual([
       { value: "+1 555 0100", type: "mobile" },
       { value: "+1 555 0101", type: "other", label: "Assistant" },
-      { value: "+1 555 0102", type: "other", label: "MAIN" },
+      { value: "+1 555 0102", type: "other", label: "Main" },
       { value: "+1 555 0103", type: "mobile" },
+      { value: "+1 555 0104", type: "other", label: "School" },
+      { value: "+1 555 0105", type: "work" },
     ]);
   });
 });
@@ -584,7 +592,10 @@ describe("share_contact_text", () => {
 
     vi.stubGlobal("navigator", { share });
 
-    const result = await share_contact_text(make({ phone: "+1 555 0100" }), copy);
+    const result = await share_contact_text(
+      make({ phone: "+1 555 0100" }),
+      copy,
+    );
 
     expect(result).toBe("shared");
     expect(share).toHaveBeenCalledWith({ text: "Ada Lovelace\n+1 555 0100" });

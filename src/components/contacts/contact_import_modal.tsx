@@ -442,12 +442,14 @@ export function ContactImportModal({
       let last_error: string | null = null;
 
       for (let i = 0; i < payload.length; i += batch_size) {
-        const batch = await Promise.all(
-          payload.slice(i, i + batch_size).map(async (contact) => ({
+        const batch: typeof payload = [];
+
+        for (const contact of payload.slice(i, i + batch_size)) {
+          batch.push({
             ...contact,
             avatar_url: await prepare_imported_avatar(contact.avatar_url),
-          })),
-        );
+          });
+        }
         const processed = Math.min(i + batch.length, total);
         let response = await import_csv(batch);
         let attempt = 0;
@@ -895,7 +897,8 @@ export function ContactImportModal({
                       style={{
                         width: `${
                           import_progress.total > 0
-                            ? (import_progress.current / import_progress.total) *
+                            ? (import_progress.current /
+                                import_progress.total) *
                               100
                             : 0
                         }%`,

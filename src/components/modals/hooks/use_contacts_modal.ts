@@ -42,6 +42,7 @@ import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_shift_key_ref } from "@/lib/use_shift_range_select";
 import { is_contact_trashed } from "@/lib/contact_trash";
+import { reconcile_entry_fields } from "@/components/common/hooks/contacts_state_helpers";
 
 const BATCH_SIZE = 10;
 
@@ -298,7 +299,12 @@ export function use_contacts_modal({
   }, [contact_to_delete, selected_contact, t]);
 
   const handle_form_submit = useCallback(
-    async (data: ContactFormData) => {
+    async (submitted: ContactFormData) => {
+      const data = reconcile_entry_fields(
+        submitted,
+        editing_contact ? contact_to_form_data(editing_contact) : undefined,
+      );
+
       set_is_submitting(true);
       set_error(null);
 

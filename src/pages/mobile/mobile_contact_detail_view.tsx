@@ -192,14 +192,16 @@ export function ContactDetailView({
 
     let cancelled = false;
 
-    void list_contact_groups().then((response) => {
-      if (cancelled || !response.data) return;
+    list_contact_groups()
+      .then((response) => {
+        if (cancelled || !response.data) return;
 
-      const names: Record<string, string> = {};
+        const names: Record<string, string> = {};
 
-      for (const group of response.data.groups) names[group.id] = group.name;
-      set_group_names(names);
-    });
+        for (const group of response.data.groups) names[group.id] = group.name;
+        set_group_names(names);
+      })
+      .catch(() => {});
 
     return () => {
       cancelled = true;
@@ -248,7 +250,9 @@ export function ContactDetailView({
               {t("common.share_as_text")}
             </DropdownMenuItem>
             <DropdownMenuItem
-              onSelect={() => void run_share_contact_vcard(contact, group_names)}
+              onSelect={() =>
+                void run_share_contact_vcard(contact, group_names)
+              }
             >
               <IdentificationIcon className="h-4 w-4" />
               {t("common.share_as_vcard")}

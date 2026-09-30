@@ -334,7 +334,8 @@ export function entry_type_text(
   const label = (entry.label ?? "").trim();
 
   if (label) return label;
-  const type = entry.type && options.includes(entry.type) ? entry.type : "other";
+  const type =
+    entry.type && options.includes(entry.type) ? entry.type : "other";
 
   return t(type_label_key(type));
 }
@@ -342,9 +343,15 @@ export function entry_type_text(
 export function normalize_typed_entries<
   E extends { type: string; label?: string },
 >(entries: E[], options: readonly string[]): E[] {
-  return entries.map((entry) =>
-    options.includes(entry.type)
-      ? entry
-      : ({ ...entry, type: "other" } as E),
-  );
+  return entries.map((entry) => {
+    if (options.includes(entry.type)) return entry;
+    const kept = (entry.label ?? "").trim();
+    const raw = (entry.type ?? "").trim().toLowerCase();
+    const label =
+      kept || (raw ? raw.charAt(0).toUpperCase() + raw.slice(1) : "");
+
+    return (
+      label ? { ...entry, type: "other", label } : { ...entry, type: "other" }
+    ) as E;
+  });
 }
