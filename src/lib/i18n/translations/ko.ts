@@ -7356,6 +7356,13 @@ export const ko = {
     rotate_dkim_description:
       "DKIM 서명 키를 교체합니다. DNS 레코드를 업데이트해야 합니다.",
     rotate_label: "교체",
+    rotate_dkim_confirm_title: "DKIM 키를 교체할까요?",
+    rotate_dkim_confirm_managed:
+      "Aster Mail이 {{domain}}의 새 DKIM 키를 만들고 DNS 레코드를 자동으로 업데이트합니다. 따로 변경할 필요가 없습니다.",
+    rotate_dkim_confirm_manual:
+      "Aster Mail이 {{domain}}의 새 DKIM 키를 만들고 즉시 이 키로 메일에 서명합니다. DNS 제공업체에서 새 TXT 레코드를 추가하세요. 레코드를 게시하기 전까지는 보내는 메일의 DKIM 검사가 실패할 수 있습니다.",
+    dkim_rotated_auto_published:
+      "DKIM 키를 교체했습니다. Aster Mail이 DNS 레코드를 업데이트했습니다.",
     dkim_rotated:
       "DKIM 키가 교체되었습니다. 도메인 등록 기관에 아래의 새 DNS 레코드를 추가하세요.",
     dkim_rotated_warning_title: "DNS 업데이트 필요",
@@ -8557,9 +8564,11 @@ export const ko = {
     total_pages_label: "{{count}} 페이지",
     loading_preview: "미리보기 로드 중…",
     preview_failed: "미리보기가 불러와지지 않았습니다. 이메일을 열면 보입니다.",
-    pdf_preview_failed: "이 PDF는 여기에 표시할 수 없습니다. 열려면 다운로드하세요.",
+    pdf_preview_failed:
+      "이 PDF는 여기에 표시할 수 없습니다. 열려면 다운로드하세요.",
     pdf_password_title: "이 PDF는 암호로 보호되어 있습니다",
-    pdf_password_description: "이 PDF를 보려면 암호를 입력하세요. 암호는 이 기기에만 남습니다.",
+    pdf_password_description:
+      "이 PDF를 보려면 암호를 입력하세요. 암호는 이 기기에만 남습니다.",
     pdf_password_label: "PDF 암호",
     pdf_password_incorrect: "암호가 올바르지 않습니다. 다시 시도하세요.",
     pdf_password_submit: "열기",
@@ -8898,10 +8907,12 @@ export const ko = {
     backup_code_single_use: "각 백업 코드는 한 번만 사용할 수 있습니다",
     backup_code_placeholder: "XXXX-XXXX-XXXX",
     use_authenticator_instead: "대신 인증 앱 사용",
-    recovery_code_in_backup_field: "백업 코드가 아니라 복구 코드입니다. 이 코드를 사용하려면 복구 코드로 비밀번호를 재설정하세요.",
+    recovery_code_in_backup_field:
+      "백업 코드가 아니라 복구 코드입니다. 이 코드를 사용하려면 복구 코드로 비밀번호를 재설정하세요.",
     reset_with_recovery_code: "복구 코드로 재설정",
     no_backup_codes_title: "패스키 없이 로그인",
-    no_backup_codes_description: "백업 코드는 인증 앱과 함께 제공되는데, 이 계정은 인증 앱을 사용하지 않습니다. 패스키 없이 로그인하려면 복구 코드 중 하나로 비밀번호를 재설정하세요. 메일, 연락처, 설정은 그대로 유지되며 이후 새 패스키를 추가할 수 있습니다.",
+    no_backup_codes_description:
+      "백업 코드는 인증 앱과 함께 제공되는데, 이 계정은 인증 앱을 사용하지 않습니다. 패스키 없이 로그인하려면 복구 코드 중 하나로 비밀번호를 재설정하세요. 메일, 연락처, 설정은 그대로 유지되며 이후 새 패스키를 추가할 수 있습니다.",
     try_passkey_again: "패스키 다시 시도",
     two_factor_auth_title: "이중 인증",
     enter_2fa_code: "인증 앱의 6자리 코드를 입력하세요",
@@ -9060,8 +9071,10 @@ export const ko = {
     reset_second_factor_title: "본인 확인",
     reset_second_factor_description:
       "이 계정은 2단계 인증을 사용합니다. 비밀번호를 재설정하기 전에 두 번째 인증 수단을 확인하세요.",
-    reset_second_factor_backup_description: "계속하려면 백업 코드 중 하나를 입력하세요.",
-    reset_second_factor_key_description: "계속하려면 이 계정에 등록된 보안 키 또는 패스키를 사용하세요.",
+    reset_second_factor_backup_description:
+      "계속하려면 백업 코드 중 하나를 입력하세요.",
+    reset_second_factor_key_description:
+      "계속하려면 이 계정에 등록된 보안 키 또는 패스키를 사용하세요.",
     reset_second_factor_use_key: "대신 보안 키 사용",
     reset_second_factor_use_key_button: "보안 키로 계속",
     no_ads_no_tracking: "광고 없음, 추적 없음",

@@ -4647,8 +4647,7 @@ export const zh_CN = {
     special_offer_subtitle: "前 12 个月五折",
     special_offer_price_period: "每月",
     special_offer_save_badge: "省 {{percent}}%",
-    special_offer_unavailable:
-      "此优惠已结束。你仍可以按常规价格升级。",
+    special_offer_unavailable: "此优惠已结束。你仍可以按常规价格升级。",
     special_offer_checkout_error: "启动结账时出错。请重试。",
     special_offer_was_price: "原价每月 {{price}}",
     special_offer_original_price: "原价：{{price}}",
@@ -6942,6 +6941,13 @@ export const zh_CN = {
     rotate_dkim_description:
       "轮换您的 DKIM 密钥以提高安全性。轮换后请更新 DNS 记录。",
     rotate_label: "轮换",
+    rotate_dkim_confirm_title: "轮换 DKIM 密钥？",
+    rotate_dkim_confirm_managed:
+      "Aster Mail 会为 {{domain}} 创建新的 DKIM 密钥，并为您更新其 DNS 记录。您无需进行任何更改。",
+    rotate_dkim_confirm_manual:
+      "Aster Mail 会为 {{domain}} 创建新的 DKIM 密钥，并立即使用它签署您的邮件。请在您的 DNS 服务商处添加新的 TXT 记录。在发布之前，您发送的邮件可能无法通过 DKIM 检查。",
+    dkim_rotated_auto_published:
+      "DKIM 密钥已轮换。Aster Mail 已为您更新 DNS 记录。",
     error_tip_mx: "确保 MX 记录指向 Aster 的邮件服务器，优先级正确。",
     error_tip_spf:
       "如果已存在 SPF 记录，请将其与上方的记录合并。两条 SPF 记录会相互抵消。",
@@ -7904,7 +7910,8 @@ export const zh_CN = {
     preview_failed: "预览未能加载，打开邮件就可以看到。",
     pdf_preview_failed: "无法在此处显示此 PDF。要打开它，请下载文件。",
     pdf_password_title: "此 PDF 受密码保护",
-    pdf_password_description: "要查看此 PDF，请输入其密码。密码只保留在此设备上。",
+    pdf_password_description:
+      "要查看此 PDF，请输入其密码。密码只保留在此设备上。",
     pdf_password_label: "PDF 密码",
     pdf_password_incorrect: "密码不正确。请重试。",
     pdf_password_submit: "打开",
@@ -8237,10 +8244,12 @@ export const zh_CN = {
     backup_code_single_use: "每个备份代码只能使用一次",
     backup_code_placeholder: "XXXX-XXXX-XXXX",
     use_authenticator_instead: "改用验证器应用",
-    recovery_code_in_backup_field: "这是恢复码，不是备用码。如需使用，请用恢复码重置密码。",
+    recovery_code_in_backup_field:
+      "这是恢复码，不是备用码。如需使用，请用恢复码重置密码。",
     reset_with_recovery_code: "使用恢复码重置",
     no_backup_codes_title: "不使用通行密钥登录",
-    no_backup_codes_description: "备用码随验证器应用一起提供，而此账户未使用验证器应用。如需在不使用通行密钥的情况下登录，请用任一恢复码重置密码。您的邮件、联系人和设置都会保留，之后您可以添加新的通行密钥。",
+    no_backup_codes_description:
+      "备用码随验证器应用一起提供，而此账户未使用验证器应用。如需在不使用通行密钥的情况下登录，请用任一恢复码重置密码。您的邮件、联系人和设置都会保留，之后您可以添加新的通行密钥。",
     try_passkey_again: "重试通行密钥",
     two_factor_auth_title: "两步验证",
     enter_2fa_code: "输入验证器应用中的6位验证码",
@@ -8385,9 +8394,11 @@ export const zh_CN = {
     reset_consent_email_mismatch: "该邮箱地址与此账户不匹配。",
     reset_consent_continue: "仍然重置密码",
     reset_second_factor_title: "确认是你本人",
-    reset_second_factor_description: "此账户使用双重验证。请先验证第二重验证方式，再重置密码。",
+    reset_second_factor_description:
+      "此账户使用双重验证。请先验证第二重验证方式，再重置密码。",
     reset_second_factor_backup_description: "输入你的任一备用码以继续。",
-    reset_second_factor_key_description: "使用此账户上注册的安全密钥或通行密钥以继续。",
+    reset_second_factor_key_description:
+      "使用此账户上注册的安全密钥或通行密钥以继续。",
     reset_second_factor_use_key: "改用安全密钥",
     reset_second_factor_use_key_button: "使用安全密钥继续",
     no_ads_no_tracking: "无广告、无跟踪",

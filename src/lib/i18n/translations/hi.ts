@@ -3285,7 +3285,8 @@ export const hi = {
     billing_advantages_title_paid: "आपके प्लान में क्या शामिल है",
     billing_advantages_title_free: "{{name}} के साथ आपको क्या मिलता है",
     billing_see_all_features: "{{name}} की सभी सुविधाएँ देखें",
-    billing_compare_all_plans_subtitle: "व्यक्तिगत और पारिवारिक प्लान, मासिक या वार्षिक",
+    billing_compare_all_plans_subtitle:
+      "व्यक्तिगत और पारिवारिक प्लान, मासिक या वार्षिक",
     billing_usage_upgrade_hint: "अधिक जगह के लिए अपग्रेड करें",
     usage_in_use: "{{current}} उपयोग में",
     billing_credits_subtitle: "बैलेंस और टॉप-अप",
@@ -7150,6 +7151,13 @@ export const hi = {
     rotate_dkim_description:
       "नई DKIM हस्ताक्षर कुंजी बनाएं। इससे नए होस्ट नाम पर एक नया DNS रिकॉर्ड बनता है, जिसे आपको अपने रजिस्ट्रार पर प्रकाशित करना होगा।",
     rotate_label: "बदलें",
+    rotate_dkim_confirm_title: "DKIM कुंजी बदलें?",
+    rotate_dkim_confirm_managed:
+      "Aster Mail {{domain}} के लिए नई DKIM कुंजी बनाता है और आपके लिए उसका DNS रिकॉर्ड अपडेट करता है। आपको कुछ भी बदलने की ज़रूरत नहीं है।",
+    rotate_dkim_confirm_manual:
+      "Aster Mail {{domain}} के लिए नई DKIM कुंजी बनाता है और तुरंत उससे आपके मेल पर हस्ताक्षर करता है। अपने DNS प्रदाता पर नया TXT रिकॉर्ड जोड़ें। जब तक आप इसे प्रकाशित नहीं करते, आपके भेजे गए मेल की DKIM जांच विफल हो सकती है।",
+    dkim_rotated_auto_published:
+      "DKIM कुंजी बदल दी गई। Aster Mail ने आपके लिए DNS रिकॉर्ड अपडेट कर दिया।",
     dkim_rotated:
       "DKIM कुंजी बदल दी गई। अपने रजिस्ट्रार पर नीचे दिया नया DNS रिकॉर्ड जोड़ें।",
     dkim_rotated_warning_title: "इसे नए DNS रिकॉर्ड के तौर पर जोड़ें",
@@ -8136,9 +8144,11 @@ export const hi = {
     total_pages_label: "{{count}} पेज",
     loading_preview: "झलक लोड हो रही है…",
     preview_failed: "झलक लोड नहीं हुई। ईमेल खोलने पर वह दिख जाएगी।",
-    pdf_preview_failed: "यह PDF यहां नहीं दिखाई जा सकती। इसे खोलने के लिए, इसे डाउनलोड करें।",
+    pdf_preview_failed:
+      "यह PDF यहां नहीं दिखाई जा सकती। इसे खोलने के लिए, इसे डाउनलोड करें।",
     pdf_password_title: "यह PDF पासवर्ड से सुरक्षित है",
-    pdf_password_description: "इस PDF को देखने के लिए, इसका पासवर्ड डालें। पासवर्ड इसी डिवाइस पर रहता है।",
+    pdf_password_description:
+      "इस PDF को देखने के लिए, इसका पासवर्ड डालें। पासवर्ड इसी डिवाइस पर रहता है।",
     pdf_password_label: "PDF पासवर्ड",
     pdf_password_incorrect: "यह पासवर्ड गलत है। फिर से कोशिश करें।",
     pdf_password_submit: "खोलें",
@@ -9043,10 +9053,12 @@ export const hi = {
     backup_code_single_use: "हर बैकअप कोड सिर्फ़ एक बार इस्तेमाल हो सकता है",
     backup_code_placeholder: "XXXX-XXXX-XXXX",
     use_authenticator_instead: "इसके बजाय ऑथेंटिकेटर ऐप इस्तेमाल करें",
-    recovery_code_in_backup_field: "यह बैकअप कोड नहीं, रिकवरी कोड है। इसे इस्तेमाल करने के लिए, अपने रिकवरी कोड से पासवर्ड रीसेट करें।",
+    recovery_code_in_backup_field:
+      "यह बैकअप कोड नहीं, रिकवरी कोड है। इसे इस्तेमाल करने के लिए, अपने रिकवरी कोड से पासवर्ड रीसेट करें।",
     reset_with_recovery_code: "रिकवरी कोड से रीसेट करें",
     no_backup_codes_title: "पासकी के बिना साइन इन करें",
-    no_backup_codes_description: "बैकअप कोड ऑथेंटिकेटर ऐप के साथ मिलते हैं, और यह खाता ऑथेंटिकेटर ऐप इस्तेमाल नहीं करता। पासकी के बिना साइन इन करने के लिए, अपने किसी रिकवरी कोड से पासवर्ड रीसेट करें। आपके मेल, संपर्क और सेटिंग्स वैसे ही रहेंगे, और बाद में आप नई पासकी जोड़ सकते हैं।",
+    no_backup_codes_description:
+      "बैकअप कोड ऑथेंटिकेटर ऐप के साथ मिलते हैं, और यह खाता ऑथेंटिकेटर ऐप इस्तेमाल नहीं करता। पासकी के बिना साइन इन करने के लिए, अपने किसी रिकवरी कोड से पासवर्ड रीसेट करें। आपके मेल, संपर्क और सेटिंग्स वैसे ही रहेंगे, और बाद में आप नई पासकी जोड़ सकते हैं।",
     try_passkey_again: "पासकी फिर से आज़माएं",
     two_factor_auth_title: "दो-चरणीय प्रमाणीकरण",
     enter_2fa_code: "अपने ऑथेंटिकेटर ऐप से 6 अंकों का कोड डालें",

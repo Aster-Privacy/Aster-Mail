@@ -3177,7 +3177,8 @@ export const en: Translations = {
     billing_advantages_title_paid: "What your plan includes",
     billing_advantages_title_free: "What you get with {{name}}",
     billing_see_all_features: "See all {{name}} features",
-    billing_compare_all_plans_subtitle: "Individual and family plans, monthly or yearly",
+    billing_compare_all_plans_subtitle:
+      "Individual and family plans, monthly or yearly",
     billing_usage_upgrade_hint: "Upgrade for more room",
     usage_in_use: "{{current}} in use",
     billing_credits_subtitle: "Balance and top-ups",
@@ -7082,6 +7083,13 @@ export const en: Translations = {
     rotate_dkim_description:
       "Generate a new DKIM signing key. This creates a new DNS record at a new host name that you must publish at your registrar.",
     rotate_label: "Rotate",
+    rotate_dkim_confirm_title: "Rotate the DKIM key?",
+    rotate_dkim_confirm_managed:
+      "Aster Mail creates a new DKIM key for {{domain}} and updates its DNS record for you. You don't need to change anything.",
+    rotate_dkim_confirm_manual:
+      "Aster Mail creates a new DKIM key for {{domain}} and signs your mail with it right away. Add the new TXT record at your DNS provider. Until you publish it, DKIM checks on the mail you send can fail.",
+    dkim_rotated_auto_published:
+      "DKIM key rotated. Aster Mail updated the DNS record for you.",
     dkim_rotated:
       "DKIM key rotated. Add the new DNS record below at your registrar.",
     dkim_rotated_warning_title: "Add this as a new DNS record",
@@ -8087,9 +8095,11 @@ export const en: Translations = {
     total_pages_label: "{{count}} pages",
     loading_preview: "Loading preview\u2026",
     preview_failed: "The preview did not load. Opening the email will show it.",
-    pdf_preview_failed: "This PDF can't be shown here. To open it, download it.",
+    pdf_preview_failed:
+      "This PDF can't be shown here. To open it, download it.",
     pdf_password_title: "This PDF is password-protected",
-    pdf_password_description: "To view this PDF, enter its password. The password stays on this device.",
+    pdf_password_description:
+      "To view this PDF, enter its password. The password stays on this device.",
     pdf_password_label: "PDF password",
     pdf_password_incorrect: "That password is incorrect. Try again.",
     pdf_password_submit: "Open",
@@ -9009,10 +9019,12 @@ export const en: Translations = {
     backup_code_single_use: "Each backup code can only be used once",
     backup_code_placeholder: "XXXX-XXXX-XXXX",
     use_authenticator_instead: "Use authenticator app instead",
-    recovery_code_in_backup_field: "This is a recovery code, not a backup code. To use it, reset your password with your recovery code.",
+    recovery_code_in_backup_field:
+      "This is a recovery code, not a backup code. To use it, reset your password with your recovery code.",
     reset_with_recovery_code: "Reset with recovery code",
     no_backup_codes_title: "Sign in without your passkey",
-    no_backup_codes_description: "Backup codes come with an authenticator app, and this account doesn't use one. To sign in without your passkey, reset your password with one of your recovery codes. Your mail, contacts, and settings stay as they are, and you can add a new passkey afterward.",
+    no_backup_codes_description:
+      "Backup codes come with an authenticator app, and this account doesn't use one. To sign in without your passkey, reset your password with one of your recovery codes. Your mail, contacts, and settings stay as they are, and you can add a new passkey afterward.",
     try_passkey_again: "Try your passkey again",
     two_factor_auth_title: "Two-Factor Authentication",
     enter_2fa_code: "Enter the 6-digit code from your authenticator app",

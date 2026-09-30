@@ -7502,6 +7502,13 @@ export const pt_br = {
     rotate_dkim_description:
       "Gere uma nova chave de assinatura DKIM. Isso cria um novo registro DNS em um novo nome de host, que você precisa publicar no seu registrador.",
     rotate_label: "Rotacionar",
+    rotate_dkim_confirm_title: "Rotacionar a chave DKIM?",
+    rotate_dkim_confirm_managed:
+      "O Aster Mail cria uma nova chave DKIM para {{domain}} e atualiza o registro DNS dele para você. Você não precisa mudar nada.",
+    rotate_dkim_confirm_manual:
+      "O Aster Mail cria uma nova chave DKIM para {{domain}} e assina seus e-mails com ela imediatamente. Adicione o novo registro TXT no seu provedor de DNS. Até você publicá-lo, as verificações DKIM dos e-mails que você envia podem falhar.",
+    dkim_rotated_auto_published:
+      "Chave DKIM rotacionada. O Aster Mail atualizou o registro DNS para você.",
     dkim_rotated:
       "Chave DKIM rotacionada. Adicione o novo registro DNS abaixo no seu registrador.",
     dkim_rotated_warning_title: "Adicione isto como um novo registro DNS",

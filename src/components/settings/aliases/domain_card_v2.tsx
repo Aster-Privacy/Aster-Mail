@@ -48,6 +48,7 @@ import {
   type DnsRecord,
 } from "@/services/api/domains";
 import { show_toast } from "@/components/toast/simple_toast";
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 
 interface DomainCardV2Props {
   domain: CustomDomain;
@@ -75,6 +76,9 @@ export function DomainCardV2({
   const [expanded, set_expanded] = useState(false);
   const [show_advanced, set_show_advanced] = useState(false);
   const [dkim_rotating, set_dkim_rotating] = useState(false);
+  const [dkim_rotate_confirm_open, set_dkim_rotate_confirm_open] =
+    useState(false);
+  const dns_managed_by_aster = domain.is_purchased === true;
   const [rotated_dkim_record, set_rotated_dkim_record] =
     useState<DnsRecord | null>(null);
   const [dns_records, set_dns_records] = useState<DnsRecord[] | null>(null);
@@ -144,13 +148,19 @@ export function DomainCardV2({
   };
 
   const handle_rotate_dkim = async () => {
+    set_dkim_rotate_confirm_open(false);
     set_dkim_rotating(true);
     try {
       const response = await rotate_dkim(domain.id);
 
       if (response.data?.success) {
-        set_rotated_dkim_record(response.data.dns_record);
-        show_toast(t("settings.dkim_rotated"), "success");
+        if (response.data.dns_auto_published === true) {
+          set_rotated_dkim_record(null);
+          show_toast(t("settings.dkim_rotated_auto_published"), "success");
+        } else {
+          set_rotated_dkim_record(response.data.dns_record);
+          show_toast(t("settings.dkim_rotated"), "success");
+        }
         if (dns_records) {
           const refreshed = await get_dns_records(domain.id);
 
@@ -452,7 +462,7 @@ export function DomainCardV2({
                       <Button
                         disabled={dkim_rotating}
                         variant="outline"
-                        onClick={handle_rotate_dkim}
+                        onClick={() => set_dkim_rotate_confirm_open(true)}
                       >
                         <ArrowPathIcon
                           className={`w-3.5 h-3.5 ${dkim_rotating ? "animate-spin" : ""}`}
@@ -463,11 +473,19 @@ export function DomainCardV2({
 
                     {rotated_dkim_record && (
                       <div className="space-y-2">
-                        <div className="p-3 rounded-lg border border-amber-500/20 bg-amber-500/10">
-                          <p className="text-sm font-medium text-amber-600 dark:text-amber-400">
+                        <div
+                          className="p-3 rounded-lg border"
+                          data-testid="dkim_rotated_banner"
+                          style={{
+                            backgroundColor: "var(--color-warning)",
+                            borderColor: "var(--color-warning)",
+                            color: "#1a1200",
+                          }}
+                        >
+                          <p className="text-sm font-semibold">
                             {t("settings.dkim_rotated_warning_title")}
                           </p>
-                          <p className="text-xs mt-1 text-amber-600/90 dark:text-amber-400/90">
+                          <p className="text-xs mt-1">
                             {t("settings.dkim_rotated_warning_body")}
                           </p>
                         </div>
@@ -481,6 +499,25 @@ export function DomainCardV2({
           </div>
         </div>
       )}
+
+      <ConfirmationModal
+        confirm_text={t("settings.rotate_label")}
+        is_loading={dkim_rotating}
+        is_open={dkim_rotate_confirm_open}
+        message={
+          dns_managed_by_aster
+            ? t("settings.rotate_dkim_confirm_managed", {
+                domain: domain.domain_name,
+              })
+            : t("settings.rotate_dkim_confirm_manual", {
+                domain: domain.domain_name,
+              })
+        }
+        on_cancel={() => set_dkim_rotate_confirm_open(false)}
+        on_confirm={handle_rotate_dkim}
+        title={t("settings.rotate_dkim_confirm_title")}
+        variant={dns_managed_by_aster ? "info" : "warning"}
+      />
     </div>
   );
 }

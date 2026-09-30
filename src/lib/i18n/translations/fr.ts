@@ -4231,12 +4231,15 @@ export const fr = {
     billing_addons_subtitle: "Plus d'espace, même forfait",
     billing_support_subtitle: "Envoyer un message à l'équipe",
     billing_upsell_title: "Profitez de plus avec {{name}}",
-    billing_upsell_price: "À partir de {{price}} par mois, facturé annuellement",
+    billing_upsell_price:
+      "À partir de {{price}} par mois, facturé annuellement",
     billing_advantages_title_paid: "Ce que comprend votre forfait",
     billing_advantages_title_free: "Ce que vous obtenez avec {{name}}",
     billing_see_all_features: "Voir toutes les fonctionnalités de {{name}}",
-    billing_compare_all_plans_subtitle: "Forfaits individuels et familiaux, mensuels ou annuels",
-    billing_usage_upgrade_hint: "Passez à un forfait supérieur pour plus de place",
+    billing_compare_all_plans_subtitle:
+      "Forfaits individuels et familiaux, mensuels ou annuels",
+    billing_usage_upgrade_hint:
+      "Passez à un forfait supérieur pour plus de place",
     usage_in_use: "{{current}} utilisés",
     billing_credits_subtitle: "Solde et recharges",
     billing_academic_subtitle: "Économisez avec une adresse universitaire",
@@ -7790,6 +7793,13 @@ export const fr = {
       "Générez une nouvelle clé de signature DKIM. Cela crée un nouvel enregistrement DNS sur un nouveau nom d'hôte, que vous devez publier auprès de votre registraire.",
     rotate_dkim_key: "Renouveler la clé DKIM",
     rotate_label: "Renouveler",
+    rotate_dkim_confirm_title: "Renouveler la clé DKIM ?",
+    rotate_dkim_confirm_managed:
+      "Aster Mail crée une nouvelle clé DKIM pour {{domain}} et met à jour son enregistrement DNS pour vous. Vous n'avez rien à modifier.",
+    rotate_dkim_confirm_manual:
+      "Aster Mail crée une nouvelle clé DKIM pour {{domain}} et signe immédiatement vos e-mails avec elle. Ajoutez le nouvel enregistrement TXT chez votre fournisseur DNS. Tant qu'il n'est pas publié, les vérifications DKIM des e-mails que vous envoyez peuvent échouer.",
+    dkim_rotated_auto_published:
+      "Clé DKIM renouvelée. Aster Mail a mis à jour l'enregistrement DNS pour vous.",
     security_key_registered: "Clé de sécurité enregistrée",
     security_key_removed: "Clé de sécurité supprimée",
     security_keys: "Clés de sécurité",
@@ -8930,9 +8940,11 @@ export const fr = {
     loading_preview: "Chargement de l'aperçu…",
     preview_failed:
       "L'aperçu ne s'est pas chargé. Ouvrir le message l'affichera.",
-    pdf_preview_failed: "Ce PDF ne peut pas s'afficher ici. Pour l'ouvrir, téléchargez-le.",
+    pdf_preview_failed:
+      "Ce PDF ne peut pas s'afficher ici. Pour l'ouvrir, téléchargez-le.",
     pdf_password_title: "Ce PDF est protégé par un mot de passe",
-    pdf_password_description: "Pour afficher ce PDF, saisissez son mot de passe. Le mot de passe reste sur cet appareil.",
+    pdf_password_description:
+      "Pour afficher ce PDF, saisissez son mot de passe. Le mot de passe reste sur cet appareil.",
     pdf_password_label: "Mot de passe du PDF",
     pdf_password_incorrect: "Ce mot de passe est incorrect. Réessayez.",
     pdf_password_submit: "Ouvrir",
@@ -9282,10 +9294,12 @@ export const fr = {
     backup_code_placeholder: "XXXX-XXXX-XXXX",
     use_authenticator_instead:
       "Utiliser l'application d'authentification à la place",
-    recovery_code_in_backup_field: "Il s'agit d'un code de récupération, pas d'un code de secours. Pour l'utiliser, réinitialisez votre mot de passe avec votre code de récupération.",
+    recovery_code_in_backup_field:
+      "Il s'agit d'un code de récupération, pas d'un code de secours. Pour l'utiliser, réinitialisez votre mot de passe avec votre code de récupération.",
     reset_with_recovery_code: "Réinitialiser avec un code de récupération",
     no_backup_codes_title: "Se connecter sans votre clé d'accès",
-    no_backup_codes_description: "Les codes de secours sont fournis avec une application d'authentification, et ce compte n'en utilise pas. Pour vous connecter sans votre clé d'accès, réinitialisez votre mot de passe avec l'un de vos codes de récupération. Vos e-mails, contacts et réglages sont conservés, et vous pourrez ajouter une nouvelle clé d'accès ensuite.",
+    no_backup_codes_description:
+      "Les codes de secours sont fournis avec une application d'authentification, et ce compte n'en utilise pas. Pour vous connecter sans votre clé d'accès, réinitialisez votre mot de passe avec l'un de vos codes de récupération. Vos e-mails, contacts et réglages sont conservés, et vous pourrez ajouter une nouvelle clé d'accès ensuite.",
     try_passkey_again: "Réessayer avec la clé d'accès",
     two_factor_auth_title: "Authentification à deux facteurs",
     enter_2fa_code:
