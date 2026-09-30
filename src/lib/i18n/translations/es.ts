@@ -1096,6 +1096,8 @@ export const es = {
     switch_to_rich_text: "Cambiar a texto enriquecido",
     switch_to_plain_text: "Cambiar a texto plano",
     font_size_label: "Tamaño de fuente",
+    font_family_label: "Fuente",
+    font_family_default: "Fuente predeterminada",
     enter_url_display_text: "Ingresa una URL y texto de visualización opcional",
     emoji: "Emoji",
     recipients: "Destinatarios",

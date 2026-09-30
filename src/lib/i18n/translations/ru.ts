@@ -1080,6 +1080,8 @@ export const ru = {
     switch_to_rich_text: "Переключить на форматированный текст",
     switch_to_plain_text: "Переключить на обычный текст",
     font_size_label: "Размер шрифта",
+    font_family_label: "Шрифт",
+    font_family_default: "Шрифт по умолчанию",
     enter_url_display_text: "Введите URL и необязательный отображаемый текст",
     emoji: "Эмодзи",
     recipients: "Получатели",

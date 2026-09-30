@@ -1044,6 +1044,8 @@ export const ar = {
     switch_to_rich_text: "التبديل إلى نص منسق",
     switch_to_plain_text: "التبديل إلى نص عادي",
     font_size_label: "حجم الخط",
+    font_family_label: "نوع الخط",
+    font_family_default: "الخط الافتراضي",
     enter_url_display_text: "أدخل URL ونص عرض اختياري",
     emoji: "رمز تعبيري",
     recipients: "المستلمون",

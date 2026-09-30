@@ -23,6 +23,7 @@ import type { ComposeToolbarState } from "@/components/compose/compose_shared";
 
 import { AlignmentGroup } from "./alignment";
 import { ColorPickerPopover } from "./color_picker";
+import { FontFamilySelect } from "./font_family";
 import { FontSizeSelect } from "./font_size";
 import { Divider, ToolbarButton, use_frozen_selection } from "./shared";
 
@@ -39,6 +40,13 @@ export function FormatTools({ compose }: { compose: ComposeToolbarState }) {
     <>
       {editor && (
         <>
+          <FontFamilySelect
+            font_family={editor.format_state.current_font_family}
+            on_before_open={freeze_selection}
+            on_change={(family) =>
+              apply_with_frozen_selection(() => editor.set_font_family(family))
+            }
+          />
           <FontSizeSelect
             font_size={editor.format_state.current_font_size}
             on_before_open={freeze_selection}

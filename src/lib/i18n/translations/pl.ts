@@ -1093,6 +1093,8 @@ export const pl = {
     switch_to_rich_text: "Przełącz na tekst sformatowany",
     switch_to_plain_text: "Przełącz na zwykły tekst",
     font_size_label: "Rozmiar czcionki",
+    font_family_label: "Czcionka",
+    font_family_default: "Domyślna czcionka",
     enter_url_display_text: "Wprowadź URL i opcjonalny tekst wyświetlany",
     emoji: "Emotikony",
     recipients: "Odbiorcy",

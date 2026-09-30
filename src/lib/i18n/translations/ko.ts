@@ -1135,6 +1135,8 @@ export const ko = {
     switch_to_rich_text: "서식 있는 텍스트로 전환",
     switch_to_plain_text: "일반 텍스트로 전환",
     font_size_label: "글꼴 크기",
+    font_family_label: "글꼴",
+    font_family_default: "기본 글꼴",
     enter_url_display_text: "URL과 선택적 표시 텍스트를 입력하세요",
     emoji: "이모지",
     recipients: "수신자",

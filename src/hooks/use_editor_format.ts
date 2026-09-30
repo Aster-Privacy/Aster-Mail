@@ -34,6 +34,7 @@ import {
   get_current_block_tag,
   escape_html,
   replace_font_element,
+  is_allowed_font_family,
 } from "@/hooks/editor_utils";
 
 const ZERO_WIDTH_SPACE = "\u200B";
@@ -53,6 +54,7 @@ function same_format_state(
     a.current_font_color !== b.current_font_color ||
     a.current_bg_color !== b.current_bg_color ||
     a.current_font_size !== b.current_font_size ||
+    a.current_font_family !== b.current_font_family ||
     a.active_formats.size !== b.active_formats.size
   ) {
     return false;
@@ -141,6 +143,7 @@ export function use_editor_format(
     current_font_color: "",
     current_bg_color: "",
     current_font_size: "",
+    current_font_family: "",
   });
 
   const saved_selection_ref = useRef<Range | null>(null);
@@ -254,6 +257,7 @@ export function use_editor_format(
       let font_color = "";
       let bg_color = "";
       let font_size = "";
+      let font_family = "";
 
       try {
         font_color = document.queryCommandValue("foreColor") || "";
@@ -264,9 +268,12 @@ export function use_editor_format(
 
         const anchor_element = element_for_selection(selection);
 
-        font_size = anchor_element
-          ? window.getComputedStyle(anchor_element).fontSize
-          : "";
+        const computed = anchor_element
+          ? window.getComputedStyle(anchor_element)
+          : null;
+
+        font_size = computed ? computed.fontSize : "";
+        font_family = computed ? computed.fontFamily : "";
       } catch (caught) {
         ignore_error("hooks/use_editor_format:use_editor_format", caught);
       }
@@ -281,6 +288,7 @@ export function use_editor_format(
         current_font_color: font_color,
         current_bg_color: bg_color,
         current_font_size: font_size,
+        current_font_family: font_family,
       };
 
       set_format_state((prev) => (same_format_state(prev, next) ? prev : next));
@@ -615,7 +623,11 @@ export function use_editor_format(
   );
 
   const apply_inline_color = useCallback(
-    (property: "color" | "backgroundColor", command: string, color: string) => {
+    (
+      property: "color" | "backgroundColor" | "fontFamily",
+      command: string,
+      color: string,
+    ) => {
       const editor = editor_ref.current;
 
       if (!editor || is_plain_text_mode) return;
@@ -682,6 +694,15 @@ export function use_editor_format(
       if (!validate_hex_color(color)) return;
 
       apply_inline_color("backgroundColor", "hiliteColor", color);
+    },
+    [apply_inline_color],
+  );
+
+  const set_font_family = useCallback(
+    (family: string) => {
+      if (!is_allowed_font_family(family)) return;
+
+      apply_inline_color("fontFamily", "fontName", family);
     },
     [apply_inline_color],
   );
@@ -782,5 +803,6 @@ export function use_editor_format(
     set_font_color,
     set_background_color,
     set_font_size,
+    set_font_family,
   };
 }
