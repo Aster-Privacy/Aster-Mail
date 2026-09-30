@@ -125,7 +125,7 @@ export const contact_to_vcard = (
 
   for (const entry of email_entries) {
     if (!entry.value?.trim()) continue;
-    push_typed("EMAIL", ";TYPE=INTERNET", entry, escape_value(entry.value));
+    push_typed("EMAIL", "", entry, escape_value(entry.value));
   }
 
   const phone_entries = contact.phone_entries?.length

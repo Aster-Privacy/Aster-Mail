@@ -307,11 +307,11 @@ describe("contact_to_vcard round trip", () => {
     );
     const lines = card.split("\r\n");
 
-    expect(lines).toContain("EMAIL;TYPE=INTERNET;TYPE=HOME:ada@home.example");
-    expect(lines).toContain("item1.EMAIL;TYPE=INTERNET:ada@personal.example");
+    expect(lines).toContain("EMAIL;TYPE=HOME:ada@home.example");
+    expect(lines).toContain("item1.EMAIL;TYPE=Personal:ada@personal.example");
     expect(lines).toContain("item1.X-ABLabel:Personal");
     expect(lines).toContain("TEL;TYPE=CELL:+1 555 0100");
-    expect(lines).toContain("item2.TEL:+1 555 0101");
+    expect(lines).toContain("item2.TEL;TYPE=Boat:+1 555 0101");
     expect(lines).toContain("item2.X-ABLabel:Boat");
     expect(lines).toContain("TEL;TYPE=FAX:+1 555 0102");
   });
@@ -406,7 +406,8 @@ describe("contact_to_vcard", () => {
     expect(card.startsWith("BEGIN:VCARD\r\nVERSION:3.0")).toBe(true);
     expect(card).toContain("N:Lovelace;Ada;;;");
     expect(card).toContain("FN:Ada Lovelace");
-    expect(card).toContain("EMAIL;TYPE=INTERNET:ada@example.com");
+    expect(card).toContain("EMAIL:ada@example.com");
+    expect(card).not.toContain("INTERNET");
     expect(card.endsWith("END:VCARD")).toBe(true);
   });
 
