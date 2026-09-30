@@ -1107,6 +1107,8 @@ export const fr = {
     switch_to_rich_text: "Passer en texte enrichi",
     switch_to_plain_text: "Passer en texte brut",
     font_size_label: "Taille de la police",
+    font_family_label: "Police",
+    font_family_default: "Police par défaut",
     enter_url_display_text: "Saisir une URL et un texte d'affichage optionnel",
     emoji: "Émoji",
     recipients: "Destinataires",

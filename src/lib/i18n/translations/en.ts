@@ -1146,6 +1146,8 @@ export const en: Translations = {
     switch_to_rich_text: "Switch to rich text",
     switch_to_plain_text: "Switch to plain text",
     font_size_label: "Font size",
+    font_family_label: "Font",
+    font_family_default: "Default font",
     enter_url_display_text: "Enter a URL and optional display text",
     emoji: "Emoji",
     recipients: "Recipients",

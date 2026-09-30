@@ -987,6 +987,8 @@ export const pt_br = {
     switch_to_rich_text: "Mudar para texto formatado",
     switch_to_plain_text: "Mudar para texto simples",
     font_size_label: "Tamanho da fonte",
+    font_family_label: "Fonte",
+    font_family_default: "Fonte padrão",
     enter_url_display_text: "Digite uma URL e texto de exibição opcional",
     emoji: "Emoji",
     recipients: "Destinatários",

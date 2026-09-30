@@ -952,6 +952,8 @@ export const zh_CN = {
     switch_to_rich_text: "切换到富文本",
     switch_to_plain_text: "切换到纯文本",
     font_size_label: "字体大小",
+    font_family_label: "字体",
+    font_family_default: "默认字体",
     enter_url_display_text: "输入 URL 和可选的显示文本",
     emoji: "表情",
     recipients: "收件人",

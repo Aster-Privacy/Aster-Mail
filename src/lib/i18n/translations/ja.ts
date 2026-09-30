@@ -1129,6 +1129,8 @@ export const ja = {
     switch_to_rich_text: "リッチテキストに切り替え",
     switch_to_plain_text: "プレーンテキストに切り替え",
     font_size_label: "フォントサイズ",
+    font_family_label: "フォント",
+    font_family_default: "既定のフォント",
     enter_url_display_text: "URLと任意の表示テキストを入力",
     emoji: "絵文字",
     recipients: "宛先",

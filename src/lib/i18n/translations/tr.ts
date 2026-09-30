@@ -1077,6 +1077,8 @@ export const tr = {
     switch_to_rich_text: "Zengin metne geç",
     switch_to_plain_text: "Düz metne geç",
     font_size_label: "Yazı tipi boyutu",
+    font_family_label: "Yazı tipi",
+    font_family_default: "Varsayılan yazı tipi",
     enter_url_display_text: "Bir URL ve isteğe bağlı görüntüleme metni girin",
     emoji: "Emoji",
     recipients: "Alıcılar",
