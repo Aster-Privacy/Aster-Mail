@@ -72,6 +72,7 @@ import {
 } from "@/components/compose/compose_send_actions";
 import { ensure_external_key_trust } from "@/services/key_trust_consent";
 import { save_failed_send_as_draft } from "@/components/compose/compose_failed_send_draft";
+import { attachments_to_draft_data } from "@/components/compose/compose_draft_helpers";
 import { ensure_post_quantum_consent } from "@/services/post_quantum_consent";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import {
@@ -251,7 +252,13 @@ export function use_compose_send({
     )
       return;
 
-    if (recipients.to.length === 0 || !user) return;
+    if (recipients.to.length === 0) return;
+
+    if (!user) {
+      show_toast(t("errors.session_expired_send"), "error");
+
+      return;
+    }
 
     if (is_attachment_set_incomplete(is_loading_forward_attachments)) {
       show_toast(t("mail.attaching_original_files"), "info");
@@ -431,6 +438,50 @@ export function use_compose_send({
       }
     }
 
+    let compose_released = false;
+
+    const keep_unsent_message = async () => {
+      last_send_time_ref.current = 0;
+      forget_send(send_fingerprint);
+
+      const open_draft_id = draft_context_id_ref.current;
+
+      if (compose_released || !open_draft_id || !vault) return;
+
+      const open_context = draft_manager.get_context(open_draft_id);
+
+      if (!open_context || open_context.is_deleted) return;
+
+      let kept = false;
+
+      try {
+        const result = await draft_manager.save_draft(
+          open_draft_id,
+          {
+            to_recipients: recipients.to,
+            cc_recipients: recipients.cc,
+            bcc_recipients: recipients.bcc,
+            subject,
+            message,
+            from_email: selected_sender?.email,
+            attachments:
+              attachments.length > 0
+                ? attachments_to_draft_data(attachments)
+                : undefined,
+          },
+          vault,
+        );
+
+        kept = result.success;
+      } catch {
+        kept = false;
+      }
+
+      if (!kept) {
+        show_toast(t("common.save_failed"), "error");
+      }
+    };
+
     try {
       const pending_draft_id = draft_context_id_ref.current;
 
@@ -521,8 +572,17 @@ export function use_compose_send({
         });
       }
 
+      const base_ctx = build_send_context();
       const ctx: SendActionContext = {
-        ...build_send_context(),
+        ...base_ctx,
+        reset_form: () => {
+          compose_released = true;
+          base_ctx.reset_form();
+        },
+        on_close: () => {
+          compose_released = true;
+          base_ctx.on_close();
+        },
         on_send_failed: (failed: FailedSendData) =>
           restore_failed_send_to_drafts(
             failed,
@@ -538,6 +598,8 @@ export function use_compose_send({
 
         if (sent) {
           await confirm_draft_deleted();
+        } else if (!compose_released) {
+          void keep_unsent_message();
         }
 
         return;
@@ -575,6 +637,8 @@ export function use_compose_send({
 
         if (external_sent) {
           await confirm_draft_deleted();
+        } else if (!compose_released) {
+          void keep_unsent_message();
         }
 
         return;
@@ -599,6 +663,8 @@ export function use_compose_send({
 
       if (internal_sent) {
         await confirm_draft_deleted();
+      } else if (!compose_released) {
+        void keep_unsent_message();
       }
     } catch (error) {
       show_toast(
@@ -607,8 +673,7 @@ export function use_compose_send({
           : t("common.failed_to_send_email"),
         "error",
       );
-      last_send_time_ref.current = 0;
-      forget_send(send_fingerprint);
+      void keep_unsent_message();
     } finally {
       is_sending_ref.current = false;
       send_lock_started_at_ref.current = 0;
@@ -621,6 +686,7 @@ export function use_compose_send({
     user,
     contacts,
     clear_all_errors,
+    vault,
     build_send_context,
     restore_failed_send_to_drafts,
     reset_form,

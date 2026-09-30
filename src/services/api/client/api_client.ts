@@ -816,6 +816,38 @@ export class ApiClient {
     return this.refresh_promise;
   }
 
+  async recover_session(): Promise<boolean> {
+    if (this.refresh_promise) {
+      await this.refresh_promise.catch(() => undefined);
+    }
+
+    const refreshed_at = this.last_refresh_timestamp;
+    let is_fresh = Date.now() - refreshed_at < REFRESH_MIN_GAP_MS;
+
+    if (!is_fresh) {
+      const gap_left_ms =
+        REFRESH_MIN_GAP_MS - (Date.now() - this.last_refresh_attempt_at);
+
+      if (gap_left_ms > 0) {
+        await this.delay(gap_left_ms);
+      }
+
+      try {
+        await this.refresh_session({ after_unauthorized: true });
+      } catch (caught) {
+        ignore_error("services/api/client/api_client:recover_session", caught);
+      }
+
+      is_fresh = this.last_refresh_timestamp !== refreshed_at;
+    }
+
+    return (
+      is_fresh &&
+      this.is_authenticated_flag &&
+      get_csrf_token_from_cookie() !== null
+    );
+  }
+
   private async refresh_session_exclusively(): Promise<void> {
     const locks =
       typeof navigator !== "undefined" ? navigator.locks : undefined;
@@ -1680,7 +1712,9 @@ export class ApiClient {
                 }
               }
             }
-            this.dispatch_session_expired();
+            if (!this.is_authenticated_flag) {
+              this.dispatch_session_expired();
+            }
           }
 
           if (
