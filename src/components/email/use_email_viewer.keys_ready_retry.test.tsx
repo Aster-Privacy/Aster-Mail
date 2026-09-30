@@ -109,13 +109,19 @@ function release_keys() {
   for (const callback of [...keys_ready_listeners]) callback();
 }
 
-function render_hook(): { errors: (string | null)[]; root: Root } {
+function render_hook(): {
+  errors: (string | null)[];
+  loading: boolean[];
+  root: Root;
+} {
   const errors: (string | null)[] = [];
+  const loading: boolean[] = [];
 
   function Harness() {
     const view = use_email_viewer({ email_id: "m1", on_dismiss: () => {} });
 
     errors.push(view.error);
+    loading.push(view.is_loading);
 
     return null;
   }
@@ -128,7 +134,7 @@ function render_hook(): { errors: (string | null)[]; root: Root } {
     root.render(createElement(Harness));
   });
 
-  return { errors, root };
+  return { errors, loading, root };
 }
 
 async function flush(): Promise<void> {
@@ -195,6 +201,35 @@ describe("a message that could not be decrypted retries once the keys arrive", (
     await flush();
 
     expect(decrypt_mail_envelope.mock.calls.length).toBe(attempts);
+
+    act(() => root.unmount());
+  });
+});
+
+describe("a message whose load throws", () => {
+  beforeEach(() => {
+    (
+      globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }
+    ).IS_REACT_ACT_ENVIRONMENT = true;
+    decrypt_mail_envelope.mockReset();
+    keys_ready = true;
+    keys_ready_listeners.clear();
+  });
+
+  it("shows an error instead of loading forever", async () => {
+    decrypt_mail_envelope.mockResolvedValue({
+      subject: "Hello",
+      body_text: "Hi",
+      from_email: "me@astermail.org",
+      to: [],
+    });
+
+    const { errors, loading, root } = render_hook();
+
+    await flush();
+
+    expect(errors.at(-1)).toBe("common.failed_to_load_email");
+    expect(loading.at(-1)).toBe(false);
 
     act(() => root.unmount());
   });

@@ -37,6 +37,17 @@ export function normalize_parsed_envelope<T>(parsed: T): T {
 
   const record = parsed as Record<string, unknown>;
 
+  if (
+    !normalize_envelope_from(record.from) &&
+    typeof record.from_email === "string" &&
+    record.from_email
+  ) {
+    record.from = {
+      name: typeof record.from_name === "string" ? record.from_name : "",
+      email: record.from_email,
+    };
+  }
+
   if ("from" in record) {
     record.from = normalize_envelope_from(record.from) ?? {
       name: typeof record.from === "string" ? record.from : "",
