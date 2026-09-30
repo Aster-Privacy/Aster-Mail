@@ -110,6 +110,13 @@ export function vcard_type_token(
   return EXPORT_TYPE_TOKENS[property][type] ?? "OTHER";
 }
 
+function vcard_param_text(label: string): string {
+  return label
+    .replace(/[\p{Cc};:,"]/gu, " ")
+    .trim()
+    .replace(/\s+/g, " ");
+}
+
 export function typed_vcard_lines(
   property: VCardTypedProperty,
   base_params: string,
@@ -123,9 +130,10 @@ export function typed_vcard_lines(
   if (custom) {
     counter.value += 1;
     const group = `item${counter.value}`;
+    const param = vcard_param_text(custom);
 
     return [
-      `${group}.${property}${base_params}:${escaped_value}`,
+      `${group}.${property}${base_params}${param ? `;TYPE=${param}` : ""}:${escaped_value}`,
       `${group}.X-ABLabel:${escape(custom)}`,
     ];
   }
