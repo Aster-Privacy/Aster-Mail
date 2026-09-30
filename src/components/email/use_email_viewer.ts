@@ -884,7 +884,13 @@ export function use_email_viewer({
       const reloading_same_email = loaded_email_id_ref.current === email_id;
 
       loaded_email_id_ref.current = null;
-      load_email(reloading_same_email);
+      load_email(reloading_same_email).catch((caught) => {
+        ignore_error("components/email/use_email_viewer:load_email", caught);
+        if (!cancelled && !reloading_same_email) {
+          set_error(t("common.failed_to_load_email"));
+          set_is_loading(false);
+        }
+      });
     }
 
     return () => {
