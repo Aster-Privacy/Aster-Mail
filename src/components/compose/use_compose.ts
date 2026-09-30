@@ -298,7 +298,10 @@ export function use_compose({
   const plan_gate_ref = useRef({ plan_limits, is_feature_locked });
 
   plan_gate_ref.current = { plan_limits, is_feature_locked };
-  const contacts = use_suggestion_contacts(true, load_contacts_trigger);
+  const contacts = use_suggestion_contacts(
+    load_contacts_trigger !== false,
+    load_contacts_trigger,
+  );
   const [recent_recipients_list, set_recent_recipients_list] = useState<
     DecryptedRecentRecipient[]
   >([]);

@@ -24,6 +24,7 @@ const list_contacts = vi.fn();
 const decrypt_contacts = vi.fn();
 const get_contacts_encryption_key = vi.fn();
 const vault_cleared_callbacks: Array<() => void> = [];
+const keys_ready_callbacks: Array<() => void> = [];
 
 vi.mock("@/services/api/contacts", () => ({
   list_contacts: (...args: unknown[]) => list_contacts(...args),
@@ -32,7 +33,11 @@ vi.mock("@/services/api/contacts", () => ({
 }));
 
 vi.mock("@/services/crypto/memory_key_store", () => ({
-  on_keys_ready: () => () => undefined,
+  on_keys_ready: (callback: () => void) => {
+    keys_ready_callbacks.push(callback);
+
+    return () => undefined;
+  },
   on_vault_cleared: (callback: () => void) => {
     vault_cleared_callbacks.push(callback);
 
@@ -69,6 +74,8 @@ beforeEach(() => {
   get_contacts_encryption_key.mockResolvedValue({});
   decrypt_contacts.mockImplementation(async (items: unknown[]) => items);
   vault_cleared_callbacks.length = 0;
+  keys_ready_callbacks.length = 0;
+  vi.useRealTimers();
 });
 
 describe("load_suggestion_pool", () => {
@@ -109,8 +116,13 @@ describe("load_suggestion_pool", () => {
 
     const { emit_contacts_changed } = await import("@/hooks/mail_events");
 
+    vi.useFakeTimers();
     emit_contacts_changed();
+    emit_contacts_changed();
+    expect(listener).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(mod.SUGGESTION_POOL_STALE_DEBOUNCE_MS);
     expect(listener).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
 
     const refreshed = await mod.load_suggestion_pool();
 
@@ -142,5 +154,62 @@ describe("load_suggestion_pool", () => {
     const pool = await mod.load_suggestion_pool();
 
     expect(pool.map((item) => item.id)).toEqual(["one"]);
+  });
+
+  it("stops paging a fetch that contacts changes made stale", async () => {
+    const gate: { release?: () => void } = {};
+
+    list_contacts
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            gate.release = () => resolve(page([contact("old")], "next"));
+          }),
+      )
+      .mockResolvedValue(page([contact("fresh")]));
+
+    const mod = await load();
+    const first = mod.load_suggestion_pool();
+
+    await vi.waitFor(() => expect(gate.release).toBeDefined());
+    mod.mark_suggestion_pool_stale();
+
+    const second = mod.load_suggestion_pool();
+
+    gate.release?.();
+    await first;
+
+    expect((await second).map((item) => item.id)).toEqual(["fresh"]);
+    expect(list_contacts).toHaveBeenCalledTimes(2);
+    expect(mod.get_cached_suggestion_pool()?.map((item) => item.id)).toEqual([
+      "fresh",
+    ]);
+  });
+
+  it("reloads once keys are ready after a locked start", async () => {
+    get_contacts_encryption_key.mockRejectedValueOnce(new Error("locked"));
+    list_contacts.mockResolvedValue(page([contact("one")]));
+
+    const mod = await load();
+    const listener = vi.fn();
+
+    mod.subscribe_suggestion_pool(listener);
+    expect(await mod.load_suggestion_pool()).toEqual([]);
+
+    keys_ready_callbacks.forEach((callback) => callback());
+    expect(listener).toHaveBeenCalledTimes(1);
+
+    const pool = await mod.load_suggestion_pool();
+
+    expect(pool.map((item) => item.id)).toEqual(["one"]);
+  });
+
+  it("asks the server for pages it will actually return", async () => {
+    list_contacts.mockResolvedValue(page([contact("one")]));
+
+    const mod = await load();
+
+    await mod.load_suggestion_pool();
+    expect(list_contacts.mock.calls[0][0]).toMatchObject({ limit: 100 });
   });
 });

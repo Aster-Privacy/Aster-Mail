@@ -27,10 +27,15 @@ import {
 } from "@/services/api/contacts";
 import { is_contact_trashed } from "@/lib/contact_trash";
 import { on_mail_event, MAIL_EVENTS } from "@/hooks/mail_events";
-import { on_vault_cleared } from "@/services/crypto/memory_key_store";
+import {
+  on_keys_ready,
+  on_vault_cleared,
+} from "@/services/crypto/memory_key_store";
 
-const PAGE_SIZE = 200;
-const MAX_PAGES = 50;
+const PAGE_SIZE = 100;
+const MAX_PAGES = 100;
+
+export const SUGGESTION_POOL_STALE_DEBOUNCE_MS = 1500;
 
 export const SUGGESTION_POOL_TTL_MS = 5 * 60 * 1000;
 
@@ -39,16 +44,23 @@ let built_at = 0;
 let pending: Promise<DecryptedContact[]> | null = null;
 let generation = 0;
 let listeners_registered = false;
+let stale_timer: ReturnType<typeof setTimeout> | null = null;
 
 const change_listeners = new Set<() => void>();
 
-async function fetch_pool(): Promise<DecryptedContact[]> {
+async function fetch_pool(
+  started_generation: number,
+): Promise<DecryptedContact[]> {
   await get_contacts_encryption_key();
 
   const contacts: DecryptedContact[] = [];
   let cursor: string | null = null;
 
   for (let page = 0; page < MAX_PAGES; page += 1) {
+    if (started_generation !== generation) {
+      throw new Error("contacts changed");
+    }
+
     const result = await list_contacts({
       limit: PAGE_SIZE,
       ...(cursor ? { cursor } : {}),
@@ -90,6 +102,18 @@ function register_listeners(): void {
   on_vault_cleared(() => {
     invalidate_suggestion_pool();
   });
+
+  on_keys_ready(() => {
+    if (pool) return;
+    if (pending) {
+      pending.finally(() => {
+        if (!pool) notify_change();
+      });
+
+      return;
+    }
+    notify_change();
+  });
 }
 
 export function subscribe_suggestion_pool(listener: () => void): () => void {
@@ -114,7 +138,7 @@ export function load_suggestion_pool(): Promise<DecryptedContact[]> {
   if (pending) return pending;
 
   const started_generation = generation;
-  const request = fetch_pool()
+  const request = fetch_pool(started_generation)
     .then((next) => {
       if (started_generation !== generation) return pool ?? [];
       pool = next;
@@ -132,14 +156,25 @@ export function load_suggestion_pool(): Promise<DecryptedContact[]> {
   return request;
 }
 
+function clear_stale_timer(): void {
+  if (stale_timer === null) return;
+  clearTimeout(stale_timer);
+  stale_timer = null;
+}
+
 export function mark_suggestion_pool_stale(): void {
   generation += 1;
   built_at = 0;
   pending = null;
-  notify_change();
+  clear_stale_timer();
+  stale_timer = setTimeout(() => {
+    stale_timer = null;
+    notify_change();
+  }, SUGGESTION_POOL_STALE_DEBOUNCE_MS);
 }
 
 export function invalidate_suggestion_pool(): void {
+  clear_stale_timer();
   generation += 1;
   pool = null;
   built_at = 0;

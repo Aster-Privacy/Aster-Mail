@@ -42,8 +42,8 @@ type ContactIndexContact = Pick<
   "id" | "emails" | "email_entries" | "avatar_url" | "deleted_at"
 >;
 
-const PAGE_SIZE = 200;
-const MAX_PAGES = 25;
+const PAGE_SIZE = 100;
+const MAX_PAGES = 50;
 
 export const CONTACT_INDEX_TTL_MS = 10 * 60 * 1000;
 export const CONTACT_INDEX_RETRY_MS = 30 * 1000;
