@@ -20,6 +20,11 @@
 //
 import type { DecryptedContact } from "@/types/contacts";
 
+import {
+  typed_vcard_lines,
+  type VCardGroupCounter,
+} from "@/utils/vcard_labels";
+
 const escape_value = (value: string): string =>
   value
     .replace(/\\/g, "\\\\")
@@ -56,6 +61,22 @@ const display_name_of = (contact: DecryptedContact): string => {
   return full || contact.emails[0] || "";
 };
 
+const vcard_photo_of = (
+  value: string,
+): { type: string; data: string } | null => {
+  const match = /^data:image\/([A-Za-z0-9.+-]+);base64,([\s\S]+)$/.exec(
+    value.trim(),
+  );
+
+  if (!match) return null;
+  const subtype = match[1].toUpperCase();
+
+  return {
+    type: subtype === "JPG" ? "JPEG" : subtype,
+    data: match[2].replace(/\s+/g, ""),
+  };
+};
+
 const type_param = (type?: string): string =>
   type ? `;TYPE=${type.replace(/[^A-Za-z-]/g, "").toUpperCase()}` : "";
 
@@ -69,15 +90,23 @@ export const contact_to_vcard = (
   const push_raw = (key: string, value: string) =>
     lines.push(fold_line(`${key}:${value.replace(/[\r\n]/g, "")}`));
 
-  const push_photo = (value: string) => {
-    const match = /^data:image\/([A-Za-z0-9.+-]+);base64,(.+)$/.exec(value);
-
-    if (!match) {
-      push_raw("PHOTO;VALUE=URI", value);
-
-      return;
+  const group_counter: VCardGroupCounter = { value: 0 };
+  const push_typed = (
+    property: "EMAIL" | "TEL" | "ADR",
+    base_params: string,
+    entry: { type?: string; label?: string },
+    escaped: string,
+  ) => {
+    for (const line of typed_vcard_lines(
+      property,
+      base_params,
+      entry,
+      escaped,
+      group_counter,
+      escape_value,
+    )) {
+      push(line);
     }
-    push_raw(`PHOTO;ENCODING=b;TYPE=${match[1].toUpperCase()}`, match[2]);
   };
 
   push(
@@ -96,9 +125,7 @@ export const contact_to_vcard = (
 
   for (const entry of email_entries) {
     if (!entry.value?.trim()) continue;
-    push(
-      `EMAIL;TYPE=INTERNET${type_param(entry.type)}:${escape_value(entry.value)}`,
-    );
+    push_typed("EMAIL", ";TYPE=INTERNET", entry, escape_value(entry.value));
   }
 
   const phone_entries = contact.phone_entries?.length
@@ -109,7 +136,7 @@ export const contact_to_vcard = (
 
   for (const entry of phone_entries) {
     if (!entry.value?.trim()) continue;
-    push(`TEL${type_param(entry.type)}:${escape_value(entry.value)}`);
+    push_typed("TEL", "", entry, escape_value(entry.value));
   }
 
   if (contact.company || contact.department) {
@@ -142,14 +169,15 @@ export const contact_to_vcard = (
       : [];
 
   for (const entry of address_entries) {
-    push(
-      `ADR${type_param(entry.type)}:;;${escape_value(
-        entry.street || "",
-      )};${escape_value(entry.city || "")};${escape_value(
-        entry.state || "",
-      )};${escape_value(entry.postal_code || "")};${escape_value(
-        entry.country || "",
-      )}`,
+    push_typed(
+      "ADR",
+      "",
+      entry,
+      `;;${escape_value(entry.street || "")};${escape_value(
+        entry.city || "",
+      )};${escape_value(entry.state || "")};${escape_value(
+        entry.postal_code || "",
+      )};${escape_value(entry.country || "")}`,
     );
   }
 
@@ -208,20 +236,11 @@ export const contact_to_vcard = (
   if (contact.profile_color) {
     push(`X-ASTER-COLOR:${escape_value(contact.profile_color)}`);
   }
-  if (contact.avatar_url) {
-    const inline = /^data:image\/([A-Za-z0-9.+-]+);base64,(.+)$/.exec(
-      contact.avatar_url,
-    );
-
-    if (inline) {
-      push(`PHOTO;ENCODING=b;TYPE=${inline[1].toUpperCase()}:${inline[2]}`);
-    } else {
-      push(`PHOTO;VALUE=URI:${escape_value(contact.avatar_url)}`);
-    }
-  }
   if (contact.comment) push(`X-ASTER-COMMENT:${escape_value(contact.comment)}`);
   if (contact.notes) push(`NOTE:${escape_value(contact.notes)}`);
-  if (contact.avatar_url) push_photo(contact.avatar_url);
+  const photo = contact.avatar_url ? vcard_photo_of(contact.avatar_url) : null;
+
+  if (photo) push_raw(`PHOTO;ENCODING=b;TYPE=${photo.type}`, photo.data);
 
   lines.push("END:VCARD");
 
@@ -430,26 +449,49 @@ export const can_share_contact_file = (
   return navigator.canShare?.({ files: [file] }) ?? false;
 };
 
+const share_name_of = (contact: DecryptedContact): string =>
+  [contact.first_name, contact.last_name]
+    .map((part) => (part || "").trim())
+    .filter(Boolean)
+    .join(" ");
+
+export const contact_share_phones = (contact: DecryptedContact): string[] => {
+  const phones = contact.phone_entries?.length
+    ? contact.phone_entries.map((entry) => entry.value)
+    : contact.phone
+      ? [contact.phone]
+      : [];
+
+  return phones.map((value) => (value || "").trim()).filter(Boolean);
+};
+
 export const contact_to_share_text = (contact: DecryptedContact): string => {
-  const lines: string[] = [];
-  const name = display_name_of(contact);
+  const name = share_name_of(contact);
 
-  if (name) lines.push(name);
-  if (contact.company) {
-    lines.push(
-      contact.job_title
-        ? `${contact.job_title}, ${contact.company}`
-        : contact.company,
-    );
-  } else if (contact.job_title) {
-    lines.push(contact.job_title);
-  }
-  for (const email of contact.emails) lines.push(email);
-  for (const entry of contact.phone_entries ?? []) lines.push(entry.value);
-  if (!contact.phone_entries?.length && contact.phone) {
-    lines.push(contact.phone);
-  }
-  for (const site of contact.websites ?? []) lines.push(site.value);
+  return [...(name ? [name] : []), ...contact_share_phones(contact)].join(
+    "\n",
+  );
+};
 
-  return lines.join("\n");
+export type ShareTextResult = "shared" | "copied" | "cancelled" | "failed";
+
+export const share_contact_text = async (
+  contact: DecryptedContact,
+  copy: (text: string) => Promise<boolean>,
+): Promise<ShareTextResult> => {
+  const text = contact_to_share_text(contact);
+
+  if (!text) return "failed";
+
+  if (typeof navigator !== "undefined" && navigator.share) {
+    try {
+      await navigator.share({ text });
+
+      return "shared";
+    } catch (error) {
+      if ((error as DOMException)?.name === "AbortError") return "cancelled";
+    }
+  }
+
+  return (await copy(text)) ? "copied" : "failed";
 };

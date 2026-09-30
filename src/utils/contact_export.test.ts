@@ -36,6 +36,7 @@ import {
   CONTACT_CSV_HEADERS,
   contacts_to_csv,
   contacts_to_vcard,
+  share_contact_text,
   share_contact_vcard,
 } from "@/utils/contact_export";
 
@@ -288,6 +289,106 @@ describe("contact_to_vcard round trip", () => {
     expect(parsed.phonetic_first_name).toBe("AY-duh");
     expect(parsed.comment).toBe("Founding programmer");
   });
+
+  it("writes personal and custom entries as labeled groups", () => {
+    const card = contact_to_vcard(
+      make({
+        emails: ["ada@home.example", "ada@personal.example"],
+        email_entries: [
+          { value: "ada@home.example", type: "home" },
+          { value: "ada@personal.example", type: "personal" },
+        ],
+        phone_entries: [
+          { value: "+1 555 0100", type: "mobile" },
+          { value: "+1 555 0101", type: "other", label: "Boat" },
+          { value: "+1 555 0102", type: "fax" },
+        ],
+      }),
+    );
+    const lines = card.split("\r\n");
+
+    expect(lines).toContain("EMAIL;TYPE=INTERNET;TYPE=HOME:ada@home.example");
+    expect(lines).toContain("item1.EMAIL;TYPE=INTERNET:ada@personal.example");
+    expect(lines).toContain("item1.X-ABLabel:Personal");
+    expect(lines).toContain("TEL;TYPE=CELL:+1 555 0100");
+    expect(lines).toContain("item2.TEL:+1 555 0101");
+    expect(lines).toContain("item2.X-ABLabel:Boat");
+    expect(lines).toContain("TEL;TYPE=FAX:+1 555 0102");
+  });
+
+  it("round trips personal, custom, and labeled address entries", () => {
+    const [parsed] = parse_vcard(
+      contact_to_vcard(
+        make({
+          emails: ["ada@personal.example", "ada@club.example"],
+          email_entries: [
+            { value: "ada@personal.example", type: "personal" },
+            { value: "ada@club.example", type: "other", label: "Chess club" },
+          ],
+          phone_entries: [
+            { value: "+1 555 0100", type: "personal" },
+            { value: "+1 555 0101", type: "other", label: "Boat" },
+            { value: "+1 555 0102", type: "pager" },
+            { value: "+1 555 0103", type: "other" },
+          ],
+          address_entries: [
+            { street: "1 Work St", city: "London", type: "work" },
+            { street: "2 Cabin Rd", type: "other", label: "Cabin" },
+            { street: "3 Home Ln", type: "home" },
+          ],
+          avatar_url: "data:image/jpeg;base64,AAAB",
+        }),
+      ),
+    );
+
+    expect(parsed.email_entries).toEqual([
+      { value: "ada@personal.example", type: "personal" },
+      { value: "ada@club.example", type: "other", label: "Chess club" },
+    ]);
+    expect(parsed.phone_entries).toEqual([
+      { value: "+1 555 0100", type: "personal" },
+      { value: "+1 555 0101", type: "other", label: "Boat" },
+      { value: "+1 555 0102", type: "pager" },
+      { value: "+1 555 0103", type: "other" },
+    ]);
+    expect(parsed.address_entries?.map((entry) => entry.type)).toEqual([
+      "work",
+      "other",
+      "home",
+    ]);
+    expect(parsed.address_entries?.[1].label).toBe("Cabin");
+    expect(parsed.address?.street).toBe("3 Home Ln");
+    expect(parsed.avatar_url).toBe("data:image/jpeg;base64,AAAB");
+  });
+
+  it("reads Apple style labels and unknown type tokens", () => {
+    const [parsed] = parse_vcard(
+      [
+        "BEGIN:VCARD",
+        "VERSION:3.0",
+        "FN:Ada Lovelace",
+        "item1.EMAIL;type=INTERNET:ada@home.example",
+        "item1.X-ABLabel:_$!<Home>!$_",
+        "item2.TEL:+1 555 0100",
+        "item2.X-ABLabel:_$!<Mobile>!$_",
+        "item3.TEL:+1 555 0101",
+        "item3.X-ABLabel:_$!<Assistant>!$_",
+        "TEL;TYPE=VOICE;TYPE=MAIN:+1 555 0102",
+        "TEL;TYPE=CELL,VOICE,PREF:+1 555 0103",
+        "END:VCARD",
+      ].join("\r\n"),
+    );
+
+    expect(parsed.email_entries).toEqual([
+      { value: "ada@home.example", type: "home" },
+    ]);
+    expect(parsed.phone_entries).toEqual([
+      { value: "+1 555 0100", type: "mobile" },
+      { value: "+1 555 0101", type: "other", label: "Assistant" },
+      { value: "+1 555 0102", type: "other", label: "MAIN" },
+      { value: "+1 555 0103", type: "mobile" },
+    ]);
+  });
 });
 
 describe("contact_to_vcard", () => {
@@ -317,12 +418,21 @@ describe("contact_to_vcard", () => {
     expect(card).toContain("PHOTO;ENCODING=b;TYPE=PNG:AAAB");
   });
 
-  it("writes a hosted photo as a uri property", () => {
+  it("skips a hosted photo", () => {
     const card = contact_to_vcard(
       make({ avatar_url: "https://example.com/ada.png" }),
     );
 
-    expect(card).toContain("PHOTO;VALUE=URI:https://example.com/ada.png");
+    expect(card).not.toContain("PHOTO");
+  });
+
+  it("writes the photo exactly once", () => {
+    const card = contact_to_vcard(
+      make({ avatar_url: "data:image/jpeg;base64,AAAB", notes: "Hi" }),
+    );
+
+    expect(card.match(/PHOTO/g)).toHaveLength(1);
+    expect(card).toContain("PHOTO;ENCODING=b;TYPE=JPEG:AAAB");
   });
 
   it("writes groups as categories", () => {
@@ -420,29 +530,88 @@ describe("share_contact_vcard", () => {
 });
 
 describe("contact_to_share_text", () => {
-  it("lists the name, role, and every way to reach the person", () => {
+  it("lists the name and then every phone number", () => {
     const text = contact_to_share_text(
       make({
         company: "Analytical Engines",
         job_title: "Mathematician",
-        phone_entries: [{ value: "+1 555 0100", type: "mobile" }],
+        phone_entries: [
+          { value: "+1 555 0100", type: "mobile" },
+          { value: "+1 555 0101", type: "other", label: "Boat" },
+        ],
         websites: [{ value: "https://example.com", type: "work" }],
       }),
     );
 
-    expect(text.split("\n")).toEqual([
-      "Ada Lovelace",
-      "Mathematician, Analytical Engines",
-      "ada@example.com",
-      "+1 555 0100",
-      "https://example.com",
-    ]);
+    expect(text).toBe("Ada Lovelace\n+1 555 0100\n+1 555 0101");
+  });
+
+  it("starts with the first phone when the contact has no name", () => {
+    const text = contact_to_share_text(
+      make({
+        first_name: "",
+        last_name: "",
+        phone_entries: [
+          { value: "+1 555 0100", type: "mobile" },
+          { value: "+1 555 0101", type: "work" },
+        ],
+      }),
+    );
+
+    expect(text).toBe("+1 555 0100\n+1 555 0101");
   });
 
   it("falls back to the legacy phone field when there are no entries", () => {
     const text = contact_to_share_text(make({ phone: "+1 555 0111" }));
 
-    expect(text).toContain("+1 555 0111");
+    expect(text).toBe("Ada Lovelace\n+1 555 0111");
+  });
+
+  it("shows only the name when there are no phone numbers", () => {
+    expect(contact_to_share_text(make())).toBe("Ada Lovelace");
+  });
+});
+
+describe("share_contact_text", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it("opens the share sheet with the text", async () => {
+    const share = vi.fn().mockResolvedValue(undefined);
+    const copy = vi.fn();
+
+    vi.stubGlobal("navigator", { share });
+
+    const result = await share_contact_text(make({ phone: "+1 555 0100" }), copy);
+
+    expect(result).toBe("shared");
+    expect(share).toHaveBeenCalledWith({ text: "Ada Lovelace\n+1 555 0100" });
+    expect(copy).not.toHaveBeenCalled();
+  });
+
+  it("copies the text when sharing is unavailable", async () => {
+    const copy = vi.fn().mockResolvedValue(true);
+
+    vi.stubGlobal("navigator", {});
+
+    const result = await share_contact_text(make(), copy);
+
+    expect(result).toBe("copied");
+    expect(copy).toHaveBeenCalledWith("Ada Lovelace");
+  });
+
+  it("reports a cancel without copying", async () => {
+    const share = vi
+      .fn()
+      .mockRejectedValue(new DOMException("cancelled", "AbortError"));
+    const copy = vi.fn();
+
+    vi.stubGlobal("navigator", { share });
+
+    expect(await share_contact_text(make(), copy)).toBe("cancelled");
+    expect(copy).not.toHaveBeenCalled();
   });
 });
 

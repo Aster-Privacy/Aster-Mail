@@ -42,12 +42,34 @@ describe("parse_vcard photos", () => {
     expect(contact.avatar_url).toBe("data:image/svg+xml;base64,PHN2Zy8+");
   });
 
-  it("reads an https photo", () => {
+  it("ignores an https photo without fetching it", () => {
     const [contact] = parse_vcard(
       build("PHOTO;VALUE=URI:https://example.com/sofia.png"),
     );
 
-    expect(contact.avatar_url).toBe("https://example.com/sofia.png");
+    expect(contact.avatar_url).toBeUndefined();
+  });
+
+  it("ignores an http photo", () => {
+    const [contact] = parse_vcard(
+      build("PHOTO;VALUE=URL:http://example.com/sofia.png"),
+    );
+
+    expect(contact.avatar_url).toBeUndefined();
+  });
+
+  it("ignores a non-image data uri", () => {
+    const [contact] = parse_vcard(
+      build("PHOTO;VALUE=URI:data:text/html;base64,PGI+"),
+    );
+
+    expect(contact.avatar_url).toBeUndefined();
+  });
+
+  it("reads base64 encoding photos", () => {
+    const [contact] = parse_vcard(build("PHOTO;ENCODING=BASE64;TYPE=JPEG:AAAA"));
+
+    expect(contact.avatar_url).toBe("data:image/jpeg;base64,AAAA");
   });
 
   it("builds a data uri from inline base64", () => {
