@@ -28,6 +28,7 @@ import {
   type ParsedOperator,
 } from "@/utils/search_operators";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
+import { fold_search_text } from "@/utils/search_fold";
 import {
   normalize_envelope_from,
   normalize_envelope_recipients,
@@ -145,6 +146,14 @@ export function collect_grams(text: string, into: Set<string>): void {
       start = -1;
     }
   }
+}
+
+function collect_index_grams(text: string, into: Set<string>): void {
+  collect_grams(text, into);
+
+  const folded = fold_search_text(text);
+
+  if (folded !== text.toLowerCase()) collect_grams(folded, into);
 }
 
 function hash_a(value: string): number {
@@ -330,9 +339,9 @@ export function summarize_chunk(
 
     const from = normalize_envelope_from(envelope.from);
 
-    collect_grams(envelope.subject || "", grams);
-    collect_grams(from?.name || "", grams);
-    collect_grams(from?.email || "", grams);
+    collect_index_grams(envelope.subject || "", grams);
+    collect_index_grams(from?.name || "", grams);
+    collect_index_grams(from?.email || "", grams);
 
     const forwarding = resolve_forwarding_display(
       envelope.from,
@@ -340,8 +349,8 @@ export function summarize_chunk(
     );
 
     if (forwarding) {
-      collect_grams(forwarding.display_sender_name, grams);
-      collect_grams(forwarding.display_sender_email, grams);
+      collect_index_grams(forwarding.display_sender_name, grams);
+      collect_index_grams(forwarding.display_sender_email, grams);
     }
 
     for (const recipient of [
@@ -349,8 +358,8 @@ export function summarize_chunk(
       ...normalize_envelope_recipients(envelope.cc),
       ...normalize_envelope_recipients(envelope.bcc),
     ]) {
-      collect_grams(recipient.name || "", grams);
-      collect_grams(recipient.email, grams);
+      collect_index_grams(recipient.name || "", grams);
+      collect_index_grams(recipient.email, grams);
     }
   }
 
