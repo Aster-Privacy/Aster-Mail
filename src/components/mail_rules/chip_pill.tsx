@@ -19,10 +19,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import * as React from "react";
-import { XMarkIcon } from "@heroicons/react/24/outline";
+import { useContext } from "react";
+import { ChevronDownIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
 import { cn } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
+
+export type ChipLayout = "chip" | "row";
+
+export const ChipLayoutContext = React.createContext<ChipLayout>("chip");
+
+export function use_chip_layout(): ChipLayout {
+  return useContext(ChipLayoutContext);
+}
 
 export interface ChipSegmentProps {
   children: React.ReactNode;
@@ -60,6 +69,37 @@ export const ChipSegment = React.forwardRef<
     },
     ref,
   ) => {
+    const layout = use_chip_layout();
+
+    if (layout === "row") {
+      return (
+        <button
+          ref={(node) => {
+            assign_ref(ref, node);
+            assign_ref(trigger_ref, node);
+          }}
+          className={cn(
+            "h-9 min-w-0 flex-1 flex items-center gap-2 px-3 text-start text-[13px] font-medium only:col-span-2",
+            "rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] text-txt-primary transition-colors",
+            on_click
+              ? "cursor-pointer hover:bg-[var(--aster-field-hover)]"
+              : "cursor-default",
+            is_active && "bg-[var(--aster-field-hover)]",
+            className,
+          )}
+          data-chip-segment=""
+          type="button"
+          onClick={on_click}
+        >
+          {icon && <span className="flex-shrink-0 text-txt-muted">{icon}</span>}
+          <span className="min-w-0 flex-1 truncate">{children}</span>
+          {on_click && (
+            <ChevronDownIcon className="w-3.5 h-3.5 flex-shrink-0 text-txt-muted" />
+          )}
+        </button>
+      );
+    }
+
     return (
       <button
         ref={(node) => {
@@ -96,7 +136,37 @@ interface ChipPillProps {
 export const ChipPill = React.forwardRef<HTMLDivElement, ChipPillProps>(
   function ChipPill({ children, on_remove, className }, ref) {
     const { t } = use_i18n();
+    const layout = use_chip_layout();
     const segments = React.Children.toArray(children).filter(Boolean);
+
+    if (layout === "row") {
+      return (
+        <div
+          ref={ref}
+          className={cn(
+            "flex w-full items-center gap-2 px-3 py-2.5",
+            className,
+          )}
+        >
+          <div className="grid min-w-0 flex-1 grid-cols-2 items-center gap-2 sm:flex">
+            {segments}
+          </div>
+          {on_remove && (
+            <button
+              aria-label={t("common.remove")}
+              className={cn(
+                "h-8 w-8 flex-shrink-0 flex items-center justify-center rounded-full transition-colors",
+                "text-txt-muted hover:bg-[var(--aster-field-hover)] hover:text-txt-primary",
+              )}
+              type="button"
+              onClick={on_remove}
+            >
+              <XMarkIcon className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      );
+    }
 
     return (
       <div

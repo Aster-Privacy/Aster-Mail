@@ -23,6 +23,7 @@ import type { ConditionField } from "@/services/api/mail_rules";
 import * as React from "react";
 import { PlusIcon } from "@heroicons/react/24/outline";
 
+import { use_chip_layout } from "@/components/mail_rules/chip_pill";
 import { use_i18n } from "@/lib/i18n/context";
 import { FieldDropdown } from "@/components/mail_rules/dropdowns/field_dropdown";
 
@@ -39,6 +40,7 @@ export function AddConditionChip({
 }: AddConditionChipProps) {
   const { t } = use_i18n();
   const [open, set_open] = React.useState(false);
+  const is_row = use_chip_layout() === "row";
   const trigger_ref = React.useRef<HTMLButtonElement>(null);
 
   React.useEffect(() => {
@@ -59,11 +61,15 @@ export function AddConditionChip({
       trigger={
         <button
           ref={trigger_ref}
-          className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] text-[12.5px] text-txt-secondary hover:bg-[var(--aster-field-hover)] hover:text-txt-primary transition-colors"
+          className={
+            is_row
+              ? "flex w-full items-center gap-2 px-3 py-2.5 text-[13px] font-medium text-[var(--accent-color,var(--color-blue-500))] hover:bg-[var(--aster-field-hover)] transition-colors"
+              : "inline-flex items-center gap-1.5 h-7 px-2.5 rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] text-[12.5px] text-txt-secondary hover:bg-[var(--aster-field-hover)] hover:text-txt-primary transition-colors"
+          }
           type="button"
           onClick={() => set_open(true)}
         >
-          <PlusIcon className="w-3.5 h-3.5" />
+          <PlusIcon className={is_row ? "w-4 h-4" : "w-3.5 h-3.5"} />
           <span>{t("mail_rules.add_condition")}</span>
         </button>
       }

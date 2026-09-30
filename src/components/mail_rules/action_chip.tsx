@@ -35,7 +35,7 @@ import {
   BellSlashIcon,
 } from "@heroicons/react/24/outline";
 
-import { ChipPill, ChipSegment } from "./chip_pill";
+import { ChipPill, ChipSegment, use_chip_layout } from "./chip_pill";
 import { ActionTargetDropdown } from "./dropdowns/action_target_dropdown";
 
 import { PinIcon } from "@/components/common/icons";
@@ -60,6 +60,7 @@ export function ActionChip({
   read_only,
 }: ActionChipProps) {
   const { t } = use_i18n();
+  const is_row = use_chip_layout() === "row";
   const { state: folders_state } = use_folders();
   const { state: tags_state } = use_tags();
   const [open, set_open] = React.useState(false);
@@ -68,7 +69,7 @@ export function ActionChip({
   const [align_offset, set_align_offset] = React.useState<number>(0);
 
   React.useLayoutEffect(() => {
-    if (!open) return;
+    if (!open || is_row) return;
     if (!pill_ref.current || !trigger_ref.current) return;
     const pill_left = pill_ref.current.getBoundingClientRect().left;
     const trigger_left = trigger_ref.current.getBoundingClientRect().left;
@@ -201,7 +202,10 @@ export function ActionChip({
   const action_segment = (
     <ChipSegment
       is_first
-      icon={<Icon className="w-3.5 h-3.5 text-txt-muted" />}
+      className={is_row ? "sm:max-w-[40%]" : undefined}
+      icon={
+        <Icon className={is_row ? "w-4 h-4" : "w-3.5 h-3.5 text-txt-muted"} />
+      }
     >
       {label_for_action()}
     </ChipSegment>

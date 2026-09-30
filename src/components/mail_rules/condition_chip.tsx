@@ -26,8 +26,26 @@ import type {
 } from "@/services/api/mail_rules";
 
 import * as React from "react";
+import {
+  ArrowUturnLeftIcon,
+  ArrowUturnRightIcon,
+  Bars3BottomLeftIcon,
+  CalendarDaysIcon,
+  CalendarIcon,
+  CodeBracketIcon,
+  CpuChipIcon,
+  DocumentTextIcon,
+  FlagIcon,
+  HashtagIcon,
+  NewspaperIcon,
+  PaperClipIcon,
+  ScaleIcon,
+  ShieldCheckIcon,
+  UserIcon,
+  UsersIcon,
+} from "@heroicons/react/24/outline";
 
-import { ChipPill, ChipSegment } from "./chip_pill";
+import { ChipPill, ChipSegment, use_chip_layout } from "./chip_pill";
 import { FieldDropdown, get_field_label_key } from "./dropdowns/field_dropdown";
 import {
   OperatorDropdown,
@@ -64,6 +82,34 @@ const AUTH_LABEL_KEY: Record<AuthResultValue, TranslationKey> = {
   missing: "mail_rules.auth_missing",
 };
 
+const FIELD_ICONS: Record<ConditionField, React.ElementType> = {
+  from: UserIcon,
+  reply_to: ArrowUturnLeftIcon,
+  to: UsersIcon,
+  cc: UsersIcon,
+  bcc: UsersIcon,
+  any_recipient: UsersIcon,
+  subject: Bars3BottomLeftIcon,
+  body: DocumentTextIcon,
+  header: CodeBracketIcon,
+  list_id: NewspaperIcon,
+  has_list_id: NewspaperIcon,
+  attachment_name: PaperClipIcon,
+  has_attachment: PaperClipIcon,
+  attachment_size: ScaleIcon,
+  total_size: ScaleIcon,
+  recipient_count: HashtagIcon,
+  spam_score: FlagIcon,
+  date_received: CalendarIcon,
+  is_reply: ArrowUturnLeftIcon,
+  is_forward: ArrowUturnRightIcon,
+  is_auto_submitted: CpuChipIcon,
+  has_calendar_invite: CalendarDaysIcon,
+  dkim_result: ShieldCheckIcon,
+  spf_result: ShieldCheckIcon,
+  dmarc_result: ShieldCheckIcon,
+};
+
 export function ConditionChip({
   condition,
   on_change,
@@ -74,6 +120,7 @@ export function ConditionChip({
   allowed_operators,
 }: ConditionChipProps) {
   const { t } = use_i18n();
+  const is_row = use_chip_layout() === "row";
   const [open_segment, set_open_segment] = React.useState<ChipSegmentKind>(
     auto_open ?? null,
   );
@@ -286,9 +333,12 @@ export function ConditionChip({
     return raw || t("mail_rules.value_placeholder");
   })();
 
+  const FieldIcon = FIELD_ICONS[field];
   const field_trigger = (
     <ChipSegment
       is_first
+      className={is_row ? "col-span-2 sm:max-w-[34%]" : undefined}
+      icon={is_row ? <FieldIcon className="w-4 h-4" /> : undefined}
       is_active={open_segment === "field"}
       on_click={read_only ? undefined : () => set_open_segment("field")}
     >
@@ -377,6 +427,7 @@ export function ConditionChip({
       open={open_segment === "operator"}
       trigger={
         <ChipSegment
+          className={is_row ? "sm:max-w-[30%]" : undefined}
           is_active={open_segment === "operator"}
           on_click={read_only ? undefined : () => set_open_segment("operator")}
         >

@@ -64,6 +64,7 @@ import {
   cancel_run,
   use_mail_rules_store,
 } from "@/stores/mail_rules_store";
+import { ChipLayoutContext } from "@/components/mail_rules/chip_pill";
 import { ConditionChip } from "@/components/mail_rules/condition_chip";
 import { AddConditionChip } from "@/components/mail_rules/add_condition_chip";
 import { AndOrPill } from "@/components/mail_rules/and_or_pill";
@@ -838,43 +839,57 @@ export function RuleEditorModal({
                   {t("mail_rules.cannot_render_visual")}
                 </div>
               )}
-              <div
-                className={`flex flex-wrap items-center gap-2 ${
-                  nested_logic_present ? "opacity-60 pointer-events-none" : ""
-                }`}
-              >
-                {visual_flat_view.map((c, i) => (
-                  <React.Fragment key={i}>
-                    {i > 0 && (
-                      <AndOrPill mode={match_mode} on_change={set_match_mode} />
+              <ChipLayoutContext.Provider value="row">
+                <div
+                  className={`flex flex-col rounded-[var(--aster-radius-field)] border border-[var(--aster-floating-divider,var(--border-secondary))] ${
+                    nested_logic_present ? "opacity-60 pointer-events-none" : ""
+                  }`}
+                  data-testid="rule_when_group"
+                >
+                  {visual_flat_view.map((c, i) => (
+                    <React.Fragment key={i}>
+                      {i > 0 && (
+                        <AndOrPill
+                          mode={match_mode}
+                          on_change={set_match_mode}
+                        />
+                      )}
+                      <ConditionChip
+                        auto_open={
+                          auto_open_index === i && new_indices.has(i)
+                            ? auto_open_segment
+                            : null
+                        }
+                        condition={c}
+                        on_auto_handled={() => {
+                          set_auto_open_index(null);
+                          set_auto_open_segment(null);
+                        }}
+                        on_change={(next) => handle_condition_change(i, next)}
+                        on_remove={() => remove_condition_at(i)}
+                      />
+                    </React.Fragment>
+                  ))}
+                  {!nested_logic_present &&
+                    conditions.length < MAX_RULE_CONDITIONS && (
+                      <div
+                        className={
+                          visual_flat_view.length > 0
+                            ? "border-t border-[var(--aster-floating-divider,var(--border-secondary))]"
+                            : ""
+                        }
+                      >
+                        <AddConditionChip
+                          force_open={pending_blank_open}
+                          on_force_open_handled={() =>
+                            set_pending_blank_open(false)
+                          }
+                          on_pick={handle_add_condition}
+                        />
+                      </div>
                     )}
-                    <ConditionChip
-                      auto_open={
-                        auto_open_index === i && new_indices.has(i)
-                          ? auto_open_segment
-                          : null
-                      }
-                      condition={c}
-                      on_auto_handled={() => {
-                        set_auto_open_index(null);
-                        set_auto_open_segment(null);
-                      }}
-                      on_change={(next) => handle_condition_change(i, next)}
-                      on_remove={() => remove_condition_at(i)}
-                    />
-                  </React.Fragment>
-                ))}
-                {!nested_logic_present &&
-                  conditions.length < MAX_RULE_CONDITIONS && (
-                    <AddConditionChip
-                      force_open={pending_blank_open}
-                      on_force_open_handled={() =>
-                        set_pending_blank_open(false)
-                      }
-                      on_pick={handle_add_condition}
-                    />
-                  )}
-              </div>
+                </div>
+              </ChipLayoutContext.Provider>
             </>
           ) : (
             <div>
@@ -908,22 +923,27 @@ export function RuleEditorModal({
           <div className="text-[11px] font-semibold uppercase tracking-wide text-txt-muted mb-2">
             {t("mail_rules.do_this")}
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            {actions.map((a, i) => (
-              <ActionChip
-                key={`${a.type}-${i}`}
-                action={a}
-                on_change={(next) => replace_action_at(i, next)}
-                on_remove={() => remove_action_at(i)}
-              />
-            ))}
-            {remaining_addable.length > 0 && (
-              <AddActionChip
-                on_pick={handle_add_action}
-                options={add_options}
-              />
-            )}
-          </div>
+          <ChipLayoutContext.Provider value="row">
+            <div
+              className="flex flex-col divide-y divide-[var(--aster-floating-divider,var(--border-secondary))] rounded-[var(--aster-radius-field)] border border-[var(--aster-floating-divider,var(--border-secondary))]"
+              data-testid="rule_then_group"
+            >
+              {actions.map((a, i) => (
+                <ActionChip
+                  key={`${a.type}-${i}`}
+                  action={a}
+                  on_change={(next) => replace_action_at(i, next)}
+                  on_remove={() => remove_action_at(i)}
+                />
+              ))}
+              {remaining_addable.length > 0 && (
+                <AddActionChip
+                  on_pick={handle_add_action}
+                  options={add_options}
+                />
+              )}
+            </div>
+          </ChipLayoutContext.Provider>
           {delivery_conflict && (
             <div
               className="mt-3 rounded-lg bg-amber-500/10 px-3 py-2 text-[13px] text-amber-600 dark:text-amber-400"
