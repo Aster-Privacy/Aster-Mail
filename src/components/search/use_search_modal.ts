@@ -48,6 +48,7 @@ import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_email_actions } from "@/hooks/use_email_actions";
 import { search_result_to_inbox_email } from "@/components/search/search_modal_types";
+import { date_range_operators } from "@/utils/search_operators";
 import { meets_min_search_length } from "@/utils/search_query";
 import { local_date_key } from "@/utils/date_format";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -602,8 +603,7 @@ export function use_search_modal({
         parts.push(`after:${local_date_key(d)}`);
       }
     }
-    if (filters.date_from) parts.push(`after:${filters.date_from}`);
-    if (filters.date_to) parts.push(`before:${filters.date_to}`);
+    parts.push(...date_range_operators(filters.date_from, filters.date_to));
 
     return parts.join(" ").trim();
   }, [filters]);
