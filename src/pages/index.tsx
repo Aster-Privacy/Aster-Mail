@@ -755,7 +755,8 @@ export default function IndexPage() {
             hidden={
               is_quick_settings_open ||
               is_rail_contacts_open ||
-              is_rail_security_open
+              is_rail_security_open ||
+              state.compose_instances.length > 0
             }
             on_all_tasks_done={handle_checklist_complete}
             on_compose={state.open_compose}
