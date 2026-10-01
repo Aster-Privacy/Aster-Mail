@@ -219,7 +219,6 @@ async function mount(
   });
 }
 
-// Mark-as-read "immediately" updates the row in the same batch that opens it.
 async function open_email(
   id: string,
   updates?: Partial<InboxEmail>,

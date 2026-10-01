@@ -355,8 +355,6 @@ export function use_email_inbox_state(props: EmailInboxProps) {
   const alias_scoped_by_server =
     is_alias_view &&
     get_alias_hash_by_address(alias_address_of(current_view) ?? "") !== null;
-  // The kept open row no longer matches the filter, so it is listed but not
-  // counted.
   const effective_total_for_pages = is_client_filtered
     ? all_primary_emails.filter((e) => e.id !== kept_open_id).length
     : categories.enabled

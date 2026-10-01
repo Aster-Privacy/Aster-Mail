@@ -179,10 +179,6 @@ function matches_active_filter(
   }
 }
 
-// Opening an email can make it stop matching the filter: under Unread,
-// opening it marks it read. Dropping its row right away shifts the list
-// under the cursor and leaves next/previous with nothing to start from, so
-// the open email stays listed until another one is opened or it is closed.
 export function kept_open_email_id(
   emails: InboxEmail[],
   filter: InboxFilterType,
