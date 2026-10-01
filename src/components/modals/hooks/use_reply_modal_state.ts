@@ -754,9 +754,9 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
 
         const existing_id = draft_id_ref.current;
 
-        if (existing_id) {
-          const result = await update_draft(
-            existing_id,
+        const push_update = (id: string) =>
+          update_draft(
+            id,
             content,
             draft_version_ref.current,
             draft_vault,
@@ -766,9 +766,26 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
             thread_token,
           );
 
+        let is_draft_missing = false;
+
+        if (existing_id) {
+          let result = await push_update(existing_id);
+
           if (has_sent_ref.current) return;
 
-          if (result.data) {
+          if (result.code === "CONFLICT" && result.data) {
+            set_draft_version(result.data.version);
+            result = await push_update(existing_id);
+
+            if (has_sent_ref.current) return;
+          }
+
+          is_draft_missing = result.code === "NOT_FOUND";
+
+          if (is_draft_missing) {
+            set_draft_id(null);
+            set_draft_version(1);
+          } else if (result.data && !result.error) {
             set_draft_version(result.data.version);
             last_saved_text.current = text;
             last_saved_attachments.current = attachments_signature;
@@ -786,7 +803,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
             set_draft_status("error");
           }
 
-          return;
+          if (!is_draft_missing) return;
         }
 
         const result = await create_draft(
