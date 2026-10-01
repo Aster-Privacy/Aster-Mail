@@ -18,11 +18,16 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { Island } from "@aster/ui";
+import { Island, IslandEmpty, IslandRow, PillButton } from "@aster/ui";
 import { useState, useEffect } from "react";
-import { GlobeAltIcon } from "@heroicons/react/24/outline";
+import { GlobeAltIcon, PlusIcon } from "@heroicons/react/24/outline";
 
-import { Spinner } from "@/components/ui/spinner";
+import {
+  FamilyCreateBar,
+  FamilySkeletonRows,
+  FamilyStatusText,
+} from "./family_ui";
+
 import {
   Select,
   SelectContent,
@@ -133,132 +138,124 @@ export function DomainsContent({ members }: { members: FamilyMemberInfo[] }) {
     );
   };
 
-  if (loading)
-    return (
-      <div className="flex justify-center items-center gap-2 py-8">
-        <Spinner size="sm" />
-        <span className="text-sm text-txt-muted">
-          {t("settings.fam_org_domains_loading")}
-        </span>
-      </div>
-    );
+  const member_email = (m: FamilyMemberInfo) =>
+    `${m.username}@${m.email_domain}`;
+
+  const shared_members = (d: FamilyDomain) =>
+    d.shared_with_user_ids
+      .map((uid) => members.find((m) => m.user_id === uid))
+      .filter((m): m is FamilyMemberInfo => !!m);
+
+  if (loading) return <FamilySkeletonRows count={3} />;
 
   return (
-    <div className="space-y-4">
-      <p className="text-xs text-txt-muted">
-        {t("settings.fam_org_domains_subtitle")}
-      </p>
+    <div className="flex flex-col gap-4">
       {domains.length === 0 ? (
-        <Island className="flex flex-col items-center gap-3 py-8" padding="lg">
-          <GlobeAltIcon className="w-8 h-8 text-txt-muted" />
-          <p className="text-sm font-medium text-txt-primary">
-            {t("settings.fam_org_domains_empty_title")}
-          </p>
-          <p className="text-xs text-txt-muted text-center max-w-xs">
-            {t("settings.fam_org_domains_empty_desc")}
-          </p>
-          <button
-            className="aster_btn aster_btn_primary aster_btn_sm mt-1"
-            onClick={nav_aliases}
-          >
-            {t("settings.fam_org_domains_add_domain")}
-          </button>
+        <Island padding="lg">
+          <IslandEmpty
+            action={
+              <PillButton
+                leading={<PlusIcon className="h-4 w-4" />}
+                size="sm"
+                type="button"
+                onClick={nav_aliases}
+              >
+                {t("settings.fam_org_domains_add_domain")}
+              </PillButton>
+            }
+            description={t("settings.fam_org_domains_empty_desc")}
+            icon={<GlobeAltIcon />}
+            title={t("settings.fam_org_domains_empty_title")}
+          />
         </Island>
       ) : (
-        <Island className="overflow-hidden">
+        <Island divided className="overflow-hidden" padding="none">
           {domains.map((d) => {
-            return (
-              <div
-                key={d.domain_name}
-                className="px-4 py-3 hover:bg-surf-hover transition-colors"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <ProfileAvatar
-                      email={(() => {
-                        const om = members.find(
-                          (m) => m.user_id === d.owner_user_id,
-                        );
+            const owner = members.find((m) => m.user_id === d.owner_user_id);
+            const shared = shared_members(d);
 
-                        return om
-                          ? `${om.username}@${om.email_domain}`
-                          : undefined;
-                      })()}
-                      name={d.owner_username}
-                      size="xs"
-                    />
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm font-medium text-txt-primary">
-                          {d.domain_name}
-                        </span>
-                        {d.dkim_verified ? (
-                          <span className="aster_badge aster_badge_green">
-                            {t("settings.fam_org_domains_verified")}
-                          </span>
-                        ) : (
-                          <span className="aster_badge aster_badge_amber">
-                            {t("settings.fam_org_domains_unverified")}
-                          </span>
-                        )}
-                        {d.shared_with_user_ids.length > 0 && (
-                          <div className="flex items-center gap-0.5">
-                            {d.shared_with_user_ids
-                              .map((uid) =>
-                                members.find((m) => m.user_id === uid),
-                              )
-                              .filter((m): m is FamilyMemberInfo => !!m)
-                              .map((m) => (
-                                <div
-                                  key={m.user_id}
-                                  className="-ms-1 first:ms-0 ring-1 ring-edge-secondary rounded-full"
-                                  title={`${m.username}@${m.email_domain}`}
-                                >
-                                  <ProfileAvatar
-                                    email={`${m.username}@${m.email_domain}`}
-                                    name={m.username}
-                                    size="xs"
-                                  />
-                                </div>
-                              ))}
-                          </div>
-                        )}
-                      </div>
-                      <p className="text-xs text-txt-muted mt-0.5">
+            return (
+              <div key={d.domain_name}>
+                <IslandRow
+                  description={
+                    <span className="inline-flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+                      <span>
                         {t("settings.fam_org_domains_owned_by", {
                           name: d.owner_username,
                         })}
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    className="text-sm text-accent-blue hover:underline flex-shrink-0 font-medium"
-                    onClick={() => {
-                      if (!d.dkim_verified) {
-                        show_toast(
-                          t("settings.fam_org_domains_share_disabled_title"),
-                          "error",
-                        );
+                      </span>
+                      {shared.length > 0 && (
+                        <span className="inline-flex items-center">
+                          {shared.map((m) => (
+                            <span
+                              key={m.user_id}
+                              className="-ms-1 rounded-full first:ms-0"
+                              title={member_email(m)}
+                            >
+                              <ProfileAvatar
+                                email={member_email(m)}
+                                name={m.username}
+                                size="xs"
+                              />
+                            </span>
+                          ))}
+                        </span>
+                      )}
+                    </span>
+                  }
+                  icon={
+                    <ProfileAvatar
+                      email={owner ? member_email(owner) : undefined}
+                      name={d.owner_username}
+                      size="xs"
+                    />
+                  }
+                  label={d.domain_name}
+                  trailing={
+                    <span className="flex items-center gap-3">
+                      {d.dkim_verified ? (
+                        <FamilyStatusText tone="success">
+                          {t("settings.fam_org_domains_verified")}
+                        </FamilyStatusText>
+                      ) : (
+                        <FamilyStatusText tone="warning">
+                          {t("settings.fam_org_domains_unverified")}
+                        </FamilyStatusText>
+                      )}
+                      <PillButton
+                        size="sm"
+                        type="button"
+                        variant="tonal"
+                        onClick={() => {
+                          if (!d.dkim_verified) {
+                            show_toast(
+                              t(
+                                "settings.fam_org_domains_share_disabled_title",
+                              ),
+                              "error",
+                            );
 
-                        return;
-                      }
-                      set_sharing(d.domain_name);
-                      set_share_uid("");
-                    }}
-                  >
-                    {t("settings.fam_org_domains_share")}
-                  </button>
-                </div>
+                            return;
+                          }
+                          set_sharing(d.domain_name);
+                          set_share_uid("");
+                        }}
+                      >
+                        {t("settings.fam_org_domains_share")}
+                      </PillButton>
+                    </span>
+                  }
+                />
                 {sharing === d.domain_name && (
-                  <div className="mt-3 space-y-2 sm:ms-10">
-                    <div className="flex gap-2">
+                  <div className="flex flex-col gap-3 px-4 pb-4">
+                    <FamilyCreateBar>
                       <Select
                         value={share_uid || "_none"}
                         onValueChange={(v) =>
                           set_share_uid(v === "_none" ? "" : v)
                         }
                       >
-                        <SelectTrigger className="flex-1 text-xs">
+                        <SelectTrigger className="h-10 rounded-[var(--aster-radius-field)] sm:flex-1">
                           <SelectValue
                             placeholder={t(
                               "settings.fam_org_domains_add_member_placeholder",
@@ -275,51 +272,51 @@ export function DomainsContent({ members }: { members: FamilyMemberInfo[] }) {
                             ))}
                         </SelectContent>
                       </Select>
-                      <button
-                        className="aster_btn aster_btn_primary aster_btn_sm disabled:opacity-50"
+                      <PillButton
                         disabled={!share_uid}
+                        type="button"
                         onClick={() => do_share(d.domain_name)}
                       >
                         {t("settings.fam_org_domains_add_btn")}
-                      </button>
-                      <button
-                        className="aster_btn aster_btn_ghost aster_btn_sm"
+                      </PillButton>
+                      <PillButton
+                        type="button"
+                        variant="ghost"
                         onClick={() => set_sharing(null)}
                       >
                         {t("settings.fam_org_domains_done")}
-                      </button>
-                    </div>
-                    {d.shared_with_user_ids.length > 0 && (
-                      <div className="space-y-1">
-                        <p className="text-[10px] font-medium text-txt-muted uppercase tracking-wide">
+                      </PillButton>
+                    </FamilyCreateBar>
+                    {shared.length > 0 && (
+                      <div className="flex flex-col gap-1">
+                        <p className="text-[12.5px] font-medium text-txt-muted">
                           {t("settings.fam_org_domains_shared_with")}
                         </p>
-                        {d.shared_with_user_ids
-                          .map((uid) => members.find((m) => m.user_id === uid))
-                          .filter((m): m is FamilyMemberInfo => !!m)
-                          .map((m) => (
-                            <div
-                              key={m.user_id}
-                              className="flex items-center gap-2 py-0.5"
+                        {shared.map((m) => (
+                          <div
+                            key={m.user_id}
+                            className="flex min-h-10 items-center gap-3"
+                          >
+                            <ProfileAvatar
+                              email={member_email(m)}
+                              name={m.username}
+                              size="xs"
+                            />
+                            <span className="min-w-0 flex-1 truncate text-sm text-txt-primary">
+                              {member_email(m)}
+                            </span>
+                            <PillButton
+                              size="sm"
+                              type="button"
+                              variant="danger"
+                              onClick={() =>
+                                do_revoke(d.domain_name, m.user_id)
+                              }
                             >
-                              <ProfileAvatar
-                                email={`${m.username}@${m.email_domain}`}
-                                name={m.username}
-                                size="xs"
-                              />
-                              <span className="text-xs text-txt-primary flex-1 truncate">
-                                {m.username}@{m.email_domain}
-                              </span>
-                              <button
-                                className="text-[10px] text-red-500 hover:underline flex-shrink-0"
-                                onClick={() =>
-                                  do_revoke(d.domain_name, m.user_id)
-                                }
-                              >
-                                {t("settings.fam_org_domains_revoke")}
-                              </button>
-                            </div>
-                          ))}
+                              {t("settings.fam_org_domains_revoke")}
+                            </PillButton>
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>
@@ -329,6 +326,9 @@ export function DomainsContent({ members }: { members: FamilyMemberInfo[] }) {
           })}
         </Island>
       )}
+      <p className="ms-1 text-[12.5px] text-txt-muted">
+        {t("settings.fam_org_domains_subtitle")}
+      </p>
     </div>
   );
 }

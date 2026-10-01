@@ -26,9 +26,10 @@ import {
   PencilIcon,
   ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
-import { Input, Island, IslandEmpty } from "@aster/ui";
+import { Input, Island, IslandEmpty, IslandRow, PillButton } from "@aster/ui";
 
 import { SkeletonRows, StorageBar } from "./shared";
+import { family_row_icon } from "./family_ui";
 
 import { Slider } from "@/components/ui/slider";
 import { ButtonSpinner } from "@/components/ui/spinner";
@@ -123,16 +124,19 @@ export function MemberRow({
 
   const no_2fa = compliance && !compliance.has_2fa && member.role !== "owner";
 
+  const icon_button =
+    "flex h-9 w-9 items-center justify-center rounded-full text-txt-muted transition-colors hover:bg-[var(--aster-hover)] hover:text-txt-primary";
+
   return (
-    <div className="flex min-h-14 items-center gap-3 px-4 py-3">
+    <div className="flex min-h-[68px] items-center gap-3.5 px-4 py-3">
       <ProfileAvatar
         email={`${member.username}@${member.email_domain}`}
         name={member.username}
         size="sm"
       />
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-sm font-medium text-txt-primary truncate">
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <span className="truncate text-[14.5px] font-medium text-txt-primary">
             {member.username}@{member.email_domain}
           </span>
           <span className={badge_class}>{role_label}</span>
@@ -142,12 +146,16 @@ export function MemberRow({
             </span>
           )}
           {compliance?.has_2fa && (
-            <ShieldCheckIcon className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
+            <ShieldCheckIcon
+              aria-label={t("settings.fam_org_summary_all_2fa")}
+              className="h-4 w-4 flex-shrink-0"
+              style={{ color: "var(--color-success)" }}
+            />
           )}
         </div>
         {editing ? (
-          <div className="mt-2 space-y-1.5">
-            <div className="flex items-center gap-2">
+          <div className="mt-3 flex flex-col gap-2.5">
+            <div className="flex items-center gap-3">
               <Slider
                 className="flex-1"
                 max={max_gb}
@@ -155,25 +163,24 @@ export function MemberRow({
                 value={storage_gb}
                 onChange={(v) => set_storage_input(String(v))}
               />
-              <div className="flex items-center gap-1 flex-shrink-0">
+              <div className="relative w-24 flex-shrink-0">
                 <Input
-                  className="!w-16 px-2 text-end text-xs font-semibold"
+                  className="aster_input_tonal pe-9 text-end font-semibold"
                   inputMode="numeric"
                   max={max_gb}
                   min={min_gb}
-                  size="sm"
                   type="number"
                   value={storage_input}
                   onBlur={() => set_storage_input(String(storage_gb))}
                   onChange={(e) => set_storage_input(e.target.value)}
                 />
-                <span className="text-xs font-semibold text-txt-muted">
+                <span className="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 text-[12.5px] text-txt-muted">
                   {t("settings.fam_org_gb")}
                 </span>
               </div>
             </div>
             {pool_remaining_bytes !== undefined && (
-              <p className="text-[10px] text-txt-muted">
+              <p className="text-[12px] text-txt-muted">
                 {t("settings.fam_org_member_pool_remaining", {
                   count: Math.max(
                     0,
@@ -186,63 +193,70 @@ export function MemberRow({
                 })}
               </p>
             )}
-            <div className="flex gap-1">
-              <button
-                className="aster_btn aster_btn_primary aster_btn_sm disabled:opacity-50 flex items-center gap-1"
+            <div className="flex gap-2">
+              <PillButton
                 disabled={saving_storage}
+                leading={saving_storage ? <ButtonSpinner /> : undefined}
+                size="sm"
+                type="button"
+                variant="filled"
                 onClick={save_storage}
               >
                 {t("settings.fam_org_member_save")}
-                {saving_storage && <ButtonSpinner />}
-              </button>
-              <button
-                className="aster_btn aster_btn_ghost aster_btn_sm"
+              </PillButton>
+              <PillButton
+                size="sm"
+                type="button"
+                variant="ghost"
                 onClick={() => set_editing(false)}
               >
                 {t("settings.fam_org_member_cancel")}
-              </button>
+              </PillButton>
             </div>
           </div>
         ) : (
-          <div className="text-xs text-txt-muted mt-0.5">
-            {format_bytes(member.storage_used_bytes)} /{" "}
-            {format_bytes(member.allocated_storage_bytes)}
-          </div>
-        )}
-        {!editing && (
-          <StorageBar
-            total={member.allocated_storage_bytes}
-            used={member.storage_used_bytes}
-          />
+          <>
+            <div className="mt-0.5 text-[12.5px] tabular-nums text-txt-muted">
+              {format_bytes(member.storage_used_bytes)} /{" "}
+              {format_bytes(member.allocated_storage_bytes)}
+            </div>
+            <StorageBar
+              total={member.allocated_storage_bytes}
+              used={member.storage_used_bytes}
+            />
+          </>
         )}
       </div>
       {is_owner_view && !editing && (
-        <div className="flex items-center gap-1 flex-shrink-0 self-center">
+        <div className="flex flex-shrink-0 items-center gap-0.5 self-center">
           <button
             aria-label={t("settings.family_storage_edit")}
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-txt-muted transition-colors hover:bg-surf-hover hover:text-txt-primary"
+            className={icon_button}
             title={t("settings.family_storage_edit")}
+            type="button"
             onClick={() => set_editing(true)}
           >
-            <PencilIcon className="w-4 h-4" />
+            <PencilIcon className="h-[18px] w-[18px]" />
           </button>
           {member.role !== "owner" && (
             <>
               <button
                 aria-label={t("settings.family_transfer_admin")}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-txt-muted transition-colors hover:bg-surf-hover hover:text-accent-blue"
+                className={icon_button}
                 title={t("settings.family_transfer_admin")}
+                type="button"
                 onClick={() => on_transfer(member)}
               >
-                <ArrowRightOnRectangleIcon className="w-4 h-4" />
+                <ArrowRightOnRectangleIcon className="h-[18px] w-[18px]" />
               </button>
               <button
                 aria-label={t("settings.family_remove_member")}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-txt-muted transition-colors hover:bg-surf-hover hover:text-red-500"
+                className={`${icon_button} hover:!text-[var(--color-danger)]`}
                 title={t("settings.family_remove_member")}
+                type="button"
                 onClick={() => on_remove(member)}
               >
-                <TrashIcon className="w-4 h-4" />
+                <TrashIcon className="h-[18px] w-[18px]" />
               </button>
             </>
           )}
@@ -276,44 +290,38 @@ export function MemberGroupsContent() {
       .finally(() => set_loading(false));
   }, []);
 
-  if (loading) return <SkeletonRows count={2} has_icon={false} />;
+  if (loading) return <SkeletonRows count={2} />;
 
   if (my_groups.length === 0)
     return (
-      <IslandEmpty
-        description={t("settings.fam_org_member_groups_empty_desc")}
-        icon={<UserGroupIcon />}
-        title={t("settings.fam_org_member_groups_empty_title")}
-      />
+      <Island padding="lg">
+        <IslandEmpty
+          description={t("settings.fam_org_member_groups_empty_desc")}
+          icon={<UserGroupIcon />}
+          title={t("settings.fam_org_member_groups_empty_title")}
+        />
+      </Island>
     );
 
   return (
-    <div className="flex flex-col gap-2">
+    <Island divided className="overflow-hidden" padding="none">
       {my_groups.map((g) => (
-        <Island
+        <IslandRow
           key={g.id}
-          className="flex flex-wrap items-center gap-3 px-4 py-3"
-        >
-          <div className="w-8 h-8 rounded-full flex items-center justify-center bg-accent-blue/10 flex-shrink-0">
-            <UserGroupIcon className="w-4 h-4 text-accent-blue" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-txt-primary truncate">
-              {g.name}
-            </p>
-            {g.email_local_part && g.domain_name && (
-              <p className="text-xs font-mono text-txt-muted mt-0.5">
-                {g.email_local_part}@{g.domain_name}
-              </p>
-            )}
-          </div>
-          {g.email_local_part && g.domain_name && (
-            <span className="aster_badge aster_badge_blue shrink-0">
-              {t("settings.fam_org_groups_has_email_title")}
-            </span>
-          )}
-        </Island>
+          description={
+            g.email_local_part && g.domain_name
+              ? `${g.email_local_part}@${g.domain_name}`
+              : undefined
+          }
+          icon={family_row_icon(UserGroupIcon)}
+          label={g.name}
+          value={
+            g.email_local_part && g.domain_name
+              ? t("settings.fam_org_groups_has_email_title")
+              : undefined
+          }
+        />
       ))}
-    </div>
+    </Island>
   );
 }

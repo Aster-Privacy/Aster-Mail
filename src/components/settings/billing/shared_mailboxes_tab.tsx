@@ -24,16 +24,31 @@ import {
   ArrowRightIcon,
   CheckIcon,
   ChevronRightIcon,
+  ExclamationTriangleIcon,
   InboxStackIcon,
   PlusIcon,
   TrashIcon,
   UsersIcon,
 } from "@heroicons/react/24/outline";
-import { Button, Island } from "@aster/ui";
+import {
+  Island,
+  IslandDivider,
+  IslandEmpty,
+  IslandRow,
+  PillButton,
+} from "@aster/ui";
+
+import {
+  FamilyCreateBar,
+  FamilySkeletonRows,
+  family_row_icon,
+} from "./family_section/family_ui";
 
 import { apply_input_transform } from "@/utils/input_transform";
 import { show_toast } from "@/components/toast/simple_toast";
-import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
+import { Input } from "@/components/ui/input";
+import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import {
   Select,
@@ -74,12 +89,16 @@ import {
   cache_shared_mailbox_secret,
 } from "@/services/shared_mailbox_session";
 import { get_session_passphrase } from "@/contexts/auth/session_passphrase";
-import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { ignore_error } from "@/lib/ignore_error";
 import { is_composing } from "@/utils/ime";
 import { user_facing_error } from "@/utils/user_facing_error";
 
 const DEFAULT_ALLOCATION_BYTES = 10 * 1024 ** 3;
+
+const mailbox_cache = new Map<
+  string,
+  { mailboxes: SharedMailboxInfo[]; max_mailboxes: number | null }
+>();
 
 interface SharedMailboxesTabProps {
   group: FamilyGroupResponse;
@@ -93,10 +112,15 @@ export function SharedMailboxesTab({
   const { t } = use_i18n();
   const { switch_to_account } = use_auth();
 
-  const [mailboxes, set_mailboxes] = useState<SharedMailboxInfo[]>([]);
-  const [max_mailboxes, set_max_mailboxes] = useState<number | null>(null);
+  const cached = mailbox_cache.get(group.id);
+  const [mailboxes, set_mailboxes] = useState<SharedMailboxInfo[]>(
+    cached?.mailboxes ?? [],
+  );
+  const [max_mailboxes, set_max_mailboxes] = useState<number | null>(
+    cached?.max_mailboxes ?? null,
+  );
   const [load_failed, set_load_failed] = useState(false);
-  const [loading, set_loading] = useState(true);
+  const [loading, set_loading] = useState(!cached);
   const [creating, set_creating] = useState(false);
   const [expanded, set_expanded] = useState<string | null>(null);
   const [new_prefix, set_new_prefix] = useState("");
@@ -119,6 +143,10 @@ export function SharedMailboxesTab({
     if (response.data) {
       set_mailboxes(response.data.mailboxes);
       set_max_mailboxes(response.data.max_shared_mailboxes);
+      mailbox_cache.set(group.id, {
+        mailboxes: response.data.mailboxes,
+        max_mailboxes: response.data.max_shared_mailboxes,
+      });
       set_load_failed(false);
       set_loading(false);
 
@@ -128,7 +156,7 @@ export function SharedMailboxesTab({
     set_loading(false);
 
     return [];
-  }, []);
+  }, [group.id]);
 
   useEffect(() => {
     void load();
@@ -555,15 +583,27 @@ export function SharedMailboxesTab({
     [switch_to_account, t],
   );
 
+  const retry_load = () => {
+    set_loading(true);
+    void load();
+  };
+
+  const address_status =
+    address_available === true
+      ? "success"
+      : address_available === false
+        ? "error"
+        : "default";
+
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
-        <div
-          className={`flex items-center h-9 rounded-[var(--aster-radius-control)] border bg-white dark:bg-white/[0.04] overflow-hidden min-w-0 sm:flex-1 transition-[border-color,box-shadow] duration-150 ${address_available === true ? "border-green-500" : address_available === false ? "border-red-500" : "border-black/10 dark:border-white/10 hover:border-black/[0.18] dark:hover:border-white/[0.18] focus-within:border-[var(--accent-color)] focus-within:shadow-[inset_0_0_0_1px_var(--accent-color)] dark:focus-within:border-[var(--accent-color)] hover:focus-within:border-[var(--accent-color)] dark:hover:focus-within:border-[var(--accent-color)]"}`}
-        >
-          <input
-            className="bg-transparent text-sm text-txt-primary outline-none px-3 h-full flex-1 min-w-0 placeholder:text-txt-muted"
+    <div className="flex flex-col gap-4">
+      <Island className="flex flex-col gap-3" padding="md">
+        <FamilyCreateBar>
+          <Input
+            aria-label={t("shared_mailboxes.address_placeholder")}
+            className="aster_input_tonal sm:flex-1"
             placeholder={t("shared_mailboxes.address_placeholder")}
+            status={address_status}
             value={new_prefix}
             onChange={(e) => {
               set_new_prefix(
@@ -577,11 +617,9 @@ export function SharedMailboxesTab({
               e.key === "Enter" && !is_composing(e) && handle_create()
             }
           />
-          <span className="text-txt-muted text-sm px-1 select-none shrink-0">
-            @
-          </span>
           <Select value={new_domain} onValueChange={set_new_domain}>
-            <SelectTrigger className="border-0 border-s border-black/10 dark:border-white/10 rounded-none bg-transparent h-full shadow-none text-sm min-w-0 max-w-[160px] px-2">
+            <SelectTrigger className="rounded-[var(--aster-radius-field)] sm:w-44">
+              <span className="me-0.5 text-txt-muted">@</span>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -589,179 +627,208 @@ export function SharedMailboxesTab({
               <SelectItem value="aster.cx">aster.cx</SelectItem>
             </SelectContent>
           </Select>
-        </div>
-        <Button
-          disabled={
-            creating ||
-            !me ||
-            at_mailbox_limit ||
-            new_prefix.trim().length < 3 ||
-            address_available === false
-          }
-          size="md"
-          variant="depth"
-          onClick={handle_create}
-        >
-          <PlusIcon className="w-4 h-4" />
-          {creating && <ButtonSpinner />} {t("shared_mailboxes.create")}
-        </Button>
-      </div>
-      {load_failed ? (
-        <button
-          className="text-[11px] text-accent-blue hover:underline"
-          onClick={() => {
-            set_loading(true);
-            void load();
-          }}
-        >
-          {t("shared_mailboxes.load_failed_retry")}
-        </button>
-      ) : (
-        <p
-          className={`text-[11px] text-txt-muted ${loading ? "invisible" : ""}`}
-        >
-          {at_mailbox_limit
-            ? t("shared_mailboxes.limit_reached", {
-                max: max_mailboxes,
-              })
-            : t("shared_mailboxes.create_hint", {
-                count: mailboxes.length,
-                max: max_mailboxes === -1 ? "∞" : (max_mailboxes ?? ELLIPSIS),
-              })}
-        </p>
-      )}
+          <PillButton
+            className="flex-shrink-0"
+            disabled={
+              creating ||
+              !me ||
+              at_mailbox_limit ||
+              new_prefix.trim().length < 3 ||
+              address_available === false
+            }
+            leading={
+              creating ? <ButtonSpinner /> : <PlusIcon className="h-4 w-4" />
+            }
+            variant="filled"
+            onClick={handle_create}
+          >
+            {t("shared_mailboxes.create")}
+          </PillButton>
+        </FamilyCreateBar>
+        {load_failed ? (
+          <button
+            className="w-fit text-start text-[12.5px] leading-5 hover:underline"
+            style={{ color: "var(--accent-color)" }}
+            type="button"
+            onClick={retry_load}
+          >
+            {t("shared_mailboxes.load_failed_retry")}
+          </button>
+        ) : (
+          <p
+            className={`text-[12.5px] leading-5 text-txt-muted ${loading ? "invisible" : ""}`}
+          >
+            {at_mailbox_limit
+              ? t("shared_mailboxes.limit_reached", {
+                  max: max_mailboxes,
+                })
+              : t("shared_mailboxes.create_hint", {
+                  count: mailboxes.length,
+                  max: max_mailboxes === -1 ? "∞" : (max_mailboxes ?? ELLIPSIS),
+                })}
+          </p>
+        )}
+      </Island>
 
       {loading ? (
-        <div className="flex items-center gap-2 py-6 justify-center">
-          <Spinner size="sm" />
-        </div>
+        <FamilySkeletonRows count={2} />
       ) : load_failed && mailboxes.length === 0 ? (
-        <LoadFailedNotice
-          on_retry={() => {
-            set_loading(true);
-            void load();
-          }}
-        />
+        <Island padding="lg">
+          <IslandEmpty
+            action={
+              <PillButton size="sm" variant="tonal" onClick={retry_load}>
+                {t("common.retry")}
+              </PillButton>
+            }
+            icon={<ExclamationTriangleIcon />}
+            title={t("common.something_went_wrong_try_again")}
+          />
+        </Island>
       ) : mailboxes.length === 0 ? (
-        <Island className="flex flex-col items-center gap-3 py-8" padding="lg">
-          <InboxStackIcon className="w-12 h-12 text-txt-muted" />
-          <p className="text-sm font-medium text-txt-primary">
-            {t("shared_mailboxes.empty_title")}
-          </p>
-          <p className="text-xs text-txt-muted text-center max-w-xs">
-            {t("shared_mailboxes.empty_desc")}
-          </p>
+        <Island padding="lg">
+          <IslandEmpty
+            description={t("shared_mailboxes.empty_desc")}
+            icon={<InboxStackIcon />}
+            title={t("shared_mailboxes.empty_title")}
+          />
         </Island>
       ) : (
-        <div className="space-y-2">
-          {mailboxes.map((mailbox) => {
+        <Island className="overflow-hidden" padding="none">
+          {mailboxes.map((mailbox, index) => {
             const is_open = expanded === mailbox.id;
             const is_busy = busy_mailbox === mailbox.id;
             const granted_ids = new Set(
               mailbox.grants.map((g) => g.member_user_id),
             );
+            const storage_text = t("shared_mailboxes.storage_line", {
+              used: format_bytes(mailbox.storage_used_bytes),
+              total: format_bytes(mailbox.allocated_storage_bytes),
+            });
 
             return (
-              <Island key={mailbox.id} className="overflow-hidden">
-                <div className="flex min-h-14 items-center gap-2 px-4 py-2.5">
-                  <button
-                    className="flex items-center gap-2.5 flex-1 min-w-0 text-start"
-                    onClick={() => set_expanded(is_open ? null : mailbox.id)}
-                  >
-                    <ChevronRightIcon
-                      className={`w-3.5 h-3.5 text-txt-muted flex-shrink-0 transition-transform duration-200 ${is_open ? "rotate-90" : ""}`}
-                    />
-                    <InboxStackIcon className="w-4 h-4 text-accent-blue flex-shrink-0" />
-                    <span className="text-sm font-medium text-txt-primary truncate">
-                      {mailbox.username}@{mailbox.email_domain}
-                    </span>
-                    {mailbox.status === "frozen" && (
-                      <span className="aster_badge aster_badge_amber flex-shrink-0">
-                        {t("shared_mailboxes.frozen")}
-                      </span>
-                    )}
-                    {mailbox.rotation_required && (
-                      <span className="aster_badge aster_badge_red flex-shrink-0">
+              <div key={mailbox.id}>
+                {index > 0 && <IslandDivider />}
+                <IslandRow
+                  aria-expanded={is_open}
+                  chevron={false}
+                  description={
+                    mailbox.rotation_required ? (
+                      <span style={{ color: "var(--color-danger)" }}>
                         {t("shared_mailboxes.rotation_needed")}
                       </span>
-                    )}
-                  </button>
-                  <span className="aster_badge aster_badge_gray flex-shrink-0 text-xs flex items-center gap-1">
-                    <UsersIcon className="w-3 h-3" />
-                    {format_number(mailbox.grants.length)}
-                  </span>
-                  {mailbox.my_grant && mailbox.status === "active" && (
-                    <button
-                      className="aster_btn aster_btn_ghost aster_btn_sm flex items-center gap-1 text-accent-blue flex-shrink-0"
-                      disabled={is_busy}
-                      onClick={() => handle_open(mailbox)}
-                    >
-                      <ArrowRightIcon className="w-3.5 h-3.5 rtl:-scale-x-100" />
-                      {t("shared_mailboxes.open")}
-                    </button>
-                  )}
-                  <button
-                    className="aster_btn aster_btn_ghost aster_btn_sm flex items-center gap-1 text-txt-muted hover:text-red-500 flex-shrink-0"
-                    disabled={is_busy}
-                    onClick={() => set_pending_delete(mailbox)}
-                  >
-                    <TrashIcon className="w-3.5 h-3.5" />
-                  </button>
-                </div>
+                    ) : mailbox.status === "frozen" ? (
+                      <span style={{ color: "var(--color-warning)" }}>
+                        {t("shared_mailboxes.frozen")}
+                      </span>
+                    ) : (
+                      storage_text
+                    )
+                  }
+                  icon={family_row_icon(InboxStackIcon)}
+                  label={`${mailbox.username}@${mailbox.email_domain}`}
+                  trailing={
+                    <span className="flex items-center gap-2.5">
+                      <span className="flex items-center gap-1 text-[13px] tabular-nums text-txt-muted">
+                        <UsersIcon className="h-4 w-4" />
+                        {format_number(mailbox.grants.length)}
+                      </span>
+                      <ChevronRightIcon
+                        className={`h-4 w-4 text-txt-muted transition-transform duration-200 rtl:-scale-x-100 ${is_open ? "rotate-90" : ""}`}
+                      />
+                    </span>
+                  }
+                  on_press={() => set_expanded(is_open ? null : mailbox.id)}
+                />
 
                 {is_open && (
-                  <div className="px-4 pb-3 space-y-3">
+                  <>
                     {mailbox.rotation_required && mailbox.my_grant && (
-                      <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-500/10">
-                        <p className="text-xs text-txt-secondary flex-1">
-                          {t("shared_mailboxes.rotation_explainer")}
-                        </p>
-                        <Button
-                          disabled={is_busy}
-                          variant="outline"
-                          onClick={() => handle_rotate(mailbox.id)}
+                      <div className="px-4 pb-3">
+                        <div
+                          className="flex flex-col gap-3 rounded-[var(--aster-radius-field)] p-4 sm:flex-row sm:items-center"
+                          style={{
+                            backgroundColor:
+                              "color-mix(in srgb, var(--color-warning) 10%, transparent)",
+                          }}
                         >
-                          <ArrowPathIcon className="w-3.5 h-3.5" />
-                          {is_busy && <ButtonSpinner />}{" "}
-                          {t("shared_mailboxes.rotate")}
-                        </Button>
+                          <p className="min-w-0 flex-1 text-[13px] leading-5 text-txt-secondary">
+                            {t("shared_mailboxes.rotation_explainer")}
+                          </p>
+                          <PillButton
+                            className="flex-shrink-0 self-start sm:self-auto"
+                            disabled={is_busy}
+                            leading={
+                              is_busy ? (
+                                <ButtonSpinner />
+                              ) : (
+                                <ArrowPathIcon className="h-4 w-4" />
+                              )
+                            }
+                            size="sm"
+                            variant="tonal"
+                            onClick={() => handle_rotate(mailbox.id)}
+                          >
+                            {t("shared_mailboxes.rotate")}
+                          </PillButton>
+                        </div>
                       </div>
                     )}
 
-                    <div className="flex items-center justify-between text-xs text-txt-muted">
-                      <span>
-                        {t("shared_mailboxes.storage_line", {
-                          used: format_bytes(mailbox.storage_used_bytes),
-                          total: format_bytes(mailbox.allocated_storage_bytes),
-                        })}
-                      </span>
-                    </div>
-
-                    <div>
-                      <p className="text-xs font-medium text-txt-secondary mb-1.5">
-                        {t("shared_mailboxes.members_heading")}
+                    {(mailbox.rotation_required ||
+                      mailbox.status === "frozen") && (
+                      <p className="px-4 pb-3 text-[13px] text-txt-muted">
+                        {storage_text}
                       </p>
-                      <div className="space-y-1">
-                        {active_members.map((member) => {
-                          const has_grant = granted_ids.has(member.user_id);
-                          const is_owner_row = member.role === "owner";
+                    )}
 
-                          return (
-                            <div
-                              key={member.user_id}
-                              className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-surf-hover"
-                            >
-                              <span className="text-sm text-txt-primary flex-1 min-w-0 truncate">
-                                {member.username}@{member.email_domain}
-                              </span>
-                              {is_owner_row ? (
-                                <span className="aster_badge aster_badge_blue text-xs">
+                    {mailbox.my_grant && mailbox.status === "active" && (
+                      <>
+                        <IslandDivider />
+                        <IslandRow
+                          chevron
+                          disabled={is_busy}
+                          icon={family_row_icon(ArrowRightIcon)}
+                          label={t("shared_mailboxes.open")}
+                          on_press={() => void handle_open(mailbox)}
+                        />
+                      </>
+                    )}
+
+                    <IslandDivider />
+                    <p className="px-4 pb-1 pt-3 text-[12.5px] font-medium text-txt-muted">
+                      {t("shared_mailboxes.members_heading")}
+                    </p>
+                    {active_members.map((member, member_index) => {
+                      const has_grant = granted_ids.has(member.user_id);
+                      const is_owner_row = member.role === "owner";
+
+                      return (
+                        <div key={member.user_id}>
+                          {member_index > 0 && <IslandDivider />}
+                          <IslandRow
+                            icon={
+                              <ProfileAvatar
+                                email={`${member.username}@${member.email_domain}`}
+                                name={member.username}
+                                size="xs"
+                              />
+                            }
+                            label={`${member.username}@${member.email_domain}`}
+                            trailing={
+                              is_owner_row ? (
+                                <span className="text-[13px] text-txt-muted">
                                   {t("shared_mailboxes.always_has_access")}
                                 </span>
                               ) : (
-                                <Button
+                                <PillButton
                                   disabled={is_busy}
-                                  variant={has_grant ? "outline" : "depth"}
+                                  leading={
+                                    has_grant ? (
+                                      <CheckIcon className="h-4 w-4" />
+                                    ) : undefined
+                                  }
+                                  size="sm"
+                                  variant={has_grant ? "tonal" : "filled"}
                                   onClick={() =>
                                     handle_toggle_member(
                                       mailbox,
@@ -772,27 +839,32 @@ export function SharedMailboxesTab({
                                     )
                                   }
                                 >
-                                  {has_grant ? (
-                                    <>
-                                      <CheckIcon className="w-3.5 h-3.5" />
-                                      {t("shared_mailboxes.has_access")}
-                                    </>
-                                  ) : (
-                                    t("shared_mailboxes.give_access")
-                                  )}
-                                </Button>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
+                                  {has_grant
+                                    ? t("shared_mailboxes.has_access")
+                                    : t("shared_mailboxes.give_access")}
+                                </PillButton>
+                              )
+                            }
+                          />
+                        </div>
+                      );
+                    })}
+
+                    <IslandDivider />
+                    <IslandRow
+                      destructive
+                      chevron={false}
+                      disabled={is_busy}
+                      icon={family_row_icon(TrashIcon)}
+                      label={t("shared_mailboxes.delete_confirm_title")}
+                      on_press={() => set_pending_delete(mailbox)}
+                    />
+                  </>
                 )}
-              </Island>
+              </div>
             );
           })}
-        </div>
+        </Island>
       )}
 
       <ConfirmationModal

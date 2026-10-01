@@ -20,19 +20,29 @@
 //
 import type {} from "@/lib/i18n/types";
 
-import { Island } from "@aster/ui";
-
 import { storage_pct } from "./helpers";
+import { FamilySkeletonRows } from "./family_ui";
+
 export function StorageBar({ used, total }: { used: number; total: number }) {
   const pct = storage_pct(used, total);
   const color =
-    pct >= 90 ? "bg-red-500" : pct >= 70 ? "bg-amber-500" : "bg-accent-blue";
+    pct >= 90
+      ? "var(--color-danger)"
+      : pct >= 75
+        ? "var(--color-warning)"
+        : "var(--accent-color)";
 
   return (
-    <div className="w-full bg-edge-secondary rounded-full h-1 mt-1.5">
+    <div
+      className="mt-2 h-1.5 w-full overflow-hidden rounded-full"
+      style={{
+        backgroundColor:
+          "color-mix(in srgb, var(--text-primary) 10%, transparent)",
+      }}
+    >
       <div
-        className={`${color} h-1 rounded-full transition-all`}
-        style={{ width: `${pct}%` }}
+        className="h-full rounded-full transition-[width] duration-300"
+        style={{ width: `${pct}%`, backgroundColor: color }}
       />
     </div>
   );
@@ -40,31 +50,9 @@ export function StorageBar({ used, total }: { used: number; total: number }) {
 
 export function SkeletonRows({
   count = 3,
-  has_icon = true,
 }: {
   count?: number;
   has_icon?: boolean;
 }) {
-  return (
-    <Island className="overflow-hidden">
-      {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="flex min-h-14 items-center gap-3 px-4 py-3">
-          {has_icon && (
-            <div className="w-8 h-8 rounded-full bg-edge-secondary animate-pulse flex-shrink-0" />
-          )}
-          <div className="flex-1 space-y-2">
-            <div
-              className="h-3 bg-edge-secondary rounded-full animate-pulse"
-              style={{ width: `${60 + (i % 3) * 10}%` }}
-            />
-            <div
-              className="h-2 bg-edge-secondary rounded-full animate-pulse"
-              style={{ width: `${35 + (i % 2) * 15}%` }}
-            />
-          </div>
-          <div className="h-2 bg-edge-secondary rounded-full animate-pulse w-16 flex-shrink-0" />
-        </div>
-      ))}
-    </Island>
-  );
+  return <FamilySkeletonRows count={count} />;
 }

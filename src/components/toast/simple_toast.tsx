@@ -80,11 +80,13 @@ export function SimpleToast({ position }: SimpleToastProps) {
   const { layout, y_offset } = use_toast_position(position);
 
   return (
-    <SimpleToastView
-      dismiss_label={t("common.dismiss")}
-      layout={layout}
-      reduce_motion={reduce_motion}
-      y_offset={y_offset}
-    />
+    <div className="aster_simple_toast_host">
+      <SimpleToastView
+        dismiss_label={t("common.dismiss")}
+        layout={layout}
+        reduce_motion={reduce_motion}
+        y_offset={y_offset}
+      />
+    </div>
   );
 }
