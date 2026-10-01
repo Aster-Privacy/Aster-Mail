@@ -120,10 +120,6 @@ export function build_measurement_controls(ctx: measurement_context) {
     const document_width = doc.documentElement.scrollWidth;
     let natural = Math.max(body.scrollWidth, document_width);
 
-    // The document's scrollWidth leaves the body's end padding out in both
-    // Chromium and Gecko, so a wide email gets it added back and keeps the
-    // same margin on both sides once scaled. Only read here: an email's own
-    // transitions or container queries would react to a padding change.
     if (natural > available + FIT_SLACK_PX) {
       const end_padding =
         parseFloat(

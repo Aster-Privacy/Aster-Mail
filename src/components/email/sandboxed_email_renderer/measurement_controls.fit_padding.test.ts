@@ -27,9 +27,6 @@ const START_PADDING = 16;
 const DEFAULT_END_PADDING = 16;
 const ENGINES = ["chromium", "gecko"] as const;
 
-// What measuring has always written on the body: the zoom it fits with, the
-// overflow fallback and the height it reads. Anything else could set off an
-// email's own transitions or container queries.
 const MEASUREMENT_WRITES = new Set([
   "zoom",
   "overflow-x",
@@ -52,10 +49,6 @@ const end_padding_of = (body: HTMLElement): number => {
   return inline ? parseFloat(inline) : DEFAULT_END_PADDING;
 };
 
-// Lays out a body holding one block whose width may depend on the body's
-// content box, the way a container query would. Chromium leaves the end
-// padding out of an overflowing body's scrollWidth and Gecko counts it; both
-// leave it out of the document's scrollWidth.
 const mount_email = (
   content: number | ((content_box: number) => number),
   engine: Engine,
