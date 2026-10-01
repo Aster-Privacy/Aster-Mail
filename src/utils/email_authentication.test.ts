@@ -34,7 +34,6 @@ describe("summarize_email_authentication", () => {
   it("is authenticated when DMARC passes on top of SPF or DKIM", () => {
     expect(verdict("pass", "pass", "pass")).toBe("authenticated");
     expect(verdict("pass", "none", "pass")).toBe("authenticated");
-    // Forwarded mail: SPF fails at the forwarder, DKIM still aligns.
     expect(verdict("fail", "pass", "pass")).toBe("authenticated");
   });
 
@@ -52,8 +51,6 @@ describe("summarize_email_authentication", () => {
   });
 
   it("does not call a message spoofed when DMARC passed", () => {
-    // The server accepted the domain (another DKIM signature, for example),
-    // even though the recorded SPF and DKIM results did not pass.
     expect(verdict("fail", "fail", "pass")).toBe("partial");
     expect(verdict("fail", "none", "pass")).toBe("partial");
     expect(verdict("none", "fail", "pass")).toBe("partial");

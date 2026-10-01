@@ -892,10 +892,6 @@ export function is_purchase_email(subject: string, body: string): boolean {
   return false;
 }
 
-// "Tracking", "shipped" and "delivered" also turn up in mail that has
-// nothing to do with a parcel ("when the email was delivered", "a tracking
-// pixel", "we shipped a new feature"), so at least one sign has to be
-// specific to a shipment.
 const PARCEL_SPECIFIC_INDICATORS = [
   /\btracking\s*(?:#|number)/i,
   /\bout\s+for\s+delivery\b/i,

@@ -18,11 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-// Summary of the SPF, DKIM and DMARC results that Aster's mail servers record
-// when a message arrives (the spf_result, dkim_result and dmarc_result fields
-// of a message). Only those server-side results are used: an
-// Authentication-Results header inside the message could have been written by
-// the sender.
 
 export type EmailAuthCheck = "spf" | "dkim" | "dmarc";
 
@@ -40,7 +35,6 @@ export interface EmailAuthResults {
 export interface EmailAuthCheckResult {
   check: EmailAuthCheck;
   status: EmailAuthStatus;
-  // Shown for "other" statuses: the server's value, upper-cased and capped.
   value: string;
 }
 
@@ -70,15 +64,6 @@ function normalize_status(raw: unknown): {
   };
 }
 
-// Authenticated when DMARC passed on top of SPF or DKIM (the rule the
-// Android app uses for an authenticated sender). Failed when a check failed
-// and DMARC did not pass. Partial (inconclusive) when a check gave an
-// unusual result (softfail, neutral, temperror...), or when DMARC passed
-// without an SPF or DKIM pass: the server accepted the domain, for example
-// through another DKIM signature, so a failed check alone does not make the
-// message a spoof. Unverified when checks were simply absent, which is
-// common for legitimate mail from domains without a DMARC policy. Null when
-// the server recorded nothing.
 export function summarize_email_authentication(
   results: EmailAuthResults,
 ): EmailAuthSummary | null {

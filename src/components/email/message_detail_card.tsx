@@ -50,9 +50,6 @@ interface MessageDetailCardProps {
   bcc_recipients?: DetailRecipient[];
   date_label: string;
   subject: string;
-  // The SPF, DKIM and DMARC results of a received message. Shown for every
-  // message that has them, while the badge next to the sender only appears
-  // when a check failed or was inconclusive.
   auth_results?: EmailAuthResults | null;
 }
 

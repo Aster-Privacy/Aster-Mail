@@ -58,9 +58,6 @@ interface EmailAuthIndicatorProps {
 
 type Icon = ComponentType<SVGProps<SVGSVGElement>>;
 
-// Only results worth a second look get a badge. Mail that passed, or that
-// simply lacks checks, gets none: a green mark next to a name the sender
-// chooses would reassure a look-alike domain with its own DMARC too.
 type ShownVerdict = Extract<EmailAuthVerdict, "partial" | "failed">;
 
 const VERDICT_BADGE: Record<ShownVerdict, "amber" | "red"> = {
@@ -121,23 +118,12 @@ const STATUS_ICON: Record<EmailAuthStatus, Icon> = {
 
 const MUTED = "var(--text-secondary)";
 const DOMAIN_SLOT = "[[domain]]";
-// Short domains stay on one line instead of breaking at a hyphen; long ones
-// may wrap anywhere, so every character stays visible.
 const NOWRAP_DOMAIN_LENGTH = 36;
-// Longer than any host name.
 const MAX_DOMAIN_LENGTH = 253;
 const BIDI_CONTROLS = /[\u061c\u200e\u200f\u202a-\u202e\u2066-\u2069]/g;
 const NON_ASCII = /[\u0080-\uffff]/;
-// Dot-separated labels of letters, marks, digits and hyphens. Anything else
-// (a slash, a colon, an invisible format character) could make the URL
-// parser below keep only part of the domain.
 const DOMAIN = /^[\p{L}\p{M}\p{N}-]+(?:\.[\p{L}\p{M}\p{N}-]+)*\.?$/u;
 
-// The domain of the From address, as the checks saw it: without bidi
-// controls that could reorder it, and in the ASCII (punycode) form DNS
-// resolves, so letters from other scripts show up as such. Empty when it
-// could not be a host name, which hides the badge rather than show a domain
-// the checks did not see.
 function display_domain(sender_email?: string): string {
   const email = (sender_email ?? "").replace(BIDI_CONTROLS, "").trim();
   const at = email.lastIndexOf("@");
@@ -169,8 +155,6 @@ function status_color(result: EmailAuthCheckResult): string {
   return MUTED;
 }
 
-// The result of one check as an icon and a coloured word, as in the
-// popover and in the message details.
 export function EmailAuthCheckStatus({
   result,
 }: {
@@ -192,9 +176,6 @@ export function EmailAuthCheckStatus({
   );
 }
 
-// A badge next to the sender when the SPF, DKIM and DMARC checks Aster ran
-// when the message arrived failed or gave unusual results. Opens the result
-// of each check, with a way to the message details.
 export function EmailAuthIndicator({
   results,
   sender_email,
@@ -255,8 +236,6 @@ export function EmailAuthIndicator({
         side="bottom"
         onClick={(e) => e.stopPropagation()}
         onCloseAutoFocus={(e) => {
-          // Opening the details only once the popover has handed focus back
-          // to the badge lets the modal take focus and return it there.
           if (!details_requested.current) return;
           details_requested.current = false;
           e.preventDefault();
