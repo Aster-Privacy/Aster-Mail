@@ -59,9 +59,6 @@ export function use_auto_advance({
 
       if (index === -1) return false;
 
-      // The anchor is the list from before the action, and one action can
-      // take the neighbours out too (spam removes the sender's other mail),
-      // so step past anything the caller no longer lists.
       for (
         let target_index = index + step;
         target_index >= 0 && target_index < ids.length;

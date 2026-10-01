@@ -183,9 +183,6 @@ const page = {
 };
 let inbox: ReturnType<typeof use_email_inbox_state> | null = null;
 
-// Stands in for use_inbox_view_state with the contract of the real list
-// actions: the row leaves the list as soon as the action runs (spam takes the
-// sender's other mail with it), or once the user confirms when asked to.
 function Inbox(props: EmailInboxProps) {
   const [emails, set_emails] = useState<InboxEmail[]>(emails_at_start);
   const [confirming, set_confirming] = useState<{
@@ -289,9 +286,6 @@ function Inbox(props: EmailInboxProps) {
   return null;
 }
 
-// The parts of use_index_page_state that matter here: which email the split
-// reader shows, the list order the inbox reports, next and previous, and the
-// keys that act on the email being read.
 function Page({ current_view }: { current_view: string }) {
   const [split_email_id, set_split_email_id] = useState<string | null>(null);
   const [visible_ids, set_visible_ids] = useState<string[]>([]);
@@ -414,7 +408,6 @@ describe("use_email_inbox_state with an email open in the split reader", () => {
 
     expect(page.split_email_id).toBe("d");
 
-    // j and k ignore presses that come within 50 ms of the last one.
     await new Promise((resolve) => setTimeout(resolve, 80));
     press("k");
 

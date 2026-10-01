@@ -28,9 +28,8 @@ vi.mock("@/contexts/preferences_context", () => ({
   use_preferences: () => ({ preferences: preferences_mock }),
 }));
 
-const { use_auto_advance } = await import(
-  "@/components/email/hooks/use_auto_advance"
-);
+const { use_auto_advance } =
+  await import("@/components/email/hooks/use_auto_advance");
 
 describe("use_auto_advance", () => {
   let container: HTMLDivElement;

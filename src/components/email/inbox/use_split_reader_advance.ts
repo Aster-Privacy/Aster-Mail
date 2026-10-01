@@ -33,11 +33,6 @@ interface UseSplitReaderAdvanceOptions {
   on_split_close?: () => void;
 }
 
-// Keys, hover buttons and the context menu all run the list's own row
-// actions, which only take the row out of the list. When that row is the
-// email open in the reading pane, the reader has to move on the way its own
-// archive, delete and spam buttons do. Otherwise it keeps showing a message
-// the list no longer has, and next and previous lose their place.
 export function use_split_reader_advance({
   context_menu_actions,
   split_email_id,
@@ -74,9 +69,6 @@ export function use_split_reader_advance({
     };
   }, [context_menu_actions]);
 
-  // Wait for the row to actually leave the list: with a confirmation the
-  // action only opens the dialog, and the list order after the removal is
-  // what the next email has to be picked from.
   useEffect(() => {
     const leaving_id = leaving_id_ref.current;
 
@@ -88,7 +80,6 @@ export function use_split_reader_advance({
       return;
     }
 
-    // Still listed: the user is being asked to confirm, or said no.
     if (emails.some((email) => email.id === leaving_id)) {
       if (!is_confirm_open) leaving_id_ref.current = null;
 
