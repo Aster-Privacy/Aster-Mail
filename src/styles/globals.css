@@ -2717,21 +2717,39 @@ button.press_scale:active {
 
 .aster_checkbox_box,
 .dark .aster_checkbox_box {
-  border-color: var(--checkbox-border);
-  border-width: 1.25px;
-  background-color: var(--bg-card);
+  border-width: 1.5px;
+  border-radius: 6px;
+  border-color: color-mix(in srgb, var(--text-primary) 40%, transparent);
+  background-color: transparent;
+}
+
+.aster_checkbox:hover .aster_checkbox_input:not(:disabled) + .aster_checkbox_box {
+  border-color: color-mix(in srgb, var(--text-primary) 62%, transparent);
+}
+
+.aster_checkbox_input:focus-visible + .aster_checkbox_box {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-color) 30%, transparent);
 }
 
 .aster_checkbox_input:checked + .aster_checkbox_box,
 .dark .aster_checkbox_input:checked + .aster_checkbox_box,
 .aster_checkbox_input:indeterminate + .aster_checkbox_box,
-.dark .aster_checkbox_input:indeterminate + .aster_checkbox_box {
+.dark .aster_checkbox_input:indeterminate + .aster_checkbox_box,
+.aster_checkbox:hover .aster_checkbox_input:checked:not(:disabled) + .aster_checkbox_box,
+.aster_checkbox:hover .aster_checkbox_input:indeterminate:not(:disabled) + .aster_checkbox_box {
   background-color: var(--accent-color);
   border-color: var(--accent-color);
 }
 
 .aster_checkbox_check {
   color: var(--accent-fg);
+}
+
+[role="alertdialog"].fixed {
+  inset: 0;
+  margin: auto;
+  height: fit-content;
+  translate: none;
 }
 
 .aster_checkbox_text,
@@ -4022,9 +4040,6 @@ input:-webkit-autofill:active {
 }
 
 .contact_view_card {
-  border-radius: 16px;
-  border: 1px solid var(--border-secondary);
-  background-color: var(--bg-primary);
   padding: 1.25rem 1.25rem 1.375rem;
 }
 

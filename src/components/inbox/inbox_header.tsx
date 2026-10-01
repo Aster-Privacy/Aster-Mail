@@ -226,9 +226,10 @@ export function InboxHeader({
     preferences.mail_list_density ?? "",
     preferences.compact_mode ?? false,
   );
+  const show_sender_pictures = preferences.show_profile_pictures !== false;
   const select_all_size_class = list_select_slot_class(
     compact_rows,
-    preferences.show_profile_pictures !== false,
+    show_sender_pictures,
   );
   const has_selection = all_selected || some_selected;
   const scope_selected_count = Math.max(total_messages - excluded_count, 0);
@@ -362,7 +363,10 @@ export function InboxHeader({
                   <DropdownMenuTrigger asChild>
                     <button
                       aria-label={t("common.select_label")}
-                      className="-ms-2 h-9 w-5 flex items-center justify-center focus:outline-none"
+                      className={cn(
+                        "h-9 w-5 flex items-center justify-center focus:outline-none",
+                        show_sender_pictures ? "-ms-2" : "ms-0.5",
+                      )}
                     >
                       <ChevronDownIcon className="w-4 h-4 stroke-[1.75] text-[var(--icon-secondary)] transition-colors" />
                     </button>
