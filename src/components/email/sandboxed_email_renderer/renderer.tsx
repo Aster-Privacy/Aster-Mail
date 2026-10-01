@@ -639,6 +639,8 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
 
     collapse_forwarded_content(iframe.contentDocument);
     collapse_quoted_replies(iframe.contentDocument);
+    dom_cleanup.reveal_orphaned_hidden_quotes(iframe.contentDocument);
+    dom_cleanup.reveal_fully_hidden_content(iframe.contentDocument);
     if (!preserve_formatting) {
       collapse_empty_block_runs(iframe.contentDocument);
       if (is_plain_text || !has_rich_layout) {

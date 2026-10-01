@@ -43,9 +43,12 @@ import {
   is_html_content,
   has_rich_html,
   plain_text_to_html,
-  html_to_readable_plain_text,
   strip_html_tags_bounded,
 } from "@/lib/html_sanitizer";
+import {
+  readable_text_with_fallback,
+  renderable_html_part,
+} from "@/lib/message_markup";
 import { is_system_email } from "@/lib/utils";
 import { get_image_proxy_url } from "@/lib/image_proxy";
 import { strip_reply_quotes } from "@/lib/strip_reply_quotes";
@@ -185,8 +188,10 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
       return password_unlocked_body;
     }
 
-    if (message.html_content && !is_ratchet_envelope(message.html_content)) {
-      return move_leading_footer_to_end(message.html_content);
+    const html_part = renderable_html_part(message.html_content, message.body);
+
+    if (html_part && !is_ratchet_envelope(html_part)) {
+      return move_leading_footer_to_end(html_part);
     }
 
     return strip_reply_quotes(message.body);
@@ -567,9 +572,9 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
     if (!html_blocked) return null;
 
     return plain_text_to_html(
-      html_to_readable_plain_text(clean_body, { keep_link_urls: true }),
+      readable_text_with_fallback(clean_body, message.body),
     );
-  }, [html_blocked, clean_body]);
+  }, [html_blocked, clean_body, message.body]);
 
   const name = is_own_message ? t("common.me") : show_sender_name;
   const can_collapse = !is_single_message && !is_last_in_thread;
