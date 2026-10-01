@@ -8799,6 +8799,19 @@ export const es = {
     verified_sender: "Remitente verificado",
     verified_sender_desc:
       "El remitente de este correo ha verificado que es propietario de {{domain}}.",
+    email_auth_label: "Autenticación del remitente: {{verdict}}",
+    email_auth_partial: "Comprobaciones no concluyentes",
+    email_auth_partial_desc:
+      "Algunas comprobaciones dieron resultados inusuales para {{domain}}. Conviene tener cuidado con los enlaces y los adjuntos.",
+    email_auth_failed: "Falló la autenticación",
+    email_auth_failed_desc:
+      "Este mensaje no superó las comprobaciones que confirman que lo envió {{domain}}. Podría estar suplantado.",
+    email_auth_source: "Comprobado por Aster cuando llegó el mensaje.",
+    email_auth_details_label: "Autenticación:",
+    email_auth_status_pass: "Superado",
+    email_auth_status_fail: "Fallido",
+    email_auth_status_none: "No se usa",
+    email_auth_status_missing: "Sin comprobar",
     copy_message_id: "Copiar ID del mensaje",
     hide_source: "Ocultar fuente",
     view_dark_mode: "Ver en modo oscuro",

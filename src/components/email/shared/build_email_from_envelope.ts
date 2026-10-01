@@ -165,6 +165,9 @@ export function build_single_thread_message(
     metadata_nonce?: string;
     message_group_id?: string;
     reactions?: DecryptedThreadMessage["reactions"];
+    spf_result?: string;
+    dkim_result?: string;
+    dmarc_result?: string;
   },
   envelope: DecryptedEnvelope,
   body_text: string,
@@ -205,5 +208,8 @@ export function build_single_thread_message(
     sender_verification: envelope.sender_verification,
     message_group_id: item.message_group_id,
     reactions: item.reactions,
+    spf_result: item.spf_result,
+    dkim_result: item.dkim_result,
+    dmarc_result: item.dmarc_result,
   };
 }

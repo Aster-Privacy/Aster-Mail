@@ -8853,6 +8853,19 @@ export const pt = {
     verified_sender: "Remetente verificado",
     verified_sender_desc:
       "O remetente deste e-mail verificou que é proprietário de {{domain}}.",
+    email_auth_label: "Autenticação do remetente: {{verdict}}",
+    email_auth_partial: "Verificações inconclusivas",
+    email_auth_partial_desc:
+      "Algumas verificações deram resultados invulgares para {{domain}}. Tenha cuidado com ligações e anexos.",
+    email_auth_failed: "Falha na autenticação",
+    email_auth_failed_desc:
+      "Esta mensagem falhou nas verificações que confirmam que foi enviada por {{domain}}. Pode ser falsificada.",
+    email_auth_source: "Verificado pelo Aster quando a mensagem chegou.",
+    email_auth_details_label: "Autenticação:",
+    email_auth_status_pass: "Passou",
+    email_auth_status_fail: "Falhou",
+    email_auth_status_none: "Não usado",
+    email_auth_status_missing: "Não verificado",
     copy_message_id: "Copiar ID da mensagem",
     hide_source: "Ocultar código-fonte",
     view_dark_mode: "Ver em modo escuro",

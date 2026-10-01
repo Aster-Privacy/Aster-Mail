@@ -7867,6 +7867,17 @@ export interface MailTranslations {
   official_sender_desc: string;
   verified_sender: string;
   verified_sender_desc: string;
+  email_auth_label: string;
+  email_auth_partial: string;
+  email_auth_partial_desc: string;
+  email_auth_failed: string;
+  email_auth_failed_desc: string;
+  email_auth_source: string;
+  email_auth_details_label: string;
+  email_auth_status_pass: string;
+  email_auth_status_fail: string;
+  email_auth_status_none: string;
+  email_auth_status_missing: string;
   copy_message_id: string;
   message_details: string;
   message_headers: string;

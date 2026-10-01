@@ -8529,6 +8529,19 @@ export const ko = {
     verified_sender: "인증된 발신자",
     verified_sender_desc:
       "이 이메일의 발신자가 {{domain}}을(를) 소유하고 있음을 확인했습니다.",
+    email_auth_label: "발신자 확인: {{verdict}}",
+    email_auth_partial: "검사 결과 불확실",
+    email_auth_partial_desc:
+      "일부 검사에서 {{domain}}에 대해 비정상적인 결과가 나왔습니다. 링크와 첨부 파일은 주의해서 여는 것이 좋습니다.",
+    email_auth_failed: "발신자 확인 실패",
+    email_auth_failed_desc:
+      "이 메시지는 {{domain}}에서 보냈음을 확인하는 검사를 통과하지 못했습니다. 위조된 메시지일 수 있습니다.",
+    email_auth_source: "메시지가 도착했을 때 Aster가 확인했습니다.",
+    email_auth_details_label: "인증:",
+    email_auth_status_pass: "통과",
+    email_auth_status_fail: "실패",
+    email_auth_status_none: "사용 안 함",
+    email_auth_status_missing: "검사 안 됨",
     copy_message_id: "메시지 ID 복사",
     hide_source: "소스 숨기기",
     view_dark_mode: "다크 모드로 보기",

@@ -8702,6 +8702,19 @@ export const tr = {
     verified_sender: "Doğrulanmış gönderen",
     verified_sender_desc:
       "Bu e-postanın göndereni {{domain}} alan adının sahibi olduğunu doğruladı.",
+    email_auth_label: "Gönderen doğrulaması: {{verdict}}",
+    email_auth_partial: "Belirsiz denetimler",
+    email_auth_partial_desc:
+      "Bazı denetimler {{domain}} için olağan dışı sonuçlar verdi. Bağlantılara ve eklere karşı dikkatli olmak daha güvenlidir.",
+    email_auth_failed: "Kimlik doğrulama başarısız",
+    email_auth_failed_desc:
+      "Bu ileti, {{domain}} tarafından gönderildiğini doğrulayan denetimlerden geçemedi. Sahte olabilir.",
+    email_auth_source: "İleti geldiğinde Aster tarafından denetlendi.",
+    email_auth_details_label: "Kimlik Doğrulama:",
+    email_auth_status_pass: "Başarılı",
+    email_auth_status_fail: "Başarısız",
+    email_auth_status_none: "Kullanılmıyor",
+    email_auth_status_missing: "Denetlenmedi",
     copy_message_id: "Mesaj kimliğini kopyala",
     hide_source: "Kaynağı gizle",
     view_dark_mode: "Karanlık modda görüntüle",

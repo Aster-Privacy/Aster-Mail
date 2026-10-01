@@ -8691,6 +8691,19 @@ export const ja = {
     verified_sender: "認証済みの送信者",
     verified_sender_desc:
       "このメールの送信者は {{domain}} を所有していることを確認済みです。",
+    email_auth_label: "送信元の確認：{{verdict}}",
+    email_auth_partial: "確認結果が不確か",
+    email_auth_partial_desc:
+      "{{domain}} について、一部のチェックで通常と異なる結果が出ました。リンクや添付ファイルには注意してください。",
+    email_auth_failed: "送信元の確認に失敗",
+    email_auth_failed_desc:
+      "このメッセージは、{{domain}} から送信されたことを確認するチェックに失敗しました。なりすましの可能性があります。",
+    email_auth_source: "メッセージの受信時に Aster が確認しました。",
+    email_auth_details_label: "認証：",
+    email_auth_status_pass: "合格",
+    email_auth_status_fail: "不合格",
+    email_auth_status_none: "未使用",
+    email_auth_status_missing: "未確認",
     copy_message_id: "メッセージIDをコピー",
     hide_source: "ソースを非表示",
     view_dark_mode: "ダークモードで表示",

@@ -8799,6 +8799,19 @@ export const hi = {
     verified_sender: "सत्यापित भेजने वाला",
     verified_sender_desc:
       "इस ईमेल के भेजने वाले ने पुष्टि की है कि {{domain}} उनका है।",
+    email_auth_label: "प्रेषक प्रमाणीकरण: {{verdict}}",
+    email_auth_partial: "अनिर्णायक जांचें",
+    email_auth_partial_desc:
+      "कुछ जांचों ने {{domain}} के लिए असामान्य परिणाम दिए। लिंक और अटैचमेंट के साथ सावधानी बरतें।",
+    email_auth_failed: "प्रमाणीकरण विफल",
+    email_auth_failed_desc:
+      "यह संदेश उन जांचों में विफल रहा जो पुष्टि करती हैं कि इसे {{domain}} ने भेजा है। यह नकली हो सकता है।",
+    email_auth_source: "संदेश आने पर Aster द्वारा जांचा गया।",
+    email_auth_details_label: "प्रमाणीकरण:",
+    email_auth_status_pass: "सफल",
+    email_auth_status_fail: "विफल",
+    email_auth_status_none: "उपयोग नहीं",
+    email_auth_status_missing: "जांचा नहीं गया",
     copy_message_id: "संदेश ID कॉपी करें",
     message_details: "संदेश का विवरण",
     message_headers: "संदेश के हेडर",

@@ -8852,6 +8852,19 @@ export const it = {
     verified_sender: "Mittente verificato",
     verified_sender_desc:
       "Il mittente di questa email ha verificato di possedere {{domain}}.",
+    email_auth_label: "Autenticazione del mittente: {{verdict}}",
+    email_auth_partial: "Controlli non conclusivi",
+    email_auth_partial_desc:
+      "Alcuni controlli hanno dato risultati insoliti per {{domain}}. Conviene fare attenzione a link e allegati.",
+    email_auth_failed: "Autenticazione non riuscita",
+    email_auth_failed_desc:
+      "Questo messaggio non ha superato i controlli che confermano che è stato inviato da {{domain}}. Potrebbe essere falsificato.",
+    email_auth_source: "Verificato da Aster all'arrivo del messaggio.",
+    email_auth_details_label: "Autenticazione:",
+    email_auth_status_pass: "Superato",
+    email_auth_status_fail: "Non superato",
+    email_auth_status_none: "Non usato",
+    email_auth_status_missing: "Non verificato",
     copy_message_id: "Copia ID messaggio",
     hide_source: "Nascondi sorgente",
     view_dark_mode: "Visualizza in modalità scura",
