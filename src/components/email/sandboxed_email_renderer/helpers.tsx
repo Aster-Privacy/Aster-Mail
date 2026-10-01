@@ -25,6 +25,12 @@ import {
   derive_link_ink,
   normalize_hex,
 } from "@/lib/email_ink";
+import {
+  composite_over,
+  parse_css_color,
+  rgba_to_hex,
+  type Rgba,
+} from "@/lib/email_contrast_repair";
 import { DEFAULT_ACCENT_COLOR } from "@/lib/resolved_accent";
 import { get_image_proxy_url } from "@/lib/image_proxy";
 import { api_client } from "@/services/api/client";
@@ -202,6 +208,51 @@ export function link_hover_ink_for(
       : (normalize_hex(background) ?? "#ffffff");
 
   return derive_link_hover_ink(hex, surface);
+}
+
+// Contrast has to be measured against what is painted behind the email. A
+// transparent frame shows the message card (#1f1f1f in the dark theme, not
+// the #121212 app surface), while a frame forced dark in the light theme
+// paints its own canvas. Anything that cannot be read, like a gradient or a
+// colour space other than sRGB, falls back to the app surface.
+export function resolve_backdrop_color(
+  element: Element | null,
+  fallback: string,
+): string {
+  const layers: Rgba[] = [];
+
+  for (let node = element; node; node = node.parentElement) {
+    const view = node.ownerDocument.defaultView;
+
+    if (!view) break;
+
+    const style = view.getComputedStyle(node);
+    const image = style.getPropertyValue("background-image");
+
+    if (image && image !== "none") return fallback;
+
+    const value = style.getPropertyValue("background-color");
+    const color = parse_css_color(value);
+
+    if (!color) {
+      if (value.trim()) return fallback;
+      continue;
+    }
+
+    if (color.a <= 0) continue;
+
+    layers.push(color);
+
+    if (color.a >= 1) break;
+  }
+
+  let backdrop = parse_css_color(fallback) ?? { r: 18, g: 18, b: 18, a: 1 };
+
+  for (let index = layers.length - 1; index >= 0; index -= 1) {
+    backdrop = composite_over(layers[index], backdrop);
+  }
+
+  return rgba_to_hex(backdrop);
 }
 
 export const FIT_SLACK_PX = 4;

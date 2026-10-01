@@ -30,6 +30,7 @@ import {
   normalize_hex,
   relative_luminance,
 } from "@/lib/email_ink";
+import { oklch_lightness_chroma } from "@/lib/material_theme";
 
 export const BORDER_MIN_CONTRAST = 1.35;
 export const LARGE_TEXT_MIN_PX = 24;
@@ -37,10 +38,45 @@ export const LARGE_BOLD_MIN_PX = 18.66;
 export const BOLD_MIN_WEIGHT = 700;
 export const MAX_REPAIR_ELEMENTS = 20000;
 
+// HSL rates #222000 as fully saturated although it reads as black with an
+// olive cast, so lightening it at that saturation paints olive text. In
+// perceptual OKLCH terms text is neutral when it is near grey, and since a
+// dark colour reads as black with a cast long before its chroma reaches
+// zero, the allowance grows as lightness falls: #222000, slate #1e293b,
+// navy #172b4d and #000033 are neutral, while brand colours (#0f766e,
+// #c53030) and dark tones that still read as a colour (teal #134e4a,
+// #0b3d91) keep their hue.
+export const NEUTRAL_CHROMA = 0.04;
+export const NEAR_BLACK_CHROMA = 0.12;
+export const NEAR_BLACK_LIGHTNESS = 0.22;
+export const CAST_VISIBLE_LIGHTNESS = 0.4;
+
 export const LINK_HOVER_VAR = "--aster-link-hover";
 export const LINK_VISITED_VAR = "--aster-link-visited";
+export const LINK_INK_ATTRIBUTE = "data-aster-ink";
+export const LINK_INK_LAYER_ATTRIBUTE = "data-aster-ink-layer";
+export const MEASURING_ATTRIBUTE = "data-aster-measuring";
+
+// The link ink layer and the properties only it reads take a random name for
+// the session, so an email can neither add rules to the layer nor register
+// one of the properties with @property under a syntax that refuses colours,
+// either of which would keep its own links dark.
+const LINK_INK_SUFFIX = Math.random().toString(36).slice(2, 10);
+
+export const LINK_INK_LAYER = `aster-ink-${LINK_INK_SUFFIX}`;
+export const LINK_INK_VAR = `--aster-link-ink-${LINK_INK_SUFFIX}`;
+export const LINK_INK_HOVER_VAR = `--aster-link-hover-${LINK_INK_SUFFIX}`;
+export const LINK_INK_VISITED_VAR = `--aster-link-visited-${LINK_INK_SUFFIX}`;
+
+// A link painted at almost no opacity was hidden on purpose, often as a trap
+// for automated clicks, so it is neither repaired nor handed to the layer.
+export const HIDDEN_LINK_ALPHA = 0.1;
 
 const FALLBACK_SURFACE = "#121212";
+const WHITE = "#ffffff";
+const BLACK = "#000000";
+const WHITE_RGBA: Rgba = { r: 255, g: 255, b: 255, a: 1 };
+const BLACK_RGBA: Rgba = { r: 0, g: 0, b: 0, a: 1 };
 
 const NAMED_COLORS: Record<string, string> = {
   aqua: "#00ffff",
@@ -201,6 +237,7 @@ function memoize<T>(cache: Map<string, T>, key: string, compute: () => T): T {
 
 const parse_cache = new Map<string, Rgba | null>();
 const repair_cache = new Map<string, string>();
+const text_repair_cache = new Map<string, string>();
 const hover_cache = new Map<string, string>();
 const visited_cache = new Map<string, string>();
 
@@ -222,6 +259,10 @@ function parse_css_color_uncached(input: string): Rgba | null {
   const named = NAMED_COLORS[value];
 
   if (named) return parse_hex_color(named);
+
+  const srgb = value.match(/^color\(\s*srgb\s([^)]*)\)$/);
+
+  if (srgb) return parse_srgb_function(srgb[1]);
 
   const fn = value.match(/^(rgba?|hsla?)\((.*)\)$/);
 
@@ -264,6 +305,29 @@ function parse_css_color_uncached(input: string): Rgba | null {
   if (channels.some((channel) => Number.isNaN(channel))) return null;
 
   return { r: channels[0], g: channels[1], b: channels[2], a: alpha };
+}
+
+// Computed styles report color-mix() results this way, which is how the
+// reading pane paints its message cards.
+function parse_srgb_function(body: string): Rgba | null {
+  const parts = body.replace(/\//g, " ").split(/\s+/).filter(Boolean);
+
+  if (parts.length < 3 || parts.includes("none")) return null;
+
+  const channels = parts.slice(0, 3).map((part) => {
+    const parsed = Number.parseFloat(part);
+
+    return part.endsWith("%") ? parsed / 100 : parsed;
+  });
+
+  if (channels.some((channel) => !Number.isFinite(channel))) return null;
+
+  return {
+    r: clamp_channel(channels[0] * 255),
+    g: clamp_channel(channels[1] * 255),
+    b: clamp_channel(channels[2] * 255),
+    a: parse_alpha(parts[3]),
+  };
 }
 
 export function composite_over(source: Rgba, backdrop: Rgba): Rgba {
@@ -333,6 +397,126 @@ function repair_lightness_uncached(
   return fallback;
 }
 
+export function is_neutral_ink(color: string): boolean {
+  const hex = normalize_hex(color);
+
+  if (!hex) return false;
+
+  const { lightness, chroma } = oklch_lightness_chroma(hex);
+  const darkness = Math.max(
+    0,
+    Math.min(
+      1,
+      (CAST_VISIBLE_LIGHTNESS - lightness) /
+        (CAST_VISIBLE_LIGHTNESS - NEAR_BLACK_LIGHTNESS),
+    ),
+  );
+
+  return (
+    chroma < NEUTRAL_CHROMA + darkness * (NEAR_BLACK_CHROMA - NEUTRAL_CHROMA)
+  );
+}
+
+function grey_hex(channel: number): string {
+  const part = Math.round(clamp_channel(channel)).toString(16).padStart(2, "0");
+
+  return `#${part}${part}${part}`;
+}
+
+function grey_for_contrast(
+  background: string,
+  target: number,
+  lighten: boolean,
+): string {
+  const backdrop = relative_luminance(background);
+  const wanted = lighten
+    ? target * (backdrop + 0.05) - 0.05
+    : (backdrop + 0.05) / target - 0.05;
+  const luminance = Math.max(0, Math.min(1, wanted));
+  const encoded =
+    luminance <= 0.03928 / 12.92
+      ? luminance * 12.92
+      : 1.055 * Math.pow(luminance, 1 / 2.4) - 0.055;
+  let channel = Math.round(encoded * 255);
+
+  while (
+    (lighten ? channel < 255 : channel > 0) &&
+    contrast_ratio(grey_hex(channel), background) < target
+  ) {
+    channel += lighten ? 1 : -1;
+  }
+
+  return grey_hex(channel);
+}
+
+function ink_in_direction(
+  ink: string | null,
+  background: string,
+  lighten: boolean,
+): string | null {
+  const hex = normalize_hex(ink);
+
+  if (!hex) return null;
+
+  const lighter = relative_luminance(hex) > relative_luminance(background);
+
+  return lighter === lighten ? hex : null;
+}
+
+function repair_text_ink(
+  source: Rgba,
+  background: string,
+  target: number,
+  ink: string | null,
+  on_canvas: boolean,
+): string {
+  return memoize(
+    text_repair_cache,
+    `${source.r},${source.g},${source.b},${source.a}|${background}|${target}|${ink ?? ""}|${on_canvas ? 1 : 0}`,
+    () => repair_text_ink_uncached(source, background, target, ink, on_canvas),
+  );
+}
+
+function repair_text_ink_uncached(
+  source: Rgba,
+  background: string,
+  target: number,
+  ink: string | null,
+  on_canvas: boolean,
+): string {
+  const backdrop = parse_css_color(background) ?? BLACK_RGBA;
+  const color = rgba_to_hex(composite_over(source, backdrop));
+
+  if (!is_neutral_ink(color))
+    return repair_lightness(color, background, target);
+
+  const lighten =
+    contrast_ratio(WHITE, background) >= contrast_ratio(BLACK, background);
+
+  if (!on_canvas) return grey_for_contrast(background, target, lighten);
+
+  // Text on the canvas that dark mode painted was written for a page of the
+  // opposite lightness, so it gets back the contrast it had there, judging
+  // translucent text as it looked on that page: a #222 headline comes out
+  // near white and a #666 caption stays a step dimmer, where every grey used
+  // to land on the same 4.5:1 mid grey. The theme ink caps it so mail never
+  // outshines the app's own text.
+  const pole = lighten ? WHITE : BLACK;
+  const designed = rgba_to_hex(
+    composite_over(source, lighten ? WHITE_RGBA : BLACK_RGBA),
+  );
+  const ceiling = ink_in_direction(ink, background, lighten) ?? pole;
+  const wanted = Math.max(
+    target,
+    Math.min(
+      contrast_ratio(designed, pole),
+      contrast_ratio(ceiling, background),
+    ),
+  );
+
+  return grey_for_contrast(background, wanted, lighten);
+}
+
 export function contrast_threshold_for(
   font_size_px: number,
   font_weight: number,
@@ -368,21 +552,27 @@ function has_own_text(element: Element): boolean {
   return false;
 }
 
+// authored marks a colour the email paints itself, an opaque background or an
+// image, as opposed to the canvas dark mode put behind it. Pairs the author
+// chose keep their plain repair; only text on the canvas, or on a faint tint
+// over it, is mirrored and insisted on.
 interface BackgroundState {
   hex: string;
   rgba: Rgba;
+  authored: boolean;
 }
 
-function make_state(hex: string): BackgroundState {
+function make_state(hex: string, authored = false): BackgroundState {
   const rgba = parse_css_color(hex) ?? { r: 18, g: 18, b: 18, a: 1 };
 
-  return { hex, rgba };
+  return { hex, rgba, authored };
 }
 
 interface TextPlan {
   element: HTMLElement;
   color: string | null;
   color_important: boolean;
+  use_layer: boolean;
   border: string | null;
   hover: string | null;
   visited: string | null;
@@ -390,6 +580,7 @@ interface TextPlan {
 
 export interface ContrastRepairOptions {
   surface: string;
+  ink?: string | null;
   view?: Window | null;
   max_elements?: number;
   repair_borders?: boolean;
@@ -463,6 +654,33 @@ function is_button_link(style: CSSStyleDeclaration): boolean {
   return !!background && background.a > 0;
 }
 
+// An inline !important colour would beat the app's own hover and visited
+// rules too. A cascade layer outranks every unlayered !important rule
+// whatever its specificity, and this one is declared in the head, before
+// any of the email's styles, so the links handed to it keep their repaired,
+// hover and visited inks. Dropping transitions lets the ink land at once.
+const LINK_INK_LINK = `a[${LINK_INK_ATTRIBUTE}]`;
+
+export const LINK_INK_LAYER_CSS = `@layer ${LINK_INK_LAYER} {
+${LINK_INK_LINK} { color: var(${LINK_INK_VAR}) !important; transition: none !important; }
+${LINK_INK_LINK}:visited { color: var(${LINK_INK_VISITED_VAR}, var(${LINK_INK_VAR})) !important; }
+${LINK_INK_LINK}:hover { color: var(${LINK_INK_HOVER_VAR}, var(${LINK_INK_VAR})) !important; }
+}`;
+
+// The renderer ships the layer with the frame, so marking a link restyles
+// only that link; anything else rendering an email gets it added here.
+function add_link_ink_layer(doc: Document): void {
+  const parent = doc.head ?? doc.documentElement;
+
+  if (parent.querySelector(`style[${LINK_INK_LAYER_ATTRIBUTE}]`)) return;
+
+  const style = doc.createElement("style");
+
+  style.setAttribute(LINK_INK_LAYER_ATTRIBUTE, "");
+  style.textContent = LINK_INK_LAYER_CSS;
+  parent.insertBefore(style, parent.firstChild);
+}
+
 export function repair_email_contrast(
   doc: Document,
   options: ContrastRepairOptions,
@@ -484,6 +702,8 @@ export function repair_email_contrast(
 
   const surface_hex = normalize_hex(options.surface) ?? FALLBACK_SURFACE;
   const surface_state = make_state(surface_hex);
+  const image_state = make_state(surface_hex, true);
+  const ink = options.ink ?? null;
   const limit = options.max_elements ?? MAX_REPAIR_ELEMENTS;
   const elements = doc.querySelectorAll<HTMLElement>("body, body *");
 
@@ -502,97 +722,137 @@ export function repair_email_contrast(
   const plans: TextPlan[] = [];
   const repair_borders = options.repair_borders !== false;
 
-  for (let index = 0; index < elements.length; index += 1) {
-    const element = elements[index];
-    const parent = element.parentElement;
-    const parent_state =
-      (parent ? backgrounds.get(parent) : undefined) ?? surface_state;
-    const style = view.getComputedStyle(element);
-    const background_image = style.getPropertyValue("background-image");
-    const own_background = parse_css_color(
-      style.getPropertyValue("background-color"),
-    );
+  // A link under the pointer would be measured in the app's hover ink, which
+  // passes, and keep its dark ink once the pointer leaves. The app's hover
+  // rule skips a link carrying this attribute, so it is measured at rest,
+  // and only the links under the pointer are restyled for it.
+  const hovered = Array.from(doc.querySelectorAll<HTMLElement>("a:hover"));
 
-    let state = parent_state;
+  for (let index = 0; index < hovered.length; index += 1) {
+    hovered[index].setAttribute(MEASURING_ATTRIBUTE, "");
+  }
 
-    if (background_image && background_image !== "none") {
-      state = surface_state;
-    } else if (own_background && own_background.a > 0) {
-      state = make_state(
-        rgba_to_hex(composite_over(own_background, parent_state.rgba)),
+  // The attribute must come off even if a read throws, or those links would
+  // never show the app's hover ink again.
+  try {
+    for (let index = 0; index < elements.length; index += 1) {
+      const element = elements[index];
+      const parent = element.parentElement;
+      const parent_state =
+        (parent ? backgrounds.get(parent) : undefined) ?? surface_state;
+      const style = view.getComputedStyle(element);
+      const background_image = style.getPropertyValue("background-image");
+      const own_background = parse_css_color(
+        style.getPropertyValue("background-color"),
       );
-    }
 
-    backgrounds.set(element, state);
+      let state = parent_state;
 
-    const tag = element.tagName;
-
-    if (SKIP_TAGS.has(tag)) continue;
-
-    const class_name = element.getAttribute("class");
-
-    if (class_name && CHROME_CLASS_PATTERN.test(class_name)) continue;
-
-    const is_link = tag === "A" && !is_button_link(style);
-
-    if (tag === "A" && !is_link) continue;
-
-    const paints_text = is_link || has_own_text(element);
-    const border = repair_borders ? repaired_border_color(style, state) : null;
-
-    if (!paints_text && !border) continue;
-
-    let repaired_color: string | null = null;
-    let final_color: string | null = null;
-
-    if (paints_text) {
-      const parsed = parse_css_color(style.getPropertyValue("color"));
-
-      if (parsed) {
-        const composited = rgba_to_hex(composite_over(parsed, state.rgba));
-        const threshold = contrast_threshold_for(
-          parse_px(style.getPropertyValue("font-size"), 16),
-          parse_font_weight(style.getPropertyValue("font-weight")),
+      if (background_image && background_image !== "none") {
+        state = image_state;
+      } else if (own_background && own_background.a > 0) {
+        state = make_state(
+          rgba_to_hex(composite_over(own_background, parent_state.rgba)),
+          own_background.a >= 1 || parent_state.authored,
         );
+      }
 
-        final_color = composited;
+      backgrounds.set(element, state);
 
-        if (contrast_ratio(composited, state.hex) < threshold) {
-          const next = repair_lightness(composited, state.hex, threshold);
+      const tag = element.tagName;
 
-          if (next !== composited) {
-            repaired_color = next;
-            final_color = next;
+      if (SKIP_TAGS.has(tag)) continue;
+
+      const class_name = element.getAttribute("class");
+
+      if (class_name && CHROME_CLASS_PATTERN.test(class_name)) continue;
+
+      const is_link = tag === "A" && !is_button_link(style);
+
+      if (tag === "A" && !is_link) continue;
+
+      const paints_text = is_link || has_own_text(element);
+      const border = repair_borders
+        ? repaired_border_color(style, state)
+        : null;
+
+      if (!paints_text && !border) continue;
+
+      let repaired_color: string | null = null;
+      let final_color: string | null = null;
+
+      if (paints_text) {
+        const parsed = parse_css_color(style.getPropertyValue("color"));
+        const hidden_link = is_link && !!parsed && parsed.a < HIDDEN_LINK_ALPHA;
+
+        if (parsed && !hidden_link) {
+          const composited = rgba_to_hex(composite_over(parsed, state.rgba));
+          const threshold = contrast_threshold_for(
+            parse_px(style.getPropertyValue("font-size"), 16),
+            parse_font_weight(style.getPropertyValue("font-weight")),
+          );
+
+          final_color = composited;
+
+          if (contrast_ratio(composited, state.hex) < threshold) {
+            const next = repair_text_ink(
+              parsed,
+              state.hex,
+              threshold,
+              ink,
+              !state.authored,
+            );
+
+            if (next !== composited) {
+              repaired_color = next;
+              final_color = next;
+            }
           }
         }
       }
+
+      let hover: string | null = null;
+      let visited: string | null = null;
+
+      if (is_link && final_color) {
+        const ink_key = `${final_color}|${state.hex}`;
+
+        hover = memoize(hover_cache, ink_key, () =>
+          derive_link_hover_ink(final_color as string, state.hex),
+        );
+        visited = memoize(visited_cache, ink_key, () =>
+          derive_visited_ink(final_color as string, state.hex),
+        );
+      }
+
+      if (!repaired_color && !border && !hover && !visited) continue;
+
+      plans.push({
+        element,
+        color: repaired_color,
+        color_important: !is_link,
+        use_layer: is_link && !!repaired_color && !state.authored,
+        border,
+        hover,
+        visited,
+      });
     }
-
-    let hover: string | null = null;
-    let visited: string | null = null;
-
-    if (is_link && final_color) {
-      const ink_key = `${final_color}|${state.hex}`;
-
-      hover = memoize(hover_cache, ink_key, () =>
-        derive_link_hover_ink(final_color as string, state.hex),
-      );
-      visited = memoize(visited_cache, ink_key, () =>
-        derive_visited_ink(final_color as string, state.hex),
-      );
+  } finally {
+    for (let index = 0; index < hovered.length; index += 1) {
+      hovered[index].removeAttribute(MEASURING_ATTRIBUTE);
     }
-
-    if (!repaired_color && !border && !hover && !visited) continue;
-
-    plans.push({
-      element,
-      color: repaired_color,
-      color_important: !is_link,
-      border,
-      hover,
-      visited,
-    });
   }
+
+  // Links take a plain inline colour so the hover and visited inks still
+  // apply, but an author rule marked !important outranks it, as with
+  // .link-no-style { color: inherit !important } on a headline, and on the
+  // dark canvas that leaves the old dark ink. So every link repaired on the
+  // canvas also takes its ink from the link ink layer, which paints the same
+  // repaired, hover and visited inks either way. Picking out only the links
+  // the plain colour missed would mean reading them back after these writes,
+  // a second style recalc that Firefox makes very slow when an email's
+  // styles use :has(), so nothing is read once writing starts.
+  if (plans.some((plan) => plan.use_layer)) add_link_ink_layer(doc);
 
   for (let index = 0; index < plans.length; index += 1) {
     const plan = plans[index];
@@ -613,6 +873,29 @@ export function repair_email_contrast(
     if (plan.visited) {
       plan.element.style.setProperty(LINK_VISITED_VAR, plan.visited);
       stats.links_tuned += 1;
+    }
+    if (plan.use_layer && plan.color) {
+      // The layer's properties go inline and !important, where no rule of the
+      // email's can reach them, and so does transition: none, because an
+      // inline !important transition of the email's outranks the layer's and
+      // would hold the old ink.
+      plan.element.setAttribute(LINK_INK_ATTRIBUTE, "");
+      plan.element.style.setProperty(LINK_INK_VAR, plan.color, "important");
+      if (plan.hover) {
+        plan.element.style.setProperty(
+          LINK_INK_HOVER_VAR,
+          plan.hover,
+          "important",
+        );
+      }
+      if (plan.visited) {
+        plan.element.style.setProperty(
+          LINK_INK_VISITED_VAR,
+          plan.visited,
+          "important",
+        );
+      }
+      plan.element.style.setProperty("transition", "none", "important");
     }
   }
 
