@@ -138,6 +138,7 @@ export interface UseComposeReturn {
   set_subject: (val: string) => void;
   message: string;
   attachments: Attachment[];
+  is_loading_attachments: boolean;
   show_delete_confirm: boolean;
   draft_status: DraftStatus;
   last_saved_time: Date | null;
@@ -441,6 +442,7 @@ export function use_compose({
     subject,
     message: outgoing_message,
     attachments: attachment_hook.attachments,
+    has_pending_attachment_reads: attachment_hook.has_pending_attachment_reads,
     is_loading_forward_attachments,
     contacts,
     selected_sender,
@@ -1135,6 +1137,7 @@ export function use_compose({
     set_subject,
     message,
     attachments: attachment_hook.attachments,
+    is_loading_attachments: attachment_hook.is_loading_attachments,
     show_delete_confirm,
     draft_status: draft_hook.draft_status,
     last_saved_time: draft_hook.last_saved_time,
