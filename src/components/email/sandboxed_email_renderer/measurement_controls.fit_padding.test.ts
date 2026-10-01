@@ -25,13 +25,25 @@ import { build_measurement_controls } from "./measurement_controls";
 const FRAME_WIDTH = 544;
 const START_PADDING = 16;
 const DEFAULT_END_PADDING = 16;
+const ENGINES = ["chromium", "gecko"] as const;
 
-type Engine = "chromium" | "gecko";
+// What measuring has always written on the body: the zoom it fits with, the
+// overflow fallback and the height it reads. Anything else could set off an
+// email's own transitions or container queries.
+const MEASUREMENT_WRITES = new Set([
+  "zoom",
+  "overflow-x",
+  "height",
+  "min-height",
+]);
+
+type Engine = (typeof ENGINES)[number];
 
 interface FitOptions {
   frame_width?: number;
   base_zoom?: number;
   body_style?: string;
+  body_extra?: number;
 }
 
 const end_padding_of = (body: HTMLElement): number => {
@@ -40,37 +52,47 @@ const end_padding_of = (body: HTMLElement): number => {
   return inline ? parseFloat(inline) : DEFAULT_END_PADDING;
 };
 
-// Lays out a body holding one block of content_width px. Chromium leaves
-// the end padding out of an overflowing body's scrollWidth, Gecko counts it.
+// Lays out a body holding one block whose width may depend on the body's
+// content box, the way a container query would. Chromium leaves the end
+// padding out of an overflowing body's scrollWidth and Gecko counts it; both
+// leave it out of the document's scrollWidth.
 const mount_email = (
-  content_width: number,
+  content: number | ((content_box: number) => number),
   engine: Engine,
   frame_width: number,
   body_style: string,
+  body_extra: number,
 ) => {
   const doc = document.implementation.createHTMLDocument("");
   const body = doc.body;
-  const end_paddings_seen: number[] = [];
+  const content_width = () => {
+    const content_box = frame_width - START_PADDING - end_padding_of(body);
+
+    return typeof content === "function" ? content(content_box) : content;
+  };
 
   body.setAttribute("style", body_style);
   Object.defineProperty(body, "scrollWidth", {
     configurable: true,
     get: () => {
       const end_padding = end_padding_of(body);
+      const width = content_width();
 
-      end_paddings_seen.push(end_padding);
-      if (content_width <= frame_width - START_PADDING - end_padding) {
+      if (width <= frame_width - START_PADDING - end_padding) {
         return frame_width;
       }
 
       return (
-        START_PADDING + content_width + (engine === "gecko" ? end_padding : 0)
+        START_PADDING +
+        width +
+        body_extra +
+        (engine === "gecko" ? end_padding : 0)
       );
     },
   });
   Object.defineProperty(doc.documentElement, "scrollWidth", {
     configurable: true,
-    get: () => Math.max(frame_width, START_PADDING + content_width),
+    get: () => Math.max(frame_width, START_PADDING + content_width()),
   });
   doc.getSelection = () => null;
 
@@ -87,24 +109,23 @@ const mount_email = (
     style: { height: "" },
   };
 
-  return {
-    body,
-    end_paddings_seen,
-    iframe: iframe as unknown as HTMLIFrameElement,
-  };
+  return { body, iframe: iframe as unknown as HTMLIFrameElement };
 };
 
 const fit = (
-  content_width: number,
+  content: number | ((content_box: number) => number),
   engine: Engine,
   options: FitOptions = {},
 ) => {
-  const { body, end_paddings_seen, iframe } = mount_email(
-    content_width,
+  const { body, iframe } = mount_email(
+    content,
     engine,
     options.frame_width ?? FRAME_WIDTH,
     options.body_style ?? "padding:8px 16px 8px 16px",
+    options.body_extra ?? 0,
   );
+  const set_property = vi.spyOn(body.style, "setProperty");
+  const remove_property = vi.spyOn(body.style, "removeProperty");
   const controls = build_measurement_controls({
     iframe,
     email_id: undefined,
@@ -123,51 +144,63 @@ const fit = (
 
   controls.measure_and_apply(true);
 
-  return { body, end_paddings_seen };
+  const written = [
+    ...set_property.mock.calls.map(([name]) => name),
+    ...remove_property.mock.calls.map(([name]) => name),
+  ];
+
+  return { body, written };
 };
 
 describe("fitting a wide email to the reading pane", () => {
-  it.each(["chromium", "gecko"] as const)(
-    "keeps the frame margin on both sides in %s",
-    (engine) => {
-      const { body } = fit(600, engine);
+  it.each(ENGINES)("keeps the frame margin on both sides in %s", (engine) => {
+    const { body } = fit(600, engine);
 
-      expect(body.style.getPropertyValue("zoom")).toBe("0.861");
-      expect(body.style.getPropertyValue("overflow-x")).toBe("");
+    expect(body.style.getPropertyValue("zoom")).toBe("0.861");
+    expect(body.style.getPropertyValue("overflow-x")).toBe("");
+  });
+
+  it.each(ENGINES)(
+    "leaves the email's own styles alone while measuring in %s",
+    (engine) => {
+      const { body, written } = fit(600, engine);
+
+      expect(written.filter((name) => !MEASUREMENT_WRITES.has(name))).toEqual(
+        [],
+      );
+      expect(body.style.getPropertyValue("padding-right")).toBe("16px");
     },
   );
 
-  it("puts the frame padding back after measuring", () => {
-    const { body, end_paddings_seen } = fit(600, "chromium");
+  it("fits the layout a container query gives the email, not a wider one", () => {
+    const { body } = fit(
+      (content_box) => (content_box <= 515 ? 600 : 500),
+      "chromium",
+    );
 
-    expect(end_paddings_seen).toEqual([16, 0]);
-    expect(body.style.getPropertyValue("padding-inline-end")).toBe("");
-    expect(body.style.getPropertyValue("padding-right")).toBe("16px");
+    expect(body.style.getPropertyValue("zoom")).toBe("0.861");
   });
 
-  it("restores an end padding the body already had", () => {
-    const { body } = fit(600, "chromium", {
-      body_style: "padding:8px 16px 8px 16px;padding-inline-end:24px",
-    });
-
-    expect(body.style.getPropertyValue("padding-inline-end")).toBe("24px");
-    expect(body.style.getPropertyPriority("padding-inline-end")).toBe("");
-    expect(body.style.getPropertyValue("zoom")).toBe("0.85");
-  });
-
-  it.each(["chromium", "gecko"] as const)(
-    "leaves an email that only reaches into the end padding unscaled in %s",
+  it.each(ENGINES)(
+    "leaves room for the body's own end padding in %s",
     (engine) => {
-      const { body } = fit(520, engine);
+      const { body } = fit(600, engine, {
+        body_style: "padding:8px 16px 8px 16px;padding-inline-end:24px",
+      });
 
-      expect(body.style.getPropertyValue("zoom")).toBe("1");
+      expect(body.style.getPropertyValue("zoom")).toBe("0.85");
     },
   );
 
-  it("measures an email that fits once, with its padding in place", () => {
-    const { body, end_paddings_seen } = fit(400, "gecko");
+  it("never fits an email to less than the width its body measures", () => {
+    const { body } = fit(600, "chromium", { body_extra: 84 });
 
-    expect(end_paddings_seen).toEqual([16]);
+    expect(body.style.getPropertyValue("zoom")).toBe("0.777");
+  });
+
+  it("leaves an email that only reaches into the end padding unscaled", () => {
+    const { body } = fit(520, "chromium");
+
     expect(body.style.getPropertyValue("zoom")).toBe("1");
   });
 
