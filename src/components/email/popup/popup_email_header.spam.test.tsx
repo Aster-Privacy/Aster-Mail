@@ -72,10 +72,10 @@ function render(is_spam: boolean | undefined) {
         format_email_popup={() => "Today"}
         is_fullscreen={false}
         mail_item={{ id: "1", is_spam } as never}
+        on_close={() => {}}
         t={(key) => key}
         thread_messages={[]}
         timestamp_date={{ current: null }}
-        on_close={() => {}}
       />,
     );
   });
