@@ -37,7 +37,10 @@ import {
 
 import { use_draggable_modal } from "@/hooks/use_draggable_modal";
 import { use_editor } from "@/hooks/use_editor";
-import { undo_send_manager } from "@/hooks/use_undo_send";
+import {
+  store_pending_send_payload,
+  undo_send_manager,
+} from "@/hooks/use_undo_send";
 import { MODAL_SIZES } from "@/constants/modal";
 import { send_forward, type OriginalEmail } from "@/services/mail_actions";
 import { get_undo_send_delay_ms } from "@/services/send_queue";
@@ -837,10 +840,31 @@ export function use_forward_modal({
 
     if (result.success && result.queued_id) {
       if (delay_seconds > 0) {
+        const undo_subject = `${t("mail.forward_subject_prefix")} ${email_subject}`;
+        const undo_body =
+          (forward_message ? forward_message + "<br><br>" : "") +
+          sanitize_outgoing_html(send_content) +
+          get_aster_footer(t, preferences.show_aster_branding);
+
+        store_pending_send_payload(result.queued_id, {
+          to: send_recipients.to,
+          cc: send_recipients.cc,
+          bcc: send_recipients.bcc,
+          subject: undo_subject,
+          body: undo_body,
+          sender_email: fwd_sender_email,
+          draft_type: "forward",
+          forward_from_id: fwd_mail_id || undefined,
+          expires_at: expires_at?.toISOString(),
+          attachments: fwd_attachments,
+          restore_verbatim: true,
+        });
         undo_send_manager.add({
           id: result.queued_id,
           to: send_recipients.to,
-          subject: `${t("mail.forward_subject_prefix")} ${email_subject}`,
+          cc: send_recipients.cc,
+          bcc: send_recipients.bcc,
+          subject: undo_subject,
           body: forward_message,
           sender_email: fwd_sender_email,
           scheduled_time: Date.now() + delay_ms,

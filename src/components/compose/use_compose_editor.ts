@@ -132,6 +132,7 @@ export function use_compose_editor({
           }),
         )
         .replace(/\[Name\]/g, recipient_name);
+
       if (is_plain_text_mode) {
         editor.insert_text(substituted);
 

@@ -77,6 +77,7 @@ export interface PendingSendPayload {
   expires_at?: string;
   expiry_password?: string;
   attachments?: Attachment[];
+  restore_verbatim?: boolean;
 }
 
 const pending_send_payloads = new Map<string, PendingSendPayload>();

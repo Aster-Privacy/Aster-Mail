@@ -124,6 +124,7 @@ export interface EditDraftData {
   expiry_password?: string;
   updated_at: string;
   attachments?: DraftAttachmentData[];
+  is_restored_send?: boolean;
 }
 
 export interface DraftRefData {
