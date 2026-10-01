@@ -25,8 +25,8 @@ import {
   EyeIcon,
   EyeSlashIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@/components/ui/button";
 
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Modal,
@@ -194,6 +194,7 @@ export function DeleteAccountModal({
             className="pe-10"
             disabled={is_deleting}
             maxLength={128}
+            name="password"
             placeholder={t("auth.password")}
             type={show_password ? "text" : "password"}
             value={password}

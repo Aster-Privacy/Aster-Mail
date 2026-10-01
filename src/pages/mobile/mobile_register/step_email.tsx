@@ -119,6 +119,7 @@ export function StepEmail({ reg, reduce_motion, navigate }: step_email_props) {
                 autoCorrect="off"
                 className={`${INNER_INPUT_WITH_ICON_CLASS} notranslate`}
                 maxLength={55}
+                name="username"
                 placeholder={reg.t("common.yourname_placeholder")}
                 spellCheck={false}
                 status={reg.error ? "error" : "default"}

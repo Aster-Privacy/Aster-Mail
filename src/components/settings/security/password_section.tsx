@@ -30,7 +30,6 @@ import {
 import { IslandRow, IslandSection, SettingNote } from "@aster/ui";
 
 import { Button } from "@/components/ui/button";
-
 import { Input } from "@/components/ui/input";
 import {
   Modal,
@@ -271,6 +270,7 @@ export function PasswordSection({
                   disabled={password_loading}
                   id="current-password"
                   maxLength={128}
+                  name="password"
                   placeholder={t("settings.enter_current_password")}
                   type={show_current_password ? "text" : "password"}
                   value={current_password}
@@ -313,6 +313,7 @@ export function PasswordSection({
                   disabled={password_loading}
                   id="new-password"
                   maxLength={128}
+                  name="new_password"
                   placeholder={t("settings.enter_new_password")}
                   type={show_new_password ? "text" : "password"}
                   value={new_password}
@@ -360,6 +361,7 @@ export function PasswordSection({
                 disabled={password_loading}
                 id="confirm-new-password"
                 maxLength={128}
+                name="confirm_password"
                 placeholder={t("settings.confirm_new_password_placeholder")}
                 type="password"
                 value={confirm_password}

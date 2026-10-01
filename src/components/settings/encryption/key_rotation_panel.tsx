@@ -271,6 +271,7 @@ export function KeyRotationPanel({
                   disabled={is_exporting_private_key}
                   id="export_private_key_password"
                   maxLength={128}
+                  name="password"
                   placeholder={t("common.enter_password_prompt")}
                   status={
                     export_error && !export_totp_required ? "error" : "default"

@@ -24,8 +24,8 @@ import {
   EyeIcon,
   EyeSlashIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@/components/ui/button";
 
+import { Button } from "@/components/ui/button";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
   Modal,
@@ -217,6 +217,7 @@ export function TotpDisableModal({
                 disabled={is_loading}
                 id="disable-password"
                 maxLength={128}
+                name="password"
                 placeholder={t("settings.enter_your_password_placeholder")}
                 status={error ? "error" : "default"}
                 type={show_password ? "text" : "password"}

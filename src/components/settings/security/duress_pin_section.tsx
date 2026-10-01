@@ -568,6 +568,7 @@ function SetupDuressPinModal({
                   className="pe-10"
                   disabled={verifying_creds}
                   maxLength={128}
+                  name="password"
                   size="md"
                   type={show_password ? "text" : "password"}
                   value={password}

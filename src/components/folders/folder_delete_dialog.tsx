@@ -337,6 +337,7 @@ export function FolderDeleteDialog({
               autoComplete="current-password"
               className="w-full"
               id={`folder-delete-password-${variant}`}
+              name="password"
               type="password"
               value={account_password}
               onChange={(e) => set_account_password(e.target.value)}

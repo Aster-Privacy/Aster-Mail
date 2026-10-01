@@ -121,6 +121,7 @@ export function PasswordStep({
                 autoComplete="new-password"
                 className={INNER_INPUT_CLASS}
                 maxLength={128}
+                name="new_password"
                 placeholder={t("auth.new_password_placeholder")}
                 status={error ? "error" : "default"}
                 type={is_password_visible ? "text" : "password"}
@@ -145,6 +146,7 @@ export function PasswordStep({
                 autoComplete="new-password"
                 className={INNER_INPUT_CLASS}
                 maxLength={128}
+                name="confirm_password"
                 placeholder={t("auth.confirm_password_placeholder")}
                 status={error ? "error" : "default"}
                 type={is_confirm_visible ? "text" : "password"}

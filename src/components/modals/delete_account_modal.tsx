@@ -202,6 +202,7 @@ export function DeleteAccountModal({
               disabled={is_deleting}
               id="delete-password"
               maxLength={128}
+              name="password"
               placeholder={t("settings.enter_your_password_placeholder")}
               size="lg"
               type="password"
