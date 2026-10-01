@@ -87,8 +87,6 @@ afterEach(() => {
   container.remove();
 });
 
-// Mirrors RecipientField: a selected address becomes a chip and the input
-// is cleared for the next one.
 function RecipientInput({
   contacts,
   recent_recipients,
@@ -251,8 +249,6 @@ describe("email autocomplete with a complete address typed", () => {
     render_input([JOANN]);
 
     type_text("ann@x.io");
-    // Browsers send mouseover, but no mousemove, when the list appears under
-    // a pointer that has not moved.
     act(() => {
       suggestion_rows()[0].dispatchEvent(
         new MouseEvent("mouseover", { bubbles: true }),

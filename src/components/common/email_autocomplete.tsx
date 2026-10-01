@@ -58,8 +58,6 @@ function rank_address(address: string, query: string): number {
 function rank_name(name: string, query: string): number {
   const lowered = name.toLowerCase();
 
-  // A last name typed on its own is as deliberate as a first name, so the
-  // start of any word counts as a prefix.
   if (lowered.startsWith(query) || lowered.includes(` ${query}`)) {
     return PREFIX_MATCH;
   }
@@ -94,8 +92,6 @@ function SuggestionRow({
       type="button"
       onClick={on_select}
       onMouseDown={(e) => e.preventDefault()}
-      // A list that opens under a resting pointer gets mouseenter without
-      // the user doing anything, so only real movement moves the highlight.
       onMouseMove={on_hover}
     >
       <ProfileAvatar
@@ -141,9 +137,6 @@ interface EmailSuggestion {
   contact_id?: string;
 }
 
-// A complete address is added as typed unless the user picks a row. An exact
-// match is ranked first, so any other first row is a different address and
-// must not be what Enter or Tab add.
 function initial_highlight(
   value: string,
   suggestions: EmailSuggestion[],
@@ -190,8 +183,6 @@ export function EmailAutocomplete({
     const seen_emails = new Set<string>(
       existing_emails.map((e) => e.toLowerCase()),
     );
-    // Every match is ranked before the list is cut, so contacts whose
-    // address merely contains the text cannot push the exact one out.
     const ranked: EmailSuggestion[][] = [[], [], []];
 
     for (const contact of contacts) {
