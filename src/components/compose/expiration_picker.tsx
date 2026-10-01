@@ -290,8 +290,8 @@ export function ExpirationPicker({
                   className="flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium disabled:opacity-50"
                   disabled={is_disabled}
                   style={{
-                    backgroundColor: "rgba(239, 68, 68, 0.1)",
-                    color: "var(--color-danger)",
+                    backgroundColor: "var(--cat-rose-solid)",
+                    color: "var(--cat-rose-on-solid)",
                   }}
                   type="button"
                 >

@@ -170,7 +170,11 @@ export function LinkDialog({
                   }
                 }}
               />
-              {error && <p className="text-xs mt-1 text-red-500">{error}</p>}
+              {error && (
+                <p className="text-xs mt-1 text-red-700 dark:text-red-400">
+                  {error}
+                </p>
+              )}
             </div>
 
             {!selected_text && (

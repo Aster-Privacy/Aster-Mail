@@ -77,7 +77,7 @@ export function DraftStatusIndicator({
               <motion.div
                 key="error"
                 animate={{ opacity: 1 }}
-                className="flex items-center gap-1.5 text-red-500 dark:text-red-400"
+                className="flex items-center gap-1.5 text-red-700 dark:text-red-400"
                 exit={{ opacity: 0 }}
                 initial={reduce_motion ? false : { opacity: 0 }}
                 transition={{ duration: reduce_motion ? 0 : 0.15 }}

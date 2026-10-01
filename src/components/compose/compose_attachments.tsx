@@ -150,7 +150,7 @@ function ComposeTotalSize({ total_bytes }: { total_bytes: number }) {
     >
       <span>{t("mail.compose_total_size")}</span>
       <span
-        className={`tabular-nums ${over_limit ? "text-red-500" : ""}`}
+        className={`tabular-nums ${over_limit ? "text-red-700 dark:text-red-400" : ""}`}
       >
         {max_bytes > 0
           ? t("settings.usage_of", {
@@ -307,8 +307,8 @@ export function ComposeErrors({ compose }: ComposeErrorsProps) {
         <div
           className="mx-3 mb-2 p-3 rounded-lg border flex items-center gap-2 flex-shrink-0"
           style={{
-            backgroundColor: "#d97706",
-            borderColor: "#d97706",
+            backgroundColor: "#b45309",
+            borderColor: "#b45309",
             color: "#fff",
           }}
         >
@@ -740,7 +740,7 @@ export function ComposeEditor({ compose, placeholder }: ComposeEditorProps) {
       <style>{`
         [contenteditable=true]:empty:before {
           content: attr(data-placeholder);
-          color: #9ca3af;
+          color: var(--text-muted);
           pointer-events: none;
         }
         [contenteditable=true] img {

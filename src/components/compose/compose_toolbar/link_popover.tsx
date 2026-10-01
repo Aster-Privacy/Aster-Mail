@@ -131,7 +131,9 @@ export function LinkPopover({
           if (error) set_error("");
         }}
       />
-      {error && <p className="text-[11px] text-red-500">{error}</p>}
+      {error && (
+        <p className="text-[11px] text-red-700 dark:text-red-400">{error}</p>
+      )}
       {!selected_text && (
         <Input
           className="w-full"
