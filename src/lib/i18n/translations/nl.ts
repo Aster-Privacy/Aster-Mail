@@ -8784,6 +8784,19 @@ export const nl = {
     verified_sender: "Geverifieerde afzender",
     verified_sender_desc:
       "De afzender van deze e-mail heeft bevestigd eigenaar te zijn van {{domain}}.",
+    email_auth_label: "Afzenderauthenticatie: {{verdict}}",
+    email_auth_partial: "Controles niet eenduidig",
+    email_auth_partial_desc:
+      "Sommige controles gaven ongebruikelijke resultaten voor {{domain}}. Wees voorzichtig met links en bijlagen.",
+    email_auth_failed: "Authenticatie mislukt",
+    email_auth_failed_desc:
+      "Dit bericht heeft de controles niet doorstaan die bevestigen dat het door {{domain}} is verzonden. Het kan vervalst zijn.",
+    email_auth_source: "Door Aster gecontroleerd toen het bericht binnenkwam.",
+    email_auth_details_label: "Authenticatie:",
+    email_auth_status_pass: "Geslaagd",
+    email_auth_status_fail: "Mislukt",
+    email_auth_status_none: "Niet gebruikt",
+    email_auth_status_missing: "Niet gecontroleerd",
     copy_message_id: "Bericht-ID kopiëren",
     hide_source: "Bron verbergen",
     view_dark_mode: "Weergeven in donkere modus",

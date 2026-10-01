@@ -304,6 +304,9 @@ export function EmailDetailBody({
                         is_starred: email.is_starred,
                         is_deleted: false,
                         is_external: mail_item?.is_external ?? false,
+                        spf_result: mail_item?.spf_result,
+                        dkim_result: mail_item?.dkim_result,
+                        dmarc_result: mail_item?.dmarc_result,
                         to_recipients: email.to.map((r) => ({
                           name: r.name || "",
                           email: r.email,

@@ -8759,6 +8759,19 @@ export const en: Translations = {
     verified_sender: "Verified sender",
     verified_sender_desc:
       "The sender of this email has verified that they own {{domain}}.",
+    email_auth_label: "Sender authentication: {{verdict}}",
+    email_auth_partial: "Inconclusive checks",
+    email_auth_partial_desc:
+      "Some checks gave unusual results for {{domain}}. Be careful with links and attachments.",
+    email_auth_failed: "Authentication failed",
+    email_auth_failed_desc:
+      "This message failed the checks that confirm it was sent by {{domain}}. It may be spoofed.",
+    email_auth_source: "Checked by Aster when the message arrived.",
+    email_auth_details_label: "Authentication:",
+    email_auth_status_pass: "Passed",
+    email_auth_status_fail: "Failed",
+    email_auth_status_none: "Not used",
+    email_auth_status_missing: "Not checked",
     copy_message_id: "Copy message ID",
     message_details: "Message details",
     message_headers: "Message headers",

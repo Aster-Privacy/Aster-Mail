@@ -485,6 +485,9 @@ export async function fetch_and_decrypt_virtual_group(
         encrypted_metadata: item.encrypted_metadata,
         metadata_nonce: item.metadata_nonce,
         reactions: item.reactions,
+        spf_result: item.spf_result,
+        dkim_result: item.dkim_result,
+        dmarc_result: item.dmarc_result,
       };
     }
 
@@ -615,6 +618,9 @@ export async function fetch_and_decrypt_virtual_group(
       raw_headers: envelope.raw_headers,
       message_group_id: item.message_group_id,
       reactions: item.reactions,
+      spf_result: item.spf_result,
+      dkim_result: item.dkim_result,
+      dmarc_result: item.dmarc_result,
     };
   });
 

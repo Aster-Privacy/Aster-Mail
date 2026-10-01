@@ -8994,6 +8994,19 @@ export const pl = {
     verified_sender: "Zweryfikowany nadawca",
     verified_sender_desc:
       "Nadawca tej wiadomości potwierdził, że jest właścicielem domeny {{domain}}.",
+    email_auth_label: "Uwierzytelnienie nadawcy: {{verdict}}",
+    email_auth_partial: "Niejednoznaczne kontrole",
+    email_auth_partial_desc:
+      "Niektóre kontrole dały nietypowe wyniki dla domeny {{domain}}. Warto zachować ostrożność przy linkach i załącznikach.",
+    email_auth_failed: "Uwierzytelnianie nie powiodło się",
+    email_auth_failed_desc:
+      "Ta wiadomość nie przeszła kontroli potwierdzających, że wysłała ją domena {{domain}}. Może być sfałszowana.",
+    email_auth_source: "Sprawdzone przez Aster po nadejściu wiadomości.",
+    email_auth_details_label: "Uwierzytelnianie:",
+    email_auth_status_pass: "Pozytywny",
+    email_auth_status_fail: "Negatywny",
+    email_auth_status_none: "Nieużywany",
+    email_auth_status_missing: "Niesprawdzony",
     copy_message_id: "Kopiuj ID wiadomości",
     hide_source: "Ukryj źródło",
     view_dark_mode: "Wyświetl w trybie ciemnym",

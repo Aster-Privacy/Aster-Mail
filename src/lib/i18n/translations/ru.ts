@@ -8949,6 +8949,19 @@ export const ru = {
     verified_sender: "Проверенный отправитель",
     verified_sender_desc:
       "Отправитель этого письма подтвердил, что владеет доменом {{domain}}.",
+    email_auth_label: "Проверка отправителя: {{verdict}}",
+    email_auth_partial: "Неоднозначные проверки",
+    email_auth_partial_desc:
+      "Некоторые проверки дали необычные результаты для домена {{domain}}. Со ссылками и вложениями стоит быть осторожнее.",
+    email_auth_failed: "Проверка подлинности не пройдена",
+    email_auth_failed_desc:
+      "Это сообщение не прошло проверки, подтверждающие, что его отправил домен {{domain}}. Возможно, это подделка.",
+    email_auth_source: "Проверено Aster при получении сообщения.",
+    email_auth_details_label: "Аутентификация:",
+    email_auth_status_pass: "Пройдено",
+    email_auth_status_fail: "Не пройдено",
+    email_auth_status_none: "Не используется",
+    email_auth_status_missing: "Не проверено",
     copy_message_id: "Копировать ID сообщения",
     hide_source: "Скрыть исходный код",
     view_dark_mode: "Просмотр в тёмном режиме",

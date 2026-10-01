@@ -8901,6 +8901,19 @@ export const fr = {
     verified_sender: "Expéditeur vérifié",
     verified_sender_desc:
       "L'expéditeur de cet e-mail a vérifié qu'il est propriétaire de {{domain}}.",
+    email_auth_label: "Authentification de l'expéditeur : {{verdict}}",
+    email_auth_partial: "Vérifications non concluantes",
+    email_auth_partial_desc:
+      "Certaines vérifications ont donné des résultats inhabituels pour {{domain}}. Mieux vaut être prudent avec les liens et les pièces jointes.",
+    email_auth_failed: "Échec de l'authentification",
+    email_auth_failed_desc:
+      "Ce message a échoué aux vérifications qui confirment qu'il a été envoyé par {{domain}}. Il pourrait s'agir d'une usurpation.",
+    email_auth_source: "Vérifié par Aster à la réception du message.",
+    email_auth_details_label: "Authentification :",
+    email_auth_status_pass: "Réussi",
+    email_auth_status_fail: "Échoué",
+    email_auth_status_none: "Non utilisé",
+    email_auth_status_missing: "Non vérifié",
     copy_message_id: "Copier l'ID du message",
     hide_source: "Masquer la source",
     view_dark_mode: "Voir en mode sombre",

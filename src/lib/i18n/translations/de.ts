@@ -8882,6 +8882,19 @@ export const de = {
     verified_sender: "Verifizierter Absender",
     verified_sender_desc:
       "Der Absender dieser E-Mail hat bestätigt, dass ihm {{domain}} gehört.",
+    email_auth_label: "Absenderauthentifizierung: {{verdict}}",
+    email_auth_partial: "Prüfergebnisse unklar",
+    email_auth_partial_desc:
+      "Einige Prüfungen lieferten ungewöhnliche Ergebnisse für {{domain}}. Bei Links und Anhängen ist Vorsicht geboten.",
+    email_auth_failed: "Authentifizierung fehlgeschlagen",
+    email_auth_failed_desc:
+      "Diese Nachricht hat die Prüfungen nicht bestanden, die bestätigen, dass sie von {{domain}} gesendet wurde. Sie könnte gefälscht sein.",
+    email_auth_source: "Von Aster beim Eingang der Nachricht geprüft.",
+    email_auth_details_label: "Authentifizierung:",
+    email_auth_status_pass: "Bestanden",
+    email_auth_status_fail: "Nicht bestanden",
+    email_auth_status_none: "Nicht verwendet",
+    email_auth_status_missing: "Nicht geprüft",
     copy_message_id: "Nachrichten-ID kopieren",
     hide_source: "Quelltext ausblenden",
     view_dark_mode: "Im Dunkelmodus anzeigen",
