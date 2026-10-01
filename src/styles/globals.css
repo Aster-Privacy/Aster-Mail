@@ -1451,10 +1451,10 @@
     --sidebar-border: var(--border-primary);
     --indicator-border: var(--border-secondary);
     --thread-card-border: var(--border-primary);
-    --input-border: color-mix(in srgb, var(--text-primary) 50%, transparent);
+    --input-border: color-mix(in srgb, var(--text-primary) 18%, transparent);
     --input-border-hover: color-mix(
       in srgb,
-      var(--text-primary) 64%,
+      var(--text-primary) 30%,
       transparent
     );
     --input: var(--input-border);
@@ -1464,10 +1464,10 @@
 
   .dark {
     --border-primary: color-mix(in srgb, var(--text-primary) 16%, transparent);
-    --input-border: color-mix(in srgb, var(--text-primary) 38%, transparent);
+    --input-border: color-mix(in srgb, var(--text-primary) 11%, transparent);
     --input-border-hover: color-mix(
       in srgb,
-      var(--text-primary) 50%,
+      var(--text-primary) 20%,
       transparent
     );
   }
@@ -3381,8 +3381,9 @@ input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
 input:-webkit-autofill:active {
   -webkit-text-fill-color: var(--text-primary) !important;
-  -webkit-box-shadow: 0 0 0 9999px var(--bg-tertiary) inset !important;
-  transition: background-color 5000s ease-in-out 0s;
+  transition:
+    background-color 600000s 0s,
+    color 600000s 0s;
   caret-color: var(--text-primary);
 }
 

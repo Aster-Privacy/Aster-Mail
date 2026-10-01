@@ -360,7 +360,9 @@ export default function MobileSignInPage() {
               className="mt-8"
               variants={reduce_motion ? undefined : fade_up_item}
             >
-              <label className={LABEL_CLASS}>{t("auth.username")}</label>
+              <label className={LABEL_CLASS} htmlFor="sign_in_username">
+                {t("auth.username")}
+              </label>
               <div className={DEPTH_INPUT_WRAPPER_CLASS}>
                 <div className={INPUT_ICON_CLASS}>
                   <UserCircleIcon />
@@ -371,7 +373,10 @@ export default function MobileSignInPage() {
                   autoCorrect="off"
                   className={INNER_INPUT_WITH_ICON_CLASS}
                   disabled={is_loading}
+                  id="sign_in_username"
+                  inputMode="email"
                   maxLength={55}
+                  name="username"
                   placeholder={t("common.yourname_placeholder")}
                   spellCheck={false}
                   status={error ? "error" : "default"}
@@ -455,7 +460,9 @@ export default function MobileSignInPage() {
               className="mt-4"
               variants={reduce_motion ? undefined : fade_up_item}
             >
-              <label className={LABEL_CLASS}>{t("auth.password")}</label>
+              <label className={LABEL_CLASS} htmlFor="sign_in_password">
+                {t("auth.password")}
+              </label>
               <div className={DEPTH_INPUT_WRAPPER_CLASS}>
                 <div className={INPUT_ICON_CLASS}>
                   <LockClosedIcon />
@@ -464,7 +471,9 @@ export default function MobileSignInPage() {
                   autoComplete="current-password"
                   className={INNER_INPUT_WITH_ICON_CLASS}
                   disabled={is_loading}
+                  id="sign_in_password"
                   maxLength={128}
+                  name="password"
                   placeholder={t("auth.enter_password_placeholder")}
                   status={error ? "error" : "default"}
                   type={is_password_visible ? "text" : "password"}
