@@ -6572,6 +6572,7 @@ export interface SettingsTranslations {
   rotate_dkim_key: string;
   rotate_dkim_description: string;
   rotate_label: string;
+  rotate_dkim_description_managed: string;
   rotate_dkim_confirm_title: string;
   rotate_dkim_confirm_managed: string;
   rotate_dkim_confirm_manual: string;

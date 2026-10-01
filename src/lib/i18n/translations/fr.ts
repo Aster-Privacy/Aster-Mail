@@ -7793,6 +7793,8 @@ export const fr = {
       "Générez une nouvelle clé de signature DKIM. Cela crée un nouvel enregistrement DNS sur un nouveau nom d'hôte, que vous devez publier auprès de votre registraire.",
     rotate_dkim_key: "Renouveler la clé DKIM",
     rotate_label: "Renouveler",
+    rotate_dkim_description_managed:
+      "Générez une nouvelle clé de signature DKIM. Aster Mail met à jour l'enregistrement DNS pour vous.",
     rotate_dkim_confirm_title: "Renouveler la clé DKIM ?",
     rotate_dkim_confirm_managed:
       "Aster Mail crée une nouvelle clé DKIM pour {{domain}} et met à jour son enregistrement DNS pour vous. Vous n'avez rien à modifier.",

@@ -7718,6 +7718,8 @@ export const es = {
       "Genera una nueva clave de firma DKIM. Esto crea un nuevo registro DNS en un nuevo nombre de host que debes publicar en tu registrador.",
     rotate_dkim_key: "Renovar clave DKIM",
     rotate_label: "Renovar",
+    rotate_dkim_description_managed:
+      "Genera una nueva clave de firma DKIM. Aster Mail actualiza el registro DNS por ti.",
     rotate_dkim_confirm_title: "¿Renovar la clave DKIM?",
     rotate_dkim_confirm_managed:
       "Aster Mail crea una nueva clave DKIM para {{domain}} y actualiza su registro DNS por ti. No necesitas cambiar nada.",

@@ -7083,6 +7083,8 @@ export const en: Translations = {
     rotate_dkim_description:
       "Generate a new DKIM signing key. This creates a new DNS record at a new host name that you must publish at your registrar.",
     rotate_label: "Rotate",
+    rotate_dkim_description_managed:
+      "Generate a new DKIM signing key. Aster Mail updates the DNS record for you.",
     rotate_dkim_confirm_title: "Rotate the DKIM key?",
     rotate_dkim_confirm_managed:
       "Aster Mail creates a new DKIM key for {{domain}} and updates its DNS record for you. You don't need to change anything.",

@@ -7595,6 +7595,8 @@ export const it = {
     rotate_dkim_description:
       "Genera una nuova chiave di firma DKIM. Questo crea un nuovo record DNS con un nuovo nome host che devi pubblicare presso il tuo registrar.",
     rotate_label: "Ruota",
+    rotate_dkim_description_managed:
+      "Genera una nuova chiave di firma DKIM. Aster Mail aggiorna il record DNS per te.",
     rotate_dkim_confirm_title: "Ruotare la chiave DKIM?",
     rotate_dkim_confirm_managed:
       "Aster Mail crea una nuova chiave DKIM per {{domain}} e aggiorna il suo record DNS per te. Non devi cambiare nulla.",

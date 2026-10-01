@@ -7685,6 +7685,8 @@ export const nl = {
       "Roteer je DKIM-sleutel om de beveiliging te verbeteren. Je moet je DNS-records bijwerken na de rotatie.",
     rotate_dkim_key: "DKIM-sleutel roteren",
     rotate_label: "Roteren",
+    rotate_dkim_description_managed:
+      "Genereer een nieuwe DKIM-ondertekeningssleutel. Aster Mail werkt de DNS-record voor je bij.",
     rotate_dkim_confirm_title: "DKIM-sleutel roteren?",
     rotate_dkim_confirm_managed:
       "Aster Mail maakt een nieuwe DKIM-sleutel voor {{domain}} en werkt het DNS-record voor je bij. Je hoeft niets te wijzigen.",

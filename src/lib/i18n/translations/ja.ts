@@ -7535,6 +7535,8 @@ export const ja = {
       "新しいDKIM署名キーを生成します。レジストラに公開する必要がある新しいホスト名のDNSレコードが作成されます。",
     rotate_dkim_key: "DKIMキーをローテーション",
     rotate_label: "ローテーション",
+    rotate_dkim_description_managed:
+      "新しいDKIM署名キーを生成します。DNSレコードはAster Mailが自動で更新します。",
     rotate_dkim_confirm_title: "DKIMキーをローテーションしますか？",
     rotate_dkim_confirm_managed:
       "Aster Mailが{{domain}}の新しいDKIMキーを作成し、DNSレコードを自動的に更新します。変更は必要ありません。",

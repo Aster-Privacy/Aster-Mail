@@ -6941,6 +6941,8 @@ export const zh_CN = {
     rotate_dkim_description:
       "轮换您的 DKIM 密钥以提高安全性。轮换后请更新 DNS 记录。",
     rotate_label: "轮换",
+    rotate_dkim_description_managed:
+      "生成新的 DKIM 签名密钥。Aster Mail 会为你更新 DNS 记录。",
     rotate_dkim_confirm_title: "轮换 DKIM 密钥？",
     rotate_dkim_confirm_managed:
       "Aster Mail 会为 {{domain}} 创建新的 DKIM 密钥，并为您更新其 DNS 记录。您无需进行任何更改。",

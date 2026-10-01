@@ -7374,6 +7374,8 @@ export const ar = {
     rotate_dkim_description:
       "إنشاء مفتاح توقيع DKIM جديد. سيُنشئ هذا سجل DNS جديدًا باسم مضيف جديد يجب نشره في موقع النطاق الخاص بك.",
     rotate_label: "تدوير",
+    rotate_dkim_description_managed:
+      "أنشئ مفتاح توقيع DKIM جديدًا. يحدّث Aster Mail سجل DNS نيابةً عنك.",
     rotate_dkim_confirm_title: "هل تريد تدوير مفتاح DKIM؟",
     rotate_dkim_confirm_managed:
       "ينشئ Aster Mail مفتاح DKIM جديدًا لـ {{domain}} ويحدّث سجل DNS الخاص به نيابةً عنك. لا تحتاج إلى تغيير أي شيء.",

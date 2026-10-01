@@ -7476,6 +7476,8 @@ export const tr = {
     rotate_dkim_description:
       "Yeni bir DKIM imzalama anahtarı oluşturun. Bu, kayıt kuruluşunuzda yayımlamanız gereken yeni bir ana bilgisayar adında yeni bir DNS kaydı oluşturur.",
     rotate_label: "Döndür",
+    rotate_dkim_description_managed:
+      "Yeni bir DKIM imzalama anahtarı oluşturun. Aster Mail DNS kaydını sizin için günceller.",
     rotate_dkim_confirm_title: "DKIM anahtarı döndürülsün mü?",
     rotate_dkim_confirm_managed:
       "Aster Mail, {{domain}} için yeni bir DKIM anahtarı oluşturur ve DNS kaydını sizin için günceller. Herhangi bir şeyi değiştirmeniz gerekmez.",

@@ -456,7 +456,11 @@ export function DomainCardV2({
                           {t("settings.rotate_dkim_key")}
                         </p>
                         <p className="text-xs text-txt-muted">
-                          {t("settings.rotate_dkim_description")}
+                          {t(
+                            dns_managed_by_aster
+                              ? "settings.rotate_dkim_description_managed"
+                              : "settings.rotate_dkim_description",
+                          )}
                         </p>
                       </div>
                       <Button

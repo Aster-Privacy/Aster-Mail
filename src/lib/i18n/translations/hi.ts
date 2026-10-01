@@ -7151,6 +7151,8 @@ export const hi = {
     rotate_dkim_description:
       "नई DKIM हस्ताक्षर कुंजी बनाएं। इससे नए होस्ट नाम पर एक नया DNS रिकॉर्ड बनता है, जिसे आपको अपने रजिस्ट्रार पर प्रकाशित करना होगा।",
     rotate_label: "बदलें",
+    rotate_dkim_description_managed:
+      "नई DKIM हस्ताक्षर कुंजी बनाएँ। Aster Mail आपके लिए DNS रिकॉर्ड अपडेट करता है।",
     rotate_dkim_confirm_title: "DKIM कुंजी बदलें?",
     rotate_dkim_confirm_managed:
       "Aster Mail {{domain}} के लिए नई DKIM कुंजी बनाता है और आपके लिए उसका DNS रिकॉर्ड अपडेट करता है। आपको कुछ भी बदलने की ज़रूरत नहीं है।",

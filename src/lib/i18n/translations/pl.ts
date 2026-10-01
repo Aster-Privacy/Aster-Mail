@@ -7677,6 +7677,8 @@ export const pl = {
     rotate_dkim_description:
       "Wygeneruj nowy klucz podpisywania DKIM. Tworzy to nowy rekord DNS pod nową nazwą hosta, który musisz opublikować u swojego rejestratora.",
     rotate_label: "Obróć",
+    rotate_dkim_description_managed:
+      "Wygeneruj nowy klucz podpisywania DKIM. Aster Mail zaktualizuje rekord DNS za Ciebie.",
     rotate_dkim_confirm_title: "Obrócić klucz DKIM?",
     rotate_dkim_confirm_managed:
       "Aster Mail tworzy nowy klucz DKIM dla {{domain}} i aktualizuje za Ciebie jego rekord DNS. Nie musisz niczego zmieniać.",

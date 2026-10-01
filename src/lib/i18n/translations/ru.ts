@@ -7805,6 +7805,8 @@ export const ru = {
       "Создать новый ключ подписи DKIM. Это создаёт новую DNS-запись с новым именем хоста, которую нужно опубликовать у регистратора.",
     rotate_dkim_key: "Обновить ключ DKIM",
     rotate_label: "Обновить",
+    rotate_dkim_description_managed:
+      "Создайте новый ключ подписи DKIM. Aster Mail обновит запись DNS за вас.",
     rotate_dkim_confirm_title: "Обновить ключ DKIM?",
     rotate_dkim_confirm_managed:
       "Aster Mail создаст новый ключ DKIM для {{domain}} и сам обновит его DNS-запись. Вам ничего не нужно менять.",

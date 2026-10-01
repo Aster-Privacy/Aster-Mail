@@ -7654,6 +7654,8 @@ export const de = {
       "Generieren Sie einen neuen DKIM-Signierschlüssel. Dies erstellt einen neuen DNS-Eintrag mit einem neuen Hostnamen, den Sie bei Ihrem Registrar veröffentlichen müssen.",
     rotate_dkim_key: "DKIM-Schlüssel rotieren",
     rotate_label: "Rotieren",
+    rotate_dkim_description_managed:
+      "Erstellen Sie einen neuen DKIM-Signaturschlüssel. Aster Mail aktualisiert den DNS-Eintrag für Sie.",
     rotate_dkim_confirm_title: "DKIM-Schlüssel rotieren?",
     rotate_dkim_confirm_managed:
       "Aster Mail erstellt einen neuen DKIM-Schlüssel für {{domain}} und aktualisiert den DNS-Eintrag für Sie. Sie müssen nichts ändern.",

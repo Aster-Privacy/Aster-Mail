@@ -7356,6 +7356,8 @@ export const ko = {
     rotate_dkim_description:
       "DKIM 서명 키를 교체합니다. DNS 레코드를 업데이트해야 합니다.",
     rotate_label: "교체",
+    rotate_dkim_description_managed:
+      "새 DKIM 서명 키를 생성합니다. Aster Mail이 DNS 레코드를 자동으로 업데이트합니다.",
     rotate_dkim_confirm_title: "DKIM 키를 교체할까요?",
     rotate_dkim_confirm_managed:
       "Aster Mail이 {{domain}}의 새 DKIM 키를 만들고 DNS 레코드를 자동으로 업데이트합니다. 따로 변경할 필요가 없습니다.",
