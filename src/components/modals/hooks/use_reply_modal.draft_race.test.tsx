@@ -623,7 +623,6 @@ describe("reply modal drafts around a send", () => {
 
     Object.assign(latest!.message_editor_ref, { current: element });
     await act(async () => latest!.toggle_plain_text_mode());
-    // happy-dom omits rendered line breaks from innerText.
     Object.defineProperty(element, "innerText", {
       configurable: true,
       writable: true,
