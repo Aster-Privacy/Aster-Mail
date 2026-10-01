@@ -524,8 +524,6 @@ export function use_reply_modal(props: UseReplyModalProps) {
         : undefined;
 
     let handed_off = false;
-    // The server may refuse an unregistered catch-all From after the reply
-    // has closed and its draft is gone; save it again with the same From.
     const keep_failed_catch_all_reply = async (): Promise<boolean> => {
       const draft_vault = get_vault_from_memory();
 
@@ -855,8 +853,6 @@ export function use_reply_modal(props: UseReplyModalProps) {
       ),
       body: message_with_signature,
       scheduled_at: scheduled_time.toISOString(),
-      // A catch-all identity has no saved address for the server to look up,
-      // so the scheduled envelope names it. Other senders are unchanged.
       ...(selected_sender?.is_catch_all
         ? {
             from: {

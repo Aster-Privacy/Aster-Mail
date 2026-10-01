@@ -24,8 +24,6 @@ import type { CustomDomain } from "@/services/api/domains";
 import { normalize_address_ignoring_dots } from "@/utils/address_dots";
 import { extract_delivered_to } from "@/utils/delivered_to";
 
-// Off until the mail API authorizes wildcard From addresses; the client
-// can only decide what to offer, not what the server accepts.
 export function is_catch_all_sending_enabled(): boolean {
   return import.meta.env.VITE_CATCH_ALL_SENDING === "true";
 }
@@ -117,10 +115,6 @@ export function catch_all_sender_options(
   return options;
 }
 
-// Used only when no saved identity applies: a registered address on the
-// message keeps the usual choice, and Delivered-To must name an unregistered
-// address on a catch-all domain. Only the topmost Delivered-To counts, so a
-// lower, sender-supplied one never wins.
 export function catch_all_reply_address(
   raw_headers: { name: string; value: string }[] | undefined,
   visible: (string | null | undefined)[],

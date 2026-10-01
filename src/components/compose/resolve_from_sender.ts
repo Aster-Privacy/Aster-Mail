@@ -77,8 +77,6 @@ export function resolve_from_sender<T extends from_sender_candidate>(
 
   if (draft_match) return { option: draft_match, tier: from_tier_draft };
 
-  // A saved identity on the thread wins, as before catch-all identities
-  // existed; those only replace the fallbacks below.
   for (const catch_all of [false, true]) {
     const pool = options.filter((o) => !!o.is_catch_all === catch_all);
 
