@@ -163,18 +163,44 @@ export function filter_emails_by_view(
   return emails;
 }
 
+function matches_active_filter(
+  email: InboxEmail,
+  filter: InboxFilterType,
+): boolean {
+  switch (filter) {
+    case "read":
+      return email.is_read;
+    case "unread":
+      return !email.is_read;
+    case "attachments":
+      return email.has_attachment;
+    default:
+      return true;
+  }
+}
+
+export function kept_open_email_id(
+  emails: InboxEmail[],
+  filter: InboxFilterType,
+  open_email_id: string | null | undefined,
+): string | null {
+  if (!open_email_id) return null;
+
+  const open_email = emails.find((e) => e.id === open_email_id);
+
+  return open_email && !matches_active_filter(open_email, filter)
+    ? open_email_id
+    : null;
+}
+
 export function apply_active_filter(
   emails: InboxEmail[],
   filter: InboxFilterType,
+  kept_id: string | null = null,
 ): InboxEmail[] {
-  switch (filter) {
-    case "read":
-      return emails.filter((e) => e.is_read);
-    case "unread":
-      return emails.filter((e) => !e.is_read);
-    case "attachments":
-      return emails.filter((e) => e.has_attachment);
-    default:
-      return emails;
-  }
+  if (filter === "all") return emails;
+
+  return emails.filter(
+    (e) => e.id === kept_id || matches_active_filter(e, filter),
+  );
 }
