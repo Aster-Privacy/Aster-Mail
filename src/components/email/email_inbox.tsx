@@ -176,15 +176,10 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
     0,
   );
 
-  // The list stays in one scroll container whether or not the reading pane
-  // is open. Moving it into a new container remounted every row and lost the
-  // scroll position, so opening an email threw the list back to the top.
   const show_reading_pane = is_split_view && !is_full_view_mode;
   const selected_email_id = active_email_id ?? split_scheduled_data?.id;
   const reading_pane_was_open_ref = useRef(show_reading_pane);
 
-  // The pane takes room from the list, and below the list it can cover the
-  // row that was just opened, so bring that row back into view.
   useLayoutEffect(() => {
     const was_open = reading_pane_was_open_ref.current;
 

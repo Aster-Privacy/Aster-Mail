@@ -113,8 +113,6 @@ export function use_inbox_list_scroll({
   return { handle_list_scroll, handle_page_change, handle_filter_change };
 }
 
-// Scrolls only as far as it takes to show the whole row, so the rest of the
-// list stays where the reader left it.
 export function reveal_list_row(list: HTMLElement, email_id: string): void {
   const row = Array.from(
     list.querySelectorAll<HTMLElement>("[data-row-email-id]"),

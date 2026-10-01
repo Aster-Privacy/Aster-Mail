@@ -140,9 +140,6 @@ vi.mock("@/components/email/inbox/inbox_view_helpers", () => ({
   get_search_context: () => undefined,
 }));
 
-// Stands in for the inbox state hook with the parts the layout depends on,
-// derived the same way the real hook does, and the real split pane and list
-// scroll hooks.
 vi.mock("@/components/email/use_email_inbox_state", async () => {
   const { use_split_pane } =
     await import("@/components/email/inbox/use_split_pane");
@@ -261,9 +258,6 @@ const FULL_LIST_HEIGHT = 900;
 let root: Root;
 let host: HTMLDivElement;
 
-// happy-dom has no layout, so place rows the way a browser would: one after
-// another inside the list, moved up by how far the list is scrolled, and the
-// list as tall as its inline height, or the full height when it has none.
 function stub_layout(): void {
   vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(
     function (this: HTMLElement) {
@@ -387,8 +381,6 @@ describe("EmailInbox list scroll across the reading pane", () => {
     expect(list_holding("e65")).toBe(list);
     expect(hoisted.list_mounts).toBe(1);
     expect_row_in_view("e65");
-    // The list is now 300px tall, so the row's bottom edge (940) is below the
-    // list's (400): the smallest scroll that shows it lines the two up.
     expect(list.scrollTop).toBe(1800 + 940 - 400);
   });
 
