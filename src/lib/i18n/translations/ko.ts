@@ -1319,6 +1319,13 @@ export const ko = {
     recover_data_success: "이전 데이터의 잠금이 해제되었습니다.",
     recover_data_no_match:
       "이 비밀번호로 잠금 해제된 데이터가 없습니다. 다른 이전 비밀번호를 사용해 보세요.",
+    recover_data_code_description:
+      "비밀번호 재설정 이전의 메일을 잠금 해제하려면 재설정 전에 저장한 복구 코드 중 하나를 입력하세요.",
+    recover_data_code_no_match:
+      "해당 코드로 잠금 해제된 데이터가 없습니다. 재설정 전에 저장한 코드를 입력하세요.",
+    recover_data_partial:
+      "이전 메일의 일부가 잠금 해제되었습니다. 나머지를 잠금 해제하려면 이전 비밀번호를 입력하세요.",
+    recover_data_rate_limited: "시도 횟수가 너무 많습니다. 30분 후에 다시 시도하세요.",
     recover_data_failed:
       "일부 데이터를 잠금 해제하지 못했습니다. 연결을 확인하고 다시 시도하세요.",
     payment_past_due_message:
@@ -9123,19 +9130,6 @@ export const ko = {
       "계정에 다시 접근할 수 있습니다. 재설정 이전의 암호화된 메일은 나중에 문구나 코드를 찾지 못하는 한 다시 읽을 수 없습니다.",
     phrase_recovery_failed:
       "이 문구는 이 계정과 일치하지 않습니다. 단어와 이메일 주소를 확인하세요.",
-    reset_consent_title: "이 재설정으로는 이전 데이터를 복호화할 수 없습니다",
-    reset_consent_keeps:
-      "유지되는 것: 이메일 주소, 모든 별칭(메일은 계속 수신됩니다), 구독, 그리고 계정입니다.",
-    reset_consent_loses:
-      "접근을 잃는 것: 재설정 이전의 모든 암호화된 메일, 연락처, 별칭 라벨, 설정입니다. 이들은 암호화된 상태로 계속 저장되며, 이전 비밀번호를 기억하는 경우에만 나중에 잠금 해제할 수 있습니다.",
-    reset_consent_last_chance:
-      "복구 문구나 복구 코드가 있으신가요? 둘 중 하나만 있으면 모든 것이 복원됩니다.",
-    reset_consent_use_phrase_instead: "대신 문구나 코드 사용",
-    reset_consent_checkbox:
-      "이 재설정 후에는 암호화된 데이터를 읽을 수 없게 된다는 것을 이해합니다",
-    reset_consent_type_email: "확인을 위해 전체 이메일 주소를 입력하세요",
-    reset_consent_email_mismatch: "이메일 주소가 이 계정과 일치하지 않습니다.",
-    reset_consent_continue: "그래도 비밀번호 재설정",
     reset_second_factor_title: "본인 확인",
     reset_second_factor_description:
       "이 계정은 2단계 인증을 사용합니다. 비밀번호를 재설정하기 전에 두 번째 인증 수단을 확인하세요.",
@@ -9185,10 +9179,14 @@ export const ko = {
     email_me_reset_link: "재설정 링크를 이메일로 보내기",
     reset_link_sent_title: "복구 이메일을 확인하세요",
     reset_link_sent_desc:
-      "이 사용자 이름이 등록되어 있고 확인된 복구 이메일이 있는 경우 비밀번호 재설정 링크가 전송되었습니다. 링크는 30분 후에 만료됩니다.",
+      "이 계정에 인증된 복구 이메일이 있으면 Aster Mail이 재설정 링크를 보냈습니다. 링크는 30분 후에 만료됩니다. 이메일이 보이지 않으면 스팸 폴더를 확인하세요.",
     sending_reset_link: "재설정 링크 전송 중...",
     reset_your_password: "비밀번호 재설정",
-    reset_choose_new_password: "계정에 사용할 새 비밀번호를 선택하세요.",
+    reset_choose_new_password:
+      "새 비밀번호를 선택하세요. 이전 메일은 암호화된 상태로 유지되며, 로그인한 후 복구 코드나 이전 비밀번호로 잠금을 해제할 수 있습니다.",
+    reset_use_recovery_code: "대신 복구 코드 사용",
+    reset_new_codes_desc:
+      "이 코드를 안전한 곳에 저장하세요. 이전 코드도 보관하세요. 그중 하나로 로그인한 후 이전 메일의 잠금을 해제할 수 있습니다.",
     reset_invalid_or_expired:
       "이 재설정 링크는 유효하지 않거나 만료되었습니다. 새 링크를 요청해 주세요.",
     request_new_reset_link: "새 재설정 링크 요청",
@@ -9227,13 +9225,12 @@ export const ko = {
     other_way_code_title: "복구 코드 사용",
     other_way_code_desc: "저장한 코드 중 하나를 입력하세요.",
     other_way_email_title: "복구 이메일로 재설정",
-    other_way_email_desc:
-      "Aster Mail이 복구 이메일로 링크를 보냅니다. 재설정 전에 받은 메일에는 접근할 수 없습니다.",
+    other_way_email_desc: "Aster Mail이 복구 이메일로 링크를 보내 새 비밀번호를 선택할 수 있게 합니다.",
     other_way_none_title: "해당하는 항목이 없음",
     other_way_none_desc: "고객 지원에 문의하면 다음 단계를 안내해 드립니다.",
-    reset_account_title: "계정을 재설정할까요?",
+    reset_account_title: "복구 이메일로 재설정",
     reset_account_desc:
-      "재설정 전의 암호화된 메일, 연락처, 파일은 이전 비밀번호로 복구할 때까지 잠긴 상태로 유지됩니다. 새로운 빈 암호화 키가 발급됩니다.",
+      "Aster Mail이 복구 이메일로 링크를 보냅니다. 링크를 열어 새 비밀번호를 선택하세요. 이전 메일은 복구 코드나 이전 비밀번호로 잠금을 해제할 때까지 암호화된 상태로 유지됩니다.",
     send_reset_link: "재설정 링크 보내기",
     print_codes: "인쇄",
     codes_copied: "코드를 복사했습니다.",
@@ -9253,9 +9250,9 @@ export const ko = {
       "다른 계정의 메시지를 Aster로 옮깁니다. 모든 내용은 저장 전에 기기에서 암호화됩니다.",
     import_mail_skip: "빈 받은편지함으로 시작",
     import_mail_privacy_note: "나중에 설정에서 가져올 수도 있습니다.",
-    password_reset_successful: "비밀번호 재설정 성공",
+    password_reset_successful: "비밀번호가 재설정되었습니다",
     account_recovered_sign_in:
-      "계정이 복구되었습니다. 이제 새 비밀번호로 로그인할 수 있습니다.",
+      "새 비밀번호로 로그인하세요. 로그인한 후 복구 코드나 이전 비밀번호로 이전 메일의 잠금을 해제할 수 있습니다.",
     check_your_inbox: "받은 편지함을 확인하세요",
     generating_encryption_keys: "암호화 키 생성 중...",
     creating_identity_keypair: "신원 키 쌍 생성 중...",

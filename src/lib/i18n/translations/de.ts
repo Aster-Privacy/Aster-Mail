@@ -1200,6 +1200,14 @@ export const de = {
     recover_data_success: "Ihre älteren Daten sind entsperrt.",
     recover_data_no_match:
       "Mit diesem Passwort wurden keine Daten entsperrt. Versuchen Sie ein anderes früheres Passwort.",
+    recover_data_code_description:
+      "Um E-Mails aus der Zeit vor einer Passwortzurücksetzung zu entsperren, geben Sie einen der Wiederherstellungscodes ein, die Sie vor der Zurücksetzung gespeichert haben.",
+    recover_data_code_no_match:
+      "Dieser Code hat keine Daten entsperrt. Geben Sie einen Code ein, den Sie vor der Zurücksetzung gespeichert haben.",
+    recover_data_partial:
+      "Ein Teil Ihrer früheren E-Mails ist entsperrt. Um den Rest zu entsperren, geben Sie Ihr vorheriges Passwort ein.",
+    recover_data_rate_limited:
+      "Zu viele Versuche. Warten Sie 30 Minuten und versuchen Sie es dann erneut.",
     recover_data_failed:
       "Einige Daten konnten nicht entsperrt werden. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
     payment_past_due_message:
@@ -9496,10 +9504,15 @@ export const de = {
     email_me_reset_link: "Reset-Link per E-Mail senden",
     reset_link_sent_title: "Prüfen Sie Ihre Wiederherstellungs-E-Mail",
     reset_link_sent_desc:
-      "Wenn dieser Benutzername registriert ist und eine verifizierte Wiederherstellungs-E-Mail hat, wurde ein Link zum Zurücksetzen des Passworts gesendet. Der Link läuft in 30 Minuten ab.",
+      "Wenn dieses Konto eine bestätigte Wiederherstellungs-E-Mail hat, hat Aster Mail einen Link zum Zurücksetzen dorthin gesendet. Der Link läuft in 30 Minuten ab. Wenn Sie die E-Mail nicht sehen, prüfen Sie Ihren Spam-Ordner.",
     sending_reset_link: "Reset-Link wird gesendet...",
     reset_your_password: "Passwort zurücksetzen",
-    reset_choose_new_password: "Wählen Sie ein neues Passwort für Ihr Konto.",
+    reset_choose_new_password:
+      "Wählen Sie ein neues Passwort. Ihre früheren E-Mails bleiben verschlüsselt, und Sie können sie nach der Anmeldung mit einem Wiederherstellungscode oder Ihrem vorherigen Passwort entsperren.",
+    reset_use_recovery_code:
+      "Stattdessen einen Wiederherstellungscode verwenden",
+    reset_new_codes_desc:
+      "Bewahren Sie diese Codes an einem sicheren Ort auf. Behalten Sie auch Ihre alten Codes, denn einer davon kann Ihre früheren E-Mails nach der Anmeldung entsperren.",
     reset_invalid_or_expired:
       "Dieser Reset-Link ist ungültig oder abgelaufen. Bitte fordern Sie einen neuen an.",
     request_new_reset_link: "Neuen Reset-Link anfordern",
@@ -9547,13 +9560,13 @@ export const de = {
     other_way_code_desc: "Geben Sie einen Ihrer gespeicherten Codes ein.",
     other_way_email_title: "Mit Wiederherstellungs-E-Mail zurücksetzen",
     other_way_email_desc:
-      "Aster Mail sendet einen Link an Ihre Wiederherstellungs-E-Mail. Sie verlieren den Zugriff auf E-Mails von vor dem Zurücksetzen.",
+      "Aster Mail sendet einen Link an Ihre Wiederherstellungs-E-Mail, damit Sie ein neues Passwort wählen können.",
     other_way_none_title: "Ich habe nichts davon",
     other_way_none_desc:
       "Kontaktiere den Support. Wir helfen dir bei den nächsten Schritten.",
-    reset_account_title: "Konto zurücksetzen?",
+    reset_account_title: "Mit Wiederherstellungs-E-Mail zurücksetzen",
     reset_account_desc:
-      "Ihre verschlüsselten E-Mails, Kontakte und Dateien von vor dem Zurücksetzen bleiben gesperrt, bis Sie sie mit Ihrem alten Passwort wiederherstellen. Sie erhalten einen neuen, leeren Verschlüsselungsschlüssel.",
+      "Aster Mail sendet einen Link an Ihre Wiederherstellungs-E-Mail. Öffnen Sie ihn, um ein neues Passwort zu wählen. Ihre früheren E-Mails bleiben verschlüsselt, bis Sie sie mit einem Wiederherstellungscode oder Ihrem vorherigen Passwort entsperren.",
     send_reset_link: "Link zum Zurücksetzen senden",
     print_codes: "Drucken",
     codes_copied: "Codes kopiert.",
@@ -9571,9 +9584,9 @@ export const de = {
     review_codes_left: "Noch {{count}} Wiederherstellungscodes übrig.",
     review_codes_left_one: "Noch {{count}} Wiederherstellungscode übrig.",
     review_codes_left_other: "Noch {{count}} Wiederherstellungscodes übrig.",
-    password_reset_successful: "Passwort erfolgreich zurückgesetzt",
+    password_reset_successful: "Ihr Passwort wurde zurückgesetzt",
     account_recovered_sign_in:
-      "Ihr Konto wurde wiederhergestellt. Sie können sich jetzt mit Ihrem neuen Passwort anmelden.",
+      "Melden Sie sich mit Ihrem neuen Passwort an. Danach können Sie Ihre früheren E-Mails mit einem Wiederherstellungscode oder Ihrem vorherigen Passwort entsperren.",
     check_your_inbox: "Überprüfen Sie Ihren Posteingang",
     generating_encryption_keys: "Verschlüsselungsschlüssel werden generiert...",
     creating_identity_keypair: "Identitätsschlüsselpaar wird erstellt...",
@@ -9669,23 +9682,6 @@ export const de = {
       "Erhalten Sie wieder Zugriff auf Ihr Konto. Verschlüsselte E-Mails aus der Zeit vor dem Zurücksetzen bleiben unlesbar, es sei denn, Sie finden später Ihre Phrase oder einen Code wieder.",
     phrase_recovery_failed:
       "Diese Phrase passt nicht zu diesem Konto. Prüfen Sie die Wörter und die E-Mail-Adresse.",
-    reset_consent_title:
-      "Dieses Zurücksetzen kann Ihre alten Daten nicht entschlüsseln",
-    reset_consent_keeps:
-      "Sie behalten: Ihre E-Mail-Adresse, alle Ihre Aliase (E-Mails kommen weiterhin an), Ihr Abonnement und Ihr Konto.",
-    reset_consent_loses:
-      "Sie verlieren den Zugriff auf: alle verschlüsselten E-Mails, Kontakte, Alias-Labels und Einstellungen aus der Zeit vor dem Zurücksetzen. Sie bleiben verschlüsselt gespeichert und lassen sich später nur entsperren, wenn Sie sich an Ihr altes Passwort erinnern.",
-    reset_consent_last_chance:
-      "Haben Sie Ihre Wiederherstellungsphrase oder einen Wiederherstellungscode? Beides stellt alles wieder her.",
-    reset_consent_use_phrase_instead:
-      "Stattdessen meine Phrase oder meinen Code verwenden",
-    reset_consent_checkbox:
-      "Ich verstehe, dass meine verschlüsselten Daten nach diesem Zurücksetzen unlesbar sind",
-    reset_consent_type_email:
-      "Geben Sie zur Bestätigung Ihre vollständige E-Mail-Adresse ein",
-    reset_consent_email_mismatch:
-      "Die E-Mail-Adresse passt nicht zu diesem Konto.",
-    reset_consent_continue: "Passwort trotzdem zurücksetzen",
     reset_second_factor_title: "Bestätige, dass du es bist",
     reset_second_factor_description:
       "Dieses Konto verwendet die Zwei-Faktor-Authentifizierung. Bestätige einen zweiten Faktor, bevor du das Passwort zurücksetzt.",

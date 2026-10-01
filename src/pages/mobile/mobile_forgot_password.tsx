@@ -85,7 +85,6 @@ export default function MobileForgotPasswordPage() {
 
   const navigate_sign_in = () => navigate("/sign-in");
 
-
   const render_step = () => {
     switch (step) {
       case "email":
@@ -132,6 +131,7 @@ export default function MobileForgotPasswordPage() {
       case "reset_email_confirm":
         return (
           <ResetEmailConfirmStep
+            email={email}
             error={error}
             is_dark={is_dark}
             on_send_reset_link={handle_email_reset_link}
@@ -232,6 +232,7 @@ export default function MobileForgotPasswordPage() {
       case "email_sent":
         return (
           <EmailSentStep
+            email={email}
             on_navigate_sign_in={navigate_sign_in}
             reduce_motion={reduce_motion}
           />

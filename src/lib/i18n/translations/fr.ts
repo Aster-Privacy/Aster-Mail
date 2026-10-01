@@ -1296,6 +1296,14 @@ export const fr = {
     recover_data_success: "Vos anciennes données sont déverrouillées.",
     recover_data_no_match:
       "Ce mot de passe n'a déverrouillé aucune donnée. Essayez un autre ancien mot de passe.",
+    recover_data_code_description:
+      "Pour déverrouiller les e-mails antérieurs à une réinitialisation du mot de passe, saisissez l'un des codes de récupération que vous avez enregistrés avant la réinitialisation.",
+    recover_data_code_no_match:
+      "Ce code n'a déverrouillé aucune donnée. Saisissez un code que vous avez enregistré avant la réinitialisation.",
+    recover_data_partial:
+      "Une partie de vos anciens e-mails est déverrouillée. Pour déverrouiller le reste, saisissez votre ancien mot de passe.",
+    recover_data_rate_limited:
+      "Trop de tentatives. Patientez 30 minutes, puis réessayez.",
     recover_data_failed:
       "Certaines données n'ont pas pu être déverrouillées. Vérifiez votre connexion et réessayez.",
     payment_past_due_message:
@@ -9530,22 +9538,6 @@ export const fr = {
       "Retrouvez l'accès à votre compte. Les courriels chiffrés antérieurs à la réinitialisation ne pourront plus être lus, sauf si vous retrouvez plus tard votre phrase ou un code.",
     phrase_recovery_failed:
       "Cette phrase ne correspond pas à ce compte. Vérifiez les mots et l'adresse de courriel.",
-    reset_consent_title:
-      "Cette réinitialisation ne peut pas déchiffrer vos anciennes données",
-    reset_consent_keeps:
-      "Vous conservez : votre adresse de courriel, tous vos alias (le courrier continue d'arriver), votre abonnement et votre compte.",
-    reset_consent_loses:
-      "Vous perdez l'accès à : tous les courriels chiffrés, contacts, libellés d'alias et paramètres antérieurs à la réinitialisation. Ils restent stockés chiffrés et ne pourront être déverrouillés plus tard que si vous vous souvenez de votre ancien mot de passe.",
-    reset_consent_last_chance:
-      "Avez-vous votre phrase de récupération ou un code de récupération ? L'un ou l'autre restaure tout.",
-    reset_consent_use_phrase_instead: "Utiliser plutôt ma phrase ou un code",
-    reset_consent_checkbox:
-      "Je comprends que mes données chiffrées seront illisibles après cette réinitialisation",
-    reset_consent_type_email:
-      "Saisissez votre adresse de courriel complète pour confirmer",
-    reset_consent_email_mismatch:
-      "L'adresse de courriel ne correspond pas à ce compte.",
-    reset_consent_continue: "Réinitialiser le mot de passe malgré tout",
     reset_second_factor_title: "Confirmez que c'est bien vous",
     reset_second_factor_description:
       "Ce compte utilise l'authentification à deux facteurs. Vérifiez un second facteur avant de réinitialiser le mot de passe.",
@@ -9601,11 +9593,14 @@ export const fr = {
     email_me_reset_link: "M'envoyer un lien de réinitialisation par e-mail",
     reset_link_sent_title: "Vérifiez votre e-mail de récupération",
     reset_link_sent_desc:
-      "Si ce nom d'utilisateur est enregistré et possède un e-mail de récupération vérifié, un lien de réinitialisation du mot de passe a été envoyé. Le lien expire dans 30 minutes.",
+      "Si ce compte a un e-mail de récupération vérifié, Aster Mail y a envoyé un lien de réinitialisation. Le lien expire dans 30 minutes. Si vous ne voyez pas l'e-mail, vérifiez votre dossier de courrier indésirable.",
     sending_reset_link: "Envoi du lien de réinitialisation...",
     reset_your_password: "Réinitialiser votre mot de passe",
     reset_choose_new_password:
-      "Choisissez un nouveau mot de passe pour votre compte.",
+      "Choisissez un nouveau mot de passe. Vos anciens e-mails restent chiffrés, et vous pouvez les déverrouiller après vous être connecté avec un code de récupération ou votre ancien mot de passe.",
+    reset_use_recovery_code: "Utiliser un code de récupération",
+    reset_new_codes_desc:
+      "Conservez ces codes en lieu sûr. Gardez aussi vos anciens codes, car l'un d'eux peut déverrouiller vos anciens e-mails une fois connecté.",
     reset_invalid_or_expired:
       "Ce lien de réinitialisation est invalide ou a expiré. Veuillez en demander un nouveau.",
     request_new_reset_link: "Demander un nouveau lien de réinitialisation",
@@ -9647,13 +9642,13 @@ export const fr = {
     other_way_code_desc: "Saisissez l'un des codes que vous avez enregistrés.",
     other_way_email_title: "Réinitialiser avec votre e-mail de récupération",
     other_way_email_desc:
-      "Aster Mail envoie un lien à votre e-mail de récupération. Vous perdez l'accès aux messages antérieurs à la réinitialisation.",
+      "Aster Mail envoie un lien à votre e-mail de récupération pour que vous puissiez choisir un nouveau mot de passe.",
     other_way_none_title: "Je n'ai aucun de ces éléments",
     other_way_none_desc:
       "Contactez le support et nous vous aidons pour la suite.",
-    reset_account_title: "Réinitialiser votre compte ?",
+    reset_account_title: "Réinitialiser avec votre e-mail de récupération",
     reset_account_desc:
-      "Vos e-mails, contacts et fichiers chiffrés antérieurs à la réinitialisation restent verrouillés jusqu'à ce que vous les récupériez avec votre ancien mot de passe. Vous obtenez une nouvelle clé de chiffrement vide.",
+      "Aster Mail envoie un lien à votre e-mail de récupération. Ouvrez-le pour choisir un nouveau mot de passe. Vos anciens e-mails restent chiffrés jusqu'à ce que vous les déverrouilliez avec un code de récupération ou votre ancien mot de passe.",
     send_reset_link: "Envoyer le lien de réinitialisation",
     print_codes: "Imprimer",
     codes_copied: "Codes copiés.",
@@ -9677,9 +9672,9 @@ export const fr = {
     import_mail_skip: "Commencer avec une boîte vide",
     import_mail_privacy_note:
       "Vous pouvez aussi importer plus tard depuis les Réglages.",
-    password_reset_successful: "Réinitialisation du mot de passe réussie",
+    password_reset_successful: "Votre mot de passe est réinitialisé",
     account_recovered_sign_in:
-      "Votre compte a été récupéré. Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.",
+      "Connectez-vous avec votre nouveau mot de passe. Vous pouvez ensuite déverrouiller vos anciens e-mails avec un code de récupération ou votre ancien mot de passe.",
     check_your_inbox: "Vérifiez votre boîte de réception",
     generating_encryption_keys: "Génération des clés de chiffrement...",
     creating_identity_keypair: "Création de la paire de clés d'identité...",

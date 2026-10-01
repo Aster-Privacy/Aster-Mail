@@ -1312,6 +1312,12 @@ export const ja = {
     recover_data_success: "以前のデータのロックが解除されました。",
     recover_data_no_match:
       "そのパスワードではデータのロックを解除できませんでした。別の以前のパスワードをお試しください。",
+    recover_data_code_description:
+      "パスワードのリセット前のメールのロックを解除するには、リセット前に保存したリカバリーコードのいずれかを入力してください。",
+    recover_data_code_no_match:
+      "そのコードではデータのロックを解除できませんでした。リセット前に保存したコードを入力してください。",
+    recover_data_partial: "以前のメールの一部のロックが解除されました。残りを解除するには、以前のパスワードを入力してください。",
+    recover_data_rate_limited: "試行回数が多すぎます。30分待ってから、もう一度お試しください。",
     recover_data_failed:
       "一部のデータのロックを解除できませんでした。接続を確認して、もう一度お試しください。",
     payment_past_due_message:
@@ -9297,21 +9303,6 @@ export const ja = {
       "アカウントへのアクセスを取り戻します。リセット前の暗号化されたメールは、後でフレーズまたはコードが見つからない限り、再び読むことはできません。",
     phrase_recovery_failed:
       "このフレーズはこのアカウントと一致しません。単語とメールアドレスを確認してください。",
-    reset_consent_title: "このリセットでは以前のデータを復号できません",
-    reset_consent_keeps:
-      "維持されるもの：メールアドレス、すべてのエイリアス（メールは引き続き届きます）、サブスクリプション、アカウント。",
-    reset_consent_loses:
-      "アクセスできなくなるもの：リセット前のすべての暗号化されたメール、連絡先、エイリアスのラベル、設定。これらは暗号化されたまま保管され、以前のパスワードを思い出した場合にのみ後からロックを解除できます。",
-    reset_consent_last_chance:
-      "リカバリーフレーズまたはリカバリーコードをお持ちですか？どちらか一方ですべてを復元できます。",
-    reset_consent_use_phrase_instead: "代わりにフレーズまたはコードを使用する",
-    reset_consent_checkbox:
-      "このリセット後、暗号化されたデータが読めなくなることを理解しました",
-    reset_consent_type_email:
-      "確認のため、メールアドレスを完全な形で入力してください",
-    reset_consent_email_mismatch:
-      "メールアドレスがこのアカウントと一致しません。",
-    reset_consent_continue: "それでもパスワードをリセットする",
     reset_second_factor_title: "本人確認",
     reset_second_factor_description:
       "このアカウントは 2 段階認証を使用しています。パスワードをリセットする前に、2 つ目の認証要素を確認してください。",
@@ -9362,11 +9353,14 @@ export const ja = {
     email_me_reset_link: "リセットリンクをメールで送信",
     reset_link_sent_title: "リカバリーメールを確認してください",
     reset_link_sent_desc:
-      "このユーザー名が登録されており、確認済みのリカバリーメールがある場合、パスワードリセットリンクが送信されました。リンクは30分で期限切れになります。",
+      "このアカウントに確認済みのリカバリーメールがある場合、Aster Mailがリセット用のリンクを送信しました。リンクは30分で期限切れになります。メールが見つからない場合は、迷惑メールフォルダを確認してください。",
     sending_reset_link: "リセットリンクを送信中...",
     reset_your_password: "パスワードをリセット",
     reset_choose_new_password:
-      "アカウントの新しいパスワードを選択してください。",
+      "新しいパスワードを選択してください。以前のメールは暗号化されたまま保持され、サインイン後にリカバリーコードまたは以前のパスワードでロックを解除できます。",
+    reset_use_recovery_code: "代わりにリカバリーコードを使用",
+    reset_new_codes_desc:
+      "これらのコードを安全な場所に保存してください。古いコードも保管してください。そのうちの1つで、サインイン後に以前のメールのロックを解除できます。",
     reset_invalid_or_expired:
       "このリセットリンクは無効か、期限が切れています。新しいリンクをリクエストしてください。",
     request_new_reset_link: "新しいリセットリンクをリクエスト",
@@ -9406,14 +9400,13 @@ export const ja = {
     other_way_code_title: "リカバリーコードを使う",
     other_way_code_desc: "保存したコードのいずれかを入力します。",
     other_way_email_title: "リカバリーメールでリセットする",
-    other_way_email_desc:
-      "Aster Mail がリカバリーメールにリンクを送信します。リセット前のメールにはアクセスできなくなります。",
+    other_way_email_desc: "Aster Mailがリカバリーメールにリンクを送信し、新しいパスワードを選択できるようにします。",
     other_way_none_title: "どれも持っていない",
     other_way_none_desc:
       "サポートにお問い合わせください。次の手順をご案内します。",
-    reset_account_title: "アカウントをリセットしますか?",
+    reset_account_title: "リカバリーメールでリセットする",
     reset_account_desc:
-      "リセット前の暗号化されたメール、連絡先、ファイルは、以前のパスワードで復元するまでロックされたままです。新しい空の暗号鍵が発行されます。",
+      "Aster Mailがリカバリーメールにリンクを送信します。リンクを開いて新しいパスワードを選択してください。以前のメールは、リカバリーコードまたは以前のパスワードでロックを解除するまで暗号化されたままです。",
     send_reset_link: "リセットリンクを送信",
     print_codes: "印刷",
     codes_copied: "コードをコピーしました。",
@@ -9433,9 +9426,9 @@ export const ja = {
       "別のアカウントのメッセージを Aster に移行します。すべて保存前にお使いのデバイスで暗号化されます。",
     import_mail_skip: "空の受信トレイで始める",
     import_mail_privacy_note: "後から設定で取り込むこともできます。",
-    password_reset_successful: "パスワードのリセットに成功しました",
+    password_reset_successful: "パスワードがリセットされました",
     account_recovered_sign_in:
-      "アカウントが復旧しました。新しいパスワードでサインインできます。",
+      "新しいパスワードでサインインしてください。サインイン後、リカバリーコードまたは以前のパスワードで以前のメールのロックを解除できます。",
     check_your_inbox: "受信トレイを確認してください",
     generating_encryption_keys: "暗号化キーを生成中...",
     creating_identity_keypair: "IDキーペアを作成中...",

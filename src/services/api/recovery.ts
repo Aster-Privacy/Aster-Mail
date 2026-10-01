@@ -212,6 +212,7 @@ export interface SaveRecoveryBackupOptions {
 }
 
 export interface ResetSecondFactorStatus {
+  address?: string;
   required: boolean;
   verified: boolean;
   totp: boolean;
@@ -366,6 +367,25 @@ export async function fetch_inactive_key_set(
   return api_client.post<FetchInactiveKeySetResponse>(
     "/core/v1/recovery/inactive/fetch",
     { inactive_vault_id },
+  );
+}
+
+export interface InactiveKeySetCodeUnlock {
+  inactive_vault_id: string;
+  encrypted_vault_backup: string;
+  vault_backup_nonce: string;
+  recovery_key_salt: string;
+  encrypted_recovery_key: string;
+  recovery_key_nonce: string;
+  code_salt: string;
+}
+
+export async function unlock_inactive_key_sets_with_code(
+  code_hash: string,
+): Promise<ApiResponse<{ key_sets: InactiveKeySetCodeUnlock[] }>> {
+  return api_client.post<{ key_sets: InactiveKeySetCodeUnlock[] }>(
+    "/core/v1/recovery/inactive/unlock-with-code",
+    { code_hash },
   );
 }
 

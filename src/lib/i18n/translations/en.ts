@@ -1298,6 +1298,14 @@ export const en: Translations = {
     recover_data_success: "Your older data is unlocked.",
     recover_data_no_match:
       "That password didn't unlock any data. Try another previous password.",
+    recover_data_code_description:
+      "To unlock mail from before a password reset, enter one of the recovery codes you saved before the reset.",
+    recover_data_code_no_match:
+      "That code didn't unlock any data. Enter a code you saved before the reset.",
+    recover_data_partial:
+      "Some of your earlier mail is unlocked. To unlock the rest, enter your previous password.",
+    recover_data_rate_limited:
+      "Too many attempts. Wait 30 minutes, then try again.",
     recover_data_failed:
       "Some data couldn't be unlocked. Check your connection and try again.",
     payment_past_due_message:
@@ -9251,20 +9259,6 @@ export const en: Translations = {
       "Regain access to your account. Encrypted mail from before the reset cannot be read again unless you later find your phrase or a code.",
     phrase_recovery_failed:
       "This phrase does not match this account. Check the words and the email address.",
-    reset_consent_title: "This reset cannot decrypt your old data",
-    reset_consent_keeps:
-      "You keep: your email address, all your aliases (mail keeps arriving), your subscription, and your account.",
-    reset_consent_loses:
-      "You lose access to: all encrypted mail, contacts, alias labels, and settings from before the reset. They stay stored encrypted and can be unlocked later only if you remember your old password.",
-    reset_consent_last_chance:
-      "Do you have your recovery phrase or a recovery code? Either one restores everything.",
-    reset_consent_use_phrase_instead: "Use my phrase or code instead",
-    reset_consent_checkbox:
-      "I understand my encrypted data will be unreadable after this reset",
-    reset_consent_type_email: "Type your full email address to confirm",
-    reset_consent_email_mismatch:
-      "The email address does not match this account.",
-    reset_consent_continue: "Reset password anyway",
     reset_second_factor_title: "Confirm it's you",
     reset_second_factor_description:
       "This account uses two-factor authentication. Verify a second factor before you reset the password.",
@@ -9315,10 +9309,14 @@ export const en: Translations = {
     email_me_reset_link: "Email me a reset link",
     reset_link_sent_title: "Check your recovery email",
     reset_link_sent_desc:
-      "If this username is registered and has a verified recovery email, a password reset link has been sent. The link expires in 30 minutes.",
+      "If this account has a verified recovery email, Aster Mail sent a reset link to it. The link expires in 30 minutes. If you don't see the email, check your spam folder.",
     sending_reset_link: "Sending reset link...",
     reset_your_password: "Reset your password",
-    reset_choose_new_password: "Choose a new password for your account.",
+    reset_choose_new_password:
+      "Choose a new password. Your earlier mail stays encrypted, and you can unlock it after you sign in with a recovery code or your previous password.",
+    reset_use_recovery_code: "Use a recovery code instead",
+    reset_new_codes_desc:
+      "Save these codes somewhere safe. Keep your old codes too, because one of them can unlock your earlier mail after you sign in.",
     reset_invalid_or_expired:
       "This reset link is invalid or has expired. Please request a new one.",
     request_new_reset_link: "Request a new reset link",
@@ -9359,12 +9357,12 @@ export const en: Translations = {
     other_way_code_desc: "Enter one of the codes you saved.",
     other_way_email_title: "Reset with your recovery email",
     other_way_email_desc:
-      "Aster Mail sends a link to your recovery email. You lose access to mail from before the reset.",
+      "Aster Mail sends a link to your recovery email so you can choose a new password.",
     other_way_none_title: "I do not have any of these",
     other_way_none_desc: "Contact support for help with what comes next.",
-    reset_account_title: "Reset your account?",
+    reset_account_title: "Reset with your recovery email",
     reset_account_desc:
-      "Your encrypted mail, contacts, and files from before the reset stay locked until you recover them with your old password. You get a new, empty encryption key.",
+      "Aster Mail sends a link to your recovery email. Open it to choose a new password. Your earlier mail stays encrypted until you unlock it with a recovery code or your previous password.",
     send_reset_link: "Send reset link",
     print_codes: "Print",
     codes_copied: "Codes copied.",
@@ -9386,9 +9384,9 @@ export const en: Translations = {
       "Move messages from another account into Aster. Everything is encrypted on your device before it is stored.",
     import_mail_skip: "Start with an empty inbox",
     import_mail_privacy_note: "You can also import later from Settings.",
-    password_reset_successful: "Password reset successful",
+    password_reset_successful: "Your password is reset",
     account_recovered_sign_in:
-      "Your account has been recovered. You can now sign in with your new password.",
+      "Sign in with your new password. After you sign in, you can unlock your earlier mail with a recovery code or your previous password.",
     recovery_email_verified: "Recovery email verified",
     recovery_email_verified_desc:
       "Your recovery email has been successfully verified and linked to your account.",

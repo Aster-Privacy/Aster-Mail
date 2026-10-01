@@ -48,6 +48,7 @@ export interface OtherWaysStepProps extends StepProps {
 }
 
 export interface ResetEmailConfirmStepProps extends StepProps {
+  email: string;
   on_send_reset_link: () => void;
 }
 
@@ -57,6 +58,7 @@ export interface SupportStepProps extends StepProps {
 }
 
 export interface EmailSentStepProps {
+  email: string;
   reduce_motion: boolean;
   on_navigate_sign_in: () => void;
 }

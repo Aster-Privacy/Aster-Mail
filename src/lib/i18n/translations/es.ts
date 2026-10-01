@@ -1286,6 +1286,14 @@ export const es = {
     recover_data_success: "Tus datos más antiguos están desbloqueados.",
     recover_data_no_match:
       "Esa contraseña no desbloqueó ningún dato. Prueba con otra contraseña anterior.",
+    recover_data_code_description:
+      "Para desbloquear el correo anterior a un restablecimiento de contraseña, introduce uno de los códigos de recuperación que guardaste antes del restablecimiento.",
+    recover_data_code_no_match:
+      "Ese código no desbloqueó ningún dato. Introduce un código que guardaste antes del restablecimiento.",
+    recover_data_partial:
+      "Parte de tu correo anterior está desbloqueado. Para desbloquear el resto, introduce tu contraseña anterior.",
+    recover_data_rate_limited:
+      "Demasiados intentos. Espera 30 minutos y vuelve a intentarlo.",
     recover_data_failed:
       "No se pudieron desbloquear algunos datos. Comprueba tu conexión e inténtalo de nuevo.",
     payment_past_due_message:
@@ -9417,22 +9425,6 @@ export const es = {
       "Recupera el acceso a tu cuenta. El correo cifrado anterior al restablecimiento no podrá leerse de nuevo a menos que más adelante encuentres tu frase o un código.",
     phrase_recovery_failed:
       "Esta frase no corresponde a esta cuenta. Revisa las palabras y la dirección de correo.",
-    reset_consent_title:
-      "Este restablecimiento no puede descifrar tus datos anteriores",
-    reset_consent_keeps:
-      "Conservas: tu dirección de correo, todos tus alias (el correo sigue llegando), tu suscripción y tu cuenta.",
-    reset_consent_loses:
-      "Pierdes el acceso a: todo el correo cifrado, los contactos, las etiquetas de alias y la configuración anteriores al restablecimiento. Permanecen almacenados cifrados y solo podrán desbloquearse más adelante si recuerdas tu contraseña anterior.",
-    reset_consent_last_chance:
-      "¿Tienes tu frase de recuperación o un código de recuperación? Cualquiera de los dos lo restaura todo.",
-    reset_consent_use_phrase_instead: "Usar mi frase o código en su lugar",
-    reset_consent_checkbox:
-      "Entiendo que mis datos cifrados serán ilegibles después de este restablecimiento",
-    reset_consent_type_email:
-      "Escribe tu dirección de correo completa para confirmar",
-    reset_consent_email_mismatch:
-      "La dirección de correo no coincide con esta cuenta.",
-    reset_consent_continue: "Restablecer la contraseña de todos modos",
     reset_second_factor_title: "Confirma que eres tú",
     reset_second_factor_description:
       "Esta cuenta usa la autenticación de dos factores. Verifica un segundo factor antes de restablecer la contraseña.",
@@ -9484,10 +9476,14 @@ export const es = {
     email_me_reset_link: "Enviarme un enlace de restablecimiento por correo",
     reset_link_sent_title: "Revisa tu correo de recuperación",
     reset_link_sent_desc:
-      "Si este nombre de usuario está registrado y tiene un correo de recuperación verificado, se ha enviado un enlace para restablecer la contraseña. El enlace caduca en 30 minutos.",
+      "Si esta cuenta tiene un correo de recuperación verificado, Aster Mail le ha enviado un enlace de restablecimiento. El enlace caduca en 30 minutos. Si no ves el mensaje, revisa tu carpeta de spam.",
     sending_reset_link: "Enviando enlace de restablecimiento...",
     reset_your_password: "Restablece tu contraseña",
-    reset_choose_new_password: "Elige una nueva contraseña para tu cuenta.",
+    reset_choose_new_password:
+      "Elige una nueva contraseña. Tu correo anterior sigue cifrado y puedes desbloquearlo después de iniciar sesión con un código de recuperación o tu contraseña anterior.",
+    reset_use_recovery_code: "Usar un código de recuperación",
+    reset_new_codes_desc:
+      "Guarda estos códigos en un lugar seguro. Conserva también tus códigos antiguos, porque uno de ellos puede desbloquear tu correo anterior después de iniciar sesión.",
     reset_invalid_or_expired:
       "Este enlace de restablecimiento no es válido o ha caducado. Solicita uno nuevo.",
     request_new_reset_link: "Solicitar un nuevo enlace de restablecimiento",
@@ -9528,13 +9524,13 @@ export const es = {
     other_way_code_desc: "Introduce uno de los códigos que guardaste.",
     other_way_email_title: "Restablecer con tu correo de recuperación",
     other_way_email_desc:
-      "Aster Mail envía un enlace a tu correo de recuperación. Pierdes el acceso al correo anterior al restablecimiento.",
+      "Aster Mail envía un enlace a tu correo de recuperación para que elijas una nueva contraseña.",
     other_way_none_title: "No tengo ninguna de estas opciones",
     other_way_none_desc:
       "Contacta con soporte y te ayudamos con los siguientes pasos.",
-    reset_account_title: "¿Restablecer tu cuenta?",
+    reset_account_title: "Restablecer con tu correo de recuperación",
     reset_account_desc:
-      "Tu correo, contactos y archivos cifrados anteriores al restablecimiento siguen bloqueados hasta que los recuperes con tu contraseña anterior. Obtienes una clave de cifrado nueva y vacía.",
+      "Aster Mail envía un enlace a tu correo de recuperación. Ábrelo para elegir una nueva contraseña. Tu correo anterior sigue cifrado hasta que lo desbloquees con un código de recuperación o tu contraseña anterior.",
     send_reset_link: "Enviar enlace de restablecimiento",
     print_codes: "Imprimir",
     codes_copied: "Códigos copiados.",
@@ -9556,9 +9552,9 @@ export const es = {
     import_mail_skip: "Empezar con la bandeja vacía",
     import_mail_privacy_note:
       "También puedes importar más tarde desde Ajustes.",
-    password_reset_successful: "Contraseña restablecida exitosamente",
+    password_reset_successful: "Tu contraseña se ha restablecido",
     account_recovered_sign_in:
-      "Tu cuenta ha sido recuperada. Ahora puedes iniciar sesión con tu nueva contraseña.",
+      "Inicia sesión con tu nueva contraseña. Después, puedes desbloquear tu correo anterior con un código de recuperación o tu contraseña anterior.",
     check_your_inbox: "Revisa tu bandeja de entrada",
     generating_encryption_keys: "Generando claves de cifrado...",
     creating_identity_keypair: "Creando par de claves de identidad...",

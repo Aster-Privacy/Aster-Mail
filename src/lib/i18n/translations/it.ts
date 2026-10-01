@@ -1267,6 +1267,13 @@ export const it = {
     recover_data_success: "I tuoi dati meno recenti sono sbloccati.",
     recover_data_no_match:
       "Questa password non ha sbloccato alcun dato. Prova un'altra password precedente.",
+    recover_data_code_description:
+      "Per sbloccare le email precedenti a una reimpostazione della password, inserisci uno dei codici di recupero che hai salvato prima della reimpostazione.",
+    recover_data_code_no_match:
+      "Quel codice non ha sbloccato alcun dato. Inserisci un codice che hai salvato prima della reimpostazione.",
+    recover_data_partial:
+      "Una parte delle tue email precedenti è sbloccata. Per sbloccare il resto, inserisci la password precedente.",
+    recover_data_rate_limited: "Troppi tentativi. Attendi 30 minuti e riprova.",
     recover_data_failed:
       "Non è stato possibile sbloccare alcuni dati. Controlla la connessione e riprova.",
     payment_past_due_message:
@@ -9458,22 +9465,6 @@ export const it = {
       "Riottiene l'accesso al suo account. La posta crittografata precedente al ripristino non potrà più essere letta, a meno che in seguito non ritrovi la sua frase o un codice.",
     phrase_recovery_failed:
       "Questa frase non corrisponde a questo account. Controlli le parole e l'indirizzo email.",
-    reset_consent_title:
-      "Questo ripristino non può decifrare i suoi vecchi dati",
-    reset_consent_keeps:
-      "Mantiene: il suo indirizzo email, tutti i suoi alias (la posta continua ad arrivare), il suo abbonamento e il suo account.",
-    reset_consent_loses:
-      "Perde l'accesso a: tutta la posta crittografata, i contatti, le etichette degli alias e le impostazioni precedenti al ripristino. Restano archiviati crittografati e potranno essere sbloccati in seguito solo se ricorda la sua vecchia password.",
-    reset_consent_last_chance:
-      "Ha la sua frase di recupero o un codice di recupero? Ognuno dei due ripristina tutto.",
-    reset_consent_use_phrase_instead: "Usa invece la mia frase o il mio codice",
-    reset_consent_checkbox:
-      "Capisco che i miei dati crittografati saranno illeggibili dopo questo ripristino",
-    reset_consent_type_email:
-      "Digiti il suo indirizzo email completo per confermare",
-    reset_consent_email_mismatch:
-      "L'indirizzo email non corrisponde a questo account.",
-    reset_consent_continue: "Reimposta comunque la password",
     reset_second_factor_title: "Conferma la tua identità",
     reset_second_factor_description:
       "Questo account usa l'autenticazione a due fattori. Verifica un secondo fattore prima di reimpostare la password.",
@@ -9526,10 +9517,14 @@ export const it = {
     email_me_reset_link: "Inviami un link di reimpostazione via email",
     reset_link_sent_title: "Controlla la tua email di recupero",
     reset_link_sent_desc:
-      "Se questo nome utente è registrato e ha un'email di recupero verificata, è stato inviato un link per reimpostare la password. Il link scade tra 30 minuti.",
+      "Se questo account ha un'email di recupero verificata, Aster Mail vi ha inviato un link di reimpostazione. Il link scade tra 30 minuti. Se non vedi l'email, controlla la cartella spam.",
     sending_reset_link: "Invio del link di reimpostazione...",
     reset_your_password: "Reimposta la tua password",
-    reset_choose_new_password: "Scegli una nuova password per il tuo account.",
+    reset_choose_new_password:
+      "Scegli una nuova password. Le tue email precedenti restano crittografate e puoi sbloccarle dopo l'accesso con un codice di recupero o con la password precedente.",
+    reset_use_recovery_code: "Usa un codice di recupero",
+    reset_new_codes_desc:
+      "Salva questi codici in un luogo sicuro. Conserva anche i vecchi codici, perché uno di essi può sbloccare le tue email precedenti dopo l'accesso.",
     reset_invalid_or_expired:
       "Questo link di reimpostazione non è valido o è scaduto. Richiedine uno nuovo.",
     request_new_reset_link: "Richiedi un nuovo link di reimpostazione",
@@ -9570,13 +9565,13 @@ export const it = {
     other_way_code_desc: "Inserisci uno dei codici che hai salvato.",
     other_way_email_title: "Reimposta con la tua email di recupero",
     other_way_email_desc:
-      "Aster Mail invia un link alla tua email di recupero. Perdi l'accesso alla posta precedente alla reimpostazione.",
+      "Aster Mail invia un link alla tua email di recupero per farti scegliere una nuova password.",
     other_way_none_title: "Non ho nessuna di queste opzioni",
     other_way_none_desc:
       "Contatta l'assistenza e ti aiutiamo con i passaggi successivi.",
-    reset_account_title: "Reimpostare il tuo account?",
+    reset_account_title: "Reimposta con la tua email di recupero",
     reset_account_desc:
-      "La posta, i contatti e i file cifrati precedenti alla reimpostazione restano bloccati finché non li recuperi con la tua vecchia password. Ricevi una nuova chiave di cifratura vuota.",
+      "Aster Mail invia un link alla tua email di recupero. Aprilo per scegliere una nuova password. Le tue email precedenti restano crittografate finché non le sblocchi con un codice di recupero o con la password precedente.",
     send_reset_link: "Invia link di reimpostazione",
     print_codes: "Stampa",
     codes_copied: "Codici copiati.",
@@ -9599,9 +9594,9 @@ export const it = {
     import_mail_skip: "Inizia con una casella vuota",
     import_mail_privacy_note:
       "Puoi importare anche più tardi dalle Impostazioni.",
-    password_reset_successful: "Reimpostazione password riuscita",
+    password_reset_successful: "La tua password è stata reimpostata",
     account_recovered_sign_in:
-      "Il tuo account è stato recuperato. Ora puoi accedere con la tua nuova password.",
+      "Accedi con la nuova password. Dopo l'accesso puoi sbloccare le tue email precedenti con un codice di recupero o con la password precedente.",
     check_your_inbox: "Controlla la tua posta in arrivo",
     generating_encryption_keys: "Generazione chiavi di crittografia...",
     creating_identity_keypair: "Creazione coppia di chiavi di identità...",

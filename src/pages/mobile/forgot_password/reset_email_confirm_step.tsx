@@ -24,7 +24,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeftIcon } from "@heroicons/react/20/solid";
 
 import { use_i18n } from "@/lib/i18n/context";
-import { WarningIcon } from "@/pages/forgot_password/shared";
 import {
   stagger_container,
   fade_up_item,
@@ -37,6 +36,7 @@ import {
 } from "@/components/auth/mobile_auth_motion";
 
 export function ResetEmailConfirmStep({
+  email,
   error,
   is_dark,
   reduce_motion,
@@ -70,19 +70,19 @@ export function ResetEmailConfirmStep({
         initial={reduce_motion ? false : "initial"}
         variants={reduce_motion ? undefined : stagger_container}
       >
-        <motion.div
-          className="text-[var(--color-warning)]"
-          variants={reduce_motion ? undefined : fade_up_item}
-        >
-          <WarningIcon />
-        </motion.div>
-
         <motion.h1
-          className="mt-6 text-center text-xl font-semibold text-[var(--text-primary)]"
+          className="text-center text-xl font-semibold text-[var(--text-primary)]"
           variants={reduce_motion ? undefined : fade_up_item}
         >
           {t("auth.reset_account_title")}
         </motion.h1>
+
+        <motion.p
+          className="notranslate mt-1 max-w-full truncate text-center text-sm font-medium text-[var(--text-primary)]"
+          variants={reduce_motion ? undefined : fade_up_item}
+        >
+          {email}
+        </motion.p>
 
         <motion.p
           className="mt-2 text-center text-sm leading-relaxed text-[var(--text-tertiary)]"

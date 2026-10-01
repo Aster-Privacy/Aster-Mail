@@ -1261,6 +1261,14 @@ export const tr = {
     recover_data_success: "Eski verilerinizin kilidi açıldı.",
     recover_data_no_match:
       "Bu parola hiçbir verinin kilidini açmadı. Başka bir eski parola deneyin.",
+    recover_data_code_description:
+      "Parola sıfırlamadan önceki postaların kilidini açmak için sıfırlamadan önce kaydettiğiniz kurtarma kodlarından birini girin.",
+    recover_data_code_no_match:
+      "Bu kod hiçbir verinin kilidini açmadı. Sıfırlamadan önce kaydettiğiniz bir kod girin.",
+    recover_data_partial:
+      "Önceki postalarınızın bir kısmının kilidi açıldı. Kalanının kilidini açmak için önceki parolanızı girin.",
+    recover_data_rate_limited:
+      "Çok fazla deneme yapıldı. 30 dakika bekleyip tekrar deneyin.",
     recover_data_failed:
       "Bazı verilerin kilidi açılamadı. Bağlantınızı kontrol edip tekrar deneyin.",
     payment_past_due_message:
@@ -9310,20 +9318,6 @@ export const tr = {
       "Hesabınıza yeniden erişim kazanırsınız. Sıfırlamadan önceki şifreli postalar, ifadenizi veya bir kodu daha sonra bulmadıkça bir daha okunamaz.",
     phrase_recovery_failed:
       "Bu ifade bu hesapla eşleşmiyor. Kelimeleri ve e-posta adresini kontrol edin.",
-    reset_consent_title: "Bu sıfırlama eski verilerinizin şifresini çözemez",
-    reset_consent_keeps:
-      "Şunlar sizde kalır: e-posta adresiniz, tüm rumuzlarınız (posta gelmeye devam eder), aboneliğiniz ve hesabınız.",
-    reset_consent_loses:
-      "Şunlara erişimi kaybedersiniz: sıfırlamadan önceki tüm şifreli postalar, kişiler, rumuz etiketleri ve ayarlar. Bunlar şifreli olarak saklanmaya devam eder ve yalnızca eski parolanızı hatırlarsanız daha sonra kilitleri açılabilir.",
-    reset_consent_last_chance:
-      "Kurtarma ifadeniz veya bir kurtarma kodunuz var mı? İkisinden biri her şeyi geri yükler.",
-    reset_consent_use_phrase_instead: "Bunun yerine ifademi veya kodumu kullan",
-    reset_consent_checkbox:
-      "Bu sıfırlamadan sonra şifreli verilerimin okunamaz olacağını anlıyorum",
-    reset_consent_type_email:
-      "Onaylamak için e-posta adresinizin tamamını yazın",
-    reset_consent_email_mismatch: "E-posta adresi bu hesapla eşleşmiyor.",
-    reset_consent_continue: "Yine de parolayı sıfırla",
     reset_second_factor_title: "Sen olduğunu doğrula",
     reset_second_factor_description:
       "Bu hesap iki adımlı doğrulama kullanıyor. Parolayı sıfırlamadan önce ikinci bir adımı doğrula.",
@@ -9375,10 +9369,14 @@ export const tr = {
     email_me_reset_link: "Bana e-posta ile sıfırlama bağlantısı gönder",
     reset_link_sent_title: "Kurtarma e-postanızı kontrol edin",
     reset_link_sent_desc:
-      "Bu kullanıcı adı kayıtlıysa ve doğrulanmış bir kurtarma e-postası varsa, parola sıfırlama bağlantısı gönderildi. Bağlantının süresi 30 dakika içinde dolar.",
+      "Bu hesabın doğrulanmış bir kurtarma e-postası varsa Aster Mail oraya bir sıfırlama bağlantısı gönderdi. Bağlantının süresi 30 dakika içinde dolar. E-postayı görmüyorsanız spam klasörünüzü kontrol edin.",
     sending_reset_link: "Sıfırlama bağlantısı gönderiliyor...",
     reset_your_password: "Parolanızı sıfırlayın",
-    reset_choose_new_password: "Hesabınız için yeni bir parola seçin.",
+    reset_choose_new_password:
+      "Yeni bir parola seçin. Önceki postalarınız şifreli kalır ve oturum açtıktan sonra bir kurtarma kodu veya önceki parolanızla kilidini açabilirsiniz.",
+    reset_use_recovery_code: "Bunun yerine kurtarma kodu kullanın",
+    reset_new_codes_desc:
+      "Bu kodları güvenli bir yere kaydedin. Eski kodlarınızı da saklayın, çünkü bunlardan biri oturum açtıktan sonra önceki postalarınızın kilidini açabilir.",
     reset_invalid_or_expired:
       "Bu sıfırlama bağlantısı geçersiz veya süresi dolmuş. Lütfen yenisini isteyin.",
     request_new_reset_link: "Yeni sıfırlama bağlantısı iste",
@@ -9423,13 +9421,13 @@ export const tr = {
     other_way_code_desc: "Kaydettiğiniz kodlardan birini girin.",
     other_way_email_title: "Kurtarma e-postanızla sıfırlayın",
     other_way_email_desc:
-      "Aster Mail kurtarma e-postanıza bir bağlantı gönderir. Sıfırlamadan önceki postalara erişiminizi kaybedersiniz.",
+      "Aster Mail, yeni bir parola seçebilmeniz için kurtarma e-postanıza bir bağlantı gönderir.",
     other_way_none_title: "Bunların hiçbiri bende yok",
     other_way_none_desc:
       "Destek ile iletişime geçin, sonraki adımlarda yardımcı olalım.",
-    reset_account_title: "Hesabınız sıfırlansın mı?",
+    reset_account_title: "Kurtarma e-postanızla sıfırlayın",
     reset_account_desc:
-      "Sıfırlamadan önceki şifrelenmiş postanız, kişileriniz ve dosyalarınız, eski parolanızla kurtarana kadar kilitli kalır. Yeni ve boş bir şifreleme anahtarı alırsınız.",
+      "Aster Mail kurtarma e-postanıza bir bağlantı gönderir. Yeni bir parola seçmek için bağlantıyı açın. Önceki postalarınız, bir kurtarma kodu veya önceki parolanızla kilidini açana kadar şifreli kalır.",
     send_reset_link: "Sıfırlama bağlantısı gönder",
     print_codes: "Yazdır",
     codes_copied: "Kodlar kopyalandı.",
@@ -9445,9 +9443,9 @@ export const tr = {
     review_codes_left: "{{count}} kurtarma kodu kaldı.",
     review_codes_left_one: "{{count}} kurtarma kodu kaldı.",
     review_codes_left_other: "{{count}} kurtarma kodu kaldı.",
-    password_reset_successful: "Parola sıfırlama başarılı",
+    password_reset_successful: "Parolanız sıfırlandı",
     account_recovered_sign_in:
-      "Hesabınız kurtarıldı. Artık yeni parolanızla giriş yapabilirsiniz.",
+      "Yeni parolanızla oturum açın. Ardından bir kurtarma kodu veya önceki parolanızla önceki postalarınızın kilidini açabilirsiniz.",
     check_your_inbox: "Gelen kutunuzu kontrol edin",
     generating_encryption_keys: "Şifreleme anahtarları oluşturuluyor...",
     creating_identity_keypair: "Kimlik anahtar çifti oluşturuluyor...",

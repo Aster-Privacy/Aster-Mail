@@ -1010,7 +1010,6 @@ describe.runIf(RUN)("destructive reset preservation e2e", () => {
   let account: Awaited<ReturnType<typeof build_account>>;
   let user_id: string;
   let phrase: string;
-  let fresh_account_codes: string[] = [];
 
   it(
     "registers a format 2 account with an alias and a phrase wrap",
@@ -1066,8 +1065,6 @@ describe.runIf(RUN)("destructive reset preservation e2e", () => {
 
       const fresh = await build_account(username, password_v2);
 
-      fresh_account_codes = fresh.codes;
-
       const reset = await api("/core/v1/recovery/reset-password", "POST", {
         token: initiate.json.recovery_token,
         new_password_hash: fresh.password_hash,
@@ -1110,40 +1107,6 @@ describe.runIf(RUN)("destructive reset preservation e2e", () => {
       );
 
       expect(old_vault.data_kek).toBe(array_to_base64(account.master_key));
-    },
-  );
-
-  it(
-    "new shape reset requires the data loss acknowledgement",
-    { timeout: 60000 },
-    async () => {
-      const fresh_code = fresh_account_codes[0];
-      const code_hash = await hash_recovery_code(fresh_code);
-      const initiate = await api("/core/v1/recovery/initiate", "POST", {
-        code_hash,
-        email: account.email,
-      });
-
-      expect(initiate.status, JSON.stringify(initiate.json)).toBe(200);
-
-      const { status, json } = await api(
-        "/core/v1/recovery/reset-password",
-        "POST",
-        {
-          token: initiate.json.recovery_token,
-          new_password_hash: account.password_hash,
-          new_password_salt: account.password_salt,
-          new_encrypted_vault: account.encrypted_vault,
-          new_vault_nonce: account.vault_nonce,
-          new_recovery_shares: account.recovery_shares,
-          new_encrypted_vault_backup: account.vault_backup.encrypted_data,
-          new_vault_backup_nonce: account.vault_backup.nonce,
-          new_recovery_key_salt: account.vault_backup.salt,
-          vault_format: MASTER_KEY_VAULT_FORMAT,
-        },
-      );
-
-      expect(status, JSON.stringify(json)).toBe(400);
     },
   );
 

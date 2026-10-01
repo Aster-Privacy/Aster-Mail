@@ -1180,6 +1180,14 @@ export const pt_br = {
     recover_data_success: "Seus dados mais antigos foram desbloqueados.",
     recover_data_no_match:
       "Essa senha não desbloqueou nenhum dado. Tente outra senha anterior.",
+    recover_data_code_description:
+      "Para desbloquear e-mails anteriores a uma redefinição de senha, digite um dos códigos de recuperação que você salvou antes da redefinição.",
+    recover_data_code_no_match:
+      "Esse código não desbloqueou nenhum dado. Digite um código que você salvou antes da redefinição.",
+    recover_data_partial:
+      "Parte dos seus e-mails anteriores está desbloqueada. Para desbloquear o restante, digite sua senha anterior.",
+    recover_data_rate_limited:
+      "Muitas tentativas. Aguarde 30 minutos e tente novamente.",
     recover_data_failed:
       "Não foi possível desbloquear alguns dados. Verifique sua conexão e tente novamente.",
     payment_past_due_message:
@@ -9453,22 +9461,6 @@ export const pt_br = {
       "Esta não é uma frase de recuperação válida. Verifique as palavras e a ordem delas.",
     phrase_recovery_failed:
       "Esta frase não corresponde a esta conta. Verifique as palavras e o endereço de e-mail.",
-    reset_consent_title:
-      "Esta redefinição não pode descriptografar seus dados antigos",
-    reset_consent_keeps:
-      "Você mantém: seu endereço de e-mail, todos os seus aliases (os e-mails continuam chegando), sua assinatura e sua conta.",
-    reset_consent_loses:
-      "Você perde o acesso a: todos os e-mails criptografados, contatos, etiquetas de aliases e configurações de antes da redefinição. Eles continuam armazenados criptografados e só podem ser desbloqueados depois se você lembrar da sua senha antiga.",
-    reset_consent_last_chance:
-      "Você tem sua frase de recuperação ou um código de recuperação? Qualquer um deles restaura tudo.",
-    reset_consent_use_phrase_instead: "Usar minha frase ou código em vez disso",
-    reset_consent_checkbox:
-      "Entendo que meus dados criptografados ficarão ilegíveis após esta redefinição",
-    reset_consent_type_email:
-      "Digite seu endereço de e-mail completo para confirmar",
-    reset_consent_email_mismatch:
-      "O endereço de e-mail não corresponde a esta conta.",
-    reset_consent_continue: "Redefinir a senha mesmo assim",
     no_ads_no_tracking: "Sem anúncios, sem rastreamento",
     use_8_characters: "Use pelo menos 8 caracteres",
     try_12_characters: "Tente 12+ caracteres para melhor segurança",
@@ -9511,10 +9503,14 @@ export const pt_br = {
     email_me_reset_link: "Enviar um link de redefinição por e-mail",
     reset_link_sent_title: "Verifique seu e-mail de recuperação",
     reset_link_sent_desc:
-      "Se este nome de usuário estiver registrado e tiver um e-mail de recuperação verificado, um link de redefinição de senha foi enviado. O link expira em 30 minutos.",
+      "Se esta conta tiver um e-mail de recuperação verificado, o Aster Mail enviou um link de redefinição para ele. O link expira em 30 minutos. Se você não encontrar o e-mail, verifique a pasta de spam.",
     sending_reset_link: "Enviando link de redefinição...",
     reset_your_password: "Redefina sua senha",
-    reset_choose_new_password: "Escolha uma nova senha para sua conta.",
+    reset_choose_new_password:
+      "Escolha uma nova senha. Seus e-mails anteriores continuam criptografados, e você pode desbloqueá-los depois de entrar com um código de recuperação ou sua senha anterior.",
+    reset_use_recovery_code: "Usar um código de recuperação",
+    reset_new_codes_desc:
+      "Guarde estes códigos em um lugar seguro. Mantenha também seus códigos antigos, porque um deles pode desbloquear seus e-mails anteriores depois que você entrar.",
     reset_invalid_or_expired:
       "Este link de redefinição é inválido ou expirou. Solicite um novo.",
     request_new_reset_link: "Solicitar um novo link de redefinição",
@@ -9539,9 +9535,9 @@ export const pt_br = {
     import_mail_skip: "Começar com a caixa vazia",
     import_mail_privacy_note:
       "Você também pode importar mais tarde em Configurações.",
-    password_reset_successful: "Senha redefinida com sucesso",
+    password_reset_successful: "Sua senha foi redefinida",
     account_recovered_sign_in:
-      "Sua conta foi recuperada. Agora você pode entrar com sua nova senha.",
+      "Entre com sua nova senha. Depois, você pode desbloquear seus e-mails anteriores com um código de recuperação ou sua senha anterior.",
     check_your_inbox: "Verifique sua caixa de entrada",
     generating_encryption_keys: "Gerando chaves de criptografia...",
     creating_identity_keypair: "Criando par de chaves de identidade...",
@@ -9764,13 +9760,13 @@ export const pt_br = {
     other_way_code_desc: "Digite um dos códigos que você salvou.",
     other_way_email_title: "Redefinir com seu e-mail de recuperação",
     other_way_email_desc:
-      "O Aster Mail envia um link para seu e-mail de recuperação. Você perde o acesso aos e-mails anteriores à redefinição.",
+      "O Aster Mail envia um link para seu e-mail de recuperação para que você escolha uma nova senha.",
     other_way_none_title: "Não tenho nenhuma dessas opções",
     other_way_none_desc:
       "Fale com o suporte para receber ajuda com os próximos passos.",
-    reset_account_title: "Redefinir sua conta?",
+    reset_account_title: "Redefinir com seu e-mail de recuperação",
     reset_account_desc:
-      "Seus e-mails, contatos e arquivos criptografados anteriores à redefinição ficam bloqueados até você recuperá-los com sua senha antiga. Você recebe uma nova chave de criptografia vazia.",
+      "O Aster Mail envia um link para seu e-mail de recuperação. Abra o link para escolher uma nova senha. Seus e-mails anteriores continuam criptografados até que você os desbloqueie com um código de recuperação ou sua senha anterior.",
     send_reset_link: "Enviar link de redefinição",
     print_codes: "Imprimir",
     codes_copied: "Códigos copiados.",

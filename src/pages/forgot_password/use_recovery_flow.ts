@@ -51,6 +51,17 @@ import {
 } from "@/services/crypto/recovery_key";
 import { EncryptedVault } from "@/services/crypto/key_manager_core";
 import {
+  build_backup_vault,
+  read_unlocked_keys,
+  strip_backup_fields,
+  type BackupVault,
+} from "@/services/crypto/backup_unlocked_keys";
+import {
+  MAX_PREVIOUS_KEYS,
+  retained_identity_key_materials,
+} from "@/services/crypto/identity_key_materials";
+import { lock_unlocked_pgp_key } from "@/services/crypto/key_manager_pgp_keygen";
+import {
   encode_escrow_seed,
   generate_escrow_seed,
 } from "@/services/crypto/recovery_key_escrow";
@@ -113,10 +124,14 @@ function read_handoff(state: unknown): {
 } | null {
   if (typeof state !== "object" || state === null) return null;
   const { username, email_domain } = state as RecoveryHandoffState;
+
   if (typeof username !== "string") return null;
   const clean = sanitize_username(
-    username.includes("@") ? username.substring(0, username.indexOf("@")) : username,
+    username.includes("@")
+      ? username.substring(0, username.indexOf("@"))
+      : username,
   );
+
   if (!clean) return null;
   const typed_domain = username.includes("@")
     ? username.substring(username.indexOf("@") + 1).toLowerCase()
@@ -141,9 +156,7 @@ export function use_recovery_flow() {
   const { theme } = useTheme();
   const is_dark = theme === "dark";
 
-  const [step, set_step] = useState<RecoveryStep>(
-    handoff ? "code" : "email",
-  );
+  const [step, set_step] = useState<RecoveryStep>(handoff ? "code" : "email");
   const [email, set_email] = useState(
     handoff ? `${handoff.username}@${handoff.email_domain}` : "",
   );
@@ -343,7 +356,10 @@ export function use_recovery_flow() {
     }
   };
 
-  const rotate_vault_keys = async (vault: EncryptedVault) => {
+  const rotate_vault_keys = async (
+    vault: EncryptedVault,
+    unlocked_keys: Map<string, string>,
+  ) => {
     const display_name = email.split("@")[0] || "User";
 
     const new_identity_keypair = await generate_identity_keypair(
@@ -365,19 +381,37 @@ export function use_recovery_flow() {
       password,
     );
 
-    if (!vault.previous_keys) {
-      vault.previous_keys = [];
+    const retained = await retained_identity_key_materials(vault);
+    const carried: string[] = [];
+    const seen = new Set<string>();
+    let relocked_any = false;
+
+    for (const armored of [
+      vault.identity_key,
+      ...(vault.previous_keys ?? []),
+    ]) {
+      if (!armored || seen.has(armored)) continue;
+      seen.add(armored);
+
+      const open = unlocked_keys.get(armored);
+
+      if (!open) {
+        carried.push(armored);
+        continue;
+      }
+
+      try {
+        carried.push(await lock_unlocked_pgp_key(open, password));
+        relocked_any = true;
+      } catch {
+        carried.push(armored);
+      }
     }
 
-    if (
-      vault.identity_key &&
-      !vault.previous_keys.includes(vault.identity_key)
-    ) {
-      vault.previous_keys.unshift(vault.identity_key);
-    }
+    vault.previous_keys = carried.slice(0, MAX_PREVIOUS_KEYS);
 
-    if (vault.previous_keys.length > 10) {
-      vault.previous_keys = vault.previous_keys.slice(0, 10);
+    if (relocked_any) {
+      vault.legacy_identity_keys = retained;
     }
 
     vault.identity_key = new_identity_keypair.secret_key;
@@ -392,7 +426,10 @@ export function use_recovery_flow() {
     };
   };
 
-  const finish_recovery = async (vault: EncryptedVault) => {
+  const finish_recovery = async (
+    vault: EncryptedVault,
+    unlocked_keys: Map<string, string>,
+  ) => {
     const vault_uses_master_key = is_master_key_vault(vault);
     const old_data_kek = vault.data_kek ?? null;
     const old_identity_key = vault.identity_key;
@@ -409,7 +446,7 @@ export function use_recovery_flow() {
       new_prekey_keypair,
       prekey_signature,
       pgp_key_data,
-    } = await rotate_vault_keys(vault);
+    } = await rotate_vault_keys(vault, unlocked_keys);
 
     const fresh_escrow_seed = generate_escrow_seed();
 
@@ -431,7 +468,10 @@ export function use_recovery_flow() {
 
     set_processing_status(t("auth.creating_new_recovery_backup"));
     const new_recovery_key = generate_recovery_key();
-    const new_backup = await encrypt_vault_backup(vault, new_recovery_key);
+    const new_backup = await encrypt_vault_backup(
+      await build_backup_vault(vault, password),
+      new_recovery_key,
+    );
     const new_shares = await generate_all_recovery_shares(
       new_codes,
       new_recovery_key,
@@ -482,7 +522,8 @@ export function use_recovery_flow() {
 
     if (complete_response.error || !complete_response.data?.success) {
       throw new Error(
-        recovery_error_message(complete_response, t) || t("auth.recovery_failed"),
+        recovery_error_message(complete_response, t) ||
+          t("auth.recovery_failed"),
       );
     }
 
@@ -549,12 +590,21 @@ export function use_recovery_flow() {
       );
 
       set_processing_status(t("auth.recovering_account_data"));
-      const vault = await decrypt_vault_backup(vault_backup, recovery_key);
+      const backup_vault: BackupVault = await decrypt_vault_backup(
+        vault_backup,
+        recovery_key,
+      );
 
       clear_recovery_key(recovery_key);
       recovery_key = null;
 
-      await finish_recovery(vault);
+      const unlocked_keys = read_unlocked_keys(backup_vault);
+
+      try {
+        await finish_recovery(strip_backup_fields(backup_vault), unlocked_keys);
+      } finally {
+        unlocked_keys.clear();
+      }
     } catch (err) {
       if (recovery_key) {
         clear_recovery_key(recovery_key);

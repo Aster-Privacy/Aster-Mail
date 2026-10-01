@@ -31,7 +31,6 @@ import {
   OptionRow,
   PasswordStrengthIndicator,
   ReviewRow,
-  WarningIcon,
   page_transition,
   page_variants,
 } from "./shared";
@@ -344,11 +343,14 @@ export default function ForgotPasswordPage() {
             }}
             variants={page_variants}
           >
-            <WarningIcon />
+            <Logo />
 
             <h1 className="text-xl font-semibold mt-6 text-txt-primary">
               {t("auth.reset_account_title")}
             </h1>
+            <p className="notranslate mt-1 max-w-full truncate text-sm font-medium text-txt-primary">
+              {email}
+            </p>
             <p className="text-sm mt-2 leading-relaxed text-txt-tertiary">
               {t("auth.reset_account_desc")}
             </p>
@@ -777,23 +779,14 @@ export default function ForgotPasswordPage() {
             }}
             variants={page_variants}
           >
-            <svg
-              className="w-8 h-8"
-              fill="none"
-              stroke="var(--color-success)"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-            >
-              <path
-                d="M5 13l4 4L19 7"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+            <Logo />
 
             <h1 className="text-xl font-semibold mt-6 text-txt-primary">
               {t("auth.reset_link_sent_title")}
             </h1>
+            <p className="notranslate mt-1 max-w-full truncate text-sm font-medium text-txt-primary">
+              {email}
+            </p>
             <p className="text-sm mt-2 leading-relaxed text-txt-tertiary">
               {t("auth.reset_link_sent_desc")}
             </p>

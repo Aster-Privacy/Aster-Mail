@@ -1285,6 +1285,14 @@ export const pl = {
     recover_data_success: "Twoje starsze dane zostały odblokowane.",
     recover_data_no_match:
       "To hasło nie odblokowało żadnych danych. Spróbuj innego wcześniejszego hasła.",
+    recover_data_code_description:
+      "Aby odblokować pocztę sprzed resetowania hasła, wpisz jeden z kodów odzyskiwania zapisanych przed resetowaniem.",
+    recover_data_code_no_match:
+      "Ten kod nie odblokował żadnych danych. Wpisz kod zapisany przed resetowaniem.",
+    recover_data_partial:
+      "Część wcześniejszej poczty jest odblokowana. Aby odblokować resztę, wpisz poprzednie hasło.",
+    recover_data_rate_limited:
+      "Zbyt wiele prób. Odczekaj 30 minut i spróbuj ponownie.",
     recover_data_failed:
       "Nie udało się odblokować części danych. Sprawdź połączenie i spróbuj ponownie.",
     payment_past_due_message:
@@ -9589,19 +9597,6 @@ export const pl = {
       "Odzyskaj dostęp do konta. Zaszyfrowanej poczty sprzed resetu nie da się ponownie odczytać, chyba że później odnajdziesz frazę lub kod.",
     phrase_recovery_failed:
       "Ta fraza nie pasuje do tego konta. Sprawdź słowa i adres e-mail.",
-    reset_consent_title: "Ten reset nie odszyfruje Twoich starych danych",
-    reset_consent_keeps:
-      "Zachowujesz: swój adres e-mail, wszystkie aliasy (poczta nadal przychodzi), subskrypcję i konto.",
-    reset_consent_loses:
-      "Tracisz dostęp do: całej zaszyfrowanej poczty, kontaktów, etykiet aliasów i ustawień sprzed resetu. Pozostają one zapisane w formie zaszyfrowanej i można je odblokować później tylko wtedy, gdy pamiętasz stare hasło.",
-    reset_consent_last_chance:
-      "Masz frazę odzyskiwania lub kod odzyskiwania? Każde z nich przywraca wszystko.",
-    reset_consent_use_phrase_instead: "Wolę użyć frazy lub kodu",
-    reset_consent_checkbox:
-      "Rozumiem, że po tym resecie moje zaszyfrowane dane będą nieczytelne",
-    reset_consent_type_email: "Wpisz swój pełny adres e-mail, aby potwierdzić",
-    reset_consent_email_mismatch: "Adres e-mail nie pasuje do tego konta.",
-    reset_consent_continue: "Resetuj hasło mimo to",
     reset_second_factor_title: "Potwierdź, że to Ty",
     reset_second_factor_description:
       "To konto używa uwierzytelniania dwuskładnikowego. Zweryfikuj drugi składnik przed zresetowaniem hasła.",
@@ -9653,10 +9648,14 @@ export const pl = {
     email_me_reset_link: "Wyślij mi link resetujący e-mailem",
     reset_link_sent_title: "Sprawdź swój e-mail odzyskiwania",
     reset_link_sent_desc:
-      "Jeśli ta nazwa użytkownika jest zarejestrowana i ma zweryfikowany e-mail odzyskiwania, link do resetowania hasła został wysłany. Link wygasa za 30 minut.",
+      "Jeśli to konto ma zweryfikowany adres odzyskiwania, Aster Mail wysłał na niego link do resetowania. Link wygasa po 30 minutach. Jeśli nie widzisz wiadomości, sprawdź folder ze spamem.",
     sending_reset_link: "Wysyłanie linku resetującego...",
     reset_your_password: "Zresetuj swoje hasło",
-    reset_choose_new_password: "Wybierz nowe hasło dla swojego konta.",
+    reset_choose_new_password:
+      "Wybierz nowe hasło. Twoja wcześniejsza poczta pozostaje zaszyfrowana i możesz ją odblokować po zalogowaniu za pomocą kodu odzyskiwania lub poprzedniego hasła.",
+    reset_use_recovery_code: "Użyj kodu odzyskiwania",
+    reset_new_codes_desc:
+      "Zapisz te kody w bezpiecznym miejscu. Zachowaj też stare kody, ponieważ jeden z nich może odblokować wcześniejszą pocztę po zalogowaniu.",
     reset_invalid_or_expired:
       "Ten link resetujący jest nieprawidłowy lub wygasł. Poproś o nowy.",
     request_new_reset_link: "Poproś o nowy link resetujący",
@@ -9696,12 +9695,12 @@ export const pl = {
     other_way_code_desc: "Wpisz jeden z zapisanych kodów.",
     other_way_email_title: "Zresetuj przy użyciu adresu odzyskiwania",
     other_way_email_desc:
-      "Aster Mail wysyła link na Twój adres odzyskiwania. Tracisz dostęp do poczty sprzed resetu.",
+      "Aster Mail wysyła link na Twój adres odzyskiwania, aby można było wybrać nowe hasło.",
     other_way_none_title: "Nie mam żadnej z tych opcji",
     other_way_none_desc: "Skontaktuj się z pomocą, a podpowiemy, co dalej.",
-    reset_account_title: "Zresetować konto?",
+    reset_account_title: "Zresetuj przy użyciu adresu odzyskiwania",
     reset_account_desc:
-      "Zaszyfrowana poczta, kontakty i pliki sprzed resetu pozostają zablokowane, dopóki nie odzyskasz ich starym hasłem. Otrzymasz nowy, pusty klucz szyfrowania.",
+      "Aster Mail wysyła link na Twój adres odzyskiwania. Otwórz go, aby wybrać nowe hasło. Twoja wcześniejsza poczta pozostaje zaszyfrowana, dopóki nie odblokujesz jej kodem odzyskiwania lub poprzednim hasłem.",
     send_reset_link: "Wyślij link resetujący",
     print_codes: "Drukuj",
     codes_copied: "Skopiowano kody.",
@@ -9724,9 +9723,9 @@ export const pl = {
       "Przenieś wiadomości z innego konta do Aster. Wszystko jest szyfrowane na Twoim urządzeniu przed zapisaniem.",
     import_mail_skip: "Zacznij z pustą skrzynką",
     import_mail_privacy_note: "Możesz też zaimportować później w Ustawieniach.",
-    password_reset_successful: "Hasło zresetowane pomyślnie",
+    password_reset_successful: "Twoje hasło zostało zresetowane",
     account_recovered_sign_in:
-      "Twoje konto zostało odzyskane. Możesz teraz zalogować się nowym hasłem.",
+      "Zaloguj się nowym hasłem. Potem możesz odblokować wcześniejszą pocztę za pomocą kodu odzyskiwania lub poprzedniego hasła.",
     check_your_inbox: "Sprawdź skrzynkę odbiorczą",
     generating_encryption_keys: "Generowanie kluczy szyfrowania...",
     creating_identity_keypair: "Tworzenie pary kluczy tożsamości...",

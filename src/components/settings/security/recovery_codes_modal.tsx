@@ -65,6 +65,7 @@ import {
   hash_recovery_code,
   stored_recovery_verifier,
 } from "@/services/crypto/recovery_key";
+import { build_backup_vault } from "@/services/crypto/backup_unlocked_keys";
 import {
   save_recovery_backup,
   verify_codes_step_up,
@@ -237,7 +238,7 @@ export function RecoveryCodesModal({
     try {
       const updated_vault = { ...vault, recovery_codes: new_codes };
       const new_backup = await encrypt_vault_backup(
-        updated_vault,
+        await build_backup_vault(updated_vault, passphrase),
         recovery_key,
       );
       const new_shares = await generate_all_recovery_shares(

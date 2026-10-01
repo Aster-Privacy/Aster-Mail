@@ -32,6 +32,7 @@ import {
 } from "@/components/auth/mobile_auth_motion";
 
 export function EmailSentStep({
+  email,
   reduce_motion,
   on_navigate_sign_in,
 }: EmailSentStepProps) {
@@ -44,28 +45,19 @@ export function EmailSentStep({
       initial={reduce_motion ? false : "initial"}
       variants={reduce_motion ? undefined : stagger_container}
     >
-      <motion.div variants={reduce_motion ? undefined : fade_up_item}>
-        <svg
-          className="h-8 w-8"
-          fill="none"
-          stroke="#22c55e"
-          strokeWidth="2"
-          viewBox="0 0 24 24"
-        >
-          <path
-            d="M5 13l4 4L19 7"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </motion.div>
-
       <motion.h1
-        className="mt-6 text-center text-xl font-semibold text-[var(--text-primary)]"
+        className="text-center text-xl font-semibold text-[var(--text-primary)]"
         variants={reduce_motion ? undefined : fade_up_item}
       >
         {t("auth.reset_link_sent_title")}
       </motion.h1>
+
+      <motion.p
+        className="notranslate mt-1 max-w-full truncate text-center text-sm font-medium text-[var(--text-primary)]"
+        variants={reduce_motion ? undefined : fade_up_item}
+      >
+        {email}
+      </motion.p>
 
       <motion.p
         className="mt-2 text-center text-sm leading-relaxed text-[var(--text-tertiary)]"

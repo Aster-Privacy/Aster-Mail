@@ -30,6 +30,9 @@ const h = vi.hoisted(() => ({
   conversion_calls: [] as string[],
   reseal: { checked: 0, rewritten: 0, unreadable: 0, failed: 0 },
   reseal_calls: [] as [string, string][],
+  code_restored: { restored: 0, incomplete: 0 },
+  code_error: null as Error | null,
+  code_calls: [] as string[],
 }));
 
 vi.mock("./api/recovery", () => ({
@@ -44,6 +47,13 @@ vi.mock("./crypto/memory_key_store", () => ({
 }));
 
 vi.mock("./crypto/restore_inactive_keys", () => ({
+  RECOVERY_CODE_RATE_LIMITED: "recovery_code_rate_limited",
+  restore_inactive_key_sets_with_code: async (code: string) => {
+    h.code_calls.push(code);
+    if (h.code_error) throw h.code_error;
+
+    return h.code_restored;
+  },
   restore_inactive_key_sets: async (password: string) => {
     h.restore_calls.push(password);
     if (h.restore_error) throw h.restore_error;
@@ -72,6 +82,7 @@ import {
   get_locked_data_status,
   has_locked_data,
   recover_locked_data,
+  recover_locked_data_with_code,
 } from "./locked_data";
 import {
   LOCKED_DATA_CHANGED_EVENT,
@@ -94,6 +105,9 @@ beforeEach(() => {
   h.conversion_calls = [];
   h.reseal = { checked: 0, rewritten: 0, unreadable: 0, failed: 0 };
   h.reseal_calls = [];
+  h.code_restored = { restored: 0, incomplete: 0 };
+  h.code_error = null;
+  h.code_calls = [];
 });
 
 describe("locked data status", () => {
@@ -145,6 +159,8 @@ describe("recovering locked data", () => {
       restored_key_sets: 0,
       recovered_sent_mail: 0,
       failed: false,
+      incomplete: false,
+      rate_limited: false,
     });
     await recover_locked_data("account-1", "");
 
@@ -162,6 +178,8 @@ describe("recovering locked data", () => {
       restored_key_sets: 1,
       recovered_sent_mail: 4,
       failed: false,
+      incomplete: false,
+      rate_limited: false,
     });
     expect(h.restore_calls).toEqual(["old password"]);
     expect(h.conversion_calls).toEqual(["old password"]);
@@ -218,6 +236,94 @@ describe("recovering locked data", () => {
 
     window.addEventListener(LOCKED_DATA_CHANGED_EVENT, listener);
     await recover_locked_data("account-1", "current password");
+    window.removeEventListener(LOCKED_DATA_CHANGED_EVENT, listener);
+
+    expect(listener).toHaveBeenCalled();
+  });
+});
+
+describe("recovering locked data with a recovery code", () => {
+  const CODE = "ASTER-AAAA-BBBB-CCCC-DDDD";
+
+  it("does nothing without an account or a code", async () => {
+    await recover_locked_data_with_code("", CODE);
+    await recover_locked_data_with_code("account-1", "");
+
+    expect(h.code_calls).toEqual([]);
+  });
+
+  it("reports a full restore", async () => {
+    h.code_restored = { restored: 2, incomplete: 0 };
+
+    expect(await recover_locked_data_with_code("account-1", CODE)).toEqual({
+      restored_key_sets: 2,
+      recovered_sent_mail: 0,
+      failed: false,
+      incomplete: false,
+      rate_limited: false,
+    });
+    expect(h.code_calls).toEqual([CODE]);
+  });
+
+  it("reports a partial restore without failing", async () => {
+    h.code_restored = { restored: 1, incomplete: 1 };
+
+    const result = await recover_locked_data_with_code("account-1", CODE);
+
+    expect(result.restored_key_sets).toBe(1);
+    expect(result.incomplete).toBe(true);
+    expect(result.failed).toBe(false);
+  });
+
+  it("reports no match as neither restored nor failed", async () => {
+    const result = await recover_locked_data_with_code("account-1", CODE);
+
+    expect(result.restored_key_sets).toBe(0);
+    expect(result.failed).toBe(false);
+    expect(result.rate_limited).toBe(false);
+  });
+
+  it("reports failure when the recovered keys could not be stored", async () => {
+    h.code_restored = { restored: 0, incomplete: 1 };
+
+    expect(
+      (await recover_locked_data_with_code("account-1", CODE)).failed,
+    ).toBe(true);
+  });
+
+  it("reports a rate limit", async () => {
+    h.code_error = new Error("recovery_code_rate_limited");
+
+    const result = await recover_locked_data_with_code("account-1", CODE);
+
+    expect(result.failed).toBe(true);
+    expect(result.rate_limited).toBe(true);
+  });
+
+  it("reports failure without a rate limit on another error", async () => {
+    h.code_error = new Error("network");
+
+    const result = await recover_locked_data_with_code("account-1", CODE);
+
+    expect(result.failed).toBe(true);
+    expect(result.rate_limited).toBe(false);
+  });
+
+  it("never uses the old-password path", async () => {
+    h.code_restored = { restored: 1, incomplete: 0 };
+
+    await recover_locked_data_with_code("account-1", CODE);
+
+    expect(h.restore_calls).toEqual([]);
+    expect(h.conversion_calls).toEqual([]);
+    expect(h.reseal_calls).toEqual([]);
+  });
+
+  it("announces the change so the banner refreshes", async () => {
+    const listener = vi.fn();
+
+    window.addEventListener(LOCKED_DATA_CHANGED_EVENT, listener);
+    await recover_locked_data_with_code("account-1", CODE);
     window.removeEventListener(LOCKED_DATA_CHANGED_EVENT, listener);
 
     expect(listener).toHaveBeenCalled();

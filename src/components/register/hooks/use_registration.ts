@@ -60,6 +60,7 @@ import {
   generate_all_recovery_shares,
   clear_recovery_key,
 } from "@/services/crypto/recovery_key";
+import { build_backup_vault } from "@/services/crypto/backup_unlocked_keys";
 import { array_to_base64 } from "@/services/crypto/key_manager_core";
 import { MASTER_KEY_VAULT_FORMAT } from "@/services/crypto/memory_key_store";
 import { register_user } from "@/services/api/auth";
@@ -725,7 +726,10 @@ export function use_registration(options?: RegistrationClaimOptions) {
       set_generation_status(t("auth.creating_recovery_backup"));
       await yield_to_ui();
       const recovery_key = generate_recovery_key();
-      const vault_backup = await encrypt_vault_backup(vault_data, recovery_key);
+      const vault_backup = await encrypt_vault_backup(
+        await build_backup_vault(vault_data, password),
+        recovery_key,
+      );
       const recovery_shares = await generate_all_recovery_shares(
         codes,
         recovery_key,
@@ -992,6 +996,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
         tag: "aster-onboarding-notification",
         silent: true,
       });
+
       sample.onclick = () => {
         window.focus();
         sample.close();
@@ -1017,6 +1022,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
     const timeout = new Promise<boolean>((resolve) =>
       window.setTimeout(() => resolve(false), 15000),
     );
+
     void Promise.race([subscribe_to_push(), timeout])
       .then((subscribed) => {
         if (subscribed) {
@@ -1032,6 +1038,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
     if (notifications_busy) return;
     set_notifications_busy(true);
     let permission: NotificationPermission = "default";
+
     try {
       permission = await request_notification_permission();
     } catch (e) {

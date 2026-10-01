@@ -1190,6 +1190,14 @@ export const pt = {
     recover_data_success: "Os seus dados mais antigos foram desbloqueados.",
     recover_data_no_match:
       "Essa palavra-passe não desbloqueou nenhum dado. Experimente outra palavra-passe anterior.",
+    recover_data_code_description:
+      "Para desbloquear correio anterior a uma reposição da palavra-passe, introduza um dos códigos de recuperação que guardou antes da reposição.",
+    recover_data_code_no_match:
+      "Esse código não desbloqueou nenhum dado. Introduza um código que guardou antes da reposição.",
+    recover_data_partial:
+      "Parte do seu correio anterior está desbloqueada. Para desbloquear o resto, introduza a sua palavra-passe anterior.",
+    recover_data_rate_limited:
+      "Demasiadas tentativas. Aguarde 30 minutos e tente novamente.",
     recover_data_failed:
       "Não foi possível desbloquear alguns dados. Verifique a sua ligação e tente novamente.",
     payment_past_due_message:
@@ -9509,23 +9517,6 @@ export const pt = {
       "Esta não é uma frase de recuperação válida. Verifique as palavras e a ordem delas.",
     phrase_recovery_failed:
       "Esta frase não corresponde a esta conta. Verifique as palavras e o endereço de e-mail.",
-    reset_consent_title:
-      "Esta reposição não consegue desencriptar os seus dados antigos",
-    reset_consent_keeps:
-      "Mantém: o seu endereço de e-mail, todos os seus aliases (o correio continua a chegar), a sua subscrição e a sua conta.",
-    reset_consent_loses:
-      "Perde o acesso a: todos os e-mails encriptados, contactos, etiquetas de aliases e definições de antes da reposição. Continuam guardados de forma encriptada e só podem ser desbloqueados mais tarde se se lembrar da palavra-passe antiga.",
-    reset_consent_last_chance:
-      "Tem a sua frase de recuperação ou um código de recuperação? Qualquer um deles restaura tudo.",
-    reset_consent_use_phrase_instead:
-      "Utilizar a minha frase ou código em vez disso",
-    reset_consent_checkbox:
-      "Compreendo que os meus dados encriptados ficarão ilegíveis após esta reposição",
-    reset_consent_type_email:
-      "Escreva o seu endereço de e-mail completo para confirmar",
-    reset_consent_email_mismatch:
-      "O endereço de e-mail não corresponde a esta conta.",
-    reset_consent_continue: "Repor a palavra-passe mesmo assim",
     reset_second_factor_title: "Confirme que é você",
     reset_second_factor_description:
       "Esta conta usa a autenticação de dois fatores. Verifique um segundo fator antes de redefinir a senha.",
@@ -9579,11 +9570,14 @@ export const pt = {
     email_me_reset_link: "Enviar-me um link de redefinição por e-mail",
     reset_link_sent_title: "Verifique o seu e-mail de recuperação",
     reset_link_sent_desc:
-      "Se este nome de utilizador estiver registado e tiver um e-mail de recuperação verificado, foi enviado um link de reposição da palavra-passe. O link expira em 30 minutos.",
+      "Se esta conta tiver um e-mail de recuperação verificado, o Aster Mail enviou-lhe uma ligação de reposição. A ligação expira dentro de 30 minutos. Se não vir o e-mail, verifique a pasta de spam.",
     sending_reset_link: "A enviar link de reposição...",
     reset_your_password: "Reponha a sua palavra-passe",
     reset_choose_new_password:
-      "Escolha uma nova palavra-passe para a sua conta.",
+      "Escolha uma nova palavra-passe. O seu correio anterior continua encriptado e pode desbloqueá-lo depois de iniciar sessão com um código de recuperação ou a sua palavra-passe anterior.",
+    reset_use_recovery_code: "Utilizar um código de recuperação",
+    reset_new_codes_desc:
+      "Guarde estes códigos num local seguro. Mantenha também os códigos antigos, porque um deles pode desbloquear o seu correio anterior depois de iniciar sessão.",
     reset_invalid_or_expired:
       "Este link de reposição é inválido ou expirou. Peça um novo.",
     request_new_reset_link: "Pedir um novo link de reposição",
@@ -9628,13 +9622,13 @@ export const pt = {
     other_way_code_desc: "Introduza um dos códigos que guardou.",
     other_way_email_title: "Repor com o seu e-mail de recuperação",
     other_way_email_desc:
-      "O Aster Mail envia uma ligação para o seu e-mail de recuperação. Perde o acesso ao correio anterior à reposição.",
+      "O Aster Mail envia uma ligação para o seu e-mail de recuperação para que possa escolher uma nova palavra-passe.",
     other_way_none_title: "Não tenho nenhuma destas opções",
     other_way_none_desc:
       "Fale com o suporte e ajudamos com os próximos passos.",
-    reset_account_title: "Repor a sua conta?",
+    reset_account_title: "Repor com o seu e-mail de recuperação",
     reset_account_desc:
-      "O seu correio, contactos e ficheiros cifrados anteriores à reposição ficam bloqueados até os recuperar com a sua palavra-passe antiga. Recebe uma nova chave de cifra vazia.",
+      "O Aster Mail envia uma ligação para o seu e-mail de recuperação. Abra-a para escolher uma nova palavra-passe. O seu correio anterior continua encriptado até o desbloquear com um código de recuperação ou a sua palavra-passe anterior.",
     send_reset_link: "Enviar ligação de reposição",
     print_codes: "Imprimir",
     codes_copied: "Códigos copiados.",
@@ -9654,9 +9648,9 @@ export const pt = {
     review_codes_left_other: "Restam {{count}} códigos de recuperação.",
     import_mail_skip: "Começar com a caixa vazia",
     import_mail_privacy_note: "Também pode importar mais tarde em Definições.",
-    password_reset_successful: "Palavra-passe reposta com sucesso",
+    password_reset_successful: "A sua palavra-passe foi reposta",
     account_recovered_sign_in:
-      "A sua conta foi recuperada. Já pode iniciar sessão com a sua nova palavra-passe.",
+      "Inicie sessão com a nova palavra-passe. Depois, pode desbloquear o seu correio anterior com um código de recuperação ou a sua palavra-passe anterior.",
     check_your_inbox: "Verifique a sua caixa de entrada",
     generating_encryption_keys: "A gerar chaves de encriptação...",
     creating_identity_keypair: "A criar par de chaves de identidade...",

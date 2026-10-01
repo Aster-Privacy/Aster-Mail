@@ -1268,6 +1268,14 @@ export const nl = {
     recover_data_success: "Je oudere gegevens zijn ontgrendeld.",
     recover_data_no_match:
       "Met dat wachtwoord zijn geen gegevens ontgrendeld. Probeer een ander eerder wachtwoord.",
+    recover_data_code_description:
+      "Om e-mail van vóór een wachtwoordherstel te ontgrendelen, voer je een van de herstelcodes in die je vóór het herstel hebt opgeslagen.",
+    recover_data_code_no_match:
+      "Die code heeft geen gegevens ontgrendeld. Voer een code in die je vóór het herstel hebt opgeslagen.",
+    recover_data_partial:
+      "Een deel van je eerdere e-mail is ontgrendeld. Voer je vorige wachtwoord in om de rest te ontgrendelen.",
+    recover_data_rate_limited:
+      "Te veel pogingen. Wacht 30 minuten en probeer het dan opnieuw.",
     recover_data_failed:
       "Sommige gegevens konden niet worden ontgrendeld. Controleer je verbinding en probeer het opnieuw.",
     payment_past_due_message:
@@ -9387,21 +9395,6 @@ export const nl = {
       "Dit is geen geldige herstelzin. Controleer de woorden en hun volgorde.",
     phrase_recovery_failed:
       "Deze zin hoort niet bij dit account. Controleer de woorden en het e-mailadres.",
-    reset_consent_title: "Deze reset kan je oude gegevens niet ontsleutelen",
-    reset_consent_keeps:
-      "Je behoudt: je e-mailadres, al je aliassen (e-mail blijft binnenkomen), je abonnement en je account.",
-    reset_consent_loses:
-      "Je verliest de toegang tot: alle versleutelde e-mail, contacten, aliaslabels en instellingen van vóór de reset. Ze blijven versleuteld opgeslagen en kunnen later alleen worden ontgrendeld als je je oude wachtwoord nog weet.",
-    reset_consent_last_chance:
-      "Heb je je herstelzin of een herstelcode? Met een van beide wordt alles hersteld.",
-    reset_consent_use_phrase_instead:
-      "Gebruik in plaats daarvan mijn zin of code",
-    reset_consent_checkbox:
-      "Ik begrijp dat mijn versleutelde gegevens na deze reset onleesbaar zullen zijn",
-    reset_consent_type_email: "Typ je volledige e-mailadres ter bevestiging",
-    reset_consent_email_mismatch:
-      "Het e-mailadres komt niet overeen met dit account.",
-    reset_consent_continue: "Wachtwoord toch resetten",
     reset_second_factor_title: "Bevestig dat jij het bent",
     reset_second_factor_description:
       "Dit account gebruikt tweestapsverificatie. Verifieer een tweede factor voordat je het wachtwoord opnieuw instelt.",
@@ -9452,10 +9445,14 @@ export const nl = {
     email_me_reset_link: "Stuur me een resetlink per e-mail",
     reset_link_sent_title: "Controleer je herstel-e-mail",
     reset_link_sent_desc:
-      "Als deze gebruikersnaam is geregistreerd en een geverifieerd herstel-e-mailadres heeft, is er een link verzonden om het wachtwoord opnieuw in te stellen. De link verloopt over 30 minuten.",
+      "Als dit account een geverifieerde herstel-e-mail heeft, heeft Aster Mail daar een link naartoe gestuurd. De link verloopt over 30 minuten. Zie je de e-mail niet, controleer dan je spammap.",
     sending_reset_link: "Resetlink verzenden...",
     reset_your_password: "Stel je wachtwoord opnieuw in",
-    reset_choose_new_password: "Kies een nieuw wachtwoord voor je account.",
+    reset_choose_new_password:
+      "Kies een nieuw wachtwoord. Je eerdere e-mail blijft versleuteld en je kunt die na het inloggen ontgrendelen met een herstelcode of je vorige wachtwoord.",
+    reset_use_recovery_code: "Gebruik in plaats daarvan een herstelcode",
+    reset_new_codes_desc:
+      "Bewaar deze codes op een veilige plek. Bewaar ook je oude codes, want een daarvan kan je eerdere e-mail ontgrendelen nadat je bent ingelogd.",
     reset_invalid_or_expired:
       "Deze resetlink is ongeldig of verlopen. Vraag een nieuwe aan.",
     request_new_reset_link: "Nieuwe resetlink aanvragen",
@@ -9496,13 +9493,13 @@ export const nl = {
     other_way_code_desc: "Voer een van de codes in die je hebt opgeslagen.",
     other_way_email_title: "Opnieuw instellen met je herstel-e-mail",
     other_way_email_desc:
-      "Aster Mail stuurt een link naar je herstel-e-mail. Je verliest toegang tot e-mail van voor het opnieuw instellen.",
+      "Aster Mail stuurt een link naar je herstel-e-mail, zodat je een nieuw wachtwoord kunt kiezen.",
     other_way_none_title: "Ik heb hier niets van",
     other_way_none_desc:
       "Neem contact op met support, dan helpen we je met de volgende stappen.",
-    reset_account_title: "Je account opnieuw instellen?",
+    reset_account_title: "Opnieuw instellen met je herstel-e-mail",
     reset_account_desc:
-      "Je versleutelde e-mail, contacten en bestanden van voor het opnieuw instellen blijven vergrendeld tot je ze herstelt met je oude wachtwoord. Je krijgt een nieuwe, lege versleutelingssleutel.",
+      "Aster Mail stuurt een link naar je herstel-e-mail. Open de link om een nieuw wachtwoord te kiezen. Je eerdere e-mail blijft versleuteld totdat je die ontgrendelt met een herstelcode of je vorige wachtwoord.",
     send_reset_link: "Herstellink sturen",
     print_codes: "Afdrukken",
     codes_copied: "Codes gekopieerd.",
@@ -9524,9 +9521,9 @@ export const nl = {
       "Verplaats berichten uit een ander account naar Aster. Alles wordt op je apparaat versleuteld voordat het wordt opgeslagen.",
     import_mail_skip: "Beginnen met een lege inbox",
     import_mail_privacy_note: "Je kunt ook later importeren via Instellingen.",
-    password_reset_successful: "Wachtwoord succesvol gereset",
+    password_reset_successful: "Je wachtwoord is opnieuw ingesteld",
     account_recovered_sign_in:
-      "Je account is hersteld. Je kunt nu inloggen met je nieuwe wachtwoord.",
+      "Log in met je nieuwe wachtwoord. Daarna kun je je eerdere e-mail ontgrendelen met een herstelcode of je vorige wachtwoord.",
     check_your_inbox: "Controleer je inbox",
     generating_encryption_keys: "Versleutelingssleutels genereren...",
     creating_identity_keypair: "Identiteitssleutelpaar aanmaken...",

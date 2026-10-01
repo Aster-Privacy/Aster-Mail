@@ -1860,6 +1860,10 @@ export interface CommonTranslations {
   recover_data_button: string;
   recover_data_success: string;
   recover_data_no_match: string;
+  recover_data_code_description: string;
+  recover_data_code_no_match: string;
+  recover_data_partial: string;
+  recover_data_rate_limited: string;
   recover_data_failed: string;
   payment_past_due_message: string;
   payment_past_due_message_days: string;
@@ -8037,15 +8041,6 @@ export interface AuthTranslations {
   forgot_method_email_title: string;
   forgot_method_email_desc: string;
   phrase_recovery_failed: string;
-  reset_consent_title: string;
-  reset_consent_keeps: string;
-  reset_consent_loses: string;
-  reset_consent_last_chance: string;
-  reset_consent_use_phrase_instead: string;
-  reset_consent_checkbox: string;
-  reset_consent_type_email: string;
-  reset_consent_email_mismatch: string;
-  reset_consent_continue: string;
   reset_second_factor_title: string;
   reset_second_factor_description: string;
   reset_second_factor_backup_description: string;
@@ -8295,6 +8290,8 @@ export interface AuthTranslations {
   sending_reset_link: string;
   reset_your_password: string;
   reset_choose_new_password: string;
+  reset_use_recovery_code: string;
+  reset_new_codes_desc: string;
   reset_invalid_or_expired: string;
   request_new_reset_link: string;
   set_new_password: string;

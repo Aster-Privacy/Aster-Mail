@@ -1106,6 +1106,10 @@ export const zh_CN = {
     recover_data_button: "恢复",
     recover_data_success: "您的较早数据已解锁。",
     recover_data_no_match: "该密码未解锁任何数据。请尝试其他以前的密码。",
+    recover_data_code_description: "要解锁密码重置之前的邮件，请输入您在重置前保存的恢复代码之一。",
+    recover_data_code_no_match: "该代码未解锁任何数据。请输入您在重置前保存的代码。",
+    recover_data_partial: "您之前的部分邮件已解锁。要解锁其余邮件，请输入先前的密码。",
+    recover_data_rate_limited: "尝试次数过多。请等待 30 分钟后重试。",
     recover_data_failed: "部分数据无法解锁。请检查网络连接后重试。",
     payment_past_due_message: "上次付款未成功。请更新付款方式以保留当前套餐。",
     payment_past_due_message_days:
@@ -8448,18 +8452,6 @@ export const zh_CN = {
     forgot_method_email_desc:
       "重新获得账户的访问权限。重置前的加密邮件将无法再读取，除非您日后找回短语或恢复代码。",
     phrase_recovery_failed: "此短语与该账户不匹配。请检查单词和邮箱地址。",
-    reset_consent_title: "此次重置无法解密您的旧数据",
-    reset_consent_keeps:
-      "您将保留：您的邮箱地址、所有别名（邮件会继续送达）、您的订阅以及您的账户。",
-    reset_consent_loses:
-      "您将失去访问权限：重置前的所有加密邮件、联系人、别名标签和设置。它们仍会以加密形式保存，只有当您记起旧密码时才能解锁。",
-    reset_consent_last_chance:
-      "您有恢复短语或恢复代码吗？任意一个都能恢复全部数据。",
-    reset_consent_use_phrase_instead: "改用我的短语或恢复代码",
-    reset_consent_checkbox: "我明白此次重置后，我的加密数据将无法读取",
-    reset_consent_type_email: "输入您完整的邮箱地址以确认",
-    reset_consent_email_mismatch: "该邮箱地址与此账户不匹配。",
-    reset_consent_continue: "仍然重置密码",
     reset_second_factor_title: "确认是你本人",
     reset_second_factor_description:
       "此账户使用双重验证。请先验证第二重验证方式，再重置密码。",
@@ -8507,10 +8499,12 @@ export const zh_CN = {
     email_me_reset_link: "通过电子邮件发送重置链接",
     reset_link_sent_title: "请查看您的恢复邮箱",
     reset_link_sent_desc:
-      "如果此用户名已注册并具有已验证的恢复邮箱，密码重置链接已发送。链接将在30分钟后过期。",
+      "如果此账户有已验证的恢复邮箱，Aster Mail 已向其发送重置链接。链接将在 30 分钟后失效。如果没有看到邮件，请检查垃圾邮件文件夹。",
     sending_reset_link: "正在发送重置链接...",
     reset_your_password: "重置您的密码",
-    reset_choose_new_password: "为您的账户选择一个新密码。",
+    reset_choose_new_password: "请选择一个新密码。您之前的邮件仍保持加密，登录后可使用恢复代码或先前的密码解锁。",
+    reset_use_recovery_code: "改用恢复代码",
+    reset_new_codes_desc: "请将这些代码保存在安全的地方。旧代码也请保留，因为登录后其中一个可以解锁您之前的邮件。",
     reset_invalid_or_expired: "此重置链接无效或已过期。请重新申请。",
     request_new_reset_link: "申请新的重置链接",
     set_new_password: "设置新密码",
@@ -8547,13 +8541,12 @@ export const zh_CN = {
     other_way_code_title: "使用恢复代码",
     other_way_code_desc: "输入你保存的其中一个代码。",
     other_way_email_title: "使用恢复邮箱重置",
-    other_way_email_desc:
-      "Aster Mail 会向你的恢复邮箱发送一个链接。你将无法访问重置前的邮件。",
+    other_way_email_desc: "Aster Mail 会向您的恢复邮箱发送一个链接，供您设置新密码。",
     other_way_none_title: "这些我都没有",
     other_way_none_desc: "联系支持团队，我们会协助你完成后续步骤。",
-    reset_account_title: "要重置你的账户吗?",
+    reset_account_title: "使用恢复邮箱重置",
     reset_account_desc:
-      "重置前的加密邮件、联系人和文件会保持锁定，直到你用旧密码恢复它们。你会获得一个新的空加密密钥。",
+      "Aster Mail 会向您的恢复邮箱发送一个链接。打开链接即可设置新密码。在您使用恢复代码或先前的密码解锁之前，之前的邮件会一直保持加密。",
     send_reset_link: "发送重置链接",
     print_codes: "打印",
     codes_copied: "已复制代码。",
@@ -8573,8 +8566,8 @@ export const zh_CN = {
       "将其他账户中的邮件迁移到 Aster。所有内容都会先在您的设备上加密，再进行存储。",
     import_mail_skip: "从空收件箱开始",
     import_mail_privacy_note: "您也可以稍后在设置中导入。",
-    password_reset_successful: "密码重置成功",
-    account_recovered_sign_in: "您的账户已恢复。现在可以使用新密码登录。",
+    password_reset_successful: "您的密码已重置",
+    account_recovered_sign_in: "请使用新密码登录。登录后，您可以使用恢复代码或先前的密码解锁之前的邮件。",
     check_your_inbox: "检查收件箱",
     generating_encryption_keys: "生成加密密钥中...",
     creating_identity_keypair: "创建身份密钥对中...",
