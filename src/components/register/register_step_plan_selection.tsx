@@ -687,7 +687,7 @@ export const RegisterStepPlanSelection = ({
           aria-describedby={promo_error ? "register_promo_error" : undefined}
           aria-invalid={promo_error ? true : undefined}
           autoComplete="off"
-          className="min-w-0 flex-1"
+          className="!h-10 min-w-0 flex-1 !border-0 !bg-[var(--aster-field-bg)] !px-4 !text-[14px] !shadow-none hover:!bg-[var(--aster-field-hover)] focus:!shadow-[inset_0_0_0_2px_var(--accent-color)] aria-[invalid=true]:!shadow-[inset_0_0_0_2px_var(--color-danger)]"
           disabled={is_finalizing || is_promo_checking}
           id="register_promo_code"
           maxLength={64}
@@ -710,6 +710,7 @@ export const RegisterStepPlanSelection = ({
             is_promo_checking ||
             promo_input.trim().length === 0
           }
+          className="!h-10 flex-shrink-0 !px-5 !text-[14px]"
           variant="secondary"
           onClick={handle_apply_promo}
         >
