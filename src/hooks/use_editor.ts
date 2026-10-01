@@ -29,6 +29,7 @@ import {
 } from "@/lib/signature_html";
 import {
   get_compose_sanitize_options,
+  proxy_compose_image_sources,
   restore_compose_image_sources,
 } from "@/lib/compose_image_sources";
 import {
@@ -428,7 +429,9 @@ export function use_editor({
       const editor = editor_ref.current;
 
       if (editor) {
-        editor.innerHTML = sanitize_compose_paste(html);
+        editor.innerHTML = proxy_compose_image_sources(
+          sanitize_compose_paste(html),
+        );
         handle_input();
       }
     },

@@ -639,6 +639,7 @@ function sanitize_html_impl(
 
   const parser = new DOMParser();
   const doc = parser.parseFromString(purified, "text/html");
+  const output_doc = document.implementation.createHTMLDocument("");
 
   const autolink_text_node = (text_node: Node): Node => {
     const text = text_node.textContent || "";
@@ -648,14 +649,14 @@ function sanitize_html_impl(
       return text_node.cloneNode(true);
     }
 
-    const fragment = document.createDocumentFragment();
+    const fragment = output_doc.createDocumentFragment();
 
     for (const segment of segments) {
       if (!segment.href) {
-        fragment.appendChild(document.createTextNode(segment.text));
+        fragment.appendChild(output_doc.createTextNode(segment.text));
         continue;
       }
-      const a = document.createElement("a");
+      const a = output_doc.createElement("a");
 
       a.href = segment.href;
       a.target = "_blank";
@@ -713,7 +714,7 @@ function sanitize_html_impl(
 
       const text = visible_text_of(node);
 
-      return text ? document.createTextNode(text) : null;
+      return text ? output_doc.createTextNode(text) : null;
     }
 
     if (node.nodeType === Node.TEXT_NODE) {
@@ -792,7 +793,7 @@ function sanitize_html_impl(
       if (!sanitized_css.trim()) {
         return null;
       }
-      const new_style = document.createElement("style");
+      const new_style = output_doc.createElement("style");
 
       new_style.textContent = escape_style_terminator(sanitized_css);
 
@@ -800,7 +801,7 @@ function sanitize_html_impl(
     }
 
     if (!ALLOWED_TAGS.has(tag_name)) {
-      const fragment = document.createDocumentFragment();
+      const fragment = output_doc.createDocumentFragment();
 
       for (const child of Array.from(element.childNodes)) {
         const sanitized = sanitize_node(child, depth + 1);
@@ -813,7 +814,7 @@ function sanitize_html_impl(
       return fragment;
     }
 
-    const new_element = document.createElement(tag_name);
+    const new_element = output_doc.createElement(tag_name);
 
     for (const attr of Array.from(element.attributes)) {
       let sanitized_value = sanitize_attribute(
@@ -969,7 +970,7 @@ function sanitize_html_impl(
       if (local_image.kind === "local") {
         const alt = new_element.getAttribute("alt");
 
-        return alt ? document.createTextNode(alt) : null;
+        return alt ? output_doc.createTextNode(alt) : null;
       }
 
       const original_local_src =
@@ -1003,7 +1004,7 @@ function sanitize_html_impl(
         );
 
         if (!is_safe_data_url) {
-          const placeholder = document.createElement("span");
+          const placeholder = output_doc.createElement("span");
 
           placeholder.className = "blocked-image";
           placeholder.textContent = "[Blocked data URL]";
@@ -1030,7 +1031,7 @@ function sanitize_html_impl(
           });
 
           if (is_pixel && block_pixels) {
-            const pixel_placeholder = document.createElement("span");
+            const pixel_placeholder = output_doc.createElement("span");
 
             pixel_placeholder.className = "blocked-image";
             pixel_placeholder.setAttribute("data-original-src", src);
@@ -1047,7 +1048,7 @@ function sanitize_html_impl(
             external_content_mode === "never" ||
             (content_blocking && block_images)
           ) {
-            const placeholder = document.createElement("span");
+            const placeholder = output_doc.createElement("span");
 
             placeholder.className = "blocked-image";
             placeholder.setAttribute("data-original-src", src);
@@ -1170,7 +1171,7 @@ function sanitize_html_impl(
     return new_element;
   };
 
-  const fragment = document.createDocumentFragment();
+  const fragment = output_doc.createDocumentFragment();
 
   if (sandbox_mode && doc.head) {
     for (const child of Array.from(doc.head.childNodes)) {
@@ -1195,11 +1196,11 @@ function sanitize_html_impl(
     }
   }
 
-  const container = document.createElement("div");
+  const container = output_doc.createElement("div");
 
   if (head_styles.length > 0) {
     for (const css of head_styles) {
-      const style_el = document.createElement("style");
+      const style_el = output_doc.createElement("style");
 
       style_el.textContent = escape_style_terminator(css);
       container.appendChild(style_el);
