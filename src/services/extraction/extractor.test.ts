@@ -21,9 +21,11 @@
 import { describe, it, expect } from "vitest";
 
 import {
+  extract_email_details,
   extract_purchase_details,
   extract_shipping_details,
   is_purchase_email,
+  is_shipping_email,
 } from "./extractor";
 
 describe("purchase order id accuracy", () => {
@@ -361,5 +363,49 @@ describe("purchase item parsing", () => {
     );
 
     expect(result.merchant_name).toBe("Shipping Supplies Inc");
+  });
+});
+
+describe("is_shipping_email precision", () => {
+  it("ignores mail that mentions tracking and delivery in passing", () => {
+    const subject = "Update on your support request";
+    const body =
+      "We are tracking the bug you reported, and the fix was delivered in version 2.3.";
+
+    expect(is_shipping_email(subject, body)).toBe(false);
+    expect(
+      extract_email_details(subject, body, undefined, "me@example.com", "Me")
+        .has_shipping_details,
+    ).toBe(false);
+  });
+
+  it("ignores release notes that shipped and delivered features", () => {
+    expect(
+      is_shipping_email(
+        "What's new in October",
+        "We shipped dark mode and delivered the new editor you asked for.",
+      ),
+    ).toBe(false);
+  });
+
+  it("still detects a shipment", () => {
+    expect(
+      is_shipping_email(
+        "Your order has shipped",
+        "Tracking number: 1Z999AA10123456784. Estimated delivery: Friday.",
+      ),
+    ).toBe(true);
+    expect(
+      is_shipping_email(
+        "Delivered",
+        "Your package was delivered. Tracking # 9400100000000000000000",
+      ),
+    ).toBe(true);
+    expect(
+      is_shipping_email(
+        "Out for delivery",
+        "Your package is out for delivery and arriving today.",
+      ),
+    ).toBe(true);
   });
 });

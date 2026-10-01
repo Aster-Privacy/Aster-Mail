@@ -892,6 +892,23 @@ export function is_purchase_email(subject: string, body: string): boolean {
   return false;
 }
 
+// "Tracking", "shipped" and "delivered" also turn up in mail that has
+// nothing to do with a parcel ("when the email was delivered", "a tracking
+// pixel", "we shipped a new feature"), so at least one sign has to be
+// specific to a shipment.
+const PARCEL_SPECIFIC_INDICATORS = [
+  /\btracking\s*(?:#|number)/i,
+  /\bout\s+for\s+delivery\b/i,
+  /\bin\s+transit\b/i,
+  /\bhas\s+shipped\b/i,
+  /\bshipment\s+(?:update|notification)\b/i,
+  /\bpackage\s+(?:update|notification|shipped|delivered)\b/i,
+  /\bestimated\s+delivery\b/i,
+  /\barriving\s+(?:today|tomorrow|soon)\b/i,
+  /\b1Z[A-Z0-9]{16}\b/i,
+  /\bTBA\d{12,15}\b/i,
+];
+
 export function is_shipping_email(subject: string, body: string): boolean {
   const combined = `${subject} ${body}`.toLowerCase();
 
@@ -915,11 +932,14 @@ export function is_shipping_email(subject: string, body: string): boolean {
   for (const pattern of shipping_indicators) {
     if (pattern.test(combined)) {
       matches++;
-      if (matches >= 2) return true;
+      if (matches >= 2) break;
     }
   }
 
-  return false;
+  return (
+    matches >= 2 &&
+    PARCEL_SPECIFIC_INDICATORS.some((pattern) => pattern.test(combined))
+  );
 }
 
 export function extract_email_details(
