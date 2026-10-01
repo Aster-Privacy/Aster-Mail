@@ -56,6 +56,7 @@ import { use_split_pane } from "@/components/email/inbox/use_split_pane";
 import { use_inbox_list_scroll } from "@/components/email/inbox/use_inbox_list_scroll";
 import { use_inbox_keyboard } from "@/components/email/inbox/use_inbox_keyboard";
 import { use_inbox_navigation } from "@/components/email/inbox/use_inbox_navigation";
+import { use_split_reader_advance } from "@/components/email/inbox/use_split_reader_advance";
 import { use_inbox_selection } from "@/components/email/inbox/use_inbox_selection";
 import { use_inbox_selection_menu } from "@/components/email/inbox/use_inbox_selection_menu";
 import { use_inbox_bulk_actions } from "@/components/email/inbox/use_inbox_bulk_actions";
@@ -126,7 +127,7 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     folders_lookup,
     tags_lookup,
     toolbar,
-    context_menu_actions,
+    context_menu_actions: list_context_menu_actions,
   } = use_inbox_view_state(props);
 
   const [active_filter, set_active_filter] = useState<InboxFilterType>("all");
@@ -648,6 +649,19 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     on_email_click,
     on_navigate_to,
     on_email_list_change,
+  });
+
+  const context_menu_actions = use_split_reader_advance({
+    context_menu_actions: list_context_menu_actions,
+    split_email_id,
+    emails: email_state.emails,
+    visible_ids: nav.visible_ids,
+    is_confirm_open:
+      toolbar.show_single_archive_confirm ||
+      toolbar.show_single_delete_confirm ||
+      toolbar.show_single_spam_confirm,
+    on_auto_advance: props.on_auto_advance,
+    on_split_close,
   });
 
   const extra_keyboard_actions = useMemo(
