@@ -32,7 +32,7 @@ export function use_auto_advance({
   email_ids,
   current_index,
   navigate_to,
-}: UseAutoAdvanceOptions): () => boolean {
+}: UseAutoAdvanceOptions): (remaining_ids?: string[]) => boolean {
   const { preferences } = use_preferences();
   const anchor_ref = useRef<{ ids: string[]; index: number }>({
     ids: [],
@@ -43,31 +43,42 @@ export function use_auto_advance({
     anchor_ref.current = { ids: email_ids, index: current_index };
   }
 
-  return useCallback((): boolean => {
-    const mode = preferences.auto_advance;
-    const step =
-      mode === "Go to next message"
-        ? 1
-        : mode === "Go to previous message"
-          ? -1
-          : 0;
+  return useCallback(
+    (remaining_ids?: string[]): boolean => {
+      const mode = preferences.auto_advance;
+      const step =
+        mode === "Go to next message"
+          ? 1
+          : mode === "Go to previous message"
+            ? -1
+            : 0;
 
-    if (step === 0) return false;
+      if (step === 0) return false;
 
-    const { ids, index } = anchor_ref.current;
+      const { ids, index } = anchor_ref.current;
 
-    if (index === -1) return false;
+      if (index === -1) return false;
 
-    const target_index = index + step;
+      // The anchor is the list from before the action, and one action can
+      // take the neighbours out too (spam removes the sender's other mail),
+      // so step past anything the caller no longer lists.
+      for (
+        let target_index = index + step;
+        target_index >= 0 && target_index < ids.length;
+        target_index += step
+      ) {
+        const target_id = ids[target_index];
 
-    if (target_index < 0 || target_index >= ids.length) return false;
+        if (!target_id) return false;
+        if (remaining_ids && !remaining_ids.includes(target_id)) continue;
 
-    const target_id = ids[target_index];
+        navigate_to(target_id);
 
-    if (!target_id) return false;
+        return true;
+      }
 
-    navigate_to(target_id);
-
-    return true;
-  }, [preferences.auto_advance, navigate_to]);
+      return false;
+    },
+    [preferences.auto_advance, navigate_to],
+  );
 }

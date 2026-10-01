@@ -126,6 +126,6 @@ export interface EmailInboxProps {
   current_email_index?: number;
   total_email_count?: number;
   on_navigate_to?: (id: string) => void;
-  on_auto_advance?: () => boolean;
+  on_auto_advance?: (remaining_ids?: string[]) => boolean;
   on_view_change?: (route: string) => void;
 }

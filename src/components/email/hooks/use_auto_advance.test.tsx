@@ -35,7 +35,7 @@ const { use_auto_advance } = await import(
 describe("use_auto_advance", () => {
   let container: HTMLDivElement;
   let root: Root;
-  let advance: () => boolean;
+  let advance: (remaining_ids?: string[]) => boolean;
   const navigate_to = vi.fn();
 
   function Probe({
@@ -119,6 +119,33 @@ describe("use_auto_advance", () => {
 
     expect(advance()).toBe(true);
     expect(navigate_to).toHaveBeenCalledWith("c");
+  });
+
+  it("skips messages that left the list together with the open one", () => {
+    preferences_mock.auto_advance = "Go to next message";
+    render_hook(["a", "b", "c", "d"], 1);
+    render_hook(["a", "d"], -1);
+
+    expect(advance(["a", "d"])).toBe(true);
+    expect(navigate_to).toHaveBeenCalledWith("d");
+  });
+
+  it("skips removed messages when going back to the previous one", () => {
+    preferences_mock.auto_advance = "Go to previous message";
+    render_hook(["a", "b", "c", "d"], 2);
+    render_hook(["a", "d"], -1);
+
+    expect(advance(["a", "d"])).toBe(true);
+    expect(navigate_to).toHaveBeenCalledWith("a");
+  });
+
+  it("falls back to closing when every later message was removed too", () => {
+    preferences_mock.auto_advance = "Go to next message";
+    render_hook(["a", "b", "c"], 1);
+    render_hook(["a"], -1);
+
+    expect(advance(["a"])).toBe(false);
+    expect(navigate_to).not.toHaveBeenCalled();
   });
 
   it("stays closed when no message is open", () => {
