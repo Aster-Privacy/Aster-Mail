@@ -182,6 +182,7 @@ export function StepUpModal({
                 disabled={is_loading}
                 id="step-up-password"
                 maxLength={128}
+                name="password"
                 placeholder={t("settings.enter_your_password_placeholder")}
                 status={error ? "error" : "default"}
                 type={show_password ? "text" : "password"}

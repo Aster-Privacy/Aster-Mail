@@ -417,6 +417,7 @@ export function RecoveryCodesModal({
                   autoComplete="current-password"
                   disabled={is_working}
                   id="codes-current-password"
+                  name="password"
                   status={error ? "error" : "default"}
                   type="password"
                   value={password}

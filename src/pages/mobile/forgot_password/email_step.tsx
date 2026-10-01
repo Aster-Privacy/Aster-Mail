@@ -121,11 +121,12 @@ export function EmailStep({
           <div className={DEPTH_INPUT_WRAPPER_CLASS}>
             <Input
               autoCapitalize="none"
-              id="mobile_recovery_address"
               autoComplete="username"
               autoCorrect="off"
               className={INNER_INPUT_CLASS}
+              id="mobile_recovery_address"
               maxLength={55}
+              name="username"
               placeholder={t("common.yourname_placeholder")}
               spellCheck={false}
               status={error ? "error" : "default"}

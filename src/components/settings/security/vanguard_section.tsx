@@ -20,8 +20,8 @@
 //
 import { useState, useEffect } from "react";
 import { Badge, IslandRow, Skeleton, UpgradeBtn } from "@aster/ui";
-import { Button } from "@/components/ui/button";
 
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InfoPopover } from "@/components/ui/info_popover";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -239,6 +239,7 @@ function LockdownSection({ account_id }: { account_id: string }) {
               autoComplete="current-password"
               disabled={disabling}
               maxLength={128}
+              name="password"
               placeholder={t("settings.current_password")}
               type="password"
               value={password}
