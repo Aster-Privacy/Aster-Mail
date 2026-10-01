@@ -136,7 +136,11 @@ import { use_escape_layer } from "@/lib/overlay_layer_stack";
 import { user_facing_error } from "@/utils/user_facing_error";
 import { record_review_prompt_action } from "@/lib/review_prompt";
 import { ignore_error } from "@/lib/ignore_error";
-import { with_caret_block } from "@/lib/signature_html";
+import {
+  append_template_after_typed_text,
+  has_typed_content,
+  with_caret_block,
+} from "@/lib/signature_html";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import {
   find_locked_expiry_feature,
@@ -247,6 +251,7 @@ export function use_forward_modal({
   const send_lock_started_at_ref = useRef(0);
   const forward_content_ref = useRef("");
   const content_initialized_ref = useRef(false);
+  const body_edited_ref = useRef(false);
   const attachments_touched_ref = useRef(false);
 
   useEffect(() => {
@@ -274,7 +279,10 @@ export function use_forward_modal({
 
   const editor = use_editor({
     editor_ref: message_editor_ref as React.RefObject<HTMLDivElement | null>,
-    on_change: (html: string) => set_forward_message(html),
+    on_change: (html: string) => {
+      body_edited_ref.current = true;
+      set_forward_message(html);
+    },
     enable_rich_paste: !is_plain_text_mode,
     enable_keyboard_shortcuts: true,
     is_plain_text_mode,
@@ -421,6 +429,7 @@ export function use_forward_modal({
       is_sending_ref.current = false;
       send_lock_started_at_ref.current = 0;
       content_initialized_ref.current = false;
+      body_edited_ref.current = false;
       forward_content_ref.current = "";
     } else {
       clear_forward_mail_id();
@@ -451,7 +460,17 @@ export function use_forward_modal({
 
       const sanitized = sanitize_html(content, get_compose_sanitize_options());
 
-      message_editor_ref.current.innerHTML = sanitized.html;
+      if (
+        body_edited_ref.current &&
+        has_typed_content(message_editor_ref.current)
+      ) {
+        append_template_after_typed_text(
+          message_editor_ref.current,
+          sanitized.html,
+        );
+      } else {
+        message_editor_ref.current.innerHTML = sanitized.html;
+      }
       set_forward_message(
         restore_compose_image_sources(message_editor_ref.current.innerHTML),
       );
