@@ -9499,10 +9499,11 @@ export const de = {
     saving_new_credentials: "Neue Zugangsdaten werden gespeichert...",
     recover_your_account: "Stellen Sie Ihr Konto wieder her",
     enter_email_associated:
-      "Geben Sie Ihren Benutzernamen ein, um Ihr Konto wiederherzustellen",
+      "Geben Sie die Adresse des Kontos ein, das Sie wiederherstellen möchten.",
     back_to_sign_in: "Zurück zur Anmeldung",
     email_me_reset_link: "Reset-Link per E-Mail senden",
-    reset_link_sent_title: "Prüfen Sie Ihre Wiederherstellungs-E-Mail",
+    reset_link_sent_title: "Prüfen Sie Ihre E-Mails",
+    resend_reset_link: "Link erneut senden",
     reset_link_sent_desc:
       "Wenn dieses Konto eine bestätigte Wiederherstellungs-E-Mail hat, hat Aster Mail einen Link zum Zurücksetzen dorthin gesendet. Der Link läuft in 30 Minuten ab. Wenn Sie die E-Mail nicht sehen, prüfen Sie Ihren Spam-Ordner.",
     sending_reset_link: "Reset-Link wird gesendet...",
@@ -9553,7 +9554,7 @@ export const de = {
       "Aster Mail kann deine verschlüsselten Daten nicht lesen. Ohne Wiederherstellungscode oder Wiederherstellungs-E-Mail kann sie niemand entsperren. Der Support prüft dein Konto und hilft dir bei den nächsten Schritten.",
     support_email_action: "Support anschreiben",
     support_help_center: "Hilfe-Center öffnen",
-    other_ways_title: "Anders versuchen",
+    other_ways_title: "Wiederherstellungsmethode wählen",
     other_ways_desc:
       "Wählen Sie, wie Sie wieder Zugriff auf Ihr Konto erhalten.",
     other_way_code_title: "Wiederherstellungscode verwenden",

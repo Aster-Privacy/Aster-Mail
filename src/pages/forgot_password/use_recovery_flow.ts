@@ -102,6 +102,8 @@ function is_transport_failure(code?: string): boolean {
   return code !== undefined && TRANSPORT_FAILURE_CODES.has(code);
 }
 
+export const RESEND_COOLDOWN_SECONDS = 60;
+
 interface StoredRecoveryEmail {
   encrypted_email: string;
   email_nonce: string;
@@ -156,7 +158,9 @@ export function use_recovery_flow() {
   const { theme } = useTheme();
   const is_dark = theme === "dark";
 
-  const [step, set_step] = useState<RecoveryStep>(handoff ? "code" : "email");
+  const [step, set_step] = useState<RecoveryStep>(
+    handoff ? "other_ways" : "email",
+  );
   const [email, set_email] = useState(
     handoff ? `${handoff.username}@${handoff.email_domain}` : "",
   );
@@ -181,6 +185,8 @@ export function use_recovery_flow() {
     second_factors_removed: true,
     recovery_email_kept: false,
   });
+  const [resend_cooldown, set_resend_cooldown] = useState(0);
+  const [is_resending, set_is_resending] = useState(false);
   const copy_timer_ref = useRef<number | null>(null);
 
   useEffect(() => {
@@ -190,6 +196,18 @@ export function use_recovery_flow() {
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (resend_cooldown <= 0) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      set_resend_cooldown((remaining) => Math.max(0, remaining - 1));
+    }, 1000);
+
+    return () => window.clearTimeout(timer);
+  }, [resend_cooldown]);
 
   const [recovery_token, set_recovery_token] = useState("");
   const [vault_backup, set_vault_backup] = useState<VaultBackup | null>(null);
@@ -224,14 +242,6 @@ export function use_recovery_flow() {
     return clean_username;
   };
 
-  const handle_change_account = () => {
-    set_error("");
-    set_recovery_code("");
-    set_username("");
-    set_email("");
-    set_step("email");
-  };
-
   const handle_email_next = () => {
     set_error("");
 
@@ -242,7 +252,30 @@ export function use_recovery_flow() {
     }
 
     set_email(`${clean_username}@${email_domain}`);
-    set_step("code");
+    set_step("other_ways");
+  };
+
+  const request_reset_link = async (
+    clean_username: string,
+  ): Promise<string> => {
+    const reset_response = await forgot_password_email(
+      clean_username,
+      email_domain,
+    );
+
+    await timing_safe_delay();
+
+    if (reset_response.code === "RATE_LIMIT_EXCEEDED") {
+      return t("errors.rate_limit");
+    }
+
+    if (reset_response.error || !reset_response.data) {
+      return is_transport_failure(reset_response.code)
+        ? t("errors.network")
+        : t("common.something_went_wrong_try_again");
+    }
+
+    return "";
   };
 
   const handle_email_reset_link = async () => {
@@ -257,32 +290,40 @@ export function use_recovery_flow() {
     set_step("processing");
     set_processing_status(t("auth.sending_reset_link"));
 
-    const reset_response = await forgot_password_email(
-      clean_username,
-      email_domain,
-    );
+    const send_error = await request_reset_link(clean_username);
 
-    await timing_safe_delay();
-
-    if (reset_response.code === "RATE_LIMIT_EXCEEDED") {
-      set_error(t("errors.rate_limit"));
+    if (send_error) {
+      set_error(send_error);
       set_step("reset_email_confirm");
 
       return;
     }
 
-    if (reset_response.error || !reset_response.data) {
-      set_error(
-        is_transport_failure(reset_response.code)
-          ? t("errors.network")
-          : t("common.something_went_wrong_try_again"),
-      );
-      set_step("reset_email_confirm");
-
-      return;
-    }
-
+    set_resend_cooldown(RESEND_COOLDOWN_SECONDS);
     set_step("email_sent");
+  };
+
+  const handle_resend_reset_link = async () => {
+    if (is_resending || resend_cooldown > 0) {
+      return;
+    }
+
+    const clean_username = sanitize_username(email.split("@")[0] ?? "");
+
+    if (!clean_username) {
+      set_step("email");
+
+      return;
+    }
+
+    set_error("");
+    set_is_resending(true);
+
+    const send_error = await request_reset_link(clean_username);
+
+    set_is_resending(false);
+    set_error(send_error);
+    set_resend_cooldown(RESEND_COOLDOWN_SECONDS);
   };
 
   const handle_code_submit = async () => {
@@ -699,9 +740,11 @@ export function use_recovery_flow() {
     set_codes_saved,
     review,
     is_email_locked,
-    handle_change_account,
+    resend_cooldown,
+    is_resending,
     handle_email_next,
     handle_email_reset_link,
+    handle_resend_reset_link,
     handle_code_submit,
     handle_password_submit,
     handle_copy_codes,

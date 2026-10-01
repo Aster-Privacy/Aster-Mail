@@ -9565,10 +9565,11 @@ export const pt = {
     saving_new_credentials: "A guardar novas credenciais...",
     recover_your_account: "Recupere a sua conta",
     enter_email_associated:
-      "Introduza o seu nome de utilizador para recuperar a sua conta",
+      "Introduza o endereço da conta que quer recuperar.",
     back_to_sign_in: "Voltar ao início de sessão",
     email_me_reset_link: "Enviar-me um link de redefinição por e-mail",
-    reset_link_sent_title: "Verifique o seu e-mail de recuperação",
+    reset_link_sent_title: "Verifique o seu e-mail",
+    resend_reset_link: "Reenviar ligação",
     reset_link_sent_desc:
       "Se esta conta tiver um e-mail de recuperação verificado, o Aster Mail enviou-lhe uma ligação de reposição. A ligação expira dentro de 30 minutos. Se não vir o e-mail, verifique a pasta de spam.",
     sending_reset_link: "A enviar link de reposição...",
@@ -9616,7 +9617,7 @@ export const pt = {
       "O Aster Mail não consegue ler os seus dados encriptados, por isso ninguém os desbloqueia sem um código de recuperação ou o seu email de recuperação. O suporte pode verificar a sua conta e ajudar com os próximos passos.",
     support_email_action: "Enviar email ao suporte",
     support_help_center: "Abrir o centro de ajuda",
-    other_ways_title: "Tentar de outra forma",
+    other_ways_title: "Escolha um método de recuperação",
     other_ways_desc: "Escolha como quer voltar a aceder à sua conta.",
     other_way_code_title: "Usar um código de recuperação",
     other_way_code_desc: "Introduza um dos códigos que guardou.",

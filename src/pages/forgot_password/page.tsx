@@ -22,7 +22,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button, Checkbox } from "@aster/ui";
 
 import {
-  AddressIcon,
   Alert,
   CopyIcon,
   HelpIcon,
@@ -90,9 +89,11 @@ export default function ForgotPasswordPage() {
     set_codes_saved,
     review,
     email,
-    handle_change_account,
+    resend_cooldown,
+    is_resending,
     handle_email_next,
     handle_email_reset_link,
+    handle_resend_reset_link,
     handle_code_submit,
     handle_password_submit,
     handle_copy_codes,
@@ -299,12 +300,6 @@ export default function ForgotPasswordPage() {
                 title={t("auth.other_way_email_title")}
               />
               <OptionRow
-                description={t("auth.change_account_desc")}
-                icon={<AddressIcon />}
-                on_click={handle_change_account}
-                title={t("auth.change_account")}
-              />
-              <OptionRow
                 description={t("auth.other_way_none_desc")}
                 icon={<HelpIcon />}
                 on_click={() => {
@@ -321,7 +316,7 @@ export default function ForgotPasswordPage() {
               variant="secondary"
               onClick={() => {
                 set_error("");
-                set_step("code");
+                set_step("email");
               }}
             >
               {t("common.back")}
@@ -791,14 +786,44 @@ export default function ForgotPasswordPage() {
               {t("auth.reset_link_sent_desc")}
             </p>
 
+            <AnimatePresence>
+              {error && <Alert is_dark={is_dark} message={error} />}
+            </AnimatePresence>
+
             <Button
-              className="w-full mt-8"
+              className={`w-full ${error ? "mt-4" : "mt-8"}`}
               size="xl"
               variant="depth"
               onClick={() => navigate("/sign-in")}
             >
               {t("auth.back_to_sign_in")}
             </Button>
+
+            <Button
+              className="w-full mt-3"
+              disabled={resend_cooldown > 0 || is_resending}
+              size="xl"
+              variant="secondary"
+              onClick={handle_resend_reset_link}
+            >
+              {resend_cooldown > 0
+                ? t("auth.resend_in_seconds", {
+                    seconds: resend_cooldown.toString(),
+                  })
+                : is_resending
+                  ? t("common.sending")
+                  : t("auth.resend_reset_link")}
+            </Button>
+
+            <button
+              className="w-full mt-5 text-sm font-medium transition-colors hover:opacity-80 text-txt-secondary"
+              onClick={() => {
+                set_error("");
+                set_step("code");
+              }}
+            >
+              {t("auth.reset_use_recovery_code")}
+            </button>
           </motion.div>
         );
 

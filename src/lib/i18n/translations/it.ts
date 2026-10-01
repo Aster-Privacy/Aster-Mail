@@ -9515,7 +9515,8 @@ export const it = {
       "Inserisci l'indirizzo dell'account che vuoi recuperare.",
     back_to_sign_in: "Torna all'accesso",
     email_me_reset_link: "Inviami un link di reimpostazione via email",
-    reset_link_sent_title: "Controlla la tua email di recupero",
+    reset_link_sent_title: "Controlla la tua email",
+    resend_reset_link: "Invia di nuovo il link",
     reset_link_sent_desc:
       "Se questo account ha un'email di recupero verificata, Aster Mail vi ha inviato un link di reimpostazione. Il link scade tra 30 minuti. Se non vedi l'email, controlla la cartella spam.",
     sending_reset_link: "Invio del link di reimpostazione...",
@@ -9559,7 +9560,7 @@ export const it = {
       "Aster Mail non può leggere i tuoi dati cifrati, quindi nessuno può sbloccarli senza un codice di recupero o la tua email di recupero. L'assistenza può controllare il tuo account e aiutarti con i passaggi successivi.",
     support_email_action: "Scrivi all'assistenza",
     support_help_center: "Vai al centro assistenza",
-    other_ways_title: "Prova in un altro modo",
+    other_ways_title: "Scegli un metodo di recupero",
     other_ways_desc: "Scegli come vuoi tornare nel tuo account.",
     other_way_code_title: "Usa un codice di recupero",
     other_way_code_desc: "Inserisci uno dei codici che hai salvato.",

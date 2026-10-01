@@ -9474,7 +9474,8 @@ export const es = {
       "Escribe la dirección de la cuenta que quieres recuperar.",
     back_to_sign_in: "Volver a iniciar sesión",
     email_me_reset_link: "Enviarme un enlace de restablecimiento por correo",
-    reset_link_sent_title: "Revisa tu correo de recuperación",
+    reset_link_sent_title: "Revisa tu correo",
+    resend_reset_link: "Reenviar enlace",
     reset_link_sent_desc:
       "Si esta cuenta tiene un correo de recuperación verificado, Aster Mail le ha enviado un enlace de restablecimiento. El enlace caduca en 30 minutos. Si no ves el mensaje, revisa tu carpeta de spam.",
     sending_reset_link: "Enviando enlace de restablecimiento...",
@@ -9518,7 +9519,7 @@ export const es = {
       "Aster Mail no puede leer tus datos cifrados, así que nadie puede desbloquearlos sin un código de recuperación o tu correo de recuperación. Soporte puede revisar tu cuenta y ayudarte con los siguientes pasos.",
     support_email_action: "Escribir a soporte",
     support_help_center: "Ir al centro de ayuda",
-    other_ways_title: "Probar de otra forma",
+    other_ways_title: "Elige un método de recuperación",
     other_ways_desc: "Elige cómo quieres volver a entrar en tu cuenta.",
     other_way_code_title: "Usar un código de recuperación",
     other_way_code_desc: "Introduce uno de los códigos que guardaste.",

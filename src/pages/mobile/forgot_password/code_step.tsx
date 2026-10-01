@@ -47,7 +47,6 @@ export function CodeStep({
   reduce_motion,
   set_error,
   set_step,
-  on_change_account,
   on_submit,
 }: CodeStepProps) {
   const { t } = use_i18n();
@@ -59,7 +58,10 @@ export function CodeStep({
           className={BACK_BUTTON_CLASS}
           style={BACK_BUTTON_STYLE}
           whileTap={button_tap}
-          onClick={on_change_account}
+          onClick={() => {
+            set_error("");
+            set_step("other_ways");
+          }}
         >
           <ChevronLeftIcon className="h-5 w-5 rtl:-scale-x-100" />
         </motion.button>

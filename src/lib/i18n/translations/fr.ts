@@ -9591,7 +9591,8 @@ export const fr = {
       "Saisissez l'adresse du compte que vous voulez récupérer.",
     back_to_sign_in: "Retour à la connexion",
     email_me_reset_link: "M'envoyer un lien de réinitialisation par e-mail",
-    reset_link_sent_title: "Vérifiez votre e-mail de récupération",
+    reset_link_sent_title: "Consultez vos e-mails",
+    resend_reset_link: "Renvoyer le lien",
     reset_link_sent_desc:
       "Si ce compte a un e-mail de récupération vérifié, Aster Mail y a envoyé un lien de réinitialisation. Le lien expire dans 30 minutes. Si vous ne voyez pas l'e-mail, vérifiez votre dossier de courrier indésirable.",
     sending_reset_link: "Envoi du lien de réinitialisation...",
@@ -9636,7 +9637,7 @@ export const fr = {
       "Aster Mail ne peut pas lire vos données chiffrées, donc personne ne peut les déverrouiller sans un code de récupération ou votre e-mail de récupération. Le support peut vérifier votre compte et vous aider pour la suite.",
     support_email_action: "Écrire au support",
     support_help_center: "Ouvrir le centre d'aide",
-    other_ways_title: "Essayer autrement",
+    other_ways_title: "Choisissez une méthode de récupération",
     other_ways_desc: "Choisissez comment récupérer l'accès à votre compte.",
     other_way_code_title: "Utiliser un code de récupération",
     other_way_code_desc: "Saisissez l'un des codes que vous avez enregistrés.",

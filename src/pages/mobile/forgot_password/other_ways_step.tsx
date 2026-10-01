@@ -25,7 +25,6 @@ import { ChevronLeftIcon } from "@heroicons/react/20/solid";
 
 import { use_i18n } from "@/lib/i18n/context";
 import {
-  AddressIcon,
   HelpIcon,
   KeyIcon,
   MailIcon,
@@ -45,7 +44,6 @@ export function OtherWaysStep({
   reduce_motion,
   set_error,
   set_step,
-  on_change_account,
   on_select_code,
   on_select_email,
   on_no_options,
@@ -61,7 +59,7 @@ export function OtherWaysStep({
           whileTap={button_tap}
           onClick={() => {
             set_error("");
-            set_step("code");
+            set_step("email");
           }}
         >
           <ChevronLeftIcon className="h-5 w-5 rtl:-scale-x-100" />
@@ -126,14 +124,6 @@ export function OtherWaysStep({
               icon={<MailIcon />}
               on_click={on_select_email}
               title={t("auth.other_way_email_title")}
-            />
-          </motion.div>
-          <motion.div variants={reduce_motion ? undefined : fade_up_item}>
-            <OptionRow
-              description={t("auth.change_account_desc")}
-              icon={<AddressIcon />}
-              on_click={on_change_account}
-              title={t("auth.change_account")}
             />
           </motion.div>
           <motion.div variants={reduce_motion ? undefined : fade_up_item}>

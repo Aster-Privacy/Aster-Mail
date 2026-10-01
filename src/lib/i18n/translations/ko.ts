@@ -9177,7 +9177,8 @@ export const ko = {
     enter_email_associated: "복구하려는 계정의 주소를 입력하세요.",
     back_to_sign_in: "로그인으로 돌아가기",
     email_me_reset_link: "재설정 링크를 이메일로 보내기",
-    reset_link_sent_title: "복구 이메일을 확인하세요",
+    reset_link_sent_title: "이메일을 확인하세요",
+    resend_reset_link: "링크 다시 보내기",
     reset_link_sent_desc:
       "이 계정에 인증된 복구 이메일이 있으면 Aster Mail이 재설정 링크를 보냈습니다. 링크는 30분 후에 만료됩니다. 이메일이 보이지 않으면 스팸 폴더를 확인하세요.",
     sending_reset_link: "재설정 링크 전송 중...",
@@ -9220,7 +9221,7 @@ export const ko = {
       "Aster Mail은 암호화된 데이터를 읽을 수 없으므로 복구 코드나 복구 이메일 없이는 누구도 잠금을 해제할 수 없습니다. 고객 지원이 계정을 확인하고 다음 단계를 안내합니다.",
     support_email_action: "고객 지원에 이메일 보내기",
     support_help_center: "도움말 센터 열기",
-    other_ways_title: "다른 방법 사용",
+    other_ways_title: "복구 방법 선택",
     other_ways_desc: "계정에 다시 로그인할 방법을 선택하세요.",
     other_way_code_title: "복구 코드 사용",
     other_way_code_desc: "저장한 코드 중 하나를 입력하세요.",

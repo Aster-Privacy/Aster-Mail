@@ -41,7 +41,6 @@ export interface EmailStepProps extends StepProps {
 }
 
 export interface OtherWaysStepProps extends StepProps {
-  on_change_account: () => void;
   on_select_code: () => void;
   on_select_email: () => void;
   on_no_options: () => void;
@@ -59,7 +58,13 @@ export interface SupportStepProps extends StepProps {
 
 export interface EmailSentStepProps {
   email: string;
+  error: string;
+  is_dark: boolean;
   reduce_motion: boolean;
+  resend_cooldown: number;
+  is_resending: boolean;
+  on_resend: () => void;
+  on_use_code: () => void;
   on_navigate_sign_in: () => void;
 }
 
@@ -67,7 +72,6 @@ export interface CodeStepProps extends StepProps {
   email: string;
   recovery_code: string;
   set_recovery_code: (code: string) => void;
-  on_change_account: () => void;
   on_submit: () => void;
 }
 

@@ -9443,7 +9443,8 @@ export const nl = {
       "Voer het adres in van het account dat je wilt herstellen.",
     back_to_sign_in: "Terug naar inloggen",
     email_me_reset_link: "Stuur me een resetlink per e-mail",
-    reset_link_sent_title: "Controleer je herstel-e-mail",
+    reset_link_sent_title: "Controleer je e-mail",
+    resend_reset_link: "Link opnieuw sturen",
     reset_link_sent_desc:
       "Als dit account een geverifieerde herstel-e-mail heeft, heeft Aster Mail daar een link naartoe gestuurd. De link verloopt over 30 minuten. Zie je de e-mail niet, controleer dan je spammap.",
     sending_reset_link: "Resetlink verzenden...",
@@ -9487,7 +9488,7 @@ export const nl = {
       "Aster Mail kan je versleutelde gegevens niet lezen, dus niemand kan ze ontgrendelen zonder een herstelcode of je herstel-e-mail. Support kan je account controleren en je helpen met de volgende stappen.",
     support_email_action: "Support mailen",
     support_help_center: "Naar het helpcentrum",
-    other_ways_title: "Probeer het anders",
+    other_ways_title: "Kies een herstelmethode",
     other_ways_desc: "Kies hoe je weer toegang tot je account wilt krijgen.",
     other_way_code_title: "Een herstelcode gebruiken",
     other_way_code_desc: "Voer een van de codes in die je hebt opgeslagen.",

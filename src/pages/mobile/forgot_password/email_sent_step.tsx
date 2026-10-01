@@ -20,7 +20,7 @@
 //
 import type { EmailSentStepProps } from "./types";
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 import { use_i18n } from "@/lib/i18n/context";
 import {
@@ -29,14 +29,27 @@ import {
   button_tap,
   DEPTH_CTA_CLASS,
   DEPTH_CTA_STYLE,
+  DEPTH_SECONDARY_CLASS,
 } from "@/components/auth/mobile_auth_motion";
 
 export function EmailSentStep({
   email,
+  error,
+  is_dark,
   reduce_motion,
+  resend_cooldown,
+  is_resending,
+  on_resend,
+  on_use_code,
   on_navigate_sign_in,
 }: EmailSentStepProps) {
   const { t } = use_i18n();
+  const resend_label =
+    resend_cooldown > 0
+      ? t("auth.resend_in_seconds", { seconds: resend_cooldown.toString() })
+      : is_resending
+        ? t("common.sending")
+        : t("auth.resend_reset_link");
 
   return (
     <motion.div
@@ -66,14 +79,48 @@ export function EmailSentStep({
         {t("auth.reset_link_sent_desc")}
       </motion.p>
 
+      <AnimatePresence>
+        {error && (
+          <motion.p
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-4 text-center text-sm"
+            exit={{ opacity: 0, y: -4 }}
+            initial={{ opacity: 0, y: -4 }}
+            style={{ color: is_dark ? "#f87171" : "#dc2626" }}
+          >
+            {error}
+          </motion.p>
+        )}
+      </AnimatePresence>
+
       <motion.button
-        className={`mt-8 ${DEPTH_CTA_CLASS}`}
+        className={`${error ? "mt-4" : "mt-8"} ${DEPTH_CTA_CLASS}`}
         style={DEPTH_CTA_STYLE}
         variants={reduce_motion ? undefined : fade_up_item}
         whileTap={button_tap}
         onClick={on_navigate_sign_in}
       >
         {t("auth.back_to_sign_in")}
+      </motion.button>
+
+      <motion.button
+        className={`mt-3 ${DEPTH_SECONDARY_CLASS}`}
+        disabled={resend_cooldown > 0 || is_resending}
+        type="button"
+        variants={reduce_motion ? undefined : fade_up_item}
+        whileTap={button_tap}
+        onClick={on_resend}
+      >
+        {resend_label}
+      </motion.button>
+
+      <motion.button
+        className="mt-5 w-full py-2 text-center text-sm font-medium text-[var(--text-secondary)]"
+        type="button"
+        variants={reduce_motion ? undefined : fade_up_item}
+        onClick={on_use_code}
+      >
+        {t("auth.reset_use_recovery_code")}
       </motion.button>
     </motion.div>
   );

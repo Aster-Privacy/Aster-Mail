@@ -9646,7 +9646,8 @@ export const pl = {
     enter_email_associated: "Wpisz adres konta, które chcesz odzyskać.",
     back_to_sign_in: "Powrót do logowania",
     email_me_reset_link: "Wyślij mi link resetujący e-mailem",
-    reset_link_sent_title: "Sprawdź swój e-mail odzyskiwania",
+    reset_link_sent_title: "Sprawdź pocztę",
+    resend_reset_link: "Wyślij link ponownie",
     reset_link_sent_desc:
       "Jeśli to konto ma zweryfikowany adres odzyskiwania, Aster Mail wysłał na niego link do resetowania. Link wygasa po 30 minutach. Jeśli nie widzisz wiadomości, sprawdź folder ze spamem.",
     sending_reset_link: "Wysyłanie linku resetującego...",
@@ -9689,7 +9690,7 @@ export const pl = {
       "Aster Mail nie odczytuje Twoich zaszyfrowanych danych, więc nikt ich nie odblokuje bez kodu odzyskiwania ani adresu odzyskiwania. Pomoc techniczna sprawdzi konto i podpowie, co dalej.",
     support_email_action: "Napisz do pomocy",
     support_help_center: "Otwórz centrum pomocy",
-    other_ways_title: "Spróbuj inaczej",
+    other_ways_title: "Wybierz metodę odzyskiwania",
     other_ways_desc: "Wybierz, jak chcesz odzyskać dostęp do konta.",
     other_way_code_title: "Użyj kodu odzyskiwania",
     other_way_code_desc: "Wpisz jeden z zapisanych kodów.",

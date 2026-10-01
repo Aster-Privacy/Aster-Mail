@@ -9367,7 +9367,8 @@ export const tr = {
     enter_email_associated: "Kurtarmak istediğiniz hesabın adresini girin.",
     back_to_sign_in: "Giriş sayfasına dön",
     email_me_reset_link: "Bana e-posta ile sıfırlama bağlantısı gönder",
-    reset_link_sent_title: "Kurtarma e-postanızı kontrol edin",
+    reset_link_sent_title: "E-postanızı kontrol edin",
+    resend_reset_link: "Bağlantıyı yeniden gönder",
     reset_link_sent_desc:
       "Bu hesabın doğrulanmış bir kurtarma e-postası varsa Aster Mail oraya bir sıfırlama bağlantısı gönderdi. Bağlantının süresi 30 dakika içinde dolar. E-postayı görmüyorsanız spam klasörünüzü kontrol edin.",
     sending_reset_link: "Sıfırlama bağlantısı gönderiliyor...",
@@ -9415,7 +9416,7 @@ export const tr = {
       "Aster Mail şifreli verilerinizi okuyamaz, bu yüzden kurtarma kodu veya kurtarma e-postanız olmadan kimse bunları açamaz. Destek ekibi hesabınızı kontrol edip sonraki adımlarda yardımcı olabilir.",
     support_email_action: "Desteğe e-posta gönder",
     support_help_center: "Yardım merkezini aç",
-    other_ways_title: "Başka bir yol deneyin",
+    other_ways_title: "Bir kurtarma yöntemi seçin",
     other_ways_desc: "Hesabınıza nasıl geri dönmek istediğinizi seçin.",
     other_way_code_title: "Kurtarma kodu kullanın",
     other_way_code_desc: "Kaydettiğiniz kodlardan birini girin.",

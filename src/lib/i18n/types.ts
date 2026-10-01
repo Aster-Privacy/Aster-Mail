@@ -8287,6 +8287,7 @@ export interface AuthTranslations {
   email_me_reset_link: string;
   reset_link_sent_title: string;
   reset_link_sent_desc: string;
+  resend_reset_link: string;
   sending_reset_link: string;
   reset_your_password: string;
   reset_choose_new_password: string;

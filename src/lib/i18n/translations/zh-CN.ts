@@ -8497,7 +8497,8 @@ export const zh_CN = {
     enter_email_associated: "输入你要恢复的账户地址。",
     back_to_sign_in: "返回登录",
     email_me_reset_link: "通过电子邮件发送重置链接",
-    reset_link_sent_title: "请查看您的恢复邮箱",
+    reset_link_sent_title: "查看您的邮箱",
+    resend_reset_link: "重新发送链接",
     reset_link_sent_desc:
       "如果此账户有已验证的恢复邮箱，Aster Mail 已向其发送重置链接。链接将在 30 分钟后失效。如果没有看到邮件，请检查垃圾邮件文件夹。",
     sending_reset_link: "正在发送重置链接...",
@@ -8536,7 +8537,7 @@ export const zh_CN = {
       "Aster Mail 无法读取你的加密数据，因此没有恢复代码或恢复邮箱，任何人都无法解锁。支持团队可以检查你的账户并说明后续步骤。",
     support_email_action: "给支持团队发邮件",
     support_help_center: "打开帮助中心",
-    other_ways_title: "尝试其他方式",
+    other_ways_title: "选择恢复方式",
     other_ways_desc: "选择你想要重新登录账户的方式。",
     other_way_code_title: "使用恢复代码",
     other_way_code_desc: "输入你保存的其中一个代码。",

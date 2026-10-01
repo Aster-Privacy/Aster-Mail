@@ -9307,7 +9307,8 @@ export const en: Translations = {
       "Enter the address of the account you want to recover.",
     back_to_sign_in: "Back to sign in",
     email_me_reset_link: "Email me a reset link",
-    reset_link_sent_title: "Check your recovery email",
+    reset_link_sent_title: "Check your email",
+    resend_reset_link: "Resend link",
     reset_link_sent_desc:
       "If this account has a verified recovery email, Aster Mail sent a reset link to it. The link expires in 30 minutes. If you don't see the email, check your spam folder.",
     sending_reset_link: "Sending reset link...",
@@ -9351,7 +9352,7 @@ export const en: Translations = {
       "Aster Mail cannot read your encrypted data, so no one can unlock it without a recovery code or your recovery email. Support can check your account and help you with what comes next.",
     support_email_action: "Email support",
     support_help_center: "Visit the help center",
-    other_ways_title: "Try another way",
+    other_ways_title: "Choose a recovery method",
     other_ways_desc: "Choose how you want to get back into your account.",
     other_way_code_title: "Use a recovery code",
     other_way_code_desc: "Enter one of the codes you saved.",

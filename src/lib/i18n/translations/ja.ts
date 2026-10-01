@@ -9351,7 +9351,8 @@ export const ja = {
       "復旧したいアカウントのアドレスを入力してください。",
     back_to_sign_in: "サインインに戻る",
     email_me_reset_link: "リセットリンクをメールで送信",
-    reset_link_sent_title: "リカバリーメールを確認してください",
+    reset_link_sent_title: "メールを確認してください",
+    resend_reset_link: "リンクを再送信",
     reset_link_sent_desc:
       "このアカウントに確認済みのリカバリーメールがある場合、Aster Mailがリセット用のリンクを送信しました。リンクは30分で期限切れになります。メールが見つからない場合は、迷惑メールフォルダを確認してください。",
     sending_reset_link: "リセットリンクを送信中...",
@@ -9395,7 +9396,7 @@ export const ja = {
       "Aster Mail は暗号化されたデータを読み取れないため、リカバリーコードまたは復旧用メールなしで解除できる人はいません。サポートがアカウントを確認し、次の手順を案内します。",
     support_email_action: "サポートにメールする",
     support_help_center: "ヘルプセンターを開く",
-    other_ways_title: "別の方法を試す",
+    other_ways_title: "リカバリー方法を選択",
     other_ways_desc: "アカウントに戻る方法を選択してください。",
     other_way_code_title: "リカバリーコードを使う",
     other_way_code_desc: "保存したコードのいずれかを入力します。",
