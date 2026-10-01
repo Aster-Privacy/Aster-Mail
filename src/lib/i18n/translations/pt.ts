@@ -8475,6 +8475,7 @@ export const pt = {
     drafts: "Rascunhos",
     starred: "Com estrela",
     archive: "Arquivo",
+    archive_action: "Arquivar",
     spam: "Spam",
     trash: "Lixo",
     scheduled: "Agendados",

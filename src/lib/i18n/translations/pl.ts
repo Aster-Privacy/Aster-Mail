@@ -8576,6 +8576,7 @@ export const pl = {
     drafts: "Szkice",
     starred: "Oznaczone gwiazdką",
     archive: "Archiwum",
+    archive_action: "Archiwizuj",
     spam: "Spam",
     trash: "Kosz",
     scheduled: "Zaplanowane",

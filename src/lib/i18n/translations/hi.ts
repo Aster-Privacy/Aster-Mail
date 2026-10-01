@@ -8172,6 +8172,7 @@ export const hi = {
     drafts: "ड्राफ़्ट",
     starred: "तारांकित",
     archive: "आर्काइव",
+    archive_action: "आर्काइव करें",
     archive_conversation_count: "बातचीत आर्काइव करें ({{count}} संदेश)",
     move_conversation_to_trash_count:
       "बातचीत ट्रैश में ले जाएं ({{count}} संदेश)",

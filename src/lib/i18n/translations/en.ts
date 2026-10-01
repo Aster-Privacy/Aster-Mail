@@ -8121,6 +8121,7 @@ export const en: Translations = {
     drafts: "Drafts",
     starred: "Starred",
     archive: "Archive",
+    archive_action: "Archive",
     archive_conversation_count: "Archive conversation ({{count}} messages)",
     move_conversation_to_trash_count:
       "Move conversation to trash ({{count}} messages)",

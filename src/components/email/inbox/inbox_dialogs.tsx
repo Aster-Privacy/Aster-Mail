@@ -158,7 +158,7 @@ export function InboxDialogs({
         }
       />
       <ConfirmModal
-        confirm_text={t("mail.archive")}
+        confirm_text={t("mail.archive_action")}
         confirm_variant="default"
         description={t("mail.archive_messages_confirmation")}
         dont_ask={dont_ask_archive}
@@ -203,7 +203,7 @@ export function InboxDialogs({
         title={t("mail.mark_spam_title")}
       />
       <ConfirmModal
-        confirm_text={t("mail.archive")}
+        confirm_text={t("mail.archive_action")}
         confirm_variant="default"
         description={t("mail.archive_email_message")}
         dont_ask={dont_ask_single_archive}

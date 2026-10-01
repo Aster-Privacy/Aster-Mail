@@ -77,7 +77,7 @@ export function KeyboardShortcutsModal({
     prev_email: "mail.shortcut_previous_email",
     open_email: "mail.shortcut_open_email",
     close_viewer: "mail.shortcut_close_back",
-    archive: "mail.archive",
+    archive: "mail.archive_action",
     delete: "mail.shortcut_delete_trash",
     spam: "mail.mark_as_spam",
     toggle_star: "mail.shortcut_star_unstar",

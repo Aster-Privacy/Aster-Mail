@@ -7494,6 +7494,7 @@ export const zh_CN = {
     drafts: "草稿",
     starred: "星标",
     archive: "归档",
+    archive_action: "归档",
     spam: "垃圾邮件",
     trash: "回收站",
     scheduled: "定时发送",

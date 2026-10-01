@@ -8544,6 +8544,7 @@ export const ru = {
     drafts: "Черновики",
     starred: "Избранные",
     archive: "Архив",
+    archive_action: "Архивировать",
     spam: "Спам",
     trash: "Корзина",
     scheduled: "Запланированные",

@@ -8392,6 +8392,7 @@ export const es = {
     drafts: "Borradores",
     starred: "Destacados",
     archive: "Archivo",
+    archive_action: "Archivar",
     spam: "Spam",
     trash: "Papelera",
     scheduled: "Programados",

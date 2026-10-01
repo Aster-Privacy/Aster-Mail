@@ -8233,6 +8233,7 @@ export const ar = {
     drafts: "المسودات",
     starred: "المميز بنجمة",
     archive: "الأرشيف",
+    archive_action: "أرشفة",
     spam: "الرسائل المزعجة",
     trash: "سلة المهملات",
     scheduled: "مجدول",

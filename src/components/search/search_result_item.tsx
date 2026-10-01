@@ -257,7 +257,7 @@ const SearchResultRowBase = forwardRef<
             </button>
             <button
               className="search_result_action text-txt-muted"
-              title={t("mail.archive")}
+              title={t("mail.archive_action")}
               onClick={(e) => {
                 e.stopPropagation();
                 quick_actions.on_archive?.(result);

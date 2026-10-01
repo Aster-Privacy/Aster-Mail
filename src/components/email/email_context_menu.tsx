@@ -637,7 +637,7 @@ function EmailContextMenuContentInner({
             onClick={() => handle_action("archive", on_archive)}
           >
             <ArchiveBoxIcon className="me-2 h-4 w-4" />
-            {t("mail.archive")}
+            {t("mail.archive_action")}
           </ContextMenuItem>
         )}
 

@@ -8281,6 +8281,7 @@ export const ja = {
     drafts: "下書き",
     starred: "スター付き",
     archive: "アーカイブ",
+    archive_action: "アーカイブ",
     spam: "スパム",
     trash: "ゴミ箱",
     scheduled: "予約済み",

@@ -8479,6 +8479,7 @@ export const de = {
     drafts: "Entwürfe",
     starred: "Markiert",
     archive: "Archiv",
+    archive_action: "Archivieren",
     spam: "Spam",
     trash: "Papierkorb",
     scheduled: "Geplant",
