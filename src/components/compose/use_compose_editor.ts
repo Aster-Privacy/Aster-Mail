@@ -132,6 +132,13 @@ export function use_compose_editor({
           }),
         )
         .replace(/\[Name\]/g, recipient_name);
+
+      if (is_plain_text_mode) {
+        editor.insert_text(substituted);
+
+        return;
+      }
+
       const escaped = substituted
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
@@ -140,7 +147,7 @@ export function use_compose_editor({
 
       editor.insert_html(html);
     },
-    [editor, get_recipient_name],
+    [editor, get_recipient_name, is_plain_text_mode],
   );
 
   const exec_format_command = useCallback(

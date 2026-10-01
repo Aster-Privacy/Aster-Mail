@@ -23,10 +23,20 @@ import type { AvailablePlan } from "@/services/api/billing";
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
-import { Button } from "@aster/ui";
+import {
+  Button,
+  Input,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@aster/ui";
 import {
   AcademicCapIcon,
   ArrowTopRightOnSquareIcon,
+  ShieldCheckIcon,
+  TagIcon,
   UserGroupIcon,
 } from "@heroicons/react/24/outline";
 
@@ -66,7 +76,6 @@ import {
   CURRENCY_STORAGE_KEY,
 } from "@/components/settings/billing/billing_constants";
 import { use_currency_rates } from "@/components/settings/billing/use_currency_rates";
-import { Segmented, Tabs } from "@/components/settings/billing/plan_card";
 import { OnboardingButton } from "@/components/register/register_shared";
 import {
   page_variants,
@@ -444,9 +453,7 @@ export const RegisterStepPlanSelection = ({
     };
   }, []);
 
-  const handle_currency_change = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const next = e.target.value;
-
+  const handle_currency_change = (next: string) => {
     set_currency(next);
     safe_local_set(CURRENCY_STORAGE_KEY, next);
   };
@@ -641,6 +648,100 @@ export const RegisterStepPlanSelection = ({
     return format_price(convert_cents(cents, currency), currency);
   }, [checkout, currency]);
 
+  const promo_slot = applied_promo ? (
+    <div className="flex items-center justify-between gap-3 rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] py-2 pe-2 ps-4">
+      <p
+        className="flex min-w-0 items-center gap-2 text-[13px] text-txt-primary"
+        role="status"
+      >
+        <TagIcon aria-hidden="true" className="h-4 w-4 flex-shrink-0" />
+        <span className="min-w-0 break-words">
+          {t("settings.plan_change_discount_label", {
+            code: applied_promo.code,
+          })}
+          {applied_promo.percent_off !== null &&
+            ` \u00b7 ${t("settings.promo_discount_percent", {
+              value: applied_promo.percent_off,
+            })}`}
+        </span>
+      </p>
+      <Button
+        disabled={is_finalizing}
+        size="sm"
+        variant="ghost"
+        onClick={handle_remove_promo}
+      >
+        {t("settings.plan_change_promo_remove")}
+      </Button>
+    </div>
+  ) : is_promo_open ? (
+    <div className="flex flex-col gap-2">
+      <label
+        className="text-[11px] font-semibold uppercase tracking-wider text-txt-muted"
+        htmlFor="register_promo_code"
+      >
+        {t("settings.promo_code")}
+      </label>
+      <div className="flex items-center gap-2">
+        <Input
+          aria-describedby={promo_error ? "register_promo_error" : undefined}
+          aria-invalid={promo_error ? true : undefined}
+          autoComplete="off"
+          className="min-w-0 flex-1"
+          disabled={is_finalizing || is_promo_checking}
+          id="register_promo_code"
+          maxLength={64}
+          placeholder={t("settings.promo_code_placeholder")}
+          value={promo_input}
+          onChange={(event) => {
+            set_promo_input(event.target.value);
+            if (promo_error) set_promo_error("");
+          }}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              handle_apply_promo();
+            }
+          }}
+        />
+        <Button
+          disabled={
+            is_finalizing ||
+            is_promo_checking ||
+            promo_input.trim().length === 0
+          }
+          variant="secondary"
+          onClick={handle_apply_promo}
+        >
+          {is_promo_checking
+            ? t("settings.promo_validating")
+            : t("settings.promo_apply")}
+        </Button>
+      </div>
+      {promo_error && (
+        <p
+          className="text-xs"
+          id="register_promo_error"
+          role="alert"
+          style={{ color: "var(--color-danger)" }}
+        >
+          {promo_error}
+        </p>
+      )}
+    </div>
+  ) : (
+    <button
+      className="flex items-center gap-1.5 rounded px-1 text-[13px] font-medium hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:opacity-60"
+      disabled={is_finalizing}
+      style={{ color: "var(--accent-color)" }}
+      type="button"
+      onClick={() => set_is_promo_open(true)}
+    >
+      <TagIcon aria-hidden="true" className="h-4 w-4 flex-shrink-0" />
+      {t("settings.checkout_add_promo")}
+    </button>
+  );
+
   return (
     <motion.div
       key="plan_selection"
@@ -696,47 +797,75 @@ export const RegisterStepPlanSelection = ({
         </div>
       )}
 
-      <div className="flex flex-col items-center gap-3 mt-6 w-full">
-        <Tabs
-          on_change={set_plan_type}
-          options={[
-            { id: "individual", label: t("settings.plan_type_individual") },
-            { id: "family", label: t("settings.plan_type_family") },
-          ]}
-          value={plan_type}
-        />
-
-        <div className="flex flex-wrap items-center justify-center gap-2">
-          <Segmented
-            on_change={set_billing_period}
-            options={[
-              { id: "monthly", label: t("settings.billing_monthly") },
-              {
-                id: "yearly",
-                label: t("settings.billing_yearly"),
-                badge:
-                  yearly_savings_percent > 0
-                    ? t("settings.save_percent", {
-                        percent: yearly_savings_percent,
-                      })
-                    : undefined,
-              },
-            ]}
-            value={billing_period}
-          />
-          <select
-            aria-label={t("settings.select_currency")}
-            className="cursor-pointer rounded-full border-0 bg-[var(--aster-field-bg)] px-3 py-1.5 text-xs text-txt-secondary outline-none transition-colors hover:text-txt-primary focus:ring-2 focus:ring-[var(--accent-color)]"
-            value={currency}
-            onChange={handle_currency_change}
-          >
-            {SUPPORTED_CURRENCIES.map((c) => (
-              <option key={c.code} value={c.code}>
-                {c.label}
-              </option>
-            ))}
-          </select>
+      <div className="mt-6 flex w-full flex-wrap items-center justify-center gap-2">
+        <div
+          aria-label={t("auth.plan_selection_title")}
+          className="aster_segmented"
+          role="group"
+        >
+          {(["individual", "family"] as const).map((type) => (
+            <button
+              key={type}
+              aria-pressed={plan_type === type}
+              className="aster_segmented_option"
+              type="button"
+              onClick={() => set_plan_type(type)}
+            >
+              {type === "individual"
+                ? t("settings.plan_type_individual")
+                : t("settings.plan_type_family")}
+            </button>
+          ))}
         </div>
+        <div
+          aria-label={t("settings.billing_term_heading")}
+          className="aster_segmented"
+          role="group"
+        >
+          {(["monthly", "yearly"] as const).map((period) => (
+            <button
+              key={period}
+              aria-pressed={billing_period === period}
+              className="aster_segmented_option"
+              type="button"
+              onClick={() => set_billing_period(period)}
+            >
+              {period === "yearly"
+                ? t("settings.billing_yearly")
+                : t("settings.billing_monthly")}
+              {period === "yearly" && yearly_savings_percent > 0 && (
+                <span
+                  className="ms-1.5 text-[11.5px] font-semibold"
+                  style={{
+                    color:
+                      billing_period === "yearly"
+                        ? "inherit"
+                        : "var(--color-success)",
+                  }}
+                >
+                  {t("settings.billing_save_percent", {
+                    percent: yearly_savings_percent,
+                  })}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+        <Select value={currency} onValueChange={handle_currency_change}>
+          <SelectTrigger
+            aria-label={t("settings.select_currency")}
+            className="h-10 w-auto flex-shrink-0"
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent align="end">
+            {SUPPORTED_CURRENCIES.map((c) => (
+              <SelectItem key={c.code} value={c.code}>
+                {c.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <p className="mt-3 max-w-md text-center text-xs text-txt-muted">
@@ -1021,6 +1150,7 @@ export const RegisterStepPlanSelection = ({
             )}${t("settings.per_month_short")}`,
           }))}
           plan_name={pending_family_tier.name}
+          promo_slot={promo_slot}
           selected_plan_id={pending_family_tier.id}
           selected_term={billing_period}
           term_options={[
@@ -1065,121 +1195,39 @@ export const RegisterStepPlanSelection = ({
         />
       )}
 
-      <div className="w-full max-w-sm flex flex-col items-center mt-6 gap-2">
-        {applied_promo ? (
-          <div className="w-full flex items-center justify-between gap-3">
-            <p className="text-xs text-txt-secondary" role="status">
-              {t("settings.plan_change_discount_label", {
-                code: applied_promo.code,
-              })}
-              {applied_promo.percent_off !== null &&
-                ` \u00b7 ${t("settings.promo_discount_percent", {
-                  value: applied_promo.percent_off,
-                })}`}
-            </p>
-            <Button
-              disabled={is_finalizing}
-              size="sm"
-              variant="ghost"
-              onClick={handle_remove_promo}
-            >
-              {t("settings.plan_change_promo_remove")}
-            </Button>
-          </div>
-        ) : is_promo_open ? (
-          <div className="w-full flex flex-col gap-2">
-            <label
-              className="text-xs font-medium text-txt-secondary"
-              htmlFor="register_promo_code"
-            >
-              {t("settings.promo_code")}
-            </label>
-            <div className="flex items-center gap-2">
-              <input
-                aria-describedby={
-                  promo_error ? "register_promo_error" : undefined
-                }
-                aria-invalid={promo_error ? true : undefined}
-                autoComplete="off"
-                className="flex-1 min-w-0 px-3 py-2 text-sm rounded-lg bg-surface-secondary border border-edge-secondary text-txt-primary placeholder:text-txt-muted"
-                disabled={is_finalizing || is_promo_checking}
-                id="register_promo_code"
-                maxLength={64}
-                placeholder={t("settings.promo_code_placeholder")}
-                value={promo_input}
-                onChange={(event) => {
-                  set_promo_input(event.target.value);
-                  if (promo_error) set_promo_error("");
-                }}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") {
-                    event.preventDefault();
-                    handle_apply_promo();
-                  }
-                }}
-              />
-              <Button
-                disabled={
-                  is_finalizing ||
-                  is_promo_checking ||
-                  promo_input.trim().length === 0
-                }
-                size="sm"
-                variant="outline"
-                onClick={handle_apply_promo}
-              >
-                {is_promo_checking
-                  ? t("settings.promo_validating")
-                  : t("settings.promo_apply")}
-              </Button>
-            </div>
-            {promo_error && (
-              <p
-                className="text-xs text-red-500"
-                id="register_promo_error"
-                role="alert"
-              >
-                {promo_error}
-              </p>
-            )}
-          </div>
-        ) : (
-          <button
-            className="text-sm font-medium hover:underline disabled:opacity-60"
+      <div className="mt-8 flex w-full max-w-md flex-col items-center gap-4">
+        <div className="flex w-full flex-col gap-2 sm:flex-row">
+          <OnboardingButton
+            className="w-full sm:flex-1"
             disabled={is_finalizing}
-            style={{ color: "var(--accent-blue)" }}
-            type="button"
-            onClick={() => set_is_promo_open(true)}
+            variant="secondary"
+            onClick={handle_continue_free}
           >
-            {t("settings.checkout_add_promo")}
-          </button>
-        )}
-      </div>
-
-      <div className="w-full flex flex-col items-center mt-5 mb-4 gap-3">
-        <p className="text-xs text-txt-muted text-center max-w-md">
-          {t("auth.no_ads_no_tracking")}
+            {t("auth.plan_continue_as_free")}
+          </OnboardingButton>
+          <OnboardingButton
+            as_child
+            className="w-full sm:flex-1"
+            variant="secondary"
+          >
+            <a
+              href={pricing_comparison_url()}
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              <span>{t("auth.plan_view_full_features")}</span>
+              <ArrowTopRightOnSquareIcon className="h-4 w-4" />
+            </a>
+          </OnboardingButton>
+        </div>
+        <p className="flex items-center justify-center gap-1.5 text-center text-xs text-txt-muted">
+          <ShieldCheckIcon
+            aria-hidden="true"
+            className="h-3.5 w-3.5 flex-shrink-0"
+          />
+          <span>{t("auth.no_ads_no_tracking")}</span>
         </p>
-        <button
-          className="text-sm font-medium hover:underline disabled:opacity-60"
-          disabled={is_finalizing}
-          style={{ color: "var(--accent-blue)" }}
-          type="button"
-          onClick={handle_continue_free}
-        >
-          {t("auth.plan_continue_as_free")}
-        </button>
-        <OnboardingButton as_child className="w-auto" variant="secondary">
-          <a
-            href={pricing_comparison_url()}
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            <span>{t("auth.plan_view_full_features")}</span>
-            <ArrowTopRightOnSquareIcon className="h-4 w-4" />
-          </a>
-        </OnboardingButton>
-        <p className="mt-2 text-xs text-txt-muted text-center max-w-md">
+        <p className="text-center text-xs leading-relaxed text-txt-muted">
           {t("auth.plan_footer_reassurance")}
         </p>
       </div>
@@ -1249,6 +1297,7 @@ export const RegisterStepPlanSelection = ({
             )}${t("settings.per_month_short")}`,
           }))}
           plan_name={pending_tier.tier.name}
+          promo_slot={promo_slot}
           selected_plan_id={pending_tier.tier.id}
           selected_term={billing_period}
           term_options={[

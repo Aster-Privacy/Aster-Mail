@@ -20,6 +20,8 @@
 //
 import type { UseRegistrationReturn } from "@/components/register/hooks/use_registration";
 
+import { useState } from "react";
+
 import { SkipLink, StepShell } from "@/components/register/register_shared";
 
 interface RegisterStepCustomDomainProps {
@@ -79,6 +81,7 @@ interface OptionCardProps {
   title: string;
   description: string;
   on_click: () => void;
+  disabled: boolean;
 }
 
 const OptionCard = ({
@@ -86,9 +89,11 @@ const OptionCard = ({
   title,
   description,
   on_click,
+  disabled,
 }: OptionCardProps) => (
   <button
-    className="flex w-full items-center gap-3 rounded-xl border px-4 py-3.5 text-start transition-colors border-edge-secondary bg-surf-tertiary hover:bg-surf-secondary"
+    className="flex w-full items-center gap-3 rounded-xl border px-4 py-3.5 text-start transition-colors border-edge-secondary bg-surf-tertiary hover:bg-surf-secondary disabled:pointer-events-none disabled:opacity-60"
+    disabled={disabled}
     type="button"
     onClick={on_click}
   >
@@ -110,6 +115,18 @@ const OptionCard = ({
 export const RegisterStepCustomDomain = ({
   reg,
 }: RegisterStepCustomDomainProps) => {
+  const [is_busy, set_is_busy] = useState(false);
+
+  const handle_new_domain = async () => {
+    if (is_busy) return;
+    set_is_busy(true);
+    try {
+      await reg.handle_custom_domain_new();
+    } catch {
+      set_is_busy(false);
+    }
+  };
+
   return (
     <StepShell
       step_key="custom_domain"
@@ -119,19 +136,22 @@ export const RegisterStepCustomDomain = ({
       <div className="flex w-full flex-col gap-3">
         <OptionCard
           description={reg.t("auth.custom_domain_own_desc")}
+          disabled={is_busy}
           icon={<ArrowIcon />}
           on_click={() => void reg.handle_custom_domain_own()}
           title={reg.t("auth.custom_domain_own")}
         />
         <OptionCard
           description={reg.t("auth.custom_domain_new_desc")}
+          disabled={is_busy}
           icon={<AtIcon />}
-          on_click={() => void reg.handle_custom_domain_new()}
+          on_click={() => void handle_new_domain()}
           title={reg.t("auth.custom_domain_new")}
         />
       </div>
 
       <SkipLink
+        disabled={is_busy}
         label={reg.t("auth.skip_for_now")}
         on_click={() => void reg.handle_custom_domain_skip()}
       />

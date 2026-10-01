@@ -358,9 +358,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
   );
   const complete_registration_ref = useRef<() => Promise<void>>();
   const plan_step_shown_ref = useRef(false);
-  const finish_path_ref = useRef(
-    resume_state_ref.current?.finish_path ?? "/",
-  );
+  const finish_path_ref = useRef(resume_state_ref.current?.finish_path ?? "/");
   const open_domain_purchase_ref = useRef(
     resume_state_ref.current?.open_domain_purchase ?? false,
   );
@@ -1064,7 +1062,10 @@ export function use_registration(options?: RegistrationClaimOptions) {
   };
 
   const handle_custom_domain_new = async () => {
-    await go_to_plan_step("/settings/domains", true);
+    finish_path_ref.current = "/settings/domains";
+    open_domain_purchase_ref.current = true;
+    plan_step_shown_ref.current = true;
+    await finalize_registration();
   };
 
   const handle_custom_domain_skip = () => {
