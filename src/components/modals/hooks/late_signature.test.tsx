@@ -396,8 +396,6 @@ function body_editor(): HTMLDivElement {
 }
 
 async function type_into(editor: HTMLElement, text: string): Promise<Text> {
-  // Typing into an empty contenteditable leaves the first line as a bare
-  // text node, and the editor reports every input through on_change.
   editor.textContent = text;
   const typed = editor.firstChild as Text;
 

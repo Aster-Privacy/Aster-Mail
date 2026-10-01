@@ -254,8 +254,6 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
   const send_lock_started_at_ref = useRef(0);
   const last_send_time_ref = useRef<number>(0);
   const content_initialized_ref = useRef(false);
-  // Initialising the body waits for the signatures, and it is editable in
-  // the meantime. Any edit since opening sets this, so the user's text stays.
   const body_edited_ref = useRef(false);
   const initial_content_ref = useRef<string>("");
 
@@ -626,8 +624,6 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     const has_typed_text = () =>
       body_edited_ref.current && has_typed_content(message_editor_ref.current);
 
-    // While this waits for the signatures, a draft can arrive, such as the
-    // one autosave just made from the text being typed. The typed text wins.
     if (matching_draft && !has_typed_text()) {
       content_initialized_ref.current = true;
 
@@ -678,9 +674,6 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
         get_compose_sanitize_options(),
       );
 
-      // The signatures can land seconds after the reply opened. Text typed
-      // meanwhile stays put with the caret in it, and the signature and
-      // footer go below it, where they would have been from the start.
       if (has_typed_text()) {
         append_template_after_typed_text(
           message_editor_ref.current,

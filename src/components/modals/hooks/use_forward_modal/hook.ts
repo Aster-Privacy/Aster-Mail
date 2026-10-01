@@ -250,8 +250,6 @@ export function use_forward_modal({
   const send_lock_started_at_ref = useRef(0);
   const forward_content_ref = useRef("");
   const content_initialized_ref = useRef(false);
-  // Initialising the body waits for the signatures, and it is editable in
-  // the meantime. Any edit since opening sets this, so the user's text stays.
   const body_edited_ref = useRef(false);
   const attachments_touched_ref = useRef(false);
 
@@ -461,9 +459,6 @@ export function use_forward_modal({
 
       const sanitized = sanitize_html(content, get_compose_sanitize_options());
 
-      // The signatures can land seconds after the forward opened. Text typed
-      // meanwhile stays put with the caret in it, and the signature goes
-      // below it, where it would have been from the start.
       if (
         body_edited_ref.current &&
         has_typed_content(message_editor_ref.current)

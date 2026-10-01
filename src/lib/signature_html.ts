@@ -157,8 +157,6 @@ export function append_template_after_typed_text(
 
   holder.innerHTML = template_html;
 
-  // The typed text already fills the line the template's caret block would
-  // have given it, so only what comes after that line is added.
   const caret_line = holder.firstChild;
 
   if (caret_line && is_empty_block(caret_line)) caret_line.remove();
