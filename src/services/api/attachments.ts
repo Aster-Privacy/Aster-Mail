@@ -122,7 +122,9 @@ export interface BatchAttachmentMetaResponse {
   items: Record<string, AttachmentMetaItem[]>;
 }
 
-export async function batch_attachment_meta(
+export const MAX_ATTACHMENT_META_BATCH = 50;
+
+async function post_attachment_meta_batch(
   mail_ids: string[],
 ): Promise<ApiResponse<BatchAttachmentMetaResponse>> {
   return with_folder_unlock<BatchAttachmentMetaResponse>(
@@ -134,4 +136,31 @@ export async function batch_attachment_meta(
         unlock_token ? { folder_unlock_token: unlock_token } : undefined,
       ),
   );
+}
+
+export async function batch_attachment_meta(
+  mail_ids: string[],
+): Promise<ApiResponse<BatchAttachmentMetaResponse>> {
+  if (mail_ids.length <= MAX_ATTACHMENT_META_BATCH) {
+    return post_attachment_meta_batch(mail_ids);
+  }
+
+  const unique_ids = Array.from(new Set(mail_ids));
+  const items: Record<string, AttachmentMetaItem[]> = {};
+
+  for (
+    let offset = 0;
+    offset < unique_ids.length;
+    offset += MAX_ATTACHMENT_META_BATCH
+  ) {
+    const response = await post_attachment_meta_batch(
+      unique_ids.slice(offset, offset + MAX_ATTACHMENT_META_BATCH),
+    );
+
+    if (!response.data) return response;
+
+    Object.assign(items, response.data.items);
+  }
+
+  return { data: { items } };
 }
