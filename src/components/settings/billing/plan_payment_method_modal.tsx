@@ -97,6 +97,7 @@ interface plan_payment_method_modal_props {
   discount_duration_months?: number;
   special_offer?: SpecialOfferPlanPricing;
   card_currency?: string;
+  promo_slot?: ReactNode;
   on_close: () => void;
   on_choose_card: (term_id?: string) => void;
   on_choose_crypto: (term_id?: string) => void;
@@ -156,6 +157,7 @@ export function PlanPaymentMethodModal({
   discount_duration_months,
   special_offer,
   card_currency,
+  promo_slot,
   on_close,
   on_choose_card,
   on_choose_crypto,
@@ -682,6 +684,8 @@ export function PlanPaymentMethodModal({
               )}
             </ul>
           </div>
+
+          {promo_slot && <div data-checkout-promo>{promo_slot}</div>}
         </div>
 
         <aside className="min-w-0">

@@ -166,6 +166,7 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
   const with_pending_reads = useCallback(async (read: () => Promise<void>) => {
     pending_reads_ref.current++;
     set_is_loading_attachments(true);
+
     try {
       await read();
     } finally {
@@ -185,6 +186,9 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
   }, [attachments]);
 
   const remove_attachment = useCallback((id: string) => {
+    attachments_ref.current = attachments_ref.current.filter(
+      (a) => a.id !== id,
+    );
     set_attachments((prev) => prev.filter((a) => a.id !== id));
     set_attachment_error(null);
   }, []);
@@ -226,129 +230,28 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
         total += attachment.size_bytes;
       }
 
-      // Publish the accepted batch before another read can finish, including
-      // when React has not rendered the state update yet.
-      attachments_ref.current = next;
-      set_attachments(next);
+      const accepted = next.length - attachments_ref.current.length;
+
+      if (accepted > 0) {
+        attachments_ref.current = next;
+        set_attachments(next);
+      }
+
+      return accepted;
     },
     [t],
   );
 
-  const read_selected_files = useCallback(
-    async (event: React.ChangeEvent<HTMLInputElement>) => {
-      const files = event.target.files;
-
-      if (!files || files.length === 0) return;
-
-      set_attachment_error(null);
-      await ensure_attachment_limits();
-      const new_attachments: Attachment[] = [];
-      const unstripped: string[] = [];
-      const current_total = get_total_attachments_size();
-      let running_total = current_total;
-
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-
-        if (
-          attachments_ref.current.length + new_attachments.length >=
-          MAX_ATTACHMENTS_PER_SEND
-        ) {
-          const message = describe_too_many_attachments(t);
-
-          set_attachment_error(message);
-          show_toast(message, "error");
-          break;
-        }
-
-        if (file.size > get_max_attachment_size()) {
-          const rejection = describe_oversized_file(t, file.name, file.size);
-          const message = rejection.message;
-
-          set_attachment_error(message);
-          show_toast(message, "error");
-
-          if (rejection.can_upgrade)
-            prompt_attachment_upgrade(
-              rejection.message,
-              rejection.upgrade_plan_code,
-            );
-          continue;
-        }
-
-        if (running_total + file.size > get_max_total_attachments_size()) {
-          const message = describe_would_exceed_total(t, file.name);
-
-          set_attachment_error(message);
-          show_toast(message, "error");
-          continue;
-        }
-
-        const mime_type = resolve_mime_type(file);
-
-        try {
-          const raw = await file.arrayBuffer();
-          const data = await apply_metadata_strip(
-            raw,
-            mime_type,
-            preferences.strip_exif_on_compose,
-            file.name,
-            unstripped,
-          );
-
-          new_attachments.push({
-            id: generate_attachment_id(),
-            name: file.name,
-            size: format_bytes(data.byteLength),
-            size_bytes: data.byteLength,
-            mime_type,
-            data,
-          });
-          running_total += data.byteLength;
-        } catch (error) {
-          if (import.meta.env.DEV) console.error(error);
-          const message = t("common.failed_to_read_named_file", {
-            name: file.name,
-          });
-
-          set_attachment_error(message);
-          show_toast(message, "error");
-        }
-      }
-
-      if (new_attachments.length > 0) {
-        append_attachments(new_attachments);
-        play_iconic_sound("upload");
-      }
-
-      if (unstripped.length > 0) {
-        show_toast(
-          t("common.metadata_not_removed", { names: unstripped.join(", ") }),
-          "warning",
-          5000,
-        );
-      }
-
-      if (file_input_ref.current) {
-        file_input_ref.current.value = "";
-      }
-    },
-    [
-      append_attachments,
-      get_total_attachments_size,
-      preferences.strip_exif_on_compose,
-      t,
-    ],
-  );
-
-  const read_dropped_files = useCallback(
+  const read_files = useCallback(
     async (files: File[]) => {
       set_attachment_error(null);
       await ensure_attachment_limits();
       const new_attachments: Attachment[] = [];
       const unstripped: string[] = [];
-      const current_total = get_total_attachments_size();
-      let running_total = current_total;
+      let running_total = attachments_ref.current.reduce(
+        (total, att) => total + att.size_bytes,
+        0,
+      );
 
       for (const file of files) {
         if (
@@ -417,8 +320,7 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
         }
       }
 
-      if (new_attachments.length > 0) {
-        append_attachments(new_attachments);
+      if (append_attachments(new_attachments) > 0) {
         play_iconic_sound("upload");
       }
 
@@ -430,22 +332,26 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
         );
       }
     },
-    [
-      append_attachments,
-      get_total_attachments_size,
-      preferences.strip_exif_on_compose,
-      t,
-    ],
+    [append_attachments, preferences.strip_exif_on_compose, t],
   );
 
   const handle_file_select = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) =>
-      with_pending_reads(() => read_selected_files(event)),
-    [with_pending_reads, read_selected_files],
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const files = Array.from(event.target.files ?? []);
+
+      if (file_input_ref.current) {
+        file_input_ref.current.value = "";
+      }
+
+      if (files.length === 0) return Promise.resolve();
+
+      return with_pending_reads(() => read_files(files));
+    },
+    [with_pending_reads, read_files],
   );
   const handle_files_drop = useCallback(
-    (files: File[]) => with_pending_reads(() => read_dropped_files(files)),
-    [with_pending_reads, read_dropped_files],
+    (files: File[]) => with_pending_reads(() => read_files(files)),
+    [with_pending_reads, read_files],
   );
 
   const trigger_file_select = useCallback(() => {

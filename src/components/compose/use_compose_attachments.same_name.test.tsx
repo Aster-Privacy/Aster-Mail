@@ -33,12 +33,12 @@ vi.mock("@/services/attachment_limits", () => ({
   MAX_ATTACHMENTS_PER_SEND: 20,
   ensure_attachment_limits: async () => {},
   get_max_attachment_size: () => 1e8,
-  get_max_total_attachments_size: () => 1e8,
+  get_max_total_attachments_size: () => 1000,
 }));
 vi.mock("@/services/attachment_rejection", () => ({
   describe_oversized_file: vi.fn(),
-  describe_too_many_attachments: vi.fn(),
-  describe_would_exceed_total: vi.fn(),
+  describe_too_many_attachments: () => "too_many",
+  describe_would_exceed_total: () => "exceeds_total",
   prompt_attachment_upgrade: vi.fn(),
 }));
 vi.mock("@/lib/strip_image_metadata", () => ({ strip_metadata: vi.fn() }));
@@ -116,4 +116,77 @@ it("avoids overwriting a filename that already has a numeric suffix", async () =
     "report (2).txt",
     "report (3).txt",
   ]);
+});
+
+function deferred_file(name: string, contents: string) {
+  let release = () => {};
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const pending = {
+    name,
+    type: "text/plain",
+    size: contents.length,
+    arrayBuffer: async () => {
+      await gate;
+
+      return new TextEncoder().encode(contents).buffer;
+    },
+  } as File;
+
+  return { pending, release };
+}
+async function attach_overlapping(first: File[], second: File[]) {
+  const releases: (() => void)[] = [];
+  const gated = (files: File[]) =>
+    files.map((entry) => {
+      const { pending, release } = deferred_file(
+        entry.name,
+        "x".repeat(entry.size),
+      );
+
+      releases.push(release);
+
+      return pending;
+    });
+
+  await act(async () => {
+    const drop = hook.handle_files_drop(gated(first));
+    const pick = hook.handle_file_select({
+      target: { files: gated(second) },
+    } as never);
+
+    releases.reverse().forEach((release) => release());
+    await Promise.all([drop, pick]);
+  });
+}
+
+it("gives unique names to the same file added by overlapping operations", async () => {
+  await attach_overlapping(
+    [file("report.txt", "FIRST")],
+    [file("report.txt", "OTHER")],
+  );
+  expect(hook.attachments.map((a) => a.name)).toEqual([
+    "report.txt",
+    "report (2).txt",
+  ]);
+});
+it("enforces the attachment count across overlapping operations", async () => {
+  const batch = (prefix: string) =>
+    Array.from({ length: 15 }, (_, index) =>
+      file(`${prefix}${index}.txt`, "x"),
+    );
+
+  await attach_overlapping(batch("a"), batch("b"));
+  expect(hook.attachments).toHaveLength(20);
+  expect(hook.attachment_error).toBe("too_many");
+  expect(hook.has_pending_attachment_reads()).toBe(false);
+});
+it("enforces the total size across overlapping operations", async () => {
+  await attach_overlapping(
+    [file("a.txt", "x".repeat(600))],
+    [file("b.txt", "x".repeat(600))],
+  );
+  expect(hook.attachments).toHaveLength(1);
+  expect(hook.attachment_error).toBe("exceeds_total");
 });

@@ -759,6 +759,7 @@ export function use_compose({
         !!edit_draft.attachments && edit_draft.attachments.length > 0;
       const forward_source_id =
         edit_draft.draft_type === "forward" &&
+        !edit_draft.is_restored_send &&
         (edit_draft.id === "" || !has_saved_attachments)
           ? edit_draft.forward_from_id
           : undefined;
@@ -882,7 +883,10 @@ export function use_compose({
     if (content_initialized_ref.current) return;
 
     const is_fresh_reply_forward =
-      !!edit_draft && edit_draft.id === "" && edit_draft.draft_type !== "new";
+      !!edit_draft &&
+      edit_draft.id === "" &&
+      edit_draft.draft_type !== "new" &&
+      !edit_draft.is_restored_send;
 
     if (edit_draft && !is_fresh_reply_forward) return;
 

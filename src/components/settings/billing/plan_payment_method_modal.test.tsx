@@ -479,3 +479,50 @@ describe("PlanPaymentMethodModal card currency note", () => {
     );
   });
 });
+
+describe("PlanPaymentMethodModal promo slot", () => {
+  let container: HTMLDivElement;
+  let root: Root;
+
+  beforeEach(() => {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+  });
+
+  afterEach(() => {
+    act(() => root.unmount());
+    container.remove();
+  });
+
+  function render(promo_slot?: string) {
+    act(() => {
+      root.render(
+        <PlanPaymentMethodModal
+          open
+          on_choose_card={vi.fn()}
+          on_choose_crypto={vi.fn()}
+          on_close={vi.fn()}
+          plan_name="Nova"
+          promo_slot={promo_slot}
+          selected_term="yearly"
+          term_options={TERMS}
+        />,
+      );
+    });
+  }
+
+  it("shows the promo entry inside the review step", () => {
+    render("promo entry");
+
+    expect(
+      document.body.querySelector("[data-checkout-promo]")?.textContent,
+    ).toBe("promo entry");
+  });
+
+  it("leaves the promo area out when no entry is passed", () => {
+    render();
+
+    expect(document.body.querySelector("[data-checkout-promo]")).toBeNull();
+  });
+});

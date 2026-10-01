@@ -27,7 +27,10 @@ import {
 } from "./reply_modal_types";
 import { use_reply_modal_state } from "./use_reply_modal_state";
 
-import { undo_send_manager } from "@/hooks/use_undo_send";
+import {
+  store_pending_send_payload,
+  undo_send_manager,
+} from "@/hooks/use_undo_send";
 import { send_reply, type OriginalEmail } from "@/services/mail_actions";
 import { build_reply_subject } from "@/lib/reply_subject";
 import { resolve_reply_prefix } from "@/lib/reply_defaults";
@@ -623,13 +626,30 @@ export function use_reply_modal(props: UseReplyModalProps) {
       void discard_sent_draft(reply_thread_token);
 
       if (delay_seconds > 0) {
+        const undo_subject = build_reply_subject(
+          original_subject,
+          resolve_reply_prefix(t("mail.reply_subject_prefix")),
+        );
+
+        store_pending_send_payload(result.queued_id, {
+          to: send_recipients.to,
+          cc: send_recipients.cc,
+          subject: undo_subject,
+          body: message_with_signature,
+          sender_email: sender_email_value,
+          thread_token: reply_thread_token || undefined,
+          draft_type: "reply",
+          reply_to_id: original_email_id,
+          rfc_message_id: original_rfc_message_id,
+          expires_at: expires_at?.toISOString(),
+          attachments: attachments.length > 0 ? attachments : undefined,
+          restore_verbatim: true,
+        });
         undo_send_manager.add({
           id: result.queued_id,
           to: send_recipients.to,
-          subject: build_reply_subject(
-            original_subject,
-            resolve_reply_prefix(t("mail.reply_subject_prefix")),
-          ),
+          cc: send_recipients.cc,
+          subject: undo_subject,
           body: message_with_signature,
           sender_email: sender_email_value,
           scheduled_time: Date.now() + delay_ms,
