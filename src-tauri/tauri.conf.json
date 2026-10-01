@@ -48,7 +48,10 @@
     "windows": {
       "certificateThumbprint": null,
       "digestAlgorithm": "sha256",
-      "timestampUrl": ""
+      "timestampUrl": "",
+      "nsis": {
+        "installerHooks": "./installer_hooks.nsh"
+      }
     },
     "createUpdaterArtifacts": true
   },

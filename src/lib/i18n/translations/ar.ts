@@ -5827,6 +5827,12 @@ export const ar = {
     default_email_app: "تطبيق البريد الافتراضي",
     default_email_app_description:
       "فتح روابط mailto: في Aster Mail بدلاً من تطبيق البريد الافتراضي",
+    default_email_app_desktop_description:
+      "افتح روابط البريد الإلكتروني من متصفحك والتطبيقات الأخرى في Aster Mail",
+    default_email_app_confirm_in_settings:
+      "للإنهاء، اختر Aster Mail كتطبيق البريد الإلكتروني في نافذة إعدادات النظام التي فُتحت.",
+    default_email_app_change_in_settings:
+      "لإيقاف فتح روابط البريد الإلكتروني في Aster Mail، اختر تطبيق بريد آخر في نافذة إعدادات النظام التي فُتحت.",
     change_plan: "تغيير الخطة",
     change_plan_description: "ترقية أو تخفيض اشتراكك عبر بوابة الفوترة",
     checkout_welcome: "مرحبًا بك في Aster! اشتراكك نشط.",

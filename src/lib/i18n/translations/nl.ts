@@ -5723,6 +5723,12 @@ export const nl = {
     default_email_app: "Standaard e-mailapp",
     default_email_app_description:
       "Open mailto:-links in Aster Mail in plaats van je standaard e-mailapp",
+    default_email_app_desktop_description:
+      "Open e-maillinks uit je browser en andere apps in Aster Mail",
+    default_email_app_confirm_in_settings:
+      "Kies ter afronding Aster Mail als e-mailapp in het venster met systeeminstellingen dat is geopend.",
+    default_email_app_change_in_settings:
+      "Kies een andere e-mailapp in het venster met systeeminstellingen dat is geopend om e-maillinks niet meer in Aster Mail te openen.",
     email_view_description:
       "Kies hoe e-mails worden geopend wanneer je erop klikt",
     popup_description:

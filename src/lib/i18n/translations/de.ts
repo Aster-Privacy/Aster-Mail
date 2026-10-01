@@ -5745,6 +5745,12 @@ export const de = {
     default_email_app: "Standard-E-Mail-App",
     default_email_app_description:
       "mailto:-Links in Aster Mail statt in Ihrer Standard-E-Mail-App öffnen",
+    default_email_app_desktop_description:
+      "E-Mail-Links aus deinem Browser und anderen Apps in Aster Mail öffnen",
+    default_email_app_confirm_in_settings:
+      "Wähle zum Abschluss im geöffneten Fenster der Systemeinstellungen Aster Mail als E-Mail-App aus.",
+    default_email_app_change_in_settings:
+      "Wähle im geöffneten Fenster der Systemeinstellungen eine andere E-Mail-App aus, damit E-Mail-Links nicht mehr in Aster Mail geöffnet werden.",
     email_view_description:
       "Wählen Sie, wie E-Mails beim Anklicken geöffnet werden",
     popup_description:

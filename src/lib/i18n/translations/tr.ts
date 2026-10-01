@@ -6500,6 +6500,12 @@ export const tr = {
       "E-postalar, kişiler ve ayarlar dahil tüm verilerinizin bir kopyasını indirin.",
     default_email_app_description:
       "mailto: bağlantılarını varsayılan e-posta uygulamanız yerine Aster Mail'de açın",
+    default_email_app_desktop_description:
+      "Tarayıcındaki ve diğer uygulamalardaki e-posta bağlantılarını Aster Mail’de aç",
+    default_email_app_confirm_in_settings:
+      "Bitirmek için açılan sistem ayarları penceresinde e-posta uygulaması olarak Aster Mail’i seç.",
+    default_email_app_change_in_settings:
+      "E-posta bağlantılarının Aster Mail’de açılmasını durdurmak için açılan sistem ayarları penceresinde başka bir e-posta uygulaması seç.",
     delete_signature_message:
       "Bu imzayı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
     delete_template_message:

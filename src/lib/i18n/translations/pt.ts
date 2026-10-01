@@ -6607,6 +6607,12 @@ export const pt = {
       "Esta ação elimina permanentemente todos os dados de destinatários recentes guardados. Esta ação não pode ser anulada.",
     default_email_app_description:
       "Abrir links mailto: no Aster Mail em vez da sua aplicação de e-mail predefinida",
+    default_email_app_desktop_description:
+      "Abra no Aster Mail as ligações de e-mail do navegador e de outras aplicações",
+    default_email_app_confirm_in_settings:
+      "Para concluir, escolha o Aster Mail como aplicação de e-mail na janela de definições do sistema que foi aberta.",
+    default_email_app_change_in_settings:
+      "Para deixar de abrir as ligações de e-mail no Aster Mail, escolha outra aplicação de e-mail na janela de definições do sistema que foi aberta.",
     payment_failed_warning:
       "A última cobrança no seu método de pagamento não foi aprovada. Atualize-o em Definições, Faturação para manter o seu plano ativo. Os seus e-mails não são afetados.",
     prices_in_usd_note:

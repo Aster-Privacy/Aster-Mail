@@ -5792,6 +5792,12 @@ export const ja = {
     default_email_app: "デフォルトのメールアプリ",
     default_email_app_description:
       "デフォルトのメールアプリの代わりにAster Mailでmailto:リンクを開きます",
+    default_email_app_desktop_description:
+      "ブラウザやほかのアプリのメールリンクをAster Mailで開きます",
+    default_email_app_confirm_in_settings:
+      "完了するには、開いたシステム設定のウィンドウでメールアプリとしてAster Mailを選択してください。",
+    default_email_app_change_in_settings:
+      "メールリンクをAster Mailで開かないようにするには、開いたシステム設定のウィンドウで別のメールアプリを選択してください。",
     allow_sender: "送信者を許可",
     sender_added_to_allowlist: "送信者を許可リストに追加しました",
     change_plan: "プランを変更",

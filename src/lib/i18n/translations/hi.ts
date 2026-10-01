@@ -3129,6 +3129,12 @@ export const hi = {
     default_email_app: "डिफ़ॉल्ट ईमेल ऐप",
     default_email_app_description:
       "mailto: लिंक अपने डिफ़ॉल्ट ईमेल ऐप के बजाय Aster Mail में खोलें",
+    default_email_app_desktop_description:
+      "अपने ब्राउज़र और दूसरे ऐप के ईमेल लिंक Aster Mail में खोलें",
+    default_email_app_confirm_in_settings:
+      "पूरा करने के लिए, खुली हुई सिस्टम सेटिंग्स विंडो में Aster Mail को अपना ईमेल ऐप चुनें।",
+    default_email_app_change_in_settings:
+      "ईमेल लिंक Aster Mail में खोलना बंद करने के लिए, खुली हुई सिस्टम सेटिंग्स विंडो में कोई दूसरा ईमेल ऐप चुनें।",
     time_format: "समय का प्रारूप",
     time_format_description: "चुनें कि समय कैसे दिखे",
     twelve_hours: "12 घंटे",

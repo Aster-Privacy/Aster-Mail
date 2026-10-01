@@ -103,6 +103,11 @@ import { UpgradeGate } from "@/components/common/upgrade_gate";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { ignore_error } from "@/lib/ignore_error";
 import { get_close_to_tray, set_close_to_tray } from "@/native/tauri_tray";
+import {
+  type DefaultMailStatus,
+  get_default_mail_status,
+  set_default_mail_app,
+} from "@/native/desktop_default_mail";
 import { show_toast } from "@/components/toast/simple_toast";
 
 export function BehaviorSection() {
@@ -257,6 +262,54 @@ export function BehaviorSection() {
   const [close_to_tray, set_close_to_tray_state] = useState(() =>
     get_close_to_tray(),
   );
+
+  const [default_mail_status, set_default_mail_status] =
+    useState<DefaultMailStatus>({ supported: false, is_default: false });
+  const default_mail_busy_ref = useRef(false);
+
+  useEffect(() => {
+    if (!is_desktop_app) return;
+
+    let is_active = true;
+    const refresh_status = () => {
+      get_default_mail_status().then((status) => {
+        if (is_active) set_default_mail_status(status);
+      });
+    };
+
+    refresh_status();
+    window.addEventListener("focus", refresh_status);
+
+    return () => {
+      is_active = false;
+      window.removeEventListener("focus", refresh_status);
+    };
+  }, [is_desktop_app]);
+
+  const handle_default_mail_toggle = async () => {
+    if (default_mail_busy_ref.current) return;
+
+    default_mail_busy_ref.current = true;
+
+    const next = !default_mail_status.is_default;
+    const outcome = await set_default_mail_app(next);
+
+    if (outcome === "failed") {
+      show_toast(t("common.something_went_wrong_try_again"), "error");
+    } else if (outcome === "needs_confirmation") {
+      show_toast(
+        t(
+          next
+            ? "settings.default_email_app_confirm_in_settings"
+            : "settings.default_email_app_change_in_settings",
+        ),
+        "info",
+      );
+    }
+
+    set_default_mail_status(await get_default_mail_status());
+    default_mail_busy_ref.current = false;
+  };
 
   const handle_close_to_tray_toggle = async () => {
     const previous = close_to_tray;
@@ -1294,6 +1347,14 @@ export function BehaviorSection() {
             description={t("settings.default_email_app_description")}
             enabled={mailto_registered}
             on_toggle={handle_mailto_toggle}
+            title={t("settings.default_email_app")}
+          />
+        )}
+        {is_desktop_app && default_mail_status.supported && (
+          <ToggleSetting
+            description={t("settings.default_email_app_desktop_description")}
+            enabled={default_mail_status.is_default}
+            on_toggle={handle_default_mail_toggle}
             title={t("settings.default_email_app")}
           />
         )}

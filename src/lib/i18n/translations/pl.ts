@@ -5957,6 +5957,12 @@ export const pl = {
     default_email_app: "Domyślna aplikacja e-mail",
     default_email_app_description:
       "Otwieraj linki mailto: w Aster Mail zamiast domyślnej aplikacji e-mail",
+    default_email_app_desktop_description:
+      "Otwieraj w Aster Mail linki e-mail z przeglądarki i innych aplikacji",
+    default_email_app_confirm_in_settings:
+      "Aby dokończyć, wybierz Aster Mail jako aplikację e-mail w otwartym oknie ustawień systemu.",
+    default_email_app_change_in_settings:
+      "Aby linki e-mail nie otwierały się już w Aster Mail, wybierz inną aplikację e-mail w otwartym oknie ustawień systemu.",
     change_plan: "Zmień plan",
     change_plan_description:
       "Ulepsz lub obniż subskrypcję przez portal rozliczeniowy",

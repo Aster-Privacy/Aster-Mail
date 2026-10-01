@@ -5249,6 +5249,12 @@ export const zh_CN = {
     default_email_app: "默认邮件应用",
     default_email_app_description:
       "在 Aster Mail 中打开 mailto: 链接，而不是默认邮件应用",
+    default_email_app_desktop_description:
+      "在 Aster Mail 中打开浏览器和其他应用中的邮件链接",
+    default_email_app_confirm_in_settings:
+      "要完成设置，请在已打开的系统设置窗口中选择 Aster Mail 作为邮件应用。",
+    default_email_app_change_in_settings:
+      "要停止在 Aster Mail 中打开邮件链接，请在已打开的系统设置窗口中选择其他邮件应用。",
     change_plan: "更改套餐",
     change_plan_description: "通过账单门户升级或降级您的订阅",
     checkout_welcome: "欢迎使用 Aster！您的订阅已激活。",

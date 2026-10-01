@@ -3053,6 +3053,12 @@ export const en: Translations = {
     default_email_app: "Default Email App",
     default_email_app_description:
       "Open mailto: links in Aster Mail instead of your default email app",
+    default_email_app_desktop_description:
+      "Open email links from your browser and other apps in Aster Mail",
+    default_email_app_confirm_in_settings:
+      "To finish, choose Aster Mail as your email app in the system settings window that opened.",
+    default_email_app_change_in_settings:
+      "To stop opening email links in Aster Mail, choose another email app in the system settings window that opened.",
     time_format: "Time format",
     time_format_description: "Choose how time is displayed",
     twelve_hours: "12 hours",

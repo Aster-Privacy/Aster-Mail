@@ -3218,6 +3218,9 @@ export interface SettingsTranslations {
   close_to_tray_description: string;
   default_email_app: string;
   default_email_app_description: string;
+  default_email_app_desktop_description: string;
+  default_email_app_confirm_in_settings: string;
+  default_email_app_change_in_settings: string;
   time_format: string;
   time_format_description: string;
   twelve_hours: string;

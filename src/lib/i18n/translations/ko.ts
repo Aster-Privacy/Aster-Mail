@@ -5796,6 +5796,12 @@ export const ko = {
     default_email_app: "기본 이메일 앱",
     default_email_app_description:
       "기본 이메일 앱 대신 Aster Mail에서 mailto: 링크를 엽니다",
+    default_email_app_desktop_description:
+      "브라우저와 다른 앱의 이메일 링크를 Aster Mail에서 엽니다",
+    default_email_app_confirm_in_settings:
+      "완료하려면 열린 시스템 설정 창에서 이메일 앱으로 Aster Mail을 선택하세요.",
+    default_email_app_change_in_settings:
+      "이메일 링크를 Aster Mail에서 열지 않으려면 열린 시스템 설정 창에서 다른 이메일 앱을 선택하세요.",
     change_plan: "플랜 변경",
     change_plan_description:
       "결제 포털을 통해 구독을 업그레이드하거나 다운그레이드하세요",

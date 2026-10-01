@@ -4111,6 +4111,12 @@ export const it = {
     default_email_app: "App email predefinita",
     default_email_app_description:
       "Apri i link mailto: in Aster Mail invece della tua app email predefinita",
+    default_email_app_desktop_description:
+      "Apri in Aster Mail i link email del browser e delle altre app",
+    default_email_app_confirm_in_settings:
+      "Per completare, scegli Aster Mail come app email nella finestra delle impostazioni di sistema che si è aperta.",
+    default_email_app_change_in_settings:
+      "Per non aprire più i link email in Aster Mail, scegli un’altra app email nella finestra delle impostazioni di sistema che si è aperta.",
     protected_folders: "Cartelle protette",
     protected_folders_description:
       "Configura il comportamento delle cartelle protette da password",

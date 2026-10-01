@@ -6656,6 +6656,12 @@ export const fr = {
       "Cela supprimera définitivement toutes les données de destinataires récents enregistrées. Cette action est irréversible.",
     default_email_app_description:
       "Ouvrir les liens mailto: dans Aster Mail au lieu de votre application e-mail par défaut",
+    default_email_app_desktop_description:
+      "Ouvrez dans Aster Mail les liens e-mail de votre navigateur et des autres applications",
+    default_email_app_confirm_in_settings:
+      "Pour terminer, choisissez Aster Mail comme application e-mail dans la fenêtre des réglages système qui s’est ouverte.",
+    default_email_app_change_in_settings:
+      "Pour ne plus ouvrir les liens e-mail dans Aster Mail, choisissez une autre application e-mail dans la fenêtre des réglages système qui s’est ouverte.",
     payment_failed_warning:
       "Le dernier débit sur votre moyen de paiement n'est pas passé. Le mettre à jour dans Paramètres, Facturation gardera votre plan actif. Votre courrier n'est pas affecté.",
     prices_in_usd_note:

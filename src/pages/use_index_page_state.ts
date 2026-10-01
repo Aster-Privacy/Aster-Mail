@@ -75,6 +75,12 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { set_forward_mail_id } from "@/services/forward_store";
 import { read_last_settings_section } from "@/lib/settings_section_store";
 import { ignore_error } from "@/lib/ignore_error";
+import {
+  type MailtoDraft,
+  escape_mailto_body,
+  parse_mailto_link,
+} from "@/lib/mailto_link";
+import { subscribe_mailto_drafts } from "@/native/desktop_mailto_bridge";
 import { on_user_opened_mail } from "@/services/user_opened_mail";
 import {
   build_alias_view,
@@ -975,6 +981,23 @@ export function use_index_page_state() {
 
   use_document_title({ view: current_view });
 
+  const open_mailto_draft = useCallback(
+    (draft: MailtoDraft) => {
+      open_compose_instance({
+        id: "",
+        version: 0,
+        draft_type: "new",
+        to_recipients: draft.to,
+        cc_recipients: draft.cc,
+        bcc_recipients: draft.bcc,
+        subject: draft.subject,
+        message: escape_mailto_body(draft.body),
+        updated_at: new Date().toISOString(),
+      });
+    },
+    [open_compose_instance],
+  );
+
   useEffect(() => {
     if (location.pathname !== "/compose") return;
 
@@ -987,14 +1010,32 @@ export function use_index_page_state() {
       return;
     }
 
-    const mailto_match = to_param.match(/^mailto:(.+)/i);
-    const recipient = mailto_match
-      ? decodeURIComponent(mailto_match[1])
-      : to_param;
+    const mailto_draft = /^mailto:/i.test(to_param)
+      ? parse_mailto_link(to_param)
+      : null;
 
-    open_compose_instance(null, recipient);
+    if (mailto_draft) {
+      open_mailto_draft(mailto_draft);
+    } else {
+      open_compose_instance(null, to_param);
+    }
     navigate("/", { replace: true });
-  }, [location.pathname, search_params, open_compose_instance, navigate]);
+  }, [
+    location.pathname,
+    search_params,
+    open_compose_instance,
+    open_mailto_draft,
+    navigate,
+  ]);
+
+  useEffect(
+    () =>
+      subscribe_mailto_drafts((draft) => {
+        close_settings();
+        open_mailto_draft(draft);
+      }),
+    [close_settings, open_mailto_draft],
+  );
 
   useEffect(() => {
     if (is_mobile) return;

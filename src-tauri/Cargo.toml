@@ -53,11 +53,13 @@ tauri-plugin-window-state = "2"
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2-app-kit = { version = "0.3", features = ["NSWorkspace"] }
 objc2-foundation = { version = "0.3", features = ["NSString", "NSURL"] }
+core-foundation = "0.10"
 
 [target.'cfg(windows)'.dependencies]
 webview2-com = "0.38"
 windows-core = "0.61"
 rfd = "0.15"
+windows-registry = "0.5"
 
 [patch.crates-io]
 glib = { path = "patches/glib-0.18.5" }

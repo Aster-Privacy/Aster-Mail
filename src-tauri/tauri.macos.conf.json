@@ -1,0 +1,9 @@
+{
+  "plugins": {
+    "deep-link": {
+      "desktop": {
+        "schemes": ["aster", "mailto"]
+      }
+    }
+  }
+}
