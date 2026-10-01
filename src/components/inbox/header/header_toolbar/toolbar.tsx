@@ -73,7 +73,7 @@ export function HeaderToolbar({
     <>
       {is_trash_view && on_empty_trash && trash_count > 0 && (
         <Button
-          className="hidden md:flex h-8 px-3 gap-1.5 text-xs font-medium text-red-400/80 hover:text-red-500 hover:bg-red-500/10"
+          className="hidden md:flex h-8 px-3 gap-1.5 text-xs font-medium text-red-700 dark:text-red-400 hover:bg-red-500/10"
           size="md"
           variant="ghost"
           onClick={on_empty_trash}
@@ -84,7 +84,7 @@ export function HeaderToolbar({
 
       {is_spam_view && on_empty_spam && spam_count > 0 && (
         <Button
-          className="hidden md:flex h-8 px-3 gap-1.5 text-xs font-medium text-red-400/80 hover:text-red-500 hover:bg-red-500/10"
+          className="hidden md:flex h-8 px-3 gap-1.5 text-xs font-medium text-red-700 dark:text-red-400 hover:bg-red-500/10"
           size="md"
           variant="ghost"
           onClick={on_empty_spam}

@@ -410,9 +410,9 @@ export function SenderSelector({
 
   if (ghost_locked && selected?.type === "ghost") {
     return (
-      <div className="flex-1 flex items-center gap-1.5 opacity-80">
+      <div className="flex-1 flex items-center gap-1.5">
         <GhostSenderIcon size="xs" />
-        <span className="text-sm text-purple-500">{display_option.email}</span>
+        <span className="text-sm text-txt-primary">{display_option.email}</span>
         <EyeSlashIcon className="w-3.5 h-3.5 text-purple-400" />
       </div>
     );
@@ -723,7 +723,9 @@ export function SenderSelector({
                       </button>
                       {ghost_error && (
                         <div className="px-3 py-1.5">
-                          <p className="text-xs text-red-500">{ghost_error}</p>
+                          <p className="text-xs text-red-700 dark:text-red-400">
+                            {ghost_error}
+                          </p>
                         </div>
                       )}
                     </>

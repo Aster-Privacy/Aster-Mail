@@ -255,7 +255,7 @@ export function RecipientBadge({
         size="xs"
       />
       <span
-        className="text-sm text-default-900 max-w-[200px] truncate"
+        className="text-sm text-txt-primary max-w-[200px] truncate"
         title={email}
       >
         {email}
@@ -263,7 +263,7 @@ export function RecipientBadge({
       {on_remove && (
         <button
           aria-label={t("common.remove")}
-          className="text-default-400 hover:text-default-600 transition-colors"
+          className="text-txt-muted hover:text-txt-secondary transition-colors"
           onClick={on_remove}
         >
           <CloseIcon className="w-4 h-4" />

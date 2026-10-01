@@ -242,7 +242,7 @@ export function SignatureSection() {
             <ModalBody className="space-y-4">
               {editor_error && (
                 <p
-                  className="p-3 rounded-lg text-sm bg-red-500/10 text-red-500"
+                  className="p-3 rounded-lg text-sm bg-red-500/10 text-red-700 dark:text-red-300"
                   role="alert"
                 >
                   {editor_error}

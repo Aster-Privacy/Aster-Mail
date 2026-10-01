@@ -215,9 +215,8 @@ export function SchedulePicker({
         <div
           className="flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium"
           style={{
-            backgroundColor:
-              "color-mix(in srgb, var(--accent-color) 10%, transparent)",
-            color: "var(--color-info)",
+            backgroundColor: "var(--cat-accent-solid)",
+            color: "var(--cat-accent-on-solid)",
           }}
         >
           <ClockIcon className="w-3.5 h-3.5" />
