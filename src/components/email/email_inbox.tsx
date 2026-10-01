@@ -21,6 +21,8 @@
 import type { EmailInboxProps } from "@/components/email/inbox/inbox_types";
 import type { TranslationKey } from "@/lib/i18n/types";
 
+import { useLayoutEffect, useRef } from "react";
+
 import { use_email_inbox_state } from "./use_email_inbox_state";
 
 import { EmailListHeader } from "@/components/email/email_list_header";
@@ -53,6 +55,7 @@ import {
   LockedFolderState,
 } from "@/components/email/inbox/inbox_email_list";
 import { BottomPagination } from "@/components/email/inbox/inbox_bottom_pagination";
+import { reveal_list_row } from "@/components/email/inbox/use_inbox_list_scroll";
 import { StorageBanner } from "@/components/email/inbox/inbox_storage_banner";
 import { TrashBanner } from "@/components/email/inbox/inbox_trash_banner";
 
@@ -173,6 +176,26 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
     0,
   );
 
+  // The list stays in one scroll container whether or not the reading pane
+  // is open. Moving it into a new container remounted every row and lost the
+  // scroll position, so opening an email threw the list back to the top.
+  const show_reading_pane = is_split_view && !is_full_view_mode;
+  const selected_email_id = active_email_id ?? split_scheduled_data?.id;
+  const reading_pane_was_open_ref = useRef(show_reading_pane);
+
+  // The pane takes room from the list, and below the list it can cover the
+  // row that was just opened, so bring that row back into view.
+  useLayoutEffect(() => {
+    const was_open = reading_pane_was_open_ref.current;
+
+    reading_pane_was_open_ref.current = show_reading_pane;
+    const list = split_pane.list_panel_ref.current;
+
+    if (show_reading_pane && !was_open && list && selected_email_id) {
+      reveal_list_row(list, selected_email_id);
+    }
+  }, [show_reading_pane, selected_email_id, split_pane.list_panel_ref]);
+
   const handle_viewer_snooze = () => {
     const target = email_state.emails.find(
       (item) => item.id === split_email_id,
@@ -250,7 +273,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
                 on_unsnooze={handle_list_unsnooze}
                 pinned_emails={pinned_emails}
                 primary_emails={primary_emails}
-                selected_email_id={active_email_id ?? split_scheduled_data?.id}
+                selected_email_id={selected_email_id}
                 selection_menu={selection_menu}
                 show_email_preview={preferences.show_email_preview}
                 show_message_size={preferences.show_message_size}
@@ -499,83 +522,81 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
               total_count={nav.visible_ids.length}
             />
           </div>
-        ) : is_split_view && !is_full_view_mode ? (
+        ) : (
           <div
             className={`flex-1 flex min-h-0 ${is_bottom_pane ? "flex-col" : ""}`}
           >
             <div
               ref={split_pane.list_panel_ref}
-              className="overflow-y-auto overflow-x-hidden relative"
+              className={`overflow-y-auto relative ${show_reading_pane ? "overflow-x-hidden" : "flex-1"}`}
               style={
-                is_bottom_pane
-                  ? {
-                      height: split_pane.pane_height,
-                      flexShrink: 0,
-                      flexGrow: 0,
-                      overflowAnchor: "none",
-                    }
-                  : {
-                      width: split_pane.pane_width,
-                      flexShrink: 0,
-                      flexGrow: 0,
-                      overflowAnchor: "none",
-                    }
+                !show_reading_pane
+                  ? { overflowAnchor: "none" }
+                  : is_bottom_pane
+                    ? {
+                        height: split_pane.pane_height,
+                        flexShrink: 0,
+                        flexGrow: 0,
+                        overflowAnchor: "none",
+                      }
+                    : {
+                        width: split_pane.pane_width,
+                        flexShrink: 0,
+                        flexGrow: 0,
+                        overflowAnchor: "none",
+                      }
               }
+              onScroll={handle_list_scroll}
             >
               {email_list_content}
             </div>
-            <div
-              className={`${is_bottom_pane ? "h-px cursor-row-resize" : "w-px cursor-col-resize"} relative hover:bg-[var(--accent-color)] shrink-0 ${split_pane.is_dragging ? "bg-[var(--accent-color)]" : "bg-edge-primary"}`}
-              role="presentation"
-              onMouseDown={split_pane.handle_drag_start}
-            >
-              {is_bottom_pane ? (
-                <div className="absolute inset-x-0 -top-1.5 -bottom-1.5" />
-              ) : (
-                <div className="absolute inset-y-0 -start-1.5 -end-1.5" />
-              )}
-            </div>
-            <div
-              ref={split_pane.detail_panel_ref}
-              className="@container overflow-hidden relative"
-              style={
-                is_bottom_pane
-                  ? { flex: 1, minHeight: 0 }
-                  : { flex: 1, minWidth: 0 }
-              }
-            >
-              {split_scheduled_data ? (
-                <SplitScheduledViewer
-                  on_close={on_split_scheduled_close || (() => {})}
-                  on_edit={on_scheduled_edit}
-                  scheduled_data={split_scheduled_data}
-                />
-              ) : split_email_id ? (
-                <SplitEmailViewer
-                  email_id={split_email_id}
-                  folders={viewer_folders}
-                  grouped_email_ids={split_email_grouped_ids}
-                  label_hints={split_email_label_hints}
-                  local_email={split_local_email ?? undefined}
-                  on_advance={on_auto_advance}
-                  on_close={on_split_close || (() => {})}
-                  on_folder_toggle={handle_viewer_folder_toggle}
-                  on_forward={on_forward}
-                  on_reply={on_reply}
-                  on_snooze={handle_viewer_snooze}
-                  snoozed_until={split_email_snoozed_until}
-                />
-              ) : null}
-            </div>
-          </div>
-        ) : (
-          <div
-            ref={split_pane.list_scroll_ref}
-            className="flex-1 overflow-y-auto relative"
-            style={{ overflowAnchor: "none" }}
-            onScroll={handle_list_scroll}
-          >
-            {email_list_content}
+            {show_reading_pane && (
+              <>
+                <div
+                  className={`${is_bottom_pane ? "h-px cursor-row-resize" : "w-px cursor-col-resize"} relative hover:bg-[var(--accent-color)] shrink-0 ${split_pane.is_dragging ? "bg-[var(--accent-color)]" : "bg-edge-primary"}`}
+                  role="presentation"
+                  onMouseDown={split_pane.handle_drag_start}
+                >
+                  {is_bottom_pane ? (
+                    <div className="absolute inset-x-0 -top-1.5 -bottom-1.5" />
+                  ) : (
+                    <div className="absolute inset-y-0 -start-1.5 -end-1.5" />
+                  )}
+                </div>
+                <div
+                  ref={split_pane.detail_panel_ref}
+                  className="@container overflow-hidden relative"
+                  style={
+                    is_bottom_pane
+                      ? { flex: 1, minHeight: 0 }
+                      : { flex: 1, minWidth: 0 }
+                  }
+                >
+                  {split_scheduled_data ? (
+                    <SplitScheduledViewer
+                      on_close={on_split_scheduled_close || (() => {})}
+                      on_edit={on_scheduled_edit}
+                      scheduled_data={split_scheduled_data}
+                    />
+                  ) : split_email_id ? (
+                    <SplitEmailViewer
+                      email_id={split_email_id}
+                      folders={viewer_folders}
+                      grouped_email_ids={split_email_grouped_ids}
+                      label_hints={split_email_label_hints}
+                      local_email={split_local_email ?? undefined}
+                      on_advance={on_auto_advance}
+                      on_close={on_split_close || (() => {})}
+                      on_folder_toggle={handle_viewer_folder_toggle}
+                      on_forward={on_forward}
+                      on_reply={on_reply}
+                      on_snooze={handle_viewer_snooze}
+                      snoozed_until={split_email_snoozed_until}
+                    />
+                  ) : null}
+                </div>
+              </>
+            )}
           </div>
         )}
 
