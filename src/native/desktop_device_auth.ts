@@ -23,9 +23,7 @@ import type { TranslationKey } from "@/lib/i18n/types";
 import { ignore_error } from "@/lib/ignore_error";
 
 export type DeviceAuthErrorCode =
-  | "challenge_failed"
-  | "login_failed"
-  | "code_generation_failed";
+  "challenge_failed" | "login_failed" | "code_generation_failed";
 
 export class DeviceAuthError extends Error {
   code: DeviceAuthErrorCode;
@@ -207,7 +205,7 @@ export async function poll_device_code_status(
   );
 
   if (result.error || !result.data) {
-    return { status: "expired" };
+    throw new Error("device_code_status_unavailable");
   }
 
   return result.data;

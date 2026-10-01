@@ -23,6 +23,7 @@ import { ml_kem768 } from "@noble/post-quantum/ml-kem.js";
 import { randomBytes } from "@noble/hashes/utils";
 
 import {
+  type DeviceCodeStatus,
   request_device_code,
   poll_device_code_status,
   device_challenge,
@@ -33,10 +34,7 @@ import {
   base64url_encode,
   base64url_decode,
 } from "@/lib/crypto/device_envelope";
-import {
-  confirm_hub_link,
-  HubAccountError,
-} from "@/services/account_hub_link";
+import { confirm_hub_link, HubAccountError } from "@/services/account_hub_link";
 
 const POLL_ATTEMPTS = 40;
 const POLL_DELAY_MS = 500;
@@ -80,7 +78,9 @@ function is_login_response(value: unknown): value is hub_login_response {
 
 async function await_confirmation(code: string) {
   for (let attempt = 0; attempt < POLL_ATTEMPTS; attempt++) {
-    const status = await poll_device_code_status(code);
+    const status = await poll_device_code_status(code).catch(
+      (): DeviceCodeStatus => ({ status: "expired" }),
+    );
 
     if (
       status.status === "confirmed" &&

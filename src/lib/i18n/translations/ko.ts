@@ -180,6 +180,24 @@ export const ko = {
     failed_remove_profile_picture:
       "프로필 사진을 삭제하지 못했습니다. 다시 시도하세요.",
     remove_photo: "사진 삭제",
+    profile_picture_title: "프로필 사진 변경",
+    profile_picture_gallery: "갤러리에서 선택",
+    profile_picture_gallery_hint: "Aster 배경 중 하나를 선택하세요",
+    profile_picture_upload: "기기에서 업로드",
+    profile_picture_upload_hint: "JPEG, PNG 또는 WebP, 최대 5MB",
+    profile_picture_gallery_failed: "갤러리를 불러오지 못했습니다. 연결을 확인한 후 다시 시도하세요.",
+    profile_picture_cat_all: "전체",
+    profile_picture_cat_space: "우주",
+    profile_picture_cat_night_sky: "밤하늘",
+    profile_picture_cat_water: "물",
+    profile_picture_cat_planets: "행성",
+    profile_picture_cat_landscapes: "풍경",
+    profile_picture_cat_forest: "숲",
+    profile_picture_cat_cities: "도시",
+    profile_picture_cat_aurora: "오로라",
+    profile_picture_cat_mountains: "산",
+    profile_picture_cat_ocean: "바다",
+    profile_picture_cat_desert: "사막",
     toggle_alias: "이 별칭 사용 또는 사용 안 함",
     enter_passphrase: "암호문을 입력하세요",
     app_name: "Aster Mail",
@@ -5814,6 +5832,12 @@ export const ko = {
     default_email_app: "기본 이메일 앱",
     default_email_app_description:
       "기본 이메일 앱 대신 Aster Mail에서 mailto: 링크를 엽니다",
+    default_email_app_desktop_description:
+      "브라우저와 다른 앱의 이메일 링크를 Aster Mail에서 엽니다",
+    default_email_app_confirm_in_settings:
+      "완료하려면 열린 시스템 설정 창에서 이메일 앱으로 Aster Mail을 선택하세요.",
+    default_email_app_change_in_settings:
+      "이메일 링크를 Aster Mail에서 열지 않으려면 열린 시스템 설정 창에서 다른 이메일 앱을 선택하세요.",
     change_plan: "플랜 변경",
     change_plan_description:
       "결제 포털을 통해 구독을 업그레이드하거나 다운그레이드하세요",
@@ -9290,7 +9314,6 @@ export const ko = {
     device_code_instruction:
       "브라우저에서 Aster Mail을 열고 설정으로 이동한 뒤 이 코드를 입력하여 기기를 페어링하세요.",
     device_code_copy: "코드 복사",
-    device_code_copied: "코드가 복사되었습니다",
     device_code_open_browser: "브라우저에서 열기",
     device_code_expired: "코드가 만료되었습니다",
     device_code_expired_description:

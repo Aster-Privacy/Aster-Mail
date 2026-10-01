@@ -123,6 +123,25 @@ export const fr = {
     failed_remove_profile_picture:
       "Impossible de supprimer votre photo de profil. Réessayez.",
     remove_photo: "Supprimer la photo",
+    profile_picture_title: "Modifier la photo de profil",
+    profile_picture_gallery: "Choisir dans la galerie",
+    profile_picture_gallery_hint: "Choisissez l’un des fonds Aster",
+    profile_picture_upload: "Importer depuis l’appareil",
+    profile_picture_upload_hint: "JPEG, PNG ou WebP, jusqu’à 5 Mo",
+    profile_picture_gallery_failed:
+      "La galerie ne s’est pas chargée. Vérifiez votre connexion, puis réessayez.",
+    profile_picture_cat_all: "Tout",
+    profile_picture_cat_space: "Espace",
+    profile_picture_cat_night_sky: "Ciel nocturne",
+    profile_picture_cat_water: "Eau",
+    profile_picture_cat_planets: "Planètes",
+    profile_picture_cat_landscapes: "Paysages",
+    profile_picture_cat_forest: "Forêt",
+    profile_picture_cat_cities: "Villes",
+    profile_picture_cat_aurora: "Aurore",
+    profile_picture_cat_mountains: "Montagnes",
+    profile_picture_cat_ocean: "Océan",
+    profile_picture_cat_desert: "Désert",
     toggle_alias: "Activer ou désactiver cet alias",
     enter_passphrase: "Saisissez votre phrase secrète",
     app_name: "Aster Mail",
@@ -6674,6 +6693,12 @@ export const fr = {
       "Cela supprimera définitivement toutes les données de destinataires récents enregistrées. Cette action est irréversible.",
     default_email_app_description:
       "Ouvrir les liens mailto: dans Aster Mail au lieu de votre application e-mail par défaut",
+    default_email_app_desktop_description:
+      "Ouvrez dans Aster Mail les liens e-mail de votre navigateur et des autres applications",
+    default_email_app_confirm_in_settings:
+      "Pour terminer, choisissez Aster Mail comme application e-mail dans la fenêtre des réglages système qui s’est ouverte.",
+    default_email_app_change_in_settings:
+      "Pour ne plus ouvrir les liens e-mail dans Aster Mail, choisissez une autre application e-mail dans la fenêtre des réglages système qui s’est ouverte.",
     payment_failed_warning:
       "Le dernier débit sur votre moyen de paiement n'est pas passé. Le mettre à jour dans Paramètres, Facturation gardera votre plan actif. Votre courrier n'est pas affecté.",
     prices_in_usd_note:
@@ -9709,7 +9734,6 @@ export const fr = {
       "Notre système de sécurité automatique a temporairement limité votre compte, et certaines fonctionnalités peuvent être indisponibles. Le reste de votre compte fonctionne normalement. Si cela vous semble anormal, écrivez à hello@astermail.org.",
     backup_email_placeholder: "E-mail de secours",
     close_this_tab: "Fermer cet onglet",
-    device_code_copied: "Code copié",
     device_code_copy: "Copier le code",
     device_code_expired: "Code expiré",
     device_code_expired_description: "Ce code a expiré. Obtenez-en un nouveau.",

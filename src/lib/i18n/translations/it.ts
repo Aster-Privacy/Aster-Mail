@@ -110,6 +110,25 @@ export const it = {
     failed_remove_profile_picture:
       "Impossibile rimuovere la tua immagine del profilo. Riprova.",
     remove_photo: "Rimuovi foto",
+    profile_picture_title: "Cambia immagine del profilo",
+    profile_picture_gallery: "Scegli dalla galleria",
+    profile_picture_gallery_hint: "Scegli uno degli sfondi di Aster",
+    profile_picture_upload: "Carica dal dispositivo",
+    profile_picture_upload_hint: "JPEG, PNG o WebP, fino a 5 MB",
+    profile_picture_gallery_failed:
+      "La galleria non si è caricata. Controlla la connessione e riprova.",
+    profile_picture_cat_all: "Tutto",
+    profile_picture_cat_space: "Spazio",
+    profile_picture_cat_night_sky: "Cielo notturno",
+    profile_picture_cat_water: "Acqua",
+    profile_picture_cat_planets: "Pianeti",
+    profile_picture_cat_landscapes: "Paesaggi",
+    profile_picture_cat_forest: "Foresta",
+    profile_picture_cat_cities: "Città",
+    profile_picture_cat_aurora: "Aurora",
+    profile_picture_cat_mountains: "Montagne",
+    profile_picture_cat_ocean: "Oceano",
+    profile_picture_cat_desert: "Deserto",
     toggle_alias: "Abilita o disabilita questo alias",
     enter_passphrase: "Inserisci la tua passphrase",
     app_name: "Aster Mail",
@@ -4111,6 +4130,12 @@ export const it = {
     default_email_app: "App email predefinita",
     default_email_app_description:
       "Apri i link mailto: in Aster Mail invece della tua app email predefinita",
+    default_email_app_desktop_description:
+      "Apri in Aster Mail i link email del browser e delle altre app",
+    default_email_app_confirm_in_settings:
+      "Per completare, scegli Aster Mail come app email nella finestra delle impostazioni di sistema che si è aperta.",
+    default_email_app_change_in_settings:
+      "Per non aprire più i link email in Aster Mail, scegli un’altra app email nella finestra delle impostazioni di sistema che si è aperta.",
     protected_folders: "Cartelle protette",
     protected_folders_description:
       "Configura il comportamento delle cartelle protette da password",
@@ -9631,7 +9656,6 @@ export const it = {
     account_flagged_notice:
       "Il nostro sistema di sicurezza automatico ha posto dei limiti temporanei sul suo account, e alcune funzionalità potrebbero non essere disponibili. Il resto del suo account funziona normalmente. Se le sembra un errore, hello@astermail.org può aiutarla.",
     email_copied: "Email copiata",
-    device_code_copied: "Copiato!",
     device_code_copy: "Copia codice",
     device_code_expired: "Questo codice è scaduto.",
     device_code_expired_description:

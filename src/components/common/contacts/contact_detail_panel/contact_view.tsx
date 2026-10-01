@@ -280,13 +280,13 @@ export function ContactView({
       )}
 
       {rows.length === 0 ? (
-        <div className="contact_view_card">
+        <div className="aster_island contact_view_card">
           <p className="text-[13px] text-txt-muted">
             {t("common.no_contact_details")}
           </p>
         </div>
       ) : (
-        <div className="contact_view_card">
+        <div className="aster_island contact_view_card">
           <h3 className="mb-4 text-[15px] font-medium text-txt-primary">
             {t("common.contact_details")}
           </h3>

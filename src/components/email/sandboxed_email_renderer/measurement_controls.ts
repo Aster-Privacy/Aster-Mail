@@ -24,6 +24,7 @@ import type { SandboxedEmailRendererProps } from "./renderer";
 import {
   FIT_SLACK_PX,
   body_has_renderable_content,
+  fit_natural_width,
   fit_zoom_for,
   measure_content_bounds,
   remember_measured_height,
@@ -116,7 +117,20 @@ export function build_measurement_controls(ctx: measurement_context) {
     if (available <= 0) return;
 
     body.style.setProperty("zoom", "1");
-    const natural = Math.max(body.scrollWidth, doc.documentElement.scrollWidth);
+    const document_width = doc.documentElement.scrollWidth;
+    let natural = Math.max(body.scrollWidth, document_width);
+
+    if (natural > available + FIT_SLACK_PX) {
+      const end_padding =
+        parseFloat(
+          iframe.contentWindow?.getComputedStyle(body).paddingInlineEnd ?? "",
+        ) || 0;
+
+      natural = Math.max(
+        natural,
+        fit_natural_width(document_width, available, end_padding),
+      );
+    }
     const fitted = fit_zoom_for(natural, available, base_zoom_ref.current);
 
     body.style.setProperty("zoom", String(fitted));

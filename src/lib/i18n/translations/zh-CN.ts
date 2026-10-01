@@ -152,6 +152,24 @@ export const zh_CN = {
     profile_picture_removed: "头像已移除",
     failed_remove_profile_picture: "无法移除您的头像。请重试。",
     remove_photo: "移除照片",
+    profile_picture_title: "更改个人资料照片",
+    profile_picture_gallery: "从图库中选择",
+    profile_picture_gallery_hint: "选择一张 Aster 背景",
+    profile_picture_upload: "从设备上传",
+    profile_picture_upload_hint: "JPEG、PNG 或 WebP，最大 5 MB",
+    profile_picture_gallery_failed: "图库未能加载。请检查网络连接，然后重试。",
+    profile_picture_cat_all: "全部",
+    profile_picture_cat_space: "太空",
+    profile_picture_cat_night_sky: "夜空",
+    profile_picture_cat_water: "水",
+    profile_picture_cat_planets: "行星",
+    profile_picture_cat_landscapes: "风景",
+    profile_picture_cat_forest: "森林",
+    profile_picture_cat_cities: "城市",
+    profile_picture_cat_aurora: "极光",
+    profile_picture_cat_mountains: "山脉",
+    profile_picture_cat_ocean: "海洋",
+    profile_picture_cat_desert: "沙漠",
     toggle_alias: "启用或停用此别名",
     enter_passphrase: "输入您的口令",
     app_name: "Aster Mail",
@@ -5265,6 +5283,12 @@ export const zh_CN = {
     default_email_app: "默认邮件应用",
     default_email_app_description:
       "在 Aster Mail 中打开 mailto: 链接，而不是默认邮件应用",
+    default_email_app_desktop_description:
+      "在 Aster Mail 中打开浏览器和其他应用中的邮件链接",
+    default_email_app_confirm_in_settings:
+      "要完成设置，请在已打开的系统设置窗口中选择 Aster Mail 作为邮件应用。",
+    default_email_app_change_in_settings:
+      "要停止在 Aster Mail 中打开邮件链接，请在已打开的系统设置窗口中选择其他邮件应用。",
     change_plan: "更改套餐",
     change_plan_description: "通过账单门户升级或降级您的订阅",
     checkout_welcome: "欢迎使用 Aster！您的订阅已激活。",
@@ -8607,7 +8631,6 @@ export const zh_CN = {
     device_code_instruction:
       "在 app.astermail.org/link-device 输入此验证码以关联您的账户。",
     device_code_copy: "复制验证码",
-    device_code_copied: "已复制！",
     device_code_open_browser: "打开浏览器",
     device_code_expired: "此验证码已过期。",
     device_code_expired_description:

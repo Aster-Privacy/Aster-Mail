@@ -109,6 +109,25 @@ export const ru = {
     failed_remove_profile_picture:
       "Не удалось удалить фото профиля. Попробуйте снова.",
     remove_photo: "Удалить фото",
+    profile_picture_title: "Изменить фото профиля",
+    profile_picture_gallery: "Выбрать из галереи",
+    profile_picture_gallery_hint: "Выберите один из фонов Aster",
+    profile_picture_upload: "Загрузить с устройства",
+    profile_picture_upload_hint: "JPEG, PNG или WebP, до 5 МБ",
+    profile_picture_gallery_failed:
+      "Не удалось загрузить галерею. Проверьте подключение и повторите попытку.",
+    profile_picture_cat_all: "Все",
+    profile_picture_cat_space: "Космос",
+    profile_picture_cat_night_sky: "Ночное небо",
+    profile_picture_cat_water: "Вода",
+    profile_picture_cat_planets: "Планеты",
+    profile_picture_cat_landscapes: "Пейзажи",
+    profile_picture_cat_forest: "Лес",
+    profile_picture_cat_cities: "Города",
+    profile_picture_cat_aurora: "Северное сияние",
+    profile_picture_cat_mountains: "Горы",
+    profile_picture_cat_ocean: "Океан",
+    profile_picture_cat_desert: "Пустыня",
     toggle_alias: "Включить или отключить этот псевдоним",
     enter_passphrase: "Введите кодовую фразу",
     app_name: "Aster Mail",
@@ -6681,6 +6700,12 @@ export const ru = {
       "Это безвозвратно удалит все сохранённые данные о недавних получателях. Это действие нельзя отменить.",
     default_email_app_description:
       "Открывать ссылки mailto: в Aster Mail вместо стандартного почтового приложения",
+    default_email_app_desktop_description:
+      "Открывайте в Aster Mail почтовые ссылки из браузера и других приложений",
+    default_email_app_confirm_in_settings:
+      "Чтобы завершить, выберите Aster Mail в качестве почтового приложения в открывшемся окне системных настроек.",
+    default_email_app_change_in_settings:
+      "Чтобы почтовые ссылки больше не открывались в Aster Mail, выберите другое почтовое приложение в открывшемся окне системных настроек.",
     payment_failed_warning:
       "Последнее списание со способа оплаты не прошло. Обновление данных в Настройках, Оплата сохраняет тариф активным. Почта при этом не затрагивается.",
     prices_in_usd_note:
@@ -9740,7 +9765,6 @@ export const ru = {
       "Наша автоматическая система безопасности временно ограничила возможности вашего аккаунта - некоторые функции могут быть недоступны. Остальное работает в обычном режиме. Если это ошибка, напишите на hello@astermail.org.",
     backup_email_placeholder: "backup@email.com",
     close_this_tab: "Закрыть эту вкладку",
-    device_code_copied: "Скопировано!",
     device_code_copy: "Скопировать код",
     device_code_expired: "Срок действия этого кода истёк.",
     device_code_expired_description:

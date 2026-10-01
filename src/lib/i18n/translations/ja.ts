@@ -173,6 +173,24 @@ export const ja = {
     failed_remove_profile_picture:
       "プロフィール画像を削除できませんでした。もう一度お試しください。",
     remove_photo: "写真を削除",
+    profile_picture_title: "プロフィール写真を変更",
+    profile_picture_gallery: "ギャラリーから選択",
+    profile_picture_gallery_hint: "Asterの背景から1つ選びます",
+    profile_picture_upload: "デバイスからアップロード",
+    profile_picture_upload_hint: "JPEG、PNG、WebP、5 MBまで",
+    profile_picture_gallery_failed: "ギャラリーを読み込めませんでした。接続を確認して、もう一度お試しください。",
+    profile_picture_cat_all: "すべて",
+    profile_picture_cat_space: "宇宙",
+    profile_picture_cat_night_sky: "夜空",
+    profile_picture_cat_water: "水",
+    profile_picture_cat_planets: "惑星",
+    profile_picture_cat_landscapes: "風景",
+    profile_picture_cat_forest: "森",
+    profile_picture_cat_cities: "都市",
+    profile_picture_cat_aurora: "オーロラ",
+    profile_picture_cat_mountains: "山",
+    profile_picture_cat_ocean: "海",
+    profile_picture_cat_desert: "砂漠",
     toggle_alias: "このエイリアスを有効または無効にする",
     enter_passphrase: "パスフレーズを入力してください",
     app_name: "Aster Mail",
@@ -5810,6 +5828,12 @@ export const ja = {
     default_email_app: "デフォルトのメールアプリ",
     default_email_app_description:
       "デフォルトのメールアプリの代わりにAster Mailでmailto:リンクを開きます",
+    default_email_app_desktop_description:
+      "ブラウザやほかのアプリのメールリンクをAster Mailで開きます",
+    default_email_app_confirm_in_settings:
+      "完了するには、開いたシステム設定のウィンドウでメールアプリとしてAster Mailを選択してください。",
+    default_email_app_change_in_settings:
+      "メールリンクをAster Mailで開かないようにするには、開いたシステム設定のウィンドウで別のメールアプリを選択してください。",
     allow_sender: "送信者を許可",
     sender_added_to_allowlist: "送信者を許可リストに追加しました",
     change_plan: "プランを変更",
@@ -9472,7 +9496,6 @@ export const ja = {
     device_code_instruction:
       "app.astermail.org/link-device でこのコードを入力してアカウントをリンクしてください。",
     device_code_copy: "コードをコピー",
-    device_code_copied: "コピーしました！",
     device_code_open_browser: "ブラウザを開く",
     device_code_expired: "このコードは有効期限が切れました。",
     device_code_expired_description:

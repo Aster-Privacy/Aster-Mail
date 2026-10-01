@@ -171,6 +171,25 @@ export const hi = {
     failed_remove_profile_picture:
       "आपकी प्रोफ़ाइल तस्वीर हटाई नहीं जा सकी। फिर से कोशिश करें।",
     remove_photo: "फ़ोटो निकालें",
+    profile_picture_title: "प्रोफ़ाइल फ़ोटो बदलें",
+    profile_picture_gallery: "गैलरी से चुनें",
+    profile_picture_gallery_hint: "Aster की किसी एक पृष्ठभूमि को चुनें",
+    profile_picture_upload: "डिवाइस से अपलोड करें",
+    profile_picture_upload_hint: "JPEG, PNG या WebP, 5 MB तक",
+    profile_picture_gallery_failed:
+      "गैलरी लोड नहीं हुई। अपना कनेक्शन जाँचें और फिर से कोशिश करें।",
+    profile_picture_cat_all: "सभी",
+    profile_picture_cat_space: "अंतरिक्ष",
+    profile_picture_cat_night_sky: "रात का आकाश",
+    profile_picture_cat_water: "पानी",
+    profile_picture_cat_planets: "ग्रह",
+    profile_picture_cat_landscapes: "परिदृश्य",
+    profile_picture_cat_forest: "जंगल",
+    profile_picture_cat_cities: "शहर",
+    profile_picture_cat_aurora: "ऑरोरा",
+    profile_picture_cat_mountains: "पहाड़",
+    profile_picture_cat_ocean: "महासागर",
+    profile_picture_cat_desert: "रेगिस्तान",
     failed_save_profile_color:
       "आपका चुना हुआ रंग सहेजा नहीं गया। फिर से कोशिश करें।",
     failed_upload_image: "फिर से कोशिश करें।",
@@ -3129,6 +3148,12 @@ export const hi = {
     default_email_app: "डिफ़ॉल्ट ईमेल ऐप",
     default_email_app_description:
       "mailto: लिंक अपने डिफ़ॉल्ट ईमेल ऐप के बजाय Aster Mail में खोलें",
+    default_email_app_desktop_description:
+      "अपने ब्राउज़र और दूसरे ऐप के ईमेल लिंक Aster Mail में खोलें",
+    default_email_app_confirm_in_settings:
+      "पूरा करने के लिए, खुली हुई सिस्टम सेटिंग्स विंडो में Aster Mail को अपना ईमेल ऐप चुनें।",
+    default_email_app_change_in_settings:
+      "ईमेल लिंक Aster Mail में खोलना बंद करने के लिए, खुली हुई सिस्टम सेटिंग्स विंडो में कोई दूसरा ईमेल ऐप चुनें।",
     time_format: "समय का प्रारूप",
     time_format_description: "चुनें कि समय कैसे दिखे",
     twelve_hours: "12 घंटे",
@@ -9024,7 +9049,6 @@ export const hi = {
     device_code_instruction:
       "अपना खाता लिंक करने के लिए app.astermail.org/link-device पर यह कोड डालें।",
     device_code_copy: "कोड कॉपी करें",
-    device_code_copied: "कॉपी हो गया",
     device_code_open_browser: "ब्राउज़र खोलें",
     device_code_expired: "यह कोड समाप्त हो चुका है।",
     device_code_expired_description:

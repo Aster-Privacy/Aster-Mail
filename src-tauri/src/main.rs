@@ -23,8 +23,14 @@
 mod badge;
 mod badges_data;
 mod boot_guard;
+mod default_mail;
+#[cfg(all(unix, not(target_os = "macos")))]
+mod default_mail_linux;
+#[cfg(any(unix, test))]
+mod default_mail_store;
 mod device;
 mod http_client;
+mod translation_assets;
 
 use std::sync::Mutex;
 #[cfg(windows)]
@@ -430,9 +436,14 @@ fn main() {
     }
 
     tauri::Builder::default()
-        .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
+        .plugin(tauri_plugin_single_instance::init(|app, argv, _cwd| {
+            let mailto = default_mail::mailto_from_args(&argv);
+
             if let Some(window) = app.get_webview_window("main") {
                 let was_visible = window.is_visible().unwrap_or(true);
+                if let Some(url) = mailto {
+                    default_mail::queue_mailto(app, url, was_visible);
+                }
                 if !was_visible {
                     let _ = window.eval("window.location.reload()");
                 }
@@ -457,6 +468,9 @@ fn main() {
         .manage(TrayMenuState(Mutex::new(None)))
         .manage(CloseToTrayState(Mutex::new(true)))
         .manage(boot_guard::BootState::new())
+        .manage(default_mail::PendingMailto::new(
+            default_mail::mailto_from_args(std::env::args()),
+        ))
         .invoke_handler(tauri::generate_handler![
             frontend_ready,
             frontend_painted,
@@ -468,6 +482,11 @@ fn main() {
             set_tray_labels,
             set_content_protection,
             open_external_url,
+            default_mail::take_pending_mailto,
+            default_mail::default_mail_app_status,
+            default_mail::set_default_mail_app,
+            default_mail::clear_default_mail_app,
+            translation_assets::fetch_translation_asset,
             device::crypto::device_get_pubkeys,
             device::crypto::device_set_id,
             device::crypto::device_sign_challenge,
@@ -495,6 +514,8 @@ fn main() {
                     tracing::warn!(%error, "deep link scheme registration failed");
                 }
             }
+
+            default_mail::refresh_registration(app.handle());
 
             let window_config = app
                 .config()
@@ -686,11 +707,19 @@ fn main() {
         })
         .run(|app, event| {
             #[cfg(target_os = "macos")]
-            if let tauri::RunEvent::Reopen { has_visible_windows: false, .. } = event {
+            if let tauri::RunEvent::Reopen { has_visible_windows: false, .. } = &event {
                 if let Some(window) = app.get_webview_window("main") {
                     let _ = window.show();
                     let _ = window.unminimize();
                     let _ = window.set_focus();
+                }
+            }
+            #[cfg(target_os = "macos")]
+            if let tauri::RunEvent::Opened { urls } = &event {
+                for url in urls {
+                    if let Some(mailto) = default_mail::accept_mailto(url.as_str()) {
+                        default_mail::queue_mailto(app, mailto, true);
+                    }
                 }
             }
             #[cfg(not(target_os = "macos"))]

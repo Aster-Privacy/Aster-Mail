@@ -22,12 +22,8 @@ import { AccountAvatarButtonView } from "@aster/ui";
 
 import { ProfileAvatar } from "./profile_avatar";
 
-import { show_toast } from "@/components/toast/simple_toast";
-import {
-  PROFILE_PICTURE_ACCEPT,
-  use_profile_picture_upload,
-} from "@/hooks/use_profile_picture_upload";
 import { use_i18n } from "@/lib/i18n/context";
+import { open_profile_picture_dialog } from "@/stores/profile_picture_dialog_store";
 
 interface AccountAvatarButtonProps {
   name: string;
@@ -51,35 +47,24 @@ export function AccountAvatarButton({
   className = "",
 }: AccountAvatarButtonProps) {
   const { t } = use_i18n();
-  const { file_ref, uploading, preview, open_picker, handle_file } =
-    use_profile_picture_upload({
-      on_error: (message) => {
-        if (!message) return;
-        show_toast(message, "error");
-      },
-    });
 
   return (
     <AccountAvatarButtonView
-      accept={PROFILE_PICTURE_ACCEPT}
       avatar={
         <ProfileAvatar
           email={email}
-          image_url={preview || image_url}
+          image_url={image_url}
           name={name}
           profile_color={profile_color}
           size={size}
         />
       }
       className={className}
-      file_input_ref={file_ref}
       is_paid_plan={is_paid_plan}
       label={t("auth.change_photo")}
+      on_open_picker={open_profile_picture_dialog}
       ring_offset_color={ring_offset_color}
       size={size}
-      uploading={uploading}
-      on_file_change={handle_file}
-      on_open_picker={open_picker}
     />
   );
 }

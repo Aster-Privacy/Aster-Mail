@@ -114,6 +114,25 @@ export const tr = {
     failed_remove_profile_picture:
       "Profil resminiz kaldırılamadı. Tekrar deneyin.",
     remove_photo: "Fotoğrafı kaldır",
+    profile_picture_title: "Profil resmini değiştir",
+    profile_picture_gallery: "Galeriden seç",
+    profile_picture_gallery_hint: "Aster arka planlarından birini seçin",
+    profile_picture_upload: "Cihazdan yükle",
+    profile_picture_upload_hint: "JPEG, PNG veya WebP, en fazla 5 MB",
+    profile_picture_gallery_failed:
+      "Galeri yüklenemedi. Bağlantınızı kontrol edip yeniden deneyin.",
+    profile_picture_cat_all: "Tümü",
+    profile_picture_cat_space: "Uzay",
+    profile_picture_cat_night_sky: "Gece gökyüzü",
+    profile_picture_cat_water: "Su",
+    profile_picture_cat_planets: "Gezegenler",
+    profile_picture_cat_landscapes: "Manzaralar",
+    profile_picture_cat_forest: "Orman",
+    profile_picture_cat_cities: "Şehirler",
+    profile_picture_cat_aurora: "Kutup ışıkları",
+    profile_picture_cat_mountains: "Dağlar",
+    profile_picture_cat_ocean: "Okyanus",
+    profile_picture_cat_desert: "Çöl",
     toggle_alias: "Bu rumuzu etkinleştir veya devre dışı bırak",
     enter_passphrase: "Parolanızı girin",
     app_name: "Aster Mail",
@@ -6518,6 +6537,12 @@ export const tr = {
       "E-postalar, kişiler ve ayarlar dahil tüm verilerinizin bir kopyasını indirin.",
     default_email_app_description:
       "mailto: bağlantılarını varsayılan e-posta uygulamanız yerine Aster Mail'de açın",
+    default_email_app_desktop_description:
+      "Tarayıcındaki ve diğer uygulamalardaki e-posta bağlantılarını Aster Mail’de aç",
+    default_email_app_confirm_in_settings:
+      "Bitirmek için açılan sistem ayarları penceresinde e-posta uygulaması olarak Aster Mail’i seç.",
+    default_email_app_change_in_settings:
+      "E-posta bağlantılarının Aster Mail’de açılmasını durdurmak için açılan sistem ayarları penceresinde başka bir e-posta uygulaması seç.",
     delete_signature_message:
       "Bu imzayı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
     delete_template_message:
@@ -9482,7 +9507,6 @@ export const tr = {
     device_code_instruction:
       "Hesabınızı bağlamak için app.astermail.org/link-device adresine bu kodu girin.",
     device_code_copy: "Kodu kopyala",
-    device_code_copied: "Kopyalandı!",
     device_code_open_browser: "Tarayıcıyı aç",
     device_code_expired: "Bu kodun süresi doldu.",
     device_code_expired_description:

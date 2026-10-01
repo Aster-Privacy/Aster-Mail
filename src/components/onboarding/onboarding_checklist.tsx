@@ -174,11 +174,11 @@ export function OnboardingChecklist({
                   onClick={row.on_click}
                 >
                   <span
-                    className="flex h-[18px] w-[18px] flex-shrink-0 items-center justify-center rounded-full border transition-colors"
+                    className="flex h-[18px] w-[18px] flex-shrink-0 items-center justify-center rounded-full border-[1.5px] transition-colors"
                     style={{
                       borderColor: done
                         ? "var(--accent-blue)"
-                        : "var(--border-primary)",
+                        : "var(--text-muted)",
                       backgroundColor: done
                         ? "var(--accent-blue)"
                         : "transparent",

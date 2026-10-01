@@ -128,7 +128,7 @@ function use_time_greeting() {
 function use_account_identity() {
   const { user } = use_auth();
   const { preferences } = use_preferences();
-  const { limits } = use_plan_limits();
+  const { plan_code } = use_plan_limits();
 
   const account_email = user?.email ?? "";
   const primary_identity = use_primary_identity(account_email);
@@ -142,8 +142,8 @@ function use_account_identity() {
     display_name,
     profile_picture: user?.profile_picture,
     profile_color: user?.profile_color || preferences.profile_color,
-    plan_code: limits?.plan_code,
-    is_paid_plan: !!limits && limits.plan_code !== "free",
+    plan_code,
+    is_paid_plan: !!plan_code && plan_code !== "free",
   };
 }
 
@@ -164,7 +164,7 @@ function CurrentAccountCard({
     <div className="account_menu_card rounded-[18px] px-4 py-4">
       <div className="flex items-center gap-3.5">
         <span
-          className={`inline-flex leading-none flex-shrink-0 ${identity.is_paid_plan ? "plan_ring" : ""}`}
+          className={`link_device_avatar_slot inline-flex leading-none flex-shrink-0 ${identity.is_paid_plan ? "plan_ring" : ""}`}
         >
           <ProfileAvatar
             email={identity.account_email}
@@ -501,6 +501,8 @@ export default function LinkDevice() {
   };
 
   const handle_verify = async () => {
+    if (is_verifying) return;
+
     const normalized = code_input.replace(/-/g, "");
 
     if (normalized.length !== 8) {
@@ -670,12 +672,12 @@ export default function LinkDevice() {
         description={t("auth.link_device_success_description")}
         heading={t("auth.link_device_success")}
       >
-        <div className="link_device_success_mark mt-7 flex h-14 w-14 items-center justify-center rounded-full">
+        <div className="link_device_success_mark mt-7 flex h-14 w-14 items-center justify-center">
           <svg
-            className="h-7 w-7"
+            className="h-12 w-12"
             fill="none"
             stroke="currentColor"
-            strokeWidth={2.2}
+            strokeWidth={2}
             viewBox="0 0 24 24"
           >
             <path
@@ -777,7 +779,6 @@ export default function LinkDevice() {
         aria-label={t("auth.link_device_enter_code")}
         autoComplete="off"
         className="link_device_code_input w-full mt-6 rounded-[18px] px-5 py-4 text-center text-2xl font-mono font-bold tracking-[0.15em] text-txt-primary placeholder:text-txt-muted placeholder:font-normal placeholder:text-xl placeholder:tracking-[0.1em]"
-        maxLength={9}
         placeholder={t("auth.link_device_code_placeholder")}
         spellCheck={false}
         type="text"

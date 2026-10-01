@@ -27,7 +27,13 @@ import {
   type TranslationEngine,
 } from "./engine_types";
 import { open_model_cache, pack_cached } from "./model_cache";
-import { join_url, model_base, registry_url } from "./model_source";
+import {
+  asset_name,
+  join_url,
+  load_registry,
+  model_base,
+  registry_url,
+} from "./model_source";
 
 import {
   BatchTranslator,
@@ -36,6 +42,10 @@ import {
   TranslatorBacking,
 } from "@/vendor/bergamot/translator.js";
 import { ignore_error } from "@/lib/ignore_error";
+import {
+  fetch_translation_asset,
+  uses_native_translation_assets,
+} from "@/native/desktop_translation_assets";
 
 export const BERGAMOT_ENGINE_ID = "bergamot";
 export const MODEL_VERSION = "v1";
@@ -82,7 +92,7 @@ class SelfHostedBacking extends TranslatorBacking {
       }
     }
 
-    const buffer = await super.fetch(url, checksum, extra);
+    const buffer = await this.download(url, checksum, extra);
 
     if (cache) {
       try {
@@ -95,8 +105,51 @@ class SelfHostedBacking extends TranslatorBacking {
     return buffer;
   }
 
+  private async download(
+    url: string,
+    checksum?: string,
+    extra?: { signal?: AbortSignal },
+  ): Promise<ArrayBuffer> {
+    if (!uses_native_translation_assets()) {
+      return super.fetch(url, checksum, extra);
+    }
+
+    const name = asset_name(url, this.base);
+
+    if (!name) {
+      throw new EngineUnavailableError("translation model url not recognized");
+    }
+
+    const buffer = await fetch_translation_asset(name);
+
+    if (extra?.signal?.aborted) throw new EngineUnavailableError("aborted");
+
+    if (!(await matches_checksum(buffer, checksum))) {
+      throw new EngineUnavailableError("translation model checksum mismatch");
+    }
+
+    return buffer;
+  }
+
+  private async native_registry(): Promise<BergamotModelEntry[]> {
+    const registry = await load_registry();
+
+    return Object.entries(registry).map(([key, files]) => ({
+      from: key.substring(0, 2),
+      to: key.substring(2, 4),
+      files: Object.fromEntries(
+        Object.entries(files).map(([part, file]) => [
+          part,
+          file ? { ...file } : file,
+        ]),
+      ),
+    }));
+  }
+
   async loadModelRegistery(): Promise<BergamotModelEntry[]> {
-    const entries = await super.loadModelRegistery();
+    const entries = uses_native_translation_assets()
+      ? await this.native_registry()
+      : await super.loadModelRegistery();
 
     for (const entry of entries) {
       for (const file of Object.values(entry.files)) {

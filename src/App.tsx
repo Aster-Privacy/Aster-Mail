@@ -59,6 +59,7 @@ import {
 } from "@/stores/upgrade_store";
 import { is_resumable_checkout_plan } from "@/components/settings/billing/billing_constants";
 import { AliasCapUpsellModal } from "@/components/upgrade/alias_cap_upsell_modal";
+import { ProfilePictureDialog } from "@/components/profile/profile_picture_dialog";
 import { SpecialOfferModal } from "@/components/upgrade/special_offer_modal";
 import { SpecialOfferSuccessModal } from "@/components/upgrade/special_offer_success_modal";
 import { request_special_offer_checkout } from "@/stores/special_offer_store";
@@ -588,6 +589,7 @@ function App() {
       <PostQuantumSendPrompt />
       <UpgradeModal />
       <AliasCapUpsellModal />
+      <ProfilePictureDialog />
       <SpecialOfferModal />
       <UndoSendContainer max_visible={3} position="bottom-center" />
       <UndoSendPreviewModal />

@@ -23,7 +23,6 @@ import type { ComposeToolbarState } from "@/components/compose/compose_shared";
 
 import { useId, useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { AnimatePresence } from "framer-motion";
 
 import { LinkPopover } from "./link_popover";
 import {
@@ -171,29 +170,27 @@ export function InsertTools({ compose }: { compose: ComposeToolbarState }) {
             </svg>
           </button>
           {createPortal(
-            <AnimatePresence>
-              {show_emoji && (
-                <div
-                  ref={emoji_picker_ref}
-                  className="fixed"
-                  id={emoji_panel_id}
-                  style={{
-                    zIndex: 9999,
-                    right: emoji_pos.right,
-                    bottom: emoji_pos.bottom,
+            show_emoji && (
+              <div
+                ref={emoji_picker_ref}
+                className="fixed"
+                id={emoji_panel_id}
+                style={{
+                  zIndex: 9999,
+                  right: emoji_pos.right,
+                  bottom: emoji_pos.bottom,
+                }}
+              >
+                <EmojiPicker
+                  on_select={(emoji) => {
+                    apply_with_frozen_selection(() =>
+                      editor.insert_emoji(emoji),
+                    );
+                    set_show_emoji(false);
                   }}
-                >
-                  <EmojiPicker
-                    on_select={(emoji) => {
-                      apply_with_frozen_selection(() =>
-                        editor.insert_emoji(emoji),
-                      );
-                      set_show_emoji(false);
-                    }}
-                  />
-                </div>
-              )}
-            </AnimatePresence>,
+                />
+              </div>
+            ),
             document.body,
           )}
         </div>

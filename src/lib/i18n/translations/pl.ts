@@ -117,6 +117,25 @@ export const pl = {
     failed_remove_profile_picture:
       "Nie udało się usunąć zdjęcia profilowego. Spróbuj ponownie.",
     remove_photo: "Usuń zdjęcie",
+    profile_picture_title: "Zmień zdjęcie profilowe",
+    profile_picture_gallery: "Wybierz z galerii",
+    profile_picture_gallery_hint: "Wybierz jedno z teł Aster",
+    profile_picture_upload: "Prześlij z urządzenia",
+    profile_picture_upload_hint: "JPEG, PNG lub WebP, do 5 MB",
+    profile_picture_gallery_failed:
+      "Nie udało się wczytać galerii. Sprawdź połączenie i spróbuj ponownie.",
+    profile_picture_cat_all: "Wszystko",
+    profile_picture_cat_space: "Kosmos",
+    profile_picture_cat_night_sky: "Nocne niebo",
+    profile_picture_cat_water: "Woda",
+    profile_picture_cat_planets: "Planety",
+    profile_picture_cat_landscapes: "Krajobrazy",
+    profile_picture_cat_forest: "Las",
+    profile_picture_cat_cities: "Miasta",
+    profile_picture_cat_aurora: "Zorza",
+    profile_picture_cat_mountains: "Góry",
+    profile_picture_cat_ocean: "Ocean",
+    profile_picture_cat_desert: "Pustynia",
     toggle_alias: "Włącz lub wyłącz ten alias",
     enter_passphrase: "Wprowadź swoje hasło",
     app_name: "Aster Mail",
@@ -5975,6 +5994,12 @@ export const pl = {
     default_email_app: "Domyślna aplikacja e-mail",
     default_email_app_description:
       "Otwieraj linki mailto: w Aster Mail zamiast domyślnej aplikacji e-mail",
+    default_email_app_desktop_description:
+      "Otwieraj w Aster Mail linki e-mail z przeglądarki i innych aplikacji",
+    default_email_app_confirm_in_settings:
+      "Aby dokończyć, wybierz Aster Mail jako aplikację e-mail w otwartym oknie ustawień systemu.",
+    default_email_app_change_in_settings:
+      "Aby linki e-mail nie otwierały się już w Aster Mail, wybierz inną aplikację e-mail w otwartym oknie ustawień systemu.",
     change_plan: "Zmień plan",
     change_plan_description:
       "Ulepsz lub obniż subskrypcję przez portal rozliczeniowy",
@@ -9761,7 +9786,6 @@ export const pl = {
     device_code_instruction:
       "Wprowadź ten kod na app.astermail.org/link-device, aby połączyć konto.",
     device_code_copy: "Kopiuj kod",
-    device_code_copied: "Skopiowano!",
     device_code_open_browser: "Otwórz przeglądarkę",
     device_code_expired: "Ten kod wygasł.",
     device_code_expired_description:

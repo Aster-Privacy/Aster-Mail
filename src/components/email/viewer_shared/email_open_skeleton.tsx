@@ -26,10 +26,12 @@ const REVEAL_DELAY_MS = 180;
 
 interface EmailOpenSkeletonProps {
   compact?: boolean;
+  column_class?: string;
 }
 
 export function EmailOpenSkeleton({
   compact = false,
+  column_class = "w-full",
 }: EmailOpenSkeletonProps): React.ReactElement {
   const [revealed, set_revealed] = useState(false);
 
@@ -45,7 +47,7 @@ export function EmailOpenSkeleton({
       className="absolute inset-0 z-10 overflow-hidden bg-surf-primary"
     >
       <div
-        className="mx-auto w-full max-w-[1120px] py-2 transition-opacity duration-200 ease-out"
+        className={`${column_class} py-2 transition-opacity duration-200 ease-out`}
         style={{ opacity: revealed ? 1 : 0 }}
       >
         <div className={compact ? "px-3 mb-3" : "px-3 sm:px-4 mb-3"}>

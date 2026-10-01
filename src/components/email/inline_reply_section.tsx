@@ -240,28 +240,48 @@ export const InlineReplySection = forwardRef<
         message: text,
       };
 
-      if (draft_id) {
-        const result = await update_draft(
-          draft_id,
-          content,
-          draft_version,
-          vault,
-          "reply",
-          email_id,
-          undefined,
-          thread_token,
-        );
+      let is_draft_missing = false;
 
-        if (result.data) {
-          set_draft_version(result.data.version);
-          last_saved_text.current = text;
-          on_draft_saved?.({
-            id: draft_id,
-            version: result.data.version,
+      if (draft_id) {
+        const push_update = (version: number) =>
+          update_draft(
+            draft_id,
             content,
-          });
+            version,
+            vault,
+            "reply",
+            email_id,
+            undefined,
+            thread_token,
+          );
+
+        let result = await push_update(draft_version);
+
+        if (result.code === "CONFLICT" && result.data) {
+          set_draft_version(result.data.version);
+          result = await push_update(result.data.version);
         }
-      } else {
+
+        is_draft_missing = result.code === "NOT_FOUND";
+
+        if (is_draft_missing) {
+          set_draft_id(null);
+          set_draft_version(1);
+        } else if (result.data) {
+          set_draft_version(result.data.version);
+
+          if (!result.error) {
+            last_saved_text.current = text;
+            on_draft_saved?.({
+              id: draft_id,
+              version: result.data.version,
+              content,
+            });
+          }
+        }
+      }
+
+      if (!draft_id || is_draft_missing) {
         const result = await create_draft(
           content,
           vault,
@@ -660,9 +680,7 @@ export const InlineReplySection = forwardRef<
             <div className="p-4 space-y-3">
               {error_message && (
                 <div className="px-3 py-2 rounded-lg bg-red-600 border border-red-600">
-                  <p className="text-sm text-white">
-                    {error_message}
-                  </p>
+                  <p className="text-sm text-white">{error_message}</p>
                 </div>
               )}
 

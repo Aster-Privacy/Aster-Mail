@@ -175,11 +175,12 @@ dependencies = [
 
 [[package]]
 name = "aster-mail-desktop"
-version = "1.4.68"
+version = "1.4.69"
 dependencies = [
  "aes-gcm",
  "base64 0.22.1",
  "chacha20poly1305",
+ "core-foundation 0.10.1",
  "dirs 5.0.1",
  "ed25519-dalek",
  "hkdf",
@@ -217,6 +218,7 @@ dependencies = [
  "webview2-com 0.38.2",
  "whoami",
  "windows-core 0.61.2",
+ "windows-registry 0.5.3",
  "x25519-dalek",
  "x509-parser",
  "zeroize",

@@ -109,6 +109,25 @@ export const pt_br = {
     failed_remove_profile_picture:
       "Não foi possível remover sua foto de perfil. Tente novamente.",
     remove_photo: "Remover foto",
+    profile_picture_title: "Alterar foto do perfil",
+    profile_picture_gallery: "Escolher da galeria",
+    profile_picture_gallery_hint: "Escolha um dos planos de fundo da Aster",
+    profile_picture_upload: "Enviar do dispositivo",
+    profile_picture_upload_hint: "JPEG, PNG ou WebP, até 5 MB",
+    profile_picture_gallery_failed:
+      "A galeria não carregou. Verifique sua conexão e tente novamente.",
+    profile_picture_cat_all: "Tudo",
+    profile_picture_cat_space: "Espaço",
+    profile_picture_cat_night_sky: "Céu noturno",
+    profile_picture_cat_water: "Água",
+    profile_picture_cat_planets: "Planetas",
+    profile_picture_cat_landscapes: "Paisagens",
+    profile_picture_cat_forest: "Floresta",
+    profile_picture_cat_cities: "Cidades",
+    profile_picture_cat_aurora: "Aurora",
+    profile_picture_cat_mountains: "Montanhas",
+    profile_picture_cat_ocean: "Oceano",
+    profile_picture_cat_desert: "Deserto",
     toggle_alias: "Ativar ou desativar este alias",
     enter_passphrase: "Digite sua frase-senha",
     app_name: "Aster Mail",
@@ -6498,6 +6517,12 @@ export const pt_br = {
       "Isso excluirá permanentemente todos os dados de destinatários recentes salvos. Esta ação não pode ser desfeita.",
     default_email_app_description:
       "Abrir links mailto: no Aster Mail em vez do seu aplicativo de e-mail padrão",
+    default_email_app_desktop_description:
+      "Abra no Aster Mail os links de e-mail do navegador e de outros aplicativos",
+    default_email_app_confirm_in_settings:
+      "Para concluir, escolha o Aster Mail como aplicativo de e-mail na janela de configurações do sistema que foi aberta.",
+    default_email_app_change_in_settings:
+      "Para parar de abrir os links de e-mail no Aster Mail, escolha outro aplicativo de e-mail na janela de configurações do sistema que foi aberta.",
     payment_failed_warning:
       "A última cobrança no seu método de pagamento não foi aprovada. Atualize-o em Configurações, Faturamento para manter seu plano ativo. Seus e-mails não são afetados.",
     prices_in_usd_note:
@@ -9570,7 +9595,6 @@ export const pt_br = {
     account_flagged_notice:
       "Nosso sistema de segurança automático colocou limites temporários na sua conta, e alguns recursos podem estar indisponíveis. O restante da sua conta funciona normalmente. Se parecer errado, hello@astermail.org pode ajudar.",
     email_copied: "E-mail copiado",
-    device_code_copied: "Copiado",
     device_code_copy: "Copiar código",
     device_code_expired: "Este código expirou.",
     device_code_expired_description:

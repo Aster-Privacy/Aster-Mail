@@ -467,6 +467,75 @@ describe("reply modal drafts around a send", () => {
     expect(props.on_draft_saved).not.toHaveBeenCalled();
   });
 
+  it("creates a new draft when the saved draft no longer exists", async () => {
+    mocks.update_draft.mockResolvedValue({
+      error: "missing",
+      code: "NOT_FOUND",
+    });
+    mocks.create_draft.mockResolvedValue({
+      data: { id: "draft_2", version: 1 },
+    });
+    const props = base_props({
+      existing_draft: {
+        id: "draft_1",
+        version: 3,
+        reply_to_id: "email_1",
+        content: {
+          to_recipients: ["sam@example.com"],
+          cc_recipients: [],
+          bcc_recipients: [],
+          subject: "Re: Plans",
+          message: "<p>See you</p>",
+        },
+      },
+    });
+
+    await render_hook(props);
+    await type_reply("<p>See you on Friday</p>");
+    await advance(1_600);
+
+    expect(mocks.update_draft).toHaveBeenCalledTimes(1);
+    expect(mocks.create_draft).toHaveBeenCalledTimes(1);
+    expect(latest!.draft_id).toBe("draft_2");
+    expect(latest!.draft_status).toBe("saved");
+    expect(props.on_draft_saved).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "draft_2", version: 1 }),
+    );
+  });
+
+  it("retries a draft update once with the server version", async () => {
+    mocks.update_draft
+      .mockResolvedValueOnce({
+        error: "conflict",
+        code: "CONFLICT",
+        data: { id: "draft_1", version: 5 },
+      })
+      .mockResolvedValueOnce({ data: { id: "draft_1", version: 6 } });
+    const props = base_props({
+      existing_draft: {
+        id: "draft_1",
+        version: 3,
+        reply_to_id: "email_1",
+        content: {
+          to_recipients: ["sam@example.com"],
+          cc_recipients: [],
+          bcc_recipients: [],
+          subject: "Re: Plans",
+          message: "<p>See you</p>",
+        },
+      },
+    });
+
+    await render_hook(props);
+    await type_reply("<p>See you on Friday</p>");
+    await advance(1_600);
+
+    expect(mocks.update_draft).toHaveBeenCalledTimes(2);
+    expect(mocks.update_draft.mock.calls[1][2]).toBe(5);
+    expect(mocks.create_draft).not.toHaveBeenCalled();
+    expect(latest!.draft_status).toBe("saved");
+  });
+
   it("does not autosave while a send is in flight", async () => {
     const send = deferred<unknown>();
 
