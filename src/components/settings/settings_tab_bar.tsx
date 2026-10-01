@@ -237,7 +237,7 @@ export function SettingsTabBar<T extends string>({
                   button_refs.current[index] = node;
                 }}
                 aria-selected={selected}
-                className={`relative z-[1] flex h-9 md:h-8 items-center gap-2 rounded-full px-4 text-[14px] font-medium whitespace-nowrap transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 ${
+                className={`relative z-[1] flex h-9 md:h-8 items-center gap-2 rounded-full px-4 text-[14px] font-medium whitespace-nowrap transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--accent-color)_50%,transparent)] ${
                   selected ? "text-txt-primary" : "text-txt-muted"
                 }`}
                 role="tab"

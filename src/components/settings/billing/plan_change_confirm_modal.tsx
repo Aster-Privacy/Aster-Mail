@@ -103,7 +103,11 @@ export function PlanChangeConfirmModal({
           }
           set_loading(false);
         },
-      );
+      ).catch(() => {
+        if (fetch_gen.current !== gen) return;
+        set_preview_failed(true);
+        set_loading(false);
+      });
     } else {
       fetch_gen.current++;
       set_preview(null);

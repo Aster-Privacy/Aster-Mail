@@ -46,6 +46,8 @@ interface MobileContextMenuProps {
   on_toggle_read?: (email: InboxEmail) => void;
   on_toggle_star?: (email: InboxEmail) => void;
   on_archive?: (email: InboxEmail) => void;
+  on_move_to_folder?: (email: InboxEmail) => void;
+  on_label?: (email: InboxEmail) => void;
   on_snooze?: (email: InboxEmail) => void;
   on_delete?: (email: InboxEmail) => void;
 }
@@ -57,6 +59,8 @@ export const MobileContextMenu = memo(function MobileContextMenu({
   on_toggle_read,
   on_toggle_star,
   on_archive,
+  on_move_to_folder,
+  on_label,
   on_snooze,
   on_delete,
 }: MobileContextMenuProps) {
@@ -103,17 +107,21 @@ export const MobileContextMenu = memo(function MobileContextMenu({
       });
     }
 
-    result.push({
-      icon: FolderIcon,
-      label: t("mail.move_to_folder"),
-      on_action: on_close,
-    });
+    if (on_move_to_folder) {
+      result.push({
+        icon: FolderIcon,
+        label: t("mail.move_to_folder"),
+        on_action: () => handle_action(on_move_to_folder),
+      });
+    }
 
-    result.push({
-      icon: TagIcon,
-      label: t("mail.label"),
-      on_action: on_close,
-    });
+    if (on_label) {
+      result.push({
+        icon: TagIcon,
+        label: t("mail.label"),
+        on_action: () => handle_action(on_label),
+      });
+    }
 
     if (on_snooze) {
       result.push({
@@ -140,9 +148,10 @@ export const MobileContextMenu = memo(function MobileContextMenu({
     on_toggle_read,
     on_toggle_star,
     on_archive,
+    on_move_to_folder,
+    on_label,
     on_snooze,
     on_delete,
-    on_close,
   ]);
 
   return (

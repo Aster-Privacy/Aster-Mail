@@ -531,7 +531,8 @@ export function BlockedSection() {
                 </span>
                 <Button
                   size="sm"
-                  variant="destructive"
+                  style={{ color: "var(--color-danger)" }}
+                  variant="secondary"
                   onClick={() => handle_unblock(sender)}
                 >
                   {t("mail.unblock_sender")}

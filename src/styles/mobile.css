@@ -42,3 +42,26 @@
   --mobile-danger: #ef4444;
   --mobile-indicator-bg: #1f1f21;
 }
+
+@supports (color: color-mix(in srgb, red 50%, blue)) {
+  :root {
+    --mobile-border: color-mix(
+      in srgb,
+      var(--mobile-text-primary) 15%,
+      transparent
+    );
+    --mobile-border-divider: color-mix(
+      in srgb,
+      var(--mobile-text-primary) 13%,
+      transparent
+    );
+  }
+
+  .dark {
+    --mobile-border: color-mix(
+      in srgb,
+      var(--mobile-text-primary) 16%,
+      transparent
+    );
+  }
+}

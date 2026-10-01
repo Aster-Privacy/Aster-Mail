@@ -24,7 +24,7 @@ import {
   CheckCircleIcon as CheckCircleSolid,
   XCircleIcon as XCircleSolid,
 } from "@heroicons/react/24/solid";
-import { Badge, Tooltip } from "@aster/ui";
+import { Badge, Skeleton, Tooltip } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import {
@@ -287,14 +287,14 @@ export function SkeletonRows() {
           key={i}
           className="flex items-center justify-between px-3 h-[52px]"
         >
-          <div className="flex items-center gap-3 animate-pulse">
-            <div className="w-4 h-4 rounded-full bg-surf-tertiary" />
-            <div
-              className="h-3.5 rounded-full bg-surf-tertiary"
+          <div className="flex items-center gap-3">
+            <Skeleton className="w-4 h-4 rounded-full" />
+            <Skeleton
+              className="h-3.5 rounded-full"
               style={{ width: `${150 + (i % 3) * 40}px` }}
             />
           </div>
-          <div className="h-3.5 w-16 rounded-full bg-surf-tertiary animate-pulse" />
+          <Skeleton className="h-3.5 w-16 rounded-full" />
         </div>
       ))}
     </div>

@@ -7617,6 +7617,7 @@ export const fr = {
     key_source_dane: "DANE",
     key_source_keyserver: "Serveur de clés",
     key_source_unknown: "Inconnu",
+    key_source_aster: "Aster Mail",
     key_source_wkd: "WKD",
     last_used: "Derniere utilisation",
     mail_rules_suffix: "règle(s) de messagerie",
@@ -9084,6 +9085,7 @@ export const fr = {
     indexing_messages: "Indexation des messages...",
     message_download_status:
       "État du téléchargement des messages : {{done}} sur {{total}}",
+    message_download_count: "Messages téléchargés : {{done}}",
     estimated_time_remaining: "Temps restant estimé : {{duration}}",
     download_paused: "Téléchargement en pause",
     pause_download_action: "Mettre en pause",

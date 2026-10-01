@@ -7670,6 +7670,7 @@ export const tr = {
     key_source_dane: "DANE",
     key_source_cached: "Önbellekten",
     key_source_unknown: "Bilinmeyen",
+    key_source_aster: "Aster Mail",
     invoice_status_disputed: "İtiraz edildi",
     invoice_status_draft: "Taslak",
     invoice_status_failed: "Başarısız",
@@ -8897,6 +8898,7 @@ export const tr = {
     indexing_messages: "Mesajlar dizinleniyor...",
     message_download_status:
       "Mesaj indirme durumu: {{total}} mesajdan {{done}} tanesi",
+    message_download_count: "İndirilen mesajlar: {{done}}",
     estimated_time_remaining: "Tahmini kalan süre: {{duration}}",
     download_paused: "İndirme duraklatıldı",
     pause_download_action: "Duraklat",

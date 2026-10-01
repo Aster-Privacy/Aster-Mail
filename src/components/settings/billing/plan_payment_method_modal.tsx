@@ -319,6 +319,10 @@ export function PlanPaymentMethodModal({
   const summary_total_cents =
     summary_quote?.offer_total_cents ??
     to_method_cents(effective_method, active_option?.total_cents ?? 0);
+  const card_charged_in_usd =
+    effective_method === "card" &&
+    !!card_currency &&
+    card_currency.toLowerCase() !== "usd";
   const amount_due = active_option
     ? format_for(effective_method, summary_total_cents)
     : null;
@@ -791,6 +795,11 @@ export function PlanPaymentMethodModal({
                   {offer_renewal_note && (
                     <p className="mt-2 text-[11px] leading-snug plan_galaxy_text_muted">
                       {offer_renewal_note}
+                    </p>
+                  )}
+                  {card_charged_in_usd && (
+                    <p className="mt-2 text-[11px] leading-snug plan_galaxy_text_muted">
+                      {t("settings.crypto_charged_in_usd")}
                     </p>
                   )}
                 </div>

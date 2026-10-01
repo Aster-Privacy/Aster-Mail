@@ -21,8 +21,8 @@
 import {
   acknowledge_external_key_fingerprint_change,
   discover_external_keys_batch,
-  is_internal_email,
 } from "./api/keys";
+import { is_internal_recipient } from "./recipient_classification";
 
 export interface KeyFingerprintChange {
   email: string;
@@ -53,7 +53,7 @@ export async function find_key_fingerprint_changes(
         .map((recipient) => recipient.trim().toLowerCase())
         .filter(
           (recipient) =>
-            recipient.includes("@") && !is_internal_email(recipient),
+            recipient.includes("@") && !is_internal_recipient(recipient),
         ),
     ),
   ];

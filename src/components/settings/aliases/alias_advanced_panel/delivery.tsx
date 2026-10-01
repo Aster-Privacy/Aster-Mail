@@ -22,7 +22,7 @@ import type { AliasRun } from "@/services/api/aliases";
 import type {} from "@/lib/i18n/types";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Button } from "@aster/ui";
+import { Button, Island, SettingNote } from "@aster/ui";
 
 import { PanelRow } from "./shared";
 
@@ -425,16 +425,34 @@ export function DeliveryPanel({
   const apply_status = apply_status_label();
 
   return (
-    <div className="divide-y divide-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]">
+    <Island divided>
       <PanelRow
         description={t("settings.alias_delivery_folder_desc")}
         info={t("settings.alias_delivery_folder_info")}
         label={t("settings.alias_delivery_folder")}
+        note={
+          rule_delivery ? (
+            <SettingNote tone={folder_rule_conflict ? "warning" : "muted"}>
+              <span data-testid="alias_delivery_rule_note">
+                {folder_rule_conflict
+                  ? t("settings.alias_delivery_rule_conflict", {
+                      rule: rule_delivery.rule_name,
+                      rule_target: folder_name(rule_delivery.folder_token),
+                      target: selected_folder_label,
+                    })
+                  : t("settings.alias_delivery_rule_note", {
+                      rule: rule_delivery.rule_name,
+                      target: folder_name(rule_delivery.folder_token),
+                    })}
+              </span>
+            </SettingNote>
+          ) : undefined
+        }
       >
         <Select disabled={saving} value={value} onValueChange={handle_change}>
           <SelectTrigger
             aria-label={t("settings.alias_delivery_folder")}
-            className="h-9 w-64 shrink-0 bg-transparent"
+            className="w-full"
           >
             <SelectValue />
           </SelectTrigger>
@@ -464,28 +482,32 @@ export function DeliveryPanel({
         </Select>
       </PanelRow>
 
-      {rule_delivery && (
-        <div
-          className={`px-1 py-2 text-xs ${folder_rule_conflict ? "text-amber-500" : "text-txt-muted"}`}
-          data-testid="alias_delivery_rule_note"
-        >
-          {folder_rule_conflict
-            ? t("settings.alias_delivery_rule_conflict", {
-                rule: rule_delivery.rule_name,
-                rule_target: folder_name(rule_delivery.folder_token),
-                target: selected_folder_label,
-              })
-            : t("settings.alias_delivery_rule_note", {
-                rule: rule_delivery.rule_name,
-                target: folder_name(rule_delivery.folder_token),
-              })}
-        </div>
-      )}
-
       <PanelRow
         description={t("settings.alias_delivery_label_desc")}
         info={t("settings.alias_delivery_label_info")}
         label={t("settings.alias_delivery_label")}
+        note={
+          rule_label ? (
+            <SettingNote tone={label_rule_conflict ? "warning" : "muted"}>
+              <span data-testid="alias_delivery_label_rule_note">
+                {label_rule_conflict
+                  ? t("settings.alias_delivery_label_rule_conflict", {
+                      rule: rule_label.rule_name,
+                      rule_target: rule_label.label_tokens
+                        .map((token) => label_name(token))
+                        .join(", "),
+                      target: label_name(label_value),
+                    })
+                  : t("settings.alias_delivery_label_rule_note", {
+                      rule: rule_label.rule_name,
+                      target: rule_label.label_tokens
+                        .map((token) => label_name(token))
+                        .join(", "),
+                    })}
+              </span>
+            </SettingNote>
+          ) : undefined
+        }
       >
         <Select
           disabled={label_saving}
@@ -494,7 +516,7 @@ export function DeliveryPanel({
         >
           <SelectTrigger
             aria-label={t("settings.alias_delivery_label")}
-            className="h-9 w-64 shrink-0 bg-transparent"
+            className="w-full"
             data-testid="alias_delivery_label_select"
           >
             <SelectValue />
@@ -517,31 +539,8 @@ export function DeliveryPanel({
         </Select>
       </PanelRow>
 
-      {rule_label && (
-        <div
-          className={`px-1 py-2 text-xs ${label_rule_conflict ? "text-amber-500" : "text-txt-muted"}`}
-          data-testid="alias_delivery_label_rule_note"
-        >
-          {label_rule_conflict
-            ? t("settings.alias_delivery_label_rule_conflict", {
-                rule: rule_label.rule_name,
-                rule_target: rule_label.label_tokens
-                  .map((token) => label_name(token))
-                  .join(", "),
-                target: label_name(label_value),
-              })
-            : t("settings.alias_delivery_label_rule_note", {
-                rule: rule_label.rule_name,
-                target: rule_label.label_tokens
-                  .map((token) => label_name(token))
-                  .join(", "),
-              })}
-        </div>
-      )}
-
       {alias_id && (
         <PanelRow
-          align_top
           description={t("settings.alias_apply_existing_desc")}
           info={t("settings.alias_apply_existing_info")}
           label={t("settings.alias_apply_existing")}
@@ -556,7 +555,7 @@ export function DeliveryPanel({
                 apply_unsupported ||
                 (!run_active && apply_nothing_to_do)
               }
-              size="sm"
+              size="md"
               variant="secondary"
               onClick={run_active ? handle_cancel_apply : handle_apply_existing}
             >
@@ -575,6 +574,6 @@ export function DeliveryPanel({
           </div>
         </PanelRow>
       )}
-    </div>
+    </Island>
   );
 }

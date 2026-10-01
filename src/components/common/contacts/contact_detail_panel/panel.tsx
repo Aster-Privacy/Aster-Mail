@@ -385,7 +385,7 @@ export function ContactDetailPanel({
                 />
                 <button
                   aria-label={t("common.upload")}
-                  className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 aster_scrim flex items-center justify-center transition-opacity"
+                  className="aster_scrim absolute inset-0 flex items-center justify-center rounded-full opacity-0 transition-opacity group-hover:opacity-100"
                   onClick={() => file_input_ref.current?.click()}
                 >
                   <CameraIcon className="w-7 h-7 text-white" />
@@ -393,10 +393,10 @@ export function ContactDetailPanel({
                 {draft.avatar_url && (
                   <button
                     aria-label={t("common.delete")}
-                    className="absolute -bottom-1 -end-1 w-7 h-7 rounded-full bg-black/80 hover:bg-black flex items-center justify-center ring-2 ring-surf-primary"
+                    className="contact_photo_remove absolute -bottom-1 -end-1 flex h-7 w-7 items-center justify-center rounded-full ring-2 ring-surf-primary"
                     onClick={handle_avatar_clear}
                   >
-                    <TrashIcon className="w-3.5 h-3.5 text-white" />
+                    <TrashIcon className="w-3.5 h-3.5" />
                   </button>
                 )}
                 <input
@@ -419,7 +419,9 @@ export function ContactDetailPanel({
                     className="relative w-6 h-6 rounded-full transition-transform hover:scale-110"
                     style={{
                       backgroundColor: c.value,
-                      boxShadow: active ? "0 0 0 2px #ffffff" : "none",
+                      boxShadow: active
+                        ? "0 0 0 2px var(--aster-floating-bg, var(--bg-primary)), 0 0 0 4px var(--text-primary)"
+                        : "none",
                     }}
                     onClick={() => handle_color_pick(c.value)}
                   />
@@ -433,7 +435,7 @@ export function ContactDetailPanel({
           <div className="flex flex-wrap items-center gap-2 mb-6">
             {!is_editing && (
               <button
-                className="flex items-center gap-2 h-9 px-3.5 rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] hover:bg-[var(--aster-field-hover)] text-[13px] font-medium text-txt-primary transition-colors"
+                className="aster_pill aster_pill_tonal aster_pill_sm"
                 type="button"
                 onClick={() => {
                   set_show_history(false);
@@ -446,7 +448,7 @@ export function ContactDetailPanel({
             )}
             {selected_contact.emails[0] && (
               <button
-                className="flex items-center gap-2 h-9 px-3.5 rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] hover:bg-[var(--aster-field-hover)] text-[13px] font-medium text-txt-primary transition-colors"
+                className="aster_pill aster_pill_tonal aster_pill_sm"
                 type="button"
                 onClick={() => on_compose_email(selected_contact.emails[0])}
               >
@@ -455,7 +457,7 @@ export function ContactDetailPanel({
               </button>
             )}
             <button
-              className={`flex items-center gap-2 h-9 px-3.5 rounded-full text-[13px] font-medium transition-colors ${show_history ? "bg-black/15 dark:bg-white/15 text-txt-primary" : "bg-[var(--aster-field-bg)] hover:bg-[var(--aster-field-hover)] text-txt-primary"}`}
+              className={`aster_pill aster_pill_sm ${show_history ? "bg-[color-mix(in_srgb,var(--accent-color)_16%,var(--bg-primary))] text-txt-primary" : "aster_pill_tonal"}`}
               type="button"
               onClick={() => set_show_history(!show_history)}
             >
@@ -464,7 +466,7 @@ export function ContactDetailPanel({
             </button>
             {contact_mail_query && (
               <button
-                className="flex items-center gap-2 h-9 px-3.5 rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] hover:bg-[var(--aster-field-hover)] text-[13px] font-medium text-txt-primary transition-colors"
+                className="aster_pill aster_pill_tonal aster_pill_sm"
                 type="button"
                 onClick={handle_search_mail}
               >
@@ -473,12 +475,12 @@ export function ContactDetailPanel({
               </button>
             )}
             <button
-              className="flex items-center gap-2 h-9 px-3.5 rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] hover:bg-[var(--aster-field-hover)] text-[13px] font-medium text-txt-primary transition-colors"
+              className="aster_pill aster_pill_tonal aster_pill_sm"
               type="button"
               onClick={() => on_toggle_favorite?.(selected_contact)}
             >
               {selected_contact.is_favorite ? (
-                <StarSolidIcon className="w-4 h-4 text-yellow-500" />
+                <StarSolidIcon className="w-4 h-4 text-amber-400" />
               ) : (
                 <StarIcon className="w-4 h-4" />
               )}
@@ -490,7 +492,7 @@ export function ContactDetailPanel({
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button
-                    className="flex items-center gap-2 h-9 px-3.5 rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] hover:bg-[var(--aster-field-hover)] text-[13px] font-medium text-txt-primary transition-colors"
+                    className="aster_pill aster_pill_tonal aster_pill_sm"
                     type="button"
                   >
                     <ArrowUpOnSquareIcon className="w-4 h-4" />
@@ -523,7 +525,7 @@ export function ContactDetailPanel({
             )}
             {!is_editing && (
               <button
-                className="flex items-center gap-2 h-9 px-3.5 rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] hover:bg-[var(--aster-field-hover)] text-[13px] font-medium text-txt-primary transition-colors"
+                className="aster_pill aster_pill_tonal aster_pill_sm"
                 type="button"
                 onClick={() => on_delete_request(selected_contact)}
               >
@@ -537,19 +539,21 @@ export function ContactDetailPanel({
         {show_history && selected_contact ? (
           <div className="space-y-6">
             <div>
-              <h3 className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-txt-muted">
+              <h3 className="aster_island_section_title mb-2 px-1">
                 {t("common.change_history")}
               </h3>
               {(selected_contact.revisions ?? []).length === 0 ? (
-                <p className="text-[13px] text-txt-muted">
-                  {t("common.no_contact_changes")}
-                </p>
+                <div className="aster_island aster_island_pad_sm">
+                  <p className="text-[13px] text-txt-muted">
+                    {t("common.no_contact_changes")}
+                  </p>
+                </div>
               ) : (
-                <ul className="space-y-1">
+                <ul className="aster_island aster_island_divided">
                   {(selected_contact.revisions ?? []).map((revision) => (
                     <li
                       key={revision.changed_at}
-                      className="flex items-center justify-between gap-3 rounded-[10px] px-3 py-2 hover:bg-[var(--aster-hover)]"
+                      className="aster_island_row justify-between"
                     >
                       <span className="min-w-0 flex-1 truncate text-[13px] text-txt-secondary">
                         {format_full_datetime(new Date(revision.changed_at))}
@@ -818,12 +822,14 @@ export function ContactDetailPanel({
               selected_contact.emails.length > 0 && (
                 <Section
                   info={
-                    <EncryptionInfoDropdown
-                      description_key="common.contact_encryption_info"
-                      has_pq_protection={true}
-                      is_external={false}
-                      size={15}
-                    />
+                    <span className="contact_encryption_info inline-flex">
+                      <EncryptionInfoDropdown
+                        description_key="common.contact_encryption_info"
+                        has_pq_protection={true}
+                        is_external={false}
+                        size={15}
+                      />
+                    </span>
                   }
                   title={t("settings.encryption")}
                 >
@@ -1101,7 +1107,7 @@ export function ContactDetailPanel({
 
             <Section title={t("common.notes")}>
               <textarea
-                className="w-full min-h-[120px] rounded-xl bg-black/[0.04] dark:bg-white/[0.04] border border-edge-secondary/60 dark:border-transparent px-3.5 py-3 text-[14px] text-txt-primary placeholder:text-txt-muted resize-none focus:outline-none focus:border-blue-500/60 focus:bg-surf-primary dark:focus:bg-white/[0.06] transition-colors"
+                className="w-full min-h-[120px] resize-none rounded-[var(--aster-radius-field)] bg-[var(--aster-field-bg)] px-3.5 py-3 text-[14px] text-txt-primary placeholder:text-txt-muted outline-none transition-[background-color,box-shadow] hover:bg-[var(--aster-field-hover)] focus:bg-[var(--aster-field-bg)] focus:shadow-[inset_0_0_0_2px_var(--accent-color)] read-only:cursor-default"
                 placeholder={t("common.notes_placeholder")}
                 readOnly={!is_editing}
                 value={draft.notes}
@@ -1113,13 +1119,14 @@ export function ContactDetailPanel({
       </div>
 
       {(is_editing || is_creating_new) && (
-        <div className="border-t border-edge-primary bg-surf-primary">
+        <div className="flex-shrink-0 bg-surf-primary">
           <div className="px-3 md:px-6 py-3 flex items-center justify-between">
             {is_creating_new || !selected_contact ? (
               <span />
             ) : (
               <Button
-                className="h-9 px-4 text-[13px] !bg-red-500 hover:!bg-red-600 !text-white !border-transparent"
+                className="h-9 px-4 text-[13px]"
+                variant="destructive"
                 onClick={() => on_delete_request(selected_contact)}
               >
                 {t("common.delete_contact")}

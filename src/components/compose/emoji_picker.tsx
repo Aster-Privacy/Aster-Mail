@@ -20,7 +20,7 @@
 //
 import type { TranslationKey } from "@/lib/i18n/types";
 import type { IconType } from "react-icons";
-import type { KeyboardEvent, MouseEvent } from "react";
+import type { KeyboardEvent, MouseEvent, RefObject } from "react";
 
 import {
   memo,
@@ -30,6 +30,7 @@ import {
   useLayoutEffect,
   useMemo,
   useId,
+  useCallback,
 } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -49,6 +50,7 @@ import {
 
 import { use_i18n } from "@/lib/i18n/context";
 import { use_should_reduce_motion } from "@/provider";
+import { use_escape_layer } from "@/lib/overlay_layer_stack";
 import {
   emoji_categories,
   search_emojis,
@@ -169,6 +171,67 @@ function category_sections(): EmojiSection[] {
   return renderable_sections;
 }
 
+const PREWARM_START_DELAY_MS = 1500;
+const PREWARM_BATCH_SIZE = 60;
+const PREWARM_IDLE_TIMEOUT_MS = 2000;
+const INITIAL_SECTION_COUNT = 2;
+
+type IdleCallback = (deadline?: { timeRemaining: () => number }) => void;
+
+function schedule_idle(callback: IdleCallback): void {
+  if (typeof window.requestIdleCallback === "function") {
+    window.requestIdleCallback(callback, { timeout: PREWARM_IDLE_TIMEOUT_MS });
+
+    return;
+  }
+
+  window.setTimeout(() => callback(), 16);
+}
+
+let prewarm_started = false;
+
+export function prewarm_emoji_picker(): void {
+  if (prewarm_started || renderable_sections) return;
+  if (typeof window === "undefined" || typeof document === "undefined") return;
+
+  prewarm_started = true;
+
+  const pending = Array.from(ENTRY_BY_EMOJI.keys()).filter(
+    (emoji) => !emoji_support_cache.has(emoji),
+  );
+  let cursor = 0;
+
+  const run_batch: IdleCallback = (deadline) => {
+    let processed = 0;
+
+    while (cursor < pending.length) {
+      is_emoji_renderable(pending[cursor]);
+      cursor += 1;
+      processed += 1;
+
+      const out_of_time = deadline
+        ? deadline.timeRemaining() <= 1
+        : processed >= PREWARM_BATCH_SIZE;
+
+      if (out_of_time) break;
+    }
+
+    if (cursor < pending.length) {
+      schedule_idle(run_batch);
+
+      return;
+    }
+
+    category_sections();
+  };
+
+  schedule_idle(run_batch);
+}
+
+if (typeof window !== "undefined" && import.meta.env.MODE !== "test") {
+  window.setTimeout(prewarm_emoji_picker, PREWARM_START_DELAY_MS);
+}
+
 function prefers_touch(): boolean {
   try {
     return window.matchMedia("(pointer: coarse)").matches;
@@ -281,7 +344,7 @@ function vertical_neighbor(
 
 function SectionLabel({ children }: { children: string }) {
   return (
-    <p className="sticky top-0 z-[1] bg-modal-bg px-1 pt-2.5 pb-1.5 text-[13px] font-medium leading-5 text-txt-secondary">
+    <p className="sticky top-0 z-[1] bg-[var(--aster-floating-bg)] px-1 pt-2.5 pb-1.5 text-[13px] font-medium leading-5 text-txt-secondary">
       {children}
     </p>
   );
@@ -303,7 +366,7 @@ const EmojiGrid = memo(function EmojiGrid({
           <button
             key={`${entry.emoji}-${index}`}
             aria-label={entry.keywords[0] ?? toned}
-            className="flex aspect-square cursor-pointer touch-manipulation items-center justify-center rounded-full text-[28px] leading-none outline-none transition-[transform,background-color] duration-100 hover:bg-[var(--aster-hover)] focus-visible:bg-[var(--aster-hover)] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500/70 sm:text-[26px]"
+            className="flex aspect-square cursor-pointer touch-manipulation items-center justify-center rounded-full text-[28px] leading-none outline-none transition-[transform,background-color] duration-100 hover:bg-[var(--aster-hover)] focus-visible:bg-[var(--aster-hover)] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[color-mix(in_srgb,var(--accent-color)_70%,transparent)] sm:text-[26px]"
             data-emoji={entry.emoji}
             type="button"
           >
@@ -315,7 +378,13 @@ const EmojiGrid = memo(function EmojiGrid({
   );
 });
 
-function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
+interface EmojiPickerProps {
+  on_select: (emoji: string) => void;
+  on_dismiss?: () => void;
+  anchor_ref?: RefObject<HTMLElement | null>;
+}
+
+function EmojiPicker({ on_select, on_dismiss, anchor_ref }: EmojiPickerProps) {
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
   const indicator_id = useId();
@@ -327,6 +396,9 @@ function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
   const grid_ref = useRef<HTMLDivElement>(null);
   const input_ref = useRef<HTMLInputElement>(null);
   const tones_ref = useRef<HTMLDivElement>(null);
+  const root_ref = useRef<HTMLDivElement>(null);
+  const dismiss_ref = useRef(on_dismiss);
+  const has_dismiss = on_dismiss !== undefined;
   const tab_refs = useRef<(HTMLButtonElement | null)[]>([]);
   const spy_frame_ref = useRef(0);
   const pending_jump_ref = useRef<string | null>(null);
@@ -354,6 +426,8 @@ function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
   );
 
   const [active_section, set_active_section] = useState(section_keys[0]);
+  const [rendered_count, set_rendered_count] = useState(INITIAL_SECTION_COUNT);
+  const is_fully_rendered = rendered_count >= sections.length;
 
   const search_results = useMemo(
     () =>
@@ -379,13 +453,13 @@ function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
       );
     }
 
-    return sections.map((section) => (
+    return sections.slice(0, rendered_count).map((section) => (
       <section key={section.key} data-section={section.key}>
         <SectionLabel>{category_label(section.key, t)}</SectionLabel>
         <EmojiGrid entries={section.entries} skin_tone={skin_tone} />
       </section>
     ));
-  }, [is_searching, search_results, sections, skin_tone, t]);
+  }, [is_searching, search_results, sections, rendered_count, skin_tone, t]);
 
   const select_entry = (entry: EmojiEntry) => {
     remember_recent(entry.emoji);
@@ -417,7 +491,15 @@ function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
 
     if (is_searching) {
       pending_jump_ref.current = key;
+      set_rendered_count(sections.length);
       set_search_query("");
+
+      return;
+    }
+
+    if (!is_fully_rendered) {
+      pending_jump_ref.current = key;
+      set_rendered_count(sections.length);
 
       return;
     }
@@ -590,6 +672,31 @@ function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
     }
   }, [is_searching, trimmed_query, section_keys]);
 
+  useLayoutEffect(() => {
+    const jump = pending_jump_ref.current;
+
+    if (!jump || is_searching || !is_fully_rendered) return;
+
+    pending_jump_ref.current = null;
+    scroll_to_section(jump);
+  }, [is_fully_rendered, is_searching]);
+
+  useEffect(() => {
+    if (is_fully_rendered) return;
+
+    let canceled = false;
+    const frame = window.requestAnimationFrame(() => {
+      window.setTimeout(() => {
+        if (!canceled) set_rendered_count(sections.length);
+      }, 0);
+    });
+
+    return () => {
+      canceled = true;
+      window.cancelAnimationFrame(frame);
+    };
+  }, [is_fully_rendered, sections.length]);
+
   useEffect(() => {
     if (!is_touch) input_ref.current?.focus({ preventScroll: true });
 
@@ -611,6 +718,49 @@ function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
       document.removeEventListener("pointerdown", handle_pointer, true);
   }, [show_tones]);
 
+  useEffect(() => {
+    dismiss_ref.current = on_dismiss;
+  }, [on_dismiss]);
+
+  const dismiss = useCallback(() => dismiss_ref.current?.(), []);
+
+  use_escape_layer(has_dismiss, dismiss, "emoji_picker");
+
+  useEffect(() => {
+    if (!has_dismiss) return;
+
+    const handle_outside = (event: PointerEvent) => {
+      const target = event.target as Node | null;
+
+      if (target && root_ref.current?.contains(target)) return;
+      if (target && anchor_ref?.current?.contains(target)) return;
+      dismiss();
+    };
+
+    document.addEventListener("pointerdown", handle_outside, true);
+
+    return () =>
+      document.removeEventListener("pointerdown", handle_outside, true);
+  }, [has_dismiss, anchor_ref, dismiss]);
+
+  useEffect(() => {
+    if (!has_dismiss) return;
+
+    const anchor = anchor_ref?.current;
+
+    if (!anchor || typeof IntersectionObserver === "undefined") return;
+
+    const observer = new IntersectionObserver((entries) => {
+      const latest = entries[entries.length - 1];
+
+      if (latest && !latest.isIntersecting) dismiss();
+    });
+
+    observer.observe(anchor);
+
+    return () => observer.disconnect();
+  }, [has_dismiss, anchor_ref, dismiss]);
+
   const fade = reduce_motion
     ? { duration: 0 }
     : { duration: 0.16, ease: [0.2, 0, 0, 1] as const };
@@ -619,7 +769,7 @@ function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
     <button
       aria-expanded={show_tones}
       aria-label={t("common.skin_tone")}
-      className={`flex h-10 w-10 flex-shrink-0 cursor-pointer touch-manipulation items-center justify-center rounded-full text-[20px] leading-none outline-none transition-[transform,background-color] duration-150 focus-visible:ring-2 focus-visible:ring-blue-500/70 sm:h-9 sm:w-9 ${show_tones ? "bg-black/[0.08] dark:bg-white/[0.12]" : "hover:bg-[var(--aster-hover)]"}`}
+      className={`flex h-10 w-10 flex-shrink-0 cursor-pointer touch-manipulation items-center justify-center rounded-full text-[20px] leading-none outline-none transition-[transform,background-color] duration-150 focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--accent-color)_70%,transparent)] sm:h-9 sm:w-9 ${show_tones ? "bg-[var(--aster-selected)]" : "hover:bg-[var(--aster-hover)]"}`}
       title={t("common.skin_tone")}
       type="button"
       onClick={() => set_show_tones(!show_tones)}
@@ -634,6 +784,7 @@ function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
 
   return (
     <div
+      ref={root_ref}
       className="aster_floating aster_floating_anim flex w-[360px] max-w-[calc(100vw-16px)] flex-col overflow-hidden"
       data-state="open"
       onMouseDown={(e) => e.preventDefault()}
@@ -652,7 +803,7 @@ function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
               }}
               aria-label={category_label(key, t)}
               aria-selected={is_active}
-              className={`relative flex h-11 min-w-0 flex-1 cursor-pointer touch-manipulation items-center justify-center outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500/70 sm:h-10 ${is_active ? "text-txt-primary" : "text-txt-muted hover:text-txt-primary"}`}
+              className={`relative flex h-11 min-w-0 flex-1 cursor-pointer touch-manipulation items-center justify-center outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[color-mix(in_srgb,var(--accent-color)_70%,transparent)] sm:h-10 ${is_active ? "text-txt-primary" : "text-txt-muted hover:text-txt-primary"}`}
               role="tab"
               tabIndex={is_focus_target ? 0 : -1}
               title={category_label(key, t)}
@@ -663,7 +814,7 @@ function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
               <Icon className="h-5 w-5" strokeWidth={1.9} />
               {is_active && (
                 <motion.span
-                  className="absolute bottom-0.5 left-1/2 h-[3px] w-6 -translate-x-1/2 rounded-full bg-blue-500"
+                  className="absolute bottom-0.5 left-1/2 h-[3px] w-6 -translate-x-1/2 rounded-full bg-[var(--accent-color)]"
                   layoutId={`${indicator_id}_emoji_tab`}
                   transition={
                     reduce_motion
@@ -692,7 +843,7 @@ function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
               key="tones"
               animate={{ opacity: 1 }}
               aria-label={t("common.skin_tone")}
-              className="flex h-10 min-w-0 flex-1 items-center justify-between rounded-full bg-black/[0.05] px-1 sm:h-9 dark:bg-white/[0.07]"
+              className="flex h-10 min-w-0 flex-1 items-center justify-between rounded-full bg-[var(--aster-hover)] px-1 sm:h-9"
               exit={{ opacity: 0 }}
               initial={reduce_motion ? false : { opacity: 0 }}
               role="group"
@@ -703,7 +854,7 @@ function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
                   key={tone}
                   aria-label={t("common.skin_tone")}
                   aria-pressed={skin_tone === tone}
-                  className={`flex h-8 w-8 cursor-pointer touch-manipulation items-center justify-center rounded-full text-[20px] leading-none outline-none transition-[transform,background-color] duration-150 focus-visible:ring-2 focus-visible:ring-blue-500/70 sm:h-7 sm:w-7 sm:text-[18px] ${skin_tone === tone ? "bg-black/[0.1] dark:bg-white/[0.16]" : "hover:bg-[var(--aster-hover)]"}`}
+                  className={`flex h-8 w-8 cursor-pointer touch-manipulation items-center justify-center rounded-full text-[20px] leading-none outline-none transition-[transform,background-color] duration-150 focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--accent-color)_70%,transparent)] sm:h-7 sm:w-7 sm:text-[18px] ${skin_tone === tone ? "bg-[var(--aster-selected)]" : "hover:bg-[var(--aster-hover)]"}`}
                   type="button"
                   onClick={() => select_skin_tone(tone)}
                 >
@@ -720,7 +871,7 @@ function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
               initial={reduce_motion ? false : { opacity: 0 }}
               transition={fade}
             >
-              <div className="relative flex h-10 min-w-0 flex-1 items-center rounded-full bg-black/[0.05] transition-[background-color,box-shadow] duration-150 focus-within:ring-1 focus-within:ring-inset focus-within:ring-blue-500 sm:h-9 dark:bg-white/[0.07]">
+              <div className="relative flex h-10 min-w-0 flex-1 items-center rounded-full bg-[var(--aster-hover)] transition-[background-color,box-shadow] duration-150 focus-within:ring-1 focus-within:ring-inset focus-within:ring-[var(--aster-floating-divider)] sm:h-9">
                 <LuSearch className="pointer-events-none absolute start-3 h-4 w-4 text-txt-muted" />
                 <input
                   ref={input_ref}
@@ -741,7 +892,7 @@ function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
                 {is_searching && (
                   <button
                     aria-label={t("common.clear")}
-                    className="absolute end-1 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-txt-muted outline-none transition-colors hover:text-txt-primary focus-visible:ring-2 focus-visible:ring-blue-500/70 sm:h-7 sm:w-7"
+                    className="absolute end-1 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-txt-muted outline-none transition-colors hover:text-txt-primary focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--accent-color)_70%,transparent)] sm:h-7 sm:w-7"
                     type="button"
                     onClick={clear_search}
                   >

@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { ContactGroup } from "@/types/contacts";
+import type { CSSProperties } from "react";
 
 import {
   PencilIcon,
@@ -26,10 +27,16 @@ import {
   TrashIcon,
   UserGroupIcon,
 } from "@heroicons/react/24/outline";
-import { Spinner, Tooltip } from "@aster/ui";
+import { PillButton, Spinner, Tooltip } from "@aster/ui";
 
 import { ContactGroupGlyph } from "@/components/common/contacts/contact_group_glyph";
 import { use_i18n } from "@/lib/i18n/context";
+
+const ROW_METRICS = {
+  "--aster-island-row-min-height": "48px",
+  "--aster-island-row-pad-x": "12px",
+  "--aster-island-row-pad-y": "8px",
+} as CSSProperties;
 
 interface ContactGroupsPaneProps {
   groups: ContactGroup[];
@@ -68,25 +75,23 @@ export function ContactGroupsPane({
 
   if (groups.length === 0) {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center px-6 pb-4 text-center">
-        <UserGroupIcon
-          className="h-12 w-12 text-txt-muted"
-          strokeWidth={1.25}
-        />
-        <p className="mt-4 text-[14px] font-medium text-txt-primary">
-          {t("common.no_groups_yet")}
-        </p>
-        <p className="mt-1.5 text-[12.5px] leading-relaxed text-txt-muted">
+      <div className="contact_empty_state">
+        <span className="contact_empty_state_glyph">
+          <UserGroupIcon strokeWidth={1.25} />
+        </span>
+        <p className="contact_empty_state_title">{t("common.no_groups_yet")}</p>
+        <p className="contact_empty_state_text">
           {t("common.group_modal_description")}
         </p>
-        <button
-          className="quick_contacts_cta mt-5 flex items-center gap-1.5 rounded-full py-2 ps-3 pe-4 text-[13.5px] font-medium"
-          type="button"
+        <PillButton
+          className="contact_empty_state_action"
+          leading={<PlusIcon />}
+          size="sm"
+          variant="filled"
           onClick={on_create}
         >
-          <PlusIcon className="h-4 w-4" />
           {t("common.new_group")}
-        </button>
+        </PillButton>
       </div>
     );
   }
@@ -100,11 +105,14 @@ export function ContactGroupsPane({
   }
 
   return (
-    <div className="flex flex-col gap-1 pt-1">
+    <div
+      className="aster_island aster_island_divided mt-3 mb-3 flex-shrink-0"
+      style={ROW_METRICS}
+    >
       {visible_groups.map((group) => (
         <div
           key={group.id}
-          className="quick_contacts_row group flex items-center gap-2.5 rounded-[10px] py-1.5 pe-1 ps-3"
+          className="quick_contacts_row aster_island_row aster_island_row_pressable group gap-2.5 pe-1.5 ps-3"
         >
           <button
             className="flex min-w-0 flex-1 items-center gap-2.5 text-start"

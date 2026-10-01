@@ -64,7 +64,7 @@ export function DraftStatusIndicator({
                     animate={
                       reduce_motion ? { x: "0%" } : { x: ["-100%", "250%"] }
                     }
-                    className="h-full w-2/5 rounded-full bg-blue-500"
+                    className="h-full w-2/5 rounded-full bg-[var(--accent-color)]"
                     transition={
                       reduce_motion
                         ? { duration: 0 }

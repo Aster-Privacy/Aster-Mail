@@ -85,6 +85,26 @@ export interface SubscriptionResponse {
   pending_offer?: PendingOffer | null;
   last_card_decline?: CardDecline | null;
   yearly_switch_offer?: YearlySwitchOffer | null;
+  prepaid_term_months?: number | null;
+  prepaid_term_price_cents?: number | null;
+}
+
+export function with_prepaid_term(
+  subscription: SubscriptionResponse,
+): SubscriptionResponse {
+  const term_months = subscription.prepaid_term_months ?? 0;
+  const term_price = subscription.prepaid_term_price_cents ?? 0;
+
+  if (term_months < 24 || term_price <= 0) return subscription;
+
+  return {
+    ...subscription,
+    plan: {
+      ...subscription.plan,
+      billing_period: "biennial",
+      price_cents: term_price,
+    },
+  };
 }
 
 export interface AvailablePlan {
@@ -206,7 +226,13 @@ export interface PlanLimitsResponse {
 }
 
 export async function get_subscription() {
-  return api_client.get<SubscriptionResponse>("/payments/v1/subscription");
+  const response = await api_client.get<SubscriptionResponse>(
+    "/payments/v1/subscription",
+  );
+
+  if (!response.data) return response;
+
+  return { ...response, data: with_prepaid_term(response.data) };
 }
 
 export async function get_available_plans() {
@@ -952,19 +978,8 @@ export interface PromoValidateResponse {
   description: string | null;
 }
 
-export interface PromoApplyResponse {
-  applied: boolean;
-  discount_description: string | null;
-}
-
 export async function validate_promo_code(code: string) {
   return api_client.post<PromoValidateResponse>("/payments/v1/promo/validate", {
-    code,
-  });
-}
-
-export async function apply_promo_code(code: string) {
-  return api_client.post<PromoApplyResponse>("/payments/v1/promo/apply", {
     code,
   });
 }

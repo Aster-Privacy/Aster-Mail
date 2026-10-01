@@ -129,7 +129,7 @@ export function ContactBulkCreateModal({
       <ModalBody>
         <textarea
           autoFocus
-          className="aster_input min-h-[176px] w-full resize-y text-[13px] leading-relaxed"
+          className="aster_input aster_input_tonal min-h-[176px] w-full resize-y text-[13px] leading-relaxed"
           placeholder={t("common.bulk_create_placeholder")}
           rows={7}
           value={value}

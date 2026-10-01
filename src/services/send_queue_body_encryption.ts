@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { get_recipient_public_key, is_internal_email } from "./api/keys";
+import { get_recipient_public_key } from "./api/keys";
 import { ensure_ratchet_keys } from "./crypto/ensure_ratchet_keys";
 import { encrypt_message_multi } from "./crypto/key_manager";
 import {
@@ -37,6 +37,7 @@ import {
   resolve_own_username_for_key_lookup,
   resolve_username_for_key_lookup,
 } from "./send_queue_recipients";
+import { is_internal_recipient } from "./recipient_classification";
 import {
   PostQuantumUnavailableError,
   create_error,
@@ -96,7 +97,7 @@ export async function check_post_quantum_status(
 
   if (!sender_email) return coverage;
 
-  const internal_recipients = recipients.filter(is_internal_email);
+  const internal_recipients = recipients.filter(is_internal_recipient);
 
   if (internal_recipients.length === 0) return coverage;
 
@@ -143,13 +144,15 @@ export async function encrypt_for_recipients(
   sender_email?: string,
   allow_non_post_quantum = false,
 ): Promise<EncryptionResult> {
-  const internal_recipients = recipients.filter(is_internal_email);
+  const internal_recipients = recipients.filter(is_internal_recipient);
 
   if (internal_recipients.length === 0) {
     return { encrypted_body: body, is_encrypted: false };
   }
 
-  const has_external_recipients = recipients.some((r) => !is_internal_email(r));
+  const has_external_recipients = recipients.some(
+    (r) => !is_internal_recipient(r),
+  );
 
   const as_result = (ciphertext: string): EncryptionResult =>
     has_external_recipients

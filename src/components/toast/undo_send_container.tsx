@@ -31,7 +31,11 @@ import { is_mac_platform } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth_context";
 import { show_action_toast } from "@/components/toast/action_toast";
-import { dispatch_undo_send_preview } from "@/components/toast/undo_send_preview_modal";
+import {
+  can_preview_pending_send,
+  open_pending_send_preview,
+} from "@/components/toast/toast_action_router";
+import { use_toast_action_bridge } from "@/components/toast/use_toast_action_hosts";
 import { ignore_error } from "@/lib/ignore_error";
 
 interface UndoSendContainerProps {
@@ -43,9 +47,12 @@ interface UndoSendContainerProps {
 export function UndoSendContainer({
   position: _position,
   max_visible: _max_visible,
-  is_mobile: _is_mobile,
+  is_mobile = false,
 }: UndoSendContainerProps) {
   const { t } = use_i18n();
+
+  use_toast_action_bridge({ is_mobile_app: is_mobile });
+
   const { is_authenticated } = use_auth();
   const { pending_sends, cancel_send, get_time_remaining } = use_undo_send();
 
@@ -123,18 +130,19 @@ export function UndoSendContainer({
             throw new Error("undo_send_cancel_rejected");
           }
         },
-        on_view_message: pending_data.body
-          ? () => {
-              dispatch_undo_send_preview({
-                subject: pending_data.subject,
-                body: pending_data.body,
-                to: pending_data.to,
-                cc: pending_data.cc,
-                bcc: pending_data.bcc,
-                sender_email: pending_data.sender_email,
-              });
-            }
-          : undefined,
+        on_view_message:
+          pending_data.body && !is_mobile && can_preview_pending_send()
+            ? () => {
+                open_pending_send_preview({
+                  subject: pending_data.subject,
+                  body: pending_data.body,
+                  to: pending_data.to,
+                  cc: pending_data.cc,
+                  bcc: pending_data.bcc,
+                  sender_email: pending_data.sender_email,
+                });
+              }
+            : undefined,
       });
     }
 
@@ -145,7 +153,7 @@ export function UndoSendContainer({
         shown_ids_ref.current.delete(id);
       }
     }
-  }, [pending_sends, cancel_send, get_time_remaining, t]);
+  }, [pending_sends, cancel_send, get_time_remaining, t, is_mobile]);
 
   return null;
 }

@@ -37,6 +37,13 @@ const POOL_SIZE = Math.min(
 
 const REQUEST_TIMEOUT_MS = 60_000;
 
+class worker_decrypt_error extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "worker_decrypt_error";
+  }
+}
+
 interface pending_request {
   resolve: (plaintext: string) => void;
   reject: (error: Error) => void;
@@ -61,7 +68,7 @@ function handle_worker_message(
   clearTimeout(pending.timer);
 
   if (error) {
-    pending.reject(new Error(error));
+    pending.reject(new worker_decrypt_error(error));
   } else {
     pending.resolve(plaintext ?? "");
   }
@@ -188,7 +195,9 @@ export async function decrypt_pgp_message_parallel(
         error instanceof Error ? error.message : "pgp decrypt worker failed",
       );
     }
-  }).catch(async () => {
+  }).catch(async (error: unknown) => {
+    if (error instanceof worker_decrypt_error) throw error;
+
     return decrypt_message_with_any_key(ciphertext, secret_keys, passphrase);
   });
 }

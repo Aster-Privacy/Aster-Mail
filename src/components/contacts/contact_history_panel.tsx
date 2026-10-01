@@ -165,7 +165,7 @@ export function ContactHistoryPanel({
   if (error) {
     return (
       <div className="text-center py-12">
-        <p className="text-[13px] text-red-500">{error}</p>
+        <p className="text-[13px] text-[var(--color-danger)]">{error}</p>
       </div>
     );
   }
@@ -183,11 +183,11 @@ export function ContactHistoryPanel({
           </p>
         </div>
       ) : (
-        <div className="divide-y divide-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]">
+        <div className="aster_island aster_island_divided">
           {activities.map((activity) => (
             <button
               key={activity.id}
-              className="w-full flex items-center gap-3 px-2 py-2.5 text-start hover:bg-[var(--aster-hover)] rounded-[14px] transition-colors cursor-pointer"
+              className="aster_island_row aster_island_row_pressable"
               type="button"
               onClick={() => {
                 navigate(`/email/${activity.id}`);

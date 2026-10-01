@@ -72,6 +72,7 @@ export function EmailReplySection({
   const { preferences } = use_preferences();
   const { default_signature, get_formatted_signature } = use_signatures();
   const [show_emoji_picker, set_show_emoji_picker] = useState(false);
+  const emoji_anchor_ref = useRef<HTMLDivElement>(null);
   const [send_state, set_send_state] = useState<SendState>("idle");
   const is_sending_ref = useRef(false);
   const last_send_time_ref = useRef<number>(0);
@@ -385,7 +386,7 @@ export function EmailReplySection({
             initial={reduce_motion ? false : { opacity: 0 }}
             transition={{ delay: 0.2 }}
           >
-            <div className="relative">
+            <div ref={emoji_anchor_ref} className="relative">
               <motion.button
                 className="p-2 rounded-lg transition-colors disabled:opacity-50"
                 disabled={is_disabled}
@@ -406,7 +407,11 @@ export function EmailReplySection({
               </motion.button>
               {show_emoji_picker && !is_disabled && (
                 <div className="absolute bottom-full start-0 z-50 mb-2">
-                  <EmojiPicker on_select={handle_emoji_select} />
+                  <EmojiPicker
+                    anchor_ref={emoji_anchor_ref}
+                    on_dismiss={() => set_show_emoji_picker(false)}
+                    on_select={handle_emoji_select}
+                  />
                 </div>
               )}
             </div>

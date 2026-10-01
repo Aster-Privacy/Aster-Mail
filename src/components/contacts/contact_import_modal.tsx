@@ -612,7 +612,7 @@ export function ContactImportModal({
             {t("common.import_contacts")}
           </h2>
           <button
-            className="p-1 rounded-[14px] transition-colors hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="p-1 rounded-[14px] transition-colors hover:bg-[var(--aster-floating-hover)] disabled:opacity-40 disabled:cursor-not-allowed"
             disabled={is_importing}
             type="button"
             onClick={request_close}
@@ -634,8 +634,10 @@ export function ContactImportModal({
               </p>
 
               <button
-                className={`w-full border-2 border-dashed rounded-xl p-8 text-center cursor-pointer bg-surf-secondary ${
-                  is_drag_active ? "border-brand" : "border-edge-secondary"
+                className={`w-full border-2 border-dashed rounded-[var(--aster-radius-field)] p-8 text-center cursor-pointer bg-[var(--aster-field-bg)] hover:bg-[var(--aster-field-hover)] transition-colors ${
+                  is_drag_active
+                    ? "border-[var(--accent-color)]"
+                    : "border-[var(--aster-floating-divider)]"
                 }`}
                 type="button"
                 onClick={() => input_ref.current?.click()}
@@ -672,14 +674,14 @@ export function ContactImportModal({
                 {csv_headers.map((header, header_index) => (
                   <div
                     key={`${header}_${header_index}`}
-                    className="flex items-center gap-3 p-2 rounded-lg bg-surf-secondary"
+                    className="flex items-center gap-3 p-2 rounded-[var(--aster-radius-field)] border border-[var(--aster-floating-divider)]"
                   >
                     <span className="text-sm font-medium flex-1 truncate text-txt-primary">
                       {header}
                     </span>
                     <ArrowRightIcon className="w-4 h-4 text-txt-muted rtl:-scale-x-100" />
                     <select
-                      className="h-8 px-2 rounded-[var(--aster-radius-item)] border-0 text-sm min-w-32 bg-[var(--aster-field-bg)] text-txt-primary outline-none focus:ring-2 focus:ring-[var(--accent-color)]"
+                      className="h-8 px-2 rounded-[var(--aster-radius-item)] border-0 text-sm min-w-32 bg-[var(--aster-field-bg)] hover:bg-[var(--aster-field-hover)] text-txt-primary outline-none focus:shadow-[inset_0_0_0_2px_var(--accent-color)]"
                       value={csv_mapping[header] || ""}
                       onChange={(e) =>
                         set_csv_mapping((prev) => ({
@@ -701,7 +703,7 @@ export function ContactImportModal({
 
               <div className="flex items-center justify-end gap-2 pt-2">
                 <Button
-                  className="border border-edge-secondary"
+                  className="border border-[var(--aster-floating-divider)]"
                   variant="ghost"
                   onClick={() => set_step("select")}
                 >
@@ -748,7 +750,7 @@ export function ContactImportModal({
                 >
                   <SelectTrigger
                     aria-label={t("common.import_add_to_group")}
-                    className="h-9 w-auto min-w-[176px] rounded-[var(--aster-radius-control)] px-3 text-[13px]"
+                    className="contact_form_select h-9 w-auto min-w-[176px] px-3 text-[13px]"
                   >
                     <span className="flex min-w-0 items-center gap-2">
                       <UserGroupIcon className="h-4 w-4 flex-shrink-0 text-txt-muted" />
@@ -910,7 +912,7 @@ export function ContactImportModal({
 
               <div className="flex flex-shrink-0 items-center justify-between gap-2 pt-1">
                 <Button
-                  className="border border-edge-secondary"
+                  className="border border-[var(--aster-floating-divider)]"
                   disabled={is_importing}
                   variant="ghost"
                   onClick={() =>

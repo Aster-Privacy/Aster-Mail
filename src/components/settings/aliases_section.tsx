@@ -47,6 +47,10 @@ import { AliasImportModal } from "@/components/settings/aliases/alias_import_mod
 import { AliasExportModal } from "@/components/settings/aliases/alias_export_modal";
 import { AliasPreferencesPanel } from "@/components/settings/aliases/alias_preferences_panel";
 import { ignore_error } from "@/lib/ignore_error";
+import {
+  AUTO_OPEN_CREATE_ALIAS_EVENT,
+  consume_auto_open_create_alias,
+} from "@/components/settings/aliases/create_alias_request";
 
 export { DomainSetupWizard } from "@/components/settings/aliases/domain_setup_wizard";
 
@@ -134,18 +138,21 @@ export function AliasesSection() {
 
   useEffect(() => {
     const handle_auto_open = () => {
+      consume_auto_open_create_alias();
       handle_tab("aliases");
       hook.set_show_create_alias_modal(true);
     };
 
-    window.addEventListener(
-      "astermail:auto-open-create-alias",
-      handle_auto_open,
-    );
+    if (consume_auto_open_create_alias()) {
+      handle_tab("aliases");
+      hook.set_show_create_alias_modal(true);
+    }
+
+    window.addEventListener(AUTO_OPEN_CREATE_ALIAS_EVENT, handle_auto_open);
 
     return () => {
       window.removeEventListener(
-        "astermail:auto-open-create-alias",
+        AUTO_OPEN_CREATE_ALIAS_EVENT,
         handle_auto_open,
       );
     };

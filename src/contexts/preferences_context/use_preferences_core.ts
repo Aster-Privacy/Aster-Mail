@@ -41,6 +41,7 @@ import {
   get_cached_sidebar_state,
   cache_preferences_locally,
   get_cached_preferences,
+  get_cached_text_size,
   prepare_preferences_payload,
   reconcile_preferences,
   DEFAULT_PREFERENCES,
@@ -77,12 +78,28 @@ export function use_preferences_core() {
 
   const [preferences, set_preferences] = useState<UserPreferences>(() => {
     const cached = get_cached_preferences();
-    const base = normalize_preferences(cached ?? DEFAULT_PREFERENCES);
+    const text_size = cached ? null : get_cached_text_size();
+    const base = normalize_preferences(
+      cached ??
+        (text_size
+          ? {
+              ...DEFAULT_PREFERENCES,
+              font_size_scale: normalize_font_size_scale(
+                text_size.font_size_scale,
+              ),
+              compact_mode: text_size.compact_mode === true,
+            }
+          : DEFAULT_PREFERENCES),
+    );
     const scale = normalize_font_size_scale(base.font_size_scale);
 
     document.documentElement.style.setProperty(
       "--font-scale",
       String(scale / FONT_SIZE_DEFAULT),
+    );
+    document.documentElement.classList.toggle(
+      "compact-mode",
+      base.compact_mode === true,
     );
     set_preload_email_font_px(Math.round(14 * (scale / FONT_SIZE_DEFAULT)));
     set_preload_email_font_stack(

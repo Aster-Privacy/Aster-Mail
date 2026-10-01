@@ -522,6 +522,7 @@ export async function convert_preferences_to_account_key(
 }
 
 const PREFS_CACHE_KEY = "aster_preferences_cache";
+const TEXT_SIZE_CACHE_KEY = "aster_text_size";
 const MIGRATION_FLAGS_KEY = "aster_pref_migrations_done";
 
 type MigrationFlag =
@@ -559,9 +560,38 @@ function write_local_migration_flag(flag: MigrationFlag): void {
 export function cache_preferences_locally(prefs: UserPreferences): void {
   try {
     localStorage.setItem(PREFS_CACHE_KEY, JSON.stringify(prefs));
+    localStorage.setItem(
+      TEXT_SIZE_CACHE_KEY,
+      JSON.stringify({
+        font_size_scale: prefs.font_size_scale,
+        compact_mode: prefs.compact_mode === true,
+      }),
+    );
   } catch (caught) {
     ignore_error("services/api/preferences:cache_preferences_locally", caught);
   }
+}
+
+export function get_cached_text_size(): {
+  font_size_scale?: unknown;
+  compact_mode?: boolean;
+} | null {
+  try {
+    const cached = localStorage.getItem(TEXT_SIZE_CACHE_KEY);
+
+    if (cached) {
+      const parsed = JSON.parse(cached) as Record<string, unknown>;
+
+      return {
+        font_size_scale: parsed.font_size_scale,
+        compact_mode: parsed.compact_mode === true,
+      };
+    }
+  } catch (caught) {
+    ignore_error("services/api/preferences:get_cached_text_size", caught);
+  }
+
+  return null;
 }
 
 export function clear_preferences_cache(): void {

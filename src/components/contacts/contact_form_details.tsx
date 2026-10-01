@@ -65,6 +65,7 @@ export function ContactFormDetails({
     <div className="space-y-4">
       <ContactFormSection icon={PhoneIcon} label={t("common.phone")} />
       <Input
+        className="aster_input_tonal"
         placeholder={t("common.phone_placeholder")}
         size="md"
         type="tel"
@@ -86,6 +87,7 @@ export function ContactFormDetails({
             {t("common.company")}
           </label>
           <Input
+            className="aster_input_tonal"
             id="contact-company"
             placeholder={t("common.company_placeholder")}
             size="md"
@@ -101,6 +103,7 @@ export function ContactFormDetails({
             {t("common.job_title")}
           </label>
           <Input
+            className="aster_input_tonal"
             id="contact-job-title"
             placeholder={t("common.job_title_placeholder")}
             size="md"
@@ -119,6 +122,7 @@ export function ContactFormDetails({
           />
           <Input
             aria-label={t("common.birthday")}
+            className="aster_input_tonal"
             size="md"
             type="date"
             value={form_data.birthday}
@@ -135,7 +139,7 @@ export function ContactFormDetails({
             value={form_data.relationship}
             onValueChange={(value) => on_change("relationship", value)}
           >
-            <SelectTrigger className="h-9 text-[13px]">
+            <SelectTrigger className="contact_form_select h-9 ps-3 pe-3 font-normal">
               <SelectValue placeholder={t("common.select_placeholder")} />
             </SelectTrigger>
             <SelectContent>
@@ -155,7 +159,7 @@ export function ContactFormDetails({
         label={t("common.notes")}
       />
       <textarea
-        className="aster_input min-h-[88px] resize-y text-[13px] leading-relaxed"
+        className="aster_input aster_input_tonal min-h-[88px] resize-y text-[13px] leading-relaxed"
         placeholder={t("common.notes_placeholder")}
         rows={3}
         value={form_data.notes}

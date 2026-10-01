@@ -23,6 +23,7 @@ import type { TranslationKey } from "@/lib/i18n/types";
 
 import { useEffect, useState } from "react";
 import { PaperAirplaneIcon } from "@heroicons/react/24/outline";
+import { Island } from "@aster/ui";
 
 import { format_created_at, format_relative_time } from "../alias_stats_format";
 
@@ -100,7 +101,11 @@ export function StatsPanel({
   }, [alias_id, locked, reload_token]);
 
   if (loading) {
-    return <Spinner size="sm" />;
+    return (
+      <Island className="flex justify-center" padding="md">
+        <Spinner size="sm" />
+      </Island>
+    );
   }
 
   if (load_failed && !stats) {
@@ -114,8 +119,8 @@ export function StatsPanel({
     : "";
 
   return (
-    <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-txt-muted">
+    <Island className="space-y-3" padding="md">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-txt-secondary">
         <span>
           {t("settings.alias_stats_received" as TranslationKey, {
             count: stats?.received ?? 0,
@@ -156,6 +161,6 @@ export function StatsPanel({
           })}
         </div>
       )}
-    </div>
+    </Island>
   );
 }

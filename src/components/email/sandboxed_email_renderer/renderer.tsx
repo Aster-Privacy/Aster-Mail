@@ -57,6 +57,7 @@ import {
   derive_rail_color,
   derive_visited_ink,
   normalize_hex,
+  relative_luminance,
 } from "@/lib/email_ink";
 import { use_resolved_accent } from "@/lib/resolved_accent";
 import { is_transparent_color_value } from "@/lib/html_sanitizer";
@@ -788,6 +789,12 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
     force_light_scheme && (!effective_bg || effective_bg === "transparent")
       ? "#ffffff"
       : effective_bg;
+  const skeleton_canvas = normalize_hex(effective_bg);
+  const skeleton_canvas_ink = skeleton_canvas
+    ? relative_luminance(skeleton_canvas) > 0.4
+      ? "#111827"
+      : "#f5f5f5"
+    : undefined;
 
   useEffect(() => {
     let cancelled = false;
@@ -950,50 +957,39 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
               display: "flex",
               flexDirection: "column",
               gap: "12px",
+              ["--aster-skeleton-ink" as string]: skeleton_canvas_ink,
             }}
           >
             <div
-              className="animate-pulse"
+              className="animate-pulse aster_skeleton_bar"
               style={{
                 height: "14px",
                 width: "85%",
                 borderRadius: "4px",
-                backgroundColor: app_is_dark
-                  ? "rgba(255,255,255,0.06)"
-                  : "rgba(0,0,0,0.06)",
               }}
             />
             <div
-              className="animate-pulse"
+              className="animate-pulse aster_skeleton_bar"
               style={{
                 height: "14px",
                 width: "70%",
                 borderRadius: "4px",
-                backgroundColor: app_is_dark
-                  ? "rgba(255,255,255,0.06)"
-                  : "rgba(0,0,0,0.06)",
               }}
             />
             <div
-              className="animate-pulse"
+              className="animate-pulse aster_skeleton_bar"
               style={{
                 height: "14px",
                 width: "60%",
                 borderRadius: "4px",
-                backgroundColor: app_is_dark
-                  ? "rgba(255,255,255,0.06)"
-                  : "rgba(0,0,0,0.06)",
               }}
             />
             <div
-              className="animate-pulse"
+              className="animate-pulse aster_skeleton_bar"
               style={{
                 height: "14px",
                 width: "40%",
                 borderRadius: "4px",
-                backgroundColor: app_is_dark
-                  ? "rgba(255,255,255,0.06)"
-                  : "rgba(0,0,0,0.06)",
               }}
             />
           </div>

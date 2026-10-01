@@ -454,7 +454,7 @@ export function SearchModal({
               !state.is_searching &&
               !state.is_loading_more && (
                 <button
-                  className="w-full py-3 text-xs font-medium text-center transition-colors duration-150 rounded-[var(--aster-radius-control)] mt-2 text-txt-secondary bg-surf-tertiary hover:bg-surf-hover"
+                  className="search_load_more w-full py-3 text-xs font-medium text-center rounded-[var(--aster-radius-control)] mt-2"
                   onClick={load_more}
                 >
                   {t("common.load_more")}
@@ -536,7 +536,7 @@ export function SearchModal({
     <motion.div
       ref={dropdown_ref}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-[var(--aster-radius-floating,16px)] overflow-hidden flex flex-col bg-modal-bg shadow-[var(--aster-floating-shadow)]"
+      className="rounded-[var(--aster-radius-floating,16px)] overflow-hidden flex flex-col bg-[var(--aster-floating-bg,var(--modal-bg))] shadow-[var(--aster-floating-shadow)]"
       exit={{ opacity: 0, y: -4 }}
       initial={reduce_motion ? false : { opacity: 0, y: -4 }}
       style={desktop_style ?? fallback_style}

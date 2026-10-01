@@ -767,10 +767,12 @@ export const ThreadMessagesList = forwardRef<
   );
 
   const expand_all = useCallback(() => {
+    set_hidden_group_revealed(true);
     set_expanded_ids(new Set(regular_messages.map((m) => m.id)));
   }, [regular_messages]);
 
   const collapse_all = useCallback(() => {
+    set_hidden_group_revealed(false);
     if (regular_messages.length > 0) {
       set_expanded_ids(
         new Set([regular_messages[regular_messages.length - 1].id]),
@@ -889,9 +891,25 @@ export const ThreadMessagesList = forwardRef<
       .length;
   }, [regular_messages, read_ids]);
 
+  const visible_tail_count = 2;
+
+  const hidden_count = useMemo(() => {
+    if (
+      hidden_group_revealed ||
+      display_messages.length <= visible_tail_count + 2
+    ) {
+      return 0;
+    }
+
+    return display_messages.length - 1 - visible_tail_count;
+  }, [display_messages.length, hidden_group_revealed]);
+
   const all_expanded = useMemo(() => {
-    return regular_messages.every((m) => expanded_ids.has(m.id));
-  }, [regular_messages, expanded_ids]);
+    return (
+      hidden_count === 0 &&
+      regular_messages.every((m) => expanded_ids.has(m.id))
+    );
+  }, [regular_messages, expanded_ids, hidden_count]);
 
   const all_collapsed = useMemo(() => {
     return regular_messages.every((m) => !expanded_ids.has(m.id));
@@ -944,8 +962,6 @@ export const ThreadMessagesList = forwardRef<
     ],
   );
 
-  const visible_tail_count = 2;
-
   const inline_reply_references = useMemo(
     () =>
       inline_reply_msg
@@ -953,17 +969,6 @@ export const ThreadMessagesList = forwardRef<
         : undefined,
     [inline_reply_msg, regular_messages],
   );
-
-  const hidden_count = useMemo(() => {
-    if (
-      hidden_group_revealed ||
-      display_messages.length <= visible_tail_count + 2
-    ) {
-      return 0;
-    }
-
-    return display_messages.length - 1 - visible_tail_count;
-  }, [display_messages.length, hidden_group_revealed]);
 
   const hidden_ids = useMemo(() => {
     if (hidden_count === 0) return null;

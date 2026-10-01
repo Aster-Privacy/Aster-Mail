@@ -557,7 +557,7 @@ export function ViewerToolbarActions({
           </DropdownMenuItem>
           <DropdownMenuItem onClick={on_pin_toggle}>
             <PinIcon
-              className={`w-4 h-4 me-2 ${is_pinned ? "-rotate-[38deg] text-blue-500" : ""}`}
+              className={`w-4 h-4 me-2 ${is_pinned ? "-rotate-[38deg] text-[var(--accent-color)]" : ""}`}
               filled={is_pinned}
             />
             {is_pinned ? t("mail.unpin") : t("mail.pin_to_top")}

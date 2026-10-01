@@ -22,8 +22,10 @@ import type { ReactNode } from "react";
 import type { TranslationKey } from "@/lib/i18n/types";
 
 import { useState } from "react";
-import { CheckIcon, ShieldCheckIcon } from "@heroicons/react/24/outline";
+import { ShieldCheckIcon } from "@heroicons/react/24/outline";
+import { CheckCircleIcon } from "@heroicons/react/24/solid";
 import {
+  Badge,
   Button,
   IslandSection,
   Select,
@@ -494,26 +496,14 @@ export function AvailablePlansSection({
                       {tier.name}
                     </h5>
                     {(action.is_current || is_recommended) && (
-                      <span
-                        className="flex-shrink-0 rounded-full px-2 py-0.5 text-[10.5px] font-semibold leading-4"
-                        style={
-                          action.is_current
-                            ? {
-                                color: "var(--text-secondary)",
-                                backgroundColor:
-                                  "color-mix(in srgb, var(--text-primary) 8%, transparent)",
-                              }
-                            : {
-                                color: "var(--accent-color)",
-                                backgroundColor:
-                                  "color-mix(in srgb, var(--accent-color) 14%, transparent)",
-                              }
-                        }
+                      <Badge
+                        className="flex-shrink-0"
+                        color={action.is_current ? "gray" : "blue"}
                       >
                         {action.is_current
                           ? t("settings.current_plan")
                           : t("settings.plan_recommended")}
-                      </span>
+                      </Badge>
                     )}
                   </div>
                   <p className="text-[13px] leading-5 text-txt-muted">
@@ -577,10 +567,10 @@ export function AvailablePlansSection({
                         key={feature.label}
                         className="flex items-start gap-2 text-[13px] leading-5 text-txt-secondary"
                       >
-                        <CheckIcon
+                        <CheckCircleIcon
                           aria-hidden="true"
-                          className="mt-0.5 h-4 w-4 flex-shrink-0"
-                          style={{ color: "var(--accent-color)" }}
+                          className="mt-[1px] h-[18px] w-[18px] flex-shrink-0"
+                          style={{ color: "var(--accent-blue)" }}
                         />
                         <span>{feature.label}</span>
                       </li>

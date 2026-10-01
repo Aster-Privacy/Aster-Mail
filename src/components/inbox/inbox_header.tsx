@@ -226,9 +226,10 @@ export function InboxHeader({
     preferences.mail_list_density ?? "",
     preferences.compact_mode ?? false,
   );
+  const show_profile_pictures = preferences.show_profile_pictures !== false;
   const select_all_size_class = list_select_slot_class(
     compact_rows,
-    preferences.show_profile_pictures !== false,
+    show_profile_pictures,
   );
   const has_selection = all_selected || some_selected;
   const scope_selected_count = Math.max(total_messages - excluded_count, 0);
@@ -329,7 +330,7 @@ export function InboxHeader({
               >
                 <div
                   className={cn(
-                    "flex items-center justify-center cursor-pointer rounded-full",
+                    "flex flex-shrink-0 items-center justify-center cursor-pointer rounded-full",
                     select_all_size_class,
                   )}
                   role="button"
@@ -362,7 +363,10 @@ export function InboxHeader({
                   <DropdownMenuTrigger asChild>
                     <button
                       aria-label={t("common.select_label")}
-                      className="-ms-2 h-9 w-5 flex items-center justify-center focus:outline-none"
+                      className={cn(
+                        "h-9 w-5 flex flex-shrink-0 items-center justify-center focus:outline-none",
+                        show_profile_pictures ? "-ms-2" : "ms-1",
+                      )}
                     >
                       <ChevronDownIcon className="w-4 h-4 stroke-[1.75] text-[var(--icon-secondary)] transition-colors" />
                     </button>
@@ -955,7 +959,7 @@ export function InboxHeader({
                 })}
               </span>
               <button
-                className="flex-shrink-0 text-xs font-medium text-blue-500 rounded px-1.5 py-0.5 hover:bg-blue-500/10 transition-colors"
+                className="flex-shrink-0 text-xs font-medium text-[var(--accent-color)] rounded px-1.5 py-0.5 hover:bg-[color-mix(in_srgb,var(--accent-color)_10%,transparent)] transition-colors"
                 onClick={on_activate_select_all_mode}
               >
                 {t("mail.select_all_in_folder", {
@@ -972,7 +976,7 @@ export function InboxHeader({
                 })}
               </span>
               <button
-                className="flex-shrink-0 text-xs font-medium text-blue-500 rounded px-1.5 py-0.5 hover:bg-blue-500/10 transition-colors"
+                className="flex-shrink-0 text-xs font-medium text-[var(--accent-color)] rounded px-1.5 py-0.5 hover:bg-[color-mix(in_srgb,var(--accent-color)_10%,transparent)] transition-colors"
                 onClick={on_clear_selection}
               >
                 {t("mail.clear_selection")}

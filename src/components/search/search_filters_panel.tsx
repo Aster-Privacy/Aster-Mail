@@ -92,7 +92,7 @@ export function QuickFilterButton({
       className={`px-3 py-1.5 text-xs rounded-full transition-colors duration-150 font-medium ${
         is_active
           ? "bg-brand text-[var(--accent-fg,#ffffff)]"
-          : "bg-[var(--aster-hover)] text-txt-secondary hover:text-txt-primary"
+          : "search_pill"
       }`}
       onClick={on_click}
     >
@@ -121,7 +121,7 @@ export function SortDropdown({
 
   return (
     <Select value={value} onValueChange={(v) => on_change(v as SortOption)}>
-      <SelectTrigger className="h-8 text-xs min-w-[150px]">
+      <SelectTrigger className="search_sort_trigger h-8 text-xs min-w-[150px]">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
@@ -207,7 +207,7 @@ export function OperatorSuggestions({
       {suggestions.map((suggestion) => (
         <button
           key={suggestion.operator}
-          className="px-2 py-1 text-[11px] rounded-[var(--aster-radius-item)] transition-colors duration-150 bg-[var(--aster-hover)] text-txt-muted hover:text-txt-primary"
+          className="search_pill px-2 py-1 text-[11px] rounded-[var(--aster-radius-item)]"
           onClick={() => on_select(suggestion.operator)}
         >
           <span className="font-mono">{suggestion.operator}</span>
@@ -249,7 +249,7 @@ export function SearchHistorySection({
       {history.slice(0, 5).map((entry) => (
         <div
           key={entry.id}
-          className="group flex items-center gap-2.5 px-3.5 py-2.5 rounded-[12px] transition-colors cursor-pointer hover:bg-[var(--bg-hover)]"
+          className="search_list_row group flex items-center gap-2.5 px-3.5 py-2.5 rounded-[12px] cursor-pointer"
           role="button"
           tabIndex={0}
           onClick={() => on_select(entry.query)}
@@ -275,7 +275,7 @@ export function SearchHistorySection({
           </span>
           <button
             aria-label={t("common.delete")}
-            className="p-1 rounded-full transition-opacity opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:bg-[var(--bg-hover)] text-txt-muted"
+            className="search_icon_btn p-1 rounded-full transition-opacity opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
             onClick={(e) => {
               e.stopPropagation();
               on_remove(entry.id);
@@ -310,7 +310,7 @@ export function SavedSearchesSection({
   if (saved_searches.length === 0) return null;
 
   return (
-    <div className="p-2 border-t border-[var(--aster-floating-divider)]">
+    <div className="search_divider_t p-2">
       <div className="px-3.5 py-1.5">
         <span className="text-[11px] font-semibold uppercase tracking-[0.06em] text-txt-muted">
           {t("mail.saved_searches")}
@@ -319,7 +319,7 @@ export function SavedSearchesSection({
       {saved_searches.slice(0, 5).map((saved) => (
         <div
           key={saved.id}
-          className="group flex items-center gap-2.5 px-3.5 py-2.5 rounded-[12px] transition-colors cursor-pointer hover:bg-[var(--bg-hover)]"
+          className="search_list_row group flex items-center gap-2.5 px-3.5 py-2.5 rounded-[12px] cursor-pointer"
           role="button"
           tabIndex={0}
           onClick={() => on_select(saved)}
@@ -346,7 +346,8 @@ export function SavedSearchesSection({
             </span>
           </div>
           <button
-            className="p-1 rounded-full transition-opacity opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:bg-[var(--bg-hover)] text-txt-muted"
+            aria-label={t("common.delete")}
+            className="search_icon_btn p-1 rounded-full transition-opacity opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
             onClick={(e) => {
               e.stopPropagation();
               on_delete(saved.id);
@@ -423,7 +424,7 @@ export function SaveSearchDialog({
         <h3 className="text-base font-semibold mb-4 text-txt-primary">
           {t("mail.save_search")}
         </h3>
-        <div className="text-xs mb-4 px-3 py-2 rounded-lg text-txt-muted bg-surf-tertiary">
+        <div className="search_well text-xs mb-4 px-3 py-2 rounded-lg text-txt-muted">
           <span className="font-medium">{t("mail.query")}:</span>{" "}
           <span className="font-mono text-[11px]">{query}</span>
         </div>
@@ -446,7 +447,7 @@ export function SaveSearchDialog({
           }}
         />
         {error && (
-          <p className="text-xs text-red-500 mb-3 flex items-center gap-1.5">
+          <p className="text-xs text-[var(--color-danger)] mb-3 flex items-center gap-1.5">
             <svg
               className="w-3.5 h-3.5"
               fill="currentColor"
@@ -463,7 +464,7 @@ export function SaveSearchDialog({
         )}
         <div className="flex justify-end gap-2 pt-3">
           <button
-            className="px-4 py-2 text-sm rounded-[14px] transition-all hover:opacity-80 text-txt-muted bg-surf-hover"
+            className="search_pill px-4 py-2 text-sm rounded-[14px]"
             onClick={on_close}
           >
             {t("common.cancel")}
@@ -543,7 +544,7 @@ export function ClearDataMenu({
       </div>
       <div className="flex justify-end gap-2 mt-3 pt-2">
         <button
-          className="px-2 py-1 text-xs rounded transition-colors text-txt-muted"
+          className="search_ghost_btn px-2 py-1 text-xs rounded"
           onClick={on_close}
         >
           {t("common.cancel")}

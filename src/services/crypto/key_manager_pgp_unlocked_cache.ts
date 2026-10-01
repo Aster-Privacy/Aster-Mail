@@ -23,10 +23,20 @@ import * as openpgp from "openpgp";
 import "@/services/crypto/openpgp_limits";
 
 import { compute_hash } from "./key_manager_core";
+import { clear_key_id_cache } from "./pgp_key_selection";
 
-const UNLOCKED_KEY_CACHE_MAX_ENTRIES = 8;
+const UNLOCKED_KEY_CACHE_MAX_ENTRIES = 64;
+const FAILED_UNLOCK_MAX_ENTRIES = 64;
 
 const UNLOCKED_KEY_CACHE = new Map<string, Promise<openpgp.PrivateKey>>();
+const FAILED_UNLOCKS = new Set<string>();
+
+export class unlock_failed_error extends Error {
+  constructor() {
+    super("private key unlock failed");
+    this.name = "unlock_failed_error";
+  }
+}
 
 async function unlocked_key_cache_id(
   secret_key: string,
@@ -39,14 +49,31 @@ async function unlocked_key_cache_id(
   );
 }
 
+function evict_oldest<T>(entries: Map<string, T> | Set<string>, max: number) {
+  while (entries.size > max) {
+    const oldest = entries.keys().next();
+
+    if (oldest.done) return;
+    entries.delete(oldest.value);
+  }
+}
+
 export async function unlock_private_key(
   secret_key: string,
   passphrase: string,
 ): Promise<openpgp.PrivateKey> {
   const cache_id = await unlocked_key_cache_id(secret_key, passphrase);
+
+  if (FAILED_UNLOCKS.has(cache_id)) throw new unlock_failed_error();
+
   const cached = UNLOCKED_KEY_CACHE.get(cache_id);
 
-  if (cached) return cached;
+  if (cached) {
+    UNLOCKED_KEY_CACHE.delete(cache_id);
+    UNLOCKED_KEY_CACHE.set(cache_id, cached);
+
+    return cached;
+  }
 
   const pending = openpgp
     .readPrivateKey({ armoredKey: secret_key })
@@ -58,19 +85,14 @@ export async function unlock_private_key(
     );
 
   UNLOCKED_KEY_CACHE.set(cache_id, pending);
-
-  if (UNLOCKED_KEY_CACHE.size > UNLOCKED_KEY_CACHE_MAX_ENTRIES) {
-    const oldest = UNLOCKED_KEY_CACHE.keys().next();
-
-    if (!oldest.done && oldest.value !== cache_id) {
-      UNLOCKED_KEY_CACHE.delete(oldest.value);
-    }
-  }
+  evict_oldest(UNLOCKED_KEY_CACHE, UNLOCKED_KEY_CACHE_MAX_ENTRIES);
 
   try {
     return await pending;
   } catch (error) {
     UNLOCKED_KEY_CACHE.delete(cache_id);
+    FAILED_UNLOCKS.add(cache_id);
+    evict_oldest(FAILED_UNLOCKS, FAILED_UNLOCK_MAX_ENTRIES);
 
     throw error;
   }
@@ -78,4 +100,6 @@ export async function unlock_private_key(
 
 export function clear_unlocked_key_cache(): void {
   UNLOCKED_KEY_CACHE.clear();
+  FAILED_UNLOCKS.clear();
+  clear_key_id_cache();
 }

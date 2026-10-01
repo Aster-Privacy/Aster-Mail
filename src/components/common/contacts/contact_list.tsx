@@ -56,7 +56,7 @@ import {
   EnvelopeIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
-import { Button, Checkbox, Switch, Tooltip } from "@aster/ui";
+import { Button, Checkbox, PillButton, Switch, Tooltip } from "@aster/ui";
 import { useCallback, useMemo, useState } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
@@ -380,7 +380,7 @@ export function ContactList({
           {t("common.contacts")}
         </h1>
         <div className="flex-1" />
-        <div className="h-8 w-8 flex items-center justify-center">
+        <div className="contact_encryption_info h-8 w-8 flex items-center justify-center">
           <EncryptionInfoDropdown
             description_key="common.only_you_can_read_contacts"
             has_pq_protection={true}
@@ -394,7 +394,7 @@ export function ContactList({
               <DropdownMenuTrigger asChild>
                 <Button
                   aria-label={`${t("common.sort")}: ${sort_label}`}
-                  className="h-9 gap-1.5 rounded-[10px] px-2.5 text-[13px] font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
+                  className="h-9 gap-1.5 rounded-full px-3 text-[13px] font-medium text-[var(--text-secondary)] hover:bg-[var(--aster-hover)] hover:text-[var(--text-primary)]"
                   disabled={!is_list_tab}
                   size="sm"
                   variant="ghost"
@@ -435,7 +435,7 @@ export function ContactList({
                   : t("settings.density_compact")
               }
               aria-pressed={is_compact}
-              className="h-9 w-9 rounded-[10px] hover:bg-[var(--bg-hover)] text-[var(--icon-secondary)] hover:text-[var(--icon-active)]"
+              className="h-9 w-9 rounded-full hover:bg-[var(--aster-hover)] text-[var(--icon-secondary)] hover:text-[var(--icon-active)]"
               size="icon"
               variant="ghost"
               onClick={() => set_view_mode(is_compact ? "list" : "compact")}
@@ -453,7 +453,7 @@ export function ContactList({
               <DropdownMenuTrigger asChild>
                 <Button
                   aria-label={t("common.manage_contacts")}
-                  className="h-9 w-9 rounded-[10px] hover:bg-[var(--bg-hover)] text-[var(--icon-secondary)] hover:text-[var(--icon-active)]"
+                  className="h-9 w-9 rounded-full hover:bg-[var(--aster-hover)] text-[var(--icon-secondary)] hover:text-[var(--icon-active)]"
                   size="icon"
                   variant="ghost"
                 >
@@ -514,7 +514,7 @@ export function ContactList({
               <DropdownMenuTrigger asChild>
                 <Button
                   aria-label={t("common.create_contact")}
-                  className="h-9 gap-1.5 rounded-[10px] px-3 text-[13px] font-medium"
+                  className="h-9 gap-1.5 rounded-[var(--aster-radius-control)] px-3.5 text-[13px] font-medium"
                   size="sm"
                   variant="primary"
                 >
@@ -555,25 +555,29 @@ export function ContactList({
         </div>
       </div>
 
-      <div className="contact_tab_strip px-4" role="tablist">
-        {tab_items.map((item) => (
-          <button
-            key={item.key}
-            aria-selected={tab === item.key}
-            className="contact_tab_pill"
-            data-selected={tab === item.key}
-            role="tab"
-            type="button"
-            onClick={() => set_tab(item.key)}
-          >
-            {item.label}
-            {item.count > 0 && (
-              <span className="contact_tab_pill_count tabular-nums">
-                {format_number(item.count)}
-              </span>
-            )}
-          </button>
-        ))}
+      <div className="flex flex-shrink-0 px-4 pt-1 pb-2">
+        <div
+          className="inline-flex min-w-0 items-center gap-0.5 rounded-full bg-[color-mix(in_srgb,var(--text-primary)_6%,var(--bg-primary))] p-1 max-w-full overflow-x-auto scrollbar-hide"
+          role="tablist"
+        >
+          {tab_items.map((item) => (
+            <button
+              key={item.key}
+              aria-selected={tab === item.key}
+              className="flex h-7 items-center gap-1.5 rounded-full px-3 text-[13px] font-medium whitespace-nowrap text-txt-muted transition-colors hover:text-txt-primary aria-selected:bg-[var(--bg-primary)] aria-selected:text-txt-primary aria-selected:shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:aria-selected:bg-[color-mix(in_srgb,var(--text-primary)_15%,var(--bg-primary))] dark:aria-selected:shadow-none flex-shrink-0"
+              role="tab"
+              type="button"
+              onClick={() => set_tab(item.key)}
+            >
+              {item.label}
+              {item.count > 0 && (
+                <span className="text-[12px] font-medium text-txt-muted tabular-nums">
+                  {format_number(item.count)}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
       </div>
 
       {tab === "contacts" && (
@@ -628,7 +632,7 @@ export function ContactList({
         )}
       >
         {show_birthday_card && (
-          <div className="contact_suggestion_card mx-4 mt-1 mb-1 flex flex-shrink-0 items-start gap-2.5">
+          <div className="aster_island mx-4 mt-1 mb-1 flex flex-shrink-0 items-start gap-2.5 px-3.5 py-2.5">
             <CakeIcon className="mt-[1px] h-4 w-4 flex-shrink-0 text-[var(--accent-color)]" />
             <div className="min-w-0 flex-1">
               <p className="text-[12.5px] font-medium text-txt-primary">
@@ -653,7 +657,7 @@ export function ContactList({
           </div>
         )}
         {tab === "contacts" && !has_selection && duplicate_count > 0 && (
-          <div className="quick_contacts_notice mx-4 mt-1 mb-1 flex flex-shrink-0 items-center gap-2 rounded-[10px] px-3 py-2 text-[12.5px]">
+          <div className="aster_island aster_island_tone_accent mx-4 mt-1 mb-1 flex flex-shrink-0 items-center gap-2 px-3.5 py-2 text-[12.5px]">
             <span className="min-w-0 flex-1 truncate">
               {t("common.duplicates_found", { count: duplicate_count })}
             </span>
@@ -667,7 +671,7 @@ export function ContactList({
           </div>
         )}
         {has_selection ? (
-          <div className="flex items-center gap-1 px-4 py-2 border-b border-edge-primary">
+          <div className="flex items-center gap-1 px-4 py-2">
             <Tooltip
               tip={
                 selection_state.all_selected
@@ -696,12 +700,12 @@ export function ContactList({
             <Tooltip tip={t("common.favorite")}>
               <button
                 aria-label={t("common.favorite")}
-                className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-txt-secondary hover:bg-[var(--aster-hover)] transition-colors"
+                className="h-8 w-8 inline-flex items-center justify-center rounded-full text-txt-secondary hover:bg-[var(--aster-hover)] transition-colors"
                 type="button"
                 onClick={on_toggle_favorite_selected}
               >
                 {selected_all_favorited ? (
-                  <StarIconSolid className="w-4 h-4 text-yellow-500" />
+                  <StarIconSolid className="w-4 h-4 text-amber-400" />
                 ) : (
                   <StarIcon className="w-4 h-4" />
                 )}
@@ -714,7 +718,7 @@ export function ContactList({
             <Tooltip tip={t("common.send_email")}>
               <button
                 aria-label={t("common.send_email")}
-                className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-txt-secondary hover:bg-[var(--aster-hover)] transition-colors"
+                className="h-8 w-8 inline-flex items-center justify-center rounded-full text-txt-secondary hover:bg-[var(--aster-hover)] transition-colors"
                 type="button"
                 onClick={on_compose_to_selected}
               >
@@ -724,7 +728,7 @@ export function ContactList({
             <Tooltip tip={t("common.copy")}>
               <button
                 aria-label={t("common.copy")}
-                className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-txt-secondary hover:bg-[var(--aster-hover)] transition-colors"
+                className="h-8 w-8 inline-flex items-center justify-center rounded-full text-txt-secondary hover:bg-[var(--aster-hover)] transition-colors"
                 type="button"
                 onClick={on_copy_emails}
               >
@@ -736,7 +740,7 @@ export function ContactList({
                 <DropdownMenuTrigger asChild>
                   <button
                     aria-label={t("common.export_selection")}
-                    className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-txt-secondary hover:bg-[var(--aster-hover)] transition-colors"
+                    className="h-8 w-8 inline-flex items-center justify-center rounded-full text-txt-secondary hover:bg-[var(--aster-hover)] transition-colors"
                     type="button"
                   >
                     <ArrowDownTrayIcon className="w-4 h-4" />
@@ -759,7 +763,7 @@ export function ContactList({
             <Tooltip tip={t("common.delete")}>
               <button
                 aria-label={t("common.delete")}
-                className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-red-500 hover:bg-red-500/10 transition-colors"
+                className="h-8 w-8 inline-flex items-center justify-center rounded-full text-[var(--color-danger)] hover:bg-[color-mix(in_srgb,var(--color-danger)_12%,transparent)] transition-colors"
                 type="button"
                 onClick={on_delete_selected}
               >
@@ -768,7 +772,7 @@ export function ContactList({
             </Tooltip>
           </div>
         ) : (
-          <div className="flex items-center justify-between px-4 py-2 border-b border-edge-primary">
+          <div className="flex items-center justify-between px-4 py-2">
             {filtered_contacts.length > 0 && (
               <Tooltip tip={t("common.select_all")}>
                 <span className="flex items-center pe-3">
@@ -798,8 +802,8 @@ export function ContactList({
         )}
 
         {error && (
-          <div className="mx-3 mt-2 p-2 rounded-lg bg-red-500/10 border border-red-500/20">
-            <p className="text-[12px] text-red-500">{error}</p>
+          <div className="aster_island aster_island_tone_danger mx-4 mt-2 px-3.5 py-2">
+            <p className="text-[12px] text-[var(--color-danger)]">{error}</p>
           </div>
         )}
 
@@ -833,14 +837,15 @@ export function ContactList({
               <p className="contact_empty_state_text">
                 {t("common.add_contacts_hint")}
               </p>
-              <Button
+              <PillButton
                 className="contact_empty_state_action"
-                size="md"
+                leading={<PlusIcon />}
+                size="sm"
+                variant="filled"
                 onClick={on_add_click}
               >
-                <PlusIcon className="w-3.5 h-3.5" />
                 {t("common.add_contact")}
-              </Button>
+              </PillButton>
             </div>
           ) : visible_contacts.length === 0 ? (
             <div className="contact_empty_state">
@@ -943,17 +948,14 @@ export function ContactList({
                     />
                     <div
                       className={cn(
-                        "absolute inset-0 rounded-full flex items-center justify-center transition-opacity duration-150",
+                        "quick_contacts_select_dot absolute inset-0 rounded-full flex items-center justify-center transition-opacity duration-150",
                         is_selected
-                          ? "opacity-100 bg-[var(--accent-color)]"
-                          : "opacity-0 group-hover/avatar:opacity-100 bg-black/30 dark:bg-white/20",
+                          ? "opacity-100"
+                          : "opacity-0 group-hover/avatar:opacity-100",
                       )}
                     >
                       <CheckIcon
-                        className={cn(
-                          "text-white",
-                          is_compact ? "w-4 h-4" : "w-5 h-5",
-                        )}
+                        className={is_compact ? "w-4 h-4" : "w-5 h-5"}
                       />
                     </div>
                   </div>

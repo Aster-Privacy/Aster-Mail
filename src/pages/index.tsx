@@ -115,10 +115,10 @@ import {
 import { use_is_mobile } from "@/hooks/use_platform";
 import { ignore_error } from "@/lib/ignore_error";
 import {
-  NAVIGATE_TO_SENT_EVENT,
-  open_sent_message_or_folder,
-  type NavigateToSentDetail,
-} from "@/components/toast/email_sent_toast";
+  use_compose_host,
+  use_message_view_host,
+} from "@/components/toast/use_toast_action_hosts";
+import { dispatch_undo_send_preview } from "@/components/toast/undo_send_preview_modal";
 
 function use_mount_latch(is_open: boolean): boolean {
   const [was_open, set_was_open] = useState(false);
@@ -323,13 +323,6 @@ export default function IndexPage() {
       state_ref.current.open_settings(resolve_settings_section(requested));
     };
 
-    const handle_navigate_sent = (e: Event) => {
-      const email_id = (e as CustomEvent<NavigateToSentDetail>).detail
-        ?.email_id;
-
-      void open_sent_message_or_folder(email_id, navigate);
-    };
-
     try {
       const pending_domain_order = sessionStorage.getItem(
         "aster_pending_domain_order",
@@ -348,13 +341,35 @@ export default function IndexPage() {
     }
 
     window.addEventListener("navigate-settings", handle_navigate);
-    window.addEventListener(NAVIGATE_TO_SENT_EVENT, handle_navigate_sent);
 
     return () => {
       window.removeEventListener("navigate-settings", handle_navigate);
-      window.removeEventListener(NAVIGATE_TO_SENT_EVENT, handle_navigate_sent);
     };
   }, [navigate]);
+
+  const has_message_list =
+    !state.is_settings_route &&
+    pathname !== "/contacts" &&
+    pathname !== "/subscriptions";
+  const can_show_message =
+    is_mobile ||
+    (!state.is_settings_route && (state.use_popup_mode || has_message_list));
+  const can_show_preview =
+    !state.is_settings_route &&
+    (state.use_popup_mode || (has_message_list && !state.active_search_query));
+
+  use_message_view_host({
+    can_show_message: () => can_show_message,
+    can_show_preview: () => can_show_preview,
+    show_message: (email_id) => state_ref.current.handle_email_click(email_id),
+    show_preview: dispatch_undo_send_preview,
+    go_to_list: (route) => state_ref.current.handle_header_view_change(route),
+  });
+
+  use_compose_host({
+    restores_undone_sends: !is_mobile,
+    open_draft: (draft) => state_ref.current.open_compose_instance(draft),
+  });
 
   return (
     <>

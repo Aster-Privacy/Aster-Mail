@@ -181,7 +181,9 @@ export function ToolbarButton({
 }
 
 export function Divider() {
-  return <div className="w-px h-4 mx-1 flex-shrink-0 bg-edge-secondary" />;
+  return (
+    <div className="w-px h-4 mx-1 flex-shrink-0 bg-[var(--aster-floating-divider)]" />
+  );
 }
 
 export function use_frozen_selection(

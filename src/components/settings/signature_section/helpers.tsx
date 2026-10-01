@@ -76,7 +76,7 @@ export function FmtButton({
   return (
     <button
       aria-label={title}
-      className={`p-1.5 rounded-[14px] transition-all duration-150 ${active ? "bg-blue-500/15 text-blue-500" : "hover:bg-[var(--aster-hover)] text-txt-muted"}`}
+      className={`p-1.5 rounded-[14px] transition-all duration-150 ${active ? "bg-brand/15 text-brand" : "hover:bg-[var(--aster-hover)] text-txt-muted"}`}
       title={title}
       type="button"
       onClick={onClick}

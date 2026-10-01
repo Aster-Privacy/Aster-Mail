@@ -372,6 +372,33 @@ describe("normalize_parsed_envelope", () => {
     expect("from" in result).toBe(false);
   });
 
+  it("builds from out of the flat sender fields of mobile sent copies", () => {
+    const result = normalize_parsed_envelope({
+      subject: "Hello",
+      from_name: "hugo@astermail.org",
+      from_email: "hugo@astermail.org",
+      to: ["friend@example.com"],
+    }) as unknown as {
+      from: { name: string; email: string };
+      to: { name: string; email: string }[];
+    };
+
+    expect(result.from).toEqual({
+      name: "hugo@astermail.org",
+      email: "hugo@astermail.org",
+    });
+    expect(result.to).toEqual([{ name: "", email: "friend@example.com" }]);
+  });
+
+  it("keeps an existing from object over the flat sender fields", () => {
+    const result = normalize_parsed_envelope({
+      from: { name: "Ana", email: "ana@example.com" },
+      from_email: "other@example.com",
+    }) as unknown as { from: { name: string; email: string } };
+
+    expect(result.from).toEqual({ name: "Ana", email: "ana@example.com" });
+  });
+
   it("yields a from object when from is present but null", () => {
     const result = normalize_parsed_envelope({ from: null }) as unknown as {
       from: { name: string; email: string };

@@ -257,7 +257,7 @@ export function PopupEmailBody({
   if (!email) {
     return (
       <div className="relative flex-1 min-h-0">
-        <EmailOpenSkeleton compact column_class="mx-auto w-full max-w-4xl" />
+        <EmailOpenSkeleton variant="popup" />
       </div>
     );
   }

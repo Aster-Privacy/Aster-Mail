@@ -158,7 +158,7 @@ export function MobileSenderSheet({
                   )}
                 </div>
                 {current_sender?.id === sender.id && (
-                  <CheckIcon className="h-5 w-5 shrink-0 text-blue-500" />
+                  <CheckIcon className="h-5 w-5 shrink-0 text-brand" />
                 )}
               </button>
               {on_set_preferred && sender.type !== "ghost" && (
@@ -170,7 +170,7 @@ export function MobileSenderSheet({
                   }
                   className={`shrink-0 rounded-[10px] p-2.5 ${
                     preferred_id === sender.id
-                      ? "text-blue-500"
+                      ? "text-brand"
                       : "text-[var(--text-muted)]"
                   }`}
                   type="button"
