@@ -382,7 +382,7 @@ export function use_email_detail_load() {
     stored_grouped_email_ids,
   ]);
 
-  const fetch_email = useCallback(async () => {
+  const load_email = useCallback(async () => {
     if (!email_id) {
       set_is_loading(false);
 
@@ -911,6 +911,15 @@ export function use_email_detail_load() {
         }
       }
 
+      if (!envelope && is_first_load) {
+        if (is_stale()) return;
+
+        set_error(t("common.something_went_wrong_try_again"));
+        set_is_loading(false);
+
+        return;
+      }
+
       await attachment_meta_ready;
 
       if (is_stale()) return;
@@ -936,6 +945,27 @@ export function use_email_detail_load() {
     preferences.conversation_grouping,
     t,
   ]);
+
+  const fetch_email = useCallback(async () => {
+    const pending = load_email();
+    const my_seq = load_seq_ref.current;
+
+    try {
+      await pending;
+    } catch (caught) {
+      ignore_error(
+        "components/email/hooks/use_email_detail_load:fetch_email",
+        caught,
+      );
+
+      if (load_seq_ref.current !== my_seq) return;
+
+      if (!has_loaded_once.current) {
+        set_error(t("common.something_went_wrong_try_again"));
+      }
+      set_is_loading(false);
+    }
+  }, [load_email, t]);
 
   return {
     t,

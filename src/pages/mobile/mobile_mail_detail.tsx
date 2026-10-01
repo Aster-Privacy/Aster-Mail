@@ -23,7 +23,7 @@ import { motion } from "framer-motion";
 import { StarIcon } from "@heroicons/react/24/outline";
 import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
 
-import { Island, IslandDivider } from "@aster/ui";
+import { Island, IslandDivider, PillButton } from "@aster/ui";
 
 import { MobileThreadMessage } from "./mobile_thread_message";
 import {
@@ -126,10 +126,19 @@ function MobileMailDetail() {
     return (
       <div className="flex h-full flex-col">
         <MobileHeader on_back={handle_back} title="" />
-        <div className="flex flex-1 flex-col items-center justify-center gap-2 px-8">
+        <div className="flex flex-1 flex-col items-center justify-center gap-4 px-8">
           <p className="text-center text-[15px] text-[var(--text-muted)]">
             {detail.error}
           </p>
+          <PillButton
+            size="sm"
+            type="button"
+            onClick={() => {
+              void detail.fetch_email();
+            }}
+          >
+            {detail.t("common.retry")}
+          </PillButton>
         </div>
       </div>
     );

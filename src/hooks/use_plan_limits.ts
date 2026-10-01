@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 import {
   get_plan_limits,
@@ -37,6 +37,7 @@ let cached_limits: PlanLimitsResponse | null = null;
 let cached_account_id: string | null = null;
 let cache_timestamp = 0;
 const CACHE_TTL = 60_000;
+const FAILED_LOAD_RETRY_DELAYS_MS = [15_000, 45_000, 120_000];
 
 let limits_request_in_flight: Promise<PlanLimitsResponse | null> | null = null;
 
@@ -123,6 +124,8 @@ export function use_plan_limits() {
   );
   const [is_loading, set_is_loading] = useState(!cached_limits);
   const [load_failed, set_load_failed] = useState(false);
+  const failed_retry_count_ref = useRef(0);
+  const failed_retry_timer_ref = useRef<number | null>(null);
 
   const fetch_limits = useCallback(async (force = false) => {
     if (!api_client.is_authenticated()) {
@@ -163,9 +166,24 @@ export function use_plan_limits() {
       if (!data) {
         set_load_failed(true);
 
+        const retry_delay =
+          FAILED_LOAD_RETRY_DELAYS_MS[failed_retry_count_ref.current];
+
+        if (
+          retry_delay !== undefined &&
+          failed_retry_timer_ref.current === null
+        ) {
+          failed_retry_count_ref.current += 1;
+          failed_retry_timer_ref.current = window.setTimeout(() => {
+            failed_retry_timer_ref.current = null;
+            void fetch_limits_ref.current(true);
+          }, retry_delay);
+        }
+
         return;
       }
 
+      failed_retry_count_ref.current = 0;
       set_load_failed(false);
 
       if ((await get_current_account_id()) !== account_id) return;
@@ -192,8 +210,19 @@ export function use_plan_limits() {
     }
   }, []);
 
+  const fetch_limits_ref = useRef(fetch_limits);
+
+  fetch_limits_ref.current = fetch_limits;
+
   useEffect(() => {
     fetch_limits();
+
+    return () => {
+      if (failed_retry_timer_ref.current !== null) {
+        window.clearTimeout(failed_retry_timer_ref.current);
+        failed_retry_timer_ref.current = null;
+      }
+    };
   }, [fetch_limits]);
 
   const is_feature_locked = useCallback(

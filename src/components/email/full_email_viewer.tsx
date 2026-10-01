@@ -447,6 +447,7 @@ export function FullEmailViewer({
           show_back_button
           error={viewer.error}
           on_dismiss={on_back}
+          on_retry={viewer.retry_load}
         />
       </div>
     );

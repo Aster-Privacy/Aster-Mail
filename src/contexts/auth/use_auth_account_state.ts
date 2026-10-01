@@ -135,85 +135,128 @@ export function use_auth_account_state() {
     null,
   );
 
-  const handle_identity_mismatch = useCallback(async (actual_user_id?: string) => {
-    api_client.begin_intentional_logout();
-    sync_client.disconnect();
-    stop_session_timeout();
-    clear_vault_from_memory();
+  const handle_identity_mismatch = useCallback(
+    async (actual_user_id?: string) => {
+      api_client.begin_intentional_logout();
+      sync_client.disconnect();
+      stop_session_timeout();
+      clear_vault_from_memory();
 
-    let all_accounts: Awaited<ReturnType<typeof get_all_accounts>> = [];
-    let affected: Awaited<ReturnType<typeof get_current_account>> = null;
+      let all_accounts: Awaited<ReturnType<typeof get_all_accounts>> = [];
+      let affected: Awaited<ReturnType<typeof get_current_account>> = null;
 
-    try {
-      all_accounts = await get_all_accounts();
-      affected = await get_current_account();
-    } catch (e) {
-      safe_log_error(e);
-    }
+      try {
+        all_accounts = await get_all_accounts();
+        affected = await get_current_account();
+      } catch (e) {
+        safe_log_error(e);
+      }
 
-    const signed_in_elsewhere = actual_user_id
-      ? all_accounts.find(
-          (account) =>
-            account.id === actual_user_id && account.kind !== "shared",
-        )
-      : undefined;
+      const signed_in_elsewhere = actual_user_id
+        ? all_accounts.find(
+            (account) =>
+              account.id === actual_user_id && account.kind !== "shared",
+          )
+        : undefined;
 
-    if (signed_in_elsewhere && get_stored_encrypted_vault(signed_in_elsewhere.id)) {
-      const passphrase = await get_session_passphrase(
-        signed_in_elsewhere.id,
-      ).catch(() => null);
+      if (
+        signed_in_elsewhere &&
+        get_stored_encrypted_vault(signed_in_elsewhere.id)
+      ) {
+        const passphrase = await get_session_passphrase(
+          signed_in_elsewhere.id,
+        ).catch(() => null);
 
-      if (passphrase) {
+        if (passphrase) {
+          try {
+            await clear_account_scoped_caches();
+          } catch (e) {
+            safe_log_error(e);
+          }
+
+          const adopted = await storage_switch_account(
+            signed_in_elsewhere.id,
+          ).catch(() => null);
+
+          if (adopted) {
+            hard_redirect("/");
+
+            return;
+          }
+        }
+      }
+
+      if (all_accounts.length > 1 && affected) {
         try {
           await clear_account_scoped_caches();
         } catch (e) {
           safe_log_error(e);
         }
 
-        const adopted = await storage_switch_account(
-          signed_in_elsewhere.id,
-        ).catch(() => null);
-
-        if (adopted) {
-          hard_redirect("/");
-
-          return;
+        try {
+          await delete_category_index_for_account(affected.id);
+        } catch (e) {
+          safe_log_error(e);
         }
-      }
-    }
 
-    if (all_accounts.length > 1 && affected) {
+        clear_stored_encrypted_vault(affected.id);
+        clear_session_timeout_data(affected.id);
+        clear_session_unlock(affected.id);
+        clear_app_lock_config(affected.id);
+
+        try {
+          await clear_session_passphrase(affected.id);
+        } catch (e) {
+          safe_log_error(e);
+        }
+
+        try {
+          await update_account_tokens(affected.id, null, null);
+        } catch (e) {
+          safe_log_error(e);
+        }
+
+        api_client.clear_dev_token();
+        api_client.clear_in_memory_token();
+
+        try {
+          await api_client.clear_session_cookies();
+        } catch (e) {
+          safe_log_error(e);
+        }
+
+        api_client.set_expected_user_id(null);
+        api_client.set_authenticated(false);
+        set_is_adding_account(true);
+
+        set_state((prev) => ({
+          ...prev,
+          user: null,
+          is_loading: false,
+          is_authenticated: false,
+          has_keys: false,
+          accounts: all_accounts,
+          current_account_id: affected.id,
+        }));
+
+        show_toast(t("errors.session_identity_mismatch"), "error");
+
+        const local = affected.user.email.split("@")[0] ?? "";
+
+        navigate(
+          local
+            ? `/sign-in?u=${encodeURIComponent(local)}&reason=session_expired`
+            : "/sign-in",
+        );
+
+        return;
+      }
+
       try {
-        await clear_account_scoped_caches();
+        await purge_all_local_data();
       } catch (e) {
         safe_log_error(e);
       }
-
-      try {
-        await delete_category_index_for_account(affected.id);
-      } catch (e) {
-        safe_log_error(e);
-      }
-
-      clear_stored_encrypted_vault(affected.id);
-      clear_session_timeout_data(affected.id);
-      clear_session_unlock(affected.id);
-      clear_app_lock_config(affected.id);
-
-      try {
-        await clear_session_passphrase(affected.id);
-      } catch (e) {
-        safe_log_error(e);
-      }
-
-      try {
-        await update_account_tokens(affected.id, null, null);
-      } catch (e) {
-        safe_log_error(e);
-      }
-
-      api_client.clear_dev_token();
-      api_client.clear_in_memory_token();
 
       try {
         await api_client.clear_session_cookies();
@@ -223,71 +266,34 @@ export function use_auth_account_state() {
 
       api_client.set_expected_user_id(null);
       api_client.set_authenticated(false);
-      set_is_adding_account(true);
 
-      set_state((prev) => ({
-        ...prev,
+      set_state({
         user: null,
         is_loading: false,
         is_authenticated: false,
         has_keys: false,
-        accounts: all_accounts,
-        current_account_id: affected.id,
-      }));
+        accounts: [],
+        current_account_id: null,
+      });
+
+      const pending_checkout =
+        window.location.pathname === "/sign-in" &&
+        new URLSearchParams(window.location.search).get("checkout") ===
+          "success";
+
+      if (pending_checkout) {
+        hard_redirect(
+          `/sign-in${window.location.search}${window.location.hash}`,
+        );
+
+        return;
+      }
 
       show_toast(t("errors.session_identity_mismatch"), "error");
-
-      const local = affected.user.email.split("@")[0] ?? "";
-
-      navigate(
-        local
-          ? `/sign-in?u=${encodeURIComponent(local)}&reason=session_expired`
-          : "/sign-in",
-      );
-
-      return;
-    }
-
-    try {
-      await purge_all_local_data();
-    } catch (e) {
-      safe_log_error(e);
-    }
-
-    try {
-      await api_client.clear_session_cookies();
-    } catch (e) {
-      safe_log_error(e);
-    }
-
-    api_client.set_expected_user_id(null);
-    api_client.set_authenticated(false);
-
-    set_state({
-      user: null,
-      is_loading: false,
-      is_authenticated: false,
-      has_keys: false,
-      accounts: [],
-      current_account_id: null,
-    });
-
-    const pending_checkout =
-      window.location.pathname === "/sign-in" &&
-      new URLSearchParams(window.location.search).get("checkout") ===
-        "success";
-
-    if (pending_checkout) {
-      hard_redirect(
-        `/sign-in${window.location.search}${window.location.hash}`,
-      );
-
-      return;
-    }
-
-    show_toast(t("errors.session_identity_mismatch"), "error");
-    hard_redirect("/sign-in");
-  }, [t, navigate, set_is_adding_account]);
+      hard_redirect("/sign-in");
+    },
+    [t, navigate, set_is_adding_account],
+  );
 
   useEffect(() => {
     const init = async () => {
@@ -333,6 +339,41 @@ export function use_auth_account_state() {
           }
         }
 
+        const restore_session_keys = async (): Promise<boolean> => {
+          if (has_vault_in_memory_for(current.user.id)) return true;
+
+          if (has_vault_in_memory()) {
+            clear_vault_from_memory();
+          }
+
+          let stored_passphrase: string | null = null;
+
+          try {
+            stored_passphrase = await get_session_passphrase(current.id);
+          } catch (caught) {
+            ignore_error("contexts/auth/use_auth_account_state:init", caught);
+          }
+          const stored_vault = get_stored_encrypted_vault(current.id);
+
+          if (!stored_passphrase || !stored_vault) return false;
+
+          try {
+            const vault = await decrypt_vault_with_lock(
+              stored_vault.encrypted_vault,
+              stored_vault.vault_nonce,
+              stored_passphrase,
+              current.user.id,
+            );
+
+            return vault !== null;
+          } catch (caught) {
+            ignore_error("contexts/auth/use_auth_account_state:init", caught);
+
+            return false;
+          }
+        };
+        const session_keys_restore = restore_session_keys();
+
         let verify_timed_out = false;
         const is_auth_valid = await Promise.race([
           verify_auth_status(),
@@ -358,40 +399,7 @@ export function use_auth_account_state() {
             safe_log_error(e);
           });
 
-          let has_keys = has_vault_in_memory_for(current.user.id);
-
-          if (has_vault_in_memory() && !has_keys) {
-            clear_vault_from_memory();
-          }
-
-          if (!has_keys) {
-            let stored_passphrase: string | null = null;
-
-            try {
-              stored_passphrase = await get_session_passphrase(current.id);
-            } catch (caught) {
-              ignore_error("contexts/auth/use_auth_account_state:init", caught);
-            }
-            const stored_vault = get_stored_encrypted_vault(current.id);
-
-            if (stored_passphrase && stored_vault) {
-              try {
-                const vault = await decrypt_vault_with_lock(
-                  stored_vault.encrypted_vault,
-                  stored_vault.vault_nonce,
-                  stored_passphrase,
-                  current.user.id,
-                );
-
-                has_keys = vault !== null;
-              } catch (caught) {
-                ignore_error(
-                  "contexts/auth/use_auth_account_state:init",
-                  caught,
-                );
-              }
-            }
-          }
+          let has_keys = await session_keys_restore;
 
           if (!has_keys && "__TAURI_INTERNALS__" in window) {
             try {
@@ -579,6 +587,8 @@ export function use_auth_account_state() {
           api_client.clear_auth_data();
           api_client.set_authenticated(false);
           sync_client.disconnect();
+          await session_keys_restore;
+          clear_vault_from_memory();
 
           try {
             await clear_session_passphrase(current.id);

@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { Island, IslandEmpty, IslandRow, PillButton } from "@aster/ui";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { GlobeAltIcon, PlusIcon } from "@heroicons/react/24/outline";
 
 import {
@@ -44,6 +44,7 @@ import {
 } from "@/services/api/family_org";
 import { type FamilyMemberInfo } from "@/services/api/family";
 import { show_toast } from "@/components/toast/simple_toast";
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { use_i18n } from "@/lib/i18n/context";
 import type {} from "@/lib/i18n/types";
 
@@ -51,20 +52,28 @@ export function DomainsContent({ members }: { members: FamilyMemberInfo[] }) {
   const { t } = use_i18n();
   const [domains, set_domains] = useState<FamilyDomain[]>([]);
   const [loading, set_loading] = useState(true);
+  const [load_failed, set_load_failed] = useState(false);
   const [sharing, set_sharing] = useState<string | null>(null);
   const [share_uid, set_share_uid] = useState("");
 
-  useEffect(() => {
+  const load = useCallback(() => {
+    set_loading(true);
     list_family_domains()
       .then((r) => {
-        if (r.data) set_domains(r.data);
-        else show_toast(t("settings.fam_org_domains_load_failed"), "error");
+        if (r.data) {
+          set_domains(r.data);
+          set_load_failed(false);
+        } else {
+          set_load_failed(true);
+        }
       })
-      .catch(() =>
-        show_toast(t("settings.fam_org_domains_load_failed"), "error"),
-      )
+      .catch(() => set_load_failed(true))
       .finally(() => set_loading(false));
-  }, [t]);
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const do_share = async (dn: string) => {
     if (!share_uid) return;
@@ -147,6 +156,10 @@ export function DomainsContent({ members }: { members: FamilyMemberInfo[] }) {
       .filter((m): m is FamilyMemberInfo => !!m);
 
   if (loading) return <FamilySkeletonRows count={3} />;
+
+  if (load_failed && domains.length === 0) {
+    return <LoadFailedNotice on_retry={load} />;
+  }
 
   return (
     <div className="flex flex-col gap-4">

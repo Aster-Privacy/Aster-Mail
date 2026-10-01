@@ -189,6 +189,12 @@ async function fetch_scheduled_from_api(
 
   if (signal.aborted) return null;
 
+  const has_loaded_detail = results.some(
+    (r) => r.status === "fulfilled" && r.value !== null,
+  );
+
+  if (response.data.emails.length > 0 && !has_loaded_detail) return null;
+
   const emails = results
     .filter(
       (r): r is PromiseFulfilledResult<ScheduledListItem | null> =>
@@ -253,8 +259,10 @@ export function use_scheduled_emails(
     }
 
     abort_ref.current?.abort();
-    abort_ref.current = new AbortController();
-    const { signal } = abort_ref.current;
+    const controller = new AbortController();
+
+    abort_ref.current = controller;
+    const { signal } = controller;
     const seq = ++fetch_seq_ref.current;
     const is_current = () =>
       seq === fetch_seq_ref.current && mounted_ref.current;
@@ -266,7 +274,7 @@ export function use_scheduled_emails(
 
     const timeout_id = setTimeout(() => {
       timed_out = true;
-      abort_ref.current?.abort();
+      controller.abort();
     }, FETCH_TIMEOUT_MS);
 
     try {
@@ -464,7 +472,7 @@ export function use_scheduled_emails(
   }, [is_active, has_keys, refresh]);
 
   useEffect(() => {
-    if (has_keys && !is_loading) {
+    if (has_keys && !is_loading && has_loaded_ref.current) {
       scheduled_cache = emails;
     }
   }, [emails, is_loading, has_keys]);

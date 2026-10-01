@@ -804,6 +804,13 @@ export function ContactList({
         {error && (
           <div className="aster_island aster_island_tone_danger mx-4 mt-2 px-3.5 py-2">
             <p className="text-[12px] text-[var(--color-danger)]">{error}</p>
+            <button
+              className="mt-1 text-[12px] font-medium text-txt-primary underline"
+              type="button"
+              onClick={on_contacts_refresh}
+            >
+              {t("common.retry")}
+            </button>
           </div>
         )}
 

@@ -55,6 +55,9 @@ interface SignaturesProviderProps {
   children: ReactNode;
 }
 
+const LOAD_RETRY_DELAYS_MS = [2_000, 4_000, 8_000, 20_000, 45_000];
+const INITIAL_LOAD_DELAY_MS = 1_000;
+
 export function SignaturesProvider({ children }: SignaturesProviderProps) {
   const { vault, is_authenticated, is_completing_registration } = use_auth();
   const { preferences } = use_preferences();
@@ -80,7 +83,11 @@ export function SignaturesProvider({ children }: SignaturesProviderProps) {
     let list_loaded = false;
     let default_loaded = false;
 
-    for (let attempt = 0; attempt < 3; attempt += 1) {
+    for (
+      let attempt = 0;
+      attempt <= LOAD_RETRY_DELAYS_MS.length;
+      attempt += 1
+    ) {
       try {
         const [list_response, default_response] = await Promise.all([
           list_loaded ? Promise.resolve(null) : list_signatures(),
@@ -107,9 +114,9 @@ export function SignaturesProvider({ children }: SignaturesProviderProps) {
 
       if (list_loaded && default_loaded) break;
 
-      if (attempt < 2) {
+      if (attempt < LOAD_RETRY_DELAYS_MS.length) {
         await new Promise((resolve) => {
-          setTimeout(resolve, 2_000 * (attempt + 1));
+          setTimeout(resolve, LOAD_RETRY_DELAYS_MS[attempt]);
         });
 
         if (this_generation !== load_generation_ref.current) return;
@@ -120,7 +127,7 @@ export function SignaturesProvider({ children }: SignaturesProviderProps) {
   }, [vault, is_authenticated, is_completing_registration]);
 
   useEffect(() => {
-    const timer = setTimeout(load_signatures, 5_000);
+    const timer = setTimeout(load_signatures, INITIAL_LOAD_DELAY_MS);
 
     return () => clearTimeout(timer);
   }, [load_signatures]);

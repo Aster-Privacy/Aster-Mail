@@ -37,6 +37,7 @@ import { resolve_current_user } from "@/services/current_identity";
 import {
   has_passphrase_in_memory,
   get_derived_encryption_key,
+  on_keys_ready,
 } from "@/services/crypto/memory_key_store";
 import { list_external_accounts } from "@/services/api/external_accounts";
 import { MAIL_EVENTS, mail_event_bus } from "@/hooks/mail_events";
@@ -52,11 +53,7 @@ import {
 import { is_sendable_address } from "@/utils/sender_address";
 
 export type SenderOptionType =
-  | "primary"
-  | "alias"
-  | "domain"
-  | "external"
-  | "ghost";
+  "primary" | "alias" | "domain" | "external" | "ghost";
 
 export interface SenderOption {
   id: string;
@@ -333,6 +330,12 @@ export function use_sender_aliases() {
 
   useEffect(() => {
     load_aliases();
+  }, [load_aliases]);
+
+  useEffect(() => {
+    return on_keys_ready(() => {
+      if (!cache_populated) load_aliases();
+    });
   }, [load_aliases]);
 
   useEffect(() => {

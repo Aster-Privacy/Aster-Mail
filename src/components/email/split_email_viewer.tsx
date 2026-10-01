@@ -487,7 +487,11 @@ export function SplitEmailViewer({
             <XMarkIcon className="w-5 h-5" />
           </button>
         </div>
-        <ViewerErrorState error={viewer.error} on_dismiss={on_close} />
+        <ViewerErrorState
+          error={viewer.error}
+          on_dismiss={on_close}
+          on_retry={viewer.retry_load}
+        />
       </div>
     );
   }

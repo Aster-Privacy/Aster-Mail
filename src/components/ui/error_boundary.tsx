@@ -84,13 +84,19 @@ export class ErrorBoundary extends Component<
       return (
         <ErrorBoundaryFallback
           error={error}
-          on_retry={() =>
+          on_retry={() => {
+            if (is_chunk_load_error(error_message_of(error))) {
+              window.location.reload();
+
+              return;
+            }
+
             this.setState({
               has_error: false,
               error: null,
               is_recovering: false,
-            })
-          }
+            });
+          }}
         />
       );
     }
