@@ -1253,6 +1253,7 @@ export const pt_br = {
     create_subfolder: "Criar subpasta",
     mute_notifications: "Silenciar notificações",
     unmute_notifications: "Reativar notificações",
+    notifications_muted: "Notificações silenciadas",
     remove_lock: "Remover bloqueio",
     lock: "Bloquear",
     change_color: "Alterar cor",

@@ -275,6 +275,7 @@ export const pl = {
     create_subfolder: "Utwórz podfolder",
     mute_notifications: "Wycisz powiadomienia",
     unmute_notifications: "Wyłącz wyciszenie",
+    notifications_muted: "Powiadomienia wyciszone",
     remove_lock: "Usuń blokadę",
     lock: "Zablokuj",
     change_color: "Zmień kolor",
