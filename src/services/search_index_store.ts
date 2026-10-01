@@ -50,7 +50,7 @@ import {
 
 const KEY_PREFIX = "search_index_";
 const SNAPSHOT_VERSION = 1;
-const MANIFEST_VERSION = 6;
+const MANIFEST_VERSION = 7;
 
 export const SNAPSHOT_CHUNK_SIZE = 2000;
 export const MAX_INDEX_BODY_CHARS = 2048;
@@ -173,6 +173,11 @@ export function slim_envelope_for_index(
     cc: bound_recipients(envelope.cc),
     bcc: bound_recipients(envelope.bcc),
     sent_at: envelope.sent_at,
+    attachment_metadata: (
+      envelope.attachment_metadata ??
+      envelope.attachment_keys ??
+      []
+    ).map(({ filename, content_type }) => ({ filename, content_type })),
     ...(headers && headers.length > 0 ? { raw_headers: headers } : {}),
   };
 }

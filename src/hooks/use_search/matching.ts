@@ -109,7 +109,7 @@ export function matches_operator(
   metadata: MailItemMetadata | null,
   item: MailItem,
   label_name_to_tokens?: Map<string, string[]>,
-  search_body_text?: string,
+  _search_body_text?: string,
   haystack?: SearchHaystack,
 ): boolean {
   const val = op.value.toLowerCase();
@@ -151,13 +151,6 @@ export function matches_operator(
       if (val === "attachment" || val === "attachments")
         return metadata?.has_attachments ?? false;
       if (!metadata?.has_attachments) return false;
-      const combined =
-        search_body_text ||
-        (
-          (envelope.body_text || "") +
-          " " +
-          (envelope.body_html || envelope.html_body || "")
-        ).toLowerCase();
       const ext_map: Record<string, string[]> = {
         pdf: [".pdf"],
         image: [".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg", ".bmp"],
@@ -171,7 +164,21 @@ export function matches_operator(
 
       if (!extensions) return true;
 
-      return extensions.some((ext) => combined.includes(ext));
+      return (
+        envelope.attachment_metadata ??
+        envelope.attachment_keys ??
+        []
+      ).some((attachment) => {
+        const filename = attachment.filename?.toLowerCase() ?? "";
+        const type = attachment.content_type?.toLowerCase() ?? "";
+
+        return (
+          extensions.some((ext) => filename.endsWith(ext)) ||
+          (val === "pdf" && type === "application/pdf") ||
+          (["image", "video", "audio"].includes(val) &&
+            type.startsWith(`${val}/`))
+        );
+      });
     }
     case "is":
       if (val === "unread") return !(metadata?.is_read ?? false);
@@ -245,15 +252,16 @@ export function matches_operator(
     case "filename":
     case "attachment": {
       if (!metadata?.has_attachments) return false;
-      const content =
-        search_body_text ||
-        (
-          (envelope.body_text || "") +
-          " " +
-          (envelope.body_html || envelope.html_body || "")
-        ).toLowerCase();
-
-      return content.includes(val);
+      return (
+        envelope.attachment_metadata ??
+        envelope.attachment_keys ??
+        []
+      ).some((attachment) =>
+        includes_folded(
+          attachment.filename?.toLowerCase() ?? "",
+          fold_search_text(val) || val,
+        ),
+      );
     }
     case "larger": {
       const threshold = parse_size_value(op.value);

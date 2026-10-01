@@ -227,6 +227,10 @@ export interface DecryptedEnvelope {
   raw_headers?: { name: string; value: string }[];
   sender_verification?: SenderVerificationStatus;
   sender_verified_domain?: string;
+  attachment_metadata?: Array<{
+    filename?: string;
+    content_type?: string;
+  }>;
   attachment_keys?: Array<{
     seq: number;
     key: string;
