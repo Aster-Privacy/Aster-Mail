@@ -20,10 +20,13 @@
 //
 "use client";
 
-import { MotionModal, type MotionModalProps } from "@aster/ui";
+import type { ComponentProps } from "react";
+
+import { MotionModal, MotionModalBody, type MotionModalProps } from "@aster/ui";
 
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
+import { cn } from "@/lib/utils";
 
 type ModalProps = Omit<MotionModalProps, "reduce_motion" | "close_label">;
 
@@ -40,11 +43,17 @@ export function Modal(props: ModalProps) {
   );
 }
 
+export function ModalBody({
+  className,
+  ...props
+}: ComponentProps<typeof MotionModalBody>) {
+  return <MotionModalBody className={cn("px-6", className)} {...props} />;
+}
+
 export {
   MotionModalHeader as ModalHeader,
   MotionModalTitle as ModalTitle,
   MotionModalDescription as ModalDescription,
-  MotionModalBody as ModalBody,
   MotionModalFooter as ModalFooter,
 } from "@aster/ui";
 export type { ModalProps };
