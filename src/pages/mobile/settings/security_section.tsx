@@ -943,6 +943,7 @@ export function SecuritySection({
                   autoComplete="current-password"
                   className="w-full"
                   maxLength={128}
+                  name="password"
                   placeholder={t("settings.current_password")}
                   status={pw_error ? "error" : "default"}
                   type={show_current_pw ? "text" : "password"}
@@ -968,6 +969,7 @@ export function SecuritySection({
                   autoComplete="new-password"
                   className="w-full"
                   maxLength={128}
+                  name="new_password"
                   placeholder={t("settings.new_password")}
                   status={pw_error ? "error" : "default"}
                   type={show_new_pw ? "text" : "password"}
@@ -1008,6 +1010,7 @@ export function SecuritySection({
                 autoComplete="new-password"
                 className="w-full"
                 maxLength={128}
+                name="confirm_password"
                 placeholder={t("settings.confirm_new_password")}
                 status={pw_error ? "error" : "default"}
                 type="password"

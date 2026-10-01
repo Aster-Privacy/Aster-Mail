@@ -740,6 +740,7 @@ export default function ResetPasswordPage() {
                 </p>
                 <Input
                   autoComplete="email"
+                  name="email"
                   status={error ? "error" : "default"}
                   type="email"
                   value={consent_email}

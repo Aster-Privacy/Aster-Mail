@@ -171,6 +171,7 @@ export function EncryptionSection({
               autoComplete="current-password"
               className="w-full"
               maxLength={128}
+              name="password"
               placeholder={t("auth.password")}
               status={auth_error ? "error" : "default"}
               type="password"

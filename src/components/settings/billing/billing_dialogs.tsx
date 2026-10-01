@@ -525,6 +525,7 @@ export function BillingDialogs({
                     autoComplete="current-password"
                     className="w-full pe-10"
                     maxLength={128}
+                    name="password"
                     placeholder={t("settings.cancel_password_placeholder")}
                     status={cancel_password_error ? "error" : "default"}
                     type={show_cancel_password ? "text" : "password"}
