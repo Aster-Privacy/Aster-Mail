@@ -30,6 +30,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { SettingsTabBar } from "@/components/settings/settings_tab_bar";
 import { use_settings_tabs } from "@/components/settings/use_settings_tabs";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
+import { FamilySkeleton } from "@/components/settings/billing/family_section/family_ui";
 import { is_onion_host } from "@/lib/onion_host";
 
 type BillingTab = "billing" | "family";
@@ -81,7 +82,7 @@ export function BillingGroupSection({
       {is_family_plan &&
         render_tab(
           "family",
-          <Suspense fallback={<SettingsSkeleton />}>
+          <Suspense fallback={<FamilySkeleton />}>
             <FamilySection is_family_plan={is_family_plan} />
           </Suspense>,
         )}

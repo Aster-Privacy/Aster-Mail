@@ -111,6 +111,9 @@ export interface MailItem {
   sender_verified_domain?: string;
   is_reaction?: boolean;
   reactions?: ReactionSummary[];
+  spf_result?: string;
+  dkim_result?: string;
+  dmarc_result?: string;
 }
 
 export interface MailItemsListResponse {

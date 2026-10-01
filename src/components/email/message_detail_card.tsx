@@ -23,6 +23,14 @@ import type { ReactNode } from "react";
 import { Fragment } from "react";
 
 import { use_i18n } from "@/lib/i18n/context";
+import {
+  summarize_email_authentication,
+  type EmailAuthResults,
+} from "@/utils/email_authentication";
+import {
+  CHECK_NAME,
+  EmailAuthCheckStatus,
+} from "@/components/email/email_auth_indicator";
 import { copy_text_or_throw } from "@/utils/copy_text";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -42,6 +50,7 @@ interface MessageDetailCardProps {
   bcc_recipients?: DetailRecipient[];
   date_label: string;
   subject: string;
+  auth_results?: EmailAuthResults | null;
 }
 
 function DetailRow({
@@ -73,8 +82,12 @@ export function MessageDetailCard({
   bcc_recipients,
   date_label,
   subject,
+  auth_results,
 }: MessageDetailCardProps) {
   const { t } = use_i18n();
+  const auth_summary = auth_results
+    ? summarize_email_authentication(auth_results)
+    : null;
 
   const copy_address = (address: string) => {
     copy_text_or_throw(address)
@@ -158,6 +171,24 @@ export function MessageDetailCard({
       <DetailRow label={t("common.subject_label")}>
         <span dir="auto">{subject}</span>
       </DetailRow>
+      {auth_summary && (
+        <DetailRow label={t("mail.email_auth_details_label")}>
+          <span className="flex flex-wrap gap-x-3 gap-y-1">
+            {auth_summary.checks.map((result) => (
+              <span
+                key={result.check}
+                className="inline-flex items-center gap-1.5"
+                data-check={result.check}
+              >
+                <span className="font-medium text-txt-primary">
+                  {CHECK_NAME[result.check]}
+                </span>
+                <EmailAuthCheckStatus result={result} />
+              </span>
+            ))}
+          </span>
+        </DetailRow>
+      )}
     </dl>
   );
 }

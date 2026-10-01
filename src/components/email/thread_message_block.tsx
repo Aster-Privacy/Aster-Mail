@@ -69,6 +69,8 @@ import {
 } from "@/components/ui/popover";
 import { OfficialBadge } from "@/components/email/official_badge";
 import { VerifiedSenderBadge } from "@/components/email/verified_sender_badge";
+import { EmailAuthIndicator } from "@/components/email/email_auth_indicator";
+import { summarize_email_authentication } from "@/utils/email_authentication";
 import { show_toast } from "@/components/toast/simple_toast";
 import { AttachmentList } from "@/components/email/attachment_list";
 import { InlineReplyComposer } from "@/components/email/inline_reply_composer";
@@ -239,6 +241,16 @@ export function ThreadMessageBlock(
     );
   };
 
+  const auth_summary = summarize_email_authentication(message);
+  const auth_failed_checks =
+    auth_summary?.verdict === "failed"
+      ? new Set(
+          auth_summary.checks
+            .filter((check) => check.status === "fail")
+            .map((check) => check.check),
+        )
+      : null;
+
   if (message.is_deleted) {
     return wrap_in_island(
       <div className="px-4 py-3 text-sm italic text-txt-muted">
@@ -268,6 +280,7 @@ export function ThreadMessageBlock(
         onKeyDown={
           can_collapse
             ? (e) => {
+                if (e.target !== e.currentTarget) return;
                 if (e["key"] === "Enter" || e["key"] === " ") {
                   e.preventDefault();
                   e.stopPropagation();
@@ -325,6 +338,14 @@ export function ThreadMessageBlock(
               <VerifiedSenderBadge
                 className="flex-shrink-0"
                 domain={message.sender_verified_domain}
+              />
+            )}
+            {message.item_type === "received" && (
+              <EmailAuthIndicator
+                className="min-w-0 max-w-full"
+                on_show_details={() => set_show_details_modal(true)}
+                results={message}
+                sender_email={message.sender_email}
               />
             )}
             <span className="text-xs text-txt-muted truncate hidden sm:inline max-w-full">
@@ -471,6 +492,9 @@ export function ThreadMessageBlock(
                 onClick={(e: React.MouseEvent) => e.stopPropagation()}
               >
                 <MessageDetailCard
+                  auth_results={
+                    message.item_type === "received" ? message : null
+                  }
                   bcc_recipients={message.bcc_recipients}
                   cc_recipients={message.cc_recipients}
                   date_label={format_email_detail(new Date(message.timestamp))}
@@ -769,57 +793,53 @@ export function ThreadMessageBlock(
         size_bytes={size_bytes}
       />
 
-      {message.item_type === "received" &&
-        message.dmarc_result !== "pass" &&
-        (message.spf_result === "fail" ||
-          message.dkim_result === "fail" ||
-          message.dmarc_result === "fail") && (
-          <div className="mx-4 mt-2 mb-3 rounded-xl bg-[#dc2626]">
-            <div className="flex items-center gap-2 px-3 py-2">
-              <ShieldExclamationIcon className="w-4 h-4 text-white flex-shrink-0" />
-              <p className="text-[13px] text-white leading-snug flex-1 min-w-0">
-                {t("common.auth_fail_banner_body")}
-              </p>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <button
-                    aria-label={t("common.auth_fail_banner_title")}
-                    className="flex-shrink-0 text-white/80 hover:text-white transition-colors"
-                    type="button"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <InformationCircleIcon className="w-4 h-4" />
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent
-                  align="end"
-                  className="max-w-xs space-y-2 text-[12px] leading-snug"
-                  side="bottom"
+      {message.item_type === "received" && auth_failed_checks && (
+        <div className="mx-4 mt-2 mb-3 rounded-xl bg-[#dc2626]">
+          <div className="flex items-center gap-2 px-3 py-2">
+            <ShieldExclamationIcon className="w-4 h-4 text-white flex-shrink-0" />
+            <p className="text-[13px] text-white leading-snug flex-1 min-w-0">
+              {t("common.auth_fail_banner_body")}
+            </p>
+            <Popover>
+              <PopoverTrigger asChild>
+                <button
+                  aria-label={t("common.auth_fail_banner_title")}
+                  className="flex-shrink-0 text-white/80 hover:text-white transition-colors"
+                  type="button"
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  <p>{t("common.auth_fail_tooltip_intro")}</p>
-                  {message.spf_result === "fail" && (
-                    <p>
-                      <span className="font-semibold">SPF: </span>
-                      {t("common.auth_fail_tooltip_spf")}
-                    </p>
-                  )}
-                  {message.dkim_result === "fail" && (
-                    <p>
-                      <span className="font-semibold">DKIM: </span>
-                      {t("common.auth_fail_tooltip_dkim")}
-                    </p>
-                  )}
-                  {message.dmarc_result === "fail" && (
-                    <p>
-                      <span className="font-semibold">DMARC: </span>
-                      {t("common.auth_fail_tooltip_dmarc")}
-                    </p>
-                  )}
-                </PopoverContent>
-              </Popover>
-            </div>
+                  <InformationCircleIcon className="w-4 h-4" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent
+                align="end"
+                className="max-w-xs space-y-2 text-[12px] leading-snug"
+                side="bottom"
+              >
+                <p>{t("common.auth_fail_tooltip_intro")}</p>
+                {auth_failed_checks.has("spf") && (
+                  <p>
+                    <span className="font-semibold">SPF: </span>
+                    {t("common.auth_fail_tooltip_spf")}
+                  </p>
+                )}
+                {auth_failed_checks.has("dkim") && (
+                  <p>
+                    <span className="font-semibold">DKIM: </span>
+                    {t("common.auth_fail_tooltip_dkim")}
+                  </p>
+                )}
+                {auth_failed_checks.has("dmarc") && (
+                  <p>
+                    <span className="font-semibold">DMARC: </span>
+                    {t("common.auth_fail_tooltip_dmarc")}
+                  </p>
+                )}
+              </PopoverContent>
+            </Popover>
           </div>
-        )}
+        </div>
+      )}
 
       {message.item_type === "received" &&
         on_not_spam &&

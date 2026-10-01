@@ -61,6 +61,7 @@ import { AppearanceGroupSection } from "@/components/settings/appearance_group_s
 import { SecurityGroupSection } from "@/components/settings/security_group_section";
 import { BillingGroupSection } from "@/components/settings/billing_group_section";
 import { prefetch_billing_data } from "@/components/settings/billing_section";
+import { prefetch_family_data } from "@/components/settings/billing/family_section/family_cache";
 import { use_auth } from "@/contexts/auth_context";
 import { NotificationsSection } from "@/components/settings/notifications_section";
 import { ReadingGroupSection } from "@/components/settings/reading_group_section";
@@ -299,7 +300,8 @@ function SettingsContentInner(props: SettingsContentProps) {
 
   useEffect(() => {
     prefetch_billing_data(user_id);
-  }, [user_id]);
+    if (is_family_plan) prefetch_family_data(user_id);
+  }, [user_id, is_family_plan]);
 
   useEffect(() => {
     set_search_slot(document.getElementById("settings_search_slot"));

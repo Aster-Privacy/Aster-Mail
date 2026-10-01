@@ -3408,6 +3408,35 @@ export const ko = {
     fam_org_checklist_subscribe: "가족 요금제 구독하기",
     fam_org_checklist_invite: "첫 구성원 초대하기",
     fam_org_checklist_security: "보안 설정 검토하기",
+    fam_org_back_to_family: "가족",
+    fam_org_section_people: "사용자",
+    fam_org_section_controls: "관리",
+    fam_org_meter_seats: "좌석",
+    fam_org_meter_assigned: "할당된 저장 공간",
+    fam_org_unassigned_value: "미할당 {{size}}",
+    fam_org_you_manage: "이 요금제를 관리하고 있습니다",
+    fam_org_you_are_member: "이 요금제의 구성원입니다",
+    fam_org_leave_desc: "이 가족 요금제에서 내 계정 제거",
+    fam_org_invite_title: "초대하기",
+    fam_org_row_members_desc: "사용자를 초대하고 저장 공간을 관리합니다",
+    fam_org_row_kids_desc: "자녀용 주소를 만듭니다",
+    fam_org_row_shared_desc: "여러 구성원이 함께 쓰는 메일함",
+    fam_org_row_groups_desc: "여러 구성원에게 전달되는 주소",
+    fam_org_row_filters_desc: "모든 구성원의 메일에 적용되는 규칙",
+    fam_org_row_domains_desc: "구성원과 공유하는 사용자 지정 도메인",
+    fam_org_row_security_desc: "2단계 인증 및 로그인 요구 사항",
+    fam_org_row_retention_desc: "가족 메일을 보관하는 기간",
+    fam_org_row_activity_desc: "가족 요금제의 최근 변경 사항",
+    fam_org_n_members: "구성원 {{count}}명",
+    fam_org_n_members_one: "구성원 {{count}}명",
+    fam_org_n_members_other: "구성원 {{count}}명",
+    fam_org_n_invites: "초대 {{count}}건",
+    fam_org_n_invites_one: "초대 {{count}}건",
+    fam_org_n_invites_other: "초대 {{count}}건",
+    fam_org_n_reserved: "예약된 주소 {{count}}개",
+    fam_org_n_reserved_one: "예약된 주소 {{count}}개",
+    fam_org_n_reserved_other: "예약된 주소 {{count}}개",
+    fam_org_assigned_of_total: "{{total}} 중 {{used}} 할당됨",
     fam_org_stat_members: "구성원",
     fam_org_stat_storage_used: "사용된 저장 공간",
     fam_org_stat_unassigned: "미할당",
@@ -7356,6 +7385,15 @@ export const ko = {
     rotate_dkim_description:
       "DKIM 서명 키를 교체합니다. DNS 레코드를 업데이트해야 합니다.",
     rotate_label: "교체",
+    rotate_dkim_description_managed:
+      "새 DKIM 서명 키를 생성합니다. Aster Mail이 DNS 레코드를 자동으로 업데이트합니다.",
+    rotate_dkim_confirm_title: "DKIM 키를 교체할까요?",
+    rotate_dkim_confirm_managed:
+      "Aster Mail이 {{domain}}의 새 DKIM 키를 만들고 DNS 레코드를 자동으로 업데이트합니다. 따로 변경할 필요가 없습니다.",
+    rotate_dkim_confirm_manual:
+      "Aster Mail이 {{domain}}의 새 DKIM 키를 만들고 즉시 이 키로 메일에 서명합니다. DNS 제공업체에서 새 TXT 레코드를 추가하세요. 레코드를 게시하기 전까지는 보내는 메일의 DKIM 검사가 실패할 수 있습니다.",
+    dkim_rotated_auto_published:
+      "DKIM 키를 교체했습니다. Aster Mail이 DNS 레코드를 업데이트했습니다.",
     dkim_rotated:
       "DKIM 키가 교체되었습니다. 도메인 등록 기관에 아래의 새 DNS 레코드를 추가하세요.",
     dkim_rotated_warning_title: "DNS 업데이트 필요",
@@ -8529,6 +8567,19 @@ export const ko = {
     verified_sender: "인증된 발신자",
     verified_sender_desc:
       "이 이메일의 발신자가 {{domain}}을(를) 소유하고 있음을 확인했습니다.",
+    email_auth_label: "발신자 확인: {{verdict}}",
+    email_auth_partial: "검사 결과 불확실",
+    email_auth_partial_desc:
+      "일부 검사에서 {{domain}}에 대해 비정상적인 결과가 나왔습니다. 링크와 첨부 파일은 주의해서 여는 것이 좋습니다.",
+    email_auth_failed: "발신자 확인 실패",
+    email_auth_failed_desc:
+      "이 메시지는 {{domain}}에서 보냈음을 확인하는 검사를 통과하지 못했습니다. 위조된 메시지일 수 있습니다.",
+    email_auth_source: "메시지가 도착했을 때 Aster가 확인했습니다.",
+    email_auth_details_label: "인증:",
+    email_auth_status_pass: "통과",
+    email_auth_status_fail: "실패",
+    email_auth_status_none: "사용 안 함",
+    email_auth_status_missing: "검사 안 됨",
     copy_message_id: "메시지 ID 복사",
     hide_source: "소스 숨기기",
     view_dark_mode: "다크 모드로 보기",
@@ -8544,9 +8595,11 @@ export const ko = {
     total_pages_label: "{{count}} 페이지",
     loading_preview: "미리보기 로드 중…",
     preview_failed: "미리보기가 불러와지지 않았습니다. 이메일을 열면 보입니다.",
-    pdf_preview_failed: "이 PDF는 여기에 표시할 수 없습니다. 열려면 다운로드하세요.",
+    pdf_preview_failed:
+      "이 PDF는 여기에 표시할 수 없습니다. 열려면 다운로드하세요.",
     pdf_password_title: "이 PDF는 암호로 보호되어 있습니다",
-    pdf_password_description: "이 PDF를 보려면 암호를 입력하세요. 암호는 이 기기에만 남습니다.",
+    pdf_password_description:
+      "이 PDF를 보려면 암호를 입력하세요. 암호는 이 기기에만 남습니다.",
     pdf_password_label: "PDF 암호",
     pdf_password_incorrect: "암호가 올바르지 않습니다. 다시 시도하세요.",
     pdf_password_submit: "열기",
@@ -8885,10 +8938,12 @@ export const ko = {
     backup_code_single_use: "각 백업 코드는 한 번만 사용할 수 있습니다",
     backup_code_placeholder: "XXXX-XXXX-XXXX",
     use_authenticator_instead: "대신 인증 앱 사용",
-    recovery_code_in_backup_field: "백업 코드가 아니라 복구 코드입니다. 이 코드를 사용하려면 복구 코드로 비밀번호를 재설정하세요.",
+    recovery_code_in_backup_field:
+      "백업 코드가 아니라 복구 코드입니다. 이 코드를 사용하려면 복구 코드로 비밀번호를 재설정하세요.",
     reset_with_recovery_code: "복구 코드로 재설정",
     no_backup_codes_title: "패스키 없이 로그인",
-    no_backup_codes_description: "백업 코드는 인증 앱과 함께 제공되는데, 이 계정은 인증 앱을 사용하지 않습니다. 패스키 없이 로그인하려면 복구 코드 중 하나로 비밀번호를 재설정하세요. 메일, 연락처, 설정은 그대로 유지되며 이후 새 패스키를 추가할 수 있습니다.",
+    no_backup_codes_description:
+      "백업 코드는 인증 앱과 함께 제공되는데, 이 계정은 인증 앱을 사용하지 않습니다. 패스키 없이 로그인하려면 복구 코드 중 하나로 비밀번호를 재설정하세요. 메일, 연락처, 설정은 그대로 유지되며 이후 새 패스키를 추가할 수 있습니다.",
     try_passkey_again: "패스키 다시 시도",
     two_factor_auth_title: "이중 인증",
     enter_2fa_code: "인증 앱의 6자리 코드를 입력하세요",
@@ -9047,8 +9102,10 @@ export const ko = {
     reset_second_factor_title: "본인 확인",
     reset_second_factor_description:
       "이 계정은 2단계 인증을 사용합니다. 비밀번호를 재설정하기 전에 두 번째 인증 수단을 확인하세요.",
-    reset_second_factor_backup_description: "계속하려면 백업 코드 중 하나를 입력하세요.",
-    reset_second_factor_key_description: "계속하려면 이 계정에 등록된 보안 키 또는 패스키를 사용하세요.",
+    reset_second_factor_backup_description:
+      "계속하려면 백업 코드 중 하나를 입력하세요.",
+    reset_second_factor_key_description:
+      "계속하려면 이 계정에 등록된 보안 키 또는 패스키를 사용하세요.",
     reset_second_factor_use_key: "대신 보안 키 사용",
     reset_second_factor_use_key_button: "보안 키로 계속",
     no_ads_no_tracking: "광고 없음, 추적 없음",

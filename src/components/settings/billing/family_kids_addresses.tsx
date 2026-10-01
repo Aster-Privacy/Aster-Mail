@@ -27,8 +27,24 @@ import {
   TrashIcon,
   ArrowPathIcon,
   ArrowRightIcon,
+  ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
-import { Island, Switch } from "@aster/ui";
+import {
+  Island,
+  IslandDivider,
+  IslandEmpty,
+  IslandRow,
+  PillButton,
+  Switch,
+} from "@aster/ui";
+
+import {
+  FamilyCreateBar,
+  FamilySkeletonRows,
+  FamilyStatusText,
+  family_row_icon,
+  use_family_seat_breakdown,
+} from "./family_section/family_ui";
 
 import { copy_text_or_throw } from "@/utils/copy_text";
 import {
@@ -46,8 +62,8 @@ import {
   type TurnstileWidgetRef,
   TURNSTILE_SITE_KEY,
 } from "@/components/auth/turnstile_widget";
-import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
-import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
+import { ButtonSpinner } from "@/components/ui/spinner";
+import { BillingSectionLabel } from "@/components/settings/billing/billing_layout";
 import { apply_input_transform } from "@/utils/input_transform";
 import {
   Modal,
@@ -74,6 +90,15 @@ import { use_sticky_value } from "@/hooks/use_sticky_value";
 const DOMAINS = ["astermail.org", "aster.cx"];
 const GIB = 1073741824;
 
+type KidsSnapshot = {
+  reservations: ReservedAddress[];
+  seats_used: number;
+  max_members: number;
+  seat_breakdown: SeatBreakdown | null;
+};
+
+const kids_cache = new Map<string, KidsSnapshot>();
+
 type Availability = {
   state: "idle" | "checking" | "ok" | "bad" | "error";
   reason?: string;
@@ -89,14 +114,20 @@ function claim_token_from_url(url?: string): string | null {
 
 export function KidsContent({ group }: { group: FamilyGroupResponse }) {
   const { t } = use_i18n();
+  const seat_breakdown_text = use_family_seat_breakdown();
   const navigate = useNavigate();
-  const [reservations, set_reservations] = useState<ReservedAddress[]>([]);
-  const [seats_used, set_seats_used] = useState(0);
-  const [max_members, set_max_members] = useState(group.max_members);
-  const [seat_breakdown, set_seat_breakdown] = useState<SeatBreakdown | null>(
-    null,
+  const cached = kids_cache.get(group.id);
+  const [reservations, set_reservations] = useState<ReservedAddress[]>(
+    cached?.reservations ?? [],
   );
-  const [loading, set_loading] = useState(true);
+  const [seats_used, set_seats_used] = useState(cached?.seats_used ?? 0);
+  const [max_members, set_max_members] = useState(
+    cached?.max_members ?? group.max_members,
+  );
+  const [seat_breakdown, set_seat_breakdown] = useState<SeatBreakdown | null>(
+    cached?.seat_breakdown ?? null,
+  );
+  const [loading, set_loading] = useState(!cached);
 
   const [show_form, set_show_form] = useState(false);
   const [username, set_username] = useState("");
@@ -139,7 +170,7 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
     set_alloc((prev) => Math.min(prev, pool_remaining));
   }, [pool_remaining]);
 
-  const loaded_once_ref = useRef(false);
+  const loaded_once_ref = useRef(!!cached);
 
   const load = useCallback(async () => {
     if (!loaded_once_ref.current) set_loading(true);
@@ -151,19 +182,24 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
       set_seats_used(r.data.seats_used);
       set_max_members(r.data.max_members);
       set_seat_breakdown(r.data.seats ?? null);
+      kids_cache.set(group.id, {
+        reservations: r.data.reservations,
+        seats_used: r.data.seats_used,
+        max_members: r.data.max_members,
+        seat_breakdown: r.data.seats ?? null,
+      });
       loaded_once_ref.current = true;
     } else {
       set_load_failed(true);
       show_toast(t("settings.fam_kids_load_failed"), "error");
     }
     set_loading(false);
-  }, [t]);
+  }, [t, group.id]);
 
   useEffect(() => {
     void load();
   }, [load]);
 
-  // Debounced availability check - mirrors the alias address field one-to-one.
   useEffect(() => {
     if (check_timeout_ref.current) clearTimeout(check_timeout_ref.current);
     const name = username.trim().toLowerCase();
@@ -326,287 +362,336 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
     (r) => r.status === "reserved" || r.status === "claimed",
   );
 
-  return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h3 className="text-sm font-semibold text-txt-primary flex items-center gap-1.5">
-            <UserIcon className="w-4 h-4" /> {t("settings.fam_kids_title")}
-          </h3>
-          <p className="text-sm text-txt-secondary mt-0.5">
-            {t("settings.fam_kids_subtitle")}
-          </p>
-          <p className="text-xs text-txt-muted mt-1">
-            {t("settings.fam_kids_seats_used", {
-              used: seats_used,
-              max: max_members,
-            })}
-          </p>
-          {seat_breakdown && (
-            <p className="text-xs text-txt-muted mt-0.5">
-              {t("settings.fam_seats_breakdown", {
-                members: seat_breakdown.active_members,
-                invites: seat_breakdown.pending_invites,
-                reserved: seat_breakdown.reserved_addresses,
-              })}
-            </p>
-          )}
-        </div>
-        {!show_form && (
-          <button
-            className="aster_btn aster_btn_primary aster_btn_sm flex items-center gap-1.5 disabled:opacity-50 flex-shrink-0"
-            disabled={seats_full}
-            title={seats_full ? t("settings.fam_kids_seats_full") : undefined}
-            onClick={() => set_show_form(true)}
-          >
-            <PlusIcon className="w-4 h-4" />{" "}
-            {t("settings.fam_kids_reserve_btn")}
-          </button>
-        )}
-      </div>
-
-      {show_form && (
-        <Island className="space-y-5" padding="md">
-          <div>
-            <div className="flex items-center gap-1.5 mb-2">
-              <label
-                className="text-sm font-medium text-txt-primary"
-                htmlFor="kid-address"
-              >
-                {t("settings.fam_kids_username_label")}
-              </label>
-              <InfoPopover
-                description={t("settings.fam_kids_info_desc")}
-                title={t("settings.fam_kids_info_title")}
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <Input
-                autoFocus
-                autoCapitalize="none"
-                autoCorrect="off"
-                className="w-auto flex-1 min-w-0"
-                id="kid-address"
-                maxLength={40}
-                placeholder={t("settings.fam_kids_username_ph")}
-                size="lg"
-                spellCheck={false}
-                status={address_status}
-                value={username}
-                onChange={(e) =>
-                  set_username(
-                    apply_input_transform(e.target, (v) =>
-                      v.toLowerCase().replace(/[^a-z0-9.]/g, ""),
-                    ),
-                  )
-                }
-              />
-              <Select value={domain} onValueChange={set_domain}>
-                <SelectTrigger className="h-10 w-auto shrink-0 text-sm px-3">
-                  <span className="text-txt-muted me-0.5">@</span>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {DOMAINS.map((d) => (
-                    <SelectItem key={d} value={d}>
-                      {d}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            {availability.state === "checking" && (
-              <p className="text-xs mt-1.5 text-txt-muted">
-                {t("settings.fam_kids_checking")}
-              </p>
-            )}
-            {availability.state === "ok" && (
-              <p className="text-xs mt-1.5 text-green-500">
-                {t("settings.fam_kids_available")}
-              </p>
-            )}
-            {availability.state === "error" && (
-              <p className="text-xs mt-1.5 text-txt-muted">
-                {t("common.something_went_wrong_try_again")}
-              </p>
-            )}
-            {availability.state === "bad" && (
-              <p className="text-xs mt-1.5 text-red-500">
-                {t(
+  const availability_hint =
+    availability.state === "checking"
+      ? { color: "var(--text-muted)", text: t("settings.fam_kids_checking") }
+      : availability.state === "ok"
+        ? {
+            color: "var(--color-success)",
+            text: t("settings.fam_kids_available"),
+          }
+        : availability.state === "error"
+          ? {
+              color: "var(--text-muted)",
+              text: t("common.something_went_wrong_try_again"),
+            }
+          : availability.state === "bad"
+            ? {
+                color: "var(--color-danger)",
+                text: t(
                   availability.reason === "reserved"
                     ? "settings.fam_kids_reserved_taken"
                     : availability.reason === "invalid"
                       ? "settings.fam_kids_invalid"
                       : "settings.fam_kids_taken",
-                )}
-              </p>
-            )}
-          </div>
+                ),
+              }
+            : null;
 
-          <div>
-            <label
-              className="block text-sm font-medium text-txt-primary mb-2"
-              htmlFor="kid-nickname"
-            >
-              {t("settings.fam_kids_nickname_label")}
-            </label>
-            <Input
-              id="kid-nickname"
-              maxLength={60}
-              placeholder={t("settings.fam_kids_nickname_ph")}
-              value={nickname}
-              onChange={(e) => set_nickname(e.target.value)}
-            />
-          </div>
+  const seats_description = seats_full
+    ? t("settings.fam_kids_seats_full")
+    : seat_breakdown
+      ? `${t("settings.fam_kids_seats_used", {
+          used: seats_used,
+          max: max_members,
+        })}. ${seat_breakdown_text(seat_breakdown)}`
+      : t("settings.fam_kids_seats_used", {
+          used: seats_used,
+          max: max_members,
+        });
 
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-sm font-medium text-txt-primary">
-                {t("settings.fam_kids_storage_label")}
-              </label>
-              <span className="text-xs tabular-nums text-txt-muted">
-                {format_bytes(alloc)} / {format_bytes(pool_remaining)}
-              </span>
-            </div>
-            <Slider
-              max={max_gib}
-              min={0}
-              value={Math.min(Math.round(alloc / GIB), max_gib)}
-              onChange={(v) => set_alloc(v * GIB)}
-            />
-          </div>
-
-          <div className="flex items-center gap-3 rounded-lg bg-surf-secondary px-3 py-2.5">
-            <Switch
-              aria-label={t("settings.fam_kids_consent_label")}
-              checked={consent}
-              size="lg"
-              onCheckedChange={set_consent}
-            />
-            <span className="text-xs text-txt-secondary leading-relaxed">
-              {t("settings.fam_kids_consent_label")}
-            </span>
-          </div>
-
-          <p className="text-xs text-txt-muted leading-relaxed">
-            {t("settings.fam_kids_link_hint")}
-          </p>
-
-          {turnstile_required && (
-            <TurnstileWidget
-              ref={turnstile_ref}
-              class_name="flex justify-start"
-              on_expire={() => set_captcha(null)}
-              on_verify={set_captcha}
-            />
-          )}
-
-          <div className="flex gap-2 pt-1">
-            <button
-              className="aster_btn aster_btn_primary aster_btn_sm flex items-center gap-1.5 disabled:opacity-50"
-              disabled={!can_submit}
-              onClick={handle_reserve}
-            >
-              <PlusIcon className="w-4 h-4" />
-              {submitting && <ButtonSpinner />}
-              {submitting
-                ? t("settings.fam_kids_creating")
-                : t("settings.fam_kids_create")}
-            </button>
-            <button
-              className="aster_btn aster_btn_ghost aster_btn_sm"
-              onClick={() => {
-                set_show_form(false);
-                reset_form();
-              }}
-            >
-              {t("settings.fam_kids_cancel")}
-            </button>
-          </div>
-        </Island>
-      )}
-
-      {loading ? (
-        <div className="flex justify-center py-8">
-          <Spinner />
-        </div>
-      ) : load_failed && reservations.length === 0 ? (
-        <LoadFailedNotice on_retry={() => void load()} />
-      ) : visible.length === 0 ? (
-        <Island className="text-center" padding="lg">
-          <UserIcon className="w-8 h-8 text-txt-muted mx-auto mb-2" />
-          <p className="text-sm text-txt-muted">
-            {t("settings.fam_kids_empty")}
-          </p>
+  return (
+    <div className="flex flex-col gap-4">
+      {!show_form ? (
+        <Island className="overflow-hidden" padding="none">
+          <IslandRow
+            chevron={!seats_full}
+            description={seats_description}
+            disabled={seats_full}
+            icon={family_row_icon(PlusIcon)}
+            label={t("settings.fam_kids_reserve_btn")}
+            on_press={() => set_show_form(true)}
+          />
         </Island>
       ) : (
-        <div className="space-y-2">
-          {visible.map((r) => {
-            const token = claim_token_from_url(r.claim_url);
-
-            return (
-              <Island key={r.id} className="px-4 py-3">
-                <div className="flex min-w-0 flex-wrap items-center gap-2">
-                  <span className="min-w-0 text-sm font-medium text-txt-primary truncate">
-                    {r.username}@{r.email_domain}
-                  </span>
-                  {r.status === "reserved" ? (
-                    <span className="aster_badge aster_badge_amber">
-                      {t("settings.fam_kids_status_reserved")}
-                    </span>
-                  ) : (
-                    <span className="aster_badge aster_badge_green">
-                      {t("settings.fam_kids_status_claimed")}
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs text-txt-muted mt-0.5">
-                  {r.status === "claimed"
-                    ? t("settings.fam_kids_claimed_active")
-                    : format_bytes(r.allocated_storage_bytes)}
+        <div className="flex flex-col">
+          <BillingSectionLabel>
+            {t("settings.fam_kids_reserve_btn")}
+          </BillingSectionLabel>
+          <Island className="flex flex-col gap-5" padding="md">
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-1.5">
+                <label
+                  className="text-[13px] font-medium text-txt-primary"
+                  htmlFor="kid-address"
+                >
+                  {t("settings.fam_kids_username_label")}
+                </label>
+                <InfoPopover
+                  description={t("settings.fam_kids_info_desc")}
+                  title={t("settings.fam_kids_info_title")}
+                />
+              </div>
+              <FamilyCreateBar>
+                <Input
+                  autoFocus
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  className="aster_input_tonal sm:flex-1"
+                  id="kid-address"
+                  maxLength={40}
+                  placeholder={t("settings.fam_kids_username_ph")}
+                  spellCheck={false}
+                  status={address_status}
+                  value={username}
+                  onChange={(e) =>
+                    set_username(
+                      apply_input_transform(e.target, (v) =>
+                        v.toLowerCase().replace(/[^a-z0-9.]/g, ""),
+                      ),
+                    )
+                  }
+                />
+                <Select value={domain} onValueChange={set_domain}>
+                  <SelectTrigger className="rounded-[var(--aster-radius-field)] sm:w-44">
+                    <span className="me-0.5 text-txt-muted">@</span>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {DOMAINS.map((d) => (
+                      <SelectItem key={d} value={d}>
+                        {d}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FamilyCreateBar>
+              {availability_hint && (
+                <p
+                  aria-live="polite"
+                  className="text-[12.5px] leading-5"
+                  style={{ color: availability_hint.color }}
+                >
+                  {availability_hint.text}
                 </p>
-                {r.status === "reserved" && (
-                  <div className="flex items-center gap-1 flex-wrap mt-2.5">
-                    {token && (
-                      <button
-                        className="aster_btn aster_btn_ghost aster_btn_sm flex items-center gap-1.5"
-                        onClick={() => navigate(`/family/claim/${token}`)}
-                      >
-                        <ArrowRightIcon className="w-3.5 h-3.5 rtl:-scale-x-100" />{" "}
-                        {t("settings.fam_kids_setup_now")}
-                      </button>
-                    )}
-                    <button
-                      className="aster_btn aster_btn_ghost aster_btn_sm flex items-center gap-1.5"
-                      onClick={() => handle_copy(r.claim_url)}
-                    >
-                      <LinkIcon className="w-3.5 h-3.5" />{" "}
-                      {t("settings.fam_kids_copy_link")}
-                    </button>
-                    <button
-                      className="aster_btn aster_btn_ghost aster_btn_sm flex items-center gap-1.5 disabled:opacity-50"
-                      disabled={regenerating_id === r.id}
-                      onClick={() => handle_regenerate(r.id)}
-                    >
-                      <ArrowPathIcon className="w-3.5 h-3.5" />{" "}
-                      {t("settings.fam_kids_regenerate")}
-                    </button>
-                    <button
-                      className="aster_btn aster_btn_ghost aster_btn_sm flex items-center gap-1.5 text-red-500"
-                      onClick={() =>
-                        handle_release(r.id, `${r.username}@${r.email_domain}`)
-                      }
-                    >
-                      <TrashIcon className="w-3.5 h-3.5" />{" "}
-                      {t("settings.fam_kids_release")}
-                    </button>
-                  </div>
-                )}
-              </Island>
-            );
-          })}
+              )}
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label
+                className="text-[13px] font-medium text-txt-primary"
+                htmlFor="kid-nickname"
+              >
+                {t("settings.fam_kids_nickname_label")}
+              </label>
+              <Input
+                className="aster_input_tonal"
+                id="kid-nickname"
+                maxLength={60}
+                placeholder={t("settings.fam_kids_nickname_ph")}
+                value={nickname}
+                onChange={(e) => set_nickname(e.target.value)}
+              />
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-[13px] font-medium text-txt-primary">
+                  {t("settings.fam_kids_storage_label")}
+                </span>
+                <span className="text-[13px] tabular-nums text-txt-muted">
+                  {format_bytes(alloc)} / {format_bytes(pool_remaining)}
+                </span>
+              </div>
+              <Slider
+                max={max_gib}
+                min={0}
+                value={Math.min(Math.round(alloc / GIB), max_gib)}
+                onChange={(v) => set_alloc(v * GIB)}
+              />
+            </div>
+
+            <div
+              className="flex items-start gap-3 rounded-[var(--aster-radius-field)] p-4"
+              style={{
+                backgroundColor:
+                  "color-mix(in srgb, var(--accent-color) 10%, transparent)",
+              }}
+            >
+              <Switch
+                aria-label={t("settings.fam_kids_consent_label")}
+                checked={consent}
+                size="lg"
+                onCheckedChange={set_consent}
+              />
+              <span className="text-[13px] leading-5 text-txt-secondary">
+                {t("settings.fam_kids_consent_label")}
+              </span>
+            </div>
+
+            <p className="text-[12.5px] leading-5 text-txt-muted">
+              {t("settings.fam_kids_link_hint")}
+            </p>
+
+            {turnstile_required && (
+              <TurnstileWidget
+                ref={turnstile_ref}
+                class_name="flex justify-start"
+                on_expire={() => set_captcha(null)}
+                on_verify={set_captcha}
+              />
+            )}
+
+            <div className="flex flex-wrap items-center gap-2">
+              <PillButton
+                disabled={!can_submit}
+                leading={
+                  submitting ? (
+                    <ButtonSpinner />
+                  ) : (
+                    <PlusIcon className="h-4 w-4" />
+                  )
+                }
+                variant="filled"
+                onClick={handle_reserve}
+              >
+                {submitting
+                  ? t("settings.fam_kids_creating")
+                  : t("settings.fam_kids_create")}
+              </PillButton>
+              <PillButton
+                variant="ghost"
+                onClick={() => {
+                  set_show_form(false);
+                  reset_form();
+                }}
+              >
+                {t("settings.fam_kids_cancel")}
+              </PillButton>
+            </div>
+          </Island>
         </div>
       )}
+
+      <div className="flex flex-col">
+        <BillingSectionLabel>
+          {t("settings.fam_kids_title")}
+        </BillingSectionLabel>
+        {loading ? (
+          <FamilySkeletonRows count={2} />
+        ) : load_failed && reservations.length === 0 ? (
+          <Island padding="lg">
+            <IslandEmpty
+              action={
+                <PillButton
+                  size="sm"
+                  variant="tonal"
+                  onClick={() => void load()}
+                >
+                  {t("common.retry")}
+                </PillButton>
+              }
+              description={t("common.something_went_wrong_try_again")}
+              icon={<ExclamationTriangleIcon />}
+              title={t("settings.fam_kids_load_failed")}
+            />
+          </Island>
+        ) : visible.length === 0 ? (
+          <Island padding="lg">
+            <IslandEmpty
+              icon={<UserIcon />}
+              title={t("settings.fam_kids_empty")}
+            />
+          </Island>
+        ) : (
+          <Island className="overflow-hidden" padding="none">
+            {visible.map((r, index) => {
+              const token = claim_token_from_url(r.claim_url);
+
+              return (
+                <div key={r.id}>
+                  {index > 0 && <IslandDivider />}
+                  <IslandRow
+                    description={
+                      r.status === "claimed"
+                        ? t("settings.fam_kids_claimed_active")
+                        : r.label
+                          ? `${r.label} · ${format_bytes(r.allocated_storage_bytes)}`
+                          : format_bytes(r.allocated_storage_bytes)
+                    }
+                    icon={family_row_icon(UserIcon)}
+                    label={`${r.username}@${r.email_domain}`}
+                    value={
+                      r.status === "reserved" ? (
+                        <FamilyStatusText tone="warning">
+                          {t("settings.fam_kids_status_reserved")}
+                        </FamilyStatusText>
+                      ) : (
+                        <FamilyStatusText tone="success">
+                          {t("settings.fam_kids_status_claimed")}
+                        </FamilyStatusText>
+                      )
+                    }
+                  />
+                  {r.status === "reserved" && (
+                    <div className="flex flex-wrap items-center gap-2 px-4 pb-4">
+                      {token && (
+                        <PillButton
+                          leading={
+                            <ArrowRightIcon className="h-4 w-4 rtl:-scale-x-100" />
+                          }
+                          size="sm"
+                          variant="tonal"
+                          onClick={() => navigate(`/family/claim/${token}`)}
+                        >
+                          {t("settings.fam_kids_setup_now")}
+                        </PillButton>
+                      )}
+                      <PillButton
+                        leading={<LinkIcon className="h-4 w-4" />}
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handle_copy(r.claim_url)}
+                      >
+                        {t("settings.fam_kids_copy_link")}
+                      </PillButton>
+                      <PillButton
+                        disabled={regenerating_id === r.id}
+                        leading={
+                          regenerating_id === r.id ? (
+                            <ButtonSpinner />
+                          ) : (
+                            <ArrowPathIcon className="h-4 w-4" />
+                          )
+                        }
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handle_regenerate(r.id)}
+                      >
+                        {t("settings.fam_kids_regenerate")}
+                      </PillButton>
+                      <PillButton
+                        leading={<TrashIcon className="h-4 w-4" />}
+                        size="sm"
+                        variant="ghost"
+                        className="!text-[var(--color-danger)]"
+                        onClick={() =>
+                          handle_release(
+                            r.id,
+                            `${r.username}@${r.email_domain}`,
+                          )
+                        }
+                      >
+                        {t("settings.fam_kids_release")}
+                      </PillButton>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </Island>
+        )}
+      </div>
 
       <Modal
         is_open={!!release_target}
@@ -625,22 +710,23 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
           </ModalDescription>
         </ModalHeader>
         <ModalFooter>
-          <button
-            className="aster_btn aster_btn_ghost aster_btn_lg"
+          <PillButton
             disabled={releasing}
+            variant="ghost"
             onClick={() => set_release_target(null)}
           >
             {t("settings.fam_kids_cancel")}
-          </button>
-          <button
-            className="aster_btn aster_btn_destructive aster_btn_lg flex items-center gap-1.5 disabled:opacity-50"
+          </PillButton>
+          <PillButton
             disabled={releasing}
+            leading={
+              releasing ? <ButtonSpinner /> : <TrashIcon className="h-4 w-4" />
+            }
+            variant="danger"
             onClick={confirm_release}
           >
-            <TrashIcon className="w-4 h-4" />
-            {releasing && <ButtonSpinner />}
             {t("settings.fam_kids_release_btn")}
-          </button>
+          </PillButton>
         </ModalFooter>
       </Modal>
     </div>

@@ -840,6 +840,9 @@ export async function preload_email_detail(
         raw_headers: envelope.raw_headers,
         message_group_id: item.message_group_id,
         reactions: item.reactions,
+        spf_result: item.spf_result,
+        dkim_result: item.dkim_result,
+        dmarc_result: item.dmarc_result,
       };
 
       await resolve_reaction_emojis([single_message], user_email);

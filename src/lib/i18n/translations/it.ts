@@ -3505,6 +3505,35 @@ export const it = {
     fam_org_checklist_subscribe: "Abbonati a un piano famiglia",
     fam_org_checklist_invite: "Invita il tuo primo membro",
     fam_org_checklist_security: "Rivedi le impostazioni di sicurezza",
+    fam_org_back_to_family: "Famiglia",
+    fam_org_section_people: "Persone",
+    fam_org_section_controls: "Controlli",
+    fam_org_meter_seats: "Posti",
+    fam_org_meter_assigned: "Spazio assegnato",
+    fam_org_unassigned_value: "{{size}} non assegnati",
+    fam_org_you_manage: "Gestisci questo piano",
+    fam_org_you_are_member: "Sei membro di questo piano",
+    fam_org_leave_desc: "Rimuovi il tuo account da questo piano famiglia",
+    fam_org_invite_title: "Invita qualcuno",
+    fam_org_row_members_desc: "Invita persone e gestisci il loro spazio",
+    fam_org_row_kids_desc: "Crea indirizzi per i bambini",
+    fam_org_row_shared_desc: "Caselle che più membri possono usare",
+    fam_org_row_groups_desc: "Indirizzi che recapitano a più membri",
+    fam_org_row_filters_desc: "Regole applicate alla posta di ogni membro",
+    fam_org_row_domains_desc: "Domini personalizzati condivisi con i membri",
+    fam_org_row_security_desc: "Requisiti di autenticazione a due fattori e di accesso",
+    fam_org_row_retention_desc: "Per quanto tempo viene conservata la posta della famiglia",
+    fam_org_row_activity_desc: "Modifiche recenti al piano famiglia",
+    fam_org_n_members: "{{count}} membri",
+    fam_org_n_members_one: "{{count}} membro",
+    fam_org_n_members_other: "{{count}} membri",
+    fam_org_n_invites: "{{count}} inviti",
+    fam_org_n_invites_one: "{{count}} invito",
+    fam_org_n_invites_other: "{{count}} inviti",
+    fam_org_n_reserved: "{{count}} indirizzi riservati",
+    fam_org_n_reserved_one: "{{count}} indirizzo riservato",
+    fam_org_n_reserved_other: "{{count}} indirizzi riservati",
+    fam_org_assigned_of_total: "{{used}} di {{total}} assegnati",
     fam_org_stat_members: "Membri",
     fam_org_stat_storage_used: "Spazio utilizzato",
     fam_org_stat_unassigned: "Non assegnato",
@@ -4980,7 +5009,8 @@ export const it = {
     billing_advantages_title_paid: "Cosa include il tuo piano",
     billing_advantages_title_free: "Cosa ottieni con {{name}}",
     billing_see_all_features: "Vedi tutte le funzioni di {{name}}",
-    billing_compare_all_plans_subtitle: "Piani individuali e famiglia, mensili o annuali",
+    billing_compare_all_plans_subtitle:
+      "Piani individuali e famiglia, mensili o annuali",
     billing_usage_upgrade_hint: "Passa a un piano superiore per più spazio",
     usage_in_use: "{{current}} in uso",
     billing_credits_subtitle: "Saldo e ricariche",
@@ -7594,6 +7624,15 @@ export const it = {
     rotate_dkim_description:
       "Genera una nuova chiave di firma DKIM. Questo crea un nuovo record DNS con un nuovo nome host che devi pubblicare presso il tuo registrar.",
     rotate_label: "Ruota",
+    rotate_dkim_description_managed:
+      "Genera una nuova chiave di firma DKIM. Aster Mail aggiorna il record DNS per te.",
+    rotate_dkim_confirm_title: "Ruotare la chiave DKIM?",
+    rotate_dkim_confirm_managed:
+      "Aster Mail crea una nuova chiave DKIM per {{domain}} e aggiorna il suo record DNS per te. Non devi cambiare nulla.",
+    rotate_dkim_confirm_manual:
+      "Aster Mail crea una nuova chiave DKIM per {{domain}} e firma subito la tua posta con essa. Aggiungi il nuovo record TXT presso il tuo provider DNS. Finché non lo pubblichi, i controlli DKIM sulla posta che invii possono non riuscire.",
+    dkim_rotated_auto_published:
+      "Chiave DKIM ruotata. Aster Mail ha aggiornato il record DNS per te.",
     dkim_rotated:
       "Chiave DKIM ruotata. Aggiungi il nuovo record DNS qui sotto presso il tuo registrar.",
     dkim_rotated_warning_title: "Aggiungi questo come nuovo record DNS",
@@ -8852,6 +8891,19 @@ export const it = {
     verified_sender: "Mittente verificato",
     verified_sender_desc:
       "Il mittente di questa email ha verificato di possedere {{domain}}.",
+    email_auth_label: "Autenticazione del mittente: {{verdict}}",
+    email_auth_partial: "Controlli non conclusivi",
+    email_auth_partial_desc:
+      "Alcuni controlli hanno dato risultati insoliti per {{domain}}. Conviene fare attenzione a link e allegati.",
+    email_auth_failed: "Autenticazione non riuscita",
+    email_auth_failed_desc:
+      "Questo messaggio non ha superato i controlli che confermano che è stato inviato da {{domain}}. Potrebbe essere falsificato.",
+    email_auth_source: "Verificato da Aster all'arrivo del messaggio.",
+    email_auth_details_label: "Autenticazione:",
+    email_auth_status_pass: "Superato",
+    email_auth_status_fail: "Non superato",
+    email_auth_status_none: "Non usato",
+    email_auth_status_missing: "Non verificato",
     copy_message_id: "Copia ID messaggio",
     hide_source: "Nascondi sorgente",
     view_dark_mode: "Visualizza in modalità scura",
@@ -8868,9 +8920,11 @@ export const it = {
     loading_preview: "Caricamento anteprima…",
     preview_failed:
       "L'anteprima non si è caricata. Aprire l'email la mostrerà.",
-    pdf_preview_failed: "Questo PDF non può essere mostrato qui. Per aprirlo, scaricalo.",
+    pdf_preview_failed:
+      "Questo PDF non può essere mostrato qui. Per aprirlo, scaricalo.",
     pdf_password_title: "Questo PDF è protetto da password",
-    pdf_password_description: "Per visualizzare questo PDF, inserisci la password. La password resta su questo dispositivo.",
+    pdf_password_description:
+      "Per visualizzare questo PDF, inserisci la password. La password resta su questo dispositivo.",
     pdf_password_label: "Password del PDF",
     pdf_password_incorrect: "La password non è corretta. Riprova.",
     pdf_password_submit: "Apri",
@@ -9206,10 +9260,12 @@ export const it = {
       "Ogni codice di backup può essere usato una sola volta",
     backup_code_placeholder: "XXXX-XXXX-XXXX",
     use_authenticator_instead: "Usa l'app di autenticazione invece",
-    recovery_code_in_backup_field: "Questo è un codice di recupero, non un codice di backup. Per usarlo, reimposta la password con il tuo codice di recupero.",
+    recovery_code_in_backup_field:
+      "Questo è un codice di recupero, non un codice di backup. Per usarlo, reimposta la password con il tuo codice di recupero.",
     reset_with_recovery_code: "Reimposta con il codice di recupero",
     no_backup_codes_title: "Accedi senza passkey",
-    no_backup_codes_description: "I codici di backup vengono forniti con un'app di autenticazione, e questo account non ne usa una. Per accedere senza passkey, reimposta la password con uno dei tuoi codici di recupero. Email, contatti e impostazioni restano invariati, e dopo potrai aggiungere una nuova passkey.",
+    no_backup_codes_description:
+      "I codici di backup vengono forniti con un'app di autenticazione, e questo account non ne usa una. Per accedere senza passkey, reimposta la password con uno dei tuoi codici di recupero. Email, contatti e impostazioni restano invariati, e dopo potrai aggiungere una nuova passkey.",
     try_passkey_again: "Riprova con la passkey",
     two_factor_auth_title: "Autenticazione a due fattori",
     enter_2fa_code:
