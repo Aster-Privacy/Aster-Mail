@@ -598,6 +598,13 @@ export function SplitEmailViewer({
                   </span>
                   {email.subject || t("mail.no_subject")}
                 </h1>
+                {viewer.mail_item?.is_spam === true && (
+                  <EmailTag
+                    className="flex-shrink-0"
+                    label={t("mail.spam_label")}
+                    variant="spam"
+                  />
+                )}
                 {label_chips.map((chip) => (
                   <EmailTag
                     key={chip.token}
