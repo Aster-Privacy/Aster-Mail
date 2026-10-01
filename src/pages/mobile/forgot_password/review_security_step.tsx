@@ -22,14 +22,13 @@ import type { ReviewSecurityStepProps } from "./types";
 
 import { motion } from "framer-motion";
 
+import { MobileActionRow, MobileStepHeader } from "./step_frame";
+
 import { use_i18n } from "@/lib/i18n/context";
 import { ReviewRow } from "@/pages/forgot_password/shared";
 import {
   stagger_container,
   fade_up_item,
-  button_tap,
-  DEPTH_CTA_CLASS,
-  DEPTH_CTA_STYLE,
 } from "@/components/auth/mobile_auth_motion";
 
 export function ReviewSecurityStep({
@@ -43,42 +42,18 @@ export function ReviewSecurityStep({
     <div className="flex flex-1 flex-col">
       <motion.div
         animate="animate"
-        className="flex flex-1 flex-col items-center overflow-y-auto px-6 pt-10"
+        className="flex flex-1 flex-col items-start overflow-y-auto px-6 pt-10"
         initial={reduce_motion ? false : "initial"}
         variants={reduce_motion ? undefined : stagger_container}
       >
-        <motion.div variants={reduce_motion ? undefined : fade_up_item}>
-          <svg
-            className="h-8 w-8"
-            fill="none"
-            stroke="#22c55e"
-            strokeWidth="2"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M5 13l4 4L19 7"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </motion.div>
-
-        <motion.h1
-          className="mt-6 text-center text-xl font-semibold text-[var(--text-primary)]"
-          variants={reduce_motion ? undefined : fade_up_item}
-        >
-          {t("auth.review_security_title")}
-        </motion.h1>
-
-        <motion.p
-          className="mt-2 text-center text-sm leading-relaxed text-[var(--text-tertiary)]"
-          variants={reduce_motion ? undefined : fade_up_item}
-        >
-          {t("auth.review_security_desc")}
-        </motion.p>
+        <MobileStepHeader
+          description={t("auth.review_security_desc")}
+          reduce_motion={reduce_motion}
+          title={t("auth.review_security_title")}
+        />
 
         <motion.div
-          className="mt-6 w-full space-y-2"
+          className="mt-6 w-full divide-y divide-[var(--border-secondary)] border-y border-[var(--border-secondary)]"
           variants={reduce_motion ? undefined : fade_up_item}
         >
           <ReviewRow label={t("auth.review_devices_signed_out")} />
@@ -100,23 +75,11 @@ export function ReviewSecurityStep({
         </motion.div>
       </motion.div>
 
-      <motion.div
-        animate={{ opacity: 1 }}
-        className="shrink-0 px-6 pb-4 pt-4"
-        initial={reduce_motion ? false : { opacity: 0 }}
-        transition={
-          reduce_motion ? { duration: 0 } : { duration: 0.3, delay: 0.1 }
-        }
-      >
-        <motion.button
-          className={DEPTH_CTA_CLASS}
-          style={DEPTH_CTA_STYLE}
-          whileTap={button_tap}
-          onClick={on_navigate_sign_in}
-        >
-          {t("auth.sign_in")}
-        </motion.button>
-      </motion.div>
+      <MobileActionRow
+        on_primary={on_navigate_sign_in}
+        primary_label={t("auth.sign_in")}
+        reduce_motion={reduce_motion}
+      />
     </div>
   );
 }

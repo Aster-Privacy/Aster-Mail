@@ -58,13 +58,14 @@ export const Alert = ({ message, is_dark }: AlertProps) => {
   return (
     <motion.div
       animate={{ opacity: 1 }}
-      className="w-full mt-6"
+      className="w-full mt-5"
       exit={{ opacity: 0 }}
       initial={reduce_motion ? false : { opacity: 0 }}
+      role="alert"
       transition={{ duration: reduce_motion ? 0 : 0.15 }}
     >
       <p
-        className="text-sm text-center"
+        className="text-sm text-start"
         style={{ color: is_dark ? "#f87171" : "#dc2626" }}
       >
         {message}
@@ -73,16 +74,127 @@ export const Alert = ({ message, is_dark }: AlertProps) => {
   );
 };
 
-export const ChevronRightIcon = () => (
+export const ChevronDownIcon = () => (
   <svg
-    className="w-4 h-4 shrink-0 text-txt-muted"
+    className="w-3.5 h-3.5 shrink-0 text-txt-muted"
     fill="none"
     stroke="currentColor"
     strokeWidth="2"
     viewBox="0 0 24 24"
   >
-    <path d="M9 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M19 9l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
+);
+
+export interface AccountChipProps {
+  email: string;
+  on_click?: () => void;
+  label?: string;
+}
+
+export const AccountChip = ({ email, on_click, label }: AccountChipProps) => {
+  const content = (
+    <>
+      <span
+        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
+        style={{ backgroundColor: "var(--accent-color)" }}
+      >
+        {email.charAt(0).toUpperCase()}
+      </span>
+      <span className="notranslate truncate text-sm text-txt-primary">
+        {email}
+      </span>
+      {on_click && <ChevronDownIcon />}
+    </>
+  );
+  const class_name =
+    "inline-flex max-w-full items-center gap-2 rounded-full border border-edge-secondary py-1 ps-1 pe-3 text-start";
+
+  if (!on_click) return <span className={class_name}>{content}</span>;
+
+  return (
+    <button
+      aria-label={label}
+      className={`${class_name} transition-colors hover:bg-surf-tertiary`}
+      type="button"
+      onClick={on_click}
+    >
+      {content}
+    </button>
+  );
+};
+
+export interface StepHeaderProps {
+  title: string;
+  description: string;
+  email?: string;
+  on_change_account?: () => void;
+  change_account_label?: string;
+  logo?: ReactNode;
+}
+
+export const StepHeader = ({
+  title,
+  description,
+  email,
+  on_change_account,
+  change_account_label,
+  logo,
+}: StepHeaderProps) => (
+  <div className="flex w-full flex-col items-start text-start">
+    {logo}
+    <h1 className="mt-5 text-2xl font-semibold leading-tight text-txt-primary">
+      {title}
+    </h1>
+    <p className="mt-2 text-[15px] leading-relaxed text-txt-secondary">
+      {description}
+    </p>
+    {email && (
+      <div className="mt-4">
+        <AccountChip
+          email={email}
+          label={change_account_label}
+          on_click={on_change_account}
+        />
+      </div>
+    )}
+  </div>
+);
+
+export interface ActionRowProps {
+  children: ReactNode;
+  secondary?: ReactNode;
+}
+
+export const ActionRow = ({ children, secondary }: ActionRowProps) => (
+  <div className="mt-8 flex w-full items-center justify-between gap-3">
+    <div className="min-w-0">{secondary}</div>
+    <div className="shrink-0">{children}</div>
+  </div>
+);
+
+export interface TextLinkProps {
+  label: string;
+  on_click: () => void;
+  disabled?: boolean;
+  className?: string;
+}
+
+export const TextLink = ({
+  label,
+  on_click,
+  disabled,
+  className,
+}: TextLinkProps) => (
+  <button
+    className={`-ms-2 rounded-md px-2 py-1.5 text-sm font-medium transition-colors hover:bg-surf-tertiary disabled:opacity-50 disabled:hover:bg-transparent ${className ?? ""}`}
+    disabled={disabled}
+    style={{ color: "var(--accent-color)" }}
+    type="button"
+    onClick={on_click}
+  >
+    {label}
+  </button>
 );
 
 export interface OptionRowProps {
@@ -99,21 +211,18 @@ export const OptionRow = ({
   on_click,
 }: OptionRowProps) => (
   <button
-    className="w-full flex items-start gap-3 rounded-lg border px-4 py-3.5 text-start transition-opacity hover:opacity-85 bg-surf-tertiary border-edge-secondary"
+    className="w-full flex items-center gap-4 rounded-md px-2 py-4 text-start transition-colors hover:bg-surf-tertiary"
     type="button"
     onClick={on_click}
   >
-    <span className="mt-0.5 shrink-0 text-txt-secondary">{icon}</span>
+    <span className="shrink-0 text-txt-secondary">{icon}</span>
     <span className="flex-1 min-w-0">
-      <span className="block text-sm font-medium text-txt-primary">
+      <span className="block text-[15px] font-medium text-txt-primary">
         {title}
       </span>
-      <span className="mt-1 block text-xs leading-relaxed text-txt-tertiary">
+      <span className="mt-0.5 block text-[13px] leading-relaxed text-txt-tertiary">
         {description}
       </span>
-    </span>
-    <span className="mt-1">
-      <ChevronRightIcon />
     </span>
   </button>
 );
@@ -129,8 +238,8 @@ export const ReviewRow = ({
   action_label,
   on_action,
 }: ReviewRowProps) => (
-  <div className="w-full flex items-center justify-between gap-3 rounded-lg border px-4 py-3 text-start bg-surf-tertiary border-edge-secondary">
-    <span className="text-sm text-txt-primary">{label}</span>
+  <div className="w-full flex items-center justify-between gap-3 px-2 py-3 text-start">
+    <span className="text-[15px] text-txt-primary">{label}</span>
     {action_label && on_action && (
       <button
         className="shrink-0 text-sm font-medium transition-opacity hover:opacity-80"

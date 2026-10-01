@@ -20,20 +20,17 @@
 //
 import type { ResetEmailConfirmStepProps } from "./types";
 
-import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeftIcon } from "@heroicons/react/20/solid";
+import { motion } from "framer-motion";
+
+import {
+  MobileActionRow,
+  MobileStepHeader,
+  StepBackBar,
+  StepError,
+} from "./step_frame";
 
 import { use_i18n } from "@/lib/i18n/context";
-import {
-  stagger_container,
-  fade_up_item,
-  button_tap,
-  BACK_BUTTON_CLASS,
-  BACK_BUTTON_STYLE,
-  DEPTH_CTA_CLASS,
-  DEPTH_CTA_STYLE,
-  DEPTH_SECONDARY_CLASS,
-} from "@/components/auth/mobile_auth_motion";
+import { stagger_container } from "@/components/auth/mobile_auth_motion";
 
 export function ResetEmailConfirmStep({
   email,
@@ -42,6 +39,7 @@ export function ResetEmailConfirmStep({
   reduce_motion,
   set_error,
   set_step,
+  on_change_account,
   on_send_reset_link,
 }: ResetEmailConfirmStepProps) {
   const { t } = use_i18n();
@@ -53,83 +51,32 @@ export function ResetEmailConfirmStep({
 
   return (
     <div className="flex flex-1 flex-col">
-      <div className="flex items-center px-6 pt-4">
-        <motion.button
-          className={BACK_BUTTON_CLASS}
-          style={BACK_BUTTON_STYLE}
-          whileTap={button_tap}
-          onClick={go_back}
-        >
-          <ChevronLeftIcon className="h-5 w-5 rtl:-scale-x-100" />
-        </motion.button>
-      </div>
+      <StepBackBar on_back={go_back} />
 
       <motion.div
         animate="animate"
-        className="flex flex-1 flex-col items-center px-6 pt-6"
+        className="flex flex-1 flex-col items-start px-6 pt-6"
         initial={reduce_motion ? false : "initial"}
         variants={reduce_motion ? undefined : stagger_container}
       >
-        <motion.h1
-          className="text-center text-xl font-semibold text-[var(--text-primary)]"
-          variants={reduce_motion ? undefined : fade_up_item}
-        >
-          {t("auth.reset_account_title")}
-        </motion.h1>
+        <MobileStepHeader
+          description={t("auth.reset_account_desc")}
+          email={email}
+          on_change_account={on_change_account}
+          reduce_motion={reduce_motion}
+          title={t("auth.reset_account_title")}
+        />
 
-        <motion.p
-          className="notranslate mt-1 max-w-full truncate text-center text-sm font-medium text-[var(--text-primary)]"
-          variants={reduce_motion ? undefined : fade_up_item}
-        >
-          {email}
-        </motion.p>
-
-        <motion.p
-          className="mt-2 text-center text-sm leading-relaxed text-[var(--text-tertiary)]"
-          variants={reduce_motion ? undefined : fade_up_item}
-        >
-          {t("auth.reset_account_desc")}
-        </motion.p>
-
-        <AnimatePresence>
-          {error && (
-            <motion.p
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-4 text-center text-sm"
-              exit={{ opacity: 0, y: -4 }}
-              initial={{ opacity: 0, y: -4 }}
-              style={{ color: is_dark ? "#f87171" : "#dc2626" }}
-            >
-              {error}
-            </motion.p>
-          )}
-        </AnimatePresence>
+        <StepError error={error} is_dark={is_dark} />
       </motion.div>
 
-      <motion.div
-        animate={{ opacity: 1 }}
-        className="shrink-0 space-y-3 px-6 pb-4 pt-4"
-        initial={reduce_motion ? false : { opacity: 0 }}
-        transition={
-          reduce_motion ? { duration: 0 } : { duration: 0.3, delay: 0.1 }
-        }
-      >
-        <motion.button
-          className={DEPTH_CTA_CLASS}
-          style={DEPTH_CTA_STYLE}
-          whileTap={button_tap}
-          onClick={on_send_reset_link}
-        >
-          {t("auth.send_reset_link")}
-        </motion.button>
-        <motion.button
-          className={DEPTH_SECONDARY_CLASS}
-          whileTap={button_tap}
-          onClick={go_back}
-        >
-          {t("common.back")}
-        </motion.button>
-      </motion.div>
+      <MobileActionRow
+        on_primary={on_send_reset_link}
+        on_secondary={go_back}
+        primary_label={t("auth.send_reset_link")}
+        reduce_motion={reduce_motion}
+        secondary_label={t("common.back")}
+      />
     </div>
   );
 }
