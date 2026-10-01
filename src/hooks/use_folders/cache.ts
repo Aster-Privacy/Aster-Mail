@@ -31,6 +31,20 @@ export const cached_folders: {
   has_loaded: false,
 };
 
+const folders_loaded_listeners = new Set<() => void>();
+
+export function on_folders_loaded(listener: () => void): () => void {
+  folders_loaded_listeners.add(listener);
+
+  return () => {
+    folders_loaded_listeners.delete(listener);
+  };
+}
+
+export function notify_folders_loaded(): void {
+  for (const listener of [...folders_loaded_listeners]) listener();
+}
+
 export const FOLDER_SYNC_CHANNEL = "aster-folders-sync";
 
 export let folder_broadcast_channel: BroadcastChannel | null = null;

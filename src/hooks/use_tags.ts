@@ -70,6 +70,21 @@ interface TagCounts {
 }
 
 const TAG_RETRY_DELAYS_MS = [400, 1_200, 3_000];
+const TAG_BACKGROUND_RETRY_DELAYS_MS = [8_000, 20_000, 45_000];
+
+const tags_loaded_listeners = new Set<() => void>();
+
+function on_tags_loaded(listener: () => void): () => void {
+  tags_loaded_listeners.add(listener);
+
+  return () => {
+    tags_loaded_listeners.delete(listener);
+  };
+}
+
+function notify_tags_loaded(): void {
+  for (const listener of [...tags_loaded_listeners]) listener();
+}
 
 function wait(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -343,6 +358,7 @@ export function use_tags(): UseTagsReturn {
             error: null,
             total: response.data.total,
           });
+          notify_tags_loaded();
 
           return "done";
         } catch {
@@ -363,14 +379,50 @@ export function use_tags(): UseTagsReturn {
         if (this_generation !== fetch_generation_ref.current) return;
       }
 
-      set_state((prev) => ({
-        ...prev,
-        is_loading: false,
-        error: prev.tags.length > 0 ? null : t("common.failed_to_fetch_tags"),
-      }));
+      set_state((prev) =>
+        cached_tags.has_loaded
+          ? {
+              tags: cached_tags.data,
+              is_loading: false,
+              error: null,
+              total: cached_tags.total,
+            }
+          : {
+              ...prev,
+              is_loading: false,
+              error:
+                prev.tags.length > 0 ? null : t("common.failed_to_fetch_tags"),
+            },
+      );
+
+      const retry_in_background = async (): Promise<void> => {
+        for (const delay of TAG_BACKGROUND_RETRY_DELAYS_MS) {
+          await wait(delay);
+
+          if (this_generation !== fetch_generation_ref.current) return;
+          if ((await attempt_fetch()) !== "retry") return;
+        }
+      };
+
+      void retry_in_background();
     },
     [t],
   );
+
+  useEffect(() => {
+    return on_tags_loaded(() => {
+      set_state((prev) =>
+        prev.error === null
+          ? prev
+          : {
+              tags: cached_tags.data,
+              is_loading: false,
+              error: null,
+              total: cached_tags.total,
+            },
+      );
+    });
+  }, []);
 
   const fetch_counts = useCallback(async (): Promise<void> => {
     const this_generation = ++counts_generation_ref.current;
@@ -757,6 +809,7 @@ export function use_tags(): UseTagsReturn {
   useEffect(() => {
     return () => {
       abort_ref.current?.abort();
+      fetch_generation_ref.current += 1;
     };
   }, []);
 
