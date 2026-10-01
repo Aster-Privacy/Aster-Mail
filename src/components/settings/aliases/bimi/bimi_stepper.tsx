@@ -59,7 +59,7 @@ export function BimiStepper({ current }: BimiStepperProps) {
             <span
               className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border text-xs font-semibold ${
                 done
-                  ? "border-brand bg-brand text-white"
+                  ? "border-brand bg-brand text-[var(--accent-fg)]"
                   : active
                     ? "border-brand text-brand"
                     : "border-edge-secondary text-txt-muted"

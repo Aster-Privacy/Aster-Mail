@@ -223,7 +223,7 @@ function FreePlanBanner() {
   return (
     <Island padding="md" tone="accent">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-        <span className="hidden h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-brand text-white sm:flex">
+        <span className="hidden h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-brand text-[var(--accent-fg)] sm:flex">
           <SparklesIcon className="h-5 w-5" />
         </span>
         <div className="min-w-0 flex-1">

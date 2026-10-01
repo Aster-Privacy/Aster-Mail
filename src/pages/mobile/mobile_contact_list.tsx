@@ -231,7 +231,7 @@ export function MobileContactList({
         <button
           className={`rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-colors ${
             filter === "all"
-              ? "bg-[var(--accent-color)] text-white"
+              ? "bg-[var(--accent-color)] text-[var(--accent-fg)]"
               : "bg-[var(--bg-tertiary)] text-[var(--text-secondary)]"
           }`}
           type="button"
@@ -246,7 +246,7 @@ export function MobileContactList({
           <button
             className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-colors ${
               filter === "favorites"
-                ? "bg-[var(--accent-color)] text-white"
+                ? "bg-[var(--accent-color)] text-[var(--accent-fg)]"
                 : "bg-[var(--bg-tertiary)] text-[var(--text-secondary)]"
             }`}
             type="button"
