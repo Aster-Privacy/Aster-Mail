@@ -31,9 +31,10 @@ vi.mock("@/lib/image_proxy", () => ({
 import {
   get_compose_sanitize_options,
   get_original_image_source,
+  proxy_compose_image_sources,
   restore_compose_image_sources,
 } from "@/lib/compose_image_sources";
-import { sanitize_html } from "@/lib/html_sanitizer";
+import { sanitize_compose_paste, sanitize_html } from "@/lib/html_sanitizer";
 
 const REMOTE = "https://images.example.com/banner.png?size=large&v=2";
 
@@ -93,5 +94,40 @@ describe("compose image sources", () => {
     const text = "See /api/images/v1/proxy?url=https%3A%2F%2Fa.example";
 
     expect(restore_compose_image_sources(text)).toBe(text);
+  });
+});
+
+describe("proxy_compose_image_sources", () => {
+  it("routes remote images through the proxy when the editor is refilled", () => {
+    const html = proxy_compose_image_sources(
+      sanitize_compose_paste(`<p>Hi</p><img src="${REMOTE}" alt="banner">`),
+    );
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    const src = doc.querySelector("img")?.getAttribute("src") ?? "";
+
+    expect(
+      src.startsWith("https://app.astermail.org/api/images/v1/proxy?url="),
+    ).toBe(true);
+    expect(get_original_image_source(src)).toBe(REMOTE);
+  });
+
+  it("round-trips back to the original source", () => {
+    const original = sanitize_compose_paste(
+      `<img src="${REMOTE}" alt="banner">`,
+    );
+
+    expect(
+      restore_compose_image_sources(proxy_compose_image_sources(original)),
+    ).toBe(original);
+  });
+
+  it("leaves proxied, inline, and data images untouched", () => {
+    const proxied = `<img src="https://app.astermail.org/api/images/v1/proxy?url=${encodeURIComponent(REMOTE)}">`;
+    const inline = `<img src="cid:logo@example.com">`;
+    const data = `<img src="data:image/png;base64,AAAA">`;
+
+    expect(proxy_compose_image_sources(proxied)).toBe(proxied);
+    expect(proxy_compose_image_sources(inline)).toBe(inline);
+    expect(proxy_compose_image_sources(data)).toBe(data);
   });
 });
