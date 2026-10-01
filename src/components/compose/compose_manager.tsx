@@ -79,14 +79,9 @@ export function use_compose_manager() {
   const { t } = use_translation();
   const { preferences } = use_preferences();
   const [instances, set_instances] = useState<ComposeInstance[]>([]);
-  const instance_count_ref = useRef(0);
+  const instances_ref = useRef(instances);
 
-  useEffect(() => {
-    if (instances.length > instance_count_ref.current) {
-      play_iconic_sound("compose");
-    }
-    instance_count_ref.current = instances.length;
-  }, [instances.length]);
+  instances_ref.current = instances;
 
   const open_compose = useCallback(
     (
@@ -94,55 +89,69 @@ export function use_compose_manager() {
       initial_to?: string,
       initial_ghost_mode?: boolean,
     ) => {
-      set_instances((prev) => {
-        if (!edit_draft && initial_to) {
-          const existing = prev.find(
-            (instance) =>
-              !instance.edit_draft && instance.initial_to === initial_to,
-          );
+      const current = instances_ref.current;
+      const existing =
+        !edit_draft && initial_to
+          ? current.find(
+              (instance) =>
+                !instance.edit_draft && instance.initial_to === initial_to,
+            )
+          : undefined;
 
-          if (existing) {
-            return prev.map((instance) =>
-              instance.id === existing.id
-                ? { ...instance, is_minimized: false }
-                : instance,
-            );
-          }
-        }
+      if (existing) {
+        const next = current.map((instance) =>
+          instance.id === existing.id
+            ? { ...instance, is_minimized: false }
+            : instance,
+        );
 
-        if (prev.length >= MAX_COMPOSE_INSTANCES) {
-          show_toast(t("mail.max_composers_warning"), "error");
+        instances_ref.current = next;
+        set_instances(next);
 
-          return prev;
-        }
+        return;
+      }
 
-        const new_instance: ComposeInstance = {
+      if (current.length >= MAX_COMPOSE_INSTANCES) {
+        show_toast(t("mail.max_composers_warning"), "error");
+
+        return;
+      }
+
+      const next = [
+        ...current,
+        {
           id: generate_compose_id(),
           edit_draft,
           initial_to,
           initial_ghost_mode,
           is_minimized:
             (preferences.compose_window_mode ?? "default") === "minimized",
-        };
+        },
+      ];
 
-        return [...prev, new_instance];
-      });
+      instances_ref.current = next;
+      set_instances(next);
+      play_iconic_sound("compose");
     },
     [t, preferences.compose_window_mode],
   );
 
   const close_compose = useCallback((id: string) => {
-    set_instances((prev) => prev.filter((instance) => instance.id !== id));
+    const next = instances_ref.current.filter((instance) => instance.id !== id);
+
+    instances_ref.current = next;
+    set_instances(next);
   }, []);
 
   const toggle_minimize = useCallback((id: string) => {
-    set_instances((prev) =>
-      prev.map((instance) =>
-        instance.id === id
-          ? { ...instance, is_minimized: !instance.is_minimized }
-          : instance,
-      ),
+    const next = instances_ref.current.map((instance) =>
+      instance.id === id
+        ? { ...instance, is_minimized: !instance.is_minimized }
+        : instance,
     );
+
+    instances_ref.current = next;
+    set_instances(next);
   }, []);
 
   const has_instances = instances.length > 0;

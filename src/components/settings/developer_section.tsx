@@ -39,6 +39,7 @@ import {
   IslandRow,
   IslandSection,
   IslandSections,
+  use_ui_strings,
 } from "@aster/ui";
 
 import { trigger_download } from "@/utils/download_blob";
@@ -49,7 +50,11 @@ import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
-import { InfoPopover } from "@/components/ui/info_popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { use_mail_stats } from "@/hooks/use_mail_stats";
 import { use_folders } from "@/hooks/use_folders";
 import { use_online_status } from "@/hooks/use_online_status";
@@ -230,6 +235,9 @@ export function DeveloperSection() {
   const [key_loading, set_key_loading] = useState(true);
   const [confirm_clear_cache, set_confirm_clear_cache] = useState(false);
   const [confirm_iconic_sounds, set_confirm_iconic_sounds] = useState(false);
+  const [iconic_sounds_info_open, set_iconic_sounds_info_open] =
+    useState(false);
+  const ui_strings = use_ui_strings();
   const [wkd_published, set_wkd_published] = useState<boolean | null>(null);
   const [keyserver_published, set_keyserver_published] = useState<
     boolean | null
@@ -362,6 +370,7 @@ export function DeveloperSection() {
 
   const handle_iconic_sounds_change = (next: boolean) => {
     if (next) {
+      set_iconic_sounds_info_open(false);
       set_confirm_iconic_sounds(true);
 
       return;
@@ -769,10 +778,34 @@ export function DeveloperSection() {
               <span className="inline-flex items-center gap-2">
                 {t("settings.iconic_sounds")}
                 <Badge color="purple">{t("settings.iconic_sounds_beta")}</Badge>
-                <InfoPopover
-                  description={t("settings.iconic_sounds_info")}
-                  title={t("settings.iconic_sounds")}
-                />
+                <Popover
+                  open={iconic_sounds_info_open && !confirm_iconic_sounds}
+                  onOpenChange={set_iconic_sounds_info_open}
+                >
+                  <PopoverTrigger asChild>
+                    <button
+                      aria-label={ui_strings.more_info}
+                      className="-m-1 inline-flex items-center justify-center flex-shrink-0 p-1 text-txt-muted hover:text-txt-secondary transition-colors rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                      type="button"
+                    >
+                      <InformationCircleIcon className="w-4 h-4" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    align="start"
+                    className="aster_info_popover z-[200]"
+                    collisionPadding={12}
+                    sideOffset={6}
+                  >
+                    <p className="aster_info_popover_title">
+                      <InformationCircleIcon aria-hidden="true" />
+                      <span>{t("settings.iconic_sounds")}</span>
+                    </p>
+                    <p className="aster_info_popover_body">
+                      {t("settings.iconic_sounds_info")}
+                    </p>
+                  </PopoverContent>
+                </Popover>
               </span>
             }
             toggle={{

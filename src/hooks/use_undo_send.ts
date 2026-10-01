@@ -36,7 +36,11 @@ import {
   cancel_server_queued_email_with_reason,
   send_server_queued_immediately,
 } from "@/services/send_queue";
-import { mark_send_queued, play_iconic_sound } from "@/services/iconic_sounds";
+import {
+  mark_send_queued,
+  play_iconic_sound,
+  release_queued_send,
+} from "@/services/iconic_sounds";
 
 export interface PendingSend {
   id: string;
@@ -97,7 +101,6 @@ export function take_pending_send_payload(
 type UndoSendListener = (pending_sends: PendingSend[]) => void;
 
 const STORAGE_KEY = "astermail:pending_sends";
-const SEND_SETTLE_GRACE_MS = 10000;
 
 function persist_to_storage(sends: PendingSend[]): void {
   try {
@@ -178,7 +181,7 @@ class UndoSendManager {
 
   add(pending: PendingSend): void {
     this.pending_sends.set(pending.id, pending);
-    mark_send_queued(pending.scheduled_time + SEND_SETTLE_GRACE_MS);
+    mark_send_queued(pending.scheduled_time);
     play_iconic_sound("send");
     this.notify();
   }
@@ -356,6 +359,7 @@ export function use_undo_send(): UseUndoSendReturn {
       undo_send_manager.remove(id);
     }
 
+    release_queued_send();
     play_iconic_sound("undo_send");
     dispatch_undo_send_event(id, pending, payload);
 

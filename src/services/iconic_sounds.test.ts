@@ -91,6 +91,11 @@ class FakeAudioContext {
   resume() {
     return context_control.resume();
   }
+  suspend() {
+    context_control.state = "suspended";
+
+    return Promise.resolve();
+  }
 }
 
 async function load_service() {
@@ -165,10 +170,34 @@ describe("iconic_sounds", () => {
     const service = await load_service();
 
     service.set_iconic_sounds_enabled(true);
-    service.mark_send_queued(Date.now() + 60000);
+    service.mark_send_queued(Date.now() + 10000);
     expect(service.play_send_settled_sound()).toBe(false);
     await settle();
     expect(started).toHaveLength(0);
+    expect(service.play_send_settled_sound()).toBe(true);
+    await settle();
+    expect(started).toHaveLength(1);
+  });
+
+  it("plays the next sent sound after a queued send is undone", async () => {
+    const service = await load_service();
+
+    service.set_iconic_sounds_enabled(true);
+    service.mark_send_queued(Date.now() + 10000);
+    service.release_queued_send();
+    expect(service.play_send_settled_sound()).toBe(true);
+    await settle();
+    expect(started).toHaveLength(1);
+  });
+
+  it("keeps the composer that reopens after an undo silent", async () => {
+    const service = await load_service();
+
+    service.set_iconic_sounds_enabled(true);
+    expect(service.play_iconic_sound("undo_send")).toBe(true);
+    expect(service.play_iconic_sound("compose")).toBe(true);
+    await settle();
+    expect(started).toHaveLength(1);
   });
 
   it("plays the sent sound for a send with no undo window", async () => {
@@ -180,15 +209,43 @@ describe("iconic_sounds", () => {
     expect(started).toHaveLength(1);
   });
 
-  it("restarts a sound that is still playing instead of stacking it", async () => {
+  it("overlaps repeated plays and only retires the oldest past the cap", async () => {
     const service = await load_service();
 
-    expect(service.preview_iconic_sound("done")).toBe(true);
+    for (let index = 0; index < 6; index += 1) {
+      expect(service.preview_iconic_sound("fail")).toBe(true);
+      await settle();
+    }
+
+    expect(started).toHaveLength(6);
+    expect(stopped).toHaveLength(2);
+  });
+
+  it("starts in the same task once audio is unlocked and decoded", async () => {
+    const service = await load_service();
+
+    service.preview_iconic_sound("done");
     await settle();
-    expect(service.preview_iconic_sound("done")).toBe(true);
+    started.length = 0;
+    service.preview_iconic_sound("done");
+    expect(started).toHaveLength(1);
+  });
+
+  it("resumes a suspended context before playing", async () => {
+    const service = await load_service();
+
+    service.preview_iconic_sound("done");
     await settle();
-    expect(started).toHaveLength(2);
-    expect(stopped).toHaveLength(1);
+    started.length = 0;
+    context_control.state = "suspended";
+    context_control.resume = () => {
+      context_control.state = "running";
+
+      return Promise.resolve();
+    };
+    service.preview_iconic_sound("done");
+    await settle();
+    expect(started).toHaveLength(1);
   });
 
   it("drops a sound when audio only unlocks long after the request", async () => {

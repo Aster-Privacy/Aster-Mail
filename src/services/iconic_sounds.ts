@@ -34,47 +34,40 @@ export const ICONIC_SOUNDS = [
 
 export type IconicSound = (typeof ICONIC_SOUNDS)[number];
 
-const MASTER_GAIN = 1;
-const TARGET_PEAK = 0.89;
-const MAX_SOUND_GAIN = 4;
-const ONSET_THRESHOLD = 0.004;
-const ONSET_LEAD_SECONDS = 0.004;
-const START_LEAD_SECONDS = 0.03;
-const RESUME_LEAD_SECONDS = 0.12;
-const RETRIGGER_FADE_SECONDS = 0.02;
+const MASTER_GAIN = 0.8;
+const MAX_VOICES_PER_SOUND = 4;
+const VOICE_STEAL_FADE_SECONDS = 0.015;
 const MAX_START_DELAY_MS = 1500;
+const IDLE_SUSPEND_MS = 30000;
+const QUEUED_SEND_TTL_MS = 300000;
+const COMPOSE_AFTER_UNDO_MUTE_MS = 600;
 const MIN_INTERVAL_MS: Record<IconicSound, number> = {
-  send: 600,
-  undo_send: 600,
+  send: 300,
+  undo_send: 150,
   incoming: 3000,
-  done: 400,
-  fail: 1200,
-  compose: 400,
-  upload: 600,
+  done: 150,
+  fail: 250,
+  compose: 150,
+  upload: 300,
 };
-const WARM_UP_EVENTS = ["pointerdown", "keydown"] as const;
-
-let enabled = false;
-let audio_context: AudioContext | null = null;
-let master_gain: GainNode | null = null;
-let load_promise: Promise<void> | null = null;
-let warm_up_armed = false;
-let send_settles_at = 0;
-
-interface LoadedSound {
-  buffer: AudioBuffer;
-  gain: number;
-  offset: number;
-}
+const UNLOCK_EVENTS = ["pointerdown", "keydown", "touchend"] as const;
 
 interface ActiveVoice {
   source: AudioBufferSourceNode;
   gain: GainNode;
 }
 
-const buffers = new Map<IconicSound, LoadedSound>();
-const active_voices = new Map<IconicSound, ActiveVoice>();
+let enabled = false;
+let audio_context: AudioContext | null = null;
+let master_gain: GainNode | null = null;
+let load_promise: Promise<void> | null = null;
+let unlock_armed = false;
+let suspend_timer: ReturnType<typeof setTimeout> | null = null;
+
+const buffers = new Map<IconicSound, AudioBuffer>();
+const active_voices = new Map<IconicSound, ActiveVoice[]>();
 const last_played_at = new Map<IconicSound, number>();
+const queued_send_expiries: number[] = [];
 
 export function is_iconic_sounds_supported(): boolean {
   if (typeof window === "undefined") return false;
@@ -105,31 +98,6 @@ function decode_data_uri(uri: string): ArrayBuffer {
   return bytes.buffer;
 }
 
-function measure_sound(buffer: AudioBuffer): LoadedSound {
-  let peak = 0;
-  let onset = buffer.length;
-
-  for (let channel = 0; channel < buffer.numberOfChannels; channel += 1) {
-    const samples = buffer.getChannelData(channel);
-
-    for (let index = 0; index < samples.length; index += 1) {
-      const level = Math.abs(samples[index]);
-
-      if (level > peak) peak = level;
-      if (level > ONSET_THRESHOLD && index < onset) onset = index;
-    }
-  }
-
-  const gain = peak > 0 ? Math.min(TARGET_PEAK / peak, MAX_SOUND_GAIN) : 1;
-  const onset_seconds = onset < buffer.length ? onset / buffer.sampleRate : 0;
-
-  return {
-    buffer,
-    gain,
-    offset: Math.max(0, onset_seconds - ONSET_LEAD_SECONDS),
-  };
-}
-
 async function load_buffers(): Promise<void> {
   const { ICONIC_SOUND_SOURCES } = await import("@/services/iconic_sound_data");
   const context = get_context();
@@ -138,11 +106,12 @@ async function load_buffers(): Promise<void> {
     ICONIC_SOUNDS.map(async (name) => {
       if (buffers.has(name)) return;
 
-      const decoded = await context.decodeAudioData(
-        decode_data_uri(ICONIC_SOUND_SOURCES[name]),
+      buffers.set(
+        name,
+        await context.decodeAudioData(
+          decode_data_uri(ICONIC_SOUND_SOURCES[name]),
+        ),
       );
-
-      buffers.set(name, measure_sound(decoded));
     }),
   );
 }
@@ -158,111 +127,162 @@ function ensure_loaded(): Promise<void> {
   return load_promise;
 }
 
-function disarm_warm_up(): void {
-  if (!warm_up_armed) return;
-  warm_up_armed = false;
-  WARM_UP_EVENTS.forEach((name) =>
-    window.removeEventListener(name, handle_warm_up, true),
-  );
-}
-
-function handle_warm_up(): void {
-  disarm_warm_up();
-  if (!enabled) return;
-
-  ensure_loaded()
-    .then(() => audio_context?.resume())
-    .catch((caught) => ignore_error("services/iconic_sounds:warm_up", caught));
-}
-
-function arm_warm_up(): void {
-  if (navigator.userActivation?.hasBeenActive) {
-    handle_warm_up();
-
-    return;
+function has_active_voices(): boolean {
+  for (const voices of active_voices.values()) {
+    if (voices.length > 0) return true;
   }
 
-  if (warm_up_armed) return;
-  warm_up_armed = true;
-  WARM_UP_EVENTS.forEach((name) =>
-    window.addEventListener(name, handle_warm_up, {
-      capture: true,
-      passive: true,
-    }),
-  );
+  return false;
 }
 
-function is_stale(requested_at: number): boolean {
-  return Date.now() - requested_at > MAX_START_DELAY_MS;
+function schedule_suspend(): void {
+  if (suspend_timer) clearTimeout(suspend_timer);
+  suspend_timer = setTimeout(() => {
+    suspend_timer = null;
+    if (!audio_context || audio_context.state !== "running") return;
+
+    if (has_active_voices()) {
+      schedule_suspend();
+
+      return;
+    }
+
+    audio_context
+      .suspend()
+      .catch((caught) =>
+        ignore_error("services/iconic_sounds:suspend", caught),
+      );
+  }, IDLE_SUSPEND_MS);
 }
 
-async function start_playback(
-  name: IconicSound,
-  requested_at: number,
-): Promise<void> {
+function wake(): void {
   const context = get_context();
-  const sound = buffers.get(name);
-
-  if (!sound || !master_gain) return;
-
-  let lead = START_LEAD_SECONDS;
 
   if (context.state !== "running") {
-    await context.resume();
-    lead = RESUME_LEAD_SECONDS;
+    context
+      .resume()
+      .catch((caught) => ignore_error("services/iconic_sounds:resume", caught));
   }
 
-  if (context.state !== "running" || is_stale(requested_at)) return;
+  ensure_loaded().catch((caught) =>
+    ignore_error("services/iconic_sounds:load", caught),
+  );
+  schedule_suspend();
+}
 
-  const starts_at = context.currentTime + lead;
-  const previous = active_voices.get(name);
+function handle_unlock(): void {
+  if (!enabled) return;
+  if (audio_context?.state === "running" && load_promise) return;
 
-  if (previous) {
-    previous.gain.gain.setValueAtTime(previous.gain.gain.value, starts_at);
-    previous.gain.gain.linearRampToValueAtTime(
-      0,
-      starts_at + RETRIGGER_FADE_SECONDS,
+  wake();
+}
+
+function arm_unlock(): void {
+  if (!unlock_armed) {
+    unlock_armed = true;
+    UNLOCK_EVENTS.forEach((name) =>
+      window.addEventListener(name, handle_unlock, {
+        capture: true,
+        passive: true,
+      }),
     );
-    previous.source.stop(starts_at + RETRIGGER_FADE_SECONDS);
+  }
+
+  if (navigator.userActivation?.hasBeenActive) wake();
+}
+
+function disarm_unlock(): void {
+  if (!unlock_armed) return;
+  unlock_armed = false;
+  UNLOCK_EVENTS.forEach((name) =>
+    window.removeEventListener(name, handle_unlock, true),
+  );
+}
+
+function release_voice(name: IconicSound, voice: ActiveVoice): void {
+  const voices = active_voices.get(name);
+
+  if (!voices) return;
+
+  const index = voices.indexOf(voice);
+
+  if (index >= 0) voices.splice(index, 1);
+}
+
+function start_voice(context: AudioContext, name: IconicSound): boolean {
+  const buffer = buffers.get(name);
+
+  if (!buffer || !master_gain || context.state !== "running") return false;
+
+  const voices = active_voices.get(name) ?? [];
+
+  active_voices.set(name, voices);
+
+  while (voices.length >= MAX_VOICES_PER_SOUND) {
+    const oldest = voices.shift();
+
+    if (!oldest) break;
+
+    const fade_ends_at = context.currentTime + VOICE_STEAL_FADE_SECONDS;
+
+    oldest.gain.gain.setValueAtTime(1, context.currentTime);
+    oldest.gain.gain.linearRampToValueAtTime(0, fade_ends_at);
+    oldest.source.stop(fade_ends_at);
   }
 
   const source = context.createBufferSource();
   const gain = context.createGain();
   const voice = { source, gain };
 
-  gain.gain.value = sound.gain;
-  source.buffer = sound.buffer;
+  source.buffer = buffer;
   source.connect(gain);
   gain.connect(master_gain);
   source.onended = () => {
     source.disconnect();
     gain.disconnect();
-    if (active_voices.get(name) === voice) active_voices.delete(name);
+    release_voice(name, voice);
   };
-  active_voices.set(name, voice);
-  source.start(starts_at, sound.offset);
+  voices.push(voice);
+  source.start();
+  schedule_suspend();
+
+  return true;
+}
+
+function is_stale(requested_at: number): boolean {
+  return Date.now() - requested_at > MAX_START_DELAY_MS;
+}
+
+async function start_when_ready(
+  name: IconicSound,
+  forced: boolean,
+  requested_at: number,
+): Promise<void> {
+  const context = get_context();
+
+  await ensure_loaded();
+  if (context.state !== "running") await context.resume();
+  if (!forced && !enabled) return;
+  if (is_stale(requested_at)) return;
+
+  start_voice(context, name);
 }
 
 function request_playback(name: IconicSound, forced: boolean): void {
-  const requested_at = Date.now();
+  if (start_voice(get_context(), name)) return;
 
-  ensure_loaded()
-    .then(() => {
-      if (!forced && !enabled) return;
-      if (is_stale(requested_at)) return;
-
-      return start_playback(name, requested_at);
-    })
-    .catch((caught) => ignore_error("services/iconic_sounds:play", caught));
+  start_when_ready(name, forced, Date.now()).catch((caught) =>
+    ignore_error("services/iconic_sounds:play", caught),
+  );
 }
 
 export function set_iconic_sounds_enabled(next: boolean): void {
   enabled = next && is_iconic_sounds_supported();
 
   if (enabled) {
-    arm_warm_up();
+    arm_unlock();
   } else {
-    disarm_warm_up();
+    disarm_unlock();
   }
 }
 
@@ -278,18 +298,48 @@ export function play_iconic_sound(name: IconicSound): boolean {
 
   if (now - previous < MIN_INTERVAL_MS[name]) return true;
 
+  if (
+    name === "compose" &&
+    now - (last_played_at.get("undo_send") ?? 0) < COMPOSE_AFTER_UNDO_MUTE_MS
+  ) {
+    return true;
+  }
+
   last_played_at.set(name, now);
   request_playback(name, false);
 
   return true;
 }
 
-export function mark_send_queued(settles_at: number): void {
-  send_settles_at = Math.max(send_settles_at, settles_at);
+function prune_queued_sends(): void {
+  const now = Date.now();
+
+  while (queued_send_expiries.length > 0 && queued_send_expiries[0] <= now) {
+    queued_send_expiries.shift();
+  }
+}
+
+export function mark_send_queued(scheduled_time: number): void {
+  prune_queued_sends();
+  queued_send_expiries.push(
+    Math.max(scheduled_time, Date.now()) + QUEUED_SEND_TTL_MS,
+  );
+  queued_send_expiries.sort((left, right) => left - right);
+}
+
+export function release_queued_send(): void {
+  prune_queued_sends();
+  queued_send_expiries.shift();
 }
 
 export function play_send_settled_sound(): boolean {
-  if (Date.now() < send_settles_at) return false;
+  prune_queued_sends();
+
+  if (queued_send_expiries.length > 0) {
+    queued_send_expiries.shift();
+
+    return false;
+  }
 
   return play_iconic_sound("send");
 }
