@@ -516,8 +516,8 @@ export function use_compose({
   }, [inputs]);
 
   const has_sendable_recipients =
-    recipients.to.length > 0 ||
-    pending_recipient_inputs.some((entry) => entry.field === "to");
+    recipients.to.length + recipients.cc.length + recipients.bcc.length > 0 ||
+    pending_recipient_inputs.length > 0;
 
   useEffect(() => {
     if (pending_recipient_inputs.length === 0) return;

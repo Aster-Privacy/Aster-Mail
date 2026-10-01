@@ -298,7 +298,7 @@ export function ComposeModal({
                   schedule_picker_element: (
                     <SchedulePicker
                       disabled={
-                        compose.recipients.to.length === 0 ||
+                        !compose.has_sendable_recipients ||
                         compose.attachments.length > 0
                       }
                       on_schedule={compose.set_scheduled_time}
@@ -313,7 +313,7 @@ export function ComposeModal({
                   expiration_picker_element: (
                     <ExpirationPicker
                       show_password_option
-                      disabled={compose.recipients.to.length === 0}
+                      disabled={!compose.has_sendable_recipients}
                       expires_at={compose.expires_at}
                       on_expiration_change={compose.set_expires_at}
                       on_password_change={compose.set_expiry_password}

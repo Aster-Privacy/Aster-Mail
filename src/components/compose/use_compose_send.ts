@@ -255,7 +255,11 @@ export function use_compose_send({
     )
       return;
 
-    if (recipients.to.length === 0) return;
+    if (
+      recipients.to.length + recipients.cc.length + recipients.bcc.length ===
+      0
+    )
+      return;
 
     if (!user) {
       show_toast(t("errors.session_expired_send"), "error");
@@ -729,7 +733,13 @@ export function use_compose_send({
     )
       return;
 
-    if (recipients.to.length === 0 || !user || !vault || !scheduled_time)
+    if (
+      recipients.to.length + recipients.cc.length + recipients.bcc.length ===
+        0 ||
+      !user ||
+      !vault ||
+      !scheduled_time
+    )
       return;
 
     if (attachments.length > 0) {
