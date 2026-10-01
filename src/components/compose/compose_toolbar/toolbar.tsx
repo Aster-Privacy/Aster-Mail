@@ -79,7 +79,7 @@ export function ComposeToolbar({
         {compose.scheduled_time ? (
           <Button
             className="px-5 rounded-[var(--aster-radius-control)]"
-            disabled={!compose.has_recipients}
+            disabled={!compose.has_recipients || compose.is_loading_attachments}
             is_loading={compose.is_scheduling}
             size="lg"
             variant="depth"
@@ -90,7 +90,11 @@ export function ComposeToolbar({
         ) : (
           <Button
             className="px-6 rounded-[var(--aster-radius-control)]"
-            disabled={!compose.has_recipients || compose.is_sending}
+            disabled={
+              !compose.has_recipients ||
+              compose.is_sending ||
+              compose.is_loading_attachments
+            }
             size="lg"
             title={compose.is_mac ? "⌘+Enter" : "Ctrl+Enter"}
             variant="depth"

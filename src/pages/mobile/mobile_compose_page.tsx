@@ -357,7 +357,12 @@ function MobileComposePage({
         right_actions={
           <Button
             className="h-8 gap-1.5 px-4"
-            disabled={is_sending || compose.is_scheduling || !has_recipients}
+            disabled={
+              is_sending ||
+              compose.is_scheduling ||
+              compose.is_loading_attachments ||
+              !has_recipients
+            }
             size="md"
             variant="depth"
             onClick={handle_send}

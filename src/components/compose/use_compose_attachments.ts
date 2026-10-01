@@ -138,6 +138,8 @@ function resolve_mime_type(file: File): string {
 
 export interface UseComposeAttachmentsReturn {
   attachments: Attachment[];
+  is_loading_attachments: boolean;
+  has_pending_attachment_reads: () => boolean;
   set_attachments: React.Dispatch<React.SetStateAction<Attachment[]>>;
   attachment_error: string | null;
   set_attachment_error: (val: string | null) => void;
@@ -155,6 +157,22 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
   const { t } = use_i18n();
   const { preferences } = use_preferences();
   const [attachments, set_attachments] = useState<Attachment[]>([]);
+  const [is_loading_attachments, set_is_loading_attachments] = useState(false);
+  const pending_reads_ref = useRef(0);
+  const has_pending_attachment_reads = useCallback(
+    () => pending_reads_ref.current > 0,
+    [],
+  );
+  const with_pending_reads = useCallback(async (read: () => Promise<void>) => {
+    pending_reads_ref.current++;
+    set_is_loading_attachments(true);
+    try {
+      await read();
+    } finally {
+      pending_reads_ref.current--;
+      set_is_loading_attachments(pending_reads_ref.current > 0);
+    }
+  }, []);
   const [attachment_error, set_attachment_error] = useState<string | null>(
     null,
   );
@@ -175,7 +193,7 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
     return attachments.reduce((total, att) => total + att.size_bytes, 0);
   }, [attachments]);
 
-  const handle_file_select = useCallback(
+  const read_selected_files = useCallback(
     async (event: React.ChangeEvent<HTMLInputElement>) => {
       const files = event.target.files;
 
@@ -288,7 +306,7 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
     ],
   );
 
-  const handle_files_drop = useCallback(
+  const read_dropped_files = useCallback(
     async (files: File[]) => {
       set_attachment_error(null);
       await ensure_attachment_limits();
@@ -391,12 +409,24 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
     ],
   );
 
+  const handle_file_select = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) =>
+      with_pending_reads(() => read_selected_files(event)),
+    [with_pending_reads, read_selected_files],
+  );
+  const handle_files_drop = useCallback(
+    (files: File[]) => with_pending_reads(() => read_dropped_files(files)),
+    [with_pending_reads, read_dropped_files],
+  );
+
   const trigger_file_select = useCallback(() => {
     file_input_ref.current?.click();
   }, []);
 
   return {
     attachments,
+    is_loading_attachments,
+    has_pending_attachment_reads,
     set_attachments,
     attachment_error,
     set_attachment_error,

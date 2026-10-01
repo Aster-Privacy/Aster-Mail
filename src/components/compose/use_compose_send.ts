@@ -89,6 +89,7 @@ export interface UseComposeSendOptions {
   message: string;
   attachments: Attachment[];
   is_loading_forward_attachments?: boolean;
+  has_pending_attachment_reads?: () => boolean;
   contacts: DecryptedContact[];
   selected_sender: SenderOption | null;
   has_external_recipients: boolean;
@@ -124,6 +125,7 @@ export function use_compose_send({
   message,
   attachments,
   is_loading_forward_attachments,
+  has_pending_attachment_reads,
   contacts,
   selected_sender,
   has_external_recipients,
@@ -264,6 +266,11 @@ export function use_compose_send({
     if (!user) {
       show_toast(t("errors.session_expired_send"), "error");
 
+      return;
+    }
+
+    if (has_pending_attachment_reads?.()) {
+      show_toast(t("common.loading"), "info");
       return;
     }
 
@@ -711,6 +718,7 @@ export function use_compose_send({
     selected_sender,
     attachments,
     is_loading_forward_attachments,
+    has_pending_attachment_reads,
     preferences.auto_save_recent_recipients,
     preferences.require_encryption,
     preferences.obscure_subject_when_encrypted,
@@ -741,6 +749,11 @@ export function use_compose_send({
       !scheduled_time
     )
       return;
+
+    if (has_pending_attachment_reads?.()) {
+      show_toast(t("common.loading"), "info");
+      return;
+    }
 
     if (attachments.length > 0) {
       show_toast(t("common.scheduled_no_attachments"), "error");
@@ -910,6 +923,7 @@ export function use_compose_send({
     vault,
     user,
     attachments,
+    has_pending_attachment_reads,
     clear_all_errors,
     reset_form,
     on_close,
