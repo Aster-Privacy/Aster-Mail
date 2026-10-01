@@ -120,6 +120,21 @@ function GhostSenderIcon({ size }: { size: string }) {
   );
 }
 
+function CatchAllBadge() {
+  const { t } = use_i18n();
+
+  return (
+    <span
+      className="inline-flex flex-shrink-0 items-center rounded-[14px] border px-1.5 py-px text-[11px] font-medium leading-4 text-txt-secondary"
+      style={{
+        borderColor: "color-mix(in srgb, var(--text-primary) 14%, transparent)",
+      }}
+    >
+      {t("settings.catch_all_label")}
+    </span>
+  );
+}
+
 function SenderOptionIcon({
   option,
   size,
@@ -192,7 +207,8 @@ function render_option(
   on_toggle_preferred: ((id: string) => void) | null,
   t: (key: TranslationKey, params?: Record<string, string | number>) => string,
 ) {
-  const pin_enabled = !!on_toggle_preferred && option.type !== "ghost";
+  const pin_enabled =
+    !!on_toggle_preferred && option.type !== "ghost" && !option.is_catch_all;
 
   return (
     <div
@@ -207,7 +223,10 @@ function render_option(
       >
         <SenderOptionIcon option={option} size="xs" />
         <div className="flex-1 min-w-0">
-          <p className="text-sm truncate text-txt-primary">{option.email}</p>
+          <div className="flex items-center gap-1.5 min-w-0">
+            <p className="text-sm truncate text-txt-primary">{option.email}</p>
+            {option.is_catch_all && <CatchAllBadge />}
+          </div>
           {option.display_name && (
             <p className="text-xs truncate text-txt-muted">
               {option.display_name}
@@ -443,6 +462,7 @@ export function SenderSelector({
       <div className="flex-1 flex items-center gap-1.5">
         <SenderOptionIcon option={display_option} size="xs" />
         <span className="text-sm text-txt-primary">{display_option.email}</span>
+        {display_option.is_catch_all && <CatchAllBadge />}
       </div>
     );
   }
@@ -532,6 +552,7 @@ export function SenderSelector({
       >
         <SenderOptionIcon option={display_option} size="xs" />
         <span className="text-sm text-txt-primary">{display_option.email}</span>
+        {display_option.is_catch_all && <CatchAllBadge />}
         <ChevronDownIcon className="w-3.5 h-3.5 text-txt-muted" />
       </button>
 
