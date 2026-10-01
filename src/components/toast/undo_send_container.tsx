@@ -114,6 +114,7 @@ export function UndoSendContainer({
       show_action_toast({
         message: t("common.email_sent"),
         action_type: "archive",
+        sound: "none",
         email_ids: [],
         duration_ms: remaining * 1000,
         on_undo: async () => {

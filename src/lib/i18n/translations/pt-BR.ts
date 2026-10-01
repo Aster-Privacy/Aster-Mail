@@ -4175,6 +4175,24 @@ export const pt_br = {
     clear_cache_reload: "Limpar todo o cache e recarregar",
     clear_cache_confirm_message:
       "Isso limpa os dados em cache neste dispositivo e recarrega o Aster Mail. Talvez você precise entrar novamente.",
+    iconic_sounds: "Iconic Sounds",
+    iconic_sounds_description:
+      "Reproduz sons do Aster quando você envia, desfaz um envio, escreve, anexa arquivos e recebe e-mails.",
+    iconic_sounds_info:
+      "O Iconic Sounds adiciona sons marcantes ao Aster. Esses sons podem mudar.",
+    iconic_sounds_beta: "Beta",
+    iconic_sounds_confirm_title: "Ativar o Iconic Sounds?",
+    iconic_sounds_confirm_message:
+      "Tem certeza de que quer ativar esta opção? O Aster Mail reproduz sons em ações como enviar e-mails e desfazer um envio. Este ajuste é sincronizado com os apps da web e de computador.",
+    iconic_sounds_turn_on: "Ativar",
+    iconic_sounds_preview: "Ouvir os sons",
+    iconic_sound_send: "Enviar",
+    iconic_sound_undo_send: "Desfazer envio",
+    iconic_sound_incoming: "Novo e-mail",
+    iconic_sound_done: "Concluído",
+    iconic_sound_fail: "Erro",
+    iconic_sound_compose: "Escrever",
+    iconic_sound_upload: "Anexo",
     current_plan: "Plano atual",
     free: "Gratuito",
     available_plans: "Planos disponíveis",

@@ -4099,6 +4099,24 @@ export const nl = {
     clear_cache_reload: "Alle cache wissen & herladen",
     clear_cache_confirm_message:
       "Hiermee wis je de gegevens in de cache op dit apparaat en wordt Aster Mail opnieuw geladen. Mogelijk moet je opnieuw inloggen.",
+    iconic_sounds: "Iconic Sounds",
+    iconic_sounds_description:
+      "Speelt Aster-geluiden af wanneer je verzendt, verzenden ongedaan maakt, een bericht opstelt, bestanden bijvoegt en e-mail ontvangt.",
+    iconic_sounds_info:
+      "Iconic Sounds voegt herkenbare geluiden toe aan Aster. Deze geluiden kunnen veranderen.",
+    iconic_sounds_beta: "Bèta",
+    iconic_sounds_confirm_title: "Iconic Sounds inschakelen?",
+    iconic_sounds_confirm_message:
+      "Weet je zeker dat je dit wilt inschakelen? Aster Mail speelt geluiden af bij acties zoals e-mail verzenden en verzenden ongedaan maken. Deze instelling wordt gesynchroniseerd met de web-app en de desktop-app.",
+    iconic_sounds_turn_on: "Inschakelen",
+    iconic_sounds_preview: "Geluiden beluisteren",
+    iconic_sound_send: "Verzenden",
+    iconic_sound_undo_send: "Verzenden ongedaan maken",
+    iconic_sound_incoming: "Nieuwe e-mail",
+    iconic_sound_done: "Klaar",
+    iconic_sound_fail: "Fout",
+    iconic_sound_compose: "Opstellen",
+    iconic_sound_upload: "Bijlage",
     current_plan: "Huidig abonnement",
     free: "Gratis",
     available_plans: "Beschikbare abonnementen",

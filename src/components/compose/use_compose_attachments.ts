@@ -24,6 +24,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { format_bytes } from "@/lib/utils";
+import { play_iconic_sound } from "@/services/iconic_sounds";
 import { strip_metadata } from "@/lib/strip_image_metadata";
 import {
   type Attachment,
@@ -282,6 +283,7 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
 
       if (new_attachments.length > 0) {
         set_attachments((prev) => [...prev, ...new_attachments]);
+        play_iconic_sound("upload");
       }
 
       if (unstripped.length > 0) {
@@ -406,6 +408,7 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
 
       if (new_attachments.length > 0) {
         set_attachments((prev) => [...prev, ...new_attachments]);
+        play_iconic_sound("upload");
       }
 
       if (unstripped.length > 0) {

@@ -24,6 +24,7 @@ import { DEFAULT_PREFERENCES } from "@/services/api/preferences";
 import { get_active_translations } from "@/lib/i18n/translations";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { ignore_error } from "@/lib/ignore_error";
+import { play_iconic_sound } from "@/services/iconic_sounds";
 
 export type NotificationType = "new_email" | "reply";
 
@@ -245,6 +246,8 @@ export async function show_notification(
 }
 
 export function play_notification_sound(): void {
+  if (play_iconic_sound("incoming")) return;
+
   const now = Date.now();
 
   if (now - last_sound_played_at < SOUND_MIN_INTERVAL_MS) {

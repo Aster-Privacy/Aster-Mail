@@ -4284,6 +4284,24 @@ export const ru = {
     clear_cache_reload: "Очистить весь кэш и перезагрузить",
     clear_cache_confirm_message:
       "Это очистит кэш на этом устройстве и перезагрузит Aster Mail. Возможно, потребуется войти снова.",
+    iconic_sounds: "Iconic Sounds",
+    iconic_sounds_description:
+      "Воспроизводит звуки Aster, когда вы отправляете письмо, отменяете отправку, пишете, прикрепляете файлы и получаете почту.",
+    iconic_sounds_info:
+      "Iconic Sounds добавляет в Aster запоминающиеся звуки. Эти звуки могут измениться.",
+    iconic_sounds_beta: "Бета",
+    iconic_sounds_confirm_title: "Включить Iconic Sounds?",
+    iconic_sounds_confirm_message:
+      "Вы действительно хотите включить эту функцию? Aster Mail воспроизводит звуки при таких действиях, как отправка письма и отмена отправки. Эта настройка синхронизируется с веб-приложением и приложением для компьютера.",
+    iconic_sounds_turn_on: "Включить",
+    iconic_sounds_preview: "Прослушать звуки",
+    iconic_sound_send: "Отправка",
+    iconic_sound_undo_send: "Отмена отправки",
+    iconic_sound_incoming: "Новое письмо",
+    iconic_sound_done: "Готово",
+    iconic_sound_fail: "Ошибка",
+    iconic_sound_compose: "Новое сообщение",
+    iconic_sound_upload: "Вложение",
     current_plan: "Текущий тариф",
     free: "Бесплатный",
     available_plans: "Доступные тарифы",

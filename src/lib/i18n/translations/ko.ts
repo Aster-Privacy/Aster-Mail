@@ -4201,6 +4201,24 @@ export const ko = {
     clear_cache_reload: "모든 캐시 지우기 및 새로고침",
     clear_cache_confirm_message:
       "이 기기의 캐시 데이터를 지우고 Aster Mail을 다시 불러옵니다. 다시 로그인해야 할 수 있습니다.",
+    iconic_sounds: "Iconic Sounds",
+    iconic_sounds_description:
+      "메일을 보내거나, 보내기를 취소하거나, 작성하거나, 파일을 첨부하거나, 메일을 받을 때 Aster 사운드를 재생합니다.",
+    iconic_sounds_info:
+      "Iconic Sounds는 Aster에 기억에 남는 사운드를 추가합니다. 사운드는 변경될 수 있습니다.",
+    iconic_sounds_beta: "베타",
+    iconic_sounds_confirm_title: "Iconic Sounds를 켤까요?",
+    iconic_sounds_confirm_message:
+      "이 기능을 켜시겠습니까? Aster Mail은 메일 보내기, 보내기 취소 같은 동작에 사운드를 재생합니다. 이 설정은 웹 앱 및 데스크톱 앱과 동기화됩니다.",
+    iconic_sounds_turn_on: "켜기",
+    iconic_sounds_preview: "사운드 미리 듣기",
+    iconic_sound_send: "보내기",
+    iconic_sound_undo_send: "보내기 취소",
+    iconic_sound_incoming: "새 메일",
+    iconic_sound_done: "완료",
+    iconic_sound_fail: "오류",
+    iconic_sound_compose: "작성",
+    iconic_sound_upload: "첨부 파일",
     current_plan: "현재 플랜",
     free: "무료",
     available_plans: "사용 가능한 플랜",

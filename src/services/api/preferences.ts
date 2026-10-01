@@ -238,6 +238,7 @@ export interface UserPreferences {
   muted_folder_tokens: string[];
   muted_notification_categories: string[];
   inbox_page_size: number;
+  iconic_sounds_enabled: boolean;
 }
 
 const QUIET_HOURS_RETRY_DELAY_MS = 2000;
@@ -793,6 +794,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   muted_folder_tokens: [],
   muted_notification_categories: [],
   inbox_page_size: DEFAULT_INBOX_PAGE_SIZE,
+  iconic_sounds_enabled: false,
 };
 
 type GetPreferencesViaHttpResult =
@@ -966,6 +968,7 @@ export function build_merged_preferences(
     ? merged.mobile_toolbar_actions.filter((c) => typeof c === "string")
     : [...DEFAULT_PREFERENCES.mobile_toolbar_actions];
   merged.inbox_page_size = clamp_inbox_page_size(merged.inbox_page_size);
+  merged.iconic_sounds_enabled = merged.iconic_sounds_enabled === true;
 
   if (
     merged.inbox_sort_order !== "newest_first" &&

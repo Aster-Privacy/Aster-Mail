@@ -38,7 +38,10 @@ import {
 import { send_via_external_account } from "@/services/api/external_accounts";
 import { prepare_external_attachments } from "@/services/crypto/attachment_crypto";
 import { dismiss_toast, show_toast } from "@/components/toast/simple_toast";
-import { show_email_sent_toast } from "@/components/toast/email_sent_toast";
+import {
+  play_email_sent_sound,
+  show_email_sent_toast,
+} from "@/components/toast/email_sent_toast";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { emit_email_sent } from "@/hooks/mail_events";
 import { record_review_prompt_action } from "@/lib/review_prompt";
@@ -626,6 +629,7 @@ export async function execute_external_account_email_send(
           dispatch_email_sent();
           log_activities_for_sent(ctx, email_data);
           ctx.on_close();
+          play_email_sent_sound();
           show_toast(ctx.t("common.email_sent"), "success");
           record_review_prompt_action();
         } else {
@@ -681,6 +685,7 @@ export async function execute_external_account_email_send(
             dispatch_email_sent();
             log_activities_for_sent(ctx, email_data);
             ctx.on_close();
+            play_email_sent_sound();
             show_toast(ctx.t("common.email_sent"), "success");
             record_review_prompt_action();
           } else {
@@ -724,6 +729,8 @@ export async function execute_external_account_email_send(
 
       return false;
     }
+
+    play_email_sent_sound();
 
     show_toast(ctx.t("common.email_sent"), "success");
     record_review_prompt_action();

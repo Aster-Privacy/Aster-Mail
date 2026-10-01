@@ -4279,6 +4279,24 @@ export const ar = {
     clear_cache_reload: "مسح جميع ذاكرة التخزين المؤقت وإعادة التحميل",
     clear_cache_confirm_message:
       "يؤدي هذا إلى مسح البيانات المخزنة مؤقتًا على هذا الجهاز وإعادة تحميل Aster Mail. قد تحتاج إلى تسجيل الدخول مرة أخرى.",
+    iconic_sounds: "Iconic Sounds",
+    iconic_sounds_description:
+      "يشغّل أصوات Aster عند الإرسال والتراجع عن الإرسال وكتابة رسالة وإرفاق الملفات واستلام البريد.",
+    iconic_sounds_info:
+      "تضيف Iconic Sounds أصواتًا مميزة إلى Aster. قد تتغير هذه الأصوات.",
+    iconic_sounds_beta: "تجريبي",
+    iconic_sounds_confirm_title: "تشغيل Iconic Sounds؟",
+    iconic_sounds_confirm_message:
+      "هل أنت متأكد من أنك تريد تشغيل هذه الميزة؟ يشغّل Aster Mail أصواتًا عند إجراءات مثل إرسال البريد والتراجع عن الإرسال. تتم مزامنة هذا الإعداد مع تطبيق الويب وتطبيق سطح المكتب.",
+    iconic_sounds_turn_on: "تشغيل",
+    iconic_sounds_preview: "معاينة الأصوات",
+    iconic_sound_send: "إرسال",
+    iconic_sound_undo_send: "تراجع عن الإرسال",
+    iconic_sound_incoming: "بريد جديد",
+    iconic_sound_done: "تم",
+    iconic_sound_fail: "خطأ",
+    iconic_sound_compose: "إنشاء",
+    iconic_sound_upload: "مرفق",
     current_plan: "الخطة الحالية",
     free: "مجاني",
     available_plans: "الخطط المتاحة",

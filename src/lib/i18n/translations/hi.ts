@@ -3230,6 +3230,24 @@ export const hi = {
     clear_cache_reload: "पूरा कैश साफ़ करें और फिर से लोड करें",
     clear_cache_confirm_message:
       "इससे इस डिवाइस पर कैश किया गया डेटा साफ़ हो जाता है और Aster Mail फिर से लोड होता है। आपको दोबारा साइन इन करना पड़ सकता है।",
+    iconic_sounds: "Iconic Sounds",
+    iconic_sounds_description:
+      "जब आप मेल भेजते हैं, भेजना पूर्ववत करते हैं, लिखते हैं, फ़ाइलें अटैच करते हैं और मेल पाते हैं, तब Aster की ध्वनियाँ बजती हैं।",
+    iconic_sounds_info:
+      "Iconic Sounds, Aster में यादगार ध्वनियाँ जोड़ता है। ये ध्वनियाँ बदल सकती हैं।",
+    iconic_sounds_beta: "बीटा",
+    iconic_sounds_confirm_title: "Iconic Sounds चालू करें?",
+    iconic_sounds_confirm_message:
+      "क्या आप वाकई इसे चालू करना चाहते हैं? Aster Mail मेल भेजने और भेजना पूर्ववत करने जैसी कार्रवाइयों पर ध्वनियाँ बजाता है। यह सेटिंग वेब और डेस्कटॉप ऐप के साथ सिंक होती है।",
+    iconic_sounds_turn_on: "चालू करें",
+    iconic_sounds_preview: "ध्वनियाँ सुनें",
+    iconic_sound_send: "भेजें",
+    iconic_sound_undo_send: "भेजना पूर्ववत करें",
+    iconic_sound_incoming: "नया मेल",
+    iconic_sound_done: "पूर्ण",
+    iconic_sound_fail: "त्रुटि",
+    iconic_sound_compose: "लिखें",
+    iconic_sound_upload: "अटैचमेंट",
     current_plan: "मौजूदा प्लान",
     free: "मुफ़्त",
     or_pay_with_card: "या कार्ड से भुगतान करें",

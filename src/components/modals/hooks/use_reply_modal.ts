@@ -56,7 +56,11 @@ import {
 } from "@/components/compose/send_lock";
 import { auto_save_recipients_to_contacts } from "@/services/contacts_auto_save";
 import { show_toast } from "@/components/toast/simple_toast";
-import { show_email_sent_toast } from "@/components/toast/email_sent_toast";
+import {
+  play_email_sent_sound,
+  show_email_sent_toast,
+} from "@/components/toast/email_sent_toast";
+import { play_iconic_sound } from "@/services/iconic_sounds";
 import { format_bytes } from "@/lib/utils";
 import {
   emit_email_sent,
@@ -462,6 +466,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
 
       is_sending_ref.current = false;
       send_lock_started_at_ref.current = 0;
+      play_email_sent_sound();
       show_toast(t("common.email_sent_via_external"), "success");
       emit_email_sent();
 
@@ -1012,6 +1017,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
 
       if (new_attachments.length > 0) {
         set_attachments((prev) => [...prev, ...new_attachments]);
+        play_iconic_sound("upload");
       }
 
       if (file_input_ref.current) {
@@ -1089,6 +1095,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
 
       if (new_attachments.length > 0) {
         set_attachments((prev) => [...prev, ...new_attachments]);
+        play_iconic_sound("upload");
       }
     },
     [attachments, get_total_attachments_size, t],

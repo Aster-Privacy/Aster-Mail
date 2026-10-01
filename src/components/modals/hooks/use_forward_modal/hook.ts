@@ -50,6 +50,7 @@ import { auto_save_recipients_to_contacts } from "@/services/contacts_auto_save"
 import { use_auth } from "@/contexts/auth_context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { show_email_sent_toast } from "@/components/toast/email_sent_toast";
+import { play_iconic_sound } from "@/services/iconic_sounds";
 import { format_bytes } from "@/lib/utils";
 import {
   MAX_RECIPIENTS_PER_FIELD,
@@ -1037,6 +1038,7 @@ export function use_forward_modal({
       if (new_attachments.length > 0) {
         attachments_touched_ref.current = true;
         set_attachments((prev) => [...prev, ...new_attachments]);
+        play_iconic_sound("upload");
       }
 
       if (file_input_ref.current) {
@@ -1115,6 +1117,7 @@ export function use_forward_modal({
       if (new_attachments.length > 0) {
         attachments_touched_ref.current = true;
         set_attachments((prev) => [...prev, ...new_attachments]);
+        play_iconic_sound("upload");
       }
     },
     [attachments, get_total_attachments_size, t],

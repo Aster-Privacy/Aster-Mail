@@ -61,6 +61,7 @@ import {
   request_notification_permission,
 } from "@/services/notification_service";
 import { set_low_network_mode } from "@/services/low_network_state";
+import { set_iconic_sounds_enabled } from "@/services/iconic_sounds";
 import {
   set_reply_include_quoted,
   set_reply_prefix_subject,
@@ -419,6 +420,10 @@ export function use_preferences_provider() {
   useEffect(() => {
     set_badge_count_enabled(preferences.badge_count !== false);
   }, [preferences.badge_count]);
+
+  useEffect(() => {
+    set_iconic_sounds_enabled(preferences.iconic_sounds_enabled === true);
+  }, [preferences.iconic_sounds_enabled]);
 
   useEffect(() => {
     set_reply_include_quoted(preferences.reply_include_quoted);

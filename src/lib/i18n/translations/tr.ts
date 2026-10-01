@@ -4110,6 +4110,24 @@ export const tr = {
     clear_cache_reload: "Tüm Önbelleği Temizle ve Yeniden Yükle",
     clear_cache_confirm_message:
       "Bu işlem bu cihazdaki önbellek verilerini siler ve Aster Mail'i yeniden yükler. Yeniden oturum açman gerekebilir.",
+    iconic_sounds: "Iconic Sounds",
+    iconic_sounds_description:
+      "Gönderdiğinde, gönderimi geri aldığında, yazdığında, dosya eklediğinde ve posta aldığında Aster seslerini çalar.",
+    iconic_sounds_info:
+      "Iconic Sounds, Aster'e akılda kalıcı sesler ekler. Bu sesler değişebilir.",
+    iconic_sounds_beta: "Beta",
+    iconic_sounds_confirm_title: "Iconic Sounds açılsın mı?",
+    iconic_sounds_confirm_message:
+      "Bunu açmak istediğinden emin misin? Aster Mail, posta gönderme ve gönderimi geri alma gibi işlemlerde ses çalar. Bu ayar web ve masaüstü uygulamalarıyla eşitlenir.",
+    iconic_sounds_turn_on: "Aç",
+    iconic_sounds_preview: "Sesleri dinle",
+    iconic_sound_send: "Gönder",
+    iconic_sound_undo_send: "Gönderimi geri al",
+    iconic_sound_incoming: "Yeni posta",
+    iconic_sound_done: "Tamamlandı",
+    iconic_sound_fail: "Hata",
+    iconic_sound_compose: "Yaz",
+    iconic_sound_upload: "Ek",
     current_plan: "Mevcut Plan",
     free: "Ücretsiz",
     available_plans: "Mevcut Planlar",

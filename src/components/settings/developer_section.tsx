@@ -30,8 +30,17 @@ import {
   GlobeAltIcon,
   CircleStackIcon,
   WrenchScrewdriverIcon,
+  SpeakerWaveIcon,
 } from "@heroicons/react/24/outline";
-import { Button, Island, IslandSection, IslandSections } from "@aster/ui";
+import {
+  Badge,
+  Button,
+  Island,
+  IslandRow,
+  IslandSection,
+  IslandSections,
+  Tooltip,
+} from "@aster/ui";
 
 import { trigger_download } from "@/utils/download_blob";
 import { copy_text_or_throw } from "@/utils/copy_text";
@@ -40,6 +49,7 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth_context";
+import { use_preferences } from "@/contexts/preferences_context";
 import { use_mail_stats } from "@/hooks/use_mail_stats";
 import { use_folders } from "@/hooks/use_folders";
 import { use_online_status } from "@/hooks/use_online_status";
@@ -54,6 +64,22 @@ import {
   has_passphrase_in_memory,
 } from "@/services/crypto/memory_key_store";
 import { app_locale } from "@/utils/date_format";
+import {
+  ICONIC_SOUNDS,
+  is_iconic_sounds_supported,
+  preview_iconic_sound,
+  type IconicSound,
+} from "@/services/iconic_sounds";
+
+const ICONIC_SOUND_LABEL_KEYS = {
+  send: "settings.iconic_sound_send",
+  undo_send: "settings.iconic_sound_undo_send",
+  incoming: "settings.iconic_sound_incoming",
+  done: "settings.iconic_sound_done",
+  fail: "settings.iconic_sound_fail",
+  compose: "settings.iconic_sound_compose",
+  upload: "settings.iconic_sound_upload",
+} as const satisfies Record<IconicSound, string>;
 
 function get_local_storage_size(): string {
   let total = 0;
@@ -195,11 +221,15 @@ export function DeveloperSection() {
   const { stats } = use_mail_stats();
   const folders_hook = use_folders();
   const { is_online } = use_online_status();
+  const { preferences, update_preference } = use_preferences();
+  const iconic_sounds_supported = is_iconic_sounds_supported();
+  const iconic_sounds_enabled = preferences.iconic_sounds_enabled === true;
 
   const [sw_status, set_sw_status] = useState(t("settings.dev_checking"));
   const [key_status, set_key_status] = useState<IdentityKeyStatus | null>(null);
   const [key_loading, set_key_loading] = useState(true);
   const [confirm_clear_cache, set_confirm_clear_cache] = useState(false);
+  const [confirm_iconic_sounds, set_confirm_iconic_sounds] = useState(false);
   const [wkd_published, set_wkd_published] = useState<boolean | null>(null);
   const [keyserver_published, set_keyserver_published] = useState<
     boolean | null
@@ -328,6 +358,22 @@ export function DeveloperSection() {
       await Promise.all(cache_names.map((name) => caches.delete(name)));
     }
     window.location.reload();
+  };
+
+  const handle_iconic_sounds_change = (next: boolean) => {
+    if (next) {
+      set_confirm_iconic_sounds(true);
+
+      return;
+    }
+
+    update_preference("iconic_sounds_enabled", false, true);
+  };
+
+  const handle_confirm_iconic_sounds = () => {
+    set_confirm_iconic_sounds(false);
+    update_preference("iconic_sounds_enabled", true, true);
+    preview_iconic_sound("done");
   };
 
   const handle_unregister_sw = async () => {
@@ -712,6 +758,67 @@ export function DeveloperSection() {
         )}
       </IslandSection>
 
+      {iconic_sounds_supported && (
+        <IslandSection
+          icon={<SpeakerWaveIcon />}
+          title={t("settings.iconic_sounds")}
+        >
+          <IslandRow
+            description={t("settings.iconic_sounds_description")}
+            label={
+              <span className="inline-flex items-center gap-2">
+                {t("settings.iconic_sounds")}
+                <span
+                  className="aster_island_toggle_stop inline-flex items-center gap-1.5"
+                  role="presentation"
+                  onClick={(e) => e.stopPropagation()}
+                  onKeyDown={(e) => e.stopPropagation()}
+                >
+                  <Badge color="purple">
+                    {t("settings.iconic_sounds_beta")}
+                  </Badge>
+                  <Tooltip tip={t("settings.iconic_sounds_info")}>
+                    <button
+                      aria-label={t("settings.iconic_sounds_info")}
+                      className="text-txt-muted"
+                      type="button"
+                    >
+                      <InformationCircleIcon className="h-4 w-4" />
+                    </button>
+                  </Tooltip>
+                </span>
+              </span>
+            }
+            toggle={{
+              checked: iconic_sounds_enabled,
+              on_change: handle_iconic_sounds_change,
+              size: "lg",
+              aria_label: t("settings.iconic_sounds"),
+            }}
+          />
+          {iconic_sounds_enabled && (
+            <IslandRow
+              label={t("settings.iconic_sounds_preview")}
+              layout="stacked"
+              trailing={
+                <span className="flex flex-wrap gap-2">
+                  {ICONIC_SOUNDS.map((name) => (
+                    <Button
+                      key={name}
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => preview_iconic_sound(name)}
+                    >
+                      {t(ICONIC_SOUND_LABEL_KEYS[name])}
+                    </Button>
+                  ))}
+                </span>
+              }
+            />
+          )}
+        </IslandSection>
+      )}
+
       <IslandSection
         bare
         icon={<WrenchScrewdriverIcon />}
@@ -765,6 +872,17 @@ export function DeveloperSection() {
         on_confirm={handle_clear_cache}
         title={t("settings.clear_cache_reload")}
         variant="danger"
+      />
+
+      <ConfirmationModal
+        cancel_text={t("common.cancel")}
+        confirm_text={t("settings.iconic_sounds_turn_on")}
+        is_open={confirm_iconic_sounds}
+        message={t("settings.iconic_sounds_confirm_message")}
+        on_cancel={() => set_confirm_iconic_sounds(false)}
+        on_confirm={handle_confirm_iconic_sounds}
+        title={t("settings.iconic_sounds_confirm_title")}
+        variant="info"
       />
     </IslandSections>
   );

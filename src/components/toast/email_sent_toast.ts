@@ -23,6 +23,7 @@ import type { NavigateFunction } from "react-router-dom";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { list_mail_items } from "@/services/api/mail";
 import { ignore_error } from "@/lib/ignore_error";
+import { play_send_settled_sound } from "@/services/iconic_sounds";
 
 export const NAVIGATE_TO_SENT_EVENT = "astermail:navigate-to-sent";
 
@@ -38,10 +39,16 @@ export function open_sent_message(email_id?: string): void {
   );
 }
 
+export function play_email_sent_sound(): void {
+  play_send_settled_sound();
+}
+
 export function show_email_sent_toast(message: string, sent_id?: string): void {
+  play_send_settled_sound();
   show_action_toast({
     message,
     action_type: "read",
+    sound: "none",
     email_ids: [],
     duration_ms: 5000,
     on_view_message: () => open_sent_message(sent_id),

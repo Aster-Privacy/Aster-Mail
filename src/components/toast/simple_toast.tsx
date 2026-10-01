@@ -19,10 +19,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useEffect } from "react";
-import { SimpleToast as SimpleToastView, show_toast } from "@aster/ui";
+import {
+  SimpleToast as SimpleToastView,
+  show_toast as show_ui_toast,
+} from "@aster/ui";
 
 import { use_should_reduce_motion } from "@/provider";
 import { ignore_error } from "@/lib/ignore_error";
+import { play_iconic_sound } from "@/services/iconic_sounds";
 import { use_translation } from "@/lib/i18n";
 import {
   use_toast_position,
@@ -32,7 +36,6 @@ import {
 export type { ToastPosition };
 
 export {
-  show_toast,
   dismiss_toast,
   set_toast_min_duration,
   TOAST_DURATION_DEFAULT_MS,
@@ -40,6 +43,14 @@ export {
 } from "@aster/ui";
 
 const OFFLINE_FAILURE_TOAST_MS = 8000;
+
+export function show_toast(
+  ...args: Parameters<typeof show_ui_toast>
+): ReturnType<typeof show_ui_toast> {
+  if (args[1] === "error") play_iconic_sound("fail");
+
+  return show_ui_toast(...args);
+}
 
 interface SimpleToastProps {
   position?: ToastPosition;

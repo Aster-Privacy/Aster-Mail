@@ -31,6 +31,7 @@ import { use_should_reduce_motion } from "@/provider";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_translation } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
+import { play_iconic_sound } from "@/services/iconic_sounds";
 
 const MAX_COMPOSE_INSTANCES = 3;
 
@@ -115,6 +116,8 @@ export function use_compose_manager() {
           is_minimized:
             (preferences.compose_window_mode ?? "default") === "minimized",
         };
+
+        play_iconic_sound("compose");
 
         return [...prev, new_instance];
       });
