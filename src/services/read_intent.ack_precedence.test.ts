@@ -111,6 +111,21 @@ describe("flag intent acknowledgment precedence", () => {
     expect(older.is_starred).toBe(false);
   });
 
+  it("keeps correcting an older fetch after a newer one confirmed the read", () => {
+    note_flag_intents(["m1"], { is_read: true });
+    vi.setSystemTime(BASE_NOW + 1_000);
+    ack_flag_intents(["m1"], { is_read: true });
+    vi.setSystemTime(BASE_NOW + 2_000);
+
+    const [fresh] = apply_flag_intents([row("m1", true)], BASE_NOW + 1_500);
+
+    expect(fresh.is_read).toBe(true);
+
+    const [older] = apply_flag_intents([row("m1", false)], BASE_NOW + 500);
+
+    expect(older.is_read).toBe(true);
+  });
+
   it("still expires a pending change that is never acknowledged", () => {
     note_flag_intents(["m1"], { is_read: true });
     vi.setSystemTime(BASE_NOW + 30_001);
@@ -181,6 +196,24 @@ describe("category index read state against in-flight syncs", () => {
     upsert_entries([entry("m1", false)], undefined, BASE_NOW + 4_000);
 
     expect(get_counts().primary?.unread).toBe(2);
+  });
+
+  it("keeps a read message read when a page fetched before the read lands after a confirming sync", () => {
+    vi.setSystemTime(BASE_NOW + 200);
+    note_flag_intents(["m1"], { is_read: true });
+    set_ids_read(["m1"], true);
+    ack_flag_intents(["m1"], { is_read: true });
+    vi.setSystemTime(BASE_NOW + 5_000);
+
+    upsert_entries([entry("m1", true)], undefined, BASE_NOW + 4_000);
+
+    const [late_page_row] = apply_flag_intents(
+      [row("m1", false)],
+      BASE_NOW + 100,
+    );
+
+    expect(late_page_row.is_read).toBe(true);
+    expect(get_counts().primary?.unread).toBe(1);
   });
 
   it("keeps a message unread when a stale sync still reports it read", () => {

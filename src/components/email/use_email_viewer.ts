@@ -657,6 +657,8 @@ export function use_email_viewer({
         ...item,
         metadata: decrypted_metadata,
       };
+      const is_read_on_server =
+        item.is_read ?? decrypted_metadata?.is_read ?? false;
 
       const parsed_reply_to = extract_reply_to(envelope.raw_headers);
 
@@ -673,7 +675,7 @@ export function use_email_viewer({
           subject: envelope.subject || t("mail.no_subject"),
           preview: build_preview_text(body_text, safe_html),
           timestamp: item.created_at,
-          is_read: decrypted_metadata?.is_read ?? false,
+          is_read: is_read_on_server,
           is_starred: decrypted_metadata?.is_starred ?? false,
           is_trashed: decrypted_metadata?.is_trashed ?? false,
           is_archived: decrypted_metadata?.is_archived ?? false,
@@ -700,12 +702,12 @@ export function use_email_viewer({
         set_has_recipient_key(!!item.has_recipient_key);
         set_has_pq_protection(!!item.ephemeral_pq_key);
         set_mail_item(item_with_metadata);
-        set_is_read(decrypted_metadata?.is_read ?? false);
+        set_is_read(is_read_on_server);
         set_is_pinned(decrypted_metadata?.is_pinned ?? false);
       }
 
       if (
-        !(decrypted_metadata?.is_read ?? false) &&
+        !is_read_on_server &&
         preferences.mark_as_read_delay !== "never"
       ) {
         const is_received_item = item.item_type === "received";

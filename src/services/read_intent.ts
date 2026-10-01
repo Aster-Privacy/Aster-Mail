@@ -76,6 +76,7 @@ function read_entry(
   flag: keyof FlagIntents,
   id: string,
   fetched_at?: number,
+  observed?: IntentValue,
 ): IntentValue | undefined {
   const key = intent_key(flag, id);
   const current = intents.get(key);
@@ -90,8 +91,16 @@ function read_entry(
       ? now_ms() - current.at >= PENDING_MAX_AGE_MS
       : now_ms() - acked_at >= ACKED_MAX_AGE_MS;
 
-  if (superseded || expired) {
+  if (expired) {
     intents.delete(key);
+
+    return undefined;
+  }
+
+  if (superseded) {
+    if (observed !== undefined && observed !== current.value) {
+      intents.delete(key);
+    }
 
     return undefined;
   }
@@ -231,8 +240,9 @@ export function get_flag_intent(
   id: string,
   flag: BooleanIntentFlag,
   fetched_at?: number,
+  observed?: boolean,
 ): boolean | undefined {
-  const value = read_entry(flag, id, fetched_at);
+  const value = read_entry(flag, id, fetched_at, observed);
 
   return typeof value === "boolean" ? value : undefined;
 }
@@ -240,8 +250,9 @@ export function get_flag_intent(
 export function get_snooze_intent(
   id: string,
   fetched_at?: number,
+  observed?: string | null,
 ): string | null | undefined {
-  const value = read_entry("snoozed_until", id, fetched_at);
+  const value = read_entry("snoozed_until", id, fetched_at, observed);
 
   return typeof value === "boolean" ? undefined : value;
 }
@@ -285,8 +296,9 @@ export function clear_read_intent(
 export function get_read_intent(
   id: string,
   fetched_at?: number,
+  observed?: boolean,
 ): boolean | undefined {
-  return get_flag_intent(id, "is_read", fetched_at);
+  return get_flag_intent(id, "is_read", fetched_at, observed);
 }
 
 export function note_scope_read_intent(): number {
@@ -416,7 +428,7 @@ export function resolve_read_intent(
   row: ReadIntentRow,
   fetched_at?: number,
 ): boolean | undefined {
-  const own = get_read_intent(row.id, fetched_at);
+  const own = get_read_intent(row.id, fetched_at, row.is_read);
 
   if (own !== undefined) return own;
   if (row.grouped_email_ids && row.grouped_email_ids.length >= 2) {
@@ -457,13 +469,22 @@ export function resolve_flag_intents<T extends FlagIntentRow>(
   }
 
   for (const flag of OVERLAY_FLAGS) {
-    const intended = get_flag_intent(row.id, flag, fetched_at);
+    const intended = get_flag_intent(
+      row.id,
+      flag,
+      fetched_at,
+      row[flag] ?? false,
+    );
 
     if (intended === undefined || intended === (row[flag] ?? false)) continue;
     next = { ...(next ?? row), [flag]: intended };
   }
 
-  const snooze = get_snooze_intent(row.id, fetched_at);
+  const snooze = get_snooze_intent(
+    row.id,
+    fetched_at,
+    row.snoozed_until ?? null,
+  );
 
   if (snooze !== undefined) {
     const intended = snooze || undefined;

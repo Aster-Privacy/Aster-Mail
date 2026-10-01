@@ -1057,6 +1057,8 @@ export const nl = {
     switch_to_rich_text: "Overschakelen naar rich text",
     switch_to_plain_text: "Overschakelen naar platte tekst",
     font_size_label: "Lettergrootte",
+    font_family_label: "Lettertype",
+    font_family_default: "Standaardlettertype",
     enter_url_display_text: "Voer een URL en optionele weergavetekst in",
     emoji: "Emoji",
     recipients: "Ontvangers",

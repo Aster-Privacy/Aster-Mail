@@ -30,6 +30,7 @@ export {
 export type { OperatorSuggestion } from "./parse";
 export {
   add_operator_to_query,
+  date_range_operators,
   format_date_for_operator,
   get_quick_filters,
   parse_operator_date,

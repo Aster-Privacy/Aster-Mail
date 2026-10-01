@@ -1153,6 +1153,8 @@ export const hi = {
     switch_to_rich_text: "रिच टेक्स्ट पर जाएं",
     switch_to_plain_text: "सादे पाठ पर जाएं",
     font_size_label: "फ़ॉन्ट का आकार",
+    font_family_label: "फ़ॉन्ट",
+    font_family_default: "डिफ़ॉल्ट फ़ॉन्ट",
     enter_url_display_text: "URL और वैकल्पिक प्रदर्शन पाठ डालें",
     emoji: "इमोजी",
     recipients: "प्राप्तकर्ता",

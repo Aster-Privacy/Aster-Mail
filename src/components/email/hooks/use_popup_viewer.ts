@@ -563,8 +563,11 @@ export function use_popup_viewer({
         metadata: decrypted_metadata ?? undefined,
       };
 
+      const is_read_on_server =
+        response.data.is_read ?? decrypted_metadata?.is_read ?? false;
+
       set_mail_item(item_with_metadata);
-      set_is_read(decrypted_metadata?.is_read ?? false);
+      set_is_read(is_read_on_server);
       set_is_pinned(decrypted_metadata?.is_pinned ?? false);
 
       const envelope = await decrypt_mail_envelope(
@@ -601,7 +604,7 @@ export function use_popup_viewer({
           subject: envelope.subject || t("mail.no_subject"),
           preview: build_preview_text(body_text, safe_html),
           timestamp: format_email_detail(timestamp_date.current),
-          is_read: decrypted_metadata?.is_read ?? false,
+          is_read: is_read_on_server,
           is_starred: decrypted_metadata?.is_starred ?? false,
           body: safe_html || body_text,
           html_content: safe_html,
@@ -709,10 +712,7 @@ export function use_popup_viewer({
           }
         }
 
-        schedule_mark_as_read(
-          response.data,
-          decrypted_metadata?.is_read ?? false,
-        );
+        schedule_mark_as_read(response.data, is_read_on_server);
       }
     }
   }, [

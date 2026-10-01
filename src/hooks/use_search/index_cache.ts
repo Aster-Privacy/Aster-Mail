@@ -54,6 +54,7 @@ import {
   record_index_download_checkpoint,
   reset_index_download_state,
 } from "@/services/search/index_download_control";
+import { clear_folded_patterns } from "@/utils/search_fold";
 const PARTIAL_PUBLISH_MS = 750;
 
 let partial_ready_resolve: (() => void) | null = null;
@@ -424,6 +425,7 @@ export function reset_index_cache(): void {
   build_generation++;
   index_build_promise = null;
   reset_vocabulary();
+  clear_folded_patterns();
 }
 
 export function clear_search_index(): void {
@@ -431,6 +433,7 @@ export function clear_search_index(): void {
   build_generation++;
   index_build_promise = null;
   reset_vocabulary();
+  clear_folded_patterns();
   reset_index_download_state();
   emit_indexing({ building: false, current: 0, total: 0 });
   void clear_search_snapshots();

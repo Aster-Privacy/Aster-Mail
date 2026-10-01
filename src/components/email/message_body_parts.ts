@@ -39,12 +39,9 @@ const BLOCK_BREAK_RE =
   /<br\s*\/?>|<\/(?:div|p|li|h[1-6]|tr|table|blockquote|pre)>/gi;
 
 function has_visible_text(html: string): boolean {
-  return (
-    html
-      .replace(/<[^>]*>/g, "")
-      .replace(/&nbsp;/gi, " ")
-      .trim().length > 0
-  );
+  return html
+    .split(/<[^>]*>/)
+    .some((part) => part.replace(/&nbsp;/gi, " ").trim().length > 0);
 }
 
 function split_at_quote(html: string): [string, string] {

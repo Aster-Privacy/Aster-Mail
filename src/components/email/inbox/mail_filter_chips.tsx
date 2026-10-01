@@ -37,6 +37,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { AdvancedSearchModal } from "@/components/search/advanced_search_modal";
 import { is_composing } from "@/utils/ime";
 import { local_date_key } from "@/utils/date_format";
+import { date_range_operators } from "@/utils/search_operators";
 
 type DateWindowKey =
   | "any"
@@ -109,8 +110,9 @@ export function build_chip_query(filters: ChipFilters): string {
   if (filters.from.trim()) parts.push(`from:${filters.from.trim()}`);
   if (filters.to.trim()) parts.push(`to:${filters.to.trim()}`);
   if (filters.date_window === "custom") {
-    if (filters.custom_after) parts.push(`after:${filters.custom_after}`);
-    if (filters.custom_before) parts.push(`before:${filters.custom_before}`);
+    parts.push(
+      ...date_range_operators(filters.custom_after, filters.custom_before),
+    );
   } else if (filters.date_window !== "any") {
     const window = DATE_WINDOWS.find((w) => w.key === filters.date_window);
 

@@ -1708,6 +1708,8 @@ export interface CommonTranslations {
   switch_to_rich_text: string;
   switch_to_plain_text: string;
   font_size_label: string;
+  font_family_label: string;
+  font_family_default: string;
   enter_url_display_text: string;
   emoji: string;
   recipients: string;

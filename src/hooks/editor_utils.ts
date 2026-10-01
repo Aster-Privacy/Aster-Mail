@@ -45,6 +45,43 @@ export function font_size_label_from_px(px: string): FontSizeLabel | null {
   return labels.find((label) => FONT_SIZE_MAP[label] === px) ?? null;
 }
 
+export const DEFAULT_FONT_FAMILY = "inherit";
+
+export const FONT_FAMILY_OPTIONS: { name: string; stack: string }[] = [
+  { name: "Arial", stack: "Arial, Helvetica, sans-serif" },
+  { name: "Georgia", stack: "Georgia, serif" },
+  { name: "Times New Roman", stack: "'Times New Roman', Times, serif" },
+  { name: "Verdana", stack: "Verdana, Geneva, sans-serif" },
+  { name: "Trebuchet MS", stack: "'Trebuchet MS', Helvetica, sans-serif" },
+  { name: "Tahoma", stack: "Tahoma, Geneva, sans-serif" },
+  { name: "Courier New", stack: "'Courier New', Courier, monospace" },
+];
+
+export function is_allowed_font_family(family: string): boolean {
+  return (
+    family === DEFAULT_FONT_FAMILY ||
+    FONT_FAMILY_OPTIONS.some((option) => option.stack === family)
+  );
+}
+
+export function font_family_option_from_css(
+  css: string,
+): { name: string; stack: string } | null {
+  const primary = css
+    .split(",")[0]
+    ?.trim()
+    .replace(/^["']|["']$/g, "")
+    .toLowerCase();
+
+  if (!primary) return null;
+
+  return (
+    FONT_FAMILY_OPTIONS.find(
+      (option) => option.name.toLowerCase() === primary,
+    ) ?? null
+  );
+}
+
 export function replace_font_element(
   font: HTMLElement,
   px: string,
@@ -208,6 +245,7 @@ export interface EditorFormatState {
   current_font_color: string;
   current_bg_color: string;
   current_font_size: string;
+  current_font_family: string;
 }
 
 export interface UseEditorOptions {
@@ -249,6 +287,7 @@ export interface UseEditorReturn {
   set_font_color: (color: string) => void;
   set_background_color: (color: string) => void;
   set_font_size: (size: FontSizeLabel) => void;
+  set_font_family: (family: string) => void;
 
   handle_paste: (e: React.ClipboardEvent) => void;
   handle_drop: (e: React.DragEvent) => void;

@@ -1094,6 +1094,8 @@ export const it = {
     switch_to_rich_text: "Passa al testo formattato",
     switch_to_plain_text: "Passa al testo semplice",
     font_size_label: "Dimensione carattere",
+    font_family_label: "Carattere",
+    font_family_default: "Carattere predefinito",
     enter_url_display_text:
       "Inserisci un URL e un testo di visualizzazione opzionale",
     emoji: "Emoji",

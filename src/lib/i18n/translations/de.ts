@@ -955,6 +955,8 @@ export const de = {
     switch_to_rich_text: "Zu Rich-Text wechseln",
     switch_to_plain_text: "Zu Nur-Text wechseln",
     font_size_label: "Schriftgröße",
+    font_family_label: "Schriftart",
+    font_family_default: "Standardschrift",
     enter_url_display_text: "Geben Sie eine URL und optionalen Anzeigetext ein",
     emoji: "Emoji",
     recipients: "Empfänger",

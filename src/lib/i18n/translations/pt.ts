@@ -997,6 +997,8 @@ export const pt = {
     switch_to_rich_text: "Mudar para texto formatado",
     switch_to_plain_text: "Mudar para texto simples",
     font_size_label: "Tamanho do tipo de letra",
+    font_family_label: "Tipo de letra",
+    font_family_default: "Tipo de letra predefinido",
     enter_url_display_text:
       "Introduza um URL e, opcionalmente, o texto a apresentar",
     emoji: "Emoji",
