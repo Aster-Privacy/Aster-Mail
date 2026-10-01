@@ -194,11 +194,7 @@ export function DomainSetupWizard({
     wizard_steps.map(() => "pending"),
   );
   const [is_verifying, set_is_verifying] = useState(false);
-  // Set once the Verify button has run a fresh check in this session. The
-  // automatic checks read the health endpoint, which can answer from a cache
-  // older than that check, so after it only a fresh health result may
-  // replace its ticks.
-  const checked_by_hand = useRef(false);
+  const verified_manually_this_session = useRef(false);
   const [verification_message, set_verification_message] = useState<
     string | null
   >(null);
@@ -220,7 +216,7 @@ export function DomainSetupWizard({
       set_current_step(0);
       set_step_statuses(wizard_steps.map(() => "pending"));
       set_verification_message(null);
-      checked_by_hand.current = false;
+      verified_manually_this_session.current = false;
     }
   }, [is_open, mode, wizard_steps]);
 
@@ -295,10 +291,8 @@ export function DomainSetupWizard({
         const response = await get_domain_health(domain_id);
 
         if (cancelled || !response.data) return;
-        // A cached result can be older than the Verify button's check and
-        // would undo it, turning records it just found red until the cache
-        // expires.
-        if (response.data.cached && checked_by_hand.current) return;
+        if (response.data.cached && verified_manually_this_session.current)
+          return;
 
         const outcomes: Record<string, string> = {};
 
@@ -348,7 +342,7 @@ export function DomainSetupWizard({
       if (response.data) {
         const result = response.data;
 
-        checked_by_hand.current = true;
+        verified_manually_this_session.current = true;
 
         const required_statuses: StepStatus[] = [
           result.txt_verified ? "verified" : "failed",
