@@ -249,8 +249,8 @@ function get_features(
     },
     {
       name: t("settings.feature_linked_accounts"),
-      free: "1",
-      star: "2",
+      free: "2",
+      star: "3",
       nova: "5",
       supernova: "20",
     },
