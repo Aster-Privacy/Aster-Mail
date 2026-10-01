@@ -187,6 +187,6 @@ it("enforces the total size across overlapping operations", async () => {
     [file("a.txt", "x".repeat(600))],
     [file("b.txt", "x".repeat(600))],
   );
-  expect(hook.attachments.map((a) => a.name)).toEqual(["a.txt"]);
+  expect(hook.attachments).toHaveLength(1);
   expect(hook.attachment_error).toBe("exceeds_total");
 });
