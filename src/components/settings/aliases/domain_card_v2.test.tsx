@@ -159,7 +159,7 @@ const rotation_response = (dns_auto_published?: boolean) => ({
 describe("DomainCardV2 DKIM rotation", () => {
   let container: HTMLDivElement;
   let root: Root;
-  let on_domains_changed: ReturnType<typeof vi.fn>;
+  let on_domains_changed: ReturnType<typeof vi.fn<() => void>>;
 
   const flush = async () => {
     await act(async () => {
@@ -202,7 +202,7 @@ describe("DomainCardV2 DKIM rotation", () => {
     rotate_dkim.mockReset();
     get_dns_records.mockReset();
     show_toast.mockReset();
-    on_domains_changed = vi.fn();
+    on_domains_changed = vi.fn<() => void>();
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
