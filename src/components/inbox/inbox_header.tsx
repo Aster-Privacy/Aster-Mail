@@ -60,7 +60,11 @@ import {
   use_batch_actions,
 } from "@/components/inbox/header/header_toolbar";
 import { cn } from "@/lib/utils";
-import { is_compact_density, list_select_slot_class } from "@/lib/list_density";
+import {
+  is_compact_density,
+  list_select_menu_offset_class,
+  list_select_slot_class,
+} from "@/lib/list_density";
 import { use_preferences } from "@/contexts/preferences_context";
 import { FilterDropdown } from "@/components/inbox/header/header_filters";
 import { HeaderPagination } from "@/components/inbox/header/header_pagination";
@@ -231,6 +235,10 @@ export function InboxHeader({
     compact_rows,
     show_profile_pictures,
   );
+  const select_menu_offset_class = list_select_menu_offset_class(
+    compact_rows,
+    show_profile_pictures,
+  );
   const has_selection = all_selected || some_selected;
   const scope_selected_count = Math.max(total_messages - excluded_count, 0);
   const display_selected = select_all_mode
@@ -365,7 +373,7 @@ export function InboxHeader({
                       aria-label={t("common.select_label")}
                       className={cn(
                         "h-9 w-5 flex flex-shrink-0 items-center justify-center focus:outline-none",
-                        show_profile_pictures ? "-ms-2" : "ms-1",
+                        select_menu_offset_class,
                       )}
                     >
                       <ChevronDownIcon className="w-4 h-4 stroke-[1.75] text-[var(--icon-secondary)] transition-colors" />

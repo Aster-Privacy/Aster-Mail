@@ -42,6 +42,19 @@ export function list_select_slot_class(
   return compact ? "w-7 h-7" : "w-8 h-8";
 }
 
+// The select slot is as wide as the avatars below it, so the 18px checkbox
+// has the rest of the slot as padding on both sides. The menu arrow after it
+// takes that padding back, keeping it 4px from the checkbox whatever the
+// density or profile picture setting.
+export function list_select_menu_offset_class(
+  compact: boolean,
+  show_profile_pictures: boolean,
+): string {
+  if (!show_profile_pictures) return "ms-1";
+
+  return compact ? "-ms-px" : "-ms-[3px]";
+}
+
 export function list_row_intrinsic_height(
   density: string,
   compact_mode: boolean,
