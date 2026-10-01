@@ -286,7 +286,6 @@ async function setup(text: string, plain = true) {
   await act(async () => {
     stable.editor_change.current(text);
     if (plain) {
-      // Supply browser-style innerText, including rendered line breaks.
       Object.defineProperty(latest.message_editor_ref.current!, "innerText", {
         value: text,
         writable: true,
