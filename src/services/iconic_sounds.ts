@@ -255,23 +255,22 @@ function is_stale(requested_at: number): boolean {
 
 async function start_when_ready(
   name: IconicSound,
-  forced: boolean,
   requested_at: number,
 ): Promise<void> {
   const context = get_context();
 
   await ensure_loaded();
   if (context.state !== "running") await context.resume();
-  if (!forced && !enabled) return;
+  if (!enabled) return;
   if (is_stale(requested_at)) return;
 
   start_voice(context, name);
 }
 
-function request_playback(name: IconicSound, forced: boolean): void {
+function request_playback(name: IconicSound): void {
   if (start_voice(get_context(), name)) return;
 
-  start_when_ready(name, forced, Date.now()).catch((caught) =>
+  start_when_ready(name, Date.now()).catch((caught) =>
     ignore_error("services/iconic_sounds:play", caught),
   );
 }
@@ -306,7 +305,7 @@ export function play_iconic_sound(name: IconicSound): boolean {
   }
 
   last_played_at.set(name, now);
-  request_playback(name, false);
+  request_playback(name);
 
   return true;
 }
@@ -342,12 +341,4 @@ export function play_send_settled_sound(): boolean {
   }
 
   return play_iconic_sound("send");
-}
-
-export function preview_iconic_sound(name: IconicSound): boolean {
-  if (!is_iconic_sounds_supported()) return false;
-
-  request_playback(name, true);
-
-  return true;
 }

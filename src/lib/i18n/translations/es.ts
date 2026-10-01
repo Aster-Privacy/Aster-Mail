@@ -3514,14 +3514,18 @@ export const es = {
     fam_org_you_are_member: "Eres miembro de este plan",
     fam_org_leave_desc: "Quita tu cuenta de este plan familiar",
     fam_org_invite_title: "Invitar a alguien",
-    fam_org_row_members_desc: "Invita a personas y administra su almacenamiento",
+    fam_org_row_members_desc:
+      "Invita a personas y administra su almacenamiento",
     fam_org_row_kids_desc: "Crea direcciones para niños",
     fam_org_row_shared_desc: "Buzones que pueden usar varios miembros",
     fam_org_row_groups_desc: "Direcciones que entregan a varios miembros",
-    fam_org_row_filters_desc: "Reglas que se aplican al correo de todos los miembros",
-    fam_org_row_domains_desc: "Dominios personalizados compartidos con los miembros",
+    fam_org_row_filters_desc:
+      "Reglas que se aplican al correo de todos los miembros",
+    fam_org_row_domains_desc:
+      "Dominios personalizados compartidos con los miembros",
     fam_org_row_security_desc: "Requisitos de dos factores e inicio de sesión",
-    fam_org_row_retention_desc: "Cuánto tiempo se conserva el correo de la familia",
+    fam_org_row_retention_desc:
+      "Cuánto tiempo se conserva el correo de la familia",
     fam_org_row_activity_desc: "Cambios recientes en el plan familiar",
     fam_org_n_members: "{{count}} miembros",
     fam_org_n_members_one: "{{count}} miembro",
@@ -4204,14 +4208,6 @@ export const es = {
     iconic_sounds_confirm_message:
       "¿Seguro que quieres activarlo? Aster Mail reproduce sonidos en acciones como enviar correo y deshacer un envío. Este ajuste se sincroniza con las apps web y de escritorio.",
     iconic_sounds_turn_on: "Activar",
-    iconic_sounds_preview: "Probar sonidos",
-    iconic_sound_send: "Enviar",
-    iconic_sound_undo_send: "Deshacer envío",
-    iconic_sound_incoming: "Correo nuevo",
-    iconic_sound_done: "Hecho",
-    iconic_sound_fail: "Error",
-    iconic_sound_compose: "Redactar",
-    iconic_sound_upload: "Adjunto",
     current_plan: "Plan actual",
     free: "Gratis",
     available_plans: "Planes disponibles",

@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { IconicSound } from "@/services/iconic_sounds";
+
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const is_native_platform = vi.fn(() => false);
@@ -102,6 +104,23 @@ async function load_service() {
   vi.resetModules();
 
   return import("@/services/iconic_sounds");
+}
+
+let clock_offset = 0;
+
+function play_unthrottled(
+  service: Awaited<ReturnType<typeof load_service>>,
+  name: IconicSound,
+): boolean {
+  clock_offset += 5000;
+  const clock = vi
+    .spyOn(Date, "now")
+    .mockReturnValue(Date.now() + clock_offset);
+  const played = service.play_iconic_sound(name);
+
+  clock.mockRestore();
+
+  return played;
 }
 
 async function settle() {
@@ -212,8 +231,9 @@ describe("iconic_sounds", () => {
   it("overlaps repeated plays and only retires the oldest past the cap", async () => {
     const service = await load_service();
 
+    service.set_iconic_sounds_enabled(true);
     for (let index = 0; index < 6; index += 1) {
-      expect(service.preview_iconic_sound("fail")).toBe(true);
+      expect(play_unthrottled(service, "fail")).toBe(true);
       await settle();
     }
 
@@ -224,17 +244,19 @@ describe("iconic_sounds", () => {
   it("starts in the same task once audio is unlocked and decoded", async () => {
     const service = await load_service();
 
-    service.preview_iconic_sound("done");
+    service.set_iconic_sounds_enabled(true);
+    play_unthrottled(service, "done");
     await settle();
     started.length = 0;
-    service.preview_iconic_sound("done");
+    play_unthrottled(service, "done");
     expect(started).toHaveLength(1);
   });
 
   it("resumes a suspended context before playing", async () => {
     const service = await load_service();
 
-    service.preview_iconic_sound("done");
+    service.set_iconic_sounds_enabled(true);
+    play_unthrottled(service, "done");
     await settle();
     started.length = 0;
     context_control.state = "suspended";
@@ -243,7 +265,7 @@ describe("iconic_sounds", () => {
 
       return Promise.resolve();
     };
-    service.preview_iconic_sound("done");
+    play_unthrottled(service, "done");
     await settle();
     expect(started).toHaveLength(1);
   });
@@ -273,14 +295,6 @@ describe("iconic_sounds", () => {
     expect(started).toHaveLength(0);
   });
 
-  it("previews a sound even while turned off", async () => {
-    const service = await load_service();
-
-    expect(service.preview_iconic_sound("compose")).toBe(true);
-    await settle();
-    expect(started).toHaveLength(1);
-  });
-
   it("is unavailable in the native mobile app", async () => {
     is_native_platform.mockReturnValue(true);
     const service = await load_service();
@@ -289,6 +303,5 @@ describe("iconic_sounds", () => {
     expect(service.is_iconic_sounds_supported()).toBe(false);
     expect(service.is_iconic_sounds_enabled()).toBe(false);
     expect(service.play_iconic_sound("send")).toBe(false);
-    expect(service.preview_iconic_sound("send")).toBe(false);
   });
 });

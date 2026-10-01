@@ -3540,8 +3540,10 @@ export const it = {
     fam_org_row_groups_desc: "Indirizzi che recapitano a più membri",
     fam_org_row_filters_desc: "Regole applicate alla posta di ogni membro",
     fam_org_row_domains_desc: "Domini personalizzati condivisi con i membri",
-    fam_org_row_security_desc: "Requisiti di autenticazione a due fattori e di accesso",
-    fam_org_row_retention_desc: "Per quanto tempo viene conservata la posta della famiglia",
+    fam_org_row_security_desc:
+      "Requisiti di autenticazione a due fattori e di accesso",
+    fam_org_row_retention_desc:
+      "Per quanto tempo viene conservata la posta della famiglia",
     fam_org_row_activity_desc: "Modifiche recenti al piano famiglia",
     fam_org_n_members: "{{count}} membri",
     fam_org_n_members_one: "{{count}} membro",
@@ -4279,14 +4281,6 @@ export const it = {
     iconic_sounds_confirm_message:
       "Vuoi davvero attivare questa opzione? Aster Mail riproduce suoni per azioni come l'invio di un'email e l'annullamento di un invio. Questa impostazione si sincronizza con le app web e desktop.",
     iconic_sounds_turn_on: "Attiva",
-    iconic_sounds_preview: "Ascolta i suoni",
-    iconic_sound_send: "Invio",
-    iconic_sound_undo_send: "Annulla invio",
-    iconic_sound_incoming: "Nuova email",
-    iconic_sound_done: "Fatto",
-    iconic_sound_fail: "Errore",
-    iconic_sound_compose: "Scrittura",
-    iconic_sound_upload: "Allegato",
     manage_plan: "Gestisci piano",
     manage_plan_description: "Apporta modifiche al tuo abbonamento",
     change_plan: "Cambia piano",

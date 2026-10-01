@@ -69,22 +69,7 @@ import {
   has_passphrase_in_memory,
 } from "@/services/crypto/memory_key_store";
 import { app_locale } from "@/utils/date_format";
-import {
-  ICONIC_SOUNDS,
-  is_iconic_sounds_supported,
-  preview_iconic_sound,
-  type IconicSound,
-} from "@/services/iconic_sounds";
-
-const ICONIC_SOUND_LABEL_KEYS = {
-  send: "settings.iconic_sound_send",
-  undo_send: "settings.iconic_sound_undo_send",
-  incoming: "settings.iconic_sound_incoming",
-  done: "settings.iconic_sound_done",
-  fail: "settings.iconic_sound_fail",
-  compose: "settings.iconic_sound_compose",
-  upload: "settings.iconic_sound_upload",
-} as const satisfies Record<IconicSound, string>;
+import { is_iconic_sounds_supported } from "@/services/iconic_sounds";
 
 function get_local_storage_size(): string {
   let total = 0;
@@ -382,7 +367,6 @@ export function DeveloperSection() {
   const handle_confirm_iconic_sounds = () => {
     set_confirm_iconic_sounds(false);
     update_preference("iconic_sounds_enabled", true, true);
-    preview_iconic_sound("done");
   };
 
   const handle_unregister_sw = async () => {
@@ -815,26 +799,6 @@ export function DeveloperSection() {
               aria_label: t("settings.iconic_sounds"),
             }}
           />
-          {iconic_sounds_enabled && (
-            <IslandRow
-              label={t("settings.iconic_sounds_preview")}
-              layout="stacked"
-              trailing={
-                <span className="flex flex-wrap gap-2">
-                  {ICONIC_SOUNDS.map((name) => (
-                    <Button
-                      key={name}
-                      size="sm"
-                      variant="secondary"
-                      onClick={() => preview_iconic_sound(name)}
-                    >
-                      {t(ICONIC_SOUND_LABEL_KEYS[name])}
-                    </Button>
-                  ))}
-                </span>
-              }
-            />
-          )}
         </IslandSection>
       )}
 

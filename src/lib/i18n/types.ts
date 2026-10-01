@@ -3336,14 +3336,6 @@ export interface SettingsTranslations {
   iconic_sounds_confirm_title: string;
   iconic_sounds_confirm_message: string;
   iconic_sounds_turn_on: string;
-  iconic_sounds_preview: string;
-  iconic_sound_send: string;
-  iconic_sound_undo_send: string;
-  iconic_sound_incoming: string;
-  iconic_sound_done: string;
-  iconic_sound_fail: string;
-  iconic_sound_compose: string;
-  iconic_sound_upload: string;
   current_plan: string;
   free: string;
   or_pay_with_card: string;

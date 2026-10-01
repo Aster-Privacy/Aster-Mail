@@ -3560,9 +3560,12 @@ export const pt = {
     fam_org_row_shared_desc: "Caixas de correio que vários membros podem usar",
     fam_org_row_groups_desc: "Endereços que entregam a vários membros",
     fam_org_row_filters_desc: "Regras aplicadas ao correio de todos os membros",
-    fam_org_row_domains_desc: "Domínios personalizados partilhados com os membros",
-    fam_org_row_security_desc: "Requisitos de dois fatores e de início de sessão",
-    fam_org_row_retention_desc: "Durante quanto tempo o correio da família é guardado",
+    fam_org_row_domains_desc:
+      "Domínios personalizados partilhados com os membros",
+    fam_org_row_security_desc:
+      "Requisitos de dois fatores e de início de sessão",
+    fam_org_row_retention_desc:
+      "Durante quanto tempo o correio da família é guardado",
     fam_org_row_activity_desc: "Alterações recentes no plano familiar",
     fam_org_n_members: "{{count}} membros",
     fam_org_n_members_one: "{{count}} membro",
@@ -4243,14 +4246,6 @@ export const pt = {
     iconic_sounds_confirm_message:
       "Tem a certeza de que quer ativar esta opção? O Aster Mail reproduz sons em ações como enviar correio e anular um envio. Esta definição é sincronizada com as apps web e de computador.",
     iconic_sounds_turn_on: "Ativar",
-    iconic_sounds_preview: "Ouvir os sons",
-    iconic_sound_send: "Enviar",
-    iconic_sound_undo_send: "Anular envio",
-    iconic_sound_incoming: "Novo e-mail",
-    iconic_sound_done: "Concluído",
-    iconic_sound_fail: "Erro",
-    iconic_sound_compose: "Escrever",
-    iconic_sound_upload: "Anexo",
     current_plan: "Plano atual",
     free: "Gratuito",
     available_plans: "Planos disponíveis",

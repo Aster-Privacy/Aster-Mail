@@ -3632,11 +3632,14 @@ export const ru = {
     fam_org_invite_title: "Пригласить",
     fam_org_row_members_desc: "Приглашайте людей и управляйте их хранилищем",
     fam_org_row_kids_desc: "Создавайте адреса для детей",
-    fam_org_row_shared_desc: "Ящики, которыми могут пользоваться несколько участников",
-    fam_org_row_groups_desc: "Адреса, которые доставляют почту нескольким участникам",
+    fam_org_row_shared_desc:
+      "Ящики, которыми могут пользоваться несколько участников",
+    fam_org_row_groups_desc:
+      "Адреса, которые доставляют почту нескольким участникам",
     fam_org_row_filters_desc: "Правила для почты всех участников",
     fam_org_row_domains_desc: "Собственные домены, общие для участников",
-    fam_org_row_security_desc: "Требования к двухфакторной аутентификации и входу",
+    fam_org_row_security_desc:
+      "Требования к двухфакторной аутентификации и входу",
     fam_org_row_retention_desc: "Сколько хранится почта семьи",
     fam_org_row_activity_desc: "Последние изменения в семейном тарифе",
     fam_org_n_members: "Участники: {{count}}",
@@ -4313,14 +4316,6 @@ export const ru = {
     iconic_sounds_confirm_message:
       "Вы действительно хотите включить эту функцию? Aster Mail воспроизводит звуки при таких действиях, как отправка письма и отмена отправки. Эта настройка синхронизируется с веб-приложением и приложением для компьютера.",
     iconic_sounds_turn_on: "Включить",
-    iconic_sounds_preview: "Прослушать звуки",
-    iconic_sound_send: "Отправка",
-    iconic_sound_undo_send: "Отмена отправки",
-    iconic_sound_incoming: "Новое письмо",
-    iconic_sound_done: "Готово",
-    iconic_sound_fail: "Ошибка",
-    iconic_sound_compose: "Новое сообщение",
-    iconic_sound_upload: "Вложение",
     current_plan: "Текущий тариф",
     free: "Бесплатный",
     available_plans: "Доступные тарифы",

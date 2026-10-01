@@ -3265,14 +3265,6 @@ export const hi = {
     iconic_sounds_confirm_message:
       "क्या आप वाकई इसे चालू करना चाहते हैं? Aster Mail मेल भेजने और भेजना पूर्ववत करने जैसी कार्रवाइयों पर ध्वनियाँ बजाता है। यह सेटिंग वेब और डेस्कटॉप ऐप के साथ सिंक होती है।",
     iconic_sounds_turn_on: "चालू करें",
-    iconic_sounds_preview: "ध्वनियाँ सुनें",
-    iconic_sound_send: "भेजें",
-    iconic_sound_undo_send: "भेजना पूर्ववत करें",
-    iconic_sound_incoming: "नया मेल",
-    iconic_sound_done: "पूर्ण",
-    iconic_sound_fail: "त्रुटि",
-    iconic_sound_compose: "लिखें",
-    iconic_sound_upload: "अटैचमेंट",
     current_plan: "मौजूदा प्लान",
     free: "मुफ़्त",
     or_pay_with_card: "या कार्ड से भुगतान करें",
@@ -4398,9 +4390,11 @@ export const hi = {
     fam_org_you_are_member: "आप इस प्लान के सदस्य हैं",
     fam_org_leave_desc: "इस फ़ैमिली प्लान से अपना खाता हटाएं",
     fam_org_invite_title: "किसी को आमंत्रित करें",
-    fam_org_row_members_desc: "लोगों को आमंत्रित करें और उनका स्टोरेज मैनेज करें",
+    fam_org_row_members_desc:
+      "लोगों को आमंत्रित करें और उनका स्टोरेज मैनेज करें",
     fam_org_row_kids_desc: "बच्चों के लिए पते बनाएं",
-    fam_org_row_shared_desc: "ऐसे मेलबॉक्स जिन्हें कई सदस्य इस्तेमाल कर सकते हैं",
+    fam_org_row_shared_desc:
+      "ऐसे मेलबॉक्स जिन्हें कई सदस्य इस्तेमाल कर सकते हैं",
     fam_org_row_groups_desc: "ऐसे पते जो कई सदस्यों तक मेल पहुंचाते हैं",
     fam_org_row_filters_desc: "हर सदस्य के मेल पर लागू होने वाले नियम",
     fam_org_row_domains_desc: "सदस्यों के साथ शेयर किए गए कस्टम डोमेन",

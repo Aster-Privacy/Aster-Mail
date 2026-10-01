@@ -3545,12 +3545,16 @@ export const fr = {
     fam_org_invite_title: "Inviter quelqu'un",
     fam_org_row_members_desc: "Invitez des personnes et gérez leur stockage",
     fam_org_row_kids_desc: "Créez des adresses pour les enfants",
-    fam_org_row_shared_desc: "Boîtes aux lettres utilisables par plusieurs membres",
+    fam_org_row_shared_desc:
+      "Boîtes aux lettres utilisables par plusieurs membres",
     fam_org_row_groups_desc: "Adresses qui distribuent à plusieurs membres",
     fam_org_row_filters_desc: "Règles appliquées au courrier de chaque membre",
-    fam_org_row_domains_desc: "Domaines personnalisés partagés avec les membres",
-    fam_org_row_security_desc: "Exigences de double authentification et de connexion",
-    fam_org_row_retention_desc: "Durée de conservation du courrier de la famille",
+    fam_org_row_domains_desc:
+      "Domaines personnalisés partagés avec les membres",
+    fam_org_row_security_desc:
+      "Exigences de double authentification et de connexion",
+    fam_org_row_retention_desc:
+      "Durée de conservation du courrier de la famille",
     fam_org_row_activity_desc: "Modifications récentes de la formule familiale",
     fam_org_n_members: "{{count}} membres",
     fam_org_n_members_one: "{{count}} membre",
@@ -4243,14 +4247,6 @@ export const fr = {
     iconic_sounds_confirm_message:
       "Voulez-vous vraiment activer cette option ? Aster Mail joue des sons pour des actions comme l'envoi d'un e-mail et l'annulation d'un envoi. Ce réglage est synchronisé avec les apps web et de bureau.",
     iconic_sounds_turn_on: "Activer",
-    iconic_sounds_preview: "Écouter les sons",
-    iconic_sound_send: "Envoi",
-    iconic_sound_undo_send: "Annulation de l'envoi",
-    iconic_sound_incoming: "Nouvel e-mail",
-    iconic_sound_done: "Terminé",
-    iconic_sound_fail: "Erreur",
-    iconic_sound_compose: "Rédaction",
-    iconic_sound_upload: "Pièce jointe",
     current_plan: "Forfait actuel",
     free: "Gratuit",
     available_plans: "Forfaits disponibles",

@@ -3534,9 +3534,11 @@ export const de = {
     fam_org_row_shared_desc: "Postfächer, die mehrere Mitglieder nutzen können",
     fam_org_row_groups_desc: "Adressen, die an mehrere Mitglieder zustellen",
     fam_org_row_filters_desc: "Regeln für die E-Mails aller Mitglieder",
-    fam_org_row_domains_desc: "Eigene Domains, die mit Mitgliedern geteilt werden",
+    fam_org_row_domains_desc:
+      "Eigene Domains, die mit Mitgliedern geteilt werden",
     fam_org_row_security_desc: "Anforderungen für Zwei-Faktor und Anmeldung",
-    fam_org_row_retention_desc: "Wie lange die E-Mails der Familie aufbewahrt werden",
+    fam_org_row_retention_desc:
+      "Wie lange die E-Mails der Familie aufbewahrt werden",
     fam_org_row_activity_desc: "Letzte Änderungen im Familientarif",
     fam_org_n_members: "{{count}} Mitglieder",
     fam_org_n_members_one: "{{count}} Mitglied",
@@ -4142,14 +4144,6 @@ export const de = {
     iconic_sounds_confirm_message:
       "Möchtest du das wirklich einschalten? Aster Mail spielt Töne für Aktionen wie das Senden von E-Mails und das Rückgängigmachen des Sendens ab. Diese Einstellung wird mit der Web-App und der Desktop-App synchronisiert.",
     iconic_sounds_turn_on: "Einschalten",
-    iconic_sounds_preview: "Töne anhören",
-    iconic_sound_send: "Senden",
-    iconic_sound_undo_send: "Senden rückgängig",
-    iconic_sound_incoming: "Neue E-Mail",
-    iconic_sound_done: "Erledigt",
-    iconic_sound_fail: "Fehler",
-    iconic_sound_compose: "Verfassen",
-    iconic_sound_upload: "Anhang",
     current_plan: "Aktueller Tarif",
     free: "Kostenlos",
     available_plans: "Verfügbare Pläne",
