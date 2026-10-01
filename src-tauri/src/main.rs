@@ -599,7 +599,7 @@ fn main() {
             #[cfg(not(windows))]
             let menu = Menu::with_items(app, &[&show, &quit])?;
 
-            let tray = TrayIconBuilder::new()
+            let tray = TrayIconBuilder::with_id("aster-mail")
                 .icon(tray_icon)
                 .icon_as_template(true)
                 .menu(&menu)
