@@ -105,6 +105,7 @@ export function StepRecoveryEmail({
                 autoComplete="email"
                 className={INNER_INPUT_WITH_ICON_CLASS}
                 disabled={reg.is_saving_recovery_email}
+                name="email"
                 placeholder={reg.t("auth.backup_email_placeholder")}
                 status={reg.recovery_email_error ? "error" : "default"}
                 type="email"

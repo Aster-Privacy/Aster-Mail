@@ -149,6 +149,7 @@ export default function ForgotPasswordPage() {
                   className="notranslate pe-32"
                   id="recovery_address"
                   maxLength={55}
+                  name="username"
                   placeholder={t("common.yourname_placeholder")}
                   spellCheck={false}
                   status={error ? "error" : "default"}
