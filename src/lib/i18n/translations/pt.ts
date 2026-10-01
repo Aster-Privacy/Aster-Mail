@@ -111,6 +111,25 @@ export const pt = {
     failed_remove_profile_picture:
       "Não foi possível remover a sua foto de perfil. Tente novamente.",
     remove_photo: "Remover foto",
+    profile_picture_title: "Alterar fotografia de perfil",
+    profile_picture_gallery: "Escolher da galeria",
+    profile_picture_gallery_hint: "Escolha um dos fundos da Aster",
+    profile_picture_upload: "Carregar a partir do dispositivo",
+    profile_picture_upload_hint: "JPEG, PNG ou WebP, até 5 MB",
+    profile_picture_gallery_failed:
+      "A galeria não foi carregada. Verifique a ligação e tente novamente.",
+    profile_picture_cat_all: "Tudo",
+    profile_picture_cat_space: "Espaço",
+    profile_picture_cat_night_sky: "Céu noturno",
+    profile_picture_cat_water: "Água",
+    profile_picture_cat_planets: "Planetas",
+    profile_picture_cat_landscapes: "Paisagens",
+    profile_picture_cat_forest: "Floresta",
+    profile_picture_cat_cities: "Cidades",
+    profile_picture_cat_aurora: "Aurora",
+    profile_picture_cat_mountains: "Montanhas",
+    profile_picture_cat_ocean: "Oceano",
+    profile_picture_cat_desert: "Deserto",
     toggle_alias: "Ativar ou desativar este alias",
     enter_passphrase: "Introduza a sua frase-passe",
     app_name: "Aster Mail",
@@ -9674,7 +9693,6 @@ export const pt = {
     account_flagged_notice:
       "O nosso sistema de segurança automático impôs limites temporários à sua conta, e algumas funcionalidades podem estar indisponíveis. O resto da sua conta funciona normalmente. Se lhe parecer errado, hello@astermail.org pode ajudar.",
     email_copied: "E-mail copiado",
-    device_code_copied: "Copiado",
     device_code_copy: "Copiar código",
     device_code_expired: "Este código expirou.",
     device_code_expired_description:

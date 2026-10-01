@@ -258,6 +258,7 @@ export function use_profile_picture_upload(
     error,
     open_picker,
     handle_file,
+    process_file,
     remove_picture,
     set_error: report_error,
   };

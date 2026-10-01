@@ -109,6 +109,25 @@ export const ar = {
     failed_remove_profile_picture:
       "تعذّرت إزالة صورة ملفك الشخصي. حاول مجددًا.",
     remove_photo: "إزالة الصورة",
+    profile_picture_title: "تغيير صورة الملف الشخصي",
+    profile_picture_gallery: "الاختيار من المعرض",
+    profile_picture_gallery_hint: "اختر إحدى خلفيات Aster",
+    profile_picture_upload: "الرفع من الجهاز",
+    profile_picture_upload_hint: "JPEG أو PNG أو WebP، حتى 5 ميغابايت",
+    profile_picture_gallery_failed:
+      "تعذّر تحميل المعرض. تحقق من اتصالك ثم حاول مرة أخرى.",
+    profile_picture_cat_all: "الكل",
+    profile_picture_cat_space: "الفضاء",
+    profile_picture_cat_night_sky: "سماء الليل",
+    profile_picture_cat_water: "الماء",
+    profile_picture_cat_planets: "الكواكب",
+    profile_picture_cat_landscapes: "مناظر طبيعية",
+    profile_picture_cat_forest: "الغابة",
+    profile_picture_cat_cities: "المدن",
+    profile_picture_cat_aurora: "الشفق القطبي",
+    profile_picture_cat_mountains: "الجبال",
+    profile_picture_cat_ocean: "المحيط",
+    profile_picture_cat_desert: "الصحراء",
     toggle_alias: "تفعيل هذا الاسم المستعار أو تعطيله",
     enter_passphrase: "أدخل عبارة المرور الخاصة بك",
     app_name: "Aster Mail",
@@ -9401,7 +9420,6 @@ export const ar = {
     device_code_instruction:
       "أدخل هذا الرمز على app.astermail.org/link-device لربط حسابك.",
     device_code_copy: "نسخ الرمز",
-    device_code_copied: "تم النسخ!",
     device_code_open_browser: "فتح المتصفح",
     device_code_expired: "انتهت صلاحية هذا الرمز.",
     device_code_expired_description:

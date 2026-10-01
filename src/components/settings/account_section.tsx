@@ -23,7 +23,6 @@ import type { StepUpCredentials } from "@/services/api/step_up";
 import type { RecoveryEmailData } from "@/services/api/recovery_email";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { motion } from "framer-motion";
 import {
   CameraIcon,
   CheckCircleIcon,
@@ -32,7 +31,6 @@ import {
   ExclamationCircleIcon,
   LockClosedIcon,
   PencilSquareIcon,
-  XMarkIcon,
   SparklesIcon,
 } from "@heroicons/react/24/outline";
 import { Island, IslandRow, IslandSection, IslandSections } from "@aster/ui";
@@ -52,7 +50,6 @@ import { ignore_error } from "@/lib/ignore_error";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
-import { use_should_reduce_motion } from "@/provider";
 import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import {
@@ -93,7 +90,6 @@ import {
 } from "@/services/api/auth";
 import { get_badge_visual } from "@/components/ui/badge_registry";
 import { set_my_badge_prefs } from "@/stores/my_badge_prefs_store";
-import { cn } from "@/lib/utils";
 import { format_date } from "@/utils/date_format";
 import {
   get_recovery_email,
@@ -112,10 +108,7 @@ import {
 } from "@/components/ui/select";
 import { InfoPopover } from "@/components/ui/info_popover";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
-import {
-  PROFILE_PICTURE_ACCEPT,
-  use_profile_picture_upload,
-} from "@/hooks/use_profile_picture_upload";
+import { open_profile_picture_dialog } from "@/stores/profile_picture_dialog_store";
 import { is_onion_host } from "@/lib/onion_host";
 import { SETTINGS_ANCHORS } from "@/lib/settings_links";
 import {
@@ -248,22 +241,11 @@ function FreePlanBanner() {
 }
 
 export function AccountSection() {
-  const reduce_motion = use_should_reduce_motion();
   const { t } = use_i18n();
   const { user, update_user, vault } = use_auth();
   const account_email = user?.email ?? "";
   const { preferences, update_preference, reset_to_defaults } =
     use_preferences();
-  const {
-    file_ref,
-    uploading,
-    removing: removing_photo,
-    preview,
-    error: photo_error,
-    open_picker,
-    handle_file,
-    remove_picture,
-  } = use_profile_picture_upload();
 
   const copy_primary_address = useCallback(
     async (address: string) => {
@@ -283,7 +265,6 @@ export function AccountSection() {
   const color_saving_ref = useRef(false);
   const [name, set_name] = useState(user?.display_name || user?.username || "");
   const [saving_name, set_saving_name] = useState(false);
-  const [avatar_hovered, set_avatar_hovered] = useState(false);
   const [recovery, set_recovery] =
     useState<RecoveryEmailData>(EMPTY_RECOVERY_EMAIL);
   const [show_modal, set_show_modal] = useState(false);
@@ -651,8 +632,8 @@ export function AccountSection() {
     set_show_step_up(true);
   };
 
-  const has_custom_picture = !!(preview || user?.profile_picture);
-  const picture = preview || user?.profile_picture || "/profile.webp";
+  const has_custom_picture = !!user?.profile_picture;
+  const picture = user?.profile_picture || "/profile.webp";
 
   if (is_initial_load) {
     return <SettingsSkeleton variant="profile" />;
@@ -672,104 +653,38 @@ export function AccountSection() {
           }}
         />
         <div className="px-5 pb-5 -mt-8 flex items-end justify-between">
-          <div
-            className="relative"
-            onMouseEnter={() => set_avatar_hovered(true)}
-            onMouseLeave={() => set_avatar_hovered(false)}
+          <button
+            aria-label={t("auth.change_photo")}
+            className="group relative h-20 w-20 rounded-full overflow-hidden bg-surf-primary ring-4 ring-[var(--aster-island-fill,var(--bg-primary))] focus:outline-none focus-visible:ring-[var(--accent-color)]"
+            title={t("auth.change_photo")}
+            type="button"
+            onClick={open_profile_picture_dialog}
           >
-            <div className="w-20 h-20 rounded-full overflow-hidden relative bg-surf-primary ring-4 ring-[var(--aster-island-fill,var(--bg-primary))]">
-              {has_custom_picture ? (
-                <img
-                  alt=""
-                  className="w-full h-full object-cover rounded-full"
-                  src={picture}
-                />
-              ) : (
-                <div
-                  className="w-full h-full rounded-full flex items-center justify-center select-none"
-                  style={{
-                    backgroundColor: color,
-                  }}
-                >
-                  <span
-                    style={{
-                      fontSize: 26,
-                      fontWeight: 600,
-                      lineHeight: 1,
-                      color: get_contrast_text(color),
-                    }}
-                  >
-                    {get_initials(name, user?.email, get_active_locale())}
-                  </span>
-                </div>
-              )}
-              {uploading && (
-                <div className="absolute inset-0 flex items-center justify-center aster_scrim rounded-full">
-                  <Spinner className="text-white" size="md" />
-                </div>
-              )}
-            </div>
-            <button
-              aria-label={t("auth.change_photo")}
-              className="absolute -bottom-0.5 -end-0.5 flex h-7 w-7 items-center justify-center rounded-full transition-colors disabled:opacity-50 bg-[var(--aster-field-bg)] text-txt-primary ring-[3px] ring-[var(--aster-island-fill,var(--bg-primary))]"
-              disabled={uploading || removing_photo}
-              title={t("auth.change_photo")}
-              onClick={open_picker}
-              onMouseEnter={(e) => {
-                if (!uploading) {
-                  e.currentTarget.style.backgroundColor =
-                    "var(--aster-field-hover)";
-                }
-              }}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "")}
-            >
-              {uploading ? (
-                <Spinner size="xs" />
-              ) : (
-                <CameraIcon className="w-3.5 h-3.5" />
-              )}
-            </button>
-            <input
-              ref={file_ref}
-              accept={PROFILE_PICTURE_ACCEPT}
-              className="hidden"
-              type="file"
-              onChange={handle_file}
-            />
-            {user?.profile_picture && (
-              <button
-                aria-label={t("common.remove_photo")}
-                className={cn(
-                  "absolute -top-0.5 -end-0.5 flex h-7 w-7 items-center justify-center rounded-full transition disabled:opacity-50 bg-[var(--aster-field-bg)] text-txt-muted ring-[3px] ring-[var(--aster-island-fill,var(--bg-primary))] hover:text-[var(--color-danger)] focus-visible:opacity-100",
-                  avatar_hovered || removing_photo
-                    ? "opacity-100"
-                    : "opacity-0 [@media(hover:none)]:opacity-100",
-                )}
-                disabled={uploading || removing_photo}
-                title={t("common.remove_photo")}
-                onBlur={() => set_avatar_hovered(false)}
-                onClick={remove_picture}
-                onFocus={() => set_avatar_hovered(true)}
+            {has_custom_picture ? (
+              <img
+                alt=""
+                className="w-full h-full object-cover rounded-full"
+                draggable={false}
+                src={picture}
+              />
+            ) : (
+              <span
+                className="w-full h-full rounded-full flex items-center justify-center select-none"
+                style={{
+                  backgroundColor: color,
+                  fontSize: 26,
+                  fontWeight: 600,
+                  lineHeight: 1,
+                  color: get_contrast_text(color),
+                }}
               >
-                {removing_photo ? (
-                  <Spinner size="xs" />
-                ) : (
-                  <XMarkIcon className="w-3.5 h-3.5" />
-                )}
-              </button>
+                {get_initials(name, user?.email, get_active_locale())}
+              </span>
             )}
-          </div>
-          {photo_error && (
-            <motion.p
-              animate={{ opacity: 1, y: 0 }}
-              className="text-xs font-medium mt-2"
-              exit={{ opacity: 0, y: -5 }}
-              initial={reduce_motion ? false : { opacity: 0, y: -5 }}
-              style={{ color: "var(--color-danger)" }}
-            >
-              {photo_error}
-            </motion.p>
-          )}
+            <span className="absolute inset-0 flex items-center justify-center rounded-full opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100 bg-black/55">
+              <CameraIcon className="w-6 h-6 text-white" />
+            </span>
+          </button>
           <div
             aria-label={t("auth.profile_color")}
             className="flex items-center gap-2.5"
@@ -896,9 +811,7 @@ export function AccountSection() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="min-w-[13rem]">
                 <DropdownMenuItem
-                  onClick={() =>
-                    copy_primary_address(account_email)
-                  }
+                  onClick={() => copy_primary_address(account_email)}
                 >
                   <ClipboardIcon className="w-4 h-4" />
                   {t("common.copy_address")}

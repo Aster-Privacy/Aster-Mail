@@ -3408,7 +3408,10 @@ input:-webkit-autofill:active {
 
 .link_device_success_mark {
   color: var(--accent-color);
-  background-color: color-mix(in srgb, var(--accent-color) 14%, transparent);
+}
+
+.account_menu_card .link_device_avatar_slot {
+  margin: 5px;
 }
 
 .account_menu_surface {
@@ -4298,8 +4301,7 @@ input:-webkit-autofill:active {
 .link_device_code_input:focus {
   outline: none;
   border-color: var(--accent-color, #3b82f6);
-  box-shadow: 0 0 0 3px
-    color-mix(in srgb, var(--accent-color, #3b82f6) 28%, transparent);
+  box-shadow: inset 0 0 0 1px var(--accent-color, #3b82f6);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -4313,4 +4315,85 @@ input:-webkit-autofill:active {
   white-space: normal;
   overflow-wrap: anywhere;
   animation: aster_tip_fade_in 120ms ease-out;
+}
+
+.profile_picture_option {
+  background-color: var(--aster-field-bg, var(--bg-hover));
+  transition:
+    background-color 160ms cubic-bezier(0.2, 0, 0, 1),
+    transform 160ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.profile_picture_option:not(:disabled):hover {
+  background-color: var(--aster-field-hover, var(--bg-hover));
+}
+
+.profile_picture_option:not(:disabled):active {
+  transform: scale(0.985);
+}
+
+.profile_picture_back {
+  transition: background-color 160ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.profile_picture_back:hover {
+  background-color: var(--aster-field-bg, var(--bg-hover));
+}
+
+.profile_picture_chips {
+  scrollbar-width: none;
+}
+
+.profile_picture_chips::-webkit-scrollbar {
+  display: none;
+}
+
+.profile_picture_chip {
+  background-color: var(--aster-field-bg, var(--bg-hover));
+  color: var(--text-secondary);
+  transition:
+    background-color 160ms cubic-bezier(0.2, 0, 0, 1),
+    color 160ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.profile_picture_chip:hover {
+  background-color: var(--aster-field-hover, var(--bg-hover));
+}
+
+.profile_picture_chip.is_active {
+  background-color: var(--accent-color, #3b82f6);
+  color: var(--accent-fg, #ffffff);
+}
+
+.profile_picture_tile {
+  background-color: var(--aster-field-bg, var(--bg-hover));
+}
+
+.profile_picture_tile img {
+  transition: transform 220ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.profile_picture_tile:not(:disabled):hover img {
+  transform: scale(1.06);
+}
+
+.profile_picture_tile:focus-visible,
+.profile_picture_option:focus-visible,
+.profile_picture_chip:focus-visible,
+.profile_picture_back:focus-visible {
+  outline: 2px solid var(--accent-color, #3b82f6);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .profile_picture_option,
+  .profile_picture_chip,
+  .profile_picture_tile img {
+    transition: none;
+  }
+}
+
+.profile_picture_grid {
+  scrollbar-width: thin;
+  border-radius: 16px;
 }

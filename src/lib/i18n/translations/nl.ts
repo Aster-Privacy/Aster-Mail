@@ -110,6 +110,25 @@ export const nl = {
     failed_remove_profile_picture:
       "Je profielfoto kon niet worden verwijderd. Probeer het opnieuw.",
     remove_photo: "Foto verwijderen",
+    profile_picture_title: "Profielfoto wijzigen",
+    profile_picture_gallery: "Kiezen uit galerij",
+    profile_picture_gallery_hint: "Kies een van de Aster-achtergronden",
+    profile_picture_upload: "Uploaden vanaf apparaat",
+    profile_picture_upload_hint: "JPEG, PNG of WebP, maximaal 5 MB",
+    profile_picture_gallery_failed:
+      "De galerij is niet geladen. Controleer je verbinding en probeer het opnieuw.",
+    profile_picture_cat_all: "Alles",
+    profile_picture_cat_space: "Ruimte",
+    profile_picture_cat_night_sky: "Nachtelijke hemel",
+    profile_picture_cat_water: "Water",
+    profile_picture_cat_planets: "Planeten",
+    profile_picture_cat_landscapes: "Landschappen",
+    profile_picture_cat_forest: "Bos",
+    profile_picture_cat_cities: "Steden",
+    profile_picture_cat_aurora: "Poollicht",
+    profile_picture_cat_mountains: "Bergen",
+    profile_picture_cat_ocean: "Oceaan",
+    profile_picture_cat_desert: "Woestijn",
     toggle_alias: "Deze alias in- of uitschakelen",
     enter_passphrase: "Voer je wachtwoordzin in",
     app_name: "Aster Mail",
@@ -9560,7 +9579,6 @@ export const nl = {
     device_code_instruction:
       "Voer deze code in op app.astermail.org/link-device om je account te koppelen.",
     device_code_copy: "Code kopiëren",
-    device_code_copied: "Gekopieerd!",
     device_code_open_browser: "Browser openen",
     device_code_expired: "Deze code is verlopen.",
     device_code_expired_description:

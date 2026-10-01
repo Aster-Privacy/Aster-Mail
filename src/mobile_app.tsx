@@ -45,6 +45,7 @@ import { ActionToast } from "@/components/toast/action_toast";
 import { UndoSendContainer } from "@/components/toast/undo_send_container";
 import { UpgradeModal } from "@/components/upgrade/upgrade_modal";
 import { AliasCapUpsellModal } from "@/components/upgrade/alias_cap_upsell_modal";
+import { ProfilePictureDialog } from "@/components/profile/profile_picture_dialog";
 import { SpecialOfferModal } from "@/components/upgrade/special_offer_modal";
 import { EmailNotificationManager } from "@/components/email/email_notification_manager";
 import { UndoSendPreviewModal } from "@/components/toast/undo_send_preview_modal";
@@ -359,8 +360,7 @@ function MobileApp() {
 
     const pending = (window as unknown as Record<string, unknown>)
       .__aster_pending_compose as
-      | { to: string; subject: string; body: string }
-      | undefined;
+      { to: string; subject: string; body: string } | undefined;
 
     if (pending) {
       delete (window as unknown as Record<string, unknown>)
@@ -847,6 +847,7 @@ function MobileApp() {
         <PostQuantumSendPrompt />
         <UpgradeModal />
         <AliasCapUpsellModal />
+        <ProfilePictureDialog />
         <SpecialOfferModal />
         <EmailNotificationManager />
       </div>

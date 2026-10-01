@@ -25,25 +25,22 @@ import type { RecoveryEmailData } from "@/services/api/recovery_email";
 import { useEffect, useState, useCallback } from "react";
 import {
   CheckIcon,
-  PencilIcon,
+  CameraIcon,
   CheckCircleIcon,
   ExclamationCircleIcon,
 } from "@heroicons/react/24/outline";
 import { Switch } from "@aster/ui";
-import { Button } from "@/components/ui/button";
 
 import { SettingsGroup, SettingsHeader, SettingsRow } from "./shared";
 
+import { Button } from "@/components/ui/button";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
-import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
+import { Spinner } from "@/components/ui/spinner";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
-import {
-  PROFILE_PICTURE_ACCEPT,
-  use_profile_picture_upload,
-} from "@/hooks/use_profile_picture_upload";
+import { open_profile_picture_dialog } from "@/stores/profile_picture_dialog_store";
 import { PROFILE_COLORS } from "@/constants/profile";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -190,16 +187,6 @@ export function AccountSection({
     pending_profile_color ?? (user?.profile_color || preferences.profile_color);
   const { limits } = use_plan_limits();
   const is_paid_plan = !!limits && limits.plan_code !== "free";
-  const {
-    file_ref,
-    uploading,
-    removing,
-    preview,
-    error: photo_error,
-    open_picker,
-    handle_file,
-    remove_picture,
-  } = use_profile_picture_upload();
   const account_email = user?.email ?? "";
   const primary_identity = use_primary_identity(account_email);
 
@@ -517,10 +504,9 @@ export function AccountSection({
         <div className="flex flex-col items-center gap-3 px-4 py-6">
           <button
             aria-label={t("auth.change_photo")}
-            className="relative touch-manipulation"
-            disabled={uploading || removing}
+            className="relative touch-manipulation rounded-full"
             type="button"
-            onClick={open_picker}
+            onClick={open_profile_picture_dialog}
           >
             <span
               className={
@@ -530,41 +516,16 @@ export function AccountSection({
               <ProfileAvatar
                 use_domain_logo
                 email={user?.email ?? ""}
-                image_url={preview || user?.profile_picture}
+                image_url={user?.profile_picture}
                 name={user?.display_name ?? user?.username ?? ""}
                 profile_color={active_profile_color}
                 size="xl"
               />
             </span>
-            <span className="absolute bottom-0 end-0 flex h-8 w-8 items-center justify-center rounded-full border-2 border-[var(--bg-primary)] bg-[var(--accent-color,#3b82f6)] text-[var(--accent-fg,#ffffff)]">
-              {uploading ? (
-                <Spinner size="xs" />
-              ) : (
-                <PencilIcon className="h-3.5 w-3.5" />
-              )}
+            <span className="absolute bottom-0 end-0 flex h-8 w-8 items-center justify-center rounded-full border-2 border-[var(--bg-primary)] bg-[var(--aster-field-bg)] text-[var(--text-primary)]">
+              <CameraIcon className="h-4 w-4" />
             </span>
-            <input
-              ref={file_ref}
-              accept={PROFILE_PICTURE_ACCEPT}
-              className="hidden"
-              type="file"
-              onChange={handle_file}
-            />
           </button>
-          {user?.profile_picture && (
-            <button
-              className="flex min-h-[32px] items-center gap-1.5 px-2 text-[13px] text-[var(--text-muted)] underline-offset-2 hover:underline disabled:opacity-60"
-              disabled={uploading || removing}
-              type="button"
-              onClick={remove_picture}
-            >
-              {removing && <ButtonSpinner size="xs" />}
-              {t("common.remove_photo")}
-            </button>
-          )}
-          {photo_error && (
-            <p className="text-[12px] text-red-500">{photo_error}</p>
-          )}
           <p className="text-[16px] font-semibold text-[var(--text-primary)]">
             {user?.display_name ?? user?.username ?? ""}
           </p>
@@ -592,17 +553,17 @@ export function AccountSection({
 
         <SettingsGroup title={t("auth.profile_color")}>
           <div
+            aria-label={t("auth.profile_color")}
             className="flex flex-wrap gap-2.5 px-4 py-4"
             role="radiogroup"
-            aria-label={t("auth.profile_color")}
           >
             {PROFILE_COLORS.map((color) => (
               <button
                 key={color}
-                role="radio"
                 aria-checked={active_profile_color === color}
                 aria-label={color}
                 className="flex h-10 w-10 items-center justify-center rounded-full"
+                role="radio"
                 style={{
                   backgroundColor: color,
                   boxShadow:
@@ -718,7 +679,6 @@ export function AccountSection({
 
         <SettingsGroup title={t("settings.primary_address_label")}>
           <SettingsRow
-            label={primary_identity.email || account_email}
             description={
               address_eligibility_failed
                 ? t("settings.address_change_eligibility_failed")
@@ -728,6 +688,7 @@ export function AccountSection({
                     : (address_lock_message ?? undefined)
                   : undefined
             }
+            label={primary_identity.email || account_email}
             on_press={
               address_eligibility?.eligible
                 ? () => set_show_address_change(true)

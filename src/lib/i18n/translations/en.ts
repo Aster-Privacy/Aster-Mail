@@ -174,6 +174,25 @@ export const en: Translations = {
     failed_remove_profile_picture:
       "Your profile picture could not be removed. Try again.",
     remove_photo: "Remove photo",
+    profile_picture_title: "Change profile picture",
+    profile_picture_gallery: "Choose from gallery",
+    profile_picture_gallery_hint: "Pick one of the Aster backgrounds",
+    profile_picture_upload: "Upload from device",
+    profile_picture_upload_hint: "JPEG, PNG, or WebP, up to 5 MB",
+    profile_picture_gallery_failed:
+      "The gallery didn't load. Check your connection, and then try again.",
+    profile_picture_cat_all: "All",
+    profile_picture_cat_space: "Space",
+    profile_picture_cat_night_sky: "Night sky",
+    profile_picture_cat_water: "Water",
+    profile_picture_cat_planets: "Planets",
+    profile_picture_cat_landscapes: "Landscapes",
+    profile_picture_cat_forest: "Forest",
+    profile_picture_cat_cities: "Cities",
+    profile_picture_cat_aurora: "Aurora",
+    profile_picture_cat_mountains: "Mountains",
+    profile_picture_cat_ocean: "Ocean",
+    profile_picture_cat_desert: "Desert",
     failed_save_profile_color: "Your color choice did not save. Try again.",
     failed_upload_image: "The upload did not finish. Try again.",
     image_load_failed: "This image did not load. A refresh usually does it.",
@@ -8979,7 +8998,6 @@ export const en: Translations = {
     device_code_instruction:
       "Enter this code at app.astermail.org/link-device to link your account.",
     device_code_copy: "Copy code",
-    device_code_copied: "Copied!",
     device_code_open_browser: "Open browser",
     device_code_expired: "This code has expired.",
     device_code_expired_description:
