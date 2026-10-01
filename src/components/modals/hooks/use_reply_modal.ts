@@ -235,8 +235,29 @@ export function use_reply_modal(props: UseReplyModalProps) {
   }, []);
 
   const toggle_plain_text_mode = useCallback(() => {
-    set_is_plain_text_mode((prev) => !prev);
-  }, []);
+    const element = message_editor_ref.current;
+
+    if (element) {
+      const text = element.innerText;
+
+      if (is_plain_text_mode) {
+        const html = escape_plain_text(text).replace(/\n/g, "<br>");
+
+        element.innerHTML = html;
+        set_reply_message(html);
+      } else {
+        element.innerText = text;
+        set_reply_message(text);
+      }
+    }
+
+    set_is_plain_text_mode(!is_plain_text_mode);
+  }, [
+    is_plain_text_mode,
+    message_editor_ref,
+    set_is_plain_text_mode,
+    set_reply_message,
+  ]);
 
   const handle_template_select = useCallback(
     (content: string) => {
