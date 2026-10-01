@@ -384,9 +384,6 @@ export function SandboxedEmailRenderer({
       : "";
 
   const accent_hex = safe_hex(resolved_accent.accent);
-  // A message forced dark in the light theme sits on the canvas painted for
-  // it, so its inks have to be derived for that canvas and not for the light
-  // theme surface, or links and repaired text come out dark on dark.
   const body_ink_surface =
     force_dark_mode && !app_is_dark
       ? FORCED_DARK_CANVAS
@@ -441,8 +438,6 @@ export function SandboxedEmailRenderer({
   const LINK_MEDIA_EXCLUDE =
     ":not(img):not(picture):not(svg):not(video):not(canvas)";
   const hover_paint = `var(${LINK_HOVER_VAR}, ${link_hover_paint})`;
-  // Skips a link the contrast repair is measuring, so a link under the
-  // pointer is measured in its resting ink. :where keeps the specificity.
   const hover_link = `a${LINK_BUTTON_EXCLUDE}:where(:not([${MEASURING_ATTRIBUTE}])):hover`;
   const link_hover_css = `a { transition: none; }
 ${hover_link}, ${hover_link} *${LINK_MEDIA_EXCLUDE} {
@@ -485,10 +480,6 @@ a:focus-visible {
         dark_ink,
       )
     : plain_dark_css;
-  // The forced dark CSS clears the root background, and a dark frame inside
-  // a light page then shows the browser's own dark canvas, #1c1b22 in
-  // Firefox instead of the #121212 painted around the frame that the
-  // contrast repair measures against, so the frame paints it as well.
   const forced_canvas_css =
     force_dark_mode && !app_is_dark
       ? `html { background-color: ${FORCED_DARK_CANVAS} !important; }`

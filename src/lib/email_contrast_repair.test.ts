@@ -74,17 +74,12 @@ function fake_view(defaults: fake_style_input = {}): Window {
         `style[${LINK_INK_LAYER_ATTRIBUTE}]`,
       );
 
-    // Stands in for the pointer resting on a link: the app's hover rule
-    // applies unless the repair is measuring that link, and the link ink
-    // layer has a hover rule of its own.
     if (node.dataset?.hovercolor && !node.hasAttribute(MEASURING_ATTRIBUTE)) {
       return in_layer
         ? node.style.getPropertyValue(LINK_INK_HOVER_VAR)
         : node.dataset.hovercolor;
     }
 
-    // Stands in for the link ink layer, whose rules outrank author rules
-    // marked !important, as long as the repair really added the layer.
     if (in_layer) return node.style.getPropertyValue(LINK_INK_VAR);
 
     const inline = node.style?.getPropertyValue("color") || undefined;
@@ -895,7 +890,6 @@ describe("repair_email_contrast in dark mode newsletters", () => {
     const under = doc.getElementById("under")!;
     const select_all = doc.querySelectorAll.bind(doc);
 
-    // happy-dom never matches :hover, so the pointer is placed by hand
     doc.querySelectorAll = ((selector: string) =>
       selector === "a:hover"
         ? [under]
@@ -997,8 +991,6 @@ describe("repair_email_contrast in dark mode newsletters", () => {
         : select_all(selector)) as typeof doc.querySelectorAll;
     observer.observe(doc, { attributes: true, childList: true, subtree: true });
 
-    // Marking the link under the pointer is the one write that may come
-    // before a read, since the scan has to see that link at rest.
     const view = {
       getComputedStyle: (element: Element) => {
         reads += 1;

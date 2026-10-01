@@ -38,14 +38,6 @@ export const LARGE_BOLD_MIN_PX = 18.66;
 export const BOLD_MIN_WEIGHT = 700;
 export const MAX_REPAIR_ELEMENTS = 20000;
 
-// HSL rates #222000 as fully saturated although it reads as black with an
-// olive cast, so lightening it at that saturation paints olive text. In
-// perceptual OKLCH terms text is neutral when it is near grey, and since a
-// dark colour reads as black with a cast long before its chroma reaches
-// zero, the allowance grows as lightness falls: #222000, slate #1e293b,
-// navy #172b4d and #000033 are neutral, while brand colours (#0f766e,
-// #c53030) and dark tones that still read as a colour (teal #134e4a,
-// #0b3d91) keep their hue.
 export const NEUTRAL_CHROMA = 0.04;
 export const NEAR_BLACK_CHROMA = 0.12;
 export const NEAR_BLACK_LIGHTNESS = 0.22;
@@ -57,19 +49,16 @@ export const LINK_INK_ATTRIBUTE = "data-aster-ink";
 export const LINK_INK_LAYER_ATTRIBUTE = "data-aster-ink-layer";
 export const MEASURING_ATTRIBUTE = "data-aster-measuring";
 
-// The link ink layer and the properties only it reads take a random name for
-// the session, so an email can neither add rules to the layer nor register
-// one of the properties with @property under a syntax that refuses colours,
-// either of which would keep its own links dark.
-const LINK_INK_SUFFIX = Math.random().toString(36).slice(2, 10);
+const LINK_INK_SUFFIX = Array.from(
+  crypto.getRandomValues(new Uint8Array(8)),
+  (byte) => byte.toString(16).padStart(2, "0"),
+).join("");
 
 export const LINK_INK_LAYER = `aster-ink-${LINK_INK_SUFFIX}`;
 export const LINK_INK_VAR = `--aster-link-ink-${LINK_INK_SUFFIX}`;
 export const LINK_INK_HOVER_VAR = `--aster-link-hover-${LINK_INK_SUFFIX}`;
 export const LINK_INK_VISITED_VAR = `--aster-link-visited-${LINK_INK_SUFFIX}`;
 
-// A link painted at almost no opacity was hidden on purpose, often as a trap
-// for automated clicks, so it is neither repaired nor handed to the layer.
 export const HIDDEN_LINK_ALPHA = 0.1;
 
 const FALLBACK_SURFACE = "#121212";
@@ -307,8 +296,6 @@ function parse_css_color_uncached(input: string): Rgba | null {
   return { r: channels[0], g: channels[1], b: channels[2], a: alpha };
 }
 
-// Computed styles report color-mix() results this way, which is how the
-// reading pane paints its message cards.
 function parse_srgb_function(body: string): Rgba | null {
   const parts = body.replace(/\//g, " ").split(/\s+/).filter(Boolean);
 
@@ -495,12 +482,6 @@ function repair_text_ink_uncached(
 
   if (!on_canvas) return grey_for_contrast(background, target, lighten);
 
-  // Text on the canvas that dark mode painted was written for a page of the
-  // opposite lightness, so it gets back the contrast it had there, judging
-  // translucent text as it looked on that page: a #222 headline comes out
-  // near white and a #666 caption stays a step dimmer, where every grey used
-  // to land on the same 4.5:1 mid grey. The theme ink caps it so mail never
-  // outshines the app's own text.
   const pole = lighten ? WHITE : BLACK;
   const designed = rgba_to_hex(
     composite_over(source, lighten ? WHITE_RGBA : BLACK_RGBA),
@@ -552,10 +533,6 @@ function has_own_text(element: Element): boolean {
   return false;
 }
 
-// authored marks a colour the email paints itself, an opaque background or an
-// image, as opposed to the canvas dark mode put behind it. Pairs the author
-// chose keep their plain repair; only text on the canvas, or on a faint tint
-// over it, is mirrored and insisted on.
 interface BackgroundState {
   hex: string;
   rgba: Rgba;
@@ -654,11 +631,6 @@ function is_button_link(style: CSSStyleDeclaration): boolean {
   return !!background && background.a > 0;
 }
 
-// An inline !important colour would beat the app's own hover and visited
-// rules too. A cascade layer outranks every unlayered !important rule
-// whatever its specificity, and this one is declared in the head, before
-// any of the email's styles, so the links handed to it keep their repaired,
-// hover and visited inks. Dropping transitions lets the ink land at once.
 const LINK_INK_LINK = `a[${LINK_INK_ATTRIBUTE}]`;
 
 export const LINK_INK_LAYER_CSS = `@layer ${LINK_INK_LAYER} {
@@ -667,8 +639,6 @@ ${LINK_INK_LINK}:visited { color: var(${LINK_INK_VISITED_VAR}, var(${LINK_INK_VA
 ${LINK_INK_LINK}:hover { color: var(${LINK_INK_HOVER_VAR}, var(${LINK_INK_VAR})) !important; }
 }`;
 
-// The renderer ships the layer with the frame, so marking a link restyles
-// only that link; anything else rendering an email gets it added here.
 function add_link_ink_layer(doc: Document): void {
   const parent = doc.head ?? doc.documentElement;
 
@@ -722,18 +692,12 @@ export function repair_email_contrast(
   const plans: TextPlan[] = [];
   const repair_borders = options.repair_borders !== false;
 
-  // A link under the pointer would be measured in the app's hover ink, which
-  // passes, and keep its dark ink once the pointer leaves. The app's hover
-  // rule skips a link carrying this attribute, so it is measured at rest,
-  // and only the links under the pointer are restyled for it.
   const hovered = Array.from(doc.querySelectorAll<HTMLElement>("a:hover"));
 
   for (let index = 0; index < hovered.length; index += 1) {
     hovered[index].setAttribute(MEASURING_ATTRIBUTE, "");
   }
 
-  // The attribute must come off even if a read throws, or those links would
-  // never show the app's hover ink again.
   try {
     for (let index = 0; index < elements.length; index += 1) {
       const element = elements[index];
@@ -843,15 +807,6 @@ export function repair_email_contrast(
     }
   }
 
-  // Links take a plain inline colour so the hover and visited inks still
-  // apply, but an author rule marked !important outranks it, as with
-  // .link-no-style { color: inherit !important } on a headline, and on the
-  // dark canvas that leaves the old dark ink. So every link repaired on the
-  // canvas also takes its ink from the link ink layer, which paints the same
-  // repaired, hover and visited inks either way. Picking out only the links
-  // the plain colour missed would mean reading them back after these writes,
-  // a second style recalc that Firefox makes very slow when an email's
-  // styles use :has(), so nothing is read once writing starts.
   if (plans.some((plan) => plan.use_layer)) add_link_ink_layer(doc);
 
   for (let index = 0; index < plans.length; index += 1) {
@@ -875,10 +830,6 @@ export function repair_email_contrast(
       stats.links_tuned += 1;
     }
     if (plan.use_layer && plan.color) {
-      // The layer's properties go inline and !important, where no rule of the
-      // email's can reach them, and so does transition: none, because an
-      // inline !important transition of the email's outranks the layer's and
-      // would hold the old ink.
       plan.element.setAttribute(LINK_INK_ATTRIBUTE, "");
       plan.element.style.setProperty(LINK_INK_VAR, plan.color, "important");
       if (plan.hover) {

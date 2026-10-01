@@ -210,11 +210,6 @@ export function link_hover_ink_for(
   return derive_link_hover_ink(hex, surface);
 }
 
-// Contrast has to be measured against what is painted behind the email. A
-// transparent frame shows the message card (#1f1f1f in the dark theme, not
-// the #121212 app surface), while a frame forced dark in the light theme
-// paints its own canvas. Anything that cannot be read, like a gradient or a
-// colour space other than sRGB, falls back to the app surface.
 export function resolve_backdrop_color(
   element: Element | null,
   fallback: string,
