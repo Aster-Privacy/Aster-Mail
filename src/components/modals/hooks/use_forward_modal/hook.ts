@@ -37,6 +37,7 @@ import {
 
 import { use_draggable_modal } from "@/hooks/use_draggable_modal";
 import { use_editor } from "@/hooks/use_editor";
+import { escape_html as escape_plain_text } from "@/hooks/editor_utils";
 import {
   store_pending_send_payload,
   undo_send_manager,
@@ -624,8 +625,33 @@ export function use_forward_modal({
   );
 
   const toggle_plain_text_mode = useCallback(() => {
-    set_is_plain_text_mode((prev) => !prev);
-  }, []);
+    const element = message_editor_ref.current;
+
+    if (element) {
+      const text = element.innerText;
+
+      if (is_plain_text_mode) {
+        const html = escape_plain_text(text).replace(/\n/g, "<br>");
+
+        element.innerHTML = html;
+        set_forward_message(html);
+      } else {
+        element.innerText = text;
+        set_forward_message(text);
+      }
+    }
+
+    set_is_plain_text_mode(!is_plain_text_mode);
+  }, [
+    is_plain_text_mode,
+    message_editor_ref,
+    set_is_plain_text_mode,
+    set_forward_message,
+  ]);
+
+  const outgoing_forward_message = is_plain_text_mode
+    ? escape_plain_text(forward_message).replace(/\n/g, "<br>")
+    : forward_message;
 
   const handle_forward = useCallback(async () => {
     if (
@@ -705,7 +731,9 @@ export function use_forward_modal({
     if (selected_sender?.type === "external" && selected_sender.address_hash) {
       const subject = `${t("mail.forward_subject_prefix")} ${email_subject}`;
       const ext_body =
-        (forward_message ? forward_message + "<br><br>" : "") +
+        (outgoing_forward_message
+          ? outgoing_forward_message + "<br><br>"
+          : "") +
         sanitize_outgoing_html(send_content) +
         get_aster_footer(t, preferences.show_aster_branding);
       const external_attachments =
@@ -795,7 +823,7 @@ export function use_forward_modal({
         recipients: send_recipients.to,
         cc_recipients: send_recipients.cc,
         bcc_recipients: send_recipients.bcc,
-        message: forward_message,
+        message: outgoing_forward_message,
         prebuilt_content: send_content,
         expires_at: expires_at?.toISOString(),
         sender_email: fwd_sender_email,
@@ -842,7 +870,9 @@ export function use_forward_modal({
       if (delay_seconds > 0) {
         const undo_subject = `${t("mail.forward_subject_prefix")} ${email_subject}`;
         const undo_body =
-          (forward_message ? forward_message + "<br><br>" : "") +
+          (outgoing_forward_message
+            ? outgoing_forward_message + "<br><br>"
+            : "") +
           sanitize_outgoing_html(send_content) +
           get_aster_footer(t, preferences.show_aster_branding);
 
@@ -865,7 +895,7 @@ export function use_forward_modal({
           cc: send_recipients.cc,
           bcc: send_recipients.bcc,
           subject: undo_subject,
-          body: forward_message,
+          body: outgoing_forward_message,
           sender_email: fwd_sender_email,
           scheduled_time: Date.now() + delay_ms,
           total_seconds: delay_seconds,
@@ -892,7 +922,7 @@ export function use_forward_modal({
     email_subject,
     email_body,
     email_timestamp,
-    forward_message,
+    outgoing_forward_message,
     preferences.undo_send_period,
     preferences.undo_send_enabled,
     preferences.undo_send_seconds,
@@ -931,7 +961,7 @@ export function use_forward_modal({
       attachments_ref.current,
     );
     const scheduled_body =
-      (forward_message ? forward_message + "<br><br>" : "") +
+      (outgoing_forward_message ? outgoing_forward_message + "<br><br>" : "") +
       sanitize_outgoing_html(scheduled_content) +
       get_aster_footer(t, preferences.show_aster_branding);
     const content: ScheduledEmailContent = {
@@ -976,7 +1006,7 @@ export function use_forward_modal({
     vault,
     scheduled_time,
     email_subject,
-    forward_message,
+    outgoing_forward_message,
     on_close,
     attachments,
     build_forward_content,
