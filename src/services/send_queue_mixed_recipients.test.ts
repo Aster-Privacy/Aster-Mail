@@ -109,6 +109,12 @@ vi.mock("@/utils/email_crypto", () => ({
   derive_own_public_key: vi.fn(async () => null),
 }));
 
+vi.mock("@/services/api/domains", () => ({
+  add_domain_address: vi.fn(() => {
+    throw new Error("Wildcard sending must not create an address");
+  }),
+}));
+
 import { execute_send } from "./send_queue_encryption";
 import { send_simple_email } from "./api/send";
 
@@ -225,5 +231,24 @@ describe("unmixed sends are unchanged", () => {
 
     expect(request.is_e2e_encrypted).toBe(false);
     expect(request.internal_encrypted_body).toBeUndefined();
+  });
+});
+
+describe("catch-all send identity", () => {
+  it("passes the wildcard From address without registering an individual address", async () => {
+    await execute_send(
+      queued({
+        sender_email: "shopping@my.example",
+      }),
+    );
+    const { add_domain_address } = await import("@/services/api/domains");
+
+    expect(add_domain_address).not.toHaveBeenCalled();
+    expect(last_request()).toEqual(
+      expect.objectContaining({
+        sender_email: "shopping@my.example",
+        sender_alias_hash: undefined,
+      }),
+    );
   });
 });

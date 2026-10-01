@@ -18,7 +18,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { describe, it, expect } from "vitest";
+import type { CustomDomain } from "@/services/api/domains";
+
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 
 import {
   build_reply_from_address,
@@ -27,6 +29,150 @@ import {
   is_reply_from_mismatch,
   resolve_own_recipient_address,
 } from "./build_reply_from_address";
+
+import { set_catch_all_context } from "@/services/catch_all_sender";
+
+const catch_all_domain = {
+  id: "d1",
+  domain_name: "example.com",
+  status: "active",
+  catch_all_enabled: true,
+} as CustomDomain;
+
+function delivered_to(...values: string[]) {
+  return values.map((value) => ({ name: "Delivered-To", value }));
+}
+
+describe("build_reply_from_address with catch-all sending", () => {
+  beforeEach(() => {
+    vi.stubEnv("VITE_CATCH_ALL_SENDING", "true");
+    set_catch_all_context(
+      [
+        catch_all_domain,
+        {
+          ...catch_all_domain,
+          id: "d2",
+          domain_name: "plain.example",
+          catch_all_enabled: false,
+        },
+      ],
+      ["me@astermail.org", "support@example.com", "off@example.com"],
+    );
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    set_catch_all_context([], []);
+  });
+
+  it("keeps the alias the server recorded when Delivered-To differs", () => {
+    expect(
+      build_reply_from_address(
+        {
+          sender_email: "store@shop.example",
+          received_on_alias: "orders@aster.cx",
+          raw_headers: delivered_to("shopping@example.com"),
+          to_emails: ["orders@aster.cx"],
+        },
+        false,
+      ),
+    ).toBe("orders@aster.cx");
+  });
+
+  it("uses Delivered-To for an unregistered address on a catch-all domain", () => {
+    expect(
+      build_reply_from_address(
+        {
+          sender_email: "store@shop.example",
+          raw_headers: delivered_to("<Shopping@Example.com>"),
+          to_emails: ["deals@lists.example"],
+        },
+        false,
+      ),
+    ).toBe("shopping@example.com");
+  });
+
+  it("ignores Delivered-To on a domain without catch-all", () => {
+    expect(
+      build_reply_from_address(
+        {
+          sender_email: "store@shop.example",
+          raw_headers: delivered_to("shopping@plain.example"),
+        },
+        false,
+      ),
+    ).toBeUndefined();
+  });
+
+  it("leaves registered, disabled and dotted registered addresses to the usual rules", () => {
+    for (const address of [
+      "support@example.com",
+      "off@example.com",
+      "sup.port@example.com",
+    ]) {
+      expect(
+        build_reply_from_address(
+          { sender_email: "a@b.example", raw_headers: delivered_to(address) },
+          false,
+        ),
+      ).toBeUndefined();
+    }
+    expect(
+      build_reply_from_address(
+        {
+          sender_email: "a@b.example",
+          raw_headers: delivered_to("shopping@example.com"),
+          cc_emails: ["Support@Example.com"],
+        },
+        false,
+      ),
+    ).toBeUndefined();
+  });
+
+  it("reads only the topmost Delivered-To, so a lower forged one cannot win", () => {
+    expect(
+      build_reply_from_address(
+        {
+          sender_email: "a@b.example",
+          raw_headers: delivered_to("shopping@example.com", "ceo@example.com"),
+        },
+        false,
+      ),
+    ).toBe("shopping@example.com");
+    expect(
+      build_reply_from_address(
+        {
+          sender_email: "a@b.example",
+          raw_headers: delivered_to("me@gmail.example", "ceo@example.com"),
+        },
+        false,
+      ),
+    ).toBeUndefined();
+  });
+
+  it("matches main exactly when the flag is off", () => {
+    vi.stubEnv("VITE_CATCH_ALL_SENDING", "false");
+    expect(
+      build_reply_from_address(
+        {
+          sender_email: "store@shop.example",
+          raw_headers: delivered_to("shopping@example.com"),
+        },
+        false,
+      ),
+    ).toBeUndefined();
+    expect(
+      build_reply_from_address(
+        {
+          sender_email: "store@shop.example",
+          received_on_alias: " orders@aster.cx ",
+          raw_headers: delivered_to("shopping@example.com"),
+        },
+        false,
+      ),
+    ).toBe("orders@aster.cx");
+  });
+});
 
 describe("build_reply_from_address", () => {
   it("returns sender_email for own message (replying continues alias)", () => {

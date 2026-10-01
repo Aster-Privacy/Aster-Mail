@@ -31,6 +31,7 @@ import {
   list_domain_addresses,
   decrypt_domain_addresses,
   compute_address_hash,
+  type CustomDomain,
 } from "@/services/api/domains";
 import { type User } from "@/services/account_manager";
 import { resolve_current_user } from "@/services/current_identity";
@@ -51,6 +52,11 @@ import {
   set_local_address_avatars,
 } from "@/services/local_address_avatars";
 import { is_sendable_address } from "@/utils/sender_address";
+import {
+  catch_all_sender_options,
+  is_catch_all_sending_enabled,
+  set_catch_all_context,
+} from "@/services/catch_all_sender";
 
 export type SenderOptionType =
   "primary" | "alias" | "domain" | "external" | "ghost";
@@ -62,6 +68,7 @@ export interface SenderOption {
   type: SenderOptionType;
   is_enabled: boolean;
   address_hash?: string;
+  is_catch_all?: boolean;
   domain_name?: string;
   profile_picture?: string;
 }
@@ -79,7 +86,11 @@ export function is_signature_bindable_sender_type(
 }
 
 export function is_signature_bindable_sender(option: SenderOption): boolean {
-  return is_signature_bindable_sender_type(option.type) && option.is_enabled;
+  return (
+    is_signature_bindable_sender_type(option.type) &&
+    option.is_enabled &&
+    !option.is_catch_all
+  );
 }
 
 export async function build_alias_hash_map(
@@ -109,6 +120,8 @@ async function resolve_primary_user(): Promise<User | null> {
 let cached_aliases: DecryptedEmailAlias[] = [];
 let cached_alias_hashes: Map<string, string> = new Map();
 let cached_domain_options: SenderOption[] = [];
+let cached_catch_all_domains: CustomDomain[] = [];
+let cached_disabled_addresses: string[] = [];
 let cached_external_options: SenderOption[] = [];
 let cached_ghost_options: SenderOption[] = [];
 let cached_user: User | null = null;
@@ -144,14 +157,25 @@ export function clear_sender_aliases_cache(): void {
   cached_aliases = [];
   cached_alias_hashes = new Map();
   cached_domain_options = [];
+  cached_catch_all_domains = [];
+  cached_disabled_addresses = [];
   cached_external_options = [];
   cached_ghost_options = [];
   cached_user = null;
   cache_populated = false;
+  set_catch_all_context([], []);
   clear_local_address_avatars();
 }
 
-export function use_sender_aliases() {
+export function use_sender_aliases(
+  candidates: (string | null | undefined)[] = [],
+) {
+  const [catch_all_domains, set_catch_all_domains] = useState(
+    cached_catch_all_domains,
+  );
+  const [disabled_addresses, set_disabled_addresses] = useState(
+    cached_disabled_addresses,
+  );
   const [aliases, set_aliases] =
     useState<DecryptedEmailAlias[]>(cached_aliases);
   const [alias_hashes, set_alias_hashes] =
@@ -190,10 +214,15 @@ export function use_sender_aliases() {
       set_user(resolved_user);
 
       const alias_result = await list_all_aliases();
+      const disabled_addresses: string[] = [];
 
       if (!alias_result.error) {
         const decrypted = await decrypt_aliases(alias_result.aliases);
         const enabled_aliases = decrypted.filter((a) => a.is_enabled);
+
+        for (const alias of decrypted) {
+          if (!alias.is_enabled) disabled_addresses.push(alias.full_address);
+        }
 
         const hashes = await build_alias_hash_map(enabled_aliases);
 
@@ -225,7 +254,10 @@ export function use_sender_aliases() {
         );
 
         for (const addr of decrypted_addresses) {
-          if (!addr.is_enabled) continue;
+          if (!addr.is_enabled) {
+            disabled_addresses.push(`${addr.local_part}@${domain.domain_name}`);
+            continue;
+          }
 
           const hash =
             addr.local_part_hash ||
@@ -251,6 +283,10 @@ export function use_sender_aliases() {
       if (!domain_fetch_failed || cached_domain_options.length === 0) {
         cached_domain_options = domain_sender_options;
         set_domain_options(domain_sender_options);
+        cached_catch_all_domains = active_domains;
+        cached_disabled_addresses = disabled_addresses;
+        set_catch_all_domains(active_domains);
+        set_disabled_addresses(disabled_addresses);
       }
 
       const ghost_response = await list_ghost_aliases();
@@ -316,6 +352,16 @@ export function use_sender_aliases() {
       }
 
       cache_populated = true;
+      set_catch_all_context(cached_catch_all_domains, [
+        cached_user?.email,
+        ...cached_aliases.map((a) => a.full_address),
+        ...[
+          ...cached_domain_options,
+          ...cached_ghost_options,
+          ...cached_external_options,
+        ].map((o) => o.email),
+        ...cached_disabled_addresses,
+      ]);
       publish_local_address_avatars();
     } catch {
       set_aliases(cached_aliases);
@@ -378,7 +424,17 @@ export function use_sender_aliases() {
   ].filter((option) => is_sendable_address(option.email));
 
   return {
-    sender_options,
+    sender_options: [
+      ...sender_options,
+      ...(is_catch_all_sending_enabled()
+        ? catch_all_sender_options(
+            catch_all_domains,
+            candidates,
+            sender_options,
+            disabled_addresses,
+          )
+        : []),
+    ],
     loading,
     refresh: load_aliases,
   };

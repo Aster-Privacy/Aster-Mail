@@ -319,7 +319,9 @@ export function use_compose({
     DecryptedRecentRecipient[]
   >([]);
 
-  const { sender_options, loading: aliases_loading } = use_sender_aliases();
+  const { sender_options, loading: aliases_loading } = use_sender_aliases([
+    edit_draft?.from_email,
+  ]);
   const [selected_sender, set_selected_sender_state] =
     useState<SenderOption | null>(null);
   const sender_manually_selected_ref = useRef(false);

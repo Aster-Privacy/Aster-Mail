@@ -213,6 +213,9 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       const reply_from_address = build_reply_from_address(
         {
           sender_email: deps.email.sender_email,
+          raw_headers: deps.email.raw_headers,
+          to_emails,
+          cc_emails,
           received_on_alias:
             resolve_received_on_alias(
               deps.mail_item?.routing_token,
@@ -933,6 +936,9 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       const reply_from_address = build_reply_from_address(
         {
           sender_email: msg.sender_email,
+          raw_headers: msg.raw_headers,
+          to_emails,
+          cc_emails,
           received_on_alias:
             resolve_received_on_alias(
               deps.mail_item?.routing_token,

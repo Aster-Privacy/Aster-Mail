@@ -76,7 +76,9 @@ import {
   type ScheduledEmailContent,
 } from "@/services/api/scheduled";
 import { emit_scheduled_changed } from "@/hooks/mail_events";
-import { delete_thread_draft } from "@/services/api/multi_drafts";
+import { create_draft, delete_thread_draft } from "@/services/api/multi_drafts";
+import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
+import { attachments_to_draft_data } from "@/components/compose/compose_draft_helpers";
 import {
   type Attachment,
   generate_attachment_id,
@@ -521,6 +523,39 @@ export function use_reply_modal(props: UseReplyModalProps) {
         ? selected_sender.display_name
         : undefined;
 
+    let handed_off = false;
+    // The server may refuse an unregistered catch-all From after the reply
+    // has closed and its draft is gone; save it again with the same From.
+    const keep_failed_catch_all_reply = async (): Promise<boolean> => {
+      const draft_vault = get_vault_from_memory();
+
+      if (!draft_vault) return false;
+      const saved = await create_draft(
+        {
+          to_recipients: send_recipients.to,
+          cc_recipients: send_recipients.cc,
+          bcc_recipients: [],
+          subject: build_reply_subject(
+            original_subject,
+            resolve_reply_prefix(t("mail.reply_subject_prefix")),
+          ),
+          message: reply_message,
+          from_email: selected_sender?.email,
+          attachments:
+            attachments.length > 0
+              ? attachments_to_draft_data(attachments)
+              : undefined,
+        },
+        draft_vault,
+        "reply",
+        original_email_id,
+        undefined,
+        thread_token,
+      ).catch(() => null);
+
+      return !!saved?.data;
+    };
+
     const result = await send_reply(
       {
         original,
@@ -582,7 +617,23 @@ export function use_reply_modal(props: UseReplyModalProps) {
           }
           optimistic_id_ref.current = null;
           set_error_message(error);
-          show_toast(error || t("common.failed_to_send_reply"), "error", 10000);
+          if (handed_off && selected_sender?.is_catch_all) {
+            void keep_failed_catch_all_reply().then((kept) =>
+              show_toast(
+                kept
+                  ? `${error} ${t("common.failed_to_send_reply")}`.trim()
+                  : error || t("common.failed_to_send_reply"),
+                "error",
+                10000,
+              ),
+            );
+          } else {
+            show_toast(
+              error || t("common.failed_to_send_reply"),
+              "error",
+              10000,
+            );
+          }
           set_is_sending(false);
           last_send_time_ref.current = 0;
           forget_send(send_fingerprint);
@@ -644,6 +695,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
         });
       }
 
+      handed_off = true;
       void discard_sent_draft(reply_thread_token);
 
       if (delay_seconds > 0) {
@@ -803,6 +855,16 @@ export function use_reply_modal(props: UseReplyModalProps) {
       ),
       body: message_with_signature,
       scheduled_at: scheduled_time.toISOString(),
+      // A catch-all identity has no saved address for the server to look up,
+      // so the scheduled envelope names it. Other senders are unchanged.
+      ...(selected_sender?.is_catch_all
+        ? {
+            from: {
+              name: selected_sender.display_name || "",
+              email: selected_sender.email,
+            },
+          }
+        : {}),
     };
 
     try {
@@ -839,6 +901,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
     user,
     vault,
     scheduled_time,
+    selected_sender,
     commit_pending_recipient_inputs,
     original_subject,
 
