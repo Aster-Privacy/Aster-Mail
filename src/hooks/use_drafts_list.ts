@@ -274,8 +274,10 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
     }
 
     abort_ref.current?.abort();
-    abort_ref.current = new AbortController();
-    const { signal } = abort_ref.current;
+    const controller = new AbortController();
+
+    abort_ref.current = controller;
+    const { signal } = controller;
     const seq = ++fetch_seq_ref.current;
     const is_current = () =>
       seq === fetch_seq_ref.current && mounted_ref.current;
@@ -286,7 +288,7 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
     let timed_out = false;
     const timeout_id = setTimeout(() => {
       timed_out = true;
-      abort_ref.current?.abort();
+      controller.abort();
     }, FETCH_TIMEOUT_MS);
 
     try {
