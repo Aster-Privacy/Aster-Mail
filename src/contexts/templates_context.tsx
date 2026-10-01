@@ -50,6 +50,9 @@ interface TemplatesProviderProps {
   children: ReactNode;
 }
 
+const LOAD_RETRY_DELAYS_MS = [2_000, 4_000, 8_000, 20_000, 45_000];
+const INITIAL_LOAD_DELAY_MS = 1_000;
+
 export function TemplatesProvider({ children }: TemplatesProviderProps) {
   const { vault, is_authenticated, is_completing_registration } = use_auth();
   const { t } = use_i18n();
@@ -69,7 +72,11 @@ export function TemplatesProvider({ children }: TemplatesProviderProps) {
 
     set_is_loading(true);
 
-    for (let attempt = 0; attempt < 3; attempt += 1) {
+    for (
+      let attempt = 0;
+      attempt <= LOAD_RETRY_DELAYS_MS.length;
+      attempt += 1
+    ) {
       try {
         const response = await list_templates();
 
@@ -85,9 +92,9 @@ export function TemplatesProvider({ children }: TemplatesProviderProps) {
         if (this_generation !== load_generation_ref.current) return;
       }
 
-      if (attempt < 2) {
+      if (attempt < LOAD_RETRY_DELAYS_MS.length) {
         await new Promise((resolve) => {
-          setTimeout(resolve, 2_000 * (attempt + 1));
+          setTimeout(resolve, LOAD_RETRY_DELAYS_MS[attempt]);
         });
 
         if (this_generation !== load_generation_ref.current) return;
@@ -98,7 +105,7 @@ export function TemplatesProvider({ children }: TemplatesProviderProps) {
   }, [vault, is_authenticated, is_completing_registration]);
 
   useEffect(() => {
-    const timer = setTimeout(load_templates, 5_000);
+    const timer = setTimeout(load_templates, INITIAL_LOAD_DELAY_MS);
 
     return () => clearTimeout(timer);
   }, [load_templates]);

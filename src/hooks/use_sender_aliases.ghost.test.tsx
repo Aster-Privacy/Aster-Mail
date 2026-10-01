@@ -61,6 +61,7 @@ vi.mock("@/services/account_manager", () => ({
 vi.mock("@/services/crypto/memory_key_store", () => ({
   has_passphrase_in_memory: vi.fn(() => true),
   get_derived_encryption_key: vi.fn(() => new Uint8Array(32)),
+  on_keys_ready: vi.fn(() => () => {}),
 }));
 
 vi.mock("@/services/api/external_accounts", () => ({
