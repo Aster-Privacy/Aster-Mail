@@ -73,9 +73,16 @@ import { ErrorBoundary } from "@/components/ui/error_boundary";
 import { AppLock } from "@/components/mobile";
 import { install_global_autoscroll } from "@/lib/global_autoscroll";
 import { ignore_error } from "@/lib/ignore_error";
+import { safe_local_get } from "@/lib/safe_storage";
 import { lazy_with_retry } from "@/utils/lazy_with_retry";
 
 const IndexPage = lazy_with_retry(() => import("@/pages/index"));
+
+if (safe_local_get("aster_preferences_cache")) {
+  import("@/pages/index").catch((caught) =>
+    ignore_error("App:preload_index_page", caught),
+  );
+}
 const SignInPage = lazy_with_retry(() => import("@/pages/sign_in"));
 const RegisterPage = lazy_with_retry(() => import("@/pages/register"));
 const InvitePage = lazy_with_retry(() => import("@/pages/invite"));
