@@ -193,6 +193,47 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
     return attachments.reduce((total, att) => total + att.size_bytes, 0);
   }, [attachments]);
 
+  const append_attachments = useCallback(
+    (incoming: Attachment[]) => {
+      const next = [...attachments_ref.current];
+      const taken_names = new Set(next.map((attachment) => attachment.name));
+      let total = next.reduce(
+        (sum, attachment) => sum + attachment.size_bytes,
+        0,
+      );
+
+      for (const attachment of incoming) {
+        if (next.length >= MAX_ATTACHMENTS_PER_SEND) {
+          const message = describe_too_many_attachments(t);
+
+          set_attachment_error(message);
+          show_toast(message, "error");
+          break;
+        }
+
+        if (total + attachment.size_bytes > get_max_total_attachments_size()) {
+          const message = describe_would_exceed_total(t, attachment.name);
+
+          set_attachment_error(message);
+          show_toast(message, "error");
+          continue;
+        }
+
+        const name = unique_attachment_name(attachment.name, taken_names);
+
+        next.push({ ...attachment, name });
+        taken_names.add(name);
+        total += attachment.size_bytes;
+      }
+
+      // Publish the accepted batch before another read can finish, including
+      // when React has not rendered the state update yet.
+      attachments_ref.current = next;
+      set_attachments(next);
+    },
+    [t],
+  );
+
   const read_selected_files = useCallback(
     async (event: React.ChangeEvent<HTMLInputElement>) => {
       const files = event.target.files;
@@ -245,12 +286,6 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
 
         const mime_type = resolve_mime_type(file);
 
-        const taken_names = new Set([
-          ...attachments.map((a) => a.name),
-          ...new_attachments.map((a) => a.name),
-        ]);
-        const attachment_name = unique_attachment_name(file.name, taken_names);
-
         try {
           const raw = await file.arrayBuffer();
           const data = await apply_metadata_strip(
@@ -263,7 +298,7 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
 
           new_attachments.push({
             id: generate_attachment_id(),
-            name: attachment_name,
+            name: file.name,
             size: format_bytes(data.byteLength),
             size_bytes: data.byteLength,
             mime_type,
@@ -282,7 +317,7 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
       }
 
       if (new_attachments.length > 0) {
-        set_attachments((prev) => [...prev, ...new_attachments]);
+        append_attachments(new_attachments);
         play_iconic_sound("upload");
       }
 
@@ -299,7 +334,7 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
       }
     },
     [
-      attachments,
+      append_attachments,
       get_total_attachments_size,
       preferences.strip_exif_on_compose,
       t,
@@ -352,12 +387,6 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
 
         const mime_type = resolve_mime_type(file);
 
-        const taken_names = new Set([
-          ...attachments.map((a) => a.name),
-          ...new_attachments.map((a) => a.name),
-        ]);
-        const attachment_name = unique_attachment_name(file.name, taken_names);
-
         try {
           const raw = await file.arrayBuffer();
           const data = await apply_metadata_strip(
@@ -370,7 +399,7 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
 
           new_attachments.push({
             id: generate_attachment_id(),
-            name: attachment_name,
+            name: file.name,
             size: format_bytes(data.byteLength),
             size_bytes: data.byteLength,
             mime_type,
@@ -389,7 +418,7 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
       }
 
       if (new_attachments.length > 0) {
-        set_attachments((prev) => [...prev, ...new_attachments]);
+        append_attachments(new_attachments);
         play_iconic_sound("upload");
       }
 
@@ -402,7 +431,7 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
       }
     },
     [
-      attachments,
+      append_attachments,
       get_total_attachments_size,
       preferences.strip_exif_on_compose,
       t,
