@@ -464,9 +464,13 @@ export function use_email_list(
 
   fetch_page_ref.current = fetch_page;
 
+  const silent_seq_ref = useRef(0);
+
   const silent_fetch = useCallback(async (): Promise<void> => {
     if (!is_mail_view) return;
     if (!has_passphrase_in_memory()) return;
+
+    const my_silent_seq = ++silent_seq_ref.current;
 
     page_cache_ref.current.clear();
 
@@ -506,6 +510,7 @@ export function use_email_list(
       )
         return;
       if (page_ref.current !== active_page) return;
+      if (silent_seq_ref.current !== my_silent_seq) return;
 
       last_fetch_ref.current = {
         view: current_view,

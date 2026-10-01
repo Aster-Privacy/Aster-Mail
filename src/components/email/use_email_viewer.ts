@@ -393,7 +393,11 @@ export function use_email_viewer({
   }, [local_email, user, format_email_detail, t]);
 
   useEffect(() => {
-    if (local_email) return;
+    if (local_email) {
+      loaded_email_id_ref.current = null;
+
+      return;
+    }
     let cancelled = false;
 
     const commit_preloaded = (preloaded: PreloadedEmail) => {
@@ -442,10 +446,13 @@ export function use_email_viewer({
 
       const preloaded =
         cached ??
-        (await await_preloaded_email(
-          email_id,
+        usable_preloaded(
+          await await_preloaded_email(
+            email_id,
+            preferences.conversation_grouping !== false,
+          ),
           preferences.conversation_grouping !== false,
-        ));
+        );
 
       if (preloaded) {
         const pe = preloaded.email;
@@ -1395,11 +1402,17 @@ export function use_email_viewer({
     [mail_item?.id, mail_item?.thread_token],
   );
 
+  const retry_load = useCallback(() => {
+    set_error(null);
+    set_refresh_key((k) => k + 1);
+  }, []);
+
   return {
     email,
     mail_item,
     is_loading,
     error,
+    retry_load,
     is_read,
     is_pinned,
     is_archive_loading,
