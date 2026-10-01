@@ -227,24 +227,6 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
 
         const mime_type = resolve_mime_type(file);
 
-        const same_file_attached =
-          attachments_ref.current.some(
-            (a) => a.name === file.name && a.size_bytes === file.size,
-          ) ||
-          new_attachments.some(
-            (a) => a.name === file.name && a.size_bytes === file.size,
-          );
-
-        if (same_file_attached) {
-          const message = t("common.file_already_attached", {
-            name: file.name,
-          });
-
-          set_attachment_error(message);
-          show_toast(message, "info");
-          continue;
-        }
-
         const taken_names = new Set([
           ...attachments.map((a) => a.name),
           ...new_attachments.map((a) => a.name),
@@ -351,24 +333,6 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
         }
 
         const mime_type = resolve_mime_type(file);
-
-        const same_file_attached =
-          attachments_ref.current.some(
-            (a) => a.name === file.name && a.size_bytes === file.size,
-          ) ||
-          new_attachments.some(
-            (a) => a.name === file.name && a.size_bytes === file.size,
-          );
-
-        if (same_file_attached) {
-          const message = t("common.file_already_attached", {
-            name: file.name,
-          });
-
-          set_attachment_error(message);
-          show_toast(message, "info");
-          continue;
-        }
 
         const taken_names = new Set([
           ...attachments.map((a) => a.name),
