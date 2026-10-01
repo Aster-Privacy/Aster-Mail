@@ -47,6 +47,7 @@ import { type BulkScopeFilter } from "@/services/api/mail";
 import {
   filter_emails_by_view,
   apply_active_filter,
+  kept_open_email_id,
   compute_total_pages,
   should_recover_empty_view,
 } from "@/components/email/inbox/inbox_view_helpers";
@@ -252,14 +253,20 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     () => filter_emails_by_view(email_state.emails, current_view),
     [email_state.emails, current_view],
   );
+  const kept_open_id = kept_open_email_id(
+    view_filtered_emails,
+    active_filter,
+    active_email_id,
+  );
   const filtered_emails = useMemo(
     () =>
-      apply_active_filter(view_filtered_emails, active_filter)
+      apply_active_filter(view_filtered_emails, active_filter, kept_open_id)
         .map(enrich_email_folders)
         .map(enrich_email_tags),
     [
       view_filtered_emails,
       active_filter,
+      kept_open_id,
       enrich_email_folders,
       enrich_email_tags,
     ],
@@ -348,8 +355,10 @@ export function use_email_inbox_state(props: EmailInboxProps) {
   const alias_scoped_by_server =
     is_alias_view &&
     get_alias_hash_by_address(alias_address_of(current_view) ?? "") !== null;
+  // The kept open row no longer matches the filter, so it is listed but not
+  // counted.
   const effective_total_for_pages = is_client_filtered
-    ? all_primary_emails.length
+    ? all_primary_emails.filter((e) => e.id !== kept_open_id).length
     : categories.enabled
       ? is_category_index_built()
         ? (categories.counts[categories.active_category]?.total ?? 0)
@@ -393,7 +402,7 @@ export function use_email_inbox_state(props: EmailInboxProps) {
             : null;
 
   const list_header_count = is_alias_view
-    ? filtered_emails.filter((e) => !e.is_read).length
+    ? filtered_emails.filter((e) => !e.is_read && e.id !== kept_open_id).length
     : effective_total_for_pages;
 
   const header_count_key = `${current_view}|${
