@@ -8489,6 +8489,7 @@ export const fr = {
     drafts: "Brouillons",
     starred: "Suivis",
     archive: "Archiver",
+    archive_action: "Archiver",
     spam: "Indésirables",
     trash: "Corbeille",
     scheduled: "Programmés",

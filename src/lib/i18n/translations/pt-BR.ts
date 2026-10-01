@@ -8424,6 +8424,7 @@ export const pt_br = {
     drafts: "Rascunhos",
     starred: "Com estrela",
     archive: "Arquivo",
+    archive_action: "Arquivar",
     spam: "Spam",
     trash: "Lixeira",
     scheduled: "Agendados",

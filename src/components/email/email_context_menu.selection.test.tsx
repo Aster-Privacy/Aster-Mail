@@ -183,7 +183,7 @@ describe("EmailContextMenuContent selection scope", () => {
     expect(text()).not.toContain("mail.find_emails_from");
     expect(text()).toContain("mail.mark_as_read");
     expect(text()).toContain("mail.mark_as_unread");
-    expect(text()).toContain("mail.archive");
+    expect(text()).toContain("mail.archive_action");
     expect(text()).toContain("mail.snooze");
     expect(text()).toContain("mail.folder");
     expect(text()).toContain("mail.move_to_category");
@@ -212,7 +212,7 @@ describe("EmailContextMenuContent selection scope", () => {
     expect(text()).not.toContain("mail.folder");
     expect(text()).not.toContain("common.labels");
     expect(text()).not.toContain("mail.move_to_category");
-    expect(text()).toContain("mail.archive");
+    expect(text()).toContain("mail.archive_action");
     expect(text()).toContain("mail.mark_as_read");
   });
 
@@ -294,7 +294,7 @@ describe("EmailContextMenuContent selection scope", () => {
     render({ selection, on_archive });
 
     const archive = Array.from(container!.querySelectorAll("button")).find(
-      (button) => button.textContent === "mail.archive",
+      (button) => button.textContent === "mail.archive_action",
     );
 
     await act(async () => {

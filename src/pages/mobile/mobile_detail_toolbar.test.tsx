@@ -77,7 +77,7 @@ describe("mobile detail toolbar", () => {
     expect(labels).toEqual([
       "mail.mark_read",
       "mail.move_to_trash",
-      "mail.archive",
+      "mail.archive_action",
       "mail.star",
       "common.more_actions",
     ]);

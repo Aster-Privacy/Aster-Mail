@@ -8299,6 +8299,7 @@ export const tr = {
     drafts: "Taslaklar",
     starred: "Yıldızlı",
     archive: "Arşiv",
+    archive_action: "Arşivle",
     spam: "Önemsiz",
     trash: "Çöp Kutusu",
     scheduled: "Zamanlanmış",

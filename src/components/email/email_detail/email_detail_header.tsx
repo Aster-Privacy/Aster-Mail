@@ -132,7 +132,7 @@ export function EmailDetailHeader({
       <div className="hidden sm:block w-px h-5 mx-1 bg-edge-secondary" />
 
       <div className="hidden sm:flex items-center gap-1">
-        <Tooltip tip={t("mail.archive")}>
+        <Tooltip tip={t("mail.archive_action")}>
           <Button
             className="h-8 w-8"
             disabled={is_archive_loading}
@@ -230,7 +230,7 @@ export function EmailDetailHeader({
               }
             >
               <ArchiveBoxIcon className="w-4 h-4 me-2" />
-              {t("mail.archive")}
+              {t("mail.archive_action")}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() =>

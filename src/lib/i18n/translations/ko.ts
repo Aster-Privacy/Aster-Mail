@@ -8128,6 +8128,7 @@ export const ko = {
     drafts: "임시 보관함",
     starred: "별표 표시",
     archive: "보관함",
+    archive_action: "보관",
     spam: "스팸",
     trash: "휴지통",
     scheduled: "예약됨",

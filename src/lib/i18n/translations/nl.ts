@@ -8369,6 +8369,7 @@ export const nl = {
     drafts: "Concepten",
     starred: "Met ster",
     archive: "Archief",
+    archive_action: "Archiveren",
     spam: "Spam",
     trash: "Prullenbak",
     scheduled: "Gepland",

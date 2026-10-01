@@ -631,7 +631,7 @@ export function ThreadMessageBlock(
                   }}
                 >
                   <ArchiveBoxIcon className="w-4 h-4 me-2" />
-                  {t("mail.archive")}
+                  {t("mail.archive_action")}
                 </DropdownMenuItem>
               )}
               {on_trash && (

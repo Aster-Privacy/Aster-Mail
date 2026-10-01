@@ -7251,6 +7251,7 @@ export interface MailTranslations {
   drafts: string;
   starred: string;
   archive: string;
+  archive_action: string;
   archive_conversation_count: string;
   move_conversation_to_trash_count: string;
   spam: string;

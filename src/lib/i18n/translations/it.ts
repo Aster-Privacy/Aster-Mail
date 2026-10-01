@@ -8430,6 +8430,7 @@ export const it = {
     drafts: "Bozze",
     starred: "Speciali",
     archive: "Archivio",
+    archive_action: "Archivia",
     spam: "Spam",
     trash: "Cestino",
     scheduled: "Programmata",
