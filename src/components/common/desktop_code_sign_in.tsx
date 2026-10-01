@@ -99,11 +99,7 @@ export async function resolve_device_login_session(
 }
 
 type FlowState =
-  | "requesting_code"
-  | "showing_code"
-  | "completing"
-  | "error"
-  | "expired";
+  "requesting_code" | "showing_code" | "completing" | "error" | "expired";
 
 const page_variants = {
   initial: { opacity: 0, y: 8 },
@@ -115,8 +111,6 @@ const page_transition = {
   duration: 0.2,
   ease: "easeOut" as const,
 };
-
-const MAX_POLLS = 60;
 
 function poll_delay(count: number): number {
   if (count < 10) return 3000;
@@ -147,7 +141,6 @@ export function DesktopCodeSignIn({
   const reduce_motion = use_should_reduce_motion();
   const [flow_state, set_flow_state] = useState<FlowState>("requesting_code");
   const [code, set_code] = useState<string | null>(null);
-  const [copied, set_copied] = useState(false);
   const [time_left, set_time_left] = useState(0);
   const [error_detail, set_error_detail] = useState<string | null>(null);
   const [flow_key, set_flow_key] = useState(0);
@@ -187,6 +180,7 @@ export function DesktopCodeSignIn({
 
     const finish = async (device_id: string, sealed_envelope: string) => {
       stop_polling();
+      if (cancelled) return;
       set_flow_state("completing");
 
       try {
@@ -214,15 +208,16 @@ export function DesktopCodeSignIn({
       }
     };
 
-    const schedule_poll = (code_value: string) => {
-      poll_count_ref.current += 1;
-      if (poll_count_ref.current > MAX_POLLS) {
+    const schedule_poll = (code_value: string, expires_at: number) => {
+      if (cancelled) return;
+      if (Date.now() >= expires_at) {
         stop_polling();
         set_flow_state("expired");
 
         return;
       }
 
+      poll_count_ref.current += 1;
       poll_ref.current = setTimeout(async () => {
         if (cancelled || !active_ref.current) return;
         try {
@@ -239,11 +234,11 @@ export function DesktopCodeSignIn({
             stop_polling();
             set_flow_state("expired");
           } else {
-            schedule_poll(code_value);
+            schedule_poll(code_value, expires_at);
           }
         } catch (poll_err) {
           if (import.meta.env.DEV) console.error(poll_err);
-          schedule_poll(code_value);
+          schedule_poll(code_value, expires_at);
         }
       }, poll_delay(poll_count_ref.current));
     };
@@ -275,7 +270,7 @@ export function DesktopCodeSignIn({
           }
         }, 1000);
 
-        schedule_poll(result.code);
+        schedule_poll(result.code, expires_at);
       } catch (request_err) {
         if (import.meta.env.DEV) console.error(request_err);
         fail(
@@ -314,8 +309,7 @@ export function DesktopCodeSignIn({
     }
 
     if (success) {
-      set_copied(true);
-      setTimeout(() => set_copied(false), 2000);
+      show_toast(t("common.copied_to_clipboard"), "success");
     }
   };
 
@@ -479,40 +473,25 @@ export function DesktopCodeSignIn({
                     {t("auth.device_code_expires_in")} {format_time(time_left)}
                   </span>
                   <button
+                    aria-label={t("auth.device_code_copy")}
                     className="p-1.5 rounded transition-colors hover:opacity-80 text-txt-muted"
                     type="button"
                     onClick={handle_copy_code}
                   >
-                    {copied ? (
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth={2}
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          d="M5 13l4 4L19 7"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    ) : (
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth={2}
-                        viewBox="0 0 24 24"
-                      >
-                        <rect height="13" rx="2" width="13" x="9" y="9" />
-                        <path
-                          d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    )}
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                      viewBox="0 0 24 24"
+                    >
+                      <rect height="13" rx="2" width="13" x="9" y="9" />
+                      <path
+                        d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
                   </button>
                 </div>
                 <button
@@ -540,9 +519,7 @@ export function DesktopCodeSignIn({
                   type="button"
                   onClick={handle_copy_code}
                 >
-                  {copied
-                    ? t("auth.device_code_copied")
-                    : t("auth.device_code_copy")}
+                  {t("auth.device_code_copy")}
                 </button>
                 <button
                   className="aster_btn aster_btn_depth aster_btn_xl flex-1"
