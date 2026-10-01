@@ -4170,7 +4170,8 @@ export const ja = {
     billing_advantages_title_paid: "プランに含まれるもの",
     billing_advantages_title_free: "{{name}} で利用できるもの",
     billing_see_all_features: "{{name}} のすべての機能を見る",
-    billing_compare_all_plans_subtitle: "個人向けと家族向け、月払いまたは年払い",
+    billing_compare_all_plans_subtitle:
+      "個人向けと家族向け、月払いまたは年払い",
     billing_usage_upgrade_hint: "アップグレードして枠を増やす",
     usage_in_use: "{{current}} 件使用中",
     billing_credits_subtitle: "残高とチャージ",
@@ -7534,6 +7535,15 @@ export const ja = {
       "新しいDKIM署名キーを生成します。レジストラに公開する必要がある新しいホスト名のDNSレコードが作成されます。",
     rotate_dkim_key: "DKIMキーをローテーション",
     rotate_label: "ローテーション",
+    rotate_dkim_description_managed:
+      "新しいDKIM署名キーを生成します。DNSレコードはAster Mailが自動で更新します。",
+    rotate_dkim_confirm_title: "DKIMキーをローテーションしますか？",
+    rotate_dkim_confirm_managed:
+      "Aster Mailが{{domain}}の新しいDKIMキーを作成し、DNSレコードを自動的に更新します。変更は必要ありません。",
+    rotate_dkim_confirm_manual:
+      "Aster Mailが{{domain}}の新しいDKIMキーを作成し、すぐにそのキーでメールに署名します。DNSプロバイダで新しいTXTレコードを追加してください。公開されるまで、送信したメールのDKIMチェックが失敗する場合があります。",
+    dkim_rotated_auto_published:
+      "DKIMキーをローテーションしました。Aster MailがDNSレコードを更新しました。",
     security_key_registered: "セキュリティキーが正常に登録されました",
     security_key_removed: "セキュリティキーを削除しました",
     security_keys: "セキュリティキー",
@@ -8720,11 +8730,14 @@ export const ja = {
     loading_preview: "プレビューを読み込み中…",
     preview_failed:
       "プレビューが読み込まれませんでした。メールを開くと内容が表示されます。",
-    pdf_preview_failed: "このPDFはここに表示できません。開くにはダウンロードしてください。",
+    pdf_preview_failed:
+      "このPDFはここに表示できません。開くにはダウンロードしてください。",
     pdf_password_title: "このPDFはパスワードで保護されています",
-    pdf_password_description: "このPDFを表示するには、パスワードを入力してください。パスワードはこのデバイスから送信されません。",
+    pdf_password_description:
+      "このPDFを表示するには、パスワードを入力してください。パスワードはこのデバイスから送信されません。",
     pdf_password_label: "PDFのパスワード",
-    pdf_password_incorrect: "パスワードが正しくありません。もう一度お試しください。",
+    pdf_password_incorrect:
+      "パスワードが正しくありません。もう一度お試しください。",
     pdf_password_submit: "開く",
     pdf_password_protected: "パスワード保護",
     move_n_conversations: "{{ count }}件の会話を移動",
@@ -9065,10 +9078,12 @@ export const ja = {
     backup_code_single_use: "各バックアップコードは一度しか使用できません",
     backup_code_placeholder: "XXXX-XXXX-XXXX",
     use_authenticator_instead: "代わりに認証アプリを使用",
-    recovery_code_in_backup_field: "これはバックアップコードではなく、リカバリーコードです。このコードを使うには、リカバリーコードでパスワードをリセットしてください。",
+    recovery_code_in_backup_field:
+      "これはバックアップコードではなく、リカバリーコードです。このコードを使うには、リカバリーコードでパスワードをリセットしてください。",
     reset_with_recovery_code: "リカバリーコードでリセット",
     no_backup_codes_title: "パスキーを使わずにサインイン",
-    no_backup_codes_description: "バックアップコードは認証アプリと一緒に発行されますが、このアカウントでは認証アプリを使用していません。パスキーを使わずにサインインするには、リカバリーコードのいずれかでパスワードをリセットしてください。メール、連絡先、設定はそのまま残り、リセット後に新しいパスキーを追加できます。",
+    no_backup_codes_description:
+      "バックアップコードは認証アプリと一緒に発行されますが、このアカウントでは認証アプリを使用していません。パスキーを使わずにサインインするには、リカバリーコードのいずれかでパスワードをリセットしてください。メール、連絡先、設定はそのまま残り、リセット後に新しいパスキーを追加できます。",
     try_passkey_again: "もう一度パスキーを試す",
     two_factor_auth_title: "二要素認証",
     enter_2fa_code: "認証アプリの6桁のコードを入力してください",
@@ -9234,7 +9249,8 @@ export const ja = {
     reset_second_factor_title: "本人確認",
     reset_second_factor_description:
       "このアカウントは 2 段階認証を使用しています。パスワードをリセットする前に、2 つ目の認証要素を確認してください。",
-    reset_second_factor_backup_description: "続行するには、バックアップコードのいずれかを入力してください。",
+    reset_second_factor_backup_description:
+      "続行するには、バックアップコードのいずれかを入力してください。",
     reset_second_factor_key_description:
       "続行するには、このアカウントに登録されているセキュリティキーまたはパスキーを使用してください。",
     reset_second_factor_use_key: "代わりにセキュリティキーを使用する",

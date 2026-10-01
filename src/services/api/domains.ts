@@ -69,6 +69,7 @@ export interface CustomDomain {
   catch_all_enabled: boolean;
   is_primary: boolean;
   purchased?: boolean;
+  is_purchased?: boolean;
   health_status: string;
   verification_token: string;
   created_at: string;
@@ -189,6 +190,7 @@ export interface DkimRotationResponse {
   new_selector: string;
   public_key: string;
   dns_record: DnsRecord;
+  dns_auto_published?: boolean;
 }
 
 export interface DomainAddress {

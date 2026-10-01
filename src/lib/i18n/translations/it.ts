@@ -4980,7 +4980,8 @@ export const it = {
     billing_advantages_title_paid: "Cosa include il tuo piano",
     billing_advantages_title_free: "Cosa ottieni con {{name}}",
     billing_see_all_features: "Vedi tutte le funzioni di {{name}}",
-    billing_compare_all_plans_subtitle: "Piani individuali e famiglia, mensili o annuali",
+    billing_compare_all_plans_subtitle:
+      "Piani individuali e famiglia, mensili o annuali",
     billing_usage_upgrade_hint: "Passa a un piano superiore per più spazio",
     usage_in_use: "{{current}} in uso",
     billing_credits_subtitle: "Saldo e ricariche",
@@ -7594,6 +7595,15 @@ export const it = {
     rotate_dkim_description:
       "Genera una nuova chiave di firma DKIM. Questo crea un nuovo record DNS con un nuovo nome host che devi pubblicare presso il tuo registrar.",
     rotate_label: "Ruota",
+    rotate_dkim_description_managed:
+      "Genera una nuova chiave di firma DKIM. Aster Mail aggiorna il record DNS per te.",
+    rotate_dkim_confirm_title: "Ruotare la chiave DKIM?",
+    rotate_dkim_confirm_managed:
+      "Aster Mail crea una nuova chiave DKIM per {{domain}} e aggiorna il suo record DNS per te. Non devi cambiare nulla.",
+    rotate_dkim_confirm_manual:
+      "Aster Mail crea una nuova chiave DKIM per {{domain}} e firma subito la tua posta con essa. Aggiungi il nuovo record TXT presso il tuo provider DNS. Finché non lo pubblichi, i controlli DKIM sulla posta che invii possono non riuscire.",
+    dkim_rotated_auto_published:
+      "Chiave DKIM ruotata. Aster Mail ha aggiornato il record DNS per te.",
     dkim_rotated:
       "Chiave DKIM ruotata. Aggiungi il nuovo record DNS qui sotto presso il tuo registrar.",
     dkim_rotated_warning_title: "Aggiungi questo come nuovo record DNS",
@@ -8881,9 +8891,11 @@ export const it = {
     loading_preview: "Caricamento anteprima…",
     preview_failed:
       "L'anteprima non si è caricata. Aprire l'email la mostrerà.",
-    pdf_preview_failed: "Questo PDF non può essere mostrato qui. Per aprirlo, scaricalo.",
+    pdf_preview_failed:
+      "Questo PDF non può essere mostrato qui. Per aprirlo, scaricalo.",
     pdf_password_title: "Questo PDF è protetto da password",
-    pdf_password_description: "Per visualizzare questo PDF, inserisci la password. La password resta su questo dispositivo.",
+    pdf_password_description:
+      "Per visualizzare questo PDF, inserisci la password. La password resta su questo dispositivo.",
     pdf_password_label: "Password del PDF",
     pdf_password_incorrect: "La password non è corretta. Riprova.",
     pdf_password_submit: "Apri",
@@ -9219,10 +9231,12 @@ export const it = {
       "Ogni codice di backup può essere usato una sola volta",
     backup_code_placeholder: "XXXX-XXXX-XXXX",
     use_authenticator_instead: "Usa l'app di autenticazione invece",
-    recovery_code_in_backup_field: "Questo è un codice di recupero, non un codice di backup. Per usarlo, reimposta la password con il tuo codice di recupero.",
+    recovery_code_in_backup_field:
+      "Questo è un codice di recupero, non un codice di backup. Per usarlo, reimposta la password con il tuo codice di recupero.",
     reset_with_recovery_code: "Reimposta con il codice di recupero",
     no_backup_codes_title: "Accedi senza passkey",
-    no_backup_codes_description: "I codici di backup vengono forniti con un'app di autenticazione, e questo account non ne usa una. Per accedere senza passkey, reimposta la password con uno dei tuoi codici di recupero. Email, contatti e impostazioni restano invariati, e dopo potrai aggiungere una nuova passkey.",
+    no_backup_codes_description:
+      "I codici di backup vengono forniti con un'app di autenticazione, e questo account non ne usa una. Per accedere senza passkey, reimposta la password con uno dei tuoi codici di recupero. Email, contatti e impostazioni restano invariati, e dopo potrai aggiungere una nuova passkey.",
     try_passkey_again: "Riprova con la passkey",
     two_factor_auth_title: "Autenticazione a due fattori",
     enter_2fa_code:

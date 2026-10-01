@@ -4336,7 +4336,8 @@ export const pl = {
     billing_advantages_title_paid: "Co zawiera Twój plan",
     billing_advantages_title_free: "Co otrzymujesz z {{name}}",
     billing_see_all_features: "Zobacz wszystkie funkcje {{name}}",
-    billing_compare_all_plans_subtitle: "Plany indywidualne i rodzinne, miesięczne lub roczne",
+    billing_compare_all_plans_subtitle:
+      "Plany indywidualne i rodzinne, miesięczne lub roczne",
     billing_usage_upgrade_hint: "Ulepsz, aby mieć więcej miejsca",
     usage_in_use: "{{current}} w użyciu",
     billing_credits_subtitle: "Saldo i doładowania",
@@ -7676,6 +7677,15 @@ export const pl = {
     rotate_dkim_description:
       "Wygeneruj nowy klucz podpisywania DKIM. Tworzy to nowy rekord DNS pod nową nazwą hosta, który musisz opublikować u swojego rejestratora.",
     rotate_label: "Obróć",
+    rotate_dkim_description_managed:
+      "Wygeneruj nowy klucz podpisywania DKIM. Aster Mail zaktualizuje rekord DNS za Ciebie.",
+    rotate_dkim_confirm_title: "Obrócić klucz DKIM?",
+    rotate_dkim_confirm_managed:
+      "Aster Mail tworzy nowy klucz DKIM dla {{domain}} i aktualizuje za Ciebie jego rekord DNS. Nie musisz niczego zmieniać.",
+    rotate_dkim_confirm_manual:
+      "Aster Mail tworzy nowy klucz DKIM dla {{domain}} i od razu podpisuje nim Twoją pocztę. Dodaj nowy rekord TXT u swojego dostawcy DNS. Dopóki go nie opublikujesz, kontrole DKIM wysyłanej przez Ciebie poczty mogą kończyć się niepowodzeniem.",
+    dkim_rotated_auto_published:
+      "Klucz DKIM został obrócony. Aster Mail zaktualizował za Ciebie rekord DNS.",
     dkim_rotated:
       "Klucz DKIM obrócony. Dodaj nowy rekord DNS poniżej u swojego rejestratora.",
     dkim_rotated_warning_title: "Dodaj to jako nowy rekord DNS",
@@ -9022,9 +9032,11 @@ export const pl = {
     total_pages_label: "{{count}} stron",
     loading_preview: "Ładowanie podglądu…",
     preview_failed: "Podgląd się nie załadował. Otwarcie wiadomości go pokaże.",
-    pdf_preview_failed: "Tego pliku PDF nie można tu wyświetlić. Aby go otworzyć, pobierz go.",
+    pdf_preview_failed:
+      "Tego pliku PDF nie można tu wyświetlić. Aby go otworzyć, pobierz go.",
     pdf_password_title: "Ten plik PDF jest chroniony hasłem",
-    pdf_password_description: "Aby wyświetlić ten plik PDF, wpisz jego hasło. Hasło pozostaje na tym urządzeniu.",
+    pdf_password_description:
+      "Aby wyświetlić ten plik PDF, wpisz jego hasło. Hasło pozostaje na tym urządzeniu.",
     pdf_password_label: "Hasło do pliku PDF",
     pdf_password_incorrect: "To hasło jest nieprawidłowe. Spróbuj ponownie.",
     pdf_password_submit: "Otwórz",
@@ -9359,10 +9371,12 @@ export const pl = {
     backup_code_single_use: "Każdy kod zapasowy może być użyty tylko raz",
     backup_code_placeholder: "XXXX-XXXX-XXXX",
     use_authenticator_instead: "Użyj zamiast tego aplikacji uwierzytelniającej",
-    recovery_code_in_backup_field: "To jest kod odzyskiwania, a nie kod zapasowy. Aby go użyć, zresetuj hasło za pomocą kodu odzyskiwania.",
+    recovery_code_in_backup_field:
+      "To jest kod odzyskiwania, a nie kod zapasowy. Aby go użyć, zresetuj hasło za pomocą kodu odzyskiwania.",
     reset_with_recovery_code: "Zresetuj kodem odzyskiwania",
     no_backup_codes_title: "Zaloguj się bez klucza dostępu",
-    no_backup_codes_description: "Kody zapasowe są dostępne tylko z aplikacją uwierzytelniającą, a to konto jej nie używa. Aby zalogować się bez klucza dostępu, zresetuj hasło za pomocą jednego z kodów odzyskiwania. Twoja poczta, kontakty i ustawienia pozostaną bez zmian, a potem możesz dodać nowy klucz dostępu.",
+    no_backup_codes_description:
+      "Kody zapasowe są dostępne tylko z aplikacją uwierzytelniającą, a to konto jej nie używa. Aby zalogować się bez klucza dostępu, zresetuj hasło za pomocą jednego z kodów odzyskiwania. Twoja poczta, kontakty i ustawienia pozostaną bez zmian, a potem możesz dodać nowy klucz dostępu.",
     try_passkey_again: "Spróbuj ponownie kluczem dostępu",
     two_factor_auth_title: "Uwierzytelnianie dwuskładnikowe",
     enter_2fa_code: "Wprowadź 6-cyfrowy kod z aplikacji uwierzytelniającej",

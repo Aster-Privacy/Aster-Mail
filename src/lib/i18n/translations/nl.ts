@@ -4120,7 +4120,8 @@ export const nl = {
     billing_advantages_title_paid: "Wat je abonnement bevat",
     billing_advantages_title_free: "Wat je krijgt met {{name}}",
     billing_see_all_features: "Alle functies van {{name}} bekijken",
-    billing_compare_all_plans_subtitle: "Individuele en gezinsabonnementen, maandelijks of jaarlijks",
+    billing_compare_all_plans_subtitle:
+      "Individuele en gezinsabonnementen, maandelijks of jaarlijks",
     billing_usage_upgrade_hint: "Upgrade voor meer ruimte",
     usage_in_use: "{{current}} in gebruik",
     billing_credits_subtitle: "Saldo en opwaarderingen",
@@ -7684,6 +7685,15 @@ export const nl = {
       "Roteer je DKIM-sleutel om de beveiliging te verbeteren. Je moet je DNS-records bijwerken na de rotatie.",
     rotate_dkim_key: "DKIM-sleutel roteren",
     rotate_label: "Roteren",
+    rotate_dkim_description_managed:
+      "Genereer een nieuwe DKIM-ondertekeningssleutel. Aster Mail werkt de DNS-record voor je bij.",
+    rotate_dkim_confirm_title: "DKIM-sleutel roteren?",
+    rotate_dkim_confirm_managed:
+      "Aster Mail maakt een nieuwe DKIM-sleutel voor {{domain}} en werkt het DNS-record voor je bij. Je hoeft niets te wijzigen.",
+    rotate_dkim_confirm_manual:
+      "Aster Mail maakt een nieuwe DKIM-sleutel voor {{domain}} en ondertekent je e-mail er direct mee. Voeg het nieuwe TXT-record toe bij je DNS-provider. Totdat je het publiceert, kunnen DKIM-controles op de e-mail die je verstuurt mislukken.",
+    dkim_rotated_auto_published:
+      "DKIM-sleutel geroteerd. Aster Mail heeft het DNS-record voor je bijgewerkt.",
     security_key_registered: "Beveiligingssleutel geregistreerd",
     security_key_removed: "Beveiligingssleutel verwijderd",
     security_keys: "Beveiligingssleutels",
@@ -8813,9 +8823,11 @@ export const nl = {
     loading_preview: "Voorbeeld laden…",
     preview_failed:
       "Het voorbeeld is niet geladen. De e-mail openen toont het.",
-    pdf_preview_failed: "Deze pdf kan hier niet worden getoond. Download de pdf om hem te openen.",
+    pdf_preview_failed:
+      "Deze pdf kan hier niet worden getoond. Download de pdf om hem te openen.",
     pdf_password_title: "Deze pdf is beveiligd met een wachtwoord",
-    pdf_password_description: "Voer het wachtwoord in om deze pdf te bekijken. Het wachtwoord blijft op dit apparaat.",
+    pdf_password_description:
+      "Voer het wachtwoord in om deze pdf te bekijken. Het wachtwoord blijft op dit apparaat.",
     pdf_password_label: "Pdf-wachtwoord",
     pdf_password_incorrect: "Dat wachtwoord is onjuist. Probeer het opnieuw.",
     pdf_password_submit: "Openen",
@@ -9153,10 +9165,12 @@ export const nl = {
     backup_code_description: "Voer een van je reservecodes in om in te loggen",
     backup_code_placeholder: "XXXX-XXXX-XXXX",
     use_authenticator_instead: "Gebruik in plaats daarvan de authenticator-app",
-    recovery_code_in_backup_field: "Dit is een herstelcode, geen back-upcode. Als je deze wilt gebruiken, stel je je wachtwoord opnieuw in met je herstelcode.",
+    recovery_code_in_backup_field:
+      "Dit is een herstelcode, geen back-upcode. Als je deze wilt gebruiken, stel je je wachtwoord opnieuw in met je herstelcode.",
     reset_with_recovery_code: "Opnieuw instellen met herstelcode",
     no_backup_codes_title: "Inloggen zonder je passkey",
-    no_backup_codes_description: "Back-upcodes horen bij een authenticator-app, en dit account gebruikt er geen. Als je wilt inloggen zonder je passkey, stel je je wachtwoord opnieuw in met een van je herstelcodes. Je e-mail, contacten en instellingen blijven behouden, en daarna kun je een nieuwe passkey toevoegen.",
+    no_backup_codes_description:
+      "Back-upcodes horen bij een authenticator-app, en dit account gebruikt er geen. Als je wilt inloggen zonder je passkey, stel je je wachtwoord opnieuw in met een van je herstelcodes. Je e-mail, contacten en instellingen blijven behouden, en daarna kun je een nieuwe passkey toevoegen.",
     try_passkey_again: "Probeer je passkey opnieuw",
     two_factor_auth_title: "Tweefactorauthenticatie",
     enter_2fa_code: "Voer de 6-cijferige code van je authenticator-app in",

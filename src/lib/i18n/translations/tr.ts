@@ -4123,11 +4123,13 @@ export const tr = {
     billing_addons_subtitle: "Daha fazla alan, aynı plan",
     billing_support_subtitle: "Ekibe mesaj gönderin",
     billing_upsell_title: "{{name}} ile daha fazlasını alın",
-    billing_upsell_price: "Aylık {{price}} başlayan fiyatlarla, yıllık faturalandırılır",
+    billing_upsell_price:
+      "Aylık {{price}} başlayan fiyatlarla, yıllık faturalandırılır",
     billing_advantages_title_paid: "Planınıza dahil olanlar",
     billing_advantages_title_free: "{{name}} ile neler elde edersiniz",
     billing_see_all_features: "Tüm {{name}} özelliklerini gör",
-    billing_compare_all_plans_subtitle: "Bireysel ve aile planları, aylık veya yıllık",
+    billing_compare_all_plans_subtitle:
+      "Bireysel ve aile planları, aylık veya yıllık",
     billing_usage_upgrade_hint: "Daha fazla alan için yükseltin",
     usage_in_use: "{{current}} kullanımda",
     billing_credits_subtitle: "Bakiye ve yüklemeler",
@@ -7474,6 +7476,15 @@ export const tr = {
     rotate_dkim_description:
       "Yeni bir DKIM imzalama anahtarı oluşturun. Bu, kayıt kuruluşunuzda yayımlamanız gereken yeni bir ana bilgisayar adında yeni bir DNS kaydı oluşturur.",
     rotate_label: "Döndür",
+    rotate_dkim_description_managed:
+      "Yeni bir DKIM imzalama anahtarı oluşturun. Aster Mail DNS kaydını sizin için günceller.",
+    rotate_dkim_confirm_title: "DKIM anahtarı döndürülsün mü?",
+    rotate_dkim_confirm_managed:
+      "Aster Mail, {{domain}} için yeni bir DKIM anahtarı oluşturur ve DNS kaydını sizin için günceller. Herhangi bir şeyi değiştirmeniz gerekmez.",
+    rotate_dkim_confirm_manual:
+      "Aster Mail, {{domain}} için yeni bir DKIM anahtarı oluşturur ve postalarınızı hemen bu anahtarla imzalar. Yeni TXT kaydını DNS sağlayıcınıza ekleyin. Kayıt yayımlanana kadar gönderdiğiniz postaların DKIM denetimleri başarısız olabilir.",
+    dkim_rotated_auto_published:
+      "DKIM anahtarı döndürüldü. Aster Mail DNS kaydını sizin için güncelledi.",
     dkim_rotated:
       "DKIM anahtarı döndürüldü. Aşağıdaki yeni DNS kaydını kayıt kuruluşunuza ekleyin.",
     dkim_rotated_warning_title: "Bunu yeni bir DNS kaydı olarak ekleyin",
@@ -8732,7 +8743,8 @@ export const tr = {
     preview_failed: "Önizleme yüklenmedi. E-postayı açmak onu gösterir.",
     pdf_preview_failed: "Bu PDF burada gösterilemiyor. Açmak için indirin.",
     pdf_password_title: "Bu PDF parola korumalı",
-    pdf_password_description: "Bu PDF'yi görüntülemek için parolasını girin. Parola bu cihazda kalır.",
+    pdf_password_description:
+      "Bu PDF'yi görüntülemek için parolasını girin. Parola bu cihazda kalır.",
     pdf_password_label: "PDF parolası",
     pdf_password_incorrect: "Parola yanlış. Tekrar deneyin.",
     pdf_password_submit: "Aç",
@@ -9078,10 +9090,12 @@ export const tr = {
     backup_code_placeholder: "XXXX-XXXX-XXXX",
     use_authenticator_instead:
       "Bunun yerine kimlik doğrulama uygulamasını kullan",
-    recovery_code_in_backup_field: "Bu bir yedek kod değil, kurtarma kodudur. Kullanmak için parolanızı kurtarma kodunuzla sıfırlayın.",
+    recovery_code_in_backup_field:
+      "Bu bir yedek kod değil, kurtarma kodudur. Kullanmak için parolanızı kurtarma kodunuzla sıfırlayın.",
     reset_with_recovery_code: "Kurtarma koduyla sıfırla",
     no_backup_codes_title: "Geçiş anahtarı olmadan oturum aç",
-    no_backup_codes_description: "Yedek kodlar bir kimlik doğrulama uygulamasıyla birlikte verilir ve bu hesap böyle bir uygulama kullanmıyor. Geçiş anahtarınız olmadan oturum açmak için parolanızı kurtarma kodlarınızdan biriyle sıfırlayın. E-postalarınız, kişileriniz ve ayarlarınız olduğu gibi kalır ve ardından yeni bir geçiş anahtarı ekleyebilirsiniz.",
+    no_backup_codes_description:
+      "Yedek kodlar bir kimlik doğrulama uygulamasıyla birlikte verilir ve bu hesap böyle bir uygulama kullanmıyor. Geçiş anahtarınız olmadan oturum açmak için parolanızı kurtarma kodlarınızdan biriyle sıfırlayın. E-postalarınız, kişileriniz ve ayarlarınız olduğu gibi kalır ve ardından yeni bir geçiş anahtarı ekleyebilirsiniz.",
     try_passkey_again: "Geçiş anahtarını yeniden dene",
     two_factor_auth_title: "İki Faktörlü Kimlik Doğrulama",
     enter_2fa_code: "Kimlik doğrulama uygulamanızdaki 6 haneli kodu girin",

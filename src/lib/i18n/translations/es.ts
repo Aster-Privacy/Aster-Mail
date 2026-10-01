@@ -4197,7 +4197,8 @@ export const es = {
     billing_advantages_title_paid: "Qué incluye tu plan",
     billing_advantages_title_free: "Qué obtienes con {{name}}",
     billing_see_all_features: "Ver todas las funciones de {{name}}",
-    billing_compare_all_plans_subtitle: "Planes individuales y familiares, mensuales o anuales",
+    billing_compare_all_plans_subtitle:
+      "Planes individuales y familiares, mensuales o anuales",
     billing_usage_upgrade_hint: "Mejora para tener más espacio",
     usage_in_use: "{{current}} en uso",
     billing_credits_subtitle: "Saldo y recargas",
@@ -7717,6 +7718,15 @@ export const es = {
       "Genera una nueva clave de firma DKIM. Esto crea un nuevo registro DNS en un nuevo nombre de host que debes publicar en tu registrador.",
     rotate_dkim_key: "Renovar clave DKIM",
     rotate_label: "Renovar",
+    rotate_dkim_description_managed:
+      "Genera una nueva clave de firma DKIM. Aster Mail actualiza el registro DNS por ti.",
+    rotate_dkim_confirm_title: "¿Renovar la clave DKIM?",
+    rotate_dkim_confirm_managed:
+      "Aster Mail crea una nueva clave DKIM para {{domain}} y actualiza su registro DNS por ti. No necesitas cambiar nada.",
+    rotate_dkim_confirm_manual:
+      "Aster Mail crea una nueva clave DKIM para {{domain}} y firma tu correo con ella de inmediato. Añade el nuevo registro TXT en tu proveedor de DNS. Hasta que lo publiques, las comprobaciones DKIM del correo que envías pueden fallar.",
+    dkim_rotated_auto_published:
+      "Clave DKIM renovada. Aster Mail actualizó el registro DNS por ti.",
     security_key_registered: "Clave de seguridad registrada",
     security_key_removed: "Clave de seguridad eliminada",
     security_keys: "Claves de seguridad",
@@ -8827,9 +8837,11 @@ export const es = {
     total_pages_label: "{{count}} páginas",
     loading_preview: "Loading preview\\u2026",
     preview_failed: "La vista previa no se cargó. Abrir el correo lo mostrará.",
-    pdf_preview_failed: "Este PDF no se puede mostrar aquí. Para abrirlo, descárgalo.",
+    pdf_preview_failed:
+      "Este PDF no se puede mostrar aquí. Para abrirlo, descárgalo.",
     pdf_password_title: "Este PDF está protegido con contraseña",
-    pdf_password_description: "Para ver este PDF, introduce su contraseña. La contraseña se queda en este dispositivo.",
+    pdf_password_description:
+      "Para ver este PDF, introduce su contraseña. La contraseña se queda en este dispositivo.",
     pdf_password_label: "Contraseña del PDF",
     pdf_password_incorrect: "La contraseña no es correcta. Inténtalo de nuevo.",
     pdf_password_submit: "Abrir",
@@ -9178,10 +9190,12 @@ export const es = {
       "Cada código de respaldo solo se puede usar una vez",
     backup_code_placeholder: "XXXX-XXXX-XXXX",
     use_authenticator_instead: "Usar aplicación de autenticación en su lugar",
-    recovery_code_in_backup_field: "Este es un código de recuperación, no un código de respaldo. Para usarlo, restablece tu contraseña con tu código de recuperación.",
+    recovery_code_in_backup_field:
+      "Este es un código de recuperación, no un código de respaldo. Para usarlo, restablece tu contraseña con tu código de recuperación.",
     reset_with_recovery_code: "Restablecer con código de recuperación",
     no_backup_codes_title: "Iniciar sesión sin tu llave de acceso",
-    no_backup_codes_description: "Los códigos de respaldo se generan con una aplicación de autenticación, y esta cuenta no usa ninguna. Para iniciar sesión sin tu llave de acceso, restablece tu contraseña con uno de tus códigos de recuperación. Tus correos, contactos y ajustes se conservan, y después puedes añadir una nueva llave de acceso.",
+    no_backup_codes_description:
+      "Los códigos de respaldo se generan con una aplicación de autenticación, y esta cuenta no usa ninguna. Para iniciar sesión sin tu llave de acceso, restablece tu contraseña con uno de tus códigos de recuperación. Tus correos, contactos y ajustes se conservan, y después puedes añadir una nueva llave de acceso.",
     try_passkey_again: "Volver a intentar con la llave de acceso",
     two_factor_auth_title: "Autenticación de dos factores",
     enter_2fa_code:

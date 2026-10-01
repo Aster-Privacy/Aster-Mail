@@ -4134,7 +4134,8 @@ export const de = {
     billing_advantages_title_paid: "Was dein Tarif enthält",
     billing_advantages_title_free: "Was du mit {{name}} bekommst",
     billing_see_all_features: "Alle Funktionen von {{name}} ansehen",
-    billing_compare_all_plans_subtitle: "Einzel- und Familientarife, monatlich oder jährlich",
+    billing_compare_all_plans_subtitle:
+      "Einzel- und Familientarife, monatlich oder jährlich",
     billing_usage_upgrade_hint: "Upgrade für mehr Platz",
     usage_in_use: "{{current}} in Verwendung",
     billing_credits_subtitle: "Guthaben und Aufladungen",
@@ -7653,6 +7654,15 @@ export const de = {
       "Generieren Sie einen neuen DKIM-Signierschlüssel. Dies erstellt einen neuen DNS-Eintrag mit einem neuen Hostnamen, den Sie bei Ihrem Registrar veröffentlichen müssen.",
     rotate_dkim_key: "DKIM-Schlüssel rotieren",
     rotate_label: "Rotieren",
+    rotate_dkim_description_managed:
+      "Erstellen Sie einen neuen DKIM-Signaturschlüssel. Aster Mail aktualisiert den DNS-Eintrag für Sie.",
+    rotate_dkim_confirm_title: "DKIM-Schlüssel rotieren?",
+    rotate_dkim_confirm_managed:
+      "Aster Mail erstellt einen neuen DKIM-Schlüssel für {{domain}} und aktualisiert den DNS-Eintrag für Sie. Sie müssen nichts ändern.",
+    rotate_dkim_confirm_manual:
+      "Aster Mail erstellt einen neuen DKIM-Schlüssel für {{domain}} und signiert Ihre E-Mails sofort damit. Fügen Sie den neuen TXT-Eintrag bei Ihrem DNS-Anbieter hinzu. Bis er veröffentlicht ist, können DKIM-Prüfungen für Ihre gesendeten E-Mails fehlschlagen.",
+    dkim_rotated_auto_published:
+      "DKIM-Schlüssel rotiert. Aster Mail hat den DNS-Eintrag für Sie aktualisiert.",
     security_key_registered: "Sicherheitsschlüssel erfolgreich registriert",
     security_key_removed: "Sicherheitsschlüssel entfernt",
     security_keys: "Sicherheitsschlüssel",
@@ -8911,9 +8921,11 @@ export const de = {
     loading_preview: "Vorschau wird geladen…",
     preview_failed:
       "Die Vorschau wurde nicht geladen. Ein Öffnen der E-Mail zeigt sie.",
-    pdf_preview_failed: "Diese PDF kann hier nicht angezeigt werden. Lade sie herunter, um sie zu öffnen.",
+    pdf_preview_failed:
+      "Diese PDF kann hier nicht angezeigt werden. Lade sie herunter, um sie zu öffnen.",
     pdf_password_title: "Diese PDF ist passwortgeschützt",
-    pdf_password_description: "Gib das Passwort ein, um diese PDF anzuzeigen. Das Passwort bleibt auf diesem Gerät.",
+    pdf_password_description:
+      "Gib das Passwort ein, um diese PDF anzuzeigen. Das Passwort bleibt auf diesem Gerät.",
     pdf_password_label: "PDF-Passwort",
     pdf_password_incorrect: "Das Passwort ist falsch. Versuche es noch einmal.",
     pdf_password_submit: "Öffnen",
@@ -9278,10 +9290,12 @@ export const de = {
     backup_codes_remaining_after_login: "{{count}} Backup-Codes übrig",
     backup_code_placeholder: "XXXX-XXXX-XXXX",
     use_authenticator_instead: "Stattdessen Authentifizierungs-App verwenden",
-    recovery_code_in_backup_field: "Das ist ein Wiederherstellungscode, kein Backup-Code. Um ihn zu verwenden, setzen Sie Ihr Passwort mit Ihrem Wiederherstellungscode zurück.",
+    recovery_code_in_backup_field:
+      "Das ist ein Wiederherstellungscode, kein Backup-Code. Um ihn zu verwenden, setzen Sie Ihr Passwort mit Ihrem Wiederherstellungscode zurück.",
     reset_with_recovery_code: "Mit Wiederherstellungscode zurücksetzen",
     no_backup_codes_title: "Ohne Passkey anmelden",
-    no_backup_codes_description: "Backup-Codes gibt es nur zusammen mit einer Authentifizierungs-App, und dieses Konto verwendet keine. Um sich ohne Passkey anzumelden, setzen Sie Ihr Passwort mit einem Ihrer Wiederherstellungscodes zurück. Ihre E-Mails, Kontakte und Einstellungen bleiben erhalten, und Sie können danach einen neuen Passkey hinzufügen.",
+    no_backup_codes_description:
+      "Backup-Codes gibt es nur zusammen mit einer Authentifizierungs-App, und dieses Konto verwendet keine. Um sich ohne Passkey anzumelden, setzen Sie Ihr Passwort mit einem Ihrer Wiederherstellungscodes zurück. Ihre E-Mails, Kontakte und Einstellungen bleiben erhalten, und Sie können danach einen neuen Passkey hinzufügen.",
     try_passkey_again: "Passkey erneut versuchen",
     two_factor_auth_title: "Zwei-Faktor-Authentifizierung",
     use_backup_code_instead: "Stattdessen einen Backup-Code verwenden",
