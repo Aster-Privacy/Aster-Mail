@@ -46,6 +46,7 @@ export async function process_envelope_body(
   envelope: DecryptedEnvelope,
   user_email?: string,
   message_id?: string,
+  dkim_result?: string,
 ): Promise<ProcessedEnvelope> {
   let resolved_html = envelope.body_html || envelope.html_body || undefined;
 
@@ -132,6 +133,7 @@ export async function process_envelope_body(
   const unsubscribe = detect_unsubscribe_info(resolved_html || "", body_text, {
     list_unsubscribe: envelope.list_unsubscribe,
     list_unsubscribe_post: envelope.list_unsubscribe_post,
+    dkim_result,
   });
 
   return {
@@ -197,7 +199,9 @@ export function build_single_thread_message(
     is_deleted: false,
     is_external: item.is_external,
     system_origin: item.system_origin,
-    sender_verified_domain: item.sender_verified ? item.sender_verified_domain : undefined,
+    sender_verified_domain: item.sender_verified
+      ? item.sender_verified_domain
+      : undefined,
     has_recipient_key: item.has_recipient_key,
     encrypted_metadata: item.encrypted_metadata,
     metadata_nonce: item.metadata_nonce,

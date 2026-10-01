@@ -349,7 +349,10 @@ export function use_popup_viewer({
       const is_received = mail_data.item_type === "received";
       const armed_read_ticket = peek_read_ticket(current_email_id);
       const mark_read = async () => {
-        const read_ticket = claim_auto_read(current_email_id, armed_read_ticket);
+        const read_ticket = claim_auto_read(
+          current_email_id,
+          armed_read_ticket,
+        );
 
         if (read_ticket === null) return;
         const conversation_options = {
@@ -591,6 +594,7 @@ export function use_popup_viewer({
           envelope,
           user?.email,
           response.data.id,
+          response.data.dkim_result,
         );
 
         if (fetch_seq !== fetch_seq_ref.current) return;
