@@ -197,8 +197,6 @@ describe("EmailAuthIndicator", () => {
     );
     open_popover();
 
-    // A plain sigma, not the final form JavaScript would lower-case it to,
-    // so the web and the Android app show the same domain.
     expect(document.querySelector("bdi")?.textContent).toBe("xn---x-b9be9f.gr");
   });
 

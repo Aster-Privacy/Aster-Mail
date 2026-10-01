@@ -241,8 +241,6 @@ export function ThreadMessageBlock(
     );
   };
 
-  // The warning banner uses the same rule as the indicator: the checks that
-  // failed, when the message failed authentication.
   const auth_summary = summarize_email_authentication(message);
   const auth_failed_checks =
     auth_summary?.verdict === "failed"
@@ -282,8 +280,6 @@ export function ThreadMessageBlock(
         onKeyDown={
           can_collapse
             ? (e) => {
-                // Keys pressed on controls inside the header (badges, their
-                // popovers, star, reply...) belong to those controls.
                 if (e.target !== e.currentTarget) return;
                 if (e["key"] === "Enter" || e["key"] === " ") {
                   e.preventDefault();
