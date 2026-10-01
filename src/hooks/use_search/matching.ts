@@ -103,13 +103,37 @@ export function build_search_haystack(
   };
 }
 
+type EnvelopeAttachment = { filename?: string; content_type?: string };
+
+function envelope_attachments(
+  envelope: DecryptedEnvelope,
+): EnvelopeAttachment[] | null {
+  const list = envelope.attachment_metadata ?? envelope.attachment_keys;
+
+  return list && list.length > 0 ? list : null;
+}
+
+function envelope_body_text(
+  envelope: DecryptedEnvelope,
+  search_body_text?: string,
+): string {
+  return (
+    search_body_text ||
+    (
+      (envelope.body_text || "") +
+      " " +
+      (envelope.body_html || envelope.html_body || "")
+    ).toLowerCase()
+  );
+}
+
 export function matches_operator(
   op: ParsedOperator,
   envelope: DecryptedEnvelope,
   metadata: MailItemMetadata | null,
   item: MailItem,
   label_name_to_tokens?: Map<string, string[]>,
-  _search_body_text?: string,
+  search_body_text?: string,
   haystack?: SearchHaystack,
 ): boolean {
   const val = op.value.toLowerCase();
@@ -164,11 +188,15 @@ export function matches_operator(
 
       if (!extensions) return true;
 
-      return (
-        envelope.attachment_metadata ??
-        envelope.attachment_keys ??
-        []
-      ).some((attachment) => {
+      const attachments = envelope_attachments(envelope);
+
+      if (!attachments) {
+        const body = envelope_body_text(envelope, search_body_text);
+
+        return extensions.some((ext) => body.includes(ext));
+      }
+
+      return attachments.some((attachment) => {
         const filename = attachment.filename?.toLowerCase() ?? "";
         const type = attachment.content_type?.toLowerCase() ?? "";
 
@@ -252,11 +280,13 @@ export function matches_operator(
     case "filename":
     case "attachment": {
       if (!metadata?.has_attachments) return false;
-      return (
-        envelope.attachment_metadata ??
-        envelope.attachment_keys ??
-        []
-      ).some((attachment) =>
+      const attachments = envelope_attachments(envelope);
+
+      if (!attachments) {
+        return envelope_body_text(envelope, search_body_text).includes(val);
+      }
+
+      return attachments.some((attachment) =>
         includes_folded(
           attachment.filename?.toLowerCase() ?? "",
           fold_search_text(val) || val,

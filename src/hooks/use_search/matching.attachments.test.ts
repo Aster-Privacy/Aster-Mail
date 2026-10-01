@@ -18,10 +18,13 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { describe, it, expect } from "vitest";
 import type { DecryptedEnvelope, MailItemMetadata } from "@/types/email";
 import type { MailItem } from "@/services/api/mail";
+
+import { describe, it, expect } from "vitest";
+
 import { matches_query } from "./matching";
+
 import { parse_search_query } from "@/utils/search_operators";
 import { slim_envelope_for_index } from "@/services/search_index_store";
 const envelope: DecryptedEnvelope = {
@@ -50,6 +53,7 @@ const item = {
   is_spam: false,
   created_at: envelope.sent_at,
 } as MailItem;
+
 function match(query: string, source: DecryptedEnvelope = envelope) {
   return matches_query(
     [],
@@ -81,6 +85,7 @@ describe("attachment search", () => {
         },
       ],
     };
+
     expect(match("filename:invoice.pdf", source)).toBe(false);
     expect(match("has:pdf", source)).toBe(false);
   });
@@ -116,6 +121,7 @@ describe("attachment search", () => {
   });
   it("keeps names and MIME types in the index without attachment keys", () => {
     const slim = slim_envelope_for_index(envelope);
+
     expect(slim.attachment_metadata).toEqual([
       { filename: "Invoice.PDF", content_type: "application/pdf" },
     ]);
@@ -131,13 +137,30 @@ describe("attachment search", () => {
     expect(match("-filename:invoice.pdf")).toBe(false);
     expect(match("-filename:other.pdf")).toBe(true);
   });
-  it("does not infer unavailable attachment names from message text", () => {
-    expect(
-      match("filename:invoice.pdf", {
-        ...envelope,
-        body_text: "invoice.pdf",
-        attachment_keys: undefined,
-      }),
-    ).toBe(false);
+  it("falls back to message text when the envelope lists no attachments", () => {
+    const source = {
+      ...envelope,
+      body_text: "invoice.pdf",
+      attachment_keys: undefined,
+    };
+
+    expect(match("filename:invoice.pdf", source)).toBe(true);
+    expect(match("has:pdf", source)).toBe(true);
+    expect(match("has:video", source)).toBe(false);
+    expect(slim_envelope_for_index(source).attachment_metadata).toBeUndefined();
+  });
+  it("bounds the attachment metadata kept in the index", () => {
+    const slim = slim_envelope_for_index({
+      ...envelope,
+      attachment_keys: Array.from({ length: 80 }, (_, seq) => ({
+        seq,
+        key: "test-key",
+        filename: "a".repeat(400),
+        content_type: "application/pdf",
+      })),
+    });
+
+    expect(slim.attachment_metadata).toHaveLength(50);
+    expect(slim.attachment_metadata?.[0].filename).toHaveLength(255);
   });
 });

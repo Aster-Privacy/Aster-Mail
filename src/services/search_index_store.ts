@@ -54,6 +54,9 @@ const MANIFEST_VERSION = 7;
 
 export const SNAPSHOT_CHUNK_SIZE = 2000;
 export const MAX_INDEX_BODY_CHARS = 2048;
+const MAX_INDEX_ATTACHMENTS = 50;
+const MAX_INDEX_ATTACHMENT_FIELD_CHARS = 255;
+
 export const MAX_INDEX_PREVIEW_CHARS = 320;
 export const MAX_INDEX_RECIPIENTS = 32;
 const STORAGE_RESERVE_BYTES = 64 * 1024 * 1024;
@@ -156,12 +159,30 @@ function bound_recipients(list: unknown): { name: string; email: string }[] {
     .map((r) => ({ name: r.name || "", email: r.email }));
 }
 
+function bound_attachment_metadata(
+  envelope: DecryptedEnvelope,
+): { filename?: string; content_type?: string }[] {
+  return (envelope.attachment_metadata ?? envelope.attachment_keys ?? [])
+    .slice(0, MAX_INDEX_ATTACHMENTS)
+    .map(({ filename, content_type }) => ({
+      filename:
+        typeof filename === "string"
+          ? filename.slice(0, MAX_INDEX_ATTACHMENT_FIELD_CHARS)
+          : undefined,
+      content_type:
+        typeof content_type === "string"
+          ? content_type.slice(0, MAX_INDEX_ATTACHMENT_FIELD_CHARS)
+          : undefined,
+    }));
+}
+
 export function slim_envelope_for_index(
   envelope: DecryptedEnvelope,
 ): DecryptedEnvelope {
   const headers = envelope.raw_headers?.filter((h) =>
     INDEXED_HEADER_NAMES.has(h.name.toLowerCase()),
   );
+  const attachment_metadata = bound_attachment_metadata(envelope);
 
   return {
     subject: envelope.subject,
@@ -173,11 +194,7 @@ export function slim_envelope_for_index(
     cc: bound_recipients(envelope.cc),
     bcc: bound_recipients(envelope.bcc),
     sent_at: envelope.sent_at,
-    attachment_metadata: (
-      envelope.attachment_metadata ??
-      envelope.attachment_keys ??
-      []
-    ).map(({ filename, content_type }) => ({ filename, content_type })),
+    ...(attachment_metadata.length > 0 ? { attachment_metadata } : {}),
     ...(headers && headers.length > 0 ? { raw_headers: headers } : {}),
   };
 }
