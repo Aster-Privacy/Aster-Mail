@@ -7802,6 +7802,7 @@ export const it = {
     key_source_dane: "DANE",
     key_source_cached: "Cache",
     key_source_unknown: "Sconosciuto",
+    key_source_aster: "Aster Mail",
     invoice_status_disputed: "Contestato",
     invoice_status_draft: "Bozza",
     invoice_status_failed: "Non riuscita",
@@ -9051,6 +9052,7 @@ export const it = {
     indexing_messages: "Indicizzazione messaggi...",
     message_download_status:
       "Stato del download dei messaggi: {{done}} su {{total}}",
+    message_download_count: "Messaggi scaricati: {{done}}",
     estimated_time_remaining: "Tempo rimanente stimato: {{duration}}",
     download_paused: "Download in pausa",
     pause_download_action: "Pausa",

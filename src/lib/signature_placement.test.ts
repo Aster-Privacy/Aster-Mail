@@ -110,4 +110,20 @@ describe("assemble_reply_with_placement", () => {
       `${typed}${quote}`,
     );
   });
+
+  it("keeps exactly one blank line above a signature moved below the quote", () => {
+    const body = `<div>Hello</div><div><br></div>${signature}`;
+
+    expect(assemble_reply_with_placement(body, quote, () => "below")).toBe(
+      `<div>Hello</div>${quote}<div><br></div>${signature}`,
+    );
+  });
+
+  it("leaves a signature-only reply unchanged for below placement", () => {
+    const body = `<div><br></div><div><br></div>${signature}`;
+
+    expect(assemble_reply_with_placement(body, quote, () => "below")).toBe(
+      `${body}${quote}`,
+    );
+  });
 });

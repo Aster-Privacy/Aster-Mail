@@ -7372,6 +7372,7 @@ export const ja = {
     key_source_dane: "DANE",
     key_source_keyserver: "公開キーサーバー",
     key_source_unknown: "不明",
+    key_source_aster: "Aster Mail",
     key_source_wkd: "Web Key Directory",
     last_used: "最終使用",
     mail_rules_suffix: "メールルール",
@@ -8955,6 +8956,7 @@ export const ja = {
     indexing_messages: "メッセージをインデックス中...",
     message_download_status:
       "メッセージのダウンロード状況: {{total}}件中{{done}}件",
+    message_download_count: "ダウンロード済みのメッセージ: {{done}}件",
     estimated_time_remaining: "推定残り時間: {{duration}}",
     download_paused: "ダウンロードを一時停止中",
     pause_download_action: "一時停止",

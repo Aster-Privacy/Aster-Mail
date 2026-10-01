@@ -39,6 +39,11 @@ vi.mock("@/services/api/keys", () => ({
   is_internal_email: (email: string) => email.endsWith("@astermail.org"),
 }));
 
+vi.mock("@/services/recipient_classification", () => ({
+  is_internal_recipient: (email: string) => email.endsWith("@astermail.org"),
+  use_recipient_classification: () => 0,
+}));
+
 vi.mock("@/services/crypto/recipient_identity_check", () => ({
   has_recipient_identity_changed: vi.fn(async (email: string) =>
     h.changed.has(email),

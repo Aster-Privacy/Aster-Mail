@@ -25,6 +25,7 @@ import { get_active_translations } from "@/lib/i18n/translations";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { ignore_error } from "@/lib/ignore_error";
 import { play_iconic_sound } from "@/services/iconic_sounds";
+import { open_message_in_view_mode } from "@/components/toast/toast_action_router";
 
 export type NotificationType = "new_email" | "reply";
 
@@ -62,11 +63,7 @@ async function bind_tauri_notification_actions(notification_module: {
       window.focus();
 
       if (typeof email_id === "string" && email_id !== "") {
-        window.dispatchEvent(
-          new CustomEvent("astermail:open-email", {
-            detail: { email_id },
-          }),
-        );
+        open_message_in_view_mode(email_id, "inbox");
       }
     });
   } catch {
@@ -233,12 +230,10 @@ export async function show_notification(
     window.focus();
     notification.close();
 
-    if (options.data?.email_id) {
-      window.dispatchEvent(
-        new CustomEvent("astermail:open-email", {
-          detail: { email_id: options.data.email_id },
-        }),
-      );
+    const email_id = options.data?.email_id;
+
+    if (typeof email_id === "string" && email_id !== "") {
+      open_message_in_view_mode(email_id, "inbox");
     }
   };
 
@@ -272,9 +267,8 @@ export function play_notification_sound(): void {
 export async function request_notification_permission(): Promise<NotificationPermission> {
   if (is_tauri()) {
     try {
-      const { isPermissionGranted, requestPermission } = await import(
-        "@tauri-apps/plugin-notification"
-      );
+      const { isPermissionGranted, requestPermission } =
+        await import("@tauri-apps/plugin-notification");
 
       const permitted = await isPermissionGranted();
 
@@ -320,9 +314,8 @@ export async function load_notification_preferences(
 ): Promise<{ enabled: boolean }> {
   if (is_tauri()) {
     try {
-      const { isPermissionGranted } = await import(
-        "@tauri-apps/plugin-notification"
-      );
+      const { isPermissionGranted } =
+        await import("@tauri-apps/plugin-notification");
 
       return { enabled: await isPermissionGranted() };
     } catch {

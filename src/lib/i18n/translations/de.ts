@@ -7480,6 +7480,7 @@ export const de = {
     key_source_dane: "DANE",
     key_source_keyserver: "Öffentlicher Schlüsselserver",
     key_source_unknown: "Unbekannt",
+    key_source_aster: "Aster Mail",
     key_source_wkd: "Web Key Directory",
     last_used: "Zuletzt verwendet",
     mail_rules_suffix: "E-Mail-Regeln",
@@ -9082,6 +9083,7 @@ export const de = {
     indexing_messages: "Nachrichten werden indiziert...",
     message_download_status:
       "Status des Nachrichten-Downloads: {{done}} von {{total}}",
+    message_download_count: "Heruntergeladene Nachrichten: {{done}}",
     estimated_time_remaining: "Geschätzte verbleibende Zeit: {{duration}}",
     download_paused: "Download pausiert",
     pause_download_action: "Pausieren",

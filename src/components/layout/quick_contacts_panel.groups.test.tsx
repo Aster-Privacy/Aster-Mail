@@ -130,7 +130,7 @@ describe("quick contacts panel groups tab", () => {
     vi.spyOn(contacts_api, "list_contact_groups").mockResolvedValue({
       data: { groups: [team_group] },
     } as never);
-    vi.spyOn(keys_api, "discover_external_keys_batch").mockResolvedValue({
+    vi.spyOn(keys_api, "discover_contact_keys_batch").mockResolvedValue({
       data: [],
     } as never);
     container = document.createElement("div");

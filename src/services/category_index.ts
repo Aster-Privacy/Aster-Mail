@@ -216,6 +216,8 @@ const BUILTIN_CATEGORY_ID_SET = new Set(BUILTIN_CATEGORY_IDS);
 // use_inbox_categories pushes the real preference-derived list.
 let active_tabs: string[] = [...(CATEGORY_TABS as readonly string[])];
 let custom_categories: CustomCategoryRule[] = [];
+let built_custom_categories_key: string | null = null;
+let full_builds_completed = 0;
 
 export function set_active_tabs(tabs: string[]): void {
   const next = tabs.includes("primary") ? tabs : ["primary", ...tabs];
@@ -238,11 +240,29 @@ export function get_active_tabs(): readonly string[] {
 }
 
 export function set_custom_categories(rules: CustomCategoryRule[]): void {
+  const rules_key = JSON.stringify(rules);
+
   custom_categories = rules;
   set_active_custom_categories(rules);
+
+  if (rules_key === built_custom_categories_key) return;
+
+  const build_was_running = build_in_progress;
+  const builds_before = full_builds_completed;
+
   // Existing entries were classified with the previous rule set, so a full
   // reconcile is needed to pick up new/changed custom-category matches.
-  void build_index({ force: true });
+  void build_index({ force: true })
+    .then(() => {
+      if (
+        !build_was_running &&
+        full_builds_completed !== builds_before &&
+        JSON.stringify(custom_categories) === rules_key
+      ) {
+        built_custom_categories_key = rules_key;
+      }
+    })
+    .catch(() => undefined);
 }
 
 // Maps a raw classify() result onto one of the currently active tabs, walking
@@ -1390,13 +1410,52 @@ export function get_inbox_unread_total(): number | null {
 }
 
 let published_unread_total: number | null = null;
+let published_unread_account: string | null = null;
+let unread_hold_started_at = 0;
+let unread_hold_timer: ReturnType<typeof setTimeout> | null = null;
+
+const UNREAD_HOLD_MAX_MS = 60_000;
+
+function should_hold_published_unread(total: number | null): boolean {
+  if (total !== null || published_unread_total === null) return false;
+  if (loaded_for_account === null || build_capped) return false;
+  if (loaded_for_account !== published_unread_account) return false;
+  if (!build_in_progress && fully_built && session_reconciled) return false;
+
+  const now = Date.now();
+
+  if (unread_hold_started_at === 0) unread_hold_started_at = now;
+  if (now - unread_hold_started_at >= UNREAD_HOLD_MAX_MS) return false;
+
+  if (unread_hold_timer === null) {
+    unread_hold_timer = setTimeout(
+      () => {
+        unread_hold_timer = null;
+        publish_inbox_unread();
+      },
+      UNREAD_HOLD_MAX_MS - (now - unread_hold_started_at),
+    );
+  }
+
+  return true;
+}
 
 function publish_inbox_unread(): void {
   const total = get_inbox_unread_total();
 
+  if (should_hold_published_unread(total)) return;
+
+  unread_hold_started_at = 0;
+
+  if (unread_hold_timer !== null) {
+    clearTimeout(unread_hold_timer);
+    unread_hold_timer = null;
+  }
+
   if (total === published_unread_total) return;
 
   published_unread_total = total;
+  published_unread_account = total === null ? null : loaded_for_account;
 
   if (typeof window === "undefined") return;
 
@@ -2026,6 +2085,7 @@ export async function build_index(options?: {
     last_build_ms = now_ms();
     session_reconciled = true;
     build_in_progress = false;
+    full_builds_completed += 1;
     void persist_now();
     notify();
   } finally {
@@ -2511,6 +2571,7 @@ export function clear_category_index_memory(): void {
   seen_ts = {};
   fully_built = false;
   session_reconciled = false;
+  built_custom_categories_key = null;
   last_build_ms = 0;
   last_gap_rebuild_ms = 0;
   drift_rebuilds = 0;
@@ -2781,6 +2842,7 @@ export async function clear_category_index(): Promise<void> {
   dirty_chunks.clear();
   fully_built = false;
   session_reconciled = false;
+  built_custom_categories_key = null;
   build_capped = false;
   resync_failures = 0;
   last_build_ms = 0;

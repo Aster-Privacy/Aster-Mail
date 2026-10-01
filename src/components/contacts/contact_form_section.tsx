@@ -33,12 +33,10 @@ export function ContactFormSection({
 }: ContactFormSectionProps) {
   return (
     <div
-      className={`flex items-center gap-2 pb-2 border-b border-edge-secondary ${class_name ?? ""}`}
+      className={`aster_island_section_title pb-2 border-b border-[var(--aster-floating-divider)] ${class_name ?? ""}`}
     >
-      <Icon className="w-4 h-4 text-txt-muted" />
-      <span className="text-[11px] font-medium uppercase tracking-wider text-txt-muted">
-        {label}
-      </span>
+      <Icon />
+      <span>{label}</span>
     </div>
   );
 }

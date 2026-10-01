@@ -292,7 +292,8 @@ export function SmtpTokensSection() {
                 <Button
                   className="flex-shrink-0"
                   disabled={revoking_id === token.id}
-                  variant="destructive"
+                  style={{ color: "var(--color-danger)" }}
+                  variant="secondary"
                   onClick={() => set_confirm_revoke_id(token.id)}
                 >
                   {t("settings.trusted_devices_revoke")}

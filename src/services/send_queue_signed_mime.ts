@@ -21,7 +21,7 @@
 import type { Attachment } from "@/components/compose/compose_shared";
 
 import { array_to_base64 } from "./crypto/base64";
-import { is_internal_email } from "./api/keys";
+import { is_internal_recipient } from "./recipient_classification";
 import { sign_detached } from "./crypto/key_manager";
 import {
   get_passphrase_from_memory,
@@ -88,7 +88,8 @@ const MAX_SIGNED_ATTACHMENT_BYTES = 11 * 1024 * 1024;
 
 export function has_external_recipient(recipients: string[]): boolean {
   return recipients.some(
-    (recipient) => recipient.trim().length > 0 && !is_internal_email(recipient),
+    (recipient) =>
+      recipient.trim().length > 0 && !is_internal_recipient(recipient),
   );
 }
 

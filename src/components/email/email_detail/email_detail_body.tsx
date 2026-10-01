@@ -151,7 +151,7 @@ export function EmailDetailBody({
     <div className="flex-1 overflow-y-auto px-3 sm:px-4 md:px-6 pt-3 sm:pt-4 pb-20 sm:pb-6">
       {is_loading && !email ? (
         <div className="relative h-full min-h-[320px]">
-          <EmailOpenSkeleton column_class="mx-auto w-full max-w-4xl" />
+          <EmailOpenSkeleton variant="detail" />
         </div>
       ) : error ? (
         <div className="flex flex-col items-center justify-center h-full gap-4 px-4">
@@ -369,7 +369,7 @@ export function EmailDetailBody({
                     key={idx}
                     className="flex items-center gap-2 px-2 sm:px-3 py-2 border rounded-[14px] cursor-pointer hover:bg-surf-hover w-full sm:w-auto bg-surf-card border-edge-secondary"
                   >
-                    <div className="w-6 h-6 sm:w-7 sm:h-7 bg-blue-500 rounded flex items-center justify-center flex-shrink-0">
+                    <div className="w-6 h-6 sm:w-7 sm:h-7 bg-[var(--accent-color)] rounded flex items-center justify-center flex-shrink-0">
                       <DocumentTextIcon className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
                     </div>
                     <div className="text-start min-w-0 flex-1">

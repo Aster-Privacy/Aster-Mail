@@ -189,7 +189,9 @@ export const ProfileAvatar = memo(function ProfileAvatar({
     )
       return null;
 
-    return cached_favicon_src || get_favicon_url(domain);
+    const favicon_src = cached_favicon_src || get_favicon_url(domain);
+
+    return favicon_src.startsWith("data:") ? null : favicon_src;
   }, [
     low_network,
     use_domain_logo,

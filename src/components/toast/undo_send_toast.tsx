@@ -23,10 +23,9 @@ import { motion } from "framer-motion";
 import { Button } from "@aster/ui";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 
-import { BUTTON_COLORS } from "@/constants/modal";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
-import { dispatch_undo_send_preview } from "@/components/toast/undo_send_preview_modal";
+import { open_pending_send_preview } from "@/components/toast/toast_action_router";
 import { clip_with_ellipsis } from "@/utils/preview_text";
 
 interface UndoSendToastProps {
@@ -126,7 +125,7 @@ export const UndoSendToast = forwardRef<HTMLDivElement, UndoSendToastProps>(
     const handle_view_message = useCallback(() => {
       if (!body) return;
 
-      dispatch_undo_send_preview({
+      open_pending_send_preview({
         subject,
         body,
         to: to_list || [recipient],
@@ -142,25 +141,20 @@ export const UndoSendToast = forwardRef<HTMLDivElement, UndoSendToastProps>(
       <motion.div
         ref={ref}
         animate={{ opacity: 1, y: 0 }}
-        className="w-[340px] rounded-xl overflow-hidden bg-modal-bg"
+        className="w-[340px] rounded-[var(--aster-radius-floating,16px)] overflow-hidden bg-[var(--aster-floating-bg,var(--modal-bg))] shadow-[var(--aster-floating-shadow)]"
         exit={{ opacity: 0, y: y_offset, scale: 0.95 }}
         initial={reduce_motion ? false : { opacity: 0, y: y_offset }}
-        style={{
-          boxShadow:
-            "0 4px 24px rgba(0, 0, 0, 0.16), 0 1px 4px rgba(0, 0, 0, 0.08)",
-        }}
         transition={{ type: "spring", damping: 25, stiffness: 300 }}
       >
-        <div className="border rounded-xl overflow-hidden border-edge-secondary">
+        <div className="overflow-hidden">
           <div className="px-3.5 py-2.5">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2.5 min-w-0 flex-1">
                 <div className="flex-shrink-0">
                   <svg
                     aria-hidden="true"
-                    className="w-5 h-5"
+                    className="w-5 h-5 text-[var(--accent-color)]"
                     fill="currentColor"
-                    style={{ color: BUTTON_COLORS.primary }}
                     viewBox="0 0 24 24"
                   >
                     <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
@@ -191,9 +185,9 @@ export const UndoSendToast = forwardRef<HTMLDivElement, UndoSendToastProps>(
               <div className="flex items-center gap-1 flex-shrink-0">
                 <Button
                   aria-label={t("mail.cancel_sending")}
-                  className="font-medium text-white"
+                  className="font-medium"
                   size="sm"
-                  style={{ background: BUTTON_COLORS.primary }}
+                  variant="primary"
                   onClick={handle_undo}
                 >
                   {t("common.undo")}
@@ -219,7 +213,7 @@ export const UndoSendToast = forwardRef<HTMLDivElement, UndoSendToastProps>(
             </div>
           </div>
 
-          <div className="flex items-center justify-between px-3.5 py-1.5 border-t border-edge-secondary">
+          <div className="flex items-center justify-between px-3.5 py-1.5 border-t border-[var(--aster-floating-divider)]">
             <span className="text-[10px] text-txt-muted">
               {is_mobile ? (
                 t("mail.tap_undo_to_cancel")
@@ -246,10 +240,9 @@ export const UndoSendToast = forwardRef<HTMLDivElement, UndoSendToastProps>(
             key={queue_id}
             animate={{ width: "0%" }}
             aria-label={t("mail.cancel_sending")}
-            className="h-0.5"
+            className="h-0.5 bg-[var(--accent-color)]"
             initial={reduce_motion ? false : { width: "100%" }}
             role="progressbar"
-            style={{ background: BUTTON_COLORS.primary }}
             transition={{
               duration: reduce_motion ? 0 : total_seconds,
               ease: "linear",

@@ -422,3 +422,60 @@ describe("PlanPaymentMethodModal special offer pricing", () => {
     );
   });
 });
+
+describe("PlanPaymentMethodModal card currency note", () => {
+  let container: HTMLDivElement;
+  let root: Root;
+
+  beforeEach(() => {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+  });
+
+  afterEach(() => {
+    act(() => root.unmount());
+    container.remove();
+  });
+
+  function render(card_currency?: string) {
+    act(() => {
+      root.render(
+        <PlanPaymentMethodModal
+          open
+          card_currency={card_currency}
+          on_choose_card={vi.fn()}
+          on_choose_crypto={vi.fn()}
+          on_close={vi.fn()}
+          plan_name="Nova"
+          selected_term="yearly"
+          term_options={TERMS}
+        />,
+      );
+    });
+  }
+
+  it("says the card is charged in USD when prices show another currency", () => {
+    render("eur");
+
+    expect(document.body.textContent).toContain(
+      "settings.crypto_charged_in_usd",
+    );
+  });
+
+  it("adds no note when prices already show USD", () => {
+    render("usd");
+
+    expect(document.body.textContent).not.toContain(
+      "settings.crypto_charged_in_usd",
+    );
+  });
+
+  it("adds no note without a card currency", () => {
+    render();
+
+    expect(document.body.textContent).not.toContain(
+      "settings.crypto_charged_in_usd",
+    );
+  });
+});

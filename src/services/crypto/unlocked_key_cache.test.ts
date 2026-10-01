@@ -150,6 +150,37 @@ describe("unlocked private key cache", () => {
     expect(await decrypt_message(ct, a.privateKey, pass)).toBe("wrong-pass");
   });
 
+  it("unlocks only the key the message was encrypted to", async () => {
+    const others = await Promise.all(
+      [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => make_key(`o${i}@x.com`, pass)),
+    );
+    const target = await make_key("t@x.com", pass);
+    const keys = [...others.map((k) => k.privateKey), target.privateKey];
+    const messages = await Promise.all(
+      [0, 1, 2].map((i) => encrypt_to(target.publicKey, `old-key-${i}`)),
+    );
+
+    unlock_counter.count = 0;
+
+    for (const [i, ct] of messages.entries()) {
+      expect(await decrypt_message_with_any_key(ct, keys, pass)).toBe(
+        `old-key-${i}`,
+      );
+    }
+    expect(unlock_counter.count).toBe(1);
+  });
+
+  it("does not repeat a failed unlock for the same key and passphrase", async () => {
+    const a = await make_key("a@x.com", pass);
+    const ct = await encrypt_to(a.publicKey, "stale-copy");
+
+    unlock_counter.count = 0;
+
+    await expect(decrypt_message(ct, a.privateKey, "old-pw")).rejects.toThrow();
+    await expect(decrypt_message(ct, a.privateKey, "old-pw")).rejects.toThrow();
+    expect(unlock_counter.count).toBe(1);
+  });
+
   it("keeps separate entries per key and per passphrase", async () => {
     const a = await make_key("a@x.com", pass);
     const b = await make_key("b@x.com", "other-pw");

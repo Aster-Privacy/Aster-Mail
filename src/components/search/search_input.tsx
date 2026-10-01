@@ -22,7 +22,6 @@ import type { RefObject } from "react";
 
 import { AnimatePresence } from "framer-motion";
 
-import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { ClearDataMenu } from "@/components/search/search_filters_panel";
@@ -71,11 +70,11 @@ export function SearchInputBar({
   const { t } = use_i18n();
 
   return (
-    <div className="p-4 border-b transition-colors duration-200 relative flex-shrink-0 border-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]">
+    <div className="search_divider_b p-4 relative flex-shrink-0">
       <div className="flex items-center gap-3">
         <button
           aria-label={t("common.close")}
-          className="sm:hidden -ms-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[10px] transition-colors text-txt-muted bg-surf-hover"
+          className="search_icon_tile sm:hidden -ms-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[10px]"
           onClick={on_close}
         >
           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -95,11 +94,12 @@ export function SearchInputBar({
             </svg>
           )}
         </div>
-        <Input
+        <input
           ref={input_ref}
           // eslint-disable-next-line jsx-a11y/no-autofocus
           autoFocus
-          className="w-full bg-transparent border-none"
+          aria-label={t("mail.search_messages")}
+          className="search_field_input flex-1 min-w-0"
           placeholder={t("mail.search_messages")}
           type="text"
           value={query}
@@ -109,7 +109,7 @@ export function SearchInputBar({
         {query && (
           <button
             aria-label={t("common.clear")}
-            className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[10px] transition-colors duration-150 text-txt-muted bg-surf-hover hover:text-txt-primary"
+            className="search_icon_tile flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[10px]"
             onClick={on_clear_query}
           >
             <svg
@@ -123,13 +123,8 @@ export function SearchInputBar({
         )}
         {!on_search_submit && (
           <button
-            className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[10px] transition-colors duration-150"
-            style={{
-              backgroundColor: show_filters
-                ? "var(--accent-color, #3b82f6)"
-                : "var(--bg-hover)",
-              color: show_filters ? "#ffffff" : "var(--text-muted)",
-            }}
+            aria-pressed={show_filters}
+            className={`search_icon_tile flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[10px]${show_filters ? " search_icon_tile_active" : ""}`}
             title={t("mail.toggle_filters")}
             onClick={on_toggle_filters}
           >
@@ -140,7 +135,7 @@ export function SearchInputBar({
         )}
         {!on_search_submit && query && has_results && (
           <button
-            className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[10px] transition-colors duration-150 bg-surf-hover text-txt-muted hover:text-txt-primary"
+            className="search_icon_tile flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[10px]"
             title={t("mail.save_search")}
             onClick={on_show_save_dialog}
           >
@@ -152,13 +147,8 @@ export function SearchInputBar({
         {!on_search_submit && (
           <div className="relative">
             <button
-              className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[10px] transition-colors duration-150"
-              style={{
-                backgroundColor: show_clear_menu
-                  ? "var(--accent-color, #3b82f6)"
-                  : "var(--bg-hover)",
-                color: show_clear_menu ? "#ffffff" : "var(--text-muted)",
-              }}
+              aria-expanded={show_clear_menu}
+              className={`search_icon_tile flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[10px]${show_clear_menu ? " search_icon_tile_active" : ""}`}
               title={t("mail.clear_search_data")}
               onClick={on_toggle_clear_menu}
             >

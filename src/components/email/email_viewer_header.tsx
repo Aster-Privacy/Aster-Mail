@@ -60,12 +60,12 @@ export function EmailViewerHeader({
   return (
     <motion.div
       animate={{ y: 0, opacity: 1 }}
-      className="flex items-center justify-between px-6 py-4 border-b border-default-200"
+      className="flex items-center justify-between px-6 py-4 border-b border-edge-secondary"
       initial={reduce_motion ? false : { y: -10, opacity: 0 }}
       transition={{ duration: reduce_motion ? 0 : 0.3, delay: 0.1 }}
     >
       <motion.button
-        className="text-blue-500 hover:text-blue-600 font-medium transition-all px-2 py-1 rounded-lg"
+        className="text-[var(--accent-color)] hover:text-[var(--accent-color-hover)] font-medium transition-all px-2 py-1 rounded-lg"
         whileHover={{
           x: -4,
           backgroundColor:

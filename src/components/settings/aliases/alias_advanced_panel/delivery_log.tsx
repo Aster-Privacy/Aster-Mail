@@ -27,6 +27,7 @@ import {
   NoSymbolIcon,
   EyeSlashIcon,
 } from "@heroicons/react/24/outline";
+import { Island, IslandEmpty, IslandRow } from "@aster/ui";
 
 import { format_relative_time } from "../alias_stats_format";
 
@@ -58,15 +59,13 @@ export function delivery_reason_label(
 export function delivery_reason_icon(reason: string): React.ReactNode {
   switch (reason) {
     case "sender_pin":
-      return <NoSymbolIcon className="w-4 h-4 text-red-500 shrink-0" />;
+      return <NoSymbolIcon className="text-red-500 shrink-0" />;
     case "alias_rule":
-      return (
-        <AdjustmentsHorizontalIcon className="w-4 h-4 text-orange-500 shrink-0" />
-      );
+      return <AdjustmentsHorizontalIcon className="text-orange-500 shrink-0" />;
     case "alias_disabled":
-      return <EyeSlashIcon className="w-4 h-4 text-txt-muted shrink-0" />;
+      return <EyeSlashIcon className="text-txt-muted shrink-0" />;
     default:
-      return <NoSymbolIcon className="w-4 h-4 text-txt-muted shrink-0" />;
+      return <NoSymbolIcon className="text-txt-muted shrink-0" />;
   }
 }
 
@@ -116,45 +115,44 @@ export function DeliveryLogPanel({
   }, [load]);
 
   return (
-    <div className="space-y-3">
+    <>
       {loading ? (
-        <Spinner size="md" />
+        <Island className="flex justify-center" padding="md">
+          <Spinner size="md" />
+        </Island>
       ) : load_error ? (
         <LoadFailedNotice on_retry={() => load()} />
       ) : events.length === 0 ? (
-        <p className="text-xs text-txt-muted">
-          {t("settings.alias_delivery_log_empty")}
-        </p>
+        <IslandEmpty title={t("settings.alias_delivery_log_empty")} />
       ) : (
-        <div className="space-y-1.5">
+        <Island divided>
           {(expanded ? events : events.slice(0, 3)).map((ev) => (
-            <div
+            <IslandRow
               key={ev.id}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-surf-tertiary border border-edge-secondary"
-            >
-              {delivery_reason_icon(ev.blocked_reason)}
-              <div className="flex-1 min-w-0">
-                <p className="text-sm text-txt-primary truncate">
+              description={format_relative_time(t, ev.created_at)}
+              icon={delivery_reason_icon(ev.blocked_reason)}
+              label={
+                <span className="block truncate">
                   {delivery_reason_label(t, ev.blocked_reason)}
-                </p>
-                <p className="text-xs text-txt-muted">
-                  {format_relative_time(t, ev.created_at)}
-                </p>
-              </div>
-            </div>
+                </span>
+              }
+            />
           ))}
           {events.length > 3 && (
-            <button
-              className="text-xs text-txt-muted hover:text-txt-primary transition-colors"
-              onClick={() => set_expanded((v) => !v)}
-            >
-              {expanded
-                ? t("common.show_less")
-                : t("common.n_more", { count: events.length - 3 })}
-            </button>
+            <IslandRow
+              chevron={false}
+              label={
+                <span className="text-[13px] text-txt-muted">
+                  {expanded
+                    ? t("common.show_less")
+                    : t("common.n_more", { count: events.length - 3 })}
+                </span>
+              }
+              on_press={() => set_expanded((v) => !v)}
+            />
           )}
-        </div>
+        </Island>
       )}
-    </div>
+    </>
   );
 }

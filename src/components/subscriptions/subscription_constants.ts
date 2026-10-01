@@ -20,25 +20,19 @@
 //
 import type { TranslationKey } from "@/lib/i18n/types";
 
-export const CATEGORY_COLORS: Record<string, string> = {
-  newsletter:
-    "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
-  marketing:
-    "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300",
-  social:
-    "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300",
-  transactional:
-    "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
-  unknown: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
-};
+export type CategoryBadgeColor = "blue" | "purple" | "green" | "amber" | "gray";
 
-export const CATEGORY_TAG_VARIANT: Record<string, string> = {
+export const CATEGORY_BADGE_COLOR: Record<string, CategoryBadgeColor> = {
   newsletter: "blue",
   marketing: "purple",
   social: "green",
   transactional: "amber",
-  unknown: "neutral",
+  unknown: "gray",
 };
+
+export function get_category_badge_color(category: string): CategoryBadgeColor {
+  return CATEGORY_BADGE_COLOR[category] ?? "gray";
+}
 
 export const CATEGORY_KEY_MAP: Record<string, TranslationKey> = {
   newsletter: "settings.newsletter",

@@ -49,7 +49,7 @@ function ToolbarButton({
       aria-label={aria_label || title}
       className={`
         p-1.5 rounded-[14px] transition-all duration-150
-        ${active ? "bg-blue-500/15 text-blue-500" : "hover:bg-[var(--aster-hover)] text-txt-muted"}
+        ${active ? "bg-[color-mix(in_srgb,var(--accent-color)_15%,transparent)] text-[var(--accent-color)]" : "hover:bg-[var(--aster-hover)] text-txt-muted"}
       `}
       title={title}
       type="button"
@@ -62,7 +62,7 @@ function ToolbarButton({
 }
 
 function Divider() {
-  return <div className="w-px h-5 mx-1 bg-edge-secondary" />;
+  return <div className="w-px h-5 mx-1 bg-[var(--aster-floating-divider)]" />;
 }
 
 export function EditorToolbar({ editor_ref, on_change }: EditorToolbarProps) {

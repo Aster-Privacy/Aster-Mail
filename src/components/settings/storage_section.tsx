@@ -51,6 +51,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert_dialog";
 import { StorageAddonsSection } from "@/components/settings/billing/storage_addons_section";
+import { scroll_to_storage_addons } from "@/components/layout/storage_meter";
 import { StorageFormatPicker } from "@/components/settings/storage/storage_format_picker";
 import { use_storage_format } from "@/components/settings/hooks/use_storage_format";
 import { PlanPaymentMethodModal } from "@/components/settings/billing/plan_payment_method_modal";
@@ -538,11 +539,7 @@ export function StorageSection() {
                 size="sm"
                 type="button"
                 variant="filled"
-                onClick={() => {
-                  document
-                    .getElementById("additional_storage_section")
-                    ?.scrollIntoView({ behavior: "smooth", block: "start" });
-                }}
+                onClick={scroll_to_storage_addons}
               >
                 {t("settings.storage_promo_cta")}
               </PillButton>

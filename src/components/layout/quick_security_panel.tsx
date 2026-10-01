@@ -347,7 +347,7 @@ export function QuickSecurityPanel({
               </p>
             </div>
           )}
-          <div className="my-2 h-px bg-edge-secondary" />
+          <div className="-mx-3 my-1.5 h-px bg-[var(--aster-floating-divider)]" />
           {stats.map((stat) => (
             <button
               key={stat.id}

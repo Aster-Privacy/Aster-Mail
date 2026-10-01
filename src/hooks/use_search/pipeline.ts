@@ -33,7 +33,7 @@ import {
 } from "./envelope";
 import { build_generation } from "./index_cache";
 import { build_search_haystack, searchable_body_source } from "./matching";
-import { emit_indexing } from "./progress";
+import { report_indexing_counts } from "./progress";
 import { CachedIndex, DecryptedIndexEntry } from "./types";
 
 import {
@@ -56,10 +56,7 @@ import {
   trim_item_for_index,
   type SnapshotWriter,
 } from "@/services/search_index_store";
-import {
-  is_index_download_paused,
-  record_index_download_checkpoint,
-} from "@/services/search/index_download_control";
+import { is_index_download_paused } from "@/services/search/index_download_control";
 import { add_vocabulary_entry } from "@/services/search/vocabulary";
 
 export interface PipelineOptions {
@@ -72,9 +69,8 @@ export interface PipelineOptions {
   max_items: number;
   hot: CachedIndex | null;
   writer: SnapshotWriter | null;
-  report_progress: boolean;
+  progress_run?: number;
   pausable?: boolean;
-  checkpoint?: boolean;
   progress_base?: number;
   on_page?: () => void;
 }
@@ -97,7 +93,6 @@ export async function run_index_pipeline(
   let cursor = options.start_cursor;
   let processed = 0;
   let fresh_count = 0;
-  let known_total = 0;
   let reached_boundary = false;
 
   if (!incremental) reset_legacy_migration_state();
@@ -111,19 +106,14 @@ export async function run_index_pipeline(
   };
 
   const base = options.progress_base ?? 0;
-  let display_total = base;
-  let pause_hit = false;
 
   const pause_requested = (): boolean =>
     !!options.pausable && is_index_download_paused();
 
   const report = (): void => {
-    if (options.report_progress) {
-      emit_indexing({ current: base + processed, total: display_total });
-    }
-    if (options.checkpoint) {
-      record_index_download_checkpoint(base + processed, display_total);
-    }
+    if (options.progress_run === undefined) return;
+
+    report_indexing_counts(options.progress_run, base + processed, 0);
   };
 
   const is_reusable = (item: MailItem): boolean => {
@@ -324,11 +314,6 @@ export async function run_index_pipeline(
       processed += batch.length;
       report();
 
-      if (pause_requested()) {
-        pause_hit = true;
-        break;
-      }
-
       await new Promise<void>((r) => setTimeout(r, 0));
     }
 
@@ -346,8 +331,6 @@ export async function run_index_pipeline(
       };
     }
 
-    const page_start_cursor = cursor;
-    const page_start_processed = processed;
     const response = await list_encrypted_mail_items({
       cursor,
       limit: page_limit,
@@ -362,13 +345,6 @@ export async function run_index_pipeline(
     }
 
     cursor = response.data.next_cursor;
-
-    if (typeof response.data.total === "number" && response.data.total > 0) {
-      known_total =
-        base > 0
-          ? response.data.total
-          : Math.min(response.data.total, options.max_items);
-    }
 
     let page_items = response.data.items;
 
@@ -391,16 +367,6 @@ export async function run_index_pipeline(
 
     page_items = filter_locked_mail_items(page_items);
 
-    display_total = Math.max(
-      display_total,
-      known_total,
-      base + processed + page_items.length,
-    );
-
-    if (options.report_progress) {
-      emit_indexing({ total: display_total });
-    }
-
     const envelope_by_id = incremental
       ? await fetch_envelopes(
           page_items.filter((item) => !is_reusable(item)).map((it) => it.id),
@@ -408,16 +374,6 @@ export async function run_index_pipeline(
       : null;
 
     const page_entries = await decrypt_page(page_items, envelope_by_id);
-
-    if (pause_hit) {
-      return {
-        processed: page_start_processed,
-        next_cursor: page_start_cursor,
-        reached_boundary,
-        fresh_count,
-        paused: true,
-      };
-    }
 
     if (hot) {
       for (const item of page_items) {

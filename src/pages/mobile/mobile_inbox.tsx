@@ -991,7 +991,7 @@ function MobileInbox({
                     className={`flex h-11 w-11 items-center justify-center rounded-full ${
                       active_filter !== "all" ||
                       (alias_address && alias_direction !== "all")
-                        ? "text-blue-500"
+                        ? "text-brand"
                         : "text-[var(--text-secondary)]"
                     } active:bg-[var(--bg-tertiary)]`}
                     type="button"

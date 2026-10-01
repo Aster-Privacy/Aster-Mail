@@ -727,7 +727,8 @@ export function AutoForwardSection() {
                   <Button
                     disabled={is_deleting}
                     size="sm"
-                    variant="destructive"
+                    style={{ color: "var(--color-danger)" }}
+                    variant="secondary"
                     onClick={() => set_confirm_delete_rule(rule)}
                   >
                     {t("common.remove")}

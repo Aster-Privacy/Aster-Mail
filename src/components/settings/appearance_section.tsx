@@ -108,6 +108,22 @@ export function AppearanceSection() {
   const is_paid_plan = limits ? limits.plan_code !== "free" : plan_load_failed;
   const effective_theme_fields = get_effective_theme_fields(preferences);
   const theme_sync_enabled = is_theme_sync_enabled(preferences);
+  const reading_pane_hidden = preferences.reading_pane_position === "hidden";
+  const opens_in_popup =
+    preferences.email_view_mode === "popup" ||
+    (preferences.email_view_mode === "split" && reading_pane_hidden);
+
+  const select_split_view = () => {
+    if (reading_pane_hidden) {
+      update_preferences(
+        { email_view_mode: "split", reading_pane_position: "right" },
+        true,
+      );
+
+      return;
+    }
+    update_preference("email_view_mode", "split", true);
+  };
 
   useEffect(() => {
     if (!limits || is_paid_plan) return;
@@ -684,7 +700,7 @@ export function AppearanceSection() {
       >
         <div className="flex gap-4">
           <ViewModeCard
-            is_selected={preferences.email_view_mode === "popup"}
+            is_selected={opens_in_popup}
             label={t("settings.popup")}
             mode="popup"
             on_select={() =>
@@ -693,12 +709,12 @@ export function AppearanceSection() {
             theme={mockup_theme}
           />
           <ViewModeCard
-            is_selected={preferences.email_view_mode === "split"}
+            is_selected={
+              preferences.email_view_mode === "split" && !reading_pane_hidden
+            }
             label={t("settings.split_view")}
             mode="split"
-            on_select={() =>
-              update_preference("email_view_mode", "split", true)
-            }
+            on_select={select_split_view}
             theme={mockup_theme}
           />
           <ViewModeCard

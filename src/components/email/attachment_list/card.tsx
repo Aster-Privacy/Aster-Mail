@@ -58,16 +58,12 @@ export function AttachmentCard({
 
   return (
     <div
-      className="relative w-[200px] rounded-[14px] overflow-hidden cursor-pointer"
-      style={{
-        opacity: is_downloading ? 0.5 : 1,
-        backgroundColor: "var(--thread-content-bg)",
-        border: "1px solid var(--thread-card-border)",
-      }}
+      className="message_attachment_card relative w-[200px] rounded-[14px] overflow-hidden cursor-pointer"
+      style={{ opacity: is_downloading ? 0.5 : 1 }}
       onClick={on_click}
     >
       {has_preview ? (
-        <div className="relative w-full h-[128px] overflow-hidden">
+        <div className="message_attachment_well relative w-full h-[128px] overflow-hidden">
           <img
             alt={att.filename}
             className="w-full h-full object-cover"
@@ -84,22 +80,12 @@ export function AttachmentCard({
           )}
         </div>
       ) : (
-        <div
-          className="relative w-full h-[128px] flex items-center justify-center"
-          style={{
-            backgroundColor:
-              "color-mix(in srgb, var(--thread-card-border) 22%, var(--thread-content-bg))",
-          }}
-        >
+        <div className="message_attachment_well relative w-full h-[128px] flex items-center justify-center">
           <FileTypeIcon color={color} glyph={glyph} label={label} />
           {is_pdf && is_password_protected && (
             <div
-              className="absolute top-2 end-2 flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium text-txt-secondary"
+              className="message_attachment_badge absolute top-2 end-2 flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium text-txt-secondary"
               data-testid="attachment-password-protected"
-              style={{
-                backgroundColor: "var(--thread-content-bg)",
-                border: "1px solid var(--thread-card-border)",
-              }}
             >
               <LockClosedIcon aria-hidden="true" className="w-3 h-3" />
               {t("mail.pdf_password_protected")}
@@ -108,13 +94,7 @@ export function AttachmentCard({
         </div>
       )}
 
-      <div
-        className="ps-3 pe-2 py-2.5 flex items-center justify-between gap-1.5 border-t"
-        style={{
-          backgroundColor: "var(--thread-content-bg)",
-          borderColor: "var(--thread-card-border)",
-        }}
-      >
+      <div className="ps-3 pe-2 py-2.5 flex items-center justify-between gap-1.5">
         <div className="min-w-0 flex-1">
           <div className="text-xs font-medium text-txt-primary truncate">
             {att.filename}
@@ -124,7 +104,7 @@ export function AttachmentCard({
           </div>
         </div>
         <button
-          className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-[9px] text-txt-muted hover:bg-[var(--aster-hover)] transition-colors"
+          className="message_attachment_download flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-[9px] text-txt-secondary hover:text-txt-primary transition-colors"
           title={t("mail.download_file_named", { filename: att.filename })}
           onClick={on_download}
         >

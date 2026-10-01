@@ -454,7 +454,7 @@ function CommandBlock({ commands, copy_label }: CommandBlockProps) {
       </div>
       <button
         aria-label={copy_label}
-        className="absolute end-2 top-2 flex h-7 w-7 items-center justify-center rounded-[var(--aster-radius-control)] text-txt-muted transition-colors hover:bg-surf-hover hover:text-txt-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50"
+        className="absolute end-2 top-2 flex h-7 w-7 items-center justify-center rounded-[var(--aster-radius-control)] text-txt-muted transition-colors hover:bg-surf-hover hover:text-txt-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--accent-color)_50%,transparent)]"
         title={t("common.copy")}
         type="button"
         onClick={copy_command}
@@ -602,7 +602,7 @@ function BridgeCliCard({ is_locked }: BridgeCliCardProps) {
             <button
               key={item.id}
               aria-selected={item.id === active_id}
-              className={`-mb-px border-b-2 pb-2 text-xs font-medium whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 ${
+              className={`-mb-px border-b-2 pb-2 text-xs font-medium whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--accent-color)_50%,transparent)] ${
                 item.id === active_id
                   ? "border-current text-brand"
                   : "border-transparent text-txt-muted hover:text-txt-secondary"
@@ -932,7 +932,8 @@ export function BridgeSection() {
           devices.length > 1 ? (
             <Button
               disabled={revoking_all || revoking_id !== null}
-              variant="destructive"
+              className="text-red-500 hover:text-red-600"
+              variant="outline"
               onClick={() => set_confirm_revoke_all(true)}
             >
               {t("settings.trusted_devices_revoke_all")}

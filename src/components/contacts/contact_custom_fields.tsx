@@ -397,7 +397,7 @@ export function ContactCustomFields({
                   <span className="text-xs font-medium text-txt-secondary">
                     {definition.name}
                   </span>
-                  <span className="text-[10px] text-txt-muted bg-surf-tertiary px-1.5 py-0.5 rounded">
+                  <span className="text-[10px] text-txt-muted bg-[var(--aster-field-bg)] px-1.5 py-0.5 rounded">
                     {FIELD_TYPE_LABEL_KEYS[definition.field_type] === "URL"
                       ? "URL"
                       : t(
@@ -428,7 +428,7 @@ export function ContactCustomFields({
                   <div className="flex items-center gap-2">
                     <Input
                       autoFocus
-                      className="flex-1"
+                      className="aster_input_tonal flex-1"
                       placeholder={t("common.enter_field_value", {
                         field: definition.name.toLowerCase(),
                       })}
@@ -458,7 +458,7 @@ export function ContactCustomFields({
                       )}
                     </Button>
                     <Button
-                      className="p-1.5 h-auto text-txt-secondary hover:bg-surf-hover"
+                      className="p-1.5 h-auto text-txt-secondary hover:bg-[var(--aster-floating-hover)]"
                       disabled={is_saving}
                       size="md"
                       variant="ghost"
@@ -470,7 +470,7 @@ export function ContactCustomFields({
                 ) : (
                   <button
                     className={cn(
-                      "flex w-full items-center gap-2 p-2 rounded-lg border border-edge-secondary text-start cursor-pointer hover:bg-surf-hover transition-colors",
+                      "flex w-full items-center gap-2 h-9 px-3 rounded-[var(--aster-radius-field)] bg-[var(--aster-field-bg)] text-start cursor-pointer hover:bg-[var(--aster-field-hover)] transition-colors",
                       disabled && "cursor-not-allowed opacity-50",
                     )}
                     disabled={disabled}
@@ -499,13 +499,13 @@ export function ContactCustomFields({
         )}
       </div>
 
-      <div className="border-t border-edge-secondary pt-4">
+      <div className="border-t border-[var(--aster-floating-divider)] pt-4">
         <p className="text-xs text-txt-secondary mb-3">
           {t("common.add_new_field_type")}
         </p>
         <div className="flex items-center gap-2">
           <Input
-            className="flex-1 h-10"
+            className="aster_input_tonal flex-1"
             placeholder={t("common.field_name_placeholder")}
             value={new_field_name}
             onChange={(e) => set_new_field_name(e.target.value)}
@@ -520,7 +520,7 @@ export function ContactCustomFields({
               set_new_field_type(value as CustomFieldType)
             }
           >
-            <SelectTrigger className="h-10 w-[116px] flex-shrink-0 rounded-xl border border-edge-secondary bg-transparent text-[13px] text-txt-primary">
+            <SelectTrigger className="contact_form_select h-9 w-[116px] flex-shrink-0 ps-3 pe-3 font-normal">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -532,7 +532,7 @@ export function ContactCustomFields({
             </SelectContent>
           </Select>
           <Button
-            className="h-10 flex-shrink-0 gap-1.5 rounded-xl px-3 text-[13px]"
+            className="h-9 flex-shrink-0 gap-1.5 rounded-[var(--aster-radius-field)] px-3 text-[13px]"
             disabled={!new_field_name.trim() || is_adding}
             size="md"
             variant="ghost"

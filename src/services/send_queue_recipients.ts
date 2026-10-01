@@ -22,8 +22,8 @@ import { get_current_account } from "./account_manager";
 import {
   extract_username_from_email,
   get_recipient_public_key,
-  is_internal_email,
 } from "./api/keys";
+import { is_internal_recipient } from "./recipient_classification";
 import { create_error } from "./send_queue_types";
 
 import {
@@ -70,7 +70,7 @@ export async function resolve_own_username_for_key_lookup(
 export async function fetch_internal_public_keys(
   recipients: string[],
 ): Promise<string[]> {
-  const internal_recipients = recipients.filter(is_internal_email);
+  const internal_recipients = recipients.filter(is_internal_recipient);
   const public_keys: string[] = [];
 
   for (const recipient of internal_recipients) {

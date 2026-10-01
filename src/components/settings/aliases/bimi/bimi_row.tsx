@@ -45,7 +45,7 @@ export function BimiRow({ domain, on_changed }: BimiRowProps) {
     : "settings.bimi_row_inactive";
 
   return (
-    <div className="flex items-center gap-3 py-4 mb-3 border-y border-edge-secondary">
+    <div className="flex items-center gap-3 py-4 mb-3 border-y border-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]">
       <PhotoIcon
         aria-hidden="true"
         className="w-5 h-5 flex-shrink-0 self-start mt-0.5 text-txt-muted"

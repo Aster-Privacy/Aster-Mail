@@ -6971,6 +6971,7 @@ export interface SettingsTranslations {
   key_source_dane: string;
   key_source_cached: string;
   key_source_unknown: string;
+  key_source_aster: string;
   invoice_status_paid: string;
   invoice_status_failed: string;
   invoice_status_open: string;
@@ -7767,6 +7768,7 @@ export interface MailTranslations {
   indexing: string;
   indexing_messages: string;
   message_download_status: string;
+  message_download_count: string;
   estimated_time_remaining: string;
   download_paused: string;
   pause_download_action: string;

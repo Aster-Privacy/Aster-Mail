@@ -88,15 +88,15 @@ export function ThreadMessageBody({
             </span>
             <div className="flex-1" />
             <Button
-              className="bg-blue-600 hover:bg-blue-700 text-white border-0"
               size="md"
+              variant="primary"
               onClick={() => set_wrap_source(!wrap_source)}
             >
               {wrap_source ? t("common.unwrap") : t("common.wrap")}
             </Button>
             <Button
-              className="bg-blue-600 hover:bg-blue-700 text-white border-0"
               size="md"
+              variant="primary"
               onClick={() => {
                 copy_text_or_throw(clean_body)
                   .then(() => {

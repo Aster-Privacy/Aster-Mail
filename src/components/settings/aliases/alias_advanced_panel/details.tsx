@@ -22,6 +22,7 @@ import type {} from "@/services/api/aliases";
 import type {} from "@/lib/i18n/types";
 
 import { Link } from "react-router-dom";
+import { Island } from "@aster/ui";
 
 import {
   MAX_DISPLAY_NAME_LENGTH,
@@ -64,7 +65,7 @@ export function AliasDetailsPanel({
   const { t } = use_i18n();
 
   return (
-    <div className="divide-y divide-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]">
+    <Island divided>
       <TextFieldRow
         description={t("settings.alias_display_name_desc")}
         error_message={t("common.failed_update_alias_display_name")}
@@ -91,11 +92,11 @@ export function AliasDetailsPanel({
         value={note}
       />
       <PanelRow
-        align_top
+        control_width={256}
         description={t("settings.alias_websites_desc")}
         label={t("common.websites")}
       >
-        <div className="w-72 [&>button]:!mt-0 [&>div]:!mt-0">
+        <div className="w-full [&>button]:!mt-0 [&>div]:!mt-0">
           <AliasWebsitesEditor
             hide_icon
             alias_address={alias_address}
@@ -110,12 +111,12 @@ export function AliasDetailsPanel({
         label={t("settings.alias_sent_mail_label")}
       >
         <Link
-          className="text-sm font-medium text-[var(--accent-blue)] hover:underline"
+          className="text-sm font-medium text-[var(--accent-color)] hover:underline"
           to={`/alias/${encodeURIComponent(alias_address)}?direction=sent`}
         >
           {t("mail.alias_view_sent")}
         </Link>
       </PanelRow>
-    </div>
+    </Island>
   );
 }

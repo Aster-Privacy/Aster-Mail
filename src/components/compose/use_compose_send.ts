@@ -38,7 +38,10 @@ import { use_preferences } from "@/contexts/preferences_context";
 import { auto_save_recipients_to_contacts } from "@/services/contacts_auto_save";
 import { log_contact_activity } from "@/services/api/contact_history";
 import { get_or_create_thread_token } from "@/services/thread_service";
-import { is_internal_email } from "@/services/api/keys";
+import {
+  classify_recipients,
+  is_internal_recipient,
+} from "@/services/recipient_classification";
 import { draft_manager } from "@/services/crypto/encrypted_drafts";
 import {
   create_scheduled_email,
@@ -605,8 +608,12 @@ export function use_compose_send({
         return;
       }
 
-      const has_external = all_recipients.some((r) => !is_internal_email(r));
-      const has_internal = all_recipients.some((r) => is_internal_email(r));
+      await classify_recipients(all_recipients);
+
+      const has_external = all_recipients.some(
+        (r) => !is_internal_recipient(r),
+      );
+      const has_internal = all_recipients.some((r) => is_internal_recipient(r));
 
       if (has_external && has_internal) {
         show_toast(t("common.cannot_mix_recipients"), "error");

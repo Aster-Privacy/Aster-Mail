@@ -57,6 +57,7 @@ import {
   get_page_ids,
   get_category_total,
   is_index_settled,
+  is_fully_built,
   get_index_entry_count,
   get_active_tabs,
   is_build_in_progress,
@@ -184,6 +185,12 @@ function belongs_in_inbox(email: InboxEmail): boolean {
     (email.folders?.length ?? 0) === 0 &&
     is_awake(email)
   );
+}
+
+function is_index_readable(): boolean {
+  if (is_index_settled()) return true;
+
+  return is_fully_built() && get_index_entry_count() > 0;
 }
 
 function build_load_failed_state(prev: EmailListState): EmailListState {
@@ -588,7 +595,7 @@ export function use_category_inbox(
       abort_ref.current?.abort();
 
       if (ids.length === 0) {
-        const built = is_index_settled() && get_index_entry_count() > 0;
+        const built = is_index_readable() && get_index_entry_count() > 0;
 
         abort_ref.current = null;
         set_state({
@@ -822,7 +829,7 @@ export function use_category_inbox(
     if (signature === last_signature_ref.current) return;
 
     if (
-      !is_index_settled() &&
+      !is_index_readable() &&
       !is_index_capped() &&
       is_build_in_progress() &&
       !is_build_stalled()

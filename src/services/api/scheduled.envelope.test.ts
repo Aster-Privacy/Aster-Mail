@@ -31,6 +31,10 @@ vi.mock("./client", () => ({
 }));
 
 vi.mock("./keys", () => ({ is_internal_email: () => true }));
+vi.mock("@/services/recipient_classification", () => ({
+  classify_recipients: vi.fn(async () => new Map()),
+  is_internal_recipient: () => true,
+}));
 vi.mock("@/hooks/use_mail_stats", () => ({ invalidate_mail_stats: vi.fn() }));
 vi.mock("@/services/crypto/legacy_keks", () => ({
   decrypt_aes_gcm_with_fallback: vi.fn(),

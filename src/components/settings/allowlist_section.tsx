@@ -540,7 +540,8 @@ export function AllowlistSection() {
                 </span>
                 <Button
                   size="sm"
-                  variant="destructive"
+                  style={{ color: "var(--color-danger)" }}
+                  variant="secondary"
                   onClick={() => handle_remove(sender)}
                 >
                   {t("common.remove")}

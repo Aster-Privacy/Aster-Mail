@@ -191,6 +191,15 @@ describe("PlanChangeConfirmModal", () => {
     expect(props.on_confirm).not.toHaveBeenCalled();
   });
 
+  it("shows the preview error when the request throws", async () => {
+    mocked_preview.mockRejectedValue(new Error("network"));
+
+    await render_modal();
+
+    expect(container.textContent).toContain("plan_change_preview_failed");
+    expect(confirm_button().disabled).toBe(true);
+  });
+
   it("keeps confirm disabled while confirming", async () => {
     mocked_preview.mockResolvedValue({
       data: { credit_cents: 8000, amount_due_cents: 4399, currency: "usd" },

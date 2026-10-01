@@ -63,6 +63,7 @@ import { ErrorBoundary } from "@/components/ui/error_boundary";
 import { lazy_with_retry } from "@/utils/lazy_with_retry";
 import { FullPageLoader } from "@/components/common/full_page_loader";
 import { ignore_error } from "@/lib/ignore_error";
+import { read_settings_navigation } from "@/lib/settings_links";
 
 const MobileInbox = lazy_with_retry(
   () => import("@/pages/mobile/mobile_inbox"),
@@ -437,6 +438,29 @@ function MobileApp() {
 
     return () =>
       window.removeEventListener("aster-internal-link", handle_internal_link);
+  }, [navigate]);
+
+  const pathname_ref = useRef(location.pathname);
+
+  pathname_ref.current = location.pathname;
+
+  useEffect(() => {
+    const handle_navigate_settings = (e: Event) => {
+      if (pathname_ref.current.startsWith("/settings")) return;
+
+      const { section } = read_settings_navigation(
+        (e as CustomEvent<unknown>).detail,
+      );
+
+      navigate(
+        section ? `/settings/${encodeURIComponent(section)}` : "/settings",
+      );
+    };
+
+    window.addEventListener("navigate-settings", handle_navigate_settings);
+
+    return () =>
+      window.removeEventListener("navigate-settings", handle_navigate_settings);
   }, [navigate]);
 
   const handle_navigate = useCallback(

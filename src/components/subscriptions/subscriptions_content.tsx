@@ -24,13 +24,12 @@ import type { TranslationKey } from "@/lib/i18n/types";
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { MagnifyingGlassIcon, Bars3Icon } from "@heroicons/react/24/outline";
 import { ShieldCheckIcon } from "@heroicons/react/24/solid";
-import { Button, Checkbox } from "@aster/ui";
+import { Badge, Checkbox, IslandEmpty, PillButton } from "@aster/ui";
 
 import { use_shift_key_ref } from "@/lib/use_shift_range_select";
 import { SettingsTabBar } from "@/components/settings/settings_tab_bar";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { EmailTag } from "@/components/ui/email_tag";
 import { use_subscriptions } from "@/hooks/use_subscriptions";
 import { use_subscription_scan_in_flight } from "@/hooks/use_background_subscription_scan";
 import { use_i18n } from "@/lib/i18n/context";
@@ -39,7 +38,7 @@ import { use_external_link } from "@/contexts/external_link_context";
 import { calendar_day_diff } from "@/utils/date_format";
 import { get_manual_unsubscribe_url } from "@/utils/unsubscribe_detector";
 import {
-  CATEGORY_TAG_VARIANT,
+  get_category_badge_color,
   get_category_label,
 } from "@/components/subscriptions/subscription_constants";
 
@@ -272,9 +271,9 @@ export function SubscriptionsContent({
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center gap-2 px-4 h-14 flex-shrink-0 border-b border-edge-primary">
+      <div className="flex items-center gap-2 px-4 h-14 flex-shrink-0">
         <button
-          className="md:hidden flex items-center justify-center w-8 h-8 rounded-[8px] transition-colors hover:bg-[var(--aster-hover)] text-txt-primary"
+          className="md:hidden flex items-center justify-center w-9 h-9 rounded-full transition-colors hover:bg-[var(--aster-hover)] text-txt-primary"
           onClick={on_mobile_menu_toggle}
         >
           <Bars3Icon className="w-5 h-5" />
@@ -284,7 +283,7 @@ export function SubscriptionsContent({
         </h1>
       </div>
 
-      <div className="flex items-center gap-2 px-4 py-2 flex-shrink-0 border-b border-edge-primary">
+      <div className="flex items-center gap-2 px-4 pb-2 flex-shrink-0">
         <SettingsTabBar
           active={active_tab}
           class_name="mb-0"
@@ -314,20 +313,22 @@ export function SubscriptionsContent({
       {is_loading || (scan_in_flight && subscriptions.length === 0) ? (
         <SubscriptionsListSkeleton />
       ) : current_list.length === 0 ? (
-        <div className="flex-1 flex flex-col items-center justify-center gap-2 text-txt-muted">
-          <MagnifyingGlassIcon className="w-6 h-6" />
-          <p className="text-sm">
-            {search_query
-              ? t("common.no_results")
-              : active_tab === "active"
-                ? t("settings.no_subscriptions_detected")
-                : t("common.no_unsubscribed_senders")}
-          </p>
+        <div className="flex-1 overflow-y-auto px-4 pb-4 pt-1">
+          <IslandEmpty
+            icon={<MagnifyingGlassIcon />}
+            title={
+              search_query
+                ? t("common.no_results")
+                : active_tab === "active"
+                  ? t("settings.no_subscriptions_detected")
+                  : t("common.no_unsubscribed_senders")
+            }
+          />
         </div>
       ) : (
-        <div className="flex-1 overflow-y-auto">
+        <div className="aster_scrollbar_thin flex-1 overflow-y-auto px-4 pb-4 pt-1">
           {active_tab === "active" && current_list.length > 0 && (
-            <div className="flex items-center gap-2 px-4 py-1.5 border-b border-edge-primary">
+            <div className="flex items-center gap-3 px-4 pb-2 pt-1">
               <Checkbox
                 checked={
                   visible_selected_count > 0 &&
@@ -345,35 +346,40 @@ export function SubscriptionsContent({
               </span>
             </div>
           )}
-          {current_list.map((sub) => (
-            <SubscriptionRow
-              key={sub.sender_email}
-              active_tab={active_tab}
-              is_clickable={!!on_sender_search}
-              is_selected={selected_ids.has(sub.sender_email)}
-              on_click={handle_sender_click}
-              on_open_unsubscribe_page={handle_open_unsubscribe_page}
-              on_reactivate={handle_reactivate}
-              on_toggle_select={handle_toggle_select}
-              on_unsubscribe={handle_unsubscribe}
-              subscription={sub}
-              unsub_failed={failed_unsub_ids.has(sub.sender_email)}
-            />
-          ))}
+          <div className="aster_island aster_island_divided">
+            {current_list.map((sub) => (
+              <SubscriptionRow
+                key={sub.sender_email}
+                active_tab={active_tab}
+                is_clickable={!!on_sender_search}
+                is_selected={selected_ids.has(sub.sender_email)}
+                on_click={handle_sender_click}
+                on_open_unsubscribe_page={handle_open_unsubscribe_page}
+                on_reactivate={handle_reactivate}
+                on_toggle_select={handle_toggle_select}
+                on_unsubscribe={handle_unsubscribe}
+                subscription={sub}
+                unsub_failed={failed_unsub_ids.has(sub.sender_email)}
+              />
+            ))}
+          </div>
         </div>
       )}
 
       {selected_ids.size > 0 && active_tab === "active" && (
-        <div className="flex items-center justify-between px-4 py-3 border-t border-edge-primary bg-surf-secondary">
-          <span className="text-sm text-txt-secondary">
-            {selected_ids.size} {t("common.selected")}
-          </span>
-          <button
-            className="px-4 py-1.5 rounded-[var(--aster-radius-control)] text-white text-sm font-medium transition-all duration-150 bg-gradient-to-b from-[#ef4444] via-[#dc2626] to-[#b91c1c] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)] hover:from-[#f05555] hover:via-[#e23737] hover:to-[#c92d2d]"
-            onClick={handle_bulk_unsubscribe}
-          >
-            {t("mail.unsubscribe")} ({selected_ids.size})
-          </button>
+        <div className="flex-shrink-0 px-4 pb-4 pt-2">
+          <div className="aster_island aster_island_pad_sm flex items-center justify-between gap-3 ps-4">
+            <span className="text-sm text-txt-secondary">
+              {selected_ids.size} {t("common.selected")}
+            </span>
+            <PillButton
+              size="sm"
+              variant="danger"
+              onClick={handle_bulk_unsubscribe}
+            >
+              {t("mail.unsubscribe")} ({selected_ids.size})
+            </PillButton>
+          </div>
         </div>
       )}
     </div>
@@ -382,21 +388,20 @@ export function SubscriptionsContent({
 
 function SubscriptionsListSkeleton() {
   return (
-    <div className="flex-1 overflow-hidden">
-      {Array.from({ length: 10 }).map((_, index) => (
-        <div
-          key={index}
-          className="flex items-center gap-3 px-4 py-3 border-b border-edge-primary"
-        >
-          <Skeleton className="h-4 w-4 rounded-[4px] flex-shrink-0" />
-          <Skeleton className="h-8 w-8 rounded-full flex-shrink-0" />
-          <div className="flex-1 min-w-0 flex flex-col gap-1.5">
-            <Skeleton className="h-3.5 w-full max-w-[180px]" />
-            <Skeleton className="h-3 w-full max-w-[240px]" />
+    <div className="flex-1 overflow-hidden px-4 pb-4 pt-1">
+      <div className="aster_island aster_island_divided">
+        {Array.from({ length: 10 }).map((_, index) => (
+          <div key={index} className="aster_island_row">
+            <Skeleton className="h-4 w-4 rounded-[4px] flex-shrink-0" />
+            <Skeleton className="h-8 w-8 rounded-full flex-shrink-0" />
+            <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+              <Skeleton className="h-3.5 w-full max-w-[180px]" />
+              <Skeleton className="h-3 w-full max-w-[240px]" />
+            </div>
+            <Skeleton className="h-8 w-24 rounded-full flex-shrink-0 hidden sm:block" />
           </div>
-          <Skeleton className="h-6 w-20 rounded-[10px] flex-shrink-0 hidden sm:block" />
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
@@ -430,16 +435,14 @@ function SubscriptionRow({
   on_reactivate,
 }: SubscriptionRowProps) {
   const { t } = use_i18n();
-  const tag_variant = (CATEGORY_TAG_VARIANT[sub.category] || "neutral") as
-    "blue" | "purple" | "green" | "amber" | "neutral";
 
   return (
     <div
-      className={`flex items-center gap-3 px-4 py-2.5 border-b border-edge-primary transition-colors ${
+      className={
         is_clickable
-          ? "hover:bg-black/[0.02] dark:hover:bg-white/[0.02] cursor-pointer"
-          : ""
-      }`}
+          ? "aster_island_row aster_island_row_pressable"
+          : "aster_island_row"
+      }
       style={{
         contentVisibility: "auto",
         containIntrinsicSize: "auto 61px",
@@ -467,15 +470,15 @@ function SubscriptionRow({
           <span className="text-sm font-medium text-txt-primary truncate">
             {sub.sender_name || sub.sender_email}
           </span>
-          <EmailTag
-            label={get_category_label(sub.category, t)}
-            show_icon={false}
-            size="xs"
-            variant={tag_variant}
-          />
+          <Badge
+            className="flex-shrink-0 whitespace-nowrap"
+            color={get_category_badge_color(sub.category)}
+          >
+            {get_category_label(sub.category, t)}
+          </Badge>
           {sub.has_one_click && (
             <ShieldCheckIcon
-              className="w-3.5 h-3.5 text-green-500 flex-shrink-0"
+              className="w-3.5 h-3.5 text-[var(--color-success)] flex-shrink-0"
               title={t("common.one_click_unsubscribe")}
             />
           )}
@@ -499,34 +502,33 @@ function SubscriptionRow({
 
       {active_tab === "active" ? (
         unsub_failed && get_manual_unsubscribe_url(sub) ? (
-          <button
-            className="px-3 py-1 rounded-[var(--aster-radius-control)] text-xs font-medium transition-all duration-150 flex-shrink-0 hover:brightness-110"
-            style={{
-              background:
-                "linear-gradient(to bottom, #fbbf24 0%, #f59e0b 50%, #d97706 100%)",
-              color: "#ffffff",
-            }}
+          <PillButton
+            className="flex-shrink-0"
+            size="sm"
+            variant="tonal"
             onClick={(e) => on_open_unsubscribe_page(e, sub)}
           >
             {t("settings.open_unsubscribe_page")}
-          </button>
+          </PillButton>
         ) : (
-          <button
-            className="px-3 py-1 rounded-[var(--aster-radius-control)] text-xs font-medium transition-all duration-150 flex-shrink-0 text-white bg-gradient-to-b from-[#ef4444] via-[#dc2626] to-[#b91c1c] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)] hover:from-[#f05555] hover:via-[#e23737] hover:to-[#c92d2d]"
+          <PillButton
+            className="flex-shrink-0"
+            size="sm"
+            variant="danger"
             onClick={(e) => on_unsubscribe(e, sub.sender_email)}
           >
             {t("mail.unsubscribe")}
-          </button>
+          </PillButton>
         )
       ) : (
-        <Button
+        <PillButton
           className="flex-shrink-0"
           size="sm"
-          variant="depth"
+          variant="tonal"
           onClick={(e) => on_reactivate(e, sub.sender_email)}
         >
           {t("settings.reactivate")}
-        </Button>
+        </PillButton>
       )}
     </div>
   );

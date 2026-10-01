@@ -780,8 +780,8 @@ export function AliasImportModal({
               className={[
                 "flex flex-col items-center justify-center gap-2.5 rounded-[var(--aster-radius-control)] border-2 border-dashed p-6 transition-colors cursor-pointer",
                 drag_over
-                  ? "border-blue-500 bg-blue-500/5"
-                  : "border-edge-secondary hover:border-blue-400 hover:bg-surf-secondary",
+                  ? "border-brand bg-brand/5"
+                  : "border-edge-secondary hover:border-brand/60 hover:bg-surf-secondary",
               ].join(" ")}
               onClick={() => file_ref.current?.click()}
               onDragLeave={() => set_drag_over(false)}
@@ -968,7 +968,7 @@ export function AliasImportModal({
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       checked={conflict_mode === "skip"}
-                      className="accent-blue-500"
+                      className="accent-[var(--accent-color)]"
                       name="conflict_mode"
                       type="radio"
                       onChange={() => set_conflict_mode("skip")}
@@ -980,7 +980,7 @@ export function AliasImportModal({
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       checked={conflict_mode === "update"}
-                      className="accent-blue-500"
+                      className="accent-[var(--accent-color)]"
                       name="conflict_mode"
                       type="radio"
                       onChange={() => set_conflict_mode("update")}
@@ -999,7 +999,7 @@ export function AliasImportModal({
           <div className="flex flex-col items-center gap-4 py-6">
             <div className="w-full bg-surf-secondary rounded-full h-2 overflow-hidden">
               <div
-                className="h-2 bg-blue-500 rounded-full transition-all duration-300"
+                className="h-2 bg-brand rounded-full transition-all duration-300"
                 style={{
                   width:
                     progress_total > 0

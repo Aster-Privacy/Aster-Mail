@@ -49,6 +49,7 @@ export function ContactFormAddress({
           {t("common.street")}
         </label>
         <Input
+          className="aster_input_tonal"
           id="contact-street"
           placeholder={t("common.address_placeholder")}
           size="md"
@@ -65,6 +66,7 @@ export function ContactFormAddress({
             {t("common.city")}
           </label>
           <Input
+            className="aster_input_tonal"
             id="contact-city"
             placeholder={t("common.city_placeholder")}
             size="md"
@@ -80,6 +82,7 @@ export function ContactFormAddress({
             {t("settings.state_province")}
           </label>
           <Input
+            className="aster_input_tonal"
             id="contact-state"
             placeholder={t("common.state_placeholder")}
             size="md"
@@ -97,6 +100,7 @@ export function ContactFormAddress({
             {t("common.postal_code")}
           </label>
           <Input
+            className="aster_input_tonal"
             id="contact-postal-code"
             placeholder={t("common.postal_code_placeholder")}
             size="md"
@@ -112,6 +116,7 @@ export function ContactFormAddress({
             {t("common.country")}
           </label>
           <Input
+            className="aster_input_tonal"
             id="contact-country"
             placeholder={t("common.country_placeholder")}
             size="md"

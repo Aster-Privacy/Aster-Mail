@@ -51,7 +51,7 @@ describe("EmailOpenSkeleton column", () => {
   });
 
   it("spans the reading pane like the split and full-page viewers", () => {
-    act(() => root.render(<EmailOpenSkeleton compact />));
+    act(() => root.render(<EmailOpenSkeleton variant="split" />));
 
     expect(classes_of(column())).toContain("w-full");
     expect(
@@ -62,11 +62,7 @@ describe("EmailOpenSkeleton column", () => {
   });
 
   it("keeps the width of a viewer that caps its own content", () => {
-    act(() =>
-      root.render(
-        <EmailOpenSkeleton compact column_class="mx-auto w-full max-w-4xl" />,
-      ),
-    );
+    act(() => root.render(<EmailOpenSkeleton variant="popup" />));
 
     expect(classes_of(column())).toEqual(
       expect.arrayContaining(["mx-auto", "w-full", "max-w-4xl"]),

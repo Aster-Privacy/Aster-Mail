@@ -418,9 +418,30 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     };
   }
 
+  const settled_live_count_ref = useRef<{
+    key: string;
+    count: number | undefined;
+  }>({ key: header_count_key, count: undefined });
+
+  if (settled_live_count_ref.current.key !== header_count_key) {
+    settled_live_count_ref.current = {
+      key: header_count_key,
+      count: undefined,
+    };
+  }
+
+  if (typeof live_header_count === "number") {
+    settled_live_count_ref.current.count = live_header_count;
+  }
+
+  const stable_live_header_count =
+    live_header_count === undefined
+      ? settled_live_count_ref.current.count
+      : live_header_count;
+
   const header_display_count =
-    live_header_count !== null
-      ? live_header_count
+    stable_live_header_count !== null
+      ? stable_live_header_count
       : totals_authoritative
         ? list_header_count
         : settled_header_count_ref.current.count;

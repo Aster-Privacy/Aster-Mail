@@ -104,7 +104,7 @@ export function PgpPasswordPrompt({
           >
             <input
               autoComplete="off"
-              className="h-10 px-3 rounded-lg bg-transparent border border-edge-secondary text-sm text-txt-primary placeholder:text-txt-muted outline-none focus:border-blue-500 flex-1 min-w-0 sm:max-w-xs"
+              className="h-10 px-3 rounded-lg bg-transparent border border-edge-secondary text-sm text-txt-primary placeholder:text-txt-muted outline-none focus:border-[var(--accent-color)] flex-1 min-w-0 sm:max-w-xs"
               disabled={busy}
               placeholder={t("mail.pgp_password_placeholder")}
               type="password"

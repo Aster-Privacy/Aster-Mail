@@ -70,6 +70,10 @@ import {
   is_lockdown_enabled,
   LOCKDOWN_CHANGED_EVENT,
 } from "@/services/lockdown_store";
+import {
+  dispatch_auto_open_create_alias,
+  request_auto_open_create_alias,
+} from "@/components/settings/aliases/create_alias_request";
 
 function LockdownBanner({
   on_settings_click,
@@ -103,7 +107,7 @@ function LockdownBanner({
 
   return (
     <button
-      className="mx-3 mb-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 text-red-500 text-xs font-medium hover:bg-red-500/15 transition-colors"
+      className="mx-3 mb-2 flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--aster-radius-item)] bg-[color-mix(in_srgb,var(--color-danger)_10%,transparent)] text-[var(--color-danger)] text-xs font-medium hover:bg-[color-mix(in_srgb,var(--color-danger)_15%,transparent)] transition-colors"
       type="button"
       onClick={() => on_settings_click("security")}
     >
@@ -857,6 +861,7 @@ const sidebar_base = ({
           load_failed={aliases_load_failed}
           navigate={navigate}
           on_create_alias={() => {
+            request_auto_open_create_alias();
             on_settings_click("aliases");
 
             if (create_alias_timer_ref.current !== null) {
@@ -865,9 +870,7 @@ const sidebar_base = ({
 
             create_alias_timer_ref.current = setTimeout(() => {
               create_alias_timer_ref.current = null;
-              window.dispatchEvent(
-                new CustomEvent("astermail:auto-open-create-alias"),
-              );
+              dispatch_auto_open_create_alias();
             }, 100);
           }}
           on_retry={() => void refresh_aliases()}

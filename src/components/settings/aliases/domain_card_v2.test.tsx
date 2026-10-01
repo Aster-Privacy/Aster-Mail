@@ -99,6 +99,9 @@ vi.mock("@aster/ui", () => ({
       {children}
     </button>
   ),
+  Island: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
   Switch: () => null,
 }));
 
