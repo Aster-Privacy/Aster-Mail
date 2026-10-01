@@ -165,15 +165,7 @@ export default function SignInPage() {
               draggable={false}
               src="/text_logo.png"
             />
-            <div
-              className="h-8 w-8 mx-auto animate-spin rounded-full border-2 mb-4"
-              style={{
-                borderColor: is_dark ? "#374151" : "#bfdbfe",
-                borderTopColor: is_dark
-                  ? "var(--accent-color-hover)"
-                  : "var(--accent-color)",
-              }}
-            />
+            <Spinner className="mx-auto mb-4" size="lg" />
             <p className="text-sm text-txt-secondary">
               {checkout_status || t("auth.signing_in")}
             </p>
@@ -647,15 +639,7 @@ export default function SignInPage() {
             >
               {is_loading ? (
                 <div className="text-center">
-                  <div
-                    className="h-8 w-8 mx-auto animate-spin rounded-full border-2 mb-4"
-                    style={{
-                      borderColor: is_dark ? "#374151" : "#bfdbfe",
-                      borderTopColor: is_dark
-                        ? "var(--accent-color-hover)"
-                        : "var(--accent-color)",
-                    }}
-                  />
+                  <Spinner className="mx-auto mb-4" size="lg" />
                   <p className="text-sm text-txt-secondary">{status}</p>
                 </div>
               ) : active_2fa_method === "backup" ? (
