@@ -43,13 +43,29 @@ vi.mock("@/services/iconic_sound_data", () => {
 });
 
 const started: unknown[] = [];
+const stopped: unknown[] = [];
+const context_control = {
+  state: "running",
+  resume: () => Promise.resolve(),
+};
 const decoded_sizes: number[] = [];
 
 class FakeAudioContext {
-  state = "running";
+  currentTime = 0;
   destination = {};
+  get state() {
+    return context_control.state;
+  }
   createGain() {
-    return { gain: { value: 1 }, connect: vi.fn() };
+    return {
+      gain: {
+        value: 1,
+        setValueAtTime: vi.fn(),
+        linearRampToValueAtTime: vi.fn(),
+      },
+      connect: vi.fn(),
+      disconnect: vi.fn(),
+    };
   }
   createBufferSource() {
     const source = {
@@ -59,6 +75,9 @@ class FakeAudioContext {
       onended: null,
       start: () => {
         started.push(source.buffer);
+      },
+      stop: () => {
+        stopped.push(source.buffer);
       },
     };
 
@@ -70,7 +89,7 @@ class FakeAudioContext {
     return Promise.resolve({ size: data.byteLength });
   }
   resume() {
-    return Promise.resolve();
+    return context_control.resume();
   }
 }
 
@@ -90,6 +109,9 @@ async function settle() {
 describe("iconic_sounds", () => {
   beforeEach(() => {
     started.length = 0;
+    stopped.length = 0;
+    context_control.state = "running";
+    context_control.resume = () => Promise.resolve();
     decoded_sizes.length = 0;
     is_native_platform.mockReturnValue(false);
     vi.stubGlobal("AudioContext", FakeAudioContext);
@@ -156,6 +178,42 @@ describe("iconic_sounds", () => {
     expect(service.play_send_settled_sound()).toBe(true);
     await settle();
     expect(started).toHaveLength(1);
+  });
+
+  it("restarts a sound that is still playing instead of stacking it", async () => {
+    const service = await load_service();
+
+    expect(service.preview_iconic_sound("done")).toBe(true);
+    await settle();
+    expect(service.preview_iconic_sound("done")).toBe(true);
+    await settle();
+    expect(started).toHaveLength(2);
+    expect(stopped).toHaveLength(1);
+  });
+
+  it("drops a sound when audio only unlocks long after the request", async () => {
+    const service = await load_service();
+    let unlock = () => {};
+
+    context_control.state = "suspended";
+    context_control.resume = () =>
+      new Promise<void>((resolve) => {
+        unlock = () => {
+          context_control.state = "running";
+          resolve();
+        };
+      });
+    service.set_iconic_sounds_enabled(true);
+    expect(service.play_iconic_sound("incoming")).toBe(true);
+    await settle();
+
+    const now = Date.now();
+    const clock = vi.spyOn(Date, "now").mockReturnValue(now + 5000);
+
+    unlock();
+    await settle();
+    clock.mockRestore();
+    expect(started).toHaveLength(0);
   });
 
   it("previews a sound even while turned off", async () => {

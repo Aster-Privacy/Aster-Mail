@@ -79,6 +79,14 @@ export function use_compose_manager() {
   const { t } = use_translation();
   const { preferences } = use_preferences();
   const [instances, set_instances] = useState<ComposeInstance[]>([]);
+  const instance_count_ref = useRef(0);
+
+  useEffect(() => {
+    if (instances.length > instance_count_ref.current) {
+      play_iconic_sound("compose");
+    }
+    instance_count_ref.current = instances.length;
+  }, [instances.length]);
 
   const open_compose = useCallback(
     (
@@ -116,8 +124,6 @@ export function use_compose_manager() {
           is_minimized:
             (preferences.compose_window_mode ?? "default") === "minimized",
         };
-
-        play_iconic_sound("compose");
 
         return [...prev, new_instance];
       });

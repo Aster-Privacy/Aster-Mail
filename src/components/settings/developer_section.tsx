@@ -39,7 +39,6 @@ import {
   IslandRow,
   IslandSection,
   IslandSections,
-  Tooltip,
 } from "@aster/ui";
 
 import { trigger_download } from "@/utils/download_blob";
@@ -50,6 +49,7 @@ import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
+import { InfoPopover } from "@/components/ui/info_popover";
 import { use_mail_stats } from "@/hooks/use_mail_stats";
 import { use_folders } from "@/hooks/use_folders";
 import { use_online_status } from "@/hooks/use_online_status";
@@ -768,25 +768,11 @@ export function DeveloperSection() {
             label={
               <span className="inline-flex items-center gap-2">
                 {t("settings.iconic_sounds")}
-                <span
-                  className="aster_island_toggle_stop inline-flex items-center gap-1.5"
-                  role="presentation"
-                  onClick={(e) => e.stopPropagation()}
-                  onKeyDown={(e) => e.stopPropagation()}
-                >
-                  <Badge color="purple">
-                    {t("settings.iconic_sounds_beta")}
-                  </Badge>
-                  <Tooltip tip={t("settings.iconic_sounds_info")}>
-                    <button
-                      aria-label={t("settings.iconic_sounds_info")}
-                      className="text-txt-muted"
-                      type="button"
-                    >
-                      <InformationCircleIcon className="h-4 w-4" />
-                    </button>
-                  </Tooltip>
-                </span>
+                <Badge color="purple">{t("settings.iconic_sounds_beta")}</Badge>
+                <InfoPopover
+                  description={t("settings.iconic_sounds_info")}
+                  title={t("settings.iconic_sounds")}
+                />
               </span>
             }
             toggle={{

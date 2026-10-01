@@ -34,7 +34,14 @@ export const ICONIC_SOUNDS = [
 
 export type IconicSound = (typeof ICONIC_SOUNDS)[number];
 
-const MASTER_GAIN = 0.6;
+const MASTER_GAIN = 1;
+const TARGET_PEAK = 0.89;
+const MAX_SOUND_GAIN = 4;
+const ONSET_THRESHOLD = 0.004;
+const ONSET_LEAD_SECONDS = 0.004;
+const START_LEAD_SECONDS = 0.03;
+const RESUME_LEAD_SECONDS = 0.12;
+const RETRIGGER_FADE_SECONDS = 0.02;
 const MAX_START_DELAY_MS = 1500;
 const MIN_INTERVAL_MS: Record<IconicSound, number> = {
   send: 600,
@@ -54,7 +61,19 @@ let load_promise: Promise<void> | null = null;
 let warm_up_armed = false;
 let send_settles_at = 0;
 
-const buffers = new Map<IconicSound, AudioBuffer>();
+interface LoadedSound {
+  buffer: AudioBuffer;
+  gain: number;
+  offset: number;
+}
+
+interface ActiveVoice {
+  source: AudioBufferSourceNode;
+  gain: GainNode;
+}
+
+const buffers = new Map<IconicSound, LoadedSound>();
+const active_voices = new Map<IconicSound, ActiveVoice>();
 const last_played_at = new Map<IconicSound, number>();
 
 export function is_iconic_sounds_supported(): boolean {
@@ -86,6 +105,31 @@ function decode_data_uri(uri: string): ArrayBuffer {
   return bytes.buffer;
 }
 
+function measure_sound(buffer: AudioBuffer): LoadedSound {
+  let peak = 0;
+  let onset = buffer.length;
+
+  for (let channel = 0; channel < buffer.numberOfChannels; channel += 1) {
+    const samples = buffer.getChannelData(channel);
+
+    for (let index = 0; index < samples.length; index += 1) {
+      const level = Math.abs(samples[index]);
+
+      if (level > peak) peak = level;
+      if (level > ONSET_THRESHOLD && index < onset) onset = index;
+    }
+  }
+
+  const gain = peak > 0 ? Math.min(TARGET_PEAK / peak, MAX_SOUND_GAIN) : 1;
+  const onset_seconds = onset < buffer.length ? onset / buffer.sampleRate : 0;
+
+  return {
+    buffer,
+    gain,
+    offset: Math.max(0, onset_seconds - ONSET_LEAD_SECONDS),
+  };
+}
+
 async function load_buffers(): Promise<void> {
   const { ICONIC_SOUND_SOURCES } = await import("@/services/iconic_sound_data");
   const context = get_context();
@@ -98,7 +142,7 @@ async function load_buffers(): Promise<void> {
         decode_data_uri(ICONIC_SOUND_SOURCES[name]),
       );
 
-      buffers.set(name, decoded);
+      buffers.set(name, measure_sound(decoded));
     }),
   );
 }
@@ -148,24 +192,55 @@ function arm_warm_up(): void {
   );
 }
 
-async function start_playback(name: IconicSound): Promise<void> {
-  const context = get_context();
-  const buffer = buffers.get(name);
+function is_stale(requested_at: number): boolean {
+  return Date.now() - requested_at > MAX_START_DELAY_MS;
+}
 
-  if (!buffer || !master_gain) return;
+async function start_playback(
+  name: IconicSound,
+  requested_at: number,
+): Promise<void> {
+  const context = get_context();
+  const sound = buffers.get(name);
+
+  if (!sound || !master_gain) return;
+
+  let lead = START_LEAD_SECONDS;
 
   if (context.state !== "running") {
     await context.resume();
+    lead = RESUME_LEAD_SECONDS;
   }
 
-  if (context.state !== "running") return;
+  if (context.state !== "running" || is_stale(requested_at)) return;
+
+  const starts_at = context.currentTime + lead;
+  const previous = active_voices.get(name);
+
+  if (previous) {
+    previous.gain.gain.setValueAtTime(previous.gain.gain.value, starts_at);
+    previous.gain.gain.linearRampToValueAtTime(
+      0,
+      starts_at + RETRIGGER_FADE_SECONDS,
+    );
+    previous.source.stop(starts_at + RETRIGGER_FADE_SECONDS);
+  }
 
   const source = context.createBufferSource();
+  const gain = context.createGain();
+  const voice = { source, gain };
 
-  source.buffer = buffer;
-  source.connect(master_gain);
-  source.onended = () => source.disconnect();
-  source.start();
+  gain.gain.value = sound.gain;
+  source.buffer = sound.buffer;
+  source.connect(gain);
+  gain.connect(master_gain);
+  source.onended = () => {
+    source.disconnect();
+    gain.disconnect();
+    if (active_voices.get(name) === voice) active_voices.delete(name);
+  };
+  active_voices.set(name, voice);
+  source.start(starts_at, sound.offset);
 }
 
 function request_playback(name: IconicSound, forced: boolean): void {
@@ -174,9 +249,9 @@ function request_playback(name: IconicSound, forced: boolean): void {
   ensure_loaded()
     .then(() => {
       if (!forced && !enabled) return;
-      if (Date.now() - requested_at > MAX_START_DELAY_MS) return;
+      if (is_stale(requested_at)) return;
 
-      return start_playback(name);
+      return start_playback(name, requested_at);
     })
     .catch((caught) => ignore_error("services/iconic_sounds:play", caught));
 }
