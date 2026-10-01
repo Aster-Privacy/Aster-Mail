@@ -44,7 +44,8 @@ vi.mock("@/services/routing/connection_store", () => ({
   },
 }));
 
-const { fit_zoom_for } = await import("./sandboxed_email_renderer");
+const { fit_natural_width, fit_zoom_for } =
+  await import("./sandboxed_email_renderer");
 
 describe("fit_zoom_for", () => {
   it("leaves content that already fits at the reader's own zoom", () => {
@@ -68,5 +69,24 @@ describe("fit_zoom_for", () => {
   it("keeps the reader's zoom when nothing can be measured", () => {
     expect(fit_zoom_for(0, 400, 1.25)).toBe(1.25);
     expect(fit_zoom_for(900, 0, 1.25)).toBe(1.25);
+  });
+});
+
+describe("fit_natural_width", () => {
+  it("adds the end padding to a wide email so it is scaled with both margins", () => {
+    expect(fit_natural_width(616, 544, 16)).toBe(632);
+    expect(fit_zoom_for(fit_natural_width(616, 544, 16), 544, 1)).toBe(0.861);
+  });
+
+  it("leaves an email that fits alone", () => {
+    expect(fit_natural_width(544, 544, 16)).toBe(544);
+    expect(fit_natural_width(548, 544, 16)).toBe(548);
+    expect(fit_natural_width(320, 544, 16)).toBe(320);
+  });
+
+  it("ignores a missing or negative end padding", () => {
+    expect(fit_natural_width(616, 544, 0)).toBe(616);
+    expect(fit_natural_width(616, 544, Number.NaN)).toBe(616);
+    expect(fit_natural_width(616, 544, -8)).toBe(616);
   });
 });

@@ -223,6 +223,16 @@ export function fit_zoom_for(
   );
 }
 
+export function fit_natural_width(
+  content_width: number,
+  available_width: number,
+  end_padding: number,
+): number {
+  if (content_width <= available_width + FIT_SLACK_PX) return content_width;
+
+  return content_width + Math.max(0, end_padding || 0);
+}
+
 export const COLLAPSED_CONTENT_HEIGHT_PX = 8;
 export const CONTENT_BOUNDS_NODE_LIMIT = 3000;
 

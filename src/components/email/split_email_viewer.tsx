@@ -575,7 +575,7 @@ export function SplitEmailViewer({
           style={{ scrollbarGutter: "stable" }}
         >
           {email && (
-            <div className="mx-auto w-full max-w-[1120px] py-2 @md:py-3">
+            <div className="w-full py-2 @md:py-3">
               <div className="px-3 @md:px-4 flex flex-wrap items-center gap-x-2 gap-y-1.5 mb-3">
                 <h1 className="text-lg @md:text-xl @2xl:text-2xl font-bold leading-[1.3] text-txt-primary break-words">
                   <span
