@@ -60,33 +60,48 @@ describe("strip_reply_quotes", () => {
 
     expect(strip_reply_quotes(body)).toBe(body);
   });
-});
 
-it("keeps an answer below a quoted question after a greeting", () => {
-  const body =
-    "Hi Alex,\n\nOn Tue, Alex wrote:\n> When can we meet?\n\nMeet at 10 on Friday.";
-  expect(strip_reply_quotes(body)).toContain("Meet at 10 on Friday.");
-  expect(strip_reply_quotes(body)).not.toContain("When can we meet?");
-});
-it("keeps new text between multiple attributed quotes", () => {
-  const body =
-    "Hello,\nOn Tue, Alex wrote:\n> First question\nFirst answer\nOn Wed, Alex wrote:\n> Second question\nSecond answer";
-  const clean = strip_reply_quotes(body);
-  expect(clean).toContain("First answer");
-  expect(clean).toContain("Second answer");
-  expect(clean).not.toContain("question");
-});
-it("keeps literal greater-than lines without a reply attribution", () => {
-  const body = "Run this command:\n> npm run build\nThen restart the app.";
-  expect(strip_reply_quotes(body)).toBe(body);
-});
-it("handles CRLF and indented quoted lines", () => {
-  const body =
-    "Hello,\r\nOn Tue, Alex wrote:\r\n  > Old text\r\n\r\nNew answer";
-  expect(strip_reply_quotes(body)).toContain("New answer");
-  expect(strip_reply_quotes(body)).not.toContain("Old text");
-});
-it("keeps a quote-only message readable", () => {
-  const body = "On Tue, Alex wrote:\n> Original message";
-  expect(strip_reply_quotes(body)).toBe(body);
+  it("keeps an answer below a quoted question after a greeting", () => {
+    const body =
+      "Hi Alex,\n\nOn Tue, Alex wrote:\n> When can we meet?\n\nMeet at 10 on Friday.";
+
+    expect(strip_reply_quotes(body)).toBe(
+      "Hi Alex,\n\n\nMeet at 10 on Friday.",
+    );
+  });
+
+  it("keeps new text between multiple attributed quotes", () => {
+    const body =
+      "Hello,\nOn Tue, Alex wrote:\n> First question\nFirst answer\nOn Wed, Alex wrote:\n> Second question\nSecond answer";
+
+    expect(strip_reply_quotes(body)).toBe(
+      "Hello,\nFirst answer\nSecond answer",
+    );
+  });
+
+  it("keeps literal greater-than lines without a reply attribution", () => {
+    const body = "Run this command:\n> npm run build\nThen restart the app.";
+
+    expect(strip_reply_quotes(body)).toBe(body);
+  });
+
+  it("handles CRLF and indented quoted lines", () => {
+    const body =
+      "Hello,\r\nOn Tue, Alex wrote:\r\n  > Old text\r\n\r\nNew answer";
+
+    expect(strip_reply_quotes(body)).toBe("Hello,\n\nNew answer");
+  });
+
+  it("keeps a quote-only message readable", () => {
+    const body = "On Tue, Alex wrote:\n> Original message";
+
+    expect(strip_reply_quotes(body)).toBe(body);
+  });
+
+  it("keeps a top-posted reply and drops the trailing quote", () => {
+    const body =
+      "Sounds good.\n\nOn Tue, Alex wrote:\n> First line\n>\n> Second line";
+
+    expect(strip_reply_quotes(body)).toBe("Sounds good.");
+  });
 });
