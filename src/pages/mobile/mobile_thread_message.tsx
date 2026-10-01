@@ -46,6 +46,7 @@ import {
   extract_preview_html,
   move_leading_footer_to_end,
 } from "@/components/email/message_body_parts";
+import { renderable_html_part } from "@/lib/message_markup";
 import { is_system_email } from "@/lib/utils";
 import { get_image_proxy_url } from "@/lib/image_proxy";
 import { MobileAttachmentRow } from "@/components/mobile/mobile_attachment_row";
@@ -153,8 +154,10 @@ export function MobileThreadMessage({
       return password_unlocked_body;
     }
 
-    if (message.html_content && !is_ratchet_envelope(message.html_content)) {
-      return move_leading_footer_to_end(message.html_content);
+    const html_part = renderable_html_part(message.html_content, message.body);
+
+    if (html_part && !is_ratchet_envelope(html_part)) {
+      return move_leading_footer_to_end(html_part);
     }
 
     return strip_reply_quotes(message.body);
