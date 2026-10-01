@@ -1200,7 +1200,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                       size="sm"
                     />
                   }
-                  label={m.display_name || m.username}
+                  label={m.username}
                   value={
                     m.role === "owner"
                       ? t("settings.fam_org_preview_owner")
