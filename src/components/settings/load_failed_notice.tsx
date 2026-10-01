@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { Button } from "@aster/ui";
+import { Button, Island } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 
@@ -26,13 +26,16 @@ export function LoadFailedNotice({ on_retry }: { on_retry: () => void }) {
   const { t } = use_i18n();
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 rounded-lg bg-surf-tertiary border border-edge-secondary">
-      <p className="text-xs text-txt-muted">
+    <Island
+      className="flex flex-wrap items-center justify-between gap-2"
+      padding="sm"
+    >
+      <p className="text-[13px] text-txt-muted">
         {t("common.something_went_wrong_try_again")}
       </p>
       <Button size="sm" variant="outline" onClick={on_retry}>
         {t("common.retry")}
       </Button>
-    </div>
+    </Island>
   );
 }

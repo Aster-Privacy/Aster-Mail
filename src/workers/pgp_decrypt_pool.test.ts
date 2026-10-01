@@ -81,6 +81,20 @@ describe("decrypt_pgp_message_parallel", () => {
     expect(decrypt_message_with_any_key).not.toHaveBeenCalled();
   });
 
+  it("rejects without an in-thread retry when the worker cannot decrypt", async () => {
+    const { decrypt_pgp_message_parallel } = await load_pool();
+    const promise = decrypt_pgp_message_parallel("cipher", ["key"], "pass");
+    const worker = fake_worker.instances[0];
+    const request = worker.posted[0] as { id: number };
+
+    worker.onmessage?.({
+      data: { id: request.id, error: "decrypt_failed" },
+    } as MessageEvent);
+
+    await expect(promise).rejects.toThrow("decrypt_failed");
+    expect(decrypt_message_with_any_key).not.toHaveBeenCalled();
+  });
+
   it("falls back in-thread and tears down the pool on worker error", async () => {
     const { decrypt_pgp_message_parallel } = await load_pool();
     const first = decrypt_pgp_message_parallel("cipher", ["key"], "pass");

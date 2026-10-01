@@ -27,13 +27,7 @@ import {
   Squares2X2Icon,
   XCircleIcon,
 } from "@heroicons/react/24/outline";
-import {
-  Button,
-  Island,
-  IslandDivider,
-  IslandRow,
-  PillButton,
-} from "@aster/ui";
+import { Button, Island, IslandDivider, IslandRow } from "@aster/ui";
 
 import { Spinner } from "@/components/ui/spinner";
 import {
@@ -70,7 +64,6 @@ interface BillingHeroCardProps {
   on_show_plans: () => void;
   on_manage_payment: () => void;
   on_switch_billing: () => void;
-  on_reactivate: () => void;
   on_renew_with_crypto: () => void;
   on_add_storage: () => void;
   on_cancel_plan: () => void;
@@ -116,7 +109,6 @@ export function BillingHeroCard({
   on_show_plans,
   on_manage_payment,
   on_switch_billing,
-  on_reactivate,
   on_renew_with_crypto,
   on_add_storage,
   on_cancel_plan,
@@ -315,37 +307,6 @@ export function BillingHeroCard({
             on_upgrade={on_show_plans}
           />
         </div>
-
-        {is_paid_plan && !is_crypto && cancels && period_end && (
-          <div
-            className="flex flex-col gap-3 rounded-[var(--aster-radius-field)] p-4"
-            style={{
-              backgroundColor:
-                "color-mix(in srgb, var(--color-warning) 10%, transparent)",
-            }}
-          >
-            <div>
-              <p className="text-[14px] font-semibold text-txt-primary">
-                {t("settings.billing_keep_title")}
-              </p>
-              <p className="mt-0.5 text-[13px] leading-5 text-txt-secondary">
-                {t("settings.billing_cancel_notice_body", {
-                  date: format_date(period_end),
-                })}
-              </p>
-            </div>
-            <PillButton
-              className="self-start"
-              disabled={is_action_loading}
-              size="sm"
-              type="button"
-              variant="filled"
-              onClick={on_reactivate}
-            >
-              {t("settings.reactivate")}
-            </PillButton>
-          </div>
-        )}
 
         {next_tier && next_tier_from_label && (
           <div

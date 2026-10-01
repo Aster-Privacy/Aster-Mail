@@ -221,10 +221,10 @@ export function empty_edit_state(): EditState {
 }
 
 export const FIELD_CLASS =
-  "w-full h-11 rounded-xl bg-black/[0.04] dark:bg-white/[0.04] border border-edge-secondary/60 dark:border-transparent px-3.5 text-[14px] text-txt-primary placeholder:text-txt-muted focus:outline-none focus:border-blue-500/60 focus:bg-surf-primary dark:focus:bg-white/[0.06] transition-colors read-only:cursor-default";
+  "w-full h-11 rounded-[var(--aster-radius-field)] bg-[var(--aster-field-bg)] px-3.5 text-[14px] text-txt-primary placeholder:text-txt-muted outline-none transition-[background-color,box-shadow] hover:bg-[var(--aster-field-hover)] focus:bg-[var(--aster-field-bg)] focus:shadow-[inset_0_0_0_2px_var(--accent-color)] read-only:cursor-default";
 
 export const SELECT_CLASS =
-  "h-11 rounded-xl bg-black/[0.04] dark:bg-white/[0.04] border border-edge-secondary/60 dark:border-transparent px-2.5 text-[13px] text-txt-primary focus:outline-none focus:border-blue-500/60 transition-colors disabled:cursor-default appearance-none";
+  "h-11 rounded-[var(--aster-radius-field)] bg-[var(--aster-field-bg)] px-3.5 text-[13px] text-txt-primary outline-none transition-[background-color,box-shadow] hover:bg-[var(--aster-field-hover)] focus:shadow-[inset_0_0_0_2px_var(--accent-color)] disabled:cursor-default appearance-none";
 
 export const EMAIL_TYPE_OPTIONS: EmailEntryType[] = [
   "home",

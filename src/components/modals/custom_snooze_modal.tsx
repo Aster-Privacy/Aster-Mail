@@ -133,10 +133,7 @@ export function CustomSnoozeModal({
           selected={selected_date}
           onSelect={set_selected_date}
         />
-        <div
-          className="my-3 h-px"
-          style={{ backgroundColor: "var(--border-secondary)" }}
-        />
+        <div className="my-3 h-px bg-[var(--aster-floating-divider)]" />
         <div className="flex items-center gap-2">
           <span
             className="text-sm font-medium"

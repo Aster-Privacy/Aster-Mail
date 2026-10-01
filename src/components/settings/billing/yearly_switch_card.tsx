@@ -26,6 +26,7 @@ import { PillButton } from "@aster/ui";
 import { use_i18n } from "@/lib/i18n/context";
 import { BillingNotice } from "@/components/settings/billing/billing_layout";
 import { format_price } from "@/services/api/billing";
+import { convert_cents } from "@/components/settings/billing/billing_constants";
 
 interface YearlySwitchCardProps {
   offer: YearlySwitchOffer | null | undefined;
@@ -48,19 +49,21 @@ export function YearlySwitchCard({
 
   if (!offer || offer.saving_cents <= 0) return null;
 
+  const money = (cents: number) =>
+    format_price(convert_cents(cents, currency), currency);
+
   return (
     <BillingNotice
       body={t("settings.yearly_switch_body", {
-        monthly: format_price(offer.monthly_price_cents, currency),
-        yearly_monthly: format_price(
+        monthly: money(offer.monthly_price_cents),
+        yearly_monthly: money(
           monthly_equivalent_cents(offer.yearly_price_cents),
-          currency,
         ),
       })}
       class_name={class_name}
       icon={CalendarIcon}
       title={t("settings.yearly_switch_title", {
-        amount: format_price(offer.saving_cents, currency),
+        amount: money(offer.saving_cents),
       })}
       tone="neutral"
     >

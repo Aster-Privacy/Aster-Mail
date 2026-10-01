@@ -411,7 +411,7 @@ export function AutoForwardTab() {
                         style={{
                           backgroundColor:
                             "color-mix(in srgb, var(--accent-color) 15%, transparent)",
-                          color: "rgb(59, 130, 246)",
+                          color: "var(--accent-color)",
                         }}
                       >
                         {t("settings.keeps_copy")}

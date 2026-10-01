@@ -500,7 +500,7 @@ export function SearchBar({
             aria-haspopup={is_page_filter ? undefined : "listbox"}
             className={`flex-1 min-w-0 bg-transparent outline-none border-0 ring-0 focus:outline-none focus:ring-0 focus:border-0 text-sm ${
               is_open
-                ? "text-[var(--text-secondary)] placeholder:text-[var(--text-muted)]"
+                ? "text-[var(--text-primary)] placeholder:text-[var(--text-muted)]"
                 : "text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]"
             }`}
             placeholder={
@@ -524,7 +524,7 @@ export function SearchBar({
             {(query || is_open) && (
               <button
                 aria-label={query ? t("common.clear") : t("common.close")}
-                className="p-1.5 rounded-full text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
+                className="search_icon_btn p-1.5 rounded-full"
                 type="button"
                 onClick={() => {
                   if (query) {
@@ -541,7 +541,7 @@ export function SearchBar({
             {is_pill && !is_page_filter && (
               <button
                 aria-label={t("mail.advanced_search")}
-                className="p-1.5 rounded-full text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] focus:outline-none"
+                className="search_icon_btn p-1.5 rounded-full"
                 type="button"
                 onClick={() => {
                   close();
@@ -564,7 +564,7 @@ export function SearchBar({
             ref={dropdown_ref}
             className={`overflow-hidden ${
               is_pill
-                ? "aster_search_open aster_search_open_panel rounded-b-[22px]"
+                ? "aster_search_open aster_search_open_panel search_panel_top rounded-b-[22px]"
                 : "rounded-b-lg border border-t-0 border-[var(--border-secondary)] shadow-md"
             }`}
             id={panel_id}
@@ -575,7 +575,7 @@ export function SearchBar({
               on_disable={handle_disable_content_search}
               on_enable={handle_enable_content_search}
             />
-            <div className="px-4 py-2 flex flex-wrap items-center gap-2">
+            <div className="search_divider_b px-4 py-2 flex flex-wrap items-center gap-2">
               <Chip
                 icon={<PaperClipIcon className="w-3.5 h-3.5" />}
                 label={t("mail.has_attachments")}
@@ -597,7 +597,7 @@ export function SearchBar({
                 on_click={() => handle_chip("from:")}
               />
               <button
-                className="ms-auto -me-2.5 inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                className="search_ghost_btn ms-auto -me-2.5 inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-xs"
                 type="button"
                 onClick={() => {
                   close();
@@ -667,7 +667,7 @@ export function SearchBar({
               preview_results.length > 0 && (
                 <div
                   aria-busy={is_preview_stale}
-                  className="border-t border-[var(--aster-floating-divider,var(--border-secondary))] transition-opacity duration-150 motion-reduce:transition-none"
+                  className="transition-opacity duration-150 motion-reduce:transition-none"
                   style={{ opacity: is_preview_stale ? 0.55 : 1 }}
                 >
                   <CorrectionNotice
@@ -685,9 +685,9 @@ export function SearchBar({
                       />
                     ))}
                   </div>
-                  <div className="border-t border-[var(--aster-floating-divider,var(--border-secondary))] p-1.5">
+                  <div className="search_divider_t p-1.5">
                     <button
-                      className="w-full flex items-center gap-3 px-2.5 py-2 rounded-[var(--aster-radius-item,8px)] text-start text-[13px] text-[var(--text-secondary)] hover:bg-[var(--aster-floating-hover,var(--bg-hover))] hover:text-[var(--text-primary)] transition-colors"
+                      className="search_list_row w-full flex items-center gap-3 px-2.5 py-2 rounded-[var(--aster-radius-item,8px)] text-start text-[13px] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                       type="button"
                       onClick={() => submit_full(preview_query)}
                     >
@@ -771,20 +771,21 @@ const PreviewRow = memo(function PreviewRow({
   terms: string[];
   on_click: () => void;
 }) {
+  const { preferences } = use_preferences();
   const participants = result.sender_name || result.sender_email || "";
 
   return (
     <button
-      className="w-full flex items-center gap-3 px-2.5 py-2 rounded-[var(--aster-radius-item,8px)] text-start hover:bg-[var(--aster-floating-hover,var(--bg-hover))] transition-colors"
+      className="search_list_row w-full flex items-center gap-3 px-2.5 py-2 rounded-[var(--aster-radius-item,8px)] text-start"
       type="button"
       onClick={on_click}
     >
       <ProfileAvatar
-        use_domain_logo
         email={result.sender_email}
         image_url={result.avatar_url}
         name={participants}
         size="sm"
+        use_domain_logo={preferences.show_profile_pictures !== false}
       />
       <div className="flex-1 min-w-0">
         <div
@@ -823,7 +824,7 @@ function Chip({
 }) {
   return (
     <button
-      className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-xs text-[var(--text-secondary)] bg-[var(--aster-hover)] hover:bg-[var(--aster-selected)] hover:text-[var(--text-primary)] transition-colors"
+      className="search_pill inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-xs"
       type="button"
       onClick={on_click}
     >

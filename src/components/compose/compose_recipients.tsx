@@ -40,10 +40,13 @@ import { cn, get_email_username } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { RecipientIdentityNotice } from "@/components/compose/recipient_identity_notice";
+import { discover_external_keys_batch } from "@/services/api/keys";
 import {
-  is_internal_email,
-  discover_external_keys_batch,
-} from "@/services/api/keys";
+  classify_recipients,
+  is_internal_recipient,
+  normalize_recipient_address,
+  use_recipient_classification,
+} from "@/services/recipient_classification";
 import {
   get_domain_from_email,
   is_valid_email,
@@ -149,7 +152,7 @@ export function RecipientBadge({
 
   const lock_color =
     effective_status === "encrypted"
-      ? "rgb(59, 130, 246)"
+      ? "var(--accent-color)"
       : effective_status === "key_invalid" || effective_status === "unknown"
         ? "rgb(245, 158, 11)"
         : "var(--text-muted)";
@@ -361,8 +364,10 @@ export function RecipientField({
 
   const show_locks = preferences.show_encryption_indicators;
 
+  use_recipient_classification(all_recipients ?? recipients);
+
   const has_external_recipient = (all_recipients ?? recipients).some(
-    (email) => is_valid_email(email) && !is_internal_email(email),
+    (email) => is_valid_email(email) && !is_internal_recipient(email),
   );
 
   const resolve_encryption_status = (
@@ -373,7 +378,7 @@ export function RecipientField({
     if (
       status === "encrypted" &&
       has_external_recipient &&
-      is_internal_email(email)
+      is_internal_recipient(email)
     ) {
       return "transit";
     }
@@ -400,7 +405,7 @@ export function RecipientField({
       if (resolved_ref.current.has(email)) continue;
       if (in_flight_ref.current.has(email)) continue;
 
-      if (is_internal_email(email)) {
+      if (is_internal_recipient(email)) {
         resolved_ref.current.add(email);
         set_encryption_map((prev) => {
           const next = new Map(prev);
@@ -454,8 +459,8 @@ export function RecipientField({
       }
     }
 
-    if (to_discover.length > 0) {
-      discover_external_keys_batch(to_discover)
+    const run_discovery = (pending: string[]) => {
+      discover_external_keys_batch(pending)
         .then((result) => {
           const key_map = new Map<string, EncryptionStatus>();
 
@@ -480,7 +485,7 @@ export function RecipientField({
           const resolved_statuses = new Map<string, EncryptionStatus>();
           const retry_delays: number[] = [];
 
-          for (const email of to_discover) {
+          for (const email of pending) {
             const found = key_map.get(email.toLowerCase());
 
             if (found !== undefined) {
@@ -529,7 +534,7 @@ export function RecipientField({
         .catch(() => {
           let should_retry = false;
 
-          for (const email of to_discover) {
+          for (const email of pending) {
             in_flight_ref.current.delete(email);
             const count = (retry_count_ref.current.get(email) || 0) + 1;
 
@@ -543,7 +548,7 @@ export function RecipientField({
           set_encryption_map((prev) => {
             const next = new Map(prev);
 
-            for (const email of to_discover) {
+            for (const email of pending) {
               const count = retry_count_ref.current.get(email) || 0;
 
               next.set(email, count >= 3 ? "unknown" : "checking");
@@ -554,12 +559,51 @@ export function RecipientField({
 
           if (should_retry) {
             const max_count = Math.max(
-              ...to_discover.map((e) => retry_count_ref.current.get(e) || 1),
+              ...pending.map((e) => retry_count_ref.current.get(e) || 1),
             );
 
             schedule_discovery_retry(2000 * max_count);
           }
         });
+    };
+
+    if (to_discover.length > 0) {
+      classify_recipients(to_discover)
+        .then((classified) => {
+          const still_pending = to_discover.filter((email) =>
+            in_flight_ref.current.has(email),
+          );
+          const hosted = still_pending.filter(
+            (email) =>
+              classified.get(normalize_recipient_address(email)) ===
+              "internal",
+          );
+          const remaining = still_pending.filter(
+            (email) => !hosted.includes(email),
+          );
+
+          if (hosted.length > 0) {
+            for (const email of hosted) {
+              resolved_ref.current.add(email);
+              in_flight_ref.current.delete(email);
+            }
+
+            set_encryption_map((prev) => {
+              const next = new Map(prev);
+
+              for (const email of hosted) {
+                next.set(email, "encrypted");
+              }
+
+              return next;
+            });
+          }
+
+          if (remaining.length > 0) {
+            run_discovery(remaining);
+          }
+        })
+        .catch(() => run_discovery(to_discover));
     }
   }, [recipients, show_locks, discovery_tick]);
 
@@ -849,7 +893,7 @@ export function ComposeFormFields({
 
   return (
     <>
-      <div className="px-4 py-2 border-b border-edge-secondary">
+      <div className="px-4 py-2 border-b border-[var(--aster-floating-divider)]">
         <RecipientField
           show_cc_bcc_buttons
           all_recipients={compose_all_recipients}
@@ -873,7 +917,7 @@ export function ComposeFormFields({
       </div>
 
       {compose.visibility.cc && (
-        <div className="px-4 py-2 border-b border-edge-secondary">
+        <div className="px-4 py-2 border-b border-[var(--aster-floating-divider)]">
           <RecipientField
             all_recipients={compose_all_recipients}
             contacts={compose.contacts}
@@ -895,7 +939,7 @@ export function ComposeFormFields({
       )}
 
       {compose.visibility.bcc && (
-        <div className="px-4 py-2 border-b border-edge-secondary">
+        <div className="px-4 py-2 border-b border-[var(--aster-floating-divider)]">
           <RecipientField
             all_recipients={compose_all_recipients}
             contacts={compose.contacts}
@@ -917,11 +961,11 @@ export function ComposeFormFields({
       )}
 
       <RecipientIdentityNotice
-        class_name="px-4 py-2 border-b border-edge-secondary"
+        class_name="px-4 py-2 border-b border-[var(--aster-floating-divider)]"
         recipients={compose_all_recipients}
       />
 
-      <div className="flex items-start gap-2 px-4 py-2 border-b border-edge-secondary">
+      <div className="flex items-start gap-2 px-4 py-2 border-b border-[var(--aster-floating-divider)]">
         <button
           className="text-sm flex-shrink-0 py-1.5 text-txt-tertiary cursor-text"
           type="button"

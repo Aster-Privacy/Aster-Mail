@@ -184,6 +184,8 @@ export function InsertTools({ compose }: { compose: ComposeToolbarState }) {
                   }}
                 >
                   <EmojiPicker
+                    anchor_ref={emoji_btn_ref}
+                    on_dismiss={close_emoji}
                     on_select={(emoji) => {
                       apply_with_frozen_selection(() =>
                         editor.insert_emoji(emoji),

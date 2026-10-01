@@ -7513,6 +7513,7 @@ export const nl = {
     key_source_dane: "DANE",
     key_source_keyserver: "Sleutelserver",
     key_source_unknown: "Onbekend",
+    key_source_aster: "Aster Mail",
     key_source_wkd: "WKD",
     last_used: "Laatst gebruikt",
     mail_rules_suffix: "e-mailregels",
@@ -9039,6 +9040,7 @@ export const nl = {
     indexing_messages: "Berichten indexeren...",
     message_download_status:
       "Downloadstatus van berichten: {{done}} van {{total}}",
+    message_download_count: "Gedownloade berichten: {{done}}",
     estimated_time_remaining: "Geschatte resterende tijd: {{duration}}",
     download_paused: "Download gepauzeerd",
     pause_download_action: "Pauzeren",

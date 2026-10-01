@@ -110,7 +110,7 @@ describe("quick contacts panel detail view", () => {
     vi.spyOn(contacts_api, "list_contact_groups").mockResolvedValue({
       data: { groups: [] },
     } as never);
-    vi.spyOn(keys_api, "discover_external_keys_batch").mockResolvedValue({
+    vi.spyOn(keys_api, "discover_contact_keys_batch").mockResolvedValue({
       data: [],
     } as never);
     editor_open = false;
@@ -200,7 +200,7 @@ describe("quick contacts panel detail view", () => {
   });
 
   it("lists a discovered encryption key without asking", async () => {
-    vi.spyOn(keys_api, "discover_external_keys_batch").mockResolvedValue({
+    vi.spyOn(keys_api, "discover_contact_keys_batch").mockResolvedValue({
       data: [
         {
           email: "person@example.com",

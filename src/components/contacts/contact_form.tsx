@@ -423,17 +423,14 @@ export function ContactForm({
           </button>
         </div>
 
-        <div className="px-6 pb-3">
-          <div className="relative flex p-1 rounded-lg overflow-x-auto bg-surf-secondary">
+        <div className="px-6 pb-4">
+          <div className="aster_segmented" role="group">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
-                className={cn(
-                  "relative z-10 flex-1 px-2 py-1.5 text-[11px] font-medium rounded-[var(--aster-radius-control)] whitespace-nowrap",
-                  active_tab === tab.id
-                    ? "bg-surf-primary text-txt-primary"
-                    : "text-txt-muted",
-                )}
+                aria-pressed={active_tab === tab.id}
+                className="aster_segmented_option !px-2 text-[12px] whitespace-nowrap"
+                type="button"
                 onClick={() => set_active_tab(tab.id)}
               >
                 {tab.label}

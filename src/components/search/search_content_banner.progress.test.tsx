@@ -26,6 +26,7 @@ const progress_state = {
   building: false,
   current: 0,
   total: 0,
+  session: 0,
 };
 
 const download_state = {
@@ -93,6 +94,7 @@ beforeEach(() => {
   progress_state.building = false;
   progress_state.current = 0;
   progress_state.total = 0;
+  progress_state.session = 0;
   download_state.paused = false;
   download_state.done = 0;
   download_state.total = 0;
@@ -202,6 +204,126 @@ describe("SearchContentBanner progress row", () => {
 
     act(() => {
       progress_state.current = 20;
+      root!.render(
+        <SearchContentBanner
+          enabled
+          on_disable={() => {}}
+          on_enable={() => {}}
+        />,
+      );
+    });
+
+    expect(progress_bar(el)?.firstElementChild).toHaveProperty(
+      "style.width",
+      "60%",
+    );
+  });
+
+  it("never fills the bar while the download is still running", () => {
+    progress_state.building = true;
+    progress_state.current = 200;
+    progress_state.total = 200;
+
+    const el = render();
+
+    expect(progress_bar(el)?.firstElementChild).toHaveProperty(
+      "style.width",
+      "99%",
+    );
+    expect(el.textContent).toContain("mail.indexing_messages");
+  });
+
+  it("keeps the pause action when the count reaches the total", () => {
+    progress_state.building = true;
+    progress_state.current = 200;
+    progress_state.total = 200;
+
+    const el = render();
+
+    expect(el.textContent).toContain("mail.pause_download_action");
+  });
+
+  it("shows only the running count while the total is unknown", () => {
+    progress_state.building = true;
+    progress_state.current = 400;
+    progress_state.total = 0;
+
+    const el = render();
+
+    expect(el.querySelector(".h-\\[38px\\]")).not.toBeNull();
+    expect(el.textContent).toContain("mail.message_download_count");
+    expect(el.textContent).not.toContain("mail.message_download_status");
+    expect(progress_bar(el)?.firstElementChild).toHaveProperty(
+      "style.width",
+      "40%",
+    );
+  });
+
+  it("starts from the new counts when a new session begins", () => {
+    progress_state.building = true;
+    progress_state.current = 120;
+    progress_state.total = 200;
+    progress_state.session = 1;
+
+    const el = render();
+
+    act(() => {
+      progress_state.current = 20;
+      progress_state.total = 400;
+      progress_state.session = 2;
+      root!.render(
+        <SearchContentBanner
+          enabled
+          on_disable={() => {}}
+          on_enable={() => {}}
+        />,
+      );
+    });
+
+    expect(progress_bar(el)?.firstElementChild).toHaveProperty(
+      "style.width",
+      "5%",
+    );
+  });
+
+  it("fills the bar only after the download has finished", () => {
+    progress_state.building = true;
+    progress_state.current = 120;
+    progress_state.total = 200;
+    progress_state.session = 1;
+
+    const el = render();
+
+    act(() => {
+      progress_state.building = false;
+      progress_state.current = 180;
+      progress_state.total = 180;
+      root!.render(
+        <SearchContentBanner
+          enabled
+          on_disable={() => {}}
+          on_enable={() => {}}
+        />,
+      );
+    });
+
+    expect(progress_bar(el)?.firstElementChild).toHaveProperty(
+      "style.width",
+      "100%",
+    );
+    expect(el.textContent).not.toContain("mail.pause_download_action");
+  });
+
+  it("keeps the last counts when the download stops before the end", () => {
+    progress_state.building = true;
+    progress_state.current = 120;
+    progress_state.total = 200;
+    progress_state.session = 1;
+
+    const el = render();
+
+    act(() => {
+      progress_state.building = false;
       root!.render(
         <SearchContentBanner
           enabled

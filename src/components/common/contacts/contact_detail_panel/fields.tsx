@@ -48,7 +48,7 @@ import {
   ModalTitle,
 } from "@/components/ui/modal";
 import {
-  discover_external_key,
+  discover_contact_key,
   format_fingerprint,
   get_key_source_label_key,
   type ExternalKeyInfo,
@@ -71,8 +71,8 @@ export function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="space-y-5">
-      <h2 className="flex items-center gap-1.5 text-[15px] font-semibold text-txt-primary pb-2 border-b border-edge-primary">
+    <section className="space-y-3">
+      <h2 className="aster_island_section_title flex items-center gap-1.5 px-1">
         {title}
         {info}
       </h2>
@@ -120,7 +120,7 @@ export function ContactPgpKeyRow({
     set_lookup_failed(false);
     set_key_info(null);
 
-    discover_external_key(email)
+    discover_contact_key(email)
       .then((response) => {
         if (cancelled) return;
 
@@ -146,7 +146,7 @@ export function ContactPgpKeyRow({
   const field_key = `pgp_key_${email}`;
 
   return (
-    <div className="flex items-start justify-between gap-3 py-2.5 px-3 rounded-lg bg-surf-secondary">
+    <div className="flex items-start justify-between gap-3 rounded-[var(--aster-radius-field)] bg-[var(--aster-field-bg)] px-3.5 py-3">
       <div className="min-w-0 flex-1 flex items-start gap-2">
         <KeyIcon className="w-3.5 h-3.5 text-txt-muted mt-0.5 flex-shrink-0" />
         <div className="min-w-0">
@@ -166,7 +166,7 @@ export function ContactPgpKeyRow({
                 {t("common.something_went_wrong_try_again")}
               </p>
               <button
-                className="text-[12px] text-brand hover:underline"
+                className="text-[12px] text-[color:var(--accent-color)] hover:underline"
                 type="button"
                 onClick={() => set_retry_token((value) => value + 1)}
               >
@@ -175,12 +175,12 @@ export function ContactPgpKeyRow({
             </div>
           ) : key_info?.found ? (
             <div className="mt-0.5 space-y-0.5">
-              <p className="text-[12px] text-emerald-500 font-medium">
+              <p className="text-[12px] font-medium text-[var(--color-success)]">
                 {t("settings.pgp_key_found")}
               </p>
               {key_info.fingerprint && (
                 <p className="text-[11px] text-txt-muted font-mono truncate">
-                  {key_info.fingerprint}
+                  {format_fingerprint(key_info.fingerprint)}
                 </p>
               )}
               {key_info.source && (
@@ -239,7 +239,7 @@ export function ContactPgpKeyRow({
               {format_fingerprint(key_info.fingerprint)}
             </p>
           )}
-          <pre className="max-h-[50vh] overflow-auto rounded-lg bg-surf-secondary p-3 text-[11px] leading-relaxed text-txt-primary font-mono whitespace-pre-wrap break-all">
+          <pre className="max-h-[50vh] overflow-auto rounded-[var(--aster-radius-field)] bg-[var(--aster-field-bg)] p-3 text-[11px] leading-relaxed text-txt-primary font-mono whitespace-pre-wrap break-all">
             {key_info?.public_key}
           </pre>
           <div className="flex justify-end">
@@ -411,7 +411,7 @@ export function TypedList<T extends string>({
       })}
       {!disabled && (
         <button
-          className="inline-flex items-center gap-1.5 px-3 h-8 rounded-[var(--aster-radius-control)] bg-black/[0.04] dark:bg-white/[0.04] text-[12px] text-txt-secondary hover:text-txt-primary hover:bg-[var(--aster-hover)] transition-colors"
+          className="aster_pill aster_pill_tonal aster_pill_sm"
           type="button"
           onClick={on_add}
         >
@@ -443,10 +443,7 @@ export function AddressList({
   return (
     <div className="space-y-3">
       {entries.map((entry, idx) => (
-        <div
-          key={idx}
-          className="rounded-xl bg-black/10 dark:bg-white/[0.02] p-3 space-y-2 relative"
-        >
+        <div key={idx} className="relative space-y-2">
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
               <select
@@ -536,7 +533,7 @@ export function AddressList({
       ))}
       {!disabled && (
         <button
-          className="inline-flex items-center gap-1.5 px-3 h-8 rounded-[var(--aster-radius-control)] bg-black/[0.04] dark:bg-white/[0.04] text-[12px] text-txt-secondary hover:text-txt-primary hover:bg-[var(--aster-hover)] transition-colors"
+          className="aster_pill aster_pill_tonal aster_pill_sm"
           type="button"
           onClick={on_add}
         >

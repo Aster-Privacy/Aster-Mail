@@ -22,13 +22,13 @@ import type { CachedSubscription } from "@/services/subscription_cache";
 
 import { ShieldCheckIcon } from "@heroicons/react/24/solid";
 import { useState } from "react";
+import { Badge, PillButton } from "@aster/ui";
 
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
-import { EmailTag } from "@/components/ui/email_tag";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_external_link } from "@/contexts/external_link_context";
 import {
-  CATEGORY_TAG_VARIANT,
+  get_category_badge_color,
   get_category_label,
 } from "@/components/subscriptions/subscription_constants";
 
@@ -73,71 +73,65 @@ export function SenderDetailHeader({
   };
 
   return (
-    <div className="flex items-center gap-3 px-4 py-3 border-b border-edge-primary">
-      <ProfileAvatar
-        use_domain_logo
-        email={sub.sender_email}
-        name={sub.sender_name || sub.sender_email}
-        size="lg"
-      />
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <span className="text-base font-semibold text-txt-primary truncate">
-            {sub.sender_name || sub.sender_email}
-          </span>
-          <EmailTag
-            label={get_category_label(sub.category, t)}
-            show_icon={false}
-            size="sm"
-            variant={
-              (CATEGORY_TAG_VARIANT[sub.category] || "neutral") as
-                | "blue"
-                | "purple"
-                | "green"
-                | "amber"
-                | "neutral"
-            }
-          />
-          {sub.has_one_click && (
-            <ShieldCheckIcon className="w-4 h-4 text-green-500 flex-shrink-0" />
-          )}
+    <div className="flex-shrink-0 px-4 pb-2 pt-3">
+      <div className="aster_island aster_island_pad_sm flex items-center gap-3">
+        <ProfileAvatar
+          use_domain_logo
+          email={sub.sender_email}
+          name={sub.sender_name || sub.sender_email}
+          size="lg"
+        />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="text-base font-semibold text-txt-primary truncate">
+              {sub.sender_name || sub.sender_email}
+            </span>
+            <Badge
+              className="flex-shrink-0 whitespace-nowrap"
+              color={get_category_badge_color(sub.category)}
+            >
+              {get_category_label(sub.category, t)}
+            </Badge>
+            {sub.has_one_click && (
+              <ShieldCheckIcon className="w-4 h-4 text-[var(--color-success)] flex-shrink-0" />
+            )}
+          </div>
+          <div className="flex items-center gap-2 text-xs text-txt-muted">
+            <span className="truncate">{sub.sender_email}</span>
+            <span>·</span>
+            <span>
+              {sub.email_count === 1
+                ? t("common.one_email")
+                : t("settings.emails_count", {
+                    count: sub.email_count,
+                  })}
+            </span>
+          </div>
         </div>
-        <div className="flex items-center gap-2 text-xs text-txt-muted">
-          <span className="truncate">{sub.sender_email}</span>
-          <span>·</span>
-          <span>
-            {sub.email_count === 1
-              ? t("common.one_email")
-              : t("settings.emails_count", {
-                  count: sub.email_count,
-                })}
-          </span>
-        </div>
+        {sub.status === "active" &&
+          on_unsubscribe &&
+          (unsub_failed &&
+          (sub.unsubscribe_link || sub.list_unsubscribe_header) ? (
+            <PillButton
+              className="flex-shrink-0"
+              size="sm"
+              variant="tonal"
+              onClick={handle_open_page}
+            >
+              {t("settings.open_unsubscribe_page")}
+            </PillButton>
+          ) : (
+            <PillButton
+              className="flex-shrink-0"
+              disabled={is_unsubscribing}
+              size="sm"
+              variant="danger"
+              onClick={handle_unsubscribe}
+            >
+              {t("mail.unsubscribe")}
+            </PillButton>
+          ))}
       </div>
-      {sub.status === "active" &&
-        on_unsubscribe &&
-        (unsub_failed &&
-        (sub.unsubscribe_link || sub.list_unsubscribe_header) ? (
-          <button
-            className="px-3 py-1.5 rounded-[var(--aster-radius-control)] text-xs font-medium transition-all duration-150 flex-shrink-0 hover:brightness-110"
-            style={{
-              background:
-                "linear-gradient(to bottom, #fbbf24 0%, #f59e0b 50%, #d97706 100%)",
-              color: "#ffffff",
-            }}
-            onClick={handle_open_page}
-          >
-            {t("settings.open_unsubscribe_page")}
-          </button>
-        ) : (
-          <button
-            className="px-3 py-1.5 rounded-[var(--aster-radius-control)] text-xs font-medium transition-all duration-150 flex-shrink-0 text-white bg-gradient-to-b from-[#ef4444] via-[#dc2626] to-[#b91c1c] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)] hover:from-[#f05555] hover:via-[#e23737] hover:to-[#c92d2d] disabled:opacity-60 disabled:cursor-not-allowed"
-            disabled={is_unsubscribing}
-            onClick={handle_unsubscribe}
-          >
-            {t("mail.unsubscribe")}
-          </button>
-        ))}
     </div>
   );
 }

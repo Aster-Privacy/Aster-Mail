@@ -23,9 +23,16 @@ import type {} from "@/lib/i18n/types";
 
 import { useCallback, useEffect, useState } from "react";
 import { TrashIcon, PlusIcon, NoSymbolIcon } from "@heroicons/react/24/outline";
-import { Button, Input } from "@aster/ui";
+import {
+  Badge,
+  Button,
+  Input,
+  Island,
+  IslandEmpty,
+  IslandRow,
+} from "@aster/ui";
 
-import { INPUT_CLASS } from "./shared";
+import { INPUT_CLASS, ROW_DELETE_BUTTON_CLASS } from "./shared";
 
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { use_i18n } from "@/lib/i18n/context";
@@ -190,8 +197,8 @@ export function ContactsPanel({
   };
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2">
+    <>
+      <Island className="flex flex-wrap items-center gap-2" padding="md">
         <Input
           className={INPUT_CLASS}
           placeholder={t("settings.alias_contact_email_placeholder")}
@@ -205,66 +212,62 @@ export function ContactsPanel({
         />
         <Button
           disabled={busy || !email.trim()}
-          size="sm"
-          variant="depth"
+          size="lg"
+          variant="primary"
           onClick={handle_add}
         >
           <PlusIcon className="w-4 h-4" />
           {t("settings.alias_contact_add")}
         </Button>
-      </div>
+      </Island>
 
       {loading ? (
-        <Spinner size="md" />
+        <Island className="flex justify-center" padding="md">
+          <Spinner size="md" />
+        </Island>
       ) : load_error ? (
         <LoadFailedNotice on_retry={() => load()} />
       ) : contacts.length === 0 ? (
-        <p className="text-xs text-txt-muted">
-          {t("settings.alias_contacts_empty")}
-        </p>
+        <IslandEmpty title={t("settings.alias_contacts_empty")} />
       ) : (
-        <div className="space-y-1.5">
+        <Island divided>
           {contacts.map((contact) => (
-            <div
+            <IslandRow
               key={contact.id}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-surf-tertiary border border-edge-secondary"
-            >
-              <span className="flex-1 min-w-0 text-sm truncate text-txt-primary">
-                {contact.contact}
-              </span>
-              <div className="flex items-center gap-1 shrink-0">
-                {contact.is_blocked && (
-                  <span
-                    className="inline-flex items-center gap-1 text-[12px] font-semibold"
-                    style={{ color: "var(--color-danger)" }}
+              label={<span className="block truncate">{contact.contact}</span>}
+              layout="stacked"
+              trailing={
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {contact.is_blocked && (
+                    <Badge color="red">
+                      {t("settings.alias_contact_blocked")}
+                    </Badge>
+                  )}
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handle_block(contact)}
                   >
-                    {t("settings.alias_contact_blocked")}
-                  </span>
-                )}
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => handle_block(contact)}
-                >
-                  <NoSymbolIcon className="w-4 h-4" />
-                  {contact.is_blocked
-                    ? t("settings.alias_contact_unblock")
-                    : t("settings.alias_contact_block")}
-                </Button>
-                <Button
-                  aria-label={t("common.delete")}
-                  className="h-7 w-7 text-red-500 hover:text-red-500 hover:bg-red-500/10"
-                  size="icon"
-                  variant="ghost"
-                  onClick={() => handle_delete(contact.id)}
-                >
-                  <TrashIcon className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
+                    <NoSymbolIcon className="w-4 h-4" />
+                    {contact.is_blocked
+                      ? t("settings.alias_contact_unblock")
+                      : t("settings.alias_contact_block")}
+                  </Button>
+                  <Button
+                    aria-label={t("common.delete")}
+                    className={ROW_DELETE_BUTTON_CLASS}
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => handle_delete(contact.id)}
+                  >
+                    <TrashIcon className="w-4 h-4" />
+                  </Button>
+                </div>
+              }
+            />
           ))}
-        </div>
+        </Island>
       )}
-    </div>
+    </>
   );
 }

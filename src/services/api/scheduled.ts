@@ -21,7 +21,10 @@
 import type { EncryptedVault } from "@/services/crypto/key_manager";
 
 import { api_client, type ApiResponse, type ApiErrorCode } from "./client";
-import { is_internal_email } from "./keys";
+import {
+  classify_recipients,
+  is_internal_recipient,
+} from "../recipient_classification";
 
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { HASH_ALG } from "@/services/crypto/constants";
@@ -492,7 +495,9 @@ export async function create_scheduled_email(
     ...content.bcc_recipients,
   ];
 
-  const has_external = all_recipients.some((r) => !is_internal_email(r));
+  await classify_recipients(all_recipients);
+
+  const has_external = all_recipients.some((r) => !is_internal_recipient(r));
   const recipient_count = all_recipients.length;
 
   const encrypted = await encrypt_with_ephemeral_key(content);

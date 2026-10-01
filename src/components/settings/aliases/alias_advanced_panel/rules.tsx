@@ -27,7 +27,16 @@ import {
   PlusIcon,
   PencilSquareIcon,
 } from "@heroicons/react/24/outline";
-import { Button, Switch } from "@aster/ui";
+import {
+  Button,
+  Island,
+  IslandEmpty,
+  IslandRow,
+  SettingControlRow,
+  Switch,
+} from "@aster/ui";
+
+import { ROW_DELETE_BUTTON_CLASS } from "./shared";
 
 import { AliasRuleEditorModal } from "@/components/settings/aliases/alias_rule_editor_modal";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
@@ -187,84 +196,92 @@ export function RulesPanel({
   };
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex min-w-0 items-center gap-1.5">
-          <p className="text-sm text-txt-primary">
-            {t("settings.alias_rules_title")}
-          </p>
-          <InfoHint
-            tip={t("settings.alias_rules_info")}
-            title={t("settings.alias_rules_title")}
-          />
-        </div>
-        <Button
-          className="shrink-0"
-          size="sm"
-          variant="depth"
-          onClick={() => {
-            set_editing_rule(null);
-            set_modal_open(true);
-          }}
-        >
-          <PlusIcon className="w-4 h-4" />
-          {t("settings.alias_rule_add")}
-        </Button>
-      </div>
+    <>
+      <Island>
+        <SettingControlRow
+          control={
+            <Button
+              className="shrink-0"
+              size="md"
+              variant="primary"
+              onClick={() => {
+                set_editing_rule(null);
+                set_modal_open(true);
+              }}
+            >
+              <PlusIcon className="w-4 h-4" />
+              {t("settings.alias_rule_add")}
+            </Button>
+          }
+          control_width="auto"
+          info={
+            <InfoHint
+              tip={t("settings.alias_rules_info")}
+              title={t("settings.alias_rules_title")}
+            />
+          }
+          label={t("settings.alias_rules_title")}
+        />
+      </Island>
 
       {loading ? (
-        <Spinner size="md" />
+        <Island className="flex justify-center" padding="md">
+          <Spinner size="md" />
+        </Island>
       ) : load_error ? (
         <LoadFailedNotice on_retry={() => load()} />
       ) : rules.length === 0 ? (
-        <p className="text-xs text-txt-muted">
-          {t("settings.alias_rules_empty")}
-        </p>
+        <IslandEmpty title={t("settings.alias_rules_empty")} />
       ) : (
-        <div className="space-y-1.5">
+        <Island divided>
           {rules.map((rule) => (
-            <div
+            <IslandRow
               key={rule.id}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-surf-tertiary border border-edge-secondary"
-            >
-              <div className="flex-1 min-w-0">
-                <p className="text-sm truncate text-txt-primary">
-                  {describe_conditions(rule.conditions)}
-                </p>
-                <p className="text-xs text-txt-muted truncate">
+              description={
+                <span className="block truncate">
                   {describe_actions(rule.actions)}
-                </p>
-              </div>
-              <Switch
-                aria-label={describe_conditions(rule.conditions)}
-                checked={rule.is_enabled}
-                size="lg"
-                onCheckedChange={() => handle_toggle(rule)}
-              />
-              <Button
-                aria-label={t("common.edit")}
-                className="h-7 w-7"
-                size="icon"
-                variant="ghost"
-                onClick={() => {
-                  set_editing_rule(rule);
-                  set_modal_open(true);
-                }}
-              >
-                <PencilSquareIcon className="w-4 h-4 text-txt-muted" />
-              </Button>
-              <Button
-                aria-label={t("common.delete")}
-                className="h-7 w-7 text-red-500 hover:text-red-500 hover:bg-red-500/10"
-                size="icon"
-                variant="ghost"
-                onClick={() => handle_delete(rule.id)}
-              >
-                <TrashIcon className="w-4 h-4" />
-              </Button>
-            </div>
+                </span>
+              }
+              label={
+                <span className="block truncate">
+                  {describe_conditions(rule.conditions)}
+                </span>
+              }
+              layout="stacked"
+              trailing={
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <Switch
+                    aria-label={describe_conditions(rule.conditions)}
+                    checked={rule.is_enabled}
+                    size="lg"
+                    onCheckedChange={() => handle_toggle(rule)}
+                  />
+                  <Button
+                    aria-label={t("common.edit")}
+                    className="h-8 w-8"
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => {
+                      set_editing_rule(rule);
+                      set_modal_open(true);
+                    }}
+                  >
+                    <PencilSquareIcon className="w-4 h-4 text-txt-muted" />
+                  </Button>
+                  <Button
+                    aria-label={t("common.delete")}
+                    className={ROW_DELETE_BUTTON_CLASS}
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => handle_delete(rule.id)}
+                  >
+                    <TrashIcon className="w-4 h-4" />
+                  </Button>
+                </div>
+              }
+            />
           ))}
-        </div>
+        </Island>
       )}
 
       <AliasRuleEditorModal
@@ -275,6 +292,6 @@ export function RulesPanel({
         on_saved={load}
         rule={editing_rule}
       />
-    </div>
+    </>
   );
 }

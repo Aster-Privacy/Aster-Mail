@@ -7694,6 +7694,7 @@ export const pt_br = {
     key_source_dane: "DANE",
     key_source_keyserver: "Servidor de chaves público",
     key_source_unknown: "Desconhecido",
+    key_source_aster: "Aster Mail",
     key_source_wkd: "Web Key Directory",
     invoice_status_disputed: "Contestado",
     invoice_status_draft: "Rascunho",
@@ -8998,6 +8999,7 @@ export const pt_br = {
     indexing_messages: "Indexando mensagens...",
     message_download_status:
       "Status do download de mensagens: {{done}} de {{total}}",
+    message_download_count: "Mensagens baixadas: {{done}}",
     estimated_time_remaining: "Tempo restante estimado: {{duration}}",
     download_paused: "Download pausado",
     pause_download_action: "Pausar",

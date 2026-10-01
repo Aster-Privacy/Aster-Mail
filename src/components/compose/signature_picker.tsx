@@ -117,7 +117,7 @@ export function SignaturePicker({
               </div>
             </button>
           ))}
-          <div className="aster_floating_divider my-1" />
+          <div className="aster_floating_divider -mx-3.5" />
           <button
             className="w-full flex items-center gap-3 px-2 py-2 rounded-[var(--aster-radius-item)] transition-colors hover:bg-[var(--aster-floating-hover)]"
             type="button"

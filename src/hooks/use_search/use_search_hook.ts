@@ -38,8 +38,8 @@ import {
   to_search_result,
 } from "./matching";
 import {
-  emit_indexing,
   indexing_progress,
+  reset_indexing_progress,
   subscribe_index_refresh,
 } from "./progress";
 import { entry_haystack } from "./haystack";
@@ -137,7 +137,7 @@ export function use_search() {
     reset_index_cache();
     last_scan_ref.current = null;
     reset_index_download_state();
-    emit_indexing({ building: false, current: 0, total: 0 });
+    reset_indexing_progress();
   }, []);
 
   useEffect(() => {

@@ -198,7 +198,8 @@ function KeyRow({
             <Button
               disabled={removing}
               size="sm"
-              variant="destructive"
+              style={{ color: "var(--color-danger)" }}
+              variant="secondary"
               onClick={() => on_delete_click(key_info)}
             >
               {t("common.delete")}

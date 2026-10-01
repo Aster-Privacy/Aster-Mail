@@ -575,7 +575,7 @@ export function OnboardingTour() {
                       }}
                     >
                       <div className="pt-6">
-                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mb-6 overflow-hidden">
+                        <div className="w-full bg-[var(--border-secondary)] rounded-full h-1.5 mb-6 overflow-hidden">
                           <motion.div
                             animate={{ width: `${progress}%` }}
                             className="h-full rounded-full"

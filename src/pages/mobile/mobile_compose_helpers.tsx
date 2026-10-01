@@ -133,7 +133,7 @@ export function sender_type_label(
 export function sender_type_color(type: SenderOption["type"]): string {
   switch (type) {
     case "alias":
-      return "bg-blue-500/10 text-blue-500";
+      return "bg-brand/10 text-brand";
     case "domain":
       return "bg-purple-500/10 text-purple-500";
     case "external":

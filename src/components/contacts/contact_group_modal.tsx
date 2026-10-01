@@ -215,6 +215,7 @@ export function ContactGroupModal({
                 message ? "contact_group_name_error" : undefined
               }
               aria-invalid={Boolean(message)}
+              className="aster_input_tonal"
               id="contact_group_name"
               maxLength={MAX_CONTACT_GROUP_NAME_LENGTH}
               placeholder={t("common.enter_contact_group_name")}

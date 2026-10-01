@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useEffect } from "react";
-import { Badge, IslandRow, UpgradeBtn } from "@aster/ui";
+import { Badge, IslandRow, Skeleton, UpgradeBtn } from "@aster/ui";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -402,7 +402,7 @@ export function VanguardSection() {
   };
 
   if (is_loading) {
-    return <div className="h-14 rounded-[inherit] bg-muted/50 animate-pulse" />;
+    return <Skeleton className="h-14 rounded-[inherit]" />;
   }
 
   const vanguard_label = (

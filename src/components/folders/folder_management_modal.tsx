@@ -307,7 +307,7 @@ export function FolderManagementModal({
                 {is_locked ? (
                   <ShieldCheckIcon className="w-5 h-5 text-green-500 flex-shrink-0" />
                 ) : (
-                  <LockClosedIcon className="w-5 h-5 text-blue-500 flex-shrink-0" />
+                  <LockClosedIcon className="w-5 h-5 text-brand flex-shrink-0" />
                 )}
                 <div className="min-w-0">
                   <ModalTitle>
@@ -332,9 +332,9 @@ export function FolderManagementModal({
                   }}
                 >
                   <div className="flex items-start gap-3">
-                    <ShieldCheckIcon className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                    <ShieldCheckIcon className="w-5 h-5 text-brand flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-1">
+                      <p className="text-sm font-medium text-brand mb-1">
                         {t("common.extra_protection_layer")}
                       </p>
                       <p className="text-xs text-txt-secondary">
@@ -385,7 +385,7 @@ export function FolderManagementModal({
           <>
             <ModalHeader>
               <div className="flex items-center gap-3">
-                <PencilIcon className="w-5 h-5 text-blue-500 flex-shrink-0" />
+                <PencilIcon className="w-5 h-5 text-brand flex-shrink-0" />
                 <div className="min-w-0">
                   <ModalTitle>{t("common.rename_folder")}</ModalTitle>
                   <ModalDescription>
@@ -524,7 +524,7 @@ export function FolderManagementModal({
           <>
             <ModalHeader>
               <div className="flex items-start gap-3">
-                <ArrowRightIcon className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5 rtl:-scale-x-100" />
+                <ArrowRightIcon className="w-5 h-5 text-brand flex-shrink-0 mt-0.5 rtl:-scale-x-100" />
                 <div className="min-w-0">
                   <ModalTitle>{t("common.move_folder")}</ModalTitle>
                   <ModalDescription>
@@ -540,7 +540,7 @@ export function FolderManagementModal({
               </p>
               <div className="flex flex-col gap-1 max-h-56 overflow-y-auto">
                 <button
-                  className={`flex items-center gap-2 rounded-lg px-3 py-2 text-[13px] text-start transition-colors ${selected_parent_token === "" ? "bg-blue-500/15 text-blue-600 dark:text-blue-400" : "hover:bg-surface-secondary"}`}
+                  className={`flex items-center gap-2 rounded-lg px-3 py-2 text-[13px] text-start transition-colors ${selected_parent_token === "" ? "bg-brand/15 text-brand" : "hover:bg-surface-secondary"}`}
                   onClick={() => set_selected_parent_token("")}
                 >
                   <FolderIcon className="w-4 h-4 flex-shrink-0" />
@@ -548,7 +548,7 @@ export function FolderManagementModal({
                 </button>
                 {inbox_token && (
                   <button
-                    className={`flex items-center gap-2 rounded-lg px-3 py-2 text-[13px] text-start transition-colors ${selected_parent_token === inbox_token ? "bg-blue-500/15 text-blue-600 dark:text-blue-400" : "hover:bg-surface-secondary"}`}
+                    className={`flex items-center gap-2 rounded-lg px-3 py-2 text-[13px] text-start transition-colors ${selected_parent_token === inbox_token ? "bg-brand/15 text-brand" : "hover:bg-surface-secondary"}`}
                     onClick={() => set_selected_parent_token(inbox_token)}
                   >
                     <InboxIcon className="w-4 h-4 flex-shrink-0" />
@@ -558,7 +558,7 @@ export function FolderManagementModal({
                 {movable_folders.map((f) => (
                   <button
                     key={f.id}
-                    className={`flex items-center gap-2 rounded-lg px-3 py-2 text-[13px] text-start transition-colors ${selected_parent_token === f.folder_token ? "bg-blue-500/15 text-blue-600 dark:text-blue-400" : "hover:bg-surface-secondary"}`}
+                    className={`flex items-center gap-2 rounded-lg px-3 py-2 text-[13px] text-start transition-colors ${selected_parent_token === f.folder_token ? "bg-brand/15 text-brand" : "hover:bg-surface-secondary"}`}
                     onClick={() => set_selected_parent_token(f.folder_token)}
                   >
                     <FolderIcon

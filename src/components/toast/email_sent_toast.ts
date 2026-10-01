@@ -18,35 +18,13 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { NavigateFunction } from "react-router-dom";
-
 import { show_action_toast } from "@/components/toast/action_toast";
+import {
+  open_message_in_view_mode,
+  open_sent_folder,
+} from "@/components/toast/toast_action_router";
 import { list_mail_items } from "@/services/api/mail";
 import { ignore_error } from "@/lib/ignore_error";
-
-export const NAVIGATE_TO_SENT_EVENT = "astermail:navigate-to-sent";
-
-export interface NavigateToSentDetail {
-  email_id?: string;
-}
-
-export function open_sent_message(email_id?: string): void {
-  window.dispatchEvent(
-    new CustomEvent<NavigateToSentDetail>(NAVIGATE_TO_SENT_EVENT, {
-      detail: { email_id },
-    }),
-  );
-}
-
-export function show_email_sent_toast(message: string, sent_id?: string): void {
-  show_action_toast({
-    message,
-    action_type: "read",
-    email_ids: [],
-    duration_ms: 5000,
-    on_view_message: () => open_sent_message(sent_id),
-  });
-}
 
 async function resolve_newest_sent_id(): Promise<string | undefined> {
   try {
@@ -70,17 +48,26 @@ async function resolve_newest_sent_id(): Promise<string | undefined> {
   }
 }
 
-export async function open_sent_message_or_folder(
-  email_id: string | undefined,
-  navigate: NavigateFunction,
-): Promise<void> {
+export async function open_sent_message(email_id?: string): Promise<void> {
   const target = email_id ?? (await resolve_newest_sent_id());
 
   if (target) {
-    navigate(`/email/${target}`, { state: { from_view: "sent" } });
+    open_message_in_view_mode(target);
 
     return;
   }
 
-  navigate("/sent");
+  open_sent_folder();
+}
+
+export function show_email_sent_toast(message: string, sent_id?: string): void {
+  show_action_toast({
+    message,
+    action_type: "read",
+    email_ids: [],
+    duration_ms: 5000,
+    on_view_message: () => {
+      void open_sent_message(sent_id);
+    },
+  });
 }

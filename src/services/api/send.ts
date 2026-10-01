@@ -46,6 +46,7 @@ interface SimpleSendRequest {
   body: string;
   is_e2e_encrypted?: boolean;
   internal_encrypted_body?: string;
+  hosted_recipients?: string[];
   encryption_type?: string;
   encrypted_envelope?: string;
   envelope_nonce?: string;

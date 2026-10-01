@@ -97,7 +97,7 @@ export function ContactTrashPane({
           {t("common.contacts_in_trash_notice")}
         </p>
         <button
-          className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-[8px] px-2 py-1 text-[12px] font-medium text-txt-secondary transition-colors hover:bg-[var(--aster-hover)] hover:text-danger"
+          className="aster_pill aster_pill_ghost aster_pill_sm flex-shrink-0 hover:text-[var(--color-danger)]"
           type="button"
           onClick={on_empty_trash}
         >
@@ -110,7 +110,7 @@ export function ContactTrashPane({
         {visible_contacts.map((contact) => (
           <div
             key={contact.id}
-            className="group/trash my-0.5 flex w-full items-center gap-3 rounded-[12px] px-3 py-2 transition-colors hover:bg-[var(--aster-hover)]"
+            className="group/trash my-0.5 flex w-full items-center gap-3 rounded-[var(--aster-radius-control)] px-3 py-2 transition-colors hover:bg-[var(--aster-hover)]"
           >
             <div className="min-w-0 flex-1">
               <p className="truncate text-[14px] font-medium text-txt-primary">
@@ -125,7 +125,7 @@ export function ContactTrashPane({
             <Tooltip tip={t("mail.restore")}>
               <button
                 aria-label={t("mail.restore")}
-                className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[8px] text-txt-muted opacity-0 transition-opacity hover:text-txt-primary focus-visible:opacity-100 group-hover/trash:opacity-100"
+                className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-txt-muted opacity-0 transition-opacity hover:text-txt-primary focus-visible:opacity-100 group-hover/trash:opacity-100"
                 type="button"
                 onClick={() => on_restore(contact)}
               >
@@ -135,7 +135,7 @@ export function ContactTrashPane({
             <Tooltip tip={t("mail.delete_permanently")}>
               <button
                 aria-label={t("mail.delete_permanently")}
-                className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[8px] text-txt-muted opacity-0 transition-opacity hover:text-red-500 focus-visible:opacity-100 group-hover/trash:opacity-100"
+                className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-txt-muted opacity-0 transition-opacity hover:text-[var(--color-danger)] focus-visible:opacity-100 group-hover/trash:opacity-100"
                 type="button"
                 onClick={() => on_delete_forever(contact)}
               >

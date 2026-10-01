@@ -25,11 +25,19 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 vi.mock("@/lib/i18n/context", () => ({
-  use_i18n: () => ({ t: (key: string) => key, language: "en" }),
+  use_i18n: () => ({
+    t: (key: string, params?: Record<string, string>) =>
+      params ? `${key}(${Object.values(params).join("|")})` : key,
+    language: "en",
+  }),
 }));
 
 const { YearlySwitchCard, monthly_equivalent_cents } =
   await import("./yearly_switch_card");
+const { format_price } = await import("@/services/api/billing");
+const { convert_cents } = await import(
+  "@/components/settings/billing/billing_constants"
+);
 
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean;
@@ -49,12 +57,19 @@ const eligible: YearlySwitchOffer = {
 async function render_card(
   offer: YearlySwitchOffer | null,
   on_switch: (plan_code: string) => void = () => {},
+  currency?: string,
 ) {
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
   await act(async () => {
-    root!.render(<YearlySwitchCard offer={offer} on_switch={on_switch} />);
+    root!.render(
+      <YearlySwitchCard
+        currency={currency}
+        offer={offer}
+        on_switch={on_switch}
+      />,
+    );
   });
 
   return container;
@@ -105,5 +120,19 @@ describe("YearlySwitchCard", () => {
     });
 
     expect(switched).toEqual(["star"]);
+  });
+
+  it("converts the USD amounts into the viewer currency", async () => {
+    const node = await render_card(eligible, () => {}, "eur");
+
+    expect(node.textContent).toContain(
+      format_price(convert_cents(eligible.saving_cents, "eur"), "eur"),
+    );
+    expect(node.textContent).toContain(
+      format_price(convert_cents(eligible.monthly_price_cents, "eur"), "eur"),
+    );
+    expect(node.textContent).not.toContain(
+      format_price(eligible.saving_cents, "eur"),
+    );
   });
 });

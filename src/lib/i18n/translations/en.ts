@@ -7552,6 +7552,7 @@ export const en: Translations = {
     key_source_dane: "DANE",
     key_source_cached: "Cached",
     key_source_unknown: "Unknown",
+    key_source_aster: "Aster Mail",
     invoice_status_paid: "Paid",
     invoice_status_failed: "Failed",
     invoice_status_open: "Open",
@@ -8651,6 +8652,7 @@ export const en: Translations = {
     indexing_messages: "Indexing messages...",
     message_download_status:
       "Message download status: {{done}} out of {{total}}",
+    message_download_count: "Messages downloaded: {{done}}",
     estimated_time_remaining: "Estimated time remaining: {{duration}}",
     download_paused: "Downloading paused",
     pause_download_action: "Pause",

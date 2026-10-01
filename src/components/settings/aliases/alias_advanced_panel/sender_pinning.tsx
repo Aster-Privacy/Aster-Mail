@@ -23,9 +23,9 @@ import type {} from "@/lib/i18n/types";
 
 import { useCallback, useEffect, useState } from "react";
 import { TrashIcon, PlusIcon } from "@heroicons/react/24/outline";
-import { Button, Input } from "@aster/ui";
+import { Button, Input, Island, IslandEmpty, IslandRow } from "@aster/ui";
 
-import { INPUT_CLASS, PanelRow } from "./shared";
+import { INPUT_CLASS, PanelRow, ROW_DELETE_BUTTON_CLASS } from "./shared";
 
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { use_i18n } from "@/lib/i18n/context";
@@ -193,32 +193,34 @@ export function SenderPinningPanel({
   const active_mode_hint = modes.find((m) => m.value === mode)?.hint ?? "";
 
   return (
-    <div className="divide-y divide-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]">
-      <PanelRow
-        description={active_mode_hint}
-        info={t("settings.alias_sender_pinning_info")}
-        label={t("settings.alias_sender_pin_mode_label")}
-      >
-        <Select
-          value={String(mode)}
-          onValueChange={(v) => change_mode(Number(v) as SenderPinMode)}
+    <>
+      <Island divided>
+        <PanelRow
+          description={active_mode_hint}
+          info={t("settings.alias_sender_pinning_info")}
+          label={t("settings.alias_sender_pin_mode_label")}
         >
-          <SelectTrigger className="h-9 w-64 shrink-0">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {modes.map((m) => (
-              <SelectItem key={m.value} value={String(m.value)}>
-                {m.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </PanelRow>
+          <Select
+            value={String(mode)}
+            onValueChange={(v) => change_mode(Number(v) as SenderPinMode)}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {modes.map((m) => (
+                <SelectItem key={m.value} value={String(m.value)}>
+                  {m.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </PanelRow>
+      </Island>
 
       {mode === SENDER_PIN_MODE_ALLOWLIST && (
-        <div className="space-y-2 pt-4">
-          <div className="flex items-center gap-2">
+        <>
+          <Island className="flex flex-wrap items-center gap-2" padding="md">
             <Input
               className={INPUT_CLASS}
               placeholder={t("settings.alias_sender_email_placeholder")}
@@ -232,48 +234,46 @@ export function SenderPinningPanel({
             />
             <Button
               disabled={busy || !email.trim()}
-              size="sm"
-              variant="depth"
+              size="lg"
+              variant="primary"
               onClick={handle_add}
             >
               <PlusIcon className="w-4 h-4" />
               {t("settings.alias_sender_add")}
             </Button>
-          </div>
+          </Island>
 
           {loading ? (
-            <Spinner size="md" />
+            <Island className="flex justify-center" padding="md">
+              <Spinner size="md" />
+            </Island>
           ) : load_error ? (
             <LoadFailedNotice on_retry={() => load()} />
           ) : pins.length === 0 ? (
-            <p className="text-xs text-txt-muted">
-              {t("settings.alias_sender_list_empty")}
-            </p>
+            <IslandEmpty title={t("settings.alias_sender_list_empty")} />
           ) : (
-            <div className="space-y-1.5">
+            <Island divided>
               {pins.map((pin) => (
-                <div
+                <IslandRow
                   key={pin.id}
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg bg-surf-tertiary border border-edge-secondary"
-                >
-                  <span className="flex-1 min-w-0 text-sm truncate text-txt-primary">
-                    {pin.sender}
-                  </span>
-                  <Button
-                    aria-label={t("common.remove")}
-                    className="h-7 w-7 text-red-500 hover:text-red-500 hover:bg-red-500/10"
-                    size="icon"
-                    variant="ghost"
-                    onClick={() => handle_remove(pin.id)}
-                  >
-                    <TrashIcon className="w-4 h-4" />
-                  </Button>
-                </div>
+                  label={<span className="block truncate">{pin.sender}</span>}
+                  trailing={
+                    <Button
+                      aria-label={t("common.remove")}
+                      className={ROW_DELETE_BUTTON_CLASS}
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => handle_remove(pin.id)}
+                    >
+                      <TrashIcon className="w-4 h-4" />
+                    </Button>
+                  }
+                />
               ))}
-            </div>
+            </Island>
           )}
-        </div>
+        </>
       )}
-    </div>
+    </>
   );
 }

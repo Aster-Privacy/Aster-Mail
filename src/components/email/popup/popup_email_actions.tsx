@@ -188,7 +188,7 @@ export function PopupEmailActions({
       <Tooltip tip={is_pinned ? t("mail.unpin") : t("mail.pin_to_top")}>
         <Button
           data-no-drag
-          className={`h-9 w-9 rounded-full hover:bg-[color-mix(in_srgb,var(--text-primary)_8%,transparent)] ${is_pinned ? "text-blue-500" : "text-txt-muted hover:text-blue-500"}`}
+          className={`h-9 w-9 rounded-full hover:bg-[color-mix(in_srgb,var(--text-primary)_8%,transparent)] ${is_pinned ? "text-[var(--accent-color)]" : "text-txt-muted hover:text-[var(--accent-color)]"}`}
           disabled={is_pin_loading}
           size="icon"
           variant="ghost"
@@ -282,10 +282,10 @@ export function PopupEmailActions({
           </DropdownMenuItem>
           <DropdownMenuItem onClick={on_pin_toggle}>
             <PinIcon
-              className={`w-4 h-4 me-2 ${is_pinned ? "-rotate-[38deg] text-blue-500" : ""}`}
+              className={`w-4 h-4 me-2 ${is_pinned ? "-rotate-[38deg] text-[var(--accent-color)]" : ""}`}
               filled={is_pinned}
             />
-            {is_pinned ? t("mail.unpin") : t("common.pinned_to_top")}
+            {is_pinned ? t("mail.unpin") : t("mail.pin_to_top")}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           {is_archived && on_unarchive ? (

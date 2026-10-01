@@ -25,6 +25,7 @@ import type {
 } from "@/types/contacts";
 import type { ExternalKeyInfo } from "@/services/api/keys";
 import type { TranslationKey } from "@/lib/i18n/types";
+import type { CSSProperties } from "react";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -52,7 +53,7 @@ import {
   CheckIcon,
   StarIcon as StarSolidIcon,
 } from "@heroicons/react/24/solid";
-import { Spinner, Tooltip } from "@aster/ui";
+import { PillButton, Spinner, Tooltip } from "@aster/ui";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -88,7 +89,7 @@ import { apply_server_group_membership } from "@/utils/contact_group_membership"
 import { export_contacts_vcard } from "@/utils/contact_export";
 import { print_contacts } from "@/utils/contact_print";
 import {
-  discover_external_keys_batch,
+  discover_contact_keys_batch,
   format_fingerprint,
   get_key_source_label_key,
   has_pgp_key,
@@ -114,6 +115,11 @@ const MAX_CONTACT_PAGES = 25;
 const RENDER_PAGE_SIZE = 40;
 const RENDER_AHEAD_PX = 600;
 const GROUP_BATCH_SIZE = 10;
+const ROW_METRICS = {
+  "--aster-island-row-min-height": "48px",
+  "--aster-island-row-pad-x": "12px",
+  "--aster-island-row-pad-y": "8px",
+} as CSSProperties;
 
 type PanelTab = "contacts" | "groups";
 
@@ -182,7 +188,7 @@ function ContactKeyLine({
 
   return (
     <span className="mt-1 flex items-start gap-1.5">
-      <LockClosedIcon className="mt-0.5 h-3 w-3 flex-shrink-0 text-emerald-500" />
+      <LockClosedIcon className="mt-0.5 h-3 w-3 flex-shrink-0 text-[var(--color-success)]" />
       <span className="min-w-0 flex-1">
         <span className="block truncate font-mono text-[11px] text-txt-secondary">
           {format_fingerprint(key_info.fingerprint)}
@@ -199,11 +205,9 @@ function ContactKeyLine({
 
 function DetailField({ label, value }: { label: string; value: string }) {
   return (
-    <div className="px-3 py-2">
-      <p className="text-[11px] font-medium uppercase tracking-wide text-txt-muted">
-        {label}
-      </p>
-      <p className="mt-0.5 whitespace-pre-wrap break-words text-[13.5px] text-txt-primary">
+    <div className="aster_island_row flex-col items-stretch gap-0.5">
+      <p className="text-[12px] leading-4 text-txt-muted">{label}</p>
+      <p className="whitespace-pre-wrap break-words text-[13.5px] leading-5 text-txt-primary">
         {value}
       </p>
     </div>
@@ -214,6 +218,28 @@ function initial_of(contact: DecryptedContact) {
   const name = display_name(contact).trim();
 
   return name ? name[0].toUpperCase() : "#";
+}
+
+interface ContactLetterSection {
+  letter: string;
+  contacts: DecryptedContact[];
+}
+
+function group_by_initial(list: DecryptedContact[]) {
+  const sections: ContactLetterSection[] = [];
+
+  for (const contact of list) {
+    const letter = initial_of(contact);
+    const last = sections[sections.length - 1];
+
+    if (last && last.letter === letter) {
+      last.contacts.push(contact);
+    } else {
+      sections.push({ letter, contacts: [contact] });
+    }
+  }
+
+  return sections;
 }
 
 export function QuickContactsPanel({
@@ -450,7 +476,7 @@ export function QuickContactsPanel({
     set_detail_keys({});
     set_is_keys_loading(true);
 
-    void discover_external_keys_batch(detail_contact.emails).then(
+    void discover_contact_keys_batch(detail_contact.emails).then(
       (response) => {
         if (cancelled) return;
 
@@ -952,7 +978,7 @@ export function QuickContactsPanel({
                 </button>
               )}
             </div>
-            <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center">
+            <span className="contact_encryption_info flex h-7 w-7 flex-shrink-0 items-center justify-center">
               <EncryptionInfoDropdown
                 description_key="common.only_you_can_read_contacts"
                 has_pq_protection={true}
@@ -1003,35 +1029,40 @@ export function QuickContactsPanel({
         )}
 
         {!detail_contact && (
-          <div className="quick_contacts_tabs flex h-10 flex-shrink-0 items-stretch gap-2 px-3">
-            <button
-              aria-selected={!is_groups_tab}
-              className="quick_contacts_tab flex items-center gap-1.5 px-1.5 text-[13px] font-medium"
-              role="tab"
-              type="button"
-              onClick={() => select_tab("contacts")}
+          <div className="flex h-11 flex-shrink-0 items-center gap-2 px-3">
+            <div
+              className="inline-flex min-w-0 items-center gap-0.5 rounded-full bg-[color-mix(in_srgb,var(--text-primary)_6%,var(--bg-primary))] p-1"
+              role="tablist"
             >
-              {t("common.contacts")}
-              {has_contacts && (
-                <span className="quick_contacts_tab_count text-[13px] font-extrabold">
-                  {contacts.length.toLocaleString(app_locale())}
-                </span>
-              )}
-            </button>
-            <button
-              aria-selected={is_groups_tab}
-              className="quick_contacts_tab flex items-center gap-1.5 px-1.5 text-[13px] font-medium"
-              role="tab"
-              type="button"
-              onClick={() => select_tab("groups")}
-            >
-              {t("common.groups")}
-              {groups.length > 0 && (
-                <span className="quick_contacts_tab_count text-[13px] font-extrabold">
-                  {groups.length.toLocaleString(app_locale())}
-                </span>
-              )}
-            </button>
+              <button
+                aria-selected={!is_groups_tab}
+                className="flex h-7 items-center gap-1.5 rounded-full px-3 text-[13px] font-medium whitespace-nowrap text-txt-muted transition-colors hover:text-txt-primary aria-selected:bg-[var(--bg-primary)] aria-selected:text-txt-primary aria-selected:shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:aria-selected:bg-[color-mix(in_srgb,var(--text-primary)_15%,var(--bg-primary))] dark:aria-selected:shadow-none"
+                role="tab"
+                type="button"
+                onClick={() => select_tab("contacts")}
+              >
+                {t("common.contacts")}
+                {has_contacts && (
+                  <span className="text-[12px] font-medium text-txt-muted tabular-nums">
+                    {contacts.length.toLocaleString(app_locale())}
+                  </span>
+                )}
+              </button>
+              <button
+                aria-selected={is_groups_tab}
+                className="flex h-7 items-center gap-1.5 rounded-full px-3 text-[13px] font-medium whitespace-nowrap text-txt-muted transition-colors hover:text-txt-primary aria-selected:bg-[var(--bg-primary)] aria-selected:text-txt-primary aria-selected:shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:aria-selected:bg-[color-mix(in_srgb,var(--text-primary)_15%,var(--bg-primary))] dark:aria-selected:shadow-none"
+                role="tab"
+                type="button"
+                onClick={() => select_tab("groups")}
+              >
+                {t("common.groups")}
+                {groups.length > 0 && (
+                  <span className="text-[12px] font-medium text-txt-muted tabular-nums">
+                    {groups.length.toLocaleString(app_locale())}
+                  </span>
+                )}
+              </button>
+            </div>
             <span className="flex-1" />
             {!is_groups_tab && has_contacts && (
               <span className="flex items-center">
@@ -1076,7 +1107,7 @@ export function QuickContactsPanel({
         )}
 
         {!detail_contact && active_group && (
-          <div className="quick_contacts_notice mx-2 mt-2 flex flex-shrink-0 items-center gap-2 rounded-lg px-2.5 py-1.5 text-[12.5px]">
+          <div className="aster_island aster_island_tone_accent mx-3 mb-2 flex flex-shrink-0 items-center gap-2 px-3 py-2 text-[12.5px]">
             <ContactGroupGlyph
               color={active_group.color}
               icon={active_group.icon}
@@ -1096,7 +1127,7 @@ export function QuickContactsPanel({
           !is_groups_tab &&
           !is_selecting &&
           duplicate_count > 0 && (
-            <div className="quick_contacts_notice mx-2 mt-2 flex flex-shrink-0 items-center gap-2 rounded-lg px-2.5 py-1.5 text-[12.5px]">
+            <div className="aster_island aster_island_tone_accent mx-3 mb-2 flex flex-shrink-0 items-center gap-2 px-3 py-2 text-[12.5px]">
               <span className="min-w-0 flex-1 truncate">
                 {t("common.duplicates_found", { count: duplicate_count })}
               </span>
@@ -1114,7 +1145,7 @@ export function QuickContactsPanel({
 
         <div
           ref={scroll_ref}
-          className="flex min-h-0 flex-1 flex-col overflow-y-auto px-2"
+          className="aster_scrollbar_thin flex min-h-0 flex-1 flex-col overflow-y-auto px-3"
         >
           {is_groups_tab && !detail_contact ? (
             <ContactGroupsPane
@@ -1162,22 +1193,22 @@ export function QuickContactsPanel({
                   </p>
                 )}
                 {detail_contact.emails[0] && (
-                  <div className="mt-3 flex items-center gap-1.5">
-                    <button
-                      className="quick_contacts_cta flex items-center gap-1.5 rounded-[var(--aster-radius-control)] px-3 py-1.5 text-[12.5px] font-medium"
-                      type="button"
+                  <div className="mt-4 flex items-center gap-1.5">
+                    <PillButton
+                      leading={<EnvelopeIcon />}
+                      size="sm"
+                      variant="filled"
                       onClick={() => compose_to(detail_contact.emails[0])}
                     >
-                      <EnvelopeIcon className="h-3.5 w-3.5" />
                       {t("common.compose_new_email")}
-                    </button>
+                    </PillButton>
                   </div>
                 )}
               </div>
-              <div className="mt-4">
-                {detail_contact.emails.length > 0 && (
-                  <div className="flex items-center gap-1.5 px-3 pb-1">
-                    <span className="text-[11px] font-medium uppercase tracking-wide text-txt-muted">
+              {detail_contact.emails.length > 0 && (
+                <div className="mt-5">
+                  <div className="contact_encryption_info flex items-center gap-1.5 px-1 pb-2">
+                    <span className="aster_island_section_title">
                       {t("settings.encryption")}
                     </span>
                     <EncryptionInfoDropdown
@@ -1187,71 +1218,92 @@ export function QuickContactsPanel({
                       size={13}
                     />
                   </div>
-                )}
-                {detail_contact.emails.map((address) => (
-                  <button
-                    key={address}
-                    aria-label={t("common.copy_address")}
-                    className="quick_contacts_row group flex w-full items-center gap-2.5 rounded-[10px] px-3 py-2 text-start"
-                    title={t("common.copy_address")}
-                    type="button"
-                    onClick={() => copy_address(address)}
+                  <div
+                    className="aster_island aster_island_divided"
+                    style={ROW_METRICS}
                   >
-                    <ContactAvatar
-                      className="flex-shrink-0"
-                      email={address}
-                      size_px={28}
+                    {detail_contact.emails.map((address) => (
+                      <button
+                        key={address}
+                        aria-label={t("common.copy_address")}
+                        className="quick_contacts_row aster_island_row aster_island_row_pressable group gap-2.5"
+                        title={t("common.copy_address")}
+                        type="button"
+                        onClick={() => copy_address(address)}
+                      >
+                        <ContactAvatar
+                          className="flex-shrink-0"
+                          email={address}
+                          size_px={28}
+                        />
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-[13.5px] text-txt-primary">
+                            {address}
+                          </span>
+                          <ContactKeyLine
+                            is_loading={is_keys_loading}
+                            key_info={
+                              detail_keys[address.toLowerCase()] ?? null
+                            }
+                            t={t}
+                          />
+                        </span>
+                        <Square2StackIcon className="h-4 w-4 flex-shrink-0 text-txt-muted opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {Boolean(
+                detail_contact.phone ||
+                detail_contact.company ||
+                detail_contact.job_title ||
+                detail_contact.birthday ||
+                format_address(detail_contact) ||
+                detail_contact.notes,
+              ) && (
+                <div
+                  className="aster_island aster_island_divided mt-3"
+                  style={ROW_METRICS}
+                >
+                  {detail_contact.phone && (
+                    <DetailField
+                      label={t("common.phone")}
+                      value={detail_contact.phone}
                     />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[13.5px] text-txt-primary">
-                        {address}
-                      </span>
-                      <ContactKeyLine
-                        is_loading={is_keys_loading}
-                        key_info={detail_keys[address.toLowerCase()] ?? null}
-                        t={t}
-                      />
-                    </span>
-                    <Square2StackIcon className="h-4 w-4 flex-shrink-0 text-txt-muted opacity-0 transition-opacity group-hover:opacity-100" />
-                  </button>
-                ))}
-                {detail_contact.phone && (
-                  <DetailField
-                    label={t("common.phone")}
-                    value={detail_contact.phone}
-                  />
-                )}
-                {detail_contact.company && (
-                  <DetailField
-                    label={t("common.company")}
-                    value={detail_contact.company}
-                  />
-                )}
-                {detail_contact.job_title && (
-                  <DetailField
-                    label={t("common.job_title")}
-                    value={detail_contact.job_title}
-                  />
-                )}
-                {detail_contact.birthday && (
-                  <DetailField
-                    label={t("common.birthday")}
-                    value={format_contact_date(detail_contact.birthday)}
-                  />
-                )}
-                {format_address(detail_contact) && (
-                  <DetailField
-                    label={t("common.address")}
-                    value={format_address(detail_contact)}
-                  />
-                )}
-                {detail_contact.notes && (
-                  <DetailField
-                    label={t("common.notes")}
-                    value={detail_contact.notes}
-                  />
-                )}
-              </div>
+                  )}
+                  {detail_contact.company && (
+                    <DetailField
+                      label={t("common.company")}
+                      value={detail_contact.company}
+                    />
+                  )}
+                  {detail_contact.job_title && (
+                    <DetailField
+                      label={t("common.job_title")}
+                      value={detail_contact.job_title}
+                    />
+                  )}
+                  {detail_contact.birthday && (
+                    <DetailField
+                      label={t("common.birthday")}
+                      value={format_contact_date(detail_contact.birthday)}
+                    />
+                  )}
+                  {format_address(detail_contact) && (
+                    <DetailField
+                      label={t("common.address")}
+                      value={format_address(detail_contact)}
+                    />
+                  )}
+                  {detail_contact.notes && (
+                    <DetailField
+                      label={t("common.notes")}
+                      value={detail_contact.notes}
+                    />
+                  )}
+                </div>
+              )}
             </div>
           ) : is_loading ? (
             <div className="flex flex-1 items-center justify-center">
@@ -1263,13 +1315,14 @@ export function QuickContactsPanel({
                 <ExclamationTriangleIcon strokeWidth={1.25} />
               </span>
               <p className="contact_empty_state_title">{error}</p>
-              <button
-                className="quick_contacts_cta contact_empty_state_action rounded-[var(--aster-radius-control)] px-4 py-1.5 text-[13px] font-medium"
-                type="button"
+              <PillButton
+                className="contact_empty_state_action"
+                size="sm"
+                variant="tonal"
                 onClick={load}
               >
                 {t("common.retry")}
-              </button>
+              </PillButton>
             </div>
           ) : !has_contacts ? (
             <div className="contact_empty_state">
@@ -1282,14 +1335,15 @@ export function QuickContactsPanel({
               <p className="contact_empty_state_text">
                 {t("common.add_contacts_hint")}
               </p>
-              <button
-                className="quick_contacts_cta contact_empty_state_action flex items-center gap-1.5 rounded-full py-2 ps-3 pe-4 text-[13.5px] font-medium"
-                type="button"
+              <PillButton
+                className="contact_empty_state_action"
+                leading={<PlusIcon />}
+                size="sm"
+                variant="filled"
                 onClick={open_new}
               >
-                <PlusIcon className="h-4 w-4" />
                 {t("common.add_contact")}
-              </button>
+              </PillButton>
             </div>
           ) : visible.length === 0 ? (
             <div className="contact_empty_state">
@@ -1304,131 +1358,138 @@ export function QuickContactsPanel({
               </p>
             </div>
           ) : (
-            <div className="flex flex-col gap-1 pt-1">
-              {rendered.map((contact, index) => {
-                const letter = initial_of(contact);
-                const show_letter =
-                  index === 0 || initial_of(rendered[index - 1]) !== letter;
-
-                return (
-                  <div key={contact.id} className="flex flex-col gap-1">
-                    {show_letter && (
-                      <p className="px-3 pb-0.5 pt-2 text-[11px] font-medium uppercase tracking-wide text-txt-muted">
-                        {letter}
-                      </p>
-                    )}
-                    <div
-                      className="quick_contacts_row group flex items-center gap-2.5 rounded-[10px] py-1.5 pe-1 ps-2"
-                      data-selected={selected_ids.has(contact.id)}
-                    >
-                      <button
-                        aria-label={
-                          selected_ids.has(contact.id)
-                            ? t("common.deselect_contact")
-                            : t("common.select_contact")
-                        }
-                        aria-pressed={selected_ids.has(contact.id)}
-                        className="quick_contacts_avatar_button relative flex h-[30px] w-[30px] flex-shrink-0 items-center justify-center rounded-full"
-                        type="button"
-                        onClick={() => toggle_selected(contact.id)}
+            <div className="flex flex-col pb-3">
+              {group_by_initial(rendered).map((section) => (
+                <section key={section.contacts[0].id}>
+                  <p className="aster_island_section_title px-1 pt-3 pb-2">
+                    {section.letter}
+                  </p>
+                  <div
+                    className="aster_island aster_island_divided"
+                    style={ROW_METRICS}
+                  >
+                    {section.contacts.map((contact) => (
+                      <div
+                        key={contact.id}
+                        className="quick_contacts_row aster_island_row aster_island_row_pressable group gap-2.5 pe-1.5 ps-2.5"
+                        data-selected={selected_ids.has(contact.id)}
                       >
-                        {selected_ids.has(contact.id) ? (
-                          <span className="quick_contacts_select_dot flex h-[30px] w-[30px] items-center justify-center rounded-full">
-                            <CheckIcon className="h-4 w-4" />
-                          </span>
-                        ) : (
-                          <>
-                            <ContactAvatar
-                              avatar_url={contact.avatar_url}
-                              email={contact.emails[0]}
-                              name={display_name(contact)}
-                              profile_color={contact.profile_color}
-                              size_px={30}
-                            />
-                            <span
-                              aria-hidden
-                              className="quick_contacts_avatar_hint absolute inset-0 flex items-center justify-center rounded-full"
-                            >
+                        <button
+                          aria-label={
+                            selected_ids.has(contact.id)
+                              ? t("common.deselect_contact")
+                              : t("common.select_contact")
+                          }
+                          aria-pressed={selected_ids.has(contact.id)}
+                          className="quick_contacts_avatar_button relative flex h-[30px] w-[30px] flex-shrink-0 items-center justify-center rounded-full"
+                          type="button"
+                          onClick={() => toggle_selected(contact.id)}
+                        >
+                          {selected_ids.has(contact.id) ? (
+                            <span className="quick_contacts_select_dot flex h-[30px] w-[30px] items-center justify-center rounded-full">
                               <CheckIcon className="h-4 w-4" />
                             </span>
-                          </>
-                        )}
-                      </button>
-                      <button
-                        className="quick_contacts_row_open flex min-w-0 flex-1 items-center gap-2.5 text-start"
-                        type="button"
-                        onClick={() =>
-                          is_selecting
-                            ? toggle_selected(contact.id)
-                            : open_detail(contact)
-                        }
-                      >
-                        <span className="min-w-0 flex-1">
-                          <span className="flex items-center gap-1">
-                            <span className="truncate text-[13.5px] text-txt-primary">
-                              {display_name(contact)}
-                            </span>
-                            {contact.is_favorite && (
-                              <StarSolidIcon
-                                className="h-3 w-3 flex-shrink-0"
-                                style={{ color: "var(--star-color, #f5b301)" }}
+                          ) : (
+                            <>
+                              <ContactAvatar
+                                avatar_url={contact.avatar_url}
+                                email={contact.emails[0]}
+                                name={display_name(contact)}
+                                profile_color={contact.profile_color}
+                                size_px={30}
                               />
-                            )}
-                          </span>
-                          {contact.emails[0] &&
-                            contact.emails[0] !== display_name(contact) && (
-                              <span className="block truncate text-[12px] text-txt-muted">
-                                {contact.emails[0]}
+                              <span
+                                aria-hidden
+                                className="quick_contacts_avatar_hint absolute inset-0 flex items-center justify-center rounded-full"
+                              >
+                                <CheckIcon className="h-4 w-4" />
                               </span>
-                            )}
-                        </span>
-                      </button>
-                      <span className="flex flex-shrink-0 items-center opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
-                        {contact.emails[0] && (
-                          <>
-                            <Tooltip
-                              position="top"
-                              tip={t("common.copy_address")}
-                            >
-                              <button
-                                aria-label={t("common.copy_address")}
-                                className="quick_contacts_action flex h-7 w-7 items-center justify-center rounded-full"
-                                type="button"
-                                onClick={() => copy_address(contact.emails[0])}
+                            </>
+                          )}
+                        </button>
+                        <button
+                          className="quick_contacts_row_open flex min-w-0 flex-1 items-center gap-2.5 text-start"
+                          type="button"
+                          onClick={() =>
+                            is_selecting
+                              ? toggle_selected(contact.id)
+                              : open_detail(contact)
+                          }
+                        >
+                          <span className="min-w-0 flex-1">
+                            <span className="flex items-center gap-1">
+                              <span className="truncate text-[13.5px] text-txt-primary">
+                                {display_name(contact)}
+                              </span>
+                              {contact.is_favorite && (
+                                <StarSolidIcon
+                                  className="h-3 w-3 flex-shrink-0"
+                                  style={{
+                                    color: "var(--star-color, #f5b301)",
+                                  }}
+                                />
+                              )}
+                            </span>
+                            {contact.emails[0] &&
+                              contact.emails[0] !== display_name(contact) && (
+                                <span className="block truncate text-[12px] text-txt-muted">
+                                  {contact.emails[0]}
+                                </span>
+                              )}
+                          </span>
+                        </button>
+                        <span className="flex flex-shrink-0 items-center opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
+                          {contact.emails[0] && (
+                            <>
+                              <Tooltip
+                                position="top"
+                                tip={t("common.copy_address")}
                               >
-                                <Square2StackIcon className="h-4 w-4" />
-                              </button>
-                            </Tooltip>
-                            <Tooltip
-                              position="top"
-                              tip={t("common.compose_new_email")}
-                            >
-                              <button
-                                aria-label={t("common.compose_new_email")}
-                                className="quick_contacts_action flex h-7 w-7 items-center justify-center rounded-full"
-                                type="button"
-                                onClick={() => compose_to(contact.emails[0])}
+                                <button
+                                  aria-label={t("common.copy_address")}
+                                  className="quick_contacts_action flex h-7 w-7 items-center justify-center rounded-full"
+                                  type="button"
+                                  onClick={() =>
+                                    copy_address(contact.emails[0])
+                                  }
+                                >
+                                  <Square2StackIcon className="h-4 w-4" />
+                                </button>
+                              </Tooltip>
+                              <Tooltip
+                                position="top"
+                                tip={t("common.compose_new_email")}
                               >
-                                <EnvelopeIcon className="h-4 w-4" />
-                              </button>
-                            </Tooltip>
-                          </>
-                        )}
-                        <Tooltip position="top" tip={t("common.edit_contact")}>
-                          <button
-                            aria-label={t("common.edit_contact")}
-                            className="quick_contacts_action flex h-7 w-7 items-center justify-center rounded-full"
-                            type="button"
-                            onClick={() => open_edit(contact)}
+                                <button
+                                  aria-label={t("common.compose_new_email")}
+                                  className="quick_contacts_action flex h-7 w-7 items-center justify-center rounded-full"
+                                  type="button"
+                                  onClick={() => compose_to(contact.emails[0])}
+                                >
+                                  <EnvelopeIcon className="h-4 w-4" />
+                                </button>
+                              </Tooltip>
+                            </>
+                          )}
+                          <Tooltip
+                            position="top"
+                            tip={t("common.edit_contact")}
                           >
-                            <PencilIcon className="h-4 w-4" />
-                          </button>
-                        </Tooltip>
-                      </span>
-                    </div>
+                            <button
+                              aria-label={t("common.edit_contact")}
+                              className="quick_contacts_action flex h-7 w-7 items-center justify-center rounded-full"
+                              type="button"
+                              onClick={() => open_edit(contact)}
+                            >
+                              <PencilIcon className="h-4 w-4" />
+                            </button>
+                          </Tooltip>
+                        </span>
+                      </div>
+                    ))}
                   </div>
-                );
-              })}
+                </section>
+              ))}
               {has_more_rendered && (
                 <div ref={sentinel_ref} aria-hidden className="h-8" />
               )}
@@ -1436,23 +1497,26 @@ export function QuickContactsPanel({
           )}
         </div>
 
-        <div className="quick_contacts_footer flex h-11 flex-shrink-0 items-center gap-1 px-2">
+        <div className="flex flex-shrink-0 items-center gap-2 px-3 pt-2 pb-3">
           <button
-            className="quick_contacts_link flex min-w-0 items-center gap-1.5 rounded-full px-2 py-1 text-[12.5px]"
+            className="aster_pill aster_pill_tonal aster_pill_sm min-w-0 flex-1 px-3"
             type="button"
             onClick={() => set_is_import_open(true)}
           >
-            <ArrowUpTrayIcon className="h-3.5 w-3.5 flex-shrink-0" />
-            <span className="truncate">{t("common.import_contacts")}</span>
+            <ArrowUpTrayIcon className="flex-shrink-0" />
+            <span className="truncate leading-5">
+              {t("common.import_contacts")}
+            </span>
           </button>
-          <span className="flex-1" />
           <button
-            className="quick_contacts_link flex min-w-0 items-center gap-1.5 rounded-full px-2 py-1 text-[12.5px]"
+            className="aster_pill aster_pill_tonal aster_pill_sm min-w-0 flex-1 px-3"
             type="button"
             onClick={open_full}
           >
-            <OpenFullIcon className="h-3.5 w-3.5 flex-shrink-0" />
-            <span className="truncate">{t("common.open_contacts")}</span>
+            <OpenFullIcon className="flex-shrink-0" />
+            <span className="truncate leading-5">
+              {t("common.open_contacts")}
+            </span>
           </button>
         </div>
       </aside>

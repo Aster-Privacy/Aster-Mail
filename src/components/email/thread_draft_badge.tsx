@@ -84,7 +84,7 @@ export function ThreadDraftBadge({
   const truncated_summary = clip_with_ellipsis(summary, 60);
 
   const text_button_class =
-    "flex-shrink-0 text-xs font-medium text-blue-500 rounded px-1.5 py-0.5 hover:bg-blue-500/10 transition-colors";
+    "flex-shrink-0 text-xs font-medium text-[var(--accent-color)] rounded px-1.5 py-0.5 hover:bg-[color-mix(in_srgb,var(--accent-color)_10%,transparent)] transition-colors";
 
   return (
     <div className="flex items-center gap-3 px-4 py-3">

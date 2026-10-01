@@ -20,7 +20,7 @@
 //
 import type { DecryptedFolder } from "@/hooks/use_folders";
 
-import { useState, useMemo, forwardRef, memo } from "react";
+import { useMemo, forwardRef, memo } from "react";
 import { FolderIcon } from "@heroicons/react/24/outline";
 
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
@@ -28,6 +28,7 @@ import { strip_html_tags } from "@/lib/html_sanitizer";
 import { strip_preview_filler } from "@/utils/preview_text";
 import { format_relative_time } from "@/utils/date_utils";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_preferences } from "@/contexts/preferences_context";
 import {
   type SearchResultItem,
   type TextHighlight,
@@ -76,17 +77,11 @@ export function FolderResultRow({
   on_click: () => void;
 }) {
   const { t } = use_i18n();
-  const [is_hovered, set_is_hovered] = useState(false);
 
   return (
     <button
-      className="flex items-center gap-2.5 w-full px-3 py-2 text-start transition-colors rounded-[14px]"
-      style={{
-        backgroundColor: is_hovered ? "var(--bg-hover)" : "transparent",
-      }}
+      className="search_result_row flex items-center gap-2.5 w-full px-3 py-2 text-start rounded-[14px]"
       onClick={on_click}
-      onMouseEnter={() => set_is_hovered(true)}
-      onMouseLeave={() => set_is_hovered(false)}
     >
       <FolderIcon
         className="w-4 h-4 flex-shrink-0"
@@ -124,7 +119,7 @@ const SearchResultRowBase = forwardRef<
   ref,
 ) {
   const { t } = use_i18n();
-  const [is_hovered, set_is_hovered] = useState(false);
+  const { preferences } = use_preferences();
 
   const preview_lines = useMemo(() => {
     const raw_preview = result.preview || "";
@@ -156,20 +151,15 @@ const SearchResultRowBase = forwardRef<
   return (
     <button
       ref={ref}
-      className="flex items-center gap-3 w-full px-3 py-2.5 text-start transition-all rounded-[14px] group"
-      style={{
-        backgroundColor: is_hovered ? "var(--bg-hover)" : "transparent",
-      }}
+      className="search_result_row flex items-center gap-3 w-full px-3 py-2.5 text-start rounded-[14px]"
       onClick={on_click}
-      onMouseEnter={() => set_is_hovered(true)}
-      onMouseLeave={() => set_is_hovered(false)}
     >
       <ProfileAvatar
-        use_domain_logo
         email={result.sender_email}
         image_url={result.avatar_url}
         name={result.sender_name}
         size="sm"
+        use_domain_logo={preferences.show_profile_pictures !== false}
       />
       <div className="flex-1 min-w-0 flex items-center gap-1.5">
         <span className="text-[13px] font-medium truncate text-txt-primary flex-shrink-0 max-w-[30%]">
@@ -205,27 +195,18 @@ const SearchResultRowBase = forwardRef<
           )}
         </span>
       </div>
-      <div className="flex items-center gap-1.5 flex-shrink-0 relative">
-        {quick_actions && is_hovered && (
-          <div
-            className="absolute end-0 top-0 bottom-0 w-36 pointer-events-none bg-gradient-to-r from-transparent to-[var(--bg-hover)]"
-            style={{
-              ["--tw-gradient-via-position" as string]: "30%",
-              ["--tw-gradient-to-position" as string]: "100%",
-            }}
-          />
-        )}
+      <div
+        className={
+          quick_actions
+            ? "search_result_meta search_result_meta_actionable"
+            : "search_result_meta"
+        }
+      >
         {quick_actions && (
-          <div
-            className="flex items-center gap-0.5 absolute end-0 transition-opacity duration-75"
-            style={{
-              opacity: is_hovered ? 1 : 0,
-              pointerEvents: is_hovered ? "auto" : "none",
-            }}
-          >
+          <div className="search_result_actions">
             {result.item_type !== "sent" && (
               <button
-                className="p-1.5 rounded-[14px] transition-colors hover:bg-black/10 dark:hover:bg-white/10 text-txt-muted"
+                className="search_result_action text-txt-muted"
                 title={
                   result.is_read
                     ? t("mail.mark_unread_title")
@@ -250,7 +231,7 @@ const SearchResultRowBase = forwardRef<
               </button>
             )}
             <button
-              className="p-1.5 rounded-[14px] transition-colors hover:bg-black/10 dark:hover:bg-white/10"
+              className="search_result_action"
               style={{
                 color: result.is_starred
                   ? "var(--color-warning)"
@@ -275,7 +256,7 @@ const SearchResultRowBase = forwardRef<
               </svg>
             </button>
             <button
-              className="p-1.5 rounded-[14px] transition-colors hover:bg-black/10 dark:hover:bg-white/10 text-txt-muted"
+              className="search_result_action text-txt-muted"
               title={t("mail.archive")}
               onClick={(e) => {
                 e.stopPropagation();
@@ -291,7 +272,7 @@ const SearchResultRowBase = forwardRef<
               </svg>
             </button>
             <button
-              className="p-1.5 rounded-[14px] transition-colors hover:bg-black/10 dark:hover:bg-white/10 text-txt-muted"
+              className="search_result_action text-txt-muted"
               title={t("common.delete")}
               onClick={(e) => {
                 e.stopPropagation();
@@ -308,14 +289,14 @@ const SearchResultRowBase = forwardRef<
             </button>
           </div>
         )}
-        <div
-          className="flex items-center gap-1.5 transition-opacity duration-75"
-          style={{
-            opacity: is_hovered && quick_actions ? 0 : 1,
-          }}
-        >
+        <div className="search_result_date">
           {result.is_starred && (
-            <svg className="w-3 h-3" fill="#f59e0b" viewBox="0 0 24 24">
+            <svg
+              className="w-3 h-3"
+              fill="currentColor"
+              style={{ color: "var(--color-warning)" }}
+              viewBox="0 0 24 24"
+            >
               <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
             </svg>
           )}

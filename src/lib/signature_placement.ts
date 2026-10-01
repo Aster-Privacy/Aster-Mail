@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { SIGNATURE_GAP_BLOCK, remove_signature_node } from "./signature_html";
+
 export type SignaturePlacementValue = "above" | "below";
 
 export function resolve_signature_placement(
@@ -61,7 +63,7 @@ export function assemble_reply_with_placement(
   }
   const signature_html = signature.outerHTML;
 
-  signature.remove();
+  remove_signature_node(signature);
 
   const has_body_outside_signature =
     !!root.textContent?.trim() ||
@@ -69,5 +71,7 @@ export function assemble_reply_with_placement(
 
   if (!has_body_outside_signature) return reply_body + quoted_content;
 
-  return root.innerHTML + quoted_content + signature_html;
+  return (
+    root.innerHTML + quoted_content + SIGNATURE_GAP_BLOCK + signature_html
+  );
 }

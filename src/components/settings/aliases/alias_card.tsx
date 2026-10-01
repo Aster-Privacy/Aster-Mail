@@ -113,6 +113,16 @@ function AliasAvatar({
 }) {
   const { t } = use_i18n();
   const file_ref = useRef<HTMLInputElement>(null);
+  const [image_failed, set_image_failed] = useState(false);
+
+  useEffect(() => {
+    set_image_failed(false);
+  }, [profile_picture]);
+
+  const has_picture =
+    typeof profile_picture === "string" &&
+    profile_picture.trim().length > 0 &&
+    !image_failed;
 
   const handle_file_change = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -122,13 +132,14 @@ function AliasAvatar({
   };
 
   return (
-    <div className="relative group flex-shrink-0">
-      {profile_picture ? (
+    <div className="relative group/avatar flex-shrink-0">
+      {has_picture ? (
         <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
           <img
             alt=""
             className="w-full h-full object-cover"
             src={profile_picture}
+            onError={() => set_image_failed(true)}
           />
         </div>
       ) : (
@@ -144,8 +155,8 @@ function AliasAvatar({
         </div>
       )}
       {uploading && (
-        <div className="absolute inset-0 flex items-center justify-center aster_scrim rounded-full">
-          <Spinner className="text-white" size="xs" />
+        <div className="absolute inset-0 flex items-center justify-center rounded-full bg-[var(--aster-field-hover)] text-txt-primary">
+          <Spinner size="xs" />
         </div>
       )}
       <button
@@ -154,7 +165,7 @@ function AliasAvatar({
             ? t("common.alias_avatars_locked" as TranslationKey)
             : t("common.change_alias_avatar" as TranslationKey)
         }
-        className="absolute inset-0 flex items-center justify-center rounded-full aster_scrim text-white opacity-0 transition-opacity hover:opacity-100 focus-visible:opacity-100 disabled:cursor-not-allowed"
+        className="absolute inset-0 flex items-center justify-center rounded-full bg-[var(--aster-field-hover)] text-txt-primary opacity-0 transition-opacity group-hover/avatar:opacity-100 focus-visible:opacity-100 disabled:invisible disabled:cursor-not-allowed"
         disabled={uploading}
         title={
           is_locked
@@ -181,16 +192,16 @@ function AliasAvatar({
           <CameraIcon className="h-4 w-4" />
         )}
       </button>
-      {!is_locked && profile_picture && (
+      {!is_locked && has_picture && (
         <button
           aria-label={t("common.remove_alias_avatar" as TranslationKey)}
-          className="absolute -bottom-1 -end-1 rounded-full bg-surf-card p-1 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 disabled:cursor-not-allowed disabled:opacity-50"
+          className="absolute -top-1 -end-1 flex h-5 w-5 items-center justify-center rounded-full bg-[var(--aster-field-bg)] text-txt-muted opacity-0 ring-2 ring-[var(--aster-island-fill,var(--bg-primary))] transition hover:bg-[var(--aster-field-hover)] hover:text-[var(--color-danger)] group-hover/avatar:opacity-100 focus-visible:opacity-100 disabled:cursor-not-allowed disabled:opacity-50 [@media(hover:none)]:opacity-100"
           disabled={uploading}
           title={t("common.remove_alias_avatar" as TranslationKey)}
           type="button"
           onClick={on_remove}
         >
-          <XMarkIcon className="h-2.5 w-2.5 text-red-500" />
+          <XMarkIcon className="h-3 w-3" />
         </button>
       )}
       <input
@@ -411,7 +422,7 @@ export function AliasItem({
               websites={alias.websites}
             />
             {in_grace_period && (
-              <p className="text-xs mt-0.5 text-amber-600 dark:text-amber-400">
+              <p className="text-xs mt-0.5 text-[var(--color-warning)]">
                 {t("settings.alias_grace_upgrade_hint" as TranslationKey)}
               </p>
             )}
@@ -433,7 +444,7 @@ export function AliasItem({
             <Button
               className={
                 alias.is_pinned
-                  ? "h-8 w-8 text-blue-500 hover:text-blue-500 hover:bg-blue-500/10"
+                  ? "h-8 w-8 text-brand hover:text-brand hover:bg-brand/10"
                   : "hidden group-hover:inline-flex h-8 w-8"
               }
               size="icon"
@@ -470,7 +481,9 @@ export function AliasItem({
           <Switch
             aria-label={t("common.toggle_alias")}
             checked={alias.is_enabled}
-            disabled={toggling || in_grace_period || !!alias.is_retained_primary}
+            disabled={
+              toggling || in_grace_period || !!alias.is_retained_primary
+            }
             size="lg"
             onCheckedChange={(checked) => on_toggle(alias.id, checked)}
           />
@@ -478,7 +491,7 @@ export function AliasItem({
           {!alias.is_retained_primary && (
             <Button
               aria-label={t("common.delete")}
-              className="h-8 w-8 hover:text-red-500 hover:bg-red-500/10"
+              className="h-8 w-8 hover:text-[var(--color-danger)] hover:bg-[color-mix(in_srgb,var(--color-danger)_10%,transparent)]"
               disabled={deleting}
               size="icon"
               variant="ghost"
@@ -679,16 +692,12 @@ export function DomainAddressItem({
             >
               {full_address}
             </button>
-            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-surf-tertiary text-txt-muted">
+            <Badge className="flex-shrink-0" color="gray">
               {t("common.custom")}
-            </span>
+            </Badge>
             {is_primary && (
               <span
-                className="inline-flex shrink-0 items-center gap-1 rounded-[14px] border px-2 py-0.5 text-[12px] font-medium text-txt-secondary"
-                style={{
-                  borderColor:
-                    "color-mix(in srgb, var(--text-primary) 14%, transparent)",
-                }}
+                className="inline-flex shrink-0 items-center gap-1 rounded-[14px] border border-edge-secondary px-2 py-0.5 text-[12px] font-medium text-txt-secondary"
               >
                 {t("settings.primary_badge")}
               </span>
@@ -781,7 +790,7 @@ export function DomainAddressItem({
 
           <Button
             aria-label={t("common.delete")}
-            className="h-8 w-8 hover:text-red-500 hover:bg-red-500/10"
+            className="h-8 w-8 hover:text-[var(--color-danger)] hover:bg-[color-mix(in_srgb,var(--color-danger)_10%,transparent)]"
             disabled={deleting}
             size="icon"
             variant="ghost"

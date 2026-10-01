@@ -52,6 +52,7 @@ export function ContactFormSocial({
           {t("common.website")}
         </label>
         <Input
+          className="aster_input_tonal"
           id="contact-website"
           placeholder={t("common.website_placeholder")}
           size="md"
@@ -69,6 +70,7 @@ export function ContactFormSocial({
         <Input
           autoCapitalize="none"
           autoCorrect="off"
+          className="aster_input_tonal"
           id="contact-linkedin"
           placeholder="linkedin.com/in/username"
           size="md"
@@ -87,6 +89,7 @@ export function ContactFormSocial({
         <Input
           autoCapitalize="none"
           autoCorrect="off"
+          className="aster_input_tonal"
           id="contact-twitter"
           placeholder="@username"
           size="md"
@@ -105,6 +108,7 @@ export function ContactFormSocial({
         <Input
           autoCapitalize="none"
           autoCorrect="off"
+          className="aster_input_tonal"
           id="contact-github"
           placeholder="github.com/username"
           size="md"

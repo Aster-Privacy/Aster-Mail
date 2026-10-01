@@ -26,6 +26,7 @@ import {
   useState,
   useRef,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useCallback,
   type CSSProperties,
@@ -223,7 +224,7 @@ function render_option(
           }
           className={`flex-shrink-0 p-1.5 rounded transition-opacity ${
             is_preferred
-              ? "opacity-100 text-blue-500 hover:text-blue-500"
+              ? "opacity-100 text-[var(--accent-color)] hover:text-[var(--accent-color)]"
               : "sm:opacity-0 opacity-60 sm:group-hover:opacity-60 text-txt-muted hover:opacity-100"
           }`}
           title={
@@ -278,7 +279,12 @@ export function SenderSelector({
   const panel_ref = useRef<HTMLDivElement>(null);
   const search_input_ref = useRef<HTMLInputElement>(null);
   const panel_id = useId();
-  const [panel_style, set_panel_style] = useState<CSSProperties>({});
+  const [panel_style, set_panel_style] = useState<CSSProperties>({
+    position: "fixed",
+    top: 0,
+    left: 0,
+    visibility: "hidden",
+  });
 
   const reposition_panel = useCallback(() => {
     const anchor = dropdown_ref.current;
@@ -320,7 +326,7 @@ export function SenderSelector({
     );
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!is_open) return;
 
     let frame = 0;
@@ -350,14 +356,28 @@ export function SenderSelector({
       awaiting_created_ghost_ref.current = false;
       set_search_query("");
       set_active_index(-1);
-      requestAnimationFrame(() => search_input_ref.current?.focus());
+      requestAnimationFrame(() =>
+        search_input_ref.current?.focus({ preventScroll: true }),
+      );
     }
   }, [is_open]);
 
   useEffect(() => {
-    const active_row = panel_ref.current?.querySelector("[data-sender-active]");
+    const panel = panel_ref.current;
+    const active_row = panel?.querySelector<HTMLElement>(
+      "[data-sender-active]",
+    );
 
-    active_row?.scrollIntoView({ block: "nearest" });
+    if (!panel || !active_row) return;
+
+    const panel_rect = panel.getBoundingClientRect();
+    const row_rect = active_row.getBoundingClientRect();
+
+    if (row_rect.top < panel_rect.top) {
+      panel.scrollTop -= panel_rect.top - row_rect.top + 48;
+    } else if (row_rect.bottom > panel_rect.bottom) {
+      panel.scrollTop += row_rect.bottom - panel_rect.bottom + 4;
+    }
   }, [active_index]);
 
   useEffect(() => {

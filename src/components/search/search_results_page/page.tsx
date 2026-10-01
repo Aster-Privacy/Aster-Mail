@@ -392,7 +392,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
       </p>
       <div className="flex items-center justify-center gap-3 mt-1.5">
         <button
-          className="flex-shrink-0 text-xs font-medium text-blue-500 rounded px-1.5 py-0.5 hover:bg-blue-500/10 transition-colors"
+          className="flex-shrink-0 text-xs font-medium text-brand rounded px-1.5 py-0.5 hover:bg-brand/10 transition-colors"
           type="button"
           onClick={handle_refine_query}
         >
@@ -400,7 +400,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
         </button>
         {content_search_enabled && (
           <button
-            className="flex-shrink-0 text-xs font-medium text-blue-500 rounded px-1.5 py-0.5 hover:bg-blue-500/10 transition-colors"
+            className="flex-shrink-0 text-xs font-medium text-brand rounded px-1.5 py-0.5 hover:bg-brand/10 transition-colors"
             type="button"
             onClick={handle_disable_content_search}
           >
@@ -459,10 +459,17 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
             className="text-xs text-center max-w-[280px]"
             style={{ color: "var(--text-muted)" }}
           >
-            {t("mail.message_download_status", {
-              done: state.indexed_count,
-              total: Math.max(indexing.total, state.indexed_count),
-            })}
+            {indexing.total > 0
+              ? t("mail.message_download_status", {
+                  done: Math.min(
+                    Math.max(state.indexed_count, indexing.current),
+                    indexing.total,
+                  ),
+                  total: indexing.total,
+                })
+              : t("mail.message_download_count", {
+                  done: Math.max(state.indexed_count, indexing.current),
+                })}
           </p>
         </div>
       ) : filtered_results.length === 0 ? (
@@ -487,7 +494,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
           </p>
           {!content_search_enabled && (
             <button
-              className="mt-3 text-xs font-medium text-blue-500 rounded px-1.5 py-0.5 hover:bg-blue-500/10 transition-colors"
+              className="mt-3 text-xs font-medium text-brand rounded px-1.5 py-0.5 hover:bg-brand/10 transition-colors"
               type="button"
               onClick={handle_enable_content_search}
             >
@@ -502,7 +509,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
               <span>{t("mail.spam_trash_hidden_notice")}</span>
               {on_search_submit && (
                 <button
-                  className="font-medium text-blue-500 hover:underline"
+                  className="font-medium text-brand hover:underline"
                   type="button"
                   onClick={() =>
                     on_search_submit(
@@ -782,7 +789,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
               </span>
               {on_search_submit && (
                 <button
-                  className="flex-shrink-0 font-medium text-blue-500 hover:underline"
+                  className="flex-shrink-0 font-medium text-brand hover:underline"
                   type="button"
                   onClick={() =>
                     on_search_submit(
@@ -835,7 +842,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
             {email_list_content}
           </div>
           <div
-            className="w-px cursor-col-resize relative hover:bg-blue-500"
+            className="w-px cursor-col-resize relative hover:bg-brand"
             role="presentation"
             style={{
               backgroundColor: is_dragging

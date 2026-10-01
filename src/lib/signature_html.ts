@@ -20,6 +20,10 @@
 //
 export const COMPOSE_CARET_BLOCK = "<div><br></div>";
 
+export const SIGNATURE_GAP_BLOCK = "<div><br></div>";
+
+const SIGNATURE_MARKER = '<div data-aster-signature="1"';
+
 export interface SignatureHtmlSource {
   id: string;
   content: string;
@@ -49,22 +53,38 @@ export function format_signature_html(
   return `<div data-aster-signature="1" data-aster-signature-id="${signature.id}">${separator}${content}</div>`;
 }
 
-export function with_caret_block(html: string): string {
+export function with_caret_block(
+  html: string,
+  caret_block: string = COMPOSE_CARET_BLOCK,
+): string {
   if (!html) return html;
 
-  return COMPOSE_CARET_BLOCK + html;
+  if (html.startsWith(SIGNATURE_MARKER)) {
+    return caret_block + SIGNATURE_GAP_BLOCK + html;
+  }
+
+  return caret_block + html;
 }
 
 function is_empty_block(node: ChildNode | null): boolean {
   if (!node || node.nodeType !== 1) return false;
   const element = node as Element;
 
+  if (element.tagName !== "DIV" && element.tagName !== "P") return false;
   if (element.hasAttribute("data-aster-signature")) return false;
 
   return (
     !element.textContent?.trim() &&
     !element.querySelector("img, video, table, hr, blockquote")
   );
+}
+
+function create_empty_block(editor: HTMLElement): HTMLElement {
+  const block = editor.ownerDocument.createElement("div");
+
+  block.appendChild(editor.ownerDocument.createElement("br"));
+
+  return block;
 }
 
 export function insert_signature_node(
@@ -74,14 +94,57 @@ export function insert_signature_node(
   const first = editor.firstChild;
 
   if (first && is_empty_block(first)) {
-    editor.insertBefore(signature_node, first.nextSibling);
+    const second = first.nextSibling;
+
+    if (second && is_empty_block(second)) {
+      editor.insertBefore(signature_node, second.nextSibling);
+
+      return;
+    }
+
+    const gap = create_empty_block(editor);
+
+    editor.insertBefore(gap, second);
+    editor.insertBefore(signature_node, gap.nextSibling);
 
     return;
   }
 
-  const caret = editor.ownerDocument.createElement("div");
+  const caret = create_empty_block(editor);
+  const gap = create_empty_block(editor);
 
-  caret.appendChild(editor.ownerDocument.createElement("br"));
   editor.insertBefore(caret, first);
-  editor.insertBefore(signature_node, caret.nextSibling);
+  editor.insertBefore(gap, caret.nextSibling);
+  editor.insertBefore(signature_node, gap.nextSibling);
+}
+
+export function append_signature_node(
+  editor: HTMLElement,
+  signature_node: Element,
+): void {
+  const has_content = Array.from(editor.childNodes).some((node) =>
+    node.nodeType === 1 ? !is_empty_block(node) : !!node.textContent?.trim(),
+  );
+
+  if (!has_content) {
+    insert_signature_node(editor, signature_node);
+
+    return;
+  }
+
+  const last = editor.lastChild;
+
+  if (!is_empty_block(last)) {
+    editor.appendChild(create_empty_block(editor));
+  }
+  editor.appendChild(signature_node);
+}
+
+export function remove_signature_node(signature_node: Element): void {
+  const gap = signature_node.previousSibling;
+
+  if (gap && is_empty_block(gap) && gap.previousSibling) {
+    gap.remove();
+  }
+  signature_node.remove();
 }

@@ -146,7 +146,7 @@ export function AliasContextMenu({
           filled={!!alias.is_pinned}
           style={{
             color: alias.is_pinned
-              ? "var(--color-blue-500, #3b82f6)"
+              ? "var(--accent-color)"
               : undefined,
           }}
         />

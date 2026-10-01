@@ -247,6 +247,12 @@ export const CUSTOM_THEME_ROLE_KEYS: (keyof MaterialThemeVars)[] = [
   "--border-primary",
 ];
 
+const SURFACE_RELATIVE_BORDER_KEYS: (keyof MaterialThemeVars)[] = [
+  "--border-primary",
+  "--border-secondary",
+  "--border-thread-divider",
+];
+
 export type CustomThemeOverrides = Partial<
   Record<keyof MaterialThemeVars, string>
 >;
@@ -362,6 +368,16 @@ export function apply_custom_theme(
   apply_vars_with_derived(
     compute_custom_theme_vars(seed_hex, is_dark, overrides),
   );
+
+  const root = document.documentElement;
+
+  for (const key of SURFACE_RELATIVE_BORDER_KEYS) {
+    const override = overrides?.[key];
+
+    if (override && is_valid_hex_color(override)) continue;
+
+    root.style.removeProperty(key);
+  }
 }
 
 const MATERIAL_THEME_KEYS: (keyof MaterialThemeVars)[] = [

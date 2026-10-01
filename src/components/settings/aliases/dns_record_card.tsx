@@ -68,9 +68,9 @@ export function DnsRecordCard({
   );
 
   return (
-    <div className="p-3 rounded-lg bg-surf-secondary border border-edge-secondary">
-      <div className="flex items-center gap-2 mb-2">
-        <span className="text-xs font-mono px-2 py-0.5 rounded bg-surf-tertiary text-txt-secondary">
+    <div className="p-3 rounded-[var(--aster-radius-field,10px)] bg-[var(--aster-field-bg)]">
+      <div className="flex flex-wrap items-center gap-2 mb-2">
+        <span className="text-xs font-mono px-2 py-0.5 rounded bg-[var(--aster-field-hover)] text-txt-secondary">
           {record.record_type}
         </span>
         {record.priority != null && (
@@ -100,7 +100,7 @@ export function DnsRecordCard({
           {t("common.host_name")}
         </label>
         <div
-          className="flex items-center gap-2 group cursor-pointer rounded transition-colors hover:bg-surf-tertiary"
+          className="flex items-center gap-2 group cursor-pointer rounded transition-colors hover:bg-[var(--aster-field-hover)]"
           onClick={() => copy_to_clipboard(display_host)}
         >
           <code className="flex-1 p-2 rounded text-xs font-mono break-all text-txt-primary">
@@ -138,7 +138,7 @@ export function DnsRecordCard({
           {t("common.value")}
         </label>
         <div
-          className="flex items-center gap-2 group cursor-pointer rounded transition-colors hover:bg-surf-tertiary"
+          className="flex items-center gap-2 group cursor-pointer rounded transition-colors hover:bg-[var(--aster-field-hover)]"
           onClick={() => copy_to_clipboard(record.value)}
         >
           <code className="flex-1 p-2 rounded text-xs font-mono break-all text-txt-primary">

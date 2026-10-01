@@ -24,6 +24,10 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { sanitize_compose_paste, sanitize_html } from "@/lib/html_sanitizer";
 import {
+  append_signature_node,
+  remove_signature_node,
+} from "@/lib/signature_html";
+import {
   get_compose_sanitize_options,
   restore_compose_image_sources,
 } from "@/lib/compose_image_sources";
@@ -112,7 +116,7 @@ export function use_editor({
       if (!html) {
         if (!existing) return;
 
-        existing.remove();
+        remove_signature_node(existing);
         handle_input();
 
         return;
@@ -131,7 +135,7 @@ export function use_editor({
       if (existing) {
         existing.replaceWith(new_node);
       } else {
-        editor.appendChild(new_node);
+        append_signature_node(editor, new_node);
       }
       handle_input();
     },
