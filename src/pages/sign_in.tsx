@@ -165,16 +165,7 @@ export default function SignInPage() {
               draggable={false}
               src="/text_logo.png"
             />
-            <div
-              className="h-8 w-8 mx-auto animate-spin rounded-full border-2 mb-4"
-              style={{
-                borderColor:
-                  "color-mix(in srgb, var(--text-primary) 15%, transparent)",
-                borderTopColor: is_dark
-                  ? "var(--accent-color-hover)"
-                  : "var(--accent-color)",
-              }}
-            />
+            <Spinner className="mx-auto mb-4" size="lg" />
             <p className="text-sm text-txt-secondary">
               {checkout_status || t("auth.signing_in")}
             </p>
@@ -648,16 +639,7 @@ export default function SignInPage() {
             >
               {is_loading ? (
                 <div className="text-center">
-                  <div
-                    className="h-8 w-8 mx-auto animate-spin rounded-full border-2 mb-4"
-                    style={{
-                      borderColor:
-                        "color-mix(in srgb, var(--text-primary) 15%, transparent)",
-                      borderTopColor: is_dark
-                        ? "var(--accent-color-hover)"
-                        : "var(--accent-color)",
-                    }}
-                  />
+                  <Spinner className="mx-auto mb-4" size="lg" />
                   <p className="text-sm text-txt-secondary">{status}</p>
                 </div>
               ) : active_2fa_method === "backup" ? (
@@ -903,7 +885,10 @@ export default function SignInPage() {
             >
               <div className={`w-full ${error ? "mt-4" : "mt-5"} space-y-4`}>
                 <div>
-                  <label className="block text-sm font-medium mb-2 text-txt-primary">
+                  <label
+                    className="block text-sm font-medium mb-2 text-txt-primary"
+                    htmlFor="sign_in_username"
+                  >
                     {t("auth.email")}
                   </label>
                   <div className="relative w-full">
@@ -916,7 +901,10 @@ export default function SignInPage() {
                       autoCorrect="off"
                       className="notranslate pe-32"
                       disabled={is_loading}
+                      id="sign_in_username"
+                      inputMode="email"
                       maxLength={55}
+                      name="username"
                       placeholder={t("common.yourname_placeholder")}
                       spellCheck={false}
                       status={error ? "error" : "default"}
@@ -1010,7 +998,10 @@ export default function SignInPage() {
 
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <label className="text-sm font-medium text-txt-primary">
+                    <label
+                      className="text-sm font-medium text-txt-primary"
+                      htmlFor="sign_in_password"
+                    >
                       {t("auth.password")}
                     </label>
                     <Link
@@ -1026,7 +1017,9 @@ export default function SignInPage() {
                       autoComplete="current-password"
                       className="pe-11"
                       disabled={is_loading}
+                      id="sign_in_password"
                       maxLength={128}
+                      name="password"
                       placeholder={t("auth.enter_password_placeholder")}
                       status={error ? "error" : "default"}
                       type={is_password_visible ? "text" : "password"}
