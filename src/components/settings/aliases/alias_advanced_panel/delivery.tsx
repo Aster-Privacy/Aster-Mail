@@ -27,6 +27,10 @@ import { Button } from "@aster/ui";
 import { PanelRow } from "./shared";
 
 import { use_i18n } from "@/lib/i18n/context";
+import {
+  rule_folder_name,
+  rule_system_folder_type,
+} from "@/components/mail_rules/rule_folders";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
   Select,
@@ -239,8 +243,20 @@ export function DeliveryPanel({
     !tags_state.tags.some((tag) => tag.tag_token === delivery_label_token);
 
   const folder_name = (token: string) =>
-    custom_folders.find((folder) => folder.folder_token === token)?.name ??
+    rule_folder_name(folders_state.folders, token, t) ??
     t("settings.alias_delivery_folder_missing");
+
+  const rule_delivery_value = (token: string) => {
+    const system_type = rule_system_folder_type(
+      folders_state.folders.find((folder) => folder.folder_token === token)
+        ?.folder_type,
+    );
+
+    if (system_type === "inbox") return DELIVERY_INBOX_VALUE;
+    if (system_type === "archive") return DELIVERY_ARCHIVE_VALUE;
+
+    return token;
+  };
 
   const label_name = (token: string) =>
     tags_state.tags.find((tag) => tag.tag_token === token)?.name ??
@@ -257,7 +273,8 @@ export function DeliveryPanel({
         : folder_name(value);
 
   const folder_rule_conflict =
-    !!rule_delivery && rule_delivery.folder_token !== value;
+    !!rule_delivery &&
+    rule_delivery_value(rule_delivery.folder_token) !== value;
 
   const label_rule_conflict =
     !!rule_label &&

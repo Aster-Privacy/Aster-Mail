@@ -233,12 +233,15 @@ export function rule_alias_delivery_conflict(
   conditions: Condition[],
   actions: Action[],
   alias_delivery: Map<string, AliasDeliverySetting>,
+  folder_type_of?: (folder_token: string) => string | undefined,
 ): AliasDeliveryConflict | null {
   const rule_folder_token = rule_move_to_folder(actions);
 
   if (!rule_folder_token) {
     return null;
   }
+  const rule_folder_type = folder_type_of?.(rule_folder_token);
+
   for (const address of conditions.flatMap(condition_exact_addresses)) {
     const delivery = alias_delivery.get(address.toLowerCase());
 
@@ -252,6 +255,13 @@ export function rule_alias_delivery_conflict(
       continue;
     }
     if (delivery.delivery_folder_token === rule_folder_token) {
+      continue;
+    }
+    if (
+      delivery.delivery_folder_token === null &&
+      delivery.never_inbox &&
+      rule_folder_type === "archive"
+    ) {
       continue;
     }
 

@@ -28,6 +28,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown_menu";
+import { use_chip_layout } from "@/components/mail_rules/chip_pill";
 import { use_i18n } from "@/lib/i18n/context";
 
 interface AndOrPillProps {
@@ -39,6 +40,7 @@ interface AndOrPillProps {
 export function AndOrPill({ mode, on_change, read_only }: AndOrPillProps) {
   const { t } = use_i18n();
   const [open, set_open] = React.useState(false);
+  const is_row = use_chip_layout() === "row";
   const label =
     mode === "all" ? t("mail_rules.and_label") : t("mail_rules.or_label");
 
@@ -50,13 +52,24 @@ export function AndOrPill({ mode, on_change, read_only }: AndOrPillProps) {
 
   if (read_only) return pill;
 
+  const trigger = (
+    <DropdownMenuTrigger asChild>
+      <button className="cursor-pointer" type="button">
+        {pill}
+      </button>
+    </DropdownMenuTrigger>
+  );
+
   return (
     <DropdownMenu open={open} onOpenChange={set_open}>
-      <DropdownMenuTrigger asChild>
-        <button className="cursor-pointer" type="button">
-          {pill}
-        </button>
-      </DropdownMenuTrigger>
+      {is_row ? (
+        <div className="relative flex h-0 items-center justify-center">
+          <div className="absolute inset-x-0 top-0 border-t border-[var(--aster-floating-divider,var(--border-secondary))]" />
+          <div className="relative -my-3 bg-modal-bg px-1.5">{trigger}</div>
+        </div>
+      ) : (
+        trigger
+      )}
       <DropdownMenuContent
         align="center"
         className="z-[200] w-32"

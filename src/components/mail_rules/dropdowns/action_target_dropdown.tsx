@@ -21,7 +21,13 @@
 import type { Action, CategoryValue } from "@/services/api/mail_rules";
 
 import * as React from "react";
-import { CheckIcon } from "@heroicons/react/24/outline";
+import {
+  ArchiveBoxIcon,
+  CheckIcon,
+  ExclamationTriangleIcon,
+  InboxIcon,
+  TrashIcon,
+} from "@heroicons/react/24/outline";
 
 import {
   Popover,
@@ -33,8 +39,14 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown_menu";
 import { Input } from "@/components/ui/input";
+import {
+  rule_custom_folders,
+  rule_system_folders,
+  type RuleSystemFolderType,
+} from "@/components/mail_rules/rule_folders";
 import { RULE_CATEGORY_OPTIONS } from "@/data/category_catalog";
 import { use_folders } from "@/hooks/use_folders";
 import { use_tags } from "@/hooks/use_tags";
@@ -107,6 +119,13 @@ type ActionTargetDropdownProps =
   | CategorizePickerProps
   | NotifyPickerProps;
 
+const SYSTEM_FOLDER_ICONS: Record<RuleSystemFolderType, React.ElementType> = {
+  inbox: InboxIcon,
+  archive: ArchiveBoxIcon,
+  spam: ExclamationTriangleIcon,
+  trash: TrashIcon,
+};
+
 function local_input_value(date: Date): string {
   const pad = (n: number) => String(n).padStart(2, "0");
 
@@ -137,7 +156,8 @@ export function ActionTargetDropdown(props: ActionTargetDropdownProps) {
   const { state: folders_state, fetch_folders } = use_folders();
   const { state: tags_state, fetch_tags } = use_tags();
 
-  const folder_options = folders_state.folders.filter((f) => !f.is_system);
+  const system_folder_options = rule_system_folders(folders_state.folders);
+  const folder_options = rule_custom_folders(folders_state.folders);
   const label_options = tags_state.tags;
 
   void cn;
@@ -190,14 +210,42 @@ export function ActionTargetDropdown(props: ActionTargetDropdownProps) {
             <span>{t("mail_rules.none")}</span>
             {props.value === null && <CheckIcon className="w-3.5 h-3.5" />}
           </DropdownMenuItem>
-          {folder_options.length === 0 && !!folders_state.error && (
-            <DropdownMenuItem
-              disabled
-              className="justify-center text-[12.5px] text-txt-muted"
-            >
-              {t("common.something_went_wrong_try_again")}
-            </DropdownMenuItem>
-          )}
+          {system_folder_options.length === 0 &&
+            folder_options.length === 0 &&
+            !!folders_state.error && (
+              <DropdownMenuItem
+                disabled
+                className="justify-center text-[12.5px] text-txt-muted"
+              >
+                {t("common.something_went_wrong_try_again")}
+              </DropdownMenuItem>
+            )}
+          {system_folder_options.length > 0 && <DropdownMenuSeparator />}
+          {system_folder_options.map(({ folder, system_type, label_key }) => {
+            const SystemIcon = SYSTEM_FOLDER_ICONS[system_type];
+
+            return (
+              <DropdownMenuItem
+                key={folder.folder_token}
+                className="justify-between text-[12.5px]"
+                onSelect={() =>
+                  props.on_commit({
+                    type: "move_to",
+                    folder_token: folder.folder_token,
+                  })
+                }
+              >
+                <span className="flex items-center gap-2 min-w-0">
+                  <SystemIcon className="w-3.5 h-3.5 flex-shrink-0 text-txt-muted" />
+                  <span className="truncate">{t(label_key)}</span>
+                </span>
+                {props.value === folder.folder_token && (
+                  <CheckIcon className="w-3.5 h-3.5" />
+                )}
+              </DropdownMenuItem>
+            );
+          })}
+          {folder_options.length > 0 && <DropdownMenuSeparator />}
           {folder_options.map((folder) => (
             <DropdownMenuItem
               key={folder.folder_token}
