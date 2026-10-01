@@ -596,4 +596,46 @@ describe("reply modal drafts around a send", () => {
     expect(mocks.create_draft).not.toHaveBeenCalled();
     expect(mocks.update_draft).not.toHaveBeenCalled();
   });
+  it("sends visible text after switching a formatted reply to plain text", async () => {
+    mocks.send_reply.mockResolvedValue(queued_send_result());
+    await render_hook(base_props());
+    const element = document.createElement("div");
+
+    element.innerHTML = "<b>Meet at 10</b>";
+    Object.assign(latest!.message_editor_ref, { current: element });
+    await type_reply(element.innerHTML);
+    await act(async () => latest!.toggle_plain_text_mode());
+
+    expect(latest!.reply_message).toBe("Meet at 10");
+    expect(element.querySelector("b")).toBeNull();
+    await act(async () => {
+      await latest!.handle_send();
+    });
+    expect(mocks.send_reply.mock.calls[0][0].message).toContain("Meet at 10");
+    expect(mocks.send_reply.mock.calls[0][0].message).not.toContain(
+      "&lt;b&gt;",
+    );
+  });
+
+  it("keeps literal markup and line breaks when switching back to rich text", async () => {
+    await render_hook(base_props());
+    const element = document.createElement("div");
+
+    Object.assign(latest!.message_editor_ref, { current: element });
+    await act(async () => latest!.toggle_plain_text_mode());
+    Object.defineProperty(element, "innerText", {
+      configurable: true,
+      writable: true,
+      value: "Use <project> & check\nThen restart.",
+    });
+    await type_reply(element.innerText);
+    await act(async () => latest!.toggle_plain_text_mode());
+
+    expect(latest!.is_plain_text_mode).toBe(false);
+    expect(latest!.reply_message).toBe(
+      "Use &lt;project&gt; &amp; check<br>Then restart.",
+    );
+    expect(element.querySelector("project")).toBeNull();
+    expect(element.querySelectorAll("br")).toHaveLength(1);
+  });
 });
