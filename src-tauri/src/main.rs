@@ -30,6 +30,7 @@ mod default_mail_linux;
 mod default_mail_store;
 mod device;
 mod http_client;
+mod translation_assets;
 
 use std::sync::Mutex;
 #[cfg(windows)]
@@ -485,6 +486,7 @@ fn main() {
             default_mail::default_mail_app_status,
             default_mail::set_default_mail_app,
             default_mail::clear_default_mail_app,
+            translation_assets::fetch_translation_asset,
             device::crypto::device_get_pubkeys,
             device::crypto::device_set_id,
             device::crypto::device_sign_challenge,

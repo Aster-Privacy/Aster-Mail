@@ -20,6 +20,11 @@
 //
 import { EngineUnavailableError, type LanguageCode } from "./engine_types";
 
+import {
+  fetch_translation_asset,
+  uses_native_translation_assets,
+} from "@/native/desktop_translation_assets";
+
 export interface ModelFileEntry {
   name: string;
   size: number;
@@ -69,6 +74,37 @@ export function registry_url(base: string = model_base()): string {
   return `${base}/registry.json?r=${MODEL_REGISTRY_REVISION}`;
 }
 
+export function asset_name(
+  url: string,
+  base: string = model_base(),
+): string | null {
+  const root = join_url(base, "");
+
+  if (!url.startsWith(root)) return null;
+
+  const name = url.slice(root.length).split(/[?#]/)[0];
+
+  return name ? name : null;
+}
+
+async function read_registry_body(): Promise<unknown> {
+  if (uses_native_translation_assets()) {
+    const buffer = await fetch_translation_asset("registry.json");
+
+    return JSON.parse(new TextDecoder().decode(buffer));
+  }
+
+  const response = await fetch(registry_url(), { credentials: "omit" });
+
+  if (!response.ok) {
+    throw new EngineUnavailableError(
+      `translation registry returned ${response.status}`,
+    );
+  }
+
+  return response.json();
+}
+
 export function pair_id(from: LanguageCode, to: LanguageCode): string {
   return `${from}${to}`;
 }
@@ -99,15 +135,7 @@ let registry_cache: Promise<ModelRegistry> | null = null;
 export async function load_registry(): Promise<ModelRegistry> {
   if (!registry_cache) {
     registry_cache = (async () => {
-      const response = await fetch(registry_url(), { credentials: "omit" });
-
-      if (!response.ok) {
-        throw new EngineUnavailableError(
-          `translation registry returned ${response.status}`,
-        );
-      }
-
-      const body: unknown = await response.json();
+      const body: unknown = await read_registry_body();
 
       if (!body || typeof body !== "object" || Array.isArray(body)) {
         throw new EngineUnavailableError("translation registry is malformed");
