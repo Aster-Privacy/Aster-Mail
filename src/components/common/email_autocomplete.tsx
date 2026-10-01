@@ -38,6 +38,33 @@ import { split_recipient_list } from "@/utils/recipient_list";
 const EMAIL_REGEX =
   /^[^\s@]+@[a-zA-Z0-9][-a-zA-Z0-9.]*\.[a-zA-Z][-a-zA-Z0-9]{1,}$/;
 
+const MAX_SUGGESTIONS = 5;
+const NO_HIGHLIGHT = -1;
+
+const EXACT_MATCH = 0;
+const PREFIX_MATCH = 1;
+const SUBSTRING_MATCH = 2;
+const NO_MATCH = 3;
+
+function rank_address(address: string, query: string): number {
+  const lowered = address.toLowerCase();
+
+  if (lowered === query) return EXACT_MATCH;
+  if (lowered.startsWith(query)) return PREFIX_MATCH;
+
+  return lowered.includes(query) ? SUBSTRING_MATCH : NO_MATCH;
+}
+
+function rank_name(name: string, query: string): number {
+  const lowered = name.toLowerCase();
+
+  if (lowered.startsWith(query) || lowered.includes(` ${query}`)) {
+    return PREFIX_MATCH;
+  }
+
+  return lowered.includes(query) ? SUBSTRING_MATCH : NO_MATCH;
+}
+
 function SuggestionRow({
   suggestion,
   is_selected,
@@ -65,7 +92,7 @@ function SuggestionRow({
       type="button"
       onClick={on_select}
       onMouseDown={(e) => e.preventDefault()}
-      onMouseEnter={on_hover}
+      onMouseMove={on_hover}
     >
       <ProfileAvatar
         use_domain_logo
@@ -110,6 +137,19 @@ interface EmailSuggestion {
   contact_id?: string;
 }
 
+function initial_highlight(
+  value: string,
+  suggestions: EmailSuggestion[],
+): number {
+  const typed = value.trim();
+
+  if (!EMAIL_REGEX.test(typed)) return 0;
+
+  return suggestions[0]?.email.toLowerCase() === typed.toLowerCase()
+    ? 0
+    : NO_HIGHLIGHT;
+}
+
 interface EmailAutocompleteProps {
   value: string;
   on_change: (value: string) => void;
@@ -140,58 +180,53 @@ export function EmailAutocomplete({
     if (!value.trim()) return [];
 
     const query = value.toLowerCase().trim();
-    const results: EmailSuggestion[] = [];
     const seen_emails = new Set<string>(
       existing_emails.map((e) => e.toLowerCase()),
     );
+    const ranked: EmailSuggestion[][] = [[], [], []];
 
     for (const contact of contacts) {
       const full_name = `${contact.first_name} ${contact.last_name}`.trim();
-      const name_matches = full_name.toLowerCase().includes(query);
+      const name_rank = rank_name(full_name, query);
 
       for (const email of contact.emails) {
         if (!email) continue;
         if (seen_emails.has(email.toLowerCase())) continue;
 
-        const email_matches = email.toLowerCase().includes(query);
+        const rank = Math.min(name_rank, rank_address(email, query));
 
-        if (name_matches || email_matches) {
-          results.push({
-            email,
-            name: full_name || get_email_username(email),
-            avatar_url: contact.avatar_url,
-            contact_id: contact.id,
-          });
-          seen_emails.add(email.toLowerCase());
-        }
-      }
+        if (rank === NO_MATCH) continue;
 
-      if (results.length >= 5) break;
-    }
-
-    if (recent_recipients && results.length < 5) {
-      for (const recipient of recent_recipients) {
-        if (results.length >= 5) break;
-        if (seen_emails.has(recipient.email.toLowerCase())) continue;
-
-        const email_matches = recipient.email.toLowerCase().includes(query);
-
-        if (email_matches) {
-          results.push({
-            email: recipient.email,
-            name: get_email_username(recipient.email),
-          });
-          seen_emails.add(recipient.email.toLowerCase());
-        }
+        ranked[rank].push({
+          email,
+          name: full_name || get_email_username(email),
+          avatar_url: contact.avatar_url,
+          contact_id: contact.id,
+        });
+        seen_emails.add(email.toLowerCase());
       }
     }
 
-    return results;
+    for (const recipient of recent_recipients ?? []) {
+      if (seen_emails.has(recipient.email.toLowerCase())) continue;
+
+      const rank = rank_address(recipient.email, query);
+
+      if (rank === NO_MATCH) continue;
+
+      ranked[rank].push({
+        email: recipient.email,
+        name: get_email_username(recipient.email),
+      });
+      seen_emails.add(recipient.email.toLowerCase());
+    }
+
+    return ranked.flat().slice(0, MAX_SUGGESTIONS);
   }, [value, contacts, recent_recipients, existing_emails]);
 
   useEffect(() => {
     set_is_open(suggestions.length > 0 && value.length > 0);
-    set_selected_index(0);
+    set_selected_index(initial_highlight(value, suggestions));
   }, [suggestions, value]);
 
   useEffect(() => {
@@ -263,6 +298,8 @@ export function EmailAutocomplete({
           e.preventDefault();
           if (suggestions[selected_index]) {
             handle_select(suggestions[selected_index]);
+          } else if (EMAIL_REGEX.test(value.trim())) {
+            on_select(value.trim());
           }
           break;
         case "Escape":
@@ -273,6 +310,9 @@ export function EmailAutocomplete({
           if (suggestions[selected_index]) {
             e.preventDefault();
             handle_select(suggestions[selected_index]);
+          } else if (EMAIL_REGEX.test(value.trim())) {
+            e.preventDefault();
+            on_select(value.trim());
           }
           break;
       }
