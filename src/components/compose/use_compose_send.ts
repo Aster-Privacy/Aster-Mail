@@ -339,7 +339,13 @@ export function use_compose_send({
       [...recipients.to, ...recipients.cc, ...recipients.bcc],
       subject,
       stripped_body,
-      attachments.map((a) => `${a.name}:${a.data.byteLength}`).join(","),
+      JSON.stringify({
+        account: user.email.trim().toLowerCase(),
+        sender: (selected_sender?.email || user.email).trim().toLowerCase(),
+        external_account:
+          selected_sender?.type === "external" ? selected_sender.id : undefined,
+        attachments: attachments.map((a) => `${a.name}:${a.data.byteLength}`),
+      }),
     );
 
     if (is_duplicate_send(send_fingerprint, now)) {
