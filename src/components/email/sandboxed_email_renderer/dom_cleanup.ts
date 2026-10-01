@@ -630,6 +630,142 @@ export function collapse_quoted_replies(doc: Document, t: translate_fn): void {
   body.appendChild(wrapper);
 }
 
+const COLLAPSE_CONTAINER_SELECTOR =
+  ".aster-quoted-content, details.aster-forwarded-collapse";
+const COLLAPSE_CONTROL_SELECTOR =
+  ".aster-quote-toggle, details.aster-forwarded-collapse";
+const RENDERABLE_MEDIA_SELECTOR =
+  "img, svg, video, canvas, picture, hr, .blocked-image";
+const NON_RENDERED_TAGS = ["STYLE", "SCRIPT", "TITLE", "TEMPLATE", "NOSCRIPT"];
+const VISIBILITY_SCAN_LIMIT = 400;
+
+export function reveal_orphaned_hidden_quotes(doc: Document): void {
+  const body = doc.body;
+
+  if (!body) return;
+
+  body.querySelectorAll<HTMLElement>(HIDDEN_QUOTE_SELECTOR).forEach((el) => {
+    if (el.closest(COLLAPSE_CONTAINER_SELECTOR)) return;
+    if (el.style.display) return;
+    el.style.display = "block";
+  });
+}
+
+function is_zero_length(value: string): boolean {
+  return /^0(?:\.0+)?(?:px)?$/.test(value.trim());
+}
+
+function is_hiding_style(style: CSSStyleDeclaration): boolean {
+  if (style.display === "none") return true;
+  if (style.visibility === "hidden" || style.visibility === "collapse") {
+    return true;
+  }
+  if (style.opacity !== "" && parseFloat(style.opacity) === 0) return true;
+  if (is_zero_length(style.fontSize)) return true;
+
+  const clips = style.overflow !== "" && style.overflow !== "visible";
+
+  return (
+    clips && (is_zero_length(style.maxHeight) || is_zero_length(style.height))
+  );
+}
+
+function collect_hiding_elements(
+  node: Node,
+  body: HTMLElement,
+  view: Window,
+): HTMLElement[] {
+  const hiding: HTMLElement[] = [];
+  let el: HTMLElement | null =
+    node.nodeType === Node.ELEMENT_NODE
+      ? (node as HTMLElement)
+      : node.parentElement;
+
+  while (el) {
+    if (is_hiding_style(view.getComputedStyle(el))) hiding.push(el);
+    if (el === body) break;
+    el = el.parentElement;
+  }
+
+  return hiding;
+}
+
+function is_tracking_pixel(el: Element): boolean {
+  if (el.tagName !== "IMG") return false;
+
+  return ["width", "height"].some((name) =>
+    ["0", "1"].includes((el.getAttribute(name) ?? "").trim()),
+  );
+}
+
+function force_visible(el: HTMLElement, view: Window): void {
+  const style = view.getComputedStyle(el);
+
+  if (style.display === "none") {
+    el.style.setProperty(
+      "display",
+      el.matches(HIDDEN_QUOTE_SELECTOR) ? "block" : "revert",
+      "important",
+    );
+  }
+  if (style.visibility === "hidden" || style.visibility === "collapse") {
+    el.style.setProperty("visibility", "visible", "important");
+  }
+  if (style.opacity !== "" && parseFloat(style.opacity) === 0) {
+    el.style.setProperty("opacity", "1", "important");
+  }
+  if (is_zero_length(style.fontSize)) {
+    el.style.setProperty("font-size", "14px", "important");
+  }
+  if (is_zero_length(style.maxHeight)) {
+    el.style.setProperty("max-height", "none", "important");
+  }
+  if (is_zero_length(style.height)) {
+    el.style.setProperty("height", "auto", "important");
+  }
+}
+
+export function reveal_fully_hidden_content(doc: Document): boolean {
+  const body = doc.body;
+  const view = doc.defaultView;
+
+  if (!body || !view) return false;
+  if (body.querySelector(COLLAPSE_CONTROL_SELECTOR)) return false;
+
+  const hiding = new Set<HTMLElement>();
+  const walker = doc.createTreeWalker(body, NodeFilter.SHOW_TEXT);
+  let scanned = 0;
+
+  while (walker.nextNode()) {
+    const node = walker.currentNode;
+    const parent = node.parentElement;
+
+    if (!parent || NON_RENDERED_TAGS.includes(parent.tagName)) continue;
+    if (!(node.textContent || "").trim()) continue;
+
+    scanned += 1;
+    if (scanned > VISIBILITY_SCAN_LIMIT) return false;
+
+    const found = collect_hiding_elements(node, body, view);
+
+    if (found.length === 0) return false;
+    found.forEach((el) => hiding.add(el));
+  }
+
+  if (scanned === 0) return false;
+
+  const media = Array.from(body.querySelectorAll(RENDERABLE_MEDIA_SELECTOR));
+
+  for (const el of media) {
+    if (is_tracking_pixel(el)) continue;
+    if (collect_hiding_elements(el, body, view).length === 0) return false;
+  }
+
+  hiding.forEach((el) => force_visible(el, view));
+
+  return true;
+}
+
 const IMAGE_RETRY_ATTRIBUTE = "data-load-retry";
 
 function install_image_load_fallback(img_el: HTMLImageElement): void {

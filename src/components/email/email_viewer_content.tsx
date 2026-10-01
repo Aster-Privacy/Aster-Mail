@@ -55,7 +55,6 @@ import {
   is_html_content,
   has_rich_html,
   plain_text_to_html,
-  html_to_readable_plain_text,
 } from "@/lib/html_sanitizer";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
@@ -63,6 +62,10 @@ import { SandboxedEmailRenderer } from "@/components/email/sandboxed_email_rende
 import { TranslationBanner } from "@/components/email/banners/translation_banner";
 import { use_email_translation } from "@/components/email/hooks/use_email_translation";
 import { analyze_email_content } from "@/lib/phishing_analyzer";
+import {
+  readable_text_with_fallback,
+  renderable_html_part,
+} from "@/lib/message_markup";
 import { is_system_email } from "@/lib/utils";
 import { get_image_proxy_url } from "@/lib/image_proxy";
 import {
@@ -160,7 +163,9 @@ export function EmailViewerContent({
   const raw_content = password_protected
     ? ""
     : (password_unlocked_body ??
-      (email.html_content || email.body || email.preview));
+      (renderable_html_part(email.html_content, email.body) ||
+        email.body ||
+        email.preview));
 
   const extraction = useMemo(
     () =>
@@ -194,9 +199,9 @@ export function EmailViewerContent({
     if (!html_blocked) return null;
 
     return plain_text_to_html(
-      html_to_readable_plain_text(raw_content ?? "", { keep_link_urls: true }),
+      readable_text_with_fallback(raw_content ?? "", email.body),
     );
-  }, [html_blocked, raw_content]);
+  }, [html_blocked, raw_content, email.body]);
 
   const effective_content_mode = preferences.low_network_mode
     ? ("never" as const)

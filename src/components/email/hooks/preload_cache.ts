@@ -33,6 +33,7 @@ import type {
 } from "@/hooks/mail_events";
 import type { SenderTrustSource } from "@/lib/utils";
 
+import { renderable_html_part } from "@/lib/message_markup";
 import { get_email_username, is_system_email } from "@/lib/utils";
 import { extract_reply_to } from "@/utils/reply_to";
 import { get_mail_item, type MailItem } from "@/services/api/mail";
@@ -516,7 +517,9 @@ function presanitize(
   body: string,
   sender: SenderTrustSource,
 ): PreloadedSanitizedContent {
-  const raw = move_leading_footer_to_end(html_content || body);
+  const raw = move_leading_footer_to_end(
+    renderable_html_part(html_content, body) || body,
+  );
   const is_plain = !raw || !has_rich_html(raw);
   const is_system = is_system_email(sender);
 
