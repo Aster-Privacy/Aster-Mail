@@ -242,7 +242,7 @@ export function SubscriptionsContent({
       e.stopPropagation();
       const result = await unsubscribe(sender_email);
 
-      if (result === "failed") {
+      if (result === "failed" || result === "manual") {
         set_failed_unsub_ids((prev) => new Set([...prev, sender_email]));
       }
     },

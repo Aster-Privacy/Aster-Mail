@@ -362,7 +362,7 @@ export function FullEmailViewer({
             unsubscribe_link: info.unsubscribe_link,
             list_unsubscribe_header: info.list_unsubscribe_header,
           },
-          "auto",
+          "manual",
         );
 
         return "success";
@@ -377,7 +377,12 @@ export function FullEmailViewer({
           on_undo: async () => {
             const url = get_manual_unsubscribe_url(info);
 
-            if (url) open_external(url);
+            if (!url) return;
+            open_external(url);
+            persist_unsubscribe(email.sender_email, email.sender || "", {
+              unsubscribe_link: info.unsubscribe_link,
+              list_unsubscribe_header: info.list_unsubscribe_header,
+            });
           },
         }),
       });
@@ -584,7 +589,12 @@ export function FullEmailViewer({
                 on_forward={viewer.handle_per_message_forward}
                 on_load_external_content={handle_load_external_content}
                 on_manual_unsubscribed={() => {
-                  if (email) mark_unsubscribed(email.sender_email);
+                  if (!email) return;
+                  persist_unsubscribe(email.sender_email, email.sender || "", {
+                    unsubscribe_link: email.unsubscribe_info?.unsubscribe_link,
+                    list_unsubscribe_header:
+                      email.unsubscribe_info?.list_unsubscribe_header,
+                  });
                 }}
                 on_not_spam={
                   viewer.mail_item?.is_spam

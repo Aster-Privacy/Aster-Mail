@@ -206,7 +206,7 @@ export function PopupEmailBody({
             unsubscribe_link: info.unsubscribe_link,
             list_unsubscribe_header: info.list_unsubscribe_header,
           },
-          "auto",
+          "manual",
         );
 
         return "success";
@@ -221,7 +221,12 @@ export function PopupEmailBody({
           on_undo: async () => {
             const url = get_manual_unsubscribe_url(info);
 
-            if (url) open_external(url);
+            if (!url) return;
+            open_external(url);
+            persist_unsubscribe(email.sender_email, email.sender || "", {
+              unsubscribe_link: info.unsubscribe_link,
+              list_unsubscribe_header: info.list_unsubscribe_header,
+            });
           },
         }),
       });
@@ -327,7 +332,12 @@ export function PopupEmailBody({
             on_forward={handle_inline_forward}
             on_load_external_content={on_load_external_content}
             on_manual_unsubscribed={() => {
-              if (email) mark_unsubscribed(email.sender_email);
+              if (!email) return;
+              persist_unsubscribe(email.sender_email, email.sender || "", {
+                unsubscribe_link: email.unsubscribe_info?.unsubscribe_link,
+                list_unsubscribe_header:
+                  email.unsubscribe_info?.list_unsubscribe_header,
+              });
             }}
             on_not_spam={is_spam ? on_per_message_not_spam : undefined}
             on_print={on_per_message_print}
