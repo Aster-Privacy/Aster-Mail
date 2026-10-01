@@ -89,6 +89,7 @@ vi.mock("@/services/api/external_accounts", () => ({
 
 vi.mock("@/hooks/use_undo_send", () => ({
   undo_send_manager: { add: mocks.undo_add },
+  store_pending_send_payload: vi.fn(),
 }));
 
 vi.mock("@/services/send_queue", () => ({
