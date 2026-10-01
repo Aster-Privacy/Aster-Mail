@@ -22,6 +22,24 @@ const QUOTE_ATTRIBUTION_RE =
   /(^|\n|>)[ \t]*On[ \t][^\n<]{1,300}?wrote:[ \t]*(?=\n|<|$)/;
 
 export function strip_reply_quotes(body: string): string {
+  if (!/<[a-z!/]/i.test(body)) {
+    let in_quote = false;
+    const lines = body.split(/\r?\n/).filter((line) => {
+      if (QUOTE_ATTRIBUTION_RE.test(line)) {
+        in_quote = true;
+
+        return false;
+      }
+
+      if (in_quote && /^[ \t]*>/.test(line)) return false;
+      if (line.trim()) in_quote = false;
+
+      return true;
+    });
+
+    return lines.join("\n").trim() || body;
+  }
+
   const match = QUOTE_ATTRIBUTION_RE.exec(body);
   let processed = body;
 
