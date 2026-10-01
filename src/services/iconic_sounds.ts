@@ -38,7 +38,6 @@ const MASTER_GAIN = 0.8;
 const MAX_VOICES_PER_SOUND = 4;
 const VOICE_STEAL_FADE_SECONDS = 0.015;
 const MAX_START_DELAY_MS = 1500;
-const IDLE_SUSPEND_MS = 30000;
 const QUEUED_SEND_TTL_MS = 300000;
 const COMPOSE_AFTER_UNDO_MUTE_MS = 600;
 const MIN_INTERVAL_MS: Record<IconicSound, number> = {
@@ -62,7 +61,6 @@ let audio_context: AudioContext | null = null;
 let master_gain: GainNode | null = null;
 let load_promise: Promise<void> | null = null;
 let unlock_armed = false;
-let suspend_timer: ReturnType<typeof setTimeout> | null = null;
 
 const buffers = new Map<IconicSound, AudioBuffer>();
 const active_voices = new Map<IconicSound, ActiveVoice[]>();
@@ -127,34 +125,6 @@ function ensure_loaded(): Promise<void> {
   return load_promise;
 }
 
-function has_active_voices(): boolean {
-  for (const voices of active_voices.values()) {
-    if (voices.length > 0) return true;
-  }
-
-  return false;
-}
-
-function schedule_suspend(): void {
-  if (suspend_timer) clearTimeout(suspend_timer);
-  suspend_timer = setTimeout(() => {
-    suspend_timer = null;
-    if (!audio_context || audio_context.state !== "running") return;
-
-    if (has_active_voices()) {
-      schedule_suspend();
-
-      return;
-    }
-
-    audio_context
-      .suspend()
-      .catch((caught) =>
-        ignore_error("services/iconic_sounds:suspend", caught),
-      );
-  }, IDLE_SUSPEND_MS);
-}
-
 function wake(): void {
   const context = get_context();
 
@@ -167,7 +137,6 @@ function wake(): void {
   ensure_loaded().catch((caught) =>
     ignore_error("services/iconic_sounds:load", caught),
   );
-  schedule_suspend();
 }
 
 function handle_unlock(): void {
@@ -244,7 +213,6 @@ function start_voice(context: AudioContext, name: IconicSound): boolean {
   };
   voices.push(voice);
   source.start();
-  schedule_suspend();
 
   return true;
 }
@@ -282,6 +250,11 @@ export function set_iconic_sounds_enabled(next: boolean): void {
     arm_unlock();
   } else {
     disarm_unlock();
+    audio_context
+      ?.suspend()
+      .catch((caught) =>
+        ignore_error("services/iconic_sounds:suspend", caught),
+      );
   }
 }
 
