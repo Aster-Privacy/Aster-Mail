@@ -107,7 +107,11 @@ import {
   get_display_time_zone,
 } from "@/utils/date_format";
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
-import { with_caret_block } from "@/lib/signature_html";
+import {
+  append_template_after_typed_text,
+  has_typed_content,
+  with_caret_block,
+} from "@/lib/signature_html";
 
 function attachments_key(ids: string[]): string {
   return ids.join(",");
@@ -250,6 +254,9 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
   const send_lock_started_at_ref = useRef(0);
   const last_send_time_ref = useRef<number>(0);
   const content_initialized_ref = useRef(false);
+  // Initialising the body waits for the signatures, and it is editable in
+  // the meantime. Any edit since opening sets this, so the user's text stays.
+  const body_edited_ref = useRef(false);
   const initial_content_ref = useRef<string>("");
 
   useEffect(() => {
@@ -274,7 +281,10 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
 
   const editor = use_editor({
     editor_ref: message_editor_ref as React.RefObject<HTMLDivElement | null>,
-    on_change: (html: string) => set_reply_message(html),
+    on_change: (html: string) => {
+      body_edited_ref.current = true;
+      set_reply_message(html);
+    },
     enable_rich_paste: !is_plain_text_mode,
     enable_keyboard_shortcuts: true,
     is_plain_text_mode,
@@ -564,6 +574,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
 
   useEffect(() => {
     content_initialized_ref.current = false;
+    body_edited_ref.current = false;
 
     if (!is_open) return;
 
@@ -612,8 +623,12 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
         draft_snapshot.reply_to_id === original_email_id)
         ? draft_snapshot
         : null;
+    const has_typed_text = () =>
+      body_edited_ref.current && has_typed_content(message_editor_ref.current);
 
-    if (matching_draft) {
+    // While this waits for the signatures, a draft can arrive, such as the
+    // one autosave just made from the text being typed. The typed text wins.
+    if (matching_draft && !has_typed_text()) {
       content_initialized_ref.current = true;
 
       setTimeout(() => {
@@ -662,6 +677,21 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
         content,
         get_compose_sanitize_options(),
       );
+
+      // The signatures can land seconds after the reply opened. Text typed
+      // meanwhile stays put with the caret in it, and the signature and
+      // footer go below it, where they would have been from the start.
+      if (has_typed_text()) {
+        append_template_after_typed_text(
+          message_editor_ref.current,
+          sanitized_result.html,
+        );
+        set_reply_message(
+          restore_compose_image_sources(message_editor_ref.current.innerHTML),
+        );
+
+        return;
+      }
 
       message_editor_ref.current.innerHTML = sanitized_result.html;
       initial_content_ref.current = restore_compose_image_sources(

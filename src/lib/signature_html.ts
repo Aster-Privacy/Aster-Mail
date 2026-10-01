@@ -140,6 +140,32 @@ export function append_signature_node(
   editor.appendChild(signature_node);
 }
 
+export function has_typed_content(editor: HTMLElement | null): boolean {
+  if (!editor) return false;
+
+  return (
+    !!editor.textContent?.trim() ||
+    !!editor.querySelector("img, video, table, hr, blockquote")
+  );
+}
+
+export function append_template_after_typed_text(
+  editor: HTMLElement,
+  template_html: string,
+): void {
+  const holder = editor.ownerDocument.createElement("div");
+
+  holder.innerHTML = template_html;
+
+  // The typed text already fills the line the template's caret block would
+  // have given it, so only what comes after that line is added.
+  const caret_line = holder.firstChild;
+
+  if (caret_line && is_empty_block(caret_line)) caret_line.remove();
+
+  editor.append(...Array.from(holder.childNodes));
+}
+
 export function remove_signature_node(signature_node: Element): void {
   const gap = signature_node.previousSibling;
 
