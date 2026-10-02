@@ -47,11 +47,6 @@ export function normalize_link_url(raw: string): string | null {
   return parse_allowed(`https://${value}`) ? `https://${value}` : null;
 }
 
-// Pasted links are often already percent-encoded (Teams joins carry
-// %3a and %40, SharePoint paths %20). Running encodeURI over the whole
-// string turns %3a into %253a and the recipient gets a dead link, so
-// valid escapes pass through and only the rest is encoded. A % that
-// does not start an escape, as in "100%", becomes %25.
 const HREF_PARTS = /%[0-9A-Fa-f]{2}|%|[^%]+/g;
 
 export function encode_link_href(url: string): string | null {
