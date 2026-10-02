@@ -20,9 +20,11 @@
 //
 import { describe, expect, it } from "vitest";
 
-import { sanitize_html } from "./html_sanitizer";
+import { sanitize_html, type SanitizeOptions } from "./html_sanitizer";
 
 import { pre_process_email_html } from "@/components/email/email_pre_process";
+import { pt } from "@/lib/i18n/translations/pt";
+import { pt_br } from "@/lib/i18n/translations/pt-BR";
 
 const image = "https://images.example.test/logo.png";
 const proxy = "/api/images/v1/proxy";
@@ -125,5 +127,130 @@ describe("blocked images preserve email layout", () => {
         .href,
     );
     expect(img.getAttribute("style")).toContain("border");
+  });
+});
+
+function svg_of(img: Element): string {
+  return decodeURIComponent(img.getAttribute("src")!.split(",")[1]);
+}
+
+describe("blocked image labels", () => {
+  it.each([
+    ["pt", pt.common, "Imagem bloqueada", "Píxel de rastreio bloqueado"],
+    [
+      "pt-BR",
+      pt_br.common,
+      "Imagem bloqueada",
+      "Pixel de rastreamento bloqueado",
+    ],
+  ])(
+    "draws and announces the %s labels",
+    (_code, common, image_label, pixel_label) => {
+      const { html } = sanitize_html(
+        `<img src="${image}" width="640" height="180" alt="Farol"><img src="${image}" width="1" height="1">`,
+        {
+          external_content_mode: "ask",
+          blocked_image_labels: {
+            image: common.image_blocked,
+            tracking_pixel: common.tracking_pixel_blocked,
+          },
+        },
+      );
+      const [photo, pixel] = Array.from(
+        new DOMParser()
+          .parseFromString(html, "text/html")
+          .querySelectorAll("img"),
+      );
+
+      expect(photo.getAttribute("aria-label")).toBe(`${image_label}: Farol`);
+      expect(svg_of(photo)).toContain(`>${image_label}</text>`);
+      expect(pixel.getAttribute("aria-label")).toBe(pixel_label);
+      expect(html).not.toContain("Image blocked");
+    },
+  );
+
+  it("escapes the label inside the generated SVG", () => {
+    const { html } = sanitize_html(
+      `<img src="${image}" width="640" height="180">`,
+      {
+        external_content_mode: "ask",
+        blocked_image_labels: {
+          image: `<script>"x"&'y'</script>`,
+          tracking_pixel: "t",
+        },
+      },
+    );
+    const svg = svg_of(
+      new DOMParser().parseFromString(html, "text/html").querySelector("img")!,
+    );
+
+    expect(svg).not.toContain("<script>");
+    expect(svg).toContain(
+      "&lt;script&gt;&quot;x&quot;&amp;&apos;y&apos;&lt;/script&gt;",
+    );
+  });
+
+  it("leaves decorative images unnamed for screen readers", () => {
+    const img = sanitize(
+      `<img src="${image}" width="600" height="20" alt="">`,
+    ).querySelector("img")!;
+
+    expect(img.getAttribute("alt")).toBe("");
+    expect(img.hasAttribute("aria-label")).toBe(false);
+    expect(img.hasAttribute("title")).toBe(false);
+    expect(img.getAttribute("src")).toMatch(/^data:image\/svg\+xml,/);
+  });
+});
+
+describe("blocked images never keep a remote source", () => {
+  const remote = /(?:^|[\s,])(?:https?:)?\/\//i;
+  const email = `
+    <picture>
+      <source srcset="https://cdn.example.test/a.webp 1x, //cdn.example.test/a2.webp 2x" type="image/webp">
+      <source media="(min-width: 600px)" srcset="http://cdn.example.test/wide.jpg">
+      <img src="${image}" srcset="${image} 1x, https://cdn.example.test/b.png 2x" width="320" height="200" alt="Hero">
+    </picture>
+    <img src="http://cdn.example.test/plain.png" srcset="https://cdn.example.test/plain2.png 2x">
+    <img src="//cdn.example.test/protocol.png">
+    <img src="https://t.example.test/open.gif" width="1" height="1">`;
+
+  it.each<[string, SanitizeOptions]>([
+    ["ask", { external_content_mode: "ask" as const, image_proxy_url: proxy }],
+    ["never", { external_content_mode: "never" as const }],
+    [
+      "content blocking",
+      {
+        external_content_mode: "always" as const,
+        image_proxy_url: proxy,
+        content_blocking: {
+          block_remote_images: true,
+          block_tracking_pixels: true,
+        },
+      },
+    ],
+    [
+      "lockdown",
+      { external_content_mode: "always" as const, lockdown_mode: true },
+    ],
+  ])("in %s mode", (_mode, options) => {
+    const { html } = sanitize_html(email, options);
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    const images = Array.from(doc.querySelectorAll("img"));
+
+    expect(images.length).toBe(4);
+    for (const img of images) {
+      expect(img.getAttribute("data-blocked")).toBe("true");
+      expect(img.getAttribute("src")).toMatch(/^data:image\/svg\+xml,/);
+      expect(img.hasAttribute("srcset")).toBe(false);
+    }
+    for (const el of Array.from(doc.querySelectorAll("source, img"))) {
+      for (const name of ["src", "srcset"]) {
+        expect(el.getAttribute(name) ?? "").not.toMatch(remote);
+      }
+    }
+    if (options.lockdown_mode) {
+      expect(doc.querySelector("source")).toBeNull();
+      expect(html).not.toContain(proxy);
+    }
   });
 });

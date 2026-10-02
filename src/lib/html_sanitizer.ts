@@ -20,7 +20,10 @@
 //
 import DOMPurify from "dompurify";
 
-import { prepare_blocked_image } from "./blocked_image_placeholder";
+import {
+  prepare_blocked_image,
+  type BlockedImageLabels,
+} from "./blocked_image_placeholder";
 import { split_autolinks } from "./autolink";
 import { mark_brand_backgrounds } from "./email_brand_backgrounds";
 import { mark_stylesheet_background_images } from "./html_sanitizer_background_marks";
@@ -252,6 +255,7 @@ export interface SanitizeOptions {
   sandbox_mode?: boolean;
   content_blocking?: ContentBlockingSettings;
   lockdown_mode?: boolean;
+  blocked_image_labels?: BlockedImageLabels;
 }
 
 export function degraded_text_html(html: string): string {
@@ -421,6 +425,7 @@ function sanitize_html_impl(
     sandbox_mode = false,
     content_blocking,
     lockdown_mode = false,
+    blocked_image_labels,
   } = options;
 
   const effective_proxy = lockdown_mode ? undefined : image_proxy_url;
@@ -1043,7 +1048,11 @@ function sanitize_html_impl(
               `${effective_proxy}?url=${encodeURIComponent(proxy_source)}`,
             );
           }
-          prepare_blocked_image(new_element as HTMLImageElement, is_pixel);
+          prepare_blocked_image(
+            new_element as HTMLImageElement,
+            is_pixel,
+            blocked_image_labels,
+          );
         } else if (effective_proxy) {
           new_element.setAttribute(
             "src",
