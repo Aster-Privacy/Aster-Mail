@@ -49,6 +49,7 @@ import {
   detect_browser_language,
   is_rtl_language,
   is_valid_language_code,
+  to_intl_locale,
 } from "./languages";
 
 import { app_locale } from "@/utils/date_format";
@@ -116,7 +117,7 @@ function get_plural_rules(language: LanguageCode): Intl.PluralRules | null {
   if (cached) return cached;
 
   try {
-    const rules = new Intl.PluralRules(language);
+    const rules = new Intl.PluralRules(to_intl_locale(language));
 
     plural_rules_cache.set(language, rules);
 

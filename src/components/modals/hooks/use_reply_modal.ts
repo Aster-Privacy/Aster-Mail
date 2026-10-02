@@ -524,7 +524,8 @@ export function use_reply_modal(props: UseReplyModalProps) {
         : undefined;
 
     let handed_off = false;
-    const keep_failed_catch_all_reply = async (): Promise<boolean> => {
+    let handed_off_thread_token = thread_token;
+    const keep_failed_reply = async (): Promise<boolean> => {
       const draft_vault = get_vault_from_memory();
 
       if (!draft_vault) return false;
@@ -548,7 +549,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
         "reply",
         original_email_id,
         undefined,
-        thread_token,
+        handed_off_thread_token,
       ).catch(() => null);
 
       return !!saved?.data;
@@ -615,16 +616,15 @@ export function use_reply_modal(props: UseReplyModalProps) {
           }
           optimistic_id_ref.current = null;
           set_error_message(error);
-          if (handed_off && selected_sender?.is_catch_all) {
-            void keep_failed_catch_all_reply().then((kept) =>
+          if (handed_off) {
+            void keep_failed_reply().then((kept) => {
               show_toast(
-                kept
-                  ? `${error} ${t("common.failed_to_send_reply")}`.trim()
-                  : error || t("common.failed_to_send_reply"),
+                error || t("common.failed_to_send_reply"),
                 "error",
                 10000,
-              ),
-            );
+              );
+              if (!kept) show_toast(t("common.failed_to_save"), "error");
+            });
           } else {
             show_toast(
               error || t("common.failed_to_send_reply"),
@@ -694,6 +694,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
       }
 
       handed_off = true;
+      handed_off_thread_token = reply_thread_token;
       void discard_sent_draft(reply_thread_token);
 
       if (delay_seconds > 0) {

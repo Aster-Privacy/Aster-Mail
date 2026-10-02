@@ -1204,6 +1204,8 @@ export const nl = {
     font: "Lettertype",
     stylesheet: "Stijlblad",
     tracking_pixel: "Trackingpixel",
+    image_blocked: "Afbeelding geblokkeerd",
+    tracking_pixel_blocked: "Trackingpixel geblokkeerd",
     me: "mij",
     notification_banner_message:
       "Schakel bureaubladmeldingen in om op de hoogte te blijven van nieuwe e-mails",

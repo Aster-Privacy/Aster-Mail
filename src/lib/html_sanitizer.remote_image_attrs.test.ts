@@ -38,7 +38,7 @@ describe("remote image attribute leaks (srcset / background)", () => {
 
     expect(html).not.toMatch(/(?:^|\s)src="https:\/\/tracker/);
     expect(html).not.toContain("srcset");
-    expect(html).toContain("blocked-image");
+    expect(html).toContain("blocked-remote-image");
     expect(result.external_content.has_remote_images).toBe(true);
     expect(result.external_content.blocked_count).toBeGreaterThan(0);
   });
@@ -268,7 +268,9 @@ describe("same-origin image sources", () => {
       { external_content_mode: "never", image_proxy_url: PROXY },
     );
 
-    expect(result.html).not.toContain(`src="${PROXY}`);
+    const doc = new DOMParser().parseFromString(result.html, "text/html");
+
+    expect(doc.querySelector(`img[src^="${PROXY}"]`)).toBeNull();
     expect(result.external_content.has_remote_images).toBe(true);
     expect(result.external_content.blocked_count).toBeGreaterThan(0);
   });
@@ -283,7 +285,9 @@ describe("same-origin image sources", () => {
       },
     );
 
-    expect(result.html).not.toContain(`src="${PROXY}`);
+    const doc = new DOMParser().parseFromString(result.html, "text/html");
+
+    expect(doc.querySelector(`img[src^="${PROXY}"]`)).toBeNull();
     expect(result.external_content.blocked_count).toBeGreaterThan(0);
   });
 

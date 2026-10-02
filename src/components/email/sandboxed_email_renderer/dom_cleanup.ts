@@ -28,6 +28,7 @@ import {
   should_retry_image_load,
 } from "@/lib/image_load_retry";
 import { connection_store } from "@/services/routing/connection_store";
+import { clear_blocked_image } from "@/lib/blocked_image_placeholder";
 import { ignore_error } from "@/lib/ignore_error";
 import { remove_aster_footers } from "@/lib/aster_footer_strip";
 
@@ -828,6 +829,7 @@ export function unblock_remote_content(doc: Document): void {
         );
       }
     }
+    clear_blocked_image(el);
     el.removeAttribute("data-blocked");
     el.classList.remove("blocked-remote-image");
     const alt = el.getAttribute("alt");

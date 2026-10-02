@@ -206,15 +206,31 @@ export function get_thread_context_from_email(
   };
 }
 
+async function resolve_our_email(
+  our_email?: string,
+): Promise<string | undefined> {
+  if (our_email) return our_email;
+
+  try {
+    const { get_current_account } = await import("@/services/account_manager");
+    const account = await get_current_account();
+
+    return account?.user.email || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export async function fetch_and_decrypt_thread_messages(
   thread_token: string,
-  our_email?: string,
+  our_email_hint?: string,
   options?: { is_trashed?: boolean; is_spam?: boolean; limit?: number },
 ): Promise<{
   messages: DecryptedThreadMessage[];
   thread_data: ThreadWithMessages | null;
   truncated: boolean;
 }> {
+  const our_email = await resolve_our_email(our_email_hint);
   const response = await get_thread_messages(thread_token, options);
 
   if (response.error || !response.data) {
@@ -436,8 +452,9 @@ export async function fetch_and_decrypt_thread_messages(
 
 export async function fetch_and_decrypt_virtual_group(
   ids: string[],
-  our_email?: string,
+  our_email_hint?: string,
 ): Promise<DecryptedThreadMessage[]> {
+  const our_email = await resolve_our_email(our_email_hint);
   const response = await list_mail_items({ ids });
 
   if (response.error || !response.data) {
