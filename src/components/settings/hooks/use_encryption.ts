@@ -117,7 +117,7 @@ export function use_encryption() {
   };
 
   const show_keyserver_publish_result = (
-    status: KeyserverPublicationStatus | null,
+    status: KeyserverPublicationStatus | null | undefined,
   ) => {
     const state =
       status?.state ?? (status?.published ? "published" : "not_published");
