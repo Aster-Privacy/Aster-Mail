@@ -9489,6 +9489,15 @@ export const ja = {
       "スパム防止のため復旧用メールアドレスが必要です。",
     abuse_flagged_message:
       "セキュリティシステムにより、現在このネットワークからの新規登録は停止されています。心当たりがない場合は、hello@astermail.org がお力になれます。",
+    abuse_blocked_device:
+      "セキュリティシステムにより、現在この端末からの新規登録は一時停止されています。心当たりがない場合は、hello@astermail.org がお力になれます。",
+    abuse_blocked_network:
+      "セキュリティシステムにより、現在このネットワークからの新規登録は一時停止されています。時間をおくか別のネットワークから再度お試しいただくと、多くの場合うまくいきます。心当たりがない場合は、hello@astermail.org がお力になれます。",
+    abuse_blocked_proof:
+      "ブラウザがセキュリティチェックを完了できませんでした。ページを再読み込みして、もう一度お試しください。繰り返し発生する場合は、hello@astermail.org がお力になれます。",
+    abuse_blocked_risk:
+      "セキュリティシステムがこの登録を確認できませんでした。別のユーザー名を選んで再度お試しいただくと、多くの場合うまくいきます。心当たりがない場合は、hello@astermail.org がお力になれます。",
+    abuse_block_reference: "参照番号: {{reference}}",
     contact_support: "サポートに連絡",
     recovery_email_verified: "復旧用メールアドレスが確認されました",
     recovery_email_verified_desc:

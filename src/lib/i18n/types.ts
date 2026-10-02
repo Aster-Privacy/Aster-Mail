@@ -8315,6 +8315,11 @@ export interface AuthTranslations {
   passwords_do_not_match_register: string;
   registration_failed: string;
   abuse_flagged_message: string;
+  abuse_blocked_device: string;
+  abuse_blocked_network: string;
+  abuse_blocked_proof: string;
+  abuse_blocked_risk: string;
+  abuse_block_reference: string;
   contact_support: string;
   recovery_codes_copied: string;
   recovery_code_copied: string;

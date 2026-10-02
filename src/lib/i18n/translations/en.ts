@@ -9313,6 +9313,15 @@ export const en: Translations = {
       "Sign-up did not finish. Starting over and trying again usually does it. No account was created.",
     abuse_flagged_message:
       "Our security system has stopped new sign-ups from this network for now. If this looks like a mistake, hello@astermail.org can help.",
+    abuse_blocked_device:
+      "Our security system has paused new sign-ups from this device for now. If this looks like a mistake, hello@astermail.org can help.",
+    abuse_blocked_network:
+      "Our security system has paused new sign-ups from this network for now. Trying again later or from another network usually works. If this looks like a mistake, hello@astermail.org can help.",
+    abuse_blocked_proof:
+      "Your browser did not finish the security check. Reload the page and try again. If this keeps happening, hello@astermail.org can help.",
+    abuse_blocked_risk:
+      "Our security system could not verify this sign-up. Choosing a different username and trying again usually works. If this looks like a mistake, hello@astermail.org can help.",
+    abuse_block_reference: "Reference: {{reference}}",
     contact_support: "contact support",
     recovery_codes_copied: "Recovery codes copied",
     recovery_code_copied: "Recovery code copied",

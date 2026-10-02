@@ -9747,6 +9747,15 @@ export const de = {
     download_codes_pdf: "Als PDF herunterladen",
     abuse_flagged_message:
       "Unser Sicherheitssystem hat neue Registrierungen aus diesem Netzwerk vorerst gestoppt. Falls dies fehlerhaft erscheint, hilft hello@astermail.org gern weiter.",
+    abuse_blocked_device:
+      "Unser Sicherheitssystem hat neue Registrierungen von diesem Gerät vorerst angehalten. Falls dies fehlerhaft erscheint, hilft hello@astermail.org gern weiter.",
+    abuse_blocked_network:
+      "Unser Sicherheitssystem hat neue Registrierungen aus diesem Netzwerk vorerst angehalten. Ein späterer Versuch oder ein anderes Netzwerk hilft meistens. Falls dies fehlerhaft erscheint, hilft hello@astermail.org gern weiter.",
+    abuse_blocked_proof:
+      "Ihr Browser hat die Sicherheitsprüfung nicht abgeschlossen. Laden Sie die Seite neu und versuchen Sie es erneut. Falls das weiterhin passiert, hilft hello@astermail.org gern weiter.",
+    abuse_blocked_risk:
+      "Unser Sicherheitssystem konnte diese Registrierung nicht bestätigen. Ein anderer Benutzername und ein neuer Versuch helfen meistens. Falls dies fehlerhaft erscheint, hilft hello@astermail.org gern weiter.",
+    abuse_block_reference: "Referenz: {{reference}}",
     contact_support: "den Support kontaktieren",
     click_eye_reveal:
       "Klicken Sie auf das Augensymbol, um die Codes anzuzeigen",

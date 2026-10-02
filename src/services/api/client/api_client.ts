@@ -1817,6 +1817,7 @@ export class ApiClient {
               error: get_active_translations().common.account_limit_reached,
               code: "ABUSE_ACCOUNT_LIMIT",
               status: response.status,
+              details: error_data.details,
             };
           }
 
