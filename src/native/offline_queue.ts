@@ -45,7 +45,7 @@ export interface QueuedAction {
 const QUEUE_KEY = "aster_offline_queue";
 const FAILED_KEY = "aster_offline_failed_queue";
 const MAX_RETRIES = 3;
-const RETRYABLE_CLIENT_STATUSES = new Set([401, 408, 429]);
+const RETRYABLE_CLIENT_STATUSES = new Set([401, 408, 409, 429]);
 
 class OfflineActionError extends Error {
   status?: number;
@@ -471,7 +471,7 @@ export async function process_offline_queue(): Promise<void> {
 async function process_action(action: QueuedAction): Promise<void> {
   switch (action.type) {
     case "send_email":
-      await process_send_email(action.payload as SendEmailPayload);
+      await process_send_email(action.payload as SendEmailPayload, action.id);
       break;
     case "archive":
       await process_archive(action.payload as EmailActionPayload);
@@ -528,7 +528,10 @@ interface MovePayload {
 
 const GATE_REJECTED_STATUS = 422;
 
-async function process_send_email(payload: SendEmailPayload): Promise<void> {
+async function process_send_email(
+  payload: SendEmailPayload,
+  client_send_id: string,
+): Promise<void> {
   const { get_active_translations } = await import("@/lib/i18n/translations");
   const strings = get_active_translations().common;
 
@@ -588,6 +591,7 @@ async function process_send_email(payload: SendEmailPayload): Promise<void> {
     sender_display_name: payload.sender_display_name,
     expires_at: payload.expires_at,
     attachments: attachments.length > 0 ? attachments : undefined,
+    client_send_id,
   };
 
   if (has_external) {

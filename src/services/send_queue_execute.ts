@@ -67,6 +67,19 @@ import {
 } from "@/components/compose/compose_shared";
 import { ignore_error } from "@/lib/ignore_error";
 
+const CLIENT_SEND_ID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export function resolve_client_send_id(
+  ...candidates: (string | undefined)[]
+): string {
+  return (
+    candidates.find(
+      (candidate) => !!candidate && CLIENT_SEND_ID_PATTERN.test(candidate),
+    ) ?? crypto.randomUUID()
+  );
+}
+
 export async function execute_send(
   email: QueuedEmailInternal,
 ): Promise<string | undefined> {
@@ -160,6 +173,7 @@ export async function execute_send(
   }
 
   const request: Parameters<typeof send_simple_email>[0] = {
+    client_send_id: resolve_client_send_id(email.client_send_id, email.id),
     to: email.to,
     cc: email.cc,
     bcc: email.bcc,
@@ -516,6 +530,7 @@ export async function execute_external_send(
   }
 
   const external_request: Parameters<typeof send_external_email>[0] = {
+    client_send_id: resolve_client_send_id(email.client_send_id),
     encrypted_recipients: encrypted.encrypted_recipients,
     encrypted_subject: encrypted.encrypted_subject,
     encrypted_body: encrypted.encrypted_body,
