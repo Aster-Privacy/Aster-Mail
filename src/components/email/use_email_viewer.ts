@@ -1221,7 +1221,7 @@ export function use_email_viewer({
           const merged = reconcile_thread_messages(
             prev,
             thread_result.messages,
-            email_id,
+            open_email_id_ref.current ?? undefined,
           );
 
           return merged.map((m) =>
@@ -1231,9 +1231,11 @@ export function use_email_viewer({
           );
         });
 
-        if (!email?.thread_token && email) {
-          set_email({ ...email, thread_token: detail.thread_token });
-        }
+        set_email((prev) =>
+          prev && !prev.thread_token
+            ? { ...prev, thread_token: detail.thread_token }
+            : prev,
+        );
       }
 
       set_thread_draft(null);
