@@ -18,10 +18,33 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { get_active_translations } from "@/lib/i18n/translations";
+import { to_intl_locale } from "@/lib/i18n/languages";
+import {
+  get_active_language,
+  get_active_translations,
+} from "@/lib/i18n/translations";
 
 function is_tauri(): boolean {
   return "__TAURI_INTERNALS__" in window;
+}
+
+export function format_unread_tooltip(count: number): string {
+  const mail = get_active_translations().mail;
+  let category: Intl.LDMLPluralRule = "other";
+
+  try {
+    category = new Intl.PluralRules(
+      to_intl_locale(get_active_language()),
+    ).select(count);
+  } catch {
+    category = count === 1 ? "one" : "other";
+  }
+
+  const template =
+    (category === "one" ? mail.tab_unread_count_one : undefined) ??
+    mail.tab_unread_count;
+
+  return `Aster Mail - ${template.replace(/\{\{\s*count\s*\}\}/g, String(count))}`;
 }
 
 let pending_badge_count: number | null = null;
@@ -40,13 +63,7 @@ async function flush_tray_badge(): Promise<void> {
 
       pending_badge_count = null;
 
-      const tooltip =
-        count > 0
-          ? `Aster Mail - ${get_active_translations().mail.tab_unread_count.replace(
-              "{{count}}",
-              String(count),
-            )}`
-          : "Aster Mail";
+      const tooltip = count > 0 ? format_unread_tooltip(count) : "Aster Mail";
 
       try {
         await invoke("set_unread_badge", { count });

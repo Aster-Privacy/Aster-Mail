@@ -91,6 +91,7 @@ export const tr = {
     share_contact: "Kişiyi paylaş",
     some_contacts_not_created: "Bazı kişiler oluşturulamadı.",
     trash_days_left: "{{count}} gün kaldı",
+    trash_days_left_one: "{{count}} gün kaldı",
     undo_change: "Değişikliği geri al",
     delete_folder_account_password: "Hesap parolası",
     delete_folder_step_up_hint:
@@ -6934,6 +6935,8 @@ export const tr = {
     desktop_bridge_set_up: "{{ client }} kur",
     desktop_bridge_install_hint:
       "Aster Bridge'in yüklü ve çalışıyor olması gerekir. Ayarlar > Bridge bölümünden indirin.",
+    desktop_bridge_not_opened:
+      "Aster Bridge açılmadı. Yüklü ve çalışır durumda olduğundan emin olun ya da Ayarlar > Bridge bölümünden indirin.",
     desktop_bridge_upgrade_title: "Favori posta istemcinizi kullanın",
     desktop_bridge_upgrade_description:
       "Apple Mail, Thunderbird veya Outlook'u Aster Bridge ile Aster'e bağlayın. Star ve üzeri planlarda kullanılabilir.",
@@ -8726,9 +8729,13 @@ export const tr = {
     empty_spam_folder_question: "Spam klasörü boşaltılsın mı?",
     empty_spam_description:
       "Spam klasöründeki {{count}} mesajın tümü kalıcı olarak kaldırılır ve geri alamazsınız.",
+    empty_spam_description_one:
+      "Spam klasöründeki {{count}} mesaj kalıcı olarak kaldırılır ve geri alamazsınız.",
     empty_trash_question: "Çöp kutusu boşaltılsın mı?",
     empty_trash_description:
       "Çöp kutusundaki {{count}} mesajın tümü kalıcı olarak kaldırılır ve geri alamazsınız.",
+    empty_trash_description_one:
+      "Çöp kutusundaki {{count}} mesaj kalıcı olarak kaldırılır ve geri alamazsınız.",
     folder_not_found_title: "Bu klasörü bulamadık.",
     folder_not_found_subtitle:
       "Bu klasör kaldırılmış ya da hiç var olmamış olabilir. Kenar çubuğundan başka biri işe yarar.",

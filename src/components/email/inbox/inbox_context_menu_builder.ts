@@ -41,6 +41,7 @@ import {
   revert_stat_deltas,
 } from "@/hooks/use_stat_helpers";
 import { emit_mail_changed } from "@/hooks/email_action_types";
+import { trashes_whole_thread } from "@/hooks/email_list_helpers";
 import {
   bulk_add_folder,
   bulk_remove_folder,
@@ -293,7 +294,8 @@ export function build_context_menu_actions(
   const handle_restore = async (email: InboxEmail) => {
     const deltas = compute_untrash_deltas(email);
     const is_thread =
-      !!email.thread_token && (email.thread_message_count ?? 0) > 1;
+      (email.thread_message_count ?? 0) > 1 &&
+      trashes_whole_thread(email, preferences.conversation_grouping);
     const grouped_ids =
       email.grouped_email_ids && email.grouped_email_ids.length > 1
         ? email.grouped_email_ids

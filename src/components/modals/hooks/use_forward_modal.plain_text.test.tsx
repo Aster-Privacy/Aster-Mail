@@ -56,6 +56,7 @@ const stable = vi.hoisted(() => ({
   signatures: {
     default_signature: null,
     get_formatted_signature: () => "",
+    resolve_signature: () => null,
     is_loading: false,
     signatures: [],
   },
@@ -137,6 +138,7 @@ vi.mock("@/hooks/use_sender_aliases", () => ({
     sender_options: mocks.sender_state.options,
     loading: false,
   }),
+  is_signature_bindable_sender_type: () => false,
 }));
 
 vi.mock("@/hooks/use_ghost_mode", () => ({

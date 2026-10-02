@@ -1963,6 +1963,7 @@ export const en: Translations = {
     share_contact_via_email: "Attach to a new email",
     share_contact_device: "Share with another app",
     trash_days_left: "{{count}} days left",
+    trash_days_left_one: "{{count}} day left",
     undo_change: "Undo change",
     biometry_fingerprint: "fingerprint",
     biometry_face_recognition: "face recognition",
@@ -2210,6 +2211,8 @@ export const en: Translations = {
     desktop_bridge_set_up: "Set up {{ client }}",
     desktop_bridge_install_hint:
       "Aster Bridge must be installed and running. Download it from Settings > Bridge.",
+    desktop_bridge_not_opened:
+      "Aster Bridge didn't open. Make sure it's installed and running, or download it from Settings > Bridge.",
     desktop_bridge_upgrade_title: "Use your favorite mail client",
     desktop_bridge_upgrade_description:
       "Connect Apple Mail, Thunderbird, or Outlook to Aster with Aster Bridge. Available on Star and above.",
@@ -8773,9 +8776,13 @@ export const en: Translations = {
     empty_spam_folder_question: "Empty spam folder?",
     empty_spam_description:
       "All {{count}} messages in spam will be removed for good and you cannot undo it.",
+    empty_spam_description_one:
+      "{{count}} message in spam will be removed for good and you cannot undo it.",
     empty_trash_question: "Empty trash?",
     empty_trash_description:
       "All {{count}} messages in trash will be removed for good and you cannot undo it.",
+    empty_trash_description_one:
+      "{{count}} message in trash will be removed for good and you cannot undo it.",
     folder_not_found_title: "We could not find this folder.",
     folder_not_found_subtitle:
       "This folder may have been removed or never existed. Another from the sidebar will work.",

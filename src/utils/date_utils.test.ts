@@ -20,7 +20,9 @@
 //
 import { describe, expect, it, vi, afterEach } from "vitest";
 
+import { set_display_locale } from "@/utils/date_format";
 import {
+  format_contact_date,
   format_relative_time,
   format_relative_time_short,
 } from "@/utils/date_utils";
@@ -95,5 +97,24 @@ describe("format_relative_time", () => {
 
     expect(result).not.toContain("common.");
     expect(result).toMatch(/\d/);
+  });
+});
+
+describe("format_contact_date", () => {
+  afterEach(() => {
+    set_display_locale(undefined);
+  });
+
+  it("spells the date in the app language, not the browser's", () => {
+    set_display_locale("pt");
+    expect(format_contact_date("1990-03-05")).toBe("5 de março de 1990");
+
+    set_display_locale("de");
+    expect(format_contact_date("1990-03-05")).toBe("5. März 1990");
+  });
+
+  it("keeps the calendar day of a date-only value", () => {
+    set_display_locale("en");
+    expect(format_contact_date("1990-03-05")).toBe("March 5, 1990");
   });
 });

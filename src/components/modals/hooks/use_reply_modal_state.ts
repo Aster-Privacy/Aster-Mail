@@ -73,6 +73,7 @@ import {
   use_sender_aliases,
   type SenderOption,
 } from "@/hooks/use_sender_aliases";
+import { use_sender_signature } from "@/hooks/use_sender_signature";
 import { use_ghost_mode } from "@/hooks/use_ghost_mode";
 import { use_ghost_sender_binding } from "@/hooks/use_ghost_sender_binding";
 import {
@@ -574,6 +575,16 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
 
   use_escape_layer(is_open, on_close, "reply_modal");
 
+  const { signature_ref, mark_signature_applied, reset_signature } =
+    use_sender_signature({
+      editor_ref: message_editor_ref,
+      selected_sender,
+      enabled:
+        is_open && preferences.signature_mode === "auto" && !is_plain_text_mode,
+      on_swapped: (editor) =>
+        set_reply_message(restore_compose_image_sources(editor.innerHTML)),
+    });
+
   const existing_draft_ref = useRef(existing_draft);
 
   existing_draft_ref.current = existing_draft;
@@ -581,6 +592,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
   useEffect(() => {
     content_initialized_ref.current = false;
     body_edited_ref.current = false;
+    reset_signature();
 
     if (!is_open) return;
 
@@ -618,7 +630,13 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     last_saved_attachments.current = attachments_key(
       matching_draft?.content.attachments?.map((a) => a.id) ?? [],
     );
-  }, [is_open, original_email_id, set_draft_id, set_draft_version]);
+  }, [
+    is_open,
+    original_email_id,
+    set_draft_id,
+    set_draft_version,
+    reset_signature,
+  ]);
 
   useEffect(() => {
     if (!is_open || content_initialized_ref.current) return;
@@ -665,10 +683,12 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
       let content = "";
 
       const badge_html = active_badge ? build_badge_html([active_badge]) : "";
+      const signature =
+        preferences.signature_mode === "auto" ? signature_ref.current : null;
 
-      if (preferences.signature_mode === "auto" && default_signature) {
+      if (signature) {
         content =
-          get_formatted_signature(default_signature) +
+          get_formatted_signature(signature) +
           badge_html +
           get_aster_footer(t, preferences.show_aster_branding);
       } else {
@@ -691,11 +711,13 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
         set_reply_message(
           restore_compose_image_sources(message_editor_ref.current.innerHTML),
         );
+        mark_signature_applied(signature);
 
         return;
       }
 
       message_editor_ref.current.innerHTML = sanitized_result.html;
+      mark_signature_applied(signature);
       initial_content_ref.current = restore_compose_image_sources(
         message_editor_ref.current.innerHTML,
       );
@@ -709,6 +731,8 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     original_email_id,
     signatures_loading,
     default_signature,
+    signature_ref,
+    mark_signature_applied,
     preferences.show_aster_branding,
     preferences.signature_mode,
     include_badge_signature,

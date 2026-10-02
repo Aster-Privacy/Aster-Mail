@@ -1982,6 +1982,7 @@ export const hi = {
     share_contact_via_email: "नए ईमेल में अटैच करें",
     share_contact_device: "दूसरे ऐप के साथ शेयर करें",
     trash_days_left: "{{count}} दिन शेष",
+    trash_days_left_one: "{{count}} दिन शेष",
     undo_change: "बदलाव पूर्ववत करें",
     biometry_fingerprint: "फ़िंगरप्रिंट",
     biometry_face_recognition: "फ़ेस रिकग्निशन",
@@ -2299,6 +2300,8 @@ export const hi = {
     desktop_bridge_set_up: "{{ client }} सेट अप करें",
     desktop_bridge_install_hint:
       "Aster Bridge इंस्टॉल होकर चलता रहना चाहिए। इसे सेटिंग > Bridge से डाउनलोड करें।",
+    desktop_bridge_not_opened:
+      "Aster Bridge नहीं खुला। पक्का करें कि यह इंस्टॉल है और चल रहा है, या इसे सेटिंग > Bridge से डाउनलोड करें।",
     desktop_bridge_upgrade_title: "अपना पसंदीदा मेल क्लाइंट इस्तेमाल करें",
     desktop_bridge_upgrade_description:
       "Aster Bridge से Apple Mail, Thunderbird या Outlook को Aster से जोड़ें। Star और उससे ऊपर उपलब्ध।",
@@ -8815,9 +8818,13 @@ export const hi = {
     empty_spam_folder_question: "स्पैम फ़ोल्डर खाली करें?",
     empty_spam_description:
       "स्पैम के सभी {{count}} संदेश हमेशा के लिए हटा दिए जाएंगे और आप इसे पहले जैसा नहीं कर सकते।",
+    empty_spam_description_one:
+      "स्पैम का {{count}} संदेश हमेशा के लिए हटा दिया जाएगा और आप इसे पहले जैसा नहीं कर सकते।",
     empty_trash_question: "ट्रैश खाली करें?",
     empty_trash_description:
       "ट्रैश के सभी {{count}} संदेश हमेशा के लिए हटा दिए जाएंगे और आप इसे पहले जैसा नहीं कर सकते।",
+    empty_trash_description_one:
+      "ट्रैश का {{count}} संदेश हमेशा के लिए हटा दिया जाएगा और आप इसे पहले जैसा नहीं कर सकते।",
     folder_not_found_title: "हमें यह फ़ोल्डर नहीं मिला।",
     folder_not_found_subtitle:
       "यह फ़ोल्डर शायद हटा दिया गया हो या कभी बना ही न हो। साइडबार से कोई दूसरा फ़ोल्डर काम करेगा।",
