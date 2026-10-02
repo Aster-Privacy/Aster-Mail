@@ -65,6 +65,8 @@ import {
 } from "@/lib/email_ink";
 import { use_resolved_accent } from "@/lib/resolved_accent";
 import { is_transparent_color_value } from "@/lib/html_sanitizer";
+import { get_image_proxy_url } from "@/lib/image_proxy";
+import { build_proxied_content_csp } from "@/lib/email_content_csp";
 import {
   build_font_face_css,
   get_email_font_stack,
@@ -511,10 +513,24 @@ a:focus-visible {
     return m === "tor" || m === "tor_snowflake";
   })();
   const is_lockdown_mode = is_any_lockdown_active();
+  const document_base = (() => {
+    if (is_tor_mode) {
+      const onion = connection_store.get_api_onion_url();
+
+      if (!onion) return "about:blank";
+      const host = onion.replace(/^https?:\/\//, "").replace(/\/+$/, "");
+
+      return `http://${host}`;
+    }
+
+    return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window
+      ? "https://app.astermail.org"
+      : window.location.origin;
+  })();
   const tor_csp =
     is_tor_mode || is_lockdown_mode
       ? `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data: blob:; style-src 'unsafe-inline'; font-src 'self' data:; media-src 'none'; object-src 'none'; frame-src 'none'; connect-src 'none'; script-src 'none'; base-uri 'self'; form-action 'none';">`
-      : `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data: blob: https: http:; style-src 'unsafe-inline'; font-src 'self' data: https: http:; media-src 'none'; object-src 'none'; frame-src 'none'; connect-src 'none'; script-src 'none'; base-uri https: http:; form-action 'none';">`;
+      : `<meta http-equiv="Content-Security-Policy" content="${build_proxied_content_csp(get_image_proxy_url(), `${document_base}/`)}">`;
 
   const doc_nonce = useMemo(() => {
     doc_nonce_ref.current += 1;
@@ -531,20 +547,7 @@ a:focus-visible {
 <meta http-equiv="x-dns-prefetch-control" content="off">
 ${tor_csp}
 ${force_light_scheme ? `<meta name="color-scheme" content="light only">` : ""}
-<base href="${(() => {
-    if (is_tor_mode) {
-      const onion = connection_store.get_api_onion_url();
-
-      if (!onion) return "about:blank";
-      const host = onion.replace(/^https?:\/\//, "").replace(/\/+$/, "");
-
-      return `http://${host}`;
-    }
-
-    return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window
-      ? "https://app.astermail.org"
-      : window.location.origin;
-  })()}/">
+<base href="${document_base}/">
 ${contrast_repair_active ? `<style ${LINK_INK_LAYER_ATTRIBUTE}>${LINK_INK_LAYER_CSS}</style>` : ""}
 <style>${iframe_css}</style>
 <style>body{zoom:${email_zoom}}</style>
