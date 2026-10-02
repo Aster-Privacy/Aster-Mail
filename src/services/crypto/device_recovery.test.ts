@@ -196,7 +196,7 @@ describe("device recovery", () => {
       return { data: { success: true } };
     });
     consume_inactive_key_set.mockResolvedValue({ data: { success: true } });
-    commit_recovered_keys.mockResolvedValue(true);
+    commit_recovered_keys.mockResolvedValue({ written: true, dropped_keks: 0 });
     save_device_snapshot.mockImplementation(
       async (record: DeviceSnapshotRecord) => {
         snapshots.set(record.snapshot_id, record);
@@ -417,7 +417,10 @@ describe("device recovery", () => {
 
     install_vault("new", new_key.armored, "new-pw");
     inactive_sets.set("set-1", old.blob);
-    commit_recovered_keys.mockResolvedValue(false);
+    commit_recovered_keys.mockResolvedValue({
+      written: false,
+      dropped_keks: 0,
+    });
 
     expect(await run_device_recovery(USER)).toBe(0);
     expect(consume_inactive_key_set).not.toHaveBeenCalled();
@@ -470,7 +473,10 @@ describe("device recovery", () => {
       await refresh_device_snapshot(USER);
     }
     inactive_sets.set("set-1", first.blob);
-    commit_recovered_keys.mockResolvedValue(false);
+    commit_recovered_keys.mockResolvedValue({
+      written: false,
+      dropped_keks: 0,
+    });
 
     await run_device_recovery(USER);
 

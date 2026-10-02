@@ -50,5 +50,5 @@ export function recovery_error_message(
     return t("auth.invalid_recovery_code");
   }
 
-  return response.error || t("auth.invalid_recovery_code");
+  return t("auth.recovery_failed");
 }

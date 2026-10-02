@@ -24,6 +24,7 @@ const h = vi.hoisted(() => ({
   inactive: [] as { id: string }[] | null,
   current: "current password" as string | null,
   restored: 0,
+  wrong_password: false,
   restore_error: null as Error | null,
   restore_calls: [] as string[],
   conversion: null as Record<string, number> | null,
@@ -58,7 +59,11 @@ vi.mock("./crypto/restore_inactive_keys", () => ({
     h.restore_calls.push(password);
     if (h.restore_error) throw h.restore_error;
 
-    return h.restored;
+    return {
+      restored: h.restored,
+      incomplete: 0,
+      wrong_password: h.wrong_password,
+    };
   },
 }));
 
@@ -99,6 +104,7 @@ beforeEach(() => {
   h.inactive = [];
   h.current = "current password";
   h.restored = 0;
+  h.wrong_password = false;
   h.restore_error = null;
   h.restore_calls = [];
   h.conversion = null;
@@ -161,11 +167,22 @@ describe("recovering locked data", () => {
       failed: false,
       incomplete: false,
       rate_limited: false,
+      wrong_password: false,
     });
     await recover_locked_data("account-1", "");
 
     expect(h.restore_calls).toEqual([]);
     expect(h.conversion_calls).toEqual([]);
+  });
+
+  it("reports a password that opens no archive", async () => {
+    h.wrong_password = true;
+
+    const result = await recover_locked_data("account-1", "not the old one");
+
+    expect(result.wrong_password).toBe(true);
+    expect(result.restored_key_sets).toBe(0);
+    expect(result.failed).toBe(false);
   });
 
   it("restores key sets and converts sent mail with the old password", async () => {
@@ -180,6 +197,7 @@ describe("recovering locked data", () => {
       failed: false,
       incomplete: false,
       rate_limited: false,
+      wrong_password: false,
     });
     expect(h.restore_calls).toEqual(["old password"]);
     expect(h.conversion_calls).toEqual(["old password"]);
@@ -261,6 +279,7 @@ describe("recovering locked data with a recovery code", () => {
       failed: false,
       incomplete: false,
       rate_limited: false,
+      wrong_password: false,
     });
     expect(h.code_calls).toEqual([CODE]);
   });

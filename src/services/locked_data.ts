@@ -47,6 +47,7 @@ export interface LockedDataRecovery {
   failed: boolean;
   incomplete: boolean;
   rate_limited: boolean;
+  wrong_password: boolean;
 }
 
 export function has_locked_data(status: LockedDataStatus | null): boolean {
@@ -109,12 +110,17 @@ export async function recover_locked_data(
     failed: false,
     incomplete: false,
     rate_limited: false,
+    wrong_password: false,
   };
 
   if (!account_id || !password) return result;
 
   try {
-    result.restored_key_sets = await restore_inactive_key_sets(password);
+    const restored = await restore_inactive_key_sets(password);
+
+    result.restored_key_sets = restored.restored;
+    result.incomplete = restored.incomplete > 0;
+    result.wrong_password = restored.wrong_password;
   } catch (caught) {
     result.failed = true;
     ignore_error("services/locked_data:restore_key_sets", caught);
@@ -147,6 +153,7 @@ export async function recover_locked_data_with_code(
     failed: false,
     incomplete: false,
     rate_limited: false,
+    wrong_password: false,
   };
 
   if (!account_id || !code) return result;

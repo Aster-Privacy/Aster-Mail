@@ -162,7 +162,9 @@ export function RecoverDataModal({
       t(
         result.failed
           ? "common.recover_data_failed"
-          : "common.recover_data_no_match",
+          : result.wrong_password
+            ? "common.incorrect_password"
+            : "common.recover_data_no_match",
       ),
       "error",
     );

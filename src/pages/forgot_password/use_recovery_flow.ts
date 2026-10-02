@@ -582,6 +582,13 @@ export function use_recovery_flow() {
     });
     set_codes_saved(false);
     set_codes_downloaded(false);
+    set_recovery_code("");
+    set_password("");
+    set_confirm_password("");
+    set_recovery_token("");
+    set_vault_backup(null);
+    set_code_salt("");
+    set_encrypted_recovery_key_data(null);
     set_step("new_codes");
   };
 

@@ -45,9 +45,8 @@ vi.mock("./ensure_ratchet_keys", () => ({
 }));
 
 const { restore_inactive_key_sets } = await import("./restore_inactive_keys");
-const { store_vault_in_memory, clear_vault_from_memory } = await import(
-  "./memory_key_store"
-);
+const { store_vault_in_memory, clear_vault_from_memory } =
+  await import("./memory_key_store");
 const { decrypt_alias_field } = await import("@/services/api/aliases/crypto");
 
 function random_key(): Uint8Array {
@@ -128,7 +127,9 @@ describe("alias recovery after a password change", () => {
       decrypt_alias_field(sealed.encrypted, sealed.nonce),
     ).rejects.toThrow();
 
-    expect(await restore_inactive_key_sets(OLD_PASSWORD)).toBe(1);
+    expect(await restore_inactive_key_sets(OLD_PASSWORD)).toMatchObject({
+      restored: 1,
+    });
 
     expect(await decrypt_alias_field(sealed.encrypted, sealed.nonce)).toBe(
       "bills@astermail.org",
@@ -148,7 +149,11 @@ describe("alias recovery after a password change", () => {
       "user-1",
     );
 
-    expect(await restore_inactive_key_sets("not-the-old-password")).toBe(0);
+    expect(await restore_inactive_key_sets("not-the-old-password")).toEqual({
+      restored: 0,
+      incomplete: 0,
+      wrong_password: true,
+    });
 
     await expect(
       decrypt_alias_field(sealed.encrypted, sealed.nonce),
@@ -201,7 +206,9 @@ describe("alias recovery after a password change", () => {
       decrypt_alias_field(sealed.encrypted, sealed.nonce),
     ).rejects.toThrow();
 
-    expect(await restore_inactive_key_sets(OLD_PASSWORD)).toBe(1);
+    expect(await restore_inactive_key_sets(OLD_PASSWORD)).toMatchObject({
+      restored: 1,
+    });
 
     expect(await decrypt_alias_field(sealed.encrypted, sealed.nonce)).toBe(
       "banking@astermail.org",
@@ -223,7 +230,9 @@ describe("alias recovery after a password change", () => {
       decrypt_alias_field(sealed.encrypted, sealed.nonce),
     ).rejects.toThrow();
 
-    expect(await restore_inactive_key_sets(OLD_PASSWORD)).toBe(1);
+    expect(await restore_inactive_key_sets(OLD_PASSWORD)).toMatchObject({
+      restored: 1,
+    });
 
     expect(await decrypt_alias_field(sealed.encrypted, sealed.nonce)).toBe(
       "work@astermail.org",

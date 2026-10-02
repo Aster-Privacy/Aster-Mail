@@ -275,16 +275,14 @@ export default function ResetPasswordPage() {
   const [step, set_step] = useState<ResetStep>(token ? "loading" : "invalid");
 
   useEffect(() => {
-    if (step !== "success" && step !== "invalid") return;
-
-    if (!token && !account_email) return;
+    if (!initial_params.has("token") && !initial_params.has("email")) return;
 
     const clean_url = new URL(window.location.href);
 
     clean_url.searchParams.delete("token");
     clean_url.searchParams.delete("email");
     window.history.replaceState({}, "", clean_url.toString());
-  }, [step, token, account_email]);
+  }, [initial_params]);
   const [status_failed, set_status_failed] = useState(false);
   const [status_attempt, set_status_attempt] = useState(0);
   const [password, set_password] = useState("");
@@ -414,7 +412,7 @@ export default function ResetPasswordPage() {
       } else if (kind === "invalid_code") {
         set_error(t("settings.invalid_2fa_code"));
       } else {
-        set_error(response.error || t("auth.recovery_failed"));
+        set_error(t("auth.recovery_failed"));
       }
 
       return;
@@ -438,7 +436,7 @@ export default function ResetPasswordPage() {
 
           return;
         }
-        throw new Error(options.error || t("auth.recovery_failed"));
+        throw new Error(t("auth.recovery_failed"));
       }
 
       const assertion = await perform_webauthn_assertion_with_options(
@@ -452,7 +450,7 @@ export default function ResetPasswordPage() {
 
           return;
         }
-        throw new Error(response.error || t("auth.recovery_failed"));
+        throw new Error(t("auth.recovery_failed"));
       }
 
       finish_second_factor();
@@ -464,6 +462,8 @@ export default function ResetPasswordPage() {
   };
 
   const handle_submit = async () => {
+    if (step === "processing") return;
+
     set_error("");
 
     if (!/^[\x20-\x7E]*$/.test(password)) {
@@ -607,7 +607,7 @@ export default function ResetPasswordPage() {
 
           return;
         }
-        throw new Error(response.error || t("auth.recovery_failed"));
+        throw new Error(t("auth.recovery_failed"));
       }
 
       set_step("new_codes");
@@ -1088,6 +1088,9 @@ export default function ResetPasswordPage() {
               className="w-full mt-6 text-sm transition-colors hover:opacity-80 text-txt-tertiary"
               onClick={() => {
                 set_new_recovery_codes([]);
+                set_password("");
+                set_confirm_password("");
+                set_second_factor_code("");
                 set_step("success");
               }}
             >
