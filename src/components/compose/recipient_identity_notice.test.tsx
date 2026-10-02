@@ -24,6 +24,8 @@ import { createRoot, type Root } from "react-dom/client";
 
 const h = vi.hoisted(() => ({
   changed: new Set<string>(),
+  untrusted: new Set<string>(),
+  trusted: [] as string[],
   acknowledged: [] as string[],
   listeners: [] as Array<() => void>,
 }));
@@ -45,9 +47,17 @@ vi.mock("@/services/recipient_classification", () => ({
 }));
 
 vi.mock("@/services/crypto/recipient_identity_check", () => ({
-  has_recipient_identity_changed: vi.fn(async (email: string) =>
-    h.changed.has(email),
+  get_recipient_identity_status: vi.fn(async (email: string) =>
+    h.untrusted.has(email)
+      ? "untrusted"
+      : h.changed.has(email)
+        ? "rotated"
+        : "unchanged",
   ),
+  trust_recipient_identity: vi.fn(async (email: string) => {
+    h.trusted.push(email);
+    h.untrusted.delete(email);
+  }),
 }));
 
 vi.mock("@/services/crypto/ratchet_identity_pin", () => ({
@@ -67,7 +77,7 @@ vi.mock("@/services/crypto/ratchet_verification_status", () => ({
 }));
 
 import { RecipientIdentityNotice } from "@/components/compose/recipient_identity_notice";
-import { has_recipient_identity_changed } from "@/services/crypto/recipient_identity_check";
+import { get_recipient_identity_status } from "@/services/crypto/recipient_identity_check";
 
 const mounted: Array<{ root: Root; container: HTMLDivElement }> = [];
 
@@ -88,9 +98,11 @@ async function render(recipients: string[]) {
 
 beforeEach(() => {
   h.changed = new Set();
+  h.untrusted = new Set();
+  h.trusted = [];
   h.acknowledged = [];
   h.listeners = [];
-  vi.mocked(has_recipient_identity_changed).mockClear();
+  vi.mocked(get_recipient_identity_status).mockClear();
 });
 
 afterEach(() => {
@@ -127,7 +139,7 @@ describe("RecipientIdentityNotice", () => {
   it("does not check external recipients", async () => {
     await render(["someone@example.com"]);
 
-    expect(has_recipient_identity_changed).not.toHaveBeenCalled();
+    expect(get_recipient_identity_status).not.toHaveBeenCalled();
   });
 
   it("hides the warning and records the acknowledgement on dismiss", async () => {
@@ -156,5 +168,37 @@ describe("RecipientIdentityNotice", () => {
     });
 
     expect(container.querySelector('[role="status"]')).not.toBeNull();
+  });
+
+  it("blocks an untrusted recipient with an alert that has no dismiss", async () => {
+    h.untrusted.add("alice@astermail.org");
+
+    const { container } = await render(["alice@astermail.org"]);
+    const alert = container.querySelector('[role="alert"]');
+
+    expect(alert).not.toBeNull();
+    expect(alert?.textContent).toContain(
+      "mail.recipient_identity_untrusted:alice@astermail.org",
+    );
+    expect(alert?.textContent).toContain("mail.trust_new_key");
+    expect(alert?.textContent).not.toContain("common.dismiss");
+  });
+
+  it("trusts the new key only when the user chooses to", async () => {
+    h.untrusted.add("alice@astermail.org");
+
+    const { container } = await render(["alice@astermail.org"]);
+
+    expect(h.trusted).toEqual([]);
+
+    await act(async () => {
+      container
+        .querySelector("button")
+        ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    expect(h.trusted).toEqual(["alice@astermail.org"]);
+    expect(h.acknowledged).toEqual([]);
+    expect(container.querySelector('[role="alert"]')).toBeNull();
   });
 });

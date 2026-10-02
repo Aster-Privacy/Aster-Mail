@@ -210,6 +210,7 @@ export function use_mobile_sign_in() {
               password,
               totp_response.encrypted_vault,
               totp_response.vault_nonce,
+              remember_me,
             ),
           );
 
@@ -231,6 +232,7 @@ export function use_mobile_sign_in() {
               password,
               totp_response.encrypted_vault,
               totp_response.vault_nonce,
+              remember_me,
             ),
           );
         }
@@ -299,6 +301,7 @@ export function use_mobile_sign_in() {
       navigate,
       t,
       active_2fa_method,
+      remember_me,
     ],
   );
 

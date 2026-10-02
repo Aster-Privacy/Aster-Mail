@@ -901,6 +901,16 @@ export const es = {
       "El envío programado no está disponible para las cuentas conectadas. Envía este mensaje ahora o elige una dirección de Aster.",
     scheduled_no_expiry:
       "Los correos programados aún no admiten caducidad. Envíalo ahora o quita la caducidad para programarlo.",
+    scheduled_too_far_ahead:
+      "Los correos programados pueden enviarse como máximo con 28 días de antelación. Elige una hora anterior.",
+    scheduled_requires_encryption:
+      "Tienes activado el cifrado obligatorio, y los correos programados a direcciones externas no tienen cifrado de extremo a extremo. Envía este mensaje ahora o desactiva el cifrado obligatorio en Ajustes.",
+    offline_password_protected_unavailable:
+      "No puedes poner en cola correos protegidos con contraseña sin conexión. Cuando vuelvas a estar conectado, envía el mensaje.",
+    offline_settings_unavailable:
+      "No se pudo cargar tu configuración, así que el mensaje no se envió. Cuando vuelvas a estar conectado, inténtalo de nuevo.",
+    cannot_send_key_changed_offline:
+      "La clave de cifrado de un destinatario cambió mientras este mensaje esperaba para enviarse, así que no se envió.",
     failed_to_merge_contacts:
       "La combinación no se completó. Inténtalo de nuevo. Tus contactos originales no han cambiado.",
     enter_valid_emails: "Por favor ingresa direcciones de correo válidas",
@@ -8332,6 +8342,11 @@ export const es = {
       "Los mensajes de este remitente ya no cuentan con protección poscuántica. Si no lo esperabas, confírmalo con esa persona por otro medio.",
     recipient_identity_changed:
       "La clave de cifrado de {{email}} cambió. Si no lo esperabas, confirma el cambio con esa persona por otro medio antes de enviar información confidencial.",
+    message_password_requirements:
+      "Usa al menos 12 caracteres e incluye un número, un símbolo o letras mayúsculas y minúsculas.",
+    recipient_identity_untrusted:
+      "La clave de cifrado de {{email}} cambió y no se puede confirmar la nueva clave. Para enviar a esta dirección, confirma el cambio con esa persona por otro medio y elige Confiar en la nueva clave.",
+    trust_new_key: "Confiar en la nueva clave",
     load_all_thread_messages: "Cargar todos los mensajes",
     move_to_category: "Mover a la categoría",
     menu_applies_to_selection: "Se aplica a {count} seleccionados",
@@ -9949,6 +9964,12 @@ export const es = {
       "Tienes activado el cifrado obligatorio y ninguno de tus destinatarios tiene una clave registrada. Pídeles que compartan una o desactiva el cifrado obligatorio en Ajustes para enviarlo. Tu borrador está guardado.",
     cannot_send_no_recovery_key:
       "Aster todavía no puede enviar este mensaje porque a la cuenta del destinatario le faltan las claves para leerlo. Pídale que abra Aster en cualquier dispositivo o que actualice la aplicación para renovar esas claves y vuelva a intentarlo. Su borrador está guardado.",
+    message_password_too_weak:
+      "La contraseña del mensaje es demasiado débil, así que el mensaje no se envió. Usa al menos 12 caracteres e incluye un número, un símbolo o letras mayúsculas y minúsculas.",
+    recipient_key_untrusted:
+      "La clave de cifrado de un destinatario cambió, así que el mensaje no se envió. Para enviarlo, confirma el cambio con esa persona por otro medio y elige Confiar en la nueva clave.",
+    key_trust_check_failed:
+      "No se pudieron comprobar las claves de cifrado de los destinatarios, así que el mensaje no se envió. Comprueba tu conexión y vuelve a intentarlo.",
     conflict:
       "Otra persona u otro proceso cambió esto antes. Actualiza para ver la versión más reciente.",
     connection_failed:

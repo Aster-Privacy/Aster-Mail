@@ -482,9 +482,14 @@ export function configure_session_timeout(
   }
 }
 
+export interface StartSessionTimeoutOptions {
+  resume?: boolean;
+}
+
 export function start_session_timeout(
   account_id: string,
   on_timeout?: () => void,
+  options: StartSessionTimeoutOptions = {},
 ): void {
   if ("__TAURI_INTERNALS__" in window) {
     return;
@@ -501,14 +506,21 @@ export function start_session_timeout(
     return;
   }
 
+  attach_activity_listeners();
+  attach_broadcast_channel();
+  attach_storage_listener();
+
+  if (options.resume) {
+    last_activity_update = read_last_activity() ?? 0;
+    schedule_from_last_activity();
+
+    return;
+  }
+
   const now = Date.now();
 
   write_last_activity(now);
   last_activity_update = now;
-
-  attach_activity_listeners();
-  attach_broadcast_channel();
-  attach_storage_listener();
   schedule_timer(get_timeout_ms());
 }
 
@@ -523,6 +535,12 @@ export function stop_session_timeout(): void {
 }
 
 export function check_session_expired(account_id: string): boolean {
+  if ("__TAURI_INTERNALS__" in window) {
+    return false;
+  }
+
+  load_config_from_storage();
+
   if (!current_config.enabled) {
     return false;
   }
@@ -559,12 +577,5 @@ export function clear_session_timeout_data(account_id: string): void {
       "services/session_timeout_service:clear_session_timeout_data",
       caught,
     );
-  }
-}
-
-export function refresh_session_activity(): void {
-  if (current_account_id && current_config.enabled) {
-    last_activity_update = 0;
-    update_last_activity();
   }
 }

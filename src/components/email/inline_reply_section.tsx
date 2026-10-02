@@ -497,6 +497,7 @@ export const InlineReplySection = forwardRef<
         message: message_with_signature,
         thread_token,
         original_email_id: email_id,
+        require_encryption: preferences.require_encryption === true,
       },
       {
         on_complete: (sent_id?: string) => {

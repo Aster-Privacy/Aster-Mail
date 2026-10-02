@@ -126,4 +126,28 @@ describe("QuotedHtmlPreview", () => {
     expect(markup).toContain("tracker.example");
     expect(markup).not.toContain("<style");
   });
+
+  it("drops app classes and ids so quoted mail cannot cover the modal", () => {
+    h.block_external_content = true;
+
+    const { container } = render(
+      <QuotedHtmlPreview
+        html={
+          '<div class="fixed inset-0 z-50 bg-white" id="root" style="position:fixed;inset:0">cover</div>' +
+          '<div class="aster_quote"><blockquote class="aster_quote_body">quoted</blockquote></div>'
+        }
+      />,
+    );
+    const cover = Array.from(container.querySelectorAll("div")).find(
+      (el) => el.textContent === "cover",
+    );
+
+    expect(cover).toBeDefined();
+    expect(cover!.hasAttribute("class")).toBe(false);
+    expect(cover!.hasAttribute("id")).toBe(false);
+    expect(cover!.getAttribute("style") ?? "").not.toMatch(/fixed/i);
+    expect(
+      container.querySelector(".aster_quote .aster_quote_body"),
+    ).not.toBeNull();
+  });
 });

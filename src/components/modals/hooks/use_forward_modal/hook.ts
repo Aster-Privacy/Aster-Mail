@@ -64,6 +64,7 @@ import {
   recipient_limit_violation,
 } from "@/lib/recipient_limits";
 import { use_suggestion_contacts } from "@/hooks/use_suggestion_contacts";
+import { check_scheduled_send } from "@/services/scheduled_send_gate";
 import {
   create_scheduled_email,
   type ScheduledEmailContent,
@@ -877,6 +878,7 @@ export function use_forward_modal({
         sender_display_name: fwd_sender_display_name,
         attachments: fwd_attachments,
         forward_original_mail_id: fwd_server_source_id,
+        require_encryption: preferences.require_encryption === true,
       },
       {
         on_complete: (sent_id?: string) => {
@@ -1010,6 +1012,58 @@ export function use_forward_modal({
       return;
     }
 
+    if (selected_sender?.type === "external") {
+      set_error_message(t("common.scheduled_connected_account"));
+
+      return;
+    }
+
+    if (expires_at) {
+      set_error_message(t("common.scheduled_no_expiry"));
+
+      return;
+    }
+
+    const recipient_violation = recipient_limit_violation(
+      send_recipients.to,
+      send_recipients.cc,
+      send_recipients.bcc,
+    );
+
+    if (recipient_violation) {
+      set_error_message(
+        recipient_violation === "field"
+          ? t("common.too_many_recipients_in_field", {
+              max: MAX_RECIPIENTS_PER_FIELD,
+            })
+          : t("common.too_many_recipients_in_message", {
+              max: MAX_RECIPIENTS_PER_SEND,
+            }),
+      );
+
+      return;
+    }
+
+    const scheduled_alias =
+      selected_sender && selected_sender.type !== "primary"
+        ? selected_sender
+        : null;
+    const scheduled_sender_email = scheduled_alias?.email ?? user.email;
+    const scheduled_gate = await check_scheduled_send(
+      [...send_recipients.to, ...send_recipients.cc, ...send_recipients.bcc],
+      scheduled_sender_email,
+      scheduled_time,
+      preferences.require_encryption === true,
+    );
+
+    if (!scheduled_gate.proceed) {
+      if (scheduled_gate.blocked_by) {
+        set_error_message(t(scheduled_gate.blocked_by));
+      }
+
+      return;
+    }
+
     is_sending_ref.current = true;
     set_is_scheduling(true);
     set_error_message(null);
@@ -1029,10 +1083,25 @@ export function use_forward_modal({
       subject: `${t("mail.forward_subject_prefix")} ${email_subject}`,
       body: scheduled_body,
       scheduled_at: scheduled_time.toISOString(),
+      ...(scheduled_alias?.is_catch_all
+        ? {
+            from: {
+              name: scheduled_alias.display_name || "",
+              email: scheduled_alias.email,
+            },
+          }
+        : {}),
     };
 
     try {
-      const response = await create_scheduled_email(vault, content);
+      const response = await create_scheduled_email(vault, content, {
+        sender_alias_hash: scheduled_alias?.address_hash,
+        sender_email: scheduled_sender_email,
+        sender_display_name: scheduled_alias
+          ? scheduled_alias.display_name || undefined
+          : user.display_name || undefined,
+        allow_non_post_quantum: scheduled_gate.allow_non_post_quantum,
+      });
 
       if (response.error) {
         set_error_message(response.error);
@@ -1069,6 +1138,9 @@ export function use_forward_modal({
     attachments,
     build_forward_content,
     preferences.show_aster_branding,
+    preferences.require_encryption,
+    selected_sender,
+    expires_at,
   ]);
 
   const get_total_attachments_size = useCallback(() => {

@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import * as openpgp from "openpgp";
+
 import {
   encrypted_get,
   encrypted_set,
@@ -29,18 +31,28 @@ import {
   dismiss_peer_identity_event,
   record_peer_identity_event,
 } from "./ratchet_verification_status";
+import { KeyPinUnavailableError } from "./ratchet_types";
 
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 
 const PIN_STORAGE_KEY_PREFIX = "ratchet_identity_pin_";
 const CHANGE_STORAGE_KEY_PREFIX = "ratchet_identity_change_";
+const OWNER_KEY_STORAGE_KEY_PREFIX = "ratchet_owner_key_pin_";
+const UNTRUSTED_STORAGE_KEY_PREFIX = "ratchet_identity_untrusted_";
+
+export type OwnerKeyPinStatus = "first" | "ok" | "changed" | "unknown";
+
+interface StoredOwnerKeyPin {
+  fingerprint: string;
+  pinned_at: number;
+}
+
+interface StoredUntrustedFlag {
+  flagged_at: number;
+}
 
 export type IdentityPinStatus =
-  | "first"
-  | "ok"
-  | "rotated"
-  | "drift"
-  | "unknown";
+  "first" | "ok" | "rotated" | "drift" | "unknown";
 
 interface StoredIdentityPin {
   fingerprint: string;
@@ -57,9 +69,8 @@ export interface IdentityChangeRecord {
 
 async function current_account_uid(): Promise<string | null> {
   try {
-    const { get_current_account_id } = await import(
-      "@/services/account_manager"
-    );
+    const { get_current_account_id } =
+      await import("@/services/account_manager");
 
     return await get_current_account_id();
   } catch {
@@ -210,6 +221,161 @@ export async function check_and_pin_identity(
   }
 }
 
+function owner_key_for(uid: string | null, pin_id: string): string {
+  if (!uid) return `${OWNER_KEY_STORAGE_KEY_PREFIX}${pin_id}`;
+
+  return `${OWNER_KEY_STORAGE_KEY_PREFIX}${uid}_${pin_id}`;
+}
+
+function untrusted_key_for(uid: string | null, pin_id: string): string {
+  if (!uid) return `${UNTRUSTED_STORAGE_KEY_PREFIX}${pin_id}`;
+
+  return `${UNTRUSTED_STORAGE_KEY_PREFIX}${uid}_${pin_id}`;
+}
+
+export async function flag_recipient_untrusted(pin_id: string): Promise<void> {
+  record_peer_identity_event(pin_id, "untrusted");
+
+  try {
+    const storage_key = await get_pin_storage_key();
+    const uid = await current_account_uid();
+
+    await encrypted_set(
+      untrusted_key_for(uid, pin_id),
+      { flagged_at: Date.now() } satisfies StoredUntrustedFlag,
+      storage_key,
+    );
+  } catch {
+    return;
+  }
+}
+
+export async function is_recipient_flagged_untrusted(
+  pin_id: string,
+): Promise<boolean> {
+  try {
+    const storage_key = await get_pin_storage_key();
+    const uid = await current_account_uid();
+    const flag = await encrypted_get<StoredUntrustedFlag>(
+      untrusted_key_for(uid, pin_id),
+      storage_key,
+    );
+
+    return flag !== null && flag !== undefined;
+  } catch {
+    throw new KeyPinUnavailableError(pin_id);
+  }
+}
+
+export async function owner_key_fingerprint(
+  armored_public_key: string,
+): Promise<string> {
+  const key = await openpgp.readKey({ armoredKey: armored_public_key });
+
+  return key.getFingerprint().toLowerCase();
+}
+
+export async function check_owner_key_pin(
+  pin_id: string,
+  armored_public_key: string,
+): Promise<OwnerKeyPinStatus> {
+  if (!pin_id || !armored_public_key) return "unknown";
+
+  let storage_key: CryptoKey;
+  let uid: string | null;
+  let existing: StoredOwnerKeyPin | null | undefined;
+
+  try {
+    storage_key = await get_pin_storage_key();
+    uid = await current_account_uid();
+    existing = await encrypted_get<StoredOwnerKeyPin>(
+      owner_key_for(uid, pin_id),
+      storage_key,
+    );
+  } catch {
+    throw new KeyPinUnavailableError(pin_id);
+  }
+
+  let fingerprint: string;
+
+  try {
+    fingerprint = await owner_key_fingerprint(armored_public_key);
+  } catch {
+    return existing ? "changed" : "unknown";
+  }
+
+  if (existing) {
+    return existing.fingerprint === fingerprint ? "ok" : "changed";
+  }
+
+  try {
+    await encrypted_set(
+      owner_key_for(uid, pin_id),
+      { fingerprint, pinned_at: Date.now() } satisfies StoredOwnerKeyPin,
+      storage_key,
+    );
+  } catch {
+    throw new KeyPinUnavailableError(pin_id);
+  }
+
+  return "first";
+}
+
+export async function get_pinned_owner_key_fingerprint(
+  pin_id: string,
+): Promise<string | null> {
+  try {
+    const storage_key = await get_pin_storage_key();
+    const uid = await current_account_uid();
+    const existing = await encrypted_get<StoredOwnerKeyPin>(
+      owner_key_for(uid, pin_id),
+      storage_key,
+    );
+
+    return existing?.fingerprint ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function trust_recipient_keys(
+  pin_id: string,
+  kem_identity_key: string | null,
+  armored_public_key: string | null,
+): Promise<void> {
+  const storage_key = await get_pin_storage_key();
+  const uid = await current_account_uid();
+  const existing = await load_pin(storage_key, uid, pin_id);
+
+  if (kem_identity_key) {
+    await encrypted_set(
+      storage_key_for(uid, pin_id),
+      {
+        fingerprint: await compute_hash(base64_to_array(kem_identity_key)),
+        verified: false,
+        pinned_at: Date.now(),
+        pq_seen: Boolean(existing?.pq_seen),
+      } satisfies StoredIdentityPin,
+      storage_key,
+    );
+  }
+
+  if (armored_public_key) {
+    await encrypted_set(
+      owner_key_for(uid, pin_id),
+      {
+        fingerprint: await owner_key_fingerprint(armored_public_key),
+        pinned_at: Date.now(),
+      } satisfies StoredOwnerKeyPin,
+      storage_key,
+    );
+  }
+
+  await encrypted_delete(change_key_for(uid, pin_id));
+  await encrypted_delete(untrusted_key_for(uid, pin_id));
+  dismiss_peer_identity_event(pin_id);
+}
+
 export async function has_peer_advertised_pq(pin_id: string): Promise<boolean> {
   try {
     if (!pin_id) return false;
@@ -273,6 +439,8 @@ export async function reset_identity_pin(pin_id: string): Promise<void> {
 
     await encrypted_delete(storage_key_for(uid, pin_id));
     await encrypted_delete(change_key_for(uid, pin_id));
+    await encrypted_delete(owner_key_for(uid, pin_id));
+    await encrypted_delete(untrusted_key_for(uid, pin_id));
 
     if (uid) {
       await encrypted_delete(storage_key_for(null, pin_id));

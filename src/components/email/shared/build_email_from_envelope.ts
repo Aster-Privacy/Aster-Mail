@@ -31,6 +31,7 @@ import {
   unwrap_bundle_html,
   is_ratchet_envelope,
   is_password_protected_body,
+  is_ratchet_verified_body,
 } from "@/utils/email_crypto";
 import { detect_unsubscribe_info } from "@/utils/unsubscribe_detector";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
@@ -40,6 +41,7 @@ export interface ProcessedEnvelope {
   body_text: string;
   safe_html: string | undefined;
   unsubscribe_info: UnsubscribeInfo | undefined;
+  e2e_verified: boolean;
 }
 
 export async function process_envelope_body(
@@ -68,6 +70,7 @@ export async function process_envelope_body(
       )
     : resolved_text;
 
+  const e2e_verified = is_ratchet_verified_body(resolved_text, body_text);
   const pre_pgp_text = body_text;
 
   body_text = await try_decrypt_pgp_body(body_text);
@@ -77,6 +80,7 @@ export async function process_envelope_body(
       body_text,
       safe_html: undefined,
       unsubscribe_info: undefined,
+      e2e_verified,
     };
   }
 
@@ -140,6 +144,7 @@ export async function process_envelope_body(
     body_text,
     safe_html,
     unsubscribe_info: unsubscribe ?? undefined,
+    e2e_verified,
   };
 }
 
@@ -175,6 +180,7 @@ export function build_single_thread_message(
   body_text: string,
   safe_html: string | undefined,
   decrypted_metadata: { is_read?: boolean; is_starred?: boolean } | null,
+  e2e_verified = false,
 ): DecryptedThreadMessage {
   const forwarding = resolve_forwarding_display(
     envelope.from,
@@ -199,6 +205,7 @@ export function build_single_thread_message(
     is_deleted: false,
     is_external: item.is_external,
     system_origin: item.system_origin,
+    e2e_verified,
     sender_verified_domain: item.sender_verified
       ? item.sender_verified_domain
       : undefined,

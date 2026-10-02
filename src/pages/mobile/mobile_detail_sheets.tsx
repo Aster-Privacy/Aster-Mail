@@ -857,13 +857,15 @@ export function MobileMessageDetailsSheet({
                 {t("mail.encryption_label")}
               </span>
               <EncryptionInfoDropdown
+                e2e_verified={!!message.e2e_verified}
                 has_pq_protection={false}
                 has_recipient_key={message.has_recipient_key}
                 is_external={message.is_external}
                 label={
-                  message.is_external && !message.has_recipient_key
-                    ? t("common.protected_in_transit")
-                    : t("mail.zero_access_encrypted")
+                  (!message.is_external || message.has_recipient_key) &&
+                  message.e2e_verified
+                    ? t("mail.zero_access_encrypted")
+                    : t("common.protected_in_transit")
                 }
                 sender_verification={message.sender_verification}
                 size={14}

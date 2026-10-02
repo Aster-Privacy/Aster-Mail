@@ -25,6 +25,11 @@ import {
 } from "./api/keys";
 import { is_internal_recipient } from "./recipient_classification";
 import { create_error } from "./send_queue_types";
+import {
+  check_owner_key_pin,
+  flag_recipient_untrusted,
+  is_recipient_flagged_untrusted,
+} from "./crypto/ratchet_identity_pin";
 
 import {
   is_ghost_email,
@@ -67,6 +72,27 @@ export async function resolve_own_username_for_key_lookup(
   return extract_username_from_email(email);
 }
 
+export async function assert_owner_key_trusted(
+  recipient: string,
+  armored_public_key: string,
+): Promise<void> {
+  const pin_id = recipient.trim().toLowerCase();
+
+  const owner_changed =
+    (await check_owner_key_pin(pin_id, armored_public_key)) === "changed";
+
+  if (!owner_changed && !(await is_recipient_flagged_untrusted(pin_id))) {
+    return;
+  }
+
+  await flag_recipient_untrusted(pin_id);
+
+  throw create_error(
+    "encryption_failed",
+    get_active_translations().errors.recipient_key_untrusted,
+  );
+}
+
 export async function fetch_internal_public_keys(
   recipients: string[],
 ): Promise<string[]> {
@@ -92,6 +118,7 @@ export async function fetch_internal_public_keys(
       );
     }
 
+    await assert_owner_key_trusted(recipient, key_response.data.public_key);
     public_keys.push(key_response.data.public_key);
   }
 

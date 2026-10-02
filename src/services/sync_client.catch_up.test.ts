@@ -48,10 +48,6 @@ vi.mock("./crypto/prekey_service", () => ({
   check_and_replenish_prekeys: vi.fn(),
 }));
 
-vi.mock("./session_timeout_service", () => ({
-  refresh_session_activity: vi.fn(),
-}));
-
 vi.mock("./routing/connection_store", () => ({
   connection_store: { get_method: () => "direct" },
 }));

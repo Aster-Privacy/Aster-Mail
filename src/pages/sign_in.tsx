@@ -568,6 +568,7 @@ export default function SignInPage() {
             password,
             response.data.encrypted_vault,
             response.data.vault_nonce,
+            remember_me,
           ),
         );
 
@@ -587,6 +588,7 @@ export default function SignInPage() {
             password,
             response.data.encrypted_vault,
             response.data.vault_nonce,
+            remember_me,
           ),
         );
       }

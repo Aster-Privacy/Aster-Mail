@@ -28,7 +28,13 @@ import {
 } from "./send_queue";
 import { get_or_create_thread_token } from "./thread_service";
 import { ensure_external_key_trust } from "./key_trust_consent";
-import { ensure_post_quantum_consent } from "./post_quantum_consent";
+import {
+  ensure_post_quantum_consent,
+  type PostQuantumConsentBlock,
+} from "./post_quantum_consent";
+import { check_reply_send } from "./reply_send_gate";
+import { get_cached_preferences } from "./api/preferences";
+import type { EncryptionOptions } from "./send_queue_types";
 
 import { get_aster_footer } from "@/components/compose/compose_shared";
 import { sanitize_outgoing_html } from "@/lib/html_sanitizer";
@@ -68,6 +74,7 @@ export interface ReplyParams {
   sender_display_name?: string;
   in_reply_to?: string;
   attachments?: import("@/components/compose/compose_shared").Attachment[];
+  require_encryption?: boolean;
 }
 
 export interface ForwardParams {
@@ -84,6 +91,7 @@ export interface ForwardParams {
   sender_display_name?: string;
   attachments?: import("@/components/compose/compose_shared").Attachment[];
   forward_original_mail_id?: string;
+  require_encryption?: boolean;
 }
 
 export interface MailActionResult {
@@ -169,6 +177,72 @@ export function build_reply_recipients(
   return { to, cc };
 }
 
+function requires_encryption(explicit: boolean | undefined): boolean {
+  return explicit ?? get_cached_preferences()?.require_encryption === true;
+}
+
+function reply_encryption_options(
+  explicit: boolean | undefined,
+): EncryptionOptions {
+  const preferences = get_cached_preferences();
+  const use_pgp = preferences?.encrypt_emails === true;
+  const require_encryption = requires_encryption(explicit);
+
+  return {
+    auto_discover_keys: use_pgp || require_encryption,
+    encrypt_emails: use_pgp,
+    require_encryption,
+    obscure_subject: preferences?.obscure_subject_when_encrypted === true,
+  };
+}
+
+async function blocked_by_send_policy(
+  recipients: string[],
+  require_encryption: boolean | undefined,
+  callbacks: MailActionCallbacks,
+): Promise<MailActionResult | null> {
+  const error = await check_reply_send(
+    recipients,
+    requires_encryption(require_encryption),
+  );
+
+  if (!error) return null;
+
+  callbacks.on_error?.(error);
+
+  return { success: false, error };
+}
+
+function translate_consent_block(block: PostQuantumConsentBlock): string {
+  const errors = get_active_translations().errors;
+
+  return block === "errors.recipient_key_untrusted"
+    ? errors.recipient_key_untrusted
+    : errors.key_trust_check_failed;
+}
+
+async function blocked_by_key_trust(
+  recipients: string[],
+  callbacks: MailActionCallbacks,
+): Promise<MailActionResult | null> {
+  try {
+    if (await ensure_external_key_trust(recipients)) return null;
+  } catch (err) {
+    const error =
+      err instanceof Error
+        ? err.message
+        : get_active_translations().errors.key_trust_check_failed;
+
+    callbacks.on_error?.(error);
+
+    return { success: false, error };
+  }
+
+  callbacks.on_cancel?.();
+
+  return { success: false };
+}
+
 function track_queue_errors(callbacks: MailActionCallbacks) {
   const reported: { error?: string } = {};
 
@@ -240,16 +314,20 @@ export async function send_reply(
     }
   }
 
-  const key_trusted = await ensure_external_key_trust([
-    ...recipients,
-    ...(cc ?? []),
-  ]);
+  const reply_blocked = await blocked_by_send_policy(
+    [...recipients, ...(cc ?? [])],
+    params.require_encryption,
+    callbacks,
+  );
 
-  if (!key_trusted) {
-    callbacks.on_cancel?.();
+  if (reply_blocked) return reply_blocked;
 
-    return { success: false };
-  }
+  const reply_untrusted = await blocked_by_key_trust(
+    [...recipients, ...(cc ?? [])],
+    callbacks,
+  );
+
+  if (reply_untrusted) return reply_untrusted;
 
   const consent = await ensure_post_quantum_consent(
     [...recipients, ...(cc ?? [])],
@@ -257,6 +335,14 @@ export async function send_reply(
   );
 
   if (!consent.proceed) {
+    if (consent.blocked_by) {
+      const message = translate_consent_block(consent.blocked_by);
+
+      callbacks.on_error?.(message);
+
+      return { success: false, error: message };
+    }
+
     callbacks.on_cancel?.();
 
     return { success: false };
@@ -279,6 +365,9 @@ export async function send_reply(
         sender_alias_hash: params.sender_alias_hash,
         sender_display_name: params.sender_display_name,
         attachments: params.attachments,
+        encryption_options: reply_encryption_options(
+          params.require_encryption,
+        ),
       },
       delay_seconds,
       {
@@ -317,6 +406,7 @@ export async function send_reply(
       sender_alias_hash: params.sender_alias_hash,
       sender_display_name: params.sender_display_name,
       attachments: params.attachments,
+      encryption_options: reply_encryption_options(params.require_encryption),
       on_complete: callbacks.on_complete,
       on_cancel: callbacks.on_cancel,
       on_error: callbacks.on_error,
@@ -383,17 +473,28 @@ export async function send_forward(
 
   const delay_seconds = Math.max(0, undo_send_delay_ms) / 1000;
 
-  const key_trusted = await ensure_external_key_trust([
-    ...params.recipients,
-    ...(params.cc_recipients ?? []),
-    ...(params.bcc_recipients ?? []),
-  ]);
+  const forward_blocked = await blocked_by_send_policy(
+    [
+      ...params.recipients,
+      ...(params.cc_recipients ?? []),
+      ...(params.bcc_recipients ?? []),
+    ],
+    params.require_encryption,
+    callbacks,
+  );
 
-  if (!key_trusted) {
-    callbacks.on_cancel?.();
+  if (forward_blocked) return forward_blocked;
 
-    return { success: false };
-  }
+  const forward_untrusted = await blocked_by_key_trust(
+    [
+      ...params.recipients,
+      ...(params.cc_recipients ?? []),
+      ...(params.bcc_recipients ?? []),
+    ],
+    callbacks,
+  );
+
+  if (forward_untrusted) return forward_untrusted;
 
   const consent = await ensure_post_quantum_consent(
     [
@@ -405,6 +506,14 @@ export async function send_forward(
   );
 
   if (!consent.proceed) {
+    if (consent.blocked_by) {
+      const message = translate_consent_block(consent.blocked_by);
+
+      callbacks.on_error?.(message);
+
+      return { success: false, error: message };
+    }
+
     callbacks.on_cancel?.();
 
     return { success: false };
@@ -427,6 +536,9 @@ export async function send_forward(
         sender_display_name: params.sender_display_name,
         attachments: params.attachments,
         forward_original_mail_id: params.forward_original_mail_id,
+        encryption_options: reply_encryption_options(
+          params.require_encryption,
+        ),
       },
       delay_seconds,
       {
@@ -464,6 +576,7 @@ export async function send_forward(
       sender_display_name: params.sender_display_name,
       attachments: params.attachments,
       forward_original_mail_id: params.forward_original_mail_id,
+      encryption_options: reply_encryption_options(params.require_encryption),
       on_complete: callbacks.on_complete,
       on_cancel: callbacks.on_cancel,
       on_error: callbacks.on_error,

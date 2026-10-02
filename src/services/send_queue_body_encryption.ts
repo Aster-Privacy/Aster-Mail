@@ -27,6 +27,8 @@ import {
   has_passphrase_in_memory,
 } from "./crypto/memory_key_store";
 import {
+  KeyPinUnavailableError,
+  RecipientKeyUntrustedError,
   RecoveryLaneUnavailableError,
   build_ratchet_envelope,
   encrypt_for_ratchet_recipient,
@@ -34,6 +36,7 @@ import {
   recipient_post_quantum_status,
 } from "./crypto/ratchet_manager";
 import {
+  assert_owner_key_trusted,
   resolve_own_username_for_key_lookup,
   resolve_username_for_key_lookup,
 } from "./send_queue_recipients";
@@ -51,6 +54,31 @@ import {
   normalize_address_ignoring_dots,
   same_address_ignoring_dots,
 } from "@/utils/address_dots";
+
+function map_ratchet_error(err: unknown): unknown {
+  if (err instanceof RecoveryLaneUnavailableError) {
+    return create_error(
+      "encryption_failed",
+      get_active_translations().errors.cannot_send_no_recovery_key,
+    );
+  }
+
+  if (err instanceof RecipientKeyUntrustedError) {
+    return create_error(
+      "encryption_failed",
+      get_active_translations().errors.recipient_key_untrusted,
+    );
+  }
+
+  if (err instanceof KeyPinUnavailableError) {
+    return create_error(
+      "encryption_failed",
+      get_active_translations().errors.key_trust_check_failed,
+    );
+  }
+
+  return err;
+}
 
 export function check_send_readiness_internal(): SendReadinessResult {
   const vault = get_vault_from_memory();
@@ -91,13 +119,18 @@ function post_quantum_error(recipients: string[]): PostQuantumUnavailableError {
 export interface PostQuantumCoverage {
   missing: string[];
   downgraded: string[];
+  untrusted: string[];
 }
 
 export async function check_post_quantum_status(
   recipients: string[],
   sender_email?: string,
 ): Promise<PostQuantumCoverage> {
-  const coverage: PostQuantumCoverage = { missing: [], downgraded: [] };
+  const coverage: PostQuantumCoverage = {
+    missing: [],
+    downgraded: [],
+    untrusted: [],
+  };
 
   if (!sender_email) return coverage;
 
@@ -122,11 +155,16 @@ export async function check_post_quantum_status(
 
       if (status === "supported") continue;
 
+      if (status === "untrusted") {
+        coverage.untrusted.push(recipient);
+        continue;
+      }
+
       coverage.missing.push(recipient);
 
       if (status === "downgraded") coverage.downgraded.push(recipient);
-    } catch {
-      continue;
+    } catch (err) {
+      throw map_ratchet_error(err);
     }
   }
 
@@ -220,14 +258,7 @@ export async function encrypt_for_recipients(
           vault,
         );
       } catch (err) {
-        if (err instanceof RecoveryLaneUnavailableError) {
-          throw create_error(
-            "encryption_failed",
-            get_active_translations().errors.cannot_send_no_recovery_key,
-          );
-        }
-
-        throw err;
+        throw map_ratchet_error(err);
       }
 
       if (result) {
@@ -259,14 +290,7 @@ export async function encrypt_for_recipients(
               vault,
             );
           } catch (err) {
-            if (err instanceof RecoveryLaneUnavailableError) {
-              throw create_error(
-                "encryption_failed",
-                get_active_translations().errors.cannot_send_no_recovery_key,
-              );
-            }
-
-            throw err;
+            throw map_ratchet_error(err);
           }
 
           if (self_result) {
@@ -331,6 +355,7 @@ export async function encrypt_for_recipients(
       );
     }
 
+    await assert_owner_key_trusted(recipient, key_response.data.public_key);
     public_keys.push(key_response.data.public_key);
   }
 

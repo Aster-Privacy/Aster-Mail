@@ -179,7 +179,11 @@ export function EmailReplySection({
       get_signature();
 
     const result = await send_reply(
-      { original, message: message_with_signature },
+      {
+        original,
+        message: message_with_signature,
+        require_encryption: preferences.require_encryption === true,
+      },
       {
         on_complete: () => {
           is_sending_ref.current = false;
@@ -324,9 +328,7 @@ export function EmailReplySection({
 
           {error_message && (
             <div className="px-3 py-2 rounded-lg bg-red-600 border border-red-600">
-              <p className="text-sm text-white">
-                {error_message}
-              </p>
+              <p className="text-sm text-white">{error_message}</p>
             </div>
           )}
 

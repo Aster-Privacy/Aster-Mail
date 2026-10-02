@@ -799,6 +799,16 @@ export const pt = {
       "O envio agendado não está disponível para contas ligadas. Envie esta mensagem agora ou escolha um endereço Aster.",
     scheduled_no_expiry:
       "Os e-mails agendados ainda não suportam expiração. Envie agora ou remova a expiração para agendar.",
+    scheduled_too_far_ahead:
+      "Os emails agendados podem ser enviados com, no máximo, 28 dias de antecedência. Escolha uma hora anterior.",
+    scheduled_requires_encryption:
+      "Tem a encriptação obrigatória ativada, e os emails agendados para endereços externos não são encriptados ponto a ponto. Envie esta mensagem agora ou desative a encriptação obrigatória nas Definições.",
+    offline_password_protected_unavailable:
+      "Não pode colocar em fila emails protegidos por palavra-passe enquanto está offline. Quando voltar a estar ligado, envie a mensagem.",
+    offline_settings_unavailable:
+      "Não foi possível carregar as suas definições, por isso a mensagem não foi enviada. Quando voltar a estar ligado, tente novamente.",
+    cannot_send_key_changed_offline:
+      "A chave de encriptação de um destinatário mudou enquanto esta mensagem aguardava envio, por isso não foi enviada.",
     failed_to_merge_contacts:
       "A combinação não foi concluída. Tente novamente. Os seus contactos originais não foram alterados.",
     enter_valid_emails: "Introduza endereços de e-mail válidos",
@@ -8417,6 +8427,11 @@ export const pt = {
       "As mensagens deste remetente já não contam com proteção pós-quântica. Se não esperava isto, confirme com essa pessoa por outro meio.",
     recipient_identity_changed:
       "A chave de encriptação de {{email}} mudou. Se não esperava isto, confirme a alteração com essa pessoa por outro meio antes de enviar informações confidenciais.",
+    message_password_requirements:
+      "Utilize pelo menos 12 caracteres e inclua um número, um símbolo ou letras maiúsculas e minúsculas.",
+    recipient_identity_untrusted:
+      "A chave de encriptação de {{email}} mudou e não é possível confirmar a nova chave. Para enviar para este endereço, confirme a alteração com essa pessoa por outro meio e escolha Confiar na nova chave.",
+    trust_new_key: "Confiar na nova chave",
     load_all_thread_messages: "Carregar todas as mensagens",
     move_to_category: "Mover para a categoria",
     menu_applies_to_selection: "Aplica-se a {count} selecionados",
@@ -10065,6 +10080,12 @@ export const pt = {
       "Tem a encriptação obrigatória ativada e nenhum dos seus destinatários tem uma chave registada. Pedir-lhes que partilhem uma, ou desativar a encriptação obrigatória nas Definições, permitirá o envio. O seu rascunho está guardado.",
     cannot_send_no_recovery_key:
       "O Aster ainda não pode enviar esta mensagem porque faltam na conta do destinatário as chaves necessárias para a ler. Peça-lhe que abra o Aster em qualquer dispositivo ou atualize a aplicação para renovar essas chaves e tente novamente. O seu rascunho está guardado.",
+    message_password_too_weak:
+      "A palavra-passe da mensagem é demasiado fraca, por isso a mensagem não foi enviada. Utilize pelo menos 12 caracteres e inclua um número, um símbolo ou letras maiúsculas e minúsculas.",
+    recipient_key_untrusted:
+      "A chave de encriptação de um destinatário mudou, por isso a mensagem não foi enviada. Para a enviar, confirme a alteração com essa pessoa por outro meio e escolha Confiar na nova chave.",
+    key_trust_check_failed:
+      "Não foi possível verificar as chaves de encriptação dos destinatários, por isso a mensagem não foi enviada. Verifique a ligação e tente novamente.",
     conflict:
       "Alguém ou algo alterou isto primeiro. Atualizar mostrará a versão mais recente.",
     connection_failed:

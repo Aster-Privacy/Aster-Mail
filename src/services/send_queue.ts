@@ -42,19 +42,25 @@ import {
   create_error,
 } from "./send_queue_types";
 import {
+  assert_required_encryption_keys,
   check_send_readiness_internal,
   execute_send,
-  encrypt_for_recipients,
   create_sent_envelope,
-  fetch_internal_public_keys,
 } from "./send_queue_encryption";
-import { encrypt_attachments_for_send } from "./crypto/attachment_crypto";
 import {
   build_signed_mime_payload,
   should_attach_signed_mime,
 } from "./send_queue_signed_mime";
 import { resolve_current_user } from "./current_identity";
-import { classify_recipients } from "./recipient_classification";
+import {
+  classify_recipients,
+  is_internal_recipient,
+} from "./recipient_classification";
+import { is_internal_email } from "./api/keys";
+import {
+  encrypt_attachments_with_private_bcc,
+  encrypt_with_private_bcc,
+} from "./send_private_bcc";
 
 import {
   enqueue_action,
@@ -479,6 +485,18 @@ async function prepare_email_for_server_queue(
 
   await classify_recipients(all_recipients);
 
+  const hosted_recipients = all_recipients.filter(
+    (recipient) =>
+      !is_internal_email(recipient) && is_internal_recipient(recipient),
+  );
+
+  if (email.encryption_options?.require_encryption) {
+    await assert_required_encryption_keys(
+      all_recipients.filter((recipient) => !is_internal_recipient(recipient)),
+      email.recipient_keys,
+    );
+  }
+
   const { processed_html: recipient_body, images: inline_images } =
     extract_inline_images(email.body);
 
@@ -511,13 +529,17 @@ async function prepare_email_for_server_queue(
     body_for_encryption,
   );
 
-  const { encrypted_body, is_encrypted, internal_encrypted_body } =
-    await encrypt_for_recipients(
-      bundled_body_for_recipient,
-      all_recipients,
-      sender_email,
-      email.allow_non_post_quantum === true,
-    );
+  const {
+    encrypted_body,
+    is_encrypted,
+    internal_encrypted_body,
+    recipient_bodies,
+  } = await encrypt_with_private_bcc(
+    bundled_body_for_recipient,
+    { to: email.to, cc: email.cc, bcc: email.bcc },
+    sender_email,
+    email.allow_non_post_quantum === true,
+  );
 
   const internal_copy_is_encrypted = is_encrypted || !!internal_encrypted_body;
 
@@ -557,19 +579,9 @@ async function prepare_email_for_server_queue(
   let encrypted_attachments;
 
   if (all_attachments.length > 0) {
-    const recipient_public_keys =
-      await fetch_internal_public_keys(all_recipients);
-
-    if (internal_copy_is_encrypted && recipient_public_keys.length === 0) {
-      throw create_error(
-        "encryption_failed",
-        get_active_translations().errors.cannot_send_no_recipient_keys,
-      );
-    }
-
-    encrypted_attachments = await encrypt_attachments_for_send(
+    encrypted_attachments = await encrypt_attachments_with_private_bcc(
       all_attachments,
-      recipient_public_keys.length > 0 ? recipient_public_keys : undefined,
+      { to: email.to, cc: email.cc, bcc: email.bcc },
       internal_copy_is_encrypted,
     );
   }
@@ -582,6 +594,12 @@ async function prepare_email_for_server_queue(
     body: is_encrypted ? encrypted_body : body_for_encryption,
     is_e2e_encrypted: is_encrypted,
     internal_encrypted_body,
+    ...(internal_copy_is_encrypted && hosted_recipients.length > 0
+      ? { hosted_recipients }
+      : {}),
+    ...(internal_copy_is_encrypted && recipient_bodies
+      ? { recipient_bodies }
+      : {}),
     encrypted_envelope: envelope_data.encrypted_envelope,
     envelope_nonce: envelope_data.envelope_nonce,
     folder_token: envelope_data.folder_token,

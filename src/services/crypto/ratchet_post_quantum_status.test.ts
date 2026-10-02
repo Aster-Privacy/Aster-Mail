@@ -28,12 +28,19 @@ const h = vi.hoisted(() => ({
     strict: boolean;
   },
   bootstrap: null as Record<string, unknown> | null,
+  owner_pin: "ok" as "first" | "ok" | "changed" | "unknown",
 }));
 
 vi.mock("../api/keys", () => ({
   get_recipient_public_key: vi.fn(async () => ({
     data: { public_key: "pgp-public-key" },
   })),
+}));
+
+vi.mock("./ratchet_identity_pin", async (import_original) => ({
+  ...(await import_original<typeof import("./ratchet_identity_pin")>()),
+  check_owner_key_pin: vi.fn(async () => h.owner_pin),
+  is_recipient_flagged_untrusted: vi.fn(async () => false),
 }));
 
 vi.mock("./key_manager_pgp", () => ({
@@ -77,6 +84,7 @@ function pq_bundle(): Record<string, unknown> {
 
 describe("recipient_post_quantum_status", () => {
   beforeEach(() => {
+    h.owner_pin = "ok";
     h.bundle = pq_bundle();
     h.verification = { verdict: "verified", format: "v2", strict: true };
     h.bootstrap = null;
@@ -112,12 +120,20 @@ describe("recipient_post_quantum_status", () => {
     ).resolves.toBe("unsupported");
   });
 
-  it("reports unsupported for a tampered bundle", async () => {
+  it("reports untrusted when the owner key differs from the pinned one", async () => {
+    h.owner_pin = "changed";
+
+    await expect(
+      recipient_post_quantum_status("a@astermail.org", "b@aster.cx", "b"),
+    ).resolves.toBe("untrusted");
+  });
+
+  it("reports untrusted for a tampered bundle", async () => {
     h.verification = { verdict: "tampered", format: "v2", strict: false };
 
     await expect(
       recipient_post_quantum_status("a@astermail.org", "b@aster.cx", "b"),
-    ).resolves.toBe("unsupported");
+    ).resolves.toBe("untrusted");
   });
 
   it("reports unsupported when no bundle is published", async () => {

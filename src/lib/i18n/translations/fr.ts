@@ -906,6 +906,16 @@ export const fr = {
       "L'envoi programmé n'est pas disponible pour les comptes connectés. Envoie ce message maintenant ou choisis une adresse Aster.",
     scheduled_no_expiry:
       "Les messages programmés ne prennent pas encore en charge l’expiration. Envoyez-le maintenant ou retirez l’expiration pour le programmer.",
+    scheduled_too_far_ahead:
+      "Les e-mails programmés peuvent partir au maximum 28 jours à l'avance. Choisissez une heure plus proche.",
+    scheduled_requires_encryption:
+      "Vous avez activé le chiffrement obligatoire, et les e-mails programmés vers des adresses externes ne sont pas chiffrés de bout en bout. Envoyez ce message maintenant ou désactivez le chiffrement obligatoire dans les Réglages.",
+    offline_password_protected_unavailable:
+      "Vous ne pouvez pas mettre en file d'attente des e-mails protégés par mot de passe hors ligne. Une fois reconnecté, envoyez le message.",
+    offline_settings_unavailable:
+      "Impossible de charger vos réglages, le message n'a donc pas été envoyé. Une fois reconnecté, réessayez.",
+    cannot_send_key_changed_offline:
+      "La clé de chiffrement d'un destinataire a changé pendant que ce message attendait d'être envoyé, il n'a donc pas été envoyé.",
     failed_to_merge_contacts:
       "La fusion n'a pas abouti. Réessayez. Vos contacts d'origine sont inchangés.",
     enter_valid_emails: "Veuillez saisir des adresses e-mail valides",
@@ -8430,6 +8440,11 @@ export const fr = {
       "Les messages de cet expéditeur ne bénéficient plus de la protection post-quantique. Si vous ne vous y attendiez pas, confirmez-le avec cette personne par un autre moyen.",
     recipient_identity_changed:
       "La clé de chiffrement de {{email}} a changé. Si vous ne vous y attendiez pas, confirmez ce changement avec cette personne par un autre moyen avant d'envoyer des informations sensibles.",
+    message_password_requirements:
+      "Utilisez au moins 12 caractères, avec un chiffre, un symbole ou des majuscules et des minuscules.",
+    recipient_identity_untrusted:
+      "La clé de chiffrement de {{email}} a changé et la nouvelle clé ne peut pas être confirmée. Pour écrire à cette adresse, confirmez le changement avec cette personne par un autre moyen, puis choisissez Faire confiance à la nouvelle clé.",
+    trust_new_key: "Faire confiance à la nouvelle clé",
     load_all_thread_messages: "Charger tous les messages",
     move_to_category: "Déplacer vers la catégorie",
     menu_applies_to_selection: "S'applique à {count} sélectionnés",
@@ -10075,6 +10090,12 @@ export const fr = {
       "Le chiffrement obligatoire est activé et aucun de vos destinataires n'a de clé enregistrée. Demandez-leur d'en partager une, ou désactivez le chiffrement obligatoire dans Paramètres pour envoyer ce message. Votre brouillon est enregistré.",
     cannot_send_no_recovery_key:
       "Aster ne peut pas encore envoyer ce message car il manque au compte du destinataire les clés pour le lire. Demandez-lui d'ouvrir Aster sur un appareil ou de mettre à jour son application pour renouveler ces clés, puis réessayez. Votre brouillon est enregistré.",
+    message_password_too_weak:
+      "Le mot de passe du message est trop faible, le message n'a donc pas été envoyé. Utilisez au moins 12 caractères, avec un chiffre, un symbole ou des majuscules et des minuscules.",
+    recipient_key_untrusted:
+      "La clé de chiffrement d'un destinataire a changé, le message n'a donc pas été envoyé. Pour l'envoyer, confirmez le changement avec cette personne par un autre moyen, puis choisissez Faire confiance à la nouvelle clé.",
+    key_trust_check_failed:
+      "Impossible de vérifier les clés de chiffrement des destinataires, le message n'a donc pas été envoyé. Vérifiez votre connexion et réessayez.",
     conflict:
       "Quelqu'un ou quelque chose a modifié cet élément avant vous. Actualisez pour voir la version la plus récente.",
     connection_failed:

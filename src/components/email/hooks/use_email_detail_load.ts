@@ -785,7 +785,7 @@ export function use_email_detail_load() {
       void prefetch_attachment_previews(email_id);
 
       if (envelope) {
-        const { body_text, safe_html, unsubscribe_info } =
+        const { body_text, safe_html, unsubscribe_info, e2e_verified } =
           await process_envelope_body(
             envelope,
             user?.email,
@@ -824,6 +824,7 @@ export function use_email_detail_load() {
             attachments: [],
             labels: [],
             unsubscribe_info,
+            e2e_verified,
             reply_to: (() => {
               const parsed = extract_reply_to(envelope.raw_headers);
 
@@ -842,6 +843,7 @@ export function use_email_detail_load() {
           body_text,
           safe_html,
           decrypted_metadata,
+          e2e_verified,
         );
 
         if (

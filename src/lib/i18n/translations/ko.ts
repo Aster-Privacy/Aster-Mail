@@ -945,6 +945,16 @@ export const ko = {
       "연결된 계정에서는 예약 보내기를 사용할 수 없습니다. 지금 보내거나 Aster 주소를 선택하세요.",
     scheduled_no_expiry:
       "예약 메일은 아직 만료를 사용할 수 없습니다. 지금 보내거나 만료를 지우고 예약하세요.",
+    scheduled_too_far_ahead:
+      "예약 이메일은 최대 28일 후까지 보낼 수 있습니다. 더 이른 시간을 선택하세요.",
+    scheduled_requires_encryption:
+      "필수 암호화가 켜져 있으며, 외부 주소로 보내는 예약 이메일은 종단 간 암호화되지 않습니다. 이 메시지를 지금 보내거나 설정에서 필수 암호화를 끄세요.",
+    offline_password_protected_unavailable:
+      "오프라인 상태에서는 암호로 보호된 이메일을 대기열에 추가할 수 없습니다. 다시 연결되면 메시지를 보내세요.",
+    offline_settings_unavailable:
+      "설정을 불러올 수 없어 메시지를 보내지 않았습니다. 다시 연결되면 다시 시도하세요.",
+    cannot_send_key_changed_offline:
+      "이 메시지가 전송을 기다리는 동안 수신자의 암호화 키가 변경되어 전송되지 않았습니다.",
     failed_to_merge_contacts:
       "병합이 완료되지 않았습니다. 다시 시도하세요. 원래 연락처는 변경되지 않았습니다.",
     enter_valid_emails: "유효한 이메일 주소를 입력하세요",
@@ -8071,6 +8081,11 @@ export const ko = {
       "이 발신자의 메시지에 더 이상 양자 내성 보호가 적용되지 않습니다. 예상하지 못한 변경이라면 다른 방법으로 상대방에게 확인하세요.",
     recipient_identity_changed:
       "{{email}}의 암호화 키가 변경되었습니다. 예상하지 못한 변경이라면 민감한 정보를 보내기 전에 다른 방법으로 상대방에게 확인하세요.",
+    message_password_requirements:
+      "12자 이상을 사용하고 숫자, 기호 또는 대문자와 소문자를 모두 포함하세요.",
+    recipient_identity_untrusted:
+      "{{email}}의 암호화 키가 변경되었으며 새 키를 확인할 수 없습니다. 이 주소로 보내려면 다른 방법으로 상대방에게 변경 사항을 확인한 다음 새 키 신뢰를 선택하세요.",
+    trust_new_key: "새 키 신뢰",
     load_all_thread_messages: "모든 메시지 불러오기",
     move_to_category: "카테고리로 이동",
     menu_applies_to_selection: "선택한 {count}개에 적용",
@@ -9658,6 +9673,12 @@ export const ko = {
       "필수 암호화가 켜져 있지만 수신자 중 누구도 등록된 키가 없습니다. 보내려면 수신자에게 키 공유를 요청하거나 설정에서 필수 암호화를 끄세요. 임시 보관함에 저장되었습니다.",
     cannot_send_no_recovery_key:
       "받는 사람의 계정에 읽는 데 필요한 키가 없어 Aster가 아직 이 메시지를 보낼 수 없습니다. 아무 기기에서 Aster를 열거나 앱을 업데이트해 키를 갱신하도록 요청한 다음 다시 시도하세요. 임시 보관함에 저장되었습니다.",
+    message_password_too_weak:
+      "메시지 암호가 너무 약해 메시지를 보내지 않았습니다. 12자 이상을 사용하고 숫자, 기호 또는 대문자와 소문자를 모두 포함하세요.",
+    recipient_key_untrusted:
+      "수신자의 암호화 키가 변경되어 메시지를 보내지 않았습니다. 보내려면 다른 방법으로 상대방에게 변경 사항을 확인한 다음 새 키 신뢰를 선택하세요.",
+    key_trust_check_failed:
+      "수신자의 암호화 키를 확인할 수 없어 메시지를 보내지 않았습니다. 연결을 확인하고 다시 시도하세요.",
     failed_send_external:
       "연결된 외부 계정으로 이 이메일을 보내지 못했습니다. 다시 시도하세요. 임시 보관함에 저장되었습니다.",
     failed_queue_email:

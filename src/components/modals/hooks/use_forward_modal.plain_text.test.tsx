@@ -220,6 +220,13 @@ vi.mock("@/services/contacts_auto_save", () => ({
   auto_save_recipients_to_contacts: () => Promise.resolve(),
 }));
 
+vi.mock("@/services/scheduled_send_gate", () => ({
+  check_scheduled_send: vi.fn(async () => ({
+    proceed: true,
+    allow_non_post_quantum: false,
+  })),
+}));
+
 vi.mock("@/services/api/scheduled", () => ({
   create_scheduled_email: mocks.schedule,
 }));

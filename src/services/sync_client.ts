@@ -22,7 +22,6 @@ import type { EncryptedVault } from "./crypto/key_manager";
 
 import { api_client } from "./api/client";
 import { check_and_replenish_prekeys } from "./crypto/prekey_service";
-import { refresh_session_activity } from "./session_timeout_service";
 import { connection_store } from "./routing/connection_store";
 import { TorUnavailableError } from "./routing/tor_unavailable_error";
 
@@ -346,10 +345,7 @@ class SyncClient {
     const socket_live =
       this.authenticated && this.socket?.readyState === WebSocket.OPEN;
 
-    if (
-      socket_live &&
-      Date.now() - this.last_catch_up_at >= CATCH_UP_TICK_MS
-    ) {
+    if (socket_live && Date.now() - this.last_catch_up_at >= CATCH_UP_TICK_MS) {
       this.catch_up_now();
     }
   }
@@ -464,8 +460,6 @@ class SyncClient {
     if (data.type === "ping" || data.type === "pong") {
       return;
     }
-
-    refresh_session_activity();
 
     if (data.type === "mail_mutation") {
       this.handle_mail_mutation(data);
@@ -754,9 +748,7 @@ if (typeof window !== "undefined") {
   if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
     navigator.serviceWorker.addEventListener("message", (event) => {
       const data = (event as MessageEvent).data as
-        | { type?: string }
-        | null
-        | undefined;
+        { type?: string } | null | undefined;
 
       if (data?.type === PUSH_ARRIVED_MESSAGE) {
         sync_client.catch_up_now();

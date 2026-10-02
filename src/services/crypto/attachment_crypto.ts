@@ -56,6 +56,7 @@ export interface EncryptedAttachmentForSend {
   sender_encrypted_meta: string;
   sender_meta_nonce: string;
   recipient_encrypted_meta?: string;
+  recipient_metas?: Record<string, string>;
   size_bytes: number;
 }
 
@@ -148,6 +149,7 @@ export async function encrypt_attachments_for_send(
   attachments: Attachment[],
   recipient_public_keys?: string[],
   require_recipient_encryption = false,
+  private_recipient_keys: Record<string, string[]> = {},
 ): Promise<EncryptedAttachmentForSend[]> {
   const has_recipient_keys = !!(
     recipient_public_keys && recipient_public_keys.length > 0
@@ -232,12 +234,28 @@ export async function encrypt_attachments_for_send(
         );
       }
 
+      const recipient_metas: Record<string, string> = {};
+
+      for (const [recipient, keys] of Object.entries(private_recipient_keys)) {
+        if (keys.length === 0) {
+          throw new Error(
+            "recipient encryption keys unavailable for encrypted attachment",
+          );
+        }
+        recipient_metas[recipient] = array_to_base64(
+          new TextEncoder().encode(
+            await encrypt_message_multi(JSON.stringify(meta), keys),
+          ),
+        );
+      }
+
       results.push({
         encrypted_data: array_to_base64(new Uint8Array(encrypted)),
         data_nonce: array_to_base64(nonce),
         sender_encrypted_meta: sender_meta.encrypted,
         sender_meta_nonce: array_to_base64(meta_nonce_placeholder),
         recipient_encrypted_meta,
+        ...(Object.keys(recipient_metas).length > 0 ? { recipient_metas } : {}),
         size_bytes: attachment.size_bytes,
       });
 

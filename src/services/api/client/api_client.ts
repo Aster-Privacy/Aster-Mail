@@ -78,7 +78,6 @@ import {
 import { should_show_server_message } from "./server_message";
 
 import { get_active_translations } from "@/lib/i18n/translations";
-import { refresh_session_activity } from "@/services/session_timeout_service";
 import { extend_passphrase_timeout } from "@/services/crypto/memory_key_store";
 import { get_device_id } from "@/services/device_id";
 import { ignore_error } from "@/lib/ignore_error";
@@ -2117,7 +2116,6 @@ export class ApiClient {
           }
         }
 
-        refresh_session_activity();
         extend_passphrase_timeout();
         write_last_auth_ms(Date.now());
 
