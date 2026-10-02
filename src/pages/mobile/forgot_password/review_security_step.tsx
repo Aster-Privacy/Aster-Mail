@@ -69,7 +69,7 @@ export function ReviewSecurityStep({
           />
           <ReviewRow
             label={t("auth.review_codes_left", {
-              count: review.codes_remaining.toString(),
+              count: review.codes_remaining,
             })}
           />
         </motion.div>

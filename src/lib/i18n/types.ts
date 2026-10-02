@@ -378,6 +378,7 @@ export interface FolderRetentionTranslations {
   mode_archive_hint: string;
   enabled: string;
   preview_some: string;
+  preview_some_one?: string;
   preview_none: string;
   keeps_note: string;
   save: string;
@@ -454,6 +455,7 @@ export interface MailRulesTranslations {
   empty_description: string;
   empty_cta: string;
   applied_count: string;
+  applied_count_one?: string;
   field_from: string;
   field_to: string;
   field_subject: string;
@@ -901,6 +903,7 @@ export interface CommonTranslations {
   delete_folder_purge_warning: string;
   delete_folder_purge_acknowledge: string;
   delete_folder_purged_items: string;
+  delete_folder_purged_items_one?: string;
   delete_folder_deleted_no_purge: string;
   delete_folder_password_required: string;
   delete_folder_totp_required: string;
@@ -1237,6 +1240,7 @@ export interface CommonTranslations {
   not_detected: string;
   navigate: string;
   commands_count: string;
+  commands_count_one?: string;
   no_commands_found: string;
   type_command_or_search: string;
   failed_to_load_emails: string;
@@ -1750,6 +1754,7 @@ export interface CommonTranslations {
   n_conversations_archived: string;
   n_conversations_moved_to_trash: string;
   n_conversations_marked_as_spam: string;
+  n_conversations_marked_as_spam_one?: string;
   n_conversations_archived_one: string;
   n_conversations_archived_other: string;
   n_conversations_moved_to_trash_one: string;
@@ -1781,6 +1786,7 @@ export interface CommonTranslations {
   added_to_allowlist: string;
   no_content: string;
   unblocked_count_senders: string;
+  unblocked_count_senders_one?: string;
   removed_count_from_allowlist: string;
   failed_to_add_label: string;
   failed_to_remove_label: string;
@@ -1980,6 +1986,7 @@ export interface CommonTranslations {
   share_on_social: string;
   check_out_aster_mail: string;
   n_lines: string;
+  n_lines_one?: string;
   hide_details: string;
   show_details: string;
   not_phishing: string;
@@ -1996,6 +2003,7 @@ export interface CommonTranslations {
   view_blocked_content_details: string;
   n_images: string;
   n_items: string;
+  n_items_one?: string;
   ctrl_click_to_open: string;
   user_id_label: string;
   platform_label: string;
@@ -2083,6 +2091,7 @@ export interface CommonTranslations {
   bulk_create_placeholder: string;
   bulk_create_ready: string;
   contacts_created: string;
+  contacts_created_one?: string;
   some_contacts_not_created: string;
   manage_contacts: string;
   merge_and_fix: string;
@@ -2096,6 +2105,7 @@ export interface CommonTranslations {
   add_birthdays: string;
   add_birthdays_hint: string;
   birthdays_upcoming: string;
+  birthdays_upcoming_one?: string;
   add_new_group: string;
   contact_encryption_info: string;
   no_published_key: string;
@@ -2121,6 +2131,7 @@ export interface CommonTranslations {
   removed_from_group: string;
   failed_to_add_to_group: string;
   group_contact_count: string;
+  group_contact_count_one?: string;
   select_contact: string;
   deselect_contact: string;
   clear_selection: string;
@@ -2249,6 +2260,7 @@ export interface CommonTranslations {
   label_fallback: string;
   permission_denied: string;
   n_contacts_imported: string;
+  n_contacts_imported_one?: string;
   yourname_placeholder: string;
   allow_sender: string;
   remove_from_allowlist_action: string;
@@ -2921,8 +2933,11 @@ export interface SettingsTranslations {
   failed_sign_out: string;
   active_now: string;
   minutes_ago: string;
+  minutes_ago_one?: string;
   hours_ago: string;
+  hours_ago_one?: string;
   days_ago: string;
+  days_ago_one?: string;
   this_device: string;
   signed_in_date: string;
   sign_out: string;
@@ -2943,7 +2958,9 @@ export interface SettingsTranslations {
   failed_load_sessions: string;
   failed_load_security_status: string;
   load_more_sessions: string;
+  load_more_sessions_one?: string;
   two_fa_enabled: string;
+  two_fa_enabled_one?: string;
   two_fa_add_security: string;
   two_step_verification: string;
   two_step_verification_description: string;
@@ -4083,6 +4100,7 @@ export interface SettingsTranslations {
   fam_org_2fa_sending: string;
   fam_org_2fa_reminder_sent: string;
   fam_org_2fa_reminder_sent_toast: string;
+  fam_org_2fa_reminder_sent_toast_one?: string;
   fam_org_2fa_reminder_rate_limited: string;
   fam_org_2fa_reminder_failed: string;
   fam_org_2fa_dismiss: string;
@@ -4369,7 +4387,9 @@ export interface SettingsTranslations {
   twenty_five_keys: string;
   auto_lock_after: string;
   hours: string;
+  hours_one?: string;
   days: string;
+  days_one?: string;
   failed_get_auth_data: string;
   downgrade: string;
   upgrade: string;
@@ -5732,10 +5752,14 @@ export interface SettingsTranslations {
   emails_of_total: string;
   cancel_import: string;
   emails_imported_count: string;
+  emails_imported_count_one?: string;
   duplicates_skipped: string;
+  duplicates_skipped_one?: string;
   import_folder_hint: string;
   n_failed_count: string;
   import_folders_skipped: string;
+  import_folders_skipped_one?: string;
+  import_folders_skipped_other: string;
   import_folders_skipped_plural: string;
   storage_quota_reached: string;
   no_emails_in_file: string;
@@ -5943,12 +5967,14 @@ export interface SettingsTranslations {
   connected_accounts_last_sync: string;
   connected_accounts_never_synced: string;
   connected_accounts_emails: string;
+  connected_accounts_emails_one?: string;
   connected_accounts_syncing: string;
   connected_accounts_no_new_emails: string;
   sync_progress_count: string;
   sync_progress_preparing: string;
   sync_checking_new: string;
   sync_result_imported: string;
+  sync_result_imported_one?: string;
   sync_result_up_to_date: string;
   sync_stopped: string;
   purging_progress: string;
@@ -5960,8 +5986,10 @@ export interface SettingsTranslations {
   disconnect_button: string;
   disconnect_delete_messages_label: string;
   disconnect_delete_messages_label_count: string;
+  disconnect_delete_messages_label_count_one?: string;
   disconnect_success: string;
   disconnect_deleted_success: string;
+  disconnect_deleted_success_one?: string;
   stop_sync_title: string;
   stop_sync_description: string;
   connected_accounts_error: string;
@@ -6002,6 +6030,7 @@ export interface SettingsTranslations {
   oauth_folders_ready: string;
   oauth_folders_error: string;
   oauth_folders_partial: string;
+  oauth_folders_partial_one?: string;
   import_stage_setting_up_folders: string;
   import_stage_importing_emails: string;
   import_stage_cancel: string;
@@ -6053,6 +6082,7 @@ export interface SettingsTranslations {
   connection_failed: string;
   removed_forwarding_rule: string;
   removed_forwarding_rules_count: string;
+  removed_forwarding_rules_count_one?: string;
   customize_toolbar: string;
   customize_toolbar_description: string;
   toolbar_dots_hint: string;
@@ -6342,13 +6372,20 @@ export interface SettingsTranslations {
   cancel_impact_storage: string;
   cancel_impact_storage_over: string;
   cancel_impact_aliases: string;
+  cancel_impact_aliases_one?: string;
   cancel_impact_domains: string;
+  cancel_impact_domains_one?: string;
   cancel_impact_catch_all: string;
   cancel_impact_templates: string;
+  cancel_impact_templates_one?: string;
   cancel_impact_signatures: string;
+  cancel_impact_signatures_one?: string;
   cancel_impact_family: string;
+  cancel_impact_family_one?: string;
   cancel_impact_family_addresses: string;
+  cancel_impact_family_addresses_one?: string;
   cancel_impact_features: string;
+  cancel_impact_features_one?: string;
   cancel_impact_reactivate_hint: string;
   cancel_impact_continue: string;
   cancel_offer_title: string;
@@ -6622,6 +6659,7 @@ export interface SettingsTranslations {
   key_rotation_data_loss_warning: string;
   bulk_unsubscribe: string;
   senders_unsubscribed: string;
+  senders_unsubscribed_one?: string;
   opened_in_browser: string;
   could_not_unsubscribe: string;
   some_messages_not_archived: string;
@@ -6688,6 +6726,7 @@ export interface SettingsTranslations {
   dev_databases_count_one: string;
   dev_databases_count_other: string;
   dev_keys_count: string;
+  dev_keys_count_one?: string;
   dev_seconds_ago: string;
   dev_minutes_ago: string;
   dev_hours_ago: string;
@@ -6734,6 +6773,7 @@ export interface SettingsTranslations {
   failed_purge_alias: string;
   empty_trash_confirm_title: string;
   empty_trash_confirm_message: string;
+  empty_trash_confirm_message_one?: string;
   trash_emptied: string;
   failed_empty_trash: string;
   recently_deleted_directories_title: string;
@@ -6745,6 +6785,7 @@ export interface SettingsTranslations {
   directory_purged: string;
   failed_purge_directory: string;
   empty_directory_trash_confirm_message: string;
+  empty_directory_trash_confirm_message_one?: string;
   alias_stats_title: string;
   alias_stats_received: string;
   alias_stats_forwarded: string;
@@ -6923,7 +6964,9 @@ export interface SettingsTranslations {
   alias_bulk_enabled: string;
   alias_bulk_disabled: string;
   alias_bulk_update_partial_failed: string;
+  alias_bulk_update_partial_failed_one?: string;
   alias_bulk_delete_partial_failed: string;
+  alias_bulk_delete_partial_failed_one?: string;
   alias_directory_auto_create: string;
   alias_directory_pattern_hint: string;
   alias_directory_color: string;
@@ -7122,6 +7165,7 @@ export interface SettingsTranslations {
   alias_export_source_directories: string;
   alias_export_source_ghost: string;
   alias_export_source_count: string;
+  alias_export_source_count_one?: string;
   alias_export_choose_columns: string;
   alias_export_hide_columns: string;
   alias_export_format_label: string;
@@ -7144,7 +7188,9 @@ export interface SettingsTranslations {
   alias_export_download: string;
   alias_export_incomplete: string;
   alias_export_undecryptable: string;
+  alias_export_undecryptable_one?: string;
   alias_export_undecryptable_ghost: string;
+  alias_export_undecryptable_ghost_one?: string;
   alias_export_load_failed: string;
   alias_export_failed: string;
   alias_import_csv: string;
@@ -7161,6 +7207,7 @@ export interface SettingsTranslations {
   alias_import_skip_existing: string;
   alias_import_update_existing: string;
   alias_import_confirm: string;
+  alias_import_confirm_one?: string;
   alias_import_summary_created: string;
   alias_import_summary_skipped: string;
   alias_import_summary_failed: string;
@@ -7261,8 +7308,11 @@ export interface MailTranslations {
   pgp_password_decrypting: string;
   pgp_password_incorrect: string;
   all_on_page_selected: string;
+  all_on_page_selected_one?: string;
   select_all_in_folder: string;
+  select_all_in_folder_one?: string;
   all_in_folder_selected: string;
+  all_in_folder_selected_one?: string;
   inbox: string;
   sent: string;
   drafts: string;
@@ -7307,6 +7357,7 @@ export interface MailTranslations {
   attachment_chips_more: string;
   page_of_total: string;
   total_pages_label: string;
+  total_pages_label_one?: string;
   loading_preview: string;
   preview_failed: string;
   pdf_preview_failed: string;
@@ -7611,6 +7662,7 @@ export interface MailTranslations {
   move_to_inbox: string;
   menu_applies_to_selection: string;
   menu_applies_to_all: string;
+  menu_applies_to_all_one?: string;
   move_to_category: string;
   moved_to_category: string;
   sender_rule_offer: string;
@@ -7910,6 +7962,7 @@ export interface MailTranslations {
   order_number: string;
   items: string;
   more_items_count: string;
+  more_items_count_one?: string;
   card_ending_in: string;
   purchase_extraction_privacy: string;
   receipt_is_this_correct: string;
@@ -7942,6 +7995,7 @@ export interface MailTranslations {
   message_deleted: string;
   unknown_recipient: string;
   lines_count: string;
+  lines_count_one?: string;
   message_label: string;
   messages_label: string;
   star: string;
@@ -8160,6 +8214,7 @@ export interface AuthTranslations {
   too_many_2fa_attempts: string;
   sign_in_session_expired: string;
   backup_codes_remaining_after_login: string;
+  backup_codes_remaining_after_login_one?: string;
   backup_code_description: string;
   backup_code_single_use: string;
   backup_code_placeholder: string;

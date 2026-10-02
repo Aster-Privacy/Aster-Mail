@@ -84,7 +84,6 @@ import {
   emit_mail_changed,
   emit_refresh_requested,
 } from "@/hooks/mail_events";
-import { app_locale } from "@/utils/date_format";
 
 export function ImportSection() {
   const { t } = use_i18n();
@@ -474,7 +473,7 @@ export function ImportSection() {
         if (should_delete_messages && purged_count > 0) {
           show_toast(
             t("settings.disconnect_deleted_success", {
-              count: purged_count.toLocaleString(app_locale()),
+              count: purged_count,
             }),
             "success",
           );
@@ -930,7 +929,7 @@ export function ImportSection() {
 
                   return target && target.email_count > 0
                     ? t("settings.disconnect_delete_messages_label_count", {
-                        count: target.email_count.toLocaleString(app_locale()),
+                        count: target.email_count,
                       })
                     : t("settings.disconnect_delete_messages_label");
                 })()}

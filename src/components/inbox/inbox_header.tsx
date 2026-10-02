@@ -963,7 +963,7 @@ export function InboxHeader({
             <>
               <span>
                 {t("mail.all_on_page_selected", {
-                  count: page_selected_count.toLocaleString(app_locale()),
+                  count: page_selected_count,
                 })}
               </span>
               <button
@@ -971,7 +971,7 @@ export function InboxHeader({
                 onClick={on_activate_select_all_mode}
               >
                 {t("mail.select_all_in_folder", {
-                  count: total_messages.toLocaleString(app_locale()),
+                  count: total_messages,
                   folder: selection_scope_title ?? view_title,
                 })}
               </button>
@@ -980,7 +980,7 @@ export function InboxHeader({
             <>
               <span>
                 {t("mail.all_in_folder_selected", {
-                  count: scope_selected_count.toLocaleString(app_locale()),
+                  count: scope_selected_count,
                 })}
               </span>
               <button

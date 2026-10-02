@@ -46,7 +46,8 @@ describe("plural counts reach the translator as numbers", () => {
 
     for (const file of source_files(SRC)) {
       const source = readFileSync(file, "utf8");
-      const pattern = /\bt\(\s*"[^"]+"\s*,\s*\{[^{}]*count:\s*(String\(|`)/g;
+      const pattern =
+        /\bt\(\s*"[^"]+"\s*,\s*\{[^{}]*count:\s*(String\(|`|[\w.]+\.(toString|toLocaleString)\()/g;
 
       if (pattern.test(source)) {
         offenders.push(relative(SRC, file).split("\\").join("/"));

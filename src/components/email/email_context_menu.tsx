@@ -70,7 +70,6 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context_menu";
 import { compute_snooze_target } from "@/utils/snooze_targets";
-import { app_locale } from "@/utils/date_format";
 import { is_tauri_env } from "@/services/api/client/helpers";
 
 interface FolderOption {
@@ -236,10 +235,10 @@ function EmailContextMenuContentInner({
           <ContextMenuLabel className="text-xs font-medium text-txt-muted">
             {selection.is_all_mode
               ? t("mail.menu_applies_to_all", {
-                  count: selection.count.toLocaleString(app_locale()),
+                  count: selection.count,
                 })
               : t("mail.menu_applies_to_selection", {
-                  count: selection.count.toLocaleString(app_locale()),
+                  count: selection.count,
                 })}
           </ContextMenuLabel>
           <ContextMenuSeparator />

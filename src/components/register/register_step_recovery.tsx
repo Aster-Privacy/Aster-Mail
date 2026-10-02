@@ -72,7 +72,7 @@ export const RegisterStepRecoveryCodes = ({
         <div className="mb-2 flex h-8 items-center justify-between">
           <span className="text-sm font-medium text-txt-secondary">
             {reg.t("auth.n_recovery_codes", {
-              count: reg.recovery_codes.length.toString(),
+              count: reg.recovery_codes.length,
             })}
           </span>
           <div className="flex items-center gap-0.5">
