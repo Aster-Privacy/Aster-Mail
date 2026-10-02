@@ -183,6 +183,15 @@ describe("css url() inside strings", () => {
     ).toEqual([COLLECTOR]);
   });
 
+  it("lists a remote url whose url keyword is escaped", () => {
+    expect(list_remote_css_urls(`p{background:u\\72 l(${COLLECTOR})}`)).toEqual(
+      [COLLECTOR],
+    );
+    expect(
+      list_remote_css_urls(`p{background:/*x*/url(/*y*/${COLLECTOR})}`),
+    ).toEqual([COLLECTOR]);
+  });
+
   it("strips the payload from an inline style outside sandbox mode", () => {
     expect(
       sanitize_style(`x:"url(#";background:url(${COLLECTOR})`, false),
@@ -237,6 +246,20 @@ describe("sanitize_html with a css url() hidden behind a string", () => {
       sandbox_mode: true,
     });
 
+    expect(result.external_content.blocked_count).toBe(1);
+  });
+
+  it("counts a url whose url keyword is escaped in an inline style", () => {
+    const result = sanitize_html(
+      `<p style='background:u\\72 l(${COLLECTOR})'>hi</p>`,
+      {
+        external_content_mode: "ask",
+        image_proxy_url: PROXY,
+        sandbox_mode: true,
+      },
+    );
+
+    expect(result.html).not.toContain("collector.example");
     expect(result.external_content.blocked_count).toBe(1);
   });
 

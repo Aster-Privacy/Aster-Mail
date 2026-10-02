@@ -279,7 +279,7 @@ function walk_css_urls(css: string, visitor: CssUrlVisitor): string {
 export function list_remote_css_urls(css: string): string[] {
   const urls: string[] = [];
 
-  walk_css_urls(css, {
+  walk_css_urls(strip_css_comments(decode_css_escapes(css)), {
     url: (whole, inner) => {
       if (REMOTE_CSS_URL.test(inner)) urls.push(inner);
 
