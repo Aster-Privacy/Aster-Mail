@@ -18,7 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { UseRegistrationReturn } from "@/components/register/hooks/use_registration";
+import type {
+  AbuseBlockKind,
+  UseRegistrationReturn,
+} from "@/components/register/hooks/use_registration";
 
 import { useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -44,6 +47,22 @@ interface RegisterStepAccountProps {
 const TERMS_URL = "https://astermail.org/terms";
 const PRIVACY_URL = "https://astermail.org/privacy";
 
+function abuse_message_key(kind: AbuseBlockKind | null) {
+  switch (kind) {
+    case "device":
+    case "fan_out":
+      return "auth.abuse_blocked_device" as const;
+    case "network":
+      return "auth.abuse_blocked_network" as const;
+    case "proof":
+      return "auth.abuse_blocked_proof" as const;
+    case "risk":
+      return "auth.abuse_blocked_risk" as const;
+    default:
+      return "auth.abuse_flagged_message" as const;
+  }
+}
+
 export const RegisterStepAccount = ({ reg }: RegisterStepAccountProps) => {
   const input_ref = useRef<HTMLInputElement>(null);
   const is_busy = reg.step === "generating";
@@ -68,8 +87,18 @@ export const RegisterStepAccount = ({ reg }: RegisterStepAccountProps) => {
               className="text-sm text-center"
               style={{ color: reg.is_dark ? "#f87171" : "#dc2626" }}
             >
-              {reg.t("auth.abuse_flagged_message")}
+              {reg.t(abuse_message_key(reg.abuse_block?.kind ?? null))}
             </p>
+            {reg.abuse_block?.reference && (
+              <p
+                className="mt-1 text-xs text-center font-mono"
+                style={{ color: reg.is_dark ? "#fca5a5" : "#b91c1c" }}
+              >
+                {reg.t("auth.abuse_block_reference", {
+                  reference: reg.abuse_block.reference,
+                })}
+              </p>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

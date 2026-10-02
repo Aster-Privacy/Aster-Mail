@@ -8630,6 +8630,15 @@ export const zh_CN = {
     recovery_email_required_notice: "需要备用邮箱以防止垃圾注册。",
     abuse_flagged_message:
       "我们的安全系统暂时阻止了来自这个网络的新注册。如果这看起来是误判，可以联系 hello@astermail.org。",
+    abuse_blocked_device:
+      "我们的安全系统暂时停止了来自此设备的新注册。如果这看起来是误判，可以联系 hello@astermail.org 获取帮助。",
+    abuse_blocked_network:
+      "我们的安全系统暂时停止了来自此网络的新注册。稍后再试或换一个网络通常可以解决。如果这看起来是误判，可以联系 hello@astermail.org 获取帮助。",
+    abuse_blocked_proof:
+      "浏览器没有完成安全检查。请重新加载页面并再试一次。如果问题持续出现，可以联系 hello@astermail.org 获取帮助。",
+    abuse_blocked_risk:
+      "我们的安全系统无法验证此次注册。换一个用户名再试通常可以解决。如果这看起来是误判，可以联系 hello@astermail.org 获取帮助。",
+    abuse_block_reference: "参考编号：{{reference}}",
     contact_support: "联系支持",
     recovery_email_verified: "恢复邮箱已验证",
     recovery_email_verified_desc: "您的恢复邮箱已成功验证并关联到您的账户。",

@@ -9730,6 +9730,15 @@ export const it = {
     skip_verification: "Salta la verifica",
     abuse_flagged_message:
       "Il nostro sistema di sicurezza ha fermato le nuove iscrizioni da questa rete per il momento. Se le sembra un errore, hello@astermail.org può aiutarla.",
+    abuse_blocked_device:
+      "Il nostro sistema di sicurezza ha sospeso per il momento le nuove iscrizioni da questo dispositivo. Se le sembra un errore, hello@astermail.org può aiutarla.",
+    abuse_blocked_network:
+      "Il nostro sistema di sicurezza ha sospeso per il momento le nuove iscrizioni da questa rete. Riprovare più tardi o da un'altra rete di solito funziona. Se le sembra un errore, hello@astermail.org può aiutarla.",
+    abuse_blocked_proof:
+      "Il browser non ha completato il controllo di sicurezza. Ricarichi la pagina e riprovi. Se il problema continua, hello@astermail.org può aiutarla.",
+    abuse_blocked_risk:
+      "Il nostro sistema di sicurezza non è riuscito a verificare questa iscrizione. Scegliere un altro nome utente e riprovare di solito funziona. Se le sembra un errore, hello@astermail.org può aiutarla.",
+    abuse_block_reference: "Riferimento: {{reference}}",
     contact_support: "contattare l'assistenza",
     recovery_email_verified: "Email di recupero verificata",
     recovery_email_verified_desc:

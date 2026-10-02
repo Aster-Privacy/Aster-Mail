@@ -9577,6 +9577,15 @@ export const tr = {
       "Spam'i önlemek için yedek e-posta gereklidir.",
     abuse_flagged_message:
       "Güvenlik sistemimiz, bu ağdan gelen yeni kayıtları şimdilik durdurdu. Bu bir hata gibi görünüyorsa, hello@astermail.org yardımcı olabilir.",
+    abuse_blocked_device:
+      "Güvenlik sistemimiz bu cihazdan yeni kayıtları şimdilik durdurdu. Bu bir hata gibi görünüyorsa hello@astermail.org yardımcı olabilir.",
+    abuse_blocked_network:
+      "Güvenlik sistemimiz bu ağdan yeni kayıtları şimdilik durdurdu. Daha sonra veya başka bir ağdan yeniden denemek genellikle işe yarar. Bu bir hata gibi görünüyorsa hello@astermail.org yardımcı olabilir.",
+    abuse_blocked_proof:
+      "Tarayıcınız güvenlik kontrolünü tamamlamadı. Sayfayı yenileyip yeniden deneyin. Sorun sürerse hello@astermail.org yardımcı olabilir.",
+    abuse_blocked_risk:
+      "Güvenlik sistemimiz bu kaydı doğrulayamadı. Farklı bir kullanıcı adı seçip yeniden denemek genellikle işe yarar. Bu bir hata gibi görünüyorsa hello@astermail.org yardımcı olabilir.",
+    abuse_block_reference: "Referans: {{reference}}",
     contact_support: "destek ile iletişime geçin",
     recovery_email_verified: "Kurtarma e-postası doğrulandı",
     verification_failed: "Doğrulama tamamlanmadı.",

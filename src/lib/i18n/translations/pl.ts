@@ -9900,6 +9900,15 @@ export const pl = {
       "Adres e-mail do odzyskiwania jest wymagany, aby zapobiegać spamowi.",
     abuse_flagged_message:
       "Nasz system bezpieczeństwa wstrzymał nowe rejestracje z tej sieci. Jeśli to wygląda na pomyłkę, hello@astermail.org może pomóc.",
+    abuse_blocked_device:
+      "Nasz system bezpieczeństwa wstrzymał na razie nowe rejestracje z tego urządzenia. Jeśli to wygląda na pomyłkę, hello@astermail.org może pomóc.",
+    abuse_blocked_network:
+      "Nasz system bezpieczeństwa wstrzymał na razie nowe rejestracje z tej sieci. Zwykle pomaga ponowna próba później lub z innej sieci. Jeśli to wygląda na pomyłkę, hello@astermail.org może pomóc.",
+    abuse_blocked_proof:
+      "Przeglądarka nie ukończyła kontroli bezpieczeństwa. Odśwież stronę i spróbuj ponownie. Jeśli to się powtarza, hello@astermail.org może pomóc.",
+    abuse_blocked_risk:
+      "Nasz system bezpieczeństwa nie mógł zweryfikować tej rejestracji. Zwykle pomaga wybranie innej nazwy użytkownika i ponowna próba. Jeśli to wygląda na pomyłkę, hello@astermail.org może pomóc.",
+    abuse_block_reference: "Numer referencyjny: {{reference}}",
     contact_support: "skontaktować się z pomocą techniczną",
     recovery_email_verified: "Zapasowy e-mail zweryfikowany",
     recovery_email_verified_desc:

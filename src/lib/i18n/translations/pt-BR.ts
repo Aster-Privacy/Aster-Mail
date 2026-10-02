@@ -9671,6 +9671,15 @@ export const pt_br = {
       "É necessário um e-mail de recuperação para evitar spam.",
     abuse_flagged_message:
       "Nosso sistema de segurança suspendeu os novos cadastros a partir desta rede por enquanto. Se isso parecer um engano, hello@astermail.org pode ajudar.",
+    abuse_blocked_device:
+      "Nosso sistema de segurança suspendeu por enquanto os novos cadastros a partir deste dispositivo. Se isso parecer um engano, hello@astermail.org pode ajudar.",
+    abuse_blocked_network:
+      "Nosso sistema de segurança suspendeu por enquanto os novos cadastros a partir desta rede. Tentar mais tarde ou de outra rede costuma funcionar. Se isso parecer um engano, hello@astermail.org pode ajudar.",
+    abuse_blocked_proof:
+      "Seu navegador não concluiu a verificação de segurança. Recarregue a página e tente de novo. Se continuar acontecendo, hello@astermail.org pode ajudar.",
+    abuse_blocked_risk:
+      "Nosso sistema de segurança não conseguiu verificar este cadastro. Escolher outro nome de usuário e tentar de novo costuma funcionar. Se isso parecer um engano, hello@astermail.org pode ajudar.",
+    abuse_block_reference: "Referência: {{reference}}",
     contact_support: "entrar em contato com o suporte",
     recovery_email_verified: "E-mail de recuperação verificado",
     verification_failed: "A verificação não terminou.",
