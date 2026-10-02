@@ -29,7 +29,7 @@ import {
 } from "vitest";
 
 import { get_translations_async } from "@/lib/i18n/translations";
-import { update_tray_badge } from "@/native/tauri_tray";
+import { sync_tray_labels, update_tray_badge } from "@/native/tauri_tray";
 
 const invoke_mock = vi.fn();
 
@@ -96,5 +96,76 @@ describe("tray unread tooltip", () => {
     await update_tray_badge(1);
 
     expect(last_tooltip()).toBe("Aster Mail - 1 unread");
+  });
+
+  it("re-sends the tooltip in the new language without a count change", async () => {
+    localStorage.setItem("astermail_language", "pt");
+
+    await update_tray_badge(3);
+
+    expect(last_tooltip()).toBe("Aster Mail - 3 não lidas");
+
+    invoke_mock.mockClear();
+    localStorage.setItem("astermail_language", "en");
+
+    await sync_tray_labels();
+
+    expect(last_tooltip()).toBe("Aster Mail - 3 unread");
+    expect(invoke_mock).toHaveBeenCalledWith("set_unread_badge", { count: 3 });
+  });
+
+  it("uses the new language's plural rules when re-sending", async () => {
+    localStorage.setItem("astermail_language", "en");
+
+    await update_tray_badge(1);
+
+    expect(last_tooltip()).toBe("Aster Mail - 1 unread");
+
+    localStorage.setItem("astermail_language", "pt");
+
+    await sync_tray_labels();
+
+    expect(last_tooltip()).toBe("Aster Mail - 1 não lida");
+  });
+
+  it("ends on the new language when the switch lands mid-flush", async () => {
+    let release_badge: () => void = () => {};
+    let badge_reached: () => void = () => {};
+    const reached = new Promise<void>((resolve) => {
+      badge_reached = resolve;
+    });
+
+    invoke_mock.mockImplementation((command: string) => {
+      if (command !== "set_unread_badge") return Promise.resolve();
+
+      badge_reached();
+
+      return new Promise<void>((resolve) => {
+        release_badge = resolve;
+      });
+    });
+
+    localStorage.setItem("astermail_language", "pt");
+
+    const in_flight = update_tray_badge(2);
+
+    await reached;
+
+    localStorage.setItem("astermail_language", "en");
+
+    const labels_synced = sync_tray_labels();
+
+    await vi.waitFor(() => {
+      expect(invoke_mock).toHaveBeenCalledWith(
+        "set_tray_labels",
+        expect.anything(),
+      );
+    });
+    release_badge();
+    invoke_mock.mockImplementation(() => Promise.resolve());
+
+    await Promise.all([in_flight, labels_synced]);
+
+    expect(last_tooltip()).toBe("Aster Mail - 2 unread");
   });
 });

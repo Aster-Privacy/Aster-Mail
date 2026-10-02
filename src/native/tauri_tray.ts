@@ -50,6 +50,7 @@ export function format_unread_tooltip(count: number): string {
 }
 
 let pending_badge_count: number | null = null;
+let last_badge_count: number | null = null;
 let badge_flush_active = false;
 
 async function flush_tray_badge(): Promise<void> {
@@ -96,6 +97,17 @@ export async function update_tray_badge(unread_count: number): Promise<void> {
   if (!is_tauri()) return;
 
   pending_badge_count = Math.max(0, Math.floor(unread_count));
+  last_badge_count = pending_badge_count;
+
+  await flush_tray_badge();
+}
+
+async function refresh_tray_tooltip(): Promise<void> {
+  if (last_badge_count === null) return;
+
+  if (pending_badge_count === null) {
+    pending_badge_count = last_badge_count;
+  }
 
   await flush_tray_badge();
 }
@@ -160,6 +172,8 @@ export async function sync_tray_labels(): Promise<void> {
       },
     });
   } catch {
-    return;
+    void 0;
   }
+
+  await refresh_tray_tooltip();
 }
