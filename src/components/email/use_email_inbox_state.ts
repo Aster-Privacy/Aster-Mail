@@ -132,6 +132,7 @@ export function use_email_inbox_state(props: EmailInboxProps) {
 
   const [active_filter, set_active_filter] = useState<InboxFilterType>("all");
   const [is_paginating, set_is_paginating] = useState(false);
+  const paginate_seq_ref = useRef(0);
   const prev_view_ref_page = useRef(current_view);
   const prev_page_ref = useRef(current_page);
   const initial_page_synced = useRef(false);
@@ -186,12 +187,14 @@ export function use_email_inbox_state(props: EmailInboxProps) {
         !is_snoozed_view
       ) {
         const instant = is_page_cached(current_page, page_size);
+        const paginate_seq = ++paginate_seq_ref.current;
 
         if (!instant) set_is_paginating(true);
         fetch_page(current_page, page_size, {
           force: true,
           silent: categories.enabled,
         }).finally(() => {
+          if (paginate_seq !== paginate_seq_ref.current) return;
           if (!instant) set_is_paginating(false);
         });
       }

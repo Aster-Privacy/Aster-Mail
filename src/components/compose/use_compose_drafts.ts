@@ -217,8 +217,10 @@ export function use_compose_drafts({
 
       if (saved) {
         save_failure_notified_ref.current = false;
-        set_draft_status("saved");
-        set_last_saved_time(new Date());
+        if (draft_context_id_ref.current === context_id) {
+          set_draft_status("saved");
+          set_last_saved_time(new Date());
+        }
 
         return;
       }

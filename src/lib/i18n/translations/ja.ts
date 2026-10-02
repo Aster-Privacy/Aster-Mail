@@ -1277,6 +1277,8 @@ export const ja = {
     font: "フォント",
     stylesheet: "スタイルシート",
     tracking_pixel: "トラッキングピクセル",
+    image_blocked: "画像はブロックされました",
+    tracking_pixel_blocked: "トラッキングピクセルはブロックされました",
     me: "自分",
     notification_banner_message:
       "デスクトップ通知を有効にして新着メールの情報を受け取りましょう",

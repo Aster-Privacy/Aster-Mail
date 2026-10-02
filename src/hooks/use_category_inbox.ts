@@ -472,7 +472,7 @@ export function use_category_inbox(
         ),
       );
     } else {
-      set_state((prev) => ({ ...prev, is_loading: true }));
+      set_state((prev) => ({ ...prev, emails: [], is_loading: true }));
     }
   }
 
@@ -537,7 +537,7 @@ export function use_category_inbox(
     timer = setTimeout(settle_or_wait, LOADING_BACKSTOP_MS);
 
     return () => clearTimeout(timer);
-  }, [enabled, state.is_loading]);
+  }, [enabled, state.is_loading, active_category]);
 
   const page_cache_key = useCallback(
     (target_page: number, ids: string[]): string =>
@@ -723,7 +723,9 @@ export function use_category_inbox(
 
         set_state(build_load_failed_state);
       } finally {
-        fetch_in_flight_ref.current = false;
+        if (abort_ref.current === controller || abort_ref.current === null) {
+          fetch_in_flight_ref.current = false;
+        }
       }
     },
     [
