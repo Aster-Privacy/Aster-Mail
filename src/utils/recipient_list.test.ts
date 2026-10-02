@@ -61,4 +61,56 @@ describe("split_recipient_list", () => {
       ),
     ).toEqual(['"Jo \\\"Jay\\\", Doe" <jo@example.com>', "b@example.com"]);
   });
+
+  it("keeps an unquoted comma in an Outlook display name", () => {
+    expect(
+      split_recipient_list("Doe, John <j@x.com>; Smith, Ann <a@x.com>"),
+    ).toEqual(["Doe, John <j@x.com>", "Smith, Ann <a@x.com>"]);
+  });
+
+  it("joins unquoted name fragments in a list mixed with plain addresses", () => {
+    expect(
+      split_recipient_list(
+        "a@x.com, Doe, John <j@x.com>, b@x.com, Smith, Ann, Jr. <s@x.com>",
+      ),
+    ).toEqual([
+      "a@x.com",
+      "Doe, John <j@x.com>",
+      "b@x.com",
+      "Smith, Ann, Jr. <s@x.com>",
+    ]);
+  });
+
+  it("splits a semicolon-only list of named addresses", () => {
+    expect(
+      split_recipient_list("John Doe <j@x.com>;Ann Smith <a@x.com>;"),
+    ).toEqual(["John Doe <j@x.com>", "Ann Smith <a@x.com>"]);
+  });
+
+  it("keeps a leftover that is not followed by a named address", () => {
+    expect(
+      split_recipient_list("Doe, John <j@x.com>; bob; c@x.com, typo@"),
+    ).toEqual(["Doe, John <j@x.com>", "bob", "c@x.com", "typo@"]);
+  });
+
+  it("does not join a name across a line break", () => {
+    expect(split_recipient_list("bob\nAnn Smith <a@x.com>")).toEqual([
+      "bob",
+      "Ann Smith <a@x.com>",
+    ]);
+  });
+
+  it("does not join a name across a semicolon", () => {
+    expect(split_recipient_list("bob; Ann Smith <a@x.com>")).toEqual([
+      "bob",
+      "Ann Smith <a@x.com>",
+    ]);
+  });
+
+  it("splits a long paste with no address quickly", () => {
+    const started = Date.now();
+
+    expect(split_recipient_list("a".repeat(200000))).toHaveLength(1);
+    expect(Date.now() - started).toBeLessThan(500);
+  });
 });

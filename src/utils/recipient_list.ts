@@ -33,8 +33,56 @@ function split_space_separated(part: string): string[] {
   return tokens;
 }
 
+const NAME_FRAGMENT_PATTERN = /^[^@<>"]+$/;
+const NAMED_ADDRESS_PATTERN = /^([^@<>]*)<[^<>]+>$/;
+
+function is_named_address(text: string): boolean {
+  const match = NAMED_ADDRESS_PATTERN.exec(text);
+
+  return match !== null && match[1].trim().length > 0;
+}
+
+interface RawPart {
+  text: string;
+  separator: string;
+}
+
+function join_name_fragments(parts: RawPart[]): string[] {
+  const joined: string[] = [];
+  let pending: RawPart[] = [];
+
+  const flush = () => {
+    joined.push(...pending.map((part) => part.text));
+    pending = [];
+  };
+
+  for (const part of parts) {
+    if (pending.length > 0 && is_named_address(part.text)) {
+      joined.push(
+        pending
+          .map((fragment) => fragment.text + fragment.separator)
+          .join(" ") +
+          " " +
+          part.text,
+      );
+      pending = [];
+    } else if (NAME_FRAGMENT_PATTERN.test(part.text)) {
+      pending.push(part);
+    } else {
+      flush();
+      joined.push(part.text);
+    }
+
+    if (part.separator !== ",") flush();
+  }
+
+  flush();
+
+  return joined;
+}
+
 export function split_recipient_list(text: string): string[] {
-  const parts: string[] = [];
+  const parts: RawPart[] = [];
   let current = "";
   let in_quotes = false;
   let in_angles = false;
@@ -69,7 +117,7 @@ export function split_recipient_list(text: string): string[] {
     if (SEPARATORS.has(char) && !in_quotes && !in_angles) {
       const trimmed = current.trim();
 
-      if (trimmed) parts.push(trimmed);
+      if (trimmed) parts.push({ text: trimmed, separator: char });
       current = "";
       continue;
     }
@@ -79,7 +127,7 @@ export function split_recipient_list(text: string): string[] {
 
   const trimmed = current.trim();
 
-  if (trimmed) parts.push(trimmed);
+  if (trimmed) parts.push({ text: trimmed, separator: "" });
 
-  return parts.flatMap(split_space_separated);
+  return join_name_fragments(parts).flatMap(split_space_separated);
 }
