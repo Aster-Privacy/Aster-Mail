@@ -29,6 +29,10 @@ export interface FetchPageOptions {
   silent?: boolean;
 }
 
+export interface BulkDeleteOptions {
+  conversation_grouping?: boolean;
+}
+
 export interface UseEmailListReturn {
   state: EmailListState;
   fetch_page: (
@@ -49,7 +53,10 @@ export interface UseEmailListReturn {
   archive_email: (id: string) => Promise<void>;
   unarchive_email: (id: string) => Promise<void>;
   mark_spam: (id: string) => Promise<void>;
-  bulk_delete: (ids: string[]) => Promise<BulkActionResult>;
+  bulk_delete: (
+    ids: string[],
+    options?: BulkDeleteOptions,
+  ) => Promise<BulkActionResult>;
   bulk_archive: (ids: string[]) => Promise<BulkActionResult>;
   bulk_unarchive: (ids: string[]) => Promise<BulkActionResult>;
   refresh: () => void;

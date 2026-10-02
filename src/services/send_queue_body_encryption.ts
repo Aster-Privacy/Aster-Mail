@@ -50,6 +50,10 @@ import {
 
 import { derive_own_public_key } from "@/utils/email_crypto";
 import { get_active_translations } from "@/lib/i18n/translations";
+import {
+  normalize_address_ignoring_dots,
+  same_address_ignoring_dots,
+} from "@/utils/address_dots";
 
 function map_ratchet_error(err: unknown): unknown {
   if (err instanceof RecoveryLaneUnavailableError) {
@@ -176,6 +180,21 @@ export async function check_post_quantum_coverage(
   return coverage.missing;
 }
 
+async function resolve_ratchet_sender(sender_email: string): Promise<string> {
+  const { get_current_account } = await import("@/services/account_manager");
+  const account = await get_current_account().catch(() => null);
+  const primary_email = account?.user?.email;
+
+  if (
+    primary_email &&
+    same_address_ignoring_dots(primary_email, sender_email)
+  ) {
+    return normalize_address_ignoring_dots(sender_email);
+  }
+
+  return sender_email;
+}
+
 export async function encrypt_for_recipients(
   body: string,
   recipients: string[],
@@ -213,6 +232,7 @@ export async function encrypt_for_recipients(
     vault?.ratchet_identity_key &&
     vault?.ratchet_identity_public
   ) {
+    const ratchet_sender = await resolve_ratchet_sender(sender_email);
     const ratchet_results: Record<
       string,
       Awaited<ReturnType<typeof encrypt_for_ratchet_recipient>>
@@ -231,7 +251,7 @@ export async function encrypt_for_recipients(
 
       try {
         result = await encrypt_for_ratchet_recipient(
-          sender_email,
+          ratchet_sender,
           recipient,
           username,
           body,
@@ -250,11 +270,11 @@ export async function encrypt_for_recipients(
     }
 
     if (all_ratchet_ok) {
-      const sender_lower = sender_email.toLowerCase();
+      const sender_lower = ratchet_sender.toLowerCase();
 
       if (!internal_recipients.some((r) => r.toLowerCase() === sender_lower)) {
         const sender_username =
-          await resolve_own_username_for_key_lookup(sender_email);
+          await resolve_own_username_for_key_lookup(ratchet_sender);
 
         if (sender_username) {
           let self_result: Awaited<
@@ -263,8 +283,8 @@ export async function encrypt_for_recipients(
 
           try {
             self_result = await encrypt_for_ratchet_recipient(
-              sender_email,
-              sender_email,
+              ratchet_sender,
+              ratchet_sender,
               sender_username,
               body,
               vault,

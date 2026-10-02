@@ -40,6 +40,7 @@ import { get_safe_next_path } from "@/pages/sign_in_helpers";
 import { user_facing_error } from "@/utils/user_facing_error";
 import { is_auth_salt_collision } from "@/services/crypto/auth_salt_guard";
 import { api_client } from "@/services/api/client";
+import { same_address_ignoring_dots } from "@/utils/address_dots";
 
 type MobileSignInHandlerParams = Pick<
   ReturnType<typeof use_mobile_sign_in>,
@@ -179,8 +180,8 @@ export function build_mobile_sign_in_handlers(
 
     if (is_adding_account) {
       const normalized = email.toLowerCase();
-      const existing = accounts.find(
-        (a) => a.user.email.toLowerCase() === normalized,
+      const existing = accounts.find((a) =>
+        same_address_ignoring_dots(a.user.email, normalized),
       );
 
       if (

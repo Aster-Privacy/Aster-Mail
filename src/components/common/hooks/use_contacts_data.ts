@@ -116,6 +116,7 @@ export function use_contacts_data() {
   const [is_import_modal_open, set_is_import_modal_open] = useState(false);
   const [show_history, set_show_history] = useState(false);
   const copy_timeout_ref = useRef<NodeJS.Timeout | null>(null);
+  const fetch_seq_ref = useRef(0);
   const search_input_ref = useRef<HTMLInputElement>(null);
   const list_container_ref = useRef<HTMLDivElement>(null);
   const contact_refs = useRef<Map<string, HTMLDivElement>>(new Map());
@@ -324,6 +325,9 @@ export function use_contacts_data() {
       return;
     }
 
+    const seq = ++fetch_seq_ref.current;
+    const is_current = () => seq === fetch_seq_ref.current;
+
     try {
       set_error(null);
       const items: Contact[] = [];
@@ -334,6 +338,8 @@ export function use_contacts_data() {
           limit: CONTACT_PAGE_LIMIT,
           cursor,
         });
+
+        if (!is_current()) return;
 
         if (response.error || !response.data) {
           set_error(response.error || t("common.failed_to_fetch_contacts"));
@@ -348,6 +354,9 @@ export function use_contacts_data() {
       const decrypted = await apply_server_group_membership(
         await decrypt_contacts(items, true),
       );
+
+      if (!is_current()) return;
+
       const active: DecryptedContact[] = [];
       const trashed: DecryptedContact[] = [];
 
@@ -368,13 +377,14 @@ export function use_contacts_data() {
       set_contacts(active);
       set_trashed_contacts(trashed);
     } catch (err) {
+      if (!is_current()) return;
       set_error(
         err instanceof Error
           ? err.message
           : t("common.failed_to_fetch_contacts"),
       );
     } finally {
-      set_is_loading(false);
+      if (is_current()) set_is_loading(false);
     }
   }, [has_keys, t]);
 

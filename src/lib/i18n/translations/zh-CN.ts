@@ -1103,6 +1103,8 @@ export const zh_CN = {
     font: "字体",
     stylesheet: "样式表",
     tracking_pixel: "跟踪像素",
+    image_blocked: "图片已屏蔽",
+    tracking_pixel_blocked: "跟踪像素已屏蔽",
     me: "我",
     notification_banner_message: "启用桌面通知以及时获取新邮件更新",
     notification_banner_allow: "允许",
@@ -3675,7 +3677,7 @@ export const zh_CN = {
     reply_to_all: "回复所有人",
     force_dark_mode_emails: "强制电子邮件深色模式",
     force_dark_mode_emails_description:
-      "始终以深色模式渲染电子邮件内容，覆盖电子邮件的原始样式",
+      "在 Aster 使用深色主题时，以深色模式渲染电子邮件内容，覆盖电子邮件的原始样式",
     translation: "翻译",
     translate_incoming: "翻译收到的邮件",
     translate_incoming_description: "在您的设备上翻译以其他语言撰写的邮件。",
@@ -4257,7 +4259,7 @@ export const zh_CN = {
       "在邮件上显示锁图标，告知您邮件是否已加密、已签名或两者都不是。便于一眼了解哪些内容受到保护。",
     info_force_dark_mode_title: "邮件强制深色模式",
     info_force_dark_mode_description:
-      "将邮件样式改为深色背景和浅色文字。如果亮白色邮件让您的眼睛不舒服，此功能很有用。",
+      "在 Aster 使用深色主题时，将邮件样式改为深色背景和浅色文字。如果亮白色邮件让您的眼睛不舒服，此功能很有用。",
     info_undo_send_title: "撤回发送",
     info_undo_send_description:
       "在点击发送后给您一小段时间取消邮件。计时器结束前不会真正发出。",

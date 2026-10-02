@@ -243,6 +243,45 @@ describe("format_full_date", () => {
       /2026/,
     );
   });
+
+  describe("follows the locale's own pattern", () => {
+    const d = new Date("2026-10-01T12:00:00Z");
+
+    beforeEach(() => set_display_time_zone("UTC"));
+    afterEach(() => {
+      set_display_locale(undefined);
+      set_display_time_zone(undefined);
+    });
+
+    it("writes European Portuguese with de", () => {
+      set_display_locale("pt");
+      expect(format_full_date(d, EU)).toBe(
+        "quinta-feira, 1 de outubro de 2026",
+      );
+      expect(format_full_date(d, US)).toBe(
+        "quinta-feira, 1 de outubro de 2026",
+      );
+    });
+
+    it("keeps Brazilian Portuguese as pt-BR", () => {
+      set_display_locale("pt-BR");
+      expect(format_full_date(d, EU)).toBe(
+        "quinta-feira, 1 de outubro de 2026",
+      );
+    });
+
+    it("keeps German's ordinal day", () => {
+      set_display_locale("de");
+      expect(format_full_date(d, EU)).toBe("Donnerstag, 1. Oktober 2026");
+    });
+
+    it("lets the date preference pick the English order", () => {
+      set_display_locale("en");
+      expect(format_full_date(d, US)).toBe("Thursday, October 1, 2026");
+      expect(format_full_date(d, ISO)).toBe("Thursday, October 1, 2026");
+      expect(format_full_date(d, EU)).toMatch(/^Thursday,? 1 October 2026$/);
+    });
+  });
 });
 
 describe("format_full_datetime", () => {

@@ -1214,6 +1214,8 @@ export const nl = {
     font: "Lettertype",
     stylesheet: "Stijlblad",
     tracking_pixel: "Trackingpixel",
+    image_blocked: "Afbeelding geblokkeerd",
+    tracking_pixel_blocked: "Trackingpixel geblokkeerd",
     me: "mij",
     notification_banner_message:
       "Schakel bureaubladmeldingen in om op de hoogte te blijven van nieuwe e-mails",
@@ -3999,7 +4001,7 @@ export const nl = {
     reply_to_all: "Allen antwoorden",
     force_dark_mode_emails: "Donkere modus voor e-mails forceren",
     force_dark_mode_emails_description:
-      "E-mailinhoud altijd in donkere modus weergeven, waarbij de oorspronkelijke stijl wordt overschreven",
+      "E-mailinhoud in donkere modus weergeven zolang Aster het donkere thema gebruikt, waarbij de oorspronkelijke stijl wordt overschreven",
     translation: "Vertaling",
     translate_incoming: "Inkomende e-mail vertalen",
     translate_incoming_description:
@@ -4597,7 +4599,7 @@ export const nl = {
       "Toont een slotpictogram op e-mails om aan te geven of een bericht versleuteld, ondertekend of geen van beide is.",
     info_force_dark_mode_title: "Donkere modus e-mails",
     info_force_dark_mode_description:
-      "Herschrijft e-mailstijlen voor een donkere achtergrond en lichte tekst. Handig als helderwitte e-mails zwaar zijn voor je ogen.",
+      "Herschrijft e-mailstijlen voor een donkere achtergrond en lichte tekst zolang Aster het donkere thema gebruikt. Handig als helderwitte e-mails zwaar zijn voor je ogen.",
     info_undo_send_title: "Verzenden ongedaan maken",
     info_undo_send_description:
       "Geeft je een kort venster om een e-mail te annuleren nadat je op verzenden hebt gedrukt. Er wordt niets verzonden totdat de timer verloopt.",

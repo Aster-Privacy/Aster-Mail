@@ -35,6 +35,7 @@ export {
   group_emails_by_thread,
   insert_emails_at,
   sort_emails_by_timestamp,
+  trashes_whole_thread,
 } from "./grouping";
 export type { RestoredEmailEntry } from "./grouping";
 export { mail_to_email, mail_to_email_safe } from "./mapping";

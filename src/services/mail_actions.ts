@@ -41,6 +41,7 @@ import { sanitize_outgoing_html } from "@/lib/html_sanitizer";
 import { get_active_translations } from "@/lib/i18n/translations";
 import { resolve_reply_prefix } from "@/lib/reply_defaults";
 import { ignore_error } from "@/lib/ignore_error";
+import { same_address_ignoring_dots } from "@/utils/address_dots";
 import {
   build_reply_subject as build_reply_subject_value,
   strip_reply_prefix,
@@ -135,9 +136,11 @@ export function build_reply_recipients(
       .map(normalize_address),
   );
 
-  const sender_is_self = own_addresses.has(
-    normalize_address(params.original.sender_email),
-  );
+  const is_own = (address: string): boolean =>
+    own_addresses.has(normalize_address(address)) ||
+    same_address_ignoring_dots(address, current_user_email);
+
+  const sender_is_self = is_own(params.original.sender_email);
 
   const primary_recipient = sender_is_self
     ? (params.original.to?.[0] ?? params.original.sender_email)
@@ -151,11 +154,7 @@ export function build_reply_recipients(
     for (const addr of params.original.to ?? []) {
       const normalized = normalize_address(addr);
 
-      if (
-        !normalized ||
-        own_addresses.has(normalized) ||
-        seen.has(normalized)
-      ) {
+      if (!normalized || is_own(addr) || seen.has(normalized)) {
         continue;
       }
 
@@ -166,11 +165,7 @@ export function build_reply_recipients(
     for (const addr of params.original.cc ?? []) {
       const normalized = normalize_address(addr);
 
-      if (
-        !normalized ||
-        own_addresses.has(normalized) ||
-        seen.has(normalized)
-      ) {
+      if (!normalized || is_own(addr) || seen.has(normalized)) {
         continue;
       }
 

@@ -1273,6 +1273,8 @@ export const fr = {
     font: "Police",
     stylesheet: "Feuille de style",
     tracking_pixel: "Pixel de suivi",
+    image_blocked: "Image bloquée",
+    tracking_pixel_blocked: "Pixel de suivi bloqué",
     me: "moi",
     notification_banner_message:
       "Activez les notifications sur ordinateur pour rester informé des nouveaux e-mails",
@@ -4064,7 +4066,7 @@ export const fr = {
     reply_to_all: "Répondre à tous",
     force_dark_mode_emails: "Forcer le mode sombre pour les e-mails",
     force_dark_mode_emails_description:
-      "Toujours afficher le contenu des e-mails en mode sombre, en ignorant le style d'origine",
+      "Afficher le contenu des e-mails en mode sombre lorsque Aster utilise le thème sombre, en ignorant le style d'origine",
     translation: "Traduction",
     translate_incoming: "Traduire le courrier entrant",
     translate_incoming_description:
@@ -4726,7 +4728,7 @@ export const fr = {
       "Affiche une icône de cadenas sur les e-mails pour indiquer si un message est chiffré, signé ou ni l'un ni l'autre.",
     info_force_dark_mode_title: "Mode sombre pour les e-mails",
     info_force_dark_mode_description:
-      "Réécrit les styles des e-mails pour utiliser un fond sombre et du texte clair. Utile si les e-mails blancs brillants sont pénibles pour vos yeux.",
+      "Lorsque Aster est en thème sombre, réécrit les styles des e-mails pour utiliser un fond sombre et du texte clair. Utile si les e-mails blancs brillants sont pénibles pour vos yeux.",
     info_undo_send_title: "Annuler l'envoi",
     info_undo_send_description:
       "Vous donne une courte fenêtre pour annuler un e-mail après avoir cliqué sur envoyer. Rien ne part avant la fin du minuteur.",

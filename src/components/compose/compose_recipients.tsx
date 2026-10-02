@@ -575,8 +575,7 @@ export function RecipientField({
           );
           const hosted = still_pending.filter(
             (email) =>
-              classified.get(normalize_recipient_address(email)) ===
-              "internal",
+              classified.get(normalize_recipient_address(email)) === "internal",
           );
           const remaining = still_pending.filter(
             (email) => !hosted.includes(email),
@@ -701,7 +700,9 @@ export function RecipientField({
         return;
       }
 
+      e.preventDefault();
       on_remove_last();
+      on_input_change(recipients[recipients.length - 1]);
     }
   };
 

@@ -668,6 +668,7 @@ export function use_inbox_view_state(props: EmailInboxProps) {
       confirm_before_delete: preferences.confirm_before_delete,
       confirm_before_spam: preferences.confirm_before_spam,
       confirm_before_archive: preferences.confirm_before_archive,
+      conversation_grouping: preferences.conversation_grouping,
     },
     set_pending_delete_email: toolbar.set_pending_delete_email,
     set_show_single_delete_confirm: toolbar.set_show_single_delete_confirm,

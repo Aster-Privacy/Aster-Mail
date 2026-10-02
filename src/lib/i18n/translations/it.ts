@@ -1262,6 +1262,8 @@ export const it = {
     font: "Carattere",
     stylesheet: "Foglio di stile",
     tracking_pixel: "Pixel di tracciamento",
+    image_blocked: "Immagine bloccata",
+    tracking_pixel_blocked: "Pixel di tracciamento bloccato",
     me: "me",
     notification_banner_message:
       "Attiva le notifiche desktop per restare aggiornato sulle nuove email",
@@ -4086,7 +4088,7 @@ export const it = {
     reply_to_all: "Rispondi a tutti",
     force_dark_mode_emails: "Forza modalità scura per le email",
     force_dark_mode_emails_description:
-      "Renderizza sempre il contenuto delle email in modalità scura, sovrascrivendo lo stile originale",
+      "Renderizza il contenuto delle email in modalità scura quando Aster usa il tema scuro, sovrascrivendo lo stile originale",
     translation: "Traduzione",
     translate_incoming: "Traduci la posta in arrivo",
     translate_incoming_description:
@@ -5774,7 +5776,7 @@ export const it = {
       "Mostra un'icona lucchetto sulle e-mail per indicare se un messaggio è cifrato, firmato o nessuno dei due.",
     info_force_dark_mode_title: "E-mail in modalità scura",
     info_force_dark_mode_description:
-      "Riscrive gli stili delle e-mail per usare uno sfondo scuro e testo chiaro. Utile se le e-mail bianche sono fastidiose per i tuoi occhi.",
+      "Quando Aster è nel tema scuro, riscrive gli stili delle e-mail per usare uno sfondo scuro e testo chiaro. Utile se le e-mail bianche sono fastidiose per i tuoi occhi.",
     info_undo_send_title: "Annulla invio",
     info_undo_send_description:
       "Ti dà una breve finestra per annullare un'e-mail dopo aver premuto invia. Nulla parte finché il timer non scade.",

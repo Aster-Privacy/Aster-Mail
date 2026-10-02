@@ -54,6 +54,7 @@ export interface UseContextMenuActionsParams {
     confirm_before_delete: boolean;
     confirm_before_spam: boolean;
     confirm_before_archive: boolean;
+    conversation_grouping?: boolean;
   };
   set_pending_delete_email: (email: InboxEmail | null) => void;
   set_show_single_delete_confirm: (show: boolean) => void;

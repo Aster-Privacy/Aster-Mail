@@ -20,6 +20,10 @@
 //
 import DOMPurify from "dompurify";
 
+import {
+  prepare_blocked_image,
+  type BlockedImageLabels,
+} from "./blocked_image_placeholder";
 import { split_autolinks } from "./autolink";
 import { mark_brand_backgrounds } from "./email_brand_backgrounds";
 import { mark_stylesheet_background_images } from "./html_sanitizer_background_marks";
@@ -252,6 +256,7 @@ export interface SanitizeOptions {
   sandbox_mode?: boolean;
   content_blocking?: ContentBlockingSettings;
   lockdown_mode?: boolean;
+  blocked_image_labels?: BlockedImageLabels;
 }
 
 export function degraded_text_html(html: string): string {
@@ -421,6 +426,7 @@ function sanitize_html_impl(
     sandbox_mode = false,
     content_blocking,
     lockdown_mode = false,
+    blocked_image_labels,
   } = options;
 
   const effective_proxy = lockdown_mode ? undefined : image_proxy_url;
@@ -1028,49 +1034,6 @@ function sanitize_html_impl(
             type: is_pixel ? "tracking_pixel" : "image",
           });
 
-          if (is_pixel && block_pixels) {
-            const pixel_placeholder = output_doc.createElement("span");
-
-            pixel_placeholder.className = "blocked-image";
-            pixel_placeholder.setAttribute("data-original-src", src);
-            pixel_placeholder.setAttribute("data-tracking-pixel", "true");
-            pixel_placeholder.setAttribute(
-              "style",
-              "display:inline-block;width:0;height:0;overflow:hidden",
-            );
-
-            return pixel_placeholder;
-          }
-
-          if (
-            external_content_mode === "never" ||
-            (content_blocking && block_images)
-          ) {
-            const placeholder = output_doc.createElement("span");
-
-            placeholder.className = "blocked-image";
-            placeholder.setAttribute("data-original-src", src);
-            placeholder.setAttribute(
-              "data-tracking-pixel",
-              is_pixel ? "true" : "false",
-            );
-
-            const w = new_element.getAttribute("width");
-            const h = new_element.getAttribute("height");
-            const s = new_element.getAttribute("style");
-
-            const alt = new_element.getAttribute("alt");
-
-            if (w) placeholder.setAttribute("data-width", w);
-            if (h) placeholder.setAttribute("data-height", h);
-            if (s) placeholder.setAttribute("data-style", s);
-            if (alt) placeholder.setAttribute("data-alt", alt);
-
-            placeholder.textContent = alt || "[Image blocked]";
-
-            return placeholder;
-          }
-
           new_element.setAttribute("data-original-src", src);
           new_element.setAttribute("data-blocked", "true");
           new_element.setAttribute(
@@ -1083,17 +1046,11 @@ function sanitize_html_impl(
               `${effective_proxy}?url=${encodeURIComponent(proxy_source)}`,
             );
           }
-          new_element.setAttribute(
-            "src",
-            "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==",
+          prepare_blocked_image(
+            new_element as HTMLImageElement,
+            is_pixel,
+            blocked_image_labels,
           );
-          new_element.setAttribute(
-            "alt",
-            new_element.getAttribute("alt") || "[Click to load image]",
-          );
-          new_element.className = (
-            new_element.className + " blocked-remote-image"
-          ).trim();
         } else if (effective_proxy) {
           new_element.setAttribute(
             "src",

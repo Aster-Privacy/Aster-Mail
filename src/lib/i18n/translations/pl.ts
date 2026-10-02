@@ -1260,6 +1260,8 @@ export const pl = {
     font: "Czcionka",
     stylesheet: "Arkusz stylów",
     tracking_pixel: "Piksel śledzący",
+    image_blocked: "Obraz zablokowany",
+    tracking_pixel_blocked: "Piksel śledzący zablokowany",
     me: "ja",
     notification_banner_message:
       "Włącz powiadomienia pulpitowe, aby być na bieżąco z nowymi e-mailami",
@@ -4170,7 +4172,7 @@ export const pl = {
     reply_to_all: "Odpowiedz wszystkim",
     force_dark_mode_emails: "Wymuś tryb ciemny dla e-maili",
     force_dark_mode_emails_description:
-      "Zawsze renderuj treść e-maili w trybie ciemnym, nadpisując oryginalny styl",
+      "Renderuj treść e-maili w trybie ciemnym, gdy Aster używa ciemnego motywu, nadpisując oryginalny styl",
     translation: "Tłumaczenie",
     translate_incoming: "Tłumacz przychodzącą pocztę",
     translate_incoming_description:
@@ -4819,7 +4821,7 @@ export const pl = {
       "Wyświetla ikonę kłódki na e-mailach, wskazując czy wiadomość jest zaszyfrowana, podpisana lub żadne z tych.",
     info_force_dark_mode_title: "Tryb ciemny dla e-maili",
     info_force_dark_mode_description:
-      "Przepisuje style e-maili na ciemne tło i jasny tekst. Przydatne gdy jasne białe e-maile męczą Twoje oczy.",
+      "Gdy Aster używa ciemnego motywu, przepisuje style e-maili na ciemne tło i jasny tekst. Przydatne gdy jasne białe e-maile męczą Twoje oczy.",
     info_undo_send_title: "Cofnij wysyłanie",
     info_undo_send_description:
       "Daje krótkie okno na anulowanie e-maila po kliknięciu wyślij. Nic nie wychodzi dopóki timer nie dobiegnie końca.",

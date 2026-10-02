@@ -1239,6 +1239,8 @@ export const tr = {
     font: "Yazı tipi",
     stylesheet: "Stil sayfası",
     tracking_pixel: "İzleme pikseli",
+    image_blocked: "Görsel engellendi",
+    tracking_pixel_blocked: "İzleme pikseli engellendi",
     me: "ben",
     notification_banner_message:
       "Yeni e-postalardan haberdar olmak için masaüstü bildirimlerini etkinleştirin",
@@ -3963,7 +3965,7 @@ export const tr = {
     reply_to_all: "Tümüne yanıtla",
     force_dark_mode_emails: "E-postalar için karanlık modu zorla",
     force_dark_mode_emails_description:
-      "E-posta içeriğini her zaman karanlık modda göster, orijinal stili geçersiz kılarak",
+      "Aster koyu temadayken e-posta içeriğini karanlık modda göster, orijinal stili geçersiz kılarak",
     translation: "Çeviri",
     translate_incoming: "Gelen postayı çevir",
     translate_incoming_description:
@@ -4609,7 +4611,7 @@ export const tr = {
       "E-postalarda bir kilit simgesi göstererek mesajın şifreli, imzalı veya hiçbiri olduğunu belirtir.",
     info_force_dark_mode_title: "E-postalarda Koyu Mod",
     info_force_dark_mode_description:
-      "E-posta stillerini koyu arka plan ve açık metinle kullanmak üzere yeniden yazar. Parlak beyaz e-postalar gözlerinizi yoruyorsa kullanışlıdır.",
+      "Aster koyu temadayken e-posta stillerini koyu arka plan ve açık metinle kullanmak üzere yeniden yazar. Parlak beyaz e-postalar gözlerinizi yoruyorsa kullanışlıdır.",
     info_undo_send_title: "Gönderimi Geri Al",
     info_undo_send_description:
       "Gönder'e bastıktan sonra e-postayı iptal etmek için kısa bir süre tanır. Sayaç bitene kadar hiçbir şey gönderilmez.",

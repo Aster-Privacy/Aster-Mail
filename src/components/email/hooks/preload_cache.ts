@@ -143,6 +143,11 @@ const EMPTY_EXTERNAL_CONTENT: ExternalContentReport = {
 const preload_cache = new Map<string, PreloadedEmail>();
 const preload_in_flight = new Map<string, Promise<void>>();
 const MAX_PRELOAD_CACHE_SIZE = 30;
+let preload_generation = 0;
+
+function invalidate_in_flight_preloads(): void {
+  preload_generation += 1;
+}
 
 if (typeof window !== "undefined") {
   window.addEventListener(LOCKDOWN_CHANGED_EVENT, () => clear_preload_cache());
@@ -270,6 +275,7 @@ export function clear_preload_cache(): void {
 }
 
 export function mark_preload_stale(email_id?: string): void {
+  invalidate_in_flight_preloads();
   if (email_id) {
     const cached = preload_cache.get(email_id);
 
@@ -284,6 +290,7 @@ export function mark_preload_stale(email_id?: string): void {
 }
 
 export function delete_preloaded_email(email_id: string): void {
+  invalidate_in_flight_preloads();
   const entry = preload_cache.get(email_id);
 
   if (entry?.cid_resolved) revoke_cid_blob_urls(entry.cid_resolved.blob_urls);
@@ -334,6 +341,7 @@ function invalidate_thread_in_preload_cache(
   thread_token: string,
   original_email_id?: string,
 ): void {
+  invalidate_in_flight_preloads();
   for (const [key, cached] of preload_cache.entries()) {
     if (
       cached.mail_item.thread_token === thread_token ||
@@ -466,6 +474,7 @@ if (typeof window !== "undefined") {
       detail.snoozed_until !== undefined;
 
     if (has_unrepresentable_change) {
+      invalidate_in_flight_preloads();
       preload_cache.set(detail.id, { ...cached, is_stale: true });
 
       return;
@@ -654,8 +663,11 @@ export async function preload_email_detail(
     }
   }
   if (preload_in_flight.has(target_id)) return preload_in_flight.get(target_id);
+  const started_generation = preload_generation;
 
-  const task = (async () => {
+  let task: Promise<void> | undefined;
+
+  task = (async () => {
     try {
       const response = await get_mail_item(target_id);
 
@@ -991,6 +1003,8 @@ export async function preload_email_detail(
         item.metadata = decrypted_metadata;
       }
 
+      if (preload_generation !== started_generation) return;
+
       preload_cache.set(target_id, {
         mail_item: item,
         email: decrypted,
@@ -1008,7 +1022,9 @@ export async function preload_email_detail(
     } catch (caught) {
       ignore_error("components/email/hooks/preload_cache:task", caught);
     } finally {
-      preload_in_flight.delete(target_id);
+      if (preload_in_flight.get(target_id) === task) {
+        preload_in_flight.delete(target_id);
+      }
     }
   })();
 

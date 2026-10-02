@@ -38,6 +38,7 @@ import {
   emit_mail_soft_refresh,
 } from "@/hooks/mail_events";
 import {
+  ack_scope_read_intent,
   clear_read_intent,
   clear_scope_read_intent,
   note_read_intent,
@@ -138,6 +139,8 @@ export async function mark_all_read_by_scope(t: Translate): Promise<void> {
   }
   const { batch_id, affected_count, undoable, completed } = res.data;
   const finished = completed !== false;
+
+  if (finished) ack_scope_read_intent(scope_token);
 
   if (affected_count === 0 && locally_read_ids.length === 0) {
     show_toast(t("common.no_unread_emails"), "info");
