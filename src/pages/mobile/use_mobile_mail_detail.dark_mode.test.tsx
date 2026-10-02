@@ -180,6 +180,7 @@ function open_menu(id: string) {
 
 beforeEach(() => {
   preferences.force_dark_mode_emails = true;
+  detail.email_id = "a";
   detail.thread_messages = [message("a"), message("b")];
 });
 
@@ -235,5 +236,16 @@ describe("mobile email dark mode follows app appearance", () => {
     set_dark_class(true);
     expect(current.is_dark_mode_opted_out("a")).toBe(false);
     expect(current.is_dark_mode_message("a")).toBe(true);
+  });
+
+  it("clears per-message choices when a different email opens", () => {
+    preferences.force_dark_mode_emails = false;
+    mount();
+    open_menu("a");
+    act(() => current.handle_toggle_dark_mode());
+    expect(current.is_dark_mode_message("a")).toBe(true);
+    detail.email_id = "c";
+    act(() => root.render(<Detail />));
+    expect(current.is_dark_mode_message("a")).toBe(false);
   });
 });

@@ -140,6 +140,7 @@ export function use_mobile_mail_detail() {
     is_dark_mode_opted_out,
     toggle_dark_mode,
     set_all_dark_mode,
+    reset_dark_mode,
   } = use_email_dark_mode(preferences.force_dark_mode_emails);
   const [details_message, set_details_message] =
     useState<DecryptedThreadMessage | null>(null);
@@ -203,9 +204,9 @@ export function use_mobile_mail_detail() {
     set_details_message(null);
     set_menu_message(null);
     set_view_source_message(null);
-    set_dark_mode_overrides(new Map());
+    reset_dark_mode();
     has_scrolled.current = false;
-  }, [detail.email_id]);
+  }, [detail.email_id, reset_dark_mode]);
   const touch_start_ref = useRef<{ x: number; y: number; time: number } | null>(
     null,
   );

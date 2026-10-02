@@ -73,11 +73,18 @@ export function use_email_dark_mode(force_all_dark_mode: boolean) {
       overrides: new Map(ids.map((id) => [id, value])),
     });
   }, []);
+  const reset_dark_mode = useCallback(() => {
+    set_state({
+      appearance: get_resolved_appearance(),
+      overrides: new Map(),
+    });
+  }, []);
 
   return {
     is_dark_mode_message,
     is_dark_mode_opted_out,
     toggle_dark_mode,
     set_all_dark_mode,
+    reset_dark_mode,
   };
 }
