@@ -82,8 +82,7 @@ function unblock_blocked_placeholders(doc: Document, proxy_base: string): void {
 
       img.setAttribute(
         "src",
-        span.getAttribute("data-proxy-src") ||
-          `${proxy_base}?url=${encodeURIComponent(original_src)}`,
+        `${proxy_base}?url=${encodeURIComponent(original_src)}`,
       );
 
       const w = span.getAttribute("data-width");
@@ -93,12 +92,6 @@ function unblock_blocked_placeholders(doc: Document, proxy_base: string): void {
       if (w) img.setAttribute("width", w);
       if (h) img.setAttribute("height", h);
       if (s) img.setAttribute("style", s);
-
-      const alt = span.getAttribute("data-alt");
-      const image_class = span.getAttribute("data-image-class");
-
-      if (alt) img.setAttribute("alt", alt);
-      if (image_class) img.setAttribute("class", image_class);
 
       span.parentNode?.replaceChild(img, span);
     });

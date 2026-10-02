@@ -852,9 +852,7 @@ export function unblock_remote_content(doc: Document): void {
       const original_src = span.getAttribute("data-original-src") || "";
       const img = doc.createElement("img");
 
-      img.src =
-        span.getAttribute("data-proxy-src") ||
-        `${IMAGE_PROXY_URL}?url=${encodeURIComponent(original_src)}`;
+      img.src = `${IMAGE_PROXY_URL}?url=${encodeURIComponent(original_src)}`;
 
       const w = span.getAttribute("data-width");
       const h = span.getAttribute("data-height");
@@ -863,13 +861,6 @@ export function unblock_remote_content(doc: Document): void {
       if (w) img.setAttribute("width", w);
       if (h) img.setAttribute("height", h);
       if (s) img.setAttribute("style", s);
-
-      const alt = span.getAttribute("data-alt");
-      const image_class = span.getAttribute("data-image-class");
-
-      if (alt) img.setAttribute("alt", alt);
-      if (image_class) img.setAttribute("class", image_class);
-      install_image_load_fallback(img);
 
       span.parentNode?.replaceChild(img, span);
     });

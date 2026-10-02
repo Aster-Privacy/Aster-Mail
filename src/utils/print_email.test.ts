@@ -104,21 +104,31 @@ describe("format_body external content", () => {
     expect(html).toContain("<img");
   });
 
+  function expect_blocked_image(html: string): void {
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    const img = doc.querySelector("img")!;
+
+    expect(img.getAttribute("src")).toMatch(/^data:image\/svg\+xml,/);
+    expect(img.getAttribute("data-blocked")).toBe("true");
+    expect(img.getAttribute("width")).toBe("200");
+    expect(img.getAttribute("height")).toBe("100");
+    expect(doc.querySelector("img[src^='http'], img[srcset]")).toBeNull();
+  }
+
   it("blocks remote images when the viewer does not load them", () => {
     const html = format_body(remote_html, "never");
 
-    expect(html).not.toContain("<img");
+    expect_blocked_image(html);
     expect(html).toContain("hi");
   });
 
   it("blocks remote images when the viewer would ask first", () => {
     const html = format_body(remote_html, "ask");
 
-    expect(html).not.toContain(' src="https://tracker.example');
-    expect(html).toContain('data-blocked="true"');
+    expect_blocked_image(html);
   });
 
   it("blocks remote images by default without cached preferences", () => {
-    expect(format_body(remote_html)).not.toContain("<img");
+    expect_blocked_image(format_body(remote_html));
   });
 });
