@@ -616,6 +616,7 @@ export function use_email_viewer({
       const envelope = await decrypt_mail_envelope<LocalDecryptedEnvelope>(
         item.encrypted_envelope,
         item.envelope_nonce,
+        item.id,
       );
 
       if (!envelope) {
