@@ -347,7 +347,7 @@ describe("offline queue permanent failures", () => {
     hoisted.update_item_metadata.mockResolvedValue({ success: true });
   });
 
-  it("classifies client errors as permanent except 401, 408 and 429", () => {
+  it("classifies client errors as permanent except 401, 408, 409 and 429", () => {
     expect(is_permanent_failure(http_error(400))).toBe(true);
     expect(is_permanent_failure(http_error(403))).toBe(true);
     expect(is_permanent_failure(http_error(404))).toBe(true);
@@ -355,6 +355,7 @@ describe("offline queue permanent failures", () => {
     expect(is_permanent_failure(http_error(422))).toBe(true);
     expect(is_permanent_failure(http_error(401))).toBe(false);
     expect(is_permanent_failure(http_error(408))).toBe(false);
+    expect(is_permanent_failure(http_error(409))).toBe(false);
     expect(is_permanent_failure(http_error(429))).toBe(false);
     expect(is_permanent_failure(http_error(500))).toBe(false);
     expect(is_permanent_failure(new Error("offline"))).toBe(false);
@@ -565,5 +566,41 @@ describe("offline queue replay gates", () => {
       (hoisted.execute_send.mock.calls[0][0] as Record<string, unknown>)
         .allow_non_post_quantum,
     ).toBe(false);
+  });
+
+  it("reuses the queued action id on every replay of the same send", async () => {
+    localStorage.setItem(
+      SCOPED_KEY_A,
+      JSON.stringify([send_payload({ to: ["friend@astermail.org"] })]),
+    );
+    hoisted.execute_send.mockRejectedValueOnce(new Error("offline"));
+
+    await process_offline_queue();
+    await process_offline_queue();
+
+    expect(hoisted.execute_send).toHaveBeenCalledTimes(2);
+    const ids = hoisted.execute_send.mock.calls.map(
+      (call) => (call[0] as Record<string, unknown>).client_send_id,
+    );
+
+    expect(ids).toEqual(["g1", "g1"]);
+  });
+
+  it("passes the queued action id to an outside send", async () => {
+    localStorage.setItem(
+      SCOPED_KEY_A,
+      JSON.stringify([send_payload({ to: ["friend@example.com"] })]),
+    );
+
+    await process_offline_queue();
+
+    expect(
+      (
+        hoisted.execute_external_send.mock.calls[0][0] as Record<
+          string,
+          unknown
+        >
+      ).client_send_id,
+    ).toBe("g1");
   });
 });

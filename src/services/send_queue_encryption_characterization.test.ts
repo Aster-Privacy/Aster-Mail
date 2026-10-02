@@ -626,6 +626,37 @@ describe("execute_send", () => {
     expect(request.thread_token).toBeTruthy();
   });
 
+  it("tags the send with the queue id so a retry is not delivered twice", async () => {
+    await execute_send(queued({ id: "7d4f2c1a-9b3e-4f6a-8c2d-1e5b7a9c3f80" }));
+
+    expect(vi.mocked(send_simple_email).mock.calls[0][0].client_send_id).toBe(
+      "7d4f2c1a-9b3e-4f6a-8c2d-1e5b7a9c3f80",
+    );
+  });
+
+  it("prefers an explicit client send id over the queue id", async () => {
+    await execute_send(
+      queued({
+        id: "7d4f2c1a-9b3e-4f6a-8c2d-1e5b7a9c3f80",
+        client_send_id: "0b6a5e2d-3c4f-4a1b-9d8e-7f6a5b4c3d2e",
+      }),
+    );
+
+    expect(vi.mocked(send_simple_email).mock.calls[0][0].client_send_id).toBe(
+      "0b6a5e2d-3c4f-4a1b-9d8e-7f6a5b4c3d2e",
+    );
+  });
+
+  it("mints a valid client send id when the queue id is not a uuid", async () => {
+    await execute_send(queued({ id: "queued-1" }));
+
+    expect(
+      vi.mocked(send_simple_email).mock.calls[0][0].client_send_id,
+    ).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+    );
+  });
+
   it("keeps an explicit thread id", async () => {
     await execute_send(queued({ thread_id: "thread-abc" }));
 
@@ -720,6 +751,19 @@ describe("execute_external_send", () => {
     expect(request.encrypted_envelope).toBeTruthy();
     expect(request.acknowledge_server_readable).toBe(true);
     expect(request.thread_token).toBeTruthy();
+  });
+
+  it("carries the client send id so a retry is not delivered twice", async () => {
+    await execute_external_send({
+      to: ["outsider@example.com"],
+      subject: "External subject",
+      body: "External body",
+      client_send_id: "7d4f2c1a-9b3e-4f6a-8c2d-1e5b7a9c3f80",
+    });
+
+    expect(vi.mocked(send_external_email).mock.calls[0][0].client_send_id).toBe(
+      "7d4f2c1a-9b3e-4f6a-8c2d-1e5b7a9c3f80",
+    );
   });
 
   it("forwards the reply chain so the recipient can thread the reply", async () => {

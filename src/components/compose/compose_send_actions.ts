@@ -335,6 +335,7 @@ export async function execute_external_email_send(
 
   const external_email_data = {
     ...email_data,
+    client_send_id: crypto.randomUUID(),
     encryption_options: {
       auto_discover_keys: use_pgp || needs_encryption,
       encrypt_emails: use_pgp,

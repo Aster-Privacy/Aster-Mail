@@ -40,6 +40,7 @@ interface ExternalAttachmentPayload {
 }
 
 interface SimpleSendRequest {
+  client_send_id?: string;
   to: string[];
   cc?: string[];
   bcc?: string[];
@@ -110,6 +111,7 @@ export interface SecureMessagePayload {
 }
 
 interface ExternalSendRequest {
+  client_send_id?: string;
   encrypted_recipients: string;
   encrypted_subject: string;
   encrypted_body: string;
