@@ -44,6 +44,11 @@ import { AllMailIcon } from "@/components/common/icons";
 import { CountBadge } from "@/components/common/count_badge";
 import { RailUnreadDot } from "@/components/common/rail_unread_dot";
 import { use_i18n } from "@/lib/i18n/context";
+import { EmptyFolderContextMenu } from "@/components/layout/sidebar/empty_folder_context_menu";
+import {
+  request_empty_folder,
+  type EmptyableFolder,
+} from "@/components/email/inbox/empty_folder_request";
 
 interface SidebarNavSectionProps {
   is_collapsed: boolean;
@@ -90,6 +95,7 @@ interface NavItem {
   count?: number;
   on_after_navigate?: () => void;
   after?: ReactNode;
+  empty_action?: { folder: EmptyableFolder; label: string };
 }
 
 export const SidebarNavSection = memo(function SidebarNavSection({
@@ -199,6 +205,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
       path: "/spam",
       button_ref: spam_ref,
       count: stats.spam,
+      empty_action: { folder: "spam", label: t("mail.empty_spam_button") },
     },
     {
       id: "trash",
@@ -207,6 +214,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
       path: "/trash",
       button_ref: trash_ref,
       count: stats.trash,
+      empty_action: { folder: "trash", label: t("mail.empty_trash_button") },
     },
     {
       id: "subscriptions",
@@ -219,38 +227,55 @@ export const SidebarNavSection = memo(function SidebarNavSection({
 
   const render_item = (item: NavItem) => {
     const selected = effective_selected === item.id;
+    const go_to_item = () =>
+      handle_nav_click(() => {
+        set_selected_item(item.id);
+        navigate(item.path);
+        item.on_after_navigate?.();
+      });
+    const row = (
+      <SidebarNavRow
+        ref={item.button_ref}
+        rail_tip
+        collapsed_slot={
+          item.id === "inbox" ? (
+            <RailUnreadDot count={stats.unread} label={item.label} />
+          ) : undefined
+        }
+        icon={item.icon}
+        is_collapsed={is_collapsed}
+        label={item.label}
+        on_click={go_to_item}
+        selected={selected}
+        trailing={
+          item.count !== undefined ? (
+            <CountBadge
+              count={item.count}
+              is_active={selected}
+              is_loading={stats_loading}
+            />
+          ) : undefined
+        }
+      />
+    );
+    const empty_action = item.empty_action;
 
     return (
       <Fragment key={item.id}>
-        <SidebarNavRow
-          ref={item.button_ref}
-          rail_tip
-          collapsed_slot={
-            item.id === "inbox" ? (
-              <RailUnreadDot count={stats.unread} label={item.label} />
-            ) : undefined
-          }
-          icon={item.icon}
-          is_collapsed={is_collapsed}
-          label={item.label}
-          on_click={() =>
-            handle_nav_click(() => {
-              set_selected_item(item.id);
-              navigate(item.path);
-              item.on_after_navigate?.();
-            })
-          }
-          selected={selected}
-          trailing={
-            item.count !== undefined ? (
-              <CountBadge
-                count={item.count}
-                is_active={selected}
-                is_loading={stats_loading}
-              />
-            ) : undefined
-          }
-        />
+        {empty_action ? (
+          <EmptyFolderContextMenu
+            is_empty={(item.count ?? 0) === 0}
+            label={empty_action.label}
+            on_empty={() => {
+              go_to_item();
+              request_empty_folder(empty_action.folder);
+            }}
+          >
+            {row}
+          </EmptyFolderContextMenu>
+        ) : (
+          row
+        )}
         {item.after}
       </Fragment>
     );
