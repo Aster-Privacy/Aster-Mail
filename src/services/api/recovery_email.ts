@@ -101,7 +101,7 @@ async function derive_recovery_email_key(
   );
 }
 
-async function encrypt_recovery_email(
+export async function encrypt_recovery_email(
   email: string,
   vault: EncryptedVault,
 ): Promise<{ encrypted: string; nonce: string }> {
