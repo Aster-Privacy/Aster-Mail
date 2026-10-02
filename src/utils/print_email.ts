@@ -106,9 +106,6 @@ function print_blocked_image_labels(t: Translator): BlockedImageLabels {
   };
 }
 
-// The sanitizer paints blocked remote images as a generated SVG. SVG in an
-// img cannot script or fetch, but this list stays narrow for sender data URLs,
-// so only that sanitizer-owned placeholder is let through.
 function is_blocked_image_placeholder(el: Element, name: string): boolean {
   return (
     name === "src" &&

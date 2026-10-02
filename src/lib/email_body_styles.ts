@@ -130,6 +130,23 @@ body {
   display: none;
 }
 
+.blocked-image {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  background-color: #f3f4f6;
+  color: #9ca3af;
+  border: 1px dashed #e5e7eb;
+  vertical-align: middle;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+}
+
 .blocked-remote-image {
   --aster-placeholder-background: ${placeholder_paint.background};
   --aster-placeholder-border: ${placeholder_paint.border};
@@ -441,6 +458,12 @@ blockquote blockquote blockquote {
 
 .aster-quoted-content blockquote blockquote {
   border-left-color: #555 !important;
+}
+
+.blocked-image {
+  background-color: #1f1f1f !important;
+  color: #9ca3af !important;
+  border-color: #374151 !important;
 }
 
 .remote-content-banner {

@@ -54,8 +54,6 @@ function placeholder_size(img: HTMLImageElement): PlaceholderSize {
     return { width: w, height: height ?? w / ratio, known: true };
   }
 
-  // An unfetched image's intrinsic size is unknown. Use one line for that
-  // missing dimension, rather than introducing the aspect ratio of a dummy GIF.
   return { width: width ?? 120, height: height ?? 24, known: false };
 }
 
@@ -122,7 +120,6 @@ export function email_placeholder_paint(dark: boolean): PlaceholderPaint {
   };
 }
 
-// The same 24px outline PhotoIcon used throughout Aster (@heroicons/react).
 const PHOTO_PATH =
   "m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z";
 
@@ -131,8 +128,6 @@ export interface BlockedImageLabels {
   tracking_pixel: string;
 }
 
-// The sanitizer has no i18n context. Callers that do (the email renderer and
-// print) pass translated labels; everything else falls back to English.
 export const DEFAULT_BLOCKED_IMAGE_LABELS: BlockedImageLabels = {
   image: "Image blocked",
   tracking_pixel: "Tracking pixel blocked",
@@ -140,8 +135,6 @@ export const DEFAULT_BLOCKED_IMAGE_LABELS: BlockedImageLabels = {
 
 const LABEL_FONT_SIZE = 12;
 
-// A rough advance width for the 12px label, so the icon and text can be
-// centred without measuring text. Wide (CJK, Hangul) characters take a full em.
 function label_width(label: string): number {
   let width = 0;
 
@@ -196,8 +189,6 @@ function svg_label(img: Element, labels: BlockedImageLabels): string | null {
   return is_tracking(img) ? null : labels.image;
 }
 
-// An explicitly empty alt marks the image as decorative (spacers, dividers).
-// Naming it would make screen readers announce every spacer in a newsletter.
 function apply_label(img: Element, labels: BlockedImageLabels): void {
   const alt = img.getAttribute("alt");
 
@@ -249,12 +240,8 @@ export function clear_blocked_image(img: Element): void {
   }
 }
 
-// Coalesce resize-driven repaints. Every repaint re-encodes an SVG and swaps
-// the image source, which is wasted work while a window is being dragged.
 const REPAINT_DELAY_MS = 120;
 
-// Redraw the content inside the original img; never add layout, padding, or a
-// wrapper. Responsive sizing and all sender classes/margins remain on that img.
 export function paint_blocked_images(
   doc: Document,
   labels: BlockedImageLabels = DEFAULT_BLOCKED_IMAGE_LABELS,
@@ -265,8 +252,6 @@ export function paint_blocked_images(
   const is_blocked = (img: Element) =>
     img.getAttribute("data-blocked") === "true" &&
     img.hasAttribute("data-placeholder-size-known");
-  // Measure every image first and write afterwards, so a newsletter with
-  // hundreds of images costs one layout rather than one per image.
   const paint = (images: Iterable<HTMLImageElement>) => {
     const zoom = Number.parseFloat(view.getComputedStyle(doc.body).zoom) || 1;
     const updates: [HTMLImageElement, string][] = [];
@@ -359,7 +344,6 @@ export function paint_blocked_images(
     view.removeEventListener("pagehide", dispose);
   };
 
-  // The frame can be navigated or torn down without React noticing first.
   view.addEventListener("pagehide", dispose);
 
   return dispose;
