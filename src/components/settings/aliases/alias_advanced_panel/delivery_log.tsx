@@ -97,8 +97,10 @@ export function DeliveryLogPanel({
         ? await get_domain_address_delivery_log(domain_address_id)
         : await get_alias_delivery_log(alias_id!);
 
-      if (response.data) {
-        set_events(response.data.events ?? []);
+      if (!response.error) {
+        set_events(response.data?.events ?? []);
+      } else if (response.status === 404) {
+        set_events([]);
       } else {
         set_load_error(true);
       }
