@@ -23,6 +23,7 @@ import type { InboxEmail, ConfirmationDialogState } from "@/types/email";
 import type { TranslationKey } from "@/lib/i18n/types";
 import type { BulkActionResult } from "@/hooks/bulk_action_result";
 import type { RestoredEmailEntry } from "@/hooks/email_list_helpers";
+import type { BulkDeleteOptions } from "@/hooks/email_list_types";
 
 import { useCallback } from "react";
 
@@ -36,6 +37,7 @@ import {
 import {
   collect_restore_entries,
   expand_email_ids,
+  trashes_whole_thread,
 } from "@/hooks/email_list_helpers";
 import { MAIL_EVENTS, emit_mail_items_removed } from "@/hooks/mail_events";
 import {
@@ -71,7 +73,10 @@ interface UseDeleteActionsOptions {
   remove_email: (id: string) => void;
   remove_emails: (ids: string[]) => void;
   restore_emails: (entries: RestoredEmailEntry[]) => void;
-  bulk_delete: (ids: string[]) => Promise<BulkActionResult>;
+  bulk_delete: (
+    ids: string[],
+    options?: BulkDeleteOptions,
+  ) => Promise<BulkActionResult>;
   schedule_delete_drafts: (ids: string[]) => () => void;
   cancel_scheduled: (id: string) => Promise<boolean>;
   bulk_cancel_scheduled: (ids: string[]) => Promise<boolean>;
@@ -182,10 +187,7 @@ export function use_delete_actions({
 
   const is_threaded_email = useCallback(
     (email: InboxEmail): boolean =>
-      !!email.thread_token &&
-      ((email.grouped_email_ids?.length ?? 0) > 1 ||
-        (preferences.conversation_grouping !== false &&
-          (email.thread_message_count ?? 0) > 1)),
+      trashes_whole_thread(email, preferences.conversation_grouping),
     [preferences.conversation_grouping],
   );
 
@@ -194,7 +196,9 @@ export function use_delete_actions({
       const selected_emails = email_state.emails.filter((e) =>
         ids.includes(e.id),
       );
-      const result = await bulk_delete(ids);
+      const result = await bulk_delete(ids, {
+        conversation_grouping: preferences.conversation_grouping,
+      });
       const succeeded_ids = bulk_succeeded_ids(result);
       const succeeded_set = new Set(succeeded_ids);
       const succeeded_emails = selected_emails.filter((e) =>
@@ -245,7 +249,13 @@ export function use_delete_actions({
         },
       });
     },
-    [email_state.emails, bulk_delete, is_threaded_email, t],
+    [
+      email_state.emails,
+      bulk_delete,
+      is_threaded_email,
+      preferences.conversation_grouping,
+      t,
+    ],
   );
 
   const run_cancel_scheduled = useCallback(
