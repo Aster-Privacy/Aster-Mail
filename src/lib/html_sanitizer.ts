@@ -33,6 +33,7 @@ import {
   block_remote_fonts,
   strip_css_urls,
   proxy_css_urls,
+  list_remote_css_urls,
   escape_style_terminator,
 } from "./html_sanitizer_css";
 
@@ -557,19 +558,13 @@ function sanitize_html_impl(
       }
 
       if (lockdown_mode || block_css || block_images) {
-        const css_url_matches =
-          sanitized_css.match(/url\s*\(\s*["']?(https?:\/\/[^"')\s]+)/gi) || [];
+        const remote_css_urls = list_remote_css_urls(sanitized_css);
 
-        if (css_url_matches.length > 0) {
+        if (remote_css_urls.length > 0) {
           external_content.has_remote_css = true;
-          external_content.blocked_count += css_url_matches.length;
-          for (const match of css_url_matches) {
-            const url_extract = match.match(/https?:\/\/[^"')\s]+/i);
-
-            external_content.blocked_items.push({
-              url: url_extract?.[0] || "stylesheet URL",
-              type: "css",
-            });
+          external_content.blocked_count += remote_css_urls.length;
+          for (const url of remote_css_urls) {
+            external_content.blocked_items.push({ url, type: "css" });
           }
         }
         sanitized_css = strip_css_urls(sanitized_css);
@@ -770,19 +765,13 @@ function sanitize_html_impl(
       }
 
       if (lockdown_mode || block_css || block_images) {
-        const css_url_matches =
-          sanitized_css.match(/url\s*\(\s*["']?(https?:\/\/[^"')\s]+)/gi) || [];
+        const remote_css_urls = list_remote_css_urls(sanitized_css);
 
-        if (css_url_matches.length > 0) {
+        if (remote_css_urls.length > 0) {
           external_content.has_remote_css = true;
-          external_content.blocked_count += css_url_matches.length;
-          for (const match of css_url_matches) {
-            const url_extract = match.match(/https?:\/\/[^"')\s]+/i);
-
-            external_content.blocked_items.push({
-              url: url_extract?.[0] || "stylesheet URL",
-              type: "css",
-            });
+          external_content.blocked_count += remote_css_urls.length;
+          for (const url of remote_css_urls) {
+            external_content.blocked_items.push({ url, type: "css" });
           }
         }
         sanitized_css = strip_css_urls(sanitized_css);
@@ -831,6 +820,15 @@ function sanitize_html_impl(
           attr_lower === "style" &&
           (lockdown_mode || block_css || block_images)
         ) {
+          const remote_css_urls = list_remote_css_urls(sanitized_value);
+
+          if (remote_css_urls.length > 0) {
+            external_content.has_remote_css = true;
+            external_content.blocked_count += remote_css_urls.length;
+            for (const url of remote_css_urls) {
+              external_content.blocked_items.push({ url, type: "css" });
+            }
+          }
           sanitized_value = strip_css_urls(sanitized_value);
         } else if (attr_lower === "style" && allowed_css_image_proxy) {
           sanitized_value = strip_css_urls(sanitized_value, {

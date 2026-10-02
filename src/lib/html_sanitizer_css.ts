@@ -147,6 +147,149 @@ const IMAGE_SET_HEAD = /(?:-webkit-)?image-set\s*\(/gi;
 
 const CROSS_FADE_HEAD = /cross-fade\s*\(/gi;
 
+const CSS_URL_FUNCTION_HEAD = /(?:url|src)\s*\(/iy;
+
+const CSS_WHITESPACE = /\s/;
+
+const CSS_STRING_QUOTE = /["']/;
+
+const REMOTE_CSS_URL = /^https?:\/\//i;
+
+function skip_css_string(css: string, start: number): number {
+  const quote = css[start];
+  let i = start + 1;
+
+  while (i < css.length && css[i] !== quote && css[i] !== "\n") {
+    i += css[i] === "\\" ? 2 : 1;
+  }
+
+  if (i >= css.length) return css.length;
+
+  return css[i] === quote ? i + 1 : i;
+}
+
+function skip_bad_css_url(css: string, start: number): number {
+  let i = start;
+
+  while (i < css.length && css[i] !== ")") {
+    i += css[i] === "\\" ? 2 : 1;
+  }
+
+  return Math.min(css.length, i + 1);
+}
+
+interface CssUrlCall {
+  end: number;
+  inner: string;
+  valid: boolean;
+}
+
+function read_css_url_call(css: string, head_end: number): CssUrlCall {
+  let i = head_end;
+
+  while (i < css.length && CSS_WHITESPACE.test(css[i])) i++;
+
+  if (i < css.length && CSS_STRING_QUOTE.test(css[i])) {
+    const string_end = skip_css_string(css, i);
+    const closed = string_end > i + 1 && css[string_end - 1] === css[i];
+    const inner = closed
+      ? css.slice(i + 1, string_end - 1)
+      : css.slice(i + 1, string_end);
+    let j = string_end;
+
+    while (j < css.length && CSS_WHITESPACE.test(css[j])) j++;
+
+    if (j >= css.length) return { end: css.length, inner, valid: closed };
+
+    if (css[j] === ")") return { end: j + 1, inner, valid: closed };
+
+    return { end: skip_bad_css_url(css, j), inner: "", valid: false };
+  }
+
+  let j = i;
+
+  while (j < css.length && css[j] !== ")") {
+    if (CSS_STRING_QUOTE.test(css[j]) || css[j] === "(") {
+      return { end: skip_bad_css_url(css, j), inner: "", valid: false };
+    }
+    j += css[j] === "\\" ? 2 : 1;
+  }
+
+  return {
+    end: Math.min(css.length, j + 1),
+    inner: css.slice(i, Math.min(j, css.length)).trim(),
+    valid: true,
+  };
+}
+
+interface CssUrlVisitor {
+  url: (whole: string, inner: string) => string;
+  string?: (raw: string, inner: string) => void;
+}
+
+function walk_css_urls(css: string, visitor: CssUrlVisitor): string {
+  let result = "";
+  let index = 0;
+  let i = 0;
+
+  while (i < css.length) {
+    const character = css[i];
+
+    if (character === "\\") {
+      i += 2;
+      continue;
+    }
+
+    if (CSS_STRING_QUOTE.test(character)) {
+      const end = skip_css_string(css, i);
+
+      if (visitor.string) {
+        const closed = end > i + 1 && css[end - 1] === character;
+
+        visitor.string(
+          css.slice(i, end),
+          closed ? css.slice(i + 1, end - 1) : css.slice(i + 1, end),
+        );
+      }
+      i = end;
+      continue;
+    }
+
+    CSS_URL_FUNCTION_HEAD.lastIndex = i;
+    const head = CSS_URL_FUNCTION_HEAD.exec(css);
+
+    if (!head) {
+      i += 1;
+      continue;
+    }
+
+    const call = read_css_url_call(css, i + head[0].length);
+    const whole = css.slice(i, call.end);
+
+    result +=
+      css.slice(index, i) +
+      (call.valid ? visitor.url(whole, call.inner.trim()) : "none");
+    index = call.end;
+    i = call.end;
+  }
+
+  return result + css.slice(index);
+}
+
+export function list_remote_css_urls(css: string): string[] {
+  const urls: string[] = [];
+
+  walk_css_urls(css, {
+    url: (whole, inner) => {
+      if (REMOTE_CSS_URL.test(inner)) urls.push(inner);
+
+      return whole;
+    },
+  });
+
+  return urls;
+}
+
 function replace_balanced_calls(
   css: string,
   head: RegExp,
@@ -163,6 +306,14 @@ function replace_balanced_calls(
     let i = start + match[0].length;
 
     while (i < css.length && depth > 0) {
+      if (css[i] === "\\") {
+        i += 2;
+        continue;
+      }
+      if (CSS_STRING_QUOTE.test(css[i])) {
+        i = skip_css_string(css, i);
+        continue;
+      }
       if (css[i] === "(") depth++;
       else if (css[i] === ")") depth--;
       i++;
@@ -183,23 +334,32 @@ function replace_balanced_calls(
   return result + css.slice(index);
 }
 
-function css_image_set_sources(inner: string): string[] {
-  const sources: string[] = [];
-  const url_pattern = /url\s*\(\s*(["']?)([^"')]*)\1\s*\)/gi;
-  let match;
+interface CssImageSources {
+  urls: string[];
+  bare: string[];
+}
 
-  while ((match = url_pattern.exec(inner)) !== null) {
-    sources.push(match[2].trim());
-  }
+function css_image_sources(inner: string): CssImageSources {
+  const sources: CssImageSources = { urls: [], bare: [] };
 
-  const bare_pattern = /(["'])([^"']*)\1/g;
-  const remainder = inner.replace(url_pattern, " ");
+  walk_css_urls(inner, {
+    url: (whole, source) => {
+      sources.urls.push(source);
 
-  while ((match = bare_pattern.exec(remainder)) !== null) {
-    sources.push(match[2].trim());
-  }
+      return whole;
+    },
+    string: (_raw, source) => {
+      sources.bare.push(source.trim());
+    },
+  });
 
   return sources;
+}
+
+function css_image_set_sources(inner: string): string[] {
+  const sources = css_image_sources(inner);
+
+  return [...sources.urls, ...sources.bare];
 }
 
 export function keep_embedded_image_sets(css: string): string {
@@ -217,37 +377,37 @@ export function keep_embedded_image_sets(css: string): string {
 function drop_unsafe_call(whole: string, inner: string): string {
   if (/(?:^|[^a-z-])none(?:$|[^a-z-])/i.test(whole)) return "none";
 
-  const sources = css_image_set_sources(inner);
-  const bare_pattern = /(["'])([^"']*)\1/g;
-  const remainder = inner.replace(/url\s*\([^)]*\)/gi, " ");
-  let bare;
+  const sources = css_image_sources(inner);
 
-  while ((bare = bare_pattern.exec(remainder)) !== null) {
-    const value = bare[2].trim();
-
+  for (const value of sources.bare) {
     if (value.length > 0 && !SAFE_CSS_IMAGE_SOURCE.test(value)) return "none";
   }
 
-  return sources.length === 0 ? "none" : whole;
+  return sources.urls.length + sources.bare.length === 0 ? "none" : whole;
 }
+
+const SAFE_CSS_DATA_TYPES = [
+  "data:image/png",
+  "data:image/jpeg",
+  "data:image/jpg",
+  "data:image/gif",
+  "data:image/webp",
+  "data:image/avif",
+  "data:image/bmp",
+  "data:image/tiff",
+  "data:image/heic",
+  "data:image/heif",
+  "data:image/x-icon",
+  "data:image/vnd.microsoft.icon",
+];
 
 export function strip_css_urls(
   css: string,
   options: StripCssUrlOptions = {},
 ): string {
   const decoded = strip_css_comments(decode_css_escapes(css));
-  const url_stripped = decoded.replace(
-    /url\s*\(([^)]*)\)/gi,
-    (_match, url_content) => {
-      let inner = (url_content || "").trim();
-
-      if (
-        inner.length >= 2 &&
-        (inner[0] === '"' || inner[0] === "'") &&
-        inner[inner.length - 1] === inner[0]
-      ) {
-        inner = inner.slice(1, -1).trim();
-      }
+  const url_stripped = walk_css_urls(decoded, {
+    url: (whole, inner) => {
       const trimmed = inner.toLowerCase();
 
       if (
@@ -255,36 +415,16 @@ export function strip_css_urls(
         trimmed.startsWith("blob:") ||
         trimmed.startsWith("#")
       ) {
-        return _match;
+        return whole;
       }
 
       if (trimmed.startsWith("data:")) {
-        const safe_css_data_types = [
-          "data:image/png",
-          "data:image/jpeg",
-          "data:image/jpg",
-          "data:image/gif",
-          "data:image/webp",
-          "data:image/avif",
-          "data:image/bmp",
-          "data:image/tiff",
-          "data:image/heic",
-          "data:image/heif",
-          "data:image/x-icon",
-          "data:image/vnd.microsoft.icon",
-        ];
-
-        if (safe_css_data_types.some((t) => trimmed.startsWith(t))) {
-          return _match;
-        }
-
-        return "none";
+        return SAFE_CSS_DATA_TYPES.some((t) => trimmed.startsWith(t))
+          ? whole
+          : "none";
       }
 
-      if (
-        options.image_proxy_url &&
-        (trimmed.startsWith("http://") || trimmed.startsWith("https://"))
-      ) {
+      if (options.image_proxy_url && REMOTE_CSS_URL.test(trimmed)) {
         const proxied = `${options.image_proxy_url}?url=${encodeURIComponent(inner)}`;
 
         return `url("${proxied}")`;
@@ -292,7 +432,7 @@ export function strip_css_urls(
 
       return "none";
     },
-  );
+  });
 
   const with_image_sets = replace_balanced_calls(
     url_stripped,
@@ -308,8 +448,6 @@ export function strip_css_urls(
 }
 
 const FONT_FACE_HEAD = /^@font-face\s*\{/i;
-
-const CSS_WHITESPACE = /\s/;
 
 const CSS_IDENT_CHARACTER = /[a-z0-9_-]/i;
 
@@ -415,28 +553,18 @@ function proxy_font_face_urls(css: string, image_proxy_url: string): string {
   const font_proxy = font_proxy_for(image_proxy_url);
   const decoded = strip_css_comments(decode_css_escapes(css));
 
-  return decoded.replace(/url\s*\(([^)]*)\)/gi, (match, url_content) => {
-    let inner = (url_content || "").trim();
+  return walk_css_urls(decoded, {
+    url: (whole, inner) => {
+      const lowered = inner.toLowerCase();
 
-    if (
-      inner.length >= 2 &&
-      (inner[0] === '"' || inner[0] === "'") &&
-      inner[inner.length - 1] === inner[0]
-    ) {
-      inner = inner.slice(1, -1).trim();
-    }
-    const lowered = inner.toLowerCase();
+      if (lowered.startsWith("data:") || lowered.startsWith("#")) return whole;
 
-    if (lowered.startsWith("data:") || lowered.startsWith("#")) return match;
+      if (font_proxy && REMOTE_CSS_URL.test(lowered)) {
+        return `url("${font_proxy}?url=${encodeURIComponent(inner)}&content_type=font")`;
+      }
 
-    if (
-      font_proxy &&
-      (lowered.startsWith("http://") || lowered.startsWith("https://"))
-    ) {
-      return `url("${font_proxy}?url=${encodeURIComponent(inner)}&content_type=font")`;
-    }
-
-    return "none";
+      return "none";
+    },
   });
 }
 
