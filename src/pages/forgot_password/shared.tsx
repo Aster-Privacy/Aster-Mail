@@ -211,20 +211,41 @@ export const OptionRow = ({
   on_click,
 }: OptionRowProps) => (
   <button
-    className="w-full flex items-center gap-4 rounded-md px-2 py-4 text-start transition-colors hover:bg-surf-tertiary"
+    className="flex w-full items-center gap-3 px-4 py-3 text-start transition-colors hover:bg-[var(--mobile-bg-card-hover)] active:bg-[var(--mobile-bg-card-hover)]"
     type="button"
     onClick={on_click}
   >
-    <span className="shrink-0 text-txt-secondary">{icon}</span>
-    <span className="flex-1 min-w-0">
-      <span className="block text-[15px] font-medium text-txt-primary">
+    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-[var(--mobile-bg-card-hover)] text-txt-primary">
+      {icon}
+    </span>
+    <span className="min-w-0 flex-1">
+      <span className="block text-[15px] font-semibold leading-5 text-txt-primary">
         {title}
       </span>
-      <span className="mt-0.5 block text-[13px] leading-relaxed text-txt-tertiary">
+      <span className="mt-0.5 block text-[13px] leading-[18px] text-txt-tertiary">
         {description}
       </span>
     </span>
+    <ChevronIcon />
   </button>
+);
+
+export const OptionGroup = ({ children }: { children: ReactNode }) => (
+  <div className="w-full overflow-hidden rounded-[16px] bg-[var(--mobile-bg-card)] [&>button+button]:border-t [&>button+button]:border-edge-secondary">
+    {children}
+  </div>
+);
+
+export const ChevronIcon = () => (
+  <svg
+    className="h-[18px] w-[18px] shrink-0 text-txt-muted rtl:-scale-x-100"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.75"
+    viewBox="0 0 24 24"
+  >
+    <path d="m9 6 6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
 );
 
 export interface ReviewRowProps {

@@ -28,6 +28,7 @@ import {
   CopyIcon,
   KeyIcon,
   MailIcon,
+  OptionGroup,
   OptionRow,
   PasswordStrengthIndicator,
   ReviewRow,
@@ -307,7 +308,7 @@ export default function ForgotPasswordPage() {
               {error && <Alert is_dark={is_dark} message={error} />}
             </AnimatePresence>
 
-            <div className="w-full divide-y divide-edge-secondary border-b border-edge-secondary">
+            <OptionGroup>
               <OptionRow
                 description={t("auth.other_way_code_desc")}
                 icon={<KeyIcon />}
@@ -320,9 +321,9 @@ export default function ForgotPasswordPage() {
                 on_click={() => go_to("reset_email_confirm")}
                 title={t("auth.other_way_email_title")}
               />
-            </div>
+            </OptionGroup>
 
-            <div className="mt-5">
+            <div className="mt-6 flex w-full justify-center">
               <TextLink
                 label={t("auth.other_way_none_title")}
                 on_click={() => go_to("support")}

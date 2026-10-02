@@ -30,7 +30,12 @@ import {
 } from "./step_frame";
 
 import { use_i18n } from "@/lib/i18n/context";
-import { KeyIcon, MailIcon, OptionRow } from "@/pages/forgot_password/shared";
+import {
+  KeyIcon,
+  MailIcon,
+  OptionGroup,
+  OptionRow,
+} from "@/pages/forgot_password/shared";
 import {
   stagger_container,
   fade_up_item,
@@ -76,25 +81,27 @@ export function OtherWaysStep({
         <StepError error={error} is_dark={is_dark} />
 
         <motion.div
-          className="mt-5 w-full divide-y divide-[var(--border-secondary)] border-b border-[var(--border-secondary)]"
+          className="mt-6 w-full"
           variants={reduce_motion ? undefined : fade_up_item}
         >
-          <OptionRow
-            description={t("auth.other_way_code_desc")}
-            icon={<KeyIcon />}
-            on_click={on_select_code}
-            title={t("auth.other_way_code_title")}
-          />
-          <OptionRow
-            description={t("auth.other_way_email_desc")}
-            icon={<MailIcon />}
-            on_click={on_select_email}
-            title={t("auth.other_way_email_title")}
-          />
+          <OptionGroup>
+            <OptionRow
+              description={t("auth.other_way_code_desc")}
+              icon={<KeyIcon />}
+              on_click={on_select_code}
+              title={t("auth.other_way_code_title")}
+            />
+            <OptionRow
+              description={t("auth.other_way_email_desc")}
+              icon={<MailIcon />}
+              on_click={on_select_email}
+              title={t("auth.other_way_email_title")}
+            />
+          </OptionGroup>
         </motion.div>
 
         <motion.div
-          className="mt-5 w-full"
+          className="mt-6 flex w-full justify-center"
           variants={reduce_motion ? undefined : fade_up_item}
         >
           <button
