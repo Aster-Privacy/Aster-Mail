@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
 const hoisted = vi.hoisted(() => ({
   calls: [] as string[],
@@ -85,6 +85,7 @@ import {
   clear_all_read_intents,
   get_read_intent,
   note_read_intent,
+  resolve_read_intent,
 } from "@/services/read_intent";
 
 function row(id: string, overrides: Record<string, unknown> = {}) {
@@ -236,5 +237,57 @@ describe("mark_all_read_by_scope", () => {
     });
     expect(get_read_intent("c1")).toBeUndefined();
     expect(apply_flag_intents([row("u1")])[0].is_read).toBe(false);
+  });
+
+  describe("mail that arrives after the click", () => {
+    const click = Date.parse("2026-05-01T12:00:00.000Z");
+    const sent_before_click = "2026-05-01T11:59:50.000Z";
+
+    beforeEach(() => {
+      vi.useFakeTimers({ toFake: ["Date"] });
+      vi.setSystemTime(click);
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    function confirm_after(ms: number, completed = true) {
+      hoisted.bulk_action_by_scope.mockImplementation(async () => {
+        vi.setSystemTime(click + ms);
+
+        return {
+          data: {
+            batch_id: "b1",
+            affected_count: 2,
+            undoable: true,
+            completed,
+          },
+        };
+      });
+    }
+
+    it("stays unread once the server has confirmed the update", async () => {
+      confirm_after(800);
+
+      await mark_all_read_by_scope(t);
+
+      vi.setSystemTime(click + 5_000);
+      const arrived = row("n1", { raw_timestamp: sent_before_click });
+
+      expect(apply_flag_intents([arrived], Date.now())[0].is_read).toBe(false);
+      expect(resolve_read_intent(arrived)).toBeUndefined();
+      expect(get_read_intent("r1")).toBe(true);
+    });
+
+    it("still reads a response that was requested before the confirmation", async () => {
+      confirm_after(800);
+
+      await mark_all_read_by_scope(t);
+
+      const stale = row("o1", { raw_timestamp: sent_before_click });
+
+      expect(apply_flag_intents([stale], click + 400)[0].is_read).toBe(true);
+    });
   });
 });

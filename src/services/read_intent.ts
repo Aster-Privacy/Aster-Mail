@@ -54,6 +54,7 @@ interface IntentEntry {
 const intents = new Map<string, IntentEntry>();
 
 let scope_read_at: number | null = null;
+let scope_read_acked_at: number | null = null;
 
 function now_ms(): number {
   return Date.now();
@@ -305,18 +306,38 @@ export function note_scope_read_intent(): number {
   const at = now_ms();
 
   scope_read_at = at;
+  scope_read_acked_at = null;
 
   return at;
 }
 
 export function clear_scope_read_intent(token?: number): void {
-  if (token === undefined || scope_read_at === token) scope_read_at = null;
+  if (token === undefined || scope_read_at === token) {
+    scope_read_at = null;
+    scope_read_acked_at = null;
+  }
+}
+
+// Once the server has applied the bulk update, anything fetched afterwards
+// already carries the true read state. The scope rule then only has to cover
+// responses that were requested before the update landed; otherwise mail that
+// arrives after the click, whose sender Date is usually earlier than the
+// click, would be painted read while the server keeps it unread.
+export function ack_scope_read_intent(token: number): void {
+  if (scope_read_at === token) scope_read_acked_at = now_ms();
 }
 
 function active_scope_read_at(): number | null {
   if (scope_read_at === null) return null;
-  if (now_ms() - scope_read_at >= PENDING_MAX_AGE_MS) {
+
+  const expired =
+    scope_read_acked_at === null
+      ? now_ms() - scope_read_at >= PENDING_MAX_AGE_MS
+      : now_ms() - scope_read_acked_at >= ACKED_MAX_AGE_MS;
+
+  if (expired) {
     scope_read_at = null;
+    scope_read_acked_at = null;
 
     return null;
   }
@@ -324,10 +345,19 @@ function active_scope_read_at(): number | null {
   return scope_read_at;
 }
 
-export function scope_read_applies(timestamp: string | undefined): boolean {
+export function scope_read_applies(
+  timestamp: string | undefined,
+  fetched_at?: number,
+): boolean {
   const at = active_scope_read_at();
 
   if (at === null || !timestamp) return false;
+  if (
+    scope_read_acked_at !== null &&
+    (fetched_at === undefined || fetched_at >= scope_read_acked_at)
+  ) {
+    return false;
+  }
 
   const message_ms = Date.parse(timestamp);
 
@@ -402,6 +432,7 @@ export function has_any_read_intent(): boolean {
 export function clear_all_read_intents(): void {
   intents.clear();
   scope_read_at = null;
+  scope_read_acked_at = null;
 }
 
 export const clear_all_flag_intents = clear_all_read_intents;
@@ -441,7 +472,7 @@ export function resolve_read_intent(
   if (
     row.item_type === "received" &&
     !row.is_trashed &&
-    scope_read_applies(row.raw_timestamp)
+    scope_read_applies(row.raw_timestamp, fetched_at)
   ) {
     return true;
   }
