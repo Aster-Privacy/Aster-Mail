@@ -2202,6 +2202,8 @@ export const en: Translations = {
     desktop_bridge_set_up: "Set up {{ client }}",
     desktop_bridge_install_hint:
       "Aster Bridge must be installed and running. Download it from Settings > Bridge.",
+    desktop_bridge_not_opened:
+      "Aster Bridge didn't open. Make sure it's installed and running, or download it from Settings > Bridge.",
     desktop_bridge_upgrade_title: "Use your favorite mail client",
     desktop_bridge_upgrade_description:
       "Connect Apple Mail, Thunderbird, or Outlook to Aster with Aster Bridge. Available on Star and above.",

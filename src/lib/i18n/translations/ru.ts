@@ -7322,6 +7322,8 @@ export const ru = {
       "Используйте Aster с Thunderbird, Apple Mail, Outlook или любым IMAP/JMAP-клиентом. Aster Bridge работает локально и передаёт расшифрованный почтовый ящик вашему клиенту.",
     desktop_bridge_install_hint:
       "Aster Bridge должен быть установлен и запущен. Скачайте его в разделе Настройки > Bridge.",
+    desktop_bridge_not_opened:
+      "Aster Bridge не открылся. Убедитесь, что он установлен и запущен, или скачайте его в разделе Настройки > Bridge.",
     desktop_bridge_set_up: "Настроить {{ client }}",
     bridge: "Bridge",
     bridge_description:

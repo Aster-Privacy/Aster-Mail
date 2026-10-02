@@ -6926,6 +6926,8 @@ export const tr = {
     desktop_bridge_set_up: "{{ client }} kur",
     desktop_bridge_install_hint:
       "Aster Bridge'in yüklü ve çalışıyor olması gerekir. Ayarlar > Bridge bölümünden indirin.",
+    desktop_bridge_not_opened:
+      "Aster Bridge açılmadı. Yüklü ve çalışır durumda olduğundan emin olun ya da Ayarlar > Bridge bölümünden indirin.",
     desktop_bridge_upgrade_title: "Favori posta istemcinizi kullanın",
     desktop_bridge_upgrade_description:
       "Apple Mail, Thunderbird veya Outlook'u Aster Bridge ile Aster'e bağlayın. Star ve üzeri planlarda kullanılabilir.",

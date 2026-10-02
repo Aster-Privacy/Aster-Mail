@@ -2567,6 +2567,7 @@ export interface SettingsTranslations {
   desktop_bridge_description: string;
   desktop_bridge_set_up: string;
   desktop_bridge_install_hint: string;
+  desktop_bridge_not_opened: string;
   desktop_bridge_upgrade_title: string;
   desktop_bridge_upgrade_description: string;
   desktop_bridge_upgrade_cta: string;

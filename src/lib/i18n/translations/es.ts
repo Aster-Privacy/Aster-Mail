@@ -7244,6 +7244,8 @@ export const es = {
       "Usa Aster con Thunderbird, Apple Mail, Outlook o cualquier cliente IMAP/JMAP. Aster Bridge se ejecuta en tu equipo y ofrece tu buzón descifrado a tu cliente favorito.",
     desktop_bridge_install_hint:
       "Aster Bridge debe estar instalado y en ejecución. Descárgalo en Ajustes > Bridge.",
+    desktop_bridge_not_opened:
+      "Aster Bridge no se abrió. Comprueba que esté instalado y en ejecución, o descárgalo en Ajustes > Bridge.",
     desktop_bridge_set_up: "Configurar {{ client }}",
     bridge: "Bridge",
     bridge_description:

@@ -3703,6 +3703,8 @@ export const ko = {
     desktop_bridge_set_up: "{{ client }} 설정",
     desktop_bridge_install_hint:
       "Aster Bridge가 설치되어 실행 중이어야 합니다. 설정 > Bridge에서 다운로드하세요.",
+    desktop_bridge_not_opened:
+      "Aster Bridge가 열리지 않았습니다. 설치되어 실행 중인지 확인하거나 설정 > Bridge에서 다운로드하세요.",
     desktop_bridge_upgrade_title: "좋아하는 메일 클라이언트 사용",
     desktop_bridge_upgrade_description:
       "Aster Bridge를 통해 Apple Mail, Thunderbird 또는 Outlook을 Aster에 연결하세요. Star 이상 플랜에서 이용 가능합니다.",

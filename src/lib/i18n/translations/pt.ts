@@ -7079,6 +7079,8 @@ export const pt = {
     desktop_bridge_set_up: "Configurar {{ client }}",
     desktop_bridge_install_hint:
       "O Aster Bridge tem de estar instalado e em execução. Transfira-o em Definições > Bridge.",
+    desktop_bridge_not_opened:
+      "O Aster Bridge não abriu. Confirme que está instalado e em execução, ou transfira-o em Definições > Bridge.",
     desktop_bridge_upgrade_title: "Use o seu cliente de e-mail preferido",
     desktop_bridge_upgrade_description:
       "Ligue o Apple Mail, o Thunderbird ou o Outlook ao Aster com o Aster Bridge. Disponível no plano Star e superiores.",
