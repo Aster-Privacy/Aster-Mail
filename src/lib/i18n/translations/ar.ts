@@ -1195,6 +1195,8 @@ export const ar = {
     font: "خط",
     stylesheet: "ورقة أنماط",
     tracking_pixel: "بكسل تتبع",
+    image_blocked: "تم حظر الصورة",
+    tracking_pixel_blocked: "تم حظر بكسل التتبع",
     me: "أنا",
     notification_banner_message:
       "فعّل إشعارات سطح المكتب للبقاء على اطلاع بالرسائل الجديدة",

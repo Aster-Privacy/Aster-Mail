@@ -190,11 +190,20 @@ export function use_mobile_mail_detail() {
   const auto_read_ids = useRef<Set<string>>(new Set());
   const first_unread_ref = useRef<HTMLDivElement>(null);
   const has_scrolled = useRef(false);
+  const open_email_id_ref = useRef(detail.email_id);
 
   useEffect(() => {
+    open_email_id_ref.current = detail.email_id;
     set_is_starred(null);
     set_is_pinned(null);
     set_external_content_loaded(false);
+    set_subject_expanded(false);
+    set_show_block_confirm(false);
+    set_block_target(null);
+    set_details_message(null);
+    set_menu_message(null);
+    set_view_source_message(null);
+    set_dark_mode_overrides(new Map());
     has_scrolled.current = false;
   }, [detail.email_id]);
   const touch_start_ref = useRef<{ x: number; y: number; time: number } | null>(
@@ -390,12 +399,13 @@ export function use_mobile_mail_detail() {
     if (detail.email) {
       haptic_impact("light");
       const current = is_starred ?? detail.email.is_starred;
+      const acted_id = detail.email.id;
 
       set_is_starred(!current);
       const succeeded = await email_actions.toggle_star(detail.email as never);
 
       if (!succeeded) {
-        set_is_starred(current);
+        if (open_email_id_ref.current === acted_id) set_is_starred(current);
         show_toast(t("common.failed_to_update"), "error");
       }
     }
@@ -405,13 +415,14 @@ export function use_mobile_mail_detail() {
     if (detail.email) {
       haptic_impact("light");
       const current = is_pinned ?? detail.email.is_pinned ?? false;
+      const acted_id = detail.email.id;
 
       set_is_pinned(!current);
       set_menu_message(null);
       const succeeded = await email_actions.toggle_pin(detail.email as never);
 
       if (!succeeded) {
-        set_is_pinned(current);
+        if (open_email_id_ref.current === acted_id) set_is_pinned(current);
         show_toast(t("common.failed_to_update"), "error");
       }
     }
@@ -423,6 +434,7 @@ export function use_mobile_mail_detail() {
     const destination = detail.get_next_email_destination();
 
     action_in_flight.current = false;
+    if (open_email_id_ref.current !== detail.email_id) return;
     if (destination === "/") {
       navigate(-1);
     } else {
@@ -512,6 +524,8 @@ export function use_mobile_mail_detail() {
     }
 
     remove_email_from_view_cache(detail.email.id);
+    action_in_flight.current = false;
+    if (open_email_id_ref.current !== detail.email.id) return;
     navigate(-1);
   }, [detail.email, email_actions, navigate, t]);
 
@@ -531,7 +545,8 @@ export function use_mobile_mail_detail() {
     }
 
     remove_email_from_view_cache(target.id);
-    navigate(-1);
+    action_in_flight.current = false;
+    if (open_email_id_ref.current === target.id) navigate(-1);
     show_action_toast({
       message: t("common.marked_as_not_spam"),
       action_type: "not_spam",
@@ -780,7 +795,7 @@ export function use_mobile_mail_detail() {
       try {
         await snooze_actions.snooze(target, snoozed_until);
         show_toast(t("common.email_snoozed"), "success");
-        navigate(-1);
+        if (open_email_id_ref.current === target) navigate(-1);
       } catch {
         show_toast(t("errors.failed_to_snooze"), "error");
       }

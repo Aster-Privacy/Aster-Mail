@@ -1294,6 +1294,8 @@ export const hi = {
     font: "फ़ॉन्ट",
     stylesheet: "स्टाइलशीट",
     tracking_pixel: "ट्रैकिंग पिक्सल",
+    image_blocked: "छवि ब्लॉक की गई",
+    tracking_pixel_blocked: "ट्रैकिंग पिक्सल ब्लॉक किया गया",
     me: "मैं",
     notification_banner_message:
       "नए ईमेल की जानकारी पाते रहने के लिए डेस्कटॉप सूचनाएं चालू करें",

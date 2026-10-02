@@ -127,3 +127,11 @@ export function detect_browser_language(): LanguageCode {
 export function is_valid_language_code(code: string): code is LanguageCode {
   return LANGUAGE_MAP.has(code as LanguageCode);
 }
+
+const INTL_LOCALES: Record<string, string> = {
+  pt: "pt-PT",
+};
+
+export function to_intl_locale(code: string): string {
+  return INTL_LOCALES[code] ?? code;
+}

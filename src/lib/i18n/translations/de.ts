@@ -1097,6 +1097,8 @@ export const de = {
     font: "Schriftart",
     stylesheet: "Stylesheet",
     tracking_pixel: "Tracking-Pixel",
+    image_blocked: "Bild blockiert",
+    tracking_pixel_blocked: "Tracking-Pixel blockiert",
     me: "ich",
     notification_banner_message:
       "Aktivieren Sie Desktop-Benachrichtigungen, um über neue E-Mails informiert zu bleiben",
