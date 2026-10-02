@@ -53,6 +53,35 @@ describe("brand colored backgrounds under forced dark mode", () => {
     expect(is_page_surface("rgb(26, 115, 232)")).toBe(false);
   });
 
+  it("treats a light neutral grey as a page surface", () => {
+    expect(is_page_surface("#bbbbbb")).toBe(true);
+    expect(is_page_surface("#999999")).toBe(true);
+    expect(is_page_surface("rgb(187, 187, 187)")).toBe(true);
+  });
+
+  it("keeps dark neutrals and saturated mid tones as blocks", () => {
+    expect(is_page_surface("#000000")).toBe(false);
+    expect(is_page_surface("#333333")).toBe(false);
+    expect(is_page_surface("#2d4450")).toBe(false);
+    expect(is_page_surface("#f5571b")).toBe(false);
+  });
+
+  it("leaves a grey page wrapper unmarked and keeps its dark header", () => {
+    const marked = mark(
+      '<center class="page" style="background:#bbbbbb"><table class="header" style="background:#000000"><tr><td>Example Store</td></tr></table></center>',
+    );
+    const root = document.createElement("div");
+
+    root.innerHTML = marked;
+
+    expect(
+      root.querySelector("center.page")?.hasAttribute(BRAND_BACKGROUND_MARK),
+    ).toBe(false);
+    expect(
+      root.querySelector("table.header")?.hasAttribute(BRAND_BACKGROUND_MARK),
+    ).toBe(true);
+  });
+
   it("marks a call to action cell and the link inside it", () => {
     const marked = mark(
       '<table><tr><td bgcolor="#1a73e8"><a href="https://example.com" style="color:#ffffff">Read more</a></td></tr></table>',
@@ -92,7 +121,7 @@ describe("brand colored backgrounds under forced dark mode", () => {
   it("excludes marked elements from the forced dark neutralization", () => {
     const css = build_forced_dark_mode_css();
 
-    expect(css).toContain(`td:not([style*="background-image" i])`);
+    expect(css).toContain(`td:not([style*="url(" i])`);
     expect(css).toContain(`:not([${BRAND_BACKGROUND_MARK}])`);
   });
 });

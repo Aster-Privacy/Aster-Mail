@@ -18,12 +18,18 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { parse_css_color, rgba_to_hex } from "@/lib/email_contrast_repair";
+import {
+  is_neutral_ink,
+  parse_css_color,
+  rgba_to_hex,
+} from "@/lib/email_contrast_repair";
 import { relative_luminance } from "@/lib/email_ink";
 
 export const BRAND_BACKGROUND_MARK = "data-aster-keep-bg";
 
 export const PAGE_SURFACE_LUMINANCE_LIMIT = 0.5;
+
+export const NEUTRAL_PAGE_LUMINANCE_LIMIT = 0.18;
 
 const BACKGROUND_COLOR_DECLARATION = /background(?:-color)?\s*:\s*([^;]+)/i;
 
@@ -34,9 +40,12 @@ export function is_page_surface(color: string): boolean {
 
   if (!parsed || parsed.a < 1) return true;
 
-  return (
-    relative_luminance(rgba_to_hex(parsed)) >= PAGE_SURFACE_LUMINANCE_LIMIT
-  );
+  const hex = rgba_to_hex(parsed);
+  const luminance = relative_luminance(hex);
+
+  if (luminance >= PAGE_SURFACE_LUMINANCE_LIMIT) return true;
+
+  return luminance >= NEUTRAL_PAGE_LUMINANCE_LIMIT && is_neutral_ink(hex);
 }
 
 function declared_background(element: Element): string | null {

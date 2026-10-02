@@ -23,6 +23,7 @@ import { describe, it, expect } from "vitest";
 import { sanitize_html } from "./html_sanitizer";
 import {
   BACKGROUND_IMAGE_MARK,
+  has_inline_background_image,
   selectors_with_background_image,
 } from "./html_sanitizer_background_marks";
 
@@ -106,5 +107,46 @@ describe("background images declared in a stylesheet", () => {
     const large_elapsed = Date.now() - large_started;
 
     expect(large_elapsed).toBeLessThan(Math.max(small_elapsed * 8, 250));
+  });
+});
+
+describe("background images declared inline", () => {
+  it("sees an inline image or gradient", () => {
+    expect(
+      has_inline_background_image("background-image:url(cid:hero@aster)"),
+    ).toBe(true);
+    expect(
+      has_inline_background_image(
+        "background-image: linear-gradient(#ffffff, #eeeeee)",
+      ),
+    ).toBe(true);
+  });
+
+  it("ignores an inline reset to none", () => {
+    expect(
+      has_inline_background_image(
+        "background-color:#ffffff;background-image:none;background-repeat:no-repeat",
+      ),
+    ).toBe(false);
+    expect(
+      has_inline_background_image("background-image: none !important"),
+    ).toBe(false);
+  });
+
+  it("marks an inline image and leaves an inline reset unmarked", () => {
+    const result = sanitize_html(
+      '<div class="hero" style="background-image:url(cid:hero@aster)">hi</div><table class="wrapper" style="background-color:#ffffff;background-image:none"><tr><td>hi</td></tr></table>',
+      OPTIONS,
+    );
+    const root = document.createElement("div");
+
+    root.innerHTML = result.html;
+
+    expect(
+      root.querySelector("div.hero")?.hasAttribute(BACKGROUND_IMAGE_MARK),
+    ).toBe(true);
+    expect(
+      root.querySelector("table.wrapper")?.hasAttribute(BACKGROUND_IMAGE_MARK),
+    ).toBe(false);
   });
 });

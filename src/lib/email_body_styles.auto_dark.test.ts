@@ -99,7 +99,7 @@ describe("build_auto_dark_mode_css", () => {
           line.includes('span[style*="background"]'),
       );
 
-    expect(reset_rule).toContain(':not([style*="background-image" i])');
+    expect(reset_rule).toContain(":not([data-aster-bg-image])");
     expect(reset_rule).toContain(":not([background])");
   });
 });
