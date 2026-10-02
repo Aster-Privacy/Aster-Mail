@@ -1983,8 +1983,7 @@ textarea:focus-visible,
 select:focus,
 select:focus-visible,
 [contenteditable="true"]:focus,
-[contenteditable="true"]:focus-visible,
-.aster_input:focus-visible {
+[contenteditable="true"]:focus-visible {
   outline: none;
   outline-offset: 0;
 }

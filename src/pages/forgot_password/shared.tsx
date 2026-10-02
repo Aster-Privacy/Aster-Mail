@@ -21,8 +21,17 @@
 import { motion } from "framer-motion";
 import { ReactNode } from "react";
 
+import { ProfileAvatarView } from "@aster/ui";
+
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
+import { AccountPill } from "@/components/common/account_pill";
+import { get_initials, get_active_locale } from "@/lib/initials";
+import {
+  get_avatar_color,
+  get_avatar_key,
+  get_contrast_text,
+} from "@/lib/avatar_color";
 
 export type RecoveryStep =
   | "email"
@@ -74,18 +83,6 @@ export const Alert = ({ message, is_dark }: AlertProps) => {
   );
 };
 
-export const ChevronDownIcon = () => (
-  <svg
-    className="w-3.5 h-3.5 shrink-0 text-txt-muted"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    viewBox="0 0 24 24"
-  >
-    <path d="M19 9l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
-
 export interface AccountChipProps {
   email: string;
   on_click?: () => void;
@@ -93,34 +90,25 @@ export interface AccountChipProps {
 }
 
 export const AccountChip = ({ email, on_click, label }: AccountChipProps) => {
-  const content = (
-    <>
-      <span
-        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
-        style={{ backgroundColor: "var(--accent-color)" }}
-      >
-        {email.charAt(0).toUpperCase()}
-      </span>
-      <span className="notranslate truncate text-sm text-txt-primary">
-        {email}
-      </span>
-      {on_click && <ChevronDownIcon />}
-    </>
-  );
-  const class_name =
-    "inline-flex max-w-full items-center gap-2 rounded-full border border-edge-secondary py-1 ps-1 pe-3 text-start";
-
-  if (!on_click) return <span className={class_name}>{content}</span>;
+  const background_color = get_avatar_color(get_avatar_key(email, email));
 
   return (
-    <button
-      aria-label={label}
-      className={`${class_name} transition-colors hover:bg-surf-tertiary`}
-      type="button"
-      onClick={on_click}
-    >
-      {content}
-    </button>
+    <AccountPill
+      avatar={
+        <ProfileAvatarView
+          background_color={background_color}
+          email={email}
+          initials={get_initials(email, email, get_active_locale())}
+          name={email}
+          show_placeholder={false}
+          size="xs"
+          text_color={get_contrast_text(background_color)}
+        />
+      }
+      email={email}
+      label={label}
+      on_click={on_click}
+    />
   );
 };
 
@@ -219,7 +207,7 @@ export const OptionRow = ({
     type="button"
     onClick={on_click}
   >
-    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-txt-primary shadow-sm dark:bg-white/[0.08] [&>svg]:h-6 [&>svg]:w-6">
+    <span className="flex h-10 w-10 shrink-0 items-center justify-center text-txt-primary [&>svg]:h-6 [&>svg]:w-6">
       {icon}
     </span>
     <span className="min-w-0 flex-1">

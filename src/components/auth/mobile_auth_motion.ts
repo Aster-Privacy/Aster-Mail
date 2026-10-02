@@ -55,7 +55,7 @@ export const DEPTH_INPUT_CLASS =
   "h-[52px] w-full rounded-xl border border-[var(--border-secondary)] bg-[var(--bg-tertiary)] px-4 text-base text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)] shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)] dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.2)] transition-all duration-150";
 
 export const DEPTH_INPUT_WRAPPER_CLASS =
-  "flex items-center rounded-xl border border-[var(--border-secondary)] bg-[var(--bg-tertiary)] shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)] dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.2)] transition-all duration-150 focus-within:border-[var(--accent-color)] focus-within:shadow-[0_0_0_2px_var(--accent-color)]";
+  "flex items-center rounded-xl border border-[var(--border-secondary)] bg-[var(--bg-tertiary)] shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)] dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.2)] transition-all duration-150 focus-within:border-transparent focus-within:shadow-none focus-within:outline focus-within:outline-2 focus-within:-outline-offset-2 focus-within:outline-[var(--accent-color)]";
 
 export const DEPTH_CTA_CLASS =
   "h-[52px] w-full rounded-xl font-semibold text-base text-white disabled:opacity-50 transition-colors duration-150";
@@ -82,10 +82,10 @@ export const BACK_BUTTON_STYLE: React.CSSProperties = {
 };
 
 export const INNER_INPUT_CLASS =
-  "h-[52px] flex-1 min-w-0 !bg-transparent !shadow-none !rounded-none !border-none focus:!shadow-none";
+  "h-[52px] flex-1 min-w-0 !bg-transparent !shadow-none !rounded-none !border-none focus:!shadow-none focus:!outline-none";
 
 export const INNER_INPUT_WITH_ICON_CLASS =
-  "h-[52px] flex-1 min-w-0 !bg-transparent !ps-3 !shadow-none !rounded-none !border-none focus:!shadow-none";
+  "h-[52px] flex-1 min-w-0 !bg-transparent !ps-3 !shadow-none !rounded-none !border-none focus:!shadow-none focus:!outline-none";
 
 export const INPUT_ICON_CLASS =
   "flex items-center ps-4 text-[var(--text-muted)]";
