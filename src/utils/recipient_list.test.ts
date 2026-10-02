@@ -99,4 +99,18 @@ describe("split_recipient_list", () => {
       "Ann Smith <a@x.com>",
     ]);
   });
+
+  it("does not join a name across a semicolon", () => {
+    expect(split_recipient_list("bob; Ann Smith <a@x.com>")).toEqual([
+      "bob",
+      "Ann Smith <a@x.com>",
+    ]);
+  });
+
+  it("splits a long paste with no address quickly", () => {
+    const started = Date.now();
+
+    expect(split_recipient_list("a".repeat(200000))).toHaveLength(1);
+    expect(Date.now() - started).toBeLessThan(500);
+  });
 });

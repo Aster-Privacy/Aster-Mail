@@ -33,12 +33,14 @@ function split_space_separated(part: string): string[] {
   return tokens;
 }
 
-// Outlook copies recipients as `Doe, John <j@x.com>; Smith, Ann <a@x.com>`,
-// leaving the comma in the display name unquoted. A fragment with no address
-// of its own that runs straight into a named `<address>` is part of that name,
-// so it is joined back instead of being left behind as an invalid recipient.
 const NAME_FRAGMENT_PATTERN = /^[^@<>"]+$/;
-const NAMED_ADDRESS_PATTERN = /^[^@<>]*[^\s@<>][^@<>]*<[^<>]+>$/;
+const NAMED_ADDRESS_PATTERN = /^([^@<>]*)<[^<>]+>$/;
+
+function is_named_address(text: string): boolean {
+  const match = NAMED_ADDRESS_PATTERN.exec(text);
+
+  return match !== null && match[1].trim().length > 0;
+}
 
 interface RawPart {
   text: string;
@@ -55,7 +57,7 @@ function join_name_fragments(parts: RawPart[]): string[] {
   };
 
   for (const part of parts) {
-    if (NAMED_ADDRESS_PATTERN.test(part.text) && pending.length > 0) {
+    if (pending.length > 0 && is_named_address(part.text)) {
       joined.push(
         pending
           .map((fragment) => fragment.text + fragment.separator)
@@ -71,8 +73,7 @@ function join_name_fragments(parts: RawPart[]): string[] {
       joined.push(part.text);
     }
 
-    // A line break or tab always ends a recipient, even after a bare name.
-    if (part.separator !== "," && part.separator !== ";") flush();
+    if (part.separator !== ",") flush();
   }
 
   flush();
