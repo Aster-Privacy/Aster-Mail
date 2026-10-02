@@ -8894,6 +8894,50 @@ export const tr = {
     email_auth_status_fail: "Başarısız",
     email_auth_status_none: "Kullanılmıyor",
     email_auth_status_missing: "Denetlenmedi",
+    mailed_by_label: "Gönderen sunucu:",
+    signed_by_label: "İmzalayan:",
+    reply_to_label: "Yanıt adresi:",
+    reply_to_other_domain: "Yanıtlar gönderenden farklı bir alan adına gider.",
+    mailing_list_label: "E-posta listesi:",
+    list_unsubscribe_available: "Abonelikten çıkma bağlantısı var",
+    email_auth_summary_authenticated:
+      "Bu ileti {{domain}} için SPF, DKIM ve DMARC denetimlerini geçti.",
+    email_auth_summary_unverified:
+      "Denetimler bu iletinin {{domain}} tarafından gönderildiğini doğrulayamadı.",
+    email_auth_summary_unavailable:
+      "Bu ileti için kimlik doğrulama sonuçları yok.",
+    email_auth_spf_pass:
+      "Gönderen sunucu bu alan adı adına e-posta gönderebilir.",
+    email_auth_spf_fail:
+      "Gönderen sunucu bu alan adı adına e-posta gönderemez.",
+    email_auth_dkim_pass:
+      "İmza geçerli; ileti imzalandıktan sonra değiştirilmedi.",
+    email_auth_dkim_fail:
+      "İmza geçersiz veya ileti imzalandıktan sonra değiştirildi.",
+    email_auth_dmarc_pass: "İleti, gönderen alan adının politikasına uyuyor.",
+    email_auth_dmarc_fail:
+      "İleti, gönderen alan adının politikasına uymuyor. Gönderen, iddia ettiği kişi olmayabilir.",
+    email_auth_check_none: "Gönderenin alan adı bu denetimi kullanmıyor.",
+    email_auth_check_missing: "Bu denetim için sonuç kaydedilmedi.",
+    email_auth_check_other: "Denetim olağan dışı bir sonuç verdi: {{value}}.",
+    header_help_received:
+      "Bu iletinin size ulaşırken geçtiği bir sunucu. En üstteki en yenisidir.",
+    header_help_return_path:
+      "Geri dönen iletilerin gittiği adres. SPF bu adresin alan adını denetler.",
+    header_help_authentication_results:
+      "Denetimi yapan sunucunun yazdığı SPF, DKIM ve DMARC sonuçları.",
+    header_help_received_spf:
+      "SPF sonucu: gönderen sunucunun alan adı adına e-posta gönderip gönderemeyeceği.",
+    header_help_dkim_signature:
+      "Gönderen alan adının eklediği, iletideki değişiklikleri fark etmeyi sağlayan imza.",
+    header_help_arc:
+      "Bir yönlendirici veya e-posta listesi iletiyi aktardığında ilk denetim sonuçlarını korur.",
+    header_help_message_id: "Gönderenin bu iletiye verdiği benzersiz kimlik.",
+    header_help_list_unsubscribe: "Bu e-posta listesinden nasıl çıkılacağı.",
+    header_help_spam: "Spam filtresinin kararı ve puanı.",
+    headers_formatted: "Biçimli",
+    headers_raw: "Ham",
+    headers_view_label: "Üst bilgi görünümü",
     copy_message_id: "Mesaj kimliğini kopyala",
     hide_source: "Kaynağı gizle",
     view_dark_mode: "Karanlık modda görüntüle",

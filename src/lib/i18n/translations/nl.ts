@@ -8973,6 +8973,55 @@ export const nl = {
     email_auth_status_fail: "Mislukt",
     email_auth_status_none: "Niet gebruikt",
     email_auth_status_missing: "Niet gecontroleerd",
+    mailed_by_label: "Verzonden door:",
+    signed_by_label: "Ondertekend door:",
+    reply_to_label: "Antwoorden naar:",
+    reply_to_other_domain:
+      "Antwoorden gaan naar een ander domein dan dat van de afzender.",
+    mailing_list_label: "Mailinglijst:",
+    list_unsubscribe_available: "Afmeldlink aanwezig",
+    email_auth_summary_authenticated:
+      "Dit bericht heeft SPF, DKIM en DMARC doorstaan voor {{domain}}.",
+    email_auth_summary_unverified:
+      "De controles konden niet bevestigen dat {{domain}} dit bericht heeft verzonden.",
+    email_auth_summary_unavailable:
+      "Er zijn geen authenticatieresultaten beschikbaar voor dit bericht.",
+    email_auth_spf_pass:
+      "De verzendende server mag mail versturen namens dit domein.",
+    email_auth_spf_fail:
+      "De verzendende server mag geen mail versturen namens dit domein.",
+    email_auth_dkim_pass:
+      "De handtekening is geldig, dus het bericht is na het ondertekenen niet gewijzigd.",
+    email_auth_dkim_fail:
+      "De handtekening is ongeldig, of het bericht is na het ondertekenen gewijzigd.",
+    email_auth_dmarc_pass:
+      "Het bericht voldoet aan het beleid van het afzenderdomein.",
+    email_auth_dmarc_fail:
+      "Het bericht voldoet niet aan het beleid van het afzenderdomein. De afzender is mogelijk niet wie die beweert te zijn.",
+    email_auth_check_none: "Het afzenderdomein gebruikt deze controle niet.",
+    email_auth_check_missing:
+      "Er is geen resultaat vastgelegd voor deze controle.",
+    email_auth_check_other:
+      "De controle gaf een ongebruikelijk resultaat: {{value}}.",
+    header_help_received:
+      "Een server die dit bericht onderweg naar jou heeft verwerkt. De bovenste is de recentste.",
+    header_help_return_path:
+      "Waar onbestelbaarheidsberichten naartoe gaan. SPF controleert het domein van dit adres.",
+    header_help_authentication_results:
+      "De resultaten van SPF, DKIM en DMARC, geschreven door de server die ze controleerde.",
+    header_help_received_spf:
+      "Het SPF-resultaat: of de verzendende server mail mag versturen namens het domein.",
+    header_help_dkim_signature:
+      "Een handtekening van het verzendende domein, zodat wijzigingen aan het bericht opvallen.",
+    header_help_arc:
+      "Bewaart de oorspronkelijke controleresultaten als een doorstuurdienst of mailinglijst het bericht doorgeeft.",
+    header_help_message_id:
+      "Een unieke ID die de afzender aan dit bericht heeft gegeven.",
+    header_help_list_unsubscribe: "Hoe je je afmeldt voor deze mailinglijst.",
+    header_help_spam: "Het oordeel en de score van het spamfilter.",
+    headers_formatted: "Opgemaakt",
+    headers_raw: "Onbewerkt",
+    headers_view_label: "Weergave van headers",
     copy_message_id: "Bericht-ID kopiëren",
     hide_source: "Bron verbergen",
     view_dark_mode: "Weergeven in donkere modus",

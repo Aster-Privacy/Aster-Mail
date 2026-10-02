@@ -20,7 +20,7 @@
 //
 import type { DecryptedThreadMessage } from "@/types/thread";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   ArrowDownTrayIcon,
   ClipboardDocumentIcon,
@@ -40,20 +40,26 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_date_format } from "@/hooks/use_date_format";
 import { show_toast } from "@/components/toast/simple_toast";
 import { resolve_received_on_address } from "@/utils/delivered_to";
+import {
+  format_raw_headers,
+  get_message_id,
+} from "@/utils/message_header_details";
+import {
+  DetailsRow,
+  EmailAuthDetails,
+  HeadersBox,
+  HeadersViewToggle,
+  MailingListValue,
+  ReplyToValue,
+  get_header_insights,
+  type HeadersViewMode,
+} from "@/components/email/message_details_sections";
 
 interface MessageDetailsModalProps {
   is_open: boolean;
   on_close: () => void;
   message: DecryptedThreadMessage;
   size_bytes?: number;
-}
-
-function build_headers(message: DecryptedThreadMessage): string | null {
-  if (message.raw_headers && message.raw_headers.length > 0) {
-    return message.raw_headers.map((h) => `${h.name}: ${h.value}`).join("\n");
-  }
-
-  return null;
 }
 
 export function MessageDetailsModal({
@@ -65,17 +71,23 @@ export function MessageDetailsModal({
   const { t } = use_i18n();
   const { format_full_datetime } = use_date_format();
 
-  const headers = useMemo(() => build_headers(message), [message]);
-  const message_id = useMemo(() => {
-    const header = message.raw_headers?.find(
-      (candidate) => candidate.name.toLowerCase() === "message-id",
-    );
-    const value = header?.value.trim();
-
-    if (!value) return null;
-
-    return value.startsWith("<") ? value : `<${value}>`;
-  }, [message]);
+  const [headers_mode, set_headers_mode] =
+    useState<HeadersViewMode>("formatted");
+  const headers = useMemo(
+    () => format_raw_headers(message.raw_headers),
+    [message.raw_headers],
+  );
+  const message_id = useMemo(
+    () => get_message_id(message.raw_headers),
+    [message.raw_headers],
+  );
+  const is_received = message.item_type === "received";
+  const sender_email = message.display_sender_email ?? message.sender_email;
+  const insights = useMemo(
+    () =>
+      get_header_insights(message.raw_headers, message, message.sender_email),
+    [message],
+  );
 
   if (!is_open) return null;
 
@@ -99,7 +111,7 @@ export function MessageDetailsModal({
   };
 
   return (
-    <Modal is_open={is_open} on_close={on_close} size="lg">
+    <Modal is_open={is_open} on_close={on_close} size="2xl">
       <ModalHeader>
         <ModalTitle>{t("mail.message_details")}</ModalTitle>
       </ModalHeader>
@@ -113,6 +125,12 @@ export function MessageDetailsModal({
             {message.display_sender_email ?? message.sender_email}&gt;
           </span>
         </div>
+
+        {insights.reply_to && (
+          <DetailsRow label={t("mail.reply_to_label")} variant="desktop">
+            <ReplyToValue {...insights.reply_to} />
+          </DetailsRow>
+        )}
 
         {message.to_recipients && message.to_recipients.length > 0 && (
           <div className="flex">
@@ -189,6 +207,12 @@ export function MessageDetailsModal({
           </span>
         </div>
 
+        {insights.mailing_list && (
+          <DetailsRow label={t("mail.mailing_list_label")} variant="desktop">
+            <MailingListValue {...insights.mailing_list} />
+          </DetailsRow>
+        )}
+
         {message_id && (
           <div className="flex">
             <span className="min-w-24 flex-shrink-0 whitespace-nowrap pe-2 font-medium text-txt-muted">
@@ -231,13 +255,40 @@ export function MessageDetailsModal({
           />
         </div>
 
+        {is_received && (
+          <section className="mt-3 space-y-2.5 border-t border-edge-primary pt-3">
+            <h4 className="text-sm font-medium text-txt-primary">
+              {t("mail_rules.field_section_authentication")}
+            </h4>
+            <EmailAuthDetails
+              results={message}
+              sender_email={sender_email}
+              variant="desktop"
+            />
+            {insights.signed_by && (
+              <DetailsRow label={t("mail.signed_by_label")} variant="desktop">
+                <bdi dir="ltr">{insights.signed_by}</bdi>
+              </DetailsRow>
+            )}
+            {insights.mailed_by && (
+              <DetailsRow label={t("mail.mailed_by_label")} variant="desktop">
+                <bdi dir="ltr">{insights.mailed_by}</bdi>
+              </DetailsRow>
+            )}
+          </section>
+        )}
+
         <div className="pt-3 mt-3 border-t border-edge-primary">
-          <div className="flex items-center justify-between mb-2">
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
             <span className="font-medium text-txt-primary text-sm">
               {t("mail.message_headers")}
             </span>
             {headers && (
               <div className="flex items-center gap-1.5">
+                <HeadersViewToggle
+                  mode={headers_mode}
+                  on_change={set_headers_mode}
+                />
                 <button
                   className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-txt-muted hover:bg-surf-hover hover:text-txt-secondary"
                   type="button"
@@ -258,9 +309,12 @@ export function MessageDetailsModal({
             )}
           </div>
           {headers ? (
-            <pre className="max-h-[250px] overflow-auto rounded-lg bg-[var(--bg-tertiary,var(--surf-tertiary))] p-3 text-xs leading-relaxed text-txt-secondary font-mono select-all">
-              {headers}
-            </pre>
+            <HeadersBox
+              className="max-h-[max(250px,calc(100dvh-34rem))]"
+              mode={headers_mode}
+              raw_headers={message.raw_headers}
+              text={headers}
+            />
           ) : (
             <p className="rounded-lg bg-[var(--bg-tertiary,var(--surf-tertiary))] p-3 text-xs text-txt-muted">
               {t("mail.no_raw_headers")}

@@ -9176,6 +9176,52 @@ export const ru = {
     email_auth_status_fail: "Не пройдено",
     email_auth_status_none: "Не используется",
     email_auth_status_missing: "Не проверено",
+    mailed_by_label: "Отправлено через:",
+    signed_by_label: "Подписано:",
+    reply_to_label: "Ответить:",
+    reply_to_other_domain:
+      "Ответы уйдут на другой домен, не на домен отправителя.",
+    mailing_list_label: "Список рассылки:",
+    list_unsubscribe_available: "Есть ссылка для отписки",
+    email_auth_summary_authenticated:
+      "Это письмо прошло SPF, DKIM и DMARC для {{domain}}.",
+    email_auth_summary_unverified:
+      "Проверки не подтвердили, что это письмо отправил {{domain}}.",
+    email_auth_summary_unavailable:
+      "Для этого письма нет результатов проверки подлинности.",
+    email_auth_spf_pass:
+      "Отправляющему серверу разрешено отправлять почту от имени этого домена.",
+    email_auth_spf_fail:
+      "Отправляющему серверу не разрешено отправлять почту от имени этого домена.",
+    email_auth_dkim_pass:
+      "Подпись действительна, значит письмо не меняли после подписания.",
+    email_auth_dkim_fail:
+      "Подпись недействительна, или письмо изменили после подписания.",
+    email_auth_dmarc_pass: "Письмо соответствует политике домена отправителя.",
+    email_auth_dmarc_fail:
+      "Письмо не соответствует политике домена отправителя. Возможно, отправитель не тот, за кого себя выдаёт.",
+    email_auth_check_none: "Домен отправителя не использует эту проверку.",
+    email_auth_check_missing: "Для этой проверки результат не записан.",
+    email_auth_check_other: "Проверка дала необычный результат: {{value}}.",
+    header_help_received:
+      "Сервер, через который письмо прошло на пути к вам. Верхний — самый последний.",
+    header_help_return_path:
+      "Куда отправляются возвраты. SPF проверяет домен этого адреса.",
+    header_help_authentication_results:
+      "Результаты SPF, DKIM и DMARC, записанные проверившим их сервером.",
+    header_help_received_spf:
+      "Результат SPF: может ли отправляющий сервер отправлять почту от имени домена.",
+    header_help_dkim_signature:
+      "Подпись домена-отправителя, по которой можно обнаружить изменения письма.",
+    header_help_arc:
+      "Сохраняет исходные результаты проверок, когда пересыльщик или список рассылки передаёт письмо дальше.",
+    header_help_message_id:
+      "Уникальный идентификатор, который отправитель присвоил письму.",
+    header_help_list_unsubscribe: "Как отписаться от этого списка рассылки.",
+    header_help_spam: "Вердикт и оценка спам-фильтра.",
+    headers_formatted: "Форматированный",
+    headers_raw: "Исходный",
+    headers_view_label: "Вид заголовков",
     copy_message_id: "Копировать ID сообщения",
     hide_source: "Скрыть исходный код",
     view_dark_mode: "Просмотр в тёмном режиме",

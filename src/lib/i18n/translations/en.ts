@@ -8953,6 +8953,51 @@ export const en: Translations = {
     email_auth_status_fail: "Failed",
     email_auth_status_none: "Not used",
     email_auth_status_missing: "Not checked",
+    mailed_by_label: "Mailed by:",
+    signed_by_label: "Signed by:",
+    reply_to_label: "Reply-To:",
+    reply_to_other_domain:
+      "Replies go to a different domain than the sender's.",
+    mailing_list_label: "Mailing list:",
+    list_unsubscribe_available: "Unsubscribe link included",
+    email_auth_summary_authenticated:
+      "This message passed SPF, DKIM and DMARC for {{domain}}.",
+    email_auth_summary_unverified:
+      "The checks couldn't confirm that {{domain}} sent this message.",
+    email_auth_summary_unavailable:
+      "Authentication results aren't available for this message.",
+    email_auth_spf_pass:
+      "The sending server is allowed to send mail for this domain.",
+    email_auth_spf_fail:
+      "The sending server isn't allowed to send mail for this domain.",
+    email_auth_dkim_pass:
+      "The signature is valid, so the message wasn't changed after it was signed.",
+    email_auth_dkim_fail:
+      "The signature is invalid, or the message was changed after it was signed.",
+    email_auth_dmarc_pass: "The message meets the sender domain's policy.",
+    email_auth_dmarc_fail:
+      "The message doesn't meet the sender domain's policy. The sender may not be who they claim to be.",
+    email_auth_check_none: "The sender's domain doesn't use this check.",
+    email_auth_check_missing: "No result was recorded for this check.",
+    email_auth_check_other: "The check gave an unusual result: {{value}}.",
+    header_help_received:
+      "A server that handled this message on its way to you. The top one is the most recent.",
+    header_help_return_path:
+      "Where bounces are sent. SPF checks this address's domain.",
+    header_help_authentication_results:
+      "The SPF, DKIM and DMARC results, written by the server that checked them.",
+    header_help_received_spf:
+      "The SPF result: whether the sending server may send mail for the domain.",
+    header_help_dkim_signature:
+      "A signature added by the sending domain, so changes to the message can be detected.",
+    header_help_arc:
+      "Keeps the original check results when a forwarder or mailing list passes the message on.",
+    header_help_message_id: "A unique identifier the sender gave this message.",
+    header_help_list_unsubscribe: "How to unsubscribe from this mailing list.",
+    header_help_spam: "The spam filter's verdict and score.",
+    headers_formatted: "Formatted",
+    headers_raw: "Raw",
+    headers_view_label: "Headers view",
     copy_message_id: "Copy message ID",
     message_details: "Message details",
     message_headers: "Message headers",

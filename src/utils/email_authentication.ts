@@ -45,7 +45,7 @@ export interface EmailAuthSummary {
 
 const MAX_SHOWN_VALUE = 32;
 
-function normalize_status(raw: unknown): {
+export function normalize_email_auth_status(raw: unknown): {
   status: EmailAuthStatus;
   value: string;
 } {
@@ -67,9 +67,9 @@ function normalize_status(raw: unknown): {
 export function summarize_email_authentication(
   results: EmailAuthResults,
 ): EmailAuthSummary | null {
-  const spf = normalize_status(results.spf_result);
-  const dkim = normalize_status(results.dkim_result);
-  const dmarc = normalize_status(results.dmarc_result);
+  const spf = normalize_email_auth_status(results.spf_result);
+  const dkim = normalize_email_auth_status(results.dkim_result);
+  const dmarc = normalize_email_auth_status(results.dmarc_result);
   const checks: EmailAuthCheckResult[] = [
     { check: "spf", ...spf },
     { check: "dkim", ...dkim },
