@@ -155,7 +155,19 @@ export function sanitize_outgoing_html(html: string): string {
   return doc.body.innerHTML;
 }
 
-export function sanitize_compose_paste(html: string): string {
+export interface ComposePasteOptions {
+  keep_signature_marker?: boolean;
+}
+
+const SIGNATURE_MARKER_ATTRS = [
+  "data-aster-signature",
+  "data-aster-signature-id",
+];
+
+export function sanitize_compose_paste(
+  html: string,
+  options: ComposePasteOptions = {},
+): string {
   if (!html || typeof html !== "string") return "";
 
   const purified = DOMPurify.sanitize(html, {
@@ -223,14 +235,18 @@ export function sanitize_compose_paste(html: string): string {
       "color",
       "face",
       "size",
+      ...(options.keep_signature_marker ? SIGNATURE_MARKER_ATTRS : []),
     ],
     ALLOW_DATA_ATTR: false,
   });
 
-  return apply_compose_paste_dom_rules(purified);
+  return apply_compose_paste_dom_rules(purified, options);
 }
 
-export function apply_compose_paste_dom_rules(purified: string): string {
+export function apply_compose_paste_dom_rules(
+  purified: string,
+  options: ComposePasteOptions = {},
+): string {
   const doc = new DOMParser().parseFromString(purified, "text/html");
 
   const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_ELEMENT);
@@ -240,11 +256,19 @@ export function apply_compose_paste_dom_rules(purified: string): string {
     nodes_to_process.push(walker.currentNode as Element);
   }
 
-  for (const el of nodes_to_process) {
+  for (const node of nodes_to_process) {
+    let el = node;
+
     el.removeAttribute("class");
     el.removeAttribute("id");
 
     for (const attr of Array.from(el.attributes)) {
+      if (
+        options.keep_signature_marker &&
+        SIGNATURE_MARKER_ATTRS.includes(attr.name)
+      ) {
+        continue;
+      }
       if (
         attr.name.startsWith("docs-internal-") ||
         attr.name.startsWith("data-")
@@ -283,6 +307,7 @@ export function apply_compose_paste_dom_rules(purified: string): string {
       while (el.firstChild) span.appendChild(el.firstChild);
 
       el.parentNode?.replaceChild(span, el);
+      el = span;
     }
 
     const style_attr = el.getAttribute("style");

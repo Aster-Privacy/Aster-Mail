@@ -35,6 +35,8 @@ import {
   escape_html,
   replace_font_element,
   is_allowed_font_family,
+  encode_link_url,
+  get_selection_anchor,
 } from "@/hooks/editor_utils";
 
 const ZERO_WIDTH_SPACE = "\u200B";
@@ -531,13 +533,27 @@ export function use_editor_format(
         return;
       }
 
-      const safe_url = encodeURI(trimmed_url).replace(/"/g, "%22");
+      const safe_url = encode_link_url(trimmed_url);
 
       restore_selection();
       const selection = window.getSelection();
       const selected_text = selection?.toString() || "";
+      const existing = get_selection_anchor(editor);
 
-      if (selected_text && !text) {
+      if (existing) {
+        existing.setAttribute("href", safe_url);
+
+        if (text && text !== existing.textContent) {
+          existing.textContent = text;
+        }
+
+        const after = document.createRange();
+
+        after.setStartAfter(existing);
+        after.collapse(true);
+        selection?.removeAllRanges();
+        selection?.addRange(after);
+      } else if (selected_text && !text) {
         document.execCommand("createLink", false, safe_url);
         editor.querySelectorAll(`a[href="${safe_url}"]`).forEach((link) => {
           (link as HTMLElement).style.color = "#3b82f6";

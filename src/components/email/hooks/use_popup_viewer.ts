@@ -387,10 +387,11 @@ export function use_popup_viewer({
 
         if (scope !== current_opened_mail_scope()) return;
         if (!is_read_ticket_current(current_email_id, read_ticket)) return;
+        const still_open = open_email_id_ref.current === current_email_id;
 
         if (result.success) {
-          set_is_read(true);
-          if (result.encrypted) {
+          if (still_open) set_is_read(true);
+          if (result.encrypted && still_open) {
             set_mail_item((prev) =>
               prev
                 ? {
@@ -416,7 +417,7 @@ export function use_popup_viewer({
             }
           }
         } else {
-          set_is_read(false);
+          if (still_open) set_is_read(false);
           if (owned) {
             emit_mail_item_updated({ id: current_email_id, is_read: false });
           }

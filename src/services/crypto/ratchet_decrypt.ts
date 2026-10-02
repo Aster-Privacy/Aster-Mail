@@ -71,18 +71,31 @@ import { perform_x3dh_receiver } from "./x3dh";
 
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { ignore_error } from "@/lib/ignore_error";
+import { same_address_ignoring_dots } from "@/utils/address_dots";
+
+interface ResolvedRecipientData {
+  address: string;
+  data: RatchetRecipientData;
+}
 
 function resolve_recipient_data(
   our_email: string,
   envelope: RatchetEnvelope,
-): RatchetRecipientData | null {
-  const direct = envelope.recipients[our_email.toLowerCase()];
+): ResolvedRecipientData | null {
+  const our_lower = our_email.toLowerCase();
+  const direct = envelope.recipients[our_lower];
 
-  if (direct) return direct;
+  if (direct) return { address: our_lower, data: direct };
 
   for (const key of Object.keys(envelope.recipients)) {
-    if (key.toLowerCase() === our_email.toLowerCase()) {
-      return envelope.recipients[key];
+    if (key.toLowerCase() === our_lower) {
+      return { address: key, data: envelope.recipients[key] };
+    }
+  }
+
+  for (const key of Object.keys(envelope.recipients)) {
+    if (same_address_ignoring_dots(key, our_email)) {
+      return { address: key, data: envelope.recipients[key] };
     }
   }
 
@@ -212,10 +225,11 @@ export async function decrypt_ratchet_message(
   vault: EncryptedVault,
   message_id?: string,
 ): Promise<string | null> {
-  const our_data = resolve_recipient_data(our_email, envelope);
+  const our_match = resolve_recipient_data(our_email, envelope);
+  const our_data = our_match?.data ?? null;
 
   const primary = await attempt_ratchet_decrypt(
-    our_email,
+    our_match?.address ?? our_email,
     sender_email,
     envelope,
     vault,
@@ -226,15 +240,15 @@ export async function decrypt_ratchet_message(
   if (primary.plaintext !== null) return primary.plaintext;
 
   if (!our_data && sender_email.toLowerCase() !== our_email.toLowerCase()) {
-    const alias_self_data = resolve_recipient_data(sender_email, envelope);
+    const alias_self_match = resolve_recipient_data(sender_email, envelope);
 
-    if (alias_self_data) {
+    if (alias_self_match) {
       const fallback = await attempt_ratchet_decrypt(
-        sender_email,
+        alias_self_match.address,
         sender_email,
         envelope,
         vault,
-        alias_self_data,
+        alias_self_match.data,
         message_id,
       );
 

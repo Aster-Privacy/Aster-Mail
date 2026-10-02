@@ -46,6 +46,7 @@ import {
   strip_html_tags_bounded,
 } from "@/lib/html_sanitizer";
 import {
+  html_has_renderable_content,
   readable_text_with_fallback,
   renderable_html_part,
 } from "@/lib/message_markup";
@@ -372,6 +373,7 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
 
     if (
       preloaded_sanitized &&
+      html_has_renderable_content(preloaded_sanitized.html) &&
       base_image_mode !== "always" &&
       !load_remote_content &&
       !has_loaded_types

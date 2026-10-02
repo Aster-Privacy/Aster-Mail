@@ -323,12 +323,13 @@ export function EmailAutocomplete({
   const handle_paste = useCallback(
     (e: React.ClipboardEvent<HTMLInputElement>) => {
       const pasted = e.clipboardData.getData("text/plain");
+      const source = value.trim() ? `${value}${pasted}` : pasted;
 
-      const parts = split_recipient_list(pasted);
+      const parts = split_recipient_list(source);
 
       if (
-        !/[,;\n\t]/.test(pasted) &&
-        !/<[^>]+>/.test(pasted) &&
+        !/[,;\n\t]/.test(source) &&
+        !/<[^>]+>/.test(source) &&
         parts.length < 2
       ) {
         return;
@@ -352,14 +353,14 @@ export function EmailAutocomplete({
 
       on_change(remaining.join(", "));
     },
-    [existing_emails, on_select, on_change],
+    [existing_emails, on_select, on_change, value],
   );
 
   const handle_change = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const new_value = e.target.value;
 
-      if (/[,;]$/.test(new_value)) {
+      if (/[,;\s]$/.test(new_value)) {
         const email_part = new_value.slice(0, -1).trim();
 
         if (EMAIL_REGEX.test(email_part)) {

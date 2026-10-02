@@ -1284,6 +1284,8 @@ export const en: Translations = {
     font: "Font",
     stylesheet: "Stylesheet",
     tracking_pixel: "Tracking pixel",
+    image_blocked: "Image blocked",
+    tracking_pixel_blocked: "Tracking pixel blocked",
     me: "Me",
     notification_banner_message:
       "Enable desktop notifications to stay updated on new emails",
