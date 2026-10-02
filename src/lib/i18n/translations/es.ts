@@ -1252,6 +1252,8 @@ export const es = {
     font: "Fuente",
     stylesheet: "Hoja de estilo",
     tracking_pixel: "Píxel de rastreo",
+    image_blocked: "Imagen bloqueada",
+    tracking_pixel_blocked: "Píxel de rastreo bloqueado",
     me: "yo",
     notification_banner_message:
       "Activa las notificaciones de escritorio para estar al día de los correos nuevos",

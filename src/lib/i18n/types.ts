@@ -1849,6 +1849,8 @@ export interface CommonTranslations {
   font: string;
   stylesheet: string;
   tracking_pixel: string;
+  image_blocked: string;
+  tracking_pixel_blocked: string;
   me: string;
   notification_banner_message: string;
   notification_banner_allow: string;

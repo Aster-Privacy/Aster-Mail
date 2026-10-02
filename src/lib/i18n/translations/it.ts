@@ -1252,6 +1252,8 @@ export const it = {
     font: "Carattere",
     stylesheet: "Foglio di stile",
     tracking_pixel: "Pixel di tracciamento",
+    image_blocked: "Immagine bloccata",
+    tracking_pixel_blocked: "Pixel di tracciamento bloccato",
     me: "me",
     notification_banner_message:
       "Attiva le notifiche desktop per restare aggiornato sulle nuove email",

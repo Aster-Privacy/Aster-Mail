@@ -1233,6 +1233,8 @@ export const ru = {
     font: "Шрифт",
     stylesheet: "Таблица стилей",
     tracking_pixel: "Пиксель отслеживания",
+    image_blocked: "Изображение заблокировано",
+    tracking_pixel_blocked: "Пиксель отслеживания заблокирован",
     me: "я",
     notification_banner_message:
       "Включите уведомления на рабочем столе, чтобы получать информацию о новых письмах",
