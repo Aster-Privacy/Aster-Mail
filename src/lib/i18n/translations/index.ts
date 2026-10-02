@@ -130,16 +130,20 @@ export function has_translations(code: LanguageCode): boolean {
 
 const LANGUAGE_STORAGE_KEY = "astermail_language";
 
-export function get_active_translations(): Translations {
-  if (typeof window === "undefined") return en;
+export function get_active_language(): LanguageCode {
+  if (typeof window === "undefined") return "en";
 
   const stored = safe_local_get(LANGUAGE_STORAGE_KEY);
 
   if (stored && has_translations(stored as LanguageCode)) {
-    return get_translations(stored as LanguageCode);
+    return stored as LanguageCode;
   }
 
-  return en;
+  return "en";
+}
+
+export function get_active_translations(): Translations {
+  return get_translations(get_active_language());
 }
 
 export { en };
