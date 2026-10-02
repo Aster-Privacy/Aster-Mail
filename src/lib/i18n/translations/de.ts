@@ -4006,7 +4006,7 @@ export const de = {
     reply_to_all: "Allen antworten",
     force_dark_mode_emails: "Dunkelmodus für E-Mails erzwingen",
     force_dark_mode_emails_description:
-      "E-Mail-Inhalte immer im Dunkelmodus rendern und das ursprüngliche Styling der E-Mail überschreiben",
+      "E-Mail-Inhalte im Dunkelmodus rendern, solange Aster das dunkle Design nutzt, und das ursprüngliche Styling der E-Mail überschreiben",
     translation: "Übersetzung",
     translate_incoming: "Eingehende Mail übersetzen",
     translate_incoming_description:
@@ -4592,7 +4592,7 @@ export const de = {
       "Zeigt ein Schloss-Symbol an E-Mails, das angibt, ob eine Nachricht verschlüsselt, signiert oder keines von beidem ist.",
     info_force_dark_mode_title: "E-Mails im Dunkelmodus",
     info_force_dark_mode_description:
-      "Schreibt E-Mail-Stile um, um dunklen Hintergrund und hellen Text zu verwenden. Nützlich, wenn helle E-Mails Ihre Augen belasten.",
+      "Schreibt E-Mail-Stile auf dunklen Hintergrund und hellen Text um, solange Aster das dunkle Design nutzt. Nützlich, wenn helle E-Mails Ihre Augen belasten.",
     info_undo_send_title: "Senden rückgängig machen",
     info_undo_send_description:
       "Gibt Ihnen ein kurzes Zeitfenster zum Abbrechen einer E-Mail nach dem Senden. Nichts wird gesendet, bis der Timer abläuft.",

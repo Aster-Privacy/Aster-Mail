@@ -3997,7 +3997,7 @@ export const ja = {
     reply_to_all: "全員に返信",
     force_dark_mode_emails: "メールのダークモードを強制",
     force_dark_mode_emails_description:
-      "メールの元のスタイルを上書きして、常にダークモードでメール内容を表示します",
+      "Aster がダークテーマのとき、メールの元のスタイルを上書きしてダークモードでメール内容を表示します",
     translation: "翻訳",
     translate_incoming: "受信メールを翻訳",
     translate_incoming_description:
@@ -4640,7 +4640,7 @@ export const ja = {
       "メールに鍵アイコンを表示し、メッセージが暗号化済み・署名済み・またはどちらでもないかを示します。",
     info_force_dark_mode_title: "メールのダークモード強制",
     info_force_dark_mode_description:
-      "メールのスタイルを暗い背景と明るいテキストに書き換えます。明るい白いメールが目に辛い場合に便利です。",
+      "Aster がダークテーマのとき、メールのスタイルを暗い背景と明るいテキストに書き換えます。明るい白いメールが目に辛い場合に便利です。",
     info_undo_send_title: "送信取り消し",
     info_undo_send_description:
       "送信後に短い間キャンセルできる時間を提供します。タイマーが終わるまで実際には送信されません。",
