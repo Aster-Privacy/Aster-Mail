@@ -262,14 +262,14 @@ export function use_search() {
           indexing_progress.building ||
           (search_body && !index.include_body);
 
+        if (controller.signal.aborted) return;
+
         set_state((prev) => ({
           ...prev,
           index_building: false,
           index_pending,
           indexed_count: index.total_indexed,
         }));
-
-        if (controller.signal.aborted) return;
 
         const candidates: ScanCandidate[] = [];
         const mailbox_scope = resolve_mailbox_scope(operators);
@@ -545,6 +545,9 @@ export function use_search() {
   const clear_results = useCallback(() => {
     last_search_ref.current = null;
     last_scan_ref.current = null;
+    abort_ref.current?.abort();
+    abort_ref.current = null;
+    search_seq_ref.current += 1;
     set_state({
       query: "",
       results: [],

@@ -821,6 +821,7 @@ export function use_email_list(
         }
         get_cached_email_list(current_view)
           .then((cached) => {
+            if (committed_view_ref.current !== current_view) return;
             if (cached && cached.length > 0) {
               set_state({
                 emails: cached,
@@ -842,6 +843,7 @@ export function use_email_list(
             }
           })
           .catch(() => {
+            if (committed_view_ref.current !== current_view) return;
             set_state({
               emails: [],
               is_loading: false,
@@ -871,6 +873,7 @@ export function use_email_list(
     } else if (!is_online && Capacitor.isNativePlatform() && has_keys) {
       get_cached_email_list(current_view)
         .then((cached) => {
+          if (committed_view_ref.current !== current_view) return;
           if (cached && cached.length > 0) {
             set_state({
               emails: cached,
@@ -892,6 +895,7 @@ export function use_email_list(
           }
         })
         .catch(() => {
+          if (committed_view_ref.current !== current_view) return;
           set_state({
             emails: [],
             is_loading: false,

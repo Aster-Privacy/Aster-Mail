@@ -144,15 +144,18 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
   const long_press_timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const long_press_fired_ref = useRef(false);
   const mass_delete_ref = useRef(false);
+  const load_seq_ref = useRef(0);
 
   useEffect(() => {
     let cancelled = false;
+    const seq = ++load_seq_ref.current;
+    const is_current = () => !cancelled && seq === load_seq_ref.current;
 
     async function load() {
       try {
         const response = await list_all_contacts();
 
-        if (cancelled) return;
+        if (!is_current()) return;
 
         if (response.error || !response.data) {
           set_load_failed(true);
@@ -166,15 +169,15 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
           )
         ).filter((contact) => !is_contact_trashed(contact));
 
-        if (!cancelled) {
+        if (is_current()) {
           set_load_failed(false);
           set_contacts(decrypted);
         }
       } catch (caught) {
         ignore_error("pages/mobile/use_mobile_contacts_state:load", caught);
-        if (!cancelled) set_load_failed(true);
+        if (is_current()) set_load_failed(true);
       } finally {
-        if (!cancelled) set_is_loading(false);
+        if (is_current()) set_is_loading(false);
       }
     }
 
@@ -191,6 +194,8 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
   }, []);
 
   const reload_contacts = useCallback(async (): Promise<boolean> => {
+    const seq = ++load_seq_ref.current;
+
     try {
       request_cache.invalidate("contacts");
       const response = await list_all_contacts();
@@ -202,6 +207,8 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
           await decrypt_contacts(response.data),
         )
       ).filter((contact) => !is_contact_trashed(contact));
+
+      if (seq !== load_seq_ref.current) return true;
 
       set_contacts(decrypted);
 

@@ -396,23 +396,29 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
         const timer = window.setTimeout(() => {
           pending_deletes.current.delete(draft.id);
           remove_from_persisted_deletes([draft.id]);
-          set_suppressed_ids((prev) => {
-            const next = new Set(prev);
+          const unsuppress = () =>
+            set_suppressed_ids((prev) => {
+              const next = new Set(prev);
 
-            next.delete(draft.id);
+              next.delete(draft.id);
 
-            return next;
-          });
+              return next;
+            });
+
           delete_draft(draft.id)
             .then((result) => {
               if (result.data?.success) {
+                set_drafts((prev) => prev.filter((d) => d.id !== draft.id));
+                unsuppress();
                 invalidate_mail_stats();
               } else {
+                unsuppress();
                 restore_failed_delete(draft, position);
               }
             })
             .catch((caught) => {
               ignore_error("hooks/use_drafts_list:is_current", caught);
+              unsuppress();
               restore_failed_delete(draft, position);
             });
         }, UNDO_WINDOW_MS);
