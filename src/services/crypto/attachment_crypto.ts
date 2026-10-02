@@ -47,6 +47,7 @@ import {
   type InboundAttachmentEntry,
 } from "@/services/crypto/inbound_attachment_keys";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import { decrypt_legacy_ios_envelope } from "@/services/crypto/legacy_ios_envelope";
 import { get_account_key_capabilities } from "@/services/api/account_key";
 
 export interface EncryptedAttachmentForSend {
@@ -387,8 +388,19 @@ async function read_row_attachment_meta(
   }
 
   try {
-    return await decrypt_client_authored_meta(encrypted_meta);
+    const client_authored = await decrypt_client_authored_meta(encrypted_meta);
+
+    if (client_authored) return client_authored;
+
+    return await decrypt_mobile_authored_meta(encrypted_meta, meta_nonce);
   } catch (error) {
+    const mobile_authored = await decrypt_mobile_authored_meta(
+      encrypted_meta,
+      meta_nonce,
+    ).catch(() => null);
+
+    if (mobile_authored) return mobile_authored;
+
     const transient =
       error instanceof Error && error.message === VAULT_UNAVAILABLE;
 
@@ -527,6 +539,42 @@ async function decrypt_client_authored_meta(
   } finally {
     zero_uint8_array(passphrase_bytes);
   }
+}
+
+async function decrypt_mobile_authored_meta(
+  encrypted_meta: string,
+  meta_nonce: string | undefined,
+): Promise<AttachmentMeta | null> {
+  if (!is_sealed_meta_nonce(meta_nonce)) return null;
+
+  const plaintext = await decrypt_legacy_ios_envelope(
+    base64_to_array(encrypted_meta),
+    base64_to_array(meta_nonce as string),
+  );
+
+  if (!plaintext) return null;
+
+  const parsed = JSON.parse(new TextDecoder().decode(plaintext));
+
+  if (
+    !parsed ||
+    typeof parsed.filename !== "string" ||
+    typeof parsed.session_key !== "string"
+  ) {
+    return null;
+  }
+
+  return {
+    filename: parsed.filename,
+    content_type:
+      typeof parsed.content_type === "string" && parsed.content_type.length > 0
+        ? parsed.content_type
+        : DEFAULT_ATTACHMENT_CONTENT_TYPE,
+    session_key: parsed.session_key,
+    content_id:
+      typeof parsed.content_id === "string" ? parsed.content_id : undefined,
+    is_inline: parsed.is_inline === true ? true : undefined,
+  };
 }
 
 const UNENCRYPTED_NONCE_LENGTH = 12;
