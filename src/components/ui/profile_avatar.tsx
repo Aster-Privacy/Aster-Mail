@@ -47,6 +47,7 @@ import { is_aster_email } from "@/services/api/profiles";
 import { GHOST_DOMAIN } from "@/services/api/ghost_aliases";
 import mail_logo_url from "@/assets/mail_logo.webp";
 import { lazy_with_retry } from "@/utils/lazy_with_retry";
+import { same_address_ignoring_dots } from "@/utils/address_dots";
 
 const SenderProfileTrigger = lazy_with_retry(() =>
   import("@/components/profile/sender_profile_trigger").then((mod) => ({
@@ -124,9 +125,7 @@ export const ProfileAvatar = memo(function ProfileAvatar({
   const { preferences } = use_preferences();
   const low_network = preferences.low_network_mode;
   const is_current_user =
-    !!email &&
-    !!user?.email &&
-    email.trim().toLowerCase() === user.email.trim().toLowerCase();
+    !!email && !!user?.email && same_address_ignoring_dots(email, user.email);
   const peer_profile = use_peer_profile(
     is_current_user || low_network ? null : email,
   );
@@ -257,7 +256,7 @@ export const ProfileAvatar = memo(function ProfileAvatar({
   const is_favicon_source =
     (!use_contact_photo_src &&
       (actual_src?.startsWith("blob:") ||
-      actual_src?.includes("/api/images/v1/favicon/") ||
+        actual_src?.includes("/api/images/v1/favicon/") ||
         actual_src?.includes("/proxy?url="))) ??
     false;
 

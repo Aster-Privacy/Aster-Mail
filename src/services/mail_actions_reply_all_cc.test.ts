@@ -73,6 +73,42 @@ const callbacks = {
 };
 
 describe("build_reply_recipients", () => {
+  it("treats both spellings of a dotted primary address as self", () => {
+    const result = build_reply_recipients(
+      {
+        original: {
+          ...original,
+          to: ["firstlast@astermail.org", "carol@example.com"],
+          cc: ["first.last@astermail.org"],
+        },
+        message: "",
+        reply_all: true,
+      },
+      "first.last@astermail.org",
+    );
+
+    expect(result.to).toEqual(["sender@example.com", "carol@example.com"]);
+    expect(result.cc).toEqual([]);
+  });
+
+  it("replies to the original recipient when the dotted self sent it", () => {
+    const result = build_reply_recipients(
+      {
+        original: {
+          ...original,
+          sender_email: "first.last@astermail.org",
+          to: ["carol@example.com"],
+          cc: [],
+        },
+        message: "",
+        reply_all: false,
+      },
+      "firstlast@astermail.org",
+    );
+
+    expect(result.to).toEqual(["carol@example.com"]);
+  });
+
   it("keeps cc recipients when replying to all", () => {
     const result = build_reply_recipients(
       { original, message: "", reply_all: true },
