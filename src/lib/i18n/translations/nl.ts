@@ -87,6 +87,7 @@ export const nl = {
     some_contacts_not_created:
       "Sommige contacten konden niet worden aangemaakt.",
     trash_days_left: "Nog {{count}} dagen",
+    trash_days_left_one: "Nog {{count}} dag",
     undo_change: "Wijziging ongedaan maken",
     delete_folder_account_password: "Accountwachtwoord",
     delete_folder_step_up_hint:
@@ -8801,9 +8802,13 @@ export const nl = {
     empty_spam_folder_question: "Spammap legen?",
     empty_spam_description:
       "Alle {{count}} berichten in spam worden definitief verwijderd en je kunt dit niet ongedaan maken.",
+    empty_spam_description_one:
+      "Het bericht in spam wordt definitief verwijderd en je kunt dit niet ongedaan maken.",
     empty_trash_question: "Prullenbak legen?",
     empty_trash_description:
       "Alle {{count}} berichten in de prullenbak worden definitief verwijderd en je kunt dit niet ongedaan maken.",
+    empty_trash_description_one:
+      "Het bericht in de prullenbak wordt definitief verwijderd en je kunt dit niet ongedaan maken.",
     folder_not_found_title: "We konden deze map niet vinden.",
     folder_not_found_subtitle:
       "Deze map is mogelijk verwijderd of heeft nooit bestaan. Een andere uit de zijbalk werkt.",

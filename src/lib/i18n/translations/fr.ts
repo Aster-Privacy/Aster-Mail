@@ -97,6 +97,7 @@ export const fr = {
     share_contact: "Partager le contact",
     some_contacts_not_created: "Certains contacts n’ont pas pu être créés.",
     trash_days_left: "{{count}} jours restants",
+    trash_days_left_one: "{{count}} jour restant",
     undo_change: "Annuler la modification",
     delete_folder_account_password: "Mot de passe du compte",
     delete_folder_step_up_hint:
@@ -8453,6 +8454,7 @@ export const fr = {
     drop_to_move_here: "Déposez ici pour déplacer",
     tab_new_count: "nouveau(x)",
     tab_unread_count: "{{count}} non lus",
+    tab_unread_count_one: "{{count}} non lu",
     tab_counting_unread: "Comptage des messages non lus",
     category_empty_primary_title: "Rien dans la boîte de réception",
     category_empty_primary_desc:
@@ -8921,9 +8923,13 @@ export const fr = {
     empty_spam_folder_question: "Vider le dossier indésirables ?",
     empty_spam_description:
       "Tous les {{count}} messages dans les indésirables seront retirés pour de bon et vous ne pouvez pas annuler cette action.",
+    empty_spam_description_one:
+      "{{count}} message dans les indésirables sera retiré pour de bon et vous ne pouvez pas annuler cette action.",
     empty_trash_question: "Vider la corbeille ?",
     empty_trash_description:
       "Tous les {{count}} messages dans la corbeille seront retirés pour de bon et vous ne pouvez pas annuler cette action.",
+    empty_trash_description_one:
+      "{{count}} message dans la corbeille sera retiré pour de bon et vous ne pouvez pas annuler cette action.",
     folder_not_found_title: "Nous n'avons pas pu trouver ce dossier.",
     folder_not_found_subtitle:
       "Ce dossier a peut-être été retiré ou n'a jamais existé. Un autre de la barre latérale fonctionnera.",

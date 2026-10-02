@@ -2111,6 +2111,7 @@ export const ar = {
     share_contact_via_email: "إرفاق برسالة جديدة",
     share_contact_device: "المشاركة مع تطبيق آخر",
     trash_days_left: "بقي {{count}} يوم",
+    trash_days_left_one: "بقي يوم واحد",
     biometry_fingerprint: "بصمة الإصبع",
     biometry_face_recognition: "التعرف على الوجه",
     biometry_iris: "بصمة القزحية",
@@ -8647,9 +8648,13 @@ export const ar = {
     empty_spam_folder_question: "تفريغ مجلد الرسائل المزعجة؟",
     empty_spam_description:
       "كل الـ {{count}} رسالة في المزعج ستُزال نهائيًا ولا يمكن التراجع.",
+    empty_spam_description_one:
+      "ستُزال الرسالة الموجودة في المزعج نهائيًا ولا يمكن التراجع.",
     empty_trash_question: "تفريغ سلة المهملات؟",
     empty_trash_description:
       "كل الـ {{count}} رسالة في سلة المهملات ستُزال نهائيًا ولا يمكن التراجع.",
+    empty_trash_description_one:
+      "ستُزال الرسالة الموجودة في سلة المهملات نهائيًا ولا يمكن التراجع.",
     folder_not_found_title: "تعذّر العثور على هذا المجلد.",
     folder_not_found_subtitle:
       "قد يكون هذا المجلد قد أُزيل أو لم يوجد أصلًا. مجلد آخر من الشريط الجانبي سيعمل.",
