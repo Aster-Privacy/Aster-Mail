@@ -86,6 +86,11 @@ import { normalize_address_ignoring_dots } from "@/utils/address_dots";
 import { viewer_still_showing } from "@/components/email/thread_reply_target";
 import { use_thread_draft_removal } from "@/components/email/hooks/use_thread_draft_removal";
 import {
+  has_readable_body,
+  include_opened_message,
+  keep_readable_bodies,
+} from "@/components/email/thread_message_merge";
+import {
   claim_auto_read,
   is_read_ticket_current,
   peek_read_ticket,
@@ -106,8 +111,14 @@ export const REPLY_ARRIVAL_POLL_DELAYS_MS = [
 
 function reconcile_thread_messages(
   prev: DecryptedThreadMessage[],
-  server: DecryptedThreadMessage[],
+  fetched: DecryptedThreadMessage[],
+  opened_id?: string,
 ): DecryptedThreadMessage[] {
+  const readable = keep_readable_bodies(prev, fetched);
+  const opened = opened_id
+    ? prev.find((m) => m.id === opened_id && !m.is_sending)
+    : undefined;
+  const server = opened ? include_opened_message(readable, opened) : readable;
   const server_ids = new Set(server.map((m) => m.id));
   const pending = prev.filter(
     (m) =>
@@ -170,6 +181,7 @@ function usable_preloaded(
 ): PreloadedEmail | null {
   if (!preloaded || preloaded.is_stale) return null;
   if (preloaded.conversation_grouping !== conversation_grouping) return null;
+  if (!has_readable_body(preloaded.email)) return null;
 
   return preloaded;
 }
@@ -835,10 +847,10 @@ export function use_email_viewer({
           { is_trashed: !!item.is_trashed, is_spam: !!item.is_spam },
         );
 
-        if (!cancelled && thread_result.messages.length > 0) {
-          set_thread_messages(thread_result.messages);
-        } else if (!cancelled) {
-          set_thread_messages([single_message]);
+        if (!cancelled) {
+          set_thread_messages(
+            include_opened_message(thread_result.messages, single_message),
+          );
         }
       } else if (
         !cancelled &&
@@ -1061,7 +1073,7 @@ export function use_email_viewer({
 
         last_thread_fetch_ref.current = Date.now();
         set_thread_messages((prev) =>
-          reconcile_thread_messages(prev, thread_result.messages),
+          reconcile_thread_messages(prev, thread_result.messages, email_id),
         );
       } finally {
         thread_fetch_in_flight_ref.current = false;
@@ -1198,6 +1210,7 @@ export function use_email_viewer({
           const merged = reconcile_thread_messages(
             prev,
             thread_result.messages,
+            email_id,
           );
 
           return merged.map((m) =>

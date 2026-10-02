@@ -102,6 +102,10 @@ import {
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 import { clip_code_points } from "@/utils/preview_text";
 import { move_leading_footer_to_end } from "@/components/email/message_body_parts";
+import {
+  has_readable_body,
+  include_opened_message,
+} from "@/components/email/thread_message_merge";
 
 export interface PreloadedSanitizedContent {
   html: string;
@@ -859,9 +863,10 @@ export async function preload_email_detail(
           { is_trashed: !!item.is_trashed, is_spam: !!item.is_spam },
         );
 
-        if (thread_result.messages.length > 0) {
-          thread_messages = thread_result.messages;
-        }
+        thread_messages = include_opened_message(
+          thread_result.messages,
+          single_message,
+        );
       }
 
       let thread_draft: DraftWithContent | null = null;
@@ -888,6 +893,7 @@ export async function preload_email_detail(
       const thread_sanitized = new Map<string, PreloadedSanitizedContent>();
 
       for (const msg of thread_messages) {
+        if (!has_readable_body(msg)) continue;
         await next_idle();
         thread_sanitized.set(
           msg.id,
