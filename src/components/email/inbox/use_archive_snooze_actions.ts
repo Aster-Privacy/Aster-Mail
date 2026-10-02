@@ -43,7 +43,6 @@ import {
   revert_stat_deltas,
 } from "@/hooks/use_stat_helpers";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
-import { get_thread_messages } from "@/services/api/mail";
 import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
 import { ignore_error } from "@/lib/ignore_error";
 import { clear_flag_intents, note_flag_intents } from "@/services/read_intent";
@@ -208,26 +207,11 @@ export function use_archive_snooze_actions({
       ? remove_thread_entries(email.thread_token)
       : [];
 
-    // Resolve every message of a grouped conversation up front so the archive
-    // and its Undo both operate on the same complete id set. Otherwise Undo
-    // restores only the visible message and leaves the siblings archived.
-    let archive_ids = [...all_ids];
-
-    if (email.thread_token && (email.thread_message_count ?? 1) > 1) {
-      try {
-        const thread = await get_thread_messages(email.thread_token);
-        const sibling_ids = (thread.data?.messages ?? [])
-          .filter(
-            (message) =>
-              message.item_type === "received" && !all_ids.includes(message.id),
-          )
-          .map((message) => message.id);
-
-        archive_ids = Array.from(new Set([...all_ids, ...sibling_ids]));
-      } catch {
-        archive_ids = [...all_ids];
-      }
-    }
+    // Archive exactly the messages this row holds, as the no-confirm path
+    // does, so Undo restores only what this action took out of the view.
+    // The thread can also contain messages that were already archived, and
+    // thread messages carry no archive state to tell them apart.
+    const archive_ids = [...all_ids];
 
     note_flag_intents(archive_ids, { is_archived: true });
     apply_stat_deltas(deltas);
