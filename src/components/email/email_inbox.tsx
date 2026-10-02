@@ -56,6 +56,7 @@ import {
 } from "@/components/email/inbox/inbox_email_list";
 import { BottomPagination } from "@/components/email/inbox/inbox_bottom_pagination";
 import { reveal_list_row } from "@/components/email/inbox/use_inbox_list_scroll";
+import { use_empty_folder_request } from "@/components/email/inbox/empty_folder_request";
 import { StorageBanner } from "@/components/email/inbox/inbox_storage_banner";
 import { TrashBanner } from "@/components/email/inbox/inbox_trash_banner";
 
@@ -170,6 +171,13 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
     handle_page_change,
     handle_filter_change,
   } = use_email_inbox_state(props);
+
+  use_empty_folder_request({
+    current_view,
+    is_ready: email_state.has_initial_load && !email_state.is_loading,
+    on_empty_trash: toolbar.handle_empty_trash,
+    on_empty_spam: toolbar.handle_empty_spam,
+  });
 
   const pending_bulk_action_count = Math.max(
     effective_total_for_pages - selection.excluded_ids.length,
