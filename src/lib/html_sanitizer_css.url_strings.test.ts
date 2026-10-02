@@ -24,6 +24,7 @@ import { sanitize_html, type SanitizeOptions } from "./html_sanitizer";
 import {
   list_remote_css_urls,
   proxy_css_urls,
+  sanitize_compose_style,
   sanitize_style,
   strip_css_urls,
 } from "./html_sanitizer_css";
@@ -190,6 +191,17 @@ describe("css url() inside strings", () => {
     expect(
       list_remote_css_urls(`p{background:/*x*/url(/*y*/${COLLECTOR})}`),
     ).toEqual([COLLECTOR]);
+  });
+
+  it("drops an escaped or comment split url from a compose style", () => {
+    const BS = String.fromCharCode(92);
+
+    expect(
+      sanitize_compose_style(`color:red;background:u${BS}72 l(${COLLECTOR})`),
+    ).toBe("color: red");
+    expect(
+      sanitize_compose_style(`color:red;background:u/**/rl(${COLLECTOR})`),
+    ).toBe("color: red");
   });
 
   it("strips the payload from an inline style outside sandbox mode", () => {

@@ -697,7 +697,9 @@ export function sanitize_css_block(css: string, _sandbox_mode = false): string {
 }
 
 export function sanitize_compose_style(style_text: string): string {
-  const decoded = decode_css_entities(style_text);
+  const decoded = strip_css_comments(
+    decode_css_escapes(decode_css_entities(style_text)),
+  );
 
   for (const pattern of DANGEROUS_CSS_PATTERNS) {
     if (pattern.test(decoded)) {
