@@ -61,6 +61,10 @@ describe("encode_link_url", () => {
       "https://a.example/p%20q?x=%26",
     );
   });
+
+  it("returns null instead of throwing on a lone surrogate", () => {
+    expect(encode_link_url("https://a.example/\ud800")).toBeNull();
+  });
 });
 
 describe("get_selection_anchor", () => {

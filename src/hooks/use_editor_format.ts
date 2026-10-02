@@ -535,6 +535,8 @@ export function use_editor_format(
 
       const safe_url = encode_link_url(trimmed_url);
 
+      if (!safe_url) return;
+
       restore_selection();
       const selection = window.getSelection();
       const selected_text = selection?.toString() || "";
@@ -566,7 +568,7 @@ export function use_editor_format(
         document.execCommand(
           "insertHTML",
           false,
-          `<a href="${safe_url}" style="color: #3b82f6; text-decoration: underline;">${safe_text}</a>`,
+          `<a href="${escape_html(safe_url)}" style="color: #3b82f6; text-decoration: underline;">${safe_text}</a>`,
         );
       }
 

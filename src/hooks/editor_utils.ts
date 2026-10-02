@@ -261,10 +261,19 @@ export function caret_range_from_point(x: number, y: number): Range | null {
   return range;
 }
 
-export function encode_link_url(url: string): string {
-  return encodeURI(url)
-    .replace(/%25([0-9A-Fa-f]{2})/g, "%$1")
-    .replace(/"/g, "%22");
+const LINK_URL_PARTS = /%[0-9A-Fa-f]{2}|%|[^%]+/g;
+
+export function encode_link_url(url: string): string | null {
+  try {
+    return url.replace(LINK_URL_PARTS, (part) => {
+      if (part === "%") return "%25";
+      if (part.startsWith("%")) return part;
+
+      return encodeURI(part);
+    });
+  } catch {
+    return null;
+  }
 }
 
 export function get_selection_anchor(
