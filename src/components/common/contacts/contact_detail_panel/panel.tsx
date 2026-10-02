@@ -89,6 +89,12 @@ import { sync_legacy_fields } from "@/components/common/hooks/contacts_state_hel
 import { build_contact_mail_query } from "@/utils/contact_mail_search";
 import { list_contact_groups } from "@/services/api/contacts";
 import { app_date_format, format_iso_date } from "@/utils/date_format";
+import {
+  contact_date_input_value,
+  format_contact_date,
+  is_yearless_contact_date,
+  normalize_contact_date,
+} from "@/utils/date_utils";
 import { ContactAvatar } from "@/components/common/contacts/contact_avatar";
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
 import { ContactHistoryPanel } from "@/components/contacts/contact_history_panel";
@@ -220,6 +226,7 @@ export function ContactDetailPanel({
   }
 
   const banner = draft.profile_color || DEFAULT_BANNER;
+  const birthday_is_yearless = is_yearless_contact_date(draft.birthday);
 
   const handle_save = async () => {
     const date_entries = draft.date_entries.filter((d) => d.value.trim());
@@ -907,12 +914,16 @@ export function ContactDetailPanel({
                       is_editing && draft.birthday ? "pe-12" : ""
                     }`}
                     placeholder={app_date_format()}
-                    readOnly={!is_editing}
-                    type={is_editing ? "date" : "text"}
+                    readOnly={!is_editing || birthday_is_yearless}
+                    type={is_editing && !birthday_is_yearless ? "date" : "text"}
                     value={
-                      is_editing
-                        ? draft.birthday
-                        : format_iso_date(draft.birthday)
+                      birthday_is_yearless
+                        ? format_contact_date(draft.birthday)
+                        : is_editing
+                          ? contact_date_input_value(draft.birthday)
+                          : format_iso_date(
+                              normalize_contact_date(draft.birthday),
+                            )
                     }
                     onChange={(e) =>
                       handle_field_change("birthday", e.target.value)

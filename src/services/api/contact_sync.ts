@@ -58,6 +58,7 @@ import { HASH_ALG } from "@/services/crypto/constants";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { get_derived_encryption_key } from "@/services/crypto/memory_key_store";
 import { parse_csv_records } from "@/utils/contact_utils";
+import { normalize_contact_date } from "@/utils/date_utils";
 import { decode_bytes, quoted_printable_to_bytes } from "@/utils/email_crypto";
 import {
   collect_vcard_group_labels,
@@ -770,7 +771,10 @@ export function parse_vcard(vcard_data: string): ContactFormData[] {
           contact.role = text;
           break;
         case "BDAY":
-          contact.birthday = text;
+          contact.birthday = normalize_contact_date(
+            text,
+            raw_param_value(key, "x-apple-omit-year") || undefined,
+          );
           break;
         case "NOTE":
           contact.notes = text;
@@ -830,13 +834,19 @@ export function parse_vcard(vcard_data: string): ContactFormData[] {
           break;
         }
         case "ANNIVERSARY": {
-          const date = text.trim();
+          const date = normalize_contact_date(
+            text,
+            raw_param_value(key, "x-apple-omit-year") || undefined,
+          );
 
           if (date) date_entries.push({ value: date, type: "anniversary" });
           break;
         }
         case "X-ABDATE": {
-          const date = text.trim();
+          const date = normalize_contact_date(
+            text,
+            raw_param_value(key, "x-apple-omit-year") || undefined,
+          );
 
           if (!date) break;
           date_entries.push({
@@ -1634,8 +1644,12 @@ export function parse_csv(
         case "last_name":
         case "company":
         case "job_title":
-        case "birthday":
           if (!contact[mapped]) contact[mapped] = value;
+          break;
+        case "birthday":
+          if (!contact.birthday) {
+            contact.birthday = normalize_contact_date(value);
+          }
           break;
         case "middle_name":
         case "nickname":
@@ -1822,11 +1836,12 @@ export function parse_csv(
 
       for (const date of slot.values) {
         if (label === "birthday") {
-          if (!contact.birthday) contact.birthday = date;
+          if (!contact.birthday)
+            contact.birthday = normalize_contact_date(date);
           continue;
         }
         date_entries.push({
-          value: date,
+          value: normalize_contact_date(date),
           type: mapped_type(VCARD_DATE_TYPES, [label], "other"),
         });
       }

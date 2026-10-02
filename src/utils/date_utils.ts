@@ -38,10 +38,110 @@ export function parse_calendar_date(value: string): Date {
   return new Date(Number(parts[1]), Number(parts[2]) - 1, Number(parts[3]));
 }
 
+export interface ContactDateParts {
+  year?: number;
+  month: number;
+  day: number;
+}
+
+const CONTACT_DATE_PATTERN =
+  /^(?:(\d{4})-?|--)(\d{2})-?(\d{2})(?:T[\d:.,+\-Z]*)?$/i;
+const LEAP_YEAR = 2000;
+
+function days_in_month(year: number, month: number): number {
+  const date = new Date(0);
+
+  date.setUTCFullYear(year, month, 0);
+
+  return date.getUTCDate();
+}
+
+export function parse_contact_date(
+  value: string,
+  omitted_year?: string,
+): ContactDateParts | null {
+  const parts = CONTACT_DATE_PATTERN.exec(value.trim());
+
+  if (!parts) return null;
+
+  const raw_year = parts[1];
+  const has_year =
+    raw_year !== undefined && raw_year !== "0000" && raw_year !== omitted_year;
+  const year = has_year ? Number(raw_year) : undefined;
+  const month = Number(parts[2]);
+  const day = Number(parts[3]);
+
+  if (month < 1 || month > 12) return null;
+  if (day < 1 || day > days_in_month(year ?? LEAP_YEAR, month)) return null;
+
+  return year === undefined ? { month, day } : { year, month, day };
+}
+
+function pad2(value: number): string {
+  return String(value).padStart(2, "0");
+}
+
+export function contact_date_from_parts(parts: ContactDateParts): string {
+  const month_day = `${pad2(parts.month)}-${pad2(parts.day)}`;
+
+  return parts.year === undefined
+    ? `--${month_day}`
+    : `${String(parts.year).padStart(4, "0")}-${month_day}`;
+}
+
+export function normalize_contact_date(
+  value: string,
+  omitted_year?: string,
+): string {
+  const parts = parse_contact_date(value, omitted_year);
+
+  return parts ? contact_date_from_parts(parts) : value.trim();
+}
+
+export function vcard_date_value(value: string, basic: boolean): string {
+  const parts = parse_contact_date(value);
+
+  if (!parts) return value;
+  if (parts.year !== undefined || !basic) return contact_date_from_parts(parts);
+
+  return `--${pad2(parts.month)}${pad2(parts.day)}`;
+}
+
+export function is_yearless_contact_date(value: string): boolean {
+  const parts = parse_contact_date(value);
+
+  return parts !== null && parts.year === undefined;
+}
+
+export function contact_date_input_value(value: string): string {
+  const parts = parse_contact_date(value);
+
+  return parts?.year === undefined ? "" : contact_date_from_parts(parts);
+}
+
 export function format_contact_date(value: string): string {
   const trimmed = value.trim();
 
   if (!trimmed) return "";
+
+  const contact_date = parse_contact_date(trimmed);
+
+  if (contact_date) {
+    const calendar_day = new Date(Date.UTC(LEAP_YEAR, 0, 1));
+
+    calendar_day.setUTCFullYear(
+      contact_date.year ?? LEAP_YEAR,
+      contact_date.month - 1,
+      contact_date.day,
+    );
+
+    return calendar_day.toLocaleDateString(app_locale(), {
+      ...(contact_date.year === undefined ? {} : { year: "numeric" }),
+      month: "long",
+      day: "numeric",
+      timeZone: "UTC",
+    });
+  }
 
   const parsed = parse_calendar_date(trimmed);
 

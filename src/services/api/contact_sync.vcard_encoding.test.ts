@@ -163,3 +163,25 @@ describe("parse_vcard quoted-printable values", () => {
     expect(performance.now() - started).toBeLessThan(3_000);
   });
 });
+
+describe("parse_vcard birthdays", () => {
+  function birthday(line: string): string | undefined {
+    return parse_vcard(card("FN:Ana", line))[0].birthday;
+  }
+
+  it("stores the basic and extended forms as a calendar date", () => {
+    expect(birthday("BDAY:19900515")).toBe("1990-05-15");
+    expect(birthday("BDAY:1990-05-15")).toBe("1990-05-15");
+    expect(birthday("BDAY:1990-05-15T00:00:00Z")).toBe("1990-05-15");
+  });
+
+  it("stores a birthday without a year as a yearless date", () => {
+    expect(birthday("BDAY:--0515")).toBe("--05-15");
+    expect(birthday("BDAY:--05-15")).toBe("--05-15");
+    expect(birthday("BDAY;X-APPLE-OMIT-YEAR=1604:1604-05-15")).toBe("--05-15");
+  });
+
+  it("keeps a birthday it cannot read as written", () => {
+    expect(birthday("BDAY:May 15")).toBe("May 15");
+  });
+});

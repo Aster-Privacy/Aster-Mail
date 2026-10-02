@@ -27,12 +27,18 @@ import {
   BriefcaseIcon,
   CalendarIcon,
   DocumentTextIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
 
 import { ContactFormSection } from "./contact_form_section";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { Input } from "@/components/ui/input";
+import {
+  contact_date_input_value,
+  format_contact_date,
+  is_yearless_contact_date,
+} from "@/utils/date_utils";
 import {
   Select,
   SelectContent,
@@ -120,14 +126,34 @@ export function ContactFormDetails({
             icon={CalendarIcon}
             label={t("common.birthday")}
           />
-          <Input
-            aria-label={t("common.birthday")}
-            className="aster_input_tonal"
-            size="md"
-            type="date"
-            value={form_data.birthday}
-            onChange={(e) => on_change("birthday", e.target.value)}
-          />
+          {is_yearless_contact_date(form_data.birthday ?? "") ? (
+            <div className="flex items-center gap-2">
+              <Input
+                readOnly
+                aria-label={t("common.birthday")}
+                className="aster_input_tonal flex-1"
+                size="md"
+                value={format_contact_date(form_data.birthday ?? "")}
+              />
+              <button
+                aria-label={t("common.clear")}
+                className="p-2 rounded-[14px] transition-colors hover:bg-[var(--aster-hover)]"
+                type="button"
+                onClick={() => on_change("birthday", "")}
+              >
+                <XMarkIcon className="h-4 w-4 text-txt-muted" />
+              </button>
+            </div>
+          ) : (
+            <Input
+              aria-label={t("common.birthday")}
+              className="aster_input_tonal"
+              size="md"
+              type="date"
+              value={contact_date_input_value(form_data.birthday ?? "")}
+              onChange={(e) => on_change("birthday", e.target.value)}
+            />
+          )}
         </div>
         <div>
           <ContactFormSection

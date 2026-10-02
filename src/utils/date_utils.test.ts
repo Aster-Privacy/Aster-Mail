@@ -22,9 +22,13 @@ import { describe, expect, it, vi, afterEach } from "vitest";
 
 import { set_display_locale } from "@/utils/date_format";
 import {
+  contact_date_from_parts,
+  contact_date_input_value,
   format_contact_date,
   format_relative_time,
   format_relative_time_short,
+  normalize_contact_date,
+  vcard_date_value,
 } from "@/utils/date_utils";
 
 const t = (key: string, params?: Record<string, string | number>) =>
@@ -116,5 +120,58 @@ describe("format_contact_date", () => {
   it("keeps the calendar day of a date-only value", () => {
     set_display_locale("en");
     expect(format_contact_date("1990-03-05")).toBe("March 5, 1990");
+  });
+
+  it("reads the basic form instead of showing it raw", () => {
+    set_display_locale("en");
+    expect(format_contact_date("19900515")).toBe("May 15, 1990");
+  });
+
+  it("shows only the month and day when there is no year", () => {
+    set_display_locale("en");
+    expect(format_contact_date("--05-15")).toBe("May 15");
+    expect(format_contact_date("--0515")).toBe("May 15");
+    expect(format_contact_date("0000-10-05")).toBe("October 5");
+    expect(format_contact_date("--02-29")).toBe("February 29");
+
+    set_display_locale("pt");
+    expect(format_contact_date("--05-15")).toBe("15 de maio");
+  });
+});
+
+describe("normalize_contact_date", () => {
+  it("rewrites every readable form to a calendar or yearless date", () => {
+    expect(normalize_contact_date("19900515")).toBe("1990-05-15");
+    expect(normalize_contact_date(" 1990-05-15 ")).toBe("1990-05-15");
+    expect(normalize_contact_date("--0515")).toBe("--05-15");
+    expect(normalize_contact_date("0000-05-15")).toBe("--05-15");
+    expect(normalize_contact_date("1604-05-15", "1604")).toBe("--05-15");
+  });
+
+  it("leaves invalid or unknown values untouched", () => {
+    expect(normalize_contact_date("1990-02-30")).toBe("1990-02-30");
+    expect(normalize_contact_date("--13-01")).toBe("--13-01");
+    expect(normalize_contact_date("May 15")).toBe("May 15");
+  });
+});
+
+describe("contact date helpers", () => {
+  it("only gives the date picker a value that has a year", () => {
+    expect(contact_date_input_value("19900515")).toBe("1990-05-15");
+    expect(contact_date_input_value("--05-15")).toBe("");
+    expect(contact_date_input_value("May 15")).toBe("");
+  });
+
+  it("builds a yearless value when the device has no year", () => {
+    expect(contact_date_from_parts({ month: 10, day: 5 })).toBe("--10-05");
+    expect(contact_date_from_parts({ year: 1990, month: 5, day: 1 })).toBe(
+      "1990-05-01",
+    );
+  });
+
+  it("writes the vCard 4 basic form for a yearless date", () => {
+    expect(vcard_date_value("--05-15", true)).toBe("--0515");
+    expect(vcard_date_value("0000-05-15", false)).toBe("--05-15");
+    expect(vcard_date_value("1990-05-15", true)).toBe("1990-05-15");
   });
 });

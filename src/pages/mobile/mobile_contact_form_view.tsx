@@ -34,12 +34,18 @@ import {
   GlobeAltIcon,
   MapPinIcon,
   ChatBubbleLeftIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
 
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { ButtonSpinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { use_keep_focused_field_visible } from "@/hooks/use_keep_focused_field_visible";
+import {
+  contact_date_input_value,
+  format_contact_date,
+  is_yearless_contact_date,
+} from "@/utils/date_utils";
 import {
   EMAIL_TYPE_OPTIONS,
   PHONE_TYPE_OPTIONS,
@@ -327,11 +333,30 @@ export function ContactFormView({
                 icon={<CakeIcon className="h-4 w-4" />}
                 label={t("common.birthday_section")}
               >
-                <FormInput
-                  on_change={(v) => on_update_form("birthday", v)}
-                  type="date"
-                  value={form_data.birthday ?? ""}
-                />
+                {is_yearless_contact_date(form_data.birthday ?? "") ? (
+                  <div className="flex items-center gap-2">
+                    <Input
+                      readOnly
+                      aria-label={t("common.birthday_section")}
+                      className="w-full"
+                      value={format_contact_date(form_data.birthday ?? "")}
+                    />
+                    <button
+                      aria-label={t("common.clear")}
+                      className="flex h-8 w-8 shrink-0 items-center justify-center text-[var(--text-muted)]"
+                      type="button"
+                      onClick={() => on_update_form("birthday", "")}
+                    >
+                      <XMarkIcon className="h-4 w-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <FormInput
+                    on_change={(v) => on_update_form("birthday", v)}
+                    type="date"
+                    value={contact_date_input_value(form_data.birthday ?? "")}
+                  />
+                )}
               </FormSection>
               <FormSection
                 icon={<ChatBubbleLeftIcon className="h-4 w-4" />}
