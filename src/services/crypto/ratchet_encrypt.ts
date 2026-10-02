@@ -329,6 +329,10 @@ async function encrypt_for_ratchet_recipient_unlocked(
         throw new RecipientKeyUntrustedError(recipient_email);
       }
 
+      if (identity_pin_status === "unknown") {
+        throw new KeyPinUnavailableError(bundle_peer);
+      }
+
       const sender_identity_jwk: JsonWebKey = JSON.parse(
         vault.ratchet_identity_key,
       );
