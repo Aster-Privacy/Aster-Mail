@@ -55,6 +55,7 @@ import {
 } from "@/components/ui/alert_dialog";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
+import { is_strong_message_password } from "@/services/password_strength_score";
 import {
   format_hour_choice,
   format_time,
@@ -219,8 +220,13 @@ export function ExpirationPicker({
     set_show_custom(false);
   }, [on_expiration_change, on_password_change]);
 
+  const password_too_weak =
+    password_input.trim().length > 0 &&
+    !is_strong_message_password(password_input.trim());
+
   const handle_password_save = useCallback(() => {
     if (password_input.trim()) {
+      if (!is_strong_message_password(password_input.trim())) return;
       on_password_change(password_input.trim());
     } else {
       on_password_change(null);
@@ -539,6 +545,15 @@ export function ExpirationPicker({
                 )}
               </button>
             </div>
+            {password_too_weak && (
+              <p
+                className="mt-2 text-xs text-txt-muted"
+                data-testid="message-password-hint"
+                role="status"
+              >
+                {t("mail.message_password_requirements")}
+              </p>
+            )}
           </div>
           <AlertDialogFooter className="flex-row gap-3 px-4 pb-4 sm:justify-end">
             <Button
@@ -551,7 +566,11 @@ export function ExpirationPicker({
             >
               {t("common.cancel")}
             </Button>
-            <Button className="max-sm:flex-1" onClick={handle_password_save}>
+            <Button
+              className="max-sm:flex-1"
+              disabled={password_too_weak}
+              onClick={handle_password_save}
+            >
               {password_input.trim()
                 ? t("settings.set_password")
                 : t("mail.no_password")}

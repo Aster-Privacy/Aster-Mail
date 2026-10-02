@@ -63,6 +63,7 @@ import { ErrorBoundary } from "@/components/ui/error_boundary";
 import { lazy_with_retry } from "@/utils/lazy_with_retry";
 import { FullPageLoader } from "@/components/common/full_page_loader";
 import { ignore_error } from "@/lib/ignore_error";
+import { escape_mailto_body } from "@/lib/mailto_link";
 import { read_settings_navigation } from "@/lib/settings_links";
 
 const MobileInbox = lazy_with_retry(
@@ -377,7 +378,7 @@ function MobileApp() {
       open_compose(
         params.get("to") || undefined,
         params.get("subject") || undefined,
-        params.get("body") || undefined,
+        escape_mailto_body(params.get("body") || "") || undefined,
       );
       window.history.replaceState({}, "", "/");
     }

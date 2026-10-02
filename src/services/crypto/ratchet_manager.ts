@@ -20,6 +20,8 @@
 //
 
 export {
+  KeyPinUnavailableError,
+  RecipientKeyUntrustedError,
   RecoveryLaneUnavailableError,
   build_ratchet_envelope,
   is_post_quantum_recipient_data,

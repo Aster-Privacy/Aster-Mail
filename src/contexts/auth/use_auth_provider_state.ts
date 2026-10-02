@@ -582,8 +582,10 @@ export function use_auth_provider_state() {
 
       stop_session_timeout();
       clear_vault_from_memory();
+      await with_timeout(clear_account_scoped_caches(), 3000);
 
       if (current_id) {
+        await with_timeout(delete_category_index_for_account(current_id), 2000);
         clear_session_timeout_data(current_id);
         clear_session_unlock(current_id);
         await clear_session_passphrase(current_id).catch((caught) =>

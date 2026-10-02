@@ -161,6 +161,13 @@ vi.mock("@/lib/forward_css_inliner", () => ({
   inline_email_css: (html: string) => html,
 }));
 
+vi.mock("@/services/scheduled_send_gate", () => ({
+  check_scheduled_send: vi.fn(async () => ({
+    proceed: true,
+    allow_non_post_quantum: false,
+  })),
+}));
+
 vi.mock("@/services/lockdown_store", () => ({
   is_any_lockdown_active: () => false,
 }));

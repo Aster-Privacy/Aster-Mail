@@ -36,6 +36,21 @@ vi.mock("./send_queue", () => ({
   send_server_queued_immediately: vi.fn(),
 }));
 
+vi.mock("./reply_send_gate", () => ({
+  check_reply_send: vi.fn(async () => null),
+}));
+
+vi.mock("./key_trust_consent", () => ({
+  ensure_external_key_trust: vi.fn(async () => true),
+}));
+
+vi.mock("./post_quantum_consent", () => ({
+  ensure_post_quantum_consent: vi.fn(async () => ({
+    proceed: true,
+    allow_non_post_quantum: false,
+  })),
+}));
+
 vi.mock("./thread_service", () => ({
   get_or_create_thread_token: vi.fn(async () => undefined),
 }));

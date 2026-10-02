@@ -79,6 +79,12 @@ vi.mock("@/services/api/keys", async (import_original) => {
   };
 });
 
+vi.mock("@/services/crypto/ratchet_identity_pin", () => ({
+  check_owner_key_pin: vi.fn(async () => "ok"),
+  is_recipient_flagged_untrusted: vi.fn(async () => false),
+  flag_recipient_untrusted: vi.fn(async () => undefined),
+}));
+
 vi.mock("@/services/api/send", () => ({
   send_simple_email: vi.fn(async () => h.simple_send_response),
   send_external_email: vi.fn(async () => h.external_send_response),
@@ -747,7 +753,7 @@ describe("execute_external_send", () => {
       subject: "External subject",
       body: "External body",
       secure_external: true,
-      expiry_password: "secret",
+      expiry_password: "Correct-Horse-Battery-9",
     });
 
     const request = vi.mocked(send_external_email).mock.calls[0][0];

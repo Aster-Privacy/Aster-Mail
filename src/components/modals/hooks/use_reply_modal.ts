@@ -75,6 +75,7 @@ import {
   create_scheduled_email,
   type ScheduledEmailContent,
 } from "@/services/api/scheduled";
+import { check_scheduled_send } from "@/services/scheduled_send_gate";
 import { emit_scheduled_changed } from "@/hooks/mail_events";
 import { create_draft, delete_thread_draft } from "@/services/api/multi_drafts";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
@@ -571,6 +572,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
         sender_display_name: sender_display_name_value,
         in_reply_to: original_rfc_message_id,
         attachments: attachments.length > 0 ? attachments : undefined,
+        require_encryption: preferences.require_encryption === true,
       },
       {
         on_complete: (sent_id?: string) => {
@@ -788,6 +790,18 @@ export function use_reply_modal(props: UseReplyModalProps) {
       return;
     }
 
+    if (selected_sender?.type === "external") {
+      set_error_message(t("common.scheduled_connected_account"));
+
+      return;
+    }
+
+    if (expires_at) {
+      set_error_message(t("common.scheduled_no_expiry"));
+
+      return;
+    }
+
     if (reply_from_mismatch()) {
       pending_send_kind_ref.current = "scheduled";
       set_show_from_mismatch(true);
@@ -820,6 +834,26 @@ export function use_reply_modal(props: UseReplyModalProps) {
               max: MAX_RECIPIENTS_PER_SEND,
             }),
       );
+
+      return;
+    }
+
+    const scheduled_alias =
+      selected_sender && selected_sender.type !== "primary"
+        ? selected_sender
+        : null;
+    const scheduled_sender_email = scheduled_alias?.email ?? user.email;
+    const scheduled_gate = await check_scheduled_send(
+      [...send_recipients.to, ...send_recipients.cc],
+      scheduled_sender_email,
+      scheduled_time,
+      preferences.require_encryption === true,
+    );
+
+    if (!scheduled_gate.proceed) {
+      if (scheduled_gate.blocked_by) {
+        set_error_message(t(scheduled_gate.blocked_by));
+      }
 
       return;
     }
@@ -865,7 +899,14 @@ export function use_reply_modal(props: UseReplyModalProps) {
     };
 
     try {
-      const response = await create_scheduled_email(vault, content);
+      const response = await create_scheduled_email(vault, content, {
+        sender_alias_hash: scheduled_alias?.address_hash,
+        sender_email: scheduled_sender_email,
+        sender_display_name: scheduled_alias
+          ? scheduled_alias.display_name || undefined
+          : user.display_name || undefined,
+        allow_non_post_quantum: scheduled_gate.allow_non_post_quantum,
+      });
 
       if (response.error) {
         set_error_message(response.error);
@@ -909,6 +950,8 @@ export function use_reply_modal(props: UseReplyModalProps) {
     is_plain_text_mode,
     attachments,
     reply_from_mismatch,
+    expires_at,
+    preferences.require_encryption,
   ]);
 
   handle_send_ref.current = handle_send;

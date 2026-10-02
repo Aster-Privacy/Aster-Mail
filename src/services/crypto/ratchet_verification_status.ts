@@ -25,7 +25,7 @@ import {
 
 export type SenderIdentityStatus = "verified" | "unverified" | "mismatch";
 
-export type PeerIdentityEvent = "rotated" | "downgraded";
+export type PeerIdentityEvent = "rotated" | "downgraded" | "untrusted";
 
 export interface PeerIdentityEventRecord {
   peer: string;

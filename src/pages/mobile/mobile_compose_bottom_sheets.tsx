@@ -41,6 +41,7 @@ import {
 } from "./mobile_compose_helpers";
 
 import { is_future_instant } from "@/utils/schedule_targets";
+import { is_strong_message_password } from "@/services/password_strength_score";
 import {
   format_datetime_hint,
   format_time,
@@ -572,6 +573,15 @@ export function MobileExpirationSheet({
               value={password_input}
               onChange={(e) => set_password_input(e.target.value)}
             />
+            {password_input.trim() &&
+              !is_strong_message_password(password_input.trim()) && (
+                <p
+                  className="text-[12px] text-[var(--text-muted)]"
+                  role="status"
+                >
+                  {t("mail.message_password_requirements")}
+                </p>
+              )}
             <div className="flex gap-2 pt-1">
               <Button
                 className="flex-1"
@@ -584,10 +594,15 @@ export function MobileExpirationSheet({
               <Button
                 className="flex-1"
                 size="md"
+                disabled={
+                  !!password_input.trim() &&
+                  !is_strong_message_password(password_input.trim())
+                }
                 variant="depth"
                 onClick={() => {
                   const trimmed = password_input.trim();
 
+                  if (trimmed && !is_strong_message_password(trimmed)) return;
                   on_save_password(trimmed || null);
                   set_show_password(false);
                 }}

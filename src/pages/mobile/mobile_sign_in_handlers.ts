@@ -354,6 +354,7 @@ export function build_mobile_sign_in_handlers(
             password,
             response.data.encrypted_vault,
             response.data.vault_nonce,
+            remember_me,
           ),
         );
 
@@ -373,6 +374,7 @@ export function build_mobile_sign_in_handlers(
             password,
             response.data.encrypted_vault,
             response.data.vault_nonce,
+            remember_me,
           ),
         );
       }

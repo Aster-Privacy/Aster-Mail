@@ -981,6 +981,7 @@ export function QuickContactsPanel({
             <span className="contact_encryption_info flex h-7 w-7 flex-shrink-0 items-center justify-center">
               <EncryptionInfoDropdown
                 description_key="common.only_you_can_read_contacts"
+                e2e_verified
                 has_pq_protection={true}
                 is_external={false}
                 size={15}
@@ -1213,6 +1214,7 @@ export function QuickContactsPanel({
                     </span>
                     <EncryptionInfoDropdown
                       description_key="common.contact_encryption_info"
+                      e2e_verified
                       has_pq_protection={true}
                       is_external={false}
                       size={13}

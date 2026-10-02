@@ -49,6 +49,7 @@ import {
   unwrap_bundle_html,
   is_ratchet_envelope,
   is_password_protected_body,
+  is_ratchet_verified_body,
 } from "@/utils/email_crypto";
 import {
   get_vault_from_memory,
@@ -705,6 +706,7 @@ export async function preload_email_detail(
           )
         : resolved_text;
 
+      const e2e_verified = is_ratchet_verified_body(resolved_text, body_text);
       const pre_pgp_text = body_text;
 
       body_text = await try_decrypt_pgp_body(body_text);
@@ -779,7 +781,10 @@ export async function preload_email_detail(
         ...(forwarding ?? {}),
         is_external: item.is_external,
         system_origin: item.system_origin,
-        sender_verified_domain: item.sender_verified ? item.sender_verified_domain : undefined,
+        e2e_verified,
+        sender_verified_domain: item.sender_verified
+          ? item.sender_verified_domain
+          : undefined,
         send_status: item.send_status,
         send_error: item.send_error,
         raw_headers: envelope.raw_headers,
@@ -803,8 +808,7 @@ export async function preload_email_detail(
           app_locale(),
           { timeZone: get_display_time_zone() },
         ),
-        is_read:
-          item.is_read ?? decrypted_metadata?.is_read ?? false,
+        is_read: item.is_read ?? decrypted_metadata?.is_read ?? false,
         is_starred: decrypted_metadata?.is_starred ?? false,
         has_attachment: decrypted_metadata?.has_attachments ?? false,
         thread_count: 1,
@@ -832,13 +836,15 @@ export async function preload_email_detail(
         body: body_text || "",
         html_content: safe_html,
         timestamp: item.message_ts || item.created_at,
-        is_read:
-          item.is_read ?? decrypted_metadata?.is_read ?? false,
+        is_read: item.is_read ?? decrypted_metadata?.is_read ?? false,
         is_starred: decrypted_metadata?.is_starred ?? false,
         is_deleted: false,
         is_external: item.is_external,
         system_origin: item.system_origin,
-        sender_verified_domain: item.sender_verified ? item.sender_verified_domain : undefined,
+        e2e_verified,
+        sender_verified_domain: item.sender_verified
+          ? item.sender_verified_domain
+          : undefined,
         encrypted_metadata: item.encrypted_metadata,
         metadata_nonce: item.metadata_nonce,
         to_recipients: envelope.to || [],

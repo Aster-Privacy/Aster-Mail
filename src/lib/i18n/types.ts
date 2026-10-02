@@ -1528,6 +1528,11 @@ export interface CommonTranslations {
   scheduled_no_attachments: string;
   scheduled_connected_account: string;
   scheduled_no_expiry: string;
+  scheduled_too_far_ahead: string;
+  scheduled_requires_encryption: string;
+  offline_password_protected_unavailable: string;
+  offline_settings_unavailable: string;
+  cannot_send_key_changed_offline: string;
   failed_to_merge_contacts: string;
   enter_valid_emails: string;
   enter_contact_details: string;
@@ -7237,6 +7242,9 @@ export interface MailTranslations {
   sender_identity_rotated: string;
   sender_identity_downgraded: string;
   recipient_identity_changed: string;
+  message_password_requirements: string;
+  recipient_identity_untrusted: string;
+  trust_new_key: string;
   encrypted_message_unavailable: string;
   pgp_password_protected_title: string;
   pgp_password_protected_description: string;
@@ -8518,6 +8526,9 @@ export interface ErrorTranslations {
   cannot_send_no_keys: string;
   cannot_send_no_recipient_keys: string;
   cannot_send_no_recovery_key: string;
+  message_password_too_weak: string;
+  recipient_key_untrusted: string;
+  key_trust_check_failed: string;
   failed_send_external: string;
   failed_queue_email: string;
   no_active_account: string;

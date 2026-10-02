@@ -894,6 +894,16 @@ export const pl = {
       "Wysyłanie zaplanowane nie jest dostępne dla połączonych kont. Wyślij tę wiadomość teraz albo wybierz adres Aster.",
     scheduled_no_expiry:
       "Zaplanowane wiadomości nie obsługują jeszcze wygasania. Wyślij teraz albo usuń wygasanie, aby zaplanować wiadomość.",
+    scheduled_too_far_ahead:
+      "Zaplanowane e-maile można wysłać najwyżej 28 dni naprzód. Wybierz wcześniejszy termin.",
+    scheduled_requires_encryption:
+      "Masz włączone wymagane szyfrowanie, a zaplanowane e-maile do adresów zewnętrznych nie są szyfrowane end-to-end. Wyślij tę wiadomość teraz lub wyłącz wymagane szyfrowanie w Ustawieniach.",
+    offline_password_protected_unavailable:
+      "Nie możesz dodać do kolejki e-maili chronionych hasłem, gdy jesteś offline. Gdy znów połączysz się z internetem, wyślij wiadomość.",
+    offline_settings_unavailable:
+      "Nie udało się wczytać Twoich ustawień, więc wiadomość nie została wysłana. Gdy znów połączysz się z internetem, spróbuj ponownie.",
+    cannot_send_key_changed_offline:
+      "Klucz szyfrowania odbiorcy zmienił się, gdy ta wiadomość czekała na wysłanie, więc nie została wysłana.",
     failed_to_merge_contacts:
       "Scalanie nie zostało ukończone. Spróbuj ponownie. Oryginalne kontakty są bez zmian.",
     enter_valid_emails: "Wprowadź prawidłowe adresy e-mail",
@@ -8515,6 +8525,11 @@ export const pl = {
       "Wiadomości tego nadawcy nie mają już ochrony postkwantowej. Jeśli tego nie oczekujesz, potwierdź to z tą osobą w inny sposób.",
     recipient_identity_changed:
       "Klucz szyfrowania dla {{email}} zmienił się. Jeśli tego nie oczekujesz, potwierdź zmianę z tą osobą w inny sposób, zanim wyślesz poufne informacje.",
+    message_password_requirements:
+      "Użyj co najmniej 12 znaków, w tym cyfry, symbolu lub wielkich i małych liter.",
+    recipient_identity_untrusted:
+      "Klucz szyfrowania dla {{email}} zmienił się i nie można potwierdzić nowego klucza. Aby wysłać wiadomość na ten adres, potwierdź zmianę z tą osobą w inny sposób, a następnie wybierz Zaufaj nowemu kluczowi.",
+    trust_new_key: "Zaufaj nowemu kluczowi",
     load_all_thread_messages: "Załaduj wszystkie wiadomości",
     move_to_category: "Przenieś do kategorii",
     menu_applies_to_selection: "Dotyczy {count} zaznaczonych",
@@ -10147,6 +10162,12 @@ export const pl = {
       "Masz włączone obowiązkowe szyfrowanie i żaden z odbiorców nie ma klucza na pliku. Poproś ich o udostępnienie klucza lub wyłącz obowiązkowe szyfrowanie w Ustawieniach. Wersja robocza jest zapisana.",
     cannot_send_no_recovery_key:
       "Aster nie może jeszcze wysłać tej wiadomości, ponieważ konto odbiorcy nie ma kluczy do jej odczytania. Poproś go o otwarcie Aster na dowolnym urządzeniu lub o aktualizację aplikacji, aby odświeżyć klucze, a potem spróbuj ponownie. Wersja robocza jest zapisana.",
+    message_password_too_weak:
+      "Hasło wiadomości jest zbyt słabe, więc wiadomość nie została wysłana. Użyj co najmniej 12 znaków, w tym cyfry, symbolu lub wielkich i małych liter.",
+    recipient_key_untrusted:
+      "Klucz szyfrowania odbiorcy zmienił się, więc wiadomość nie została wysłana. Aby ją wysłać, potwierdź zmianę z tą osobą w inny sposób, a następnie wybierz Zaufaj nowemu kluczowi.",
+    key_trust_check_failed:
+      "Nie udało się sprawdzić kluczy szyfrowania odbiorców, więc wiadomość nie została wysłana. Sprawdź połączenie i spróbuj ponownie.",
     failed_send_external:
       "Ta wiadomość nie została wysłana przez połączone konto zewnętrzne. Spróbuj ponownie. Szkic jest zapisany.",
     failed_queue_email:

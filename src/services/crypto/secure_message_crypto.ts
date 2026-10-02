@@ -232,30 +232,42 @@ async function encrypt_field(
   };
 }
 
+type AadMode = "bound" | "legacy";
+
 async function decrypt_field(
   key: CryptoKey,
   field: EncryptedField,
   additional_data: Uint8Array,
+  mode: AadMode,
 ): Promise<Uint8Array> {
   const nonce = base64_to_array(field.nonce);
   const ciphertext = base64_to_array(field.ciphertext);
+  const decrypted = await crypto.subtle.decrypt(
+    mode === "bound"
+      ? { name: "AES-GCM", iv: nonce, additionalData: additional_data }
+      : { name: "AES-GCM", iv: nonce },
+    key,
+    ciphertext,
+  );
 
+  return new Uint8Array(decrypted);
+}
+
+async function decrypt_first_field(
+  key: CryptoKey,
+  field: EncryptedField,
+  additional_data: Uint8Array,
+): Promise<{ bytes: Uint8Array; mode: AadMode }> {
   try {
-    const decrypted = await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv: nonce, additionalData: additional_data },
-      key,
-      ciphertext,
-    );
-
-    return new Uint8Array(decrypted);
+    return {
+      bytes: await decrypt_field(key, field, additional_data, "bound"),
+      mode: "bound",
+    };
   } catch {
-    const decrypted = await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv: nonce },
-      key,
-      ciphertext,
-    );
-
-    return new Uint8Array(decrypted);
+    return {
+      bytes: await decrypt_field(key, field, additional_data, "legacy"),
+      mode: "legacy",
+    };
   }
 }
 
@@ -476,7 +488,7 @@ export async function decrypt_secure_message(
   zero_uint8_array(material.kdf_key_bytes);
   zero_uint8_array(material.auth_verifier);
 
-  const subject_bytes = await decrypt_field(
+  const { bytes: subject_bytes, mode: aad_mode } = await decrypt_first_field(
     content_key,
     bundle.encrypted_subject,
     field_aad("subject"),
@@ -485,6 +497,7 @@ export async function decrypt_secure_message(
     content_key,
     bundle.encrypted_body,
     field_aad("body"),
+    aad_mode,
   );
   const result_attachments: DecryptedSecureAttachment[] = [];
 
@@ -497,6 +510,7 @@ export async function decrypt_secure_message(
       content_key,
       bundle_field,
       field_aad("attachments_bundle"),
+      aad_mode,
     );
     const entries: AttachmentEntry[] = JSON.parse(decoder.decode(bundle_json));
 
@@ -507,16 +521,19 @@ export async function decrypt_secure_message(
         content_key,
         { ciphertext: entry.ciphertext, nonce: entry.nonce },
         attachment_aad(seq, "data"),
+        aad_mode,
       );
       const filename_bytes = await decrypt_field(
         content_key,
         { ciphertext: entry.encrypted_filename, nonce: entry.filename_nonce },
         attachment_aad(seq, "filename"),
+        aad_mode,
       );
       const meta_bytes = await decrypt_field(
         content_key,
         { ciphertext: entry.encrypted_meta, nonce: entry.meta_nonce },
         attachment_aad(seq, "meta"),
+        aad_mode,
       );
 
       seq += 1;
@@ -541,11 +558,13 @@ export async function decrypt_secure_message(
         content_key,
         { ciphertext: att.ciphertext, nonce: att.nonce },
         attachment_aad(seq, "data"),
+        aad_mode,
       );
       const filename_bytes = await decrypt_field(
         content_key,
         { ciphertext: att.encrypted_filename, nonce: att.filename_nonce },
         attachment_aad(seq, "filename"),
+        aad_mode,
       );
 
       seq += 1;

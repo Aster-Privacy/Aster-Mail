@@ -517,7 +517,7 @@ export function use_auth_account_state() {
             return;
           }
 
-          start_session_timeout(current.id);
+          start_session_timeout(current.id, undefined, { resume: true });
 
           let synced_user = current.user;
           const cached_info = api_client.get_cached_user_info();
@@ -723,13 +723,14 @@ export function use_auth_account_state() {
       passphrase: string,
       encrypted_vault?: string,
       vault_nonce?: string,
+      remember_on_device: boolean = true,
     ) => {
       await store_vault_in_memory(vault, passphrase, user.id);
       api_client.set_expected_user_id(user.id);
 
       try {
         await Promise.race([
-          store_session_passphrase(user.id, passphrase),
+          store_session_passphrase(user.id, passphrase, remember_on_device),
           new Promise<void>((_, reject) =>
             setTimeout(
               () => reject(new Error("session passphrase timeout")),
@@ -842,13 +843,14 @@ export function use_auth_account_state() {
       passphrase: string,
       encrypted_vault?: string,
       vault_nonce?: string,
+      remember_on_device: boolean = true,
     ) => {
       await store_vault_in_memory(vault, passphrase, user.id);
       api_client.set_expected_user_id(user.id);
 
       try {
         await Promise.race([
-          store_session_passphrase(user.id, passphrase),
+          store_session_passphrase(user.id, passphrase, remember_on_device),
           new Promise<void>((_, reject) =>
             setTimeout(
               () => reject(new Error("session passphrase timeout")),

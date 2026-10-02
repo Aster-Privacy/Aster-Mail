@@ -592,6 +592,7 @@ export function SplitEmailViewer({
                     style={{ verticalAlign: "-0.15em" }}
                   >
                     <EncryptionInfoDropdown
+                      e2e_verified={viewer.e2e_verified}
                       has_pq_protection={viewer.has_pq_protection}
                       has_recipient_key={viewer.has_recipient_key}
                       is_external={viewer.is_external}

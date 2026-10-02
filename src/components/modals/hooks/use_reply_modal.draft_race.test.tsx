@@ -211,6 +211,13 @@ vi.mock("@/lib/forward_css_inliner", () => ({
   inline_email_css: (html: string) => html,
 }));
 
+vi.mock("@/services/scheduled_send_gate", () => ({
+  check_scheduled_send: vi.fn(async () => ({
+    proceed: true,
+    allow_non_post_quantum: false,
+  })),
+}));
+
 vi.mock("@/services/lockdown_store", () => ({
   is_any_lockdown_active: () => false,
 }));
@@ -890,6 +897,10 @@ describe("reply modal drafts around a send", () => {
     expect(create_scheduled_email).toHaveBeenCalledWith(
       stable.auth.vault,
       expect.objectContaining({ from: { name: "", email: sender.email } }),
+      expect.objectContaining({
+        sender_email: sender.email,
+        allow_non_post_quantum: false,
+      }),
     );
   });
 
@@ -919,6 +930,7 @@ describe("reply modal drafts around a send", () => {
     expect(create_scheduled_email).toHaveBeenCalledWith(
       stable.auth.vault,
       expect.not.objectContaining({ from: expect.anything() }),
+      expect.objectContaining({ allow_non_post_quantum: false }),
     );
   });
 

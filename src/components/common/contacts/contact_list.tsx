@@ -383,6 +383,7 @@ export function ContactList({
         <div className="contact_encryption_info h-8 w-8 flex items-center justify-center">
           <EncryptionInfoDropdown
             description_key="common.only_you_can_read_contacts"
+            e2e_verified
             has_pq_protection={true}
             is_external={false}
             size={20}

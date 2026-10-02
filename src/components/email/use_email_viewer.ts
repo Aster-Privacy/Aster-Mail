@@ -172,6 +172,7 @@ function build_preloaded_email(preloaded: PreloadedEmail): DecryptedEmail {
     bcc:
       pe.bcc?.map((r) => ({ name: r.name || "", email: r.email || "" })) || [],
     expires_at: preloaded.mail_item.expires_at,
+    e2e_verified: !!pe.e2e_verified,
   };
 }
 
@@ -649,6 +650,7 @@ export function use_email_viewer({
         body_text,
         safe_html,
         unsubscribe_info: unsubscribe,
+        e2e_verified,
       } = await process_envelope_body(
         envelope,
         user_email,
@@ -715,6 +717,7 @@ export function use_email_viewer({
           sender_verification: envelope.sender_verification,
           is_external: item.is_external,
           system_origin: item.system_origin,
+          e2e_verified,
           sender_verified_domain: item.sender_verified
             ? item.sender_verified_domain
             : undefined,
@@ -833,6 +836,7 @@ export function use_email_viewer({
         body_text,
         safe_html,
         decrypted_metadata ?? null,
+        e2e_verified,
       );
 
       await resolve_reaction_emojis([single_message], user_email);
@@ -1442,6 +1446,7 @@ export function use_email_viewer({
     is_external,
     has_recipient_key,
     has_pq_protection,
+    e2e_verified: !!email?.e2e_verified,
     thread_draft,
     sending_message,
     view_source_message,

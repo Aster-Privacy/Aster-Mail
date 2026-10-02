@@ -64,6 +64,12 @@ vi.mock("@/services/api/keys", async (import_original) => {
   };
 });
 
+vi.mock("@/services/crypto/ratchet_identity_pin", () => ({
+  check_owner_key_pin: vi.fn(async () => "ok"),
+  is_recipient_flagged_untrusted: vi.fn(async () => false),
+  flag_recipient_untrusted: vi.fn(async () => undefined),
+}));
+
 vi.mock("@/services/crypto/key_manager", () => ({
   encrypt_message_multi: vi.fn(async () => "PGP-CIPHERTEXT"),
 }));

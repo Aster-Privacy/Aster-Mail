@@ -913,6 +913,7 @@ export function ThreadMessageBlock(
           onClick={(e) => e.stopPropagation()}
         >
           <AttachmentList
+            e2e_verified={!!message.e2e_verified}
             has_recipient_key={message.has_recipient_key}
             hint_attachment_count={message.attachments?.length ?? 0}
             is_external={message.is_external}

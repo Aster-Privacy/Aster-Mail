@@ -825,6 +825,7 @@ export function ContactDetailPanel({
                     <span className="contact_encryption_info inline-flex">
                       <EncryptionInfoDropdown
                         description_key="common.contact_encryption_info"
+                        e2e_verified
                         has_pq_protection={true}
                         is_external={false}
                         size={15}
