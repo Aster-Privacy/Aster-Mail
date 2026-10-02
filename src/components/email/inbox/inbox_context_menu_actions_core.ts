@@ -285,9 +285,11 @@ export function build_core_context_menu_actions(
     remove_email(email.id);
     apply_stat_deltas(deltas);
 
-    const archived_thread_ids = email.thread_token
-      ? remove_thread_entries(email.thread_token)
-      : [];
+    const archived_thread_ids =
+      email.thread_token &&
+      trashes_whole_thread(email, preferences.conversation_grouping)
+        ? remove_thread_entries(email.thread_token)
+        : [];
     const archived_index_ids = Array.from(
       new Set([...all_ids, ...archived_thread_ids]),
     );

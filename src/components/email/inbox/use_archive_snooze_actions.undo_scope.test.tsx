@@ -44,6 +44,12 @@ const mail_api = vi.hoisted(() => ({
   })),
 }));
 
+const index_mock = vi.hoisted(() => ({
+  remove_ids: vi.fn(),
+  remove_thread_entries: vi.fn((_token: string) => [] as string[]),
+  reindex_ids: vi.fn(),
+}));
+
 const toast_mock = vi.hoisted(() => ({
   last: null as { on_undo?: () => Promise<void> } | null,
 }));
@@ -57,11 +63,7 @@ vi.mock("@/services/read_intent", () => ({
   note_flag_intents: vi.fn(),
   clear_flag_intents: vi.fn(),
 }));
-vi.mock("@/services/category_index", () => ({
-  remove_ids: vi.fn(),
-  remove_thread_entries: vi.fn(() => []),
-  reindex_ids: vi.fn(),
-}));
+vi.mock("@/services/category_index", () => index_mock);
 vi.mock("@/hooks/mail_events", () => ({
   MAIL_EVENTS: { MAIL_SOFT_REFRESH: "astermail:mail-soft-refresh" },
   emit_mail_changed: vi.fn(),
@@ -95,7 +97,13 @@ type HookResult = ReturnType<typeof use_archive_snooze_actions>;
 
 let hook: HookResult;
 
-function Probe({ pending }: { pending: InboxEmail }) {
+function Probe({
+  pending,
+  conversation_grouping,
+}: {
+  pending: InboxEmail;
+  conversation_grouping?: boolean;
+}) {
   hook = use_archive_snooze_actions({
     t: (key: string) => key,
     current_view: "inbox",
@@ -106,7 +114,7 @@ function Probe({ pending }: { pending: InboxEmail }) {
     bulk_archive: vi.fn(),
     bulk_unarchive: vi.fn(),
     bulk_snooze_action: vi.fn(),
-    preferences: { confirm_before_archive: true },
+    preferences: { confirm_before_archive: true, conversation_grouping },
     update_preference: vi.fn(),
     save_now: vi.fn(),
     set_confirmations: vi.fn(),
@@ -125,9 +133,9 @@ function Probe({ pending }: { pending: InboxEmail }) {
 let container: HTMLDivElement;
 let root: Root;
 
-function mount(pending: InboxEmail) {
+function mount(pending: InboxEmail, conversation_grouping?: boolean) {
   act(() => {
-    root.render(createElement(Probe, { pending }));
+    root.render(createElement(Probe, { pending, conversation_grouping }));
   });
 }
 
@@ -194,5 +202,57 @@ describe("confirm_single_archive undo scope", () => {
       "m_new",
       "m_mid",
     ]);
+  });
+});
+
+describe("confirm_single_archive index scope follows conversation grouping", () => {
+  const message = {
+    id: "m1",
+    thread_token: "thread-1",
+    thread_message_count: 3,
+    item_type: "received",
+    is_read: true,
+  } as unknown as InboxEmail;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    toast_mock.last = null;
+    index_mock.remove_thread_entries.mockImplementation((_token: string) => [
+      "m1",
+      "m2",
+      "m3",
+    ]);
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+  });
+
+  afterEach(() => {
+    index_mock.remove_thread_entries.mockImplementation(
+      (_token: string) => [] as string[],
+    );
+    act(() => {
+      root.unmount();
+    });
+    container.remove();
+  });
+
+  it("drops and restores only the message's index entry when grouping is off", async () => {
+    mount(message, false);
+
+    await archive_then_undo();
+
+    expect(index_mock.remove_thread_entries).not.toHaveBeenCalled();
+    expect(index_mock.remove_ids).toHaveBeenCalledWith(["m1"]);
+    expect(index_mock.reindex_ids).toHaveBeenCalledWith(["m1"]);
+  });
+
+  it("still drops and restores the thread's index entries when grouping is on", async () => {
+    mount(message, true);
+
+    await archive_then_undo();
+
+    expect(index_mock.remove_thread_entries).toHaveBeenCalledWith("thread-1");
+    expect(index_mock.reindex_ids).toHaveBeenCalledWith(["m1", "m2", "m3"]);
   });
 });

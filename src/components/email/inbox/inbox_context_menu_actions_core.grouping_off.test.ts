@@ -40,6 +40,15 @@ const metadata_mock = vi.hoisted(() => ({
   update_item_metadata: vi.fn(),
 }));
 
+const archive_mock = vi.hoisted(() => ({
+  batch_archive: vi.fn(async (_data: { ids: string[]; tier?: string }) => ({
+    data: { success: true },
+  })),
+  batch_unarchive: vi.fn(async (_data: { ids: string[] }) => ({
+    data: { success: true },
+  })),
+}));
+
 const index_mock = vi.hoisted(() => ({
   remove_ids: vi.fn(),
   remove_thread_entries: vi.fn((_token: string) => [] as string[]),
@@ -61,10 +70,7 @@ vi.mock("@/services/api/mail", () => ({
 
 vi.mock("@/services/crypto/mail_metadata", () => metadata_mock);
 
-vi.mock("@/services/api/archive", () => ({
-  batch_archive: vi.fn(),
-  batch_unarchive: vi.fn(),
-}));
+vi.mock("@/services/api/archive", () => archive_mock);
 
 vi.mock("@/services/category_index", () => index_mock);
 
@@ -154,5 +160,40 @@ describe("context menu delete follows conversation grouping", () => {
       ["thread-1", false],
     ]);
     expect(metadata_mock.bulk_update_metadata_by_ids).not.toHaveBeenCalled();
+  });
+});
+
+describe("context menu archive follows conversation grouping", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    toast_mock.on_undo = null;
+    index_mock.remove_thread_entries.mockImplementation((_token: string) => [
+      "m1",
+      "m2",
+      "m3",
+    ]);
+  });
+
+  it("drops and restores only the clicked message's index entry when grouping is off", async () => {
+    await build(false).handle_archive(message);
+    expect(toast_mock.on_undo).not.toBeNull();
+    await toast_mock.on_undo!();
+
+    expect(archive_mock.batch_archive).toHaveBeenCalledWith({
+      ids: ["m1"],
+      tier: "hot",
+    });
+    expect(index_mock.remove_thread_entries).not.toHaveBeenCalled();
+    expect(index_mock.remove_ids).toHaveBeenCalledWith(["m1"]);
+    expect(index_mock.reindex_ids).toHaveBeenCalledWith(["m1"]);
+  });
+
+  it("still drops and restores the thread's index entries when grouping is on", async () => {
+    await build(true).handle_archive(message);
+    expect(toast_mock.on_undo).not.toBeNull();
+    await toast_mock.on_undo!();
+
+    expect(index_mock.remove_thread_entries).toHaveBeenCalledWith("thread-1");
+    expect(index_mock.reindex_ids).toHaveBeenCalledWith(["m1", "m2", "m3"]);
   });
 });
