@@ -45,6 +45,7 @@ import {
   is_contact_trash_expired,
   is_contact_trashed,
 } from "@/lib/contact_trash";
+import { contact_index_letter } from "@/lib/contact_index_letter";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_shift_key_ref } from "@/lib/use_shift_range_select";
 import { use_auth } from "@/contexts/auth_context";
@@ -278,10 +279,9 @@ export function use_contacts_data() {
     const index: Map<string, number> = new Map();
 
     filtered_contacts.forEach((contact, i) => {
-      const first_char = (contact.first_name || contact.last_name || "")
-        .charAt(0)
-        .toUpperCase();
-      const letter = /[A-Z]/.test(first_char) ? first_char : "#";
+      const letter = contact_index_letter(
+        contact.first_name || contact.last_name,
+      );
 
       if (!index.has(letter)) {
         index.set(letter, i);

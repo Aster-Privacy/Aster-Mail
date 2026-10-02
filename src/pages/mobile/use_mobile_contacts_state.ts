@@ -50,6 +50,7 @@ import {
 } from "@/components/common/contacts/contact_detail_panel/helpers";
 import { ignore_error } from "@/lib/ignore_error";
 import { is_contact_trashed } from "@/lib/contact_trash";
+import { contact_index_letter } from "@/lib/contact_index_letter";
 
 const MASS_EMAIL_LIMIT = 10;
 
@@ -384,10 +385,7 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
     const groups: Record<string, DecryptedContact[]> = {};
 
     for (const contact of filtered_contacts) {
-      const letter = (contact.first_name || contact.last_name || "#")
-        .charAt(0)
-        .toUpperCase();
-      const key = /[A-Z]/.test(letter) ? letter : "#";
+      const key = contact_index_letter(contact.first_name || contact.last_name);
 
       if (!groups[key]) groups[key] = [];
       groups[key].push(contact);

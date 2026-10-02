@@ -103,6 +103,7 @@ import {
   update_contact_encrypted,
 } from "@/services/api/contacts";
 import { is_contact_trashed } from "@/lib/contact_trash";
+import { contact_index_letter } from "@/lib/contact_index_letter";
 import { use_panel_transition } from "@/components/layout/use_panel_transition";
 import {
   contact_to_form_data,
@@ -215,9 +216,7 @@ function DetailField({ label, value }: { label: string; value: string }) {
 }
 
 function initial_of(contact: DecryptedContact) {
-  const name = display_name(contact).trim();
-
-  return name ? name[0].toUpperCase() : "#";
+  return contact_index_letter(display_name(contact));
 }
 
 interface ContactLetterSection {
@@ -226,20 +225,20 @@ interface ContactLetterSection {
 }
 
 function group_by_initial(list: DecryptedContact[]) {
-  const sections: ContactLetterSection[] = [];
+  const sections = new Map<string, ContactLetterSection>();
 
   for (const contact of list) {
     const letter = initial_of(contact);
-    const last = sections[sections.length - 1];
+    const section = sections.get(letter);
 
-    if (last && last.letter === letter) {
-      last.contacts.push(contact);
+    if (section) {
+      section.contacts.push(contact);
     } else {
-      sections.push({ letter, contacts: [contact] });
+      sections.set(letter, { letter, contacts: [contact] });
     }
   }
 
-  return sections;
+  return Array.from(sections.values());
 }
 
 export function QuickContactsPanel({
