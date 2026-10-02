@@ -2292,6 +2292,8 @@ export const hi = {
     desktop_bridge_set_up: "{{ client }} सेट अप करें",
     desktop_bridge_install_hint:
       "Aster Bridge इंस्टॉल होकर चलता रहना चाहिए। इसे सेटिंग > Bridge से डाउनलोड करें।",
+    desktop_bridge_not_opened:
+      "Aster Bridge नहीं खुला। पक्का करें कि यह इंस्टॉल है और चल रहा है, या इसे सेटिंग > Bridge से डाउनलोड करें।",
     desktop_bridge_upgrade_title: "अपना पसंदीदा मेल क्लाइंट इस्तेमाल करें",
     desktop_bridge_upgrade_description:
       "Aster Bridge से Apple Mail, Thunderbird या Outlook को Aster से जोड़ें। Star और उससे ऊपर उपलब्ध।",

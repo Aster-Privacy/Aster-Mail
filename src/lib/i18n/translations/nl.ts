@@ -7214,6 +7214,8 @@ export const nl = {
       "Gebruik Aster met Thunderbird, Apple Mail, Outlook of elke andere IMAP/JMAP-client. Aster Bridge draait lokaal en biedt je ontsleutelde mailbox aan je favoriete client aan.",
     desktop_bridge_install_hint:
       "Aster Bridge moet geïnstalleerd zijn en actief zijn. Download het via Instellingen > Bridge.",
+    desktop_bridge_not_opened:
+      "Aster Bridge is niet geopend. Controleer of het geïnstalleerd en actief is, of download het via Instellingen > Bridge.",
     desktop_bridge_set_up: "{{client}} instellen",
     bridge: "Bridge",
     bridge_description: "Verbind Aster met elke IMAP- of SMTP-mailclient",

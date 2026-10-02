@@ -7120,6 +7120,8 @@ export const pl = {
     desktop_bridge_set_up: "Skonfiguruj {{ client }}",
     desktop_bridge_install_hint:
       "Aster Bridge musi być zainstalowany i uruchomiony. Pobierz go w sekcji Ustawienia > Bridge.",
+    desktop_bridge_not_opened:
+      "Aster Bridge się nie otworzył. Sprawdź, czy jest zainstalowany i uruchomiony, lub pobierz go w sekcji Ustawienia > Bridge.",
     desktop_bridge_upgrade_title: "Użyj ulubionego klienta pocztowego",
     desktop_bridge_upgrade_description:
       "Podłącz Apple Mail, Thunderbirda lub Outlooka do Astera za pomocą Aster Bridge. Dostępne w planie Star i wyższych.",

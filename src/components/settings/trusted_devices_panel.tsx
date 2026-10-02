@@ -59,6 +59,38 @@ import {
   get_display_time_zone,
 } from "@/utils/date_format";
 
+const BRIDGE_LAUNCH_TIMEOUT_MS = 2500;
+const BRIDGE_HINT_TOAST_MS = 10000;
+
+function open_bridge_settings() {
+  window.dispatchEvent(
+    new CustomEvent("navigate-settings", { detail: "bridge" }),
+  );
+}
+
+function watch_bridge_launch(on_not_opened: () => void): void {
+  let settled = false;
+  const stop = () => {
+    settled = true;
+    window.clearTimeout(timer);
+    window.removeEventListener("blur", stop);
+    window.removeEventListener("pagehide", stop);
+    document.removeEventListener("visibilitychange", on_visibility);
+  };
+  const on_visibility = () => {
+    if (document.visibilityState === "hidden") stop();
+  };
+  const timer = window.setTimeout(() => {
+    if (settled) return;
+    stop();
+    on_not_opened();
+  }, BRIDGE_LAUNCH_TIMEOUT_MS);
+
+  window.addEventListener("blur", stop);
+  window.addEventListener("pagehide", stop);
+  document.addEventListener("visibilitychange", on_visibility);
+}
+
 function open_billing_settings() {
   window.dispatchEvent(
     new CustomEvent("navigate-settings", { detail: "billing" }),
@@ -169,8 +201,19 @@ export function TrustedDevicesPanel() {
     set_pending_revoke_all(false);
   };
 
+  const show_bridge_not_opened = () => {
+    show_toast(
+      t("settings.desktop_bridge_not_opened"),
+      "error",
+      BRIDGE_HINT_TOAST_MS,
+      { label: t("settings.bridge"), on_click: open_bridge_settings },
+    );
+  };
+
   const open_provision = async (label: string) => {
     const url = `aster-mail://provision?label=${encodeURIComponent(label)}`;
+
+    watch_bridge_launch(show_bridge_not_opened);
     const is_tauri =
       typeof window !== "undefined" &&
       ("__TAURI_INTERNALS__" in window || "__TAURI__" in window);
