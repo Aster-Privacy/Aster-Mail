@@ -29,6 +29,7 @@ import { swipe_nav_state } from "./mobile_mail_detail_swipe";
 import { strip_aster_footers_html } from "@/lib/aster_footer_strip";
 import { copy_text_or_throw } from "@/utils/copy_text";
 import { use_spam_confirm } from "@/components/email/use_spam_confirm";
+import { use_email_dark_mode } from "@/components/email/use_email_dark_mode";
 import { use_email_detail } from "@/components/email/hooks/use_email_detail";
 import { use_sender_aliases } from "@/hooks/use_sender_aliases";
 import { build_reply_recipient_for_message } from "@/components/email/build_reply_recipient";
@@ -134,9 +135,12 @@ export function use_mobile_mail_detail() {
   const [snooze_target_id, set_snooze_target_id] = useState<string | null>(
     null,
   );
-  const [dark_mode_overrides, set_dark_mode_overrides] = useState<
-    Map<string, boolean>
-  >(new Map());
+  const {
+    is_dark_mode_message,
+    is_dark_mode_opted_out,
+    toggle_dark_mode,
+    set_all_dark_mode,
+  } = use_email_dark_mode(preferences.force_dark_mode_emails);
   const [details_message, set_details_message] =
     useState<DecryptedThreadMessage | null>(null);
 
@@ -667,42 +671,24 @@ export function use_mobile_mail_detail() {
     ],
   );
 
-  const is_dark_mode_message = useCallback(
-    (msg_id: string) =>
-      dark_mode_overrides.get(msg_id) ?? preferences.force_dark_mode_emails,
-    [dark_mode_overrides, preferences.force_dark_mode_emails],
-  );
-
-  const is_dark_mode_opted_out = useCallback(
-    (msg_id: string) => dark_mode_overrides.get(msg_id) === false,
-    [dark_mode_overrides],
-  );
-
   const handle_toggle_dark_mode = useCallback(() => {
     if (menu_message) {
-      const next_value = !is_dark_mode_message(menu_message.id);
-
-      set_dark_mode_overrides((prev) => {
-        const next = new Map(prev);
-
-        next.set(menu_message.id, next_value);
-
-        return next;
-      });
+      toggle_dark_mode(menu_message.id);
     }
     set_menu_message(null);
-  }, [menu_message, is_dark_mode_message]);
+  }, [menu_message, toggle_dark_mode]);
 
   const handle_toggle_all_dark_mode = useCallback(() => {
     const all_active =
       display_messages.length > 0 &&
       display_messages.every((m) => is_dark_mode_message(m.id));
 
-    set_dark_mode_overrides(
-      new Map(display_messages.map((m) => [m.id, !all_active])),
+    set_all_dark_mode(
+      display_messages.map((m) => m.id),
+      !all_active,
     );
     set_menu_message(null);
-  }, [display_messages, is_dark_mode_message]);
+  }, [display_messages, is_dark_mode_message, set_all_dark_mode]);
 
   const handle_view_source = useCallback(() => {
     if (menu_message) {
