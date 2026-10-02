@@ -40,6 +40,7 @@ import {
   fetch_mail_by_ids_reconciled,
   group_emails_by_thread,
   insert_emails_at,
+  trashes_whole_thread,
   DEFAULT_PAGE_SIZE,
   type RestoredEmailEntry,
 } from "./email_list_helpers";
@@ -1074,6 +1075,9 @@ export function use_category_inbox(
     ): void => {
       if (!email?.thread_token) return;
       if ((email.thread_message_count ?? 1) <= 1) return;
+      if (!trashes_whole_thread(email, preferences.conversation_grouping)) {
+        return;
+      }
 
       const token = email.thread_token;
       const removed = remove_thread_entries(token);
@@ -1119,7 +1123,7 @@ export function use_category_inbox(
         }
       })();
     },
-    [],
+    [preferences.conversation_grouping],
   );
 
   const delete_email_thread_aware = useCallback(
