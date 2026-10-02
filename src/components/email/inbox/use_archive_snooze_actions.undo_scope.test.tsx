@@ -33,8 +33,6 @@ const archive_api = vi.hoisted(() => ({
   })),
 }));
 
-// The thread holds an older reply that is already in Archive alongside the
-// new Inbox reply; thread messages report no archive state.
 const mail_api = vi.hoisted(() => ({
   get_thread_messages: vi.fn(async () => ({
     data: {

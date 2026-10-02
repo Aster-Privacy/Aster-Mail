@@ -207,10 +207,6 @@ export function use_archive_snooze_actions({
       ? remove_thread_entries(email.thread_token)
       : [];
 
-    // Archive exactly the messages this row holds, as the no-confirm path
-    // does, so Undo restores only what this action took out of the view.
-    // The thread can also contain messages that were already archived, and
-    // thread messages carry no archive state to tell them apart.
     const archive_ids = [...all_ids];
 
     note_flag_intents(archive_ids, { is_archived: true });
