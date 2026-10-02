@@ -162,6 +162,7 @@ export async function restore_inactive_key_sets(
     const unlocked: string[] = [];
     const old_vaults: EncryptedVault[] = [];
     let fetched_count = 0;
+    let locked_count = 0;
 
     for (const key_set of inactive) {
       const fetched = await fetch_inactive_key_set(key_set.id);
@@ -170,13 +171,20 @@ export async function restore_inactive_key_sets(
 
       fetched_count += 1;
 
+      let old_vault: EncryptedVault;
+
       try {
-        const old_vault = await decrypt_vault(
+        old_vault = await decrypt_vault(
           fetched.data.encrypted_vault,
           fetched.data.vault_nonce,
           old_password,
         );
+      } catch {
+        locked_count += 1;
+        continue;
+      }
 
+      try {
         recovered.push(retain_previous_ratchet_keys(old_vault));
         recovered_keks.push(
           ...(await harvest_storage_keys(old_vault, old_password)),
@@ -192,7 +200,7 @@ export async function restore_inactive_key_sets(
       return {
         restored: 0,
         incomplete: 0,
-        wrong_password: fetched_count > 0,
+        wrong_password: fetched_count > 0 && locked_count === fetched_count,
       };
     }
 
