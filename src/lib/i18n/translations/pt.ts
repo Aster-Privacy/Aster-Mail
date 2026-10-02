@@ -25,6 +25,7 @@ export const pt = {
     add_to_group: "Adicionar ao grupo",
     added_to_group: "Adicionado ao grupo",
     birthdays_upcoming: "{{count}} aniversários em breve",
+    birthdays_upcoming_one: "{{count}} aniversário em breve",
     bulk_create_hint:
       "Adicione um contacto por linha. Para guardar um endereço de e-mail com um nome, escreva o endereço entre os sinais de menor e maior.",
     bulk_create_placeholder: "Ada Lovelace <ada@example.com>",
@@ -36,6 +37,7 @@ export const pt = {
     contact_moved_to_trash: "Contacto movido para o Lixo",
     contact_restored: "Contacto restaurado",
     contacts_created: "{{count}} contactos criados",
+    contacts_created_one: "{{count}} contacto criado",
     contacts_exported: "Contactos exportados",
     contacts_moved_to_trash: "Contactos movidos para o Lixo",
     contacts_updated_stat: "Atualizados",
@@ -57,6 +59,7 @@ export const pt = {
     frequent_contacts_hint:
       "Os contactos a quem escreve com mais frequência aparecem aqui.",
     group_contact_count: "{{count}} contactos",
+    group_contact_count_one: "{{count}} contacto",
     group_created: "Grupo criado",
     group_deleted: "Grupo eliminado",
     group_empty_title: "Nenhum contacto neste grupo",
@@ -100,6 +103,8 @@ export const pt = {
       "Compreendo que estes e-mails não podem ser recuperados.",
     delete_folder_purged_items:
       "Pasta eliminada e {count} mensagens destruídas permanentemente.",
+    delete_folder_purged_items_one:
+      "Pasta eliminada e {count} mensagem destruída permanentemente.",
     delete_folder_deleted_no_purge:
       "Pasta eliminada. Os e-mails que continha permanecem na sua conta.",
     delete_folder_password_required: "Introduza a palavra-passe da sua conta.",
@@ -588,6 +593,7 @@ export const pt = {
     not_detected: "Não detetado",
     navigate: "Navegar",
     commands_count: "{{count}} comandos",
+    commands_count_one: "{{count}} comando",
     no_commands_found: "Nenhum comando encontrado",
     type_command_or_search: "Escreva um comando ou pesquise...",
     failed_to_load_emails:
@@ -1056,6 +1062,8 @@ export const pt = {
     n_conversations_moved_to_trash_other:
       "{{count}} conversas movidas para o Lixo",
     n_conversations_marked_as_spam: "{{ count }} conversas marcadas como spam",
+    n_conversations_marked_as_spam_one:
+      "{{ count }} conversa marcada como spam",
     external_only: "Somente externo",
     all_accounts: "Todas as contas",
     failed_to_rotate_keys:
@@ -1084,6 +1092,7 @@ export const pt = {
     added_to_allowlist: "{{ email }} adicionado à lista de permitidos",
     no_content: "Sem conteúdo",
     unblocked_count_senders: "{{ count }} remetentes desbloqueados",
+    unblocked_count_senders_one: "{{ count }} remetente desbloqueado",
     removed_count_from_allowlist:
       "{{ count }} removido(s) da lista de permitidos",
     failed_to_add_label: "Esta etiqueta não foi adicionada. Tente novamente.",
@@ -1569,10 +1578,13 @@ export const pt = {
     more_aliases: "{{count}} outros aliases",
     more_information: "Mais informações",
     n_contacts_imported: "{{ count }} contactos importados",
+    n_contacts_imported_one: "{{ count }} contacto importado",
     n_hours: "{{ count }} horas",
     n_images: "{{ count }} imagens",
     n_items: "{{ count }} itens",
+    n_items_one: "{{ count }} item",
     n_lines: "{{ count }} linhas",
+    n_lines_one: "{{ count }} linha",
     n_more: "+{{count}} mais",
     n_more_recipients: "+{{count}} mais",
     n_of_n_contacts: "{{ filtered }} de {{ total }}",
@@ -2786,6 +2798,8 @@ export const pt = {
     empty_trash_confirm_title: "Esvaziar Eliminados recentemente?",
     empty_trash_confirm_message:
       "Eliminar permanentemente todos os {{ count }} aliases em Eliminados recentemente? Esta ação não pode ser anulada. Os endereços permanecem reservados para a sua conta, pelo que mais ninguém os poderá reclamar.",
+    empty_trash_confirm_message_one:
+      "Eliminar permanentemente {{ count }} alias em Eliminados recentemente? Esta ação não pode ser anulada. O endereço permanece reservado para a sua conta, pelo que mais ninguém o poderá reclamar.",
     trash_emptied: "Eliminados recentemente esvaziado",
     failed_empty_trash:
       "Não foi possível esvaziar Eliminados recentemente. Tente novamente.",
@@ -2803,6 +2817,8 @@ export const pt = {
       "Este diretório não foi eliminado. Tente novamente.",
     empty_directory_trash_confirm_message:
       "Eliminar permanentemente todos os {{ count }} diretórios em Eliminados recentemente? Esta ação não pode ser anulada. Os diretórios continuam reservados para a sua conta, pelo que mais ninguém os poderá reclamar.",
+    empty_directory_trash_confirm_message_one:
+      "Eliminar permanentemente {{ count }} diretório em Eliminados recentemente? Esta ação não pode ser anulada. O diretório continua reservado para a sua conta, pelo que mais ninguém o poderá reclamar.",
     alias_stats_title: "Estatísticas",
     alias_stats_received: "{{ count }} recebidos",
     alias_stats_forwarded: "{{ count }} reencaminhados",
@@ -3026,8 +3042,12 @@ export const pt = {
     alias_bulk_disabled: "Os aliases selecionados estão desativados.",
     alias_bulk_update_partial_failed:
       "{{count}} de {{total}} aliases não foram atualizados.",
+    alias_bulk_update_partial_failed_one:
+      "{{count}} de {{total}} aliases não foi atualizado.",
     alias_bulk_delete_partial_failed:
       "{{count}} de {{total}} aliases não foram eliminados. Só pode eliminar um alias 30 dias depois de o criar.",
+    alias_bulk_delete_partial_failed_one:
+      "{{count}} de {{total}} aliases não foi eliminado. Só pode eliminar um alias 30 dias depois de o criar.",
     alias_directory_create_failed:
       "Este diretório não foi criado. Tente novamente.",
     alias_directory_auto_create: "Criar aliases automaticamente",
@@ -3093,6 +3113,7 @@ export const pt = {
     alias_export_source_directories: "Diretórios",
     alias_export_source_ghost: "Aliases fantasma",
     alias_export_source_count: "{{count}} entradas",
+    alias_export_source_count_one: "{{count}} entrada",
     alias_export_choose_columns: "Escolher colunas ({{count}} selecionadas)",
     alias_export_hide_columns: "Ocultar colunas",
     alias_export_format_label: "Formato do ficheiro",
@@ -3116,8 +3137,12 @@ export const pt = {
       "Apenas {{loaded}} de {{total}} aliases foram carregados. Recarregue os seus aliases e tente novamente para que a cópia fique completa.",
     alias_export_undecryptable:
       "{{count}} aliases não puderam ser desencriptados e não foram incluídos.",
+    alias_export_undecryptable_one:
+      "{{count}} alias não pôde ser desencriptado e não foi incluído.",
     alias_export_undecryptable_ghost:
       "{{count}} aliases fantasma não puderam ser desencriptados e não foram incluídos.",
+    alias_export_undecryptable_ghost_one:
+      "{{count}} alias fantasma não pôde ser desencriptado e não foi incluído.",
     alias_export_load_failed:
       "Não foi possível carregar os diretórios ou os aliases fantasma.",
     alias_export_failed: "A exportação falhou. Nada foi transferido.",
@@ -3136,6 +3161,7 @@ export const pt = {
     alias_import_skip_existing: "Ignorar existentes",
     alias_import_update_existing: "Reativar se desativado",
     alias_import_confirm: "Importar {{count}} aliases",
+    alias_import_confirm_one: "Importar {{count}} alias",
     alias_import_summary_created: "{{count}} importados",
     alias_import_summary_skipped: "{{count}} já existiam",
     alias_import_summary_failed: "{{count}} falharam",
@@ -3410,6 +3436,7 @@ export const pt = {
     fam_org_2fa_sending: "A enviar...",
     fam_org_2fa_reminder_sent: "Lembrete enviado",
     fam_org_2fa_reminder_sent_toast: "Lembrete enviado a {{count}} membros",
+    fam_org_2fa_reminder_sent_toast_one: "Lembrete enviado a {{count}} membro",
     fam_org_2fa_reminder_rate_limited:
       "Já foi enviado um lembrete recentemente. Pode enviar outro dentro de 24 horas.",
     fam_org_2fa_reminder_failed: "Falha ao enviar lembrete",
@@ -3970,8 +3997,11 @@ export const pt = {
     failed_sign_out: "Falha ao terminar as outras sessões",
     active_now: "Ativo agora",
     minutes_ago: "há {{count}} minutos",
+    minutes_ago_one: "há {{count}} minuto",
     hours_ago: "há {{count}} horas",
+    hours_ago_one: "há {{count}} hora",
     days_ago: "há {{count}} dias",
+    days_ago_one: "há {{count}} dia",
     this_device: "Este dispositivo",
     signed_in_date: "Sessão iniciada a {{date}}",
     sign_out: "Terminar sessão",
@@ -3983,8 +4013,11 @@ export const pt = {
     failed_load_security_status:
       "As suas definições de segurança não foram carregadas. Tente novamente.",
     load_more_sessions: "Carregar mais {{count}} sessões",
+    load_more_sessions_one: "Carregar mais {{count}} sessão",
     two_fa_enabled:
       "Ativada ({{count}} códigos de cópia de segurança restantes)",
+    two_fa_enabled_one:
+      "Ativada ({{count}} código de cópia de segurança restante)",
     two_fa_add_security: "Adicionar uma camada extra de segurança com 2FA",
     basics_section_title: "Básico",
     two_step_verification: "Verificação em duas etapas",
@@ -4457,7 +4490,9 @@ export const pt = {
     auto_lock_after:
       "Bloquear automaticamente após {{duration}} de inatividade",
     hours: "{{count}} horas",
+    hours_one: "{{count}} hora",
     days: "{{count}} dias",
+    days_one: "{{count}} dia",
     failed_get_auth_data:
       "Não foi possível carregar as suas informações de início de sessão. Tente novamente.",
     downgrade: "Mudar para um plano inferior",
@@ -5649,12 +5684,18 @@ export const pt = {
     emails_of_total: "{{current}} de {{total}} e-mails",
     cancel_import: "Cancelar importação",
     emails_imported_count: "{{count}} e-mails importados",
+    emails_imported_count_one: "{{count}} e-mail importado",
     duplicates_skipped: "{{count}} duplicados ignorados",
+    duplicates_skipped_one: "{{count}} duplicado ignorado",
     import_folder_hint:
       "Não encontra alguns e-mails? Verifique as pastas Spam e Enviados - os e-mails importados podem ser organizados nelas com base no conteúdo.",
     n_failed_count: "{{count}} com falha",
     import_folders_skipped:
       "Não foi possível criar {{count}} pasta, então as mensagens dela estão na sua caixa de entrada.",
+    import_folders_skipped_one:
+      "Não foi possível criar {{count}} pasta, então as mensagens dela estão na sua caixa de entrada.",
+    import_folders_skipped_other:
+      "Não foi possível criar {{count}} pastas, então as mensagens delas estão na sua caixa de entrada.",
     import_folders_skipped_plural:
       "Não foi possível criar {{count}} pastas, então as mensagens delas estão na sua caixa de entrada.",
     storage_quota_reached:
@@ -5876,6 +5917,8 @@ export const pt = {
     removed_forwarding_rule: 'Regra de encaminhamento "{{ name }}" removida',
     removed_forwarding_rules_count:
       "{{ count }} regras de encaminhamento removidas",
+    removed_forwarding_rules_count_one:
+      "{{ count }} regra de encaminhamento removida",
     customize_toolbar: "Personalizar barra de ferramentas",
     customize_toolbar_description:
       "Escolha quais ações aparecem na barra de ferramentas inferior.",
@@ -6254,15 +6297,25 @@ export const pt = {
       "Está a usar {{used}}, o que ultrapassa esse limite. Enquanto estiver acima dele, os e-mails recebidos são rejeitados e, após 7 dias, a rejeição passa a ser permanente.",
     cancel_impact_aliases:
       "{{count}} aliases deixam de receber e-mails {{days}} dias depois.",
+    cancel_impact_aliases_one:
+      "{{count}} alias deixa de receber e-mails {{days}} dias depois.",
     cancel_impact_domains: "{{count}} domínios personalizados são suspensos.",
+    cancel_impact_domains_one: "{{count}} domínio personalizado é suspenso.",
     cancel_impact_catch_all: "O endereçamento catch-all é desativado.",
     cancel_impact_templates: "{{count}} modelos de e-mail são desativados.",
+    cancel_impact_templates_one: "{{count}} modelo de e-mail é desativado.",
     cancel_impact_signatures: "{{count}} assinaturas são desativadas.",
+    cancel_impact_signatures_one: "{{count}} assinatura é desativada.",
     cancel_impact_family:
       "{{count}} membros da família passam para um período de carência de {{days}} dias.",
+    cancel_impact_family_one:
+      "{{count}} membro da família passa para um período de carência de {{days}} dias.",
     cancel_impact_family_addresses:
       "{{count}} endereços de família reservados são libertados.",
+    cancel_impact_family_addresses_one:
+      "{{count}} endereço de família reservado é libertado.",
     cancel_impact_features: "{{count}} funcionalidades pagas são desativadas.",
+    cancel_impact_features_one: "{{count}} funcionalidade paga é desativada.",
     cancel_impact_reactivate_hint:
       "Nada é eliminado. Ao subscrever novamente, o que foi desativado é restaurado, dentro dos limites do novo plano.",
     cancel_impact_continue: "Continuar para cancelar",
@@ -6595,6 +6648,7 @@ export const pt = {
     connected_accounts_last_sync: "Última sincronização: {{ time }}",
     connected_accounts_never_synced: "Nunca sincronizado",
     connected_accounts_emails: "{{ count }} e-mails",
+    connected_accounts_emails_one: "{{ count }} e-mail",
     connected_accounts_syncing: "A sincronizar...",
     connected_accounts_sync_now: "Sincronizar agora",
     connected_accounts_disconnect: "Desligar",
@@ -6969,6 +7023,7 @@ export const pt = {
       "Após a rotação, a sua chave anterior é desativada. Os e-mails encriptados apenas com a sua chave antiga deixarão de poder ser desencriptados. Esta ação é irreversível.",
     bulk_unsubscribe: "Cancelamento em massa",
     senders_unsubscribed: "{{ count }} remetentes com subscrição cancelada",
+    senders_unsubscribed_one: "{{ count }} remetente com subscrição cancelada",
     opened_in_browser:
       "{{ count }} arquivados - confirmação manual pode ser necessária",
     could_not_unsubscribe:
@@ -7645,6 +7700,7 @@ export const pt = {
     sync_progress_preparing: "A preparar a importação…",
     sync_checking_new: "A verificar novos e-mails…",
     sync_result_imported: "{{ count }} novos e-mails importados",
+    sync_result_imported_one: "{{ count }} novo e-mail importado",
     sync_result_up_to_date: "Já está atualizado - nenhum e-mail novo",
     sync_stopped: "Sincronização interrompida",
     purging_progress:
@@ -7657,9 +7713,13 @@ export const pt = {
     disconnect_delete_messages_label: "Eliminar também as mensagens importadas",
     disconnect_delete_messages_label_count:
       "Eliminar também os {{ count }} e-mails importados",
+    disconnect_delete_messages_label_count_one:
+      "Eliminar também o {{ count }} e-mail importado",
     disconnect_success: "Conta desligada",
     disconnect_deleted_success:
       "Conta desligada, {{ count }} e-mails eliminados",
+    disconnect_deleted_success_one:
+      "Conta desligada, {{ count }} e-mail eliminado",
     stop_sync_title: "Parar sincronização?",
     stop_sync_description:
       "Tem a certeza de que deseja parar a sincronização? Os e-mails já importados serão mantidos.",
@@ -7710,6 +7770,8 @@ export const pt = {
       "A configuração das suas pastas não foi concluída. Tente novamente.",
     oauth_folders_partial:
       "{{count}} pastas não terminaram de ser configuradas e as restantes estão prontas a usar.",
+    oauth_folders_partial_one:
+      "{{count}} pasta não terminou de ser configurada e as restantes estão prontas a usar.",
     import_stage_setting_up_folders: "A configurar pastas...",
     import_stage_importing_emails: "A importar e-mails...",
     import_stage_cancel: "Cancelar",
@@ -7794,6 +7856,7 @@ export const pt = {
     dev_unregistered: "Não registado",
     dev_active_count: "{{count}} ativo(s)",
     dev_keys_count: "{{count}} chave(s)",
+    dev_keys_count_one: "{{count}} chave",
     dev_databases_count_one: "{{count}} base de dados",
     dev_databases_count_other: "{{count}} bases de dados",
     dev_checking: "A verificar...",
@@ -8446,6 +8509,7 @@ export const pt = {
     move_to_category: "Mover para a categoria",
     menu_applies_to_selection: "Aplica-se a {count} selecionados",
     menu_applies_to_all: "Aplica-se a todas as {count} mensagens",
+    menu_applies_to_all_one: "Aplica-se a {count} mensagem",
     moved_to_category: "Movido para a categoria",
     drop_to_move_here: "Solte aqui para mover",
     tab_new_count: "novo(s)",
@@ -8934,6 +8998,7 @@ export const pt = {
     order_number: "Pedido #{{id}}",
     items: "Itens",
     more_items_count: "+{{count}} itens a mais",
+    more_items_count_one: "+{{count}} item a mais",
     card_ending_in: "Cartão terminado em {{last_four}}",
     purchase_extraction_privacy:
       "Extraído localmente do seu e-mail, e nada é enviado aos nossos servidores.",
@@ -8959,6 +9024,7 @@ export const pt = {
     message_deleted: "Esta mensagem foi eliminada",
     unknown_recipient: "(destinatário desconhecido)",
     lines_count: "{{count}} linhas",
+    lines_count_one: "{{count}} linha",
     messages_label: "mensagens",
     star: "Estrela",
     unstar: "Remover estrela",
@@ -8993,6 +9059,7 @@ export const pt = {
     attachment_chips_more: "+{{count}} mais",
     page_of_total: "Página {{current}} de {{total}}",
     total_pages_label: "{{count}} páginas",
+    total_pages_label_one: "{{count}} página",
     loading_preview: "A carregar pré-visualização…",
     preview_failed:
       "A pré-visualização não carregou. Abra o e-mail para o ver.",
@@ -9034,10 +9101,14 @@ export const pt = {
     message_label: "mensagem",
     all_on_page_selected:
       "Todas as {{ count }} conversas nesta página estão selecionadas.",
+    all_on_page_selected_one:
+      "{{ count }} conversa nesta página está selecionada.",
     select_all_in_folder:
       "Selecionar todas as {{ count }} conversas em {{ folder }}",
+    select_all_in_folder_one: "Selecionar {{ count }} conversa em {{ folder }}",
     all_in_folder_selected:
       "Todas as {{ count }} conversas estão selecionadas.",
+    all_in_folder_selected_one: "{{ count }} conversa está selecionada.",
     reply_subject_prefix: "Re:",
     reply_from_mismatch_title: "Responder de outro endereço?",
     reply_from_mismatch_message:
@@ -9375,6 +9446,8 @@ export const pt = {
       "O seu início de sessão expirou. Volte atrás e inicie sessão novamente.",
     backup_codes_remaining_after_login:
       "{{count}} códigos de cópia de segurança restantes",
+    backup_codes_remaining_after_login_one:
+      "{{count}} código de cópia de segurança restante",
     backup_code_description:
       "Introduza um dos seus códigos de cópia de segurança para iniciar sessão",
     backup_code_single_use:
@@ -10257,6 +10330,8 @@ export const pt = {
     enabled: "Ativado",
     preview_some:
       "Cerca de {{count}} e-mails serão limpos na próxima execução.",
+    preview_some_one:
+      "Cerca de {{count}} e-mail será limpo na próxima execução.",
     preview_none: "Nenhum e-mail corresponde a esta regra no momento.",
     keeps_note: "Os e-mails com estrela e afixados são sempre mantidos.",
     save: "Guardar",
@@ -10375,6 +10450,7 @@ export const pt = {
       "Crie a sua primeira regra para organizar automaticamente os e-mails recebidos.",
     empty_cta: "Criar regra",
     applied_count: "Aplicada a {{count}} mensagens",
+    applied_count_one: "Aplicada a {{count}} mensagem",
     field_from: "De",
     field_to: "Para/Cc/Bcc",
     field_subject: "Assunto",

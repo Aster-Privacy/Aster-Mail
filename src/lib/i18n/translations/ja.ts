@@ -5561,6 +5561,8 @@ export const ja = {
     n_failed_count: "{{count}} 件失敗",
     import_folders_skipped:
       "{{count}} 件のフォルダを作成できなかったため、その中のメールは受信トレイに入っています。",
+    import_folders_skipped_other:
+      "{{count}} 件のフォルダを作成できなかったため、その中のメールは受信トレイに入っています。",
     import_folders_skipped_plural:
       "{{count}} 件のフォルダを作成できなかったため、その中のメールは受信トレイに入っています。",
     storage_quota_reached:

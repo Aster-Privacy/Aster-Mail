@@ -96,7 +96,7 @@ export function StepRecoveryKey({
             <div className="mb-3 flex items-center justify-between">
               <span className="text-xs font-medium text-[var(--text-muted)]">
                 {reg.t("auth.n_recovery_codes", {
-                  count: reg.recovery_codes.length.toString(),
+                  count: reg.recovery_codes.length,
                 })}
               </span>
               <div className="flex items-center gap-1">

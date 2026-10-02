@@ -33,6 +33,8 @@ export const en: Translations = {
       "I understand that this mail cannot be recovered.",
     delete_folder_purged_items:
       "Deleted the folder and permanently destroyed {count} messages.",
+    delete_folder_purged_items_one:
+      "Deleted the folder and permanently destroyed {count} message.",
     delete_folder_deleted_no_purge:
       "Deleted the folder. The mail inside stays in your account.",
     delete_folder_password_required: "Enter your account password.",
@@ -641,6 +643,7 @@ export const en: Translations = {
     not_detected: "Not detected",
     navigate: "Navigate",
     commands_count: "{{count}} commands",
+    commands_count_one: "{{count}} command",
     no_commands_found: "No commands found",
     type_command_or_search: "Type a command or search...",
     failed_to_load_emails:
@@ -1200,6 +1203,8 @@ export const en: Translations = {
     n_conversations_moved_to_trash_other:
       "{{count}} conversations moved to trash",
     n_conversations_marked_as_spam: "{{ count }} conversations marked as spam",
+    n_conversations_marked_as_spam_one:
+      "{{ count }} conversation marked as spam",
     external_only: "External only",
     all_accounts: "All accounts",
     failed_to_rotate_keys:
@@ -1228,6 +1233,7 @@ export const en: Translations = {
     added_to_allowlist: "Added {{ email }} to allowlist",
     no_content: "No content",
     unblocked_count_senders: "Unblocked {{ count }} senders",
+    unblocked_count_senders_one: "Unblocked {{ count }} sender",
     removed_count_from_allowlist: "Removed {{ count }} from allowlist",
     failed_to_add_label: "This label was not added. Try again.",
     failed_to_remove_label: "This label was not removed. Try again.",
@@ -1433,6 +1439,7 @@ export const en: Translations = {
     check_out_aster_mail:
       "Check out Aster Mail, a better way to manage your emails!",
     n_lines: "{{ count }} lines",
+    n_lines_one: "{{ count }} line",
     hide_details: "Hide details",
     show_details: "Show details",
     not_phishing: "Not phishing",
@@ -1446,6 +1453,7 @@ export const en: Translations = {
     view_blocked_content_details: "View blocked content details",
     n_images: "{{ count }} images",
     n_items: "{{ count }} items",
+    n_items_one: "{{ count }} item",
     ctrl_click_to_open: "Ctrl+Click to open",
     user_id_label: "User ID",
     platform_label: "Platform",
@@ -1670,6 +1678,7 @@ export const en: Translations = {
     permission_denied:
       "You do not have access to do that. If this looks wrong, your admin can help.",
     n_contacts_imported: "{{ count }} contacts imported",
+    n_contacts_imported_one: "{{ count }} contact imported",
     yourname_placeholder: "yourname",
     allow_sender: "Add to allowlist",
     remove_from_allowlist_action: "Remove from allowlist",
@@ -1872,6 +1881,7 @@ export const en: Translations = {
     bulk_create_placeholder: "Ada Lovelace <ada@example.com>",
     bulk_create_ready: "{{count}} ready to create",
     contacts_created: "{{count}} contacts created",
+    contacts_created_one: "{{count}} contact created",
     some_contacts_not_created: "Some contacts couldn’t be created.",
     manage_contacts: "Manage contacts",
     merge_and_fix: "Merge and fix",
@@ -1887,6 +1897,7 @@ export const en: Translations = {
     add_birthdays_hint:
       "Add a birthday to a contact and Aster reminds you before the day.",
     birthdays_upcoming: "{{count}} birthdays are coming up",
+    birthdays_upcoming_one: "{{count}} birthday is coming up",
     add_new_group: "New group",
     add_to_group: "Add to group",
     added_to_group: "Added to group",
@@ -1929,6 +1940,7 @@ export const en: Translations = {
     failed_to_load_groups: "Couldn’t load your groups.",
     failed_to_move_to_trash: "Couldn’t move the contact to Trash.",
     group_contact_count: "{{count}} contacts",
+    group_contact_count_one: "{{count}} contact",
     group_created: "Group created",
     group_deleted: "Group deleted",
     group_modal_description:
@@ -2689,8 +2701,11 @@ export const en: Translations = {
     failed_sign_out: "Failed to sign out other sessions",
     active_now: "Active now",
     minutes_ago: "{{count}} minutes ago",
+    minutes_ago_one: "{{count}} minute ago",
     hours_ago: "{{count}} hours ago",
+    hours_ago_one: "{{count}} hour ago",
     days_ago: "{{count}} days ago",
+    days_ago_one: "{{count}} day ago",
     this_device: "This device",
     signed_in_date: "Signed in {{date}}",
     sign_out: "Sign out",
@@ -2715,7 +2730,9 @@ export const en: Translations = {
     failed_load_security_status:
       "Your security settings did not load. Try again.",
     load_more_sessions: "Load {{count}} more sessions",
+    load_more_sessions_one: "Load {{count}} more session",
     two_fa_enabled: "Enabled ({{count}} backup codes remaining)",
+    two_fa_enabled_one: "Enabled ({{count}} backup code remaining)",
     two_fa_add_security: "Add an extra layer of security with 2FA",
     basics_section_title: "Basics",
     two_step_verification: "Two-step verification",
@@ -4134,6 +4151,7 @@ export const en: Translations = {
     fam_org_2fa_sending: "Sending...",
     fam_org_2fa_reminder_sent: "Reminder sent",
     fam_org_2fa_reminder_sent_toast: "Reminder sent to {{count}} members",
+    fam_org_2fa_reminder_sent_toast_one: "Reminder sent to {{count}} member",
     fam_org_2fa_reminder_rate_limited:
       "A reminder was already sent recently. You can send another in 24 hours.",
     fam_org_2fa_reminder_failed: "Failed to send reminder",
@@ -4474,7 +4492,9 @@ export const en: Translations = {
     twenty_five_keys: "25 keys",
     auto_lock_after: "Automatically lock after {{duration}} of inactivity",
     hours: "{{count}} hours",
+    hours_one: "{{count}} hour",
     days: "{{count}} days",
+    days_one: "{{count}} day",
     failed_get_auth_data: "We could not load your sign-in info. Try again.",
     downgrade: "Downgrade",
     upgrade: "Upgrade",
@@ -4950,15 +4970,25 @@ export const en: Translations = {
       "You are using {{used}}, which is over that limit. While you are over it, incoming mail is rejected, and after 7 days it is rejected permanently.",
     cancel_impact_aliases:
       "{{count}} aliases stop receiving mail {{days}} days later.",
+    cancel_impact_aliases_one:
+      "{{count}} alias stops receiving mail {{days}} days later.",
     cancel_impact_domains: "{{count}} custom domains are suspended.",
+    cancel_impact_domains_one: "{{count}} custom domain is suspended.",
     cancel_impact_catch_all: "Catch-all addressing is turned off.",
     cancel_impact_templates: "{{count}} email templates are disabled.",
+    cancel_impact_templates_one: "{{count}} email template is disabled.",
     cancel_impact_signatures: "{{count}} signatures are disabled.",
+    cancel_impact_signatures_one: "{{count}} signature is disabled.",
     cancel_impact_family:
       "{{count}} family members move to a {{days}} day grace period.",
+    cancel_impact_family_one:
+      "{{count}} family member moves to a {{days}} day grace period.",
     cancel_impact_family_addresses:
       "{{count}} reserved family addresses are released.",
+    cancel_impact_family_addresses_one:
+      "{{count}} reserved family address is released.",
     cancel_impact_features: "{{count}} paid features are switched off.",
+    cancel_impact_features_one: "{{count}} paid feature is switched off.",
     cancel_impact_reactivate_hint:
       "Nothing is deleted. Resubscribing restores what was disabled, up to your new plan's limits.",
     cancel_impact_continue: "Continue to cancel",
@@ -6715,12 +6745,18 @@ export const en: Translations = {
     emails_of_total: "{{current}} of {{total}} emails",
     cancel_import: "Cancel Import",
     emails_imported_count: "{{count}} emails imported",
+    emails_imported_count_one: "{{count}} email imported",
     duplicates_skipped: "{{count}} duplicates skipped",
+    duplicates_skipped_one: "{{count}} duplicate skipped",
     import_folder_hint:
       "Can't find some emails? Check your Spam and Sent folders - imported emails may be sorted there based on their content.",
     n_failed_count: "{{count}} failed",
     import_folders_skipped:
       "{{count}} folder couldn't be created, so its messages are in your inbox.",
+    import_folders_skipped_one:
+      "{{count}} folder couldn't be created, so its messages are in your inbox.",
+    import_folders_skipped_other:
+      "{{count}} folders couldn't be created, so their messages are in your inbox.",
     import_folders_skipped_plural:
       "{{count}} folders couldn't be created, so their messages are in your inbox.",
     storage_quota_reached:
@@ -6933,12 +6969,14 @@ export const en: Translations = {
     connected_accounts_last_sync: "Last sync: {{ time }}",
     connected_accounts_never_synced: "Never synced",
     connected_accounts_emails: "{{ count }} emails",
+    connected_accounts_emails_one: "{{ count }} email",
     connected_accounts_syncing: "Syncing...",
     connected_accounts_no_new_emails: "No new emails to sync",
     sync_progress_count: "{{ processed }} of {{ total }} emails imported",
     sync_progress_preparing: "Preparing import…",
     sync_checking_new: "Checking for new mail…",
     sync_result_imported: "{{ count }} new emails imported",
+    sync_result_imported_one: "{{ count }} new email imported",
     sync_result_up_to_date: "Already up to date - no new emails",
     sync_stopped: "Sync stopped",
     purging_progress: "Deleting imported emails… {{ current }} of {{ total }}",
@@ -6952,9 +6990,13 @@ export const en: Translations = {
     disconnect_delete_messages_label: "Also delete imported messages",
     disconnect_delete_messages_label_count:
       "Also delete its {{ count }} imported emails",
+    disconnect_delete_messages_label_count_one:
+      "Also delete its {{ count }} imported email",
     disconnect_success: "Account disconnected",
     disconnect_deleted_success:
       "Account disconnected, {{ count }} emails deleted",
+    disconnect_deleted_success_one:
+      "Account disconnected, {{ count }} email deleted",
     stop_sync_title: "Stop sync?",
     stop_sync_description:
       "Are you sure you want to stop the sync? Already imported emails will remain.",
@@ -7019,6 +7061,8 @@ export const en: Translations = {
     oauth_folders_error: "Your folders did not finish setting up. Try again.",
     oauth_folders_partial:
       "{{count}} folders did not finish setting up, and the rest are ready to use.",
+    oauth_folders_partial_one:
+      "{{count}} folder did not finish setting up, and the rest are ready to use.",
     import_stage_setting_up_folders: "Setting up folders",
     import_stage_importing_emails: "Importing emails",
     import_stage_cancel: "Cancel",
@@ -7073,6 +7117,7 @@ export const en: Translations = {
       "We could not connect. Another look at your settings, then another attempt, usually does it.",
     removed_forwarding_rule: 'Removed forwarding rule "{{ name }}"',
     removed_forwarding_rules_count: "Removed {{ count }} forwarding rules",
+    removed_forwarding_rules_count_one: "Removed {{ count }} forwarding rule",
     customize_toolbar: "Customize toolbar",
     customize_toolbar_description:
       "Choose which actions appear in the bottom toolbar.",
@@ -7142,6 +7187,7 @@ export const en: Translations = {
       "Once rotated, your previous key is retired. Any emails that were encrypted exclusively to your old key will no longer be decryptable. This cannot be undone.",
     bulk_unsubscribe: "Bulk Unsubscribe",
     senders_unsubscribed: "{{ count }} senders unsubscribed",
+    senders_unsubscribed_one: "{{ count }} sender unsubscribed",
     opened_in_browser:
       "{{ count }} archived - manual confirmation may be needed",
     could_not_unsubscribe: "{{ count }} could not be unsubscribed",
@@ -7231,6 +7277,7 @@ export const en: Translations = {
     dev_databases_count_one: "{{count}} database",
     dev_databases_count_other: "{{count}} databases",
     dev_keys_count: "{{count}} keys",
+    dev_keys_count_one: "{{count}} key",
     dev_seconds_ago: "{{count}}s ago",
     dev_minutes_ago: "{{count}}m ago",
     dev_hours_ago: "{{count}}h ago",
@@ -7295,6 +7342,8 @@ export const en: Translations = {
     empty_trash_confirm_title: "Empty recently deleted?",
     empty_trash_confirm_message:
       "Permanently delete all {{ count }} aliases in Recently Deleted? This cannot be undone. The addresses stay reserved to your account, so no one else can claim them.",
+    empty_trash_confirm_message_one:
+      "Permanently delete {{ count }} alias in Recently Deleted? This cannot be undone. The address stays reserved to your account, so no one else can claim it.",
     trash_emptied: "Recently deleted emptied",
     failed_empty_trash: "Could not empty Recently Deleted. Please try again.",
     recently_deleted_directories_title: "Recently deleted",
@@ -7309,6 +7358,8 @@ export const en: Translations = {
     failed_purge_directory: "This directory was not deleted. Please try again.",
     empty_directory_trash_confirm_message:
       "Permanently delete all {{ count }} directories in Recently Deleted? This cannot be undone. The directories stay reserved to your account, so no one else can claim them.",
+    empty_directory_trash_confirm_message_one:
+      "Permanently delete {{ count }} directory in Recently Deleted? This cannot be undone. The directory stays reserved to your account, so no one else can claim it.",
     alias_stats_title: "Stats",
     alias_stats_description: "How much mail this alias has handled.",
     alias_stats_received: "{{ count }} received",
@@ -7518,8 +7569,12 @@ export const en: Translations = {
     alias_bulk_disabled: "Selected aliases are off.",
     alias_bulk_update_partial_failed:
       "{{count}} of {{total}} aliases were not updated.",
+    alias_bulk_update_partial_failed_one:
+      "{{count}} of {{total}} aliases was not updated.",
     alias_bulk_delete_partial_failed:
       "{{count}} of {{total}} aliases were not deleted. You can delete an alias 30 days after you create it.",
+    alias_bulk_delete_partial_failed_one:
+      "{{count}} of {{total}} aliases was not deleted. You can delete an alias 30 days after you create it.",
     alias_directory_auto_create: "Auto-create aliases",
     alias_directory_pattern_hint:
       "Send to anything.{{ key }}@{{ domain }} to spin up a new alias.",
@@ -7748,6 +7803,7 @@ export const en: Translations = {
     alias_export_source_directories: "Directories",
     alias_export_source_ghost: "Ghost aliases",
     alias_export_source_count: "{{count}} entries",
+    alias_export_source_count_one: "{{count}} entry",
     alias_export_choose_columns: "Choose columns ({{count}} selected)",
     alias_export_hide_columns: "Hide columns",
     alias_export_format_label: "File format",
@@ -7771,8 +7827,12 @@ export const en: Translations = {
       "Only {{loaded}} of {{total}} aliases finished loading. Reload your aliases and try again so your backup is complete.",
     alias_export_undecryptable:
       "{{count}} aliases could not be decrypted and are not included.",
+    alias_export_undecryptable_one:
+      "{{count}} alias could not be decrypted and is not included.",
     alias_export_undecryptable_ghost:
       "{{count}} ghost aliases could not be decrypted and are not included.",
+    alias_export_undecryptable_ghost_one:
+      "{{count}} ghost alias could not be decrypted and is not included.",
     alias_export_load_failed: "Could not load directories or ghost aliases.",
     alias_export_failed: "Export failed. Nothing was downloaded.",
     alias_import_csv: "Import Aliases",
@@ -7790,6 +7850,7 @@ export const en: Translations = {
     alias_import_skip_existing: "Skip existing",
     alias_import_update_existing: "Re-enable if disabled",
     alias_import_confirm: "Import {{count}} aliases",
+    alias_import_confirm_one: "Import {{count}} alias",
     alias_import_summary_created: "{{count}} imported",
     alias_import_summary_skipped: "{{count}} already existed",
     alias_import_summary_failed: "{{count}} failed",
@@ -8141,9 +8202,13 @@ export const en: Translations = {
       "That password did not work. Check it with the sender and try again.",
     all_on_page_selected:
       "All {{ count }} conversations on this page are selected.",
+    all_on_page_selected_one:
+      "{{ count }} conversation on this page is selected.",
     select_all_in_folder:
       "Select all {{ count }} conversations in {{ folder }}",
+    select_all_in_folder_one: "Select {{ count }} conversation in {{ folder }}",
     all_in_folder_selected: "All {{ count }} conversations are selected.",
+    all_in_folder_selected_one: "{{ count }} conversation is selected.",
     inbox: "Inbox",
     sent: "Sent",
     drafts: "Drafts",
@@ -8190,6 +8255,7 @@ export const en: Translations = {
     attachment_chips_more: "+{{count}} more",
     page_of_total: "Page {{current}} of {{total}}",
     total_pages_label: "{{count}} pages",
+    total_pages_label_one: "{{count}} page",
     loading_preview: "Loading preview\u2026",
     preview_failed: "The preview did not load. Opening the email will show it.",
     pdf_preview_failed:
@@ -8516,6 +8582,7 @@ export const en: Translations = {
     move_to_category: "Move to category",
     menu_applies_to_selection: "Applies to {count} selected",
     menu_applies_to_all: "Applies to all {count} messages",
+    menu_applies_to_all_one: "Applies to {count} message",
     moved_to_category: "Moved to category",
     drop_to_move_here: "Drop to move here",
     tab_new_count: "new",
@@ -8827,6 +8894,7 @@ export const en: Translations = {
     order_number: "Order #{{id}}",
     items: "Items",
     more_items_count: "+{{count}} more items",
+    more_items_count_one: "+{{count}} more item",
     card_ending_in: "Card ending in {{last_four}}",
     purchase_extraction_privacy:
       "Extracted locally from your email, so nothing is sent to our servers.",
@@ -8859,6 +8927,7 @@ export const en: Translations = {
     message_deleted: "This message was deleted",
     unknown_recipient: "(unknown recipient)",
     lines_count: "{{count}} lines",
+    lines_count_one: "{{count}} line",
     message_label: "message",
     messages_label: "messages",
     star: "Star",
@@ -9116,6 +9185,7 @@ export const en: Translations = {
     sign_in_session_expired:
       "Your sign-in session expired. Go back and sign in again.",
     backup_codes_remaining_after_login: "{{count}} backup codes remaining",
+    backup_codes_remaining_after_login_one: "{{count}} backup code remaining",
     backup_code_description: "Enter one of your backup codes to sign in",
     backup_code_single_use: "Each backup code can only be used once",
     backup_code_placeholder: "XXXX-XXXX-XXXX",
@@ -9893,6 +9963,7 @@ export const en: Translations = {
     mode_archive_hint: "Removed from inbox, kept and recoverable",
     enabled: "Enabled",
     preview_some: "About {{count}} emails will be cleaned on the next run.",
+    preview_some_one: "About {{count}} email will be cleaned on the next run.",
     preview_none: "No emails currently match this rule.",
     keeps_note: "Starred and pinned emails are always kept.",
     save: "Save",
@@ -9968,6 +10039,7 @@ export const en: Translations = {
       "Create your first rule to automatically organize incoming mail.",
     empty_cta: "Create rule",
     applied_count: "Applied to {{count}} messages",
+    applied_count_one: "Applied to {{count}} message",
     field_from: "From",
     field_to: "To/Cc/Bcc",
     field_subject: "Subject",

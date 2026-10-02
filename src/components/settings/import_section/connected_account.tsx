@@ -142,7 +142,7 @@ export function ConnectedAccountCard({
         if (imported > 0) {
           show_toast(
             t_ref.current("settings.sync_result_imported", {
-              count: imported.toLocaleString(app_locale()),
+              count: imported,
             }),
             "success",
           );
@@ -304,7 +304,7 @@ export function ConnectedAccountCard({
                 <span aria-hidden="true">·</span>
                 <span>
                   {t("settings.connected_accounts_emails", {
-                    count: account.email_count.toLocaleString(app_locale()),
+                    count: account.email_count,
                   })}
                 </span>
               </>
@@ -455,7 +455,7 @@ export function ConnectedAccountCard({
                     : t("settings.connected_accounts_syncing")}
                 {processed > 0
                   ? ` · ${t("settings.connected_accounts_emails", {
-                      count: processed.toLocaleString(app_locale()),
+                      count: processed,
                     })}`
                   : ""}
               </span>

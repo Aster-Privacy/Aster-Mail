@@ -5570,6 +5570,8 @@ export const ko = {
     n_failed_count: "{{count}}개 실패",
     import_folders_skipped:
       "폴더 {{count}}개를 만들지 못해 해당 메일은 받은 편지함에 있습니다.",
+    import_folders_skipped_other:
+      "폴더 {{count}}개를 만들지 못해 해당 메일은 받은 편지함에 있습니다.",
     import_folders_skipped_plural:
       "폴더 {{count}}개를 만들지 못해 해당 메일은 받은 편지함에 있습니다.",
     storage_quota_reached:

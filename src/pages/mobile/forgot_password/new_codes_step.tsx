@@ -75,7 +75,7 @@ export function NewCodesStep({
           <div className="mb-3 flex items-center justify-between">
             <span className="text-xs font-medium text-[var(--text-muted)]">
               {t("auth.n_recovery_codes", {
-                count: new_recovery_codes.length.toString(),
+                count: new_recovery_codes.length,
               })}
             </span>
             <button

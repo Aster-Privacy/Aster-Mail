@@ -25,6 +25,7 @@ export const ru = {
     add_to_group: "Добавить в группу",
     added_to_group: "Добавлено в группу",
     birthdays_upcoming: "Скоро дней рождения: {{count}}",
+    birthdays_upcoming_one: "Скоро {{count}} день рождения",
     bulk_create_hint:
       "Добавляйте по одному контакту в строке. Чтобы сохранить адрес электронной почты вместе с именем, напишите адрес в угловых скобках.",
     bulk_create_placeholder: "Ada Lovelace <ada@example.com>",
@@ -36,6 +37,7 @@ export const ru = {
     contact_change_undone: "Изменение отменено",
     contact_restored: "Контакт восстановлен",
     contacts_created: "Создано контактов: {{count}}",
+    contacts_created_one: "Создан {{count}} контакт",
     contacts_exported: "Контакты экспортированы",
     contacts_merged: "Контакты объединены",
     contacts_moved_to_trash: "Контакты перемещены в корзину",
@@ -55,6 +57,7 @@ export const ru = {
     frequent_contacts_hint:
       "Контакты, которым вы пишете чаще всего, появляются здесь.",
     group_contact_count: "Контактов: {{count}}",
+    group_contact_count_one: "{{count}} контакт",
     group_created: "Группа создана",
     group_deleted: "Группа удалена",
     group_empty_title: "В этой группе нет контактов",
@@ -99,6 +102,8 @@ export const ru = {
       "Я понимаю, что эти письма восстановить нельзя.",
     delete_folder_purged_items:
       "Папка удалена, безвозвратно уничтожено писем: {count}.",
+    delete_folder_purged_items_one:
+      "Папка удалена, безвозвратно уничтожено {count} письмо.",
     delete_folder_deleted_no_purge:
       "Папка удалена. Письма внутри остаются в учётной записи.",
     delete_folder_password_required: "Введите пароль учётной записи.",
@@ -644,6 +649,8 @@ export const ru = {
     not_detected: "Не обнаружено",
     navigate: "Навигация",
     commands_count: "{{count}} команд",
+    commands_count_one: "{{count}} команда",
+    commands_count_few: "{{count}} команды",
     no_commands_found: "Команды не найдены",
     type_command_or_search: "Введите команду или поисковый запрос...",
     failed_to_load_emails:
@@ -1138,6 +1145,9 @@ export const ru = {
     n_conversations_moved_to_trash_other:
       "{{count}} беседы перемещены в корзину",
     n_conversations_marked_as_spam: "{{ count }} разговоров отмечено как спам",
+    n_conversations_marked_as_spam_one: "{{ count }} разговор отмечен как спам",
+    n_conversations_marked_as_spam_few:
+      "{{ count }} разговора отмечены как спам",
     external_only: "Только внешние",
     all_accounts: "Все аккаунты",
     failed_to_rotate_keys:
@@ -1166,6 +1176,8 @@ export const ru = {
     added_to_allowlist: "{{ email }} добавлено в список разрешённых",
     no_content: "Нет содержимого",
     unblocked_count_senders: "Разблокировано {{ count }} отправителей",
+    unblocked_count_senders_one: "Разблокирован {{ count }} отправитель",
+    unblocked_count_senders_few: "Разблокировано {{ count }} отправителя",
     removed_count_from_allowlist: "Удалено {{ count }} из списка разрешённых",
     failed_to_add_label: "Попробуйте снова.",
     failed_to_remove_label: "Попробуйте снова.",
@@ -1400,6 +1412,8 @@ export const ru = {
     check_out_aster_mail:
       "Посмотрите Aster Mail, удобный способ управлять почтой!",
     n_lines: "{{ count }} строк",
+    n_lines_one: "{{ count }} строка",
+    n_lines_few: "{{ count }} строки",
     hide_details: "Скрыть детали",
     show_details: "Показать детали",
     not_phishing: "Не фишинг",
@@ -1414,6 +1428,8 @@ export const ru = {
       "Просмотреть детали заблокированного содержимого",
     n_images: "{{ count }} изображений",
     n_items: "{{ count }} элементов",
+    n_items_one: "{{ count }} элемент",
+    n_items_few: "{{ count }} элемента",
     ctrl_click_to_open: "Ctrl+клик, чтобы открыть",
     user_id_label: "ID пользователя",
     platform_label: "Платформа",
@@ -1639,6 +1655,8 @@ export const ru = {
       "Ваше сообщение будет отправлено в ближайшее время",
     more_aliases: "ещё {{count}} псевдонимов",
     n_contacts_imported: "{{ count }} контактов импортировано",
+    n_contacts_imported_one: "{{ count }} контакт импортирован",
+    n_contacts_imported_few: "{{ count }} контакта импортированы",
     n_more: "+{{count}} ещё",
     n_more_recipients: "+{{count}} ещё",
     no_custom_fields_yet: "Пользовательские поля ещё не определены",
@@ -2865,6 +2883,10 @@ export const ru = {
     empty_trash_confirm_title: "Очистить недавно удалённые?",
     empty_trash_confirm_message:
       "Удалить навсегда все {{ count }} псевдонимов в разделе «Недавно удалённые»? Это действие нельзя отменить. Адреса остаются зарезервированными за вашей учётной записью, поэтому никто другой не сможет их занять.",
+    empty_trash_confirm_message_one:
+      "Удалить навсегда {{ count }} псевдоним в разделе «Недавно удалённые»? Это действие нельзя отменить. Адрес остаётся зарезервированным за вашей учётной записью, поэтому никто другой не сможет его занять.",
+    empty_trash_confirm_message_few:
+      "Удалить навсегда все {{ count }} псевдонима в разделе «Недавно удалённые»? Это действие нельзя отменить. Адреса остаются зарезервированными за вашей учётной записью, поэтому никто другой не сможет их занять.",
     trash_emptied: "Недавно удалённые очищены",
     failed_empty_trash:
       "Не удалось очистить «Недавно удалённые». Повторите попытку.",
@@ -2880,6 +2902,8 @@ export const ru = {
     failed_purge_directory: "Каталог не был удалён. Повторите попытку.",
     empty_directory_trash_confirm_message:
       "Удалить навсегда все каталоги ({{ count }}) из «Недавно удалённых»? Это действие нельзя отменить. Каталоги останутся закреплены за вашей учётной записью, и никто другой не сможет их занять.",
+    empty_directory_trash_confirm_message_one:
+      "Удалить навсегда каталог ({{ count }}) из «Недавно удалённых»? Это действие нельзя отменить. Каталог останется закреплён за вашей учётной записью, и никто другой не сможет его занять.",
     alias_stats_title: "Статистика",
     alias_stats_received: "Получено: {{ count }}",
     alias_stats_forwarded: "Переслано: {{ count }}",
@@ -3102,7 +3126,11 @@ export const ru = {
     alias_bulk_disabled: "Выбранные псевдонимы выключены.",
     alias_bulk_update_partial_failed:
       "Не удалось обновить {{count}} из {{total}} псевдонимов.",
+    alias_bulk_update_partial_failed_one:
+      "Не удалось обновить {{count}} из {{total}} псевдонимов.",
     alias_bulk_delete_partial_failed:
+      "Не удалось удалить {{count}} из {{total}} псевдонимов. Псевдоним можно удалить через 30 дней после создания.",
+    alias_bulk_delete_partial_failed_one:
       "Не удалось удалить {{count}} из {{total}} псевдонимов. Псевдоним можно удалить через 30 дней после создания.",
     alias_directory_create_failed:
       "Этот каталог не был создан. Попробуйте снова.",
@@ -3170,6 +3198,7 @@ export const ru = {
     alias_export_source_directories: "Каталоги",
     alias_export_source_ghost: "Ghost-псевдонимы",
     alias_export_source_count: "Записей: {{count}}",
+    alias_export_source_count_one: "{{count}} запись",
     alias_export_choose_columns: "Выбрать столбцы (выбрано: {{count}})",
     alias_export_hide_columns: "Скрыть столбцы",
     alias_export_format_label: "Формат файла",
@@ -3193,8 +3222,12 @@ export const ru = {
       "Загружено только {{loaded}} из {{total}} псевдонимов. Обновите список псевдонимов и повторите попытку, чтобы резервная копия была полной.",
     alias_export_undecryptable:
       "Не удалось расшифровать псевдонимов: {{count}}. Они не включены.",
+    alias_export_undecryptable_one:
+      "Не удалось расшифровать {{count}} псевдоним. Он не включён.",
     alias_export_undecryptable_ghost:
       "Не удалось расшифровать ghost-псевдонимов: {{count}}. Они не включены.",
+    alias_export_undecryptable_ghost_one:
+      "Не удалось расшифровать {{count}} ghost-псевдоним. Он не включён.",
     alias_export_load_failed:
       "Не удалось загрузить каталоги или ghost-псевдонимы.",
     alias_export_failed: "Экспорт не выполнен. Ничего не скачано.",
@@ -3213,6 +3246,8 @@ export const ru = {
     alias_import_skip_existing: "Пропустить существующие",
     alias_import_update_existing: "Снова включить, если отключён",
     alias_import_confirm: "Импортировать {{count}} псевдонимов",
+    alias_import_confirm_one: "Импортировать {{count}} псевдоним",
+    alias_import_confirm_few: "Импортировать {{count}} псевдонима",
     alias_import_summary_created: "Импортировано: {{count}}",
     alias_import_summary_skipped: "Уже существовало: {{count}}",
     alias_import_summary_failed: "Не удалось: {{count}}",
@@ -3485,6 +3520,8 @@ export const ru = {
     fam_org_2fa_reminder_sent: "Напоминание отправлено",
     fam_org_2fa_reminder_sent_toast:
       "Напоминание отправлено {{count}} участникам",
+    fam_org_2fa_reminder_sent_toast_one:
+      "Напоминание отправлено {{count}} участнику",
     fam_org_2fa_reminder_rate_limited:
       "Напоминание уже было отправлено недавно. Вы можете отправить ещё одно через 24 часа.",
     fam_org_2fa_reminder_failed: "Не удалось отправить напоминание",
@@ -4040,8 +4077,11 @@ export const ru = {
     failed_sign_out: "Не удалось завершить другие сессии",
     active_now: "Активна сейчас",
     minutes_ago: "{{count}} мин. назад",
+    minutes_ago_one: "{{count}} мин. назад",
     hours_ago: "{{count}} ч. назад",
+    hours_ago_one: "{{count}} ч. назад",
     days_ago: "{{count}} дн. назад",
+    days_ago_one: "{{count}} дн. назад",
     this_device: "Это устройство",
     signed_in_date: "Вход выполнен {{date}}",
     sign_out: "Выйти",
@@ -4052,7 +4092,11 @@ export const ru = {
     failed_load_security_status:
       "Настройки безопасности не загрузились. Попробуйте снова.",
     load_more_sessions: "Загрузить ещё {{count}} сессий",
+    load_more_sessions_one: "Загрузить ещё {{count}} сессию",
+    load_more_sessions_few: "Загрузить ещё {{count}} сессии",
     two_fa_enabled: "Включено (осталось {{count}} резервных кодов)",
+    two_fa_enabled_one: "Включено (остался {{count}} резервный код)",
+    two_fa_enabled_few: "Включено (осталось {{count}} резервных кода)",
     two_fa_add_security: "Добавьте дополнительный уровень безопасности с 2FA",
     basics_section_title: "Основные",
     two_step_verification: "Двухэтапная проверка",
@@ -4521,7 +4565,11 @@ export const ru = {
     auto_lock_after:
       "Автоматическая блокировка через {{duration}} неактивности",
     hours: "{{count}} часов",
+    hours_one: "{{count}} час",
+    hours_few: "{{count}} часа",
     days: "{{count}} дней",
+    days_one: "{{count}} день",
+    days_few: "{{count}} дня",
     failed_get_auth_data:
       "Не удалось загрузить данные для входа. Попробуйте снова.",
     downgrade: "Понизить",
@@ -5692,12 +5740,20 @@ export const ru = {
     emails_of_total: "{{current}} из {{total}} писем",
     cancel_import: "Отменить импорт",
     emails_imported_count: "{{count}} писем импортировано",
+    emails_imported_count_one: "{{count}} письмо импортировано",
+    emails_imported_count_few: "{{count}} письма импортированы",
     duplicates_skipped: "{{count}} дубликатов пропущено",
+    duplicates_skipped_one: "{{count}} дубликат пропущен",
+    duplicates_skipped_few: "{{count}} дубликата пропущены",
     import_folder_hint:
       "Не можете найти некоторые письма? Проверьте папки Спам и Отправленные - импортированные письма могут быть отсортированы туда.",
     n_failed_count: "{{count}} не удалось",
     import_folders_skipped:
       "Не удалось создать {{count}} папку, поэтому письма из нее находятся во входящих.",
+    import_folders_skipped_one:
+      "Не удалось создать {{count}} папку, поэтому письма из нее находятся во входящих.",
+    import_folders_skipped_other:
+      "Не удалось создать папки: {{count}}. Письма из них находятся во входящих.",
     import_folders_skipped_plural:
       "Не удалось создать папки: {{count}}. Письма из них находятся во входящих.",
     storage_quota_reached:
@@ -5916,6 +5972,10 @@ export const ru = {
       "Соединиться не удалось. Ещё один взгляд на настройки и повторная попытка обычно решает вопрос.",
     removed_forwarding_rule: 'Удалено правило переадресации "{{ name }}"',
     removed_forwarding_rules_count: "Удалено {{ count }} правил переадресации",
+    removed_forwarding_rules_count_one:
+      "Удалено {{ count }} правило переадресации",
+    removed_forwarding_rules_count_few:
+      "Удалено {{ count }} правила переадресации",
     customize_toolbar: "Настроить панель инструментов",
     customize_toolbar_description:
       "Выберите, какие действия отображаются на нижней панели инструментов.",
@@ -6289,16 +6349,38 @@ export const ru = {
       "Вы используете {{used}}, это превышает лимит. Пока лимит превышен, входящая почта отклоняется, а через 7 дней отклоняется навсегда.",
     cancel_impact_aliases:
       "{{count}} псевдонимов перестанут получать почту через {{days}} дней.",
+    cancel_impact_aliases_one:
+      "{{count}} псевдоним перестанет получать почту через {{days}} дней.",
+    cancel_impact_aliases_few:
+      "{{count}} псевдонима перестанут получать почту через {{days}} дней.",
     cancel_impact_domains:
       "{{count}} собственных доменов будут приостановлены.",
+    cancel_impact_domains_one:
+      "{{count}} собственный домен будет приостановлен.",
+    cancel_impact_domains_few:
+      "{{count}} собственных домена будут приостановлены.",
     cancel_impact_catch_all: "Адресация catch-all будет отключена.",
     cancel_impact_templates: "{{count}} шаблонов писем будут отключены.",
+    cancel_impact_templates_one: "{{count}} шаблон писем будет отключён.",
+    cancel_impact_templates_few: "{{count}} шаблона писем будут отключены.",
     cancel_impact_signatures: "{{count}} подписей будут отключены.",
+    cancel_impact_signatures_one: "{{count}} подпись будет отключена.",
+    cancel_impact_signatures_few: "{{count}} подписи будут отключены.",
     cancel_impact_family:
       "{{count}} участников семьи перейдут в льготный период на {{days}} дней.",
+    cancel_impact_family_one:
+      "{{count}} участник семьи перейдёт в льготный период на {{days}} дней.",
+    cancel_impact_family_few:
+      "{{count}} участника семьи перейдут в льготный период на {{days}} дней.",
     cancel_impact_family_addresses:
       "{{count}} зарезервированных семейных адресов будут освобождены.",
+    cancel_impact_family_addresses_one:
+      "{{count}} зарезервированный семейный адрес будет освобождён.",
+    cancel_impact_family_addresses_few:
+      "{{count}} зарезервированных семейных адреса будут освобождены.",
     cancel_impact_features: "{{count}} платных функций будут отключены.",
+    cancel_impact_features_one: "{{count}} платная функция будет отключена.",
+    cancel_impact_features_few: "{{count}} платные функции будут отключены.",
     cancel_impact_reactivate_hint:
       "Ничего не удаляется. Повторная подписка восстановит отключённое в пределах лимитов нового плана.",
     cancel_impact_continue: "Продолжить отмену",
@@ -6628,6 +6710,8 @@ export const ru = {
     connected_accounts_last_sync: "Последняя синхронизация: {{ time }}",
     connected_accounts_never_synced: "Ни разу не синхронизировано",
     connected_accounts_emails: "{{ count }} писем",
+    connected_accounts_emails_one: "{{ count }} письмо",
+    connected_accounts_emails_few: "{{ count }} письма",
     connected_accounts_syncing: "Синхронизация...",
     connected_accounts_sync_now: "Синхронизировать",
     connected_accounts_disconnect: "Отключить",
@@ -6687,6 +6771,7 @@ export const ru = {
       "После ротации предыдущий ключ отзывается. Письма, зашифрованные исключительно старым ключом, больше не смогут быть расшифрованы. Это действие необратимо.",
     bulk_unsubscribe: "Массовая отписка",
     senders_unsubscribed: "Отписано отправителей: {{ count }}",
+    senders_unsubscribed_one: "Отписан {{ count }} отправитель",
     opened_in_browser:
       "{{ count }} архивировано - может потребоваться подтверждение вручную",
     could_not_unsubscribe: "{{ count }} не удалось отписать",
@@ -7432,6 +7517,8 @@ export const ru = {
     dev_hours_ago: "{{count}} ч. назад",
     dev_key_exchange_label: "Обмен ключами",
     dev_keys_count: "{{count}} ключей",
+    dev_keys_count_one: "{{count}} ключ",
+    dev_keys_count_few: "{{count}} ключа",
     dev_less_than_one_hour: "< 1 часа",
     dev_loaded_ago: "загружено {{time}}",
     dev_minutes_ago: "{{count}} мин. назад",
@@ -7450,8 +7537,12 @@ export const ru = {
     disconnect_delete_messages_label: "Также удалить импортированные сообщения",
     disconnect_delete_messages_label_count:
       "Также удалить импортированные письма ({{ count }})",
+    disconnect_delete_messages_label_count_one:
+      "Также удалить импортированное письмо ({{ count }})",
     disconnect_success: "Аккаунт отключён",
     disconnect_deleted_success: "Аккаунт отключён, удалено писем: {{ count }}",
+    disconnect_deleted_success_one:
+      "Аккаунт отключён, удалено {{ count }} письмо",
     disconnect_title: "Отключить аккаунт",
     discount_first_month: "Первый месяц",
     discount_first_year: "Первый год",
@@ -7741,6 +7832,10 @@ export const ru = {
     oauth_folders_error: "Настройка папок не завершилась. Попробуйте снова.",
     oauth_folders_partial:
       "{{count}} папок не удалось настроить, остальные готовы к использованию.",
+    oauth_folders_partial_one:
+      "{{count}} папку не удалось настроить, остальные готовы к использованию.",
+    oauth_folders_partial_few:
+      "{{count}} папки не удалось настроить, остальные готовы к использованию.",
     oauth_folders_ready: "Папки синхронизированы успешно",
     oauth_reason_account_creation_failed:
       "Не удалось завершить настройку связанного аккаунта. Попробуйте снова.",
@@ -7956,6 +8051,7 @@ export const ru = {
     sync_progress_preparing: "Подготовка импорта...",
     sync_checking_new: "Проверка новой почты…",
     sync_result_imported: "Импортировано новых писем: {{ count }}",
+    sync_result_imported_one: "Импортировано {{ count }} новое письмо",
     sync_result_up_to_date: "Уже актуально - новых писем нет",
     sync_stopped: "Синхронизация остановлена",
     purging_progress:
@@ -8515,6 +8611,7 @@ export const ru = {
     move_to_category: "Переместить в категорию",
     menu_applies_to_selection: "Применяется к {count} выбранным",
     menu_applies_to_all: "Применяется ко всем {count} сообщениям",
+    menu_applies_to_all_one: "Применяется к {count} сообщению",
     moved_to_category: "Перемещено в категорию",
     drop_to_move_here: "Перетащите сюда, чтобы переместить",
     tab_new_count: "новых",
@@ -9028,6 +9125,8 @@ export const ru = {
     order_number: "Заказ №{{id}}",
     items: "Товары",
     more_items_count: "+{{count}} ещё товаров",
+    more_items_count_one: "+{{count}} ещё товар",
+    more_items_count_few: "+{{count}} ещё товара",
     card_ending_in: "Карта, заканчивающаяся на {{last_four}}",
     purchase_extraction_privacy:
       "Извлечено локально из вашего письма, и ничего не отправляется на наши серверы.",
@@ -9053,6 +9152,8 @@ export const ru = {
     message_deleted: "Это сообщение было удалено",
     unknown_recipient: "(неизвестный получатель)",
     lines_count: "{{count}} строк",
+    lines_count_one: "{{count}} строка",
+    lines_count_few: "{{count}} строки",
     message_label: "сообщение",
     messages_label: "сообщений",
     star: "Звёздочка",
@@ -9088,6 +9189,8 @@ export const ru = {
     attachment_chips_more: "+{{count}} ещё",
     page_of_total: "Страница {{current}} из {{total}}",
     total_pages_label: "{{count}} страниц",
+    total_pages_label_one: "{{count}} страница",
+    total_pages_label_few: "{{count}} страницы",
     loading_preview: "Загрузка предпросмотра…",
     preview_failed:
       "Предпросмотр не загрузился. Открытие письма его показывает.",
@@ -9123,7 +9226,12 @@ export const ru = {
     add_link_to_selection: "Добавить ссылку к «{{text}}»",
     advanced_search: "Расширенный",
     all_in_folder_selected: "Выбраны все {{ count }} бесед.",
+    all_in_folder_selected_one: "Выбрана {{ count }} беседа.",
+    all_in_folder_selected_few: "Выбраны все {{ count }} беседы.",
     all_on_page_selected: "Выбраны все {{ count }} бесед на этой странице.",
+    all_on_page_selected_one: "Выбрана {{ count }} беседа на этой странице.",
+    all_on_page_selected_few:
+      "Выбраны все {{ count }} беседы на этой странице.",
     attachment_singular: "Вложение",
     load_attachments: "Загрузить вложения",
     bounced: "Отклонено",
@@ -9301,6 +9409,8 @@ export const ru = {
     refine_your_search_action: "Уточнить запрос",
     turn_off_indexing_action: "Отключить индексирование",
     select_all_in_folder: "Выбрать все {{ count }} бесед в {{ folder }}",
+    select_all_in_folder_one: "Выбрать {{ count }} беседу в {{ folder }}",
+    select_all_in_folder_few: "Выбрать все {{ count }} беседы в {{ folder }}",
     show_headers: "Показать полные заголовки",
     show_trimmed_content: "Показать скрытое содержимое",
     size_label: "Размер:",
@@ -9444,6 +9554,7 @@ export const ru = {
     sign_in_session_expired:
       "Сессия входа истекла. Вернитесь назад и войдите снова.",
     backup_codes_remaining_after_login: "Осталось резервных кодов: {{count}}",
+    backup_codes_remaining_after_login_one: "Остался {{count}} резервный код",
     backup_code_description: "Введите один из ваших резервных кодов для входа",
     backup_code_single_use:
       "Каждый резервный код можно использовать только один раз",
@@ -10299,6 +10410,8 @@ export const ru = {
       "Убирается из входящих, но сохраняется и доступно для восстановления",
     enabled: "Включено",
     preview_some: "При следующем запуске будет очищено около {{count}} писем.",
+    preview_some_one:
+      "При следующем запуске будет очищено около {{count}} письма.",
     preview_none: "Сейчас этому правилу не соответствует ни одно письмо.",
     keeps_note: "Избранные и закреплённые письма всегда сохраняются.",
     save: "Сохранить",
@@ -10385,6 +10498,7 @@ export const ru = {
     add_condition: "Добавить условие",
     and_label: "И",
     applied_count: "Применено к {{count}} сообщениям",
+    applied_count_one: "Применено к {{count}} сообщению",
     apply_to_existing: "Применить к существующей почте сейчас",
     apply_to_existing_started:
       "Правило применяется к вашей существующей почте. Обработка идёт в фоновом режиме.",

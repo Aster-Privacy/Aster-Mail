@@ -5052,6 +5052,8 @@ export const zh_CN = {
     n_failed_count: "失败 {{count}}",
     import_folders_skipped:
       "有 {{count}} 个文件夹无法创建，其中的邮件已放入收件箱。",
+    import_folders_skipped_other:
+      "有 {{count}} 个文件夹无法创建，其中的邮件已放入收件箱。",
     import_folders_skipped_plural:
       "有 {{count}} 个文件夹无法创建，其中的邮件已放入收件箱。",
     storage_quota_reached:

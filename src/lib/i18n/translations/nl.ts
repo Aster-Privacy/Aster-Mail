@@ -25,6 +25,7 @@ export const nl = {
     add_to_group: "Aan groep toevoegen",
     added_to_group: "Toegevoegd aan groep",
     birthdays_upcoming: "{{count}} verjaardagen komen eraan",
+    birthdays_upcoming_one: "{{count}} verjaardag komt eraan",
     bulk_create_hint:
       "Voeg één contact per regel toe. Als je een e-mailadres bij een naam wilt bewaren, zet je het adres tussen punthaken.",
     bulk_create_placeholder: "Ada Lovelace <ada@example.com>",
@@ -35,6 +36,7 @@ export const nl = {
     contact_change_undone: "Wijziging ongedaan gemaakt",
     contact_restored: "Contact hersteld",
     contacts_created: "{{count}} contacten aangemaakt",
+    contacts_created_one: "{{count}} contact aangemaakt",
     contacts_exported: "Contacten geëxporteerd",
     contacts_merged: "Contacten samengevoegd",
     contacts_updated_stat: "Bijgewerkt",
@@ -50,6 +52,7 @@ export const nl = {
     frequent_contacts_hint:
       "De contacten die je het vaakst mailt, verschijnen hier.",
     group_contact_count: "{{count}} contacten",
+    group_contact_count_one: "{{count}} contact",
     group_created: "Groep aangemaakt",
     group_deleted: "Groep verwijderd",
     group_empty_title: "Geen contacten in deze groep",
@@ -100,6 +103,8 @@ export const nl = {
       "Ik begrijp dat deze e-mails niet kunnen worden hersteld.",
     delete_folder_purged_items:
       "Map verwijderd en {count} berichten definitief vernietigd.",
+    delete_folder_purged_items_one:
+      "Map verwijderd en {count} bericht definitief vernietigd.",
     delete_folder_deleted_no_purge:
       "Map verwijderd. De e-mails erin blijven in je account.",
     delete_folder_password_required: "Voer je accountwachtwoord in.",
@@ -642,6 +647,7 @@ export const nl = {
     not_detected: "Niet gedetecteerd",
     navigate: "Navigeren",
     commands_count: "{{count}} opdrachten",
+    commands_count_one: "{{count}} opdracht",
     no_commands_found: "Geen opdrachten gevonden",
     type_command_or_search: "Typ een opdracht of zoek...",
     failed_to_load_emails:
@@ -1137,6 +1143,7 @@ export const nl = {
     added_to_allowlist: "{{ email }} aan toelatingslijst toegevoegd",
     no_content: "Geen inhoud",
     unblocked_count_senders: "{{ count }} afzenders gedeblokkeerd",
+    unblocked_count_senders_one: "{{ count }} afzender gedeblokkeerd",
     removed_count_from_allowlist: "{{ count }} van toelatingslijst verwijderd",
     failed_to_add_label: "Probeer het opnieuw.",
     failed_to_remove_label: "Probeer het opnieuw.",
@@ -1270,6 +1277,8 @@ export const nl = {
       "{{count}} gesprekken naar de prullenbak verplaatst",
     n_conversations_marked_as_spam:
       "{{ count }} gesprekken als spam gemarkeerd",
+    n_conversations_marked_as_spam_one:
+      "{{ count }} gesprek als spam gemarkeerd",
     notification_banner_no_thanks: "Nee, bedankt",
     locked_data_banner_message:
       "Een deel van je oudere versleutelde gegevens is vergrendeld.",
@@ -1400,6 +1409,7 @@ export const nl = {
     check_out_aster_mail:
       "Bekijk Aster Mail, een betere manier om je e-mails te beheren!",
     n_lines: "{{ count }} regels",
+    n_lines_one: "{{ count }} regel",
     hide_details: "Details verbergen",
     show_details: "Details tonen",
     not_phishing: "Geen phishing",
@@ -1413,6 +1423,7 @@ export const nl = {
     view_blocked_content_details: "Details van geblokkeerde inhoud bekijken",
     n_images: "{{ count }} afbeeldingen",
     n_items: "{{ count }} items",
+    n_items_one: "{{ count }} item",
     ctrl_click_to_open: "Ctrl+klik om te openen",
     user_id_label: "Gebruikers-ID",
     platform_label: "Platform",
@@ -1634,6 +1645,7 @@ export const nl = {
     more_aliases: "{{count}} meer aliassen",
     more_information: "Meer informatie",
     n_contacts_imported: "{{count}} contacten geimporteerd",
+    n_contacts_imported_one: "{{count}} contact geimporteerd",
     n_more: "{{count}} meer",
     n_more_recipients: "{{count}} meer ontvangers",
     no_custom_fields_yet: "Nog geen aangepaste velden",
@@ -2687,6 +2699,8 @@ export const nl = {
     empty_trash_confirm_title: "Onlangs verwijderd legen?",
     empty_trash_confirm_message:
       "Alle {{ count }} aliassen in Onlangs verwijderd permanent verwijderen? Dit kan niet ongedaan worden gemaakt. De adressen blijven gereserveerd voor je account, zodat niemand anders ze kan claimen.",
+    empty_trash_confirm_message_one:
+      "{{ count }} alias in Onlangs verwijderd permanent verwijderen? Dit kan niet ongedaan worden gemaakt. Het adres blijft gereserveerd voor je account, zodat niemand anders het kan claimen.",
     trash_emptied: "Onlangs verwijderd geleegd",
     failed_empty_trash:
       "Onlangs verwijderd kon niet worden geleegd. Probeer het opnieuw.",
@@ -2703,6 +2717,8 @@ export const nl = {
       "Deze directory is niet verwijderd. Probeer het opnieuw.",
     empty_directory_trash_confirm_message:
       "Alle {{ count }} directories in Onlangs verwijderd definitief verwijderen? Dit kan niet ongedaan worden gemaakt. De directories blijven gereserveerd voor je account, zodat niemand anders ze kan claimen.",
+    empty_directory_trash_confirm_message_one:
+      "{{ count }} directory in Onlangs verwijderd definitief verwijderen? Dit kan niet ongedaan worden gemaakt. De directory blijft gereserveerd voor je account, zodat niemand anders die kan claimen.",
     alias_stats_title: "Statistieken",
     alias_stats_received: "{{ count }} ontvangen",
     alias_stats_forwarded: "{{ count }} doorgestuurd",
@@ -2927,8 +2943,12 @@ export const nl = {
     alias_bulk_disabled: "Geselecteerde aliassen staan uit.",
     alias_bulk_update_partial_failed:
       "{{count}} van {{total}} aliassen zijn niet bijgewerkt.",
+    alias_bulk_update_partial_failed_one:
+      "{{count}} van {{total}} aliassen is niet bijgewerkt.",
     alias_bulk_delete_partial_failed:
       "{{count}} van {{total}} aliassen zijn niet verwijderd. Je kunt een alias 30 dagen na het aanmaken verwijderen.",
+    alias_bulk_delete_partial_failed_one:
+      "{{count}} van {{total}} aliassen is niet verwijderd. Je kunt een alias 30 dagen na het aanmaken verwijderen.",
     alias_directory_create_failed:
       "Deze directory is niet aangemaakt. Probeer het opnieuw.",
     alias_directory_auto_create: "Aliassen automatisch aanmaken",
@@ -2994,6 +3014,7 @@ export const nl = {
     alias_export_source_directories: "Directory's",
     alias_export_source_ghost: "Ghost-aliassen",
     alias_export_source_count: "{{count}} items",
+    alias_export_source_count_one: "{{count}} item",
     alias_export_choose_columns: "Kolommen kiezen ({{count}} geselecteerd)",
     alias_export_hide_columns: "Kolommen verbergen",
     alias_export_format_label: "Bestandsindeling",
@@ -3017,8 +3038,12 @@ export const nl = {
       "Slechts {{loaded}} van {{total}} aliassen zijn geladen. Laad je aliassen opnieuw en probeer het nogmaals zodat de back-up compleet is.",
     alias_export_undecryptable:
       "{{count}} aliassen konden niet worden ontsleuteld en zijn niet opgenomen.",
+    alias_export_undecryptable_one:
+      "{{count}} alias kon niet worden ontsleuteld en is niet opgenomen.",
     alias_export_undecryptable_ghost:
       "{{count}} ghost-aliassen konden niet worden ontsleuteld en zijn niet opgenomen.",
+    alias_export_undecryptable_ghost_one:
+      "{{count}} ghost-alias kon niet worden ontsleuteld en is niet opgenomen.",
     alias_export_load_failed: "Kan mappen of ghost-aliassen niet laden.",
     alias_export_failed: "Export mislukt. Er is niets gedownload.",
     alias_import_csv: "Aliassen importeren",
@@ -3036,6 +3061,7 @@ export const nl = {
     alias_import_skip_existing: "Bestaande overslaan",
     alias_import_update_existing: "Opnieuw inschakelen indien uitgeschakeld",
     alias_import_confirm: "{{count}} aliassen importeren",
+    alias_import_confirm_one: "{{count}} alias importeren",
     alias_import_summary_created: "{{count}} geïmporteerd",
     alias_import_summary_skipped: "{{count}} bestonden al",
     alias_import_summary_failed: "{{count}} mislukt",
@@ -3316,6 +3342,8 @@ export const nl = {
     fam_org_2fa_reminder_sent: "Herinnering verzonden",
     fam_org_2fa_reminder_sent_toast:
       "Herinnering verzonden naar {{count}} leden",
+    fam_org_2fa_reminder_sent_toast_one:
+      "Herinnering verzonden naar {{count}} lid",
     fam_org_2fa_reminder_rate_limited:
       "Er is onlangs al een herinnering verzonden. Je kunt over 24 uur een nieuwe sturen.",
     fam_org_2fa_reminder_failed: "Verzenden van herinnering mislukt",
@@ -3906,8 +3934,11 @@ export const nl = {
     failed_sign_out: "Andere sessies uitloggen mislukt",
     active_now: "Nu actief",
     minutes_ago: "{{count}} minuten geleden",
+    minutes_ago_one: "{{count}} minuut geleden",
     hours_ago: "{{count}} uur geleden",
+    hours_ago_one: "{{count}} uur geleden",
     days_ago: "{{count}} dagen geleden",
+    days_ago_one: "{{count}} dag geleden",
     this_device: "Dit apparaat",
     signed_in_date: "Ingelogd op {{date}}",
     sign_out: "Uitloggen",
@@ -3919,7 +3950,9 @@ export const nl = {
     failed_load_security_status:
       "Je beveiligingsinstellingen zijn niet geladen. Probeer het opnieuw.",
     load_more_sessions: "{{count}} meer sessies laden",
+    load_more_sessions_one: "{{count}} meer sessie laden",
     two_fa_enabled: "Ingeschakeld ({{count}} reservecodes resterend)",
+    two_fa_enabled_one: "Ingeschakeld ({{count}} reservecode resterend)",
     two_fa_add_security: "Voeg een extra beveiligingslaag toe met 2FA",
     basics_section_title: "Basis",
     two_step_verification: "Tweestapsverificatie",
@@ -4337,7 +4370,9 @@ export const nl = {
     twenty_five_keys: "25 sleutels",
     auto_lock_after: "Automatisch vergrendelen na {{duration}} inactiviteit",
     hours: "{{count}} uur",
+    hours_one: "{{count}} uur",
     days: "{{count}} dagen",
+    days_one: "{{count}} dag",
     failed_get_auth_data:
       "We konden je aanmeldgegevens niet laden. Probeer het opnieuw.",
     downgrade: "Downgraden",
@@ -5492,12 +5527,18 @@ export const nl = {
     emails_of_total: "{{current}} van {{total}} e-mails",
     cancel_import: "Import annuleren",
     emails_imported_count: "{{count}} e-mails geïmporteerd",
+    emails_imported_count_one: "{{count}} e-mail geïmporteerd",
     duplicates_skipped: "{{count}} duplicaten overgeslagen",
+    duplicates_skipped_one: "{{count}} duplicaat overgeslagen",
     import_folder_hint:
       "Sommige e-mails niet gevonden? Controleer de mappen Spam en Verzonden - geïmporteerde e-mails kunnen daar worden gesorteerd.",
     n_failed_count: "{{count}} mislukt",
     import_folders_skipped:
       "{{count}} map kon niet worden aangemaakt, dus de berichten daaruit staan in je postvak IN.",
+    import_folders_skipped_one:
+      "{{count}} map kon niet worden aangemaakt, dus de berichten daaruit staan in je postvak IN.",
+    import_folders_skipped_other:
+      "{{count}} mappen konden niet worden aangemaakt, dus de berichten daaruit staan in je postvak IN.",
     import_folders_skipped_plural:
       "{{count}} mappen konden niet worden aangemaakt, dus de berichten daaruit staan in je postvak IN.",
     storage_quota_reached:
@@ -5689,6 +5730,7 @@ export const nl = {
       "We konden geen verbinding maken. Een nieuwe blik op je instellingen, dan een nieuwe poging, lost dit meestal op.",
     removed_forwarding_rule: 'Doorstuurregel "{{ name }}" verwijderd',
     removed_forwarding_rules_count: "{{ count }} doorstuurregels verwijderd",
+    removed_forwarding_rules_count_one: "{{ count }} doorstuurregel verwijderd",
     customize_toolbar: "Werkbalk aanpassen",
     customize_toolbar_description:
       "Kies welke acties in de onderste werkbalk verschijnen.",
@@ -6218,15 +6260,27 @@ export const nl = {
       "Je gebruikt {{used}}, dat is boven die limiet. Zolang je erboven zit wordt inkomende mail geweigerd, en na 7 dagen definitief.",
     cancel_impact_aliases:
       "{{count}} aliassen ontvangen {{days}} dagen later geen mail meer.",
+    cancel_impact_aliases_one:
+      "{{count}} alias ontvangt {{days}} dagen later geen mail meer.",
     cancel_impact_domains: "{{count}} eigen domeinen worden opgeschort.",
+    cancel_impact_domains_one: "{{count}} eigen domein wordt opgeschort.",
     cancel_impact_catch_all: "Catch-all-adressering wordt uitgeschakeld.",
     cancel_impact_templates: "{{count}} e-mailsjablonen worden uitgeschakeld.",
+    cancel_impact_templates_one:
+      "{{count}} e-mailsjabloon wordt uitgeschakeld.",
     cancel_impact_signatures: "{{count}} handtekeningen worden uitgeschakeld.",
+    cancel_impact_signatures_one: "{{count}} handtekening wordt uitgeschakeld.",
     cancel_impact_family:
       "{{count}} gezinsleden gaan naar een respijtperiode van {{days}} dagen.",
+    cancel_impact_family_one:
+      "{{count}} gezinslid gaat naar een respijtperiode van {{days}} dagen.",
     cancel_impact_family_addresses:
       "{{count}} gereserveerde gezinsadressen komen vrij.",
+    cancel_impact_family_addresses_one:
+      "{{count}} gereserveerd gezinsadres komt vrij.",
     cancel_impact_features: "{{count}} betaalde functies worden uitgeschakeld.",
+    cancel_impact_features_one:
+      "{{count}} betaalde functie wordt uitgeschakeld.",
     cancel_impact_reactivate_hint:
       "Er wordt niets verwijderd. Opnieuw abonneren herstelt wat is uitgeschakeld, binnen de limieten van je nieuwe abonnement.",
     cancel_impact_continue: "Doorgaan met opzeggen",
@@ -6814,6 +6868,7 @@ export const nl = {
     connected_accounts_last_sync: "Laatste synchronisatie: {{ time }}",
     connected_accounts_never_synced: "Nooit gesynchroniseerd",
     connected_accounts_emails: "{{ count }} e-mails",
+    connected_accounts_emails_one: "{{ count }} e-mail",
     connected_accounts_syncing: "Synchroniseren...",
     connected_accounts_sync_now: "Nu synchroniseren",
     connected_accounts_disconnect: "Ontkoppelen",
@@ -6891,6 +6946,7 @@ export const nl = {
       "Na rotatie wordt je vorige sleutel ingetrokken. E-mails die uitsluitend met je oude sleutel zijn versleuteld, kunnen niet meer worden ontsleuteld. Dit kan niet ongedaan worden gemaakt.",
     bulk_unsubscribe: "Bulk uitschrijven",
     senders_unsubscribed: "{{ count }} afzenders uitgeschreven",
+    senders_unsubscribed_one: "{{ count }} afzender uitgeschreven",
     opened_in_browser:
       "{{ count }} gearchiveerd - handmatige bevestiging kan nodig zijn",
     could_not_unsubscribe: "{{ count }} konden niet worden uitgeschreven",
@@ -7322,6 +7378,7 @@ export const nl = {
     dev_hours_ago: "{{count}} uur geleden",
     dev_key_exchange_label: "Sleuteluitwisseling:",
     dev_keys_count: "{{count}} sleutels",
+    dev_keys_count_one: "{{count}} sleutel",
     dev_less_than_one_hour: "Minder dan een uur geleden",
     dev_loaded_ago: "Geladen {{time}} geleden",
     dev_minutes_ago: "{{count}} minuten geleden",
@@ -7341,9 +7398,13 @@ export const nl = {
       "Alle gesynchroniseerde berichten verwijderen",
     disconnect_delete_messages_label_count:
       "Ook de {{ count }} geïmporteerde e-mails verwijderen",
+    disconnect_delete_messages_label_count_one:
+      "Ook de {{ count }} geïmporteerde e-mail verwijderen",
     disconnect_success: "Account verbroken",
     disconnect_deleted_success:
       "Account verbroken, {{ count }} e-mails verwijderd",
+    disconnect_deleted_success_one:
+      "Account verbroken, {{ count }} e-mail verwijderd",
     disconnect_title: "Verbinding verbreken",
     discount_first_month: "Eerste maand",
     discount_first_year: "Eerste jaar",
@@ -7628,6 +7689,7 @@ export const nl = {
     oauth_folders_error:
       "Het instellen van je mappen is niet voltooid. Probeer het opnieuw.",
     oauth_folders_partial: "{{count}} mappen konden niet worden aangemaakt",
+    oauth_folders_partial_one: "{{count}} map kon niet worden aangemaakt",
     oauth_folders_ready: "Mappen klaar",
     oauth_reason_account_creation_failed:
       "We konden het instellen van je gekoppelde account niet voltooien. Probeer het opnieuw.",
@@ -7833,6 +7895,7 @@ export const nl = {
     sync_progress_preparing: "Synchronisatie voorbereiden...",
     sync_checking_new: "Controleren op nieuwe e-mail…",
     sync_result_imported: "{{ count }} nieuwe e-mails geïmporteerd",
+    sync_result_imported_one: "{{ count }} nieuwe e-mail geïmporteerd",
     sync_result_up_to_date: "Al up-to-date - geen nieuwe e-mails",
     sync_stopped: "Synchronisatie gestopt",
     purging_progress:
@@ -8340,6 +8403,7 @@ export const nl = {
     move_to_category: "Naar categorie verplaatsen",
     menu_applies_to_selection: "Geldt voor {count} geselecteerde",
     menu_applies_to_all: "Geldt voor alle {count} berichten",
+    menu_applies_to_all_one: "Geldt voor {count} bericht",
     moved_to_category: "Naar categorie verplaatst",
     drop_to_move_here: "Sleep hierheen om te verplaatsen",
     tab_new_count: "nieuw",
@@ -8860,6 +8924,7 @@ export const nl = {
     order_number: "Bestelling #{{id}}",
     items: "Artikelen",
     more_items_count: "+{{count}} meer artikelen",
+    more_items_count_one: "+{{count}} meer artikel",
     card_ending_in: "Kaart eindigend op {{last_four}}",
     purchase_extraction_privacy:
       "Lokaal uit je e-mail geëxtraheerd, en er wordt niets naar onze servers verzonden.",
@@ -8885,6 +8950,7 @@ export const nl = {
     message_deleted: "Dit bericht is verwijderd",
     unknown_recipient: "(onbekende ontvanger)",
     lines_count: "{{count}} regels",
+    lines_count_one: "{{count}} regel",
     message_label: "bericht",
     messages_label: "berichten",
     star: "Ster",
@@ -8920,6 +8986,7 @@ export const nl = {
     attachment_chips_more: "+{{count}} meer",
     page_of_total: "Pagina {{current}} van {{total}}",
     total_pages_label: "{{count}} pagina's",
+    total_pages_label_one: "{{count}} pagina",
     loading_preview: "Voorbeeld laden…",
     preview_failed:
       "Het voorbeeld is niet geladen. De e-mail openen toont het.",
@@ -8949,9 +9016,13 @@ export const nl = {
       "Gebruik de pijlen hierboven om tussen pagina's te navigeren",
     all_on_page_selected:
       "Alle {{ count }} gesprekken op deze pagina zijn geselecteerd.",
+    all_on_page_selected_one:
+      "{{ count }} gesprek op deze pagina is geselecteerd.",
     select_all_in_folder:
       "Alle {{ count }} gesprekken in {{ folder }} selecteren",
+    select_all_in_folder_one: "{{ count }} gesprek in {{ folder }} selecteren",
     all_in_folder_selected: "Alle {{ count }} gesprekken zijn geselecteerd.",
+    all_in_folder_selected_one: "{{ count }} gesprek is geselecteerd.",
     reply_subject_prefix: "Re:",
     reply_from_mismatch_title: "Antwoorden vanaf een ander adres?",
     reply_from_mismatch_message:
@@ -9263,6 +9334,7 @@ export const nl = {
     sign_in_session_expired:
       "Je aanmeldsessie is verlopen. Ga terug en meld je opnieuw aan.",
     backup_codes_remaining_after_login: "{{count}} back-upcodes over",
+    backup_codes_remaining_after_login_one: "{{count}} back-upcode over",
     backup_code_description: "Voer een van je reservecodes in om in te loggen",
     backup_code_placeholder: "XXXX-XXXX-XXXX",
     use_authenticator_instead: "Gebruik in plaats daarvan de authenticator-app",
@@ -10129,6 +10201,8 @@ export const nl = {
     enabled: "Ingeschakeld",
     preview_some:
       "Bij de volgende ronde worden ongeveer {{count}} e-mails opgeruimd.",
+    preview_some_one:
+      "Bij de volgende ronde wordt ongeveer {{count}} e-mail opgeruimd.",
     preview_none: "Op dit moment voldoet geen enkele e-mail aan deze regel.",
     keeps_note: "E-mails met ster of speld blijven altijd bewaard.",
     save: "Opslaan",
@@ -10246,6 +10320,7 @@ export const nl = {
       "Maak je eerste regel aan om inkomende e-mail automatisch te organiseren.",
     empty_cta: "Regel aanmaken",
     applied_count: "Toegepast op {{count}} berichten",
+    applied_count_one: "Toegepast op {{count}} bericht",
     field_from: "Van",
     field_to: "Aan/Cc/Bcc",
     field_subject: "Onderwerp",

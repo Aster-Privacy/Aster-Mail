@@ -1122,7 +1122,7 @@ export default function ResetPasswordPage() {
               <div className="flex items-center justify-between mb-3">
                 <span className="text-xs font-medium text-txt-muted">
                   {t("auth.n_recovery_codes", {
-                    count: new_recovery_codes.length.toString(),
+                    count: new_recovery_codes.length,
                   })}
                 </span>
                 <div className="flex items-center gap-1">
