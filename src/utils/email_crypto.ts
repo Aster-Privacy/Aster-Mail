@@ -151,7 +151,7 @@ function get_charset(headers: string): string {
   return CHARSET_ALIASES[raw] ?? raw;
 }
 
-function decode_bytes(bytes: Uint8Array, charset: string): string {
+export function decode_bytes(bytes: Uint8Array, charset: string): string {
   if (charset === "utf-8") {
     try {
       return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
@@ -188,7 +188,7 @@ function base64_to_bytes(input: string): Uint8Array | null {
   }
 }
 
-function quoted_printable_to_bytes(input: string): Uint8Array {
+export function quoted_printable_to_bytes(input: string): Uint8Array {
   const unfolded = input.replace(/=[ \t]*\r?\n/g, "");
   const bytes: number[] = [];
 

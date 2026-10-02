@@ -58,6 +58,7 @@ import { HASH_ALG } from "@/services/crypto/constants";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { get_derived_encryption_key } from "@/services/crypto/memory_key_store";
 import { parse_csv_records } from "@/utils/contact_utils";
+import { decode_bytes, quoted_printable_to_bytes } from "@/utils/email_crypto";
 import {
   collect_vcard_group_labels,
   resolve_vcard_entry_type,
@@ -579,6 +580,55 @@ function place_type_from(params: string[]): "home" | "work" | "other" {
   return "other";
 }
 
+const QUOTED_PRINTABLE_PARAM = /;(?:encoding=)?quoted-printable(?=;|$)/i;
+
+function is_quoted_printable(key: string): boolean {
+  return QUOTED_PRINTABLE_PARAM.test(key);
+}
+
+function unfold_vcard_lines(vcard: string): string[] {
+  const unfolded: string[] = [];
+  let current: string[] = [];
+  let is_qp = false;
+  let soft_break = false;
+
+  for (const line of vcard.split(/\r?\n/)) {
+    if (soft_break && !/^END:VCARD$/i.test(line)) {
+      current.push(line);
+    } else if (
+      (line.startsWith(" ") || line.startsWith("\t")) &&
+      current.length
+    ) {
+      current.push(line.slice(1));
+    } else {
+      if (current.length) unfolded.push(current.join(""));
+      current = [line];
+      const separator = line.indexOf(":");
+
+      is_qp = separator > 0 && is_quoted_printable(line.slice(0, separator));
+    }
+
+    soft_break = is_qp && line.endsWith("=");
+    if (soft_break) {
+      current[current.length - 1] = current[current.length - 1].slice(0, -1);
+    }
+  }
+  if (current.length) unfolded.push(current.join(""));
+
+  return unfolded;
+}
+
+function decode_vcard_value(key: string, value: string): string {
+  if (!is_quoted_printable(key)) return value;
+
+  const charset = raw_param_value(key, "charset").toLowerCase() || "utf-8";
+
+  return decode_bytes(quoted_printable_to_bytes(value), charset).replace(
+    /\r\n?/g,
+    "\n",
+  );
+}
+
 export function parse_vcard(vcard_data: string): ContactFormData[] {
   const contacts: ContactFormData[] = [];
   const text =
@@ -586,15 +636,7 @@ export function parse_vcard(vcard_data: string): ContactFormData[] {
   const vcards = text.split(/(?=BEGIN:VCARD)/i).filter(Boolean);
 
   for (const vcard of vcards) {
-    const lines = vcard.split(/\r?\n/).reduce<string[]>((unfolded, line) => {
-      if ((line.startsWith(" ") || line.startsWith("\t")) && unfolded.length) {
-        unfolded[unfolded.length - 1] += line.slice(1);
-      } else {
-        unfolded.push(line);
-      }
-
-      return unfolded;
-    }, []);
+    const lines = unfold_vcard_lines(vcard);
     const contact: ContactFormData = {
       first_name: "",
       last_name: "",
@@ -618,7 +660,7 @@ export function parse_vcard(vcard_data: string): ContactFormData[] {
 
       if (separator < 0) continue;
       const key = line.slice(0, separator);
-      const value = line.slice(separator + 1);
+      const value = decode_vcard_value(key, line.slice(separator + 1));
 
       if (!key || !value) continue;
 
