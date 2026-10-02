@@ -294,59 +294,72 @@ export function QuickContactsPanel({
   const has_loaded_once = useRef(false);
   const is_loading_ref = useRef(false);
   const loaded_at_ref = useRef(0);
+  const load_seq_ref = useRef(0);
 
-  const load = useCallback(async () => {
-    if (is_loading_ref.current) return;
-    if (!has_keys) {
-      set_is_loading(false);
-      set_error(t("common.failed_to_load_contacts"));
+  const load = useCallback(
+    async (force = false) => {
+      if (is_loading_ref.current && !force) return;
+      if (!has_keys) {
+        set_is_loading(false);
+        set_error(t("common.failed_to_load_contacts"));
 
-      return;
-    }
-    if (!has_loaded_once.current) set_is_loading(true);
-    is_loading_ref.current = true;
-    set_error(null);
-    try {
-      const collected: DecryptedContact[] = [];
-      let cursor: string | undefined;
+        return;
+      }
+      const seq = ++load_seq_ref.current;
+      const is_current = () => seq === load_seq_ref.current;
 
-      for (let page = 0; page < MAX_CONTACT_PAGES; page += 1) {
-        const response = await list_contacts({
-          limit: CONTACT_PAGE_LIMIT,
-          cursor,
-        });
+      if (!has_loaded_once.current) set_is_loading(true);
+      is_loading_ref.current = true;
+      set_error(null);
+      try {
+        const collected: DecryptedContact[] = [];
+        let cursor: string | undefined;
 
-        if (response.error || !response.data) {
-          if (page === 0) {
-            set_error(response.error || t("common.failed_to_load_contacts"));
+        for (let page = 0; page < MAX_CONTACT_PAGES; page += 1) {
+          const response = await list_contacts({
+            limit: CONTACT_PAGE_LIMIT,
+            cursor,
+          });
 
-            return;
+          if (!is_current()) return;
+
+          if (response.error || !response.data) {
+            if (page === 0) {
+              set_error(response.error || t("common.failed_to_load_contacts"));
+
+              return;
+            }
+            break;
           }
-          break;
+
+          collected.push(
+            ...(await decrypt_contacts(response.data.items)).filter(
+              (contact) => !is_contact_trashed(contact),
+            ),
+          );
+          cursor = response.data.next_cursor ?? undefined;
+          if (!response.data.has_more || !cursor) break;
         }
 
-        collected.push(
-          ...(await decrypt_contacts(response.data.items)).filter(
-            (contact) => !is_contact_trashed(contact),
-          ),
-        );
-        cursor = response.data.next_cursor ?? undefined;
-        if (!response.data.has_more || !cursor) break;
-      }
+        if (!is_current()) return;
 
-      set_contacts(collected);
-      has_loaded_once.current = true;
-      loaded_at_ref.current = Date.now();
-      void apply_server_group_membership(collected).then((hydrated) => {
-        if (hydrated !== collected) set_contacts(hydrated);
-      });
-    } catch {
-      set_error(t("common.failed_to_load_contacts"));
-    } finally {
-      is_loading_ref.current = false;
-      set_is_loading(false);
-    }
-  }, [has_keys, t]);
+        set_contacts(collected);
+        has_loaded_once.current = true;
+        loaded_at_ref.current = Date.now();
+        void apply_server_group_membership(collected).then((hydrated) => {
+          if (hydrated !== collected && is_current()) set_contacts(hydrated);
+        });
+      } catch {
+        if (is_current()) set_error(t("common.failed_to_load_contacts"));
+      } finally {
+        if (is_current()) {
+          is_loading_ref.current = false;
+          set_is_loading(false);
+        }
+      }
+    },
+    [has_keys, t],
+  );
 
   useEffect(() => {
     if (!is_open) return;
@@ -539,7 +552,7 @@ export function QuickContactsPanel({
         }
         set_is_editor_open(false);
         set_editor_contact(null);
-        await load();
+        await load(true);
       } catch {
         set_error(t("common.failed_to_save_contact"));
       } finally {
@@ -682,7 +695,7 @@ export function QuickContactsPanel({
       clear_selection();
       set_is_confirm_delete_open(false);
       loaded_at_ref.current = 0;
-      await load();
+      await load(true);
     } catch {
       show_toast(t("common.failed_to_delete_contacts"), "error");
     } finally {
@@ -981,6 +994,7 @@ export function QuickContactsPanel({
             <span className="contact_encryption_info flex h-7 w-7 flex-shrink-0 items-center justify-center">
               <EncryptionInfoDropdown
                 description_key="common.only_you_can_read_contacts"
+                e2e_verified
                 has_pq_protection={true}
                 is_external={false}
                 size={15}
@@ -1213,6 +1227,7 @@ export function QuickContactsPanel({
                     </span>
                     <EncryptionInfoDropdown
                       description_key="common.contact_encryption_info"
+                      e2e_verified
                       has_pq_protection={true}
                       is_external={false}
                       size={13}
@@ -1319,7 +1334,7 @@ export function QuickContactsPanel({
                 className="contact_empty_state_action"
                 size="sm"
                 variant="tonal"
-                onClick={load}
+                onClick={() => void load()}
               >
                 {t("common.retry")}
               </PillButton>
@@ -1543,7 +1558,7 @@ export function QuickContactsPanel({
             set_merge_targets([]);
             clear_selection();
             loaded_at_ref.current = 0;
-            void load();
+            void load(true);
           }}
         />
       )}
@@ -1553,7 +1568,7 @@ export function QuickContactsPanel({
           on_close={() => set_is_import_open(false)}
           on_import_complete={(count) => {
             set_is_import_open(false);
-            if (count > 0) void load();
+            if (count > 0) void load(true);
           }}
         />
       )}

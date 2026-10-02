@@ -51,6 +51,7 @@ import { remove_email_from_view_cache } from "@/hooks/email_list_cache";
 import {
   collect_restore_entries,
   is_outgoing_view,
+  trashes_whole_thread,
 } from "@/hooks/email_list_helpers";
 import {
   remove_ids as remove_index_ids,
@@ -93,6 +94,7 @@ export function build_core_context_menu_actions(
     is_scheduled_view,
     schedule_delete_drafts,
     cancel_scheduled,
+    preferences,
   } = params;
 
   const is_trash_view = current_view === "trash";
@@ -179,8 +181,14 @@ export function build_core_context_menu_actions(
     }
     apply_stat_deltas(deltas);
 
-    const removed_thread_ids = email.thread_token
-      ? remove_thread_entries(email.thread_token)
+    const thread_token = trashes_whole_thread(
+      email,
+      preferences.conversation_grouping,
+    )
+      ? email.thread_token
+      : undefined;
+    const removed_thread_ids = thread_token
+      ? remove_thread_entries(thread_token)
       : [];
     const trashed_index_ids = Array.from(
       new Set([...grouped_ids, ...removed_thread_ids]),
@@ -188,10 +196,10 @@ export function build_core_context_menu_actions(
 
     remove_index_ids(grouped_ids);
 
-    if (email.thread_token) {
+    if (thread_token) {
       note_flag_intents(grouped_ids, { is_trashed: true });
 
-      const result = await trash_thread(email.thread_token, true);
+      const result = await trash_thread(thread_token, true);
 
       if (result.data) {
         for (const id of grouped_ids) {
@@ -202,7 +210,7 @@ export function build_core_context_menu_actions(
           action_type: "trash",
           email_ids: grouped_ids,
           on_undo: async () => {
-            const undo_result = await trash_thread(email.thread_token!, false);
+            const undo_result = await trash_thread(thread_token, false);
 
             if (!undo_result.data) throw new Error("undo trash failed");
 
@@ -235,7 +243,10 @@ export function build_core_context_menu_actions(
           emit_mail_item_updated({ id, is_trashed: true });
         }
         show_action_toast({
-          message: t("common.conversation_moved_to_trash"),
+          message:
+            grouped_ids.length > 1
+              ? t("common.conversation_moved_to_trash")
+              : t("common.message_moved_to_trash"),
           action_type: "trash",
           email_ids: grouped_ids,
           on_undo: async () => {
@@ -274,9 +285,11 @@ export function build_core_context_menu_actions(
     remove_email(email.id);
     apply_stat_deltas(deltas);
 
-    const archived_thread_ids = email.thread_token
-      ? remove_thread_entries(email.thread_token)
-      : [];
+    const archived_thread_ids =
+      email.thread_token &&
+      trashes_whole_thread(email, preferences.conversation_grouping)
+        ? remove_thread_entries(email.thread_token)
+        : [];
     const archived_index_ids = Array.from(
       new Set([...all_ids, ...archived_thread_ids]),
     );

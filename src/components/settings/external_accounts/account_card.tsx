@@ -39,7 +39,6 @@ import {
   SyncHealthDot,
   SyncStatusIndicator,
 } from "@/components/settings/external_accounts/sync_status";
-import { app_locale } from "@/utils/date_format";
 
 const PROTOCOL_LABELS: Record<string, string> = {
   imap: "IMAP",
@@ -206,7 +205,7 @@ export function AccountCard({
                 <span className="text-[12px] text-txt-muted">&middot;</span>
                 <span className="text-[11px] text-txt-muted">
                   {t("settings.email_count", {
-                    count: account.email_count.toLocaleString(app_locale()),
+                    count: account.email_count,
                   })}
                 </span>
               </>

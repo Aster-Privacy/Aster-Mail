@@ -44,6 +44,7 @@ import { PlanUpgradeSelection } from "@/components/settings/billing/plan_upgrade
 import { is_composing } from "@/utils/ime";
 import { classify_link_error } from "@/pages/link_device_error";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
+import { AccountPill } from "@/components/common/account_pill";
 import { PlanBadge } from "@/components/common/plan_badge";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -222,45 +223,28 @@ function CurrentAccountCard({
   );
 }
 
-function AccountPill({ on_click }: { on_click: () => void }) {
+function CurrentAccountPill({ on_click }: { on_click: () => void }) {
   const { t } = use_i18n();
   const identity = use_account_identity();
 
   if (!identity.display_email) return null;
 
   return (
-    <button
-      aria-label={t("auth.link_device_change_account")}
-      className="account_menu_row mt-5 flex max-w-full items-center gap-2.5 rounded-full py-1.5 ps-1.5 pe-3"
-      title={t("auth.link_device_change_account")}
-      type="button"
-      onClick={on_click}
-    >
-      <ProfileAvatar
-        email={identity.account_email}
-        image_url={identity.profile_picture}
-        name={identity.display_name}
-        profile_color={identity.profile_color}
-        size="xs"
-      />
-      <span
-        className="min-w-0 truncate text-[13px] leading-tight"
-        style={{ color: "var(--text-primary)" }}
-      >
-        {identity.display_email}
-      </span>
-      <svg
-        aria-hidden="true"
-        className="h-4 w-4 flex-shrink-0"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth={1.8}
-        style={{ color: "var(--text-muted)" }}
-        viewBox="0 0 24 24"
-      >
-        <path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    </button>
+    <AccountPill
+      avatar={
+        <ProfileAvatar
+          email={identity.account_email}
+          image_url={identity.profile_picture}
+          name={identity.display_name}
+          profile_color={identity.profile_color}
+          size="xs"
+        />
+      }
+      className="mt-5"
+      email={identity.display_email}
+      label={t("auth.link_device_change_account")}
+      on_click={on_click}
+    />
   );
 }
 
@@ -718,7 +702,7 @@ export default function LinkDevice() {
         description={t("auth.link_device_confirm_prompt")}
         heading={t("auth.link_device_title")}
       >
-        <AccountPill on_click={open_account_chooser} />
+        <CurrentAccountPill on_click={open_account_chooser} />
 
         <Panel>
           <div className="account_menu_card rounded-[18px] px-4 py-4">
@@ -772,7 +756,7 @@ export default function LinkDevice() {
       description={t("auth.link_device_enter_code")}
       heading={t("auth.link_device_title")}
     >
-      <AccountPill on_click={open_account_chooser} />
+      <CurrentAccountPill on_click={open_account_chooser} />
 
       <input
         autoFocus

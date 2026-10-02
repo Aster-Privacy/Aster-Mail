@@ -517,7 +517,7 @@ export function use_auth_account_state() {
             return;
           }
 
-          start_session_timeout(current.id);
+          start_session_timeout(current.id, undefined, { resume: true });
 
           let synced_user = current.user;
           const cached_info = api_client.get_cached_user_info();
@@ -675,8 +675,14 @@ export function use_auth_account_state() {
         );
       }
 
+      const same_account = info.user_id === logged_in_user.id;
       const merged: User = {
         ...logged_in_user,
+        username:
+          same_account && info.username
+            ? info.username
+            : logged_in_user.username,
+        email: same_account && info.email ? info.email : logged_in_user.email,
         display_name:
           logged_in_user.display_name || info.display_name || undefined,
         profile_color:
@@ -686,6 +692,8 @@ export function use_auth_account_state() {
       };
 
       if (
+        merged.username === logged_in_user.username &&
+        merged.email === logged_in_user.email &&
         merged.display_name === logged_in_user.display_name &&
         merged.profile_color === logged_in_user.profile_color &&
         merged.profile_picture === logged_in_user.profile_picture
@@ -700,11 +708,25 @@ export function use_auth_account_state() {
               ...prev,
               user: {
                 ...prev.user,
+                username: merged.username,
+                email: merged.email,
                 display_name: prev.user.display_name || merged.display_name,
                 profile_color: prev.user.profile_color || merged.profile_color,
                 profile_picture:
                   prev.user.profile_picture || merged.profile_picture,
               },
+              accounts: prev.accounts.map((account) =>
+                account.id === logged_in_user.id
+                  ? {
+                      ...account,
+                      user: {
+                        ...account.user,
+                        username: merged.username,
+                        email: merged.email,
+                      },
+                    }
+                  : account,
+              ),
             }
           : prev,
       );
@@ -723,13 +745,14 @@ export function use_auth_account_state() {
       passphrase: string,
       encrypted_vault?: string,
       vault_nonce?: string,
+      remember_on_device: boolean = true,
     ) => {
       await store_vault_in_memory(vault, passphrase, user.id);
       api_client.set_expected_user_id(user.id);
 
       try {
         await Promise.race([
-          store_session_passphrase(user.id, passphrase),
+          store_session_passphrase(user.id, passphrase, remember_on_device),
           new Promise<void>((_, reject) =>
             setTimeout(
               () => reject(new Error("session passphrase timeout")),
@@ -842,13 +865,14 @@ export function use_auth_account_state() {
       passphrase: string,
       encrypted_vault?: string,
       vault_nonce?: string,
+      remember_on_device: boolean = true,
     ) => {
       await store_vault_in_memory(vault, passphrase, user.id);
       api_client.set_expected_user_id(user.id);
 
       try {
         await Promise.race([
-          store_session_passphrase(user.id, passphrase),
+          store_session_passphrase(user.id, passphrase, remember_on_device),
           new Promise<void>((_, reject) =>
             setTimeout(
               () => reject(new Error("session passphrase timeout")),

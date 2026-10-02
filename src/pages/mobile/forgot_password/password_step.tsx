@@ -20,8 +20,14 @@
 //
 import type { PasswordStepProps } from "./types";
 
-import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeftIcon } from "@heroicons/react/20/solid";
+import { motion } from "framer-motion";
+
+import {
+  MobileActionRow,
+  MobileStepHeader,
+  StepBackBar,
+  StepError,
+} from "./step_frame";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { clamp_password } from "@/services/sanitize";
@@ -31,18 +37,13 @@ import { PasswordStrengthIndicator } from "@/components/register/password_streng
 import {
   stagger_container,
   fade_up_item,
-  button_tap,
   DEPTH_INPUT_WRAPPER_CLASS,
-  DEPTH_CTA_CLASS,
-  DEPTH_CTA_STYLE,
-  DEPTH_SECONDARY_CLASS,
-  BACK_BUTTON_CLASS,
-  BACK_BUTTON_STYLE,
   INNER_INPUT_CLASS,
   LABEL_CLASS,
 } from "@/components/auth/mobile_auth_motion";
 
 export function PasswordStep({
+  email,
   password,
   set_password,
   confirm_password,
@@ -59,59 +60,37 @@ export function PasswordStep({
   on_submit,
 }: PasswordStepProps) {
   const { t } = use_i18n();
+  const go_back = () => {
+    set_error("");
+    set_step("code");
+  };
 
   return (
     <div className="flex flex-1 flex-col">
-      <div className="flex items-center px-6 pt-4">
-        <motion.button
-          className={BACK_BUTTON_CLASS}
-          style={BACK_BUTTON_STYLE}
-          whileTap={button_tap}
-          onClick={() => {
-            set_error("");
-            set_step("code");
-          }}
-        >
-          <ChevronLeftIcon className="h-5 w-5 rtl:-scale-x-100" />
-        </motion.button>
-      </div>
+      <StepBackBar on_back={go_back} />
 
       <motion.div
         animate="animate"
-        className="flex-1 overflow-y-auto px-6 pt-4"
+        className="flex flex-1 flex-col items-start overflow-y-auto px-6 pt-6"
         initial={reduce_motion ? false : "initial"}
         variants={reduce_motion ? undefined : stagger_container}
       >
-        <motion.h1
-          className="text-xl font-semibold text-[var(--text-primary)]"
-          variants={reduce_motion ? undefined : fade_up_item}
-        >
-          {t("auth.create_new_password")}
-        </motion.h1>
+        <MobileStepHeader
+          description={t("auth.choose_strong_password")}
+          email={email}
+          reduce_motion={reduce_motion}
+          show_logo={false}
+          title={t("auth.create_new_password")}
+        />
 
-        <motion.p
-          className="mt-2 text-sm text-[var(--text-tertiary)]"
-          variants={reduce_motion ? undefined : fade_up_item}
-        >
-          {t("auth.choose_strong_password")}
-        </motion.p>
-
-        <AnimatePresence>
-          {error && (
-            <motion.p
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-4 text-center text-sm"
-              exit={{ opacity: 0, y: -4 }}
-              initial={{ opacity: 0, y: -4 }}
-              style={{ color: is_dark ? "#f87171" : "#dc2626" }}
-            >
-              {error}
-            </motion.p>
-          )}
-        </AnimatePresence>
+        <StepError
+          error={error}
+          is_dark={is_dark}
+          reduce_motion={reduce_motion}
+        />
 
         <motion.div
-          className={`${error ? "mt-3" : "mt-6"} space-y-4`}
+          className="mt-6 w-full space-y-4"
           variants={reduce_motion ? undefined : fade_up_item}
         >
           <div>
@@ -168,33 +147,13 @@ export function PasswordStep({
         </motion.div>
       </motion.div>
 
-      <motion.div
-        animate={{ opacity: 1 }}
-        className="shrink-0 space-y-3 px-6 pb-4 pt-4"
-        initial={reduce_motion ? false : { opacity: 0 }}
-        transition={
-          reduce_motion ? { duration: 0 } : { duration: 0.3, delay: 0.1 }
-        }
-      >
-        <motion.button
-          className={DEPTH_CTA_CLASS}
-          style={DEPTH_CTA_STYLE}
-          whileTap={button_tap}
-          onClick={on_submit}
-        >
-          {t("auth.reset_password")}
-        </motion.button>
-        <motion.button
-          className={DEPTH_SECONDARY_CLASS}
-          whileTap={button_tap}
-          onClick={() => {
-            set_error("");
-            set_step("code");
-          }}
-        >
-          {t("common.back")}
-        </motion.button>
-      </motion.div>
+      <MobileActionRow
+        on_primary={on_submit}
+        on_secondary={go_back}
+        primary_label={t("auth.reset_password")}
+        reduce_motion={reduce_motion}
+        secondary_label={t("common.back")}
+      />
     </div>
   );
 }

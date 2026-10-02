@@ -18,7 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, beforeAll, vi } from "vitest";
+import * as openpgp from "openpgp";
 
 const h = vi.hoisted(() => ({
   store: new Map<string, unknown>(),
@@ -48,6 +49,11 @@ vi.mock("@/services/account_manager", () => ({
 import {
   acknowledge_identity_change,
   check_and_pin_identity,
+  check_owner_key_pin,
+  flag_recipient_untrusted,
+  get_pinned_owner_key_fingerprint,
+  is_recipient_flagged_untrusted,
+  trust_recipient_keys,
   get_identity_change,
   get_pinned_identity_fingerprint,
   reset_identity_pin,
@@ -204,5 +210,81 @@ describe("ratchet identity pin", () => {
 
     expect(call?.[3]).toBe(false);
     import_spy.mockRestore();
+  });
+});
+
+async function make_public_key(email: string): Promise<string> {
+  const { publicKey } = await openpgp.generateKey({
+    type: "ecc",
+    curve: "curve25519Legacy",
+    userIDs: [{ email }],
+    format: "armored",
+  });
+
+  return publicKey;
+}
+
+describe("owner key pin", () => {
+  let owner_a = "";
+  let owner_b = "";
+
+  beforeAll(async () => {
+    owner_a = await make_public_key("alice@astermail.org");
+    owner_b = await make_public_key("alice@astermail.org");
+  });
+
+  beforeEach(() => {
+    h.store.clear();
+    h.key = new Uint8Array(32).fill(7);
+    clear_ratchet_verification_status();
+  });
+
+  it("pins the owner key on first contact and matches it afterwards", async () => {
+    expect(await check_owner_key_pin("alice", owner_a)).toBe("first");
+    expect(await check_owner_key_pin("alice", owner_a)).toBe("ok");
+  });
+
+  it("reports a changed owner key and keeps the original pin", async () => {
+    await check_owner_key_pin("alice", owner_a);
+
+    const pinned = await get_pinned_owner_key_fingerprint("alice");
+
+    expect(await check_owner_key_pin("alice", owner_b)).toBe("changed");
+    expect(await check_owner_key_pin("alice", owner_b)).toBe("changed");
+    expect(await get_pinned_owner_key_fingerprint("alice")).toBe(pinned);
+  });
+
+  it("returns unknown for a key it cannot parse", async () => {
+    expect(await check_owner_key_pin("alice", "not a key")).toBe("unknown");
+  });
+
+  it("treats an unparseable key as changed once a key is pinned", async () => {
+    expect(await check_owner_key_pin("alice", owner_a)).toBe("first");
+    expect(await check_owner_key_pin("alice", "not a key")).toBe("changed");
+  });
+
+  it("persists an untrusted flag until the user trusts the new keys", async () => {
+    await check_and_pin_identity("alice", KEY_A);
+    await check_owner_key_pin("alice", owner_a);
+    await flag_recipient_untrusted("alice");
+
+    expect(await is_recipient_flagged_untrusted("alice")).toBe(true);
+    expect(get_peer_identity_event("alice")?.event).toBe("untrusted");
+
+    await trust_recipient_keys("alice", KEY_B, owner_b);
+
+    expect(await is_recipient_flagged_untrusted("alice")).toBe(false);
+    expect(get_peer_identity_event("alice")).toBeNull();
+    expect(await check_owner_key_pin("alice", owner_b)).toBe("ok");
+    expect(await check_and_pin_identity("alice", KEY_B)).toBe("ok");
+  });
+
+  it("clears the owner pin and flag on reset", async () => {
+    await check_owner_key_pin("alice", owner_a);
+    await flag_recipient_untrusted("alice");
+    await reset_identity_pin("alice");
+
+    expect(await get_pinned_owner_key_fingerprint("alice")).toBeNull();
+    expect(await is_recipient_flagged_untrusted("alice")).toBe(false);
   });
 });

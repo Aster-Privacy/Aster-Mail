@@ -20,18 +20,20 @@
 //
 import { motion, AnimatePresence } from "framer-motion";
 import { Button, Checkbox } from "@aster/ui";
+import { ReactNode } from "react";
 
 import {
-  AddressIcon,
+  ActionRow,
   Alert,
   CopyIcon,
-  HelpIcon,
   KeyIcon,
   MailIcon,
+  OptionGroup,
   OptionRow,
   PasswordStrengthIndicator,
   ReviewRow,
-  WarningIcon,
+  StepHeader,
+  TextLink,
   page_transition,
   page_variants,
 } from "./shared";
@@ -42,7 +44,6 @@ import {
   EyeIcon,
   EyeSlashIcon,
   InputWithEndContent,
-  Logo,
 } from "@/components/auth/auth_styles";
 import { Input } from "@/components/ui/input";
 import {
@@ -57,6 +58,41 @@ import { apply_input_transform } from "@/utils/input_transform";
 
 const SUPPORT_MAIL_URL = "mailto:support@astermail.org";
 const HELP_CENTER_URL = "https://astermail.org/help";
+
+const SmallLogo = () => (
+  <img
+    alt="Aster"
+    className="h-7"
+    decoding="async"
+    draggable={false}
+    src="/text_logo.png"
+  />
+);
+
+interface StepLayoutProps {
+  header: ReactNode;
+  children: ReactNode;
+  centered?: boolean;
+}
+
+const StepLayout = ({ header, children, centered }: StepLayoutProps) => {
+  if (centered) {
+    return (
+      <div className="flex w-full flex-col items-center text-center">
+        {children}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex w-full flex-col items-start">
+      {header}
+      <div className="mt-5 flex w-full flex-col items-start [&>:first-child]:mt-0">
+        {children}
+      </div>
+    </div>
+  );
+};
 
 export default function ForgotPasswordPage() {
   const {
@@ -91,9 +127,11 @@ export default function ForgotPasswordPage() {
     set_codes_saved,
     review,
     email,
-    handle_change_account,
+    resend_cooldown,
+    is_resending,
     handle_email_next,
     handle_email_reset_link,
+    handle_resend_reset_link,
     handle_code_submit,
     handle_password_submit,
     handle_copy_codes,
@@ -103,36 +141,41 @@ export default function ForgotPasswordPage() {
     handle_codes_continue,
   } = use_recovery_flow();
 
+  const go_to = (next: typeof step) => {
+    set_error("");
+    set_step(next);
+  };
+
+  const change_account = () => go_to("email");
+
+  const header = (
+    title: string,
+    description: string,
+    with_account = true,
+    allow_change = true,
+  ) => (
+    <StepHeader
+      change_account_label={t("auth.change_account")}
+      description={description}
+      email={with_account ? email : undefined}
+      logo={<SmallLogo />}
+      on_change_account={allow_change ? change_account : undefined}
+      title={title}
+    />
+  );
+
   const render_step_content = () => {
     switch (step) {
       case "email":
         return (
-          <motion.div
-            key="email"
-            animate="animate"
-            className="flex flex-col items-center w-full max-w-sm px-4 text-center"
-            exit="exit"
-            initial={reduce_motion ? false : "initial"}
-            transition={{
-              ...page_transition,
-              duration: reduce_motion ? 0 : page_transition.duration,
-            }}
-            variants={page_variants}
+          <StepLayout
+            header={header(
+              t("auth.recover_your_account"),
+              t("auth.enter_email_associated"),
+              false,
+            )}
           >
-            <Logo />
-
-            <h1 className="text-xl font-semibold mt-6 text-txt-primary">
-              {t("auth.recover_your_account")}
-            </h1>
-            <p className="text-sm mt-2 leading-relaxed text-txt-tertiary">
-              {t("auth.enter_email_associated")}
-            </p>
-
-            <AnimatePresence>
-              {error && <Alert is_dark={is_dark} message={error} />}
-            </AnimatePresence>
-
-            <div className={`w-full text-start ${error ? "mt-4" : "mt-6"}`}>
+            <div className="w-full text-start">
               <label
                 className="mb-2 block text-sm font-medium text-txt-primary"
                 htmlFor="recovery_address"
@@ -235,233 +278,134 @@ export default function ForgotPasswordPage() {
               </p>
             </div>
 
-            <Button
-              className="w-full mt-6"
-              size="xl"
-              variant="depth"
-              onClick={handle_email_next}
-            >
-              {t("common.continue")}
-            </Button>
-
-            <button
-              className="w-full mt-6 text-sm transition-colors hover:opacity-80 text-txt-tertiary"
-              onClick={() => navigate("/sign-in")}
-            >
-              {t("auth.back_to_sign_in")}
-            </button>
-          </motion.div>
-        );
-
-      case "other_ways":
-        return (
-          <motion.div
-            key="other_ways"
-            animate="animate"
-            className="flex flex-col items-center w-full max-w-sm px-4 text-center"
-            exit="exit"
-            initial={reduce_motion ? false : "initial"}
-            transition={{
-              ...page_transition,
-              duration: reduce_motion ? 0 : page_transition.duration,
-            }}
-            variants={page_variants}
-          >
-            <Logo />
-
-            <h1 className="text-xl font-semibold mt-6 text-txt-primary">
-              {t("auth.other_ways_title")}
-            </h1>
-            <p className="text-sm mt-2 leading-relaxed text-txt-tertiary">
-              {t("auth.other_ways_desc")}
-            </p>
-
             <AnimatePresence>
               {error && <Alert is_dark={is_dark} message={error} />}
             </AnimatePresence>
 
-            <div className={`w-full ${error ? "mt-4" : "mt-6"} space-y-3`}>
+            <ActionRow
+              secondary={
+                <TextLink
+                  label={t("auth.back_to_sign_in")}
+                  on_click={() => navigate("/sign-in")}
+                />
+              }
+            >
+              <Button
+                className="w-full"
+                size="xl"
+                variant="depth"
+                onClick={handle_email_next}
+              >
+                {t("common.continue")}
+              </Button>
+            </ActionRow>
+          </StepLayout>
+        );
+
+      case "other_ways":
+        return (
+          <StepLayout
+            header={header(
+              t("auth.other_ways_title"),
+              t("auth.other_ways_desc"),
+            )}
+          >
+            <AnimatePresence>
+              {error && <Alert is_dark={is_dark} message={error} />}
+            </AnimatePresence>
+
+            <OptionGroup>
               <OptionRow
                 description={t("auth.other_way_code_desc")}
                 icon={<KeyIcon />}
-                on_click={() => {
-                  set_error("");
-                  set_step("code");
-                }}
+                on_click={() => go_to("code")}
                 title={t("auth.other_way_code_title")}
               />
               <OptionRow
                 description={t("auth.other_way_email_desc")}
                 icon={<MailIcon />}
-                on_click={() => {
-                  set_error("");
-                  set_step("reset_email_confirm");
-                }}
+                on_click={() => go_to("reset_email_confirm")}
                 title={t("auth.other_way_email_title")}
               />
-              <OptionRow
-                description={t("auth.change_account_desc")}
-                icon={<AddressIcon />}
-                on_click={handle_change_account}
-                title={t("auth.change_account")}
-              />
-              <OptionRow
-                description={t("auth.other_way_none_desc")}
-                icon={<HelpIcon />}
-                on_click={() => {
-                  set_error("");
-                  set_step("support");
-                }}
-                title={t("auth.other_way_none_title")}
-              />
-            </div>
+            </OptionGroup>
 
-            <Button
-              className="w-full mt-6"
-              size="xl"
-              variant="secondary"
-              onClick={() => {
-                set_error("");
-                set_step("code");
-              }}
-            >
-              {t("common.back")}
-            </Button>
-          </motion.div>
+            <TextLink
+              className="mt-4"
+              label={t("auth.other_way_none_title")}
+              on_click={() => go_to("support")}
+            />
+          </StepLayout>
         );
 
       case "reset_email_confirm":
         return (
-          <motion.div
-            key="reset_email_confirm"
-            animate="animate"
-            className="flex flex-col items-center w-full max-w-sm px-4 text-center"
-            exit="exit"
-            initial={reduce_motion ? false : "initial"}
-            transition={{
-              ...page_transition,
-              duration: reduce_motion ? 0 : page_transition.duration,
-            }}
-            variants={page_variants}
+          <StepLayout
+            header={header(
+              t("auth.reset_account_title"),
+              t("auth.reset_account_desc"),
+            )}
           >
-            <WarningIcon />
-
-            <h1 className="text-xl font-semibold mt-6 text-txt-primary">
-              {t("auth.reset_account_title")}
-            </h1>
-            <p className="text-sm mt-2 leading-relaxed text-txt-tertiary">
-              {t("auth.reset_account_desc")}
-            </p>
-
             <AnimatePresence>
               {error && <Alert is_dark={is_dark} message={error} />}
             </AnimatePresence>
 
-            <Button
-              className={`w-full ${error ? "mt-4" : "mt-8"}`}
-              size="xl"
-              variant="depth"
-              onClick={handle_email_reset_link}
+            <ActionRow
+              secondary={
+                <TextLink
+                  label={t("common.back")}
+                  on_click={() => go_to("other_ways")}
+                />
+              }
             >
-              {t("auth.send_reset_link")}
-            </Button>
-
-            <Button
-              className="w-full mt-3"
-              size="xl"
-              variant="secondary"
-              onClick={() => {
-                set_error("");
-                set_step("other_ways");
-              }}
-            >
-              {t("common.back")}
-            </Button>
-          </motion.div>
+              <Button
+                className="w-full"
+                size="xl"
+                variant="depth"
+                onClick={handle_email_reset_link}
+              >
+                {t("auth.send_reset_link")}
+              </Button>
+            </ActionRow>
+          </StepLayout>
         );
 
       case "support":
         return (
-          <motion.div
-            key="support"
-            animate="animate"
-            className="flex flex-col items-center w-full max-w-sm px-4 text-center"
-            exit="exit"
-            initial={reduce_motion ? false : "initial"}
-            transition={{
-              ...page_transition,
-              duration: reduce_motion ? 0 : page_transition.duration,
-            }}
-            variants={page_variants}
+          <StepLayout
+            header={header(
+              t("auth.support_step_title"),
+              t("auth.support_step_desc"),
+            )}
           >
-            <Logo />
-
-            <h1 className="text-xl font-semibold mt-6 text-txt-primary">
-              {t("auth.support_step_title")}
-            </h1>
-            <p className="text-sm mt-2 leading-relaxed text-txt-tertiary">
-              {t("auth.support_step_desc")}
-            </p>
-
-            <Button
-              className="w-full mt-8"
-              size="xl"
-              variant="depth"
-              onClick={() => open_external(SUPPORT_MAIL_URL)}
+            <ActionRow
+              secondary={
+                <TextLink
+                  label={t("auth.support_help_center")}
+                  on_click={() => open_external(HELP_CENTER_URL)}
+                />
+              }
             >
-              {t("auth.support_email_action")}
-            </Button>
-
-            <button
-              className="w-full mt-4 text-sm transition-colors hover:opacity-80 text-txt-tertiary"
-              onClick={() => open_external(HELP_CENTER_URL)}
-            >
-              {t("auth.support_help_center")}
-            </button>
-
-            <button
-              className="w-full mt-6 text-sm transition-colors hover:opacity-80 text-txt-tertiary"
-              onClick={() => {
-                set_error("");
-                set_step("other_ways");
-              }}
-            >
-              {t("common.back")}
-            </button>
-          </motion.div>
+              <Button
+                className="w-full"
+                size="xl"
+                variant="depth"
+                onClick={() => open_external(SUPPORT_MAIL_URL)}
+              >
+                {t("auth.support_email_action")}
+              </Button>
+            </ActionRow>
+          </StepLayout>
         );
 
       case "code":
         return (
-          <motion.div
-            key="code"
-            animate="animate"
-            className="flex flex-col items-center w-full max-w-sm px-4 text-center"
-            exit="exit"
-            initial={reduce_motion ? false : "initial"}
-            transition={{
-              ...page_transition,
-              duration: reduce_motion ? 0 : page_transition.duration,
-            }}
-            variants={page_variants}
+          <StepLayout
+            header={header(
+              t("auth.enter_recovery_code"),
+              t("auth.enter_recovery_code_desc"),
+            )}
           >
-            <Logo />
-
-            <h1 className="text-xl font-semibold mt-6 text-txt-primary">
-              {t("auth.enter_recovery_code")}
-            </h1>
-            <p className="text-sm mt-2 leading-relaxed text-txt-tertiary">
-              {t("auth.enter_recovery_code_desc")}
-            </p>
-            <p className="notranslate mt-1 max-w-full truncate text-sm font-medium text-txt-primary">
-              {email}
-            </p>
-
-            <AnimatePresence>
-              {error && <Alert is_dark={is_dark} message={error} />}
-            </AnimatePresence>
-
-            <div className={`w-full text-start ${error ? "mt-4" : "mt-6"}`}>
+            <div className="w-full text-start">
               <label
                 className="mb-2 block text-sm font-medium text-txt-primary"
                 htmlFor="recovery_code"
@@ -490,55 +434,41 @@ export default function ForgotPasswordPage() {
               </p>
             </div>
 
-            <Button
-              className="w-full mt-6"
-              size="xl"
-              variant="depth"
-              onClick={handle_code_submit}
-            >
-              {t("common.continue")}
-            </Button>
-
-            <button
-              className="w-full mt-5 text-sm font-medium transition-colors hover:opacity-80 text-txt-secondary"
-              onClick={() => {
-                set_error("");
-                set_step("other_ways");
-              }}
-            >
-              {t("auth.try_another_way")}
-            </button>
-          </motion.div>
-        );
-
-      case "password":
-        return (
-          <motion.div
-            key="password"
-            animate="animate"
-            className="flex flex-col items-center w-full max-w-sm px-4 text-center"
-            exit="exit"
-            initial={reduce_motion ? false : "initial"}
-            transition={{
-              ...page_transition,
-              duration: reduce_motion ? 0 : page_transition.duration,
-            }}
-            variants={page_variants}
-          >
-            <Logo />
-
-            <h1 className="text-xl font-semibold mt-6 text-txt-primary">
-              {t("auth.create_new_password")}
-            </h1>
-            <p className="text-sm mt-2 leading-relaxed text-txt-tertiary">
-              {t("auth.choose_strong_password")}
-            </p>
-
             <AnimatePresence>
               {error && <Alert is_dark={is_dark} message={error} />}
             </AnimatePresence>
 
-            <div className={`w-full ${error ? "mt-4" : "mt-6"} space-y-4`}>
+            <ActionRow
+              secondary={
+                <TextLink
+                  label={t("auth.try_another_way")}
+                  on_click={() => go_to("other_ways")}
+                />
+              }
+            >
+              <Button
+                className="w-full"
+                size="xl"
+                variant="depth"
+                onClick={handle_code_submit}
+              >
+                {t("common.continue")}
+              </Button>
+            </ActionRow>
+          </StepLayout>
+        );
+
+      case "password":
+        return (
+          <StepLayout
+            header={header(
+              t("auth.create_new_password"),
+              t("auth.choose_strong_password"),
+              true,
+              false,
+            )}
+          >
+            <div className="w-full space-y-4 text-start">
               <div>
                 <InputWithEndContent
                   // eslint-disable-next-line jsx-a11y/no-autofocus
@@ -546,6 +476,11 @@ export default function ForgotPasswordPage() {
                   autoComplete="new-password"
                   end_content={
                     <button
+                      aria-label={
+                        is_password_visible
+                          ? t("settings.hide_password_toggle")
+                          : t("settings.show_password_toggle")
+                      }
                       className="focus:outline-none flex items-center justify-center"
                       type="button"
                       onClick={() =>
@@ -569,6 +504,11 @@ export default function ForgotPasswordPage() {
                 autoComplete="new-password"
                 end_content={
                   <button
+                    aria-label={
+                      is_confirm_visible
+                        ? t("settings.hide_password_toggle")
+                        : t("settings.show_password_toggle")
+                    }
                     className="focus:outline-none flex items-center justify-center"
                     type="button"
                     onClick={() => set_is_confirm_visible(!is_confirm_visible)}
@@ -590,43 +530,26 @@ export default function ForgotPasswordPage() {
               />
             </div>
 
-            <Button
-              className="w-full mt-6"
-              size="xl"
-              variant="depth"
-              onClick={handle_password_submit}
-            >
-              {t("auth.reset_password")}
-            </Button>
+            <AnimatePresence>
+              {error && <Alert is_dark={is_dark} message={error} />}
+            </AnimatePresence>
 
-            <Button
-              className="w-full mt-3"
-              size="xl"
-              variant="secondary"
-              onClick={() => {
-                set_error("");
-                set_step("code");
-              }}
-            >
-              {t("common.back")}
-            </Button>
-          </motion.div>
+            <ActionRow>
+              <Button
+                className="w-full"
+                size="xl"
+                variant="depth"
+                onClick={handle_password_submit}
+              >
+                {t("auth.reset_password")}
+              </Button>
+            </ActionRow>
+          </StepLayout>
         );
 
       case "processing":
         return (
-          <motion.div
-            key="processing"
-            animate="animate"
-            className="flex flex-col items-center w-full max-w-sm px-4 text-center"
-            exit="exit"
-            initial={reduce_motion ? false : "initial"}
-            transition={{
-              ...page_transition,
-              duration: reduce_motion ? 0 : page_transition.duration,
-            }}
-            variants={page_variants}
-          >
+          <StepLayout centered header={null}>
             <Spinner className="h-10 w-10 text-brand" size="lg" />
 
             <h2 className="text-xl font-semibold mt-8 text-txt-primary">
@@ -640,53 +563,48 @@ export default function ForgotPasswordPage() {
             <p className="mt-8 text-xs max-w-xs leading-relaxed text-txt-muted">
               {t("auth.please_dont_close")}
             </p>
-          </motion.div>
+          </StepLayout>
         );
 
       case "new_codes":
         return (
-          <motion.div
-            key="new_codes"
-            animate="animate"
-            className="flex flex-col items-center w-full max-w-md px-4 text-center"
-            exit="exit"
-            initial={reduce_motion ? false : "initial"}
-            transition={{
-              ...page_transition,
-              duration: reduce_motion ? 0 : page_transition.duration,
-            }}
-            variants={page_variants}
+          <StepLayout
+            header={header(
+              t("auth.save_new_recovery_codes"),
+              t("auth.old_codes_invalidated"),
+              true,
+              false,
+            )}
           >
-            <Logo />
-
-            <h1 className="text-xl font-semibold mt-6 text-txt-primary">
-              {t("auth.save_new_recovery_codes")}
-            </h1>
-            <p className="text-sm mt-2 leading-relaxed text-txt-tertiary">
-              {t("auth.old_codes_invalidated")}
-            </p>
-
-            <div className="w-full mt-6">
+            <div className="w-full">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-xs font-medium text-txt-muted">
                   {t("auth.n_recovery_codes", {
-                    count: new_recovery_codes.length.toString(),
+                    count: new_recovery_codes.length,
                   })}
                 </span>
                 <div className="flex items-center gap-1">
                   <button
+                    aria-label={
+                      is_key_visible
+                        ? t("settings.hide_password_toggle")
+                        : t("settings.show_password_toggle")
+                    }
                     className="p-1.5 rounded transition-colors hover:opacity-80 text-txt-muted"
+                    type="button"
                     onClick={() => set_is_key_visible(!is_key_visible)}
                   >
                     {is_key_visible ? <EyeSlashIcon /> : <EyeIcon />}
                   </button>
                   <button
+                    aria-label={t("auth.copy_codes")}
                     className="p-1.5 rounded transition-colors hover:opacity-80"
                     style={{
                       color: copy_success
                         ? "var(--color-success)"
                         : "var(--text-muted)",
                     }}
+                    type="button"
                     onClick={handle_copy_codes}
                   >
                     <CopyIcon />
@@ -713,7 +631,7 @@ export default function ForgotPasswordPage() {
               </div>
             </div>
 
-            <div className="w-full mt-6 grid grid-cols-3 gap-2">
+            <div className="w-full mt-5 grid grid-cols-3 gap-2">
               <Button
                 size="lg"
                 variant="secondary"
@@ -733,7 +651,7 @@ export default function ForgotPasswordPage() {
               </Button>
             </div>
 
-            <label className="w-full mt-6 flex items-start gap-3 text-start cursor-pointer">
+            <label className="w-full mt-5 flex items-start gap-3 text-start cursor-pointer">
               <Checkbox
                 checked={codes_saved}
                 className="mt-0.5 shrink-0"
@@ -744,107 +662,84 @@ export default function ForgotPasswordPage() {
               </span>
             </label>
 
-            <Button
-              className="w-full mt-6"
-              disabled={!codes_saved}
-              size="xl"
-              variant="depth"
-              onClick={handle_codes_continue}
+            <ActionRow
+              secondary={
+                <TextLink
+                  label={t("auth.download_as_text")}
+                  on_click={handle_download_txt}
+                />
+              }
             >
-              {t("common.continue")}
-            </Button>
-
-            <button
-              className="w-full mt-4 text-sm transition-colors hover:opacity-80 text-txt-tertiary"
-              onClick={handle_download_txt}
-            >
-              {t("auth.download_as_text")}
-            </button>
-          </motion.div>
+              <Button
+                className="w-full"
+                disabled={!codes_saved}
+                size="xl"
+                variant="depth"
+                onClick={handle_codes_continue}
+              >
+                {t("common.continue")}
+              </Button>
+            </ActionRow>
+          </StepLayout>
         );
 
       case "email_sent":
         return (
-          <motion.div
-            key="email_sent"
-            animate="animate"
-            className="flex flex-col items-center w-full max-w-sm px-4 text-center"
-            exit="exit"
-            initial={reduce_motion ? false : "initial"}
-            transition={{
-              ...page_transition,
-              duration: reduce_motion ? 0 : page_transition.duration,
-            }}
-            variants={page_variants}
+          <StepLayout
+            header={header(
+              t("auth.reset_link_sent_title"),
+              t("auth.reset_link_sent_desc"),
+            )}
           >
-            <svg
-              className="w-8 h-8"
-              fill="none"
-              stroke="var(--color-success)"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-            >
-              <path
-                d="M5 13l4 4L19 7"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+            <AnimatePresence>
+              {error && <Alert is_dark={is_dark} message={error} />}
+            </AnimatePresence>
 
-            <h1 className="text-xl font-semibold mt-6 text-txt-primary">
-              {t("auth.reset_link_sent_title")}
-            </h1>
-            <p className="text-sm mt-2 leading-relaxed text-txt-tertiary">
-              {t("auth.reset_link_sent_desc")}
-            </p>
-
-            <Button
-              className="w-full mt-8"
-              size="xl"
-              variant="depth"
-              onClick={() => navigate("/sign-in")}
+            <ActionRow
+              secondary={
+                <>
+                  <TextLink
+                    disabled={resend_cooldown > 0 || is_resending}
+                    label={
+                      resend_cooldown > 0
+                        ? t("auth.resend_in_seconds", {
+                            seconds: resend_cooldown.toString(),
+                          })
+                        : is_resending
+                          ? t("common.sending")
+                          : t("auth.resend_reset_link")
+                    }
+                    on_click={handle_resend_reset_link}
+                  />
+                  <TextLink
+                    label={t("auth.reset_use_recovery_code")}
+                    on_click={() => go_to("code")}
+                  />
+                </>
+              }
             >
-              {t("auth.back_to_sign_in")}
-            </Button>
-          </motion.div>
+              <Button
+                className="w-full"
+                size="xl"
+                variant="depth"
+                onClick={() => navigate("/sign-in")}
+              >
+                {t("auth.back_to_sign_in")}
+              </Button>
+            </ActionRow>
+          </StepLayout>
         );
 
       case "review_security":
         return (
-          <motion.div
-            key="review_security"
-            animate="animate"
-            className="flex flex-col items-center w-full max-w-sm px-4 text-center"
-            exit="exit"
-            initial={reduce_motion ? false : "initial"}
-            transition={{
-              ...page_transition,
-              duration: reduce_motion ? 0 : page_transition.duration,
-            }}
-            variants={page_variants}
+          <StepLayout
+            header={header(
+              t("auth.review_security_title"),
+              t("auth.review_security_desc"),
+              false,
+            )}
           >
-            <svg
-              className="w-8 h-8"
-              fill="none"
-              stroke="var(--color-success)"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-            >
-              <path
-                d="M5 13l4 4L19 7"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-
-            <h1 className="text-xl font-semibold mt-6 text-txt-primary">
-              {t("auth.review_security_title")}
-            </h1>
-            <p className="text-sm mt-2 leading-relaxed text-txt-tertiary">
-              {t("auth.review_security_desc")}
-            </p>
-
-            <div className="w-full mt-6 space-y-2">
+            <div className="w-full divide-y divide-edge-secondary">
               <ReviewRow label={t("auth.review_devices_signed_out")} />
               {review.second_factors_removed && (
                 <ReviewRow label={t("auth.review_two_step_off")} />
@@ -858,20 +753,22 @@ export default function ForgotPasswordPage() {
               />
               <ReviewRow
                 label={t("auth.review_codes_left", {
-                  count: review.codes_remaining.toString(),
+                  count: review.codes_remaining,
                 })}
               />
             </div>
 
-            <Button
-              className="w-full mt-8"
-              size="xl"
-              variant="depth"
-              onClick={() => navigate("/sign-in")}
-            >
-              {t("auth.sign_in")}
-            </Button>
-          </motion.div>
+            <ActionRow>
+              <Button
+                className="w-full"
+                size="xl"
+                variant="depth"
+                onClick={() => navigate("/sign-in")}
+              >
+                {t("auth.sign_in")}
+              </Button>
+            </ActionRow>
+          </StepLayout>
         );
 
       default:
@@ -882,7 +779,22 @@ export default function ForgotPasswordPage() {
   return (
     <div className="fixed inset-0 overflow-y-auto transition-colors duration-200 bg-surf-primary">
       <div className="min-h-full flex items-start md:items-center justify-center py-8 md:py-4 px-4">
-        <AnimatePresence mode="wait">{render_step_content()}</AnimatePresence>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={step}
+            animate="animate"
+            className="flex w-full max-w-[400px] flex-col items-start px-4 text-start"
+            exit="exit"
+            initial={reduce_motion ? false : "initial"}
+            transition={{
+              ...page_transition,
+              duration: reduce_motion ? 0 : page_transition.duration,
+            }}
+            variants={page_variants}
+          >
+            {render_step_content()}
+          </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   );

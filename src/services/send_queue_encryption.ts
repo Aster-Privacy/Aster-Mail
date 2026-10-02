@@ -38,4 +38,8 @@ export {
   reencrypt_all_sent_mail,
   type SentMailResealSummary,
 } from "./sent_mail_reseal";
-export { execute_external_send, execute_send } from "./send_queue_execute";
+export {
+  assert_required_encryption_keys,
+  execute_external_send,
+  execute_send,
+} from "./send_queue_execute";

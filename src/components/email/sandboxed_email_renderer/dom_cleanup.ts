@@ -28,6 +28,7 @@ import {
   should_retry_image_load,
 } from "@/lib/image_load_retry";
 import { connection_store } from "@/services/routing/connection_store";
+import { clear_blocked_image } from "@/lib/blocked_image_placeholder";
 import { ignore_error } from "@/lib/ignore_error";
 import { remove_aster_footers } from "@/lib/aster_footer_strip";
 
@@ -655,13 +656,16 @@ function is_zero_length(value: string): boolean {
   return /^0(?:\.0+)?(?:px)?$/.test(value.trim());
 }
 
-function is_hiding_style(style: CSSStyleDeclaration): boolean {
+const FILLER_ONLY_TEXT =
+  /^[\s\u00ad\u034f\u061c\u115f\u1160\u17b4\u17b5\u180e\u200b-\u200f\u2060-\u2064\u3164\ufeff]*$/;
+
+function is_filler_only(text: string): boolean {
+  return FILLER_ONLY_TEXT.test(text);
+}
+
+function hides_subtree(style: CSSStyleDeclaration): boolean {
   if (style.display === "none") return true;
-  if (style.visibility === "hidden" || style.visibility === "collapse") {
-    return true;
-  }
   if (style.opacity !== "" && parseFloat(style.opacity) === 0) return true;
-  if (is_zero_length(style.fontSize)) return true;
 
   const clips = style.overflow !== "" && style.overflow !== "visible";
 
@@ -670,19 +674,34 @@ function is_hiding_style(style: CSSStyleDeclaration): boolean {
   );
 }
 
+function is_invisible(style: CSSStyleDeclaration): boolean {
+  return style.visibility === "hidden" || style.visibility === "collapse";
+}
+
 function collect_hiding_elements(
   node: Node,
   body: HTMLElement,
   view: Window,
 ): HTMLElement[] {
   const hiding: HTMLElement[] = [];
-  let el: HTMLElement | null =
-    node.nodeType === Node.ELEMENT_NODE
-      ? (node as HTMLElement)
-      : node.parentElement;
+  const is_text = node.nodeType !== Node.ELEMENT_NODE;
+  const nearest = is_text ? node.parentElement : (node as HTMLElement);
+  const nearest_invisible =
+    !!nearest && is_invisible(view.getComputedStyle(nearest));
+  let el: HTMLElement | null = nearest;
 
   while (el) {
-    if (is_hiding_style(view.getComputedStyle(el))) hiding.push(el);
+    const style = view.getComputedStyle(el);
+    const shrinks_text =
+      is_text && el === nearest && is_zero_length(style.fontSize);
+
+    if (
+      hides_subtree(style) ||
+      shrinks_text ||
+      (nearest_invisible && is_invisible(style))
+    ) {
+      hiding.push(el);
+    }
     if (el === body) break;
     el = el.parentElement;
   }
@@ -723,6 +742,15 @@ function force_visible(el: HTMLElement, view: Window): void {
   if (is_zero_length(style.height)) {
     el.style.setProperty("height", "auto", "important");
   }
+  if (is_zero_length(style.maxWidth)) {
+    el.style.setProperty("max-width", "none", "important");
+  }
+  if (is_zero_length(style.width)) {
+    el.style.setProperty("width", "auto", "important");
+  }
+  if (/px$/.test(style.lineHeight) && parseFloat(style.lineHeight) < 2) {
+    el.style.setProperty("line-height", "normal", "important");
+  }
 }
 
 export function reveal_fully_hidden_content(doc: Document): boolean {
@@ -741,7 +769,7 @@ export function reveal_fully_hidden_content(doc: Document): boolean {
     const parent = node.parentElement;
 
     if (!parent || NON_RENDERED_TAGS.includes(parent.tagName)) continue;
-    if (!(node.textContent || "").trim()) continue;
+    if (is_filler_only(node.textContent || "")) continue;
 
     scanned += 1;
     if (scanned > VISIBILITY_SCAN_LIMIT) return false;
@@ -828,6 +856,7 @@ export function unblock_remote_content(doc: Document): void {
         );
       }
     }
+    clear_blocked_image(el);
     el.removeAttribute("data-blocked");
     el.classList.remove("blocked-remote-image");
     const alt = el.getAttribute("alt");

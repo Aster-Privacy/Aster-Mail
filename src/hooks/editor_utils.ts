@@ -213,6 +213,109 @@ export function escape_html(str: string): string {
     .replace(/'/g, "&#039;");
 }
 
+export function plain_text_to_editor_html(text: string): string {
+  return text
+    .replace(/\r\n?/g, "\n")
+    .split("\n")
+    .map((line) =>
+      line === ""
+        ? "<div><br></div>"
+        : `<div>${escape_html(line).replace(/ {2}/g, " &nbsp;")}</div>`,
+    )
+    .join("");
+}
+
+export function strip_editor_fillers(html: string): string {
+  return html.replace(/\u200B/g, "");
+}
+
+export function pasted_html_has_text(html: string): boolean {
+  if (!html) return false;
+
+  const doc = new DOMParser().parseFromString(html, "text/html");
+
+  return !!doc.body.textContent?.replace(/\u00A0/g, " ").trim();
+}
+
+export function caret_range_from_point(x: number, y: number): Range | null {
+  if (typeof document.caretRangeFromPoint === "function") {
+    return document.caretRangeFromPoint(x, y);
+  }
+
+  const position = (
+    document as Document & {
+      caretPositionFromPoint?: (
+        x: number,
+        y: number,
+      ) => { offsetNode: Node; offset: number } | null;
+    }
+  ).caretPositionFromPoint?.(x, y);
+
+  if (!position) return null;
+
+  const range = document.createRange();
+
+  range.setStart(position.offsetNode, position.offset);
+  range.collapse(true);
+
+  return range;
+}
+
+const LINK_URL_PARTS = /%[0-9A-Fa-f]{2}|%|[^%]+/g;
+
+export function encode_link_url(url: string): string | null {
+  try {
+    return url.replace(LINK_URL_PARTS, (part) => {
+      if (part === "%") return "%25";
+      if (part.startsWith("%")) return part;
+
+      return encodeURI(part);
+    });
+  } catch {
+    return null;
+  }
+}
+
+export function get_selection_anchor(
+  editor: HTMLElement,
+): HTMLAnchorElement | null {
+  const selection = window.getSelection();
+
+  if (!selection || selection.rangeCount === 0) return null;
+
+  const find_anchor = (node: Node | null): HTMLAnchorElement | null => {
+    let current: Node | null = node;
+
+    while (current && current !== editor) {
+      if (
+        current.nodeType === Node.ELEMENT_NODE &&
+        (current as HTMLElement).tagName === "A"
+      ) {
+        return current as HTMLAnchorElement;
+      }
+      current = current.parentNode;
+    }
+
+    return null;
+  };
+
+  const anchor = find_anchor(selection.anchorNode);
+
+  if (!anchor || !editor.contains(anchor)) return null;
+  if (selection.isCollapsed) return anchor;
+
+  return find_anchor(selection.focusNode) === anchor ? anchor : null;
+}
+
+export function place_caret(range: Range): void {
+  const selection = window.getSelection();
+
+  if (!selection) return;
+
+  selection.removeAllRanges();
+  selection.addRange(range);
+}
+
 const IMAGE_MAGIC_BYTES: Record<string, number[]> = {
   "image/png": [0x89, 0x50, 0x4e, 0x47],
   "image/jpeg": [0xff, 0xd8, 0xff],
@@ -280,6 +383,7 @@ export interface UseEditorReturn {
   set_alignment: (alignment: TextAlignment) => void;
   remove_formatting: () => void;
   insert_link: (url: string, text?: string) => void;
+  get_link_at_selection: () => HTMLAnchorElement | null;
   insert_emoji: (emoji: string) => void;
   insert_text: (text: string) => void;
   insert_html: (html: string) => void;

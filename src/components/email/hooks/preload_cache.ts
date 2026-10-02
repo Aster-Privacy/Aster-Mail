@@ -49,6 +49,7 @@ import {
   unwrap_bundle_html,
   is_ratchet_envelope,
   is_password_protected_body,
+  is_ratchet_verified_body,
 } from "@/utils/email_crypto";
 import {
   get_vault_from_memory,
@@ -142,6 +143,11 @@ const EMPTY_EXTERNAL_CONTENT: ExternalContentReport = {
 const preload_cache = new Map<string, PreloadedEmail>();
 const preload_in_flight = new Map<string, Promise<void>>();
 const MAX_PRELOAD_CACHE_SIZE = 30;
+let preload_generation = 0;
+
+function invalidate_in_flight_preloads(): void {
+  preload_generation += 1;
+}
 
 if (typeof window !== "undefined") {
   window.addEventListener(LOCKDOWN_CHANGED_EVENT, () => clear_preload_cache());
@@ -269,6 +275,7 @@ export function clear_preload_cache(): void {
 }
 
 export function mark_preload_stale(email_id?: string): void {
+  invalidate_in_flight_preloads();
   if (email_id) {
     const cached = preload_cache.get(email_id);
 
@@ -283,6 +290,7 @@ export function mark_preload_stale(email_id?: string): void {
 }
 
 export function delete_preloaded_email(email_id: string): void {
+  invalidate_in_flight_preloads();
   const entry = preload_cache.get(email_id);
 
   if (entry?.cid_resolved) revoke_cid_blob_urls(entry.cid_resolved.blob_urls);
@@ -333,6 +341,7 @@ function invalidate_thread_in_preload_cache(
   thread_token: string,
   original_email_id?: string,
 ): void {
+  invalidate_in_flight_preloads();
   for (const [key, cached] of preload_cache.entries()) {
     if (
       cached.mail_item.thread_token === thread_token ||
@@ -465,6 +474,7 @@ if (typeof window !== "undefined") {
       detail.snoozed_until !== undefined;
 
     if (has_unrepresentable_change) {
+      invalidate_in_flight_preloads();
       preload_cache.set(detail.id, { ...cached, is_stale: true });
 
       return;
@@ -653,8 +663,11 @@ export async function preload_email_detail(
     }
   }
   if (preload_in_flight.has(target_id)) return preload_in_flight.get(target_id);
+  const started_generation = preload_generation;
 
-  const task = (async () => {
+  let task: Promise<void> | undefined;
+
+  task = (async () => {
     try {
       const response = await get_mail_item(target_id);
 
@@ -705,6 +718,7 @@ export async function preload_email_detail(
           )
         : resolved_text;
 
+      const e2e_verified = is_ratchet_verified_body(resolved_text, body_text);
       const pre_pgp_text = body_text;
 
       body_text = await try_decrypt_pgp_body(body_text);
@@ -779,7 +793,10 @@ export async function preload_email_detail(
         ...(forwarding ?? {}),
         is_external: item.is_external,
         system_origin: item.system_origin,
-        sender_verified_domain: item.sender_verified ? item.sender_verified_domain : undefined,
+        e2e_verified,
+        sender_verified_domain: item.sender_verified
+          ? item.sender_verified_domain
+          : undefined,
         send_status: item.send_status,
         send_error: item.send_error,
         raw_headers: envelope.raw_headers,
@@ -803,8 +820,7 @@ export async function preload_email_detail(
           app_locale(),
           { timeZone: get_display_time_zone() },
         ),
-        is_read:
-          item.is_read ?? decrypted_metadata?.is_read ?? false,
+        is_read: item.is_read ?? decrypted_metadata?.is_read ?? false,
         is_starred: decrypted_metadata?.is_starred ?? false,
         has_attachment: decrypted_metadata?.has_attachments ?? false,
         thread_count: 1,
@@ -832,13 +848,15 @@ export async function preload_email_detail(
         body: body_text || "",
         html_content: safe_html,
         timestamp: item.message_ts || item.created_at,
-        is_read:
-          item.is_read ?? decrypted_metadata?.is_read ?? false,
+        is_read: item.is_read ?? decrypted_metadata?.is_read ?? false,
         is_starred: decrypted_metadata?.is_starred ?? false,
         is_deleted: false,
         is_external: item.is_external,
         system_origin: item.system_origin,
-        sender_verified_domain: item.sender_verified ? item.sender_verified_domain : undefined,
+        e2e_verified,
+        sender_verified_domain: item.sender_verified
+          ? item.sender_verified_domain
+          : undefined,
         encrypted_metadata: item.encrypted_metadata,
         metadata_nonce: item.metadata_nonce,
         to_recipients: envelope.to || [],
@@ -985,6 +1003,8 @@ export async function preload_email_detail(
         item.metadata = decrypted_metadata;
       }
 
+      if (preload_generation !== started_generation) return;
+
       preload_cache.set(target_id, {
         mail_item: item,
         email: decrypted,
@@ -1002,7 +1022,9 @@ export async function preload_email_detail(
     } catch (caught) {
       ignore_error("components/email/hooks/preload_cache:task", caught);
     } finally {
-      preload_in_flight.delete(target_id);
+      if (preload_in_flight.get(target_id) === task) {
+        preload_in_flight.delete(target_id);
+      }
     }
   })();
 

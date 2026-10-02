@@ -936,6 +936,16 @@ export const ja = {
       "接続済みアカウントでは送信予約を利用できません。今すぐ送信するか、Aster のアドレスを選んでください。",
     scheduled_no_expiry:
       "予約送信のメールはまだ有効期限を設定できません。すぐに送信するか、有効期限を削除して予約してください。",
+    scheduled_too_far_ahead:
+      "予約送信は最大 28 日先まで設定できます。もっと早い日時を選択してください。",
+    scheduled_requires_encryption:
+      "暗号化の必須設定がオンになっており、外部アドレスへの予約送信メールはエンドツーエンドで暗号化されません。このメッセージを今すぐ送信するか、設定で暗号化の必須設定をオフにしてください。",
+    offline_password_protected_unavailable:
+      "オフラインの間はパスワード保護されたメールをキューに追加できません。再接続したら、メッセージを送信してください。",
+    offline_settings_unavailable:
+      "設定を読み込めなかったため、メッセージは送信されませんでした。再接続したら、もう一度お試しください。",
+    cannot_send_key_changed_offline:
+      "このメッセージの送信待ちの間に受信者の暗号鍵が変更されたため、送信されませんでした。",
     failed_to_merge_contacts:
       "統合を完了できませんでした。もう一度お試しください。元の連絡先は変更されていません。",
     enter_valid_emails: "有効なメールアドレスを入力してください",
@@ -1277,6 +1287,8 @@ export const ja = {
     font: "フォント",
     stylesheet: "スタイルシート",
     tracking_pixel: "トラッキングピクセル",
+    image_blocked: "画像はブロックされました",
+    tracking_pixel_blocked: "トラッキングピクセルはブロックされました",
     me: "自分",
     notification_banner_message:
       "デスクトップ通知を有効にして新着メールの情報を受け取りましょう",
@@ -1313,6 +1325,14 @@ export const ja = {
     recover_data_success: "以前のデータのロックが解除されました。",
     recover_data_no_match:
       "そのパスワードではデータのロックを解除できませんでした。別の以前のパスワードをお試しください。",
+    recover_data_code_description:
+      "パスワードのリセット前のメールのロックを解除するには、リセット前に保存したリカバリーコードのいずれかを入力してください。",
+    recover_data_code_no_match:
+      "そのコードではデータのロックを解除できませんでした。リセット前に保存したコードを入力してください。",
+    recover_data_partial:
+      "以前のメールの一部のロックが解除されました。残りを解除するには、以前のパスワードを入力してください。",
+    recover_data_rate_limited:
+      "試行回数が多すぎます。30分待ってから、もう一度お試しください。",
     recover_data_failed:
       "一部のデータのロックを解除できませんでした。接続を確認して、もう一度お試しください。",
     payment_past_due_message:
@@ -3997,7 +4017,7 @@ export const ja = {
     reply_to_all: "全員に返信",
     force_dark_mode_emails: "メールのダークモードを強制",
     force_dark_mode_emails_description:
-      "メールの元のスタイルを上書きして、常にダークモードでメール内容を表示します",
+      "Aster がダークテーマのとき、メールの元のスタイルを上書きしてダークモードでメール内容を表示します",
     translation: "翻訳",
     translate_incoming: "受信メールを翻訳",
     translate_incoming_description:
@@ -4640,7 +4660,7 @@ export const ja = {
       "メールに鍵アイコンを表示し、メッセージが暗号化済み・署名済み・またはどちらでもないかを示します。",
     info_force_dark_mode_title: "メールのダークモード強制",
     info_force_dark_mode_description:
-      "メールのスタイルを暗い背景と明るいテキストに書き換えます。明るい白いメールが目に辛い場合に便利です。",
+      "Aster がダークテーマのとき、メールのスタイルを暗い背景と明るいテキストに書き換えます。明るい白いメールが目に辛い場合に便利です。",
     info_undo_send_title: "送信取り消し",
     info_undo_send_description:
       "送信後に短い間キャンセルできる時間を提供します。タイマーが終わるまで実際には送信されません。",
@@ -5540,6 +5560,8 @@ export const ja = {
       "メールが見つかりませんか？スパムと送信済みフォルダを確認してください。インポートされたメールがそこに分類されている場合があります。",
     n_failed_count: "{{count}} 件失敗",
     import_folders_skipped:
+      "{{count}} 件のフォルダを作成できなかったため、その中のメールは受信トレイに入っています。",
+    import_folders_skipped_other:
       "{{count}} 件のフォルダを作成できなかったため、その中のメールは受信トレイに入っています。",
     import_folders_skipped_plural:
       "{{count}} 件のフォルダを作成できなかったため、その中のメールは受信トレイに入っています。",
@@ -7151,6 +7173,8 @@ export const ja = {
       "Thunderbird、Apple Mail、Outlook、またはその他のIMAP/JMAPクライアントでAsterを使用できます。Aster Bridgeはローカルで動作し、復号したメールボックスをお好みのクライアントに提供します。",
     desktop_bridge_install_hint:
       "Aster Bridge をインストールして起動しておく必要があります。設定 > Bridge からダウンロードしてください。",
+    desktop_bridge_not_opened:
+      "Aster Bridge が開きませんでした。インストールされて起動していることを確認するか、設定 > Bridge からダウンロードしてください。",
     desktop_bridge_set_up: "{{ client }}をセットアップ",
     bridge: "Bridge",
     bridge_description:
@@ -8221,6 +8245,11 @@ export const ja = {
       "この送信者のメッセージは耐量子暗号で保護されなくなりました。心当たりがない場合は、別の方法で本人に確認してください。",
     recipient_identity_changed:
       "{{email}} の暗号鍵が変更されました。心当たりがない場合は、機密情報を送信する前に別の方法で本人に確認してください。",
+    message_password_requirements:
+      "12 文字以上で、数字、記号、または大文字と小文字の両方を含めてください。",
+    recipient_identity_untrusted:
+      "{{email}} の暗号鍵が変更され、新しい鍵を確認できません。このアドレスに送信するには、別の方法で相手に変更を確認してから、「新しい鍵を信頼」を選択してください。",
+    trust_new_key: "新しい鍵を信頼",
     load_all_thread_messages: "すべてのメッセージを読み込む",
     move_to_category: "カテゴリに移動",
     menu_applies_to_selection: "選択した {count} 件に適用",
@@ -9299,21 +9328,6 @@ export const ja = {
       "アカウントへのアクセスを取り戻します。リセット前の暗号化されたメールは、後でフレーズまたはコードが見つからない限り、再び読むことはできません。",
     phrase_recovery_failed:
       "このフレーズはこのアカウントと一致しません。単語とメールアドレスを確認してください。",
-    reset_consent_title: "このリセットでは以前のデータを復号できません",
-    reset_consent_keeps:
-      "維持されるもの：メールアドレス、すべてのエイリアス（メールは引き続き届きます）、サブスクリプション、アカウント。",
-    reset_consent_loses:
-      "アクセスできなくなるもの：リセット前のすべての暗号化されたメール、連絡先、エイリアスのラベル、設定。これらは暗号化されたまま保管され、以前のパスワードを思い出した場合にのみ後からロックを解除できます。",
-    reset_consent_last_chance:
-      "リカバリーフレーズまたはリカバリーコードをお持ちですか？どちらか一方ですべてを復元できます。",
-    reset_consent_use_phrase_instead: "代わりにフレーズまたはコードを使用する",
-    reset_consent_checkbox:
-      "このリセット後、暗号化されたデータが読めなくなることを理解しました",
-    reset_consent_type_email:
-      "確認のため、メールアドレスを完全な形で入力してください",
-    reset_consent_email_mismatch:
-      "メールアドレスがこのアカウントと一致しません。",
-    reset_consent_continue: "それでもパスワードをリセットする",
     reset_second_factor_title: "本人確認",
     reset_second_factor_description:
       "このアカウントは 2 段階認証を使用しています。パスワードをリセットする前に、2 つ目の認証要素を確認してください。",
@@ -9362,13 +9376,21 @@ export const ja = {
       "復旧したいアカウントのアドレスを入力してください。",
     back_to_sign_in: "サインインに戻る",
     email_me_reset_link: "リセットリンクをメールで送信",
-    reset_link_sent_title: "リカバリーメールを確認してください",
+    reset_link_sent_title: "メールを確認してください",
+    resend_reset_link: "リンクを再送信",
     reset_link_sent_desc:
-      "このユーザー名が登録されており、確認済みのリカバリーメールがある場合、パスワードリセットリンクが送信されました。リンクは30分で期限切れになります。",
+      "このアカウントに確認済みのリカバリーメールがある場合、Aster Mailがリセット用のリンクを送信しました。リンクは30分で期限切れになります。メールが見つからない場合は、迷惑メールフォルダを確認してください。",
     sending_reset_link: "リセットリンクを送信中...",
     reset_your_password: "パスワードをリセット",
     reset_choose_new_password:
       "アカウントの新しいパスワードを選択してください。",
+    reset_current_password_optional: "現在のパスワード（任意）",
+    reset_current_password_hint:
+      "現在のパスワードを覚えている場合はここに入力すると、サインイン直後から以前のメールを利用できます。空欄のままにした場合は、後からリカバリーコードで以前のメールのロックを解除できます。",
+    reset_unlocking_earlier_mail: "以前のメールのロックを解除しています...",
+    reset_use_recovery_code: "代わりにリカバリーコードを使用",
+    reset_new_codes_desc:
+      "これらのコードを安全な場所に保存してください。古いコードも保管してください。そのうちの1つで、サインイン後に以前のメールのロックを解除できます。",
     reset_invalid_or_expired:
       "このリセットリンクは無効か、期限が切れています。新しいリンクをリクエストしてください。",
     request_new_reset_link: "新しいリセットリンクをリクエスト",
@@ -9403,19 +9425,19 @@ export const ja = {
       "Aster Mail は暗号化されたデータを読み取れないため、リカバリーコードまたは復旧用メールなしで解除できる人はいません。サポートがアカウントを確認し、次の手順を案内します。",
     support_email_action: "サポートにメールする",
     support_help_center: "ヘルプセンターを開く",
-    other_ways_title: "別の方法を試す",
+    other_ways_title: "リカバリー方法を選択",
     other_ways_desc: "アカウントに戻る方法を選択してください。",
     other_way_code_title: "リカバリーコードを使う",
     other_way_code_desc: "保存したコードのいずれかを入力します。",
     other_way_email_title: "リカバリーメールでリセットする",
     other_way_email_desc:
-      "Aster Mail がリカバリーメールにリンクを送信します。リセット前のメールにはアクセスできなくなります。",
+      "Aster Mailがリカバリーメールにリンクを送信し、新しいパスワードを選択できるようにします。",
     other_way_none_title: "どれも持っていない",
     other_way_none_desc:
       "サポートにお問い合わせください。次の手順をご案内します。",
-    reset_account_title: "アカウントをリセットしますか?",
+    reset_account_title: "リカバリーメールでリセットする",
     reset_account_desc:
-      "リセット前の暗号化されたメール、連絡先、ファイルは、以前のパスワードで復元するまでロックされたままです。新しい空の暗号鍵が発行されます。",
+      "Aster Mailがリカバリーメールにリンクを送信します。リンクを開いて新しいパスワードを選択してください。以前のメールは、リカバリーコードまたは以前のパスワードでロックを解除するまで暗号化されたままです。",
     send_reset_link: "リセットリンクを送信",
     print_codes: "印刷",
     codes_copied: "コードをコピーしました。",
@@ -9435,9 +9457,9 @@ export const ja = {
       "別のアカウントのメッセージを Aster に移行します。すべて保存前にお使いのデバイスで暗号化されます。",
     import_mail_skip: "空の受信トレイで始める",
     import_mail_privacy_note: "後から設定で取り込むこともできます。",
-    password_reset_successful: "パスワードのリセットに成功しました",
+    password_reset_successful: "パスワードがリセットされました",
     account_recovered_sign_in:
-      "アカウントが復旧しました。新しいパスワードでサインインできます。",
+      "新しいパスワードでサインインしてください。サインイン後、リカバリーコードまたは以前のパスワードで以前のメールのロックを解除できます。",
     check_your_inbox: "受信トレイを確認してください",
     generating_encryption_keys: "暗号化キーを生成中...",
     creating_identity_keypair: "IDキーペアを作成中...",
@@ -9855,6 +9877,12 @@ export const ja = {
       "必須の暗号化が有効になっていますが、受信者の鍵がありません。鍵を共有してもらうか、設定で必須暗号化をオフにすると送信できます。下書きは保存されています。",
     cannot_send_no_recovery_key:
       "受信者のアカウントに読み取り用の鍵がないため、Aster はこのメッセージをまだ送信できません。いずれかの端末で Aster を開くかアプリを更新して鍵を更新してもらい、もう一度お試しください。下書きは保存されています。",
+    message_password_too_weak:
+      "メッセージのパスワードが弱すぎるため、メッセージは送信されませんでした。12 文字以上で、数字、記号、または大文字と小文字の両方を含めてください。",
+    recipient_key_untrusted:
+      "受信者の暗号鍵が変更されたため、メッセージは送信されませんでした。送信するには、別の方法で相手に変更を確認してから、「新しい鍵を信頼」を選択してください。",
+    key_trust_check_failed:
+      "受信者の暗号鍵を確認できなかったため、メッセージは送信されませんでした。接続を確認して、もう一度お試しください。",
     failed_send_external:
       "リンクした外部アカウントからこのメールを送信できませんでした。もう一度お試しください。下書きは保存されています。",
     failed_queue_email:

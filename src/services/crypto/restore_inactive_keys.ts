@@ -24,6 +24,7 @@ import {
   consume_inactive_key_set,
   fetch_inactive_key_set,
   list_inactive_key_sets,
+  unlock_inactive_key_sets_with_code,
 } from "../api/recovery";
 
 import {
@@ -55,14 +56,34 @@ import {
 } from "./ensure_ratchet_keys";
 import { with_vault_write_lock } from "./vault_write_lock";
 import {
+  merge_identity_keys_with,
   merge_recovered_identity_keys,
   type RecoveredIdentityKeys,
 } from "./identity_key_materials";
+import {
+  read_unlocked_keys,
+  relock_with_unlocked_keys,
+  strip_backup_fields,
+  type BackupVault,
+} from "./backup_unlocked_keys";
+import {
+  decrypt_recovery_key_with_code,
+  decrypt_vault_backup,
+  hash_recovery_code,
+} from "./recovery_key";
+import { refresh_recovery_backup } from "./recovery_backup_refresh";
 
-export async function harvest_storage_keys(
+export function carries_master_key(vault: EncryptedVault): boolean {
+  return (
+    (vault.vault_format ?? 1) >= 2 &&
+    typeof vault.data_kek === "string" &&
+    vault.data_kek.length > 0
+  );
+}
+
+export function harvest_vault_storage_keys(
   old_vault: EncryptedVault,
-  old_password: string,
-): Promise<Uint8Array[]> {
+): Uint8Array[] {
   const harvested: Uint8Array[] = [];
   const encoded_keys = old_vault.data_kek ? [old_vault.data_kek] : [];
 
@@ -77,6 +98,15 @@ export async function harvest_storage_keys(
       continue;
     }
   }
+
+  return harvested;
+}
+
+export async function harvest_storage_keys(
+  old_vault: EncryptedVault,
+  old_password: string,
+): Promise<Uint8Array[]> {
+  const harvested = harvest_vault_storage_keys(old_vault);
 
   const passphrase_bytes = new TextEncoder().encode(old_password);
   const kdf_version = get_storage_kdf_version(old_vault);
@@ -99,13 +129,25 @@ export async function harvest_storage_keys(
   return harvested;
 }
 
+export interface PasswordRestoreResult {
+  restored: number;
+  incomplete: number;
+  wrong_password: boolean;
+}
+
+const NO_PASSWORD_RESTORE: PasswordRestoreResult = {
+  restored: 0,
+  incomplete: 0,
+  wrong_password: false,
+};
+
 export async function restore_inactive_key_sets(
   old_password: string,
-): Promise<number> {
+): Promise<PasswordRestoreResult> {
   const listed = await list_inactive_key_sets();
   const inactive = listed.data?.inactive_key_sets ?? [];
 
-  if (inactive.length === 0) return 0;
+  if (inactive.length === 0) return NO_PASSWORD_RESTORE;
 
   return with_vault_write_lock(async () => {
     const account = await get_current_account();
@@ -113,25 +155,36 @@ export async function restore_inactive_key_sets(
     const vault = get_vault_from_memory();
     const passphrase = get_passphrase_from_memory();
 
-    if (!user_id || !vault || !passphrase) return 0;
+    if (!user_id || !vault || !passphrase) return NO_PASSWORD_RESTORE;
 
     const recovered: RatchetKeySet[][] = [];
     const recovered_keks: Uint8Array[] = [];
     const unlocked: string[] = [];
     const old_vaults: EncryptedVault[] = [];
+    let fetched_count = 0;
+    let locked_count = 0;
 
     for (const key_set of inactive) {
       const fetched = await fetch_inactive_key_set(key_set.id);
 
       if (!fetched.data) continue;
 
+      fetched_count += 1;
+
+      let old_vault: EncryptedVault;
+
       try {
-        const old_vault = await decrypt_vault(
+        old_vault = await decrypt_vault(
           fetched.data.encrypted_vault,
           fetched.data.vault_nonce,
           old_password,
         );
+      } catch {
+        locked_count += 1;
+        continue;
+      }
 
+      try {
         recovered.push(retain_previous_ratchet_keys(old_vault));
         recovered_keks.push(
           ...(await harvest_storage_keys(old_vault, old_password)),
@@ -143,7 +196,13 @@ export async function restore_inactive_key_sets(
       }
     }
 
-    if (unlocked.length === 0) return 0;
+    if (unlocked.length === 0) {
+      return {
+        restored: 0,
+        incomplete: 0,
+        wrong_password: fetched_count > 0 && locked_count === fetched_count,
+      };
+    }
 
     const identity_keys = await merge_recovered_identity_keys(
       vault,
@@ -161,15 +220,145 @@ export async function restore_inactive_key_sets(
       storage_keys: recovered_keks,
     });
 
-    if (!committed) return 0;
+    if (!committed.written) {
+      return {
+        restored: 0,
+        incomplete: unlocked.length,
+        wrong_password: false,
+      };
+    }
 
-    const absorbed = unlocked.filter((_, i) => identity_keys.absorbed[i]);
+    const absorbed = committed.dropped_keks
+      ? []
+      : unlocked.filter((_, i) => identity_keys.absorbed[i]);
 
     for (const id of absorbed) {
       await consume_inactive_key_set(id);
     }
 
-    return unlocked.length;
+    return {
+      restored: unlocked.length,
+      incomplete: unlocked.length - absorbed.length,
+      wrong_password: false,
+    };
+  });
+}
+
+export const RECOVERY_CODE_RATE_LIMITED = "recovery_code_rate_limited";
+
+export interface CodeRestoreResult {
+  restored: number;
+  incomplete: number;
+}
+
+export async function restore_inactive_key_sets_with_code(
+  code: string,
+): Promise<CodeRestoreResult> {
+  const code_hash = await hash_recovery_code(code);
+  const response = await unlock_inactive_key_sets_with_code(code_hash);
+
+  if (!response.data) {
+    throw new Error(
+      response.status === 429
+        ? RECOVERY_CODE_RATE_LIMITED
+        : (response.code ?? "recovery_code_unlock_failed"),
+    );
+  }
+
+  const key_sets = response.data.key_sets;
+
+  if (key_sets.length === 0) return { restored: 0, incomplete: 0 };
+
+  return with_vault_write_lock(async () => {
+    const account = await get_current_account();
+    const user_id = account?.user?.id;
+    const vault = get_vault_from_memory();
+    const passphrase = get_passphrase_from_memory();
+
+    if (!user_id || !vault || !passphrase) {
+      return { restored: 0, incomplete: 0 };
+    }
+
+    const recovered: RatchetKeySet[][] = [];
+    const recovered_keks: Uint8Array[] = [];
+    const opened: string[] = [];
+    const password_bound: boolean[] = [];
+    const old_vaults: EncryptedVault[] = [];
+    const unlocked_keys = new Map<string, string>();
+
+    for (const key_set of key_sets) {
+      let recovery_key: Uint8Array | null = null;
+
+      try {
+        recovery_key = await decrypt_recovery_key_with_code(
+          {
+            encrypted_key: key_set.encrypted_recovery_key,
+            nonce: key_set.recovery_key_nonce,
+            salt: key_set.code_salt,
+          },
+          code,
+        );
+
+        const old_vault: BackupVault = await decrypt_vault_backup(
+          {
+            encrypted_data: key_set.encrypted_vault_backup,
+            nonce: key_set.vault_backup_nonce,
+            salt: key_set.recovery_key_salt,
+          },
+          recovery_key,
+        );
+
+        for (const [locked, open] of read_unlocked_keys(old_vault)) {
+          unlocked_keys.set(locked, open);
+        }
+
+        recovered.push(retain_previous_ratchet_keys(old_vault));
+        recovered_keks.push(...harvest_vault_storage_keys(old_vault));
+        opened.push(key_set.inactive_vault_id);
+        password_bound.push(!carries_master_key(old_vault));
+        old_vaults.push(strip_backup_fields(old_vault));
+      } catch {
+        continue;
+      } finally {
+        if (recovery_key) zero_uint8_array(recovery_key);
+      }
+    }
+
+    if (opened.length === 0) return { restored: 0, incomplete: 0 };
+
+    const identity_keys = await merge_identity_keys_with(
+      vault,
+      old_vaults,
+      relock_with_unlocked_keys(unlocked_keys, passphrase),
+    );
+
+    unlocked_keys.clear();
+
+    const committed = await commit_recovered_keys({
+      user_id,
+      vault,
+      passphrase,
+      identity_keys,
+      ratchet_groups: recovered,
+      storage_keys: recovered_keks,
+    });
+
+    if (!committed.written) return { restored: 0, incomplete: opened.length };
+
+    const absorbed = committed.dropped_keks
+      ? []
+      : opened.filter(
+          (_, i) => identity_keys.absorbed[i] && !password_bound[i],
+        );
+
+    for (const id of absorbed) {
+      await consume_inactive_key_set(id);
+    }
+
+    return {
+      restored: opened.length,
+      incomplete: opened.length - absorbed.length,
+    };
   });
 }
 
@@ -182,9 +371,19 @@ export interface RecoveredKeyCommit {
   storage_keys: Uint8Array[];
 }
 
+export interface RecoveredKeyCommitResult {
+  written: boolean;
+  dropped_keks: number;
+}
+
+const COMMIT_NOT_WRITTEN: RecoveredKeyCommitResult = {
+  written: false,
+  dropped_keks: 0,
+};
+
 export async function commit_recovered_keys(
   commit: RecoveredKeyCommit,
-): Promise<boolean> {
+): Promise<RecoveredKeyCommitResult> {
   const { user_id, vault, passphrase, identity_keys } = commit;
   const harvested_entries: LegacyDerivedKek[] = [];
 
@@ -193,7 +392,10 @@ export async function commit_recovered_keys(
     zero_uint8_array(raw);
   }
 
-  const absorbed_keks = append_keks_to_list(vault.legacy_keks, harvested_entries);
+  const absorbed_keks = append_keks_to_list(
+    vault.legacy_keks,
+    harvested_entries,
+  );
 
   const next_vault: EncryptedVault = {
     ...vault,
@@ -218,7 +420,7 @@ export async function commit_recovered_keys(
     next_vault.identity_key,
   );
 
-  if (!roundtrip_ok) return false;
+  if (!roundtrip_ok) return COMMIT_NOT_WRITTEN;
 
   const pushed = await push_vault_to_server(
     encrypted_vault,
@@ -228,12 +430,14 @@ export async function commit_recovered_keys(
     next_vault,
   );
 
-  if (!pushed) return false;
+  if (!pushed) return COMMIT_NOT_WRITTEN;
 
   await store_vault_in_memory(next_vault, passphrase, user_id);
 
   localStorage.setItem(`astermail_encrypted_vault_${user_id}`, encrypted_vault);
   localStorage.setItem(`astermail_vault_nonce_${user_id}`, vault_nonce);
 
-  return absorbed_keks.dropped === 0;
+  await refresh_recovery_backup(next_vault, passphrase);
+
+  return { written: true, dropped_keks: absorbed_keks.dropped };
 }

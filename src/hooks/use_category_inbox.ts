@@ -20,7 +20,11 @@
 //
 import type { InboxEmail, EmailListState, EmailCategory } from "@/types/email";
 import type { FormatOptions } from "@/utils/date_format";
-import type { UseEmailListReturn, FetchPageOptions } from "./email_list_types";
+import type {
+  BulkDeleteOptions,
+  UseEmailListReturn,
+  FetchPageOptions,
+} from "./email_list_types";
 import type { BulkActionResult } from "./bulk_action_result";
 
 import {
@@ -36,6 +40,7 @@ import {
   fetch_mail_by_ids_reconciled,
   group_emails_by_thread,
   insert_emails_at,
+  trashes_whole_thread,
   DEFAULT_PAGE_SIZE,
   type RestoredEmailEntry,
 } from "./email_list_helpers";
@@ -468,7 +473,7 @@ export function use_category_inbox(
         ),
       );
     } else {
-      set_state((prev) => ({ ...prev, is_loading: true }));
+      set_state((prev) => ({ ...prev, emails: [], is_loading: true }));
     }
   }
 
@@ -533,7 +538,7 @@ export function use_category_inbox(
     timer = setTimeout(settle_or_wait, LOADING_BACKSTOP_MS);
 
     return () => clearTimeout(timer);
-  }, [enabled, state.is_loading]);
+  }, [enabled, state.is_loading, active_category]);
 
   const page_cache_key = useCallback(
     (target_page: number, ids: string[]): string =>
@@ -719,7 +724,9 @@ export function use_category_inbox(
 
         set_state(build_load_failed_state);
       } finally {
-        fetch_in_flight_ref.current = false;
+        if (abort_ref.current === controller || abort_ref.current === null) {
+          fetch_in_flight_ref.current = false;
+        }
       }
     },
     [
@@ -1068,6 +1075,9 @@ export function use_category_inbox(
     ): void => {
       if (!email?.thread_token) return;
       if ((email.thread_message_count ?? 1) <= 1) return;
+      if (!trashes_whole_thread(email, preferences.conversation_grouping)) {
+        return;
+      }
 
       const token = email.thread_token;
       const removed = remove_thread_entries(token);
@@ -1113,7 +1123,7 @@ export function use_category_inbox(
         }
       })();
     },
-    [],
+    [preferences.conversation_grouping],
   );
 
   const delete_email_thread_aware = useCallback(
@@ -1176,10 +1186,13 @@ export function use_category_inbox(
   );
 
   const bulk_delete = useCallback(
-    async (ids: string[]): Promise<BulkActionResult> => {
+    async (
+      ids: string[],
+      options?: BulkDeleteOptions,
+    ): Promise<BulkActionResult> => {
       remove_ids(ids);
 
-      const result = await raw_bulk.bulk_delete(ids);
+      const result = await raw_bulk.bulk_delete(ids, options);
 
       if (result.failed_ids.length > 0) {
         reindex_ids(result.failed_ids);

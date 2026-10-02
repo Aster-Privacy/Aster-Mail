@@ -24,6 +24,7 @@ export const ar = {
     add_new_group: "مجموعة جديدة",
     added_to_group: "تمت الإضافة إلى المجموعة",
     birthdays_upcoming: "{{count}} عيد ميلاد قادم",
+    birthdays_upcoming_one: "{{count}} عيد ميلاد قادم",
     bulk_create_hint:
       "أضف جهة اتصال واحدة في كل سطر. لحفظ عنوان بريد مع اسم، اكتب العنوان بين قوسين زاويين.",
     bulk_create_placeholder: "Ada Lovelace <ada@example.com>",
@@ -36,6 +37,7 @@ export const ar = {
     contact_moved_to_trash: "تم نقل جهة الاتصال إلى المهملات",
     contact_restored: "تمت استعادة جهة الاتصال",
     contacts_created: "تم إنشاء {{count}} جهة اتصال",
+    contacts_created_one: "تم إنشاء {{count}} جهة اتصال",
     contacts_exported: "تم تصدير جهات الاتصال",
     contacts_merged: "تم دمج جهات الاتصال",
     contacts_moved_to_trash: "تم نقل جهات الاتصال إلى المهملات",
@@ -56,6 +58,7 @@ export const ar = {
     frequent_contacts: "الأكثر تكرارًا",
     frequent_contacts_hint: "تظهر هنا جهات الاتصال التي تراسلها أكثر من غيرها.",
     group_contact_count: "{{count}} جهة اتصال",
+    group_contact_count_one: "{{count}} جهة اتصال",
     group_created: "تم إنشاء المجموعة",
     group_deleted: "تم حذف المجموعة",
     group_empty_title: "لا توجد جهات اتصال في هذه المجموعة",
@@ -98,6 +101,8 @@ export const ar = {
       "الرسائل المتلَفة تُحذف من كل جهاز ولا يمكن استرجاعها.",
     delete_folder_purge_acknowledge: "أفهم أن هذه الرسائل لا يمكن استرجاعها.",
     delete_folder_purged_items: "تم حذف المجلد وإتلاف {count} رسالة نهائيًا.",
+    delete_folder_purged_items_one:
+      "تم حذف المجلد وإتلاف {count} رسالة نهائيًا.",
     delete_folder_deleted_no_purge:
       "تم حذف المجلد. الرسائل بداخله تبقى في حسابك.",
     delete_folder_password_required: "أدخل كلمة سر حسابك.",
@@ -641,6 +646,7 @@ export const ar = {
     not_detected: "غير مكتشف",
     navigate: "تنقل",
     commands_count: "{{count}} أوامر",
+    commands_count_one: "{{count}} أمر",
     no_commands_found: "لم يتم العثور على أوامر",
     type_command_or_search: "اكتب أمرًا أو ابحث...",
     failed_to_load_emails:
@@ -865,6 +871,16 @@ export const ar = {
       "الإرسال المجدول غير متاح للحسابات المتصلة. أرسل هذه الرسالة الآن أو اختر عنوان Aster.",
     scheduled_no_expiry:
       "لا تدعم الرسائل المجدولة انتهاء الصلاحية بعد. أرسل الآن أو أزل انتهاء الصلاحية لجدولة الرسالة.",
+    scheduled_too_far_ahead:
+      "يمكن جدولة الرسائل لمدة أقصاها 28 يومًا مقدمًا. اختر وقتًا أقرب.",
+    scheduled_requires_encryption:
+      "لقد فعّلت التشفير الإلزامي، والرسائل المجدولة إلى عناوين خارجية ليست مشفرة من طرف إلى طرف. أرسل هذه الرسالة الآن، أو أوقف التشفير الإلزامي في الإعدادات.",
+    offline_password_protected_unavailable:
+      "لا يمكنك وضع رسائل محمية بكلمة مرور في قائمة الانتظار وأنت غير متصل. عندما تتصل مجددًا، أرسل الرسالة.",
+    offline_settings_unavailable:
+      "تعذّر تحميل إعداداتك، لذلك لم تُرسل الرسالة. أعد المحاولة عندما تتصل مجددًا.",
+    cannot_send_key_changed_offline:
+      "تغير مفتاح تشفير أحد المستلمين بينما كانت هذه الرسالة تنتظر الإرسال، لذلك لم تُرسل.",
     failed_to_merge_contacts:
       "لم يكتمل الدمج. حاول مجددًا. جهات الاتصال الأصلية لم تتغير.",
     enter_valid_emails: "يرجى إدخال عناوين بريد إلكتروني صالحة",
@@ -1090,6 +1106,8 @@ export const ar = {
     n_conversations_moved_to_trash_one: "{{count}} محادثة نُقلت إلى المهملات",
     n_conversations_moved_to_trash_other: "{{count}} محادثة نُقلت إلى المهملات",
     n_conversations_marked_as_spam: "تم تعليم {{ count }} محادثة كرسائل مزعجة",
+    n_conversations_marked_as_spam_one:
+      "تم تعليم {{ count }} محادثة كرسائل مزعجة",
     external_only: "خارجي فقط",
     all_accounts: "جميع الحسابات",
     failed_to_rotate_keys:
@@ -1118,6 +1136,7 @@ export const ar = {
     added_to_allowlist: "تمت إضافة {{ email }} إلى القائمة المسموحة",
     no_content: "لا يوجد محتوى",
     unblocked_count_senders: "تم إلغاء حظر {{ count }} مرسل",
+    unblocked_count_senders_one: "تم إلغاء حظر {{ count }} مرسل",
     removed_count_from_allowlist: "تمت إزالة {{ count }} من القائمة المسموحة",
     failed_to_add_label: "حاول مجددًا.",
     failed_to_remove_label: "حاول مجددًا.",
@@ -1195,6 +1214,8 @@ export const ar = {
     font: "خط",
     stylesheet: "ورقة أنماط",
     tracking_pixel: "بكسل تتبع",
+    image_blocked: "تم حظر الصورة",
+    tracking_pixel_blocked: "تم حظر بكسل التتبع",
     me: "أنا",
     notification_banner_message:
       "فعّل إشعارات سطح المكتب للبقاء على اطلاع بالرسائل الجديدة",
@@ -1227,6 +1248,14 @@ export const ar = {
     recover_data_success: "تم فتح بياناتك الأقدم.",
     recover_data_no_match:
       "لم تفتح كلمة السر هذه أي بيانات. جرّب كلمة سر سابقة أخرى.",
+    recover_data_code_description:
+      "لفتح البريد السابق لإعادة تعيين كلمة المرور، أدخل أحد رموز الاسترداد التي حفظتها قبل إعادة التعيين.",
+    recover_data_code_no_match:
+      "لم يفتح هذا الرمز أي بيانات. أدخل رمزًا حفظته قبل إعادة التعيين.",
+    recover_data_partial:
+      "تم فتح جزء من بريدك السابق. لفتح الباقي، أدخل كلمة السر السابقة.",
+    recover_data_rate_limited:
+      "محاولات كثيرة جدًا. انتظر 30 دقيقة ثم حاول مرة أخرى.",
     recover_data_failed:
       "تعذّر فتح بعض البيانات. تحقق من اتصالك وحاول مرة أخرى.",
     payment_past_due_message:
@@ -1336,6 +1365,7 @@ export const ar = {
     check_out_aster_mail:
       "جرّب Aster Mail، طريقة أفضل لإدارة بريدك الإلكتروني!",
     n_lines: "{{ count }} أسطر",
+    n_lines_one: "{{ count }} سطر",
     hide_details: "إخفاء التفاصيل",
     show_details: "عرض التفاصيل",
     not_phishing: "ليس تصيدًا",
@@ -1349,6 +1379,7 @@ export const ar = {
     view_blocked_content_details: "عرض تفاصيل المحتوى المحظور",
     n_images: "{{ count }} صور",
     n_items: "{{ count }} عناصر",
+    n_items_one: "{{ count }} عنصر",
     ctrl_click_to_open: "Ctrl+النقر للفتح",
     user_id_label: "معرف المستخدم",
     platform_label: "المنصة",
@@ -1554,6 +1585,7 @@ export const ar = {
     permission_denied:
       "ليس لديك صلاحية للقيام بذلك. إن بدا هذا خطأً، يمكن لمسؤولك المساعدة.",
     n_contacts_imported: "تم استيراد {{ count }} جهات اتصال",
+    n_contacts_imported_one: "تم استيراد {{ count }} جهة اتصال",
     yourname_placeholder: "اسمك",
     contacts_deleted: "تم حذف {{ count }} جهة/جهات اتصال",
     contacts_starred: "تم تمييز {{ count }} جهة/جهات اتصال بنجمة",
@@ -2099,6 +2131,7 @@ export const ar = {
     share_contact_via_email: "إرفاق برسالة جديدة",
     share_contact_device: "المشاركة مع تطبيق آخر",
     trash_days_left: "بقي {{count}} يوم",
+    trash_days_left_one: "بقي يوم واحد",
     biometry_fingerprint: "بصمة الإصبع",
     biometry_face_recognition: "التعرف على الوجه",
     biometry_iris: "بصمة القزحية",
@@ -2805,6 +2838,8 @@ export const ar = {
     empty_trash_confirm_title: "إفراغ المحذوفة مؤخرًا؟",
     empty_trash_confirm_message:
       "هل تريد حذف جميع الأسماء المستعارة البالغ عددها {{ count }} في المحذوفة مؤخرًا نهائيًا؟ لا يمكن التراجع عن هذا الإجراء. تبقى العناوين محجوزة لحسابك، لذا لا يمكن لأي شخص آخر المطالبة بها.",
+    empty_trash_confirm_message_one:
+      "هل تريد حذف {{ count }} اسم مستعار في المحذوفة مؤخرًا نهائيًا؟ لا يمكن التراجع عن هذا الإجراء. يبقى العنوان محجوزًا لحسابك، لذا لا يمكن لأي شخص آخر المطالبة به.",
     trash_emptied: "تم إفراغ المحذوفة مؤخرًا",
     failed_empty_trash: "تعذّر إفراغ المحذوفة مؤخرًا. يرجى المحاولة مرة أخرى.",
     recently_deleted_directories_title: "المحذوفة مؤخرًا",
@@ -2819,6 +2854,8 @@ export const ar = {
     failed_purge_directory: "لم يتم حذف هذا الدليل. يرجى المحاولة مرة أخرى.",
     empty_directory_trash_confirm_message:
       "هل تريد حذف جميع الأدلة ({{ count }}) في المحذوفة مؤخرًا نهائيًا؟ لا يمكن التراجع عن هذا الإجراء. تبقى الأدلة محجوزة لحسابك فلا يمكن لأي شخص آخر المطالبة بها.",
+    empty_directory_trash_confirm_message_one:
+      "هل تريد حذف الدليل ({{ count }}) في المحذوفة مؤخرًا نهائيًا؟ لا يمكن التراجع عن هذا الإجراء. يبقى الدليل محجوزًا لحسابك فلا يمكن لأي شخص آخر المطالبة به.",
     alias_stats_title: "الإحصائيات",
     alias_stats_received: "{{ count }} مستلَمة",
     alias_stats_forwarded: "{{ count }} مُعادة التوجيه",
@@ -3030,7 +3067,11 @@ export const ar = {
     alias_bulk_disabled: "الأسماء المستعارة المحددة متوقفة.",
     alias_bulk_update_partial_failed:
       "لم يتم تحديث {{count}} من {{total}} من الأسماء المستعارة.",
+    alias_bulk_update_partial_failed_one:
+      "لم يتم تحديث {{count}} من {{total}} من الأسماء المستعارة.",
     alias_bulk_delete_partial_failed:
+      "لم يتم حذف {{count}} من {{total}} من الأسماء المستعارة. يمكنك حذف الاسم المستعار بعد 30 يومًا من إنشائه.",
+    alias_bulk_delete_partial_failed_one:
       "لم يتم حذف {{count}} من {{total}} من الأسماء المستعارة. يمكنك حذف الاسم المستعار بعد 30 يومًا من إنشائه.",
     alias_directory_create_failed: "لم يتم إنشاء هذا الدليل. حاول مرة أخرى.",
     alias_directory_auto_create: "إنشاء أسماء مستعارة تلقائيًا",
@@ -3094,6 +3135,7 @@ export const ar = {
     alias_export_source_directories: "الأدلة",
     alias_export_source_ghost: "الأسماء المستعارة الشبحية",
     alias_export_source_count: "{{count}} إدخالات",
+    alias_export_source_count_one: "{{count}} إدخال",
     alias_export_choose_columns: "اختيار الأعمدة ({{count}} محددة)",
     alias_export_hide_columns: "إخفاء الأعمدة",
     alias_export_format_label: "صيغة الملف",
@@ -3117,8 +3159,12 @@ export const ar = {
       "تم تحميل {{loaded}} فقط من أصل {{total}} اسم مستعار. أعد تحميل الأسماء المستعارة وحاول مرة أخرى ليكون النسخ الاحتياطي كاملًا.",
     alias_export_undecryptable:
       "تعذّر فك تشفير {{count}} من الأسماء المستعارة ولم تُدرج.",
+    alias_export_undecryptable_one:
+      "تعذّر فك تشفير {{count}} اسم مستعار ولم يُدرج.",
     alias_export_undecryptable_ghost:
       "تعذّر فك تشفير {{count}} من الأسماء المستعارة الشبحية ولم تُدرج.",
+    alias_export_undecryptable_ghost_one:
+      "تعذّر فك تشفير {{count}} اسم مستعار شبحي ولم يُدرج.",
     alias_export_load_failed:
       "تعذّر تحميل الأدلة أو الأسماء المستعارة الشبحية.",
     alias_export_failed: "فشل التصدير. لم يتم تنزيل أي شيء.",
@@ -3137,6 +3183,7 @@ export const ar = {
     alias_import_skip_existing: "تخطّي الموجود",
     alias_import_update_existing: "إعادة التفعيل إذا كان معطّلًا",
     alias_import_confirm: "استيراد {{count}} اسمًا مستعارًا",
+    alias_import_confirm_one: "استيراد {{count}} اسم مستعار",
     alias_import_summary_created: "{{count}} مستورَد",
     alias_import_summary_skipped: "{{count}} موجود بالفعل",
     alias_import_summary_failed: "{{count}} فشل",
@@ -3402,6 +3449,7 @@ export const ar = {
     fam_org_2fa_sending: "جارٍ الإرسال...",
     fam_org_2fa_reminder_sent: "تم إرسال التذكير",
     fam_org_2fa_reminder_sent_toast: "تم إرسال التذكير إلى {{count}} أعضاء",
+    fam_org_2fa_reminder_sent_toast_one: "تم إرسال التذكير إلى {{count}} عضو",
     fam_org_2fa_reminder_rate_limited:
       "تم إرسال تذكير بالفعل مؤخرًا. يمكنك إرسال آخر بعد 24 ساعة.",
     fam_org_2fa_reminder_failed: "تعذّر إرسال التذكير",
@@ -3772,6 +3820,8 @@ export const ar = {
     desktop_bridge_set_up: "إعداد {{ client }}",
     desktop_bridge_install_hint:
       "يجب تثبيت Aster Bridge وتشغيله. نزّله من الإعدادات > Bridge.",
+    desktop_bridge_not_opened:
+      "لم يُفتح Aster Bridge. تأكد من تثبيته وتشغيله، أو نزّله من الإعدادات > Bridge.",
     desktop_bridge_upgrade_title: "استخدم عميل البريد المفضل لديك",
     desktop_bridge_upgrade_description:
       "اربط Apple Mail أو Thunderbird أو Outlook بـ Aster عبر Aster Bridge. متاح في Star وما فوق.",
@@ -4031,8 +4081,11 @@ export const ar = {
     failed_sign_out: "فشل في تسجيل الخروج من الجلسات الأخرى",
     active_now: "نشط الآن",
     minutes_ago: "منذ {{count}} دقائق",
+    minutes_ago_one: "منذ {{count}} دقيقة",
     hours_ago: "منذ {{count}} ساعات",
+    hours_ago_one: "منذ {{count}} ساعة",
     days_ago: "منذ {{count}} أيام",
+    days_ago_one: "منذ {{count}} يوم",
     this_device: "هذا الجهاز",
     signed_in_date: "تسجيل الدخول {{date}}",
     sign_out: "تسجيل الخروج",
@@ -4042,7 +4095,9 @@ export const ar = {
     failed_load_sessions: "فشل في تحميل الجلسات",
     failed_load_security_status: "لم يتم تحميل إعدادات الأمان. حاول مرة أخرى.",
     load_more_sessions: "تحميل {{count}} جلسات إضافية",
+    load_more_sessions_one: "تحميل {{count}} جلسة إضافية",
     two_fa_enabled: "مفعّل ({{count}} رمز احتياطي متبقي)",
+    two_fa_enabled_one: "مفعّل ({{count}} رمز احتياطي متبقي)",
     two_fa_add_security: "أضف طبقة أمان إضافية مع المصادقة الثنائية",
     basics_section_title: "الأساسيات",
     two_step_verification: "التحقق بخطوتين",
@@ -4129,7 +4184,7 @@ export const ar = {
     reply_to_all: "الرد على الكل",
     force_dark_mode_emails: "فرض الوضع الداكن للبريد الإلكتروني",
     force_dark_mode_emails_description:
-      "عرض محتوى البريد الإلكتروني دائمًا في الوضع الداكن، متجاوزًا التنسيق الأصلي",
+      "عرض محتوى البريد الإلكتروني في الوضع الداكن عندما يستخدم Aster السمة الداكنة، متجاوزًا التنسيق الأصلي",
     translation: "الترجمة",
     translate_incoming: "ترجمة البريد الوارد",
     translate_incoming_description:
@@ -4481,7 +4536,9 @@ export const ar = {
     twenty_five_keys: "25 مفتاحًا",
     auto_lock_after: "قفل تلقائي بعد {{duration}} من عدم النشاط",
     hours: "{{count}} ساعات",
+    hours_one: "{{count}} ساعة",
     days: "{{count}} أيام",
+    days_one: "{{count}} يوم",
     failed_get_auth_data: "تعذّر تحميل معلومات تسجيل الدخول. حاول مجددًا.",
     downgrade: "تخفيض",
     upgrade_to: "الترقية إلى {{name}}",
@@ -4750,7 +4807,7 @@ export const ar = {
       "يعرض أيقونة قفل على الرسائل يوضح إن كانت مشفرة أو موقعة أو لا شيء.",
     info_force_dark_mode_title: "وضع الرسائل الداكن",
     info_force_dark_mode_description:
-      "يعيد كتابة أنماط الرسائل لاستخدام خلفية داكنة ونص فاتح. مفيد إذا كانت الرسائل البيضاء المضيئة تجهد عينيك.",
+      "عندما يستخدم Aster السمة الداكنة، يعيد كتابة أنماط الرسائل لاستخدام خلفية داكنة ونص فاتح. مفيد إذا كانت الرسائل البيضاء المضيئة تجهد عينيك.",
     info_undo_send_title: "تراجع عن الإرسال",
     info_undo_send_description:
       "يمنحك نافذة قصيرة لإلغاء رسالة بعد الضغط على إرسال. لا يخرج شيء حتى ينتهي المؤقت.",
@@ -5589,12 +5646,18 @@ export const ar = {
     emails_of_total: "{{current}} من {{total}} رسالة",
     cancel_import: "إلغاء الاستيراد",
     emails_imported_count: "تم استيراد {{count}} رسالة",
+    emails_imported_count_one: "تم استيراد {{count}} رسالة",
     duplicates_skipped: "تم تخطي {{count}} مكرر",
+    duplicates_skipped_one: "تم تخطي {{count}} مكرر",
     import_folder_hint:
       "لا تجد بعض الرسائل؟ تحقق من مجلدي البريد العشوائي والمرسل - قد تكون الرسائل المستوردة مرتبة هناك.",
     n_failed_count: "{{count}} فشل",
     import_folders_skipped:
       "تعذر إنشاء {{count}} مجلد، لذلك توجد رسائله في صندوق الوارد.",
+    import_folders_skipped_one:
+      "تعذر إنشاء {{count}} مجلد، لذلك توجد رسائله في صندوق الوارد.",
+    import_folders_skipped_other:
+      "تعذر إنشاء {{count}} مجلدات، لذلك توجد رسائلها في صندوق الوارد.",
     import_folders_skipped_plural:
       "تعذر إنشاء {{count}} مجلدات، لذلك توجد رسائلها في صندوق الوارد.",
     storage_quota_reached:
@@ -5793,6 +5856,7 @@ export const ar = {
       "تعذّر الاتصال. نظرة أخرى على إعداداتك ثم محاولة أخرى غالبًا ما يحل الأمر.",
     removed_forwarding_rule: 'تمت إزالة قاعدة التحويل "{{ name }}"',
     removed_forwarding_rules_count: "تمت إزالة {{ count }} قاعدة تحويل",
+    removed_forwarding_rules_count_one: "تمت إزالة {{ count }} قاعدة تحويل",
     customize_toolbar: "تخصيص شريط الأدوات",
     customize_toolbar_description:
       "اختر الإجراءات التي تظهر في شريط الأدوات السفلي.",
@@ -6235,15 +6299,25 @@ export const ar = {
       "تستخدم {{used}}، وهو أعلى من هذا الحد. طالما تجاوزت الحد يُرفض البريد الوارد، وبعد 7 أيام يُرفض بشكل دائم.",
     cancel_impact_aliases:
       "يتوقف {{count}} من الأسماء المستعارة عن استقبال البريد بعد {{days}} يومًا.",
+    cancel_impact_aliases_one:
+      "يتوقف {{count}} اسم مستعار عن استقبال البريد بعد {{days}} يومًا.",
     cancel_impact_domains: "يتم تعليق {{count}} من النطاقات المخصصة.",
+    cancel_impact_domains_one: "يتم تعليق {{count}} نطاق مخصص.",
     cancel_impact_catch_all: "يتم إيقاف العنونة الشاملة.",
     cancel_impact_templates: "يتم تعطيل {{count}} من قوالب البريد.",
+    cancel_impact_templates_one: "يتم تعطيل {{count}} قالب بريد.",
     cancel_impact_signatures: "يتم تعطيل {{count}} من التواقيع.",
+    cancel_impact_signatures_one: "يتم تعطيل {{count}} توقيع.",
     cancel_impact_family:
       "ينتقل {{count}} من أفراد العائلة إلى فترة سماح مدتها {{days}} يومًا.",
+    cancel_impact_family_one:
+      "ينتقل {{count}} فرد من العائلة إلى فترة سماح مدتها {{days}} يومًا.",
     cancel_impact_family_addresses:
       "يتم تحرير {{count}} من عناوين العائلة المحجوزة.",
+    cancel_impact_family_addresses_one:
+      "يتم تحرير {{count}} عنوان عائلي محجوز.",
     cancel_impact_features: "يتم إيقاف {{count}} من الميزات المدفوعة.",
+    cancel_impact_features_one: "يتم إيقاف {{count}} ميزة مدفوعة.",
     cancel_impact_reactivate_hint:
       "لا يتم حذف أي شيء. إعادة الاشتراك تستعيد ما تم تعطيله، ضمن حدود خطتك الجديدة.",
     cancel_impact_continue: "المتابعة إلى الإلغاء",
@@ -6756,6 +6830,7 @@ export const ar = {
     connected_accounts_last_sync: "آخر مزامنة: {{ time }}",
     connected_accounts_never_synced: "لم تتم المزامنة مطلقًا",
     connected_accounts_emails: "{{ count }} رسالة",
+    connected_accounts_emails_one: "{{ count }} رسالة",
     connected_accounts_syncing: "جارٍ المزامنة...",
     connected_accounts_sync_now: "مزامنة الآن",
     connected_accounts_disconnect: "قطع الاتصال",
@@ -6823,6 +6898,7 @@ export const ar = {
       "بمجرد التدوير، يُسحب مفتاحك السابق. لن تتمكن من فك تشفير أي رسائل تم تشفيرها حصريًا بمفتاحك القديم. لا يمكن التراجع عن هذا الإجراء.",
     bulk_unsubscribe: "إلغاء الاشتراك الجماعي",
     senders_unsubscribed: "تم إلغاء اشتراك {{ count }} مرسل",
+    senders_unsubscribed_one: "تم إلغاء اشتراك {{ count }} مرسل",
     opened_in_browser: "تمت أرشفة {{ count }} - قد يلزم تأكيد يدوي",
     could_not_unsubscribe: "تعذّر إلغاء اشتراك {{ count }}",
     some_messages_not_archived: "لم تتم أرشفة بعض الرسائل",
@@ -7354,6 +7430,7 @@ export const ar = {
     sync_progress_preparing: "جارٍ تجهيز الاستيراد…",
     sync_checking_new: "جارٍ البحث عن بريد جديد…",
     sync_result_imported: "تم استيراد {{ count }} رسالة جديدة",
+    sync_result_imported_one: "تم استيراد {{ count }} رسالة جديدة",
     sync_result_up_to_date: "محدّث بالفعل - لا توجد رسائل جديدة",
     sync_stopped: "تم إيقاف المزامنة",
     purging_progress:
@@ -7366,8 +7443,12 @@ export const ar = {
     disconnect_delete_messages_label: "حذف الرسائل المستوردة أيضًا",
     disconnect_delete_messages_label_count:
       "حذف رسائله المستوردة وعددها {{ count }} أيضًا",
+    disconnect_delete_messages_label_count_one:
+      "حذف رسالته المستوردة وعددها {{ count }} أيضًا",
     disconnect_success: "تم قطع اتصال الحساب",
     disconnect_deleted_success: "تم قطع اتصال الحساب وحذف {{ count }} رسالة",
+    disconnect_deleted_success_one:
+      "تم قطع اتصال الحساب وحذف {{ count }} رسالة",
     stop_sync_title: "إيقاف المزامنة؟",
     stop_sync_description:
       "هل أنت متأكد أنك تريد إيقاف المزامنة؟ ستبقى الرسائل المستوردة.",
@@ -7415,6 +7496,8 @@ export const ar = {
     oauth_folders_error: "لم يكتمل إعداد مجلداتك. حاول مجددًا.",
     oauth_folders_partial:
       "{{count}} مجلدات لم تكتمل في الإعداد، والبقية جاهزة للاستخدام.",
+    oauth_folders_partial_one:
+      "{{count}} مجلد لم يكتمل في الإعداد، والبقية جاهزة للاستخدام.",
     import_stage_setting_up_folders: "إعداد المجلدات",
     import_stage_importing_emails: "استيراد الرسائل",
     import_stage_cancel: "إلغاء",
@@ -7496,6 +7579,7 @@ export const ar = {
     dev_databases_count_one: "{{count}} قاعدة بيانات",
     dev_databases_count_other: "{{count}} قواعد بيانات",
     dev_keys_count: "{{count}} مفاتيح",
+    dev_keys_count_one: "{{count}} مفتاح",
     dev_seconds_ago: "منذ {{count}}ث",
     dev_minutes_ago: "منذ {{count}}د",
     dev_hours_ago: "منذ {{count}}س",
@@ -8178,10 +8262,16 @@ export const ar = {
       "لم تعد رسائل هذا المرسل محمية بتشفير ما بعد الكم. إذا لم تكن تتوقع ذلك، فتأكد من الأمر معه بطريقة أخرى.",
     recipient_identity_changed:
       "تغيّر مفتاح التشفير الخاص بـ {{email}}. إذا لم تكن تتوقع ذلك، فتأكد من التغيير معه بطريقة أخرى قبل إرسال أي معلومات حساسة.",
+    message_password_requirements:
+      "استخدم 12 حرفًا على الأقل، وأضف رقمًا أو رمزًا أو أحرفًا كبيرة وصغيرة.",
+    recipient_identity_untrusted:
+      "تغير مفتاح التشفير الخاص بـ {{email}}، ولا يمكن تأكيد المفتاح الجديد. للإرسال إلى هذا العنوان، أكّد التغيير مع هذا الشخص بطريقة أخرى، ثم اختر الوثوق بالمفتاح الجديد.",
+    trust_new_key: "الوثوق بالمفتاح الجديد",
     load_all_thread_messages: "تحميل كل الرسائل",
     move_to_category: "النقل إلى فئة",
     menu_applies_to_selection: "ينطبق على {count} محددة",
     menu_applies_to_all: "ينطبق على جميع الرسائل ({count})",
+    menu_applies_to_all_one: "ينطبق على {count} رسالة",
     moved_to_category: "تم النقل إلى الفئة",
     drop_to_move_here: "أفلِت هنا للنقل",
     tab_new_count: "جديد",
@@ -8630,9 +8720,13 @@ export const ar = {
     empty_spam_folder_question: "تفريغ مجلد الرسائل المزعجة؟",
     empty_spam_description:
       "كل الـ {{count}} رسالة في المزعج ستُزال نهائيًا ولا يمكن التراجع.",
+    empty_spam_description_one:
+      "ستُزال الرسالة الموجودة في المزعج نهائيًا ولا يمكن التراجع.",
     empty_trash_question: "تفريغ سلة المهملات؟",
     empty_trash_description:
       "كل الـ {{count}} رسالة في سلة المهملات ستُزال نهائيًا ولا يمكن التراجع.",
+    empty_trash_description_one:
+      "ستُزال الرسالة الموجودة في سلة المهملات نهائيًا ولا يمكن التراجع.",
     folder_not_found_title: "تعذّر العثور على هذا المجلد.",
     folder_not_found_subtitle:
       "قد يكون هذا المجلد قد أُزيل أو لم يوجد أصلًا. مجلد آخر من الشريط الجانبي سيعمل.",
@@ -8675,6 +8769,7 @@ export const ar = {
     order_number: "طلب #{{id}}",
     items: "العناصر",
     more_items_count: "+{{count}} عناصر إضافية",
+    more_items_count_one: "+{{count}} عنصر إضافي",
     card_ending_in: "بطاقة تنتهي بـ {{last_four}}",
     purchase_extraction_privacy:
       "تم الاستخراج محليًا من بريدك، ولا يتم إرسال أي شيء إلى خوادمنا.",
@@ -8700,6 +8795,7 @@ export const ar = {
     message_deleted: "تم حذف هذه الرسالة",
     unknown_recipient: "(مستلم غير معروف)",
     lines_count: "{{count}} سطر",
+    lines_count_one: "{{count}} سطر",
     message_label: "رسالة",
     messages_label: "رسائل",
     star: "تمييز بنجمة",
@@ -8734,6 +8830,7 @@ export const ar = {
     attachment_chips_more: "+{{count}} المزيد",
     page_of_total: "صفحة {{current}} من {{total}}",
     total_pages_label: "{{count}} صفحة",
+    total_pages_label_one: "{{count}} صفحة",
     loading_preview: "جارٍ تحميل المعاينة…",
     preview_failed: "المعاينة لم تُحمَّل. فتح البريد سيعرضه.",
     pdf_preview_failed: "لا يمكن عرض ملف PDF هذا هنا. لفتحه، قم بتنزيله.",
@@ -8763,8 +8860,11 @@ export const ar = {
     empty_snoozed_title: "لا شيء مؤجل حاليًا",
     empty_snoozed_subtitle: "ستستيقظ الرسائل المؤجلة هنا",
     all_on_page_selected: "تم تحديد جميع {{ count }} محادثات في هذه الصفحة.",
+    all_on_page_selected_one: "تم تحديد {{ count }} محادثة في هذه الصفحة.",
     select_all_in_folder: "تحديد جميع {{ count }} محادثات في {{ folder }}",
+    select_all_in_folder_one: "تحديد {{ count }} محادثة في {{ folder }}",
     all_in_folder_selected: "تم تحديد جميع {{ count }} محادثات.",
+    all_in_folder_selected_one: "تم تحديد {{ count }} محادثة.",
     reply_subject_prefix: "رد:",
     reply_from_mismatch_title: "الرد من عنوان مختلف؟",
     reply_from_mismatch_message:
@@ -9095,6 +9195,7 @@ export const ar = {
       "انتهت صلاحية جلسة تسجيل الدخول. ارجع وسجّل الدخول مرة أخرى.",
     backup_codes_remaining_after_login:
       "تبقى {{count}} من رموز النسخ الاحتياطي",
+    backup_codes_remaining_after_login_one: "تبقى {{count}} رمز نسخ احتياطي",
     backup_code_description: "أدخل أحد رموز النسخ الاحتياطي لتسجيل الدخول",
     backup_code_single_use: "كل رمز نسخ احتياطي يمكن استخدامه مرة واحدة فقط",
     backup_code_placeholder: "XXXX-XXXX-XXXX",
@@ -9242,20 +9343,6 @@ export const ar = {
       "استعد الوصول إلى حسابك. البريد المشفر من قبل إعادة التعيين لا يمكن قراءته مجددًا إلا إذا عثرت لاحقًا على عبارتك أو أحد الرموز.",
     phrase_recovery_failed:
       "هذه العبارة لا تطابق هذا الحساب. تحقق من الكلمات وعنوان البريد الإلكتروني.",
-    reset_consent_title: "إعادة التعيين هذه لا يمكنها فك تشفير بياناتك القديمة",
-    reset_consent_keeps:
-      "تحتفظ بـ: عنوان بريدك الإلكتروني، وجميع أسمائك المستعارة (يستمر وصول البريد)، واشتراكك، وحسابك.",
-    reset_consent_loses:
-      "تفقد الوصول إلى: كل البريد المشفر وجهات الاتصال وتسميات الأسماء المستعارة والإعدادات من قبل إعادة التعيين. تبقى مخزنة مشفرة ولا يمكن فتحها لاحقًا إلا إن تذكرت كلمة مرورك القديمة.",
-    reset_consent_last_chance:
-      "هل لديك عبارة الاسترداد أو رمز استرداد؟ أي منهما يستعيد كل شيء.",
-    reset_consent_use_phrase_instead: "استخدام عبارتي أو رمزي بدلًا من ذلك",
-    reset_consent_checkbox:
-      "أفهم أن بياناتي المشفرة ستصبح غير قابلة للقراءة بعد إعادة التعيين هذه",
-    reset_consent_type_email: "اكتب عنوان بريدك الإلكتروني الكامل للتأكيد",
-    reset_consent_email_mismatch:
-      "عنوان البريد الإلكتروني لا يطابق هذا الحساب.",
-    reset_consent_continue: "إعادة تعيين كلمة المرور على أي حال",
     reset_second_factor_title: "أكّد أنك أنت",
     reset_second_factor_description:
       "يستخدم هذا الحساب المصادقة الثنائية. تحقّق من عامل ثانٍ قبل إعادة تعيين كلمة المرور.",
@@ -9303,12 +9390,20 @@ export const ar = {
     enter_email_associated: "أدخل عنوان الحساب الذي تريد استرداده.",
     back_to_sign_in: "العودة إلى تسجيل الدخول",
     email_me_reset_link: "أرسل لي رابط إعادة التعيين عبر البريد الإلكتروني",
-    reset_link_sent_title: "تحقق من بريد الاسترداد الخاص بك",
+    reset_link_sent_title: "تحقق من بريدك الإلكتروني",
+    resend_reset_link: "إعادة إرسال الرابط",
     reset_link_sent_desc:
-      "إذا كان اسم المستخدم هذا مسجلاً ولديه بريد استرداد موثق، فقد تم إرسال رابط إعادة تعيين كلمة المرور. تنتهي صلاحية الرابط خلال 30 دقيقة.",
+      "إذا كان لهذا الحساب بريد استرداد موثّق، فقد أرسل Aster Mail رابط إعادة التعيين إليه. تنتهي صلاحية الرابط خلال 30 دقيقة. إذا لم تجد الرسالة، فتحقق من مجلد البريد العشوائي.",
     sending_reset_link: "جارٍ إرسال رابط إعادة التعيين...",
     reset_your_password: "إعادة تعيين كلمة المرور",
     reset_choose_new_password: "اختر كلمة مرور جديدة لحسابك.",
+    reset_current_password_optional: "كلمة المرور الحالية (اختياري)",
+    reset_current_password_hint:
+      "إذا كنت تذكر كلمة مرورك الحالية، فأدخلها هنا لتظل رسائلك السابقة متاحة بمجرد تسجيل الدخول. إذا تركت الحقل فارغًا، يمكنك فتح رسائلك السابقة لاحقًا باستخدام رمز استرداد.",
+    reset_unlocking_earlier_mail: "جارٍ فتح رسائلك السابقة...",
+    reset_use_recovery_code: "استخدام رمز استرداد بدلًا من ذلك",
+    reset_new_codes_desc:
+      "احفظ هذه الرموز في مكان آمن. احتفظ برموزك القديمة أيضًا، لأن أحدها يمكنه فتح بريدك السابق بعد تسجيل الدخول.",
     reset_invalid_or_expired:
       "رابط إعادة التعيين هذا غير صالح أو منتهي الصلاحية. يرجى طلب رابط جديد.",
     request_new_reset_link: "طلب رابط إعادة تعيين جديد",
@@ -9342,18 +9437,18 @@ export const ar = {
       "لا يستطيع Aster Mail قراءة بياناتك المشفرة، لذلك لا أحد يفتحها بدون رمز استرداد أو بريد الاسترداد. يمكن للدعم مراجعة حسابك ومساعدتك في الخطوات التالية.",
     support_email_action: "مراسلة الدعم",
     support_help_center: "فتح مركز المساعدة",
-    other_ways_title: "جرب طريقة أخرى",
+    other_ways_title: "اختر طريقة الاسترداد",
     other_ways_desc: "اختر كيف تريد العودة إلى حسابك.",
     other_way_code_title: "استخدام رمز استرداد",
     other_way_code_desc: "أدخل أحد الرموز التي حفظتها.",
     other_way_email_title: "إعادة التعيين ببريد الاسترداد",
     other_way_email_desc:
-      "يرسل Aster Mail رابطًا إلى بريد الاسترداد. تفقد إمكانية الوصول إلى الرسائل السابقة لإعادة التعيين.",
+      "يرسل Aster Mail رابطًا إلى بريد الاسترداد لتتمكن من اختيار كلمة مرور جديدة.",
     other_way_none_title: "لا أملك أيًا من هذه",
     other_way_none_desc: "تواصل مع الدعم وسنساعدك في الخطوات التالية.",
-    reset_account_title: "هل تريد إعادة تعيين حسابك؟",
+    reset_account_title: "إعادة التعيين ببريد الاسترداد",
     reset_account_desc:
-      "تظل رسائلك وجهات اتصالك وملفاتك المشفرة السابقة لإعادة التعيين مقفلة حتى تستردها بكلمة المرور القديمة. تحصل على مفتاح تشفير جديد وفارغ.",
+      "يرسل Aster Mail رابطًا إلى بريد الاسترداد. افتحه لاختيار كلمة مرور جديدة. يبقى بريدك السابق مشفّرًا إلى أن تفتحه برمز استرداد أو بكلمة المرور السابقة.",
     send_reset_link: "إرسال رابط إعادة التعيين",
     print_codes: "طباعة",
     codes_copied: "تم نسخ الرموز.",
@@ -9378,9 +9473,9 @@ export const ar = {
       "انقل الرسائل من حساب آخر إلى Aster. يُشفَّر كل شيء على جهازك قبل تخزينه.",
     import_mail_skip: "ابدأ بصندوق فارغ",
     import_mail_privacy_note: "يمكنك أيضًا الاستيراد لاحقًا من الإعدادات.",
-    password_reset_successful: "تمت إعادة تعيين كلمة المرور بنجاح",
+    password_reset_successful: "تمت إعادة تعيين كلمة المرور",
     account_recovered_sign_in:
-      "تم استرداد حسابك. يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة.",
+      "سجّل الدخول بكلمة المرور الجديدة. بعد ذلك يمكنك فتح بريدك السابق برمز استرداد أو بكلمة المرور السابقة.",
     check_your_inbox: "تحقق من صندوق الوارد",
     generating_encryption_keys: "جارٍ إنشاء مفاتيح التشفير...",
     creating_identity_keypair: "جارٍ إنشاء زوج مفاتيح الهوية...",
@@ -9773,6 +9868,12 @@ export const ar = {
       "فعّلت التشفير المطلوب، ولا يوجد مفتاح لأي من مستلميك. طلب منهم مشاركة مفتاح، أو إيقاف التشفير المطلوب في الإعدادات، سيُتيح الإرسال. مسوّدتك محفوظة.",
     cannot_send_no_recovery_key:
       "لا يستطيع Aster إرسال هذه الرسالة بعد لأن حساب المستلم يفتقد مفاتيح قراءتها. اطلب منه فتح Aster على أي جهاز أو تحديث التطبيق لتجديد المفاتيح، ثم أعد المحاولة. مسوّدتك محفوظة.",
+    message_password_too_weak:
+      "كلمة مرور الرسالة ضعيفة جدًا، لذلك لم تُرسل الرسالة. استخدم 12 حرفًا على الأقل، وأضف رقمًا أو رمزًا أو أحرفًا كبيرة وصغيرة.",
+    recipient_key_untrusted:
+      "تغير مفتاح تشفير أحد المستلمين، لذلك لم تُرسل الرسالة. لإرسالها، أكّد التغيير مع هذا الشخص بطريقة أخرى، ثم اختر الوثوق بالمفتاح الجديد.",
+    key_trust_check_failed:
+      "تعذر التحقق من مفاتيح تشفير المستلمين، لذلك لم تُرسل الرسالة. تحقق من اتصالك وحاول مرة أخرى.",
     failed_send_external:
       "لم تُرسل هذه الرسالة عبر حسابك الخارجي المرتبط. حاول مجددًا. مسوّدتك محفوظة.",
     failed_queue_email:
@@ -9905,6 +10006,7 @@ export const ar = {
     mode_archive_hint: "تخرج من البريد الوارد وتبقى محفوظة وقابلة للاسترجاع",
     enabled: "مفعّل",
     preview_some: "سيجري تنظيف نحو {{count}} رسالة في التشغيل التالي.",
+    preview_some_one: "سيجري تنظيف نحو {{count}} رسالة في التشغيل التالي.",
     preview_none: "لا توجد رسائل تطابق هذه القاعدة حاليًا.",
     keeps_note: "تبقى الرسائل المميزة بنجمة والمثبتة دائمًا.",
     save: "حفظ",
@@ -10028,6 +10130,7 @@ export const ar = {
     empty_description: "أنشئ قاعدتك الأولى لتنظيم البريد الوارد تلقائيًا.",
     empty_cta: "إنشاء قاعدة",
     applied_count: "طُبّقت على {{count}} رسالة",
+    applied_count_one: "طُبّقت على {{count}} رسالة",
     field_from: "من",
     field_to: "إلى/نسخة/نسخة مخفية",
     field_subject: "الموضوع",

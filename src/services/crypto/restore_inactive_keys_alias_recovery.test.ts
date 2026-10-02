@@ -11,6 +11,15 @@ const consume_inactive_key_set = vi.fn();
 
 const archived_vault: { value: unknown } = { value: null };
 
+const refresh_recovery_backup = vi.fn(
+  async (_vault: unknown, _passphrase: string) => true,
+);
+
+vi.mock("./recovery_backup_refresh", () => ({
+  refresh_recovery_backup: (vault: unknown, passphrase: string) =>
+    refresh_recovery_backup(vault, passphrase),
+}));
+
 vi.mock("../api/recovery", () => ({
   list_inactive_key_sets: () => list_inactive_key_sets(),
   fetch_inactive_key_set: (id: string) => fetch_inactive_key_set(id),
@@ -45,9 +54,8 @@ vi.mock("./ensure_ratchet_keys", () => ({
 }));
 
 const { restore_inactive_key_sets } = await import("./restore_inactive_keys");
-const { store_vault_in_memory, clear_vault_from_memory } = await import(
-  "./memory_key_store"
-);
+const { store_vault_in_memory, clear_vault_from_memory } =
+  await import("./memory_key_store");
 const { decrypt_alias_field } = await import("@/services/api/aliases/crypto");
 
 function random_key(): Uint8Array {
@@ -128,7 +136,9 @@ describe("alias recovery after a password change", () => {
       decrypt_alias_field(sealed.encrypted, sealed.nonce),
     ).rejects.toThrow();
 
-    expect(await restore_inactive_key_sets(OLD_PASSWORD)).toBe(1);
+    expect(await restore_inactive_key_sets(OLD_PASSWORD)).toMatchObject({
+      restored: 1,
+    });
 
     expect(await decrypt_alias_field(sealed.encrypted, sealed.nonce)).toBe(
       "bills@astermail.org",
@@ -148,7 +158,11 @@ describe("alias recovery after a password change", () => {
       "user-1",
     );
 
-    expect(await restore_inactive_key_sets("not-the-old-password")).toBe(0);
+    expect(await restore_inactive_key_sets("not-the-old-password")).toEqual({
+      restored: 0,
+      incomplete: 0,
+      wrong_password: true,
+    });
 
     await expect(
       decrypt_alias_field(sealed.encrypted, sealed.nonce),
@@ -201,7 +215,9 @@ describe("alias recovery after a password change", () => {
       decrypt_alias_field(sealed.encrypted, sealed.nonce),
     ).rejects.toThrow();
 
-    expect(await restore_inactive_key_sets(OLD_PASSWORD)).toBe(1);
+    expect(await restore_inactive_key_sets(OLD_PASSWORD)).toMatchObject({
+      restored: 1,
+    });
 
     expect(await decrypt_alias_field(sealed.encrypted, sealed.nonce)).toBe(
       "banking@astermail.org",
@@ -223,7 +239,9 @@ describe("alias recovery after a password change", () => {
       decrypt_alias_field(sealed.encrypted, sealed.nonce),
     ).rejects.toThrow();
 
-    expect(await restore_inactive_key_sets(OLD_PASSWORD)).toBe(1);
+    expect(await restore_inactive_key_sets(OLD_PASSWORD)).toMatchObject({
+      restored: 1,
+    });
 
     expect(await decrypt_alias_field(sealed.encrypted, sealed.nonce)).toBe(
       "work@astermail.org",

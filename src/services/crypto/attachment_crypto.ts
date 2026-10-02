@@ -47,6 +47,7 @@ import {
   type InboundAttachmentEntry,
 } from "@/services/crypto/inbound_attachment_keys";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import { decrypt_legacy_ios_envelope } from "@/services/crypto/legacy_ios_envelope";
 import { get_account_key_capabilities } from "@/services/api/account_key";
 
 export interface EncryptedAttachmentForSend {
@@ -55,6 +56,7 @@ export interface EncryptedAttachmentForSend {
   sender_encrypted_meta: string;
   sender_meta_nonce: string;
   recipient_encrypted_meta?: string;
+  recipient_metas?: Record<string, string>;
   size_bytes: number;
 }
 
@@ -147,6 +149,7 @@ export async function encrypt_attachments_for_send(
   attachments: Attachment[],
   recipient_public_keys?: string[],
   require_recipient_encryption = false,
+  private_recipient_keys: Record<string, string[]> = {},
 ): Promise<EncryptedAttachmentForSend[]> {
   const has_recipient_keys = !!(
     recipient_public_keys && recipient_public_keys.length > 0
@@ -231,12 +234,28 @@ export async function encrypt_attachments_for_send(
         );
       }
 
+      const recipient_metas: Record<string, string> = {};
+
+      for (const [recipient, keys] of Object.entries(private_recipient_keys)) {
+        if (keys.length === 0) {
+          throw new Error(
+            "recipient encryption keys unavailable for encrypted attachment",
+          );
+        }
+        recipient_metas[recipient] = array_to_base64(
+          new TextEncoder().encode(
+            await encrypt_message_multi(JSON.stringify(meta), keys),
+          ),
+        );
+      }
+
       results.push({
         encrypted_data: array_to_base64(new Uint8Array(encrypted)),
         data_nonce: array_to_base64(nonce),
         sender_encrypted_meta: sender_meta.encrypted,
         sender_meta_nonce: array_to_base64(meta_nonce_placeholder),
         recipient_encrypted_meta,
+        ...(Object.keys(recipient_metas).length > 0 ? { recipient_metas } : {}),
         size_bytes: attachment.size_bytes,
       });
 
@@ -387,8 +406,19 @@ async function read_row_attachment_meta(
   }
 
   try {
-    return await decrypt_client_authored_meta(encrypted_meta);
+    const client_authored = await decrypt_client_authored_meta(encrypted_meta);
+
+    if (client_authored) return client_authored;
+
+    return await decrypt_mobile_authored_meta(encrypted_meta, meta_nonce);
   } catch (error) {
+    const mobile_authored = await decrypt_mobile_authored_meta(
+      encrypted_meta,
+      meta_nonce,
+    ).catch(() => null);
+
+    if (mobile_authored) return mobile_authored;
+
     const transient =
       error instanceof Error && error.message === VAULT_UNAVAILABLE;
 
@@ -527,6 +557,42 @@ async function decrypt_client_authored_meta(
   } finally {
     zero_uint8_array(passphrase_bytes);
   }
+}
+
+async function decrypt_mobile_authored_meta(
+  encrypted_meta: string,
+  meta_nonce: string | undefined,
+): Promise<AttachmentMeta | null> {
+  if (!is_sealed_meta_nonce(meta_nonce)) return null;
+
+  const plaintext = await decrypt_legacy_ios_envelope(
+    base64_to_array(encrypted_meta),
+    base64_to_array(meta_nonce as string),
+  );
+
+  if (!plaintext) return null;
+
+  const parsed = JSON.parse(new TextDecoder().decode(plaintext));
+
+  if (
+    !parsed ||
+    typeof parsed.filename !== "string" ||
+    typeof parsed.session_key !== "string"
+  ) {
+    return null;
+  }
+
+  return {
+    filename: parsed.filename,
+    content_type:
+      typeof parsed.content_type === "string" && parsed.content_type.length > 0
+        ? parsed.content_type
+        : DEFAULT_ATTACHMENT_CONTENT_TYPE,
+    session_key: parsed.session_key,
+    content_id:
+      typeof parsed.content_id === "string" ? parsed.content_id : undefined,
+    is_inline: parsed.is_inline === true ? true : undefined,
+  };
 }
 
 const UNENCRYPTED_NONCE_LENGTH = 12;

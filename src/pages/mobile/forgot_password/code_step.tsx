@@ -20,8 +20,14 @@
 //
 import type { CodeStepProps } from "./types";
 
-import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeftIcon } from "@heroicons/react/20/solid";
+import { motion } from "framer-motion";
+
+import {
+  MobileActionRow,
+  MobileStepHeader,
+  StepBackBar,
+  StepError,
+} from "./step_frame";
 
 import { apply_input_transform } from "@/utils/input_transform";
 import { use_i18n } from "@/lib/i18n/context";
@@ -29,12 +35,7 @@ import { Input } from "@/components/ui/input";
 import {
   stagger_container,
   fade_up_item,
-  button_tap,
   DEPTH_INPUT_WRAPPER_CLASS,
-  DEPTH_CTA_CLASS,
-  DEPTH_CTA_STYLE,
-  BACK_BUTTON_CLASS,
-  BACK_BUTTON_STYLE,
   INNER_INPUT_CLASS,
 } from "@/components/auth/mobile_auth_motion";
 
@@ -51,72 +52,31 @@ export function CodeStep({
   on_submit,
 }: CodeStepProps) {
   const { t } = use_i18n();
+  const try_another_way = () => {
+    set_error("");
+    set_step("other_ways");
+  };
 
   return (
     <div className="flex flex-1 flex-col">
-      <div className="flex items-center px-6 pt-4">
-        <motion.button
-          className={BACK_BUTTON_CLASS}
-          style={BACK_BUTTON_STYLE}
-          whileTap={button_tap}
-          onClick={on_change_account}
-        >
-          <ChevronLeftIcon className="h-5 w-5 rtl:-scale-x-100" />
-        </motion.button>
-      </div>
+      <StepBackBar on_back={try_another_way} />
 
       <motion.div
         animate="animate"
-        className="flex flex-1 flex-col items-center px-6 pt-6"
+        className="flex flex-1 flex-col items-start px-6 pt-6"
         initial={reduce_motion ? false : "initial"}
         variants={reduce_motion ? undefined : stagger_container}
       >
-        <motion.img
-          alt="Aster"
-          className="h-8"
-          decoding="async"
-          draggable={false}
-          src="/text_logo.png"
-          variants={reduce_motion ? undefined : fade_up_item}
+        <MobileStepHeader
+          description={t("auth.enter_recovery_code_desc")}
+          email={email}
+          on_change_account={on_change_account}
+          reduce_motion={reduce_motion}
+          title={t("auth.enter_recovery_code")}
         />
 
-        <motion.h1
-          className="mt-6 text-xl font-semibold text-[var(--text-primary)]"
-          variants={reduce_motion ? undefined : fade_up_item}
-        >
-          {t("auth.enter_recovery_code")}
-        </motion.h1>
-
-        <motion.p
-          className="mt-2 text-center text-sm leading-relaxed text-[var(--text-tertiary)]"
-          variants={reduce_motion ? undefined : fade_up_item}
-        >
-          {t("auth.enter_recovery_code_desc")}
-        </motion.p>
-
-        <motion.p
-          className="notranslate mt-1 max-w-full truncate text-sm font-medium text-[var(--text-primary)]"
-          variants={reduce_motion ? undefined : fade_up_item}
-        >
-          {email}
-        </motion.p>
-
-        <AnimatePresence>
-          {error && (
-            <motion.p
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-4 text-center text-sm"
-              exit={{ opacity: 0, y: -4 }}
-              initial={{ opacity: 0, y: -4 }}
-              style={{ color: is_dark ? "#f87171" : "#dc2626" }}
-            >
-              {error}
-            </motion.p>
-          )}
-        </AnimatePresence>
-
         <motion.div
-          className={`w-full ${error ? "mt-4" : "mt-6"}`}
+          className="mt-7 w-full"
           variants={reduce_motion ? undefined : fade_up_item}
         >
           <label
@@ -147,35 +107,21 @@ export function CodeStep({
             {t("auth.recovery_code_hint")}
           </p>
         </motion.div>
+
+        <StepError
+          error={error}
+          is_dark={is_dark}
+          reduce_motion={reduce_motion}
+        />
       </motion.div>
 
-      <motion.div
-        animate={{ opacity: 1 }}
-        className="shrink-0 space-y-3 px-6 pb-4 pt-4"
-        initial={reduce_motion ? false : { opacity: 0 }}
-        transition={
-          reduce_motion ? { duration: 0 } : { duration: 0.3, delay: 0.1 }
-        }
-      >
-        <motion.button
-          className={DEPTH_CTA_CLASS}
-          style={DEPTH_CTA_STYLE}
-          whileTap={button_tap}
-          onClick={on_submit}
-        >
-          {t("common.continue")}
-        </motion.button>
-        <button
-          className="w-full py-2 text-center text-sm font-medium text-[var(--text-secondary)]"
-          type="button"
-          onClick={() => {
-            set_error("");
-            set_step("other_ways");
-          }}
-        >
-          {t("auth.try_another_way")}
-        </button>
-      </motion.div>
+      <MobileActionRow
+        on_primary={on_submit}
+        on_secondary={try_another_way}
+        primary_label={t("common.continue")}
+        reduce_motion={reduce_motion}
+        secondary_label={t("auth.try_another_way")}
+      />
     </div>
   );
 }

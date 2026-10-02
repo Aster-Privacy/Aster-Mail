@@ -387,10 +387,11 @@ export function use_popup_viewer({
 
         if (scope !== current_opened_mail_scope()) return;
         if (!is_read_ticket_current(current_email_id, read_ticket)) return;
+        const still_open = open_email_id_ref.current === current_email_id;
 
         if (result.success) {
-          set_is_read(true);
-          if (result.encrypted) {
+          if (still_open) set_is_read(true);
+          if (result.encrypted && still_open) {
             set_mail_item((prev) =>
               prev
                 ? {
@@ -416,7 +417,7 @@ export function use_popup_viewer({
             }
           }
         } else {
-          set_is_read(false);
+          if (still_open) set_is_read(false);
           if (owned) {
             emit_mail_item_updated({ id: current_email_id, is_read: false });
           }
@@ -471,6 +472,7 @@ export function use_popup_viewer({
         forwarding_service: pe.forwarding_service,
         is_external: pe.is_external,
         system_origin: pe.system_origin,
+        e2e_verified: !!pe.e2e_verified,
         send_status: pe.send_status,
         send_error: pe.send_error,
         subject: pe.subject,
@@ -598,6 +600,7 @@ export function use_popup_viewer({
           body_text,
           safe_html,
           unsubscribe_info: unsubscribe,
+          e2e_verified,
         } = await process_envelope_body(
           envelope,
           user?.email,
@@ -638,6 +641,7 @@ export function use_popup_viewer({
           sender_verification: envelope.sender_verification,
           is_external: response.data.is_external,
           system_origin: response.data.system_origin,
+          e2e_verified,
           send_status: response.data.send_status,
           send_error: response.data.send_error,
         };
@@ -652,6 +656,7 @@ export function use_popup_viewer({
           body_text,
           safe_html,
           decrypted_metadata,
+          e2e_verified,
         );
 
         if (

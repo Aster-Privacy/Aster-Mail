@@ -12,6 +12,15 @@ const get_vault_from_memory = vi.fn();
 const get_passphrase_from_memory = vi.fn();
 const get_current_account = vi.fn();
 
+const refresh_recovery_backup = vi.fn(
+  async (_vault: unknown, _passphrase: string) => true,
+);
+
+vi.mock("./recovery_backup_refresh", () => ({
+  refresh_recovery_backup: (vault: unknown, passphrase: string) =>
+    refresh_recovery_backup(vault, passphrase),
+}));
+
 vi.mock("../api/recovery", () => ({
   list_inactive_key_sets: () => list_inactive_key_sets(),
   fetch_inactive_key_set: (id: string) => fetch_inactive_key_set(id),
@@ -137,7 +146,9 @@ describe("restore_inactive_key_sets", () => {
       absorbed: [true],
     });
 
-    expect(await restore_inactive_key_sets("old-password")).toBe(1);
+    expect(await restore_inactive_key_sets("old-password")).toMatchObject({
+      restored: 1,
+    });
 
     const [vault, old_vaults, old_password, current] =
       merge_recovered_identity_keys.mock.calls[0];
@@ -171,14 +182,18 @@ describe("restore_inactive_key_sets", () => {
       absorbed: [true, false],
     });
 
-    expect(await restore_inactive_key_sets("old-password")).toBe(2);
+    expect(await restore_inactive_key_sets("old-password")).toMatchObject({
+      restored: 2,
+    });
     expect(push_vault_to_server).toHaveBeenCalled();
     expect(consume_inactive_key_set).toHaveBeenCalledWith("archived-1");
     expect(consume_inactive_key_set).not.toHaveBeenCalledWith("archived-2");
   });
 
   it("merges the archived identity keys into the prior key list", async () => {
-    expect(await restore_inactive_key_sets("old-password")).toBe(1);
+    expect(await restore_inactive_key_sets("old-password")).toMatchObject({
+      restored: 1,
+    });
 
     const saved = encrypt_vault.mock.calls[0][0] as ReturnType<
       typeof current_vault
@@ -212,7 +227,11 @@ describe("restore_inactive_key_sets", () => {
   it("does nothing when the old password does not unlock the archive", async () => {
     decrypt_vault.mockRejectedValue(new Error("bad password"));
 
-    expect(await restore_inactive_key_sets("wrong")).toBe(0);
+    expect(await restore_inactive_key_sets("wrong")).toEqual({
+      restored: 0,
+      incomplete: 0,
+      wrong_password: true,
+    });
     expect(encrypt_vault).not.toHaveBeenCalled();
     expect(consume_inactive_key_set).not.toHaveBeenCalled();
   });
@@ -220,14 +239,18 @@ describe("restore_inactive_key_sets", () => {
   it("never consumes an archive it could not store", async () => {
     push_vault_to_server.mockResolvedValue(false);
 
-    expect(await restore_inactive_key_sets("old-password")).toBe(0);
+    expect(await restore_inactive_key_sets("old-password")).toMatchObject({
+      restored: 0,
+    });
     expect(consume_inactive_key_set).not.toHaveBeenCalled();
   });
 
   it("never consumes an archive that fails the roundtrip check", async () => {
     verify_vault_roundtrip.mockResolvedValue(false);
 
-    expect(await restore_inactive_key_sets("old-password")).toBe(0);
+    expect(await restore_inactive_key_sets("old-password")).toMatchObject({
+      restored: 0,
+    });
     expect(push_vault_to_server).not.toHaveBeenCalled();
     expect(consume_inactive_key_set).not.toHaveBeenCalled();
   });
@@ -240,7 +263,9 @@ describe("restore_inactive_key_sets", () => {
       .mockResolvedValueOnce({ ...key_set("archived-public") })
       .mockRejectedValueOnce(new Error("different password"));
 
-    expect(await restore_inactive_key_sets("old-password")).toBe(1);
+    expect(await restore_inactive_key_sets("old-password")).toMatchObject({
+      restored: 1,
+    });
     expect(consume_inactive_key_set).toHaveBeenCalledWith("archived-1");
     expect(consume_inactive_key_set).not.toHaveBeenCalledWith("archived-2");
   });
@@ -266,7 +291,9 @@ describe("restore_inactive_key_sets", () => {
       data: { inactive_key_sets: [] },
     });
 
-    expect(await restore_inactive_key_sets("old-password")).toBe(0);
+    expect(await restore_inactive_key_sets("old-password")).toMatchObject({
+      restored: 0,
+    });
     expect(fetch_inactive_key_set).not.toHaveBeenCalled();
     expect(encrypt_vault).not.toHaveBeenCalled();
   });
@@ -274,7 +301,9 @@ describe("restore_inactive_key_sets", () => {
   it("stops when the vault is locked", async () => {
     get_passphrase_from_memory.mockReturnValue(null);
 
-    expect(await restore_inactive_key_sets("old-password")).toBe(0);
+    expect(await restore_inactive_key_sets("old-password")).toMatchObject({
+      restored: 0,
+    });
     expect(encrypt_vault).not.toHaveBeenCalled();
   });
 
@@ -285,7 +314,9 @@ describe("restore_inactive_key_sets", () => {
       data_kek: ARCHIVED_DATA_KEK,
     });
 
-    expect(await restore_inactive_key_sets("old-password")).toBe(1);
+    expect(await restore_inactive_key_sets("old-password")).toMatchObject({
+      restored: 1,
+    });
 
     const saved = encrypt_vault.mock.calls[0][0] as {
       legacy_keks?: Array<{ k: string }>;
@@ -341,7 +372,9 @@ describe("restore_inactive_key_sets", () => {
       vault_format: 1,
     });
 
-    expect(await restore_inactive_key_sets("old-password")).toBe(1);
+    expect(await restore_inactive_key_sets("old-password")).toMatchObject({
+      restored: 1,
+    });
 
     const saved = encrypt_vault.mock.calls[0][0] as {
       legacy_keks?: Array<{ k: string }>;
@@ -394,7 +427,11 @@ describe("restore_inactive_key_sets", () => {
         data_kek: btoa("archived-kek-3"),
       });
 
-    expect(await restore_inactive_key_sets("old-password")).toBe(0);
+    expect(await restore_inactive_key_sets("old-password")).toEqual({
+      restored: 3,
+      incomplete: 3,
+      wrong_password: false,
+    });
     expect(consume_inactive_key_set).not.toHaveBeenCalled();
 
     const saved = encrypt_vault.mock.calls[0][0] as {
@@ -415,7 +452,9 @@ describe("restore_inactive_key_sets", () => {
       data_kek: ARCHIVED_DATA_KEK,
     });
 
-    expect(await restore_inactive_key_sets("old-password")).toBe(1);
+    expect(await restore_inactive_key_sets("old-password")).toMatchObject({
+      restored: 1,
+    });
 
     const saved = encrypt_vault.mock.calls[0][0] as {
       legacy_keks?: Array<{ k: string }>;

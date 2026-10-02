@@ -47,10 +47,15 @@ export function format_contact_date(value: string): string {
 
   if (Number.isNaN(parsed.getTime())) return trimmed;
 
-  return parsed.toLocaleDateString(undefined, {
+  const calendar_day = new Date(
+    Date.UTC(parsed.getFullYear(), parsed.getMonth(), parsed.getDate()),
+  );
+
+  return calendar_day.toLocaleDateString(app_locale(), {
     year: "numeric",
     month: "long",
     day: "numeric",
+    timeZone: "UTC",
   });
 }
 

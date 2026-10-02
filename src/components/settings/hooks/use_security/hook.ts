@@ -95,6 +95,7 @@ import {
   upload_prekey_bundle,
 } from "@/services/crypto/ratchet_manager";
 import { reset_vault_refresh_state } from "@/services/crypto/vault_refresh";
+import { refresh_recovery_backup } from "@/services/crypto/recovery_backup_refresh";
 import { sync_vault_with_server } from "@/services/crypto/ensure_ratchet_keys";
 import { use_key_rotation } from "@/hooks/use_key_rotation";
 import { check_password_breach } from "@/services/breach_check";
@@ -613,6 +614,7 @@ export function use_security() {
 
       reset_vault_refresh_state();
       await store_vault_in_memory(vault, new_password);
+      void refresh_recovery_backup(vault, new_password);
 
       try {
         await store_session_passphrase(user.id, new_password);

@@ -31,6 +31,8 @@ export const hi = {
       "मैं समझता हूं कि यह मेल वापस नहीं पाया जा सकता।",
     delete_folder_purged_items:
       "फ़ोल्डर हटा दिया गया और {count} संदेश हमेशा के लिए नष्ट कर दिए गए।",
+    delete_folder_purged_items_one:
+      "फ़ोल्डर हटा दिया गया और {count} संदेश हमेशा के लिए नष्ट कर दिया गया।",
     delete_folder_deleted_no_purge:
       "फ़ोल्डर हटा दिया गया। इसके अंदर का मेल आपके खाते में बना रहता है।",
     delete_folder_password_required: "अपना खाता पासवर्ड डालें।",
@@ -641,6 +643,7 @@ export const hi = {
     not_detected: "पता नहीं चला",
     navigate: "नेविगेट करें",
     commands_count: "{{count}} कमांड",
+    commands_count_one: "{{count}} कमांड",
     no_commands_found: "कोई कमांड नहीं मिली",
     type_command_or_search: "कमांड लिखें या खोजें...",
     failed_to_load_emails:
@@ -905,6 +908,16 @@ export const hi = {
       "जुड़े हुए खातों के लिए शेड्यूल करके भेजना उपलब्ध नहीं है। यह संदेश अभी भेजें, या कोई Aster पता चुनें।",
     scheduled_no_expiry:
       "शेड्यूल किए गए ईमेल में अभी समाप्ति नहीं लगाई जा सकती। अभी भेजें, या शेड्यूल करने के लिए समाप्ति हटा दें।",
+    scheduled_too_far_ahead:
+      "शेड्यूल किए गए ईमेल अधिकतम 28 दिन आगे के लिए भेजे जा सकते हैं। पहले का समय चुनें।",
+    scheduled_requires_encryption:
+      "आपने आवश्यक एन्क्रिप्शन चालू किया है, और बाहरी पतों पर शेड्यूल किए गए ईमेल एंड-टू-एंड एन्क्रिप्टेड नहीं होते। यह संदेश अभी भेजें, या सेटिंग्स में आवश्यक एन्क्रिप्शन बंद करें।",
+    offline_password_protected_unavailable:
+      "ऑफ़लाइन होने पर आप पासवर्ड से सुरक्षित ईमेल कतार में नहीं जोड़ सकते। फिर से कनेक्ट होने पर संदेश भेजें।",
+    offline_settings_unavailable:
+      "आपकी सेटिंग लोड नहीं हो सकीं, इसलिए संदेश नहीं भेजा गया। फिर से कनेक्ट होने पर दोबारा कोशिश करें।",
+    cannot_send_key_changed_offline:
+      "यह संदेश भेजे जाने की प्रतीक्षा में था तभी किसी प्राप्तकर्ता की एन्क्रिप्शन कुंजी बदल गई, इसलिए इसे नहीं भेजा गया।",
     failed_to_merge_contacts:
       "मर्ज पूरा नहीं हुआ। फिर से कोशिश करें। आपके मूल संपर्कों में कोई बदलाव नहीं हुआ है।",
     enter_valid_emails: "मान्य ईमेल पते डालें",
@@ -1200,6 +1213,8 @@ export const hi = {
       "{{count}} बातचीत ट्रैश में ले जाई गईं",
     n_conversations_marked_as_spam:
       "{{ count }} बातचीत स्पैम के रूप में चिह्नित",
+    n_conversations_marked_as_spam_one:
+      "{{ count }} बातचीत स्पैम के रूप में चिह्नित",
     external_only: "सिर्फ़ बाहरी",
     all_accounts: "सभी खाते",
     failed_to_rotate_keys:
@@ -1228,6 +1243,7 @@ export const hi = {
     added_to_allowlist: "{{ email }} को अनुमति सूची में जोड़ा गया",
     no_content: "कोई सामग्री नहीं",
     unblocked_count_senders: "{{ count }} प्रेषक अनब्लॉक हो गए",
+    unblocked_count_senders_one: "{{ count }} प्रेषक अनब्लॉक हो गया",
     removed_count_from_allowlist: "अनुमति सूची से {{ count }} निकाले गए",
     failed_to_add_label: "फिर से कोशिश करें।",
     failed_to_remove_label: "फिर से कोशिश करें।",
@@ -1294,6 +1310,8 @@ export const hi = {
     font: "फ़ॉन्ट",
     stylesheet: "स्टाइलशीट",
     tracking_pixel: "ट्रैकिंग पिक्सल",
+    image_blocked: "छवि ब्लॉक की गई",
+    tracking_pixel_blocked: "ट्रैकिंग पिक्सल ब्लॉक किया गया",
     me: "मैं",
     notification_banner_message:
       "नए ईमेल की जानकारी पाते रहने के लिए डेस्कटॉप सूचनाएं चालू करें",
@@ -1309,6 +1327,14 @@ export const hi = {
     recover_data_success: "आपका पुराना डेटा अनलॉक हो गया है।",
     recover_data_no_match:
       "इस पासवर्ड से कोई डेटा अनलॉक नहीं हुआ। कोई दूसरा पुराना पासवर्ड आज़माएं।",
+    recover_data_code_description:
+      "पासवर्ड रीसेट से पहले के ईमेल अनलॉक करने के लिए, रीसेट से पहले सेव किए गए रिकवरी कोड में से कोई एक डालें।",
+    recover_data_code_no_match:
+      "उस कोड से कोई डेटा अनलॉक नहीं हुआ। रीसेट से पहले सेव किया गया कोड डालें।",
+    recover_data_partial:
+      "आपके पहले के कुछ ईमेल अनलॉक हो गए हैं। बाकी अनलॉक करने के लिए अपना पिछला पासवर्ड डालें।",
+    recover_data_rate_limited:
+      "बहुत ज़्यादा कोशिशें हुईं। 30 मिनट इंतज़ार करें, फिर दोबारा कोशिश करें।",
     recover_data_failed:
       "कुछ डेटा अनलॉक नहीं हो सका। अपना कनेक्शन जांचें और फिर से कोशिश करें।",
     payment_past_due_message:
@@ -1425,6 +1451,7 @@ export const hi = {
     check_out_aster_mail:
       "Aster Mail देखें, अपने ईमेल संभालने का एक बेहतर तरीका।",
     n_lines: "{{ count }} पंक्तियां",
+    n_lines_one: "{{ count }} पंक्ति",
     hide_details: "विवरण छिपाएं",
     show_details: "विवरण दिखाएं",
     not_phishing: "फ़िशिंग नहीं",
@@ -1438,6 +1465,7 @@ export const hi = {
     view_blocked_content_details: "ब्लॉक की गई सामग्री का विवरण देखें",
     n_images: "{{ count }} छवियां",
     n_items: "{{ count }} आइटम",
+    n_items_one: "{{ count }} आइटम",
     ctrl_click_to_open: "खोलने के लिए Ctrl+क्लिक करें",
     user_id_label: "उपयोगकर्ता ID",
     platform_label: "प्लेटफ़ॉर्म",
@@ -1641,6 +1669,7 @@ export const hi = {
     permission_denied:
       "आपके पास यह करने की पहुंच नहीं है। अगर यह गलत लगता है, तो आपका एडमिन मदद कर सकता है।",
     n_contacts_imported: "{{ count }} संपर्क इंपोर्ट हो गए",
+    n_contacts_imported_one: "{{ count }} संपर्क इंपोर्ट हो गया",
     yourname_placeholder: "आपकानाम",
     allow_sender: "अनुमति सूची में जोड़ें",
     remove_from_allowlist_action: "अनुमति सूची से निकालें",
@@ -1848,6 +1877,7 @@ export const hi = {
     bulk_create_placeholder: "Ada Lovelace <ada@example.com>",
     bulk_create_ready: "{{count}} बनाने के लिए तैयार",
     contacts_created: "{{count}} संपर्क बनाए गए",
+    contacts_created_one: "{{count}} संपर्क बनाया गया",
     some_contacts_not_created: "कुछ संपर्क नहीं बनाए जा सके।",
     manage_contacts: "संपर्क प्रबंधित करें",
     merge_and_fix: "मर्ज करें और ठीक करें",
@@ -1864,6 +1894,7 @@ export const hi = {
     add_birthdays_hint:
       "किसी संपर्क में जन्मदिन जोड़ें और Aster आपको उस दिन से पहले याद दिलाएगा।",
     birthdays_upcoming: "{{count}} जन्मदिन आने वाले हैं",
+    birthdays_upcoming_one: "{{count}} जन्मदिन आने वाला है",
     add_new_group: "नया समूह",
     add_to_group: "समूह में जोड़ें",
     added_to_group: "समूह में जोड़ा गया",
@@ -1906,6 +1937,7 @@ export const hi = {
     failed_to_load_groups: "आपके समूह लोड नहीं किए जा सके।",
     failed_to_move_to_trash: "संपर्क को ट्रैश में नहीं ले जाया जा सका।",
     group_contact_count: "{{count}} संपर्क",
+    group_contact_count_one: "{{count}} संपर्क",
     group_created: "समूह बनाया गया",
     group_deleted: "समूह हटाया गया",
     group_modal_description: "एक साथ कई संपर्कों को लिखने के लिए समूह बनाएँ।",
@@ -1962,6 +1994,7 @@ export const hi = {
     share_contact_via_email: "नए ईमेल में अटैच करें",
     share_contact_device: "दूसरे ऐप के साथ शेयर करें",
     trash_days_left: "{{count}} दिन शेष",
+    trash_days_left_one: "{{count}} दिन शेष",
     undo_change: "बदलाव पूर्ववत करें",
     biometry_fingerprint: "फ़िंगरप्रिंट",
     biometry_face_recognition: "फ़ेस रिकग्निशन",
@@ -2279,6 +2312,8 @@ export const hi = {
     desktop_bridge_set_up: "{{ client }} सेट अप करें",
     desktop_bridge_install_hint:
       "Aster Bridge इंस्टॉल होकर चलता रहना चाहिए। इसे सेटिंग > Bridge से डाउनलोड करें।",
+    desktop_bridge_not_opened:
+      "Aster Bridge नहीं खुला। पक्का करें कि यह इंस्टॉल है और चल रहा है, या इसे सेटिंग > Bridge से डाउनलोड करें।",
     desktop_bridge_upgrade_title: "अपना पसंदीदा मेल क्लाइंट इस्तेमाल करें",
     desktop_bridge_upgrade_description:
       "Aster Bridge से Apple Mail, Thunderbird या Outlook को Aster से जोड़ें। Star और उससे ऊपर उपलब्ध।",
@@ -2748,8 +2783,11 @@ export const hi = {
     failed_sign_out: "दूसरे सत्र साइन आउट नहीं हो सके",
     active_now: "अभी चालू",
     minutes_ago: "{{count}} मिनट पहले",
+    minutes_ago_one: "{{count}} मिनट पहले",
     hours_ago: "{{count}} घंटे पहले",
+    hours_ago_one: "{{count}} घंटा पहले",
     days_ago: "{{count}} दिन पहले",
+    days_ago_one: "{{count}} दिन पहले",
     this_device: "यह डिवाइस",
     signed_in_date: "{{date}} को साइन इन किया",
     sign_out: "साइन आउट करें",
@@ -2775,7 +2813,9 @@ export const hi = {
     failed_load_security_status:
       "आपकी सुरक्षा सेटिंग लोड नहीं हुईं। फिर से कोशिश करें।",
     load_more_sessions: "{{count}} और सत्र लोड करें",
+    load_more_sessions_one: "{{count}} और सत्र लोड करें",
     two_fa_enabled: "चालू ({{count}} बैकअप कोड बचे हैं)",
+    two_fa_enabled_one: "चालू ({{count}} बैकअप कोड बचा है)",
     two_fa_add_security: "2FA से सुरक्षा की एक और परत जोड़ें",
     basics_section_title: "बुनियादी बातें",
     two_step_verification: "दो-चरणीय सत्यापन",
@@ -2984,7 +3024,7 @@ export const hi = {
     show_message_size_description: "इनबॉक्स सूची में हर ईमेल का आकार दिखाएं",
     force_dark_mode_emails: "ईमेल के लिए डार्क मोड ज़रूरी करें",
     force_dark_mode_emails_description:
-      "ईमेल की सामग्री हमेशा डार्क मोड में दिखाएं, चाहे ईमेल की अपनी स्टाइल कुछ भी हो",
+      "जब Aster डार्क थीम में हो, तब ईमेल की सामग्री डार्क मोड में दिखाएं, चाहे ईमेल की अपनी स्टाइल कुछ भी हो",
     translation: "अनुवाद",
     translate_incoming: "आने वाली मेल का अनुवाद करें",
     translate_incoming_description:
@@ -4199,6 +4239,8 @@ export const hi = {
     fam_org_2fa_reminder_sent: "याद दिलावा भेज दिया गया",
     fam_org_2fa_reminder_sent_toast:
       "{{count}} सदस्यों को याद दिलावा भेज दिया गया",
+    fam_org_2fa_reminder_sent_toast_one:
+      "{{count}} सदस्य को याद दिलावा भेज दिया गया",
     fam_org_2fa_reminder_rate_limited:
       "हाल ही में एक याद दिलावा भेजा जा चुका है। आप 24 घंटे बाद दूसरा भेज सकते हैं।",
     fam_org_2fa_reminder_failed: "याद दिलावा नहीं भेजा जा सका",
@@ -4542,7 +4584,9 @@ export const hi = {
     twenty_five_keys: "25 कुंजियां",
     auto_lock_after: "{{duration}} तक कोई गतिविधि न होने पर अपने आप लॉक करें",
     hours: "{{count}} घंटे",
+    hours_one: "{{count}} घंटा",
     days: "{{count}} दिन",
+    days_one: "{{count}} दिन",
     failed_get_auth_data:
       "हम आपकी साइन-इन जानकारी लोड नहीं कर सके। फिर से कोशिश करें।",
     downgrade: "प्लान घटाएं",
@@ -5010,15 +5054,25 @@ export const hi = {
       "आप {{used}} इस्तेमाल कर रहे हैं, जो उस सीमा से ज़्यादा है। जब तक आप सीमा से ऊपर हैं, आने वाला मेल अस्वीकार होता रहेगा, और 7 दिन बाद वह हमेशा के लिए अस्वीकार हो जाएगा।",
     cancel_impact_aliases:
       "{{count}} एलियास {{days}} दिन बाद मेल पाना बंद कर देंगे।",
+    cancel_impact_aliases_one:
+      "{{count}} एलियास {{days}} दिन बाद मेल पाना बंद कर देगा।",
     cancel_impact_domains: "{{count}} कस्टम डोमेन निलंबित हो जाएंगे।",
+    cancel_impact_domains_one: "{{count}} कस्टम डोमेन निलंबित हो जाएगा।",
     cancel_impact_catch_all: "कैच-ऑल पता बंद कर दिया गया है।",
     cancel_impact_templates: "{{count}} ईमेल टेम्पलेट बंद हो जाएंगे।",
+    cancel_impact_templates_one: "{{count}} ईमेल टेम्पलेट बंद हो जाएगा।",
     cancel_impact_signatures: "{{count}} हस्ताक्षर बंद हो जाएंगे।",
+    cancel_impact_signatures_one: "{{count}} हस्ताक्षर बंद हो जाएगा।",
     cancel_impact_family:
       "{{count}} परिवार के सदस्य {{days}} दिन की छूट अवधि में चले जाएंगे।",
+    cancel_impact_family_one:
+      "{{count}} परिवार का सदस्य {{days}} दिन की छूट अवधि में चला जाएगा।",
     cancel_impact_family_addresses:
       "{{count}} आरक्षित परिवार पते छोड़ दिए जाएंगे।",
+    cancel_impact_family_addresses_one:
+      "{{count}} आरक्षित परिवार पता छोड़ दिया जाएगा।",
     cancel_impact_features: "{{count}} सशुल्क सुविधाएं बंद हो जाएंगी।",
+    cancel_impact_features_one: "{{count}} सशुल्क सुविधा बंद हो जाएगी।",
     cancel_impact_reactivate_hint:
       "कुछ भी नहीं हटाया जाता। दोबारा सदस्यता लेने पर जो बंद हुआ था वह आपके नए प्लान की सीमाओं तक वापस चालू हो जाता है।",
     cancel_impact_continue: "रद्द करने के लिए आगे बढ़ें",
@@ -5611,7 +5665,7 @@ export const hi = {
       "ईमेल पर ताले का चिह्न दिखाता है, जिससे पता चलता है कि संदेश एन्क्रिप्टेड है, हस्ताक्षरित है, या दोनों में से कुछ नहीं। एक नज़र में सुरक्षा जानने के लिए काम का है।",
     info_force_dark_mode_title: "ईमेल में डार्क मोड ज़रूरी करें",
     info_force_dark_mode_description:
-      "ईमेल की स्टाइल बदलकर गहरी पृष्ठभूमि और हल्का टेक्स्ट कर देता है। अगर चमकीली सफ़ेद ईमेल आपकी आंखों को चुभती हैं तो यह काम का है।",
+      "जब Aster डार्क थीम में हो, तब ईमेल की स्टाइल बदलकर गहरी पृष्ठभूमि और हल्का टेक्स्ट कर देता है। अगर चमकीली सफ़ेद ईमेल आपकी आंखों को चुभती हैं तो यह काम का है।",
     info_undo_send_title: "भेजना वापस लें",
     info_undo_send_description:
       "भेजने के बाद ईमेल रोकने के लिए आपको थोड़ा समय देता है। टाइमर खत्म होने तक कुछ नहीं जाता।",
@@ -6758,12 +6812,18 @@ export const hi = {
     emails_of_total: "{{total}} में से {{current}} ईमेल",
     cancel_import: "इंपोर्ट रद्द करें",
     emails_imported_count: "{{count}} ईमेल इंपोर्ट हुए",
+    emails_imported_count_one: "{{count}} ईमेल इंपोर्ट हुआ",
     duplicates_skipped: "{{count}} डुप्लीकेट छोड़े गए",
+    duplicates_skipped_one: "{{count}} डुप्लीकेट छोड़ा गया",
     import_folder_hint:
       "कुछ ईमेल नहीं मिल रहीं? अपने स्पैम और भेजे गए फ़ोल्डर देखें, इंपोर्ट की गई ईमेल उनकी सामग्री के आधार पर वहां जा सकती हैं।",
     n_failed_count: "{{count}} विफल",
     import_folders_skipped:
       "{{count}} फ़ोल्डर नहीं बन सका, इसलिए उसके संदेश आपके इनबॉक्स में हैं।",
+    import_folders_skipped_one:
+      "{{count}} फ़ोल्डर नहीं बन सका, इसलिए उसके संदेश आपके इनबॉक्स में हैं।",
+    import_folders_skipped_other:
+      "{{count}} फ़ोल्डर नहीं बन सके, इसलिए उनके संदेश आपके इनबॉक्स में हैं।",
     import_folders_skipped_plural:
       "{{count}} फ़ोल्डर नहीं बन सके, इसलिए उनके संदेश आपके इनबॉक्स में हैं।",
     storage_quota_reached:
@@ -6976,12 +7036,14 @@ export const hi = {
     connected_accounts_last_sync: "पिछला सिंक: {{ time }}",
     connected_accounts_never_synced: "कभी सिंक नहीं हुआ",
     connected_accounts_emails: "{{ count }} ईमेल",
+    connected_accounts_emails_one: "{{ count }} ईमेल",
     connected_accounts_syncing: "सिंक हो रहा है...",
     connected_accounts_no_new_emails: "सिंक करने के लिए कोई नया ईमेल नहीं है",
     sync_progress_count: "{{ total }} में से {{ processed }} ईमेल इंपोर्ट हुईं",
     sync_progress_preparing: "इंपोर्ट की तैयारी हो रही है…",
     sync_checking_new: "नई मेल देखी जा रही है…",
     sync_result_imported: "{{ count }} नई ईमेल इंपोर्ट हुईं",
+    sync_result_imported_one: "{{ count }} नई ईमेल इंपोर्ट हुई",
     sync_result_up_to_date: "सब पहले से अपडेट है, कोई नई ईमेल नहीं",
     sync_stopped: "सिंक रुक गया",
     purging_progress:
@@ -6996,9 +7058,13 @@ export const hi = {
     disconnect_delete_messages_label: "इंपोर्ट किए गए संदेश भी हटाएं",
     disconnect_delete_messages_label_count:
       "इसके {{ count }} इंपोर्ट किए गए ईमेल भी हटाएं",
+    disconnect_delete_messages_label_count_one:
+      "इसका {{ count }} इंपोर्ट किया गया ईमेल भी हटाएं",
     disconnect_success: "खाता अलग कर दिया गया",
     disconnect_deleted_success:
       "खाता अलग कर दिया गया, {{ count }} ईमेल हटा दिए गए",
+    disconnect_deleted_success_one:
+      "खाता अलग कर दिया गया, {{ count }} ईमेल हटा दिया गया",
     stop_sync_title: "सिंक रोकें?",
     stop_sync_description:
       "क्या आप वाकई सिंक रोकना चाहते हैं? पहले से इंपोर्ट हो चुकी ईमेल बनी रहेंगी।",
@@ -7064,6 +7130,8 @@ export const hi = {
       "आपके फ़ोल्डर का सेटअप पूरा नहीं हुआ। फिर से कोशिश करें।",
     oauth_folders_partial:
       "{{count}} फ़ोल्डर का सेटअप पूरा नहीं हुआ, बाकी इस्तेमाल के लिए तैयार हैं।",
+    oauth_folders_partial_one:
+      "{{count}} फ़ोल्डर का सेटअप पूरा नहीं हुआ, बाकी इस्तेमाल के लिए तैयार हैं।",
     import_stage_setting_up_folders: "फ़ोल्डर सेट किए जा रहे हैं",
     import_stage_importing_emails: "ईमेल इंपोर्ट हो रही हैं",
     import_stage_cancel: "रद्द करें",
@@ -7119,6 +7187,8 @@ export const hi = {
       "हम कनेक्ट नहीं कर सके। अपनी सेटिंग एक बार और देखकर फिर से कोशिश करने से आमतौर पर काम बन जाता है।",
     removed_forwarding_rule: 'फ़ॉरवर्डिंग नियम "{{ name }}" हटा दिया गया',
     removed_forwarding_rules_count: "{{ count }} फ़ॉरवर्डिंग नियम हटा दिए गए",
+    removed_forwarding_rules_count_one:
+      "{{ count }} फ़ॉरवर्डिंग नियम हटा दिया गया",
     customize_toolbar: "टूलबार अपने हिसाब से बदलें",
     customize_toolbar_description:
       "चुनें कि नीचे के टूलबार में कौन सी कार्रवाइयां दिखें।",
@@ -7189,6 +7259,7 @@ export const hi = {
       "बदलने के बाद आपकी पिछली कुंजी हटा दी जाती है। जो ईमेल सिर्फ़ आपकी पुरानी कुंजी से एन्क्रिप्ट हुई थीं, वे फिर नहीं खुलेंगी। इसे पहले जैसा नहीं किया जा सकता।",
     bulk_unsubscribe: "एक साथ सदस्यता छोड़ें",
     senders_unsubscribed: "{{ count }} प्रेषकों की सदस्यता छोड़ दी गई",
+    senders_unsubscribed_one: "{{ count }} प्रेषक की सदस्यता छोड़ दी गई",
     opened_in_browser:
       "{{ count }} आर्काइव हुए, हो सकता है खुद पुष्टि करनी पड़े",
     could_not_unsubscribe: "{{ count }} की सदस्यता नहीं छोड़ी जा सकी",
@@ -7279,6 +7350,7 @@ export const hi = {
     dev_databases_count_one: "{{count}} डेटाबेस",
     dev_databases_count_other: "{{count}} डेटाबेस",
     dev_keys_count: "{{count}} कुंजियां",
+    dev_keys_count_one: "{{count}} कुंजी",
     dev_seconds_ago: "{{count}} सेकंड पहले",
     dev_minutes_ago: "{{count}} मिनट पहले",
     dev_hours_ago: "{{count}} घंटे पहले",
@@ -7343,6 +7415,8 @@ export const hi = {
     empty_trash_confirm_title: "हाल में हटाए गए खाली करें?",
     empty_trash_confirm_message:
       "हाल में हटाए गए में मौजूद सभी {{ count }} एलियास हमेशा के लिए हटाएं? इसे पहले जैसा नहीं किया जा सकता। ये पते आपके खाते के लिए आरक्षित रहते हैं, इसलिए कोई और इन्हें नहीं ले सकता।",
+    empty_trash_confirm_message_one:
+      "हाल में हटाए गए में मौजूद {{ count }} एलियास हमेशा के लिए हटाएं? इसे पहले जैसा नहीं किया जा सकता। यह पता आपके खाते के लिए आरक्षित रहता है, इसलिए कोई और इसे नहीं ले सकता।",
     trash_emptied: "हाल में हटाए गए खाली हो गए",
     failed_empty_trash: "हाल में हटाए गए खाली नहीं हो सका। फिर से कोशिश करें।",
     recently_deleted_directories_title: "हाल में हटाए गए",
@@ -7358,6 +7432,8 @@ export const hi = {
     failed_purge_directory: "यह डायरेक्टरी नहीं हटाई गई। फिर से कोशिश करें।",
     empty_directory_trash_confirm_message:
       "हाल में हटाए गए में मौजूद सभी {{ count }} डायरेक्टरी हमेशा के लिए हटाएं? इसे पहले जैसा नहीं किया जा सकता। ये डायरेक्टरी आपके खाते के लिए आरक्षित रहती हैं, इसलिए कोई और इन्हें नहीं ले सकता।",
+    empty_directory_trash_confirm_message_one:
+      "हाल में हटाए गए में मौजूद {{ count }} डायरेक्टरी हमेशा के लिए हटाएं? इसे पहले जैसा नहीं किया जा सकता। यह डायरेक्टरी आपके खाते के लिए आरक्षित रहती है, इसलिए कोई और इसे नहीं ले सकता।",
     alias_stats_title: "आंकड़े",
     alias_stats_description: "इस एलियास ने कितना मेल संभाला है।",
     alias_stats_received: "{{ count }} मिले",
@@ -7568,8 +7644,12 @@ export const hi = {
     alias_bulk_disabled: "चुने हुए एलियास बंद हैं।",
     alias_bulk_update_partial_failed:
       "{{total}} में से {{count}} एलियास अपडेट नहीं हुए।",
+    alias_bulk_update_partial_failed_one:
+      "{{total}} में से {{count}} एलियास अपडेट नहीं हुआ।",
     alias_bulk_delete_partial_failed:
       "{{total}} में से {{count}} एलियास नहीं हटाए गए। किसी एलियास को बनाने के 30 दिन बाद आप उसे हटा सकते हैं।",
+    alias_bulk_delete_partial_failed_one:
+      "{{total}} में से {{count}} एलियास नहीं हटाया गया। किसी एलियास को बनाने के 30 दिन बाद आप उसे हटा सकते हैं।",
     alias_directory_auto_create: "एलियास अपने आप बनाएं",
     alias_directory_pattern_hint:
       "नया एलियास बनाने के लिए anything.{{ key }}@{{ domain }} पर भेजें।",
@@ -7807,6 +7887,7 @@ export const hi = {
     alias_export_source_directories: "डायरेक्टरी",
     alias_export_source_ghost: "घोस्ट एलियास",
     alias_export_source_count: "{{count}} प्रविष्टियां",
+    alias_export_source_count_one: "{{count}} प्रविष्टि",
     alias_export_choose_columns: "स्तंभ चुनें ({{count}} चुने गए)",
     alias_export_hide_columns: "स्तंभ छिपाएं",
     alias_export_format_label: "फ़ाइल फ़ॉर्मैट",
@@ -7830,8 +7911,12 @@ export const hi = {
       "{{total}} में से सिर्फ़ {{loaded}} एलियास लोड हो पाए। अपना बैकअप पूरा करने के लिए एलियास दोबारा लोड करके फिर से कोशिश करें।",
     alias_export_undecryptable:
       "{{count}} एलियास डिक्रिप्ट नहीं हो सके और वे शामिल नहीं हैं।",
+    alias_export_undecryptable_one:
+      "{{count}} एलियास डिक्रिप्ट नहीं हो सका और वह शामिल नहीं है।",
     alias_export_undecryptable_ghost:
       "{{count}} घोस्ट एलियास डिक्रिप्ट नहीं हो सके और वे शामिल नहीं हैं।",
+    alias_export_undecryptable_ghost_one:
+      "{{count}} घोस्ट एलियास डिक्रिप्ट नहीं हो सका और वह शामिल नहीं है।",
     alias_export_load_failed: "डायरेक्टरी या घोस्ट एलियास लोड नहीं हो सके।",
     alias_export_failed: "एक्सपोर्ट विफल रहा। कुछ भी डाउनलोड नहीं हुआ।",
     alias_import_csv: "एलियास इंपोर्ट करें",
@@ -7850,6 +7935,7 @@ export const hi = {
     alias_import_skip_existing: "पहले से मौजूद को छोड़ें",
     alias_import_update_existing: "बंद हो तो दोबारा चालू करें",
     alias_import_confirm: "{{count}} एलियास इंपोर्ट करें",
+    alias_import_confirm_one: "{{count}} एलियास इंपोर्ट करें",
     alias_import_summary_created: "{{count}} इंपोर्ट हुए",
     alias_import_summary_skipped: "{{count}} पहले से मौजूद थे",
     alias_import_summary_failed: "{{count}} विफल",
@@ -8154,6 +8240,11 @@ export const hi = {
       "इस प्रेषक के संदेशों में अब पोस्ट-क्वांटम सुरक्षा नहीं है। अगर आपको इसकी उम्मीद नहीं थी, तो किसी दूसरे तरीके से उनसे पुष्टि करें।",
     recipient_identity_changed:
       "{{email}} की एन्क्रिप्शन कुंजी बदल गई है। अगर आपको इसकी उम्मीद नहीं थी, तो कोई भी संवेदनशील जानकारी भेजने से पहले किसी दूसरे तरीके से उनसे इस बदलाव की पुष्टि करें।",
+    message_password_requirements:
+      "कम से कम 12 वर्णों का उपयोग करें, और एक संख्या, एक चिह्न, या बड़े और छोटे दोनों अक्षर शामिल करें।",
+    recipient_identity_untrusted:
+      "{{email}} की एन्क्रिप्शन कुंजी बदल गई है और नई कुंजी की पुष्टि नहीं की जा सकती। इस पते पर भेजने के लिए, उनसे किसी दूसरे तरीके से बदलाव की पुष्टि करें, फिर नई कुंजी पर भरोसा करें चुनें।",
+    trust_new_key: "नई कुंजी पर भरोसा करें",
     encrypted_message_unavailable:
       "यह संदेश डिक्रिप्ट नहीं हो सका। प्रेषक ने शायद पुरानी कुंजी इस्तेमाल की हो।",
     pgp_password_protected_title: "पासवर्ड से सुरक्षित संदेश",
@@ -8165,8 +8256,11 @@ export const hi = {
     pgp_password_incorrect:
       "वह पासवर्ड काम नहीं आया। प्रेषक से इसकी जांच करके फिर से कोशिश करें।",
     all_on_page_selected: "इस पेज की सभी {{ count }} बातचीत चुनी गई हैं।",
+    all_on_page_selected_one: "इस पेज की {{ count }} बातचीत चुनी गई है।",
     select_all_in_folder: "{{ folder }} की सभी {{ count }} बातचीत चुनें",
+    select_all_in_folder_one: "{{ folder }} की {{ count }} बातचीत चुनें",
     all_in_folder_selected: "सभी {{ count }} बातचीत चुनी गई हैं।",
+    all_in_folder_selected_one: "{{ count }} बातचीत चुनी गई है।",
     inbox: "इनबॉक्स",
     sent: "भेजे गए",
     drafts: "ड्राफ़्ट",
@@ -8213,6 +8307,7 @@ export const hi = {
     attachment_chips_more: "+{{count}} और",
     page_of_total: "पेज {{current}}, कुल {{total}} में से",
     total_pages_label: "{{count}} पेज",
+    total_pages_label_one: "{{count}} पेज",
     loading_preview: "झलक लोड हो रही है…",
     preview_failed: "झलक लोड नहीं हुई। ईमेल खोलने पर वह दिख जाएगी।",
     pdf_preview_failed:
@@ -8532,6 +8627,7 @@ export const hi = {
     move_to_category: "श्रेणी में ले जाएं",
     menu_applies_to_selection: "चुने हुए {count} पर लागू",
     menu_applies_to_all: "सभी {count} संदेशों पर लागू",
+    menu_applies_to_all_one: "{count} संदेश पर लागू",
     moved_to_category: "श्रेणी में ले जाया गया",
     drop_to_move_here: "यहां ले जाने के लिए छोड़ें",
     tab_new_count: "नया",
@@ -8790,9 +8886,13 @@ export const hi = {
     empty_spam_folder_question: "स्पैम फ़ोल्डर खाली करें?",
     empty_spam_description:
       "स्पैम के सभी {{count}} संदेश हमेशा के लिए हटा दिए जाएंगे और आप इसे पहले जैसा नहीं कर सकते।",
+    empty_spam_description_one:
+      "स्पैम का {{count}} संदेश हमेशा के लिए हटा दिया जाएगा और आप इसे पहले जैसा नहीं कर सकते।",
     empty_trash_question: "ट्रैश खाली करें?",
     empty_trash_description:
       "ट्रैश के सभी {{count}} संदेश हमेशा के लिए हटा दिए जाएंगे और आप इसे पहले जैसा नहीं कर सकते।",
+    empty_trash_description_one:
+      "ट्रैश का {{count}} संदेश हमेशा के लिए हटा दिया जाएगा और आप इसे पहले जैसा नहीं कर सकते।",
     folder_not_found_title: "हमें यह फ़ोल्डर नहीं मिला।",
     folder_not_found_subtitle:
       "यह फ़ोल्डर शायद हटा दिया गया हो या कभी बना ही न हो। साइडबार से कोई दूसरा फ़ोल्डर काम करेगा।",
@@ -8838,6 +8938,7 @@ export const hi = {
     order_number: "ऑर्डर #{{id}}",
     items: "चीज़ें",
     more_items_count: "+{{count}} और आइटम",
+    more_items_count_one: "+{{count}} और आइटम",
     card_ending_in: "{{last_four}} पर खत्म होने वाला कार्ड",
     purchase_extraction_privacy:
       "आपके ईमेल से इसी डिवाइस पर निकाला गया, इसलिए हमारे सर्वर पर कुछ नहीं भेजा जाता।",
@@ -8869,6 +8970,7 @@ export const hi = {
     message_deleted: "यह संदेश हटा दिया गया था",
     unknown_recipient: "(अज्ञात प्राप्तकर्ता)",
     lines_count: "{{count}} पंक्तियां",
+    lines_count_one: "{{count}} पंक्ति",
     message_label: "संदेश",
     messages_label: "संदेश",
     star: "तारा",
@@ -9120,6 +9222,7 @@ export const hi = {
     sign_in_session_expired:
       "आपका साइन-इन सेशन समाप्त हो गया। वापस जाएं और फिर से साइन इन करें।",
     backup_codes_remaining_after_login: "{{count}} बैकअप कोड बचे हैं",
+    backup_codes_remaining_after_login_one: "{{count}} बैकअप कोड बचा है",
     backup_code_description: "साइन इन करने के लिए अपना कोई एक बैकअप कोड डालें",
     backup_code_single_use: "हर बैकअप कोड सिर्फ़ एक बार इस्तेमाल हो सकता है",
     backup_code_placeholder: "XXXX-XXXX-XXXX",
@@ -9290,20 +9393,6 @@ export const hi = {
       "अपने खाते तक फिर से पहुंच पाएं। रीसेट से पहले का एन्क्रिप्टेड मेल दोबारा तभी पढ़ा जा सकता है, जब आपको बाद में अपना फ़्रेज़ या कोई कोड मिल जाए।",
     phrase_recovery_failed:
       "यह फ़्रेज़ इस खाते से मेल नहीं खाता। शब्द और ईमेल पता जांचें।",
-    reset_consent_title: "यह रीसेट आपका पुराना डेटा डिक्रिप्ट नहीं कर सकता",
-    reset_consent_keeps:
-      "आपके पास रहता है: आपका ईमेल पता, आपके सभी एलियास (मेल आता रहता है), आपकी सदस्यता, और आपका खाता।",
-    reset_consent_loses:
-      "आपकी पहुंच खत्म हो जाती है: रीसेट से पहले के सारे एन्क्रिप्टेड मेल, संपर्क, एलियास लेबल और सेटिंग से। ये एन्क्रिप्टेड रूप में सहेजे रहते हैं और बाद में तभी खुल सकते हैं, जब आपको अपना पुराना पासवर्ड याद आ जाए।",
-    reset_consent_last_chance:
-      "क्या आपके पास अपना रिकवरी फ़्रेज़ या कोई रिकवरी कोड है? इनमें से कोई भी सब कुछ बहाल कर देता है।",
-    reset_consent_use_phrase_instead:
-      "इसके बजाय मेरा फ़्रेज़ या कोड इस्तेमाल करें",
-    reset_consent_checkbox:
-      "मैं समझता हूं कि इस रीसेट के बाद मेरा एन्क्रिप्टेड डेटा पढ़ा नहीं जा सकेगा",
-    reset_consent_type_email: "पुष्टि के लिए अपना पूरा ईमेल पता टाइप करें",
-    reset_consent_email_mismatch: "ईमेल पता इस खाते से मेल नहीं खाता।",
-    reset_consent_continue: "फिर भी पासवर्ड रीसेट करें",
     reset_second_factor_title: "पुष्टि करें कि यह आप ही हैं",
     reset_second_factor_description:
       "यह खाता दो-चरणीय प्रमाणीकरण का उपयोग करता है। पासवर्ड रीसेट करने से पहले दूसरे चरण की पुष्टि करें।",
@@ -9353,12 +9442,20 @@ export const hi = {
     enter_email_associated: "जिस खाते को रिकवर करना है उसका पता दर्ज करें।",
     back_to_sign_in: "साइन इन पर वापस जाएं",
     email_me_reset_link: "मुझे रीसेट लिंक ईमेल करें",
-    reset_link_sent_title: "अपना रिकवरी ईमेल देखें",
+    reset_link_sent_title: "अपना ईमेल देखें",
+    resend_reset_link: "लिंक फिर से भेजें",
     reset_link_sent_desc:
-      "अगर यह उपयोगकर्ता नाम पंजीकृत है और उसमें सत्यापित रिकवरी ईमेल है, तो पासवर्ड रीसेट लिंक भेज दिया गया है। यह लिंक 30 मिनट में समाप्त हो जाता है।",
+      "अगर इस खाते में सत्यापित रिकवरी ईमेल है, तो Aster Mail ने उस पर रीसेट लिंक भेजा है। लिंक 30 मिनट में समाप्त हो जाता है। अगर आपको ईमेल नहीं दिखता, तो अपना स्पैम फ़ोल्डर देखें।",
     sending_reset_link: "रीसेट लिंक भेजा जा रहा है...",
     reset_your_password: "अपना पासवर्ड रीसेट करें",
     reset_choose_new_password: "अपने खाते के लिए नया पासवर्ड चुनें।",
+    reset_current_password_optional: "वर्तमान पासवर्ड (वैकल्पिक)",
+    reset_current_password_hint:
+      "अगर आपको अपना वर्तमान पासवर्ड याद है, तो उसे यहाँ डालें और साइन इन करते ही आपकी पुरानी मेल उपलब्ध रहेगी। अगर आप इसे खाली छोड़ते हैं, तो आप बाद में रिकवरी कोड से अपनी पुरानी मेल अनलॉक कर सकते हैं।",
+    reset_unlocking_earlier_mail: "आपकी पुरानी मेल अनलॉक की जा रही है...",
+    reset_use_recovery_code: "इसके बजाय रिकवरी कोड इस्तेमाल करें",
+    reset_new_codes_desc:
+      "इन कोड को किसी सुरक्षित जगह पर सेव करें। अपने पुराने कोड भी रखें, क्योंकि उनमें से एक साइन इन करने के बाद आपके पहले के ईमेल अनलॉक कर सकता है।",
     reset_invalid_or_expired:
       "यह रीसेट लिंक अमान्य है या समाप्त हो चुका है। नया लिंक मांगें।",
     request_new_reset_link: "नया रीसेट लिंक मांगें",
@@ -9393,19 +9490,19 @@ export const hi = {
       "Aster Mail आपका एन्क्रिप्टेड डेटा नहीं पढ़ सकता, इसलिए रिकवरी कोड या रिकवरी ईमेल के बिना कोई उसे नहीं खोल सकता। सहायता टीम आपका खाता देख सकती है और आगे के कदमों में मदद कर सकती है।",
     support_email_action: "सहायता को ईमेल करें",
     support_help_center: "सहायता केंद्र खोलें",
-    other_ways_title: "दूसरा तरीका आज़माएं",
+    other_ways_title: "रिकवरी का तरीका चुनें",
     other_ways_desc: "चुनें कि आप अपने खाते में वापस कैसे आना चाहते हैं।",
     other_way_code_title: "रिकवरी कोड इस्तेमाल करें",
     other_way_code_desc: "सेव किए गए कोड में से कोई एक डालें।",
     other_way_email_title: "रिकवरी ईमेल से रीसेट करें",
     other_way_email_desc:
-      "Aster Mail आपके रिकवरी ईमेल पर एक लिंक भेजता है। रीसेट से पहले के मेल तक आपकी पहुंच खत्म हो जाती है।",
+      "Aster Mail आपके रिकवरी ईमेल पर एक लिंक भेजता है, ताकि आप नया पासवर्ड चुन सकें।",
     other_way_none_title: "मेरे पास इनमें से कुछ नहीं है",
     other_way_none_desc:
       "सहायता से संपर्क करें, हम आगे के कदमों में मदद करेंगे।",
-    reset_account_title: "क्या खाता रीसेट करना है?",
+    reset_account_title: "रिकवरी ईमेल से रीसेट करें",
     reset_account_desc:
-      "रीसेट से पहले के एन्क्रिप्ट किए गए मेल, संपर्क और फ़ाइलें तब तक लॉक रहती हैं जब तक आप उन्हें अपने पुराने पासवर्ड से रिकवर नहीं करते। आपको एक नई, खाली एन्क्रिप्शन कुंजी मिलती है।",
+      "Aster Mail आपके रिकवरी ईमेल पर एक लिंक भेजता है। नया पासवर्ड चुनने के लिए उसे खोलें। आपके पहले के ईमेल तब तक एन्क्रिप्टेड रहते हैं, जब तक आप उन्हें रिकवरी कोड या अपने पिछले पासवर्ड से अनलॉक नहीं करते।",
     send_reset_link: "रीसेट लिंक भेजें",
     print_codes: "प्रिंट करें",
     codes_copied: "कोड कॉपी हो गए।",
@@ -9427,9 +9524,9 @@ export const hi = {
       "दूसरे खाते के संदेश Aster में लाएँ। सब कुछ सहेजे जाने से पहले आपके डिवाइस पर एन्क्रिप्ट होता है।",
     import_mail_skip: "खाली इनबॉक्स से शुरू करें",
     import_mail_privacy_note: "आप बाद में सेटिंग्स से भी इंपोर्ट कर सकते हैं।",
-    password_reset_successful: "पासवर्ड रीसेट सफल रहा",
+    password_reset_successful: "आपका पासवर्ड रीसेट हो गया है",
     account_recovered_sign_in:
-      "आपका खाता रिकवर हो गया है। अब आप अपने नए पासवर्ड से साइन इन कर सकते हैं।",
+      "अपने नए पासवर्ड से साइन इन करें। इसके बाद आप अपने पहले के ईमेल रिकवरी कोड या अपने पिछले पासवर्ड से अनलॉक कर सकते हैं।",
     recovery_email_verified: "रिकवरी ईमेल सत्यापित हो गया",
     recovery_email_verified_desc:
       "आपका रिकवरी ईमेल सफलतापूर्वक सत्यापित होकर आपके खाते से लिंक हो गया है।",
@@ -9734,6 +9831,12 @@ export const hi = {
       "Aster खातों के बीच के संदेश Aster पोस्ट-क्वांटम एन्क्रिप्शन में रखता है, और {{recipients}} ने अभी तक पोस्ट-क्वांटम कुंजियां प्रकाशित नहीं की हैं। उनसे Aster खोलने या अपना ऐप अपडेट करने को कहें, फिर दोबारा कोशिश करें। आपका ड्राफ़्ट सहेज लिया गया है।",
     cannot_send_no_recovery_key:
       "Aster यह संदेश अभी नहीं भेज सकता, क्योंकि प्राप्तकर्ता के खाते में इसे पढ़ने के लिए ज़रूरी कुंजियां नहीं हैं। उनसे किसी भी डिवाइस पर Aster खोलने या अपना ऐप अपडेट करने को कहें ताकि वे कुंजियां ताज़ा हो जाएं, फिर दोबारा कोशिश करें। आपका ड्राफ़्ट सहेज लिया गया है।",
+    message_password_too_weak:
+      "संदेश का पासवर्ड बहुत कमज़ोर है, इसलिए संदेश नहीं भेजा गया। कम से कम 12 वर्णों का उपयोग करें, और एक संख्या, एक चिह्न, या बड़े और छोटे दोनों अक्षर शामिल करें।",
+    recipient_key_untrusted:
+      "किसी प्राप्तकर्ता की एन्क्रिप्शन कुंजी बदल गई है, इसलिए संदेश नहीं भेजा गया। इसे भेजने के लिए, उनसे किसी दूसरे तरीके से बदलाव की पुष्टि करें, फिर नई कुंजी पर भरोसा करें चुनें।",
+    key_trust_check_failed:
+      "प्राप्तकर्ताओं की एन्क्रिप्शन कुंजियां जांची नहीं जा सकीं, इसलिए संदेश नहीं भेजा गया। अपना कनेक्शन जांचें और फिर से कोशिश करें।",
     failed_send_external:
       "यह ईमेल आपके लिंक किए गए बाहरी खाते से नहीं भेजा गया। फिर से कोशिश करें। आपका ड्राफ़्ट सहेजा गया है।",
     failed_queue_email:
@@ -9903,6 +10006,7 @@ export const hi = {
     mode_archive_hint: "इनबॉक्स से हटाया गया, सुरक्षित और वापस पाया जा सकता है",
     enabled: "चालू है",
     preview_some: "अगली बार करीब {{count}} ईमेल साफ़ किए जाएंगे।",
+    preview_some_one: "अगली बार करीब {{count}} ईमेल साफ़ किया जाएगा।",
     preview_none: "फ़िलहाल कोई ईमेल इस नियम से मेल नहीं खाता।",
     keeps_note: "तारांकित और पिन किए गए ईमेल हमेशा रखे जाते हैं।",
     save: "सहेजें",
@@ -9981,6 +10085,7 @@ export const hi = {
       "आने वाले मेल को अपने आप व्यवस्थित करने के लिए अपना पहला नियम बनाएं।",
     empty_cta: "नियम बनाएं",
     applied_count: "{{count}} संदेशों पर लागू किया गया",
+    applied_count_one: "{{count}} संदेश पर लागू किया गया",
     field_from: "प्रेषक",
     field_to: "To/Cc/Bcc",
     field_subject: "विषय",

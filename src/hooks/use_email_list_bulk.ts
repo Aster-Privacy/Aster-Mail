@@ -20,11 +20,18 @@
 //
 import type { EmailListState, InboxEmail } from "@/types/email";
 import type { BulkActionResult } from "@/hooks/bulk_action_result";
-import type { FetchPageOptions } from "@/hooks/email_list_types";
+import type {
+  BulkDeleteOptions,
+  FetchPageOptions,
+} from "@/hooks/email_list_types";
 
 import { useCallback, type MutableRefObject } from "react";
 
-import { DEFAULT_PAGE_SIZE, expand_email_ids } from "./email_list_helpers";
+import {
+  DEFAULT_PAGE_SIZE,
+  expand_email_ids,
+  trashes_whole_thread,
+} from "./email_list_helpers";
 
 import { bulk_action_result } from "@/hooks/bulk_action_result";
 import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
@@ -70,8 +77,8 @@ interface CountDeltas {
   message_count: number;
 }
 
-function group_size(email: InboxEmail): number {
-  if (email.thread_token) {
+function group_size(email: InboxEmail, whole_thread: boolean): number {
+  if (whole_thread) {
     return email.thread_message_count && email.thread_message_count > 1
       ? email.thread_message_count
       : 1;
@@ -80,18 +87,23 @@ function group_size(email: InboxEmail): number {
   return expand_email_ids(email).length;
 }
 
-function count_deltas(emails: InboxEmail[]): CountDeltas {
+function count_deltas(
+  emails: InboxEmail[],
+  is_whole_thread: (email: InboxEmail) => boolean = (e) => !!e.thread_token,
+): CountDeltas {
+  const size = (e: InboxEmail) => group_size(e, is_whole_thread(e));
+
   return {
     unread_received: emails
       .filter((e) => e.item_type === "received" && !e.is_read)
-      .reduce((sum, e) => sum + group_size(e), 0),
+      .reduce((sum, e) => sum + size(e), 0),
     received: emails
       .filter((e) => e.item_type === "received")
-      .reduce((sum, e) => sum + group_size(e), 0),
+      .reduce((sum, e) => sum + size(e), 0),
     sent: emails
       .filter((e) => e.item_type === "sent")
-      .reduce((sum, e) => sum + group_size(e), 0),
-    message_count: emails.reduce((sum, e) => sum + group_size(e), 0),
+      .reduce((sum, e) => sum + size(e), 0),
+    message_count: emails.reduce((sum, e) => sum + size(e), 0),
   };
 }
 
@@ -140,17 +152,22 @@ export function use_email_list_bulk({
   }, [set_state, fetch_page_ref, page_size]);
 
   const bulk_delete = useCallback(
-    async (ids: string[]): Promise<BulkActionResult> => {
+    async (
+      ids: string[],
+      options?: BulkDeleteOptions,
+    ): Promise<BulkActionResult> => {
       if (ids.length === 0) return bulk_action_result([]);
 
       const id_set = new Set(ids);
       const selected_emails = state.emails.filter((e) => id_set.has(e.id));
-      const threaded_emails = selected_emails.filter((e) => e.thread_token);
+      const is_whole_thread = (e: InboxEmail) =>
+        trashes_whole_thread(e, options?.conversation_grouping);
+      const threaded_emails = selected_emails.filter(is_whole_thread);
       const non_threaded_emails = selected_emails.filter(
-        (e) => !e.thread_token,
+        (e) => !is_whole_thread(e),
       );
       const non_threaded_ids = non_threaded_emails.flatMap(expand_email_ids);
-      const deltas = count_deltas(selected_emails);
+      const deltas = count_deltas(selected_emails, is_whole_thread);
 
       set_state((prev) => ({
         ...prev,
@@ -240,13 +257,13 @@ export function use_email_list_bulk({
       );
 
       if (failed_emails.length > 0) {
-        const restored = count_deltas(failed_emails);
+        const restored = count_deltas(failed_emails, is_whole_thread);
 
         reindex_ids(
           Array.from(
             new Set(
               failed_emails.flatMap((email) =>
-                email.thread_token
+                email.thread_token && is_whole_thread(email)
                   ? [
                       email.id,
                       ...(thread_removed_ids.get(email.thread_token) ?? []),

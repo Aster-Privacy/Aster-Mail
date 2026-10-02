@@ -27,6 +27,7 @@ interface SendAttachmentPayload {
   sender_encrypted_meta: string;
   sender_meta_nonce: string;
   recipient_encrypted_meta?: string;
+  recipient_metas?: Record<string, string>;
   size_bytes: number;
 }
 
@@ -39,6 +40,7 @@ interface ExternalAttachmentPayload {
 }
 
 interface SimpleSendRequest {
+  client_send_id?: string;
   to: string[];
   cc?: string[];
   bcc?: string[];
@@ -47,6 +49,7 @@ interface SimpleSendRequest {
   is_e2e_encrypted?: boolean;
   internal_encrypted_body?: string;
   hosted_recipients?: string[];
+  recipient_bodies?: Record<string, string>;
   encryption_type?: string;
   encrypted_envelope?: string;
   envelope_nonce?: string;
@@ -108,6 +111,7 @@ export interface SecureMessagePayload {
 }
 
 interface ExternalSendRequest {
+  client_send_id?: string;
   encrypted_recipients: string;
   encrypted_subject: string;
   encrypted_body: string;

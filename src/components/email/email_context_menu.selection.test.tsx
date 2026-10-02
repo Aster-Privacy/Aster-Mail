@@ -68,9 +68,8 @@ vi.mock("@/components/ui/context_menu", () => {
   };
 });
 
-const { EmailContextMenuContent } = await import(
-  "@/components/email/email_context_menu"
-);
+const { EmailContextMenuContent } =
+  await import("@/components/email/email_context_menu");
 
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean;
@@ -207,7 +206,7 @@ describe("EmailContextMenuContent selection scope", () => {
       on_mark_unread: () => {},
     });
 
-    expect(text()).toContain("mail.menu_applies_to_all:20,000");
+    expect(text()).toContain("mail.menu_applies_to_all:20000");
     expect(text()).not.toContain("mail.snooze");
     expect(text()).not.toContain("mail.folder");
     expect(text()).not.toContain("common.labels");

@@ -31,12 +31,7 @@ import {
 } from "@/services/account_manager";
 
 export type OfflineActionType =
-  | "send_email"
-  | "archive"
-  | "delete"
-  | "star"
-  | "mark_read"
-  | "move";
+  "send_email" | "archive" | "delete" | "star" | "mark_read" | "move";
 
 export interface QueuedAction {
   id: string;
@@ -50,7 +45,7 @@ export interface QueuedAction {
 const QUEUE_KEY = "aster_offline_queue";
 const FAILED_KEY = "aster_offline_failed_queue";
 const MAX_RETRIES = 3;
-const RETRYABLE_CLIENT_STATUSES = new Set([401, 408, 429]);
+const RETRYABLE_CLIENT_STATUSES = new Set([401, 408, 409, 429]);
 
 class OfflineActionError extends Error {
   status?: number;
@@ -443,10 +438,7 @@ export async function process_offline_queue(): Promise<void> {
         action.retry_count++;
         action.last_error = user_facing_error(error, "Unknown error");
 
-        if (
-          action.retry_count >= MAX_RETRIES ||
-          is_permanent_failure(error)
-        ) {
+        if (action.retry_count >= MAX_RETRIES || is_permanent_failure(error)) {
           await move_action_to_failed(action);
           dropped_count++;
           notify_queue_failure(action);
@@ -479,7 +471,7 @@ export async function process_offline_queue(): Promise<void> {
 async function process_action(action: QueuedAction): Promise<void> {
   switch (action.type) {
     case "send_email":
-      await process_send_email(action.payload as SendEmailPayload);
+      await process_send_email(action.payload as SendEmailPayload, action.id);
       break;
     case "archive":
       await process_archive(action.payload as EmailActionPayload);
@@ -534,7 +526,42 @@ interface MovePayload {
   folder_id: string;
 }
 
-async function process_send_email(payload: SendEmailPayload): Promise<void> {
+const GATE_REJECTED_STATUS = 422;
+
+async function process_send_email(
+  payload: SendEmailPayload,
+  client_send_id: string,
+): Promise<void> {
+  const { get_active_translations } = await import("@/lib/i18n/translations");
+  const strings = get_active_translations().common;
+
+  if (payload.expiry_password || payload.secure_external) {
+    throw new OfflineActionError(
+      strings.offline_password_protected_unavailable,
+      GATE_REJECTED_STATUS,
+    );
+  }
+
+  const { classify_recipients, is_internal_recipient } =
+    await import("@/services/recipient_classification");
+  const recipients = [
+    ...payload.to,
+    ...(payload.cc || []),
+    ...(payload.bcc || []),
+  ];
+
+  await classify_recipients(recipients);
+
+  const has_external = recipients.some((r) => !is_internal_recipient(r));
+  const has_internal = recipients.some((r) => is_internal_recipient(r));
+
+  if (has_external && has_internal) {
+    throw new OfflineActionError(
+      strings.cannot_mix_recipients,
+      GATE_REJECTED_STATUS,
+    );
+  }
+
   const { execute_send } = await import("@/services/send_queue_encryption");
   const { base64_to_array } = await import("@/services/crypto/envelope");
 
@@ -552,11 +579,7 @@ async function process_send_email(payload: SendEmailPayload): Promise<void> {
     };
   });
 
-  await execute_send({
-    id: crypto.randomUUID(),
-    scheduled_time: Date.now(),
-    timeout_id: 0,
-    callbacks: { on_complete: () => {}, on_cancel: () => {} },
+  const email = {
     to: payload.to,
     cc: payload.cc,
     bcc: payload.bcc,
@@ -567,17 +590,74 @@ async function process_send_email(payload: SendEmailPayload): Promise<void> {
     sender_alias_hash: payload.sender_alias_hash,
     sender_display_name: payload.sender_display_name,
     expires_at: payload.expires_at,
-    expiry_password: payload.expiry_password,
-    secure_external: payload.secure_external,
     attachments: attachments.length > 0 ? attachments : undefined,
+    client_send_id,
+  };
+
+  if (has_external) {
+    await send_external_after_gates(email, recipients, strings);
+
+    return;
+  }
+
+  await execute_send({
+    ...email,
+    id: crypto.randomUUID(),
+    scheduled_time: Date.now(),
+    timeout_id: 0,
+    callbacks: { on_complete: () => {}, on_cancel: () => {} },
+    allow_non_post_quantum: false,
   });
+}
+
+async function send_external_after_gates(
+  email: import("@/services/send_queue_types").EmailParams,
+  recipients: string[],
+  strings: {
+    cannot_send_key_changed_offline: string;
+    offline_settings_unavailable: string;
+  },
+): Promise<void> {
+  const { get_cached_preferences } = await import("@/services/api/preferences");
+  const preferences = get_cached_preferences();
+
+  if (!preferences) {
+    throw new OfflineActionError(strings.offline_settings_unavailable);
+  }
+
+  const { find_key_fingerprint_changes } =
+    await import("@/services/key_trust_consent");
+
+  if ((await find_key_fingerprint_changes(recipients)).length > 0) {
+    throw new OfflineActionError(
+      strings.cannot_send_key_changed_offline,
+      GATE_REJECTED_STATUS,
+    );
+  }
+
+  const use_pgp = preferences.encrypt_emails === true;
+  const require_encryption = preferences.require_encryption === true;
+  const { execute_external_send } =
+    await import("@/services/send_queue_encryption");
+
+  await execute_external_send(
+    {
+      ...email,
+      encryption_options: {
+        auto_discover_keys: use_pgp || require_encryption,
+        encrypt_emails: use_pgp,
+        require_encryption,
+        obscure_subject: preferences.obscure_subject_when_encrypted === true,
+      },
+    },
+    true,
+  );
 }
 
 async function process_archive(payload: EmailActionPayload): Promise<void> {
   const { get_mail_item } = await import("@/services/api/mail");
-  const { update_item_metadata } = await import(
-    "@/services/crypto/mail_metadata"
-  );
+  const { update_item_metadata } =
+    await import("@/services/crypto/mail_metadata");
 
   for (const email_id of payload.email_ids) {
     const item_result = await get_mail_item(email_id);
@@ -608,9 +688,8 @@ async function process_archive(payload: EmailActionPayload): Promise<void> {
 
 async function process_delete(payload: EmailActionPayload): Promise<void> {
   const { get_mail_item } = await import("@/services/api/mail");
-  const { update_item_metadata } = await import(
-    "@/services/crypto/mail_metadata"
-  );
+  const { update_item_metadata } =
+    await import("@/services/crypto/mail_metadata");
 
   for (const email_id of payload.email_ids) {
     const item_result = await get_mail_item(email_id);
@@ -641,9 +720,8 @@ async function process_delete(payload: EmailActionPayload): Promise<void> {
 
 async function process_star(payload: StarPayload): Promise<void> {
   const { get_mail_item } = await import("@/services/api/mail");
-  const { update_item_metadata } = await import(
-    "@/services/crypto/mail_metadata"
-  );
+  const { update_item_metadata } =
+    await import("@/services/crypto/mail_metadata");
 
   for (const email_id of payload.email_ids) {
     const item_result = await get_mail_item(email_id);
@@ -674,9 +752,8 @@ async function process_star(payload: StarPayload): Promise<void> {
 
 async function process_mark_read(payload: MarkReadPayload): Promise<void> {
   const { get_mail_item } = await import("@/services/api/mail");
-  const { update_item_metadata } = await import(
-    "@/services/crypto/mail_metadata"
-  );
+  const { update_item_metadata } =
+    await import("@/services/crypto/mail_metadata");
 
   for (const email_id of payload.email_ids) {
     const item_result = await get_mail_item(email_id);

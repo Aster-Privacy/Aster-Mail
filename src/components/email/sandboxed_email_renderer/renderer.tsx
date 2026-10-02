@@ -63,8 +63,15 @@ import {
   normalize_hex,
   relative_luminance,
 } from "@/lib/email_ink";
+import {
+  DEFAULT_BLOCKED_IMAGE_LABELS,
+  paint_blocked_images,
+  type BlockedImageLabels,
+} from "@/lib/blocked_image_placeholder";
 import { use_resolved_accent } from "@/lib/resolved_accent";
 import { is_transparent_color_value } from "@/lib/html_sanitizer";
+import { get_image_proxy_url } from "@/lib/image_proxy";
+import { build_proxied_content_csp } from "@/lib/email_content_csp";
 import {
   build_font_face_css,
   get_email_font_stack,
@@ -122,6 +129,8 @@ export function SandboxedEmailRenderer({
   on_document_ready,
 }: SandboxedEmailRendererProps) {
   const { t } = use_i18n();
+  const image_blocked_label = t("common.image_blocked");
+  const tracking_pixel_blocked_label = t("common.tracking_pixel_blocked");
   const { preferences } = use_preferences();
   const email_zoom = (
     normalize_font_size_scale(preferences.font_size_scale) / FONT_SIZE_DEFAULT
@@ -158,8 +167,16 @@ export function SandboxedEmailRenderer({
   const remeasure_ref = useRef<(() => void) | null>(null);
   const settle_timers_ref = useRef<ReturnType<typeof setTimeout>[]>([]);
   const on_document_ready_ref = useRef(on_document_ready);
+  const placeholder_cleanup_ref = useRef<(() => void) | null>(null);
+  const placeholder_labels_ref = useRef<BlockedImageLabels>(
+    DEFAULT_BLOCKED_IMAGE_LABELS,
+  );
 
   on_document_ready_ref.current = on_document_ready;
+  placeholder_labels_ref.current = {
+    image: image_blocked_label,
+    tracking_pixel: tracking_pixel_blocked_label,
+  };
 
   load_remote_ref.current = load_remote_content;
   const [internal_cid_html, set_internal_cid_html] = useState<string | null>(
@@ -498,6 +515,7 @@ a:focus-visible {
     accent_hex,
     base_font,
     email_body_ink,
+    quote_toggle_dark,
   );
 
   const html_el_style =
@@ -511,10 +529,24 @@ a:focus-visible {
     return m === "tor" || m === "tor_snowflake";
   })();
   const is_lockdown_mode = is_any_lockdown_active();
+  const document_base = (() => {
+    if (is_tor_mode) {
+      const onion = connection_store.get_api_onion_url();
+
+      if (!onion) return "about:blank";
+      const host = onion.replace(/^https?:\/\//, "").replace(/\/+$/, "");
+
+      return `http://${host}`;
+    }
+
+    return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window
+      ? "https://app.astermail.org"
+      : window.location.origin;
+  })();
   const tor_csp =
     is_tor_mode || is_lockdown_mode
       ? `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data: blob:; style-src 'unsafe-inline'; font-src 'self' data:; media-src 'none'; object-src 'none'; frame-src 'none'; connect-src 'none'; script-src 'none'; base-uri 'self'; form-action 'none';">`
-      : `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data: blob: https: http:; style-src 'unsafe-inline'; font-src 'self' data: https: http:; media-src 'none'; object-src 'none'; frame-src 'none'; connect-src 'none'; script-src 'none'; base-uri https: http:; form-action 'none';">`;
+      : `<meta http-equiv="Content-Security-Policy" content="${build_proxied_content_csp(get_image_proxy_url(), `${document_base}/`)}">`;
 
   const doc_nonce = useMemo(() => {
     doc_nonce_ref.current += 1;
@@ -531,20 +563,7 @@ a:focus-visible {
 <meta http-equiv="x-dns-prefetch-control" content="off">
 ${tor_csp}
 ${force_light_scheme ? `<meta name="color-scheme" content="light only">` : ""}
-<base href="${(() => {
-    if (is_tor_mode) {
-      const onion = connection_store.get_api_onion_url();
-
-      if (!onion) return "about:blank";
-      const host = onion.replace(/^https?:\/\//, "").replace(/\/+$/, "");
-
-      return `http://${host}`;
-    }
-
-    return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window
-      ? "https://app.astermail.org"
-      : window.location.origin;
-  })()}/">
+<base href="${document_base}/">
 ${contrast_repair_active ? `<style ${LINK_INK_LAYER_ATTRIBUTE}>${LINK_INK_LAYER_CSS}</style>` : ""}
 <style>${iframe_css}</style>
 <style>body{zoom:${email_zoom}}</style>
@@ -610,6 +629,11 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
     }
 
     resolve_native_images(iframe.contentDocument);
+    placeholder_cleanup_ref.current?.();
+    placeholder_cleanup_ref.current = paint_blocked_images(
+      iframe.contentDocument,
+      placeholder_labels_ref.current,
+    );
 
     const doc_body = iframe.contentDocument.body;
     const has_rich_layout =
@@ -776,11 +800,25 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
     if (!doc?.body) return;
 
     unblock_remote_content(doc);
+    placeholder_cleanup_ref.current?.();
+    placeholder_cleanup_ref.current = null;
     resolve_native_images(doc);
   }, [load_remote_content, unblock_remote_content]);
 
   useEffect(() => {
+    const doc = iframe_ref.current?.contentDocument;
+
+    if (!placeholder_cleanup_ref.current || !doc?.body) return;
+    placeholder_cleanup_ref.current();
+    placeholder_cleanup_ref.current = paint_blocked_images(
+      doc,
+      placeholder_labels_ref.current,
+    );
+  }, [image_blocked_label, tracking_pixel_blocked_label]);
+
+  useEffect(() => {
     return () => {
+      placeholder_cleanup_ref.current?.();
       observer_ref.current?.disconnect();
       mutation_observer_ref.current?.disconnect();
       if (raf_ref.current) cancelAnimationFrame(raf_ref.current);

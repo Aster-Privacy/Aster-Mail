@@ -18,10 +18,13 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { PlaceholderPaint } from "@/lib/blocked_image_placeholder";
+
 import { accent_foreground_for } from "@/lib/resolved_accent";
 import { derive_link_ink, derive_visited_ink } from "@/lib/email_ink";
 import { LINK_VISITED_VAR } from "@/lib/email_contrast_repair";
 import { BRAND_BACKGROUND_MARK } from "@/lib/email_brand_backgrounds";
+import { email_placeholder_paint } from "@/lib/blocked_image_placeholder";
 
 export const DARK_INHERITED_INK = "#d4d4d4";
 
@@ -58,6 +61,10 @@ export function build_email_body_css(
   accent_color = "#3b82f6",
   body_font_stack = DEFAULT_BODY_FONT_STACK,
   ink: EmailBodyInk = build_email_body_ink(accent_color),
+  dark_placeholders = false,
+  placeholder_paint: PlaceholderPaint = email_placeholder_paint(
+    dark_placeholders,
+  ),
 ) {
   return `
 @font-face {
@@ -141,14 +148,12 @@ body {
 }
 
 .blocked-remote-image {
-  display: inline-block;
-  min-width: 60px;
-  min-height: 20px;
-  padding: 8px;
-  border-radius: 4px;
-  background-color: #f3f4f6;
-  border: 1px dashed #e5e7eb;
-  cursor: pointer;
+  --aster-placeholder-background: ${placeholder_paint.background};
+  --aster-placeholder-border: ${placeholder_paint.border};
+  --aster-placeholder-text: ${placeholder_paint.text};
+  --aster-placeholder-font: ${body_font_stack};
+  --aster-placeholder-radius: ${placeholder_paint.radius};
+  opacity: 1 !important;
 }
 
 .remote-content-banner {
@@ -357,7 +362,7 @@ const QUOTE_SCOPE_EXCLUDE =
   ':not([class*="quote" i]):not([class*="quote" i] *):not([class*="cite" i]):not([class*="cite" i] *):not(blockquote[type="cite"]):not(blockquote[type="cite"] *)';
 
 const IMAGE_BACKGROUND_EXCLUDE =
-  ':not([style*="background-image" i]):not([style*="url(" i]):not([background]):not([data-aster-bg-image])';
+  ':not([style*="url(" i]):not([background]):not([data-aster-bg-image])';
 
 const BRAND_BACKGROUND_EXCLUDE = `:not([${BRAND_BACKGROUND_MARK}])`;
 
@@ -458,11 +463,6 @@ blockquote blockquote blockquote {
 .blocked-image {
   background-color: #1f1f1f !important;
   color: #9ca3af !important;
-  border-color: #374151 !important;
-}
-
-.blocked-remote-image {
-  background-color: #1f1f1f !important;
   border-color: #374151 !important;
 }
 

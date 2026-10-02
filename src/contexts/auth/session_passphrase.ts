@@ -37,6 +37,10 @@ import {
   safe_local_keys,
   safe_local_remove,
   safe_local_set,
+  safe_session_get,
+  safe_session_keys,
+  safe_session_remove,
+  safe_session_set,
 } from "@/lib/safe_storage";
 
 const ENCRYPTED_VAULT_KEY_PREFIX = "astermail_encrypted_vault_";
@@ -87,9 +91,45 @@ export function clear_stored_encrypted_vault(account_id: string): void {
   safe_local_remove(SESSION_TIMESTAMP_KEY_PREFIX + account_id);
 }
 
+function read_stored_passphrase(
+  account_id: string,
+): { encrypted_base64: string; iv_base64: string } | null {
+  const local_encrypted = safe_local_get(
+    SESSION_PASSPHRASE_KEY_PREFIX + account_id,
+  );
+  const local_iv = safe_local_get(
+    SESSION_PASSPHRASE_IV_KEY_PREFIX + account_id,
+  );
+
+  if (local_encrypted && local_iv) {
+    return { encrypted_base64: local_encrypted, iv_base64: local_iv };
+  }
+
+  const tab_encrypted = safe_session_get(
+    SESSION_PASSPHRASE_KEY_PREFIX + account_id,
+  );
+  const tab_iv = safe_session_get(
+    SESSION_PASSPHRASE_IV_KEY_PREFIX + account_id,
+  );
+
+  if (tab_encrypted && tab_iv) {
+    return { encrypted_base64: tab_encrypted, iv_base64: tab_iv };
+  }
+
+  return null;
+}
+
+function remove_stored_passphrase(account_id: string): void {
+  safe_local_remove(SESSION_PASSPHRASE_KEY_PREFIX + account_id);
+  safe_local_remove(SESSION_PASSPHRASE_IV_KEY_PREFIX + account_id);
+  safe_session_remove(SESSION_PASSPHRASE_KEY_PREFIX + account_id);
+  safe_session_remove(SESSION_PASSPHRASE_IV_KEY_PREFIX + account_id);
+}
+
 export async function store_session_passphrase(
   account_id: string,
   passphrase: string,
+  remember_on_device: boolean = true,
 ): Promise<void> {
   const key = await get_or_create_session_key();
   const iv = crypto.getRandomValues(new Uint8Array(12));
@@ -106,8 +146,12 @@ export async function store_session_passphrase(
   );
   const iv_base64 = btoa(String.fromCharCode(...iv));
 
-  safe_local_set(SESSION_PASSPHRASE_KEY_PREFIX + account_id, encrypted_base64);
-  safe_local_set(SESSION_PASSPHRASE_IV_KEY_PREFIX + account_id, iv_base64);
+  remove_stored_passphrase(account_id);
+
+  const write = remember_on_device ? safe_local_set : safe_session_set;
+
+  write(SESSION_PASSPHRASE_KEY_PREFIX + account_id, encrypted_base64);
+  write(SESSION_PASSPHRASE_IV_KEY_PREFIX + account_id, iv_base64);
 
   safe_local_remove(LEGACY_SESSION_PASSPHRASE_FB_KEY_PREFIX + account_id);
   safe_local_remove(LEGACY_SESSION_PASSPHRASE_FB_IV_KEY_PREFIX + account_id);
@@ -119,9 +163,7 @@ export function has_stored_session_passphrase(account_id: string): boolean {
       return false;
     }
 
-    const has_current =
-      safe_local_get(SESSION_PASSPHRASE_KEY_PREFIX + account_id) !== null &&
-      safe_local_get(SESSION_PASSPHRASE_IV_KEY_PREFIX + account_id) !== null;
+    const has_current = read_stored_passphrase(account_id) !== null;
 
     const has_legacy =
       safe_local_get(LEGACY_SESSION_PASSPHRASE_FB_KEY_PREFIX + account_id) !==
@@ -139,16 +181,19 @@ export function has_stored_session_passphrase(account_id: string): boolean {
 export async function get_session_passphrase(
   account_id: string,
 ): Promise<string | null> {
-  const encrypted_base64 = safe_local_get(
-    SESSION_PASSPHRASE_KEY_PREFIX + account_id,
-  );
-  const iv_base64 = safe_local_get(
-    SESSION_PASSPHRASE_IV_KEY_PREFIX + account_id,
-  );
+  if (check_session_expired(account_id)) {
+    await clear_session_passphrase(account_id);
 
-  if (!encrypted_base64 || !iv_base64) {
     return null;
   }
+
+  const stored = read_stored_passphrase(account_id);
+
+  if (!stored) {
+    return null;
+  }
+
+  const { encrypted_base64, iv_base64 } = stored;
 
   let current_key = get_session_encryption_key();
 
@@ -162,8 +207,7 @@ export async function get_session_passphrase(
       }
     } catch (err) {
       if (err instanceof RequiresReauthError) {
-        safe_local_remove(SESSION_PASSPHRASE_KEY_PREFIX + account_id);
-        safe_local_remove(SESSION_PASSPHRASE_IV_KEY_PREFIX + account_id);
+        remove_stored_passphrase(account_id);
         throw err;
       }
 
@@ -196,8 +240,7 @@ export async function get_session_passphrase(
 export async function clear_session_passphrase(
   account_id: string,
 ): Promise<void> {
-  safe_local_remove(SESSION_PASSPHRASE_KEY_PREFIX + account_id);
-  safe_local_remove(SESSION_PASSPHRASE_IV_KEY_PREFIX + account_id);
+  remove_stored_passphrase(account_id);
   safe_local_remove(LEGACY_SESSION_PASSPHRASE_FB_KEY_PREFIX + account_id);
   safe_local_remove(LEGACY_SESSION_PASSPHRASE_FB_IV_KEY_PREFIX + account_id);
 }
@@ -215,5 +258,12 @@ export async function clear_all_session_passphrases(): Promise<void> {
   );
 
   keys_to_remove.forEach((key) => safe_local_remove(key));
+  safe_session_keys()
+    .filter(
+      (key) =>
+        key.startsWith(SESSION_PASSPHRASE_KEY_PREFIX) ||
+        key.startsWith(SESSION_PASSPHRASE_IV_KEY_PREFIX),
+    )
+    .forEach((key) => safe_session_remove(key));
   await clear_session_key();
 }

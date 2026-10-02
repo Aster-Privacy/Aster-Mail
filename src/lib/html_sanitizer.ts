@@ -20,9 +20,16 @@
 //
 import DOMPurify from "dompurify";
 
+import {
+  prepare_blocked_image,
+  type BlockedImageLabels,
+} from "./blocked_image_placeholder";
 import { split_autolinks } from "./autolink";
 import { mark_brand_backgrounds } from "./email_brand_backgrounds";
-import { mark_stylesheet_background_images } from "./html_sanitizer_background_marks";
+import {
+  mark_inline_background_images,
+  mark_stylesheet_background_images,
+} from "./html_sanitizer_background_marks";
 import {
   ALLOWED_TAGS,
   DANGEROUS_TAGS,
@@ -33,6 +40,7 @@ import {
   block_remote_fonts,
   strip_css_urls,
   proxy_css_urls,
+  list_remote_css_urls,
   escape_style_terminator,
 } from "./html_sanitizer_css";
 
@@ -251,6 +259,7 @@ export interface SanitizeOptions {
   sandbox_mode?: boolean;
   content_blocking?: ContentBlockingSettings;
   lockdown_mode?: boolean;
+  blocked_image_labels?: BlockedImageLabels;
 }
 
 export function degraded_text_html(html: string): string {
@@ -420,6 +429,7 @@ function sanitize_html_impl(
     sandbox_mode = false,
     content_blocking,
     lockdown_mode = false,
+    blocked_image_labels,
   } = options;
 
   const effective_proxy = lockdown_mode ? undefined : image_proxy_url;
@@ -557,19 +567,13 @@ function sanitize_html_impl(
       }
 
       if (lockdown_mode || block_css || block_images) {
-        const css_url_matches =
-          sanitized_css.match(/url\s*\(\s*["']?(https?:\/\/[^"')\s]+)/gi) || [];
+        const remote_css_urls = list_remote_css_urls(sanitized_css);
 
-        if (css_url_matches.length > 0) {
+        if (remote_css_urls.length > 0) {
           external_content.has_remote_css = true;
-          external_content.blocked_count += css_url_matches.length;
-          for (const match of css_url_matches) {
-            const url_extract = match.match(/https?:\/\/[^"')\s]+/i);
-
-            external_content.blocked_items.push({
-              url: url_extract?.[0] || "stylesheet URL",
-              type: "css",
-            });
+          external_content.blocked_count += remote_css_urls.length;
+          for (const url of remote_css_urls) {
+            external_content.blocked_items.push({ url, type: "css" });
           }
         }
         sanitized_css = strip_css_urls(sanitized_css);
@@ -770,19 +774,13 @@ function sanitize_html_impl(
       }
 
       if (lockdown_mode || block_css || block_images) {
-        const css_url_matches =
-          sanitized_css.match(/url\s*\(\s*["']?(https?:\/\/[^"')\s]+)/gi) || [];
+        const remote_css_urls = list_remote_css_urls(sanitized_css);
 
-        if (css_url_matches.length > 0) {
+        if (remote_css_urls.length > 0) {
           external_content.has_remote_css = true;
-          external_content.blocked_count += css_url_matches.length;
-          for (const match of css_url_matches) {
-            const url_extract = match.match(/https?:\/\/[^"')\s]+/i);
-
-            external_content.blocked_items.push({
-              url: url_extract?.[0] || "stylesheet URL",
-              type: "css",
-            });
+          external_content.blocked_count += remote_css_urls.length;
+          for (const url of remote_css_urls) {
+            external_content.blocked_items.push({ url, type: "css" });
           }
         }
         sanitized_css = strip_css_urls(sanitized_css);
@@ -831,6 +829,15 @@ function sanitize_html_impl(
           attr_lower === "style" &&
           (lockdown_mode || block_css || block_images)
         ) {
+          const remote_css_urls = list_remote_css_urls(sanitized_value);
+
+          if (remote_css_urls.length > 0) {
+            external_content.has_remote_css = true;
+            external_content.blocked_count += remote_css_urls.length;
+            for (const url of remote_css_urls) {
+              external_content.blocked_items.push({ url, type: "css" });
+            }
+          }
           sanitized_value = strip_css_urls(sanitized_value);
         } else if (attr_lower === "style" && allowed_css_image_proxy) {
           sanitized_value = strip_css_urls(sanitized_value, {
@@ -1030,49 +1037,6 @@ function sanitize_html_impl(
             type: is_pixel ? "tracking_pixel" : "image",
           });
 
-          if (is_pixel && block_pixels) {
-            const pixel_placeholder = output_doc.createElement("span");
-
-            pixel_placeholder.className = "blocked-image";
-            pixel_placeholder.setAttribute("data-original-src", src);
-            pixel_placeholder.setAttribute("data-tracking-pixel", "true");
-            pixel_placeholder.setAttribute(
-              "style",
-              "display:inline-block;width:0;height:0;overflow:hidden",
-            );
-
-            return pixel_placeholder;
-          }
-
-          if (
-            external_content_mode === "never" ||
-            (content_blocking && block_images)
-          ) {
-            const placeholder = output_doc.createElement("span");
-
-            placeholder.className = "blocked-image";
-            placeholder.setAttribute("data-original-src", src);
-            placeholder.setAttribute(
-              "data-tracking-pixel",
-              is_pixel ? "true" : "false",
-            );
-
-            const w = new_element.getAttribute("width");
-            const h = new_element.getAttribute("height");
-            const s = new_element.getAttribute("style");
-
-            const alt = new_element.getAttribute("alt");
-
-            if (w) placeholder.setAttribute("data-width", w);
-            if (h) placeholder.setAttribute("data-height", h);
-            if (s) placeholder.setAttribute("data-style", s);
-            if (alt) placeholder.setAttribute("data-alt", alt);
-
-            placeholder.textContent = alt || "[Image blocked]";
-
-            return placeholder;
-          }
-
           new_element.setAttribute("data-original-src", src);
           new_element.setAttribute("data-blocked", "true");
           new_element.setAttribute(
@@ -1085,17 +1049,11 @@ function sanitize_html_impl(
               `${effective_proxy}?url=${encodeURIComponent(proxy_source)}`,
             );
           }
-          new_element.setAttribute(
-            "src",
-            "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==",
+          prepare_blocked_image(
+            new_element as HTMLImageElement,
+            is_pixel,
+            blocked_image_labels,
           );
-          new_element.setAttribute(
-            "alt",
-            new_element.getAttribute("alt") || "[Click to load image]",
-          );
-          new_element.className = (
-            new_element.className + " blocked-remote-image"
-          ).trim();
         } else if (effective_proxy) {
           new_element.setAttribute(
             "src",
@@ -1210,6 +1168,7 @@ function sanitize_html_impl(
   container.appendChild(fragment);
 
   mark_stylesheet_background_images(container);
+  mark_inline_background_images(container);
   mark_brand_backgrounds(container);
 
   return {

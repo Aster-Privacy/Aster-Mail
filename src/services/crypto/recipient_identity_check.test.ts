@@ -23,8 +23,13 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 const h = vi.hoisted(() => ({
   change: null as unknown,
   pinned: null as string | null,
+  pinned_owner: null as string | null,
+  flagged: false,
   identity: null as { kem_identity_key: string } | null,
+  owner_key: null as string | null,
   fetch_calls: [] as Array<[string, string | undefined]>,
+  owner_calls: [] as Array<[string, string]>,
+  trusted: [] as Array<[string, string | null, string | null]>,
 }));
 
 vi.mock("@/services/crypto/key_manager_core", () => ({
@@ -40,43 +45,72 @@ vi.mock("@/services/crypto/ratchet_prekey_bundle", () => ({
   }),
 }));
 
+vi.mock("@/services/api/keys", () => ({
+  get_recipient_public_key: vi.fn(async (username: string, email: string) => {
+    h.owner_calls.push([username, email]);
+
+    return h.owner_key ? { data: { public_key: h.owner_key } } : { error: "x" };
+  }),
+}));
+
 vi.mock("@/services/crypto/ratchet_identity_pin", () => ({
   get_identity_change: vi.fn(async () => h.change),
   get_pinned_identity_fingerprint: vi.fn(async () => h.pinned),
+  get_pinned_owner_key_fingerprint: vi.fn(async () => h.pinned_owner),
+  is_recipient_flagged_untrusted: vi.fn(async () => h.flagged),
+  owner_key_fingerprint: vi.fn(async (armored: string) => `fp:${armored}`),
+  trust_recipient_keys: vi.fn(
+    async (pin_id: string, kem: string | null, owner: string | null) => {
+      h.trusted.push([pin_id, kem, owner]);
+    },
+  ),
 }));
 
-import { has_recipient_identity_changed } from "@/services/crypto/recipient_identity_check";
+import {
+  get_recipient_identity_status,
+  has_recipient_identity_changed,
+  trust_recipient_identity,
+} from "@/services/crypto/recipient_identity_check";
 
-describe("has_recipient_identity_changed", () => {
+describe("get_recipient_identity_status", () => {
   beforeEach(() => {
     h.change = null;
     h.pinned = null;
+    h.pinned_owner = null;
+    h.flagged = false;
     h.identity = null;
+    h.owner_key = null;
     h.fetch_calls = [];
+    h.owner_calls = [];
+    h.trusted = [];
   });
 
-  it("reports a recorded key change without a network request", async () => {
+  it("reports a recorded key change as rotated without a network request", async () => {
     h.change = { previous_fingerprint: "a", fingerprint: "b", changed_at: 1 };
 
-    expect(await has_recipient_identity_changed("Alice@astermail.org")).toBe(
-      true,
+    expect(await get_recipient_identity_status("Alice@astermail.org")).toBe(
+      "rotated",
     );
     expect(h.fetch_calls).toHaveLength(0);
+    expect(h.owner_calls).toHaveLength(0);
   });
 
   it("skips recipients you have never exchanged keys with", async () => {
+    expect(await get_recipient_identity_status("bob@astermail.org")).toBe(
+      "unchanged",
+    );
     expect(await has_recipient_identity_changed("bob@astermail.org")).toBe(
       false,
     );
     expect(h.fetch_calls).toHaveLength(0);
   });
 
-  it("reports a change when the published key differs from the pin", async () => {
+  it("reports a rotation when the published key differs from the pin", async () => {
     h.pinned = "key-one";
     h.identity = { kem_identity_key: "key-two" };
 
-    expect(await has_recipient_identity_changed("Alice@astermail.org")).toBe(
-      true,
+    expect(await get_recipient_identity_status("Alice@astermail.org")).toBe(
+      "rotated",
     );
     expect(h.fetch_calls).toEqual([["alice", "alice@astermail.org"]]);
   });
@@ -85,16 +119,54 @@ describe("has_recipient_identity_changed", () => {
     h.pinned = "key-one";
     h.identity = { kem_identity_key: "key-one" };
 
-    expect(await has_recipient_identity_changed("alice@astermail.org")).toBe(
-      false,
+    expect(await get_recipient_identity_status("alice@astermail.org")).toBe(
+      "unchanged",
     );
   });
 
   it("stays quiet when the published key cannot be fetched", async () => {
     h.pinned = "key-one";
 
-    expect(await has_recipient_identity_changed("alice@astermail.org")).toBe(
-      false,
+    expect(await get_recipient_identity_status("alice@astermail.org")).toBe(
+      "unchanged",
     );
+  });
+
+  it("reports untrusted when the owner key differs from its pin", async () => {
+    h.pinned_owner = "fp:old";
+    h.owner_key = "new";
+
+    expect(await get_recipient_identity_status("alice@astermail.org")).toBe(
+      "untrusted",
+    );
+    expect(h.owner_calls).toEqual([["alice", "alice@astermail.org"]]);
+  });
+
+  it("reports untrusted when a send refused the recipient's key", async () => {
+    h.flagged = true;
+
+    expect(await get_recipient_identity_status("alice@astermail.org")).toBe(
+      "untrusted",
+    );
+  });
+
+  it("re-pins the current keys only for an untrusted recipient", async () => {
+    h.pinned = "key-one";
+    h.identity = { kem_identity_key: "key-two" };
+    h.pinned_owner = "fp:old";
+    h.owner_key = "new";
+
+    await trust_recipient_identity("Alice@astermail.org");
+
+    expect(h.trusted).toEqual([["alice@astermail.org", "key-two", "new"]]);
+  });
+
+  it("does not re-pin a recipient whose keys are trusted", async () => {
+    h.pinned = "key-one";
+    h.identity = { kem_identity_key: "key-one" };
+
+    await trust_recipient_identity("alice@astermail.org");
+
+    expect(h.trusted).toEqual([]);
   });
 });

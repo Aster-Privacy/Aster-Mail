@@ -20,7 +20,11 @@
 //
 import { list_inactive_key_sets } from "./api/recovery";
 import { recover_sent_mail_with_password } from "./account_data_conversion";
-import { restore_inactive_key_sets } from "./crypto/restore_inactive_keys";
+import {
+  RECOVERY_CODE_RATE_LIMITED,
+  restore_inactive_key_sets,
+  restore_inactive_key_sets_with_code,
+} from "./crypto/restore_inactive_keys";
 import { get_passphrase_from_memory } from "./crypto/memory_key_store";
 import {
   LOCKED_DATA_CHANGED_EVENT,
@@ -41,6 +45,9 @@ export interface LockedDataRecovery {
   restored_key_sets: number;
   recovered_sent_mail: number;
   failed: boolean;
+  incomplete: boolean;
+  rate_limited: boolean;
+  wrong_password: boolean;
 }
 
 export function has_locked_data(status: LockedDataStatus | null): boolean {
@@ -101,12 +108,19 @@ export async function recover_locked_data(
     restored_key_sets: 0,
     recovered_sent_mail: 0,
     failed: false,
+    incomplete: false,
+    rate_limited: false,
+    wrong_password: false,
   };
 
   if (!account_id || !password) return result;
 
   try {
-    result.restored_key_sets = await restore_inactive_key_sets(password);
+    const restored = await restore_inactive_key_sets(password);
+
+    result.restored_key_sets = restored.restored;
+    result.incomplete = restored.incomplete > 0;
+    result.wrong_password = restored.wrong_password;
   } catch (caught) {
     result.failed = true;
     ignore_error("services/locked_data:restore_key_sets", caught);
@@ -120,6 +134,42 @@ export async function recover_locked_data(
   } catch (caught) {
     result.failed = true;
     ignore_error("services/locked_data:recover_sent_mail", caught);
+  }
+
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent(LOCKED_DATA_CHANGED_EVENT));
+  }
+
+  return result;
+}
+
+export async function recover_locked_data_with_code(
+  account_id: string,
+  code: string,
+): Promise<LockedDataRecovery> {
+  const result: LockedDataRecovery = {
+    restored_key_sets: 0,
+    recovered_sent_mail: 0,
+    failed: false,
+    incomplete: false,
+    rate_limited: false,
+    wrong_password: false,
+  };
+
+  if (!account_id || !code) return result;
+
+  try {
+    const restored = await restore_inactive_key_sets_with_code(code);
+
+    result.restored_key_sets = restored.restored;
+    result.incomplete =
+      restored.incomplete > 0 || read_locked_sent_mail(account_id) > 0;
+    result.failed = restored.restored === 0 && restored.incomplete > 0;
+  } catch (caught) {
+    result.failed = true;
+    result.rate_limited =
+      caught instanceof Error && caught.message === RECOVERY_CODE_RATE_LIMITED;
+    ignore_error("services/locked_data:restore_key_sets_with_code", caught);
   }
 
   if (typeof window !== "undefined") {

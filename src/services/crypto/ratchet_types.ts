@@ -43,6 +43,23 @@ export class RecoveryLaneUnavailableError extends Error {
   }
 }
 
+export class RecipientKeyUntrustedError extends Error {
+  readonly recipient_email: string;
+
+  constructor(recipient_email: string) {
+    super(`recipient key untrusted for ${recipient_email}`);
+    this.name = "RecipientKeyUntrustedError";
+    this.recipient_email = recipient_email;
+  }
+}
+
+export class KeyPinUnavailableError extends Error {
+  constructor(pin_id: string) {
+    super(`key pin unavailable for ${pin_id}`);
+    this.name = "KeyPinUnavailableError";
+  }
+}
+
 export interface RatchetEnvelope {
   type: "double_ratchet_v1" | "double_ratchet_v2";
   sender_identity_key: string;

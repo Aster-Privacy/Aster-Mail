@@ -18,13 +18,39 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { get_active_translations } from "@/lib/i18n/translations";
+import { to_intl_locale } from "@/lib/i18n/languages";
+import {
+  get_active_language,
+  get_active_translations,
+} from "@/lib/i18n/translations";
 
 function is_tauri(): boolean {
   return "__TAURI_INTERNALS__" in window;
 }
 
+function select_plural_category(count: number): Intl.LDMLPluralRule {
+  try {
+    return new Intl.PluralRules(to_intl_locale(get_active_language())).select(
+      count,
+    );
+  } catch {
+    return count === 1 ? "one" : "other";
+  }
+}
+
+export function format_unread_tooltip(count: number): string {
+  const mail = get_active_translations().mail;
+  const category = select_plural_category(count);
+
+  const template =
+    (category === "one" ? mail.tab_unread_count_one : undefined) ??
+    mail.tab_unread_count;
+
+  return `Aster Mail - ${template.replace(/\{\{\s*count\s*\}\}/g, String(count))}`;
+}
+
 let pending_badge_count: number | null = null;
+let last_badge_count: number | null = null;
 let badge_flush_active = false;
 
 async function flush_tray_badge(): Promise<void> {
@@ -40,13 +66,7 @@ async function flush_tray_badge(): Promise<void> {
 
       pending_badge_count = null;
 
-      const tooltip =
-        count > 0
-          ? `Aster Mail - ${get_active_translations().mail.tab_unread_count.replace(
-              "{{count}}",
-              String(count),
-            )}`
-          : "Aster Mail";
+      const tooltip = count > 0 ? format_unread_tooltip(count) : "Aster Mail";
 
       try {
         await invoke("set_unread_badge", { count });
@@ -77,6 +97,17 @@ export async function update_tray_badge(unread_count: number): Promise<void> {
   if (!is_tauri()) return;
 
   pending_badge_count = Math.max(0, Math.floor(unread_count));
+  last_badge_count = pending_badge_count;
+
+  await flush_tray_badge();
+}
+
+async function refresh_tray_tooltip(): Promise<void> {
+  if (last_badge_count === null) return;
+
+  if (pending_badge_count === null) {
+    pending_badge_count = last_badge_count;
+  }
 
   await flush_tray_badge();
 }
@@ -141,6 +172,8 @@ export async function sync_tray_labels(): Promise<void> {
       },
     });
   } catch {
-    return;
+    void 0;
   }
+
+  await refresh_tray_tooltip();
 }

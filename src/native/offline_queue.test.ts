@@ -26,6 +26,17 @@ const hoisted = vi.hoisted(() => ({
   connected: { value: true },
   update_item_metadata: vi.fn(async () => ({ success: true })),
   execute_send: vi.fn(async (_email: unknown): Promise<void> => {}),
+  execute_external_send: vi.fn(
+    async (_email: unknown, _ack?: boolean): Promise<void> => {},
+  ),
+  key_changes: { value: [] as unknown[] },
+  preferences: {
+    value: {
+      encrypt_emails: false,
+      require_encryption: false,
+      obscure_subject_when_encrypted: false,
+    } as Record<string, boolean> | null,
+  },
   get_mail_item: vi.fn(async (_id: string): Promise<unknown> => ({
     data: {
       encrypted_metadata: "meta",
@@ -75,6 +86,20 @@ vi.mock("@/services/crypto/secure_storage", () => ({
 
 vi.mock("@/services/send_queue_encryption", () => ({
   execute_send: hoisted.execute_send,
+  execute_external_send: hoisted.execute_external_send,
+}));
+
+vi.mock("@/services/recipient_classification", () => ({
+  classify_recipients: async () => {},
+  is_internal_recipient: (email: string) => email.endsWith("@astermail.org"),
+}));
+
+vi.mock("@/services/key_trust_consent", () => ({
+  find_key_fingerprint_changes: async () => hoisted.key_changes.value,
+}));
+
+vi.mock("@/services/api/preferences", () => ({
+  get_cached_preferences: () => hoisted.preferences.value,
 }));
 
 import {
@@ -298,7 +323,7 @@ function send_action(id: string, retry_count = 0) {
     id,
     type: "send_email",
     payload: {
-      to: ["friend@example.com"],
+      to: ["friend@astermail.org"],
       subject: "Hello",
       body: "<p>Hello</p>",
       expires_at: "2030-01-01T00:00:00Z",
@@ -322,7 +347,7 @@ describe("offline queue permanent failures", () => {
     hoisted.update_item_metadata.mockResolvedValue({ success: true });
   });
 
-  it("classifies client errors as permanent except 401, 408 and 429", () => {
+  it("classifies client errors as permanent except 401, 408, 409 and 429", () => {
     expect(is_permanent_failure(http_error(400))).toBe(true);
     expect(is_permanent_failure(http_error(403))).toBe(true);
     expect(is_permanent_failure(http_error(404))).toBe(true);
@@ -330,6 +355,7 @@ describe("offline queue permanent failures", () => {
     expect(is_permanent_failure(http_error(422))).toBe(true);
     expect(is_permanent_failure(http_error(401))).toBe(false);
     expect(is_permanent_failure(http_error(408))).toBe(false);
+    expect(is_permanent_failure(http_error(409))).toBe(false);
     expect(is_permanent_failure(http_error(429))).toBe(false);
     expect(is_permanent_failure(http_error(500))).toBe(false);
     expect(is_permanent_failure(new Error("offline"))).toBe(false);
@@ -406,5 +432,175 @@ describe("offline queue permanent failures", () => {
     expect(hoisted.update_item_metadata).not.toHaveBeenCalled();
     expect(await get_queue()).toHaveLength(0);
     expect(await get_failed_actions()).toHaveLength(1);
+  });
+});
+
+describe("offline queue replay gates", () => {
+  function send_payload(payload: Record<string, unknown>) {
+    return {
+      id: "g1",
+      type: "send_email",
+      payload: { subject: "Hello", body: "<p>Hello</p>", ...payload },
+      created_at: Date.now(),
+      retry_count: 0,
+    };
+  }
+
+  beforeEach(() => {
+    localStorage.clear();
+    hoisted.account_id.value = "acct_a";
+    hoisted.execute_send.mockReset();
+    hoisted.execute_send.mockResolvedValue(undefined);
+    hoisted.execute_external_send.mockReset();
+    hoisted.execute_external_send.mockResolvedValue(undefined);
+    hoisted.key_changes.value = [];
+    hoisted.preferences.value = {
+      encrypt_emails: false,
+      require_encryption: false,
+      obscure_subject_when_encrypted: false,
+    };
+  });
+
+  it("never replays a password-protected message as plain mail", async () => {
+    localStorage.setItem(
+      SCOPED_KEY_A,
+      JSON.stringify([
+        send_payload({
+          to: ["friend@example.com"],
+          expiry_password: "correct horse battery staple",
+          secure_external: true,
+        }),
+      ]),
+    );
+
+    await process_offline_queue();
+
+    expect(hoisted.execute_send).not.toHaveBeenCalled();
+    expect(hoisted.execute_external_send).not.toHaveBeenCalled();
+    expect(await get_queue()).toHaveLength(0);
+    expect(await get_failed_actions()).toHaveLength(1);
+  });
+
+  it("refuses mixed Aster and outside recipients", async () => {
+    localStorage.setItem(
+      SCOPED_KEY_A,
+      JSON.stringify([
+        send_payload({
+          to: ["friend@astermail.org"],
+          cc: ["friend@example.com"],
+        }),
+      ]),
+    );
+
+    await process_offline_queue();
+
+    expect(hoisted.execute_send).not.toHaveBeenCalled();
+    expect(hoisted.execute_external_send).not.toHaveBeenCalled();
+    expect(await get_failed_actions()).toHaveLength(1);
+  });
+
+  it("refuses an outside recipient whose key changed", async () => {
+    hoisted.key_changes.value = [{ email: "friend@example.com" }];
+    localStorage.setItem(
+      SCOPED_KEY_A,
+      JSON.stringify([send_payload({ to: ["friend@example.com"] })]),
+    );
+
+    await process_offline_queue();
+
+    expect(hoisted.execute_external_send).not.toHaveBeenCalled();
+    expect(await get_failed_actions()).toHaveLength(1);
+  });
+
+  it("sends outside mail through the external path with required encryption", async () => {
+    hoisted.preferences.value = {
+      encrypt_emails: false,
+      require_encryption: true,
+      obscure_subject_when_encrypted: true,
+    };
+    localStorage.setItem(
+      SCOPED_KEY_A,
+      JSON.stringify([send_payload({ to: ["friend@example.com"] })]),
+    );
+
+    await process_offline_queue();
+
+    expect(hoisted.execute_send).not.toHaveBeenCalled();
+    expect(hoisted.execute_external_send).toHaveBeenCalledTimes(1);
+    const sent = hoisted.execute_external_send.mock.calls[0][0] as {
+      encryption_options: Record<string, boolean>;
+    };
+
+    expect(sent.encryption_options).toEqual({
+      auto_discover_keys: true,
+      encrypt_emails: false,
+      require_encryption: true,
+      obscure_subject: true,
+    });
+    expect(await get_queue()).toHaveLength(0);
+  });
+
+  it("keeps outside mail queued while preferences are unavailable", async () => {
+    hoisted.preferences.value = null;
+    localStorage.setItem(
+      SCOPED_KEY_A,
+      JSON.stringify([send_payload({ to: ["friend@example.com"] })]),
+    );
+
+    await process_offline_queue();
+
+    expect(hoisted.execute_external_send).not.toHaveBeenCalled();
+    expect(await get_queue()).toHaveLength(1);
+  });
+
+  it("replays Aster mail without allowing a post-quantum downgrade", async () => {
+    localStorage.setItem(
+      SCOPED_KEY_A,
+      JSON.stringify([send_payload({ to: ["friend@astermail.org"] })]),
+    );
+
+    await process_offline_queue();
+
+    expect(hoisted.execute_send).toHaveBeenCalledTimes(1);
+    expect(
+      (hoisted.execute_send.mock.calls[0][0] as Record<string, unknown>)
+        .allow_non_post_quantum,
+    ).toBe(false);
+  });
+
+  it("reuses the queued action id on every replay of the same send", async () => {
+    localStorage.setItem(
+      SCOPED_KEY_A,
+      JSON.stringify([send_payload({ to: ["friend@astermail.org"] })]),
+    );
+    hoisted.execute_send.mockRejectedValueOnce(new Error("offline"));
+
+    await process_offline_queue();
+    await process_offline_queue();
+
+    expect(hoisted.execute_send).toHaveBeenCalledTimes(2);
+    const ids = hoisted.execute_send.mock.calls.map(
+      (call) => (call[0] as Record<string, unknown>).client_send_id,
+    );
+
+    expect(ids).toEqual(["g1", "g1"]);
+  });
+
+  it("passes the queued action id to an outside send", async () => {
+    localStorage.setItem(
+      SCOPED_KEY_A,
+      JSON.stringify([send_payload({ to: ["friend@example.com"] })]),
+    );
+
+    await process_offline_queue();
+
+    expect(
+      (
+        hoisted.execute_external_send.mock.calls[0][0] as Record<
+          string,
+          unknown
+        >
+      ).client_send_id,
+    ).toBe("g1");
   });
 });

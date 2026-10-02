@@ -188,6 +188,20 @@ describe("internal ratchet mail rendering", () => {
 
     // Nothing anywhere in the rendered output may leak the envelope JSON.
     expect(JSON.stringify(result)).not.toContain("double_ratchet_v2");
+    expect(result.e2e_verified).toBe(true);
+  });
+
+  it("does not mark a plain server delivered body as end to end verified", async () => {
+    h.vault = make_vault((await generate_ratchet_keys())!);
+
+    const result = await process_envelope_body(
+      envelope_with("<p>Hello from the server</p>"),
+      RECIPIENT,
+      "msg-plain",
+    );
+
+    expect(result.body_text).toBe("<p>Hello from the server</p>");
+    expect(result.e2e_verified).toBe(false);
   });
 
   it("falls back to the undecryptable sentinel (not the raw envelope) when keys do not match (failure path)", async () => {
@@ -209,6 +223,7 @@ describe("internal ratchet mail rendering", () => {
     expect(result.body_text).toBe("\x00ASTER_RATCHET_UNDECRYPTABLE\x00");
     expect(result.safe_html ?? "").not.toContain("double_ratchet_v2");
     expect(JSON.stringify(result)).not.toContain("double_ratchet_v2");
+    expect(result.e2e_verified).toBe(false);
   });
 
   it("persists ratchet state to the server when decrypting a fresh-bootstrap message", async () => {

@@ -56,6 +56,7 @@ const stable = vi.hoisted(() => ({
   signatures: {
     default_signature: null,
     get_formatted_signature: () => "",
+    resolve_signature: () => null,
     is_loading: false,
     signatures: [],
   },
@@ -159,6 +160,7 @@ vi.mock("@/hooks/use_sender_aliases", () => ({
     sender_options: mocks.sender_state.options,
     loading: false,
   }),
+  is_signature_bindable_sender_type: () => false,
 }));
 
 vi.mock("@/hooks/use_ghost_mode", () => ({
@@ -209,6 +211,13 @@ vi.mock("@/lib/html_sanitizer", () => ({
 
 vi.mock("@/lib/forward_css_inliner", () => ({
   inline_email_css: (html: string) => html,
+}));
+
+vi.mock("@/services/scheduled_send_gate", () => ({
+  check_scheduled_send: vi.fn(async () => ({
+    proceed: true,
+    allow_non_post_quantum: false,
+  })),
 }));
 
 vi.mock("@/services/lockdown_store", () => ({
@@ -708,12 +717,9 @@ describe("reply modal drafts around a send", () => {
     expect(latest!.selected_sender?.email).toBe(primary.email);
   });
 
-  it.each([
-    { is_catch_all: true, keeps_draft: true },
-    { is_catch_all: false, keeps_draft: false },
-  ])(
-    "keeps a refused reply as a draft only for a catch-all From: %j",
-    async ({ is_catch_all, keeps_draft }) => {
+  it.each([{ is_catch_all: true }, { is_catch_all: false }])(
+    "keeps a reply refused after the undo window as a draft: %j",
+    async ({ is_catch_all }) => {
       const { show_toast } = await import("@/components/toast/simple_toast");
       const sender = {
         id: is_catch_all ? "catch-all-d1-shopping" : "domain-a1",
@@ -757,16 +763,6 @@ describe("reply modal drafts around a send", () => {
       await act(async () => fail("Sender not allowed"));
       await advance(0);
 
-      if (!keeps_draft) {
-        expect(mocks.create_draft).not.toHaveBeenCalled();
-        expect(show_toast).toHaveBeenCalledWith(
-          "Sender not allowed",
-          "error",
-          10000,
-        );
-
-        return;
-      }
       expect(mocks.create_draft).toHaveBeenCalledTimes(1);
       expect(mocks.create_draft.mock.calls[0][0]).toEqual(
         expect.objectContaining({
@@ -782,12 +778,100 @@ describe("reply modal drafts around a send", () => {
         "thread_1",
       ]);
       expect(show_toast).toHaveBeenCalledWith(
-        "Sender not allowed common.failed_to_send_reply",
+        "Sender not allowed",
         "error",
         10000,
       );
+      expect(show_toast).not.toHaveBeenCalledWith(
+        "common.failed_to_save",
+        "error",
+      );
     },
   );
+
+  async function send_and_capture_callbacks() {
+    const callbacks: {
+      on_complete?: (sent_id?: string) => void;
+      on_error?: (error: string) => void;
+    } = {};
+
+    mocks.send_reply.mockImplementation(async (_params, given) => {
+      Object.assign(callbacks, given);
+
+      return queued_send_result();
+    });
+    const props = base_props();
+
+    await render_hook(props);
+    await type_reply("<p>See you on Friday</p>");
+    await act(async () => {
+      await latest!.handle_send();
+    });
+    expect(props.on_close).toHaveBeenCalled();
+    mocks.create_draft.mockClear();
+
+    return callbacks;
+  }
+
+  it("puts a failed reply from the primary address back in its thread's drafts", async () => {
+    const { show_toast } = await import("@/components/toast/simple_toast");
+
+    vi.mocked(show_toast).mockClear();
+    mocks.create_draft.mockResolvedValue({
+      data: { id: "draft_2", version: 1 },
+    });
+    const callbacks = await send_and_capture_callbacks();
+
+    await act(async () => callbacks.on_error!(""));
+    await advance(0);
+
+    expect(mocks.create_draft).toHaveBeenCalledTimes(1);
+    expect(mocks.create_draft.mock.calls[0][0]).toEqual(
+      expect.objectContaining({
+        message: "<p>See you on Friday</p>",
+        subject: "mail.reply_subject_prefix Plans",
+        to_recipients: ["sam@example.com"],
+        cc_recipients: [],
+      }),
+    );
+    expect(mocks.create_draft.mock.calls[0].slice(2)).toEqual([
+      "reply",
+      "email_1",
+      undefined,
+      "thread_1",
+    ]);
+    expect(show_toast).toHaveBeenCalledWith(
+      "common.failed_to_send_reply",
+      "error",
+      10000,
+    );
+  });
+
+  it("says so when a failed reply cannot be saved as a draft", async () => {
+    const { show_toast } = await import("@/components/toast/simple_toast");
+
+    vi.mocked(show_toast).mockClear();
+    mocks.create_draft.mockResolvedValue({ error: "offline" });
+    const callbacks = await send_and_capture_callbacks();
+
+    await act(async () => callbacks.on_error!("Server unavailable"));
+    await advance(0);
+
+    expect(mocks.create_draft).toHaveBeenCalledTimes(1);
+    expect(show_toast).toHaveBeenCalledWith("common.failed_to_save", "error");
+  });
+
+  it("does not create a draft when a queued reply sends", async () => {
+    mocks.create_draft.mockResolvedValue({
+      data: { id: "draft_2", version: 1 },
+    });
+    const callbacks = await send_and_capture_callbacks();
+
+    await act(async () => callbacks.on_complete!("sent_1"));
+    await advance(5_000);
+
+    expect(mocks.create_draft).not.toHaveBeenCalled();
+  });
 
   it("schedules a catch-all reply with the literal From and no address hash", async () => {
     const { create_scheduled_email } = await import("@/services/api/scheduled");
@@ -815,6 +899,10 @@ describe("reply modal drafts around a send", () => {
     expect(create_scheduled_email).toHaveBeenCalledWith(
       stable.auth.vault,
       expect.objectContaining({ from: { name: "", email: sender.email } }),
+      expect.objectContaining({
+        sender_email: sender.email,
+        allow_non_post_quantum: false,
+      }),
     );
   });
 
@@ -844,6 +932,7 @@ describe("reply modal drafts around a send", () => {
     expect(create_scheduled_email).toHaveBeenCalledWith(
       stable.auth.vault,
       expect.not.objectContaining({ from: expect.anything() }),
+      expect.objectContaining({ allow_non_post_quantum: false }),
     );
   });
 

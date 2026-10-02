@@ -21,7 +21,7 @@
 import type { TranslationKey } from "@/lib/i18n/types";
 
 import { useState, useMemo, useCallback, useEffect } from "react";
-import { isBefore } from "date-fns";
+import { isAfter, isBefore } from "date-fns";
 import {
   ClockIcon,
   CalendarIcon,
@@ -32,6 +32,10 @@ import {
 import { Button, Tooltip } from "@aster/ui";
 
 import { is_future_instant } from "@/utils/schedule_targets";
+import {
+  exceeds_sealed_schedule_window,
+  latest_schedule_instant,
+} from "@/lib/schedule_window";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
@@ -172,7 +176,10 @@ export function SchedulePicker({
       selected_minute,
     );
 
-    if (!is_future_instant(scheduled)) {
+    if (
+      !is_future_instant(scheduled) ||
+      exceeds_sealed_schedule_window(scheduled)
+    ) {
       return;
     }
 
@@ -314,7 +321,8 @@ export function SchedulePicker({
             <Calendar
               initialFocus
               disabled={(date) =>
-                isBefore(date, zoned_calendar_day(new Date()))
+                isBefore(date, zoned_calendar_day(new Date())) ||
+                isAfter(date, zoned_calendar_day(latest_schedule_instant()))
               }
               mode="single"
               selected={selected_date}

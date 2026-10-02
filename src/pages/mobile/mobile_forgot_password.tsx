@@ -71,9 +71,11 @@ export default function MobileForgotPasswordPage() {
     set_codes_saved,
     review,
     email,
-    handle_change_account,
+    resend_cooldown,
+    is_resending,
     handle_email_next,
     handle_email_reset_link,
+    handle_resend_reset_link,
     handle_code_submit,
     handle_password_submit,
     handle_copy_codes,
@@ -84,7 +86,10 @@ export default function MobileForgotPasswordPage() {
   } = use_recovery_flow();
 
   const navigate_sign_in = () => navigate("/sign-in");
-
+  const change_account = () => {
+    set_error("");
+    set_step("email");
+  };
 
   const render_step = () => {
     switch (step) {
@@ -108,9 +113,10 @@ export default function MobileForgotPasswordPage() {
       case "other_ways":
         return (
           <OtherWaysStep
+            email={email}
             error={error}
             is_dark={is_dark}
-            on_change_account={handle_change_account}
+            on_change_account={change_account}
             on_no_options={() => {
               set_error("");
               set_step("support");
@@ -132,8 +138,10 @@ export default function MobileForgotPasswordPage() {
       case "reset_email_confirm":
         return (
           <ResetEmailConfirmStep
+            email={email}
             error={error}
             is_dark={is_dark}
+            on_change_account={change_account}
             on_send_reset_link={handle_email_reset_link}
             reduce_motion={reduce_motion}
             set_error={set_error}
@@ -144,8 +152,10 @@ export default function MobileForgotPasswordPage() {
       case "support":
         return (
           <SupportStep
+            email={email}
             error={error}
             is_dark={is_dark}
+            on_change_account={change_account}
             on_email_support={() => open_external(SUPPORT_MAIL_URL)}
             on_help_center={() => open_external(HELP_CENTER_URL)}
             reduce_motion={reduce_motion}
@@ -160,7 +170,7 @@ export default function MobileForgotPasswordPage() {
             email={email}
             error={error}
             is_dark={is_dark}
-            on_change_account={handle_change_account}
+            on_change_account={change_account}
             on_submit={handle_code_submit}
             recovery_code={recovery_code}
             reduce_motion={reduce_motion}
@@ -174,6 +184,7 @@ export default function MobileForgotPasswordPage() {
         return (
           <PasswordStep
             confirm_password={confirm_password}
+            email={email}
             error={error}
             is_confirm_visible={is_confirm_visible}
             is_dark={is_dark}
@@ -203,6 +214,7 @@ export default function MobileForgotPasswordPage() {
           <NewCodesStep
             codes_saved={codes_saved}
             copy_success={copy_success}
+            email={email}
             error={error}
             is_dark={is_dark}
             is_key_visible={is_key_visible}
@@ -232,8 +244,19 @@ export default function MobileForgotPasswordPage() {
       case "email_sent":
         return (
           <EmailSentStep
+            email={email}
+            error={error}
+            is_dark={is_dark}
+            is_resending={is_resending}
+            on_change_account={change_account}
             on_navigate_sign_in={navigate_sign_in}
+            on_resend={handle_resend_reset_link}
+            on_use_code={() => {
+              set_error("");
+              set_step("code");
+            }}
             reduce_motion={reduce_motion}
+            resend_cooldown={resend_cooldown}
           />
         );
 

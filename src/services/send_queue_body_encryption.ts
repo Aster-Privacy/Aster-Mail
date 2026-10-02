@@ -27,6 +27,8 @@ import {
   has_passphrase_in_memory,
 } from "./crypto/memory_key_store";
 import {
+  KeyPinUnavailableError,
+  RecipientKeyUntrustedError,
   RecoveryLaneUnavailableError,
   build_ratchet_envelope,
   encrypt_for_ratchet_recipient,
@@ -34,6 +36,7 @@ import {
   recipient_post_quantum_status,
 } from "./crypto/ratchet_manager";
 import {
+  assert_owner_key_trusted,
   resolve_own_username_for_key_lookup,
   resolve_username_for_key_lookup,
 } from "./send_queue_recipients";
@@ -47,6 +50,35 @@ import {
 
 import { derive_own_public_key } from "@/utils/email_crypto";
 import { get_active_translations } from "@/lib/i18n/translations";
+import {
+  normalize_address_ignoring_dots,
+  same_address_ignoring_dots,
+} from "@/utils/address_dots";
+
+function map_ratchet_error(err: unknown): unknown {
+  if (err instanceof RecoveryLaneUnavailableError) {
+    return create_error(
+      "encryption_failed",
+      get_active_translations().errors.cannot_send_no_recovery_key,
+    );
+  }
+
+  if (err instanceof RecipientKeyUntrustedError) {
+    return create_error(
+      "encryption_failed",
+      get_active_translations().errors.recipient_key_untrusted,
+    );
+  }
+
+  if (err instanceof KeyPinUnavailableError) {
+    return create_error(
+      "encryption_failed",
+      get_active_translations().errors.key_trust_check_failed,
+    );
+  }
+
+  return err;
+}
 
 export function check_send_readiness_internal(): SendReadinessResult {
   const vault = get_vault_from_memory();
@@ -87,13 +119,18 @@ function post_quantum_error(recipients: string[]): PostQuantumUnavailableError {
 export interface PostQuantumCoverage {
   missing: string[];
   downgraded: string[];
+  untrusted: string[];
 }
 
 export async function check_post_quantum_status(
   recipients: string[],
   sender_email?: string,
 ): Promise<PostQuantumCoverage> {
-  const coverage: PostQuantumCoverage = { missing: [], downgraded: [] };
+  const coverage: PostQuantumCoverage = {
+    missing: [],
+    downgraded: [],
+    untrusted: [],
+  };
 
   if (!sender_email) return coverage;
 
@@ -118,11 +155,16 @@ export async function check_post_quantum_status(
 
       if (status === "supported") continue;
 
+      if (status === "untrusted") {
+        coverage.untrusted.push(recipient);
+        continue;
+      }
+
       coverage.missing.push(recipient);
 
       if (status === "downgraded") coverage.downgraded.push(recipient);
-    } catch {
-      continue;
+    } catch (err) {
+      throw map_ratchet_error(err);
     }
   }
 
@@ -136,6 +178,21 @@ export async function check_post_quantum_coverage(
   const coverage = await check_post_quantum_status(recipients, sender_email);
 
   return coverage.missing;
+}
+
+async function resolve_ratchet_sender(sender_email: string): Promise<string> {
+  const { get_current_account } = await import("@/services/account_manager");
+  const account = await get_current_account().catch(() => null);
+  const primary_email = account?.user?.email;
+
+  if (
+    primary_email &&
+    same_address_ignoring_dots(primary_email, sender_email)
+  ) {
+    return normalize_address_ignoring_dots(sender_email);
+  }
+
+  return sender_email;
 }
 
 export async function encrypt_for_recipients(
@@ -175,6 +232,7 @@ export async function encrypt_for_recipients(
     vault?.ratchet_identity_key &&
     vault?.ratchet_identity_public
   ) {
+    const ratchet_sender = await resolve_ratchet_sender(sender_email);
     const ratchet_results: Record<
       string,
       Awaited<ReturnType<typeof encrypt_for_ratchet_recipient>>
@@ -193,21 +251,14 @@ export async function encrypt_for_recipients(
 
       try {
         result = await encrypt_for_ratchet_recipient(
-          sender_email,
+          ratchet_sender,
           recipient,
           username,
           body,
           vault,
         );
       } catch (err) {
-        if (err instanceof RecoveryLaneUnavailableError) {
-          throw create_error(
-            "encryption_failed",
-            get_active_translations().errors.cannot_send_no_recovery_key,
-          );
-        }
-
-        throw err;
+        throw map_ratchet_error(err);
       }
 
       if (result) {
@@ -219,11 +270,11 @@ export async function encrypt_for_recipients(
     }
 
     if (all_ratchet_ok) {
-      const sender_lower = sender_email.toLowerCase();
+      const sender_lower = ratchet_sender.toLowerCase();
 
       if (!internal_recipients.some((r) => r.toLowerCase() === sender_lower)) {
         const sender_username =
-          await resolve_own_username_for_key_lookup(sender_email);
+          await resolve_own_username_for_key_lookup(ratchet_sender);
 
         if (sender_username) {
           let self_result: Awaited<
@@ -232,21 +283,14 @@ export async function encrypt_for_recipients(
 
           try {
             self_result = await encrypt_for_ratchet_recipient(
-              sender_email,
-              sender_email,
+              ratchet_sender,
+              ratchet_sender,
               sender_username,
               body,
               vault,
             );
           } catch (err) {
-            if (err instanceof RecoveryLaneUnavailableError) {
-              throw create_error(
-                "encryption_failed",
-                get_active_translations().errors.cannot_send_no_recovery_key,
-              );
-            }
-
-            throw err;
+            throw map_ratchet_error(err);
           }
 
           if (self_result) {
@@ -311,6 +355,7 @@ export async function encrypt_for_recipients(
       );
     }
 
+    await assert_owner_key_trusted(recipient, key_response.data.public_key);
     public_keys.push(key_response.data.public_key);
   }
 

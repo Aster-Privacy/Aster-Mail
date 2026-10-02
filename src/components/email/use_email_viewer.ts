@@ -172,6 +172,7 @@ function build_preloaded_email(preloaded: PreloadedEmail): DecryptedEmail {
     bcc:
       pe.bcc?.map((r) => ({ name: r.name || "", email: r.email || "" })) || [],
     expires_at: preloaded.mail_item.expires_at,
+    e2e_verified: !!pe.e2e_verified,
   };
 }
 
@@ -615,6 +616,7 @@ export function use_email_viewer({
       const envelope = await decrypt_mail_envelope<LocalDecryptedEnvelope>(
         item.encrypted_envelope,
         item.envelope_nonce,
+        item.id,
       );
 
       if (!envelope) {
@@ -649,6 +651,7 @@ export function use_email_viewer({
         body_text,
         safe_html,
         unsubscribe_info: unsubscribe,
+        e2e_verified,
       } = await process_envelope_body(
         envelope,
         user_email,
@@ -715,6 +718,7 @@ export function use_email_viewer({
           sender_verification: envelope.sender_verification,
           is_external: item.is_external,
           system_origin: item.system_origin,
+          e2e_verified,
           sender_verified_domain: item.sender_verified
             ? item.sender_verified_domain
             : undefined,
@@ -833,6 +837,7 @@ export function use_email_viewer({
         body_text,
         safe_html,
         decrypted_metadata ?? null,
+        e2e_verified,
       );
 
       await resolve_reaction_emojis([single_message], user_email);
@@ -1017,7 +1022,7 @@ export function use_email_viewer({
   }, [email_id]);
 
   const last_thread_fetch_ref = useRef<number>(0);
-  const thread_fetch_in_flight_ref = useRef<boolean>(false);
+  const thread_fetch_in_flight_ref = useRef<string | null>(null);
   const open_email_id_ref = useRef<string | null>(email_id);
   const open_thread_token_ref = useRef<string | null>(null);
 
@@ -1050,12 +1055,12 @@ export function use_email_viewer({
 
     const refresh_thread = async (force: boolean) => {
       if (!has_passphrase_in_memory()) return;
-      if (thread_fetch_in_flight_ref.current) return;
+      if (thread_fetch_in_flight_ref.current === thread_token) return;
       const now = Date.now();
 
       if (!force && now - last_thread_fetch_ref.current < 5_000) return;
 
-      thread_fetch_in_flight_ref.current = true;
+      thread_fetch_in_flight_ref.current = thread_token;
       try {
         request_cache.invalidate(
           `messages/threads/${encodeURIComponent(thread_token)}/messages`,
@@ -1070,13 +1075,20 @@ export function use_email_viewer({
         );
 
         if (thread_result.messages.length === 0) return;
+        if (open_thread_token_ref.current !== thread_token) return;
 
         last_thread_fetch_ref.current = Date.now();
         set_thread_messages((prev) =>
-          reconcile_thread_messages(prev, thread_result.messages, email_id),
+          reconcile_thread_messages(
+            prev,
+            thread_result.messages,
+            open_email_id_ref.current ?? undefined,
+          ),
         );
       } finally {
-        thread_fetch_in_flight_ref.current = false;
+        if (thread_fetch_in_flight_ref.current === thread_token) {
+          thread_fetch_in_flight_ref.current = null;
+        }
       }
     };
 
@@ -1177,9 +1189,11 @@ export function use_email_viewer({
           return;
         }
 
-        if (thread_fetch_in_flight_ref.current) continue;
+        if (thread_fetch_in_flight_ref.current === detail.thread_token) {
+          continue;
+        }
 
-        thread_fetch_in_flight_ref.current = true;
+        thread_fetch_in_flight_ref.current = detail.thread_token;
         try {
           request_cache.invalidate(
             `messages/threads/${encodeURIComponent(detail.thread_token)}/messages`,
@@ -1193,7 +1207,9 @@ export function use_email_viewer({
             },
           );
         } finally {
-          thread_fetch_in_flight_ref.current = false;
+          if (thread_fetch_in_flight_ref.current === detail.thread_token) {
+            thread_fetch_in_flight_ref.current = null;
+          }
         }
 
         last_thread_fetch_ref.current = Date.now();
@@ -1210,7 +1226,7 @@ export function use_email_viewer({
           const merged = reconcile_thread_messages(
             prev,
             thread_result.messages,
-            email_id,
+            open_email_id_ref.current ?? undefined,
           );
 
           return merged.map((m) =>
@@ -1220,9 +1236,11 @@ export function use_email_viewer({
           );
         });
 
-        if (!email?.thread_token && email) {
-          set_email({ ...email, thread_token: detail.thread_token });
-        }
+        set_email((prev) =>
+          prev && !prev.thread_token
+            ? { ...prev, thread_token: detail.thread_token }
+            : prev,
+        );
       }
 
       set_thread_draft(null);
@@ -1442,6 +1460,7 @@ export function use_email_viewer({
     is_external,
     has_recipient_key,
     has_pq_protection,
+    e2e_verified: !!email?.e2e_verified,
     thread_draft,
     sending_message,
     view_source_message,

@@ -178,6 +178,7 @@ export async function reset_password_with_token(
   vault_format?: number,
   acknowledged_data_loss?: boolean,
   new_recovery_email?: RecoveryEmailReencryption,
+  previous_vault_carried?: boolean,
 ): Promise<ApiResponse<ResetPasswordResponse>> {
   return api_client.post<ResetPasswordResponse>(
     "/core/v1/recovery/reset-password",
@@ -198,7 +199,23 @@ export async function reset_password_with_token(
       vault_format,
       acknowledged_data_loss,
       new_recovery_email,
+      previous_vault_carried,
     },
+  );
+}
+
+export interface ResetVaultResponse {
+  encrypted_vault: string;
+  vault_nonce: string;
+  vault_version: number;
+}
+
+export async function get_reset_vault(
+  token: string,
+): Promise<ApiResponse<ResetVaultResponse>> {
+  return api_client.post<ResetVaultResponse>(
+    "/core/v1/recovery/reset-password/vault",
+    { token },
   );
 }
 
@@ -212,6 +229,7 @@ export interface SaveRecoveryBackupOptions {
 }
 
 export interface ResetSecondFactorStatus {
+  address?: string;
   required: boolean;
   verified: boolean;
   totp: boolean;
@@ -366,6 +384,25 @@ export async function fetch_inactive_key_set(
   return api_client.post<FetchInactiveKeySetResponse>(
     "/core/v1/recovery/inactive/fetch",
     { inactive_vault_id },
+  );
+}
+
+export interface InactiveKeySetCodeUnlock {
+  inactive_vault_id: string;
+  encrypted_vault_backup: string;
+  vault_backup_nonce: string;
+  recovery_key_salt: string;
+  encrypted_recovery_key: string;
+  recovery_key_nonce: string;
+  code_salt: string;
+}
+
+export async function unlock_inactive_key_sets_with_code(
+  code_hash: string,
+): Promise<ApiResponse<{ key_sets: InactiveKeySetCodeUnlock[] }>> {
+  return api_client.post<{ key_sets: InactiveKeySetCodeUnlock[] }>(
+    "/core/v1/recovery/inactive/unlock-with-code",
+    { code_hash },
   );
 }
 

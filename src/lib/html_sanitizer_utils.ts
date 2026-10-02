@@ -372,6 +372,20 @@ function strip_attribute_markup(value: string): string {
   return result;
 }
 
+const IN_DOCUMENT_CLASSES = new Set([
+  "aster_quote",
+  "aster_quote_attr",
+  "aster_quote_body",
+]);
+
+function keep_in_document_classes(value: string): string | null {
+  const kept = value
+    .split(/\s+/)
+    .filter((name) => IN_DOCUMENT_CLASSES.has(name));
+
+  return kept.length > 0 ? kept.join(" ") : null;
+}
+
 export function sanitize_attribute(
   tag_name: string,
   attr_name: string,
@@ -393,6 +407,14 @@ export function sanitize_attribute(
 
   if (!is_allowed) {
     return null;
+  }
+
+  if (!sandbox_mode && lower_attr === "id") {
+    return null;
+  }
+
+  if (!sandbox_mode && lower_attr === "class") {
+    return keep_in_document_classes(attr_value);
   }
 
   if (

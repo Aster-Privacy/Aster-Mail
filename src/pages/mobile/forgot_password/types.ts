@@ -31,6 +31,11 @@ export interface StepProps {
   set_step: (step: RecoveryStep) => void;
 }
 
+export interface AccountStepProps extends StepProps {
+  email: string;
+  on_change_account: () => void;
+}
+
 export interface EmailStepProps extends StepProps {
   username: string;
   set_username: (username: string) => void;
@@ -40,36 +45,42 @@ export interface EmailStepProps extends StepProps {
   on_navigate_sign_in: () => void;
 }
 
-export interface OtherWaysStepProps extends StepProps {
-  on_change_account: () => void;
+export interface OtherWaysStepProps extends AccountStepProps {
   on_select_code: () => void;
   on_select_email: () => void;
   on_no_options: () => void;
 }
 
-export interface ResetEmailConfirmStepProps extends StepProps {
+export interface ResetEmailConfirmStepProps extends AccountStepProps {
   on_send_reset_link: () => void;
 }
 
-export interface SupportStepProps extends StepProps {
+export interface SupportStepProps extends AccountStepProps {
   on_email_support: () => void;
   on_help_center: () => void;
 }
 
 export interface EmailSentStepProps {
+  email: string;
+  error: string;
+  is_dark: boolean;
   reduce_motion: boolean;
+  resend_cooldown: number;
+  is_resending: boolean;
+  on_change_account: () => void;
+  on_resend: () => void;
+  on_use_code: () => void;
   on_navigate_sign_in: () => void;
 }
 
-export interface CodeStepProps extends StepProps {
-  email: string;
+export interface CodeStepProps extends AccountStepProps {
   recovery_code: string;
   set_recovery_code: (code: string) => void;
-  on_change_account: () => void;
   on_submit: () => void;
 }
 
 export interface PasswordStepProps extends StepProps {
+  email: string;
   password: string;
   set_password: (password: string) => void;
   confirm_password: string;
@@ -87,6 +98,7 @@ export interface ProcessingStepProps {
 }
 
 export interface NewCodesStepProps extends StepProps {
+  email: string;
   new_recovery_codes: string[];
   is_key_visible: boolean;
   set_is_key_visible: (visible: boolean) => void;

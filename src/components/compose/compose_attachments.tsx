@@ -26,7 +26,11 @@ import { useRef, useState, useCallback, useEffect, useMemo } from "react";
 import { apply_input_transform } from "@/utils/input_transform";
 import { CloseIcon } from "@/components/common/icons";
 import { sanitize_html } from "@/lib/html_sanitizer";
-import { get_compose_sanitize_options } from "@/lib/compose_image_sources";
+import {
+  get_compose_sanitize_options,
+  proxy_compose_image_sources,
+} from "@/lib/compose_image_sources";
+import { plain_text_to_editor_html } from "@/hooks/editor_utils";
 import { use_i18n } from "@/lib/i18n/context";
 import { get_file_icon_color } from "@/components/compose/compose_shared";
 import { is_composing } from "@/utils/ime";
@@ -680,12 +684,18 @@ export function ComposeEditor({ compose, placeholder }: ComposeEditorProps) {
     const el = compose.message_textarea_ref.current;
 
     if (el && compose.message && !el.innerHTML) {
+      if (compose.is_plain_text_mode) {
+        el.innerHTML = plain_text_to_editor_html(compose.message);
+
+        return;
+      }
+
       const safe = sanitize_html(
         compose.message,
         get_compose_sanitize_options(),
       );
 
-      el.innerHTML = safe.html;
+      el.innerHTML = proxy_compose_image_sources(safe.html);
     }
   });
 

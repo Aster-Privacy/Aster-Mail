@@ -509,7 +509,9 @@ async function recover_from_snapshots(
       storage_keys,
     });
 
-    if (!committed) return absorbed_hashes;
+    if (!committed.written || committed.dropped_keks > 0) {
+      return absorbed_hashes;
+    }
 
     opened.forEach(({ record }, index) => {
       if (identity_keys.absorbed[index]) {

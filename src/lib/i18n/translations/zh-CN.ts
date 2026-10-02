@@ -788,6 +788,16 @@ export const zh_CN = {
       "已连接的账户不支持定时发送。请立即发送此邮件，或选择一个 Aster 地址。",
     scheduled_no_expiry:
       "定时邮件暂时不支持设置有效期。请立即发送，或删除有效期后再定时发送。",
+    scheduled_too_far_ahead:
+      "定时邮件最多只能提前 28 天安排。请选择更早的时间。",
+    scheduled_requires_encryption:
+      "你已开启强制加密，而发往外部地址的定时邮件不是端到端加密的。请立即发送此邮件，或在设置中关闭强制加密。",
+    offline_password_protected_unavailable:
+      "离线时无法将受密码保护的邮件加入队列。重新联网后，请发送此邮件。",
+    offline_settings_unavailable:
+      "无法加载你的设置，因此邮件未发送。重新联网后，请重试。",
+    cannot_send_key_changed_offline:
+      "此邮件等待发送期间，某位收件人的加密密钥发生了变化，因此未发送。",
     failed_to_merge_contacts: "合并未能完成。请重试。您原有的联系人未受影响。",
     enter_valid_emails: "请输入有效的邮箱地址",
     enter_contact_details: "输入联系人详情",
@@ -1093,6 +1103,8 @@ export const zh_CN = {
     font: "字体",
     stylesheet: "样式表",
     tracking_pixel: "跟踪像素",
+    image_blocked: "图片已屏蔽",
+    tracking_pixel_blocked: "跟踪像素已屏蔽",
     me: "我",
     notification_banner_message: "启用桌面通知以及时获取新邮件更新",
     notification_banner_allow: "允许",
@@ -1106,6 +1118,13 @@ export const zh_CN = {
     recover_data_button: "恢复",
     recover_data_success: "您的较早数据已解锁。",
     recover_data_no_match: "该密码未解锁任何数据。请尝试其他以前的密码。",
+    recover_data_code_description:
+      "要解锁密码重置之前的邮件，请输入您在重置前保存的恢复代码之一。",
+    recover_data_code_no_match:
+      "该代码未解锁任何数据。请输入您在重置前保存的代码。",
+    recover_data_partial:
+      "您之前的部分邮件已解锁。要解锁其余邮件，请输入先前的密码。",
+    recover_data_rate_limited: "尝试次数过多。请等待 30 分钟后重试。",
     recover_data_failed: "部分数据无法解锁。请检查网络连接后重试。",
     payment_past_due_message: "上次付款未成功。请更新付款方式以保留当前套餐。",
     payment_past_due_message_days:
@@ -3665,7 +3684,7 @@ export const zh_CN = {
     reply_to_all: "回复所有人",
     force_dark_mode_emails: "强制电子邮件深色模式",
     force_dark_mode_emails_description:
-      "始终以深色模式渲染电子邮件内容，覆盖电子邮件的原始样式",
+      "在 Aster 使用深色主题时，以深色模式渲染电子邮件内容，覆盖电子邮件的原始样式",
     translation: "翻译",
     translate_incoming: "翻译收到的邮件",
     translate_incoming_description: "在您的设备上翻译以其他语言撰写的邮件。",
@@ -4247,7 +4266,7 @@ export const zh_CN = {
       "在邮件上显示锁图标，告知您邮件是否已加密、已签名或两者都不是。便于一眼了解哪些内容受到保护。",
     info_force_dark_mode_title: "邮件强制深色模式",
     info_force_dark_mode_description:
-      "将邮件样式改为深色背景和浅色文字。如果亮白色邮件让您的眼睛不舒服，此功能很有用。",
+      "在 Aster 使用深色主题时，将邮件样式改为深色背景和浅色文字。如果亮白色邮件让您的眼睛不舒服，此功能很有用。",
     info_undo_send_title: "撤回发送",
     info_undo_send_description:
       "在点击发送后给您一小段时间取消邮件。计时器结束前不会真正发出。",
@@ -5032,6 +5051,8 @@ export const zh_CN = {
       "找不到某些邮件？请检查垃圾邮件和已发送文件夹 - 导入的邮件可能已根据内容排序到那里。",
     n_failed_count: "失败 {{count}}",
     import_folders_skipped:
+      "有 {{count}} 个文件夹无法创建，其中的邮件已放入收件箱。",
+    import_folders_skipped_other:
       "有 {{count}} 个文件夹无法创建，其中的邮件已放入收件箱。",
     import_folders_skipped_plural:
       "有 {{count}} 个文件夹无法创建，其中的邮件已放入收件箱。",
@@ -6369,6 +6390,8 @@ export const zh_CN = {
     desktop_bridge_set_up: "设置 {{client}}",
     desktop_bridge_install_hint:
       "必须安装并运行 Aster Bridge。请前往“设置 > Bridge”下载。",
+    desktop_bridge_not_opened:
+      "Aster Bridge 未打开。请确认它已安装并正在运行，或前往“设置 > Bridge”下载。",
     desktop_bridge_upgrade_title: "使用您喜欢的邮件客户端",
     desktop_bridge_upgrade_description:
       "通过 Aster Bridge 将 Apple Mail、Thunderbird 或 Outlook 连接到 Aster。适用于 Star 及以上套餐。",
@@ -7443,6 +7466,11 @@ export const zh_CN = {
       "此发件人的邮件不再受后量子保护。如果这不在您的预期之内，请通过其他方式向对方确认。",
     recipient_identity_changed:
       "{{email}} 的加密密钥已更改。如果这不在您的预期之内，请在发送敏感信息前通过其他方式向对方确认。",
+    message_password_requirements:
+      "请使用至少 12 个字符，并包含数字、符号或大小写字母。",
+    recipient_identity_untrusted:
+      "{{email}} 的加密密钥已更改，且无法确认新密钥。要发送到此地址，请通过其他方式与对方确认此更改，然后选择“信任新密钥”。",
+    trust_new_key: "信任新密钥",
     load_all_thread_messages: "加载所有邮件",
     move_to_category: "移至分类",
     menu_applies_to_selection: "适用于已选的 {count} 项",
@@ -8450,18 +8478,6 @@ export const zh_CN = {
     forgot_method_email_desc:
       "重新获得账户的访问权限。重置前的加密邮件将无法再读取，除非您日后找回短语或恢复代码。",
     phrase_recovery_failed: "此短语与该账户不匹配。请检查单词和邮箱地址。",
-    reset_consent_title: "此次重置无法解密您的旧数据",
-    reset_consent_keeps:
-      "您将保留：您的邮箱地址、所有别名（邮件会继续送达）、您的订阅以及您的账户。",
-    reset_consent_loses:
-      "您将失去访问权限：重置前的所有加密邮件、联系人、别名标签和设置。它们仍会以加密形式保存，只有当您记起旧密码时才能解锁。",
-    reset_consent_last_chance:
-      "您有恢复短语或恢复代码吗？任意一个都能恢复全部数据。",
-    reset_consent_use_phrase_instead: "改用我的短语或恢复代码",
-    reset_consent_checkbox: "我明白此次重置后，我的加密数据将无法读取",
-    reset_consent_type_email: "输入您完整的邮箱地址以确认",
-    reset_consent_email_mismatch: "该邮箱地址与此账户不匹配。",
-    reset_consent_continue: "仍然重置密码",
     reset_second_factor_title: "确认是你本人",
     reset_second_factor_description:
       "此账户使用双重验证。请先验证第二重验证方式，再重置密码。",
@@ -8507,12 +8523,20 @@ export const zh_CN = {
     enter_email_associated: "输入你要恢复的账户地址。",
     back_to_sign_in: "返回登录",
     email_me_reset_link: "通过电子邮件发送重置链接",
-    reset_link_sent_title: "请查看您的恢复邮箱",
+    reset_link_sent_title: "查看您的邮箱",
+    resend_reset_link: "重新发送链接",
     reset_link_sent_desc:
-      "如果此用户名已注册并具有已验证的恢复邮箱，密码重置链接已发送。链接将在30分钟后过期。",
+      "如果此账户有已验证的恢复邮箱，Aster Mail 已向其发送重置链接。链接将在 30 分钟后失效。如果没有看到邮件，请检查垃圾邮件文件夹。",
     sending_reset_link: "正在发送重置链接...",
     reset_your_password: "重置您的密码",
     reset_choose_new_password: "为您的账户选择一个新密码。",
+    reset_current_password_optional: "当前密码（可选）",
+    reset_current_password_hint:
+      "如果您记得当前密码，请在此输入，登录后即可继续使用之前的邮件。如果留空，您可以稍后使用恢复代码解锁之前的邮件。",
+    reset_unlocking_earlier_mail: "正在解锁您之前的邮件...",
+    reset_use_recovery_code: "改用恢复代码",
+    reset_new_codes_desc:
+      "请将这些代码保存在安全的地方。旧代码也请保留，因为登录后其中一个可以解锁您之前的邮件。",
     reset_invalid_or_expired: "此重置链接无效或已过期。请重新申请。",
     request_new_reset_link: "申请新的重置链接",
     set_new_password: "设置新密码",
@@ -8544,18 +8568,18 @@ export const zh_CN = {
       "Aster Mail 无法读取你的加密数据，因此没有恢复代码或恢复邮箱，任何人都无法解锁。支持团队可以检查你的账户并说明后续步骤。",
     support_email_action: "给支持团队发邮件",
     support_help_center: "打开帮助中心",
-    other_ways_title: "尝试其他方式",
+    other_ways_title: "选择恢复方式",
     other_ways_desc: "选择你想要重新登录账户的方式。",
     other_way_code_title: "使用恢复代码",
     other_way_code_desc: "输入你保存的其中一个代码。",
     other_way_email_title: "使用恢复邮箱重置",
     other_way_email_desc:
-      "Aster Mail 会向你的恢复邮箱发送一个链接。你将无法访问重置前的邮件。",
+      "Aster Mail 会向您的恢复邮箱发送一个链接，供您设置新密码。",
     other_way_none_title: "这些我都没有",
     other_way_none_desc: "联系支持团队，我们会协助你完成后续步骤。",
-    reset_account_title: "要重置你的账户吗?",
+    reset_account_title: "使用恢复邮箱重置",
     reset_account_desc:
-      "重置前的加密邮件、联系人和文件会保持锁定，直到你用旧密码恢复它们。你会获得一个新的空加密密钥。",
+      "Aster Mail 会向您的恢复邮箱发送一个链接。打开链接即可设置新密码。在您使用恢复代码或先前的密码解锁之前，之前的邮件会一直保持加密。",
     send_reset_link: "发送重置链接",
     print_codes: "打印",
     codes_copied: "已复制代码。",
@@ -8575,8 +8599,9 @@ export const zh_CN = {
       "将其他账户中的邮件迁移到 Aster。所有内容都会先在您的设备上加密，再进行存储。",
     import_mail_skip: "从空收件箱开始",
     import_mail_privacy_note: "您也可以稍后在设置中导入。",
-    password_reset_successful: "密码重置成功",
-    account_recovered_sign_in: "您的账户已恢复。现在可以使用新密码登录。",
+    password_reset_successful: "您的密码已重置",
+    account_recovered_sign_in:
+      "请使用新密码登录。登录后，您可以使用恢复代码或先前的密码解锁之前的邮件。",
     check_your_inbox: "检查收件箱",
     generating_encryption_keys: "生成加密密钥中...",
     creating_identity_keypair: "创建身份密钥对中...",
@@ -8941,6 +8966,12 @@ export const zh_CN = {
       "您已开启强制加密，但所有收件人均没有密钥记录。请他们分享密钥，或在设置中关闭强制加密，即可发送。您的草稿已保存。",
     cannot_send_no_recovery_key:
       "Aster 暂时无法发送此邮件，因为收件人的账户缺少读取所需的密钥。请其在任意设备上打开 Aster 或更新应用以刷新密钥，然后重试。您的草稿已保存。",
+    message_password_too_weak:
+      "邮件密码太弱，因此未发送邮件。请使用至少 12 个字符，并包含数字、符号或大小写字母。",
+    recipient_key_untrusted:
+      "某位收件人的加密密钥已更改，因此未发送邮件。要发送，请通过其他方式与对方确认此更改，然后选择“信任新密钥”。",
+    key_trust_check_failed:
+      "无法检查收件人的加密密钥，因此未发送邮件。请检查网络连接后重试。",
     failed_send_external:
       "此邮件未能通过您关联的外部账户发送。请重试。您的草稿已保存。",
     failed_queue_email:

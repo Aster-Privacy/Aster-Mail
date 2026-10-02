@@ -33,6 +33,8 @@ export const en: Translations = {
       "I understand that this mail cannot be recovered.",
     delete_folder_purged_items:
       "Deleted the folder and permanently destroyed {count} messages.",
+    delete_folder_purged_items_one:
+      "Deleted the folder and permanently destroyed {count} message.",
     delete_folder_deleted_no_purge:
       "Deleted the folder. The mail inside stays in your account.",
     delete_folder_password_required: "Enter your account password.",
@@ -641,6 +643,7 @@ export const en: Translations = {
     not_detected: "Not detected",
     navigate: "Navigate",
     commands_count: "{{count}} commands",
+    commands_count_one: "{{count}} command",
     no_commands_found: "No commands found",
     type_command_or_search: "Type a command or search...",
     failed_to_load_emails:
@@ -904,6 +907,16 @@ export const en: Translations = {
       "Scheduled sending isn't available for connected accounts. Send this message now, or choose an Aster address.",
     scheduled_no_expiry:
       "Scheduled emails can't use an expiry yet. Send now, or remove the expiry to schedule it.",
+    scheduled_too_far_ahead:
+      "Scheduled emails can go out at most 28 days ahead. Choose an earlier time.",
+    scheduled_requires_encryption:
+      "You have required encryption turned on, and scheduled emails to outside addresses aren't end-to-end encrypted. Send this message now, or turn off required encryption in Settings.",
+    offline_password_protected_unavailable:
+      "You can't queue password-protected emails while you're offline. When you're connected again, send the message.",
+    offline_settings_unavailable:
+      "Your settings couldn't be loaded, so the message wasn't sent. When you're connected again, try again.",
+    cannot_send_key_changed_offline:
+      "A recipient's encryption key changed while this message was waiting to send, so it wasn't sent.",
     failed_to_merge_contacts:
       "The merge did not complete. Try again. Your original contacts are unchanged.",
     enter_valid_emails: "Please enter valid email addresses",
@@ -1190,6 +1203,8 @@ export const en: Translations = {
     n_conversations_moved_to_trash_other:
       "{{count}} conversations moved to trash",
     n_conversations_marked_as_spam: "{{ count }} conversations marked as spam",
+    n_conversations_marked_as_spam_one:
+      "{{ count }} conversation marked as spam",
     external_only: "External only",
     all_accounts: "All accounts",
     failed_to_rotate_keys:
@@ -1218,6 +1233,7 @@ export const en: Translations = {
     added_to_allowlist: "Added {{ email }} to allowlist",
     no_content: "No content",
     unblocked_count_senders: "Unblocked {{ count }} senders",
+    unblocked_count_senders_one: "Unblocked {{ count }} sender",
     removed_count_from_allowlist: "Removed {{ count }} from allowlist",
     failed_to_add_label: "This label was not added. Try again.",
     failed_to_remove_label: "This label was not removed. Try again.",
@@ -1284,6 +1300,8 @@ export const en: Translations = {
     font: "Font",
     stylesheet: "Stylesheet",
     tracking_pixel: "Tracking pixel",
+    image_blocked: "Image blocked",
+    tracking_pixel_blocked: "Tracking pixel blocked",
     me: "Me",
     notification_banner_message:
       "Enable desktop notifications to stay updated on new emails",
@@ -1299,6 +1317,14 @@ export const en: Translations = {
     recover_data_success: "Your older data is unlocked.",
     recover_data_no_match:
       "That password didn't unlock any data. Try another previous password.",
+    recover_data_code_description:
+      "To unlock mail from before a password reset, enter one of the recovery codes you saved before the reset.",
+    recover_data_code_no_match:
+      "That code didn't unlock any data. Enter a code you saved before the reset.",
+    recover_data_partial:
+      "Some of your earlier mail is unlocked. To unlock the rest, enter your previous password.",
+    recover_data_rate_limited:
+      "Too many attempts. Wait 30 minutes, then try again.",
     recover_data_failed:
       "Some data couldn't be unlocked. Check your connection and try again.",
     payment_past_due_message:
@@ -1413,6 +1439,7 @@ export const en: Translations = {
     check_out_aster_mail:
       "Check out Aster Mail, a better way to manage your emails!",
     n_lines: "{{ count }} lines",
+    n_lines_one: "{{ count }} line",
     hide_details: "Hide details",
     show_details: "Show details",
     not_phishing: "Not phishing",
@@ -1426,6 +1453,7 @@ export const en: Translations = {
     view_blocked_content_details: "View blocked content details",
     n_images: "{{ count }} images",
     n_items: "{{ count }} items",
+    n_items_one: "{{ count }} item",
     ctrl_click_to_open: "Ctrl+Click to open",
     user_id_label: "User ID",
     platform_label: "Platform",
@@ -1650,6 +1678,7 @@ export const en: Translations = {
     permission_denied:
       "You do not have access to do that. If this looks wrong, your admin can help.",
     n_contacts_imported: "{{ count }} contacts imported",
+    n_contacts_imported_one: "{{ count }} contact imported",
     yourname_placeholder: "yourname",
     allow_sender: "Add to allowlist",
     remove_from_allowlist_action: "Remove from allowlist",
@@ -1852,6 +1881,7 @@ export const en: Translations = {
     bulk_create_placeholder: "Ada Lovelace <ada@example.com>",
     bulk_create_ready: "{{count}} ready to create",
     contacts_created: "{{count}} contacts created",
+    contacts_created_one: "{{count}} contact created",
     some_contacts_not_created: "Some contacts couldn’t be created.",
     manage_contacts: "Manage contacts",
     merge_and_fix: "Merge and fix",
@@ -1867,6 +1897,7 @@ export const en: Translations = {
     add_birthdays_hint:
       "Add a birthday to a contact and Aster reminds you before the day.",
     birthdays_upcoming: "{{count}} birthdays are coming up",
+    birthdays_upcoming_one: "{{count}} birthday is coming up",
     add_new_group: "New group",
     add_to_group: "Add to group",
     added_to_group: "Added to group",
@@ -1909,6 +1940,7 @@ export const en: Translations = {
     failed_to_load_groups: "Couldn’t load your groups.",
     failed_to_move_to_trash: "Couldn’t move the contact to Trash.",
     group_contact_count: "{{count}} contacts",
+    group_contact_count_one: "{{count}} contact",
     group_created: "Group created",
     group_deleted: "Group deleted",
     group_modal_description:
@@ -1943,6 +1975,7 @@ export const en: Translations = {
     share_contact_via_email: "Attach to a new email",
     share_contact_device: "Share with another app",
     trash_days_left: "{{count}} days left",
+    trash_days_left_one: "{{count}} day left",
     undo_change: "Undo change",
     biometry_fingerprint: "fingerprint",
     biometry_face_recognition: "face recognition",
@@ -2190,6 +2223,8 @@ export const en: Translations = {
     desktop_bridge_set_up: "Set up {{ client }}",
     desktop_bridge_install_hint:
       "Aster Bridge must be installed and running. Download it from Settings > Bridge.",
+    desktop_bridge_not_opened:
+      "Aster Bridge didn't open. Make sure it's installed and running, or download it from Settings > Bridge.",
     desktop_bridge_upgrade_title: "Use your favorite mail client",
     desktop_bridge_upgrade_description:
       "Connect Apple Mail, Thunderbird, or Outlook to Aster with Aster Bridge. Available on Star and above.",
@@ -2666,8 +2701,11 @@ export const en: Translations = {
     failed_sign_out: "Failed to sign out other sessions",
     active_now: "Active now",
     minutes_ago: "{{count}} minutes ago",
+    minutes_ago_one: "{{count}} minute ago",
     hours_ago: "{{count}} hours ago",
+    hours_ago_one: "{{count}} hour ago",
     days_ago: "{{count}} days ago",
+    days_ago_one: "{{count}} day ago",
     this_device: "This device",
     signed_in_date: "Signed in {{date}}",
     sign_out: "Sign out",
@@ -2692,7 +2730,9 @@ export const en: Translations = {
     failed_load_security_status:
       "Your security settings did not load. Try again.",
     load_more_sessions: "Load {{count}} more sessions",
+    load_more_sessions_one: "Load {{count}} more session",
     two_fa_enabled: "Enabled ({{count}} backup codes remaining)",
+    two_fa_enabled_one: "Enabled ({{count}} backup code remaining)",
     two_fa_add_security: "Add an extra layer of security with 2FA",
     basics_section_title: "Basics",
     two_step_verification: "Two-step verification",
@@ -2907,7 +2947,7 @@ export const en: Translations = {
       "Display the size of each email in the inbox list",
     force_dark_mode_emails: "Force Dark Mode for Emails",
     force_dark_mode_emails_description:
-      "Always render email content in dark mode, overriding the email's original styling",
+      "Render email content in dark mode while Aster uses the dark theme, overriding the email's original styling",
     translation: "Translation",
     translate_incoming: "Translate incoming mail",
     translate_incoming_description:
@@ -4111,6 +4151,7 @@ export const en: Translations = {
     fam_org_2fa_sending: "Sending...",
     fam_org_2fa_reminder_sent: "Reminder sent",
     fam_org_2fa_reminder_sent_toast: "Reminder sent to {{count}} members",
+    fam_org_2fa_reminder_sent_toast_one: "Reminder sent to {{count}} member",
     fam_org_2fa_reminder_rate_limited:
       "A reminder was already sent recently. You can send another in 24 hours.",
     fam_org_2fa_reminder_failed: "Failed to send reminder",
@@ -4451,7 +4492,9 @@ export const en: Translations = {
     twenty_five_keys: "25 keys",
     auto_lock_after: "Automatically lock after {{duration}} of inactivity",
     hours: "{{count}} hours",
+    hours_one: "{{count}} hour",
     days: "{{count}} days",
+    days_one: "{{count}} day",
     failed_get_auth_data: "We could not load your sign-in info. Try again.",
     downgrade: "Downgrade",
     upgrade: "Upgrade",
@@ -4927,15 +4970,25 @@ export const en: Translations = {
       "You are using {{used}}, which is over that limit. While you are over it, incoming mail is rejected, and after 7 days it is rejected permanently.",
     cancel_impact_aliases:
       "{{count}} aliases stop receiving mail {{days}} days later.",
+    cancel_impact_aliases_one:
+      "{{count}} alias stops receiving mail {{days}} days later.",
     cancel_impact_domains: "{{count}} custom domains are suspended.",
+    cancel_impact_domains_one: "{{count}} custom domain is suspended.",
     cancel_impact_catch_all: "Catch-all addressing is turned off.",
     cancel_impact_templates: "{{count}} email templates are disabled.",
+    cancel_impact_templates_one: "{{count}} email template is disabled.",
     cancel_impact_signatures: "{{count}} signatures are disabled.",
+    cancel_impact_signatures_one: "{{count}} signature is disabled.",
     cancel_impact_family:
       "{{count}} family members move to a {{days}} day grace period.",
+    cancel_impact_family_one:
+      "{{count}} family member moves to a {{days}} day grace period.",
     cancel_impact_family_addresses:
       "{{count}} reserved family addresses are released.",
+    cancel_impact_family_addresses_one:
+      "{{count}} reserved family address is released.",
     cancel_impact_features: "{{count}} paid features are switched off.",
+    cancel_impact_features_one: "{{count}} paid feature is switched off.",
     cancel_impact_reactivate_hint:
       "Nothing is deleted. Resubscribing restores what was disabled, up to your new plan's limits.",
     cancel_impact_continue: "Continue to cancel",
@@ -5538,7 +5591,7 @@ export const en: Translations = {
       "Shows a lock icon on emails to tell you whether a message is encrypted, signed, or neither. Handy for knowing what's protected at a glance.",
     info_force_dark_mode_title: "Force Dark Mode Emails",
     info_force_dark_mode_description:
-      "Rewrites email styles to use a dark background and light text. Useful if bright white emails are harsh on your eyes.",
+      "While Aster uses the dark theme, rewrites email styles to use a dark background and light text. Useful if bright white emails are harsh on your eyes.",
     info_undo_send_title: "Undo Send",
     info_undo_send_description:
       "Gives you a short window to cancel an email after hitting send. Nothing goes out until the timer runs out.",
@@ -6692,12 +6745,18 @@ export const en: Translations = {
     emails_of_total: "{{current}} of {{total}} emails",
     cancel_import: "Cancel Import",
     emails_imported_count: "{{count}} emails imported",
+    emails_imported_count_one: "{{count}} email imported",
     duplicates_skipped: "{{count}} duplicates skipped",
+    duplicates_skipped_one: "{{count}} duplicate skipped",
     import_folder_hint:
       "Can't find some emails? Check your Spam and Sent folders - imported emails may be sorted there based on their content.",
     n_failed_count: "{{count}} failed",
     import_folders_skipped:
       "{{count}} folder couldn't be created, so its messages are in your inbox.",
+    import_folders_skipped_one:
+      "{{count}} folder couldn't be created, so its messages are in your inbox.",
+    import_folders_skipped_other:
+      "{{count}} folders couldn't be created, so their messages are in your inbox.",
     import_folders_skipped_plural:
       "{{count}} folders couldn't be created, so their messages are in your inbox.",
     storage_quota_reached:
@@ -6910,12 +6969,14 @@ export const en: Translations = {
     connected_accounts_last_sync: "Last sync: {{ time }}",
     connected_accounts_never_synced: "Never synced",
     connected_accounts_emails: "{{ count }} emails",
+    connected_accounts_emails_one: "{{ count }} email",
     connected_accounts_syncing: "Syncing...",
     connected_accounts_no_new_emails: "No new emails to sync",
     sync_progress_count: "{{ processed }} of {{ total }} emails imported",
     sync_progress_preparing: "Preparing import…",
     sync_checking_new: "Checking for new mail…",
     sync_result_imported: "{{ count }} new emails imported",
+    sync_result_imported_one: "{{ count }} new email imported",
     sync_result_up_to_date: "Already up to date - no new emails",
     sync_stopped: "Sync stopped",
     purging_progress: "Deleting imported emails… {{ current }} of {{ total }}",
@@ -6929,9 +6990,13 @@ export const en: Translations = {
     disconnect_delete_messages_label: "Also delete imported messages",
     disconnect_delete_messages_label_count:
       "Also delete its {{ count }} imported emails",
+    disconnect_delete_messages_label_count_one:
+      "Also delete its {{ count }} imported email",
     disconnect_success: "Account disconnected",
     disconnect_deleted_success:
       "Account disconnected, {{ count }} emails deleted",
+    disconnect_deleted_success_one:
+      "Account disconnected, {{ count }} email deleted",
     stop_sync_title: "Stop sync?",
     stop_sync_description:
       "Are you sure you want to stop the sync? Already imported emails will remain.",
@@ -6996,6 +7061,8 @@ export const en: Translations = {
     oauth_folders_error: "Your folders did not finish setting up. Try again.",
     oauth_folders_partial:
       "{{count}} folders did not finish setting up, and the rest are ready to use.",
+    oauth_folders_partial_one:
+      "{{count}} folder did not finish setting up, and the rest are ready to use.",
     import_stage_setting_up_folders: "Setting up folders",
     import_stage_importing_emails: "Importing emails",
     import_stage_cancel: "Cancel",
@@ -7050,6 +7117,7 @@ export const en: Translations = {
       "We could not connect. Another look at your settings, then another attempt, usually does it.",
     removed_forwarding_rule: 'Removed forwarding rule "{{ name }}"',
     removed_forwarding_rules_count: "Removed {{ count }} forwarding rules",
+    removed_forwarding_rules_count_one: "Removed {{ count }} forwarding rule",
     customize_toolbar: "Customize toolbar",
     customize_toolbar_description:
       "Choose which actions appear in the bottom toolbar.",
@@ -7119,6 +7187,7 @@ export const en: Translations = {
       "Once rotated, your previous key is retired. Any emails that were encrypted exclusively to your old key will no longer be decryptable. This cannot be undone.",
     bulk_unsubscribe: "Bulk Unsubscribe",
     senders_unsubscribed: "{{ count }} senders unsubscribed",
+    senders_unsubscribed_one: "{{ count }} sender unsubscribed",
     opened_in_browser:
       "{{ count }} archived - manual confirmation may be needed",
     could_not_unsubscribe: "{{ count }} could not be unsubscribed",
@@ -7208,6 +7277,7 @@ export const en: Translations = {
     dev_databases_count_one: "{{count}} database",
     dev_databases_count_other: "{{count}} databases",
     dev_keys_count: "{{count}} keys",
+    dev_keys_count_one: "{{count}} key",
     dev_seconds_ago: "{{count}}s ago",
     dev_minutes_ago: "{{count}}m ago",
     dev_hours_ago: "{{count}}h ago",
@@ -7272,6 +7342,8 @@ export const en: Translations = {
     empty_trash_confirm_title: "Empty recently deleted?",
     empty_trash_confirm_message:
       "Permanently delete all {{ count }} aliases in Recently Deleted? This cannot be undone. The addresses stay reserved to your account, so no one else can claim them.",
+    empty_trash_confirm_message_one:
+      "Permanently delete {{ count }} alias in Recently Deleted? This cannot be undone. The address stays reserved to your account, so no one else can claim it.",
     trash_emptied: "Recently deleted emptied",
     failed_empty_trash: "Could not empty Recently Deleted. Please try again.",
     recently_deleted_directories_title: "Recently deleted",
@@ -7286,6 +7358,8 @@ export const en: Translations = {
     failed_purge_directory: "This directory was not deleted. Please try again.",
     empty_directory_trash_confirm_message:
       "Permanently delete all {{ count }} directories in Recently Deleted? This cannot be undone. The directories stay reserved to your account, so no one else can claim them.",
+    empty_directory_trash_confirm_message_one:
+      "Permanently delete {{ count }} directory in Recently Deleted? This cannot be undone. The directory stays reserved to your account, so no one else can claim it.",
     alias_stats_title: "Stats",
     alias_stats_description: "How much mail this alias has handled.",
     alias_stats_received: "{{ count }} received",
@@ -7495,8 +7569,12 @@ export const en: Translations = {
     alias_bulk_disabled: "Selected aliases are off.",
     alias_bulk_update_partial_failed:
       "{{count}} of {{total}} aliases were not updated.",
+    alias_bulk_update_partial_failed_one:
+      "{{count}} of {{total}} aliases was not updated.",
     alias_bulk_delete_partial_failed:
       "{{count}} of {{total}} aliases were not deleted. You can delete an alias 30 days after you create it.",
+    alias_bulk_delete_partial_failed_one:
+      "{{count}} of {{total}} aliases was not deleted. You can delete an alias 30 days after you create it.",
     alias_directory_auto_create: "Auto-create aliases",
     alias_directory_pattern_hint:
       "Send to anything.{{ key }}@{{ domain }} to spin up a new alias.",
@@ -7725,6 +7803,7 @@ export const en: Translations = {
     alias_export_source_directories: "Directories",
     alias_export_source_ghost: "Ghost aliases",
     alias_export_source_count: "{{count}} entries",
+    alias_export_source_count_one: "{{count}} entry",
     alias_export_choose_columns: "Choose columns ({{count}} selected)",
     alias_export_hide_columns: "Hide columns",
     alias_export_format_label: "File format",
@@ -7748,8 +7827,12 @@ export const en: Translations = {
       "Only {{loaded}} of {{total}} aliases finished loading. Reload your aliases and try again so your backup is complete.",
     alias_export_undecryptable:
       "{{count}} aliases could not be decrypted and are not included.",
+    alias_export_undecryptable_one:
+      "{{count}} alias could not be decrypted and is not included.",
     alias_export_undecryptable_ghost:
       "{{count}} ghost aliases could not be decrypted and are not included.",
+    alias_export_undecryptable_ghost_one:
+      "{{count}} ghost alias could not be decrypted and is not included.",
     alias_export_load_failed: "Could not load directories or ghost aliases.",
     alias_export_failed: "Export failed. Nothing was downloaded.",
     alias_import_csv: "Import Aliases",
@@ -7767,6 +7850,7 @@ export const en: Translations = {
     alias_import_skip_existing: "Skip existing",
     alias_import_update_existing: "Re-enable if disabled",
     alias_import_confirm: "Import {{count}} aliases",
+    alias_import_confirm_one: "Import {{count}} alias",
     alias_import_summary_created: "{{count}} imported",
     alias_import_summary_skipped: "{{count}} already existed",
     alias_import_summary_failed: "{{count}} failed",
@@ -8101,6 +8185,11 @@ export const en: Translations = {
       "This sender's messages no longer carry post-quantum protection. If you did not expect that, confirm it with them another way.",
     recipient_identity_changed:
       "The encryption key for {{email}} changed. If you did not expect that, confirm the change with them another way before you send anything sensitive.",
+    message_password_requirements:
+      "Use at least 12 characters, and include a number, a symbol, or both uppercase and lowercase letters.",
+    recipient_identity_untrusted:
+      "The encryption key for {{email}} changed, and the new key can't be confirmed. To send to this address, confirm the change with them another way, then choose Trust new key.",
+    trust_new_key: "Trust new key",
     encrypted_message_unavailable:
       "This message could not be decrypted. The sender may have used an outdated key.",
     pgp_password_protected_title: "Password protected message",
@@ -8113,9 +8202,13 @@ export const en: Translations = {
       "That password did not work. Check it with the sender and try again.",
     all_on_page_selected:
       "All {{ count }} conversations on this page are selected.",
+    all_on_page_selected_one:
+      "{{ count }} conversation on this page is selected.",
     select_all_in_folder:
       "Select all {{ count }} conversations in {{ folder }}",
+    select_all_in_folder_one: "Select {{ count }} conversation in {{ folder }}",
     all_in_folder_selected: "All {{ count }} conversations are selected.",
+    all_in_folder_selected_one: "{{ count }} conversation is selected.",
     inbox: "Inbox",
     sent: "Sent",
     drafts: "Drafts",
@@ -8162,6 +8255,7 @@ export const en: Translations = {
     attachment_chips_more: "+{{count}} more",
     page_of_total: "Page {{current}} of {{total}}",
     total_pages_label: "{{count}} pages",
+    total_pages_label_one: "{{count}} page",
     loading_preview: "Loading preview\u2026",
     preview_failed: "The preview did not load. Opening the email will show it.",
     pdf_preview_failed:
@@ -8488,6 +8582,7 @@ export const en: Translations = {
     move_to_category: "Move to category",
     menu_applies_to_selection: "Applies to {count} selected",
     menu_applies_to_all: "Applies to all {count} messages",
+    menu_applies_to_all_one: "Applies to {count} message",
     moved_to_category: "Moved to category",
     drop_to_move_here: "Drop to move here",
     tab_new_count: "new",
@@ -8748,9 +8843,13 @@ export const en: Translations = {
     empty_spam_folder_question: "Empty spam folder?",
     empty_spam_description:
       "All {{count}} messages in spam will be removed for good and you cannot undo it.",
+    empty_spam_description_one:
+      "{{count}} message in spam will be removed for good and you cannot undo it.",
     empty_trash_question: "Empty trash?",
     empty_trash_description:
       "All {{count}} messages in trash will be removed for good and you cannot undo it.",
+    empty_trash_description_one:
+      "{{count}} message in trash will be removed for good and you cannot undo it.",
     folder_not_found_title: "We could not find this folder.",
     folder_not_found_subtitle:
       "This folder may have been removed or never existed. Another from the sidebar will work.",
@@ -8795,6 +8894,7 @@ export const en: Translations = {
     order_number: "Order #{{id}}",
     items: "Items",
     more_items_count: "+{{count}} more items",
+    more_items_count_one: "+{{count}} more item",
     card_ending_in: "Card ending in {{last_four}}",
     purchase_extraction_privacy:
       "Extracted locally from your email, so nothing is sent to our servers.",
@@ -8827,6 +8927,7 @@ export const en: Translations = {
     message_deleted: "This message was deleted",
     unknown_recipient: "(unknown recipient)",
     lines_count: "{{count}} lines",
+    lines_count_one: "{{count}} line",
     message_label: "message",
     messages_label: "messages",
     star: "Star",
@@ -9084,6 +9185,7 @@ export const en: Translations = {
     sign_in_session_expired:
       "Your sign-in session expired. Go back and sign in again.",
     backup_codes_remaining_after_login: "{{count}} backup codes remaining",
+    backup_codes_remaining_after_login_one: "{{count}} backup code remaining",
     backup_code_description: "Enter one of your backup codes to sign in",
     backup_code_single_use: "Each backup code can only be used once",
     backup_code_placeholder: "XXXX-XXXX-XXXX",
@@ -9253,20 +9355,6 @@ export const en: Translations = {
       "Regain access to your account. Encrypted mail from before the reset cannot be read again unless you later find your phrase or a code.",
     phrase_recovery_failed:
       "This phrase does not match this account. Check the words and the email address.",
-    reset_consent_title: "This reset cannot decrypt your old data",
-    reset_consent_keeps:
-      "You keep: your email address, all your aliases (mail keeps arriving), your subscription, and your account.",
-    reset_consent_loses:
-      "You lose access to: all encrypted mail, contacts, alias labels, and settings from before the reset. They stay stored encrypted and can be unlocked later only if you remember your old password.",
-    reset_consent_last_chance:
-      "Do you have your recovery phrase or a recovery code? Either one restores everything.",
-    reset_consent_use_phrase_instead: "Use my phrase or code instead",
-    reset_consent_checkbox:
-      "I understand my encrypted data will be unreadable after this reset",
-    reset_consent_type_email: "Type your full email address to confirm",
-    reset_consent_email_mismatch:
-      "The email address does not match this account.",
-    reset_consent_continue: "Reset password anyway",
     reset_second_factor_title: "Confirm it's you",
     reset_second_factor_description:
       "This account uses two-factor authentication. Verify a second factor before you reset the password.",
@@ -9315,12 +9403,20 @@ export const en: Translations = {
       "Enter the address of the account you want to recover.",
     back_to_sign_in: "Back to sign in",
     email_me_reset_link: "Email me a reset link",
-    reset_link_sent_title: "Check your recovery email",
+    reset_link_sent_title: "Check your email",
+    resend_reset_link: "Resend link",
     reset_link_sent_desc:
-      "If this username is registered and has a verified recovery email, a password reset link has been sent. The link expires in 30 minutes.",
+      "If this account has a verified recovery email, Aster Mail sent a reset link to it. The link expires in 30 minutes. If you don't see the email, check your spam folder.",
     sending_reset_link: "Sending reset link...",
     reset_your_password: "Reset your password",
     reset_choose_new_password: "Choose a new password for your account.",
+    reset_current_password_optional: "Current password (optional)",
+    reset_current_password_hint:
+      "If you remember your current password, enter it here and your earlier mail stays available as soon as you sign in. If you leave it blank, you can unlock your earlier mail later with a recovery code.",
+    reset_unlocking_earlier_mail: "Unlocking your earlier mail...",
+    reset_use_recovery_code: "Use a recovery code instead",
+    reset_new_codes_desc:
+      "Save these codes somewhere safe. Keep your old codes too, because one of them can unlock your earlier mail after you sign in.",
     reset_invalid_or_expired:
       "This reset link is invalid or has expired. Please request a new one.",
     request_new_reset_link: "Request a new reset link",
@@ -9355,18 +9451,18 @@ export const en: Translations = {
       "Aster Mail cannot read your encrypted data, so no one can unlock it without a recovery code or your recovery email. Support can check your account and help you with what comes next.",
     support_email_action: "Email support",
     support_help_center: "Visit the help center",
-    other_ways_title: "Try another way",
+    other_ways_title: "Choose a recovery method",
     other_ways_desc: "Choose how you want to get back into your account.",
     other_way_code_title: "Use a recovery code",
     other_way_code_desc: "Enter one of the codes you saved.",
     other_way_email_title: "Reset with your recovery email",
     other_way_email_desc:
-      "Aster Mail sends a link to your recovery email. You lose access to mail from before the reset.",
+      "Aster Mail sends a link to your recovery email so you can choose a new password.",
     other_way_none_title: "I do not have any of these",
     other_way_none_desc: "Contact support for help with what comes next.",
-    reset_account_title: "Reset your account?",
+    reset_account_title: "Reset with your recovery email",
     reset_account_desc:
-      "Your encrypted mail, contacts, and files from before the reset stay locked until you recover them with your old password. You get a new, empty encryption key.",
+      "Aster Mail sends a link to your recovery email. Open it to choose a new password. Your earlier mail stays encrypted until you unlock it with a recovery code or your previous password.",
     send_reset_link: "Send reset link",
     print_codes: "Print",
     codes_copied: "Codes copied.",
@@ -9388,9 +9484,9 @@ export const en: Translations = {
       "Move messages from another account into Aster. Everything is encrypted on your device before it is stored.",
     import_mail_skip: "Start with an empty inbox",
     import_mail_privacy_note: "You can also import later from Settings.",
-    password_reset_successful: "Password reset successful",
+    password_reset_successful: "Your password is reset",
     account_recovered_sign_in:
-      "Your account has been recovered. You can now sign in with your new password.",
+      "Sign in with your new password. After you sign in, you can unlock your earlier mail with a recovery code or your previous password.",
     recovery_email_verified: "Recovery email verified",
     recovery_email_verified_desc:
       "Your recovery email has been successfully verified and linked to your account.",
@@ -9693,6 +9789,12 @@ export const en: Translations = {
       "Aster keeps messages between Aster accounts under post-quantum encryption, and {{recipients}} has not published post-quantum keys yet. Ask them to open Aster or update their app, then try again. Your draft is saved.",
     cannot_send_no_recovery_key:
       "Aster can't send this message yet because the recipient's account is missing the keys needed to read it. Ask them to open Aster on any device or update their app to refresh those keys, then try again. Your draft is saved.",
+    message_password_too_weak:
+      "The message password is too weak, so the message wasn't sent. Use at least 12 characters, and include a number, a symbol, or both uppercase and lowercase letters.",
+    recipient_key_untrusted:
+      "A recipient's encryption key changed, so the message wasn't sent. To send it, confirm the change with them another way, then choose Trust new key.",
+    key_trust_check_failed:
+      "Couldn't check the recipients' encryption keys, so the message wasn't sent. Check your connection and try again.",
     failed_send_external:
       "This email did not send through your linked outside account. Try again. Your draft is saved.",
     failed_queue_email:
@@ -9861,6 +9963,7 @@ export const en: Translations = {
     mode_archive_hint: "Removed from inbox, kept and recoverable",
     enabled: "Enabled",
     preview_some: "About {{count}} emails will be cleaned on the next run.",
+    preview_some_one: "About {{count}} email will be cleaned on the next run.",
     preview_none: "No emails currently match this rule.",
     keeps_note: "Starred and pinned emails are always kept.",
     save: "Save",
@@ -9936,6 +10039,7 @@ export const en: Translations = {
       "Create your first rule to automatically organize incoming mail.",
     empty_cta: "Create rule",
     applied_count: "Applied to {{count}} messages",
+    applied_count_one: "Applied to {{count}} message",
     field_from: "From",
     field_to: "To/Cc/Bcc",
     field_subject: "Subject",

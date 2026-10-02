@@ -30,6 +30,7 @@ const mocks = vi.hoisted(() => ({
   undo_add: vi.fn(),
   store_payload: vi.fn(),
   schedule: vi.fn(),
+  save_failed: vi.fn(),
   sender_state: {
     options: [] as unknown[],
     resolved: null as unknown,
@@ -55,6 +56,7 @@ const stable = vi.hoisted(() => ({
   signatures: {
     default_signature: null,
     get_formatted_signature: () => "",
+    resolve_signature: () => null,
     is_loading: false,
     signatures: [],
   },
@@ -136,6 +138,7 @@ vi.mock("@/hooks/use_sender_aliases", () => ({
     sender_options: mocks.sender_state.options,
     loading: false,
   }),
+  is_signature_bindable_sender_type: () => false,
 }));
 
 vi.mock("@/hooks/use_ghost_mode", () => ({
@@ -219,6 +222,13 @@ vi.mock("@/services/contacts_auto_save", () => ({
   auto_save_recipients_to_contacts: () => Promise.resolve(),
 }));
 
+vi.mock("@/services/scheduled_send_gate", () => ({
+  check_scheduled_send: vi.fn(async () => ({
+    proceed: true,
+    allow_non_post_quantum: false,
+  })),
+}));
+
 vi.mock("@/services/api/scheduled", () => ({
   create_scheduled_email: mocks.schedule,
 }));
@@ -245,6 +255,9 @@ vi.mock("@/lib/ignore_error", () => ({ ignore_error: () => undefined }));
 
 vi.mock("@/services/api/attachments", () => ({
   list_attachments: () => Promise.resolve({ data: [] }),
+}));
+vi.mock("@/components/compose/compose_failed_send_draft", () => ({
+  save_failed_send_as_draft: mocks.save_failed,
 }));
 vi.mock("@/services/forward_store", () => ({
   get_forward_mail_id: () => null,
@@ -395,5 +408,103 @@ describe("forward comment send formatting", () => {
       await latest.handle_forward();
     });
     expect(mocks.send_forward.mock.calls[0][0].message).toBe(html_comment);
+  });
+});
+
+describe("forward that fails after the undo window", () => {
+  let fail: (error: string) => void = () => undefined;
+  let complete: (sent_id?: string) => void = () => undefined;
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.clearAllMocks();
+    mocks.sender_state.options = [];
+    mocks.sender_state.resolved = null;
+    mocks.save_failed.mockResolvedValue(true);
+    mocks.send_forward.mockImplementation(
+      async (
+        _params,
+        callbacks: {
+          on_complete: (sent_id?: string) => void;
+          on_error: (error: string) => void;
+        },
+      ) => {
+        fail = callbacks.on_error;
+        complete = callbacks.on_complete;
+
+        return { success: true, queued_id: "queue_1", is_server_queued: true };
+      },
+    );
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+  });
+  afterEach(async () => {
+    await act(async () => root.unmount());
+    container.remove();
+    vi.useRealTimers();
+  });
+
+  async function forward_then(outcome: () => void) {
+    await setup("<b>Meet at 10</b>", false);
+    await act(async () => {
+      await latest.handle_forward();
+    });
+    await act(async () => outcome());
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+  }
+
+  it("saves the forward as a draft and shows an error", async () => {
+    const { show_toast } = await import("@/components/toast/simple_toast");
+
+    await forward_then(() => fail("Server unavailable"));
+
+    expect(mocks.save_failed).toHaveBeenCalledTimes(1);
+    const [, vault, failed, kept, edit] = mocks.save_failed.mock.calls[0];
+
+    expect(vault).toBe(stable.auth.vault);
+    expect(failed).toEqual(
+      expect.objectContaining({
+        to: ["reader@example.com"],
+        cc: [],
+        bcc: [],
+        subject: "mail.forward_subject_prefix Plans",
+      }),
+    );
+    expect(failed.body).toContain("<b>Meet at 10</b><br><br>");
+    expect(failed.body).toContain("<p>Original message</p>");
+    expect(kept).toBeNull();
+    expect(edit).toEqual(expect.objectContaining({ draft_type: "forward" }));
+    expect(show_toast).toHaveBeenCalledWith(
+      "Server unavailable",
+      "error",
+      10000,
+    );
+    expect(show_toast).not.toHaveBeenCalledWith(
+      "common.failed_to_save",
+      "error",
+    );
+  });
+
+  it("says so when the failed forward cannot be saved", async () => {
+    const { show_toast } = await import("@/components/toast/simple_toast");
+
+    mocks.save_failed.mockResolvedValue(false);
+    await forward_then(() => fail(""));
+
+    expect(show_toast).toHaveBeenCalledWith(
+      "common.failed_to_forward",
+      "error",
+      10000,
+    );
+    expect(show_toast).toHaveBeenCalledWith("common.failed_to_save", "error");
+  });
+
+  it("does not save a draft when the forward sends", async () => {
+    await forward_then(() => complete("sent_1"));
+
+    expect(mocks.save_failed).not.toHaveBeenCalled();
   });
 });

@@ -21,23 +21,18 @@
 import type { SupportStepProps } from "./types";
 
 import { motion } from "framer-motion";
-import { ChevronLeftIcon } from "@heroicons/react/20/solid";
+
+import { MobileActionRow, MobileStepHeader, StepBackBar } from "./step_frame";
 
 import { use_i18n } from "@/lib/i18n/context";
-import {
-  stagger_container,
-  fade_up_item,
-  button_tap,
-  BACK_BUTTON_CLASS,
-  BACK_BUTTON_STYLE,
-  DEPTH_CTA_CLASS,
-  DEPTH_CTA_STYLE,
-} from "@/components/auth/mobile_auth_motion";
+import { stagger_container } from "@/components/auth/mobile_auth_motion";
 
 export function SupportStep({
+  email,
   reduce_motion,
   set_error,
   set_step,
+  on_change_account,
   on_email_support,
   on_help_center,
 }: SupportStepProps) {
@@ -45,74 +40,35 @@ export function SupportStep({
 
   return (
     <div className="flex flex-1 flex-col">
-      <div className="flex items-center px-6 pt-4">
-        <motion.button
-          className={BACK_BUTTON_CLASS}
-          style={BACK_BUTTON_STYLE}
-          whileTap={button_tap}
-          onClick={() => {
-            set_error("");
-            set_step("other_ways");
-          }}
-        >
-          <ChevronLeftIcon className="h-5 w-5 rtl:-scale-x-100" />
-        </motion.button>
-      </div>
+      <StepBackBar
+        on_back={() => {
+          set_error("");
+          set_step("other_ways");
+        }}
+      />
 
       <motion.div
         animate="animate"
-        className="flex flex-1 flex-col items-center px-6 pt-6"
+        className="flex flex-1 flex-col items-start px-6 pt-6"
         initial={reduce_motion ? false : "initial"}
         variants={reduce_motion ? undefined : stagger_container}
       >
-        <motion.img
-          alt="Aster"
-          className="h-8"
-          decoding="async"
-          draggable={false}
-          src="/text_logo.png"
-          variants={reduce_motion ? undefined : fade_up_item}
+        <MobileStepHeader
+          description={t("auth.support_step_desc")}
+          email={email}
+          on_change_account={on_change_account}
+          reduce_motion={reduce_motion}
+          title={t("auth.support_step_title")}
         />
-
-        <motion.h1
-          className="mt-6 text-center text-xl font-semibold text-[var(--text-primary)]"
-          variants={reduce_motion ? undefined : fade_up_item}
-        >
-          {t("auth.support_step_title")}
-        </motion.h1>
-
-        <motion.p
-          className="mt-2 text-center text-sm leading-relaxed text-[var(--text-tertiary)]"
-          variants={reduce_motion ? undefined : fade_up_item}
-        >
-          {t("auth.support_step_desc")}
-        </motion.p>
       </motion.div>
 
-      <motion.div
-        animate={{ opacity: 1 }}
-        className="shrink-0 space-y-3 px-6 pb-4 pt-4"
-        initial={reduce_motion ? false : { opacity: 0 }}
-        transition={
-          reduce_motion ? { duration: 0 } : { duration: 0.3, delay: 0.1 }
-        }
-      >
-        <motion.button
-          className={DEPTH_CTA_CLASS}
-          style={DEPTH_CTA_STYLE}
-          whileTap={button_tap}
-          onClick={on_email_support}
-        >
-          {t("auth.support_email_action")}
-        </motion.button>
-        <button
-          className="w-full py-2 text-center text-sm text-[var(--text-tertiary)]"
-          type="button"
-          onClick={on_help_center}
-        >
-          {t("auth.support_help_center")}
-        </button>
-      </motion.div>
+      <MobileActionRow
+        on_primary={on_email_support}
+        on_secondary={on_help_center}
+        primary_label={t("auth.support_email_action")}
+        reduce_motion={reduce_motion}
+        secondary_label={t("auth.support_help_center")}
+      />
     </div>
   );
 }

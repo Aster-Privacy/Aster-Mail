@@ -22,6 +22,7 @@ import type { UserPreferences } from "@/services/api/preferences";
 import type { InboxEmail, ConfirmationDialogState } from "@/types/email";
 import type { TranslationKey } from "@/lib/i18n/types";
 import type { RestoredEmailEntry } from "@/hooks/email_list_helpers";
+import type { BulkDeleteOptions } from "@/hooks/email_list_types";
 
 import { useState, useCallback } from "react";
 
@@ -67,7 +68,10 @@ import {
   trash_thread,
 } from "@/services/api/mail";
 import { emit_mail_soft_refresh } from "@/hooks/email_action_types";
-import { expand_email_ids } from "@/hooks/email_list_helpers";
+import {
+  expand_email_ids,
+  trashes_whole_thread,
+} from "@/hooks/email_list_helpers";
 import { ignore_error } from "@/lib/ignore_error";
 import {
   collect_conversation_thread_tokens,
@@ -161,7 +165,10 @@ interface UseInboxToolbarActionsOptions {
   remove_email: (id: string) => void;
   remove_emails: (ids: string[]) => void;
   restore_emails: (entries: RestoredEmailEntry[]) => void;
-  bulk_delete: (ids: string[]) => Promise<BulkActionResult>;
+  bulk_delete: (
+    ids: string[],
+    options?: BulkDeleteOptions,
+  ) => Promise<BulkActionResult>;
   schedule_delete_drafts: (ids: string[]) => () => void;
   cancel_scheduled: (id: string) => Promise<boolean>;
   bulk_cancel_scheduled: (ids: string[]) => Promise<boolean>;
@@ -906,23 +913,16 @@ export function use_inbox_toolbar_actions({
         });
       }
 
-      const thread_tokens = !is_spam_restore
-        ? Array.from(
-            new Set(
-              selected
-                .filter(
-                  (e) => !!e.thread_token && (e.thread_message_count ?? 0) > 1,
-                )
-                .map((e) => e.thread_token as string),
-            ),
-          )
-        : [];
-      const singleton_emails = selected.filter(
-        (e) =>
-          is_spam_restore ||
-          !e.thread_token ||
-          (e.thread_message_count ?? 0) <= 1,
+      const restores_thread = (e: InboxEmail): boolean =>
+        !is_spam_restore &&
+        (e.thread_message_count ?? 0) > 1 &&
+        trashes_whole_thread(e, preferences.conversation_grouping);
+      const thread_tokens = Array.from(
+        new Set(
+          selected.filter(restores_thread).map((e) => e.thread_token as string),
+        ),
       );
+      const singleton_emails = selected.filter((e) => !restores_thread(e));
       const singleton_ids = singleton_emails.flatMap((e) =>
         expand_email_ids(e),
       );
@@ -1030,7 +1030,14 @@ export function use_inbox_toolbar_actions({
         },
       });
     },
-    [email_state.emails, current_view, remove_email, apply_stat_deltas, t],
+    [
+      email_state.emails,
+      current_view,
+      preferences.conversation_grouping,
+      remove_email,
+      apply_stat_deltas,
+      t,
+    ],
   );
 
   return {

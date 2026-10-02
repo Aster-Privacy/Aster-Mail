@@ -548,7 +548,7 @@ export function use_external_accounts() {
         if (also_delete && purged_count > 0) {
           show_toast(
             t("settings.disconnect_deleted_success", {
-              count: purged_count.toLocaleString(app_locale()),
+              count: purged_count,
             }),
             "success",
           );

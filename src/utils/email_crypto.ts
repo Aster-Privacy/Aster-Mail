@@ -89,6 +89,18 @@ export async function try_decrypt_ratchet_body(
   }
 }
 
+export function is_ratchet_verified_body(
+  raw_body: string | null | undefined,
+  decrypted_body: string | null | undefined,
+): boolean {
+  return (
+    is_ratchet_envelope(raw_body) &&
+    !!decrypted_body &&
+    decrypted_body !== RATCHET_UNDECRYPTABLE_SENTINEL &&
+    !is_ratchet_envelope(decrypted_body)
+  );
+}
+
 const PGP_MESSAGE_BEGIN = "-----BEGIN PGP MESSAGE-----";
 
 function find_header_body_split(

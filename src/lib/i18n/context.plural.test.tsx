@@ -25,6 +25,7 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 import { I18nProvider, use_i18n } from "./context";
+import { get_translations_async } from "./translations";
 import { en } from "./translations/en";
 import { es } from "./translations/es";
 import { fr } from "./translations/fr";
@@ -83,6 +84,7 @@ const locales: Array<[LanguageCode, Record<string, unknown>]> = [
 ];
 
 let translate: TranslateFn;
+let translate_pt: TranslateFn;
 let container: HTMLDivElement;
 let root: Root;
 
@@ -92,17 +94,34 @@ function Probe() {
   return null;
 }
 
-beforeAll(() => {
+function ProbePt() {
+  translate_pt = use_i18n().t;
+
+  return null;
+}
+
+beforeAll(async () => {
+  await get_translations_async("pt");
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
 
   act(() => {
     root.render(
-      <I18nProvider default_language="en">
-        <Probe />
-      </I18nProvider>,
+      <>
+        <I18nProvider default_language="en">
+          <Probe />
+        </I18nProvider>
+        <I18nProvider default_language="pt">
+          <ProbePt />
+        </I18nProvider>
+      </>,
     );
+  });
+
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await new Promise((resolve) => setTimeout(resolve, 0));
   });
 });
 
@@ -112,6 +131,86 @@ afterAll(() => {
   });
   container.remove();
 });
+
+const counted_keys: TranslationKey[] = [
+  "auth.backup_codes_remaining_after_login",
+  "settings.two_fa_enabled",
+  "common.birthdays_upcoming",
+  "common.commands_count",
+  "common.contacts_created",
+  "common.delete_folder_purged_items",
+  "common.group_contact_count",
+  "common.n_contacts_imported",
+  "common.n_conversations_marked_as_spam",
+  "common.n_items",
+  "common.n_lines",
+  "common.unblocked_count_senders",
+  "folder_retention.preview_some",
+  "mail.lines_count",
+  "mail.more_items_count",
+  "mail.total_pages_label",
+  "mail.all_on_page_selected",
+  "mail.all_in_folder_selected",
+  "mail.select_all_in_folder",
+  "mail.menu_applies_to_all",
+  "mail_rules.applied_count",
+  "settings.alias_bulk_delete_partial_failed",
+  "settings.alias_bulk_update_partial_failed",
+  "settings.alias_export_source_count",
+  "settings.alias_export_undecryptable",
+  "settings.alias_export_undecryptable_ghost",
+  "settings.alias_import_confirm",
+  "settings.cancel_impact_aliases",
+  "settings.cancel_impact_domains",
+  "settings.cancel_impact_family",
+  "settings.cancel_impact_family_addresses",
+  "settings.cancel_impact_features",
+  "settings.cancel_impact_signatures",
+  "settings.cancel_impact_templates",
+  "settings.connected_accounts_emails",
+  "settings.disconnect_deleted_success",
+  "settings.disconnect_delete_messages_label_count",
+  "settings.sync_result_imported",
+  "settings.days",
+  "settings.hours",
+  "settings.minutes_ago",
+  "settings.hours_ago",
+  "settings.days_ago",
+  "settings.dev_keys_count",
+  "settings.duplicates_skipped",
+  "settings.emails_imported_count",
+  "settings.empty_directory_trash_confirm_message",
+  "settings.empty_trash_confirm_message",
+  "settings.fam_org_2fa_reminder_sent_toast",
+  "settings.load_more_sessions",
+  "settings.oauth_folders_partial",
+  "settings.removed_forwarding_rules_count",
+  "settings.senders_unsubscribed",
+  "settings.import_folders_skipped",
+];
+
+const extra_params = { total: 5, days: 30, folder: "Inbox" };
+
+function fill(template: string, count: number): string {
+  return template
+    .replace(/\{\{\s*count\s*\}\}|\{count\}/g, String(count))
+    .replace(/\{\{\s*(\w+)\s*\}\}/g, (match, name: string) =>
+      name in extra_params
+        ? String(extra_params[name as keyof typeof extra_params])
+        : match,
+    );
+}
+
+function bundle_entry(
+  bundle: Record<string, unknown>,
+  key: string,
+  suffix: string,
+): string | undefined {
+  const [namespace, name] = key.split(".");
+  const entries = (bundle as Record<string, Record<string, string>>)[namespace];
+
+  return entries?.[`${name}${suffix}`];
+}
 
 describe("plural selection", () => {
   it("uses the singular form for a count of one", () => {
@@ -145,6 +244,82 @@ describe("plural selection", () => {
       "0 recovery codes left.",
     );
   });
+
+  it("does not count a single trashed message or day as plural", () => {
+    expect(translate("mail.empty_trash_description", { count: 1 })).toBe(
+      "1 message in trash will be removed for good and you cannot undo it.",
+    );
+    expect(translate("mail.empty_spam_description", { count: 1 })).toBe(
+      "1 message in spam will be removed for good and you cannot undo it.",
+    );
+    expect(translate("common.trash_days_left", { count: 1 })).toBe(
+      "1 day left",
+    );
+    expect(translate("mail.empty_trash_description", { count: 3 })).toBe(
+      "All 3 messages in trash will be removed for good and you cannot undo it.",
+    );
+    expect(translate("common.trash_days_left", { count: 0 })).toBe(
+      "0 days left",
+    );
+  });
+
+  it("uses the singular for a single backup code, day or message", () => {
+    expect(
+      translate("auth.backup_codes_remaining_after_login", { count: 1 }),
+    ).toBe("1 backup code remaining");
+    expect(translate("settings.days_ago", { count: 1 })).toBe("1 day ago");
+    expect(translate("mail.menu_applies_to_all", { count: 1 })).toBe(
+      "Applies to 1 message",
+    );
+    expect(translate("mail.all_in_folder_selected", { count: 1 })).toBe(
+      "1 conversation is selected.",
+    );
+    expect(translate("settings.import_folders_skipped", { count: 2 })).toBe(
+      "2 folders couldn't be created, so their messages are in your inbox.",
+    );
+    expect(translate("settings.days_ago", { count: 3 })).toBe("3 days ago");
+    expect(translate("mail.menu_applies_to_all", { count: 20000 })).toMatch(
+      /^Applies to all 20\D000 messages$/,
+    );
+  });
+
+  it.each([
+    ["en", () => translate, en as unknown as Record<string, unknown>],
+    ["pt", () => translate_pt, pt as unknown as Record<string, unknown>],
+  ] as Array<[string, () => TranslateFn, Record<string, unknown>]>)(
+    "%s picks the singular only for one in every counted string",
+    (_language, get_translate, bundle) => {
+      const wrong: string[] = [];
+
+      for (const key of counted_keys) {
+        const t = get_translate();
+        const one = bundle_entry(bundle, key, "_one");
+        const plural =
+          bundle_entry(bundle, key, "_other") ?? bundle_entry(bundle, key, "");
+
+        if (typeof one !== "string" || typeof plural !== "string") {
+          wrong.push(`${key} has no singular`);
+          continue;
+        }
+
+        const expectations: Array<[number, string]> = [
+          [1, one],
+          [0, plural],
+          [3, plural],
+        ];
+
+        for (const [count, template] of expectations) {
+          const actual = t(key, { count, ...extra_params });
+
+          if (actual !== fill(template, count)) {
+            wrong.push(`${key} (${count}): ${actual}`);
+          }
+        }
+      }
+
+      expect(wrong).toEqual([]);
+    },
+  );
 
   it("leaves keys without plural variants untouched", () => {
     expect(translate("settings.fam_org_stat_pending", { count: 1 })).toBe(

@@ -426,4 +426,15 @@ describe("sanitize_html depth guard (DoS resistance)", () => {
     expect(html).toContain("hello");
     expect(html).toContain("world");
   });
+
+  it("keeps only Aster quote classes and drops ids outside the sandbox", () => {
+    const html = '<div class="fixed inset-0 aster_quote z-50" id="app">x</div>';
+    const in_document = sanitize_html(html).html;
+    const sandboxed = sanitize_html(html, { sandbox_mode: true }).html;
+
+    expect(in_document).toContain('class="aster_quote"');
+    expect(in_document).not.toContain("inset-0");
+    expect(in_document).not.toContain('id="app"');
+    expect(sandboxed).toContain("inset-0");
+  });
 });

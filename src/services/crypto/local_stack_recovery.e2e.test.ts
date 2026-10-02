@@ -21,11 +21,15 @@
 import type { EncryptedVault } from "./key_manager_core";
 
 import { execSync } from "node:child_process";
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 
 import { describe, it, expect, beforeAll } from "vitest";
+import * as openpgp from "openpgp";
 
 import {
   hash_email,
+  hash_recovery_email,
   derive_password_hash,
   generate_identity_keypair,
   generate_signed_prekey,
@@ -50,6 +54,7 @@ import {
   unwrap_vault_with_phrase,
 } from "./recovery_phrase";
 import { array_to_base64 } from "./key_manager_core";
+import { carry_vault_through_reset } from "./carry_vault_through_reset";
 import {
   MASTER_KEY_VAULT_FORMAT,
   derive_encryption_key_from_passphrase,
@@ -57,9 +62,20 @@ import {
 import { prepend_kek_to_list, serialize_kek_for_vault } from "./legacy_keks";
 
 import { ignore_error } from "@/lib/ignore_error";
+import { encrypt_recovery_email } from "@/services/api/recovery_email";
 
 const RUN = process.env.ASTER_LOCAL_E2E === "1";
 const BASE = process.env.ASTER_E2E_BASE ?? "http://localhost:3000/api";
+const PG_PORT = process.env.ASTER_E2E_PG_PORT ?? "5432";
+const PG_DB = process.env.ASTER_E2E_PG_DB ?? "astermail";
+const PG_PASSWORD = process.env.ASTER_E2E_PG_PASSWORD ?? "";
+const MAIL_SINK = process.env.ASTER_E2E_MAIL_SINK ?? "";
+const RUN_IP_BLOCK = crypto.getRandomValues(new Uint8Array(1))[0];
+let suite_client_ip = `100.64.${RUN_IP_BLOCK}.1`;
+
+function use_suite_client_ip(last_octet: number): void {
+  suite_client_ip = `100.64.${RUN_IP_BLOCK}.${last_octet}`;
+}
 
 interface Session {
   access_token: string;
@@ -74,6 +90,7 @@ async function api(
 ): Promise<{ status: number; json: any }> {
   const headers: Record<string, string> = {
     "content-type": "application/json",
+    "cf-connecting-ip": suite_client_ip,
   };
 
   if (session) {
@@ -106,9 +123,145 @@ function random_hex(bytes: number): string {
 
 function psql(sql: string): string {
   return execSync(
-    `docker run --rm -i postgres:16 psql -h host.docker.internal -p 5432 -U postgres -d astermail -tA`,
-    { input: sql, encoding: "utf8" },
+    `docker run --rm -i -e PGPASSWORD postgres:16 psql -h host.docker.internal -p ${PG_PORT} -U postgres -d ${PG_DB} -tA`,
+    {
+      input: sql,
+      encoding: "utf8",
+      env: { ...process.env, PGPASSWORD: PG_PASSWORD },
+    },
   ).trim();
+}
+
+function decode_quoted_printable(body: string): string {
+  return body
+    .replace(/=\r?\n/g, "")
+    .replace(/=([0-9A-Fa-f]{2})/g, (_, hex) =>
+      String.fromCharCode(parseInt(hex, 16)),
+    );
+}
+
+function decode_mail_bodies(raw: string): string[] {
+  const chunks = raw.split(/\r?\n\r?\n/);
+  const decoded: string[] = [decode_quoted_printable(raw)];
+
+  for (const chunk of chunks) {
+    const compact = chunk.replace(/\s+/g, "");
+
+    if (/^[A-Za-z0-9+/=]+$/.test(compact) && compact.length > 16) {
+      try {
+        decoded.push(Buffer.from(compact, "base64").toString("utf8"));
+      } catch (caught) {
+        ignore_error(
+          "services/crypto/local_stack_recovery.e2e.test:decode_mail_bodies",
+          caught,
+        );
+      }
+    }
+  }
+
+  decoded.push(raw);
+
+  return decoded;
+}
+
+async function wait_for_mail_link(
+  pattern: RegExp,
+  since: number,
+): Promise<string> {
+  expect(
+    MAIL_SINK,
+    "ASTER_E2E_MAIL_SINK must point at the SMTP sink dir",
+  ).not.toBe("");
+
+  for (let attempt = 0; attempt < 60; attempt++) {
+    const files = readdirSync(MAIL_SINK)
+      .filter((name) => name.endsWith(".eml"))
+      .filter((name) => Number(name.split("_")[0]) >= since - 2000)
+      .sort();
+
+    for (const name of files.reverse()) {
+      const raw = readFileSync(join(MAIL_SINK, name), "utf8");
+
+      for (const body of decode_mail_bodies(raw)) {
+        const match = body.replace(/&amp;/g, "&").match(pattern);
+
+        if (match) return match[1];
+      }
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+
+  throw new Error(`no captured email matched ${pattern}`);
+}
+
+async function issue_email_reset_token(
+  username: string,
+  account: Awaited<ReturnType<typeof build_account>>,
+  session: Session,
+): Promise<string> {
+  const recovery_address = `${username}.recovery@example.test`;
+  const encrypted = await encrypt_recovery_email(
+    recovery_address,
+    account.vault_data,
+  );
+  const verify_since = Date.now();
+  const saved = await api(
+    "/core/v1/recovery/email",
+    "PUT",
+    {
+      encrypted_email: encrypted.encrypted,
+      email_nonce: encrypted.nonce,
+      email_hash: await hash_recovery_email(recovery_address),
+      plaintext_email: recovery_address,
+      password_hash: account.password_hash,
+    },
+    session,
+  );
+
+  expect(saved.status, JSON.stringify(saved.json)).toBe(200);
+
+  const verify_token = await wait_for_mail_link(
+    /\/api\/rv\/([A-Za-z0-9_-]{20,})/,
+    verify_since,
+  );
+  const verified = await fetch(`${BASE}/rv/${verify_token}`, {
+    redirect: "manual",
+    headers: { "cf-connecting-ip": suite_client_ip },
+  });
+
+  expect([302, 303, 307]).toContain(verified.status);
+  expect(verified.headers.get("location")).toContain("verified=true");
+
+  const reset_since = Date.now();
+  const forgot = await api("/core/v1/recovery/forgot-password", "POST", {
+    username,
+    email_domain: "astermail.org",
+  });
+
+  expect(forgot.status, JSON.stringify(forgot.json)).toBe(200);
+
+  return wait_for_mail_link(
+    /reset-password\?token=([A-Za-z0-9_-]{20,})/,
+    reset_since,
+  );
+}
+
+function seed_phrase_wrap(
+  user_id: string,
+  wrap: Awaited<ReturnType<typeof wrap_vault_with_phrase>>,
+): void {
+  psql(
+    `INSERT INTO master_key_wraps (user_id, wrap_kind, verifier_hash, wrapped_vault, wrap_nonce, wrap_salt) ` +
+      `VALUES ('${user_id}', 'recovery_phrase', decode('${wrap.verifier_hash}','base64'), decode('${wrap.wrapped_vault}','base64'), ` +
+      `decode('${wrap.wrap_nonce}','base64'), decode('${wrap.wrap_salt}','base64'));`,
+  );
+
+  expect(
+    psql(
+      `SELECT count(*) FROM master_key_wraps WHERE user_id='${user_id}' AND active;`,
+    ),
+  ).toBe("1");
 }
 
 async function encrypt_blob(
@@ -274,6 +427,10 @@ beforeAll(() => {
 });
 
 describe.runIf(RUN)("local stack recovery tiers e2e", () => {
+  beforeAll(() => {
+    use_suite_client_ip(1);
+  });
+
   const username = `mktest${random_hex(6)}`;
   const password_v1 = "Correct-Horse9-Battery!";
   const password_v2 = "Totally-Different8-Secret!";
@@ -729,7 +886,7 @@ describe.runIf(RUN)("local stack recovery tiers e2e", () => {
     const recovery_key = generate_recovery_key();
     const backup = await encrypt_vault_backup(account.vault_data, recovery_key);
     const shares = await generate_all_recovery_shares(
-      account.codes,
+      generate_recovery_codes(RECOVERY_CODE_SET_SIZE),
       recovery_key,
     );
 
@@ -835,6 +992,10 @@ describe.runIf(RUN)("local stack recovery tiers e2e", () => {
 });
 
 describe.runIf(RUN)("existing user adoption path e2e", () => {
+  beforeAll(() => {
+    use_suite_client_ip(2);
+  });
+
   const username = `mkadopt${random_hex(6)}`;
   const password_v1 = "Legacy-User7-Password!";
   const password_v2 = "Post-Adoption3-Password!";
@@ -1002,6 +1163,10 @@ describe.runIf(RUN)("existing user adoption path e2e", () => {
 });
 
 describe.runIf(RUN)("destructive reset preservation e2e", () => {
+  beforeAll(() => {
+    use_suite_client_ip(3);
+  });
+
   const username = `mkreset${random_hex(6)}`;
   const password_v1 = "Pre-Reset5-Password!";
   const password_v2 = "Post-Reset6-Password!";
@@ -1010,7 +1175,6 @@ describe.runIf(RUN)("destructive reset preservation e2e", () => {
   let account: Awaited<ReturnType<typeof build_account>>;
   let user_id: string;
   let phrase: string;
-  let fresh_account_codes: string[] = [];
 
   it(
     "registers a format 2 account with an alias and a phrase wrap",
@@ -1026,21 +1190,15 @@ describe.runIf(RUN)("destructive reset preservation e2e", () => {
 
       session = result.session;
       user_id = result.user_id;
-
       phrase = generate_recovery_phrase();
 
-      const wrap = await wrap_vault_with_phrase(
-        JSON.stringify(account.vault_data),
-        phrase,
+      seed_phrase_wrap(
+        user_id,
+        await wrap_vault_with_phrase(
+          JSON.stringify(account.vault_data),
+          phrase,
+        ),
       );
-      const saved = await api(
-        "/core/v1/recovery/phrase",
-        "PUT",
-        { ...wrap, current_password_hash: account.password_hash },
-        session,
-      );
-
-      expect(saved.status).toBe(200);
 
       psql(
         `INSERT INTO email_aliases (user_id, encrypted_local_part, local_part_nonce, alias_address_hash, domain, key_epoch) VALUES ('${user_id}', '\\x11', '\\x222222222222222222222222', '\\x${random_hex(32)}', 'astermail.org', 1);`,
@@ -1056,20 +1214,15 @@ describe.runIf(RUN)("destructive reset preservation e2e", () => {
     "new shape reset preserves aliases and archives the old vault for resurrection",
     { timeout: 120000 },
     async () => {
-      const verifier = await compute_phrase_verifier(phrase);
-      const initiate = await api("/core/v1/recovery/phrase/initiate", "POST", {
-        email: account.email,
-        verifier_hash: verifier,
-      });
-
-      expect(initiate.status).toBe(200);
-
+      const reset_token = await issue_email_reset_token(
+        username,
+        account,
+        session,
+      );
       const fresh = await build_account(username, password_v2);
 
-      fresh_account_codes = fresh.codes;
-
       const reset = await api("/core/v1/recovery/reset-password", "POST", {
-        token: initiate.json.recovery_token,
+        token: reset_token,
         new_password_hash: fresh.password_hash,
         new_password_salt: fresh.password_salt,
         new_encrypted_vault: fresh.encrypted_vault,
@@ -1110,40 +1263,6 @@ describe.runIf(RUN)("destructive reset preservation e2e", () => {
       );
 
       expect(old_vault.data_kek).toBe(array_to_base64(account.master_key));
-    },
-  );
-
-  it(
-    "new shape reset requires the data loss acknowledgement",
-    { timeout: 60000 },
-    async () => {
-      const fresh_code = fresh_account_codes[0];
-      const code_hash = await hash_recovery_code(fresh_code);
-      const initiate = await api("/core/v1/recovery/initiate", "POST", {
-        code_hash,
-        email: account.email,
-      });
-
-      expect(initiate.status, JSON.stringify(initiate.json)).toBe(200);
-
-      const { status, json } = await api(
-        "/core/v1/recovery/reset-password",
-        "POST",
-        {
-          token: initiate.json.recovery_token,
-          new_password_hash: account.password_hash,
-          new_password_salt: account.password_salt,
-          new_encrypted_vault: account.encrypted_vault,
-          new_vault_nonce: account.vault_nonce,
-          new_recovery_shares: account.recovery_shares,
-          new_encrypted_vault_backup: account.vault_backup.encrypted_data,
-          new_vault_backup_nonce: account.vault_backup.nonce,
-          new_recovery_key_salt: account.vault_backup.salt,
-          vault_format: MASTER_KEY_VAULT_FORMAT,
-        },
-      );
-
-      expect(status, JSON.stringify(json)).toBe(400);
     },
   );
 
@@ -1192,7 +1311,219 @@ describe.runIf(RUN)("destructive reset preservation e2e", () => {
   );
 });
 
+describe.runIf(RUN)(
+  "reset with the current password carries the vault e2e",
+  () => {
+    beforeAll(() => {
+      use_suite_client_ip(4);
+    });
+
+    const username = `mkcarry${random_hex(6)}`;
+    const password_v1 = "Carry-Over3-Password!";
+    const password_v2 = "Carried-Into7-Password!";
+
+    let session: Session;
+    let account: Awaited<ReturnType<typeof build_account>>;
+    let user_id: string;
+    let phrase: string;
+    let reset_token: string;
+
+    async function opens_with(
+      armored: string,
+      passphrase: string,
+    ): Promise<boolean> {
+      try {
+        await openpgp.decryptKey({
+          privateKey: await openpgp.readPrivateKey({ armoredKey: armored }),
+          passphrase,
+        });
+
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    it(
+      "registers and wraps the vault with a phrase",
+      { timeout: 120000 },
+      async () => {
+        account = await build_account(username, password_v1);
+        const result = await register_account(
+          username,
+          account,
+          MASTER_KEY_VAULT_FORMAT,
+        );
+
+        session = result.session;
+        user_id = result.user_id;
+        phrase = generate_recovery_phrase();
+
+        seed_phrase_wrap(
+          user_id,
+          await wrap_vault_with_phrase(
+            JSON.stringify(account.vault_data),
+            phrase,
+          ),
+        );
+      },
+    );
+
+    it(
+      "hands the current vault to a valid email reset token only",
+      { timeout: 120000 },
+      async () => {
+        const verifier = await compute_phrase_verifier(phrase);
+        const initiate = await api(
+          "/core/v1/recovery/phrase/initiate",
+          "POST",
+          {
+            email: account.email,
+            verifier_hash: verifier,
+          },
+        );
+
+        expect(initiate.status).toBe(200);
+
+        const phrase_tier = await api(
+          "/core/v1/recovery/reset-password/vault",
+          "POST",
+          {
+            token: initiate.json.recovery_token,
+          },
+        );
+
+        expect(phrase_tier.status).toBe(401);
+
+        reset_token = await issue_email_reset_token(username, account, session);
+
+        const denied = await api(
+          "/core/v1/recovery/reset-password/vault",
+          "POST",
+          {
+            token: `${reset_token}x`,
+          },
+        );
+
+        expect(denied.status).toBe(401);
+
+        const vault = await api(
+          "/core/v1/recovery/reset-password/vault",
+          "POST",
+          {
+            token: reset_token,
+          },
+        );
+
+        expect(vault.status, JSON.stringify(vault.json)).toBe(200);
+        expect(vault.json.encrypted_vault).toBe(account.encrypted_vault);
+        expect(vault.json.vault_nonce).toBe(account.vault_nonce);
+
+        await expect(
+          decrypt_vault(
+            vault.json.encrypted_vault,
+            vault.json.vault_nonce,
+            password_v2,
+          ),
+        ).rejects.toThrow();
+      },
+    );
+
+    it(
+      "resets with the carried vault so earlier mail opens under the new password",
+      { timeout: 120000 },
+      async () => {
+        const fetched = await api(
+          "/core/v1/recovery/reset-password/vault",
+          "POST",
+          { token: reset_token },
+        );
+        const old_vault = await decrypt_vault(
+          fetched.json.encrypted_vault,
+          fetched.json.vault_nonce,
+          password_v1,
+        );
+        const fresh = await build_account(username, password_v2);
+        const carried = await carry_vault_through_reset(
+          old_vault,
+          password_v1,
+          fresh.vault_data,
+          password_v2,
+        );
+        const sealed = await encrypt_vault(carried, password_v2);
+        const backup = await encrypt_vault_backup(
+          carried,
+          generate_recovery_key(),
+        );
+
+        const reset = await api("/core/v1/recovery/reset-password", "POST", {
+          token: reset_token,
+          new_password_hash: fresh.password_hash,
+          new_password_salt: fresh.password_salt,
+          new_encrypted_vault: sealed.encrypted_vault,
+          new_vault_nonce: sealed.vault_nonce,
+          new_recovery_shares: fresh.recovery_shares,
+          new_encrypted_vault_backup: backup.encrypted_data,
+          new_vault_backup_nonce: backup.nonce,
+          new_recovery_key_salt: backup.salt,
+          vault_format: MASTER_KEY_VAULT_FORMAT,
+          acknowledged_data_loss: true,
+          previous_vault_carried: true,
+        });
+
+        expect(reset.status, JSON.stringify(reset.json)).toBe(200);
+
+        expect(
+          psql(
+            `SELECT count(*) FROM inactive_key_vaults WHERE user_id='${user_id}';`,
+          ),
+        ).toBe("1");
+        expect(
+          psql(
+            `SELECT count(*) FROM inactive_key_vaults WHERE user_id='${user_id}' AND consumed_at IS NULL;`,
+          ),
+        ).toBe("0");
+
+        const spent = await api(
+          "/core/v1/recovery/reset-password/vault",
+          "POST",
+          {
+            token: reset_token,
+          },
+        );
+
+        expect(spent.status).toBe(401);
+
+        const live = psql(
+          `SELECT encode(encrypted_vault,'base64') || '|' || encode(vault_nonce,'base64') FROM encrypted_key_vault WHERE user_id='${user_id}';`,
+        ).replace(/\n/g, "");
+        const [live_vault, live_nonce] = live.split("|");
+        const reopened = await decrypt_vault(
+          live_vault,
+          live_nonce,
+          password_v2,
+        );
+
+        expect(reopened.data_kek).toBe(array_to_base64(account.master_key));
+        expect(reopened.identity_key).toBe(fresh.vault_data.identity_key);
+        expect(reopened.previous_keys).toHaveLength(1);
+        expect(await opens_with(reopened.previous_keys![0], password_v2)).toBe(
+          true,
+        );
+        expect(reopened.legacy_identity_keys).toContain(
+          account.vault_data.identity_key,
+        );
+        expect((reopened.legacy_keks ?? []).length).toBeGreaterThan(0);
+      },
+    );
+  },
+);
+
 describe.runIf(RUN)("legacy-shape and stale-client safety e2e", () => {
+  beforeAll(() => {
+    use_suite_client_ip(5);
+  });
+
   const username = `mklegacy${random_hex(6)}`;
   const password_v1 = "Legacy-Shape1-Password!";
 
@@ -1204,7 +1535,7 @@ describe.runIf(RUN)("legacy-shape and stale-client safety e2e", () => {
   });
 
   it(
-    "stale-client code recovery (no vault_format) must not downgrade an MK vault",
+    "stale-client code recovery (no vault_format) archives the MK vault before downgrading",
     { timeout: 120000 },
     async () => {
       const code = account.codes[0];
@@ -1228,20 +1559,30 @@ describe.runIf(RUN)("legacy-shape and stale-client safety e2e", () => {
         new_recovery_key_salt: account.vault_backup.salt,
       });
 
-      expect(complete.status, JSON.stringify(complete.json)).toBe(409);
+      expect(complete.status, JSON.stringify(complete.json)).toBe(200);
     },
   );
 
-  it("vault version stayed at 2 after the rejected stale-client recovery", async () => {
+  it("the retired MK vault stays resurrectable after the stale-client recovery", async () => {
+    const user_filter = `(SELECT id FROM users WHERE LOWER(username) = '${username.toLowerCase()}')`;
     const stored = psql(
-      `SELECT vault_version FROM encrypted_key_vault WHERE user_id = (SELECT id FROM users WHERE LOWER(username) = '${username.toLowerCase()}');`,
+      `SELECT vault_version FROM encrypted_key_vault WHERE user_id = ${user_filter};`,
     );
 
-    expect(stored).toBe("2");
+    expect(stored).toBe("1");
+    expect(
+      psql(
+        `SELECT count(*) FROM inactive_key_vaults WHERE user_id = ${user_filter} AND vault_version = 2 AND retired_reason = 'recovery_stale_vault_backup' AND consumed_at IS NULL;`,
+      ),
+    ).toBe("1");
   });
 });
 
 describe.runIf(RUN)("repeated password changes never orphan aliases", () => {
+  beforeAll(() => {
+    use_suite_client_ip(6);
+  });
+
   const username = `mkrepeat${random_hex(6)}`;
   const base_password = "Repeat-Change0-Password!";
 

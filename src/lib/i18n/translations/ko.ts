@@ -945,6 +945,16 @@ export const ko = {
       "연결된 계정에서는 예약 보내기를 사용할 수 없습니다. 지금 보내거나 Aster 주소를 선택하세요.",
     scheduled_no_expiry:
       "예약 메일은 아직 만료를 사용할 수 없습니다. 지금 보내거나 만료를 지우고 예약하세요.",
+    scheduled_too_far_ahead:
+      "예약 이메일은 최대 28일 후까지 보낼 수 있습니다. 더 이른 시간을 선택하세요.",
+    scheduled_requires_encryption:
+      "필수 암호화가 켜져 있으며, 외부 주소로 보내는 예약 이메일은 종단 간 암호화되지 않습니다. 이 메시지를 지금 보내거나 설정에서 필수 암호화를 끄세요.",
+    offline_password_protected_unavailable:
+      "오프라인 상태에서는 암호로 보호된 이메일을 대기열에 추가할 수 없습니다. 다시 연결되면 메시지를 보내세요.",
+    offline_settings_unavailable:
+      "설정을 불러올 수 없어 메시지를 보내지 않았습니다. 다시 연결되면 다시 시도하세요.",
+    cannot_send_key_changed_offline:
+      "이 메시지가 전송을 기다리는 동안 수신자의 암호화 키가 변경되어 전송되지 않았습니다.",
     failed_to_merge_contacts:
       "병합이 완료되지 않았습니다. 다시 시도하세요. 원래 연락처는 변경되지 않았습니다.",
     enter_valid_emails: "유효한 이메일 주소를 입력하세요",
@@ -1286,6 +1296,8 @@ export const ko = {
     font: "글꼴",
     stylesheet: "스타일시트",
     tracking_pixel: "추적 픽셀",
+    image_blocked: "이미지 차단됨",
+    tracking_pixel_blocked: "추적 픽셀 차단됨",
     me: "나",
     notification_banner_message:
       "새 이메일 알림을 받으려면 데스크톱 알림을 활성화하세요",
@@ -1320,6 +1332,14 @@ export const ko = {
     recover_data_success: "이전 데이터의 잠금이 해제되었습니다.",
     recover_data_no_match:
       "이 비밀번호로 잠금 해제된 데이터가 없습니다. 다른 이전 비밀번호를 사용해 보세요.",
+    recover_data_code_description:
+      "비밀번호 재설정 이전의 메일을 잠금 해제하려면 재설정 전에 저장한 복구 코드 중 하나를 입력하세요.",
+    recover_data_code_no_match:
+      "해당 코드로 잠금 해제된 데이터가 없습니다. 재설정 전에 저장한 코드를 입력하세요.",
+    recover_data_partial:
+      "이전 메일의 일부가 잠금 해제되었습니다. 나머지를 잠금 해제하려면 이전 비밀번호를 입력하세요.",
+    recover_data_rate_limited:
+      "시도 횟수가 너무 많습니다. 30분 후에 다시 시도하세요.",
     recover_data_failed:
       "일부 데이터를 잠금 해제하지 못했습니다. 연결을 확인하고 다시 시도하세요.",
     payment_past_due_message:
@@ -3691,6 +3711,8 @@ export const ko = {
     desktop_bridge_set_up: "{{ client }} 설정",
     desktop_bridge_install_hint:
       "Aster Bridge가 설치되어 실행 중이어야 합니다. 설정 > Bridge에서 다운로드하세요.",
+    desktop_bridge_not_opened:
+      "Aster Bridge가 열리지 않았습니다. 설치되어 실행 중인지 확인하거나 설정 > Bridge에서 다운로드하세요.",
     desktop_bridge_upgrade_title: "좋아하는 메일 클라이언트 사용",
     desktop_bridge_upgrade_description:
       "Aster Bridge를 통해 Apple Mail, Thunderbird 또는 Outlook을 Aster에 연결하세요. Star 이상 플랜에서 이용 가능합니다.",
@@ -4051,7 +4073,7 @@ export const ko = {
     reply_to_all: "전체 답장",
     force_dark_mode_emails: "이메일 다크 모드 강제",
     force_dark_mode_emails_description:
-      "이메일의 원래 스타일을 무시하고 항상 다크 모드로 이메일 콘텐츠를 렌더링합니다",
+      "Aster가 다크 테마를 사용하는 동안 이메일의 원래 스타일을 무시하고 다크 모드로 이메일 콘텐츠를 렌더링합니다",
     translation: "번역",
     translate_incoming: "받은 메일 번역",
     translate_incoming_description:
@@ -4672,7 +4694,7 @@ export const ko = {
       "이메일에 자물쇠 아이콘을 표시하여 메시지가 암호화, 서명 또는 둘 다 아닌지 알려줍니다.",
     info_force_dark_mode_title: "이메일 강제 다크 모드",
     info_force_dark_mode_description:
-      "이메일 스타일을 어두운 배경과 밝은 텍스트로 재작성합니다. 밝은 흰색 이메일이 눈에 부담될 때 유용합니다.",
+      "Aster가 다크 테마를 사용하는 동안 이메일 스타일을 어두운 배경과 밝은 텍스트로 재작성합니다. 밝은 흰색 이메일이 눈에 부담될 때 유용합니다.",
     info_undo_send_title: "보내기 취소",
     info_undo_send_description:
       "보내기 클릭 후 이메일을 취소할 수 있는 짧은 시간을 줍니다. 타이머가 끝날 때까지 실제로 전송되지 않습니다.",
@@ -5547,6 +5569,8 @@ export const ko = {
       "일부 이메일을 찾을 수 없나요? 스팸 및 보낸 편지함 폴더를 확인하세요 - 가져온 이메일이 그곳에 정렬되어 있을 수 있습니다.",
     n_failed_count: "{{count}}개 실패",
     import_folders_skipped:
+      "폴더 {{count}}개를 만들지 못해 해당 메일은 받은 편지함에 있습니다.",
+    import_folders_skipped_other:
       "폴더 {{count}}개를 만들지 못해 해당 메일은 받은 편지함에 있습니다.",
     import_folders_skipped_plural:
       "폴더 {{count}}개를 만들지 못해 해당 메일은 받은 편지함에 있습니다.",
@@ -8069,6 +8093,11 @@ export const ko = {
       "이 발신자의 메시지에 더 이상 양자 내성 보호가 적용되지 않습니다. 예상하지 못한 변경이라면 다른 방법으로 상대방에게 확인하세요.",
     recipient_identity_changed:
       "{{email}}의 암호화 키가 변경되었습니다. 예상하지 못한 변경이라면 민감한 정보를 보내기 전에 다른 방법으로 상대방에게 확인하세요.",
+    message_password_requirements:
+      "12자 이상을 사용하고 숫자, 기호 또는 대문자와 소문자를 모두 포함하세요.",
+    recipient_identity_untrusted:
+      "{{email}}의 암호화 키가 변경되었으며 새 키를 확인할 수 없습니다. 이 주소로 보내려면 다른 방법으로 상대방에게 변경 사항을 확인한 다음 새 키 신뢰를 선택하세요.",
+    trust_new_key: "새 키 신뢰",
     load_all_thread_messages: "모든 메시지 불러오기",
     move_to_category: "카테고리로 이동",
     menu_applies_to_selection: "선택한 {count}개에 적용",
@@ -9125,19 +9154,6 @@ export const ko = {
       "계정에 다시 접근할 수 있습니다. 재설정 이전의 암호화된 메일은 나중에 문구나 코드를 찾지 못하는 한 다시 읽을 수 없습니다.",
     phrase_recovery_failed:
       "이 문구는 이 계정과 일치하지 않습니다. 단어와 이메일 주소를 확인하세요.",
-    reset_consent_title: "이 재설정으로는 이전 데이터를 복호화할 수 없습니다",
-    reset_consent_keeps:
-      "유지되는 것: 이메일 주소, 모든 별칭(메일은 계속 수신됩니다), 구독, 그리고 계정입니다.",
-    reset_consent_loses:
-      "접근을 잃는 것: 재설정 이전의 모든 암호화된 메일, 연락처, 별칭 라벨, 설정입니다. 이들은 암호화된 상태로 계속 저장되며, 이전 비밀번호를 기억하는 경우에만 나중에 잠금 해제할 수 있습니다.",
-    reset_consent_last_chance:
-      "복구 문구나 복구 코드가 있으신가요? 둘 중 하나만 있으면 모든 것이 복원됩니다.",
-    reset_consent_use_phrase_instead: "대신 문구나 코드 사용",
-    reset_consent_checkbox:
-      "이 재설정 후에는 암호화된 데이터를 읽을 수 없게 된다는 것을 이해합니다",
-    reset_consent_type_email: "확인을 위해 전체 이메일 주소를 입력하세요",
-    reset_consent_email_mismatch: "이메일 주소가 이 계정과 일치하지 않습니다.",
-    reset_consent_continue: "그래도 비밀번호 재설정",
     reset_second_factor_title: "본인 확인",
     reset_second_factor_description:
       "이 계정은 2단계 인증을 사용합니다. 비밀번호를 재설정하기 전에 두 번째 인증 수단을 확인하세요.",
@@ -9185,12 +9201,20 @@ export const ko = {
     enter_email_associated: "복구하려는 계정의 주소를 입력하세요.",
     back_to_sign_in: "로그인으로 돌아가기",
     email_me_reset_link: "재설정 링크를 이메일로 보내기",
-    reset_link_sent_title: "복구 이메일을 확인하세요",
+    reset_link_sent_title: "이메일을 확인하세요",
+    resend_reset_link: "링크 다시 보내기",
     reset_link_sent_desc:
-      "이 사용자 이름이 등록되어 있고 확인된 복구 이메일이 있는 경우 비밀번호 재설정 링크가 전송되었습니다. 링크는 30분 후에 만료됩니다.",
+      "이 계정에 인증된 복구 이메일이 있으면 Aster Mail이 재설정 링크를 보냈습니다. 링크는 30분 후에 만료됩니다. 이메일이 보이지 않으면 스팸 폴더를 확인하세요.",
     sending_reset_link: "재설정 링크 전송 중...",
     reset_your_password: "비밀번호 재설정",
-    reset_choose_new_password: "계정에 사용할 새 비밀번호를 선택하세요.",
+    reset_choose_new_password: "계정의 새 비밀번호를 선택하세요.",
+    reset_current_password_optional: "현재 비밀번호(선택 사항)",
+    reset_current_password_hint:
+      "현재 비밀번호를 기억한다면 여기에 입력하세요. 로그인하는 즉시 이전 메일을 계속 사용할 수 있습니다. 비워 두면 나중에 복구 코드로 이전 메일을 잠금 해제할 수 있습니다.",
+    reset_unlocking_earlier_mail: "이전 메일을 잠금 해제하는 중...",
+    reset_use_recovery_code: "대신 복구 코드 사용",
+    reset_new_codes_desc:
+      "이 코드를 안전한 곳에 저장하세요. 이전 코드도 보관하세요. 그중 하나로 로그인한 후 이전 메일의 잠금을 해제할 수 있습니다.",
     reset_invalid_or_expired:
       "이 재설정 링크는 유효하지 않거나 만료되었습니다. 새 링크를 요청해 주세요.",
     request_new_reset_link: "새 재설정 링크 요청",
@@ -9224,18 +9248,18 @@ export const ko = {
       "Aster Mail은 암호화된 데이터를 읽을 수 없으므로 복구 코드나 복구 이메일 없이는 누구도 잠금을 해제할 수 없습니다. 고객 지원이 계정을 확인하고 다음 단계를 안내합니다.",
     support_email_action: "고객 지원에 이메일 보내기",
     support_help_center: "도움말 센터 열기",
-    other_ways_title: "다른 방법 사용",
+    other_ways_title: "복구 방법 선택",
     other_ways_desc: "계정에 다시 로그인할 방법을 선택하세요.",
     other_way_code_title: "복구 코드 사용",
     other_way_code_desc: "저장한 코드 중 하나를 입력하세요.",
     other_way_email_title: "복구 이메일로 재설정",
     other_way_email_desc:
-      "Aster Mail이 복구 이메일로 링크를 보냅니다. 재설정 전에 받은 메일에는 접근할 수 없습니다.",
+      "Aster Mail이 복구 이메일로 링크를 보내 새 비밀번호를 선택할 수 있게 합니다.",
     other_way_none_title: "해당하는 항목이 없음",
     other_way_none_desc: "고객 지원에 문의하면 다음 단계를 안내해 드립니다.",
-    reset_account_title: "계정을 재설정할까요?",
+    reset_account_title: "복구 이메일로 재설정",
     reset_account_desc:
-      "재설정 전의 암호화된 메일, 연락처, 파일은 이전 비밀번호로 복구할 때까지 잠긴 상태로 유지됩니다. 새로운 빈 암호화 키가 발급됩니다.",
+      "Aster Mail이 복구 이메일로 링크를 보냅니다. 링크를 열어 새 비밀번호를 선택하세요. 이전 메일은 복구 코드나 이전 비밀번호로 잠금을 해제할 때까지 암호화된 상태로 유지됩니다.",
     send_reset_link: "재설정 링크 보내기",
     print_codes: "인쇄",
     codes_copied: "코드를 복사했습니다.",
@@ -9255,9 +9279,9 @@ export const ko = {
       "다른 계정의 메시지를 Aster로 옮깁니다. 모든 내용은 저장 전에 기기에서 암호화됩니다.",
     import_mail_skip: "빈 받은편지함으로 시작",
     import_mail_privacy_note: "나중에 설정에서 가져올 수도 있습니다.",
-    password_reset_successful: "비밀번호 재설정 성공",
+    password_reset_successful: "비밀번호가 재설정되었습니다",
     account_recovered_sign_in:
-      "계정이 복구되었습니다. 이제 새 비밀번호로 로그인할 수 있습니다.",
+      "새 비밀번호로 로그인하세요. 로그인한 후 복구 코드나 이전 비밀번호로 이전 메일의 잠금을 해제할 수 있습니다.",
     check_your_inbox: "받은 편지함을 확인하세요",
     generating_encryption_keys: "암호화 키 생성 중...",
     creating_identity_keypair: "신원 키 쌍 생성 중...",
@@ -9656,6 +9680,12 @@ export const ko = {
       "필수 암호화가 켜져 있지만 수신자 중 누구도 등록된 키가 없습니다. 보내려면 수신자에게 키 공유를 요청하거나 설정에서 필수 암호화를 끄세요. 임시 보관함에 저장되었습니다.",
     cannot_send_no_recovery_key:
       "받는 사람의 계정에 읽는 데 필요한 키가 없어 Aster가 아직 이 메시지를 보낼 수 없습니다. 아무 기기에서 Aster를 열거나 앱을 업데이트해 키를 갱신하도록 요청한 다음 다시 시도하세요. 임시 보관함에 저장되었습니다.",
+    message_password_too_weak:
+      "메시지 암호가 너무 약해 메시지를 보내지 않았습니다. 12자 이상을 사용하고 숫자, 기호 또는 대문자와 소문자를 모두 포함하세요.",
+    recipient_key_untrusted:
+      "수신자의 암호화 키가 변경되어 메시지를 보내지 않았습니다. 보내려면 다른 방법으로 상대방에게 변경 사항을 확인한 다음 새 키 신뢰를 선택하세요.",
+    key_trust_check_failed:
+      "수신자의 암호화 키를 확인할 수 없어 메시지를 보내지 않았습니다. 연결을 확인하고 다시 시도하세요.",
     failed_send_external:
       "연결된 외부 계정으로 이 이메일을 보내지 못했습니다. 다시 시도하세요. 임시 보관함에 저장되었습니다.",
     failed_queue_email:

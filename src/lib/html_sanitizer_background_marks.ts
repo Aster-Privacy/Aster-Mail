@@ -22,6 +22,11 @@ export const BACKGROUND_IMAGE_MARK = "data-aster-bg-image";
 
 const BACKGROUND_IMAGE_DECLARATION = /background(?:-image)?\s*:[^;]*url\s*\(/i;
 
+const INLINE_BACKGROUND_IMAGE_VALUE = /background-image\s*:\s*([^;]*)/gi;
+
+const NO_BACKGROUND_IMAGE =
+  /^(?:none|initial|unset|inherit|revert|revert-layer)?$/i;
+
 function next_brace_index(css: string, from: number): number {
   const open_index = css.indexOf("{", from);
   const close_index = css.indexOf("}", from);
@@ -99,6 +104,28 @@ export function mark_stylesheet_background_images(root: Element): void {
     }
 
     for (const element of matches) {
+      element.setAttribute(BACKGROUND_IMAGE_MARK, "1");
+    }
+  }
+}
+
+export function has_inline_background_image(style: string): boolean {
+  for (const match of style.matchAll(INLINE_BACKGROUND_IMAGE_VALUE)) {
+    const value = match[1].replace(/!\s*important/i, "").trim();
+
+    if (!NO_BACKGROUND_IMAGE.test(value)) return true;
+  }
+
+  return false;
+}
+
+export function mark_inline_background_images(root: Element): void {
+  const candidates = Array.from(
+    root.querySelectorAll("[style*='background-image' i]"),
+  );
+
+  for (const element of candidates) {
+    if (has_inline_background_image(element.getAttribute("style") || "")) {
       element.setAttribute(BACKGROUND_IMAGE_MARK, "1");
     }
   }

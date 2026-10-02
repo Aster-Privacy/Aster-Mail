@@ -24,6 +24,8 @@ import {
 } from "./api/keys";
 import { is_internal_recipient } from "./recipient_classification";
 
+import { get_active_translations } from "@/lib/i18n/translations";
+
 export interface KeyFingerprintChange {
   email: string;
   prior_fingerprint: string;
@@ -37,6 +39,13 @@ export type KeyTrustPromptHandler = (
 ) => Promise<boolean>;
 
 let prompt_handler: KeyTrustPromptHandler | null = null;
+
+export class KeyTrustCheckError extends Error {
+  constructor() {
+    super(get_active_translations().errors.key_trust_check_failed);
+    this.name = "KeyTrustCheckError";
+  }
+}
 
 export function set_key_trust_prompt_handler(
   handler: KeyTrustPromptHandler | null,
@@ -62,7 +71,7 @@ export async function find_key_fingerprint_changes(
 
   const response = await discover_external_keys_batch(external);
 
-  if (!response.data) return [];
+  if (response.error || !response.data) throw new KeyTrustCheckError();
 
   const changes: KeyFingerprintChange[] = [];
 
@@ -86,12 +95,14 @@ export async function find_key_fingerprint_changes(
 export async function ensure_external_key_trust(
   recipients: string[],
 ): Promise<boolean> {
-  let changes: KeyFingerprintChange[] = [];
+  let changes: KeyFingerprintChange[];
 
   try {
     changes = await find_key_fingerprint_changes(recipients);
-  } catch {
-    return true;
+  } catch (error) {
+    if (error instanceof KeyTrustCheckError) throw error;
+
+    throw new KeyTrustCheckError();
   }
 
   if (changes.length === 0) return true;

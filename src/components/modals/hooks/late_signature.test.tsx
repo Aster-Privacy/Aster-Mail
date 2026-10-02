@@ -61,8 +61,13 @@ const stable = vi.hoisted(() => ({
     default_signature: null as unknown,
     is_loading: true,
     get_formatted_signature: (_signature: unknown): string => "",
+    resolve_signature: (alias_id: string | null): unknown =>
+      (stable.signatures.signatures as { alias_id: string | null }[]).find(
+        (s) => alias_id !== null && s.alias_id === alias_id,
+      ) ?? null,
   },
   sender: { sender_options: [] as unknown[], loading: false },
+  resolved_sender: null as unknown,
   ghost: { is_ghost_enabled: false },
   contacts: [] as unknown[],
   plan: { limits: null, is_feature_locked: () => false },
@@ -119,6 +124,8 @@ vi.mock("@/hooks/use_draggable_modal", () => ({
 
 vi.mock("@/hooks/use_sender_aliases", () => ({
   use_sender_aliases: () => stable.sender,
+  is_signature_bindable_sender_type: (type: string) =>
+    ["alias", "domain", "ghost"].includes(type),
 }));
 
 vi.mock("@/hooks/use_ghost_mode", () => ({
@@ -126,7 +133,10 @@ vi.mock("@/hooks/use_ghost_mode", () => ({
 }));
 
 vi.mock("@/hooks/use_ghost_sender_binding", () => ({
-  use_ghost_sender_binding: () => () => undefined,
+  use_ghost_sender_binding:
+    (_ghost: unknown, _sender: unknown, set: (value: unknown) => void) =>
+    (value: unknown) =>
+      set(value),
 }));
 
 vi.mock("@/lib/preferred_sender", () => ({
@@ -140,7 +150,8 @@ vi.mock("@/hooks/use_preferred_sender_ready", () => ({
 }));
 
 vi.mock("@/components/compose/resolve_from_sender", () => ({
-  resolve_from_sender: () => null,
+  resolve_from_sender: () =>
+    stable.resolved_sender ? { option: stable.resolved_sender } : null,
 }));
 
 vi.mock("@/hooks/use_suggestion_contacts", () => ({
@@ -159,6 +170,13 @@ vi.mock("@/lib/html_sanitizer", () => ({
 
 vi.mock("@/lib/forward_css_inliner", () => ({
   inline_email_css: (html: string) => html,
+}));
+
+vi.mock("@/services/scheduled_send_gate", () => ({
+  check_scheduled_send: vi.fn(async () => ({
+    proceed: true,
+    allow_non_post_quantum: false,
+  })),
 }));
 
 vi.mock("@/services/lockdown_store", () => ({
@@ -427,6 +445,9 @@ beforeEach(() => {
   mocks.update_draft.mockReset();
   stable.signatures.is_loading = true;
   stable.signatures.default_signature = null;
+  stable.signatures.signatures = [];
+  stable.sender = { sender_options: [], loading: false };
+  stable.resolved_sender = null;
   window.getSelection()?.removeAllRanges();
   container = document.createElement("div");
   document.body.appendChild(container);
@@ -603,5 +624,159 @@ describe("forward body when the signatures load late", () => {
     expect(editor.innerHTML).toBe("FYI, see below");
     expect(forward!.forward_message).toBe("FYI, see below");
     expect_caret_at_end_of(typed);
+  });
+});
+
+describe("signature of the address the reply is sent from", () => {
+  const alias_signature: DecryptedSignature = {
+    ...signature,
+    id: "sig_alias",
+    name: "Support",
+    content: "Support team",
+    is_default: false,
+    alias_id: "alias_support",
+  };
+  const alias_signature_html = format_signature_html(alias_signature, true);
+  const support_sender = {
+    id: "alias_support",
+    email: "support@example.com",
+    type: "alias",
+    is_enabled: true,
+  };
+  const primary_sender = {
+    id: "primary",
+    email: "me@example.com",
+    type: "primary",
+    is_enabled: true,
+  };
+
+  function use_alias_signatures() {
+    stable.signatures.signatures = [signature, alias_signature];
+    stable.sender = {
+      sender_options: [primary_sender, support_sender],
+      loading: false,
+    };
+  }
+
+  it("uses the alias signature when replying from that alias", async () => {
+    use_alias_signatures();
+    stable.resolved_sender = support_sender;
+    finish_signature_load(signature);
+    await render_reply(reply_props());
+    await advance(0);
+
+    expect(body_editor().innerHTML).toBe(
+      COMPOSE_CARET_BLOCK +
+        SIGNATURE_GAP_BLOCK +
+        alias_signature_html +
+        stable.footer,
+    );
+  });
+
+  it("swaps in the alias signature when the sender resolves after the body", async () => {
+    use_alias_signatures();
+    stable.sender = { ...stable.sender, loading: true };
+    finish_signature_load(signature);
+    const props = reply_props();
+
+    await render_reply(props);
+    await advance(0);
+
+    expect(body_editor().innerHTML).toContain(signature_html);
+
+    stable.sender = { ...stable.sender, loading: false };
+    stable.resolved_sender = support_sender;
+    await render_reply(props);
+    await advance(0);
+
+    const editor = body_editor();
+
+    expect(editor.innerHTML).toBe(
+      COMPOSE_CARET_BLOCK +
+        SIGNATURE_GAP_BLOCK +
+        alias_signature_html +
+        stable.footer,
+    );
+    expect(reply!.reply_message).toBe(editor.innerHTML);
+  });
+
+  it("swaps the signature when another sender is picked, keeping the text", async () => {
+    use_alias_signatures();
+    stable.resolved_sender = primary_sender;
+    finish_signature_load(signature);
+    await render_forward(forward_props());
+    await advance(0);
+
+    const editor = body_editor();
+
+    editor.insertAdjacentText("afterbegin", "FYI, see below");
+
+    await act(async () => {
+      forward!.set_selected_sender(support_sender as never);
+    });
+
+    expect(editor.innerHTML).toBe(
+      "FYI, see below" +
+        COMPOSE_CARET_BLOCK +
+        SIGNATURE_GAP_BLOCK +
+        alias_signature_html,
+    );
+    expect(forward!.forward_message).toBe(editor.innerHTML);
+
+    await act(async () => {
+      forward!.set_selected_sender(primary_sender as never);
+    });
+
+    expect(editor.innerHTML).toBe(
+      "FYI, see below" +
+        COMPOSE_CARET_BLOCK +
+        SIGNATURE_GAP_BLOCK +
+        signature_html,
+    );
+  });
+
+  it("does not bring back a signature the user deleted", async () => {
+    use_alias_signatures();
+    stable.resolved_sender = primary_sender;
+    finish_signature_load(signature);
+    await render_forward(forward_props());
+    await advance(0);
+
+    const editor = body_editor();
+
+    editor.querySelector("[data-aster-signature='1']")!.remove();
+    const without_signature = editor.innerHTML;
+
+    await act(async () => {
+      forward!.set_selected_sender(support_sender as never);
+    });
+
+    expect(editor.innerHTML).toBe(without_signature);
+  });
+
+  it("leaves the signature of a restored reply draft alone", async () => {
+    use_alias_signatures();
+    stable.resolved_sender = support_sender;
+    finish_signature_load(signature);
+    const draft_body = "Saved reply" + signature_html;
+
+    await render_reply({
+      ...reply_props(),
+      existing_draft: {
+        id: "draft_1",
+        version: 1,
+        reply_to_id: "email_1",
+        content: {
+          to_recipients: ["sam@example.com"],
+          cc_recipients: [],
+          bcc_recipients: [],
+          subject: "Re: Plans",
+          message: draft_body,
+        },
+      } as never,
+    });
+    await advance(0);
+
+    expect(body_editor().innerHTML).toBe(draft_body);
   });
 });

@@ -68,6 +68,7 @@ export interface AttachmentListProps {
   mail_item_id: string;
   is_external?: boolean;
   has_recipient_key?: boolean;
+  e2e_verified?: boolean;
   is_local?: boolean;
   hint_attachment_count?: number;
 }

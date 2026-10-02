@@ -462,7 +462,7 @@ export function use_sign_in_page() {
         const response = await login_user({
           user_hash,
           password_hash,
-          remember_me: true,
+          remember_me: false,
           is_adding_account,
         });
 
@@ -542,6 +542,7 @@ export function use_sign_in_page() {
           raw_password,
           response.data.encrypted_vault,
           response.data.vault_nonce,
+          false,
         );
 
         if (response.data.needs_prekey_replenishment) {
@@ -720,6 +721,7 @@ export function use_sign_in_page() {
               password,
               totp_response.encrypted_vault,
               totp_response.vault_nonce,
+              remember_me,
             ),
           );
 
@@ -743,6 +745,7 @@ export function use_sign_in_page() {
               password,
               totp_response.encrypted_vault,
               totp_response.vault_nonce,
+              remember_me,
             ),
           );
         }
@@ -817,6 +820,7 @@ export function use_sign_in_page() {
       t,
       navigate,
       active_2fa_method,
+      remember_me,
     ],
   );
 

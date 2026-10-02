@@ -36,3 +36,12 @@ export function compute_password_strength_tier(password: string): number {
 
   return 4;
 }
+
+export const MIN_MESSAGE_PASSWORD_LENGTH = 12;
+
+export function is_strong_message_password(password: string): boolean {
+  return (
+    password.length >= MIN_MESSAGE_PASSWORD_LENGTH &&
+    compute_password_strength_tier(password) >= 3
+  );
+}

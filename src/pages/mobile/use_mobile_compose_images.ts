@@ -28,6 +28,7 @@ import {
 import { sanitize_compose_paste } from "@/lib/html_sanitizer";
 import {
   MAX_PASTE_IMAGE_SIZE,
+  pasted_html_has_text,
   validate_image_magic_bytes,
 } from "@/hooks/editor_utils";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -289,6 +290,12 @@ export function use_mobile_compose_images(compose: ComposeHandle) {
       const clipboard = e.clipboardData;
 
       if (!clipboard) {
+        compose.handle_editor_paste(e);
+
+        return;
+      }
+
+      if (pasted_html_has_text(clipboard.getData("text/html"))) {
         compose.handle_editor_paste(e);
 
         return;

@@ -55,6 +55,7 @@ export interface DecryptedEmail {
   labels: string[];
   is_external?: boolean;
   system_origin?: boolean;
+  e2e_verified?: boolean;
   sender_verified_domain?: string;
   send_status?: string;
   send_error?: string;

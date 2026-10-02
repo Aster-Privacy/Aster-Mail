@@ -21,7 +21,7 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Button, Checkbox } from "@aster/ui";
+import { Button } from "@aster/ui";
 
 import { copy_text_or_throw } from "@/utils/copy_text";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -29,6 +29,7 @@ import { COPY_FEEDBACK_MS } from "@/constants/timings";
 import { useTheme } from "@/contexts/theme_context";
 import { use_should_reduce_motion } from "@/provider";
 import {
+  decrypt_vault,
   derive_password_hash,
   generate_recovery_codes,
   RECOVERY_CODE_SET_SIZE,
@@ -37,6 +38,7 @@ import {
   generate_signed_prekey,
   prepare_pgp_key_data,
 } from "@/services/crypto/key_manager";
+import { carry_vault_through_reset } from "@/services/crypto/carry_vault_through_reset";
 import {
   generate_recovery_key,
   encrypt_vault_backup,
@@ -48,9 +50,11 @@ import {
   array_to_base64,
 } from "@/services/crypto/key_manager_core";
 import { MASTER_KEY_VAULT_FORMAT } from "@/services/crypto/memory_key_store";
+import { build_backup_vault } from "@/services/crypto/backup_unlocked_keys";
 import {
   get_reset_hardware_key_options,
   get_reset_second_factor_status,
+  get_reset_vault,
   reset_password_with_token,
   ResetSecondFactorStatus,
   verify_reset_hardware_key,
@@ -83,7 +87,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { user_facing_error } from "@/utils/user_facing_error";
 
 type ResetStep =
-  | "consent"
+  | "loading"
   | "second_factor"
   | "password"
   | "processing"
@@ -271,23 +275,23 @@ export default function ResetPasswordPage() {
     (initial_params.get("email") || "").trim().toLowerCase(),
   );
 
-  const [step, set_step] = useState<ResetStep>(token ? "consent" : "invalid");
+  const [step, set_step] = useState<ResetStep>(token ? "loading" : "invalid");
 
   useEffect(() => {
-    if (step !== "success" && step !== "invalid") return;
-
-    if (!token && !account_email) return;
+    if (!initial_params.has("token") && !initial_params.has("email")) return;
 
     const clean_url = new URL(window.location.href);
 
     clean_url.searchParams.delete("token");
     clean_url.searchParams.delete("email");
     window.history.replaceState({}, "", clean_url.toString());
-  }, [step, token, account_email]);
-  const [consent_checked, set_consent_checked] = useState(false);
-  const [consent_email, set_consent_email] = useState("");
+  }, [initial_params]);
+  const [status_failed, set_status_failed] = useState(false);
+  const [status_attempt, set_status_attempt] = useState(0);
+  const [current_password, set_current_password] = useState("");
   const [password, set_password] = useState("");
   const [confirm_password, set_confirm_password] = useState("");
+  const [is_current_visible, set_is_current_visible] = useState(false);
   const [is_password_visible, set_is_password_visible] = useState(false);
   const [is_confirm_visible, set_is_confirm_visible] = useState(false);
   const [error, set_error] = useState("");
@@ -308,25 +312,53 @@ export default function ResetPasswordPage() {
 
     let cancelled = false;
 
-    get_reset_second_factor_status(token).then((response) => {
-      if (cancelled) return;
+    get_reset_second_factor_status(token)
+      .then((response) => {
+        if (cancelled) return;
 
-      if (response.code === "UNAUTHORIZED" || response.code === "FORBIDDEN") {
-        set_step("invalid");
+        if (
+          response.code === "UNAUTHORIZED" ||
+          response.code === "FORBIDDEN" ||
+          response.code === "NOT_FOUND"
+        ) {
+          set_step("invalid");
 
-        return;
-      }
+          return;
+        }
 
-      if (response.data) {
+        if (!response.data) {
+          set_status_failed(true);
+
+          return;
+        }
+
         set_second_factor(response.data);
         set_second_factor_mode(initial_second_factor_mode(response.data));
-      }
-    });
+        set_step(response.data.required ? "second_factor" : "password");
+      })
+      .catch(() => {
+        if (!cancelled) set_status_failed(true);
+      });
 
     return () => {
       cancelled = true;
     };
-  }, [token]);
+  }, [token, status_attempt]);
+
+  const shown_address = second_factor?.address || account_email;
+  const reset_address = shown_address;
+
+  const handle_status_retry = () => {
+    set_status_failed(false);
+    set_status_attempt((attempt) => attempt + 1);
+  };
+
+  const handle_use_recovery_code = () => {
+    navigate(
+      "/forgot-password",
+      shown_address ? { state: { username: shown_address } } : undefined,
+    );
+  };
 
   const enter_second_factor_step = () => {
     set_error("");
@@ -389,7 +421,7 @@ export default function ResetPasswordPage() {
       } else if (kind === "invalid_code") {
         set_error(t("settings.invalid_2fa_code"));
       } else {
-        set_error(response.error || t("auth.recovery_failed"));
+        set_error(t("auth.recovery_failed"));
       }
 
       return;
@@ -413,7 +445,7 @@ export default function ResetPasswordPage() {
 
           return;
         }
-        throw new Error(options.error || t("auth.recovery_failed"));
+        throw new Error(t("auth.recovery_failed"));
       }
 
       const assertion = await perform_webauthn_assertion_with_options(
@@ -427,7 +459,7 @@ export default function ResetPasswordPage() {
 
           return;
         }
-        throw new Error(response.error || t("auth.recovery_failed"));
+        throw new Error(t("auth.recovery_failed"));
       }
 
       finish_second_factor();
@@ -438,31 +470,25 @@ export default function ResetPasswordPage() {
     }
   };
 
-  const handle_consent_continue = () => {
-    set_error("");
-
-    const typed_email = consent_email.trim().toLowerCase();
-
-    const matches = account_email
-      ? typed_email === account_email
-      : /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(typed_email);
-
-    if (!matches) {
-      set_error(t("auth.reset_consent_email_mismatch"));
-
-      return;
-    }
-
-    if (second_factor?.required) {
-      enter_second_factor_step();
-
-      return;
-    }
-
-    set_step("password");
+  const require_second_factor = () => {
+    set_second_factor((current) =>
+      current
+        ? { ...current, required: true, verified: false }
+        : {
+            required: true,
+            verified: false,
+            totp: true,
+            backup_codes: true,
+            hardware_key: is_webauthn_supported(),
+          },
+    );
+    enter_second_factor_step();
+    set_error(t("auth.reset_second_factor_description"));
   };
 
   const handle_submit = async () => {
+    if (step === "processing") return;
+
     set_error("");
 
     if (!/^[\x20-\x7E]*$/.test(password)) {
@@ -485,7 +511,7 @@ export default function ResetPasswordPage() {
       return;
     }
 
-    if (!token) {
+    if (!token || !reset_address) {
       set_step("invalid");
 
       return;
@@ -495,12 +521,52 @@ export default function ResetPasswordPage() {
     set_processing_status(t("auth.generating_new_encryption_keys"));
 
     try {
+      let old_vault: EncryptedVault | null = null;
+
+      if (current_password) {
+        set_processing_status(t("auth.reset_unlocking_earlier_mail"));
+        const vault_response = await get_reset_vault(token);
+
+        if (vault_response.error || !vault_response.data) {
+          if (
+            vault_response.code === "UNAUTHORIZED" ||
+            vault_response.code === "FORBIDDEN"
+          ) {
+            set_step("invalid");
+
+            return;
+          }
+          if (vault_response.server_code === "SECOND_FACTOR_REQUIRED") {
+            require_second_factor();
+
+            return;
+          }
+          if (vault_response.code !== "NOT_FOUND") {
+            throw new Error(t("auth.recovery_failed"));
+          }
+        } else {
+          try {
+            old_vault = await decrypt_vault(
+              vault_response.data.encrypted_vault,
+              vault_response.data.vault_nonce,
+              current_password,
+            );
+          } catch {
+            await timing_safe_delay();
+            set_error(t("settings.current_password_incorrect"));
+            set_step("password");
+
+            return;
+          }
+        }
+      }
+
+      set_processing_status(t("auth.generating_new_encryption_keys"));
       const salt = crypto.getRandomValues(new Uint8Array(32));
       const { hash: password_hash, salt: password_salt } =
         await derive_password_hash(password, salt);
 
-      const placeholder_email =
-        account_email || consent_email.trim().toLowerCase() || "user@local";
+      const placeholder_email = reset_address;
       const display_name = placeholder_email.split("@")[0] || "User";
 
       const new_identity_keypair = await generate_identity_keypair(
@@ -542,16 +608,25 @@ export default function ResetPasswordPage() {
 
       master_key.fill(0);
 
+      const next_vault = old_vault
+        ? await carry_vault_through_reset(
+            old_vault,
+            current_password,
+            fresh_vault,
+            password,
+          )
+        : fresh_vault;
+
       set_processing_status(t("auth.encrypting_vault_new_password"));
       const { encrypted_vault, vault_nonce } = await encrypt_vault(
-        fresh_vault,
+        next_vault,
         password,
       );
 
       set_processing_status(t("auth.creating_new_recovery_backup"));
       const new_recovery_key = generate_recovery_key();
       const new_backup = await encrypt_vault_backup(
-        fresh_vault,
+        await build_backup_vault(next_vault, password),
         new_recovery_key,
       );
       const new_shares = await generate_all_recovery_shares(
@@ -577,7 +652,9 @@ export default function ResetPasswordPage() {
         btoa(prekey_signature),
         pgp_key_data,
         MASTER_KEY_VAULT_FORMAT,
-        consent_checked,
+        true,
+        undefined,
+        old_vault !== null,
       );
 
       if (response.error || !response.data?.success) {
@@ -591,25 +668,14 @@ export default function ResetPasswordPage() {
           return;
         }
         if (response.server_code === "SECOND_FACTOR_REQUIRED") {
-          set_second_factor((current) =>
-            current
-              ? { ...current, required: true, verified: false }
-              : {
-                  required: true,
-                  verified: false,
-                  totp: true,
-                  backup_codes: true,
-                  hardware_key: is_webauthn_supported(),
-                },
-          );
-          enter_second_factor_step();
-          set_error(t("auth.reset_second_factor_description"));
+          require_second_factor();
 
           return;
         }
-        throw new Error(response.error || t("auth.recovery_failed"));
+        throw new Error(t("auth.recovery_failed"));
       }
 
+      set_current_password("");
       set_step("new_codes");
     } catch (err) {
       await timing_safe_delay();
@@ -630,8 +696,7 @@ export default function ResetPasswordPage() {
     }
   };
 
-  const recovery_doc_email =
-    account_email || consent_email.trim().toLowerCase() || "user@local";
+  const recovery_doc_email = reset_address;
 
   const handle_download_pdf = async () => {
     try {
@@ -653,12 +718,12 @@ export default function ResetPasswordPage() {
 
   const render_step_content = () => {
     switch (step) {
-      case "consent":
+      case "loading":
         return (
           <motion.div
-            key="consent"
+            key="loading"
             animate="animate"
-            className="flex flex-col items-center w-full max-w-md px-4 text-center"
+            className="flex flex-col items-center w-full max-w-sm px-4 text-center"
             exit="exit"
             initial={reduce_motion ? false : "initial"}
             transition={{
@@ -667,111 +732,38 @@ export default function ResetPasswordPage() {
             }}
             variants={page_variants}
           >
-            <Logo />
+            {status_failed ? (
+              <>
+                <Logo />
 
-            <h1 className="text-xl font-semibold mt-6 text-txt-primary">
-              {t("auth.reset_consent_title")}
-            </h1>
-
-            <AnimatePresence>
-              {error && <Alert is_dark={is_dark} message={error} />}
-            </AnimatePresence>
-
-            <div
-              className={`w-full ${error ? "mt-4" : "mt-6"} space-y-3 text-start`}
-            >
-              <div
-                className="rounded-lg border p-3"
-                style={{
-                  borderColor: "rgba(34, 197, 94, 0.3)",
-                  backgroundColor: "rgba(34, 197, 94, 0.06)",
-                }}
-              >
-                <p className="text-xs leading-relaxed text-txt-secondary">
-                  {t("auth.reset_consent_keeps")}
+                <h1 className="text-xl font-semibold mt-6 text-txt-primary">
+                  {t("auth.reset_your_password")}
+                </h1>
+                <p className="text-sm mt-2 leading-relaxed text-txt-tertiary">
+                  {t("common.something_went_wrong_try_again")}
                 </p>
-              </div>
 
-              <div
-                className="rounded-lg border p-3"
-                style={{
-                  borderColor: "rgba(239, 68, 68, 0.3)",
-                  backgroundColor: "rgba(239, 68, 68, 0.06)",
-                }}
-              >
-                <p className="text-xs leading-relaxed text-txt-secondary">
-                  {t("auth.reset_consent_loses")}
-                </p>
-              </div>
-
-              <div
-                className="rounded-lg border p-3"
-                style={{
-                  borderColor: "rgba(245, 158, 11, 0.3)",
-                  backgroundColor: "rgba(245, 158, 11, 0.06)",
-                }}
-              >
-                <p className="text-xs leading-relaxed text-txt-secondary">
-                  {t("auth.reset_consent_last_chance")}
-                </p>
-                <button
-                  className="mt-2 text-sm font-medium underline transition-colors hover:opacity-80 text-txt-primary"
-                  type="button"
-                  onClick={() => navigate("/forgot-password")}
+                <Button
+                  className="w-full mt-6"
+                  size="xl"
+                  variant="depth"
+                  onClick={handle_status_retry}
                 >
-                  {t("auth.reset_consent_use_phrase_instead")}
-                </button>
-              </div>
+                  {t("common.try_again")}
+                </Button>
 
-              <label className="flex items-start gap-2.5 cursor-pointer pt-1">
-                <Checkbox
-                  checked={consent_checked}
-                  className="mt-0.5 shrink-0"
-                  onChange={(e) => set_consent_checked(e.target.checked)}
-                />
-                <span className="text-sm leading-relaxed text-txt-secondary">
-                  {t("auth.reset_consent_checkbox")}
-                </span>
-              </label>
-
-              <div>
-                <p className="text-xs font-medium mb-1.5 text-txt-muted">
-                  {t("auth.reset_consent_type_email")}
-                </p>
-                <Input
-                  autoComplete="email"
-                  name="email"
-                  status={error ? "error" : "default"}
-                  type="email"
-                  value={consent_email}
-                  onChange={(e) => set_consent_email(e.target.value)}
-                  onKeyDown={(e) =>
-                    e["key"] === "Enter" &&
-                    consent_checked &&
-                    handle_consent_continue()
-                  }
-                />
-              </div>
-            </div>
-
-            <Button
-              className="w-full mt-6"
-              disabled={!consent_checked || !consent_email.trim()}
-              size="xl"
-              variant="depth"
-              onClick={handle_consent_continue}
-            >
-              {t("auth.reset_consent_continue")}
-            </Button>
-
-            <Button
-              className="w-full mt-3"
-              size="xl"
-              variant="secondary"
-              onClick={() => navigate("/sign-in")}
-            >
-              {t("auth.back_to_sign_in")}
-            </Button>
+                <Button
+                  className="w-full mt-3"
+                  size="xl"
+                  variant="secondary"
+                  onClick={() => navigate("/sign-in")}
+                >
+                  {t("auth.back_to_sign_in")}
+                </Button>
+              </>
+            ) : (
+              <Spinner className="h-10 w-10 text-brand" size="lg" />
+            )}
           </motion.div>
         );
 
@@ -949,6 +941,11 @@ export default function ResetPasswordPage() {
             <h1 className="text-xl font-semibold mt-6 text-txt-primary">
               {t("auth.reset_your_password")}
             </h1>
+            {shown_address && (
+              <p className="notranslate mt-1 max-w-full truncate text-sm font-medium text-txt-primary">
+                {shown_address}
+              </p>
+            )}
             <p className="text-sm mt-2 leading-relaxed text-txt-tertiary">
               {t("auth.reset_choose_new_password")}
             </p>
@@ -962,6 +959,39 @@ export default function ResetPasswordPage() {
                 <InputWithEndContent
                   // eslint-disable-next-line jsx-a11y/no-autofocus
                   autoFocus
+                  autoComplete="current-password"
+                  end_content={
+                    <button
+                      aria-label={
+                        is_current_visible
+                          ? t("settings.hide_password_toggle")
+                          : t("settings.show_password_toggle")
+                      }
+                      className="focus:outline-none flex items-center justify-center"
+                      type="button"
+                      onClick={() =>
+                        set_is_current_visible(!is_current_visible)
+                      }
+                    >
+                      {is_current_visible ? <EyeSlashIcon /> : <EyeIcon />}
+                    </button>
+                  }
+                  maxLength={128}
+                  placeholder={t("auth.reset_current_password_optional")}
+                  status="default"
+                  type={is_current_visible ? "text" : "password"}
+                  value={current_password}
+                  onChange={(e) =>
+                    set_current_password(clamp_password(e.target.value))
+                  }
+                />
+                <p className="mt-2 text-start text-xs leading-relaxed text-txt-muted">
+                  {t("auth.reset_current_password_hint")}
+                </p>
+              </div>
+
+              <div>
+                <InputWithEndContent
                   autoComplete="new-password"
                   end_content={
                     <button
@@ -1024,6 +1054,14 @@ export default function ResetPasswordPage() {
             >
               {t("auth.back_to_sign_in")}
             </Button>
+
+            <button
+              className="w-full mt-6 text-sm transition-colors hover:opacity-80 text-txt-tertiary"
+              type="button"
+              onClick={handle_use_recovery_code}
+            >
+              {t("auth.reset_use_recovery_code")}
+            </button>
           </motion.div>
         );
 
@@ -1077,30 +1115,38 @@ export default function ResetPasswordPage() {
               {t("auth.save_new_recovery_codes")}
             </h1>
             <p className="text-sm mt-2 leading-relaxed text-txt-tertiary">
-              {t("auth.old_codes_invalidated")}
+              {t("auth.reset_new_codes_desc")}
             </p>
 
             <div className="w-full mt-6">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-xs font-medium text-txt-muted">
                   {t("auth.n_recovery_codes", {
-                    count: new_recovery_codes.length.toString(),
+                    count: new_recovery_codes.length,
                   })}
                 </span>
                 <div className="flex items-center gap-1">
                   <button
+                    aria-label={
+                      is_key_visible
+                        ? t("settings.hide_password_toggle")
+                        : t("settings.show_password_toggle")
+                    }
                     className="p-1.5 rounded transition-colors hover:opacity-80 text-txt-muted"
+                    type="button"
                     onClick={() => set_is_key_visible(!is_key_visible)}
                   >
                     {is_key_visible ? <EyeSlashIcon /> : <EyeIcon />}
                   </button>
                   <button
+                    aria-label={t("auth.copy_codes")}
                     className="p-1.5 rounded transition-colors hover:opacity-80"
                     style={{
                       color: copy_success
                         ? "var(--color-success)"
                         : "var(--text-muted)",
                     }}
+                    type="button"
                     onClick={handle_copy_codes}
                   >
                     <CopyIcon />
@@ -1147,8 +1193,12 @@ export default function ResetPasswordPage() {
 
             <button
               className="w-full mt-6 text-sm transition-colors hover:opacity-80 text-txt-tertiary"
+              type="button"
               onClick={() => {
                 set_new_recovery_codes([]);
+                set_password("");
+                set_confirm_password("");
+                set_second_factor_code("");
                 set_step("success");
               }}
             >
@@ -1173,24 +1223,7 @@ export default function ResetPasswordPage() {
             }}
             variants={page_variants}
           >
-            <div
-              className="w-16 h-16 rounded-full flex items-center justify-center"
-              style={{ backgroundColor: "rgba(34, 197, 94, 0.1)" }}
-            >
-              <svg
-                className="w-8 h-8"
-                fill="none"
-                stroke="var(--color-success)"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  d="M5 13l4 4L19 7"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
+            <Logo />
 
             <h1 className="text-xl font-semibold mt-6 text-txt-primary">
               {t("auth.password_reset_successful")}

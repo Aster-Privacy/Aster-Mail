@@ -25,6 +25,7 @@ export const ru = {
     add_to_group: "Добавить в группу",
     added_to_group: "Добавлено в группу",
     birthdays_upcoming: "Скоро дней рождения: {{count}}",
+    birthdays_upcoming_one: "Скоро {{count}} день рождения",
     bulk_create_hint:
       "Добавляйте по одному контакту в строке. Чтобы сохранить адрес электронной почты вместе с именем, напишите адрес в угловых скобках.",
     bulk_create_placeholder: "Ada Lovelace <ada@example.com>",
@@ -36,6 +37,7 @@ export const ru = {
     contact_change_undone: "Изменение отменено",
     contact_restored: "Контакт восстановлен",
     contacts_created: "Создано контактов: {{count}}",
+    contacts_created_one: "Создан {{count}} контакт",
     contacts_exported: "Контакты экспортированы",
     contacts_merged: "Контакты объединены",
     contacts_moved_to_trash: "Контакты перемещены в корзину",
@@ -55,6 +57,7 @@ export const ru = {
     frequent_contacts_hint:
       "Контакты, которым вы пишете чаще всего, появляются здесь.",
     group_contact_count: "Контактов: {{count}}",
+    group_contact_count_one: "{{count}} контакт",
     group_created: "Группа создана",
     group_deleted: "Группа удалена",
     group_empty_title: "В этой группе нет контактов",
@@ -86,6 +89,7 @@ export const ru = {
     share_contact: "Поделиться контактом",
     some_contacts_not_created: "Некоторые контакты создать не удалось.",
     trash_days_left: "Осталось дней: {{count}}",
+    trash_days_left_one: "Остался {{count}} день",
     undo_change: "Отменить изменение",
     delete_folder_account_password: "Пароль учётной записи",
     delete_folder_step_up_hint:
@@ -98,6 +102,8 @@ export const ru = {
       "Я понимаю, что эти письма восстановить нельзя.",
     delete_folder_purged_items:
       "Папка удалена, безвозвратно уничтожено писем: {count}.",
+    delete_folder_purged_items_one:
+      "Папка удалена, безвозвратно уничтожено {count} письмо.",
     delete_folder_deleted_no_purge:
       "Папка удалена. Письма внутри остаются в учётной записи.",
     delete_folder_password_required: "Введите пароль учётной записи.",
@@ -643,6 +649,8 @@ export const ru = {
     not_detected: "Не обнаружено",
     navigate: "Навигация",
     commands_count: "{{count}} команд",
+    commands_count_one: "{{count}} команда",
+    commands_count_few: "{{count}} команды",
     no_commands_found: "Команды не найдены",
     type_command_or_search: "Введите команду или поисковый запрос...",
     failed_to_load_emails:
@@ -885,6 +893,16 @@ export const ru = {
       "Отложенная отправка недоступна для подключенных аккаунтов. Отправьте это сообщение сейчас или выберите адрес Aster.",
     scheduled_no_expiry:
       "Запланированные письма пока не поддерживают срок действия. Отправьте сейчас или уберите срок, чтобы запланировать отправку.",
+    scheduled_too_far_ahead:
+      "Запланированные письма можно отправить не более чем на 28 дней вперед. Выберите более раннее время.",
+    scheduled_requires_encryption:
+      "У вас включено обязательное шифрование, а запланированные письма на внешние адреса не защищены сквозным шифрованием. Отправьте это сообщение сейчас или отключите обязательное шифрование в настройках.",
+    offline_password_protected_unavailable:
+      "Нельзя поставить в очередь письма, защищенные паролем, когда вы не в сети. Когда подключение восстановится, отправьте сообщение.",
+    offline_settings_unavailable:
+      "Не удалось загрузить ваши настройки, поэтому сообщение не отправлено. Когда подключение восстановится, повторите попытку.",
+    cannot_send_key_changed_offline:
+      "Ключ шифрования получателя изменился, пока это сообщение ожидало отправки, поэтому оно не было отправлено.",
     failed_to_merge_contacts:
       "Объединение не завершилось. Попробуйте снова. Исходные контакты не изменились.",
     enter_valid_emails: "Введите корректные адреса электронной почты",
@@ -1127,6 +1145,9 @@ export const ru = {
     n_conversations_moved_to_trash_other:
       "{{count}} беседы перемещены в корзину",
     n_conversations_marked_as_spam: "{{ count }} разговоров отмечено как спам",
+    n_conversations_marked_as_spam_one: "{{ count }} разговор отмечен как спам",
+    n_conversations_marked_as_spam_few:
+      "{{ count }} разговора отмечены как спам",
     external_only: "Только внешние",
     all_accounts: "Все аккаунты",
     failed_to_rotate_keys:
@@ -1155,6 +1176,8 @@ export const ru = {
     added_to_allowlist: "{{ email }} добавлено в список разрешённых",
     no_content: "Нет содержимого",
     unblocked_count_senders: "Разблокировано {{ count }} отправителей",
+    unblocked_count_senders_one: "Разблокирован {{ count }} отправитель",
+    unblocked_count_senders_few: "Разблокировано {{ count }} отправителя",
     removed_count_from_allowlist: "Удалено {{ count }} из списка разрешённых",
     failed_to_add_label: "Попробуйте снова.",
     failed_to_remove_label: "Попробуйте снова.",
@@ -1233,6 +1256,8 @@ export const ru = {
     font: "Шрифт",
     stylesheet: "Таблица стилей",
     tracking_pixel: "Пиксель отслеживания",
+    image_blocked: "Изображение заблокировано",
+    tracking_pixel_blocked: "Пиксель отслеживания заблокирован",
     me: "я",
     notification_banner_message:
       "Включите уведомления на рабочем столе, чтобы получать информацию о новых письмах",
@@ -1267,6 +1292,14 @@ export const ru = {
     recover_data_success: "Ваши старые данные разблокированы.",
     recover_data_no_match:
       "Этот пароль не разблокировал никаких данных. Попробуйте другой прежний пароль.",
+    recover_data_code_description:
+      "Чтобы разблокировать почту, полученную до сброса пароля, введите один из кодов восстановления, сохраненных до сброса.",
+    recover_data_code_no_match:
+      "Этот код не разблокировал никаких данных. Введите код, сохраненный до сброса.",
+    recover_data_partial:
+      "Часть вашей прежней почты разблокирована. Чтобы разблокировать остальное, введите предыдущий пароль.",
+    recover_data_rate_limited:
+      "Слишком много попыток. Подождите 30 минут и повторите попытку.",
     recover_data_failed:
       "Не удалось разблокировать часть данных. Проверьте подключение и повторите попытку.",
     payment_past_due_message:
@@ -1379,6 +1412,8 @@ export const ru = {
     check_out_aster_mail:
       "Посмотрите Aster Mail, удобный способ управлять почтой!",
     n_lines: "{{ count }} строк",
+    n_lines_one: "{{ count }} строка",
+    n_lines_few: "{{ count }} строки",
     hide_details: "Скрыть детали",
     show_details: "Показать детали",
     not_phishing: "Не фишинг",
@@ -1393,6 +1428,8 @@ export const ru = {
       "Просмотреть детали заблокированного содержимого",
     n_images: "{{ count }} изображений",
     n_items: "{{ count }} элементов",
+    n_items_one: "{{ count }} элемент",
+    n_items_few: "{{ count }} элемента",
     ctrl_click_to_open: "Ctrl+клик, чтобы открыть",
     user_id_label: "ID пользователя",
     platform_label: "Платформа",
@@ -1618,6 +1655,8 @@ export const ru = {
       "Ваше сообщение будет отправлено в ближайшее время",
     more_aliases: "ещё {{count}} псевдонимов",
     n_contacts_imported: "{{ count }} контактов импортировано",
+    n_contacts_imported_one: "{{ count }} контакт импортирован",
+    n_contacts_imported_few: "{{ count }} контакта импортированы",
     n_more: "+{{count}} ещё",
     n_more_recipients: "+{{count}} ещё",
     no_custom_fields_yet: "Пользовательские поля ещё не определены",
@@ -2844,6 +2883,10 @@ export const ru = {
     empty_trash_confirm_title: "Очистить недавно удалённые?",
     empty_trash_confirm_message:
       "Удалить навсегда все {{ count }} псевдонимов в разделе «Недавно удалённые»? Это действие нельзя отменить. Адреса остаются зарезервированными за вашей учётной записью, поэтому никто другой не сможет их занять.",
+    empty_trash_confirm_message_one:
+      "Удалить навсегда {{ count }} псевдоним в разделе «Недавно удалённые»? Это действие нельзя отменить. Адрес остаётся зарезервированным за вашей учётной записью, поэтому никто другой не сможет его занять.",
+    empty_trash_confirm_message_few:
+      "Удалить навсегда все {{ count }} псевдонима в разделе «Недавно удалённые»? Это действие нельзя отменить. Адреса остаются зарезервированными за вашей учётной записью, поэтому никто другой не сможет их занять.",
     trash_emptied: "Недавно удалённые очищены",
     failed_empty_trash:
       "Не удалось очистить «Недавно удалённые». Повторите попытку.",
@@ -2859,6 +2902,8 @@ export const ru = {
     failed_purge_directory: "Каталог не был удалён. Повторите попытку.",
     empty_directory_trash_confirm_message:
       "Удалить навсегда все каталоги ({{ count }}) из «Недавно удалённых»? Это действие нельзя отменить. Каталоги останутся закреплены за вашей учётной записью, и никто другой не сможет их занять.",
+    empty_directory_trash_confirm_message_one:
+      "Удалить навсегда каталог ({{ count }}) из «Недавно удалённых»? Это действие нельзя отменить. Каталог останется закреплён за вашей учётной записью, и никто другой не сможет его занять.",
     alias_stats_title: "Статистика",
     alias_stats_received: "Получено: {{ count }}",
     alias_stats_forwarded: "Переслано: {{ count }}",
@@ -3081,7 +3126,11 @@ export const ru = {
     alias_bulk_disabled: "Выбранные псевдонимы выключены.",
     alias_bulk_update_partial_failed:
       "Не удалось обновить {{count}} из {{total}} псевдонимов.",
+    alias_bulk_update_partial_failed_one:
+      "Не удалось обновить {{count}} из {{total}} псевдонимов.",
     alias_bulk_delete_partial_failed:
+      "Не удалось удалить {{count}} из {{total}} псевдонимов. Псевдоним можно удалить через 30 дней после создания.",
+    alias_bulk_delete_partial_failed_one:
       "Не удалось удалить {{count}} из {{total}} псевдонимов. Псевдоним можно удалить через 30 дней после создания.",
     alias_directory_create_failed:
       "Этот каталог не был создан. Попробуйте снова.",
@@ -3149,6 +3198,7 @@ export const ru = {
     alias_export_source_directories: "Каталоги",
     alias_export_source_ghost: "Ghost-псевдонимы",
     alias_export_source_count: "Записей: {{count}}",
+    alias_export_source_count_one: "{{count}} запись",
     alias_export_choose_columns: "Выбрать столбцы (выбрано: {{count}})",
     alias_export_hide_columns: "Скрыть столбцы",
     alias_export_format_label: "Формат файла",
@@ -3172,8 +3222,12 @@ export const ru = {
       "Загружено только {{loaded}} из {{total}} псевдонимов. Обновите список псевдонимов и повторите попытку, чтобы резервная копия была полной.",
     alias_export_undecryptable:
       "Не удалось расшифровать псевдонимов: {{count}}. Они не включены.",
+    alias_export_undecryptable_one:
+      "Не удалось расшифровать {{count}} псевдоним. Он не включён.",
     alias_export_undecryptable_ghost:
       "Не удалось расшифровать ghost-псевдонимов: {{count}}. Они не включены.",
+    alias_export_undecryptable_ghost_one:
+      "Не удалось расшифровать {{count}} ghost-псевдоним. Он не включён.",
     alias_export_load_failed:
       "Не удалось загрузить каталоги или ghost-псевдонимы.",
     alias_export_failed: "Экспорт не выполнен. Ничего не скачано.",
@@ -3192,6 +3246,8 @@ export const ru = {
     alias_import_skip_existing: "Пропустить существующие",
     alias_import_update_existing: "Снова включить, если отключён",
     alias_import_confirm: "Импортировать {{count}} псевдонимов",
+    alias_import_confirm_one: "Импортировать {{count}} псевдоним",
+    alias_import_confirm_few: "Импортировать {{count}} псевдонима",
     alias_import_summary_created: "Импортировано: {{count}}",
     alias_import_summary_skipped: "Уже существовало: {{count}}",
     alias_import_summary_failed: "Не удалось: {{count}}",
@@ -3464,6 +3520,8 @@ export const ru = {
     fam_org_2fa_reminder_sent: "Напоминание отправлено",
     fam_org_2fa_reminder_sent_toast:
       "Напоминание отправлено {{count}} участникам",
+    fam_org_2fa_reminder_sent_toast_one:
+      "Напоминание отправлено {{count}} участнику",
     fam_org_2fa_reminder_rate_limited:
       "Напоминание уже было отправлено недавно. Вы можете отправить ещё одно через 24 часа.",
     fam_org_2fa_reminder_failed: "Не удалось отправить напоминание",
@@ -4019,8 +4077,11 @@ export const ru = {
     failed_sign_out: "Не удалось завершить другие сессии",
     active_now: "Активна сейчас",
     minutes_ago: "{{count}} мин. назад",
+    minutes_ago_one: "{{count}} мин. назад",
     hours_ago: "{{count}} ч. назад",
+    hours_ago_one: "{{count}} ч. назад",
     days_ago: "{{count}} дн. назад",
+    days_ago_one: "{{count}} дн. назад",
     this_device: "Это устройство",
     signed_in_date: "Вход выполнен {{date}}",
     sign_out: "Выйти",
@@ -4031,7 +4092,11 @@ export const ru = {
     failed_load_security_status:
       "Настройки безопасности не загрузились. Попробуйте снова.",
     load_more_sessions: "Загрузить ещё {{count}} сессий",
+    load_more_sessions_one: "Загрузить ещё {{count}} сессию",
+    load_more_sessions_few: "Загрузить ещё {{count}} сессии",
     two_fa_enabled: "Включено (осталось {{count}} резервных кодов)",
+    two_fa_enabled_one: "Включено (остался {{count}} резервный код)",
+    two_fa_enabled_few: "Включено (осталось {{count}} резервных кода)",
     two_fa_add_security: "Добавьте дополнительный уровень безопасности с 2FA",
     basics_section_title: "Основные",
     two_step_verification: "Двухэтапная проверка",
@@ -4127,7 +4192,7 @@ export const ru = {
     reply_to_all: "Ответить всем",
     force_dark_mode_emails: "Принудительный тёмный режим для писем",
     force_dark_mode_emails_description:
-      "Всегда отображать содержимое писем в тёмном режиме, переопределяя оригинальное оформление",
+      "Отображать содержимое писем в тёмном режиме, пока в Aster включена тёмная тема, переопределяя оригинальное оформление",
     translation: "Перевод",
     translate_incoming: "Переводить входящую почту",
     translate_incoming_description:
@@ -4500,7 +4565,11 @@ export const ru = {
     auto_lock_after:
       "Автоматическая блокировка через {{duration}} неактивности",
     hours: "{{count}} часов",
+    hours_one: "{{count}} час",
+    hours_few: "{{count}} часа",
     days: "{{count}} дней",
+    days_one: "{{count}} день",
+    days_few: "{{count}} дня",
     failed_get_auth_data:
       "Не удалось загрузить данные для входа. Попробуйте снова.",
     downgrade: "Понизить",
@@ -4773,7 +4842,7 @@ export const ru = {
       "Показывает значок замка на письмах, указывая, зашифровано ли сообщение, подписано или нет.",
     info_force_dark_mode_title: "Тёмный режим для писем",
     info_force_dark_mode_description:
-      "Переписывает стили писем для тёмного фона и светлого текста. Полезно, если яркие белые письма неприятны для глаз.",
+      "Когда в Aster включена тёмная тема, переписывает стили писем для тёмного фона и светлого текста. Полезно, если яркие белые письма неприятны для глаз.",
     info_undo_send_title: "Отмена отправки",
     info_undo_send_description:
       "Даёт короткое окно для отмены письма после нажатия «Отправить». Ничего не уходит, пока таймер не закончится.",
@@ -5671,12 +5740,20 @@ export const ru = {
     emails_of_total: "{{current}} из {{total}} писем",
     cancel_import: "Отменить импорт",
     emails_imported_count: "{{count}} писем импортировано",
+    emails_imported_count_one: "{{count}} письмо импортировано",
+    emails_imported_count_few: "{{count}} письма импортированы",
     duplicates_skipped: "{{count}} дубликатов пропущено",
+    duplicates_skipped_one: "{{count}} дубликат пропущен",
+    duplicates_skipped_few: "{{count}} дубликата пропущены",
     import_folder_hint:
       "Не можете найти некоторые письма? Проверьте папки Спам и Отправленные - импортированные письма могут быть отсортированы туда.",
     n_failed_count: "{{count}} не удалось",
     import_folders_skipped:
       "Не удалось создать {{count}} папку, поэтому письма из нее находятся во входящих.",
+    import_folders_skipped_one:
+      "Не удалось создать {{count}} папку, поэтому письма из нее находятся во входящих.",
+    import_folders_skipped_other:
+      "Не удалось создать папки: {{count}}. Письма из них находятся во входящих.",
     import_folders_skipped_plural:
       "Не удалось создать папки: {{count}}. Письма из них находятся во входящих.",
     storage_quota_reached:
@@ -5895,6 +5972,10 @@ export const ru = {
       "Соединиться не удалось. Ещё один взгляд на настройки и повторная попытка обычно решает вопрос.",
     removed_forwarding_rule: 'Удалено правило переадресации "{{ name }}"',
     removed_forwarding_rules_count: "Удалено {{ count }} правил переадресации",
+    removed_forwarding_rules_count_one:
+      "Удалено {{ count }} правило переадресации",
+    removed_forwarding_rules_count_few:
+      "Удалено {{ count }} правила переадресации",
     customize_toolbar: "Настроить панель инструментов",
     customize_toolbar_description:
       "Выберите, какие действия отображаются на нижней панели инструментов.",
@@ -6268,16 +6349,38 @@ export const ru = {
       "Вы используете {{used}}, это превышает лимит. Пока лимит превышен, входящая почта отклоняется, а через 7 дней отклоняется навсегда.",
     cancel_impact_aliases:
       "{{count}} псевдонимов перестанут получать почту через {{days}} дней.",
+    cancel_impact_aliases_one:
+      "{{count}} псевдоним перестанет получать почту через {{days}} дней.",
+    cancel_impact_aliases_few:
+      "{{count}} псевдонима перестанут получать почту через {{days}} дней.",
     cancel_impact_domains:
       "{{count}} собственных доменов будут приостановлены.",
+    cancel_impact_domains_one:
+      "{{count}} собственный домен будет приостановлен.",
+    cancel_impact_domains_few:
+      "{{count}} собственных домена будут приостановлены.",
     cancel_impact_catch_all: "Адресация catch-all будет отключена.",
     cancel_impact_templates: "{{count}} шаблонов писем будут отключены.",
+    cancel_impact_templates_one: "{{count}} шаблон писем будет отключён.",
+    cancel_impact_templates_few: "{{count}} шаблона писем будут отключены.",
     cancel_impact_signatures: "{{count}} подписей будут отключены.",
+    cancel_impact_signatures_one: "{{count}} подпись будет отключена.",
+    cancel_impact_signatures_few: "{{count}} подписи будут отключены.",
     cancel_impact_family:
       "{{count}} участников семьи перейдут в льготный период на {{days}} дней.",
+    cancel_impact_family_one:
+      "{{count}} участник семьи перейдёт в льготный период на {{days}} дней.",
+    cancel_impact_family_few:
+      "{{count}} участника семьи перейдут в льготный период на {{days}} дней.",
     cancel_impact_family_addresses:
       "{{count}} зарезервированных семейных адресов будут освобождены.",
+    cancel_impact_family_addresses_one:
+      "{{count}} зарезервированный семейный адрес будет освобождён.",
+    cancel_impact_family_addresses_few:
+      "{{count}} зарезервированных семейных адреса будут освобождены.",
     cancel_impact_features: "{{count}} платных функций будут отключены.",
+    cancel_impact_features_one: "{{count}} платная функция будет отключена.",
+    cancel_impact_features_few: "{{count}} платные функции будут отключены.",
     cancel_impact_reactivate_hint:
       "Ничего не удаляется. Повторная подписка восстановит отключённое в пределах лимитов нового плана.",
     cancel_impact_continue: "Продолжить отмену",
@@ -6607,6 +6710,8 @@ export const ru = {
     connected_accounts_last_sync: "Последняя синхронизация: {{ time }}",
     connected_accounts_never_synced: "Ни разу не синхронизировано",
     connected_accounts_emails: "{{ count }} писем",
+    connected_accounts_emails_one: "{{ count }} письмо",
+    connected_accounts_emails_few: "{{ count }} письма",
     connected_accounts_syncing: "Синхронизация...",
     connected_accounts_sync_now: "Синхронизировать",
     connected_accounts_disconnect: "Отключить",
@@ -6666,6 +6771,7 @@ export const ru = {
       "После ротации предыдущий ключ отзывается. Письма, зашифрованные исключительно старым ключом, больше не смогут быть расшифрованы. Это действие необратимо.",
     bulk_unsubscribe: "Массовая отписка",
     senders_unsubscribed: "Отписано отправителей: {{ count }}",
+    senders_unsubscribed_one: "Отписан {{ count }} отправитель",
     opened_in_browser:
       "{{ count }} архивировано - может потребоваться подтверждение вручную",
     could_not_unsubscribe: "{{ count }} не удалось отписать",
@@ -7310,6 +7416,8 @@ export const ru = {
       "Используйте Aster с Thunderbird, Apple Mail, Outlook или любым IMAP/JMAP-клиентом. Aster Bridge работает локально и передаёт расшифрованный почтовый ящик вашему клиенту.",
     desktop_bridge_install_hint:
       "Aster Bridge должен быть установлен и запущен. Скачайте его в разделе Настройки > Bridge.",
+    desktop_bridge_not_opened:
+      "Aster Bridge не открылся. Убедитесь, что он установлен и запущен, или скачайте его в разделе Настройки > Bridge.",
     desktop_bridge_set_up: "Настроить {{ client }}",
     bridge: "Bridge",
     bridge_description:
@@ -7409,6 +7517,8 @@ export const ru = {
     dev_hours_ago: "{{count}} ч. назад",
     dev_key_exchange_label: "Обмен ключами",
     dev_keys_count: "{{count}} ключей",
+    dev_keys_count_one: "{{count}} ключ",
+    dev_keys_count_few: "{{count}} ключа",
     dev_less_than_one_hour: "< 1 часа",
     dev_loaded_ago: "загружено {{time}}",
     dev_minutes_ago: "{{count}} мин. назад",
@@ -7427,8 +7537,12 @@ export const ru = {
     disconnect_delete_messages_label: "Также удалить импортированные сообщения",
     disconnect_delete_messages_label_count:
       "Также удалить импортированные письма ({{ count }})",
+    disconnect_delete_messages_label_count_one:
+      "Также удалить импортированное письмо ({{ count }})",
     disconnect_success: "Аккаунт отключён",
     disconnect_deleted_success: "Аккаунт отключён, удалено писем: {{ count }}",
+    disconnect_deleted_success_one:
+      "Аккаунт отключён, удалено {{ count }} письмо",
     disconnect_title: "Отключить аккаунт",
     discount_first_month: "Первый месяц",
     discount_first_year: "Первый год",
@@ -7718,6 +7832,10 @@ export const ru = {
     oauth_folders_error: "Настройка папок не завершилась. Попробуйте снова.",
     oauth_folders_partial:
       "{{count}} папок не удалось настроить, остальные готовы к использованию.",
+    oauth_folders_partial_one:
+      "{{count}} папку не удалось настроить, остальные готовы к использованию.",
+    oauth_folders_partial_few:
+      "{{count}} папки не удалось настроить, остальные готовы к использованию.",
     oauth_folders_ready: "Папки синхронизированы успешно",
     oauth_reason_account_creation_failed:
       "Не удалось завершить настройку связанного аккаунта. Попробуйте снова.",
@@ -7933,6 +8051,7 @@ export const ru = {
     sync_progress_preparing: "Подготовка импорта...",
     sync_checking_new: "Проверка новой почты…",
     sync_result_imported: "Импортировано новых писем: {{ count }}",
+    sync_result_imported_one: "Импортировано {{ count }} новое письмо",
     sync_result_up_to_date: "Уже актуально - новых писем нет",
     sync_stopped: "Синхронизация остановлена",
     purging_progress:
@@ -8483,10 +8602,16 @@ export const ru = {
       "Сообщения этого отправителя больше не защищены постквантовым шифрованием. Если вы этого не ожидали, подтвердите это с ним другим способом.",
     recipient_identity_changed:
       "Ключ шифрования {{email}} изменился. Если вы этого не ожидали, подтвердите изменение с этим человеком другим способом, прежде чем отправлять конфиденциальные сведения.",
+    message_password_requirements:
+      "Используйте не менее 12 символов, включая цифру, специальный символ или заглавные и строчные буквы.",
+    recipient_identity_untrusted:
+      "Ключ шифрования для {{email}} изменился, и новый ключ невозможно подтвердить. Чтобы писать на этот адрес, подтвердите изменение с этим человеком другим способом, затем выберите «Доверять новому ключу».",
+    trust_new_key: "Доверять новому ключу",
     load_all_thread_messages: "Загрузить все сообщения",
     move_to_category: "Переместить в категорию",
     menu_applies_to_selection: "Применяется к {count} выбранным",
     menu_applies_to_all: "Применяется ко всем {count} сообщениям",
+    menu_applies_to_all_one: "Применяется к {count} сообщению",
     moved_to_category: "Перемещено в категорию",
     drop_to_move_here: "Перетащите сюда, чтобы переместить",
     tab_new_count: "новых",
@@ -8949,9 +9074,13 @@ export const ru = {
     empty_spam_folder_question: "Очистить папку «Спам»?",
     empty_spam_description:
       "Все {{count}} сообщений в спаме будут удалены окончательно, и отменить это нельзя.",
+    empty_spam_description_one:
+      "{{count}} сообщение в спаме будет удалено окончательно, и отменить это нельзя.",
     empty_trash_question: "Очистить корзину?",
     empty_trash_description:
       "Все {{count}} сообщений в корзине будут удалены окончательно, и отменить это нельзя.",
+    empty_trash_description_one:
+      "{{count}} сообщение в корзине будет удалено окончательно, и отменить это нельзя.",
     folder_not_found_title: "Эту папку найти не удалось.",
     folder_not_found_subtitle:
       "Эта папка могла быть удалена или никогда не существовала. Другая из боковой панели обычно подходит.",
@@ -8996,6 +9125,8 @@ export const ru = {
     order_number: "Заказ №{{id}}",
     items: "Товары",
     more_items_count: "+{{count}} ещё товаров",
+    more_items_count_one: "+{{count}} ещё товар",
+    more_items_count_few: "+{{count}} ещё товара",
     card_ending_in: "Карта, заканчивающаяся на {{last_four}}",
     purchase_extraction_privacy:
       "Извлечено локально из вашего письма, и ничего не отправляется на наши серверы.",
@@ -9021,6 +9152,8 @@ export const ru = {
     message_deleted: "Это сообщение было удалено",
     unknown_recipient: "(неизвестный получатель)",
     lines_count: "{{count}} строк",
+    lines_count_one: "{{count}} строка",
+    lines_count_few: "{{count}} строки",
     message_label: "сообщение",
     messages_label: "сообщений",
     star: "Звёздочка",
@@ -9056,6 +9189,8 @@ export const ru = {
     attachment_chips_more: "+{{count}} ещё",
     page_of_total: "Страница {{current}} из {{total}}",
     total_pages_label: "{{count}} страниц",
+    total_pages_label_one: "{{count}} страница",
+    total_pages_label_few: "{{count}} страницы",
     loading_preview: "Загрузка предпросмотра…",
     preview_failed:
       "Предпросмотр не загрузился. Открытие письма его показывает.",
@@ -9091,7 +9226,12 @@ export const ru = {
     add_link_to_selection: "Добавить ссылку к «{{text}}»",
     advanced_search: "Расширенный",
     all_in_folder_selected: "Выбраны все {{ count }} бесед.",
+    all_in_folder_selected_one: "Выбрана {{ count }} беседа.",
+    all_in_folder_selected_few: "Выбраны все {{ count }} беседы.",
     all_on_page_selected: "Выбраны все {{ count }} бесед на этой странице.",
+    all_on_page_selected_one: "Выбрана {{ count }} беседа на этой странице.",
+    all_on_page_selected_few:
+      "Выбраны все {{ count }} беседы на этой странице.",
     attachment_singular: "Вложение",
     load_attachments: "Загрузить вложения",
     bounced: "Отклонено",
@@ -9269,6 +9409,8 @@ export const ru = {
     refine_your_search_action: "Уточнить запрос",
     turn_off_indexing_action: "Отключить индексирование",
     select_all_in_folder: "Выбрать все {{ count }} бесед в {{ folder }}",
+    select_all_in_folder_one: "Выбрать {{ count }} беседу в {{ folder }}",
+    select_all_in_folder_few: "Выбрать все {{ count }} беседы в {{ folder }}",
     show_headers: "Показать полные заголовки",
     show_trimmed_content: "Показать скрытое содержимое",
     size_label: "Размер:",
@@ -9412,6 +9554,7 @@ export const ru = {
     sign_in_session_expired:
       "Сессия входа истекла. Вернитесь назад и войдите снова.",
     backup_codes_remaining_after_login: "Осталось резервных кодов: {{count}}",
+    backup_codes_remaining_after_login_one: "Остался {{count}} резервный код",
     backup_code_description: "Введите один из ваших резервных кодов для входа",
     backup_code_single_use:
       "Каждый резервный код можно использовать только один раз",
@@ -9569,22 +9712,6 @@ export const ru = {
       "Вы вернёте доступ к аккаунту. Зашифрованную почту, полученную до сброса, снова прочитать не получится, если только позже вы не найдёте фразу или код.",
     phrase_recovery_failed:
       "Эта фраза не подходит к этому аккаунту. Проверьте слова и адрес электронной почты.",
-    reset_consent_title: "Этот сброс не расшифрует ваши старые данные",
-    reset_consent_keeps:
-      "У вас останутся: ваш адрес электронной почты, все псевдонимы (почта продолжит приходить), подписка и сам аккаунт.",
-    reset_consent_loses:
-      "Вы потеряете доступ к: всей зашифрованной почте, контактам, меткам псевдонимов и настройкам, созданным до сброса. Они останутся храниться в зашифрованном виде, и разблокировать их позже можно только если вы вспомните старый пароль.",
-    reset_consent_last_chance:
-      "У вас есть фраза восстановления или код восстановления? Любой из них восстанавливает всё.",
-    reset_consent_use_phrase_instead:
-      "Использовать фразу или код вместо сброса",
-    reset_consent_checkbox:
-      "Я понимаю, что после этого сброса мои зашифрованные данные станут нечитаемыми",
-    reset_consent_type_email:
-      "Введите полный адрес электронной почты для подтверждения",
-    reset_consent_email_mismatch:
-      "Адрес электронной почты не совпадает с этим аккаунтом.",
-    reset_consent_continue: "Всё равно сбросить пароль",
     reset_second_factor_title: "Подтвердите, что это вы",
     reset_second_factor_description:
       "В этом аккаунте включена двухфакторная аутентификация. Подтвердите второй фактор, прежде чем сбрасывать пароль.",
@@ -9635,12 +9762,21 @@ export const ru = {
       "Введите адрес аккаунта, который нужно восстановить.",
     back_to_sign_in: "Вернуться ко входу",
     email_me_reset_link: "Отправить ссылку для сброса на почту",
-    reset_link_sent_title: "Проверьте вашу почту восстановления",
+    reset_link_sent_title: "Проверьте почту",
+    resend_reset_link: "Отправить ссылку ещё раз",
     reset_link_sent_desc:
-      "Если это имя пользователя зарегистрировано и имеет подтверждённую почту для восстановления, ссылка для сброса пароля была отправлена. Срок действия ссылки истекает через 30 минут.",
+      "Если у этого аккаунта есть подтвержденный резервный адрес, Aster Mail отправил на него ссылку для сброса. Ссылка действует 30 минут. Если письма нет, проверьте папку со спамом.",
     sending_reset_link: "Отправка ссылки для сброса...",
     reset_your_password: "Сбросить пароль",
-    reset_choose_new_password: "Выберите новый пароль для вашего аккаунта.",
+    reset_choose_new_password:
+      "Выберите новый пароль для своей учётной записи.",
+    reset_current_password_optional: "Текущий пароль (необязательно)",
+    reset_current_password_hint:
+      "Если вы помните текущий пароль, введите его здесь, и прежняя почта будет доступна сразу после входа. Если оставить поле пустым, прежнюю почту можно будет разблокировать позже с помощью кода восстановления.",
+    reset_unlocking_earlier_mail: "Разблокировка прежней почты...",
+    reset_use_recovery_code: "Использовать код восстановления",
+    reset_new_codes_desc:
+      "Сохраните эти коды в надежном месте. Старые коды тоже сохраните: один из них может разблокировать вашу прежнюю почту после входа.",
     reset_invalid_or_expired:
       "Эта ссылка для сброса недействительна или истекла. Пожалуйста, запросите новую.",
     request_new_reset_link: "Запросить новую ссылку для сброса",
@@ -9675,19 +9811,19 @@ export const ru = {
       "Aster Mail не может прочитать ваши зашифрованные данные, поэтому никто не откроет их без кода восстановления или резервного адреса. Поддержка проверит аккаунт и подскажет, что делать дальше.",
     support_email_action: "Написать в поддержку",
     support_help_center: "Открыть центр помощи",
-    other_ways_title: "Другой способ",
+    other_ways_title: "Выберите способ восстановления",
     other_ways_desc: "Выберите, как вернуть доступ к аккаунту.",
     other_way_code_title: "Использовать код восстановления",
     other_way_code_desc: "Введите один из сохраненных кодов.",
     other_way_email_title: "Сбросить через резервный адрес",
     other_way_email_desc:
-      "Aster Mail отправляет ссылку на ваш резервный адрес. Вы теряете доступ к письмам, полученным до сброса.",
+      "Aster Mail отправляет ссылку на ваш резервный адрес, чтобы вы могли выбрать новый пароль.",
     other_way_none_title: "У меня нет ничего из этого",
     other_way_none_desc:
       "Свяжитесь с поддержкой, и мы подскажем, что делать дальше.",
-    reset_account_title: "Сбросить аккаунт?",
+    reset_account_title: "Сбросить через резервный адрес",
     reset_account_desc:
-      "Зашифрованные письма, контакты и файлы, созданные до сброса, останутся заблокированными, пока вы не восстановите их старым паролем. Вы получите новый пустой ключ шифрования.",
+      "Aster Mail отправляет ссылку на ваш резервный адрес. Откройте ее, чтобы выбрать новый пароль. Ваша прежняя почта остается зашифрованной, пока вы не разблокируете ее с помощью кода восстановления или предыдущего пароля.",
     send_reset_link: "Отправить ссылку для сброса",
     print_codes: "Печать",
     codes_copied: "Коды скопированы.",
@@ -9710,9 +9846,9 @@ export const ru = {
       "Перенесите письма из другого аккаунта в Aster. Всё шифруется на вашем устройстве перед сохранением.",
     import_mail_skip: "Начать с пустого ящика",
     import_mail_privacy_note: "Импортировать можно и позже в настройках.",
-    password_reset_successful: "Пароль успешно сброшен",
+    password_reset_successful: "Ваш пароль сброшен",
     account_recovered_sign_in:
-      "Ваш аккаунт восстановлен. Теперь вы можете войти с новым паролем.",
+      "Войдите с новым паролем. После входа вы можете разблокировать прежнюю почту с помощью кода восстановления или предыдущего пароля.",
     check_your_inbox: "Проверьте входящие",
     generating_encryption_keys: "Генерация ключей шифрования...",
     creating_identity_keypair: "Создание пары ключей идентификации...",
@@ -10103,6 +10239,12 @@ export const ru = {
       "У вас включено обязательное шифрование, но ни у кого из получателей нет ключа в базе. Попросите их поделиться ключом или отключите обязательное шифрование в Настройках. Черновик сохранён.",
     cannot_send_no_recovery_key:
       "Aster пока не может отправить это сообщение: в учётной записи получателя нет ключей для его чтения. Попросите его открыть Aster на любом устройстве или обновить приложение, чтобы обновить ключи, затем повторите попытку. Черновик сохранён.",
+    message_password_too_weak:
+      "Пароль сообщения слишком слабый, поэтому сообщение не было отправлено. Используйте не менее 12 символов, включая цифру, специальный символ или заглавные и строчные буквы.",
+    recipient_key_untrusted:
+      "Ключ шифрования получателя изменился, поэтому сообщение не было отправлено. Чтобы отправить его, подтвердите изменение с этим человеком другим способом, затем выберите «Доверять новому ключу».",
+    key_trust_check_failed:
+      "Не удалось проверить ключи шифрования получателей, поэтому сообщение не было отправлено. Проверьте подключение и повторите попытку.",
     conflict:
       "Это уже изменил кто-то или что-то другое. Обновление покажет актуальную версию.",
     connection_failed:
@@ -10268,6 +10410,8 @@ export const ru = {
       "Убирается из входящих, но сохраняется и доступно для восстановления",
     enabled: "Включено",
     preview_some: "При следующем запуске будет очищено около {{count}} писем.",
+    preview_some_one:
+      "При следующем запуске будет очищено около {{count}} письма.",
     preview_none: "Сейчас этому правилу не соответствует ни одно письмо.",
     keeps_note: "Избранные и закреплённые письма всегда сохраняются.",
     save: "Сохранить",
@@ -10354,6 +10498,7 @@ export const ru = {
     add_condition: "Добавить условие",
     and_label: "И",
     applied_count: "Применено к {{count}} сообщениям",
+    applied_count_one: "Применено к {{count}} сообщению",
     apply_to_existing: "Применить к существующей почте сейчас",
     apply_to_existing_started:
       "Правило применяется к вашей существующей почте. Обработка идёт в фоновом режиме.",

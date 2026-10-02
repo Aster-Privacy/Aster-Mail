@@ -32,6 +32,7 @@ interface EncryptionInfoDropdownProps {
   is_external: boolean;
   has_pq_protection: boolean;
   has_recipient_key?: boolean;
+  e2e_verified?: boolean;
   size?: number;
   label?: string;
   context?: "message" | "attachments";
@@ -43,6 +44,7 @@ export function EncryptionInfoDropdown({
   is_external,
   has_pq_protection,
   has_recipient_key = false,
+  e2e_verified = false,
   size = 18,
   label,
   context = "message",
@@ -61,7 +63,7 @@ export function EncryptionInfoDropdown({
     return null;
   }
 
-  const is_encrypted = !is_external || has_recipient_key;
+  const is_encrypted = (!is_external || has_recipient_key) && e2e_verified;
 
   const description = description_key
     ? t(description_key)
@@ -100,7 +102,7 @@ export function EncryptionInfoDropdown({
   return (
     <EncryptionInfoDropdownView
       description={description}
-      has_pq_protection={has_pq_protection}
+      has_pq_protection={has_pq_protection && is_encrypted}
       heading={
         is_encrypted
           ? t("common.end_to_end_encrypted_label")

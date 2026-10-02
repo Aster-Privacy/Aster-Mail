@@ -37,12 +37,14 @@ export function LinkPopover({
   open,
   anchor_ref,
   selected_text,
+  initial_url = "",
   on_close,
   on_insert,
 }: {
   open: boolean;
   anchor_ref: React.RefObject<HTMLButtonElement | null>;
   selected_text: string;
+  initial_url?: string;
   on_close: () => void;
   on_insert: (url: string, text?: string) => void;
 }) {
@@ -69,7 +71,7 @@ export function LinkPopover({
 
   useEffect(() => {
     if (!open) return;
-    set_url("https://");
+    set_url(initial_url || "https://");
     set_text(selected_text);
     set_error("");
     requestAnimationFrame(() => url_input_ref.current?.focus());
@@ -96,7 +98,12 @@ export function LinkPopover({
 
       return;
     }
-    on_insert(normalized, text.trim() || undefined);
+    const trimmed_text = text.trim();
+
+    on_insert(
+      normalized,
+      trimmed_text && trimmed_text !== selected_text ? trimmed_text : undefined,
+    );
     on_close();
   };
 
@@ -134,7 +141,7 @@ export function LinkPopover({
       {error && (
         <p className="text-[11px] text-red-700 dark:text-red-400">{error}</p>
       )}
-      {!selected_text && (
+      {(!selected_text || initial_url) && (
         <Input
           className="w-full"
           placeholder={t("mail.display_text_placeholder")}
