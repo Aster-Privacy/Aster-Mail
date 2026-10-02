@@ -167,9 +167,9 @@ export interface ActionRowProps {
 }
 
 export const ActionRow = ({ children, secondary }: ActionRowProps) => (
-  <div className="mt-8 flex w-full items-center justify-between gap-3">
-    <div className="min-w-0">{secondary}</div>
-    <div className="shrink-0">{children}</div>
+  <div className="mt-6 flex w-full flex-col items-center">
+    {children}
+    {secondary && <div className="mt-4">{secondary}</div>}
   </div>
 );
 
@@ -187,7 +187,7 @@ export const TextLink = ({
   className,
 }: TextLinkProps) => (
   <button
-    className={`-ms-2 rounded-md px-2 py-1.5 text-sm font-medium transition-colors hover:bg-surf-tertiary disabled:opacity-50 disabled:hover:bg-transparent ${className ?? ""}`}
+    className={`text-sm font-semibold transition-opacity hover:opacity-80 disabled:opacity-50 ${className ?? ""}`}
     disabled={disabled}
     style={{ color: "var(--accent-color)" }}
     type="button"

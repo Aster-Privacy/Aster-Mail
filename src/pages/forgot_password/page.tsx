@@ -80,9 +80,9 @@ const StepLayout = ({ header, children, centered }: StepLayoutProps) => {
   }
 
   return (
-    <div className="grid w-full gap-8 md:grid-cols-2 md:gap-12">
-      <div>{header}</div>
-      <div className="flex min-w-0 flex-col justify-center">{children}</div>
+    <div className="flex w-full flex-col items-start">
+      {header}
+      {children}
     </div>
   );
 };
@@ -284,8 +284,8 @@ export default function ForgotPasswordPage() {
               }
             >
               <Button
-                className="min-w-[128px]"
-                size="lg"
+                className="w-full"
+                size="xl"
                 variant="depth"
                 onClick={handle_email_next}
               >
@@ -352,8 +352,8 @@ export default function ForgotPasswordPage() {
               }
             >
               <Button
-                className="min-w-[128px]"
-                size="lg"
+                className="w-full"
+                size="xl"
                 variant="depth"
                 onClick={handle_email_reset_link}
               >
@@ -380,8 +380,8 @@ export default function ForgotPasswordPage() {
               }
             >
               <Button
-                className="min-w-[128px]"
-                size="lg"
+                className="w-full"
+                size="xl"
                 variant="depth"
                 onClick={() => open_external(SUPPORT_MAIL_URL)}
               >
@@ -441,8 +441,8 @@ export default function ForgotPasswordPage() {
               }
             >
               <Button
-                className="min-w-[128px]"
-                size="lg"
+                className="w-full"
+                size="xl"
                 variant="depth"
                 onClick={handle_code_submit}
               >
@@ -520,8 +520,8 @@ export default function ForgotPasswordPage() {
 
             <ActionRow>
               <Button
-                className="min-w-[128px]"
-                size="lg"
+                className="w-full"
+                size="xl"
                 variant="depth"
                 onClick={handle_password_submit}
               >
@@ -647,9 +647,9 @@ export default function ForgotPasswordPage() {
               }
             >
               <Button
-                className="min-w-[128px]"
+                className="w-full"
                 disabled={!codes_saved}
-                size="lg"
+                size="xl"
                 variant="depth"
                 onClick={handle_codes_continue}
               >
@@ -672,6 +672,7 @@ export default function ForgotPasswordPage() {
             </AnimatePresence>
 
             <TextLink
+              className="mt-6"
               label={t("auth.reset_use_recovery_code")}
               on_click={() => go_to("code")}
             />
@@ -694,8 +695,8 @@ export default function ForgotPasswordPage() {
               }
             >
               <Button
-                className="min-w-[128px]"
-                size="lg"
+                className="w-full"
+                size="xl"
                 variant="depth"
                 onClick={() => navigate("/sign-in")}
               >
@@ -735,8 +736,8 @@ export default function ForgotPasswordPage() {
 
             <ActionRow>
               <Button
-                className="min-w-[128px]"
-                size="lg"
+                className="w-full"
+                size="xl"
                 variant="depth"
                 onClick={() => navigate("/sign-in")}
               >
@@ -758,7 +759,7 @@ export default function ForgotPasswordPage() {
           <motion.div
             key={step}
             animate="animate"
-            className="w-full max-w-sm md:max-w-3xl md:rounded-3xl md:border md:border-edge-secondary md:px-12 md:py-12"
+            className="flex w-full max-w-[400px] flex-col items-start px-4 text-start"
             exit="exit"
             initial={reduce_motion ? false : "initial"}
             transition={{
