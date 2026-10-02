@@ -76,6 +76,7 @@ import { list_aliases, decrypt_aliases } from "@/services/api/aliases";
 import { ignore_error } from "@/lib/ignore_error";
 import { show_storage_full_upgrade } from "@/stores/upgrade_store";
 import { user_facing_error } from "@/utils/user_facing_error";
+import { normalize_address_ignoring_dots } from "@/utils/address_dots";
 
 export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
   const { t } = use_i18n();
@@ -188,14 +189,17 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
 
       if (user?.email) {
         user_addresses.add(user.email.toLowerCase());
+        user_addresses.add(normalize_address_ignoring_dots(user.email));
         const domain = user.email.split("@")[1];
 
         if (domain) {
           const local = user.email.split("@")[0];
 
           if (domain === "astermail.org" || domain === "aster.cx") {
-            user_addresses.add(`${local}@astermail.org`);
-            user_addresses.add(`${local}@aster.cx`);
+            for (const variant of new Set([local, local.replace(/\./g, "")])) {
+              user_addresses.add(`${variant}@astermail.org`);
+              user_addresses.add(`${variant}@aster.cx`);
+            }
           }
         }
       }
