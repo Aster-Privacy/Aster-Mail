@@ -840,8 +840,6 @@ export function use_forward_modal({
 
     const forward_subject = `${t("mail.forward_subject_prefix")} ${email_subject}`;
     let handed_off = false;
-    // The modal is closed by the time a queued forward fails, so the error
-    // state is invisible and the composed forward would otherwise be lost.
     const keep_failed_forward = async (): Promise<boolean> => {
       if (!vault) return false;
 

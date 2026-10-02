@@ -525,8 +525,6 @@ export function use_reply_modal(props: UseReplyModalProps) {
 
     let handed_off = false;
     let handed_off_thread_token = thread_token;
-    // The reply's own draft is deleted once the send is queued, so a send
-    // that fails after the undo window would otherwise lose the text.
     const keep_failed_reply = async (): Promise<boolean> => {
       const draft_vault = get_vault_from_memory();
 
