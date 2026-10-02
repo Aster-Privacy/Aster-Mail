@@ -63,6 +63,7 @@ import { TranslationBanner } from "@/components/email/banners/translation_banner
 import { use_email_translation } from "@/components/email/hooks/use_email_translation";
 import { analyze_email_content } from "@/lib/phishing_analyzer";
 import {
+  html_has_renderable_content,
   readable_text_with_fallback,
   renderable_html_part,
 } from "@/lib/message_markup";
@@ -230,6 +231,7 @@ export function EmailViewerContent({
 
     if (
       preloaded_sanitized &&
+      html_has_renderable_content(preloaded_sanitized.html) &&
       effective_content_mode !== "always" &&
       !lockdown_active &&
       !force_load_content

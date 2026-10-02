@@ -252,8 +252,9 @@ export function recipients_reducer(
 ): RecipientsState {
   switch (action.type) {
     case "ADD": {
-      const already_present = state[action.field].some(
-        (e) => e.toLowerCase() === action.email.toLowerCase(),
+      const wanted = action.email.toLowerCase();
+      const already_present = (["to", "cc", "bcc"] as const).some((field) =>
+        state[field].some((e) => e.toLowerCase() === wanted),
       );
 
       if (already_present) return state;

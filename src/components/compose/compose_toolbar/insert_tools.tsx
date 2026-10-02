@@ -72,6 +72,7 @@ export function InsertTools({ compose }: { compose: ComposeToolbarState }) {
 
   const [show_link_dialog, set_show_link_dialog] = useState(false);
   const [selected_text_for_link, set_selected_text_for_link] = useState("");
+  const [link_initial_url, set_link_initial_url] = useState("");
   const link_btn_ref = useRef<HTMLButtonElement>(null);
   const [show_emoji, set_show_emoji] = useState(false);
   const [emoji_pos, set_emoji_pos] = useState({ bottom: 0, right: 0 });
@@ -108,8 +109,23 @@ export function InsertTools({ compose }: { compose: ComposeToolbarState }) {
   );
 
   const handle_open_link_dialog = () => {
+    const anchor = editor?.get_link_at_selection() ?? null;
+
+    if (anchor) {
+      const selection = window.getSelection();
+
+      if (selection?.isCollapsed) {
+        const range = document.createRange();
+
+        range.selectNodeContents(anchor);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+    }
+
     freeze_selection();
     editor?.save_selection();
+    set_link_initial_url(anchor?.getAttribute("href") ?? "");
     set_selected_text_for_link(window.getSelection()?.toString() || "");
     set_show_link_dialog(true);
   };
@@ -139,6 +155,7 @@ export function InsertTools({ compose }: { compose: ComposeToolbarState }) {
           </button>
           <LinkPopover
             anchor_ref={link_btn_ref}
+            initial_url={link_initial_url}
             on_close={() => set_show_link_dialog(false)}
             on_insert={(url, text) =>
               apply_with_frozen_selection(() => editor.insert_link(url, text))

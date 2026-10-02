@@ -86,6 +86,11 @@ import { normalize_address_ignoring_dots } from "@/utils/address_dots";
 import { viewer_still_showing } from "@/components/email/thread_reply_target";
 import { use_thread_draft_removal } from "@/components/email/hooks/use_thread_draft_removal";
 import {
+  has_readable_body,
+  include_opened_message,
+  keep_readable_bodies,
+} from "@/components/email/thread_message_merge";
+import {
   claim_auto_read,
   is_read_ticket_current,
   peek_read_ticket,
@@ -106,8 +111,14 @@ export const REPLY_ARRIVAL_POLL_DELAYS_MS = [
 
 function reconcile_thread_messages(
   prev: DecryptedThreadMessage[],
-  server: DecryptedThreadMessage[],
+  fetched: DecryptedThreadMessage[],
+  opened_id?: string,
 ): DecryptedThreadMessage[] {
+  const readable = keep_readable_bodies(prev, fetched);
+  const opened = opened_id
+    ? prev.find((m) => m.id === opened_id && !m.is_sending)
+    : undefined;
+  const server = opened ? include_opened_message(readable, opened) : readable;
   const server_ids = new Set(server.map((m) => m.id));
   const pending = prev.filter(
     (m) =>
@@ -170,6 +181,7 @@ function usable_preloaded(
 ): PreloadedEmail | null {
   if (!preloaded || preloaded.is_stale) return null;
   if (preloaded.conversation_grouping !== conversation_grouping) return null;
+  if (!has_readable_body(preloaded.email)) return null;
 
   return preloaded;
 }
@@ -835,10 +847,10 @@ export function use_email_viewer({
           { is_trashed: !!item.is_trashed, is_spam: !!item.is_spam },
         );
 
-        if (!cancelled && thread_result.messages.length > 0) {
-          set_thread_messages(thread_result.messages);
-        } else if (!cancelled) {
-          set_thread_messages([single_message]);
+        if (!cancelled) {
+          set_thread_messages(
+            include_opened_message(thread_result.messages, single_message),
+          );
         }
       } else if (
         !cancelled &&
@@ -1005,7 +1017,7 @@ export function use_email_viewer({
   }, [email_id]);
 
   const last_thread_fetch_ref = useRef<number>(0);
-  const thread_fetch_in_flight_ref = useRef<boolean>(false);
+  const thread_fetch_in_flight_ref = useRef<string | null>(null);
   const open_email_id_ref = useRef<string | null>(email_id);
   const open_thread_token_ref = useRef<string | null>(null);
 
@@ -1038,12 +1050,12 @@ export function use_email_viewer({
 
     const refresh_thread = async (force: boolean) => {
       if (!has_passphrase_in_memory()) return;
-      if (thread_fetch_in_flight_ref.current) return;
+      if (thread_fetch_in_flight_ref.current === thread_token) return;
       const now = Date.now();
 
       if (!force && now - last_thread_fetch_ref.current < 5_000) return;
 
-      thread_fetch_in_flight_ref.current = true;
+      thread_fetch_in_flight_ref.current = thread_token;
       try {
         request_cache.invalidate(
           `messages/threads/${encodeURIComponent(thread_token)}/messages`,
@@ -1058,13 +1070,20 @@ export function use_email_viewer({
         );
 
         if (thread_result.messages.length === 0) return;
+        if (open_thread_token_ref.current !== thread_token) return;
 
         last_thread_fetch_ref.current = Date.now();
         set_thread_messages((prev) =>
-          reconcile_thread_messages(prev, thread_result.messages),
+          reconcile_thread_messages(
+            prev,
+            thread_result.messages,
+            open_email_id_ref.current ?? undefined,
+          ),
         );
       } finally {
-        thread_fetch_in_flight_ref.current = false;
+        if (thread_fetch_in_flight_ref.current === thread_token) {
+          thread_fetch_in_flight_ref.current = null;
+        }
       }
     };
 
@@ -1165,9 +1184,11 @@ export function use_email_viewer({
           return;
         }
 
-        if (thread_fetch_in_flight_ref.current) continue;
+        if (thread_fetch_in_flight_ref.current === detail.thread_token) {
+          continue;
+        }
 
-        thread_fetch_in_flight_ref.current = true;
+        thread_fetch_in_flight_ref.current = detail.thread_token;
         try {
           request_cache.invalidate(
             `messages/threads/${encodeURIComponent(detail.thread_token)}/messages`,
@@ -1181,7 +1202,9 @@ export function use_email_viewer({
             },
           );
         } finally {
-          thread_fetch_in_flight_ref.current = false;
+          if (thread_fetch_in_flight_ref.current === detail.thread_token) {
+            thread_fetch_in_flight_ref.current = null;
+          }
         }
 
         last_thread_fetch_ref.current = Date.now();
@@ -1198,6 +1221,7 @@ export function use_email_viewer({
           const merged = reconcile_thread_messages(
             prev,
             thread_result.messages,
+            open_email_id_ref.current ?? undefined,
           );
 
           return merged.map((m) =>
@@ -1207,9 +1231,11 @@ export function use_email_viewer({
           );
         });
 
-        if (!email?.thread_token && email) {
-          set_email({ ...email, thread_token: detail.thread_token });
-        }
+        set_email((prev) =>
+          prev && !prev.thread_token
+            ? { ...prev, thread_token: detail.thread_token }
+            : prev,
+        );
       }
 
       set_thread_draft(null);

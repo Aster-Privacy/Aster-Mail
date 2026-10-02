@@ -1286,6 +1286,8 @@ export const ko = {
     font: "글꼴",
     stylesheet: "스타일시트",
     tracking_pixel: "추적 픽셀",
+    image_blocked: "이미지 차단됨",
+    tracking_pixel_blocked: "추적 픽셀 차단됨",
     me: "나",
     notification_banner_message:
       "새 이메일 알림을 받으려면 데스크톱 알림을 활성화하세요",

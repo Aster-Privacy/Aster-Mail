@@ -110,11 +110,19 @@ export interface PopupActionsDeps {
 }
 
 export function use_popup_viewer_actions(deps: PopupActionsDeps) {
-  const close_or_advance = useCallback(() => {
-    if (deps.on_advance?.()) return;
+  const open_id_ref = useRef(deps.email_id);
 
-    deps.on_close();
-  }, [deps.on_advance, deps.on_close]);
+  open_id_ref.current = deps.email_id;
+
+  const close_or_advance = useCallback(
+    (acted_id: string | null) => {
+      if (open_id_ref.current !== acted_id) return;
+      if (deps.on_advance?.()) return;
+
+      deps.on_close();
+    },
+    [deps.on_advance, deps.on_close],
+  );
 
   const read_toggle_in_flight = useRef(false);
 
@@ -160,35 +168,39 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
     });
 
     if (!is_read_ticket_current(acted_id, read_ticket)) return;
+    const still_open = open_id_ref.current === acted_id;
 
     if (!result.success) {
-      deps.set_is_read(!new_state);
+      if (still_open) deps.set_is_read(!new_state);
       if (should_adjust_unread) {
         adjust_stats_unread(new_state ? 1 : -1);
       }
       show_toast(deps.t("common.failed_to_update_emails"), "error");
     } else {
-      deps.set_mail_item((prev) =>
-        prev
-          ? {
-              ...prev,
-              encrypted_metadata:
-                result.encrypted?.encrypted_metadata ?? prev.encrypted_metadata,
-              metadata_nonce:
-                result.encrypted?.metadata_nonce ?? prev.metadata_nonce,
-              metadata: prev.metadata
-                ? { ...prev.metadata, is_read: new_state }
-                : undefined,
-            }
-          : prev,
-      );
+      if (still_open) {
+        deps.set_mail_item((prev) =>
+          prev
+            ? {
+                ...prev,
+                encrypted_metadata:
+                  result.encrypted?.encrypted_metadata ??
+                  prev.encrypted_metadata,
+                metadata_nonce:
+                  result.encrypted?.metadata_nonce ?? prev.metadata_nonce,
+                metadata: prev.metadata
+                  ? { ...prev.metadata, is_read: new_state }
+                  : undefined,
+              }
+            : prev,
+        );
+      }
       emit_mail_item_updated({
-        id: deps.email_id,
+        id: acted_id,
         is_read: new_state,
         encrypted_metadata: result.encrypted?.encrypted_metadata,
         metadata_nonce: result.encrypted?.metadata_nonce,
       });
-      if (!new_state) {
+      if (!new_state && still_open) {
         deps.on_close();
       }
     }
@@ -230,7 +242,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         },
       });
-      close_or_advance();
+      close_or_advance(deps.email_id);
     } else {
       show_toast(deps.t("common.failed_to_archive_emails"), "error");
     }
@@ -257,7 +269,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
       emit_mail_item_updated({ id: deps.email_id, is_archived: false });
       reindex_ids([deps.email_id]);
       show_toast(deps.t("common.moved_to_inbox_toast"), "success");
-      close_or_advance();
+      close_or_advance(deps.email_id);
     } else {
       show_toast(deps.t("common.failed_to_unarchive_emails"), "error");
     }
@@ -294,7 +306,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
       reindex_ids([deps.email_id]);
       emit_mail_items_removed({ ids: [deps.email_id] });
       show_toast(deps.t("common.marked_as_not_spam"), "success");
-      close_or_advance();
+      close_or_advance(deps.email_id);
     } else {
       show_toast(deps.t("common.failed_to_update_emails"), "error");
     }
@@ -361,7 +373,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         },
       });
-      close_or_advance();
+      close_or_advance(deps.email_id);
     } else {
       show_toast(deps.t("common.failed_to_mark_as_spam"), "error");
     }
@@ -388,7 +400,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
         adjust_stats_trash(-1);
         emit_mail_items_removed({ ids: [deps.email_id] });
         show_toast(deps.t("common.email_permanently_deleted"), "success");
-        close_or_advance();
+        close_or_advance(deps.email_id);
       } else {
         show_toast(deps.t("common.failed_to_permanently_delete"), "error");
       }
@@ -428,7 +440,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         },
       });
-      close_or_advance();
+      close_or_advance(deps.email_id);
     } else {
       show_toast(deps.t("common.failed_to_delete_emails"), "error");
     }
@@ -443,6 +455,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
   const handle_pin_toggle = useCallback(async () => {
     if (!deps.email_id || deps.is_pin_loading || !deps.mail_item) return;
 
+    const acted_id = deps.email_id;
     const previous_state = deps.is_pinned;
     const new_state = !deps.is_pinned;
 
@@ -450,7 +463,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
     deps.set_is_pin_loading(true);
 
     const result = await update_item_metadata(
-      deps.email_id,
+      acted_id,
       {
         encrypted_metadata: deps.mail_item.encrypted_metadata,
         metadata_nonce: deps.mail_item.metadata_nonce,
@@ -458,28 +471,32 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
       },
       { is_pinned: new_state },
     );
+    const still_open = open_id_ref.current === acted_id;
 
     deps.set_is_pin_loading(false);
 
     if (!result.success) {
-      deps.set_is_pinned(previous_state);
+      if (still_open) deps.set_is_pinned(previous_state);
     } else {
-      deps.set_mail_item((prev) =>
-        prev
-          ? {
-              ...prev,
-              encrypted_metadata:
-                result.encrypted?.encrypted_metadata ?? prev.encrypted_metadata,
-              metadata_nonce:
-                result.encrypted?.metadata_nonce ?? prev.metadata_nonce,
-              metadata: prev.metadata
-                ? { ...prev.metadata, is_pinned: new_state }
-                : undefined,
-            }
-          : prev,
-      );
+      if (still_open) {
+        deps.set_mail_item((prev) =>
+          prev
+            ? {
+                ...prev,
+                encrypted_metadata:
+                  result.encrypted?.encrypted_metadata ??
+                  prev.encrypted_metadata,
+                metadata_nonce:
+                  result.encrypted?.metadata_nonce ?? prev.metadata_nonce,
+                metadata: prev.metadata
+                  ? { ...prev.metadata, is_pinned: new_state }
+                  : undefined,
+              }
+            : prev,
+        );
+      }
       emit_mail_item_updated({
-        id: deps.email_id,
+        id: acted_id,
         is_pinned: new_state,
         encrypted_metadata: result.encrypted?.encrypted_metadata,
         metadata_nonce: result.encrypted?.metadata_nonce,
@@ -921,7 +938,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
           );
         }
         show_toast(deps.t("common.reported_as_phishing"), "success");
-        close_or_advance();
+        close_or_advance(deps.email_id);
       } else {
         show_toast(deps.t("common.failed_to_mark_as_spam"), "error");
       }
@@ -951,7 +968,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
           );
         }
         show_toast(deps.t("common.marked_as_not_spam"), "success");
-        close_or_advance();
+        close_or_advance(deps.email_id);
       } else {
         show_toast(deps.t("common.failed_to_update"), "error");
       }
