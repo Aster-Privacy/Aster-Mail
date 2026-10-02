@@ -260,6 +260,7 @@ export const hi = {
     create_subfolder: "सबफ़ोल्डर बनाएं",
     mute_notifications: "सूचनाएं म्यूट करें",
     unmute_notifications: "सूचनाएं अनम्यूट करें",
+    notifications_muted: "सूचनाएं म्यूट हैं",
     remove_lock: "लॉक हटाएं",
     lock: "लॉक करें",
     change_color: "रंग बदलें",
@@ -8171,6 +8172,7 @@ export const hi = {
     drafts: "ड्राफ़्ट",
     starred: "तारांकित",
     archive: "आर्काइव",
+    archive_action: "आर्काइव करें",
     archive_conversation_count: "बातचीत आर्काइव करें ({{count}} संदेश)",
     move_conversation_to_trash_count:
       "बातचीत ट्रैश में ले जाएं ({{count}} संदेश)",

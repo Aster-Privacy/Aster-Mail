@@ -859,6 +859,7 @@ export interface CommonTranslations {
   create_subfolder: string;
   mute_notifications: string;
   unmute_notifications: string;
+  notifications_muted: string;
   remove_lock: string;
   lock: string;
   change_color: string;
@@ -7251,6 +7252,7 @@ export interface MailTranslations {
   drafts: string;
   starred: string;
   archive: string;
+  archive_action: string;
   archive_conversation_count: string;
   move_conversation_to_trash_count: string;
   spam: string;

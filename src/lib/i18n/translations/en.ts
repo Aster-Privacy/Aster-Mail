@@ -259,6 +259,7 @@ export const en: Translations = {
     create_subfolder: "Create Subfolder",
     mute_notifications: "Mute notifications",
     unmute_notifications: "Unmute notifications",
+    notifications_muted: "Notifications muted",
     remove_lock: "Remove Lock",
     lock: "Lock",
     change_color: "Change color",
@@ -8120,6 +8121,7 @@ export const en: Translations = {
     drafts: "Drafts",
     starred: "Starred",
     archive: "Archive",
+    archive_action: "Archive",
     archive_conversation_count: "Archive conversation ({{count}} messages)",
     move_conversation_to_trash_count:
       "Move conversation to trash ({{count}} messages)",

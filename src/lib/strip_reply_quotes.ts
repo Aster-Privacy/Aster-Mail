@@ -21,7 +21,30 @@
 const QUOTE_ATTRIBUTION_RE =
   /(^|\n|>)[ \t]*On[ \t][^\n<]{1,300}?wrote:[ \t]*(?=\n|<|$)/;
 
+const HTML_MARKUP_RE = /<[a-z!/]/i;
+const QUOTED_LINE_RE = /^[ \t]*>/;
+
+function strip_plain_text_quotes(body: string): string {
+  let in_quote = false;
+  const kept = body.split(/\r?\n/).filter((line) => {
+    if (QUOTE_ATTRIBUTION_RE.test(line)) {
+      in_quote = true;
+
+      return false;
+    }
+
+    if (in_quote && QUOTED_LINE_RE.test(line)) return false;
+    if (line.trim()) in_quote = false;
+
+    return true;
+  });
+
+  return kept.join("\n").trim() || body;
+}
+
 export function strip_reply_quotes(body: string): string {
+  if (!HTML_MARKUP_RE.test(body)) return strip_plain_text_quotes(body);
+
   const match = QUOTE_ATTRIBUTION_RE.exec(body);
   let processed = body;
 

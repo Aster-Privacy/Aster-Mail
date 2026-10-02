@@ -524,7 +524,12 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
       const to_emails = deps.email.to?.map((r) => r.email) ?? [];
       const cc_emails = deps.email.cc?.map((r) => r.email) ?? [];
       const reply_from_address = build_reply_from_address(
-        { sender_email: deps.email.sender_email },
+        {
+          sender_email: deps.email.sender_email,
+          raw_headers: deps.email.raw_headers,
+          to_emails,
+          cc_emails,
+        },
         is_own_message,
       );
 
@@ -648,7 +653,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
                 list_unsubscribe_header:
                   unsubscribe_info.list_unsubscribe_header,
               },
-              "auto",
+              "manual",
             );
           }
         } else {
@@ -665,6 +670,16 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
                 action_label: deps.t("mail.open_unsubscribe_page"),
                 on_undo: async () => {
                   open_external(url);
+                  if (!deps.email) return;
+                  persist_unsubscribe(
+                    deps.email.sender_email,
+                    deps.email.sender || "",
+                    {
+                      unsubscribe_link: unsubscribe_info.unsubscribe_link,
+                      list_unsubscribe_header:
+                        unsubscribe_info.list_unsubscribe_header,
+                    },
+                  );
                 },
               }),
           });
@@ -703,7 +718,12 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
       const to_emails = msg.to_recipients?.map((r) => r.email) ?? [];
       const cc_emails = msg.cc_recipients?.map((r) => r.email) ?? [];
       const reply_from_address = build_reply_from_address(
-        { sender_email: msg.sender_email },
+        {
+          sender_email: msg.sender_email,
+          raw_headers: msg.raw_headers,
+          to_emails,
+          cc_emails,
+        },
         is_own_message,
       );
 

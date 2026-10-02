@@ -133,7 +133,7 @@ function get_action_config(
     archive: {
       title: t("common.archive_emails_from_sender"),
       icon: ArchiveBoxIcon,
-      button_text: t("mail.archive"),
+      button_text: t("mail.archive_action"),
     },
     delete: {
       title: t("common.delete_emails_from_sender"),

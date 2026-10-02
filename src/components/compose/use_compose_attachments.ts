@@ -163,19 +163,16 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
     () => pending_reads_ref.current > 0,
     [],
   );
-  const read_queue_ref = useRef<Promise<void>>(Promise.resolve());
-  const with_pending_reads = useCallback((read: () => Promise<void>) => {
+  const with_pending_reads = useCallback(async (read: () => Promise<void>) => {
     pending_reads_ref.current++;
     set_is_loading_attachments(true);
 
-    const run = read_queue_ref.current.then(read).finally(() => {
+    try {
+      await read();
+    } finally {
       pending_reads_ref.current--;
       set_is_loading_attachments(pending_reads_ref.current > 0);
-    });
-
-    read_queue_ref.current = run.catch(() => undefined);
-
-    return run;
+    }
   }, []);
   const [attachment_error, set_attachment_error] = useState<string | null>(
     null,
@@ -189,6 +186,9 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
   }, [attachments]);
 
   const remove_attachment = useCallback((id: string) => {
+    attachments_ref.current = attachments_ref.current.filter(
+      (a) => a.id !== id,
+    );
     set_attachments((prev) => prev.filter((a) => a.id !== id));
     set_attachment_error(null);
   }, []);
@@ -196,6 +196,51 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
   const get_total_attachments_size = useCallback(() => {
     return attachments.reduce((total, att) => total + att.size_bytes, 0);
   }, [attachments]);
+
+  const append_attachments = useCallback(
+    (incoming: Attachment[]) => {
+      const next = [...attachments_ref.current];
+      const taken_names = new Set(next.map((attachment) => attachment.name));
+      let total = next.reduce(
+        (sum, attachment) => sum + attachment.size_bytes,
+        0,
+      );
+
+      for (const attachment of incoming) {
+        if (next.length >= MAX_ATTACHMENTS_PER_SEND) {
+          const message = describe_too_many_attachments(t);
+
+          set_attachment_error(message);
+          show_toast(message, "error");
+          break;
+        }
+
+        if (total + attachment.size_bytes > get_max_total_attachments_size()) {
+          const message = describe_would_exceed_total(t, attachment.name);
+
+          set_attachment_error(message);
+          show_toast(message, "error");
+          continue;
+        }
+
+        const name = unique_attachment_name(attachment.name, taken_names);
+
+        next.push({ ...attachment, name });
+        taken_names.add(name);
+        total += attachment.size_bytes;
+      }
+
+      const accepted = next.length - attachments_ref.current.length;
+
+      if (accepted > 0) {
+        attachments_ref.current = next;
+        set_attachments(next);
+      }
+
+      return accepted;
+    },
+    [t],
+  );
 
   const read_files = useCallback(
     async (files: File[]) => {
@@ -245,12 +290,6 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
 
         const mime_type = resolve_mime_type(file);
 
-        const taken_names = new Set([
-          ...attachments_ref.current.map((a) => a.name),
-          ...new_attachments.map((a) => a.name),
-        ]);
-        const attachment_name = unique_attachment_name(file.name, taken_names);
-
         try {
           const raw = await file.arrayBuffer();
           const data = await apply_metadata_strip(
@@ -263,7 +302,7 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
 
           new_attachments.push({
             id: generate_attachment_id(),
-            name: attachment_name,
+            name: file.name,
             size: format_bytes(data.byteLength),
             size_bytes: data.byteLength,
             mime_type,
@@ -281,12 +320,7 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
         }
       }
 
-      if (new_attachments.length > 0) {
-        attachments_ref.current = [
-          ...attachments_ref.current,
-          ...new_attachments,
-        ];
-        set_attachments((prev) => [...prev, ...new_attachments]);
+      if (append_attachments(new_attachments) > 0) {
         play_iconic_sound("upload");
       }
 
@@ -298,7 +332,7 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
         );
       }
     },
-    [preferences.strip_exif_on_compose, t],
+    [append_attachments, preferences.strip_exif_on_compose, t],
   );
 
   const handle_file_select = useCallback(

@@ -24,7 +24,9 @@ import {
   COMPOSE_CARET_BLOCK,
   SIGNATURE_GAP_BLOCK,
   append_signature_node,
+  append_template_after_typed_text,
   format_signature_html,
+  has_typed_content,
   insert_signature_node,
   remove_signature_node,
   with_caret_block,
@@ -217,5 +219,54 @@ describe("remove_signature_node", () => {
     }
 
     expect(editor.innerHTML).toBe(with_caret_block(signature_markup));
+  });
+});
+
+describe("has_typed_content", () => {
+  it("treats blank lines as nothing typed", () => {
+    const editor = document.createElement("div");
+
+    editor.innerHTML = "<br><div><br></div><div> </div>";
+
+    expect(has_typed_content(editor)).toBe(false);
+    expect(has_typed_content(null)).toBe(false);
+  });
+
+  it("counts typed text and pasted images", () => {
+    const editor = document.createElement("div");
+
+    editor.textContent = "Hello";
+    expect(has_typed_content(editor)).toBe(true);
+
+    editor.innerHTML = '<div><img src="data:image/png;base64,AA=="></div>';
+    expect(has_typed_content(editor)).toBe(true);
+  });
+});
+
+describe("append_template_after_typed_text", () => {
+  it("adds the template below the typed text, without its caret line", () => {
+    const editor = document.createElement("div");
+
+    editor.textContent = "Hello";
+    const typed = editor.firstChild;
+
+    append_template_after_typed_text(
+      editor,
+      with_caret_block(signature_markup) + "<br><br>Secured",
+    );
+
+    expect(editor.innerHTML).toBe(
+      "Hello" + SIGNATURE_GAP_BLOCK + signature_markup + "<br><br>Secured",
+    );
+    expect(editor.firstChild).toBe(typed);
+  });
+
+  it("leaves the typed text alone when the template is empty", () => {
+    const editor = document.createElement("div");
+
+    editor.innerHTML = "<div>Hello</div>";
+    append_template_after_typed_text(editor, "");
+
+    expect(editor.innerHTML).toBe("<div>Hello</div>");
   });
 });

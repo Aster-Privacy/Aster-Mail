@@ -28,6 +28,8 @@ use keyring::Entry;
 use ml_kem::array::Array;
 use ml_kem::kem::Decapsulate;
 use ml_kem::{Ciphertext, EncodedSizeUser, KemCore, MlKem768};
+use rand::rand_core::UnwrapErr;
+use rand::rngs::SysRng;
 use rand_core::{OsRng, RngCore};
 use serde::{Deserialize, Serialize};
 use sha2::Sha256;
@@ -158,7 +160,7 @@ fn aead_seal(wrap_key: &[u8; 32], magic: &[u8; 8], plaintext: &[u8]) -> Result<V
     let mut nonce_bytes = [0u8; 24];
     OsRng.fill_bytes(&mut nonce_bytes);
     let cipher = XChaCha20Poly1305::new(wrap_key.into());
-    let nonce = XNonce::from_slice(&nonce_bytes);
+    let nonce = &XNonce::from(nonce_bytes);
     let ct = cipher
         .encrypt(nonce, Payload { msg: plaintext, aad: magic })
         .map_err(|e| format!("aead seal: {:?}", e))?;
@@ -173,7 +175,8 @@ fn aead_open(wrap_key: &[u8; 32], magic: &[u8; 8], data: &[u8]) -> Result<Vec<u8
     if data.len() < 8 + 24 + 16 || &data[..8] != magic {
         return Err("aead open: bad header".to_string());
     }
-    let nonce = XNonce::from_slice(&data[8..32]);
+    let nonce = &XNonce::try_from(&data[8..32])
+        .map_err(|_| "aead open: bad nonce".to_string())?;
     let ct = &data[32..];
     let cipher = XChaCha20Poly1305::new(wrap_key.into());
     cipher
@@ -563,14 +566,14 @@ pub fn get_or_create_device_identity() -> Result<DeviceIdentity, String> {
         return identity_from_stored(stored);
     }
 
-    let ed25519_signing_key = SigningKey::generate(&mut OsRng);
+    let ed25519_signing_key = SigningKey::generate(&mut UnwrapErr(SysRng));
     let ed25519_sk_bytes = ed25519_signing_key.to_bytes();
 
     let (dk, ek): (MlKemDecapKey, MlKemEncapKey) = MlKem768::generate(&mut OsRng);
     let mlkem_sk_bytes = dk.as_bytes().to_vec();
     let mlkem_pk_bytes = ek.as_bytes().to_vec();
 
-    let x25519_static_secret = StaticSecret::random_from_rng(OsRng);
+    let x25519_static_secret = StaticSecret::random_from_rng(&mut UnwrapErr(SysRng));
     let x25519_sk_bytes: [u8; 32] = x25519_static_secret.to_bytes();
     let x25519_public_bytes = *XPublicKey::from(&x25519_static_secret).as_bytes();
 
@@ -686,7 +689,7 @@ pub fn device_unseal_vault_envelope(
     drop(ss_cl);
 
     let cipher = XChaCha20Poly1305::new((&shared_key).into());
-    let xnonce = XNonce::from_slice(&nonce_bytes);
+    let xnonce = &XNonce::from(nonce_bytes);
     let plaintext = Zeroizing::new(
         cipher
             .decrypt(xnonce, ciphertext)
@@ -1104,7 +1107,8 @@ pub fn crypto_aes_gcm_encrypt(
         return Err("aes-gcm iv must be 12 bytes".to_string());
     }
     let cipher = Aes256Gcm::new_from_slice(&key).map_err(|e| e.to_string())?;
-    let nonce = Nonce::from_slice(&iv);
+    let nonce = &Nonce::try_from(iv.as_slice())
+        .map_err(|_| "aes-gcm iv must be 12 bytes".to_string())?;
     cipher.encrypt(nonce, data.as_ref()).map_err(|e| e.to_string())
 }
 
@@ -1119,7 +1123,8 @@ pub fn crypto_aes_gcm_decrypt(
         return Err("aes-gcm iv must be 12 bytes".to_string());
     }
     let cipher = Aes256Gcm::new_from_slice(&key).map_err(|e| e.to_string())?;
-    let nonce = Nonce::from_slice(&iv);
+    let nonce = &Nonce::try_from(iv.as_slice())
+        .map_err(|_| "aes-gcm iv must be 12 bytes".to_string())?;
     cipher.decrypt(nonce, data.as_ref()).map_err(|e| e.to_string())
 }
 

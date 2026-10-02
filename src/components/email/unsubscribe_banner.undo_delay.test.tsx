@@ -30,6 +30,8 @@ const h = vi.hoisted(() => ({
   },
   show_action_toast: vi.fn(),
   execute_unsubscribe: vi.fn(async () => "api"),
+  persist_unsubscribe: vi.fn(),
+  unsubscribed_senders: new Set<string>(),
 }));
 
 vi.mock("@/lib/i18n/context", () => ({
@@ -68,7 +70,11 @@ vi.mock("@/services/api/subscriptions", () => ({
 }));
 
 vi.mock("@/hooks/use_unsubscribed_senders", () => ({
-  persist_unsubscribe: vi.fn(),
+  persist_unsubscribe: h.persist_unsubscribe,
+  use_unsubscribed_senders: () => ({
+    is_unsubscribed: (email: string) => h.unsubscribed_senders.has(email),
+    mark_unsubscribed: vi.fn(),
+  }),
 }));
 
 vi.mock("@/services/send_queue", () => ({
@@ -130,6 +136,8 @@ describe("UnsubscribeBanner undo delay", () => {
     vi.useFakeTimers();
     h.show_action_toast.mockClear();
     h.execute_unsubscribe.mockClear();
+    h.persist_unsubscribe.mockClear();
+    h.unsubscribed_senders.clear();
     h.preferences.undo_send_enabled = true;
     h.preferences.undo_send_seconds = 10;
   });
@@ -188,5 +196,32 @@ describe("UnsubscribeBanner undo delay", () => {
       await vi.advanceTimersByTimeAsync(0);
     });
     expect(h.execute_unsubscribe).toHaveBeenCalledTimes(1);
+  });
+
+  it("records the sender as unsubscribed once the request succeeds", async () => {
+    h.preferences.undo_send_enabled = false;
+    render_banner();
+    click_unsubscribe();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    expect(h.persist_unsubscribe).toHaveBeenCalledTimes(1);
+    expect(h.persist_unsubscribe).toHaveBeenCalledWith(
+      "news@example.com",
+      "News",
+      {
+        unsubscribe_link: "https://example.com/unsub",
+        list_unsubscribe_header: undefined,
+      },
+      "manual",
+    );
+  });
+
+  it("stays hidden for a sender that is already unsubscribed", () => {
+    h.unsubscribed_senders.add("news@example.com");
+    render_banner();
+
+    expect(container!.querySelectorAll("button")).toHaveLength(0);
   });
 });

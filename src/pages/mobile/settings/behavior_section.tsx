@@ -1152,7 +1152,11 @@ export function BehaviorSection({
               { id: "star", label: t("mail.star"), group: "quick" },
               { id: "mark_read", label: t("mail.mark_read"), group: "quick" },
               { id: "print", label: t("mail.print"), group: "quick" },
-              { id: "archive", label: t("mail.archive"), group: "organize" },
+              {
+                id: "archive",
+                label: t("mail.archive_action"),
+                group: "organize",
+              },
               { id: "spam", label: t("mail.report_spam"), group: "organize" },
               {
                 id: "trash",

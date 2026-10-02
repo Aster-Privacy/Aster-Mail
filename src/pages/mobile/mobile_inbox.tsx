@@ -1234,7 +1234,9 @@ function MobileInbox({
                 <ArchiveBoxIcon className="h-5 w-5" />
               )}
               <span className="text-[11px]">
-                {is_archive_view ? t("mail.move_to_inbox") : t("mail.archive")}
+                {is_archive_view
+                  ? t("mail.move_to_inbox")
+                  : t("mail.archive_action")}
               </span>
             </button>
           )}

@@ -34,6 +34,7 @@ import {
   link_hover_ink_for,
   link_ink_for,
   needs_settle_remeasure,
+  resolve_backdrop_color,
   resolve_native_images,
   safe_hex,
 } from "./helpers";
@@ -50,6 +51,9 @@ import {
 } from "@/lib/email_body_styles";
 import {
   LINK_HOVER_VAR,
+  LINK_INK_LAYER_ATTRIBUTE,
+  LINK_INK_LAYER_CSS,
+  MEASURING_ATTRIBUTE,
   repair_email_contrast,
 } from "@/lib/email_contrast_repair";
 import { hex_to_rgba } from "@/lib/material_theme";
@@ -135,7 +139,11 @@ export function SandboxedEmailRenderer({
     cached_height ? `${cached_height}px` : "0px",
   );
   const [height_ready, set_height_ready] = useState(!!cached_height);
-  const contrast_repair_ref = useRef({ enabled: false, surface: "#121212" });
+  const contrast_repair_ref = useRef({
+    enabled: false,
+    surface: "#121212",
+    ink: "#e5e5e5",
+  });
   const prev_html_ref = useRef(sanitized_html);
   const iframe_ref = useRef<HTMLIFrameElement | null>(null);
   const doc_nonce_ref = useRef(0);
@@ -377,9 +385,11 @@ export function SandboxedEmailRenderer({
 
   const accent_hex = safe_hex(resolved_accent.accent);
   const body_ink_surface =
-    force_dark_mode || simple_dark_html || (!is_html_email && is_dark_theme)
-      ? (normalize_hex(resolved_accent.surface) ?? "#121212")
-      : "#ffffff";
+    force_dark_mode && !app_is_dark
+      ? FORCED_DARK_CANVAS
+      : force_dark_mode || simple_dark_html || (!is_html_email && is_dark_theme)
+        ? (normalize_hex(resolved_accent.surface) ?? "#121212")
+        : "#ffffff";
   const link_ink = link_ink_for(accent_hex, body_ink_surface);
   const link_hover_paint = link_hover_ink_for(link_ink, body_ink_surface);
   const link_visited_ink = derive_visited_ink(link_ink, body_ink_surface);
@@ -390,6 +400,7 @@ export function SandboxedEmailRenderer({
   contrast_repair_ref.current = {
     enabled: contrast_repair_active,
     surface: body_ink_surface,
+    ink: dark_ink,
   };
 
   const [contrast_ready, set_contrast_ready] = useState(
@@ -427,8 +438,9 @@ export function SandboxedEmailRenderer({
   const LINK_MEDIA_EXCLUDE =
     ":not(img):not(picture):not(svg):not(video):not(canvas)";
   const hover_paint = `var(${LINK_HOVER_VAR}, ${link_hover_paint})`;
+  const hover_link = `a${LINK_BUTTON_EXCLUDE}:where(:not([${MEASURING_ATTRIBUTE}])):hover`;
   const link_hover_css = `a { transition: none; }
-a${LINK_BUTTON_EXCLUDE}:hover, a${LINK_BUTTON_EXCLUDE}:hover *${LINK_MEDIA_EXCLUDE} {
+${hover_link}, ${hover_link} *${LINK_MEDIA_EXCLUDE} {
   color: ${hover_paint} !important;
   text-decoration: underline !important;
   text-decoration-color: ${hover_paint} !important;
@@ -468,6 +480,10 @@ a:focus-visible {
         dark_ink,
       )
     : plain_dark_css;
+  const forced_canvas_css =
+    force_dark_mode && !app_is_dark
+      ? `html { background-color: ${FORCED_DARK_CANVAS} !important; }`
+      : "";
 
   const force_light_scheme =
     is_html_email && !force_dark_mode && !simple_dark_html;
@@ -529,6 +545,7 @@ ${force_light_scheme ? `<meta name="color-scheme" content="light only">` : ""}
       ? "https://app.astermail.org"
       : window.location.origin;
   })()}/">
+${contrast_repair_active ? `<style ${LINK_INK_LAYER_ATTRIBUTE}>${LINK_INK_LAYER_CSS}</style>` : ""}
 <style>${iframe_css}</style>
 <style>body{zoom:${email_zoom}}</style>
 ${preferences.dyslexia_font ? `<style>@font-face{font-family:'OpenDyslexic';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/OpenDyslexic-Regular.woff2') format('woff2');}@font-face{font-family:'OpenDyslexic';font-style:normal;font-weight:700;font-display:swap;src:url('/fonts/OpenDyslexic-Bold.woff2') format('woff2');}body, body *:not(code):not(pre):not(kbd):not(samp):not([style*="font-family"]):not(font){font-family:${dyslexia_font_stack};}</style>` : ""}
@@ -539,6 +556,7 @@ ${force_light_scheme ? `<style>:root, html { color-scheme: light only !important
 ${email_font_face_css ? `<style>${email_font_face_css}</style>` : ""}
 ${email_font_override_css ? `<style>${email_font_override_css}</style>` : ""}
 ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
+${forced_canvas_css ? `<style>${forced_canvas_css}</style>` : ""}
 ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
 <style>${link_hover_css}</style>
 <style>img:not([data-blocked='true']) { cursor: zoom-in !important; } a img { cursor: pointer !important; } img[data-blocked='true'] { cursor: default !important; pointer-events: none !important; } a img[data-blocked='true'] { cursor: pointer !important; pointer-events: auto !important; }</style>
@@ -651,7 +669,11 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
     if (contrast_repair_ref.current.enabled) {
       try {
         repair_email_contrast(iframe.contentDocument, {
-          surface: contrast_repair_ref.current.surface,
+          surface: resolve_backdrop_color(
+            iframe,
+            contrast_repair_ref.current.surface,
+          ),
+          ink: contrast_repair_ref.current.ink,
           view: iframe.contentWindow,
         });
       } catch (caught) {

@@ -120,6 +120,18 @@ function get_seed_hue_chroma(hex: string): SeedHueChroma {
   return { hue: H, chroma: C };
 }
 
+export interface OklchLightnessChroma {
+  lightness: number;
+  chroma: number;
+}
+
+export function oklch_lightness_chroma(hex: string): OklchLightnessChroma {
+  const [r, g, b] = hex_to_rgb(hex).map((v) => srgb_to_linear(v / 255));
+  const { L, a, b: ob } = linear_rgb_to_oklab(r, g, b);
+
+  return { lightness: L, chroma: oklab_to_oklch(L, a, ob).C };
+}
+
 function tone_to_hex(
   hue: number,
   chroma: number,

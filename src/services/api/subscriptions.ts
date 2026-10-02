@@ -21,17 +21,10 @@
 import { api_client, type ApiResponse } from "./client";
 
 export type SubscriptionCategory =
-  | "newsletter"
-  | "marketing"
-  | "social"
-  | "transactional"
-  | "unknown";
+  "newsletter" | "marketing" | "social" | "transactional" | "unknown";
 
 export type SubscriptionStatus =
-  | "active"
-  | "unsubscribed"
-  | "pending"
-  | "failed";
+  "active" | "unsubscribed" | "pending" | "failed";
 
 export type RiskLevel = "safe" | "moderate" | "risky";
 
@@ -148,7 +141,7 @@ export async function get_subscription_stats(): Promise<{
 
 export async function unsubscribe(
   subscription_id: string,
-  method: "auto" | "list_unsubscribe" | "link" | "manual" = "auto",
+  method: "auto" | "link" | "manual" = "auto",
 ): Promise<{ data?: UnsubscribeResponse; error?: string }> {
   return api_client.post<UnsubscribeResponse>(
     "/mail/v1/subscriptions/unsubscribe",

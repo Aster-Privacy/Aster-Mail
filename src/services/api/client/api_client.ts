@@ -655,9 +655,8 @@ export class ApiClient {
     }
 
     try {
-      const { get_current_account_id, update_account_tokens } = await import(
-        "@/services/account_manager"
-      );
+      const { get_current_account_id, update_account_tokens } =
+        await import("@/services/account_manager");
 
       if (this.intentional_logout) return;
       const id = await get_current_account_id();
@@ -883,15 +882,16 @@ export class ApiClient {
     owner_account_id: string | null | undefined,
   ): Promise<string | null> {
     if (Capacitor.isNativePlatform()) {
-      return (await this.load_native_refresh_token()) ?? this.active_refresh_token;
+      return (
+        (await this.load_native_refresh_token()) ?? this.active_refresh_token
+      );
     }
 
     if (!owner_account_id) return this.active_refresh_token;
 
     try {
-      const { read_stored_refresh_token } = await import(
-        "@/services/account_manager"
-      );
+      const { read_stored_refresh_token } =
+        await import("@/services/account_manager");
 
       return (
         (await read_stored_refresh_token(owner_account_id)) ??
@@ -951,9 +951,8 @@ export class ApiClient {
       ? null
       : (this.expected_user_id ?? undefined);
 
-    const refresh_token = await this.read_latest_refresh_token(
-      owner_account_id,
-    );
+    const refresh_token =
+      await this.read_latest_refresh_token(owner_account_id);
 
     if (refresh_token) {
       this.active_refresh_token = refresh_token;
@@ -980,7 +979,7 @@ export class ApiClient {
 
         if (response.data?.csrf_token) {
           await this.adopt_refreshed_session(response.data, owner_account_id);
-          await this.verify_identity(true);
+          await this.confirm_identity_after_refresh();
 
           return;
         }
@@ -1401,6 +1400,36 @@ export class ApiClient {
     if (this.is_identity_mismatch(info.user_id)) return;
 
     this._cached_user_info = { ...this._cached_user_info, ...info };
+  }
+
+  private async confirm_identity_after_refresh(): Promise<void> {
+    if (!this.expected_user_id) return;
+    if (this.account_add_in_progress || this.intentional_logout) return;
+    if (!navigator.onLine) return;
+
+    this.last_identity_check_timestamp = Date.now();
+
+    const response = await this.get<CachedUserInfo>("/core/v1/auth/me", {
+      skip_cache: true,
+      skip_dedup: true,
+      skip_session_refresh: true,
+    });
+
+    if (response.data?.user_id) {
+      if (this.is_identity_mismatch(response.data.user_id)) {
+        this.dispatch_identity_mismatch(response.data.user_id);
+
+        return;
+      }
+      this.has_ever_authenticated = true;
+      this._cached_user_info = response.data;
+
+      return;
+    }
+
+    if (response.code === "UNAUTHORIZED" || response.code === "FORBIDDEN") {
+      this.is_authenticated_flag = false;
+    }
   }
 
   async check_auth_status(): Promise<boolean> {

@@ -103,6 +103,30 @@ export function build_search_haystack(
   };
 }
 
+type EnvelopeAttachment = { filename?: string; content_type?: string };
+
+function envelope_attachments(
+  envelope: DecryptedEnvelope,
+): EnvelopeAttachment[] | null {
+  const list = envelope.attachment_metadata ?? envelope.attachment_keys;
+
+  return list && list.length > 0 ? list : null;
+}
+
+function envelope_body_text(
+  envelope: DecryptedEnvelope,
+  search_body_text?: string,
+): string {
+  return (
+    search_body_text ||
+    (
+      (envelope.body_text || "") +
+      " " +
+      (envelope.body_html || envelope.html_body || "")
+    ).toLowerCase()
+  );
+}
+
 export function matches_operator(
   op: ParsedOperator,
   envelope: DecryptedEnvelope,
@@ -151,13 +175,6 @@ export function matches_operator(
       if (val === "attachment" || val === "attachments")
         return metadata?.has_attachments ?? false;
       if (!metadata?.has_attachments) return false;
-      const combined =
-        search_body_text ||
-        (
-          (envelope.body_text || "") +
-          " " +
-          (envelope.body_html || envelope.html_body || "")
-        ).toLowerCase();
       const ext_map: Record<string, string[]> = {
         pdf: [".pdf"],
         image: [".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg", ".bmp"],
@@ -171,7 +188,25 @@ export function matches_operator(
 
       if (!extensions) return true;
 
-      return extensions.some((ext) => combined.includes(ext));
+      const attachments = envelope_attachments(envelope);
+
+      if (!attachments) {
+        const body = envelope_body_text(envelope, search_body_text);
+
+        return extensions.some((ext) => body.includes(ext));
+      }
+
+      return attachments.some((attachment) => {
+        const filename = attachment.filename?.toLowerCase() ?? "";
+        const type = attachment.content_type?.toLowerCase() ?? "";
+
+        return (
+          extensions.some((ext) => filename.endsWith(ext)) ||
+          (val === "pdf" && type === "application/pdf") ||
+          (["image", "video", "audio"].includes(val) &&
+            type.startsWith(`${val}/`))
+        );
+      });
     }
     case "is":
       if (val === "unread") return !(metadata?.is_read ?? false);
@@ -245,15 +280,18 @@ export function matches_operator(
     case "filename":
     case "attachment": {
       if (!metadata?.has_attachments) return false;
-      const content =
-        search_body_text ||
-        (
-          (envelope.body_text || "") +
-          " " +
-          (envelope.body_html || envelope.html_body || "")
-        ).toLowerCase();
+      const attachments = envelope_attachments(envelope);
 
-      return content.includes(val);
+      if (!attachments) {
+        return envelope_body_text(envelope, search_body_text).includes(val);
+      }
+
+      return attachments.some((attachment) =>
+        includes_folded(
+          attachment.filename?.toLowerCase() ?? "",
+          fold_search_text(val) || val,
+        ),
+      );
     }
     case "larger": {
       const threshold = parse_size_value(op.value);

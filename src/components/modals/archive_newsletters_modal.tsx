@@ -659,7 +659,7 @@ export function ArchiveNewslettersModal({
                     variant="depth"
                     onClick={handle_archive}
                   >
-                    {t("mail.archive")}
+                    {t("mail.archive_action")}
                     {selected_ids.size > 0 ? ` (${selected_ids.size})` : ""}
                   </Button>
                 </div>

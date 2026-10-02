@@ -40,6 +40,12 @@ vi.mock("@/services/crypto/legacy_keks", () => ({
   decrypt_aes_gcm_with_fallback: vi.fn(),
 }));
 
+vi.mock("@/services/api/domains", () => ({
+  add_domain_address: vi.fn(() => {
+    throw new Error("Wildcard sending must not create an address");
+  }),
+}));
+
 const { create_scheduled_email } = await import("./scheduled");
 
 function to_bytes(base64: string): Uint8Array {
@@ -115,5 +121,28 @@ describe("scheduled envelope", () => {
     expect(envelope).not.toHaveProperty("from");
     expect(envelope).not.toHaveProperty("in_reply_to");
     expect(envelope).not.toHaveProperty("thread_id");
+  });
+  it("seals a wildcard From address without registering an individual address", async () => {
+    post.mockResolvedValue({
+      data: { id: "s3", scheduled_at: "x", success: true },
+    });
+    await create_scheduled_email({} as never, {
+      to_recipients: ["a@example.com"],
+      cc_recipients: [],
+      bcc_recipients: [],
+      subject: "s",
+      body: "b",
+      scheduled_at: "2030-01-01T00:00:00.000Z",
+      from: { name: "Me", email: "shopping@my.example" },
+    });
+    const request = post.mock.calls.at(-1)![1];
+
+    expect(request.sender_alias_hash).toBeUndefined();
+    const { add_domain_address } = await import("@/services/api/domains");
+
+    expect(add_domain_address).not.toHaveBeenCalled();
+    expect((await open_envelope(request)).from.email).toBe(
+      "shopping@my.example",
+    );
   });
 });

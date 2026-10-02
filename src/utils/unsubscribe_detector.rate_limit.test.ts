@@ -87,3 +87,86 @@ describe("bulk unsubscribe survives the proxy rate limit", () => {
     expect(mock_proxy).toHaveBeenCalledTimes(5);
   });
 });
+
+describe("unsubscribe requests", () => {
+  beforeEach(() => {
+    mock_proxy.mockReset();
+  });
+
+  it("always sends the standard one-click body", async () => {
+    mock_proxy.mockResolvedValue({
+      data: { success: true, method: "one-click" },
+    });
+
+    await execute_unsubscribe({
+      ...ONE_CLICK_INFO,
+      list_unsubscribe_post: "list-unsubscribe=one-click",
+    });
+
+    expect(mock_proxy).toHaveBeenCalledWith({
+      method: "one-click",
+      url: "https://sender.example.com/oc?t=abc",
+      list_unsubscribe_post: "List-Unsubscribe=One-Click",
+    });
+  });
+
+  it("never requests a plain link on the user's behalf", async () => {
+    await expect(
+      execute_unsubscribe({
+        has_unsubscribe: true,
+        method: "link",
+        unsubscribe_link: "https://sender.example.com/unsubscribe?id=1",
+        unsubscribe_page_url: "https://sender.example.com/unsubscribe?id=1",
+      }),
+    ).resolves.toBe("link");
+    expect(mock_proxy).not.toHaveBeenCalled();
+  });
+
+  it("sends the unsubscribe email for an address-only list", async () => {
+    mock_proxy.mockResolvedValue({ data: { success: true, method: "mailto" } });
+
+    await expect(
+      execute_unsubscribe({
+        has_unsubscribe: true,
+        method: "mailto",
+        unsubscribe_mailto: "stop@sender.example.com",
+      }),
+    ).resolves.toBe("api");
+    expect(mock_proxy).toHaveBeenCalledWith({
+      method: "mailto",
+      mailto_address: "stop@sender.example.com",
+    });
+  });
+
+  it("falls back to the address when the one-click request fails", async () => {
+    mock_proxy
+      .mockResolvedValueOnce({ error: "failed" })
+      .mockResolvedValueOnce({ data: { success: true, method: "mailto" } });
+
+    await expect(
+      execute_unsubscribe({
+        ...ONE_CLICK_INFO,
+        unsubscribe_mailto: "stop@sender.example.com",
+      }),
+    ).resolves.toBe("api");
+    expect(mock_proxy).toHaveBeenCalledTimes(2);
+  });
+
+  it("reports a manual email when the address request fails", async () => {
+    mock_proxy.mockResolvedValue({ error: "failed" });
+
+    await expect(
+      execute_unsubscribe({
+        has_unsubscribe: true,
+        method: "mailto",
+        unsubscribe_mailto: "stop@sender.example.com",
+      }),
+    ).resolves.toBe("mailto");
+  });
+
+  it("rejects when there is nothing to act on", async () => {
+    await expect(
+      execute_unsubscribe({ has_unsubscribe: false, method: "none" }),
+    ).rejects.toMatchObject({ code: "no_method" });
+  });
+});

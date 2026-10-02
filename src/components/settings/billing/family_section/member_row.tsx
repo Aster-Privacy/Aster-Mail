@@ -40,6 +40,7 @@ import {
   type FamilyMemberInfo,
 } from "@/services/api/family";
 import { show_toast } from "@/components/toast/simple_toast";
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { use_i18n } from "@/lib/i18n/context";
 import type {} from "@/lib/i18n/types";
 import { format_bytes } from "@/lib/utils";
@@ -272,25 +273,39 @@ export function MemberGroupsContent() {
     import("@/services/api/family_org").MemberGroup[]
   >([]);
   const [loading, set_loading] = useState(true);
+  const [load_failed, set_load_failed] = useState(false);
 
-  useEffect(() => {
+  const load = useCallback(() => {
+    set_loading(true);
     import("@/services/api/family_org")
       .then((m) => m.list_my_groups())
       .then((r) => {
-        if (r.data) set_my_groups(r.data);
-        else
-          show_toast(t("settings.fam_org_groups_members_load_failed"), "error");
+        if (r.data) {
+          set_my_groups(r.data);
+          set_load_failed(false);
+        } else {
+          set_load_failed(true);
+        }
       })
-      .catch((caught) =>
+      .catch((caught) => {
         ignore_error(
           "components/settings/billing/family_section/member_row:MemberGroupsContent",
           caught,
-        ),
-      )
+        );
+        set_load_failed(true);
+      })
       .finally(() => set_loading(false));
   }, []);
 
+  useEffect(() => {
+    load();
+  }, [load]);
+
   if (loading) return <SkeletonRows count={2} />;
+
+  if (load_failed && my_groups.length === 0) {
+    return <LoadFailedNotice on_retry={load} />;
+  }
 
   if (my_groups.length === 0)
     return (

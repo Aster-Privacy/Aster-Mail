@@ -24,6 +24,7 @@ import type { UseEditorReturn } from "@/hooks/use_editor";
 import { useEffect } from "react";
 
 import { sanitize_compose_paste } from "@/lib/html_sanitizer";
+import { proxy_compose_image_sources } from "@/lib/compose_image_sources";
 import { QuotedHtmlPreview } from "@/components/compose/quoted_html_preview";
 import { CloseIcon } from "@/components/common/icons";
 import { ExpirationPicker } from "@/components/compose/expiration_picker";
@@ -125,7 +126,9 @@ export function ForwardBody({
     const el = message_editor_ref.current;
 
     if (el && message_content && !el.innerHTML) {
-      el.innerHTML = sanitize_compose_paste(message_content);
+      el.innerHTML = proxy_compose_image_sources(
+        sanitize_compose_paste(message_content),
+      );
     }
   });
 

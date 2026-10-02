@@ -68,6 +68,26 @@ export function get_original_image_source(src: string): string | null {
   return original;
 }
 
+export function proxy_compose_image_sources(html: string): string {
+  if (!html || !/<img\b/i.test(html)) return html;
+
+  const proxy_url = get_image_proxy_url();
+
+  return html.replace(
+    IMG_SRC_PATTERN,
+    (match: string, prefix: string, raw_src: string, suffix: string) => {
+      const src = decode_attribute(raw_src).trim();
+
+      if (!/^https?:\/\//i.test(src)) return match;
+      if (get_original_image_source(src) !== null) return match;
+
+      const proxied = `${proxy_url}?url=${encodeURIComponent(src)}`;
+
+      return `${prefix}${encode_attribute(proxied)}${suffix}`;
+    },
+  );
+}
+
 export function restore_compose_image_sources(html: string): string {
   if (!html || !html.includes(PROXY_PATH_SUFFIX)) return html;
 

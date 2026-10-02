@@ -22,26 +22,58 @@ import { useState, useEffect, useCallback } from "react";
 
 import {
   list_subscriptions,
+  reactivate_subscription,
   track_subscription,
   unsubscribe,
 } from "@/services/api/subscriptions";
 
+const LOAD_PAGE_SIZE = 100;
+const LOAD_MAX_PAGES = 50;
+const LOAD_ATTEMPTS = 3;
+const LOAD_RETRY_DELAY_MS = 2_000;
+const MAX_SENDER_NAME_LENGTH = 255;
+const MAX_UNSUBSCRIBE_FIELD_LENGTH = 2048;
+
 const cached_unsubscribed = new Set<string>();
 let cache_loaded = false;
+let cache_generation = 0;
+let load_promise: Promise<boolean> | null = null;
 
 export const UNSUBSCRIBE_EVENT = "aster:sender-unsubscribed";
 export const RESUBSCRIBE_EVENT = "aster:sender-resubscribed";
 
+export function normalize_sender_email(sender_email: string): string {
+  return sender_email.trim().toLowerCase();
+}
+
 export function clear_unsubscribed_senders_cache(): void {
   cached_unsubscribed.clear();
   cache_loaded = false;
+  cache_generation += 1;
+  load_promise = null;
 }
 
 export function remove_unsubscribed_sender(sender_email: string): void {
-  cached_unsubscribed.delete(sender_email);
+  cached_unsubscribed.delete(normalize_sender_email(sender_email));
   window.dispatchEvent(
     new CustomEvent(RESUBSCRIBE_EVENT, { detail: { sender_email } }),
   );
+}
+
+function sanitize_unsubscribe_link(link?: string): string | undefined {
+  const trimmed = link?.trim();
+
+  if (!trimmed || trimmed.length > MAX_UNSUBSCRIBE_FIELD_LENGTH) {
+    return undefined;
+  }
+
+  return /^https?:\/\//i.test(trimmed) ? trimmed : undefined;
+}
+
+function sanitize_unsubscribe_header(header?: string): string | undefined {
+  if (!header || !header.trim()) return undefined;
+
+  return header.length > MAX_UNSUBSCRIBE_FIELD_LENGTH ? undefined : header;
 }
 
 export async function persist_unsubscribe(
@@ -51,26 +83,125 @@ export async function persist_unsubscribe(
     unsubscribe_link?: string;
     list_unsubscribe_header?: string;
   },
-  method: "auto" | "link" | "manual" = "auto",
+  method: "auto" | "link" | "manual" = "manual",
 ): Promise<void> {
+  const normalized = normalize_sender_email(sender_email);
+
+  if (!normalized.includes("@")) return;
+
+  const generation = cache_generation;
+
+  cached_unsubscribed.add(normalized);
+  window.dispatchEvent(
+    new CustomEvent(UNSUBSCRIBE_EVENT, { detail: { sender_email } }),
+  );
+
   try {
     const track_result = await track_subscription({
-      sender_email,
-      sender_name,
-      unsubscribe_link: info.unsubscribe_link,
-      list_unsubscribe_header: info.list_unsubscribe_header,
+      sender_email: normalized,
+      sender_name:
+        sender_name.trim().slice(0, MAX_SENDER_NAME_LENGTH) || undefined,
+      unsubscribe_link: sanitize_unsubscribe_link(info.unsubscribe_link),
+      list_unsubscribe_header: sanitize_unsubscribe_header(
+        info.list_unsubscribe_header,
+      ),
     });
+
+    if (generation !== cache_generation) return;
 
     if (track_result.data?.subscription_id) {
       await unsubscribe(track_result.data.subscription_id, method);
     }
-    cached_unsubscribed.add(sender_email);
   } catch {
+    return;
+  }
+}
+
+export async function persist_resubscribe(sender_email: string): Promise<void> {
+  const normalized = normalize_sender_email(sender_email);
+
+  if (!normalized.includes("@")) return;
+
+  const generation = cache_generation;
+
+  remove_unsubscribed_sender(sender_email);
+
+  try {
+    const track_result = await track_subscription({ sender_email: normalized });
+
+    if (generation !== cache_generation) return;
+
+    if (track_result.data?.subscription_id) {
+      await reactivate_subscription(track_result.data.subscription_id);
+    }
+  } catch {
+    return;
+  }
+}
+
+async function fetch_unsubscribed_senders(
+  generation: number,
+): Promise<boolean> {
+  const collected: string[] = [];
+
+  for (let page = 0; page < LOAD_MAX_PAGES; page += 1) {
+    const res = await list_subscriptions({
+      status: "unsubscribed",
+      limit: LOAD_PAGE_SIZE,
+      offset: page * LOAD_PAGE_SIZE,
+    });
+
+    if (generation !== cache_generation || !res.data) return false;
+
+    for (const sub of res.data.subscriptions) {
+      collected.push(normalize_sender_email(sub.sender_email));
+    }
+
+    if (!res.data.has_more || res.data.subscriptions.length === 0) break;
+  }
+
+  for (const sender_email of collected) {
     cached_unsubscribed.add(sender_email);
   }
-  window.dispatchEvent(
-    new CustomEvent(UNSUBSCRIBE_EVENT, { detail: { sender_email } }),
-  );
+  cache_loaded = true;
+
+  return true;
+}
+
+export function load_unsubscribed_senders(): Promise<boolean> {
+  if (cache_loaded) return Promise.resolve(true);
+  if (load_promise) return load_promise;
+
+  const generation = cache_generation;
+  const promise = (async () => {
+    for (let attempt = 0; attempt < LOAD_ATTEMPTS; attempt += 1) {
+      let loaded = false;
+
+      try {
+        loaded = await fetch_unsubscribed_senders(generation);
+      } catch {
+        loaded = false;
+      }
+
+      if (loaded) return true;
+      if (generation !== cache_generation) return false;
+      if (attempt === LOAD_ATTEMPTS - 1) return false;
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, LOAD_RETRY_DELAY_MS * (attempt + 1));
+      });
+
+      if (generation !== cache_generation) return false;
+    }
+
+    return false;
+  })().finally(() => {
+    if (load_promise === promise) load_promise = null;
+  });
+
+  load_promise = promise;
+
+  return promise;
 }
 
 export function use_unsubscribed_senders() {
@@ -80,45 +211,13 @@ export function use_unsubscribed_senders() {
   const [is_loaded, set_is_loaded] = useState(cache_loaded);
 
   useEffect(() => {
-    if (cache_loaded) {
-      set_unsubscribed(new Set(cached_unsubscribed));
-      set_is_loaded(true);
-
-      return;
-    }
     let cancelled = false;
 
-    const load = async () => {
-      for (let attempt = 0; attempt < 3; attempt += 1) {
-        const res = await list_subscriptions({
-          status: "unsubscribed",
-          limit: 1000,
-        });
-
-        if (cancelled) return;
-
-        if (res.data) {
-          for (const sub of res.data.subscriptions) {
-            cached_unsubscribed.add(sub.sender_email);
-          }
-          cache_loaded = true;
-          set_unsubscribed(new Set(cached_unsubscribed));
-          set_is_loaded(true);
-
-          return;
-        }
-
-        if (attempt === 2) return;
-
-        await new Promise((resolve) => {
-          setTimeout(resolve, 2_000 * (attempt + 1));
-        });
-
-        if (cancelled) return;
-      }
-    };
-
-    load();
+    load_unsubscribed_senders().then((loaded) => {
+      if (cancelled || !loaded) return;
+      set_unsubscribed(new Set(cached_unsubscribed));
+      set_is_loaded(true);
+    });
 
     return () => {
       cancelled = true;
@@ -129,15 +228,16 @@ export function use_unsubscribed_senders() {
     const handle_event = (e: Event) => {
       const sender_email = (e as CustomEvent).detail?.sender_email;
 
-      if (sender_email) {
-        cached_unsubscribed.add(sender_email);
+      if (typeof sender_email === "string" && sender_email) {
+        cached_unsubscribed.add(normalize_sender_email(sender_email));
         set_unsubscribed(new Set(cached_unsubscribed));
       }
     };
     const handle_resubscribe = (e: Event) => {
       const sender_email = (e as CustomEvent).detail?.sender_email;
 
-      if (sender_email) {
+      if (typeof sender_email === "string" && sender_email) {
+        cached_unsubscribed.delete(normalize_sender_email(sender_email));
         set_unsubscribed(new Set(cached_unsubscribed));
       }
     };
@@ -152,13 +252,13 @@ export function use_unsubscribed_senders() {
   }, []);
 
   const mark_unsubscribed = useCallback((email: string) => {
-    cached_unsubscribed.add(email);
+    cached_unsubscribed.add(normalize_sender_email(email));
     set_unsubscribed(new Set(cached_unsubscribed));
   }, []);
 
   const is_unsubscribed = useCallback(
     (email: string) => {
-      return !is_loaded || unsubscribed.has(email);
+      return !is_loaded || unsubscribed.has(normalize_sender_email(email));
     },
     [unsubscribed, is_loaded],
   );

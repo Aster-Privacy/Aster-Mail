@@ -34,7 +34,10 @@ import {
 } from "@/utils/unsubscribe_detector";
 import { open_external } from "@/utils/open_link";
 import { track_subscription } from "@/services/api/subscriptions";
-import { persist_unsubscribe } from "@/hooks/use_unsubscribed_senders";
+import {
+  persist_unsubscribe,
+  use_unsubscribed_senders,
+} from "@/hooks/use_unsubscribed_senders";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -56,6 +59,7 @@ export function UnsubscribeBanner({
   const { t } = use_i18n();
   const { preferences } = use_preferences();
   const reduce_motion = use_should_reduce_motion();
+  const { is_unsubscribed } = use_unsubscribed_senders();
   const [is_dismissed, set_is_dismissed] = useState(false);
   const tracked_ref = useRef(false);
   const pending_timeout_ref = useRef<NodeJS.Timeout | null>(null);
@@ -93,6 +97,17 @@ export function UnsubscribeBanner({
   }, []);
 
   const handle_unsubscribe = useCallback(async () => {
+    const record_unsubscribed = () =>
+      persist_unsubscribe(
+        sender_email,
+        sender_name,
+        {
+          unsubscribe_link: unsubscribe_info.unsubscribe_link,
+          list_unsubscribe_header: unsubscribe_info.list_unsubscribe_header,
+        },
+        "manual",
+      );
+
     cancelled_ref.current = false;
     set_is_dismissed(true);
 
@@ -127,15 +142,7 @@ export function UnsubscribeBanner({
         const result = await execute_unsubscribe(unsubscribe_info);
 
         if (result === "api") {
-          persist_unsubscribe(
-            sender_email,
-            sender_name,
-            {
-              unsubscribe_link: unsubscribe_info.unsubscribe_link,
-              list_unsubscribe_header: unsubscribe_info.list_unsubscribe_header,
-            },
-            "auto",
-          );
+          record_unsubscribed();
           on_unsubscribed?.();
           show_action_toast({
             message: t("mail.successfully_unsubscribed"),
@@ -156,9 +163,14 @@ export function UnsubscribeBanner({
                 action_label: t("mail.open_unsubscribe_page"),
                 on_undo: async () => {
                   open_external(url);
+                  record_unsubscribed();
+                  on_unsubscribed?.();
                 },
               }),
           });
+          if (mounted_ref.current && (lockdown || !url)) {
+            set_is_dismissed(false);
+          }
         }
       } catch {
         if (mounted_ref.current) set_is_dismissed(false);
@@ -171,6 +183,8 @@ export function UnsubscribeBanner({
     }, delay_ms);
   }, [
     unsubscribe_info,
+    sender_email,
+    sender_name,
     preferences.undo_send_enabled,
     preferences.undo_send_seconds,
     preferences.undo_send_period,
@@ -178,7 +192,11 @@ export function UnsubscribeBanner({
     t,
   ]);
 
-  if (!unsubscribe_info.has_unsubscribe || is_dismissed) {
+  if (
+    !unsubscribe_info.has_unsubscribe ||
+    is_dismissed ||
+    is_unsubscribed(sender_email)
+  ) {
     return null;
   }
 

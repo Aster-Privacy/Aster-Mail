@@ -526,7 +526,7 @@ export function InboxHeader({
                     </button>
                   </Tooltip>
                 ) : (
-                  <Tooltip tip={t("mail.archive")}>
+                  <Tooltip tip={t("mail.archive_action")}>
                     <button
                       className="h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)] text-[var(--icon-secondary)] hover:text-[var(--icon-active)]"
                       onClick={on_archive}

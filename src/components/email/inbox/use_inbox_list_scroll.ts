@@ -77,12 +77,12 @@ export function use_inbox_list_scroll({
 
   useLayoutEffect(() => {
     if (show_full_email_viewer) return;
-    const container = split_pane.list_scroll_ref.current;
+    const container = split_pane.list_panel_ref.current;
 
     if (container && list_scroll_top_ref.current > 0) {
       container.scrollTop = list_scroll_top_ref.current;
     }
-  }, [show_full_email_viewer, split_pane.list_scroll_ref]);
+  }, [show_full_email_viewer, split_pane.list_panel_ref]);
 
   const handle_page_change = useCallback(
     (page: number): void => {
@@ -91,7 +91,6 @@ export function use_inbox_list_scroll({
       }
       list_scroll_top_ref.current = 0;
       split_pane.list_panel_ref.current?.scrollTo(0, 0);
-      split_pane.list_scroll_ref.current?.scrollTo(0, 0);
       set_current_page(page);
     },
     [
@@ -101,7 +100,6 @@ export function use_inbox_list_scroll({
       set_is_paginating,
       set_current_page,
       split_pane.list_panel_ref,
-      split_pane.list_scroll_ref,
     ],
   );
   const handle_filter_change = useCallback(
@@ -113,4 +111,20 @@ export function use_inbox_list_scroll({
   );
 
   return { handle_list_scroll, handle_page_change, handle_filter_change };
+}
+
+export function reveal_list_row(list: HTMLElement, email_id: string): void {
+  const row = Array.from(
+    list.querySelectorAll<HTMLElement>("[data-row-email-id]"),
+  ).find((node) => node.dataset["rowEmailId"] === email_id);
+
+  if (!row) return;
+  const list_rect = list.getBoundingClientRect();
+  const row_rect = row.getBoundingClientRect();
+
+  if (row_rect.bottom > list_rect.bottom) {
+    list.scrollTop += row_rect.bottom - list_rect.bottom;
+  } else if (row_rect.top < list_rect.top) {
+    list.scrollTop -= list_rect.top - row_rect.top;
+  }
 }

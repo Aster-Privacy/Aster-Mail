@@ -165,4 +165,38 @@ describe("resolve_from_sender", () => {
     expect(resolved?.option.id).toBe("alias-1");
     expect(resolved?.tier).toBe(from_tier_pinned);
   });
+
+  describe("catch-all identities", () => {
+    const with_catch_all = [
+      ...options,
+      {
+        id: "catch-all-d1-deals@my.example",
+        email: "deals@my.example",
+        type: "domain",
+        is_catch_all: true,
+      },
+    ];
+
+    it("keep a saved address on the thread ahead of them", () => {
+      const resolved = resolve_from_sender({
+        options: with_catch_all,
+        thread_addresses: ["deals@my.example", "work@astermail.org"],
+      });
+
+      expect(resolved?.option.id).toBe("alias-2");
+      expect(resolved?.tier).toBe(from_tier_thread);
+    });
+
+    it("replace the pinned and fallback senders when nothing saved matched", () => {
+      const resolved = resolve_from_sender({
+        options: with_catch_all,
+        thread_addresses: [undefined, "list@lists.example", "deals@my.example"],
+        prefer_external: true,
+        preferred_sender_id: "alias-1",
+      });
+
+      expect(resolved?.option.id).toBe("catch-all-d1-deals@my.example");
+      expect(resolved?.tier).toBe(from_tier_thread);
+    });
+  });
 });

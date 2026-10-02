@@ -274,7 +274,6 @@ export function use_preferences_provider() {
 
     (async () => {
       try {
-        let response = await get_preferences(v);
         let attempt = 0;
         let cached_applied = false;
 
@@ -300,9 +299,9 @@ export function use_preferences_provider() {
           set_is_loading(false);
         };
 
-        if (!response.loaded_from_server) {
-          apply_cached_fallback();
-        }
+        apply_cached_fallback();
+
+        let response = await get_preferences(v);
 
         while (!response.loaded_from_server && attempt < 6) {
           if (cancelled) return;
@@ -358,6 +357,7 @@ export function use_preferences_provider() {
           cache_preferences_locally(applied);
           preferences_ref.current = applied;
           set_preferences(applied);
+          set_is_loading(false);
 
           if (
             merged !== normalized ||

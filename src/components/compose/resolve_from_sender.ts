@@ -32,6 +32,7 @@ export interface from_sender_candidate {
   email?: string;
   is_enabled?: boolean;
   type?: string;
+  is_catch_all?: boolean;
 }
 
 export interface from_resolution_input<T extends from_sender_candidate> {
@@ -76,10 +77,14 @@ export function resolve_from_sender<T extends from_sender_candidate>(
 
   if (draft_match) return { option: draft_match, tier: from_tier_draft };
 
-  for (const address of input.thread_addresses ?? []) {
-    const match = find_by_address(options, address);
+  for (const catch_all of [false, true]) {
+    const pool = options.filter((o) => !!o.is_catch_all === catch_all);
 
-    if (match) return { option: match, tier: from_tier_thread };
+    for (const address of input.thread_addresses ?? []) {
+      const match = find_by_address(pool, address);
+
+      if (match) return { option: match, tier: from_tier_thread };
+    }
   }
 
   if (input.prefer_external) {

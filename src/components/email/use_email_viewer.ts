@@ -393,7 +393,11 @@ export function use_email_viewer({
   }, [local_email, user, format_email_detail, t]);
 
   useEffect(() => {
-    if (local_email) return;
+    if (local_email) {
+      loaded_email_id_ref.current = null;
+
+      return;
+    }
     let cancelled = false;
 
     const commit_preloaded = (preloaded: PreloadedEmail) => {
@@ -442,10 +446,13 @@ export function use_email_viewer({
 
       const preloaded =
         cached ??
-        (await await_preloaded_email(
-          email_id,
+        usable_preloaded(
+          await await_preloaded_email(
+            email_id,
+            preferences.conversation_grouping !== false,
+          ),
           preferences.conversation_grouping !== false,
-        ));
+        );
 
       if (preloaded) {
         const pe = preloaded.email;
@@ -455,9 +462,8 @@ export function use_email_viewer({
 
           if (!preloaded.current_user_name) {
             try {
-              const { get_current_account } = await import(
-                "@/services/account_manager"
-              );
+              const { get_current_account } =
+                await import("@/services/account_manager");
               const account = await get_current_account();
 
               if (account) {
@@ -613,9 +619,8 @@ export function use_email_viewer({
       let user_name: string | undefined;
 
       try {
-        const { get_current_account } = await import(
-          "@/services/account_manager"
-        );
+        const { get_current_account } =
+          await import("@/services/account_manager");
         const account = await get_current_account();
 
         if (account) {
@@ -632,7 +637,12 @@ export function use_email_viewer({
         body_text,
         safe_html,
         unsubscribe_info: unsubscribe,
-      } = await process_envelope_body(envelope, user_email, item.id);
+      } = await process_envelope_body(
+        envelope,
+        user_email,
+        item.id,
+        item.dkim_result,
+      );
 
       let decrypted_metadata = item.metadata;
 
@@ -641,9 +651,8 @@ export function use_email_viewer({
         item.encrypted_metadata &&
         item.metadata_nonce
       ) {
-        const { decrypt_mail_metadata } = await import(
-          "@/services/crypto/mail_metadata"
-        );
+        const { decrypt_mail_metadata } =
+          await import("@/services/crypto/mail_metadata");
 
         decrypted_metadata =
           (await decrypt_mail_metadata(
@@ -694,7 +703,9 @@ export function use_email_viewer({
           sender_verification: envelope.sender_verification,
           is_external: item.is_external,
           system_origin: item.system_origin,
-          sender_verified_domain: item.sender_verified ? item.sender_verified_domain : undefined,
+          sender_verified_domain: item.sender_verified
+            ? item.sender_verified_domain
+            : undefined,
           send_status: item.send_status,
           send_error: item.send_error,
         });
@@ -706,10 +717,7 @@ export function use_email_viewer({
         set_is_pinned(decrypted_metadata?.is_pinned ?? false);
       }
 
-      if (
-        !is_read_on_server &&
-        preferences.mark_as_read_delay !== "never"
-      ) {
+      if (!is_read_on_server && preferences.mark_as_read_delay !== "never") {
         const is_received_item = item.item_type === "received";
         const armed_read_ticket = peek_read_ticket(item.id);
         const mark_read = async () => {
@@ -1394,11 +1402,17 @@ export function use_email_viewer({
     [mail_item?.id, mail_item?.thread_token],
   );
 
+  const retry_load = useCallback(() => {
+    set_error(null);
+    set_refresh_key((k) => k + 1);
+  }, []);
+
   return {
     email,
     mail_item,
     is_loading,
     error,
+    retry_load,
     is_read,
     is_pinned,
     is_archive_loading,

@@ -53,12 +53,14 @@ export function ViewerViewSource({
 export interface ViewerErrorStateProps {
   error: string | null;
   on_dismiss: () => void;
+  on_retry?: () => void;
   show_back_button?: boolean;
 }
 
 export function ViewerErrorState({
   error,
   on_dismiss,
+  on_retry,
   show_back_button = false,
 }: ViewerErrorStateProps): React.ReactElement {
   const { t } = use_i18n();
@@ -70,6 +72,15 @@ export function ViewerErrorState({
         <p className="text-sm text-txt-muted">
           {error || t("common.failed_to_load_email")}
         </p>
+        {on_retry && (
+          <button
+            className="mt-4 mx-1 px-4 py-2 text-sm font-medium rounded-[14px] transition-colors bg-surf-secondary text-txt-primary"
+            type="button"
+            onClick={on_retry}
+          >
+            {t("common.retry")}
+          </button>
+        )}
         {show_back_button && (
           <button
             className="mt-4 px-4 py-2 text-sm font-medium rounded-[14px] transition-colors bg-surf-secondary text-txt-primary"

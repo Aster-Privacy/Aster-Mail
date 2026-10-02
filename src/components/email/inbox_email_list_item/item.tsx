@@ -973,7 +973,7 @@ export const InboxEmailListItem = memo(
                 )}
 
                 {!is_trash_view && !is_archive_view && on_archive && (
-                  <Tooltip tip={t("mail.archive")}>
+                  <Tooltip tip={t("mail.archive_action")}>
                     <button
                       className="p-1.5 rounded-[14px] hover:bg-black/10 dark:hover:bg-white/10"
                       onClick={() => on_archive(email)}

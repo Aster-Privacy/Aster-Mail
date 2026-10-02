@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 export interface ReplyFromSource {
+  raw_headers?: { name: string; value: string }[];
   sender_email: string;
   to_emails?: string[];
   cc_emails?: string[];
@@ -37,7 +38,12 @@ export function build_reply_from_address(
 
   const alias = source.received_on_alias?.trim();
 
-  return alias ? alias : undefined;
+  if (alias) return alias;
+
+  return catch_all_reply_address(source.raw_headers, [
+    ...(source.to_emails ?? []),
+    ...(source.cc_emails ?? []),
+  ]);
 }
 
 export function resolve_received_on_alias(
@@ -110,3 +116,4 @@ export function collect_recipient_emails(
 }
 
 import { normalize_address_ignoring_dots } from "@/utils/address_dots";
+import { catch_all_reply_address } from "@/services/catch_all_sender";

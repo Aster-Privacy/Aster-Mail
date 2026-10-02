@@ -271,7 +271,7 @@ export function MobileActionMenuSheet({
               <ArchiveBoxIcon className="h-5 w-5 text-[var(--text-muted)]" />
             )}
             <span className="text-[14px] text-[var(--text-primary)]">
-              {is_archived ? t("mail.move_to_inbox") : t("mail.archive")}
+              {is_archived ? t("mail.move_to_inbox") : t("mail.archive_action")}
             </span>
           </button>
           {is_spam ? (

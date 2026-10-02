@@ -354,6 +354,7 @@ export function use_email_detail() {
     email,
     is_loading,
     error,
+    fetch_email,
     is_sender_dropdown_open,
     set_is_sender_dropdown_open,
     is_block_sender_modal_open,

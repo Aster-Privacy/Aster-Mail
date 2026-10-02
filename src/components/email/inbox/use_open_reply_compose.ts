@@ -62,6 +62,7 @@ export function use_open_reply_compose(
       email: InboxEmail,
       safe_body: string,
       cc_emails?: string[],
+      raw_headers?: { name: string; value: string }[],
     ) => {
       if (mode !== "forward" && on_reply) {
         const is_own_message = email.item_type === "sent";
@@ -87,6 +88,9 @@ export function use_open_reply_compose(
         const reply_from_address = build_reply_from_address(
           {
             sender_email: email.sender_email,
+            raw_headers,
+            to_emails: email.recipient_addresses,
+            cc_emails,
             received_on_alias:
               resolve_received_on_alias(
                 email.routing_token,
@@ -149,12 +153,15 @@ export function use_open_reply_compose(
         void (async () => {
           let resolved = fallback_body;
           let resolved_cc: string[] | undefined;
+          let resolved_headers: { name: string; value: string }[] | undefined;
 
           try {
             await preload_email_detail(email.id, user_email);
 
             const preloaded = await await_preloaded_email(email.id);
             const body = preloaded?.email.body ?? "";
+
+            resolved_headers = preloaded?.email.raw_headers;
 
             if (body && !is_sentinel(body)) resolved = body;
             resolved_cc = preloaded?.email.cc?.flatMap((r) =>
@@ -164,7 +171,7 @@ export function use_open_reply_compose(
             resolved = fallback_body;
           }
 
-          open_compose(mode, email, resolved, resolved_cc);
+          open_compose(mode, email, resolved, resolved_cc, resolved_headers);
         })();
 
         return;
@@ -175,6 +182,7 @@ export function use_open_reply_compose(
         email,
         is_sentinel(cached_body) ? fallback_body : cached_body,
         cached?.cc?.flatMap((r) => (r.email ? [r.email] : [])),
+        cached?.raw_headers,
       );
     },
     [open_compose, user_email],
