@@ -63,9 +63,6 @@ let current: ResolvedAccent = {
   is_dark: false,
 };
 
-// Replaced only when light/dark flips, so its identity can key state that
-// belongs to one appearance without being disturbed by accent or surface
-// changes, and a flip back is still a new appearance.
 export interface ResolvedAppearance {
   is_dark: boolean;
 }
@@ -175,12 +172,10 @@ export function get_resolved_appearance(): ResolvedAppearance {
   return appearance;
 }
 
-function useResolvedAppearance(): ResolvedAppearance {
+export function use_resolved_appearance(): ResolvedAppearance {
   return useSyncExternalStore(
     subscribe_resolved_accent,
     get_resolved_appearance,
     get_resolved_appearance,
   );
 }
-
-export { useResolvedAppearance as use_resolved_appearance };

@@ -33,15 +33,7 @@ interface EmailDarkModeState {
 
 const NO_OVERRIDES: ReadonlyMap<string, boolean> = new Map();
 
-// Message overrides belong to the app appearance they were made in. A real
-// light/dark change, including a system theme change, returns every message to
-// the default; accent and surface changes keep them. The force preference only
-// applies while the app itself is dark.
-//
-// Overrides are keyed on the appearance object rather than reset with a
-// render-phase setState: that pattern beside useSyncExternalStore can leave
-// React holding a stale snapshot and missing the next theme change.
-function useEmailDarkMode(force_all_dark_mode: boolean) {
+export function use_email_dark_mode(force_all_dark_mode: boolean) {
   const appearance = use_resolved_appearance();
   const [state, set_state] = useState<EmailDarkModeState>(() => ({
     appearance,
@@ -59,8 +51,6 @@ function useEmailDarkMode(force_all_dark_mode: boolean) {
     (id: string) => overrides.get(id) === false,
     [overrides],
   );
-  // Updates read the live appearance, so a callback captured before a theme
-  // change still records a choice made after it.
   const toggle_dark_mode = useCallback(
     (id: string) => {
       const live = get_resolved_appearance();
@@ -91,5 +81,3 @@ function useEmailDarkMode(force_all_dark_mode: boolean) {
     set_all_dark_mode,
   };
 }
-
-export { useEmailDarkMode as use_email_dark_mode };
