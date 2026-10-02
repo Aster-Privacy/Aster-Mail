@@ -28,17 +28,19 @@ function is_tauri(): boolean {
   return "__TAURI_INTERNALS__" in window;
 }
 
+function select_plural_category(count: number): Intl.LDMLPluralRule {
+  try {
+    return new Intl.PluralRules(to_intl_locale(get_active_language())).select(
+      count,
+    );
+  } catch {
+    return count === 1 ? "one" : "other";
+  }
+}
+
 export function format_unread_tooltip(count: number): string {
   const mail = get_active_translations().mail;
-  let category: Intl.LDMLPluralRule = "other";
-
-  try {
-    category = new Intl.PluralRules(
-      to_intl_locale(get_active_language()),
-    ).select(count);
-  } catch {
-    category = count === 1 ? "one" : "other";
-  }
+  const category = select_plural_category(count);
 
   const template =
     (category === "one" ? mail.tab_unread_count_one : undefined) ??
