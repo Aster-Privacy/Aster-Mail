@@ -4021,7 +4021,7 @@ export const pt_br = {
     reply_to_all: "Responder a todos",
     force_dark_mode_emails: "Forçar modo escuro para e-mails",
     force_dark_mode_emails_description:
-      "Sempre exibir o conteúdo dos e-mails no modo escuro, substituindo o estilo original",
+      "Exibir o conteúdo dos e-mails no modo escuro enquanto a Aster estiver usando o tema escuro, substituindo o estilo original",
     translation: "Tradução",
     translate_incoming: "Traduzir e-mails recebidos",
     translate_incoming_description:
@@ -4617,7 +4617,7 @@ export const pt_br = {
       "Mostra um ícone de cadeado nos e-mails para indicar se uma mensagem está criptografada, assinada ou nenhuma das duas coisas. Prático para saber de relance o que está protegido.",
     info_force_dark_mode_title: "Forçar modo escuro nos e-mails",
     info_force_dark_mode_description:
-      "Reescreve os estilos dos e-mails para usar fundo escuro e texto claro. Útil se os e-mails muito brancos cansam seus olhos.",
+      "Enquanto a Aster estiver usando o tema escuro, reescreve os estilos dos e-mails para usar fundo escuro e texto claro. Útil se os e-mails muito brancos cansam seus olhos.",
     info_undo_send_title: "Desfazer envio",
     info_undo_send_description:
       "Oferece um curto intervalo para cancelar um e-mail depois de clicar em enviar. Nada é enviado até o tempo acabar.",

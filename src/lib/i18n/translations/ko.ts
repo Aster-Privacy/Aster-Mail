@@ -4053,7 +4053,7 @@ export const ko = {
     reply_to_all: "전체 답장",
     force_dark_mode_emails: "이메일 다크 모드 강제",
     force_dark_mode_emails_description:
-      "이메일의 원래 스타일을 무시하고 항상 다크 모드로 이메일 콘텐츠를 렌더링합니다",
+      "Aster가 다크 테마를 사용하는 동안 이메일의 원래 스타일을 무시하고 다크 모드로 이메일 콘텐츠를 렌더링합니다",
     translation: "번역",
     translate_incoming: "받은 메일 번역",
     translate_incoming_description:
@@ -4674,7 +4674,7 @@ export const ko = {
       "이메일에 자물쇠 아이콘을 표시하여 메시지가 암호화, 서명 또는 둘 다 아닌지 알려줍니다.",
     info_force_dark_mode_title: "이메일 강제 다크 모드",
     info_force_dark_mode_description:
-      "이메일 스타일을 어두운 배경과 밝은 텍스트로 재작성합니다. 밝은 흰색 이메일이 눈에 부담될 때 유용합니다.",
+      "Aster가 다크 테마를 사용하는 동안 이메일 스타일을 어두운 배경과 밝은 텍스트로 재작성합니다. 밝은 흰색 이메일이 눈에 부담될 때 유용합니다.",
     info_undo_send_title: "보내기 취소",
     info_undo_send_description:
       "보내기 클릭 후 이메일을 취소할 수 있는 짧은 시간을 줍니다. 타이머가 끝날 때까지 실제로 전송되지 않습니다.",

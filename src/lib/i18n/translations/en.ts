@@ -2909,7 +2909,7 @@ export const en: Translations = {
       "Display the size of each email in the inbox list",
     force_dark_mode_emails: "Force Dark Mode for Emails",
     force_dark_mode_emails_description:
-      "Always render email content in dark mode, overriding the email's original styling",
+      "Render email content in dark mode while Aster uses the dark theme, overriding the email's original styling",
     translation: "Translation",
     translate_incoming: "Translate incoming mail",
     translate_incoming_description:
@@ -5540,7 +5540,7 @@ export const en: Translations = {
       "Shows a lock icon on emails to tell you whether a message is encrypted, signed, or neither. Handy for knowing what's protected at a glance.",
     info_force_dark_mode_title: "Force Dark Mode Emails",
     info_force_dark_mode_description:
-      "Rewrites email styles to use a dark background and light text. Useful if bright white emails are harsh on your eyes.",
+      "While Aster uses the dark theme, rewrites email styles to use a dark background and light text. Useful if bright white emails are harsh on your eyes.",
     info_undo_send_title: "Undo Send",
     info_undo_send_description:
       "Gives you a short window to cancel an email after hitting send. Nothing goes out until the timer runs out.",
