@@ -58,7 +58,7 @@ export const Alert = ({ message, is_dark }: AlertProps) => {
   return (
     <motion.div
       animate={{ opacity: 1 }}
-      className="w-full mt-5"
+      className="w-full mb-5"
       exit={{ opacity: 0 }}
       initial={reduce_motion ? false : { opacity: 0 }}
       role="alert"
@@ -143,10 +143,8 @@ export const StepHeader = ({
 }: StepHeaderProps) => (
   <div className="flex w-full flex-col items-start text-start">
     {logo}
-    <h1 className="mt-5 text-2xl font-semibold leading-tight text-txt-primary">
-      {title}
-    </h1>
-    <p className="mt-2 text-[15px] leading-relaxed text-txt-secondary">
+    <h1 className="mt-5 text-base font-semibold text-txt-primary">{title}</h1>
+    <p className="mt-1.5 text-sm leading-relaxed text-txt-tertiary">
       {description}
     </p>
     {email && (
@@ -169,7 +167,11 @@ export interface ActionRowProps {
 export const ActionRow = ({ children, secondary }: ActionRowProps) => (
   <div className="mt-6 flex w-full flex-col items-center">
     {children}
-    {secondary && <div className="mt-4">{secondary}</div>}
+    {secondary && (
+      <div className="mt-4 flex w-full flex-col items-center gap-3">
+        {secondary}
+      </div>
+    )}
   </div>
 );
 
@@ -187,9 +189,11 @@ export const TextLink = ({
   className,
 }: TextLinkProps) => (
   <button
-    className={`text-sm font-semibold transition-opacity hover:opacity-80 disabled:opacity-50 ${className ?? ""}`}
+    className={`w-full text-center text-sm font-semibold transition-opacity hover:opacity-80 disabled:cursor-default disabled:hover:opacity-100 ${className ?? ""}`}
     disabled={disabled}
-    style={{ color: "var(--accent-color)" }}
+    style={{
+      color: disabled ? "var(--text-tertiary)" : "var(--accent-color)",
+    }}
     type="button"
     onClick={on_click}
   >
@@ -211,18 +215,18 @@ export const OptionRow = ({
   on_click,
 }: OptionRowProps) => (
   <button
-    className="flex w-full items-center gap-3 px-4 py-3 text-start transition-colors hover:bg-[var(--mobile-bg-card-hover)] active:bg-[var(--mobile-bg-card-hover)]"
+    className="flex w-full items-center gap-3 px-4 py-3 text-start transition-colors hover:bg-[var(--aster-hover)]"
     type="button"
     onClick={on_click}
   >
-    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-[var(--mobile-bg-card-hover)] text-txt-primary">
+    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-txt-primary shadow-sm dark:bg-white/[0.08] [&>svg]:h-6 [&>svg]:w-6">
       {icon}
     </span>
     <span className="min-w-0 flex-1">
-      <span className="block text-[15px] font-semibold leading-5 text-txt-primary">
+      <span className="block text-sm font-semibold text-txt-primary">
         {title}
       </span>
-      <span className="mt-0.5 block text-[13px] leading-[18px] text-txt-tertiary">
+      <span className="block text-xs leading-[18px] text-txt-tertiary">
         {description}
       </span>
     </span>
@@ -230,18 +234,25 @@ export const OptionRow = ({
   </button>
 );
 
-export const OptionGroup = ({ children }: { children: ReactNode }) => (
-  <div className="w-full overflow-hidden rounded-[16px] bg-[var(--mobile-bg-card)] [&>button+button]:border-t [&>button+button]:border-edge-secondary">
+export interface OptionGroupProps {
+  children: ReactNode;
+  className?: string;
+}
+
+export const OptionGroup = ({ children, className }: OptionGroupProps) => (
+  <div
+    className={`w-full overflow-hidden rounded-2xl bg-black/[0.05] dark:bg-white/[0.08] [&>button+button]:border-t [&>button+button]:border-edge-secondary ${className ?? ""}`}
+  >
     {children}
   </div>
 );
 
 export const ChevronIcon = () => (
   <svg
-    className="h-[18px] w-[18px] shrink-0 text-txt-muted rtl:-scale-x-100"
+    className="h-4 w-4 shrink-0 text-txt-muted rtl:-scale-x-100"
     fill="none"
     stroke="currentColor"
-    strokeWidth="1.75"
+    strokeWidth="2"
     viewBox="0 0 24 24"
   >
     <path d="m9 6 6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />

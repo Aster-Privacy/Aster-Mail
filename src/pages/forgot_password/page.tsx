@@ -40,7 +40,11 @@ import {
 import { use_recovery_flow } from "./use_recovery_flow";
 
 import { sanitize_username, clamp_password } from "@/services/sanitize";
-import { EyeIcon, EyeSlashIcon, InputWithEndContent } from "@/components/auth/auth_styles";
+import {
+  EyeIcon,
+  EyeSlashIcon,
+  InputWithEndContent,
+} from "@/components/auth/auth_styles";
 import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
@@ -83,7 +87,9 @@ const StepLayout = ({ header, children, centered }: StepLayoutProps) => {
   return (
     <div className="flex w-full flex-col items-start">
       {header}
-      {children}
+      <div className="mt-5 flex w-full flex-col items-start [&>:first-child]:mt-0">
+        {children}
+      </div>
     </div>
   );
 };
@@ -323,12 +329,11 @@ export default function ForgotPasswordPage() {
               />
             </OptionGroup>
 
-            <div className="mt-6 flex w-full justify-center">
-              <TextLink
-                label={t("auth.other_way_none_title")}
-                on_click={() => go_to("support")}
-              />
-            </div>
+            <TextLink
+              className="mt-4"
+              label={t("auth.other_way_none_title")}
+              on_click={() => go_to("support")}
+            />
           </StepLayout>
         );
 
@@ -672,27 +677,27 @@ export default function ForgotPasswordPage() {
               {error && <Alert is_dark={is_dark} message={error} />}
             </AnimatePresence>
 
-            <TextLink
-              className="mt-6"
-              label={t("auth.reset_use_recovery_code")}
-              on_click={() => go_to("code")}
-            />
-
             <ActionRow
               secondary={
-                <TextLink
-                  disabled={resend_cooldown > 0 || is_resending}
-                  label={
-                    resend_cooldown > 0
-                      ? t("auth.resend_in_seconds", {
-                          seconds: resend_cooldown.toString(),
-                        })
-                      : is_resending
-                        ? t("common.sending")
-                        : t("auth.resend_reset_link")
-                  }
-                  on_click={handle_resend_reset_link}
-                />
+                <>
+                  <TextLink
+                    disabled={resend_cooldown > 0 || is_resending}
+                    label={
+                      resend_cooldown > 0
+                        ? t("auth.resend_in_seconds", {
+                            seconds: resend_cooldown.toString(),
+                          })
+                        : is_resending
+                          ? t("common.sending")
+                          : t("auth.resend_reset_link")
+                    }
+                    on_click={handle_resend_reset_link}
+                  />
+                  <TextLink
+                    label={t("auth.reset_use_recovery_code")}
+                    on_click={() => go_to("code")}
+                  />
+                </>
               }
             >
               <Button
