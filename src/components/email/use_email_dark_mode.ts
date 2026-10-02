@@ -20,23 +20,37 @@
 //
 import { useCallback, useState } from "react";
 
-import { use_resolved_accent } from "@/lib/resolved_accent";
+import {
+  get_resolved_appearance,
+  use_resolved_appearance,
+  type ResolvedAppearance,
+} from "@/lib/resolved_accent";
 
-// Message overrides belong to the current app appearance. Changing appearance
-// returns the viewer to its default, including when a system theme changes.
+interface EmailDarkModeState {
+  appearance: ResolvedAppearance;
+  overrides: Map<string, boolean>;
+}
+
+const NO_OVERRIDES: ReadonlyMap<string, boolean> = new Map();
+
+// Message overrides belong to the app appearance they were made in. A real
+// light/dark change, including a system theme change, returns every message to
+// the default; accent and surface changes keep them. The force preference only
+// applies while the app itself is dark.
+//
+// Overrides are keyed on the appearance object rather than reset with a
+// render-phase setState: that pattern beside useSyncExternalStore can leave
+// React holding a stale snapshot and missing the next theme change.
 function useEmailDarkMode(force_all_dark_mode: boolean) {
-  const { is_dark } = use_resolved_accent();
-  const default_dark_mode = is_dark && force_all_dark_mode;
-  const [state, set_state] = useState(() => ({
-    is_dark,
-    overrides: new Map<string, boolean>(),
+  const appearance = use_resolved_appearance();
+  const [state, set_state] = useState<EmailDarkModeState>(() => ({
+    appearance,
+    overrides: new Map(),
   }));
+  const overrides =
+    state.appearance === appearance ? state.overrides : NO_OVERRIDES;
+  const default_dark_mode = appearance.is_dark && force_all_dark_mode;
 
-  if (state.is_dark !== is_dark) {
-    set_state({ is_dark, overrides: new Map() });
-  }
-
-  const { overrides } = state;
   const is_dark_mode_message = useCallback(
     (id: string) => overrides.get(id) ?? default_dark_mode,
     [overrides, default_dark_mode],
@@ -45,24 +59,30 @@ function useEmailDarkMode(force_all_dark_mode: boolean) {
     (id: string) => overrides.get(id) === false,
     [overrides],
   );
+  // Updates read the live appearance, so a callback captured before a theme
+  // change still records a choice made after it.
   const toggle_dark_mode = useCallback(
     (id: string) => {
+      const live = get_resolved_appearance();
+
       set_state((prev) => {
-        const next = new Map(prev.is_dark === is_dark ? prev.overrides : []);
+        const next = new Map(
+          prev.appearance === live ? prev.overrides : NO_OVERRIDES,
+        );
 
-        next.set(id, !(next.get(id) ?? default_dark_mode));
+        next.set(id, !(next.get(id) ?? (live.is_dark && force_all_dark_mode)));
 
-        return { is_dark, overrides: next };
+        return { appearance: live, overrides: next };
       });
     },
-    [is_dark, default_dark_mode],
+    [force_all_dark_mode],
   );
-  const set_all_dark_mode = useCallback(
-    (ids: string[], value: boolean) => {
-      set_state({ is_dark, overrides: new Map(ids.map((id) => [id, value])) });
-    },
-    [is_dark],
-  );
+  const set_all_dark_mode = useCallback((ids: string[], value: boolean) => {
+    set_state({
+      appearance: get_resolved_appearance(),
+      overrides: new Map(ids.map((id) => [id, value])),
+    });
+  }, []);
 
   return {
     is_dark_mode_message,
