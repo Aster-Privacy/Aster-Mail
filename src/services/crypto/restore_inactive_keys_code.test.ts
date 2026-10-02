@@ -34,6 +34,15 @@ const hash_recovery_code = vi.fn();
 const decrypt_recovery_key_with_code = vi.fn();
 const decrypt_vault_backup = vi.fn();
 
+const refresh_recovery_backup = vi.fn(
+  async (_vault: unknown, _passphrase: string) => true,
+);
+
+vi.mock("./recovery_backup_refresh", () => ({
+  refresh_recovery_backup: (vault: unknown, passphrase: string) =>
+    refresh_recovery_backup(vault, passphrase),
+}));
+
 vi.mock("../api/recovery", () => ({
   list_inactive_key_sets: vi.fn(),
   fetch_inactive_key_set: vi.fn(),
@@ -308,6 +317,27 @@ describe("restore_inactive_key_sets_with_code", () => {
     });
     expect(consume_inactive_key_set).toHaveBeenCalledWith("archived-1");
     expect(consume_inactive_key_set).not.toHaveBeenCalledWith("archived-2");
+  });
+
+  it("keeps a password-bound archive for the password method", async () => {
+    decrypt_vault_backup.mockImplementation(async () => ({
+      ...archived_backup(),
+      vault_format: 1,
+      data_kek: undefined,
+    }));
+
+    const result = await restore_inactive_key_sets_with_code(CODE);
+
+    expect(result).toEqual({ restored: 1, incomplete: 1 });
+    expect(push_vault_to_server).toHaveBeenCalledTimes(1);
+    expect(consume_inactive_key_set).not.toHaveBeenCalled();
+  });
+
+  it("rewrites the recovery backup once the merged vault is stored", async () => {
+    await restore_inactive_key_sets_with_code(CODE);
+
+    expect(refresh_recovery_backup).toHaveBeenCalledTimes(1);
+    expect(refresh_recovery_backup.mock.calls[0][1]).toBe("passphrase");
   });
 
   it("never consumes an archive it could not store", async () => {

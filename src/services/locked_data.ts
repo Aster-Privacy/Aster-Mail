@@ -162,7 +162,8 @@ export async function recover_locked_data_with_code(
     const restored = await restore_inactive_key_sets_with_code(code);
 
     result.restored_key_sets = restored.restored;
-    result.incomplete = restored.incomplete > 0;
+    result.incomplete =
+      restored.incomplete > 0 || read_locked_sent_mail(account_id) > 0;
     result.failed = restored.restored === 0 && restored.incomplete > 0;
   } catch (caught) {
     result.failed = true;

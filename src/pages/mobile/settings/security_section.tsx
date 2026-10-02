@@ -64,6 +64,7 @@ import {
 } from "@/services/crypto/memory_key_store";
 import { upgrade_vault_to_master_key } from "@/services/crypto/vault_master_key_upgrade";
 import { reset_vault_refresh_state } from "@/services/crypto/vault_refresh";
+import { refresh_recovery_backup } from "@/services/crypto/recovery_backup_refresh";
 import {
   derive_kek_from_password,
   serialize_kek_for_vault,
@@ -525,6 +526,7 @@ export function SecuritySection({
 
       reset_vault_refresh_state();
       await store_vault_in_memory(vault, new_password);
+      void refresh_recovery_backup(vault, new_password);
 
       if (res.data?.csrf_token) {
         api_client.set_csrf(res.data.csrf_token);

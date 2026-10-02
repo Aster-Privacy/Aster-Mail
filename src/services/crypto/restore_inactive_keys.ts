@@ -71,6 +71,15 @@ import {
   decrypt_vault_backup,
   hash_recovery_code,
 } from "./recovery_key";
+import { refresh_recovery_backup } from "./recovery_backup_refresh";
+
+function carries_master_key(vault: EncryptedVault): boolean {
+  return (
+    (vault.vault_format ?? 1) >= 2 &&
+    typeof vault.data_kek === "string" &&
+    vault.data_kek.length > 0
+  );
+}
 
 export function harvest_vault_storage_keys(
   old_vault: EncryptedVault,
@@ -265,6 +274,7 @@ export async function restore_inactive_key_sets_with_code(
     const recovered: RatchetKeySet[][] = [];
     const recovered_keks: Uint8Array[] = [];
     const opened: string[] = [];
+    const password_bound: boolean[] = [];
     const old_vaults: EncryptedVault[] = [];
     const unlocked_keys = new Map<string, string>();
 
@@ -297,6 +307,7 @@ export async function restore_inactive_key_sets_with_code(
         recovered.push(retain_previous_ratchet_keys(old_vault));
         recovered_keks.push(...harvest_vault_storage_keys(old_vault));
         opened.push(key_set.inactive_vault_id);
+        password_bound.push(!carries_master_key(old_vault));
         old_vaults.push(strip_backup_fields(old_vault));
       } catch {
         continue;
@@ -328,7 +339,9 @@ export async function restore_inactive_key_sets_with_code(
 
     const absorbed = committed.dropped_keks
       ? []
-      : opened.filter((_, i) => identity_keys.absorbed[i]);
+      : opened.filter(
+          (_, i) => identity_keys.absorbed[i] && !password_bound[i],
+        );
 
     for (const id of absorbed) {
       await consume_inactive_key_set(id);
@@ -415,6 +428,8 @@ export async function commit_recovered_keys(
 
   localStorage.setItem(`astermail_encrypted_vault_${user_id}`, encrypted_vault);
   localStorage.setItem(`astermail_vault_nonce_${user_id}`, vault_nonce);
+
+  await refresh_recovery_backup(next_vault, passphrase);
 
   return { written: true, dropped_keks: absorbed_keks.dropped };
 }

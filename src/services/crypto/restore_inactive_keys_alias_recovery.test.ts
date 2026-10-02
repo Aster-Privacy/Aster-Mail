@@ -11,6 +11,15 @@ const consume_inactive_key_set = vi.fn();
 
 const archived_vault: { value: unknown } = { value: null };
 
+const refresh_recovery_backup = vi.fn(
+  async (_vault: unknown, _passphrase: string) => true,
+);
+
+vi.mock("./recovery_backup_refresh", () => ({
+  refresh_recovery_backup: (vault: unknown, passphrase: string) =>
+    refresh_recovery_backup(vault, passphrase),
+}));
+
 vi.mock("../api/recovery", () => ({
   list_inactive_key_sets: () => list_inactive_key_sets(),
   fetch_inactive_key_set: (id: string) => fetch_inactive_key_set(id),
