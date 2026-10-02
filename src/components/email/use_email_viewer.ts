@@ -1017,7 +1017,7 @@ export function use_email_viewer({
   }, [email_id]);
 
   const last_thread_fetch_ref = useRef<number>(0);
-  const thread_fetch_in_flight_ref = useRef<boolean>(false);
+  const thread_fetch_in_flight_ref = useRef<string | null>(null);
   const open_email_id_ref = useRef<string | null>(email_id);
   const open_thread_token_ref = useRef<string | null>(null);
 
@@ -1050,12 +1050,12 @@ export function use_email_viewer({
 
     const refresh_thread = async (force: boolean) => {
       if (!has_passphrase_in_memory()) return;
-      if (thread_fetch_in_flight_ref.current) return;
+      if (thread_fetch_in_flight_ref.current === thread_token) return;
       const now = Date.now();
 
       if (!force && now - last_thread_fetch_ref.current < 5_000) return;
 
-      thread_fetch_in_flight_ref.current = true;
+      thread_fetch_in_flight_ref.current = thread_token;
       try {
         request_cache.invalidate(
           `messages/threads/${encodeURIComponent(thread_token)}/messages`,
@@ -1070,13 +1070,20 @@ export function use_email_viewer({
         );
 
         if (thread_result.messages.length === 0) return;
+        if (open_thread_token_ref.current !== thread_token) return;
 
         last_thread_fetch_ref.current = Date.now();
         set_thread_messages((prev) =>
-          reconcile_thread_messages(prev, thread_result.messages, email_id),
+          reconcile_thread_messages(
+            prev,
+            thread_result.messages,
+            open_email_id_ref.current ?? undefined,
+          ),
         );
       } finally {
-        thread_fetch_in_flight_ref.current = false;
+        if (thread_fetch_in_flight_ref.current === thread_token) {
+          thread_fetch_in_flight_ref.current = null;
+        }
       }
     };
 
@@ -1177,9 +1184,11 @@ export function use_email_viewer({
           return;
         }
 
-        if (thread_fetch_in_flight_ref.current) continue;
+        if (thread_fetch_in_flight_ref.current === detail.thread_token) {
+          continue;
+        }
 
-        thread_fetch_in_flight_ref.current = true;
+        thread_fetch_in_flight_ref.current = detail.thread_token;
         try {
           request_cache.invalidate(
             `messages/threads/${encodeURIComponent(detail.thread_token)}/messages`,
@@ -1193,7 +1202,9 @@ export function use_email_viewer({
             },
           );
         } finally {
-          thread_fetch_in_flight_ref.current = false;
+          if (thread_fetch_in_flight_ref.current === detail.thread_token) {
+            thread_fetch_in_flight_ref.current = null;
+          }
         }
 
         last_thread_fetch_ref.current = Date.now();
