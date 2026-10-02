@@ -1229,6 +1229,8 @@ export const tr = {
     font: "Yazı tipi",
     stylesheet: "Stil sayfası",
     tracking_pixel: "İzleme pikseli",
+    image_blocked: "Görsel engellendi",
+    tracking_pixel_blocked: "İzleme pikseli engellendi",
     me: "ben",
     notification_banner_message:
       "Yeni e-postalardan haberdar olmak için masaüstü bildirimlerini etkinleştirin",

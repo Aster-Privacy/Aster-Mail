@@ -1250,6 +1250,8 @@ export const pl = {
     font: "Czcionka",
     stylesheet: "Arkusz stylów",
     tracking_pixel: "Piksel śledzący",
+    image_blocked: "Obraz zablokowany",
+    tracking_pixel_blocked: "Piksel śledzący zablokowany",
     me: "ja",
     notification_banner_message:
       "Włącz powiadomienia pulpitowe, aby być na bieżąco z nowymi e-mailami",
