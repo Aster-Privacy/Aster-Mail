@@ -9313,8 +9313,11 @@ export const en: Translations = {
       "If this account has a verified recovery email, Aster Mail sent a reset link to it. The link expires in 30 minutes. If you don't see the email, check your spam folder.",
     sending_reset_link: "Sending reset link...",
     reset_your_password: "Reset your password",
-    reset_choose_new_password:
-      "Choose a new password. Your earlier mail stays encrypted, and you can unlock it after you sign in with a recovery code or your previous password.",
+    reset_choose_new_password: "Choose a new password for your account.",
+    reset_current_password_optional: "Current password (optional)",
+    reset_current_password_hint:
+      "If you remember your current password, enter it here and your earlier mail stays available as soon as you sign in. If you leave it blank, you can unlock your earlier mail later with a recovery code.",
+    reset_unlocking_earlier_mail: "Unlocking your earlier mail...",
     reset_use_recovery_code: "Use a recovery code instead",
     reset_new_codes_desc:
       "Save these codes somewhere safe. Keep your old codes too, because one of them can unlock your earlier mail after you sign in.",

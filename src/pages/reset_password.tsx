@@ -29,6 +29,7 @@ import { COPY_FEEDBACK_MS } from "@/constants/timings";
 import { useTheme } from "@/contexts/theme_context";
 import { use_should_reduce_motion } from "@/provider";
 import {
+  decrypt_vault,
   derive_password_hash,
   generate_recovery_codes,
   RECOVERY_CODE_SET_SIZE,
@@ -37,6 +38,7 @@ import {
   generate_signed_prekey,
   prepare_pgp_key_data,
 } from "@/services/crypto/key_manager";
+import { carry_vault_through_reset } from "@/services/crypto/carry_vault_through_reset";
 import {
   generate_recovery_key,
   encrypt_vault_backup,
@@ -52,6 +54,7 @@ import { build_backup_vault } from "@/services/crypto/backup_unlocked_keys";
 import {
   get_reset_hardware_key_options,
   get_reset_second_factor_status,
+  get_reset_vault,
   reset_password_with_token,
   ResetSecondFactorStatus,
   verify_reset_hardware_key,
@@ -285,8 +288,10 @@ export default function ResetPasswordPage() {
   }, [initial_params]);
   const [status_failed, set_status_failed] = useState(false);
   const [status_attempt, set_status_attempt] = useState(0);
+  const [current_password, set_current_password] = useState("");
   const [password, set_password] = useState("");
   const [confirm_password, set_confirm_password] = useState("");
+  const [is_current_visible, set_is_current_visible] = useState(false);
   const [is_password_visible, set_is_password_visible] = useState(false);
   const [is_confirm_visible, set_is_confirm_visible] = useState(false);
   const [error, set_error] = useState("");
@@ -465,6 +470,22 @@ export default function ResetPasswordPage() {
     }
   };
 
+  const require_second_factor = () => {
+    set_second_factor((current) =>
+      current
+        ? { ...current, required: true, verified: false }
+        : {
+            required: true,
+            verified: false,
+            totp: true,
+            backup_codes: true,
+            hardware_key: is_webauthn_supported(),
+          },
+    );
+    enter_second_factor_step();
+    set_error(t("auth.reset_second_factor_description"));
+  };
+
   const handle_submit = async () => {
     if (step === "processing") return;
 
@@ -500,6 +521,47 @@ export default function ResetPasswordPage() {
     set_processing_status(t("auth.generating_new_encryption_keys"));
 
     try {
+      let old_vault: EncryptedVault | null = null;
+
+      if (current_password) {
+        set_processing_status(t("auth.reset_unlocking_earlier_mail"));
+        const vault_response = await get_reset_vault(token);
+
+        if (vault_response.error || !vault_response.data) {
+          if (
+            vault_response.code === "UNAUTHORIZED" ||
+            vault_response.code === "FORBIDDEN"
+          ) {
+            set_step("invalid");
+
+            return;
+          }
+          if (vault_response.server_code === "SECOND_FACTOR_REQUIRED") {
+            require_second_factor();
+
+            return;
+          }
+          if (vault_response.code !== "NOT_FOUND") {
+            throw new Error(t("auth.recovery_failed"));
+          }
+        } else {
+          try {
+            old_vault = await decrypt_vault(
+              vault_response.data.encrypted_vault,
+              vault_response.data.vault_nonce,
+              current_password,
+            );
+          } catch {
+            await timing_safe_delay();
+            set_error(t("settings.current_password_incorrect"));
+            set_step("password");
+
+            return;
+          }
+        }
+      }
+
+      set_processing_status(t("auth.generating_new_encryption_keys"));
       const salt = crypto.getRandomValues(new Uint8Array(32));
       const { hash: password_hash, salt: password_salt } =
         await derive_password_hash(password, salt);
@@ -546,16 +608,25 @@ export default function ResetPasswordPage() {
 
       master_key.fill(0);
 
+      const next_vault = old_vault
+        ? await carry_vault_through_reset(
+            old_vault,
+            current_password,
+            fresh_vault,
+            password,
+          )
+        : fresh_vault;
+
       set_processing_status(t("auth.encrypting_vault_new_password"));
       const { encrypted_vault, vault_nonce } = await encrypt_vault(
-        fresh_vault,
+        next_vault,
         password,
       );
 
       set_processing_status(t("auth.creating_new_recovery_backup"));
       const new_recovery_key = generate_recovery_key();
       const new_backup = await encrypt_vault_backup(
-        await build_backup_vault(fresh_vault, password),
+        await build_backup_vault(next_vault, password),
         new_recovery_key,
       );
       const new_shares = await generate_all_recovery_shares(
@@ -582,6 +653,8 @@ export default function ResetPasswordPage() {
         pgp_key_data,
         MASTER_KEY_VAULT_FORMAT,
         true,
+        undefined,
+        old_vault !== null,
       );
 
       if (response.error || !response.data?.success) {
@@ -595,25 +668,14 @@ export default function ResetPasswordPage() {
           return;
         }
         if (response.server_code === "SECOND_FACTOR_REQUIRED") {
-          set_second_factor((current) =>
-            current
-              ? { ...current, required: true, verified: false }
-              : {
-                  required: true,
-                  verified: false,
-                  totp: true,
-                  backup_codes: true,
-                  hardware_key: is_webauthn_supported(),
-                },
-          );
-          enter_second_factor_step();
-          set_error(t("auth.reset_second_factor_description"));
+          require_second_factor();
 
           return;
         }
         throw new Error(t("auth.recovery_failed"));
       }
 
+      set_current_password("");
       set_step("new_codes");
     } catch (err) {
       await timing_safe_delay();
@@ -897,6 +959,39 @@ export default function ResetPasswordPage() {
                 <InputWithEndContent
                   // eslint-disable-next-line jsx-a11y/no-autofocus
                   autoFocus
+                  autoComplete="current-password"
+                  end_content={
+                    <button
+                      aria-label={
+                        is_current_visible
+                          ? t("settings.hide_password_toggle")
+                          : t("settings.show_password_toggle")
+                      }
+                      className="focus:outline-none flex items-center justify-center"
+                      type="button"
+                      onClick={() =>
+                        set_is_current_visible(!is_current_visible)
+                      }
+                    >
+                      {is_current_visible ? <EyeSlashIcon /> : <EyeIcon />}
+                    </button>
+                  }
+                  maxLength={128}
+                  placeholder={t("auth.reset_current_password_optional")}
+                  status="default"
+                  type={is_current_visible ? "text" : "password"}
+                  value={current_password}
+                  onChange={(e) =>
+                    set_current_password(clamp_password(e.target.value))
+                  }
+                />
+                <p className="mt-2 text-start text-xs leading-relaxed text-txt-muted">
+                  {t("auth.reset_current_password_hint")}
+                </p>
+              </div>
+
+              <div>
+                <InputWithEndContent
                   autoComplete="new-password"
                   end_content={
                     <button

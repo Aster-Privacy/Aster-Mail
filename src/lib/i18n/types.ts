@@ -8291,6 +8291,9 @@ export interface AuthTranslations {
   sending_reset_link: string;
   reset_your_password: string;
   reset_choose_new_password: string;
+  reset_current_password_optional: string;
+  reset_current_password_hint: string;
+  reset_unlocking_earlier_mail: string;
   reset_use_recovery_code: string;
   reset_new_codes_desc: string;
   reset_invalid_or_expired: string;

@@ -9652,8 +9652,11 @@ export const pl = {
       "Jeśli to konto ma zweryfikowany adres odzyskiwania, Aster Mail wysłał na niego link do resetowania. Link wygasa po 30 minutach. Jeśli nie widzisz wiadomości, sprawdź folder ze spamem.",
     sending_reset_link: "Wysyłanie linku resetującego...",
     reset_your_password: "Zresetuj swoje hasło",
-    reset_choose_new_password:
-      "Wybierz nowe hasło. Twoja wcześniejsza poczta pozostaje zaszyfrowana i możesz ją odblokować po zalogowaniu za pomocą kodu odzyskiwania lub poprzedniego hasła.",
+    reset_choose_new_password: "Wybierz nowe hasło do swojego konta.",
+    reset_current_password_optional: "Obecne hasło (opcjonalnie)",
+    reset_current_password_hint:
+      "Jeśli pamiętasz obecne hasło, wpisz je tutaj, a wcześniejsza poczta będzie dostępna od razu po zalogowaniu. Jeśli zostawisz to pole puste, możesz później odblokować wcześniejszą pocztę kodem odzyskiwania.",
+    reset_unlocking_earlier_mail: "Odblokowywanie wcześniejszej poczty...",
     reset_use_recovery_code: "Użyj kodu odzyskiwania",
     reset_new_codes_desc:
       "Zapisz te kody w bezpiecznym miejscu. Zachowaj też stare kody, ponieważ jeden z nich może odblokować wcześniejszą pocztę po zalogowaniu.",

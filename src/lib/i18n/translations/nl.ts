@@ -9449,8 +9449,11 @@ export const nl = {
       "Als dit account een geverifieerde herstel-e-mail heeft, heeft Aster Mail daar een link naartoe gestuurd. De link verloopt over 30 minuten. Zie je de e-mail niet, controleer dan je spammap.",
     sending_reset_link: "Resetlink verzenden...",
     reset_your_password: "Stel je wachtwoord opnieuw in",
-    reset_choose_new_password:
-      "Kies een nieuw wachtwoord. Je eerdere e-mail blijft versleuteld en je kunt die na het inloggen ontgrendelen met een herstelcode of je vorige wachtwoord.",
+    reset_choose_new_password: "Kies een nieuw wachtwoord voor je account.",
+    reset_current_password_optional: "Huidig wachtwoord (optioneel)",
+    reset_current_password_hint:
+      "Als je je huidige wachtwoord nog weet, voer het dan hier in. Je eerdere e-mail blijft dan direct na het inloggen beschikbaar. Laat je het veld leeg, dan kun je je eerdere e-mail later ontgrendelen met een herstelcode.",
+    reset_unlocking_earlier_mail: "Je eerdere e-mail wordt ontgrendeld...",
     reset_use_recovery_code: "Gebruik in plaats daarvan een herstelcode",
     reset_new_codes_desc:
       "Bewaar deze codes op een veilige plek. Bewaar ook je oude codes, want een daarvan kan je eerdere e-mail ontgrendelen nadat je bent ingelogd.",

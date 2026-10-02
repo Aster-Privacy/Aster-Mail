@@ -1106,9 +1106,12 @@ export const zh_CN = {
     recover_data_button: "恢复",
     recover_data_success: "您的较早数据已解锁。",
     recover_data_no_match: "该密码未解锁任何数据。请尝试其他以前的密码。",
-    recover_data_code_description: "要解锁密码重置之前的邮件，请输入您在重置前保存的恢复代码之一。",
-    recover_data_code_no_match: "该代码未解锁任何数据。请输入您在重置前保存的代码。",
-    recover_data_partial: "您之前的部分邮件已解锁。要解锁其余邮件，请输入先前的密码。",
+    recover_data_code_description:
+      "要解锁密码重置之前的邮件，请输入您在重置前保存的恢复代码之一。",
+    recover_data_code_no_match:
+      "该代码未解锁任何数据。请输入您在重置前保存的代码。",
+    recover_data_partial:
+      "您之前的部分邮件已解锁。要解锁其余邮件，请输入先前的密码。",
     recover_data_rate_limited: "尝试次数过多。请等待 30 分钟后重试。",
     recover_data_failed: "部分数据无法解锁。请检查网络连接后重试。",
     payment_past_due_message: "上次付款未成功。请更新付款方式以保留当前套餐。",
@@ -8503,9 +8506,14 @@ export const zh_CN = {
       "如果此账户有已验证的恢复邮箱，Aster Mail 已向其发送重置链接。链接将在 30 分钟后失效。如果没有看到邮件，请检查垃圾邮件文件夹。",
     sending_reset_link: "正在发送重置链接...",
     reset_your_password: "重置您的密码",
-    reset_choose_new_password: "请选择一个新密码。您之前的邮件仍保持加密，登录后可使用恢复代码或先前的密码解锁。",
+    reset_choose_new_password: "为您的账户选择一个新密码。",
+    reset_current_password_optional: "当前密码（可选）",
+    reset_current_password_hint:
+      "如果您记得当前密码，请在此输入，登录后即可继续使用之前的邮件。如果留空，您可以稍后使用恢复代码解锁之前的邮件。",
+    reset_unlocking_earlier_mail: "正在解锁您之前的邮件...",
     reset_use_recovery_code: "改用恢复代码",
-    reset_new_codes_desc: "请将这些代码保存在安全的地方。旧代码也请保留，因为登录后其中一个可以解锁您之前的邮件。",
+    reset_new_codes_desc:
+      "请将这些代码保存在安全的地方。旧代码也请保留，因为登录后其中一个可以解锁您之前的邮件。",
     reset_invalid_or_expired: "此重置链接无效或已过期。请重新申请。",
     request_new_reset_link: "申请新的重置链接",
     set_new_password: "设置新密码",
@@ -8542,7 +8550,8 @@ export const zh_CN = {
     other_way_code_title: "使用恢复代码",
     other_way_code_desc: "输入你保存的其中一个代码。",
     other_way_email_title: "使用恢复邮箱重置",
-    other_way_email_desc: "Aster Mail 会向您的恢复邮箱发送一个链接，供您设置新密码。",
+    other_way_email_desc:
+      "Aster Mail 会向您的恢复邮箱发送一个链接，供您设置新密码。",
     other_way_none_title: "这些我都没有",
     other_way_none_desc: "联系支持团队，我们会协助你完成后续步骤。",
     reset_account_title: "使用恢复邮箱重置",
@@ -8568,7 +8577,8 @@ export const zh_CN = {
     import_mail_skip: "从空收件箱开始",
     import_mail_privacy_note: "您也可以稍后在设置中导入。",
     password_reset_successful: "您的密码已重置",
-    account_recovered_sign_in: "请使用新密码登录。登录后，您可以使用恢复代码或先前的密码解锁之前的邮件。",
+    account_recovered_sign_in:
+      "请使用新密码登录。登录后，您可以使用恢复代码或先前的密码解锁之前的邮件。",
     check_your_inbox: "检查收件箱",
     generating_encryption_keys: "生成加密密钥中...",
     creating_identity_keypair: "创建身份密钥对中...",

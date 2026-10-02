@@ -9521,8 +9521,11 @@ export const it = {
       "Se questo account ha un'email di recupero verificata, Aster Mail vi ha inviato un link di reimpostazione. Il link scade tra 30 minuti. Se non vedi l'email, controlla la cartella spam.",
     sending_reset_link: "Invio del link di reimpostazione...",
     reset_your_password: "Reimposta la tua password",
-    reset_choose_new_password:
-      "Scegli una nuova password. Le tue email precedenti restano crittografate e puoi sbloccarle dopo l'accesso con un codice di recupero o con la password precedente.",
+    reset_choose_new_password: "Scegli una nuova password per il tuo account.",
+    reset_current_password_optional: "Password attuale (facoltativa)",
+    reset_current_password_hint:
+      "Se ricordi la password attuale, inseriscila qui e la tua posta precedente resterà disponibile appena accedi. Se lasci il campo vuoto, potrai sbloccare la posta precedente in seguito con un codice di recupero.",
+    reset_unlocking_earlier_mail: "Sblocco della posta precedente...",
     reset_use_recovery_code: "Usa un codice di recupero",
     reset_new_codes_desc:
       "Salva questi codici in un luogo sicuro. Conserva anche i vecchi codici, perché uno di essi può sbloccare le tue email precedenti dopo l'accesso.",

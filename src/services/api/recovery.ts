@@ -178,6 +178,7 @@ export async function reset_password_with_token(
   vault_format?: number,
   acknowledged_data_loss?: boolean,
   new_recovery_email?: RecoveryEmailReencryption,
+  previous_vault_carried?: boolean,
 ): Promise<ApiResponse<ResetPasswordResponse>> {
   return api_client.post<ResetPasswordResponse>(
     "/core/v1/recovery/reset-password",
@@ -198,7 +199,23 @@ export async function reset_password_with_token(
       vault_format,
       acknowledged_data_loss,
       new_recovery_email,
+      previous_vault_carried,
     },
+  );
+}
+
+export interface ResetVaultResponse {
+  encrypted_vault: string;
+  vault_nonce: string;
+  vault_version: number;
+}
+
+export async function get_reset_vault(
+  token: string,
+): Promise<ApiResponse<ResetVaultResponse>> {
+  return api_client.post<ResetVaultResponse>(
+    "/core/v1/recovery/reset-password/vault",
+    { token },
   );
 }
 

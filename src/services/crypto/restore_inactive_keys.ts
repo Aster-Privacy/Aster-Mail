@@ -73,7 +73,7 @@ import {
 } from "./recovery_key";
 import { refresh_recovery_backup } from "./recovery_backup_refresh";
 
-function carries_master_key(vault: EncryptedVault): boolean {
+export function carries_master_key(vault: EncryptedVault): boolean {
   return (
     (vault.vault_format ?? 1) >= 2 &&
     typeof vault.data_kek === "string" &&

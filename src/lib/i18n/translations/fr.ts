@@ -9598,7 +9598,11 @@ export const fr = {
     sending_reset_link: "Envoi du lien de réinitialisation...",
     reset_your_password: "Réinitialiser votre mot de passe",
     reset_choose_new_password:
-      "Choisissez un nouveau mot de passe. Vos anciens e-mails restent chiffrés, et vous pouvez les déverrouiller après vous être connecté avec un code de récupération ou votre ancien mot de passe.",
+      "Choisissez un nouveau mot de passe pour votre compte.",
+    reset_current_password_optional: "Mot de passe actuel (facultatif)",
+    reset_current_password_hint:
+      "Si vous vous souvenez de votre mot de passe actuel, saisissez-le ici et vos anciens messages restent disponibles dès votre connexion. Si vous laissez ce champ vide, vous pourrez déverrouiller vos anciens messages plus tard avec un code de récupération.",
+    reset_unlocking_earlier_mail: "Déverrouillage de vos anciens messages...",
     reset_use_recovery_code: "Utiliser un code de récupération",
     reset_new_codes_desc:
       "Conservez ces codes en lieu sûr. Gardez aussi vos anciens codes, car l'un d'eux peut déverrouiller vos anciens e-mails une fois connecté.",

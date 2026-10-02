@@ -9564,8 +9564,7 @@ export const pt = {
       "A criar nova cópia de segurança de recuperação...",
     saving_new_credentials: "A guardar novas credenciais...",
     recover_your_account: "Recupere a sua conta",
-    enter_email_associated:
-      "Introduza o endereço da conta que quer recuperar.",
+    enter_email_associated: "Introduza o endereço da conta que quer recuperar.",
     back_to_sign_in: "Voltar ao início de sessão",
     email_me_reset_link: "Enviar-me um link de redefinição por e-mail",
     reset_link_sent_title: "Verifique o seu e-mail",
@@ -9575,7 +9574,11 @@ export const pt = {
     sending_reset_link: "A enviar link de reposição...",
     reset_your_password: "Reponha a sua palavra-passe",
     reset_choose_new_password:
-      "Escolha uma nova palavra-passe. O seu correio anterior continua encriptado e pode desbloqueá-lo depois de iniciar sessão com um código de recuperação ou a sua palavra-passe anterior.",
+      "Escolha uma nova palavra-passe para a sua conta.",
+    reset_current_password_optional: "Palavra-passe atual (opcional)",
+    reset_current_password_hint:
+      "Se se lembrar da sua palavra-passe atual, introduza-a aqui e o seu correio anterior fica disponível assim que iniciar sessão. Se deixar em branco, pode desbloquear o seu correio anterior mais tarde com um código de recuperação.",
+    reset_unlocking_earlier_mail: "A desbloquear o seu correio anterior...",
     reset_use_recovery_code: "Utilizar um código de recuperação",
     reset_new_codes_desc:
       "Guarde estes códigos num local seguro. Mantenha também os códigos antigos, porque um deles pode desbloquear o seu correio anterior depois de iniciar sessão.",

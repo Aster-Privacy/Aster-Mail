@@ -9508,8 +9508,11 @@ export const de = {
       "Wenn dieses Konto eine bestätigte Wiederherstellungs-E-Mail hat, hat Aster Mail einen Link zum Zurücksetzen dorthin gesendet. Der Link läuft in 30 Minuten ab. Wenn Sie die E-Mail nicht sehen, prüfen Sie Ihren Spam-Ordner.",
     sending_reset_link: "Reset-Link wird gesendet...",
     reset_your_password: "Passwort zurücksetzen",
-    reset_choose_new_password:
-      "Wählen Sie ein neues Passwort. Ihre früheren E-Mails bleiben verschlüsselt, und Sie können sie nach der Anmeldung mit einem Wiederherstellungscode oder Ihrem vorherigen Passwort entsperren.",
+    reset_choose_new_password: "Wählen Sie ein neues Passwort für Ihr Konto.",
+    reset_current_password_optional: "Aktuelles Passwort (optional)",
+    reset_current_password_hint:
+      "Wenn Sie Ihr aktuelles Passwort noch kennen, geben Sie es hier ein. Ihre früheren E-Mails sind dann sofort nach der Anmeldung verfügbar. Lassen Sie das Feld leer, können Sie Ihre früheren E-Mails später mit einem Wiederherstellungscode entsperren.",
+    reset_unlocking_earlier_mail: "Ihre früheren E-Mails werden entsperrt...",
     reset_use_recovery_code:
       "Stattdessen einen Wiederherstellungscode verwenden",
     reset_new_codes_desc:

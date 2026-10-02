@@ -9507,8 +9507,11 @@ export const pt_br = {
       "Se esta conta tiver um e-mail de recuperação verificado, o Aster Mail enviou um link de redefinição para ele. O link expira em 30 minutos. Se você não encontrar o e-mail, verifique a pasta de spam.",
     sending_reset_link: "Enviando link de redefinição...",
     reset_your_password: "Redefina sua senha",
-    reset_choose_new_password:
-      "Escolha uma nova senha. Seus e-mails anteriores continuam criptografados, e você pode desbloqueá-los depois de entrar com um código de recuperação ou sua senha anterior.",
+    reset_choose_new_password: "Escolha uma nova senha para sua conta.",
+    reset_current_password_optional: "Senha atual (opcional)",
+    reset_current_password_hint:
+      "Se você lembra sua senha atual, digite-a aqui e seus e-mails anteriores continuam disponíveis assim que você entrar. Se deixar em branco, você pode desbloquear seus e-mails anteriores depois com um código de recuperação.",
+    reset_unlocking_earlier_mail: "Desbloqueando seus e-mails anteriores...",
     reset_use_recovery_code: "Usar um código de recuperação",
     reset_new_codes_desc:
       "Guarde estes códigos em um lugar seguro. Mantenha também seus códigos antigos, porque um deles pode desbloquear seus e-mails anteriores depois que você entrar.",

@@ -9373,8 +9373,11 @@ export const tr = {
       "Bu hesabın doğrulanmış bir kurtarma e-postası varsa Aster Mail oraya bir sıfırlama bağlantısı gönderdi. Bağlantının süresi 30 dakika içinde dolar. E-postayı görmüyorsanız spam klasörünüzü kontrol edin.",
     sending_reset_link: "Sıfırlama bağlantısı gönderiliyor...",
     reset_your_password: "Parolanızı sıfırlayın",
-    reset_choose_new_password:
-      "Yeni bir parola seçin. Önceki postalarınız şifreli kalır ve oturum açtıktan sonra bir kurtarma kodu veya önceki parolanızla kilidini açabilirsiniz.",
+    reset_choose_new_password: "Hesabınız için yeni bir parola seçin.",
+    reset_current_password_optional: "Mevcut parola (isteğe bağlı)",
+    reset_current_password_hint:
+      "Mevcut parolanızı hatırlıyorsanız buraya girin; önceki postalarınız oturum açar açmaz kullanılabilir olur. Boş bırakırsanız önceki postalarınızı daha sonra bir kurtarma koduyla açabilirsiniz.",
+    reset_unlocking_earlier_mail: "Önceki postalarınızın kilidi açılıyor...",
     reset_use_recovery_code: "Bunun yerine kurtarma kodu kullanın",
     reset_new_codes_desc:
       "Bu kodları güvenli bir yere kaydedin. Eski kodlarınızı da saklayın, çünkü bunlardan biri oturum açtıktan sonra önceki postalarınızın kilidini açabilir.",

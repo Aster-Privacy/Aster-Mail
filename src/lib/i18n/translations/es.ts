@@ -9480,8 +9480,11 @@ export const es = {
       "Si esta cuenta tiene un correo de recuperación verificado, Aster Mail le ha enviado un enlace de restablecimiento. El enlace caduca en 30 minutos. Si no ves el mensaje, revisa tu carpeta de spam.",
     sending_reset_link: "Enviando enlace de restablecimiento...",
     reset_your_password: "Restablece tu contraseña",
-    reset_choose_new_password:
-      "Elige una nueva contraseña. Tu correo anterior sigue cifrado y puedes desbloquearlo después de iniciar sesión con un código de recuperación o tu contraseña anterior.",
+    reset_choose_new_password: "Elige una contraseña nueva para tu cuenta.",
+    reset_current_password_optional: "Contraseña actual (opcional)",
+    reset_current_password_hint:
+      "Si recuerdas tu contraseña actual, introdúcela aquí y tu correo anterior seguirá disponible en cuanto inicies sesión. Si la dejas en blanco, podrás desbloquear tu correo anterior más tarde con un código de recuperación.",
+    reset_unlocking_earlier_mail: "Desbloqueando tu correo anterior...",
     reset_use_recovery_code: "Usar un código de recuperación",
     reset_new_codes_desc:
       "Guarda estos códigos en un lugar seguro. Conserva también tus códigos antiguos, porque uno de ellos puede desbloquear tu correo anterior después de iniciar sesión.",

@@ -1316,8 +1316,10 @@ export const ja = {
       "パスワードのリセット前のメールのロックを解除するには、リセット前に保存したリカバリーコードのいずれかを入力してください。",
     recover_data_code_no_match:
       "そのコードではデータのロックを解除できませんでした。リセット前に保存したコードを入力してください。",
-    recover_data_partial: "以前のメールの一部のロックが解除されました。残りを解除するには、以前のパスワードを入力してください。",
-    recover_data_rate_limited: "試行回数が多すぎます。30分待ってから、もう一度お試しください。",
+    recover_data_partial:
+      "以前のメールの一部のロックが解除されました。残りを解除するには、以前のパスワードを入力してください。",
+    recover_data_rate_limited:
+      "試行回数が多すぎます。30分待ってから、もう一度お試しください。",
     recover_data_failed:
       "一部のデータのロックを解除できませんでした。接続を確認して、もう一度お試しください。",
     payment_past_due_message:
@@ -9358,7 +9360,11 @@ export const ja = {
     sending_reset_link: "リセットリンクを送信中...",
     reset_your_password: "パスワードをリセット",
     reset_choose_new_password:
-      "新しいパスワードを選択してください。以前のメールは暗号化されたまま保持され、サインイン後にリカバリーコードまたは以前のパスワードでロックを解除できます。",
+      "アカウントの新しいパスワードを選択してください。",
+    reset_current_password_optional: "現在のパスワード（任意）",
+    reset_current_password_hint:
+      "現在のパスワードを覚えている場合はここに入力すると、サインイン直後から以前のメールを利用できます。空欄のままにした場合は、後からリカバリーコードで以前のメールのロックを解除できます。",
+    reset_unlocking_earlier_mail: "以前のメールのロックを解除しています...",
     reset_use_recovery_code: "代わりにリカバリーコードを使用",
     reset_new_codes_desc:
       "これらのコードを安全な場所に保存してください。古いコードも保管してください。そのうちの1つで、サインイン後に以前のメールのロックを解除できます。",
@@ -9401,7 +9407,8 @@ export const ja = {
     other_way_code_title: "リカバリーコードを使う",
     other_way_code_desc: "保存したコードのいずれかを入力します。",
     other_way_email_title: "リカバリーメールでリセットする",
-    other_way_email_desc: "Aster Mailがリカバリーメールにリンクを送信し、新しいパスワードを選択できるようにします。",
+    other_way_email_desc:
+      "Aster Mailがリカバリーメールにリンクを送信し、新しいパスワードを選択できるようにします。",
     other_way_none_title: "どれも持っていない",
     other_way_none_desc:
       "サポートにお問い合わせください。次の手順をご案内します。",

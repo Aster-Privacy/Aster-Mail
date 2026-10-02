@@ -1325,7 +1325,8 @@ export const ko = {
       "해당 코드로 잠금 해제된 데이터가 없습니다. 재설정 전에 저장한 코드를 입력하세요.",
     recover_data_partial:
       "이전 메일의 일부가 잠금 해제되었습니다. 나머지를 잠금 해제하려면 이전 비밀번호를 입력하세요.",
-    recover_data_rate_limited: "시도 횟수가 너무 많습니다. 30분 후에 다시 시도하세요.",
+    recover_data_rate_limited:
+      "시도 횟수가 너무 많습니다. 30분 후에 다시 시도하세요.",
     recover_data_failed:
       "일부 데이터를 잠금 해제하지 못했습니다. 연결을 확인하고 다시 시도하세요.",
     payment_past_due_message:
@@ -9183,8 +9184,11 @@ export const ko = {
       "이 계정에 인증된 복구 이메일이 있으면 Aster Mail이 재설정 링크를 보냈습니다. 링크는 30분 후에 만료됩니다. 이메일이 보이지 않으면 스팸 폴더를 확인하세요.",
     sending_reset_link: "재설정 링크 전송 중...",
     reset_your_password: "비밀번호 재설정",
-    reset_choose_new_password:
-      "새 비밀번호를 선택하세요. 이전 메일은 암호화된 상태로 유지되며, 로그인한 후 복구 코드나 이전 비밀번호로 잠금을 해제할 수 있습니다.",
+    reset_choose_new_password: "계정의 새 비밀번호를 선택하세요.",
+    reset_current_password_optional: "현재 비밀번호(선택 사항)",
+    reset_current_password_hint:
+      "현재 비밀번호를 기억한다면 여기에 입력하세요. 로그인하는 즉시 이전 메일을 계속 사용할 수 있습니다. 비워 두면 나중에 복구 코드로 이전 메일을 잠금 해제할 수 있습니다.",
+    reset_unlocking_earlier_mail: "이전 메일을 잠금 해제하는 중...",
     reset_use_recovery_code: "대신 복구 코드 사용",
     reset_new_codes_desc:
       "이 코드를 안전한 곳에 저장하세요. 이전 코드도 보관하세요. 그중 하나로 로그인한 후 이전 메일의 잠금을 해제할 수 있습니다.",
@@ -9226,7 +9230,8 @@ export const ko = {
     other_way_code_title: "복구 코드 사용",
     other_way_code_desc: "저장한 코드 중 하나를 입력하세요.",
     other_way_email_title: "복구 이메일로 재설정",
-    other_way_email_desc: "Aster Mail이 복구 이메일로 링크를 보내 새 비밀번호를 선택할 수 있게 합니다.",
+    other_way_email_desc:
+      "Aster Mail이 복구 이메일로 링크를 보내 새 비밀번호를 선택할 수 있게 합니다.",
     other_way_none_title: "해당하는 항목이 없음",
     other_way_none_desc: "고객 지원에 문의하면 다음 단계를 안내해 드립니다.",
     reset_account_title: "복구 이메일로 재설정",
