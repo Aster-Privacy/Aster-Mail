@@ -33,8 +33,55 @@ function split_space_separated(part: string): string[] {
   return tokens;
 }
 
+// Outlook copies recipients as `Doe, John <j@x.com>; Smith, Ann <a@x.com>`,
+// leaving the comma in the display name unquoted. A fragment with no address
+// of its own that runs straight into a named `<address>` is part of that name,
+// so it is joined back instead of being left behind as an invalid recipient.
+const NAME_FRAGMENT_PATTERN = /^[^@<>"]+$/;
+const NAMED_ADDRESS_PATTERN = /^[^@<>]*[^\s@<>][^@<>]*<[^<>]+>$/;
+
+interface RawPart {
+  text: string;
+  separator: string;
+}
+
+function join_name_fragments(parts: RawPart[]): string[] {
+  const joined: string[] = [];
+  let pending: RawPart[] = [];
+
+  const flush = () => {
+    joined.push(...pending.map((part) => part.text));
+    pending = [];
+  };
+
+  for (const part of parts) {
+    if (NAMED_ADDRESS_PATTERN.test(part.text) && pending.length > 0) {
+      joined.push(
+        pending
+          .map((fragment) => fragment.text + fragment.separator)
+          .join(" ") +
+          " " +
+          part.text,
+      );
+      pending = [];
+    } else if (NAME_FRAGMENT_PATTERN.test(part.text)) {
+      pending.push(part);
+    } else {
+      flush();
+      joined.push(part.text);
+    }
+
+    // A line break or tab always ends a recipient, even after a bare name.
+    if (part.separator !== "," && part.separator !== ";") flush();
+  }
+
+  flush();
+
+  return joined;
+}
+
 export function split_recipient_list(text: string): string[] {
-  const parts: string[] = [];
+  const parts: RawPart[] = [];
   let current = "";
   let in_quotes = false;
   let in_angles = false;
@@ -69,7 +116,7 @@ export function split_recipient_list(text: string): string[] {
     if (SEPARATORS.has(char) && !in_quotes && !in_angles) {
       const trimmed = current.trim();
 
-      if (trimmed) parts.push(trimmed);
+      if (trimmed) parts.push({ text: trimmed, separator: char });
       current = "";
       continue;
     }
@@ -79,7 +126,7 @@ export function split_recipient_list(text: string): string[] {
 
   const trimmed = current.trim();
 
-  if (trimmed) parts.push(trimmed);
+  if (trimmed) parts.push({ text: trimmed, separator: "" });
 
-  return parts.flatMap(split_space_separated);
+  return join_name_fragments(parts).flatMap(split_space_separated);
 }

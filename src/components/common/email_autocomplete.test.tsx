@@ -160,6 +160,20 @@ function press_key(key: string): KeyboardEvent {
   return event;
 }
 
+function paste_text(text: string): Event {
+  const event = new Event("paste", { bubbles: true, cancelable: true });
+
+  Object.defineProperty(event, "clipboardData", {
+    value: { getData: () => text },
+  });
+
+  act(() => {
+    get_input().dispatchEvent(event);
+  });
+
+  return event;
+}
+
 function suggestion_rows(): HTMLButtonElement[] {
   return Array.from(
     document.body.querySelectorAll<HTMLButtonElement>('[role="dialog"] button'),
@@ -313,5 +327,43 @@ describe("email autocomplete ranking", () => {
 
     expect(added).toEqual(["brian@acme.com", "joann@x.io"]);
     expect(tab.defaultPrevented).toBe(true);
+  });
+});
+
+describe("email autocomplete pasting a recipient list", () => {
+  it("adds every recipient of an Outlook list and leaves no name fragments", () => {
+    render_input([]);
+
+    paste_text("Doe, John <j@x.com>; Smith, Ann <a@x.com>");
+
+    expect(added).toEqual(["j@x.com", "a@x.com"]);
+    expect(get_input().value).toBe("");
+  });
+
+  it("adds an Outlook list mixed with plain addresses", () => {
+    render_input([]);
+
+    paste_text("b@x.com, Doe, John <j@x.com>, c@x.com");
+
+    expect(added).toEqual(["b@x.com", "j@x.com", "c@x.com"]);
+    expect(get_input().value).toBe("");
+  });
+
+  it("adds a list of quoted display names", () => {
+    render_input([]);
+
+    paste_text('"Doe, John" <j@x.com>; "Smith, Ann" <a@x.com>');
+
+    expect(added).toEqual(["j@x.com", "a@x.com"]);
+    expect(get_input().value).toBe("");
+  });
+
+  it("leaves a real invalid entry in the input to fix", () => {
+    render_input([]);
+
+    paste_text("Doe, John <j@x.com>; typo@; a@x.com");
+
+    expect(added).toEqual(["j@x.com", "a@x.com"]);
+    expect(get_input().value).toBe("typo@");
   });
 });
