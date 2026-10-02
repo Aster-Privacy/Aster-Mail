@@ -36,7 +36,7 @@ describe("build_forced_dark_mode_css background images", () => {
   it("excludes every container that paints its own image", () => {
     const block = css.slice(0, css.indexOf("background-image: none"));
 
-    expect(block).toContain(':not([style*="background-image" i])');
+    expect(block).toContain(":not([data-aster-bg-image])");
     expect(block).toContain(':not([style*="url(" i])');
     expect(block).toContain(":not([background])");
   });

@@ -26,7 +26,10 @@ import {
 } from "./blocked_image_placeholder";
 import { split_autolinks } from "./autolink";
 import { mark_brand_backgrounds } from "./email_brand_backgrounds";
-import { mark_stylesheet_background_images } from "./html_sanitizer_background_marks";
+import {
+  mark_inline_background_images,
+  mark_stylesheet_background_images,
+} from "./html_sanitizer_background_marks";
 import {
   ALLOWED_TAGS,
   DANGEROUS_TAGS,
@@ -1165,6 +1168,7 @@ function sanitize_html_impl(
   container.appendChild(fragment);
 
   mark_stylesheet_background_images(container);
+  mark_inline_background_images(container);
   mark_brand_backgrounds(container);
 
   return {

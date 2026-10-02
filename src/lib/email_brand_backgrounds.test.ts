@@ -121,7 +121,7 @@ describe("brand colored backgrounds under forced dark mode", () => {
   it("excludes marked elements from the forced dark neutralization", () => {
     const css = build_forced_dark_mode_css();
 
-    expect(css).toContain(`td:not([style*="background-image" i])`);
+    expect(css).toContain(`td:not([style*="url(" i])`);
     expect(css).toContain(`:not([${BRAND_BACKGROUND_MARK}])`);
   });
 });

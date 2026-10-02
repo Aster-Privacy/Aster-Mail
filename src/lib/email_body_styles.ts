@@ -362,7 +362,7 @@ const QUOTE_SCOPE_EXCLUDE =
   ':not([class*="quote" i]):not([class*="quote" i] *):not([class*="cite" i]):not([class*="cite" i] *):not(blockquote[type="cite"]):not(blockquote[type="cite"] *)';
 
 const IMAGE_BACKGROUND_EXCLUDE =
-  ':not([style*="background-image" i]):not([style*="url(" i]):not([background]):not([data-aster-bg-image])';
+  ':not([style*="url(" i]):not([background]):not([data-aster-bg-image])';
 
 const BRAND_BACKGROUND_EXCLUDE = `:not([${BRAND_BACKGROUND_MARK}])`;
 
