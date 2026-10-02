@@ -194,6 +194,7 @@ export function DomainSetupWizard({
     wizard_steps.map(() => "pending"),
   );
   const [is_verifying, set_is_verifying] = useState(false);
+  const verified_manually_this_session = useRef(false);
   const [verification_message, set_verification_message] = useState<
     string | null
   >(null);
@@ -215,6 +216,7 @@ export function DomainSetupWizard({
       set_current_step(0);
       set_step_statuses(wizard_steps.map(() => "pending"));
       set_verification_message(null);
+      verified_manually_this_session.current = false;
     }
   }, [is_open, mode, wizard_steps]);
 
@@ -289,6 +291,8 @@ export function DomainSetupWizard({
         const response = await get_domain_health(domain_id);
 
         if (cancelled || !response.data) return;
+        if (response.data.cached && verified_manually_this_session.current)
+          return;
 
         const outcomes: Record<string, string> = {};
 
@@ -337,6 +341,8 @@ export function DomainSetupWizard({
 
       if (response.data) {
         const result = response.data;
+
+        verified_manually_this_session.current = true;
 
         const required_statuses: StepStatus[] = [
           result.txt_verified ? "verified" : "failed",

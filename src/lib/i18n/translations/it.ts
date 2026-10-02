@@ -274,6 +274,7 @@ export const it = {
     create_subfolder: "Crea sottocartella",
     mute_notifications: "Silenzia notifiche",
     unmute_notifications: "Riattiva notifiche",
+    notifications_muted: "Notifiche disattivate",
     remove_lock: "Rimuovi blocco",
     lock: "Blocca",
     change_color: "Cambia colore",
@@ -896,6 +897,16 @@ export const it = {
       "L'invio programmato non è disponibile per gli account collegati. Invia subito questo messaggio oppure scegli un indirizzo Aster.",
     scheduled_no_expiry:
       "Le email programmate non supportano ancora la scadenza. Invia ora oppure rimuovi la scadenza per programmarla.",
+    scheduled_too_far_ahead:
+      "Le email programmate possono partire al massimo con 28 giorni di anticipo. Scegli un orario precedente.",
+    scheduled_requires_encryption:
+      "Hai attivato la crittografia obbligatoria, e le email programmate verso indirizzi esterni non sono crittografate end-to-end. Invia questo messaggio ora o disattiva la crittografia obbligatoria nelle Impostazioni.",
+    offline_password_protected_unavailable:
+      "Non puoi mettere in coda email protette da password quando sei offline. Quando sei di nuovo connesso, invia il messaggio.",
+    offline_settings_unavailable:
+      "Non è stato possibile caricare le tue impostazioni, quindi il messaggio non è stato inviato. Quando sei di nuovo connesso, riprova.",
+    cannot_send_key_changed_offline:
+      "La chiave di crittografia di un destinatario è cambiata mentre questo messaggio era in attesa di invio, quindi non è stato inviato.",
     failed_to_merge_contacts:
       "L'unione non è stata completata. Riprova. I contatti originali non sono cambiati.",
     enter_valid_emails: "Inserisci indirizzi email validi",
@@ -1251,6 +1262,8 @@ export const it = {
     font: "Carattere",
     stylesheet: "Foglio di stile",
     tracking_pixel: "Pixel di tracciamento",
+    image_blocked: "Immagine bloccata",
+    tracking_pixel_blocked: "Pixel di tracciamento bloccato",
     me: "me",
     notification_banner_message:
       "Attiva le notifiche desktop per restare aggiornato sulle nuove email",
@@ -4082,7 +4095,7 @@ export const it = {
     reply_to_all: "Rispondi a tutti",
     force_dark_mode_emails: "Forza modalità scura per le email",
     force_dark_mode_emails_description:
-      "Renderizza sempre il contenuto delle email in modalità scura, sovrascrivendo lo stile originale",
+      "Renderizza il contenuto delle email in modalità scura quando Aster usa il tema scuro, sovrascrivendo lo stile originale",
     translation: "Traduzione",
     translate_incoming: "Traduci la posta in arrivo",
     translate_incoming_description:
@@ -5770,7 +5783,7 @@ export const it = {
       "Mostra un'icona lucchetto sulle e-mail per indicare se un messaggio è cifrato, firmato o nessuno dei due.",
     info_force_dark_mode_title: "E-mail in modalità scura",
     info_force_dark_mode_description:
-      "Riscrive gli stili delle e-mail per usare uno sfondo scuro e testo chiaro. Utile se le e-mail bianche sono fastidiose per i tuoi occhi.",
+      "Quando Aster è nel tema scuro, riscrive gli stili delle e-mail per usare uno sfondo scuro e testo chiaro. Utile se le e-mail bianche sono fastidiose per i tuoi occhi.",
     info_undo_send_title: "Annulla invio",
     info_undo_send_description:
       "Ti dà una breve finestra per annullare un'e-mail dopo aver premuto invia. Nulla parte finché il timer non scade.",
@@ -8376,6 +8389,11 @@ export const it = {
       "I messaggi di questo mittente non sono più protetti dalla crittografia post-quantistica. Se non te lo aspettavi, confermalo con questa persona in un altro modo.",
     recipient_identity_changed:
       "La chiave di crittografia di {{email}} è cambiata. Se non te lo aspettavi, conferma la modifica con questa persona in un altro modo prima di inviare informazioni riservate.",
+    message_password_requirements:
+      "Usa almeno 12 caratteri e includi un numero, un simbolo oppure lettere maiuscole e minuscole.",
+    recipient_identity_untrusted:
+      "La chiave di crittografia di {{email}} è cambiata e la nuova chiave non può essere confermata. Per scrivere a questo indirizzo, conferma la modifica con questa persona in un altro modo, poi scegli Considera attendibile la nuova chiave.",
+    trust_new_key: "Considera attendibile la nuova chiave",
     load_all_thread_messages: "Carica tutti i messaggi",
     move_to_category: "Sposta nella categoria",
     menu_applies_to_selection: "Si applica a {count} selezionati",
@@ -8437,6 +8455,7 @@ export const it = {
     drafts: "Bozze",
     starred: "Speciali",
     archive: "Archivio",
+    archive_action: "Archivia",
     spam: "Spam",
     trash: "Cestino",
     scheduled: "Programmata",
@@ -9994,6 +10013,12 @@ export const it = {
       "Ha la crittografia obbligatoria attivata e nessuno dei suoi destinatari ha una chiave registrata. Chiedere loro di condividerne una, o disattivare la crittografia obbligatoria in Impostazioni, permetterà l'invio. La sua bozza è salvata.",
     cannot_send_no_recovery_key:
       "Aster non può ancora inviare questo messaggio perché all'account del destinatario mancano le chiavi per leggerlo. Chieda di aprire Aster su un qualsiasi dispositivo o di aggiornare l'app per rinnovare quelle chiavi, poi riprovi. La sua bozza è salvata.",
+    message_password_too_weak:
+      "La password del messaggio è troppo debole, quindi il messaggio non è stato inviato. Usa almeno 12 caratteri e includi un numero, un simbolo oppure lettere maiuscole e minuscole.",
+    recipient_key_untrusted:
+      "La chiave di crittografia di un destinatario è cambiata, quindi il messaggio non è stato inviato. Per inviarlo, conferma la modifica con questa persona in un altro modo, poi scegli Considera attendibile la nuova chiave.",
+    key_trust_check_failed:
+      "Impossibile verificare le chiavi di crittografia dei destinatari, quindi il messaggio non è stato inviato. Controlla la connessione e riprova.",
     conflict:
       "Qualcuno o qualcos'altro ha apportato modifiche prima. Un aggiornamento mostrerà la versione più recente.",
     connection_failed:

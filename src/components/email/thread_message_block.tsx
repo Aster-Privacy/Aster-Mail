@@ -71,6 +71,7 @@ import { OfficialBadge } from "@/components/email/official_badge";
 import { VerifiedSenderBadge } from "@/components/email/verified_sender_badge";
 import { EmailAuthIndicator } from "@/components/email/email_auth_indicator";
 import { summarize_email_authentication } from "@/utils/email_authentication";
+import { catch_all_reply_address } from "@/services/catch_all_sender";
 import { show_toast } from "@/components/toast/simple_toast";
 import { AttachmentList } from "@/components/email/attachment_list";
 import { InlineReplyComposer } from "@/components/email/inline_reply_composer";
@@ -198,7 +199,11 @@ export function ThreadMessageBlock(
 
     const inline_reply_from = is_own_msg
       ? message.sender_email
-      : delivered_to_address;
+      : (delivered_to_address ??
+        catch_all_reply_address(message.raw_headers, [
+          ...all_to_emails,
+          ...original_cc_emails,
+        ]));
 
     return (
       <div
@@ -631,7 +636,7 @@ export function ThreadMessageBlock(
                   }}
                 >
                   <ArchiveBoxIcon className="w-4 h-4 me-2" />
-                  {t("mail.archive")}
+                  {t("mail.archive_action")}
                 </DropdownMenuItem>
               )}
               {on_trash && (
@@ -908,6 +913,7 @@ export function ThreadMessageBlock(
           onClick={(e) => e.stopPropagation()}
         >
           <AttachmentList
+            e2e_verified={!!message.e2e_verified}
             has_recipient_key={message.has_recipient_key}
             hint_attachment_count={message.attachments?.length ?? 0}
             is_external={message.is_external}

@@ -27,6 +27,7 @@ import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { use_popup_drag_resize } from "@/components/email/hooks/popup_viewer_drag";
 import { REPLY_ARRIVAL_POLL_DELAYS_MS } from "@/components/email/use_email_viewer";
 import { get_mail_item, type MailItem } from "@/services/api/mail";
+import { ignore_error } from "@/lib/ignore_error";
 import {
   get_draft_by_thread,
   type DraftContent,
@@ -329,7 +330,7 @@ export function use_popup_viewer({
     preferences_default_reply_behavior: preferences.default_reply_behavior,
   });
 
-  const fetch_email = useCallback(async () => {
+  const load_popup_email = useCallback(async () => {
     if (!email_id) {
       return;
     }
@@ -349,7 +350,10 @@ export function use_popup_viewer({
       const is_received = mail_data.item_type === "received";
       const armed_read_ticket = peek_read_ticket(current_email_id);
       const mark_read = async () => {
-        const read_ticket = claim_auto_read(current_email_id, armed_read_ticket);
+        const read_ticket = claim_auto_read(
+          current_email_id,
+          armed_read_ticket,
+        );
 
         if (read_ticket === null) return;
         const conversation_options = {
@@ -383,10 +387,11 @@ export function use_popup_viewer({
 
         if (scope !== current_opened_mail_scope()) return;
         if (!is_read_ticket_current(current_email_id, read_ticket)) return;
+        const still_open = open_email_id_ref.current === current_email_id;
 
         if (result.success) {
-          set_is_read(true);
-          if (result.encrypted) {
+          if (still_open) set_is_read(true);
+          if (result.encrypted && still_open) {
             set_mail_item((prev) =>
               prev
                 ? {
@@ -412,7 +417,7 @@ export function use_popup_viewer({
             }
           }
         } else {
-          set_is_read(false);
+          if (still_open) set_is_read(false);
           if (owned) {
             emit_mail_item_updated({ id: current_email_id, is_read: false });
           }
@@ -467,6 +472,7 @@ export function use_popup_viewer({
         forwarding_service: pe.forwarding_service,
         is_external: pe.is_external,
         system_origin: pe.system_origin,
+        e2e_verified: !!pe.e2e_verified,
         send_status: pe.send_status,
         send_error: pe.send_error,
         subject: pe.subject,
@@ -578,6 +584,13 @@ export function use_popup_viewer({
 
       if (fetch_seq !== fetch_seq_ref.current) return;
 
+      if (!envelope && !is_same_email) {
+        requested_email_id_ref.current = null;
+        set_error(t("common.failed_to_decrypt_email"));
+
+        return;
+      }
+
       if (envelope) {
         timestamp_date.current = new Date(
           envelope.sent_at || response.data.created_at,
@@ -587,10 +600,12 @@ export function use_popup_viewer({
           body_text,
           safe_html,
           unsubscribe_info: unsubscribe,
+          e2e_verified,
         } = await process_envelope_body(
           envelope,
           user?.email,
           response.data.id,
+          response.data.dkim_result,
         );
 
         if (fetch_seq !== fetch_seq_ref.current) return;
@@ -626,6 +641,7 @@ export function use_popup_viewer({
           sender_verification: envelope.sender_verification,
           is_external: response.data.is_external,
           system_origin: response.data.system_origin,
+          e2e_verified,
           send_status: response.data.send_status,
           send_error: response.data.send_error,
         };
@@ -640,6 +656,7 @@ export function use_popup_viewer({
           body_text,
           safe_html,
           decrypted_metadata,
+          e2e_verified,
         );
 
         if (
@@ -725,8 +742,31 @@ export function use_popup_viewer({
     t,
   ]);
 
+  const fetch_email = useCallback(async () => {
+    const was_same_email = requested_email_id_ref.current === email_id;
+    const pending = load_popup_email();
+    const my_seq = fetch_seq_ref.current;
+
+    try {
+      await pending;
+    } catch (caught) {
+      ignore_error(
+        "components/email/hooks/use_popup_viewer:fetch_email",
+        caught,
+      );
+
+      if (fetch_seq_ref.current !== my_seq) return;
+
+      if (!was_same_email) {
+        requested_email_id_ref.current = null;
+        set_error(t("common.failed_to_load_email"));
+      }
+    }
+  }, [email_id, load_popup_email, t]);
+
   useEffect(() => {
     if (local_email) {
+      requested_email_id_ref.current = null;
       const s_email = local_email.sender_email || user?.email || "me";
       const s_name = local_email.sender_name || s_email || t("common.me");
       const now_str = format_email_detail(new Date());

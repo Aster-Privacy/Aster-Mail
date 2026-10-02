@@ -206,15 +206,31 @@ export function get_thread_context_from_email(
   };
 }
 
+async function resolve_our_email(
+  our_email?: string,
+): Promise<string | undefined> {
+  if (our_email) return our_email;
+
+  try {
+    const { get_current_account } = await import("@/services/account_manager");
+    const account = await get_current_account();
+
+    return account?.user.email || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export async function fetch_and_decrypt_thread_messages(
   thread_token: string,
-  our_email?: string,
+  our_email_hint?: string,
   options?: { is_trashed?: boolean; is_spam?: boolean; limit?: number },
 ): Promise<{
   messages: DecryptedThreadMessage[];
   thread_data: ThreadWithMessages | null;
   truncated: boolean;
 }> {
+  const our_email = await resolve_our_email(our_email_hint);
   const response = await get_thread_messages(thread_token, options);
 
   if (response.error || !response.data) {
@@ -268,7 +284,9 @@ export async function fetch_and_decrypt_thread_messages(
         is_deleted: false,
         is_external: msg.is_external ?? false,
         system_origin: msg.system_origin,
-        sender_verified_domain: msg.sender_verified ? msg.sender_verified_domain : undefined,
+        sender_verified_domain: msg.sender_verified
+          ? msg.sender_verified_domain
+          : undefined,
         send_status: msg.send_status ?? decrypted_metadata?.send_status,
         send_error: msg.send_error,
         encrypted_metadata: msg.encrypted_metadata,
@@ -295,6 +313,7 @@ export async function fetch_and_decrypt_thread_messages(
     const resolved_text = envelope.body_text ?? envelope.text_body ?? "";
     let body_content = resolved_html || resolved_text;
     let body_decrypted = false;
+    let e2e_verified = false;
 
     if (our_email && body_content.startsWith("{")) {
       const ratchet_env = parse_ratchet_envelope(body_content);
@@ -320,6 +339,7 @@ export async function fetch_and_decrypt_thread_messages(
             if (decrypted) {
               body_content = decrypted;
               body_decrypted = true;
+              e2e_verified = true;
             } else {
               body_content = RATCHET_UNDECRYPTABLE_SENTINEL;
             }
@@ -399,7 +419,10 @@ export async function fetch_and_decrypt_thread_messages(
       is_deleted: false,
       is_external: msg.is_external ?? false,
       system_origin: msg.system_origin,
-      sender_verified_domain: msg.sender_verified ? msg.sender_verified_domain : undefined,
+      e2e_verified,
+      sender_verified_domain: msg.sender_verified
+        ? msg.sender_verified_domain
+        : undefined,
       send_status: msg.send_status ?? decrypted_metadata?.send_status,
       send_error: msg.send_error,
       encrypted_metadata: msg.encrypted_metadata,
@@ -436,8 +459,9 @@ export async function fetch_and_decrypt_thread_messages(
 
 export async function fetch_and_decrypt_virtual_group(
   ids: string[],
-  our_email?: string,
+  our_email_hint?: string,
 ): Promise<DecryptedThreadMessage[]> {
+  const our_email = await resolve_our_email(our_email_hint);
   const response = await list_mail_items({ ids });
 
   if (response.error || !response.data) {
@@ -479,7 +503,9 @@ export async function fetch_and_decrypt_virtual_group(
         is_deleted: false,
         is_external: item.is_external ?? false,
         system_origin: item.system_origin,
-        sender_verified_domain: item.sender_verified ? item.sender_verified_domain : undefined,
+        sender_verified_domain: item.sender_verified
+          ? item.sender_verified_domain
+          : undefined,
         send_status: item.send_status ?? decrypted_metadata?.send_status,
         send_error: item.send_error,
         encrypted_metadata: item.encrypted_metadata,
@@ -503,6 +529,7 @@ export async function fetch_and_decrypt_virtual_group(
     const resolved_text = envelope.body_text ?? envelope.text_body ?? "";
     let body_content = resolved_html || resolved_text;
     let body_decrypted = false;
+    let e2e_verified = false;
 
     if (our_email && body_content.startsWith("{")) {
       const ratchet_env = parse_ratchet_envelope(body_content);
@@ -528,6 +555,7 @@ export async function fetch_and_decrypt_virtual_group(
             if (decrypted) {
               body_content = decrypted;
               body_decrypted = true;
+              e2e_verified = true;
             } else {
               body_content = RATCHET_UNDECRYPTABLE_SENTINEL;
             }
@@ -607,7 +635,10 @@ export async function fetch_and_decrypt_virtual_group(
       is_deleted: false,
       is_external: item.is_external ?? false,
       system_origin: item.system_origin,
-      sender_verified_domain: item.sender_verified ? item.sender_verified_domain : undefined,
+      e2e_verified,
+      sender_verified_domain: item.sender_verified
+        ? item.sender_verified_domain
+        : undefined,
       send_status: item.send_status ?? decrypted_metadata?.send_status,
       send_error: item.send_error,
       encrypted_metadata: item.encrypted_metadata,

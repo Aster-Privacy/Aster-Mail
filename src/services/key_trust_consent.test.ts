@@ -31,6 +31,7 @@ const h = vi.hoisted(() => ({
     } | null
   >(),
   discover_error: false,
+  discover_api_error: false,
   acknowledged: [] as string[][],
 }));
 
@@ -41,6 +42,8 @@ vi.mock("@/services/api/keys", async (import_original) => {
     ...actual,
     discover_external_keys_batch: vi.fn(async (emails: string[]) => {
       if (h.discover_error) throw new Error("network");
+
+      if (h.discover_api_error) return { error: "unavailable" };
 
       return {
         data: emails.map((email) => ({
@@ -68,6 +71,7 @@ vi.mock("@/services/api/keys", async (import_original) => {
 import { discover_external_keys_batch } from "@/services/api/keys";
 import {
   ensure_external_key_trust,
+  KeyTrustCheckError,
   set_key_trust_prompt_handler,
 } from "@/services/key_trust_consent";
 
@@ -86,6 +90,7 @@ describe("external key trust consent", () => {
   beforeEach(() => {
     h.changes.clear();
     h.discover_error = false;
+    h.discover_api_error = false;
     h.acknowledged = [];
     vi.mocked(discover_external_keys_batch).mockClear();
     set_key_trust_prompt_handler(null);
@@ -158,10 +163,20 @@ describe("external key trust consent", () => {
     expect(h.acknowledged).toEqual([]);
   });
 
-  it("does not block the send when the key lookup fails", async () => {
+  it("blocks the send when the key lookup throws", async () => {
     h.changes.set(rotated, change);
     h.discover_error = true;
 
-    await expect(ensure_external_key_trust([rotated])).resolves.toBe(true);
+    await expect(ensure_external_key_trust([rotated])).rejects.toBeInstanceOf(
+      KeyTrustCheckError,
+    );
+  });
+
+  it("blocks the send when the key lookup returns an error", async () => {
+    h.discover_api_error = true;
+
+    await expect(ensure_external_key_trust([settled])).rejects.toBeInstanceOf(
+      KeyTrustCheckError,
+    );
   });
 });

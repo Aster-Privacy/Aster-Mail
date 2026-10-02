@@ -31,6 +31,7 @@ import {
   unwrap_bundle_html,
   is_ratchet_envelope,
   is_password_protected_body,
+  is_ratchet_verified_body,
 } from "@/utils/email_crypto";
 import { detect_unsubscribe_info } from "@/utils/unsubscribe_detector";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
@@ -40,12 +41,14 @@ export interface ProcessedEnvelope {
   body_text: string;
   safe_html: string | undefined;
   unsubscribe_info: UnsubscribeInfo | undefined;
+  e2e_verified: boolean;
 }
 
 export async function process_envelope_body(
   envelope: DecryptedEnvelope,
   user_email?: string,
   message_id?: string,
+  dkim_result?: string,
 ): Promise<ProcessedEnvelope> {
   let resolved_html = envelope.body_html || envelope.html_body || undefined;
 
@@ -67,6 +70,7 @@ export async function process_envelope_body(
       )
     : resolved_text;
 
+  const e2e_verified = is_ratchet_verified_body(resolved_text, body_text);
   const pre_pgp_text = body_text;
 
   body_text = await try_decrypt_pgp_body(body_text);
@@ -76,6 +80,7 @@ export async function process_envelope_body(
       body_text,
       safe_html: undefined,
       unsubscribe_info: undefined,
+      e2e_verified,
     };
   }
 
@@ -132,12 +137,14 @@ export async function process_envelope_body(
   const unsubscribe = detect_unsubscribe_info(resolved_html || "", body_text, {
     list_unsubscribe: envelope.list_unsubscribe,
     list_unsubscribe_post: envelope.list_unsubscribe_post,
+    dkim_result,
   });
 
   return {
     body_text,
     safe_html,
     unsubscribe_info: unsubscribe ?? undefined,
+    e2e_verified,
   };
 }
 
@@ -173,6 +180,7 @@ export function build_single_thread_message(
   body_text: string,
   safe_html: string | undefined,
   decrypted_metadata: { is_read?: boolean; is_starred?: boolean } | null,
+  e2e_verified = false,
 ): DecryptedThreadMessage {
   const forwarding = resolve_forwarding_display(
     envelope.from,
@@ -197,7 +205,10 @@ export function build_single_thread_message(
     is_deleted: false,
     is_external: item.is_external,
     system_origin: item.system_origin,
-    sender_verified_domain: item.sender_verified ? item.sender_verified_domain : undefined,
+    e2e_verified,
+    sender_verified_domain: item.sender_verified
+      ? item.sender_verified_domain
+      : undefined,
     has_recipient_key: item.has_recipient_key,
     encrypted_metadata: item.encrypted_metadata,
     metadata_nonce: item.metadata_nonce,

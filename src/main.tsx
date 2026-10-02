@@ -27,6 +27,7 @@ import { evict_stale_favicons } from "@/lib/favicon_cache_db";
 import UnsupportedBrowserPage from "@/pages/unsupported_browser";
 import { Provider } from "@/provider";
 import { FullPageLoader } from "@/components/common/full_page_loader";
+import { ErrorBoundary } from "@/components/ui/error_boundary";
 import {
   initialize_capacitor,
   hide_splash,
@@ -183,8 +184,7 @@ window.addEventListener(
   "error",
   (event) => {
     const target = event.target as
-      | (HTMLElement & { src?: string; href?: string })
-      | null;
+      (HTMLElement & { src?: string; href?: string }) | null;
 
     if (
       target &&
@@ -391,7 +391,9 @@ function mount_app(): void {
   ReactDOM.createRoot(document.getElementById("root")!).render(
     <Router basename={router_basename}>
       <Provider>
-        <RootShell />
+        <ErrorBoundary>
+          <RootShell />
+        </ErrorBoundary>
       </Provider>
     </Router>,
   );

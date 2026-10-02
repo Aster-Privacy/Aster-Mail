@@ -753,7 +753,7 @@ export function use_inbox_bulk_actions({
 
   const handle_archive_wrapped = useCallback(() => {
     if (selection.select_all_mode) {
-      queue_select_all_action("mail.archive", () => {
+      queue_select_all_action("mail.archive_action", () => {
         void run_scope_action("archive");
       });
 

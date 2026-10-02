@@ -98,7 +98,10 @@ export async function ensure_default_labels(
 
   const promise = (async () => {
     try {
-      const existing = await list_folders({ include_system: true });
+      const existing = await list_folders({
+        include_system: true,
+        include_counts: true,
+      });
 
       if (existing.error || !existing.data) return;
 

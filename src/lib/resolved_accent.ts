@@ -63,6 +63,12 @@ let current: ResolvedAccent = {
   is_dark: false,
 };
 
+export interface ResolvedAppearance {
+  is_dark: boolean;
+}
+
+let appearance: ResolvedAppearance = { is_dark: current.is_dark };
+
 let initialized = false;
 let root_observer: MutationObserver | null = null;
 
@@ -126,6 +132,10 @@ export function refresh_resolved_accent(): ResolvedAccent {
 
   current = next;
 
+  if (next.is_dark !== appearance.is_dark) {
+    appearance = { is_dark: next.is_dark };
+  }
+
   for (const listener of listeners) listener();
 
   return current;
@@ -153,5 +163,19 @@ export function use_resolved_accent(): ResolvedAccent {
     subscribe_resolved_accent,
     get_resolved_accent,
     get_resolved_accent,
+  );
+}
+
+export function get_resolved_appearance(): ResolvedAppearance {
+  get_resolved_accent();
+
+  return appearance;
+}
+
+export function use_resolved_appearance(): ResolvedAppearance {
+  return useSyncExternalStore(
+    subscribe_resolved_accent,
+    get_resolved_appearance,
+    get_resolved_appearance,
   );
 }

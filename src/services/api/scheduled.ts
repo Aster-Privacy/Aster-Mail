@@ -27,6 +27,11 @@ import {
 } from "../recipient_classification";
 
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import { account_data_write_key } from "@/services/crypto/account_data_writer";
+import { encrypt_with_private_bcc } from "@/services/send_private_bcc";
+import { is_internal_email } from "@/services/api/keys";
+import { build_subject_bundle } from "@/utils/email_crypto";
+import { exceeds_sealed_schedule_window } from "@/lib/schedule_window";
 import { HASH_ALG } from "@/services/crypto/constants";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { get_active_translations } from "@/lib/i18n/translations";
@@ -97,6 +102,25 @@ export interface CreateScheduledRequest {
   ephemeral_key?: string;
   base_nonce?: string;
   sender_alias_hash?: string;
+  delivery?: ScheduledDelivery;
+}
+
+export interface ScheduledDelivery {
+  to: string[];
+  cc: string[];
+  bcc: string[];
+  sender_email?: string;
+  sender_display_name?: string;
+  internal_encrypted_body: string;
+  recipient_bodies: Record<string, string>;
+  hosted_recipients: string[];
+}
+
+export interface ScheduledSendOptions {
+  sender_alias_hash?: string;
+  sender_email: string;
+  sender_display_name?: string;
+  allow_non_post_quantum?: boolean;
 }
 
 export class ScheduledEncryptionError extends Error {
@@ -168,6 +192,115 @@ async function derive_scheduled_encryption_key(
     false,
     ["encrypt", "decrypt"],
   );
+}
+
+async function scheduled_write_key(vault: EncryptedVault): Promise<CryptoKey> {
+  return (
+    (await account_data_write_key(SCHEDULED_KEY_VERSION)) ??
+    derive_scheduled_encryption_key(vault)
+  );
+}
+
+function scheduled_envelope_data(content: ScheduledEmailContent) {
+  return {
+    to_recipients: content.to_recipients,
+    cc_recipients: content.cc_recipients,
+    bcc_recipients: content.bcc_recipients,
+    subject: content.subject,
+    body: content.body,
+    scheduled_at: content.scheduled_at,
+    ...(content.from ? { from: content.from } : {}),
+    ...(content.in_reply_to ? { in_reply_to: content.in_reply_to } : {}),
+    ...(content.thread_id ? { thread_id: content.thread_id } : {}),
+  };
+}
+
+async function seal_with_key(
+  key: CryptoKey,
+  value: unknown,
+): Promise<{ ciphertext: string; nonce: string }> {
+  const nonce = crypto.getRandomValues(new Uint8Array(NONCE_LENGTH));
+  const plaintext = new TextEncoder().encode(JSON.stringify(value));
+
+  try {
+    const sealed = await crypto.subtle.encrypt(
+      { name: "AES-GCM", iv: nonce },
+      key,
+      plaintext,
+    );
+
+    return {
+      ciphertext: uint8_array_to_base64(new Uint8Array(sealed)),
+      nonce: uint8_array_to_base64(nonce),
+    };
+  } finally {
+    secure_clear_array(plaintext);
+  }
+}
+
+async function encrypt_with_local_key(
+  content: ScheduledEmailContent,
+  vault: EncryptedVault,
+): Promise<{
+  encrypted_envelope: string;
+  envelope_nonce: string;
+  encrypted_recipients: string;
+  recipients_nonce: string;
+}> {
+  const key = await scheduled_write_key(vault);
+  const envelope = await seal_with_key(key, scheduled_envelope_data(content));
+  const recipients = await seal_with_key(key, [
+    ...content.to_recipients,
+    ...content.cc_recipients,
+    ...content.bcc_recipients,
+  ]);
+
+  return {
+    encrypted_envelope: envelope.ciphertext,
+    envelope_nonce: envelope.nonce,
+    encrypted_recipients: recipients.ciphertext,
+    recipients_nonce: recipients.nonce,
+  };
+}
+
+async function build_sealed_delivery(
+  content: ScheduledEmailContent,
+  options: ScheduledSendOptions,
+): Promise<ScheduledDelivery> {
+  const sealed = await encrypt_with_private_bcc(
+    build_subject_bundle(content.subject || "", content.body),
+    {
+      to: content.to_recipients,
+      cc: content.cc_recipients,
+      bcc: content.bcc_recipients,
+    },
+    options.sender_email,
+    options.allow_non_post_quantum === true,
+  );
+  const internal_encrypted_body = sealed.is_encrypted
+    ? sealed.encrypted_body
+    : sealed.internal_encrypted_body;
+
+  if (!internal_encrypted_body) {
+    throw new ScheduledEncryptionError(
+      get_active_translations().errors.failed_encrypt_envelope,
+    );
+  }
+
+  return {
+    to: content.to_recipients,
+    cc: content.cc_recipients,
+    bcc: content.bcc_recipients,
+    sender_email: content.from?.email,
+    sender_display_name: options.sender_display_name || undefined,
+    internal_encrypted_body,
+    recipient_bodies: sealed.recipient_bodies ?? {},
+    hosted_recipients: [
+      ...content.to_recipients,
+      ...content.cc_recipients,
+      ...content.bcc_recipients,
+    ].filter((r) => is_internal_recipient(r) && !is_internal_email(r)),
+  };
 }
 
 async function decrypt_scheduled_content(
@@ -268,17 +401,7 @@ async function encrypt_with_ephemeral_key(
   const envelope_nonce = crypto.getRandomValues(new Uint8Array(NONCE_LENGTH));
   const recipients_nonce = crypto.getRandomValues(new Uint8Array(NONCE_LENGTH));
 
-  const envelope_data = {
-    to_recipients: content.to_recipients,
-    cc_recipients: content.cc_recipients,
-    bcc_recipients: content.bcc_recipients,
-    subject: content.subject,
-    body: content.body,
-    scheduled_at: content.scheduled_at,
-    ...(content.from ? { from: content.from } : {}),
-    ...(content.in_reply_to ? { in_reply_to: content.in_reply_to } : {}),
-    ...(content.thread_id ? { thread_id: content.thread_id } : {}),
-  };
+  const envelope_data = scheduled_envelope_data(content);
 
   const envelope_plaintext = new TextEncoder().encode(
     JSON.stringify(envelope_data),
@@ -464,6 +587,12 @@ export async function reschedule_email(
   email_id: string,
   new_scheduled_at: string,
 ): Promise<ApiResponse<{ success: boolean }>> {
+  if (exceeds_sealed_schedule_window(new Date(new_scheduled_at))) {
+    return {
+      error: get_active_translations().common.scheduled_too_far_ahead,
+    };
+  }
+
   const response = await api_client.patch<{ id: string; status: string }>(
     `/mail/v1/scheduled/${email_id}`,
     { scheduled_at: new_scheduled_at },
@@ -485,10 +614,11 @@ export interface CreateScheduledResponse {
 }
 
 export async function create_scheduled_email(
-  _vault: EncryptedVault,
+  vault: EncryptedVault,
   content: ScheduledEmailContent,
-  sender_alias_hash?: string,
+  options: ScheduledSendOptions,
 ): Promise<ApiResponse<CreateScheduledResponse>> {
+  const sender_alias_hash = options.sender_alias_hash;
   const all_recipients = [
     ...content.to_recipients,
     ...content.cc_recipients,
@@ -498,9 +628,25 @@ export async function create_scheduled_email(
   await classify_recipients(all_recipients);
 
   const has_external = all_recipients.some((r) => !is_internal_recipient(r));
+  const has_internal = all_recipients.some((r) => is_internal_recipient(r));
   const recipient_count = all_recipients.length;
 
-  const encrypted = await encrypt_with_ephemeral_key(content);
+  if (exceeds_sealed_schedule_window(new Date(content.scheduled_at))) {
+    throw new ScheduledEncryptionError(
+      get_active_translations().common.scheduled_too_far_ahead,
+    );
+  }
+
+  const delivery = has_internal
+    ? await build_sealed_delivery(content, options)
+    : undefined;
+
+  const encrypted: Awaited<ReturnType<typeof encrypt_with_local_key>> & {
+    ephemeral_key?: string;
+    base_nonce?: string;
+  } = has_external
+    ? await encrypt_with_ephemeral_key(content)
+    : await encrypt_with_local_key(content, vault);
 
   const request: CreateScheduledRequest = {
     encrypted_envelope: encrypted.encrypted_envelope,
@@ -510,8 +656,13 @@ export async function create_scheduled_email(
     recipient_count,
     scheduled_at: content.scheduled_at,
     is_external: has_external,
-    ephemeral_key: encrypted.ephemeral_key,
-    base_nonce: encrypted.base_nonce,
+    ...(encrypted.ephemeral_key
+      ? {
+          ephemeral_key: encrypted.ephemeral_key,
+          base_nonce: encrypted.base_nonce,
+        }
+      : {}),
+    ...(delivery ? { delivery } : {}),
     ...(sender_alias_hash ? { sender_alias_hash } : {}),
   };
 

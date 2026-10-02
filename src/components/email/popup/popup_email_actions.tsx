@@ -205,7 +205,7 @@ export function PopupEmailActions({
         tip={
           is_archived && on_unarchive
             ? t("mail.move_to_inbox")
-            : t("mail.archive")
+            : t("mail.archive_action")
         }
       >
         <Button
@@ -302,7 +302,7 @@ export function PopupEmailActions({
               onClick={on_archive}
             >
               <ArchiveBoxIcon className="w-4 h-4 me-2" />
-              {t("mail.archive")}
+              {t("mail.archive_action")}
             </DropdownMenuItem>
           )}
           {is_spam && on_not_spam ? (

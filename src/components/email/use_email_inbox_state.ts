@@ -47,6 +47,7 @@ import { type BulkScopeFilter } from "@/services/api/mail";
 import {
   filter_emails_by_view,
   apply_active_filter,
+  kept_open_email_id,
   compute_total_pages,
   should_recover_empty_view,
 } from "@/components/email/inbox/inbox_view_helpers";
@@ -55,6 +56,7 @@ import { use_split_pane } from "@/components/email/inbox/use_split_pane";
 import { use_inbox_list_scroll } from "@/components/email/inbox/use_inbox_list_scroll";
 import { use_inbox_keyboard } from "@/components/email/inbox/use_inbox_keyboard";
 import { use_inbox_navigation } from "@/components/email/inbox/use_inbox_navigation";
+import { use_split_reader_advance } from "@/components/email/inbox/use_split_reader_advance";
 import { use_inbox_selection } from "@/components/email/inbox/use_inbox_selection";
 import { use_inbox_selection_menu } from "@/components/email/inbox/use_inbox_selection_menu";
 import { use_inbox_bulk_actions } from "@/components/email/inbox/use_inbox_bulk_actions";
@@ -125,11 +127,12 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     folders_lookup,
     tags_lookup,
     toolbar,
-    context_menu_actions,
+    context_menu_actions: list_context_menu_actions,
   } = use_inbox_view_state(props);
 
   const [active_filter, set_active_filter] = useState<InboxFilterType>("all");
   const [is_paginating, set_is_paginating] = useState(false);
+  const paginate_seq_ref = useRef(0);
   const prev_view_ref_page = useRef(current_view);
   const prev_page_ref = useRef(current_page);
   const initial_page_synced = useRef(false);
@@ -184,12 +187,14 @@ export function use_email_inbox_state(props: EmailInboxProps) {
         !is_snoozed_view
       ) {
         const instant = is_page_cached(current_page, page_size);
+        const paginate_seq = ++paginate_seq_ref.current;
 
         if (!instant) set_is_paginating(true);
         fetch_page(current_page, page_size, {
           force: true,
           silent: categories.enabled,
         }).finally(() => {
+          if (paginate_seq !== paginate_seq_ref.current) return;
           if (!instant) set_is_paginating(false);
         });
       }
@@ -252,14 +257,20 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     () => filter_emails_by_view(email_state.emails, current_view),
     [email_state.emails, current_view],
   );
+  const kept_open_id = kept_open_email_id(
+    view_filtered_emails,
+    active_filter,
+    active_email_id,
+  );
   const filtered_emails = useMemo(
     () =>
-      apply_active_filter(view_filtered_emails, active_filter)
+      apply_active_filter(view_filtered_emails, active_filter, kept_open_id)
         .map(enrich_email_folders)
         .map(enrich_email_tags),
     [
       view_filtered_emails,
       active_filter,
+      kept_open_id,
       enrich_email_folders,
       enrich_email_tags,
     ],
@@ -349,7 +360,7 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     is_alias_view &&
     get_alias_hash_by_address(alias_address_of(current_view) ?? "") !== null;
   const effective_total_for_pages = is_client_filtered
-    ? all_primary_emails.length
+    ? all_primary_emails.filter((e) => e.id !== kept_open_id).length
     : categories.enabled
       ? is_category_index_built()
         ? (categories.counts[categories.active_category]?.total ?? 0)
@@ -393,7 +404,7 @@ export function use_email_inbox_state(props: EmailInboxProps) {
             : null;
 
   const list_header_count = is_alias_view
-    ? filtered_emails.filter((e) => !e.is_read).length
+    ? filtered_emails.filter((e) => !e.is_read && e.id !== kept_open_id).length
     : effective_total_for_pages;
 
   const header_count_key = `${current_view}|${
@@ -641,6 +652,19 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     on_email_click,
     on_navigate_to,
     on_email_list_change,
+  });
+
+  const context_menu_actions = use_split_reader_advance({
+    context_menu_actions: list_context_menu_actions,
+    split_email_id,
+    emails: email_state.emails,
+    visible_ids: nav.visible_ids,
+    is_confirm_open:
+      toolbar.show_single_archive_confirm ||
+      toolbar.show_single_delete_confirm ||
+      toolbar.show_single_spam_confirm,
+    on_auto_advance: props.on_auto_advance,
+    on_split_close,
   });
 
   const extra_keyboard_actions = useMemo(

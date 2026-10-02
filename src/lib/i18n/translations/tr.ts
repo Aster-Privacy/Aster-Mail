@@ -271,6 +271,7 @@ export const tr = {
     create_subfolder: "Alt klasör oluştur",
     mute_notifications: "Bildirimleri sessize al",
     unmute_notifications: "Sessize almayı kaldır",
+    notifications_muted: "Bildirimler sessize alındı",
     remove_lock: "Kilidi kaldır",
     lock: "Kilitle",
     change_color: "Rengi değiştir",
@@ -880,6 +881,16 @@ export const tr = {
       "Zamanlanmış gönderim bağlı hesaplar için kullanılamaz. Bu iletiyi şimdi gönderin ya da bir Aster adresi seçin.",
     scheduled_no_expiry:
       "Zamanlanmış e-postalar henüz süre sonu kullanamaz. Şimdi gönder ya da zamanlamak için süre sonunu kaldır.",
+    scheduled_too_far_ahead:
+      "Zamanlanmış e-postalar en fazla 28 gün sonrasına planlanabilir. Daha erken bir zaman seçin.",
+    scheduled_requires_encryption:
+      "Zorunlu şifrelemeyi açtınız ve dış adreslere giden zamanlanmış e-postalar uçtan uca şifrelenmez. Bu iletiyi şimdi gönderin veya Ayarlar'da zorunlu şifrelemeyi kapatın.",
+    offline_password_protected_unavailable:
+      "Çevrimdışıyken parola korumalı e-postaları sıraya alamazsınız. Yeniden bağlandığınızda iletiyi gönderin.",
+    offline_settings_unavailable:
+      "Ayarlarınız yüklenemediği için ileti gönderilmedi. Yeniden bağlandığınızda tekrar deneyin.",
+    cannot_send_key_changed_offline:
+      "Bu ileti gönderilmeyi beklerken bir alıcının şifreleme anahtarı değişti, bu yüzden ileti gönderilmedi.",
     failed_to_merge_contacts:
       "Birleştirme tamamlanmadı. Tekrar deneyin. Özgün kişileriniz değişmedi.",
     enter_valid_emails: "Lütfen geçerli e-posta adresleri girin",
@@ -1228,6 +1239,8 @@ export const tr = {
     font: "Yazı tipi",
     stylesheet: "Stil sayfası",
     tracking_pixel: "İzleme pikseli",
+    image_blocked: "Görsel engellendi",
+    tracking_pixel_blocked: "İzleme pikseli engellendi",
     me: "ben",
     notification_banner_message:
       "Yeni e-postalardan haberdar olmak için masaüstü bildirimlerini etkinleştirin",
@@ -3960,7 +3973,7 @@ export const tr = {
     reply_to_all: "Tümüne yanıtla",
     force_dark_mode_emails: "E-postalar için karanlık modu zorla",
     force_dark_mode_emails_description:
-      "E-posta içeriğini her zaman karanlık modda göster, orijinal stili geçersiz kılarak",
+      "Aster koyu temadayken e-posta içeriğini karanlık modda göster, orijinal stili geçersiz kılarak",
     translation: "Çeviri",
     translate_incoming: "Gelen postayı çevir",
     translate_incoming_description:
@@ -4606,7 +4619,7 @@ export const tr = {
       "E-postalarda bir kilit simgesi göstererek mesajın şifreli, imzalı veya hiçbiri olduğunu belirtir.",
     info_force_dark_mode_title: "E-postalarda Koyu Mod",
     info_force_dark_mode_description:
-      "E-posta stillerini koyu arka plan ve açık metinle kullanmak üzere yeniden yazar. Parlak beyaz e-postalar gözlerinizi yoruyorsa kullanışlıdır.",
+      "Aster koyu temadayken e-posta stillerini koyu arka plan ve açık metinle kullanmak üzere yeniden yazar. Parlak beyaz e-postalar gözlerinizi yoruyorsa kullanışlıdır.",
     info_undo_send_title: "Gönderimi Geri Al",
     info_undo_send_description:
       "Gönder'e bastıktan sonra e-postayı iptal etmek için kısa bir süre tanır. Sayaç bitene kadar hiçbir şey gönderilmez.",
@@ -8246,6 +8259,11 @@ export const tr = {
       "Bu gönderenin mesajları artık kuantum sonrası korumaya sahip değil. Bunu beklemiyorsan, bu kişiyle başka bir yoldan doğrula.",
     recipient_identity_changed:
       "{{email}} için şifreleme anahtarı değişti. Bunu beklemiyorsan, hassas bilgi göndermeden önce bu değişikliği kişiyle başka bir yoldan doğrula.",
+    message_password_requirements:
+      "En az 12 karakter kullanın ve bir rakam, bir sembol ya da büyük ve küçük harfler ekleyin.",
+    recipient_identity_untrusted:
+      "{{email}} için şifreleme anahtarı değişti ve yeni anahtar doğrulanamıyor. Bu adrese göndermek için değişikliği bu kişiyle başka bir yoldan doğrulayın, ardından Yeni anahtara güven seçeneğini belirleyin.",
+    trust_new_key: "Yeni anahtara güven",
     load_all_thread_messages: "Tüm mesajları yükle",
     move_to_category: "Kategoriye taşı",
     menu_applies_to_selection: "{count} seçili öğeye uygulanır",
@@ -8307,6 +8325,7 @@ export const tr = {
     drafts: "Taslaklar",
     starred: "Yıldızlı",
     archive: "Arşiv",
+    archive_action: "Arşivle",
     spam: "Önemsiz",
     trash: "Çöp Kutusu",
     scheduled: "Zamanlanmış",
@@ -9863,6 +9882,12 @@ export const tr = {
       "Zorunlu şifreleme açık ve hiçbir alıcınızın kayıtlı anahtarı yok. Onlardan anahtar paylaşmalarını isteyin veya Ayarlar'dan zorunlu şifrelemeyi kapatın. Taslağınız kaydedildi.",
     cannot_send_no_recovery_key:
       "Aster bu iletiyi henüz gönderemiyor çünkü alıcının hesabında onu okumak için gereken anahtarlar yok. Ondan Aster'ı herhangi bir cihazda açmasını veya uygulamasını güncellemesini isteyin, sonra yeniden deneyin. Taslağınız kaydedildi.",
+    message_password_too_weak:
+      "İleti parolası çok zayıf, bu yüzden ileti gönderilmedi. En az 12 karakter kullanın ve bir rakam, bir sembol ya da büyük ve küçük harfler ekleyin.",
+    recipient_key_untrusted:
+      "Bir alıcının şifreleme anahtarı değişti, bu yüzden ileti gönderilmedi. Göndermek için değişikliği bu kişiyle başka bir yoldan doğrulayın, ardından Yeni anahtara güven seçeneğini belirleyin.",
+    key_trust_check_failed:
+      "Alıcıların şifreleme anahtarları denetlenemedi, bu yüzden ileti gönderilmedi. Bağlantınızı denetleyip yeniden deneyin.",
     failed_send_external:
       "Bu e-posta bağlı harici hesabınız üzerinden gönderilmedi. Tekrar deneyin. Taslağınız kaydedildi.",
     failed_queue_email:

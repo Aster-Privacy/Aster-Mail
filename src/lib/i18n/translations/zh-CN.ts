@@ -788,6 +788,16 @@ export const zh_CN = {
       "已连接的账户不支持定时发送。请立即发送此邮件，或选择一个 Aster 地址。",
     scheduled_no_expiry:
       "定时邮件暂时不支持设置有效期。请立即发送，或删除有效期后再定时发送。",
+    scheduled_too_far_ahead:
+      "定时邮件最多只能提前 28 天安排。请选择更早的时间。",
+    scheduled_requires_encryption:
+      "你已开启强制加密，而发往外部地址的定时邮件不是端到端加密的。请立即发送此邮件，或在设置中关闭强制加密。",
+    offline_password_protected_unavailable:
+      "离线时无法将受密码保护的邮件加入队列。重新联网后，请发送此邮件。",
+    offline_settings_unavailable:
+      "无法加载你的设置，因此邮件未发送。重新联网后，请重试。",
+    cannot_send_key_changed_offline:
+      "此邮件等待发送期间，某位收件人的加密密钥发生了变化，因此未发送。",
     failed_to_merge_contacts: "合并未能完成。请重试。您原有的联系人未受影响。",
     enter_valid_emails: "请输入有效的邮箱地址",
     enter_contact_details: "输入联系人详情",
@@ -1093,6 +1103,8 @@ export const zh_CN = {
     font: "字体",
     stylesheet: "样式表",
     tracking_pixel: "跟踪像素",
+    image_blocked: "图片已屏蔽",
+    tracking_pixel_blocked: "跟踪像素已屏蔽",
     me: "我",
     notification_banner_message: "启用桌面通知以及时获取新邮件更新",
     notification_banner_allow: "允许",
@@ -1196,6 +1208,7 @@ export const zh_CN = {
     create_subfolder: "创建子文件夹",
     mute_notifications: "静音通知",
     unmute_notifications: "取消静音",
+    notifications_muted: "通知已静音",
     remove_lock: "移除锁",
     lock: "锁定",
     change_color: "更改颜色",
@@ -3671,7 +3684,7 @@ export const zh_CN = {
     reply_to_all: "回复所有人",
     force_dark_mode_emails: "强制电子邮件深色模式",
     force_dark_mode_emails_description:
-      "始终以深色模式渲染电子邮件内容，覆盖电子邮件的原始样式",
+      "在 Aster 使用深色主题时，以深色模式渲染电子邮件内容，覆盖电子邮件的原始样式",
     translation: "翻译",
     translate_incoming: "翻译收到的邮件",
     translate_incoming_description: "在您的设备上翻译以其他语言撰写的邮件。",
@@ -4253,7 +4266,7 @@ export const zh_CN = {
       "在邮件上显示锁图标，告知您邮件是否已加密、已签名或两者都不是。便于一眼了解哪些内容受到保护。",
     info_force_dark_mode_title: "邮件强制深色模式",
     info_force_dark_mode_description:
-      "将邮件样式改为深色背景和浅色文字。如果亮白色邮件让您的眼睛不舒服，此功能很有用。",
+      "在 Aster 使用深色主题时，将邮件样式改为深色背景和浅色文字。如果亮白色邮件让您的眼睛不舒服，此功能很有用。",
     info_undo_send_title: "撤回发送",
     info_undo_send_description:
       "在点击发送后给您一小段时间取消邮件。计时器结束前不会真正发出。",
@@ -7449,6 +7462,11 @@ export const zh_CN = {
       "此发件人的邮件不再受后量子保护。如果这不在您的预期之内，请通过其他方式向对方确认。",
     recipient_identity_changed:
       "{{email}} 的加密密钥已更改。如果这不在您的预期之内，请在发送敏感信息前通过其他方式向对方确认。",
+    message_password_requirements:
+      "请使用至少 12 个字符，并包含数字、符号或大小写字母。",
+    recipient_identity_untrusted:
+      "{{email}} 的加密密钥已更改，且无法确认新密钥。要发送到此地址，请通过其他方式与对方确认此更改，然后选择“信任新密钥”。",
+    trust_new_key: "信任新密钥",
     load_all_thread_messages: "加载所有邮件",
     move_to_category: "移至分类",
     menu_applies_to_selection: "适用于已选的 {count} 项",
@@ -7500,6 +7518,7 @@ export const zh_CN = {
     drafts: "草稿",
     starred: "星标",
     archive: "归档",
+    archive_action: "归档",
     spam: "垃圾邮件",
     trash: "回收站",
     scheduled: "定时发送",
@@ -8943,6 +8962,12 @@ export const zh_CN = {
       "您已开启强制加密，但所有收件人均没有密钥记录。请他们分享密钥，或在设置中关闭强制加密，即可发送。您的草稿已保存。",
     cannot_send_no_recovery_key:
       "Aster 暂时无法发送此邮件，因为收件人的账户缺少读取所需的密钥。请其在任意设备上打开 Aster 或更新应用以刷新密钥，然后重试。您的草稿已保存。",
+    message_password_too_weak:
+      "邮件密码太弱，因此未发送邮件。请使用至少 12 个字符，并包含数字、符号或大小写字母。",
+    recipient_key_untrusted:
+      "某位收件人的加密密钥已更改，因此未发送邮件。要发送，请通过其他方式与对方确认此更改，然后选择“信任新密钥”。",
+    key_trust_check_failed:
+      "无法检查收件人的加密密钥，因此未发送邮件。请检查网络连接后重试。",
     failed_send_external:
       "此邮件未能通过您关联的外部账户发送。请重试。您的草稿已保存。",
     failed_queue_email:

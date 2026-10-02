@@ -670,11 +670,20 @@ export async function acquire_search_index(
     const ready = partial_ready();
     const build = start_background_rebuild(user_email, include_body);
 
-    await Promise.race([ready, build.catch(() => undefined)]);
+    let build_failure: unknown = null;
+
+    await Promise.race([
+      ready,
+      build.catch((caught) => {
+        build_failure = caught ?? new Error("search_fetch_failed:unknown");
+      }),
+    ]);
 
     if (cached_index && cached_index.user_email === user_email) {
       return cached_index;
     }
+
+    if (build_failure) throw build_failure;
 
     return empty_index(user_email, include_body);
   }

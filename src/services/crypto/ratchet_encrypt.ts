@@ -36,7 +36,11 @@ import {
 } from "./ratchet_conversation";
 import {
   check_and_pin_identity,
+  check_owner_key_pin,
+  flag_recipient_untrusted,
   has_peer_advertised_pq,
+  is_recipient_flagged_untrusted,
+  type OwnerKeyPinStatus,
 } from "./ratchet_identity_pin";
 import {
   detect_identity_pin_drift,
@@ -63,6 +67,8 @@ import {
   sync_ratchet_to_server,
 } from "./ratchet_sync";
 import {
+  KeyPinUnavailableError,
+  RecipientKeyUntrustedError,
   RecoveryLaneUnavailableError,
   type RatchetRecipientData,
 } from "./ratchet_types";
@@ -131,7 +137,7 @@ export async function encrypt_for_ratchet_recipient(
 
 type BundleVerification = Awaited<
   ReturnType<typeof verify_ratchet_prekey_bundle_detailed>
->;
+> & { owner_pin: OwnerKeyPinStatus; flagged_untrusted: boolean };
 
 async function verify_recipient_bundle(
   bundle: PrekeyBundle,
@@ -142,13 +148,29 @@ async function verify_recipient_bundle(
     recipient_username,
     recipient_email,
   );
+  const owner_public_key = owner_key.data?.public_key ?? null;
+  const pin_id = (recipient_email ?? recipient_username).toLowerCase();
+  const owner_pin = owner_public_key
+    ? await check_owner_key_pin(pin_id, owner_public_key)
+    : "unknown";
+  const flagged_untrusted = await is_recipient_flagged_untrusted(pin_id);
 
-  return verify_ratchet_prekey_bundle_detailed(
+  const verification = await verify_ratchet_prekey_bundle_detailed(
     bundle.signed_prekey_signature,
     bundle.kem_identity_key,
     bundle.signed_prekey,
-    owner_key.data?.public_key ?? null,
+    owner_public_key,
     bundle.pq_kem_public_key ?? null,
+  );
+
+  return { ...verification, owner_pin, flagged_untrusted };
+}
+
+function is_bundle_untrusted(verification: BundleVerification): boolean {
+  return (
+    verification.verdict === "tampered" ||
+    verification.owner_pin === "changed" ||
+    verification.flagged_untrusted
   );
 }
 
@@ -156,7 +178,7 @@ function is_bundle_verification_rejected(
   verification: BundleVerification,
 ): boolean {
   return (
-    verification.verdict === "tampered" ||
+    is_bundle_untrusted(verification) ||
     (is_strict_recipient_bundle_enforced() &&
       verification.verdict !== "verified")
   );
@@ -270,6 +292,11 @@ async function encrypt_for_ratchet_recipient_unlocked(
       const pq_downgraded =
         !advertises_pq && (await has_peer_advertised_pq(bundle_peer));
 
+      if (is_bundle_untrusted(bundle_verification)) {
+        await flag_recipient_untrusted(bundle_peer);
+        throw new RecipientKeyUntrustedError(recipient_email);
+      }
+
       const bundle_rejected =
         pq_downgraded || is_bundle_verification_rejected(bundle_verification);
 
@@ -291,18 +318,19 @@ async function encrypt_for_ratchet_recipient_unlocked(
       const identity_pin_status = await check_and_pin_identity(
         bundle_peer,
         bundle.kem_identity_key,
-        bundle_verification.verdict === "verified",
+        bundle_verification.verdict === "verified" &&
+          (bundle_verification.owner_pin === "ok" ||
+            bundle_verification.owner_pin === "first"),
         advertises_pq,
       );
 
       if (identity_pin_status === "drift") {
-        if (import.meta.env.DEV) {
-          console.warn(
-            "ratchet recipient identity key differs from the pinned value; routing via PGP",
-          );
-        }
+        await flag_recipient_untrusted(bundle_peer);
+        throw new RecipientKeyUntrustedError(recipient_email);
+      }
 
-        return null;
+      if (identity_pin_status === "unknown") {
+        throw new KeyPinUnavailableError(bundle_peer);
       }
 
       const sender_identity_jwk: JsonWebKey = JSON.parse(
@@ -426,7 +454,11 @@ async function encrypt_for_ratchet_recipient_unlocked(
 
     return recipient_data;
   } catch (err) {
-    if (err instanceof RecoveryLaneUnavailableError) {
+    if (
+      err instanceof RecoveryLaneUnavailableError ||
+      err instanceof RecipientKeyUntrustedError ||
+      err instanceof KeyPinUnavailableError
+    ) {
       throw err;
     }
 
@@ -439,9 +471,7 @@ async function encrypt_for_ratchet_recipient_unlocked(
 }
 
 export type PostQuantumRecipientStatus =
-  | "supported"
-  | "unsupported"
-  | "downgraded";
+  "supported" | "unsupported" | "downgraded" | "untrusted";
 
 export async function recipient_post_quantum_status(
   sender_email: string,
@@ -464,13 +494,15 @@ export async function recipient_post_quantum_status(
 
   if (!bundle) return "unsupported";
 
-  if (bundle_supports_pq(bundle)) {
-    const verification = await verify_recipient_bundle(
-      bundle,
-      recipient_username,
-      recipient_email,
-    );
+  const verification = await verify_recipient_bundle(
+    bundle,
+    recipient_username,
+    recipient_email,
+  );
 
+  if (is_bundle_untrusted(verification)) return "untrusted";
+
+  if (bundle_supports_pq(bundle)) {
     return is_bundle_verification_rejected(verification)
       ? "unsupported"
       : "supported";

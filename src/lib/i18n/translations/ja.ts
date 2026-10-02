@@ -329,6 +329,7 @@ export const ja = {
     create_subfolder: "サブフォルダを作成",
     mute_notifications: "通知をミュート",
     unmute_notifications: "ミュートを解除",
+    notifications_muted: "通知はミュート中",
     remove_lock: "ロックを解除",
     lock: "ロック",
     change_color: "色を変更",
@@ -935,6 +936,16 @@ export const ja = {
       "接続済みアカウントでは送信予約を利用できません。今すぐ送信するか、Aster のアドレスを選んでください。",
     scheduled_no_expiry:
       "予約送信のメールはまだ有効期限を設定できません。すぐに送信するか、有効期限を削除して予約してください。",
+    scheduled_too_far_ahead:
+      "予約送信は最大 28 日先まで設定できます。もっと早い日時を選択してください。",
+    scheduled_requires_encryption:
+      "暗号化の必須設定がオンになっており、外部アドレスへの予約送信メールはエンドツーエンドで暗号化されません。このメッセージを今すぐ送信するか、設定で暗号化の必須設定をオフにしてください。",
+    offline_password_protected_unavailable:
+      "オフラインの間はパスワード保護されたメールをキューに追加できません。再接続したら、メッセージを送信してください。",
+    offline_settings_unavailable:
+      "設定を読み込めなかったため、メッセージは送信されませんでした。再接続したら、もう一度お試しください。",
+    cannot_send_key_changed_offline:
+      "このメッセージの送信待ちの間に受信者の暗号鍵が変更されたため、送信されませんでした。",
     failed_to_merge_contacts:
       "統合を完了できませんでした。もう一度お試しください。元の連絡先は変更されていません。",
     enter_valid_emails: "有効なメールアドレスを入力してください",
@@ -1276,6 +1287,8 @@ export const ja = {
     font: "フォント",
     stylesheet: "スタイルシート",
     tracking_pixel: "トラッキングピクセル",
+    image_blocked: "画像はブロックされました",
+    tracking_pixel_blocked: "トラッキングピクセルはブロックされました",
     me: "自分",
     notification_banner_message:
       "デスクトップ通知を有効にして新着メールの情報を受け取りましょう",
@@ -4004,7 +4017,7 @@ export const ja = {
     reply_to_all: "全員に返信",
     force_dark_mode_emails: "メールのダークモードを強制",
     force_dark_mode_emails_description:
-      "メールの元のスタイルを上書きして、常にダークモードでメール内容を表示します",
+      "Aster がダークテーマのとき、メールの元のスタイルを上書きしてダークモードでメール内容を表示します",
     translation: "翻訳",
     translate_incoming: "受信メールを翻訳",
     translate_incoming_description:
@@ -4647,7 +4660,7 @@ export const ja = {
       "メールに鍵アイコンを表示し、メッセージが暗号化済み・署名済み・またはどちらでもないかを示します。",
     info_force_dark_mode_title: "メールのダークモード強制",
     info_force_dark_mode_description:
-      "メールのスタイルを暗い背景と明るいテキストに書き換えます。明るい白いメールが目に辛い場合に便利です。",
+      "Aster がダークテーマのとき、メールのスタイルを暗い背景と明るいテキストに書き換えます。明るい白いメールが目に辛い場合に便利です。",
     info_undo_send_title: "送信取り消し",
     info_undo_send_description:
       "送信後に短い間キャンセルできる時間を提供します。タイマーが終わるまで実際には送信されません。",
@@ -8228,6 +8241,11 @@ export const ja = {
       "この送信者のメッセージは耐量子暗号で保護されなくなりました。心当たりがない場合は、別の方法で本人に確認してください。",
     recipient_identity_changed:
       "{{email}} の暗号鍵が変更されました。心当たりがない場合は、機密情報を送信する前に別の方法で本人に確認してください。",
+    message_password_requirements:
+      "12 文字以上で、数字、記号、または大文字と小文字の両方を含めてください。",
+    recipient_identity_untrusted:
+      "{{email}} の暗号鍵が変更され、新しい鍵を確認できません。このアドレスに送信するには、別の方法で相手に変更を確認してから、「新しい鍵を信頼」を選択してください。",
+    trust_new_key: "新しい鍵を信頼",
     load_all_thread_messages: "すべてのメッセージを読み込む",
     move_to_category: "カテゴリに移動",
     menu_applies_to_selection: "選択した {count} 件に適用",
@@ -8288,6 +8306,7 @@ export const ja = {
     drafts: "下書き",
     starred: "スター付き",
     archive: "アーカイブ",
+    archive_action: "アーカイブ",
     spam: "スパム",
     trash: "ゴミ箱",
     scheduled: "予約済み",
@@ -9854,6 +9873,12 @@ export const ja = {
       "必須の暗号化が有効になっていますが、受信者の鍵がありません。鍵を共有してもらうか、設定で必須暗号化をオフにすると送信できます。下書きは保存されています。",
     cannot_send_no_recovery_key:
       "受信者のアカウントに読み取り用の鍵がないため、Aster はこのメッセージをまだ送信できません。いずれかの端末で Aster を開くかアプリを更新して鍵を更新してもらい、もう一度お試しください。下書きは保存されています。",
+    message_password_too_weak:
+      "メッセージのパスワードが弱すぎるため、メッセージは送信されませんでした。12 文字以上で、数字、記号、または大文字と小文字の両方を含めてください。",
+    recipient_key_untrusted:
+      "受信者の暗号鍵が変更されたため、メッセージは送信されませんでした。送信するには、別の方法で相手に変更を確認してから、「新しい鍵を信頼」を選択してください。",
+    key_trust_check_failed:
+      "受信者の暗号鍵を確認できなかったため、メッセージは送信されませんでした。接続を確認して、もう一度お試しください。",
     failed_send_external:
       "リンクした外部アカウントからこのメールを送信できませんでした。もう一度お試しください。下書きは保存されています。",
     failed_queue_email:

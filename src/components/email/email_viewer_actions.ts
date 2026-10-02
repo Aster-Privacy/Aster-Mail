@@ -28,7 +28,7 @@ import type {
   ForwardData,
 } from "@/components/email/email_viewer_types";
 
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 
 import { use_message_actions } from "./email_viewer_message_actions";
 
@@ -146,11 +146,19 @@ export interface EmailViewerActionsDeps {
 }
 
 export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
-  const dismiss_or_advance = useCallback(() => {
-    if (deps.on_advance?.()) return;
+  const open_id_ref = useRef(deps.email_id);
 
-    deps.on_dismiss();
-  }, [deps.on_advance, deps.on_dismiss]);
+  open_id_ref.current = deps.email_id;
+
+  const dismiss_or_advance = useCallback(
+    (acted_id: string) => {
+      if (open_id_ref.current !== acted_id) return;
+      if (deps.on_advance?.()) return;
+
+      deps.on_dismiss();
+    },
+    [deps.on_advance, deps.on_dismiss],
+  );
 
   const copy_to_clipboard = useCallback(
     async (text: string, label: string) => {
@@ -213,6 +221,9 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       const reply_from_address = build_reply_from_address(
         {
           sender_email: deps.email.sender_email,
+          raw_headers: deps.email.raw_headers,
+          to_emails,
+          cc_emails,
           received_on_alias:
             resolve_received_on_alias(
               deps.mail_item?.routing_token,
@@ -347,35 +358,41 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     );
 
     if (!is_read_ticket_current(acted_id, read_ticket)) return;
+    const still_open = open_id_ref.current === acted_id;
 
     if (!result.success) {
-      deps.set_is_read(!new_state);
-      deps.set_mail_item((prev) =>
-        prev
-          ? {
-              ...prev,
-              metadata: prev.metadata
-                ? { ...prev.metadata, is_read: !new_state }
-                : undefined,
-            }
-          : prev,
-      );
+      if (still_open) {
+        deps.set_is_read(!new_state);
+        deps.set_mail_item((prev) =>
+          prev
+            ? {
+                ...prev,
+                metadata: prev.metadata
+                  ? { ...prev.metadata, is_read: !new_state }
+                  : undefined,
+              }
+            : prev,
+        );
+      }
       if (should_adjust_unread) {
         adjust_stats_unread(new_state ? 1 : -1);
       }
       show_toast(deps.t("common.failed_to_update_emails"), "error");
     } else {
-      deps.set_mail_item((prev) =>
-        prev
-          ? {
-              ...prev,
-              encrypted_metadata:
-                result.encrypted?.encrypted_metadata ?? prev.encrypted_metadata,
-              metadata_nonce:
-                result.encrypted?.metadata_nonce ?? prev.metadata_nonce,
-            }
-          : prev,
-      );
+      if (still_open) {
+        deps.set_mail_item((prev) =>
+          prev
+            ? {
+                ...prev,
+                encrypted_metadata:
+                  result.encrypted?.encrypted_metadata ??
+                  prev.encrypted_metadata,
+                metadata_nonce:
+                  result.encrypted?.metadata_nonce ?? prev.metadata_nonce,
+              }
+            : prev,
+        );
+      }
       emit_mail_item_updated({
         id: acted_id,
         is_read: new_state,
@@ -385,7 +402,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       if (new_state && is_received) {
         mark_conversation_read(conversation_options);
       }
-      if (!new_state) {
+      if (!new_state && still_open) {
         deps.on_dismiss();
       }
     }
@@ -399,13 +416,14 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
 
   const handle_pin_toggle = useCallback(async () => {
     if (!deps.email_id || deps.is_pin_loading || !deps.mail_item) return;
+    const acted_id = deps.email_id;
     const previous_state = deps.is_pinned;
     const new_state = !deps.is_pinned;
 
     deps.set_is_pinned(new_state);
     deps.set_is_pin_loading(true);
     const result = await update_item_metadata(
-      deps.email_id,
+      acted_id,
       {
         encrypted_metadata: deps.mail_item.encrypted_metadata,
         metadata_nonce: deps.mail_item.metadata_nonce,
@@ -413,28 +431,32 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       },
       { is_pinned: new_state },
     );
+    const still_open = open_id_ref.current === acted_id;
 
     deps.set_is_pin_loading(false);
     if (!result.success) {
-      deps.set_is_pinned(previous_state);
+      if (still_open) deps.set_is_pinned(previous_state);
       show_toast(deps.t("common.failed_to_update_emails"), "error");
     } else {
-      deps.set_mail_item((prev) =>
-        prev
-          ? {
-              ...prev,
-              encrypted_metadata:
-                result.encrypted?.encrypted_metadata ?? prev.encrypted_metadata,
-              metadata_nonce:
-                result.encrypted?.metadata_nonce ?? prev.metadata_nonce,
-              metadata: prev.metadata
-                ? { ...prev.metadata, is_pinned: new_state }
-                : undefined,
-            }
-          : prev,
-      );
+      if (still_open) {
+        deps.set_mail_item((prev) =>
+          prev
+            ? {
+                ...prev,
+                encrypted_metadata:
+                  result.encrypted?.encrypted_metadata ??
+                  prev.encrypted_metadata,
+                metadata_nonce:
+                  result.encrypted?.metadata_nonce ?? prev.metadata_nonce,
+                metadata: prev.metadata
+                  ? { ...prev.metadata, is_pinned: new_state }
+                  : undefined,
+              }
+            : prev,
+        );
+      }
       emit_mail_item_updated({
-        id: deps.email_id,
+        id: acted_id,
         is_pinned: new_state,
         encrypted_metadata: result.encrypted?.encrypted_metadata,
         metadata_nonce: result.encrypted?.metadata_nonce,
@@ -509,7 +531,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
           emit_mail_soft_refresh();
         },
       });
-      dismiss_or_advance();
+      dismiss_or_advance(deps.email_id);
     } else {
       if (deltas) revert_stat_deltas(deltas);
       show_toast(deps.t("common.failed_to_archive_emails"), "error");
@@ -571,7 +593,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
           emit_mail_soft_refresh();
         },
       });
-      dismiss_or_advance();
+      dismiss_or_advance(deps.email_id);
     } else {
       if (deltas) revert_stat_deltas(deltas);
       show_toast(deps.t("common.failed_to_unarchive_emails"), "error");
@@ -658,7 +680,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
           emit_mail_soft_refresh();
         },
       });
-      dismiss_or_advance();
+      dismiss_or_advance(deps.email_id);
     } else {
       if (is_received) {
         adjust_stats_spam(-1);
@@ -704,7 +726,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       reindex_ids([deps.email_id]);
       emit_mail_changed();
       show_toast(deps.t("common.marked_as_not_spam"), "success");
-      dismiss_or_advance();
+      dismiss_or_advance(deps.email_id);
     } else {
       show_toast(deps.t("common.failed_to_update_emails"), "error");
     }
@@ -731,7 +753,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
         emit_mail_items_removed({ ids: [deps.email_id] });
         emit_mail_changed();
         show_toast(deps.t("common.email_permanently_deleted"), "success");
-        dismiss_or_advance();
+        dismiss_or_advance(deps.email_id);
       } else {
         show_toast(deps.t("common.failed_to_permanently_delete"), "error");
       }
@@ -811,7 +833,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
           emit_mail_soft_refresh();
         },
       });
-      dismiss_or_advance();
+      dismiss_or_advance(deps.email_id);
     } else {
       revert_stat_deltas(deltas);
       show_toast(deps.t("common.failed_to_delete_emails"), "error");
@@ -867,7 +889,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
             unsubscribe_link: info.unsubscribe_link,
             list_unsubscribe_header: info.list_unsubscribe_header,
           },
-          "auto",
+          "manual",
         );
       } else {
         const url = get_manual_unsubscribe_url(info);
@@ -883,6 +905,15 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
               action_label: deps.t("mail.open_unsubscribe_page"),
               on_undo: async () => {
                 open_external(url);
+                if (!deps.email) return;
+                persist_unsubscribe(
+                  deps.email.sender_email,
+                  deps.email.sender || "",
+                  {
+                    unsubscribe_link: info.unsubscribe_link,
+                    list_unsubscribe_header: info.list_unsubscribe_header,
+                  },
+                );
               },
             }),
         });
@@ -924,6 +955,9 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       const reply_from_address = build_reply_from_address(
         {
           sender_email: msg.sender_email,
+          raw_headers: msg.raw_headers,
+          to_emails,
+          cc_emails,
           received_on_alias:
             resolve_received_on_alias(
               deps.mail_item?.routing_token,

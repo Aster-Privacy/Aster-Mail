@@ -46,7 +46,7 @@ export const TOOLBAR_ACTION_MAP: Record<
 > = {
   archive: {
     icon: ArchiveBoxIcon,
-    label_key: "mail.archive",
+    label_key: "mail.archive_action",
     group: "organize",
   },
   spam: {

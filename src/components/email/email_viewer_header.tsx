@@ -88,10 +88,12 @@ export function EmailViewerHeader({
             </Button>
           </Tooltip>
         )}
-        <Tooltip tip={t("mail.archive")}>
+        <Tooltip tip={t("mail.archive_action")}>
           <Button
             aria-label={
-              is_archive_loading ? t("mail.archiving") : t("mail.archive")
+              is_archive_loading
+                ? t("mail.archiving")
+                : t("mail.archive_action")
             }
             disabled={is_archive_loading}
             size="icon"

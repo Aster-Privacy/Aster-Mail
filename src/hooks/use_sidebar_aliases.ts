@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 
 import {
   list_all_aliases,
@@ -286,6 +286,7 @@ export function resolve_alias_delivery(
 
 interface UseSidebarAliasesReturn {
   aliases: DecryptedEmailAlias[];
+  enabled_aliases: DecryptedEmailAlias[];
   is_loading: boolean;
   load_failed: boolean;
   can_create: boolean;
@@ -615,8 +616,14 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
     };
   }, []);
 
+  const enabled_aliases = useMemo(
+    () => aliases.filter((alias) => alias.is_enabled),
+    [aliases],
+  );
+
   return {
     aliases,
+    enabled_aliases,
     is_loading,
     load_failed,
     can_create,

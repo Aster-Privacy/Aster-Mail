@@ -81,6 +81,7 @@ import { set_post_switch_path } from "@/lib/post_switch_path";
 import { user_facing_error } from "@/utils/user_facing_error";
 import { is_auth_salt_collision } from "@/services/crypto/auth_salt_guard";
 import { api_client } from "@/services/api/client";
+import { same_address_ignoring_dots } from "@/utils/address_dots";
 
 const SIGN_IN_DOMAINS: SignInDomain[] = ["astermail.org", "aster.cx"];
 
@@ -321,8 +322,8 @@ export default function SignInPage() {
       const current_account_id = await get_current_account_id();
       const is_already_added = (candidate: SignInDomain) => {
         const normalized = `${clean_username}@${candidate}`.toLowerCase();
-        const existing = accounts.find(
-          (a) => a.user.email.toLowerCase() === normalized,
+        const existing = accounts.find((a) =>
+          same_address_ignoring_dots(a.user.email, normalized),
         );
 
         return (
@@ -567,6 +568,7 @@ export default function SignInPage() {
             password,
             response.data.encrypted_vault,
             response.data.vault_nonce,
+            remember_me,
           ),
         );
 
@@ -586,6 +588,7 @@ export default function SignInPage() {
             password,
             response.data.encrypted_vault,
             response.data.vault_nonce,
+            remember_me,
           ),
         );
       }

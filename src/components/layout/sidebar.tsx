@@ -178,7 +178,7 @@ const sidebar_base = ({
   } = use_folders();
   const { state: tags_state, refresh: refresh_tags } = use_tags();
   const {
-    aliases,
+    enabled_aliases: aliases,
     is_loading: aliases_loading,
     load_failed: aliases_load_failed,
     unread_counts: alias_unread_counts,

@@ -62,8 +62,12 @@ export function use_context_menu_actions({
   schedule_delete_drafts,
   cancel_scheduled,
 }: UseContextMenuActionsHookParams): ContextMenuActions {
-  const { confirm_before_delete, confirm_before_spam, confirm_before_archive } =
-    preferences;
+  const {
+    confirm_before_delete,
+    confirm_before_spam,
+    confirm_before_archive,
+    conversation_grouping,
+  } = preferences;
 
   const emails_ref = useRef(emails);
 
@@ -91,6 +95,7 @@ export function use_context_menu_actions({
           confirm_before_delete,
           confirm_before_spam,
           confirm_before_archive,
+          conversation_grouping,
         },
         set_pending_delete_email,
         set_show_single_delete_confirm,
@@ -121,6 +126,7 @@ export function use_context_menu_actions({
       confirm_before_delete,
       confirm_before_spam,
       confirm_before_archive,
+      conversation_grouping,
       set_pending_delete_email,
       set_show_single_delete_confirm,
       is_drafts_view,

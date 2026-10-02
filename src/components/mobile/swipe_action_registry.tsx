@@ -48,7 +48,7 @@ export interface SwipeActionDefinition {
 const SWIPE_ACTION_REGISTRY: Record<string, SwipeActionDefinition> = {
   archive: {
     id: "archive",
-    label_key: "mail.archive",
+    label_key: "mail.archive_action",
     icon: ArchiveBoxIcon,
     color: "#4f6ef7",
   },

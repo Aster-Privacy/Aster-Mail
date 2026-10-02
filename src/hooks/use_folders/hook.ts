@@ -25,6 +25,8 @@ import {
   broadcast_folders_changed,
   cached_folders,
   get_folder_broadcast_channel,
+  notify_folders_loaded,
+  on_folders_loaded,
 } from "./cache";
 import {
   build_undecryptable_folder,
@@ -78,6 +80,7 @@ import { use_i18n } from "@/lib/i18n/context";
 const COUNTS_DEBOUNCE_MS = 500;
 const COUNTS_CONFIRM_MS = 4_000;
 const FOLDER_RETRY_DELAYS_MS = [400, 1_200, 3_000];
+const FOLDER_BACKGROUND_RETRY_DELAYS_MS = [8_000, 20_000, 45_000];
 
 function wait(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -216,6 +219,7 @@ export function use_folders(): UseFoldersReturn {
             error: null,
             total: response.data.total,
           });
+          notify_folders_loaded();
 
           const has_protected = visible_folders.some(
             (f) => f.is_password_protected && f.password_set,
@@ -244,15 +248,52 @@ export function use_folders(): UseFoldersReturn {
         if (this_generation !== fetch_generation_ref.current) return;
       }
 
-      set_state((prev) => ({
-        ...prev,
-        is_loading: false,
-        error:
-          prev.folders.length > 0 ? null : t("common.failed_to_fetch_folders"),
-      }));
+      set_state((prev) =>
+        cached_folders.has_loaded
+          ? {
+              folders: cached_folders.data,
+              is_loading: false,
+              error: null,
+              total: cached_folders.total,
+            }
+          : {
+              ...prev,
+              is_loading: false,
+              error:
+                prev.folders.length > 0
+                  ? null
+                  : t("common.failed_to_fetch_folders"),
+            },
+      );
+
+      const retry_in_background = async (): Promise<void> => {
+        for (const delay of FOLDER_BACKGROUND_RETRY_DELAYS_MS) {
+          await wait(delay);
+
+          if (this_generation !== fetch_generation_ref.current) return;
+          if ((await attempt_fetch()) !== "retry") return;
+        }
+      };
+
+      void retry_in_background();
     },
     [t],
   );
+
+  useEffect(() => {
+    return on_folders_loaded(() => {
+      set_state((prev) =>
+        prev.error === null
+          ? prev
+          : {
+              folders: cached_folders.data,
+              is_loading: false,
+              error: null,
+              total: cached_folders.total,
+            },
+      );
+    });
+  }, []);
 
   const fetch_counts = useCallback(async (): Promise<void> => {
     const this_generation = ++counts_generation_ref.current;
@@ -850,6 +891,7 @@ export function use_folders(): UseFoldersReturn {
   useEffect(() => {
     return () => {
       abort_ref.current?.abort();
+      fetch_generation_ref.current += 1;
     };
   }, []);
 

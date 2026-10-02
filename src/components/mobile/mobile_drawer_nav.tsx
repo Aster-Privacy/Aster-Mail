@@ -49,6 +49,7 @@ import {
 } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { use_preferences } from "@/contexts/preferences_context";
 import {
   build_folder_tree,
   build_tree_guides,
@@ -177,6 +178,9 @@ export const DrawerNavContent = memo(function DrawerNavContent({
   indicator_style,
 }: DrawerNavContentProps) {
   const { t } = use_i18n();
+
+  const { preferences } = use_preferences();
+  const muted_folder_tokens = new Set(preferences.muted_folder_tokens ?? []);
 
   const folder_tree = build_folder_tree(folders);
   const folder_nodes = flatten_folder_tree(folder_tree);
@@ -386,6 +390,11 @@ export const DrawerNavContent = memo(function DrawerNavContent({
             label={folder.name}
             locale={locale}
             lock_closed={folder.is_locked || !is_folder_unlocked(folder.id)}
+            muted_label={
+              muted_folder_tokens.has(folder.folder_token)
+                ? t("common.notifications_muted")
+                : undefined
+            }
             show_lock_toggle={!!folder.is_password_protected}
             on_click={() => {
               if (folder.is_password_protected) {

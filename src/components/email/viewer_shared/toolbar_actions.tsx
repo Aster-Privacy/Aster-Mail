@@ -186,7 +186,7 @@ export function ViewerToolbarActions({
   const archive_label =
     thread_message_count > 1
       ? t("mail.archive_conversation_count", { count: thread_message_count })
-      : t("mail.archive");
+      : t("mail.archive_action");
   const is_trashed_item = !!(mail_item?.is_trashed || email?.is_trashed);
   const trash_label = is_trashed_item
     ? t("mail.delete_permanently")

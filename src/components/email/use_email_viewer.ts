@@ -86,6 +86,11 @@ import { normalize_address_ignoring_dots } from "@/utils/address_dots";
 import { viewer_still_showing } from "@/components/email/thread_reply_target";
 import { use_thread_draft_removal } from "@/components/email/hooks/use_thread_draft_removal";
 import {
+  has_readable_body,
+  include_opened_message,
+  keep_readable_bodies,
+} from "@/components/email/thread_message_merge";
+import {
   claim_auto_read,
   is_read_ticket_current,
   peek_read_ticket,
@@ -106,8 +111,14 @@ export const REPLY_ARRIVAL_POLL_DELAYS_MS = [
 
 function reconcile_thread_messages(
   prev: DecryptedThreadMessage[],
-  server: DecryptedThreadMessage[],
+  fetched: DecryptedThreadMessage[],
+  opened_id?: string,
 ): DecryptedThreadMessage[] {
+  const readable = keep_readable_bodies(prev, fetched);
+  const opened = opened_id
+    ? prev.find((m) => m.id === opened_id && !m.is_sending)
+    : undefined;
+  const server = opened ? include_opened_message(readable, opened) : readable;
   const server_ids = new Set(server.map((m) => m.id));
   const pending = prev.filter(
     (m) =>
@@ -161,6 +172,7 @@ function build_preloaded_email(preloaded: PreloadedEmail): DecryptedEmail {
     bcc:
       pe.bcc?.map((r) => ({ name: r.name || "", email: r.email || "" })) || [],
     expires_at: preloaded.mail_item.expires_at,
+    e2e_verified: !!pe.e2e_verified,
   };
 }
 
@@ -170,6 +182,7 @@ function usable_preloaded(
 ): PreloadedEmail | null {
   if (!preloaded || preloaded.is_stale) return null;
   if (preloaded.conversation_grouping !== conversation_grouping) return null;
+  if (!has_readable_body(preloaded.email)) return null;
 
   return preloaded;
 }
@@ -393,7 +406,11 @@ export function use_email_viewer({
   }, [local_email, user, format_email_detail, t]);
 
   useEffect(() => {
-    if (local_email) return;
+    if (local_email) {
+      loaded_email_id_ref.current = null;
+
+      return;
+    }
     let cancelled = false;
 
     const commit_preloaded = (preloaded: PreloadedEmail) => {
@@ -442,10 +459,13 @@ export function use_email_viewer({
 
       const preloaded =
         cached ??
-        (await await_preloaded_email(
-          email_id,
+        usable_preloaded(
+          await await_preloaded_email(
+            email_id,
+            preferences.conversation_grouping !== false,
+          ),
           preferences.conversation_grouping !== false,
-        ));
+        );
 
       if (preloaded) {
         const pe = preloaded.email;
@@ -455,9 +475,8 @@ export function use_email_viewer({
 
           if (!preloaded.current_user_name) {
             try {
-              const { get_current_account } = await import(
-                "@/services/account_manager"
-              );
+              const { get_current_account } =
+                await import("@/services/account_manager");
               const account = await get_current_account();
 
               if (account) {
@@ -597,6 +616,7 @@ export function use_email_viewer({
       const envelope = await decrypt_mail_envelope<LocalDecryptedEnvelope>(
         item.encrypted_envelope,
         item.envelope_nonce,
+        item.id,
       );
 
       if (!envelope) {
@@ -613,9 +633,8 @@ export function use_email_viewer({
       let user_name: string | undefined;
 
       try {
-        const { get_current_account } = await import(
-          "@/services/account_manager"
-        );
+        const { get_current_account } =
+          await import("@/services/account_manager");
         const account = await get_current_account();
 
         if (account) {
@@ -632,7 +651,13 @@ export function use_email_viewer({
         body_text,
         safe_html,
         unsubscribe_info: unsubscribe,
-      } = await process_envelope_body(envelope, user_email, item.id);
+        e2e_verified,
+      } = await process_envelope_body(
+        envelope,
+        user_email,
+        item.id,
+        item.dkim_result,
+      );
 
       let decrypted_metadata = item.metadata;
 
@@ -641,9 +666,8 @@ export function use_email_viewer({
         item.encrypted_metadata &&
         item.metadata_nonce
       ) {
-        const { decrypt_mail_metadata } = await import(
-          "@/services/crypto/mail_metadata"
-        );
+        const { decrypt_mail_metadata } =
+          await import("@/services/crypto/mail_metadata");
 
         decrypted_metadata =
           (await decrypt_mail_metadata(
@@ -694,7 +718,10 @@ export function use_email_viewer({
           sender_verification: envelope.sender_verification,
           is_external: item.is_external,
           system_origin: item.system_origin,
-          sender_verified_domain: item.sender_verified ? item.sender_verified_domain : undefined,
+          e2e_verified,
+          sender_verified_domain: item.sender_verified
+            ? item.sender_verified_domain
+            : undefined,
           send_status: item.send_status,
           send_error: item.send_error,
         });
@@ -706,10 +733,7 @@ export function use_email_viewer({
         set_is_pinned(decrypted_metadata?.is_pinned ?? false);
       }
 
-      if (
-        !is_read_on_server &&
-        preferences.mark_as_read_delay !== "never"
-      ) {
+      if (!is_read_on_server && preferences.mark_as_read_delay !== "never") {
         const is_received_item = item.item_type === "received";
         const armed_read_ticket = peek_read_ticket(item.id);
         const mark_read = async () => {
@@ -813,6 +837,7 @@ export function use_email_viewer({
         body_text,
         safe_html,
         decrypted_metadata ?? null,
+        e2e_verified,
       );
 
       await resolve_reaction_emojis([single_message], user_email);
@@ -827,10 +852,10 @@ export function use_email_viewer({
           { is_trashed: !!item.is_trashed, is_spam: !!item.is_spam },
         );
 
-        if (!cancelled && thread_result.messages.length > 0) {
-          set_thread_messages(thread_result.messages);
-        } else if (!cancelled) {
-          set_thread_messages([single_message]);
+        if (!cancelled) {
+          set_thread_messages(
+            include_opened_message(thread_result.messages, single_message),
+          );
         }
       } else if (
         !cancelled &&
@@ -997,7 +1022,7 @@ export function use_email_viewer({
   }, [email_id]);
 
   const last_thread_fetch_ref = useRef<number>(0);
-  const thread_fetch_in_flight_ref = useRef<boolean>(false);
+  const thread_fetch_in_flight_ref = useRef<string | null>(null);
   const open_email_id_ref = useRef<string | null>(email_id);
   const open_thread_token_ref = useRef<string | null>(null);
 
@@ -1030,12 +1055,12 @@ export function use_email_viewer({
 
     const refresh_thread = async (force: boolean) => {
       if (!has_passphrase_in_memory()) return;
-      if (thread_fetch_in_flight_ref.current) return;
+      if (thread_fetch_in_flight_ref.current === thread_token) return;
       const now = Date.now();
 
       if (!force && now - last_thread_fetch_ref.current < 5_000) return;
 
-      thread_fetch_in_flight_ref.current = true;
+      thread_fetch_in_flight_ref.current = thread_token;
       try {
         request_cache.invalidate(
           `messages/threads/${encodeURIComponent(thread_token)}/messages`,
@@ -1050,13 +1075,20 @@ export function use_email_viewer({
         );
 
         if (thread_result.messages.length === 0) return;
+        if (open_thread_token_ref.current !== thread_token) return;
 
         last_thread_fetch_ref.current = Date.now();
         set_thread_messages((prev) =>
-          reconcile_thread_messages(prev, thread_result.messages),
+          reconcile_thread_messages(
+            prev,
+            thread_result.messages,
+            open_email_id_ref.current ?? undefined,
+          ),
         );
       } finally {
-        thread_fetch_in_flight_ref.current = false;
+        if (thread_fetch_in_flight_ref.current === thread_token) {
+          thread_fetch_in_flight_ref.current = null;
+        }
       }
     };
 
@@ -1157,9 +1189,11 @@ export function use_email_viewer({
           return;
         }
 
-        if (thread_fetch_in_flight_ref.current) continue;
+        if (thread_fetch_in_flight_ref.current === detail.thread_token) {
+          continue;
+        }
 
-        thread_fetch_in_flight_ref.current = true;
+        thread_fetch_in_flight_ref.current = detail.thread_token;
         try {
           request_cache.invalidate(
             `messages/threads/${encodeURIComponent(detail.thread_token)}/messages`,
@@ -1173,7 +1207,9 @@ export function use_email_viewer({
             },
           );
         } finally {
-          thread_fetch_in_flight_ref.current = false;
+          if (thread_fetch_in_flight_ref.current === detail.thread_token) {
+            thread_fetch_in_flight_ref.current = null;
+          }
         }
 
         last_thread_fetch_ref.current = Date.now();
@@ -1190,6 +1226,7 @@ export function use_email_viewer({
           const merged = reconcile_thread_messages(
             prev,
             thread_result.messages,
+            open_email_id_ref.current ?? undefined,
           );
 
           return merged.map((m) =>
@@ -1199,9 +1236,11 @@ export function use_email_viewer({
           );
         });
 
-        if (!email?.thread_token && email) {
-          set_email({ ...email, thread_token: detail.thread_token });
-        }
+        set_email((prev) =>
+          prev && !prev.thread_token
+            ? { ...prev, thread_token: detail.thread_token }
+            : prev,
+        );
       }
 
       set_thread_draft(null);
@@ -1394,11 +1433,17 @@ export function use_email_viewer({
     [mail_item?.id, mail_item?.thread_token],
   );
 
+  const retry_load = useCallback(() => {
+    set_error(null);
+    set_refresh_key((k) => k + 1);
+  }, []);
+
   return {
     email,
     mail_item,
     is_loading,
     error,
+    retry_load,
     is_read,
     is_pinned,
     is_archive_loading,
@@ -1415,6 +1460,7 @@ export function use_email_viewer({
     is_external,
     has_recipient_key,
     has_pq_protection,
+    e2e_verified: !!email?.e2e_verified,
     thread_draft,
     sending_message,
     view_source_message,

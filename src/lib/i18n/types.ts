@@ -859,6 +859,7 @@ export interface CommonTranslations {
   create_subfolder: string;
   mute_notifications: string;
   unmute_notifications: string;
+  notifications_muted: string;
   remove_lock: string;
   lock: string;
   change_color: string;
@@ -1527,6 +1528,11 @@ export interface CommonTranslations {
   scheduled_no_attachments: string;
   scheduled_connected_account: string;
   scheduled_no_expiry: string;
+  scheduled_too_far_ahead: string;
+  scheduled_requires_encryption: string;
+  offline_password_protected_unavailable: string;
+  offline_settings_unavailable: string;
+  cannot_send_key_changed_offline: string;
   failed_to_merge_contacts: string;
   enter_valid_emails: string;
   enter_contact_details: string;
@@ -1544,6 +1550,7 @@ export interface CommonTranslations {
   no_contacts_in_trash: string;
   contacts_in_trash_notice: string;
   trash_days_left: string;
+  trash_days_left_one?: string;
   print_contacts: string;
   share_contact: string;
   share_contact_via_email: string;
@@ -1848,6 +1855,8 @@ export interface CommonTranslations {
   font: string;
   stylesheet: string;
   tracking_pixel: string;
+  image_blocked: string;
+  tracking_pixel_blocked: string;
   me: string;
   notification_banner_message: string;
   notification_banner_allow: string;
@@ -7240,6 +7249,9 @@ export interface MailTranslations {
   sender_identity_rotated: string;
   sender_identity_downgraded: string;
   recipient_identity_changed: string;
+  message_password_requirements: string;
+  recipient_identity_untrusted: string;
+  trust_new_key: string;
   encrypted_message_unavailable: string;
   pgp_password_protected_title: string;
   pgp_password_protected_description: string;
@@ -7255,6 +7267,7 @@ export interface MailTranslations {
   drafts: string;
   starred: string;
   archive: string;
+  archive_action: string;
   archive_conversation_count: string;
   move_conversation_to_trash_count: string;
   spam: string;
@@ -7606,6 +7619,7 @@ export interface MailTranslations {
   drop_to_move_here: string;
   tab_new_count: string;
   tab_unread_count: string;
+  tab_unread_count_one?: string;
   tab_counting_unread: string;
   category_empty_primary_title: string;
   category_empty_primary_desc: string;
@@ -7852,8 +7866,10 @@ export interface MailTranslations {
   delete_permanently_question: string;
   empty_spam_folder_question: string;
   empty_spam_description: string;
+  empty_spam_description_one?: string;
   empty_trash_question: string;
   empty_trash_description: string;
+  empty_trash_description_one?: string;
   folder_not_found_title: string;
   folder_not_found_subtitle: string;
   tag_not_found_title: string;
@@ -8517,6 +8533,9 @@ export interface ErrorTranslations {
   cannot_send_no_keys: string;
   cannot_send_no_recipient_keys: string;
   cannot_send_no_recovery_key: string;
+  message_password_too_weak: string;
+  recipient_key_untrusted: string;
+  key_trust_check_failed: string;
   failed_send_external: string;
   failed_queue_email: string;
   no_active_account: string;

@@ -23,6 +23,7 @@ import { describe, it, expect } from "vitest";
 import {
   detect_unsubscribe_info,
   get_manual_unsubscribe_url,
+  unsubscribe_info_from_stored,
 } from "@/utils/unsubscribe_detector";
 
 const ONE_CLICK_HEADERS = {
@@ -78,6 +79,126 @@ describe("one-click unsubscribe endpoints are never opened in a browser", () => 
     expect(get_manual_unsubscribe_url(info)).toBe(
       "https://sender.example.com/u/42",
     );
+  });
+});
+
+describe("one-click unsubscribe follows the sender requirements", () => {
+  it("requires the exact post header value", () => {
+    const info = detect_unsubscribe_info(undefined, undefined, {
+      list_unsubscribe: "<https://sender.example.com/oc>",
+      list_unsubscribe_post: "yes",
+    });
+
+    expect(info.method).toBe("link");
+    expect(info.list_unsubscribe_post).toBeUndefined();
+  });
+
+  it("accepts the post header value in any letter case", () => {
+    const info = detect_unsubscribe_info(undefined, undefined, {
+      list_unsubscribe: "<https://sender.example.com/oc>",
+      list_unsubscribe_post: " list-unsubscribe=one-click ",
+    });
+
+    expect(info.method).toBe("one-click");
+    expect(info.list_unsubscribe_post).toBe("List-Unsubscribe=One-Click");
+  });
+
+  it("never posts to an endpoint that is not https", () => {
+    const info = detect_unsubscribe_info(undefined, undefined, {
+      list_unsubscribe: "<http://sender.example.com/oc>",
+      list_unsubscribe_post: "List-Unsubscribe=One-Click",
+    });
+
+    expect(info.method).toBe("none");
+    expect(info.has_unsubscribe).toBe(false);
+    expect(get_manual_unsubscribe_url(info)).toBe("");
+  });
+
+  it("picks the https endpoint when the header lists several", () => {
+    const info = detect_unsubscribe_info(undefined, undefined, {
+      list_unsubscribe:
+        "<mailto:stop@sender.example.com>, <http://sender.example.com/a>, <https://sender.example.com/b>",
+      list_unsubscribe_post: "List-Unsubscribe=One-Click",
+    });
+
+    expect(info.method).toBe("one-click");
+    expect(info.unsubscribe_link).toBe("https://sender.example.com/b");
+    expect(info.unsubscribe_mailto).toBe("stop@sender.example.com");
+  });
+
+  it("does not offer one-click when the message fails its signature check", () => {
+    const info = detect_unsubscribe_info(undefined, undefined, {
+      list_unsubscribe:
+        "<https://sender.example.com/oc>, <mailto:stop@sender.example.com>",
+      list_unsubscribe_post: "List-Unsubscribe=One-Click",
+      dkim_result: "fail",
+    });
+
+    expect(info.method).toBe("mailto");
+    expect(get_manual_unsubscribe_url(info)).toBe(
+      "mailto:stop@sender.example.com",
+    );
+  });
+
+  it("offers one-click when the signature passes or was never recorded", () => {
+    for (const dkim_result of ["pass", "PASS", undefined, ""]) {
+      const info = detect_unsubscribe_info(undefined, undefined, {
+        ...ONE_CLICK_HEADERS,
+        dkim_result,
+      });
+
+      expect(info.method).toBe("one-click");
+    }
+  });
+
+  it("prefers the address over a plain page when there is no post header", () => {
+    const info = detect_unsubscribe_info(undefined, undefined, {
+      list_unsubscribe:
+        "<https://sender.example.com/u/42>, <mailto:stop@sender.example.com?subject=unsubscribe>",
+    });
+
+    expect(info.method).toBe("mailto");
+    expect(info.unsubscribe_mailto).toBe(
+      "stop@sender.example.com?subject=unsubscribe",
+    );
+    expect(get_manual_unsubscribe_url(info)).toBe(
+      "https://sender.example.com/u/42",
+    );
+  });
+});
+
+describe("stored subscriptions", () => {
+  it("rebuilds one-click from the stored headers", () => {
+    const info = unsubscribe_info_from_stored({
+      unsubscribe_link: "https://sender.example.com/oc",
+      list_unsubscribe_header: "<https://sender.example.com/oc>",
+      list_unsubscribe_post: "List-Unsubscribe=One-Click",
+    });
+
+    expect(info.method).toBe("one-click");
+  });
+
+  it("falls back to the stored page link", () => {
+    const info = unsubscribe_info_from_stored({
+      unsubscribe_link: "https://sender.example.com/unsubscribe?id=1",
+    });
+
+    expect(info.method).toBe("link");
+    expect(get_manual_unsubscribe_url(info)).toBe(
+      "https://sender.example.com/unsubscribe?id=1",
+    );
+  });
+
+  it("uses the header address when no link was stored", () => {
+    const info = unsubscribe_info_from_stored({
+      list_unsubscribe_header: "<mailto:stop@sender.example.com>",
+    });
+
+    expect(info.method).toBe("mailto");
+  });
+
+  it("reports no method when nothing usable was stored", () => {
+    expect(unsubscribe_info_from_stored({}).has_unsubscribe).toBe(false);
   });
 });
 

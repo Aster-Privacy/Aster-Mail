@@ -265,6 +265,7 @@ export const nl = {
     create_subfolder: "Submap maken",
     mute_notifications: "Meldingen dempen",
     unmute_notifications: "Dempen opheffen",
+    notifications_muted: "Meldingen gedempt",
     remove_lock: "Vergrendeling verwijderen",
     lock: "Vergrendelen",
     change_color: "Kleur wijzigen",
@@ -871,6 +872,16 @@ export const nl = {
       "Gepland verzenden is niet beschikbaar voor gekoppelde accounts. Verstuur dit bericht nu of kies een Aster-adres.",
     scheduled_no_expiry:
       "Geplande e-mails kunnen nog geen vervaldatum hebben. Verstuur nu of verwijder de vervaldatum om te plannen.",
+    scheduled_too_far_ahead:
+      "Geplande e-mails kunnen maximaal 28 dagen vooruit worden verstuurd. Kies een eerder tijdstip.",
+    scheduled_requires_encryption:
+      "Je hebt verplichte versleuteling ingeschakeld, en geplande e-mails naar externe adressen zijn niet end-to-end versleuteld. Verstuur dit bericht nu of schakel verplichte versleuteling uit in Instellingen.",
+    offline_password_protected_unavailable:
+      "Je kunt met een wachtwoord beveiligde e-mails niet offline in de wachtrij zetten. Verstuur het bericht zodra je weer verbinding hebt.",
+    offline_settings_unavailable:
+      "Je instellingen konden niet worden geladen, dus het bericht is niet verstuurd. Probeer het opnieuw zodra je weer verbinding hebt.",
+    cannot_send_key_changed_offline:
+      "De versleutelingssleutel van een ontvanger is gewijzigd terwijl dit bericht wachtte op verzending, dus het is niet verstuurd.",
     failed_to_merge_contacts:
       "Het samenvoegen is niet voltooid. Probeer het opnieuw. Je oorspronkelijke contacten zijn ongewijzigd.",
     enter_valid_emails: "Voer geldige e-mailadressen in",
@@ -1203,6 +1214,8 @@ export const nl = {
     font: "Lettertype",
     stylesheet: "Stijlblad",
     tracking_pixel: "Trackingpixel",
+    image_blocked: "Afbeelding geblokkeerd",
+    tracking_pixel_blocked: "Trackingpixel geblokkeerd",
     me: "mij",
     notification_banner_message:
       "Schakel bureaubladmeldingen in om op de hoogte te blijven van nieuwe e-mails",
@@ -3996,7 +4009,7 @@ export const nl = {
     reply_to_all: "Allen antwoorden",
     force_dark_mode_emails: "Donkere modus voor e-mails forceren",
     force_dark_mode_emails_description:
-      "E-mailinhoud altijd in donkere modus weergeven, waarbij de oorspronkelijke stijl wordt overschreven",
+      "E-mailinhoud in donkere modus weergeven zolang Aster het donkere thema gebruikt, waarbij de oorspronkelijke stijl wordt overschreven",
     translation: "Vertaling",
     translate_incoming: "Inkomende e-mail vertalen",
     translate_incoming_description:
@@ -4594,7 +4607,7 @@ export const nl = {
       "Toont een slotpictogram op e-mails om aan te geven of een bericht versleuteld, ondertekend of geen van beide is.",
     info_force_dark_mode_title: "Donkere modus e-mails",
     info_force_dark_mode_description:
-      "Herschrijft e-mailstijlen voor een donkere achtergrond en lichte tekst. Handig als helderwitte e-mails zwaar zijn voor je ogen.",
+      "Herschrijft e-mailstijlen voor een donkere achtergrond en lichte tekst zolang Aster het donkere thema gebruikt. Handig als helderwitte e-mails zwaar zijn voor je ogen.",
     info_undo_send_title: "Verzenden ongedaan maken",
     info_undo_send_description:
       "Geeft je een kort venster om een e-mail te annuleren nadat je op verzenden hebt gedrukt. Er wordt niets verzonden totdat de timer verloopt.",
@@ -8315,6 +8328,11 @@ export const nl = {
       "De berichten van deze afzender hebben geen post-quantumbescherming meer. Als je dat niet verwachtte, bevestig het dan op een andere manier met deze persoon.",
     recipient_identity_changed:
       "De versleutelingssleutel van {{email}} is gewijzigd. Als je dat niet verwachtte, bevestig de wijziging dan op een andere manier met deze persoon voordat je gevoelige informatie verstuurt.",
+    message_password_requirements:
+      "Gebruik minstens 12 tekens met een cijfer, een symbool of hoofdletters en kleine letters.",
+    recipient_identity_untrusted:
+      "De versleutelingssleutel voor {{email}} is gewijzigd en de nieuwe sleutel kan niet worden bevestigd. Bevestig de wijziging op een andere manier en kies daarna Nieuwe sleutel vertrouwen om naar dit adres te versturen.",
+    trust_new_key: "Nieuwe sleutel vertrouwen",
     load_all_thread_messages: "Alle berichten laden",
     move_to_category: "Naar categorie verplaatsen",
     menu_applies_to_selection: "Geldt voor {count} geselecteerde",
@@ -8377,6 +8395,7 @@ export const nl = {
     drafts: "Concepten",
     starred: "Met ster",
     archive: "Archief",
+    archive_action: "Archiveren",
     spam: "Spam",
     trash: "Prullenbak",
     scheduled: "Gepland",
@@ -9960,6 +9979,12 @@ export const nl = {
       "Je hebt vereiste versleuteling ingeschakeld, en geen van je ontvangers heeft een sleutel in het archief. Hen vragen er een te delen, of vereiste versleuteling uitschakelen in Instellingen, laat dit verzenden. Je concept is opgeslagen.",
     cannot_send_no_recovery_key:
       "Aster kan dit bericht nog niet verzenden omdat het account van de ontvanger de sleutels mist om het te lezen. Vraag hen Aster op een apparaat te openen of hun app bij te werken om die sleutels te vernieuwen, en probeer het daarna opnieuw. Je concept is opgeslagen.",
+    message_password_too_weak:
+      "Het berichtwachtwoord is te zwak, dus het bericht is niet verstuurd. Gebruik minstens 12 tekens met een cijfer, een symbool of hoofdletters en kleine letters.",
+    recipient_key_untrusted:
+      "De versleutelingssleutel van een ontvanger is gewijzigd, dus het bericht is niet verstuurd. Bevestig de wijziging op een andere manier en kies daarna Nieuwe sleutel vertrouwen.",
+    key_trust_check_failed:
+      "De versleutelingssleutels van de ontvangers konden niet worden gecontroleerd, dus het bericht is niet verstuurd. Controleer je verbinding en probeer het opnieuw.",
     failed_send_external:
       "Deze e-mail is niet verzonden via je gekoppelde externe account. Probeer het opnieuw. Je concept is opgeslagen.",
     failed_queue_email:

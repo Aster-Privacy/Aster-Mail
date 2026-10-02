@@ -62,7 +62,6 @@ export function use_split_pane({
   const has_initialized_width = useRef(false);
   const has_initialized_height = useRef(false);
   const list_panel_ref = useRef<HTMLDivElement>(null);
-  const list_scroll_ref = useRef<HTMLDivElement>(null);
   const detail_panel_ref = useRef<HTMLDivElement>(null);
   const raf_ref = useRef(0);
   const drag_width_ref = useRef<number | null>(null);
@@ -294,7 +293,6 @@ export function use_split_pane({
     pane_width,
     pane_height,
     list_panel_ref,
-    list_scroll_ref,
     detail_panel_ref,
     handle_drag_start,
   };

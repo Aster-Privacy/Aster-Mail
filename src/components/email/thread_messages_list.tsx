@@ -40,6 +40,7 @@ import { Island, IslandDivider } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
+import { use_email_dark_mode } from "@/components/email/use_email_dark_mode";
 import { update_item_metadata } from "@/services/crypto/mail_metadata";
 import { get_read_intent } from "@/services/read_intent";
 import {
@@ -164,7 +165,7 @@ export const ThreadMessagesList = forwardRef<
   {
     messages,
     current_user_email,
-    default_expanded_id: _default_expanded_id,
+    default_expanded_id,
     subject: _subject,
     on_toggle_message_read,
     on_mark_all_read,
@@ -217,9 +218,12 @@ export const ThreadMessagesList = forwardRef<
     [regular_messages, preferences.conversation_order],
   );
 
-  const [dark_mode_overrides, set_dark_mode_overrides] = useState<
-    Map<string, boolean>
-  >(new Map());
+  const {
+    is_dark_mode_message,
+    is_dark_mode_opted_out,
+    toggle_dark_mode,
+    set_all_dark_mode,
+  } = use_email_dark_mode(force_all_dark_mode);
   const [available_folders, set_available_folders] = useState(() =>
     get_cached_folders(),
   );
@@ -342,6 +346,13 @@ export const ThreadMessagesList = forwardRef<
 
     if (init_msgs.length > 0) {
       initial.add(init_msgs[init_msgs.length - 1].id);
+    }
+
+    if (
+      default_expanded_id &&
+      init_msgs.some((m) => m.id === default_expanded_id)
+    ) {
+      initial.add(default_expanded_id);
     }
 
     if (init_msgs.length <= 4) {
@@ -578,29 +589,6 @@ export const ThreadMessagesList = forwardRef<
       }
     });
   }, [expanded_ids, message_ids_key]);
-
-  const is_dark_mode_message = useCallback(
-    (msg_id: string) => dark_mode_overrides.get(msg_id) ?? force_all_dark_mode,
-    [dark_mode_overrides, force_all_dark_mode],
-  );
-
-  const is_dark_mode_opted_out = useCallback(
-    (msg_id: string) => dark_mode_overrides.get(msg_id) === false,
-    [dark_mode_overrides],
-  );
-
-  const toggle_dark_mode = useCallback(
-    (msg_id: string) => {
-      set_dark_mode_overrides((prev) => {
-        const next = new Map(prev);
-
-        next.set(msg_id, !(prev.get(msg_id) ?? force_all_dark_mode));
-
-        return next;
-      });
-    },
-    [force_all_dark_mode],
-  );
 
   const toggle = useCallback(
     (msg: DecryptedThreadMessage) => {
@@ -925,10 +913,11 @@ export const ThreadMessagesList = forwardRef<
   const toggle_all_dark_mode = useCallback(() => {
     const next_value = !all_dark_mode;
 
-    set_dark_mode_overrides(
-      new Map(regular_messages.map((m) => [m.id, next_value])),
+    set_all_dark_mode(
+      regular_messages.map((m) => m.id),
+      next_value,
     );
-  }, [all_dark_mode, regular_messages]);
+  }, [all_dark_mode, regular_messages, set_all_dark_mode]);
 
   useImperativeHandle(
     ref,

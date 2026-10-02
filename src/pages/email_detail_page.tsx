@@ -286,7 +286,7 @@ export default function EmailDetailPage() {
 
       <ConfirmationModal
         show_dont_ask_again
-        confirm_text={detail.t("mail.archive")}
+        confirm_text={detail.t("mail.archive_action")}
         is_open={detail.is_archive_confirm_open}
         message={detail.t("mail.archive_email_message")}
         on_cancel={() => detail.set_is_archive_confirm_open(false)}

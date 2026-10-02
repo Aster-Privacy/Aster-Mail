@@ -29,6 +29,7 @@ import {
 } from "@/lib/signature_html";
 import {
   get_compose_sanitize_options,
+  proxy_compose_image_sources,
   restore_compose_image_sources,
 } from "@/lib/compose_image_sources";
 import {
@@ -41,7 +42,15 @@ import {
   type UseEditorReturn,
   validate_image_magic_bytes,
   MAX_PASTE_IMAGE_SIZE,
+  plain_text_to_editor_html,
+  strip_editor_fillers,
+  pasted_html_has_text,
+  caret_range_from_point,
+  place_caret,
+  escape_html,
+  get_selection_anchor,
 } from "@/hooks/editor_utils";
+import { find_autolinks } from "@/lib/autolink";
 import { use_editor_image } from "@/hooks/use_editor_image";
 import { describe_would_exceed_total } from "@/services/attachment_rejection";
 import { use_editor_format } from "@/hooks/use_editor_format";
@@ -98,7 +107,9 @@ export function use_editor({
       on_change?.(
         is_plain_text_mode
           ? editor.innerText
-          : restore_compose_image_sources(editor.innerHTML),
+          : strip_editor_fillers(
+              restore_compose_image_sources(editor.innerHTML),
+            ),
       );
     }
   }, [editor_ref, on_change, is_plain_text_mode]);
@@ -162,19 +173,59 @@ export function use_editor({
 
       if (!editor) return;
 
-      if (is_plain_text_mode || !enable_rich_paste) {
-        const text = e.clipboardData.getData("text/plain");
+      const insert_plain_text = (text: string) => {
+        const trimmed = text.trim();
+        const links = trimmed ? find_autolinks(trimmed) : [];
+        const is_single_url =
+          !is_plain_text_mode &&
+          links.length === 1 &&
+          links[0].start === 0 &&
+          links[0].end === trimmed.length;
 
-        document.execCommand("insertText", false, text);
+        if (is_single_url) {
+          const selection = window.getSelection();
+          const href = links[0].href.replace(/"/g, "%22");
+
+          if (selection && !selection.isCollapsed && selection.rangeCount) {
+            document.execCommand("createLink", false, href);
+          } else {
+            document.execCommand(
+              "insertHTML",
+              false,
+              `<a href="${href}">${escape_html(trimmed)}</a>`,
+            );
+          }
+          handle_input();
+
+          return;
+        }
+
+        if (/\r|\n/.test(text)) {
+          document.execCommand(
+            "insertHTML",
+            false,
+            plain_text_to_editor_html(text),
+          );
+        } else {
+          document.execCommand("insertText", false, text);
+        }
         handle_input();
+      };
+
+      if (is_plain_text_mode || !enable_rich_paste) {
+        insert_plain_text(e.clipboardData.getData("text/plain"));
 
         return;
       }
 
       const items = e.clipboardData.items;
+      const html_data = e.clipboardData.getData("text/html");
+      const prefer_html = pasted_html_has_text(html_data);
 
       for (let i = 0; i < items.length; i++) {
         const item = items[i];
+
+        if (prefer_html) break;
 
         if (item.type.startsWith("image/") && item.type !== "image/svg+xml") {
           const file = item.getAsFile();
@@ -248,10 +299,10 @@ export function use_editor({
         }
       }
 
-      const html_data = e.clipboardData.getData("text/html");
-
       if (html_data) {
-        const sanitized = sanitize_compose_paste(html_data);
+        const sanitized = proxy_compose_image_sources(
+          sanitize_compose_paste(html_data),
+        );
 
         document.execCommand("insertHTML", false, sanitized);
         handle_input();
@@ -259,10 +310,7 @@ export function use_editor({
         return;
       }
 
-      const text = e.clipboardData.getData("text/plain");
-
-      document.execCommand("insertText", false, text);
-      handle_input();
+      insert_plain_text(e.clipboardData.getData("text/plain"));
     },
     [
       editor_ref,
@@ -291,7 +339,7 @@ export function use_editor({
 
         dragged_image_ref.current = null;
 
-        const range = document.caretRangeFromPoint?.(e.clientX, e.clientY);
+        const range = caret_range_from_point(e.clientX, e.clientY);
 
         if (range && editor.contains(range.startContainer)) {
           img.remove();
@@ -316,7 +364,46 @@ export function use_editor({
 
       const files = e.dataTransfer?.files;
 
-      if (!files || files.length === 0) return;
+      if (!files || files.length === 0) {
+        if (!editor || !e.dataTransfer) return;
+
+        const dropped_html = is_plain_text_mode
+          ? ""
+          : e.dataTransfer.getData("text/html");
+        const dropped_text = e.dataTransfer.getData("text/plain");
+
+        if (!dropped_html && !dropped_text) return;
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        const range = caret_range_from_point(e.clientX, e.clientY);
+
+        editor.focus();
+
+        if (range && editor.contains(range.startContainer)) {
+          place_caret(range);
+        }
+
+        if (dropped_html) {
+          document.execCommand(
+            "insertHTML",
+            false,
+            proxy_compose_image_sources(sanitize_compose_paste(dropped_html)),
+          );
+        } else if (/\r|\n/.test(dropped_text)) {
+          document.execCommand(
+            "insertHTML",
+            false,
+            plain_text_to_editor_html(dropped_text),
+          );
+        } else {
+          document.execCommand("insertText", false, dropped_text);
+        }
+        handle_input();
+
+        return;
+      }
 
       e.preventDefault();
       e.stopPropagation();
@@ -420,7 +507,9 @@ export function use_editor({
   );
 
   const get_html = useCallback((): string => {
-    return restore_compose_image_sources(editor_ref.current?.innerHTML || "");
+    return strip_editor_fillers(
+      restore_compose_image_sources(editor_ref.current?.innerHTML || ""),
+    );
   }, [editor_ref]);
 
   const set_html = useCallback(
@@ -428,7 +517,9 @@ export function use_editor({
       const editor = editor_ref.current;
 
       if (editor) {
-        editor.innerHTML = sanitize_compose_paste(html);
+        editor.innerHTML = proxy_compose_image_sources(
+          sanitize_compose_paste(html, { keep_signature_marker: true }),
+        );
         handle_input();
       }
     },
@@ -437,6 +528,12 @@ export function use_editor({
 
   const focus = useCallback(() => {
     editor_ref.current?.focus();
+  }, [editor_ref]);
+
+  const get_link_at_selection = useCallback((): HTMLAnchorElement | null => {
+    const editor = editor_ref.current;
+
+    return editor ? get_selection_anchor(editor) : null;
   }, [editor_ref]);
 
   useEffect(() => {
@@ -468,8 +565,6 @@ export function use_editor({
   }, [editor_ref, fmt.check_active_formats, fmt.save_selection]);
 
   useEffect(() => {
-    if (!enable_keyboard_shortcuts) return;
-
     const editor = editor_ref.current;
 
     if (!editor) return;
@@ -480,6 +575,18 @@ export function use_editor({
       if (!mod) return;
 
       const key = e.key.toLowerCase();
+
+      if (is_plain_text_mode || !enable_keyboard_shortcuts) {
+        if (
+          !e.shiftKey &&
+          !e.altKey &&
+          (key === "b" || key === "i" || key === "u")
+        ) {
+          e.preventDefault();
+        }
+
+        return;
+      }
 
       if (key === "b") {
         e.preventDefault();
@@ -517,7 +624,7 @@ export function use_editor({
         return;
       }
 
-      if (e.shiftKey && key === "7") {
+      if (e.shiftKey && e.code === "Digit7") {
         e.preventDefault();
         document.execCommand("insertOrderedList", false);
         handle_input();
@@ -526,7 +633,7 @@ export function use_editor({
         return;
       }
 
-      if (e.shiftKey && key === "8") {
+      if (e.shiftKey && e.code === "Digit8") {
         e.preventDefault();
         document.execCommand("insertUnorderedList", false);
         handle_input();
@@ -535,7 +642,7 @@ export function use_editor({
         return;
       }
 
-      if (e.shiftKey && key === "9") {
+      if (e.shiftKey && e.code === "Digit9") {
         e.preventDefault();
         fmt.insert_blockquote();
 
@@ -549,6 +656,7 @@ export function use_editor({
   }, [
     editor_ref,
     enable_keyboard_shortcuts,
+    is_plain_text_mode,
     handle_input,
     fmt.check_active_formats,
     fmt.insert_blockquote,
@@ -569,6 +677,7 @@ export function use_editor({
     set_alignment: fmt.set_alignment,
     remove_formatting: fmt.remove_formatting,
     insert_link: fmt.insert_link,
+    get_link_at_selection,
     insert_emoji: fmt.insert_emoji,
     insert_text: fmt.insert_text,
     insert_html: fmt.insert_html,

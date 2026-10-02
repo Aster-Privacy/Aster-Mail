@@ -48,6 +48,7 @@ import {
   type ScheduledEmailContent,
 } from "@/services/api/scheduled";
 import { emit_scheduled_changed } from "@/hooks/mail_events";
+import { check_scheduled_send } from "@/services/scheduled_send_gate";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
   MAX_RECIPIENTS_PER_FIELD,
@@ -387,6 +388,17 @@ export function use_compose_send({
         network_status = { connected: true };
       }
 
+      if (!network_status.connected && expiry_password) {
+        show_toast(t("common.offline_password_protected_unavailable"), "error");
+        last_send_time_ref.current = 0;
+        forget_send(send_fingerprint);
+        is_sending_ref.current = false;
+        send_lock_started_at_ref.current = 0;
+        set_is_sending(false);
+
+        return;
+      }
+
       if (!network_status.connected) {
         try {
           const offline_attachments =
@@ -421,8 +433,6 @@ export function use_compose_send({
                 ? selected_sender.display_name || undefined
                 : user?.display_name || undefined,
             expires_at: expires_at?.toISOString(),
-            expiry_password: expiry_password || undefined,
-            secure_external: expiry_password ? true : undefined,
             attachments: offline_attachments,
           });
 
@@ -641,7 +651,18 @@ export function use_compose_send({
       }
 
       if (has_external || email_data.secure_external) {
-        const key_trusted = await ensure_external_key_trust(all_recipients);
+        let key_trusted = false;
+
+        try {
+          key_trusted = await ensure_external_key_trust(all_recipients);
+        } catch (error) {
+          show_toast(
+            error instanceof Error
+              ? error.message
+              : t("errors.key_trust_check_failed"),
+            "error",
+          );
+        }
 
         if (!key_trusted) {
           last_send_time_ref.current = 0;
@@ -676,6 +697,8 @@ export function use_compose_send({
       if (!consent.proceed) {
         last_send_time_ref.current = 0;
         forget_send(send_fingerprint);
+
+        if (consent.blocked_by) show_toast(t(consent.blocked_by), "error");
 
         return;
       }
@@ -822,6 +845,25 @@ export function use_compose_send({
       return;
     }
 
+    const scheduled_sender_email =
+      selected_sender && selected_sender.type !== "primary"
+        ? selected_sender.email
+        : user.email;
+    const scheduled_gate = await check_scheduled_send(
+      [...recipients.to, ...recipients.cc, ...recipients.bcc],
+      scheduled_sender_email,
+      scheduled_time,
+      preferences.require_encryption === true,
+    );
+
+    if (!scheduled_gate.proceed) {
+      if (scheduled_gate.blocked_by) {
+        show_toast(t(scheduled_gate.blocked_by), "error");
+      }
+
+      return;
+    }
+
     is_sending_ref.current = true;
     send_lock_started_at_ref.current = Date.now();
     set_is_scheduling(true);
@@ -875,13 +917,18 @@ export function use_compose_send({
     }
 
     try {
-      const response = await create_scheduled_email(
-        vault,
-        content,
-        selected_sender && selected_sender.type !== "primary"
-          ? selected_sender.address_hash
-          : undefined,
-      );
+      const response = await create_scheduled_email(vault, content, {
+        sender_alias_hash:
+          selected_sender && selected_sender.type !== "primary"
+            ? selected_sender.address_hash
+            : undefined,
+        sender_email: scheduled_sender_email,
+        sender_display_name:
+          selected_sender && selected_sender.type !== "primary"
+            ? selected_sender.display_name || undefined
+            : user.display_name || undefined,
+        allow_non_post_quantum: scheduled_gate.allow_non_post_quantum,
+      });
 
       if (response.error) {
         show_toast(t("common.failed_to_schedule_email"), "error");
@@ -936,6 +983,7 @@ export function use_compose_send({
     edit_draft,
     on_draft_cleared,
     preferences.auto_save_recent_recipients,
+    preferences.require_encryption,
     selected_sender,
     expires_at,
     expiry_password,

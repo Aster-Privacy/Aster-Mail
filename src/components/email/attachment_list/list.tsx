@@ -76,10 +76,12 @@ export function AttachmentList({
   mail_item_id,
   is_external = false,
   has_recipient_key = false,
+  e2e_verified = false,
   is_local = false,
   hint_attachment_count = 0,
 }: AttachmentListProps): React.ReactElement | null {
   const { t } = use_i18n();
+  const shows_end_to_end = (!is_external || has_recipient_key) && e2e_verified;
   const { preferences } = use_preferences();
   const reduce_motion = use_should_reduce_motion();
   const [attachments, set_attachments] = useState<DecryptedAttachmentInfo[]>(
@@ -89,10 +91,7 @@ export function AttachmentList({
       const cached = get_cached_attachment_meta(mail_item_id);
 
       return cached
-        ? build_cards_from_cached_meta(
-            cached,
-            t("common.encrypted_attachment"),
-          )
+        ? build_cards_from_cached_meta(cached, t("common.encrypted_attachment"))
         : [];
     },
   );
@@ -805,7 +804,10 @@ export function AttachmentList({
           {total_size_bytes > 0 && (
             <>
               <span className="text-txt-muted/40">·</span>
-              <span className="tabular-nums" data-testid="attachments_total_size">
+              <span
+                className="tabular-nums"
+                data-testid="attachments_total_size"
+              >
                 {format_bytes(total_size_bytes)}
               </span>
             </>
@@ -813,17 +815,18 @@ export function AttachmentList({
           <span className="text-txt-muted/40">·</span>
           <span
             className="message_attachments_encryption inline-flex"
-            data-encrypted={!is_external || has_recipient_key}
+            data-encrypted={shows_end_to_end}
           >
             <EncryptionInfoDropdown
               context="attachments"
+              e2e_verified={e2e_verified}
               has_pq_protection={false}
               has_recipient_key={has_recipient_key}
               is_external={is_external}
               label={
-                is_external && !has_recipient_key
-                  ? t("common.protected_in_transit")
-                  : t("common.end_to_end_encrypted_label")
+                shows_end_to_end
+                  ? t("common.end_to_end_encrypted_label")
+                  : t("common.protected_in_transit")
               }
               size={13}
             />

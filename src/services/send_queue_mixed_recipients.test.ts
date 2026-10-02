@@ -64,6 +64,12 @@ vi.mock("@/services/api/keys", async (import_original) => {
   };
 });
 
+vi.mock("@/services/crypto/ratchet_identity_pin", () => ({
+  check_owner_key_pin: vi.fn(async () => "ok"),
+  is_recipient_flagged_untrusted: vi.fn(async () => false),
+  flag_recipient_untrusted: vi.fn(async () => undefined),
+}));
+
 vi.mock("@/services/crypto/key_manager", () => ({
   encrypt_message_multi: vi.fn(async () => "PGP-CIPHERTEXT"),
 }));
@@ -107,6 +113,12 @@ vi.mock("@/utils/email_crypto", () => ({
   })),
   build_subject_bundle: (subject: string, body: string) => `${subject} ${body}`,
   derive_own_public_key: vi.fn(async () => null),
+}));
+
+vi.mock("@/services/api/domains", () => ({
+  add_domain_address: vi.fn(() => {
+    throw new Error("Wildcard sending must not create an address");
+  }),
 }));
 
 import { execute_send } from "./send_queue_encryption";
@@ -225,5 +237,24 @@ describe("unmixed sends are unchanged", () => {
 
     expect(request.is_e2e_encrypted).toBe(false);
     expect(request.internal_encrypted_body).toBeUndefined();
+  });
+});
+
+describe("catch-all send identity", () => {
+  it("passes the wildcard From address without registering an individual address", async () => {
+    await execute_send(
+      queued({
+        sender_email: "shopping@my.example",
+      }),
+    );
+    const { add_domain_address } = await import("@/services/api/domains");
+
+    expect(add_domain_address).not.toHaveBeenCalled();
+    expect(last_request()).toEqual(
+      expect.objectContaining({
+        sender_email: "shopping@my.example",
+        sender_alias_hash: undefined,
+      }),
+    );
   });
 });

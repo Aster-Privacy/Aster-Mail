@@ -122,7 +122,7 @@ describe("ViewerToolbarActions button order", () => {
 
     expect(labels()).toEqual([
       "mail.pin_to_top",
-      "mail.archive",
+      "mail.archive_action",
       "mail.report_spam",
       "mail.move_to_trash",
       "mail.mark_as_unread",
@@ -154,7 +154,7 @@ describe("ViewerToolbarActions button order", () => {
 
     expect(labels()).toEqual([
       "mail.pin_to_top",
-      "mail.archive",
+      "mail.archive_action",
       "mail.move_to_trash",
       "common.more",
     ]);

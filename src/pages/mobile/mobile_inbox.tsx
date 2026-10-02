@@ -206,6 +206,15 @@ function MobileInbox({
   >(null);
   const [is_emptying_trash, set_is_emptying_trash] = useState(false);
 
+  useEffect(() => {
+    set_active_filter("all");
+    set_selection_mode(false);
+    set_selected_ids(new Set());
+    set_snooze_email_target(null);
+    set_scheduled_target_id(null);
+    set_permanent_delete_target(null);
+  }, [current_view]);
+
   const is_trash_view = current_view === "trash";
   const is_spam_view = current_view === "spam";
   const is_snoozed_view = current_view === "snoozed";
@@ -1234,7 +1243,9 @@ function MobileInbox({
                 <ArchiveBoxIcon className="h-5 w-5" />
               )}
               <span className="text-[11px]">
-                {is_archive_view ? t("mail.move_to_inbox") : t("mail.archive")}
+                {is_archive_view
+                  ? t("mail.move_to_inbox")
+                  : t("mail.archive_action")}
               </span>
             </button>
           )}

@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { sanitize_compose_paste } from "@/lib/html_sanitizer";
+import { escape_mailto_body } from "@/lib/mailto_link";
 
 type DeepLinkHandler = (params: Record<string, string>) => void;
 
@@ -188,7 +188,7 @@ register_deep_link_route("/inbox", () => {
 });
 
 register_deep_link_route("/compose", (params) => {
-  const safe_body = sanitize_compose_paste(params.body || "");
+  const safe_body = escape_mailto_body(params.body || "");
   const to_raw = params.to || "";
   const safe_to = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to_raw) ? to_raw : "";
 

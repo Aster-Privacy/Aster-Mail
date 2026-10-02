@@ -29,6 +29,7 @@ import { swipe_nav_state } from "./mobile_mail_detail_swipe";
 import { strip_aster_footers_html } from "@/lib/aster_footer_strip";
 import { copy_text_or_throw } from "@/utils/copy_text";
 import { use_spam_confirm } from "@/components/email/use_spam_confirm";
+import { use_email_dark_mode } from "@/components/email/use_email_dark_mode";
 import { use_email_detail } from "@/components/email/hooks/use_email_detail";
 import { use_sender_aliases } from "@/hooks/use_sender_aliases";
 import { build_reply_recipient_for_message } from "@/components/email/build_reply_recipient";
@@ -134,9 +135,13 @@ export function use_mobile_mail_detail() {
   const [snooze_target_id, set_snooze_target_id] = useState<string | null>(
     null,
   );
-  const [dark_mode_overrides, set_dark_mode_overrides] = useState<
-    Map<string, boolean>
-  >(new Map());
+  const {
+    is_dark_mode_message,
+    is_dark_mode_opted_out,
+    toggle_dark_mode,
+    set_all_dark_mode,
+    reset_dark_mode,
+  } = use_email_dark_mode(preferences.force_dark_mode_emails);
   const [details_message, set_details_message] =
     useState<DecryptedThreadMessage | null>(null);
 
@@ -186,13 +191,22 @@ export function use_mobile_mail_detail() {
   const auto_read_ids = useRef<Set<string>>(new Set());
   const first_unread_ref = useRef<HTMLDivElement>(null);
   const has_scrolled = useRef(false);
+  const open_email_id_ref = useRef(detail.email_id);
 
   useEffect(() => {
+    open_email_id_ref.current = detail.email_id;
     set_is_starred(null);
     set_is_pinned(null);
     set_external_content_loaded(false);
+    set_subject_expanded(false);
+    set_show_block_confirm(false);
+    set_block_target(null);
+    set_details_message(null);
+    set_menu_message(null);
+    set_view_source_message(null);
+    reset_dark_mode();
     has_scrolled.current = false;
-  }, [detail.email_id]);
+  }, [detail.email_id, reset_dark_mode]);
   const touch_start_ref = useRef<{ x: number; y: number; time: number } | null>(
     null,
   );
@@ -386,12 +400,13 @@ export function use_mobile_mail_detail() {
     if (detail.email) {
       haptic_impact("light");
       const current = is_starred ?? detail.email.is_starred;
+      const acted_id = detail.email.id;
 
       set_is_starred(!current);
       const succeeded = await email_actions.toggle_star(detail.email as never);
 
       if (!succeeded) {
-        set_is_starred(current);
+        if (open_email_id_ref.current === acted_id) set_is_starred(current);
         show_toast(t("common.failed_to_update"), "error");
       }
     }
@@ -401,13 +416,14 @@ export function use_mobile_mail_detail() {
     if (detail.email) {
       haptic_impact("light");
       const current = is_pinned ?? detail.email.is_pinned ?? false;
+      const acted_id = detail.email.id;
 
       set_is_pinned(!current);
       set_menu_message(null);
       const succeeded = await email_actions.toggle_pin(detail.email as never);
 
       if (!succeeded) {
-        set_is_pinned(current);
+        if (open_email_id_ref.current === acted_id) set_is_pinned(current);
         show_toast(t("common.failed_to_update"), "error");
       }
     }
@@ -419,6 +435,7 @@ export function use_mobile_mail_detail() {
     const destination = detail.get_next_email_destination();
 
     action_in_flight.current = false;
+    if (open_email_id_ref.current !== detail.email_id) return;
     if (destination === "/") {
       navigate(-1);
     } else {
@@ -508,6 +525,8 @@ export function use_mobile_mail_detail() {
     }
 
     remove_email_from_view_cache(detail.email.id);
+    action_in_flight.current = false;
+    if (open_email_id_ref.current !== detail.email.id) return;
     navigate(-1);
   }, [detail.email, email_actions, navigate, t]);
 
@@ -527,7 +546,8 @@ export function use_mobile_mail_detail() {
     }
 
     remove_email_from_view_cache(target.id);
-    navigate(-1);
+    action_in_flight.current = false;
+    if (open_email_id_ref.current === target.id) navigate(-1);
     show_action_toast({
       message: t("common.marked_as_not_spam"),
       action_type: "not_spam",
@@ -667,42 +687,24 @@ export function use_mobile_mail_detail() {
     ],
   );
 
-  const is_dark_mode_message = useCallback(
-    (msg_id: string) =>
-      dark_mode_overrides.get(msg_id) ?? preferences.force_dark_mode_emails,
-    [dark_mode_overrides, preferences.force_dark_mode_emails],
-  );
-
-  const is_dark_mode_opted_out = useCallback(
-    (msg_id: string) => dark_mode_overrides.get(msg_id) === false,
-    [dark_mode_overrides],
-  );
-
   const handle_toggle_dark_mode = useCallback(() => {
     if (menu_message) {
-      const next_value = !is_dark_mode_message(menu_message.id);
-
-      set_dark_mode_overrides((prev) => {
-        const next = new Map(prev);
-
-        next.set(menu_message.id, next_value);
-
-        return next;
-      });
+      toggle_dark_mode(menu_message.id);
     }
     set_menu_message(null);
-  }, [menu_message, is_dark_mode_message]);
+  }, [menu_message, toggle_dark_mode]);
 
   const handle_toggle_all_dark_mode = useCallback(() => {
     const all_active =
       display_messages.length > 0 &&
       display_messages.every((m) => is_dark_mode_message(m.id));
 
-    set_dark_mode_overrides(
-      new Map(display_messages.map((m) => [m.id, !all_active])),
+    set_all_dark_mode(
+      display_messages.map((m) => m.id),
+      !all_active,
     );
     set_menu_message(null);
-  }, [display_messages, is_dark_mode_message]);
+  }, [display_messages, is_dark_mode_message, set_all_dark_mode]);
 
   const handle_view_source = useCallback(() => {
     if (menu_message) {
@@ -794,7 +796,7 @@ export function use_mobile_mail_detail() {
       try {
         await snooze_actions.snooze(target, snoozed_until);
         show_toast(t("common.email_snoozed"), "success");
-        navigate(-1);
+        if (open_email_id_ref.current === target) navigate(-1);
       } catch {
         show_toast(t("errors.failed_to_snooze"), "error");
       }

@@ -259,6 +259,7 @@ export const en: Translations = {
     create_subfolder: "Create Subfolder",
     mute_notifications: "Mute notifications",
     unmute_notifications: "Unmute notifications",
+    notifications_muted: "Notifications muted",
     remove_lock: "Remove Lock",
     lock: "Lock",
     change_color: "Change color",
@@ -903,6 +904,16 @@ export const en: Translations = {
       "Scheduled sending isn't available for connected accounts. Send this message now, or choose an Aster address.",
     scheduled_no_expiry:
       "Scheduled emails can't use an expiry yet. Send now, or remove the expiry to schedule it.",
+    scheduled_too_far_ahead:
+      "Scheduled emails can go out at most 28 days ahead. Choose an earlier time.",
+    scheduled_requires_encryption:
+      "You have required encryption turned on, and scheduled emails to outside addresses aren't end-to-end encrypted. Send this message now, or turn off required encryption in Settings.",
+    offline_password_protected_unavailable:
+      "You can't queue password-protected emails while you're offline. When you're connected again, send the message.",
+    offline_settings_unavailable:
+      "Your settings couldn't be loaded, so the message wasn't sent. When you're connected again, try again.",
+    cannot_send_key_changed_offline:
+      "A recipient's encryption key changed while this message was waiting to send, so it wasn't sent.",
     failed_to_merge_contacts:
       "The merge did not complete. Try again. Your original contacts are unchanged.",
     enter_valid_emails: "Please enter valid email addresses",
@@ -1283,6 +1294,8 @@ export const en: Translations = {
     font: "Font",
     stylesheet: "Stylesheet",
     tracking_pixel: "Tracking pixel",
+    image_blocked: "Image blocked",
+    tracking_pixel_blocked: "Tracking pixel blocked",
     me: "Me",
     notification_banner_message:
       "Enable desktop notifications to stay updated on new emails",
@@ -2914,7 +2927,7 @@ export const en: Translations = {
       "Display the size of each email in the inbox list",
     force_dark_mode_emails: "Force Dark Mode for Emails",
     force_dark_mode_emails_description:
-      "Always render email content in dark mode, overriding the email's original styling",
+      "Render email content in dark mode while Aster uses the dark theme, overriding the email's original styling",
     translation: "Translation",
     translate_incoming: "Translate incoming mail",
     translate_incoming_description:
@@ -5545,7 +5558,7 @@ export const en: Translations = {
       "Shows a lock icon on emails to tell you whether a message is encrypted, signed, or neither. Handy for knowing what's protected at a glance.",
     info_force_dark_mode_title: "Force Dark Mode Emails",
     info_force_dark_mode_description:
-      "Rewrites email styles to use a dark background and light text. Useful if bright white emails are harsh on your eyes.",
+      "While Aster uses the dark theme, rewrites email styles to use a dark background and light text. Useful if bright white emails are harsh on your eyes.",
     info_undo_send_title: "Undo Send",
     info_undo_send_description:
       "Gives you a short window to cancel an email after hitting send. Nothing goes out until the timer runs out.",
@@ -8108,6 +8121,11 @@ export const en: Translations = {
       "This sender's messages no longer carry post-quantum protection. If you did not expect that, confirm it with them another way.",
     recipient_identity_changed:
       "The encryption key for {{email}} changed. If you did not expect that, confirm the change with them another way before you send anything sensitive.",
+    message_password_requirements:
+      "Use at least 12 characters, and include a number, a symbol, or both uppercase and lowercase letters.",
+    recipient_identity_untrusted:
+      "The encryption key for {{email}} changed, and the new key can't be confirmed. To send to this address, confirm the change with them another way, then choose Trust new key.",
+    trust_new_key: "Trust new key",
     encrypted_message_unavailable:
       "This message could not be decrypted. The sender may have used an outdated key.",
     pgp_password_protected_title: "Password protected message",
@@ -8128,6 +8146,7 @@ export const en: Translations = {
     drafts: "Drafts",
     starred: "Starred",
     archive: "Archive",
+    archive_action: "Archive",
     archive_conversation_count: "Archive conversation ({{count}} messages)",
     move_conversation_to_trash_count:
       "Move conversation to trash ({{count}} messages)",
@@ -9693,6 +9712,12 @@ export const en: Translations = {
       "Aster keeps messages between Aster accounts under post-quantum encryption, and {{recipients}} has not published post-quantum keys yet. Ask them to open Aster or update their app, then try again. Your draft is saved.",
     cannot_send_no_recovery_key:
       "Aster can't send this message yet because the recipient's account is missing the keys needed to read it. Ask them to open Aster on any device or update their app to refresh those keys, then try again. Your draft is saved.",
+    message_password_too_weak:
+      "The message password is too weak, so the message wasn't sent. Use at least 12 characters, and include a number, a symbol, or both uppercase and lowercase letters.",
+    recipient_key_untrusted:
+      "A recipient's encryption key changed, so the message wasn't sent. To send it, confirm the change with them another way, then choose Trust new key.",
+    key_trust_check_failed:
+      "Couldn't check the recipients' encryption keys, so the message wasn't sent. Check your connection and try again.",
     failed_send_external:
       "This email did not send through your linked outside account. Try again. Your draft is saved.",
     failed_queue_email:

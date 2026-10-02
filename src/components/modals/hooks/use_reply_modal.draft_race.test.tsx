@@ -166,7 +166,11 @@ vi.mock("@/hooks/use_ghost_mode", () => ({
 }));
 
 vi.mock("@/hooks/use_ghost_sender_binding", () => ({
-  use_ghost_sender_binding: () => () => undefined,
+  use_ghost_sender_binding: (
+    _ghost: unknown,
+    _sender: unknown,
+    set_sender: (sender: unknown) => void,
+  ) => set_sender,
 }));
 
 vi.mock("@/lib/preferred_sender", () => ({
@@ -179,9 +183,18 @@ vi.mock("@/hooks/use_preferred_sender_ready", () => ({
   use_preferred_sender_ready: () => true,
 }));
 
-vi.mock("@/components/compose/resolve_from_sender", () => ({
-  resolve_from_sender: () => mocks.sender_state.resolved,
-}));
+vi.mock("@/components/compose/resolve_from_sender", async (import_original) => {
+  const original =
+    await import_original<
+      typeof import("@/components/compose/resolve_from_sender")
+    >();
+
+  return {
+    resolve_from_sender: (
+      input: Parameters<typeof original.resolve_from_sender>[0],
+    ) => mocks.sender_state.resolved ?? original.resolve_from_sender(input),
+  };
+});
 
 vi.mock("@/services/api/contacts", () => ({
   list_contacts: () => new Promise(() => undefined),
@@ -196,6 +209,13 @@ vi.mock("@/lib/html_sanitizer", () => ({
 
 vi.mock("@/lib/forward_css_inliner", () => ({
   inline_email_css: (html: string) => html,
+}));
+
+vi.mock("@/services/scheduled_send_gate", () => ({
+  check_scheduled_send: vi.fn(async () => ({
+    proceed: true,
+    allow_non_post_quantum: false,
+  })),
 }));
 
 vi.mock("@/services/lockdown_store", () => ({
@@ -595,5 +615,394 @@ describe("reply modal drafts around a send", () => {
 
     expect(mocks.create_draft).not.toHaveBeenCalled();
     expect(mocks.update_draft).not.toHaveBeenCalled();
+  });
+  it("sends visible text after switching a formatted reply to plain text", async () => {
+    mocks.send_reply.mockResolvedValue(queued_send_result());
+    await render_hook(base_props());
+    const element = document.createElement("div");
+
+    element.innerHTML = "<b>Meet at 10</b>";
+    Object.assign(latest!.message_editor_ref, { current: element });
+    await type_reply(element.innerHTML);
+    await act(async () => latest!.toggle_plain_text_mode());
+
+    expect(latest!.reply_message).toBe("Meet at 10");
+    expect(element.querySelector("b")).toBeNull();
+    await act(async () => {
+      await latest!.handle_send();
+    });
+    expect(mocks.send_reply.mock.calls[0][0].message).toContain("Meet at 10");
+    expect(mocks.send_reply.mock.calls[0][0].message).not.toContain(
+      "&lt;b&gt;",
+    );
+  });
+
+  it("keeps literal markup and line breaks when switching back to rich text", async () => {
+    await render_hook(base_props());
+    const element = document.createElement("div");
+
+    Object.assign(latest!.message_editor_ref, { current: element });
+    await act(async () => latest!.toggle_plain_text_mode());
+    Object.defineProperty(element, "innerText", {
+      configurable: true,
+      writable: true,
+      value: "Use <project> & check\nThen restart.",
+    });
+    await type_reply(element.innerText);
+    await act(async () => latest!.toggle_plain_text_mode());
+
+    expect(latest!.is_plain_text_mode).toBe(false);
+    expect(latest!.reply_message).toBe(
+      "Use &lt;project&gt; &amp; check<br>Then restart.",
+    );
+    expect(element.querySelector("project")).toBeNull();
+    expect(element.querySelectorAll("br")).toHaveLength(1);
+  });
+
+  it("selects the catch-all delivery address and preserves it in a draft", async () => {
+    const primary = {
+      id: "primary",
+      email: "me@astermail.org",
+      type: "primary",
+      is_enabled: true,
+    };
+    const received = {
+      id: "catch-all-d1-shopping",
+      email: "shopping@my.example",
+      type: "domain",
+      is_enabled: true,
+      is_catch_all: true,
+    };
+
+    mocks.sender_state.options = [primary, received];
+    mocks.create_draft.mockResolvedValue({
+      data: { id: "draft_1", version: 1 },
+    });
+    await render_hook(
+      base_props({
+        reply_from_address: received.email,
+        original_to: ["deals@lists.example"],
+      }),
+    );
+    expect(latest!.selected_sender?.email).toBe(received.email);
+    await type_reply("<p>Thanks!</p>");
+    await advance(1600);
+    expect(mocks.create_draft.mock.calls[0][0].from_email).toBe(received.email);
+  });
+
+  it("keeps a saved address in To ahead of a catch-all delivery address", async () => {
+    const primary = {
+      id: "primary",
+      email: "me@astermail.org",
+      type: "primary",
+      is_enabled: true,
+    };
+    const received = {
+      id: "catch-all-d1-shopping",
+      email: "shopping@my.example",
+      type: "domain",
+      is_enabled: true,
+      is_catch_all: true,
+    };
+
+    mocks.sender_state.options = [primary, received];
+    await render_hook(
+      base_props({
+        reply_from_address: received.email,
+        original_to: [primary.email],
+      }),
+    );
+    expect(latest!.selected_sender?.email).toBe(primary.email);
+  });
+
+  it.each([{ is_catch_all: true }, { is_catch_all: false }])(
+    "keeps a reply refused after the undo window as a draft: %j",
+    async ({ is_catch_all }) => {
+      const { show_toast } = await import("@/components/toast/simple_toast");
+      const sender = {
+        id: is_catch_all ? "catch-all-d1-shopping" : "domain-a1",
+        email: "shopping@my.example",
+        type: "domain",
+        is_enabled: true,
+        address_hash: is_catch_all ? undefined : "hash_1",
+        is_catch_all,
+      };
+      let fail: (error: string) => void = () => undefined;
+
+      vi.mocked(show_toast).mockClear();
+      mocks.sender_state.options = [sender];
+      mocks.create_draft.mockResolvedValue({
+        data: { id: "draft_2", version: 1 },
+      });
+      mocks.send_reply.mockImplementation(
+        async (_params, callbacks: { on_error: (error: string) => void }) => {
+          fail = callbacks.on_error;
+
+          return queued_send_result();
+        },
+      );
+      const props = base_props({ reply_from_address: sender.email });
+
+      await render_hook(props);
+      await type_reply("<p>Thanks!</p>");
+      await act(async () => {
+        await latest!.handle_send();
+      });
+      expect(props.on_close).toHaveBeenCalled();
+      expect(mocks.send_reply.mock.calls[0][0]).toEqual(
+        expect.objectContaining({
+          sender_email: sender.email,
+          sender_alias_hash: sender.address_hash,
+        }),
+      );
+      expect(mocks.undo_add).toHaveBeenCalledWith(
+        expect.objectContaining({ sender_email: sender.email }),
+      );
+      await act(async () => fail("Sender not allowed"));
+      await advance(0);
+
+      expect(mocks.create_draft).toHaveBeenCalledTimes(1);
+      expect(mocks.create_draft.mock.calls[0][0]).toEqual(
+        expect.objectContaining({
+          from_email: sender.email,
+          message: "<p>Thanks!</p>",
+          to_recipients: ["sam@example.com"],
+        }),
+      );
+      expect(mocks.create_draft.mock.calls[0].slice(2)).toEqual([
+        "reply",
+        "email_1",
+        undefined,
+        "thread_1",
+      ]);
+      expect(show_toast).toHaveBeenCalledWith(
+        "Sender not allowed",
+        "error",
+        10000,
+      );
+      expect(show_toast).not.toHaveBeenCalledWith(
+        "common.failed_to_save",
+        "error",
+      );
+    },
+  );
+
+  async function send_and_capture_callbacks() {
+    const callbacks: {
+      on_complete?: (sent_id?: string) => void;
+      on_error?: (error: string) => void;
+    } = {};
+
+    mocks.send_reply.mockImplementation(async (_params, given) => {
+      Object.assign(callbacks, given);
+
+      return queued_send_result();
+    });
+    const props = base_props();
+
+    await render_hook(props);
+    await type_reply("<p>See you on Friday</p>");
+    await act(async () => {
+      await latest!.handle_send();
+    });
+    expect(props.on_close).toHaveBeenCalled();
+    mocks.create_draft.mockClear();
+
+    return callbacks;
+  }
+
+  it("puts a failed reply from the primary address back in its thread's drafts", async () => {
+    const { show_toast } = await import("@/components/toast/simple_toast");
+
+    vi.mocked(show_toast).mockClear();
+    mocks.create_draft.mockResolvedValue({
+      data: { id: "draft_2", version: 1 },
+    });
+    const callbacks = await send_and_capture_callbacks();
+
+    await act(async () => callbacks.on_error!(""));
+    await advance(0);
+
+    expect(mocks.create_draft).toHaveBeenCalledTimes(1);
+    expect(mocks.create_draft.mock.calls[0][0]).toEqual(
+      expect.objectContaining({
+        message: "<p>See you on Friday</p>",
+        subject: "mail.reply_subject_prefix Plans",
+        to_recipients: ["sam@example.com"],
+        cc_recipients: [],
+      }),
+    );
+    expect(mocks.create_draft.mock.calls[0].slice(2)).toEqual([
+      "reply",
+      "email_1",
+      undefined,
+      "thread_1",
+    ]);
+    expect(show_toast).toHaveBeenCalledWith(
+      "common.failed_to_send_reply",
+      "error",
+      10000,
+    );
+  });
+
+  it("says so when a failed reply cannot be saved as a draft", async () => {
+    const { show_toast } = await import("@/components/toast/simple_toast");
+
+    vi.mocked(show_toast).mockClear();
+    mocks.create_draft.mockResolvedValue({ error: "offline" });
+    const callbacks = await send_and_capture_callbacks();
+
+    await act(async () => callbacks.on_error!("Server unavailable"));
+    await advance(0);
+
+    expect(mocks.create_draft).toHaveBeenCalledTimes(1);
+    expect(show_toast).toHaveBeenCalledWith("common.failed_to_save", "error");
+  });
+
+  it("does not create a draft when a queued reply sends", async () => {
+    mocks.create_draft.mockResolvedValue({
+      data: { id: "draft_2", version: 1 },
+    });
+    const callbacks = await send_and_capture_callbacks();
+
+    await act(async () => callbacks.on_complete!("sent_1"));
+    await advance(5_000);
+
+    expect(mocks.create_draft).not.toHaveBeenCalled();
+  });
+
+  it("schedules a catch-all reply with the literal From and no address hash", async () => {
+    const { create_scheduled_email } = await import("@/services/api/scheduled");
+    const sender = {
+      id: "catch-all-d1-shopping",
+      email: "shopping@my.example",
+      type: "domain",
+      is_enabled: true,
+      is_catch_all: true,
+    };
+
+    vi.mocked(create_scheduled_email).mockResolvedValue({
+      data: { id: "s1", scheduled_at: "x", success: true },
+    } as never);
+    mocks.sender_state.options = [sender];
+    await render_hook(base_props({ reply_from_address: sender.email }));
+    await type_reply("<p>Thanks!</p>");
+    await act(async () =>
+      latest!.set_scheduled_time(new Date("2030-01-01T09:00:00.000Z")),
+    );
+    await act(async () => {
+      await latest!.handle_scheduled_send();
+    });
+
+    expect(create_scheduled_email).toHaveBeenCalledWith(
+      stable.auth.vault,
+      expect.objectContaining({ from: { name: "", email: sender.email } }),
+      expect.objectContaining({
+        sender_email: sender.email,
+        allow_non_post_quantum: false,
+      }),
+    );
+  });
+
+  it("leaves a scheduled reply from a saved alias as it was", async () => {
+    const { create_scheduled_email } = await import("@/services/api/scheduled");
+    const sender = {
+      id: "alias-1",
+      email: "orders@alias.example",
+      type: "alias",
+      is_enabled: true,
+      address_hash: "hash-1",
+    };
+
+    vi.mocked(create_scheduled_email).mockResolvedValue({
+      data: { id: "s2", scheduled_at: "x", success: true },
+    } as never);
+    mocks.sender_state.options = [sender];
+    await render_hook(base_props({ reply_from_address: sender.email }));
+    await type_reply("<p>Thanks!</p>");
+    await act(async () =>
+      latest!.set_scheduled_time(new Date("2030-01-01T09:00:00.000Z")),
+    );
+    await act(async () => {
+      await latest!.handle_scheduled_send();
+    });
+
+    expect(create_scheduled_email).toHaveBeenCalledWith(
+      stable.auth.vault,
+      expect.not.objectContaining({ from: expect.anything() }),
+      expect.objectContaining({ allow_non_post_quantum: false }),
+    );
+  });
+
+  it("restores the draft sender ahead of the delivery address", async () => {
+    const received = {
+      id: "catch-all-d1-shopping",
+      email: "shopping@my.example",
+      type: "domain",
+      is_enabled: true,
+      is_catch_all: true,
+    };
+    const restored = {
+      ...received,
+      id: "catch-all-d1-billing",
+      email: "billing@my.example",
+    };
+
+    mocks.sender_state.options = [received, restored];
+    await render_hook(
+      base_props({
+        reply_from_address: received.email,
+        existing_draft: {
+          id: "draft_1",
+          version: 1,
+          reply_to_id: "email_1",
+          content: {
+            to_recipients: ["sam@example.com"],
+            cc_recipients: [],
+            bcc_recipients: [],
+            subject: "Re: Plans",
+            message: "<p>Thanks!</p>",
+            from_email: restored.email,
+          },
+        },
+      }),
+    );
+    expect(latest!.selected_sender?.email).toBe(restored.email);
+  });
+  it("saves a manual sender change even when the reply text is unchanged", async () => {
+    const received = {
+      id: "catch-all-d1-shopping",
+      email: "shopping@my.example",
+      type: "domain",
+      is_enabled: true,
+      is_catch_all: true,
+    };
+    const primary = {
+      id: "primary",
+      email: "me@astermail.org",
+      type: "primary",
+      is_enabled: true,
+    };
+
+    mocks.sender_state.options = [primary, received];
+    mocks.create_draft.mockResolvedValue({
+      data: { id: "draft_1", version: 1 },
+    });
+    mocks.update_draft.mockResolvedValue({
+      data: { id: "draft_1", version: 2 },
+    });
+    await render_hook(base_props({ reply_from_address: received.email }));
+    await type_reply("<p>Thanks!</p>");
+    await advance(1600);
+    await act(async () =>
+      latest!.set_selected_sender(
+        primary as Parameters<HookResult["set_selected_sender"]>[0],
+      ),
+    );
+    await advance(1600);
+    expect(latest!.selected_sender?.email).toBe(primary.email);
+    expect(mocks.update_draft.mock.calls.at(-1)![1].from_email).toBe(
+      primary.email,
+    );
   });
 });

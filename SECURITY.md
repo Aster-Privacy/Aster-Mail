@@ -57,4 +57,7 @@ We follow coordinated disclosure. Please give us adequate time to patch the vuln
 
 ## Acknowledgements
 
-We thank the researchers who help keep Aster secure. Credited disclosures will be listed below once we receive them.
+We thank the researchers who help keep Aster secure.
+
+- [diogovbs](https://github.com/diogovbs) (October 2026): remote images in the web client were fetched directly from the reader's IP address even when shown as blocked.
+- [diogovbs](https://github.com/diogovbs) (October 2026): a CSS string that contained `url(` let a remote stylesheet image through the web client's blocked content filter.

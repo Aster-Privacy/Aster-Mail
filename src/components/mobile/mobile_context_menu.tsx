@@ -102,7 +102,7 @@ export const MobileContextMenu = memo(function MobileContextMenu({
     if (on_archive) {
       result.push({
         icon: ArchiveBoxIcon,
-        label: t("mail.archive"),
+        label: t("mail.archive_action"),
         on_action: () => handle_action(on_archive),
       });
     }

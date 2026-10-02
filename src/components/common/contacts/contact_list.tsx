@@ -383,6 +383,7 @@ export function ContactList({
         <div className="contact_encryption_info h-8 w-8 flex items-center justify-center">
           <EncryptionInfoDropdown
             description_key="common.only_you_can_read_contacts"
+            e2e_verified
             has_pq_protection={true}
             is_external={false}
             size={20}
@@ -804,6 +805,13 @@ export function ContactList({
         {error && (
           <div className="aster_island aster_island_tone_danger mx-4 mt-2 px-3.5 py-2">
             <p className="text-[12px] text-[var(--color-danger)]">{error}</p>
+            <button
+              className="mt-1 text-[12px] font-medium text-txt-primary underline"
+              type="button"
+              onClick={on_contacts_refresh}
+            >
+              {t("common.retry")}
+            </button>
           </div>
         )}
 

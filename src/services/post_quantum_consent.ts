@@ -28,7 +28,11 @@ export type PostQuantumPromptHandler = (
 export interface PostQuantumConsent {
   proceed: boolean;
   allow_non_post_quantum: boolean;
+  blocked_by?: PostQuantumConsentBlock;
 }
+
+export type PostQuantumConsentBlock =
+  "errors.recipient_key_untrusted" | "errors.key_trust_check_failed";
 
 let prompt_handler: PostQuantumPromptHandler | null = null;
 
@@ -51,17 +55,28 @@ export async function ensure_post_quantum_consent(
   recipients: string[],
   sender_email?: string,
 ): Promise<PostQuantumConsent> {
-  let missing: string[] = [];
-  let downgraded: string[] = [];
+  let missing: string[];
+  let downgraded: string[];
 
   try {
     const coverage = await check_post_quantum_status(recipients, sender_email);
 
+    if (coverage.untrusted.length > 0) {
+      return {
+        proceed: false,
+        allow_non_post_quantum: false,
+        blocked_by: "errors.recipient_key_untrusted",
+      };
+    }
+
     missing = coverage.missing;
     downgraded = coverage.downgraded;
   } catch {
-    missing = [];
-    downgraded = [];
+    return {
+      proceed: false,
+      allow_non_post_quantum: false,
+      blocked_by: "errors.key_trust_check_failed",
+    };
   }
 
   if (missing.length === 0) {

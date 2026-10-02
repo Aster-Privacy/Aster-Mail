@@ -254,6 +254,7 @@ export const de = {
     create_subfolder: "Unterordner erstellen",
     mute_notifications: "Benachrichtigungen stummschalten",
     unmute_notifications: "Stummschaltung aufheben",
+    notifications_muted: "Benachrichtigungen stummgeschaltet",
     new_message: "Neue Nachricht",
     expand: "Erweitern",
     collapse: "Einklappen",
@@ -794,6 +795,16 @@ export const de = {
       "Geplanter Versand ist für verbundene Konten nicht verfügbar. Senden Sie diese Nachricht jetzt oder wählen Sie eine Aster-Adresse.",
     scheduled_no_expiry:
       "Geplante E-Mails können noch kein Ablaufdatum haben. Senden Sie jetzt oder entfernen Sie das Ablaufdatum, um sie zu planen.",
+    scheduled_too_far_ahead:
+      "Geplante E-Mails können höchstens 28 Tage im Voraus gesendet werden. Wählen Sie einen früheren Zeitpunkt.",
+    scheduled_requires_encryption:
+      "Sie haben die erforderliche Verschlüsselung aktiviert, und geplante E-Mails an externe Adressen sind nicht Ende-zu-Ende-verschlüsselt. Senden Sie diese Nachricht jetzt oder deaktivieren Sie die erforderliche Verschlüsselung in den Einstellungen.",
+    offline_password_protected_unavailable:
+      "Sie können passwortgeschützte E-Mails nicht offline in die Warteschlange stellen. Senden Sie die Nachricht, sobald Sie wieder verbunden sind.",
+    offline_settings_unavailable:
+      "Ihre Einstellungen konnten nicht geladen werden, daher wurde die Nachricht nicht gesendet. Versuchen Sie es erneut, sobald Sie wieder verbunden sind.",
+    cannot_send_key_changed_offline:
+      "Der Verschlüsselungsschlüssel eines Empfängers hat sich geändert, während diese Nachricht auf den Versand wartete, daher wurde sie nicht gesendet.",
     failed_to_merge_contacts:
       "Das Zusammenführen wurde nicht abgeschlossen. Versuchen Sie es erneut. Ihre ursprünglichen Kontakte sind unverändert.",
     enter_valid_emails: "Bitte geben Sie gültige E-Mail-Adressen ein",
@@ -1096,6 +1107,8 @@ export const de = {
     font: "Schriftart",
     stylesheet: "Stylesheet",
     tracking_pixel: "Tracking-Pixel",
+    image_blocked: "Bild blockiert",
+    tracking_pixel_blocked: "Tracking-Pixel blockiert",
     me: "ich",
     notification_banner_message:
       "Aktivieren Sie Desktop-Benachrichtigungen, um über neue E-Mails informiert zu bleiben",
@@ -4013,7 +4026,7 @@ export const de = {
     reply_to_all: "Allen antworten",
     force_dark_mode_emails: "Dunkelmodus für E-Mails erzwingen",
     force_dark_mode_emails_description:
-      "E-Mail-Inhalte immer im Dunkelmodus rendern und das ursprüngliche Styling der E-Mail überschreiben",
+      "E-Mail-Inhalte im Dunkelmodus rendern, solange Aster das dunkle Design nutzt, und das ursprüngliche Styling der E-Mail überschreiben",
     translation: "Übersetzung",
     translate_incoming: "Eingehende Mail übersetzen",
     translate_incoming_description:
@@ -4599,7 +4612,7 @@ export const de = {
       "Zeigt ein Schloss-Symbol an E-Mails, das angibt, ob eine Nachricht verschlüsselt, signiert oder keines von beidem ist.",
     info_force_dark_mode_title: "E-Mails im Dunkelmodus",
     info_force_dark_mode_description:
-      "Schreibt E-Mail-Stile um, um dunklen Hintergrund und hellen Text zu verwenden. Nützlich, wenn helle E-Mails Ihre Augen belasten.",
+      "Schreibt E-Mail-Stile auf dunklen Hintergrund und hellen Text um, solange Aster das dunkle Design nutzt. Nützlich, wenn helle E-Mails Ihre Augen belasten.",
     info_undo_send_title: "Senden rückgängig machen",
     info_undo_send_description:
       "Gibt Ihnen ein kurzes Zeitfenster zum Abbrechen einer E-Mail nach dem Senden. Nichts wird gesendet, bis der Timer abläuft.",
@@ -8424,6 +8437,11 @@ export const de = {
       "Die Nachrichten dieses Absenders sind nicht mehr durch Post-Quanten-Verschlüsselung geschützt. Wenn Sie das nicht erwartet haben, bestätigen Sie es auf einem anderen Weg mit dieser Person.",
     recipient_identity_changed:
       "Der Verschlüsselungsschlüssel von {{email}} hat sich geändert. Wenn Sie das nicht erwartet haben, bestätigen Sie die Änderung auf einem anderen Weg mit dieser Person, bevor Sie vertrauliche Inhalte senden.",
+    message_password_requirements:
+      "Verwenden Sie mindestens 12 Zeichen mit einer Zahl, einem Sonderzeichen oder Groß- und Kleinbuchstaben.",
+    recipient_identity_untrusted:
+      "Der Verschlüsselungsschlüssel für {{email}} hat sich geändert, und der neue Schlüssel kann nicht bestätigt werden. Um an diese Adresse zu senden, bestätigen Sie die Änderung auf anderem Weg und wählen Sie dann „Neuem Schlüssel vertrauen“.",
+    trust_new_key: "Neuem Schlüssel vertrauen",
     load_all_thread_messages: "Alle Nachrichten laden",
     move_to_category: "In Kategorie verschieben",
     menu_applies_to_selection: "Gilt für {count} ausgewählte",
@@ -8486,6 +8504,7 @@ export const de = {
     drafts: "Entwürfe",
     starred: "Markiert",
     archive: "Archiv",
+    archive_action: "Archivieren",
     spam: "Spam",
     trash: "Papierkorb",
     scheduled: "Geplant",
@@ -10076,6 +10095,12 @@ export const de = {
       "Sie haben die erforderliche Verschlüsselung aktiviert und keiner Ihrer Empfänger hat einen hinterlegten Schlüssel. Bitten Sie sie, einen zu teilen, oder deaktivieren Sie die erforderliche Verschlüsselung in Einstellungen. Ihr Entwurf ist gespeichert.",
     cannot_send_no_recovery_key:
       "Aster kann diese Nachricht noch nicht senden, weil dem Konto des Empfängers die Schlüssel zum Lesen fehlen. Bitten Sie ihn, Aster auf einem beliebigen Gerät zu öffnen oder die App zu aktualisieren, um die Schlüssel zu erneuern, und versuchen Sie es dann erneut. Ihr Entwurf ist gespeichert.",
+    message_password_too_weak:
+      "Das Nachrichtenpasswort ist zu schwach, daher wurde die Nachricht nicht gesendet. Verwenden Sie mindestens 12 Zeichen mit einer Zahl, einem Sonderzeichen oder Groß- und Kleinbuchstaben.",
+    recipient_key_untrusted:
+      "Der Verschlüsselungsschlüssel eines Empfängers hat sich geändert, daher wurde die Nachricht nicht gesendet. Bestätigen Sie die Änderung auf anderem Weg und wählen Sie dann „Neuem Schlüssel vertrauen“.",
+    key_trust_check_failed:
+      "Die Verschlüsselungsschlüssel der Empfänger konnten nicht geprüft werden, daher wurde die Nachricht nicht gesendet. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
     conflict:
       "Etwas anderes hat das zuerst geändert. Ein Aktualisieren zeigt die neueste Version.",
     connection_failed:

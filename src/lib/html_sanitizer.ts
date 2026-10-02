@@ -20,6 +20,10 @@
 //
 import DOMPurify from "dompurify";
 
+import {
+  prepare_blocked_image,
+  type BlockedImageLabels,
+} from "./blocked_image_placeholder";
 import { split_autolinks } from "./autolink";
 import { mark_brand_backgrounds } from "./email_brand_backgrounds";
 import { mark_stylesheet_background_images } from "./html_sanitizer_background_marks";
@@ -33,6 +37,7 @@ import {
   block_remote_fonts,
   strip_css_urls,
   proxy_css_urls,
+  list_remote_css_urls,
   escape_style_terminator,
 } from "./html_sanitizer_css";
 
@@ -251,6 +256,7 @@ export interface SanitizeOptions {
   sandbox_mode?: boolean;
   content_blocking?: ContentBlockingSettings;
   lockdown_mode?: boolean;
+  blocked_image_labels?: BlockedImageLabels;
 }
 
 export function degraded_text_html(html: string): string {
@@ -420,6 +426,7 @@ function sanitize_html_impl(
     sandbox_mode = false,
     content_blocking,
     lockdown_mode = false,
+    blocked_image_labels,
   } = options;
 
   const effective_proxy = lockdown_mode ? undefined : image_proxy_url;
@@ -557,19 +564,13 @@ function sanitize_html_impl(
       }
 
       if (lockdown_mode || block_css || block_images) {
-        const css_url_matches =
-          sanitized_css.match(/url\s*\(\s*["']?(https?:\/\/[^"')\s]+)/gi) || [];
+        const remote_css_urls = list_remote_css_urls(sanitized_css);
 
-        if (css_url_matches.length > 0) {
+        if (remote_css_urls.length > 0) {
           external_content.has_remote_css = true;
-          external_content.blocked_count += css_url_matches.length;
-          for (const match of css_url_matches) {
-            const url_extract = match.match(/https?:\/\/[^"')\s]+/i);
-
-            external_content.blocked_items.push({
-              url: url_extract?.[0] || "stylesheet URL",
-              type: "css",
-            });
+          external_content.blocked_count += remote_css_urls.length;
+          for (const url of remote_css_urls) {
+            external_content.blocked_items.push({ url, type: "css" });
           }
         }
         sanitized_css = strip_css_urls(sanitized_css);
@@ -639,6 +640,7 @@ function sanitize_html_impl(
 
   const parser = new DOMParser();
   const doc = parser.parseFromString(purified, "text/html");
+  const output_doc = document.implementation.createHTMLDocument("");
 
   const autolink_text_node = (text_node: Node): Node => {
     const text = text_node.textContent || "";
@@ -648,14 +650,14 @@ function sanitize_html_impl(
       return text_node.cloneNode(true);
     }
 
-    const fragment = document.createDocumentFragment();
+    const fragment = output_doc.createDocumentFragment();
 
     for (const segment of segments) {
       if (!segment.href) {
-        fragment.appendChild(document.createTextNode(segment.text));
+        fragment.appendChild(output_doc.createTextNode(segment.text));
         continue;
       }
-      const a = document.createElement("a");
+      const a = output_doc.createElement("a");
 
       a.href = segment.href;
       a.target = "_blank";
@@ -713,7 +715,7 @@ function sanitize_html_impl(
 
       const text = visible_text_of(node);
 
-      return text ? document.createTextNode(text) : null;
+      return text ? output_doc.createTextNode(text) : null;
     }
 
     if (node.nodeType === Node.TEXT_NODE) {
@@ -769,19 +771,13 @@ function sanitize_html_impl(
       }
 
       if (lockdown_mode || block_css || block_images) {
-        const css_url_matches =
-          sanitized_css.match(/url\s*\(\s*["']?(https?:\/\/[^"')\s]+)/gi) || [];
+        const remote_css_urls = list_remote_css_urls(sanitized_css);
 
-        if (css_url_matches.length > 0) {
+        if (remote_css_urls.length > 0) {
           external_content.has_remote_css = true;
-          external_content.blocked_count += css_url_matches.length;
-          for (const match of css_url_matches) {
-            const url_extract = match.match(/https?:\/\/[^"')\s]+/i);
-
-            external_content.blocked_items.push({
-              url: url_extract?.[0] || "stylesheet URL",
-              type: "css",
-            });
+          external_content.blocked_count += remote_css_urls.length;
+          for (const url of remote_css_urls) {
+            external_content.blocked_items.push({ url, type: "css" });
           }
         }
         sanitized_css = strip_css_urls(sanitized_css);
@@ -792,7 +788,7 @@ function sanitize_html_impl(
       if (!sanitized_css.trim()) {
         return null;
       }
-      const new_style = document.createElement("style");
+      const new_style = output_doc.createElement("style");
 
       new_style.textContent = escape_style_terminator(sanitized_css);
 
@@ -800,7 +796,7 @@ function sanitize_html_impl(
     }
 
     if (!ALLOWED_TAGS.has(tag_name)) {
-      const fragment = document.createDocumentFragment();
+      const fragment = output_doc.createDocumentFragment();
 
       for (const child of Array.from(element.childNodes)) {
         const sanitized = sanitize_node(child, depth + 1);
@@ -813,7 +809,7 @@ function sanitize_html_impl(
       return fragment;
     }
 
-    const new_element = document.createElement(tag_name);
+    const new_element = output_doc.createElement(tag_name);
 
     for (const attr of Array.from(element.attributes)) {
       let sanitized_value = sanitize_attribute(
@@ -830,6 +826,15 @@ function sanitize_html_impl(
           attr_lower === "style" &&
           (lockdown_mode || block_css || block_images)
         ) {
+          const remote_css_urls = list_remote_css_urls(sanitized_value);
+
+          if (remote_css_urls.length > 0) {
+            external_content.has_remote_css = true;
+            external_content.blocked_count += remote_css_urls.length;
+            for (const url of remote_css_urls) {
+              external_content.blocked_items.push({ url, type: "css" });
+            }
+          }
           sanitized_value = strip_css_urls(sanitized_value);
         } else if (attr_lower === "style" && allowed_css_image_proxy) {
           sanitized_value = strip_css_urls(sanitized_value, {
@@ -969,7 +974,7 @@ function sanitize_html_impl(
       if (local_image.kind === "local") {
         const alt = new_element.getAttribute("alt");
 
-        return alt ? document.createTextNode(alt) : null;
+        return alt ? output_doc.createTextNode(alt) : null;
       }
 
       const original_local_src =
@@ -1003,7 +1008,7 @@ function sanitize_html_impl(
         );
 
         if (!is_safe_data_url) {
-          const placeholder = document.createElement("span");
+          const placeholder = output_doc.createElement("span");
 
           placeholder.className = "blocked-image";
           placeholder.textContent = "[Blocked data URL]";
@@ -1029,49 +1034,6 @@ function sanitize_html_impl(
             type: is_pixel ? "tracking_pixel" : "image",
           });
 
-          if (is_pixel && block_pixels) {
-            const pixel_placeholder = document.createElement("span");
-
-            pixel_placeholder.className = "blocked-image";
-            pixel_placeholder.setAttribute("data-original-src", src);
-            pixel_placeholder.setAttribute("data-tracking-pixel", "true");
-            pixel_placeholder.setAttribute(
-              "style",
-              "display:inline-block;width:0;height:0;overflow:hidden",
-            );
-
-            return pixel_placeholder;
-          }
-
-          if (
-            external_content_mode === "never" ||
-            (content_blocking && block_images)
-          ) {
-            const placeholder = document.createElement("span");
-
-            placeholder.className = "blocked-image";
-            placeholder.setAttribute("data-original-src", src);
-            placeholder.setAttribute(
-              "data-tracking-pixel",
-              is_pixel ? "true" : "false",
-            );
-
-            const w = new_element.getAttribute("width");
-            const h = new_element.getAttribute("height");
-            const s = new_element.getAttribute("style");
-
-            const alt = new_element.getAttribute("alt");
-
-            if (w) placeholder.setAttribute("data-width", w);
-            if (h) placeholder.setAttribute("data-height", h);
-            if (s) placeholder.setAttribute("data-style", s);
-            if (alt) placeholder.setAttribute("data-alt", alt);
-
-            placeholder.textContent = alt || "[Image blocked]";
-
-            return placeholder;
-          }
-
           new_element.setAttribute("data-original-src", src);
           new_element.setAttribute("data-blocked", "true");
           new_element.setAttribute(
@@ -1084,17 +1046,11 @@ function sanitize_html_impl(
               `${effective_proxy}?url=${encodeURIComponent(proxy_source)}`,
             );
           }
-          new_element.setAttribute(
-            "src",
-            "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==",
+          prepare_blocked_image(
+            new_element as HTMLImageElement,
+            is_pixel,
+            blocked_image_labels,
           );
-          new_element.setAttribute(
-            "alt",
-            new_element.getAttribute("alt") || "[Click to load image]",
-          );
-          new_element.className = (
-            new_element.className + " blocked-remote-image"
-          ).trim();
         } else if (effective_proxy) {
           new_element.setAttribute(
             "src",
@@ -1170,7 +1126,7 @@ function sanitize_html_impl(
     return new_element;
   };
 
-  const fragment = document.createDocumentFragment();
+  const fragment = output_doc.createDocumentFragment();
 
   if (sandbox_mode && doc.head) {
     for (const child of Array.from(doc.head.childNodes)) {
@@ -1195,11 +1151,11 @@ function sanitize_html_impl(
     }
   }
 
-  const container = document.createElement("div");
+  const container = output_doc.createElement("div");
 
   if (head_styles.length > 0) {
     for (const css of head_styles) {
-      const style_el = document.createElement("style");
+      const style_el = output_doc.createElement("style");
 
       style_el.textContent = escape_style_terminator(css);
       container.appendChild(style_el);

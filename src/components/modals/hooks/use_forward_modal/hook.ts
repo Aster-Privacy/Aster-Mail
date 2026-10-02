@@ -37,6 +37,7 @@ import {
 
 import { use_draggable_modal } from "@/hooks/use_draggable_modal";
 import { use_editor } from "@/hooks/use_editor";
+import { escape_html as escape_plain_text } from "@/hooks/editor_utils";
 import {
   store_pending_send_payload,
   undo_send_manager,
@@ -52,6 +53,8 @@ import { use_preferences } from "@/contexts/preferences_context";
 import { auto_save_recipients_to_contacts } from "@/services/contacts_auto_save";
 import { use_auth } from "@/contexts/auth_context";
 import { show_toast } from "@/components/toast/simple_toast";
+import { save_failed_send_as_draft } from "@/components/compose/compose_failed_send_draft";
+import { draft_manager } from "@/services/crypto/encrypted_drafts";
 import { show_email_sent_toast } from "@/components/toast/email_sent_toast";
 import { play_iconic_sound } from "@/services/iconic_sounds";
 import { format_bytes } from "@/lib/utils";
@@ -61,6 +64,7 @@ import {
   recipient_limit_violation,
 } from "@/lib/recipient_limits";
 import { use_suggestion_contacts } from "@/hooks/use_suggestion_contacts";
+import { check_scheduled_send } from "@/services/scheduled_send_gate";
 import {
   create_scheduled_email,
   type ScheduledEmailContent,
@@ -135,7 +139,11 @@ import { use_escape_layer } from "@/lib/overlay_layer_stack";
 import { user_facing_error } from "@/utils/user_facing_error";
 import { record_review_prompt_action } from "@/lib/review_prompt";
 import { ignore_error } from "@/lib/ignore_error";
-import { with_caret_block } from "@/lib/signature_html";
+import {
+  append_template_after_typed_text,
+  has_typed_content,
+  with_caret_block,
+} from "@/lib/signature_html";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import {
   find_locked_expiry_feature,
@@ -246,6 +254,7 @@ export function use_forward_modal({
   const send_lock_started_at_ref = useRef(0);
   const forward_content_ref = useRef("");
   const content_initialized_ref = useRef(false);
+  const body_edited_ref = useRef(false);
   const attachments_touched_ref = useRef(false);
 
   useEffect(() => {
@@ -273,7 +282,10 @@ export function use_forward_modal({
 
   const editor = use_editor({
     editor_ref: message_editor_ref as React.RefObject<HTMLDivElement | null>,
-    on_change: (html: string) => set_forward_message(html),
+    on_change: (html: string) => {
+      body_edited_ref.current = true;
+      set_forward_message(html);
+    },
     enable_rich_paste: !is_plain_text_mode,
     enable_keyboard_shortcuts: true,
     is_plain_text_mode,
@@ -420,6 +432,7 @@ export function use_forward_modal({
       is_sending_ref.current = false;
       send_lock_started_at_ref.current = 0;
       content_initialized_ref.current = false;
+      body_edited_ref.current = false;
       forward_content_ref.current = "";
     } else {
       clear_forward_mail_id();
@@ -450,7 +463,17 @@ export function use_forward_modal({
 
       const sanitized = sanitize_html(content, get_compose_sanitize_options());
 
-      message_editor_ref.current.innerHTML = sanitized.html;
+      if (
+        body_edited_ref.current &&
+        has_typed_content(message_editor_ref.current)
+      ) {
+        append_template_after_typed_text(
+          message_editor_ref.current,
+          sanitized.html,
+        );
+      } else {
+        message_editor_ref.current.innerHTML = sanitized.html;
+      }
       set_forward_message(
         restore_compose_image_sources(message_editor_ref.current.innerHTML),
       );
@@ -624,8 +647,33 @@ export function use_forward_modal({
   );
 
   const toggle_plain_text_mode = useCallback(() => {
-    set_is_plain_text_mode((prev) => !prev);
-  }, []);
+    const element = message_editor_ref.current;
+
+    if (element) {
+      const text = element.innerText;
+
+      if (is_plain_text_mode) {
+        const html = escape_plain_text(text).replace(/\n/g, "<br>");
+
+        element.innerHTML = html;
+        set_forward_message(html);
+      } else {
+        element.innerText = text;
+        set_forward_message(text);
+      }
+    }
+
+    set_is_plain_text_mode(!is_plain_text_mode);
+  }, [
+    is_plain_text_mode,
+    message_editor_ref,
+    set_is_plain_text_mode,
+    set_forward_message,
+  ]);
+
+  const outgoing_forward_message = is_plain_text_mode
+    ? escape_plain_text(forward_message).replace(/\n/g, "<br>")
+    : forward_message;
 
   const handle_forward = useCallback(async () => {
     if (
@@ -705,7 +753,9 @@ export function use_forward_modal({
     if (selected_sender?.type === "external" && selected_sender.address_hash) {
       const subject = `${t("mail.forward_subject_prefix")} ${email_subject}`;
       const ext_body =
-        (forward_message ? forward_message + "<br><br>" : "") +
+        (outgoing_forward_message
+          ? outgoing_forward_message + "<br><br>"
+          : "") +
         sanitize_outgoing_html(send_content) +
         get_aster_footer(t, preferences.show_aster_branding);
       const external_attachments =
@@ -789,13 +839,38 @@ export function use_forward_modal({
       ? undefined
       : fwd_mail_id;
 
+    const forward_subject = `${t("mail.forward_subject_prefix")} ${email_subject}`;
+    let handed_off = false;
+    const keep_failed_forward = async (): Promise<boolean> => {
+      if (!vault) return false;
+
+      return save_failed_send_as_draft(
+        draft_manager,
+        vault,
+        {
+          to: send_recipients.to,
+          cc: send_recipients.cc,
+          bcc: send_recipients.bcc,
+          subject: forward_subject,
+          body:
+            (outgoing_forward_message
+              ? outgoing_forward_message + "<br><br>"
+              : "") + sanitize_outgoing_html(send_content),
+          sender_email: selected_sender?.email,
+          attachments: fwd_attachments,
+        },
+        null,
+        { draft_type: "forward", forward_from_id: fwd_mail_id || undefined },
+      ).catch(() => false);
+    };
+
     const result = await send_forward(
       {
         original,
         recipients: send_recipients.to,
         cc_recipients: send_recipients.cc,
         bcc_recipients: send_recipients.bcc,
-        message: forward_message,
+        message: outgoing_forward_message,
         prebuilt_content: send_content,
         expires_at: expires_at?.toISOString(),
         sender_email: fwd_sender_email,
@@ -803,6 +878,7 @@ export function use_forward_modal({
         sender_display_name: fwd_sender_display_name,
         attachments: fwd_attachments,
         forward_original_mail_id: fwd_server_source_id,
+        require_encryption: preferences.require_encryption === true,
       },
       {
         on_complete: (sent_id?: string) => {
@@ -825,6 +901,16 @@ export function use_forward_modal({
           send_lock_started_at_ref.current = 0;
           set_error_message(error);
           set_is_sending(false);
+          if (handed_off) {
+            void keep_failed_forward().then((kept) => {
+              show_toast(
+                error || t("common.failed_to_forward"),
+                "error",
+                10000,
+              );
+              if (!kept) show_toast(t("common.failed_to_save"), "error");
+            });
+          }
         },
       },
       delay_ms,
@@ -839,10 +925,13 @@ export function use_forward_modal({
     }));
 
     if (result.success && result.queued_id) {
+      handed_off = true;
       if (delay_seconds > 0) {
-        const undo_subject = `${t("mail.forward_subject_prefix")} ${email_subject}`;
+        const undo_subject = forward_subject;
         const undo_body =
-          (forward_message ? forward_message + "<br><br>" : "") +
+          (outgoing_forward_message
+            ? outgoing_forward_message + "<br><br>"
+            : "") +
           sanitize_outgoing_html(send_content) +
           get_aster_footer(t, preferences.show_aster_branding);
 
@@ -865,7 +954,7 @@ export function use_forward_modal({
           cc: send_recipients.cc,
           bcc: send_recipients.bcc,
           subject: undo_subject,
-          body: forward_message,
+          body: outgoing_forward_message,
           sender_email: fwd_sender_email,
           scheduled_time: Date.now() + delay_ms,
           total_seconds: delay_seconds,
@@ -892,7 +981,7 @@ export function use_forward_modal({
     email_subject,
     email_body,
     email_timestamp,
-    forward_message,
+    outgoing_forward_message,
     preferences.undo_send_period,
     preferences.undo_send_enabled,
     preferences.undo_send_seconds,
@@ -907,6 +996,7 @@ export function use_forward_modal({
     original_mail_id,
     build_forward_content,
     preferences.show_aster_branding,
+    vault,
   ]);
 
   const handle_scheduled_send = useCallback(async () => {
@@ -922,6 +1012,58 @@ export function use_forward_modal({
       return;
     }
 
+    if (selected_sender?.type === "external") {
+      set_error_message(t("common.scheduled_connected_account"));
+
+      return;
+    }
+
+    if (expires_at) {
+      set_error_message(t("common.scheduled_no_expiry"));
+
+      return;
+    }
+
+    const recipient_violation = recipient_limit_violation(
+      send_recipients.to,
+      send_recipients.cc,
+      send_recipients.bcc,
+    );
+
+    if (recipient_violation) {
+      set_error_message(
+        recipient_violation === "field"
+          ? t("common.too_many_recipients_in_field", {
+              max: MAX_RECIPIENTS_PER_FIELD,
+            })
+          : t("common.too_many_recipients_in_message", {
+              max: MAX_RECIPIENTS_PER_SEND,
+            }),
+      );
+
+      return;
+    }
+
+    const scheduled_alias =
+      selected_sender && selected_sender.type !== "primary"
+        ? selected_sender
+        : null;
+    const scheduled_sender_email = scheduled_alias?.email ?? user.email;
+    const scheduled_gate = await check_scheduled_send(
+      [...send_recipients.to, ...send_recipients.cc, ...send_recipients.bcc],
+      scheduled_sender_email,
+      scheduled_time,
+      preferences.require_encryption === true,
+    );
+
+    if (!scheduled_gate.proceed) {
+      if (scheduled_gate.blocked_by) {
+        set_error_message(t(scheduled_gate.blocked_by));
+      }
+
+      return;
+    }
+
     is_sending_ref.current = true;
     set_is_scheduling(true);
     set_error_message(null);
@@ -931,7 +1073,7 @@ export function use_forward_modal({
       attachments_ref.current,
     );
     const scheduled_body =
-      (forward_message ? forward_message + "<br><br>" : "") +
+      (outgoing_forward_message ? outgoing_forward_message + "<br><br>" : "") +
       sanitize_outgoing_html(scheduled_content) +
       get_aster_footer(t, preferences.show_aster_branding);
     const content: ScheduledEmailContent = {
@@ -941,10 +1083,25 @@ export function use_forward_modal({
       subject: `${t("mail.forward_subject_prefix")} ${email_subject}`,
       body: scheduled_body,
       scheduled_at: scheduled_time.toISOString(),
+      ...(scheduled_alias?.is_catch_all
+        ? {
+            from: {
+              name: scheduled_alias.display_name || "",
+              email: scheduled_alias.email,
+            },
+          }
+        : {}),
     };
 
     try {
-      const response = await create_scheduled_email(vault, content);
+      const response = await create_scheduled_email(vault, content, {
+        sender_alias_hash: scheduled_alias?.address_hash,
+        sender_email: scheduled_sender_email,
+        sender_display_name: scheduled_alias
+          ? scheduled_alias.display_name || undefined
+          : user.display_name || undefined,
+        allow_non_post_quantum: scheduled_gate.allow_non_post_quantum,
+      });
 
       if (response.error) {
         set_error_message(response.error);
@@ -976,11 +1133,14 @@ export function use_forward_modal({
     vault,
     scheduled_time,
     email_subject,
-    forward_message,
+    outgoing_forward_message,
     on_close,
     attachments,
     build_forward_content,
     preferences.show_aster_branding,
+    preferences.require_encryption,
+    selected_sender,
+    expires_at,
   ]);
 
   const get_total_attachments_size = useCallback(() => {

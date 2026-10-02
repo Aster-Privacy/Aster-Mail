@@ -168,6 +168,11 @@ export function use_protected_folder(
   );
 
   useEffect(() => {
+    set_is_unlocked(unlocked_folders.has(folder_id));
+    set_error(null);
+  }, [folder_id]);
+
+  useEffect(() => {
     const handle_folder_locked = (event: Event) => {
       const custom_event = event as CustomEvent<{ folder_id: string }>;
 

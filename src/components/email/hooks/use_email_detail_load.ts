@@ -382,7 +382,7 @@ export function use_email_detail_load() {
     stored_grouped_email_ids,
   ]);
 
-  const fetch_email = useCallback(async () => {
+  const load_email = useCallback(async () => {
     if (!email_id) {
       set_is_loading(false);
 
@@ -785,8 +785,13 @@ export function use_email_detail_load() {
       void prefetch_attachment_previews(email_id);
 
       if (envelope) {
-        const { body_text, safe_html, unsubscribe_info } =
-          await process_envelope_body(envelope, user?.email, response.data.id);
+        const { body_text, safe_html, unsubscribe_info, e2e_verified } =
+          await process_envelope_body(
+            envelope,
+            user?.email,
+            response.data.id,
+            response.data.dkim_result,
+          );
 
         const decrypted: import("@/components/email/hooks/email_detail_types").DecryptedEmail =
           {
@@ -819,6 +824,7 @@ export function use_email_detail_load() {
             attachments: [],
             labels: [],
             unsubscribe_info,
+            e2e_verified,
             reply_to: (() => {
               const parsed = extract_reply_to(envelope.raw_headers);
 
@@ -837,6 +843,7 @@ export function use_email_detail_load() {
           body_text,
           safe_html,
           decrypted_metadata,
+          e2e_verified,
         );
 
         if (
@@ -906,6 +913,15 @@ export function use_email_detail_load() {
         }
       }
 
+      if (!envelope && is_first_load) {
+        if (is_stale()) return;
+
+        set_error(t("common.something_went_wrong_try_again"));
+        set_is_loading(false);
+
+        return;
+      }
+
       await attachment_meta_ready;
 
       if (is_stale()) return;
@@ -931,6 +947,27 @@ export function use_email_detail_load() {
     preferences.conversation_grouping,
     t,
   ]);
+
+  const fetch_email = useCallback(async () => {
+    const pending = load_email();
+    const my_seq = load_seq_ref.current;
+
+    try {
+      await pending;
+    } catch (caught) {
+      ignore_error(
+        "components/email/hooks/use_email_detail_load:fetch_email",
+        caught,
+      );
+
+      if (load_seq_ref.current !== my_seq) return;
+
+      if (!has_loaded_once.current) {
+        set_error(t("common.something_went_wrong_try_again"));
+      }
+      set_is_loading(false);
+    }
+  }, [load_email, t]);
 
   return {
     t,

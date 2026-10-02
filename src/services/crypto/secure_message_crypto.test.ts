@@ -137,3 +137,118 @@ describe("secure_message_crypto", () => {
     );
   });
 });
+
+const LEGACY_MESSAGE_PHRASE = "Legacy-password-2024";
+
+function to_base64(bytes: Uint8Array): string {
+  return btoa(String.fromCharCode(...bytes));
+}
+
+async function legacy_key(salt: Uint8Array): Promise<CryptoKey> {
+  const material = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(LEGACY_MESSAGE_PHRASE),
+    "PBKDF2",
+    false,
+    ["deriveBits"],
+  );
+  const bits = new Uint8Array(
+    await crypto.subtle.deriveBits(
+      { name: "PBKDF2", salt, iterations: 310000, hash: "SHA-256" },
+      material,
+      512,
+    ),
+  );
+
+  return crypto.subtle.importKey(
+    "raw",
+    bits.slice(0, 32),
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["encrypt"],
+  );
+}
+
+async function seal(key: CryptoKey, text: string, aad?: string) {
+  const nonce = crypto.getRandomValues(new Uint8Array(12));
+  const params: AesGcmParams = aad
+    ? {
+        name: "AES-GCM",
+        iv: nonce,
+        additionalData: new TextEncoder().encode(aad),
+      }
+    : { name: "AES-GCM", iv: nonce };
+  const ciphertext = new Uint8Array(
+    await crypto.subtle.encrypt(params, key, new TextEncoder().encode(text)),
+  );
+
+  return { ciphertext: to_base64(ciphertext), nonce: to_base64(nonce) };
+}
+
+describe("secure message AAD binding", () => {
+  it("still opens a legacy message written without AAD", async () => {
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const key = await legacy_key(salt);
+
+    const decrypted = await decrypt_secure_message(
+      LEGACY_MESSAGE_PHRASE,
+      to_base64(salt),
+      {
+        encrypted_subject: await seal(key, "old subject"),
+        encrypted_body: await seal(key, "old body"),
+      },
+    );
+
+    expect(decrypted.subject).toBe("old subject");
+    expect(decrypted.body).toBe("old body");
+  });
+
+  it("rejects a bound subject paired with an unbound body", async () => {
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const key = await legacy_key(salt);
+
+    await expect(
+      decrypt_secure_message(LEGACY_MESSAGE_PHRASE, to_base64(salt), {
+        encrypted_subject: await seal(
+          key,
+          "subject",
+          "aster-secure-send-v2|field=subject",
+        ),
+        encrypted_body: await seal(key, "body"),
+      }),
+    ).rejects.toThrow();
+  });
+
+  it("rejects an unbound subject paired with a bound body", async () => {
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const key = await legacy_key(salt);
+
+    await expect(
+      decrypt_secure_message(LEGACY_MESSAGE_PHRASE, to_base64(salt), {
+        encrypted_subject: await seal(key, "subject"),
+        encrypted_body: await seal(
+          key,
+          "body",
+          "aster-secure-send-v2|field=body",
+        ),
+      }),
+    ).rejects.toThrow();
+  });
+
+  it("rejects fields swapped between slots", async () => {
+    const encrypted = await encrypt_secure_message(LEGACY_MESSAGE_PHRASE, {
+      subject: "the subject",
+      body: "the body",
+    });
+
+    await expect(
+      decrypt_secure_message(LEGACY_MESSAGE_PHRASE, encrypted.kdf_salt, {
+        encrypted_subject: encrypted.encrypted_body,
+        encrypted_body: encrypted.encrypted_subject,
+        kem_ciphertext: encrypted.kem_ciphertext,
+        encrypted_kem_seed: encrypted.encrypted_kem_seed,
+        kem_seed_nonce: encrypted.kem_seed_nonce,
+      }),
+    ).rejects.toThrow();
+  });
+});

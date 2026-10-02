@@ -362,7 +362,7 @@ export function SplitEmailViewer({
             unsubscribe_link: info.unsubscribe_link,
             list_unsubscribe_header: info.list_unsubscribe_header,
           },
-          "auto",
+          "manual",
         );
 
         return "success";
@@ -377,7 +377,12 @@ export function SplitEmailViewer({
           on_undo: async () => {
             const url = get_manual_unsubscribe_url(info);
 
-            if (url) open_external(url);
+            if (!url) return;
+            open_external(url);
+            persist_unsubscribe(email.sender_email, email.sender || "", {
+              unsubscribe_link: info.unsubscribe_link,
+              list_unsubscribe_header: info.list_unsubscribe_header,
+            });
           },
         }),
       });
@@ -482,7 +487,11 @@ export function SplitEmailViewer({
             <XMarkIcon className="w-5 h-5" />
           </button>
         </div>
-        <ViewerErrorState error={viewer.error} on_dismiss={on_close} />
+        <ViewerErrorState
+          error={viewer.error}
+          on_dismiss={on_close}
+          on_retry={viewer.retry_load}
+        />
       </div>
     );
   }
@@ -583,6 +592,7 @@ export function SplitEmailViewer({
                     style={{ verticalAlign: "-0.15em" }}
                   >
                     <EncryptionInfoDropdown
+                      e2e_verified={viewer.e2e_verified}
                       has_pq_protection={viewer.has_pq_protection}
                       has_recipient_key={viewer.has_recipient_key}
                       is_external={viewer.is_external}
@@ -632,7 +642,12 @@ export function SplitEmailViewer({
                 on_forward={viewer.handle_per_message_forward}
                 on_load_external_content={handle_load_external_content}
                 on_manual_unsubscribed={() => {
-                  if (email) mark_unsubscribed(email.sender_email);
+                  if (!email) return;
+                  persist_unsubscribe(email.sender_email, email.sender || "", {
+                    unsubscribe_link: email.unsubscribe_info?.unsubscribe_link,
+                    list_unsubscribe_header:
+                      email.unsubscribe_info?.list_unsubscribe_header,
+                  });
                 }}
                 on_not_spam={
                   viewer.mail_item?.is_spam

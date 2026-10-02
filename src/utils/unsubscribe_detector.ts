@@ -28,9 +28,7 @@ import {
 import { confirm_unsubscribe } from "@/components/modals/unsubscribe_confirmation_modal";
 
 export type UnsubscribeErrorCode =
-  | "no_method"
-  | "invalid_address"
-  | "cancelled";
+  "no_method" | "invalid_address" | "cancelled";
 
 export class UnsubscribeError extends Error {
   code: UnsubscribeErrorCode;
@@ -123,20 +121,42 @@ function extract_mailto_from_header(header: string): string | null {
   return null;
 }
 
+function extract_http_links_from_header(header: string): string[] {
+  const bracketed = [...header.matchAll(/<\s*(https?:\/\/[^>\s]+)\s*>/gi)]
+    .map((match) => match[1])
+    .filter(is_valid_url);
+
+  if (bracketed.length > 0) {
+    return bracketed;
+  }
+
+  return [...header.matchAll(/(https?:\/\/[^,\s>]+)/gi)]
+    .map((match) => match[1])
+    .filter(is_valid_url);
+}
+
 function extract_http_from_header(header: string): string | null {
-  const http_match = header.match(/<(https?:\/\/[^>]+)>/i);
+  return extract_http_links_from_header(header)[0] ?? null;
+}
 
-  if (http_match) {
-    return http_match[1];
+function is_https_url(url: string): boolean {
+  try {
+    return new URL(url).protocol === "https:";
+  } catch {
+    return false;
   }
+}
 
-  const bare_match = header.match(/(https?:\/\/[^,\s>]+)/i);
+export const ONE_CLICK_POST_VALUE = "List-Unsubscribe=One-Click";
 
-  if (bare_match) {
-    return bare_match[1];
-  }
+export function is_one_click_post_header(value?: string | null): boolean {
+  return value?.trim().toLowerCase() === ONE_CLICK_POST_VALUE.toLowerCase();
+}
 
-  return null;
+function is_dkim_acceptable(dkim_result?: string | null): boolean {
+  const normalized = dkim_result?.trim().toLowerCase();
+
+  return !normalized || normalized === "pass";
 }
 
 function find_body_unsubscribe_link(
@@ -208,7 +228,11 @@ function find_body_unsubscribe_link(
 export function detect_unsubscribe_info(
   html_content?: string,
   text_content?: string,
-  headers?: { list_unsubscribe?: string; list_unsubscribe_post?: string },
+  headers?: {
+    list_unsubscribe?: string;
+    list_unsubscribe_post?: string;
+    dkim_result?: string | null;
+  },
 ): UnsubscribeInfo {
   const result: UnsubscribeInfo = {
     has_unsubscribe: false,
@@ -230,28 +254,47 @@ export function detect_unsubscribe_info(
     result.list_unsubscribe_header = headers.list_unsubscribe;
 
     const mailto = extract_mailto_from_header(headers.list_unsubscribe);
-    const http_link = extract_http_from_header(headers.list_unsubscribe);
+    const http_links = extract_http_links_from_header(headers.list_unsubscribe);
+    const https_link = http_links.find(is_https_url);
+    const post_declared = is_one_click_post_header(
+      headers.list_unsubscribe_post,
+    );
 
-    if (headers.list_unsubscribe_post && http_link) {
+    if (post_declared) {
+      result.list_unsubscribe_post = ONE_CLICK_POST_VALUE;
+    }
+
+    if (
+      post_declared &&
+      https_link &&
+      is_dkim_acceptable(headers.dkim_result)
+    ) {
       result.has_unsubscribe = true;
       result.method = "one-click";
-      result.unsubscribe_link = http_link;
-      result.list_unsubscribe_post = headers.list_unsubscribe_post;
+      result.unsubscribe_link = https_link;
+
+      if (mailto) {
+        result.unsubscribe_mailto = mailto;
+      }
 
       const page_url = resolve_body_link();
 
       if (page_url) {
         result.unsubscribe_page_url = page_url;
       }
-    } else if (http_link) {
-      result.has_unsubscribe = true;
-      result.method = "link";
-      result.unsubscribe_link = http_link;
-      result.unsubscribe_page_url = http_link;
     } else if (mailto) {
       result.has_unsubscribe = true;
       result.method = "mailto";
       result.unsubscribe_mailto = mailto;
+
+      if (!post_declared && http_links[0]) {
+        result.unsubscribe_page_url = http_links[0];
+      }
+    } else if (http_links[0] && !post_declared) {
+      result.has_unsubscribe = true;
+      result.method = "link";
+      result.unsubscribe_link = http_links[0];
+      result.unsubscribe_page_url = http_links[0];
     }
 
     if (result.has_unsubscribe) {
@@ -269,6 +312,37 @@ export function detect_unsubscribe_info(
   }
 
   return result;
+}
+
+export function unsubscribe_info_from_stored(stored: {
+  unsubscribe_link?: string;
+  list_unsubscribe_header?: string;
+  list_unsubscribe_post?: string;
+}): UnsubscribeInfo {
+  const detected = detect_unsubscribe_info(undefined, undefined, {
+    list_unsubscribe: stored.list_unsubscribe_header,
+    list_unsubscribe_post: stored.list_unsubscribe_post,
+  });
+
+  if (detected.has_unsubscribe) {
+    return detected;
+  }
+
+  if (
+    stored.unsubscribe_link &&
+    is_valid_url(stored.unsubscribe_link) &&
+    !stored.list_unsubscribe_post
+  ) {
+    return {
+      ...detected,
+      has_unsubscribe: true,
+      method: "link",
+      unsubscribe_link: stored.unsubscribe_link,
+      unsubscribe_page_url: stored.unsubscribe_link,
+    };
+  }
+
+  return detected;
 }
 
 export function get_unsubscribe_display_text(
@@ -431,14 +505,18 @@ async function call_proxy(
   }
 }
 
+function has_manual_page(unsub_info: UnsubscribeInfo): boolean {
+  return Boolean(
+    unsub_info.unsubscribe_page_url ||
+    (unsub_info.unsubscribe_link && unsub_info.method !== "one-click"),
+  );
+}
+
 export async function execute_unsubscribe(
   unsub_info: UnsubscribeInfo,
   options?: ExecuteUnsubscribeOptions,
 ): Promise<UnsubscribeResult> {
-  const confirm_destination =
-    unsub_info.unsubscribe_link || unsub_info.unsubscribe_mailto || "";
-
-  if (!confirm_destination) {
+  if (!unsub_info.unsubscribe_link && !unsub_info.unsubscribe_mailto) {
     throw new UnsubscribeError("no_method");
   }
 
@@ -447,7 +525,7 @@ export async function execute_unsubscribe(
       {
         method: "one-click",
         url: unsub_info.unsubscribe_link,
-        list_unsubscribe_post: unsub_info.list_unsubscribe_post,
+        list_unsubscribe_post: ONE_CLICK_POST_VALUE,
       },
       options,
     );
@@ -455,21 +533,6 @@ export async function execute_unsubscribe(
     if (succeeded) {
       return "api";
     }
-  }
-
-  if (unsub_info.unsubscribe_link) {
-    if (unsub_info.method === "link") {
-      const succeeded = await call_proxy(
-        { method: "link", url: unsub_info.unsubscribe_link },
-        options,
-      );
-
-      if (succeeded) {
-        return "api";
-      }
-    }
-
-    return "link";
   }
 
   if (unsub_info.unsubscribe_mailto) {
@@ -481,11 +544,25 @@ export async function execute_unsubscribe(
     if (succeeded) {
       return "api";
     }
-
-    return "mailto";
   }
 
-  throw new UnsubscribeError("no_method");
+  if (has_manual_page(unsub_info) || !unsub_info.unsubscribe_mailto) {
+    return "link";
+  }
+
+  return "mailto";
+}
+
+function is_safe_mailto_target(raw: string): boolean {
+  const address = raw.replace(/^mailto:/i, "").split("?")[0];
+
+  return (
+    raw.length > 0 &&
+    raw.length < 2048 &&
+    !/[<>"'\s]/.test(raw) &&
+    address.length < 320 &&
+    /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(address)
+  );
 }
 
 export async function perform_unsubscribe(
@@ -501,7 +578,9 @@ export async function perform_unsubscribe(
         ? "mailto"
         : "url";
   const confirm_destination =
-    unsub_info.unsubscribe_link || unsub_info.unsubscribe_mailto || "";
+    unsub_info.method === "mailto"
+      ? unsub_info.unsubscribe_mailto || ""
+      : unsub_info.unsubscribe_link || unsub_info.unsubscribe_mailto || "";
 
   if (!confirm_destination) {
     throw new UnsubscribeError("no_method");
@@ -519,59 +598,19 @@ export async function perform_unsubscribe(
     }
   }
 
-  if (unsub_info.method === "one-click" && unsub_info.unsubscribe_link) {
-    const result = await proxy_unsubscribe({
-      method: "one-click",
-      url: unsub_info.unsubscribe_link,
-      list_unsubscribe_post: unsub_info.list_unsubscribe_post,
-    });
+  const result = await execute_unsubscribe(unsub_info);
 
-    if (result.data?.success) {
-      return "api";
-    }
+  if (result !== "mailto") {
+    return result;
   }
 
-  if (unsub_info.unsubscribe_link) {
-    if (unsub_info.method === "link") {
-      const result = await proxy_unsubscribe({
-        method: "link",
-        url: unsub_info.unsubscribe_link,
-      });
+  const mailto_target = unsub_info.unsubscribe_mailto ?? "";
 
-      if (result.data?.success) {
-        return "api";
-      }
-    }
-
-    return "link";
+  if (!is_safe_mailto_target(mailto_target)) {
+    throw new UnsubscribeError("invalid_address");
   }
 
-  if (unsub_info.unsubscribe_mailto) {
-    const result = await proxy_unsubscribe({
-      method: "mailto",
-      mailto_address: unsub_info.unsubscribe_mailto,
-    });
+  window.location.href = to_mailto_url(mailto_target);
 
-    if (result.data?.success) {
-      return "api";
-    }
-
-    const mailto_address = unsub_info.unsubscribe_mailto;
-    const is_valid_address =
-      typeof mailto_address === "string" &&
-      mailto_address.length > 0 &&
-      mailto_address.length < 320 &&
-      !/[\r\n\t<>"']/.test(mailto_address) &&
-      /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mailto_address);
-
-    if (!is_valid_address) {
-      throw new UnsubscribeError("invalid_address");
-    }
-
-    window.location.href = `mailto:${encodeURIComponent(mailto_address)}?subject=Unsubscribe`;
-
-    return "mailto";
-  }
-
-  throw new UnsubscribeError("no_method");
+  return "mailto";
 }

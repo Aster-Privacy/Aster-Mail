@@ -29,13 +29,14 @@ import {
 } from "./crypto/attachment_crypto";
 import { array_to_base64 } from "./crypto/envelope";
 import { encrypt_secure_message } from "./crypto/secure_message_crypto";
+import { is_strong_message_password } from "./password_strength_score";
+import { check_send_readiness_internal } from "./send_queue_body_encryption";
 import {
-  check_send_readiness_internal,
-  encrypt_for_recipients,
-} from "./send_queue_body_encryption";
+  encrypt_attachments_with_private_bcc,
+  encrypt_with_private_bcc,
+} from "./send_private_bcc";
 import { create_sent_envelope } from "./send_queue_envelope";
 import { encrypt_with_ephemeral_key } from "./send_queue_ephemeral";
-import { fetch_internal_public_keys } from "./send_queue_recipients";
 import {
   classify_recipients,
   is_internal_recipient,
@@ -65,6 +66,19 @@ import {
   type Attachment,
 } from "@/components/compose/compose_shared";
 import { ignore_error } from "@/lib/ignore_error";
+
+const CLIENT_SEND_ID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export function resolve_client_send_id(
+  ...candidates: (string | undefined)[]
+): string {
+  return (
+    candidates.find(
+      (candidate) => !!candidate && CLIENT_SEND_ID_PATTERN.test(candidate),
+    ) ?? crypto.randomUUID()
+  );
+}
 
 export async function execute_send(
   email: QueuedEmailInternal,
@@ -120,13 +134,17 @@ export async function execute_send(
     body_for_recipient,
   );
 
-  const { encrypted_body, is_encrypted, internal_encrypted_body } =
-    await encrypt_for_recipients(
-      bundled_body_for_recipient,
-      all_recipients,
-      sender_email,
-      email.allow_non_post_quantum === true,
-    );
+  const {
+    encrypted_body,
+    is_encrypted,
+    internal_encrypted_body,
+    recipient_bodies,
+  } = await encrypt_with_private_bcc(
+    bundled_body_for_recipient,
+    { to: email.to, cc: email.cc, bcc: email.bcc },
+    sender_email,
+    email.allow_non_post_quantum === true,
+  );
 
   const final_recipient_body = is_encrypted
     ? encrypted_body
@@ -147,24 +165,15 @@ export async function execute_send(
   let encrypted_attachments;
 
   if (all_attachments.length > 0) {
-    const recipient_public_keys =
-      await fetch_internal_public_keys(all_recipients);
-
-    if (internal_copy_is_encrypted && recipient_public_keys.length === 0) {
-      throw create_error(
-        "encryption_failed",
-        get_active_translations().errors.cannot_send_no_recipient_keys,
-      );
-    }
-
-    encrypted_attachments = await encrypt_attachments_for_send(
+    encrypted_attachments = await encrypt_attachments_with_private_bcc(
       all_attachments,
-      recipient_public_keys.length > 0 ? recipient_public_keys : undefined,
+      { to: email.to, cc: email.cc, bcc: email.bcc },
       internal_copy_is_encrypted,
     );
   }
 
   const request: Parameters<typeof send_simple_email>[0] = {
+    client_send_id: resolve_client_send_id(email.client_send_id, email.id),
     to: email.to,
     cc: email.cc,
     bcc: email.bcc,
@@ -174,6 +183,9 @@ export async function execute_send(
     internal_encrypted_body,
     ...(internal_copy_is_encrypted && hosted_recipients.length > 0
       ? { hosted_recipients }
+      : {}),
+    ...(internal_copy_is_encrypted && recipient_bodies
+      ? { recipient_bodies }
       : {}),
     encrypted_envelope: envelope_data.encrypted_envelope,
     envelope_nonce: envelope_data.envelope_nonce,
@@ -265,6 +277,42 @@ async function store_sent_copy_attachments(
     ignore_error(
       "services/send_queue_execute:store_sent_copy_attachments",
       caught,
+    );
+  }
+}
+
+export async function assert_required_encryption_keys(
+  recipients: string[],
+  recipient_keys?: EmailParams["recipient_keys"],
+): Promise<void> {
+  if (recipients.length === 0) return;
+
+  const keys =
+    recipient_keys ??
+    (await discover_external_recipient_keys(recipients, true))
+      .recipients_with_keys;
+
+  if (!keys || keys.length === 0) {
+    throw create_error(
+      "encryption_failed",
+      get_active_translations().errors.cannot_send_no_recipient_keys,
+    );
+  }
+
+  const with_keys = new Set(
+    keys
+      .filter((r) => r.has_key && r.public_key)
+      .map((r) => r.email.toLowerCase()),
+  );
+  const missing = recipients.filter((r) => !with_keys.has(r.toLowerCase()));
+
+  if (missing.length > 0) {
+    throw create_error(
+      "encryption_failed",
+      get_active_translations().errors.cannot_send_no_keys.replace(
+        "{{recipients}}",
+        missing.join(", "),
+      ),
     );
   }
 }
@@ -372,6 +420,12 @@ export async function execute_external_send(
   let secure_message;
 
   if (is_secure_external && email.expiry_password) {
+    if (!is_strong_message_password(email.expiry_password)) {
+      throw new SendError(
+        get_active_translations().errors.message_password_too_weak,
+      );
+    }
+
     const secure_attachments = smtp_attachments.map((a) => ({
       filename: a.name,
       content_type: a.mime_type,
@@ -476,6 +530,7 @@ export async function execute_external_send(
   }
 
   const external_request: Parameters<typeof send_external_email>[0] = {
+    client_send_id: resolve_client_send_id(email.client_send_id),
     encrypted_recipients: encrypted.encrypted_recipients,
     encrypted_subject: encrypted.encrypted_subject,
     encrypted_body: encrypted.encrypted_body,

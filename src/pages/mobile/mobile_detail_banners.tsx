@@ -36,7 +36,10 @@ import {
 } from "@/utils/unsubscribe_detector";
 import { open_external } from "@/utils/open_link";
 import { track_subscription } from "@/services/api/subscriptions";
-import { persist_unsubscribe } from "@/hooks/use_unsubscribed_senders";
+import {
+  persist_unsubscribe,
+  use_unsubscribed_senders,
+} from "@/hooks/use_unsubscribed_senders";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -61,6 +64,7 @@ export function MobileUnsubscribeBanner({
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
 }) {
   const { preferences } = use_preferences();
+  const { is_unsubscribed } = use_unsubscribed_senders();
   const [dismissed, set_dismissed] = useState(false);
   const pending_timeout_ref = useRef<NodeJS.Timeout | null>(null);
   const cancelled_ref = useRef(false);
@@ -76,9 +80,21 @@ export function MobileUnsubscribeBanner({
 
   if (dismissed || !email.unsubscribe_info?.has_unsubscribe) return null;
   if (is_system_email(email)) return null;
+  if (is_unsubscribed(email.sender_email)) return null;
 
   const info = email.unsubscribe_info;
   const domain = get_sender_domain(email.sender_email);
+
+  const record_unsubscribed = () =>
+    persist_unsubscribe(
+      email.sender_email,
+      email.sender || "",
+      {
+        unsubscribe_link: info.unsubscribe_link,
+        list_unsubscribe_header: info.list_unsubscribe_header,
+      },
+      "manual",
+    );
 
   const handle_unsubscribe = () => {
     cancelled_ref.current = false;
@@ -102,11 +118,11 @@ export function MobileUnsubscribeBanner({
       ),
     );
 
-    show_action_toast({
-      message: t("mail.successfully_unsubscribed"),
-      action_type: "not_spam",
-      email_ids: [],
-      ...(delay_ms > 0 && {
+    if (delay_ms > 0) {
+      show_action_toast({
+        message: t("settings.unsubscribing"),
+        action_type: "not_spam",
+        email_ids: [],
         duration_ms: delay_ms,
         on_undo: async () => {
           cancelled_ref.current = true;
@@ -116,8 +132,8 @@ export function MobileUnsubscribeBanner({
           }
           if (mounted_ref.current) set_dismissed(false);
         },
-      }),
-    });
+      });
+    }
 
     pending_timeout_ref.current = setTimeout(async () => {
       pending_timeout_ref.current = null;
@@ -127,15 +143,12 @@ export function MobileUnsubscribeBanner({
         const result = await execute_unsubscribe(info as never);
 
         if (result === "api") {
-          persist_unsubscribe(
-            email.sender_email,
-            email.sender || "",
-            {
-              unsubscribe_link: info.unsubscribe_link,
-              list_unsubscribe_header: info.list_unsubscribe_header,
-            },
-            "auto",
-          );
+          record_unsubscribed();
+          show_action_toast({
+            message: t("mail.successfully_unsubscribed"),
+            action_type: "not_spam",
+            email_ids: [],
+          });
         }
         if (result !== "api") {
           const url = get_manual_unsubscribe_url(info);
@@ -151,11 +164,16 @@ export function MobileUnsubscribeBanner({
                 action_label: t("mail.open_unsubscribe_page"),
                 on_undo: async () => {
                   open_external(url);
+                  record_unsubscribed();
                 },
               }),
           });
+          if (mounted_ref.current && (lockdown || !url)) {
+            set_dismissed(false);
+          }
         }
       } catch {
+        if (mounted_ref.current) set_dismissed(false);
         show_action_toast({
           message: t("mail.unsubscribe_failed"),
           action_type: "not_spam",

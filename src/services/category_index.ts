@@ -831,7 +831,7 @@ function apply_upsert(
     let entry = raw;
     const intended =
       get_read_intent(raw.id, fetched_at, raw.is_read) ??
-      (scope_read_applies(raw.message_ts) ? true : undefined);
+      (scope_read_applies(raw.message_ts, fetched_at) ? true : undefined);
 
     if (intended !== undefined && entry.is_read !== intended) {
       entry = { ...entry, is_read: intended };

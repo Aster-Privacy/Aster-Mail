@@ -91,8 +91,7 @@ export interface EmailInboxProps {
   on_email_click?: (id: string) => void;
   split_email_id?: string | null;
   split_local_email?:
-    | import("@/components/email/email_viewer_types").LocalEmailData
-    | null;
+    import("@/components/email/email_viewer_types").LocalEmailData | null;
   on_split_close?: () => void;
   split_scheduled_data?: ScheduledClickData | null;
   active_email_id?: string | null;
@@ -126,6 +125,6 @@ export interface EmailInboxProps {
   current_email_index?: number;
   total_email_count?: number;
   on_navigate_to?: (id: string) => void;
-  on_auto_advance?: () => boolean;
+  on_auto_advance?: (remaining_ids?: string[]) => boolean;
   on_view_change?: (route: string) => void;
 }

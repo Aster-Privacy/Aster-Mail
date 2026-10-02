@@ -34,6 +34,7 @@ import {
   link_hover_ink_for,
   link_ink_for,
   needs_settle_remeasure,
+  resolve_backdrop_color,
   resolve_native_images,
   safe_hex,
 } from "./helpers";
@@ -50,6 +51,9 @@ import {
 } from "@/lib/email_body_styles";
 import {
   LINK_HOVER_VAR,
+  LINK_INK_LAYER_ATTRIBUTE,
+  LINK_INK_LAYER_CSS,
+  MEASURING_ATTRIBUTE,
   repair_email_contrast,
 } from "@/lib/email_contrast_repair";
 import { hex_to_rgba } from "@/lib/material_theme";
@@ -59,8 +63,15 @@ import {
   normalize_hex,
   relative_luminance,
 } from "@/lib/email_ink";
+import {
+  DEFAULT_BLOCKED_IMAGE_LABELS,
+  paint_blocked_images,
+  type BlockedImageLabels,
+} from "@/lib/blocked_image_placeholder";
 import { use_resolved_accent } from "@/lib/resolved_accent";
 import { is_transparent_color_value } from "@/lib/html_sanitizer";
+import { get_image_proxy_url } from "@/lib/image_proxy";
+import { build_proxied_content_csp } from "@/lib/email_content_csp";
 import {
   build_font_face_css,
   get_email_font_stack,
@@ -118,6 +129,8 @@ export function SandboxedEmailRenderer({
   on_document_ready,
 }: SandboxedEmailRendererProps) {
   const { t } = use_i18n();
+  const image_blocked_label = t("common.image_blocked");
+  const tracking_pixel_blocked_label = t("common.tracking_pixel_blocked");
   const { preferences } = use_preferences();
   const email_zoom = (
     normalize_font_size_scale(preferences.font_size_scale) / FONT_SIZE_DEFAULT
@@ -135,7 +148,11 @@ export function SandboxedEmailRenderer({
     cached_height ? `${cached_height}px` : "0px",
   );
   const [height_ready, set_height_ready] = useState(!!cached_height);
-  const contrast_repair_ref = useRef({ enabled: false, surface: "#121212" });
+  const contrast_repair_ref = useRef({
+    enabled: false,
+    surface: "#121212",
+    ink: "#e5e5e5",
+  });
   const prev_html_ref = useRef(sanitized_html);
   const iframe_ref = useRef<HTMLIFrameElement | null>(null);
   const doc_nonce_ref = useRef(0);
@@ -150,8 +167,16 @@ export function SandboxedEmailRenderer({
   const remeasure_ref = useRef<(() => void) | null>(null);
   const settle_timers_ref = useRef<ReturnType<typeof setTimeout>[]>([]);
   const on_document_ready_ref = useRef(on_document_ready);
+  const placeholder_cleanup_ref = useRef<(() => void) | null>(null);
+  const placeholder_labels_ref = useRef<BlockedImageLabels>(
+    DEFAULT_BLOCKED_IMAGE_LABELS,
+  );
 
   on_document_ready_ref.current = on_document_ready;
+  placeholder_labels_ref.current = {
+    image: image_blocked_label,
+    tracking_pixel: tracking_pixel_blocked_label,
+  };
 
   load_remote_ref.current = load_remote_content;
   const [internal_cid_html, set_internal_cid_html] = useState<string | null>(
@@ -377,9 +402,11 @@ export function SandboxedEmailRenderer({
 
   const accent_hex = safe_hex(resolved_accent.accent);
   const body_ink_surface =
-    force_dark_mode || simple_dark_html || (!is_html_email && is_dark_theme)
-      ? (normalize_hex(resolved_accent.surface) ?? "#121212")
-      : "#ffffff";
+    force_dark_mode && !app_is_dark
+      ? FORCED_DARK_CANVAS
+      : force_dark_mode || simple_dark_html || (!is_html_email && is_dark_theme)
+        ? (normalize_hex(resolved_accent.surface) ?? "#121212")
+        : "#ffffff";
   const link_ink = link_ink_for(accent_hex, body_ink_surface);
   const link_hover_paint = link_hover_ink_for(link_ink, body_ink_surface);
   const link_visited_ink = derive_visited_ink(link_ink, body_ink_surface);
@@ -390,6 +417,7 @@ export function SandboxedEmailRenderer({
   contrast_repair_ref.current = {
     enabled: contrast_repair_active,
     surface: body_ink_surface,
+    ink: dark_ink,
   };
 
   const [contrast_ready, set_contrast_ready] = useState(
@@ -427,8 +455,9 @@ export function SandboxedEmailRenderer({
   const LINK_MEDIA_EXCLUDE =
     ":not(img):not(picture):not(svg):not(video):not(canvas)";
   const hover_paint = `var(${LINK_HOVER_VAR}, ${link_hover_paint})`;
+  const hover_link = `a${LINK_BUTTON_EXCLUDE}:where(:not([${MEASURING_ATTRIBUTE}])):hover`;
   const link_hover_css = `a { transition: none; }
-a${LINK_BUTTON_EXCLUDE}:hover, a${LINK_BUTTON_EXCLUDE}:hover *${LINK_MEDIA_EXCLUDE} {
+${hover_link}, ${hover_link} *${LINK_MEDIA_EXCLUDE} {
   color: ${hover_paint} !important;
   text-decoration: underline !important;
   text-decoration-color: ${hover_paint} !important;
@@ -468,6 +497,10 @@ a:focus-visible {
         dark_ink,
       )
     : plain_dark_css;
+  const forced_canvas_css =
+    force_dark_mode && !app_is_dark
+      ? `html { background-color: ${FORCED_DARK_CANVAS} !important; }`
+      : "";
 
   const force_light_scheme =
     is_html_email && !force_dark_mode && !simple_dark_html;
@@ -482,6 +515,7 @@ a:focus-visible {
     accent_hex,
     base_font,
     email_body_ink,
+    quote_toggle_dark,
   );
 
   const html_el_style =
@@ -495,10 +529,24 @@ a:focus-visible {
     return m === "tor" || m === "tor_snowflake";
   })();
   const is_lockdown_mode = is_any_lockdown_active();
+  const document_base = (() => {
+    if (is_tor_mode) {
+      const onion = connection_store.get_api_onion_url();
+
+      if (!onion) return "about:blank";
+      const host = onion.replace(/^https?:\/\//, "").replace(/\/+$/, "");
+
+      return `http://${host}`;
+    }
+
+    return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window
+      ? "https://app.astermail.org"
+      : window.location.origin;
+  })();
   const tor_csp =
     is_tor_mode || is_lockdown_mode
       ? `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data: blob:; style-src 'unsafe-inline'; font-src 'self' data:; media-src 'none'; object-src 'none'; frame-src 'none'; connect-src 'none'; script-src 'none'; base-uri 'self'; form-action 'none';">`
-      : `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data: blob: https: http:; style-src 'unsafe-inline'; font-src 'self' data: https: http:; media-src 'none'; object-src 'none'; frame-src 'none'; connect-src 'none'; script-src 'none'; base-uri https: http:; form-action 'none';">`;
+      : `<meta http-equiv="Content-Security-Policy" content="${build_proxied_content_csp(get_image_proxy_url(), `${document_base}/`)}">`;
 
   const doc_nonce = useMemo(() => {
     doc_nonce_ref.current += 1;
@@ -515,20 +563,8 @@ a:focus-visible {
 <meta http-equiv="x-dns-prefetch-control" content="off">
 ${tor_csp}
 ${force_light_scheme ? `<meta name="color-scheme" content="light only">` : ""}
-<base href="${(() => {
-    if (is_tor_mode) {
-      const onion = connection_store.get_api_onion_url();
-
-      if (!onion) return "about:blank";
-      const host = onion.replace(/^https?:\/\//, "").replace(/\/+$/, "");
-
-      return `http://${host}`;
-    }
-
-    return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window
-      ? "https://app.astermail.org"
-      : window.location.origin;
-  })()}/">
+<base href="${document_base}/">
+${contrast_repair_active ? `<style ${LINK_INK_LAYER_ATTRIBUTE}>${LINK_INK_LAYER_CSS}</style>` : ""}
 <style>${iframe_css}</style>
 <style>body{zoom:${email_zoom}}</style>
 ${preferences.dyslexia_font ? `<style>@font-face{font-family:'OpenDyslexic';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/OpenDyslexic-Regular.woff2') format('woff2');}@font-face{font-family:'OpenDyslexic';font-style:normal;font-weight:700;font-display:swap;src:url('/fonts/OpenDyslexic-Bold.woff2') format('woff2');}body, body *:not(code):not(pre):not(kbd):not(samp):not([style*="font-family"]):not(font){font-family:${dyslexia_font_stack};}</style>` : ""}
@@ -539,6 +575,7 @@ ${force_light_scheme ? `<style>:root, html { color-scheme: light only !important
 ${email_font_face_css ? `<style>${email_font_face_css}</style>` : ""}
 ${email_font_override_css ? `<style>${email_font_override_css}</style>` : ""}
 ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
+${forced_canvas_css ? `<style>${forced_canvas_css}</style>` : ""}
 ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
 <style>${link_hover_css}</style>
 <style>img:not([data-blocked='true']) { cursor: zoom-in !important; } a img { cursor: pointer !important; } img[data-blocked='true'] { cursor: default !important; pointer-events: none !important; } a img[data-blocked='true'] { cursor: pointer !important; pointer-events: auto !important; }</style>
@@ -592,6 +629,11 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
     }
 
     resolve_native_images(iframe.contentDocument);
+    placeholder_cleanup_ref.current?.();
+    placeholder_cleanup_ref.current = paint_blocked_images(
+      iframe.contentDocument,
+      placeholder_labels_ref.current,
+    );
 
     const doc_body = iframe.contentDocument.body;
     const has_rich_layout =
@@ -639,6 +681,8 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
 
     collapse_forwarded_content(iframe.contentDocument);
     collapse_quoted_replies(iframe.contentDocument);
+    dom_cleanup.reveal_orphaned_hidden_quotes(iframe.contentDocument);
+    dom_cleanup.reveal_fully_hidden_content(iframe.contentDocument);
     if (!preserve_formatting) {
       collapse_empty_block_runs(iframe.contentDocument);
       if (is_plain_text || !has_rich_layout) {
@@ -649,7 +693,11 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
     if (contrast_repair_ref.current.enabled) {
       try {
         repair_email_contrast(iframe.contentDocument, {
-          surface: contrast_repair_ref.current.surface,
+          surface: resolve_backdrop_color(
+            iframe,
+            contrast_repair_ref.current.surface,
+          ),
+          ink: contrast_repair_ref.current.ink,
           view: iframe.contentWindow,
         });
       } catch (caught) {
@@ -752,11 +800,25 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
     if (!doc?.body) return;
 
     unblock_remote_content(doc);
+    placeholder_cleanup_ref.current?.();
+    placeholder_cleanup_ref.current = null;
     resolve_native_images(doc);
   }, [load_remote_content, unblock_remote_content]);
 
   useEffect(() => {
+    const doc = iframe_ref.current?.contentDocument;
+
+    if (!placeholder_cleanup_ref.current || !doc?.body) return;
+    placeholder_cleanup_ref.current();
+    placeholder_cleanup_ref.current = paint_blocked_images(
+      doc,
+      placeholder_labels_ref.current,
+    );
+  }, [image_blocked_label, tracking_pixel_blocked_label]);
+
+  useEffect(() => {
     return () => {
+      placeholder_cleanup_ref.current?.();
       observer_ref.current?.disconnect();
       mutation_observer_ref.current?.disconnect();
       if (raf_ref.current) cancelAnimationFrame(raf_ref.current);

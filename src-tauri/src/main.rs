@@ -132,6 +132,28 @@ fn unique_download_path(dir: &std::path::Path, suggested: &std::path::Path) -> s
     candidate
 }
 
+#[cfg(any(target_os = "macos", test))]
+fn quarantine_attribute_value(epoch_seconds: u64) -> String {
+    format!("0081;{epoch_seconds:x};Aster Mail;")
+}
+
+#[cfg(target_os = "macos")]
+fn mark_download_quarantined(path: &std::path::Path) {
+    let epoch_seconds = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|elapsed| elapsed.as_secs())
+        .unwrap_or(0);
+    let _ = std::process::Command::new("/usr/bin/xattr")
+        .arg("-w")
+        .arg("com.apple.quarantine")
+        .arg(quarantine_attribute_value(epoch_seconds))
+        .arg(path)
+        .status();
+}
+
+#[cfg(not(target_os = "macos"))]
+fn mark_download_quarantined(_path: &std::path::Path) {}
+
 fn resolve_download_destination(app: &tauri::AppHandle, destination: &mut std::path::PathBuf) {
     if destination.is_absolute() {
         return;
@@ -529,6 +551,9 @@ fn main() {
             let navigation_handle = app.handle().clone();
             let new_window_handle = app.handle().clone();
             let download_handle = app.handle().clone();
+            let pending_downloads: std::sync::Arc<
+                std::sync::Mutex<std::collections::HashMap<String, std::path::PathBuf>>,
+            > = Default::default();
 
             tauri::WebviewWindowBuilder::from_config(app, &window_config)?
                 .on_navigation(move |url| {
@@ -549,8 +574,26 @@ fn main() {
                     NewWindowResponse::Deny
                 })
                 .on_download(move |_webview, event| {
-                    if let DownloadEvent::Requested { destination, .. } = event {
-                        resolve_download_destination(&download_handle, destination);
+                    match event {
+                        DownloadEvent::Requested { url, destination } => {
+                            resolve_download_destination(&download_handle, destination);
+                            if let Ok(mut pending) = pending_downloads.lock() {
+                                pending.insert(url.to_string(), destination.clone());
+                            }
+                        }
+                        DownloadEvent::Finished { url, path, success } => {
+                            let requested = pending_downloads
+                                .lock()
+                                .ok()
+                                .and_then(|mut pending| pending.remove(url.as_str()));
+
+                            if success {
+                                if let Some(saved) = path.or(requested) {
+                                    mark_download_quarantined(&saved);
+                                }
+                            }
+                        }
+                        _ => {}
                     }
 
                     true
@@ -599,7 +642,7 @@ fn main() {
             #[cfg(not(windows))]
             let menu = Menu::with_items(app, &[&show, &quit])?;
 
-            let tray = TrayIconBuilder::new()
+            let tray = TrayIconBuilder::with_id("aster-mail")
                 .icon(tray_icon)
                 .icon_as_template(true)
                 .menu(&menu)
@@ -744,6 +787,14 @@ mod navigation_tests {
         assert!(allowed("https://challenges.cloudflare.com/turnstile"));
         assert!(allowed("about:srcdoc"));
         assert!(allowed("blob:http://tauri.localhost/0f4c"));
+    }
+
+    #[test]
+    fn quarantine_value_uses_downloaded_flag_and_hex_time() {
+        assert_eq!(
+            super::quarantine_attribute_value(0x6700_0000),
+            "0081;67000000;Aster Mail;"
+        );
     }
 
     #[test]

@@ -72,6 +72,7 @@ export {
 };
 
 const LOADING_SAFETY_MS = 10_000;
+const LOAD_RETRY_DELAY_MS = 1_500;
 
 export function derive_page_from_list_length(
   list_length: number,
@@ -303,32 +304,47 @@ export function use_email_list(
 
       try {
         const offset = page_offset_ref.current.get(page) ?? page * limit;
-        const result = await fetch_mail_from_api(
-          current_view,
-          signal,
-          format_options,
-          user?.email || "",
-          limit,
-          undefined,
-          offset,
-          preferences.conversation_grouping ?? true,
-          preferences.inbox_sort_order ?? "newest_first",
-          (partial_emails) => {
-            if (signal.aborted || committed_view_ref.current !== fetch_view) {
-              return;
-            }
+        const load_page = () =>
+          fetch_mail_from_api(
+            current_view,
+            signal,
+            format_options,
+            user?.email || "",
+            limit,
+            undefined,
+            offset,
+            preferences.conversation_grouping ?? true,
+            preferences.inbox_sort_order ?? "newest_first",
+            (partial_emails) => {
+              if (signal.aborted || committed_view_ref.current !== fetch_view) {
+                return;
+              }
 
-            set_state((prev) => {
-              if (prev.emails.length > 0) return prev;
+              set_state((prev) => {
+                if (prev.emails.length > 0) return prev;
 
-              const surviving = drop_removed_after(partial_emails, start);
+                const surviving = drop_removed_after(partial_emails, start);
 
-              if (surviving.length === 0) return prev;
+                if (surviving.length === 0) return prev;
 
-              return { ...prev, emails: surviving };
-            });
-          },
-        );
+                return { ...prev, emails: surviving };
+              });
+            },
+          );
+
+        let result = await load_page().catch(() => null);
+
+        if (
+          !result &&
+          !signal.aborted &&
+          committed_view_ref.current === fetch_view
+        ) {
+          await new Promise((r) => setTimeout(r, LOAD_RETRY_DELAY_MS));
+
+          if (!signal.aborted && committed_view_ref.current === fetch_view) {
+            result = await load_page();
+          }
+        }
 
         if (signal.aborted) {
           if (
@@ -448,9 +464,13 @@ export function use_email_list(
 
   fetch_page_ref.current = fetch_page;
 
+  const silent_seq_ref = useRef(0);
+
   const silent_fetch = useCallback(async (): Promise<void> => {
     if (!is_mail_view) return;
     if (!has_passphrase_in_memory()) return;
+
+    const my_silent_seq = ++silent_seq_ref.current;
 
     page_cache_ref.current.clear();
 
@@ -490,6 +510,7 @@ export function use_email_list(
       )
         return;
       if (page_ref.current !== active_page) return;
+      if (silent_seq_ref.current !== my_silent_seq) return;
 
       last_fetch_ref.current = {
         view: current_view,
@@ -800,6 +821,7 @@ export function use_email_list(
         }
         get_cached_email_list(current_view)
           .then((cached) => {
+            if (committed_view_ref.current !== current_view) return;
             if (cached && cached.length > 0) {
               set_state({
                 emails: cached,
@@ -821,6 +843,7 @@ export function use_email_list(
             }
           })
           .catch(() => {
+            if (committed_view_ref.current !== current_view) return;
             set_state({
               emails: [],
               is_loading: false,
@@ -850,6 +873,7 @@ export function use_email_list(
     } else if (!is_online && Capacitor.isNativePlatform() && has_keys) {
       get_cached_email_list(current_view)
         .then((cached) => {
+          if (committed_view_ref.current !== current_view) return;
           if (cached && cached.length > 0) {
             set_state({
               emails: cached,
@@ -871,6 +895,7 @@ export function use_email_list(
           }
         })
         .catch(() => {
+          if (committed_view_ref.current !== current_view) return;
           set_state({
             emails: [],
             is_loading: false,

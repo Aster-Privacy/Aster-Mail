@@ -40,6 +40,20 @@ vi.mock("@/services/crypto/key_manager_pgp", async (import_original) => ({
   verify_ratchet_prekey_bundle_detailed: async () => h.bundle_verification,
 }));
 
+vi.mock("@/services/api/keys", async (import_original) => ({
+  ...(await import_original<typeof import("@/services/api/keys")>()),
+  get_recipient_public_key: async () => ({
+    data: { public_key: "owner-public-key" },
+  }),
+}));
+
+vi.mock("@/services/crypto/ratchet_identity_pin", async (import_original) => ({
+  ...(await import_original<
+    typeof import("@/services/crypto/ratchet_identity_pin")
+  >()),
+  check_owner_key_pin: async () => "ok" as const,
+}));
+
 vi.mock("@/services/crypto/memory_key_store", () => ({
   get_vault_from_memory: () => h.vault,
   get_passphrase_from_memory: () => null,

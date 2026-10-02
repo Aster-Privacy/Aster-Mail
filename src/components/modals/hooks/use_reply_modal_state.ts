@@ -107,7 +107,11 @@ import {
   get_display_time_zone,
 } from "@/utils/date_format";
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
-import { with_caret_block } from "@/lib/signature_html";
+import {
+  append_template_after_typed_text,
+  has_typed_content,
+  with_caret_block,
+} from "@/lib/signature_html";
 
 function attachments_key(ids: string[]): string {
   return ids.join(",");
@@ -171,7 +175,12 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
       )
       .finally(() => set_badges_loaded(true));
   }, []);
-  const { sender_options, loading: sender_loading } = use_sender_aliases();
+  const { sender_options, loading: sender_loading } = use_sender_aliases([
+    existing_draft?.content.from_email,
+    reply_from_address,
+    ...(original_to ?? []),
+    ...(original_cc ?? []),
+  ]);
   const [selected_sender, set_selected_sender_state] =
     useState<SenderOption | null>(null);
   const sender_manually_selected_ref = useRef(false);
@@ -243,6 +252,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
   const optimistic_id_ref = useRef<string | null>(null);
   const save_draft_timeout = useRef<number | null>(null);
   const last_saved_text = useRef<string>("");
+  const last_saved_from = useRef<string | undefined>(undefined);
   const last_saved_attachments = useRef<string>("");
   const is_sending_ref = useRef(false);
   const has_sent_ref = useRef(false);
@@ -250,6 +260,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
   const send_lock_started_at_ref = useRef(0);
   const last_send_time_ref = useRef<number>(0);
   const content_initialized_ref = useRef(false);
+  const body_edited_ref = useRef(false);
   const initial_content_ref = useRef<string>("");
 
   useEffect(() => {
@@ -274,7 +285,10 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
 
   const editor = use_editor({
     editor_ref: message_editor_ref as React.RefObject<HTMLDivElement | null>,
-    on_change: (html: string) => set_reply_message(html),
+    on_change: (html: string) => {
+      body_edited_ref.current = true;
+      set_reply_message(html);
+    },
     enable_rich_paste: !is_plain_text_mode,
     enable_keyboard_shortcuts: true,
     is_plain_text_mode,
@@ -298,6 +312,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
 
     const resolved = resolve_from_sender({
       options: sender_options,
+      draft_from: existing_draft?.content.from_email,
       thread_addresses: [
         reply_from_address,
         ...(original_to ?? []),
@@ -314,6 +329,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
   }, [
     sender_options,
     sender_loading,
+    existing_draft?.content.from_email,
     selected_sender,
     reply_from_address,
     original_to,
@@ -564,6 +580,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
 
   useEffect(() => {
     content_initialized_ref.current = false;
+    body_edited_ref.current = false;
 
     if (!is_open) return;
 
@@ -597,6 +614,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     set_show_delete_confirm(false);
     set_is_plain_text_mode(false);
     last_saved_text.current = matching_draft?.content.message ?? "";
+    last_saved_from.current = matching_draft?.content.from_email;
     last_saved_attachments.current = attachments_key(
       matching_draft?.content.attachments?.map((a) => a.id) ?? [],
     );
@@ -612,8 +630,10 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
         draft_snapshot.reply_to_id === original_email_id)
         ? draft_snapshot
         : null;
+    const has_typed_text = () =>
+      body_edited_ref.current && has_typed_content(message_editor_ref.current);
 
-    if (matching_draft) {
+    if (matching_draft && !has_typed_text()) {
       content_initialized_ref.current = true;
 
       setTimeout(() => {
@@ -662,6 +682,18 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
         content,
         get_compose_sanitize_options(),
       );
+
+      if (has_typed_text()) {
+        append_template_after_typed_text(
+          message_editor_ref.current,
+          sanitized_result.html,
+        );
+        set_reply_message(
+          restore_compose_image_sources(message_editor_ref.current.innerHTML),
+        );
+
+        return;
+      }
 
       message_editor_ref.current.innerHTML = sanitized_result.html;
       initial_content_ref.current = restore_compose_image_sources(
@@ -737,6 +769,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
         bcc_recipients: [],
         subject,
         message: text,
+        from_email: selected_sender?.email,
         attachments:
           attachments.length > 0
             ? attachments_to_draft_data(attachments)
@@ -788,6 +821,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
           } else if (result.data && !result.error) {
             set_draft_version(result.data.version);
             last_saved_text.current = text;
+            last_saved_from.current = selected_sender?.email;
             last_saved_attachments.current = attachments_signature;
             set_draft_status("saved");
             set_last_saved_time(new Date());
@@ -835,6 +869,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
         set_draft_id(result.data.id);
         set_draft_version(result.data.version);
         last_saved_text.current = text;
+        last_saved_from.current = selected_sender?.email;
         last_saved_attachments.current = attachments_signature;
         set_draft_status("saved");
         set_last_saved_time(new Date());
@@ -866,6 +901,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
       original_email_id,
       original_subject,
       recipient_email,
+      selected_sender?.email,
       recipients.to,
       recipients.cc,
       set_draft_id,
@@ -891,7 +927,8 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
 
         if (
           (current_text !== last_saved_text.current ||
-            attachments_signature !== last_saved_attachments.current) &&
+            attachments_signature !== last_saved_attachments.current ||
+            selected_sender?.email !== last_saved_from.current) &&
           (has_user_content(current_text) || attachments_signature !== "") &&
           original_email_id
         ) {
@@ -900,7 +937,13 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
       }
     }
     prev_is_open_ref.current = is_open;
-  }, [is_open, original_email_id, has_user_content, attachments_signature]);
+  }, [
+    is_open,
+    original_email_id,
+    has_user_content,
+    attachments_signature,
+    selected_sender?.email,
+  ]);
 
   useEffect(() => {
     if (!is_open || !original_email_id) return;
@@ -908,7 +951,8 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
       return;
     if (
       reply_message === last_saved_text.current &&
-      attachments_signature === last_saved_attachments.current
+      attachments_signature === last_saved_attachments.current &&
+      selected_sender?.email === last_saved_from.current
     )
       return;
 
@@ -930,6 +974,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     original_email_id,
     reply_message,
     save_thread_draft,
+    selected_sender?.email,
     has_user_content,
     attachments_signature,
   ]);

@@ -26,4 +26,3 @@ export {
 export { ViewerErrorState, ViewerViewSource } from "./misc";
 export { ViewerThreadContent } from "./thread_content";
 export { ViewerToolbarActions } from "./toolbar_actions";
-export { ViewerUnsubscribeBanner } from "./unsubscribe";

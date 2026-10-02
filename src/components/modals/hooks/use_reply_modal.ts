@@ -75,8 +75,11 @@ import {
   create_scheduled_email,
   type ScheduledEmailContent,
 } from "@/services/api/scheduled";
+import { check_scheduled_send } from "@/services/scheduled_send_gate";
 import { emit_scheduled_changed } from "@/hooks/mail_events";
-import { delete_thread_draft } from "@/services/api/multi_drafts";
+import { create_draft, delete_thread_draft } from "@/services/api/multi_drafts";
+import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
+import { attachments_to_draft_data } from "@/components/compose/compose_draft_helpers";
 import {
   type Attachment,
   generate_attachment_id,
@@ -235,8 +238,29 @@ export function use_reply_modal(props: UseReplyModalProps) {
   }, []);
 
   const toggle_plain_text_mode = useCallback(() => {
-    set_is_plain_text_mode((prev) => !prev);
-  }, []);
+    const element = message_editor_ref.current;
+
+    if (element) {
+      const text = element.innerText;
+
+      if (is_plain_text_mode) {
+        const html = escape_plain_text(text).replace(/\n/g, "<br>");
+
+        element.innerHTML = html;
+        set_reply_message(html);
+      } else {
+        element.innerText = text;
+        set_reply_message(text);
+      }
+    }
+
+    set_is_plain_text_mode(!is_plain_text_mode);
+  }, [
+    is_plain_text_mode,
+    message_editor_ref,
+    set_is_plain_text_mode,
+    set_reply_message,
+  ]);
 
   const handle_template_select = useCallback(
     (content: string) => {
@@ -500,6 +524,38 @@ export function use_reply_modal(props: UseReplyModalProps) {
         ? selected_sender.display_name
         : undefined;
 
+    let handed_off = false;
+    let handed_off_thread_token = thread_token;
+    const keep_failed_reply = async (): Promise<boolean> => {
+      const draft_vault = get_vault_from_memory();
+
+      if (!draft_vault) return false;
+      const saved = await create_draft(
+        {
+          to_recipients: send_recipients.to,
+          cc_recipients: send_recipients.cc,
+          bcc_recipients: [],
+          subject: build_reply_subject(
+            original_subject,
+            resolve_reply_prefix(t("mail.reply_subject_prefix")),
+          ),
+          message: reply_message,
+          from_email: selected_sender?.email,
+          attachments:
+            attachments.length > 0
+              ? attachments_to_draft_data(attachments)
+              : undefined,
+        },
+        draft_vault,
+        "reply",
+        original_email_id,
+        undefined,
+        handed_off_thread_token,
+      ).catch(() => null);
+
+      return !!saved?.data;
+    };
+
     const result = await send_reply(
       {
         original,
@@ -516,6 +572,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
         sender_display_name: sender_display_name_value,
         in_reply_to: original_rfc_message_id,
         attachments: attachments.length > 0 ? attachments : undefined,
+        require_encryption: preferences.require_encryption === true,
       },
       {
         on_complete: (sent_id?: string) => {
@@ -561,7 +618,22 @@ export function use_reply_modal(props: UseReplyModalProps) {
           }
           optimistic_id_ref.current = null;
           set_error_message(error);
-          show_toast(error || t("common.failed_to_send_reply"), "error", 10000);
+          if (handed_off) {
+            void keep_failed_reply().then((kept) => {
+              show_toast(
+                error || t("common.failed_to_send_reply"),
+                "error",
+                10000,
+              );
+              if (!kept) show_toast(t("common.failed_to_save"), "error");
+            });
+          } else {
+            show_toast(
+              error || t("common.failed_to_send_reply"),
+              "error",
+              10000,
+            );
+          }
           set_is_sending(false);
           last_send_time_ref.current = 0;
           forget_send(send_fingerprint);
@@ -623,6 +695,8 @@ export function use_reply_modal(props: UseReplyModalProps) {
         });
       }
 
+      handed_off = true;
+      handed_off_thread_token = reply_thread_token;
       void discard_sent_draft(reply_thread_token);
 
       if (delay_seconds > 0) {
@@ -716,6 +790,18 @@ export function use_reply_modal(props: UseReplyModalProps) {
       return;
     }
 
+    if (selected_sender?.type === "external") {
+      set_error_message(t("common.scheduled_connected_account"));
+
+      return;
+    }
+
+    if (expires_at) {
+      set_error_message(t("common.scheduled_no_expiry"));
+
+      return;
+    }
+
     if (reply_from_mismatch()) {
       pending_send_kind_ref.current = "scheduled";
       set_show_from_mismatch(true);
@@ -752,6 +838,26 @@ export function use_reply_modal(props: UseReplyModalProps) {
       return;
     }
 
+    const scheduled_alias =
+      selected_sender && selected_sender.type !== "primary"
+        ? selected_sender
+        : null;
+    const scheduled_sender_email = scheduled_alias?.email ?? user.email;
+    const scheduled_gate = await check_scheduled_send(
+      [...send_recipients.to, ...send_recipients.cc],
+      scheduled_sender_email,
+      scheduled_time,
+      preferences.require_encryption === true,
+    );
+
+    if (!scheduled_gate.proceed) {
+      if (scheduled_gate.blocked_by) {
+        set_error_message(t(scheduled_gate.blocked_by));
+      }
+
+      return;
+    }
+
     if (save_draft_timeout.current) {
       clearTimeout(save_draft_timeout.current);
       save_draft_timeout.current = null;
@@ -782,10 +888,25 @@ export function use_reply_modal(props: UseReplyModalProps) {
       ),
       body: message_with_signature,
       scheduled_at: scheduled_time.toISOString(),
+      ...(selected_sender?.is_catch_all
+        ? {
+            from: {
+              name: selected_sender.display_name || "",
+              email: selected_sender.email,
+            },
+          }
+        : {}),
     };
 
     try {
-      const response = await create_scheduled_email(vault, content);
+      const response = await create_scheduled_email(vault, content, {
+        sender_alias_hash: scheduled_alias?.address_hash,
+        sender_email: scheduled_sender_email,
+        sender_display_name: scheduled_alias
+          ? scheduled_alias.display_name || undefined
+          : user.display_name || undefined,
+        allow_non_post_quantum: scheduled_gate.allow_non_post_quantum,
+      });
 
       if (response.error) {
         set_error_message(response.error);
@@ -818,6 +939,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
     user,
     vault,
     scheduled_time,
+    selected_sender,
     commit_pending_recipient_inputs,
     original_subject,
 
@@ -828,6 +950,8 @@ export function use_reply_modal(props: UseReplyModalProps) {
     is_plain_text_mode,
     attachments,
     reply_from_mismatch,
+    expires_at,
+    preferences.require_encryption,
   ]);
 
   handle_send_ref.current = handle_send;
