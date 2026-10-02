@@ -22,6 +22,7 @@ import type { UserPreferences } from "@/services/api/preferences";
 import type { InboxEmail, ConfirmationDialogState } from "@/types/email";
 import type { TranslationKey } from "@/lib/i18n/types";
 import type { RestoredEmailEntry } from "@/hooks/email_list_helpers";
+import type { BulkDeleteOptions } from "@/hooks/email_list_types";
 
 import { useState, useCallback } from "react";
 
@@ -161,7 +162,10 @@ interface UseInboxToolbarActionsOptions {
   remove_email: (id: string) => void;
   remove_emails: (ids: string[]) => void;
   restore_emails: (entries: RestoredEmailEntry[]) => void;
-  bulk_delete: (ids: string[]) => Promise<BulkActionResult>;
+  bulk_delete: (
+    ids: string[],
+    options?: BulkDeleteOptions,
+  ) => Promise<BulkActionResult>;
   schedule_delete_drafts: (ids: string[]) => () => void;
   cancel_scheduled: (id: string) => Promise<boolean>;
   bulk_cancel_scheduled: (ids: string[]) => Promise<boolean>;

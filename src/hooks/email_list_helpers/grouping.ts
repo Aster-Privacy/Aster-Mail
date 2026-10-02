@@ -83,6 +83,21 @@ export function expand_email_ids(email: InboxEmail): string[] {
     : [email.id];
 }
 
+// With conversation grouping off each row is one message, so deleting it must
+// not pull its thread siblings (archived, sent, other folders) into Trash. A row
+// that still carries several grouped ids is a merged conversation either way.
+export function trashes_whole_thread(
+  email: InboxEmail,
+  conversation_grouping: boolean | undefined,
+): boolean {
+  if (!email.thread_token) return false;
+
+  return (
+    conversation_grouping !== false ||
+    (email.grouped_email_ids?.length ?? 0) > 1
+  );
+}
+
 export function group_emails_by_thread(emails: InboxEmail[]): InboxEmail[] {
   const thread_map = new Map<string, InboxEmail>();
   const result: InboxEmail[] = [];
