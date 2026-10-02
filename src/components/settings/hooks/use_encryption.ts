@@ -112,6 +112,23 @@ export function use_encryption() {
     if (result.data) {
       apply_keyserver_status(result.data);
     }
+
+    return result.data;
+  };
+
+  const show_keyserver_publish_result = (
+    status: KeyserverPublicationStatus | null,
+  ) => {
+    const state =
+      status?.state ?? (status?.published ? "published" : "not_published");
+
+    if (state === "awaiting_verification") {
+      show_toast(t("settings.keyserver_awaiting_hint"), "info");
+    } else if (state === "failed") {
+      show_toast(t("settings.keyserver_failed_hint"), "error");
+    } else {
+      show_toast(t("settings.key_published_keyserver"), "success");
+    }
   };
   const format_fingerprint = (fp: string): string => {
     return fp.match(/.{1,4}/g)?.join(" ") || fp;
@@ -557,11 +574,10 @@ export function use_encryption() {
       if (result.error) {
         update_preference("publish_to_keyservers", false, true);
         show_toast(t("settings.failed_publish_keyserver"), "error");
+        await refresh_keyserver_status();
       } else {
-        show_toast(t("settings.key_published_keyserver"), "success");
+        show_keyserver_publish_result(await refresh_keyserver_status());
       }
-
-      await refresh_keyserver_status();
     } else {
       show_toast(t("settings.keys_cannot_remove_keyservers"), "info");
     }
@@ -574,12 +590,11 @@ export function use_encryption() {
 
     if (result.error || result.data?.success === false) {
       show_toast(t("settings.failed_publish_keyserver"), "error");
+      await refresh_keyserver_status();
     } else {
       update_preference("publish_to_keyservers", true, true);
-      show_toast(t("settings.key_published_keyserver"), "success");
+      show_keyserver_publish_result(await refresh_keyserver_status());
     }
-
-    await refresh_keyserver_status();
     set_is_publishing_keyserver(false);
   };
 
