@@ -188,6 +188,11 @@ export function MailRulesSection() {
     set_editor_open(true);
   };
 
+  const handle_drag_end = () => {
+    set_drag_index(null);
+    set_drag_over_index(null);
+  };
+
   const handle_drop = async () => {
     if (
       drag_index === null ||
@@ -310,7 +315,7 @@ export function MailRulesSection() {
             <RuleCard
               key={rule.id}
               is_drag_over={drag_over_index === idx && drag_index !== idx}
-              on_drag_end={handle_drop}
+              on_drag_end={handle_drag_end}
               on_drag_over={(e) => {
                 e.preventDefault();
                 set_drag_over_index(idx);
