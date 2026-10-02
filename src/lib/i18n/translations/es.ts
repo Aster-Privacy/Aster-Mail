@@ -99,6 +99,7 @@ export const es = {
     share_contact: "Compartir contacto",
     some_contacts_not_created: "No se pudieron crear algunos contactos.",
     trash_days_left: "Quedan {{count}} días",
+    trash_days_left_one: "Queda {{count}} día",
     delete_folder_account_password: "Contraseña de la cuenta",
     delete_folder_step_up_hint:
       "Esta carpeta está protegida con contraseña. Introduce la contraseña de tu cuenta para eliminarla.",
@@ -8800,9 +8801,13 @@ export const es = {
     empty_spam_folder_question: "¿Vaciar carpeta de spam?",
     empty_spam_description:
       "Los {{count}} mensajes de spam se eliminarán para siempre y no podrás deshacerlo.",
+    empty_spam_description_one:
+      "El mensaje de spam se eliminará para siempre y no podrás deshacerlo.",
     empty_trash_question: "¿Vaciar papelera?",
     empty_trash_description:
       "Los {{count}} mensajes de la papelera se eliminarán para siempre y no podrás deshacerlo.",
+    empty_trash_description_one:
+      "El mensaje de la papelera se eliminará para siempre y no podrás deshacerlo.",
     folder_not_found_title: "No pudimos encontrar esta carpeta.",
     folder_not_found_subtitle:
       "Puede que esta carpeta se haya quitado o nunca haya existido. Otra en la barra lateral funcionará.",

@@ -87,6 +87,7 @@ export const it = {
     share_contact: "Condividi contatto",
     some_contacts_not_created: "Alcuni contatti non sono stati creati.",
     trash_days_left: "{{count}} giorni rimasti",
+    trash_days_left_one: "{{count}} giorno rimasto",
     delete_folder_account_password: "Password dell'account",
     delete_folder_step_up_hint:
       "Questa cartella è protetta da password. Inserisca la password del suo account per eliminarla.",
@@ -8380,6 +8381,7 @@ export const it = {
     drop_to_move_here: "Rilascia qui per spostare",
     tab_new_count: "nuovi",
     tab_unread_count: "{{count}} non letti",
+    tab_unread_count_one: "{{count}} non letto",
     tab_counting_unread: "Conteggio dei messaggi non letti",
     category_empty_primary_title: "Niente in Posta in arrivo",
     category_empty_primary_desc:
@@ -8854,9 +8856,13 @@ export const it = {
     empty_spam_folder_question: "Svuotare la cartella spam?",
     empty_spam_description:
       "Tutti i {{count}} messaggi nella cartella spam verranno rimossi definitivamente e non è possibile annullare l'operazione.",
+    empty_spam_description_one:
+      "Il messaggio nella cartella spam verrà rimosso definitivamente e non è possibile annullare l'operazione.",
     empty_trash_question: "Svuotare il cestino?",
     empty_trash_description:
       "Tutti i {{count}} messaggi nel cestino verranno rimossi definitivamente e non è possibile annullare l'operazione.",
+    empty_trash_description_one:
+      "Il messaggio nel cestino verrà rimosso definitivamente e non è possibile annullare l'operazione.",
     folder_not_found_title: "Non siamo riusciti a trovare questa cartella.",
     folder_not_found_subtitle:
       "Questa cartella potrebbe essere stata rimossa o non essere mai esistita. Un'altra dalla barra laterale funzionerà.",

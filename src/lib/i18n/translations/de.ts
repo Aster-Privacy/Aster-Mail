@@ -1995,6 +1995,7 @@ export const de = {
     share_contact_device: "Mit einer anderen App teilen",
     some_contacts_not_created: "Einige Kontakte konnten nicht erstellt werden.",
     trash_days_left: "Noch {{count}} Tage",
+    trash_days_left_one: "Noch {{count}} Tag",
     undo_change: "Änderung rückgängig machen",
     biometry_fingerprint: "Fingerabdruck",
     biometry_face_recognition: "Gesichtserkennung",
@@ -8887,9 +8888,13 @@ export const de = {
     empty_spam_folder_question: "Spam-Ordner leeren?",
     empty_spam_description:
       "Alle {{count}} Nachrichten im Spam werden endgültig entfernt, und dies lässt sich nicht rückgängig machen.",
+    empty_spam_description_one:
+      "Die Nachricht im Spam wird endgültig entfernt, und dies lässt sich nicht rückgängig machen.",
     empty_trash_question: "Papierkorb leeren?",
     empty_trash_description:
       "Alle {{count}} Nachrichten im Papierkorb werden endgültig entfernt, und dies lässt sich nicht rückgängig machen.",
+    empty_trash_description_one:
+      "Die Nachricht im Papierkorb wird endgültig entfernt, und dies lässt sich nicht rückgängig machen.",
     folder_not_found_title: "Dieser Ordner ließ sich nicht finden.",
     folder_not_found_subtitle:
       "Dieser Ordner wurde möglicherweise entfernt oder hat nie existiert. Ein anderer aus der Seitenleiste funktioniert.",

@@ -85,6 +85,7 @@ export const pt_br = {
     share_contact: "Compartilhar contato",
     some_contacts_not_created: "Não foi possível criar alguns contatos.",
     trash_days_left: "{{count}} dias restantes",
+    trash_days_left_one: "{{count}} dia restante",
     undo_change: "Desfazer alteração",
     delete_folder_account_password: "Senha da conta",
     delete_folder_step_up_hint:
@@ -8373,6 +8374,7 @@ export const pt_br = {
     drop_to_move_here: "Solte aqui para mover",
     tab_new_count: "novo(s)",
     tab_unread_count: "{{count}} não lidas",
+    tab_unread_count_one: "{{count}} não lida",
     tab_counting_unread: "Contando mensagens não lidas",
     category_empty_primary_title: "Nada na Caixa de entrada",
     category_empty_primary_desc:
@@ -8828,9 +8830,13 @@ export const pt_br = {
     empty_spam_folder_question: "Esvaziar pasta de spam?",
     empty_spam_description:
       "Todas as {{count}} mensagens no spam serão removidas definitivamente e você não pode desfazer.",
+    empty_spam_description_one:
+      "{{count}} mensagem no spam será removida definitivamente e você não pode desfazer.",
     empty_trash_question: "Esvaziar lixeira?",
     empty_trash_description:
       "Todas as {{count}} mensagens na lixeira serão removidas definitivamente e você não pode desfazer.",
+    empty_trash_description_one:
+      "{{count}} mensagem na lixeira será removida definitivamente e você não pode desfazer.",
     folder_not_found_title: "Não foi possível encontrar esta pasta.",
     folder_not_found_subtitle:
       "Esta pasta pode ter sido removida ou nunca ter existido. Escolha outra na barra lateral.",

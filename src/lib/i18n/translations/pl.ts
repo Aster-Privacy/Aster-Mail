@@ -94,6 +94,7 @@ export const pl = {
     share_contact: "Udostępnij kontakt",
     some_contacts_not_created: "Nie udało się utworzyć części kontaktów.",
     trash_days_left: "Pozostało dni: {{count}}",
+    trash_days_left_one: "Pozostał {{count}} dzień",
     undo_change: "Cofnij zmianę",
     delete_folder_account_password: "Hasło konta",
     delete_folder_step_up_hint:
@@ -8994,9 +8995,13 @@ export const pl = {
     empty_spam_folder_question: "Opróżnić folder spam?",
     empty_spam_description:
       "Wszystkie {{count}} wiadomości w folderze spam zostaną trwale usunięte i tej operacji nie można cofnąć.",
+    empty_spam_description_one:
+      "Wiadomość w folderze spam zostanie trwale usunięta i tej operacji nie można cofnąć.",
     empty_trash_question: "Opróżnić kosz?",
     empty_trash_description:
       "Wszystkie {{count}} wiadomości w koszu zostaną trwale usunięte i tej operacji nie można cofnąć.",
+    empty_trash_description_one:
+      "Wiadomość w koszu zostanie trwale usunięta i tej operacji nie można cofnąć.",
     folder_not_found_title: "Nie udało się znaleźć tego folderu.",
     folder_not_found_subtitle:
       "Ten folder mógł zostać usunięty lub nigdy nie istniał. Wybierz inny folder z paska bocznego.",

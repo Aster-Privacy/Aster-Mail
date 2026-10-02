@@ -86,6 +86,7 @@ export const ru = {
     share_contact: "Поделиться контактом",
     some_contacts_not_created: "Некоторые контакты создать не удалось.",
     trash_days_left: "Осталось дней: {{count}}",
+    trash_days_left_one: "Остался {{count}} день",
     undo_change: "Отменить изменение",
     delete_folder_account_password: "Пароль учётной записи",
     delete_folder_step_up_hint:
@@ -8951,9 +8952,13 @@ export const ru = {
     empty_spam_folder_question: "Очистить папку «Спам»?",
     empty_spam_description:
       "Все {{count}} сообщений в спаме будут удалены окончательно, и отменить это нельзя.",
+    empty_spam_description_one:
+      "{{count}} сообщение в спаме будет удалено окончательно, и отменить это нельзя.",
     empty_trash_question: "Очистить корзину?",
     empty_trash_description:
       "Все {{count}} сообщений в корзине будут удалены окончательно, и отменить это нельзя.",
+    empty_trash_description_one:
+      "{{count}} сообщение в корзине будет удалено окончательно, и отменить это нельзя.",
     folder_not_found_title: "Эту папку найти не удалось.",
     folder_not_found_subtitle:
       "Эта папка могла быть удалена или никогда не существовала. Другая из боковой панели обычно подходит.",
