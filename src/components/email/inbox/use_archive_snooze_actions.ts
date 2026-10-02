@@ -37,6 +37,7 @@ import {
   emit_mail_item_updated,
 } from "@/hooks/mail_events";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
+import { trashes_whole_thread } from "@/hooks/email_list_helpers";
 import {
   compute_archive_deltas,
   apply_stat_deltas,
@@ -70,6 +71,7 @@ interface UseArchiveSnoozeActionsOptions {
   ) => Promise<{ snoozed_count: number; failed_count: number }>;
   preferences: {
     confirm_before_archive: boolean;
+    conversation_grouping?: boolean;
   };
   update_preference: <K extends keyof UserPreferences>(
     key: K,
@@ -203,9 +205,11 @@ export function use_archive_snooze_actions({
     remove_index_ids(all_ids);
     note_flag_intents(all_ids, { is_archived: true });
 
-    const removed_thread_ids = email.thread_token
-      ? remove_thread_entries(email.thread_token)
-      : [];
+    const removed_thread_ids =
+      email.thread_token &&
+      trashes_whole_thread(email, preferences.conversation_grouping)
+        ? remove_thread_entries(email.thread_token)
+        : [];
 
     const archive_ids = [...all_ids];
 
@@ -271,6 +275,7 @@ export function use_archive_snooze_actions({
   }, [
     pending_archive_email,
     dont_ask_single_archive,
+    preferences.conversation_grouping,
     remove_email,
     update_preference,
     save_now,
