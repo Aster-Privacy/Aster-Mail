@@ -33,6 +33,7 @@ function sanitize(source: string, mode: "ask" | "never" = "ask") {
   const { html } = sanitize_html(source, {
     external_content_mode: mode,
     image_proxy_url: proxy,
+    sandbox_mode: true,
   });
 
   return new DOMParser().parseFromString(html, "text/html");
