@@ -185,8 +185,6 @@ export function use_delete_actions({
     [email_state.emails, remove_email, restore_emails, t],
   );
 
-  // Undo has to reverse exactly what bulk_delete trashed, so both sides decide
-  // thread scope with the same rule.
   const is_threaded_email = useCallback(
     (email: InboxEmail): boolean =>
       trashes_whole_thread(email, preferences.conversation_grouping),
