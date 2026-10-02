@@ -213,6 +213,18 @@ export function escape_html(str: string): string {
     .replace(/'/g, "&#039;");
 }
 
+export function plain_text_to_editor_html(text: string): string {
+  return text
+    .replace(/\r\n?/g, "\n")
+    .split("\n")
+    .map((line) =>
+      line === ""
+        ? "<div><br></div>"
+        : `<div>${escape_html(line).replace(/ {2}/g, " &nbsp;")}</div>`,
+    )
+    .join("");
+}
+
 const IMAGE_MAGIC_BYTES: Record<string, number[]> = {
   "image/png": [0x89, 0x50, 0x4e, 0x47],
   "image/jpeg": [0xff, 0xd8, 0xff],

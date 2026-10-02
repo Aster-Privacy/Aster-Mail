@@ -42,6 +42,7 @@ import {
   type UseEditorReturn,
   validate_image_magic_bytes,
   MAX_PASTE_IMAGE_SIZE,
+  plain_text_to_editor_html,
 } from "@/hooks/editor_utils";
 import { use_editor_image } from "@/hooks/use_editor_image";
 import { describe_would_exceed_total } from "@/services/attachment_rejection";
@@ -163,11 +164,21 @@ export function use_editor({
 
       if (!editor) return;
 
-      if (is_plain_text_mode || !enable_rich_paste) {
-        const text = e.clipboardData.getData("text/plain");
-
-        document.execCommand("insertText", false, text);
+      const insert_plain_text = (text: string) => {
+        if (/\r|\n/.test(text)) {
+          document.execCommand(
+            "insertHTML",
+            false,
+            plain_text_to_editor_html(text),
+          );
+        } else {
+          document.execCommand("insertText", false, text);
+        }
         handle_input();
+      };
+
+      if (is_plain_text_mode || !enable_rich_paste) {
+        insert_plain_text(e.clipboardData.getData("text/plain"));
 
         return;
       }
@@ -260,10 +271,7 @@ export function use_editor({
         return;
       }
 
-      const text = e.clipboardData.getData("text/plain");
-
-      document.execCommand("insertText", false, text);
-      handle_input();
+      insert_plain_text(e.clipboardData.getData("text/plain"));
     },
     [
       editor_ref,
