@@ -625,9 +625,6 @@ function full_date_locale(
     return locale;
   }
 
-  // English is the one language where the day/month order is a regional
-  // choice, so the user's date preference picks the pattern. Every other
-  // language keeps its own word order ("1 de outubro de 2026").
   if (language !== "en") return locale;
 
   return date_format === "DD/MM/YYYY" ? "en-GB" : "en-US";

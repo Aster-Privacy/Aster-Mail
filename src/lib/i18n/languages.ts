@@ -128,9 +128,6 @@ export function is_valid_language_code(code: string): code is LanguageCode {
   return LANGUAGE_MAP.has(code as LanguageCode);
 }
 
-// The app's "pt" is European Portuguese, but a bare "pt" makes Intl use
-// Brazilian rules (0 counts as singular). Region-less codes that need a
-// specific region for plurals, dates and numbers are mapped here.
 const INTL_LOCALES: Record<string, string> = {
   pt: "pt-PT",
 };
