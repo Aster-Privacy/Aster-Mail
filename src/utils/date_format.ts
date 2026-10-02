@@ -20,6 +20,8 @@
 //
 import type { TranslationKey } from "@/lib/i18n/types";
 
+import { to_intl_locale } from "@/lib/i18n/languages";
+
 type TranslateFn = (
   key: TranslationKey,
   params?: Record<string, string | number>,
@@ -177,9 +179,11 @@ export function set_display_locale(code: string | undefined): void {
     return;
   }
 
+  const locale = to_intl_locale(code);
+
   try {
-    new Intl.DateTimeFormat(code);
-    display_locale = code;
+    new Intl.DateTimeFormat(locale);
+    display_locale = locale;
   } catch {
     display_locale = undefined;
   }
@@ -384,10 +388,12 @@ function active_locale(): string | undefined {
     const stored = localStorage.getItem("astermail_language");
 
     if (!stored) return undefined;
-    new Intl.DateTimeFormat(stored);
-    display_locale = stored;
+    const locale = to_intl_locale(stored);
 
-    return stored;
+    new Intl.DateTimeFormat(locale);
+    display_locale = locale;
+
+    return locale;
   } catch {
     return undefined;
   }
@@ -605,31 +611,38 @@ export function format_weekday_short(date: Date): string {
   );
 }
 
+function full_date_locale(
+  date_format: DateFormatPreference,
+): string | undefined {
+  const locale = active_locale();
+  let language: string;
+
+  try {
+    language = new Intl.Locale(
+      locale ?? new Intl.DateTimeFormat().resolvedOptions().locale,
+    ).language;
+  } catch {
+    return locale;
+  }
+
+  if (language !== "en") return locale;
+
+  return date_format === "DD/MM/YYYY" ? "en-GB" : "en-US";
+}
+
 export function format_full_date(
   date: Date,
   options: FormatOptions = default_options(),
 ): string {
-  const weekday = date_formatter(
-    active_locale(),
-    zoned({ weekday: "long" }),
+  return date_formatter(
+    full_date_locale(options.date_format),
+    zoned({
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }),
   ).format(date);
-  const month = date_formatter(
-    active_locale(),
-    zoned({ month: "long" }),
-  ).format(date);
-  const parts = get_zoned_parts(date);
-  const day = parts.day;
-  const year = parts.year;
-
-  switch (options.date_format) {
-    case "DD/MM/YYYY":
-      return `${weekday}, ${day} ${month} ${year}`;
-    case "YYYY-MM-DD":
-      return `${weekday}, ${month} ${day}, ${year}`;
-    case "MM/DD/YYYY":
-    default:
-      return `${weekday}, ${month} ${day}, ${year}`;
-  }
 }
 
 export function format_full_datetime(

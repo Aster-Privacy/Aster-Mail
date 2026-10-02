@@ -53,6 +53,8 @@ import { use_preferences } from "@/contexts/preferences_context";
 import { auto_save_recipients_to_contacts } from "@/services/contacts_auto_save";
 import { use_auth } from "@/contexts/auth_context";
 import { show_toast } from "@/components/toast/simple_toast";
+import { save_failed_send_as_draft } from "@/components/compose/compose_failed_send_draft";
+import { draft_manager } from "@/services/crypto/encrypted_drafts";
 import { show_email_sent_toast } from "@/components/toast/email_sent_toast";
 import { play_iconic_sound } from "@/services/iconic_sounds";
 import { format_bytes } from "@/lib/utils";
@@ -836,6 +838,31 @@ export function use_forward_modal({
       ? undefined
       : fwd_mail_id;
 
+    const forward_subject = `${t("mail.forward_subject_prefix")} ${email_subject}`;
+    let handed_off = false;
+    const keep_failed_forward = async (): Promise<boolean> => {
+      if (!vault) return false;
+
+      return save_failed_send_as_draft(
+        draft_manager,
+        vault,
+        {
+          to: send_recipients.to,
+          cc: send_recipients.cc,
+          bcc: send_recipients.bcc,
+          subject: forward_subject,
+          body:
+            (outgoing_forward_message
+              ? outgoing_forward_message + "<br><br>"
+              : "") + sanitize_outgoing_html(send_content),
+          sender_email: selected_sender?.email,
+          attachments: fwd_attachments,
+        },
+        null,
+        { draft_type: "forward", forward_from_id: fwd_mail_id || undefined },
+      ).catch(() => false);
+    };
+
     const result = await send_forward(
       {
         original,
@@ -872,6 +899,16 @@ export function use_forward_modal({
           send_lock_started_at_ref.current = 0;
           set_error_message(error);
           set_is_sending(false);
+          if (handed_off) {
+            void keep_failed_forward().then((kept) => {
+              show_toast(
+                error || t("common.failed_to_forward"),
+                "error",
+                10000,
+              );
+              if (!kept) show_toast(t("common.failed_to_save"), "error");
+            });
+          }
         },
       },
       delay_ms,
@@ -886,8 +923,9 @@ export function use_forward_modal({
     }));
 
     if (result.success && result.queued_id) {
+      handed_off = true;
       if (delay_seconds > 0) {
-        const undo_subject = `${t("mail.forward_subject_prefix")} ${email_subject}`;
+        const undo_subject = forward_subject;
         const undo_body =
           (outgoing_forward_message
             ? outgoing_forward_message + "<br><br>"
@@ -956,6 +994,7 @@ export function use_forward_modal({
     original_mail_id,
     build_forward_content,
     preferences.show_aster_branding,
+    vault,
   ]);
 
   const handle_scheduled_send = useCallback(async () => {

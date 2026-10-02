@@ -1263,6 +1263,8 @@ export const fr = {
     font: "Police",
     stylesheet: "Feuille de style",
     tracking_pixel: "Pixel de suivi",
+    image_blocked: "Image bloquée",
+    tracking_pixel_blocked: "Pixel de suivi bloqué",
     me: "moi",
     notification_banner_message:
       "Activez les notifications sur ordinateur pour rester informé des nouveaux e-mails",

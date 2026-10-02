@@ -316,8 +316,15 @@ export function use_email_detail() {
     set_thread_draft(null);
   }, []);
 
+  const open_email_id_ref = useRef(email_id);
+
+  useEffect(() => {
+    open_email_id_ref.current = email_id;
+  }, [email_id]);
+
   const load_all_thread_messages = useCallback(async () => {
     if (!mail_item?.thread_token || !user?.email) return;
+    const acted_id = email_id;
 
     const thread_result = await fetch_and_decrypt_thread_messages(
       mail_item.thread_token,
@@ -328,6 +335,8 @@ export function use_email_detail() {
       },
     );
 
+    if (open_email_id_ref.current !== acted_id) return;
+
     if (thread_result.messages.length > 0) {
       set_thread_messages(thread_result.messages);
       set_thread_truncated(false);
@@ -336,6 +345,7 @@ export function use_email_detail() {
     }
   }, [
     t,
+    email_id,
     mail_item?.thread_token,
     mail_item?.is_trashed,
     mail_item?.is_spam,

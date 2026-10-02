@@ -46,18 +46,3 @@ export function normalize_link_url(raw: string): string | null {
 
   return parse_allowed(`https://${value}`) ? `https://${value}` : null;
 }
-
-const HREF_PARTS = /%[0-9A-Fa-f]{2}|%|[^%]+/g;
-
-export function encode_link_href(url: string): string | null {
-  try {
-    return url.replace(HREF_PARTS, (part) => {
-      if (part === "%") return "%25";
-      if (part.startsWith("%")) return part;
-
-      return encodeURI(part);
-    });
-  } catch {
-    return null;
-  }
-}

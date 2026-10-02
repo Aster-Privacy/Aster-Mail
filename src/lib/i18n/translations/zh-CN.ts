@@ -1093,6 +1093,8 @@ export const zh_CN = {
     font: "字体",
     stylesheet: "样式表",
     tracking_pixel: "跟踪像素",
+    image_blocked: "图片已屏蔽",
+    tracking_pixel_blocked: "跟踪像素已屏蔽",
     me: "我",
     notification_banner_message: "启用桌面通知以及时获取新邮件更新",
     notification_banner_allow: "允许",

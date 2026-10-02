@@ -52,7 +52,10 @@ export async function save_failed_send_as_draft(
   vault: EncryptedVault,
   failed: FailedSendData,
   kept_draft: { id: string; version: number } | null,
-  edit_draft?: EditDraftData | null,
+  edit_draft?: Pick<
+    EditDraftData,
+    "draft_type" | "reply_to_id" | "forward_from_id"
+  > | null,
 ): Promise<boolean> {
   const draft_type = edit_draft?.draft_type ?? "new";
   const data: DraftData = {

@@ -504,12 +504,19 @@ export default function IndexPage() {
                                       result === "success" ||
                                       result === "manual"
                                     ) {
-                                      state.set_sender_subscription({
-                                        ...sub,
-                                        status: "unsubscribed",
-                                        unsubscribed_at:
-                                          new Date().toISOString(),
-                                      });
+                                      state.set_sender_subscription(
+                                        (prev) =>
+                                          prev &&
+                                          prev.sender_email ===
+                                            sub.sender_email
+                                            ? {
+                                                ...prev,
+                                                status: "unsubscribed",
+                                                unsubscribed_at:
+                                                  new Date().toISOString(),
+                                              }
+                                            : prev,
+                                      );
                                     }
 
                                     return result;
