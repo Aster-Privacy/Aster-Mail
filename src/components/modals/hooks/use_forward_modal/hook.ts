@@ -107,6 +107,7 @@ import {
   use_sender_aliases,
   type SenderOption,
 } from "@/hooks/use_sender_aliases";
+import { use_sender_signature } from "@/hooks/use_sender_signature";
 import { use_ghost_mode } from "@/hooks/use_ghost_mode";
 import { use_ghost_sender_binding } from "@/hooks/use_ghost_sender_binding";
 import { send_via_external_account } from "@/services/api/external_accounts";
@@ -408,6 +409,16 @@ export function use_forward_modal({
 
   use_escape_layer(is_open, handle_close, "forward_modal");
 
+  const { signature_ref, mark_signature_applied, reset_signature } =
+    use_sender_signature({
+      editor_ref: message_editor_ref,
+      selected_sender,
+      enabled:
+        is_open && preferences.signature_mode === "auto" && !is_plain_text_mode,
+      on_swapped: (editor) =>
+        set_forward_message(restore_compose_image_sources(editor.innerHTML)),
+    });
+
   useEffect(() => {
     if (is_open) {
       dispatch_recipients({ type: "RESET" });
@@ -434,10 +445,11 @@ export function use_forward_modal({
       content_initialized_ref.current = false;
       body_edited_ref.current = false;
       forward_content_ref.current = "";
+      reset_signature();
     } else {
       clear_forward_mail_id();
     }
-  }, [is_open]);
+  }, [is_open, reset_signature]);
 
   useEffect(() => {
     if (!is_open || content_initialized_ref.current) return;
@@ -452,9 +464,11 @@ export function use_forward_modal({
 
       const badge_html = active_badge ? build_badge_html([active_badge]) : "";
       let content = "";
+      const signature =
+        preferences.signature_mode === "auto" ? signature_ref.current : null;
 
-      if (preferences.signature_mode === "auto" && default_signature) {
-        const signature_html = get_formatted_signature(default_signature);
+      if (signature) {
+        const signature_html = get_formatted_signature(signature);
 
         content = with_caret_block(signature_html + badge_html);
       } else if (badge_html) {
@@ -474,6 +488,7 @@ export function use_forward_modal({
       } else {
         message_editor_ref.current.innerHTML = sanitized.html;
       }
+      mark_signature_applied(signature);
       set_forward_message(
         restore_compose_image_sources(message_editor_ref.current.innerHTML),
       );
@@ -486,6 +501,8 @@ export function use_forward_modal({
     include_badge_signature,
     active_badge,
     default_signature,
+    signature_ref,
+    mark_signature_applied,
     get_formatted_signature,
     preferences.signature_mode,
   ]);
