@@ -108,7 +108,11 @@ export function CodeStep({
           </p>
         </motion.div>
 
-        <StepError error={error} is_dark={is_dark} />
+        <StepError
+          error={error}
+          is_dark={is_dark}
+          reduce_motion={reduce_motion}
+        />
       </motion.div>
 
       <MobileActionRow

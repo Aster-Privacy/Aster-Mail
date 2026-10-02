@@ -476,6 +476,11 @@ export default function ForgotPasswordPage() {
                   autoComplete="new-password"
                   end_content={
                     <button
+                      aria-label={
+                        is_password_visible
+                          ? t("settings.hide_password_toggle")
+                          : t("settings.show_password_toggle")
+                      }
                       className="focus:outline-none flex items-center justify-center"
                       type="button"
                       onClick={() =>
@@ -499,6 +504,11 @@ export default function ForgotPasswordPage() {
                 autoComplete="new-password"
                 end_content={
                   <button
+                    aria-label={
+                      is_confirm_visible
+                        ? t("settings.hide_password_toggle")
+                        : t("settings.show_password_toggle")
+                    }
                     className="focus:outline-none flex items-center justify-center"
                     type="button"
                     onClick={() => set_is_confirm_visible(!is_confirm_visible)}
@@ -575,18 +585,26 @@ export default function ForgotPasswordPage() {
                 </span>
                 <div className="flex items-center gap-1">
                   <button
+                    aria-label={
+                      is_key_visible
+                        ? t("settings.hide_password_toggle")
+                        : t("settings.show_password_toggle")
+                    }
                     className="p-1.5 rounded transition-colors hover:opacity-80 text-txt-muted"
+                    type="button"
                     onClick={() => set_is_key_visible(!is_key_visible)}
                   >
                     {is_key_visible ? <EyeSlashIcon /> : <EyeIcon />}
                   </button>
                   <button
+                    aria-label={t("auth.copy_codes")}
                     className="p-1.5 rounded transition-colors hover:opacity-80"
                     style={{
                       color: copy_success
                         ? "var(--color-success)"
                         : "var(--text-muted)",
                     }}
+                    type="button"
                     onClick={handle_copy_codes}
                   >
                     <CopyIcon />

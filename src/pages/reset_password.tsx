@@ -311,7 +311,11 @@ export default function ResetPasswordPage() {
       .then((response) => {
         if (cancelled) return;
 
-        if (response.code === "UNAUTHORIZED" || response.code === "FORBIDDEN") {
+        if (
+          response.code === "UNAUTHORIZED" ||
+          response.code === "FORBIDDEN" ||
+          response.code === "NOT_FOUND"
+        ) {
           set_step("invalid");
 
           return;
@@ -337,7 +341,7 @@ export default function ResetPasswordPage() {
   }, [token, status_attempt]);
 
   const shown_address = second_factor?.address || account_email;
-  const reset_address = shown_address || "user@local";
+  const reset_address = shown_address;
 
   const handle_status_retry = () => {
     set_status_failed(false);
@@ -486,7 +490,7 @@ export default function ResetPasswordPage() {
       return;
     }
 
-    if (!token) {
+    if (!token || !reset_address) {
       set_step("invalid");
 
       return;
@@ -1028,18 +1032,26 @@ export default function ResetPasswordPage() {
                 </span>
                 <div className="flex items-center gap-1">
                   <button
+                    aria-label={
+                      is_key_visible
+                        ? t("settings.hide_password_toggle")
+                        : t("settings.show_password_toggle")
+                    }
                     className="p-1.5 rounded transition-colors hover:opacity-80 text-txt-muted"
+                    type="button"
                     onClick={() => set_is_key_visible(!is_key_visible)}
                   >
                     {is_key_visible ? <EyeSlashIcon /> : <EyeIcon />}
                   </button>
                   <button
+                    aria-label={t("auth.copy_codes")}
                     className="p-1.5 rounded transition-colors hover:opacity-80"
                     style={{
                       color: copy_success
                         ? "var(--color-success)"
                         : "var(--text-muted)",
                     }}
+                    type="button"
                     onClick={handle_copy_codes}
                   >
                     <CopyIcon />
@@ -1086,6 +1098,7 @@ export default function ResetPasswordPage() {
 
             <button
               className="w-full mt-6 text-sm transition-colors hover:opacity-80 text-txt-tertiary"
+              type="button"
               onClick={() => {
                 set_new_recovery_codes([]);
                 set_password("");

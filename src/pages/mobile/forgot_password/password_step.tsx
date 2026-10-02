@@ -83,7 +83,11 @@ export function PasswordStep({
           title={t("auth.create_new_password")}
         />
 
-        <StepError error={error} is_dark={is_dark} />
+        <StepError
+          error={error}
+          is_dark={is_dark}
+          reduce_motion={reduce_motion}
+        />
 
         <motion.div
           className="mt-6 w-full space-y-4"

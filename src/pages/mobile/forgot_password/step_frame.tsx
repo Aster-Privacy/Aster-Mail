@@ -32,25 +32,30 @@ import {
   DEPTH_CTA_STYLE,
 } from "@/components/auth/mobile_auth_motion";
 
-export const TEXT_ACTION_CLASS =
-  "text-sm font-semibold disabled:opacity-50";
+export const TEXT_ACTION_CLASS = "text-sm font-semibold disabled:opacity-50";
 
 interface StepBackBarProps {
   on_back: () => void;
 }
 
-export const StepBackBar = ({ on_back }: StepBackBarProps) => (
-  <div className="flex items-center px-6 pt-4">
-    <motion.button
-      className={BACK_BUTTON_CLASS}
-      style={BACK_BUTTON_STYLE}
-      whileTap={button_tap}
-      onClick={on_back}
-    >
-      <ChevronLeftIcon className="h-5 w-5 rtl:-scale-x-100" />
-    </motion.button>
-  </div>
-);
+export const StepBackBar = ({ on_back }: StepBackBarProps) => {
+  const { t } = use_i18n();
+
+  return (
+    <div className="flex items-center px-6 pt-4">
+      <motion.button
+        aria-label={t("common.back")}
+        className={BACK_BUTTON_CLASS}
+        style={BACK_BUTTON_STYLE}
+        type="button"
+        whileTap={button_tap}
+        onClick={on_back}
+      >
+        <ChevronLeftIcon className="h-5 w-5 rtl:-scale-x-100" />
+      </motion.button>
+    </div>
+  );
+};
 
 interface MobileStepHeaderProps {
   title: string;
@@ -112,16 +117,21 @@ export const MobileStepHeader = ({
 interface StepErrorProps {
   error: string;
   is_dark: boolean;
+  reduce_motion?: boolean;
 }
 
-export const StepError = ({ error, is_dark }: StepErrorProps) => (
+export const StepError = ({
+  error,
+  is_dark,
+  reduce_motion,
+}: StepErrorProps) => (
   <AnimatePresence>
     {error && (
       <motion.p
         animate={{ opacity: 1, y: 0 }}
         className="mt-4 w-full text-start text-sm"
-        exit={{ opacity: 0, y: -4 }}
-        initial={{ opacity: 0, y: -4 }}
+        exit={reduce_motion ? undefined : { opacity: 0, y: -4 }}
+        initial={reduce_motion ? false : { opacity: 0, y: -4 }}
         role="alert"
         style={{ color: is_dark ? "#f87171" : "#dc2626" }}
       >

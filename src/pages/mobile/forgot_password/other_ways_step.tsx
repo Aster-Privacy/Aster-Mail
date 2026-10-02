@@ -78,7 +78,11 @@ export function OtherWaysStep({
           title={t("auth.other_ways_title")}
         />
 
-        <StepError error={error} is_dark={is_dark} />
+        <StepError
+          error={error}
+          is_dark={is_dark}
+          reduce_motion={reduce_motion}
+        />
 
         <motion.div
           className="mt-6 w-full"

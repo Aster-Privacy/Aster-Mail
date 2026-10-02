@@ -71,7 +71,11 @@ export function EmailSentStep({
           title={t("auth.reset_link_sent_title")}
         />
 
-        <StepError error={error} is_dark={is_dark} />
+        <StepError
+          error={error}
+          is_dark={is_dark}
+          reduce_motion={reduce_motion}
+        />
 
         <motion.div
           className="mt-6 w-full"

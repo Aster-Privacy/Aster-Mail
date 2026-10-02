@@ -79,6 +79,11 @@ export function NewCodesStep({
               })}
             </span>
             <button
+              aria-label={
+                is_key_visible
+                  ? t("settings.hide_password_toggle")
+                  : t("settings.show_password_toggle")
+              }
               className="p-1.5 rounded text-[var(--text-muted)]"
               type="button"
               onClick={() => set_is_key_visible(!is_key_visible)}
