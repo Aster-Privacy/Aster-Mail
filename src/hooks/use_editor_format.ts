@@ -36,6 +36,7 @@ import {
   replace_font_element,
   is_allowed_font_family,
 } from "@/hooks/editor_utils";
+import { encode_link_href } from "@/utils/link_url";
 
 const ZERO_WIDTH_SPACE = "\u200B";
 
@@ -531,7 +532,9 @@ export function use_editor_format(
         return;
       }
 
-      const safe_url = encodeURI(trimmed_url).replace(/"/g, "%22");
+      const safe_url = encode_link_href(trimmed_url);
+
+      if (!safe_url) return;
 
       restore_selection();
       const selection = window.getSelection();
@@ -550,7 +553,7 @@ export function use_editor_format(
         document.execCommand(
           "insertHTML",
           false,
-          `<a href="${safe_url}" style="color: #3b82f6; text-decoration: underline;">${safe_text}</a>`,
+          `<a href="${escape_html(safe_url)}" style="color: #3b82f6; text-decoration: underline;">${safe_text}</a>`,
         );
       }
 
