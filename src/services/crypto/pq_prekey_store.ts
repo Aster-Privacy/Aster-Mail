@@ -597,11 +597,39 @@ export async function delete_pq_secret(key_id: number): Promise<boolean> {
   return delete_pq_secret_on_server(key_id);
 }
 
+async function fetch_server_pq_key_ids(): Promise<Set<number> | null> {
+  try {
+    const response = await api_client.get<{ pq_key_ids: number[] }>(
+      "/crypto/v1/keys/prekeys/ids",
+    );
+
+    if (response.error || !Array.isArray(response.data?.pq_key_ids)) {
+      return null;
+    }
+
+    return new Set(response.data.pq_key_ids);
+  } catch {
+    return null;
+  }
+}
+
+export function select_backfill_key_ids(
+  local_ids: number[],
+  server_ids: Set<number> | null,
+): number[] {
+  if (!server_ids) return [];
+
+  return local_ids.filter((key_id) => server_ids.has(key_id));
+}
+
 export async function backfill_pq_secrets_to_server(): Promise<void> {
   try {
     const storage_key = await get_storage_key();
     const uid = await current_account_uid();
-    const ids = await read_index(storage_key, uid);
+    const ids = select_backfill_key_ids(
+      await read_index(storage_key, uid),
+      await fetch_server_pq_key_ids(),
+    );
     const pending: { key_id: number; secret: Uint8Array }[] = [];
 
     const flush = async () => {
