@@ -318,11 +318,6 @@ export function clear_scope_read_intent(token?: number): void {
   }
 }
 
-// Once the server has applied the bulk update, anything fetched afterwards
-// already carries the true read state. The scope rule then only has to cover
-// responses that were requested before the update landed; otherwise mail that
-// arrives after the click, whose sender Date is usually earlier than the
-// click, would be painted read while the server keeps it unread.
 export function ack_scope_read_intent(token: number): void {
   if (scope_read_at === token) scope_read_acked_at = now_ms();
 }
