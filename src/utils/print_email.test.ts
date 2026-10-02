@@ -31,6 +31,8 @@ vi.mock("@/lib/image_proxy", () => ({
 
 import { format_body, set_print_content } from "./print_email";
 
+import { pt } from "@/lib/i18n/translations/pt";
+
 function render(html: string): HTMLElement {
   const container = document.createElement("div");
 
@@ -130,5 +132,45 @@ describe("format_body external content", () => {
 
   it("blocks remote images by default without cached preferences", () => {
     expect_blocked_image(format_body(remote_html));
+  });
+});
+
+describe("blocked image placeholders in print", () => {
+  const remote_html =
+    '<p>hi</p><img src="https://images.example/hero.png" width="320" height="120" alt="Farol">';
+
+  it("prints the placeholder instead of dropping its source", () => {
+    const img = render(format_body(remote_html, "never")).querySelector("img")!;
+
+    expect(img.getAttribute("src")).toMatch(/^data:image\/svg\+xml,/);
+    expect(img.getAttribute("data-original-src")).toBe(
+      "https://images.example/hero.png",
+    );
+  });
+
+  it("still strips SVG data URLs that are not a blocked image placeholder", () => {
+    const svg =
+      "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E";
+    const container = render(
+      `<img src="${svg}"><img class="blocked-remote-image" src="${svg}">`,
+    );
+
+    for (const img of Array.from(container.querySelectorAll("img"))) {
+      expect(img.hasAttribute("src")).toBe(false);
+    }
+  });
+
+  it("labels the placeholder in the reader's language", () => {
+    const img = render(
+      format_body(remote_html, "never", {
+        image: pt.common.image_blocked,
+        tracking_pixel: pt.common.tracking_pixel_blocked,
+      }),
+    ).querySelector("img")!;
+    const svg = decodeURIComponent(img.getAttribute("src")!.split(",")[1]);
+
+    expect(img.getAttribute("aria-label")).toBe("Imagem bloqueada: Farol");
+    expect(svg).toContain(">Imagem bloqueada</text>");
+    expect(svg).not.toContain("Image blocked");
   });
 });

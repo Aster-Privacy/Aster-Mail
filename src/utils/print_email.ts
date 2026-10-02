@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { TranslationKey } from "@/lib/i18n/types";
+import type { BlockedImageLabels } from "@/lib/blocked_image_placeholder";
 
 import {
   is_html_content,
@@ -98,6 +99,26 @@ const PRINTABLE_DATA_MEDIA_TYPES = [
   "image/x-icon",
 ];
 
+function print_blocked_image_labels(t: Translator): BlockedImageLabels {
+  return {
+    image: t("common.image_blocked"),
+    tracking_pixel: t("common.tracking_pixel_blocked"),
+  };
+}
+
+// The sanitizer paints blocked remote images as a generated SVG. SVG in an
+// img cannot script or fetch, but this list stays narrow for sender data URLs,
+// so only that sanitizer-owned placeholder is let through.
+function is_blocked_image_placeholder(el: Element, name: string): boolean {
+  return (
+    name === "src" &&
+    el.tagName === "IMG" &&
+    el.getAttribute("data-blocked") === "true" &&
+    el.classList.contains("blocked-remote-image") &&
+    /^data:image\/svg\+xml,/.test(el.getAttribute("src") ?? "")
+  );
+}
+
 function is_executable_url(value: string): boolean {
   const normalized = [...value]
     .filter((c) => c.charCodeAt(0) > 0x20 && c.charCodeAt(0) !== 0x7f)
@@ -134,7 +155,11 @@ export function set_print_content(container: HTMLElement, html: string): void {
         continue;
       }
 
-      if (URL_ATTRIBUTES.includes(name) && is_executable_url(attr.value)) {
+      if (
+        URL_ATTRIBUTES.includes(name) &&
+        is_executable_url(attr.value) &&
+        !is_blocked_image_placeholder(el, name)
+      ) {
         el.removeAttribute(attr.name);
       }
     }
@@ -181,6 +206,7 @@ export function resolve_print_external_content_mode(): ImageLoadMode {
 export function format_body(
   body: string,
   external_content_mode: ImageLoadMode = resolve_print_external_content_mode(),
+  blocked_image_labels?: BlockedImageLabels,
 ): string {
   if (is_html_content(body)) {
     const lockdown = is_any_lockdown_active();
@@ -189,6 +215,7 @@ export function format_body(
       image_proxy_url: lockdown ? undefined : get_image_proxy_url(),
       sandbox_mode: false,
       lockdown_mode: lockdown,
+      blocked_image_labels,
     }).html;
 
     return strip_style_blocks(sanitized);
@@ -342,7 +369,11 @@ function build_print_body(
   const to_formatted = format_recipients(email.to);
   const cc_formatted = email.cc ? format_recipients(email.cc) : "";
   const bcc_formatted = email.bcc ? format_recipients(email.bcc) : "";
-  const formatted_body = format_body(email.body, external_content_mode);
+  const formatted_body = format_body(
+    email.body,
+    external_content_mode,
+    print_blocked_image_labels(t),
+  );
 
   let html = `<div class="ap-header">
     <div class="ap-subject">${escape_html(email.subject || t("common.print_no_subject"))}</div>
@@ -449,7 +480,11 @@ function build_thread_message_html(
   t: Translator,
   external_content_mode: ImageLoadMode,
 ): string {
-  const formatted_body = format_body(msg.body, external_content_mode);
+  const formatted_body = format_body(
+    msg.body,
+    external_content_mode,
+    print_blocked_image_labels(t),
+  );
   const to_formatted = msg.to_recipients
     ? format_recipients(msg.to_recipients)
     : "";
