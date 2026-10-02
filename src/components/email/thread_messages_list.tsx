@@ -164,7 +164,7 @@ export const ThreadMessagesList = forwardRef<
   {
     messages,
     current_user_email,
-    default_expanded_id: _default_expanded_id,
+    default_expanded_id,
     subject: _subject,
     on_toggle_message_read,
     on_mark_all_read,
@@ -342,6 +342,13 @@ export const ThreadMessagesList = forwardRef<
 
     if (init_msgs.length > 0) {
       initial.add(init_msgs[init_msgs.length - 1].id);
+    }
+
+    if (
+      default_expanded_id &&
+      init_msgs.some((m) => m.id === default_expanded_id)
+    ) {
+      initial.add(default_expanded_id);
     }
 
     if (init_msgs.length <= 4) {
