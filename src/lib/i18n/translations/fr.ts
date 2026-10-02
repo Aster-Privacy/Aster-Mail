@@ -9809,6 +9809,15 @@ export const fr = {
       "Un e-mail de récupération est requis pour lutter contre le spam.",
     abuse_flagged_message:
       "Notre système de sécurité a arrêté pour l'instant les nouvelles inscriptions depuis ce réseau. Si cela semble être une erreur, hello@astermail.org peut vous aider.",
+    abuse_blocked_device:
+      "Notre système de sécurité a suspendu pour l'instant les nouvelles inscriptions depuis cet appareil. Si cela semble être une erreur, hello@astermail.org peut vous aider.",
+    abuse_blocked_network:
+      "Notre système de sécurité a suspendu pour l'instant les nouvelles inscriptions depuis ce réseau. Réessayer plus tard ou depuis un autre réseau fonctionne généralement. Si cela semble être une erreur, hello@astermail.org peut vous aider.",
+    abuse_blocked_proof:
+      "Votre navigateur n'a pas terminé la vérification de sécurité. Rechargez la page et réessayez. Si le problème persiste, hello@astermail.org peut vous aider.",
+    abuse_blocked_risk:
+      "Notre système de sécurité n'a pas pu vérifier cette inscription. Choisir un autre nom d'utilisateur et réessayer fonctionne généralement. Si cela semble être une erreur, hello@astermail.org peut vous aider.",
+    abuse_block_reference: "Référence : {{reference}}",
     contact_support: "contacter le support",
     recovery_email_verified: "E-mail de récupération vérifié",
     verification_failed: "La vérification ne s'est pas terminée.",

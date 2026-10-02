@@ -238,6 +238,33 @@ function resolve_resume_step(step: RegistrationStep): RegistrationStep {
   return "recovery_email";
 }
 
+const ABUSE_BLOCK_KINDS = [
+  "device",
+  "network",
+  "proof",
+  "fan_out",
+  "risk",
+] as const;
+
+export type AbuseBlockKind = (typeof ABUSE_BLOCK_KINDS)[number];
+
+export interface AbuseBlock {
+  kind: AbuseBlockKind | null;
+  reference: string | null;
+}
+
+function read_abuse_block(details?: Record<string, unknown>): AbuseBlock {
+  const kind = details?.kind;
+  const reference = details?.reference;
+  return {
+    kind: ABUSE_BLOCK_KINDS.find((k) => k === kind) ?? null,
+    reference:
+      typeof reference === "string" && /^[0-9a-f]{8}$/.test(reference)
+        ? reference
+        : null,
+  };
+}
+
 export function use_registration(options?: RegistrationClaimOptions) {
   const is_claim = !!options?.claim_token;
   const is_invited =
@@ -322,6 +349,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
   );
   const [error, set_error] = useState("");
   const [is_abuse_blocked, set_is_abuse_blocked] = useState(false);
+  const [abuse_block, set_abuse_block] = useState<AbuseBlock | null>(null);
   const [password_breach_warning, set_password_breach_warning] =
     useState(false);
   const [generation_status, set_generation_status] = useState("");
@@ -788,6 +816,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
           response.code === "REGISTRATION_SUSPENDED"
         ) {
           set_is_abuse_blocked(true);
+          set_abuse_block(read_abuse_block(response.details));
         }
         if (response.code === "USERNAME_IN_USE") {
           set_error(t("auth.username_in_use"));
@@ -1300,6 +1329,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
         response.code === "REGISTRATION_SUSPENDED"
       ) {
         set_is_abuse_blocked(true);
+        set_abuse_block(read_abuse_block(response.details));
         set_step("email");
 
         return;
@@ -1394,6 +1424,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
     error,
     set_error,
     is_abuse_blocked,
+    abuse_block,
     password_breach_warning,
     handle_password_blur,
     generation_status,

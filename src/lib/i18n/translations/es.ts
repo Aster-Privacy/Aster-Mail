@@ -9688,6 +9688,15 @@ export const es = {
       "Se requiere un correo de recuperación para evitar el spam.",
     abuse_flagged_message:
       "Nuestro sistema de seguridad ha detenido los nuevos registros desde esta red por ahora. Escribe a hello@astermail.org si crees que es un error.",
+    abuse_blocked_device:
+      "Nuestro sistema de seguridad ha pausado los nuevos registros desde este dispositivo por ahora. Escribe a hello@astermail.org si crees que es un error.",
+    abuse_blocked_network:
+      "Nuestro sistema de seguridad ha pausado los nuevos registros desde esta red por ahora. Suele funcionar volver a intentarlo más tarde o desde otra red. Escribe a hello@astermail.org si crees que es un error.",
+    abuse_blocked_proof:
+      "Tu navegador no completó la comprobación de seguridad. Recarga la página y vuelve a intentarlo. Si sigue pasando, escribe a hello@astermail.org.",
+    abuse_blocked_risk:
+      "Nuestro sistema de seguridad no pudo verificar este registro. Suele funcionar elegir otro nombre de usuario y volver a intentarlo. Escribe a hello@astermail.org si crees que es un error.",
+    abuse_block_reference: "Referencia: {{reference}}",
     contact_support: "contactar al soporte",
     recovery_email_verified: "Correo de recuperación verificado",
     verification_failed: "La verificación no se completó.",

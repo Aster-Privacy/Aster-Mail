@@ -9663,6 +9663,15 @@ export const nl = {
       "Gebruik letters, cijfers en punten. Punten mogen niet aan het begin, aan het eind of dubbel staan.",
     abuse_flagged_message:
       "Ons beveiligingssysteem heeft nieuwe aanmeldingen vanaf dit netwerk voorlopig stopgezet. Als dit een vergissing lijkt, kan hello@astermail.org helpen.",
+    abuse_blocked_device:
+      "Ons beveiligingssysteem heeft nieuwe aanmeldingen vanaf dit apparaat voorlopig gepauzeerd. Als dit een vergissing lijkt, kan hello@astermail.org helpen.",
+    abuse_blocked_network:
+      "Ons beveiligingssysteem heeft nieuwe aanmeldingen vanaf dit netwerk voorlopig gepauzeerd. Later opnieuw proberen of een ander netwerk gebruiken werkt meestal. Als dit een vergissing lijkt, kan hello@astermail.org helpen.",
+    abuse_blocked_proof:
+      "Je browser heeft de beveiligingscontrole niet afgerond. Laad de pagina opnieuw en probeer het nog eens. Blijft dit gebeuren, dan kan hello@astermail.org helpen.",
+    abuse_blocked_risk:
+      "Ons beveiligingssysteem kon deze aanmelding niet verifiëren. Een andere gebruikersnaam kiezen en het opnieuw proberen werkt meestal. Als dit een vergissing lijkt, kan hello@astermail.org helpen.",
+    abuse_block_reference: "Referentie: {{reference}}",
     contact_support: "contact opnemen met de klantenservice",
     generating_new_encryption_keys:
       "Nieuwe versleutelingssleutels genereren...",
