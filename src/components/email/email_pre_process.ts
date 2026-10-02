@@ -26,6 +26,7 @@ import {
   collapse_quoted_replies,
 } from "./sandboxed_email_renderer/dom_cleanup";
 
+import { clear_blocked_image } from "@/lib/blocked_image_placeholder";
 import { ignore_error } from "@/lib/ignore_error";
 
 type translate_fn = ReturnType<typeof use_i18n>["t"];
@@ -57,6 +58,7 @@ function unblock_remote_content(doc: Document): void {
         );
       }
     }
+    clear_blocked_image(el);
     el.removeAttribute("data-blocked");
     el.classList.remove("blocked-remote-image");
     const alt = el.getAttribute("alt");
@@ -80,7 +82,8 @@ function unblock_blocked_placeholders(doc: Document, proxy_base: string): void {
 
       img.setAttribute(
         "src",
-        `${proxy_base}?url=${encodeURIComponent(original_src)}`,
+        span.getAttribute("data-proxy-src") ||
+          `${proxy_base}?url=${encodeURIComponent(original_src)}`,
       );
 
       const w = span.getAttribute("data-width");
@@ -90,6 +93,12 @@ function unblock_blocked_placeholders(doc: Document, proxy_base: string): void {
       if (w) img.setAttribute("width", w);
       if (h) img.setAttribute("height", h);
       if (s) img.setAttribute("style", s);
+
+      const alt = span.getAttribute("data-alt");
+      const image_class = span.getAttribute("data-image-class");
+
+      if (alt) img.setAttribute("alt", alt);
+      if (image_class) img.setAttribute("class", image_class);
 
       span.parentNode?.replaceChild(img, span);
     });

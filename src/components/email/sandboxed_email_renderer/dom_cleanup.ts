@@ -28,6 +28,7 @@ import {
   should_retry_image_load,
 } from "@/lib/image_load_retry";
 import { connection_store } from "@/services/routing/connection_store";
+import { clear_blocked_image } from "@/lib/blocked_image_placeholder";
 import { ignore_error } from "@/lib/ignore_error";
 import { remove_aster_footers } from "@/lib/aster_footer_strip";
 
@@ -828,6 +829,7 @@ export function unblock_remote_content(doc: Document): void {
         );
       }
     }
+    clear_blocked_image(el);
     el.removeAttribute("data-blocked");
     el.classList.remove("blocked-remote-image");
     const alt = el.getAttribute("alt");
@@ -850,7 +852,9 @@ export function unblock_remote_content(doc: Document): void {
       const original_src = span.getAttribute("data-original-src") || "";
       const img = doc.createElement("img");
 
-      img.src = `${IMAGE_PROXY_URL}?url=${encodeURIComponent(original_src)}`;
+      img.src =
+        span.getAttribute("data-proxy-src") ||
+        `${IMAGE_PROXY_URL}?url=${encodeURIComponent(original_src)}`;
 
       const w = span.getAttribute("data-width");
       const h = span.getAttribute("data-height");
@@ -859,6 +863,13 @@ export function unblock_remote_content(doc: Document): void {
       if (w) img.setAttribute("width", w);
       if (h) img.setAttribute("height", h);
       if (s) img.setAttribute("style", s);
+
+      const alt = span.getAttribute("data-alt");
+      const image_class = span.getAttribute("data-image-class");
+
+      if (alt) img.setAttribute("alt", alt);
+      if (image_class) img.setAttribute("class", image_class);
+      install_image_load_fallback(img);
 
       span.parentNode?.replaceChild(img, span);
     });

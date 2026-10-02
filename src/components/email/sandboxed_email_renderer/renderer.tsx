@@ -63,6 +63,7 @@ import {
   normalize_hex,
   relative_luminance,
 } from "@/lib/email_ink";
+import { paint_blocked_images } from "@/lib/blocked_image_placeholder";
 import { use_resolved_accent } from "@/lib/resolved_accent";
 import { is_transparent_color_value } from "@/lib/html_sanitizer";
 import {
@@ -158,6 +159,7 @@ export function SandboxedEmailRenderer({
   const remeasure_ref = useRef<(() => void) | null>(null);
   const settle_timers_ref = useRef<ReturnType<typeof setTimeout>[]>([]);
   const on_document_ready_ref = useRef(on_document_ready);
+  const placeholder_cleanup_ref = useRef<(() => void) | null>(null);
 
   on_document_ready_ref.current = on_document_ready;
 
@@ -498,6 +500,7 @@ a:focus-visible {
     accent_hex,
     base_font,
     email_body_ink,
+    quote_toggle_dark,
   );
 
   const html_el_style =
@@ -610,6 +613,10 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
     }
 
     resolve_native_images(iframe.contentDocument);
+    placeholder_cleanup_ref.current?.();
+    placeholder_cleanup_ref.current = paint_blocked_images(
+      iframe.contentDocument,
+    );
 
     const doc_body = iframe.contentDocument.body;
     const has_rich_layout =
@@ -781,6 +788,7 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
 
   useEffect(() => {
     return () => {
+      placeholder_cleanup_ref.current?.();
       observer_ref.current?.disconnect();
       mutation_observer_ref.current?.disconnect();
       if (raf_ref.current) cancelAnimationFrame(raf_ref.current);
