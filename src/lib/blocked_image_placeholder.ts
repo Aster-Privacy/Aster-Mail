@@ -19,6 +19,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { css_color_to_hex } from "@/lib/avatar_color";
+import { parse_css_color, rgba_to_hex } from "@/lib/email_contrast_repair";
+import { relative_luminance } from "@/lib/email_ink";
 
 interface PlaceholderSize {
   width: number;
@@ -77,6 +79,65 @@ export interface PlaceholderPaint {
   text: string;
   font: string;
   radius: number;
+  background_opacity?: number;
+  border_opacity?: number;
+}
+
+interface SurfaceTint {
+  ink: string;
+  background_opacity: number;
+  border_opacity: number;
+  text: string;
+}
+
+const LIGHT_SURFACE_TINT: SurfaceTint = {
+  ink: "#000000",
+  background_opacity: 0.04,
+  border_opacity: 0.09,
+  text: "#5c616d",
+};
+
+const DARK_SURFACE_TINT: SurfaceTint = {
+  ink: "#ffffff",
+  background_opacity: 0.06,
+  border_opacity: 0.18,
+  text: "#a3a3a3",
+};
+
+const LIGHT_SURFACE_MIN_LUMINANCE = 0.18;
+const OPAQUE_SURFACE_MIN_ALPHA = 0.5;
+
+export function placeholder_paint_for_surface(
+  surface: string,
+  base: PlaceholderPaint,
+): PlaceholderPaint {
+  const color = parse_css_color(surface);
+
+  if (!color || color.a < OPAQUE_SURFACE_MIN_ALPHA) return base;
+  const tint =
+    relative_luminance(rgba_to_hex(color)) >= LIGHT_SURFACE_MIN_LUMINANCE
+      ? LIGHT_SURFACE_TINT
+      : DARK_SURFACE_TINT;
+
+  return {
+    ...base,
+    background: tint.ink,
+    background_opacity: tint.background_opacity,
+    border: tint.ink,
+    border_opacity: tint.border_opacity,
+    text: tint.text,
+  };
+}
+
+function surface_behind(img: Element, view: Window): string | null {
+  for (let el = img.parentElement; el; el = el.parentElement) {
+    const background = view.getComputedStyle(el).backgroundColor;
+    const color = parse_css_color(background);
+
+    if (color && color.a >= OPAQUE_SURFACE_MIN_ALPHA) return background;
+  }
+
+  return null;
 }
 
 const LIGHT_PAINT: PlaceholderPaint = {
@@ -176,7 +237,15 @@ function placeholder_source(
   const text = show_label
     ? `<text x="${stacked ? w / 2 : x + icon_size + 8}" y="${stacked ? y + icon_size + 22 : h / 2 + 4}" text-anchor="${stacked ? "middle" : "start"}" font-family="${xml(paint.font)}" font-size="${LABEL_FONT_SIZE}" fill="${xml(paint.text)}">${xml(label!)}</text>`
     : "";
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${Math.max(size.width, 1)}" height="${Math.max(size.height, 1)}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><rect x="0.5" y="0.5" width="${Math.max(w - 1, 0)}" height="${Math.max(h - 1, 0)}" rx="${Math.min(paint.radius, w / 2, h / 2)}" fill="${xml(paint.background)}" stroke="${xml(paint.border)}"/>${icon}${text}</svg>`;
+  const opacity = [
+    paint.background_opacity === undefined
+      ? ""
+      : ` fill-opacity="${paint.background_opacity}"`,
+    paint.border_opacity === undefined
+      ? ""
+      : ` stroke-opacity="${paint.border_opacity}"`,
+  ].join("");
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${Math.max(size.width, 1)}" height="${Math.max(size.height, 1)}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><rect x="0.5" y="0.5" width="${Math.max(w - 1, 0)}" height="${Math.max(h - 1, 0)}" rx="${Math.min(paint.radius, w / 2, h / 2)}" fill="${xml(paint.background)}" stroke="${xml(paint.border)}"${opacity}/>${icon}${text}</svg>`;
 
   return `data:image/svg+xml,${encodeURIComponent(svg)}`;
 }
@@ -277,23 +346,25 @@ export function paint_blocked_images(
       const color = (name: string, fallback: string) =>
         css_color_to_hex(value(name, fallback)) || fallback;
 
+      const themed: PlaceholderPaint = {
+        background: color(
+          "--aster-placeholder-background",
+          LIGHT_PAINT.background,
+        ),
+        border: color("--aster-placeholder-border", LIGHT_PAINT.border),
+        text: color("--aster-placeholder-text", LIGHT_PAINT.text),
+        font: value("--aster-placeholder-font", LIGHT_PAINT.font),
+        radius:
+          Number.parseFloat(value("--aster-placeholder-radius", "10")) || 10,
+      };
+      const surface = surface_behind(img, view);
+
       updates.push([
         img,
         placeholder_source(
           size,
           viewport,
-          {
-            background: color(
-              "--aster-placeholder-background",
-              LIGHT_PAINT.background,
-            ),
-            border: color("--aster-placeholder-border", LIGHT_PAINT.border),
-            text: color("--aster-placeholder-text", LIGHT_PAINT.text),
-            font: value("--aster-placeholder-font", LIGHT_PAINT.font),
-            radius:
-              Number.parseFloat(value("--aster-placeholder-radius", "10")) ||
-              10,
-          },
+          surface ? placeholder_paint_for_surface(surface, themed) : themed,
           svg_label(img, labels),
         ),
       ]);
