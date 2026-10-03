@@ -22,7 +22,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 const routing = vi.hoisted(() => ({
   base: (default_base: string) => default_base,
-  fetch: vi.fn(async () => new Response(null, { status: 204 })),
+  fetch: vi.fn<(url: string, init?: RequestInit) => Promise<Response>>(
+    async () => new Response(null, { status: 204 }),
+  ),
 }));
 
 vi.mock("@/services/api/base_url", () => ({

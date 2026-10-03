@@ -677,7 +677,7 @@ describe("recovery lane trust", () => {
     const envelope = await send("opened through the lane", sender_vault);
     const parsed = parse_ratchet_envelope(envelope)!;
 
-    delete parsed.recipients[RECIPIENT].ephemeral_key;
+    Reflect.deleteProperty(parsed.recipients[RECIPIENT], "ephemeral_key");
     h.store.clear();
     h.vault = receiver_vault;
 

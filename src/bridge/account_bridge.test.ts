@@ -36,7 +36,9 @@ const state = vi.hoisted(() => {
     current_id: "acct_a" as string | null,
     replies: [] as Array<Record<string, unknown>>,
     purge: vi.fn(async () => undefined),
-    remove: vi.fn(async () => ({ removed: true })),
+    remove: vi.fn<(id: string) => Promise<{ removed: boolean }>>(async () => ({
+      removed: true,
+    })),
     switch_to: vi.fn(async () => true),
     verify: vi.fn(async () => ({ error: "not_found", code: "NOT_FOUND" })),
   };
