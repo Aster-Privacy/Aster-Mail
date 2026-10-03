@@ -245,8 +245,6 @@ function has_prefix(bytes: Uint8Array, prefix: number[]): boolean {
   return prefix.every((byte, i) => bytes[i] === byte);
 }
 
-// Excel saves "CSV UTF-8" with a BOM, "Unicode text" as UTF-16 with a BOM,
-// and plain "CSV" in the system code page, which is usually windows-1252.
 function decode_csv_bytes(bytes: Uint8Array): string {
   if (has_prefix(bytes, [0xef, 0xbb, 0xbf])) {
     return new TextDecoder("utf-8").decode(bytes.subarray(3));

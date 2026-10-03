@@ -22,10 +22,6 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
 import { parse_csv_file } from "./csv_parser";
 
-// Browsers decode "iso-8859-1" (and "latin1", "us-ascii") as windows-1252,
-// which turns bytes 0x80-0x9F into characters such as U+20AC. Node keeps
-// those bytes as-is, so without this stub the tests would not see what users
-// see in the browser.
 // prettier-ignore
 const WINDOWS_1252_HIGH = String.fromCharCode(
   0x20ac, 0x81, 0x201a, 0x192, 0x201e, 0x2026, 0x2020, 0x2021,
@@ -125,7 +121,6 @@ describe("parse_csv_file encodings", () => {
   });
 
   it("falls back to windows-1252 for legacy Excel files", async () => {
-    // "Olá João" and "5€ – ok" in windows-1252, which is not valid UTF-8.
     const text =
       HEADER +
       "joao@example.com,user@example.com,Ol\xe1 Jo\xe3o,5\x80 \x96 ok\r\n";
