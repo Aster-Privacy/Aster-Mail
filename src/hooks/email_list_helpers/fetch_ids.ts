@@ -120,6 +120,7 @@ export async function fetch_mail_by_ids_reconciled(
               if (bundle.subject !== null && !envelope.subject) {
                 envelope.subject = bundle.subject;
               }
+              if (bundle.pgp_undecrypted) cacheable = false;
             } catch {
               envelope.body_text = "";
               cacheable = false;

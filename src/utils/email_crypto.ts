@@ -719,13 +719,18 @@ export function unwrap_bundle_html(html: string | undefined): {
   return { html: bundle.body || undefined, subject: bundle.subject };
 }
 
-export async function decrypt_body_text(
+export interface DecryptedBodyText {
+  body: string;
+  pgp_undecrypted: boolean;
+}
+
+async function resolve_body_text(
   body_text: string,
   user_email: string,
   sender_email: string,
   message_id?: string,
-): Promise<string> {
-  if (!body_text) return body_text;
+): Promise<DecryptedBodyText> {
+  if (!body_text) return { body: body_text, pgp_undecrypted: false };
 
   let result = await try_decrypt_ratchet_body(
     body_text,
@@ -734,10 +739,16 @@ export async function decrypt_body_text(
     message_id,
   );
 
-  result = await try_decrypt_pgp_body(result);
+  const had_pgp_block = result.includes(PGP_MESSAGE_BEGIN);
+  const pgp = await resolve_inbound_pgp_body(result);
+
+  result = pgp.body;
 
   if (is_password_protected_body(result)) {
-    return decode_password_protected_body(result).rest.trim();
+    return {
+      body: decode_password_protected_body(result).rest.trim(),
+      pgp_undecrypted: false,
+    };
   }
 
   if (/^content-type\s*:/im.test(result)) {
@@ -748,7 +759,27 @@ export async function decrypt_body_text(
     }
   }
 
-  return result;
+  return { body: result, pgp_undecrypted: had_pgp_block && !pgp.decrypted };
+}
+
+export async function decrypt_body_text(
+  body_text: string,
+  user_email: string,
+  sender_email: string,
+  message_id?: string,
+): Promise<string> {
+  const resolved = await resolve_body_text(
+    body_text,
+    user_email,
+    sender_email,
+    message_id,
+  );
+
+  return resolved.body;
+}
+
+export interface DecryptedBodyBundle extends SubjectBundle {
+  pgp_undecrypted: boolean;
 }
 
 export async function decrypt_body_text_with_bundle(
@@ -756,15 +787,18 @@ export async function decrypt_body_text_with_bundle(
   user_email: string,
   sender_email: string,
   message_id?: string,
-): Promise<SubjectBundle> {
-  const decrypted = await decrypt_body_text(
+): Promise<DecryptedBodyBundle> {
+  const resolved = await resolve_body_text(
     body_text,
     user_email,
     sender_email,
     message_id,
   );
 
-  return extract_subject_bundle(decrypted);
+  return {
+    ...extract_subject_bundle(resolved.body),
+    pgp_undecrypted: resolved.pgp_undecrypted,
+  };
 }
 
 export interface RecipientKeyResult {

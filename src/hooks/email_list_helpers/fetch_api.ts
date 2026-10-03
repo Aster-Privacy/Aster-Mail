@@ -134,6 +134,7 @@ export async function fetch_mail_from_api(
           item,
           user_email,
           async () => {
+            let cacheable = true;
             const has_metadata = !!(
               item.encrypted_metadata && item.metadata_nonce
             );
@@ -165,9 +166,10 @@ export async function fetch_mail_from_api(
               if (bundle.subject !== null && !envelope.subject) {
                 envelope.subject = bundle.subject;
               }
+              if (bundle.pgp_undecrypted) cacheable = false;
             }
 
-            return { envelope, metadata };
+            return { envelope, metadata, cacheable };
           },
         );
 

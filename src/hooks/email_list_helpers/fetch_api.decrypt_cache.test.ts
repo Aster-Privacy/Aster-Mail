@@ -108,6 +108,7 @@ const { fetch_mail_from_api } = await import("./fetch_api");
 const { fetch_mail_by_ids_reconciled } = await import("./fetch_ids");
 const { merge_silent_refresh_emails } = await import("./silent_refresh");
 const { decrypt_envelope } = await import("./decrypt");
+const { decrypt_body_text_with_bundle } = await import("@/utils/email_crypto");
 const { decrypt_mail_metadata } =
   await import("@/services/crypto/mail_metadata");
 const { clear_mail_cache } = await import("@/hooks/email_list_cache");
@@ -296,6 +297,34 @@ describe("list refresh decrypt cache", () => {
     await refresh();
     reset_counts();
     await refresh();
+
+    expect(decrypt_counts().envelopes).toBe(1);
+  });
+
+  it("does not keep a body whose PGP block could not be decrypted yet", async () => {
+    vi.mocked(decrypt_body_text_with_bundle).mockResolvedValueOnce({
+      body: "list footer",
+      subject: null,
+      pgp_undecrypted: true,
+    });
+
+    await refresh();
+    reset_counts();
+    await refresh();
+
+    expect(decrypt_counts().envelopes).toBe(1);
+  });
+
+  it("does not keep a by-id body whose PGP block could not be decrypted yet", async () => {
+    vi.mocked(decrypt_body_text_with_bundle).mockResolvedValueOnce({
+      body: "list footer",
+      subject: null,
+      pgp_undecrypted: true,
+    });
+
+    await fetch_mail_by_ids_reconciled(["m0"], {} as never, "me@example.test");
+    reset_counts();
+    await fetch_mail_by_ids_reconciled(["m0"], {} as never, "me@example.test");
 
     expect(decrypt_counts().envelopes).toBe(1);
   });
