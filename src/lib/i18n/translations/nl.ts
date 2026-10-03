@@ -10271,8 +10271,8 @@ export const nl = {
     expr_bad_attachment_op:
       'De operator "{{value}}" werkt niet op namen van bijlagen. Probeer contains, ends_with of matches_regex.',
     expr_unhandled_field: "Dit veld kan hier niet worden gebruikt.",
-    expr_misplaced_match_case:
-      "match_case kan alleen na een tekstwaarde tussen aanhalingstekens staan.",
+    expr_misplaced_case_flag:
+      "case_sensitive kan alleen na een tekstwaarde tussen aanhalingstekens staan.",
     expr_internal_error:
       "Deze expressie kon niet worden gelezen. Controleer de syntaxis en probeer het opnieuw.",
     expr_line_col: "(regel {{line}}, kolom {{col}})",

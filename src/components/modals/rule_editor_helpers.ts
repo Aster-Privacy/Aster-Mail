@@ -57,12 +57,6 @@ export function flatten_leaves(conditions: Condition[]): LeafCondition[] {
   return out;
 }
 
-export function has_case_sensitive_condition(conditions: Condition[]): boolean {
-  return flatten_leaves(conditions).some(
-    (c) => "case_sensitive" in c && c.case_sensitive === true,
-  );
-}
-
 export function conditions_as_root(
   conditions: Condition[],
   match_mode: Rule["match_mode"],

@@ -10071,8 +10071,8 @@ export const ar = {
     expr_bad_attachment_op:
       'العامل "{{value}}" لا يعمل مع أسماء المرفقات. جرّب contains أو ends_with أو matches_regex.',
     expr_unhandled_field: "لا يمكن استخدام هذا الحقل هنا.",
-    expr_misplaced_match_case:
-      "يمكن وضع match_case فقط بعد قيمة نصية بين علامتي اقتباس.",
+    expr_misplaced_case_flag:
+      "يمكن وضع case_sensitive فقط بعد قيمة نصية بين علامتي اقتباس.",
     expr_internal_error:
       "تعذّرت قراءة هذا التعبير. تحقق من بنية الجملة وحاول مرة أخرى.",
     expr_line_col: "(السطر {{line}}، العمود {{col}})",

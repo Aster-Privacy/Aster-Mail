@@ -469,8 +469,8 @@ class Parser {
     if (ft.kind !== "ident") {
       throw new ParseError("expected_field", ft.line, ft.col);
     }
-    if (ft.value.toLowerCase() === "match_case") {
-      throw new ParseError("misplaced_match_case", ft.line, ft.col);
+    if (CASE_FLAGS.includes(ft.value.toLowerCase())) {
+      throw new ParseError("misplaced_case_flag", ft.line, ft.col);
     }
     let meta = field_meta(ft.value);
 
@@ -654,7 +654,7 @@ class Parser {
         type: addr_type,
         operator: op_name as AddressOperator,
         value: v,
-        ...this.parse_match_case(),
+        ...this.parse_case_flag(),
       };
     }
 
@@ -668,6 +668,8 @@ class Parser {
       }
       this.consume();
       if (op_name === "is_empty") {
+        this.parse_case_flag();
+
         return {
           type: meta.internal as "subject" | "body" | "list_id",
           operator: "is_empty",
@@ -680,7 +682,7 @@ class Parser {
         type: meta.internal as "subject" | "body" | "list_id",
         operator: op_name as TextOperator,
         value: v,
-        ...this.parse_match_case(),
+        ...this.parse_case_flag(),
       };
     }
 
@@ -694,6 +696,8 @@ class Parser {
       }
       this.consume();
       if (op_name === "is_empty") {
+        this.parse_case_flag();
+
         return {
           type: "header",
           name: meta.header_name ?? "",
@@ -708,7 +712,7 @@ class Parser {
         name: meta.header_name ?? "",
         operator: op_name as TextOperator,
         value: v,
-        ...this.parse_match_case(),
+        ...this.parse_case_flag(),
       };
     }
 
@@ -727,7 +731,7 @@ class Parser {
         type: "attachment_name",
         operator: op_name as AttachmentNameOperator,
         value: v,
-        ...this.parse_match_case(),
+        ...this.parse_case_flag(),
       };
     }
 
@@ -743,10 +747,15 @@ class Parser {
 
     return v.value;
   }
-  parse_match_case(): { case_sensitive?: true } {
-    return this.match_keyword("match_case") ? { case_sensitive: true } : {};
+  parse_case_flag(): { case_sensitive?: true } {
+    if (this.match_keyword("case_sensitive")) return { case_sensitive: true };
+    this.match_keyword("ci");
+
+    return {};
   }
 }
+
+const CASE_FLAGS = ["case_sensitive", "ci"];
 
 function build_bool(internal: string, value: boolean): Condition {
   return {
@@ -835,8 +844,8 @@ export function friendly_error(
       return t("mail_rules.expr_bad_attachment_op", { value });
     case "unhandled_field":
       return t("mail_rules.expr_unhandled_field");
-    case "misplaced_match_case":
-      return t("mail_rules.expr_misplaced_match_case");
+    case "misplaced_case_flag":
+      return t("mail_rules.expr_misplaced_case_flag");
     case "internal_error":
       return t("mail_rules.expr_internal_error");
     default:
@@ -905,7 +914,7 @@ function quote_string(s: string): string {
 }
 
 function quote_value(s: string, case_sensitive?: boolean): string {
-  return case_sensitive ? `${quote_string(s)} match_case` : quote_string(s);
+  return case_sensitive ? `${quote_string(s)} case_sensitive` : quote_string(s);
 }
 
 export function serialize(c: Condition): string {

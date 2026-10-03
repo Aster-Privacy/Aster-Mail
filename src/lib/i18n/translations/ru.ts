@@ -10479,8 +10479,8 @@ export const ru = {
     expr_bad_attachment_op:
       'Оператор "{{value}}" не работает с именами вложений. Попробуйте contains, ends_with или matches_regex.',
     expr_unhandled_field: "Это поле нельзя использовать здесь.",
-    expr_misplaced_match_case:
-      "match_case можно указать только после текстового значения в кавычках.",
+    expr_misplaced_case_flag:
+      "case_sensitive можно указать только после текстового значения в кавычках.",
     expr_internal_error:
       "Не удалось прочитать это выражение. Проверьте синтаксис и повторите попытку.",
     expr_line_col: "(строка {{line}}, столбец {{col}})",

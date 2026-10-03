@@ -10279,8 +10279,8 @@ export const hi = {
     expr_bad_attachment_op:
       'ऑपरेटर "{{value}}" अटैचमेंट के नाम पर काम नहीं करता। contains, ends_with या matches_regex आज़माएं।',
     expr_unhandled_field: "इस फ़ील्ड का यहां इस्तेमाल नहीं हो सकता।",
-    expr_misplaced_match_case:
-      "match_case केवल उद्धरण चिह्नों में लिखे टेक्स्ट मान के बाद आ सकता है।",
+    expr_misplaced_case_flag:
+      "case_sensitive केवल उद्धरण चिह्नों में लिखे टेक्स्ट मान के बाद आ सकता है।",
     expr_internal_error:
       "यह एक्सप्रेशन पढ़ा नहीं जा सका। सिंटैक्स जांचकर फिर से कोशिश करें।",
     expr_line_col: "(पंक्ति {{line}}, स्तंभ {{col}})",

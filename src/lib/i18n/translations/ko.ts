@@ -9887,8 +9887,8 @@ export const ko = {
     expr_bad_attachment_op:
       '"{{value}}" 연산자는 첨부 파일 이름에서 작동하지 않습니다. contains, ends_with, matches_regex를 사용해 보세요.',
     expr_unhandled_field: "이 필드는 여기에서 사용할 수 없습니다.",
-    expr_misplaced_match_case:
-      "match_case는 따옴표로 묶은 텍스트 값 뒤에만 올 수 있습니다.",
+    expr_misplaced_case_flag:
+      "case_sensitive는 따옴표로 묶은 텍스트 값 뒤에만 올 수 있습니다.",
     expr_internal_error:
       "이 표현식을 읽을 수 없습니다. 구문을 확인한 후 다시 시도하세요.",
     expr_line_col: "({{line}}행, {{col}}열)",

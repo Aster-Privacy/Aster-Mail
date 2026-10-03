@@ -10342,8 +10342,8 @@ export const it = {
     expr_bad_attachment_op:
       'L\'operatore "{{value}}" non funziona sui nomi degli allegati. Prova contains, ends_with o matches_regex.',
     expr_unhandled_field: "Questo campo non può essere usato qui.",
-    expr_misplaced_match_case:
-      "match_case può seguire solo un valore di testo tra virgolette.",
+    expr_misplaced_case_flag:
+      "case_sensitive può seguire solo un valore di testo tra virgolette.",
     expr_internal_error:
       "Non è stato possibile leggere questa espressione. Controlla la sintassi e riprova.",
     expr_line_col: "(riga {{line}}, colonna {{col}})",

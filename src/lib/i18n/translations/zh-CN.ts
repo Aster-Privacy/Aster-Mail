@@ -9148,7 +9148,7 @@ export const zh_CN = {
     expr_bad_attachment_op:
       "运算符“{{value}}”不适用于附件名称。请尝试 contains、ends_with 或 matches_regex。",
     expr_unhandled_field: "此字段不能在此处使用。",
-    expr_misplaced_match_case: "match_case 只能跟在带引号的文本值之后。",
+    expr_misplaced_case_flag: "case_sensitive 只能跟在带引号的文本值之后。",
     expr_internal_error: "无法读取此表达式。请检查语法后重试。",
     expr_line_col: "(第 {{line}} 行，第 {{col}} 列)",
     editor_description: "为规则命名并指定它的操作。",

@@ -30,8 +30,8 @@ function round_trip(c: Condition): Condition | null {
   return result.ok ? result.ast : null;
 }
 
-describe("expression match_case", () => {
-  it("writes match_case after the value of a case sensitive condition", () => {
+describe("expression case_sensitive", () => {
+  it("writes case_sensitive after the value of a case sensitive condition", () => {
     expect(
       serialize({
         type: "subject",
@@ -39,7 +39,7 @@ describe("expression match_case", () => {
         value: "URGENT",
         case_sensitive: true,
       }),
-    ).toBe('subject contains "URGENT" match_case');
+    ).toBe('subject contains "URGENT" case_sensitive');
   });
 
   it("round trips case sensitivity on every text-like field", () => {
@@ -71,9 +71,11 @@ describe("expression match_case", () => {
     }
   });
 
-  it("parses match_case inside a larger expression", () => {
+  it("parses case_sensitive inside a larger expression", () => {
     expect(
-      parse('subject contains "URGENT" match_case and body contains "invoice"'),
+      parse(
+        'subject contains "URGENT" case_sensitive and body contains "invoice"',
+      ),
     ).toEqual({
       ok: true,
       ast: {
@@ -106,18 +108,58 @@ describe("expression match_case", () => {
     });
   });
 
-  it("reports a misplaced match_case clearly", () => {
+  it("reads the case flags the server writes", () => {
+    expect(parse('from.address is "A@B.C" case_sensitive')).toEqual({
+      ok: true,
+      ast: {
+        type: "from",
+        operator: "is",
+        value: "A@B.C",
+        case_sensitive: true,
+      },
+    });
+    expect(parse('header.X-Tag starts_with "Ops" case_sensitive')).toEqual({
+      ok: true,
+      ast: {
+        type: "header",
+        name: "X-Tag",
+        operator: "starts_with",
+        value: "Ops",
+        case_sensitive: true,
+      },
+    });
+    expect(parse('subject contains "urgent" ci')).toEqual({
+      ok: true,
+      ast: { type: "subject", operator: "contains", value: "urgent" },
+    });
+    expect(parse("subject is_empty case_sensitive")).toEqual({
+      ok: true,
+      ast: { type: "subject", operator: "is_empty", value: "" },
+    });
+  });
+
+  it("reports a misplaced case flag clearly", () => {
     for (const text of [
-      "match_case",
-      "subject is_empty match_case",
-      "spam_score > 5 match_case",
-      "date_received older_than_days 3 match_case",
-      "has_attachment match_case",
-      'subject contains "a" match_case match_case',
+      "case_sensitive",
+      "ci",
+      "spam_score > 5 case_sensitive",
+      "date_received older_than_days 3 case_sensitive",
+      "has_attachment case_sensitive",
+      'subject contains "a" case_sensitive case_sensitive',
+      'subject contains "a" match_case',
     ]) {
       const result = parse(text);
 
-      expect(result.ok ? null : result.error).toBe("misplaced_match_case");
+      expect(result.ok ? null : result.error).not.toBeNull();
+    }
+    for (const text of [
+      "case_sensitive",
+      "has_attachment case_sensitive",
+      'subject contains "a" case_sensitive ci',
+    ]) {
+      const result = parse(text);
+
+      expect(result.ok ? null : result.error).toBe("misplaced_case_flag");
     }
   });
 });

@@ -94,7 +94,6 @@ import {
   default_condition,
   flatten_leaves,
   has_any_action_value,
-  has_case_sensitive_condition,
   has_nested_logic,
   stored_expression_matches_conditions,
   strip_unavailable_actions,
@@ -516,9 +515,6 @@ export function RuleEditorModal({
 
         return;
       }
-    }
-    if (has_case_sensitive_condition(derived_conditions)) {
-      expression_value = null;
     }
     const req = {
       name: name.trim() || t("mail_rules.untitled_rule_name"),

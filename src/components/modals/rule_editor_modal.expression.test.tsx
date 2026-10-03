@@ -316,13 +316,15 @@ describe("rule editor expression tab", () => {
     expect(saved_request().match_mode).toBe("any");
   });
 
-  it("does not send match_case to the server when creating a rule", async () => {
+  it("sends case_sensitive to the server when creating a rule", async () => {
     open_new_editor();
     await click("mail_rules.tab_expression");
-    type_expression('subject contains "URGENT" match_case');
+    type_expression('subject contains "URGENT" case_sensitive');
     await click("mail_rules.save_rule");
 
-    expect(created_request().expression).toBeNull();
+    expect(created_request().expression).toBe(
+      'subject contains "URGENT" case_sensitive',
+    );
     expect(created_request().conditions).toEqual([
       {
         type: "subject",
@@ -333,21 +335,23 @@ describe("rule editor expression tab", () => {
     ]);
   });
 
-  it("clears the stored expression when updating a case sensitive rule", async () => {
+  it("replaces a stale stored expression when updating a case sensitive rule", async () => {
     open_editor({
       ...MATCH_CASE_RULE(),
       expression: 'subject contains "URGENT"',
     });
     await click("mail_rules.tab_expression");
 
-    expect(expression_text()).toBe('subject contains "URGENT" match_case');
+    expect(expression_text()).toBe('subject contains "URGENT" case_sensitive');
 
     await click("mail_rules.save_rule");
 
-    expect(saved_request().expression).toBeNull();
+    expect(saved_request().expression).toBe(
+      'subject contains "URGENT" case_sensitive',
+    );
   });
 
-  it("still sends the expression for rules without Match case", async () => {
+  it("sends the expression for rules without Match case", async () => {
     open_new_editor();
     await click("mail_rules.tab_expression");
     type_expression('subject contains "invoice"');
