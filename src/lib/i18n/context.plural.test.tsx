@@ -160,6 +160,7 @@ const counted_keys: TranslationKey[] = [
   "settings.alias_export_undecryptable",
   "settings.alias_export_undecryptable_ghost",
   "settings.alias_import_confirm",
+  "settings.alias_import_done",
   "settings.cancel_impact_aliases",
   "settings.cancel_impact_domains",
   "settings.cancel_impact_family",

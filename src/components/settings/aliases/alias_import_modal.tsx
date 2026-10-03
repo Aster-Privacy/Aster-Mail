@@ -21,9 +21,11 @@
 import { Checkbox } from "@aster/ui";
 import { useMemo, useRef, useState } from "react";
 import {
+  ArrowPathIcon,
   ArrowUpTrayIcon,
   CheckCircleIcon,
   ExclamationTriangleIcon,
+  MinusCircleIcon,
   XCircleIcon,
 } from "@heroicons/react/24/outline";
 import {
@@ -85,6 +87,7 @@ interface PreviewRow extends ParsedRow {
   status: RowStatus;
   existing_id?: string;
   existing_domain_id?: string;
+  existing_enabled?: boolean;
   invalid_reason?: string;
 }
 
@@ -314,6 +317,7 @@ function build_preview(
         domain: target_domain,
         status: "exists" as RowStatus,
         existing_id: existing_alias.id,
+        existing_enabled: existing_alias.is_enabled,
       };
     }
 
@@ -327,6 +331,7 @@ function build_preview(
         status: "exists" as RowStatus,
         existing_id: existing_domain_addr.id,
         existing_domain_id: existing_domain_addr.domain_id,
+        existing_enabled: existing_domain_addr.is_enabled,
       };
     }
 
@@ -341,8 +346,15 @@ function build_preview(
 
 interface ImportResult {
   created: number;
-  skipped: number;
+  re_enabled: number;
+  existing: number;
+  invalid: number;
+  unselected: number;
   failed: number;
+}
+
+function needs_re_enable(row: PreviewRow): boolean {
+  return row.status === "exists" && row.existing_enabled === false;
 }
 
 interface AliasImportModalProps {
@@ -547,14 +559,17 @@ export function AliasImportModal({
       conflict_mode === "update"
         ? preview_rows.filter(
             (r, i) =>
-              r.status === "exists" &&
-              !!r.existing_id &&
-              selected_indices.has(i),
+              needs_re_enable(r) && !!r.existing_id && selected_indices.has(i),
           )
         : [];
 
-    const not_attempted =
-      preview_rows.length - importable.length - to_update.length;
+    const existing =
+      preview_rows.filter((r) => r.status === "exists").length -
+      to_update.length;
+    const invalid = preview_rows.filter((r) => r.status === "invalid").length;
+    const unselected = preview_rows.filter(
+      (r, i) => r.status === "will_import" && !selected_indices.has(i),
+    ).length;
     const total = importable.length + to_update.length;
 
     set_progress_total(total);
@@ -562,6 +577,7 @@ export function AliasImportModal({
     set_step("progress");
 
     let created = 0;
+    let re_enabled = 0;
     let failed = 0;
 
     if (importable.length > 0) {
@@ -683,18 +699,11 @@ export function AliasImportModal({
         continue;
       }
       try {
-        const enabled_value = row.enabled ?? true;
-
         if (row.existing_domain_id) {
-          const updates: Parameters<typeof update_domain_address>[2] = {
-            is_enabled: enabled_value,
-          };
-
-          if (row.display_name) updates.display_name = row.display_name;
           const response = await update_domain_address(
             row.existing_domain_id,
             row.existing_id,
-            updates,
+            { is_enabled: true },
           );
 
           if (response.error) {
@@ -704,12 +713,9 @@ export function AliasImportModal({
             continue;
           }
         } else {
-          const updates: Parameters<typeof update_alias>[1] = {
-            is_enabled: enabled_value,
-          };
-
-          if (row.display_name) updates.display_name = row.display_name;
-          const response = await update_alias(row.existing_id, updates);
+          const response = await update_alias(row.existing_id, {
+            is_enabled: true,
+          });
 
           if (response.error) {
             failed++;
@@ -718,7 +724,7 @@ export function AliasImportModal({
             continue;
           }
         }
-        created++;
+        re_enabled++;
       } catch {
         failed++;
       }
@@ -726,9 +732,14 @@ export function AliasImportModal({
       set_progress_current(importable.length + update_processed);
     }
 
-    const skipped = not_attempted;
-
-    set_result({ created, skipped, failed });
+    set_result({
+      created,
+      re_enabled,
+      existing,
+      invalid,
+      unselected,
+      failed,
+    });
     set_step("done");
     on_imported();
   };
@@ -752,7 +763,7 @@ export function AliasImportModal({
 
     return (
       r.status === "will_import" ||
-      (conflict_mode === "update" && r.status === "exists")
+      (conflict_mode === "update" && needs_re_enable(r))
     );
   }).length;
 
@@ -1021,7 +1032,7 @@ export function AliasImportModal({
           <div className="space-y-3 py-2">
             <p className="text-sm font-semibold text-txt-primary">
               {t("settings.alias_import_done", {
-                created: result.created,
+                count: result.created,
               })}
             </p>
             <div className="space-y-1.5">
@@ -1031,11 +1042,35 @@ export function AliasImportModal({
                   count: result.created,
                 })}
               </div>
-              {result.skipped > 0 && (
+              {result.re_enabled > 0 && (
+                <div className="flex items-center gap-2 text-sm text-green-600">
+                  <ArrowPathIcon className="w-4 h-4 shrink-0" />
+                  {t("settings.alias_import_summary_re_enabled", {
+                    count: result.re_enabled,
+                  })}
+                </div>
+              )}
+              {result.existing > 0 && (
                 <div className="flex items-center gap-2 text-sm text-amber-600">
                   <ExclamationTriangleIcon className="w-4 h-4 shrink-0" />
                   {t("settings.alias_import_summary_skipped", {
-                    count: result.skipped,
+                    count: result.existing,
+                  })}
+                </div>
+              )}
+              {result.invalid > 0 && (
+                <div className="flex items-center gap-2 text-sm text-amber-600">
+                  <XCircleIcon className="w-4 h-4 shrink-0" />
+                  {t("settings.alias_import_summary_invalid", {
+                    count: result.invalid,
+                  })}
+                </div>
+              )}
+              {result.unselected > 0 && (
+                <div className="flex items-center gap-2 text-sm text-txt-muted">
+                  <MinusCircleIcon className="w-4 h-4 shrink-0" />
+                  {t("settings.alias_import_summary_unselected", {
+                    count: result.unselected,
                   })}
                 </div>
               )}

@@ -3004,7 +3004,7 @@ export const ko = {
       "내보내기에 실패했습니다. 아무것도 다운로드되지 않았습니다.",
     alias_import_csv: "별칭 가져오기",
     alias_import_progress: "{{total}}개 중 {{current}}개 가져오는 중...",
-    alias_import_done: "별칭 {{created}}개를 가져왔습니다.",
+    alias_import_done: "별칭 {{count}}개를 가져왔습니다.",
     alias_import_skipped: "{{skipped}}개 건너뜀 (지원되지 않는 도메인).",
     alias_import_title: "별칭 가져오기",
     alias_import_drop_hint:
@@ -3018,7 +3018,10 @@ export const ko = {
     alias_import_update_existing: "사용 중지된 경우 다시 사용 설정",
     alias_import_confirm: "별칭 {{count}}개 가져오기",
     alias_import_summary_created: "{{count}}개 가져옴",
+    alias_import_summary_re_enabled: "{{count}}개 다시 사용 설정됨",
     alias_import_summary_skipped: "{{count}}개 이미 존재함",
+    alias_import_summary_invalid: "{{count}}개 유효하지 않음",
+    alias_import_summary_unselected: "{{count}}개 선택 안 됨",
     alias_import_summary_failed: "{{count}}개 실패",
     alias_import_error_no_aliases:
       "이 파일에서 가져올 수 있는 별칭을 찾을 수 없습니다.",

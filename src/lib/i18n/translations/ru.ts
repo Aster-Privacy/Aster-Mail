@@ -3235,7 +3235,8 @@ export const ru = {
     alias_export_failed: "Экспорт не выполнен. Ничего не скачано.",
     alias_import_csv: "Импорт псевдонимов",
     alias_import_progress: "Импорт {{current}} из {{total}}...",
-    alias_import_done: "Импортировано псевдонимов: {{created}}.",
+    alias_import_done: "Импортировано псевдонимов: {{count}}.",
+    alias_import_done_one: "Импортировано псевдонимов: {{count}}.",
     alias_import_skipped: "Пропущено: {{skipped}} (неподдерживаемый домен).",
     alias_import_title: "Импорт псевдонимов",
     alias_import_drop_hint:
@@ -3251,7 +3252,10 @@ export const ru = {
     alias_import_confirm_one: "Импортировать {{count}} псевдоним",
     alias_import_confirm_few: "Импортировать {{count}} псевдонима",
     alias_import_summary_created: "Импортировано: {{count}}",
+    alias_import_summary_re_enabled: "Снова включено: {{count}}",
     alias_import_summary_skipped: "Уже существовало: {{count}}",
+    alias_import_summary_invalid: "Недействительно: {{count}}",
+    alias_import_summary_unselected: "Не выбрано: {{count}}",
     alias_import_summary_failed: "Не удалось: {{count}}",
     alias_import_error_no_aliases:
       "В этом файле не найдено псевдонимов для импорта.",

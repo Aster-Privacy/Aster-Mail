@@ -2820,7 +2820,7 @@ export const zh_CN = {
     alias_export_failed: "导出失败，未下载任何文件。",
     alias_import_csv: "导入别名",
     alias_import_progress: "正在导入 {{total}} 中的第 {{current}} 个……",
-    alias_import_done: "已导入 {{created}} 个别名。",
+    alias_import_done: "已导入 {{count}} 个别名。",
     alias_import_skipped: "已跳过 {{skipped}} 个（不支持的域名）。",
     alias_import_title: "导入别名",
     alias_import_drop_hint:
@@ -2834,7 +2834,10 @@ export const zh_CN = {
     alias_import_update_existing: "若已停用则重新启用",
     alias_import_confirm: "导入 {{count}} 个别名",
     alias_import_summary_created: "已导入 {{count}} 个",
+    alias_import_summary_re_enabled: "已重新启用 {{count}} 个",
     alias_import_summary_skipped: "已存在 {{count}} 个",
+    alias_import_summary_invalid: "{{count}} 个无效",
+    alias_import_summary_unselected: "{{count}} 个未选择",
     alias_import_summary_failed: "{{count}} 个失败",
     alias_import_error_no_aliases: "此文件中未找到可导入的别名。",
     alias_import_protonpass_encrypted_error:

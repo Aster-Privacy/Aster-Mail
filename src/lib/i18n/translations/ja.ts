@@ -3075,7 +3075,7 @@ export const ja = {
       "エクスポートに失敗しました。何もダウンロードされていません。",
     alias_import_csv: "エイリアスをインポート",
     alias_import_progress: "{{total}}件中{{current}}件をインポート中...",
-    alias_import_done: "{{created}}件のエイリアスをインポートしました。",
+    alias_import_done: "{{count}}件のエイリアスをインポートしました。",
     alias_import_skipped: "{{skipped}}件スキップしました（非対応ドメイン）。",
     alias_import_title: "エイリアスをインポート",
     alias_import_drop_hint:
@@ -3089,7 +3089,10 @@ export const ja = {
     alias_import_update_existing: "無効な場合は再度有効化",
     alias_import_confirm: "{{count}}件のエイリアスをインポート",
     alias_import_summary_created: "{{count}}件インポート済み",
+    alias_import_summary_re_enabled: "{{count}}件を再度有効化しました",
     alias_import_summary_skipped: "{{count}}件は既に存在しました",
+    alias_import_summary_invalid: "{{count}}件が無効",
+    alias_import_summary_unselected: "{{count}}件は未選択",
     alias_import_summary_failed: "{{count}}件失敗しました",
     alias_import_error_no_aliases:
       "このファイルにインポート可能なエイリアスが見つかりませんでした。",

@@ -3048,7 +3048,8 @@ export const nl = {
     alias_export_failed: "Export mislukt. Er is niets gedownload.",
     alias_import_csv: "Aliassen importeren",
     alias_import_progress: "{{current}} van {{total}} importeren...",
-    alias_import_done: "{{created}} aliassen geïmporteerd.",
+    alias_import_done: "{{count}} aliassen geïmporteerd.",
+    alias_import_done_one: "{{count}} alias geïmporteerd.",
     alias_import_skipped: "{{skipped}} overgeslagen (niet-ondersteund domein).",
     alias_import_title: "Aliassen importeren",
     alias_import_drop_hint:
@@ -3063,7 +3064,11 @@ export const nl = {
     alias_import_confirm: "{{count}} aliassen importeren",
     alias_import_confirm_one: "{{count}} alias importeren",
     alias_import_summary_created: "{{count}} geïmporteerd",
+    alias_import_summary_re_enabled: "{{count}} opnieuw ingeschakeld",
     alias_import_summary_skipped: "{{count}} bestonden al",
+    alias_import_summary_skipped_one: "{{count}} bestond al",
+    alias_import_summary_invalid: "{{count}} ongeldig",
+    alias_import_summary_unselected: "{{count}} niet geselecteerd",
     alias_import_summary_failed: "{{count}} mislukt",
     alias_import_error_no_aliases:
       "Geen importeerbare aliassen gevonden in dit bestand.",
