@@ -1869,12 +1869,6 @@ type ItemIndexResult =
   | { kind: "remove" }
   | { kind: "keep" };
 
-// What item_to_entry last derived from each decrypted item, so a resync of a
-// page the index already holds does not decrypt it again. Reuse requires the
-// same envelope ciphertext (compared in full: some formats carry a fixed
-// nonce), the same key (metadata blob, server rule category, sender trust)
-// and the same custom categories; flags the list item carries in the clear
-// are re-read from the item on reuse. Cleared together with the previews.
 const MAX_DECODED_ITEMS = 300;
 
 interface DecodedItem {
@@ -1920,8 +1914,6 @@ function remember_decoded_item(
   }
 }
 
-// The entry for an item that is indexed and unchanged since it was decrypted,
-// rebuilt from the list item's clear flags; null when it must be decrypted.
 function reuse_decoded_item(item: MailItem): CategoryIndexEntry | null {
   const decoded = decoded_items.get(item.id);
   const existing = entries_map.get(item.id);
@@ -2192,8 +2184,6 @@ export async function build_index(options?: {
   }
 }
 
-// Ids sync_recent is announcing as received after indexing them itself; only
-// populated while those events are dispatched.
 const announced_indexed_ids = new Set<string>();
 
 // Cheap incremental sync: only the newest page, never the whole mailbox.
@@ -2257,7 +2247,6 @@ export async function sync_recent(notify_new = false): Promise<void> {
       if (ts > 0) page_oldest_ts = Math.min(page_oldest_ts, ts);
     }
 
-    // Messages the index already holds unchanged are not decrypted again.
     const { upserts, removals } = await entries_from_items(items, true);
 
     if (token !== build_token) return;
@@ -2273,8 +2262,6 @@ export async function sync_recent(notify_new = false): Promise<void> {
     let changed = apply_upsert(upserts, fetched_at);
 
     if (newly_received_ids.length > 0) {
-      // These are indexed already; the index's own arrival listener must not
-      // fetch and decrypt each one again (listeners run synchronously).
       for (const id of newly_received_ids) announced_indexed_ids.add(id);
       try {
         for (const id of newly_received_ids) {
