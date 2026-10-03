@@ -672,6 +672,25 @@ function requires_dark_scheme(query: string): boolean {
   return DARK_SCHEME_FEATURE.test(query) && !NEGATED_DARK_SCHEME.test(query);
 }
 
+const MEDIA_ATTRIBUTE_CHARACTERS = /^[\w\s(),:.\-/<>=]*$/;
+
+export function scope_css_to_media_attribute(
+  css: string,
+  media: string | null | undefined,
+): string {
+  const value = (media || "").trim();
+
+  if (!value) return css;
+  if (!MEDIA_ATTRIBUTE_CHARACTERS.test(value)) return "";
+
+  const queries = split_media_queries(value);
+  const kept = queries.filter((query) => !requires_dark_scheme(query));
+
+  if (kept.length === 0) return "";
+
+  return `@media ${kept.join(", ")} {\n${css}\n}`;
+}
+
 export function strip_dark_mode_media(css: string): string {
   let result = css;
   const pattern = /@media\b([^{};]*)\{/gi;
