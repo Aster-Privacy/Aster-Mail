@@ -26,6 +26,7 @@ import {
   split_header_body,
   parse_headers,
   generate_message_id,
+  bytes_to_binary_string,
 } from "./mime_utils";
 
 import { get_active_translations } from "@/lib/i18n/translations";
@@ -47,8 +48,6 @@ export async function* iterate_mbox_segments(
   file: File,
   on_bytes_read?: (bytes_read: number) => void,
 ): AsyncGenerator<string> {
-  const decoder = new TextDecoder("iso-8859-1");
-
   let pending = "";
   let body_start = 0;
   let saw_separator = false;
@@ -59,7 +58,9 @@ export async function* iterate_mbox_segments(
       Math.min(offset + READ_CHUNK_BYTES, file.size),
     );
 
-    pending += decoder.decode(new Uint8Array(await slice.arrayBuffer()));
+    pending += bytes_to_binary_string(
+      new Uint8Array(await slice.arrayBuffer()),
+    );
 
     const separator_pattern = /^From [^\r\n]+\r?\n/gm;
     const segments: string[] = [];

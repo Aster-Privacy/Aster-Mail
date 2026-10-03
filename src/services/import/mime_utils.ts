@@ -246,7 +246,9 @@ export function parse_headers(headers_raw: string): Record<string, string> {
       current_value += " " + line.trim();
     } else {
       if (current_key) {
-        headers[current_key.toLowerCase()] = decode_header(current_value);
+        headers[current_key.toLowerCase()] = decode_header(
+          reinterpret_as_utf8(current_value),
+        );
       }
       const colon_index = line.indexOf(":");
 
@@ -257,7 +259,9 @@ export function parse_headers(headers_raw: string): Record<string, string> {
     }
   }
   if (current_key) {
-    headers[current_key.toLowerCase()] = decode_header(current_value);
+    headers[current_key.toLowerCase()] = decode_header(
+      reinterpret_as_utf8(current_value),
+    );
   }
 
   return headers;
@@ -269,13 +273,44 @@ function extract_charset(content_type: string): string {
   return match ? match[1] : "utf-8";
 }
 
-function reinterpret_as_utf8(body: string): string {
-  const bytes = Uint8Array.from(body, (c) => c.charCodeAt(0) & 0xff);
+const BINARY_STRING_CHUNK = 0x8000;
+const NON_ASCII = /[^\x00-\x7f]/;
+const NON_BYTE = /[^\x00-\xff]/;
+
+// Maps each byte to the character with the same code, so the string can be
+// turned back into the exact bytes. TextDecoder("iso-8859-1") can't do this:
+// browsers treat that label as windows-1252 and remap 0x80-0x9F.
+export function bytes_to_binary_string(bytes: Uint8Array): string {
+  const pieces: string[] = [];
+
+  for (let i = 0; i < bytes.length; i += BINARY_STRING_CHUNK) {
+    const chunk = bytes.subarray(i, i + BINARY_STRING_CHUNK);
+
+    pieces.push(String.fromCharCode.apply(null, chunk as unknown as number[]));
+  }
+
+  return pieces.join("");
+}
+
+function binary_string_to_bytes(value: string): Uint8Array {
+  const bytes = new Uint8Array(value.length);
+
+  for (let i = 0; i < value.length; i++) {
+    bytes[i] = value.charCodeAt(i);
+  }
+
+  return bytes;
+}
+
+function reinterpret_as_utf8(value: string): string {
+  if (!NON_ASCII.test(value) || NON_BYTE.test(value)) return value;
+
+  const bytes = binary_string_to_bytes(value);
 
   try {
     return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
   } catch {
-    return body;
+    return decode_charset(bytes, "windows-1252");
   }
 }
 

@@ -30,6 +30,7 @@ import {
   decode_text_part,
   parse_multipart,
   generate_message_id,
+  bytes_to_binary_string,
 } from "./mime_utils";
 
 import { get_active_translations } from "@/lib/i18n/translations";
@@ -139,7 +140,7 @@ export async function parse_eml_file(file: File): Promise<ParseResult> {
 
   try {
     const buffer = await file.arrayBuffer();
-    const decoded = new TextDecoder("iso-8859-1").decode(buffer);
+    const decoded = bytes_to_binary_string(new Uint8Array(buffer));
     const text = file.name.toLowerCase().endsWith(".emlx")
       ? strip_emlx_wrapper(decoded)
       : decoded;
