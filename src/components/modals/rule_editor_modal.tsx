@@ -95,6 +95,7 @@ import {
   has_nested_logic,
   strip_unavailable_actions,
   keep_unavailable_actions,
+  rule_run_status_label,
 } from "@/components/modals/rule_editor_helpers";
 import { ignore_error } from "@/lib/ignore_error";
 
@@ -558,50 +559,8 @@ export function RuleEditorModal({
     );
   };
 
-  const run_status_label = (): string | null => {
-    if (!active_run) return null;
-    if (active_run.status === "pending") {
-      return t("mail_rules.apply_to_existing_queued");
-    }
-    if (active_run.status === "running") {
-      return active_run.total_estimate
-        ? t("mail_rules.apply_to_existing_progress_total", {
-            scanned: active_run.scanned,
-            total: active_run.total_estimate,
-            applied: active_run.applied,
-          })
-        : t("mail_rules.apply_to_existing_progress", {
-            scanned: active_run.scanned,
-            applied: active_run.applied,
-          });
-    }
-    const encrypted = active_run.skipped_encrypted;
-
-    if (active_run.status === "completed") {
-      return encrypted > 0
-        ? t("mail_rules.apply_to_existing_done_encrypted", {
-            scanned: active_run.scanned,
-            applied: active_run.applied,
-            count: encrypted,
-          })
-        : t("mail_rules.apply_to_existing_done", {
-            scanned: active_run.scanned,
-            applied: active_run.applied,
-          });
-    }
-    if (active_run.status === "canceled") {
-      return encrypted > 0
-        ? t("mail_rules.apply_to_existing_canceled_encrypted", {
-            applied: active_run.applied,
-            count: encrypted,
-          })
-        : t("mail_rules.apply_to_existing_canceled", {
-            applied: active_run.applied,
-          });
-    }
-
-    return t("mail_rules.apply_to_existing_error");
-  };
+  const run_status_label = (): string | null =>
+    active_run ? rule_run_status_label(active_run, t) : null;
 
   const handle_cancel_run = async () => {
     if (!rule) return;

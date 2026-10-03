@@ -84,6 +84,41 @@ export function is_alias_run_active(run: AliasRun | null): boolean {
   return !!run && (run.status === "pending" || run.status === "running");
 }
 
+export function alias_run_status_label(
+  run: AliasRun,
+  t: ReturnType<typeof use_i18n>["t"],
+): string {
+  if (run.status === "pending") {
+    return t("settings.alias_apply_existing_queued");
+  }
+  if (run.status === "running") {
+    return run.total_estimate
+      ? t("settings.alias_apply_existing_progress_total", {
+          applied: run.applied,
+          scanned: run.scanned,
+          total: run.total_estimate,
+        })
+      : t("settings.alias_apply_existing_progress", {
+          applied: run.applied,
+          scanned: run.scanned,
+        });
+  }
+  if (run.status === "completed") {
+    return t("settings.alias_apply_existing_done", {
+      applied: run.applied,
+      scanned: run.scanned,
+    });
+  }
+  if (run.status === "canceled") {
+    return t("settings.alias_apply_existing_canceled", {
+      applied: run.applied,
+      count: run.applied,
+    });
+  }
+
+  return t("settings.alias_apply_existing_error");
+}
+
 export function use_alias_run(alias_id?: string) {
   const [run, set_run] = useState<AliasRun | null>(null);
   const timer_ref = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -392,34 +427,8 @@ export function DeliveryPanel({
       return t("settings.alias_apply_existing_unavailable");
     }
     if (!run) return null;
-    if (run.status === "pending") {
-      return t("settings.alias_apply_existing_queued");
-    }
-    if (run.status === "running") {
-      return run.total_estimate
-        ? t("settings.alias_apply_existing_progress_total", {
-            applied: run.applied,
-            scanned: run.scanned,
-            total: run.total_estimate,
-          })
-        : t("settings.alias_apply_existing_progress", {
-            applied: run.applied,
-            scanned: run.scanned,
-          });
-    }
-    if (run.status === "completed") {
-      return t("settings.alias_apply_existing_done", {
-        applied: run.applied,
-        scanned: run.scanned,
-      });
-    }
-    if (run.status === "canceled") {
-      return t("settings.alias_apply_existing_canceled", {
-        applied: run.applied,
-      });
-    }
 
-    return t("settings.alias_apply_existing_error");
+    return alias_run_status_label(run, t);
   };
 
   const apply_status = apply_status_label();
