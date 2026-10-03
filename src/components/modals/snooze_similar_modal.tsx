@@ -50,9 +50,11 @@ import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelop
 import { normalize_envelope_from } from "@/services/crypto/envelope";
 import { get_favicon_url } from "@/lib/favicon_url";
 import { show_action_toast } from "@/components/toast/action_toast";
+import { show_toast } from "@/components/toast/simple_toast";
 import { get_email_username, get_email_domain } from "@/lib/utils";
 import { has_protected_folder_label } from "@/hooks/use_folders";
 import {
+  emit_mail_changed,
   emit_mail_items_removed,
   emit_snoozed_changed,
 } from "@/hooks/mail_events";
@@ -270,6 +272,13 @@ export function SnoozeSimilarModal({
     set_show_custom_picker(false);
   };
 
+  const is_custom_snooze =
+    snooze_label !== null &&
+    !snooze_options.some((option) => option.label === snooze_label);
+  const snooze_time_text = is_custom_snooze
+    ? snooze_label
+    : (snooze_label ?? t("common.later")).toLowerCase();
+
   const handle_snooze = async () => {
     if (selected_senders.size === 0 || !snooze_date) return;
 
@@ -280,48 +289,48 @@ export function SnoozeSimilarModal({
 
       const result = await bulk_snooze_emails(all_ids, snooze_date);
 
-      if (result.error) {
-        show_action_toast({
-          message: t("common.failed_to_snooze_emails"),
-          action_type: "archive",
-          email_ids: [],
-        });
+      if (result.error || !result.data || result.data.snoozed_count === 0) {
+        show_toast(t("common.failed_to_snooze_emails"), "error");
 
         return;
       }
 
-      if (!result.data) {
-        show_action_toast({
-          message: t("common.failed_to_snooze_emails"),
-          action_type: "archive",
-          email_ids: [],
-        });
-      } else {
-        set_snoozed_count(result.data.snoozed_count);
-        set_show_success(true);
+      const { snoozed_count, failed_count } = result.data;
 
-        remove_index_ids(all_ids);
+      set_snoozed_count(snoozed_count);
+      set_show_success(true);
+      emit_snoozed_changed();
+      invalidate_mail_stats();
+
+      if (failed_count > 0) {
         reindex_ids(all_ids);
-        emit_mail_items_removed({ ids: all_ids });
-        emit_snoozed_changed();
-        invalidate_mail_stats();
-
-        show_action_toast({
-          message: t("common.emails_snoozed_until", {
-            count: result.data.snoozed_count,
-            time: (snooze_label ?? t("common.later")).toLowerCase(),
+        emit_mail_changed();
+        show_toast(
+          t("common.bulk_action_partially_applied", {
+            count: snoozed_count,
+            total: all_ids.length,
           }),
-          action_type: "archive",
-          email_ids: all_ids,
-        });
+          "warning",
+        );
+
+        return;
       }
+
+      remove_index_ids(all_ids);
+      reindex_ids(all_ids);
+      emit_mail_items_removed({ ids: all_ids });
+
+      show_action_toast({
+        message: t("common.emails_snoozed_until", {
+          count: snoozed_count,
+          time: snooze_time_text,
+        }),
+        action_type: "snooze",
+        email_ids: all_ids,
+      });
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
-      show_action_toast({
-        message: t("common.failed_to_snooze_emails"),
-        action_type: "archive",
-        email_ids: [],
-      });
+      show_toast(t("common.failed_to_snooze_emails"), "error");
     } finally {
       set_is_executing(false);
     }
@@ -402,7 +411,7 @@ export function SnoozeSimilarModal({
                     <p className="text-[12px] text-center mb-6 text-txt-muted">
                       {t("common.emails_will_reappear", {
                         count: snoozed_count,
-                        time: (snooze_label ?? t("common.later")).toLowerCase(),
+                        time: snooze_time_text,
                       })}
                     </p>
                     <Button variant="depth" onClick={on_close}>
