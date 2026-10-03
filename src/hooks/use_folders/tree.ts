@@ -134,6 +134,23 @@ export function get_sibling_folders(
     .sort(compare_sibling_folders);
 }
 
+export function has_sibling_named(
+  folders: DecryptedFolder[],
+  name: string,
+  parent_token: string | null | undefined,
+  exclude_id?: string,
+): boolean {
+  const target_name = name.toLowerCase();
+  const target_parent = parent_token || undefined;
+
+  return folders.some(
+    (f) =>
+      f.id !== exclude_id &&
+      f.name.toLowerCase() === target_name &&
+      (f.parent_token || undefined) === target_parent,
+  );
+}
+
 export interface FolderTreeGuides {
   trail: boolean[];
   has_next: boolean;

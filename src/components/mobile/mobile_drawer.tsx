@@ -43,7 +43,7 @@ import { use_should_reduce_motion } from "@/provider";
 import { use_auth } from "@/contexts/auth_context";
 import { use_primary_identity } from "@/lib/primary_identity";
 import { use_i18n } from "@/lib/i18n/context";
-import { use_folders } from "@/hooks/use_folders";
+import { has_sibling_named, use_folders } from "@/hooks/use_folders";
 import { use_tags } from "@/hooks/use_tags";
 import { use_mail_stats } from "@/hooks/use_mail_stats";
 import { TAG_COLOR_PRESETS } from "@/components/ui/email_tag";
@@ -455,6 +455,19 @@ export const MobileDrawer = memo(function MobileDrawer({
     const name = edit_folder_name.trim();
 
     if (!name) return;
+    if (
+      name.toLowerCase() !== editing_folder.name.toLowerCase() &&
+      has_sibling_named(
+        folders_state.folders,
+        name,
+        editing_folder.parent_token,
+        editing_folder.id,
+      )
+    ) {
+      show_toast(t("common.folder_already_exists"), "error");
+
+      return;
+    }
     const success = await update_existing_folder(
       editing_folder.id,
       name,
@@ -471,6 +484,7 @@ export const MobileDrawer = memo(function MobileDrawer({
     editing_folder,
     edit_folder_name,
     edit_folder_color,
+    folders_state.folders,
     update_existing_folder,
     t,
   ]);

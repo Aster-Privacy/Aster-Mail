@@ -42,6 +42,7 @@ import {
   use_folders,
   build_folder_tree,
   flatten_folder_tree,
+  has_sibling_named,
 } from "@/hooks/use_folders";
 import { use_should_reduce_motion } from "@/provider";
 import {
@@ -99,13 +100,13 @@ export function CreateFolderModal({
     if (trimmed_name.length > MAX_FOLDER_NAME_LENGTH) {
       return t("common.folder_name_too_long", { max: MAX_FOLDER_NAME_LENGTH });
     }
-    const duplicate_exists = folders_state.folders.some(
-      (f) =>
-        f.name.toLowerCase() === trimmed_name.toLowerCase() &&
-        (f.parent_token || undefined) === (selected_parent_token || undefined),
-    );
-
-    if (duplicate_exists) {
+    if (
+      has_sibling_named(
+        folders_state.folders,
+        trimmed_name,
+        selected_parent_token,
+      )
+    ) {
       return t("common.folder_already_exists");
     }
 

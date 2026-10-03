@@ -42,7 +42,12 @@ import {
   sort_folder_tree_a_z,
   type FolderOrderEntry,
 } from "./sort";
-import { DecryptedFolder, FolderCounts, FoldersState } from "./tree";
+import {
+  DecryptedFolder,
+  FolderCounts,
+  FoldersState,
+  has_sibling_named,
+} from "./tree";
 import { CreateFolderOptions, UseFoldersReturn } from "./types";
 
 import {
@@ -434,14 +439,7 @@ export function use_folders(): UseFoldersReturn {
         return { folder: null, code: "NO_VAULT" };
       }
 
-      const normalized_parent = parent_token || null;
-      const duplicate_exists = cached_folders.data.some(
-        (f) =>
-          f.name.toLowerCase() === trimmed_name.toLowerCase() &&
-          (f.parent_token || null) === normalized_parent,
-      );
-
-      if (duplicate_exists) {
+      if (has_sibling_named(cached_folders.data, trimmed_name, parent_token)) {
         return { folder: null, code: "DUPLICATE" };
       }
 

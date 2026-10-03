@@ -145,6 +145,7 @@ const nested_personal = folder("nested_personal", "personal", {
 const travel = folder("travel", "Travel", {
   parent_token: "personal",
 });
+const moved_to_top = folder("moved", "Notes", { parent_token: "" });
 
 describe("FolderManagementModal move", () => {
   beforeEach(() => {
@@ -156,6 +157,7 @@ describe("FolderManagementModal move", () => {
       receipts,
       nested_personal,
       travel,
+      moved_to_top,
     ];
     container = document.createElement("div");
     document.body.appendChild(container);
@@ -225,6 +227,16 @@ describe("FolderManagementModal move", () => {
 
   it("still rejects renaming a folder to a sibling's name", async () => {
     render_modal(receipts, "rename");
+
+    type_name("work");
+    await click(find_button("common.rename"));
+
+    expect(hoisted.update_existing_folder).not.toHaveBeenCalled();
+    expect(document.body.textContent).toContain("common.folder_already_exists");
+  });
+
+  it("rejects a sibling's name when renaming a folder just moved to the top level", async () => {
+    render_modal(moved_to_top, "rename");
 
     type_name("work");
     await click(find_button("common.rename"));

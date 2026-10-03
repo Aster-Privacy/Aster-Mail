@@ -43,7 +43,7 @@ import {
   TAG_COLOR_PRESETS,
   tag_color_label_key,
 } from "@/components/ui/email_tag";
-import { use_folders } from "@/hooks/use_folders";
+import { has_sibling_named, use_folders } from "@/hooks/use_folders";
 import { MAX_FOLDER_DEPTH } from "@/hooks/use_folders/tree";
 import { use_i18n } from "@/lib/i18n/context";
 import { FolderDeleteDialog } from "@/components/folders/folder_delete_dialog";
@@ -102,14 +102,15 @@ export function FolderManagementModal({
     const current_folder = folders_state.folders.find(
       (f) => f.id === folder_id,
     );
-    const duplicate_exists = folders_state.folders.some(
-      (f) =>
-        f.id !== folder_id &&
-        f.name.toLowerCase() === trimmed_name.toLowerCase() &&
-        f.parent_token === current_folder?.parent_token,
-    );
 
-    if (duplicate_exists) {
+    if (
+      has_sibling_named(
+        folders_state.folders,
+        trimmed_name,
+        current_folder?.parent_token,
+        folder_id,
+      )
+    ) {
       return t("common.folder_already_exists");
     }
 
@@ -125,14 +126,14 @@ export function FolderManagementModal({
     );
 
     if (!current_folder) return null;
-    const duplicate_exists = folders_state.folders.some(
-      (f) =>
-        f.id !== folder_id &&
-        f.name.toLowerCase() === current_folder.name.toLowerCase() &&
-        (f.parent_token || undefined) === (selected_parent_token || undefined),
-    );
-
-    if (duplicate_exists) {
+    if (
+      has_sibling_named(
+        folders_state.folders,
+        current_folder.name,
+        selected_parent_token,
+        folder_id,
+      )
+    ) {
       return t("common.folder_already_exists");
     }
 
