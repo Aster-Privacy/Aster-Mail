@@ -39,6 +39,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_should_reduce_motion } from "@/provider";
 import { apply_server_group_membership } from "@/utils/contact_group_membership";
 import { show_toast } from "@/components/toast/simple_toast";
+import { contact_display_name } from "@/lib/contact_duplicates";
 import {
   contact_to_form_data,
   sync_legacy_fields,
@@ -391,6 +392,12 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
 
       if (!groups[key]) groups[key] = [];
       groups[key].push(contact);
+    }
+
+    for (const members of Object.values(groups)) {
+      members.sort((a, b) =>
+        contact_display_name(a).localeCompare(contact_display_name(b)),
+      );
     }
 
     return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b));
