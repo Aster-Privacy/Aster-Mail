@@ -644,13 +644,57 @@ export function sanitize_style(style: string, sandbox_mode: boolean): string {
   return result;
 }
 
+const DARK_SCHEME_FEATURE = /prefers-color-scheme\s*:\s*dark\b/i;
+const NEGATED_DARK_SCHEME =
+  /^\s*not\b|\bnot\s*(?:\(\s*)+prefers-color-scheme\s*:\s*dark\b/i;
+
+function split_media_queries(prelude: string): string[] {
+  const queries: string[] = [];
+  let depth = 0;
+  let start = 0;
+
+  for (let i = 0; i < prelude.length; i++) {
+    const char = prelude[i];
+
+    if (char === "(") depth++;
+    else if (char === ")") depth = Math.max(0, depth - 1);
+    else if (char === "," && depth === 0) {
+      queries.push(prelude.slice(start, i));
+      start = i + 1;
+    }
+  }
+  queries.push(prelude.slice(start));
+
+  return queries.map((query) => query.trim()).filter(Boolean);
+}
+
+function requires_dark_scheme(query: string): boolean {
+  return DARK_SCHEME_FEATURE.test(query) && !NEGATED_DARK_SCHEME.test(query);
+}
+
 export function strip_dark_mode_media(css: string): string {
   let result = css;
-  const pattern =
-    /@media\s*\([^)]*prefers-color-scheme\s*:\s*dark[^)]*\)\s*\{/gi;
+  const pattern = /@media\b([^{};]*)\{/gi;
   let match;
 
   while ((match = pattern.exec(result)) !== null) {
+    const queries = split_media_queries(match[1]);
+
+    if (!queries.some(requires_dark_scheme)) continue;
+
+    const kept = queries.filter((query) => !requires_dark_scheme(query));
+
+    if (kept.length > 0) {
+      const prelude = `@media ${kept.join(", ")} {`;
+
+      result =
+        result.slice(0, match.index) +
+        prelude +
+        result.slice(match.index + match[0].length);
+      pattern.lastIndex = match.index + prelude.length;
+      continue;
+    }
+
     let depth = 1;
     let i = match.index + match[0].length;
 
