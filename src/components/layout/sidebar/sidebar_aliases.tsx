@@ -22,10 +22,9 @@ import type { MutableRefObject } from "react";
 import type { DecryptedEmailAlias } from "@/services/api/aliases";
 import type { SettingsSection } from "@/components/settings/settings_content";
 
-import { memo, useMemo } from "react";
+import { memo } from "react";
 import { AtSymbolIcon } from "@heroicons/react/24/outline";
 import {
-  AliasIconView,
   SidebarEmptyText,
   SidebarMoreToggle,
   SidebarRailSectionButton,
@@ -40,26 +39,8 @@ import { CountBadge } from "@/components/common/count_badge";
 import { NavSectionSkeleton } from "@/components/common/nav_section_skeleton";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { RailUnreadDot } from "@/components/common/rail_unread_dot";
-import { get_gradient_background } from "@/constants/profile";
-import { get_alias_color } from "@/lib/avatar_color";
+import { AliasNavIcon } from "@/components/common/alias_nav_icon";
 import { AliasContextMenu } from "@/components/layout/sidebar/alias_context_menu";
-
-function AliasIcon({
-  address,
-  is_random,
-  size,
-}: {
-  address: string;
-  is_random: boolean;
-  size: number;
-}) {
-  const gradient = useMemo(
-    () => get_gradient_background(get_alias_color(address)),
-    [address],
-  );
-
-  return <AliasIconView background={gradient} is_random={is_random} size={size} />;
-}
 
 interface SidebarAliasesProps {
   is_collapsed: boolean;
@@ -161,9 +142,10 @@ export const SidebarAliases = memo(function SidebarAliases({
                     />
                   }
                   icon_slot={
-                    <AliasIcon
+                    <AliasNavIcon
                       address={alias.full_address}
                       is_random={alias.is_random}
+                      profile_picture={alias.profile_picture}
                       size={is_collapsed ? 24 : 20}
                     />
                   }
