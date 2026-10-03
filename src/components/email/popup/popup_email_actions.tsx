@@ -73,6 +73,7 @@ interface PopupEmailActionsProps {
   on_unarchive?: () => void;
   on_not_spam?: () => void;
   on_folder_toggle?: (folder_id: string) => void | Promise<void>;
+  on_move_out_of_bin?: () => void | Promise<void>;
   on_close: () => void;
   on_drag_start: (e: React.MouseEvent) => void;
   on_toggle_size: () => void;
@@ -106,6 +107,7 @@ export function PopupEmailActions({
   on_unarchive,
   on_not_spam,
   on_folder_toggle,
+  on_move_out_of_bin,
   on_close,
   on_drag_start,
   on_toggle_size,
@@ -329,6 +331,22 @@ export function PopupEmailActions({
                 {t("mail.move_to_folder")}
               </DropdownMenuSubTrigger>
               <DropdownMenuSubContent className="w-48">
+                {on_move_out_of_bin && (
+                  <>
+                    <DropdownMenuItem
+                      onSelect={(e) => {
+                        e.preventDefault();
+                        void on_move_out_of_bin();
+                      }}
+                    >
+                      <InboxIcon className="w-4 h-4 me-2 flex-shrink-0" />
+                      <span className="truncate">
+                        {t("mail.move_to_inbox")}
+                      </span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
                 {applied_folder_tokens.length > 0 &&
                   !mail_item?.is_trashed &&
                   !is_spam &&

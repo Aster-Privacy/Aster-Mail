@@ -91,6 +91,7 @@ interface SplitEmailViewerProps {
   grouped_email_ids?: string[];
   folders?: { id: string; name: string; color: string }[];
   on_folder_toggle?: (folder_id: string) => void;
+  on_move_out_of_bin?: () => void;
   on_snooze?: () => void;
   label_hints?: {
     token: string;
@@ -118,6 +119,7 @@ export function SplitEmailViewer({
   grouped_email_ids,
   folders,
   on_folder_toggle,
+  on_move_out_of_bin,
   on_snooze,
   label_hints,
 }: SplitEmailViewerProps): React.ReactElement {
@@ -538,6 +540,7 @@ export function SplitEmailViewer({
                 : undefined
             }
             on_folder_toggle={on_folder_toggle}
+            on_move_out_of_bin={on_move_out_of_bin}
             on_forward={on_forward ? viewer.handle_forward : undefined}
             on_navigate_next={on_navigate_next}
             on_navigate_prev={on_navigate_prev}

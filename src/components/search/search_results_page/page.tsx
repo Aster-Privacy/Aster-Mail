@@ -50,6 +50,12 @@ import { build_sender_mail_query } from "@/utils/contact_mail_search";
 import { InboxHeader } from "@/components/inbox/inbox_header";
 import { InboxEmailListItem } from "@/components/email/inbox_email_list_item";
 import { EmailContextMenuContent } from "@/components/email/email_context_menu";
+import {
+  bin_source_of,
+  move_out_of_bin,
+} from "@/hooks/email_actions/move_out_of_bin";
+import { emit_mail_changed } from "@/hooks/email_action_types";
+import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { ContextMenu, ContextMenuTrigger } from "@/components/ui/context_menu";
 import {
   DropdownMenu,
@@ -291,8 +297,64 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
     [folders_state.folders],
   );
 
+  const handle_menu_move_out_of_bin = useCallback(
+    (target_folder_token: string | null) =>
+      void run_single(async (emails) => {
+        const source = menu_email_ref.current
+          ? bin_source_of(menu_email_ref.current, "search")
+          : null;
+
+        if (!source) return;
+
+        const result = await move_out_of_bin({
+          emails,
+          source,
+          target_folder_token,
+          conversation_grouping: preferences.conversation_grouping,
+        });
+
+        if (result.moved.length === 0 || result.filing_failed) {
+          show_toast(t("common.failed_to_update"), "error");
+          perform_search(props.query);
+
+          return;
+        }
+
+        const folder_name = target_folder_token
+          ? menu_folders.find((folder) => folder.id === target_folder_token)
+              ?.name || t("common.folder_fallback")
+          : "";
+
+        emit_mail_changed();
+        invalidate_mail_stats();
+        show_toast(
+          target_folder_token
+            ? t("common.moved_to_folder", { folder: folder_name })
+            : t("common.moved_to_inbox_toast"),
+          "success",
+        );
+        perform_search(props.query);
+      }, false),
+    [
+      run_single,
+      menu_folders,
+      perform_search,
+      props.query,
+      preferences.conversation_grouping,
+      t,
+    ],
+  );
+
   const handle_menu_folder_toggle = useCallback(
-    (folder_token: string) =>
+    (folder_token: string) => {
+      if (
+        menu_email_ref.current &&
+        bin_source_of(menu_email_ref.current, "search")
+      ) {
+        handle_menu_move_out_of_bin(folder_token);
+
+        return;
+      }
       void run_single(async (emails) => {
         const ids = emails.map((email) => email.id);
         const assigned = (menu_email_ref.current?.folders ?? []).some(
@@ -319,8 +381,16 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
           "success",
         );
         perform_search(props.query);
-      }, false),
-    [run_single, menu_folders, perform_search, props.query, t],
+      }, false);
+    },
+    [
+      run_single,
+      menu_folders,
+      perform_search,
+      props.query,
+      handle_menu_move_out_of_bin,
+      t,
+    ],
   );
 
   const overflow_menu = (
@@ -629,6 +699,11 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
           on_find_from_sender={() => handle_find_from_sender(menu_email)}
           on_folder_toggle={
             menu_selection ? undefined : handle_menu_folder_toggle
+          }
+          on_move_to_inbox={
+            !menu_selection && bin_source_of(menu_email, "search")
+              ? () => handle_menu_move_out_of_bin(null)
+              : undefined
           }
           on_forward={() => open_reply_compose("forward", menu_email)}
           on_mark_read={

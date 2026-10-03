@@ -260,9 +260,8 @@ export const ThreadMessagesList = forwardRef<
         (candidate) => candidate.folder_token === folder_token,
       );
       const folder_name = folder?.name ?? t("common.folder_fallback");
-      const was_applied = (applied_folders.get(msg.id) ?? []).includes(
-        folder_token,
-      );
+      const previous_tokens = applied_folders.get(msg.id) ?? [];
+      const was_applied = previous_tokens.includes(folder_token);
 
       if (moving_to_folder_ref.current) return;
 
@@ -298,7 +297,7 @@ export const ThreadMessagesList = forwardRef<
           msg.id,
           was_applied
             ? current.filter((token) => token !== folder_token)
-            : [...current, folder_token],
+            : [folder_token],
         );
 
         return next;
@@ -319,16 +318,16 @@ export const ThreadMessagesList = forwardRef<
             throw new Error("undo folder failed");
           }
 
+          if (!was_applied) {
+            for (const token of previous_tokens) {
+              await bulk_add_folder([msg.id], token);
+            }
+          }
+
           set_applied_folders((prev) => {
             const next = new Map(prev);
-            const current = next.get(msg.id) ?? [];
 
-            next.set(
-              msg.id,
-              was_applied
-                ? [...current, folder_token]
-                : current.filter((token) => token !== folder_token),
-            );
+            next.set(msg.id, previous_tokens);
 
             return next;
           });

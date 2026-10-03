@@ -98,6 +98,7 @@ export interface ViewerToolbarActionsProps {
   show_block_sender_on_alias?: boolean;
   folders?: { id: string; name: string; color: string }[];
   on_folder_toggle?: (folder_id: string) => void;
+  on_move_out_of_bin?: () => void;
   can_go_prev?: boolean;
   can_go_next?: boolean;
   on_navigate_prev?: () => void;
@@ -145,6 +146,7 @@ export function ViewerToolbarActions({
   show_block_sender_on_alias = false,
   folders = [],
   on_folder_toggle,
+  on_move_out_of_bin,
   button_size = "h-9 w-9",
   button_px,
   icon_size = "w-5 h-5",
@@ -197,14 +199,17 @@ export function ViewerToolbarActions({
       : t("mail.move_to_trash");
 
   const assigned_folder_tokens = (mail_item?.folders ?? []).map((f) => f.token);
-  const can_move_to_inbox =
-    assigned_folder_tokens.length > 0 &&
-    !is_trashed_item &&
-    !is_spam &&
-    !is_archived &&
-    !!on_folder_toggle;
+  const is_bin_item = is_trashed_item || !!is_spam;
+  const can_move_to_inbox = is_bin_item
+    ? !!on_move_out_of_bin
+    : assigned_folder_tokens.length > 0 && !is_archived && !!on_folder_toggle;
 
   const move_to_inbox = () => {
+    if (is_bin_item) {
+      on_move_out_of_bin?.();
+
+      return;
+    }
     if (!on_folder_toggle) return;
     assigned_folder_tokens.forEach((token) => on_folder_toggle(token));
   };

@@ -43,6 +43,8 @@ import {
 } from "@/components/email/inbox/category_bulk_actions";
 import { collect_scope_ids } from "@/components/email/inbox/collect_scope_ids";
 import { batched_bulk_permanent_delete } from "@/services/api/mail";
+import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
+import { bin_source_of_view } from "@/hooks/email_actions/move_out_of_bin";
 import {
   invalidate_mail_stats,
   adjust_stats_trash,
@@ -412,6 +414,27 @@ export function use_inbox_bulk_actions({
 
         if (ids.length === 0) return;
 
+        const bin_source =
+          kind === "folder" && !should_remove
+            ? bin_source_of_view(current_view)
+            : null;
+
+        if (bin_source) {
+          const cleared = await bulk_update_metadata_by_ids(
+            ids,
+            bin_source === "trash" ? { is_trashed: false } : { is_spam: false },
+          );
+          const not_cleared = new Set(cleared.failed_ids);
+
+          ids = ids.filter((id) => !not_cleared.has(id));
+
+          if (ids.length === 0) {
+            show_toast(t("common.failed_to_update_emails"), "error");
+
+            return;
+          }
+        }
+
         const apply =
           kind === "folder"
             ? should_remove
@@ -636,7 +659,11 @@ export function use_inbox_bulk_actions({
   );
 
   const handle_folder_toggle_wrapped = useCallback(
-    (folder_token: string, should_remove: boolean) => {
+    (folder_token: string, requested_remove: boolean) => {
+      const should_remove = bin_source_of_view(current_view)
+        ? false
+        : requested_remove;
+
       if (selection.select_all_mode) {
         queue_select_all_action(
           should_remove ? "mail.remove_from_folder" : "mail.move_to_folder",
@@ -649,7 +676,13 @@ export function use_inbox_bulk_actions({
       }
       void toolbar.handle_toolbar_toggle_folder(folder_token, should_remove);
     },
-    [selection, toolbar, run_scope_label_action, queue_select_all_action],
+    [
+      selection,
+      toolbar,
+      run_scope_label_action,
+      queue_select_all_action,
+      current_view,
+    ],
   );
 
   const handle_tag_toggle_wrapped = useCallback(
@@ -763,15 +796,35 @@ export function use_inbox_bulk_actions({
   }, [selection, toolbar, run_scope_action, queue_select_all_action]);
 
   const handle_unarchive_wrapped = useCallback(() => {
+    const bin_source = bin_source_of_view(current_view);
+
     if (selection.select_all_mode) {
       queue_select_all_action("mail.move_to_inbox", () => {
+        if (bin_source) {
+          void run_scope_action(
+            bin_source === "trash" ? "restore_trash" : "unmark_spam",
+          );
+
+          return;
+        }
         void run_scope_action("unarchive");
       });
 
       return;
     }
+    if (bin_source) {
+      void toolbar.handle_toolbar_move_out_of_bin(null);
+
+      return;
+    }
     toolbar.handle_toolbar_unarchive();
-  }, [selection, toolbar, run_scope_action, queue_select_all_action]);
+  }, [
+    selection,
+    toolbar,
+    run_scope_action,
+    queue_select_all_action,
+    current_view,
+  ]);
 
   const handle_spam_wrapped = useCallback(() => {
     if (selection.select_all_mode) {

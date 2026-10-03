@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { InboxEmail } from "@/types/email";
+import type { BinSource } from "@/hooks/email_actions/move_out_of_bin";
 import type {
   ContextMenuActions,
   UseContextMenuActionsParams,
@@ -41,7 +42,15 @@ import {
   revert_stat_deltas,
 } from "@/hooks/use_stat_helpers";
 import { emit_mail_changed } from "@/hooks/email_action_types";
-import { trashes_whole_thread } from "@/hooks/email_list_helpers";
+import {
+  expand_email_ids,
+  trashes_whole_thread,
+} from "@/hooks/email_list_helpers";
+import {
+  bin_source_of,
+  move_out_of_bin,
+} from "@/hooks/email_actions/move_out_of_bin";
+import { leaves_view_on_folder_move } from "@/hooks/view_membership";
 import {
   bulk_add_folder,
   bulk_remove_folder,
@@ -120,11 +129,112 @@ export function build_context_menu_actions(
     }
   };
 
+  const move_email_out_of_bin = async (
+    email: InboxEmail,
+    source: BinSource,
+    target_folder_token: string | null,
+  ) => {
+    const all_ids = expand_email_ids(email);
+    const folder_data = target_folder_token
+      ? folders_lookup.get(target_folder_token)
+      : undefined;
+    const folder_name = folder_data?.name || t("common.folder_fallback");
+    const next_folders = target_folder_token
+      ? [
+          {
+            folder_token: target_folder_token,
+            name: folder_name,
+            color: folder_data?.color,
+          },
+        ]
+      : [];
+    const deltas = target_folder_token
+      ? {
+          unread: 0,
+          inbox: 0,
+          sent: 0,
+          trash: source === "trash" ? -1 : 0,
+          archived: 0,
+        }
+      : source === "trash"
+        ? compute_untrash_deltas(email)
+        : compute_restore_deltas(email);
+    const cleared_flag =
+      source === "trash" ? { is_trashed: false } : { is_spam: false };
+    const restored_flag =
+      source === "trash" ? { is_trashed: true } : { is_spam: true };
+
+    if (all_ids.length > 1) {
+      remove_emails(all_ids);
+    } else {
+      remove_email(email.id);
+    }
+    apply_stat_deltas(deltas);
+
+    const result = await move_out_of_bin({
+      emails: [email],
+      source,
+      target_folder_token,
+      conversation_grouping: preferences.conversation_grouping,
+    });
+
+    if (result.moved.length === 0) {
+      revert_stat_deltas(deltas);
+      window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
+      show_toast(t("common.failed_to_update_emails"), "error");
+
+      return;
+    }
+
+    for (const id of all_ids) {
+      emit_mail_item_updated({ id, ...cleared_flag, folders: next_folders });
+    }
+    emit_mail_changed();
+    invalidate_mail_stats();
+
+    if (result.filing_failed) {
+      window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
+      show_toast(t("common.failed_to_update"), "error");
+
+      return;
+    }
+
+    show_action_toast({
+      message: target_folder_token
+        ? t("common.moved_to_folder", { folder: folder_name })
+        : t("common.moved_to_inbox_toast"),
+      action_type: "restore",
+      email_ids: all_ids,
+      on_undo: async () => {
+        revert_stat_deltas(deltas);
+        await result.undo();
+        for (const id of all_ids) {
+          emit_mail_item_updated({
+            id,
+            ...restored_flag,
+            folders: email.folders ?? [],
+          });
+        }
+        emit_mail_changed();
+        invalidate_mail_stats();
+        window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
+      },
+    });
+  };
+
   const handle_folder_toggle = async (
     email: InboxEmail,
     folder_token: string,
   ) => {
     if (is_drafts_view || is_scheduled_view) return;
+
+    const bin_source = bin_source_of(email, current_view);
+
+    if (bin_source) {
+      await move_email_out_of_bin(email, bin_source, folder_token);
+
+      return;
+    }
 
     const folder_data = folders_lookup.get(folder_token);
     const folder_name = folder_data?.name || t("common.folder_fallback");
@@ -171,18 +281,10 @@ export function build_context_menu_actions(
       name: folder_name,
       color: folder_data?.color,
     };
-    const next_folders = [
-      ...previous_folders.filter((f) => f.folder_token !== folder_token),
-      new_folder,
-    ];
-    const is_inbox =
-      current_view === "inbox" ||
-      current_view === "" ||
-      current_view === "all" ||
-      current_view === "starred" ||
-      current_view === "snoozed";
+    const next_folders = [new_folder];
+    const leaves_view = leaves_view_on_folder_move(current_view, folder_token);
 
-    if (is_inbox) {
+    if (leaves_view) {
       emit_mail_items_removed({ ids: [email.id] });
     } else {
       update_email(email.id, { folders: next_folders });
@@ -197,13 +299,18 @@ export function build_context_menu_actions(
         email_ids: all_ids,
         on_undo: async () => {
           await bulk_remove_folder(all_ids, folder_token);
+          for (const previous of previous_folders) {
+            await bulk_add_folder(all_ids, previous.folder_token);
+          }
+          emit_mail_item_updated({ id: email.id, folders: previous_folders });
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         },
       });
     } else {
-      update_email(email.id, { folders: previous_folders });
-      if (is_inbox) {
+      if (leaves_view) {
         window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
+      } else {
+        update_email(email.id, { folders: previous_folders });
       }
       show_toast(t("common.failed_to_update"), "error");
     }
@@ -452,6 +559,14 @@ export function build_context_menu_actions(
   };
 
   const handle_move_to_inbox = async (email: InboxEmail) => {
+    const bin_source = bin_source_of(email, current_view);
+
+    if (bin_source) {
+      await move_email_out_of_bin(email, bin_source, null);
+
+      return;
+    }
+
     const deltas = compute_restore_deltas(email);
     const all_ids =
       email.grouped_email_ids && email.grouped_email_ids.length > 1

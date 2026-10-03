@@ -740,6 +740,7 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     list_tags,
     viewer_folders,
     handle_viewer_folder_toggle,
+    handle_viewer_move_out_of_bin,
   } = use_split_email_view({
     split_email_id,
     email_state,
@@ -845,6 +846,7 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     list_tags,
     viewer_folders,
     handle_viewer_folder_toggle,
+    handle_viewer_move_out_of_bin,
     is_bottom_pane,
     split_pane,
     handle_list_scroll,

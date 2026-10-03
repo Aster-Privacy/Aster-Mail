@@ -24,7 +24,14 @@ import { motion } from "framer-motion";
 import { use_should_reduce_motion } from "@/provider";
 import { get_cached_folders } from "@/hooks/use_folders";
 import { bulk_add_folder, bulk_remove_folder } from "@/services/api/mail";
-import { mail_event_bus, MAIL_EVENTS } from "@/hooks/mail_events";
+import {
+  mail_event_bus,
+  MAIL_EVENTS,
+  emit_mail_item_updated,
+} from "@/hooks/mail_events";
+import { emit_mail_changed } from "@/hooks/email_action_types";
+import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
+import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
 import { show_action_toast } from "@/components/toast/action_toast";
 import {
   type EmailPopupViewerProps,
@@ -108,9 +115,103 @@ export function EmailPopupViewer({
     return [...base];
   }, [viewer.mail_item?.folders, folder_overrides]);
 
+  const bin_flag = viewer.mail_item?.is_trashed
+    ? "is_trashed"
+    : viewer.mail_item?.is_spam
+      ? "is_spam"
+      : null;
+
+  const move_out_of_bin = useCallback(
+    async (target_folder_token: string | null) => {
+      if (!email_id || !bin_flag || folder_move_in_flight.current) return;
+
+      const folder_data = target_folder_token
+        ? folder_options.find((folder) => folder.id === target_folder_token)
+        : undefined;
+      const folder_name =
+        folder_data?.name ?? viewer.t("common.folder_fallback");
+
+      folder_move_in_flight.current = true;
+
+      let failed = false;
+
+      try {
+        const cleared = await bulk_update_metadata_by_ids([email_id], {
+          [bin_flag]: false,
+        });
+
+        failed = cleared.failed_ids.length > 0;
+
+        if (!failed) {
+          const results = target_folder_token
+            ? [await bulk_add_folder([email_id], target_folder_token)]
+            : await Promise.all(
+                applied_folder_tokens.map((token) =>
+                  bulk_remove_folder([email_id], token),
+                ),
+              );
+
+          failed = results.some((result) => !!result.error);
+        }
+      } catch {
+        failed = true;
+      } finally {
+        folder_move_in_flight.current = false;
+      }
+
+      if (failed) {
+        show_action_toast({
+          message: viewer.t("common.failed_to_move_email"),
+          action_type: "folder",
+          email_ids: [email_id],
+        });
+
+        return;
+      }
+
+      emit_mail_item_updated({
+        id: email_id,
+        [bin_flag]: false,
+        folders:
+          target_folder_token && folder_data
+            ? [
+                {
+                  folder_token: target_folder_token,
+                  name: folder_data.name,
+                  color: folder_data.color,
+                },
+              ]
+            : [],
+      });
+      emit_mail_changed();
+      invalidate_mail_stats();
+      show_action_toast({
+        message: target_folder_token
+          ? viewer.t("common.moved_to_folder", { folder: folder_name })
+          : viewer.t("common.moved_to_inbox_toast"),
+        action_type: "restore",
+        email_ids: [email_id],
+      });
+      on_close();
+    },
+    [
+      email_id,
+      bin_flag,
+      applied_folder_tokens,
+      folder_options,
+      viewer.t,
+      on_close,
+    ],
+  );
+
   const handle_folder_toggle = useCallback(
     async (folder_token: string) => {
       if (!email_id || folder_move_in_flight.current) return;
+      if (bin_flag) {
+        await move_out_of_bin(folder_token);
+
+        return;
+      }
 
       const was_applied = applied_folder_tokens.includes(folder_token);
       const folder_name =
@@ -143,10 +244,14 @@ export function EmailPopupViewer({
         return;
       }
 
-      set_folder_overrides((prev) => ({
-        ...prev,
-        [folder_token]: !was_applied,
-      }));
+      set_folder_overrides((prev) => {
+        if (was_applied) return { ...prev, [folder_token]: false };
+        const cleared = Object.fromEntries(
+          applied_folder_tokens.map((token) => [token, false]),
+        );
+
+        return { ...prev, ...cleared, [folder_token]: true };
+      });
       show_action_toast({
         message: was_applied
           ? viewer.t("common.removed_from_folder", { folder: folder_name })
@@ -155,7 +260,14 @@ export function EmailPopupViewer({
         email_ids: [email_id],
       });
     },
-    [email_id, applied_folder_tokens, folder_options, viewer.t],
+    [
+      email_id,
+      bin_flag,
+      move_out_of_bin,
+      applied_folder_tokens,
+      folder_options,
+      viewer.t,
+    ],
   );
 
   const memoized_draft = useMemo(
@@ -239,6 +351,7 @@ export function EmailPopupViewer({
         on_close={on_close}
         on_drag_start={viewer.handle_drag_start}
         on_folder_toggle={handle_folder_toggle}
+        on_move_out_of_bin={bin_flag ? () => move_out_of_bin(null) : undefined}
         on_fullscreen={viewer.handle_fullscreen}
         on_not_spam={viewer.handle_not_spam}
         on_pin_toggle={viewer.handle_pin_toggle}

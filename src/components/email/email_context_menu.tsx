@@ -219,14 +219,17 @@ function EmailContextMenuContentInner({
     : current_folder_id
       ? [current_folder_id]
       : [];
+  const is_bin = is_trash || is_spam;
+  const can_move_out_of_bin =
+    is_bin && !!on_move_to_inbox && !is_drafts && !is_scheduled;
   const can_move_to_inbox =
-    assigned_folder_ids.length > 0 &&
-    !!on_folder_toggle &&
-    !is_trash &&
-    !is_spam &&
-    !is_archive &&
-    !is_drafts &&
-    !is_scheduled;
+    can_move_out_of_bin ||
+    (assigned_folder_ids.length > 0 &&
+      !!on_folder_toggle &&
+      !is_bin &&
+      !is_archive &&
+      !is_drafts &&
+      !is_scheduled);
 
   return (
     <ContextMenuContent className="w-56">
@@ -463,7 +466,9 @@ function EmailContextMenuContentInner({
           !is_archive &&
           !is_drafts &&
           !is_scheduled) ||
-        (is_archive && on_move_to_inbox)) && <ContextMenuSeparator />}
+        ((is_archive || is_trash) && on_move_to_inbox)) && (
+        <ContextMenuSeparator />
+      )}
 
       {supports_id_scope &&
         folders.length > 0 &&
@@ -481,6 +486,11 @@ function EmailContextMenuContentInner({
                   <ContextMenuItem
                     onSelect={(e) => {
                       e.preventDefault();
+                      if (can_move_out_of_bin) {
+                        void handle_action("move_inbox", on_move_to_inbox);
+
+                        return;
+                      }
                       assigned_folder_ids.forEach((folder_id) =>
                         on_folder_toggle(folder_id),
                       );
@@ -589,7 +599,7 @@ function EmailContextMenuContentInner({
           </ContextMenuSub>
         )}
 
-      {is_archive && on_move_to_inbox && (
+      {(is_archive || is_trash) && on_move_to_inbox && (
         <ContextMenuItem
           disabled={loading_action === "move_inbox"}
           onClick={() => handle_action("move_inbox", on_move_to_inbox)}
