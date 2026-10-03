@@ -366,8 +366,87 @@ export interface WrittenChunk {
   count: number;
 }
 
-function persisted_json(id: string, entry: PersistableEntry): string {
-  return JSON.stringify(to_persisted_entry(id, entry));
+function same_value(a: unknown, b: unknown): boolean {
+  if (a === b) return true;
+  if (
+    typeof a !== "object" ||
+    typeof b !== "object" ||
+    a === null ||
+    b === null
+  ) {
+    return false;
+  }
+  if (Array.isArray(a) !== Array.isArray(b)) return false;
+
+  if (Array.isArray(a)) {
+    const other = b as unknown[];
+
+    return (
+      a.length === other.length && a.every((v, i) => same_value(v, other[i]))
+    );
+  }
+
+  const left = a as Record<string, unknown>;
+  const right = b as Record<string, unknown>;
+
+  for (const k in left) {
+    if (left[k] !== undefined && !same_value(left[k], right[k])) return false;
+  }
+  for (const k in right) {
+    if (right[k] !== undefined && left[k] === undefined) return false;
+  }
+
+  return true;
+}
+
+const TRIMMED_ITEM_FIELDS = new Set([
+  "encrypted_envelope",
+  "envelope_nonce",
+  "encrypted_metadata",
+  "metadata_nonce",
+  "ephemeral_key",
+  "ephemeral_pq_key",
+  "sender_sealed",
+]);
+
+function same_indexed_item(stored: MailItem, item: MailItem): boolean {
+  const left = stored as unknown as Record<string, unknown>;
+  const right = item as unknown as Record<string, unknown>;
+
+  for (const k in left) {
+    if (TRIMMED_ITEM_FIELDS.has(k) || left[k] === undefined) continue;
+    if (!same_value(left[k], right[k])) return false;
+  }
+  for (const k in right) {
+    if (TRIMMED_ITEM_FIELDS.has(k) || right[k] === undefined) continue;
+    if (left[k] === undefined) return false;
+  }
+
+  return true;
+}
+
+function same_envelope(
+  a: DecryptedEnvelope | null,
+  b: DecryptedEnvelope | null,
+): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+
+  return same_value(
+    { ...a, body_html: "", html_body: "" },
+    { ...b, body_html: "", html_body: "" },
+  );
+}
+
+function same_entry(a: PersistableEntry, b: PersistableEntry): boolean {
+  return (
+    a === b ||
+    (a.meta_fp === b.meta_fp &&
+      a.has_body === b.has_body &&
+      a.search_body_text === b.search_body_text &&
+      same_value(a.metadata, b.metadata) &&
+      same_envelope(a.envelope, b.envelope))
+  );
 }
 
 function chunk_unchanged(
@@ -382,18 +461,8 @@ function chunk_unchanged(
   }
 
   for (let i = 0; i < items.length; i++) {
-    const id = items[i].id;
-
-    if (
-      stored.entries[i] !== entries[i] &&
-      persisted_json(id, stored.entries[i]) !== persisted_json(id, entries[i])
-    ) {
-      return false;
-    }
-
-    if (JSON.stringify(stored.items[i]) !== JSON.stringify(items[i])) {
-      return false;
-    }
+    if (!same_entry(stored.entries[i], entries[i])) return false;
+    if (!same_indexed_item(stored.items[i], items[i])) return false;
   }
 
   return true;
@@ -421,8 +490,58 @@ export interface SnapshotWriter {
     keep_chunk_ids?: number[];
     kept_total?: number;
     keep_first?: boolean;
+    restamp_after_ms?: number;
+    is_current?: () => boolean;
   }): Promise<SnapshotMeta | null>;
   discard(): Promise<void>;
+}
+
+async function read_manifest(
+  key: string,
+  encryption_key: CryptoKey,
+  user_email: string,
+): Promise<SnapshotMeta | null> {
+  const record = await encrypted_get<SearchIndexManifest>(key, encryption_key);
+
+  if (!record || record.user_email !== user_email) return null;
+  if (record.version !== MANIFEST_VERSION) return null;
+  if (!Array.isArray(record.chunk_ids)) return null;
+
+  const chunk_ids = record.chunk_ids.filter((id) => Number.isInteger(id));
+
+  return {
+    saved_at: record.saved_at,
+    chunk_ids,
+    next_chunk_id: Number.isInteger(record.next_chunk_id)
+      ? record.next_chunk_id
+      : chunk_ids.length,
+    next_cursor: record.next_cursor,
+    complete: !!record.complete,
+    total: Number.isInteger(record.total) ? record.total : 0,
+    include_body: !!record.include_body,
+  };
+}
+
+function same_chunk_ids(a: number[], b: number[]): boolean {
+  return a.length === b.length && a.every((id, i) => id === b[i]);
+}
+
+export function same_snapshot(a: SnapshotMeta, b: SnapshotMeta): boolean {
+  return a.saved_at === b.saved_at && same_chunk_ids(a.chunk_ids, b.chunk_ids);
+}
+
+function highest_chunk_id(keys: string[], chunk_prefix: string): number {
+  let highest = -1;
+
+  for (const k of keys) {
+    if (!k.startsWith(chunk_prefix)) continue;
+
+    const id = Number(k.slice(chunk_prefix.length));
+
+    if (Number.isInteger(id) && id > highest) highest = id;
+  }
+
+  return highest;
 }
 
 export async function open_snapshot_reader(
@@ -434,28 +553,9 @@ export async function open_snapshot_reader(
     if (!encryption_key) return null;
 
     const key = await snapshot_key();
-    const record = await encrypted_get<SearchIndexManifest>(
-      key,
-      encryption_key,
-    );
+    const meta = await read_manifest(key, encryption_key, user_email);
 
-    if (!record || record.user_email !== user_email) return null;
-    if (record.version !== MANIFEST_VERSION) return null;
-    if (!Array.isArray(record.chunk_ids)) return null;
-
-    const chunk_ids = record.chunk_ids.filter((id) => Number.isInteger(id));
-
-    const meta: SnapshotMeta = {
-      saved_at: record.saved_at,
-      chunk_ids,
-      next_chunk_id: Number.isInteger(record.next_chunk_id)
-        ? record.next_chunk_id
-        : chunk_ids.length,
-      next_cursor: record.next_cursor,
-      complete: !!record.complete,
-      total: Number.isInteger(record.total) ? record.total : 0,
-      include_body: !!record.include_body,
-    };
+    if (!meta) return null;
 
     return {
       meta,
@@ -577,20 +677,30 @@ export async function open_snapshot_writer(
 
   const key = await snapshot_key();
   const saved_at = Date.now();
+  const chunk_prefix = `${key}_chunk_`;
+  const grams_prefix = `${key}_grams_`;
+  const on_disk = await read_manifest(key, encryption_key, user_email).catch(
+    () => null,
+  );
+  const existing_keys = await encrypted_list_keys().catch((): string[] => []);
+  const base_on_disk = !!base && !!on_disk && same_snapshot(base, on_disk);
+  const stored_chunks = base_on_disk ? reusable : undefined;
   const written_ids: number[] = [];
   const fresh_ids: number[] = [];
   const layout: WrittenChunk[] = [];
   const written_summaries = new Map<number, ChunkSummary>();
-  let next_chunk_id = base?.next_chunk_id ?? 0;
+  let next_chunk_id = Math.max(
+    base?.next_chunk_id ?? 0,
+    on_disk?.next_chunk_id ?? 0,
+    highest_chunk_id(existing_keys, chunk_prefix) + 1,
+  );
   let buffer_items: MailItem[] = [];
-  let buffer_entries: PersistedSearchEntry[] = [];
   let buffer_sources: PersistableEntry[] = [];
   let written = 0;
   let storage_exhausted = false;
 
   const drop_buffer = (): void => {
     buffer_items = [];
-    buffer_entries = [];
     buffer_sources = [];
   };
 
@@ -603,7 +713,7 @@ export async function open_snapshot_writer(
       return;
     }
 
-    const stored = reusable?.[layout.length];
+    const stored = stored_chunks?.[layout.length];
 
     if (stored && chunk_unchanged(stored, buffer_items, buffer_sources)) {
       written_ids.push(stored.id);
@@ -622,18 +732,22 @@ export async function open_snapshot_writer(
     }
 
     const chunk_id = next_chunk_id++;
+    const chunk_items = buffer_items.map(trim_item_for_index);
+    const chunk_entries = buffer_items.map((item, i) =>
+      to_persisted_entry(item.id, buffer_sources[i]),
+    );
 
     try {
       await encrypted_set(
         chunk_record_key(key, chunk_id),
         {
-          items: buffer_items,
-          entries: buffer_entries,
+          items: chunk_items,
+          entries: chunk_entries,
         } satisfies SearchIndexChunk,
         encryption_key,
       );
 
-      const digest = summarize_chunk(buffer_items, buffer_entries);
+      const digest = summarize_chunk(chunk_items, chunk_entries);
 
       await encrypted_set(
         gram_record_key(key, chunk_id),
@@ -740,8 +854,7 @@ export async function open_snapshot_writer(
 
         if (!entry) continue;
 
-        buffer_items.push(trim_item_for_index(item));
-        buffer_entries.push(to_persisted_entry(item.id, entry));
+        buffer_items.push(item);
         buffer_sources.push(entry);
 
         if (buffer_items.length >= SNAPSHOT_CHUNK_SIZE) {
@@ -768,7 +881,21 @@ export async function open_snapshot_writer(
       keep_chunk_ids,
       kept_total,
       keep_first,
+      restamp_after_ms,
+      is_current,
     }) => {
+      const abandon = async (): Promise<null> => {
+        await Promise.all(
+          fresh_ids.flatMap((id) => [
+            secure_overwrite_and_delete(chunk_record_key(key, id)),
+            secure_overwrite_and_delete(gram_record_key(key, id)),
+          ]),
+        );
+        invalidate_snapshot_caches();
+
+        return null;
+      };
+
       try {
         await flush();
 
@@ -786,18 +913,35 @@ export async function open_snapshot_writer(
           include_body,
         };
 
-        if (
-          base &&
-          fresh_ids.length === 0 &&
-          meta.next_cursor === base.next_cursor &&
-          meta.complete === base.complete &&
-          meta.total === base.total &&
-          meta.include_body === base.include_body &&
-          meta.chunk_ids.length === base.chunk_ids.length &&
-          meta.chunk_ids.every((id, i) => id === base.chunk_ids[i])
-        ) {
-          return { ...base, chunk_ids: [...base.chunk_ids] };
+        if (is_current && !is_current()) return await abandon();
+
+        const keys = await encrypted_list_keys();
+        const present = new Set(keys);
+
+        if (!chunk_ids.every((id) => present.has(chunk_record_key(key, id)))) {
+          return await abandon();
         }
+
+        const current = await read_manifest(key, encryption_key, user_email);
+        const unchanged =
+          fresh_ids.length === 0 &&
+          !!current &&
+          same_chunk_ids(chunk_ids, current.chunk_ids) &&
+          next_cursor === current.next_cursor &&
+          complete === current.complete &&
+          meta.total === current.total &&
+          include_body === current.include_body;
+
+        if (
+          unchanged &&
+          current &&
+          (restamp_after_ms === undefined ||
+            saved_at - current.saved_at < restamp_after_ms)
+        ) {
+          return current;
+        }
+
+        if (is_current && !is_current()) return await abandon();
 
         await encrypted_set(
           key,
@@ -809,10 +953,9 @@ export async function open_snapshot_writer(
           encryption_key,
         );
 
+        if (unchanged) return meta;
+
         const live = new Set(chunk_ids);
-        const keys = await encrypted_list_keys();
-        const chunk_prefix = `${key}_chunk_`;
-        const grams_prefix = `${key}_grams_`;
 
         invalidate_snapshot_caches();
 

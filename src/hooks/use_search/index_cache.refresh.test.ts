@@ -25,14 +25,21 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 
 const { store, writes, server } = vi.hoisted(() => ({
   store: new Map<string, unknown>(),
-  writes: { chunk: 0, total: 0 },
+  writes: {
+    chunk: 0,
+    total: 0,
+    on_chunk: null as (() => void) | null,
+  },
   server: { mailbox: [] as MailItem[], envelope_decrypts: 0 },
 }));
 
 vi.mock("@/services/crypto/encrypted_storage", () => ({
   encrypted_set: async (key: string, value: unknown) => {
     writes.total++;
-    if (key.includes("_chunk_")) writes.chunk++;
+    if (key.includes("_chunk_")) {
+      writes.chunk++;
+      writes.on_chunk?.();
+    }
     store.set(key, JSON.parse(JSON.stringify(value)));
   },
   encrypted_get: async (key: string) => store.get(key) ?? null,
@@ -118,6 +125,7 @@ import {
   reset_index_cache,
 } from "./index_cache";
 import * as index_cache from "./index_cache";
+import { INDEX_TTL_MS } from "./constants";
 import { matches_query } from "./matching";
 
 import {
@@ -148,7 +156,7 @@ async function settle(): Promise<CachedIndex> {
   let index = await build_search_index(user_email, false);
 
   while (index_cache.index_build_promise) {
-    index = await index_cache.index_build_promise;
+    index = (await index_cache.index_build_promise.catch(() => null)) ?? index;
   }
 
   return index_cache.cached_index ?? index;
@@ -338,6 +346,37 @@ describe("search index refresh writes", () => {
     expect(await search(reloaded, [`msg-${deleted}`])).toEqual([]);
   });
 
+  it("restamps the snapshot without rewriting chunks once it is half a TTL old", async () => {
+    const stamped = (await disk_snapshot()).saved_at;
+    const later = stamped + INDEX_TTL_MS;
+    const now = vi.spyOn(Date, "now").mockReturnValue(later);
+
+    try {
+      await refresh();
+    } finally {
+      now.mockRestore();
+    }
+
+    expect(writes.chunk).toBe(0);
+    expect(writes.total).toBe(1);
+    expect((await disk_snapshot()).saved_at).toBe(later);
+    expect((await reload()).built_at).toBe(later);
+  });
+
+  it("never writes a manifest once the index is cleared mid-write", async () => {
+    server.mailbox[4100] = { ...server.mailbox[4100], is_read: false };
+    writes.on_chunk = () => {
+      writes.on_chunk = null;
+      clear_search_index();
+    };
+
+    await refresh();
+    await new Promise((resolve) => setTimeout(resolve, 20));
+
+    expect(store.has("search_index_account-1")).toBe(false);
+    expect(await hydrate_snapshot_index(user_email)).toBeNull();
+  });
+
   it("rebuilds from scratch after the index is cleared", async () => {
     clear_search_index();
     store.clear();
@@ -467,5 +506,72 @@ describe("search index front refresh writes", () => {
       `msg-${MAILBOX_SIZE}`,
     ]);
     expect(index.meta?.total).toBe(MAILBOX_SIZE + 1);
+  });
+});
+
+describe("search index shared between tabs", () => {
+  type IndexCacheModule = typeof import("./index_cache");
+
+  async function open_tab(): Promise<IndexCacheModule> {
+    vi.resetModules();
+
+    return import("./index_cache");
+  }
+
+  async function settle_tab(tab: IndexCacheModule): Promise<CachedIndex> {
+    await tab.build_search_index(user_email, false);
+
+    while (tab.index_build_promise || tab.is_deep_index_running()) {
+      await tab.index_build_promise?.catch(() => undefined);
+      await new Promise((resolve) => setTimeout(resolve, 5));
+    }
+
+    return tab.cached_index as CachedIndex;
+  }
+
+  async function refresh_tab(tab: IndexCacheModule): Promise<CachedIndex> {
+    tab.mark_search_index_stale();
+
+    return settle_tab(tab);
+  }
+
+  let first: IndexCacheModule;
+  let second: IndexCacheModule;
+
+  beforeEach(async () => {
+    vi.doUnmock("./constants");
+    first = await open_tab();
+    first.clear_search_index();
+    store.clear();
+    server.mailbox = Array.from({ length: MAILBOX_SIZE }, (_, n) =>
+      make_item(n),
+    );
+    await settle_tab(first);
+    second = await open_tab();
+    await settle_tab(second);
+    server.mailbox[10] = { ...server.mailbox[10], is_read: false };
+    await refresh_tab(second);
+    server.mailbox[10] = { ...server.mailbox[10], is_read: true };
+  });
+
+  it("does not keep another tab's chunk when this tab's copy is out of date", async () => {
+    await refresh_tab(first);
+
+    const disk = await disk_snapshot();
+
+    expect(disk.missing).toEqual([]);
+    expect(disk.unread).toEqual([]);
+    expect(disk.ids).toEqual(server.mailbox.map((item) => item.id));
+  });
+
+  it("never points the manifest at a chunk another tab deleted", async () => {
+    server.mailbox[2100] = { ...server.mailbox[2100], is_read: false };
+    await refresh_tab(first);
+
+    const disk = await disk_snapshot();
+
+    expect(disk.missing).toEqual([]);
+    expect(disk.unread).toEqual(["msg-2100"]);
+    expect(disk.ids).toEqual(server.mailbox.map((item) => item.id));
   });
 });

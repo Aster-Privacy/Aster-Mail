@@ -47,6 +47,7 @@ import {
   has_index_storage_headroom,
   open_snapshot_reader,
   open_snapshot_writer,
+  same_snapshot,
   SNAPSHOT_CHUNK_SIZE,
   type PersistableEntry,
   type PersistedSearchEntry,
@@ -64,6 +65,7 @@ import {
   settle_within,
 } from "@/services/search/index_total";
 const PARTIAL_PUBLISH_MS = 750;
+const SNAPSHOT_RESTAMP_MS = INDEX_TTL_MS / 2;
 const TOTAL_WAIT_MS = 1500;
 
 let partial_ready_resolve: (() => void) | null = null;
@@ -274,11 +276,18 @@ export async function build_index_full(
     index.complete = !result.paused && !result.next_cursor;
 
     if (writer) {
+      if (my_gen !== build_generation) {
+        await writer.discard();
+        throw new Error("search_index_cancelled");
+      }
+
       const exhausted = writer.storage_exhausted();
       const meta = await writer.finish({
         next_cursor: exhausted ? undefined : result.next_cursor,
         complete: exhausted || result.paused ? false : !result.next_cursor,
         include_body,
+        restamp_after_ms: SNAPSHOT_RESTAMP_MS,
+        is_current: () => my_gen === build_generation,
       });
 
       if (meta) {
@@ -335,7 +344,7 @@ export async function build_index_front_refresh(
       throw new Error("search_index_cancelled");
     }
 
-    if (!boundary_id) {
+    if (!boundary_id || !reader || !same_snapshot(reader.meta, base)) {
       return build_index_full(user_email, include_body, stale);
     }
 
@@ -383,7 +392,7 @@ export async function build_index_front_refresh(
     if (writer) {
       await writer.add_page(index.items, index.decrypted);
 
-      if (writer.storage_exhausted()) {
+      if (writer.storage_exhausted() || my_gen !== build_generation) {
         await writer.discard();
       } else {
         const meta = await writer.finish({
@@ -392,6 +401,8 @@ export async function build_index_front_refresh(
           include_body,
           keep_chunk_ids: keep_ids,
           kept_total: Math.max(base.total - stale.items.length, 0),
+          restamp_after_ms: SNAPSHOT_RESTAMP_MS,
+          is_current: () => my_gen === build_generation,
         });
 
         if (meta) {
@@ -501,6 +512,7 @@ export async function run_deep_index(
         keep_chunk_ids: meta.chunk_ids,
         kept_total: meta.total,
         keep_first: true,
+        is_current: () => my_gen === build_generation,
       });
 
       if (!next || my_gen !== build_generation) return;
