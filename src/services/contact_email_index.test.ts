@@ -292,6 +292,28 @@ describe("invalidation", () => {
     expect(list_contacts).toHaveBeenCalledTimes(1);
   });
 
+  it("rebuilds at once when asked for the index during the debounce", async () => {
+    const mod = await load();
+    const { emit_contacts_changed } = await import("@/hooks/mail_events");
+
+    list_contacts.mockResolvedValueOnce(page([]));
+    await mod.ensure_contact_email_index();
+    expect(mod.get_cached_contact_id("new@example.com")).toBeNull();
+
+    list_contacts.mockResolvedValue(
+      page([contact("c-new", ["new@example.com"], { updated_at: "1" })]),
+    );
+    vi.useFakeTimers();
+    emit_contacts_changed();
+    const rebuilt = mod.ensure_contact_email_index();
+
+    vi.useRealTimers();
+    await rebuilt;
+
+    expect(mod.get_cached_contact_id("new@example.com")).toBe("c-new");
+    expect(list_contacts).toHaveBeenCalledTimes(2);
+  });
+
   it("stops paging a rebuild that a newer change made stale", async () => {
     const mod = await load();
     const gate: { release?: () => void } = {};

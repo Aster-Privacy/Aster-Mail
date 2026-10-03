@@ -463,6 +463,38 @@ describe("one contact edit", () => {
     );
   });
 
+  it("does not hold back the new photo when the old fetch failed mid-edit", async () => {
+    const { mod, contacts } = await setup();
+    const index = await import("@/services/contact_email_index");
+    const email = "c100@example.com";
+    let fail: (reason: unknown) => void = () => undefined;
+
+    get_contact_photo.mockImplementationOnce(
+      () =>
+        new Promise((_, reject) => {
+          fail = reject;
+        }),
+    );
+    mod.request_contact_photo(email);
+    await vi.waitFor(() =>
+      expect(get_contact_photo).toHaveBeenCalledWith("c100"),
+    );
+
+    contacts[100] = { ...contacts[100], updated_at: AFTER };
+    index.mark_contact_email_index_stale();
+    await index.ensure_contact_email_index();
+    fail(new Error("network"));
+    await vi.advanceTimersByTimeAsync(0);
+
+    mod.request_contact_photo(email);
+    await vi.waitFor(() => expect(get_contact_photo).toHaveBeenCalledTimes(2));
+    await vi.waitFor(() =>
+      expect(mod.get_contact_photo_src(email)).toBe(
+        "data:image/png;base64,AQ==",
+      ),
+    );
+  });
+
   it("forgets every photo on sign-out", async () => {
     const { mod, emails } = await setup();
 

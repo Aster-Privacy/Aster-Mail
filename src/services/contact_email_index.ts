@@ -278,6 +278,7 @@ export function ensure_contact_email_index(): Promise<
   Map<string, ContactIndexEntry>
 > {
   register_listeners();
+  if (stale_timer !== null) mark_contact_email_index_stale();
   const now = Date.now();
 
   if (index && is_contact_index_fresh(now)) return Promise.resolve(index);

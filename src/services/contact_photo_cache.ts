@@ -112,7 +112,10 @@ async function fetch_photo(contact_id: string): Promise<void> {
     photo_failures.delete(contact_id);
     notify_photo_change();
   } catch {
-    if (started_generation === cache_generation) {
+    if (
+      started_generation === cache_generation &&
+      !photo_outdated.has(contact_id)
+    ) {
       photo_failures.set(contact_id, Date.now());
     }
   }
