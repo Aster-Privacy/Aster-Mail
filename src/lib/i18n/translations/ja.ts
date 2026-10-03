@@ -5559,6 +5559,10 @@ export const ja = {
     cancel_import: "インポートをキャンセル",
     emails_imported_count: "{{count}}件のメールをインポートしました",
     duplicates_skipped: "{{count}}件の重複をスキップしました",
+    import_drafts_chats_skipped:
+      "{{count}}件の下書きとチャットをスキップしました",
+    import_invalid_skipped:
+      "差出人または内容のない{{count}}件のメッセージをスキップしました",
     import_folder_hint:
       "メールが見つかりませんか？スパムと送信済みフォルダを確認してください。インポートされたメールがそこに分類されている場合があります。",
     n_failed_count: "{{count}} 件失敗",

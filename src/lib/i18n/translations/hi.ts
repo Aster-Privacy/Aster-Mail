@@ -6817,6 +6817,12 @@ export const hi = {
     emails_imported_count_one: "{{count}} ईमेल इंपोर्ट हुआ",
     duplicates_skipped: "{{count}} डुप्लीकेट छोड़े गए",
     duplicates_skipped_one: "{{count}} डुप्लीकेट छोड़ा गया",
+    import_drafts_chats_skipped: "{{count}} ड्राफ़्ट और चैट छोड़े गए",
+    import_drafts_chats_skipped_one: "{{count}} ड्राफ़्ट या चैट छोड़ा गया",
+    import_invalid_skipped:
+      "बिना प्रेषक या सामग्री वाले {{count}} संदेश छोड़े गए",
+    import_invalid_skipped_one:
+      "बिना प्रेषक या सामग्री वाला {{count}} संदेश छोड़ा गया",
     import_folder_hint:
       "कुछ ईमेल नहीं मिल रहीं? अपने स्पैम और भेजे गए फ़ोल्डर देखें, इंपोर्ट की गई ईमेल उनकी सामग्री के आधार पर वहां जा सकती हैं।",
     n_failed_count: "{{count}} विफल",

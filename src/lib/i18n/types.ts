@@ -5758,6 +5758,10 @@ export interface SettingsTranslations {
   emails_imported_count_one?: string;
   duplicates_skipped: string;
   duplicates_skipped_one?: string;
+  import_drafts_chats_skipped: string;
+  import_drafts_chats_skipped_one?: string;
+  import_invalid_skipped: string;
+  import_invalid_skipped_one?: string;
   import_folder_hint: string;
   n_failed_count: string;
   import_folders_skipped: string;

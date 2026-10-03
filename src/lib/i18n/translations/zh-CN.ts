@@ -5050,6 +5050,8 @@ export const zh_CN = {
     cancel_import: "取消导入",
     emails_imported_count: "已导入 {{count}} 封邮件",
     duplicates_skipped: "已跳过 {{count}} 封重复邮件",
+    import_drafts_chats_skipped: "已跳过 {{count}} 封草稿和聊天记录",
+    import_invalid_skipped: "已跳过 {{count}} 封缺少发件人或内容的邮件",
     import_folder_hint:
       "找不到某些邮件？请检查垃圾邮件和已发送文件夹 - 导入的邮件可能已根据内容排序到那里。",
     n_failed_count: "失败 {{count}}",

@@ -5751,6 +5751,15 @@ export const ru = {
     duplicates_skipped: "{{count}} дубликатов пропущено",
     duplicates_skipped_one: "{{count}} дубликат пропущен",
     duplicates_skipped_few: "{{count}} дубликата пропущены",
+    import_drafts_chats_skipped: "{{count}} черновиков и чатов пропущено",
+    import_drafts_chats_skipped_one: "{{count}} черновик или чат пропущен",
+    import_drafts_chats_skipped_few: "{{count}} черновика и чата пропущены",
+    import_invalid_skipped:
+      "{{count}} писем без отправителя или содержимого пропущено",
+    import_invalid_skipped_one:
+      "{{count}} письмо без отправителя или содержимого пропущено",
+    import_invalid_skipped_few:
+      "{{count}} письма без отправителя или содержимого пропущены",
     import_folder_hint:
       "Не можете найти некоторые письма? Проверьте папки Спам и Отправленные - импортированные письма могут быть отсортированы туда.",
     n_failed_count: "{{count}} не удалось",

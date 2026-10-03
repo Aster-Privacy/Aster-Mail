@@ -5528,6 +5528,12 @@ export const de = {
     emails_imported_count_one: "{{count}} E-Mail importiert",
     duplicates_skipped: "{{count}} Duplikate übersprungen",
     duplicates_skipped_one: "{{count}} Duplikat übersprungen",
+    import_drafts_chats_skipped: "{{count}} Entwürfe und Chats übersprungen",
+    import_drafts_chats_skipped_one: "{{count}} Entwurf oder Chat übersprungen",
+    import_invalid_skipped:
+      "{{count}} Nachrichten ohne Absender oder Inhalt übersprungen",
+    import_invalid_skipped_one:
+      "{{count}} Nachricht ohne Absender oder Inhalt übersprungen",
     import_folder_hint:
       "E-Mails nicht gefunden? Prüfen Sie die Spam- und Gesendet-Ordner - importierte E-Mails können dort einsortiert sein.",
     n_failed_count: "{{count}} fehlgeschlagen",

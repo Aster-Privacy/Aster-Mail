@@ -6748,6 +6748,12 @@ export const en: Translations = {
     emails_imported_count_one: "{{count}} email imported",
     duplicates_skipped: "{{count}} duplicates skipped",
     duplicates_skipped_one: "{{count}} duplicate skipped",
+    import_drafts_chats_skipped: "{{count}} drafts and chats skipped",
+    import_drafts_chats_skipped_one: "{{count}} draft or chat skipped",
+    import_invalid_skipped:
+      "{{count}} messages with no sender or content skipped",
+    import_invalid_skipped_one:
+      "{{count}} message with no sender or content skipped",
     import_folder_hint:
       "Can't find some emails? Check your Spam and Sent folders - imported emails may be sorted there based on their content.",
     n_failed_count: "{{count}} failed",

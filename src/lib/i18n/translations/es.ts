@@ -5656,6 +5656,12 @@ export const es = {
     emails_imported_count_one: "{{count}} correo importado",
     duplicates_skipped: "{{count}} duplicados omitidos",
     duplicates_skipped_one: "{{count}} duplicado omitido",
+    import_drafts_chats_skipped: "{{count}} borradores y chats omitidos",
+    import_drafts_chats_skipped_one: "{{count}} borrador o chat omitido",
+    import_invalid_skipped:
+      "{{count}} mensajes sin remitente ni contenido omitidos",
+    import_invalid_skipped_one:
+      "{{count}} mensaje sin remitente ni contenido omitido",
     import_folder_hint:
       "¿No encuentras algunos correos? Revisa las carpetas de Spam y Enviados - los correos importados pueden estar ordenados allí.",
     n_failed_count: "{{count}} fallidos",

@@ -6757,6 +6757,12 @@ export const it = {
     emails_imported_count_one: "{{count}} email importata",
     duplicates_skipped: "{{count}} duplicati saltati",
     duplicates_skipped_one: "{{count}} duplicato saltato",
+    import_drafts_chats_skipped: "{{count}} bozze e chat saltate",
+    import_drafts_chats_skipped_one: "{{count}} bozza o chat saltata",
+    import_invalid_skipped:
+      "{{count}} messaggi senza mittente né contenuto saltati",
+    import_invalid_skipped_one:
+      "{{count}} messaggio senza mittente né contenuto saltato",
     import_folder_hint:
       "Non riesci a trovare alcune email? Controlla le cartelle Spam e Inviati - le email importate potrebbero essere ordinate lì.",
     n_failed_count: "{{count}} non riusciti",
