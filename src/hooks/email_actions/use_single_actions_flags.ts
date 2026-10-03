@@ -43,11 +43,15 @@ import {
   conversation_has_unread_sibling,
   read_clears_conversation,
 } from "@/hooks/unread_read_delta";
-import { mark_conversation_read } from "@/hooks/mark_conversation_read";
+import {
+  mark_conversation_read,
+  note_conversation_read_intent,
+} from "@/hooks/mark_conversation_read";
 import { remove_email_from_view_cache } from "@/hooks/email_list_cache";
 import {
   begin_read_change,
   clear_flag_intents,
+  clear_read_intent,
   is_read_ticket_current,
   note_flag_intents,
 } from "@/services/read_intent";
@@ -178,6 +182,15 @@ export function use_single_actions_flags(params: SingleActionsFlagsParams) {
 
       const read_ticket = begin_read_change([email.id]);
 
+      note_flag_intents([email.id], { is_read: new_read });
+      const conversation_intent_ids =
+        new_read && is_received
+          ? note_conversation_read_intent(
+              conversation_options,
+              email.grouped_email_ids,
+            )
+          : [];
+
       if (should_adjust_unread) adjust_stats_unread(new_read ? -1 : 1);
       emit_mail_item_updated({ id: email.id, is_read: new_read });
 
@@ -191,6 +204,8 @@ export function use_single_actions_flags(params: SingleActionsFlagsParams) {
       const still_current = is_read_ticket_current(email.id, read_ticket);
 
       if (!success && still_current) {
+        clear_flag_intents([email.id], { is_read: new_read });
+        clear_read_intent(conversation_intent_ids, true);
         emit_mail_item_updated({ id: email.id, is_read: !new_read });
         if (should_adjust_unread) adjust_stats_unread(new_read ? 1 : -1);
       }
@@ -243,6 +258,14 @@ export function use_single_actions_flags(params: SingleActionsFlagsParams) {
 
       const read_ticket = begin_read_change([email.id]);
 
+      note_flag_intents([email.id], { is_read: true });
+      const conversation_intent_ids = is_received
+        ? note_conversation_read_intent(
+            conversation_options,
+            email.grouped_email_ids,
+          )
+        : [];
+
       if (should_adjust_unread) adjust_stats_unread(-1);
       emit_mail_item_updated({ id: email.id, is_read: true });
 
@@ -256,6 +279,8 @@ export function use_single_actions_flags(params: SingleActionsFlagsParams) {
       const still_current = is_read_ticket_current(email.id, read_ticket);
 
       if (!success && still_current) {
+        clear_flag_intents([email.id], { is_read: true });
+        clear_read_intent(conversation_intent_ids, true);
         emit_mail_item_updated({ id: email.id, is_read: false });
         if (should_adjust_unread) adjust_stats_unread(1);
       }

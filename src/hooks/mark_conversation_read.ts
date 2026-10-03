@@ -95,6 +95,23 @@ export function conversation_needs_thread_read({
   return acted_on_group || opened_grouped_thread || indexed_thread_pending;
 }
 
+export function note_conversation_read_intent(
+  options: MarkConversationReadOptions,
+  grouped_ids: readonly string[] = [],
+): string[] {
+  const { thread_token } = options;
+
+  if (!thread_token || !conversation_needs_thread_read(options)) return [];
+
+  const ids = Array.from(
+    new Set([...grouped_ids, ...get_thread_entry_ids(thread_token)]),
+  );
+
+  note_read_intent(ids, true);
+
+  return ids;
+}
+
 export interface ConversationThreadCandidate {
   id: string;
   item_type?: string;

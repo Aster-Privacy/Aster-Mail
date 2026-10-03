@@ -107,6 +107,7 @@ vi.mock("@/components/toast/action_toast", () => ({
 vi.mock("@/hooks/mark_conversation_read", () => ({
   mark_conversation_read: () => {},
   conversation_needs_thread_read: () => false,
+  note_conversation_read_intent: () => [],
   collect_conversation_thread_tokens: () => [],
   mark_conversation_threads_read: async () => ({
     attempted_ids: [],
