@@ -43,7 +43,7 @@ import { request_cache } from "@/services/api/request_cache";
 import {
   mark_preload_stale,
   delete_preloaded_email,
-} from "@/components/email/hooks/preload_cache";
+} from "@/components/email/hooks/preload_cache_store";
 
 interface UseEmailListEventsParams {
   current_view: string;

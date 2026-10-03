@@ -28,7 +28,6 @@ import {
   read_checkout_target,
   request_checkout_resume,
 } from "@/services/api/billing";
-import { FamilyWelcomeModal } from "@/components/settings/billing/family_welcome_modal";
 import { CheckoutReturnHandler } from "@/components/common/checkout_return_handler";
 import { request_cache } from "@/services/api/request_cache";
 import { is_tauri_env } from "@/services/api/client/helpers";
@@ -51,17 +50,13 @@ import { SimpleToast } from "@/components/toast/simple_toast";
 import { KeyTrustChangePrompt } from "@/components/compose/key_trust_change_prompt";
 import { PostQuantumSendPrompt } from "@/components/compose/post_quantum_send_prompt";
 import { UnsubscribeConfirmationModal } from "@/components/modals/unsubscribe_confirmation_modal";
-import { PurchaseSuccessModal } from "@/components/modals/purchase_success_modal";
-import { UpgradeModal } from "@/components/upgrade/upgrade_modal";
 import {
   show_checkout_cancelled_upgrade,
+  use_upgrade_prompt_events,
   type UpgradeInterval,
 } from "@/stores/upgrade_store";
 import { is_resumable_checkout_plan } from "@/components/settings/billing/billing_constants";
-import { AliasCapUpsellModal } from "@/components/upgrade/alias_cap_upsell_modal";
 import { ProfilePictureDialog } from "@/components/profile/profile_picture_dialog";
-import { SpecialOfferModal } from "@/components/upgrade/special_offer_modal";
-import { SpecialOfferSuccessModal } from "@/components/upgrade/special_offer_success_modal";
 import { request_special_offer_checkout } from "@/stores/special_offer_store";
 import { UndoSendContainer } from "@/components/toast/undo_send_container";
 import { UndoSendPreviewModal } from "@/components/toast/undo_send_preview_modal";
@@ -105,6 +100,36 @@ const JoinFamilyPage = lazy_with_retry(() => import("@/pages/join_family"));
 const FamilyClaimPage = lazy_with_retry(() => import("@/pages/family_claim"));
 const CryptoInvoicePage = lazy_with_retry(
   () => import("@/pages/crypto_invoice"),
+);
+const UpgradeModal = lazy_with_retry(() =>
+  import("@/components/upgrade/upgrade_modal").then((m) => ({
+    default: m.UpgradeModal,
+  })),
+);
+const AliasCapUpsellModal = lazy_with_retry(() =>
+  import("@/components/upgrade/alias_cap_upsell_modal").then((m) => ({
+    default: m.AliasCapUpsellModal,
+  })),
+);
+const SpecialOfferModal = lazy_with_retry(() =>
+  import("@/components/upgrade/special_offer_modal").then((m) => ({
+    default: m.SpecialOfferModal,
+  })),
+);
+const SpecialOfferSuccessModal = lazy_with_retry(() =>
+  import("@/components/upgrade/special_offer_success_modal").then((m) => ({
+    default: m.SpecialOfferSuccessModal,
+  })),
+);
+const FamilyWelcomeModal = lazy_with_retry(() =>
+  import("@/components/settings/billing/family_welcome_modal").then((m) => ({
+    default: m.FamilyWelcomeModal,
+  })),
+);
+const PurchaseSuccessModal = lazy_with_retry(() =>
+  import("@/components/modals/purchase_success_modal").then((m) => ({
+    default: m.PurchaseSuccessModal,
+  })),
 );
 const ExternalRedirect = ({ url }: { url: string }) => {
   const desktop = is_tauri_env();
@@ -337,7 +362,7 @@ function BillingSuccessHandler() {
   if (!family_welcome && !individual_welcome && !offer_welcome) return null;
 
   return (
-    <>
+    <Suspense fallback={null}>
       {offer_welcome && (
         <SpecialOfferSuccessModal
           is_open={true}
@@ -373,12 +398,14 @@ function BillingSuccessHandler() {
           plan={individual_welcome.plan}
         />
       )}
-    </>
+    </Suspense>
   );
 }
 
 function App() {
   useEffect(() => install_global_autoscroll(), []);
+
+  use_upgrade_prompt_events();
 
   useEffect(() => {
     try {
@@ -395,7 +422,9 @@ function App() {
 
   return (
     <AppLock>
-      <BillingSuccessHandler />
+      <ErrorBoundary fallback={null}>
+        <BillingSuccessHandler />
+      </ErrorBoundary>
       <CheckoutReturnHandler />
       <SuspendedAccountGate />
       <PendingDeletionDialog />
@@ -594,10 +623,18 @@ function App() {
       <UnsubscribeConfirmationModal />
       <KeyTrustChangePrompt />
       <PostQuantumSendPrompt />
-      <UpgradeModal />
-      <AliasCapUpsellModal />
+      <ErrorBoundary fallback={null}>
+        <Suspense fallback={null}>
+          <UpgradeModal />
+          <AliasCapUpsellModal />
+        </Suspense>
+      </ErrorBoundary>
       <ProfilePictureDialog />
-      <SpecialOfferModal />
+      <ErrorBoundary fallback={null}>
+        <Suspense fallback={null}>
+          <SpecialOfferModal />
+        </Suspense>
+      </ErrorBoundary>
       <UndoSendContainer max_visible={3} position="bottom-center" />
       <UndoSendPreviewModal />
       <EmailNotificationManager />

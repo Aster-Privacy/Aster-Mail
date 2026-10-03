@@ -69,7 +69,7 @@ vi.mock("./account_manager", () => ({
   })),
 }));
 
-vi.mock("@/components/compose/compose_shared", () => ({
+vi.mock("@/components/compose/compose_shared_core", () => ({
   get_aster_footer: vi.fn(() => ""),
 }));
 

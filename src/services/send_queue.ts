@@ -76,7 +76,7 @@ import { show_toast } from "@/components/toast/simple_toast";
 import {
   extract_inline_images,
   type Attachment,
-} from "@/components/compose/compose_shared";
+} from "@/components/compose/compose_shared_core";
 import { format_bytes } from "@/lib/utils";
 import { build_subject_bundle } from "@/utils/email_crypto";
 import { get_active_translations } from "@/lib/i18n/translations";

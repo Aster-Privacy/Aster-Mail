@@ -36,7 +36,7 @@ import type { SenderTrustSource } from "@/lib/utils";
 import { renderable_html_part } from "@/lib/message_markup";
 import { get_email_username, is_system_email } from "@/lib/utils";
 import { extract_reply_to } from "@/utils/reply_to";
-import { get_mail_item, type MailItem } from "@/services/api/mail";
+import { get_mail_item } from "@/services/api/mail";
 import {
   fetch_and_decrypt_thread_messages,
   resolve_reaction_emojis,
@@ -72,15 +72,11 @@ import {
   plain_text_to_html,
 } from "@/lib/html_sanitizer";
 import { get_image_proxy_url } from "@/lib/image_proxy";
-import {
-  LOCKDOWN_CHANGED_EVENT,
-  is_any_lockdown_active,
-} from "@/services/lockdown_store";
+import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { get_current_account } from "@/services/account_manager";
 import {
   set_cached_iframe_height,
   get_cached_iframe_height,
-  clear_iframe_height_cache,
   email_viewer_measure_width,
 } from "@/components/email/sandboxed_email_renderer";
 import { EMAIL_BODY_CSS } from "@/lib/email_body_styles";
@@ -92,14 +88,8 @@ import {
   resolve_cid_references,
   revoke_cid_blob_urls,
 } from "@/lib/cid_resolver";
-import {
-  prefetch_attachment_meta,
-  clear_attachment_meta_cache,
-} from "@/services/attachment_meta_cache";
-import {
-  prefetch_attachment_previews,
-  clear_attachment_preview_cache,
-} from "@/services/attachment_preview_cache";
+import { prefetch_attachment_meta } from "@/services/attachment_meta_cache";
+import { prefetch_attachment_previews } from "@/services/attachment_preview_cache";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 import { clip_code_points } from "@/utils/preview_text";
 import { move_leading_footer_to_end } from "@/components/email/message_body_parts";
@@ -107,28 +97,38 @@ import {
   has_readable_body,
   include_opened_message,
 } from "@/components/email/thread_message_merge";
+import {
+  evict_stale_cache_entries,
+  get_preload_cache,
+  get_preload_email_font_stack,
+  get_preload_email_zoom,
+  get_preload_generation,
+  get_preload_in_flight,
+  invalidate_in_flight_preloads,
+  type PreloadedSanitizedContent,
+} from "@/components/email/hooks/preload_cache_store";
 
-export interface PreloadedSanitizedContent {
-  html: string;
-  body_background?: string;
-  is_plain_text: boolean;
-  external_content: ExternalContentReport;
-}
-
-export interface PreloadedEmail {
-  mail_item: MailItem;
-  email: DecryptedEmail;
-  thread_messages: DecryptedThreadMessage[];
-  thread_draft: DraftWithContent | null;
-  current_user_email: string;
-  current_user_name: string;
-  thread_sanitized: Map<string, PreloadedSanitizedContent>;
-  cid_resolved?: { html: string; blob_urls: string[] };
-  thread_cid_resolved: Map<string, { html: string; blob_urls: string[] }>;
-  time: number;
-  is_stale: boolean;
-  conversation_grouping: boolean;
-}
+export {
+  await_preloaded_email,
+  clear_preload_cache,
+  consume_preloaded_email,
+  delete_preloaded_email,
+  get_preload_cache,
+  get_preload_in_flight,
+  get_preloaded_email,
+  is_preload_busy,
+  is_preloaded_email_fresh,
+  mark_preload_stale,
+  pop_preloaded_cid,
+  pop_preloaded_thread_cid,
+  PRELOAD_FRESH_MS,
+  set_preload_email_font_px,
+  set_preload_email_font_stack,
+} from "@/components/email/hooks/preload_cache_store";
+export type {
+  PreloadedEmail,
+  PreloadedSanitizedContent,
+} from "@/components/email/hooks/preload_cache_store";
 
 const EMPTY_EXTERNAL_CONTENT: ExternalContentReport = {
   has_remote_images: false,
@@ -140,22 +140,8 @@ const EMPTY_EXTERNAL_CONTENT: ExternalContentReport = {
   cleaned_links: [],
 };
 
-const preload_cache = new Map<string, PreloadedEmail>();
-const preload_in_flight = new Map<string, Promise<void>>();
-const MAX_PRELOAD_CACHE_SIZE = 30;
-let preload_generation = 0;
-
-function invalidate_in_flight_preloads(): void {
-  preload_generation += 1;
-}
-
-if (typeof window !== "undefined") {
-  window.addEventListener(LOCKDOWN_CHANGED_EVENT, () => clear_preload_cache());
-}
-
-export function is_preload_busy(): boolean {
-  return preload_in_flight.size > 0;
-}
+const preload_cache = get_preload_cache();
+const preload_in_flight = get_preload_in_flight();
 
 type IdleWindow = Window & {
   requestIdleCallback?: (
@@ -178,163 +164,6 @@ function next_idle(timeout_ms = 400): Promise<void> {
 
     window.setTimeout(() => resolve(), 0);
   });
-}
-
-export function get_preloaded_email(email_id: string): PreloadedEmail | null {
-  const in_flight = preload_in_flight.get(email_id);
-
-  if (in_flight) {
-    return null;
-  }
-
-  return preload_cache.get(email_id) ?? null;
-}
-
-export const consume_preloaded_email = get_preloaded_email;
-
-export const PRELOAD_FRESH_MS = 30_000;
-
-export function is_preloaded_email_fresh(
-  cached: PreloadedEmail,
-  max_age_ms: number = PRELOAD_FRESH_MS,
-): boolean {
-  return !cached.is_stale && Date.now() - cached.time <= max_age_ms;
-}
-
-export async function await_preloaded_email(
-  email_id: string,
-  conversation_grouping?: boolean,
-  options?: { fresh_only?: boolean; max_age_ms?: number },
-): Promise<PreloadedEmail | null> {
-  const in_flight = preload_in_flight.get(email_id);
-
-  if (in_flight) {
-    try {
-      await Promise.race([
-        in_flight,
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("preload timeout")), 10000),
-        ),
-      ]);
-    } catch {
-      preload_in_flight.delete(email_id);
-
-      return null;
-    }
-  }
-
-  const cached = preload_cache.get(email_id) ?? null;
-
-  if (
-    cached &&
-    conversation_grouping !== undefined &&
-    cached.conversation_grouping !== conversation_grouping
-  ) {
-    return null;
-  }
-
-  if (
-    cached &&
-    options?.fresh_only &&
-    !is_preloaded_email_fresh(cached, options.max_age_ms)
-  ) {
-    return null;
-  }
-
-  return cached;
-}
-
-function evict_stale_cache_entries(): void {
-  if (preload_cache.size > MAX_PRELOAD_CACHE_SIZE) {
-    const entries = Array.from(preload_cache.entries()).sort(
-      (a, b) => a[1].time - b[1].time,
-    );
-    const to_remove = entries.length - MAX_PRELOAD_CACHE_SIZE;
-
-    for (let i = 0; i < to_remove; i++) {
-      const evicted = entries[i][1];
-
-      if (evicted.cid_resolved)
-        revoke_cid_blob_urls(evicted.cid_resolved.blob_urls);
-      for (const r of evicted.thread_cid_resolved.values())
-        revoke_cid_blob_urls(r.blob_urls);
-      preload_cache.delete(entries[i][0]);
-    }
-  }
-}
-
-export function clear_preload_cache(): void {
-  for (const entry of preload_cache.values()) {
-    if (entry.cid_resolved) revoke_cid_blob_urls(entry.cid_resolved.blob_urls);
-    for (const r of entry.thread_cid_resolved.values())
-      revoke_cid_blob_urls(r.blob_urls);
-  }
-  preload_cache.clear();
-  clear_attachment_meta_cache();
-  clear_attachment_preview_cache();
-}
-
-export function mark_preload_stale(email_id?: string): void {
-  invalidate_in_flight_preloads();
-  if (email_id) {
-    const cached = preload_cache.get(email_id);
-
-    if (cached) {
-      preload_cache.set(email_id, { ...cached, is_stale: true });
-    }
-  } else {
-    for (const [key, cached] of preload_cache.entries()) {
-      preload_cache.set(key, { ...cached, is_stale: true });
-    }
-  }
-}
-
-export function delete_preloaded_email(email_id: string): void {
-  invalidate_in_flight_preloads();
-  const entry = preload_cache.get(email_id);
-
-  if (entry?.cid_resolved) revoke_cid_blob_urls(entry.cid_resolved.blob_urls);
-  if (entry)
-    for (const r of entry.thread_cid_resolved.values())
-      revoke_cid_blob_urls(r.blob_urls);
-  preload_cache.delete(email_id);
-}
-
-export function pop_preloaded_cid(
-  email_id: string,
-): { html: string; blob_urls: string[] } | null {
-  const entry = preload_cache.get(email_id);
-
-  if (!entry?.cid_resolved) return null;
-  const result = entry.cid_resolved;
-
-  preload_cache.set(email_id, { ...entry, cid_resolved: undefined });
-
-  return result;
-}
-
-export function pop_preloaded_thread_cid(
-  message_id: string,
-): { html: string; blob_urls: string[] } | null {
-  for (const entry of preload_cache.values()) {
-    const result = entry.thread_cid_resolved.get(message_id);
-
-    if (result) {
-      entry.thread_cid_resolved.delete(message_id);
-
-      return result;
-    }
-  }
-
-  return null;
-}
-
-export function get_preload_cache(): Map<string, PreloadedEmail> {
-  return preload_cache;
-}
-
-export function get_preload_in_flight(): Map<string, Promise<void>> {
-  return preload_in_flight;
 }
 
 function invalidate_thread_in_preload_cache(
@@ -560,27 +389,6 @@ function presanitize(
   };
 }
 
-let _email_zoom = "1.000";
-
-export function set_preload_email_font_px(px: number): void {
-  const next_zoom = (px / 14).toFixed(3);
-
-  if (next_zoom !== _email_zoom) {
-    _email_zoom = next_zoom;
-    clear_iframe_height_cache();
-  }
-}
-
-let _email_font_stack =
-  "'Google Sans Flex',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif";
-
-export function set_preload_email_font_stack(stack: string): void {
-  if (stack !== _email_font_stack) {
-    _email_font_stack = stack;
-    clear_iframe_height_cache();
-  }
-}
-
 let measure_container: HTMLDivElement | null = null;
 
 // The height pre-measurement renders sanitized email markup into a top-origin
@@ -605,6 +413,9 @@ function premeasure_height(
 ): void {
   if (get_cached_iframe_height(email_id) !== undefined) return;
 
+  const email_zoom = get_preload_email_zoom();
+  const email_font_stack = get_preload_email_font_stack();
+
   if (!measure_container || !document.body.contains(measure_container)) {
     measure_container = document.createElement("div");
     measure_container.style.cssText =
@@ -620,8 +431,8 @@ function premeasure_height(
   wrapper.style.cssText = `width:${viewer_width}px;position:absolute;left:0;top:0`;
 
   const body_style = is_plain_text
-    ? `margin:0;padding:16px 20px;font-family:${_email_font_stack};font-size:14px;line-height:1.6;white-space:pre-wrap;word-wrap:break-word;zoom:${_email_zoom}`
-    : `margin:0;padding:8px 16px 8px 16px;background-color:${body_background || "transparent"};zoom:${_email_zoom}`;
+    ? `margin:0;padding:16px 20px;font-family:${email_font_stack};font-size:14px;line-height:1.6;white-space:pre-wrap;word-wrap:break-word;zoom:${email_zoom}`
+    : `margin:0;padding:8px 16px 8px 16px;background-color:${body_background || "transparent"};zoom:${email_zoom}`;
 
   shadow.innerHTML =
     `<style>${EMAIL_BODY_CSS}</style>` +
@@ -631,7 +442,7 @@ function premeasure_height(
 
   const content = shadow.querySelector("div");
   const rect = content ? content.getBoundingClientRect() : null;
-  const content_zoom = parseFloat(_email_zoom) || 1;
+  const content_zoom = parseFloat(email_zoom) || 1;
   const scaled_scroll_height = content
     ? Math.min(content.scrollHeight, content.scrollHeight * content_zoom)
     : 0;
@@ -663,7 +474,7 @@ export async function preload_email_detail(
     }
   }
   if (preload_in_flight.has(target_id)) return preload_in_flight.get(target_id);
-  const started_generation = preload_generation;
+  const started_generation = get_preload_generation();
 
   let task: Promise<void> | undefined;
 
@@ -1003,7 +814,7 @@ export async function preload_email_detail(
         item.metadata = decrypted_metadata;
       }
 
-      if (preload_generation !== started_generation) return;
+      if (get_preload_generation() !== started_generation) return;
 
       preload_cache.set(target_id, {
         mail_item: item,

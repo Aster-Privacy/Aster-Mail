@@ -41,7 +41,7 @@ import { Input } from "@/components/ui/input";
 import { ButtonSpinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { is_composing } from "@/utils/ime";
-import { is_valid_email } from "@/components/compose/compose_shared";
+import { is_valid_email } from "@/components/compose/compose_shared_core";
 
 const MAX_RULE_NAME_LENGTH = 200;
 

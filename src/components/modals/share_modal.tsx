@@ -44,7 +44,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { ignore_error } from "@/lib/ignore_error";
 import { show_toast } from "@/components/toast/simple_toast";
 import { is_composing } from "@/utils/ime";
-import { is_valid_email } from "@/components/compose/compose_shared";
+import { is_valid_email } from "@/components/compose/compose_shared_core";
 
 const FALLBACK_INVITE_URL = "https://astermail.org";
 

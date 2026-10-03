@@ -54,7 +54,7 @@ import {
 } from "@/services/crypto/memory_key_store";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
-import { clear_preload_cache } from "@/components/email/hooks/preload_cache";
+import { clear_preload_cache } from "@/components/email/hooks/preload_cache_store";
 import {
   cache_email_list,
   get_cached_email_list,

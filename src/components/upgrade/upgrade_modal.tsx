@@ -78,8 +78,6 @@ import { scroll_to_storage_addons } from "@/components/layout/storage_meter";
 import {
   close_upgrade_modal,
   is_on_auth_route,
-  show_plan_limit_upgrade,
-  show_storage_full_upgrade,
   use_upgrade_state,
   type UpgradeInterval,
   type UpgradeLimitKey,
@@ -253,38 +251,6 @@ export function UpgradeModal() {
 
   useEffect(() => {
     set_currency(detect_currency_from_locale());
-  }, []);
-
-  useEffect(() => {
-    function handle_plan_limit(e: Event) {
-      const detail =
-        (
-          e as CustomEvent<{
-            resource?: string | null;
-            message?: string | null;
-          }>
-        ).detail || {};
-
-      show_plan_limit_upgrade({
-        resource: detail.resource ?? null,
-        message: detail.message ?? null,
-      });
-    }
-
-    function handle_storage_full(e: Event) {
-      const detail =
-        (e as CustomEvent<{ message?: string | null }>).detail || {};
-
-      show_storage_full_upgrade({ message: detail.message ?? null });
-    }
-
-    window.addEventListener("aster:plan-limit-hit", handle_plan_limit);
-    window.addEventListener("aster:storage-full", handle_storage_full);
-
-    return () => {
-      window.removeEventListener("aster:plan-limit-hit", handle_plan_limit);
-      window.removeEventListener("aster:storage-full", handle_storage_full);
-    };
   }, []);
 
   useEffect(() => {

@@ -30,7 +30,7 @@ import {
   extract_cid_references,
   extract_cid_inline_filenames,
 } from "@/lib/cid_resolver";
-import { generate_attachment_id } from "@/components/compose/compose_shared";
+import { generate_attachment_id } from "@/components/compose/compose_shared_core";
 import {
   get_max_attachment_size,
   get_max_total_attachments_size,

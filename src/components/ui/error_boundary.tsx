@@ -75,7 +75,7 @@ export class ErrorBoundary extends Component<
         return <ChunkRecoveryFallback />;
       }
 
-      if (this.props.fallback) {
+      if (this.props.fallback !== undefined) {
         return this.props.fallback;
       }
 
