@@ -44,6 +44,7 @@ const AUTOSAVE_DELAY_MS = 1000;
 const LOW_NETWORK_AUTOSAVE_DELAY_MS = 5000;
 const HEAVY_DRAFT_AUTOSAVE_DELAY_MS = 20_000;
 const HEAVY_DRAFT_ATTACHMENT_BYTES = 2 * 1024 * 1024;
+const AUTOSAVE_MAX_WAIT_MS = 60_000;
 const AUTOSAVE_RETRY_DELAY_MS = 15_000;
 const AUTOSAVE_MAX_RETRIES = 4;
 
@@ -127,6 +128,7 @@ export function use_compose_drafts({
   const just_loaded_draft_ref = useRef(false);
   const user_modified_ref = useRef(false);
   const save_failure_notified_ref = useRef(false);
+  const unsaved_since_ref = useRef<number | null>(null);
   const t_ref = useRef(t);
   const count_inline_image_bytes_ref = useRef(
     create_inline_image_bytes_counter(),
@@ -170,6 +172,14 @@ export function use_compose_drafts({
     user_modified_ref.current = true;
     set_draft_status((current) => (current === "saving" ? current : "saving"));
 
+    const now = Date.now();
+    const unsaved_since =
+      save_timer_ref.current && unsaved_since_ref.current !== null
+        ? unsaved_since_ref.current
+        : now;
+
+    unsaved_since_ref.current = unsaved_since;
+
     if (save_timer_ref.current) {
       clearTimeout(save_timer_ref.current);
     }
@@ -181,8 +191,11 @@ export function use_compose_drafts({
       count_inline_image_bytes_ref.current(message),
     );
 
+    const max_wait_left = unsaved_since + AUTOSAVE_MAX_WAIT_MS - now;
+
     const run_save = async (attempt: number): Promise<void> => {
       save_timer_ref.current = null;
+      unsaved_since_ref.current = null;
 
       if (is_sending_ref.current || !context_id) {
         return;
@@ -257,9 +270,12 @@ export function use_compose_drafts({
       }
     };
 
-    save_timer_ref.current = setTimeout(() => {
-      void run_save(0);
-    }, autosave_delay);
+    save_timer_ref.current = setTimeout(
+      () => {
+        void run_save(0);
+      },
+      Math.max(0, Math.min(autosave_delay, max_wait_left)),
+    );
 
     return () => {
       if (save_timer_ref.current) {
