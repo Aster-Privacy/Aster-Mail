@@ -87,6 +87,7 @@ import {
 } from "@/services/crypto/memory_key_store";
 import { upgrade_vault_to_master_key } from "@/services/crypto/vault_master_key_upgrade";
 import {
+  is_session_passphrase_on_device,
   store_encrypted_vault,
   store_session_passphrase,
 } from "@/contexts/auth/session_passphrase";
@@ -617,7 +618,11 @@ export function use_security() {
       void refresh_recovery_backup(vault, new_password);
 
       try {
-        await store_session_passphrase(user.id, new_password);
+        await store_session_passphrase(
+          user.id,
+          new_password,
+          is_session_passphrase_on_device(user.id),
+        );
       } catch (caught) {
         ignore_error(
           "components/settings/hooks/use_security/hook:handle_change_password",
