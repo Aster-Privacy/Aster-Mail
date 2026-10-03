@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { vcard_date_value } from "@/utils/date_utils";
 
 export interface VCardAddress {
   street?: string;
@@ -176,7 +177,11 @@ export function serialize_vcard(contact: VCardContact): string {
   if (!contact.address_entries?.length && contact.address) {
     lines.push(fold_line(`ADR:;;${escape_value(contact.address)};;;;`));
   }
-  emit(lines, "BDAY", contact.birthday);
+  emit(
+    lines,
+    "BDAY",
+    contact.birthday && vcard_date_value(contact.birthday, true),
+  );
   emit(lines, "NOTE", contact.notes);
   emit_uri(lines, "PHOTO", contact.avatar_url);
 

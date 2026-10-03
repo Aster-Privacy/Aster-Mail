@@ -28,6 +28,7 @@ import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { Capacitor } from "@capacitor/core";
 
 import { copy_text_or_throw } from "@/utils/copy_text";
+import { contact_date_from_parts } from "@/utils/date_utils";
 import {
   list_all_contacts,
   decrypt_contacts,
@@ -296,9 +297,14 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
         const company = dc.organization?.company || "";
         const job_title = dc.organization?.jobTitle || "";
         const birthday_obj = dc.birthday;
-        const birthday = birthday_obj
-          ? `${birthday_obj.year || "0000"}-${String(birthday_obj.month || 1).padStart(2, "0")}-${String(birthday_obj.day || 1).padStart(2, "0")}`
-          : "";
+        const birthday =
+          birthday_obj?.month && birthday_obj.day
+            ? contact_date_from_parts({
+                year: birthday_obj.year || undefined,
+                month: birthday_obj.month,
+                day: birthday_obj.day,
+              })
+            : "";
         const notes = dc.note || "";
         const addr = dc.postalAddresses?.[0];
         const address = addr
@@ -320,7 +326,7 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
             phone,
             company,
             job_title,
-            birthday: birthday !== "0000-01-01" ? birthday : "",
+            birthday,
             notes,
             address,
             social_links: { website, linkedin: "", twitter: "", github: "" },

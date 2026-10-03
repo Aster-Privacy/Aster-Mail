@@ -1,6 +1,6 @@
-import { describe, it, expect } from "vitest";
+import { afterEach, describe, it, expect, vi } from "vitest";
 
-import { parse_csv_records } from "./contact_utils";
+import { get_days_until_birthday, parse_csv_records } from "./contact_utils";
 
 describe("parse_csv_records", () => {
   it("keeps a quoted field with embedded newlines as one field", () => {
@@ -60,5 +60,61 @@ describe("parse_csv_records", () => {
       ["a", "b"],
       ["1", "2"],
     ]);
+  });
+});
+
+describe("get_days_until_birthday", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  function on(year: number, month: number, day: number) {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(year, month - 1, day, 15, 30));
+  }
+
+  it("counts down to birthdays written in other valid forms", () => {
+    on(2026, 5, 10);
+    expect(get_days_until_birthday("1990-05-15")).toBe(5);
+    expect(get_days_until_birthday("19900515")).toBe(5);
+    expect(get_days_until_birthday("--0515")).toBe(5);
+    expect(get_days_until_birthday("--05-15")).toBe(5);
+    expect(get_days_until_birthday("0000-05-15")).toBe(5);
+  });
+
+  it("rolls a passed birthday over to next year", () => {
+    on(2026, 5, 16);
+    expect(get_days_until_birthday("--05-15")).toBe(364);
+  });
+
+  it("lands a 29 February birthday on the real day in a leap year", () => {
+    on(2027, 3, 2);
+    expect(get_days_until_birthday("--02-29")).toBe(364);
+
+    on(2028, 2, 20);
+    expect(get_days_until_birthday("--02-29")).toBe(9);
+  });
+
+  it("returns NaN for a value that is not a date", () => {
+    on(2026, 5, 10);
+    expect(get_days_until_birthday("someday")).toBeNaN();
+  });
+
+  it("does not count down to a birthday without a day", () => {
+    on(2026, 3, 25);
+    expect(get_days_until_birthday("--04")).toBeNaN();
+    expect(get_days_until_birthday("1985-04")).toBeNaN();
+  });
+
+  it("does not guess a day from text or an impossible date", () => {
+    on(2026, 2, 20);
+    expect(get_days_until_birthday("April 15")).toBeNaN();
+    expect(get_days_until_birthday("1900-02-29")).toBeNaN();
+    expect(get_days_until_birthday("2000-02-30")).toBeNaN();
+  });
+
+  it("counts down to a birthday stored with the placeholder year 1604", () => {
+    on(2026, 4, 10);
+    expect(get_days_until_birthday("1604-04-15")).toBe(5);
   });
 });
