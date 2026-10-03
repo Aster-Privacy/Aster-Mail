@@ -27,6 +27,7 @@ import {
   compute_agreement_bits,
 } from "./key_manager";
 import { load_pq_secret } from "./pq_prekey_store";
+import { complete_p256_private_jwk } from "./p256_jwk";
 import { is_pqxdh_transcript_binding_enabled } from "./crypto_enforcement_policy";
 
 import { HASH_ALG } from "@/services/crypto/constants";
@@ -166,7 +167,9 @@ function base64url_to_bytes(value: string): Uint8Array {
   return bytes;
 }
 
-function jwk_to_raw_public(jwk: JsonWebKey): Uint8Array | null {
+function jwk_to_raw_public(private_jwk: JsonWebKey): Uint8Array | null {
+  const jwk = complete_p256_private_jwk(private_jwk);
+
   if (!jwk.x || !jwk.y) return null;
 
   const x = base64url_to_bytes(jwk.x);
