@@ -93,7 +93,9 @@ export function ContactAvatar({
 
   const cached_favicon_src = use_favicon_src(domain);
   const favicon_src =
-    !low_network && favicon_eligible
+    !low_network &&
+    favicon_eligible &&
+    preferences.show_profile_pictures !== false
       ? cached_favicon_src || get_favicon_url(domain)
       : undefined;
 

@@ -48,7 +48,9 @@ vi.mock("@/lib/favicon_cache_db", () => ({
   cache_favicon_blob: vi.fn(),
 }));
 
-const { use_favicon_src } = await import("./use_favicon_src");
+const { use_favicon_src, store_favicon_if_api_url } =
+  await import("./use_favicon_src");
+const { routed_fetch } = await import("@/services/routing/routing_provider");
 
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean;
@@ -107,5 +109,27 @@ describe("use_favicon_src", () => {
     render("warm.example");
 
     expect(observed[observed.length - 1]).toBe("blob:warm");
+  });
+});
+
+describe("store_favicon_if_api_url", () => {
+  it("fetches the favicon without sending cookies", async () => {
+    vi.useFakeTimers();
+    const fetch_mock = vi.mocked(routed_fetch);
+
+    fetch_mock.mockResolvedValue(new Response(null, { status: 404 }));
+
+    try {
+      store_favicon_if_api_url(
+        "cookie.example",
+        "/api/images/v1/favicon/cookie.example",
+      );
+      await vi.runAllTimersAsync();
+    } finally {
+      vi.useRealTimers();
+    }
+
+    expect(fetch_mock).toHaveBeenCalledTimes(1);
+    expect(fetch_mock.mock.calls[0][1]).toMatchObject({ credentials: "omit" });
   });
 });
