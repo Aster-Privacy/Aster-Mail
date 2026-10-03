@@ -129,15 +129,33 @@ export function placeholder_paint_for_surface(
   };
 }
 
-function surface_behind(img: Element, view: Window): string | null {
+function surface_behind(
+  img: Element,
+  view: Window,
+  known_surfaces: Map<Element, string | null>,
+): string | null {
+  const walked: Element[] = [];
+  let surface: string | null = null;
+
   for (let el = img.parentElement; el; el = el.parentElement) {
+    const known = known_surfaces.get(el);
+
+    if (known !== undefined) {
+      surface = known;
+      break;
+    }
+    walked.push(el);
     const background = view.getComputedStyle(el).backgroundColor;
     const color = parse_css_color(background);
 
-    if (color && color.a >= OPAQUE_SURFACE_MIN_ALPHA) return background;
+    if (color && color.a >= OPAQUE_SURFACE_MIN_ALPHA) {
+      surface = background;
+      break;
+    }
   }
+  for (const el of walked) known_surfaces.set(el, surface);
 
-  return null;
+  return surface;
 }
 
 const LIGHT_PAINT: PlaceholderPaint = {
@@ -324,6 +342,7 @@ export function paint_blocked_images(
   const paint = (images: Iterable<HTMLImageElement>) => {
     const zoom = Number.parseFloat(view.getComputedStyle(doc.body).zoom) || 1;
     const updates: [HTMLImageElement, string][] = [];
+    const known_surfaces = new Map<Element, string | null>();
 
     for (const img of images) {
       if (!is_blocked(img)) {
@@ -357,7 +376,7 @@ export function paint_blocked_images(
         radius:
           Number.parseFloat(value("--aster-placeholder-radius", "10")) || 10,
       };
-      const surface = surface_behind(img, view);
+      const surface = surface_behind(img, view, known_surfaces);
 
       updates.push([
         img,

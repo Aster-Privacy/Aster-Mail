@@ -223,6 +223,35 @@ describe("paint_blocked_images", () => {
       expect(svg).not.toContain("fill-opacity");
       dispose();
     });
+
+    it("reads each shared ancestor once for a row of images", () => {
+      const cells = Array.from(
+        { length: 40 },
+        () => '<img src="x" width="320" height="120">',
+      ).join("");
+
+      mount(
+        `<div style="background-color:#ffffff"><div><div><p>${cells}</p></div></div></div>`,
+      );
+      const ancestor_reads = new Map<Element, number>();
+      const original = window.getComputedStyle.bind(window);
+      const spy = vi
+        .spyOn(window, "getComputedStyle")
+        .mockImplementation((el: Element, pseudo?: string | null) => {
+          if (el.tagName !== "IMG" && el !== doc.body)
+            ancestor_reads.set(el, (ancestor_reads.get(el) ?? 0) + 1);
+
+          return original(el, pseudo);
+        });
+      const dispose = paint_blocked_images(doc, pt_labels);
+
+      expect(ancestor_reads.size).toBe(4);
+      expect(Math.max(...ancestor_reads.values())).toBe(1);
+      for (const img of Array.from(doc.querySelectorAll("img")))
+        expect(svg_of(img)).toContain('fill-opacity="0.04"');
+      spy.mockRestore();
+      dispose();
+    });
   });
 
   it("restores sender attributes and removes all placeholder metadata", () => {
