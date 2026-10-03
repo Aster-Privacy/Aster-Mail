@@ -111,6 +111,7 @@ describe("MobileMessageDetailsSheet", () => {
 
     expect(box.className).toContain("whitespace-pre-wrap");
     expect(box.className).toContain("[overflow-wrap:anywhere]");
+    expect(box.className).not.toMatch(/(^|\s)max-h-/);
 
     act(() =>
       [...document.querySelectorAll("button")]
