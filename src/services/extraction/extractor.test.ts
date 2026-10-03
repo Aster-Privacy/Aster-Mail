@@ -409,3 +409,81 @@ describe("is_shipping_email precision", () => {
     ).toBe(true);
   });
 });
+
+describe("is_shipping_email on security and privacy wording", () => {
+  it.each([
+    "Messages are encrypted in transit and tracking pixels are blocked.",
+    "The server did deliver the envelope. Mail is protected in transit. Blocked tracking pixels.",
+    "Scheduled mail is only released at delivery time and was delivered to every recipient; data in transit.",
+  ])("ignores %s", (body) => {
+    expect(is_shipping_email("Re: Code review notes", body)).toBe(false);
+  });
+
+  it("ignores a privacy newsletter", () => {
+    const subject = "Our privacy report for October";
+    const body =
+      "Every message is encrypted at rest and in transit, with TLS used for in transit encryption between servers. " +
+      "Tracking protection now strips tracking pixels and link tracking from incoming mail, and blocked trackers are listed per message. " +
+      "This report was delivered to every subscriber, and your order history stays private.";
+
+    expect(is_shipping_email(subject, body)).toBe(false);
+    expect(
+      extract_email_details(
+        subject,
+        body,
+        undefined,
+        "news@example.com",
+        "News",
+      ).has_shipping_details,
+    ).toBe(false);
+  });
+
+  it("ignores a security review reply", () => {
+    expect(
+      is_shipping_email(
+        "Re: Review of the scheduled sending flow",
+        "Data is secured in transit, but the queued copy was delivered to the server in plain form. " +
+          "Tracking prevention does not cover this path.",
+      ),
+    ).toBe(false);
+  });
+});
+
+describe("is_shipping_email on carrier and shop notices", () => {
+  it.each([
+    [
+      "UPS Update: Package Scheduled for Delivery Tomorrow",
+      "Your package is in transit. Tracking Number: 1Z999AA10123456784. Estimated delivery: Friday.",
+    ],
+    [
+      "USPS Tracking update",
+      "Your item is in transit to the next facility. USPS Tracking 9400100000000000000000.",
+    ],
+    [
+      "Your DHL shipment is on its way",
+      "Shipment in transit. Track your parcel with tracking ID JD014600006281230000.",
+    ],
+    [
+      "FedEx shipment update",
+      "Your shipment is in transit and was handed to the destination hub. Tracking: 771234567890.",
+    ],
+    [
+      "Your Amazon order has shipped",
+      "Arriving tomorrow. Track package TBA123456789012.",
+    ],
+    [
+      "Your order is on the way",
+      "Good news! Your order has shipped and is now in transit with Royal Mail. Tracking: RM123456785GB.",
+    ],
+    [
+      "In transit",
+      "In transit: your order 4821 left our warehouse. We are tracking it for you.",
+    ],
+    [
+      "Delivered: your parcel",
+      "Your parcel was delivered at 14:02. Tracking # CP123456789PT.",
+    ],
+  ])("detects %s", (subject, body) => {
+    expect(is_shipping_email(subject, body)).toBe(true);
+  });
+});
