@@ -651,6 +651,7 @@ class Parser {
         type: addr_type,
         operator: op_name as AddressOperator,
         value: v,
+        ...this.parse_match_case(),
       };
     }
 
@@ -676,6 +677,7 @@ class Parser {
         type: meta.internal as "subject" | "body" | "list_id",
         operator: op_name as TextOperator,
         value: v,
+        ...this.parse_match_case(),
       };
     }
 
@@ -703,6 +705,7 @@ class Parser {
         name: meta.header_name ?? "",
         operator: op_name as TextOperator,
         value: v,
+        ...this.parse_match_case(),
       };
     }
 
@@ -721,6 +724,7 @@ class Parser {
         type: "attachment_name",
         operator: op_name as AttachmentNameOperator,
         value: v,
+        ...this.parse_match_case(),
       };
     }
 
@@ -735,6 +739,9 @@ class Parser {
     this.consume();
 
     return v.value;
+  }
+  parse_match_case(): { case_sensitive?: true } {
+    return this.match_keyword("match_case") ? { case_sensitive: true } : {};
   }
 }
 
@@ -892,6 +899,10 @@ function quote_string(s: string): string {
   return `"${s.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
 }
 
+function quote_value(s: string, case_sensitive?: boolean): string {
+  return case_sensitive ? `${quote_string(s)} match_case` : quote_string(s);
+}
+
 export function serialize(c: Condition): string {
   return serialize_inner(c, 0);
 }
@@ -926,19 +937,19 @@ function serialize_leaf(c: LeafCondition): string {
         return `${ADDRESS_TO_NAME[c.type]} is_empty`;
       }
 
-      return `${ADDRESS_TO_NAME[c.type]} ${c.operator} ${quote_string(c.value)}`;
+      return `${ADDRESS_TO_NAME[c.type]} ${c.operator} ${quote_value(c.value, c.case_sensitive)}`;
     case "subject":
     case "body":
     case "list_id":
       if (c.operator === "is_empty") return `${c.type} is_empty`;
 
-      return `${c.type} ${c.operator} ${quote_string(c.value)}`;
+      return `${c.type} ${c.operator} ${quote_value(c.value, c.case_sensitive)}`;
     case "header":
       if (c.operator === "is_empty") return `header.${c.name} is_empty`;
 
-      return `header.${c.name} ${c.operator} ${quote_string(c.value)}`;
+      return `header.${c.name} ${c.operator} ${quote_value(c.value, c.case_sensitive)}`;
     case "attachment_name":
-      return `attachment.name ${c.operator} ${quote_string(c.value)}`;
+      return `attachment.name ${c.operator} ${quote_value(c.value, c.case_sensitive)}`;
     case "has_attachment":
     case "is_reply":
     case "is_forward":
