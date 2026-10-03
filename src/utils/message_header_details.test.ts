@@ -126,12 +126,27 @@ describe("segment_auth_value", () => {
 describe("header insights", () => {
   it("reads the topmost Return-Path domain", () => {
     expect(
-      get_mailed_by([
-        { name: "Return-Path", value: "<bounce@Mail.Shop.example>" },
-        { name: "Return-Path", value: "<other@evil.example>" },
-      ]),
+      get_mailed_by(
+        [
+          { name: "Return-Path", value: "<bounce@Mail.Shop.example>" },
+          { name: "Return-Path", value: "<other@evil.example>" },
+        ],
+        { spf_result: "pass" },
+      ),
     ).toBe("mail.shop.example");
-    expect(get_mailed_by([{ name: "Return-Path", value: "<>" }])).toBeNull();
+    expect(
+      get_mailed_by([{ name: "Return-Path", value: "<>" }], {
+        spf_result: "pass",
+      }),
+    ).toBeNull();
+  });
+
+  it("hides the Return-Path domain unless SPF passed", () => {
+    const headers = [{ name: "Return-Path", value: "<bounce@shop.example>" }];
+
+    expect(get_mailed_by(headers, { spf_result: "fail" })).toBeNull();
+    expect(get_mailed_by(headers, { spf_result: "softfail" })).toBeNull();
+    expect(get_mailed_by(headers, {})).toBeNull();
   });
 
   it("reads d= from folded DKIM signatures", () => {

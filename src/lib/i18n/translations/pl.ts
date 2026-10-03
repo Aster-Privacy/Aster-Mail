@@ -9224,6 +9224,7 @@ export const pl = {
     mailed_by_label: "Wysłane przez:",
     signed_by_label: "Podpisane przez:",
     reply_to_label: "Odpowiedz do:",
+    authentication_section: "Uwierzytelnianie",
     reply_to_other_domain:
       "Odpowiedzi trafią do innej domeny niż domena nadawcy.",
     mailing_list_label: "Lista mailingowa:",

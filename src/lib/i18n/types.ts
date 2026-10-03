@@ -8020,6 +8020,7 @@ export interface MailTranslations {
   mailed_by_label: string;
   signed_by_label: string;
   reply_to_label: string;
+  authentication_section: string;
   reply_to_other_domain: string;
   mailing_list_label: string;
   list_unsubscribe_available: string;

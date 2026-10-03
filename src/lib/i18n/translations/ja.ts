@@ -8813,6 +8813,7 @@ export const ja = {
     mailed_by_label: "送信元サーバー:",
     signed_by_label: "署名者:",
     reply_to_label: "返信先:",
+    authentication_section: "認証",
     reply_to_other_domain: "返信は送信者とは別のドメインに届きます。",
     mailing_list_label: "メーリングリスト:",
     list_unsubscribe_available: "配信停止リンクあり",

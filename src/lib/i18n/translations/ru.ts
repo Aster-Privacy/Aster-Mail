@@ -9179,6 +9179,7 @@ export const ru = {
     mailed_by_label: "Отправлено через:",
     signed_by_label: "Подписано:",
     reply_to_label: "Ответить:",
+    authentication_section: "Аутентификация",
     reply_to_other_domain:
       "Ответы уйдут на другой домен, не на домен отправителя.",
     mailing_list_label: "Список рассылки:",
@@ -9204,7 +9205,7 @@ export const ru = {
     email_auth_check_missing: "Для этой проверки результат не записан.",
     email_auth_check_other: "Проверка дала необычный результат: {{value}}.",
     header_help_received:
-      "Сервер, через который письмо прошло на пути к вам. Верхний — самый последний.",
+      "Сервер, через который письмо прошло на пути к вам. Верхний в списке сервер самый последний.",
     header_help_return_path:
       "Куда отправляются возвраты. SPF проверяет домен этого адреса.",
     header_help_authentication_results:

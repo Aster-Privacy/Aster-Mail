@@ -7992,6 +7992,7 @@ export const zh_CN = {
     mailed_by_label: "发件服务器：",
     signed_by_label: "签名方：",
     reply_to_label: "回复至：",
+    authentication_section: "身份验证",
     reply_to_other_domain: "回复将发送到与发件人不同的域名。",
     mailing_list_label: "邮件列表：",
     list_unsubscribe_available: "包含退订链接",

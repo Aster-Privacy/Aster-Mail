@@ -198,7 +198,11 @@ export function get_message_id(
 
 export function get_mailed_by(
   raw_headers: RawHeader[] | undefined,
+  results: EmailAuthResults,
 ): string | null {
+  if (normalize_email_auth_status(results.spf_result).status !== "pass") {
+    return null;
+  }
   const value = first_value(raw_headers, "return-path");
 
   if (!value) return null;

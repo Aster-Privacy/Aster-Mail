@@ -9076,6 +9076,7 @@ export const de = {
     mailed_by_label: "Versendet von:",
     signed_by_label: "Signiert von:",
     reply_to_label: "Antwort an:",
+    authentication_section: "Authentifizierung",
     reply_to_other_domain:
       "Antworten gehen an eine andere Domain als die des Absenders.",
     mailing_list_label: "Mailingliste:",

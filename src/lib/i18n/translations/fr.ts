@@ -9099,6 +9099,7 @@ export const fr = {
     mailed_by_label: "Envoyé par :",
     signed_by_label: "Signé par :",
     reply_to_label: "Répondre à :",
+    authentication_section: "Authentification",
     reply_to_other_domain:
       "Les réponses vont vers un autre domaine que celui de l'expéditeur.",
     mailing_list_label: "Liste de diffusion :",

@@ -235,7 +235,7 @@ export function get_header_insights(
   return {
     reply_to: get_reply_to(raw_headers, sender_email),
     mailing_list: get_mailing_list(raw_headers),
-    mailed_by: get_mailed_by(raw_headers),
+    mailed_by: get_mailed_by(raw_headers, results),
     signed_by: get_signed_by(raw_headers, results, sender_email),
   };
 }

@@ -8976,6 +8976,7 @@ export const nl = {
     mailed_by_label: "Verzonden door:",
     signed_by_label: "Ondertekend door:",
     reply_to_label: "Antwoorden naar:",
+    authentication_section: "Authenticatie",
     reply_to_other_domain:
       "Antwoorden gaan naar een ander domein dan dat van de afzender.",
     mailing_list_label: "Mailinglijst:",

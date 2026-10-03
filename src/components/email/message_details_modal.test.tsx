@@ -195,6 +195,12 @@ describe("MessageDetailsModal authentication", () => {
     expect(document.body.textContent).toContain("mail.shop.example");
   });
 
+  it("leaves out the Return-Path domain when SPF failed", () => {
+    render({ spf_result: "fail", dkim_result: "pass", dmarc_result: "pass" });
+
+    expect(document.body.textContent).not.toContain("mail.mailed_by_label");
+  });
+
   it("explains a pill in a labelled popover", () => {
     render({ spf_result: "pass", dkim_result: "fail", dmarc_result: "pass" });
     const dkim = document.querySelector<HTMLButtonElement>(

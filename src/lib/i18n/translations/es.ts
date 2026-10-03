@@ -8994,6 +8994,7 @@ export const es = {
     mailed_by_label: "Enviado por:",
     signed_by_label: "Firmado por:",
     reply_to_label: "Responder a:",
+    authentication_section: "Autenticación",
     reply_to_other_domain:
       "Las respuestas van a un dominio distinto del remitente.",
     mailing_list_label: "Lista de correo:",

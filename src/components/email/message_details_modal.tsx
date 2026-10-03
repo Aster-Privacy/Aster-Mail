@@ -258,7 +258,7 @@ export function MessageDetailsModal({
         {is_received && (
           <section className="mt-3 space-y-2.5 border-t border-edge-primary pt-3">
             <h4 className="text-sm font-medium text-txt-primary">
-              {t("mail_rules.field_section_authentication")}
+              {t("mail.authentication_section")}
             </h4>
             <EmailAuthDetails
               results={message}

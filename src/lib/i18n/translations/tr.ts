@@ -8897,6 +8897,7 @@ export const tr = {
     mailed_by_label: "Gönderen sunucu:",
     signed_by_label: "İmzalayan:",
     reply_to_label: "Yanıt adresi:",
+    authentication_section: "Kimlik Doğrulama",
     reply_to_other_domain: "Yanıtlar gönderenden farklı bir alan adına gider.",
     mailing_list_label: "E-posta listesi:",
     list_unsubscribe_available: "Abonelikten çıkma bağlantısı var",

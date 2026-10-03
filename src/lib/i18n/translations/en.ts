@@ -8956,6 +8956,7 @@ export const en: Translations = {
     mailed_by_label: "Mailed by:",
     signed_by_label: "Signed by:",
     reply_to_label: "Reply-To:",
+    authentication_section: "Authentication",
     reply_to_other_domain:
       "Replies go to a different domain than the sender's.",
     mailing_list_label: "Mailing list:",

@@ -9049,6 +9049,7 @@ export const pt = {
     mailed_by_label: "Enviado por:",
     signed_by_label: "Assinado por:",
     reply_to_label: "Responder para:",
+    authentication_section: "Autenticação",
     reply_to_other_domain:
       "As respostas vão para um domínio diferente do remetente.",
     mailing_list_label: "Lista de correio:",

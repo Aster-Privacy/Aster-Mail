@@ -8650,6 +8650,7 @@ export const ko = {
     mailed_by_label: "발송 서버:",
     signed_by_label: "서명:",
     reply_to_label: "회신 주소:",
+    authentication_section: "인증",
     reply_to_other_domain: "회신이 보낸 사람과 다른 도메인으로 갑니다.",
     mailing_list_label: "메일링 리스트:",
     list_unsubscribe_available: "구독 취소 링크 포함",

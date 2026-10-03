@@ -8999,6 +8999,7 @@ export const hi = {
     mailed_by_label: "भेजने वाला सर्वर:",
     signed_by_label: "हस्ताक्षरकर्ता:",
     reply_to_label: "जवाब इस पते पर:",
+    authentication_section: "प्रमाणीकरण",
     reply_to_other_domain: "जवाब भेजने वाले से अलग डोमेन पर जाएंगे।",
     mailing_list_label: "मेलिंग सूची:",
     list_unsubscribe_available: "सदस्यता छोड़ने का लिंक शामिल है",

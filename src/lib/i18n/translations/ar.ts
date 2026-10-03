@@ -8820,6 +8820,7 @@ export const ar = {
     mailed_by_label: "أُرسلت عبر:",
     signed_by_label: "وقّعها:",
     reply_to_label: "الرد إلى:",
+    authentication_section: "المصادقة",
     reply_to_other_domain: "تذهب الردود إلى نطاق مختلف عن نطاق المرسل.",
     mailing_list_label: "القائمة البريدية:",
     list_unsubscribe_available: "يتضمن رابط إلغاء الاشتراك",

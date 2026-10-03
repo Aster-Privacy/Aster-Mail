@@ -915,7 +915,7 @@ export function MobileMessageDetailsSheet({
         {message?.item_type === "received" && (
           <section className="mb-4 space-y-2.5 border-t border-[var(--border-secondary)] pt-3">
             <h4 className="text-[14px] font-semibold text-[var(--text-primary)]">
-              {t("mail_rules.field_section_authentication")}
+              {t("mail.authentication_section")}
             </h4>
             <EmailAuthDetails
               results={message}
