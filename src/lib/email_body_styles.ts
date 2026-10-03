@@ -24,6 +24,7 @@ import { accent_foreground_for } from "@/lib/resolved_accent";
 import { derive_link_ink, derive_visited_ink } from "@/lib/email_ink";
 import { LINK_VISITED_VAR } from "@/lib/email_contrast_repair";
 import { BRAND_BACKGROUND_MARK } from "@/lib/email_brand_backgrounds";
+import { LONG_TOKEN_MARK } from "@/lib/email_long_tokens";
 import { email_placeholder_paint } from "@/lib/blocked_image_placeholder";
 
 export const DARK_INHERITED_INK = "#d4d4d4";
@@ -313,6 +314,10 @@ a {
 
 a:visited {
   color: ${ink.link_visited};
+}
+
+[${LONG_TOKEN_MARK}] {
+  overflow-wrap: anywhere !important;
 }
 
 [data-aster-translated] {
