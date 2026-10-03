@@ -123,6 +123,7 @@ export async function run_export(args: RunExportArgs): Promise<ExportSummary> {
   const started_at = Date.now();
   const errors: ExportError[] = [];
   let processed = 0;
+  let seen = 0;
   let bytes_written = 0;
   let cancelled = false;
   const limiter = new ExportRateLimiter();
@@ -147,6 +148,7 @@ export async function run_export(args: RunExportArgs): Promise<ExportSummary> {
   emit();
 
   const report_error = (e: ExportError) => {
+    if (e.kind === "decrypt") seen++;
     errors.push(e);
     args.on_error?.(e);
     progress.errors = errors.length;
@@ -163,6 +165,7 @@ export async function run_export(args: RunExportArgs): Promise<ExportSummary> {
         cancelled = true;
         break;
       }
+      seen++;
       try {
         await limiter.acquire(args.signal);
         limiter.reset_backoff();
@@ -233,9 +236,11 @@ export async function run_export(args: RunExportArgs): Promise<ExportSummary> {
     }
   }
 
+  cancelled = cancelled || args.signal.aborted;
+
   return {
     processed,
-    total: ctx.total,
+    total: cancelled ? ctx.total : seen,
     bytes_written,
     errors,
     cancelled,
