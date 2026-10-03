@@ -36,6 +36,7 @@ import {
   is_native_platform,
   add_app_state_listener,
 } from "@/native/capacitor_bridge";
+import { set_screen_capture_blocked } from "@/native/screen_privacy";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth_safe } from "@/contexts/auth_context";
@@ -350,6 +351,18 @@ export function AppLock({ children }: { children: React.ReactNode }) {
     has_loaded_from_server,
     account_id,
   ]);
+
+  useEffect(() => {
+    if (!is_native_platform()) return;
+    const lock_configured = has_loaded_from_server
+      ? !!preferences.biometric_app_lock_enabled
+      : !!preferences.biometric_app_lock_enabled ||
+        has_pending_native_lock_hint();
+
+    set_screen_capture_blocked(lock_configured).catch((caught) =>
+      ignore_error("components/mobile/app_lock:screen_privacy", caught),
+    );
+  }, [preferences.biometric_app_lock_enabled, has_loaded_from_server]);
 
   useEffect(() => {
     if (!is_native_platform() || !preferences.biometric_app_lock_enabled)
