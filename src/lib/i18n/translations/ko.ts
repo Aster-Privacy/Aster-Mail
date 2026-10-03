@@ -6861,7 +6861,7 @@ export const ko = {
       "패스키는 app.astermail.org의 Aster 웹 앱에서 추가할 수 있습니다. 여기에서는 기존 패스키를 보고 삭제할 수 있습니다.",
     app_lock_pin: "PIN 잠금",
     app_lock_pin_description:
-      "브라우저에서 Aster Mail을 열 때 PIN이 필요합니다",
+      "이 브라우저에서 Aster Mail을 표시하기 전에 PIN을 요청합니다. 이 기기를 사용하는 다른 사람에게서 메일을 숨기지만, 여기에 저장된 데이터를 암호화하지는 않습니다.",
     app_lock_choose_digits: "PIN 자릿수 선택",
     app_lock_digits_4: "4자리",
     app_lock_digits_6: "6자리",

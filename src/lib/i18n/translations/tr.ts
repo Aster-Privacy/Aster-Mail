@@ -7022,7 +7022,7 @@ export const tr = {
       "Geçiş anahtarlarını app.astermail.org adresindeki Aster web uygulamasında ekleyebilirsiniz. Burada mevcut anahtarları görüntüleyip kaldırabilirsiniz.",
     app_lock_pin: "PIN Kilidi",
     app_lock_pin_description:
-      "Tarayıcıda Aster Mail'i açmak için PIN gerektirir",
+      "Aster Mail'i bu tarayıcıda göstermeden önce PIN ister. Postanızı bu cihazı kullanan diğer kişilerden gizler, ancak burada depolanan verileri şifrelemez.",
     app_lock_choose_digits: "PIN uzunluğunu seçin",
     app_lock_digits_4: "4 basamak",
     app_lock_digits_6: "6 basamak",

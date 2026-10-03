@@ -7425,7 +7425,8 @@ export const ja = {
     passkeys_desktop_note:
       "パスキーは app.astermail.org の Aster ウェブ版で追加できます。ここでは既存のパスキーの確認と削除ができます。",
     app_lock_pin: "PINロック",
-    app_lock_pin_description: "ブラウザでAster Mailを開くときにPINが必要です",
+    app_lock_pin_description:
+      "このブラウザで Aster Mail を表示する前に PIN を求めます。このデバイスを使うほかの人からメールを隠しますが、ここに保存されたデータは暗号化しません。",
     app_lock_choose_digits: "PIN桁数を選択",
     app_lock_digits_4: "4桁",
     app_lock_digits_6: "6桁",

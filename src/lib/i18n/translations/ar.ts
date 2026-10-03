@@ -6928,7 +6928,8 @@ export const ar = {
     passkeys_desktop_note:
       "يمكنك إضافة مفاتيح المرور من تطبيق Aster على الويب عبر app.astermail.org. وهنا يمكنك عرض المفاتيح الحالية وإزالتها.",
     app_lock_pin: "قفل التطبيق بالرمز",
-    app_lock_pin_description: "يتطلب رمزاً لفتح Aster Mail في متصفحك",
+    app_lock_pin_description:
+      "يطلب رمز PIN قبل عرض Aster Mail في هذا المتصفح. يخفي بريدك عن الآخرين الذين يستخدمون هذا الجهاز، لكنه لا يشفّر البيانات المخزّنة هنا.",
     app_lock_choose_digits: "اختر طول الرمز",
     app_lock_digits_4: "4 أرقام",
     app_lock_digits_6: "6 أرقام",

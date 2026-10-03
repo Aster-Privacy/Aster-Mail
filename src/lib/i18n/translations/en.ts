@@ -2414,7 +2414,7 @@ export const en: Translations = {
     confirm_remove_key: "Are you sure you want to remove this security key?",
     app_lock_pin: "PIN App Lock",
     app_lock_pin_description:
-      "Requires a PIN to open Aster Mail in your browser",
+      "Asks for a PIN before showing Aster Mail in this browser. It hides your mail from other people who use this device, but it doesn't encrypt the data stored here.",
     app_lock_choose_digits: "Choose PIN length",
     app_lock_digits_4: "4 digits",
     app_lock_digits_6: "6 digits",

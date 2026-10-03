@@ -6256,7 +6256,8 @@ export const zh_CN = {
     passkeys_desktop_note:
       "您可以在 app.astermail.org 的 Aster 网页版中添加通行密钥。在这里可以查看和移除已有的通行密钥。",
     app_lock_pin: "PIN 锁定",
-    app_lock_pin_description: "在浏览器中打开 Aster Mail 时需要 PIN",
+    app_lock_pin_description:
+      "在此浏览器中显示 Aster Mail 之前要求输入 PIN。它会对使用此设备的其他人隐藏你的邮件，但不会加密存储在此处的数据。",
     app_lock_choose_digits: "选择 PIN 位数",
     app_lock_digits_4: "4 位",
     app_lock_digits_6: "6 位",

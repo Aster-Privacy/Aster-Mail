@@ -7128,7 +7128,7 @@ export const it = {
       "Le passkey possono essere aggiunte nell'app web di Aster su app.astermail.org. Puoi comunque visualizzare e rimuovere le passkey esistenti qui.",
     app_lock_pin: "Blocco PIN",
     app_lock_pin_description:
-      "Richiede un PIN per aprire Aster Mail nel browser",
+      "Chiede un PIN prima di mostrare Aster Mail in questo browser. Nasconde la tua posta alle altre persone che usano questo dispositivo, ma non cripta i dati archiviati qui.",
     app_lock_choose_digits: "Scegli la lunghezza del PIN",
     app_lock_digits_4: "4 cifre",
     app_lock_digits_6: "6 cifre",

@@ -2504,7 +2504,7 @@ export const hi = {
     confirm_remove_key: "क्या आप वाकई यह सुरक्षा कुंजी हटाना चाहते हैं?",
     app_lock_pin: "PIN ऐप लॉक",
     app_lock_pin_description:
-      "आपके ब्राउज़र में Aster Mail खोलने के लिए PIN ज़रूरी करता है",
+      "इस ब्राउज़र में Aster Mail दिखाने से पहले PIN मांगता है। यह इस डिवाइस का उपयोग करने वाले अन्य लोगों से आपकी मेल छिपाता है, लेकिन यहां संग्रहीत डेटा को एन्क्रिप्ट नहीं करता।",
     app_lock_choose_digits: "PIN की लंबाई चुनें",
     app_lock_digits_4: "4 अंक",
     app_lock_digits_6: "6 अंक",

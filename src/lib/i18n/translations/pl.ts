@@ -7256,7 +7256,7 @@ export const pl = {
       "Klucze dostępu dodasz w aplikacji internetowej Aster na app.astermail.org. Tutaj możesz przeglądać i usuwać istniejące.",
     app_lock_pin: "Blokada PIN",
     app_lock_pin_description:
-      "Wymaga kodu PIN do otwarcia Aster Mail w przeglądarce",
+      "Prosi o kod PIN przed wyświetleniem Aster Mail w tej przeglądarce. Ukrywa pocztę przed innymi osobami korzystającymi z tego urządzenia, ale nie szyfruje przechowywanych tu danych.",
     app_lock_choose_digits: "Wybierz długość kodu PIN",
     app_lock_digits_4: "4 cyfry",
     app_lock_digits_6: "6 cyfr",

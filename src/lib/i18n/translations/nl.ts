@@ -7642,7 +7642,7 @@ export const nl = {
       "Toegangssleutels kunnen worden toegevoegd in de Aster-webapp op app.astermail.org. Je kunt bestaande toegangssleutels hier nog steeds bekijken en verwijderen.",
     app_lock_pin: "PIN-vergrendeling",
     app_lock_pin_description:
-      "Vereist een PIN om Aster Mail in je browser te openen",
+      "Vraagt om een pincode voordat Aster Mail in deze browser wordt getoond. De vergrendeling verbergt je e-mail voor andere mensen die dit apparaat gebruiken, maar versleutelt de hier opgeslagen gegevens niet.",
     app_lock_choose_digits: "Kies PIN-lengte",
     app_lock_digits_4: "4 cijfers",
     app_lock_digits_6: "6 cijfers",

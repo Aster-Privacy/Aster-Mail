@@ -7182,7 +7182,7 @@ export const pt = {
       "As chaves de acesso podem ser adicionadas na aplicação web da Aster em app.astermail.org. Ainda pode visualizar e remover as chaves de acesso existentes aqui.",
     app_lock_pin: "Bloqueio por PIN",
     app_lock_pin_description:
-      "Requer um PIN para abrir o Aster Mail no navegador",
+      "Pede um PIN antes de mostrar o Aster Mail neste navegador. Oculta o seu correio de outras pessoas que utilizam este dispositivo, mas não encripta os dados aqui armazenados.",
     app_lock_choose_digits: "Escolher comprimento do PIN",
     app_lock_digits_4: "4 dígitos",
     app_lock_digits_6: "6 dígitos",

@@ -7752,7 +7752,7 @@ export const fr = {
       "Les clés d'accès peuvent être ajoutées dans l'application web Aster sur app.astermail.org. Vous pouvez toujours consulter et supprimer les clés d'accès existantes ici.",
     app_lock_pin: "Verrouillage par code PIN",
     app_lock_pin_description:
-      "Exige un code PIN pour ouvrir Aster Mail dans le navigateur",
+      "Demande un code PIN avant d'afficher Aster Mail dans ce navigateur. Ce verrou masque vos e-mails aux autres personnes qui utilisent cet appareil, mais il ne chiffre pas les données stockées ici.",
     app_lock_choose_digits: "Choisir la longueur du PIN",
     app_lock_digits_4: "4 chiffres",
     app_lock_digits_6: "6 chiffres",
