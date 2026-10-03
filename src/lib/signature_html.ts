@@ -206,8 +206,7 @@ const RICH_SIGNATURE_SELECTOR = [
   "[align]",
 ].join(", ");
 
-const PLAIN_SIGNATURE_LINE_SELECTOR =
-  "div, p, li, blockquote, pre, h1, h2, h3, h4, h5, h6, tr";
+const PLAIN_SIGNATURE_LINE_SELECTOR = "div, p";
 
 export interface EditorSignatureContent {
   content: string;
