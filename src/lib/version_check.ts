@@ -103,7 +103,19 @@ function mark_auto_reload(): void {
   }
 }
 
-async function fetch_manifest(): Promise<VersionManifest | null> {
+let manifest_in_flight: Promise<VersionManifest | null> | null = null;
+
+function fetch_manifest(): Promise<VersionManifest | null> {
+  if (manifest_in_flight) return manifest_in_flight;
+
+  manifest_in_flight = request_manifest().finally(() => {
+    manifest_in_flight = null;
+  });
+
+  return manifest_in_flight;
+}
+
+async function request_manifest(): Promise<VersionManifest | null> {
   try {
     const { connection_store } = await import(
       "@/services/routing/connection_store"
