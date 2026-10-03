@@ -168,6 +168,92 @@ describe("paint_blocked_images", () => {
     dispose();
   });
 
+  describe("placeholder colours follow the surface behind the image", () => {
+    const DARK_THEME_VARS =
+      "--aster-placeholder-background:#0a0a0a;--aster-placeholder-border:#333333;--aster-placeholder-text:#909090";
+
+    function themed_mount(markup: string): HTMLImageElement {
+      mount(markup);
+      const img = doc.querySelector("img")!;
+
+      img.setAttribute(
+        "style",
+        `${img.getAttribute("style") ?? ""};${DARK_THEME_VARS}`,
+      );
+
+      return img;
+    }
+
+    it("paints a light, translucent tile on a light email in the dark theme", () => {
+      const img = themed_mount(
+        '<div style="background-color:#ffffff"><img src="x" width="320" height="120"></div>',
+      );
+      const dispose = paint_blocked_images(doc, pt_labels);
+      const svg = svg_of(img);
+
+      expect(svg).toContain('fill="#000000"');
+      expect(svg).toContain('fill-opacity="0.04"');
+      expect(svg).toContain('stroke-opacity="0.09"');
+      expect(svg).toContain('fill="#5c616d"');
+      expect(svg).not.toContain("#0a0a0a");
+      dispose();
+    });
+
+    it("paints the dark variant on a dark email surface", () => {
+      const img = themed_mount(
+        '<table><tr><td style="background-color:rgb(18, 18, 18)"><img src="x" width="320" height="120"></td></tr></table>',
+      );
+      const dispose = paint_blocked_images(doc, pt_labels);
+      const svg = svg_of(img);
+
+      expect(svg).toContain('fill="#ffffff"');
+      expect(svg).toContain('fill-opacity="0.06"');
+      expect(svg).toContain('fill="#a3a3a3"');
+      dispose();
+    });
+
+    it("skips translucent surfaces and keeps the theme paint over the canvas", () => {
+      const img = themed_mount(
+        '<div style="background-color:rgba(255, 255, 255, 0.2)"><img src="x" width="320" height="120"></div>',
+      );
+      const dispose = paint_blocked_images(doc, pt_labels);
+      const svg = svg_of(img);
+
+      expect(svg).toContain('fill="#0a0a0a"');
+      expect(svg).not.toContain("fill-opacity");
+      dispose();
+    });
+
+    it("reads each shared ancestor once for a row of images", () => {
+      const cells = Array.from(
+        { length: 40 },
+        () => '<img src="x" width="320" height="120">',
+      ).join("");
+
+      mount(
+        `<div style="background-color:#ffffff"><div><div><p>${cells}</p></div></div></div>`,
+      );
+      const ancestor_reads = new Map<Element, number>();
+      const original = window.getComputedStyle.bind(window);
+      const spy = vi
+        .spyOn(window, "getComputedStyle")
+        .mockImplementation((el: Element, pseudo?: string | null) => {
+          if (el.tagName !== "IMG" && el !== doc.body)
+            ancestor_reads.set(el, (ancestor_reads.get(el) ?? 0) + 1);
+
+          return original(el, pseudo);
+        });
+      const dispose = paint_blocked_images(doc, pt_labels);
+
+      expect(ancestor_reads.size).toBe(4);
+      expect(Math.max(...ancestor_reads.values())).toBe(1);
+      for (const img of Array.from(doc.querySelectorAll("img")))
+        expect(svg_of(img)).toContain('fill-opacity="0.04"');
+      spy.mockRestore();
+      dispose();
+    });
+  });
+
   it("restores sender attributes and removes all placeholder metadata", () => {
     const [img] = mount(
       '<img src="x" width="320" height="120" alt="Farol" title="Original">',
