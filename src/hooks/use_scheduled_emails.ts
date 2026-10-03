@@ -53,7 +53,9 @@ import {
 } from "@/utils/date_format";
 
 const SCHEDULED_FETCH_LIMIT = 50;
-const SCHEDULED_MAX_PAGES = 20;
+const SCHEDULED_MAX_PAGES = 40;
+const SCHEDULED_MAX_RESTARTS = 2;
+const SCHEDULED_PAGE_OVERLAP = 5;
 const FETCH_TIMEOUT_MS = 15_000;
 
 const SCHEDULED_CATEGORY_STYLE =
@@ -164,55 +166,93 @@ function transform_scheduled(
   };
 }
 
+const ACTIVE_SCHEDULED_STATUSES: ReadonlySet<ScheduledEmailStatus> = new Set([
+  "pending",
+  "sending",
+  "failed",
+]);
+
 interface ScheduledListing {
   items: ScheduledEmail[];
-  total: number;
-  has_more: boolean;
+  complete: boolean;
+  failed: boolean;
+}
+
+interface ListingPass {
+  offset: number;
+  total: number | null;
+  seen: Set<string>;
+  settled: boolean;
+}
+
+function new_listing_pass(): ListingPass {
+  return { offset: 0, total: null, seen: new Set(), settled: true };
 }
 
 async function list_all_scheduled(
   signal: AbortSignal,
   on_progress: () => void,
 ): Promise<ScheduledListing | null> {
-  let items: ScheduledEmail[] = [];
-  let seen = new Set<string>();
-  let offset = 0;
-  let total: number | null = null;
-  let has_more = false;
-  let restarted = false;
+  const by_id = new Map<string, ScheduledEmail>();
+  let pass = new_listing_pass();
+  let restarts = 0;
+  let complete = false;
+  let failed = false;
 
   for (let page = 0; page < SCHEDULED_MAX_PAGES; page++) {
-    const response = await list_scheduled_emails(SCHEDULED_FETCH_LIMIT, offset);
+    const response = await list_scheduled_emails(
+      SCHEDULED_FETCH_LIMIT,
+      pass.offset,
+    );
 
-    if (signal.aborted || !response.data) return null;
+    if (signal.aborted) return null;
+    if (!response.data) {
+      if (by_id.size === 0) return null;
+      failed = true;
+      break;
+    }
     on_progress();
 
-    if (total !== null && response.data.total !== total && !restarted) {
-      restarted = true;
-      items = [];
-      seen = new Set();
-      offset = 0;
-      total = null;
-      continue;
-    }
+    const { emails, total } = response.data;
 
-    total = response.data.total;
-    has_more = response.data.has_more;
+    if (pass.total !== null && total !== pass.total) pass.settled = false;
+    if (
+      pass.offset > 0 &&
+      emails.length > 0 &&
+      !emails.some((email) => pass.seen.has(email.id))
+    ) {
+      pass.settled = false;
+    }
+    pass.total = total;
 
     let added = 0;
 
-    for (const email of response.data.emails) {
-      if (seen.has(email.id)) continue;
-      seen.add(email.id);
-      items.push(email);
-      added++;
+    for (const email of emails) {
+      if (!pass.seen.has(email.id)) added++;
+      pass.seen.add(email.id);
+      by_id.set(email.id, email);
     }
 
-    if (!has_more || added === 0) break;
-    offset += response.data.emails.length;
+    if (!response.data.has_more) {
+      if (pass.settled) {
+        complete = true;
+        break;
+      }
+      if (restarts >= SCHEDULED_MAX_RESTARTS) break;
+      restarts++;
+      pass = new_listing_pass();
+      continue;
+    }
+
+    if (added === 0) break;
+    pass.offset += Math.max(1, emails.length - SCHEDULED_PAGE_OVERLAP);
   }
 
-  return { items, total: total ?? items.length, has_more };
+  const items = Array.from(by_id.values()).filter((email) =>
+    ACTIVE_SCHEDULED_STATUSES.has(email.status),
+  );
+
+  return { items, complete, failed };
 }
 
 async function fetch_scheduled_from_api(
@@ -224,7 +264,7 @@ async function fetch_scheduled_from_api(
 ): Promise<{
   emails: ScheduledListItem[];
   has_more: boolean;
-  total: number;
+  failed: boolean;
 } | null> {
   const vault = get_vault_from_memory();
 
@@ -267,13 +307,13 @@ async function fetch_scheduled_from_api(
     )
     .map((r) => r.value)
     .filter((e): e is ScheduledListItem => e !== null)
-    .filter((e) => e.status !== "cancelled" && e.status !== "sent")
+    .filter((e) => ACTIVE_SCHEDULED_STATUSES.has(e.status))
     .sort(
       (a, b) =>
         new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime(),
     );
 
-  return { emails, has_more: listing.has_more, total: listing.total };
+  return { emails, has_more: !listing.complete, failed: listing.failed };
 }
 
 export function use_scheduled_emails(
@@ -287,7 +327,6 @@ export function use_scheduled_emails(
   );
   const [is_loading, set_is_loading] = useState(() => scheduled_cache === null);
   const [has_more, set_has_more] = useState(false);
-  const [server_total, set_server_total] = useState(0);
   const [error, set_error] = useState<string | null>(null);
 
   const abort_ref = useRef<AbortController | null>(null);
@@ -372,11 +411,15 @@ export function use_scheduled_emails(
         return;
       }
 
-      if (result) {
+      if (result && result.failed && has_loaded_ref.current) {
+        set_error(t("common.failed_to_load_scheduled_emails"));
+      } else if (result) {
         has_loaded_ref.current = true;
         set_emails(result.emails);
         set_has_more(result.has_more);
-        set_server_total(result.total);
+        if (result.failed) {
+          set_error(t("common.failed_to_load_scheduled_emails"));
+        }
         invalidate_mail_stats();
       } else {
         set_error(t("common.failed_to_load_scheduled_emails"));
@@ -555,13 +598,11 @@ export function use_scheduled_emails(
     () => ({
       emails,
       is_loading,
-      total_count: has_more
-        ? Math.max(server_total, emails.length)
-        : emails.length,
+      total_count: emails.length,
       has_more,
       error,
     }),
-    [emails, is_loading, has_more, server_total, error],
+    [emails, is_loading, has_more, error],
   );
 
   return useMemo(

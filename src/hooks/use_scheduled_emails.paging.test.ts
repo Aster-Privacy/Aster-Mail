@@ -32,6 +32,9 @@ const server = vi.hoisted(() => ({
   items: [] as ServerItem[],
   ignore_offset: false,
   descending: false,
+  fail_call: -1,
+  details_in_flight: 0,
+  max_details_in_flight: 0,
   on_list: null as null | ((call: number) => void),
   list_calls: [] as { limit: number; offset: number | undefined }[],
 }));
@@ -40,6 +43,9 @@ vi.mock("@/services/api/scheduled", () => ({
   list_scheduled_emails: vi.fn(async (limit: number, offset?: number) => {
     server.list_calls.push({ limit, offset });
     server.on_list?.(server.list_calls.length);
+    if (server.list_calls.length === server.fail_call) {
+      return { error: "Request failed" };
+    }
     const ordered = [...server.items].sort((a, b) =>
       server.descending
         ? b.scheduled_at.localeCompare(a.scheduled_at)
@@ -63,6 +69,13 @@ vi.mock("@/services/api/scheduled", () => ({
     };
   }),
   get_scheduled_email: vi.fn(async (id: string) => {
+    server.details_in_flight++;
+    server.max_details_in_flight = Math.max(
+      server.max_details_in_flight,
+      server.details_in_flight,
+    );
+    await new Promise((r) => setTimeout(r, 0));
+    server.details_in_flight--;
     const item = server.items.find((i) => i.id === id);
 
     if (!item) return { error: "not found" };
@@ -129,12 +142,17 @@ import {
 
 type HookResult = ReturnType<typeof use_scheduled_emails>;
 
-function make_items(count: number, status = "pending"): ServerItem[] {
+function make_items(
+  count: number,
+  status = "pending",
+  prefix = "s",
+  first_minute = 0,
+): ServerItem[] {
   const base = Date.UTC(2030, 0, 1);
 
   return Array.from({ length: count }, (_, i) => ({
-    id: `s${String(i).padStart(3, "0")}`,
-    scheduled_at: new Date(base + i * 60_000).toISOString(),
+    id: `${prefix}${String(i).padStart(3, "0")}`,
+    scheduled_at: new Date(base + (first_minute + i) * 60_000).toISOString(),
     status,
   }));
 }
@@ -159,8 +177,8 @@ function render_hook(): { latest: () => HookResult; root: Root } {
   return { latest: () => current!, root };
 }
 
-async function flush(): Promise<void> {
-  for (let i = 0; i < 10; i++) {
+async function flush(rounds = 60): Promise<void> {
+  for (let i = 0; i < rounds; i++) {
     await act(async () => {
       await new Promise((r) => setTimeout(r, 0));
     });
@@ -182,6 +200,9 @@ describe("use_scheduled_emails paging", () => {
     server.descending = false;
     server.on_list = null;
     server.list_calls = [];
+    server.fail_call = -1;
+    server.details_in_flight = 0;
+    server.max_details_in_flight = 0;
   });
 
   afterEach(() => {
@@ -199,7 +220,7 @@ describe("use_scheduled_emails paging", () => {
     expect(latest().state.total_count).toBe(120);
     expect(latest().state.has_more).toBe(false);
     expect(ids(latest())).toEqual(make_items(120).map((i) => i.id));
-    expect(server.list_calls.map((c) => c.offset ?? 0)).toEqual([0, 50, 100]);
+    expect(server.list_calls.map((c) => c.offset ?? 0)).toEqual([0, 45, 90]);
 
     act(() => root.unmount());
   });
@@ -226,7 +247,8 @@ describe("use_scheduled_emails paging", () => {
     expect(server.list_calls.length).toBeLessThanOrEqual(2);
     expect(new Set(ids(latest())).size).toBe(latest().state.emails.length);
     expect(latest().state.emails).toHaveLength(50);
-    expect(latest().state.total_count).toBe(120);
+    expect(latest().state.total_count).toBe(50);
+    expect(latest().state.has_more).toBe(true);
 
     act(() => root.unmount());
   });
@@ -235,11 +257,12 @@ describe("use_scheduled_emails paging", () => {
     server.items = make_items(5000);
     const { latest, root } = render_hook();
 
-    await flush();
+    await flush(400);
 
-    expect(server.list_calls.length).toBeLessThanOrEqual(20);
+    expect(server.list_calls.length).toBeLessThanOrEqual(40);
     expect(latest().state.has_more).toBe(true);
-    expect(latest().state.total_count).toBe(5000);
+    expect(latest().state.total_count).toBe(latest().state.emails.length);
+    expect(latest().state.total_count).toBeLessThan(5000);
 
     act(() => root.unmount());
   });
@@ -297,6 +320,121 @@ describe("use_scheduled_emails paging", () => {
 
     expect(latest().state.emails).toHaveLength(60);
     expect(latest().state.total_count).toBe(60);
+
+    act(() => root.unmount());
+  });
+
+  it("finds pending messages behind a long sent history and counts only them", async () => {
+    server.items = [
+      ...make_items(1000, "sent", "x"),
+      ...make_items(5, "pending", "p", 5000),
+    ];
+    const { latest, root } = render_hook();
+
+    await flush(400);
+
+    expect(ids(latest())).toEqual(
+      make_items(5, "pending", "p", 5000).map((i) => i.id),
+    );
+    expect(latest().state.total_count).toBe(5);
+    expect(latest().state.has_more).toBe(false);
+
+    act(() => root.unmount());
+  });
+
+  it("keeps sending and failed messages, like the mobile app", async () => {
+    server.items = [
+      ...make_items(2, "sending", "a"),
+      ...make_items(2, "failed", "b", 10),
+      ...make_items(2, "sent", "c", 20),
+    ];
+    const { latest, root } = render_hook();
+
+    await flush();
+
+    expect(ids(latest()).sort()).toEqual(["a000", "a001", "b000", "b001"]);
+    expect(latest().state.total_count).toBe(4);
+
+    act(() => root.unmount());
+  });
+
+  it("does not skip rows when messages go out on every page request", async () => {
+    server.items = make_items(200);
+    server.on_list = () => {
+      server.items = server.items.slice(1);
+    };
+    const { latest, root } = render_hook();
+
+    await flush(400);
+
+    const got = new Set(ids(latest()));
+    const missing = server.items.filter((i) => !got.has(i.id));
+
+    expect(missing).toEqual([]);
+    expect(latest().state.has_more).toBe(true);
+
+    act(() => root.unmount());
+  });
+
+  it("keeps the rows already loaded when a later page fails", async () => {
+    server.items = make_items(120);
+    server.fail_call = 2;
+    const { latest, root } = render_hook();
+
+    await flush();
+
+    expect(ids(latest())).toEqual(make_items(50).map((i) => i.id));
+    expect(latest().state.has_more).toBe(true);
+    expect(latest().state.error).toBe("common.failed_to_load_scheduled_emails");
+
+    act(() => root.unmount());
+  });
+
+  it("keeps the complete list when a later page fails on refresh", async () => {
+    server.items = make_items(120);
+    const { latest, root } = render_hook();
+
+    await flush();
+    server.fail_call = server.list_calls.length + 2;
+    act(() => latest().refresh());
+    await flush();
+
+    expect(latest().state.emails).toHaveLength(120);
+    expect(latest().state.error).toBe("common.failed_to_load_scheduled_emails");
+
+    act(() => root.unmount());
+  });
+
+  it("does not mix pages from a refresh that started mid-way", async () => {
+    server.items = make_items(150);
+    let refresh_now: (() => void) | null = null;
+    const { latest, root } = render_hook();
+
+    server.on_list = (call) => {
+      if (call === 2) {
+        server.items = make_items(30, "pending", "n");
+        refresh_now = () => latest().refresh();
+      }
+    };
+    await flush(5);
+    if (refresh_now) act(() => refresh_now!());
+    await flush();
+
+    expect(ids(latest())).toEqual(
+      make_items(30, "pending", "n").map((i) => i.id),
+    );
+
+    act(() => root.unmount());
+  });
+
+  it("fetches details one page at a time", async () => {
+    server.items = make_items(300);
+    const { latest, root } = render_hook();
+
+    await flush(200);
+
+    expect(latest().state.emails).toHaveLength(300);
+    expect(server.max_details_in_flight).toBeLessThanOrEqual(50);
 
     act(() => root.unmount());
   });
