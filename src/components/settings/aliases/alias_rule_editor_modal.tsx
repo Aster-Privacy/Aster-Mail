@@ -279,10 +279,10 @@ export function AliasRuleEditorModal({
               {conditions.map((cond, idx) => (
                 <ConditionChip
                   key={idx}
+                  hide_match_case
                   allowed_fields={ALIAS_RULE_FIELDS}
                   allowed_operators={ALIAS_RULE_OPERATORS}
                   condition={cond}
-                  hide_match_case
                   on_change={(next) => update_condition(idx, next)}
                   on_remove={() => remove_condition(idx)}
                 />
