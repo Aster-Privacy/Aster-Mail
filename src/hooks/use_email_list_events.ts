@@ -40,7 +40,7 @@ export { compute_should_remove_from_view } from "./view_membership";
 import { add_app_state_listener } from "@/native/capacitor_bridge";
 import { has_passphrase_in_memory } from "@/services/crypto/memory_key_store";
 import { request_cache } from "@/services/api/request_cache";
-import { sync_client } from "@/services/sync_client";
+import { CATCH_UP_WHILE_LIVE_MS, sync_client } from "@/services/sync_client";
 import {
   mark_preload_stale,
   delete_preloaded_email,
@@ -105,6 +105,9 @@ export function apply_item_update_to_rows(
 }
 
 export const ENTERED_VIEW_REFETCH_DELAY_MS = 60;
+
+const POLL_INTERVAL_MS = 60_000;
+const LIVE_POLL_MS = CATCH_UP_WHILE_LIVE_MS - POLL_INTERVAL_MS / 2;
 
 export function entered_current_view(
   emails: InboxEmail[],
@@ -258,10 +261,23 @@ export function use_email_list_events({
       maybe_revalidate();
     };
 
+    let last_poll_at = Date.now();
+
     const poll_interval = window.setInterval(() => {
-      if (sync_client.is_connected()) return;
+      const now = Date.now();
+
+      if (sync_client.is_connected()) {
+        const last_refresh = Math.max(
+          last_poll_at,
+          last_fetch_ref.current?.time ?? 0,
+        );
+
+        if (now - last_refresh < LIVE_POLL_MS) return;
+      }
+
+      last_poll_at = now;
       maybe_revalidate();
-    }, 60_000);
+    }, POLL_INTERVAL_MS);
 
     window.addEventListener(MAIL_EVENTS.MAIL_CHANGED, silent_handler);
     window.addEventListener(MAIL_EVENTS.MAIL_SOFT_REFRESH, handle_soft_refresh);

@@ -34,6 +34,7 @@ const hoisted = vi.hoisted(() => ({
 }));
 
 vi.mock("@/services/sync_client", () => ({
+  CATCH_UP_WHILE_LIVE_MS: 180_000,
   sync_client: { is_connected: () => hoisted.socket_live },
 }));
 
@@ -100,25 +101,37 @@ describe("use_email_list_events background poll", () => {
     vi.useRealTimers();
   });
 
-  it("does not poll while the live connection is up", async () => {
+  it("polls every three minutes instead of every minute while the live connection is up", async () => {
     hoisted.socket_live = true;
 
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(POLL_MS * 3);
+      await vi.advanceTimersByTimeAsync(POLL_MS * 2);
     });
 
     expect(hoisted.silent_fetch).not.toHaveBeenCalled();
-  });
 
-  it("polls when the live connection is down", async () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(POLL_MS);
     });
 
     expect(hoisted.silent_fetch).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(POLL_MS * 6);
+    });
+
+    expect(hoisted.silent_fetch).toHaveBeenCalledTimes(3);
   });
 
-  it("resumes polling once the live connection drops", async () => {
+  it("polls every minute when the live connection is down", async () => {
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(POLL_MS * 3);
+    });
+
+    expect(hoisted.silent_fetch).toHaveBeenCalledTimes(3);
+  });
+
+  it("goes back to polling every minute once the live connection drops", async () => {
     hoisted.socket_live = true;
 
     await act(async () => {
