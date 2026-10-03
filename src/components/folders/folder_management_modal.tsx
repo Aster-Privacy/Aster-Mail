@@ -43,7 +43,7 @@ import {
   TAG_COLOR_PRESETS,
   tag_color_label_key,
 } from "@/components/ui/email_tag";
-import { use_folders } from "@/hooks/use_folders";
+import { has_sibling_named, use_folders } from "@/hooks/use_folders";
 import { MAX_FOLDER_DEPTH } from "@/hooks/use_folders/tree";
 import { use_i18n } from "@/lib/i18n/context";
 import { FolderDeleteDialog } from "@/components/folders/folder_delete_dialog";
@@ -102,14 +102,15 @@ export function FolderManagementModal({
     const current_folder = folders_state.folders.find(
       (f) => f.id === folder_id,
     );
-    const duplicate_exists = folders_state.folders.some(
-      (f) =>
-        f.id !== folder_id &&
-        f.name.toLowerCase() === trimmed_name.toLowerCase() &&
-        f.parent_token === current_folder?.parent_token,
-    );
 
-    if (duplicate_exists) {
+    if (
+      has_sibling_named(
+        folders_state.folders,
+        trimmed_name,
+        current_folder?.parent_token,
+        folder_id,
+      )
+    ) {
       return t("common.folder_already_exists");
     }
 
@@ -117,6 +118,27 @@ export function FolderManagementModal({
   }, [trimmed_name, folder_name, folder_id, folders_state.folders, t]);
 
   const can_rename = trimmed_name && !rename_validation_error;
+
+  const move_validation_error = useMemo(() => {
+    if (selected_parent_token === null) return null;
+    const current_folder = folders_state.folders.find(
+      (f) => f.id === folder_id,
+    );
+
+    if (!current_folder) return null;
+    if (
+      has_sibling_named(
+        folders_state.folders,
+        current_folder.name,
+        selected_parent_token,
+        folder_id,
+      )
+    ) {
+      return t("common.folder_already_exists");
+    }
+
+    return null;
+  }, [selected_parent_token, folder_id, folders_state.folders, t]);
 
   const move_targets = useMemo(() => {
     const descendants = new Set<string>();
@@ -264,6 +286,12 @@ export function FolderManagementModal({
   const handle_move = useCallback(async () => {
     if (is_loading) return;
 
+    if (move_validation_error) {
+      set_error(move_validation_error);
+
+      return;
+    }
+
     set_is_loading(true);
     set_error("");
 
@@ -284,6 +312,7 @@ export function FolderManagementModal({
     }
   }, [
     is_loading,
+    move_validation_error,
     folder_id,
     selected_parent_token,
     update_existing_folder,
@@ -570,8 +599,10 @@ export function FolderManagementModal({
                 ))}
               </div>
 
-              {error && (
-                <p className="text-[13px] text-red-500 mt-4">{error}</p>
+              {(move_validation_error || error) && (
+                <p className="text-[13px] text-red-500 mt-4">
+                  {move_validation_error || error}
+                </p>
               )}
             </ModalBody>
 
@@ -586,7 +617,11 @@ export function FolderManagementModal({
               </Button>
               <Button
                 className="flex-1"
-                disabled={is_loading || selected_parent_token === null}
+                disabled={
+                  is_loading ||
+                  selected_parent_token === null ||
+                  !!move_validation_error
+                }
                 variant="depth"
                 onClick={handle_move}
               >

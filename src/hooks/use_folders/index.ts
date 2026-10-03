@@ -45,6 +45,7 @@ export {
   flatten_folder_tree,
   flatten_visible_tree,
   get_sibling_folders,
+  has_sibling_named,
   is_system_folder_type,
   partition_folders_by_parent,
 } from "./tree";

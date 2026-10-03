@@ -27,6 +27,7 @@ import {
   flatten_visible_tree,
   get_sibling_folders,
   compare_sibling_folders,
+  has_sibling_named,
 } from "@/hooks/use_folders";
 
 function folder(
@@ -156,5 +157,32 @@ describe("compare_sibling_folders", () => {
     });
 
     expect(compare_sibling_folders(first, second)).toBeLessThan(0);
+  });
+});
+
+describe("has_sibling_named", () => {
+  const folders = [
+    folder("work", { name: "Work" }),
+    folder("moved", { name: "Notes", parent_token: "" }),
+    folder("child", { name: "Receipts", parent_token: "work" }),
+  ];
+
+  it("matches names case-insensitively under the same parent", () => {
+    expect(has_sibling_named(folders, "WORK", undefined)).toBe(true);
+    expect(has_sibling_named(folders, "receipts", "work")).toBe(true);
+  });
+
+  it("treats empty, null and missing parents as the top level", () => {
+    expect(has_sibling_named(folders, "notes", undefined)).toBe(true);
+    expect(has_sibling_named(folders, "notes", null)).toBe(true);
+    expect(has_sibling_named(folders, "work", "")).toBe(true);
+  });
+
+  it("ignores other parents and the excluded folder", () => {
+    expect(has_sibling_named(folders, "receipts", undefined)).toBe(false);
+    expect(has_sibling_named(folders, "work", "work")).toBe(false);
+    expect(has_sibling_named(folders, "Work", undefined, "id_work")).toBe(
+      false,
+    );
   });
 });
