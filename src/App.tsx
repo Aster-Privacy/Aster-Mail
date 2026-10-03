@@ -52,8 +52,7 @@ import { PostQuantumSendPrompt } from "@/components/compose/post_quantum_send_pr
 import { UnsubscribeConfirmationModal } from "@/components/modals/unsubscribe_confirmation_modal";
 import {
   show_checkout_cancelled_upgrade,
-  show_plan_limit_upgrade,
-  show_storage_full_upgrade,
+  use_upgrade_prompt_events,
   type UpgradeInterval,
 } from "@/stores/upgrade_store";
 import { is_resumable_checkout_plan } from "@/components/settings/billing/billing_constants";
@@ -406,37 +405,7 @@ function BillingSuccessHandler() {
 function App() {
   useEffect(() => install_global_autoscroll(), []);
 
-  useEffect(() => {
-    function handle_plan_limit(e: Event) {
-      const detail =
-        (
-          e as CustomEvent<{
-            resource?: string | null;
-            message?: string | null;
-          }>
-        ).detail || {};
-
-      show_plan_limit_upgrade({
-        resource: detail.resource ?? null,
-        message: detail.message ?? null,
-      });
-    }
-
-    function handle_storage_full(e: Event) {
-      const detail =
-        (e as CustomEvent<{ message?: string | null }>).detail || {};
-
-      show_storage_full_upgrade({ message: detail.message ?? null });
-    }
-
-    window.addEventListener("aster:plan-limit-hit", handle_plan_limit);
-    window.addEventListener("aster:storage-full", handle_storage_full);
-
-    return () => {
-      window.removeEventListener("aster:plan-limit-hit", handle_plan_limit);
-      window.removeEventListener("aster:storage-full", handle_storage_full);
-    };
-  }, []);
+  use_upgrade_prompt_events();
 
   useEffect(() => {
     try {
@@ -453,7 +422,9 @@ function App() {
 
   return (
     <AppLock>
-      <BillingSuccessHandler />
+      <ErrorBoundary fallback={null}>
+        <BillingSuccessHandler />
+      </ErrorBoundary>
       <CheckoutReturnHandler />
       <SuspendedAccountGate />
       <PendingDeletionDialog />
@@ -652,14 +623,18 @@ function App() {
       <UnsubscribeConfirmationModal />
       <KeyTrustChangePrompt />
       <PostQuantumSendPrompt />
-      <Suspense fallback={null}>
-        <UpgradeModal />
-        <AliasCapUpsellModal />
-      </Suspense>
+      <ErrorBoundary fallback={null}>
+        <Suspense fallback={null}>
+          <UpgradeModal />
+          <AliasCapUpsellModal />
+        </Suspense>
+      </ErrorBoundary>
       <ProfilePictureDialog />
-      <Suspense fallback={null}>
-        <SpecialOfferModal />
-      </Suspense>
+      <ErrorBoundary fallback={null}>
+        <Suspense fallback={null}>
+          <SpecialOfferModal />
+        </Suspense>
+      </ErrorBoundary>
       <UndoSendContainer max_visible={3} position="bottom-center" />
       <UndoSendPreviewModal />
       <EmailNotificationManager />

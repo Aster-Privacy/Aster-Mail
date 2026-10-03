@@ -65,6 +65,7 @@ import { FullPageLoader } from "@/components/common/full_page_loader";
 import { ignore_error } from "@/lib/ignore_error";
 import { escape_mailto_body } from "@/lib/mailto_link";
 import { read_settings_navigation } from "@/lib/settings_links";
+import { use_upgrade_prompt_events } from "@/stores/upgrade_store";
 
 const MobileInbox = lazy_with_retry(
   () => import("@/pages/mobile/mobile_inbox"),
@@ -221,6 +222,7 @@ function MobileApp() {
   use_background_subscription_scan();
   use_account_data_conversion();
   use_device_recovery();
+  use_upgrade_prompt_events();
 
   const handle_selection_mode_change = useCallback((active: boolean) => {
     set_is_selection_active(active);

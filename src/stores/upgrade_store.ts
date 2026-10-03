@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useSyncExternalStore } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 
 import { strip_account_prefix } from "@/lib/account_index_url";
 
@@ -268,6 +268,40 @@ export function use_upgrade_state(): UpgradeState {
     get_upgrade_snapshot,
     get_upgrade_snapshot,
   );
+}
+
+export function use_upgrade_prompt_events(): void {
+  useEffect(() => {
+    function handle_plan_limit(e: Event) {
+      const detail =
+        (
+          e as CustomEvent<{
+            resource?: string | null;
+            message?: string | null;
+          }>
+        ).detail || {};
+
+      show_plan_limit_upgrade({
+        resource: detail.resource ?? null,
+        message: detail.message ?? null,
+      });
+    }
+
+    function handle_storage_full(e: Event) {
+      const detail =
+        (e as CustomEvent<{ message?: string | null }>).detail || {};
+
+      show_storage_full_upgrade({ message: detail.message ?? null });
+    }
+
+    window.addEventListener("aster:plan-limit-hit", handle_plan_limit);
+    window.addEventListener("aster:storage-full", handle_storage_full);
+
+    return () => {
+      window.removeEventListener("aster:plan-limit-hit", handle_plan_limit);
+      window.removeEventListener("aster:storage-full", handle_storage_full);
+    };
+  }, []);
 }
 
 if (import.meta.env.DEV && typeof window !== "undefined") {

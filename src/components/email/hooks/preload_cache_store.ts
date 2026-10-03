@@ -30,10 +30,6 @@ import { revoke_cid_blob_urls } from "@/lib/cid_resolver";
 import { clear_attachment_meta_cache } from "@/services/attachment_meta_cache";
 import { clear_attachment_preview_cache } from "@/services/attachment_preview_cache";
 
-// Preloaded-email cache state, kept apart from the preloader so app startup
-// (auth, preferences, list hooks) can clear or tune it without loading the
-// email renderer, its styles and the decryption pipeline.
-
 export interface PreloadedSanitizedContent {
   html: string;
   body_background?: string;

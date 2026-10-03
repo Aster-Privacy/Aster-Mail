@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { existsSync, readFileSync, statSync } from "node:fs";
-import { dirname, join, relative, resolve } from "node:path";
+import { dirname, join, relative, resolve, sep } from "node:path";
 
 import ts from "typescript";
 import { describe, it, expect } from "vitest";
@@ -113,7 +113,9 @@ function eagerly_loaded(entry: string): Set<string> {
     }
   }
 
-  return new Set([...seen].map((file) => relative(src, file)));
+  return new Set(
+    [...seen].map((file) => relative(src, file).split(sep).join("/")),
+  );
 }
 
 const RENDERER_AND_UI_MODULES = [
