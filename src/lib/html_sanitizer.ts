@@ -42,6 +42,7 @@ import {
   proxy_css_urls,
   list_remote_css_urls,
   escape_style_terminator,
+  strip_dark_media_queries,
 } from "./html_sanitizer_css";
 
 export { is_transparent_color_value } from "./html_sanitizer_css";
@@ -810,6 +811,18 @@ function sanitize_html_impl(
       }
 
       return fragment;
+    }
+
+    if (tag_name === "source" && element.hasAttribute("media")) {
+      const media = strip_dark_media_queries(
+        element.getAttribute("media") || "",
+      );
+
+      if (media === null) {
+        return null;
+      }
+
+      element.setAttribute("media", media);
     }
 
     const new_element = output_doc.createElement(tag_name);
