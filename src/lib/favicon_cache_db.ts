@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { ignore_error } from "@/lib/ignore_error";
+import { read_logo_tone, type LogoTone } from "@/lib/logo_tone";
 
 const DB_NAME = "astermail_favicon_cache";
 const STORE = "favicons";
@@ -29,11 +30,32 @@ const IDB_TX_TIMEOUT_MS = 8000;
 
 const live_urls: Map<string, string> = new Map();
 const in_flight: Map<string, Promise<string | null>> = new Map();
+const tones: Map<string, LogoTone | null> = new Map();
+const tone_listeners = new Set<() => void>();
 
 interface FaviconEntry {
   domain: string;
   blob: Blob;
   ts: number;
+  tone?: LogoTone | null;
+}
+
+function set_tone(domain: string, tone: LogoTone | null): void {
+  if (tones.get(domain) === tone && tones.has(domain)) return;
+  tones.set(domain, tone);
+  for (const listener of tone_listeners) listener();
+}
+
+export function peek_favicon_tone(domain: string): LogoTone | null {
+  return tones.get(domain) ?? null;
+}
+
+export function subscribe_favicon_tones(listener: () => void): () => void {
+  tone_listeners.add(listener);
+
+  return () => {
+    tone_listeners.delete(listener);
+  };
 }
 
 let db_promise: Promise<IDBDatabase> | null = null;
@@ -119,6 +141,45 @@ async function read_entry(domain: string): Promise<FaviconEntry | null> {
   });
 }
 
+async function write_entry(entry: FaviconEntry): Promise<void> {
+  let db: IDBDatabase;
+
+  try {
+    db = await open_favicon_db();
+  } catch {
+    return;
+  }
+
+  await new Promise<void>((resolve) => {
+    const timeout_id = setTimeout(resolve, IDB_TX_TIMEOUT_MS);
+
+    const tx = db.transaction(STORE, "readwrite");
+    const store = tx.objectStore(STORE);
+    const request = store.put(entry);
+
+    request.onerror = () => {
+      clearTimeout(timeout_id);
+      resolve();
+    };
+    tx.oncomplete = () => {
+      clearTimeout(timeout_id);
+      resolve();
+    };
+  });
+}
+
+function analyze_stored_entry(entry: FaviconEntry): void {
+  read_logo_tone(entry.blob)
+    .then((tone) => {
+      if (live_urls.has(entry.domain)) set_tone(entry.domain, tone);
+
+      return write_entry({ ...entry, tone });
+    })
+    .catch((caught) =>
+      ignore_error("lib/favicon_cache_db:analyze_stored_entry", caught),
+    );
+}
+
 export function peek_favicon_object_url(domain: string): string | null {
   return live_urls.get(domain) ?? null;
 }
@@ -146,6 +207,12 @@ export function get_favicon_object_url(domain: string): Promise<string | null> {
 
       live_urls.set(domain, url);
 
+      if (entry.tone !== undefined) {
+        set_tone(domain, entry.tone);
+      } else {
+        analyze_stored_entry(entry);
+      }
+
       return url;
     })
     .catch(() => {
@@ -165,31 +232,11 @@ export async function cache_favicon_blob(
 ): Promise<void> {
   if (blob.size > 200 * 1024) return;
 
-  let db: IDBDatabase;
+  const tone = await read_logo_tone(blob);
 
-  try {
-    db = await open_favicon_db();
-  } catch {
-    return;
-  }
+  set_tone(domain, tone);
 
-  await new Promise<void>((resolve) => {
-    const timeout_id = setTimeout(resolve, IDB_TX_TIMEOUT_MS);
-
-    const tx = db.transaction(STORE, "readwrite");
-    const store = tx.objectStore(STORE);
-    const request = store.put({ domain, blob, ts: Date.now() });
-
-    request.onerror = () => {
-      clearTimeout(timeout_id);
-      resolve();
-    };
-    request.onsuccess = () => {};
-    tx.oncomplete = () => {
-      clearTimeout(timeout_id);
-      resolve();
-    };
-  });
+  await write_entry({ domain, blob, ts: Date.now(), tone });
 }
 
 export async function evict_stale_favicons(): Promise<void> {
@@ -231,6 +278,7 @@ export async function evict_stale_favicons(): Promise<void> {
           }
           live_urls.delete(entry.domain);
         }
+        tones.delete(entry.domain);
         cursor.delete();
       }
 
@@ -254,6 +302,8 @@ export async function purge_favicon_cache(): Promise<void> {
 
   live_urls.clear();
   in_flight.clear();
+  tones.clear();
+  for (const listener of tone_listeners) listener();
 
   let db: IDBDatabase;
 
