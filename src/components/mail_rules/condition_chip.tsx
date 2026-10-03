@@ -74,6 +74,7 @@ interface ConditionChipProps {
   read_only?: boolean;
   allowed_operators?: string[];
   allowed_fields?: ConditionField[];
+  hide_match_case?: boolean;
 }
 
 const AUTH_LABEL_KEY: Record<AuthResultValue, TranslationKey> = {
@@ -120,6 +121,7 @@ export function ConditionChip({
   read_only,
   allowed_operators,
   allowed_fields,
+  hide_match_case,
 }: ConditionChipProps) {
   const { t } = use_i18n();
   const is_row = use_chip_layout() === "row";
@@ -449,6 +451,7 @@ export function ConditionChip({
       case_sensitive={case_sensitive}
       field={field}
       header_name={condition.type === "header" ? condition.name : undefined}
+      hide_match_case={hide_match_case}
       on_commit={handle_value_change}
       on_commit_header_name={handle_header_name_change}
       on_commit_size_unit={set_size_unit}

@@ -119,6 +119,14 @@ vi.mock("@/components/ui/dropdown_menu", () => {
   };
 });
 
+vi.mock("@/components/ui/popover", () => {
+  const Pass = ({ children }: { children?: React.ReactNode }) => (
+    <div>{children}</div>
+  );
+
+  return { Popover: Pass, PopoverTrigger: Pass, PopoverContent: Pass };
+});
+
 import { AliasRuleEditorModal } from "@/components/settings/aliases/alias_rule_editor_modal";
 
 let container: HTMLDivElement;
@@ -206,5 +214,23 @@ describe("AliasRuleEditorModal field picker", () => {
 
     expect(update_alias_rule).not.toHaveBeenCalled();
     expect(show_toast).toHaveBeenCalledWith(expect.any(String), "error");
+  });
+
+  it("hides the match-case toggle the alias API cannot store", () => {
+    act(() => {
+      root.render(
+        <AliasRuleEditorModal
+          is_open
+          alias_id="alias-1"
+          on_close={() => {}}
+          on_saved={() => {}}
+        />,
+      );
+    });
+
+    expect(container.textContent).toContain("mail_rules.value_placeholder");
+    expect(
+      container.querySelector('[aria-label="mail_rules.match_case"]'),
+    ).toBeNull();
   });
 });

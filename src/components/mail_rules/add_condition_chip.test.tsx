@@ -56,6 +56,14 @@ vi.mock("@/components/ui/dropdown_menu", () => {
   };
 });
 
+vi.mock("@/components/ui/popover", () => {
+  const Pass = ({ children }: { children?: React.ReactNode }) => (
+    <div>{children}</div>
+  );
+
+  return { Popover: Pass, PopoverTrigger: Pass, PopoverContent: Pass };
+});
+
 import { AddConditionChip } from "@/components/mail_rules/add_condition_chip";
 import { ConditionChip } from "@/components/mail_rules/condition_chip";
 import { default_condition_for_field } from "@/components/mail_rules/field_kind";
@@ -143,5 +151,21 @@ describe("mail rules field picker", () => {
     });
 
     expect(offered_fields()).toEqual(["from", "subject"]);
+  });
+
+  it("keeps the match-case toggle on text conditions", () => {
+    act(() => {
+      root.render(
+        <ConditionChip
+          condition={default_condition_for_field("from")}
+          on_change={() => {}}
+          on_remove={() => {}}
+        />,
+      );
+    });
+
+    expect(
+      container.querySelector('[aria-label="mail_rules.match_case"]'),
+    ).not.toBeNull();
   });
 });

@@ -282,6 +282,7 @@ export function AliasRuleEditorModal({
                   allowed_fields={ALIAS_RULE_FIELDS}
                   allowed_operators={ALIAS_RULE_OPERATORS}
                   condition={cond}
+                  hide_match_case
                   on_change={(next) => update_condition(idx, next)}
                   on_remove={() => remove_condition(idx)}
                 />
