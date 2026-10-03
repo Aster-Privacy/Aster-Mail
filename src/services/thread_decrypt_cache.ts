@@ -26,11 +26,16 @@ import { on_vault_cleared } from "./crypto/memory_key_store";
 import { register_envelope_attachment_keys } from "./crypto/inbound_attachment_keys";
 import { LOCKDOWN_CHANGED_EVENT } from "./lockdown_store";
 
-const MAX_CONTENT_ENTRIES = 400;
+const MAX_CONTENT_ENTRIES = 100;
 const MAX_CONTENT_CHARS = 8_000_000;
 const MAX_METADATA_ENTRIES = 2000;
-const MAX_METADATA_CHARS = 2_000_000;
+const MAX_METADATA_CHARS = 400_000;
 const ENTRY_OVERHEAD_CHARS = 512;
+const METADATA_ENTRY_CHARS = 64;
+
+export const CLOSED_THREAD_GRACE_MS = 60_000;
+export const MAX_CLOSED_THREADS = 2;
+export const HIDDEN_PAGE_PURGE_MS = 180_000;
 
 export type ThreadMessageContent = Pick<
   DecryptedThreadMessage,
@@ -52,10 +57,16 @@ export type ThreadMessageContent = Pick<
   attachment_keys?: unknown;
 };
 
+export type ThreadMessageFlags = Pick<
+  MailItemMetadata,
+  "is_read" | "is_starred" | "send_status"
+>;
+
 interface Entry<T> {
   key: string;
   value: T;
   size: number;
+  owner: string;
 }
 
 class BoundedCache<T> {
@@ -66,13 +77,18 @@ class BoundedCache<T> {
     private readonly max_entries: number,
     private readonly max_size: number,
     private readonly copy: (value: T) => T,
+    private readonly on_remove?: (id: string, owner: string) => void,
   ) {}
 
-  get(id: string, key: string): T | null {
+  get size(): number {
+    return this.entries.size;
+  }
+
+  get(id: string, key: string, owner = ""): T | null {
     const entry = this.entries.get(id);
 
     if (!entry) return null;
-    if (entry.key !== key) {
+    if (entry.key !== key || entry.owner !== owner) {
       this.remove(id);
 
       return null;
@@ -84,11 +100,11 @@ class BoundedCache<T> {
     return this.copy(entry.value);
   }
 
-  set(id: string, key: string, value: T, size: number): void {
+  set(id: string, key: string, value: T, size: number, owner = ""): boolean {
     this.remove(id);
-    if (size > this.max_size / 8) return;
+    if (size > this.max_size / 8) return false;
 
-    this.entries.set(id, { key, value: this.copy(value), size });
+    this.entries.set(id, { key, value: this.copy(value), size, owner });
     this.total_size += size;
 
     while (
@@ -100,6 +116,8 @@ class BoundedCache<T> {
       if (oldest.done) break;
       this.remove(oldest.value);
     }
+
+    return this.entries.has(id);
   }
 
   remove(id: string): void {
@@ -108,6 +126,7 @@ class BoundedCache<T> {
     if (!entry) return;
     this.entries.delete(id);
     this.total_size -= entry.size;
+    this.on_remove?.(id, entry.owner);
   }
 
   clear(): void {
@@ -115,6 +134,17 @@ class BoundedCache<T> {
     this.total_size = 0;
   }
 }
+
+interface ThreadState {
+  holds: number;
+  ids: Set<string>;
+  timer: ReturnType<typeof setTimeout> | null;
+}
+
+const threads = new Map<string, ThreadState>();
+const closed_threads = new Set<string>();
+let hidden_timer: ReturnType<typeof setTimeout> | null = null;
+let content_suspended = false;
 
 function copy_people(
   people: { name: string; email: string }[] | undefined,
@@ -133,18 +163,99 @@ function copy_content(content: ThreadMessageContent): ThreadMessageContent {
   };
 }
 
+function copy_flags(flags: ThreadMessageFlags): ThreadMessageFlags {
+  return { ...flags };
+}
+
+function to_flags(metadata: MailItemMetadata): ThreadMessageFlags {
+  return {
+    is_read: metadata.is_read,
+    is_starred: metadata.is_starred,
+    send_status: metadata.send_status,
+  };
+}
+
 const content_cache = new BoundedCache<ThreadMessageContent>(
   MAX_CONTENT_ENTRIES,
   MAX_CONTENT_CHARS,
   copy_content,
+  (id, owner) => {
+    threads.get(owner)?.ids.delete(id);
+  },
 );
-const metadata_cache = new BoundedCache<MailItemMetadata>(
+const metadata_cache = new BoundedCache<ThreadMessageFlags>(
   MAX_METADATA_ENTRIES,
   MAX_METADATA_CHARS,
-  (metadata) => structuredClone(metadata),
+  copy_flags,
 );
 let generation = 0;
 let listeners_registered = false;
+
+function page_hidden(): boolean {
+  return (
+    typeof document !== "undefined" && document.visibilityState === "hidden"
+  );
+}
+
+function drop_thread(thread_token: string): void {
+  const state = threads.get(thread_token);
+
+  closed_threads.delete(thread_token);
+  if (!state) return;
+  if (state.timer !== null) clearTimeout(state.timer);
+  state.timer = null;
+  for (const id of Array.from(state.ids)) content_cache.remove(id);
+  state.ids.clear();
+  if (state.holds === 0) threads.delete(thread_token);
+}
+
+function drop_closed_threads(): void {
+  for (const thread_token of Array.from(closed_threads)) {
+    drop_thread(thread_token);
+  }
+}
+
+function mark_closed(thread_token: string, state: ThreadState): void {
+  if (page_hidden()) {
+    drop_thread(thread_token);
+
+    return;
+  }
+
+  closed_threads.delete(thread_token);
+  closed_threads.add(thread_token);
+  if (state.timer !== null) clearTimeout(state.timer);
+  state.timer = setTimeout(
+    () => drop_thread(thread_token),
+    CLOSED_THREAD_GRACE_MS,
+  );
+
+  while (closed_threads.size > MAX_CLOSED_THREADS) {
+    const oldest = closed_threads.values().next();
+
+    if (oldest.done) break;
+    drop_thread(oldest.value);
+  }
+}
+
+function on_page_hidden(): void {
+  drop_closed_threads();
+  if (hidden_timer !== null) return;
+  hidden_timer = setTimeout(() => {
+    hidden_timer = null;
+    if (!page_hidden()) return;
+    content_suspended = true;
+    for (const thread_token of Array.from(threads.keys())) {
+      drop_thread(thread_token);
+    }
+  }, HIDDEN_PAGE_PURGE_MS);
+}
+
+function on_page_visible(): void {
+  if (hidden_timer !== null) clearTimeout(hidden_timer);
+  hidden_timer = null;
+  content_suspended = false;
+}
 
 function register_listeners(): void {
   if (listeners_registered) return;
@@ -158,7 +269,63 @@ function register_listeners(): void {
     window.addEventListener(LOCKDOWN_CHANGED_EVENT, () =>
       clear_thread_decrypt_cache(),
     );
+    window.addEventListener("pagehide", on_page_hidden);
   }
+
+  if (typeof document !== "undefined") {
+    document.addEventListener("visibilitychange", () => {
+      if (page_hidden()) on_page_hidden();
+      else on_page_visible();
+    });
+  }
+}
+
+export function hold_thread_decrypt_cache(thread_token: string): () => void {
+  let state = threads.get(thread_token);
+
+  if (!state) {
+    state = { holds: 0, ids: new Set(), timer: null };
+    threads.set(thread_token, state);
+  }
+  state.holds += 1;
+  if (state.timer !== null) clearTimeout(state.timer);
+  state.timer = null;
+  closed_threads.delete(thread_token);
+
+  let released = false;
+
+  return () => {
+    if (released) return;
+    released = true;
+
+    const current = threads.get(thread_token);
+
+    if (!current) return;
+    current.holds = Math.max(0, current.holds - 1);
+    if (current.holds > 0) return;
+    if (current.ids.size === 0) {
+      drop_thread(thread_token);
+
+      return;
+    }
+    mark_closed(thread_token, current);
+  };
+}
+
+function admit_content(thread_token: string): ThreadState | null {
+  if (content_suspended) return null;
+
+  const existing = threads.get(thread_token);
+
+  if (existing && existing.holds > 0) return existing;
+  if (page_hidden()) return null;
+
+  const state = existing ?? { holds: 0, ids: new Set<string>(), timer: null };
+
+  if (!existing) threads.set(thread_token, state);
+  if (!closed_threads.has(thread_token)) mark_closed(thread_token, state);
+
+  return threads.get(thread_token) === state ? state : null;
 }
 
 function fingerprint(value: string | undefined): string {
@@ -231,20 +398,22 @@ function content_size(content: ThreadMessageContent): number {
   return size;
 }
 
-async function cached_decrypt<T>(
-  cache: BoundedCache<T>,
-  id: string,
-  key: string,
-  decrypt: () => Promise<{ value: T | null; cacheable: boolean }>,
-  size_of: (value: T) => number,
-  on_hit?: (value: T) => void,
-): Promise<T | null> {
+export async function decrypt_thread_content_cached(
+  msg: ThreadMessageItem,
+  thread_token: string,
+  user_email: string,
+  decrypt: () => Promise<{
+    value: ThreadMessageContent | null;
+    cacheable: boolean;
+  }>,
+): Promise<ThreadMessageContent | null> {
   register_listeners();
 
-  const hit = cache.get(id, key);
+  const key = content_key(msg, user_email);
+  const hit = content_cache.get(msg.id, key, thread_token);
 
   if (hit !== null) {
-    on_hit?.(hit);
+    register_envelope_attachment_keys(msg.id, hit);
 
     return hit;
   }
@@ -252,51 +421,74 @@ async function cached_decrypt<T>(
   const started_generation = generation;
   const { value, cacheable } = await decrypt();
 
-  if (value !== null && cacheable && started_generation === generation) {
-    try {
-      cache.set(id, key, value, size_of(value));
-    } catch {
-      cache.remove(id);
+  if (value === null || !cacheable || started_generation !== generation) {
+    return value;
+  }
+
+  const state = admit_content(thread_token);
+
+  if (!state) return value;
+
+  try {
+    if (
+      content_cache.set(msg.id, key, value, content_size(value), thread_token)
+    ) {
+      state.ids.add(msg.id);
     }
+  } catch {
+    content_cache.remove(msg.id);
   }
 
   return value;
-}
-
-export async function decrypt_thread_content_cached(
-  msg: ThreadMessageItem,
-  user_email: string,
-  decrypt: () => Promise<{
-    value: ThreadMessageContent | null;
-    cacheable: boolean;
-  }>,
-): Promise<ThreadMessageContent | null> {
-  return cached_decrypt(
-    content_cache,
-    msg.id,
-    content_key(msg, user_email),
-    decrypt,
-    content_size,
-    (content) => register_envelope_attachment_keys(msg.id, content),
-  );
 }
 
 export async function decrypt_thread_metadata_cached(
   msg: ThreadMessageItem,
   user_email: string,
   decrypt: () => Promise<MailItemMetadata | null>,
-): Promise<MailItemMetadata | null> {
-  return cached_decrypt(
-    metadata_cache,
-    msg.id,
-    metadata_key(msg, user_email),
-    async () => ({ value: await decrypt(), cacheable: true }),
-    (metadata) => JSON.stringify(metadata).length,
-  );
+): Promise<ThreadMessageFlags | null> {
+  register_listeners();
+
+  const key = metadata_key(msg, user_email);
+  const hit = metadata_cache.get(msg.id, key);
+
+  if (hit !== null) return hit;
+
+  const started_generation = generation;
+  const metadata = await decrypt();
+
+  if (!metadata) return null;
+
+  const flags = to_flags(metadata);
+
+  if (started_generation === generation) {
+    metadata_cache.set(
+      msg.id,
+      key,
+      flags,
+      METADATA_ENTRY_CHARS + key.length + (flags.send_status ?? "").length,
+    );
+  }
+
+  return flags;
+}
+
+export function thread_decrypt_cache_size(): number {
+  return content_cache.size;
 }
 
 export function clear_thread_decrypt_cache(): void {
   content_cache.clear();
   metadata_cache.clear();
   generation += 1;
+  closed_threads.clear();
+  for (const [thread_token, state] of threads) {
+    if (state.timer !== null) clearTimeout(state.timer);
+    state.timer = null;
+    state.ids.clear();
+    if (state.holds === 0) threads.delete(thread_token);
+  }
+  if (hidden_timer !== null) clearTimeout(hidden_timer);
+  hidden_timer = null;
+  content_suspended = page_hidden();
 }
