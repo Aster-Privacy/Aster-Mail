@@ -35,7 +35,7 @@ import {
   report_indexing_counts,
   reset_indexing_progress,
 } from "./progress";
-import { CachedIndex } from "./types";
+import { CachedIndex, ChunkSpan } from "./types";
 
 import { ignore_error } from "@/lib/ignore_error";
 import {
@@ -47,9 +47,13 @@ import {
   has_index_storage_headroom,
   open_snapshot_reader,
   open_snapshot_writer,
+  same_snapshot,
   SNAPSHOT_CHUNK_SIZE,
+  type PersistableEntry,
   type PersistedSearchEntry,
+  type ReusableChunk,
   type SnapshotMeta,
+  type WrittenChunk,
 } from "@/services/search_index_store";
 import {
   is_index_download_paused,
@@ -61,6 +65,7 @@ import {
   settle_within,
 } from "@/services/search/index_total";
 const PARTIAL_PUBLISH_MS = 750;
+const SNAPSHOT_RESTAMP_MS = INDEX_TTL_MS / 2;
 const TOTAL_WAIT_MS = 1500;
 
 let partial_ready_resolve: (() => void) | null = null;
@@ -129,6 +134,50 @@ export function apply_meta(index: CachedIndex, meta: SnapshotMeta): void {
   index.disk_chunk_ids = disk_ids_after_hot(meta.chunk_ids, index.items.length);
 }
 
+function spans_from_layout(layout: WrittenChunk[]): ChunkSpan[] {
+  const spans: ChunkSpan[] = [];
+  let start = 0;
+
+  for (const chunk of layout) {
+    spans.push({ id: chunk.id, start, count: chunk.count });
+    start += chunk.count;
+  }
+
+  return spans;
+}
+
+export function stored_hot_chunks(
+  index: CachedIndex | null,
+): ReusableChunk[] | undefined {
+  const chunk_ids = index?.meta?.chunk_ids;
+
+  if (!index || !chunk_ids || !index.chunk_layout?.length) return undefined;
+
+  const chunks: ReusableChunk[] = [];
+  let start = 0;
+
+  for (const span of index.chunk_layout) {
+    if (span.id !== chunk_ids[chunks.length] || span.start !== start) break;
+
+    const items = index.items.slice(span.start, span.start + span.count);
+    const entries: PersistableEntry[] = [];
+
+    for (const item of items) {
+      const entry = index.decrypted.get(item.id);
+
+      if (!entry) break;
+      entries.push(entry);
+    }
+
+    if (items.length !== span.count || entries.length !== span.count) break;
+
+    chunks.push({ id: span.id, items, entries });
+    start += span.count;
+  }
+
+  return chunks.length > 0 ? chunks : undefined;
+}
+
 export async function build_index_full(
   user_email: string,
   include_body: boolean,
@@ -193,9 +242,15 @@ export async function build_index_full(
     emit_index_refreshed();
   };
 
+  const stored_chunks = reusable ? stored_hot_chunks(prior_index) : undefined;
+
   try {
     const [writer] = await Promise.all([
-      open_snapshot_writer(user_email),
+      open_snapshot_writer(
+        user_email,
+        stored_chunks ? prior_index?.meta : undefined,
+        stored_chunks,
+      ),
       settle_within(total_request, TOTAL_WAIT_MS),
     ]);
 
@@ -221,14 +276,24 @@ export async function build_index_full(
     index.complete = !result.paused && !result.next_cursor;
 
     if (writer) {
+      if (my_gen !== build_generation) {
+        await writer.discard();
+        throw new Error("search_index_cancelled");
+      }
+
       const exhausted = writer.storage_exhausted();
       const meta = await writer.finish({
         next_cursor: exhausted ? undefined : result.next_cursor,
         complete: exhausted || result.paused ? false : !result.next_cursor,
         include_body,
+        restamp_after_ms: SNAPSHOT_RESTAMP_MS,
+        is_current: () => my_gen === build_generation,
       });
 
-      if (meta) apply_meta(index, meta);
+      if (meta) {
+        apply_meta(index, meta);
+        index.chunk_layout = spans_from_layout(writer.layout());
+      }
     }
 
     if (my_gen !== build_generation) {
@@ -260,6 +325,7 @@ export async function build_index_front_refresh(
   user_email: string,
   include_body: boolean,
   stale: CachedIndex,
+  adopted_from_disk = false,
 ): Promise<CachedIndex> {
   if (is_index_download_paused()) return stale;
 
@@ -279,7 +345,26 @@ export async function build_index_front_refresh(
       throw new Error("search_index_cancelled");
     }
 
-    if (!boundary_id) {
+    if (reader && !same_snapshot(reader.meta, base) && !adopted_from_disk) {
+      const on_disk = await hydrate_snapshot_index(user_email);
+
+      if (my_gen !== build_generation) {
+        throw new Error("search_index_cancelled");
+      }
+
+      if (on_disk && can_refresh_front(on_disk, include_body)) {
+        return build_index_front_refresh(
+          user_email,
+          include_body,
+          on_disk,
+          true,
+        );
+      }
+
+      return build_index_full(user_email, include_body, on_disk ?? stale);
+    }
+
+    if (!boundary_id || !reader || !same_snapshot(reader.meta, base)) {
       return build_index_full(user_email, include_body, stale);
     }
 
@@ -289,7 +374,7 @@ export async function build_index_front_refresh(
       prior,
       my_gen,
       stop_at_id: boundary_id,
-      max_items: MAX_RAM_INDEX_ITEMS,
+      max_items: MAX_RAM_INDEX_ITEMS + 1,
       hot: index,
       writer: null,
       pausable: true,
@@ -302,7 +387,7 @@ export async function build_index_front_refresh(
       return stale;
     }
 
-    if (!result.reached_boundary) {
+    if (!result.reached_boundary || result.processed > MAX_RAM_INDEX_ITEMS) {
       index.items.length = 0;
       index.decrypted.clear();
 
@@ -315,27 +400,39 @@ export async function build_index_front_refresh(
     index.disk_chunk_ids = keep_ids;
     index.meta = base;
 
+    const stored_chunks = stored_hot_chunks(stale);
     const unchanged =
-      result.fresh_count === 0 && index.items.length === prior.size;
+      !stored_chunks &&
+      result.fresh_count === 0 &&
+      index.items.length === prior.size;
+    const writer = unchanged
+      ? null
+      : await open_snapshot_writer(user_email, base, stored_chunks);
 
-    if (!unchanged) {
-      const writer = await open_snapshot_writer(user_email, base);
+    if (writer) {
+      await writer.add_page(index.items, index.decrypted);
 
-      if (writer) {
-        await writer.add_page(index.items, index.decrypted);
+      if (writer.storage_exhausted() || my_gen !== build_generation) {
+        await writer.discard();
+      } else {
+        const meta = await writer.finish({
+          next_cursor: base.next_cursor,
+          complete: base.complete,
+          include_body,
+          keep_chunk_ids: keep_ids,
+          kept_total: Math.max(base.total - stale.items.length, 0),
+          restamp_after_ms: SNAPSHOT_RESTAMP_MS,
+          is_current: () => my_gen === build_generation,
+        });
 
-        if (writer.storage_exhausted()) {
-          await writer.discard();
-        } else {
-          const meta = await writer.finish({
-            next_cursor: base.next_cursor,
-            complete: base.complete,
-            include_body,
-            keep_chunk_ids: keep_ids,
-            kept_total: Math.max(base.total - stale.items.length, 0),
-          });
+        if (meta) {
+          apply_meta(index, meta);
+          index.chunk_layout = spans_from_layout(writer.layout());
+        } else if (writer.lost_kept_chunks()) {
+          index.items.length = 0;
+          index.decrypted.clear();
 
-          if (meta) apply_meta(index, meta);
+          return build_index_full(user_email, include_body, stale);
         }
       }
     }
@@ -440,6 +537,7 @@ export async function run_deep_index(
         keep_chunk_ids: meta.chunk_ids,
         kept_total: meta.total,
         keep_first: true,
+        is_current: () => my_gen === build_generation,
       });
 
       if (!next || my_gen !== build_generation) return;
@@ -524,15 +622,8 @@ export function start_background_rebuild(
     build_generation++;
   }
 
-  const can_refresh_front =
-    !!stale &&
-    stale.items.length > 0 &&
-    !!stale.meta &&
-    stale.meta.chunk_ids.length > front_chunk_count(stale) &&
-    (stale.meta.include_body || !include_body);
-
   const promise = (
-    can_refresh_front && stale
+    stale && can_refresh_front(stale, include_body)
       ? build_index_front_refresh(user_email, include_body, stale)
       : build_index_full(user_email, include_body, stale)
   )
@@ -558,6 +649,15 @@ export function start_background_rebuild(
   );
 
   return promise;
+}
+
+function can_refresh_front(index: CachedIndex, include_body: boolean): boolean {
+  return (
+    index.items.length > 0 &&
+    !!index.meta &&
+    index.meta.chunk_ids.length > front_chunk_count(index) &&
+    (index.meta.include_body || !include_body)
+  );
 }
 
 function index_is_body_compatible(
@@ -590,6 +690,8 @@ export async function hydrate_snapshot_index(
 
   const meta = reader.meta;
   const index = empty_index(user_email, meta.include_body);
+  const layout: ChunkSpan[] = [];
+  let layout_intact = true;
   let consumed = 0;
 
   reset_vocabulary();
@@ -601,7 +703,12 @@ export async function hydrate_snapshot_index(
 
     consumed++;
 
-    if (!chunk) continue;
+    if (!chunk) {
+      layout_intact = false;
+      continue;
+    }
+
+    const start = index.items.length;
 
     const entries = new Map<string, PersistedSearchEntry>();
 
@@ -627,9 +734,16 @@ export async function hydrate_snapshot_index(
       });
       add_vocabulary_entry(entry.envelope, entry.search_body_text);
     }
+
+    const count = index.items.length - start;
+
+    if (count !== chunk.items.length) layout_intact = false;
+    if (layout_intact) layout.push({ id: chunk_id, start, count });
   }
 
   if (index.items.length === 0) return null;
+
+  index.chunk_layout = layout;
 
   index.meta = meta;
   index.built_at = meta.saved_at;

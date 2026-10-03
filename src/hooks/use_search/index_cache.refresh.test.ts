@@ -1,0 +1,696 @@
+//
+// Aster Communications Inc.
+//
+// Copyright (c) 2026 Aster Communications Inc.
+//
+// This file is part of this project.
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the AGPLv3 as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// AGPLv3 for more details.
+//
+// You should have received a copy of the AGPLv3
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+//
+import type { MailItem } from "@/services/api/mail";
+import type { CachedIndex } from "./types";
+
+import { describe, it, expect, beforeEach, vi } from "vitest";
+
+const { store, writes, server } = vi.hoisted(() => ({
+  store: new Map<string, unknown>(),
+  writes: {
+    chunk: 0,
+    total: 0,
+    on_chunk: null as (() => void) | null,
+  },
+  server: { mailbox: [] as MailItem[], envelope_decrypts: 0 },
+}));
+
+vi.mock("@/services/crypto/encrypted_storage", () => ({
+  encrypted_set: async (key: string, value: unknown) => {
+    writes.total++;
+    if (key.includes("_chunk_")) {
+      writes.chunk++;
+      writes.on_chunk?.();
+    }
+    store.set(key, JSON.parse(JSON.stringify(value)));
+  },
+  encrypted_get: async (key: string) => store.get(key) ?? null,
+  encrypted_list_keys: async () => [...store.keys()],
+  secure_overwrite_and_delete: async (key: string) => {
+    store.delete(key);
+  },
+}));
+vi.mock("@/services/crypto/memory_key_store", () => ({
+  has_vault_in_memory: () => true,
+  get_derived_encryption_key: () => new Uint8Array(32),
+}));
+vi.mock("@/services/crypto/secure_memory", () => ({
+  zero_uint8_array: () => {},
+}));
+vi.mock("@/services/account_manager", () => ({
+  get_current_account_id: async () => "account-1",
+}));
+vi.mock("@/services/api/mail", () => ({
+  list_encrypted_mail_items: async ({
+    cursor,
+    limit,
+  }: {
+    cursor?: string;
+    limit: number;
+  }) => {
+    const start = cursor ? Number(cursor) : 0;
+    const end = start + limit;
+
+    return {
+      data: {
+        items: server.mailbox.slice(start, end),
+        next_cursor: end < server.mailbox.length ? String(end) : undefined,
+      },
+    };
+  },
+  list_mail_items: async ({ ids }: { ids: string[] }) => ({
+    data: { items: server.mailbox.filter((item) => ids.includes(item.id)) },
+  }),
+}));
+vi.mock("@/services/crypto/mail_metadata", () => ({
+  decrypt_mail_metadata: async () => null,
+  extract_metadata_from_server: (
+    _decrypted: unknown,
+    server_fields: Record<string, unknown>,
+  ) => ({ ...server_fields }),
+}));
+vi.mock("@/hooks/use_search/envelope", () => ({
+  decrypt_envelope_for_search: async (
+    _envelope: string,
+    _nonce: string,
+    id: string,
+  ) => {
+    server.envelope_decrypts++;
+
+    return {
+      subject: `Subject ${id}`,
+      body_text: "",
+      body_html: "",
+      from: { name: "Alice", email: "alice@example.com" },
+      to: [],
+      cc: [],
+      bcc: [],
+      sent_at: "2026-01-01T00:00:00Z",
+    };
+  },
+  reset_legacy_migration_state: () => {},
+}));
+vi.mock("@/services/locked_folders", () => ({
+  filter_locked_mail_items: (items: MailItem[]) =>
+    items.filter((item) => item.folder_token !== "locked"),
+}));
+vi.mock("@/services/search/index_total", () => ({
+  fetch_mailbox_index_total: async () => server.mailbox.length,
+  settle_within: <T>(promise: Promise<T>) => promise,
+}));
+
+import {
+  build_search_index,
+  clear_search_index,
+  hydrate_snapshot_index,
+  mark_search_index_stale,
+  reset_index_cache,
+} from "./index_cache";
+import * as index_cache from "./index_cache";
+import { INDEX_TTL_MS } from "./constants";
+import { matches_query } from "./matching";
+
+import {
+  open_snapshot_reader,
+  SNAPSHOT_CHUNK_SIZE,
+} from "@/services/search_index_store";
+
+const user_email = "user@example.com";
+const MAILBOX_SIZE = SNAPSHOT_CHUNK_SIZE * 2 + 500;
+
+function make_item(n: number): MailItem {
+  return {
+    id: `msg-${n}`,
+    item_type: "received",
+    encrypted_envelope: "ciphertext-envelope",
+    envelope_nonce: "nonce",
+    encrypted_metadata: `encrypted-metadata-${n}`,
+    metadata_nonce: "meta-nonce",
+    folder_token: "inbox",
+    is_external: false,
+    is_read: true,
+    created_at: "2026-01-01T00:00:00Z",
+    message_ts: "2026-01-01T00:00:00Z",
+  } as MailItem;
+}
+
+async function settle(): Promise<CachedIndex> {
+  let index = await build_search_index(user_email, false);
+
+  while (index_cache.index_build_promise) {
+    index = (await index_cache.index_build_promise.catch(() => null)) ?? index;
+  }
+
+  return index_cache.cached_index ?? index;
+}
+
+async function refresh(): Promise<CachedIndex> {
+  writes.chunk = 0;
+  writes.total = 0;
+  server.envelope_decrypts = 0;
+  mark_search_index_stale();
+
+  return settle();
+}
+
+async function search(
+  index: CachedIndex,
+  terms: string[],
+  operators: { type: "is"; value: string }[] = [],
+): Promise<string[]> {
+  const found: string[] = [];
+  const parsed = operators.map((op) => ({
+    ...op,
+    raw: `is:${op.value}`,
+    negated: false,
+  }));
+
+  for (const item of index.items) {
+    const entry = index.decrypted.get(item.id);
+
+    if (
+      entry &&
+      matches_query(
+        terms,
+        parsed,
+        entry.envelope,
+        entry.metadata,
+        item,
+        undefined,
+        undefined,
+        false,
+        entry.search_body_text,
+        entry.haystack,
+      )
+    ) {
+      found.push(item.id);
+    }
+  }
+
+  return found;
+}
+
+async function disk_snapshot(): Promise<{
+  ids: string[];
+  unread: string[];
+  missing: number[];
+  saved_at: number;
+}> {
+  const reader = await open_snapshot_reader(user_email);
+  const ids: string[] = [];
+  const unread: string[] = [];
+  const missing: number[] = [];
+
+  for (const chunk_id of reader?.meta.chunk_ids ?? []) {
+    const chunk = await reader!.read(chunk_id);
+
+    if (!chunk) {
+      missing.push(chunk_id);
+      continue;
+    }
+
+    for (const item of chunk.items) {
+      ids.push(item.id);
+      if (!item.is_read) unread.push(item.id);
+    }
+  }
+
+  return { ids, unread, missing, saved_at: reader?.meta.saved_at ?? 0 };
+}
+
+async function reload(): Promise<CachedIndex> {
+  reset_index_cache();
+  const hydrated = await hydrate_snapshot_index(user_email);
+
+  expect(hydrated).not.toBeNull();
+
+  return hydrated as CachedIndex;
+}
+
+describe("search index refresh writes", () => {
+  beforeEach(async () => {
+    clear_search_index();
+    store.clear();
+    server.mailbox = Array.from({ length: MAILBOX_SIZE }, (_, n) =>
+      make_item(n),
+    );
+    writes.chunk = 0;
+    writes.total = 0;
+
+    const index = await settle();
+
+    expect(index.items).toHaveLength(MAILBOX_SIZE);
+    expect(writes.chunk).toBe(3);
+  });
+
+  it("writes nothing when nothing changed", async () => {
+    const index = await refresh();
+
+    expect(writes.chunk).toBe(0);
+    expect(writes.total).toBe(0);
+    expect(server.envelope_decrypts).toBe(0);
+    expect(index.built_at).toBeGreaterThan(0);
+    expect(index.items).toHaveLength(MAILBOX_SIZE);
+    expect(await search(await reload(), ["msg-4321"])).toEqual(["msg-4321"]);
+  });
+
+  it("writes nothing when an index loaded from disk is refreshed unchanged", async () => {
+    reset_index_cache();
+    await settle();
+
+    const index = await refresh();
+
+    expect(writes.chunk).toBe(0);
+    expect(writes.total).toBe(0);
+    expect(index.items).toHaveLength(MAILBOX_SIZE);
+  });
+
+  it("rewrites only the chunk holding a message whose read flag changed", async () => {
+    const changed = SNAPSHOT_CHUNK_SIZE + 10;
+
+    server.mailbox[changed] = { ...server.mailbox[changed], is_read: false };
+
+    const index = await refresh();
+
+    expect(writes.chunk).toBe(1);
+    expect(await search(index, [], [{ type: "is", value: "unread" }])).toEqual([
+      `msg-${changed}`,
+    ]);
+
+    const reloaded = await reload();
+
+    expect(
+      await search(reloaded, [], [{ type: "is", value: "unread" }]),
+    ).toEqual([`msg-${changed}`]);
+    expect(
+      reloaded.items.find((item) => item.id === `msg-${changed}`)?.is_read,
+    ).toBe(false);
+
+    writes.chunk = 0;
+    await refresh();
+    expect(writes.chunk).toBe(0);
+  });
+
+  it("indexes a new message and keeps it after a reload", async () => {
+    server.mailbox.unshift(make_item(MAILBOX_SIZE));
+
+    const index = await refresh();
+
+    expect(writes.chunk).toBeLessThanOrEqual(3);
+    expect(index.items).toHaveLength(MAILBOX_SIZE + 1);
+    expect(await search(index, [`msg-${MAILBOX_SIZE}`])).toEqual([
+      `msg-${MAILBOX_SIZE}`,
+    ]);
+
+    const reloaded = await reload();
+
+    expect(reloaded.items.map((item) => item.id)).toEqual(
+      server.mailbox.map((item) => item.id),
+    );
+  });
+
+  it("drops a deleted message and rewrites only from its chunk on", async () => {
+    const deleted = SNAPSHOT_CHUNK_SIZE * 2 + 100;
+
+    server.mailbox.splice(deleted, 1);
+
+    const index = await refresh();
+
+    expect(writes.chunk).toBe(1);
+    expect(index.items).toHaveLength(MAILBOX_SIZE - 1);
+    expect(await search(index, [`msg-${deleted}`])).toEqual([]);
+
+    const reloaded = await reload();
+
+    expect(reloaded.items.map((item) => item.id)).toEqual(
+      server.mailbox.map((item) => item.id),
+    );
+    expect(await search(reloaded, [`msg-${deleted}`])).toEqual([]);
+  });
+
+  it("restamps the snapshot without rewriting chunks once it is half a TTL old", async () => {
+    const stamped = (await disk_snapshot()).saved_at;
+    const later = stamped + INDEX_TTL_MS;
+    const now = vi.spyOn(Date, "now").mockReturnValue(later);
+
+    try {
+      await refresh();
+    } finally {
+      now.mockRestore();
+    }
+
+    expect(writes.chunk).toBe(0);
+    expect(writes.total).toBe(1);
+    expect((await disk_snapshot()).saved_at).toBe(later);
+    expect((await reload()).built_at).toBe(later);
+  });
+
+  it("restamps an old snapshot loaded from disk when nothing changed", async () => {
+    const manifest = store.get("search_index_account-1") as {
+      saved_at: number;
+    };
+
+    manifest.saved_at -= 2 * INDEX_TTL_MS;
+
+    const stamped = manifest.saved_at;
+
+    reset_index_cache();
+    writes.chunk = 0;
+    await settle();
+
+    expect(writes.chunk).toBe(0);
+    expect((await disk_snapshot()).saved_at).toBeGreaterThan(stamped);
+  });
+
+  it("never writes a manifest once the index is cleared mid-write", async () => {
+    server.mailbox[4100] = { ...server.mailbox[4100], is_read: false };
+    writes.on_chunk = () => {
+      writes.on_chunk = null;
+      clear_search_index();
+    };
+
+    await refresh();
+    await new Promise((resolve) => setTimeout(resolve, 20));
+
+    expect(store.has("search_index_account-1")).toBe(false);
+    expect(await hydrate_snapshot_index(user_email)).toBeNull();
+  });
+
+  it("rebuilds from scratch after the index is cleared", async () => {
+    clear_search_index();
+    store.clear();
+    writes.chunk = 0;
+
+    const index = await settle();
+
+    expect(writes.chunk).toBe(3);
+    expect(index.items).toHaveLength(MAILBOX_SIZE);
+  });
+});
+
+describe("search index front refresh writes", () => {
+  type IndexCacheModule = typeof import("./index_cache");
+  let windowed: IndexCacheModule;
+
+  async function settle_windowed(): Promise<CachedIndex> {
+    await windowed.build_search_index(user_email, false);
+
+    while (windowed.index_build_promise || windowed.is_deep_index_running()) {
+      await windowed.index_build_promise?.catch(() => undefined);
+      await new Promise((resolve) => setTimeout(resolve, 5));
+    }
+
+    return windowed.cached_index as CachedIndex;
+  }
+
+  beforeEach(async () => {
+    vi.resetModules();
+    vi.doMock("./constants", async (original) => ({
+      ...(await original<typeof import("./constants")>()),
+      HOT_CHUNK_COUNT: 1,
+      MAX_RAM_INDEX_ITEMS: SNAPSHOT_CHUNK_SIZE,
+      DEEP_SEGMENT_PAUSE_MS: 0,
+    }));
+    windowed = await import("./index_cache");
+    windowed.clear_search_index();
+    store.clear();
+    server.mailbox = Array.from({ length: MAILBOX_SIZE }, (_, n) =>
+      make_item(n),
+    );
+    writes.chunk = 0;
+
+    const index = await settle_windowed();
+
+    expect(index.items).toHaveLength(SNAPSHOT_CHUNK_SIZE);
+    expect(index.meta?.complete).toBe(true);
+    expect(writes.chunk).toBe(3);
+  });
+
+  it("writes nothing when the front of the mailbox is unchanged", async () => {
+    writes.chunk = 0;
+    writes.total = 0;
+    windowed.mark_search_index_stale();
+
+    const index = await settle_windowed();
+
+    expect(writes.chunk).toBe(0);
+    expect(writes.total).toBe(0);
+    expect(index.meta?.total).toBe(MAILBOX_SIZE);
+  });
+
+  it("rewrites only the front chunk when a read flag changes there", async () => {
+    server.mailbox[7] = { ...server.mailbox[7], is_read: false };
+    writes.chunk = 0;
+    windowed.mark_search_index_stale();
+
+    const index = await settle_windowed();
+
+    expect(writes.chunk).toBe(1);
+    expect(await search(index, [], [{ type: "is", value: "unread" }])).toEqual([
+      "msg-7",
+    ]);
+    expect(index.meta?.total).toBe(MAILBOX_SIZE);
+    expect(index.meta?.chunk_ids).toHaveLength(3);
+  });
+  it("indexes every unlocked message when locked ones sit at the window edge", async () => {
+    windowed.clear_search_index();
+    store.clear();
+
+    for (const n of [1990, 1991, 1992]) {
+      server.mailbox[n] = { ...server.mailbox[n], folder_token: "locked" };
+    }
+
+    const unlocked = server.mailbox
+      .filter((item) => item.folder_token !== "locked")
+      .map((item) => item.id);
+
+    await settle_windowed();
+    expect((await disk_snapshot()).ids).toEqual(unlocked);
+
+    windowed.mark_search_index_stale();
+    await settle_windowed();
+    expect((await disk_snapshot()).ids).toEqual(unlocked);
+  });
+
+  it("drops a message deleted from the front and keeps the rest on disk", async () => {
+    server.mailbox.splice(7, 1);
+    writes.chunk = 0;
+    windowed.mark_search_index_stale();
+
+    const index = await settle_windowed();
+
+    expect(writes.chunk).toBe(1);
+    expect(await search(index, ["msg-7"])).not.toContain("msg-7");
+    expect(index.items.some((item) => item.id === "msg-7")).toBe(false);
+    expect(index.meta?.total).toBe(MAILBOX_SIZE - 1);
+
+    windowed.reset_index_cache();
+    const reloaded = await windowed.hydrate_snapshot_index(user_email);
+    const reader_ids: string[] = [...(reloaded as CachedIndex).items].map(
+      (item) => item.id,
+    );
+
+    expect(reader_ids).toEqual(
+      server.mailbox.slice(0, reader_ids.length).map((item) => item.id),
+    );
+  });
+
+  it("indexes a new message that pushes the front past the window", async () => {
+    server.mailbox.unshift(make_item(MAILBOX_SIZE));
+    windowed.mark_search_index_stale();
+
+    const index = await settle_windowed();
+
+    expect(await search(index, [`msg-${MAILBOX_SIZE}`])).toEqual([
+      `msg-${MAILBOX_SIZE}`,
+    ]);
+    expect(index.meta?.total).toBe(MAILBOX_SIZE + 1);
+  });
+});
+
+describe("search index shared between tabs", () => {
+  type IndexCacheModule = typeof import("./index_cache");
+
+  async function open_tab(): Promise<IndexCacheModule> {
+    vi.resetModules();
+
+    return import("./index_cache");
+  }
+
+  async function settle_tab(tab: IndexCacheModule): Promise<CachedIndex> {
+    await tab.build_search_index(user_email, false);
+
+    while (tab.index_build_promise || tab.is_deep_index_running()) {
+      await tab.index_build_promise?.catch(() => undefined);
+      await new Promise((resolve) => setTimeout(resolve, 5));
+    }
+
+    return tab.cached_index as CachedIndex;
+  }
+
+  async function refresh_tab(tab: IndexCacheModule): Promise<CachedIndex> {
+    tab.mark_search_index_stale();
+
+    return settle_tab(tab);
+  }
+
+  let first: IndexCacheModule;
+  let second: IndexCacheModule;
+
+  beforeEach(async () => {
+    vi.doUnmock("./constants");
+    first = await open_tab();
+    first.clear_search_index();
+    store.clear();
+    server.mailbox = Array.from({ length: MAILBOX_SIZE }, (_, n) =>
+      make_item(n),
+    );
+    await settle_tab(first);
+    second = await open_tab();
+    await settle_tab(second);
+    server.mailbox[10] = { ...server.mailbox[10], is_read: false };
+    await refresh_tab(second);
+    server.mailbox[10] = { ...server.mailbox[10], is_read: true };
+  });
+
+  it("does not keep another tab's chunk when this tab's copy is out of date", async () => {
+    await refresh_tab(first);
+
+    const disk = await disk_snapshot();
+
+    expect(disk.missing).toEqual([]);
+    expect(disk.unread).toEqual([]);
+    expect(disk.ids).toEqual(server.mailbox.map((item) => item.id));
+  });
+
+  it("never points the manifest at a chunk another tab deleted", async () => {
+    server.mailbox[2100] = { ...server.mailbox[2100], is_read: false };
+    await refresh_tab(first);
+
+    const disk = await disk_snapshot();
+
+    expect(disk.missing).toEqual([]);
+    expect(disk.unread).toEqual(["msg-2100"]);
+    expect(disk.ids).toEqual(server.mailbox.map((item) => item.id));
+  });
+});
+
+describe("windowed search index shared between tabs", () => {
+  type IndexCacheModule = typeof import("./index_cache");
+
+  async function open_windowed_tab(): Promise<IndexCacheModule> {
+    vi.resetModules();
+    vi.doMock("./constants", async (original) => ({
+      ...(await original<typeof import("./constants")>()),
+      HOT_CHUNK_COUNT: 1,
+      MAX_RAM_INDEX_ITEMS: SNAPSHOT_CHUNK_SIZE,
+      DEEP_SEGMENT_PAUSE_MS: 0,
+    }));
+
+    return import("./index_cache");
+  }
+
+  async function settle_tab(tab: IndexCacheModule): Promise<CachedIndex> {
+    await tab.build_search_index(user_email, false);
+
+    while (tab.index_build_promise || tab.is_deep_index_running()) {
+      await tab.index_build_promise?.catch(() => undefined);
+      await new Promise((resolve) => setTimeout(resolve, 5));
+    }
+
+    return tab.cached_index as CachedIndex;
+  }
+
+  async function refresh_tab(tab: IndexCacheModule): Promise<CachedIndex> {
+    tab.mark_search_index_stale();
+
+    return settle_tab(tab);
+  }
+
+  let first: IndexCacheModule;
+
+  beforeEach(async () => {
+    first = await open_windowed_tab();
+    first.clear_search_index();
+    store.clear();
+    server.mailbox = Array.from({ length: MAILBOX_SIZE }, (_, n) =>
+      make_item(n),
+    );
+    await settle_tab(first);
+  });
+
+  it("adopts the other tab's snapshot instead of dropping older chunks", async () => {
+    const second = await open_windowed_tab();
+
+    await settle_tab(second);
+    server.mailbox[7] = { ...server.mailbox[7], is_read: false };
+    await refresh_tab(second);
+
+    const manifests: number[][] = [];
+    const save = store.set.bind(store);
+
+    store.set = (key: string, value: unknown) => {
+      if (key === "search_index_account-1") {
+        manifests.push([...(value as { chunk_ids: number[] }).chunk_ids]);
+      }
+
+      return save(key, value);
+    };
+    server.mailbox[8] = { ...server.mailbox[8], is_read: false };
+    writes.chunk = 0;
+    server.envelope_decrypts = 0;
+
+    try {
+      await refresh_tab(first);
+    } finally {
+      store.set = save;
+    }
+
+    const disk = await disk_snapshot();
+
+    expect(writes.chunk).toBe(1);
+    expect(server.envelope_decrypts).toBe(0);
+    expect(manifests.every((ids) => ids.length === 3)).toBe(true);
+    expect(disk.missing).toEqual([]);
+    expect(disk.unread).toEqual(["msg-7", "msg-8"]);
+    expect(disk.ids).toEqual(server.mailbox.map((item) => item.id));
+  });
+
+  it("recovers when a stored chunk past the window has gone missing", async () => {
+    const lost = (
+      store.get("search_index_account-1") as { chunk_ids: number[] }
+    ).chunk_ids[2];
+
+    store.delete(`search_index_account-1_chunk_${lost}`);
+    server.mailbox[7] = { ...server.mailbox[7], is_read: false };
+    await refresh_tab(first);
+
+    const disk = await disk_snapshot();
+
+    expect(disk.missing).toEqual([]);
+    expect(disk.unread).toEqual(["msg-7"]);
+    expect(disk.ids).toEqual(server.mailbox.map((item) => item.id));
+
+    writes.chunk = 0;
+    await refresh_tab(first);
+    expect(writes.chunk).toBe(0);
+  });
+});

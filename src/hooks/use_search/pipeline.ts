@@ -333,7 +333,7 @@ export async function run_index_pipeline(
 
     const response = await list_encrypted_mail_items({
       cursor,
-      limit: page_limit,
+      limit: Math.min(page_limit, options.max_items - processed),
       include_envelope: incremental ? false : undefined,
     });
 
@@ -357,12 +357,6 @@ export async function run_index_pipeline(
         page_items = page_items.slice(0, boundary);
         reached_boundary = true;
       }
-    }
-
-    const room = options.max_items - processed;
-
-    if (page_items.length > room) {
-      page_items = page_items.slice(0, room);
     }
 
     page_items = filter_locked_mail_items(page_items);
