@@ -67,6 +67,8 @@ import {
   MAX_INDEX_PREVIEW_CHARS,
   SNAPSHOT_CHUNK_SIZE,
   type PersistableEntry,
+  type ReusableChunk,
+  type SnapshotMeta,
 } from "@/services/search_index_store";
 import {
   build_chunk_skip_plan,
@@ -322,6 +324,94 @@ describe("chunked snapshot writer", () => {
     const chunk = await reader!.read(0);
 
     expect(chunk!.items.map((i) => i.id)).toEqual(["msg-0", "msg-2"]);
+  });
+});
+
+describe("snapshot writer reusing stored chunks", () => {
+  beforeEach(() => {
+    store.clear();
+    write_hook.calls = 0;
+    write_hook.fail_after = Number.POSITIVE_INFINITY;
+    invalidate_snapshot_caches();
+  });
+
+  async function write_initial(count: number): Promise<{
+    meta: SnapshotMeta;
+    stored: ReusableChunk[];
+  }> {
+    const writer = await open_snapshot_writer(user_email);
+    const page = make_page(0, count);
+
+    await writer!.add_page(page.items, page.entries);
+    const meta = await writer!.finish({ complete: true, include_body: true });
+    const reader = await open_snapshot_reader(user_email);
+    const stored: ReusableChunk[] = [];
+
+    for (const id of meta!.chunk_ids) {
+      const chunk = await reader!.read(id);
+
+      stored.push({ id, items: chunk!.items, entries: chunk!.entries });
+    }
+
+    invalidate_snapshot_caches();
+    write_hook.calls = 0;
+
+    return { meta: meta!, stored };
+  }
+
+  it("writes nothing when every chunk matches what is stored", async () => {
+    const { meta, stored } = await write_initial(SNAPSHOT_CHUNK_SIZE + 5);
+    const writer = await open_snapshot_writer(user_email, meta, stored);
+    const page = make_page(0, SNAPSHOT_CHUNK_SIZE + 5);
+
+    await writer!.add_page(page.items, page.entries);
+    const next = await writer!.finish({ complete: true, include_body: true });
+
+    expect(write_hook.calls).toBe(0);
+    expect(next!.chunk_ids).toEqual(meta.chunk_ids);
+    expect(next!.total).toBe(SNAPSHOT_CHUNK_SIZE + 5);
+    expect(writer!.layout()).toEqual([
+      { id: meta.chunk_ids[0], count: SNAPSHOT_CHUNK_SIZE },
+      { id: meta.chunk_ids[1], count: 5 },
+    ]);
+  });
+
+  it("rewrites only the chunk whose item flags changed", async () => {
+    const { meta, stored } = await write_initial(SNAPSHOT_CHUNK_SIZE + 5);
+    const writer = await open_snapshot_writer(user_email, meta, stored);
+    const page = make_page(0, SNAPSHOT_CHUNK_SIZE + 5);
+    const changed = SNAPSHOT_CHUNK_SIZE + 2;
+
+    page.items[changed] = { ...page.items[changed], is_read: false };
+
+    await writer!.add_page(page.items, page.entries);
+    const next = await writer!.finish({ complete: true, include_body: true });
+
+    expect(next!.chunk_ids[0]).toBe(meta.chunk_ids[0]);
+    expect(next!.chunk_ids[1]).not.toBe(meta.chunk_ids[1]);
+    expect(chunk_keys()).toHaveLength(2);
+
+    const reader = await open_snapshot_reader(user_email);
+    const chunk = await reader!.read(next!.chunk_ids[1]);
+
+    expect(chunk!.items[2].is_read).toBe(false);
+  });
+
+  it("never deletes a reused chunk when the new snapshot is discarded", async () => {
+    const { meta, stored } = await write_initial(SNAPSHOT_CHUNK_SIZE * 2);
+    const writer = await open_snapshot_writer(user_email, meta, stored);
+    const page = make_page(0, SNAPSHOT_CHUNK_SIZE * 2);
+
+    page.entries.get("msg-1")!.search_body_text = "edited draft";
+
+    await writer!.add_page(page.items, page.entries);
+    await writer!.discard();
+
+    const reader = await open_snapshot_reader(user_email);
+
+    expect(reader!.meta.chunk_ids).toEqual(meta.chunk_ids);
+    expect(await reader!.read(meta.chunk_ids[0])).not.toBeNull();
+    expect(await reader!.read(meta.chunk_ids[1])).not.toBeNull();
   });
 });
 

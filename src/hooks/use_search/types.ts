@@ -174,6 +174,13 @@ export interface CachedIndex {
   total_indexed: number;
   complete: boolean;
   meta: SnapshotMeta | null;
+  chunk_layout?: ChunkSpan[];
+}
+
+export interface ChunkSpan {
+  id: number;
+  start: number;
+  count: number;
 }
 
 export interface IndexingProgress {

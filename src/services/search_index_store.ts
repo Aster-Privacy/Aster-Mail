@@ -355,6 +355,50 @@ export function invalidate_snapshot_caches(): void {
   summary_cache.clear();
 }
 
+export interface ReusableChunk {
+  id: number;
+  items: MailItem[];
+  entries: PersistableEntry[];
+}
+
+export interface WrittenChunk {
+  id: number;
+  count: number;
+}
+
+function persisted_json(id: string, entry: PersistableEntry): string {
+  return JSON.stringify(to_persisted_entry(id, entry));
+}
+
+function chunk_unchanged(
+  stored: ReusableChunk,
+  items: MailItem[],
+  entries: PersistableEntry[],
+): boolean {
+  if (stored.items.length !== items.length) return false;
+
+  for (let i = 0; i < items.length; i++) {
+    if (stored.items[i].id !== items[i].id) return false;
+  }
+
+  for (let i = 0; i < items.length; i++) {
+    const id = items[i].id;
+
+    if (
+      stored.entries[i] !== entries[i] &&
+      persisted_json(id, stored.entries[i]) !== persisted_json(id, entries[i])
+    ) {
+      return false;
+    }
+
+    if (JSON.stringify(stored.items[i]) !== JSON.stringify(items[i])) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 export interface SnapshotReader {
   meta: SnapshotMeta;
   read(chunk_id: number): Promise<SearchIndexChunk | null>;
@@ -369,6 +413,7 @@ export interface SnapshotWriter {
   ): Promise<void>;
   written_count(): number;
   storage_exhausted(): boolean;
+  layout(): WrittenChunk[];
   finish(options: {
     next_cursor?: string;
     complete: boolean;
@@ -524,6 +569,7 @@ export async function open_snapshot_reader(
 export async function open_snapshot_writer(
   user_email: string,
   base?: SnapshotMeta | null,
+  reusable?: ReusableChunk[],
 ): Promise<SnapshotWriter | null> {
   const encryption_key = await get_snapshot_encryption_key();
 
@@ -532,22 +578,37 @@ export async function open_snapshot_writer(
   const key = await snapshot_key();
   const saved_at = Date.now();
   const written_ids: number[] = [];
+  const fresh_ids: number[] = [];
+  const layout: WrittenChunk[] = [];
   const written_summaries = new Map<number, ChunkSummary>();
   let next_chunk_id = base?.next_chunk_id ?? 0;
   let buffer_items: MailItem[] = [];
   let buffer_entries: PersistedSearchEntry[] = [];
+  let buffer_sources: PersistableEntry[] = [];
   let written = 0;
   let storage_exhausted = false;
 
   const drop_buffer = (): void => {
     buffer_items = [];
     buffer_entries = [];
+    buffer_sources = [];
   };
 
   const flush = async (): Promise<void> => {
     if (buffer_items.length === 0) return;
 
     if (storage_exhausted) {
+      drop_buffer();
+
+      return;
+    }
+
+    const stored = reusable?.[layout.length];
+
+    if (stored && chunk_unchanged(stored, buffer_items, buffer_sources)) {
+      written_ids.push(stored.id);
+      layout.push({ id: stored.id, count: buffer_items.length });
+      written += buffer_items.length;
       drop_buffer();
 
       return;
@@ -582,6 +643,8 @@ export async function open_snapshot_writer(
       written_summaries.set(chunk_id, digest.summary);
 
       written_ids.push(chunk_id);
+      fresh_ids.push(chunk_id);
+      layout.push({ id: chunk_id, count: buffer_items.length });
       written += buffer_items.length;
     } catch (error) {
       if (import.meta.env.DEV) console.error("search_snapshot_flush", error);
@@ -668,6 +731,7 @@ export async function open_snapshot_writer(
   return {
     written_count: () => written + buffer_items.length,
     storage_exhausted: () => storage_exhausted,
+    layout: () => [...layout],
     add_page: async (items, entries) => {
       if (storage_exhausted) return;
 
@@ -678,6 +742,7 @@ export async function open_snapshot_writer(
 
         buffer_items.push(trim_item_for_index(item));
         buffer_entries.push(to_persisted_entry(item.id, entry));
+        buffer_sources.push(entry);
 
         if (buffer_items.length >= SNAPSHOT_CHUNK_SIZE) {
           await flush();
@@ -685,13 +750,12 @@ export async function open_snapshot_writer(
       }
     },
     discard: async () => {
-      buffer_items = [];
-      buffer_entries = [];
+      drop_buffer();
       written_summaries.clear();
       invalidate_snapshot_caches();
 
       await Promise.all(
-        written_ids.flatMap((id) => [
+        fresh_ids.flatMap((id) => [
           secure_overwrite_and_delete(chunk_record_key(key, id)),
           secure_overwrite_and_delete(gram_record_key(key, id)),
         ]),
@@ -721,6 +785,19 @@ export async function open_snapshot_writer(
           total: written + (kept_total ?? 0),
           include_body,
         };
+
+        if (
+          base &&
+          fresh_ids.length === 0 &&
+          meta.next_cursor === base.next_cursor &&
+          meta.complete === base.complete &&
+          meta.total === base.total &&
+          meta.include_body === base.include_body &&
+          meta.chunk_ids.length === base.chunk_ids.length &&
+          meta.chunk_ids.every((id, i) => id === base.chunk_ids[i])
+        ) {
+          return { ...base, chunk_ids: [...base.chunk_ids] };
+        }
 
         await encrypted_set(
           key,
