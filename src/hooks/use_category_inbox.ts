@@ -88,6 +88,7 @@ import {
   set_thread_grouping,
   set_ids_read,
 } from "@/services/category_index";
+import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { drop_removed_after } from "@/services/removed_items";
 import { resolve_read_intent } from "@/services/read_intent";
 import { get_thread_messages, trash_thread } from "@/services/api/mail";
@@ -881,7 +882,7 @@ export function use_category_inbox(
       });
       void (async () => {
         try {
-          await sync_recent();
+          await sync_recent(false, true);
         } catch {
           void 0;
         }
@@ -889,6 +890,8 @@ export function use_category_inbox(
         if (cancelled) return;
 
         await fetch_page(page, page_size);
+        if (cancelled) return;
+        invalidate_mail_stats();
       })();
     };
 
@@ -929,7 +932,7 @@ export function use_category_inbox(
           if (email_id) {
             await index_arrival(email_id);
           } else {
-            await sync_recent();
+            await sync_recent(false, true);
           }
         } catch {
           void 0;

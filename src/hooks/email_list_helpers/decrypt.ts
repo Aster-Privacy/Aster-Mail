@@ -25,6 +25,7 @@ import {
   get_passphrase_bytes,
   get_passphrase_from_memory,
   get_vault_from_memory,
+  on_vault_cleared,
   wait_for_keys_ready,
 } from "@/services/crypto/memory_key_store";
 import { decrypt_pgp_message_parallel } from "@/workers/pgp_decrypt_pool";
@@ -63,16 +64,84 @@ export async function try_decrypt_with_identity_key(
   );
 }
 
+const ENVELOPE_CACHE_MAX = 2000;
+const ENVELOPE_CACHE_TAIL = 64;
+
+const envelope_cache = new Map<string, Promise<DecryptedEnvelope | null>>();
+let envelope_cache_armed = false;
+
+function envelope_cache_key(
+  encrypted: string,
+  nonce: string,
+  mail_item_id?: string,
+): string | null {
+  if (!mail_item_id || !encrypted) return null;
+
+  return `${mail_item_id}|${nonce}|${encrypted.length}|${encrypted.slice(-ENVELOPE_CACHE_TAIL)}`;
+}
+
+function arm_envelope_cache(): void {
+  if (envelope_cache_armed) return;
+  envelope_cache_armed = true;
+  on_vault_cleared(() => {
+    envelope_cache.clear();
+  });
+}
+
+export function clear_envelope_cache(): void {
+  envelope_cache.clear();
+}
+
 export async function decrypt_envelope(
   encrypted: string,
   nonce: string,
   mail_item_id?: string,
 ): Promise<DecryptedEnvelope | null> {
-  const envelope = await open_envelope(encrypted, nonce, mail_item_id);
+  const key = envelope_cache_key(encrypted, nonce, mail_item_id);
+
+  if (key === null) {
+    const envelope = await open_envelope(encrypted, nonce, mail_item_id);
+
+    register_envelope_attachment_keys(mail_item_id, envelope);
+
+    return envelope;
+  }
+
+  let pending = envelope_cache.get(key);
+
+  if (pending) {
+    envelope_cache.delete(key);
+    envelope_cache.set(key, pending);
+  } else {
+    arm_envelope_cache();
+    pending = open_envelope(encrypted, nonce, mail_item_id);
+    envelope_cache.set(key, pending);
+    while (envelope_cache.size > ENVELOPE_CACHE_MAX) {
+      const oldest = envelope_cache.keys().next().value;
+
+      if (oldest === undefined) break;
+      envelope_cache.delete(oldest);
+    }
+  }
+
+  let envelope: DecryptedEnvelope | null;
+
+  try {
+    envelope = await pending;
+  } catch (caught) {
+    if (envelope_cache.get(key) === pending) envelope_cache.delete(key);
+    throw caught;
+  }
+
+  if (!envelope) {
+    if (envelope_cache.get(key) === pending) envelope_cache.delete(key);
+
+    return null;
+  }
 
   register_envelope_attachment_keys(mail_item_id, envelope);
 
-  return envelope;
+  return { ...envelope };
 }
 
 async function open_envelope(

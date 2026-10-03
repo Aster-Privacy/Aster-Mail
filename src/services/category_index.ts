@@ -2097,8 +2097,11 @@ export async function build_index(options?: {
 // Cheap incremental sync: only the newest page, never the whole mailbox.
 // This is what runs on routine mail changes, so it stays O(page) even with
 // a million messages. Deletions are handled by the event listeners.
-export async function sync_recent(notify_new = false): Promise<void> {
-  if (build_in_progress) return;
+export async function sync_recent(
+  notify_new = false,
+  force = false,
+): Promise<void> {
+  if (build_in_progress && !force) return;
   if (!has_vault_in_memory()) return;
 
   prune_expired_suppressions();
@@ -2230,11 +2233,17 @@ export async function sync_recent(notify_new = false): Promise<void> {
       }
     }
 
+    if (changed) {
+      schedule_persist();
+      notify();
+      publish_inbox_unread();
+    }
+
     const deletions_pruned = await prune_server_deletions();
 
     if (token !== build_token) return;
 
-    if (changed || deletions_pruned) {
+    if (deletions_pruned) {
       schedule_persist();
       notify();
     }
@@ -2258,7 +2267,7 @@ export async function sync_recent(notify_new = false): Promise<void> {
       return;
     }
 
-    await rebuild_if_index_lags_server();
+    void rebuild_if_index_lags_server().catch(() => undefined);
   } catch {
     resync_failures += 1;
     if (resync_failures < MAX_RESYNC_FAILURES) schedule_resync();
