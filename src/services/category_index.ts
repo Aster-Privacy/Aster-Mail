@@ -195,6 +195,7 @@ let ensure_loaded_promise: Promise<boolean> | null = null;
 let ensure_loaded_account: string | null = null;
 let persist_timer: ReturnType<typeof setTimeout> | null = null;
 let notify_timer: ReturnType<typeof setTimeout> | null = null;
+let notify_due_ms = 0;
 let resync_timer: ReturnType<typeof setTimeout> | null = null;
 let resync_failures = 0;
 let listeners_started = false;
@@ -467,8 +468,16 @@ function notify_soon(immediate = false): void {
       ? BUILD_NOTIFY_THROTTLE_MS
       : NOTIFY_THROTTLE_MS;
 
-  if (notify_timer) clearTimeout(notify_timer);
+  const due_ms = now_ms() + delay;
 
+  // Throttle, never postpone: a notify that is already due sooner stays, so a
+  // steady stream of build chunks cannot hold back every update until the end.
+  if (notify_timer) {
+    if (notify_due_ms <= due_ms) return;
+    clearTimeout(notify_timer);
+  }
+
+  notify_due_ms = due_ms;
   notify_timer = setTimeout(() => {
     notify_timer = null;
     notify();
@@ -954,7 +963,9 @@ function remember_entry_preview(id: string, preview: CategoryPreview): void {
   preview_version += 1;
   previews_dirty = true;
   schedule_persist();
-  notify();
+  // Once per decrypted message during a build: every notify re-derives the
+  // whole index, so builds use the build throttle instead of notifying here.
+  notify_soon(!build_in_progress);
 }
 
 export function get_entry_preview(id: string): CategoryPreview | undefined {
