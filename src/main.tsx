@@ -288,9 +288,10 @@ if ("serviceWorker" in navigator && import.meta.env.PROD && !is_tauri_runtime) {
 
       if (already_reset) return true;
 
-      const regs = await navigator.serviceWorker.getRegistrations();
-      const cache_keys =
-        typeof caches !== "undefined" ? await caches.keys() : [];
+      const [regs, cache_keys] = await Promise.all([
+        navigator.serviceWorker.getRegistrations(),
+        typeof caches !== "undefined" ? caches.keys() : Promise.resolve([]),
+      ]);
       const has_legacy_state = regs.length > 0 || cache_keys.length > 0;
 
       try {
