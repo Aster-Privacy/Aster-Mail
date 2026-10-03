@@ -23,6 +23,7 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 import {
+  TRACKING_PIXEL_MARKER_GLYPH_PX,
   TRACKING_PIXEL_MARKER_SIZE_PX,
   TrackingPixelMarkers,
   locate_tracking_pixel_markers,
@@ -182,6 +183,12 @@ describe("TrackingPixelMarkers", () => {
     expect(badges[0].style.left).toBe("40px");
     expect(badges[0].style.top).toBe("12px");
     expect(badges[0].style.width).toBe(`${TRACKING_PIXEL_MARKER_SIZE_PX}px`);
+    const glyph = badges[0].querySelector("svg")!;
+
+    expect(glyph.style.width).toBe(`${TRACKING_PIXEL_MARKER_GLYPH_PX}px`);
+    expect(glyph.style.height).toBe(`${TRACKING_PIXEL_MARKER_GLYPH_PX}px`);
+    expect(glyph.getAttribute("aria-hidden")).toBe("true");
+    expect(badges[0].className).not.toContain("rounded-full");
   });
 
   it("renders nothing without visible pixels", () => {

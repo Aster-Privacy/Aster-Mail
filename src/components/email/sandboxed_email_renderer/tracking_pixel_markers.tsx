@@ -22,6 +22,10 @@ import { ShieldCheckIcon } from "@heroicons/react/24/solid";
 import { Tooltip } from "@aster/ui";
 
 export const TRACKING_PIXEL_MARKER_SIZE_PX = 16;
+export const TRACKING_PIXEL_MARKER_GLYPH_PX = 11;
+
+const MARKER_OUTLINE =
+  "drop-shadow(0 0 0.5px var(--bg-primary)) drop-shadow(0 0 0.5px var(--bg-primary))";
 
 const TRACKING_PIXEL_SELECTOR =
   "img[data-blocked='true'][data-tracking-pixel='true']";
@@ -200,7 +204,7 @@ export function TrackingPixelMarkers({
         <Tooltip key={marker.key} position="top" tip={label}>
           <span
             aria-label={label}
-            className="pointer-events-auto absolute flex items-center justify-center rounded-full border border-edge-primary bg-surf-primary text-emerald-600 shadow-sm dark:text-emerald-500"
+            className="pointer-events-auto absolute flex items-center justify-center text-emerald-600 dark:text-emerald-500"
             data-tracking-pixel-marker=""
             role="img"
             style={{
@@ -210,7 +214,14 @@ export function TrackingPixelMarkers({
               height: TRACKING_PIXEL_MARKER_SIZE_PX,
             }}
           >
-            <ShieldCheckIcon className="h-2.5 w-2.5" />
+            <ShieldCheckIcon
+              aria-hidden="true"
+              style={{
+                width: TRACKING_PIXEL_MARKER_GLYPH_PX,
+                height: TRACKING_PIXEL_MARKER_GLYPH_PX,
+                filter: MARKER_OUTLINE,
+              }}
+            />
           </span>
         </Tooltip>
       ))}
