@@ -10415,6 +10415,8 @@ export const fr = {
     expr_bad_attachment_op:
       'L\'opérateur "{{value}}" ne fonctionne pas sur les noms de pièces jointes. Essayez contains, ends_with ou matches_regex.',
     expr_unhandled_field: "Ce champ ne peut pas être utilisé ici.",
+    expr_misplaced_match_case:
+      "match_case ne peut suivre qu'une valeur texte entre guillemets.",
     expr_internal_error:
       "Cette expression n'a pas pu être lue. Vérifiez la syntaxe, puis réessayez.",
     expr_line_col: "(ligne {{line}}, colonne {{col}})",

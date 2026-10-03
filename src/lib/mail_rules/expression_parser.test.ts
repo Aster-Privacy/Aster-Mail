@@ -105,4 +105,19 @@ describe("expression match_case", () => {
       ast: { type: "subject", operator: "contains", value: "urgent" },
     });
   });
+
+  it("reports a misplaced match_case clearly", () => {
+    for (const text of [
+      "match_case",
+      "subject is_empty match_case",
+      "spam_score > 5 match_case",
+      "date_received older_than_days 3 match_case",
+      "has_attachment match_case",
+      'subject contains "a" match_case match_case',
+    ]) {
+      const result = parse(text);
+
+      expect(result.ok ? null : result.error).toBe("misplaced_match_case");
+    }
+  });
 });

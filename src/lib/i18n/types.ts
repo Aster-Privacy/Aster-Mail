@@ -621,6 +621,7 @@ export interface MailRulesTranslations {
   expr_bad_text_op: string;
   expr_bad_attachment_op: string;
   expr_unhandled_field: string;
+  expr_misplaced_match_case: string;
   expr_internal_error: string;
   expr_line_col: string;
   cannot_render_visual: string;

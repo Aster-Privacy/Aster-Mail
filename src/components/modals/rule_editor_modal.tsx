@@ -93,7 +93,9 @@ import {
   default_condition,
   flatten_leaves,
   has_any_action_value,
+  has_case_sensitive_condition,
   has_nested_logic,
+  stored_expression_matches_conditions,
   strip_unavailable_actions,
   keep_unavailable_actions,
 } from "@/components/modals/rule_editor_helpers";
@@ -176,8 +178,8 @@ export function RuleEditorModal({
       set_conditions(rule.conditions);
       set_actions(strip_unavailable_actions(rule.actions));
       set_preserved_actions(keep_unavailable_actions(rule.actions));
-      if (rule.expression) {
-        set_expression_text(rule.expression);
+      if (stored_expression_matches_conditions(rule)) {
+        set_expression_text(rule.expression ?? "");
         set_tab("expression");
       } else {
         const nested = has_nested_logic(rule.conditions);
@@ -515,6 +517,9 @@ export function RuleEditorModal({
 
         return;
       }
+    }
+    if (has_case_sensitive_condition(derived_conditions)) {
+      expression_value = null;
     }
     const req = {
       name: name.trim() || t("mail_rules.untitled_rule_name"),

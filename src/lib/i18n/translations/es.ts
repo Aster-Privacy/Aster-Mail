@@ -10286,6 +10286,8 @@ export const es = {
     expr_bad_attachment_op:
       'El operador "{{value}}" no funciona en nombres de adjuntos. Prueba contains, ends_with o matches_regex.',
     expr_unhandled_field: "Este campo no se puede usar aquí.",
+    expr_misplaced_match_case:
+      "match_case solo puede ir después de un valor de texto entre comillas.",
     expr_internal_error:
       "No se pudo leer esta expresión. Revisa la sintaxis e inténtalo de nuevo.",
     expr_line_col: "(línea {{line}}, columna {{col}})",

@@ -10087,6 +10087,8 @@ export const ja = {
     expr_bad_attachment_op:
       "演算子「{{value}}」は添付ファイル名では使えません。contains、ends_with、matches_regex をお試しください。",
     expr_unhandled_field: "このフィールドはここでは使用できません。",
+    expr_misplaced_match_case:
+      "match_case は引用符で囲んだテキスト値の後にのみ置けます。",
     expr_internal_error:
       "この式を読み取れませんでした。構文を確認して、もう一度お試しください。",
     expr_line_col: "（{{line}} 行、{{col}} 列）",

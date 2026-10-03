@@ -155,6 +155,7 @@ beforeEach(() => {
   document.body.appendChild(container);
   root = createRoot(container);
   update_rule.mockClear();
+  create_rule.mockClear();
 });
 
 afterEach(() => {
@@ -207,14 +208,49 @@ function open_editor(rule: Rule) {
   });
 }
 
-function saved_request(): {
+interface SavedRequest {
   match_mode: string;
   conditions: Rule["conditions"];
-} {
-  return update_rule.mock.calls[0][1] as {
-    match_mode: string;
-    conditions: Rule["conditions"];
-  };
+  expression: string | null;
+}
+
+function saved_request(): SavedRequest {
+  return update_rule.mock.calls[0][1] as SavedRequest;
+}
+
+function created_request(): SavedRequest {
+  return create_rule.mock.calls[0][0] as SavedRequest;
+}
+
+function open_new_editor() {
+  act(() => {
+    root.render(
+      <RuleEditorModal
+        is_open
+        on_close={() => {}}
+        seed={{
+          name: "Rule",
+          color: "#6366f1",
+          match_mode: "all",
+          conditions: [],
+          actions: [{ type: "star", value: true }],
+        }}
+      />,
+    );
+  });
+}
+
+function type_expression(text: string) {
+  const textarea = container.querySelector("textarea") as HTMLTextAreaElement;
+  const set_value = Object.getOwnPropertyDescriptor(
+    HTMLTextAreaElement.prototype,
+    "value",
+  )?.set;
+
+  act(() => {
+    set_value?.call(textarea, text);
+    textarea.dispatchEvent(new Event("input", { bubbles: true }));
+  });
 }
 
 const MATCH_CASE_RULE = () =>
@@ -278,5 +314,79 @@ describe("rule editor expression tab", () => {
     await click("mail_rules.save_rule");
 
     expect(saved_request().match_mode).toBe("any");
+  });
+
+  it("does not send match_case to the server when creating a rule", async () => {
+    open_new_editor();
+    await click("mail_rules.tab_expression");
+    type_expression('subject contains "URGENT" match_case');
+    await click("mail_rules.save_rule");
+
+    expect(created_request().expression).toBeNull();
+    expect(created_request().conditions).toEqual([
+      {
+        type: "subject",
+        operator: "contains",
+        value: "URGENT",
+        case_sensitive: true,
+      },
+    ]);
+  });
+
+  it("clears the stored expression when updating a case sensitive rule", async () => {
+    open_editor({
+      ...MATCH_CASE_RULE(),
+      expression: 'subject contains "URGENT"',
+    });
+    await click("mail_rules.tab_expression");
+
+    expect(expression_text()).toBe('subject contains "URGENT" match_case');
+
+    await click("mail_rules.save_rule");
+
+    expect(saved_request().expression).toBeNull();
+  });
+
+  it("still sends the expression for rules without Match case", async () => {
+    open_new_editor();
+    await click("mail_rules.tab_expression");
+    type_expression('subject contains "invoice"');
+    await click("mail_rules.save_rule");
+
+    expect(created_request().expression).toBe('subject contains "invoice"');
+  });
+
+  it("opens in Visual when the stored expression no longer matches the conditions", async () => {
+    open_editor({
+      ...MATCH_CASE_RULE(),
+      expression: 'subject contains "URGENT"',
+    });
+
+    expect(container.querySelector("textarea")).toBeNull();
+
+    await click("mail_rules.save_rule");
+
+    expect(saved_request().conditions).toEqual([
+      {
+        type: "subject",
+        operator: "contains",
+        value: "URGENT",
+        case_sensitive: true,
+      },
+    ]);
+  });
+
+  it("opens a stored expression that matches the conditions in Expression", () => {
+    open_editor({
+      ...make_rule([
+        { type: "from", operator: "contains", value: "alice" },
+        { type: "subject", operator: "contains", value: "invoice" },
+      ]),
+      expression: 'from.address contains "alice"\n  subject contains "invoice"',
+    });
+
+    expect(expression_text()).toBe(
+      'from.address contains "alice"\n  subject contains "invoice"',
+    );
   });
 });

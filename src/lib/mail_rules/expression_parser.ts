@@ -469,6 +469,9 @@ class Parser {
     if (ft.kind !== "ident") {
       throw new ParseError("expected_field", ft.line, ft.col);
     }
+    if (ft.value.toLowerCase() === "match_case") {
+      throw new ParseError("misplaced_match_case", ft.line, ft.col);
+    }
     let meta = field_meta(ft.value);
 
     if (!meta && ft.value.toLowerCase() === "header") {
@@ -832,6 +835,8 @@ export function friendly_error(
       return t("mail_rules.expr_bad_attachment_op", { value });
     case "unhandled_field":
       return t("mail_rules.expr_unhandled_field");
+    case "misplaced_match_case":
+      return t("mail_rules.expr_misplaced_match_case");
     case "internal_error":
       return t("mail_rules.expr_internal_error");
     default:

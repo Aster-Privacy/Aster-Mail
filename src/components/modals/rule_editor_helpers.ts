@@ -23,6 +23,7 @@ import type {
   Condition,
   ConditionField,
   LeafCondition,
+  Rule,
 } from "@/services/api/mail_rules";
 import type { AddableActionType } from "@/components/mail_rules/add_action_chip";
 
@@ -30,6 +31,7 @@ import {
   default_condition_for_field,
   field_kind,
 } from "@/components/mail_rules/field_kind";
+import { parse, serialize } from "@/lib/mail_rules/expression_parser";
 
 export type EditorTab = "visual" | "expression";
 
@@ -53,6 +55,29 @@ export function flatten_leaves(conditions: Condition[]): LeafCondition[] {
   }
 
   return out;
+}
+
+export function has_case_sensitive_condition(conditions: Condition[]): boolean {
+  return flatten_leaves(conditions).some(
+    (c) => "case_sensitive" in c && c.case_sensitive === true,
+  );
+}
+
+export function stored_expression_matches_conditions(
+  rule: Pick<Rule, "expression" | "conditions" | "match_mode">,
+): boolean {
+  if (!rule.expression) return false;
+  const parsed = parse(rule.expression);
+
+  if (!parsed.ok) return false;
+
+  return (
+    serialize(parsed.ast) ===
+    serialize({
+      type: rule.match_mode === "any" ? "or" : "and",
+      conditions: rule.conditions,
+    })
+  );
 }
 
 export const RULE_COLORS = [

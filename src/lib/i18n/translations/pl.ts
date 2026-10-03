@@ -10501,6 +10501,8 @@ export const pl = {
     expr_bad_attachment_op:
       'Operator "{{value}}" nie działa na nazwach załączników. Spróbuj contains, ends_with lub matches_regex.',
     expr_unhandled_field: "Tego pola nie można tutaj użyć.",
+    expr_misplaced_match_case:
+      "match_case może występować tylko po wartości tekstowej w cudzysłowie.",
     expr_internal_error:
       "Nie udało się odczytać tego wyrażenia. Sprawdź składnię i spróbuj ponownie.",
     expr_line_col: "(wiersz {{line}}, kolumna {{col}})",
