@@ -25,7 +25,6 @@ import {
   read_clipboard_image,
   read_clipboard_uri,
 } from "@/native/clipboard_image";
-import { sanitize_compose_paste } from "@/lib/html_sanitizer";
 import {
   MAX_PASTE_IMAGE_SIZE,
   pasted_html_has_text,
@@ -331,32 +330,17 @@ export function use_mobile_compose_images(compose: ComposeHandle) {
         }
       }
 
-      if (Capacitor.isNativePlatform()) {
-        const html_data = clipboard.getData("text/html");
-        const text_data = clipboard.getData("text/plain");
-
-        if (!html_data && !text_data) {
-          e.preventDefault();
-          const data_url = await read_clipboard_image();
-
-          if (data_url) {
-            insert_data_url_image(data_url);
-          }
-
-          return;
-        }
-
+      if (
+        Capacitor.isNativePlatform() &&
+        !clipboard.getData("text/html") &&
+        !clipboard.getData("text/plain")
+      ) {
         e.preventDefault();
-        if (html_data) {
-          document.execCommand(
-            "insertHTML",
-            false,
-            sanitize_compose_paste(html_data),
-          );
-        } else if (text_data) {
-          document.execCommand("insertText", false, text_data);
+        const data_url = await read_clipboard_image();
+
+        if (data_url) {
+          insert_data_url_image(data_url);
         }
-        compose.handle_editor_input();
 
         return;
       }
