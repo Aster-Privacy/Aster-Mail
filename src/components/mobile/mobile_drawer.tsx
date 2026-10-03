@@ -182,7 +182,11 @@ export const MobileDrawer = memo(function MobileDrawer({
     active_path,
   );
 
+  const account_email = user?.email ?? "";
+
   useEffect(() => {
+    if (!account_email) return;
+
     const fetch_alias_limit = () => {
       get_alias_limit()
         .then((response) => {
@@ -210,7 +214,7 @@ export const MobileDrawer = memo(function MobileDrawer({
       );
       document.removeEventListener("visibilitychange", handle_visibility);
     };
-  }, []);
+  }, [account_email]);
 
   const { dialog_ref, handle_backdrop_pointer_down } =
     use_dialog_shell<HTMLElement>(is_open, on_close, "mobile_drawer");

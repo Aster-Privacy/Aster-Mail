@@ -66,6 +66,7 @@ import { ignore_error } from "@/lib/ignore_error";
 import { escape_mailto_body } from "@/lib/mailto_link";
 import { read_settings_navigation } from "@/lib/settings_links";
 import { use_upgrade_prompt_events } from "@/stores/upgrade_store";
+import { safe_local_get } from "@/lib/safe_storage";
 
 const MobileInbox = lazy_with_retry(
   () => import("@/pages/mobile/mobile_inbox"),
@@ -97,6 +98,12 @@ const SignInPage = lazy_with_retry(
 const RegisterPage = lazy_with_retry(
   () => import("@/pages/mobile/mobile_register"),
 );
+
+if (safe_local_get("aster_preferences_cache")) {
+  import("@/pages/mobile/mobile_inbox").catch((caught) =>
+    ignore_error("mobile_app:preload_mobile_inbox", caught),
+  );
+}
 
 import("@/pages/mobile/mobile_sign_in").catch((caught) =>
   ignore_error("mobile_app", caught),
@@ -218,6 +225,7 @@ function MobileApp() {
   const [is_drawer_open, set_is_drawer_open] = useState(false);
   const [is_selection_active, set_is_selection_active] = useState(false);
   const edit_draft_ref = useRef<EditDraftData | null>(null);
+  const { is_authenticated } = use_auth();
 
   use_background_subscription_scan();
   use_account_data_conversion();
@@ -554,7 +562,7 @@ function MobileApp() {
         <CheckoutReturnHandler />
         <MobileDomainOrderReturn />
         {!is_auth_route && <LockedDataBanner />}
-        {!is_auth_route && <BillingAlertBanner />}
+        {!is_auth_route && is_authenticated && <BillingAlertBanner />}
         {!is_auth_route && <MobileStorageBanner />}
         <ErrorBoundary>
           <Suspense fallback={<MobileLoader />}>

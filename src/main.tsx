@@ -22,7 +22,6 @@ import { Suspense } from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, HashRouter } from "react-router-dom";
 
-import App from "@/App";
 import { evict_stale_favicons } from "@/lib/favicon_cache_db";
 import UnsupportedBrowserPage from "@/pages/unsupported_browser";
 import { Provider } from "@/provider";
@@ -71,18 +70,23 @@ import { safe_local_get } from "@/lib/safe_storage";
 import { capture_support_return } from "@/lib/support_return";
 import { lazy_with_retry } from "@/utils/lazy_with_retry";
 
+const DesktopApp = lazy_with_retry(() => import("@/App"));
 const MobileApp = lazy_with_retry(() => import("@/mobile_app"));
+
+function warm_shell_chunk(): void {
+  const load = compute_is_mobile_experience()
+    ? () => import("@/mobile_app")
+    : () => import("@/App");
+
+  load().catch((caught) => ignore_error("main:warm_shell_chunk", caught));
+}
 
 function warm_startup_route_chunk(): void {
   const warm = (load: () => Promise<unknown>) => {
     load().catch((caught) => ignore_error("main:warm_startup_route", caught));
   };
 
-  if (compute_is_mobile_experience()) {
-    warm(() => import("@/mobile_app"));
-
-    return;
-  }
+  if (compute_is_mobile_experience()) return;
 
   const path = app_pathname();
   const is_at = (route: string) =>
@@ -93,6 +97,12 @@ function warm_startup_route_chunk(): void {
   } else if (is_at("/register") || is_at("/signup")) {
     warm(() => import("@/pages/register"));
   }
+}
+
+const browser_supported = typeof window.crypto?.subtle === "object";
+
+if (browser_supported) {
+  warm_shell_chunk();
 }
 
 if (preload_initial_language()) {
@@ -278,9 +288,10 @@ if ("serviceWorker" in navigator && import.meta.env.PROD && !is_tauri_runtime) {
 
       if (already_reset) return true;
 
-      const regs = await navigator.serviceWorker.getRegistrations();
-      const cache_keys =
-        typeof caches !== "undefined" ? await caches.keys() : [];
+      const [regs, cache_keys] = await Promise.all([
+        navigator.serviceWorker.getRegistrations(),
+        typeof caches !== "undefined" ? caches.keys() : Promise.resolve([]),
+      ]);
       const has_legacy_state = regs.length > 0 || cache_keys.length > 0;
 
       try {
@@ -368,8 +379,6 @@ if ("serviceWorker" in navigator && import.meta.env.PROD && !is_tauri_runtime) {
   });
 }
 
-const browser_supported = typeof window.crypto?.subtle === "object";
-
 const Router = is_tauri_runtime ? HashRouter : BrowserRouter;
 const router_basename = resolve_account_basename();
 
@@ -386,7 +395,11 @@ function RootShell(): JSX.Element {
     );
   }
 
-  return <App />;
+  return (
+    <Suspense fallback={<FullPageLoader />}>
+      <DesktopApp />
+    </Suspense>
+  );
 }
 
 const BOOT_VERSION_CHECK_MARKER = "aster:boot_version_checked_at";
