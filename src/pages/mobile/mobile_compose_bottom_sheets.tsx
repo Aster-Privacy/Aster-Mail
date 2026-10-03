@@ -31,7 +31,7 @@ import {
   CheckIcon,
   LockClosedIcon,
 } from "@heroicons/react/24/outline";
-import { format, addDays, addHours } from "date-fns";
+import { addDays, addHours } from "date-fns";
 import { Button } from "@aster/ui";
 
 import {
