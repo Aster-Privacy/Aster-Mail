@@ -47,6 +47,7 @@ import { AliasImportModal } from "@/components/settings/aliases/alias_import_mod
 import { AliasExportModal } from "@/components/settings/aliases/alias_export_modal";
 import { AliasPreferencesPanel } from "@/components/settings/aliases/alias_preferences_panel";
 import { ignore_error } from "@/lib/ignore_error";
+import { emit_aliases_changed } from "@/hooks/mail_events";
 import {
   AUTO_OPEN_CREATE_ALIAS_EVENT,
   consume_auto_open_create_alias,
@@ -302,7 +303,7 @@ export function AliasesSection() {
               }
               on_alias_toggle={hook.handle_alias_toggle}
               on_aliases_changed={hook.load_aliases}
-              on_avatar_changed={hook.load_aliases}
+              on_avatar_changed={emit_aliases_changed}
               on_domain_addr_delete={hook.handle_domain_addr_delete}
               on_domain_address_display_name_saved={
                 hook.handle_domain_address_display_name_saved
