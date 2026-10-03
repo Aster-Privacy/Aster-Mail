@@ -18,29 +18,102 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+export const CONTACT_INDEX_FALLBACK = "#";
+
 const LATIN_LETTERS_WITHOUT_DECOMPOSITION: Record<string, string> = {
-  Æ: "A",
+  Æ: "AE",
   Ð: "D",
   Đ: "D",
   Ħ: "H",
   Ł: "L",
   Ø: "O",
-  Œ: "O",
+  Œ: "OE",
   Ŧ: "T",
 };
 
-export const CONTACT_INDEX_FALLBACK = "#";
+const HANGUL_INITIALS = "ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ";
+const HANGUL_FIRST = 0xac00;
+const HANGUL_LAST = 0xd7a3;
+const HANGUL_SYLLABLES_PER_INITIAL = 588;
 
-export function contact_index_letter(name: string | null | undefined): string {
-  const first = Array.from((name ?? "").trim())[0];
+const INVISIBLE_PREFIX = /^[\s\p{Cf}\p{M}]+/u;
+const LETTER = /\p{L}/u;
+const UNINDEXED_SCRIPT =
+  /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}]/u;
 
-  if (!first || !/\p{L}/u.test(first)) return CONTACT_INDEX_FALLBACK;
+interface LocaleIndex {
+  collator: Intl.Collator;
+  letters: Map<number, string>;
+}
 
-  const base = first
+const locale_indexes = new Map<string, LocaleIndex>();
+
+function get_locale_index(locale: string | undefined): LocaleIndex {
+  const key = locale ?? "";
+  let index = locale_indexes.get(key);
+
+  if (!index) {
+    index = {
+      collator: new Intl.Collator(locale, { sensitivity: "base" }),
+      letters: new Map(),
+    };
+    locale_indexes.set(key, index);
+  }
+
+  return index;
+}
+
+function first_code_point(value: string): string {
+  return String.fromCodePoint(value.codePointAt(0)!);
+}
+
+function letter_for(
+  code_point: number,
+  locale: string | undefined,
+  collator: Intl.Collator,
+): string {
+  if (code_point >= HANGUL_FIRST && code_point <= HANGUL_LAST) {
+    return HANGUL_INITIALS[
+      Math.floor((code_point - HANGUL_FIRST) / HANGUL_SYLLABLES_PER_INITIAL)
+    ];
+  }
+
+  const original = String.fromCodePoint(code_point);
+
+  if (!LETTER.test(original) || UNINDEXED_SCRIPT.test(original)) {
+    return CONTACT_INDEX_FALLBACK;
+  }
+
+  const upper = original.toLocaleUpperCase(locale);
+  const stripped = upper
     .normalize("NFKD")
     .replace(/\p{M}+/gu, "")
     .normalize("NFC");
-  const letter = Array.from(base.toUpperCase())[0] ?? first;
+  const folded = LATIN_LETTERS_WITHOUT_DECOMPOSITION[stripped] ?? stripped;
 
-  return LATIN_LETTERS_WITHOUT_DECOMPOSITION[letter] ?? letter;
+  if (folded && folded !== upper && collator.compare(upper, folded) === 0) {
+    return first_code_point(folded);
+  }
+
+  return first_code_point(upper);
+}
+
+export function contact_index_letter(
+  name: string | null | undefined,
+  locale?: string,
+): string {
+  const visible = (name ?? "").replace(INVISIBLE_PREFIX, "");
+  const code_point = visible.codePointAt(0);
+
+  if (code_point === undefined) return CONTACT_INDEX_FALLBACK;
+
+  const index = get_locale_index(locale);
+  let letter = index.letters.get(code_point);
+
+  if (letter === undefined) {
+    letter = letter_for(code_point, locale, index.collator);
+    index.letters.set(code_point, letter);
+  }
+
+  return letter;
 }
