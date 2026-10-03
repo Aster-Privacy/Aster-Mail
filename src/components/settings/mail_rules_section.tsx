@@ -18,7 +18,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { LeafCondition, Rule, RuleRun } from "@/services/api/mail_rules";
+import type {
+  Condition,
+  LeafCondition,
+  Rule,
+  RuleRun,
+} from "@/services/api/mail_rules";
 import type { RetentionPolicy } from "@/services/api/retention_policies";
 
 import * as React from "react";
@@ -62,6 +67,8 @@ import { ConditionChip } from "@/components/mail_rules/condition_chip";
 import { ActionChip } from "@/components/mail_rules/action_chip";
 import { AndOrPill } from "@/components/mail_rules/and_or_pill";
 import { RuleEditorModal } from "@/components/modals/rule_editor_modal";
+import { has_nested_logic } from "@/components/modals/rule_editor_helpers";
+import { serialize as serialize_expression } from "@/lib/mail_rules/expression_parser";
 import { TemplateGalleryModal } from "@/components/mail_rules/template_gallery_modal";
 import {
   template_to_seed,
@@ -445,6 +452,15 @@ function RuleCard({
 }: RuleCardProps) {
   const { t } = use_i18n();
   const [draggable_on, set_draggable_on] = React.useState(false);
+  const nested_expression = React.useMemo(() => {
+    if (!has_nested_logic(rule.conditions)) return null;
+    const root: Condition =
+      rule.match_mode === "any"
+        ? { type: "or", conditions: rule.conditions }
+        : { type: "and", conditions: rule.conditions };
+
+    return serialize_expression(root);
+  }, [rule.conditions, rule.match_mode]);
   const run_label =
     run === null
       ? null
@@ -506,11 +522,16 @@ function RuleCard({
             )}
           </div>
           <div className="flex flex-wrap items-center gap-1.5">
-            {rule.conditions
-              .filter(
-                (c) => c.type !== "and" && c.type !== "or" && c.type !== "not",
-              )
-              .map((c, i) => (
+            {nested_expression !== null && (
+              <span
+                className="inline-flex items-center h-7 min-w-0 max-w-full px-2.5 rounded-[12px] bg-[var(--aster-field-bg)] text-txt-primary font-mono text-[12px]"
+                title={nested_expression}
+              >
+                <span className="truncate">{nested_expression}</span>
+              </span>
+            )}
+            {nested_expression === null &&
+              (rule.conditions as LeafCondition[]).map((c, i) => (
                 <React.Fragment key={`c-${i}`}>
                   {i > 0 && (
                     <AndOrPill
@@ -521,7 +542,7 @@ function RuleCard({
                   )}
                   <ConditionChip
                     read_only
-                    condition={c as LeafCondition}
+                    condition={c}
                     on_change={() => {}}
                     on_remove={() => {}}
                   />
