@@ -31,6 +31,8 @@ import {
   should_recover_collapsed_height,
 } from "./helpers";
 
+import { mark_long_tokens } from "@/lib/email_long_tokens";
+
 export interface measurement_context {
   iframe: HTMLIFrameElement;
   email_id: string | undefined;
@@ -117,14 +119,19 @@ export function build_measurement_controls(ctx: measurement_context) {
     if (available <= 0) return;
 
     body.style.setProperty("zoom", "1");
-    const document_width = doc.documentElement.scrollWidth;
+    let document_width = doc.documentElement.scrollWidth;
     let natural = Math.max(body.scrollWidth, document_width);
 
     if (natural > available + FIT_SLACK_PX) {
-      const end_padding =
-        parseFloat(
-          iframe.contentWindow?.getComputedStyle(body).paddingInlineEnd ?? "",
-        ) || 0;
+      const body_style = iframe.contentWindow?.getComputedStyle(body);
+      const start_padding =
+        parseFloat(body_style?.paddingInlineStart ?? "") || 0;
+      const end_padding = parseFloat(body_style?.paddingInlineEnd ?? "") || 0;
+
+      if (mark_long_tokens(body, available - start_padding - end_padding)) {
+        document_width = doc.documentElement.scrollWidth;
+        natural = Math.max(body.scrollWidth, document_width);
+      }
 
       natural = Math.max(
         natural,
