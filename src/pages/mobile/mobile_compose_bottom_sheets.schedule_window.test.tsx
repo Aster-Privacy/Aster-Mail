@@ -126,6 +126,21 @@ describe("MobileScheduleSheet custom time on the last day of the window", () => 
     expect(date_input.max).toBe("2026-10-31");
   });
 
+  it("bounds the date field in the account zone, not the device zone", async () => {
+    const device_zone = process.env.TZ;
+
+    process.env.TZ = "Pacific/Kiritimati";
+
+    try {
+      const { date_input } = await pick("2026-10-31", "09:00");
+
+      expect(date_input.min).toBe("2026-10-03");
+      expect(date_input.max).toBe("2026-10-31");
+    } finally {
+      process.env.TZ = device_zone;
+    }
+  });
+
   it("disables Confirm and explains why past the 28-day cutoff", async () => {
     const { on_schedule } = await pick("2026-10-31", "15:00");
 

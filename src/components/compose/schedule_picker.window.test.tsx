@@ -165,6 +165,37 @@ describe("SchedulePicker custom time on the last day of the window", () => {
     expect(state_of("11 common.pm")).toBe(true);
   });
 
+  it("pulls the minute back to the cutoff when the hour moves onto it", async () => {
+    await open_custom_picker(new Date("2026-10-31T12:55:00Z"));
+
+    const hour_trigger = Array.from(document.querySelectorAll("button")).find(
+      (button) => button.textContent?.trim() === "12 common.pm",
+    )!;
+
+    await act(async () => {
+      hour_trigger.dispatchEvent(
+        new PointerEvent("pointerdown", { bubbles: true, button: 0 }),
+      );
+    });
+
+    const one_pm = Array.from(
+      document.querySelectorAll('[role="menuitem"]'),
+    ).find((item) => item.textContent?.trim() === "1 common.pm") as HTMLElement;
+
+    await act(async () => {
+      one_pm.click();
+    });
+
+    const schedule = button_with_text("mail.schedule");
+
+    expect(button_with_text("1 common.pm")).toBeTruthy();
+    expect(button_with_text("00")).toBeTruthy();
+    expect(schedule.disabled).toBe(false);
+    expect(document.body.textContent).not.toContain(
+      "common.scheduled_too_far_ahead",
+    );
+  });
+
   it("keeps every hour available the day before the last day", async () => {
     await open_custom_picker(new Date("2026-10-30T22:00:00Z"));
 

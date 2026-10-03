@@ -361,7 +361,7 @@ export function MobileScheduleSheet({
               <Input
                 className="w-full"
                 max={local_date_key(latest_schedule_instant())}
-                min={format(new Date(), "yyyy-MM-dd")}
+                min={local_date_key(new Date())}
                 type="date"
                 value={schedule_date}
                 onChange={(e) => set_schedule_date(e.target.value)}

@@ -227,6 +227,16 @@ export function SchedulePicker({
       zoned_instant_from_calendar_day(selected_date, hour, minute),
     );
 
+  const handle_hour_select = (hour: number) => {
+    set_selected_hour(hour);
+
+    if (is_beyond_window(hour, selected_minute)) {
+      set_selected_minute(
+        minutes.filter((minute) => !is_beyond_window(hour, minute)).pop() ?? 0,
+      );
+    }
+  };
+
   if (scheduled_time && !force_picker) {
     return (
       <div className="flex items-center gap-1">
@@ -355,7 +365,7 @@ export function SchedulePicker({
                     <DropdownMenuItem
                       key={hour}
                       disabled={is_beyond_window(hour, 0)}
-                      onClick={() => set_selected_hour(hour)}
+                      onClick={() => handle_hour_select(hour)}
                     >
                       {format_hour(hour)}
                     </DropdownMenuItem>
