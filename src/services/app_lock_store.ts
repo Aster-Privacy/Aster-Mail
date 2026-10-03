@@ -425,63 +425,50 @@ export type PinOutcome =
   | { outcome: "failed"; locked: boolean; attempts_remaining: number }
   | { outcome: "locked_out"; remaining_ms: number };
 
+function parse_hex_salt(hex: string | undefined): Uint8Array | null {
+  const pairs = hex?.match(/.{2}/g);
+
+  return pairs ? Uint8Array.from(pairs.map((h) => parseInt(h, 16))) : null;
+}
+
 export async function attempt_pin_unlock(
   account_id: string,
   pin: string,
 ): Promise<PinOutcome> {
   const lockout = is_locked_out(account_id);
-
-  if (lockout.locked)
-    return { outcome: "locked_out", remaining_ms: lockout.remaining_ms };
-
   const config = get_app_lock_config(account_id);
+  const salt_bytes =
+    config?.enabled && config.pin_hash ? parse_hex_salt(config.pin_salt) : null;
 
-  if (!config || !config.enabled || !config.pin_hash || !config.pin_salt) {
-    return {
-      outcome: "failed",
-      locked: false,
-      attempts_remaining: MAX_ATTEMPTS,
-    };
+  if (!config || !salt_bytes) {
+    return lockout.locked
+      ? { outcome: "locked_out", remaining_ms: lockout.remaining_ms }
+      : { outcome: "failed", locked: false, attempts_remaining: MAX_ATTEMPTS };
   }
 
-  const salt_pairs = config.pin_salt.match(/.{2}/g);
-
-  if (!salt_pairs)
-    return {
-      outcome: "failed",
-      locked: false,
-      attempts_remaining: MAX_ATTEMPTS,
-    };
-  const salt_bytes = Uint8Array.from(salt_pairs.map((h) => parseInt(h, 16)));
   const pepper = await pepper_for_config(account_id, config);
-
-  let duress_hash_promise: Promise<string> = Promise.resolve("");
-  let duress_active = false;
-
-  if (config.duress_pin_hash && config.duress_pin_salt) {
-    const duress_pairs = config.duress_pin_salt.match(/.{2}/g);
-
-    if (duress_pairs) {
-      const duress_salt = Uint8Array.from(
-        duress_pairs.map((h) => parseInt(h, 16)),
-      );
-
-      duress_hash_promise = hash_pin(pin, duress_salt, pepper);
-      duress_active = true;
-    }
-  }
+  const duress_salt = config.duress_pin_hash
+    ? parse_hex_salt(config.duress_pin_salt)
+    : null;
 
   const [computed, duress_computed] = await Promise.all([
     hash_pin(pin, salt_bytes, pepper),
-    duress_hash_promise,
+    hash_pin(
+      pin,
+      duress_salt ?? crypto.getRandomValues(new Uint8Array(salt_bytes.length)),
+      pepper,
+    ),
   ]);
 
   const duress_match =
-    duress_active &&
+    duress_salt !== null &&
     constant_time_equal(duress_computed, config.duress_pin_hash!);
   const regular_match = constant_time_equal(computed, config.pin_hash);
 
   if (duress_match) return { outcome: "duress" };
+
+  if (lockout.locked)
+    return { outcome: "locked_out", remaining_ms: lockout.remaining_ms };
 
   if (regular_match) {
     reset_attempts(account_id);
