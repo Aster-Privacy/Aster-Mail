@@ -21,6 +21,7 @@
 import { describe, it, expect } from "vitest";
 
 import {
+  preferences_equal,
   reconcile_preferences,
   DEFAULT_PREFERENCES,
   type UserPreferences,
@@ -126,5 +127,48 @@ describe("reconcile_preferences", () => {
       DEFAULT_PREFERENCES.show_aster_branding,
     );
     expect(current.show_aster_branding).toBe(false);
+  });
+});
+
+describe("preferences_equal", () => {
+  it("treats a fresh copy with the same values as equal", () => {
+    const left: UserPreferences = {
+      ...DEFAULT_PREFERENCES,
+      muted_folder_tokens: ["a", "b"],
+    };
+    const right: UserPreferences = {
+      ...DEFAULT_PREFERENCES,
+      muted_folder_tokens: ["a", "b"],
+    };
+
+    expect(preferences_equal(left, right)).toBe(true);
+  });
+
+  it("notices a changed top-level value", () => {
+    expect(
+      preferences_equal(DEFAULT_PREFERENCES, {
+        ...DEFAULT_PREFERENCES,
+        compact_mode: !DEFAULT_PREFERENCES.compact_mode,
+      }),
+    ).toBe(false);
+  });
+
+  it("notices a changed nested value", () => {
+    expect(
+      preferences_equal(
+        { ...DEFAULT_PREFERENCES, muted_folder_tokens: ["a"] },
+        { ...DEFAULT_PREFERENCES, muted_folder_tokens: ["a", "b"] },
+      ),
+    ).toBe(false);
+  });
+
+  it("notices a key that only one side has", () => {
+    const extra = {
+      ...DEFAULT_PREFERENCES,
+      added_by_newer_client: true,
+    } as unknown as UserPreferences;
+
+    expect(preferences_equal(DEFAULT_PREFERENCES, extra)).toBe(false);
+    expect(preferences_equal(extra, DEFAULT_PREFERENCES)).toBe(false);
   });
 });
