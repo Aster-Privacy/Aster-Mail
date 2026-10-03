@@ -241,6 +241,30 @@ function csv_row_to_email(row: CsvRow, index: number): ParsedEmail | null {
   };
 }
 
+function has_prefix(bytes: Uint8Array, prefix: number[]): boolean {
+  return prefix.every((byte, i) => bytes[i] === byte);
+}
+
+// Excel saves "CSV UTF-8" with a BOM, "Unicode text" as UTF-16 with a BOM,
+// and plain "CSV" in the system code page, which is usually windows-1252.
+function decode_csv_bytes(bytes: Uint8Array): string {
+  if (has_prefix(bytes, [0xef, 0xbb, 0xbf])) {
+    return new TextDecoder("utf-8").decode(bytes.subarray(3));
+  }
+  if (has_prefix(bytes, [0xff, 0xfe])) {
+    return new TextDecoder("utf-16le").decode(bytes.subarray(2));
+  }
+  if (has_prefix(bytes, [0xfe, 0xff])) {
+    return new TextDecoder("utf-16be").decode(bytes.subarray(2));
+  }
+
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  } catch {
+    return new TextDecoder("windows-1252").decode(bytes);
+  }
+}
+
 export async function parse_csv_file(
   file: File,
   on_progress?: ParseProgressCallback,
@@ -261,8 +285,7 @@ export async function parse_csv_file(
   }
 
   try {
-    const buffer = await file.arrayBuffer();
-    const content = new TextDecoder("iso-8859-1").decode(buffer);
+    const content = decode_csv_bytes(new Uint8Array(await file.arrayBuffer()));
     const rows = parse_csv(content);
 
     if (rows.length === 0) {
