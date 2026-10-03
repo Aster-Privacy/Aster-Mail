@@ -59,6 +59,7 @@ vi.mock("@/utils/unsubscribe_detector", () => ({
   get_sender_domain: () => "example.com",
   execute_unsubscribe: h.execute_unsubscribe,
   get_manual_unsubscribe_url: () => null,
+  header_unsubscribe_link: () => undefined,
 }));
 
 vi.mock("@/utils/open_link", () => ({

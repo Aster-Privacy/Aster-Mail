@@ -412,6 +412,21 @@ export function is_one_click_only(unsub_info: {
   );
 }
 
+export function header_unsubscribe_link(info: {
+  unsubscribe_link?: string;
+  list_unsubscribe_header?: string;
+}): string | undefined {
+  if (!info.unsubscribe_link || !info.list_unsubscribe_header) {
+    return undefined;
+  }
+
+  return extract_http_links_from_header(info.list_unsubscribe_header).includes(
+    info.unsubscribe_link,
+  )
+    ? info.unsubscribe_link
+    : undefined;
+}
+
 export function get_manual_unsubscribe_url(unsub_info: {
   unsubscribe_link?: string;
   unsubscribe_mailto?: string;

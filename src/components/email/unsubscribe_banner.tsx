@@ -31,6 +31,7 @@ import {
   get_sender_domain,
   execute_unsubscribe,
   get_manual_unsubscribe_url,
+  header_unsubscribe_link,
 } from "@/utils/unsubscribe_detector";
 import { open_external } from "@/utils/open_link";
 import { track_subscription } from "@/services/api/subscriptions";
@@ -75,7 +76,7 @@ export function UnsubscribeBanner({
     track_subscription({
       sender_email,
       sender_name,
-      unsubscribe_link: unsubscribe_info.unsubscribe_link,
+      unsubscribe_link: header_unsubscribe_link(unsubscribe_info),
       list_unsubscribe_header: unsubscribe_info.list_unsubscribe_header,
     }).catch(() => {
       if (is_mounted) {
