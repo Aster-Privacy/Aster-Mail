@@ -20,6 +20,7 @@
 //
 import type { DecryptedContact } from "@/types/contacts";
 
+import { vcard_date_value } from "@/utils/date_utils";
 import {
   typed_vcard_lines,
   type VCardGroupCounter,
@@ -160,7 +161,9 @@ export const contact_to_vcard = (
   if (contact.phonetic_last_name) {
     push(`X-PHONETIC-LAST-NAME:${escape_value(contact.phonetic_last_name)}`);
   }
-  if (contact.birthday) push(`BDAY:${escape_value(contact.birthday)}`);
+  if (contact.birthday) {
+    push(`BDAY:${escape_value(vcard_date_value(contact.birthday, false))}`);
+  }
 
   const address_entries = contact.address_entries?.length
     ? contact.address_entries

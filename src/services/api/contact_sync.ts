@@ -58,6 +58,12 @@ import { HASH_ALG } from "@/services/crypto/constants";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { get_derived_encryption_key } from "@/services/crypto/memory_key_store";
 import { parse_csv_records } from "@/utils/contact_utils";
+import { normalize_contact_date } from "@/utils/date_utils";
+import {
+  decode_bytes,
+  normalize_charset,
+  quoted_printable_to_bytes,
+} from "@/utils/email_crypto";
 import {
   collect_vcard_group_labels,
   resolve_vcard_entry_type,
@@ -579,6 +585,63 @@ function place_type_from(params: string[]): "home" | "work" | "other" {
   return "other";
 }
 
+const QUOTED_PRINTABLE_PARAM = /;(?:encoding=)?quoted-printable(?=;|$)/i;
+
+const QP_SOFT_BREAK = /=[ \t]*$/;
+
+function is_quoted_printable(key: string): boolean {
+  return QUOTED_PRINTABLE_PARAM.test(key);
+}
+
+function unfold_vcard_lines(vcard: string): string[] {
+  const unfolded: string[] = [];
+  let current: string[] = [];
+  let is_qp = false;
+  let soft_break = false;
+
+  for (const line of vcard.split(/\r?\n/)) {
+    if (soft_break && !/^END:VCARD$/i.test(line)) {
+      current.push(line);
+    } else if (
+      (line.startsWith(" ") || line.startsWith("\t")) &&
+      current.length
+    ) {
+      current.push(line.slice(1));
+    } else {
+      if (current.length) unfolded.push(current.join(""));
+      current = [line];
+      const separator = line.indexOf(":");
+
+      is_qp = separator > 0 && is_quoted_printable(line.slice(0, separator));
+    }
+
+    soft_break = is_qp && QP_SOFT_BREAK.test(line);
+    if (soft_break) {
+      current[current.length - 1] = current[current.length - 1].replace(
+        QP_SOFT_BREAK,
+        "",
+      );
+    }
+  }
+  if (current.length) unfolded.push(current.join(""));
+
+  return unfolded;
+}
+
+function decode_vcard_value(key: string, value: string): string {
+  if (!is_quoted_printable(key)) return value;
+
+  const declared = normalize_charset(
+    raw_param_value(key, "charset") || "utf-8",
+  );
+  const charset = /^utf-?16/.test(declared) ? "utf-8" : declared;
+
+  return decode_bytes(quoted_printable_to_bytes(value), charset).replace(
+    /\r\n?/g,
+    "\n",
+  );
+}
+
 export function parse_vcard(vcard_data: string): ContactFormData[] {
   const contacts: ContactFormData[] = [];
   const text =
@@ -586,15 +649,7 @@ export function parse_vcard(vcard_data: string): ContactFormData[] {
   const vcards = text.split(/(?=BEGIN:VCARD)/i).filter(Boolean);
 
   for (const vcard of vcards) {
-    const lines = vcard.split(/\r?\n/).reduce<string[]>((unfolded, line) => {
-      if ((line.startsWith(" ") || line.startsWith("\t")) && unfolded.length) {
-        unfolded[unfolded.length - 1] += line.slice(1);
-      } else {
-        unfolded.push(line);
-      }
-
-      return unfolded;
-    }, []);
+    const lines = unfold_vcard_lines(vcard);
     const contact: ContactFormData = {
       first_name: "",
       last_name: "",
@@ -611,14 +666,16 @@ export function parse_vcard(vcard_data: string): ContactFormData[] {
     const instant_messengers: InstantMessengerEntry[] = [];
     const groups: string[] = [];
     const seen_emails = new Set<string>();
-    const group_labels = collect_vcard_group_labels(lines, unescape_vcard);
+    const group_labels = collect_vcard_group_labels(lines, (value, key) =>
+      unescape_vcard(decode_vcard_value(key, value)),
+    );
 
     for (const line of lines) {
       const separator = line.indexOf(":");
 
       if (separator < 0) continue;
       const key = line.slice(0, separator);
-      const value = line.slice(separator + 1);
+      const value = decode_vcard_value(key, line.slice(separator + 1));
 
       if (!key || !value) continue;
 
@@ -728,7 +785,10 @@ export function parse_vcard(vcard_data: string): ContactFormData[] {
           contact.role = text;
           break;
         case "BDAY":
-          contact.birthday = text;
+          contact.birthday = normalize_contact_date(
+            text,
+            raw_param_value(key, "x-apple-omit-year") || undefined,
+          );
           break;
         case "NOTE":
           contact.notes = text;
@@ -788,13 +848,19 @@ export function parse_vcard(vcard_data: string): ContactFormData[] {
           break;
         }
         case "ANNIVERSARY": {
-          const date = text.trim();
+          const date = normalize_contact_date(
+            text,
+            raw_param_value(key, "x-apple-omit-year") || undefined,
+          );
 
           if (date) date_entries.push({ value: date, type: "anniversary" });
           break;
         }
         case "X-ABDATE": {
-          const date = text.trim();
+          const date = normalize_contact_date(
+            text,
+            raw_param_value(key, "x-apple-omit-year") || undefined,
+          );
 
           if (!date) break;
           date_entries.push({
@@ -1592,8 +1658,12 @@ export function parse_csv(
         case "last_name":
         case "company":
         case "job_title":
-        case "birthday":
           if (!contact[mapped]) contact[mapped] = value;
+          break;
+        case "birthday":
+          if (!contact.birthday) {
+            contact.birthday = normalize_contact_date(value);
+          }
           break;
         case "middle_name":
         case "nickname":
@@ -1780,11 +1850,12 @@ export function parse_csv(
 
       for (const date of slot.values) {
         if (label === "birthday") {
-          if (!contact.birthday) contact.birthday = date;
+          if (!contact.birthday)
+            contact.birthday = normalize_contact_date(date);
           continue;
         }
         date_entries.push({
-          value: date,
+          value: normalize_contact_date(date),
           type: mapped_type(VCARD_DATE_TYPES, [label], "other"),
         });
       }

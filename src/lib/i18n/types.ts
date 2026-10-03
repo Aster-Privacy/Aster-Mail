@@ -443,6 +443,7 @@ export interface MailRulesTranslations {
   apply_to_existing_done_encrypted_other: string;
 
   apply_to_existing_canceled: string;
+  apply_to_existing_canceled_one?: string;
 
   apply_to_existing_canceled_encrypted: string;
 
@@ -2287,6 +2288,7 @@ export interface CommonTranslations {
   recovery_codes_reminder_action: string;
   recovery_codes_low_reminder_title: string;
   recovery_codes_low_reminder_body: string;
+  recovery_codes_low_reminder_body_one?: string;
   recovery_codes_low_reminder_action: string;
   recovery_phrase_migrate_title: string;
   recovery_phrase_migrate_body: string;
@@ -6923,6 +6925,7 @@ export interface SettingsTranslations {
   alias_apply_existing_progress_total: string;
   alias_apply_existing_done: string;
   alias_apply_existing_canceled: string;
+  alias_apply_existing_canceled_one?: string;
   alias_apply_existing_error: string;
   alias_apply_existing_unavailable: string;
   alias_delivery_rule_note: string;

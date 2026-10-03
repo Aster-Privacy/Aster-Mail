@@ -224,7 +224,7 @@ export function resolve_vcard_entry_type<T extends string>(
 
 export function collect_vcard_group_labels(
   lines: string[],
-  unescape: (value: string) => string,
+  unescape: (value: string, key: string) => string,
 ): Map<string, string> {
   const labels = new Map<string, string>();
 
@@ -238,7 +238,7 @@ export function collect_vcard_group_labels(
     const group = vcard_group_of(key);
 
     if (!group) continue;
-    labels.set(group, unescape(line.slice(separator + 1)));
+    labels.set(group, unescape(line.slice(separator + 1), key));
   }
 
   return labels;

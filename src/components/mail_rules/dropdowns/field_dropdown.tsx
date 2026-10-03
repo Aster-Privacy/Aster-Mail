@@ -131,6 +131,7 @@ interface FieldDropdownProps {
   open: boolean;
   on_open_change: (open: boolean) => void;
   on_pick: (field: ConditionField) => void;
+  allowed_fields?: ConditionField[];
 }
 
 export function FieldDropdown({
@@ -138,8 +139,21 @@ export function FieldDropdown({
   open,
   on_open_change,
   on_pick,
+  allowed_fields,
 }: FieldDropdownProps) {
   const { t } = use_i18n();
+  const sections = React.useMemo(
+    () =>
+      allowed_fields
+        ? SECTIONS.map((section) => ({
+            ...section,
+            options: section.options.filter((o) =>
+              allowed_fields.includes(o.value),
+            ),
+          })).filter((section) => section.options.length > 0)
+        : SECTIONS,
+    [allowed_fields],
+  );
 
   return (
     <DropdownMenu open={open} onOpenChange={on_open_change}>
@@ -149,7 +163,7 @@ export function FieldDropdown({
         className="z-[200] w-64 max-h-[420px]"
         sideOffset={6}
       >
-        {SECTIONS.map((section, i) => (
+        {sections.map((section, i) => (
           <React.Fragment key={i}>
             {i > 0 && <DropdownMenuSeparator />}
             <DropdownMenuLabel className="flex items-center gap-1.5 text-[10.5px] uppercase tracking-wide text-txt-muted">

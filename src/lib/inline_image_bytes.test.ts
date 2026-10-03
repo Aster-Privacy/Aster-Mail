@@ -19,7 +19,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 import { describe, expect, it } from "vitest";
 
-import { inline_image_bytes } from "./inline_image_bytes";
+import {
+  create_inline_image_bytes_counter,
+  inline_image_bytes,
+} from "./inline_image_bytes";
 
 function data_image(bytes: number[]): string {
   return `data:image/png;base64,${btoa(String.fromCharCode(...bytes))}`;
@@ -45,5 +48,38 @@ describe("inline_image_bytes", () => {
       '<img src="https://example.com/a.png"><img src="cid:img_1@astermail.org">';
 
     expect(inline_image_bytes(html)).toBe(0);
+  });
+});
+
+describe("create_inline_image_bytes_counter", () => {
+  const one = data_image([1, 2, 3, 4, 5]);
+  const two = data_image(Array.from({ length: 1000 }, (_, i) => i % 256));
+  const bodies = [
+    "",
+    "<p>Hello</p>",
+    `<p>One</p><img src="${one}">`,
+    `<img src="${one}"><img alt="x" src='${two}'><img src="${one}">`,
+    `<img SRC = "${two}"><p>typed</p>`,
+    `<a href="${one}">link</a><p>${one}</p><img src="${two}">`,
+    `<img src="data:image/png;base64,AA*A"><img src="${one}">`,
+    `<img src="${one}`,
+    '<img src="https://example.com/a.png"><img src="cid:img_1@astermail.org">',
+  ];
+
+  it("counts the same bytes as a full scan of the body", () => {
+    const count = create_inline_image_bytes_counter();
+
+    for (const html of [...bodies, ...bodies.slice().reverse()]) {
+      expect(count(html)).toBe(inline_image_bytes(html));
+    }
+  });
+
+  it("follows edits that add and remove images", () => {
+    const count = create_inline_image_bytes_counter();
+
+    expect(count(`<img src="${two}"><p>a</p>`)).toBe(1000);
+    expect(count(`<img src="${two}"><p>ab</p><img src="${one}">`)).toBe(1005);
+    expect(count("<p>ab</p>")).toBe(0);
+    expect(count(`<p>ab</p><img src="${two}">`)).toBe(1000);
   });
 });

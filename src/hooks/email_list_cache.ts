@@ -31,6 +31,7 @@ import {
   clear_view_cache,
 } from "@/services/offline_email_cache";
 import { request_cache } from "@/services/api/request_cache";
+import { clear_thread_decrypt_cache } from "@/services/thread_decrypt_cache";
 import { ignore_error } from "@/lib/ignore_error";
 
 interface ViewCacheEntry {
@@ -105,6 +106,7 @@ export function clear_mail_cache(): void {
   clear_email_cache().catch((caught) =>
     ignore_error("hooks/email_list_cache:clear_mail_cache", caught),
   );
+  clear_thread_decrypt_cache();
 }
 
 export function stale_all_view_caches(): void {

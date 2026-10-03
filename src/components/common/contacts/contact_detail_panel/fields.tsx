@@ -40,6 +40,15 @@ import {
 } from "./helpers";
 
 import { show_toast } from "@/components/toast/simple_toast";
+import {
+  ContactDateClearButton,
+  contact_date_clear_padding,
+} from "@/components/contacts/contact_date_clear_button";
+import {
+  contact_date_input_value,
+  format_contact_date,
+  is_partial_contact_date,
+} from "@/utils/date_utils";
 import { Spinner } from "@/components/ui/spinner";
 import {
   Modal,
@@ -363,14 +372,38 @@ export function TypedList<T extends string>({
 
         return (
           <div key={idx} className="flex flex-wrap items-center gap-2">
-            <input
-              className={`${FIELD_CLASS} flex-1 min-w-[160px]`}
-              placeholder={placeholder}
-              readOnly={disabled}
-              type={input_type || "text"}
-              value={entry.value}
-              onChange={(e) => on_change(idx, e.target.value)}
-            />
+            {input_type === "date" && is_partial_contact_date(entry.value) ? (
+              <div className="relative flex-1 min-w-[160px]">
+                <input
+                  readOnly
+                  className={`${FIELD_CLASS} ${
+                    disabled ? "" : contact_date_clear_padding(false)
+                  }`}
+                  type="text"
+                  value={format_contact_date(entry.value)}
+                />
+                {!disabled && (
+                  <ContactDateClearButton
+                    beside_picker={false}
+                    label={t("common.clear")}
+                    on_clear={() => on_change(idx, "")}
+                  />
+                )}
+              </div>
+            ) : (
+              <input
+                className={`${FIELD_CLASS} flex-1 min-w-[160px]`}
+                placeholder={placeholder}
+                readOnly={disabled}
+                type={input_type || "text"}
+                value={
+                  input_type === "date"
+                    ? contact_date_input_value(entry.value)
+                    : entry.value
+                }
+                onChange={(e) => on_change(idx, e.target.value)}
+              />
+            )}
             <TypeSelect
               allow_custom={custom_enabled}
               disabled={disabled}

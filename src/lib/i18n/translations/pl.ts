@@ -1816,6 +1816,10 @@ export const pl = {
     recovery_codes_low_reminder_title: "Zostało Ci mało kodów odzyskiwania",
     recovery_codes_low_reminder_body:
       "Każdy kod działa raz, a zostało Ci {{count}}. Pobierz nowe kody, aby nie stracić dostępu.",
+    recovery_codes_low_reminder_body_one:
+      "Każdy kod działa raz, a został Ci {{count}}. Pobierz nowe kody, aby nie stracić dostępu.",
+    recovery_codes_low_reminder_body_few:
+      "Każdy kod działa raz, a zostały Ci {{count}}. Pobierz nowe kody, aby nie stracić dostępu.",
     recovery_codes_low_reminder_action: "Pobierz nowe kody",
     recovery_phrase_migrate_title: "Przejdź na kody odzyskiwania",
     recovery_phrase_migrate_body:

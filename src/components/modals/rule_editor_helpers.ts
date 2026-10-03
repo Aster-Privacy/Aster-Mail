@@ -24,7 +24,9 @@ import type {
   ConditionField,
   LeafCondition,
   Rule,
+  RuleRun,
 } from "@/services/api/mail_rules";
+import type { use_i18n } from "@/lib/i18n/context";
 import type { AddableActionType } from "@/components/mail_rules/add_action_chip";
 
 import {
@@ -240,4 +242,52 @@ export function has_any_action_value(actions: Action[]): boolean {
         return false;
     }
   });
+}
+
+export function rule_run_status_label(
+  run: RuleRun,
+  t: ReturnType<typeof use_i18n>["t"],
+): string {
+  if (run.status === "pending") {
+    return t("mail_rules.apply_to_existing_queued");
+  }
+  if (run.status === "running") {
+    return run.total_estimate
+      ? t("mail_rules.apply_to_existing_progress_total", {
+          scanned: run.scanned,
+          total: run.total_estimate,
+          applied: run.applied,
+        })
+      : t("mail_rules.apply_to_existing_progress", {
+          scanned: run.scanned,
+          applied: run.applied,
+        });
+  }
+  const encrypted = run.skipped_encrypted;
+
+  if (run.status === "completed") {
+    return encrypted > 0
+      ? t("mail_rules.apply_to_existing_done_encrypted", {
+          scanned: run.scanned,
+          applied: run.applied,
+          count: encrypted,
+        })
+      : t("mail_rules.apply_to_existing_done", {
+          scanned: run.scanned,
+          applied: run.applied,
+        });
+  }
+  if (run.status === "canceled") {
+    return encrypted > 0
+      ? t("mail_rules.apply_to_existing_canceled_encrypted", {
+          applied: run.applied,
+          count: encrypted,
+        })
+      : t("mail_rules.apply_to_existing_canceled", {
+          applied: run.applied,
+          count: run.applied,
+        });
+  }
+
+  return t("mail_rules.apply_to_existing_error");
 }

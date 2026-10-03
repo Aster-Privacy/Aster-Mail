@@ -1709,6 +1709,8 @@ export const hi = {
     recovery_codes_low_reminder_title: "आपके रिकवरी कोड कम रह गए हैं",
     recovery_codes_low_reminder_body:
       "हर कोड एक बार काम करता है और आपके पास {{count}} बचे हैं। खाते से बाहर होने से बचने के लिए नए कोड पाएं।",
+    recovery_codes_low_reminder_body_one:
+      "हर कोड एक बार काम करता है और आपके पास {{count}} बचा है। खाते से बाहर होने से बचने के लिए नए कोड पाएं।",
     recovery_codes_low_reminder_action: "नए कोड पाएं",
     recovery_phrase_migrate_title: "रिकवरी कोड पर जाएं",
     recovery_phrase_migrate_body:

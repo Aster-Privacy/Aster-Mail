@@ -22,7 +22,7 @@ import type { DecryptedContact } from "@/types/contacts";
 
 import { serialize_vcards, type VCardContact } from "@/utils/export";
 import { list_contacts, decrypt_contacts } from "@/services/api/contacts";
-import { list_aliases, decrypt_aliases } from "@/services/api/aliases";
+import { list_all_aliases, decrypt_aliases } from "@/services/api/aliases";
 import {
   list_ghost_aliases,
   decrypt_ghost_aliases,
@@ -32,7 +32,10 @@ import { list_signatures } from "@/services/api/signatures";
 import { list_templates } from "@/services/api/templates";
 import { get_vacation_reply } from "@/services/api/vacation_reply";
 import { list_blocked_senders } from "@/services/api/blocked_senders";
-import { list_allowed_senders } from "@/services/api/allowed_senders";
+import {
+  list_allowed_senders,
+  type DecryptedAllowedSender,
+} from "@/services/api/allowed_senders";
 import { list_forwarding_rules } from "@/services/api/auto_forward";
 import { list_external_accounts } from "@/services/api/external_accounts";
 import { get_cached_folders } from "@/hooks/use_folders";
@@ -149,6 +152,27 @@ async function fetch_all_contacts(): Promise<DecryptedContact[]> {
   return all;
 }
 
+const ALLOWED_SENDERS_PAGE_SIZE = 500;
+const ALLOWED_SENDERS_MAX_PAGES = 100;
+
+async function fetch_all_allowed_senders(): Promise<DecryptedAllowedSender[]> {
+  const all: DecryptedAllowedSender[] = [];
+  let offset = 0;
+
+  for (let i = 0; i < ALLOWED_SENDERS_MAX_PAGES; i++) {
+    const res = await list_allowed_senders(ALLOWED_SENDERS_PAGE_SIZE, offset);
+
+    if (res.error) throw new Error(res.error);
+    const page = res.data ?? [];
+
+    if (page.length === 0) break;
+    all.push(...page);
+    offset += page.length;
+  }
+
+  return all;
+}
+
 export async function build_account_data_files(
   selection: AccountDataSelection,
 ): Promise<AccountDataFile[]> {
@@ -171,9 +195,11 @@ export async function build_account_data_files(
   if (!selection.settings) return files;
 
   const aliases = await safe("aliases", async () => {
-    const res = await list_aliases({ limit: 500 });
+    const res = await list_all_aliases();
 
-    return decrypt_aliases(res.data?.aliases ?? []);
+    if (res.error) throw new Error(res.error);
+
+    return decrypt_aliases(res.aliases);
   });
 
   if (aliases?.length) {
@@ -265,11 +291,7 @@ export async function build_account_data_files(
     });
   }
 
-  const allowed = await safe("allowed_senders", async () => {
-    const res = await list_allowed_senders(500, 0);
-
-    return res.data ?? [];
-  });
+  const allowed = await safe("allowed_senders", fetch_all_allowed_senders);
 
   if (allowed?.length) {
     files.push({
