@@ -57,6 +57,7 @@ import {
   resolve_list_display_name,
 } from "@/hooks/email_list_helpers";
 import { haptic_long_press, haptic_impact } from "@/native/haptic_feedback";
+import { use_shown_thread_count } from "@/hooks/pending_thread_replies";
 
 interface MobileEmailRowProps {
   email: InboxEmail;
@@ -199,7 +200,10 @@ export const MobileEmailRow = memo(function MobileEmailRow(
   }, []);
 
   const timestamp = email.raw_timestamp ?? email.timestamp;
-  const thread_count = email.thread_message_count ?? 0;
+  const thread_count = use_shown_thread_count(
+    email.thread_token,
+    email.thread_message_count,
+  );
 
   const handler_map: Record<string, (() => void) | undefined> = useMemo(
     () => ({
