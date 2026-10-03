@@ -107,6 +107,7 @@ import {
   end_category_drag,
 } from "@/components/email/inbox/category_drag";
 import mail_logo_url from "@/assets/mail_logo.webp";
+import { use_shown_thread_count } from "@/hooks/pending_thread_replies";
 
 export const InboxEmailListItem = memo(
   forwardRef<HTMLDivElement, InboxEmailListItemProps>(
@@ -141,6 +142,10 @@ export const InboxEmailListItem = memo(
     ) {
       const { t } = use_i18n();
       const { preferences } = use_preferences();
+      const thread_message_count = use_shown_thread_count(
+        email.thread_token,
+        email.thread_message_count,
+      );
       const is_trash_view = current_view === "trash";
       const is_spam_view = current_view === "spam";
       const is_archive_view = current_view === "archive";
@@ -502,8 +507,7 @@ export const InboxEmailListItem = memo(
           <div className="flex-1 min-w-0 flex items-center gap-3 sm:gap-10 overflow-hidden">
             <div className="flex items-center gap-1.5 min-w-0 sm:max-w-[45%] overflow-hidden pe-px">
               {show_thread_count &&
-                email.thread_message_count != null &&
-                email.thread_message_count > 1 &&
+                thread_message_count > 1 &&
                 (preferences.thread_count_position ?? "left") === "left" && (
                   <span
                     className={cn(
@@ -511,7 +515,7 @@ export const InboxEmailListItem = memo(
                       email.is_read ? "text-txt-muted" : "text-txt-secondary",
                     )}
                   >
-                    {format_number(email.thread_message_count)}
+                    {format_number(thread_message_count)}
                   </span>
                 )}
 
@@ -543,8 +547,7 @@ export const InboxEmailListItem = memo(
               />
 
               {show_thread_count &&
-                email.thread_message_count != null &&
-                email.thread_message_count > 1 &&
+                thread_message_count > 1 &&
                 (preferences.thread_count_position ?? "left") === "right" && (
                   <span
                     className={cn(
@@ -552,7 +555,7 @@ export const InboxEmailListItem = memo(
                       email.is_read ? "text-txt-muted" : "text-txt-secondary",
                     )}
                   >
-                    {format_number(email.thread_message_count)}
+                    {format_number(thread_message_count)}
                   </span>
                 )}
 

@@ -45,6 +45,11 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_signatures } from "@/contexts/signatures_context";
 import { show_email_sent_toast } from "@/components/toast/email_sent_toast";
 import { emit_thread_reply_sent } from "@/hooks/mail_events";
+import {
+  add_pending_thread_reply,
+  remove_pending_thread_reply,
+  settle_pending_thread_reply,
+} from "@/hooks/pending_thread_replies";
 import { use_should_reduce_motion } from "@/provider";
 import {
   create_draft,
@@ -476,6 +481,10 @@ export const InlineReplySection = forwardRef<
 
     on_sending_start?.(sending_message);
 
+    const pending_reply_id = sending_message.id;
+
+    if (thread_token) add_pending_thread_reply(thread_token, pending_reply_id);
+
     const original: OriginalEmail = {
       sender_email: sender_email,
       sender_name: sender_name,
@@ -504,6 +513,7 @@ export const InlineReplySection = forwardRef<
           is_sending_ref.current = false;
           set_send_state("sent");
           on_sending_end?.();
+          settle_pending_thread_reply(pending_reply_id);
           show_email_sent_toast(t("common.email_sent"), sent_id);
 
           if (thread_token) {
@@ -544,6 +554,7 @@ export const InlineReplySection = forwardRef<
           set_send_state("idle");
           forget_send(send_fingerprint);
           set_queued_id(null);
+          remove_pending_thread_reply(pending_reply_id);
           on_sending_end?.();
         },
         on_error: (error) => {
@@ -552,6 +563,7 @@ export const InlineReplySection = forwardRef<
           set_send_state("error");
           forget_send(send_fingerprint);
           set_error_message(error);
+          remove_pending_thread_reply(pending_reply_id);
           on_sending_end?.();
         },
       },
@@ -577,6 +589,7 @@ export const InlineReplySection = forwardRef<
       set_send_state("error");
       forget_send(send_fingerprint);
       set_error_message(result.error || t("common.failed_to_send_reply"));
+      remove_pending_thread_reply(pending_reply_id);
       on_sending_end?.();
     }
   }, [
