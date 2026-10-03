@@ -9044,6 +9044,9 @@ export const ko = {
     verifying_credentials: "자격 증명 확인 중...",
     decrypting_vault: "키 금고 복호화 중...",
     getting_user_info: "사용자 정보 가져오는 중...",
+    checkout_confirm_title: "로그인 완료",
+    checkout_confirm_description:
+      "구매가 완료되었습니다. 메일함을 열려면 {{email}}(으)로 계속하세요.",
     enter_backup_code: "백업 코드 입력",
     backup_code_length_error:
       "백업 코드는 12자입니다(이전 코드는 8자). 코드를 확인하고 다시 시도하세요.",

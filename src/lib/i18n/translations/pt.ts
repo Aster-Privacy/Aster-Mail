@@ -9507,6 +9507,9 @@ export const pt = {
     verifying_credentials: "A verificar credenciais...",
     decrypting_vault: "A desencriptar o seu cofre de chaves...",
     getting_user_info: "A obter informações do utilizador...",
+    checkout_confirm_title: "Concluir o início de sessão",
+    checkout_confirm_description:
+      "A sua compra está concluída. Para abrir a sua caixa de correio, continue como {{email}}.",
     enter_backup_code: "Introduza o código de cópia de segurança",
     backup_code_length_error:
       "Um código de cópia de segurança tem 12 caracteres (8 nos códigos antigos). Verifique o código e tente novamente.",

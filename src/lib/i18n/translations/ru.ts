@@ -9608,6 +9608,9 @@ export const ru = {
     verifying_credentials: "Проверка учётных данных...",
     decrypting_vault: "Расшифровка вашего хранилища ключей...",
     getting_user_info: "Получение информации о пользователе...",
+    checkout_confirm_title: "Завершите вход",
+    checkout_confirm_description:
+      "Покупка завершена. Чтобы открыть почтовый ящик, продолжите как {{email}}.",
     enter_backup_code: "Введите резервный код",
     backup_code_length_error:
       "Резервный код состоит из 12 символов (8 для старых кодов). Проверьте код и попробуйте снова.",

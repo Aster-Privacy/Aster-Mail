@@ -9236,6 +9236,9 @@ export const ar = {
     verifying_credentials: "جارٍ التحقق من بيانات الاعتماد...",
     decrypting_vault: "جارٍ فك تشفير خزنة المفاتيح...",
     getting_user_info: "جارٍ الحصول على معلومات المستخدم...",
+    checkout_confirm_title: "إكمال تسجيل الدخول",
+    checkout_confirm_description:
+      "اكتمل الشراء. لفتح صندوق البريد، تابع باسم {{email}}.",
     enter_backup_code: "أدخل رمز النسخ الاحتياطي",
     backup_code_length_error:
       "رمز النسخ الاحتياطي مكوّن من 12 حرفًا (8 للرموز الأقدم). تحقق من الرمز وحاول مجددًا.",

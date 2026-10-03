@@ -9213,6 +9213,9 @@ export const ja = {
     verifying_credentials: "認証情報を確認中...",
     decrypting_vault: "キー保管庫を復号中...",
     getting_user_info: "ユーザー情報を取得中...",
+    checkout_confirm_title: "サインインを完了",
+    checkout_confirm_description:
+      "購入が完了しました。メールボックスを開くには、{{email}} として続行してください。",
     enter_backup_code: "バックアップコードを入力",
     backup_code_length_error:
       "バックアップコードは 12 文字です（旧形式は 8 文字）。コードを確認して、もう一度お試しください。",

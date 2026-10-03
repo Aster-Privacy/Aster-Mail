@@ -9304,6 +9304,9 @@ export const tr = {
     verifying_credentials: "Kimlik bilgileri doğrulanıyor...",
     decrypting_vault: "Anahtar kasanız çözülüyor...",
     getting_user_info: "Kullanıcı bilgileri alınıyor...",
+    checkout_confirm_title: "Oturum açmayı tamamlayın",
+    checkout_confirm_description:
+      "Satın alma işleminiz tamamlandı. Posta kutunuzu açmak için {{email}} olarak devam edin.",
     enter_backup_code: "Yedek Kodu Girin",
     backup_code_length_error:
       "Yedek kod 12 karakter uzunluğundadır (eski kodlar için 8). Kodu kontrol edin ve tekrar deneyin.",

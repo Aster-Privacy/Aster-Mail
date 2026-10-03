@@ -8373,6 +8373,9 @@ export const zh_CN = {
     verifying_credentials: "验证凭据中...",
     decrypting_vault: "解密密钥库中...",
     getting_user_info: "获取用户信息中...",
+    checkout_confirm_title: "完成登录",
+    checkout_confirm_description:
+      "您的购买已完成。要打开邮箱，请以 {{email}} 身份继续。",
     enter_backup_code: "输入备份代码",
     backup_code_length_error:
       "备份码为 12 个字符（旧版为 8 个）。请检查备份码后重试。",

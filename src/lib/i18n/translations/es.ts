@@ -9420,6 +9420,9 @@ export const es = {
     verifying_credentials: "Verificando credenciales...",
     decrypting_vault: "Descifrando tu bóveda de claves...",
     getting_user_info: "Obteniendo información del usuario...",
+    checkout_confirm_title: "Termina de iniciar sesión",
+    checkout_confirm_description:
+      "Tu compra se ha completado. Para abrir tu buzón, continúa como {{email}}.",
     enter_backup_code: "Ingresar código de respaldo",
     backup_code_length_error:
       "Un código de respaldo tiene 12 caracteres (8 en los códigos antiguos). Comprueba el código e inténtalo de nuevo.",

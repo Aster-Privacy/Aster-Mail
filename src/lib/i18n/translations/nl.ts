@@ -9387,6 +9387,9 @@ export const nl = {
     verifying_credentials: "Inloggegevens verifiëren...",
     decrypting_vault: "Je sleutelkluis ontsleutelen...",
     getting_user_info: "Gebruikersinformatie ophalen...",
+    checkout_confirm_title: "Aanmelden voltooien",
+    checkout_confirm_description:
+      "Je aankoop is voltooid. Ga verder als {{email}} om je mailbox te openen.",
     enter_backup_code: "Reservecode invoeren",
     backup_code_length_error:
       "Een back-upcode is 12 tekens lang (8 voor oudere codes). Controleer de code en probeer het opnieuw.",

@@ -9517,6 +9517,9 @@ export const de = {
     verifying_credentials: "Zugangsdaten werden überprüft...",
     decrypting_vault: "Ihr Schlüsseltresor wird entschlüsselt...",
     getting_user_info: "Benutzerinformationen werden abgerufen...",
+    checkout_confirm_title: "Anmeldung abschließen",
+    checkout_confirm_description:
+      "Ihr Kauf ist abgeschlossen. Fahren Sie als {{email}} fort, um Ihr Postfach zu öffnen.",
     enter_backup_code: "Backup-Code eingeben",
     backup_code_length_error:
       "Ein Backup-Code ist 12 Zeichen lang (8 bei älteren Codes). Prüfen Sie den Code und versuchen Sie es erneut.",

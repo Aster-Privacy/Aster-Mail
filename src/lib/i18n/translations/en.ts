@@ -9233,6 +9233,9 @@ export const en: Translations = {
     verifying_credentials: "Verifying credentials...",
     decrypting_vault: "Decrypting your key vault...",
     getting_user_info: "Getting user info...",
+    checkout_confirm_title: "Finish signing in",
+    checkout_confirm_description:
+      "Your purchase is complete. To open your mailbox, continue as {{email}}.",
     enter_backup_code: "Enter Backup Code",
     backup_code_length_error:
       "A backup code is 12 characters long (8 for older codes). Check the code and try again.",

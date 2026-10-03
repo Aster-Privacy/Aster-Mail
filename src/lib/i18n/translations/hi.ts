@@ -9275,6 +9275,9 @@ export const hi = {
     verifying_credentials: "क्रेडेंशियल सत्यापित हो रही हैं...",
     decrypting_vault: "आपका कुंजी वॉल्ट डिक्रिप्ट किया जा रहा है...",
     getting_user_info: "उपयोगकर्ता जानकारी ली जा रही है...",
+    checkout_confirm_title: "साइन इन पूरा करें",
+    checkout_confirm_description:
+      "आपकी खरीदारी पूरी हो गई है। अपना मेलबॉक्स खोलने के लिए {{email}} के रूप में जारी रखें।",
     enter_backup_code: "बैकअप कोड डालें",
     backup_code_length_error:
       "बैकअप कोड 12 वर्ण लंबा होता है (पुराने कोड के लिए 8)। कोड जांचें और फिर से कोशिश करें।",
