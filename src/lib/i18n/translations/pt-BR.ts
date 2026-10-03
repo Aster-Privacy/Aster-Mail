@@ -5575,6 +5575,12 @@ export const pt_br = {
     emails_imported_count_one: "{{count}} e-mail importado",
     duplicates_skipped: "{{count}} duplicatas ignoradas",
     duplicates_skipped_one: "{{count}} duplicata ignorada",
+    import_drafts_chats_skipped: "{{count}} rascunhos e chats ignorados",
+    import_drafts_chats_skipped_one: "{{count}} rascunho ou chat ignorado",
+    import_invalid_skipped:
+      "{{count}} mensagens sem remetente ou conteúdo ignoradas",
+    import_invalid_skipped_one:
+      "{{count}} mensagem sem remetente ou conteúdo ignorada",
     import_folder_hint:
       "Não encontra alguns e-mails? Verifique as pastas Spam e Enviados - os e-mails importados podem ser organizados nelas com base no conteúdo.",
     n_failed_count: "{{count}} com falha",

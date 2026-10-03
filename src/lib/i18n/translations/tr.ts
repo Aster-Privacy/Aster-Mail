@@ -5553,6 +5553,12 @@ export const tr = {
     emails_imported_count_one: "{{count}} e-posta içe aktarıldı",
     duplicates_skipped: "{{count}} kopya atlandı",
     duplicates_skipped_one: "{{count}} kopya atlandı",
+    import_drafts_chats_skipped: "{{count}} taslak ve sohbet atlandı",
+    import_drafts_chats_skipped_one: "{{count}} taslak veya sohbet atlandı",
+    import_invalid_skipped:
+      "Göndereni veya içeriği olmayan {{count}} ileti atlandı",
+    import_invalid_skipped_one:
+      "Göndereni veya içeriği olmayan {{count}} ileti atlandı",
     import_folder_hint:
       "Bazı e-postaları bulamıyor musunuz? Spam ve Gönderilmiş klasörlerini kontrol edin - içe aktarılan e-postalar orada sıralanmış olabilir.",
     n_failed_count: "{{count}} başarısız",

@@ -5565,6 +5565,8 @@ export const ko = {
     cancel_import: "가져오기 취소",
     emails_imported_count: "{{count}}개 이메일 가져옴",
     duplicates_skipped: "{{count}}개 중복 건너뜀",
+    import_drafts_chats_skipped: "임시 보관 메일 및 채팅 {{count}}개 건너뜀",
+    import_invalid_skipped: "보낸 사람이나 내용이 없는 메일 {{count}}개 건너뜀",
     import_folder_hint:
       "일부 이메일을 찾을 수 없나요? 스팸 및 보낸 편지함 폴더를 확인하세요 - 가져온 이메일이 그곳에 정렬되어 있을 수 있습니다.",
     n_failed_count: "{{count}}개 실패",

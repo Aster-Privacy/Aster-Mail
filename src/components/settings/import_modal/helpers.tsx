@@ -94,10 +94,29 @@ const ARCHIVE_LABELS = new Set([
 ]);
 const STARRED_LABELS = new Set(["starred", "flagged"]);
 
-function label_leaf(name: string): string {
-  const trimmed = name.trim().toLowerCase();
+// Outlook data files keep their default folders under a store root such as
+// "Top of Outlook data file" or "Root - Mailbox/IPM_SUBTREE", and IMAP
+// accounts add a "[Gmail]" level. Only those wrappers are dropped, so a nested
+// label like "Clients/Archive" or "Team/Chat" is never read as a system folder.
+const STORE_ROOT_SEGMENT =
+  /^(top of .+|root - .+|ipm_subtree|\[gmail\]|\[google mail\])$/;
 
-  return trimmed.split("/").pop() ?? trimmed;
+function system_label_name(name: string): string {
+  const segments = name
+    .trim()
+    .toLowerCase()
+    .split("/")
+    .map((segment) => segment.trim());
+  let start = 0;
+
+  while (
+    start < segments.length - 1 &&
+    STORE_ROOT_SEGMENT.test(segments[start])
+  ) {
+    start++;
+  }
+
+  return segments.slice(start).join("/");
 }
 
 export function is_ignored_label(name: string): boolean {
@@ -112,7 +131,8 @@ export function is_ignored_label(name: string): boolean {
 
 export function is_canonical_folder(name: string): boolean {
   return (
-    CANONICAL_FOLDER_TOKENS.has(label_leaf(name)) || is_ignored_label(name)
+    CANONICAL_FOLDER_TOKENS.has(system_label_name(name)) ||
+    is_ignored_label(name)
   );
 }
 
@@ -159,7 +179,7 @@ export function classify_import_labels(labels: string[]): ImportDisposition {
 
   for (const label of labels) {
     const lower = label.trim().toLowerCase();
-    const leaf = label_leaf(label);
+    const name = system_label_name(label);
 
     if (lower === "unread") {
       disposition.is_read = false;
@@ -169,14 +189,14 @@ export function classify_import_labels(labels: string[]): ImportDisposition {
       if (disposition.is_read === undefined) disposition.is_read = true;
       continue;
     }
-    if (is_ignored_label(label)) continue;
-    if (leaf === "inbox") inbox = true;
-    else if (SENT_LABELS.has(leaf)) disposition.sent = true;
-    else if (DRAFT_LABELS.has(leaf)) disposition.skip = true;
-    else if (TRASH_LABELS.has(leaf)) disposition.is_trashed = true;
-    else if (SPAM_LABELS.has(leaf)) disposition.is_spam = true;
-    else if (ARCHIVE_LABELS.has(leaf)) archived = true;
-    else if (STARRED_LABELS.has(leaf)) disposition.is_starred = true;
+    if (is_ignored_label(label) || is_ignored_label(name)) continue;
+    if (name === "inbox") inbox = true;
+    else if (SENT_LABELS.has(name)) disposition.sent = true;
+    else if (DRAFT_LABELS.has(name)) disposition.skip = true;
+    else if (TRASH_LABELS.has(name)) disposition.is_trashed = true;
+    else if (SPAM_LABELS.has(name)) disposition.is_spam = true;
+    else if (ARCHIVE_LABELS.has(name)) archived = true;
+    else if (STARRED_LABELS.has(name)) disposition.is_starred = true;
     else disposition.custom_labels.push(label.trim());
   }
 

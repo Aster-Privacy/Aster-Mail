@@ -5701,6 +5701,12 @@ export const fr = {
     emails_imported_count_one: "{{count}} e-mail importé",
     duplicates_skipped: "{{count}} doublons ignorés",
     duplicates_skipped_one: "{{count}} doublon ignoré",
+    import_drafts_chats_skipped: "{{count}} brouillons et chats ignorés",
+    import_drafts_chats_skipped_one: "{{count}} brouillon ou chat ignoré",
+    import_invalid_skipped:
+      "{{count}} messages sans expéditeur ni contenu ignorés",
+    import_invalid_skipped_one:
+      "{{count}} message sans expéditeur ni contenu ignoré",
     import_folder_hint:
       "Vous ne trouvez pas certains e-mails ? Vérifiez vos dossiers Spam et Envoyés - les e-mails importés peuvent y être classés.",
     n_failed_count: "{{count}} échec",

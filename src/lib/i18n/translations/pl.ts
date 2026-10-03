@@ -5775,6 +5775,18 @@ export const pl = {
     duplicates_skipped: "Pominięto {{count}} duplikatów",
     duplicates_skipped_one: "Pominięto {{count}} duplikat",
     duplicates_skipped_few: "Pominięto {{count}} duplikaty",
+    import_drafts_chats_skipped:
+      "Pominięto {{count}} wersji roboczych i czatów",
+    import_drafts_chats_skipped_one:
+      "Pominięto {{count}} wersję roboczą lub czat",
+    import_drafts_chats_skipped_few:
+      "Pominięto {{count}} wersje robocze i czaty",
+    import_invalid_skipped:
+      "Pominięto {{count}} wiadomości bez nadawcy lub treści",
+    import_invalid_skipped_one:
+      "Pominięto {{count}} wiadomość bez nadawcy lub treści",
+    import_invalid_skipped_few:
+      "Pominięto {{count}} wiadomości bez nadawcy lub treści",
     import_folder_hint:
       "Nie możesz znaleźć niektórych e-maili? Sprawdź foldery Spam i Wysłane - zaimportowane e-maile mogą być tam posortowane.",
     n_failed_count: "{{count}} niepowodzeń",

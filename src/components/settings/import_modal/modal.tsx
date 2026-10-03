@@ -95,7 +95,9 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
   const [progress, set_progress] = useState<ParseProgress | null>(null);
   const [import_result, set_import_result] = useState<{
     imported: number;
-    skipped: number;
+    duplicates: number;
+    drafts_skipped: number;
+    invalid: number;
     failed: number;
     quota_exceeded?: boolean;
     folders_skipped?: number;
@@ -254,7 +256,13 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
             failed_emails: 0,
           });
 
-          set_import_result({ imported: 0, skipped: 0, failed: 0 });
+          set_import_result({
+            imported: 0,
+            duplicates: 0,
+            drafts_skipped: 0,
+            invalid: 0,
+            failed: 0,
+          });
           set_step("complete");
         };
 
@@ -306,14 +314,22 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
         const seen_hashes = new Set<string>();
         const indices_to_import = new Set<number>();
         const emails_to_import: ParsedEmail[] = [];
+        let duplicate_count = 0;
+        let drafts_skipped_count = 0;
 
         emails.forEach((email, index) => {
           const hash = message_id_hashes.get(email.message_id);
 
           if (!hash || existing_hashes.has(hash) || seen_hashes.has(hash)) {
+            duplicate_count++;
+
             return;
           }
-          if (classify_import_labels(source_labels(email)).skip) return false;
+          if (classify_import_labels(source_labels(email)).skip) {
+            drafts_skipped_count++;
+
+            return;
+          }
 
           seen_hashes.add(hash);
           indices_to_import.add(index);
@@ -326,19 +342,20 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
         let failed_count = 0;
         let store_duplicate_count = 0;
         let invalid_count = 0;
-        const pre_skipped_count = emails.length - emails_to_import.length;
 
         if (emails_to_import.length === 0) {
           await update_import_job(job_id!, {
             status: "completed",
             processed_emails: 0,
-            skipped_emails: pre_skipped_count,
+            skipped_emails: duplicate_count + drafts_skipped_count,
             failed_emails: 0,
           });
 
           set_import_result({
             imported: 0,
-            skipped: pre_skipped_count,
+            duplicates: duplicate_count,
+            drafts_skipped: drafts_skipped_count,
+            invalid: 0,
             failed: 0,
           });
           set_step("complete");
@@ -515,8 +532,9 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
         }
 
         const final_status = cancel_ref.current ? "cancelled" : "completed";
+        const total_duplicates = duplicate_count + store_duplicate_count;
         const skipped_count =
-          pre_skipped_count + store_duplicate_count + invalid_count;
+          total_duplicates + drafts_skipped_count + invalid_count;
 
         await update_import_job(job_id!, {
           status: final_status,
@@ -527,7 +545,9 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
 
         set_import_result({
           imported: imported_count,
-          skipped: skipped_count,
+          duplicates: total_duplicates,
+          drafts_skipped: drafts_skipped_count,
+          invalid: invalid_count,
           failed: failed_count,
           quota_exceeded,
           folders_skipped: skipped_folder_count,
@@ -901,10 +921,24 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
                     count: import_result.imported,
                   })}
                 </p>
-                {import_result.skipped > 0 && (
+                {import_result.duplicates > 0 && (
                   <p className="text-xs text-txt-muted">
                     {t("settings.duplicates_skipped", {
-                      count: import_result.skipped,
+                      count: import_result.duplicates,
+                    })}
+                  </p>
+                )}
+                {import_result.drafts_skipped > 0 && (
+                  <p className="text-xs text-txt-muted">
+                    {t("settings.import_drafts_chats_skipped", {
+                      count: import_result.drafts_skipped,
+                    })}
+                  </p>
+                )}
+                {import_result.invalid > 0 && (
+                  <p className="text-xs text-txt-muted">
+                    {t("settings.import_invalid_skipped", {
+                      count: import_result.invalid,
                     })}
                   </p>
                 )}

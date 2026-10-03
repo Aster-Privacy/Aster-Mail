@@ -187,6 +187,8 @@ const counted_keys: TranslationKey[] = [
   "settings.removed_forwarding_rules_count",
   "settings.senders_unsubscribed",
   "settings.import_folders_skipped",
+  "settings.import_drafts_chats_skipped",
+  "settings.import_invalid_skipped",
 ];
 
 const extra_params = { total: 5, days: 30, folder: "Inbox" };

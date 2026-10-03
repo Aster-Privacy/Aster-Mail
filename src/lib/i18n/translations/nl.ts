@@ -5530,6 +5530,12 @@ export const nl = {
     emails_imported_count_one: "{{count}} e-mail geïmporteerd",
     duplicates_skipped: "{{count}} duplicaten overgeslagen",
     duplicates_skipped_one: "{{count}} duplicaat overgeslagen",
+    import_drafts_chats_skipped: "{{count}} concepten en chats overgeslagen",
+    import_drafts_chats_skipped_one: "{{count}} concept of chat overgeslagen",
+    import_invalid_skipped:
+      "{{count}} berichten zonder afzender of inhoud overgeslagen",
+    import_invalid_skipped_one:
+      "{{count}} bericht zonder afzender of inhoud overgeslagen",
     import_folder_hint:
       "Sommige e-mails niet gevonden? Controleer de mappen Spam en Verzonden - geïmporteerde e-mails kunnen daar worden gesorteerd.",
     n_failed_count: "{{count}} mislukt",

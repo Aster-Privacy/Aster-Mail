@@ -98,6 +98,92 @@ describe("classify_import_labels", () => {
   });
 });
 
+describe("nested labels named like system folders", () => {
+  it("imports inbox mail that also carries a nested Chat or Draft label", () => {
+    for (const label of [
+      "Team/Chat",
+      "Team/Chats",
+      "Projects/Draft",
+      "Projects/Drafts",
+    ]) {
+      const d = classify_import_labels(["Inbox", label]);
+
+      expect(d.skip).toBe(false);
+      expect(d.custom_labels).toEqual([label]);
+    }
+  });
+
+  it("files a nested Archive or All label into its own folder", () => {
+    for (const label of ["Clients/Archive", "Clients/All", "Old/All Mail"]) {
+      const d = classify_import_labels([label]);
+
+      expect(d.is_archived).toBe(false);
+      expect(d.custom_labels).toEqual([label]);
+    }
+  });
+
+  it("keeps nested Sent, Trash, Spam and Starred labels as folders", () => {
+    const d = classify_import_labels([
+      "Archived",
+      "Clients/Sent",
+      "Old/Trash",
+      "Old/Spam",
+      "Fav/Starred",
+    ]);
+
+    expect(d).toMatchObject({
+      sent: false,
+      is_trashed: false,
+      is_spam: false,
+      is_starred: false,
+      is_archived: false,
+    });
+    expect(d.custom_labels).toEqual([
+      "Clients/Sent",
+      "Old/Trash",
+      "Old/Spam",
+      "Fav/Starred",
+    ]);
+  });
+
+  it("still reads system folders under an Outlook data file root", () => {
+    expect(
+      classify_import_labels(["Top of Outlook data file/Sent Items"]).sent,
+    ).toBe(true);
+    expect(
+      classify_import_labels(["Top of Personal Folders/Deleted Items"])
+        .is_trashed,
+    ).toBe(true);
+    expect(
+      classify_import_labels(["Top of Outlook data file/Drafts"]).skip,
+    ).toBe(true);
+    expect(
+      classify_import_labels(["Top of Outlook data file/[Gmail]/Sent Mail"])
+        .sent,
+    ).toBe(true);
+  });
+
+  it("keeps Outlook subfolders named like system folders as folders", () => {
+    const d = classify_import_labels([
+      "Top of Outlook data file/Inbox/Clients/Drafts",
+    ]);
+
+    expect(d.skip).toBe(false);
+    expect(d.custom_labels).toEqual([
+      "Top of Outlook data file/Inbox/Clients/Drafts",
+    ]);
+  });
+
+  it("creates the folder for a nested Archive label", () => {
+    expect(
+      extract_source_folders([
+        email_with({ "x-gmail-labels": "Archived,Clients/Archive" }),
+        email_with({ "x-gmail-labels": "Inbox,Team/Chat" }),
+      ]),
+    ).toEqual(["Clients/Archive", "Team/Chat"]);
+  });
+});
+
 describe("source_labels and folders", () => {
   it("uses the label header when present and the source folder otherwise", () => {
     expect(

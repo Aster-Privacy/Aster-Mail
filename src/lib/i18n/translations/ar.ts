@@ -5649,6 +5649,10 @@ export const ar = {
     emails_imported_count_one: "تم استيراد {{count}} رسالة",
     duplicates_skipped: "تم تخطي {{count}} مكرر",
     duplicates_skipped_one: "تم تخطي {{count}} مكرر",
+    import_drafts_chats_skipped: "تم تخطي {{count}} من المسودات والمحادثات",
+    import_drafts_chats_skipped_one: "تم تخطي {{count}} مسودة أو محادثة",
+    import_invalid_skipped: "تم تخطي {{count}} من الرسائل بلا مرسل أو محتوى",
+    import_invalid_skipped_one: "تم تخطي {{count}} رسالة بلا مرسل أو محتوى",
     import_folder_hint:
       "لا تجد بعض الرسائل؟ تحقق من مجلدي البريد العشوائي والمرسل - قد تكون الرسائل المستوردة مرتبة هناك.",
     n_failed_count: "{{count}} فشل",
