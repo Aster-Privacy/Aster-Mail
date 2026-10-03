@@ -36,7 +36,7 @@ import { check_reply_send } from "./reply_send_gate";
 import { get_cached_preferences } from "./api/preferences";
 import type { EncryptionOptions } from "./send_queue_types";
 
-import { get_aster_footer } from "@/components/compose/compose_shared";
+import { get_aster_footer } from "@/components/compose/compose_shared_core";
 import { sanitize_outgoing_html } from "@/lib/html_sanitizer";
 import { get_active_translations } from "@/lib/i18n/translations";
 import { resolve_reply_prefix } from "@/lib/reply_defaults";

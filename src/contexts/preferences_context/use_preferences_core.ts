@@ -54,7 +54,7 @@ import { configure_session_timeout } from "@/services/session_timeout_service";
 import {
   set_preload_email_font_px,
   set_preload_email_font_stack,
-} from "@/components/email/hooks/preload_cache";
+} from "@/components/email/hooks/preload_cache_store";
 import { get_font_stack, get_email_font_stack } from "@/lib/font_options";
 import { get_effective_theme_fields } from "@/lib/theme_sync";
 import { ignore_error } from "@/lib/ignore_error";

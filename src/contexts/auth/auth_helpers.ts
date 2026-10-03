@@ -29,7 +29,7 @@ import { clear_plan_cache } from "@/services/plan_limits";
 import { clear_mail_cache } from "@/hooks/use_email_list";
 import { clear_folders_cache } from "@/hooks/use_folders";
 import { clear_tags_cache } from "@/hooks/use_tags";
-import { clear_preload_cache } from "@/components/email/hooks/preload_cache";
+import { clear_preload_cache } from "@/components/email/hooks/preload_cache_store";
 import { clear_attachment_preview_cache } from "@/hooks/use_attachment_previews";
 import { clear_attachment_preview_cache as revoke_attachment_preview_blobs } from "@/services/attachment_preview_cache";
 import { clear_attachment_keys } from "@/services/crypto/inbound_attachment_keys";

@@ -64,7 +64,7 @@ import { get_active_translations } from "@/lib/i18n/translations";
 import {
   extract_inline_images,
   type Attachment,
-} from "@/components/compose/compose_shared";
+} from "@/components/compose/compose_shared_core";
 import { ignore_error } from "@/lib/ignore_error";
 
 const CLIENT_SEND_ID_PATTERN =
