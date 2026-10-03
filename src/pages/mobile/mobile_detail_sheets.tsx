@@ -22,6 +22,7 @@ import type { DecryptedThreadMessage } from "@/types/thread";
 import type { UserPreferences } from "@/services/api/preferences";
 import type { TranslationKey } from "@/lib/i18n";
 
+import { useState } from "react";
 import {
   StarIcon,
   ArchiveBoxIcon,
@@ -66,6 +67,20 @@ import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { show_toast } from "@/components/toast/simple_toast";
 import { format_bytes } from "@/lib/utils";
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
+import {
+  format_raw_headers,
+  get_message_id,
+} from "@/utils/message_header_details";
+import {
+  DetailsRow,
+  EmailAuthDetails,
+  HeadersBox,
+  HeadersViewToggle,
+  MailingListValue,
+  ReplyToValue,
+  get_header_insights,
+  type HeadersViewMode,
+} from "@/components/email/message_details_sections";
 
 export function MobileActionMenuSheet({
   menu_message,
@@ -668,9 +683,9 @@ export function MobileToolbarCustomizerSheet({
 }
 
 function build_message_headers(message: DecryptedThreadMessage): string {
-  if (message.raw_headers && message.raw_headers.length > 0) {
-    return message.raw_headers.map((h) => `${h.name}: ${h.value}`).join("\n");
-  }
+  const raw = format_raw_headers(message.raw_headers);
+
+  if (raw) return raw;
 
   const lines: string[] = [];
 
@@ -719,6 +734,15 @@ export function MobileMessageDetailsSheet({
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
 }) {
   const headers = message ? build_message_headers(message) : "";
+  const [headers_mode, set_headers_mode] =
+    useState<HeadersViewMode>("formatted");
+  const insights = get_header_insights(
+    message?.raw_headers,
+    message ?? {},
+    message?.sender_email ?? "",
+  );
+  const message_id = get_message_id(message?.raw_headers);
+  const has_raw_headers = !!message?.raw_headers?.length;
 
   const handle_copy_headers = () => {
     copy_text_or_throw(headers)
@@ -762,6 +786,12 @@ export function MobileMessageDetailsSheet({
                 {message.display_sender_email ?? message.sender_email}&gt;
               </span>
             </div>
+
+            {insights.reply_to && (
+              <DetailsRow label={t("mail.reply_to_label")} variant="mobile">
+                <ReplyToValue {...insights.reply_to} />
+              </DetailsRow>
+            )}
 
             {message.to_recipients && message.to_recipients.length > 0 && (
               <div className="flex">
@@ -823,14 +853,22 @@ export function MobileMessageDetailsSheet({
               </span>
             </div>
 
-            <div className="flex">
-              <span className="min-w-20 flex-shrink-0 whitespace-nowrap pe-2 text-[12px] font-medium text-[var(--text-muted)]">
-                {t("mail.message_id_label")}
-              </span>
-              <span className="min-w-0 text-[12px] text-[var(--text-secondary)] break-all">
-                &lt;{message.id}@astermail.org&gt;
-              </span>
-            </div>
+            {insights.mailing_list && (
+              <DetailsRow label={t("mail.mailing_list_label")} variant="mobile">
+                <MailingListValue {...insights.mailing_list} />
+              </DetailsRow>
+            )}
+
+            {message_id && (
+              <div className="flex">
+                <span className="min-w-20 flex-shrink-0 whitespace-nowrap pe-2 text-[12px] font-medium text-[var(--text-muted)]">
+                  {t("mail.message_id_label")}
+                </span>
+                <span className="min-w-0 text-[12px] text-[var(--text-secondary)] break-all">
+                  {message_id}
+                </span>
+              </div>
+            )}
 
             {size_bytes != null && size_bytes > 0 && (
               <div className="flex">
@@ -874,11 +912,44 @@ export function MobileMessageDetailsSheet({
           </div>
         )}
 
-        <div>
-          <div className="flex items-center justify-between mb-2">
+        {message?.item_type === "received" && (
+          <section className="mb-4 space-y-2.5 border-t border-[var(--border-secondary)] pt-3">
             <h4 className="text-[14px] font-semibold text-[var(--text-primary)]">
-              {t("mail.message_headers")}
+              {t("mail.authentication_section")}
             </h4>
+            <EmailAuthDetails
+              results={message}
+              sender_email={
+                message.display_sender_email ?? message.sender_email
+              }
+              variant="mobile"
+            />
+            {insights.signed_by && (
+              <DetailsRow label={t("mail.signed_by_label")} variant="mobile">
+                <bdi dir="ltr">{insights.signed_by}</bdi>
+              </DetailsRow>
+            )}
+            {insights.mailed_by && (
+              <DetailsRow label={t("mail.mailed_by_label")} variant="mobile">
+                <bdi dir="ltr">{insights.mailed_by}</bdi>
+              </DetailsRow>
+            )}
+          </section>
+        )}
+
+        <div>
+          <h4 className="mb-2 text-[14px] font-semibold text-[var(--text-primary)]">
+            {t("mail.message_headers")}
+          </h4>
+          <div className="mb-2 flex items-center justify-between gap-2">
+            {has_raw_headers ? (
+              <HeadersViewToggle
+                mode={headers_mode}
+                on_change={set_headers_mode}
+              />
+            ) : (
+              <span />
+            )}
             <div className="flex items-center gap-1">
               <button
                 className="inline-flex items-center gap-1 rounded-[var(--aster-radius-control)] px-2 py-1 text-[12px] font-medium text-[var(--accent-color,#3b82f6)] active:opacity-70"
@@ -898,9 +969,12 @@ export function MobileMessageDetailsSheet({
               </button>
             </div>
           </div>
-          <pre className="max-h-[40vh] overflow-auto rounded-xl bg-[var(--bg-tertiary)] p-3 text-[11px] leading-relaxed text-[var(--text-secondary)]">
-            {headers}
-          </pre>
+          <HeadersBox
+            className="max-h-[50dvh] rounded-xl text-[11px]"
+            mode={headers_mode}
+            raw_headers={message?.raw_headers}
+            text={headers}
+          />
         </div>
       </div>
     </MobileBottomSheet>

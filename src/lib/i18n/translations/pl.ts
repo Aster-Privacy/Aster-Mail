@@ -9242,6 +9242,53 @@ export const pl = {
     email_auth_status_fail: "Negatywny",
     email_auth_status_none: "Nieużywany",
     email_auth_status_missing: "Niesprawdzony",
+    mailed_by_label: "Wysłane przez:",
+    signed_by_label: "Podpisane przez:",
+    reply_to_label: "Odpowiedz do:",
+    authentication_section: "Uwierzytelnianie",
+    reply_to_other_domain:
+      "Odpowiedzi trafią do innej domeny niż domena nadawcy.",
+    mailing_list_label: "Lista mailingowa:",
+    list_unsubscribe_available: "Zawiera link do wypisania się",
+    email_auth_summary_authenticated:
+      "Ta wiadomość przeszła SPF, DKIM i DMARC dla {{domain}}.",
+    email_auth_summary_unverified:
+      "Kontrole nie potwierdziły, że {{domain}} wysłała tę wiadomość.",
+    email_auth_summary_unavailable:
+      "Wyniki uwierzytelniania nie są dostępne dla tej wiadomości.",
+    email_auth_spf_pass:
+      "Serwer wysyłający może wysyłać pocztę w imieniu tej domeny.",
+    email_auth_spf_fail:
+      "Serwer wysyłający nie może wysyłać poczty w imieniu tej domeny.",
+    email_auth_dkim_pass:
+      "Podpis jest prawidłowy, więc wiadomość nie została zmieniona po podpisaniu.",
+    email_auth_dkim_fail:
+      "Podpis jest nieprawidłowy albo wiadomość została zmieniona po podpisaniu.",
+    email_auth_dmarc_pass: "Wiadomość spełnia zasady domeny nadawcy.",
+    email_auth_dmarc_fail:
+      "Wiadomość nie spełnia zasad domeny nadawcy. Nadawca może nie być tym, za kogo się podaje.",
+    email_auth_check_none: "Domena nadawcy nie używa tej kontroli.",
+    email_auth_check_missing: "Nie zapisano wyniku tej kontroli.",
+    email_auth_check_other: "Kontrola dała nietypowy wynik: {{value}}.",
+    header_help_received:
+      "Serwer, przez który przeszła ta wiadomość w drodze do Ciebie. Najwyższy jest najnowszy.",
+    header_help_return_path:
+      "Adres, na który trafiają zwroty. SPF sprawdza domenę tego adresu.",
+    header_help_authentication_results:
+      "Wyniki SPF, DKIM i DMARC zapisane przez serwer, który je sprawdził.",
+    header_help_received_spf:
+      "Wynik SPF: czy serwer wysyłający może wysyłać pocztę w imieniu domeny.",
+    header_help_dkim_signature:
+      "Podpis dodany przez domenę wysyłającą, dzięki któremu można wykryć zmiany w wiadomości.",
+    header_help_arc:
+      "Zachowuje pierwotne wyniki kontroli, gdy przekierowanie lub lista mailingowa przekazuje wiadomość dalej.",
+    header_help_message_id:
+      "Unikalny identyfikator nadany tej wiadomości przez nadawcę.",
+    header_help_list_unsubscribe: "Jak wypisać się z tej listy mailingowej.",
+    header_help_spam: "Werdykt i wynik filtra antyspamowego.",
+    headers_formatted: "Sformatowane",
+    headers_raw: "Surowe",
+    headers_view_label: "Widok nagłówków",
     copy_message_id: "Kopiuj ID wiadomości",
     hide_source: "Ukryj źródło",
     view_dark_mode: "Wyświetl w trybie ciemnym",

@@ -8652,6 +8652,51 @@ export const ko = {
     email_auth_status_fail: "실패",
     email_auth_status_none: "사용 안 함",
     email_auth_status_missing: "검사 안 됨",
+    mailed_by_label: "발송 서버:",
+    signed_by_label: "서명:",
+    reply_to_label: "회신 주소:",
+    authentication_section: "인증",
+    reply_to_other_domain: "회신이 보낸 사람과 다른 도메인으로 갑니다.",
+    mailing_list_label: "메일링 리스트:",
+    list_unsubscribe_available: "구독 취소 링크 포함",
+    email_auth_summary_authenticated:
+      "이 메시지는 {{domain}}에 대한 SPF, DKIM, DMARC를 통과했습니다.",
+    email_auth_summary_unverified:
+      "검사로는 {{domain}}에서 이 메시지를 보냈는지 확인할 수 없었습니다.",
+    email_auth_summary_unavailable: "이 메시지의 인증 결과가 없습니다.",
+    email_auth_spf_pass:
+      "발송 서버가 이 도메인의 메일을 보낼 수 있도록 허용되어 있습니다.",
+    email_auth_spf_fail:
+      "발송 서버가 이 도메인의 메일을 보낼 수 있도록 허용되어 있지 않습니다.",
+    email_auth_dkim_pass:
+      "서명이 유효하므로 서명 후 메시지가 변경되지 않았습니다.",
+    email_auth_dkim_fail:
+      "서명이 유효하지 않거나 서명 후 메시지가 변경되었습니다.",
+    email_auth_dmarc_pass: "메시지가 보낸 사람 도메인의 정책을 충족합니다.",
+    email_auth_dmarc_fail:
+      "메시지가 보낸 사람 도메인의 정책을 충족하지 않습니다. 보낸 사람이 주장하는 사람이 아닐 수 있습니다.",
+    email_auth_check_none: "보낸 사람의 도메인은 이 검사를 사용하지 않습니다.",
+    email_auth_check_missing: "이 검사에 대해 기록된 결과가 없습니다.",
+    email_auth_check_other: "검사 결과가 일반적이지 않습니다: {{value}}.",
+    header_help_received:
+      "이 메시지가 전달되는 동안 거친 서버입니다. 맨 위가 가장 최근입니다.",
+    header_help_return_path:
+      "반송 메일이 가는 주소입니다. SPF는 이 주소의 도메인을 검사합니다.",
+    header_help_authentication_results:
+      "검사한 서버가 기록한 SPF, DKIM, DMARC 결과입니다.",
+    header_help_received_spf:
+      "SPF 결과: 발송 서버가 이 도메인의 메일을 보낼 수 있는지 나타냅니다.",
+    header_help_dkim_signature:
+      "발송 도메인이 추가한 서명으로, 메시지 변경을 감지할 수 있습니다.",
+    header_help_arc:
+      "전달 서비스나 메일링 리스트가 메시지를 넘길 때 원래 검사 결과를 보존합니다.",
+    header_help_message_id: "보낸 사람이 이 메시지에 붙인 고유 식별자입니다.",
+    header_help_list_unsubscribe:
+      "이 메일링 리스트의 구독을 취소하는 방법입니다.",
+    header_help_spam: "스팸 필터의 판정과 점수입니다.",
+    headers_formatted: "서식 적용",
+    headers_raw: "원본",
+    headers_view_label: "헤더 보기",
     copy_message_id: "메시지 ID 복사",
     hide_source: "소스 숨기기",
     view_dark_mode: "다크 모드로 보기",

@@ -9012,6 +9012,52 @@ export const hi = {
     email_auth_status_fail: "विफल",
     email_auth_status_none: "उपयोग नहीं",
     email_auth_status_missing: "जांचा नहीं गया",
+    mailed_by_label: "भेजने वाला सर्वर:",
+    signed_by_label: "हस्ताक्षरकर्ता:",
+    reply_to_label: "जवाब इस पते पर:",
+    authentication_section: "प्रमाणीकरण",
+    reply_to_other_domain: "जवाब भेजने वाले से अलग डोमेन पर जाएंगे।",
+    mailing_list_label: "मेलिंग सूची:",
+    list_unsubscribe_available: "सदस्यता छोड़ने का लिंक शामिल है",
+    email_auth_summary_authenticated:
+      "यह संदेश {{domain}} के लिए SPF, DKIM और DMARC जांच में पास हुआ।",
+    email_auth_summary_unverified:
+      "जांचें पुष्टि नहीं कर पाईं कि यह संदेश {{domain}} ने भेजा।",
+    email_auth_summary_unavailable:
+      "इस संदेश के लिए प्रमाणीकरण नतीजे उपलब्ध नहीं हैं।",
+    email_auth_spf_pass:
+      "भेजने वाले सर्वर को इस डोमेन की ओर से मेल भेजने की अनुमति है।",
+    email_auth_spf_fail:
+      "भेजने वाले सर्वर को इस डोमेन की ओर से मेल भेजने की अनुमति नहीं है।",
+    email_auth_dkim_pass:
+      "हस्ताक्षर मान्य है, इसलिए हस्ताक्षर के बाद संदेश नहीं बदला गया।",
+    email_auth_dkim_fail:
+      "हस्ताक्षर अमान्य है, या हस्ताक्षर के बाद संदेश बदला गया।",
+    email_auth_dmarc_pass: "संदेश भेजने वाले के डोमेन की नीति पूरी करता है।",
+    email_auth_dmarc_fail:
+      "संदेश भेजने वाले के डोमेन की नीति पूरी नहीं करता। हो सकता है भेजने वाला वह न हो जो होने का दावा करता है।",
+    email_auth_check_none: "भेजने वाले का डोमेन यह जांच इस्तेमाल नहीं करता।",
+    email_auth_check_missing: "इस जांच का कोई नतीजा दर्ज नहीं हुआ।",
+    email_auth_check_other: "जांच का नतीजा असामान्य रहा: {{value}}।",
+    header_help_received:
+      "एक सर्वर जिससे होकर यह संदेश आप तक पहुंचा। सबसे ऊपर वाला सबसे नया है।",
+    header_help_return_path:
+      "बाउंस संदेश कहां भेजे जाते हैं। SPF इस पते के डोमेन की जांच करता है।",
+    header_help_authentication_results:
+      "जांच करने वाले सर्वर के लिखे SPF, DKIM और DMARC नतीजे।",
+    header_help_received_spf:
+      "SPF नतीजा: क्या भेजने वाला सर्वर इस डोमेन की ओर से मेल भेज सकता है।",
+    header_help_dkim_signature:
+      "भेजने वाले डोमेन का जोड़ा गया हस्ताक्षर, जिससे संदेश में बदलाव पकड़े जा सकते हैं।",
+    header_help_arc:
+      "जब कोई फ़ॉरवर्डर या मेलिंग सूची संदेश आगे भेजती है, तब मूल जांच नतीजे सुरक्षित रखता है।",
+    header_help_message_id:
+      "भेजने वाले द्वारा इस संदेश को दिया गया अनोखा पहचानकर्ता।",
+    header_help_list_unsubscribe: "इस मेलिंग सूची की सदस्यता कैसे छोड़ें।",
+    header_help_spam: "स्पैम फ़िल्टर का फ़ैसला और स्कोर।",
+    headers_formatted: "फ़ॉर्मैट किया हुआ",
+    headers_raw: "मूल",
+    headers_view_label: "हेडर दृश्य",
     copy_message_id: "संदेश ID कॉपी करें",
     message_details: "संदेश का विवरण",
     message_headers: "संदेश के हेडर",

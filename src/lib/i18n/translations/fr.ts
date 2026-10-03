@@ -9111,6 +9111,58 @@ export const fr = {
     email_auth_status_fail: "Échoué",
     email_auth_status_none: "Non utilisé",
     email_auth_status_missing: "Non vérifié",
+    mailed_by_label: "Envoyé par :",
+    signed_by_label: "Signé par :",
+    reply_to_label: "Répondre à :",
+    authentication_section: "Authentification",
+    reply_to_other_domain:
+      "Les réponses vont vers un autre domaine que celui de l'expéditeur.",
+    mailing_list_label: "Liste de diffusion :",
+    list_unsubscribe_available: "Lien de désabonnement inclus",
+    email_auth_summary_authenticated:
+      "Ce message a réussi SPF, DKIM et DMARC pour {{domain}}.",
+    email_auth_summary_unverified:
+      "Les vérifications n'ont pas pu confirmer que {{domain}} a envoyé ce message.",
+    email_auth_summary_unavailable:
+      "Les résultats d'authentification ne sont pas disponibles pour ce message.",
+    email_auth_spf_pass:
+      "Le serveur d'envoi est autorisé à envoyer des e-mails pour ce domaine.",
+    email_auth_spf_fail:
+      "Le serveur d'envoi n'est pas autorisé à envoyer des e-mails pour ce domaine.",
+    email_auth_dkim_pass:
+      "La signature est valide : le message n'a pas été modifié après sa signature.",
+    email_auth_dkim_fail:
+      "La signature n'est pas valide, ou le message a été modifié après sa signature.",
+    email_auth_dmarc_pass:
+      "Le message respecte la politique du domaine de l'expéditeur.",
+    email_auth_dmarc_fail:
+      "Le message ne respecte pas la politique du domaine de l'expéditeur. L'expéditeur n'est peut-être pas celui qu'il prétend être.",
+    email_auth_check_none:
+      "Le domaine de l'expéditeur n'utilise pas cette vérification.",
+    email_auth_check_missing:
+      "Aucun résultat n'a été enregistré pour cette vérification.",
+    email_auth_check_other:
+      "La vérification a donné un résultat inhabituel : {{value}}.",
+    header_help_received:
+      "Un serveur par lequel ce message est passé pour vous parvenir. Le premier est le plus récent.",
+    header_help_return_path:
+      "L'adresse où sont envoyés les retours. SPF vérifie son domaine.",
+    header_help_authentication_results:
+      "Les résultats SPF, DKIM et DMARC, écrits par le serveur qui les a vérifiés.",
+    header_help_received_spf:
+      "Le résultat SPF : le serveur d'envoi peut-il envoyer des e-mails pour ce domaine.",
+    header_help_dkim_signature:
+      "Une signature ajoutée par le domaine d'envoi, pour détecter toute modification du message.",
+    header_help_arc:
+      "Conserve les résultats d'origine quand un transfert ou une liste de diffusion relaie le message.",
+    header_help_message_id:
+      "Un identifiant unique donné à ce message par l'expéditeur.",
+    header_help_list_unsubscribe:
+      "Comment se désabonner de cette liste de diffusion.",
+    header_help_spam: "Le verdict et le score du filtre anti-spam.",
+    headers_formatted: "Mis en forme",
+    headers_raw: "Brut",
+    headers_view_label: "Affichage des en-têtes",
     copy_message_id: "Copier l'ID du message",
     hide_source: "Masquer la source",
     view_dark_mode: "Voir en mode sombre",

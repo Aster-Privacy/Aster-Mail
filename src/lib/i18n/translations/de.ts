@@ -9084,6 +9084,57 @@ export const de = {
     email_auth_status_fail: "Nicht bestanden",
     email_auth_status_none: "Nicht verwendet",
     email_auth_status_missing: "Nicht geprüft",
+    mailed_by_label: "Versendet von:",
+    signed_by_label: "Signiert von:",
+    reply_to_label: "Antwort an:",
+    authentication_section: "Authentifizierung",
+    reply_to_other_domain:
+      "Antworten gehen an eine andere Domain als die des Absenders.",
+    mailing_list_label: "Mailingliste:",
+    list_unsubscribe_available: "Abmeldelink enthalten",
+    email_auth_summary_authenticated:
+      "Diese Nachricht hat SPF, DKIM und DMARC für {{domain}} bestanden.",
+    email_auth_summary_unverified:
+      "Die Prüfungen konnten nicht bestätigen, dass {{domain}} diese Nachricht gesendet hat.",
+    email_auth_summary_unavailable:
+      "Für diese Nachricht sind keine Authentifizierungsergebnisse verfügbar.",
+    email_auth_spf_pass:
+      "Der sendende Server darf E-Mails für diese Domain versenden.",
+    email_auth_spf_fail:
+      "Der sendende Server darf keine E-Mails für diese Domain versenden.",
+    email_auth_dkim_pass:
+      "Die Signatur ist gültig, die Nachricht wurde nach dem Signieren also nicht verändert.",
+    email_auth_dkim_fail:
+      "Die Signatur ist ungültig, oder die Nachricht wurde nach dem Signieren verändert.",
+    email_auth_dmarc_pass:
+      "Die Nachricht erfüllt die Richtlinie der Absenderdomain.",
+    email_auth_dmarc_fail:
+      "Die Nachricht erfüllt die Richtlinie der Absenderdomain nicht. Der Absender ist möglicherweise nicht der, der er vorgibt zu sein.",
+    email_auth_check_none: "Die Absenderdomain nutzt diese Prüfung nicht.",
+    email_auth_check_missing:
+      "Für diese Prüfung wurde kein Ergebnis aufgezeichnet.",
+    email_auth_check_other:
+      "Die Prüfung ergab ein ungewöhnliches Ergebnis: {{value}}.",
+    header_help_received:
+      "Ein Server, über den diese Nachricht zu dir gelangt ist. Der oberste ist der neueste.",
+    header_help_return_path:
+      "Wohin Unzustellbarkeitsmeldungen gehen. SPF prüft die Domain dieser Adresse.",
+    header_help_authentication_results:
+      "Die Ergebnisse von SPF, DKIM und DMARC, geschrieben vom prüfenden Server.",
+    header_help_received_spf:
+      "Das SPF-Ergebnis: ob der sendende Server E-Mails für die Domain versenden darf.",
+    header_help_dkim_signature:
+      "Eine Signatur der sendenden Domain, mit der Änderungen an der Nachricht erkennbar sind.",
+    header_help_arc:
+      "Bewahrt die ursprünglichen Prüfergebnisse, wenn eine Weiterleitung oder Mailingliste die Nachricht weitergibt.",
+    header_help_message_id:
+      "Eine eindeutige Kennung, die der Absender dieser Nachricht gegeben hat.",
+    header_help_list_unsubscribe:
+      "So meldest du dich von dieser Mailingliste ab.",
+    header_help_spam: "Urteil und Punktzahl des Spamfilters.",
+    headers_formatted: "Formatiert",
+    headers_raw: "Roh",
+    headers_view_label: "Ansicht der Header",
     copy_message_id: "Nachrichten-ID kopieren",
     hide_source: "Quelltext ausblenden",
     view_dark_mode: "Im Dunkelmodus anzeigen",

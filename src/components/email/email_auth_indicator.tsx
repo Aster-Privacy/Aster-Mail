@@ -95,7 +95,7 @@ export const CHECK_NAME: Record<EmailAuthCheck, string> = {
   dmarc: "DMARC",
 };
 
-const CHECK_PURPOSE: Record<EmailAuthCheck, TranslationKey> = {
+export const CHECK_PURPOSE: Record<EmailAuthCheck, TranslationKey> = {
   spf: "settings.domain_check_spf_label",
   dkim: "settings.domain_check_dkim_label",
   dmarc: "settings.domain_check_dmarc_label",
@@ -124,7 +124,7 @@ const BIDI_CONTROLS = /[\u061c\u200e\u200f\u202a-\u202e\u2066-\u2069]/g;
 const NON_ASCII = /[\u0080-\uffff]/;
 const DOMAIN = /^[\p{L}\p{M}\p{N}-]+(?:\.[\p{L}\p{M}\p{N}-]+)*\.?$/u;
 
-function display_domain(sender_email?: string): string {
+export function display_domain(sender_email?: string): string {
   const email = (sender_email ?? "").replace(BIDI_CONTROLS, "").trim();
   const at = email.lastIndexOf("@");
   const domain =
@@ -147,7 +147,7 @@ function display_domain(sender_email?: string): string {
   }
 }
 
-function status_color(result: EmailAuthCheckResult): string {
+export function status_color(result: EmailAuthCheckResult): string {
   if (result.status === "pass") return "var(--cat-green-fg)";
   if (result.status === "fail") return "var(--cat-rose-fg)";
   if (result.status === "other") return "var(--cat-amber-fg)";

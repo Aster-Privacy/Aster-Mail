@@ -8825,6 +8825,48 @@ export const ar = {
     email_auth_status_fail: "فشل",
     email_auth_status_none: "غير مستخدم",
     email_auth_status_missing: "لم يُفحص",
+    mailed_by_label: "أُرسلت عبر:",
+    signed_by_label: "وقّعها:",
+    reply_to_label: "الرد إلى:",
+    authentication_section: "المصادقة",
+    reply_to_other_domain: "تذهب الردود إلى نطاق مختلف عن نطاق المرسل.",
+    mailing_list_label: "القائمة البريدية:",
+    list_unsubscribe_available: "يتضمن رابط إلغاء الاشتراك",
+    email_auth_summary_authenticated:
+      "اجتازت هذه الرسالة فحوص SPF وDKIM وDMARC للنطاق {{domain}}.",
+    email_auth_summary_unverified:
+      "لم تؤكد الفحوص أن {{domain}} أرسل هذه الرسالة.",
+    email_auth_summary_unavailable: "نتائج المصادقة غير متاحة لهذه الرسالة.",
+    email_auth_spf_pass: "يُسمح للخادم المرسل بإرسال البريد باسم هذا النطاق.",
+    email_auth_spf_fail:
+      "لا يُسمح للخادم المرسل بإرسال البريد باسم هذا النطاق.",
+    email_auth_dkim_pass: "التوقيع صالح، لذا لم تُعدَّل الرسالة بعد توقيعها.",
+    email_auth_dkim_fail: "التوقيع غير صالح، أو عُدّلت الرسالة بعد توقيعها.",
+    email_auth_dmarc_pass: "تستوفي الرسالة سياسة نطاق المرسل.",
+    email_auth_dmarc_fail:
+      "لا تستوفي الرسالة سياسة نطاق المرسل. قد لا يكون المرسل من يدّعي أنه هو.",
+    email_auth_check_none: "لا يستخدم نطاق المرسل هذا الفحص.",
+    email_auth_check_missing: "لم تُسجَّل نتيجة لهذا الفحص.",
+    email_auth_check_other: "أعطى الفحص نتيجة غير معتادة: {{value}}.",
+    header_help_received:
+      "خادم مرّت به هذه الرسالة في طريقها إليك. الأعلى هو الأحدث.",
+    header_help_return_path:
+      "العنوان الذي تُرسل إليه الرسائل المرتدة. يفحص SPF نطاق هذا العنوان.",
+    header_help_authentication_results:
+      "نتائج SPF وDKIM وDMARC كما كتبها الخادم الذي فحصها.",
+    header_help_received_spf:
+      "نتيجة SPF: هل يمكن للخادم المرسل إرسال البريد باسم النطاق.",
+    header_help_dkim_signature:
+      "توقيع أضافه النطاق المرسل لاكتشاف أي تعديل على الرسالة.",
+    header_help_arc:
+      "يحفظ نتائج الفحص الأصلية عندما يمرّر مُعيد توجيه أو قائمة بريدية الرسالة.",
+    header_help_message_id: "معرّف فريد منحه المرسل لهذه الرسالة.",
+    header_help_list_unsubscribe:
+      "طريقة إلغاء الاشتراك في هذه القائمة البريدية.",
+    header_help_spam: "حكم مرشح البريد العشوائي ودرجته.",
+    headers_formatted: "منسّق",
+    headers_raw: "خام",
+    headers_view_label: "عرض الترويسات",
     copy_message_id: "نسخ معرف الرسالة",
     hide_source: "إخفاء المصدر",
     view_dark_mode: "عرض في الوضع الداكن",

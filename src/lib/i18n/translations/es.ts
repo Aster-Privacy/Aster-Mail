@@ -9009,6 +9009,56 @@ export const es = {
     email_auth_status_fail: "Fallido",
     email_auth_status_none: "No se usa",
     email_auth_status_missing: "Sin comprobar",
+    mailed_by_label: "Enviado por:",
+    signed_by_label: "Firmado por:",
+    reply_to_label: "Responder a:",
+    authentication_section: "Autenticación",
+    reply_to_other_domain:
+      "Las respuestas van a un dominio distinto del remitente.",
+    mailing_list_label: "Lista de correo:",
+    list_unsubscribe_available: "Incluye enlace para darse de baja",
+    email_auth_summary_authenticated:
+      "Este mensaje superó SPF, DKIM y DMARC para {{domain}}.",
+    email_auth_summary_unverified:
+      "Las comprobaciones no pudieron confirmar que {{domain}} enviara este mensaje.",
+    email_auth_summary_unavailable:
+      "Los resultados de autenticación no están disponibles para este mensaje.",
+    email_auth_spf_pass:
+      "El servidor de envío está autorizado a enviar correo por este dominio.",
+    email_auth_spf_fail:
+      "El servidor de envío no está autorizado a enviar correo por este dominio.",
+    email_auth_dkim_pass:
+      "La firma es válida, así que el mensaje no se modificó después de firmarse.",
+    email_auth_dkim_fail:
+      "La firma no es válida, o el mensaje se modificó después de firmarse.",
+    email_auth_dmarc_pass:
+      "El mensaje cumple la política del dominio del remitente.",
+    email_auth_dmarc_fail:
+      "El mensaje no cumple la política del dominio del remitente. Puede que el remitente no sea quien dice ser.",
+    email_auth_check_none: "El dominio del remitente no usa esta comprobación.",
+    email_auth_check_missing:
+      "No se registró ningún resultado para esta comprobación.",
+    email_auth_check_other:
+      "La comprobación dio un resultado inusual: {{value}}.",
+    header_help_received:
+      "Un servidor por el que pasó este mensaje hasta llegar a ti. El primero es el más reciente.",
+    header_help_return_path:
+      "Adonde se envían las devoluciones. SPF comprueba el dominio de esta dirección.",
+    header_help_authentication_results:
+      "Los resultados de SPF, DKIM y DMARC, escritos por el servidor que los comprobó.",
+    header_help_received_spf:
+      "El resultado de SPF: si el servidor de envío puede enviar correo por el dominio.",
+    header_help_dkim_signature:
+      "Una firma que añade el dominio de envío para poder detectar cambios en el mensaje.",
+    header_help_arc:
+      "Conserva los resultados originales cuando un reenviador o una lista de correo reenvía el mensaje.",
+    header_help_message_id:
+      "Un identificador único que el remitente dio a este mensaje.",
+    header_help_list_unsubscribe: "Cómo darse de baja de esta lista de correo.",
+    header_help_spam: "El veredicto y la puntuación del filtro de spam.",
+    headers_formatted: "Con formato",
+    headers_raw: "Original",
+    headers_view_label: "Vista de encabezados",
     copy_message_id: "Copiar ID del mensaje",
     hide_source: "Ocultar fuente",
     view_dark_mode: "Ver en modo oscuro",

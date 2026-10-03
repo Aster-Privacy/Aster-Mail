@@ -8817,6 +8817,51 @@ export const ja = {
     email_auth_status_fail: "不合格",
     email_auth_status_none: "未使用",
     email_auth_status_missing: "未確認",
+    mailed_by_label: "送信元サーバー:",
+    signed_by_label: "署名者:",
+    reply_to_label: "返信先:",
+    authentication_section: "認証",
+    reply_to_other_domain: "返信は送信者とは別のドメインに届きます。",
+    mailing_list_label: "メーリングリスト:",
+    list_unsubscribe_available: "配信停止リンクあり",
+    email_auth_summary_authenticated:
+      "このメッセージは {{domain}} の SPF、DKIM、DMARC に合格しました。",
+    email_auth_summary_unverified:
+      "このメッセージを {{domain}} が送信したことは確認できませんでした。",
+    email_auth_summary_unavailable: "このメッセージの認証結果はありません。",
+    email_auth_spf_pass:
+      "送信サーバーはこのドメインのメールを送信することを許可されています。",
+    email_auth_spf_fail:
+      "送信サーバーはこのドメインのメールを送信することを許可されていません。",
+    email_auth_dkim_pass:
+      "署名は有効です。署名後にメッセージは変更されていません。",
+    email_auth_dkim_fail: "署名が無効か、署名後にメッセージが変更されました。",
+    email_auth_dmarc_pass:
+      "メッセージは送信者ドメインのポリシーを満たしています。",
+    email_auth_dmarc_fail:
+      "メッセージは送信者ドメインのポリシーを満たしていません。送信者が名乗っている本人ではない可能性があります。",
+    email_auth_check_none: "送信者のドメインはこのチェックを使用していません。",
+    email_auth_check_missing: "このチェックの結果は記録されていません。",
+    email_auth_check_other: "チェックの結果が通常と異なります: {{value}}。",
+    header_help_received:
+      "このメッセージが届くまでに経由したサーバーです。一番上が最新です。",
+    header_help_return_path:
+      "不達通知の送信先です。SPF はこのアドレスのドメインを確認します。",
+    header_help_authentication_results:
+      "チェックしたサーバーが記録した SPF、DKIM、DMARC の結果です。",
+    header_help_received_spf:
+      "SPF の結果です。送信サーバーがこのドメインのメールを送信できるかを示します。",
+    header_help_dkim_signature:
+      "送信ドメインが付けた署名で、メッセージの変更を検出できます。",
+    header_help_arc:
+      "転送サービスやメーリングリストが中継したときに、元のチェック結果を保持します。",
+    header_help_message_id: "送信者がこのメッセージに付けた一意の識別子です。",
+    header_help_list_unsubscribe:
+      "このメーリングリストの配信を停止する方法です。",
+    header_help_spam: "迷惑メールフィルターの判定とスコアです。",
+    headers_formatted: "整形",
+    headers_raw: "未加工",
+    headers_view_label: "ヘッダーの表示",
     copy_message_id: "メッセージIDをコピー",
     hide_source: "ソースを非表示",
     view_dark_mode: "ダークモードで表示",
