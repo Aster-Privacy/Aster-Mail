@@ -1299,9 +1299,6 @@ export const ko = {
     image_blocked: "이미지 차단됨",
     tracking_pixel_blocked: "추적 픽셀 차단됨",
     tracking_pixels_blocked_count: "추적 픽셀 {{count}}개 차단됨",
-    tracking_pixel_domains: "도메인별 추적 픽셀",
-    tracking_pixel_domains_hint:
-      "한 번도 불러오지 않았으므로 이 도메인들은 이 이메일을 연 시점을 알 수 없습니다.",
     me: "나",
     notification_banner_message:
       "새 이메일 알림을 받으려면 데스크톱 알림을 활성화하세요",

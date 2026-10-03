@@ -1315,9 +1315,6 @@ export const hi = {
     tracking_pixels_blocked_count: "{{count}} ट्रैकिंग पिक्सल ब्लॉक किए गए",
     tracking_pixels_blocked_count_one:
       "{{count}} ट्रैकिंग पिक्सल ब्लॉक किया गया",
-    tracking_pixel_domains: "डोमेन के अनुसार ट्रैकिंग पिक्सल",
-    tracking_pixel_domains_hint:
-      "ये कभी लोड नहीं हुए, इसलिए ये डोमेन यह नहीं देख सके कि आपने यह ईमेल कब खोला।",
     me: "मैं",
     notification_banner_message:
       "नए ईमेल की जानकारी पाते रहने के लिए डेस्कटॉप सूचनाएं चालू करें",

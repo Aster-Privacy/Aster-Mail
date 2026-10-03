@@ -1276,9 +1276,6 @@ export const es = {
     tracking_pixel_blocked: "Píxel de rastreo bloqueado",
     tracking_pixels_blocked_count: "{{count}} píxeles de rastreo bloqueados",
     tracking_pixels_blocked_count_one: "{{count}} píxel de rastreo bloqueado",
-    tracking_pixel_domains: "Píxeles de rastreo por dominio",
-    tracking_pixel_domains_hint:
-      "Nunca se cargaron, así que estos dominios no pudieron saber cuándo abriste este correo.",
     me: "yo",
     notification_banner_message:
       "Activa las notificaciones de escritorio para estar al día de los correos nuevos",

@@ -1106,9 +1106,6 @@ export const zh_CN = {
     image_blocked: "图片已屏蔽",
     tracking_pixel_blocked: "跟踪像素已屏蔽",
     tracking_pixels_blocked_count: "已屏蔽 {{count}} 个跟踪像素",
-    tracking_pixel_domains: "按域名列出的跟踪像素",
-    tracking_pixel_domains_hint:
-      "这些像素从未加载，因此这些域名无法得知您何时打开了这封邮件。",
     me: "我",
     notification_banner_message: "启用桌面通知以及时获取新邮件更新",
     notification_banner_allow: "允许",

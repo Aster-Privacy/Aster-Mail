@@ -32,7 +32,7 @@ import { ShieldCheckIcon } from "@heroicons/react/24/solid";
 
 import { is_system_email } from "@/lib/utils";
 import { summarize_tracking_pixels } from "@/lib/tracking_pixel_summary";
-import { TrackingPixelDomainList } from "@/components/email/tracking_pixel_indicator";
+import { TrackingPixelDomainList } from "@/components/email/tracking_pixel_domain_list";
 import {
   execute_unsubscribe,
   get_sender_domain,

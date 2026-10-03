@@ -1287,9 +1287,6 @@ export const fr = {
     tracking_pixel_blocked: "Pixel de suivi bloqué",
     tracking_pixels_blocked_count: "{{count}} pixels de suivi bloqués",
     tracking_pixels_blocked_count_one: "{{count}} pixel de suivi bloqué",
-    tracking_pixel_domains: "Pixels de suivi par domaine",
-    tracking_pixel_domains_hint:
-      "Ils n'ont jamais été chargés : ces domaines n'ont donc pas pu savoir quand vous avez ouvert cet e-mail.",
     me: "moi",
     notification_banner_message:
       "Activez les notifications sur ordinateur pour rester informé des nouveaux e-mails",

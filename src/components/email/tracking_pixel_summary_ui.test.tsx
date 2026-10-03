@@ -33,7 +33,7 @@ import {
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
-import { ExternalContentBanner } from "@/components/email/external_content_banner";
+import { TrackingProtectionShield } from "@/components/email/tracking_protection_shield";
 import { MobileExternalContentBanner } from "@/pages/mobile/mobile_detail_banners";
 import { I18nProvider, use_i18n } from "@/lib/i18n/context";
 import { get_translations_async } from "@/lib/i18n/translations";
@@ -43,16 +43,8 @@ declare global {
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
-vi.mock("@/provider", () => ({
-  use_should_reduce_motion: () => true,
-}));
-
-vi.mock("@/contexts/external_link_context", () => ({
-  use_external_link: () => ({ handle_external_link: vi.fn() }),
-}));
-
 vi.mock("@/contexts/preferences_context", () => ({
-  use_preferences: () => ({ preferences: {} }),
+  use_preferences: () => ({ preferences: { block_external_content: true } }),
 }));
 
 function report(
@@ -91,36 +83,12 @@ function MobileBanner({ blocked }: { blocked: ExternalContentReport }) {
   );
 }
 
-function render(
-  blocked: ExternalContentReport,
-  language: LanguageCode = "en",
-  mobile = false,
-) {
+function render(node: React.ReactNode, language: LanguageCode = "en") {
   act(() => {
     root.render(
-      <I18nProvider default_language={language}>
-        {mobile ? (
-          <MobileBanner blocked={blocked} />
-        ) : (
-          <ExternalContentBanner
-            blocked_content={blocked}
-            on_dismiss={() => {}}
-            on_load={() => {}}
-          />
-        )}
-      </I18nProvider>,
+      <I18nProvider default_language={language}>{node}</I18nProvider>,
     );
   });
-}
-
-function indicator(): HTMLButtonElement {
-  const button = container.querySelector<HTMLButtonElement>(
-    "[data-testid='tracking-pixel-indicator']",
-  );
-
-  if (!button) throw new Error("tracking pixel indicator not found");
-
-  return button;
 }
 
 function domain_rows(): string[] {
@@ -129,6 +97,16 @@ function domain_rows(): string[] {
       "[data-testid='tracking-pixel-domains'] [data-domain]",
     ),
   ).map((row) => row.textContent ?? "");
+}
+
+function no_remote_loads() {
+  const list = document.querySelector(
+    "[data-testid='tracking-pixel-domains']",
+  )!;
+
+  expect(list.querySelectorAll("img, a, iframe, link, source")).toHaveLength(0);
+  expect(document.body.innerHTML).not.toContain("/o/1.gif");
+  expect(fetch_spy).not.toHaveBeenCalled();
 }
 
 beforeAll(async () => {
@@ -150,62 +128,64 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe("blocked content banner tracking pixels", () => {
-  it("counts tracking pixels apart from blocked images", () => {
-    render(report(THREE_PIXELS));
+describe("subject tracking protection shield", () => {
+  it("lists each tracking pixel domain once with its count", () => {
+    render(<TrackingProtectionShield report={report(THREE_PIXELS)} />);
 
-    expect(container.textContent).toContain(
-      "External content blocked (2 images)",
-    );
-    expect(indicator().textContent).toBe("3 tracking pixels blocked");
-    expect(container.textContent).not.toContain("(2 images, tracking pixels)");
-  });
+    const trigger = container.querySelector("button")!;
 
-  it("uses the singular for one pixel and drops the sentence when only pixels were blocked", () => {
-    render(report(THREE_PIXELS.slice(0, 1), []));
-
-    expect(indicator().textContent).toBe("1 tracking pixel blocked");
-    expect(container.textContent).not.toContain("External content blocked");
-  });
-
-  it("translates the count with European Portuguese plural forms", () => {
-    render(report(THREE_PIXELS), "pt");
-    expect(indicator().textContent).toBe("3 píxeis de rastreio bloqueados");
-
-    render(report(THREE_PIXELS.slice(0, 1)), "pt");
-    expect(indicator().textContent).toBe("1 píxel de rastreio bloqueado");
-  });
-
-  it("lists each pixel domain once with its count without loading anything", () => {
-    render(report(THREE_PIXELS));
-
+    expect(trigger.textContent).toBe("3");
     expect(domain_rows()).toEqual([]);
     act(() => {
-      indicator().click();
+      trigger.click();
     });
 
     expect(domain_rows()).toEqual([
       "open.mailmetrics.examplex2",
       "t.beacon.example",
     ]);
-    expect(document.body.textContent).toContain("Tracking pixels by domain");
-    const list = document.querySelector(
-      "[data-testid='tracking-pixel-domains']",
-    )!;
-
-    expect(list.querySelectorAll("img, a, iframe, link, source")).toHaveLength(
-      0,
-    );
-    expect(document.body.innerHTML).not.toContain("/o/1.gif");
-    expect(fetch_spy).not.toHaveBeenCalled();
+    no_remote_loads();
   });
+});
 
-  it("expands the mobile banner into the same domain list", () => {
-    render(report(THREE_PIXELS), "en", true);
+describe("mobile blocked content banner", () => {
+  function indicator(): HTMLButtonElement {
+    const button = container.querySelector<HTMLButtonElement>(
+      "[data-testid='tracking-pixel-indicator']",
+    );
+
+    if (!button) throw new Error("tracking pixel indicator not found");
+
+    return button;
+  }
+
+  it("counts tracking pixels apart from blocked images", () => {
+    render(<MobileBanner blocked={report(THREE_PIXELS)} />);
 
     expect(container.textContent).toContain(
       "External content blocked (2 images)",
     );
+    expect(indicator().textContent).toBe("3 tracking pixels blocked");
+  });
+
+  it("uses the singular for one pixel and drops the sentence when only pixels were blocked", () => {
+    render(<MobileBanner blocked={report(THREE_PIXELS.slice(0, 1), [])} />);
+
+    expect(indicator().textContent).toBe("1 tracking pixel blocked");
+    expect(container.textContent).not.toContain("External content blocked");
+  });
+
+  it("translates the count with European Portuguese plural forms", () => {
+    render(<MobileBanner blocked={report(THREE_PIXELS)} />, "pt");
+    expect(indicator().textContent).toBe("3 píxeis de rastreio bloqueados");
+
+    render(<MobileBanner blocked={report(THREE_PIXELS.slice(0, 1))} />, "pt");
+    expect(indicator().textContent).toBe("1 píxel de rastreio bloqueado");
+  });
+
+  it("expands inline into the domain list without loading anything", () => {
+    render(<MobileBanner blocked={report(THREE_PIXELS)} />);
+
     expect(indicator().getAttribute("aria-expanded")).toBe("false");
     expect(domain_rows()).toEqual([]);
 
@@ -218,6 +198,6 @@ describe("blocked content banner tracking pixels", () => {
       "open.mailmetrics.examplex2",
       "t.beacon.example",
     ]);
-    expect(fetch_spy).not.toHaveBeenCalled();
+    no_remote_loads();
   });
 });

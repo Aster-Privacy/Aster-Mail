@@ -1226,9 +1226,6 @@ export const nl = {
     tracking_pixel_blocked: "Trackingpixel geblokkeerd",
     tracking_pixels_blocked_count: "{{count}} trackingpixels geblokkeerd",
     tracking_pixels_blocked_count_one: "{{count}} trackingpixel geblokkeerd",
-    tracking_pixel_domains: "Trackingpixels per domein",
-    tracking_pixel_domains_hint:
-      "Ze zijn nooit geladen, dus deze domeinen konden niet zien wanneer je deze e-mail opende.",
     me: "mij",
     notification_banner_message:
       "Schakel bureaubladmeldingen in om op de hoogte te blijven van nieuwe e-mails",

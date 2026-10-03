@@ -51,8 +51,6 @@ import { use_thread_message_block } from "./use_thread_message_block";
 import { copy_text_or_throw } from "@/utils/copy_text";
 import { is_system_email, trust_source_for_display } from "@/lib/utils";
 import { EmailTag } from "@/components/ui/email_tag";
-import { TrackingPixelIndicator } from "@/components/email/tracking_pixel_indicator";
-import { summarize_tracking_pixels } from "@/lib/tracking_pixel_summary";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import {
   DropdownMenu,
@@ -168,7 +166,6 @@ export function ThreadMessageBlock(
     name,
     can_collapse,
   } = state;
-  const tracking_pixels = summarize_tracking_pixels(sanitized_content.report);
 
   const shows_full_message =
     !message.is_deleted &&
@@ -411,6 +408,9 @@ export function ThreadMessageBlock(
                 const image_count = report.blocked_items.filter(
                   (i) => i.type === "image",
                 ).length;
+                const tracker_count = report.blocked_items.filter(
+                  (i) => i.type === "tracking_pixel",
+                ).length;
                 const font_count = report.blocked_items.filter(
                   (i) => i.type === "font",
                 ).length;
@@ -431,6 +431,17 @@ export function ThreadMessageBlock(
                         }}
                       >
                         {`${t("mail.load_external_content")} (${image_count} ${image_count === 1 ? t("mail.image") : t("mail.images")})`}
+                      </button>
+                    )}
+                    {tracker_count > 0 && (
+                      <button
+                        className={btn_class}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          on_load_external_content(["tracking_pixel"]);
+                        }}
+                      >
+                        {`${t("mail.load_external_content")} (${tracker_count} ${tracker_count === 1 ? t("mail.tracker") : t("mail.trackers")})`}
                       </button>
                     )}
                     {(font_count > 0 || css_count > 0) && (
@@ -458,20 +469,6 @@ export function ThreadMessageBlock(
                   </>
                 );
               })()}
-            {tracking_pixels.count > 0 && (
-              <TrackingPixelIndicator
-                action={
-                  !lockdown_active && on_load_external_content
-                    ? {
-                        label: `${t("mail.load_external_content")} (${tracking_pixels.count} ${tracking_pixels.count === 1 ? t("mail.tracker") : t("mail.trackers")})`,
-                        on_select: () =>
-                          on_load_external_content(["tracking_pixel"]),
-                      }
-                    : undefined
-                }
-                summary={tracking_pixels}
-              />
-            )}
           </div>
           <div className="flex flex-wrap items-center gap-1.5">
             <Popover>

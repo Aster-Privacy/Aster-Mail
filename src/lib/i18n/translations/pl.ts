@@ -1284,9 +1284,6 @@ export const pl = {
       "Zablokowano {{count}} pikseli śledzących",
     tracking_pixels_blocked_count_other:
       "Zablokowano {{count}} piksela śledzącego",
-    tracking_pixel_domains: "Piksele śledzące według domeny",
-    tracking_pixel_domains_hint:
-      "Nie zostały wczytane, więc te domeny nie mogły zobaczyć, kiedy ta wiadomość została otwarta.",
     me: "ja",
     notification_banner_message:
       "Włącz powiadomienia pulpitowe, aby być na bieżąco z nowymi e-mailami",

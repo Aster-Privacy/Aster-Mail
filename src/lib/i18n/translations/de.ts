@@ -1115,9 +1115,6 @@ export const de = {
     tracking_pixel_blocked: "Tracking-Pixel blockiert",
     tracking_pixels_blocked_count: "{{count}} Tracking-Pixel blockiert",
     tracking_pixels_blocked_count_one: "{{count}} Tracking-Pixel blockiert",
-    tracking_pixel_domains: "Tracking-Pixel nach Domain",
-    tracking_pixel_domains_hint:
-      "Sie wurden nie geladen, daher konnten diese Domains nicht sehen, wann Sie diese E-Mail geöffnet haben.",
     me: "ich",
     notification_banner_message:
       "Aktivieren Sie Desktop-Benachrichtigungen, um über neue E-Mails informiert zu bleiben",

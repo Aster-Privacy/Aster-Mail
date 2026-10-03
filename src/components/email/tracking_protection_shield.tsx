@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/popover";
 import { use_i18n } from "@/lib/i18n/context";
 import { summarize_tracking_pixels } from "@/lib/tracking_pixel_summary";
-import { TrackingPixelDomainList } from "@/components/email/tracking_pixel_indicator";
+import { TrackingPixelDomainList } from "@/components/email/tracking_pixel_domain_list";
 import { use_preferences } from "@/contexts/preferences_context";
 
 interface TrackingProtectionShieldProps {
