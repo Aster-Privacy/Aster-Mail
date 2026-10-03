@@ -46,6 +46,7 @@ const MAX_TRACKED_MESSAGES = 512;
 
 const bundle_records = new Map<string, BundleVerificationRecord>();
 const message_records = new Map<string, SenderIdentityStatus>();
+const unauthenticated_plaintexts = new Set<string>();
 const peer_identity_events = new Map<string, PeerIdentityEventRecord>();
 const peer_identity_listeners = new Set<() => void>();
 
@@ -163,9 +164,31 @@ export function get_message_sender_identity(
   return message_records.get(message_key) ?? null;
 }
 
+export function mark_unauthenticated_plaintext(plaintext: string): void {
+  if (!plaintext) return;
+
+  unauthenticated_plaintexts.delete(plaintext);
+  unauthenticated_plaintexts.add(plaintext);
+
+  while (unauthenticated_plaintexts.size > MAX_TRACKED_MESSAGES) {
+    const oldest = unauthenticated_plaintexts.values().next();
+
+    if (oldest.done) return;
+
+    unauthenticated_plaintexts.delete(oldest.value);
+  }
+}
+
+export function is_unauthenticated_plaintext(
+  plaintext: string | null | undefined,
+): boolean {
+  return !!plaintext && unauthenticated_plaintexts.has(plaintext);
+}
+
 export function clear_ratchet_verification_status(): void {
   bundle_records.clear();
   message_records.clear();
+  unauthenticated_plaintexts.clear();
   peer_identity_events.clear();
   notify_peer_identity_listeners();
 }
