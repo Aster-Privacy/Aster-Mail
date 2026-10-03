@@ -94,10 +94,6 @@ const ARCHIVE_LABELS = new Set([
 ]);
 const STARRED_LABELS = new Set(["starred", "flagged"]);
 
-// Outlook data files keep their default folders under a store root such as
-// "Top of Outlook data file" or "Root - Mailbox/IPM_SUBTREE", and IMAP
-// accounts add a "[Gmail]" level. Only those wrappers are dropped, so a nested
-// label like "Clients/Archive" or "Team/Chat" is never read as a system folder.
 const STORE_ROOT_SEGMENT =
   /^(top of .+|root - .+|ipm_subtree|\[gmail\]|\[google mail\])$/;
 
