@@ -10238,6 +10238,8 @@ export const en: Translations = {
     expr_bad_attachment_op:
       'The operator "{{value}}" does not work on attachment names. Try contains, ends_with, or matches_regex.',
     expr_unhandled_field: "This field cannot be used here.",
+    expr_misplaced_case_flag:
+      "case_sensitive can only follow a text value in quotation marks.",
     expr_internal_error:
       "This expression could not be read. Check the syntax and try again.",
     expr_line_col: "(line {{line}}, column {{col}})",

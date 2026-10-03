@@ -10427,6 +10427,8 @@ export const de = {
     expr_bad_attachment_op:
       'Der Operator "{{value}}" funktioniert nicht bei Anhangsnamen. Versuchen Sie contains, ends_with oder matches_regex.',
     expr_unhandled_field: "Dieses Feld kann hier nicht verwendet werden.",
+    expr_misplaced_case_flag:
+      "case_sensitive darf nur auf einen Textwert in Anführungszeichen folgen.",
     expr_internal_error:
       "Dieser Ausdruck konnte nicht gelesen werden. Prüfen Sie die Syntax und versuchen Sie es erneut.",
     expr_line_col: "(Zeile {{line}}, Spalte {{col}})",

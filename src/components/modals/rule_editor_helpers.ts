@@ -23,6 +23,7 @@ import type {
   Condition,
   ConditionField,
   LeafCondition,
+  Rule,
   RuleRun,
 } from "@/services/api/mail_rules";
 import type { use_i18n } from "@/lib/i18n/context";
@@ -32,6 +33,7 @@ import {
   default_condition_for_field,
   field_kind,
 } from "@/components/mail_rules/field_kind";
+import { parse, serialize } from "@/lib/mail_rules/expression_parser";
 
 export type EditorTab = "visual" | "expression";
 
@@ -55,6 +57,29 @@ export function flatten_leaves(conditions: Condition[]): LeafCondition[] {
   }
 
   return out;
+}
+
+export function conditions_as_root(
+  conditions: Condition[],
+  match_mode: Rule["match_mode"],
+): Condition {
+  if (conditions.length === 1) return conditions[0];
+
+  return { type: match_mode === "any" ? "or" : "and", conditions };
+}
+
+export function stored_expression_matches_conditions(
+  rule: Pick<Rule, "expression" | "conditions" | "match_mode">,
+): boolean {
+  if (!rule.expression) return false;
+  const parsed = parse(rule.expression);
+
+  if (!parsed.ok) return false;
+
+  return (
+    serialize(parsed.ast) ===
+    serialize(conditions_as_root(rule.conditions, rule.match_mode))
+  );
 }
 
 export const RULE_COLORS = [

@@ -10169,6 +10169,8 @@ export const tr = {
     expr_bad_attachment_op:
       '"{{value}}" operatörü ek adlarında çalışmaz. contains, ends_with veya matches_regex deneyin.',
     expr_unhandled_field: "Bu alan burada kullanılamaz.",
+    expr_misplaced_case_flag:
+      "case_sensitive yalnızca tırnak içindeki bir metin değerinden sonra gelebilir.",
     expr_internal_error:
       "Bu ifade okunamadı. Söz dizimini kontrol edip tekrar deneyin.",
     expr_line_col: "(satır {{line}}, sütun {{col}})",

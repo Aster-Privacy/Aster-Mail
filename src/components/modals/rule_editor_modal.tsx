@@ -30,6 +30,7 @@ import type {
 } from "@/services/api/mail_rules";
 import type { RuleEditorSeed } from "@/components/mail_rules/rule_templates";
 import type { EditorTab } from "@/components/modals/rule_editor_helpers";
+import type { ParseResult } from "@/lib/mail_rules/expression_parser";
 
 import * as React from "react";
 import { Button } from "@aster/ui";
@@ -88,11 +89,13 @@ import {
   UNAVAILABLE_ACTION_TYPES,
   condition_has_value,
   condition_ready_to_save,
+  conditions_as_root,
   default_action_for_type,
   default_condition,
   flatten_leaves,
   has_any_action_value,
   has_nested_logic,
+  stored_expression_matches_conditions,
   strip_unavailable_actions,
   keep_unavailable_actions,
   rule_run_status_label,
@@ -176,8 +179,8 @@ export function RuleEditorModal({
       set_conditions(rule.conditions);
       set_actions(strip_unavailable_actions(rule.actions));
       set_preserved_actions(keep_unavailable_actions(rule.actions));
-      if (rule.expression) {
-        set_expression_text(rule.expression);
+      if (stored_expression_matches_conditions(rule)) {
+        set_expression_text(rule.expression ?? "");
         set_tab("expression");
       } else {
         const nested = has_nested_logic(rule.conditions);
@@ -472,6 +475,11 @@ export function RuleEditorModal({
   const visual_flat_view: LeafCondition[] = nested_logic_present
     ? flatten_leaves(conditions)
     : (conditions as LeafCondition[]);
+  const visual_as_expression = serialize_expression(
+    conditions_as_root(conditions, match_mode),
+  );
+  const expression_matches_visual = (parsed: ParseResult | null) =>
+    !!parsed?.ok && serialize_expression(parsed.ast) === visual_as_expression;
 
   const handle_save = async () => {
     set_saving(true);
@@ -484,7 +492,9 @@ export function RuleEditorModal({
       expression_value = expression_text;
       const parsed = parse_expression(expression_text);
 
-      if (parsed.ok) {
+      if (expression_matches_visual(parsed)) {
+        derived_conditions = conditions;
+      } else if (parsed.ok) {
         if (parsed.ast.type === "and") {
           derived_conditions = parsed.ast.conditions;
           req_match_mode = "all";
@@ -723,7 +733,7 @@ export function RuleEditorModal({
                 if (tab === "expression" && expression_text.trim()) {
                   const parsed = parse_expression(expression_text);
 
-                  if (parsed.ok) {
+                  if (parsed.ok && !expression_matches_visual(parsed)) {
                     if (parsed.ast.type === "and") {
                       set_conditions(parsed.ast.conditions);
                       set_match_mode("all");
@@ -750,31 +760,19 @@ export function RuleEditorModal({
               type="button"
               onClick={() => {
                 if (tab !== "expression") {
-                  const leaves = flatten_leaves(conditions);
                   const parsed = expression_text.trim()
                     ? parse_expression(expression_text)
                     : null;
-                  const expression_leaves =
-                    parsed && parsed.ok ? flatten_leaves([parsed.ast]) : null;
-                  const expression_matches_visual =
-                    expression_leaves !== null &&
-                    JSON.stringify(expression_leaves) ===
-                      JSON.stringify(leaves);
 
                   const expression_typed_but_invalid =
                     expression_text.trim().length > 0 && !(parsed && parsed.ok);
 
                   if (
                     !expression_typed_but_invalid &&
-                    leaves.length > 0 &&
-                    !expression_matches_visual
+                    conditions.length > 0 &&
+                    !expression_matches_visual(parsed)
                   ) {
-                    const synthetic: Condition =
-                      match_mode === "any"
-                        ? { type: "or", conditions: leaves }
-                        : { type: "and", conditions: leaves };
-
-                    set_expression_text(serialize_expression(synthetic));
+                    set_expression_text(visual_as_expression);
                   }
                 }
                 set_tab("expression");

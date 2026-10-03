@@ -10401,6 +10401,8 @@ export const pt = {
     expr_bad_attachment_op:
       'O operador "{{value}}" não funciona em nomes de anexos. Experimente contains, ends_with ou matches_regex.',
     expr_unhandled_field: "Este campo não pode ser utilizado aqui.",
+    expr_misplaced_case_flag:
+      "case_sensitive só pode surgir a seguir a um valor de texto entre aspas.",
     expr_internal_error:
       "Não foi possível ler esta expressão. Verifique a sintaxe e tente novamente.",
     expr_line_col: "(linha {{line}}, coluna {{col}})",
