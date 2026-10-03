@@ -5967,7 +5967,7 @@ export const pl = {
     import_add_another: "Dodaj kolejne konto",
     import_choose_source: "Wybierz źródło",
     import_emails_description:
-      "Przenieś e-maile z Gmail, Outlook lub innych usług pocztowych. Twoje e-maile są szyfrowane na urządzeniu przed zapisaniem.",
+      "Przenieś e-maile z Gmail, Outlook lub innych usług pocztowych. Przesyłane pliki są szyfrowane na Twoim urządzeniu, a poczta z połączonego konta jest szyfrowana przez serwery Aster przed zapisaniem.",
     import_emails_button: "Importuj e-maile",
     recent_imports: "Ostatnie importy",
     status_pending: "Oczekujący",
@@ -7817,9 +7817,9 @@ export const pl = {
       "Czy na pewno chcesz zatrzymać synchronizację? Już zaimportowane wiadomości pozostaną.",
     connect_modal_title: "Połącz {{ provider }} z Asterem",
     connect_modal_description:
-      "Zaloguj się do {{ provider }}, aby zaimportować pocztę do Astera. Wiadomości są szyfrowane na tym urządzeniu przed zapisaniem na naszych serwerach.",
+      "Zaloguj się do {{ provider }}, aby zaimportować pocztę do Aster. Serwery Aster pobierają wiadomości z {{ provider }} i szyfrują je przed zapisaniem.",
     connect_modal_privacy_note:
-      "Aster żąda tylko uprawnień do poczty niezbędnych do importowania skrzynki odbiorczej. Nigdy nie czytamy, nie skanujemy ani nie sprzedajemy Twoich wiadomości.",
+      "Aster prosi tylko o dostęp do poczty potrzebny do zaimportowania skrzynki odbiorczej i nigdy nie skanuje ani nie sprzedaje Twoich wiadomości.",
     connect_provider_name_google: "Gmail",
     connect_provider_name_microsoft: "Outlook",
     connect_provider_name_yahoo: "Yahoo",
@@ -9940,7 +9940,7 @@ export const pl = {
     review_codes_left_other: "Pozostało {{count}} kodu odzyskiwania.",
     import_mail_step_title: "Zabierz pocztę ze sobą",
     import_mail_step_desc:
-      "Przenieś wiadomości z innego konta do Aster. Wszystko jest szyfrowane na Twoim urządzeniu przed zapisaniem.",
+      "Przenieś wiadomości z innego konta do Aster. Przesyłane pliki są szyfrowane na Twoim urządzeniu, a poczta z połączonego konta jest szyfrowana przez serwery Aster przed zapisaniem.",
     import_mail_skip: "Zacznij z pustą skrzynką",
     import_mail_privacy_note: "Możesz też zaimportować później w Ustawieniach.",
     password_reset_successful: "Twoje hasło zostało zresetowane",

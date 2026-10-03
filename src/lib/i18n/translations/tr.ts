@@ -5733,7 +5733,7 @@ export const tr = {
     import_add_another: "Başka bir hesap ekle",
     import_choose_source: "Bir kaynak seçin",
     import_emails_description:
-      "Gmail, Outlook veya diğer e-posta hizmetlerinden e-postalarınızı getirin. E-postalarınız depolanmadan önce cihazınızda şifrelenir.",
+      "E-postalarınızı Gmail, Outlook veya diğer e-posta hizmetlerinden getirin. Yüklediğiniz dosyalar cihazınızda şifrelenir; bağlı bir hesaptan gelen postalar ise kaydedilmeden önce Aster sunucuları tarafından şifrelenir.",
     import_emails_button: "E-postaları İçe Aktar",
     recent_imports: "Son İçe Aktarmalar",
     status_pending: "Beklemede",
@@ -7573,9 +7573,9 @@ export const tr = {
       "Senkronizasyonu durdurmak istediğinizden emin misiniz? İçe aktarılmış e-postalar kalacak.",
     connect_modal_title: "{{ provider }} uygulamasını Aster ile bağlayın",
     connect_modal_description:
-      "Postanızı Aster'e aktarmak için {{ provider }}'a giriş yapın. Mesajlarınız sunucularımızda depolanmadan önce bu cihazda şifrelenir.",
+      "Postanızı Aster'a aktarmak için {{ provider }} hesabınızda oturum açın. Aster sunucuları mesajlarınızı {{ provider }} üzerinden indirir ve kaydetmeden önce şifreler.",
     connect_modal_privacy_note:
-      "Aster yalnızca gelen kutunuzu içe aktarmak için gereken posta kapsamlarını talep eder. Mesajlarınızı asla okumaz, taramaz veya satmaz.",
+      "Aster yalnızca gelen kutunuzu aktarmak için gereken posta erişimini ister ve mesajlarınızı asla taramaz ya da satmaz.",
     connect_provider_name_google: "Gmail",
     connect_provider_name_microsoft: "Outlook",
     connect_provider_name_yahoo: "Yahoo",
@@ -9559,7 +9559,7 @@ export const tr = {
     n_recovery_codes: "{{count}} kurtarma kodu",
     import_mail_step_title: "Postanızı yanınızda getirin",
     import_mail_step_desc:
-      "Başka bir hesaptaki iletileri Aster'a taşıyın. Her şey kaydedilmeden önce cihazınızda şifrelenir.",
+      "Başka bir hesaptaki mesajları Aster'a taşıyın. Yüklediğiniz dosyalar cihazınızda şifrelenir; bağlı bir hesaptan gelen postalar ise kaydedilmeden önce Aster sunucuları tarafından şifrelenir.",
     import_mail_skip: "Boş gelen kutusuyla başlayın",
     import_mail_privacy_note: "Daha sonra Ayarlar'dan da içe aktarabilirsiniz.",
     recovery_code_already_used:

@@ -5737,7 +5737,7 @@ export const ko = {
     import_add_another: "다른 계정 추가",
     import_choose_source: "가져올 곳 선택",
     import_emails_description:
-      "Gmail, Outlook 또는 기타 이메일 서비스에서 이메일을 가져오세요. 이메일은 저장되기 전에 기기에서 암호화됩니다.",
+      "Gmail, Outlook 또는 다른 이메일 서비스에서 이메일을 가져오세요. 업로드한 파일은 기기에서 암호화되고, 연결된 계정의 메일은 저장되기 전에 Aster 서버에서 암호화됩니다.",
     import_emails_button: "이메일 가져오기",
     recent_imports: "최근 가져오기",
     status_pending: "대기 중",
@@ -7389,9 +7389,9 @@ export const ko = {
     stop_sync_description: "이 계정의 이메일 동기화를 중지하시겠습니까?",
     connect_modal_title: "{{provider}}를 Aster에 연결",
     connect_modal_description:
-      "{{provider}} 계정을 연결하여 Aster Mail에서 이메일을 보고 보낼 수 있습니다.",
+      "{{ provider }}에 로그인하여 메일을 Aster로 가져옵니다. Aster 서버가 {{ provider }}에서 메시지를 다운로드하고 저장하기 전에 암호화합니다.",
     connect_modal_privacy_note:
-      "이메일은 기기에서 종단간 암호화됩니다. 서버는 이메일을 읽을 수 없습니다.",
+      "Aster는 받은편지함을 가져오는 데 필요한 메일 접근 권한만 요청하며, 메시지를 검사하거나 판매하지 않습니다.",
     connect_provider_name_google: "Gmail",
     connect_provider_name_microsoft: "Outlook",
     connect_provider_name_yahoo: "Yahoo",
@@ -9333,7 +9333,7 @@ export const ko = {
     review_codes_left_other: "복구 코드가 {{count}}개 남았습니다.",
     import_mail_step_title: "메일을 함께 가져오세요",
     import_mail_step_desc:
-      "다른 계정의 메시지를 Aster로 옮깁니다. 모든 내용은 저장 전에 기기에서 암호화됩니다.",
+      "다른 계정의 메시지를 Aster로 옮깁니다. 업로드한 파일은 기기에서 암호화되고, 연결된 계정의 메일은 저장되기 전에 Aster 서버에서 암호화됩니다.",
     import_mail_skip: "빈 받은편지함으로 시작",
     import_mail_privacy_note: "나중에 설정에서 가져올 수도 있습니다.",
     password_reset_successful: "비밀번호가 재설정되었습니다",

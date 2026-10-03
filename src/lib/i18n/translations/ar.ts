@@ -5811,7 +5811,7 @@ export const ar = {
     import_add_another: "إضافة حساب آخر",
     import_choose_source: "اختر مصدرًا",
     import_emails_description:
-      "أحضر رسائلك من Gmail أو Outlook أو خدمات بريد أخرى. يتم تشفير رسائلك على جهازك قبل التخزين.",
+      "انقل رسائلك من Gmail أو Outlook أو خدمات البريد الأخرى. تُشفَّر الملفات التي ترفعها على جهازك، أما البريد الوارد من حساب متصل فتشفّره خوادم Aster قبل تخزينه.",
     import_emails_button: "استيراد الرسائل",
     recent_imports: "عمليات الاستيراد الأخيرة",
     status_pending: "معلق",
@@ -7466,9 +7466,9 @@ export const ar = {
       "هل أنت متأكد أنك تريد إيقاف المزامنة؟ ستبقى الرسائل المستوردة.",
     connect_modal_title: "ربط {{ provider }} بـ Aster",
     connect_modal_description:
-      "سجّل الدخول إلى {{ provider }} لاستيراد بريدك إلى Aster. تُشفَّر رسائلك على هذا الجهاز قبل تخزين أي شيء على خوادمنا.",
+      "سجّل الدخول إلى {{ provider }} لاستيراد بريدك إلى Aster. تنزّل خوادم Aster رسائلك من {{ provider }} وتشفّرها قبل تخزينها.",
     connect_modal_privacy_note:
-      "لا يطلب Aster سوى الصلاحيات الضرورية لاستيراد صندوق وارداتك. نحن لا نقرأ رسائلك ولا نفحصها ولا نبيعها.",
+      "يطلب Aster فقط صلاحية الوصول إلى البريد اللازمة لاستيراد صندوق الوارد، ولا يفحص رسائلك أو يبيعها أبدًا.",
     connect_provider_name_google: "Gmail",
     connect_provider_name_microsoft: "Outlook",
     connect_provider_name_yahoo: "Yahoo",
@@ -9527,7 +9527,7 @@ export const ar = {
     review_codes_left_other: "تبقى {{count}} من رموز الاسترداد.",
     import_mail_step_title: "خذ بريدك معك",
     import_mail_step_desc:
-      "انقل الرسائل من حساب آخر إلى Aster. يُشفَّر كل شيء على جهازك قبل تخزينه.",
+      "انقل الرسائل من حساب آخر إلى Aster. تُشفَّر الملفات التي ترفعها على جهازك، أما البريد الوارد من حساب متصل فتشفّره خوادم Aster قبل تخزينه.",
     import_mail_skip: "ابدأ بصندوق فارغ",
     import_mail_privacy_note: "يمكنك أيضًا الاستيراد لاحقًا من الإعدادات.",
     password_reset_successful: "تمت إعادة تعيين كلمة المرور",

@@ -5760,7 +5760,7 @@ export const pt_br = {
     import_add_another: "Adicionar outra conta",
     import_choose_source: "Escolha uma origem",
     import_emails_description:
-      "Traga seus e-mails do Gmail, Outlook ou outros serviços de e-mail. Seus e-mails são criptografados no seu dispositivo antes de serem armazenados.",
+      "Traga seus e-mails do Gmail, Outlook ou outros serviços de e-mail. Os arquivos que você envia são criptografados no seu dispositivo, e os e-mails de uma conta conectada são criptografados pelos servidores do Aster antes de serem armazenados.",
     import_emails_button: "Importar e-mails",
     recent_imports: "Importações recentes",
     status_pending: "Pendente",
@@ -7610,9 +7610,9 @@ export const pt_br = {
       "Tem certeza de que deseja parar a sincronização? Os e-mails já importados serão mantidos.",
     connect_modal_title: "Conectar {{provider}} ao Aster",
     connect_modal_description:
-      "Entre no {{provider}} para importar seus e-mails para o Aster. Suas mensagens são criptografadas neste dispositivo antes de qualquer coisa ser armazenada em nossos servidores.",
+      "Entre em {{ provider }} para importar seus e-mails para o Aster. Os servidores do Aster baixam suas mensagens de {{ provider }} e as criptografam antes de armazená-las.",
     connect_modal_privacy_note:
-      "O Aster solicita apenas as permissões de e-mail necessárias para importar sua caixa de entrada. Nunca lemos, analisamos ou vendemos suas mensagens.",
+      "O Aster solicita apenas o acesso necessário para importar sua caixa de entrada e nunca analisa nem vende suas mensagens.",
     connect_provider_name_google: "Gmail",
     connect_provider_name_microsoft: "Outlook",
     connect_provider_name_yahoo: "Yahoo",
@@ -9712,7 +9712,7 @@ export const pt_br = {
     n_recovery_codes: "{{count}} códigos de recuperação",
     import_mail_step_title: "Traga seus e-mails com você",
     import_mail_step_desc:
-      "Mova mensagens de outra conta para o Aster. Tudo é criptografado no seu dispositivo antes de ser armazenado.",
+      "Mova mensagens de outra conta para o Aster. Os arquivos que você envia são criptografados no seu dispositivo, e os e-mails de uma conta conectada são criptografados pelos servidores do Aster antes de serem armazenados.",
     import_mail_skip: "Começar com a caixa vazia",
     import_mail_privacy_note:
       "Você também pode importar mais tarde em Configurações.",

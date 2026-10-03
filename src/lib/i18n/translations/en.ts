@@ -6955,7 +6955,7 @@ export const en: Translations = {
     import_add_another: "Add another account",
     import_choose_source: "Choose a source",
     import_emails_description:
-      "Bring your emails from Gmail, Outlook, or other email services. Your emails are encrypted on your device before being stored.",
+      "Bring your emails from Gmail, Outlook, or other email services. Files you upload are encrypted on your device, and mail from a connected account is encrypted by Aster's servers before it's stored.",
     import_emails_button: "Import Emails",
     import_how_it_works: "How It Works",
     import_oauth_title: "Connect an account",
@@ -7026,9 +7026,9 @@ export const en: Translations = {
       "Connecting your account did not work: {{reason}}. Another attempt, or a different provider, will work.",
     connect_modal_title: "Connect {{ provider }} to Aster",
     connect_modal_description:
-      "Sign in to {{ provider }} to import your mail into Aster. Your messages are encrypted on this device before anything is stored on our servers.",
+      "Sign in to {{ provider }} to import your mail into Aster. Aster's servers download your messages from {{ provider }} and encrypt them before storing them.",
     connect_modal_privacy_note:
-      "Aster only requests the mail scopes needed to import your inbox. We never read, scan, or sell your messages.",
+      "Aster requests only the mail access it needs to import your inbox, and never scans or sells your messages.",
     connect_provider_name_google: "Gmail",
     connect_provider_name_microsoft: "Outlook",
     connect_provider_name_yahoo: "Yahoo",
@@ -9553,7 +9553,7 @@ export const en: Translations = {
     review_codes_left_other: "{{count}} recovery codes left.",
     import_mail_step_title: "Bring your mail with you",
     import_mail_step_desc:
-      "Move messages from another account into Aster. Everything is encrypted on your device before it is stored.",
+      "Move messages from another account into Aster. Files you upload are encrypted on your device, and mail from a connected account is encrypted by Aster's servers before it's stored.",
     import_mail_skip: "Start with an empty inbox",
     import_mail_privacy_note: "You can also import later from Settings.",
     password_reset_successful: "Your password is reset",

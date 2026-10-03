@@ -5732,7 +5732,7 @@ export const ja = {
     import_add_another: "別のアカウントを追加",
     import_choose_source: "取り込み元を選択",
     import_emails_description:
-      "Gmail、Outlook、または他のメールサービスからメールを取り込みます。メールはデバイス上で暗号化されてから保存されます。",
+      "Gmail、Outlook、その他のメールサービスからメールを移行できます。アップロードしたファイルはデバイス上で暗号化され、接続したアカウントのメールは保存前に Aster のサーバーで暗号化されます。",
     import_emails_button: "メールをインポート",
     recent_imports: "最近のインポート",
     status_pending: "保留中",
@@ -6961,9 +6961,9 @@ export const ja = {
     composing_and_replies: "作成と返信",
     confirm_remove_key: "このセキュリティキーを削除してもよろしいですか？",
     connect_modal_description:
-      "{{ provider }} にサインインして、メールをAsterにインポートします。メッセージはサーバーに保存される前にこのデバイス上で暗号化されます。",
+      "{{ provider }} にサインインして、メールを Aster にインポートします。Aster のサーバーが {{ provider }} からメッセージをダウンロードし、保存する前に暗号化します。",
     connect_modal_privacy_note:
-      "Asterは受信トレイのインポートに必要なメールスコープのみを要求します。メッセージを読んだり、スキャンしたり、販売したりしません。",
+      "Aster が要求するのは受信トレイのインポートに必要なメールへのアクセスのみで、メッセージをスキャンしたり販売したりすることはありません。",
     connect_modal_title: "{{ provider }}をAsterに接続",
     connect_provider_name_google: "Gmail",
     connect_provider_name_microsoft: "Outlook",
@@ -9513,7 +9513,7 @@ export const ja = {
     review_codes_left_other: "リカバリーコードは残り {{count}} 個です。",
     import_mail_step_title: "メールを一緒に持ってくる",
     import_mail_step_desc:
-      "別のアカウントのメッセージを Aster に移行します。すべて保存前にお使いのデバイスで暗号化されます。",
+      "別のアカウントのメッセージを Aster に移行します。アップロードしたファイルはデバイス上で暗号化され、接続したアカウントのメールは保存前に Aster のサーバーで暗号化されます。",
     import_mail_skip: "空の受信トレイで始める",
     import_mail_privacy_note: "後から設定で取り込むこともできます。",
     password_reset_successful: "パスワードがリセットされました",

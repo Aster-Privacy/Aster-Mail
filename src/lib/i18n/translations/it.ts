@@ -6937,7 +6937,7 @@ export const it = {
     import_add_another: "Aggiungi un altro account",
     import_choose_source: "Scegli una sorgente",
     import_emails_description:
-      "Porta le tue email da Gmail, Outlook o altri servizi email. Le tue email vengono crittografate sul tuo dispositivo prima di essere archiviate.",
+      "Porta le tue email da Gmail, Outlook o altri servizi email. I file che carichi vengono crittografati sul tuo dispositivo, mentre la posta di un account collegato viene crittografata dai server di Aster prima di essere salvata.",
     import_emails_button: "Importa email",
     recent_imports: "Importazioni recenti",
     status_pending: "In attesa",
@@ -7700,9 +7700,9 @@ export const it = {
       "Sei sicuro di voler fermare la sincronizzazione? Le email già importate rimarranno.",
     connect_modal_title: "Connetti {{ provider }} ad Aster",
     connect_modal_description:
-      "Accedi a {{ provider }} per importare la tua posta in Aster. I tuoi messaggi vengono cifrati su questo dispositivo prima che qualsiasi cosa venga archiviata sui nostri server.",
+      "Accedi a {{ provider }} per importare la tua posta in Aster. I server di Aster scaricano i tuoi messaggi da {{ provider }} e li crittografano prima di salvarli.",
     connect_modal_privacy_note:
-      "Aster richiede solo gli ambiti di posta necessari per importare la tua posta in arrivo. Non leggiamo, scansionizziamo o vendiamo mai i tuoi messaggi.",
+      "Aster richiede solo l'accesso alla posta necessario per importare la tua casella, e non analizza né vende mai i tuoi messaggi.",
     connect_provider_name_google: "Gmail",
     connect_provider_name_microsoft: "Outlook",
     connect_provider_name_yahoo: "Yahoo",
@@ -9772,7 +9772,7 @@ export const it = {
     review_codes_left_other: "Restano {{count}} codici di recupero.",
     import_mail_step_title: "Porta la tua posta con te",
     import_mail_step_desc:
-      "Sposta i messaggi da un altro account in Aster. Tutto viene cifrato sul tuo dispositivo prima di essere salvato.",
+      "Sposta i messaggi da un altro account in Aster. I file che carichi vengono crittografati sul tuo dispositivo, mentre la posta di un account collegato viene crittografata dai server di Aster prima di essere salvata.",
     import_mail_skip: "Inizia con una casella vuota",
     import_mail_privacy_note:
       "Puoi importare anche più tardi dalle Impostazioni.",

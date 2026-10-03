@@ -5194,7 +5194,7 @@ export const zh_CN = {
     import_add_another: "添加另一个账户",
     import_choose_source: "选择来源",
     import_emails_description:
-      "从 Gmail、Outlook 或其他邮件服务导入邮件。邮件在设备上加密后再存储。",
+      "从 Gmail、Outlook 或其他电子邮件服务导入邮件。你上传的文件会在你的设备上加密，来自已连接账户的邮件会在存储前由 Aster 服务器加密。",
     import_emails_button: "导入邮件",
     recent_imports: "最近的导入",
     status_pending: "待处理",
@@ -6692,9 +6692,9 @@ export const zh_CN = {
       "此连接是从另一个 Aster Mail 账户发起的。请使用该账户登录后重试。",
     connect_modal_title: "连接 {{provider}}",
     connect_modal_description:
-      "登录 {{ provider }} 以将邮件导入 Aster。在我们的服务器存储任何内容之前，您的邮件会先在此设备上加密。",
+      "登录 {{ provider }} 以将邮件导入 Aster。Aster 服务器会从 {{ provider }} 下载你的邮件，并在存储前对其加密。",
     connect_modal_privacy_note:
-      "Aster 仅请求导入收件箱所需的邮件权限范围。我们绝不会读取、扫描或出售您的邮件。",
+      "Aster 仅请求导入收件箱所需的邮件访问权限，绝不会扫描或出售你的邮件。",
     connect_provider_name_google: "Gmail",
     connect_provider_name_microsoft: "Outlook",
     connect_provider_name_yahoo: "Yahoo",
@@ -8644,7 +8644,7 @@ export const zh_CN = {
     review_codes_left_other: "还剩 {{count}} 个恢复代码。",
     import_mail_step_title: "把邮件一起带过来",
     import_mail_step_desc:
-      "将其他账户中的邮件迁移到 Aster。所有内容都会先在您的设备上加密，再进行存储。",
+      "将其他账户中的邮件移至 Aster。你上传的文件会在你的设备上加密，来自已连接账户的邮件会在存储前由 Aster 服务器加密。",
     import_mail_skip: "从空收件箱开始",
     import_mail_privacy_note: "您也可以稍后在设置中导入。",
     password_reset_successful: "您的密码已重置",

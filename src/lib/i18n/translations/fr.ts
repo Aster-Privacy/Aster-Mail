@@ -5886,7 +5886,7 @@ export const fr = {
     import_add_another: "Ajouter un autre compte",
     import_choose_source: "Choisissez une source",
     import_emails_description:
-      "Importez vos e-mails depuis Gmail, Outlook ou d'autres services de messagerie. Vos e-mails sont chiffrés sur votre appareil avant d'être stockés.",
+      "Importez vos e-mails depuis Gmail, Outlook ou d'autres services de messagerie. Les fichiers que vous envoyez sont chiffrés sur votre appareil, et les e-mails d'un compte connecté sont chiffrés par les serveurs d'Aster avant d'être enregistrés.",
     import_emails_button: "Importer des e-mails",
     recent_imports: "Importations récentes",
     status_pending: "En attente",
@@ -7180,9 +7180,9 @@ export const fr = {
     composing_and_replies: "Rédaction et réponses",
     confirm_remove_key: "Supprimer cette clé de sécurité ?",
     connect_modal_description:
-      "Connectez-vous à {{ provider }} pour importer vos e-mails dans Aster. Vos messages sont chiffrés sur cet appareil avant d'être stockés sur nos serveurs.",
+      "Connectez-vous à {{ provider }} pour importer vos e-mails dans Aster. Les serveurs d'Aster téléchargent vos messages depuis {{ provider }} et les chiffrent avant de les enregistrer.",
     connect_modal_privacy_note:
-      "Aster demande uniquement les autorisations de messagerie nécessaires pour importer votre boîte de réception. Nous ne lisons, n'analysons et ne vendons jamais vos messages.",
+      "Aster demande uniquement l'accès nécessaire pour importer votre boîte de réception, et n'analyse ni ne vend jamais vos messages.",
     connect_modal_title: "Connecter {{ provider }} à Aster",
     connect_provider_name_google: "Gmail",
     connect_provider_name_microsoft: "Outlook",
@@ -9847,7 +9847,7 @@ export const fr = {
     review_codes_left_other: "Il reste {{count}} codes de récupération.",
     import_mail_step_title: "Emportez votre courrier avec vous",
     import_mail_step_desc:
-      "Transférez les messages d'un autre compte vers Aster. Tout est chiffré sur votre appareil avant d'être stocké.",
+      "Transférez les messages d'un autre compte vers Aster. Les fichiers que vous envoyez sont chiffrés sur votre appareil, et les e-mails d'un compte connecté sont chiffrés par les serveurs d'Aster avant d'être enregistrés.",
     import_mail_skip: "Commencer avec une boîte vide",
     import_mail_privacy_note:
       "Vous pouvez aussi importer plus tard depuis les Réglages.",

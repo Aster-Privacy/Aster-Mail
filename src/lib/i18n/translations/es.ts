@@ -5835,7 +5835,7 @@ export const es = {
     import_add_another: "Añadir otra cuenta",
     import_choose_source: "Elige un origen",
     import_emails_description:
-      "Trae tus correos de Gmail, Outlook u otros servicios de correo. Tus correos se cifran en tu dispositivo antes de almacenarse.",
+      "Trae tus correos de Gmail, Outlook u otros servicios de correo. Los archivos que subes se cifran en tu dispositivo, y el correo de una cuenta conectada lo cifran los servidores de Aster antes de guardarlo.",
     import_emails_button: "Importar correos",
     recent_imports: "Importaciones recientes",
     status_pending: "Pendiente",
@@ -7109,9 +7109,9 @@ export const es = {
     composing_and_replies: "Redacción y respuestas",
     confirm_remove_key: "¿Eliminar esta clave de seguridad?",
     connect_modal_description:
-      "Inicia sesión en {{ provider }} para importar tu correo en Aster. Tus mensajes se cifran en este dispositivo antes de almacenarse en nuestros servidores.",
+      "Inicia sesión en {{ provider }} para importar tu correo a Aster. Los servidores de Aster descargan tus mensajes de {{ provider }} y los cifran antes de guardarlos.",
     connect_modal_privacy_note:
-      "Aster solo solicita los permisos de correo necesarios para importar tu bandeja de entrada. Nunca leemos, analizamos ni vendemos tus mensajes.",
+      "Aster solo solicita el acceso al correo que necesita para importar tu bandeja de entrada, y nunca analiza ni vende tus mensajes.",
     connect_modal_title: "Conectar {{ provider }} a Aster",
     connect_provider_name_google: "Gmail",
     connect_provider_name_microsoft: "Outlook",
@@ -9727,7 +9727,7 @@ export const es = {
     review_codes_left_other: "Quedan {{count}} códigos de recuperación.",
     import_mail_step_title: "Trae tu correo contigo",
     import_mail_step_desc:
-      "Mueve los mensajes de otra cuenta a Aster. Todo se cifra en tu dispositivo antes de guardarse.",
+      "Mueve mensajes de otra cuenta a Aster. Los archivos que subes se cifran en tu dispositivo, y el correo de una cuenta conectada lo cifran los servidores de Aster antes de guardarlo.",
     import_mail_skip: "Empezar con la bandeja vacía",
     import_mail_privacy_note:
       "También puedes importar más tarde desde Ajustes.",

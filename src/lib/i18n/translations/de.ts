@@ -5690,7 +5690,7 @@ export const de = {
     import_add_another: "Weiteres Konto hinzufügen",
     import_choose_source: "Quelle auswählen",
     import_emails_description:
-      "Bringen Sie Ihre E-Mails von Gmail, Outlook oder anderen E-Mail-Diensten mit. Ihre E-Mails werden auf Ihrem Gerät verschlüsselt, bevor sie gespeichert werden.",
+      "Übernehmen Sie Ihre E-Mails aus Gmail, Outlook oder anderen E-Mail-Diensten. Hochgeladene Dateien werden auf Ihrem Gerät verschlüsselt, und E-Mails aus einem verbundenen Konto werden von den Servern von Aster verschlüsselt, bevor sie gespeichert werden.",
     import_emails_button: "E-Mails importieren",
     recent_imports: "Letzte Importe",
     status_pending: "Ausstehend",
@@ -7013,9 +7013,9 @@ export const de = {
     confirm_remove_key:
       "Möchten Sie diesen Sicherheitsschlüssel wirklich entfernen?",
     connect_modal_description:
-      "Melden Sie sich bei {{ provider }} an, um Ihre E-Mails in Aster zu importieren. Ihre Nachrichten werden auf diesem Gerät verschlüsselt, bevor etwas auf unseren Servern gespeichert wird.",
+      "Melden Sie sich bei {{ provider }} an, um Ihre E-Mails in Aster zu importieren. Die Server von Aster laden Ihre Nachrichten von {{ provider }} herunter und verschlüsseln sie, bevor sie gespeichert werden.",
     connect_modal_privacy_note:
-      "Aster fordert nur die E-Mail-Berechtigungen an, die für den Import Ihres Posteingangs erforderlich sind. Wir lesen, scannen oder verkaufen Ihre Nachrichten nie.",
+      "Aster fordert nur den E-Mail-Zugriff an, der für den Import Ihres Posteingangs nötig ist, und durchsucht oder verkauft Ihre Nachrichten nie.",
     connect_modal_title: "{{ provider }} mit Aster verbinden",
     connect_provider_name_google: "Gmail",
     connect_provider_name_microsoft: "Outlook",
@@ -9705,7 +9705,7 @@ export const de = {
     n_recovery_codes: "{{count}} Wiederherstellungscodes",
     import_mail_step_title: "Nehmen Sie Ihre E-Mails mit",
     import_mail_step_desc:
-      "Übertragen Sie Nachrichten aus einem anderen Konto zu Aster. Alles wird auf Ihrem Gerät verschlüsselt, bevor es gespeichert wird.",
+      "Übertragen Sie Nachrichten aus einem anderen Konto zu Aster. Hochgeladene Dateien werden auf Ihrem Gerät verschlüsselt, und E-Mails aus einem verbundenen Konto werden von den Servern von Aster verschlüsselt, bevor sie gespeichert werden.",
     import_mail_skip: "Mit leerem Posteingang starten",
     import_mail_privacy_note:
       "Sie können auch später in den Einstellungen importieren.",
