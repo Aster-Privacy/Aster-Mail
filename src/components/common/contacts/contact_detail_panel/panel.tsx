@@ -49,7 +49,6 @@ import {
   ChevronRightIcon,
   MagnifyingGlassIcon,
   PencilSquareIcon,
-  XMarkIcon,
   ArrowUpOnSquareIcon,
   ArrowDownTrayIcon,
   ChatBubbleBottomCenterTextIcon,
@@ -96,6 +95,10 @@ import {
   normalize_contact_date,
 } from "@/utils/date_utils";
 import { ContactAvatar } from "@/components/common/contacts/contact_avatar";
+import {
+  ContactDateClearButton,
+  contact_date_clear_padding,
+} from "@/components/contacts/contact_date_clear_button";
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
 import { ContactHistoryPanel } from "@/components/contacts/contact_history_panel";
 import { ContactGroupsField } from "@/components/contacts/contact_groups_field";
@@ -911,7 +914,9 @@ export function ContactDetailPanel({
                   <input
                     aria-label={t("common.birthday")}
                     className={`${FIELD_CLASS} ${
-                      is_editing && draft.birthday ? "pe-12" : ""
+                      is_editing && draft.birthday
+                        ? contact_date_clear_padding(!birthday_is_yearless)
+                        : ""
                     }`}
                     placeholder={app_date_format()}
                     readOnly={!is_editing || birthday_is_yearless}
@@ -930,14 +935,11 @@ export function ContactDetailPanel({
                     }
                   />
                   {is_editing && draft.birthday && (
-                    <button
-                      aria-label={t("common.clear")}
-                      className="absolute end-9 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full text-txt-secondary transition-colors hover:bg-[var(--aster-hover)] hover:text-txt-primary"
-                      type="button"
-                      onClick={() => handle_field_change("birthday", "")}
-                    >
-                      <XMarkIcon className="h-4 w-4" />
-                    </button>
+                    <ContactDateClearButton
+                      beside_picker={!birthday_is_yearless}
+                      label={t("common.clear")}
+                      on_clear={() => handle_field_change("birthday", "")}
+                    />
                   )}
                 </div>
               </div>

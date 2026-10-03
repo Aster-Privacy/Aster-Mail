@@ -113,6 +113,50 @@ describe("parse_vcard quoted-printable values", () => {
     expect(unknown.first_name).toBe("João");
   });
 
+  it("treats an equals sign followed by trailing spaces as a soft break", () => {
+    const [contact] = parse_vcard(
+      card(
+        "FN:Ana",
+        "NOTE;ENCODING=QUOTED-PRINTABLE:linha um= \t",
+        "linha dois",
+      ),
+    );
+
+    expect(contact.notes).toBe("linha umlinha dois");
+  });
+
+  it("decodes quoted-printable custom labels", () => {
+    const [contact] = parse_vcard(
+      card(
+        "FN:Ana",
+        "item1.TEL:+351 210 000 000",
+        "item1.X-ABLabel;CHARSET=UTF-8;ENCODING=QUOTED-PRINTABLE:Escrit=C3=B3rio",
+      ),
+    );
+
+    expect(contact.phone_entries?.[0]).toEqual({
+      value: "+351 210 000 000",
+      type: "other",
+      label: "Escritório",
+    });
+  });
+
+  it("reads a UTF-16 charset on quoted-printable text as UTF-8", () => {
+    const [contact] = parse_vcard(
+      card("N;CHARSET=UTF-16;ENCODING=QUOTED-PRINTABLE:Silva;Jo=C3=A3o"),
+    );
+
+    expect(contact.first_name).toBe("João");
+  });
+
+  it("maps charset aliases such as latin1", () => {
+    const [contact] = parse_vcard(
+      card("N;CHARSET=latin1;ENCODING=QUOTED-PRINTABLE:Concei=E7=E3o;Ana"),
+    );
+
+    expect(contact.last_name).toBe("Conceição");
+  });
+
   it("leaves a trailing equals sign alone when the value is not quoted-printable", () => {
     const [contact] = parse_vcard(
       card("FN:Ana", "URL:https://example.com/?ref=", "NOTE:Plain note"),

@@ -142,13 +142,19 @@ const CHARSET_ALIASES: Record<string, string> = {
   cp1252: "windows-1252",
 };
 
+export function normalize_charset(raw: string): string {
+  const lower = raw.trim().toLowerCase();
+
+  return CHARSET_ALIASES[lower] ?? lower;
+}
+
 function get_charset(headers: string): string {
   const match = headers.match(/charset\s*=\s*"?([A-Za-z0-9._:+-]+)"?/i);
-  const raw = match?.[1]?.toLowerCase();
+  const raw = match?.[1];
 
   if (!raw) return "utf-8";
 
-  return CHARSET_ALIASES[raw] ?? raw;
+  return normalize_charset(raw);
 }
 
 export function decode_bytes(bytes: Uint8Array, charset: string): string {

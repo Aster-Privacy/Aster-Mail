@@ -27,9 +27,12 @@ import {
   BriefcaseIcon,
   CalendarIcon,
   DocumentTextIcon,
-  XMarkIcon,
 } from "@heroicons/react/24/outline";
 
+import {
+  ContactDateClearButton,
+  contact_date_clear_padding,
+} from "./contact_date_clear_button";
 import { ContactFormSection } from "./contact_form_section";
 
 import { use_i18n } from "@/lib/i18n/context";
@@ -127,22 +130,19 @@ export function ContactFormDetails({
             label={t("common.birthday")}
           />
           {is_yearless_contact_date(form_data.birthday ?? "") ? (
-            <div className="flex items-center gap-2">
+            <div className="relative">
               <Input
                 readOnly
                 aria-label={t("common.birthday")}
-                className="aster_input_tonal flex-1"
+                className={`aster_input_tonal ${contact_date_clear_padding(false)}`}
                 size="md"
                 value={format_contact_date(form_data.birthday ?? "")}
               />
-              <button
-                aria-label={t("common.clear")}
-                className="p-2 rounded-[14px] transition-colors hover:bg-[var(--aster-hover)]"
-                type="button"
-                onClick={() => on_change("birthday", "")}
-              >
-                <XMarkIcon className="h-4 w-4 text-txt-muted" />
-              </button>
+              <ContactDateClearButton
+                beside_picker={false}
+                label={t("common.clear")}
+                on_clear={() => on_change("birthday", "")}
+              />
             </div>
           ) : (
             <Input

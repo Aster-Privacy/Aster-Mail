@@ -59,7 +59,11 @@ import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { get_derived_encryption_key } from "@/services/crypto/memory_key_store";
 import { parse_csv_records } from "@/utils/contact_utils";
 import { normalize_contact_date } from "@/utils/date_utils";
-import { decode_bytes, quoted_printable_to_bytes } from "@/utils/email_crypto";
+import {
+  decode_bytes,
+  normalize_charset,
+  quoted_printable_to_bytes,
+} from "@/utils/email_crypto";
 import {
   collect_vcard_group_labels,
   resolve_vcard_entry_type,
@@ -583,6 +587,8 @@ function place_type_from(params: string[]): "home" | "work" | "other" {
 
 const QUOTED_PRINTABLE_PARAM = /;(?:encoding=)?quoted-printable(?=;|$)/i;
 
+const QP_SOFT_BREAK = /=[ \t]*$/;
+
 function is_quoted_printable(key: string): boolean {
   return QUOTED_PRINTABLE_PARAM.test(key);
 }
@@ -609,9 +615,12 @@ function unfold_vcard_lines(vcard: string): string[] {
       is_qp = separator > 0 && is_quoted_printable(line.slice(0, separator));
     }
 
-    soft_break = is_qp && line.endsWith("=");
+    soft_break = is_qp && QP_SOFT_BREAK.test(line);
     if (soft_break) {
-      current[current.length - 1] = current[current.length - 1].slice(0, -1);
+      current[current.length - 1] = current[current.length - 1].replace(
+        QP_SOFT_BREAK,
+        "",
+      );
     }
   }
   if (current.length) unfolded.push(current.join(""));
@@ -622,7 +631,10 @@ function unfold_vcard_lines(vcard: string): string[] {
 function decode_vcard_value(key: string, value: string): string {
   if (!is_quoted_printable(key)) return value;
 
-  const charset = raw_param_value(key, "charset").toLowerCase() || "utf-8";
+  const declared = normalize_charset(
+    raw_param_value(key, "charset") || "utf-8",
+  );
+  const charset = /^utf-?16/.test(declared) ? "utf-8" : declared;
 
   return decode_bytes(quoted_printable_to_bytes(value), charset).replace(
     /\r\n?/g,
@@ -654,7 +666,9 @@ export function parse_vcard(vcard_data: string): ContactFormData[] {
     const instant_messengers: InstantMessengerEntry[] = [];
     const groups: string[] = [];
     const seen_emails = new Set<string>();
-    const group_labels = collect_vcard_group_labels(lines, unescape_vcard);
+    const group_labels = collect_vcard_group_labels(lines, (value, key) =>
+      unescape_vcard(decode_vcard_value(key, value)),
+    );
 
     for (const line of lines) {
       const separator = line.indexOf(":");
