@@ -109,6 +109,8 @@
   --accent-blue-hover: #2563eb;
   --avatar-bg: #e5e7eb;
   --avatar-text: #565d6b;
+  --avatar-logo-light-bg: #f4f4f5;
+  --avatar-logo-dark-bg: #3f3f46;
   --indicator-bg: #ffffff;
   --indicator-border: #e8e8e8;
   --sidebar-bg: #f5f5f5;
@@ -3690,6 +3692,20 @@ input:-webkit-autofill:active {
 .account_avatar_button {
   background-color: transparent;
   overflow: visible;
+}
+
+.dark .sender_logo_dark {
+  background-color: var(--avatar-logo-light-bg) !important;
+}
+
+html:not(.dark) .sender_logo_light {
+  background-color: var(--avatar-logo-dark-bg) !important;
+}
+
+.dark .sender_logo_dark > img,
+html:not(.dark) .sender_logo_light > img {
+  padding: 10%;
+  border-radius: 9999px;
 }
 
 .account_avatar_ring {
