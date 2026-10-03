@@ -23,10 +23,6 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { parse_eml_file } from "./eml_parser";
 import { parse_mbox_file } from "./mbox_parser";
 
-// Browsers decode "iso-8859-1" (and "latin1", "us-ascii") as windows-1252,
-// which turns bytes 0x80-0x9F into characters such as U+20AC. Node keeps
-// those bytes as-is, so without this stub the tests would not see what users
-// see in the browser.
 // prettier-ignore
 const WINDOWS_1252_HIGH = String.fromCharCode(
   0x20ac, 0x81, 0x201a, 0x192, 0x201e, 0x2026, 0x2020, 0x2021,
@@ -213,8 +209,6 @@ describe("importing 8-bit mail", () => {
     expect(result.emails[0].subject).toBe("É um teste — já");
   });
 
-  // "à" is C3 A0 and "习" is E4 B9 A0: trimming 0xA0 as whitespace would
-  // break the last character and send the whole value to the fallback.
   it.each([
     ["ending in à", "Subject: Benvenuti in città\n", "Benvenuti in città"],
     [

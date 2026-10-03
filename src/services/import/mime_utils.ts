@@ -239,8 +239,6 @@ function is_ascii_whitespace(code: number): boolean {
   return code === 0x20 || (code >= 0x09 && code <= 0x0d);
 }
 
-// Raw mail is one char per byte until it is decoded, so String.trim() would
-// also strip 0xA0, the last byte of UTF-8 characters such as "à" or "习".
 export function trim_ascii_whitespace(value: string): string {
   let start = 0;
   let end = value.length;
@@ -299,9 +297,6 @@ const BINARY_STRING_CHUNK = 0x8000;
 const NON_ASCII = /[^\x00-\x7f]/;
 const NON_BYTE = /[^\x00-\xff]/;
 
-// Maps each byte to the character with the same code, so the string can be
-// turned back into the exact bytes. TextDecoder("iso-8859-1") can't do this:
-// browsers treat that label as windows-1252 and remap 0x80-0x9F.
 export function bytes_to_binary_string(bytes: Uint8Array): string {
   const pieces: string[] = [];
 
@@ -324,9 +319,6 @@ function binary_string_to_bytes(value: string): Uint8Array {
   return bytes;
 }
 
-// Decodes a byte string as UTF-8. Undeclared text that isn't valid UTF-8 is
-// most likely windows-1252; text declared as UTF-8 keeps that and gets U+FFFD
-// for stray bytes instead.
 function reinterpret_as_utf8(value: string, declared_utf8 = false): string {
   if (!NON_ASCII.test(value) || NON_BYTE.test(value)) return value;
 
