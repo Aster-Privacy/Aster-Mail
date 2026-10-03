@@ -614,8 +614,11 @@ export function use_popup_viewer({
           id: response.data.id,
           sender: envelope.from.name || get_email_username(envelope.from.email),
           sender_email: envelope.from.email,
-          ...(resolve_forwarding_display(envelope.from, envelope.raw_headers) ??
-            {}),
+          ...(resolve_forwarding_display(
+            envelope.from,
+            envelope.raw_headers,
+            response.data,
+          ) ?? {}),
           subject: envelope.subject || t("mail.no_subject"),
           preview: build_preview_text(body_text, safe_html),
           timestamp: format_email_detail(timestamp_date.current),

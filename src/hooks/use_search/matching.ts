@@ -494,6 +494,7 @@ export function to_search_result(
   const forwarding_display = resolve_forwarding_display(
     envelope?.from,
     envelope?.raw_headers,
+    item,
   );
 
   const from = envelope ? envelope_sender(envelope) : { name: "", email: "" };
