@@ -89,6 +89,7 @@ import {
   set_ids_read,
 } from "@/services/category_index";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
+import { request_cache } from "@/services/api/request_cache";
 import { drop_removed_after } from "@/services/removed_items";
 import { resolve_read_intent } from "@/services/read_intent";
 import { get_thread_messages, trash_thread } from "@/services/api/mail";
@@ -869,6 +870,7 @@ export function use_category_inbox(
 
     const handle_refresh_requested = () => {
       if (!has_passphrase_in_memory()) return;
+      request_cache.invalidate("GET:/mail/v1/messages");
       page_cache.current.clear();
       last_signature_ref.current = "";
       set_state((prev) => {
