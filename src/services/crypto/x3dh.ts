@@ -237,6 +237,28 @@ function select_pq_encapsulation_target(recipient_bundle: PrekeyBundle): {
   return null;
 }
 
+export function restrict_bundle_to_signed_pq_key(
+  recipient_bundle: PrekeyBundle,
+  signature_covers_pq_identity: boolean,
+): PrekeyBundle {
+  if (!signature_covers_pq_identity) return recipient_bundle;
+
+  if (!recipient_bundle.pq_prekey || !recipient_bundle.pq_kem_public_key) {
+    return recipient_bundle;
+  }
+
+  if (
+    base64_to_array(recipient_bundle.pq_kem_public_key).length !==
+    ML_KEM_768_EK_LEN
+  ) {
+    return recipient_bundle;
+  }
+
+  const { pq_prekey: _unsigned_prekey, ...signed_only } = recipient_bundle;
+
+  return signed_only;
+}
+
 export function bundle_supports_pq(recipient_bundle: PrekeyBundle): boolean {
   return select_pq_encapsulation_target(recipient_bundle) !== null;
 }
