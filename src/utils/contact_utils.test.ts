@@ -99,4 +99,22 @@ describe("get_days_until_birthday", () => {
     on(2026, 5, 10);
     expect(get_days_until_birthday("someday")).toBeNaN();
   });
+
+  it("does not count down to a birthday without a day", () => {
+    on(2026, 3, 25);
+    expect(get_days_until_birthday("--04")).toBeNaN();
+    expect(get_days_until_birthday("1985-04")).toBeNaN();
+  });
+
+  it("does not guess a day from text or an impossible date", () => {
+    on(2026, 2, 20);
+    expect(get_days_until_birthday("April 15")).toBeNaN();
+    expect(get_days_until_birthday("1900-02-29")).toBeNaN();
+    expect(get_days_until_birthday("2000-02-30")).toBeNaN();
+  });
+
+  it("counts down to a birthday stored with the placeholder year 1604", () => {
+    on(2026, 4, 10);
+    expect(get_days_until_birthday("1604-04-15")).toBe(5);
+  });
 });

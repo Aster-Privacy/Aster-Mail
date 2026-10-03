@@ -40,7 +40,7 @@ import { Input } from "@/components/ui/input";
 import {
   contact_date_input_value,
   format_contact_date,
-  is_yearless_contact_date,
+  is_partial_contact_date,
 } from "@/utils/date_utils";
 import {
   Select,
@@ -129,7 +129,7 @@ export function ContactFormDetails({
             icon={CalendarIcon}
             label={t("common.birthday")}
           />
-          {is_yearless_contact_date(form_data.birthday ?? "") ? (
+          {is_partial_contact_date(form_data.birthday ?? "") ? (
             <div className="relative">
               <Input
                 readOnly

@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { parse_calendar_date, parse_contact_date } from "@/utils/date_utils";
+import { parse_contact_date } from "@/utils/date_utils";
 
 export function parse_csv_records(raw_text: string): string[][] {
   const text = raw_text.charCodeAt(0) === 0xfeff ? raw_text.slice(1) : raw_text;
@@ -68,31 +68,16 @@ export function parse_csv_records(raw_text: string): string[][] {
   return records.filter((record) => record.some((value) => value !== ""));
 }
 
-function birthday_month_day(
-  birthday: string,
-): { month: number; day: number } | null {
+export function get_days_until_birthday(birthday: string): number {
   const contact_date = parse_contact_date(birthday);
 
-  if (contact_date) {
-    return { month: contact_date.month - 1, day: contact_date.day };
-  }
-
-  const parsed = parse_calendar_date(birthday);
-
-  if (Number.isNaN(parsed.getTime())) return null;
-
-  return { month: parsed.getMonth(), day: parsed.getDate() };
-}
-
-export function get_days_until_birthday(birthday: string): number {
-  const month_day = birthday_month_day(birthday);
-
-  if (!month_day) return NaN;
+  if (!contact_date) return NaN;
 
   const today = new Date();
 
   today.setHours(0, 0, 0, 0);
-  const { month, day } = month_day;
+  const month = contact_date.month - 1;
+  const { day } = contact_date;
   let next_birthday = new Date(today.getFullYear(), month, day);
 
   if (next_birthday < today) {

@@ -47,7 +47,7 @@ import {
 import {
   contact_date_input_value,
   format_contact_date,
-  is_yearless_contact_date,
+  is_partial_contact_date,
 } from "@/utils/date_utils";
 import {
   EMAIL_TYPE_OPTIONS,
@@ -336,7 +336,7 @@ export function ContactFormView({
                 icon={<CakeIcon className="h-4 w-4" />}
                 label={t("common.birthday_section")}
               >
-                {is_yearless_contact_date(form_data.birthday ?? "") ? (
+                {is_partial_contact_date(form_data.birthday ?? "") ? (
                   <div className="relative">
                     <Input
                       readOnly

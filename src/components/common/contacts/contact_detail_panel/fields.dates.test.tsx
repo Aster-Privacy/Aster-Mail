@@ -86,6 +86,30 @@ describe("TypedList dates", () => {
     expect(on_change).toHaveBeenCalledWith(0, "");
   });
 
+  it.each([
+    ["--04", "April"],
+    ["1985-04", "April 1985"],
+    ["1604-04-15", "April 15"],
+  ])(
+    "shows the partial date %s as text instead of a blank picker",
+    (value, shown) => {
+      const on_change = render_dates(value);
+      const input = container.querySelector("input") as HTMLInputElement;
+
+      expect(input.type).toBe("text");
+      expect(input.readOnly).toBe(true);
+      expect(input.value).toBe(shown);
+      expect(on_change).not.toHaveBeenCalled();
+
+      const clear = container.querySelector(
+        'button[aria-label="common.clear"]',
+      ) as HTMLButtonElement;
+
+      act(() => clear.click());
+      expect(on_change).toHaveBeenCalledWith(0, "");
+    },
+  );
+
   it("fills the picker for a dated value in basic form", () => {
     render_dates("19900515");
     const input = container.querySelector("input") as HTMLInputElement;

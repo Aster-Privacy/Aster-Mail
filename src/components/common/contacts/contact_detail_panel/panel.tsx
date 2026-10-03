@@ -91,8 +91,7 @@ import { app_date_format, format_iso_date } from "@/utils/date_format";
 import {
   contact_date_input_value,
   format_contact_date,
-  is_yearless_contact_date,
-  normalize_contact_date,
+  is_partial_contact_date,
 } from "@/utils/date_utils";
 import { ContactAvatar } from "@/components/common/contacts/contact_avatar";
 import {
@@ -229,7 +228,7 @@ export function ContactDetailPanel({
   }
 
   const banner = draft.profile_color || DEFAULT_BANNER;
-  const birthday_is_yearless = is_yearless_contact_date(draft.birthday);
+  const birthday_is_partial = is_partial_contact_date(draft.birthday);
 
   const handle_save = async () => {
     const date_entries = draft.date_entries.filter((d) => d.value.trim());
@@ -915,19 +914,20 @@ export function ContactDetailPanel({
                     aria-label={t("common.birthday")}
                     className={`${FIELD_CLASS} ${
                       is_editing && draft.birthday
-                        ? contact_date_clear_padding(!birthday_is_yearless)
+                        ? contact_date_clear_padding(!birthday_is_partial)
                         : ""
                     }`}
                     placeholder={app_date_format()}
-                    readOnly={!is_editing || birthday_is_yearless}
-                    type={is_editing && !birthday_is_yearless ? "date" : "text"}
+                    readOnly={!is_editing || birthday_is_partial}
+                    type={is_editing && !birthday_is_partial ? "date" : "text"}
                     value={
-                      birthday_is_yearless
+                      birthday_is_partial
                         ? format_contact_date(draft.birthday)
                         : is_editing
                           ? contact_date_input_value(draft.birthday)
                           : format_iso_date(
-                              normalize_contact_date(draft.birthday),
+                              contact_date_input_value(draft.birthday) ||
+                                draft.birthday,
                             )
                     }
                     onChange={(e) =>
@@ -936,7 +936,7 @@ export function ContactDetailPanel({
                   />
                   {is_editing && draft.birthday && (
                     <ContactDateClearButton
-                      beside_picker={!birthday_is_yearless}
+                      beside_picker={!birthday_is_partial}
                       label={t("common.clear")}
                       on_clear={() => handle_field_change("birthday", "")}
                     />

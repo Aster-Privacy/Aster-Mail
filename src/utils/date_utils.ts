@@ -46,6 +46,8 @@ export interface ContactDateParts {
 
 const CONTACT_DATE_PATTERN =
   /^(?:(\d{4})-?|--)(\d{2})-?(\d{2})(?:T[\d:.,+\-Z]*)?$/i;
+const CONTACT_MONTH_PATTERN = /^(?:(\d{4})-|--)(\d{2})$/;
+const PLACEHOLDER_YEARS = new Set(["0000", "1604"]);
 const LEAP_YEAR = 2000;
 
 function days_in_month(year: number, month: number): number {
@@ -56,6 +58,16 @@ function days_in_month(year: number, month: number): number {
   return date.getUTCDate();
 }
 
+function contact_year(
+  raw_year: string | undefined,
+  omitted_year?: string,
+): number | undefined {
+  if (raw_year === undefined || raw_year === omitted_year) return undefined;
+  if (PLACEHOLDER_YEARS.has(raw_year)) return undefined;
+
+  return Number(raw_year);
+}
+
 export function parse_contact_date(
   value: string,
   omitted_year?: string,
@@ -64,10 +76,7 @@ export function parse_contact_date(
 
   if (!parts) return null;
 
-  const raw_year = parts[1];
-  const has_year =
-    raw_year !== undefined && raw_year !== "0000" && raw_year !== omitted_year;
-  const year = has_year ? Number(raw_year) : undefined;
+  const year = contact_year(parts[1], omitted_year);
   const month = Number(parts[2]);
   const day = Number(parts[3]);
 
@@ -75,6 +84,24 @@ export function parse_contact_date(
   if (day < 1 || day > days_in_month(year ?? LEAP_YEAR, month)) return null;
 
   return year === undefined ? { month, day } : { year, month, day };
+}
+
+export interface ContactMonthParts {
+  year?: number;
+  month: number;
+}
+
+export function parse_contact_month(value: string): ContactMonthParts | null {
+  const parts = CONTACT_MONTH_PATTERN.exec(value.trim());
+
+  if (!parts) return null;
+
+  const year = contact_year(parts[1]);
+  const month = Number(parts[2]);
+
+  if (month < 1 || month > 12) return null;
+
+  return year === undefined ? { month } : { year, month };
 }
 
 function pad2(value: number): string {
@@ -107,16 +134,26 @@ export function vcard_date_value(value: string, basic: boolean): string {
   return `--${pad2(parts.month)}${pad2(parts.day)}`;
 }
 
-export function is_yearless_contact_date(value: string): boolean {
+export function is_partial_contact_date(value: string): boolean {
   const parts = parse_contact_date(value);
 
-  return parts !== null && parts.year === undefined;
+  if (parts) return parts.year === undefined;
+
+  return parse_contact_month(value) !== null;
 }
 
 export function contact_date_input_value(value: string): string {
   const parts = parse_contact_date(value);
 
   return parts?.year === undefined ? "" : contact_date_from_parts(parts);
+}
+
+function calendar_day_utc(year: number, month: number, day: number): Date {
+  const date = new Date(Date.UTC(LEAP_YEAR, 0, 1));
+
+  date.setUTCFullYear(year, month - 1, day);
+
+  return date;
 }
 
 export function format_contact_date(value: string): string {
@@ -127,15 +164,11 @@ export function format_contact_date(value: string): string {
   const contact_date = parse_contact_date(trimmed);
 
   if (contact_date) {
-    const calendar_day = new Date(Date.UTC(LEAP_YEAR, 0, 1));
-
-    calendar_day.setUTCFullYear(
+    return calendar_day_utc(
       contact_date.year ?? LEAP_YEAR,
-      contact_date.month - 1,
+      contact_date.month,
       contact_date.day,
-    );
-
-    return calendar_day.toLocaleDateString(app_locale(), {
+    ).toLocaleDateString(app_locale(), {
       ...(contact_date.year === undefined ? {} : { year: "numeric" }),
       month: "long",
       day: "numeric",
@@ -143,20 +176,21 @@ export function format_contact_date(value: string): string {
     });
   }
 
-  const parsed = parse_calendar_date(trimmed);
+  const contact_month = parse_contact_month(trimmed);
 
-  if (Number.isNaN(parsed.getTime())) return trimmed;
+  if (contact_month) {
+    return calendar_day_utc(
+      contact_month.year ?? LEAP_YEAR,
+      contact_month.month,
+      1,
+    ).toLocaleDateString(app_locale(), {
+      ...(contact_month.year === undefined ? {} : { year: "numeric" }),
+      month: "long",
+      timeZone: "UTC",
+    });
+  }
 
-  const calendar_day = new Date(
-    Date.UTC(parsed.getFullYear(), parsed.getMonth(), parsed.getDate()),
-  );
-
-  return calendar_day.toLocaleDateString(app_locale(), {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    timeZone: "UTC",
-  });
+  return trimmed;
 }
 
 export function format_relative_time(

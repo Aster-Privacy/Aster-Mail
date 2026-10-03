@@ -47,7 +47,7 @@ import {
 import {
   contact_date_input_value,
   format_contact_date,
-  is_yearless_contact_date,
+  is_partial_contact_date,
 } from "@/utils/date_utils";
 import { Spinner } from "@/components/ui/spinner";
 import {
@@ -372,7 +372,7 @@ export function TypedList<T extends string>({
 
         return (
           <div key={idx} className="flex flex-wrap items-center gap-2">
-            {input_type === "date" && is_yearless_contact_date(entry.value) ? (
+            {input_type === "date" && is_partial_contact_date(entry.value) ? (
               <div className="relative flex-1 min-w-[160px]">
                 <input
                   readOnly
