@@ -470,8 +470,6 @@ function notify_soon(immediate = false): void {
 
   const due_ms = now_ms() + delay;
 
-  // Throttle, never postpone: a notify that is already due sooner stays, so a
-  // steady stream of build chunks cannot hold back every update until the end.
   if (notify_timer) {
     if (notify_due_ms <= due_ms) return;
     clearTimeout(notify_timer);
@@ -963,8 +961,6 @@ function remember_entry_preview(id: string, preview: CategoryPreview): void {
   preview_version += 1;
   previews_dirty = true;
   schedule_persist();
-  // Once per decrypted message during a build: every notify re-derives the
-  // whole index, so builds use the build throttle instead of notifying here.
   notify_soon(!build_in_progress);
 }
 
