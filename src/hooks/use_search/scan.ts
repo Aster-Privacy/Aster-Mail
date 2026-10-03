@@ -67,12 +67,19 @@ export async function scan_search_index(
   }
 
   const skip = options?.skip ?? null;
+  const known_empty = options?.known_empty ?? null;
   const summaries = skip?.uses_summary
     ? await reader.read_summaries(index.disk_chunk_ids)
     : null;
+  const settle = (chunk_id: number) => options?.on_chunk_settled?.(chunk_id);
 
   for (const chunk_id of index.disk_chunk_ids) {
     if (is_aborted()) return true;
+
+    if (known_empty?.has(chunk_id)) {
+      settle(chunk_id);
+      continue;
+    }
 
     if (summaries) {
       const summary = summaries.get(chunk_id);
@@ -115,6 +122,7 @@ export async function scan_search_index(
 
     if (stopped) return true;
 
+    settle(chunk_id);
     options?.on_chunk?.();
 
     await new Promise<void>((r) => setTimeout(r, 0));

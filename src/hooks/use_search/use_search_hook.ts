@@ -49,6 +49,7 @@ import {
   can_refine_scan,
   candidates_are_cacheable,
   excluded_by_mailbox_scope,
+  known_empty_chunks,
   options_signature,
   passes_search_filters,
   resolve_mailbox_scope,
@@ -57,6 +58,7 @@ import {
   AppliedCorrection,
   AutocompleteState,
   DecryptedIndexEntry,
+  EmptyChunkMemory,
   ScanCacheEntry,
   ScanCandidate,
   SearchOptions,
@@ -120,6 +122,7 @@ export function use_search() {
     ) => Promise<void>
   >(async () => {});
   const last_scan_ref = useRef<ScanCacheEntry | null>(null);
+  const empty_chunks_ref = useRef<EmptyChunkMemory | null>(null);
   const index_incomplete_ref = useRef(false);
   const last_search_ref = useRef<{
     query: string;
@@ -136,9 +139,14 @@ export function use_search() {
   const clear_index = useCallback(() => {
     reset_index_cache();
     last_scan_ref.current = null;
+    empty_chunks_ref.current = null;
     reset_index_download_state();
     reset_indexing_progress();
   }, []);
+
+  useEffect(() => {
+    empty_chunks_ref.current = null;
+  }, [user?.email]);
 
   useEffect(() => {
     const handle_mail_changed = () => {
@@ -194,6 +202,7 @@ export function use_search() {
       if (!query || !meets_min_search_length(query)) {
         last_search_ref.current = null;
         last_scan_ref.current = null;
+        empty_chunks_ref.current = null;
         abort_ref.current?.abort();
         abort_ref.current = null;
         set_state((prev) => ({
@@ -232,6 +241,7 @@ export function use_search() {
 
         if (terms.length === 0 && operators.length === 0) {
           last_scan_ref.current = null;
+          empty_chunks_ref.current = null;
           controller.abort();
           set_state((prev) => ({
             ...prev,
@@ -380,6 +390,16 @@ export function use_search() {
           const probe_terms =
             options?.search_body === false ||
             (!index.include_body && index.meta?.include_body !== true);
+          const empty_chunks: EmptyChunkMemory = {
+            user_email: index.user_email,
+            terms,
+            operators,
+            options_key,
+            built_at: index.built_at,
+            saved_at: index.meta?.saved_at ?? 0,
+            empty_chunks: new Set(),
+          };
+          let settled_count = candidates.length;
 
           stopped = await scan_search_index(
             index,
@@ -393,12 +413,31 @@ export function use_search() {
                 label_name_to_tokens: options?.label_name_to_tokens,
                 probe_terms,
               }),
-              on_chunk: flush_progress,
+              known_empty: known_empty_chunks(
+                empty_chunks_ref.current,
+                terms,
+                operators,
+                options_key,
+                index,
+              ),
+              on_chunk: () => {
+                settled_count = candidates.length;
+                flush_progress();
+              },
+              on_chunk_settled: (chunk_id) => {
+                if (candidates.length === settled_count) {
+                  empty_chunks.empty_chunks.add(chunk_id);
+                }
+              },
               on_unreadable_chunk: () => {
                 index_incomplete_ref.current = true;
               },
             },
           );
+
+          if (controller.signal.aborted) return;
+
+          empty_chunks_ref.current = empty_chunks;
         }
 
         if (controller.signal.aborted) return;
@@ -545,6 +584,7 @@ export function use_search() {
   const clear_results = useCallback(() => {
     last_search_ref.current = null;
     last_scan_ref.current = null;
+    empty_chunks_ref.current = null;
     abort_ref.current?.abort();
     abort_ref.current = null;
     search_seq_ref.current += 1;
