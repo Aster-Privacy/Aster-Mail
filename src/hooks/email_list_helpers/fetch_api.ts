@@ -25,6 +25,7 @@ import type {
 } from "@/types/email";
 
 import { decrypt_envelope } from "./decrypt";
+import { decrypt_list_item_cached } from "./decrypt_cache";
 import { should_keep_email_in_view } from "./display";
 import { group_emails_by_thread, sort_emails_by_timestamp } from "./grouping";
 import { mail_to_email_safe } from "./mapping";
@@ -129,36 +130,46 @@ export async function fetch_mail_from_api(
       batch.map(async (item) => {
         if (signal.aborted) throw new Error("aborted");
 
-        const has_metadata = !!(item.encrypted_metadata && item.metadata_nonce);
+        const { envelope, metadata } = await decrypt_list_item_cached(
+          item,
+          user_email,
+          async () => {
+            const has_metadata = !!(
+              item.encrypted_metadata && item.metadata_nonce
+            );
 
-        const [envelope, metadata] = await Promise.all([
-          decrypt_envelope(
-            item.encrypted_envelope,
-            item.envelope_nonce,
-            item.id,
-          ),
-          has_metadata
-            ? decrypt_mail_metadata(
-                item.encrypted_metadata!,
-                item.metadata_nonce!,
-                item.metadata_version,
-              )
-            : Promise.resolve(null),
-        ]);
+            const [envelope, metadata] = await Promise.all([
+              decrypt_envelope(
+                item.encrypted_envelope,
+                item.envelope_nonce,
+                item.id,
+              ),
+              has_metadata
+                ? decrypt_mail_metadata(
+                    item.encrypted_metadata!,
+                    item.metadata_nonce!,
+                    item.metadata_version,
+                  )
+                : Promise.resolve(null),
+            ]);
 
-        if (envelope?.body_text) {
-          const bundle = await decrypt_body_text_with_bundle(
-            envelope.body_text,
-            user_email,
-            envelope.from?.email || "",
-            item.id,
-          );
+            if (envelope?.body_text) {
+              const bundle = await decrypt_body_text_with_bundle(
+                envelope.body_text,
+                user_email,
+                envelope.from?.email || "",
+                item.id,
+              );
 
-          envelope.body_text = bundle.body;
-          if (bundle.subject !== null && !envelope.subject) {
-            envelope.subject = bundle.subject;
-          }
-        }
+              envelope.body_text = bundle.body;
+              if (bundle.subject !== null && !envelope.subject) {
+                envelope.subject = bundle.subject;
+              }
+            }
+
+            return { envelope, metadata };
+          },
+        );
 
         return { item, envelope, metadata };
       }),

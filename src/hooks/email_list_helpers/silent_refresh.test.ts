@@ -86,4 +86,34 @@ describe("merge_silent_refresh_emails", () => {
     expect(merged.find((e) => e.id === "a")?.is_selected).toBe(true);
     expect(merged.find((e) => e.id === "b")?.is_selected).toBeFalsy();
   });
+  it("keeps the existing row object when the refreshed row is equal", () => {
+    const previous = [
+      { ...make_email("a"), folders: [{ folder_token: "work" }] },
+      make_email("b", true),
+      make_email("c"),
+    ] as InboxEmail[];
+    const incoming = [
+      { ...make_email("a"), folders: [{ folder_token: "work" }] },
+      make_email("b"),
+      { ...make_email("c"), is_read: true },
+    ] as InboxEmail[];
+
+    const merged = merge_silent_refresh_emails(previous, incoming, Date.now());
+
+    expect(merged[0]).toBe(previous[0]);
+    expect(merged[1]).toBe(previous[1]);
+    expect(merged[2]).not.toBe(previous[2]);
+    expect(merged[2].is_read).toBe(true);
+  });
+
+  it("returns the previous list when nothing changed", () => {
+    const previous = [make_email("a"), make_email("b")];
+    const merged = merge_silent_refresh_emails(
+      previous,
+      [make_email("a"), make_email("b")],
+      Date.now(),
+    );
+
+    expect(merged).toBe(previous);
+  });
 });

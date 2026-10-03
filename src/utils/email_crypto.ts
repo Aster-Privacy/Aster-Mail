@@ -37,9 +37,12 @@ import {
   discover_external_keys_batch,
   type ExternalKeyInfo,
 } from "@/services/api/keys";
+import {
+  RATCHET_UNDECRYPTABLE_SENTINEL,
+  PGP_UNDECRYPTABLE_SENTINEL,
+} from "@/utils/undecryptable_body";
 
-export const RATCHET_UNDECRYPTABLE_SENTINEL =
-  "\x00ASTER_RATCHET_UNDECRYPTABLE\x00";
+export { RATCHET_UNDECRYPTABLE_SENTINEL, PGP_UNDECRYPTABLE_SENTINEL };
 
 export function is_ratchet_envelope(body: string | null | undefined): boolean {
   if (!body) return false;
@@ -373,8 +376,6 @@ export function try_extract_mime_body(text: string): string {
     return text;
   }
 }
-
-export const PGP_UNDECRYPTABLE_SENTINEL = "\x00ASTER_PGP_UNDECRYPTABLE\x00";
 
 export const PGP_PASSWORD_PROTECTED_SENTINEL =
   "\x00ASTER_PGP_PASSWORD_PROTECTED\x00";

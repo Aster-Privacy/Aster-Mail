@@ -40,6 +40,7 @@ export { compute_should_remove_from_view } from "./view_membership";
 import { add_app_state_listener } from "@/native/capacitor_bridge";
 import { has_passphrase_in_memory } from "@/services/crypto/memory_key_store";
 import { request_cache } from "@/services/api/request_cache";
+import { sync_client } from "@/services/sync_client";
 import {
   mark_preload_stale,
   delete_preloaded_email,
@@ -258,6 +259,7 @@ export function use_email_list_events({
     };
 
     const poll_interval = window.setInterval(() => {
+      if (sync_client.is_connected()) return;
       maybe_revalidate();
     }, 60_000);
 
