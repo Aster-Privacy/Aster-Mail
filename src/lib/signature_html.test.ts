@@ -29,6 +29,7 @@ import {
   has_typed_content,
   insert_signature_node,
   remove_signature_node,
+  signature_from_editor_html,
   with_caret_block,
 } from "./signature_html";
 
@@ -268,5 +269,56 @@ describe("append_template_after_typed_text", () => {
     append_template_after_typed_text(editor, "");
 
     expect(editor.innerHTML).toBe("<div>Hello</div>");
+  });
+});
+
+describe("signature_from_editor_html", () => {
+  it.each([
+    ["bullet list", "<ul><li>Tel: 555 0100</li><li>1 Example Street</li></ul>"],
+    ["numbered list", "<ol><li>First</li><li>Second</li></ol>"],
+    ["strike", "<div><strike>Old title</strike></div>"],
+    ["s", "Jane <s>Doe</s>"],
+    ["del", "Jane <del>Doe</del>"],
+    ["font", '<font color="#ff0000">Jane</font>'],
+    ["font size", '<font size="5">Jane</font>'],
+    ["align attribute", '<div align="center">Jane</div>'],
+    ["inline alignment", '<div style="text-align: center;">Jane</div>'],
+    ["center", "<center>Jane</center>"],
+    ["blockquote", "<blockquote>Jane</blockquote>"],
+    ["heading", "<h2>Jane Doe</h2>"],
+    ["pre", "<pre>Jane</pre>"],
+    ["code", "Jane <code>Doe</code>"],
+    ["sub", "H<sub>2</sub>O"],
+    ["sup", "x<sup>2</sup>"],
+    ["bold", "<b>Jane</b>"],
+    ["link", '<a href="https://example.com">Example</a>'],
+  ])("keeps %s formatting as HTML", (_label, html) => {
+    expect(signature_from_editor_html(`  ${html}  `)).toEqual({
+      content: html,
+      is_html: true,
+    });
+  });
+
+  it.each([
+    ["typed text", "Jane Doe", "Jane Doe"],
+    ["Enter divs", "Jane Doe<div>Example Inc.</div>", "Jane Doe\nExample Inc."],
+    ["trailing empty line", "<div>Jane Doe</div><div><br></div>", "Jane Doe"],
+    ["br lines", "Jane Doe<br>Example Inc.", "Jane Doe\nExample Inc."],
+    [
+      "paragraphs",
+      "<p>Jane Doe</p><p>Example Inc.</p>",
+      "Jane Doe\nExample Inc.",
+    ],
+    ["unstyled span", "<span>Jane Doe</span>", "Jane Doe"],
+    [
+      "blank lines",
+      "<div>Jane</div><div><br></div><div><br></div><div><br></div><div>Doe</div>",
+      "Jane\n\nDoe",
+    ],
+  ])("keeps %s as plain text", (_label, html, expected) => {
+    expect(signature_from_editor_html(html)).toEqual({
+      content: expected,
+      is_html: false,
+    });
   });
 });

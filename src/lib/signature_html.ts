@@ -172,3 +172,67 @@ export function remove_signature_node(signature_node: Element): void {
   }
   signature_node.remove();
 }
+
+const RICH_SIGNATURE_SELECTOR = [
+  "img",
+  "a",
+  "b",
+  "strong",
+  "i",
+  "em",
+  "u",
+  "s",
+  "strike",
+  "del",
+  "sub",
+  "sup",
+  "font",
+  "center",
+  "ul",
+  "ol",
+  "li",
+  "blockquote",
+  "pre",
+  "code",
+  "h1",
+  "h2",
+  "h3",
+  "h4",
+  "h5",
+  "h6",
+  "table",
+  "hr",
+  "[style]",
+  "[align]",
+].join(", ");
+
+const PLAIN_SIGNATURE_LINE_SELECTOR =
+  "div, p, li, blockquote, pre, h1, h2, h3, h4, h5, h6, tr";
+
+export interface EditorSignatureContent {
+  content: string;
+  is_html: boolean;
+}
+
+export function signature_from_editor_html(
+  html: string,
+): EditorSignatureContent {
+  const trimmed = html.trim();
+  const temp = document.createElement("div");
+
+  temp.innerHTML = trimmed;
+
+  if (temp.querySelector(RICH_SIGNATURE_SELECTOR)) {
+    return { content: trimmed, is_html: true };
+  }
+
+  temp.querySelectorAll("br").forEach((br) => br.replaceWith("\n"));
+  temp.querySelectorAll(PLAIN_SIGNATURE_LINE_SELECTOR).forEach((block) => {
+    block.before("\n");
+    block.replaceWith(...block.childNodes);
+  });
+
+  const content = (temp.textContent || "").replace(/\n{3,}/g, "\n\n").trim();
+
+  return { content, is_html: false };
+}

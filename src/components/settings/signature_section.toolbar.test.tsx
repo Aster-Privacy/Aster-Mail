@@ -149,6 +149,7 @@ vi.mock("@/components/ui/input", () => ({
 
 vi.mock("@/components/ui/spinner", () => ({
   Spinner: () => <span />,
+  ButtonSpinner: () => <span />,
 }));
 
 vi.mock("@/components/modals/confirmation_modal", () => ({
@@ -342,5 +343,67 @@ describe("SignatureSection toolbar (compose parity)", () => {
       "https://example.com",
       "Example",
     );
+  });
+});
+
+async function save_signature_with_html(html: string) {
+  h.editor.get_html.mockReturnValue(html);
+  h.api.create_signature.mockResolvedValue({ data: { id: "sig_new" } });
+
+  await render();
+  await open_editor();
+
+  const name = container.querySelector("#signature-name") as HTMLInputElement;
+  const set_value = Object.getOwnPropertyDescriptor(
+    HTMLInputElement.prototype,
+    "value",
+  )!.set!;
+
+  act(() => {
+    set_value.call(name, "Work");
+    name.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+
+  const save = Array.from(container.querySelectorAll("button")).find((b) =>
+    (b.textContent ?? "").includes("settings.create_signature"),
+  ) as HTMLButtonElement;
+
+  await act(async () => {
+    save.click();
+    await flush();
+  });
+
+  expect(h.api.create_signature).toHaveBeenCalledTimes(1);
+
+  return h.api.create_signature.mock.calls[0][0] as {
+    content: string;
+    is_html: boolean;
+  };
+}
+
+describe("SignatureSection save keeps toolbar formatting", () => {
+  it("saves a bulleted signature as HTML instead of gluing the items", async () => {
+    const html = "<ul><li>Tel: 912 345 678</li><li>1 Example Street</li></ul>";
+    const saved = await save_signature_with_html(html);
+
+    expect(saved.is_html).toBe(true);
+    expect(saved.content).toBe(html);
+  });
+
+  it("saves a numbered or struck-through signature as HTML", async () => {
+    const html = "<ol><li>One</li></ol><div><strike>Old title</strike></div>";
+    const saved = await save_signature_with_html(html);
+
+    expect(saved.is_html).toBe(true);
+    expect(saved.content).toBe(html);
+  });
+
+  it("keeps a signature with only line breaks as plain text", async () => {
+    const saved = await save_signature_with_html(
+      "Jane Doe<div>Example Inc.</div><div><br></div>",
+    );
+
+    expect(saved.is_html).toBe(false);
+    expect(saved.content).toBe("Jane Doe\nExample Inc.");
   });
 });
