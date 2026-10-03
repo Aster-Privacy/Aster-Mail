@@ -31,12 +31,14 @@ interface AddConditionChipProps {
   on_pick: (field: ConditionField) => void;
   force_open?: boolean;
   on_force_open_handled?: () => void;
+  allowed_fields?: ConditionField[];
 }
 
 export function AddConditionChip({
   on_pick,
   force_open,
   on_force_open_handled,
+  allowed_fields,
 }: AddConditionChipProps) {
   const { t } = use_i18n();
   const [open, set_open] = React.useState(false);
@@ -52,6 +54,7 @@ export function AddConditionChip({
 
   return (
     <FieldDropdown
+      allowed_fields={allowed_fields}
       on_open_change={set_open}
       on_pick={(f) => {
         set_open(false);

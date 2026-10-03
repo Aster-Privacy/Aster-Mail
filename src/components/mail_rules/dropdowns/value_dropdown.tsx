@@ -114,6 +114,7 @@ interface ValueDropdownProps {
   on_commit_header_name?: (name: string) => void;
   on_commit_size_unit?: (unit: SizeUnit) => void;
   on_toggle_case_sensitive?: (next: boolean) => void;
+  hide_match_case?: boolean;
   should_ignore_outside?: () => boolean;
 }
 
@@ -132,10 +133,17 @@ export function ValueDropdown(props: ValueDropdownProps) {
     on_commit_header_name,
     on_commit_size_unit,
     on_toggle_case_sensitive,
+    hide_match_case,
     should_ignore_outside,
   } = props;
   const { t } = use_i18n();
   const kind = field_kind(field);
+  const show_match_case =
+    !hide_match_case &&
+    (kind === "address" ||
+      kind === "text" ||
+      kind === "header" ||
+      kind === "attachment_name");
 
   if (kind === "boolean") {
     return (
@@ -273,10 +281,7 @@ export function ValueDropdown(props: ValueDropdownProps) {
               on_request_close={() => on_open_change(false)}
               value={typeof value === "string" ? value : ""}
             />
-            {(kind === "address" ||
-              kind === "text" ||
-              kind === "header" ||
-              kind === "attachment_name") && (
+            {show_match_case && (
               <div
                 className="flex items-center justify-between gap-2 pt-1.5 border-t border-[var(--aster-floating-divider,var(--border-secondary))]"
                 onMouseDown={(e) => e.preventDefault()}
