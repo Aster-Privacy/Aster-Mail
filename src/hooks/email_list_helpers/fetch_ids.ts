@@ -75,10 +75,8 @@ export async function fetch_mail_by_ids_reconciled(
 
   const results = await Promise.allSettled(
     response.data.items.map(async (item) => {
-      const { envelope, metadata } = await decrypt_list_item_cached(
-        item,
-        user_email,
-        async () => {
+      const { envelope, metadata, body_summary } =
+        await decrypt_list_item_cached(item, user_email, async () => {
           let cacheable = true;
           const has_metadata = !!(
             item.encrypted_metadata && item.metadata_nonce
@@ -128,10 +126,9 @@ export async function fetch_mail_by_ids_reconciled(
           }
 
           return { envelope, metadata, cacheable };
-        },
-      );
+        });
 
-      return { item, envelope, metadata };
+      return { item, envelope, metadata, body_summary };
     }),
   );
 
@@ -140,8 +137,10 @@ export async function fetch_mail_by_ids_reconciled(
   );
   const mapped = await map_sync_in_chunks(
     decrypted,
-    ({ item, envelope, metadata }) =>
-      mail_to_email_safe(item, envelope, metadata, format_options),
+    ({ item, envelope, metadata, body_summary }) =>
+      mail_to_email_safe(item, envelope, metadata, format_options, {
+        body_summary,
+      }),
     MAP_CHUNK_SIZE,
   );
   const by_id = new Map<string, InboxEmail>();

@@ -44,6 +44,37 @@ import { get_cached_profile } from "@/services/api/sender_profiles";
 
 export interface MailToEmailOptions {
   collapsed_threads?: boolean;
+  body_summary?: ListBodySummary;
+}
+
+export interface ListBodySummary {
+  preview: string;
+  is_undecryptable: boolean;
+}
+
+export function summarize_list_body(
+  item_id: string,
+  envelope: DecryptedEnvelope,
+): ListBodySummary {
+  const resolved_text = envelope.body_text ?? envelope.text_body ?? "";
+  const raw_html = envelope.body_html ?? envelope.html_body ?? "";
+  const resolved_html = is_ratchet_envelope(raw_html) ? "" : raw_html;
+  const is_undecryptable =
+    resolved_text === RATCHET_UNDECRYPTABLE_SENTINEL ||
+    resolved_html === RATCHET_UNDECRYPTABLE_SENTINEL ||
+    resolved_text === PGP_UNDECRYPTABLE_SENTINEL ||
+    resolved_html === PGP_UNDECRYPTABLE_SENTINEL ||
+    is_ratchet_envelope(resolved_text) ||
+    (!resolved_text && is_ratchet_envelope(raw_html));
+  const preview = is_undecryptable
+    ? RATCHET_UNDECRYPTABLE_SENTINEL
+    : build_body_preview_cached(
+        `${item_id}:${resolved_text.length}:${resolved_html.length}`,
+        resolved_text,
+        resolved_html,
+      );
+
+  return { preview, is_undecryptable };
 }
 
 export function mail_to_email(
@@ -114,7 +145,9 @@ export function mail_to_email(
       is_encrypted: true,
       is_external: item.is_external,
       system_origin: item.system_origin,
-      sender_verified_domain: item.sender_verified ? item.sender_verified_domain : undefined,
+      sender_verified_domain: item.sender_verified
+        ? item.sender_verified_domain
+        : undefined,
       folders,
       tags,
       snoozed_until: effective_metadata.snoozed_until,
@@ -142,23 +175,8 @@ export function mail_to_email(
     ?.map((r) => r.name || get_email_username(r.email))
     .filter(Boolean);
 
-  const resolved_text = envelope.body_text ?? envelope.text_body ?? "";
-  const raw_html = envelope.body_html ?? envelope.html_body ?? "";
-  const resolved_html = is_ratchet_envelope(raw_html) ? "" : raw_html;
-  const is_undecryptable_body =
-    resolved_text === RATCHET_UNDECRYPTABLE_SENTINEL ||
-    resolved_html === RATCHET_UNDECRYPTABLE_SENTINEL ||
-    resolved_text === PGP_UNDECRYPTABLE_SENTINEL ||
-    resolved_html === PGP_UNDECRYPTABLE_SENTINEL ||
-    is_ratchet_envelope(resolved_text) ||
-    (!resolved_text && is_ratchet_envelope(raw_html));
-  const preview_text = is_undecryptable_body
-    ? RATCHET_UNDECRYPTABLE_SENTINEL
-    : build_body_preview_cached(
-        `${item.id}:${resolved_text.length}:${resolved_html.length}`,
-        resolved_text,
-        resolved_html,
-      );
+  const { preview: preview_text, is_undecryptable: is_undecryptable_body } =
+    options.body_summary ?? summarize_list_body(item.id, envelope);
   const raw_ts =
     envelope.sent_at ||
     (envelope as unknown as Record<string, string>).date ||
@@ -201,7 +219,9 @@ export function mail_to_email(
     is_encrypted: false,
     is_external: item.is_external,
     system_origin: item.system_origin,
-    sender_verified_domain: item.sender_verified ? item.sender_verified_domain : undefined,
+    sender_verified_domain: item.sender_verified
+      ? item.sender_verified_domain
+      : undefined,
     sender_verification: envelope.sender_verification,
     folders,
     tags,

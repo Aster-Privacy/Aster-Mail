@@ -28,7 +28,7 @@ import { decrypt_envelope } from "./decrypt";
 import { decrypt_list_item_cached } from "./decrypt_cache";
 import { should_keep_email_in_view } from "./display";
 import { group_emails_by_thread, sort_emails_by_timestamp } from "./grouping";
-import { mail_to_email_safe } from "./mapping";
+import { mail_to_email_safe, type ListBodySummary } from "./mapping";
 import {
   build_view_list_params,
   DEFAULT_PAGE_SIZE,
@@ -130,10 +130,8 @@ export async function fetch_mail_from_api(
       batch.map(async (item) => {
         if (signal.aborted) throw new Error("aborted");
 
-        const { envelope, metadata } = await decrypt_list_item_cached(
-          item,
-          user_email,
-          async () => {
+        const { envelope, metadata, body_summary } =
+          await decrypt_list_item_cached(item, user_email, async () => {
             let cacheable = true;
             const has_metadata = !!(
               item.encrypted_metadata && item.metadata_nonce
@@ -170,10 +168,9 @@ export async function fetch_mail_from_api(
             }
 
             return { envelope, metadata, cacheable };
-          },
-        );
+          });
 
-        return { item, envelope, metadata };
+        return { item, envelope, metadata, body_summary };
       }),
     );
 
@@ -187,6 +184,7 @@ export async function fetch_mail_from_api(
               item: batch[index],
               envelope: null as DecryptedEnvelope | null,
               metadata: null as MailItemMetadata | null,
+              body_summary: undefined as ListBodySummary | undefined,
             },
       )
       .filter(({ envelope }) => {
@@ -211,9 +209,10 @@ export async function fetch_mail_from_api(
 
     const mapped = await map_sync_in_chunks(
       successful,
-      ({ item, envelope, metadata }) =>
+      ({ item, envelope, metadata, body_summary }) =>
         mail_to_email_safe(item, envelope, metadata, format_options, {
           collapsed_threads: should_group,
+          body_summary,
         }),
       MAP_CHUNK_SIZE,
       signal,

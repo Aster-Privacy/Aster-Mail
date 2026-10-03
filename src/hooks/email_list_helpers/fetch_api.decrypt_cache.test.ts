@@ -67,6 +67,10 @@ vi.mock("@/utils/email_crypto", () => ({
 }));
 
 vi.mock("./mapping", () => ({
+  summarize_list_body: (_id: string, envelope: { body_text?: string }) => ({
+    preview: envelope.body_text ?? "",
+    is_undecryptable: false,
+  }),
   mail_to_email_safe: (
     item: {
       id: string;
@@ -76,10 +80,12 @@ vi.mock("./mapping", () => ({
     },
     envelope: { subject?: string; body_text?: string } | null,
     metadata: { is_starred?: boolean } | null,
+    _format_options: unknown,
+    options?: { body_summary?: { preview: string } },
   ) => ({
     id: item.id,
     subject: envelope?.subject ?? "",
-    preview: envelope?.body_text ?? "",
+    preview: options?.body_summary?.preview ?? envelope?.body_text ?? "",
     item_type: item.item_type,
     is_read: item.is_read ?? false,
     is_starred: metadata?.is_starred ?? false,
