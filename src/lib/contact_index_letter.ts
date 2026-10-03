@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { app_locale } from "@/utils/date_format";
+
 export const CONTACT_INDEX_FALLBACK = "#";
 
 const LATIN_LETTERS_WITHOUT_DECOMPOSITION: Record<string, string> = {
@@ -100,7 +102,7 @@ function letter_for(
 
 export function contact_index_letter(
   name: string | null | undefined,
-  locale?: string,
+  locale: string | undefined = app_locale(),
 ): string {
   const visible = (name ?? "").replace(INVISIBLE_PREFIX, "");
   const code_point = visible.codePointAt(0);

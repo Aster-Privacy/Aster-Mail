@@ -18,11 +18,25 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { describe, it, expect } from "vitest";
+import { afterEach, describe, it, expect } from "vitest";
 
 import { contact_index_letter } from "./contact_index_letter";
 
+import { set_display_locale } from "@/utils/date_format";
+
 describe("contact_index_letter", () => {
+  afterEach(() => {
+    set_display_locale(undefined);
+  });
+
+  it("follows the app language when no locale is passed", () => {
+    set_display_locale("es");
+    expect(contact_index_letter("Ñuño")).toBe("Ñ");
+
+    set_display_locale("en");
+    expect(contact_index_letter("Ñuño")).toBe("N");
+  });
+
   it("files accented initials under their base letter in Portuguese", () => {
     expect(contact_index_letter("Álvaro", "pt")).toBe("A");
     expect(contact_index_letter("Ângela", "pt")).toBe("A");
