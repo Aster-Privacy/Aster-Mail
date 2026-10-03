@@ -102,7 +102,8 @@ vi.mock("@/hooks/use_search/envelope", () => ({
   reset_legacy_migration_state: () => {},
 }));
 vi.mock("@/services/locked_folders", () => ({
-  filter_locked_mail_items: (items: MailItem[]) => items,
+  filter_locked_mail_items: (items: MailItem[]) =>
+    items.filter((item) => item.folder_token !== "locked"),
 }));
 vi.mock("@/services/search/index_total", () => ({
   fetch_mailbox_index_total: async () => server.mailbox.length,
@@ -119,7 +120,10 @@ import {
 import * as index_cache from "./index_cache";
 import { matches_query } from "./matching";
 
-import { SNAPSHOT_CHUNK_SIZE } from "@/services/search_index_store";
+import {
+  open_snapshot_reader,
+  SNAPSHOT_CHUNK_SIZE,
+} from "@/services/search_index_store";
 
 const user_email = "user@example.com";
 const MAILBOX_SIZE = SNAPSHOT_CHUNK_SIZE * 2 + 500;
@@ -194,6 +198,34 @@ async function search(
   }
 
   return found;
+}
+
+async function disk_snapshot(): Promise<{
+  ids: string[];
+  unread: string[];
+  missing: number[];
+  saved_at: number;
+}> {
+  const reader = await open_snapshot_reader(user_email);
+  const ids: string[] = [];
+  const unread: string[] = [];
+  const missing: number[] = [];
+
+  for (const chunk_id of reader?.meta.chunk_ids ?? []) {
+    const chunk = await reader!.read(chunk_id);
+
+    if (!chunk) {
+      missing.push(chunk_id);
+      continue;
+    }
+
+    for (const item of chunk.items) {
+      ids.push(item.id);
+      if (!item.is_read) unread.push(item.id);
+    }
+  }
+
+  return { ids, unread, missing, saved_at: reader?.meta.saved_at ?? 0 };
 }
 
 async function reload(): Promise<CachedIndex> {
@@ -382,6 +414,26 @@ describe("search index front refresh writes", () => {
     expect(index.meta?.total).toBe(MAILBOX_SIZE);
     expect(index.meta?.chunk_ids).toHaveLength(3);
   });
+  it("indexes every unlocked message when locked ones sit at the window edge", async () => {
+    windowed.clear_search_index();
+    store.clear();
+
+    for (const n of [1990, 1991, 1992]) {
+      server.mailbox[n] = { ...server.mailbox[n], folder_token: "locked" };
+    }
+
+    const unlocked = server.mailbox
+      .filter((item) => item.folder_token !== "locked")
+      .map((item) => item.id);
+
+    await settle_windowed();
+    expect((await disk_snapshot()).ids).toEqual(unlocked);
+
+    windowed.mark_search_index_stale();
+    await settle_windowed();
+    expect((await disk_snapshot()).ids).toEqual(unlocked);
+  });
+
   it("drops a message deleted from the front and keeps the rest on disk", async () => {
     server.mailbox.splice(7, 1);
     writes.chunk = 0;
