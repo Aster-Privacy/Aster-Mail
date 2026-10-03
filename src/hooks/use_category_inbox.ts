@@ -424,7 +424,6 @@ export function use_category_inbox(
   }, [set_state]);
 
   const last_signature_ref = useRef<string>("");
-  const early_paint_scope_ref = useRef<string>("");
   const keys_ready_account_ref = useRef<string | null>(null);
   const abort_ref = useRef<AbortController | null>(null);
   const page_cache = useRef<Map<string, InboxEmail[]>>(new Map());
@@ -502,7 +501,6 @@ export function use_category_inbox(
         keys_ready_account_ref.current = account;
         page_cache.current.clear();
         last_signature_ref.current = "";
-        early_paint_scope_ref.current = "";
       }
 
       clear_suppressed_ids();
@@ -846,15 +844,7 @@ export function use_category_inbox(
       is_build_in_progress() &&
       !is_build_stalled()
     ) {
-      const can_paint_early =
-        page === 0 &&
-        preferences.inbox_sort_order !== "oldest_first" &&
-        ids.length > 0 &&
-        (ids.length >= page_size || early_paint_scope_ref.current !== scope);
-
-      if (!can_paint_early) return;
-
-      early_paint_scope_ref.current = scope;
+      return;
     }
 
     const same_scope =
@@ -871,7 +861,6 @@ export function use_category_inbox(
     index_version,
     fetch_page,
     page_variant,
-    preferences.inbox_sort_order,
   ]);
 
   useEffect(() => {
