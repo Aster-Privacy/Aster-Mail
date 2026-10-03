@@ -461,7 +461,7 @@ function SetupDuressPinModal({
         .map((b) => b.toString(16).padStart(2, "0"))
         .join("");
 
-      save_duress_pin(account_id, pin_hash, pin_salt);
+      await save_duress_pin(account_id, pin_hash, pin_salt);
       on_success();
     } catch {
       set_error_msg(t("common.something_went_wrong"));
@@ -985,7 +985,18 @@ export function DuressPinSection() {
   const [modal, set_modal] = useState<DuressPinModal>(null);
 
   useEffect(() => {
-    if (account_id) set_enabled(has_duress_pin(account_id));
+    if (!account_id) return;
+    let cancelled = false;
+
+    has_duress_pin(account_id)
+      .then((value) => {
+        if (!cancelled) set_enabled(value);
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
   }, [account_id]);
 
   const close_modal = useCallback(() => set_modal(null), []);
