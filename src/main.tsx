@@ -53,7 +53,11 @@ import { start_desktop_link_bridge } from "@/native/desktop_link_bridge";
 import { start_desktop_oauth_bridge } from "@/native/desktop_oauth_bridge";
 import { start_desktop_mailto_bridge } from "@/native/desktop_mailto_bridge";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
-import { use_mobile_experience } from "@/hooks/use_mobile_experience";
+import {
+  compute_is_mobile_experience,
+  use_mobile_experience,
+} from "@/hooks/use_mobile_experience";
+import { preload_initial_language } from "@/lib/i18n/context";
 import {
   app_pathname,
   resolve_account_basename,
@@ -68,6 +72,32 @@ import { capture_support_return } from "@/lib/support_return";
 import { lazy_with_retry } from "@/utils/lazy_with_retry";
 
 const MobileApp = lazy_with_retry(() => import("@/mobile_app"));
+
+function warm_startup_route_chunk(): void {
+  const warm = (load: () => Promise<unknown>) => {
+    load().catch((caught) => ignore_error("main:warm_startup_route", caught));
+  };
+
+  if (compute_is_mobile_experience()) {
+    warm(() => import("@/mobile_app"));
+
+    return;
+  }
+
+  const path = app_pathname();
+  const is_at = (route: string) =>
+    path === route || path.startsWith(`${route}/`);
+
+  if (is_at("/sign-in")) {
+    warm(() => import("@/pages/sign_in"));
+  } else if (is_at("/register") || is_at("/signup")) {
+    warm(() => import("@/pages/register"));
+  }
+}
+
+if (preload_initial_language()) {
+  warm_startup_route_chunk();
+}
 
 start_input_modality_tracking();
 install_global_error_reporting();

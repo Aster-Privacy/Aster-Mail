@@ -102,13 +102,9 @@ async function load_partial(
 }
 
 const translations_cache: Partial<Record<LanguageCode, Translations>> = { en };
+const pending_loads = new Map<LanguageCode, Promise<Translations>>();
 
-export async function get_translations_async(
-  code: LanguageCode,
-): Promise<Translations> {
-  if (translations_cache[code]) return translations_cache[code]!;
-  if (code === "en") return en;
-
+async function load_and_cache(code: LanguageCode): Promise<Translations> {
   const partial = await load_partial(code);
 
   if (!partial) return en;
@@ -120,8 +116,34 @@ export async function get_translations_async(
   return merged;
 }
 
+export function get_translations_async(
+  code: LanguageCode,
+): Promise<Translations> {
+  const cached = translations_cache[code];
+
+  if (cached) return Promise.resolve(cached);
+
+  const pending = pending_loads.get(code);
+
+  if (pending) return pending;
+
+  const load = load_and_cache(code).finally(() => {
+    pending_loads.delete(code);
+  });
+
+  pending_loads.set(code, load);
+
+  return load;
+}
+
 export function get_translations(code: LanguageCode): Translations {
   return translations_cache[code] ?? en;
+}
+
+export function get_cached_translations(
+  code: LanguageCode,
+): Translations | undefined {
+  return translations_cache[code];
 }
 
 export function has_translations(code: LanguageCode): boolean {

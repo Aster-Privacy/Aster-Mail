@@ -41,6 +41,7 @@ import {
 } from "react";
 
 import {
+  get_cached_translations,
   get_translations,
   get_translations_async,
   has_translations,
@@ -168,25 +169,37 @@ function get_initial_language(): LanguageCode {
   return detect_browser_language();
 }
 
+export function preload_initial_language(): boolean {
+  const language = get_initial_language();
+
+  if (get_cached_translations(language)) return false;
+
+  get_translations_async(language).catch(() => {});
+
+  return true;
+}
+
 export function I18nProvider({
   children,
   default_language,
   on_language_change,
 }: I18nProviderProps) {
   const initial_language = default_language || get_initial_language();
+  const initial_ready = get_cached_translations(initial_language) !== undefined;
   const [language, set_language_state] =
     useState<LanguageCode>(initial_language);
-  const [is_loading, set_is_loading] = useState(initial_language !== "en");
-  const [initial_language_pending, set_initial_language_pending] = useState(
-    initial_language !== "en",
-  );
+  const [is_loading, set_is_loading] = useState(!initial_ready);
+  const [initial_language_pending, set_initial_language_pending] =
+    useState(!initial_ready);
   const [translations, set_translations] = useState<Translations>(
     get_translations(initial_language),
   );
 
   useEffect(() => {
-    if (language === "en") {
-      set_translations(get_translations("en"));
+    const cached = get_cached_translations(language);
+
+    if (cached) {
+      set_translations(cached);
       set_is_loading(false);
       set_initial_language_pending(false);
 
