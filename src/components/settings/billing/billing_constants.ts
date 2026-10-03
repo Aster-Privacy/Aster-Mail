@@ -23,8 +23,11 @@ import type { PlanFeatureIcon } from "@/components/settings/billing/plan_feature
 
 export const ADDON_BADGES: Record<string, "popular" | "best_value"> = {
   "100 GB": "popular",
+  "200 GB": "popular",
   "10 TB": "best_value",
 };
+
+export const ADDON_SUPERNOVA_NUDGE_BYTES = 1_099_511_627_776;
 
 export const CRYPTO_PAYMENT_PROVIDERS = ["stripe_crypto", "crypto_native"];
 

@@ -357,6 +357,7 @@ export function StorageSection() {
         credit_balance?.balance_cents,
         addon_return_url("success"),
         addon_return_url("cancelled"),
+        addon.billing_interval,
       );
       const url = response.data?.url;
 
@@ -853,9 +854,15 @@ export function StorageSection() {
           busy={is_action_loading}
           credit_balance_cents={credit_balance?.balance_cents}
           discount_duration_months={
-            promo?.eligible ? promo.duration_months : undefined
+            promo?.eligible && addon_method_target.billing_interval !== "year"
+              ? promo.duration_months
+              : undefined
           }
-          discount_percent_off={promo?.eligible ? promo.percent_off : undefined}
+          discount_percent_off={
+            promo?.eligible && addon_method_target.billing_interval !== "year"
+              ? promo.percent_off
+              : undefined
+          }
           on_choose_card={() => {
             const addon = addon_method_target;
 
@@ -901,6 +908,7 @@ export function StorageSection() {
           }}
           preferred_currency={preferred_currency}
           price_cents={crypto_addon.price_cents}
+          yearly_price_cents={crypto_addon.yearly_price_cents}
         />
       )}
 

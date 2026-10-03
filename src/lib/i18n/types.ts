@@ -4406,6 +4406,8 @@ export interface SettingsTranslations {
   billing_banner_cta: string;
   storage_addons: string;
   storage_addons_monthly_note: string;
+  storage_addons_yearly_note: string;
+  storage_addon_supernova_nudge: string;
   bill_addon_summary: string;
   bill_addon_pick_size: string;
   storage_addons_description: string;

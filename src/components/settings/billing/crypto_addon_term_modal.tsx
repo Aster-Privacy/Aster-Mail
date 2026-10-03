@@ -35,6 +35,7 @@ import {
   ModalFooter,
 } from "@/components/ui/modal";
 import {
+  addon_term_total_cents,
   create_crypto_native_addon_invoice,
   get_crypto_native_coins,
   purchase_storage_addon_crypto,
@@ -67,6 +68,7 @@ interface CryptoAddonTermModalProps {
   addon_id: string;
   addon_name: string;
   price_cents: number;
+  yearly_price_cents?: number | null;
   preferred_currency: string;
   enable_native?: boolean;
 }
@@ -104,6 +106,7 @@ export function crypto_addon_term_modal({
   addon_id,
   addon_name,
   price_cents,
+  yearly_price_cents,
   enable_native = true,
 }: CryptoAddonTermModalProps) {
   const { t } = use_i18n();
@@ -184,7 +187,8 @@ export function crypto_addon_term_modal({
     });
   }, [coins]);
 
-  const compute_price_cents = (term: TermMonths): number => price_cents * term;
+  const compute_price_cents = (term: TermMonths): number =>
+    addon_term_total_cents(price_cents, yearly_price_cents, term);
 
   const term_label = (term: TermMonths): string => {
     if (term === 1) return t("settings.crypto_term_1mo");

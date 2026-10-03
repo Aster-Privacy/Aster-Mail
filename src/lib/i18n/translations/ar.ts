@@ -6004,6 +6004,10 @@ export const ar = {
     storage_addons: "تخزين إضافي",
     storage_addons_monthly_note:
       "تتجدد الإضافات كل شهر وتتم فوترتها بشكل منفصل عن خطتك. إذا دفعت بالعملات المشفرة، فأنت تختار مدة الدفع المسبق.",
+    storage_addons_yearly_note:
+      "تتجدد الإضافات كل عام ويتم احتسابها بشكل منفصل عن خطتك. إذا دفعت بالعملات المشفرة، فأنت تختار مدة الدفع المسبق.",
+    storage_addon_supernova_nudge:
+      "إذا كنت بحاجة إلى أكثر من 1 تيرابايت، ففكر في Supernova التي تتضمن 5 تيرابايت من التخزين.",
     bill_addon_summary: "{size} مساحة تخزين إضافية",
     bill_addon_pick_size: "اختر المقدار الذي تريد إضافته",
     storage_addons_description:
