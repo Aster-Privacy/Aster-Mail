@@ -21,7 +21,10 @@
 
 import { describe, it, expect } from "vitest";
 
-import { compute_total_pages } from "@/components/email/inbox/inbox_view_helpers";
+import {
+  compute_total_pages,
+  slice_client_page,
+} from "@/components/email/inbox/inbox_view_helpers";
 
 describe("compute_total_pages", () => {
   it("pages an alias view by its server total, not the loaded page", () => {
@@ -82,5 +85,23 @@ describe("compute_total_pages", () => {
         server_paged: true,
       }),
     ).toBe(1);
+  });
+});
+
+describe("slice_client_page", () => {
+  const rows = Array.from({ length: 120 }, (_, i) => `row${i}`);
+
+  it("shows only the rows of the current page of a fully loaded list", () => {
+    expect(slice_client_page(rows, 0, 50)).toEqual(rows.slice(0, 50));
+    expect(slice_client_page(rows, 1, 50)).toEqual(rows.slice(50, 100));
+    expect(slice_client_page(rows, 2, 50)).toEqual(rows.slice(100, 120));
+  });
+
+  it("returns nothing past the last page until the page is clamped", () => {
+    expect(slice_client_page(rows, 3, 50)).toEqual([]);
+  });
+
+  it("keeps the whole list when there is no page size", () => {
+    expect(slice_client_page(rows, 1, 0)).toEqual(rows);
   });
 });

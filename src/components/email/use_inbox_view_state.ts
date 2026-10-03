@@ -45,6 +45,7 @@ import {
   reindex_ids as reindex_category_ids,
 } from "@/services/category_index";
 import { use_settled_not_found } from "@/components/email/inbox/use_settled_not_found";
+import { slice_client_page } from "@/components/email/inbox/inbox_view_helpers";
 import { effective_category } from "@/services/effective_category";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
 import { use_snooze } from "@/hooks/use_snooze";
@@ -510,7 +511,11 @@ export function use_inbox_view_state(props: EmailInboxProps) {
   const raw_email_state = useMemo(() => {
     if (is_drafts_view) {
       return {
-        emails: drafts_state.drafts as InboxEmail[],
+        emails: slice_client_page(
+          drafts_state.drafts as InboxEmail[],
+          current_page,
+          page_size,
+        ),
         is_loading: drafts_state.is_loading,
         is_loading_more: false,
         total_messages: drafts_state.total_count,
@@ -522,7 +527,11 @@ export function use_inbox_view_state(props: EmailInboxProps) {
     }
     if (is_scheduled_view) {
       return {
-        emails: scheduled_state.emails as InboxEmail[],
+        emails: slice_client_page(
+          scheduled_state.emails as InboxEmail[],
+          current_page,
+          page_size,
+        ),
         is_loading: scheduled_state.is_loading,
         is_loading_more: false,
         total_messages: scheduled_state.total_count,
@@ -534,7 +543,11 @@ export function use_inbox_view_state(props: EmailInboxProps) {
     }
     if (is_snoozed_view) {
       return {
-        emails: snoozed_state.emails,
+        emails: slice_client_page(
+          snoozed_state.emails,
+          current_page,
+          page_size,
+        ),
         is_loading: snoozed_state.is_loading,
         is_loading_more: false,
         total_messages: snoozed_state.total,
@@ -554,6 +567,8 @@ export function use_inbox_view_state(props: EmailInboxProps) {
     scheduled_state,
     snoozed_state,
     mail_state,
+    current_page,
+    page_size,
   ]);
 
   const email_state = raw_email_state;

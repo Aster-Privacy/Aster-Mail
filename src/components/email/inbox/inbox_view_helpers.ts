@@ -58,6 +58,17 @@ export function should_recover_empty_view(
   return true;
 }
 
+export function slice_client_page<T>(
+  items: T[],
+  current_page: number,
+  page_size: number,
+): T[] {
+  if (page_size <= 0) return items;
+  const start = Math.max(0, current_page) * page_size;
+
+  return items.slice(start, start + page_size);
+}
+
 export function compute_total_pages(params: {
   effective_total: number;
   page_size: number;

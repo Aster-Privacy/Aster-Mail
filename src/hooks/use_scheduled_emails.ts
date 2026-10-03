@@ -37,6 +37,7 @@ import {
   list_scheduled_emails,
   get_scheduled_email,
   cancel_scheduled_email,
+  type ScheduledEmail,
   type ScheduledEmailWithContent,
   type ScheduledEmailStatus,
 } from "@/services/api/scheduled";
@@ -52,6 +53,9 @@ import {
 } from "@/utils/date_format";
 
 const SCHEDULED_FETCH_LIMIT = 50;
+const SCHEDULED_MAX_PAGES = 40;
+const SCHEDULED_MAX_RESTARTS = 2;
+const SCHEDULED_PAGE_OVERLAP = 5;
 const FETCH_TIMEOUT_MS = 15_000;
 
 const SCHEDULED_CATEGORY_STYLE =
@@ -162,38 +166,139 @@ function transform_scheduled(
   };
 }
 
+const ACTIVE_SCHEDULED_STATUSES: ReadonlySet<ScheduledEmailStatus> = new Set([
+  "pending",
+  "sending",
+  "failed",
+]);
+
+interface ScheduledListing {
+  items: ScheduledEmail[];
+  complete: boolean;
+  failed: boolean;
+}
+
+interface ListingPass {
+  offset: number;
+  total: number | null;
+  seen: Set<string>;
+  settled: boolean;
+}
+
+function new_listing_pass(): ListingPass {
+  return { offset: 0, total: null, seen: new Set(), settled: true };
+}
+
+async function list_all_scheduled(
+  signal: AbortSignal,
+  on_progress: () => void,
+): Promise<ScheduledListing | null> {
+  const by_id = new Map<string, ScheduledEmail>();
+  let pass = new_listing_pass();
+  let restarts = 0;
+  let complete = false;
+  let failed = false;
+
+  for (let page = 0; page < SCHEDULED_MAX_PAGES; page++) {
+    const response = await list_scheduled_emails(
+      SCHEDULED_FETCH_LIMIT,
+      pass.offset,
+    );
+
+    if (signal.aborted) return null;
+    if (!response.data) {
+      if (by_id.size === 0) return null;
+      failed = true;
+      break;
+    }
+    on_progress();
+
+    const { emails, total } = response.data;
+
+    if (pass.total !== null && total !== pass.total) pass.settled = false;
+    if (
+      pass.offset > 0 &&
+      emails.length > 0 &&
+      !emails.some((email) => pass.seen.has(email.id))
+    ) {
+      pass.settled = false;
+    }
+    pass.total = total;
+
+    let added = 0;
+
+    for (const email of emails) {
+      if (!pass.seen.has(email.id)) added++;
+      pass.seen.add(email.id);
+      by_id.set(email.id, email);
+    }
+
+    if (!response.data.has_more) {
+      if (pass.settled) {
+        complete = true;
+        break;
+      }
+      if (restarts >= SCHEDULED_MAX_RESTARTS) break;
+      restarts++;
+      pass = new_listing_pass();
+      continue;
+    }
+
+    if (added === 0) break;
+    pass.offset += Math.max(1, emails.length - SCHEDULED_PAGE_OVERLAP);
+  }
+
+  const items = Array.from(by_id.values()).filter((email) =>
+    ACTIVE_SCHEDULED_STATUSES.has(email.status),
+  );
+
+  return { items, complete, failed };
+}
+
 async function fetch_scheduled_from_api(
   signal: AbortSignal,
   format_options: FormatOptions,
   labels: ScheduledTimestampLabels,
   t: (key: TranslationKey) => string,
-): Promise<{ emails: ScheduledListItem[]; has_more: boolean } | null> {
+  on_progress: () => void,
+): Promise<{
+  emails: ScheduledListItem[];
+  has_more: boolean;
+  failed: boolean;
+} | null> {
   const vault = get_vault_from_memory();
 
   if (!vault) return null;
 
-  const response = await list_scheduled_emails(SCHEDULED_FETCH_LIMIT);
+  const listing = await list_all_scheduled(signal, on_progress);
 
-  if (signal.aborted || !response.data) return null;
+  if (signal.aborted || !listing) return null;
 
-  const results = await Promise.allSettled(
-    response.data.emails.map(async (email) => {
-      if (signal.aborted) throw new Error("aborted");
-      const detail = await get_scheduled_email(email.id, vault);
+  const results: PromiseSettledResult<ScheduledListItem | null>[] = [];
 
-      return detail.data
-        ? transform_scheduled(detail.data, format_options, labels, t)
-        : null;
-    }),
-  );
+  for (let i = 0; i < listing.items.length; i += SCHEDULED_FETCH_LIMIT) {
+    const chunk = listing.items.slice(i, i + SCHEDULED_FETCH_LIMIT);
+    const chunk_results = await Promise.allSettled(
+      chunk.map(async (email) => {
+        if (signal.aborted) throw new Error("aborted");
+        const detail = await get_scheduled_email(email.id, vault);
 
-  if (signal.aborted) return null;
+        return detail.data
+          ? transform_scheduled(detail.data, format_options, labels, t)
+          : null;
+      }),
+    );
+
+    if (signal.aborted) return null;
+    on_progress();
+    results.push(...chunk_results);
+  }
 
   const has_loaded_detail = results.some(
     (r) => r.status === "fulfilled" && r.value !== null,
   );
 
-  if (response.data.emails.length > 0 && !has_loaded_detail) return null;
+  if (listing.items.length > 0 && !has_loaded_detail) return null;
 
   const emails = results
     .filter(
@@ -202,13 +307,13 @@ async function fetch_scheduled_from_api(
     )
     .map((r) => r.value)
     .filter((e): e is ScheduledListItem => e !== null)
-    .filter((e) => e.status !== "cancelled" && e.status !== "sent")
+    .filter((e) => ACTIVE_SCHEDULED_STATUSES.has(e.status))
     .sort(
       (a, b) =>
         new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime(),
     );
 
-  return { emails, has_more: response.data.has_more };
+  return { emails, has_more: !listing.complete, failed: listing.failed };
 }
 
 export function use_scheduled_emails(
@@ -271,11 +376,17 @@ export function use_scheduled_emails(
     set_error(null);
 
     let timed_out = false;
+    let timeout_id: ReturnType<typeof setTimeout> | undefined;
 
-    const timeout_id = setTimeout(() => {
-      timed_out = true;
-      controller.abort();
-    }, FETCH_TIMEOUT_MS);
+    const arm_timeout = () => {
+      clearTimeout(timeout_id);
+      timeout_id = setTimeout(() => {
+        timed_out = true;
+        controller.abort();
+      }, FETCH_TIMEOUT_MS);
+    };
+
+    arm_timeout();
 
     try {
       const timestamp_labels: ScheduledTimestampLabels = {
@@ -289,6 +400,7 @@ export function use_scheduled_emails(
         format_options,
         timestamp_labels,
         t,
+        arm_timeout,
       );
 
       if (signal.aborted || !is_current()) {
@@ -299,10 +411,15 @@ export function use_scheduled_emails(
         return;
       }
 
-      if (result) {
+      if (result && result.failed && has_loaded_ref.current) {
+        set_error(t("common.failed_to_load_scheduled_emails"));
+      } else if (result) {
         has_loaded_ref.current = true;
         set_emails(result.emails);
         set_has_more(result.has_more);
+        if (result.failed) {
+          set_error(t("common.failed_to_load_scheduled_emails"));
+        }
         invalidate_mail_stats();
       } else {
         set_error(t("common.failed_to_load_scheduled_emails"));
