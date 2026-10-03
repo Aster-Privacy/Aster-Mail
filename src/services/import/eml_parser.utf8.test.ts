@@ -212,4 +212,88 @@ describe("importing 8-bit mail", () => {
 
     expect(result.emails[0].subject).toBe("É um teste — já");
   });
+
+  // "à" is C3 A0 and "习" is E4 B9 A0: trimming 0xA0 as whitespace would
+  // break the last character and send the whole value to the fallback.
+  it.each([
+    ["ending in à", "Subject: Benvenuti in città\n", "Benvenuti in città"],
+    [
+      "folded after à",
+      "Subject: Bem-vindo à\n cidade já\n",
+      "Bem-vindo à cidade já",
+    ],
+    ["ending in 习", "Subject: 我们一起学习\n", "我们一起学习"],
+  ])("keeps a raw UTF-8 subject %s", async (_, header, expected) => {
+    const file = new File(
+      [concat_bytes("From: A <a@example.com>\n" + header + "\nbody\n")],
+      "subject.eml",
+    );
+    const result = await parse_eml_file(file);
+
+    expect(result.emails[0].subject).toBe(expected);
+  });
+
+  it("keeps an mbox body that ends in à", async () => {
+    const file = new File(
+      [
+        concat_bytes(
+          "From a@example.com Mon Jan 01 00:00:00 2026\n" +
+            "From: A <a@example.com>\n" +
+            "Subject: Ciao\n" +
+            "Content-Type: text/plain; charset=utf-8\n" +
+            "Content-Transfer-Encoding: 8bit\n" +
+            "\n" +
+            "Ciao, è bello qui in città\n",
+        ),
+      ],
+      "ciao.mbox",
+    );
+    const result = await parse_mbox_file(file);
+
+    expect(result.emails[0].text_body).toBe("Ciao, è bello qui in città");
+  });
+
+  it("keeps a declared UTF-8 body when one byte is invalid", async () => {
+    const file = new File(
+      [
+        concat_bytes(
+          "From: A <a@example.com>\n" +
+            "Subject: s\n" +
+            "Content-Type: text/plain; charset=utf-8\n" +
+            "Content-Transfer-Encoding: 8bit\n" +
+            "\n" +
+            "Olá João ",
+          [0xff],
+          "\n",
+        ),
+      ],
+      "stray.eml",
+    );
+    const result = await parse_eml_file(file);
+
+    expect(result.emails[0].text_body).toBe("Olá João \ufffd\n");
+  });
+
+  it("decodes a quoted-printable part without a charset as UTF-8", async () => {
+    const file = new File(
+      [
+        concat_bytes(
+          "From: A <a@example.com>\n" +
+            "Subject: s\n" +
+            'Content-Type: multipart/alternative; boundary="b"\n' +
+            "\n" +
+            "--b\n" +
+            "Content-Type: text/plain\n" +
+            "Content-Transfer-Encoding: quoted-printable\n" +
+            "\n" +
+            "Ol=C3=A1 =E2=82=AC\n" +
+            "--b--\n",
+        ),
+      ],
+      "qp.eml",
+    );
+    const result = await parse_eml_file(file);
+
+    expect(result.emails[0].text_body?.trim()).toBe("Olá €");
+  });
 });

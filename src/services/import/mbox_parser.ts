@@ -27,6 +27,7 @@ import {
   parse_headers,
   generate_message_id,
   bytes_to_binary_string,
+  trim_ascii_whitespace,
 } from "./mime_utils";
 
 import { get_active_translations } from "@/lib/i18n/translations";
@@ -41,7 +42,7 @@ function detach_string(value: string): string {
 }
 
 function clean_segment(segment: string): string {
-  return segment.trim().replace(/^>From /gm, "From ");
+  return trim_ascii_whitespace(segment).replace(/^>From /gm, "From ");
 }
 
 export async function* iterate_mbox_segments(
