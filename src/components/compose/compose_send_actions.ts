@@ -44,6 +44,11 @@ import {
 } from "@/components/toast/email_sent_toast";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { emit_email_sent } from "@/hooks/mail_events";
+import {
+  add_pending_thread_reply,
+  remove_pending_thread_reply,
+  settle_pending_thread_reply,
+} from "@/hooks/pending_thread_replies";
 import { record_review_prompt_action } from "@/lib/review_prompt";
 import {
   clear_pending_send_stash,
@@ -176,6 +181,12 @@ function save_and_close(
   }
 }
 
+function track_queued_reply(ctx: SendActionContext, reply_id: string) {
+  const thread_token = ctx.edit_draft?.thread_token;
+
+  if (thread_token) add_pending_thread_reply(thread_token, reply_id);
+}
+
 function clear_stash(ctx: SendActionContext) {
   clear_pending_send_stash(ctx.session_storage_key);
 }
@@ -219,6 +230,13 @@ export async function execute_internal_send(
 
   const { delay_ms, delay_seconds } = compute_delay(ctx);
   let handed_off = false;
+  let reply_id: string | null = null;
+  const settle_reply = () => {
+    if (reply_id) settle_pending_thread_reply(reply_id);
+  };
+  const drop_reply = () => {
+    if (reply_id) remove_pending_thread_reply(reply_id);
+  };
 
   if (delay_seconds > 0) {
     const result = await queue_email_to_server(
@@ -228,6 +246,7 @@ export async function execute_internal_send(
       delay_seconds,
       {
         on_sent: (sent_id?: string) => {
+          settle_reply();
           ctx.set_queued_email_id(null);
           clear_stash(ctx);
           invalidate_mail_stats();
@@ -238,9 +257,11 @@ export async function execute_internal_send(
           show_email_sent_toast(ctx.t("common.email_sent"), sent_id);
         },
         on_cancelled: () => {
+          drop_reply();
           ctx.set_queued_email_id(null);
         },
         on_error: (error: string) => {
+          drop_reply();
           ctx.set_queued_email_id(null);
           show_toast(error, "error");
           if (handed_off) restore_failed_send(ctx, email_data);
@@ -267,6 +288,8 @@ export async function execute_internal_send(
       server_queue_id: result.queue_id,
     });
 
+    reply_id = result.queue_id;
+    track_queued_reply(ctx, reply_id);
     handed_off = true;
     save_and_close(ctx, result.queue_id, email_data);
 
@@ -276,6 +299,7 @@ export async function execute_internal_send(
       {
         ...email_data,
         on_complete: (sent_id?: string) => {
+          settle_reply();
           ctx.set_queued_email_id(null);
           clear_stash(ctx);
           dispatch_email_sent();
@@ -284,9 +308,11 @@ export async function execute_internal_send(
           show_email_sent_toast(ctx.t("common.email_sent"), sent_id);
         },
         on_cancel: () => {
+          drop_reply();
           ctx.set_queued_email_id(null);
         },
         on_error: (error: string) => {
+          drop_reply();
           ctx.set_queued_email_id(null);
           show_toast(error, "error");
           if (handed_off) restore_failed_send(ctx, email_data);
@@ -299,6 +325,8 @@ export async function execute_internal_send(
       return false;
     }
 
+    reply_id = email_id;
+    track_queued_reply(ctx, reply_id);
     handed_off = true;
     save_and_close(ctx, email_id, email_data);
 
@@ -331,6 +359,13 @@ export async function execute_external_email_send(
 
   const use_pgp = pgp_enabled && !email_data.secure_external;
   let handed_off = false;
+  let reply_id: string | null = null;
+  const settle_reply = () => {
+    if (reply_id) settle_pending_thread_reply(reply_id);
+  };
+  const drop_reply = () => {
+    if (reply_id) remove_pending_thread_reply(reply_id);
+  };
   const needs_encryption = require_encryption && !email_data.secure_external;
 
   const external_email_data = {
@@ -353,6 +388,7 @@ export async function execute_external_email_send(
       delay_seconds,
       {
         on_sent: () => {
+          settle_reply();
           ctx.set_queued_email_id(null);
           clear_stash(ctx);
           invalidate_mail_stats();
@@ -361,9 +397,11 @@ export async function execute_external_email_send(
           ctx.on_close();
         },
         on_cancelled: () => {
+          drop_reply();
           ctx.set_queued_email_id(null);
         },
         on_error: (error: string) => {
+          drop_reply();
           ctx.set_queued_email_id(null);
           show_toast(
             error || ctx.t("common.failed_to_send_external_email"),
@@ -394,6 +432,8 @@ export async function execute_external_email_send(
       server_queue_id: result.queue_id,
     });
 
+    reply_id = result.queue_id;
+    track_queued_reply(ctx, reply_id);
     handed_off = true;
     save_and_close(ctx, result.queue_id, email_data);
 
@@ -401,10 +441,13 @@ export async function execute_external_email_send(
   } else if (delay_seconds > 0 && email_data.secure_external) {
     const email_id = crypto.randomUUID();
 
+    reply_id = email_id;
+
     const timeout_id = window.setTimeout(async () => {
       try {
         const sent_id = await execute_external_send(external_email_data, true);
 
+        settle_reply();
         await ctx.confirm_draft_deleted?.();
         undo_send_manager.remove(email_id);
         ctx.set_queued_email_id(null);
@@ -415,6 +458,7 @@ export async function execute_external_email_send(
         record_review_prompt_action();
         show_email_sent_toast(ctx.t("common.email_sent"), sent_id);
       } catch (err) {
+        drop_reply();
         undo_send_manager.remove(email_id);
         ctx.set_queued_email_id(null);
         show_toast(
@@ -443,6 +487,7 @@ export async function execute_external_email_send(
         window.clearTimeout(timeout_id);
         try {
           await execute_external_send(external_email_data, true);
+          settle_reply();
           await ctx.confirm_draft_deleted?.();
           ctx.set_queued_email_id(null);
           clear_stash(ctx);
@@ -450,6 +495,7 @@ export async function execute_external_email_send(
           log_activities_for_sent(ctx, email_data);
           ctx.on_close();
         } catch (err) {
+          drop_reply();
           ctx.set_queued_email_id(null);
           show_toast(
             (err as Error).message ||
@@ -461,6 +507,7 @@ export async function execute_external_email_send(
       },
     });
 
+    track_queued_reply(ctx, email_id);
     save_and_close(ctx, email_id, email_data);
 
     return false;
@@ -473,6 +520,8 @@ export async function execute_external_email_send(
 
     const restore_message = ctx.message;
 
+    reply_id = crypto.randomUUID();
+    track_queued_reply(ctx, reply_id);
     ctx.reset_form();
     ctx.on_close();
     if (ctx.edit_draft && ctx.on_draft_cleared) {
@@ -483,12 +532,14 @@ export async function execute_external_email_send(
       const sent_id = await execute_external_send(external_email_data, true);
 
       dismiss_toast(sending_toast_id);
+      settle_reply();
       await ctx.confirm_draft_deleted?.();
       dispatch_email_sent();
       log_activities_for_sent(ctx, email_data);
       record_review_prompt_action();
       show_email_sent_toast(ctx.t("common.email_sent"), sent_id);
     } catch (err) {
+      drop_reply();
       dismiss_toast(sending_toast_id);
       const msg = (err as Error).message;
 
