@@ -101,7 +101,10 @@ import { sync_vault_with_server } from "@/services/crypto/ensure_ratchet_keys";
 import { use_key_rotation } from "@/hooks/use_key_rotation";
 import { check_password_breach } from "@/services/breach_check";
 import { use_i18n } from "@/lib/i18n/context";
-import { is_auth_salt_collision } from "@/services/crypto/auth_salt_guard";
+import {
+  generate_auth_salt,
+  is_auth_salt_collision,
+} from "@/services/crypto/auth_salt_guard";
 import { show_toast } from "@/components/toast/simple_toast";
 import { ignore_error } from "@/lib/ignore_error";
 import { write_locked_sent_mail } from "@/services/locked_sent_mail_store";
@@ -485,7 +488,7 @@ export function use_security() {
         new_password,
       );
 
-      const new_salt = crypto.getRandomValues(new Uint8Array(16));
+      const new_salt = generate_auth_salt();
       const { hash: new_password_hash, salt: new_password_salt } =
         await derive_password_hash(new_password, new_salt);
 

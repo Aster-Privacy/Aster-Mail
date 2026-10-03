@@ -33,12 +33,15 @@ vi.mock("@/services/crypto/secure_storage", () => ({
 }));
 
 import {
+  AUTH_SALT_BYTES,
   AuthSaltCollisionError,
+  VAULT_SALT_BYTES,
   assert_vault_salt_not_auth_salt,
   clear_auth_salt_session_state,
   collides_with_remembered_salts,
   collides_with_vault_salt,
   constant_time_equals,
+  generate_auth_salt,
   is_auth_salt_collision,
   remember_salt_entry,
   require_usable_auth_salt,
@@ -60,6 +63,19 @@ function vault_with_salt(salt: Uint8Array): Uint8Array {
 }
 
 describe("auth salt guard pure helpers", () => {
+  it("generates auth salts that cannot equal a vault salt", () => {
+    const first = generate_auth_salt();
+    const second = generate_auth_salt();
+
+    expect(first.length).toBe(AUTH_SALT_BYTES);
+    expect(AUTH_SALT_BYTES).toBeGreaterThan(VAULT_SALT_BYTES);
+    expect(constant_time_equals(first, second)).toBe(false);
+    expect(collides_with_vault_salt(first, bytes(1, 64))).toBe(false);
+    expect(
+      collides_with_vault_salt(first, new Uint8Array([...first, ...first])),
+    ).toBe(false);
+  });
+
   it("compares byte arrays for equality", () => {
     expect(constant_time_equals(bytes(1, 16), bytes(1, 16))).toBe(true);
     expect(constant_time_equals(bytes(1, 16), bytes(2, 16))).toBe(false);
