@@ -23,12 +23,16 @@ import type { TranslationKey } from "@/lib/i18n";
 
 import { useState, useRef, useEffect } from "react";
 import {
+  ChevronDownIcon,
   EnvelopeIcon,
   ShieldExclamationIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
+import { ShieldCheckIcon } from "@heroicons/react/24/solid";
 
 import { is_system_email } from "@/lib/utils";
+import { summarize_tracking_pixels } from "@/lib/tracking_pixel_summary";
+import { TrackingPixelDomainList } from "@/components/email/tracking_pixel_indicator";
 import {
   execute_unsubscribe,
   get_sender_domain,
@@ -209,9 +213,11 @@ export function MobileExternalContentBanner({
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
 }) {
   const [dismissed, set_dismissed] = useState(false);
+  const [trackers_open, set_trackers_open] = useState(false);
 
   if (dismissed || report.blocked_count === 0) return null;
 
+  const tracking_pixels = summarize_tracking_pixels(report);
   const parts: string[] = [];
 
   if (report.has_remote_images) {
@@ -219,21 +225,44 @@ export function MobileExternalContentBanner({
 
     if (count > 0) parts.push(t("common.images_count", { count }));
   }
-  if (report.has_tracking_pixels) parts.push(t("common.tracking_pixels"));
   if (report.has_remote_fonts) parts.push(t("common.fonts"));
   if (report.has_remote_css) parts.push(t("common.stylesheets"));
+  const other_count = report.blocked_count - tracking_pixels.count;
   const message =
     parts.length > 0
       ? parts.join(", ")
-      : t("common.blocked_items_count", { count: report.blocked_count });
+      : other_count > 0
+        ? t("common.blocked_items_count", { count: other_count })
+        : "";
 
   return (
     <div className="mx-4 mt-3 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2.5">
       <div className="flex items-center gap-3">
         <ShieldExclamationIcon className="h-5 w-5 shrink-0 text-amber-500" />
-        <p className="min-w-0 flex-1 text-[13px] text-[var(--text-primary)]">
-          {t("mail.external_content_blocked", { message })}
-        </p>
+        <div className="flex min-w-0 flex-1 flex-col items-start gap-0.5">
+          {message && (
+            <p className="text-[13px] text-[var(--text-primary)]">
+              {t("mail.external_content_blocked", { message })}
+            </p>
+          )}
+          {tracking_pixels.count > 0 && (
+            <button
+              aria-expanded={trackers_open}
+              className="-ms-1 inline-flex items-center gap-1 rounded-[var(--aster-radius-control)] px-1 py-0.5 text-[12px] font-medium text-[var(--text-secondary)] active:bg-[var(--bg-tertiary)]"
+              data-testid="tracking-pixel-indicator"
+              type="button"
+              onClick={() => set_trackers_open((open) => !open)}
+            >
+              <ShieldCheckIcon className="h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-500" />
+              {t("common.tracking_pixels_blocked_count", {
+                count: tracking_pixels.count,
+              })}
+              <ChevronDownIcon
+                className={`h-3.5 w-3.5 shrink-0 stroke-[2.25] transition-transform duration-150 ${trackers_open ? "rotate-180" : ""}`}
+              />
+            </button>
+          )}
+        </div>
         <div className="flex shrink-0 items-center gap-1.5">
           <button
             className="rounded-[var(--aster-radius-control)] bg-[var(--accent-color,#4f6ef7)] px-2.5 py-1 text-[12px] font-medium text-[var(--accent-fg,#ffffff)] active:opacity-70"
@@ -251,6 +280,11 @@ export function MobileExternalContentBanner({
           </button>
         </div>
       </div>
+      {trackers_open && tracking_pixels.count > 0 && (
+        <div className="mt-2.5 border-t border-[var(--border-primary)] pt-2.5">
+          <TrackingPixelDomainList summary={tracking_pixels} />
+        </div>
+      )}
     </div>
   );
 }

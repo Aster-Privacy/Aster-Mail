@@ -29,6 +29,8 @@ import { ShieldExclamationIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { use_should_reduce_motion } from "@/provider";
 import { use_external_link } from "@/contexts/external_link_context";
 import { use_i18n } from "@/lib/i18n/context";
+import { summarize_tracking_pixels } from "@/lib/tracking_pixel_summary";
+import { TrackingPixelIndicator } from "@/components/email/tracking_pixel_indicator";
 
 interface ExternalContentBannerProps {
   blocked_content: ExternalContentReport;
@@ -54,16 +56,8 @@ const format_blocked_message = (
     ).length;
 
     if (image_count > 0) {
-      parts.push(
-        image_count === 1
-          ? t("common.images_count", { count: image_count })
-          : t("common.n_images", { count: image_count }),
-      );
+      parts.push(t("common.images_count", { count: image_count }));
     }
-  }
-
-  if (report.has_tracking_pixels) {
-    parts.push(t("common.tracking_pixels"));
   }
 
   if (report.has_remote_fonts) {
@@ -75,7 +69,11 @@ const format_blocked_message = (
   }
 
   if (parts.length === 0) {
-    return t("common.n_items", { count: report.blocked_count });
+    const other_count =
+      report.blocked_count -
+      report.blocked_items.filter((i) => i.type === "tracking_pixel").length;
+
+    return other_count > 0 ? t("common.n_items", { count: other_count }) : "";
   }
 
   return parts.join(", ");
@@ -237,6 +235,7 @@ export function ExternalContentBanner({
   }
 
   const message = format_blocked_message(blocked_content, t);
+  const tracking_pixels = summarize_tracking_pixels(blocked_content);
   const has_details =
     blocked_content.blocked_items && blocked_content.blocked_items.length > 0;
 
@@ -332,9 +331,14 @@ export function ExternalContentBanner({
                 document.body,
               )}
             </div>
-            <span className="text-sm">
-              {t("mail.external_content_blocked", { message })}
-            </span>
+            <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+              {message && (
+                <span className="text-sm">
+                  {t("mail.external_content_blocked", { message })}
+                </span>
+              )}
+              <TrackingPixelIndicator summary={tracking_pixels} />
+            </div>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
             {lockdown_active ? (

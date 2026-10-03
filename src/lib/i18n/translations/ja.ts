@@ -1289,6 +1289,11 @@ export const ja = {
     tracking_pixel: "トラッキングピクセル",
     image_blocked: "画像はブロックされました",
     tracking_pixel_blocked: "トラッキングピクセルはブロックされました",
+    tracking_pixels_blocked_count:
+      "{{count}} 件のトラッキングピクセルをブロックしました",
+    tracking_pixel_domains: "ドメイン別のトラッキングピクセル",
+    tracking_pixel_domains_hint:
+      "一度も読み込まれていないため、これらのドメインはこのメールを開いた日時を知ることができません。",
     me: "自分",
     notification_banner_message:
       "デスクトップ通知を有効にして新着メールの情報を受け取りましょう",

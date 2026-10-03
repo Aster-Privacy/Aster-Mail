@@ -1302,6 +1302,11 @@ export const en: Translations = {
     tracking_pixel: "Tracking pixel",
     image_blocked: "Image blocked",
     tracking_pixel_blocked: "Tracking pixel blocked",
+    tracking_pixels_blocked_count: "{{count}} tracking pixels blocked",
+    tracking_pixels_blocked_count_one: "{{count}} tracking pixel blocked",
+    tracking_pixel_domains: "Tracking pixels by domain",
+    tracking_pixel_domains_hint:
+      "Never loaded, so these domains could not see when you opened this email.",
     me: "Me",
     notification_banner_message:
       "Enable desktop notifications to stay updated on new emails",

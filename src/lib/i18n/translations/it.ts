@@ -1274,6 +1274,12 @@ export const it = {
     tracking_pixel: "Pixel di tracciamento",
     image_blocked: "Immagine bloccata",
     tracking_pixel_blocked: "Pixel di tracciamento bloccato",
+    tracking_pixels_blocked_count: "{{count}} pixel di tracciamento bloccati",
+    tracking_pixels_blocked_count_one:
+      "{{count}} pixel di tracciamento bloccato",
+    tracking_pixel_domains: "Pixel di tracciamento per dominio",
+    tracking_pixel_domains_hint:
+      "Non sono mai stati caricati, quindi questi domini non hanno potuto sapere quando hai aperto questa email.",
     me: "me",
     notification_banner_message:
       "Attiva le notifiche desktop per restare aggiornato sulle nuove email",

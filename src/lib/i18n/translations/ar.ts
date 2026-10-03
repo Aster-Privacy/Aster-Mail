@@ -1216,6 +1216,15 @@ export const ar = {
     tracking_pixel: "بكسل تتبع",
     image_blocked: "تم حظر الصورة",
     tracking_pixel_blocked: "تم حظر بكسل التتبع",
+    tracking_pixels_blocked_count: "تم حظر {{count}} بكسل تتبع",
+    tracking_pixels_blocked_count_one: "تم حظر {{count}} بكسل تتبع",
+    tracking_pixels_blocked_count_two: "تم حظر {{count}} من بكسلات التتبع",
+    tracking_pixels_blocked_count_few: "تم حظر {{count}} بكسلات تتبع",
+    tracking_pixels_blocked_count_many: "تم حظر {{count}} بكسل تتبع",
+    tracking_pixels_blocked_count_other: "تم حظر {{count}} بكسل تتبع",
+    tracking_pixel_domains: "بكسلات التتبع حسب النطاق",
+    tracking_pixel_domains_hint:
+      "لم يتم تحميلها مطلقًا، لذا لم تتمكن هذه النطاقات من معرفة وقت فتحك لهذه الرسالة.",
     me: "أنا",
     notification_banner_message:
       "فعّل إشعارات سطح المكتب للبقاء على اطلاع بالرسائل الجديدة",

@@ -1258,6 +1258,19 @@ export const ru = {
     tracking_pixel: "Пиксель отслеживания",
     image_blocked: "Изображение заблокировано",
     tracking_pixel_blocked: "Пиксель отслеживания заблокирован",
+    tracking_pixels_blocked_count:
+      "Заблокировано {{count}} пикселя отслеживания",
+    tracking_pixels_blocked_count_one:
+      "Заблокирован {{count}} пиксель отслеживания",
+    tracking_pixels_blocked_count_few:
+      "Заблокировано {{count}} пикселя отслеживания",
+    tracking_pixels_blocked_count_many:
+      "Заблокировано {{count}} пикселей отслеживания",
+    tracking_pixels_blocked_count_other:
+      "Заблокировано {{count}} пикселя отслеживания",
+    tracking_pixel_domains: "Пиксели отслеживания по доменам",
+    tracking_pixel_domains_hint:
+      "Они так и не были загружены, поэтому эти домены не смогли узнать, когда вы открыли это письмо.",
     me: "я",
     notification_banner_message:
       "Включите уведомления на рабочем столе, чтобы получать информацию о новых письмах",

@@ -1866,6 +1866,10 @@ export interface CommonTranslations {
   tracking_pixel: string;
   image_blocked: string;
   tracking_pixel_blocked: string;
+  tracking_pixels_blocked_count: string;
+  tracking_pixels_blocked_count_one?: string;
+  tracking_pixel_domains: string;
+  tracking_pixel_domains_hint: string;
   me: string;
   notification_banner_message: string;
   notification_banner_allow: string;

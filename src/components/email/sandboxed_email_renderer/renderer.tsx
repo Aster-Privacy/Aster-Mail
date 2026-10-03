@@ -22,6 +22,11 @@ import { useRef, useEffect, useState, useCallback, useMemo } from "react";
 
 import * as dom_cleanup from "./dom_cleanup";
 import { build_measurement_controls } from "./measurement_controls";
+import {
+  TrackingPixelMarkers,
+  watch_tracking_pixel_markers,
+  type TrackingPixelMarker,
+} from "./tracking_pixel_markers";
 import { attach_iframe_interactions } from "./iframe_interactions";
 import {
   BODY_PADDING,
@@ -168,6 +173,10 @@ export function SandboxedEmailRenderer({
   const settle_timers_ref = useRef<ReturnType<typeof setTimeout>[]>([]);
   const on_document_ready_ref = useRef(on_document_ready);
   const placeholder_cleanup_ref = useRef<(() => void) | null>(null);
+  const tracking_markers_cleanup_ref = useRef<(() => void) | null>(null);
+  const [tracking_markers, set_tracking_markers] = useState<
+    TrackingPixelMarker[]
+  >([]);
   const placeholder_labels_ref = useRef<BlockedImageLabels>(
     DEFAULT_BLOCKED_IMAGE_LABELS,
   );
@@ -782,6 +791,12 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
       update_height_if_deferred,
       zoom_fn_ref,
     );
+
+    tracking_markers_cleanup_ref.current?.();
+    tracking_markers_cleanup_ref.current = watch_tracking_pixel_markers(
+      iframe,
+      set_tracking_markers,
+    );
   }, [
     collapse_forwarded_content,
     collapse_quoted_replies,
@@ -819,6 +834,7 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
   useEffect(() => {
     return () => {
       placeholder_cleanup_ref.current?.();
+      tracking_markers_cleanup_ref.current?.();
       observer_ref.current?.disconnect();
       mutation_observer_ref.current?.disconnect();
       if (raf_ref.current) cancelAnimationFrame(raf_ref.current);
@@ -1079,6 +1095,12 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
           title={t("mail.email_content")}
           onLoad={handle_load}
         />
+        {height_ready && contrast_ready && (
+          <TrackingPixelMarkers
+            label={tracking_pixel_blocked_label}
+            markers={tracking_markers}
+          />
+        )}
       </div>
     </>
   );
