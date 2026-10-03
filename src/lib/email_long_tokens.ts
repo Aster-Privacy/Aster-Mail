@@ -56,20 +56,22 @@ export function mark_long_tokens(root: Element, max_width: number): boolean {
     root,
     NodeFilter.SHOW_TEXT,
   );
-  let marked = false;
+  const to_mark = new Set<Element>();
 
   for (let node = walker.nextNode(); node; node = walker.nextNode()) {
     const parent = node.parentElement;
 
-    if (!parent || parent.hasAttribute(LONG_TOKEN_MARK)) continue;
+    if (!parent || parent === root || to_mark.has(parent)) continue;
+    if (parent.hasAttribute(LONG_TOKEN_MARK)) continue;
     if (SKIPPED_PARENTS.has(parent.tagName)) continue;
     if ((node.nodeValue || "").length < LONG_TOKEN_MIN_LENGTH) continue;
     if (parent.closest("pre")) continue;
     if (!has_overflowing_token(node as Text, max_width)) continue;
 
-    parent.setAttribute(LONG_TOKEN_MARK, "1");
-    marked = true;
+    to_mark.add(parent);
   }
 
-  return marked;
+  for (const element of to_mark) element.setAttribute(LONG_TOKEN_MARK, "1");
+
+  return to_mark.size > 0;
 }

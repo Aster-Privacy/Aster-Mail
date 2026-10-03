@@ -89,6 +89,15 @@ describe("wrapping unbroken tokens wider than the reading pane", () => {
     expect(mark_long_tokens(body, 400)).toBe(false);
   });
 
+  it("never marks the root, so wide tables keep their layout", () => {
+    const body = mount(
+      `${LONG_URL}<table width="1600"><tr><td>Hi</td></tr></table>`,
+    );
+
+    expect(mark_long_tokens(body, 400)).toBe(false);
+    expect(body.hasAttribute(LONG_TOKEN_MARK)).toBe(false);
+  });
+
   it("does nothing without a usable width", () => {
     const body = mount(`<p>${LONG_URL}</p>`);
 
