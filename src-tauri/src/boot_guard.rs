@@ -228,6 +228,23 @@ fn warn_and_restart(app: &tauri::AppHandle) {
     app.restart();
 }
 
+#[cfg(all(unix, not(target_os = "macos")))]
+fn warn_and_restart(app: &tauri::AppHandle) {
+    use tauri_plugin_dialog::{DialogExt, MessageDialogKind};
+    app.dialog()
+        .message(
+            "Aster Mail is running but its window is not being drawn.
+
+This is almost always a graphics driver or system webview problem, not a problem with your account or your mail.
+
+Aster Mail will now restart in compatibility mode. Your mail is unaffected.",
+        )
+        .title("Aster Mail - Display Problem")
+        .kind(MessageDialogKind::Warning)
+        .blocking_show();
+    app.restart();
+}
+
 #[cfg(windows)]
 fn report_persistent_failure(app: &tauri::AppHandle) {
     let runtime = webview2_runtime_version();
@@ -302,7 +319,7 @@ pub fn spawn_watchdog(app: tauri::AppHandle) {
             compat_mode_active()
         ));
 
-        #[cfg(windows)]
+        #[cfg(any(windows, all(unix, not(target_os = "macos"))))]
         if !compat_mode_active() {
             write_marker(COMPAT_MODE_MARKER);
             write_marker(WEBVIEW_RESET_MARKER);
