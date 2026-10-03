@@ -23,7 +23,8 @@ import type { MailItemMetadata } from "@/types/email";
 
 import {
   CachedIndex,
-  ScanCacheEntry,
+  EmptyChunkMemory,
+  RefineKey,
   ScanCandidate,
   SearchMailboxScope,
   SearchOptions,
@@ -32,6 +33,7 @@ import {
 import { type MailItem } from "@/services/api/mail";
 import { type ParsedOperator } from "@/utils/search_operators";
 import { date_boundary_local } from "@/services/search_chunk_filter";
+import { fold_search_text } from "@/utils/search_fold";
 
 export const PROGRESS_FLUSH_MS = 120;
 const REFINE_CACHE_MAX_CHARS = 2_000_000;
@@ -149,8 +151,12 @@ export function candidates_are_cacheable(candidates: ScanCandidate[]): boolean {
   return true;
 }
 
+function matched_term(term: string): string {
+  return fold_search_text(term) || term;
+}
+
 export function can_refine_scan(
-  cache: ScanCacheEntry | null,
+  cache: RefineKey | null,
   terms: string[],
   operators: ParsedOperator[],
   options_key: string,
@@ -162,5 +168,26 @@ export function can_refine_scan(
   if (cache.saved_at !== (index.meta?.saved_at ?? 0)) return false;
   if (!operators_equal(cache.operators, operators)) return false;
 
-  return cache.terms.every((prev) => terms.some((next) => next.includes(prev)));
+  const next_terms = terms.map(matched_term);
+
+  return cache.terms.every((prev) => {
+    const folded = matched_term(prev);
+
+    return next_terms.some((next) => next.includes(folded));
+  });
+}
+
+export function known_empty_chunks(
+  memory: EmptyChunkMemory | null,
+  terms: string[],
+  operators: ParsedOperator[],
+  options_key: string,
+  index: Pick<CachedIndex, "built_at" | "meta" | "user_email">,
+): ReadonlySet<number> | null {
+  if (!memory || memory.user_email !== index.user_email) return null;
+  if (!can_refine_scan(memory, terms, operators, options_key, index)) {
+    return null;
+  }
+
+  return memory.empty_chunks;
 }

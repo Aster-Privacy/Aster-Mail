@@ -185,7 +185,9 @@ export interface IndexingProgress {
 
 export interface ScanOptions {
   skip?: ChunkSkipPlan | null;
+  known_empty?: ReadonlySet<number> | null;
   on_chunk?: () => void;
+  on_chunk_settled?: (chunk_id: number) => void;
   on_unreadable_chunk?: () => void;
 }
 
@@ -214,4 +216,14 @@ export interface ScanCacheEntry {
   built_at: number;
   saved_at: number;
   candidates: ScanCandidate[];
+}
+
+export type RefineKey = Pick<
+  ScanCacheEntry,
+  "terms" | "operators" | "options_key" | "built_at" | "saved_at"
+>;
+
+export interface EmptyChunkMemory extends RefineKey {
+  user_email: string;
+  empty_chunks: Set<number>;
 }
