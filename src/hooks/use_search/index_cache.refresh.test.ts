@@ -363,6 +363,23 @@ describe("search index refresh writes", () => {
     expect((await reload()).built_at).toBe(later);
   });
 
+  it("restamps an old snapshot loaded from disk when nothing changed", async () => {
+    const manifest = store.get("search_index_account-1") as {
+      saved_at: number;
+    };
+
+    manifest.saved_at -= 2 * INDEX_TTL_MS;
+
+    const stamped = manifest.saved_at;
+
+    reset_index_cache();
+    writes.chunk = 0;
+    await settle();
+
+    expect(writes.chunk).toBe(0);
+    expect((await disk_snapshot()).saved_at).toBeGreaterThan(stamped);
+  });
+
   it("never writes a manifest once the index is cleared mid-write", async () => {
     server.mailbox[4100] = { ...server.mailbox[4100], is_read: false };
     writes.on_chunk = () => {
@@ -573,5 +590,107 @@ describe("search index shared between tabs", () => {
     expect(disk.missing).toEqual([]);
     expect(disk.unread).toEqual(["msg-2100"]);
     expect(disk.ids).toEqual(server.mailbox.map((item) => item.id));
+  });
+});
+
+describe("windowed search index shared between tabs", () => {
+  type IndexCacheModule = typeof import("./index_cache");
+
+  async function open_windowed_tab(): Promise<IndexCacheModule> {
+    vi.resetModules();
+    vi.doMock("./constants", async (original) => ({
+      ...(await original<typeof import("./constants")>()),
+      HOT_CHUNK_COUNT: 1,
+      MAX_RAM_INDEX_ITEMS: SNAPSHOT_CHUNK_SIZE,
+      DEEP_SEGMENT_PAUSE_MS: 0,
+    }));
+
+    return import("./index_cache");
+  }
+
+  async function settle_tab(tab: IndexCacheModule): Promise<CachedIndex> {
+    await tab.build_search_index(user_email, false);
+
+    while (tab.index_build_promise || tab.is_deep_index_running()) {
+      await tab.index_build_promise?.catch(() => undefined);
+      await new Promise((resolve) => setTimeout(resolve, 5));
+    }
+
+    return tab.cached_index as CachedIndex;
+  }
+
+  async function refresh_tab(tab: IndexCacheModule): Promise<CachedIndex> {
+    tab.mark_search_index_stale();
+
+    return settle_tab(tab);
+  }
+
+  let first: IndexCacheModule;
+
+  beforeEach(async () => {
+    first = await open_windowed_tab();
+    first.clear_search_index();
+    store.clear();
+    server.mailbox = Array.from({ length: MAILBOX_SIZE }, (_, n) =>
+      make_item(n),
+    );
+    await settle_tab(first);
+  });
+
+  it("adopts the other tab's snapshot instead of dropping older chunks", async () => {
+    const second = await open_windowed_tab();
+
+    await settle_tab(second);
+    server.mailbox[7] = { ...server.mailbox[7], is_read: false };
+    await refresh_tab(second);
+
+    const manifests: number[][] = [];
+    const save = store.set.bind(store);
+
+    store.set = (key: string, value: unknown) => {
+      if (key === "search_index_account-1") {
+        manifests.push([...(value as { chunk_ids: number[] }).chunk_ids]);
+      }
+
+      return save(key, value);
+    };
+    server.mailbox[8] = { ...server.mailbox[8], is_read: false };
+    writes.chunk = 0;
+    server.envelope_decrypts = 0;
+
+    try {
+      await refresh_tab(first);
+    } finally {
+      store.set = save;
+    }
+
+    const disk = await disk_snapshot();
+
+    expect(writes.chunk).toBe(1);
+    expect(server.envelope_decrypts).toBe(0);
+    expect(manifests.every((ids) => ids.length === 3)).toBe(true);
+    expect(disk.missing).toEqual([]);
+    expect(disk.unread).toEqual(["msg-7", "msg-8"]);
+    expect(disk.ids).toEqual(server.mailbox.map((item) => item.id));
+  });
+
+  it("recovers when a stored chunk past the window has gone missing", async () => {
+    const lost = (
+      store.get("search_index_account-1") as { chunk_ids: number[] }
+    ).chunk_ids[2];
+
+    store.delete(`search_index_account-1_chunk_${lost}`);
+    server.mailbox[7] = { ...server.mailbox[7], is_read: false };
+    await refresh_tab(first);
+
+    const disk = await disk_snapshot();
+
+    expect(disk.missing).toEqual([]);
+    expect(disk.unread).toEqual(["msg-7"]);
+    expect(disk.ids).toEqual(server.mailbox.map((item) => item.id));
+
+    writes.chunk = 0;
+    await refresh_tab(first);
+    expect(writes.chunk).toBe(0);
   });
 });

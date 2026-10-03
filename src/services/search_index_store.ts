@@ -494,6 +494,7 @@ export interface SnapshotWriter {
     is_current?: () => boolean;
   }): Promise<SnapshotMeta | null>;
   discard(): Promise<void>;
+  lost_kept_chunks(): boolean;
 }
 
 async function read_manifest(
@@ -698,6 +699,7 @@ export async function open_snapshot_writer(
   let buffer_sources: PersistableEntry[] = [];
   let written = 0;
   let storage_exhausted = false;
+  let lost_kept = false;
 
   const drop_buffer = (): void => {
     buffer_items = [];
@@ -846,6 +848,7 @@ export async function open_snapshot_writer(
     written_count: () => written + buffer_items.length,
     storage_exhausted: () => storage_exhausted,
     layout: () => [...layout],
+    lost_kept_chunks: () => lost_kept,
     add_page: async (items, entries) => {
       if (storage_exhausted) return;
 
@@ -918,7 +921,15 @@ export async function open_snapshot_writer(
         const keys = await encrypted_list_keys();
         const present = new Set(keys);
 
-        if (!chunk_ids.every((id) => present.has(chunk_record_key(key, id)))) {
+        if (
+          !written_ids.every((id) => present.has(chunk_record_key(key, id)))
+        ) {
+          return await abandon();
+        }
+
+        if (!kept.every((id) => present.has(chunk_record_key(key, id)))) {
+          lost_kept = true;
+
           return await abandon();
         }
 

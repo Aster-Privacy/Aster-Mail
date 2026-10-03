@@ -325,6 +325,7 @@ export async function build_index_front_refresh(
   user_email: string,
   include_body: boolean,
   stale: CachedIndex,
+  adopted_from_disk = false,
 ): Promise<CachedIndex> {
   if (is_index_download_paused()) return stale;
 
@@ -342,6 +343,25 @@ export async function build_index_front_refresh(
 
     if (my_gen !== build_generation) {
       throw new Error("search_index_cancelled");
+    }
+
+    if (reader && !same_snapshot(reader.meta, base) && !adopted_from_disk) {
+      const on_disk = await hydrate_snapshot_index(user_email);
+
+      if (my_gen !== build_generation) {
+        throw new Error("search_index_cancelled");
+      }
+
+      if (on_disk && can_refresh_front(on_disk, include_body)) {
+        return build_index_front_refresh(
+          user_email,
+          include_body,
+          on_disk,
+          true,
+        );
+      }
+
+      return build_index_full(user_email, include_body, on_disk ?? stale);
     }
 
     if (!boundary_id || !reader || !same_snapshot(reader.meta, base)) {
@@ -408,6 +428,11 @@ export async function build_index_front_refresh(
         if (meta) {
           apply_meta(index, meta);
           index.chunk_layout = spans_from_layout(writer.layout());
+        } else if (writer.lost_kept_chunks()) {
+          index.items.length = 0;
+          index.decrypted.clear();
+
+          return build_index_full(user_email, include_body, stale);
         }
       }
     }
@@ -597,15 +622,8 @@ export function start_background_rebuild(
     build_generation++;
   }
 
-  const can_refresh_front =
-    !!stale &&
-    stale.items.length > 0 &&
-    !!stale.meta &&
-    stale.meta.chunk_ids.length > front_chunk_count(stale) &&
-    (stale.meta.include_body || !include_body);
-
   const promise = (
-    can_refresh_front && stale
+    stale && can_refresh_front(stale, include_body)
       ? build_index_front_refresh(user_email, include_body, stale)
       : build_index_full(user_email, include_body, stale)
   )
@@ -631,6 +649,15 @@ export function start_background_rebuild(
   );
 
   return promise;
+}
+
+function can_refresh_front(index: CachedIndex, include_body: boolean): boolean {
+  return (
+    index.items.length > 0 &&
+    !!index.meta &&
+    index.meta.chunk_ids.length > front_chunk_count(index) &&
+    (index.meta.include_body || !include_body)
+  );
 }
 
 function index_is_body_compatible(
