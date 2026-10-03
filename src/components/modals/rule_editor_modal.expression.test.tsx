@@ -389,4 +389,23 @@ describe("rule editor expression tab", () => {
       'from.address contains "alice"\n  subject contains "invoice"',
     );
   });
+
+  it("opens a stored top-level or expression as written", () => {
+    open_editor({
+      ...make_rule([
+        {
+          type: "or",
+          conditions: [
+            { type: "from", operator: "contains", value: "alice" },
+            { type: "subject", operator: "contains", value: "invoice" },
+          ],
+        },
+      ]),
+      expression: 'from.address contains "alice" or subject contains "invoice"',
+    });
+
+    expect(expression_text()).toBe(
+      'from.address contains "alice" or subject contains "invoice"',
+    );
+  });
 });

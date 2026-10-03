@@ -63,6 +63,15 @@ export function has_case_sensitive_condition(conditions: Condition[]): boolean {
   );
 }
 
+export function conditions_as_root(
+  conditions: Condition[],
+  match_mode: Rule["match_mode"],
+): Condition {
+  if (conditions.length === 1) return conditions[0];
+
+  return { type: match_mode === "any" ? "or" : "and", conditions };
+}
+
 export function stored_expression_matches_conditions(
   rule: Pick<Rule, "expression" | "conditions" | "match_mode">,
 ): boolean {
@@ -73,10 +82,7 @@ export function stored_expression_matches_conditions(
 
   return (
     serialize(parsed.ast) ===
-    serialize({
-      type: rule.match_mode === "any" ? "or" : "and",
-      conditions: rule.conditions,
-    })
+    serialize(conditions_as_root(rule.conditions, rule.match_mode))
   );
 }
 

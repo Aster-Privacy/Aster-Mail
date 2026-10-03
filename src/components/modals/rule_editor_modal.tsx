@@ -89,6 +89,7 @@ import {
   UNAVAILABLE_ACTION_TYPES,
   condition_has_value,
   condition_ready_to_save,
+  conditions_as_root,
   default_action_for_type,
   default_condition,
   flatten_leaves,
@@ -475,9 +476,7 @@ export function RuleEditorModal({
     ? flatten_leaves(conditions)
     : (conditions as LeafCondition[]);
   const visual_as_expression = serialize_expression(
-    match_mode === "any"
-      ? { type: "or", conditions }
-      : { type: "and", conditions },
+    conditions_as_root(conditions, match_mode),
   );
   const expression_matches_visual = (parsed: ParseResult | null) =>
     !!parsed?.ok && serialize_expression(parsed.ast) === visual_as_expression;
