@@ -32,7 +32,10 @@ import { hash_prefix } from "./pipeline";
 
 import { list_mail_items } from "@/services/api/mail";
 import { list_attachments } from "@/services/api/attachments";
-import { filter_locked_mail_items } from "@/services/locked_folders";
+import {
+  filter_locked_mail_items,
+  get_locked_folder_tokens,
+} from "@/services/locked_folders";
 import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelope";
 import {
   decrypt_attachment_meta,
@@ -128,12 +131,19 @@ async function build_attachments(
   return result;
 }
 
-export function create_account_message_source(): ExportSource {
-  let total = 0;
+function is_filtered_client_side(scope: ExportScope): boolean {
+  return (
+    !!scope.date_from ||
+    !!scope.date_to ||
+    !!scope.folder_tokens?.length ||
+    get_locked_folder_tokens().size > 0
+  );
+}
 
+export function create_account_message_source(): ExportSource {
   return {
     async prepare(
-      _scope: ExportScope,
+      scope: ExportScope,
       _signal: AbortSignal,
     ): Promise<ExportSourceContext> {
       const probe = await list_mail_items({
@@ -146,9 +156,11 @@ export function create_account_message_source(): ExportSource {
         throw new Error(probe.error ?? "export_probe_failed");
       }
 
-      total = probe.data.total ?? 0;
+      const total = is_filtered_client_side(scope)
+        ? 0
+        : (probe.data.total ?? 0);
 
-      return { total, scope: _scope };
+      return { total, scope };
     },
 
     async *messages(
