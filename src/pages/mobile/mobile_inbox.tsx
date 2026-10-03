@@ -36,6 +36,7 @@ import {
   TagIcon,
   BellSnoozeIcon,
   ExclamationTriangleIcon,
+  ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
 
 import { use_email_list } from "@/hooks/use_email_list";
@@ -1226,7 +1227,7 @@ function MobileInbox({
               type="button"
               onClick={handle_bulk_unmark_spam}
             >
-              <InboxIcon className="h-5 w-5" />
+              <ShieldCheckIcon className="h-5 w-5" />
               <span className="text-[11px]">{t("mail.not_spam")}</span>
             </button>
           )}

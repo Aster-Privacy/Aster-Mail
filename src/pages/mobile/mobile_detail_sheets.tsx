@@ -37,7 +37,7 @@ import {
   ShieldExclamationIcon,
   ShieldCheckIcon,
   ClipboardDocumentIcon,
-  NoSymbolIcon,
+  ExclamationTriangleIcon,
   AdjustmentsHorizontalIcon,
   HandRaisedIcon,
   BellSnoozeIcon,
@@ -306,7 +306,7 @@ export function MobileActionMenuSheet({
               type="button"
               onClick={on_spam}
             >
-              <NoSymbolIcon className="h-5 w-5 text-[var(--text-muted)]" />
+              <ExclamationTriangleIcon className="h-5 w-5 text-[var(--text-muted)]" />
               <span className="text-[14px] text-[var(--text-primary)]">
                 {t("mail.report_spam")}
               </span>
