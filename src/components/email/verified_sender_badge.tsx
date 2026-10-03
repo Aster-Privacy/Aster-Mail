@@ -21,6 +21,7 @@
 import { CheckBadgeIcon } from "@heroicons/react/24/solid";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { verified_domain_for_shown_sender } from "@/utils/verified_sender_domain";
 import {
   Popover,
   PopoverContent,
@@ -29,16 +30,19 @@ import {
 
 interface VerifiedSenderBadgeProps {
   domain?: string;
+  shown_email: string | undefined;
   size?: "sm" | "md";
   className?: string;
 }
 
 export function VerifiedSenderBadge({
-  domain,
+  domain: verified_domain,
+  shown_email,
   size = "sm",
   className = "",
 }: VerifiedSenderBadgeProps) {
   const { t } = use_i18n();
+  const domain = verified_domain_for_shown_sender(verified_domain, shown_email);
 
   if (!domain) return null;
 

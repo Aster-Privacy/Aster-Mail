@@ -344,6 +344,7 @@ export function ThreadMessageBlock(
               <VerifiedSenderBadge
                 className="flex-shrink-0"
                 domain={message.sender_verified_domain}
+                shown_email={show_sender_email}
               />
             )}
             {message.item_type === "received" && (
