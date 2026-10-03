@@ -32,7 +32,11 @@ const save_now = vi.fn().mockResolvedValue(undefined);
 let current_status = "idle";
 
 vi.mock("@/contexts/preferences_context", () => ({
-  use_preferences: () => ({ save_status: current_status, save_now }),
+  use_preferences: () => ({ save_now }),
+  use_preferences_save_status: () => ({
+    save_status: current_status,
+    has_unsaved_changes: false,
+  }),
 }));
 
 import {

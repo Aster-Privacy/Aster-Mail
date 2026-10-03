@@ -26,6 +26,8 @@ import {
   PreferencesContext,
   PreferencesContextType,
   PreferencesProviderProps,
+  PreferencesSaveStatusContext,
+  PreferencesSaveStatusContextType,
 } from "./helpers";
 import { use_preferences_provider } from "./use_preferences_provider";
 
@@ -55,8 +57,6 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
       reload_preferences,
       is_loading,
       has_loaded_from_server,
-      save_status,
-      has_unsaved_changes,
     }),
     [
       preferences,
@@ -68,14 +68,19 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
       reload_preferences,
       is_loading,
       has_loaded_from_server,
-      save_status,
-      has_unsaved_changes,
     ],
+  );
+
+  const save_status_value = useMemo<PreferencesSaveStatusContextType>(
+    () => ({ save_status, has_unsaved_changes }),
+    [save_status, has_unsaved_changes],
   );
 
   return (
     <PreferencesContext.Provider value={value}>
-      {children}
+      <PreferencesSaveStatusContext.Provider value={save_status_value}>
+        {children}
+      </PreferencesSaveStatusContext.Provider>
     </PreferencesContext.Provider>
   );
 }
@@ -92,4 +97,16 @@ export function use_preferences(): PreferencesContextType {
 
 export function use_preferences_optional(): PreferencesContextType | null {
   return useContext(PreferencesContext);
+}
+
+export function use_preferences_save_status(): PreferencesSaveStatusContextType {
+  const context = useContext(PreferencesSaveStatusContext);
+
+  if (!context) {
+    throw new Error(
+      "use_preferences_save_status must be used within PreferencesProvider",
+    );
+  }
+
+  return context;
 }

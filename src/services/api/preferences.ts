@@ -1245,6 +1245,23 @@ function preference_values_equal(left: unknown, right: unknown): boolean {
   }
 }
 
+export function preferences_equal(
+  left: UserPreferences,
+  right: UserPreferences,
+): boolean {
+  if (left === right) return true;
+
+  const left_keys = Object.keys(left) as (keyof UserPreferences)[];
+
+  if (left_keys.length !== Object.keys(right).length) return false;
+
+  return left_keys.every(
+    (key) =>
+      Object.prototype.hasOwnProperty.call(right, key) &&
+      preference_values_equal(left[key], right[key]),
+  );
+}
+
 export function reconcile_preferences(
   base: UserPreferences,
   current: UserPreferences,
