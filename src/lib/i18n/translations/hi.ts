@@ -4609,6 +4609,11 @@ export const hi = {
       "ऐड-ऑन हर साल रिन्यू होते हैं और आपके प्लान से अलग बिल किए जाते हैं। अगर आप क्रिप्टो से भुगतान करते हैं, तो आप चुनते हैं कि कितने समय का प्रीपेमेंट करना है।",
     storage_addon_supernova_nudge:
       "अगर आपको 1 TB से ज़्यादा चाहिए, तो Supernova पर विचार करें, जिसमें 5 TB स्टोरेज शामिल है।",
+    storage_addon_add_size: "{{size}} जोड़ें",
+    storage_addon_usage_near:
+      "आपका स्टोरेज लगभग भर गया है। ईमेल मिलते रहने के लिए और जगह जोड़ें।",
+    storage_addon_usage_full:
+      "आपका स्टोरेज भर गया है। ईमेल मिलते रहने के लिए और जगह जोड़ें।",
     bill_addon_summary: "{size} अतिरिक्त स्टोरेज",
     bill_addon_pick_size: "चुनें कि कितना जोड़ना है",
     storage_addons_description:

@@ -6845,6 +6845,11 @@ export const fr = {
       "Les options se renouvellent chaque année et sont facturées séparément de votre forfait. Si vous payez en crypto, vous choisissez la durée de prépaiement.",
     storage_addon_supernova_nudge:
       "Si vous avez besoin de plus de 1 To, envisagez Supernova, qui inclut 5 To de stockage.",
+    storage_addon_add_size: "Ajouter {{size}}",
+    storage_addon_usage_near:
+      "Votre stockage est presque plein. Ajoutez de l'espace pour continuer à recevoir des e-mails.",
+    storage_addon_usage_full:
+      "Votre stockage est plein. Ajoutez de l'espace pour continuer à recevoir des e-mails.",
     bill_addon_summary: "{size} de stockage supplémentaire",
     bill_addon_pick_size: "Choisissez la quantité à ajouter",
     storage_addons_description:

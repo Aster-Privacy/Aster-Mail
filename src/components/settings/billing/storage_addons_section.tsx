@@ -18,10 +18,11 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useState, type ReactNode } from "react";
 import { CircleStackIcon } from "@heroicons/react/24/outline";
 import {
   Badge,
+  Button,
   Island,
   IslandDivider,
   IslandRow,
@@ -30,7 +31,6 @@ import {
 } from "@aster/ui";
 
 import {
-  addon_has_yearly,
   format_date,
   format_price,
   type AddonBillingInterval,
@@ -42,13 +42,22 @@ import {
   ADDON_SUPERNOVA_NUDGE_BYTES,
   convert_cents,
 } from "@/components/settings/billing/billing_constants";
+import {
+  catalog_has_yearly,
+  catalog_yearly_save_percent,
+  default_addon_interval,
+  featured_addon_id,
+  storage_usage_is_high,
+  yearly_save_percent,
+} from "@/components/settings/billing/storage_addon_pricing";
 import { BillingMeter } from "@/components/settings/billing/billing_meter";
+import { monthly_equivalent_cents } from "@/components/settings/billing/yearly_switch_card";
 import {
   BillingMoreRow,
   billing_row_icon,
 } from "@/components/settings/billing/billing_more_section";
-import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
+import { show_upgrade_plans } from "@/stores/upgrade_store";
 
 export const OPEN_STORAGE_ADDONS_EVENT = "aster:open-storage-addons";
 
@@ -69,6 +78,35 @@ interface StorageAddonsSectionProps {
   current_plan_code?: string;
 }
 
+function AddonCard({
+  featured,
+  children,
+}: {
+  featured: boolean;
+  children: ReactNode;
+}) {
+  if (featured) {
+    return (
+      <Island
+        className="flex flex-col gap-4 p-4"
+        data-featured="true"
+        tone="accent"
+      >
+        {children}
+      </Island>
+    );
+  }
+
+  return (
+    <div
+      className="flex flex-col gap-4 rounded-[var(--aster-radius-control)] p-4"
+      style={{ backgroundColor: "var(--aster-field-bg)" }}
+    >
+      {children}
+    </div>
+  );
+}
+
 export function StorageAddonsSection({
   available_addons,
   active_addons,
@@ -87,10 +125,13 @@ export function StorageAddonsSection({
 }: StorageAddonsSectionProps) {
   const { t } = use_i18n();
   const [is_picker_open, set_is_picker_open] = useState(false);
-  const [billing_interval, set_billing_interval] =
-    useState<AddonBillingInterval>("month");
+  const [chosen_interval, set_chosen_interval] =
+    useState<AddonBillingInterval | null>(null);
   const has_usage =
     storage_used_bytes !== undefined && storage_limit_bytes !== undefined;
+  const usage_high =
+    has_usage && storage_usage_is_high(storage_percentage, is_over_limit);
+  const usage_full = is_over_limit || (storage_percentage ?? 0) >= 100;
 
   useEffect(() => {
     const open_picker = () => set_is_picker_open(true);
@@ -101,24 +142,31 @@ export function StorageAddonsSection({
       window.removeEventListener(OPEN_STORAGE_ADDONS_EVENT, open_picker);
   }, []);
 
+  useEffect(() => {
+    if (usage_high) set_is_picker_open(true);
+  }, [usage_high]);
+
   const purchasable_addons = available_addons.filter(
     (addon) => addon.storage_bytes > 0 && addon.price_cents > 0,
   );
-  const selected_addon =
-    purchasable_addons.find((addon) => addon.id === selected_storage) ?? null;
-  const yearly_available =
-    purchasable_addons.length > 0 && purchasable_addons.every(addon_has_yearly);
+  const yearly_available = catalog_has_yearly(purchasable_addons);
+  const billing_interval =
+    chosen_interval ?? default_addon_interval(purchasable_addons);
   const is_yearly = yearly_available && billing_interval === "year";
+  const yearly_save = yearly_available
+    ? catalog_yearly_save_percent(purchasable_addons)
+    : 0;
+  const featured_id = featured_addon_id(purchasable_addons);
+  const show_supernova_nudge =
+    current_plan_code !== "supernova" &&
+    purchasable_addons.some(
+      (addon) => addon.storage_bytes >= ADDON_SUPERNOVA_NUDGE_BYTES,
+    );
 
-  const handle_buy = () => {
-    if (!selected_addon) {
-      show_toast(t("settings.storage_select_option_first"), "info");
-
-      return;
-    }
-
+  const handle_buy = (addon: StorageAddonItem) => {
+    set_selected_storage(addon.id);
     on_purchase_addon({
-      ...selected_addon,
+      ...addon,
       billing_interval: is_yearly ? "year" : "month",
     });
   };
@@ -126,35 +174,20 @@ export function StorageAddonsSection({
   const money = (cents: number) =>
     format_price(convert_cents(cents, preferred_currency), preferred_currency);
 
-  const price_label = (addon: StorageAddonItem) =>
-    is_yearly
-      ? `${money(addon.yearly_price_cents as number)}${t("settings.per_year_short")}`
-      : `${money(addon.price_cents)}${t("settings.per_month_short")}`;
+  const local_money = (cents: number) =>
+    format_price(cents, preferred_currency);
 
   const billing_note = is_yearly
     ? t("settings.storage_addons_yearly_note")
     : t("settings.storage_addons_monthly_note");
 
-  const show_supernova_nudge =
-    !!selected_addon &&
-    selected_addon.storage_bytes >= ADDON_SUPERNOVA_NUDGE_BYTES &&
-    current_plan_code !== "supernova";
-
-  const yearly_save = yearly_available
-    ? Math.max(
-        0,
-        Math.min(
-          ...purchasable_addons.map((addon) =>
-            Math.floor(
-              (1 -
-                (addon.yearly_price_cents as number) /
-                  (addon.price_cents * 12)) *
-                100,
-            ),
-          ),
-        ),
-      )
-    : 0;
+  const usage_nudge = usage_high && (
+    <p className="text-[13px] leading-5 text-txt-secondary">
+      {usage_full
+        ? t("settings.storage_addon_usage_full")
+        : t("settings.storage_addon_usage_near")}
+    </p>
+  );
 
   const period_switch = yearly_available && (
     <div
@@ -168,7 +201,7 @@ export function StorageAddonsSection({
           aria-pressed={interval === "year" ? is_yearly : !is_yearly}
           className="aster_segmented_option"
           type="button"
-          onClick={() => set_billing_interval(interval)}
+          onClick={() => set_chosen_interval(interval)}
         >
           {interval === "year"
             ? t("settings.billing_yearly")
@@ -190,89 +223,135 @@ export function StorageAddonsSection({
     </div>
   );
 
-  const picker = (
-    <div className="flex flex-col gap-3">
-      {period_switch}
-      <div
-        aria-label={t("settings.add_storage")}
-        className="grid grid-cols-2 gap-2 sm:grid-cols-3"
-        role="radiogroup"
-      >
-        {purchasable_addons.map((addon) => {
-          const badge = ADDON_BADGES[addon.name];
-          const is_selected = selected_storage === addon.id;
+  const badge_label = (badge: "popular" | "best_value") =>
+    badge === "popular" ? t("settings.popular") : t("settings.best_value");
 
-          return (
-            <button
-              key={addon.id}
-              aria-checked={is_selected}
-              className="flex min-h-[68px] flex-col items-start justify-between gap-1 rounded-[var(--aster-radius-control)] px-3.5 py-3 text-start outline-none transition-[background-color,box-shadow] duration-150 focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]"
-              role="radio"
-              style={{
-                backgroundColor: is_selected
-                  ? "color-mix(in srgb, var(--accent-color) 10%, var(--aster-field-bg))"
-                  : "var(--aster-field-bg)",
-                boxShadow: is_selected
-                  ? "inset 0 0 0 2px var(--accent-color)"
-                  : "none",
-              }}
-              type="button"
-              onClick={() =>
-                set_selected_storage(is_selected ? null : addon.id)
-              }
-            >
-              <span className="flex w-full items-center justify-between gap-2">
-                <span className="text-[15px] font-semibold tabular-nums text-txt-primary">
-                  {addon.name}
+  const render_card = (addon: StorageAddonItem) => {
+    const badge = ADDON_BADGES[addon.name];
+    const is_featured = addon.id === featured_id;
+    const yearly_cents = is_yearly
+      ? convert_cents(addon.yearly_price_cents as number, preferred_currency)
+      : 0;
+    const headline_cents = is_yearly
+      ? monthly_equivalent_cents(yearly_cents)
+      : convert_cents(addon.price_cents, preferred_currency);
+    const save = is_yearly
+      ? yearly_save_percent(addon.price_cents, addon.yearly_price_cents)
+      : 0;
+
+    return (
+      <AddonCard key={addon.id} featured={is_featured}>
+        <div className="flex flex-col gap-1">
+          <div className="flex min-h-[22px] items-center justify-between gap-2">
+            <h5 className="text-[17px] font-semibold leading-6 tabular-nums text-txt-primary">
+              {addon.name}
+            </h5>
+            {badge &&
+              (is_featured ? (
+                <span
+                  className="inline-flex flex-shrink-0 items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-[11px] font-semibold"
+                  style={{
+                    backgroundColor: "var(--accent-color)",
+                    color: "var(--accent-fg, #ffffff)",
+                  }}
+                >
+                  {badge_label(badge)}
                 </span>
-                {badge && (
-                  <Badge className="flex-shrink-0" color="blue">
-                    {badge === "popular"
-                      ? t("settings.popular")
-                      : t("settings.best_value")}
-                  </Badge>
-                )}
-              </span>
-              <span className="text-[13px] tabular-nums text-txt-muted">
-                {price_label(addon)}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="min-w-0">
-          <p className="text-[15px] font-medium text-txt-primary">
-            {selected_addon
-              ? t("settings.billing_add_storage_summary", {
-                  size: selected_addon.name,
-                })
-              : t("settings.storage_select_option_first")}
+              ) : (
+                <Badge className="flex-shrink-0 whitespace-nowrap" color="blue">
+                  {badge_label(badge)}
+                </Badge>
+              ))}
+          </div>
+          <p className="flex items-baseline gap-1">
+            <span className="text-[26px] font-semibold tabular-nums leading-8 tracking-tight text-txt-primary">
+              {local_money(headline_cents)}
+            </span>
+            <span className="text-[13px] text-txt-muted">
+              {t("settings.per_month_short")}
+            </span>
           </p>
-          <p className="mt-0.5 text-[13px] text-txt-muted">
-            {selected_addon ? price_label(selected_addon) : billing_note}
+          <p className="flex flex-wrap items-center gap-x-1.5 text-[12.5px] text-txt-muted">
+            <span>
+              {is_yearly
+                ? t("settings.billing_billed_yearly_total", {
+                    amount: local_money(yearly_cents),
+                  })
+                : t("settings.billing_billed_monthly")}
+            </span>
+            {save > 0 && (
+              <span
+                className="font-medium"
+                style={{ color: "var(--color-success)" }}
+              >
+                {t("settings.billing_save_percent", { percent: save })}
+              </span>
+            )}
           </p>
         </div>
-        <PillButton
-          className="flex-shrink-0 self-start sm:self-auto"
-          disabled={is_action_loading || !selected_addon}
-          size="md"
+
+        <Button
+          className="w-full"
+          disabled={is_action_loading}
+          is_loading={is_action_loading && selected_storage === addon.id}
+          size="lg"
           type="button"
-          variant="filled"
-          onClick={handle_buy}
+          variant={is_featured ? "primary" : "secondary"}
+          onClick={() => handle_buy(addon)}
         >
-          {t("common.buy_more_storage")}
-        </PillButton>
+          {t("settings.storage_addon_add_size", { size: addon.name })}
+        </Button>
+      </AddonCard>
+    );
+  };
+
+  const picker = (
+    <div className="flex flex-col gap-4">
+      {embedded && has_usage && (
+        <div className="flex flex-col gap-2">
+          <BillingMeter
+            label={t("settings.storage")}
+            limit_bytes={storage_limit_bytes}
+            over_limit={is_over_limit}
+            percent={storage_percentage ?? 0}
+            used_bytes={storage_used_bytes}
+          />
+          {usage_nudge}
+        </div>
+      )}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-[15px] font-medium text-txt-primary">
+          {t("settings.bill_addon_pick_size")}
+        </p>
+        {period_switch}
+      </div>
+      <div
+        aria-label={t("settings.add_storage")}
+        className={`grid items-start gap-3 sm:grid-cols-3 ${
+          purchasable_addons.length > 3 ? "grid-cols-2" : "grid-cols-1"
+        }`}
+        role="group"
+      >
+        {purchasable_addons.map(render_card)}
       </div>
       {show_supernova_nudge && (
-        <p className="text-[13px] text-txt-secondary">
-          {t("settings.storage_addon_supernova_nudge")}
+        <p className="text-[12.5px] leading-5 text-txt-muted">
+          {t("settings.storage_addon_supernova_nudge")}{" "}
+          <button
+            className="font-medium text-[var(--accent-color)] hover:underline focus:outline-none focus-visible:underline"
+            type="button"
+            onClick={() =>
+              show_upgrade_plans({
+                interval: is_yearly ? "year" : "month",
+                plan_code: "supernova",
+              })
+            }
+          >
+            {t("settings.upgrade_view_plans")}
+          </button>
         </p>
       )}
-      {selected_addon && (
-        <p className="text-[12px] text-txt-muted">{billing_note}</p>
-      )}
+      <p className="text-[12px] leading-5 text-txt-muted">{billing_note}</p>
     </div>
   );
 
@@ -377,13 +456,16 @@ export function StorageAddonsSection({
       <div className="flex flex-col gap-3">
         <Island padding="md">
           {has_usage ? (
-            <BillingMeter
-              label={t("settings.storage_addons")}
-              limit_bytes={storage_limit_bytes}
-              over_limit={is_over_limit}
-              percent={storage_percentage ?? 0}
-              used_bytes={storage_used_bytes}
-            />
+            <div className="flex flex-col gap-2">
+              <BillingMeter
+                label={t("settings.storage_addons")}
+                limit_bytes={storage_limit_bytes}
+                over_limit={is_over_limit}
+                percent={storage_percentage ?? 0}
+                used_bytes={storage_used_bytes}
+              />
+              {usage_nudge}
+            </div>
           ) : (
             <p className="text-[13px] leading-5 text-txt-muted">
               {t("settings.storage_addons_description")}
