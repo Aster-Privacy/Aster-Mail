@@ -38,6 +38,7 @@ import {
   type EditDraftData,
 } from "@/components/compose/compose_shared";
 import { attachments_to_draft_data } from "@/components/compose/compose_draft_helpers";
+import { create_inline_image_bytes_counter } from "@/lib/inline_image_bytes";
 
 const AUTOSAVE_DELAY_MS = 1000;
 const LOW_NETWORK_AUTOSAVE_DELAY_MS = 5000;
@@ -49,13 +50,14 @@ const AUTOSAVE_MAX_RETRIES = 4;
 export function pick_autosave_delay(
   attachments: Attachment[],
   low_network_mode: boolean,
+  inline_image_bytes = 0,
 ): number {
   const attachment_bytes = attachments.reduce(
     (total, att) => total + att.data.byteLength,
     0,
   );
 
-  if (attachment_bytes >= HEAVY_DRAFT_ATTACHMENT_BYTES) {
+  if (attachment_bytes + inline_image_bytes >= HEAVY_DRAFT_ATTACHMENT_BYTES) {
     return HEAVY_DRAFT_AUTOSAVE_DELAY_MS;
   }
 
@@ -126,6 +128,9 @@ export function use_compose_drafts({
   const user_modified_ref = useRef(false);
   const save_failure_notified_ref = useRef(false);
   const t_ref = useRef(t);
+  const count_inline_image_bytes_ref = useRef(
+    create_inline_image_bytes_counter(),
+  );
 
   useEffect(() => {
     t_ref.current = t;
@@ -173,6 +178,7 @@ export function use_compose_drafts({
     const autosave_delay = pick_autosave_delay(
       attachments,
       preferences.low_network_mode,
+      count_inline_image_bytes_ref.current(message),
     );
 
     const run_save = async (attempt: number): Promise<void> => {
