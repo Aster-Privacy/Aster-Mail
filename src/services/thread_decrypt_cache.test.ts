@@ -23,6 +23,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const h = vi.hoisted(() => ({
   messages: [] as Record<string, unknown>[],
   bodies: new Map<string, string>(),
+  attachment_keys: new Map<string, unknown>(),
   failing_envelopes: new Set<string>(),
   vault_cleared: [] as (() => void)[],
   gate: null as Promise<void> | null,
@@ -59,6 +60,7 @@ vi.mock("@/components/email/shared/decrypt_envelope", () => ({
       body_text: h.bodies.get(encrypted) ?? `Body of ${encrypted}`,
       raw_headers: [],
       sent_at: "2026-09-01T10:00:00Z",
+      attachment_keys: h.attachment_keys.get(encrypted),
     };
   },
 }));
@@ -122,6 +124,7 @@ describe("thread decrypt cache", () => {
     clear_thread_decrypt_cache();
     h.messages = [message(1), message(2), message(3)];
     h.bodies.clear();
+    h.attachment_keys.clear();
     h.failing_envelopes.clear();
     h.envelope_decrypts = 0;
     h.metadata_decrypts = 0;
@@ -223,6 +226,16 @@ describe("thread decrypt cache", () => {
     expect(decrypts()).toEqual({ envelope: 3, metadata: 3 });
   });
 
+  it("forgets everything when a lockdown changes, like the preload cache", async () => {
+    await load();
+    decrypts();
+
+    window.dispatchEvent(new CustomEvent("astermail:lockdown-changed"));
+    await load();
+
+    expect(decrypts()).toEqual({ envelope: 3, metadata: 3 });
+  });
+
   it("does not reuse another account's decrypted messages", async () => {
     await load("me@example.test");
     decrypts();
@@ -287,6 +300,23 @@ describe("thread decrypt cache", () => {
     await load();
 
     expect(decrypts().envelope).toBe(50);
+  });
+
+  it("counts attachment keys towards the size cap", async () => {
+    h.attachment_keys.set(
+      "env-1",
+      Array.from({ length: 12_000 }, (_, seq) => ({
+        seq,
+        key: "k".repeat(90),
+        filename: `file-${seq}.pdf`,
+      })),
+    );
+    await load();
+    decrypts();
+
+    await load();
+
+    expect(decrypts().envelope).toBe(1);
   });
 
   it("does not keep a single very large body", async () => {

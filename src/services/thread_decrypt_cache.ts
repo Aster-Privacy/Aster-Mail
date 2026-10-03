@@ -24,6 +24,7 @@ import type { ThreadMessageItem } from "./api/mail_threads";
 
 import { on_vault_cleared } from "./crypto/memory_key_store";
 import { register_envelope_attachment_keys } from "./crypto/inbound_attachment_keys";
+import { LOCKDOWN_CHANGED_EVENT } from "./lockdown_store";
 
 const MAX_CONTENT_ENTRIES = 400;
 const MAX_CONTENT_CHARS = 8_000_000;
@@ -152,6 +153,12 @@ function register_listeners(): void {
   on_vault_cleared(() => {
     clear_thread_decrypt_cache();
   });
+
+  if (typeof window !== "undefined") {
+    window.addEventListener(LOCKDOWN_CHANGED_EVENT, () =>
+      clear_thread_decrypt_cache(),
+    );
+  }
 }
 
 function fingerprint(value: string | undefined): string {
@@ -196,7 +203,17 @@ function content_size(content: ThreadMessageContent): number {
     ENTRY_OVERHEAD_CHARS +
     (content.subject ?? "").length +
     (content.body ?? "").length +
-    (content.html_content ?? "").length;
+    (content.html_content ?? "").length +
+    (content.sender_name ?? "").length +
+    (content.sender_email ?? "").length +
+    (content.display_sender_name ?? "").length +
+    (content.display_sender_email ?? "").length +
+    (content.forwarding_service ?? "").length +
+    (content.sent_at ?? "").length;
+
+  if (content.attachment_keys !== undefined) {
+    size += JSON.stringify(content.attachment_keys)?.length ?? 0;
+  }
 
   for (const header of content.raw_headers ?? []) {
     size += (header.name ?? "").length + (header.value ?? "").length;

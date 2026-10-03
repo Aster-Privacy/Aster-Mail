@@ -404,6 +404,25 @@ describe("open thread refresh work for a 40-message thread", () => {
     expect(rendered.messages()).toHaveLength(THREAD_SIZE - 1);
   });
 
+  it("still refreshes while a steady stream of events keeps arriving", async () => {
+    const rendered = await open_thread();
+
+    h.server[5] = {
+      ...h.server[5],
+      encrypted_metadata: "meta-5-starred",
+      metadata_nonce: "meta-nonce-5b",
+    };
+    for (let i = 0; i < 4; i++) {
+      emit(MAIL_EVENTS.MAIL_SOFT_REFRESH);
+      await advance(700);
+    }
+
+    expect(h.fetches).toBe(1);
+    expect(rendered.messages().find((m) => m.id === "m5")?.is_starred).toBe(
+      true,
+    );
+  });
+
   it("decrypts the whole thread again after the mail cache is cleared", async () => {
     await open_thread();
 

@@ -99,6 +99,7 @@ import {
 } from "@/services/read_intent";
 
 const THREAD_REFRESH_DEBOUNCE_MS = 800;
+const THREAD_REFRESH_MAX_WAIT_MS = 2_500;
 const THREAD_POLL_INTERVAL_MS = 60_000;
 const THREAD_LIVE_POLL_MS =
   CATCH_UP_WHILE_LIVE_MS - THREAD_POLL_INTERVAL_MS / 2;
@@ -1060,15 +1061,26 @@ export function use_email_viewer({
 
     let disposed = false;
     let refresh_timer: ReturnType<typeof setTimeout> | null = null;
+    let burst_started_at: number | null = null;
 
     const schedule_refresh = () => {
+      const now = Date.now();
+
       if (refresh_timer !== null) {
         clearTimeout(refresh_timer);
       }
-      refresh_timer = setTimeout(() => {
-        refresh_timer = null;
-        void refresh_thread(true);
-      }, THREAD_REFRESH_DEBOUNCE_MS);
+      if (burst_started_at === null) burst_started_at = now;
+
+      const max_wait_left = burst_started_at + THREAD_REFRESH_MAX_WAIT_MS - now;
+
+      refresh_timer = setTimeout(
+        () => {
+          refresh_timer = null;
+          burst_started_at = null;
+          void refresh_thread(true);
+        },
+        Math.max(0, Math.min(THREAD_REFRESH_DEBOUNCE_MS, max_wait_left)),
+      );
     };
 
     const refresh_thread = async (force: boolean) => {
