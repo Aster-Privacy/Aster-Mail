@@ -46,7 +46,10 @@ import {
   apply_stat_deltas,
   revert_stat_deltas,
 } from "@/hooks/use_stat_helpers";
-import { mark_conversation_read } from "@/hooks/mark_conversation_read";
+import {
+  mark_conversation_read,
+  note_conversation_read_intent,
+} from "@/hooks/mark_conversation_read";
 import { remove_email_from_view_cache } from "@/hooks/email_list_cache";
 import {
   collect_restore_entries,
@@ -74,6 +77,7 @@ import { batch_archive, batch_unarchive } from "@/services/api/archive";
 import {
   begin_read_change,
   clear_flag_intents,
+  clear_read_intent,
   is_read_ticket_current,
   note_flag_intents,
 } from "@/services/read_intent";
@@ -466,6 +470,15 @@ export function build_core_context_menu_actions(
 
     const read_ticket = begin_read_change([email.id]);
 
+    const conversation_intent_ids =
+      new_state && is_received
+        ? note_conversation_read_intent(
+            conversation_options,
+            email.grouped_email_ids,
+          )
+        : [];
+
+    set_ids_read([email.id], new_state);
     update_email(email.id, { is_read: new_state });
     if (should_adjust_unread) {
       adjust_stats_unread(new_state ? -1 : 1);
@@ -533,6 +546,8 @@ export function build_core_context_menu_actions(
         },
       });
     } else {
+      clear_read_intent(conversation_intent_ids, true);
+      set_ids_read([email.id], email.is_read);
       update_email(email.id, { is_read: email.is_read });
       if (should_adjust_unread) {
         adjust_stats_unread(new_state ? 1 : -1);

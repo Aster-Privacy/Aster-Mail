@@ -102,6 +102,7 @@ vi.mock("@/services/category_index", () => ({
   init_category_index: vi.fn(async () => {}),
   get_page_ids: () => ["id1"],
   get_category_total: () => 1,
+  get_active_tabs: () => [],
   is_fully_built: () => true,
   is_index_settled: () => true,
   is_build_in_progress: () => false,
@@ -189,13 +190,17 @@ describe("use_category_inbox email sent", () => {
 
     act(() => {
       window.dispatchEvent(new CustomEvent("astermail:email-sent"));
+      window.dispatchEvent(new CustomEvent("astermail:email-sent"));
     });
 
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 300));
+    });
     await flush();
 
-    expect(
-      mocks.fetch_mail_by_ids_reconciled.mock.calls.length,
-    ).toBeGreaterThan(initial_fetches);
+    expect(mocks.fetch_mail_by_ids_reconciled.mock.calls.length).toBe(
+      initial_fetches + 1,
+    );
 
     const states_after_dispatch = states.slice(states_before_dispatch);
 
