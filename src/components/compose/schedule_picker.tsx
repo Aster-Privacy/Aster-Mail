@@ -205,16 +205,37 @@ export function SchedulePicker({
   const format_hour = (hour: number) =>
     format_hour_choice(hour, t("common.am"), t("common.pm"));
 
-  const is_valid_custom_time = useMemo(() => {
-    if (!selected_date) return false;
-    const scheduled = zoned_instant_from_calendar_day(
+  const custom_instant = useMemo(() => {
+    if (!selected_date) return null;
+
+    return zoned_instant_from_calendar_day(
       selected_date,
       selected_hour,
       selected_minute,
     );
-
-    return is_future_instant(scheduled);
   }, [selected_date, selected_hour, selected_minute]);
+
+  const is_custom_too_far_ahead =
+    custom_instant !== null && exceeds_sealed_schedule_window(custom_instant);
+
+  const is_valid_custom_time =
+    is_future_instant(custom_instant) && !is_custom_too_far_ahead;
+
+  const is_beyond_window = (hour: number, minute: number) =>
+    !!selected_date &&
+    exceeds_sealed_schedule_window(
+      zoned_instant_from_calendar_day(selected_date, hour, minute),
+    );
+
+  const handle_hour_select = (hour: number) => {
+    set_selected_hour(hour);
+
+    if (is_beyond_window(hour, selected_minute)) {
+      set_selected_minute(
+        minutes.filter((minute) => !is_beyond_window(hour, minute)).pop() ?? 0,
+      );
+    }
+  };
 
   if (scheduled_time && !force_picker) {
     return (
@@ -343,7 +364,8 @@ export function SchedulePicker({
                   {hours.map((hour) => (
                     <DropdownMenuItem
                       key={hour}
-                      onClick={() => set_selected_hour(hour)}
+                      disabled={is_beyond_window(hour, 0)}
+                      onClick={() => handle_hour_select(hour)}
                     >
                       {format_hour(hour)}
                     </DropdownMenuItem>
@@ -361,6 +383,7 @@ export function SchedulePicker({
                   {minutes.map((minute) => (
                     <DropdownMenuItem
                       key={minute}
+                      disabled={is_beyond_window(selected_hour, minute)}
                       onClick={() => set_selected_minute(minute)}
                     >
                       {minute.toString().padStart(2, "0")}
@@ -369,6 +392,14 @@ export function SchedulePicker({
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
+            {is_custom_too_far_ahead && (
+              <p
+                className="mt-2 max-w-[252px] text-xs text-txt-muted"
+                role="status"
+              >
+                {t("common.scheduled_too_far_ahead")}
+              </p>
+            )}
             <div className="flex mt-4 gap-2">
               <Button
                 size="md"

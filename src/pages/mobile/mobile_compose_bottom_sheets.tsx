@@ -31,7 +31,7 @@ import {
   CheckIcon,
   LockClosedIcon,
 } from "@heroicons/react/24/outline";
-import { format, addDays, addHours } from "date-fns";
+import { addDays, addHours } from "date-fns";
 import { Button } from "@aster/ui";
 
 import {
@@ -41,12 +41,17 @@ import {
 } from "./mobile_compose_helpers";
 
 import { is_future_instant } from "@/utils/schedule_targets";
+import {
+  exceeds_sealed_schedule_window,
+  latest_schedule_instant,
+} from "@/lib/schedule_window";
 import { is_strong_message_password } from "@/services/password_strength_score";
 import {
   format_datetime_hint,
   format_time,
   format_weekday_date,
   format_weekday_time,
+  local_date_key,
 } from "@/utils/date_format";
 import {
   build_zoned_datetime,
@@ -266,11 +271,18 @@ export function MobileScheduleSheet({
     [schedule_date, schedule_time],
   );
 
-  const is_valid_custom_schedule = is_future_instant(custom_schedule_date);
+  const is_custom_schedule_too_far_ahead =
+    custom_schedule_date !== null &&
+    exceeds_sealed_schedule_window(custom_schedule_date);
+
+  const is_valid_custom_schedule =
+    is_future_instant(custom_schedule_date) &&
+    !is_custom_schedule_too_far_ahead;
 
   const handle_custom_confirm = useCallback(() => {
     if (!custom_schedule_date) return;
     if (!is_future_instant(custom_schedule_date)) return;
+    if (exceeds_sealed_schedule_window(custom_schedule_date)) return;
     on_schedule(custom_schedule_date);
     set_show_custom(false);
   }, [on_schedule, custom_schedule_date]);
@@ -348,7 +360,8 @@ export function MobileScheduleSheet({
               </label>
               <Input
                 className="w-full"
-                min={format(new Date(), "yyyy-MM-dd")}
+                max={local_date_key(latest_schedule_instant())}
+                min={local_date_key(new Date())}
                 type="date"
                 value={schedule_date}
                 onChange={(e) => set_schedule_date(e.target.value)}
@@ -365,6 +378,11 @@ export function MobileScheduleSheet({
                 onChange={(e) => set_schedule_time(e.target.value)}
               />
             </div>
+            {is_custom_schedule_too_far_ahead && (
+              <p className="text-[12px] text-[var(--text-muted)]" role="status">
+                {t("common.scheduled_too_far_ahead")}
+              </p>
+            )}
             <div className="flex gap-2 pt-1">
               <Button
                 className="flex-1"
@@ -619,7 +637,7 @@ export function MobileExpirationSheet({
               </label>
               <Input
                 className="w-full"
-                min={format(new Date(), "yyyy-MM-dd")}
+                min={local_date_key(new Date())}
                 type="date"
                 value={expiration_date}
                 onChange={(e) => set_expiration_date(e.target.value)}
