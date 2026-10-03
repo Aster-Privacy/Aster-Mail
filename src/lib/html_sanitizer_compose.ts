@@ -114,14 +114,20 @@ export function trim_trailing_empty_nodes(body: HTMLElement): void {
   }
 }
 
-export function sanitize_outgoing_html(html: string): string {
+export function purify_outgoing_html(html: string): string {
   if (!html || typeof html !== "string") return "";
 
-  const purified = DOMPurify.sanitize(repair_comment_markup(html), {
+  return DOMPurify.sanitize(repair_comment_markup(html), {
     ADD_ATTR: ["target"],
     ALLOW_DATA_ATTR: true,
     ALLOWED_URI_REGEXP: OUTGOING_URI_REGEXP,
   });
+}
+
+export function sanitize_outgoing_html(html: string): string {
+  if (!html || typeof html !== "string") return "";
+
+  const purified = purify_outgoing_html(html);
 
   const doc = new DOMParser().parseFromString(purified, "text/html");
 

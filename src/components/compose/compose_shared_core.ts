@@ -24,6 +24,7 @@ import type {
 } from "@/services/api/multi_drafts";
 import type { TranslationKey } from "@/lib/i18n/types";
 
+import { purify_outgoing_html } from "@/lib/html_sanitizer_compose";
 import {
   app_hour12,
   app_locale,
@@ -282,7 +283,10 @@ export function extract_inline_images(html: string): {
   processed_html: string;
   images: InlineImage[];
 } {
-  const doc = new DOMParser().parseFromString(html, "text/html");
+  const doc = new DOMParser().parseFromString(
+    purify_outgoing_html(html),
+    "text/html",
+  );
   const imgs = doc.querySelectorAll("img[src^='data:']");
   const extracted: InlineImage[] = [];
   let total_size = 0;
