@@ -5935,6 +5935,10 @@ export const ko = {
     storage_addons: "추가 저장 공간",
     storage_addons_monthly_note:
       "추가 저장 공간은 매월 갱신되며 요금제와 별도로 청구됩니다. 암호화폐로 결제하면 선결제 기간을 직접 선택할 수 있습니다.",
+    storage_addons_yearly_note:
+      "애드온은 매년 갱신되며 요금제와 별도로 청구됩니다. 암호화폐로 결제하면 선불 기간을 선택할 수 있습니다.",
+    storage_addon_supernova_nudge:
+      "1TB보다 많은 용량이 필요하다면 5TB 저장 공간이 포함된 Supernova를 고려해 보세요.",
     bill_addon_summary: "추가 저장 공간 {size}",
     bill_addon_pick_size: "추가할 용량을 선택하세요",
     storage_addons_description:

@@ -30,7 +30,7 @@ import {
   crypto_term_months,
   is_crypto_provider,
 } from "@/components/settings/billing/billing_constants";
-import { format_price } from "@/services/api/billing";
+import { addon_charge_cents, format_price } from "@/services/api/billing";
 import { ButtonSpinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import {
@@ -521,7 +521,7 @@ export function render_billing_dialogs(
           busy={is_action_loading}
           credit_balance_cents={Math.min(
             credit_balance?.balance_cents ?? 0,
-            addon_method_target.price_cents,
+            addon_charge_cents(addon_method_target),
           )}
           on_choose_card={() => {
             const addon = addon_method_target;
@@ -636,6 +636,7 @@ export function render_billing_dialogs(
           }}
           preferred_currency={preferred_currency}
           price_cents={crypto_addon.price_cents}
+          yearly_price_cents={crypto_addon.yearly_price_cents}
         />
       )}
 

@@ -54,6 +54,7 @@ import {
   get_credits,
   get_stripe_config,
   start_hosted_checkout,
+  addon_charge_cents,
   change_plan,
   record_yearly_switch_click,
   read_checkout_target,
@@ -1045,6 +1046,7 @@ export function BillingSection() {
         credit_balance?.balance_cents,
         addon_return_url("success"),
         addon_return_url("cancelled"),
+        addon.billing_interval,
       );
       const url = response.data?.url;
 
@@ -1394,6 +1396,7 @@ export function BillingSection() {
             embedded
             active_addons={active_addons}
             available_addons={available_addons}
+            current_plan_code={subscription?.plan.code}
             is_action_loading={is_action_loading}
             is_over_limit={is_storage_over_limit}
             on_cancel_addon={(addon) => {
@@ -1564,13 +1567,19 @@ export function BillingSection() {
           busy={is_action_loading}
           credit_balance_cents={Math.min(
             credit_balance?.balance_cents ?? 0,
-            addon_method_target.price_cents,
+            addon_charge_cents(addon_method_target),
           )}
           discount_duration_months={
-            addon_promo.eligible ? addon_promo.duration_months : undefined
+            addon_promo.eligible &&
+            addon_method_target.billing_interval !== "year"
+              ? addon_promo.duration_months
+              : undefined
           }
           discount_percent_off={
-            addon_promo.eligible ? addon_promo.percent_off : undefined
+            addon_promo.eligible &&
+            addon_method_target.billing_interval !== "year"
+              ? addon_promo.percent_off
+              : undefined
           }
           on_choose_card={() => {
             const addon = addon_method_target;
@@ -1622,6 +1631,7 @@ export function BillingSection() {
           }}
           preferred_currency={preferred_currency}
           price_cents={crypto_addon.price_cents}
+          yearly_price_cents={crypto_addon.yearly_price_cents}
         />
       )}
 

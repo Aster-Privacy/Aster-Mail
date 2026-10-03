@@ -5952,6 +5952,10 @@ export const nl = {
     storage_addons: "Extra opslag",
     storage_addons_monthly_note:
       "Add-ons worden elke maand verlengd en apart van je abonnement gefactureerd. Betaal je met crypto, dan kies je zelf hoelang je vooruitbetaalt.",
+    storage_addons_yearly_note:
+      "Add-ons worden elk jaar verlengd en apart van je abonnement gefactureerd. Als je met crypto betaalt, kies je hoe lang je vooruitbetaalt.",
+    storage_addon_supernova_nudge:
+      "Als je meer dan 1 TB nodig hebt, overweeg dan Supernova, met 5 TB opslag.",
     bill_addon_summary: "{size} extra opslag",
     bill_addon_pick_size: "Kies hoeveel je wilt toevoegen",
     storage_addons_description:

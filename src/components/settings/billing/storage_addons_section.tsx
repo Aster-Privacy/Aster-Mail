@@ -30,13 +30,16 @@ import {
 } from "@aster/ui";
 
 import {
+  addon_has_yearly,
   format_date,
   format_price,
+  type AddonBillingInterval,
   type StorageAddonItem,
   type UserActiveAddon,
 } from "@/services/api/billing";
 import {
   ADDON_BADGES,
+  ADDON_SUPERNOVA_NUDGE_BYTES,
   convert_cents,
 } from "@/components/settings/billing/billing_constants";
 import { BillingMeter } from "@/components/settings/billing/billing_meter";
@@ -63,6 +66,7 @@ interface StorageAddonsSectionProps {
   storage_percentage?: number;
   is_over_limit?: boolean;
   embedded?: boolean;
+  current_plan_code?: string;
 }
 
 export function StorageAddonsSection({
@@ -79,9 +83,12 @@ export function StorageAddonsSection({
   storage_percentage,
   is_over_limit = false,
   embedded = false,
+  current_plan_code,
 }: StorageAddonsSectionProps) {
   const { t } = use_i18n();
   const [is_picker_open, set_is_picker_open] = useState(false);
+  const [billing_interval, set_billing_interval] =
+    useState<AddonBillingInterval>("month");
   const has_usage =
     storage_used_bytes !== undefined && storage_limit_bytes !== undefined;
 
@@ -99,6 +106,9 @@ export function StorageAddonsSection({
   );
   const selected_addon =
     purchasable_addons.find((addon) => addon.id === selected_storage) ?? null;
+  const yearly_available =
+    purchasable_addons.length > 0 && purchasable_addons.every(addon_has_yearly);
+  const is_yearly = yearly_available && billing_interval === "year";
 
   const handle_buy = () => {
     if (!selected_addon) {
@@ -107,14 +117,82 @@ export function StorageAddonsSection({
       return;
     }
 
-    on_purchase_addon(selected_addon);
+    on_purchase_addon({
+      ...selected_addon,
+      billing_interval: is_yearly ? "year" : "month",
+    });
   };
 
   const money = (cents: number) =>
     format_price(convert_cents(cents, preferred_currency), preferred_currency);
 
+  const price_label = (addon: StorageAddonItem) =>
+    is_yearly
+      ? `${money(addon.yearly_price_cents as number)}${t("settings.per_year_short")}`
+      : `${money(addon.price_cents)}${t("settings.per_month_short")}`;
+
+  const billing_note = is_yearly
+    ? t("settings.storage_addons_yearly_note")
+    : t("settings.storage_addons_monthly_note");
+
+  const show_supernova_nudge =
+    !!selected_addon &&
+    selected_addon.storage_bytes >= ADDON_SUPERNOVA_NUDGE_BYTES &&
+    current_plan_code !== "supernova";
+
+  const yearly_save = yearly_available
+    ? Math.max(
+        0,
+        Math.min(
+          ...purchasable_addons.map((addon) =>
+            Math.floor(
+              (1 -
+                (addon.yearly_price_cents as number) /
+                  (addon.price_cents * 12)) *
+                100,
+            ),
+          ),
+        ),
+      )
+    : 0;
+
+  const period_switch = yearly_available && (
+    <div
+      aria-label={t("settings.billing_term_heading")}
+      className="aster_segmented self-start"
+      role="group"
+    >
+      {(["month", "year"] as const).map((interval) => (
+        <button
+          key={interval}
+          aria-pressed={interval === "year" ? is_yearly : !is_yearly}
+          className="aster_segmented_option"
+          type="button"
+          onClick={() => set_billing_interval(interval)}
+        >
+          {interval === "year"
+            ? t("settings.billing_yearly")
+            : t("settings.billing_monthly")}
+          {interval === "year" && yearly_save > 0 && (
+            <span
+              className="ms-1.5 text-[11.5px] font-semibold"
+              style={{
+                color: is_yearly ? "inherit" : "var(--color-success)",
+              }}
+            >
+              {t("settings.billing_save_percent", {
+                percent: yearly_save,
+              })}
+            </span>
+          )}
+        </button>
+      ))}
+    </div>
+  );
+
   const picker = (
     <div className="flex flex-col gap-3">
+      {period_switch}
       <div
         aria-label={t("settings.add_storage")}
         className="grid grid-cols-2 gap-2 sm:grid-cols-3"
@@ -156,8 +234,7 @@ export function StorageAddonsSection({
                 )}
               </span>
               <span className="text-[13px] tabular-nums text-txt-muted">
-                {money(addon.price_cents)}
-                {t("settings.per_month_short")}
+                {price_label(addon)}
               </span>
             </button>
           );
@@ -174,9 +251,7 @@ export function StorageAddonsSection({
               : t("settings.storage_select_option_first")}
           </p>
           <p className="mt-0.5 text-[13px] text-txt-muted">
-            {selected_addon
-              ? `${money(selected_addon.price_cents)}${t("settings.per_month_short")}`
-              : t("settings.storage_addons_monthly_note")}
+            {selected_addon ? price_label(selected_addon) : billing_note}
           </p>
         </div>
         <PillButton
@@ -190,10 +265,13 @@ export function StorageAddonsSection({
           {t("common.buy_more_storage")}
         </PillButton>
       </div>
-      {selected_addon && (
-        <p className="text-[12px] text-txt-muted">
-          {t("settings.storage_addons_monthly_note")}
+      {show_supernova_nudge && (
+        <p className="text-[13px] text-txt-secondary">
+          {t("settings.storage_addon_supernova_nudge")}
         </p>
+      )}
+      {selected_addon && (
+        <p className="text-[12px] text-txt-muted">{billing_note}</p>
       )}
     </div>
   );
@@ -210,7 +288,11 @@ export function StorageAddonsSection({
               ? t("settings.billing_addon_ends", {
                   date: format_date(addon.current_period_end!),
                 })
-              : `${money(addon.price_cents)}${t("settings.per_month_short")}`
+              : `${money(addon.price_cents)}${
+                  addon.billing_period === "year"
+                    ? t("settings.per_year_short")
+                    : t("settings.per_month_short")
+                }`
           }
           icon={<CircleStackIcon className="h-[22px] w-[22px]" />}
           label={addon.size_label}

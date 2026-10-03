@@ -855,13 +855,40 @@ export async function get_plan_limits() {
   });
 }
 
+export type AddonBillingInterval = "month" | "year";
+
 export interface StorageAddonItem {
   id: string;
   name: string;
   storage_bytes: number;
   price_cents: number;
+  yearly_price_cents?: number | null;
   billing_period: string;
   is_active: boolean;
+  billing_interval?: AddonBillingInterval;
+}
+
+export function addon_has_yearly(addon: StorageAddonItem): boolean {
+  return (addon.yearly_price_cents ?? 0) > 0;
+}
+
+export function addon_charge_cents(addon: StorageAddonItem): number {
+  return addon.billing_interval === "year" && addon_has_yearly(addon)
+    ? (addon.yearly_price_cents as number)
+    : addon.price_cents;
+}
+
+export function addon_term_total_cents(
+  monthly_cents: number,
+  yearly_cents: number | null | undefined,
+  term_months: number,
+): number {
+  if (!yearly_cents || yearly_cents <= 0) return monthly_cents * term_months;
+
+  return (
+    Math.floor(term_months / 12) * yearly_cents +
+    (term_months % 12) * monthly_cents
+  );
 }
 
 export interface UserActiveAddon {
@@ -870,6 +897,7 @@ export interface UserActiveAddon {
   size_label: string;
   size_bytes: number;
   price_cents: number;
+  billing_period?: string;
   state: string;
   created_at: string;
   cancel_at_period_end: boolean;
@@ -897,11 +925,13 @@ export async function purchase_storage_addon(
   apply_credits_cents?: number,
   success_url?: string,
   cancel_url?: string,
+  billing_interval?: AddonBillingInterval,
 ) {
   return api_client.post<PurchaseAddonResponse>(
     "/sync/v1/storage/addons/purchase",
     {
       addon_id,
+      ...(billing_interval === "year" ? { billing_interval } : {}),
       ...(apply_credits_cents && apply_credits_cents > 0
         ? { apply_credits_cents }
         : {}),

@@ -6840,6 +6840,10 @@ export const tr = {
       "Gelen kutusu listesinde her e-postanın boyutunu göster",
     storage_addons_monthly_note:
       "Eklentiler her ay yenilenir ve planınızdan ayrı faturalandırılır. Kripto ile öderseniz, ne kadar süre için peşin ödeyeceğinizi siz seçersiniz.",
+    storage_addons_yearly_note:
+      "Eklentiler her yıl yenilenir ve planınızdan ayrı faturalandırılır. Kripto ile öderseniz ön ödeme süresini siz seçersiniz.",
+    storage_addon_supernova_nudge:
+      "1 TB'tan fazlasına ihtiyacınız varsa 5 TB depolama alanı içeren Supernova'yı değerlendirin.",
     bill_addon_summary: "{size} ek depolama",
     bill_addon_pick_size: "Ne kadar ekleyeceğinizi seçin",
     storage_addons_description:

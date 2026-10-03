@@ -685,6 +685,7 @@ export function BillingSection({
                 <StorageAddonsSection
                   active_addons={active_addons}
                   available_addons={available_addons}
+                  current_plan_code={subscription?.plan.code}
                   is_action_loading={is_action_loading}
                   is_over_limit={is_storage_over_limit}
                   on_cancel_addon={(addon) => set_addon_to_cancel(addon)}

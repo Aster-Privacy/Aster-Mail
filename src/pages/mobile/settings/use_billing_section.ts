@@ -1096,6 +1096,7 @@ export function use_billing_section() {
         credit_cents,
         addon_return_url("success"),
         addon_return_url("cancelled"),
+        addon.billing_interval,
       );
       const url = response.data?.url;
 

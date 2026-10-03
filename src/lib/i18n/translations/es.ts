@@ -6775,6 +6775,10 @@ export const es = {
       "Mejora tu plan o compra almacenamiento adicional para mantener tu privacidad protegida.",
     storage_addons_monthly_note:
       "Los complementos se renuevan cada mes y se cobran aparte de tu plan. Si pagas con cripto, tú eliges cuánto tiempo pagar por adelantado.",
+    storage_addons_yearly_note:
+      "Los complementos se renuevan cada año y se facturan por separado de tu plan. Si pagas con criptomonedas, eliges cuánto tiempo prepagar.",
+    storage_addon_supernova_nudge:
+      "Si necesitas más de 1 TB, considera Supernova, que incluye 5 TB de almacenamiento.",
     bill_addon_summary: "{size} de almacenamiento adicional",
     bill_addon_pick_size: "Elige cuánto quieres añadir",
     storage_addons_description:
