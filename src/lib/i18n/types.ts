@@ -443,6 +443,7 @@ export interface MailRulesTranslations {
   apply_to_existing_done_encrypted_other: string;
 
   apply_to_existing_canceled: string;
+  apply_to_existing_canceled_one?: string;
 
   apply_to_existing_canceled_encrypted: string;
 
@@ -6922,6 +6923,7 @@ export interface SettingsTranslations {
   alias_apply_existing_progress_total: string;
   alias_apply_existing_done: string;
   alias_apply_existing_canceled: string;
+  alias_apply_existing_canceled_one?: string;
   alias_apply_existing_error: string;
   alias_apply_existing_unavailable: string;
   alias_delivery_rule_note: string;

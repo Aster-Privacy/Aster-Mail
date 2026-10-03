@@ -2944,6 +2944,7 @@ export const es = {
     alias_apply_existing_done:
       "Listo. Revisados: {{scanned}}, actualizados: {{applied}}",
     alias_apply_existing_canceled: "Detenido: {{applied}} actualizados",
+    alias_apply_existing_canceled_one: "Detenido: {{applied}} actualizado",
     alias_apply_existing_error:
       "No se pudo aplicar al correo existente. Inténtalo de nuevo.",
     alias_apply_existing_unavailable:
@@ -10333,12 +10334,13 @@ export const es = {
     apply_to_existing_done_encrypted_other:
       "Listo. Analizados: {{scanned}}, actualizados: {{applied}}. Esta regla omitió {{count}} mensajes cifrados porque solo tu dispositivo puede leerlos.",
     apply_to_existing_canceled: "Detenido: {{applied}} actualizados",
+    apply_to_existing_canceled_one: "Detenido: {{applied}} actualizado",
     apply_to_existing_canceled_encrypted:
-      "Detenido: {{applied}} actualizados. Esta regla omitió {{count}} mensajes cifrados porque solo tu dispositivo puede leerlos.",
+      "Detenido. Actualizados: {{applied}}. Esta regla omitió {{count}} mensajes cifrados porque solo tu dispositivo puede leerlos.",
     apply_to_existing_canceled_encrypted_one:
-      "Detenido: {{applied}} actualizados. Esta regla omitió {{count}} mensaje cifrado porque solo tu dispositivo puede leerlo.",
+      "Detenido. Actualizados: {{applied}}. Esta regla omitió {{count}} mensaje cifrado porque solo tu dispositivo puede leerlo.",
     apply_to_existing_canceled_encrypted_other:
-      "Detenido: {{applied}} actualizados. Esta regla omitió {{count}} mensajes cifrados porque solo tu dispositivo puede leerlos.",
+      "Detenido. Actualizados: {{applied}}. Esta regla omitió {{count}} mensajes cifrados porque solo tu dispositivo puede leerlos.",
     apply_to_existing_error:
       "No se pudo aplicar al correo existente. Intentalo de nuevo.",
     at_limit_upgrade:

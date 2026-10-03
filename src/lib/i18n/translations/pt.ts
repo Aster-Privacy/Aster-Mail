@@ -2984,6 +2984,7 @@ export const pt = {
     alias_apply_existing_done:
       "Concluído. Analisados: {{scanned}}, atualizados: {{applied}}",
     alias_apply_existing_canceled: "Parado: {{applied}} atualizados",
+    alias_apply_existing_canceled_one: "Parado: {{applied}} atualizado",
     alias_apply_existing_error:
       "Não foi possível aplicar ao correio existente. Tente novamente.",
     alias_apply_existing_unavailable:
@@ -10446,12 +10447,13 @@ export const pt = {
     apply_to_existing_done_encrypted_other:
       "Concluído. Verificados: {{scanned}}, atualizados: {{applied}}. Esta regra ignorou {{count}} mensagens encriptadas porque só o seu dispositivo consegue lê-las.",
     apply_to_existing_canceled: "Parado: {{applied}} atualizados",
+    apply_to_existing_canceled_one: "Parado: {{applied}} atualizado",
     apply_to_existing_canceled_encrypted:
-      "Parado: {{applied}} atualizados. Esta regra ignorou {{count}} mensagens encriptadas porque só o seu dispositivo consegue lê-las.",
+      "Parado. Atualizados: {{applied}}. Esta regra ignorou {{count}} mensagens encriptadas porque só o seu dispositivo consegue lê-las.",
     apply_to_existing_canceled_encrypted_one:
-      "Parado: {{applied}} atualizados. Esta regra ignorou {{count}} mensagem encriptada porque só o seu dispositivo consegue lê-la.",
+      "Parado. Atualizados: {{applied}}. Esta regra ignorou {{count}} mensagem encriptada porque só o seu dispositivo consegue lê-la.",
     apply_to_existing_canceled_encrypted_other:
-      "Parado: {{applied}} atualizados. Esta regra ignorou {{count}} mensagens encriptadas porque só o seu dispositivo consegue lê-las.",
+      "Parado. Atualizados: {{applied}}. Esta regra ignorou {{count}} mensagens encriptadas porque só o seu dispositivo consegue lê-las.",
     apply_to_existing_error:
       "Não foi possível aplicar ao e-mail existente. Tente novamente.",
     empty_title: "Nenhuma regra ainda",

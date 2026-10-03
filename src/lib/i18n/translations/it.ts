@@ -2955,6 +2955,7 @@ export const it = {
     alias_apply_existing_done:
       "Fatto. Analizzati: {{scanned}}, aggiornati: {{applied}}",
     alias_apply_existing_canceled: "Interrotto: {{applied}} aggiornati",
+    alias_apply_existing_canceled_one: "Interrotto: {{applied}} aggiornato",
     alias_apply_existing_error:
       "Applicazione alla posta esistente non riuscita. Riprova.",
     alias_apply_existing_unavailable:
@@ -10389,12 +10390,13 @@ export const it = {
     apply_to_existing_done_encrypted_other:
       "Fatto. Analizzati: {{scanned}}, aggiornati: {{applied}}. Questa regola ha ignorato {{count}} messaggi cifrati perché solo il tuo dispositivo può leggerli.",
     apply_to_existing_canceled: "Interrotto: {{applied}} aggiornati",
+    apply_to_existing_canceled_one: "Interrotto: {{applied}} aggiornato",
     apply_to_existing_canceled_encrypted:
-      "Interrotto: {{applied}} aggiornati. Questa regola ha ignorato {{count}} messaggi cifrati perché solo il tuo dispositivo può leggerli.",
+      "Interrotto. Aggiornati: {{applied}}. Questa regola ha ignorato {{count}} messaggi cifrati perché solo il tuo dispositivo può leggerli.",
     apply_to_existing_canceled_encrypted_one:
-      "Interrotto: {{applied}} aggiornati. Questa regola ha ignorato {{count}} messaggio cifrato perché solo il tuo dispositivo può leggerlo.",
+      "Interrotto. Aggiornati: {{applied}}. Questa regola ha ignorato {{count}} messaggio cifrato perché solo il tuo dispositivo può leggerlo.",
     apply_to_existing_canceled_encrypted_other:
-      "Interrotto: {{applied}} aggiornati. Questa regola ha ignorato {{count}} messaggi cifrati perché solo il tuo dispositivo può leggerli.",
+      "Interrotto. Aggiornati: {{applied}}. Questa regola ha ignorato {{count}} messaggi cifrati perché solo il tuo dispositivo può leggerli.",
     apply_to_existing_error:
       "Applicazione alla posta esistente non riuscita. Riprova.",
     empty_title: "Nessuna regola ancora",
