@@ -146,7 +146,7 @@ function fetch_and_cache_favicon(
   domain: string,
   loaded_src: string,
 ): Promise<void> {
-  return routed_fetch(loaded_src, {})
+  return routed_fetch(loaded_src, { cache: "force-cache" })
     .then((r) => {
       if (!r.ok) return null;
       const ct = r.headers.get("content-type") ?? "";
