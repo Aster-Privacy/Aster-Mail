@@ -21,6 +21,10 @@
 import { Capacitor } from "@capacitor/core";
 
 import { get_api_base_url } from "@/services/api/base_url";
+import {
+  get_effective_base_url,
+  routed_fetch,
+} from "@/services/routing/routing_provider";
 
 const SURFACE = "mail_app";
 const MAX_REPORTS_PER_SESSION = 40;
@@ -189,7 +193,9 @@ export function report_client_error(input: ClientErrorInput): void {
       ...(status === undefined ? {} : { http_status: status }),
     });
 
-    void fetch(`${get_api_base_url()}/core/v1/client-errors`, {
+    const base_url = get_effective_base_url(get_api_base_url());
+
+    void routed_fetch(`${base_url}/core/v1/client-errors`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body,
