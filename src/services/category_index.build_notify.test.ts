@@ -136,10 +136,19 @@ describe("category index notifications", () => {
   });
 
   it("notifies a handful of times, not once per message, while building", async () => {
+    vi.useFakeTimers();
     serve_pages(600);
     const listener = count_notifies();
+    let finished = false;
 
-    await build_index({ force: true });
+    void build_index({ force: true }).then(() => {
+      finished = true;
+    });
+    for (let step = 0; step < 1000 && !finished; step += 1) {
+      await vi.advanceTimersByTimeAsync(1);
+    }
+
+    expect(finished).toBe(true);
     flush_pending_notify();
     listener.stop();
 
