@@ -81,6 +81,7 @@ import {
   signature_image_budget,
   signature_image_html,
 } from "@/lib/signature_image";
+import { signature_from_editor_html } from "@/lib/signature_html";
 
 function escape_html(str: string): string {
   return str
@@ -305,25 +306,12 @@ export function SignaturesSection({
     if (!editor_name.trim() || !html_content.trim()) return;
     set_is_saving(true);
 
-    const temp = document.createElement("div");
-
-    temp.innerHTML = html_content.trim();
-    const has_rich_content =
-      temp.querySelector("img, a, b, strong, i, em, u, table, hr") !== null ||
-      temp.querySelector("[style]") !== null;
-
-    temp.querySelectorAll("br").forEach((br) => br.replaceWith("\n"));
-    temp.querySelectorAll("div, p").forEach((block) => {
-      block.before("\n");
-      block.replaceWith(...block.childNodes);
-    });
-    const plain_text = (temp.textContent || "")
-      .replace(/\n{3,}/g, "\n\n")
-      .trim();
+    const { content: signature_content, is_html: has_rich_content } =
+      signature_from_editor_html(html_content);
 
     const form_data: SignatureFormData = {
       name: editor_name.trim(),
-      content: has_rich_content ? html_content.trim() : plain_text,
+      content: signature_content,
       is_html: has_rich_content,
       alias_id: editor_alias_id,
       placement: editor_placement,
