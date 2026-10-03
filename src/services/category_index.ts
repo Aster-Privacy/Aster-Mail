@@ -974,6 +974,7 @@ export function get_preview_version(): number {
 
 export function clear_entry_previews(): void {
   entry_previews.clear();
+  decoded_items.clear();
   previews_dirty = false;
   preview_version += 1;
 }
@@ -1875,8 +1876,92 @@ type ItemIndexResult =
   | { kind: "remove" }
   | { kind: "keep" };
 
-async function item_to_entry(item: MailItem): Promise<ItemIndexResult> {
+const MAX_DECODED_ITEMS = 300;
+
+interface DecodedItem {
+  envelope: string;
+  key: string;
+  custom_categories: CustomCategoryRule[];
+  entry: CategoryIndexEntry;
+}
+
+const decoded_items = new Map<string, DecodedItem>();
+
+function decoded_item_key(item: MailItem): string {
+  return JSON.stringify([
+    item.envelope_nonce,
+    item.encrypted_metadata ?? null,
+    item.metadata_nonce ?? null,
+    item.metadata_version ?? null,
+    item.rule_category ?? null,
+    item.system_origin ?? null,
+    item.is_external,
+    item.is_read === undefined,
+    item.is_pinned === undefined,
+  ]);
+}
+
+function remember_decoded_item(
+  item: MailItem,
+  entry: CategoryIndexEntry,
+): void {
+  decoded_items.delete(item.id);
+  decoded_items.set(item.id, {
+    envelope: item.encrypted_envelope,
+    key: decoded_item_key(item),
+    custom_categories,
+    entry,
+  });
+
+  while (decoded_items.size > MAX_DECODED_ITEMS) {
+    const oldest = decoded_items.keys().next().value;
+
+    if (!oldest) break;
+    decoded_items.delete(oldest);
+  }
+}
+
+function reuse_decoded_item(item: MailItem): CategoryIndexEntry | null {
+  const decoded = decoded_items.get(item.id);
+  const existing = entries_map.get(item.id);
+  const preview = entry_previews.get(item.id);
+
+  if (!decoded || !existing || !preview) return null;
+  if (existing.needs_reclassify) return null;
+  if (decoded.custom_categories !== custom_categories) return null;
+  if (decoded.envelope !== item.encrypted_envelope) return null;
+  if (decoded.key !== decoded_item_key(item)) return null;
+
+  remember_entry_preview(item.id, preview);
+
+  const snoozed_until =
+    item.snoozed_until && safe_ts(item.snoozed_until) > now_ms()
+      ? item.snoozed_until
+      : undefined;
+  const entry: CategoryIndexEntry = {
+    ...decoded.entry,
+    thread_token: item.thread_token,
+    message_ts: item.message_ts || item.created_at,
+    is_read: item.is_read ?? decoded.entry.is_read,
+    is_pinned: item.is_pinned ?? decoded.entry.is_pinned,
+  };
+
+  if (snoozed_until) entry.snoozed_until = snoozed_until;
+  else delete entry.snoozed_until;
+
+  return entry;
+}
+
+async function item_to_entry(
+  item: MailItem,
+  reuse_unchanged = false,
+): Promise<ItemIndexResult> {
   if (is_item_moved_out(item)) return { kind: "remove" };
+  if (reuse_unchanged) {
+    const reused = reuse_decoded_item(item);
+
+    if (reused) return { kind: "upsert", entry: reused };
+  }
   const has_metadata = !!(item.encrypted_metadata && item.metadata_nonce);
 
   const [envelope, metadata] = await Promise.all([
@@ -1906,7 +1991,7 @@ async function item_to_entry(item: MailItem): Promise<ItemIndexResult> {
     );
   }
 
-  return {
+  const result: ItemIndexResult = {
     kind: "upsert",
     entry: {
       id: item.id,
@@ -1930,6 +2015,10 @@ async function item_to_entry(item: MailItem): Promise<ItemIndexResult> {
       ...(snoozed_until ? { snoozed_until } : {}),
     },
   };
+
+  if (envelope) remember_decoded_item(item, result.entry);
+
+  return result;
 }
 
 function with_deadline<T>(
@@ -1946,11 +2035,12 @@ function with_deadline<T>(
 
 async function entries_from_items(
   items: MailItem[],
+  reuse_unchanged = false,
 ): Promise<{ upserts: CategoryIndexEntry[]; removals: string[] }> {
   const results = await Promise.allSettled(
     items.map(async (item) => ({
       id: item.id,
-      result: await item_to_entry(item),
+      result: await item_to_entry(item, reuse_unchanged),
     })),
   );
   const upserts: CategoryIndexEntry[] = [];
@@ -2101,6 +2191,8 @@ export async function build_index(options?: {
   }
 }
 
+const announced_indexed_ids = new Set<string>();
+
 // Cheap incremental sync: only the newest page, never the whole mailbox.
 // This is what runs on routine mail changes, so it stays O(page) even with
 // a million messages. Deletions are handled by the event listeners.
@@ -2165,7 +2257,7 @@ export async function sync_recent(
       if (ts > 0) page_oldest_ts = Math.min(page_oldest_ts, ts);
     }
 
-    const { upserts, removals } = await entries_from_items(items);
+    const { upserts, removals } = await entries_from_items(items, true);
 
     if (token !== build_token) return;
 
@@ -2180,12 +2272,17 @@ export async function sync_recent(
     let changed = apply_upsert(upserts, fetched_at);
 
     if (newly_received_ids.length > 0) {
-      for (const id of newly_received_ids) {
-        window.dispatchEvent(
-          new CustomEvent(MAIL_EVENTS.EMAIL_RECEIVED, {
-            detail: { email_id: id },
-          }),
-        );
+      for (const id of newly_received_ids) announced_indexed_ids.add(id);
+      try {
+        for (const id of newly_received_ids) {
+          window.dispatchEvent(
+            new CustomEvent(MAIL_EVENTS.EMAIL_RECEIVED, {
+              detail: { email_id: id },
+            }),
+          );
+        }
+      } finally {
+        announced_indexed_ids.clear();
       }
     }
 
@@ -2614,6 +2711,7 @@ export function start_event_listeners(): void {
 
       return;
     }
+    if (announced_indexed_ids.has(detail.email_id)) return;
     void index_arrival(detail.email_id);
   });
 
