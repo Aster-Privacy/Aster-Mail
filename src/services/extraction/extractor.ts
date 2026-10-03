@@ -895,7 +895,6 @@ export function is_purchase_email(subject: string, body: string): boolean {
 const PARCEL_SPECIFIC_INDICATORS = [
   /\btracking\s*(?:#|number)/i,
   /\bout\s+for\s+delivery\b/i,
-  /\bin\s+transit\b/i,
   /\bhas\s+shipped\b/i,
   /\bshipment\s+(?:update|notification)\b/i,
   /\bpackage\s+(?:update|notification|shipped|delivered)\b/i,
@@ -905,15 +904,68 @@ const PARCEL_SPECIFIC_INDICATORS = [
   /\bTBA\d{12,15}\b/i,
 ];
 
+const SHIPMENT_NOUN =
+  /\b(?:packages?|parcels?|orders?|shipments?|deliver(?:y|ies)|items?)\b/i;
+
+const NON_PARCEL_TRANSIT_BEFORE =
+  /\b(?:encrypted|encryption|protected|secured|secure|data|rest)\s+(?:(?:and|both)\s+)?$/i;
+
+const NON_PARCEL_TRANSIT_AFTER = /^\s+encryption\b/i;
+
+const NON_PARCEL_TRACKING_BEFORE = /\blink\s+$/i;
+
+const NON_PARCEL_TRACKING_AFTER = /^\s+(?:pixels?|protection|prevention)\b/i;
+
+interface TermContext {
+  before: string;
+  after: string;
+}
+
+function find_term_contexts(
+  text: string,
+  pattern: RegExp,
+  excluded_before: RegExp,
+  excluded_after: RegExp,
+): TermContext[] {
+  const contexts: TermContext[] = [];
+
+  for (const match of text.matchAll(pattern)) {
+    const start = match.index ?? 0;
+    const end = start + match[0].length;
+    const before =
+      text
+        .slice(Math.max(0, start - 60), start)
+        .split(/[.!?\n]/)
+        .pop() ?? "";
+    const after = text.slice(end, end + 60).split(/[.!?\n]/)[0];
+
+    if (excluded_before.test(before) || excluded_after.test(after)) continue;
+    contexts.push({ before, after });
+  }
+
+  return contexts;
+}
+
 export function is_shipping_email(subject: string, body: string): boolean {
   const combined = `${subject} ${body}`.toLowerCase();
 
+  const in_transit = find_term_contexts(
+    combined,
+    /\bin\s+transit\b/g,
+    NON_PARCEL_TRANSIT_BEFORE,
+    NON_PARCEL_TRANSIT_AFTER,
+  );
+  const tracking = find_term_contexts(
+    combined,
+    /\btracking\b/g,
+    NON_PARCEL_TRACKING_BEFORE,
+    NON_PARCEL_TRACKING_AFTER,
+  );
+
   const shipping_indicators = [
     /\bshipped\b/i,
-    /\btracking\s*(?:#|number)?\b/i,
     /\bout\s+for\s+delivery\b/i,
     /\bdelivered\b/i,
-    /\bin\s+transit\b/i,
     /\bhas\s+shipped\b/i,
     /\bshipment\s+(?:update|notification)\b/i,
     /\bpackage\s+(?:update|notification|shipped|delivered)\b/i,
@@ -923,18 +975,21 @@ export function is_shipping_email(subject: string, body: string): boolean {
     /\bTBA\d{12,15}\b/i,
   ];
 
-  let matches = 0;
+  let matches = (in_transit.length > 0 ? 1 : 0) + (tracking.length > 0 ? 1 : 0);
 
   for (const pattern of shipping_indicators) {
-    if (pattern.test(combined)) {
-      matches++;
-      if (matches >= 2) break;
-    }
+    if (matches >= 2) break;
+    if (pattern.test(combined)) matches++;
   }
 
+  if (matches < 2) return false;
+
   return (
-    matches >= 2 &&
-    PARCEL_SPECIFIC_INDICATORS.some((pattern) => pattern.test(combined))
+    PARCEL_SPECIFIC_INDICATORS.some((pattern) => pattern.test(combined)) ||
+    in_transit.some(
+      ({ before, after }) =>
+        SHIPMENT_NOUN.test(before) || SHIPMENT_NOUN.test(after),
+    )
   );
 }
 
