@@ -89,14 +89,19 @@ import {
   has_readable_body,
   include_opened_message,
   keep_readable_bodies,
+  keep_unchanged_messages,
 } from "@/components/email/thread_message_merge";
+import { CATCH_UP_WHILE_LIVE_MS, sync_client } from "@/services/sync_client";
 import {
   claim_auto_read,
   is_read_ticket_current,
   peek_read_ticket,
 } from "@/services/read_intent";
 
-const ARRIVAL_REFRESH_DEBOUNCE_MS = 800;
+const THREAD_REFRESH_DEBOUNCE_MS = 800;
+const THREAD_POLL_INTERVAL_MS = 60_000;
+const THREAD_LIVE_POLL_MS =
+  CATCH_UP_WHILE_LIVE_MS - THREAD_POLL_INTERVAL_MS / 2;
 
 export type {
   EmailRecipient,
@@ -1053,9 +1058,27 @@ export function use_email_viewer({
     if (!thread_token) return;
     if (preferences.conversation_grouping === false) return;
 
+    let disposed = false;
+    let refresh_timer: ReturnType<typeof setTimeout> | null = null;
+
+    const schedule_refresh = () => {
+      if (refresh_timer !== null) {
+        clearTimeout(refresh_timer);
+      }
+      refresh_timer = setTimeout(() => {
+        refresh_timer = null;
+        void refresh_thread(true);
+      }, THREAD_REFRESH_DEBOUNCE_MS);
+    };
+
     const refresh_thread = async (force: boolean) => {
+      if (disposed) return;
       if (!has_passphrase_in_memory()) return;
-      if (thread_fetch_in_flight_ref.current === thread_token) return;
+      if (thread_fetch_in_flight_ref.current === thread_token) {
+        if (force) schedule_refresh();
+
+        return;
+      }
       const now = Date.now();
 
       if (!force && now - last_thread_fetch_ref.current < 5_000) return;
@@ -1079,10 +1102,13 @@ export function use_email_viewer({
 
         last_thread_fetch_ref.current = Date.now();
         set_thread_messages((prev) =>
-          reconcile_thread_messages(
+          keep_unchanged_messages(
             prev,
-            thread_result.messages,
-            open_email_id_ref.current ?? undefined,
+            reconcile_thread_messages(
+              prev,
+              thread_result.messages,
+              open_email_id_ref.current ?? undefined,
+            ),
           ),
         );
       } finally {
@@ -1097,20 +1123,12 @@ export function use_email_viewer({
       void refresh_thread(false);
     };
 
-    let arrival_refresh_timer: ReturnType<typeof setTimeout> | null = null;
-
     const handle_email_received = () => {
-      if (arrival_refresh_timer !== null) {
-        clearTimeout(arrival_refresh_timer);
-      }
-      arrival_refresh_timer = setTimeout(() => {
-        arrival_refresh_timer = null;
-        void refresh_thread(true);
-      }, ARRIVAL_REFRESH_DEBOUNCE_MS);
+      schedule_refresh();
     };
 
     const handle_mail_changed = () => {
-      void refresh_thread(true);
+      schedule_refresh();
     };
 
     const handle_visibility = () => {
@@ -1121,9 +1139,23 @@ export function use_email_viewer({
       maybe_revalidate();
     };
 
+    let last_poll_at = Date.now();
+
     const poll_interval = window.setInterval(() => {
+      const now = Date.now();
+
+      if (sync_client.is_connected()) {
+        const last_refresh = Math.max(
+          last_poll_at,
+          last_thread_fetch_ref.current,
+        );
+
+        if (now - last_refresh < THREAD_LIVE_POLL_MS) return;
+      }
+
+      last_poll_at = now;
       maybe_revalidate();
-    }, 60_000);
+    }, THREAD_POLL_INTERVAL_MS);
 
     window.addEventListener(MAIL_EVENTS.EMAIL_RECEIVED, handle_email_received);
     window.addEventListener(MAIL_EVENTS.MAIL_CHANGED, handle_mail_changed);
@@ -1132,10 +1164,11 @@ export function use_email_viewer({
     window.addEventListener("focus", handle_focus);
 
     return () => {
+      disposed = true;
       window.clearInterval(poll_interval);
-      if (arrival_refresh_timer !== null) {
-        clearTimeout(arrival_refresh_timer);
-        arrival_refresh_timer = null;
+      if (refresh_timer !== null) {
+        clearTimeout(refresh_timer);
+        refresh_timer = null;
       }
       window.removeEventListener(
         MAIL_EVENTS.EMAIL_RECEIVED,
