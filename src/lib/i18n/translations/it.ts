@@ -4432,6 +4432,11 @@ export const it = {
       "I componenti aggiuntivi si rinnovano ogni anno e vengono fatturati separatamente dal piano. Se paghi in criptovaluta, scegli per quanto tempo pagare in anticipo.",
     storage_addon_supernova_nudge:
       "Se ti serve più di 1 TB, valuta Supernova, che include 5 TB di spazio di archiviazione.",
+    storage_addon_add_size: "Aggiungi {{size}}",
+    storage_addon_usage_near:
+      "Il tuo spazio di archiviazione è quasi pieno. Aggiungi altro spazio per continuare a ricevere email.",
+    storage_addon_usage_full:
+      "Il tuo spazio di archiviazione è pieno. Aggiungi altro spazio per continuare a ricevere email.",
     bill_addon_summary: "{size} di spazio aggiuntivo",
     bill_addon_pick_size: "Scegli quanto aggiungere",
     storage_addons_description:

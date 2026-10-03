@@ -18,7 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, useEffect } from "react";
+import type { LogoTone } from "@/lib/logo_tone";
+
+import { useState, useEffect, useCallback, useSyncExternalStore } from "react";
 
 import { routed_fetch } from "@/services/routing/routing_provider";
 import { connection_store } from "@/services/routing/connection_store";
@@ -34,6 +36,8 @@ import {
   get_favicon_object_url,
   peek_favicon_object_url,
   cache_favicon_blob,
+  peek_favicon_tone,
+  subscribe_favicon_tones,
 } from "@/lib/favicon_cache_db";
 import { mark_icon_failed } from "@/lib/icon_cache";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
@@ -142,6 +146,19 @@ export function use_favicon_src(domain: string, enabled = true): string {
   return src;
 }
 
+export function use_favicon_tone(domain: string): LogoTone | null {
+  const get_snapshot = useCallback(
+    () => (domain ? peek_favicon_tone(domain) : null),
+    [domain],
+  );
+
+  return useSyncExternalStore(
+    subscribe_favicon_tones,
+    get_snapshot,
+    get_snapshot,
+  );
+}
+
 const ALLOWED_FAVICON_TYPES = [
   "image/png",
   "image/jpeg",
@@ -220,7 +237,10 @@ function fetch_and_cache_favicon(
   domain: string,
   loaded_src: string,
 ): Promise<void> {
-  return routed_fetch(loaded_src, { credentials: "omit" })
+  return routed_fetch(loaded_src, {
+    credentials: "omit",
+    cache: "force-cache",
+  })
     .then((r) => {
       if (!r.ok) return null;
       const ct = r.headers.get("content-type") ?? "";

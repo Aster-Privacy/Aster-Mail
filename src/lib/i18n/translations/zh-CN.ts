@@ -5375,6 +5375,11 @@ export const zh_CN = {
       "附加项每年续订，并与您的套餐分开计费。如果使用加密货币付款，您可以选择预付时长。",
     storage_addon_supernova_nudge:
       "如果您需要超过 1 TB 的空间，可以考虑 Supernova，它包含 5 TB 存储空间。",
+    storage_addon_add_size: "添加 {{size}}",
+    storage_addon_usage_near:
+      "您的存储空间即将用完。请添加空间以继续接收邮件。",
+    storage_addon_usage_full:
+      "您的存储空间已满。请添加空间以继续接收邮件。",
     bill_addon_summary: "{size} 额外存储空间",
     bill_addon_pick_size: "选择要添加的容量",
     storage_addons_description:

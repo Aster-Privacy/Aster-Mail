@@ -6667,6 +6667,11 @@ export const pt_br = {
       "Os complementos são renovados todo ano e cobrados separadamente do seu plano. Se você pagar com cripto, escolhe por quanto tempo pré-pagar.",
     storage_addon_supernova_nudge:
       "Se você precisa de mais de 1 TB, considere o Supernova, que inclui 5 TB de armazenamento.",
+    storage_addon_add_size: "Adicionar {{size}}",
+    storage_addon_usage_near:
+      "Seu armazenamento está quase cheio. Adicione mais espaço para continuar recebendo e-mails.",
+    storage_addon_usage_full:
+      "Seu armazenamento está cheio. Adicione mais espaço para continuar recebendo e-mails.",
     bill_addon_summary: "{size} de armazenamento extra",
     bill_addon_pick_size: "Escolha quanto quer adicionar",
     storage_addons_description:

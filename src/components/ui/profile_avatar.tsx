@@ -30,6 +30,7 @@ import { fetch_priority_attr } from "@/lib/fetch_priority";
 import { get_initials, get_active_locale } from "@/lib/initials";
 import {
   use_favicon_src,
+  use_favicon_tone,
   store_favicon_if_api_url,
 } from "@/hooks/use_favicon_src";
 import {
@@ -86,6 +87,18 @@ const ASTER_DOMAINS = new Set([
   "astermail.me",
   "astermail.net",
 ]);
+
+const AVATAR_PIXEL_SIZES: Record<
+  NonNullable<ProfileAvatarProps["size"]>,
+  number
+> = {
+  xs: 24,
+  sm_compact: 28,
+  sm: 32,
+  md: 40,
+  lg: 48,
+  xl: 96,
+};
 
 const LOADED_SOURCE_LIMIT = 600;
 const loaded_sources = new Set<string>();
@@ -268,6 +281,12 @@ export const ProfileAvatar = memo(function ProfileAvatar({
     false;
 
   const is_local_logo_source = actual_src === mail_logo_url;
+  const is_domain_logo = !!ddg_logo_url && actual_src === ddg_logo_url;
+  const logo_tone = use_favicon_tone(is_domain_logo ? domain : "");
+  const logo_tone_class =
+    is_domain_logo && (logo_tone === "dark" || logo_tone === "light")
+      ? `sender_logo_${logo_tone}`
+      : "";
 
   const profile_hex =
     profile_color ||
@@ -314,14 +333,27 @@ export const ProfileAvatar = memo(function ProfileAvatar({
     : undefined;
   const text_color = avatar_bg ? get_contrast_text(avatar_bg) : undefined;
 
+  const pixel_size = String(AVATAR_PIXEL_SIZES[size]);
+  const image_attributes = useMemo(() => {
+    const attributes: Record<string, string> = {
+      ...fetch_priority_attr(is_local_logo_source ? "high" : "low"),
+      width: pixel_size,
+      height: pixel_size,
+    };
+
+    if (!is_local_logo_source) attributes.loading = "lazy";
+
+    return attributes;
+  }, [is_local_logo_source, pixel_size]);
+
   const avatar_element = (
     <ProfileAvatarView
       background_color={avatar_bg}
-      className={className}
+      className={
+        logo_tone_class ? `${logo_tone_class} ${className}` : className
+      }
       email={email}
-      image_attributes={fetch_priority_attr(
-        is_local_logo_source ? "high" : "low",
-      )}
+      image_attributes={image_attributes}
       initials={initials}
       is_favicon_source={is_favicon_source}
       is_local_logo_source={is_local_logo_source}

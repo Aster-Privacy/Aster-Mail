@@ -4514,6 +4514,11 @@ export const en: Translations = {
       "Add-ons renew every year and are billed separately from your plan. If you pay with crypto, you choose how long to prepay.",
     storage_addon_supernova_nudge:
       "If you need more than 1 TB, consider Supernova, which includes 5 TB of storage.",
+    storage_addon_add_size: "Add {{size}}",
+    storage_addon_usage_near:
+      "Your storage is almost full. Add more space to keep receiving mail.",
+    storage_addon_usage_full:
+      "Your storage is full. Add more space to keep receiving mail.",
     bill_addon_summary: "{size} of extra storage",
     bill_addon_pick_size: "Choose how much to add",
     storage_addons_description:

@@ -21,7 +21,7 @@
 import type { DecryptedFolder } from "@/hooks/use_folders";
 import type { DecryptedTag } from "@/hooks/use_tags";
 
-import { memo, useMemo } from "react";
+import { memo } from "react";
 import {
   InboxIcon,
   StarIcon,
@@ -39,7 +39,6 @@ import {
   NewspaperIcon,
 } from "@heroicons/react/24/outline";
 import {
-  AliasIconView,
   MobileDrawerBackButton,
   MobileDrawerFolderRow,
   MobileDrawerNavIndicator,
@@ -57,33 +56,10 @@ import {
   is_folder_tree_sorted_a_z,
 } from "@/hooks/use_folders";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
-import { get_gradient_background } from "@/constants/profile";
-import { get_alias_color } from "@/lib/avatar_color";
+import { AliasNavIcon } from "@/components/common/alias_nav_icon";
 import { SidebarNavButton } from "@/components/mobile/sidebar_nav_button";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { app_locale } from "@/utils/date_format";
-
-function MobileAliasIcon({
-  address,
-  is_random,
-}: {
-  address: string;
-  is_random: boolean;
-}) {
-  const gradient = useMemo(
-    () => get_gradient_background(get_alias_color(address)),
-    [address],
-  );
-
-  return (
-    <AliasIconView
-      background={gradient}
-      icon_class_name="w-3 h-3"
-      is_random={is_random}
-      size={20}
-    />
-  );
-}
 
 interface NavItem {
   id: string;
@@ -98,6 +74,7 @@ interface SidebarAlias {
   full_address: string;
   is_random: boolean;
   alias_address_hash?: string;
+  profile_picture?: string;
 }
 
 interface DrawerNavContentProps {
@@ -494,9 +471,12 @@ export const DrawerNavContent = memo(function DrawerNavContent({
             active={is_active(path)}
             count={unread_count}
             icon={
-              <MobileAliasIcon
+              <AliasNavIcon
                 address={alias.full_address}
+                icon_class_name="w-3 h-3"
                 is_random={alias.is_random}
+                profile_picture={alias.profile_picture}
+                size={20}
               />
             }
             label={alias.full_address}

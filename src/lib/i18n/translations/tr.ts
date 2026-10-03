@@ -6844,6 +6844,11 @@ export const tr = {
       "Eklentiler her yıl yenilenir ve planınızdan ayrı faturalandırılır. Kripto ile öderseniz ön ödeme süresini siz seçersiniz.",
     storage_addon_supernova_nudge:
       "1 TB'tan fazlasına ihtiyacınız varsa 5 TB depolama alanı içeren Supernova'yı değerlendirin.",
+    storage_addon_add_size: "{{size}} ekle",
+    storage_addon_usage_near:
+      "Depolama alanınız neredeyse dolu. E-posta almaya devam etmek için alan ekleyin.",
+    storage_addon_usage_full:
+      "Depolama alanınız dolu. E-posta almaya devam etmek için alan ekleyin.",
     bill_addon_summary: "{size} ek depolama",
     bill_addon_pick_size: "Ne kadar ekleyeceğinizi seçin",
     storage_addons_description:

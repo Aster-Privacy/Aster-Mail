@@ -6178,6 +6178,11 @@ export const pl = {
       "Dodatki odnawiają się co roku i są rozliczane oddzielnie od planu. Jeśli płacisz kryptowalutą, wybierasz okres przedpłaty.",
     storage_addon_supernova_nudge:
       "Jeśli potrzebujesz więcej niż 1 TB, rozważ plan Supernova, który obejmuje 5 TB miejsca.",
+    storage_addon_add_size: "Dodaj {{size}}",
+    storage_addon_usage_near:
+      "Twoja przestrzeń dyskowa jest prawie pełna. Dodaj więcej miejsca, aby nadal otrzymywać pocztę.",
+    storage_addon_usage_full:
+      "Twoja przestrzeń dyskowa jest pełna. Dodaj więcej miejsca, aby nadal otrzymywać pocztę.",
     bill_addon_summary: "{size} dodatkowej przestrzeni",
     bill_addon_pick_size: "Wybierz, ile chcesz dodać",
     storage_addons_description:
