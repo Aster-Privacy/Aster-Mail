@@ -7250,6 +7250,7 @@ export const de = {
       "Aster Bridge muss installiert sein und ausgeführt werden. Laden Sie es unter Einstellungen > Bridge herunter.",
     desktop_bridge_not_opened:
       "Aster Bridge wurde nicht geöffnet. Prüfen Sie, ob es installiert ist und ausgeführt wird, oder laden Sie es unter Einstellungen > Bridge herunter.",
+    desktop_bridge_opening: "Aster Bridge wird geöffnet...",
     desktop_bridge_set_up: "{{ client }} einrichten",
     bridge: "Bridge",
     bridge_description:

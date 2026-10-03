@@ -7442,6 +7442,7 @@ export const ru = {
       "Aster Bridge должен быть установлен и запущен. Скачайте его в разделе Настройки > Bridge.",
     desktop_bridge_not_opened:
       "Aster Bridge не открылся. Убедитесь, что он установлен и запущен, или скачайте его в разделе Настройки > Bridge.",
+    desktop_bridge_opening: "Открытие Aster Bridge...",
     desktop_bridge_set_up: "Настроить {{ client }}",
     bridge: "Bridge",
     bridge_description:
