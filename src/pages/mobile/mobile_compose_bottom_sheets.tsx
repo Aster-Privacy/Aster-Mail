@@ -637,7 +637,7 @@ export function MobileExpirationSheet({
               </label>
               <Input
                 className="w-full"
-                min={format(new Date(), "yyyy-MM-dd")}
+                min={local_date_key(new Date())}
                 type="date"
                 value={expiration_date}
                 onChange={(e) => set_expiration_date(e.target.value)}
