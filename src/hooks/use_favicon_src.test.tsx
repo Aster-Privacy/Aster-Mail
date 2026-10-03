@@ -39,18 +39,36 @@ vi.mock("@/services/lockdown_store", () => ({
 vi.mock("@/lib/favicon_url", () => ({
   get_favicon_url: (domain: string) => `/api/images/v1/favicon/${domain}`,
   is_valid_favicon_domain: () => true,
+  same_origin_favicon_domain: (url: string) =>
+    url.startsWith("/api/images/v1/favicon/")
+      ? url.slice("/api/images/v1/favicon/".length)
+      : null,
+  PENDING_FAVICON_SRC: "data:pending",
+  FAILED_FAVICON_SRC: "data:,",
 }));
 
 vi.mock("@/lib/favicon_cache_db", () => ({
   peek_favicon_object_url: (domain: string) => warm.get(domain) ?? null,
   get_favicon_object_url: (domain: string) =>
     Promise.resolve(warm.get(domain) ?? null),
-  cache_favicon_blob: vi.fn(),
+  adopt_favicon_blob: (domain: string) => {
+    const url = `blob:${domain}`;
+
+    warm.set(domain, url);
+
+    return url;
+  },
+  cache_favicon_blob: vi.fn(() => Promise.resolve()),
+}));
+
+vi.mock("@/lib/icon_cache", () => ({
+  mark_icon_failed: vi.fn(),
 }));
 
 const { use_favicon_src, store_favicon_if_api_url } =
   await import("./use_favicon_src");
 const { routed_fetch } = await import("@/services/routing/routing_provider");
+const { mark_icon_failed } = await import("@/lib/icon_cache");
 
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean;
@@ -61,24 +79,39 @@ let root: Root | null = null;
 let container: HTMLDivElement | null = null;
 let observed: string[] = [];
 
-function Probe({ domain }: { domain: string }) {
-  observed.push(use_favicon_src(domain));
+function Probe({ domain, enabled }: { domain: string; enabled?: boolean }) {
+  observed.push(use_favicon_src(domain, enabled));
 
   return null;
 }
 
-function render(domain: string) {
+function render(domain: string, enabled?: boolean) {
   act(() => {
-    root!.render(createElement(Probe, { domain }));
+    root!.render(createElement(Probe, { domain, enabled }));
   });
 }
 
-function mount(domain: string) {
+function mount(domain: string, enabled?: boolean) {
   observed = [];
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
-  render(domain);
+  render(domain, enabled);
+}
+
+async function settle() {
+  for (let i = 0; i < 5; i++) {
+    await act(async () => {
+      await Promise.resolve();
+    });
+  }
+}
+
+function png_response() {
+  return new Response(new Blob([new Uint8Array([1, 2, 3])]), {
+    status: 200,
+    headers: { "content-type": "image/png" },
+  });
 }
 
 afterEach(() => {
@@ -98,10 +131,69 @@ describe("use_favicon_src", () => {
     expect(observed).not.toContain("/api/images/v1/favicon/warm.example");
   });
 
-  it("falls back to the api url for a cold domain", () => {
+  it("never hands the cookie-bearing api url to an image", async () => {
+    vi.mocked(routed_fetch).mockReset();
+    vi.mocked(routed_fetch).mockResolvedValue(png_response());
     mount("cold.example");
+    await settle();
 
-    expect(observed[0]).toBe("/api/images/v1/favicon/cold.example");
+    expect(observed[0]).toBe("data:pending");
+    expect(observed).not.toContain("/api/images/v1/favicon/cold.example");
+    expect(observed[observed.length - 1]).toBe("blob:cold.example");
+  });
+
+  it("loads a cold favicon without sending cookies", async () => {
+    const fetch_mock = vi.mocked(routed_fetch);
+
+    fetch_mock.mockReset();
+    fetch_mock.mockResolvedValue(png_response());
+    mount("fresh.example");
+    await settle();
+
+    expect(fetch_mock).toHaveBeenCalledTimes(1);
+    expect(fetch_mock.mock.calls[0][0]).toBe(
+      "/api/images/v1/favicon/fresh.example",
+    );
+    expect(fetch_mock.mock.calls[0][1]).toMatchObject({ credentials: "omit" });
+  });
+
+  it("does not load anything while sender pictures are off", async () => {
+    const fetch_mock = vi.mocked(routed_fetch);
+
+    fetch_mock.mockReset();
+    mount("off.example", false);
+    await settle();
+
+    expect(fetch_mock).not.toHaveBeenCalled();
+    expect(observed[observed.length - 1]).toBe("data:pending");
+  });
+
+  it("marks a missing favicon as failed", async () => {
+    const fetch_mock = vi.mocked(routed_fetch);
+
+    fetch_mock.mockReset();
+    fetch_mock.mockResolvedValue(new Response(null, { status: 404 }));
+    mount("missing.example");
+    await settle();
+
+    expect(observed[observed.length - 1]).toBe("data:,");
+    expect(mark_icon_failed).toHaveBeenCalledWith("missing.example");
+  });
+
+  it("rejects a response that is not an image", async () => {
+    const fetch_mock = vi.mocked(routed_fetch);
+
+    fetch_mock.mockReset();
+    fetch_mock.mockResolvedValue(
+      new Response("<svg onload=x>", {
+        status: 200,
+        headers: { "content-type": "image/svg+xml" },
+      }),
+    );
+    mount("svg.example");
+    await settle();
+
+    expect(observed[observed.length - 1]).toBe("data:,");
   });
 
   it("re-resolves synchronously when the domain changes", () => {
@@ -117,6 +209,7 @@ describe("store_favicon_if_api_url", () => {
     vi.useFakeTimers();
     const fetch_mock = vi.mocked(routed_fetch);
 
+    fetch_mock.mockReset();
     fetch_mock.mockResolvedValue(new Response(null, { status: 404 }));
 
     try {

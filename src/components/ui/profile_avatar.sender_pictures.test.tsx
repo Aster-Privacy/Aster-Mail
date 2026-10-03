@@ -38,8 +38,14 @@ vi.mock("@/hooks/use_peer_profile", () => ({
   use_peer_profile: () => null,
 }));
 
+const favicon_calls = vi.hoisted(() => [] as Array<[string, boolean]>);
+
 vi.mock("@/hooks/use_favicon_src", () => ({
-  use_favicon_src: () => "",
+  use_favicon_src: (domain: string, enabled = true) => {
+    favicon_calls.push([domain, enabled]);
+
+    return enabled ? `blob:local/favicon/${domain}` : "data:pending";
+  },
   store_favicon_if_api_url: () => undefined,
 }));
 
@@ -89,7 +95,14 @@ afterEach(() => {
     mounted = null;
   }
   prefs.value = { low_network_mode: false, show_profile_pictures: true };
+  favicon_calls.length = 0;
 });
+
+function api_requests(container: HTMLElement): string[] {
+  return Array.from(container.querySelectorAll("img"))
+    .map((img) => img.getAttribute("src") ?? "")
+    .filter((src) => src.includes("/api/"));
+}
 
 describe("sender pictures setting", () => {
   it("loads the sender domain logo when the setting is on", () => {
@@ -98,6 +111,7 @@ describe("sender pictures setting", () => {
     );
 
     expect(favicon_requests(container)).toHaveLength(1);
+    expect(api_requests(container)).toEqual([]);
   });
 
   it("requests no domain logo in any view when the setting is off", () => {
@@ -108,6 +122,7 @@ describe("sender pictures setting", () => {
     );
 
     expect(favicon_requests(container)).toEqual([]);
+    expect(favicon_calls.every(([, enabled]) => !enabled)).toBe(true);
   });
 
   it("requests no contact favicon when the setting is off", () => {
@@ -118,6 +133,7 @@ describe("sender pictures setting", () => {
     );
 
     expect(favicon_requests(container)).toEqual([]);
+    expect(favicon_calls.every(([, enabled]) => !enabled)).toBe(true);
   });
 
   it("loads the contact favicon when the setting is on", () => {
@@ -126,5 +142,6 @@ describe("sender pictures setting", () => {
     );
 
     expect(favicon_requests(container)).toHaveLength(1);
+    expect(api_requests(container)).toEqual([]);
   });
 });

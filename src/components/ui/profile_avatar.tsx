@@ -27,7 +27,6 @@ import {
   mark_icon_ok,
 } from "@/lib/icon_cache";
 import { fetch_priority_attr } from "@/lib/fetch_priority";
-import { get_favicon_url } from "@/lib/favicon_url";
 import { get_initials, get_active_locale } from "@/lib/initials";
 import {
   use_favicon_src,
@@ -175,7 +174,15 @@ export const ProfileAvatar = memo(function ProfileAvatar({
   const is_aster_domain = ASTER_DOMAINS.has(domain);
   const is_ghost_domain = domain === GHOST_DOMAIN;
 
-  const cached_favicon_src = use_favicon_src(domain);
+  const cached_favicon_src = use_favicon_src(
+    domain,
+    !low_network &&
+      domain_logos_allowed &&
+      !!domain &&
+      !is_aster_mail &&
+      !is_aster_domain &&
+      !is_ghost_domain,
+  );
 
   const ddg_logo_url = useMemo(() => {
     if (
@@ -190,9 +197,7 @@ export const ProfileAvatar = memo(function ProfileAvatar({
     )
       return null;
 
-    const favicon_src = cached_favicon_src || get_favicon_url(domain);
-
-    return favicon_src.startsWith("data:") ? null : favicon_src;
+    return cached_favicon_src.startsWith("data:") ? null : cached_favicon_src;
   }, [
     low_network,
     domain_logos_allowed,

@@ -119,6 +119,17 @@ async function read_entry(domain: string): Promise<FaviconEntry | null> {
   });
 }
 
+export function adopt_favicon_blob(domain: string, blob: Blob): string {
+  const existing = live_urls.get(domain);
+
+  if (existing) return existing;
+  const url = URL.createObjectURL(blob);
+
+  live_urls.set(domain, url);
+
+  return url;
+}
+
 export function peek_favicon_object_url(domain: string): string | null {
   return live_urls.get(domain) ?? null;
 }
