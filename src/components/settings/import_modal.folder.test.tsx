@@ -182,15 +182,17 @@ describe("ImportModal folder selection (integration)", () => {
       folder_input!.dispatchEvent(new Event("change", { bubbles: true }));
     });
 
-    for (let i = 0; i < 60 && store_calls.length === 0; i++) await flush();
-    for (let i = 0; i < 60; i++) await flush();
-
-    const total_stored = store_calls.reduce((a, b) => a + b, 0);
+    await vi.waitFor(
+      async () => {
+        await flush();
+        expect(container.textContent).toContain(
+          'settings.emails_imported_count {"count":300}',
+        );
+      },
+      { timeout: 20000, interval: 0 },
+    );
 
     expect(store_imported_emails).toHaveBeenCalled();
-    expect(total_stored).toBe(300);
-    expect(container.textContent).toContain(
-      'settings.emails_imported_count {"count":300}',
-    );
+    expect(store_calls.reduce((a, b) => a + b, 0)).toBe(300);
   });
 });

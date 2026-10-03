@@ -235,6 +235,22 @@ export function split_header_body(raw: string): {
   return { headers: raw, body: "" };
 }
 
+function is_ascii_whitespace(code: number): boolean {
+  return code === 0x20 || (code >= 0x09 && code <= 0x0d);
+}
+
+export function trim_ascii_whitespace(value: string): string {
+  let start = 0;
+  let end = value.length;
+
+  while (start < end && is_ascii_whitespace(value.charCodeAt(start))) start++;
+  while (end > start && is_ascii_whitespace(value.charCodeAt(end - 1))) end--;
+
+  return start === 0 && end === value.length
+    ? value
+    : value.substring(start, end);
+}
+
 export function parse_headers(headers_raw: string): Record<string, string> {
   const headers: Record<string, string> = {};
   const lines = headers_raw.split(/\r?\n/);
@@ -242,40 +258,76 @@ export function parse_headers(headers_raw: string): Record<string, string> {
   let current_value = "";
 
   for (const line of lines) {
-    if (line.match(/^\s+/) && current_key) {
-      current_value += " " + line.trim();
+    if (/^[ \t]/.test(line) && current_key) {
+      current_value += " " + trim_ascii_whitespace(line);
     } else {
       if (current_key) {
-        headers[current_key.toLowerCase()] = decode_header(current_value);
+        headers[current_key.toLowerCase()] = decode_header(
+          reinterpret_as_utf8(current_value),
+        );
       }
       const colon_index = line.indexOf(":");
 
       if (colon_index > 0) {
-        current_key = line.substring(0, colon_index).trim();
-        current_value = line.substring(colon_index + 1).trim();
+        current_key = trim_ascii_whitespace(line.substring(0, colon_index));
+        current_value = trim_ascii_whitespace(line.substring(colon_index + 1));
       }
     }
   }
   if (current_key) {
-    headers[current_key.toLowerCase()] = decode_header(current_value);
+    headers[current_key.toLowerCase()] = decode_header(
+      reinterpret_as_utf8(current_value),
+    );
   }
 
   return headers;
 }
 
-function extract_charset(content_type: string): string {
+function extract_charset(content_type: string): string | undefined {
   const match = content_type.match(/charset=["']?([^"';\s]+)["']?/i);
 
-  return match ? match[1] : "utf-8";
+  return match ? match[1] : undefined;
 }
 
-function reinterpret_as_utf8(body: string): string {
-  const bytes = Uint8Array.from(body, (c) => c.charCodeAt(0) & 0xff);
+function is_utf8_charset(charset: string): boolean {
+  return /^utf-?8$/i.test(charset);
+}
+
+const BINARY_STRING_CHUNK = 0x8000;
+const NON_ASCII = /[^\x00-\x7f]/;
+const NON_BYTE = /[^\x00-\xff]/;
+
+export function bytes_to_binary_string(bytes: Uint8Array): string {
+  const pieces: string[] = [];
+
+  for (let i = 0; i < bytes.length; i += BINARY_STRING_CHUNK) {
+    const chunk = bytes.subarray(i, i + BINARY_STRING_CHUNK);
+
+    pieces.push(String.fromCharCode.apply(null, chunk as unknown as number[]));
+  }
+
+  return pieces.join("");
+}
+
+function binary_string_to_bytes(value: string): Uint8Array {
+  const bytes = new Uint8Array(value.length);
+
+  for (let i = 0; i < value.length; i++) {
+    bytes[i] = value.charCodeAt(i);
+  }
+
+  return bytes;
+}
+
+function reinterpret_as_utf8(value: string, declared_utf8 = false): string {
+  if (!NON_ASCII.test(value) || NON_BYTE.test(value)) return value;
+
+  const bytes = binary_string_to_bytes(value);
 
   try {
-    return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+    return new TextDecoder("utf-8", { fatal: !declared_utf8 }).decode(bytes);
   } catch {
-    return body;
+    return decode_charset(bytes, "windows-1252");
   }
 }
 
@@ -303,12 +355,12 @@ export function decode_body(
       return decode_charset(bytes, charset);
     }
 
-    return decode_quoted_printable(body);
+    return reinterpret_as_utf8(decode_quoted_printable(body));
   }
 
   if (
     charset &&
-    charset.toLowerCase() !== "utf-8" &&
+    !is_utf8_charset(charset) &&
     charset.toLowerCase() !== "us-ascii"
   ) {
     const bytes = new Uint8Array([...result].map((c) => c.charCodeAt(0)));
@@ -316,7 +368,7 @@ export function decode_body(
     return decode_charset(bytes, charset);
   }
 
-  return reinterpret_as_utf8(result);
+  return reinterpret_as_utf8(result, !!charset && is_utf8_charset(charset));
 }
 
 function estimate_decoded_size(
