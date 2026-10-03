@@ -10367,6 +10367,8 @@ export const es = {
       "No se pudo leer esta expresión. Revisa la sintaxis e inténtalo de nuevo.",
     expr_line_col: "(línea {{line}}, columna {{col}})",
     editor_description: "Ponle nombre a tu regla y dile qué hacer.",
+    editor_server_notice:
+      "Las reglas se ejecutan en los servidores de Aster, por lo que Aster puede leer sus condiciones y direcciones de reenvío.",
     drag_handle: "Tirador para arrastrar",
     action_apply_label: "Aplicar etiqueta",
     action_apply_labels: "Aplicar etiquetas",

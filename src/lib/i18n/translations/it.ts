@@ -10424,6 +10424,8 @@ export const it = {
       "Non è stato possibile leggere questa espressione. Controlla la sintassi e riprova.",
     expr_line_col: "(riga {{line}}, colonna {{col}})",
     editor_description: "Dia un nome alla regola e le indichi cosa fare.",
+    editor_server_notice:
+      "Le regole vengono eseguite sui server di Aster, quindi Aster può leggerne le condizioni e gli indirizzi di inoltro.",
     drag_handle: "Maniglia di trascinamento",
     title: "Regole posta",
     subtitle: "Organizza automaticamente la posta in arrivo.",

@@ -10152,6 +10152,8 @@ export const ja = {
       "この式を読み取れませんでした。構文を確認して、もう一度お試しください。",
     expr_line_col: "（{{line}} 行、{{col}} 列）",
     editor_description: "ルールに名前を付けて、動作を指定します。",
+    editor_server_notice:
+      "ルールは Aster のサーバーで実行されるため、Aster はその条件と転送先アドレスを読み取れます。",
     drag_handle: "ドラッグハンドル",
     title: "メールルール",
     subtitle: "受信メールを自動的に整理します。",

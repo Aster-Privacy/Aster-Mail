@@ -9950,6 +9950,8 @@ export const ko = {
       "이 표현식을 읽을 수 없습니다. 구문을 확인한 후 다시 시도하세요.",
     expr_line_col: "({{line}}행, {{col}}열)",
     editor_description: "규칙에 이름을 붙이고 할 일을 지정하세요.",
+    editor_server_notice:
+      "규칙은 Aster 서버에서 실행되므로 Aster가 규칙의 조건과 전달 주소를 읽을 수 있습니다.",
     drag_handle: "드래그 핸들",
     title: "메일 규칙",
     subtitle: "수신 메일을 자동으로 정리합니다.",

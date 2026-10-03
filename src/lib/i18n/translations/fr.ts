@@ -10495,6 +10495,8 @@ export const fr = {
       "Cette expression n'a pas pu être lue. Vérifiez la syntaxe, puis réessayez.",
     expr_line_col: "(ligne {{line}}, colonne {{col}})",
     editor_description: "Nommez votre règle et indiquez-lui quoi faire.",
+    editor_server_notice:
+      "Les règles s'exécutent sur les serveurs d'Aster, qui peut donc lire leurs conditions et leurs adresses de transfert.",
     drag_handle: "Poignée de déplacement",
     action_apply_label: "Appliquer une étiquette",
     action_apply_labels: "Appliquer des étiquettes",

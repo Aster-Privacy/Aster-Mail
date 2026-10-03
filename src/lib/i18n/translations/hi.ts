@@ -10109,6 +10109,8 @@ export const hi = {
   },
   mail_rules: {
     editor_description: "अपने नियम को नाम दें और बताएं कि उसे क्या करना है।",
+    editor_server_notice:
+      "नियम Aster के सर्वर पर चलते हैं, इसलिए Aster उनकी शर्तें और फ़ॉरवर्डिंग पते पढ़ सकता है।",
     drag_handle: "खींचने का हैंडल",
     title: "मेल नियम",
     subtitle: "आने वाला मेल अपने आप व्यवस्थित करें।",

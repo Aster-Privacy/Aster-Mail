@@ -10237,6 +10237,8 @@ export const tr = {
       "Bu ifade okunamadı. Söz dizimini kontrol edip tekrar deneyin.",
     expr_line_col: "(satır {{line}}, sütun {{col}})",
     editor_description: "Kuralınıza bir ad verin ve ne yapacağını belirtin.",
+    editor_server_notice:
+      "Kurallar Aster sunucularında çalışır, bu nedenle Aster koşullarını ve yönlendirme adreslerini okuyabilir.",
     drag_handle: "Sürükleme tutamacı",
     no_labels: "Etiket yok",
     no_labels_create_hint: "Henüz etiket yok. Yan panelden bir tane oluşturun.",

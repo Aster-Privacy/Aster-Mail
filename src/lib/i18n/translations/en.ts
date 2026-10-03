@@ -10059,6 +10059,8 @@ export const en: Translations = {
   },
   mail_rules: {
     editor_description: "Name your rule and tell it what to do.",
+    editor_server_notice:
+      "Rules run on Aster servers, so Aster can read their conditions and forwarding addresses.",
     drag_handle: "Drag handle",
     title: "Mail Rules",
     subtitle: "Automatically organize incoming mail.",

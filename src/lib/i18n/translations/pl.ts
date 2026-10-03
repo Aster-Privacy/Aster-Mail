@@ -10582,6 +10582,8 @@ export const pl = {
       "Nie udało się odczytać tego wyrażenia. Sprawdź składnię i spróbuj ponownie.",
     expr_line_col: "(wiersz {{line}}, kolumna {{col}})",
     editor_description: "Nazwij regułę i określ, co ma robić.",
+    editor_server_notice:
+      "Reguły działają na serwerach Aster, więc Aster może odczytać ich warunki i adresy przekazywania.",
     drag_handle: "Uchwyt przeciągania",
     no_labels: "Brak etykiet",
     no_labels_create_hint: "Brak etykiet. Utwórz jedną w pasku bocznym.",

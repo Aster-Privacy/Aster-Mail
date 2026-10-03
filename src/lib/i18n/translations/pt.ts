@@ -10481,6 +10481,8 @@ export const pt = {
       "Não foi possível ler esta expressão. Verifique a sintaxe e tente novamente.",
     expr_line_col: "(linha {{line}}, coluna {{col}})",
     editor_description: "Dê um nome à sua regra e indique-lhe o que fazer.",
+    editor_server_notice:
+      "As regras são executadas nos servidores da Aster, pelo que a Aster pode ler as respetivas condições e endereços de reencaminhamento.",
     drag_handle: "Pega para arrastar",
     no_labels: "Sem etiquetas",
     no_labels_create_hint: "Nenhuma etiqueta ainda. Crie uma na barra lateral.",

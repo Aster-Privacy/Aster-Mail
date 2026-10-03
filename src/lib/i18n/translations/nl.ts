@@ -10345,6 +10345,8 @@ export const nl = {
       "Deze expressie kon niet worden gelezen. Controleer de syntaxis en probeer het opnieuw.",
     expr_line_col: "(regel {{line}}, kolom {{col}})",
     editor_description: "Geef je regel een naam en vertel wat deze moet doen.",
+    editor_server_notice:
+      "Regels worden uitgevoerd op de servers van Aster, dus Aster kan de voorwaarden en doorstuuradressen lezen.",
     drag_handle: "Sleepgreep",
     title: "E-mailregels",
     subtitle: "Inkomende e-mail automatisch organiseren.",

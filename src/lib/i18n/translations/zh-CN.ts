@@ -9200,6 +9200,8 @@ export const zh_CN = {
     expr_internal_error: "无法读取此表达式。请检查语法后重试。",
     expr_line_col: "(第 {{line}} 行，第 {{col}} 列)",
     editor_description: "为规则命名并指定它的操作。",
+    editor_server_notice:
+      "规则在 Aster 服务器上运行，因此 Aster 可以读取规则的条件和转发地址。",
     drag_handle: "拖动手柄",
     title: "邮件规则",
     subtitle: "自动整理收件箱。",

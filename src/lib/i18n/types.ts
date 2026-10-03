@@ -402,6 +402,7 @@ export interface FolderRetentionTranslations {
 
 export interface MailRulesTranslations {
   editor_description: string;
+  editor_server_notice: string;
   drag_handle: string;
   title: string;
   subtitle: string;

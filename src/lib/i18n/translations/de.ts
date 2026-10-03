@@ -10503,6 +10503,8 @@ export const de = {
     expr_line_col: "(Zeile {{line}}, Spalte {{col}})",
     editor_description:
       "Benennen Sie Ihre Regel und legen Sie fest, was sie tut.",
+    editor_server_notice:
+      "Regeln laufen auf den Servern von Aster, daher kann Aster ihre Bedingungen und Weiterleitungsadressen lesen.",
     drag_handle: "Ziehgriff",
     no_labels: "Keine Labels",
     no_labels_create_hint:
