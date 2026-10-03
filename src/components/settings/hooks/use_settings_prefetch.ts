@@ -28,14 +28,12 @@ import {
 import { list_forwarding_rules } from "@/services/api/auto_forward";
 import { list_blocked_senders } from "@/services/api/blocked_senders";
 import { list_allowed_senders } from "@/services/api/allowed_senders";
-import { list_subscriptions } from "@/services/api/subscriptions";
 import { list_signatures } from "@/services/api/signatures";
 import { list_templates } from "@/services/api/templates";
 import { list_import_jobs } from "@/services/api/email_import";
 import { list_external_accounts } from "@/services/api/external_accounts";
 import { get_vacation_reply } from "@/services/api/vacation_reply";
 import { list_ghost_aliases } from "@/services/api/ghost_aliases";
-import { list_aliases } from "@/services/api/aliases";
 import { list_sessions } from "@/services/api/sessions";
 import { list_devices } from "@/services/api/devices";
 import { get_totp_status } from "@/services/api/totp";
@@ -62,14 +60,12 @@ const PANEL_FETCHERS: Record<SettingsPanelName, Fetcher> = {
   auto_forward: () => list_forwarding_rules(),
   blocked: () => list_blocked_senders(),
   allowlist: () => list_allowed_senders(),
-  subscriptions: () => list_subscriptions({ status: "active", limit: 100 }),
   signature: () => list_signatures(),
   templates: () => list_templates(),
   import: () => list_import_jobs(),
   external_accounts: () => list_external_accounts(),
   vacation_reply: () => get_vacation_reply(),
   ghost_aliases: () => list_ghost_aliases(),
-  aliases: () => list_aliases(),
   sessions: () => list_sessions(),
   recovery_email: () => Promise.resolve(null),
   preferences: () => Promise.resolve(null),
@@ -85,14 +81,12 @@ const PREFETCH_PANELS: SettingsPanelName[] = [
   "auto_forward",
   "blocked",
   "allowlist",
-  "subscriptions",
   "signature",
   "templates",
   "import",
   "external_accounts",
   "vacation_reply",
   "ghost_aliases",
-  "aliases",
   "sessions",
   "trusted_devices",
   "totp_status",
