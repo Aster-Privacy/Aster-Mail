@@ -56,20 +56,27 @@ vi.mock("@/services/crypto/mail_metadata", () => ({
 vi.mock("@/services/mail_categorizer", () => ({
   CLASSIFIER_VERSION: 2,
   classify: (
-    _envelope: unknown,
+    envelope: { from?: { email?: string } },
     metadata: { category?: string; category_pinned?: boolean } | null,
     options?: { rule_category?: string | null },
   ) =>
     metadata?.category_pinned && metadata.category
       ? metadata.category
-      : (options?.rule_category ?? "primary"),
+      : envelope.from?.email === "friends@social.example"
+        ? "social"
+        : (options?.rule_category ?? "primary"),
   is_locked_to_primary: () => false,
   CATEGORY_TABS: ["primary", "social", "promotions"],
 }));
 
-const decrypt_envelope = vi.fn(async (_blob: string, _nonce: string) => ({
+const decrypt_envelope = vi.fn(async (blob: string, _nonce: string) => ({
   subject: "Subject",
-  from: { name: "Sender", email: "sender@example.com" },
+  from: {
+    name: "Sender",
+    email: blob.endsWith("-S")
+      ? "friends@social.example"
+      : "sender@example.com",
+  },
 }));
 
 vi.mock("@/hooks/email_list_helpers", () => ({
@@ -353,6 +360,28 @@ describe("category_index resync decrypt work", () => {
     });
     expect(get_index_entries(["m1"])[0]?.category).toBe("promotions");
   });
+
+  for (const nonce of ["", "AQ=="]) {
+    it(`re-decrypts a replaced envelope of the same length with fixed nonce "${nonce}"`, async () => {
+      serve([
+        make_item(0, { encrypted_envelope: "env-A", envelope_nonce: nonce }),
+      ]);
+      await sync_recent();
+      await settle();
+
+      expect(get_index_entries(["m0"])[0]?.category).toBe("primary");
+      reset_counts();
+
+      serve([
+        make_item(0, { encrypted_envelope: "env-S", envelope_nonce: nonce }),
+      ]);
+      await sync_recent();
+      await settle();
+
+      expect(decrypt_envelope).toHaveBeenCalledTimes(1);
+      expect(get_index_entries(["m0"])[0]?.category).toBe("social");
+    });
+  }
 
   it("decrypts again once the previews are cleared", async () => {
     serve([make_item(0)]);

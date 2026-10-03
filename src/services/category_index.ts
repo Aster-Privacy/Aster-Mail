@@ -1870,13 +1870,15 @@ type ItemIndexResult =
   | { kind: "keep" };
 
 // What item_to_entry last derived from each decrypted item, so a resync of a
-// page the index already holds does not decrypt it again. The key covers every
-// input of the decrypted part (envelope, metadata blob, server rule category,
-// sender trust, custom categories); flags the list item carries in the clear
+// page the index already holds does not decrypt it again. Reuse requires the
+// same envelope ciphertext (compared in full: some formats carry a fixed
+// nonce), the same key (metadata blob, server rule category, sender trust)
+// and the same custom categories; flags the list item carries in the clear
 // are re-read from the item on reuse. Cleared together with the previews.
 const MAX_DECODED_ITEMS = 300;
 
 interface DecodedItem {
+  envelope: string;
   key: string;
   custom_categories: CustomCategoryRule[];
   entry: CategoryIndexEntry;
@@ -1886,7 +1888,6 @@ const decoded_items = new Map<string, DecodedItem>();
 
 function decoded_item_key(item: MailItem): string {
   return JSON.stringify([
-    item.encrypted_envelope.length,
     item.envelope_nonce,
     item.encrypted_metadata ?? null,
     item.metadata_nonce ?? null,
@@ -1905,6 +1906,7 @@ function remember_decoded_item(
 ): void {
   decoded_items.delete(item.id);
   decoded_items.set(item.id, {
+    envelope: item.encrypted_envelope,
     key: decoded_item_key(item),
     custom_categories,
     entry,
@@ -1928,6 +1930,7 @@ function reuse_decoded_item(item: MailItem): CategoryIndexEntry | null {
   if (!decoded || !existing || !preview) return null;
   if (existing.needs_reclassify) return null;
   if (decoded.custom_categories !== custom_categories) return null;
+  if (decoded.envelope !== item.encrypted_envelope) return null;
   if (decoded.key !== decoded_item_key(item)) return null;
 
   remember_entry_preview(item.id, preview);
