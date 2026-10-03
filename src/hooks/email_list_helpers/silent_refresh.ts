@@ -23,6 +23,45 @@ import type { InboxEmail } from "@/types/email";
 
 import { drop_removed_after } from "@/services/removed_items";
 
+function same_value(left: unknown, right: unknown): boolean {
+  if (left === right) return true;
+  if (
+    typeof left !== "object" ||
+    typeof right !== "object" ||
+    left === null ||
+    right === null
+  ) {
+    return false;
+  }
+
+  if (Array.isArray(left) || Array.isArray(right)) {
+    if (!Array.isArray(left) || !Array.isArray(right)) return false;
+    if (left.length !== right.length) return false;
+
+    return left.every((value, index) => same_value(value, right[index]));
+  }
+
+  if (
+    Object.getPrototypeOf(left) !== Object.prototype ||
+    Object.getPrototypeOf(right) !== Object.prototype
+  ) {
+    return false;
+  }
+
+  const left_record = left as Record<string, unknown>;
+  const right_record = right as Record<string, unknown>;
+  const keys = new Set([
+    ...Object.keys(left_record),
+    ...Object.keys(right_record),
+  ]);
+
+  for (const key of keys) {
+    if (!same_value(left_record[key], right_record[key])) return false;
+  }
+
+  return true;
+}
+
 export function merge_silent_refresh_emails(
   previous: InboxEmail[],
   incoming: InboxEmail[],
@@ -32,10 +71,18 @@ export function merge_silent_refresh_emails(
   const selected_ids = new Set(
     previous.filter((e) => e.is_selected).map((e) => e.id),
   );
+  const previous_by_id = new Map(previous.map((e) => [e.id, e]));
 
-  if (selected_ids.size === 0) return surviving;
+  const merged = surviving.map((e) => {
+    const next = selected_ids.has(e.id) ? { ...e, is_selected: true } : e;
+    const existing = previous_by_id.get(e.id);
 
-  return surviving.map((e) =>
-    selected_ids.has(e.id) ? { ...e, is_selected: true } : e,
-  );
+    return existing && same_value(existing, next) ? existing : next;
+  });
+
+  const unchanged =
+    merged.length === previous.length &&
+    merged.every((e, index) => e === previous[index]);
+
+  return unchanged ? previous : merged;
 }

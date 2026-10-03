@@ -25,6 +25,7 @@ import {
   compute_should_remove_from_view,
   destination_views_for_update,
 } from "./view_membership";
+import { clear_list_decrypt_cache } from "./email_list_helpers/decrypt_cache";
 
 import {
   clear_email_cache,
@@ -103,6 +104,7 @@ export function invalidate_mail_cache(view?: string): void {
 
 export function clear_mail_cache(): void {
   view_cache.clear();
+  clear_list_decrypt_cache();
   clear_email_cache().catch((caught) =>
     ignore_error("hooks/email_list_cache:clear_mail_cache", caught),
   );
