@@ -20,10 +20,8 @@
 //
 import type { DraftWithContent } from "@/services/api/multi_drafts";
 
-import {
-  forget_removed_ids,
-  note_removed_ids,
-} from "@/services/removed_items";
+import { forget_removed_ids, note_removed_ids } from "@/services/removed_items";
+import { request_cache } from "@/services/api/request_cache";
 
 export const MAIL_EVENTS = {
   MAIL_CHANGED: "astermail:mail-changed",
@@ -374,6 +372,7 @@ export function emit_mail_soft_refresh(): void {
 }
 
 export function emit_refresh_requested(): void {
+  request_cache.invalidate("GET:/mail/v1/messages");
   mail_event_bus.emit(MAIL_EVENTS.REFRESH_REQUESTED);
 }
 

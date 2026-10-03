@@ -231,6 +231,7 @@ export async function get_mail_stats(
 ): Promise<ApiResponse<MailUserStatsResponse>> {
   return api_client.get<MailUserStatsResponse>(
     fresh ? "/mail/v1/messages/stats?fresh=1" : "/mail/v1/messages/stats",
+    fresh ? { skip_cache: true } : undefined,
   );
 }
 
