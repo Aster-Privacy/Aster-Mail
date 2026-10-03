@@ -7196,6 +7196,8 @@ export interface SettingsTranslations {
   alias_import_csv: string;
   alias_import_progress: string;
   alias_import_done: string;
+  alias_import_done_one?: string;
+  alias_import_done_few?: string;
   alias_import_skipped: string;
   alias_import_title: string;
   alias_import_drop_hint: string;
@@ -7209,8 +7211,17 @@ export interface SettingsTranslations {
   alias_import_confirm: string;
   alias_import_confirm_one?: string;
   alias_import_summary_created: string;
+  alias_import_summary_created_one?: string;
+  alias_import_summary_re_enabled: string;
+  alias_import_summary_re_enabled_one?: string;
   alias_import_summary_skipped: string;
+  alias_import_summary_skipped_one?: string;
+  alias_import_summary_invalid: string;
+  alias_import_summary_invalid_one?: string;
+  alias_import_summary_unselected: string;
+  alias_import_summary_unselected_one?: string;
   alias_import_summary_failed: string;
+  alias_import_summary_failed_one?: string;
   alias_import_error_no_aliases: string;
   alias_import_protonpass_encrypted_error: string;
   alias_import_target_domain: string;

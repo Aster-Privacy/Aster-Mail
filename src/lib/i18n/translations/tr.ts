@@ -3058,7 +3058,8 @@ export const tr = {
     alias_export_failed: "Dışa aktarma başarısız. Hiçbir şey indirilmedi.",
     alias_import_csv: "Rumuzları İçe Aktar",
     alias_import_progress: "{{total}} rumuzdan {{current}} içe aktarılıyor...",
-    alias_import_done: "{{created}} rumuz içe aktarıldı.",
+    alias_import_done: "{{count}} rumuz içe aktarıldı.",
+    alias_import_done_one: "{{count}} rumuz içe aktarıldı.",
     alias_import_skipped: "{{skipped}} atlandı (desteklenmeyen alan adı).",
     alias_import_title: "Rumuzları İçe Aktar",
     alias_import_drop_hint:
@@ -3073,7 +3074,10 @@ export const tr = {
     alias_import_confirm: "{{count}} rumuzu içe aktar",
     alias_import_confirm_one: "{{count}} rumuzu içe aktar",
     alias_import_summary_created: "{{count}} içe aktarıldı",
+    alias_import_summary_re_enabled: "{{count}} yeniden etkinleştirildi",
     alias_import_summary_skipped: "{{count}} zaten mevcuttu",
+    alias_import_summary_invalid: "{{count}} geçersiz",
+    alias_import_summary_unselected: "{{count}} seçilmedi",
     alias_import_summary_failed: "{{count}} başarısız",
     alias_import_error_no_aliases:
       "Bu dosyada içe aktarılabilir rumuz bulunamadı.",

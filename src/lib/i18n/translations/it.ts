@@ -3119,7 +3119,8 @@ export const it = {
       "Esportazione non riuscita. Non è stato scaricato nulla.",
     alias_import_csv: "Importa alias",
     alias_import_progress: "Importazione di {{current}} di {{total}}...",
-    alias_import_done: "Importati {{created}} alias.",
+    alias_import_done: "Importati {{count}} alias.",
+    alias_import_done_one: "Importato {{count}} alias.",
     alias_import_skipped: "{{skipped}} ignorati (dominio non supportato).",
     alias_import_title: "Importa alias",
     alias_import_drop_hint:
@@ -3134,8 +3135,17 @@ export const it = {
     alias_import_confirm: "Importa {{count}} alias",
     alias_import_confirm_one: "Importa {{count}} alias",
     alias_import_summary_created: "{{count}} importati",
+    alias_import_summary_created_one: "{{count}} importato",
+    alias_import_summary_re_enabled: "{{count}} riabilitati",
+    alias_import_summary_re_enabled_one: "{{count}} riabilitato",
     alias_import_summary_skipped: "{{count}} già esistenti",
+    alias_import_summary_skipped_one: "{{count}} già esistente",
+    alias_import_summary_invalid: "{{count}} non validi",
+    alias_import_summary_invalid_one: "{{count}} non valido",
+    alias_import_summary_unselected: "{{count}} non selezionati",
+    alias_import_summary_unselected_one: "{{count}} non selezionato",
     alias_import_summary_failed: "{{count}} non riusciti",
+    alias_import_summary_failed_one: "{{count}} non riuscito",
     alias_import_error_no_aliases:
       "Nessun alias importabile trovato in questo file.",
     alias_import_protonpass_encrypted_error:

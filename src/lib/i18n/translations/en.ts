@@ -7837,7 +7837,8 @@ export const en: Translations = {
     alias_export_failed: "Export failed. Nothing was downloaded.",
     alias_import_csv: "Import Aliases",
     alias_import_progress: "Importing {{current}} of {{total}}...",
-    alias_import_done: "Imported {{created}} aliases.",
+    alias_import_done: "Imported {{count}} aliases.",
+    alias_import_done_one: "Imported {{count}} alias.",
     alias_import_skipped: "{{skipped}} skipped (unsupported domain).",
     alias_import_title: "Import Aliases",
     alias_import_drop_hint:
@@ -7852,7 +7853,10 @@ export const en: Translations = {
     alias_import_confirm: "Import {{count}} aliases",
     alias_import_confirm_one: "Import {{count}} alias",
     alias_import_summary_created: "{{count}} imported",
+    alias_import_summary_re_enabled: "{{count}} re-enabled",
     alias_import_summary_skipped: "{{count}} already existed",
+    alias_import_summary_invalid: "{{count}} invalid",
+    alias_import_summary_unselected: "{{count}} not selected",
     alias_import_summary_failed: "{{count}} failed",
     alias_import_error_no_aliases: "No importable aliases found in this file.",
     alias_import_protonpass_encrypted_error:

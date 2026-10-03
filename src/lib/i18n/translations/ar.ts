@@ -3170,7 +3170,8 @@ export const ar = {
     alias_export_failed: "فشل التصدير. لم يتم تنزيل أي شيء.",
     alias_import_csv: "استيراد الأسماء المستعارة",
     alias_import_progress: "جارٍ استيراد {{current}} من {{total}}...",
-    alias_import_done: "تم استيراد {{created}} اسمًا مستعارًا.",
+    alias_import_done: "تم استيراد {{count}} اسمًا مستعارًا.",
+    alias_import_done_one: "تم استيراد {{count}} اسم مستعار.",
     alias_import_skipped: "تم تخطّي {{skipped}} (نطاق غير مدعوم).",
     alias_import_title: "استيراد الأسماء المستعارة",
     alias_import_drop_hint:
@@ -3185,7 +3186,10 @@ export const ar = {
     alias_import_confirm: "استيراد {{count}} اسمًا مستعارًا",
     alias_import_confirm_one: "استيراد {{count}} اسم مستعار",
     alias_import_summary_created: "{{count}} مستورَد",
+    alias_import_summary_re_enabled: "{{count}} أُعيد تفعيله",
     alias_import_summary_skipped: "{{count}} موجود بالفعل",
+    alias_import_summary_invalid: "{{count}} غير صالح",
+    alias_import_summary_unselected: "{{count}} غير محدد",
     alias_import_summary_failed: "{{count}} فشل",
     alias_import_error_no_aliases:
       "لم يُعثر على أسماء مستعارة قابلة للاستيراد في هذا الملف.",

@@ -7922,7 +7922,8 @@ export const hi = {
     alias_import_csv: "एलियास इंपोर्ट करें",
     alias_import_progress:
       "{{total}} में से {{current}} इंपोर्ट किया जा रहा है...",
-    alias_import_done: "{{created}} एलियास इंपोर्ट हो गए।",
+    alias_import_done: "{{count}} एलियास इंपोर्ट हो गए।",
+    alias_import_done_one: "{{count}} एलियास इंपोर्ट हुआ।",
     alias_import_skipped: "{{skipped}} छोड़े गए (असमर्थित डोमेन)।",
     alias_import_title: "एलियास इंपोर्ट करें",
     alias_import_drop_hint:
@@ -7937,7 +7938,14 @@ export const hi = {
     alias_import_confirm: "{{count}} एलियास इंपोर्ट करें",
     alias_import_confirm_one: "{{count}} एलियास इंपोर्ट करें",
     alias_import_summary_created: "{{count}} इंपोर्ट हुए",
+    alias_import_summary_created_one: "{{count}} इंपोर्ट हुआ",
+    alias_import_summary_re_enabled: "{{count}} दोबारा चालू किए गए",
+    alias_import_summary_re_enabled_one: "{{count}} दोबारा चालू किया गया",
     alias_import_summary_skipped: "{{count}} पहले से मौजूद थे",
+    alias_import_summary_skipped_one: "{{count}} पहले से मौजूद था",
+    alias_import_summary_invalid: "{{count}} अमान्य",
+    alias_import_summary_unselected: "{{count}} चुने नहीं गए",
+    alias_import_summary_unselected_one: "{{count}} चुना नहीं गया",
     alias_import_summary_failed: "{{count}} विफल",
     alias_import_error_no_aliases:
       "इस फ़ाइल में इंपोर्ट करने लायक कोई एलियास नहीं मिला।",

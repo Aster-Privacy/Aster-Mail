@@ -3268,7 +3268,9 @@ export const pl = {
     alias_export_failed: "Eksport nie powiódł się. Nic nie zostało pobrane.",
     alias_import_csv: "Importuj aliasy",
     alias_import_progress: "Importowanie {{current}} z {{total}}...",
-    alias_import_done: "Zaimportowano {{created}} aliasów.",
+    alias_import_done: "Zaimportowano {{count}} aliasów.",
+    alias_import_done_one: "Zaimportowano {{count}} alias.",
+    alias_import_done_few: "Zaimportowano {{count}} aliasy.",
     alias_import_skipped: "Pominięto {{skipped}} (nieobsługiwana domena).",
     alias_import_title: "Importuj aliasy",
     alias_import_drop_hint:
@@ -3284,7 +3286,10 @@ export const pl = {
     alias_import_confirm_one: "Importuj {{count}} alias",
     alias_import_confirm_few: "Importuj {{count}} aliasy",
     alias_import_summary_created: "Zaimportowano: {{count}}",
+    alias_import_summary_re_enabled: "Włączono ponownie: {{count}}",
     alias_import_summary_skipped: "Już istniało: {{count}}",
+    alias_import_summary_invalid: "Nieprawidłowe: {{count}}",
+    alias_import_summary_unselected: "Niezaznaczone: {{count}}",
     alias_import_summary_failed: "Nie powiodło się: {{count}}",
     alias_import_error_no_aliases:
       "Nie znaleziono aliasów do zaimportowania w tym pliku.",

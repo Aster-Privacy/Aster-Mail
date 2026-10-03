@@ -3109,7 +3109,8 @@ export const de = {
       "Export fehlgeschlagen. Es wurde nichts heruntergeladen.",
     alias_import_csv: "Aliase importieren",
     alias_import_progress: "Importiere {{current}} von {{total}}...",
-    alias_import_done: "{{created}} Aliase importiert.",
+    alias_import_done: "{{count}} Aliase importiert.",
+    alias_import_done_one: "{{count}} Alias importiert.",
     alias_import_skipped:
       "{{skipped}} übersprungen (nicht unterstützte Domain).",
     alias_import_title: "Aliase importieren",
@@ -3125,7 +3126,11 @@ export const de = {
     alias_import_confirm: "{{count}} Aliase importieren",
     alias_import_confirm_one: "{{count}} Alias importieren",
     alias_import_summary_created: "{{count}} importiert",
+    alias_import_summary_re_enabled: "{{count}} wieder aktiviert",
     alias_import_summary_skipped: "{{count}} existierten bereits",
+    alias_import_summary_skipped_one: "{{count}} existierte bereits",
+    alias_import_summary_invalid: "{{count}} ungültig",
+    alias_import_summary_unselected: "{{count}} nicht ausgewählt",
     alias_import_summary_failed: "{{count}} fehlgeschlagen",
     alias_import_error_no_aliases:
       "In dieser Datei wurden keine importierbaren Aliase gefunden.",
