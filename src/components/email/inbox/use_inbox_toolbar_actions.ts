@@ -284,6 +284,8 @@ export function use_inbox_toolbar_actions({
     current_view,
     email_state,
     update_email,
+    remove_email,
+    conversation_grouping: preferences.conversation_grouping,
     folders_lookup,
     tags_lookup,
     is_drafts_view,
@@ -1072,6 +1074,8 @@ export function use_inbox_toolbar_actions({
     handle_toolbar_unarchive: archive_snooze_actions.handle_toolbar_unarchive,
     handle_toolbar_toggle_folder:
       folder_tag_actions.handle_toolbar_toggle_folder,
+    handle_toolbar_move_out_of_bin:
+      folder_tag_actions.handle_toolbar_move_out_of_bin,
     handle_toolbar_toggle_tag: folder_tag_actions.handle_toolbar_toggle_tag,
     confirm_delete: delete_actions.confirm_delete,
     confirm_archive: archive_snooze_actions.confirm_archive,

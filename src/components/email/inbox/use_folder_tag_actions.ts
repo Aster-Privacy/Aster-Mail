@@ -20,6 +20,7 @@
 //
 import type { InboxEmail } from "@/types/email";
 import type { TranslationKey } from "@/lib/i18n/types";
+import type { StatDeltas } from "@/hooks/use_stat_helpers";
 
 import { useCallback } from "react";
 
@@ -34,6 +35,21 @@ import {
   emit_mail_item_updated,
   emit_mail_items_removed,
 } from "@/hooks/mail_events";
+import { emit_mail_changed } from "@/hooks/email_action_types";
+import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
+import {
+  apply_stat_deltas,
+  compute_restore_deltas,
+  compute_untrash_deltas,
+  revert_stat_deltas,
+} from "@/hooks/use_stat_helpers";
+import {
+  bin_source_of_view,
+  move_out_of_bin,
+} from "@/hooks/email_actions/move_out_of_bin";
+import { leaves_view_on_folder_move } from "@/hooks/view_membership";
+import { show_toast } from "@/components/toast/simple_toast";
+import { show_action_toast } from "@/components/toast/action_toast";
 import {
   batched_bulk_add_folder,
   batched_bulk_remove_folder,
@@ -55,6 +71,8 @@ interface UseFolderTagActionsOptions {
     total_messages: number;
   };
   update_email: (id: string, updates: Partial<InboxEmail>) => void;
+  remove_email: (id: string) => void;
+  conversation_grouping: boolean | undefined;
   folders_lookup: Map<string, { name: string; color?: string }>;
   tags_lookup: Map<string, { name: string; color?: string; icon?: string }>;
   is_drafts_view: boolean;
@@ -66,14 +84,149 @@ export function use_folder_tag_actions({
   current_view,
   email_state,
   update_email,
+  remove_email,
+  conversation_grouping,
   folders_lookup,
   tags_lookup,
   is_drafts_view,
   is_scheduled_view,
 }: UseFolderTagActionsOptions) {
+  const handle_toolbar_move_out_of_bin = useCallback(
+    async (target_folder_token: string | null): Promise<void> => {
+      const source = bin_source_of_view(current_view);
+
+      if (!source) return;
+      const selected = email_state.emails.filter((e) => e.is_selected);
+
+      if (selected.length === 0) return;
+      const folder_data = target_folder_token
+        ? folders_lookup.get(target_folder_token)
+        : undefined;
+      const folder_name = folder_data?.name || t("common.folder_fallback");
+      const next_folders = target_folder_token
+        ? [
+            {
+              folder_token: target_folder_token,
+              name: folder_name,
+              color: folder_data?.color,
+            },
+          ]
+        : [];
+      const deltas_for = (email: InboxEmail): StatDeltas => {
+        if (target_folder_token) {
+          return {
+            unread: 0,
+            inbox: 0,
+            sent: 0,
+            trash: source === "trash" ? -1 : 0,
+            archived: 0,
+          };
+        }
+
+        return source === "trash"
+          ? compute_untrash_deltas(email)
+          : compute_restore_deltas(email);
+      };
+      const cleared_flag =
+        source === "trash" ? { is_trashed: false } : { is_spam: false };
+      const restored_flag =
+        source === "trash" ? { is_trashed: true } : { is_spam: true };
+
+      const result = await move_out_of_bin({
+        emails: selected,
+        source,
+        target_folder_token,
+        conversation_grouping,
+      });
+
+      if (result.moved.length === 0) {
+        show_toast(t("common.failed_to_update_emails"), "error");
+
+        return;
+      }
+
+      const applied = result.moved.map(deltas_for);
+
+      for (const email of result.moved) {
+        remove_email(email.id);
+      }
+      applied.forEach(apply_stat_deltas);
+      for (const email of result.moved) {
+        for (const id of expand_email_ids(email)) {
+          emit_mail_item_updated({
+            id,
+            ...cleared_flag,
+            folders: next_folders,
+          });
+        }
+      }
+      emit_mail_changed();
+      invalidate_mail_stats();
+
+      if (result.filing_failed) {
+        window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
+        show_toast(t("common.failed_to_update_emails"), "error");
+
+        return;
+      }
+
+      if (result.failed.length > 0) {
+        show_toast(
+          t("common.bulk_action_partially_applied", {
+            count: result.moved.length,
+            total: selected.length,
+          }),
+          "error",
+        );
+
+        return;
+      }
+
+      show_action_toast({
+        message: target_folder_token
+          ? t("common.conversations_moved_to_folder", {
+              count: result.moved.length,
+              folder: folder_name,
+            })
+          : t("common.moved_to_inbox_toast"),
+        action_type: "restore",
+        email_ids: result.moved.map((e) => e.id),
+        on_undo: async () => {
+          applied.forEach(revert_stat_deltas);
+          await result.undo();
+          for (const email of result.moved) {
+            for (const id of expand_email_ids(email)) {
+              emit_mail_item_updated({
+                id,
+                ...restored_flag,
+                folders: email.folders ?? [],
+              });
+            }
+          }
+          emit_mail_changed();
+          invalidate_mail_stats();
+          window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
+        },
+      });
+    },
+    [
+      email_state.emails,
+      folders_lookup,
+      remove_email,
+      conversation_grouping,
+      current_view,
+      t,
+    ],
+  );
+
   const handle_toolbar_toggle_folder = useCallback(
     async (folder_token: string, should_remove: boolean): Promise<void> => {
       if (is_drafts_view || is_scheduled_view) return;
+      if (bin_source_of_view(current_view)) {
+        await handle_toolbar_move_out_of_bin(folder_token);
+
+        return;
+      }
       const selected = email_state.emails.filter((e) => e.is_selected);
 
       if (selected.length === 0) return;
@@ -84,27 +237,23 @@ export function use_folder_tag_actions({
         selected.map((e) => [e.id, e.folders || []]),
       );
 
-      const is_inbox =
-        current_view === "inbox" ||
-        current_view === "" ||
-        current_view === "all" ||
-        current_view === "starred" ||
-        current_view === "snoozed";
+      const leaves_view =
+        !should_remove &&
+        leaves_view_on_folder_move(current_view, folder_token);
 
       const compute_next_folders = (email_id: string) => {
-        const without = (previous_states.get(email_id) ?? []).filter(
+        if (!should_remove) {
+          return [
+            { folder_token, name: folder_name, color: folder_data?.color },
+          ];
+        }
+
+        return (previous_states.get(email_id) ?? []).filter(
           (f) => f.folder_token !== folder_token,
         );
-
-        return should_remove
-          ? without
-          : [
-              ...without,
-              { folder_token, name: folder_name, color: folder_data?.color },
-            ];
       };
 
-      if (!should_remove && is_inbox) {
+      if (leaves_view) {
         emit_mail_items_removed({ ids: all_ids });
       } else {
         for (const email of selected) {
@@ -130,7 +279,7 @@ export function use_folder_tag_actions({
             folders: previous_states.get(email.id) ?? [],
           });
         }
-        if (!should_remove && is_inbox) {
+        if (leaves_view) {
           reindex_ids(failed_emails.flatMap(expand_email_ids));
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         }
@@ -165,6 +314,14 @@ export function use_folder_tag_actions({
             remove_index_ids(succeeded_ids);
           } else {
             await batched_bulk_remove_folder(succeeded_ids, folder_token);
+            for (const email of succeeded_emails) {
+              for (const previous of previous_states.get(email.id) ?? []) {
+                await batched_bulk_add_folder(
+                  expand_email_ids(email),
+                  previous.folder_token,
+                );
+              }
+            }
             reindex_ids(succeeded_ids);
           }
           for (const email of succeeded_emails) {
@@ -184,6 +341,7 @@ export function use_folder_tag_actions({
       current_view,
       is_drafts_view,
       is_scheduled_view,
+      handle_toolbar_move_out_of_bin,
       t,
     ],
   );
@@ -306,6 +464,7 @@ export function use_folder_tag_actions({
   );
 
   return {
+    handle_toolbar_move_out_of_bin,
     handle_toolbar_toggle_folder,
     handle_toolbar_toggle_tag,
   };

@@ -165,6 +165,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
     list_tags,
     viewer_folders,
     handle_viewer_folder_toggle,
+    handle_viewer_move_out_of_bin,
     is_bottom_pane,
     split_pane,
     handle_list_scroll,
@@ -508,6 +509,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
               on_back={on_split_close || (() => {})}
               on_edit_draft={handle_edit_thread_draft}
               on_folder_toggle={handle_viewer_folder_toggle}
+              on_move_out_of_bin={handle_viewer_move_out_of_bin}
               on_forward={on_forward}
               on_navigate_next={
                 nav.effective_email_id
@@ -591,6 +593,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
                       on_advance={on_auto_advance}
                       on_close={on_split_close || (() => {})}
                       on_folder_toggle={handle_viewer_folder_toggle}
+                      on_move_out_of_bin={handle_viewer_move_out_of_bin}
                       on_forward={on_forward}
                       on_reply={on_reply}
                       on_snooze={handle_viewer_snooze}

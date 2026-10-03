@@ -145,3 +145,24 @@ export function destination_views_for_update(
 
   return views;
 }
+
+const VIEWS_LEFT_BY_FOLDER_MOVE = new Set<string>([
+  "inbox",
+  "",
+  "all",
+  "starred",
+  "snoozed",
+  "archive",
+]);
+
+export function leaves_view_on_folder_move(
+  current_view: string,
+  folder_token: string,
+): boolean {
+  if (VIEWS_LEFT_BY_FOLDER_MOVE.has(current_view)) return true;
+
+  return (
+    current_view.startsWith("folder-") &&
+    current_view !== `folder-${folder_token}`
+  );
+}

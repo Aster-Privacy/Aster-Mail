@@ -275,9 +275,10 @@ describe("EmailContextMenuContent selection scope", () => {
     expect(text()).toContain("mail.move_to_inbox");
   });
 
-  it("hides move to inbox outside the inbox views", () => {
+  it("hides move to inbox in the trash when there is no restore handler", () => {
     render({
       current_view: "trash",
+      on_move_to_inbox: undefined,
       email: {
         ...email,
         folders: [{ folder_token: "f-1", name: "One", color: "#111111" }],
@@ -285,6 +286,34 @@ describe("EmailContextMenuContent selection scope", () => {
     });
 
     expect(text()).not.toContain("mail.move_to_inbox");
+  });
+
+  it("offers move to inbox for a message in the trash", async () => {
+    const on_move_to_inbox = vi.fn();
+    const on_folder_toggle = vi.fn();
+
+    render({
+      current_view: "trash",
+      on_move_to_inbox,
+      on_folder_toggle,
+      email: {
+        ...email,
+        is_trashed: true,
+        folders: [{ folder_token: "f-1", name: "One", color: "#111111" }],
+      },
+    });
+
+    const item = Array.from(container!.querySelectorAll("button")).find(
+      (button) => button.textContent === "mail.move_to_inbox",
+    );
+
+    expect(item).toBeDefined();
+    await act(async () => {
+      item!.click();
+    });
+
+    expect(on_move_to_inbox).toHaveBeenCalledTimes(1);
+    expect(on_folder_toggle).not.toHaveBeenCalled();
   });
 
   it("routes a selection action to its handler", async () => {

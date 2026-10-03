@@ -148,6 +148,14 @@ export function use_split_email_view({
     },
     [split_email_id, email_state.emails, context_menu_actions],
   );
+  const handle_viewer_move_out_of_bin = useCallback(() => {
+    if (!split_email_id) return;
+    const email = email_state.emails.find((e) => e.id === split_email_id);
+
+    if (email) {
+      void context_menu_actions.handle_move_to_inbox(email);
+    }
+  }, [split_email_id, email_state.emails, context_menu_actions]);
 
   return {
     split_email_snoozed_until,
@@ -158,5 +166,6 @@ export function use_split_email_view({
     list_tags,
     viewer_folders,
     handle_viewer_folder_toggle,
+    handle_viewer_move_out_of_bin,
   };
 }
