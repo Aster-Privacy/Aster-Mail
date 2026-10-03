@@ -5980,6 +5980,11 @@ export const de = {
       "Add-ons verlängern sich jährlich und werden getrennt von Ihrem Tarif abgerechnet. Wenn Sie mit Krypto zahlen, wählen Sie die Vorauszahlungsdauer.",
     storage_addon_supernova_nudge:
       "Wenn Sie mehr als 1 TB benötigen, ist Supernova mit 5 TB Speicherplatz eine Option.",
+    storage_addon_add_size: "{{size}} hinzufügen",
+    storage_addon_usage_near:
+      "Ihr Speicher ist fast voll. Fügen Sie mehr Speicherplatz hinzu, um weiterhin E-Mails zu empfangen.",
+    storage_addon_usage_full:
+      "Ihr Speicher ist voll. Fügen Sie mehr Speicherplatz hinzu, um weiterhin E-Mails zu empfangen.",
     bill_addon_summary: "{size} zusätzlicher Speicher",
     bill_addon_pick_size: "Wählen Sie aus, wie viel Sie hinzufügen möchten",
     storage_addons_description:

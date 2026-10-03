@@ -5934,6 +5934,11 @@ export const ja = {
       "アドオンは毎年更新され、プランとは別に請求されます。暗号資産で支払う場合は、前払いする期間を選べます。",
     storage_addon_supernova_nudge:
       "1 TB を超える容量が必要な場合は、5 TB のストレージが含まれる Supernova をご検討ください。",
+    storage_addon_add_size: "{{size}} を追加",
+    storage_addon_usage_near:
+      "ストレージの空き容量が残りわずかです。メールを引き続き受信するには、容量を追加してください。",
+    storage_addon_usage_full:
+      "ストレージがいっぱいです。メールを引き続き受信するには、容量を追加してください。",
     bill_addon_summary: "追加ストレージ {size}",
     bill_addon_pick_size: "追加する容量を選択してください",
     storage_addons_description:

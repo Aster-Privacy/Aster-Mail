@@ -68,6 +68,7 @@ import {
 import { is_onion_host } from "@/lib/onion_host";
 import { request_cache } from "@/services/api/request_cache";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
+import { get_cached_plan_code } from "@/hooks/use_plan_limits";
 import { empty_spam, empty_trash } from "@/services/api/mail";
 import {
   get_storage_overview,
@@ -834,7 +835,9 @@ export function StorageSection() {
         <StorageAddonsSection
           active_addons={active_addons}
           available_addons={available_addons}
+          current_plan_code={get_cached_plan_code() ?? undefined}
           is_action_loading={is_action_loading}
+          is_over_limit={overview?.is_over_limit ?? false}
           on_cancel_addon={(addon) => {
             set_addon_to_cancel(addon);
             set_show_cancel_addon_dialog(true);
@@ -846,6 +849,9 @@ export function StorageSection() {
           preferred_currency={preferred_currency}
           selected_storage={selected_storage}
           set_selected_storage={set_selected_storage}
+          storage_limit_bytes={total_limit > 0 ? total_limit : undefined}
+          storage_percentage={percentage}
+          storage_used_bytes={total_limit > 0 ? total_used : undefined}
         />
       )}
 

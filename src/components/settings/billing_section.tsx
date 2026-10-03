@@ -1410,6 +1410,9 @@ export function BillingSection() {
             preferred_currency={preferred_currency}
             selected_storage={selected_storage}
             set_selected_storage={set_selected_storage}
+            storage_limit_bytes={storage_limit_bytes}
+            storage_percentage={storage_percentage}
+            storage_used_bytes={storage_used_bytes}
           />
           <IslandDivider />
           <BillingHistorySection
