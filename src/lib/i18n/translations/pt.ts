@@ -1644,6 +1644,8 @@ export const pt = {
       "Restam-te poucos códigos de recuperação",
     recovery_codes_low_reminder_body:
       "Cada código funciona uma vez e restam-te {{count}}. Obtém novos códigos para não perderes o acesso.",
+    recovery_codes_low_reminder_body_one:
+      "Cada código funciona uma vez e resta-te {{count}}. Obtém novos códigos para não perderes o acesso.",
     recovery_codes_low_reminder_action: "Obter novos códigos",
     recovery_phrase_migrate_title: "Muda para códigos de recuperação",
     recovery_phrase_migrate_body:

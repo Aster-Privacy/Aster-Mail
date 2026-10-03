@@ -2036,6 +2036,8 @@ export const pt_br = {
       "Seus códigos de recuperação estão acabando",
     recovery_codes_low_reminder_body:
       "Cada código funciona uma vez, e restam {{count}}. Obtenha novos códigos para não perder o acesso.",
+    recovery_codes_low_reminder_body_one:
+      "Cada código funciona uma vez, e resta {{count}}. Obtenha novos códigos para não perder o acesso.",
     recovery_codes_low_reminder_action: "Obter novos códigos",
     recovery_phrase_migrate_title: "Mude para códigos de recuperação",
     recovery_phrase_migrate_body:
