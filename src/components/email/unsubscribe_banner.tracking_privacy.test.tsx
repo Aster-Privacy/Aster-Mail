@@ -86,7 +86,7 @@ let container: HTMLDivElement | null = null;
 const BODY =
   '<p>Hi</p><a href="https://sender.example/u/secret-token">Unsubscribe</a>';
 
-function render_and_capture(html: string, list_unsubscribe?: string) {
+function render_banner(html: string, list_unsubscribe?: string) {
   const info = detect_unsubscribe_info(html, "", { list_unsubscribe });
 
   container = document.createElement("div");
@@ -101,10 +101,6 @@ function render_and_capture(html: string, list_unsubscribe?: string) {
       />,
     );
   });
-
-  expect(h.track_subscription).toHaveBeenCalledTimes(1);
-
-  return h.track_subscription.mock.calls[0][0];
 }
 
 describe("UnsubscribeBanner passive tracking", () => {
@@ -116,28 +112,18 @@ describe("UnsubscribeBanner passive tracking", () => {
     h.track_subscription.mockClear();
   });
 
-  it("never sends a link taken from the message body", () => {
-    const payload = render_and_capture(BODY);
+  it("sends nothing when a message with a body link is opened", () => {
+    render_banner(BODY);
 
-    expect(payload.unsubscribe_link).toBeUndefined();
-    expect(JSON.stringify(payload)).not.toContain("secret-token");
+    expect(container!.textContent).not.toBe("");
+    expect(h.track_subscription).not.toHaveBeenCalled();
   });
 
-  it("does not send the body link when the header has only mailto", () => {
-    const payload = render_and_capture(BODY, "<mailto:u@sender.example>");
+  it("sends nothing when a message with a header link is opened", () => {
+    render_banner(BODY, "<https://sender.example/header-unsub>");
 
-    expect(JSON.stringify(payload)).not.toContain("secret-token");
-  });
-
-  it("still sends a link that came from the List-Unsubscribe header", () => {
-    const payload = render_and_capture(
-      BODY,
-      "<https://sender.example/header-unsub>",
-    );
-
-    expect(payload.unsubscribe_link).toBe(
-      "https://sender.example/header-unsub",
-    );
+    expect(container!.textContent).not.toBe("");
+    expect(h.track_subscription).not.toHaveBeenCalled();
   });
 });
 

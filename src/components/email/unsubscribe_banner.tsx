@@ -31,10 +31,8 @@ import {
   get_sender_domain,
   execute_unsubscribe,
   get_manual_unsubscribe_url,
-  header_unsubscribe_link,
 } from "@/utils/unsubscribe_detector";
 import { open_external } from "@/utils/open_link";
-import { track_subscription } from "@/services/api/subscriptions";
 import {
   persist_unsubscribe,
   use_unsubscribed_senders,
@@ -62,32 +60,9 @@ export function UnsubscribeBanner({
   const reduce_motion = use_should_reduce_motion();
   const { is_unsubscribed } = use_unsubscribed_senders();
   const [is_dismissed, set_is_dismissed] = useState(false);
-  const tracked_ref = useRef(false);
   const pending_timeout_ref = useRef<NodeJS.Timeout | null>(null);
   const cancelled_ref = useRef(false);
   const mounted_ref = useRef(true);
-
-  useEffect(() => {
-    if (!unsubscribe_info.has_unsubscribe || tracked_ref.current) return;
-
-    tracked_ref.current = true;
-    let is_mounted = true;
-
-    track_subscription({
-      sender_email,
-      sender_name,
-      unsubscribe_link: header_unsubscribe_link(unsubscribe_info),
-      list_unsubscribe_header: unsubscribe_info.list_unsubscribe_header,
-    }).catch(() => {
-      if (is_mounted) {
-        tracked_ref.current = false;
-      }
-    });
-
-    return () => {
-      is_mounted = false;
-    };
-  }, [sender_email, sender_name, unsubscribe_info]);
 
   useEffect(() => {
     mounted_ref.current = true;
