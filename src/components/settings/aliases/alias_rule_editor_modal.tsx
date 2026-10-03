@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { LeafCondition } from "@/services/api/mail_rules";
+import type { ConditionField, LeafCondition } from "@/services/api/mail_rules";
 
 import * as React from "react";
 import { NoSymbolIcon, TrashIcon, TagIcon } from "@heroicons/react/24/outline";
@@ -51,6 +51,8 @@ import {
   type AliasRuleActions,
 } from "@/services/api/alias_rules";
 
+const ALIAS_RULE_FIELDS: ConditionField[] = ["from", "to", "subject"];
+
 const ALIAS_RULE_OPERATORS = [
   "is",
   "contains",
@@ -66,32 +68,28 @@ function to_leaf(c: AliasRuleCondition): LeafCondition {
   return { type: field, operator: op, value: c.value } as LeafCondition;
 }
 
-function from_leaf(leaf: LeafCondition): AliasRuleCondition {
-  if ("value" in leaf && typeof leaf.value === "string") {
-    const field = leaf.type as AliasRuleField;
-    const valid_fields: AliasRuleField[] = ["from", "to", "subject", "all"];
-    const safe_field: AliasRuleField = valid_fields.includes(field)
-      ? field
-      : "from";
-    const op_raw = "operator" in leaf ? (leaf.operator as string) : "contains";
-    const supported: AliasRuleOperator[] = [
-      "contains",
-      "equals",
-      "starts_with",
-      "ends_with",
-      "matches_regex",
-    ];
-    const mapped = op_raw === "is" ? "equals" : op_raw;
-    const op: AliasRuleOperator = supported.includes(
-      mapped as AliasRuleOperator,
-    )
-      ? (mapped as AliasRuleOperator)
-      : "contains";
+function from_leaf(leaf: LeafCondition): AliasRuleCondition | null {
+  if (!ALIAS_RULE_FIELDS.includes(leaf.type)) return null;
+  if (!("value" in leaf) || typeof leaf.value !== "string") return null;
 
-    return { field: safe_field, operator: op, value: leaf.value };
-  }
+  const op_raw = "operator" in leaf ? (leaf.operator as string) : "contains";
+  const supported: AliasRuleOperator[] = [
+    "contains",
+    "equals",
+    "starts_with",
+    "ends_with",
+    "matches_regex",
+  ];
+  const mapped = op_raw === "is" ? "equals" : op_raw;
+  const op: AliasRuleOperator = supported.includes(mapped as AliasRuleOperator)
+    ? (mapped as AliasRuleOperator)
+    : "contains";
 
-  return { field: "from", operator: "contains", value: "" };
+  return {
+    field: leaf.type as AliasRuleField,
+    operator: op,
+    value: leaf.value,
+  };
 }
 
 function default_leaf(): LeafCondition {
@@ -179,13 +177,15 @@ export function AliasRuleEditorModal({
       return;
     }
 
+    const mapped_conditions = has_all_field ? [] : conditions.map(from_leaf);
     const alias_conditions: AliasRuleCondition[] = has_all_field
       ? [{ field: "all", operator: "contains", value: "" }]
-      : conditions
-          .map(from_leaf)
-          .filter((c) => c.field === "all" || c.value.trim().length > 0);
+      : mapped_conditions.filter(
+          (c): c is AliasRuleCondition =>
+            c !== null && c.value.trim().length > 0,
+        );
 
-    if (alias_conditions.length === 0) {
+    if (mapped_conditions.includes(null) || alias_conditions.length === 0) {
       show_toast(t("settings.alias_rule_needs_condition"), "error");
 
       return;
@@ -279,13 +279,17 @@ export function AliasRuleEditorModal({
               {conditions.map((cond, idx) => (
                 <ConditionChip
                   key={idx}
+                  allowed_fields={ALIAS_RULE_FIELDS}
                   allowed_operators={ALIAS_RULE_OPERATORS}
                   condition={cond}
                   on_change={(next) => update_condition(idx, next)}
                   on_remove={() => remove_condition(idx)}
                 />
               ))}
-              <AddConditionChip on_pick={add_condition} />
+              <AddConditionChip
+                allowed_fields={ALIAS_RULE_FIELDS}
+                on_pick={add_condition}
+              />
               <Button
                 className="h-7 text-xs text-txt-muted hover:text-txt-primary"
                 size="sm"

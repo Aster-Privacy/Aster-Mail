@@ -73,6 +73,7 @@ interface ConditionChipProps {
   on_auto_handled?: () => void;
   read_only?: boolean;
   allowed_operators?: string[];
+  allowed_fields?: ConditionField[];
 }
 
 const AUTH_LABEL_KEY: Record<AuthResultValue, TranslationKey> = {
@@ -118,6 +119,7 @@ export function ConditionChip({
   on_auto_handled,
   read_only,
   allowed_operators,
+  allowed_fields,
 }: ConditionChipProps) {
   const { t } = use_i18n();
   const is_row = use_chip_layout() === "row";
@@ -354,6 +356,7 @@ export function ConditionChip({
     return (
       <ChipPill on_remove={remove}>
         <FieldDropdown
+          allowed_fields={allowed_fields}
           on_open_change={make_segment_open_handler("field")}
           on_pick={handle_field_change}
           open={open_segment === "field"}
@@ -382,6 +385,7 @@ export function ConditionChip({
     return (
       <ChipPill on_remove={remove}>
         <FieldDropdown
+          allowed_fields={allowed_fields}
           on_open_change={make_segment_open_handler("field")}
           on_pick={handle_field_change}
           open={open_segment === "field"}
@@ -481,6 +485,7 @@ export function ConditionChip({
   return (
     <ChipPill on_remove={remove}>
       <FieldDropdown
+        allowed_fields={allowed_fields}
         on_open_change={make_segment_open_handler("field")}
         on_pick={handle_field_change}
         open={open_segment === "field"}
