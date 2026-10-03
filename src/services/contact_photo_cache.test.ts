@@ -21,12 +21,13 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 const list_contacts = vi.fn();
+const decrypt_contacts = vi.fn();
 const get_contact_photo = vi.fn();
 const revoke_photo_blob_url = vi.fn();
 
 vi.mock("@/services/api/contacts", () => ({
   list_contacts: (...args: unknown[]) => list_contacts(...args),
-  decrypt_contacts: async (items: unknown[]) => items,
+  decrypt_contacts: (...args: unknown[]) => decrypt_contacts(...args),
   get_contacts_encryption_key: async () => ({}),
 }));
 
@@ -78,6 +79,8 @@ async function settle(mod: PhotoModule, email: string): Promise<void> {
 
 beforeEach(() => {
   list_contacts.mockReset();
+  decrypt_contacts.mockReset();
+  decrypt_contacts.mockImplementation(async (items: unknown[]) => items);
   get_contact_photo.mockReset();
   revoke_photo_blob_url.mockReset();
   list_contacts.mockResolvedValue(
@@ -202,13 +205,21 @@ describe("contact photo cache", () => {
     await settle(mod, "stored@example.com");
     mod.subscribe_contact_photos(listener);
 
+    vi.useFakeTimers();
     emit_contacts_changed();
+    vi.advanceTimersByTime(1500);
+    vi.useRealTimers();
 
     expect(listener).toHaveBeenCalled();
     expect(mod.contact_photo_needs_request("stored@example.com")).toBe(true);
 
     get_contact_photo.mockResolvedValue(photo_response([2]));
-    await settle(mod, "stored@example.com");
+    mod.request_contact_photo("stored@example.com");
+    await vi.waitFor(() =>
+      expect(mod.get_contact_photo_src("stored@example.com")).toBe(
+        "data:image/png;base64,Ag==",
+      ),
+    );
 
     expect(list_contacts).toHaveBeenCalledTimes(2);
     expect(mod.get_contact_photo_src("stored@example.com")).toBe(
@@ -248,5 +259,249 @@ describe("contact photo cache", () => {
 
     resolvers.splice(0).forEach((resolve) => resolve({ data: null }));
     await vi.waitFor(() => expect(get_contact_photo).toHaveBeenCalledTimes(6));
+  });
+});
+
+describe("one contact edit", () => {
+  const CONTACT_COUNT = 500;
+  const VISIBLE = 20;
+  const PAGE = 100;
+  const BEFORE = "2026-01-01T00:00:00Z";
+  const AFTER = "2026-02-01T00:00:00Z";
+
+  type StoredContact = {
+    id: string;
+    emails: string[];
+    updated_at: string;
+    avatar_url?: string;
+    deleted_at?: string;
+  };
+
+  function serve(contacts: StoredContact[]): void {
+    list_contacts.mockImplementation(
+      async ({ cursor }: { cursor?: string } = {}) => {
+        const start = cursor ? Number(cursor) : 0;
+        const next =
+          start + PAGE < contacts.length ? String(start + PAGE) : null;
+
+        return {
+          data: {
+            items: contacts.slice(start, start + PAGE),
+            has_more: next !== null,
+            next_cursor: next,
+          },
+        };
+      },
+    );
+  }
+
+  function decrypted_count(): number {
+    return decrypt_contacts.mock.calls.reduce(
+      (total, call) => total + (call[0] as unknown[]).length,
+      0,
+    );
+  }
+
+  const hide_avatars: Array<() => void> = [];
+
+  afterEach(() => {
+    hide_avatars.splice(0).forEach((hide) => hide());
+  });
+
+  function show_avatars(mod: PhotoModule, emails: string[]): void {
+    for (const email of emails) {
+      hide_avatars.push(
+        mod.subscribe_contact_photos(() => {
+          if (mod.contact_photo_needs_request(email)) {
+            mod.request_contact_photo(email);
+          }
+        }),
+      );
+      mod.request_contact_photo(email);
+    }
+  }
+
+  async function settled(mod: PhotoModule, emails: string[]): Promise<void> {
+    await vi.waitFor(() => {
+      for (const email of emails) {
+        if (
+          mod.contact_photo_needs_request(email) ||
+          mod.get_contact_photo_src(email) === undefined
+        ) {
+          throw new Error("pending");
+        }
+      }
+    });
+  }
+
+  async function setup() {
+    vi.useFakeTimers();
+    const contacts: StoredContact[] = Array.from(
+      { length: CONTACT_COUNT },
+      (_, i) => ({
+        id: `c${i}`,
+        emails: [`c${i}@example.com`],
+        updated_at: BEFORE,
+      }),
+    );
+    const emails = contacts.slice(0, VISIBLE).map((c) => c.emails[0]);
+
+    serve(contacts);
+    get_contact_photo.mockImplementation(async () => photo_response([1]));
+
+    const mod = await load();
+    const { emit_contacts_changed } = await import("@/hooks/mail_events");
+
+    show_avatars(mod, emails);
+    await settled(mod, emails);
+    list_contacts.mockClear();
+    decrypt_contacts.mockClear();
+    get_contact_photo.mockClear();
+
+    const change = async (edit: (list: StoredContact[]) => void) => {
+      edit(contacts);
+      emit_contacts_changed();
+      emit_contacts_changed();
+      await vi.advanceTimersByTimeAsync(5000);
+      await settled(mod, emails);
+    };
+
+    return { mod, contacts, emails, change };
+  }
+
+  it("reloads the contacts once and refetches only the edited photo", async () => {
+    const { mod, change } = await setup();
+
+    await change((list) => {
+      list[3] = { ...list[3], updated_at: AFTER };
+    });
+
+    expect(list_contacts).toHaveBeenCalledTimes(CONTACT_COUNT / PAGE);
+    expect(decrypted_count()).toBe(CONTACT_COUNT);
+    expect(get_contact_photo).toHaveBeenCalledTimes(1);
+    expect(get_contact_photo).toHaveBeenCalledWith("c3");
+    expect(mod.get_contact_photo_src("c0@example.com")).toBe(
+      "data:image/png;base64,AQ==",
+    );
+  });
+
+  it("keeps unchanged photos visible while the contacts reload", async () => {
+    const { mod, contacts } = await setup();
+    const { emit_contacts_changed } = await import("@/hooks/mail_events");
+
+    contacts[3] = { ...contacts[3], updated_at: AFTER };
+    list_contacts.mockImplementation(() => new Promise(() => undefined));
+    emit_contacts_changed();
+    await vi.advanceTimersByTimeAsync(5000);
+
+    expect(list_contacts).toHaveBeenCalledTimes(1);
+    expect(mod.get_contact_photo_src("c0@example.com")).toBe(
+      "data:image/png;base64,AQ==",
+    );
+  });
+
+  it("applies a change that arrives from another device", async () => {
+    const { mod, contacts, emails } = await setup();
+    const { emit_contacts_changed } = await import("@/hooks/mail_events");
+
+    contacts[9] = {
+      ...contacts[9],
+      emails: ["moved@example.com"],
+      updated_at: AFTER,
+    };
+    emit_contacts_changed();
+    await vi.advanceTimersByTimeAsync(5000);
+    await settled(mod, emails);
+
+    expect(mod.get_contact_photo_src("c9@example.com")).toBeNull();
+    await settle(mod, "moved@example.com");
+    expect(get_contact_photo).toHaveBeenCalledWith("c9");
+  });
+
+  it("shows an edited address and inline photo", async () => {
+    const { mod, change } = await setup();
+
+    await change((list) => {
+      list[4] = { ...list[4], emails: ["new4@example.com"], updated_at: AFTER };
+      list[5] = { ...list[5], avatar_url: INLINE, updated_at: AFTER };
+    });
+
+    expect(mod.get_contact_photo_src("c4@example.com")).toBeNull();
+    expect(mod.get_contact_photo_src("c5@example.com")).toBe(INLINE);
+    await settle(mod, "new4@example.com");
+    expect(mod.get_contact_photo_src("new4@example.com")).toBe(
+      "data:image/png;base64,AQ==",
+    );
+  });
+
+  it("drops deleted and trashed contacts", async () => {
+    const { mod, change } = await setup();
+
+    await change((list) => {
+      list.splice(6, 1);
+      list[6] = { ...list[6], deleted_at: AFTER, updated_at: AFTER };
+    });
+
+    expect(mod.get_contact_photo_src("c6@example.com")).toBeNull();
+    expect(mod.get_contact_photo_src("c7@example.com")).toBeNull();
+  });
+
+  it("refetches a photo when the contact comes back", async () => {
+    const { mod, contacts, change } = await setup();
+    const removed = contacts[8];
+
+    await change((list) => {
+      list.splice(8, 1);
+    });
+    get_contact_photo.mockResolvedValue(photo_response([2]));
+    await change((list) => {
+      list.splice(8, 0, { ...removed, updated_at: AFTER });
+    });
+
+    expect(mod.get_contact_photo_src("c8@example.com")).toBe(
+      "data:image/png;base64,Ag==",
+    );
+  });
+
+  it("does not hold back the new photo when the old fetch failed mid-edit", async () => {
+    const { mod, contacts } = await setup();
+    const index = await import("@/services/contact_email_index");
+    const email = "c100@example.com";
+    let fail: (reason: unknown) => void = () => undefined;
+
+    get_contact_photo.mockImplementationOnce(
+      () =>
+        new Promise((_, reject) => {
+          fail = reject;
+        }),
+    );
+    mod.request_contact_photo(email);
+    await vi.waitFor(() =>
+      expect(get_contact_photo).toHaveBeenCalledWith("c100"),
+    );
+
+    contacts[100] = { ...contacts[100], updated_at: AFTER };
+    index.mark_contact_email_index_stale();
+    await index.ensure_contact_email_index();
+    fail(new Error("network"));
+    await vi.advanceTimersByTimeAsync(0);
+
+    mod.request_contact_photo(email);
+    await vi.waitFor(() => expect(get_contact_photo).toHaveBeenCalledTimes(2));
+    await vi.waitFor(() =>
+      expect(mod.get_contact_photo_src(email)).toBe(
+        "data:image/png;base64,AQ==",
+      ),
+    );
+  });
+
+  it("forgets every photo on sign-out", async () => {
+    const { mod, emails } = await setup();
+
+    mod.clear_contact_photo_cache();
+    expect(mod.get_contact_photo_src("c0@example.com")).toBeUndefined();
+
+    await settled(mod, emails);
+    expect(get_contact_photo).toHaveBeenCalledTimes(VISIBLE);
   });
 });

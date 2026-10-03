@@ -49,8 +49,10 @@ import { CONTACT_DATA_VERSION } from "@/types/contacts";
 import {
   get_or_create_derived_encryption_crypto_key,
   get_derived_encryption_key,
+  on_vault_cleared,
 } from "@/services/crypto/memory_key_store";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
+import { get_key, store_key } from "@/services/crypto/crypto_key_cache";
 import { get_active_translations } from "@/lib/i18n/translations";
 
 function array_to_base64(array: Uint8Array): string {
@@ -74,7 +76,44 @@ function base64_to_array(base64: string): Uint8Array {
   return bytes;
 }
 
-async function get_hmac_key(): Promise<CryptoKey> {
+const CONTACTS_HMAC_KEY_ID = "contacts_hmac_key";
+
+let hmac_key_pending: Promise<CryptoKey> | null = null;
+let hmac_key_generation = 0;
+let hmac_key_listener_registered = false;
+
+function get_hmac_key(): Promise<CryptoKey> {
+  const cached = get_key(CONTACTS_HMAC_KEY_ID);
+
+  if (cached) return Promise.resolve(cached);
+  if (!hmac_key_listener_registered) {
+    hmac_key_listener_registered = true;
+    on_vault_cleared(() => {
+      hmac_key_generation += 1;
+      hmac_key_pending = null;
+    });
+  }
+  if (hmac_key_pending) return hmac_key_pending;
+
+  const started_generation = hmac_key_generation;
+  const request = import_hmac_key()
+    .then((hmac_key) => {
+      if (started_generation === hmac_key_generation) {
+        store_key(CONTACTS_HMAC_KEY_ID, hmac_key, "hmac");
+      }
+
+      return hmac_key;
+    })
+    .finally(() => {
+      if (hmac_key_pending === request) hmac_key_pending = null;
+    });
+
+  hmac_key_pending = request;
+
+  return request;
+}
+
+async function import_hmac_key(): Promise<CryptoKey> {
   const raw_key = get_derived_encryption_key();
 
   if (!raw_key) {

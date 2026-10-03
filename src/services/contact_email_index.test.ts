@@ -250,7 +250,10 @@ describe("invalidation", () => {
     await mod.ensure_contact_email_index();
     mod.subscribe_contact_index(listener);
 
+    vi.useFakeTimers();
     emit_contacts_changed();
+    vi.advanceTimersByTime(mod.CONTACT_INDEX_STALE_DEBOUNCE_MS);
+    vi.useRealTimers();
 
     expect(listener).toHaveBeenCalled();
     expect(mod.is_contact_index_fresh()).toBe(false);
@@ -259,6 +262,124 @@ describe("invalidation", () => {
     list_contacts.mockResolvedValue(page([contact("c9", ["a@example.com"])]));
     await mod.ensure_contact_email_index();
     expect(mod.get_cached_contact_id("a@example.com")).toBe("c9");
+  });
+
+  it("coalesces a burst of contact changes into one rebuild", async () => {
+    const mod = await load();
+    const { emit_contacts_changed } = await import("@/hooks/mail_events");
+    const listener = vi.fn();
+
+    list_contacts.mockResolvedValue(page([contact("c1", ["a@example.com"])]));
+    await mod.ensure_contact_email_index();
+    mod.subscribe_contact_index(listener);
+    list_contacts.mockClear();
+
+    vi.useFakeTimers();
+    emit_contacts_changed();
+    emit_contacts_changed();
+    emit_contacts_changed();
+    expect(listener).not.toHaveBeenCalled();
+    expect(mod.is_contact_index_fresh()).toBe(true);
+
+    vi.advanceTimersByTime(mod.CONTACT_INDEX_STALE_DEBOUNCE_MS);
+    vi.useRealTimers();
+    expect(listener).toHaveBeenCalledTimes(1);
+
+    await Promise.all([
+      mod.ensure_contact_email_index(),
+      mod.ensure_contact_email_index(),
+    ]);
+    expect(list_contacts).toHaveBeenCalledTimes(1);
+  });
+
+  it("rebuilds at once when asked for the index during the debounce", async () => {
+    const mod = await load();
+    const { emit_contacts_changed } = await import("@/hooks/mail_events");
+
+    list_contacts.mockResolvedValueOnce(page([]));
+    await mod.ensure_contact_email_index();
+    expect(mod.get_cached_contact_id("new@example.com")).toBeNull();
+
+    list_contacts.mockResolvedValue(
+      page([contact("c-new", ["new@example.com"], { updated_at: "1" })]),
+    );
+    vi.useFakeTimers();
+    emit_contacts_changed();
+    const rebuilt = mod.ensure_contact_email_index();
+
+    vi.useRealTimers();
+    await rebuilt;
+
+    expect(mod.get_cached_contact_id("new@example.com")).toBe("c-new");
+    expect(list_contacts).toHaveBeenCalledTimes(2);
+  });
+
+  it("stops paging a rebuild that a newer change made stale", async () => {
+    const mod = await load();
+    const gate: { release?: () => void } = {};
+
+    list_contacts
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            gate.release = () =>
+              resolve(page([contact("old", ["a@example.com"])], "next"));
+          }),
+      )
+      .mockResolvedValue(page([contact("fresh", ["a@example.com"])]));
+
+    const first = mod.ensure_contact_email_index();
+
+    await vi.waitFor(() => expect(gate.release).toBeDefined());
+    mod.mark_contact_email_index_stale();
+
+    const second = mod.ensure_contact_email_index();
+
+    gate.release?.();
+    await Promise.all([first, second]);
+
+    expect(list_contacts).toHaveBeenCalledTimes(2);
+    expect(mod.get_cached_contact_id("a@example.com")).toBe("fresh");
+  });
+
+  it("reports only contacts that changed, were trashed or were deleted", async () => {
+    const mod = await load();
+    const handler = vi.fn();
+
+    list_contacts.mockResolvedValue(
+      page([
+        contact("same", ["s@example.com"], { updated_at: "1" }),
+        contact("edited", ["e@example.com"], { updated_at: "1" }),
+        contact("trashed", ["t@example.com"], { updated_at: "1" }),
+        contact("deleted", ["d@example.com"], { updated_at: "1" }),
+      ]),
+    );
+    await mod.ensure_contact_email_index();
+    mod.on_contact_index_invalidated(handler);
+
+    list_contacts.mockResolvedValue(
+      page([
+        contact("same", ["s@example.com"], { updated_at: "1" }),
+        contact("edited", ["e@example.com"], { updated_at: "2" }),
+        contact("trashed", ["t@example.com"], {
+          updated_at: "2",
+          deleted_at: "2026-01-01T00:00:00Z",
+        }),
+        contact("added", ["n@example.com"], { updated_at: "1" }),
+      ]),
+    );
+    mod.mark_contact_email_index_stale();
+    await mod.ensure_contact_email_index();
+
+    expect(handler).toHaveBeenCalledTimes(1);
+    expect([...handler.mock.calls[0][0]].sort()).toEqual([
+      "deleted",
+      "edited",
+      "trashed",
+    ]);
+
+    mod.invalidate_contact_email_index();
+    expect(handler).toHaveBeenLastCalledWith(null);
   });
 
   it("drops a build that finishes after the index was reset", async () => {

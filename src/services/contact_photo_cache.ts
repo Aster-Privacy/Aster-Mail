@@ -38,6 +38,7 @@ const ALLOWED_PHOTO_MIME = /^image\/(png|jpe?g|gif|webp|avif|bmp)$/i;
 const photo_cache = new Map<string, string | null>();
 const photo_failures = new Map<string, number>();
 const photo_pending = new Set<string>();
+const photo_outdated = new Set<string>();
 const photo_queue: string[] = [];
 const photo_listeners = new Set<() => void>();
 let active_fetches = 0;
@@ -81,7 +82,10 @@ async function fetch_photo(contact_id: string): Promise<void> {
   try {
     const response = await get_contact_photo(contact_id);
 
-    if (started_generation !== cache_generation) {
+    if (
+      started_generation !== cache_generation ||
+      photo_outdated.has(contact_id)
+    ) {
       if (response.data?.blob_url) revoke_photo_blob_url(response.data.blob_url);
 
       return;
@@ -108,7 +112,10 @@ async function fetch_photo(contact_id: string): Promise<void> {
     photo_failures.delete(contact_id);
     notify_photo_change();
   } catch {
-    if (started_generation === cache_generation) {
+    if (
+      started_generation === cache_generation &&
+      !photo_outdated.has(contact_id)
+    ) {
       photo_failures.set(contact_id, Date.now());
     }
   }
@@ -124,11 +131,16 @@ function pump_queue(): void {
 
     active_fetches += 1;
     void fetch_photo(contact_id).finally(() => {
+      const outdated =
+        started_generation === cache_generation &&
+        photo_outdated.delete(contact_id);
+
       if (started_generation === cache_generation) {
         active_fetches -= 1;
         photo_pending.delete(contact_id);
       }
       pump_queue();
+      if (outdated) notify_photo_change();
     });
   }
 }
@@ -198,8 +210,19 @@ function reset_photo_state(): void {
   photo_cache.clear();
   photo_failures.clear();
   photo_pending.clear();
+  photo_outdated.clear();
   photo_queue.length = 0;
   active_fetches = 0;
+}
+
+function forget_contact_photos(contact_ids: ReadonlySet<string>): void {
+  for (const contact_id of contact_ids) {
+    photo_cache.delete(contact_id);
+    photo_failures.delete(contact_id);
+    if (photo_pending.has(contact_id) && !photo_queue.includes(contact_id)) {
+      photo_outdated.add(contact_id);
+    }
+  }
 }
 
 export function clear_contact_photo_cache(): void {
@@ -207,6 +230,11 @@ export function clear_contact_photo_cache(): void {
   invalidate_contact_email_index();
 }
 
-on_contact_index_invalidated(() => {
+on_contact_index_invalidated((changed_ids) => {
+  if (changed_ids) {
+    forget_contact_photos(changed_ids);
+
+    return;
+  }
   reset_photo_state();
 });
