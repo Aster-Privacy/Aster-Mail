@@ -30,11 +30,13 @@ import type {
 } from "@/utils/message_header_details";
 
 import { memo, useId, useMemo } from "react";
-import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
+import {
+  ExclamationTriangleIcon,
+  InformationCircleIcon,
+} from "@heroicons/react/24/outline";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { cn } from "@/lib/utils";
-import { InfoPopover } from "@/components/ui/info_popover";
 import {
   Popover,
   PopoverContent,
@@ -125,7 +127,7 @@ export function EmailAuthCheckPill({
     : t("mail.email_auth_check_other", { value: result.value });
 
   return (
-    <Popover>
+    <Popover modal>
       <PopoverTrigger asChild>
         <button
           className="inline-flex items-center gap-1.5 rounded-full border border-edge-secondary px-2 py-0.5 text-xs transition-colors hover:bg-surf-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50"
@@ -328,6 +330,42 @@ export function HeadersViewToggle({
   );
 }
 
+function HeaderHelpPopover({
+  title,
+  description,
+}: {
+  title: string;
+  description: string;
+}) {
+  const { t } = use_i18n();
+
+  return (
+    <Popover modal>
+      <PopoverTrigger asChild>
+        <button
+          aria-label={t("common.more_information")}
+          className="-m-1 inline-flex flex-shrink-0 items-center justify-center rounded-full p-1 text-txt-muted transition-colors hover:text-txt-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+          type="button"
+        >
+          <InformationCircleIcon className="h-3.5 w-3.5" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        align="start"
+        className="aster_info_popover z-[200]"
+        collisionPadding={12}
+        sideOffset={6}
+      >
+        <p className="aster_info_popover_title">
+          <InformationCircleIcon aria-hidden="true" />
+          <span>{title}</span>
+        </p>
+        <p className="aster_info_popover_body">{description}</p>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 const BOX_CLASS =
   "overflow-y-auto overflow-x-hidden rounded-lg bg-[var(--bg-tertiary,var(--surf-tertiary))] p-3 font-mono text-xs leading-relaxed text-txt-secondary whitespace-pre-wrap [overflow-wrap:anywhere] [tab-size:2]";
 const LINE_CLASS = "ps-[2ch] -indent-[2ch]";
@@ -355,9 +393,8 @@ const FormattedHeaders = memo(function FormattedHeaders({
               </span>
               {header.help && (
                 <span className="ms-1 inline-flex indent-0 align-[-2px]">
-                  <InfoPopover
+                  <HeaderHelpPopover
                     description={t(HEADER_HELP[header.help])}
-                    icon_class="h-3.5 w-3.5"
                     title={header.name}
                   />
                 </span>
