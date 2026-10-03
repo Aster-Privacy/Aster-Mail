@@ -1677,6 +1677,8 @@ export const ru = {
       "У вас заканчиваются коды восстановления",
     recovery_codes_low_reminder_body:
       "Каждый код работает один раз, у вас осталось {{count}}. Получите новые коды, чтобы не потерять доступ.",
+    recovery_codes_low_reminder_body_one:
+      "Каждый код работает один раз, у вас остался {{count}}. Получите новые коды, чтобы не потерять доступ.",
     recovery_codes_low_reminder_action: "Получить новые коды",
     recovery_phrase_migrate_title: "Перейдите на коды восстановления",
     recovery_phrase_migrate_body:

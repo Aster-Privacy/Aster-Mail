@@ -25,11 +25,15 @@ import {
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 
-import { use_preferences } from "@/contexts/preferences_context";
+import {
+  use_preferences,
+  use_preferences_save_status,
+} from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
 
 export function SettingsSaveIndicator() {
-  const { save_status, save_now } = use_preferences();
+  const { save_now } = use_preferences();
+  const { save_status } = use_preferences_save_status();
   const { t } = use_i18n();
   const [is_retrying, set_is_retrying] = useState(false);
 
@@ -100,7 +104,8 @@ interface SettingsSaveIndicatorInlineProps {
 export function SettingsSaveIndicatorInline({
   className = "",
 }: SettingsSaveIndicatorInlineProps) {
-  const { save_status, save_now } = use_preferences();
+  const { save_now } = use_preferences();
+  const { save_status } = use_preferences_save_status();
   const { t } = use_i18n();
   const [is_retrying, set_is_retrying] = useState(false);
 

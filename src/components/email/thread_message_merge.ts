@@ -101,3 +101,61 @@ export function include_opened_message(
 
   return next;
 }
+
+function same_value(left: unknown, right: unknown): boolean {
+  if (left === right) return true;
+  if (
+    typeof left !== "object" ||
+    typeof right !== "object" ||
+    left === null ||
+    right === null
+  ) {
+    return false;
+  }
+
+  if (Array.isArray(left) || Array.isArray(right)) {
+    if (!Array.isArray(left) || !Array.isArray(right)) return false;
+    if (left.length !== right.length) return false;
+
+    return left.every((value, index) => same_value(value, right[index]));
+  }
+
+  if (
+    Object.getPrototypeOf(left) !== Object.prototype ||
+    Object.getPrototypeOf(right) !== Object.prototype
+  ) {
+    return false;
+  }
+
+  const left_record = left as Record<string, unknown>;
+  const right_record = right as Record<string, unknown>;
+  const keys = new Set([
+    ...Object.keys(left_record),
+    ...Object.keys(right_record),
+  ]);
+
+  for (const key of keys) {
+    if (!same_value(left_record[key], right_record[key])) return false;
+  }
+
+  return true;
+}
+
+export function keep_unchanged_messages(
+  previous: DecryptedThreadMessage[],
+  incoming: DecryptedThreadMessage[],
+): DecryptedThreadMessage[] {
+  if (previous.length === 0) return incoming;
+
+  const previous_by_id = new Map(previous.map((m) => [m.id, m]));
+  const merged = incoming.map((message) => {
+    const earlier = previous_by_id.get(message.id);
+
+    return earlier && same_value(earlier, message) ? earlier : message;
+  });
+  const unchanged =
+    merged.length === previous.length &&
+    merged.every((message, index) => message === previous[index]);
+
+  return unchanged ? previous : merged;
+}

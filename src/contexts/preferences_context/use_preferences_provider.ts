@@ -41,6 +41,7 @@ import {
   cache_sidebar_state,
   cache_preferences_locally,
   get_cached_preferences,
+  preferences_equal,
   DEFAULT_PREFERENCES,
 } from "@/services/api/preferences";
 import { get_csrf_token_from_cookie } from "@/services/api/csrf";
@@ -197,8 +198,12 @@ export function use_preferences_provider() {
         );
 
         cache_preferences_locally(applied);
-        preferences_ref.current = applied;
-        set_preferences(applied);
+
+        if (!preferences_equal(applied, preferences_ref.current)) {
+          preferences_ref.current = applied;
+          set_preferences(applied);
+        }
+
         set_low_network_mode(applied.low_network_mode);
         apply_visual_preferences(applied);
       } else {

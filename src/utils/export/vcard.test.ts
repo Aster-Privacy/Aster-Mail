@@ -86,4 +86,15 @@ describe("serialize_vcard round trip", () => {
     });
     expect(contact.address_entries?.[0].type).toBe("work");
   });
+
+  it("writes a birthday without a year in the vCard 4 form and reads it back", () => {
+    const text = serialize_vcard({
+      first_name: "Ada",
+      last_name: "Lovelace",
+      birthday: "0000-12-10",
+    });
+
+    expect(text).toContain("BDAY:--1210");
+    expect(parse_vcard(text)[0].birthday).toBe("--12-10");
+  });
 });

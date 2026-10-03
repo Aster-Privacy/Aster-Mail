@@ -49,7 +49,6 @@ import {
   ChevronRightIcon,
   MagnifyingGlassIcon,
   PencilSquareIcon,
-  XMarkIcon,
   ArrowUpOnSquareIcon,
   ArrowDownTrayIcon,
   ChatBubbleBottomCenterTextIcon,
@@ -89,7 +88,16 @@ import { sync_legacy_fields } from "@/components/common/hooks/contacts_state_hel
 import { build_contact_mail_query } from "@/utils/contact_mail_search";
 import { list_contact_groups } from "@/services/api/contacts";
 import { app_date_format, format_iso_date } from "@/utils/date_format";
+import {
+  contact_date_input_value,
+  format_contact_date,
+  is_partial_contact_date,
+} from "@/utils/date_utils";
 import { ContactAvatar } from "@/components/common/contacts/contact_avatar";
+import {
+  ContactDateClearButton,
+  contact_date_clear_padding,
+} from "@/components/contacts/contact_date_clear_button";
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
 import { ContactHistoryPanel } from "@/components/contacts/contact_history_panel";
 import { ContactGroupsField } from "@/components/contacts/contact_groups_field";
@@ -220,6 +228,7 @@ export function ContactDetailPanel({
   }
 
   const banner = draft.profile_color || DEFAULT_BANNER;
+  const birthday_is_partial = is_partial_contact_date(draft.birthday);
 
   const handle_save = async () => {
     const date_entries = draft.date_entries.filter((d) => d.value.trim());
@@ -904,29 +913,33 @@ export function ContactDetailPanel({
                   <input
                     aria-label={t("common.birthday")}
                     className={`${FIELD_CLASS} ${
-                      is_editing && draft.birthday ? "pe-12" : ""
+                      is_editing && draft.birthday
+                        ? contact_date_clear_padding(!birthday_is_partial)
+                        : ""
                     }`}
                     placeholder={app_date_format()}
-                    readOnly={!is_editing}
-                    type={is_editing ? "date" : "text"}
+                    readOnly={!is_editing || birthday_is_partial}
+                    type={is_editing && !birthday_is_partial ? "date" : "text"}
                     value={
-                      is_editing
-                        ? draft.birthday
-                        : format_iso_date(draft.birthday)
+                      birthday_is_partial
+                        ? format_contact_date(draft.birthday)
+                        : is_editing
+                          ? contact_date_input_value(draft.birthday)
+                          : format_iso_date(
+                              contact_date_input_value(draft.birthday) ||
+                                draft.birthday,
+                            )
                     }
                     onChange={(e) =>
                       handle_field_change("birthday", e.target.value)
                     }
                   />
                   {is_editing && draft.birthday && (
-                    <button
-                      aria-label={t("common.clear")}
-                      className="absolute end-9 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full text-txt-secondary transition-colors hover:bg-[var(--aster-hover)] hover:text-txt-primary"
-                      type="button"
-                      onClick={() => handle_field_change("birthday", "")}
-                    >
-                      <XMarkIcon className="h-4 w-4" />
-                    </button>
+                    <ContactDateClearButton
+                      beside_picker={!birthday_is_partial}
+                      label={t("common.clear")}
+                      on_clear={() => handle_field_change("birthday", "")}
+                    />
                   )}
                 </div>
               </div>

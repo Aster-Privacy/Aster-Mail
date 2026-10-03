@@ -76,7 +76,7 @@ const HEARTBEAT_INTERVAL_MS = 30000;
 const LIVENESS_TIMEOUT_MS = 75000;
 const CATCH_UP_TICK_MS = 60000;
 export const PUSH_ARRIVED_MESSAGE = "aster_push_arrived";
-const CATCH_UP_WHILE_LIVE_MS = 180000;
+export const CATCH_UP_WHILE_LIVE_MS = 180000;
 const MUTATION_REFRESH_DEBOUNCE_MS = 600;
 const REMOVAL_ACTIONS = new Set([
   "trash",

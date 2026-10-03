@@ -48,8 +48,7 @@ import { EmailProfileTrigger } from "@/components/email/email_profile_trigger";
 import { use_should_reduce_motion } from "@/provider";
 import { use_external_link } from "@/contexts/external_link_context";
 import { build_contact_social_url } from "@/utils/contact_links";
-import { parse_calendar_date } from "@/utils/date_utils";
-import { app_locale, get_display_time_zone } from "@/utils/date_format";
+import { format_contact_date } from "@/utils/date_utils";
 
 const relationship_label = (
   relationship: string,
@@ -310,14 +309,7 @@ export function ModalContactDetail({
                   {t("common.birthday")}
                 </p>
                 <p className="text-[14px] -mt-0.5 text-txt-primary">
-                  {parse_calendar_date(
-                    selected_contact.birthday,
-                  ).toLocaleDateString(app_locale(), {
-                    timeZone: get_display_time_zone(),
-                    month: "long",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
+                  {format_contact_date(selected_contact.birthday)}
                 </p>
               </div>
             </div>

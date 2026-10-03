@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { parse_calendar_date } from "@/utils/date_utils";
+import { parse_contact_date } from "@/utils/date_utils";
 
 export function parse_csv_records(raw_text: string): string[][] {
   const text = raw_text.charCodeAt(0) === 0xfeff ? raw_text.slice(1) : raw_text;
@@ -69,21 +69,22 @@ export function parse_csv_records(raw_text: string): string[][] {
 }
 
 export function get_days_until_birthday(birthday: string): number {
+  const contact_date = parse_contact_date(birthday);
+
+  if (!contact_date) return NaN;
+
   const today = new Date();
 
   today.setHours(0, 0, 0, 0);
-  const birth_date = parse_calendar_date(birthday);
-  const this_year_birthday = new Date(
-    today.getFullYear(),
-    birth_date.getMonth(),
-    birth_date.getDate(),
-  );
+  const month = contact_date.month - 1;
+  const { day } = contact_date;
+  let next_birthday = new Date(today.getFullYear(), month, day);
 
-  if (this_year_birthday < today) {
-    this_year_birthday.setFullYear(today.getFullYear() + 1);
+  if (next_birthday < today) {
+    next_birthday = new Date(today.getFullYear() + 1, month, day);
   }
 
-  const diff = this_year_birthday.getTime() - today.getTime();
+  const diff = next_birthday.getTime() - today.getTime();
 
   return Math.round(diff / (1000 * 60 * 60 * 24));
 }

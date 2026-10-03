@@ -30,4 +30,5 @@ export {
   PreferencesProvider,
   use_preferences,
   use_preferences_optional,
+  use_preferences_save_status,
 } from "./provider";

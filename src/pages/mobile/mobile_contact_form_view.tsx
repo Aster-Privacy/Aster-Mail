@@ -41,6 +41,15 @@ import { ButtonSpinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { use_keep_focused_field_visible } from "@/hooks/use_keep_focused_field_visible";
 import {
+  ContactDateClearButton,
+  contact_date_clear_padding,
+} from "@/components/contacts/contact_date_clear_button";
+import {
+  contact_date_input_value,
+  format_contact_date,
+  is_partial_contact_date,
+} from "@/utils/date_utils";
+import {
   EMAIL_TYPE_OPTIONS,
   PHONE_TYPE_OPTIONS,
 } from "@/components/common/contacts/contact_detail_panel/helpers";
@@ -327,11 +336,27 @@ export function ContactFormView({
                 icon={<CakeIcon className="h-4 w-4" />}
                 label={t("common.birthday_section")}
               >
-                <FormInput
-                  on_change={(v) => on_update_form("birthday", v)}
-                  type="date"
-                  value={form_data.birthday ?? ""}
-                />
+                {is_partial_contact_date(form_data.birthday ?? "") ? (
+                  <div className="relative">
+                    <Input
+                      readOnly
+                      aria-label={t("common.birthday_section")}
+                      className={`w-full ${contact_date_clear_padding(false)}`}
+                      value={format_contact_date(form_data.birthday ?? "")}
+                    />
+                    <ContactDateClearButton
+                      beside_picker={false}
+                      label={t("common.clear")}
+                      on_clear={() => on_update_form("birthday", "")}
+                    />
+                  </div>
+                ) : (
+                  <FormInput
+                    on_change={(v) => on_update_form("birthday", v)}
+                    type="date"
+                    value={contact_date_input_value(form_data.birthday ?? "")}
+                  />
+                )}
               </FormSection>
               <FormSection
                 icon={<ChatBubbleLeftIcon className="h-4 w-4" />}

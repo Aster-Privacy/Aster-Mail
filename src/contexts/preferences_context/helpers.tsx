@@ -188,6 +188,9 @@ export interface PreferencesContextType {
   reload_preferences: () => Promise<void>;
   is_loading: boolean;
   has_loaded_from_server: boolean;
+}
+
+export interface PreferencesSaveStatusContextType {
   save_status: SaveStatus;
   has_unsaved_changes: boolean;
 }
@@ -195,6 +198,9 @@ export interface PreferencesContextType {
 export const PreferencesContext = createContext<PreferencesContextType | null>(
   null,
 );
+
+export const PreferencesSaveStatusContext =
+  createContext<PreferencesSaveStatusContextType | null>(null);
 
 export const CROSS_DEVICE_REFRESH_POLL_MS = 20_000;
 export const CROSS_DEVICE_REFRESH_MIN_INTERVAL_MS = 10_000;

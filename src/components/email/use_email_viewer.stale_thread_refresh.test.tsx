@@ -259,6 +259,12 @@ async function flush(): Promise<void> {
   });
 }
 
+async function wait_for_refresh_debounce(): Promise<void> {
+  await act(async () => {
+    await new Promise((r) => setTimeout(r, 900));
+  });
+}
+
 describe("switching messages while a thread refresh is in flight", () => {
   beforeEach(() => {
     (
@@ -282,6 +288,7 @@ describe("switching messages while a thread refresh is in flight", () => {
     act(() => {
       window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_CHANGED));
     });
+    await wait_for_refresh_debounce();
     await flush();
     expect(release_held).not.toBeNull();
 
@@ -308,6 +315,7 @@ describe("switching messages while a thread refresh is in flight", () => {
     act(() => {
       window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_CHANGED));
     });
+    await wait_for_refresh_debounce();
     await flush();
 
     expect(rendered.thread_ids()).toEqual(["a1", "a2", "a3"]);

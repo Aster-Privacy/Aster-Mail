@@ -43,6 +43,7 @@ import {
   get_cached_preferences,
   get_cached_text_size,
   prepare_preferences_payload,
+  preferences_equal,
   reconcile_preferences,
   DEFAULT_PREFERENCES,
   type UserPreferences,
@@ -288,7 +289,11 @@ export function use_preferences_core() {
     if (saved) {
       cache_preferences_locally(saved);
 
-      if (saved !== prefs && !latest_prefs_ref.current) {
+      if (
+        saved !== prefs &&
+        !latest_prefs_ref.current &&
+        !preferences_equal(saved, preferences_ref.current)
+      ) {
         preferences_ref.current = saved;
         set_preferences(saved);
       }
