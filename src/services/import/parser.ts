@@ -42,8 +42,8 @@ import { parse_mbox_file } from "./mbox_parser";
 import { parse_eml_file } from "./eml_parser";
 import { parse_csv_file } from "./csv_parser";
 import { parse_pst_file } from "./pst_parser";
+import { compute_import_dedupe_hash } from "./dedupe_hash";
 
-import { HASH_ALG } from "@/services/crypto/constants";
 import { get_active_translations } from "@/lib/i18n/translations";
 
 const REJECTED_EXTENSIONS = new Set([
@@ -271,19 +271,9 @@ export async function parse_import_file(
 
 export async function compute_message_id_hash(
   message_id: string,
+  identity_key: string,
 ): Promise<string> {
-  const hash = await crypto.subtle.digest(
-    HASH_ALG,
-    new TextEncoder().encode(message_id),
-  );
-  const bytes = new Uint8Array(hash);
-  let binary = "";
-
-  for (let i = 0; i < bytes.length; i++) {
-    binary += String.fromCharCode(bytes[i]);
-  }
-
-  return btoa(binary);
+  return compute_import_dedupe_hash(identity_key, "message_id", message_id);
 }
 
 export function extract_sender_name(from: string): string {

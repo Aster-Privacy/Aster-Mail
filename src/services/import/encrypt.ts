@@ -21,6 +21,8 @@
 import type { EncryptedVault } from "@/services/crypto/key_manager";
 import type { ParsedEmail } from "./parser";
 
+import { compute_import_dedupe_hash } from "./dedupe_hash";
+
 import { HASH_ALG } from "@/services/crypto/constants";
 
 const IMPORT_KEY_VERSION = "astermail-import-v1";
@@ -110,7 +112,10 @@ export interface EncryptedImportEmail {
 // Deterministic hash of the message content so re-importing the same email
 // (which gets a fresh random message_id on every parse) is detected as a
 // duplicate. Independent of the encryption nonce, which varies per run.
-async function compute_content_hash(email: ParsedEmail): Promise<string> {
+async function compute_content_hash(
+  email: ParsedEmail,
+  identity_key: string,
+): Promise<string> {
   const canonical = [
     email.from.trim().toLowerCase(),
     email.to.join(",").trim().toLowerCase(),
@@ -120,12 +125,7 @@ async function compute_content_hash(email: ParsedEmail): Promise<string> {
     (email.html_body ?? "").trim(),
   ].join("\n");
 
-  const digest = await crypto.subtle.digest(
-    HASH_ALG,
-    new TextEncoder().encode(canonical),
-  );
-
-  return uint8_array_to_base64(new Uint8Array(digest));
+  return compute_import_dedupe_hash(identity_key, "content", canonical);
 }
 
 export async function encrypt_imported_email(
@@ -180,7 +180,7 @@ export async function encrypt_imported_email(
     raw_headers: preserved_headers.length > 0 ? preserved_headers : undefined,
   };
 
-  const content_hash = await compute_content_hash(email);
+  const content_hash = await compute_content_hash(email, vault.identity_key);
 
   const key = await derive_import_encryption_key(vault);
   const nonce = crypto.getRandomValues(new Uint8Array(NONCE_LENGTH));
