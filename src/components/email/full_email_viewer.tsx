@@ -625,6 +625,7 @@ export function FullEmailViewer({
                     : undefined
                 }
                 on_view_source={viewer.handle_per_message_view_source}
+                pending_thread_count={viewer.pending_thread_count}
                 sending_message={viewer.sending_message}
                 size_bytes={viewer.mail_item?.metadata?.size_bytes}
                 thread_draft={viewer.thread_draft}

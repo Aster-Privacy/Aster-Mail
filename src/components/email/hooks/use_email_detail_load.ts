@@ -672,6 +672,30 @@ export function use_email_detail_load() {
 
       set_mail_item(response.data);
 
+      const thread_token = response.data.thread_token;
+      const should_load_thread =
+        preferences.conversation_grouping !== false && !!thread_token;
+      const thread_options = {
+        is_trashed: !!response.data.is_trashed,
+        is_spam: !!response.data.is_spam,
+        limit: preferences.low_network_mode ? 4 : undefined,
+      };
+      const request_thread = () =>
+        fetch_and_decrypt_thread_messages(
+          thread_token!,
+          user?.email,
+          thread_options,
+        ).catch((caught) => {
+          ignore_error(
+            "components/email/hooks/use_email_detail_load:thread_messages",
+            caught,
+          );
+
+          return null;
+        });
+      const early_thread_request =
+        should_load_thread && are_keys_ready() ? request_thread() : null;
+
       let decrypted_metadata = response.data.metadata ?? null;
 
       if (
@@ -851,22 +875,12 @@ export function use_email_detail_load() {
           e2e_verified,
         );
 
-        if (
-          preferences.conversation_grouping !== false &&
-          response.data.thread_token
-        ) {
-          const thread_result = await fetch_and_decrypt_thread_messages(
-            response.data.thread_token,
-            user?.email,
-            {
-              is_trashed: !!response.data.is_trashed,
-              is_spam: !!response.data.is_spam,
-              limit: preferences.low_network_mode ? 4 : undefined,
-            },
-          );
+        if (should_load_thread) {
+          const thread_result = await (early_thread_request ??
+            request_thread());
 
           if (is_stale()) return;
-          if (thread_result.messages.length > 0) {
+          if (thread_result && thread_result.messages.length > 0) {
             set_thread_messages(thread_result.messages);
             set_thread_truncated(thread_result.truncated);
           } else {
