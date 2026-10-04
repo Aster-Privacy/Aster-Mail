@@ -201,6 +201,28 @@ describe("sync_client folder and tag definition events", () => {
     invalidate.mockRestore();
   });
 
+  it("announces a message change made on another client once per burst", async () => {
+    const socket = await connect_first_time();
+    const listener = vi.fn();
+
+    window.addEventListener(MAIL_EVENTS.MAIL_REMOTE_MUTATION, listener);
+    deliver(socket, {
+      type: "mail_mutation",
+      action: "update_metadata",
+      item_ids: ["a"],
+    });
+    deliver(socket, {
+      type: "mail_mutation",
+      action: "update_metadata",
+      item_ids: ["b"],
+    });
+    expect(listener).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(1000);
+    window.removeEventListener(MAIL_EVENTS.MAIL_REMOTE_MUTATION, listener);
+
+    expect(listener).toHaveBeenCalledTimes(1);
+  });
+
   it("ignores a message type it does not know", async () => {
     const socket = await connect_first_time();
 

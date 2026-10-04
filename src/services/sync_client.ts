@@ -483,6 +483,7 @@ class SyncClient {
       this.mutation_refresh_timer = null;
       window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
       window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_STATS_STALE));
+      window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_REMOTE_MUTATION));
     }, MUTATION_REFRESH_DEBOUNCE_MS);
   }
 

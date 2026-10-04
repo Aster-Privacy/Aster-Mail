@@ -50,6 +50,7 @@ export const MAIL_EVENTS = {
   REFRESH_REQUESTED: "astermail:refresh-requested",
   MAIL_SOFT_REFRESH: "astermail:mail-soft-refresh",
   MAIL_STATS_STALE: "astermail:mail-stats-stale",
+  MAIL_REMOTE_MUTATION: "astermail:mail-remote-mutation",
   REACTIONS_CHANGED: "astermail:reactions-changed",
   INBOX_UNREAD_INDEXED: "astermail:inbox-unread-indexed",
 } as const;
@@ -191,6 +192,7 @@ type EventDetailMap = {
   [MAIL_EVENTS.REFRESH_REQUESTED]: undefined;
   [MAIL_EVENTS.MAIL_SOFT_REFRESH]: undefined;
   [MAIL_EVENTS.MAIL_STATS_STALE]: undefined;
+  [MAIL_EVENTS.MAIL_REMOTE_MUTATION]: undefined;
   [MAIL_EVENTS.REACTIONS_CHANGED]: ReactionsChangedEventDetail;
   [MAIL_EVENTS.INBOX_UNREAD_INDEXED]: InboxUnreadIndexedEventDetail;
 };
