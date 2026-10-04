@@ -1224,6 +1224,9 @@ export const nl = {
     tracking_pixel: "Trackingpixel",
     image_blocked: "Afbeelding geblokkeerd",
     tracking_pixel_blocked: "Trackingpixel geblokkeerd",
+    tracking_pixels_highlighted: "Gemarkeerd in het bericht: {{count}}",
+    tracking_pixels_blocked_count: "{{count}} trackingpixels geblokkeerd",
+    tracking_pixels_blocked_count_one: "{{count}} trackingpixel geblokkeerd",
     me: "mij",
     notification_banner_message:
       "Schakel bureaubladmeldingen in om op de hoogte te blijven van nieuwe e-mails",

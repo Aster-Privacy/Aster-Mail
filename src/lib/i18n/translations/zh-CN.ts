@@ -1105,6 +1105,8 @@ export const zh_CN = {
     tracking_pixel: "跟踪像素",
     image_blocked: "图片已屏蔽",
     tracking_pixel_blocked: "跟踪像素已屏蔽",
+    tracking_pixels_highlighted: "已在邮件中标出：{{count}}",
+    tracking_pixels_blocked_count: "已屏蔽 {{count}} 个跟踪像素",
     me: "我",
     notification_banner_message: "启用桌面通知以及时获取新邮件更新",
     notification_banner_allow: "允许",

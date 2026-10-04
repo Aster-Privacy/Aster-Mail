@@ -174,3 +174,27 @@ describe("blocked image placeholders in print", () => {
     expect(svg).not.toContain("Image blocked");
   });
 });
+
+describe("tracking pixels in print", () => {
+  it("prints blocked tracking pixels without markers or remote sources", () => {
+    const container = render(
+      format_body(
+        '<table><tr><td>Footer<img src="https://open.mailmetrics.example/o/1.gif" width="1" height="1" alt=""></td></tr></table><img src="https://t.beacon.example/open?id=9" width="1" height="1">',
+        "never",
+      ),
+    );
+    const pixels = Array.from(container.querySelectorAll("img"));
+
+    expect(pixels).toHaveLength(2);
+    for (const img of pixels) {
+      expect(img.getAttribute("data-tracking-pixel")).toBe("true");
+      expect(img.getAttribute("src")).toMatch(/^data:image\/svg\+xml,/);
+    }
+    expect(
+      container.querySelector(
+        "[data-tracking-pixel-marker], [data-testid='tracking-pixel-markers']",
+      ),
+    ).toBeNull();
+    expect(container.innerHTML).not.toMatch(/\ssrc="https?:/);
+  });
+});

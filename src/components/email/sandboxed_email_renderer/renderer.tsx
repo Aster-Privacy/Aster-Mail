@@ -22,6 +22,7 @@ import { useRef, useEffect, useState, useCallback, useMemo } from "react";
 
 import * as dom_cleanup from "./dom_cleanup";
 import { build_measurement_controls } from "./measurement_controls";
+import { TrackingPixelMarkers } from "./tracking_pixel_markers";
 import { attach_iframe_interactions } from "./iframe_interactions";
 import {
   BODY_PADDING,
@@ -1079,6 +1080,12 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
           title={t("mail.email_content")}
           onLoad={handle_load}
         />
+        {height_ready && contrast_ready && (
+          <TrackingPixelMarkers
+            iframe_ref={iframe_ref}
+            label={tracking_pixel_blocked_label}
+          />
+        )}
       </div>
     </>
   );

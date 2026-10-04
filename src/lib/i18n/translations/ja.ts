@@ -1289,6 +1289,9 @@ export const ja = {
     tracking_pixel: "トラッキングピクセル",
     image_blocked: "画像はブロックされました",
     tracking_pixel_blocked: "トラッキングピクセルはブロックされました",
+    tracking_pixels_highlighted: "メッセージ内で強調表示: {{count}}",
+    tracking_pixels_blocked_count:
+      "{{count}} 件のトラッキングピクセルをブロックしました",
     me: "自分",
     notification_banner_message:
       "デスクトップ通知を有効にして新着メールの情報を受け取りましょう",

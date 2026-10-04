@@ -1312,6 +1312,10 @@ export const hi = {
     tracking_pixel: "ट्रैकिंग पिक्सल",
     image_blocked: "छवि ब्लॉक की गई",
     tracking_pixel_blocked: "ट्रैकिंग पिक्सल ब्लॉक किया गया",
+    tracking_pixels_highlighted: "संदेश में हाइलाइट किए गए: {{count}}",
+    tracking_pixels_blocked_count: "{{count}} ट्रैकिंग पिक्सल ब्लॉक किए गए",
+    tracking_pixels_blocked_count_one:
+      "{{count}} ट्रैकिंग पिक्सल ब्लॉक किया गया",
     me: "मैं",
     notification_banner_message:
       "नए ईमेल की जानकारी पाते रहने के लिए डेस्कटॉप सूचनाएं चालू करें",
