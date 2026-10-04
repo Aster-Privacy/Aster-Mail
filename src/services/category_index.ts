@@ -112,6 +112,7 @@ export interface CategoryIndexEntry {
   is_pinned?: boolean;
   snoozed_until?: string;
   needs_reclassify?: boolean;
+  source?: string;
 }
 
 export interface CategoryCount {
@@ -140,7 +141,8 @@ interface PersistedMeta {
 }
 
 const PERSIST_CHUNK_COUNT = 32;
-const ENTRY_SCHEMA_VERSION = 2;
+const ENTRY_SCHEMA_VERSION = 3;
+const COMPATIBLE_ENTRY_SCHEMAS = new Set([2, ENTRY_SCHEMA_VERSION]);
 
 const dirty_chunks = new Set<number>();
 let previews_dirty = false;
@@ -217,6 +219,7 @@ const BUILTIN_CATEGORY_ID_SET = new Set(BUILTIN_CATEGORY_IDS);
 // use_inbox_categories pushes the real preference-derived list.
 let active_tabs: string[] = [...(CATEGORY_TABS as readonly string[])];
 let custom_categories: CustomCategoryRule[] = [];
+let custom_categories_hash = hash_text("[]");
 let built_custom_categories_key: string | null = null;
 let full_builds_completed = 0;
 
@@ -244,6 +247,7 @@ export function set_custom_categories(rules: CustomCategoryRule[]): void {
   const rules_key = JSON.stringify(rules);
 
   custom_categories = rules;
+  custom_categories_hash = hash_text(rules_key);
   set_active_custom_categories(rules);
 
   if (rules_key === built_custom_categories_key) return;
@@ -745,7 +749,8 @@ async function load_from_disk(account_id: string): Promise<void> {
     fully_built =
       payload.fully_built === true &&
       !chunks_incomplete &&
-      payload.entry_schema === ENTRY_SCHEMA_VERSION;
+      typeof payload.entry_schema === "number" &&
+      COMPATIBLE_ENTRY_SCHEMAS.has(payload.entry_schema);
 
     if (chunks_incomplete) {
       mark_all_dirty();
@@ -847,7 +852,12 @@ function apply_upsert(
     const pinned_category = pinned_category_for(raw.id);
 
     if (pinned_category && entry.category !== pinned_category) {
-      entry = { ...entry, category: pinned_category, category_pinned: true };
+      entry = {
+        ...entry,
+        category: pinned_category,
+        category_pinned: true,
+        source: undefined,
+      };
     }
 
     if (
@@ -859,7 +869,9 @@ function apply_upsert(
         (entry.category_pinned ?? false) ||
       (existing.is_pinned ?? false) !== (entry.is_pinned ?? false) ||
       (existing.snoozed_until ?? "") !== (entry.snoozed_until ?? "") ||
-      (existing.needs_reclassify ?? false) !== (entry.needs_reclassify ?? false)
+      (existing.needs_reclassify ?? false) !==
+        (entry.needs_reclassify ?? false) ||
+      existing.source !== entry.source
     ) {
       entries_map.set(entry.id, entry);
       mark_dirty(entry.id);
@@ -1904,12 +1916,13 @@ function decoded_item_key(item: MailItem): string {
 function remember_decoded_item(
   item: MailItem,
   entry: CategoryIndexEntry,
+  rules: CustomCategoryRule[],
 ): void {
   decoded_items.delete(item.id);
   decoded_items.set(item.id, {
     envelope: item.encrypted_envelope,
     key: decoded_item_key(item),
-    custom_categories,
+    custom_categories: rules,
     entry,
   });
 
@@ -1919,6 +1932,28 @@ function remember_decoded_item(
     if (!oldest) break;
     decoded_items.delete(oldest);
   }
+}
+
+function refresh_item_fields(
+  base: CategoryIndexEntry,
+  item: MailItem,
+): CategoryIndexEntry {
+  const snoozed_until =
+    item.snoozed_until && safe_ts(item.snoozed_until) > now_ms()
+      ? item.snoozed_until
+      : undefined;
+  const entry: CategoryIndexEntry = {
+    ...base,
+    thread_token: item.thread_token,
+    message_ts: item.message_ts || item.created_at,
+    is_read: item.is_read ?? base.is_read,
+    is_pinned: item.is_pinned ?? base.is_pinned,
+  };
+
+  if (snoozed_until) entry.snoozed_until = snoozed_until;
+  else delete entry.snoozed_until;
+
+  return entry;
 }
 
 function reuse_decoded_item(item: MailItem): CategoryIndexEntry | null {
@@ -1934,31 +1969,79 @@ function reuse_decoded_item(item: MailItem): CategoryIndexEntry | null {
 
   remember_entry_preview(item.id, preview);
 
-  const snoozed_until =
-    item.snoozed_until && safe_ts(item.snoozed_until) > now_ms()
-      ? item.snoozed_until
-      : undefined;
-  const entry: CategoryIndexEntry = {
-    ...decoded.entry,
-    thread_token: item.thread_token,
-    message_ts: item.message_ts || item.created_at,
-    is_read: item.is_read ?? decoded.entry.is_read,
-    is_pinned: item.is_pinned ?? decoded.entry.is_pinned,
-  };
-
-  if (snoozed_until) entry.snoozed_until = snoozed_until;
-  else delete entry.snoozed_until;
-
-  return entry;
+  return refresh_item_fields(decoded.entry, item);
 }
+
+const SOURCE_ENVELOPE_TAIL = 64;
+
+function hash_text(input: string): string {
+  let h1 = 0x6a09e667;
+  let h2 = 0xbb67ae85;
+  let h3 = 0x3c6ef372;
+  let h4 = 0xa54ff53a;
+
+  for (let i = 0; i < input.length; i++) {
+    const c = input.charCodeAt(i);
+
+    h1 = h2 ^ Math.imul(h1 ^ c, 597399067);
+    h2 = h3 ^ Math.imul(h2 ^ c, 2869860233);
+    h3 = h4 ^ Math.imul(h3 ^ c, 951274213);
+    h4 = h1 ^ Math.imul(h4 ^ c, 2716044179);
+  }
+
+  h1 = Math.imul(h3 ^ (h1 >>> 18), 597399067);
+  h2 = Math.imul(h4 ^ (h2 >>> 22), 2869860233);
+  h3 = Math.imul(h1 ^ (h3 >>> 17), 951274213);
+  h4 = Math.imul(h2 ^ (h4 >>> 19), 2716044179);
+  h1 ^= h2 ^ h3 ^ h4;
+  h2 ^= h1;
+  h3 ^= h1;
+  h4 ^= h1;
+
+  return [h1, h2, h3, h4].map((h) => (h >>> 0).toString(36)).join(".");
+}
+
+function item_source(item: MailItem, rules_hash: string): string {
+  return hash_text(
+    JSON.stringify([
+      CLASSIFIER_VERSION,
+      rules_hash,
+      decoded_item_key(item),
+      item.encrypted_envelope.length,
+      item.encrypted_envelope.slice(-SOURCE_ENVELOPE_TAIL),
+    ]),
+  );
+}
+
+function reuse_indexed_entry(
+  item: MailItem,
+  source: string,
+): CategoryIndexEntry | null {
+  const existing = entries_map.get(item.id);
+
+  if (!existing || existing.needs_reclassify) return null;
+  if (existing.source !== source) return null;
+
+  return refresh_item_fields(existing, item);
+}
+
+type ReuseMode = "none" | "decoded" | "indexed";
 
 async function item_to_entry(
   item: MailItem,
-  reuse_unchanged = false,
+  reuse: ReuseMode = "none",
 ): Promise<ItemIndexResult> {
   if (is_item_moved_out(item)) return { kind: "remove" };
-  if (reuse_unchanged) {
+  if (reuse === "decoded") {
     const reused = reuse_decoded_item(item);
+
+    if (reused) return { kind: "upsert", entry: reused };
+  }
+  const rules = custom_categories;
+  const source = item_source(item, custom_categories_hash);
+
+  if (reuse === "indexed") {
+    const reused = reuse_indexed_entry(item, source);
 
     if (reused) return { kind: "upsert", entry: reused };
   }
@@ -2000,7 +2083,7 @@ async function item_to_entry(
       is_read: item.is_read ?? metadata?.is_read ?? false,
       category: envelope
         ? classify(envelope, metadata, {
-            custom_categories,
+            custom_categories: rules,
             rule_category: item.rule_category,
             trust: item,
           })
@@ -2013,10 +2096,11 @@ async function item_to_entry(
         !is_locked_to_primary(envelope, item),
       is_pinned: item.is_pinned ?? metadata?.is_pinned ?? false,
       ...(snoozed_until ? { snoozed_until } : {}),
+      ...(envelope ? { source } : {}),
     },
   };
 
-  if (envelope) remember_decoded_item(item, result.entry);
+  if (envelope) remember_decoded_item(item, result.entry, rules);
 
   return result;
 }
@@ -2035,12 +2119,12 @@ function with_deadline<T>(
 
 async function entries_from_items(
   items: MailItem[],
-  reuse_unchanged = false,
+  reuse: ReuseMode = "none",
 ): Promise<{ upserts: CategoryIndexEntry[]; removals: string[] }> {
   const results = await Promise.allSettled(
     items.map(async (item) => ({
       id: item.id,
-      result: await item_to_entry(item, reuse_unchanged),
+      result: await item_to_entry(item, reuse),
     })),
   );
   const upserts: CategoryIndexEntry[] = [];
@@ -2123,7 +2207,10 @@ export async function build_index(options?: {
 
       for (let start = 0; start < items.length; start += BUILD_DECRYPT_CHUNK) {
         const chunk = items.slice(start, start + BUILD_DECRYPT_CHUNK);
-        const { upserts, removals } = await entries_from_items(chunk);
+        const { upserts, removals } = await entries_from_items(
+          chunk,
+          "indexed",
+        );
 
         if (options?.signal?.aborted || token !== build_token) return;
 
@@ -2257,7 +2344,7 @@ export async function sync_recent(
       if (ts > 0) page_oldest_ts = Math.min(page_oldest_ts, ts);
     }
 
-    const { upserts, removals } = await entries_from_items(items, true);
+    const { upserts, removals } = await entries_from_items(items, "decoded");
 
     if (token !== build_token) return;
 
