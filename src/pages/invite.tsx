@@ -39,6 +39,7 @@ import {
   bonus_bytes_per_referral,
   has_storage_bonus,
 } from "@/lib/referral_bonus";
+import { remember_invite_code } from "@/lib/pending_invite_code";
 
 const page_wrap =
   "min-h-screen flex items-center justify-center p-4 bg-surf-secondary";
@@ -69,6 +70,7 @@ export default function InvitePage() {
       .then((r) => {
         if (cancelled) return;
         if (r.data) {
+          if (r.data.valid) remember_invite_code(code);
           set_invite(
             r.data.valid
               ? r.data

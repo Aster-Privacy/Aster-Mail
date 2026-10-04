@@ -28,6 +28,10 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate, useLocation, useNavigationType } from "react-router-dom";
 
 import { current_source } from "@/lib/acquisition_source";
+import {
+  clear_remembered_invite_code,
+  current_invite_code,
+} from "@/lib/pending_invite_code";
 import { mark_first_run } from "@/lib/first_run";
 import {
   safe_local_set,
@@ -267,10 +271,7 @@ function read_abuse_block(details?: Record<string, unknown>): AbuseBlock {
 
 export function use_registration(options?: RegistrationClaimOptions) {
   const is_claim = !!options?.claim_token;
-  const is_invited =
-    !is_claim &&
-    typeof window !== "undefined" &&
-    !!new URLSearchParams(window.location.search).get("ref");
+  const is_invited = !is_claim && !!current_invite_code();
   const { t } = use_i18n();
   const navigate = useNavigate();
   const location = useLocation();
@@ -798,8 +799,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
         pgp_key: pgp_key_data,
         captcha_token: captcha_token || undefined,
         client_platform: import.meta.env.DEV ? "desktop" : undefined,
-        referral_code:
-          new URLSearchParams(window.location.search).get("ref") || undefined,
+        referral_code: current_invite_code() || undefined,
         ...current_source(),
         reservation_claim_token: options?.claim_token || undefined,
       };
@@ -839,6 +839,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
       }
 
       if (response.data) {
+        clear_remembered_invite_code();
         if (response.data.recovery_email_required) {
           set_recovery_email_required(true);
         }
@@ -1351,6 +1352,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
     pending_vault_data_ref.current = null;
 
     if (response.data && saved_vault) {
+      clear_remembered_invite_code();
       set_recovery_email_required(true);
       set_is_completing_registration(true);
       const trimmed_display_name = display_name.trim();
