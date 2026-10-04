@@ -21,10 +21,12 @@
 
 export const MAX_TAG_NAME_LENGTH = 100;
 export const MAX_CONSECUTIVE_TAG_FAILURES = 3;
+export const MAX_IMPORT_TAG_LEVELS = 5;
 
 export interface ImportTagSource {
   name: string;
   tag_token: string;
+  parent_token?: string;
 }
 
 export interface ImportTagResolution {
@@ -36,12 +38,60 @@ export interface ImportTagResolution {
 export interface ResolveImportTagsInput {
   names: string[];
   existing_tags: ImportTagSource[];
-  create_tag: (name: string) => Promise<ImportTagSource | null>;
+  create_tag: (
+    name: string,
+    parent_token?: string,
+  ) => Promise<ImportTagSource | null>;
   should_stop?: () => boolean;
 }
 
 export function import_tag_key(name: string): string {
   return name.trim().toLowerCase();
+}
+
+export function import_tag_segments(path: string): string[] {
+  const segments = path
+    .split("/")
+    .map((segment) => segment.trim())
+    .filter((segment) => segment.length > 0);
+
+  if (segments.length <= MAX_IMPORT_TAG_LEVELS) return segments;
+
+  return [
+    ...segments.slice(0, MAX_IMPORT_TAG_LEVELS - 1),
+    segments.slice(MAX_IMPORT_TAG_LEVELS - 1).join("/"),
+  ];
+}
+
+function path_key(segments: string[]): string {
+  return segments.map((segment) => segment.toLowerCase()).join("/");
+}
+
+function existing_tag_paths(tags: ImportTagSource[]): Map<string, string> {
+  const by_token = new Map<string, ImportTagSource>();
+  const paths = new Map<string, string>();
+
+  for (const tag of tags) by_token.set(tag.tag_token, tag);
+
+  for (const tag of tags) {
+    const names: string[] = [];
+    const seen = new Set<string>();
+    let current: ImportTagSource | undefined = tag;
+
+    while (current && !seen.has(current.tag_token)) {
+      seen.add(current.tag_token);
+      names.unshift(current.name.trim().toLowerCase());
+      current = current.parent_token
+        ? by_token.get(current.parent_token)
+        : undefined;
+    }
+
+    const key = names.join("/");
+
+    if (key && !paths.has(key)) paths.set(key, tag.tag_token);
+  }
+
+  return paths;
 }
 
 export async function resolve_import_tags({
@@ -51,38 +101,53 @@ export async function resolve_import_tags({
   should_stop,
 }: ResolveImportTagsInput): Promise<ImportTagResolution> {
   const tag_map = new Map<string, string>();
-  const known = new Map<string, string>();
+  const known = existing_tag_paths(existing_tags);
   let created = 0;
   let skipped = 0;
   let consecutive_failures = 0;
 
-  for (const tag of existing_tags) {
-    const key = import_tag_key(tag.name);
-
-    if (!known.has(key)) known.set(key, tag.tag_token);
-  }
-
   const ensure_tag = async (path: string): Promise<string | null> => {
-    const key = import_tag_key(path);
-    const existing = known.get(key);
+    const whole = known.get(import_tag_key(path));
 
-    if (existing) return existing;
-    if (path.trim().length > MAX_TAG_NAME_LENGTH) return null;
-    if (consecutive_failures >= MAX_CONSECUTIVE_TAG_FAILURES) return null;
+    if (whole) return whole;
 
-    const tag = await create_tag(path.trim()).catch(() => null);
+    const segments = import_tag_segments(path);
 
-    if (!tag) {
-      consecutive_failures += 1;
-
+    if (segments.length === 0) return null;
+    if (segments.some((segment) => segment.length > MAX_TAG_NAME_LENGTH)) {
       return null;
     }
 
-    consecutive_failures = 0;
-    created += 1;
-    known.set(key, tag.tag_token);
+    let parent_token: string | undefined;
 
-    return tag.tag_token;
+    for (let level = 1; level <= segments.length; level += 1) {
+      const key = path_key(segments.slice(0, level));
+      const existing = known.get(key);
+
+      if (existing) {
+        parent_token = existing;
+        continue;
+      }
+
+      if (consecutive_failures >= MAX_CONSECUTIVE_TAG_FAILURES) return null;
+
+      const tag = await create_tag(segments[level - 1], parent_token).catch(
+        () => null,
+      );
+
+      if (!tag) {
+        consecutive_failures += 1;
+
+        return null;
+      }
+
+      consecutive_failures = 0;
+      created += 1;
+      known.set(key, tag.tag_token);
+      parent_token = tag.tag_token;
+    }
+
+    return parent_token ?? null;
   };
 
   for (const name of names) {

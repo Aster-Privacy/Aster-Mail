@@ -444,7 +444,13 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
           const resolution = await resolve_import_tags({
             names: source_tags,
             existing_tags: tags_ref.current.state.tags,
-            create_tag: (name) => tags_ref.current.create_new_tag(name),
+            create_tag: (name, parent_token) =>
+              tags_ref.current.create_new_tag(
+                name,
+                undefined,
+                undefined,
+                parent_token,
+              ),
             should_stop: () => cancel_ref.current,
           });
 

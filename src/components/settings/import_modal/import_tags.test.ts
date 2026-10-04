@@ -27,7 +27,11 @@ import {
 } from "./import_tags";
 
 function creator() {
-  return vi.fn(async (name: string) => ({ name, tag_token: "new-" + name }));
+  return vi.fn(async (name: string, parent_token?: string) => ({
+    name,
+    tag_token: (parent_token ? parent_token + "/" : "new-") + name,
+    parent_token,
+  }));
 }
 
 describe("resolve_import_tags", () => {
@@ -39,16 +43,17 @@ describe("resolve_import_tags", () => {
       create_tag,
     });
 
-    expect(create_tag.mock.calls.map((call) => call[0])).toEqual([
-      "Family",
-      "Parent/Child",
+    expect(create_tag.mock.calls).toEqual([
+      ["Family", undefined],
+      ["Parent", undefined],
+      ["Child", "new-Parent"],
     ]);
     expect(Array.from(result.tag_map.entries())).toEqual([
       ["work", "tok-work"],
       ["family", "new-Family"],
       ["parent/child", "new-Parent/Child"],
     ]);
-    expect(result.created).toBe(2);
+    expect(result.created).toBe(3);
     expect(result.skipped).toBe(0);
   });
 
@@ -135,5 +140,54 @@ describe("resolve_import_tags", () => {
 
     expect(create_tag).toHaveBeenCalledTimes(1);
     expect(result.tag_map.size).toBe(1);
+  });
+
+  it("nests under an existing parent and reuses an existing sublabel", async () => {
+    const create_tag = creator();
+    const result = await resolve_import_tags({
+      names: ["Clients/Acme", "clients/acme/Invoices"],
+      existing_tags: [
+        { name: "Clients", tag_token: "tok-clients" },
+        { name: "Acme", tag_token: "tok-acme", parent_token: "tok-clients" },
+      ],
+      create_tag,
+    });
+
+    expect(create_tag.mock.calls).toEqual([["Invoices", "tok-acme"]]);
+    expect(result.tag_map.get("clients/acme")).toBe("tok-acme");
+    expect(result.tag_map.get("clients/acme/invoices")).toBe(
+      "tok-acme/Invoices",
+    );
+    expect(result.created).toBe(1);
+  });
+
+  it("keeps an existing label whose own name contains a slash", async () => {
+    const create_tag = creator();
+    const result = await resolve_import_tags({
+      names: ["Parent/Child"],
+      existing_tags: [{ name: "Parent/Child", tag_token: "tok-flat" }],
+      create_tag,
+    });
+
+    expect(create_tag).not.toHaveBeenCalled();
+    expect(result.tag_map.get("parent/child")).toBe("tok-flat");
+  });
+
+  it("folds levels past the depth limit into the last label", async () => {
+    const create_tag = creator();
+
+    await resolve_import_tags({
+      names: ["a/b/c/d/e/f"],
+      existing_tags: [],
+      create_tag,
+    });
+
+    expect(create_tag.mock.calls.map((call) => call[0])).toEqual([
+      "a",
+      "b",
+      "c",
+      "d",
+      "e/f",
+    ]);
   });
 });

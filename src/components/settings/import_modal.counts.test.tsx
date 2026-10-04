@@ -253,10 +253,18 @@ describe("ImportModal skip counts and Gmail labels (integration)", () => {
     );
     expect(created_folders).toEqual([]);
     expect(created_tags.sort()).toEqual(
-      ["Clients/Archive", "Projects/Draft", "Taxes, 2025", "Team/Chat"].sort(),
+      [
+        "Archive",
+        "Chat",
+        "Clients",
+        "Draft",
+        "Projects",
+        "Taxes, 2025",
+        "Team",
+      ].sort(),
     );
     expect(stored_tag_tokens.get("team-chat@example.com")).toEqual([
-      "tag-Team/Chat",
+      "tag-Chat",
       "tag-Taxes, 2025",
     ]);
     expect(stored_tag_tokens.get("plain@example.com")).toEqual([]);
@@ -267,7 +275,7 @@ describe("ImportModal skip counts and Gmail labels (integration)", () => {
     expect(text).toContain('settings.duplicates_skipped {"count":1}');
     expect(text).toContain('settings.import_drafts_chats_skipped {"count":3}');
     expect(text).toContain('settings.import_invalid_skipped {"count":1}');
-    expect(text).toContain('settings.import_labels_created {"count":4}');
+    expect(text).toContain('settings.import_labels_created {"count":7}');
     expect(text).not.toContain("settings.import_labels_skipped");
 
     expect(update_import_job).toHaveBeenLastCalledWith("job-1", {
