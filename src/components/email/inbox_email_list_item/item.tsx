@@ -87,12 +87,8 @@ import {
 } from "@/lib/utils";
 import { is_compact_density, list_select_slot_class } from "@/lib/list_density";
 import {
-  get_alias_hash_by_address,
-  subscribe_aliases,
-} from "@/hooks/use_sidebar_aliases";
-import {
   normalize_alias_candidates,
-  use_alias_delivery,
+  use_alias_row_info,
 } from "@/hooks/use_alias_delivery";
 import { use_preferences } from "@/contexts/preferences_context";
 import {
@@ -222,11 +218,6 @@ export const InboxEmailListItem = memo(
         set_row_engaged(true);
       }, []);
       const drag_image_ref = useRef<HTMLDivElement | null>(null);
-      const [alias_version, set_alias_version] = useState(0);
-
-      useEffect(() => {
-        return subscribe_aliases(() => set_alias_version((v) => v + 1));
-      }, []);
 
       useEffect(() => {
         return () => {
@@ -237,36 +228,16 @@ export const InboxEmailListItem = memo(
         };
       }, []);
 
-      const custom_domain_label = useMemo(() => {
-        const match = email.recipient_addresses?.find((address) => {
-          const lower = address.toLowerCase();
-          const domain = lower.split("@")[1];
-
-          if (
-            !domain ||
-            domain === "astermail.org" ||
-            domain === "aster.cx" ||
-            domain === "astermail.me" ||
-            domain === "astermail.net" ||
-            domain === "gs-cloud.space"
-          ) {
-            return false;
-          }
-
-          return get_alias_hash_by_address(lower) !== null;
-        });
-
-        return match ? match.split("@")[1] : null;
-      }, [email.recipient_addresses, alias_version]);
-
       const alias_candidates_key = useMemo(
         () => normalize_alias_candidates(email.recipient_addresses ?? []),
         [email.recipient_addresses],
       );
-      const alias_delivery = use_alias_delivery(
-        email.item_type === "received" ? email.routing_token : undefined,
-        email.item_type === "received" ? alias_candidates_key : "",
-      );
+      const { delivery: alias_delivery, custom_domain_label } =
+        use_alias_row_info(
+          email.item_type === "received" ? email.routing_token : undefined,
+          email.item_type === "received" ? alias_candidates_key : "",
+          email.recipient_addresses,
+        );
 
       const handle_drag_start = (e: React.DragEvent<HTMLDivElement>) => {
         sweep_drag_images();
