@@ -48,6 +48,7 @@ export default defineConfig([
     "**/*.css",
     "**/.changeset",
     "**/dist",
+    "**/dist-native",
     "**/dev-dist",
     "esm/*",
     "public/*",
