@@ -683,27 +683,123 @@ export function sanitize_style(style: string, sandbox_mode: boolean): string {
   return result;
 }
 
+const DARK_SCHEME_FEATURE = /prefers-color-scheme\s*:\s*dark\b/i;
+const NEGATED_DARK_SCHEME =
+  /^\s*not\b|\bnot\s*(?:\(\s*)+prefers-color-scheme\s*:\s*dark\b/i;
+
+function split_media_queries(prelude: string): string[] {
+  const queries: string[] = [];
+  let depth = 0;
+  let start = 0;
+
+  for (let i = 0; i < prelude.length; i++) {
+    const char = prelude[i];
+
+    if (char === "(") depth++;
+    else if (char === ")") depth = Math.max(0, depth - 1);
+    else if (char === "," && depth === 0) {
+      queries.push(prelude.slice(start, i));
+      start = i + 1;
+    }
+  }
+  queries.push(prelude.slice(start));
+
+  return queries.map((query) => query.trim()).filter(Boolean);
+}
+
+function requires_dark_scheme(query: string): boolean {
+  return DARK_SCHEME_FEATURE.test(query) && !NEGATED_DARK_SCHEME.test(query);
+}
+
+export function strip_dark_media_queries(media: string): string | null {
+  const queries = split_media_queries(media);
+
+  if (!queries.some(requires_dark_scheme)) return media;
+
+  const kept = queries.filter((query) => !requires_dark_scheme(query));
+
+  return kept.length > 0 ? kept.join(", ") : null;
+}
+
+const MEDIA_ATTRIBUTE_CHARACTERS = /^[\w\s(),:.\-/<>=]*$/;
+
+export function scope_css_to_media_attribute(
+  css: string,
+  media: string | null | undefined,
+): string {
+  const value = (media || "").trim();
+
+  if (!value) return css;
+  if (!MEDIA_ATTRIBUTE_CHARACTERS.test(value)) return "";
+
+  const queries = split_media_queries(value);
+  const kept = queries.filter((query) => !requires_dark_scheme(query));
+
+  if (kept.length === 0) return "";
+
+  return `@media ${kept.join(", ")} {\n${css}\n}`;
+}
+
 export function strip_dark_mode_media(css: string): string {
-  let result = css;
-  const pattern =
-    /@media\s*\([^)]*prefers-color-scheme\s*:\s*dark[^)]*\)\s*\{/gi;
+  const head = /@media\b/gi;
+  const parts: string[] = [];
+  let copied = 0;
   let match;
 
-  while ((match = pattern.exec(result)) !== null) {
-    let depth = 1;
-    let i = match.index + match[0].length;
+  while ((match = head.exec(css)) !== null) {
+    const prelude_start = head.lastIndex;
+    let open = prelude_start;
 
-    while (i < result.length && depth > 0) {
-      if (result[i] === "{") depth++;
-      else if (result[i] === "}") depth--;
+    while (
+      open < css.length &&
+      css[open] !== "{" &&
+      css[open] !== "}" &&
+      css[open] !== ";"
+    ) {
+      open++;
+    }
+
+    if (open >= css.length) break;
+
+    if (css[open] !== "{") {
+      head.lastIndex = open;
+      continue;
+    }
+
+    const queries = split_media_queries(css.slice(prelude_start, open));
+
+    if (!queries.some(requires_dark_scheme)) {
+      head.lastIndex = open + 1;
+      continue;
+    }
+
+    const kept = queries.filter((query) => !requires_dark_scheme(query));
+
+    parts.push(css.slice(copied, match.index));
+
+    if (kept.length > 0) {
+      parts.push(`@media ${kept.join(", ")} {`);
+      copied = open + 1;
+      head.lastIndex = open + 1;
+      continue;
+    }
+
+    let depth = 1;
+    let i = open + 1;
+
+    while (i < css.length && depth > 0) {
+      if (css[i] === "{") depth++;
+      else if (css[i] === "}") depth--;
       i++;
     }
 
-    result = result.slice(0, match.index) + result.slice(i);
-    pattern.lastIndex = match.index;
+    copied = i;
+    head.lastIndex = i;
   }
 
-  return result;
+  parts.push(css.slice(copied));
+
+  return parts.join("");
 }
 
 export function sanitize_css_block(css: string, _sandbox_mode = false): string {

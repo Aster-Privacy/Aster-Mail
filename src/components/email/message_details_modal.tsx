@@ -115,170 +115,175 @@ export function MessageDetailsModal({
       <ModalHeader>
         <ModalTitle>{t("mail.message_details")}</ModalTitle>
       </ModalHeader>
-      <ModalBody className="space-y-2.5 text-sm">
-        <div className="flex">
-          <span className="min-w-24 flex-shrink-0 whitespace-nowrap pe-2 font-medium text-txt-muted">
-            {t("common.from_label")}
-          </span>
-          <span className="min-w-0 text-txt-secondary break-words">
-            {message.display_sender_name ?? message.sender_name} &lt;
-            {message.display_sender_email ?? message.sender_email}&gt;
-          </span>
-        </div>
-
-        {insights.reply_to && (
-          <DetailsRow label={t("mail.reply_to_label")} variant="desktop">
-            <ReplyToValue {...insights.reply_to} />
-          </DetailsRow>
-        )}
-
-        {message.to_recipients && message.to_recipients.length > 0 && (
+      <ModalBody className="text-sm [@media(min-height:800px)]:flex [@media(min-height:800px)]:flex-col">
+        <div className="space-y-2.5">
           <div className="flex">
             <span className="min-w-24 flex-shrink-0 whitespace-nowrap pe-2 font-medium text-txt-muted">
-              {t("common.to_label")}
+              {t("common.from_label")}
             </span>
             <span className="min-w-0 text-txt-secondary break-words">
-              {message.to_recipients
-                .map((r) => (r.name ? `${r.name} <${r.email}>` : r.email))
-                .join(", ")}
+              {message.display_sender_name ?? message.sender_name} &lt;
+              {message.display_sender_email ?? message.sender_email}&gt;
             </span>
           </div>
-        )}
 
-        {message.cc_recipients && message.cc_recipients.length > 0 && (
-          <div className="flex">
-            <span className="min-w-24 flex-shrink-0 whitespace-nowrap pe-2 font-medium text-txt-muted">
-              {t("common.cc_label")}
-            </span>
-            <span className="min-w-0 text-txt-secondary break-words">
-              {message.cc_recipients
-                .map((r) => (r.name ? `${r.name} <${r.email}>` : r.email))
-                .join(", ")}
-            </span>
-          </div>
-        )}
+          {insights.reply_to && (
+            <DetailsRow label={t("mail.reply_to_label")} variant="desktop">
+              <ReplyToValue {...insights.reply_to} />
+            </DetailsRow>
+          )}
 
-        {message.bcc_recipients && message.bcc_recipients.length > 0 && (
-          <div className="flex">
-            <span className="min-w-24 flex-shrink-0 whitespace-nowrap pe-2 font-medium text-txt-muted">
-              {t("common.bcc_label")}
-            </span>
-            <span className="min-w-0 text-txt-secondary break-words">
-              {message.bcc_recipients
-                .map((r) => (r.name ? `${r.name} <${r.email}>` : r.email))
-                .join(", ")}
-            </span>
-          </div>
-        )}
-
-        {(() => {
-          const received_on =
-            message.item_type === "received"
-              ? resolve_received_on_address(message)
-              : undefined;
-
-          return received_on ? (
+          {message.to_recipients && message.to_recipients.length > 0 && (
             <div className="flex">
               <span className="min-w-24 flex-shrink-0 whitespace-nowrap pe-2 font-medium text-txt-muted">
-                {t("common.received_on_label")}
+                {t("common.to_label")}
               </span>
               <span className="min-w-0 text-txt-secondary break-words">
-                {received_on}
+                {message.to_recipients
+                  .map((r) => (r.name ? `${r.name} <${r.email}>` : r.email))
+                  .join(", ")}
               </span>
             </div>
-          ) : null;
-        })()}
+          )}
 
-        <div className="flex">
-          <span className="min-w-24 flex-shrink-0 whitespace-nowrap pe-2 font-medium text-txt-muted">
-            {t("common.date_label")}
-          </span>
-          <span className="text-txt-secondary">
-            {format_full_datetime(new Date(message.timestamp))}
-          </span>
-        </div>
+          {message.cc_recipients && message.cc_recipients.length > 0 && (
+            <div className="flex">
+              <span className="min-w-24 flex-shrink-0 whitespace-nowrap pe-2 font-medium text-txt-muted">
+                {t("common.cc_label")}
+              </span>
+              <span className="min-w-0 text-txt-secondary break-words">
+                {message.cc_recipients
+                  .map((r) => (r.name ? `${r.name} <${r.email}>` : r.email))
+                  .join(", ")}
+              </span>
+            </div>
+          )}
 
-        <div className="flex">
-          <span className="min-w-24 flex-shrink-0 whitespace-nowrap pe-2 font-medium text-txt-muted">
-            {t("common.subject_label")}
-          </span>
-          <span className="min-w-0 text-txt-secondary break-words" dir="auto">
-            {message.subject || t("mail.no_subject")}
-          </span>
-        </div>
+          {message.bcc_recipients && message.bcc_recipients.length > 0 && (
+            <div className="flex">
+              <span className="min-w-24 flex-shrink-0 whitespace-nowrap pe-2 font-medium text-txt-muted">
+                {t("common.bcc_label")}
+              </span>
+              <span className="min-w-0 text-txt-secondary break-words">
+                {message.bcc_recipients
+                  .map((r) => (r.name ? `${r.name} <${r.email}>` : r.email))
+                  .join(", ")}
+              </span>
+            </div>
+          )}
 
-        {insights.mailing_list && (
-          <DetailsRow label={t("mail.mailing_list_label")} variant="desktop">
-            <MailingListValue {...insights.mailing_list} />
-          </DetailsRow>
-        )}
+          {(() => {
+            const received_on =
+              message.item_type === "received"
+                ? resolve_received_on_address(message)
+                : undefined;
 
-        {message_id && (
+            return received_on ? (
+              <div className="flex">
+                <span className="min-w-24 flex-shrink-0 whitespace-nowrap pe-2 font-medium text-txt-muted">
+                  {t("common.received_on_label")}
+                </span>
+                <span className="min-w-0 text-txt-secondary break-words">
+                  {received_on}
+                </span>
+              </div>
+            ) : null;
+          })()}
+
           <div className="flex">
             <span className="min-w-24 flex-shrink-0 whitespace-nowrap pe-2 font-medium text-txt-muted">
-              {t("mail.message_id_label")}
-            </span>
-            <span className="min-w-0 text-txt-secondary break-all font-mono text-xs">
-              {message_id}
-            </span>
-          </div>
-        )}
-
-        {size_bytes != null && size_bytes > 0 && (
-          <div className="flex">
-            <span className="min-w-24 flex-shrink-0 whitespace-nowrap pe-2 font-medium text-txt-muted">
-              {t("mail.size_label")}
+              {t("common.date_label")}
             </span>
             <span className="text-txt-secondary">
-              {format_bytes(size_bytes)}
+              {format_full_datetime(new Date(message.timestamp))}
             </span>
           </div>
-        )}
 
-        <div className="flex items-center">
-          <span className="min-w-24 flex-shrink-0 whitespace-nowrap pe-2 font-medium text-txt-muted">
-            {t("mail.encryption_label")}
-          </span>
-          <EncryptionInfoDropdown
-            e2e_verified={!!message.e2e_verified}
-            has_pq_protection={false}
-            has_recipient_key={message.has_recipient_key}
-            is_external={message.is_external}
-            label={
-              (!message.is_external || message.has_recipient_key) &&
-              message.e2e_verified
-                ? t("mail.zero_access_encrypted")
-                : t("common.protected_in_transit")
-            }
-            sender_verification={message.sender_verification}
-            size={14}
-          />
+          <div className="flex">
+            <span className="min-w-24 flex-shrink-0 whitespace-nowrap pe-2 font-medium text-txt-muted">
+              {t("common.subject_label")}
+            </span>
+            <span className="min-w-0 text-txt-secondary break-words" dir="auto">
+              {message.subject || t("mail.no_subject")}
+            </span>
+          </div>
+
+          {insights.mailing_list && (
+            <DetailsRow label={t("mail.mailing_list_label")} variant="desktop">
+              <MailingListValue {...insights.mailing_list} />
+            </DetailsRow>
+          )}
+
+          {message_id && (
+            <div className="flex">
+              <span className="min-w-24 flex-shrink-0 whitespace-nowrap pe-2 font-medium text-txt-muted">
+                {t("mail.message_id_label")}
+              </span>
+              <span className="min-w-0 text-txt-secondary break-all font-mono text-xs">
+                {message_id}
+              </span>
+            </div>
+          )}
+
+          {size_bytes != null && size_bytes > 0 && (
+            <div className="flex">
+              <span className="min-w-24 flex-shrink-0 whitespace-nowrap pe-2 font-medium text-txt-muted">
+                {t("mail.size_label")}
+              </span>
+              <span className="text-txt-secondary">
+                {format_bytes(size_bytes)}
+              </span>
+            </div>
+          )}
+
+          <div className="flex items-center">
+            <span className="min-w-24 flex-shrink-0 whitespace-nowrap pe-2 font-medium text-txt-muted">
+              {t("mail.encryption_label")}
+            </span>
+            <EncryptionInfoDropdown
+              e2e_verified={!!message.e2e_verified}
+              has_pq_protection={false}
+              has_recipient_key={message.has_recipient_key}
+              is_external={message.is_external}
+              label={
+                (!message.is_external || message.has_recipient_key) &&
+                message.e2e_verified
+                  ? t("mail.zero_access_encrypted")
+                  : t("common.protected_in_transit")
+              }
+              sender_verification={message.sender_verification}
+              size={14}
+            />
+          </div>
+
+          {is_received && (
+            <section className="mt-3 space-y-2.5 border-t border-edge-primary pt-3">
+              <h4 className="text-sm font-medium text-txt-primary">
+                {t("mail.authentication_section")}
+              </h4>
+              <EmailAuthDetails
+                results={message}
+                sender_email={sender_email}
+                variant="desktop"
+              />
+              {insights.signed_by && (
+                <DetailsRow label={t("mail.signed_by_label")} variant="desktop">
+                  <bdi dir="ltr">{insights.signed_by}</bdi>
+                </DetailsRow>
+              )}
+              {insights.mailed_by && (
+                <DetailsRow label={t("mail.mailed_by_label")} variant="desktop">
+                  <bdi dir="ltr">{insights.mailed_by}</bdi>
+                </DetailsRow>
+              )}
+            </section>
+          )}
         </div>
 
-        {is_received && (
-          <section className="mt-3 space-y-2.5 border-t border-edge-primary pt-3">
-            <h4 className="text-sm font-medium text-txt-primary">
-              {t("mail.authentication_section")}
-            </h4>
-            <EmailAuthDetails
-              results={message}
-              sender_email={sender_email}
-              variant="desktop"
-            />
-            {insights.signed_by && (
-              <DetailsRow label={t("mail.signed_by_label")} variant="desktop">
-                <bdi dir="ltr">{insights.signed_by}</bdi>
-              </DetailsRow>
-            )}
-            {insights.mailed_by && (
-              <DetailsRow label={t("mail.mailed_by_label")} variant="desktop">
-                <bdi dir="ltr">{insights.mailed_by}</bdi>
-              </DetailsRow>
-            )}
-          </section>
-        )}
-
-        <div className="pt-3 mt-3 border-t border-edge-primary">
+        <div
+          className="pt-3 mt-3 border-t border-edge-primary [@media(min-height:800px)]:flex [@media(min-height:800px)]:min-h-0 [@media(min-height:800px)]:flex-1 [@media(min-height:800px)]:flex-col"
+          data-testid="message-headers-section"
+        >
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
             <span className="font-medium text-txt-primary text-sm">
               {t("mail.message_headers")}
@@ -310,7 +315,7 @@ export function MessageDetailsModal({
           </div>
           {headers ? (
             <HeadersBox
-              className="max-h-[max(250px,calc(100dvh-34rem))]"
+              className="[@media(min-height:800px)]:min-h-32 [@media(min-height:800px)]:flex-1"
               mode={headers_mode}
               raw_headers={message.raw_headers}
               text={headers}

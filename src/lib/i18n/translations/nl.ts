@@ -7300,6 +7300,7 @@ export const nl = {
       "Aster Bridge moet geïnstalleerd zijn en actief zijn. Download het via Instellingen > Bridge.",
     desktop_bridge_not_opened:
       "Aster Bridge is niet geopend. Controleer of het geïnstalleerd en actief is, of download het via Instellingen > Bridge.",
+    desktop_bridge_opening: "Aster Bridge wordt geopend...",
     desktop_bridge_set_up: "{{client}} instellen",
     bridge: "Bridge",
     bridge_description: "Verbind Aster met elke IMAP- of SMTP-mailclient",

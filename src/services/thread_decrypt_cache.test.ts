@@ -18,10 +18,11 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 const h = vi.hoisted(() => ({
   messages: [] as Record<string, unknown>[],
+  threads: new Map<string, Record<string, unknown>[]>(),
   bodies: new Map<string, string>(),
   attachment_keys: new Map<string, unknown>(),
   failing_envelopes: new Set<string>(),
@@ -32,10 +33,12 @@ const h = vi.hoisted(() => ({
 }));
 
 vi.mock("@/services/api/mail", () => ({
-  get_thread_messages: async () => ({
+  get_thread_messages: async (thread_token: string) => ({
     data: {
-      thread: { thread_token: "t" },
-      messages: h.messages.map((m) => structuredClone(m)),
+      thread: { thread_token },
+      messages: (h.threads.get(thread_token) ?? h.messages).map((m) =>
+        structuredClone(m),
+      ),
     },
     error: null,
   }),
@@ -69,7 +72,14 @@ vi.mock("@/services/crypto/mail_metadata", () => ({
   decrypt_mail_metadata: async (encrypted: string) => {
     h.metadata_decrypts += 1;
 
-    return { is_read: true, is_starred: encrypted.endsWith("-starred") };
+    return {
+      is_read: true,
+      is_starred: encrypted.endsWith("-starred"),
+      send_status: "sent",
+      snoozed_until: "2026-09-02T08:00:00Z",
+      category: "updates",
+      size_bytes: 2048,
+    };
   },
 }));
 
@@ -85,8 +95,21 @@ vi.mock("@/services/crypto/memory_key_store", () => ({
   },
 }));
 
+vi.mock("@/services/offline_email_cache", async (import_original) => ({
+  ...(await import_original<object>()),
+  clear_email_cache: async () => {},
+}));
+
 const { fetch_and_decrypt_thread_messages } = await import("./thread_service");
-const { clear_thread_decrypt_cache } = await import("./thread_decrypt_cache");
+const {
+  clear_thread_decrypt_cache,
+  decrypt_thread_metadata_cached,
+  hold_thread_decrypt_cache,
+  thread_decrypt_cache_size,
+  CLOSED_THREAD_GRACE_MS,
+  HIDDEN_PAGE_PURGE_MS,
+} = await import("./thread_decrypt_cache");
+const { clear_mail_cache } = await import("@/hooks/email_list_cache");
 
 function message(index: number, overrides: Record<string, unknown> = {}) {
   return {
@@ -103,9 +126,53 @@ function message(index: number, overrides: Record<string, unknown> = {}) {
   };
 }
 
-async function load(user = "me@example.test") {
-  return (await fetch_and_decrypt_thread_messages("t", user)).messages;
+async function load(user = "me@example.test", thread_token = "t") {
+  return (await fetch_and_decrypt_thread_messages(thread_token, user)).messages;
 }
+
+function thread_of(thread_token: string, size = 3) {
+  const messages = Array.from({ length: size }, (_, i) =>
+    message(i, {
+      id: `${thread_token}-m${i}`,
+      encrypted_envelope: `env-${thread_token}-${i}`,
+      encrypted_metadata: `meta-${thread_token}-${i}`,
+    }),
+  );
+
+  h.threads.set(thread_token, messages);
+
+  return messages;
+}
+
+const holds: (() => void)[] = [];
+
+function hold(thread_token: string) {
+  const release = hold_thread_decrypt_cache(thread_token);
+
+  holds.push(release);
+
+  return release;
+}
+
+async function open(thread_token: string) {
+  const release = hold(thread_token);
+
+  await load("me@example.test", thread_token);
+
+  return release;
+}
+
+let visibility: DocumentVisibilityState = "visible";
+
+function set_visibility(state: DocumentVisibilityState) {
+  visibility = state;
+  document.dispatchEvent(new Event("visibilitychange"));
+}
+
+Object.defineProperty(document, "visibilityState", {
+  configurable: true,
+  get: () => visibility,
+});
 
 function decrypts() {
   const total = {
@@ -123,6 +190,7 @@ describe("thread decrypt cache", () => {
   beforeEach(() => {
     clear_thread_decrypt_cache();
     h.messages = [message(1), message(2), message(3)];
+    h.threads.clear();
     h.bodies.clear();
     h.attachment_keys.clear();
     h.failing_envelopes.clear();
@@ -293,7 +361,7 @@ describe("thread decrypt cache", () => {
   });
 
   it("caps the number of cached messages", async () => {
-    h.messages = Array.from({ length: 450 }, (_, i) => message(i));
+    h.messages = Array.from({ length: 150 }, (_, i) => message(i));
     await load();
     decrypts();
 
@@ -327,5 +395,260 @@ describe("thread decrypt cache", () => {
     await load();
 
     expect(decrypts().envelope).toBe(1);
+  });
+});
+
+describe("thread decrypt cache keeps only open conversations", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    visibility = "visible";
+    clear_thread_decrypt_cache();
+    h.messages = [];
+    h.threads.clear();
+    h.envelope_decrypts = 0;
+    h.metadata_decrypts = 0;
+  });
+
+  afterEach(() => {
+    for (const release of holds.splice(0)) release();
+    clear_thread_decrypt_cache();
+    visibility = "visible";
+    vi.useRealTimers();
+  });
+
+  it("empties the thread once its viewer has been closed for the grace period", async () => {
+    thread_of("a", 5);
+    const close = await open("a");
+
+    expect(thread_decrypt_cache_size()).toBe(5);
+
+    close();
+    await vi.advanceTimersByTimeAsync(CLOSED_THREAD_GRACE_MS - 1);
+    expect(thread_decrypt_cache_size()).toBe(5);
+
+    await vi.advanceTimersByTimeAsync(1);
+    expect(thread_decrypt_cache_size()).toBe(0);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("reopens a recently closed thread without decrypting it again", async () => {
+    thread_of("a");
+    thread_of("b");
+    const close_a = await open("a");
+
+    close_a();
+    const close_b = await open("b");
+
+    decrypts();
+    close_b();
+    await open("a");
+
+    expect(decrypts()).toEqual({ envelope: 0, metadata: 0 });
+  });
+
+  it("drops the previous thread when switching after the grace period", async () => {
+    thread_of("a");
+    thread_of("b");
+    const close_a = await open("a");
+
+    close_a();
+    await open("b");
+    await vi.advanceTimersByTimeAsync(CLOSED_THREAD_GRACE_MS);
+
+    expect(thread_decrypt_cache_size()).toBe(3);
+
+    decrypts();
+    await open("a");
+
+    expect(decrypts()).toEqual({ envelope: 3, metadata: 0 });
+  });
+
+  it("keeps at most two closed threads while switching quickly", async () => {
+    for (const token of ["a", "b", "c", "d"]) thread_of(token);
+
+    let close = await open("a");
+
+    for (const token of ["b", "c", "d"]) {
+      close();
+      close = await open(token);
+    }
+
+    expect(thread_decrypt_cache_size()).toBe(9);
+
+    decrypts();
+    close();
+    close = await open("a");
+
+    expect(decrypts().envelope).toBe(3);
+    expect(thread_decrypt_cache_size()).toBe(9);
+  });
+
+  it("keeps a thread open in two viewers until both close", async () => {
+    thread_of("a");
+    const close_split = await open("a");
+    const close_popup = hold("a");
+
+    close_split();
+    await vi.advanceTimersByTimeAsync(CLOSED_THREAD_GRACE_MS * 2);
+    expect(thread_decrypt_cache_size()).toBe(3);
+
+    close_popup();
+    close_popup();
+    await vi.advanceTimersByTimeAsync(CLOSED_THREAD_GRACE_MS);
+    expect(thread_decrypt_cache_size()).toBe(0);
+  });
+
+  it("keeps a thread loaded without a viewer only for the grace period", async () => {
+    thread_of("a");
+    await load("me@example.test", "a");
+
+    expect(thread_decrypt_cache_size()).toBe(3);
+
+    await vi.advanceTimersByTimeAsync(CLOSED_THREAD_GRACE_MS);
+    expect(thread_decrypt_cache_size()).toBe(0);
+  });
+
+  it("drops closed threads as soon as the page is hidden", async () => {
+    thread_of("a");
+    thread_of("b");
+    const close_a = await open("a");
+
+    close_a();
+    await open("b");
+    expect(thread_decrypt_cache_size()).toBe(6);
+
+    set_visibility("hidden");
+
+    expect(thread_decrypt_cache_size()).toBe(3);
+  });
+
+  it("drops closed threads when the page is hidden through pagehide", async () => {
+    thread_of("a");
+    thread_of("b");
+    const close_a = await open("a");
+
+    close_a();
+    await open("b");
+    window.dispatchEvent(new Event("pagehide"));
+
+    expect(thread_decrypt_cache_size()).toBe(3);
+  });
+
+  it("drops the open thread too when the page stays hidden", async () => {
+    thread_of("a");
+    await open("a");
+    set_visibility("hidden");
+
+    await vi.advanceTimersByTimeAsync(HIDDEN_PAGE_PURGE_MS - 1);
+    expect(thread_decrypt_cache_size()).toBe(3);
+
+    await vi.advanceTimersByTimeAsync(1);
+    expect(thread_decrypt_cache_size()).toBe(0);
+
+    await load("me@example.test", "a");
+    expect(thread_decrypt_cache_size()).toBe(0);
+
+    set_visibility("visible");
+    await load("me@example.test", "a");
+    expect(thread_decrypt_cache_size()).toBe(3);
+  });
+
+  it("keeps the open thread when the page comes back quickly", async () => {
+    thread_of("a");
+    await open("a");
+    set_visibility("hidden");
+    await vi.advanceTimersByTimeAsync(HIDDEN_PAGE_PURGE_MS / 2);
+    set_visibility("visible");
+    await vi.advanceTimersByTimeAsync(HIDDEN_PAGE_PURGE_MS);
+
+    expect(thread_decrypt_cache_size()).toBe(3);
+  });
+
+  it("does not keep a thread closed while the page is hidden", async () => {
+    thread_of("a");
+    const close = await open("a");
+
+    set_visibility("hidden");
+    close();
+
+    expect(thread_decrypt_cache_size()).toBe(0);
+  });
+
+  it.each([
+    ["the vault is cleared", () => h.vault_cleared.forEach((cb) => cb())],
+    [
+      "a lockdown changes",
+      () => window.dispatchEvent(new CustomEvent("astermail:lockdown-changed")),
+    ],
+    [
+      "the mail cache is cleared on logout or account switch",
+      () => clear_mail_cache(),
+    ],
+  ])(
+    "purges open and closed threads and their timers when %s",
+    async (_name, purge) => {
+      thread_of("a");
+      thread_of("b");
+      const close_a = await open("a");
+
+      close_a();
+      await open("b");
+      expect(vi.getTimerCount()).toBeGreaterThan(0);
+
+      purge();
+
+      expect(thread_decrypt_cache_size()).toBe(0);
+      expect(vi.getTimerCount()).toBe(0);
+
+      decrypts();
+      await load("me@example.test", "b");
+      expect(decrypts()).toEqual({ envelope: 3, metadata: 3 });
+    },
+  );
+
+  it("keeps only the read, star and send flags of message metadata", async () => {
+    const [msg] = thread_of("a", 1);
+    const decrypt = async () =>
+      (await import("@/services/crypto/mail_metadata")).decrypt_mail_metadata(
+        "meta-a-0",
+        "nonce",
+        1,
+      );
+
+    await decrypt_thread_metadata_cached(
+      msg as never,
+      "me@example.test",
+      decrypt as never,
+    );
+    const cached = await decrypt_thread_metadata_cached(
+      msg as never,
+      "me@example.test",
+      decrypt as never,
+    );
+
+    expect(h.metadata_decrypts).toBe(1);
+    expect(cached).toEqual({
+      is_read: true,
+      is_starred: false,
+      send_status: "sent",
+    });
+  });
+
+  it("never writes decrypted messages to browser storage", async () => {
+    const set_item = vi.spyOn(Storage.prototype, "setItem");
+    const idb = (globalThis as { indexedDB?: IDBFactory }).indexedDB;
+    const idb_open = idb ? vi.spyOn(idb, "open") : null;
+
+    thread_of("a");
+    const close = await open("a");
+
+    close();
+    set_visibility("hidden");
+    set_visibility("visible");
+
+    expect(set_item).not.toHaveBeenCalled();
+    expect(idb_open?.mock.calls.length ?? 0).toBe(0);
+    set_item.mockRestore();
+    idb_open?.mockRestore();
   });
 });

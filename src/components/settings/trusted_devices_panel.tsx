@@ -45,7 +45,7 @@ import {
   type Device,
   type ListDevicesResponse,
 } from "@/services/api/devices";
-import { show_toast } from "@/components/toast/simple_toast";
+import { dismiss_toast, show_toast } from "@/components/toast/simple_toast";
 import { use_settings_panel_data } from "@/components/settings/hooks/use_settings_prefetch";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { ignore_error } from "@/lib/ignore_error";
@@ -68,21 +68,29 @@ function open_bridge_settings() {
   );
 }
 
-function watch_bridge_launch(on_not_opened: () => void): void {
+function watch_bridge_launch(
+  on_opened: () => void,
+  on_not_opened: () => void,
+): void {
   let settled = false;
-  const stop = () => {
+  const finish = () => {
     settled = true;
     window.clearTimeout(timer);
     window.removeEventListener("blur", stop);
     window.removeEventListener("pagehide", stop);
     document.removeEventListener("visibilitychange", on_visibility);
   };
+  const stop = () => {
+    if (settled) return;
+    finish();
+    on_opened();
+  };
   const on_visibility = () => {
     if (document.visibilityState === "hidden") stop();
   };
   const timer = window.setTimeout(() => {
     if (settled) return;
-    stop();
+    finish();
     on_not_opened();
   }, BRIDGE_LAUNCH_TIMEOUT_MS);
 
@@ -159,15 +167,25 @@ export function TrustedDevicesPanel() {
     useState(false);
 
   const handle_set_up = async (client: string) => {
-    clear_plan_cache();
-    const fresh_code = await get_current_plan_code();
+    const opening_toast_id = show_toast(
+      t("settings.desktop_bridge_opening"),
+      "info",
+      BRIDGE_HINT_TOAST_MS,
+    );
+    const known_code = limits?.plan_code;
 
-    if (fresh_code === "free") {
-      set_bridge_upgrade_modal_open(true);
+    if (!known_code || known_code === "free") {
+      clear_plan_cache();
+      const fresh_code = await get_current_plan_code();
 
-      return;
+      if (fresh_code === "free") {
+        dismiss_toast(opening_toast_id);
+        set_bridge_upgrade_modal_open(true);
+
+        return;
+      }
     }
-    await open_provision(client);
+    await open_provision(client, opening_toast_id);
   };
 
   const handle_revoke = async (device: Device) => {
@@ -201,7 +219,8 @@ export function TrustedDevicesPanel() {
     set_pending_revoke_all(false);
   };
 
-  const show_bridge_not_opened = () => {
+  const show_bridge_not_opened = (opening_toast_id: string) => {
+    dismiss_toast(opening_toast_id);
     show_toast(
       t("settings.desktop_bridge_not_opened"),
       "error",
@@ -210,10 +229,13 @@ export function TrustedDevicesPanel() {
     );
   };
 
-  const open_provision = async (label: string) => {
+  const open_provision = async (label: string, opening_toast_id: string) => {
     const url = `aster-mail://provision?label=${encodeURIComponent(label)}`;
 
-    watch_bridge_launch(show_bridge_not_opened);
+    watch_bridge_launch(
+      () => dismiss_toast(opening_toast_id),
+      () => show_bridge_not_opened(opening_toast_id),
+    );
     const is_tauri =
       typeof window !== "undefined" &&
       ("__TAURI_INTERNALS__" in window || "__TAURI__" in window);

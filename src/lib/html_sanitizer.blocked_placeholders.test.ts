@@ -209,6 +209,7 @@ describe("blocked images never keep a remote source", () => {
     <picture>
       <source srcset="https://cdn.example.test/a.webp 1x, //cdn.example.test/a2.webp 2x" type="image/webp">
       <source media="(min-width: 600px)" srcset="http://cdn.example.test/wide.jpg">
+      <source media="(prefers-color-scheme: dark)" srcset="https://cdn.example.test/dark.png">
       <img src="${image}" srcset="${image} 1x, https://cdn.example.test/b.png 2x" width="320" height="200" alt="Hero">
     </picture>
     <img src="http://cdn.example.test/plain.png" srcset="https://cdn.example.test/plain2.png 2x">
