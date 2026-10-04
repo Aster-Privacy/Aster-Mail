@@ -20,10 +20,15 @@
 //
 import type * as PrintEmail from "@/utils/print_email";
 
+import { show_toast } from "@/components/toast/simple_toast";
 import { ignore_error } from "@/lib/ignore_error";
-import { import_with_retry } from "@/utils/lazy_with_retry";
+import { import_on_demand } from "@/utils/lazy_with_retry";
 
 type PrintEmailModule = typeof PrintEmail;
+type Translator = Parameters<PrintEmailModule["print_email"]>[1];
+type ThreadDataSource = Parameters<
+  PrintEmailModule["setup_thread_print_intercept"]
+>[0];
 
 let loaded_module: PrintEmailModule | null = null;
 let pending_module: Promise<PrintEmailModule> | null = null;
@@ -32,9 +37,7 @@ export function load_print_email(): Promise<PrintEmailModule> {
   if (loaded_module) return Promise.resolve(loaded_module);
 
   if (!pending_module) {
-    pending_module = import_with_retry(
-      () => import("@/utils/print_email"),
-    ).then(
+    pending_module = import_on_demand(() => import("@/utils/print_email")).then(
       (module) => {
         loaded_module = module;
 
@@ -54,7 +57,7 @@ export function load_print_email(): Promise<PrintEmailModule> {
 export function preload_print_email(): Promise<PrintEmailModule | null> {
   if (loaded_module) return Promise.resolve(loaded_module);
 
-  return import("@/utils/print_email").then(
+  return import_on_demand(() => import("@/utils/print_email"), 0).then(
     (module) => {
       loaded_module ??= module;
 
@@ -70,6 +73,7 @@ export function preload_print_email(): Promise<PrintEmailModule | null> {
 
 export function with_print_email(
   run: (module: PrintEmailModule) => void,
+  t: Translator,
 ): void {
   if (loaded_module) {
     run(loaded_module);
@@ -78,20 +82,84 @@ export function with_print_email(
   }
 
   void load_print_email()
-    .then(run)
+    .then(run, (caught: unknown) => {
+      ignore_error("utils/print_email_loader:with_print_email", caught);
+      show_toast(t("common.something_went_wrong_try_again"), "error");
+    })
     .catch((caught: unknown) =>
-      ignore_error("utils/print_email_loader:with_print_email", caught),
+      ignore_error("utils/print_email_loader:run_print_email", caught),
     );
+}
+
+function is_print_shortcut(event: KeyboardEvent): boolean {
+  return (
+    (event.ctrlKey || event.metaKey) &&
+    !event.altKey &&
+    !event.shiftKey &&
+    event.key.toLowerCase() === "p"
+  );
+}
+
+export function setup_thread_print_intercept(
+  get_thread_data: ThreadDataSource,
+  t: Translator,
+): () => void {
+  let is_active = true;
+  let teardown: (() => void) | null = null;
+
+  const attach = (module: PrintEmailModule): void => {
+    if (!is_active || teardown) return;
+
+    teardown = module.setup_thread_print_intercept(get_thread_data, t);
+  };
+
+  const handle_keydown = (event: KeyboardEvent): void => {
+    if (teardown || !is_print_shortcut(event)) return;
+
+    const pending_data = get_thread_data();
+
+    if (!pending_data || pending_data.messages.length === 0) return;
+
+    event.preventDefault();
+    with_print_email((module) => {
+      if (!is_active) return;
+
+      attach(module);
+
+      const data = get_thread_data();
+
+      if (!data || data.messages.length === 0) return;
+
+      module.print_thread(data, t);
+    }, t);
+  };
+
+  window.addEventListener("keydown", handle_keydown);
+
+  if (loaded_module) {
+    attach(loaded_module);
+  } else {
+    void preload_print_email().then((module) => {
+      if (module) attach(module);
+    });
+  }
+
+  return () => {
+    is_active = false;
+    window.removeEventListener("keydown", handle_keydown);
+    teardown?.();
+    teardown = null;
+  };
 }
 
 export function print_email(
   ...args: Parameters<PrintEmailModule["print_email"]>
 ): void {
-  with_print_email((module) => module.print_email(...args));
+  with_print_email((module) => module.print_email(...args), args[1]);
 }
 
 export function print_thread(
   ...args: Parameters<PrintEmailModule["print_thread"]>
 ): void {
-  with_print_email((module) => module.print_thread(...args));
+  with_print_email((module) => module.print_thread(...args), args[1]);
 }

@@ -27,8 +27,12 @@ vi.mock("@/lib/chunk_recovery", async (import_original) => ({
   trigger_chunk_recovery: recovery.trigger,
 }));
 
-const { import_with_retry, preload_when_idle } =
-  await import("./lazy_with_retry");
+const {
+  import_on_demand,
+  import_with_retry,
+  LazyLoadError,
+  preload_when_idle,
+} = await import("./lazy_with_retry");
 
 const CHUNK_ERROR = new TypeError(
   "Failed to fetch dynamically imported module: /assets/compose_window.js",
@@ -69,6 +73,47 @@ describe("import_with_retry", () => {
       "render failed",
     );
     expect(import_fn).toHaveBeenCalledTimes(2);
+    expect(recovery.trigger).not.toHaveBeenCalled();
+  });
+});
+
+describe("import_on_demand", () => {
+  it("retries a failed import and resolves with the module", async () => {
+    const import_fn = vi
+      .fn<() => Promise<string>>()
+      .mockRejectedValueOnce(CHUNK_ERROR)
+      .mockResolvedValueOnce("module");
+
+    await expect(import_on_demand(import_fn, 3, 0)).resolves.toBe("module");
+    expect(import_fn).toHaveBeenCalledTimes(2);
+    expect(recovery.trigger).not.toHaveBeenCalled();
+  });
+
+  it("rejects without reloading the app when a chunk stays missing", async () => {
+    const import_fn = vi.fn(() => Promise.reject(CHUNK_ERROR));
+
+    const caught = await import_on_demand(import_fn, 2, 0).catch(
+      (error: unknown) => error,
+    );
+
+    expect(caught).toBeInstanceOf(LazyLoadError);
+    expect((caught as InstanceType<typeof LazyLoadError>).source).toBe(
+      CHUNK_ERROR,
+    );
+    expect(import_fn).toHaveBeenCalledTimes(3);
+    expect(recovery.trigger).not.toHaveBeenCalled();
+  });
+
+  it("can be asked again after a failure", async () => {
+    const import_fn = vi
+      .fn<() => Promise<string>>()
+      .mockRejectedValueOnce(CHUNK_ERROR)
+      .mockResolvedValueOnce("module");
+
+    await expect(import_on_demand(import_fn, 0, 0)).rejects.toBeInstanceOf(
+      LazyLoadError,
+    );
+    await expect(import_on_demand(import_fn, 0, 0)).resolves.toBe("module");
     expect(recovery.trigger).not.toHaveBeenCalled();
   });
 });

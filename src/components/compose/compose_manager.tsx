@@ -44,15 +44,15 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { use_translation } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { play_iconic_sound } from "@/services/iconic_sounds";
-import { ErrorBoundary } from "@/components/ui/error_boundary";
+import { LazyLoadBoundary } from "@/components/ui/lazy_load_boundary";
 import { Spinner } from "@/components/ui/spinner";
 import { ignore_error } from "@/lib/ignore_error";
-import { lazy_with_retry, preload_when_idle } from "@/utils/lazy_with_retry";
+import { lazy_on_demand, preload_when_idle } from "@/utils/lazy_with_retry";
 
 export const load_compose_window = () =>
   import("@/components/compose/compose_window");
 
-const ComposeWindow = lazy_with_retry(() =>
+const ComposeWindow = lazy_on_demand(() =>
   load_compose_window().then((m) => ({ default: m.ComposeWindow })),
 );
 
@@ -329,9 +329,8 @@ export function ComposeManager({
               initial={reduce_motion ? false : { opacity: 0 }}
               transition={{ duration: reduce_motion ? 0 : 0.15 }}
             >
-              <ErrorBoundary
-                fallback={null}
-                on_error={() => handle_load_error(instance.id)}
+              <LazyLoadBoundary
+                on_load_error={() => handle_load_error(instance.id)}
               >
                 <Suspense
                   fallback={
@@ -351,7 +350,7 @@ export function ComposeManager({
                     on_toggle_minimize={() => on_toggle_minimize(instance.id)}
                   />
                 </Suspense>
-              </ErrorBoundary>
+              </LazyLoadBoundary>
             </motion.div>
           ))}
         </AnimatePresence>

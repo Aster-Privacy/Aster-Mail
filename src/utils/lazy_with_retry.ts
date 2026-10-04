@@ -18,9 +18,14 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { ComponentType, LazyExoticComponent } from "react";
+import type {
+  ComponentProps,
+  ComponentType,
+  LazyExoticComponent,
+  ReactElement,
+} from "react";
 
-import { lazy } from "react";
+import { createElement, lazy } from "react";
 
 import {
   error_message_of,
@@ -31,21 +36,25 @@ import {
 const DEFAULT_RETRIES = 3;
 const DEFAULT_DELAY_MS = 1000;
 
-export function import_with_retry<T>(
+export class LazyLoadError extends Error {
+  readonly source: unknown;
+  readonly reset: () => void;
+
+  constructor(source: unknown, reset: () => void = () => {}) {
+    super("on demand module did not load");
+    this.name = "LazyLoadError";
+    this.source = source;
+    this.reset = reset;
+  }
+}
+
+function retry_import<T>(
   import_fn: () => Promise<T>,
-  retries = DEFAULT_RETRIES,
-  delay = DEFAULT_DELAY_MS,
+  retries: number,
+  delay: number,
 ): Promise<T> {
   const attempt = (remaining: number): Promise<T> =>
     import_fn().catch((error: unknown) => {
-      const is_chunk_error = is_chunk_load_error(error_message_of(error));
-
-      if (is_chunk_error && remaining <= 0) {
-        if (trigger_chunk_recovery()) return new Promise<T>(() => {});
-
-        throw error;
-      }
-
       if (remaining <= 0) throw error;
 
       return new Promise<T>((resolve) =>
@@ -56,12 +65,61 @@ export function import_with_retry<T>(
   return attempt(retries);
 }
 
+export function import_with_retry<T>(
+  import_fn: () => Promise<T>,
+  retries = DEFAULT_RETRIES,
+  delay = DEFAULT_DELAY_MS,
+): Promise<T> {
+  return retry_import(import_fn, retries, delay).catch((error: unknown) => {
+    if (
+      is_chunk_load_error(error_message_of(error)) &&
+      trigger_chunk_recovery()
+    ) {
+      return new Promise<T>(() => {});
+    }
+
+    throw error;
+  });
+}
+
+export function import_on_demand<T>(
+  import_fn: () => Promise<T>,
+  retries = DEFAULT_RETRIES,
+  delay = DEFAULT_DELAY_MS,
+): Promise<T> {
+  return retry_import(import_fn, retries, delay).catch((error: unknown) => {
+    throw new LazyLoadError(error);
+  });
+}
+
 export function lazy_with_retry<T extends { default: ComponentType<any> }>(
   import_fn: () => Promise<T>,
   retries = DEFAULT_RETRIES,
   delay = DEFAULT_DELAY_MS,
 ): LazyExoticComponent<T["default"]> {
   return lazy(() => import_with_retry(import_fn, retries, delay));
+}
+
+export function lazy_on_demand<T extends { default: ComponentType<any> }>(
+  import_fn: () => Promise<T>,
+  retries = DEFAULT_RETRIES,
+  delay = DEFAULT_DELAY_MS,
+): (props: ComponentProps<T["default"]>) => ReactElement {
+  const create = (): LazyExoticComponent<ComponentType<any>> =>
+    lazy(() =>
+      retry_import(import_fn, retries, delay).catch((error: unknown) => {
+        throw new LazyLoadError(error, () => {
+          current = create();
+        });
+      }),
+    );
+  let current = create();
+
+  return function OnDemandComponent(
+    props: ComponentProps<T["default"]>,
+  ): ReactElement {
+    return createElement(current, props);
+  };
 }
 
 type IdleWindow = Window & {

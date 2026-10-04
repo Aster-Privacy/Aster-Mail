@@ -42,8 +42,12 @@ import { read_settings_navigation } from "@/lib/settings_links";
 import { FullPageLoader } from "@/components/common/full_page_loader";
 import { QuickSettingsPanel } from "@/components/settings/quick_settings_panel";
 import { Spinner } from "@/components/ui/spinner";
-import { lazy_with_retry, preload_when_idle } from "@/utils/lazy_with_retry";
-import { ErrorBoundary } from "@/components/ui/error_boundary";
+import {
+  lazy_on_demand,
+  lazy_with_retry,
+  preload_when_idle,
+} from "@/utils/lazy_with_retry";
+import { LazyLoadBoundary } from "@/components/ui/lazy_load_boundary";
 const load_settings_content = () =>
   import("@/components/settings/settings_content");
 const SettingsContent = lazy_with_retry(() =>
@@ -95,17 +99,32 @@ const PurchaseSuccessModal = lazy_with_retry(() =>
   })),
 );
 const load_reply_modal = () => import("@/components/modals/reply_modal");
-const ReplyModal = lazy_with_retry(() =>
+const ReplyModal = lazy_on_demand(() =>
   load_reply_modal().then((m) => ({
     default: m.ReplyModal,
   })),
 );
 const load_forward_modal = () => import("@/components/modals/forward_modal");
-const ForwardModal = lazy_with_retry(() =>
+const ForwardModal = lazy_on_demand(() =>
   load_forward_modal().then((m) => ({
     default: m.ForwardModal,
   })),
 );
+
+function ComposerFallback() {
+  const { t } = use_i18n();
+
+  return (
+    <div
+      aria-busy="true"
+      aria-label={t("common.loading")}
+      className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none"
+      role="status"
+    >
+      <Spinner className="h-6 w-6 text-txt-tertiary" size="lg" />
+    </div>
+  );
+}
 
 function preload_reply_and_forward(): void {
   for (const load of [load_reply_modal, load_forward_modal]) {
@@ -678,15 +697,14 @@ export default function IndexPage() {
         </div>
       )}
       {state.reply_data && (
-        <ErrorBoundary
-          fallback={null}
-          on_error={() => {
+        <LazyLoadBoundary
+          on_load_error={() => {
             show_toast(t("common.unable_to_load_composer"), "error");
             state.set_is_reply_open(false);
             state.set_reply_data(null);
           }}
         >
-          <Suspense fallback={null}>
+          <Suspense fallback={<ComposerFallback />}>
             <ReplyModal
               is_external={state.reply_data.is_external}
               is_open={state.is_reply_open}
@@ -712,18 +730,17 @@ export default function IndexPage() {
               thread_token={state.reply_data.thread_token}
             />
           </Suspense>
-        </ErrorBoundary>
+        </LazyLoadBoundary>
       )}
       {state.forward_data && (
-        <ErrorBoundary
-          fallback={null}
-          on_error={() => {
+        <LazyLoadBoundary
+          on_load_error={() => {
             show_toast(t("common.unable_to_load_composer"), "error");
             state.set_is_forward_open(false);
             state.set_forward_data(null);
           }}
         >
-          <Suspense fallback={null}>
+          <Suspense fallback={<ComposerFallback />}>
             <ForwardModal
               email_body={state.forward_data.email_body}
               email_subject={state.forward_data.email_subject}
@@ -740,7 +757,7 @@ export default function IndexPage() {
               sender_name={state.forward_data.sender_name}
             />
           </Suspense>
-        </ErrorBoundary>
+        </LazyLoadBoundary>
       )}
       <AnimatePresence>
         {state.popup_email_id && (

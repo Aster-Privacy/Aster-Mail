@@ -33,7 +33,10 @@ import {
   type DraftContent,
 } from "@/services/api/multi_drafts";
 import { MAIL_EVENTS } from "@/hooks/mail_events";
-import { preload_print_email, print_thread } from "@/utils/print_email_loader";
+import {
+  print_thread,
+  setup_thread_print_intercept,
+} from "@/utils/print_email_loader";
 import { set_forward_mail_id } from "@/services/forward_store";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
@@ -250,21 +253,12 @@ export function use_email_detail() {
   thread_data_ref.current = build_thread_print_data;
 
   useEffect(() => {
-    let is_active = true;
-    let teardown: (() => void) | null = null;
+    const teardown = setup_thread_print_intercept(
+      () => thread_data_ref.current(),
+      t,
+    );
 
-    void preload_print_email().then((module) => {
-      if (!module || !is_active) return;
-      teardown = module.setup_thread_print_intercept(
-        () => thread_data_ref.current(),
-        t,
-      );
-    });
-
-    return () => {
-      is_active = false;
-      teardown?.();
-    };
+    return teardown;
   }, [t]);
 
   const handle_print = useCallback(() => {

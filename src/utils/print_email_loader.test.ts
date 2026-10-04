@@ -37,6 +37,10 @@ vi.mock("@/utils/print_email", () => {
   };
 });
 
+vi.mock("@/components/toast/simple_toast", () => ({
+  show_toast: vi.fn(),
+}));
+
 const loader = await import("./print_email_loader");
 
 const t = (key: string) => key;
