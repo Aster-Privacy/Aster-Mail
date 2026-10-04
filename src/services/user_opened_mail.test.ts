@@ -182,6 +182,30 @@ describe("on_user_opened_mail", () => {
     expect(get_read_intent("m2")).toBe(true);
   });
 
+  it("keeps mail read when the server holds no metadata for it yet", async () => {
+    hoisted.list_mail_items.mockResolvedValue({
+      data: { items: [{ id: "m2" }] },
+    });
+    hoisted.update_item_metadata.mockResolvedValue({ success: true });
+
+    on_user_opened_mail("m2", {
+      delay: "immediate",
+      row: { id: "m2", item_type: "received", is_read: false },
+    });
+    await flush();
+
+    expect(hoisted.update_item_metadata).toHaveBeenCalledWith(
+      "m2",
+      {},
+      { is_read: true },
+    );
+    expect(hoisted.emit_mail_item_updated).not.toHaveBeenCalledWith({
+      id: "m2",
+      is_read: false,
+    });
+    expect(get_read_intent("m2")).toBe(true);
+  });
+
   it("rolls back read state and count when the write fails", async () => {
     hoisted.update_item_metadata.mockResolvedValue({ success: false });
 

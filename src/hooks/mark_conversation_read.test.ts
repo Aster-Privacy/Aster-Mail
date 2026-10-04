@@ -47,6 +47,13 @@ vi.mock("@/services/category_index", () => ({
 }));
 
 import {
+  ack_flag_intents,
+  clear_all_flag_intents,
+  get_read_intent,
+  note_flag_intents,
+} from "@/services/read_intent";
+
+import {
   collect_conversation_thread_tokens,
   mark_conversation_read,
   mark_conversation_threads_read,
@@ -271,6 +278,56 @@ describe("collect_conversation_thread_tokens", () => {
     );
 
     expect(tokens).toEqual([]);
+  });
+});
+
+describe("mark_conversation_read opened message", () => {
+  beforeEach(() => {
+    mock_mark_thread_read.mockReset();
+    mock_thread_has_unread_entries.mockReset();
+    mock_thread_has_unread_entries.mockReturnValue(false);
+    clear_all_flag_intents();
+  });
+
+  it("holds the opened message read while the thread save is in flight", async () => {
+    let finish: (value: unknown) => void = () => {};
+
+    mock_mark_thread_read.mockReturnValue(
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+    );
+    note_flag_intents(["m1"], { is_read: true });
+    ack_flag_intents(["m1"], { is_read: true });
+
+    mark_conversation_read({
+      thread_token: "t1",
+      thread_message_count: 3,
+      conversation_grouping: true,
+      acted_id: "m1",
+    });
+
+    expect(get_read_intent("m1", Date.now() + 60_000, false)).toBe(true);
+
+    finish({ data: { status: "ok" } });
+    await flush();
+
+    expect(get_read_intent("m1")).toBe(true);
+  });
+
+  it("keeps the opened message read when the thread save fails", async () => {
+    mock_mark_thread_read.mockResolvedValue({ error: "failed" });
+    note_flag_intents(["m1"], { is_read: true });
+
+    mark_conversation_read({
+      thread_token: "t1",
+      thread_message_count: 3,
+      conversation_grouping: true,
+      acted_id: "m1",
+    });
+    await flush();
+
+    expect(get_read_intent("m1")).toBe(true);
   });
 });
 

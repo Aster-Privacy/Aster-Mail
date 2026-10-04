@@ -91,7 +91,10 @@ import {
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { request_cache } from "@/services/api/request_cache";
 import { drop_removed_after } from "@/services/removed_items";
-import { resolve_read_intent } from "@/services/read_intent";
+import {
+  apply_flag_intents,
+  resolve_read_intent,
+} from "@/services/read_intent";
 import { get_thread_messages, trash_thread } from "@/services/api/mail";
 import { batch_archive as api_batch_archive } from "@/services/api/archive";
 import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
@@ -168,7 +171,7 @@ function is_awake(email: InboxEmail): boolean {
 }
 
 function correct_received_rows(rows: InboxEmail[]): InboxEmail[] {
-  return rows.map((email) => {
+  return apply_flag_intents(rows).map((email) => {
     const intended = resolve_read_intent(email);
 
     if (intended !== undefined) {
@@ -471,7 +474,7 @@ export function use_category_inbox(
       set_state((prev) =>
         build_list_state(
           prev,
-          switch_cached,
+          correct_received_rows(switch_cached),
           switch_total,
           (page + 1) * page_size < switch_total,
         ),
@@ -630,7 +633,14 @@ export function use_category_inbox(
       if (cached && !force) {
         abort_ref.current = null;
         touch_cache_entry(page_cache.current, cache_key, cached);
-        set_state((prev) => build_list_state(prev, cached, total, has_more));
+        set_state((prev) =>
+          build_list_state(
+            prev,
+            correct_received_rows(cached),
+            total,
+            has_more,
+          ),
+        );
 
         return;
       }

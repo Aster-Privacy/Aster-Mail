@@ -57,8 +57,8 @@ export interface OpenedMailOptions {
 }
 
 interface MetadataFields {
-  encrypted_metadata: string;
-  metadata_nonce: string;
+  encrypted_metadata?: string;
+  metadata_nonce?: string;
   metadata_version?: number;
 }
 
@@ -176,8 +176,6 @@ export function on_user_opened_mail(
 
   void resolve_encrypted_fields(row)
     .then(async (fields) => {
-      if (!fields) return { success: false, fields, encrypted: undefined };
-
       const result = await update_item_metadata(id, fields, { is_read: true });
 
       return { ...result, fields };
@@ -190,7 +188,7 @@ export function on_user_opened_mail(
               encrypted_metadata: result.encrypted.encrypted_metadata,
               metadata_nonce: result.encrypted.metadata_nonce,
             }
-          : (result.fields as MetadataFields);
+          : result.fields;
 
         if (pending.reverted) {
           write_unread(id, saved);
@@ -227,7 +225,7 @@ function settle_failed_open(id: string, pending: PendingOpen): void {
 
 async function resolve_encrypted_fields(
   row: OpenedMailRow,
-): Promise<MetadataFields | null> {
+): Promise<MetadataFields> {
   if (row.encrypted_metadata && row.metadata_nonce) {
     return {
       encrypted_metadata: row.encrypted_metadata,
@@ -249,7 +247,7 @@ async function resolve_encrypted_fields(
   const response = await list_mail_items({ ids: [row.id] });
   const item = response.data?.items.find((entry) => entry.id === row.id);
 
-  if (!item?.encrypted_metadata || !item.metadata_nonce) return null;
+  if (!item?.encrypted_metadata || !item.metadata_nonce) return {};
 
   return {
     encrypted_metadata: item.encrypted_metadata,
