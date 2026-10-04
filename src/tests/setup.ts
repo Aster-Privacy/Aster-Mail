@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { afterEach, beforeEach, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, vi } from "vitest";
 
 const NODE_NAME_BY_TYPE: Record<number, string> = {
   3: "#text",
@@ -323,6 +323,16 @@ if (typeof globalThis.indexedDB === "undefined") {
     writable: true,
   });
 }
+
+beforeAll(async () => {
+  try {
+    const { get_translations_async } = await import("@/lib/i18n/translations");
+
+    await get_translations_async("en");
+  } catch {
+    return;
+  }
+});
 
 beforeEach(() => {
   vi.clearAllMocks();

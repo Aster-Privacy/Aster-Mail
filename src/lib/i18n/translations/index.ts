@@ -20,8 +20,6 @@
 //
 import type { LanguageCode, Translations } from "../types";
 
-import { en } from "./en";
-
 import { safe_local_get } from "@/lib/safe_storage";
 
 type PartialTranslations = {
@@ -101,19 +99,53 @@ async function load_partial(
   }
 }
 
-const translations_cache: Partial<Record<LanguageCode, Translations>> = { en };
+const translations_cache: Partial<Record<LanguageCode, Translations>> = {};
 const pending_loads = new Map<LanguageCode, Promise<Translations>>();
+const loaded_partials = new Map<LanguageCode, PartialTranslations>();
+
+function untranslated_namespace(namespace: string): Record<string, string> {
+  return new Proxy({} as Record<string, string>, {
+    get: (_, key) =>
+      typeof key === "string" ? `${namespace}.${key}` : undefined,
+  });
+}
+
+const untranslated = new Proxy({} as Translations, {
+  get: (_, namespace) =>
+    typeof namespace === "string"
+      ? untranslated_namespace(namespace)
+      : undefined,
+});
+
+async function load_english(): Promise<Translations> {
+  const { en } = await import("./en");
+
+  translations_cache.en = en;
+
+  for (const [code, partial] of loaded_partials) {
+    translations_cache[code] = deep_merge(en, partial);
+  }
+
+  return en;
+}
 
 async function load_and_cache(code: LanguageCode): Promise<Translations> {
+  if (code === "en") return load_english();
+
   const partial = await load_partial(code);
 
-  if (!partial) return en;
+  if (!partial) return get_translations_async("en");
 
-  const merged = deep_merge(en, partial);
+  loaded_partials.set(code, partial);
 
-  translations_cache[code] = merged;
+  const english = translations_cache.en;
+  const loaded = english
+    ? deep_merge(english, partial)
+    : (partial as unknown as Translations);
 
-  return merged;
+  translations_cache[code] = loaded;
+
+  return loaded;
 }
 
 export function get_translations_async(
@@ -137,7 +169,7 @@ export function get_translations_async(
 }
 
 export function get_translations(code: LanguageCode): Translations {
-  return translations_cache[code] ?? en;
+  return translations_cache[code] ?? translations_cache.en ?? untranslated;
 }
 
 export function get_cached_translations(
@@ -167,5 +199,3 @@ export function get_active_language(): LanguageCode {
 export function get_active_translations(): Translations {
   return get_translations(get_active_language());
 }
-
-export { en };

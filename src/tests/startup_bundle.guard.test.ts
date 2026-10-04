@@ -206,6 +206,10 @@ describe("startup bundle", () => {
     expect(reached("main.tsx", HEAVY_MODULES)).toEqual([]);
   });
 
+  it("keeps the English strings out of the entry", () => {
+    expect(reached("main.tsx", ["lib/i18n/translations/en.ts"])).toEqual([]);
+  });
+
   it.each([
     "contexts/preferences_context/use_preferences_core.ts",
     "contexts/auth/auth_helpers.ts",

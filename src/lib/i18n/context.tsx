@@ -194,6 +194,14 @@ export function I18nProvider({
   const [translations, set_translations] = useState<Translations>(
     get_translations(initial_language),
   );
+  const [english_loaded, set_english_loaded] = useState(false);
+
+  const request_english = useCallback(() => {
+    get_translations_async("en").then(
+      () => set_english_loaded(true),
+      () => {},
+    );
+  }, []);
 
   useEffect(() => {
     const cached = get_cached_translations(language);
@@ -209,7 +217,8 @@ export function I18nProvider({
 
     set_is_loading(true);
     get_translations_async(language)
-      .catch(() => get_translations("en"))
+      .catch(() => get_translations_async("en"))
+      .catch(() => get_translations(language))
       .then((loaded) => {
         if (!cancelled) {
           set_translations(loaded);
@@ -221,7 +230,7 @@ export function I18nProvider({
     return () => {
       cancelled = true;
     };
-  }, [language]);
+  }, [language, english_loaded]);
 
   const is_rtl = useMemo(() => is_rtl_language(language), [language]);
 
@@ -272,21 +281,26 @@ export function I18nProvider({
       const value = entries[resolved_key];
 
       if (value === undefined) {
+        if (language !== "en" && !english_loaded) request_english();
+
         return key;
       }
 
       return interpolate(value, params);
     },
-    [language, translations],
+    [language, translations, english_loaded, request_english],
   );
 
   useEffect(() => {
     document.documentElement.lang = language;
     document.documentElement.dir = is_rtl ? "rtl" : "ltr";
     set_display_locale(language);
+
+    if (initial_language_pending) return;
+
     void sync_tray_labels();
     void publish_push_strings(translations.common.push_new_message);
-  }, [language, is_rtl, translations]);
+  }, [language, is_rtl, translations, initial_language_pending]);
 
   const context_value = useMemo(
     () => ({

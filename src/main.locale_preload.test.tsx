@@ -133,13 +133,6 @@ describe("startup locale preload", { timeout: 120_000 }, () => {
     expect(events).toEqual(["load:de", "render"]);
   });
 
-  it("requests nothing extra for English", async () => {
-    await boot_with("en", "en-US", "/sign-in");
-    await flush_imports();
-
-    expect(events).toEqual(["render"]);
-  });
-
   it("fetches the sign-in page alongside the locale instead of after it", async () => {
     await boot_with("es", "en-US", "/sign-in");
     await vi.waitFor(() => expect(events).toContain("chunk:sign_in"), {
