@@ -726,6 +726,7 @@ export interface CommonTranslations {
   labels: string;
   no_folders_yet: string;
   no_labels_yet: string;
+  label_unable_to_decrypt: string;
   aliases: string;
   no_aliases_yet: string;
   storage_used: string;

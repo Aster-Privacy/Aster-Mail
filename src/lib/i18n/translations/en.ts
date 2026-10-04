@@ -93,6 +93,7 @@ export const en: Translations = {
     labels: "Labels",
     no_folders_yet: "No folders yet",
     no_labels_yet: "No labels yet",
+    label_unable_to_decrypt: "Unable to decrypt",
     aliases: "Aliases",
     no_aliases_yet: "No aliases yet",
     storage_used: "Storage used",

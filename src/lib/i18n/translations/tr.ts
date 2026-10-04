@@ -188,6 +188,7 @@ export const tr = {
     labels: "Etiketler",
     no_folders_yet: "Henüz klasör yok",
     no_labels_yet: "Henüz etiket yok",
+    label_unable_to_decrypt: "Şifre çözülemiyor",
     aliases: "Takma adlar",
     no_aliases_yet: "Henüz takma ad yok",
     storage_used: "Kullanılan depolama",

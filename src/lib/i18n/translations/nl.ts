@@ -184,6 +184,7 @@ export const nl = {
     labels: "Labels",
     no_folders_yet: "Nog geen mappen",
     no_labels_yet: "Nog geen labels",
+    label_unable_to_decrypt: "Kan niet worden ontsleuteld",
     aliases: "Aliassen",
     no_aliases_yet: "Nog geen aliassen",
     storage_used: "Opslag gebruikt",

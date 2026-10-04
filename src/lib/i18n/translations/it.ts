@@ -185,6 +185,7 @@ export const it = {
     labels: "Etichette",
     no_folders_yet: "Nessuna cartella ancora",
     no_labels_yet: "Nessuna etichetta ancora",
+    label_unable_to_decrypt: "Impossibile decifrare",
     aliases: "Alias",
     no_aliases_yet: "Nessun alias ancora",
     storage_used: "Spazio utilizzato",

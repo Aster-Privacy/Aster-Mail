@@ -183,6 +183,7 @@ export const ru = {
     labels: "Метки",
     no_folders_yet: "Папок пока нет",
     no_labels_yet: "Меток пока нет",
+    label_unable_to_decrypt: "Не удалось расшифровать",
     aliases: "Псевдонимы",
     no_aliases_yet: "Псевдонимов пока нет",
     storage_used: "Использовано хранилища",

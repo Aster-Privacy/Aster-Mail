@@ -91,6 +91,7 @@ export const hi = {
     labels: "लेबल",
     no_folders_yet: "अभी कोई फ़ोल्डर नहीं",
     no_labels_yet: "अभी कोई लेबल नहीं",
+    label_unable_to_decrypt: "डिक्रिप्ट नहीं किया जा सका",
     aliases: "एलियास",
     no_aliases_yet: "अभी कोई एलियास नहीं",
     storage_used: "इस्तेमाल हुआ स्टोरेज",

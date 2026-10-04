@@ -219,6 +219,7 @@ export const zh_CN = {
     labels: "标签",
     no_folders_yet: "暂无文件夹",
     no_labels_yet: "暂无标签",
+    label_unable_to_decrypt: "无法解密",
     aliases: "别名",
     no_aliases_yet: "暂无别名",
     storage_used: "已用存储空间",

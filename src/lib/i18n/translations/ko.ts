@@ -248,6 +248,7 @@ export const ko = {
     labels: "라벨",
     no_folders_yet: "아직 폴더가 없습니다",
     no_labels_yet: "아직 라벨이 없습니다",
+    label_unable_to_decrypt: "복호화할 수 없음",
     aliases: "별칭",
     no_aliases_yet: "아직 별칭이 없습니다",
     storage_used: "사용된 저장 공간",

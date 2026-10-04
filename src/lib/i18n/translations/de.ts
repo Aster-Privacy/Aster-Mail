@@ -112,6 +112,7 @@ export const de = {
     labels: "Labels",
     no_folders_yet: "Noch keine Ordner",
     no_labels_yet: "Noch keine Labels",
+    label_unable_to_decrypt: "Entschlüsselung nicht möglich",
     aliases: "Aliase",
     no_aliases_yet: "Noch keine Aliase",
     storage_used: "Speicher belegt",

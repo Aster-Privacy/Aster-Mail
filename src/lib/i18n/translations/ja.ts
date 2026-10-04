@@ -241,6 +241,7 @@ export const ja = {
     labels: "ラベル",
     no_folders_yet: "フォルダはまだありません",
     no_labels_yet: "ラベルはまだありません",
+    label_unable_to_decrypt: "復号できません",
     aliases: "エイリアス",
     no_aliases_yet: "エイリアスはまだありません",
     storage_used: "使用済みストレージ",

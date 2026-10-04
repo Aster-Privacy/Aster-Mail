@@ -56,6 +56,7 @@ export interface DecryptedTag {
   item_count?: number;
   created_at: string;
   updated_at: string;
+  is_undecryptable?: boolean;
 }
 
 interface TagsState {
@@ -268,6 +269,24 @@ async function decrypt_tag(
   };
 }
 
+export function build_undecryptable_tag(
+  tag: TagDefinition,
+  fallback_name: string,
+): DecryptedTag {
+  return {
+    id: tag.id,
+    tag_token: tag.tag_token,
+    name: fallback_name,
+    color: undefined,
+    icon: undefined,
+    sort_order: tag.sort_order,
+    item_count: tag.item_count,
+    created_at: tag.created_at,
+    updated_at: tag.updated_at,
+    is_undecryptable: true,
+  };
+}
+
 export function use_tags(): UseTagsReturn {
   const { t } = use_i18n();
   const auth = use_auth_safe();
@@ -336,24 +355,30 @@ export function use_tags(): UseTagsReturn {
 
           if (this_generation !== fetch_generation_ref.current) return "stale";
 
-          const decrypted_tags = decrypted_results.filter(
-            (tag): tag is DecryptedTag => tag !== null,
-          );
+          const decrypted_count = decrypted_results.filter(
+            (tag) => tag !== null,
+          ).length;
 
           if (
             response.data.tags.length > 0 &&
-            decrypted_tags.length === 0 &&
-            cached_tags.data.length > 0
+            decrypted_count === 0 &&
+            cached_tags.data.some((tag) => !tag.is_undecryptable)
           ) {
             return "retry";
           }
 
-          cached_tags.data = decrypted_tags;
-          cached_tags.total = decrypted_tags.length;
+          const visible_tags = response.data.tags.map(
+            (tag: TagDefinition, index: number) =>
+              decrypted_results[index] ??
+              build_undecryptable_tag(tag, t("common.label_unable_to_decrypt")),
+          );
+
+          cached_tags.data = visible_tags;
+          cached_tags.total = visible_tags.length;
           cached_tags.has_loaded = true;
 
           set_state({
-            tags: decrypted_tags,
+            tags: visible_tags,
             is_loading: false,
             error: null,
             total: response.data.total,
@@ -488,7 +513,9 @@ export function use_tags(): UseTagsReturn {
       }
 
       const duplicate_exists = cached_tags.data.some(
-        (tag) => tag.name.toLowerCase() === trimmed_name.toLowerCase(),
+        (tag) =>
+          !tag.is_undecryptable &&
+          tag.name.toLowerCase() === trimmed_name.toLowerCase(),
       );
 
       if (duplicate_exists) {
@@ -626,7 +653,10 @@ export function use_tags(): UseTagsReturn {
             tag.id === tag_id
               ? {
                   ...tag,
-                  ...(name !== undefined && { name }),
+                  ...(name !== undefined && {
+                    name,
+                    is_undecryptable: false,
+                  }),
                   ...(color !== undefined && { color }),
                   ...(icon !== undefined && { icon }),
                   ...(sort_order !== undefined && { sort_order }),

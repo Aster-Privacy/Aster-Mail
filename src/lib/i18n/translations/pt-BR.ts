@@ -183,6 +183,7 @@ export const pt_br = {
     labels: "Etiquetas",
     no_folders_yet: "Nenhuma pasta ainda",
     no_labels_yet: "Nenhuma etiqueta ainda",
+    label_unable_to_decrypt: "Não foi possível descriptografar",
     aliases: "Aliases",
     no_aliases_yet: "Nenhum alias ainda",
     storage_used: "Armazenamento usado",

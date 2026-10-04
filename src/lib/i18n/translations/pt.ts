@@ -185,6 +185,7 @@ export const pt = {
     labels: "Etiquetas",
     no_folders_yet: "Nenhuma pasta ainda",
     no_labels_yet: "Nenhuma etiqueta ainda",
+    label_unable_to_decrypt: "Não foi possível desencriptar",
     aliases: "Aliases",
     no_aliases_yet: "Ainda sem aliases",
     storage_used: "Armazenamento usado",

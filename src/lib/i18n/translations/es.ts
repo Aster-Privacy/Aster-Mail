@@ -197,6 +197,7 @@ export const es = {
     labels: "Etiquetas",
     no_folders_yet: "Aún no hay carpetas",
     no_labels_yet: "Aún no hay etiquetas",
+    label_unable_to_decrypt: "No se puede descifrar",
     aliases: "Alias",
     no_aliases_yet: "Aún no hay alias",
     storage_used: "Almacenamiento usado",

@@ -197,6 +197,7 @@ export const fr = {
     labels: "Libellés",
     no_folders_yet: "Aucun dossier pour le moment",
     no_labels_yet: "Aucun libellé pour le moment",
+    label_unable_to_decrypt: "Déchiffrement impossible",
     aliases: "Alias",
     no_aliases_yet: "Pas encore d'alias",
     storage_used: "Stockage utilisé",

@@ -96,6 +96,7 @@ export function TagManagementModal({
     const duplicate_exists = tags_state.tags.some(
       (tag) =>
         tag.id !== tag_id &&
+        !tag.is_undecryptable &&
         tag.name.toLowerCase() === trimmed_name.toLowerCase(),
     );
 

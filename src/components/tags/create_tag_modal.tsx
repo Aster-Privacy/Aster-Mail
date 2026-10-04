@@ -67,7 +67,9 @@ export function CreateTagModal({ is_open, on_close }: CreateTagModalProps) {
       return t("common.label_name_too_long", { max: MAX_TAG_NAME_LENGTH });
     }
     const duplicate_exists = tags_state.tags.some(
-      (t) => t.name.toLowerCase() === trimmed_name.toLowerCase(),
+      (tag) =>
+        !tag.is_undecryptable &&
+        tag.name.toLowerCase() === trimmed_name.toLowerCase(),
     );
 
     if (duplicate_exists) {

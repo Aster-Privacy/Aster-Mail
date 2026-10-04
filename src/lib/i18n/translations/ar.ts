@@ -182,6 +182,7 @@ export const ar = {
     labels: "التصنيفات",
     no_folders_yet: "لا توجد مجلدات بعد",
     no_labels_yet: "لا توجد تصنيفات بعد",
+    label_unable_to_decrypt: "تعذّر فك التشفير",
     aliases: "الأسماء المستعارة",
     no_aliases_yet: "لا توجد أسماء مستعارة بعد",
     storage_used: "التخزين المستخدم",

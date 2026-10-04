@@ -193,6 +193,7 @@ export const pl = {
     labels: "Etykiety",
     no_folders_yet: "Brak folderów",
     no_labels_yet: "Brak etykiet",
+    label_unable_to_decrypt: "Nie można odszyfrować",
     aliases: "Aliasy",
     no_aliases_yet: "Brak aliasów",
     storage_used: "Wykorzystane miejsce",
