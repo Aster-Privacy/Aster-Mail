@@ -185,6 +185,7 @@ export function build_single_thread_message(
   const forwarding = resolve_forwarding_display(
     envelope.from,
     envelope.raw_headers,
+    item,
   );
 
   return {

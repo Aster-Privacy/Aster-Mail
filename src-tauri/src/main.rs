@@ -439,6 +439,9 @@ fn reset_webkit_crypto_keychain() -> bool {
     false
 }
 
+#[cfg(all(unix, not(target_os = "macos")))]
+mod webkit_sandbox;
+
 fn main() {
     boot_guard::prepare();
 
@@ -452,7 +455,9 @@ fn main() {
             std::env::set_var("WEBKIT_DISABLE_COMPOSITING_MODE", "1");
             std::env::set_var("WEBKIT_DISABLE_THREADED_COMPOSITOR", "1");
         }
-        if std::env::var("WEBKIT_DISABLE_SANDBOX_THIS_IS_DANGEROUS").is_err() {
+        if std::env::var("WEBKIT_DISABLE_SANDBOX_THIS_IS_DANGEROUS").is_err()
+            && (boot_guard::compat_mode_active() || !webkit_sandbox::can_start())
+        {
             std::env::set_var("WEBKIT_DISABLE_SANDBOX_THIS_IS_DANGEROUS", "1");
         }
     }

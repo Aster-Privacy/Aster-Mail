@@ -123,6 +123,9 @@ export default function SignInPage() {
     set_status,
     is_checkout_login,
     checkout_status,
+    checkout_confirm_email,
+    confirm_checkout_login,
+    cancel_checkout_login,
     captcha_token,
     set_captcha_token,
     turnstile_ref,
@@ -166,10 +169,41 @@ export default function SignInPage() {
               draggable={false}
               src="/text_logo.png"
             />
-            <Spinner className="mx-auto mb-4" size="lg" />
-            <p className="text-sm text-txt-secondary">
-              {checkout_status || t("auth.signing_in")}
-            </p>
+            {checkout_confirm_email ? (
+              <div className="w-full max-w-sm text-center">
+                <h1 className="text-xl font-semibold text-txt-primary mb-2">
+                  {t("auth.checkout_confirm_title")}
+                </h1>
+                <p className="text-sm text-txt-secondary mb-6 break-words">
+                  {t("auth.checkout_confirm_description", {
+                    email: checkout_confirm_email,
+                  })}
+                </p>
+                <Button
+                  className="w-full"
+                  size="xl"
+                  variant="depth"
+                  onClick={confirm_checkout_login}
+                >
+                  {t("common.continue")}
+                </Button>
+                <Button
+                  className="w-full mt-3"
+                  size="xl"
+                  variant="secondary"
+                  onClick={cancel_checkout_login}
+                >
+                  {t("common.cancel")}
+                </Button>
+              </div>
+            ) : (
+              <>
+                <Spinner className="mx-auto mb-4" size="lg" />
+                <p className="text-sm text-txt-secondary">
+                  {checkout_status || t("auth.signing_in")}
+                </p>
+              </>
+            )}
           </div>
         </div>
       </div>

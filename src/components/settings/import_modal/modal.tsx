@@ -275,7 +275,10 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
             return;
           }
 
-          const hash = await compute_message_id_hash(email.message_id);
+          const hash = await compute_message_id_hash(
+            email.message_id,
+            vault.identity_key,
+          );
 
           message_id_hashes.set(email.message_id, hash);
         }

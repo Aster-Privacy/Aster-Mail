@@ -402,6 +402,7 @@ export interface FolderRetentionTranslations {
 
 export interface MailRulesTranslations {
   editor_description: string;
+  editor_server_notice: string;
   drag_handle: string;
   title: string;
   subtitle: string;
@@ -8262,6 +8263,8 @@ export interface AuthTranslations {
   verifying_credentials: string;
   decrypting_vault: string;
   getting_user_info: string;
+  checkout_confirm_title: string;
+  checkout_confirm_description: string;
   enter_backup_code: string;
   backup_code_length_error: string;
   two_fa_temporarily_locked: string;

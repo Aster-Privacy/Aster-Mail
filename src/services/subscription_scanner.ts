@@ -27,6 +27,7 @@ import {
 import {
   detect_unsubscribe_info,
   get_sender_domain,
+  header_unsubscribe_link,
 } from "@/utils/unsubscribe_detector";
 import { has_protected_folder_label } from "@/hooks/use_folders";
 
@@ -187,13 +188,14 @@ export async function scan_inbox_for_subscriptions(
             list_unsubscribe_post: envelope.list_unsubscribe_post,
           },
         );
+        const tracked_link = header_unsubscribe_link(unsubscribe_info);
 
         const existing = senders.get(email);
 
         if (existing) {
           existing.count++;
-          if (!existing.unsubscribe_link && unsubscribe_info.unsubscribe_link) {
-            existing.unsubscribe_link = unsubscribe_info.unsubscribe_link;
+          if (!existing.unsubscribe_link && tracked_link) {
+            existing.unsubscribe_link = tracked_link;
           }
           if (
             !existing.list_unsubscribe_header &&
@@ -213,7 +215,7 @@ export async function scan_inbox_for_subscriptions(
             email,
             name: envelope.from.name,
             domain,
-            unsubscribe_link: unsubscribe_info.unsubscribe_link,
+            unsubscribe_link: tracked_link,
             list_unsubscribe_header: unsubscribe_info.list_unsubscribe_header,
             category,
             count: 1,

@@ -41,7 +41,7 @@ import { Button } from "@aster/ui";
 
 import { SettingsGroup, SettingsHeader, chip_selected_style } from "./shared";
 
-import { get_favicon_url } from "@/lib/favicon_url";
+import { FaviconImg } from "@/components/ui/favicon_or_initial";
 import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { commit_on_enter } from "@/lib/commit_on_enter";
@@ -815,10 +815,10 @@ export function ExternalAccountsSection({
                             : "var(--bg-tertiary)",
                         }}
                       >
-                        <img
+                        <FaviconImg
                           alt=""
                           className="h-full w-full object-cover"
-                          src={get_favicon_url(domain)}
+                          domain={domain}
                           onError={() =>
                             state.set_failed_icons(
                               (prev) => new Set([...prev, domain]),

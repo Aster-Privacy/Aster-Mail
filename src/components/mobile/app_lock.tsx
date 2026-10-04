@@ -23,7 +23,7 @@ import type { TranslationKey } from "@/lib/i18n/types";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BackspaceIcon } from "@heroicons/react/24/outline";
-import { PinLockDuressView, PinLockOverlayView } from "@aster/ui";
+import { PinLockOverlayView } from "@aster/ui";
 
 import { cn } from "@/lib/utils";
 import {
@@ -36,6 +36,7 @@ import {
   is_native_platform,
   add_app_state_listener,
 } from "@/native/capacitor_bridge";
+import { set_screen_capture_blocked } from "@/native/screen_privacy";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth_safe } from "@/contexts/auth_context";
@@ -89,7 +90,6 @@ function WebPinOverlay({
   const [locked_out, set_locked_out] = useState(false);
   const [lockout_remaining, set_lockout_remaining] = useState(0);
   const [pressed_key, set_pressed_key] = useState<string | null>(null);
-  const [show_duress_confirm, set_show_duress_confirm] = useState(false);
   const [wiping, set_wiping] = useState(false);
   const wiping_ref = useRef(false);
   const verifying_ref = useRef(false);
@@ -149,9 +149,7 @@ function WebPinOverlay({
         }
         if (result.outcome === "duress") {
           set_input("");
-          verifying_ref.current = false;
-          set_verifying(false);
-          set_show_duress_confirm(true);
+          await handle_duress_confirm();
 
           return;
         }
@@ -181,12 +179,12 @@ function WebPinOverlay({
       verifying_ref.current = false;
       set_verifying(false);
     },
-    [account_id, on_unlock, t],
+    [account_id, on_unlock, t, handle_duress_confirm],
   );
 
   const handle_digit = useCallback(
     async (d: string) => {
-      if (verifying_ref.current || locked_out) return;
+      if (verifying_ref.current || wiping_ref.current) return;
       const next = input + d;
 
       set_input(next);
@@ -194,19 +192,19 @@ function WebPinOverlay({
         await attempt_verify(next);
       }
     },
-    [input, digits, locked_out, attempt_verify],
+    [input, digits, attempt_verify],
   );
 
   const handle_backspace = useCallback(() => {
-    if (locked_out || verifying) return;
+    if (verifying) return;
     set_input((prev) => prev.slice(0, -1));
-  }, [locked_out, verifying]);
+  }, [verifying]);
 
   const handle_text_submit = useCallback(async () => {
-    if (verifying || locked_out || input.length < 1) return;
+    if (verifying || wiping_ref.current || input.length < 1) return;
     if (pin_type !== "text" && input.length < digits) return;
     await attempt_verify(input);
-  }, [verifying, locked_out, input, attempt_verify, pin_type, digits]);
+  }, [verifying, input, attempt_verify, pin_type, digits]);
 
   useEffect(() => {
     const on_key = (e: KeyboardEvent) => {
@@ -236,32 +234,13 @@ function WebPinOverlay({
     return () => window.removeEventListener("keydown", on_key);
   }, [pin_type, handle_digit, handle_backspace, handle_text_submit]);
 
-  if (show_duress_confirm) {
-    return (
-      <PinLockDuressView
-        cancel_label={t("common.cancel")}
-        description={t("common.duress_confirm_desc")}
-        detail={t("common.duress_confirm_detail")}
-        is_wiping={wiping}
-        logo_alt="Aster Mail"
-        logo_src="/text_logo.png"
-        proceed_label={t("common.duress_confirm_proceed")}
-        reduce_motion={reduce_motion}
-        subtitle={t("common.duress_confirm_subtitle")}
-        title={t("common.duress_confirm_title")}
-        on_cancel={() => set_show_duress_confirm(false)}
-        on_proceed={handle_duress_confirm}
-      />
-    );
-  }
-
   return (
     <PinLockOverlayView
       confirm_label={t("common.confirm")}
       delete_label={t("common.delete")}
       digits={digits}
-      is_locked_out={locked_out}
-      is_verifying={verifying}
+      is_locked_out={false}
+      is_verifying={verifying || wiping}
       lockout_text={
         locked_out
           ? t("common.app_lock_try_again_in", { s: lockout_remaining })
@@ -372,6 +351,18 @@ export function AppLock({ children }: { children: React.ReactNode }) {
     has_loaded_from_server,
     account_id,
   ]);
+
+  useEffect(() => {
+    if (!is_native_platform()) return;
+    const lock_configured = has_loaded_from_server
+      ? !!preferences.biometric_app_lock_enabled
+      : !!preferences.biometric_app_lock_enabled ||
+        has_pending_native_lock_hint();
+
+    set_screen_capture_blocked(lock_configured).catch((caught) =>
+      ignore_error("components/mobile/app_lock:screen_privacy", caught),
+    );
+  }, [preferences.biometric_app_lock_enabled, has_loaded_from_server]);
 
   useEffect(() => {
     if (!is_native_platform() || !preferences.biometric_app_lock_enabled)

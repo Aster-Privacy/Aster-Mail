@@ -5690,7 +5690,7 @@ export const de = {
     import_add_another: "Weiteres Konto hinzufügen",
     import_choose_source: "Quelle auswählen",
     import_emails_description:
-      "Bringen Sie Ihre E-Mails von Gmail, Outlook oder anderen E-Mail-Diensten mit. Ihre E-Mails werden auf Ihrem Gerät verschlüsselt, bevor sie gespeichert werden.",
+      "Übernehmen Sie Ihre E-Mails aus Gmail, Outlook oder anderen E-Mail-Diensten. Hochgeladene Dateien werden auf Ihrem Gerät verschlüsselt, und E-Mails aus einem verbundenen Konto werden von den Servern von Aster verschlüsselt, bevor sie gespeichert werden.",
     import_emails_button: "E-Mails importieren",
     recent_imports: "Letzte Importe",
     status_pending: "Ausstehend",
@@ -7018,9 +7018,9 @@ export const de = {
     confirm_remove_key:
       "Möchten Sie diesen Sicherheitsschlüssel wirklich entfernen?",
     connect_modal_description:
-      "Melden Sie sich bei {{ provider }} an, um Ihre E-Mails in Aster zu importieren. Ihre Nachrichten werden auf diesem Gerät verschlüsselt, bevor etwas auf unseren Servern gespeichert wird.",
+      "Melden Sie sich bei {{ provider }} an, um Ihre E-Mails in Aster zu importieren. Die Server von Aster laden Ihre Nachrichten von {{ provider }} herunter und verschlüsseln sie, bevor sie gespeichert werden.",
     connect_modal_privacy_note:
-      "Aster fordert nur die E-Mail-Berechtigungen an, die für den Import Ihres Posteingangs erforderlich sind. Wir lesen, scannen oder verkaufen Ihre Nachrichten nie.",
+      "Aster fordert nur den E-Mail-Zugriff an, der für den Import Ihres Posteingangs nötig ist, und durchsucht oder verkauft Ihre Nachrichten nie.",
     connect_modal_title: "{{ provider }} mit Aster verbinden",
     connect_provider_name_google: "Gmail",
     connect_provider_name_microsoft: "Outlook",
@@ -7603,7 +7603,7 @@ export const de = {
       "Passkeys können in der Aster-Web-App unter app.astermail.org hinzugefügt werden. Vorhandene Passkeys können Sie hier weiterhin ansehen und entfernen.",
     app_lock_pin: "PIN-Sperre",
     app_lock_pin_description:
-      "Erfordert eine PIN zum Öffnen von Aster Mail im Browser",
+      "Fragt nach einer PIN, bevor Aster Mail in diesem Browser angezeigt wird. Die Sperre verbirgt deine E-Mails vor anderen Personen, die dieses Gerät nutzen, verschlüsselt aber nicht die hier gespeicherten Daten.",
     app_lock_choose_digits: "PIN-Länge wählen",
     app_lock_digits_4: "4 Stellen",
     app_lock_digits_6: "6 Stellen",
@@ -9522,6 +9522,9 @@ export const de = {
     verifying_credentials: "Zugangsdaten werden überprüft...",
     decrypting_vault: "Ihr Schlüsseltresor wird entschlüsselt...",
     getting_user_info: "Benutzerinformationen werden abgerufen...",
+    checkout_confirm_title: "Anmeldung abschließen",
+    checkout_confirm_description:
+      "Ihr Kauf ist abgeschlossen. Fahren Sie als {{email}} fort, um Ihr Postfach zu öffnen.",
     enter_backup_code: "Backup-Code eingeben",
     backup_code_length_error:
       "Ein Backup-Code ist 12 Zeichen lang (8 bei älteren Codes). Prüfen Sie den Code und versuchen Sie es erneut.",
@@ -9707,7 +9710,7 @@ export const de = {
     n_recovery_codes: "{{count}} Wiederherstellungscodes",
     import_mail_step_title: "Nehmen Sie Ihre E-Mails mit",
     import_mail_step_desc:
-      "Übertragen Sie Nachrichten aus einem anderen Konto zu Aster. Alles wird auf Ihrem Gerät verschlüsselt, bevor es gespeichert wird.",
+      "Übertragen Sie Nachrichten aus einem anderen Konto zu Aster. Hochgeladene Dateien werden auf Ihrem Gerät verschlüsselt, und E-Mails aus einem verbundenen Konto werden von den Servern von Aster verschlüsselt, bevor sie gespeichert werden.",
     import_mail_skip: "Mit leerem Posteingang starten",
     import_mail_privacy_note:
       "Sie können auch später in den Einstellungen importieren.",
@@ -10505,6 +10508,8 @@ export const de = {
     expr_line_col: "(Zeile {{line}}, Spalte {{col}})",
     editor_description:
       "Benennen Sie Ihre Regel und legen Sie fest, was sie tut.",
+    editor_server_notice:
+      "Regeln laufen auf den Servern von Aster, daher kann Aster ihre Bedingungen und Weiterleitungsadressen lesen.",
     drag_handle: "Ziehgriff",
     no_labels: "Keine Labels",
     no_labels_create_hint:

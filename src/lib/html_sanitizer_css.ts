@@ -79,18 +79,57 @@ export function strip_css_comments(css: string): string {
   return result;
 }
 
+const CSS_HEX_ESCAPE = /^[0-9a-fA-F]{1,6}/;
+const CSS_ESCAPE_WHITESPACE = /[ \t\n\r\f]/;
+
+function decode_css_hex(hex: string): string {
+  const cp = parseInt(hex, 16);
+
+  if (cp === 0 || (cp >= 0xd800 && cp <= 0xdfff) || cp > 0x10ffff) {
+    return "�";
+  }
+
+  return String.fromCodePoint(cp);
+}
+
 function decode_css_escapes(css: string): string {
-  return css
-    .replace(/\\([0-9a-fA-F]{1,6})\s?/g, (_, hex) => {
-      const cp = parseInt(hex, 16);
+  let result = "";
+  let index = 0;
 
-      if (cp === 0 || (cp >= 0xd800 && cp <= 0xdfff) || cp > 0x10ffff) {
-        return "�";
+  while (index < css.length) {
+    const char = css[index];
+
+    if (char !== "\\") {
+      result += char;
+      index++;
+      continue;
+    }
+
+    const hex = CSS_HEX_ESCAPE.exec(css.slice(index + 1, index + 7));
+
+    if (hex) {
+      index += 1 + hex[0].length;
+      if (css[index] === "\r" && css[index + 1] === "\n") {
+        index += 2;
+      } else if (CSS_ESCAPE_WHITESPACE.test(css[index] ?? "")) {
+        index++;
       }
+      const decoded = decode_css_hex(hex[0]);
 
-      return String.fromCodePoint(cp);
-    })
-    .replace(/\\(.)/g, "$1");
+      if (decoded !== "\\") result += decoded;
+      continue;
+    }
+
+    const next = css[index + 1];
+
+    index += 2;
+    if (next === undefined || next === "\\" || /[\n\r\f]/.test(next)) {
+      continue;
+    }
+    result += next;
+  }
+
+  return result;
 }
 
 export function decode_css_entities(raw: string): string {

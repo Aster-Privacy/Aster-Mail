@@ -33,7 +33,7 @@ import { Switch } from "@aster/ui";
 import { Tooltip } from "@aster/ui";
 
 import { Spinner } from "@/components/ui/spinner";
-import { get_favicon_url } from "@/lib/favicon_url";
+import { FaviconImg } from "@/components/ui/favicon_or_initial";
 import { is_syncing as check_is_syncing } from "@/services/sync_manager";
 import {
   SyncHealthDot,
@@ -116,10 +116,10 @@ export function AccountCard({
                     : "color-mix(in srgb, var(--text-primary) 7%, transparent)",
                 }}
               >
-                <img
+                <FaviconImg
                   alt=""
                   className="w-full h-full object-cover"
-                  src={get_favicon_url(domain)}
+                  domain={domain}
                   onError={() => {
                     set_failed_icons((prev) => new Set([...prev, domain]));
                   }}

@@ -429,6 +429,7 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
                     full_address,
                     is_enabled: addr.is_enabled,
                     is_random: false,
+                    profile_picture: addr.profile_picture,
                     created_at: addr.created_at,
                     updated_at: addr.created_at,
                   };

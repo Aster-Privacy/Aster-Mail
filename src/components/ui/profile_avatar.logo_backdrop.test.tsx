@@ -45,7 +45,7 @@ vi.mock("@/hooks/use_peer_profile", () => ({
 }));
 
 vi.mock("@/hooks/use_favicon_src", () => ({
-  use_favicon_src: () => "",
+  use_favicon_src: (domain: string) => `blob:local/favicon/${domain}`,
   use_favicon_tone: (domain: string) => favicon_tone(domain),
   store_favicon_if_api_url: () => undefined,
 }));
@@ -155,8 +155,8 @@ describe("ProfileAvatar logo backdrop", () => {
   it("puts a light backdrop behind a dark transparent logo only in the dark theme", () => {
     const avatar = render_logo("dark");
 
-    expect(avatar.querySelector("img")?.getAttribute("src")).toContain(
-      "/api/images/v1/favicon/pt.pt",
+    expect(avatar.querySelector("img")?.getAttribute("src")).toBe(
+      "blob:local/favicon/pt.pt",
     );
     unmount();
 

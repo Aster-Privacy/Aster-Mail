@@ -172,6 +172,7 @@ export function ViewerEmailHeader({
               <OfficialBadge sender={email} size="md" />
               <VerifiedSenderBadge
                 domain={email.sender_verified_domain}
+                shown_email={show_sender_email}
                 size="md"
               />
               {show_sender_badge && peer_badge && (

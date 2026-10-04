@@ -42,6 +42,7 @@ import {
   perform_x3dh_sender,
   perform_x3dh_receiver,
   bundle_supports_pq,
+  restrict_bundle_to_signed_pq_key,
   PQ_IDENTITY_KEY_ID,
   ML_KEM_768_EK_LEN,
   type PrekeyBundle,
@@ -142,6 +143,63 @@ describe("X3DH post-quantum fallback chain", () => {
     expect(result.pq_mode).toBe("onetime");
     expect(result.pq_key_id).toBe(77);
     expect(result.pq_ciphertext).toBeInstanceOf(Uint8Array);
+  });
+
+  it("uses the signed PQ identity key when the signature covers it", async () => {
+    const parties = await build_parties();
+    const onetime = ml_kem768.keygen();
+
+    pq_secret_table.set(77, onetime.secretKey);
+    parties.bundle.pq_prekey = {
+      key_id: 77,
+      public_key: array_to_base64(onetime.publicKey),
+    };
+
+    const sender_result = await perform_x3dh_sender(
+      parties.sender_identity.secret_key_jwk,
+      restrict_bundle_to_signed_pq_key(parties.bundle, true),
+    );
+
+    expect(sender_result.pq_mode).toBe("identity");
+    expect(sender_result.pq_key_id).toBe(PQ_IDENTITY_KEY_ID);
+
+    const receiver_secret = await receive(
+      parties,
+      sender_result,
+      array_to_base64(parties.pq_identity.secretKey),
+    );
+
+    expect(receiver_secret).toEqual(sender_result.shared_secret);
+    expect(load_pq_secret_spy).not.toHaveBeenCalled();
+  });
+
+  it("keeps the one-time prekey when the signature does not cover the PQ identity key", async () => {
+    const parties = await build_parties();
+    const onetime = ml_kem768.keygen();
+
+    parties.bundle.pq_prekey = {
+      key_id: 77,
+      public_key: array_to_base64(onetime.publicKey),
+    };
+
+    expect(restrict_bundle_to_signed_pq_key(parties.bundle, false)).toBe(
+      parties.bundle,
+    );
+  });
+
+  it("keeps the one-time prekey when the bundle has no usable PQ identity key", async () => {
+    const parties = await build_parties();
+    const onetime = ml_kem768.keygen();
+
+    parties.bundle.pq_prekey = {
+      key_id: 77,
+      public_key: array_to_base64(onetime.publicKey),
+    };
+    parties.bundle.pq_kem_public_key = array_to_base64(new Uint8Array(12));
+
+    expect(
+      restrict_bundle_to_signed_pq_key(parties.bundle, true).pq_prekey,
+    ).toBeDefined();
   });
 
   it("falls back to the PQ identity key when no one-time prekey is left", async () => {

@@ -91,7 +91,8 @@ import {
   keep_readable_bodies,
   keep_unchanged_messages,
 } from "@/components/email/thread_message_merge";
-import { CATCH_UP_WHILE_LIVE_MS, sync_client } from "@/services/sync_client";
+import { sync_client } from "@/services/sync_client";
+import { CATCH_UP_WHILE_LIVE_MS } from "@/services/sync_timing";
 import { use_thread_decrypt_hold } from "@/hooks/use_thread_decrypt_hold";
 import {
   claim_auto_read,
@@ -701,8 +702,11 @@ export function use_email_viewer({
             get_email_username(envelope.from.email) ||
             t("common.unknown"),
           sender_email: envelope.from.email || "",
-          ...(resolve_forwarding_display(envelope.from, envelope.raw_headers) ??
-            {}),
+          ...(resolve_forwarding_display(
+            envelope.from,
+            envelope.raw_headers,
+            item,
+          ) ?? {}),
           subject: envelope.subject || t("mail.no_subject"),
           preview: build_preview_text(body_text, safe_html),
           timestamp: item.created_at,

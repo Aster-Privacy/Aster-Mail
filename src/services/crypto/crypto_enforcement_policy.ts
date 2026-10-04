@@ -22,7 +22,7 @@ export const ENFORCE_AUTHENTICATED_RATCHET: boolean = true;
 
 export const ENFORCE_STRICT_RECIPIENT_BUNDLE: boolean = true;
 
-export const ENABLE_PQXDH_TRANSCRIPT_BINDING: boolean = false;
+export const ENABLE_PQXDH_TRANSCRIPT_BINDING: boolean = true;
 
 export function is_authenticated_ratchet_enforced(): boolean {
   return ENFORCE_AUTHENTICATED_RATCHET;

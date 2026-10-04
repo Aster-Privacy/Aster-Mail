@@ -5732,7 +5732,7 @@ export const ja = {
     import_add_another: "別のアカウントを追加",
     import_choose_source: "取り込み元を選択",
     import_emails_description:
-      "Gmail、Outlook、または他のメールサービスからメールを取り込みます。メールはデバイス上で暗号化されてから保存されます。",
+      "Gmail、Outlook、その他のメールサービスからメールを移行できます。アップロードしたファイルはデバイス上で暗号化され、接続したアカウントのメールは保存前に Aster のサーバーで暗号化されます。",
     import_emails_button: "メールをインポート",
     recent_imports: "最近のインポート",
     status_pending: "保留中",
@@ -6966,9 +6966,9 @@ export const ja = {
     composing_and_replies: "作成と返信",
     confirm_remove_key: "このセキュリティキーを削除してもよろしいですか？",
     connect_modal_description:
-      "{{ provider }} にサインインして、メールをAsterにインポートします。メッセージはサーバーに保存される前にこのデバイス上で暗号化されます。",
+      "{{ provider }} にサインインして、メールを Aster にインポートします。Aster のサーバーが {{ provider }} からメッセージをダウンロードし、保存する前に暗号化します。",
     connect_modal_privacy_note:
-      "Asterは受信トレイのインポートに必要なメールスコープのみを要求します。メッセージを読んだり、スキャンしたり、販売したりしません。",
+      "Aster が要求するのは受信トレイのインポートに必要なメールへのアクセスのみで、メッセージをスキャンしたり販売したりすることはありません。",
     connect_modal_title: "{{ provider }}をAsterに接続",
     connect_provider_name_google: "Gmail",
     connect_provider_name_microsoft: "Outlook",
@@ -7430,7 +7430,8 @@ export const ja = {
     passkeys_desktop_note:
       "パスキーは app.astermail.org の Aster ウェブ版で追加できます。ここでは既存のパスキーの確認と削除ができます。",
     app_lock_pin: "PINロック",
-    app_lock_pin_description: "ブラウザでAster Mailを開くときにPINが必要です",
+    app_lock_pin_description:
+      "このブラウザで Aster Mail を表示する前に PIN を求めます。このデバイスを使うほかの人からメールを隠しますが、ここに保存されたデータは暗号化しません。",
     app_lock_choose_digits: "PIN桁数を選択",
     app_lock_digits_4: "4桁",
     app_lock_digits_6: "6桁",
@@ -9218,6 +9219,9 @@ export const ja = {
     verifying_credentials: "認証情報を確認中...",
     decrypting_vault: "キー保管庫を復号中...",
     getting_user_info: "ユーザー情報を取得中...",
+    checkout_confirm_title: "サインインを完了",
+    checkout_confirm_description:
+      "購入が完了しました。メールボックスを開くには、{{email}} として続行してください。",
     enter_backup_code: "バックアップコードを入力",
     backup_code_length_error:
       "バックアップコードは 12 文字です（旧形式は 8 文字）。コードを確認して、もう一度お試しください。",
@@ -9515,7 +9519,7 @@ export const ja = {
     review_codes_left_other: "リカバリーコードは残り {{count}} 個です。",
     import_mail_step_title: "メールを一緒に持ってくる",
     import_mail_step_desc:
-      "別のアカウントのメッセージを Aster に移行します。すべて保存前にお使いのデバイスで暗号化されます。",
+      "別のアカウントのメッセージを Aster に移行します。アップロードしたファイルはデバイス上で暗号化され、接続したアカウントのメールは保存前に Aster のサーバーで暗号化されます。",
     import_mail_skip: "空の受信トレイで始める",
     import_mail_privacy_note: "後から設定で取り込むこともできます。",
     password_reset_successful: "パスワードがリセットされました",
@@ -10154,6 +10158,8 @@ export const ja = {
       "この式を読み取れませんでした。構文を確認して、もう一度お試しください。",
     expr_line_col: "（{{line}} 行、{{col}} 列）",
     editor_description: "ルールに名前を付けて、動作を指定します。",
+    editor_server_notice:
+      "ルールは Aster のサーバーで実行されるため、Aster はその条件と転送先アドレスを読み取れます。",
     drag_handle: "ドラッグハンドル",
     title: "メールルール",
     subtitle: "受信メールを自動的に整理します。",

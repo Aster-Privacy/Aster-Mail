@@ -5733,7 +5733,7 @@ export const tr = {
     import_add_another: "Başka bir hesap ekle",
     import_choose_source: "Bir kaynak seçin",
     import_emails_description:
-      "Gmail, Outlook veya diğer e-posta hizmetlerinden e-postalarınızı getirin. E-postalarınız depolanmadan önce cihazınızda şifrelenir.",
+      "E-postalarınızı Gmail, Outlook veya diğer e-posta hizmetlerinden getirin. Yüklediğiniz dosyalar cihazınızda şifrelenir; bağlı bir hesaptan gelen postalar ise kaydedilmeden önce Aster sunucuları tarafından şifrelenir.",
     import_emails_button: "E-postaları İçe Aktar",
     recent_imports: "Son İçe Aktarmalar",
     status_pending: "Beklemede",
@@ -7027,7 +7027,7 @@ export const tr = {
       "Geçiş anahtarlarını app.astermail.org adresindeki Aster web uygulamasında ekleyebilirsiniz. Burada mevcut anahtarları görüntüleyip kaldırabilirsiniz.",
     app_lock_pin: "PIN Kilidi",
     app_lock_pin_description:
-      "Tarayıcıda Aster Mail'i açmak için PIN gerektirir",
+      "Aster Mail'i bu tarayıcıda göstermeden önce PIN ister. Postanızı bu cihazı kullanan diğer kişilerden gizler, ancak burada depolanan verileri şifrelemez.",
     app_lock_choose_digits: "PIN uzunluğunu seçin",
     app_lock_digits_4: "4 basamak",
     app_lock_digits_6: "6 basamak",
@@ -7578,9 +7578,9 @@ export const tr = {
       "Senkronizasyonu durdurmak istediğinizden emin misiniz? İçe aktarılmış e-postalar kalacak.",
     connect_modal_title: "{{ provider }} uygulamasını Aster ile bağlayın",
     connect_modal_description:
-      "Postanızı Aster'e aktarmak için {{ provider }}'a giriş yapın. Mesajlarınız sunucularımızda depolanmadan önce bu cihazda şifrelenir.",
+      "Postanızı Aster'a aktarmak için {{ provider }} hesabınızda oturum açın. Aster sunucuları mesajlarınızı {{ provider }} üzerinden indirir ve kaydetmeden önce şifreler.",
     connect_modal_privacy_note:
-      "Aster yalnızca gelen kutunuzu içe aktarmak için gereken posta kapsamlarını talep eder. Mesajlarınızı asla okumaz, taramaz veya satmaz.",
+      "Aster yalnızca gelen kutunuzu aktarmak için gereken posta erişimini ister ve mesajlarınızı asla taramaz ya da satmaz.",
     connect_provider_name_google: "Gmail",
     connect_provider_name_microsoft: "Outlook",
     connect_provider_name_yahoo: "Yahoo",
@@ -9309,6 +9309,9 @@ export const tr = {
     verifying_credentials: "Kimlik bilgileri doğrulanıyor...",
     decrypting_vault: "Anahtar kasanız çözülüyor...",
     getting_user_info: "Kullanıcı bilgileri alınıyor...",
+    checkout_confirm_title: "Oturum açmayı tamamlayın",
+    checkout_confirm_description:
+      "Satın alma işleminiz tamamlandı. Posta kutunuzu açmak için {{email}} olarak devam edin.",
     enter_backup_code: "Yedek Kodu Girin",
     backup_code_length_error:
       "Yedek kod 12 karakter uzunluğundadır (eski kodlar için 8). Kodu kontrol edin ve tekrar deneyin.",
@@ -9561,7 +9564,7 @@ export const tr = {
     n_recovery_codes: "{{count}} kurtarma kodu",
     import_mail_step_title: "Postanızı yanınızda getirin",
     import_mail_step_desc:
-      "Başka bir hesaptaki iletileri Aster'a taşıyın. Her şey kaydedilmeden önce cihazınızda şifrelenir.",
+      "Başka bir hesaptaki mesajları Aster'a taşıyın. Yüklediğiniz dosyalar cihazınızda şifrelenir; bağlı bir hesaptan gelen postalar ise kaydedilmeden önce Aster sunucuları tarafından şifrelenir.",
     import_mail_skip: "Boş gelen kutusuyla başlayın",
     import_mail_privacy_note: "Daha sonra Ayarlar'dan da içe aktarabilirsiniz.",
     recovery_code_already_used:
@@ -10239,6 +10242,8 @@ export const tr = {
       "Bu ifade okunamadı. Söz dizimini kontrol edip tekrar deneyin.",
     expr_line_col: "(satır {{line}}, sütun {{col}})",
     editor_description: "Kuralınıza bir ad verin ve ne yapacağını belirtin.",
+    editor_server_notice:
+      "Kurallar Aster sunucularında çalışır, bu nedenle Aster koşullarını ve yönlendirme adreslerini okuyabilir.",
     drag_handle: "Sürükleme tutamacı",
     no_labels: "Etiket yok",
     no_labels_create_hint: "Henüz etiket yok. Yan panelden bir tane oluşturun.",

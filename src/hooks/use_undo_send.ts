@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { remove_pending_thread_reply } from "@/hooks/pending_thread_replies";
 import type { Attachment } from "@/components/compose/compose_shared";
 import type { DraftType } from "@/services/api/multi_drafts";
 import type { TerminalSendStatus } from "@/services/undo_send_manager";
@@ -360,6 +361,7 @@ export function use_undo_send(): UseUndoSendReturn {
       undo_send_manager.remove(id);
     }
 
+    remove_pending_thread_reply(id);
     release_queued_send();
     play_iconic_sound("undo_send");
     dispatch_undo_send_event(id, pending, payload);

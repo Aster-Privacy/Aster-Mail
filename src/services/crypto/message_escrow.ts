@@ -183,30 +183,55 @@ async function get_escrow_key(): Promise<CryptoKey | null> {
   return key;
 }
 
+const ESCROW_AAD_V2_PREFIX = "aster.escrow.v2\0";
+
+export function escrow_aad_v2(dedupe_key: string): Uint8Array {
+  return new TextEncoder().encode(ESCROW_AAD_V2_PREFIX + dedupe_key);
+}
+
+async function open_escrow(
+  escrow_key: CryptoKey,
+  ciphertext: Uint8Array,
+  nonce: Uint8Array,
+  additional_data?: Uint8Array,
+): Promise<ArrayBuffer | null> {
+  const params: AesGcmParams = additional_data
+    ? { name: "AES-GCM", iv: nonce, additionalData: additional_data }
+    : { name: "AES-GCM", iv: nonce };
+
+  return crypto.subtle
+    .decrypt(params, escrow_key, ciphertext)
+    .catch(() => null);
+}
+
 async function decrypt_escrow_payload(
   escrow_key: CryptoKey,
   ciphertext: Uint8Array,
   nonce: Uint8Array,
+  dedupe_key: string,
 ): Promise<ArrayBuffer> {
-  try {
-    return await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv: nonce },
-      escrow_key,
-      ciphertext,
-    );
-  } catch (primary_error) {
-    const recovered = await decrypt_with_legacy_derived_keys(
-      derive_escrow_key_from_base,
-      ciphertext,
-      nonce,
-    );
+  const bound = await open_escrow(
+    escrow_key,
+    ciphertext,
+    nonce,
+    escrow_aad_v2(dedupe_key),
+  );
 
-    if (!recovered) {
-      throw primary_error;
-    }
+  if (bound) return bound;
 
-    return recovered;
-  }
+  const unbound = await open_escrow(escrow_key, ciphertext, nonce);
+
+  if (unbound) return unbound;
+
+  const recovered = await decrypt_with_legacy_derived_keys(
+    derive_escrow_key_from_base,
+    ciphertext,
+    nonce,
+  );
+
+  if (!recovered) throw new Error("escrow entry did not decrypt");
+
+  return recovered;
 }
 
 export async function upload_to_escrow(
@@ -226,7 +251,7 @@ export async function upload_to_escrow(
   const nonce = crypto.getRandomValues(new Uint8Array(12));
 
   const ciphertext = await crypto.subtle.encrypt(
-    { name: "AES-GCM", iv: nonce },
+    { name: "AES-GCM", iv: nonce, additionalData: escrow_aad_v2(dedupe_key) },
     escrow_key,
     plaintext_bytes,
   );
@@ -275,6 +300,7 @@ export async function fetch_from_escrow(
       escrow_key,
       ciphertext,
       nonce,
+      dedupe_key,
     );
 
     const plaintext = new TextDecoder().decode(plaintext_bytes);
@@ -307,6 +333,7 @@ export async function sync_escrow_to_cache(): Promise<void> {
         escrow_key,
         ciphertext,
         nonce,
+        entry.message_id,
       );
 
       const plaintext = new TextDecoder().decode(plaintext_bytes);

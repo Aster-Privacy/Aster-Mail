@@ -594,6 +594,7 @@ export async function preload_email_detail(
       const forwarding = resolve_forwarding_display(
         envelope.from,
         envelope.raw_headers,
+        item,
       );
 
       const preload_reply_to = extract_reply_to(envelope.raw_headers);

@@ -124,7 +124,117 @@ export interface AppLockConfig {
   pin_salt: string;
   duress_pin_hash?: string;
   duress_pin_salt?: string;
+  duress_tag?: string;
   kdf_version?: number;
+}
+
+const DURESS_TAG_PLAINTEXT = "aster-duress-on1";
+const DURESS_TAG_NONCE_BYTES = 12;
+const DURESS_TAG_BYTES = DURESS_TAG_NONCE_BYTES + 16 + 16;
+
+function random_hex(byte_count: number): string {
+  return Array.from(crypto.getRandomValues(new Uint8Array(byte_count)))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+function hex_to_bytes(hex: string | undefined): Uint8Array | null {
+  if (!hex || hex.length % 2 !== 0 || !/^[0-9a-f]*$/.test(hex)) return null;
+  const pairs = hex.match(/.{2}/g) ?? [];
+
+  return Uint8Array.from(pairs.map((h) => parseInt(h, 16)));
+}
+
+function bytes_to_hex(bytes: Uint8Array): string {
+  return Array.from(bytes)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+function with_decoy_duress(config: AppLockConfig): AppLockConfig {
+  if (config.duress_pin_hash && config.duress_pin_salt) return config;
+
+  return {
+    ...config,
+    duress_pin_hash: random_hex(32),
+    duress_pin_salt: random_hex(16),
+    duress_tag: random_hex(DURESS_TAG_BYTES),
+  };
+}
+
+function duress_tag_aad(account_id: string, duress_salt: string): Uint8Array {
+  return new TextEncoder().encode(
+    `aster.duress_tag.v1:${account_id}:${duress_salt}`,
+  );
+}
+
+async function duress_tag_key(): Promise<CryptoKey | null> {
+  try {
+    const { get_or_create_derived_encryption_crypto_key } = await import(
+      "@/services/crypto/memory_key_store"
+    );
+
+    return await get_or_create_derived_encryption_crypto_key();
+  } catch {
+    return null;
+  }
+}
+
+async function seal_duress_tag(
+  account_id: string,
+  duress_salt: string,
+): Promise<string | null> {
+  const key = await duress_tag_key();
+
+  if (!key) return null;
+  try {
+    const nonce = crypto.getRandomValues(new Uint8Array(DURESS_TAG_NONCE_BYTES));
+    const sealed = await crypto.subtle.encrypt(
+      {
+        name: "AES-GCM",
+        iv: nonce,
+        additionalData: duress_tag_aad(account_id, duress_salt),
+      },
+      key,
+      new TextEncoder().encode(DURESS_TAG_PLAINTEXT),
+    );
+    const combined = new Uint8Array(nonce.length + sealed.byteLength);
+
+    combined.set(nonce, 0);
+    combined.set(new Uint8Array(sealed), nonce.length);
+
+    return bytes_to_hex(combined);
+  } catch {
+    return null;
+  }
+}
+
+async function open_duress_tag(
+  account_id: string,
+  duress_salt: string,
+  tag: string,
+): Promise<boolean> {
+  const bytes = hex_to_bytes(tag);
+
+  if (!bytes || bytes.length !== DURESS_TAG_BYTES) return false;
+  const key = await duress_tag_key();
+
+  if (!key) return false;
+  try {
+    const opened = await crypto.subtle.decrypt(
+      {
+        name: "AES-GCM",
+        iv: bytes.slice(0, DURESS_TAG_NONCE_BYTES),
+        additionalData: duress_tag_aad(account_id, duress_salt),
+      },
+      key,
+      bytes.slice(DURESS_TAG_NONCE_BYTES),
+    );
+
+    return new TextDecoder().decode(opened) === DURESS_TAG_PLAINTEXT;
+  } catch {
+    return false;
+  }
 }
 
 interface AttemptState {
@@ -268,7 +378,10 @@ export function save_app_lock_config(
   account_id: string,
   config: AppLockConfig,
 ): void {
-  safe_local_set(lock_key(account_id), JSON.stringify(config));
+  safe_local_set(
+    lock_key(account_id),
+    JSON.stringify(with_decoy_duress(config)),
+  );
   if (config.enabled) safe_local_set(hint_key(account_id), "1");
 }
 
@@ -389,24 +502,38 @@ export function clear_session_unlock(account_id: string): void {
   safe_session_remove(session_key(account_id));
 }
 
-export function has_duress_pin(account_id: string): boolean {
+export async function has_duress_pin(account_id: string): Promise<boolean> {
   const config = get_app_lock_config(account_id);
 
-  return !!(config?.duress_pin_hash && config?.duress_pin_salt);
+  if (!config?.duress_pin_hash || !config.duress_pin_salt) return false;
+
+  if (config.duress_tag === undefined) {
+    const tag = await seal_duress_tag(account_id, config.duress_pin_salt);
+
+    if (tag) save_app_lock_config(account_id, { ...config, duress_tag: tag });
+
+    return true;
+  }
+
+  return open_duress_tag(account_id, config.duress_pin_salt, config.duress_tag);
 }
 
-export function save_duress_pin(
+export async function save_duress_pin(
   account_id: string,
   pin_hash: string,
   pin_salt: string,
-): void {
+): Promise<void> {
   const config = get_app_lock_config(account_id);
 
   if (!config) return;
+  const tag = await seal_duress_tag(account_id, pin_salt);
+  const { duress_tag: _t, ...rest } = config;
+
   save_app_lock_config(account_id, {
-    ...config,
+    ...rest,
     duress_pin_hash: pin_hash,
     duress_pin_salt: pin_salt,
+    ...(tag ? { duress_tag: tag } : {}),
   });
 }
 
@@ -414,7 +541,12 @@ export function clear_duress_pin(account_id: string): void {
   const config = get_app_lock_config(account_id);
 
   if (!config) return;
-  const { duress_pin_hash: _h, duress_pin_salt: _s, ...rest } = config;
+  const {
+    duress_pin_hash: _h,
+    duress_pin_salt: _s,
+    duress_tag: _t,
+    ...rest
+  } = config;
 
   save_app_lock_config(account_id, rest as AppLockConfig);
 }
@@ -425,63 +557,50 @@ export type PinOutcome =
   | { outcome: "failed"; locked: boolean; attempts_remaining: number }
   | { outcome: "locked_out"; remaining_ms: number };
 
+function parse_hex_salt(hex: string | undefined): Uint8Array | null {
+  const pairs = hex?.match(/.{2}/g);
+
+  return pairs ? Uint8Array.from(pairs.map((h) => parseInt(h, 16))) : null;
+}
+
 export async function attempt_pin_unlock(
   account_id: string,
   pin: string,
 ): Promise<PinOutcome> {
   const lockout = is_locked_out(account_id);
-
-  if (lockout.locked)
-    return { outcome: "locked_out", remaining_ms: lockout.remaining_ms };
-
   const config = get_app_lock_config(account_id);
+  const salt_bytes =
+    config?.enabled && config.pin_hash ? parse_hex_salt(config.pin_salt) : null;
 
-  if (!config || !config.enabled || !config.pin_hash || !config.pin_salt) {
-    return {
-      outcome: "failed",
-      locked: false,
-      attempts_remaining: MAX_ATTEMPTS,
-    };
+  if (!config || !salt_bytes) {
+    return lockout.locked
+      ? { outcome: "locked_out", remaining_ms: lockout.remaining_ms }
+      : { outcome: "failed", locked: false, attempts_remaining: MAX_ATTEMPTS };
   }
 
-  const salt_pairs = config.pin_salt.match(/.{2}/g);
-
-  if (!salt_pairs)
-    return {
-      outcome: "failed",
-      locked: false,
-      attempts_remaining: MAX_ATTEMPTS,
-    };
-  const salt_bytes = Uint8Array.from(salt_pairs.map((h) => parseInt(h, 16)));
   const pepper = await pepper_for_config(account_id, config);
-
-  let duress_hash_promise: Promise<string> = Promise.resolve("");
-  let duress_active = false;
-
-  if (config.duress_pin_hash && config.duress_pin_salt) {
-    const duress_pairs = config.duress_pin_salt.match(/.{2}/g);
-
-    if (duress_pairs) {
-      const duress_salt = Uint8Array.from(
-        duress_pairs.map((h) => parseInt(h, 16)),
-      );
-
-      duress_hash_promise = hash_pin(pin, duress_salt, pepper);
-      duress_active = true;
-    }
-  }
+  const duress_salt = config.duress_pin_hash
+    ? parse_hex_salt(config.duress_pin_salt)
+    : null;
 
   const [computed, duress_computed] = await Promise.all([
     hash_pin(pin, salt_bytes, pepper),
-    duress_hash_promise,
+    hash_pin(
+      pin,
+      duress_salt ?? crypto.getRandomValues(new Uint8Array(salt_bytes.length)),
+      pepper,
+    ),
   ]);
 
   const duress_match =
-    duress_active &&
+    duress_salt !== null &&
     constant_time_equal(duress_computed, config.duress_pin_hash!);
   const regular_match = constant_time_equal(computed, config.pin_hash);
 
   if (duress_match) return { outcome: "duress" };
+
+  if (lockout.locked)
+    return { outcome: "locked_out", remaining_ms: lockout.remaining_ms };
 
   if (regular_match) {
     reset_attempts(account_id);

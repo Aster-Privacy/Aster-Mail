@@ -52,6 +52,10 @@ import {
   get_cached_ratchet_plaintext,
   set_cached_ratchet_plaintext,
 } from "./ratchet_plaintext_cache";
+import {
+  clear_ratchet_verification_status,
+  is_unauthenticated_plaintext,
+} from "./ratchet_verification_status";
 
 const HOUR = 60 * 60 * 1000;
 const DAY = 24 * HOUR;
@@ -103,5 +107,24 @@ describe("ratchet plaintext cache durability", () => {
 
     expect(await get_cached_ratchet_plaintext("msg1")).toBeNull();
     expect(h.store.has(cache_id("msg1"))).toBe(false);
+  });
+
+  it("restores the unauthenticated mark after a reload", async () => {
+    await set_cached_ratchet_plaintext("lane", "from the lane", true);
+    await set_cached_ratchet_plaintext("plain", "from the ratchet");
+    clear_ratchet_verification_status();
+
+    vi.spyOn(Date, "now").mockReturnValue(Date.now() + 2 * DAY);
+
+    expect(await get_cached_ratchet_plaintext("lane")).toBe("from the lane");
+    expect(is_unauthenticated_plaintext("from the lane")).toBe(true);
+    expect(
+      (h.store.get(cache_id("lane")) as { unauthenticated?: boolean })
+        .unauthenticated,
+    ).toBe(true);
+    expect(await get_cached_ratchet_plaintext("plain")).toBe(
+      "from the ratchet",
+    );
+    expect(is_unauthenticated_plaintext("from the ratchet")).toBe(false);
   });
 });

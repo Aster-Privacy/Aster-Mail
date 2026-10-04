@@ -157,6 +157,19 @@ export async function store_session_passphrase(
   safe_local_remove(LEGACY_SESSION_PASSPHRASE_FB_IV_KEY_PREFIX + account_id);
 }
 
+export function is_session_passphrase_on_device(account_id: string): boolean {
+  const has_current =
+    safe_local_get(SESSION_PASSPHRASE_KEY_PREFIX + account_id) !== null &&
+    safe_local_get(SESSION_PASSPHRASE_IV_KEY_PREFIX + account_id) !== null;
+  const has_legacy =
+    safe_local_get(LEGACY_SESSION_PASSPHRASE_FB_KEY_PREFIX + account_id) !==
+      null &&
+    safe_local_get(LEGACY_SESSION_PASSPHRASE_FB_IV_KEY_PREFIX + account_id) !==
+      null;
+
+  return has_current || has_legacy;
+}
+
 export function has_stored_session_passphrase(account_id: string): boolean {
   try {
     if (check_session_expired(account_id)) {

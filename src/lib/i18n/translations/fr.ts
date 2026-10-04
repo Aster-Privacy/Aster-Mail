@@ -5886,7 +5886,7 @@ export const fr = {
     import_add_another: "Ajouter un autre compte",
     import_choose_source: "Choisissez une source",
     import_emails_description:
-      "Importez vos e-mails depuis Gmail, Outlook ou d'autres services de messagerie. Vos e-mails sont chiffrés sur votre appareil avant d'être stockés.",
+      "Importez vos e-mails depuis Gmail, Outlook ou d'autres services de messagerie. Les fichiers que vous envoyez sont chiffrés sur votre appareil, et les e-mails d'un compte connecté sont chiffrés par les serveurs d'Aster avant d'être enregistrés.",
     import_emails_button: "Importer des e-mails",
     recent_imports: "Importations récentes",
     status_pending: "En attente",
@@ -7185,9 +7185,9 @@ export const fr = {
     composing_and_replies: "Rédaction et réponses",
     confirm_remove_key: "Supprimer cette clé de sécurité ?",
     connect_modal_description:
-      "Connectez-vous à {{ provider }} pour importer vos e-mails dans Aster. Vos messages sont chiffrés sur cet appareil avant d'être stockés sur nos serveurs.",
+      "Connectez-vous à {{ provider }} pour importer vos e-mails dans Aster. Les serveurs d'Aster téléchargent vos messages depuis {{ provider }} et les chiffrent avant de les enregistrer.",
     connect_modal_privacy_note:
-      "Aster demande uniquement les autorisations de messagerie nécessaires pour importer votre boîte de réception. Nous ne lisons, n'analysons et ne vendons jamais vos messages.",
+      "Aster demande uniquement l'accès nécessaire pour importer votre boîte de réception, et n'analyse ni ne vend jamais vos messages.",
     connect_modal_title: "Connecter {{ provider }} à Aster",
     connect_provider_name_google: "Gmail",
     connect_provider_name_microsoft: "Outlook",
@@ -7757,7 +7757,7 @@ export const fr = {
       "Les clés d'accès peuvent être ajoutées dans l'application web Aster sur app.astermail.org. Vous pouvez toujours consulter et supprimer les clés d'accès existantes ici.",
     app_lock_pin: "Verrouillage par code PIN",
     app_lock_pin_description:
-      "Exige un code PIN pour ouvrir Aster Mail dans le navigateur",
+      "Demande un code PIN avant d'afficher Aster Mail dans ce navigateur. Ce verrou masque vos e-mails aux autres personnes qui utilisent cet appareil, mais il ne chiffre pas les données stockées ici.",
     app_lock_choose_digits: "Choisir la longueur du PIN",
     app_lock_digits_4: "4 chiffres",
     app_lock_digits_6: "6 chiffres",
@@ -9530,6 +9530,9 @@ export const fr = {
     verifying_credentials: "Vérification des identifiants...",
     decrypting_vault: "Déchiffrement de votre coffre-fort de clés...",
     getting_user_info: "Récupération des informations utilisateur...",
+    checkout_confirm_title: "Terminer la connexion",
+    checkout_confirm_description:
+      "Votre achat est terminé. Pour ouvrir votre boîte de réception, continuez en tant que {{email}}.",
     enter_backup_code: "Saisir le code de secours",
     backup_code_length_error:
       "Un code de secours comporte 12 caractères (8 pour les anciens codes). Vérifiez le code et réessayez.",
@@ -9849,7 +9852,7 @@ export const fr = {
     review_codes_left_other: "Il reste {{count}} codes de récupération.",
     import_mail_step_title: "Emportez votre courrier avec vous",
     import_mail_step_desc:
-      "Transférez les messages d'un autre compte vers Aster. Tout est chiffré sur votre appareil avant d'être stocké.",
+      "Transférez les messages d'un autre compte vers Aster. Les fichiers que vous envoyez sont chiffrés sur votre appareil, et les e-mails d'un compte connecté sont chiffrés par les serveurs d'Aster avant d'être enregistrés.",
     import_mail_skip: "Commencer avec une boîte vide",
     import_mail_privacy_note:
       "Vous pouvez aussi importer plus tard depuis les Réglages.",
@@ -10497,6 +10500,8 @@ export const fr = {
       "Cette expression n'a pas pu être lue. Vérifiez la syntaxe, puis réessayez.",
     expr_line_col: "(ligne {{line}}, colonne {{col}})",
     editor_description: "Nommez votre règle et indiquez-lui quoi faire.",
+    editor_server_notice:
+      "Les règles s'exécutent sur les serveurs d'Aster, qui peut donc lire leurs conditions et leurs adresses de transfert.",
     drag_handle: "Poignée de déplacement",
     action_apply_label: "Appliquer une étiquette",
     action_apply_labels: "Appliquer des étiquettes",

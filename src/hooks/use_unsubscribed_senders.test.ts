@@ -126,6 +126,29 @@ describe("unsubscribed senders", () => {
     expect(h.unsubscribe).toHaveBeenCalledWith("sub-1", "manual");
   });
 
+  it("never uploads a link that came from the message body", async () => {
+    await persist_unsubscribe("news@example.com", "News", {
+      unsubscribe_link: "https://example.com/body/secret-token",
+      list_unsubscribe_header: "<https://example.com/u>",
+    });
+
+    const payload = h.track_subscription.mock.calls[0][0];
+
+    expect(payload.unsubscribe_link).toBeUndefined();
+    expect(JSON.stringify(payload)).not.toContain("secret-token");
+  });
+
+  it("uploads a link that the List-Unsubscribe header carries", async () => {
+    await persist_unsubscribe("news@example.com", "News", {
+      unsubscribe_link: "https://example.com/u",
+      list_unsubscribe_header: "<https://example.com/u>",
+    });
+
+    expect(h.track_subscription.mock.calls[0][0].unsubscribe_link).toBe(
+      "https://example.com/u",
+    );
+  });
+
   it("ignores a sender without an address", async () => {
     await persist_unsubscribe("not an address", "", {});
 

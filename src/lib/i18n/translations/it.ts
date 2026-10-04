@@ -6942,7 +6942,7 @@ export const it = {
     import_add_another: "Aggiungi un altro account",
     import_choose_source: "Scegli una sorgente",
     import_emails_description:
-      "Porta le tue email da Gmail, Outlook o altri servizi email. Le tue email vengono crittografate sul tuo dispositivo prima di essere archiviate.",
+      "Porta le tue email da Gmail, Outlook o altri servizi email. I file che carichi vengono crittografati sul tuo dispositivo, mentre la posta di un account collegato viene crittografata dai server di Aster prima di essere salvata.",
     import_emails_button: "Importa email",
     recent_imports: "Importazioni recenti",
     status_pending: "In attesa",
@@ -7133,7 +7133,7 @@ export const it = {
       "Le passkey possono essere aggiunte nell'app web di Aster su app.astermail.org. Puoi comunque visualizzare e rimuovere le passkey esistenti qui.",
     app_lock_pin: "Blocco PIN",
     app_lock_pin_description:
-      "Richiede un PIN per aprire Aster Mail nel browser",
+      "Chiede un PIN prima di mostrare Aster Mail in questo browser. Nasconde la tua posta alle altre persone che usano questo dispositivo, ma non cripta i dati archiviati qui.",
     app_lock_choose_digits: "Scegli la lunghezza del PIN",
     app_lock_digits_4: "4 cifre",
     app_lock_digits_6: "6 cifre",
@@ -7705,9 +7705,9 @@ export const it = {
       "Sei sicuro di voler fermare la sincronizzazione? Le email già importate rimarranno.",
     connect_modal_title: "Connetti {{ provider }} ad Aster",
     connect_modal_description:
-      "Accedi a {{ provider }} per importare la tua posta in Aster. I tuoi messaggi vengono cifrati su questo dispositivo prima che qualsiasi cosa venga archiviata sui nostri server.",
+      "Accedi a {{ provider }} per importare la tua posta in Aster. I server di Aster scaricano i tuoi messaggi da {{ provider }} e li crittografano prima di salvarli.",
     connect_modal_privacy_note:
-      "Aster richiede solo gli ambiti di posta necessari per importare la tua posta in arrivo. Non leggiamo, scansionizziamo o vendiamo mai i tuoi messaggi.",
+      "Aster richiede solo l'accesso alla posta necessario per importare la tua casella, e non analizza né vende mai i tuoi messaggi.",
     connect_provider_name_google: "Gmail",
     connect_provider_name_microsoft: "Outlook",
     connect_provider_name_yahoo: "Yahoo",
@@ -9466,6 +9466,9 @@ export const it = {
     verifying_credentials: "Verifica credenziali...",
     decrypting_vault: "Decrittazione del tuo vault di chiavi...",
     getting_user_info: "Recupero informazioni utente...",
+    checkout_confirm_title: "Completa l'accesso",
+    checkout_confirm_description:
+      "Il tuo acquisto è completato. Per aprire la tua casella di posta, continua come {{email}}.",
     enter_backup_code: "Inserisci codice di backup",
     backup_code_length_error:
       "Un codice di backup è lungo 12 caratteri (8 per i codici più vecchi). Controlla il codice e riprova.",
@@ -9774,7 +9777,7 @@ export const it = {
     review_codes_left_other: "Restano {{count}} codici di recupero.",
     import_mail_step_title: "Porta la tua posta con te",
     import_mail_step_desc:
-      "Sposta i messaggi da un altro account in Aster. Tutto viene cifrato sul tuo dispositivo prima di essere salvato.",
+      "Sposta i messaggi da un altro account in Aster. I file che carichi vengono crittografati sul tuo dispositivo, mentre la posta di un account collegato viene crittografata dai server di Aster prima di essere salvata.",
     import_mail_skip: "Inizia con una casella vuota",
     import_mail_privacy_note:
       "Puoi importare anche più tardi dalle Impostazioni.",
@@ -10426,6 +10429,8 @@ export const it = {
       "Non è stato possibile leggere questa espressione. Controlla la sintassi e riprova.",
     expr_line_col: "(riga {{line}}, colonna {{col}})",
     editor_description: "Dia un nome alla regola e le indichi cosa fare.",
+    editor_server_notice:
+      "Le regole vengono eseguite sui server di Aster, quindi Aster può leggerne le condizioni e gli indirizzi di inoltro.",
     drag_handle: "Maniglia di trascinamento",
     title: "Regole posta",
     subtitle: "Organizza automaticamente la posta in arrivo.",

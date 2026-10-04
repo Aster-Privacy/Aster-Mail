@@ -141,6 +141,17 @@ async function read_entry(domain: string): Promise<FaviconEntry | null> {
   });
 }
 
+export function adopt_favicon_blob(domain: string, blob: Blob): string {
+  const existing = live_urls.get(domain);
+
+  if (existing) return existing;
+  const url = URL.createObjectURL(blob);
+
+  live_urls.set(domain, url);
+
+  return url;
+}
+
 async function write_entry(entry: FaviconEntry): Promise<void> {
   let db: IDBDatabase;
 

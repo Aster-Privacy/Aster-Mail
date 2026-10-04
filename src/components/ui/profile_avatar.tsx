@@ -27,7 +27,6 @@ import {
   mark_icon_ok,
 } from "@/lib/icon_cache";
 import { fetch_priority_attr } from "@/lib/fetch_priority";
-import { get_favicon_url } from "@/lib/favicon_url";
 import { get_initials, get_active_locale } from "@/lib/initials";
 import {
   use_favicon_src,
@@ -137,6 +136,8 @@ export const ProfileAvatar = memo(function ProfileAvatar({
   const { user } = use_auth();
   const { preferences } = use_preferences();
   const low_network = preferences.low_network_mode;
+  const domain_logos_allowed =
+    use_domain_logo && preferences.show_profile_pictures !== false;
   const is_current_user =
     !!email && !!user?.email && same_address_ignoring_dots(email, user.email);
   const peer_profile = use_peer_profile(
@@ -186,12 +187,20 @@ export const ProfileAvatar = memo(function ProfileAvatar({
   const is_aster_domain = ASTER_DOMAINS.has(domain);
   const is_ghost_domain = domain === GHOST_DOMAIN;
 
-  const cached_favicon_src = use_favicon_src(domain);
+  const cached_favicon_src = use_favicon_src(
+    domain,
+    !low_network &&
+      domain_logos_allowed &&
+      !!domain &&
+      !is_aster_mail &&
+      !is_aster_domain &&
+      !is_ghost_domain,
+  );
 
   const ddg_logo_url = useMemo(() => {
     if (
       low_network ||
-      !use_domain_logo ||
+      !domain_logos_allowed ||
       !domain ||
       is_aster_mail ||
       is_aster_domain ||
@@ -201,12 +210,10 @@ export const ProfileAvatar = memo(function ProfileAvatar({
     )
       return null;
 
-    const favicon_src = cached_favicon_src || get_favicon_url(domain);
-
-    return favicon_src.startsWith("data:") ? null : favicon_src;
+    return cached_favicon_src.startsWith("data:") ? null : cached_favicon_src;
   }, [
     low_network,
-    use_domain_logo,
+    domain_logos_allowed,
     domain,
     is_aster_mail,
     is_aster_domain,

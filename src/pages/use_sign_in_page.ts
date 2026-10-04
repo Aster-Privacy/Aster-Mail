@@ -79,6 +79,19 @@ type device_login_detail = {
   passphrase: string | null;
 };
 
+function scrub_checkout_params(): void {
+  const clean_url = new URL(window.location.href);
+
+  clean_url.searchParams.delete("checkout");
+  clean_url.searchParams.delete("ep");
+  clean_url.searchParams.delete("en");
+  clean_url.searchParams.delete("u");
+  clean_url.searchParams.delete("plan");
+  clean_url.searchParams.delete("billing");
+  clean_url.hash = "";
+  window.history.replaceState({}, "", clean_url.toString());
+}
+
 export function use_sign_in_page() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -143,6 +156,10 @@ export function use_sign_in_page() {
     );
   });
   const [checkout_status, set_checkout_status] = useState("");
+  const [checkout_confirm_email, set_checkout_confirm_email] = useState<
+    string | null
+  >(null);
+  const checkout_runner = useRef<(() => Promise<void>) | null>(null);
   const [hub_account_list, set_hub_account_list] = useState<hub_account[]>([]);
   const [hub_signing_in_id, set_hub_signing_in_id] = useState<string | null>(
     null,
@@ -380,19 +397,6 @@ export function use_sign_in_page() {
 
     if (params.get("checkout") !== "success") return;
 
-    const scrub_checkout_params = () => {
-      const clean_url = new URL(window.location.href);
-
-      clean_url.searchParams.delete("checkout");
-      clean_url.searchParams.delete("ep");
-      clean_url.searchParams.delete("en");
-      clean_url.searchParams.delete("u");
-      clean_url.searchParams.delete("plan");
-      clean_url.searchParams.delete("billing");
-      clean_url.hash = "";
-      window.history.replaceState({}, "", clean_url.toString());
-    };
-
     const ep = params.get("ep");
     const en = params.get("en");
     const checkout_identity = params.get("u") || "";
@@ -420,11 +424,20 @@ export function use_sign_in_page() {
     }
 
     checkout_started.current = true;
+
+    if (has_existing_session) {
+      scrub_checkout_params();
+      set_is_checkout_login(false);
+
+      return;
+    }
+
     set_is_checkout_login(true);
+    set_checkout_confirm_email(`${checkout_username}@${checkout_domain}`);
 
     const translate = t;
 
-    (async () => {
+    checkout_runner.current = async () => {
       try {
         set_checkout_status(translate("auth.authenticating"));
 
@@ -570,8 +583,24 @@ export function use_sign_in_page() {
           set_error(user_facing_error(err, translate("errors.login_failed")));
         }
       }
-    })();
-  }, [auth_loading, login]);
+    };
+  }, [auth_loading, login, has_existing_session]);
+
+  const confirm_checkout_login = useCallback(() => {
+    const run = checkout_runner.current;
+
+    checkout_runner.current = null;
+    set_checkout_confirm_email(null);
+
+    if (run) void run();
+  }, []);
+
+  const cancel_checkout_login = useCallback(() => {
+    checkout_runner.current = null;
+    set_checkout_confirm_email(null);
+    scrub_checkout_params();
+    set_is_checkout_login(false);
+  }, []);
 
   const [captcha_token, set_captcha_token] = useState("");
   const turnstile_ref = useRef<TurnstileWidgetRef>(null);
@@ -921,6 +950,9 @@ export function use_sign_in_page() {
     set_status,
     is_checkout_login,
     checkout_status,
+    checkout_confirm_email,
+    confirm_checkout_login,
+    cancel_checkout_login,
     captcha_token,
     set_captcha_token,
     turnstile_ref,

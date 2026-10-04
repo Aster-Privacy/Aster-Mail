@@ -21,6 +21,7 @@
 import { array_to_base64, base64_to_array } from "./base64";
 
 export const VAULT_SALT_BYTES = 16;
+export const AUTH_SALT_BYTES = 32;
 export const MAX_REMEMBERED_VAULT_SALTS = 32;
 export const AUTH_SALT_COLLISION_TRANSLATION_KEY = "errors.auth_salt_collision";
 
@@ -46,6 +47,10 @@ export function is_auth_salt_collision(
     error instanceof AuthSaltCollisionError ||
     (error instanceof Error && error.message === "auth_salt_collision")
   );
+}
+
+export function generate_auth_salt(): Uint8Array {
+  return crypto.getRandomValues(new Uint8Array(AUTH_SALT_BYTES));
 }
 
 export function constant_time_equals(a: Uint8Array, b: Uint8Array): boolean {

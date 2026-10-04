@@ -346,7 +346,11 @@ async function decode_thread_envelope(
     sender_name:
       envelope.from?.name || envelope.from?.email?.split("@")[0] || "",
     sender_email: envelope.from?.email || "",
-    ...(resolve_forwarding_display(envelope.from, envelope.raw_headers) ?? {}),
+    ...(resolve_forwarding_display(
+      envelope.from,
+      envelope.raw_headers,
+      msg,
+    ) ?? {}),
     subject: envelope.subject,
     body: body_content,
     html_content: effective_html,
@@ -672,8 +676,11 @@ export async function fetch_and_decrypt_virtual_group(
       sender_name:
         envelope.from?.name || envelope.from?.email?.split("@")[0] || "",
       sender_email: envelope.from?.email || "",
-      ...(resolve_forwarding_display(envelope.from, envelope.raw_headers) ??
-        {}),
+      ...(resolve_forwarding_display(
+        envelope.from,
+        envelope.raw_headers,
+        item,
+      ) ?? {}),
       subject: envelope.subject,
       body: body_content,
       html_content: effective_html,

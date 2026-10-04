@@ -85,29 +85,44 @@ public class ClipboardImagePlugin extends Plugin {
         resolveUri(call, uri);
     }
 
+    private void resolveNull(PluginCall call) {
+        JSObject result = new JSObject();
+        result.put("image", JSObject.NULL);
+        call.resolve(result);
+    }
+
     private void resolveUri(PluginCall call, Uri uri) {
-        String mimeType = getContext().getContentResolver().getType(uri);
-        if (mimeType == null || !mimeType.startsWith("image/")) {
-            mimeType = "image/png";
+        if (!ClipboardUriPolicy.isAllowedSource(
+            uri.getScheme(), uri.getAuthority(), getContext().getPackageName())) {
+            resolveNull(call);
+            return;
         }
 
-        try {
-            InputStream inputStream = getContext()
-                .getContentResolver().openInputStream(uri);
+        String mimeType = getContext().getContentResolver().getType(uri);
+        if (!ClipboardUriPolicy.isAllowedMime(mimeType)) {
+            resolveNull(call);
+            return;
+        }
+
+        try (InputStream inputStream = getContext()
+            .getContentResolver().openInputStream(uri)) {
             if (inputStream == null) {
-                JSObject result = new JSObject();
-                result.put("image", JSObject.NULL);
-                call.resolve(result);
+                resolveNull(call);
                 return;
             }
 
             ByteArrayOutputStream buffer = new ByteArrayOutputStream();
             byte[] data = new byte[4096];
+            long total = 0;
             int bytesRead;
             while ((bytesRead = inputStream.read(data, 0, data.length)) != -1) {
+                total += bytesRead;
+                if (total > ClipboardUriPolicy.MAX_IMAGE_BYTES) {
+                    resolveNull(call);
+                    return;
+                }
                 buffer.write(data, 0, bytesRead);
             }
-            inputStream.close();
 
             String base64 = Base64.encodeToString(
                 buffer.toByteArray(), Base64.NO_WRAP);
@@ -119,9 +134,7 @@ public class ClipboardImagePlugin extends Plugin {
             call.resolve(result);
 
         } catch (Exception e) {
-            JSObject result = new JSObject();
-            result.put("image", JSObject.NULL);
-            call.resolve(result);
+            resolveNull(call);
         }
     }
 }

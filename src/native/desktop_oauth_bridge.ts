@@ -26,6 +26,7 @@ export const DESKTOP_OAUTH_CALLBACK_EVENT = "aster-oauth-callback";
 const STATE_PATTERN = /^[0-9a-f]{64}$/;
 const REASON_PATTERN = /^[a-z_]{1,64}$/;
 const MAX_CODE_LENGTH = 2048;
+const PENDING_STATE_TTL_MS = 15 * 60 * 1000;
 
 export interface DesktopOAuthCallbackDetail {
   status: "success" | "error";
@@ -40,6 +41,38 @@ export interface ParsedOAuthCallback {
 }
 
 const handled_states = new Set<string>();
+const pending_states = new Map<string, number>();
+
+function prune_pending_states(now: number): void {
+  for (const [state, expires_at] of pending_states) {
+    if (expires_at <= now) pending_states.delete(state);
+  }
+}
+
+export function expect_oauth_state(authorize_url: string): boolean {
+  let state: string;
+
+  try {
+    state = new URL(authorize_url).searchParams.get("state") ?? "";
+  } catch {
+    return false;
+  }
+
+  if (!STATE_PATTERN.test(state)) return false;
+
+  const now = Date.now();
+
+  prune_pending_states(now);
+  pending_states.set(state, now + PENDING_STATE_TTL_MS);
+
+  return true;
+}
+
+function take_pending_state(state: string): boolean {
+  prune_pending_states(Date.now());
+
+  return pending_states.delete(state);
+}
 
 function is_desktop(): boolean {
   return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
@@ -100,6 +133,7 @@ export async function handle_oauth_callback_url(
 
   if (!parsed) return;
   if (handled_states.has(parsed.state)) return;
+  if (!take_pending_state(parsed.state)) return;
   handled_states.add(parsed.state);
 
   if (parsed.error !== undefined) {

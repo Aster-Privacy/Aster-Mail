@@ -63,4 +63,20 @@ describe("build_proxied_content_csp", () => {
       build_proxied_content_csp("/api/images/v1/proxy", "about:blank"),
     ).toContain("img-src 'self' data: blob:;");
   });
+
+  it("limits the base url to the origin the viewer sets", () => {
+    const csp = build_proxied_content_csp(
+      "/api/images/v1/proxy",
+      "https://app.astermail.org/",
+    );
+
+    expect(csp).toContain("base-uri https://app.astermail.org;");
+    expect(csp).not.toMatch(/base-uri[^;]*https?:(?:;|\s)/);
+  });
+
+  it("limits the base url to self for an unusable base", () => {
+    expect(
+      build_proxied_content_csp("/api/images/v1/proxy", "about:blank"),
+    ).toContain("base-uri 'self';");
+  });
 });

@@ -5689,7 +5689,7 @@ export const nl = {
     import_add_another: "Nog een account toevoegen",
     import_choose_source: "Kies een bron",
     import_emails_description:
-      "Breng je e-mails over van Gmail, Outlook of andere e-maildiensten. Je e-mails worden op je apparaat versleuteld voordat ze worden opgeslagen.",
+      "Haal je e-mails op uit Gmail, Outlook of andere e-maildiensten. Bestanden die je uploadt, worden op je apparaat versleuteld, en e-mail uit een gekoppeld account wordt door de servers van Aster versleuteld voordat die wordt opgeslagen.",
     import_emails_button: "E-mails importeren",
     recent_imports: "Recente imports",
     status_pending: "In afwachting",
@@ -7075,9 +7075,9 @@ export const nl = {
     confirm_remove_key:
       "Weet je zeker dat je deze beveiligingssleutel wilt verwijderen?",
     connect_modal_description:
-      "Log in bij {{provider}} om je mail in Aster te importeren. Je berichten worden op dit apparaat versleuteld voordat er iets op onze servers wordt opgeslagen.",
+      "Meld je aan bij {{ provider }} om je e-mail naar Aster te importeren. De servers van Aster downloaden je berichten van {{ provider }} en versleutelen ze voordat ze worden opgeslagen.",
     connect_modal_privacy_note:
-      "Je inloggegevens worden versleuteld opgeslagen en worden nooit gedeeld",
+      "Aster vraagt alleen de e-mailtoegang die nodig is om je inbox te importeren, en scant of verkoopt je berichten nooit.",
     connect_modal_title: "{{provider}} verbinden",
     connect_provider_name_google: "Gmail",
     connect_provider_name_microsoft: "Outlook",
@@ -7647,7 +7647,7 @@ export const nl = {
       "Toegangssleutels kunnen worden toegevoegd in de Aster-webapp op app.astermail.org. Je kunt bestaande toegangssleutels hier nog steeds bekijken en verwijderen.",
     app_lock_pin: "PIN-vergrendeling",
     app_lock_pin_description:
-      "Vereist een PIN om Aster Mail in je browser te openen",
+      "Vraagt om een pincode voordat Aster Mail in deze browser wordt getoond. De vergrendeling verbergt je e-mail voor andere mensen die dit apparaat gebruiken, maar versleutelt de hier opgeslagen gegevens niet.",
     app_lock_choose_digits: "Kies PIN-lengte",
     app_lock_digits_4: "4 cijfers",
     app_lock_digits_6: "6 cijfers",
@@ -9392,6 +9392,9 @@ export const nl = {
     verifying_credentials: "Inloggegevens verifiëren...",
     decrypting_vault: "Je sleutelkluis ontsleutelen...",
     getting_user_info: "Gebruikersinformatie ophalen...",
+    checkout_confirm_title: "Aanmelden voltooien",
+    checkout_confirm_description:
+      "Je aankoop is voltooid. Ga verder als {{email}} om je mailbox te openen.",
     enter_backup_code: "Reservecode invoeren",
     backup_code_length_error:
       "Een back-upcode is 12 tekens lang (8 voor oudere codes). Controleer de code en probeer het opnieuw.",
@@ -9690,7 +9693,7 @@ export const nl = {
     review_codes_left_other: "Nog {{count}} herstelcodes over.",
     import_mail_step_title: "Neem je mail mee",
     import_mail_step_desc:
-      "Verplaats berichten uit een ander account naar Aster. Alles wordt op je apparaat versleuteld voordat het wordt opgeslagen.",
+      "Verplaats berichten van een ander account naar Aster. Bestanden die je uploadt, worden op je apparaat versleuteld, en e-mail uit een gekoppeld account wordt door de servers van Aster versleuteld voordat die wordt opgeslagen.",
     import_mail_skip: "Beginnen met een lege inbox",
     import_mail_privacy_note: "Je kunt ook later importeren via Instellingen.",
     password_reset_successful: "Je wachtwoord is opnieuw ingesteld",
@@ -10347,6 +10350,8 @@ export const nl = {
       "Deze expressie kon niet worden gelezen. Controleer de syntaxis en probeer het opnieuw.",
     expr_line_col: "(regel {{line}}, kolom {{col}})",
     editor_description: "Geef je regel een naam en vertel wat deze moet doen.",
+    editor_server_notice:
+      "Regels worden uitgevoerd op de servers van Aster, dus Aster kan de voorwaarden en doorstuuradressen lezen.",
     drag_handle: "Sleepgreep",
     title: "E-mailregels",
     subtitle: "Inkomende e-mail automatisch organiseren.",

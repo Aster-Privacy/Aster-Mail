@@ -29,6 +29,8 @@ import {
   has_vault_in_memory,
 } from "./memory_key_store";
 
+import { mark_unauthenticated_plaintext } from "./ratchet_verification_status";
+
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 
 const CACHE_KEY_PREFIX = "ratchet_plaintext_";
@@ -38,6 +40,7 @@ const RETENTION_MS = 90 * 24 * 60 * 60 * 1000;
 interface CachedPlaintext {
   plaintext: string;
   stored_at: number;
+  unauthenticated?: boolean;
 }
 
 async function namespaced_cache_id(message_id: string): Promise<string | null> {
@@ -103,9 +106,14 @@ export async function get_cached_ratchet_plaintext(
       const refreshed: CachedPlaintext = {
         plaintext: entry.plaintext,
         stored_at: Date.now(),
+        ...(entry.unauthenticated ? { unauthenticated: true } : {}),
       };
 
       await encrypted_set(cache_id, refreshed, key);
+    }
+
+    if (entry.unauthenticated) {
+      mark_unauthenticated_plaintext(entry.plaintext);
     }
 
     return entry.plaintext;
@@ -117,6 +125,7 @@ export async function get_cached_ratchet_plaintext(
 export async function set_cached_ratchet_plaintext(
   message_id: string,
   plaintext: string,
+  unauthenticated = false,
 ): Promise<void> {
   if (!message_id) return;
   try {
@@ -127,6 +136,7 @@ export async function set_cached_ratchet_plaintext(
     const entry: CachedPlaintext = {
       plaintext,
       stored_at: Date.now(),
+      ...(unauthenticated ? { unauthenticated: true } : {}),
     };
 
     const cache_id = await namespaced_cache_id(message_id);

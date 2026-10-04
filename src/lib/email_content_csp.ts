@@ -32,6 +32,16 @@ function proxy_origin(
   }
 }
 
+function base_origin(base_href: string): string {
+  try {
+    const resolved = new URL(base_href);
+
+    return /^https?:$/.test(resolved.protocol) ? resolved.origin : "'self'";
+  } catch {
+    return "'self'";
+  }
+}
+
 export function build_proxied_content_csp(
   image_proxy_url: string,
   base_href: string,
@@ -52,7 +62,7 @@ export function build_proxied_content_csp(
     "frame-src 'none'",
     "connect-src 'none'",
     "script-src 'none'",
-    "base-uri https: http:",
+    `base-uri ${base_origin(base_href)}`,
     "form-action 'none'",
   ].join("; ");
 }

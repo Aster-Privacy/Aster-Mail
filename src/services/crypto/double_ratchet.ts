@@ -22,7 +22,6 @@ import { array_to_base64, base64_to_array } from "./base64";
 
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { HASH_ALG } from "@/services/crypto/constants";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
 const ECDH_ALGORITHM = "ECDH";
 const ECDH_CURVE = "P-256";
@@ -316,17 +315,10 @@ async function decrypt_with_key(
     ["decrypt"],
   );
 
-  if (associated_data) {
-    const plaintext = await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv: nonce, additionalData: associated_data },
-      key,
-      ciphertext,
-    );
-
-    return new Uint8Array(plaintext);
-  }
-
-  const plaintext = await decrypt_aes_gcm_with_fallback(key, ciphertext, nonce);
+  const params: AesGcmParams = associated_data
+    ? { name: "AES-GCM", iv: nonce, additionalData: associated_data }
+    : { name: "AES-GCM", iv: nonce };
+  const plaintext = await crypto.subtle.decrypt(params, key, ciphertext);
 
   return new Uint8Array(plaintext);
 }
