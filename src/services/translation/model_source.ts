@@ -24,6 +24,7 @@ import {
   fetch_translation_asset,
   uses_native_translation_assets,
 } from "@/native/desktop_translation_assets";
+import { TRANSLATION_MODEL_CACHE } from "@/lib/app_update_caches";
 
 export interface ModelFileEntry {
   name: string;
@@ -35,7 +36,7 @@ export type ModelRegistry = Record<string, Record<string, ModelFileEntry>>;
 
 export const MODEL_REGISTRY_REVISION = "3";
 
-export const MODEL_CACHE_NAME = "aster-translation-models-v1";
+export const MODEL_CACHE_NAME = TRANSLATION_MODEL_CACHE;
 
 const DEFAULT_MODEL_BASE = "/bergamot/models/v1";
 
