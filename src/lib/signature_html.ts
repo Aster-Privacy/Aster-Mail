@@ -39,6 +39,113 @@ function escape_plain_signature(content: string): string {
     .replace(/\n/g, "<br>");
 }
 
+const SOURCE_LINE_BREAK = /[\r\n]/;
+
+const SOURCE_LINE_BREAK_RUN = /[ \t\f]*(?:\r\n?|\n)[ \t\r\n\f]*/g;
+
+const LITERAL_WHITESPACE_TAGS = new Set(["PRE", "TEXTAREA", "LISTING"]);
+
+const LITERAL_WHITESPACE_STYLE = /white-space\s*:\s*(?:pre|break-spaces)/i;
+
+const BLOCK_BOUNDARY_TAGS = new Set([
+  "ADDRESS",
+  "BLOCKQUOTE",
+  "BR",
+  "CAPTION",
+  "CENTER",
+  "COL",
+  "COLGROUP",
+  "DD",
+  "DIV",
+  "DL",
+  "DT",
+  "H1",
+  "H2",
+  "H3",
+  "H4",
+  "H5",
+  "H6",
+  "HR",
+  "LI",
+  "OL",
+  "P",
+  "PRE",
+  "TABLE",
+  "TBODY",
+  "TD",
+  "TFOOT",
+  "TH",
+  "THEAD",
+  "TR",
+  "UL",
+]);
+
+function keeps_literal_whitespace(node: Node, root: Element): boolean {
+  for (let el = node.parentElement; el && el !== root; el = el.parentElement) {
+    if (LITERAL_WHITESPACE_TAGS.has(el.tagName)) return true;
+    if (LITERAL_WHITESPACE_STYLE.test(el.getAttribute("style") || "")) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function is_block_boundary(
+  sibling: Node | null,
+  parent: Element,
+  root: Element,
+): boolean {
+  if (sibling) {
+    return (
+      sibling.nodeType === 1 &&
+      BLOCK_BOUNDARY_TAGS.has((sibling as Element).tagName)
+    );
+  }
+
+  return parent === root || BLOCK_BOUNDARY_TAGS.has(parent.tagName);
+}
+
+function collapse_source_whitespace(html: string): string {
+  if (!SOURCE_LINE_BREAK.test(html)) return html;
+
+  const doc = new DOMParser().parseFromString(
+    `<!DOCTYPE html><body>${html}`,
+    "text/html",
+  );
+  const holder = doc.body;
+  const walker = doc.createTreeWalker(holder, NodeFilter.SHOW_TEXT);
+  const text_nodes: Text[] = [];
+
+  while (walker.nextNode()) {
+    text_nodes.push(walker.currentNode as Text);
+  }
+
+  for (const node of text_nodes) {
+    const parent = node.parentElement;
+
+    if (!parent || !SOURCE_LINE_BREAK.test(node.data)) continue;
+    if (keeps_literal_whitespace(node, holder)) continue;
+
+    let text = node.data.replace(SOURCE_LINE_BREAK_RUN, " ");
+
+    if (is_block_boundary(node.previousSibling, parent, holder)) {
+      text = text.replace(/^ +/, "");
+    }
+    if (is_block_boundary(node.nextSibling, parent, holder)) {
+      text = text.replace(/ +$/, "");
+    }
+
+    if (text) {
+      node.data = text;
+    } else {
+      node.remove();
+    }
+  }
+
+  return holder.innerHTML;
+}
+
 export function format_signature_html(
   signature: SignatureHtmlSource | null,
   show_separator: boolean,
@@ -46,7 +153,7 @@ export function format_signature_html(
   if (!signature) return "";
 
   const content = signature.is_html
-    ? signature.content
+    ? collapse_source_whitespace(signature.content)
     : escape_plain_signature(signature.content);
   const separator = show_separator ? "--<br>" : "";
 
