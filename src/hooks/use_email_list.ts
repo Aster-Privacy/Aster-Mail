@@ -517,6 +517,8 @@ export function use_email_list(
         refresh_offset,
         preferences.conversation_grouping ?? true,
         preferences.inbox_sort_order ?? "newest_first",
+        undefined,
+        { reuse_known_envelopes: true },
       );
 
       if (

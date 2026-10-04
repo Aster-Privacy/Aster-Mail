@@ -25,7 +25,12 @@ import type {
 } from "@/types/email";
 
 import { decrypt_envelope } from "./decrypt";
-import { decrypt_list_item_cached } from "./decrypt_cache";
+import {
+  decrypt_list_item_cached,
+  has_reusable_list_items,
+  reuse_list_item_without_envelope,
+  type ReusedListItem,
+} from "./decrypt_cache";
 import { should_keep_email_in_view } from "./display";
 import { group_emails_by_thread, sort_emails_by_timestamp } from "./grouping";
 import { mail_to_email_safe, type ListBodySummary } from "./mapping";
@@ -34,6 +39,7 @@ import {
   DEFAULT_PAGE_SIZE,
   MAX_PAGE_TOP_UP_ROUNDS,
   UNKNOWN_TOTAL,
+  is_outgoing_view,
 } from "./views";
 
 import { classify, is_locked_to_primary } from "@/services/mail_categorizer";
@@ -41,7 +47,9 @@ import {
   list_mail_items,
   type ListMailItemsParams,
   type MailItem,
+  type MailItemsListResponse,
 } from "@/services/api/mail";
+import { type ApiResponse } from "@/services/api/client";
 import { decrypt_mail_metadata } from "@/services/crypto/mail_metadata";
 import { type FormatOptions } from "@/utils/date_format";
 import { decrypt_body_text_with_bundle } from "@/utils/email_crypto";
@@ -60,6 +68,74 @@ import {
 
 const MAP_CHUNK_SIZE = 25;
 const FIRST_PAINT_COUNT = 15;
+const ENVELOPE_BATCH_SIZE = 100;
+
+export interface FetchMailOptions {
+  reuse_known_envelopes?: boolean;
+}
+
+async function list_reusing_known_envelopes(
+  params: ListMailItemsParams,
+  user_email: string,
+  reused: Map<string, ReusedListItem>,
+): Promise<ApiResponse<MailItemsListResponse> | null> {
+  const response = await list_mail_items({
+    ...params,
+    include_envelope: false,
+  });
+
+  if (!response.data) return response;
+
+  const known = new Map<string, ReusedListItem>();
+  const unknown_ids: string[] = [];
+
+  for (const item of filter_locked_mail_items(response.data.items)) {
+    if (item.is_reaction === true) continue;
+
+    const hit = reuse_list_item_without_envelope(item, user_email);
+
+    if (hit) known.set(item.id, hit);
+    else unknown_ids.push(item.id);
+  }
+
+  const fetched = new Map<string, MailItem>();
+
+  for (let i = 0; i < unknown_ids.length; i += ENVELOPE_BATCH_SIZE) {
+    const batch = await list_mail_items({
+      ids: unknown_ids.slice(i, i + ENVELOPE_BATCH_SIZE),
+      label_token: params.label_token,
+    });
+
+    if (!batch.data) return null;
+
+    for (const item of batch.data.items) fetched.set(item.id, item);
+  }
+
+  if (unknown_ids.some((id) => !fetched.has(id))) return null;
+
+  for (const [id, hit] of known) reused.set(id, hit);
+
+  return {
+    ...response,
+    data: {
+      ...response.data,
+      items: response.data.items.map((item) => {
+        const full = fetched.get(item.id);
+
+        return full
+          ? {
+              ...item,
+              encrypted_envelope: full.encrypted_envelope,
+              envelope_nonce: full.envelope_nonce,
+              ephemeral_key: full.ephemeral_key,
+              ephemeral_pq_key: full.ephemeral_pq_key,
+              sender_sealed: full.sender_sealed,
+            }
+          : item;
+      }),
+    },
+  };
+}
 
 export async function fetch_mail_from_api(
   view: string,
@@ -72,6 +148,7 @@ export async function fetch_mail_from_api(
   conversation_grouping = true,
   sort_order: "newest_first" | "oldest_first" = "newest_first",
   on_partial?: (emails: InboxEmail[]) => void,
+  options: FetchMailOptions = {},
 ): Promise<{
   emails: InboxEmail[];
   total: number;
@@ -98,8 +175,18 @@ export async function fetch_mail_from_api(
       : {}),
   };
 
+  const reused = new Map<string, ReusedListItem>();
+  const reuse_envelopes =
+    options.reuse_known_envelopes === true &&
+    !is_outgoing_view(view) &&
+    has_reusable_list_items();
+  const list_page = async (page_params: ListMailItemsParams) =>
+    (reuse_envelopes
+      ? await list_reusing_known_envelopes(page_params, user_email, reused)
+      : null) ?? (await list_mail_items(page_params));
+
   const fetched_at = Date.now();
-  const response = await list_mail_items(params);
+  const response = await list_page(params);
 
   if (
     response.code === "FORBIDDEN" &&
@@ -129,6 +216,10 @@ export async function fetch_mail_from_api(
     const results = await Promise.allSettled(
       batch.map(async (item) => {
         if (signal.aborted) throw new Error("aborted");
+
+        const known = reused.get(item.id);
+
+        if (known) return { item, ...known };
 
         const { envelope, metadata, body_summary } =
           await decrypt_list_item_cached(item, user_email, async () => {
@@ -213,6 +304,7 @@ export async function fetch_mail_from_api(
         mail_to_email_safe(item, envelope, metadata, format_options, {
           collapsed_threads: should_group,
           body_summary,
+          envelope_chars: reused.get(item.id)?.envelope_chars,
         }),
       MAP_CHUNK_SIZE,
       signal,
@@ -331,7 +423,7 @@ export async function fetch_mail_from_api(
   ) {
     top_up_rounds += 1;
 
-    const top_up_response = await list_mail_items({
+    const top_up_response = await list_page({
       ...params,
       limit: limit - collected.length,
       offset: offset + raw_consumed,
