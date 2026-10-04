@@ -81,6 +81,7 @@ async function list_reusing_known_envelopes(
 ): Promise<ApiResponse<MailItemsListResponse> | null> {
   const response = await list_mail_items({
     ...params,
+    limit: params.limit,
     include_envelope: false,
   });
 

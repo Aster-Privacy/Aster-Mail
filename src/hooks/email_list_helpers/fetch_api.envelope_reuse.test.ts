@@ -364,7 +364,7 @@ describe("silent refresh without envelopes", () => {
 
   it("keeps the full listing for outgoing views", async () => {
     await fetch_view("inbox", false);
-    h.items = h.items.map((item, i) => make_item(i, "sent"));
+    h.items = h.items.map((_item, i) => make_item(i, "sent"));
     reset_calls();
 
     await fetch_view("sent", true);
