@@ -482,8 +482,8 @@ function SettingsContentInner(props: SettingsContentProps) {
               variant="depth"
               onClick={on_close}
             >
-              <ArrowLeftIcon className="w-[15px] h-[15px] rtl:-scale-x-100" />
-              <span>{t("common.back_to_inbox")}</span>
+              <ArrowLeftIcon className="w-[15px] h-[15px] flex-shrink-0 rtl:-scale-x-100" />
+              <span className="truncate">{t("common.back_to_inbox")}</span>
             </Button>
           </div>
         )}

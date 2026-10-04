@@ -28,7 +28,7 @@ import {
   EllipsisVerticalIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  ExclamationCircleIcon,
+  ExclamationTriangleIcon,
   PrinterIcon,
   DocumentTextIcon,
   XMarkIcon,
@@ -156,7 +156,7 @@ export function EmailDetailHeader({
               variant="ghost"
               onClick={handle_report_spam}
             >
-              <ExclamationCircleIcon className="w-4 h-4 text-txt-secondary" />
+              <ExclamationTriangleIcon className="w-4 h-4 text-txt-secondary" />
             </Button>
           </Tooltip>
         )}
@@ -244,7 +244,7 @@ export function EmailDetailHeader({
             </DropdownMenuItem>
             {handle_report_spam && (
               <DropdownMenuItem onClick={handle_report_spam}>
-                <ExclamationCircleIcon className="w-4 h-4 me-2" />
+                <ExclamationTriangleIcon className="w-4 h-4 me-2" />
                 {t("mail.report_spam")}
               </DropdownMenuItem>
             )}

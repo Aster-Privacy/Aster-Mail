@@ -34,7 +34,7 @@ import {
   ArchiveBoxArrowDownIcon,
   ArrowUturnLeftIcon,
   AtSymbolIcon,
-  CheckCircleIcon,
+  ShieldCheckIcon,
   EnvelopeIcon,
   EnvelopeOpenIcon,
   ExclamationTriangleIcon,
@@ -970,7 +970,7 @@ export const InboxEmailListItem = memo(
                       className="p-1.5 rounded-[14px] hover:bg-black/10 dark:hover:bg-white/10"
                       onClick={() => on_mark_not_spam(email)}
                     >
-                      <CheckCircleIcon className="w-4 h-4 text-txt-muted" />
+                      <ShieldCheckIcon className="w-4 h-4 text-txt-muted" />
                     </button>
                   </Tooltip>
                 )}
