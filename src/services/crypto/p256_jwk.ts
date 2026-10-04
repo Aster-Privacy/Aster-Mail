@@ -61,6 +61,7 @@ function public_point_from_d(d: string): Uint8Array | null {
 
 export function complete_p256_private_jwk(jwk: JsonWebKey): JsonWebKey {
   if (!jwk.d || (jwk.x && jwk.y)) return jwk;
+  if (jwk.crv && jwk.crv !== "P-256") return jwk;
 
   const point = public_point_from_d(jwk.d);
 
