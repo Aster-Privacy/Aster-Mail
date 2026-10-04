@@ -336,9 +336,8 @@ export function SandboxedEmailRenderer({
       has_designed_bg ||
       has_style_block ||
       has_centered_card;
-    const declares_light_scheme = /color-scheme\s*:\s*light\s+only/i.test(
-      layout_probe,
-    );
+    const declares_light_scheme =
+      /color-scheme\s*:\s*(?:light\s+only|only\s+light)\b/i.test(layout_probe);
 
     return {
       has_block_html,
@@ -518,9 +517,10 @@ a:focus-visible {
     quote_toggle_dark,
   );
 
-  const html_el_style =
-    is_html_email && !force_dark_mode && !simple_dark_html
-      ? ` style="background-color:${html_bg}"`
+  const html_el_style = force_light_scheme
+    ? ` style="background-color:${html_bg}"`
+    : force_dark_mode || auto_dark_active
+      ? ` style="color-scheme:dark !important"`
       : "";
 
   const is_tor_mode = (() => {
