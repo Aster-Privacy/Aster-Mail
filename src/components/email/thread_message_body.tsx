@@ -22,7 +22,12 @@ import { useMemo } from "react";
 import { Button } from "@aster/ui";
 
 import { copy_text_or_throw } from "@/utils/copy_text";
-import { SandboxedEmailRenderer } from "@/components/email/sandboxed_email_renderer";
+import {
+  SandboxedEmailRenderer,
+  dispatch_iframe_ready,
+} from "@/components/email/sandboxed_email_renderer";
+import { readable_fallback_text } from "@/components/email/message_body_fallback";
+import { ErrorBoundary } from "@/components/ui/error_boundary";
 import {
   tokenize_html,
   TOKEN_COLORS,
@@ -47,6 +52,34 @@ interface ThreadMessageBodyProps {
     body: HTMLElement,
     request_remeasure: () => void,
   ) => (() => void) | void;
+}
+
+interface ReadableBodyFallbackProps {
+  clean_body: string;
+  sanitized_html: string;
+}
+
+export function ReadableBodyFallback({
+  clean_body,
+  sanitized_html,
+}: ReadableBodyFallbackProps): React.ReactElement {
+  const text = useMemo(
+    () =>
+      readable_fallback_text(clean_body) ||
+      readable_fallback_text(sanitized_html),
+    [clean_body, sanitized_html],
+  );
+
+  return (
+    <div
+      data-selectable-region
+      className="px-3 @md:px-4 py-4 text-sm leading-relaxed text-txt-primary whitespace-pre-wrap break-words"
+      data-testid="readable-body-fallback"
+      dir="auto"
+    >
+      {text}
+    </div>
+  );
 }
 
 export function ThreadMessageBody({
@@ -158,17 +191,30 @@ export function ThreadMessageBody({
           </div>
         </div>
       ) : (
-        <SandboxedEmailRenderer
-          body_background={body_background}
-          disable_auto_dark_mode={disable_auto_dark_mode}
-          email_id={email_id}
-          force_dark_mode={force_dark_mode}
-          is_plain_text={is_plain_text}
-          load_remote_content={load_remote_content}
-          on_document_ready={on_document_ready}
-          preserve_formatting={preserve_formatting}
-          sanitized_html={sanitized_html}
-        />
+        <ErrorBoundary
+          key={email_id}
+          fallback={
+            <ReadableBodyFallback
+              clean_body={clean_body}
+              sanitized_html={sanitized_html}
+            />
+          }
+          on_error={() => {
+            if (email_id) dispatch_iframe_ready(email_id);
+          }}
+        >
+          <SandboxedEmailRenderer
+            body_background={body_background}
+            disable_auto_dark_mode={disable_auto_dark_mode}
+            email_id={email_id}
+            force_dark_mode={force_dark_mode}
+            is_plain_text={is_plain_text}
+            load_remote_content={load_remote_content}
+            on_document_ready={on_document_ready}
+            preserve_formatting={preserve_formatting}
+            sanitized_html={sanitized_html}
+          />
+        </ErrorBoundary>
       )}
     </div>
   );
