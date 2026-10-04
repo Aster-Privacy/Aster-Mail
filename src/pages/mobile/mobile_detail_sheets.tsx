@@ -970,7 +970,7 @@ export function MobileMessageDetailsSheet({
             </div>
           </div>
           <HeadersBox
-            className="max-h-[50dvh] rounded-xl text-[11px]"
+            className="rounded-xl text-[11px]"
             mode={headers_mode}
             raw_headers={message?.raw_headers}
             text={headers}
