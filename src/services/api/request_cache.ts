@@ -22,6 +22,7 @@
 const DEFAULT_CACHE_TTL = 15_000;
 const MAX_CACHE_ENTRIES = 200;
 const SWEEP_GRACE_MS = 500;
+const FRESH_JOIN_WINDOW_MS = 250;
 
 interface CacheEntry {
   response: unknown;
@@ -29,9 +30,15 @@ interface CacheEntry {
   ttl: number;
 }
 
+interface FreshInFlightEntry {
+  promise: Promise<unknown>;
+  started_at: number;
+}
+
 export class RequestCache {
   private response_cache = new Map<string, CacheEntry>();
   private in_flight = new Map<string, Promise<unknown>>();
+  private fresh_in_flight = new Map<string, FreshInFlightEntry>();
   private generation = 0;
   private sweep_timer: ReturnType<typeof setTimeout> | null = null;
 
@@ -56,18 +63,40 @@ export class RequestCache {
       }
     }
 
-    if (skip_dedup || skip_cache) {
+    if (skip_dedup) {
       const result = await fetcher();
 
-      if (
-        generation === this.generation &&
-        ttl > 0 &&
-        this.is_cacheable_response(result)
-      ) {
-        this.set_entry(cache_key, result, ttl);
-      }
+      this.store_if_current(cache_key, result, ttl, generation);
 
       return result;
+    }
+
+    if (skip_cache) {
+      const fresh = this.fresh_in_flight.get(cache_key);
+
+      if (fresh && Date.now() - fresh.started_at < FRESH_JOIN_WINDOW_MS) {
+        return fresh.promise as Promise<T>;
+      }
+
+      const entry: FreshInFlightEntry = {
+        started_at: Date.now(),
+        promise: fetcher().then(
+          (result) => {
+            this.release_fresh(cache_key, entry);
+            this.store_if_current(cache_key, result, ttl, generation);
+
+            return result;
+          },
+          (error) => {
+            this.release_fresh(cache_key, entry);
+            throw error;
+          },
+        ),
+      };
+
+      this.fresh_in_flight.set(cache_key, entry);
+
+      return entry.promise as Promise<T>;
     }
 
     const pending = this.in_flight.get(cache_key);
@@ -100,6 +129,27 @@ export class RequestCache {
     return promise;
   }
 
+  private store_if_current(
+    cache_key: string,
+    result: unknown,
+    ttl: number,
+    generation: number,
+  ): void {
+    if (
+      generation === this.generation &&
+      ttl > 0 &&
+      this.is_cacheable_response(result)
+    ) {
+      this.set_entry(cache_key, result, ttl);
+    }
+  }
+
+  private release_fresh(cache_key: string, entry: FreshInFlightEntry): void {
+    if (this.fresh_in_flight.get(cache_key) === entry) {
+      this.fresh_in_flight.delete(cache_key);
+    }
+  }
+
   invalidate(pattern?: string | RegExp): number {
     this.generation++;
 
@@ -108,6 +158,7 @@ export class RequestCache {
 
       this.response_cache.clear();
       this.in_flight.clear();
+      this.fresh_in_flight.clear();
 
       return count;
     }
@@ -127,6 +178,12 @@ export class RequestCache {
       }
     }
 
+    for (const key of [...this.fresh_in_flight.keys()]) {
+      if (this.key_matches(key, pattern)) {
+        this.fresh_in_flight.delete(key);
+      }
+    }
+
     return count;
   }
 
@@ -137,6 +194,8 @@ export class RequestCache {
   }
 
   invalidate_for_mutation(endpoint: string): void {
+    this.fresh_in_flight.clear();
+
     const resource_base = this.extract_resource_base(endpoint);
 
     if (resource_base) {
@@ -147,6 +206,7 @@ export class RequestCache {
   clear(): void {
     this.response_cache.clear();
     this.in_flight.clear();
+    this.fresh_in_flight.clear();
     this.generation++;
 
     if (this.sweep_timer !== null) {
@@ -160,7 +220,7 @@ export class RequestCache {
   }
 
   get pending_count(): number {
-    return this.in_flight.size;
+    return this.in_flight.size + this.fresh_in_flight.size;
   }
 
   private is_cacheable_response(result: unknown): boolean {
