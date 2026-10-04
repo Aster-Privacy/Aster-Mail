@@ -141,6 +141,14 @@ function reached(entry: string, modules: string[]): string[] {
   return modules.filter((module) => loaded.has(module));
 }
 
+function inlining_fonts(entry: string): string[] {
+  return [...eagerly_loaded(entry)].filter((module) =>
+    /data:font\/[\w-]+;base64,[\w+/]{64}/.test(
+      readFileSync(join(src, module), "utf8"),
+    ),
+  );
+}
+
 describe("startup bundle", () => {
   it("finds the modules it guards", () => {
     for (const module of HEAVY_MODULES) {
@@ -161,5 +169,12 @@ describe("startup bundle", () => {
     "services/forward_attachments.ts",
   ])("%s does not load the mail renderer or compose UI", (entry) => {
     expect(reached(entry, RENDERER_AND_UI_MODULES)).toEqual([]);
+  });
+
+  it.each([
+    "components/email/sandboxed_email_renderer/renderer.tsx",
+    "components/email/hooks/preload_cache.ts",
+  ])("%s does not inline font files", (entry) => {
+    expect(inlining_fonts(entry)).toEqual([]);
   });
 });
