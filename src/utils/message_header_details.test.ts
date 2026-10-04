@@ -95,6 +95,72 @@ describe("to_display_headers", () => {
       undefined,
     ]);
   });
+
+  it("decodes encoded words in the subject and in address display names", () => {
+    const values = to_display_headers([
+      {
+        name: "Subject",
+        value: "=?utf-8?Q?CAF=C3=89=20CONCERTS=202026=20|=20Spring=20season?=",
+      },
+      { name: "Subject", value: "Re: =?UTF-8?B?T2zDoSwgbXVuZG8=?= again" },
+      {
+        name: "Subject",
+        value: "=?ISO-8859-1?Q?Caf=E9?= =?iso-8859-1?B?Q2Fm6Q==?=",
+      },
+      {
+        name: "Subject",
+        value: "=?utf-8?Q?Ol=C3=A1?=\r\n =?utf-8?Q?_mundo?=",
+      },
+      {
+        name: "From",
+        value: "=?utf-8?B?w5xuw69jw7hkw6kgU2hvcA==?= <news@shop.example>",
+      },
+      {
+        name: "Reply-To",
+        value: '"=?utf-8?Q?Example_Tickets?=" <reply@shop.example>',
+      },
+    ]).map((h) => h.value);
+
+    expect(values).toEqual([
+      "CAFÉ CONCERTS 2026 | Spring season",
+      "Re: Olá, mundo again",
+      "CaféCafé",
+      "Olá mundo",
+      "Ünïcødé Shop <news@shop.example>",
+      '"Example Tickets" <reply@shop.example>',
+    ]);
+  });
+
+  it("leaves malformed words and structured headers as they are", () => {
+    const values = to_display_headers([
+      { name: "Subject", value: "=?utf-8?Q?unterminated" },
+      { name: "Subject", value: "=?utf-8?X?abc?=" },
+      { name: "Subject", value: "=?utf-8?B?not*base64?=" },
+      { name: "Subject", value: "=?no-such-charset?Q?plain?=" },
+      { name: "Message-ID", value: "<=?utf-8?Q?id?=@shop.example>" },
+      { name: "DKIM-Signature", value: "v=1; z=Subject:=?utf-8?Q?x?=" },
+    ]).map((h) => h.value);
+
+    expect(values).toEqual([
+      "=?utf-8?Q?unterminated",
+      "=?utf-8?X?abc?=",
+      "=?utf-8?B?not*base64?=",
+      "plain",
+      "<=?utf-8?Q?id?=@shop.example>",
+      "v=1; z=Subject:=?utf-8?Q?x?=",
+    ]);
+  });
+
+  it("does not let a decoded line break start a fake header line", () => {
+    const [subject] = to_display_headers([
+      {
+        name: "Subject",
+        value: "=?utf-8?B?YQ0KRnJvbTogY2VvQGJhbmsuZXhhbXBsZQ==?=",
+      },
+    ]);
+
+    expect(subject.value).toBe("a  From: ceo@bank.example");
+  });
 });
 
 describe("segment_auth_value", () => {

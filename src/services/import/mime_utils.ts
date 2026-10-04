@@ -181,6 +181,24 @@ export function decode_header(value: string): string {
   return collapsed.replace(/=\?[^?]+\?[BbQq]\?[^?]*\?=/g, decode_mime_word);
 }
 
+const ENCODED_WORD = /=\?[^?]+\?([BbQq])\?([^?]*)\?=/g;
+const BASE64_TEXT = /^[A-Za-z0-9+/]*={0,2}$/;
+const CONTROL_CHARS = /[\u0000-\u001f\u007f-\u009f]/g;
+
+export function decode_header_for_display(value: string): string {
+  if (!value || !value.includes("=?")) return value;
+
+  return value
+    .replace(/(\?=)\s+(=\?)/g, "$1$2")
+    .replace(ENCODED_WORD, (word, encoding: string, content: string) => {
+      if (encoding.toLowerCase() === "b" && !BASE64_TEXT.test(content)) {
+        return word;
+      }
+
+      return decode_header(word).replace(CONTROL_CHARS, " ");
+    });
+}
+
 export function parse_address_list(value: string): string[] {
   if (!value) return [];
   const decoded = decode_header(value);

@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { EMAIL_REGEX } from "@/lib/utils";
+import { decode_header_for_display } from "@/services/import/mime_utils";
 
 export interface ParsedAddress {
   name?: string;
@@ -59,6 +60,10 @@ export function extract_reply_to(
 
   if (!header) return undefined;
   const first = header.value.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/)[0];
+  const parsed = parse_address(first);
 
-  return parse_address(first);
+  if (!parsed?.name) return parsed;
+  const name = decode_header_for_display(parsed.name).trim();
+
+  return { ...parsed, name: name || undefined };
 }
