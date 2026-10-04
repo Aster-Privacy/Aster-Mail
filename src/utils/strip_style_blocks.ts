@@ -18,31 +18,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+export function strip_style_blocks(html: string): string {
+  const doc = new DOMParser().parseFromString(html, "text/html");
 
-export type ComposeShellMode = "minimized" | "expanded" | "docked";
+  doc
+    .querySelectorAll("style, link[rel='stylesheet']")
+    .forEach((el) => el.remove());
 
-export const WINDOW_WIDTH = 700;
-export const WINDOW_WIDTH_MINIMIZED = 320;
-export const WINDOW_HEIGHT_NORMAL = 600;
-
-export function compose_shell_mode(
-  is_minimized: boolean,
-  is_expanded: boolean,
-): ComposeShellMode {
-  if (is_minimized) {
-    return "minimized";
-  }
-
-  if (is_expanded) {
-    return "expanded";
-  }
-
-  return "docked";
-}
-
-export function shows_expanded_backdrop(
-  is_minimized: boolean,
-  is_expanded: boolean,
-): boolean {
-  return compose_shell_mode(is_minimized, is_expanded) === "expanded";
+  return doc.body.innerHTML;
 }

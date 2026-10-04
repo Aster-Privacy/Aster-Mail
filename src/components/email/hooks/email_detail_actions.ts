@@ -59,7 +59,7 @@ import {
   emit_mail_item_updated,
   emit_mail_items_removed,
 } from "@/hooks/mail_events";
-import { print_email } from "@/utils/print_email";
+import { print_email } from "@/utils/print_email_loader";
 import {
   adjust_stats_unread,
   adjust_stats_trash,

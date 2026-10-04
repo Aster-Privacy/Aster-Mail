@@ -27,7 +27,7 @@ import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { use_external_link } from "@/contexts/external_link_context";
 import { use_preferences_optional } from "@/contexts/preferences_context";
 import { resolve_content_blocking } from "@/components/email/resolve_content_blocking";
-import { strip_style_blocks } from "@/utils/print_email";
+import { strip_style_blocks } from "@/utils/strip_style_blocks";
 
 export function QuotedHtmlPreview({ html }: { html: string }) {
   const { handle_external_link } = use_external_link();

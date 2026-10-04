@@ -28,7 +28,7 @@ import type {
   ForwardData,
 } from "@/components/email/email_viewer_types";
 
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 import { use_message_actions } from "./email_viewer_message_actions";
 
@@ -58,7 +58,8 @@ import {
   emit_mail_items_removed,
   emit_mail_soft_refresh,
 } from "@/hooks/mail_events";
-import { print_email } from "@/utils/print_email";
+import { preload_print_email, print_email } from "@/utils/print_email_loader";
+import { preload_when_idle } from "@/utils/lazy_with_retry";
 import {
   begin_read_change,
   is_read_ticket_current,
@@ -847,6 +848,14 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     deps.is_read,
     deps.t,
   ]);
+
+  useEffect(
+    () =>
+      preload_when_idle(() => {
+        void preload_print_email();
+      }),
+    [],
+  );
 
   const handle_print = useCallback(() => {
     if (!deps.email) return;

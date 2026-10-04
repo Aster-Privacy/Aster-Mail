@@ -42,7 +42,8 @@ import { read_settings_navigation } from "@/lib/settings_links";
 import { FullPageLoader } from "@/components/common/full_page_loader";
 import { QuickSettingsPanel } from "@/components/settings/quick_settings_panel";
 import { Spinner } from "@/components/ui/spinner";
-import { lazy_with_retry } from "@/utils/lazy_with_retry";
+import { lazy_with_retry, preload_when_idle } from "@/utils/lazy_with_retry";
+import { ErrorBoundary } from "@/components/ui/error_boundary";
 const load_settings_content = () =>
   import("@/components/settings/settings_content");
 const SettingsContent = lazy_with_retry(() =>
@@ -93,9 +94,27 @@ const PurchaseSuccessModal = lazy_with_retry(() =>
     default: m.PurchaseSuccessModal,
   })),
 );
+const load_reply_modal = () => import("@/components/modals/reply_modal");
+const ReplyModal = lazy_with_retry(() =>
+  load_reply_modal().then((m) => ({
+    default: m.ReplyModal,
+  })),
+);
+const load_forward_modal = () => import("@/components/modals/forward_modal");
+const ForwardModal = lazy_with_retry(() =>
+  load_forward_modal().then((m) => ({
+    default: m.ForwardModal,
+  })),
+);
 
-import { ReplyModal } from "@/components/modals/reply_modal";
-import { ForwardModal } from "@/components/modals/forward_modal";
+function preload_reply_and_forward(): void {
+  for (const load of [load_reply_modal, load_forward_modal]) {
+    void load().catch((caught) =>
+      ignore_error("pages/index:preload_reply_and_forward", caught),
+    );
+  }
+}
+
 import { EmailPopupViewer } from "@/components/email/email_popup_viewer";
 import { ScheduledPopupViewer } from "@/components/scheduled/scheduled_popup_viewer";
 import { LockedDataBanner } from "@/components/common/locked_data_banner";
@@ -154,6 +173,8 @@ export default function IndexPage() {
 
     if (is_first_run_tour_pending()) clear_first_run_tour();
   }, [is_mobile]);
+
+  useEffect(() => preload_when_idle(preload_reply_and_forward), []);
 
   const settings_section = resolve_settings_section(section);
   const settings_popup_mode =
@@ -657,47 +678,69 @@ export default function IndexPage() {
         </div>
       )}
       {state.reply_data && (
-        <ReplyModal
-          is_external={state.reply_data.is_external}
-          is_open={state.is_reply_open}
-          on_close={() => {
+        <ErrorBoundary
+          fallback={null}
+          on_error={() => {
+            show_toast(t("common.unable_to_load_composer"), "error");
             state.set_is_reply_open(false);
             state.set_reply_data(null);
           }}
-          original_body={state.reply_data.original_body}
-          original_cc={state.reply_data.original_cc}
-          original_email_id={state.reply_data.original_email_id}
-          original_rfc_message_id={state.reply_data.original_rfc_message_id}
-          original_subject={state.reply_data.original_subject}
-          original_timestamp={state.reply_data.original_timestamp}
-          original_to={state.reply_data.original_to}
-          quote_sender_email={state.reply_data.quote_sender_email}
-          quote_sender_name={state.reply_data.quote_sender_name}
-          recipient_avatar={state.reply_data.recipient_avatar}
-          recipient_email={state.reply_data.recipient_email}
-          recipient_name={state.reply_data.recipient_name}
-          reply_all={state.reply_data.reply_all}
-          reply_from_address={state.reply_data.reply_from_address}
-          thread_ghost_email={state.reply_data.thread_ghost_email}
-          thread_token={state.reply_data.thread_token}
-        />
+        >
+          <Suspense fallback={null}>
+            <ReplyModal
+              is_external={state.reply_data.is_external}
+              is_open={state.is_reply_open}
+              on_close={() => {
+                state.set_is_reply_open(false);
+                state.set_reply_data(null);
+              }}
+              original_body={state.reply_data.original_body}
+              original_cc={state.reply_data.original_cc}
+              original_email_id={state.reply_data.original_email_id}
+              original_rfc_message_id={state.reply_data.original_rfc_message_id}
+              original_subject={state.reply_data.original_subject}
+              original_timestamp={state.reply_data.original_timestamp}
+              original_to={state.reply_data.original_to}
+              quote_sender_email={state.reply_data.quote_sender_email}
+              quote_sender_name={state.reply_data.quote_sender_name}
+              recipient_avatar={state.reply_data.recipient_avatar}
+              recipient_email={state.reply_data.recipient_email}
+              recipient_name={state.reply_data.recipient_name}
+              reply_all={state.reply_data.reply_all}
+              reply_from_address={state.reply_data.reply_from_address}
+              thread_ghost_email={state.reply_data.thread_ghost_email}
+              thread_token={state.reply_data.thread_token}
+            />
+          </Suspense>
+        </ErrorBoundary>
       )}
       {state.forward_data && (
-        <ForwardModal
-          email_body={state.forward_data.email_body}
-          email_subject={state.forward_data.email_subject}
-          email_timestamp={state.forward_data.email_timestamp}
-          is_external={state.forward_data.is_external}
-          is_open={state.is_forward_open}
-          on_close={() => {
+        <ErrorBoundary
+          fallback={null}
+          on_error={() => {
+            show_toast(t("common.unable_to_load_composer"), "error");
             state.set_is_forward_open(false);
             state.set_forward_data(null);
           }}
-          original_mail_id={state.forward_data.original_mail_id}
-          sender_avatar={state.forward_data.sender_avatar}
-          sender_email={state.forward_data.sender_email}
-          sender_name={state.forward_data.sender_name}
-        />
+        >
+          <Suspense fallback={null}>
+            <ForwardModal
+              email_body={state.forward_data.email_body}
+              email_subject={state.forward_data.email_subject}
+              email_timestamp={state.forward_data.email_timestamp}
+              is_external={state.forward_data.is_external}
+              is_open={state.is_forward_open}
+              on_close={() => {
+                state.set_is_forward_open(false);
+                state.set_forward_data(null);
+              }}
+              original_mail_id={state.forward_data.original_mail_id}
+              sender_avatar={state.forward_data.sender_avatar}
+              sender_email={state.forward_data.sender_email}
+              sender_name={state.forward_data.sender_name}
+            />
+          </Suspense>
+        </ErrorBoundary>
       )}
       <AnimatePresence>
         {state.popup_email_id && (
