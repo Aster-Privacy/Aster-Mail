@@ -23,7 +23,7 @@ import type {
   SubscriptionCacheData,
   SubscriptionCacheCategory,
 } from "@/services/subscription_cache";
-import type { MailItem } from "@/services/api/mail";
+import type { ListMailItemsParams, MailItem } from "@/services/api/mail";
 
 import { useEffect, useRef, useCallback, useSyncExternalStore } from "react";
 
@@ -54,6 +54,46 @@ interface ScanEnvelope {
 const SCAN_COOLDOWN_MS = 5 * 60 * 1000;
 const DECRYPT_CONCURRENCY = 8;
 const SCAN_IDLE_TIMEOUT_MS = 10000;
+const SCAN_PAGE_SIZE = 200;
+const SCAN_PAGE_PAUSE_MS = 250;
+
+export const SUBSCRIPTION_SCAN_PARAMS: ListMailItemsParams = {
+  item_type: "all",
+  include_spam: false,
+  include_trash: false,
+  limit: SCAN_PAGE_SIZE,
+};
+
+export function is_subscription_scan_item(item: MailItem): boolean {
+  return (
+    item.item_type === "received" &&
+    !item.is_spam &&
+    !item.is_trashed &&
+    !has_protected_folder_label(item.labels)
+  );
+}
+
+function carry_over_previous_subscriptions(
+  scanned: Map<string, CachedSubscription>,
+  previous: CachedSubscription[],
+): void {
+  for (const sub of previous) {
+    const current = scanned.get(sub.sender_email);
+
+    if (!current) {
+      scanned.set(sub.sender_email, sub);
+      continue;
+    }
+
+    scanned.set(sub.sender_email, {
+      ...current,
+      status: sub.status,
+      unsubscribed_at: sub.unsubscribed_at,
+      category:
+        current.category === "unknown" ? sub.category : current.category,
+    });
+  }
+}
 
 const SYSTEM_DOMAINS = ["astermail.org", "astermail.com"];
 
@@ -185,14 +225,16 @@ export function select_fresh_scan_items(
   return { fresh_items, stop };
 }
 
-async function run_background_scan(
+export async function run_background_scan(
   vault: NonNullable<ReturnType<typeof use_auth>["vault"]>,
 ): Promise<void> {
   const raw_cached = await load_subscription_cache(vault);
 
   const is_outdated =
-    raw_cached && raw_cached.version !== SUBSCRIPTION_CACHE_VERSION;
+    !!raw_cached && raw_cached.version !== SUBSCRIPTION_CACHE_VERSION;
   const cached = is_outdated ? null : raw_cached;
+  const previous_subscriptions =
+    is_outdated && raw_cached ? raw_cached.subscriptions : [];
 
   const existing_map = new Map<string, CachedSubscription>();
 
@@ -231,9 +273,13 @@ async function run_background_scan(
   let aborted = false;
 
   while (has_next) {
+    if (cursor) {
+      await new Promise((resolve) => setTimeout(resolve, SCAN_PAGE_PAUSE_MS));
+    }
+
     const { data, error } = await list_mail_items({
-      item_type: "received",
-      limit: 200,
+      ...SUBSCRIPTION_SCAN_PARAMS,
+      limit: SCAN_PAGE_SIZE,
       cursor,
     });
 
@@ -250,9 +296,7 @@ async function run_background_scan(
       last_scan_message_ts,
     );
 
-    const scannable = fresh_items.filter(
-      (item) => !has_protected_folder_label(item.labels),
-    );
+    const scannable = fresh_items.filter(is_subscription_scan_item);
 
     for (const item of scannable) {
       if (item.created_at > max_processed_ts) {
@@ -412,6 +456,8 @@ async function run_background_scan(
       });
     }
   }
+
+  carry_over_previous_subscriptions(existing_map, previous_subscriptions);
 
   if (!max_processed_ts && existing_map.size === 0) return;
 

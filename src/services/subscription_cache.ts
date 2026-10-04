@@ -46,7 +46,7 @@ export interface CachedSubscription {
   unsubscribed_at?: string;
 }
 
-export const SUBSCRIPTION_CACHE_VERSION = 2;
+export const SUBSCRIPTION_CACHE_VERSION = 3;
 
 export interface SubscriptionCacheData {
   subscriptions: CachedSubscription[];
