@@ -28,6 +28,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import {
   load_subscription_cache,
   save_subscription_cache,
+  SUBSCRIPTION_CACHE_SAVED_EVENT,
   SUBSCRIPTION_CACHE_VERSION,
 } from "@/services/subscription_cache";
 import {
@@ -50,6 +51,9 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { ignore_error } from "@/lib/ignore_error";
 
+const REVALIDATE_INTERVAL_MS = 5 * 60 * 1000;
+const FOCUS_REVALIDATE_MIN_MS = 30 * 1000;
+
 export function use_subscriptions() {
   const { vault } = use_auth();
   const { t } = use_i18n();
@@ -59,6 +63,7 @@ export function use_subscriptions() {
   const mounted_ref = useRef(false);
   const poll_ref = useRef<ReturnType<typeof setInterval> | null>(null);
   const mutating_ref = useRef(0);
+  const last_load_at_ref = useRef(0);
 
   useEffect(() => {
     mounted_ref.current = true;
@@ -72,6 +77,8 @@ export function use_subscriptions() {
   const load_cache = useCallback(async () => {
     if (!vault) return;
     if (mutating_ref.current > 0) return;
+
+    last_load_at_ref.current = Date.now();
 
     const cached = await load_subscription_cache(vault);
 
@@ -90,11 +97,31 @@ export function use_subscriptions() {
     load_cache();
 
     poll_ref.current = setInterval(() => {
+      if (document.visibilityState !== "visible") return;
+
       load_cache();
-    }, 10000);
+    }, REVALIDATE_INTERVAL_MS);
+
+    const handle_saved = () => {
+      load_cache();
+    };
+
+    const handle_visibility = () => {
+      if (document.visibilityState !== "visible") return;
+      if (Date.now() - last_load_at_ref.current < FOCUS_REVALIDATE_MIN_MS) {
+        return;
+      }
+
+      load_cache();
+    };
+
+    window.addEventListener(SUBSCRIPTION_CACHE_SAVED_EVENT, handle_saved);
+    document.addEventListener("visibilitychange", handle_visibility);
 
     return () => {
       if (poll_ref.current) clearInterval(poll_ref.current);
+      window.removeEventListener(SUBSCRIPTION_CACHE_SAVED_EVENT, handle_saved);
+      document.removeEventListener("visibilitychange", handle_visibility);
     };
   }, [load_cache]);
 
