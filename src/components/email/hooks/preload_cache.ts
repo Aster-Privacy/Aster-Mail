@@ -731,9 +731,12 @@ export async function preload_email_detail(
         );
       }
 
-      await next_idle();
+      const thread_target = thread_sanitized.get(target_id);
 
-      const main_sanitized = presanitize(safe_html, body_text, single_message);
+      if (!thread_target) await next_idle();
+
+      const main_sanitized =
+        thread_target ?? presanitize(safe_html, body_text, single_message);
 
       void next_idle(1500).then(() =>
         premeasure_height(
