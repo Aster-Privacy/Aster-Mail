@@ -28,6 +28,8 @@ const MISSING_DIST: &str = concat!(
     "    npm install
 ",
     "    npm run build
+",
+    "    node scripts/prepare_native_dist.mjs
 
 ",
     "Then run the build again. To build the desktop app in one step, run `npm run tauri:build` ",
@@ -42,7 +44,7 @@ const DEV_SERVER_BUILD: &str = concat!(
 
 fn main() {
     if std::env::var_os("CARGO_FEATURE_CUSTOM_PROTOCOL").is_some() {
-        if !std::path::Path::new("../dist/index.html").exists() {
+        if !std::path::Path::new("../dist-native/index.html").exists() {
             panic!("{MISSING_DIST}");
         }
     } else {
