@@ -122,6 +122,8 @@ export function validate_operator(operator: ParsedOperator): boolean {
         "archive",
         "archived",
         "starred",
+        "scheduled",
+        "snoozed",
         "all",
         "anywhere",
       ].includes(operator.value.toLowerCase());

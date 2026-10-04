@@ -37,6 +37,13 @@ import { Input } from "@/components/ui/input";
 import { use_preferences } from "@/contexts/preferences_context";
 import { resolve_effective_page_size } from "@/lib/inbox_page_size";
 import { filter_locked_folder_emails } from "@/services/locked_folders";
+import {
+  rescope_search_query,
+  scope_search_query,
+  search_placeholder_label_key,
+  search_scope_chips,
+  type SearchViewScope,
+} from "@/utils/search_query";
 
 type SearchFilter = "all" | "unread" | "attachments" | "starred";
 
@@ -50,9 +57,13 @@ const FILTERS: { id: SearchFilter; label: TranslationKey }[] = [
 function MobileSearchPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const initial_query = (
-    (location.state as { search_query?: string } | null)?.search_query || ""
-  ).trim();
+  const nav_state = location.state as {
+    search_query?: string;
+    search_view?: string;
+  } | null;
+  const initial_query = (nav_state?.search_query || "").trim();
+  const search_view = nav_state?.search_view;
+  const scope_label_key = search_placeholder_label_key(search_view);
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
   const search = use_search();
@@ -63,6 +74,7 @@ function MobileSearchPage() {
   );
   const input_ref = useRef<HTMLInputElement>(null);
   const [query, set_query] = useState(initial_query);
+  const [submitted_query, set_submitted_query] = useState(initial_query);
   const [active_filter, set_active_filter] = useState<SearchFilter>("all");
   const [did_search, set_did_search] = useState(false);
   const [visible_count, set_visible_count] = useState(page_size);
@@ -83,6 +95,7 @@ function MobileSearchPage() {
   useEffect(() => {
     if (!initial_query) return;
     set_query(initial_query);
+    set_submitted_query(initial_query);
     set_star_overrides({});
     set_did_search(true);
     search.search(initial_query);
@@ -92,20 +105,42 @@ function MobileSearchPage() {
     navigate(-1);
   }, [navigate]);
 
+  const run_search = useCallback(
+    (next: string) => {
+      set_query(next);
+      set_submitted_query(next);
+      set_star_overrides({});
+      set_did_search(true);
+      search.search(next);
+    },
+    [search],
+  );
+
   const handle_search = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
       if (query.trim()) {
-        set_star_overrides({});
-        set_did_search(true);
-        search.search(query.trim());
+        run_search(
+          did_search ? query.trim() : scope_search_query(query, search_view),
+        );
       }
     },
-    [query, search],
+    [query, did_search, search_view, run_search],
+  );
+
+  const scope_chips = search_scope_chips(submitted_query, search_view);
+
+  const handle_scope_change = useCallback(
+    (scope: SearchViewScope) => {
+      if (!search_view) return;
+      run_search(rescope_search_query(submitted_query, search_view, scope));
+    },
+    [search_view, submitted_query, run_search],
   );
 
   const handle_clear = useCallback(() => {
     set_query("");
+    set_submitted_query("");
     set_star_overrides({});
     set_did_search(false);
     search.clear_results();
@@ -194,7 +229,11 @@ function MobileSearchPage() {
         <Input
           ref={input_ref}
           className="min-w-0 flex-1 bg-transparent"
-          placeholder={t("mail.search_messages")}
+          placeholder={
+            scope_label_key
+              ? `${t("mail.search_in")} ${t(scope_label_key)}`
+              : t("mail.search_messages")
+          }
           type="text"
           value={query}
           onChange={(e) => set_query(e.target.value)}
@@ -211,6 +250,30 @@ function MobileSearchPage() {
 
       {has_searched && (
         <div className="flex gap-2 overflow-x-auto border-b border-[var(--border-primary)] px-4 py-2">
+          {scope_chips.length > 0 && (
+            <>
+              {scope_chips.map((chip) => (
+                <button
+                  key={chip.scope}
+                  aria-pressed={chip.is_active}
+                  className={`shrink-0 rounded-full px-3 py-1 text-[13px] font-medium transition-colors ${
+                    chip.is_active
+                      ? "bg-[var(--accent-color,#3b82f6)] text-[var(--accent-fg,#ffffff)]"
+                      : "border border-[var(--border-primary)] text-[var(--text-secondary)]"
+                  }`}
+                  type="button"
+                  onClick={() => {
+                    if (!chip.is_active) handle_scope_change(chip.scope);
+                  }}
+                >
+                  {chip.folder_label_key
+                    ? t(chip.label_key, { value: t(chip.folder_label_key) })
+                    : t(chip.label_key)}
+                </button>
+              ))}
+              <span className="w-px shrink-0 self-stretch bg-[var(--border-primary)]" />
+            </>
+          )}
           {FILTERS.map((filter) => (
             <button
               key={filter.id}

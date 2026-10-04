@@ -328,4 +328,24 @@ describe("matches_query - in operator mailbox scopes", () => {
     expect(run_in("in:starred project", {}, { is_starred: true })).toBe(true);
     expect(run_in("in:starred project", {}, { is_starred: false })).toBe(false);
   });
+
+  it("finds scheduled mail with in:scheduled", () => {
+    expect(run_in("in:scheduled project", { item_type: "scheduled" })).toBe(
+      true,
+    );
+    expect(run_in("in:scheduled project", { item_type: "received" })).toBe(
+      false,
+    );
+  });
+
+  it("finds mail snoozed into the future with in:snoozed", () => {
+    const later = new Date(Date.now() + 3_600_000).toISOString();
+    const earlier = new Date(Date.now() - 3_600_000).toISOString();
+
+    expect(run_in("in:snoozed project", { snoozed_until: later })).toBe(true);
+    expect(run_in("in:snoozed project", { snoozed_until: earlier })).toBe(
+      false,
+    );
+    expect(run_in("in:snoozed project", {})).toBe(false);
+  });
 });

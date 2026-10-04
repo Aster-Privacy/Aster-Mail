@@ -43,6 +43,7 @@ import {
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { use_i18n } from "@/lib/i18n/context";
 import { is_composing } from "@/utils/ime";
+import { rescope_search_query, search_scope_chips } from "@/utils/search_query";
 
 type DatePreset = "any" | "week" | "month" | "six_months" | "year" | "custom";
 
@@ -306,12 +307,14 @@ export interface SearchChipRowProps {
   query: string;
   on_query_change: (query: string) => void;
   on_advanced_click: () => void;
+  scope_view?: string;
 }
 
 export function SearchChipRow({
   query,
   on_query_change,
   on_advanced_click,
+  scope_view,
 }: SearchChipRowProps) {
   const { t } = use_i18n();
   const [date_open, set_date_open] = useState(false);
@@ -703,8 +706,31 @@ export function SearchChipRow({
     ordered.push(entry.node);
   }
 
+  const scope_chips: ReactNode[] = scope_view
+    ? search_scope_chips(query, scope_view).map((chip) => (
+        <Chip
+          key={`scope_${chip.scope}`}
+          is_active={chip.is_active}
+          label={
+            chip.folder_label_key
+              ? t(chip.label_key, { value: t(chip.folder_label_key) })
+              : t(chip.label_key)
+          }
+          on_click={
+            chip.is_active
+              ? undefined
+              : () =>
+                  on_query_change(
+                    rescope_search_query(query, scope_view, chip.scope),
+                  )
+          }
+        />
+      ))
+    : [];
+
   return (
     <div className="flex items-center gap-2.5 px-4 py-2.5 overflow-x-auto scrollbar-none">
+      {scope_chips}
       {ordered}
       <button
         className={CHIP_CLASS}

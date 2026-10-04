@@ -236,6 +236,13 @@ export function matches_operator(
         case "drafts":
         case "draft":
           return item.item_type === "draft";
+        case "scheduled":
+          return item.item_type === "scheduled";
+        case "snoozed": {
+          const until = item.snoozed_until ?? metadata?.snoozed_until;
+
+          return !!until && new Date(until).getTime() > Date.now();
+        }
         case "trash":
           return !!item.is_trashed;
         case "spam":

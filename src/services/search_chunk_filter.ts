@@ -429,6 +429,7 @@ const IN_UNPRUNABLE_VALUES = new Set([
   "anywhere",
   "archive",
   "archived",
+  "snoozed",
 ]);
 
 function in_operator_test(val: string): SummaryTest {
@@ -441,6 +442,7 @@ function in_operator_test(val: string): SummaryTest {
     if (val === "drafts" || val === "draft") {
       return !summary.item_types.includes("draft");
     }
+    if (val === "scheduled") return !summary.item_types.includes("scheduled");
     if (val === "trash") return !has_flag(summary.flags, FLAG_TRASHED);
     if (val === "spam") return !has_flag(summary.flags, FLAG_SPAM);
     if (val === "starred") return !has_flag(summary.flags, FLAG_STARRED);
