@@ -24,6 +24,8 @@ import { ml_kem768 } from "@noble/post-quantum/ml-kem.js";
 
 import { vault_identity_key_materials } from "@/services/crypto/identity_key_materials";
 import { register_envelope_attachment_keys } from "@/services/crypto/inbound_attachment_keys";
+import { with_cached_envelope_key } from "@/services/crypto/envelope_key_cache";
+import { array_to_base64 } from "@/services/crypto/base64";
 import { derive_pq_identity_from_seed } from "@/services/crypto/ratchet_manager";
 import {
   get_passphrase_bytes,
@@ -116,6 +118,31 @@ async function decompress_zlib(compressed: Uint8Array): Promise<Uint8Array> {
   return result;
 }
 
+async function inbound_key_cache_id(
+  purpose: string,
+  material: string,
+): Promise<string> {
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(material),
+  );
+
+  return `${purpose}:${array_to_base64(new Uint8Array(digest))}`;
+}
+
+async function import_inbound_identity_private(
+  identity_key_jwk_str: string,
+): Promise<CryptoKey> {
+  const cache_id = await inbound_key_cache_id(
+    "inbound-ecdh",
+    identity_key_jwk_str,
+  );
+
+  return with_cached_envelope_key(cache_id, () =>
+    import_ke_private_key(JSON.parse(identity_key_jwk_str) as JsonWebKey),
+  );
+}
+
 async function derive_pq_hybrid_aes_key(
   ecdh_shared: ArrayBuffer,
   ml_kem_ss: Uint8Array,
@@ -152,8 +179,8 @@ export async function decrypt_inbound_ecies(
   try {
     const eph_pub_raw = enc_bytes.slice(1, 1 + INBOUND_ECIES_EPH_KEY_LEN);
     const ciphertext = enc_bytes.slice(1 + INBOUND_ECIES_EPH_KEY_LEN);
-    const identity_jwk: JsonWebKey = JSON.parse(identity_key_jwk_str);
-    const identity_private = await import_ke_private_key(identity_jwk);
+    const identity_private =
+      await import_inbound_identity_private(identity_key_jwk_str);
     const eph_public = await import_ke_public_key(eph_pub_raw);
     const shared_bits = await compute_agreement_bits(
       identity_private,
@@ -193,8 +220,8 @@ export async function decrypt_inbound_pq_hybrid(
       1 + INBOUND_ECIES_EPH_KEY_LEN + INBOUND_ML_KEM_CT_LEN,
     );
 
-    const identity_jwk: JsonWebKey = JSON.parse(identity_key_jwk_str);
-    const identity_private = await import_ke_private_key(identity_jwk);
+    const identity_private =
+      await import_inbound_identity_private(identity_key_jwk_str);
     const eph_public = await import_ke_public_key(eph_pub_raw);
     const ecdh_shared = await compute_agreement_bits(
       identity_private,
@@ -220,17 +247,27 @@ export async function decrypt_inbound_pq_hybrid(
 
 interface InboundRatchetKeySet {
   ecdh: string;
-  pq?: string;
+  pq_secret?: string;
+  pq_seed?: string;
 }
 
-function resolve_inbound_pq(
-  secret?: string,
-  seed?: string,
-): string | undefined {
-  if (secret) return secret;
+async function resolve_inbound_pq(
+  key_set: InboundRatchetKeySet,
+): Promise<string | undefined> {
+  if (key_set.pq_secret) return key_set.pq_secret;
+  const seed = key_set.pq_seed;
+
   if (!seed) return undefined;
 
-  return derive_pq_identity_from_seed(seed)?.pq_identity_secret;
+  const cache_id = await inbound_key_cache_id("inbound-pq-seed", seed);
+
+  return with_cached_envelope_key(cache_id, async () => {
+    const derived = derive_pq_identity_from_seed(seed)?.pq_identity_secret;
+
+    if (!derived) throw new Error("pq identity seed is invalid");
+
+    return derived;
+  }).catch(() => undefined);
 }
 
 function collect_inbound_ratchet_key_sets(
@@ -241,20 +278,16 @@ function collect_inbound_ratchet_key_sets(
   if (vault.ratchet_identity_key) {
     key_sets.push({
       ecdh: vault.ratchet_identity_key,
-      pq: resolve_inbound_pq(
-        vault.ratchet_pq_identity_key,
-        vault.ratchet_pq_identity_seed,
-      ),
+      pq_secret: vault.ratchet_pq_identity_key,
+      pq_seed: vault.ratchet_pq_identity_seed,
     });
   }
   for (const prev of vault.ratchet_previous_keys ?? []) {
     if (prev.ratchet_identity_key) {
       key_sets.push({
         ecdh: prev.ratchet_identity_key,
-        pq: resolve_inbound_pq(
-          prev.ratchet_pq_identity_key,
-          prev.ratchet_pq_identity_seed,
-        ),
+        pq_secret: prev.ratchet_pq_identity_key,
+        pq_seed: prev.ratchet_pq_identity_seed,
       });
     }
   }
@@ -263,7 +296,7 @@ function collect_inbound_ratchet_key_sets(
 }
 
 function inbound_key_set_fingerprint(key_set: InboundRatchetKeySet): string {
-  return `${key_set.ecdh}|${key_set.pq ?? ""}`;
+  return `${key_set.ecdh}|${key_set.pq_secret ?? ""}|${key_set.pq_seed ?? ""}`;
 }
 
 async function decrypt_inbound_with_key_sets(
@@ -274,13 +307,17 @@ async function decrypt_inbound_with_key_sets(
 ): Promise<Uint8Array | null> {
   for (const key_set of key_sets) {
     let plain: Uint8Array | null = null;
+    const pq =
+      marker === INBOUND_PQ_HYBRID_MARKER
+        ? await resolve_inbound_pq(key_set)
+        : undefined;
 
-    if (marker === INBOUND_PQ_HYBRID_MARKER && key_set.pq) {
+    if (marker === INBOUND_PQ_HYBRID_MARKER && pq) {
       plain = await decrypt_inbound_pq_hybrid(
         enc_bytes,
         nonce_bytes,
         key_set.ecdh,
-        key_set.pq,
+        pq,
       );
     } else if (marker === INBOUND_ECIES_COMPRESSED_MARKER) {
       plain = await decrypt_inbound_ecies(

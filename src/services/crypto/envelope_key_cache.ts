@@ -20,13 +20,13 @@
 //
 const ENVELOPE_KEY_CACHE_MAX_ENTRIES = 512;
 
-const ENVELOPE_KEY_CACHE = new Map<string, Promise<CryptoKey>>();
+const ENVELOPE_KEY_CACHE = new Map<string, Promise<unknown>>();
 
-export async function with_cached_envelope_key(
+export async function with_cached_envelope_key<T = CryptoKey>(
   cache_id: string,
-  derive: () => Promise<CryptoKey>,
-): Promise<CryptoKey> {
-  const cached = ENVELOPE_KEY_CACHE.get(cache_id);
+  derive: () => Promise<T>,
+): Promise<T> {
+  const cached = ENVELOPE_KEY_CACHE.get(cache_id) as Promise<T> | undefined;
 
   if (cached) return cached;
 
