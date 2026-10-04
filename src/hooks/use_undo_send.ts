@@ -61,6 +61,7 @@ export interface PendingSend {
   optimistic_id?: string;
   thread_token?: string;
   is_restored?: boolean;
+  is_in_flight?: boolean;
 }
 
 export interface PendingSendPayload {
@@ -153,6 +154,90 @@ function clear_storage(): void {
   }
 }
 
+const TAB_ID_KEY = "astermail:tab_id";
+const WAITING_TAB_SENDS_KEY = "astermail:waiting_tab_sends";
+const OTHER_TAB_GRACE_MS = 60_000;
+
+interface WaitingTabSend {
+  id: string;
+  tab: string;
+  due: number;
+}
+
+let cached_tab_id: string | null = null;
+
+function get_tab_id(): string {
+  if (cached_tab_id) return cached_tab_id;
+
+  let tab_id = "";
+
+  try {
+    tab_id = sessionStorage.getItem(TAB_ID_KEY) ?? "";
+    if (!tab_id) {
+      tab_id = crypto.randomUUID();
+      sessionStorage.setItem(TAB_ID_KEY, tab_id);
+    }
+  } catch {
+    tab_id = tab_id || crypto.randomUUID();
+  }
+
+  cached_tab_id = tab_id;
+
+  return tab_id;
+}
+
+function read_waiting_tab_sends(): WaitingTabSend[] {
+  try {
+    const raw = localStorage.getItem(WAITING_TAB_SENDS_KEY);
+
+    if (!raw) return [];
+
+    const parsed = JSON.parse(raw) as unknown;
+
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed.filter(
+      (entry): entry is WaitingTabSend =>
+        !!entry &&
+        typeof (entry as WaitingTabSend).id === "string" &&
+        typeof (entry as WaitingTabSend).tab === "string" &&
+        typeof (entry as WaitingTabSend).due === "number",
+    );
+  } catch {
+    return [];
+  }
+}
+
+function write_waiting_tab_sends(entries: WaitingTabSend[]): void {
+  try {
+    if (entries.length === 0) {
+      localStorage.removeItem(WAITING_TAB_SENDS_KEY);
+    } else {
+      localStorage.setItem(WAITING_TAB_SENDS_KEY, JSON.stringify(entries));
+    }
+  } catch {
+    return;
+  }
+}
+
+function remember_waiting_tab_send(id: string, due: number): void {
+  const entries = read_waiting_tab_sends().filter((entry) => entry.id !== id);
+
+  entries.push({ id, tab: get_tab_id(), due });
+  write_waiting_tab_sends(entries);
+}
+
+function forget_waiting_tab_send(id: string): void {
+  const entries = read_waiting_tab_sends();
+  const remaining = entries.filter((entry) => entry.id !== id);
+
+  if (remaining.length !== entries.length) write_waiting_tab_sends(remaining);
+}
+
+function is_tab_timer_send(pending: PendingSend): boolean {
+  return !pending.is_server_queued && pending.timeout_id !== undefined;
+}
+
 class UndoSendManager {
   private pending_sends: Map<string, PendingSend> = new Map();
   private listeners: Set<UndoSendListener> = new Set();
@@ -183,6 +268,9 @@ class UndoSendManager {
 
   add(pending: PendingSend): void {
     this.pending_sends.set(pending.id, pending);
+    if (is_tab_timer_send(pending)) {
+      remember_waiting_tab_send(pending.id, pending.scheduled_time);
+    }
     mark_send_queued(pending.scheduled_time);
     play_iconic_sound("send");
     this.notify();
@@ -197,6 +285,7 @@ class UndoSendManager {
       }
       this.pending_sends.delete(id);
       pending_send_payloads.delete(id);
+      if (is_tab_timer_send(pending)) forget_waiting_tab_send(id);
       this.notify();
     }
 
@@ -205,6 +294,21 @@ class UndoSendManager {
     }
 
     return pending;
+  }
+
+  begin_tab_timer_send(id: string): boolean {
+    const pending = this.pending_sends.get(id);
+
+    if (!pending || pending.is_in_flight) return false;
+
+    if (pending.timeout_id !== undefined) {
+      window.clearTimeout(pending.timeout_id);
+    }
+    this.pending_sends.set(id, { ...pending, is_in_flight: true });
+    forget_waiting_tab_send(id);
+    this.notify();
+
+    return true;
   }
 
   get(id: string): PendingSend | undefined {
@@ -230,6 +334,11 @@ class UndoSendManager {
   }
 
   clear(): void {
+    for (const pending of this.pending_sends.values()) {
+      if (pending.timeout_id !== undefined) {
+        window.clearTimeout(pending.timeout_id);
+      }
+    }
     this.pending_sends.clear();
     pending_send_payloads.clear();
     this.notify();
@@ -276,43 +385,44 @@ export function settle_restored_sends_missing_from_server(): void {
   }
 }
 
-function is_tab_timer_send(pending: PendingSend): boolean {
-  return !pending.is_server_queued && pending.timeout_id !== undefined;
-}
-
 export function has_tab_timer_sends(): boolean {
   return undo_send_manager.get_all().some(is_tab_timer_send);
 }
 
-export function flush_tab_timer_sends(): number {
+export function take_interrupted_tab_sends(): number {
+  const entries = read_waiting_tab_sends();
+
+  if (entries.length === 0) return 0;
+
+  const tab_id = get_tab_id();
   const now = Date.now();
-  const waiting = undo_send_manager
-    .get_all()
-    .filter(
-      (pending) =>
-        is_tab_timer_send(pending) &&
-        !!pending.on_send_immediately &&
-        pending.scheduled_time > now,
-    );
+  const remaining = entries.filter((entry) =>
+    entry.tab === tab_id
+      ? !!undo_send_manager.get(entry.id)
+      : entry.due + OTHER_TAB_GRACE_MS > now,
+  );
+  const interrupted = entries.length - remaining.length;
 
-  for (const pending of waiting) {
-    undo_send_manager.remove(pending.id);
-    try {
-      pending.on_send_immediately?.();
-    } catch (caught) {
-      ignore_error("hooks/use_undo_send:flush_tab_timer_sends", caught);
-    }
-  }
+  if (interrupted > 0) write_waiting_tab_sends(remaining);
 
-  return waiting.length;
+  return interrupted;
+}
+
+export function next_interrupted_tab_send_check_ms(): number | null {
+  const tab_id = get_tab_id();
+  const other = read_waiting_tab_sends().filter(
+    (entry) => entry.tab !== tab_id,
+  );
+
+  if (other.length === 0) return null;
+
+  const latest_due = Math.max(...other.map((entry) => entry.due));
+
+  return Math.max(0, latest_due + OTHER_TAB_GRACE_MS - Date.now()) + 1_000;
 }
 
 function install_tab_timer_unload_guards(): void {
   if (typeof window === "undefined") return;
-
-  window.addEventListener("pagehide", () => {
-    flush_tab_timer_sends();
-  });
 
   window.addEventListener("beforeunload", (event) => {
     if (!has_tab_timer_sends()) return;
@@ -327,6 +437,7 @@ install_tab_timer_unload_guards();
 export function clear_undo_send_state(): void {
   undo_send_manager.clear();
   clear_storage();
+  write_waiting_tab_sends([]);
 }
 
 export interface UndoSendEvent {
@@ -394,7 +505,7 @@ export function use_undo_send(): UseUndoSendReturn {
       payload = take_pending_send_payload(id);
       undo_send_manager.remove(id);
     } else if (pending.timeout_id !== undefined) {
-      if (pending.scheduled_time <= Date.now()) {
+      if (pending.is_in_flight || pending.scheduled_time <= Date.now()) {
         show_toast(
           get_active_translations().common.undo_send_too_late,
           "error",
@@ -432,7 +543,7 @@ export function use_undo_send(): UseUndoSendReturn {
   const send_immediately = useCallback((id: string): void => {
     const pending = undo_send_manager.get(id);
 
-    if (!pending) return;
+    if (!pending || pending.is_in_flight) return;
 
     undo_send_manager.remove(id);
 

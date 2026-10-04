@@ -45,8 +45,9 @@ const {
   use_undo_send,
   undo_send_manager,
   store_pending_send_payload,
-  flush_tab_timer_sends,
   has_tab_timer_sends,
+  take_interrupted_tab_sends,
+  clear_undo_send_state,
 } = await import("./use_undo_send");
 
 type UndoHook = ReturnType<typeof use_undo_send>;
@@ -195,29 +196,110 @@ describe("sends that wait on a timer in this tab", () => {
     expect(undo_send_manager.get("tab-1")).toBeUndefined();
   });
 
-  it("sends at once when the page is hidden", () => {
+  it("keeps the undo window when the page is hidden or cached", () => {
     const on_timer = vi.fn();
     const on_send_immediately = vi.fn();
 
     add_tab_timer_send("tab-2", on_timer, on_send_immediately);
 
-    expect(has_tab_timer_sends()).toBe(true);
-    window.dispatchEvent(new Event("pagehide"));
-    vi.advanceTimersByTime(10_000);
+    const cached = new Event("pagehide") as Event & { persisted?: boolean };
 
-    expect(on_send_immediately).toHaveBeenCalledTimes(1);
+    Object.defineProperty(cached, "persisted", { value: true });
+    window.dispatchEvent(cached);
+    window.dispatchEvent(new Event("pagehide"));
+    document.dispatchEvent(new Event("visibilitychange"));
+
+    expect(on_send_immediately).not.toHaveBeenCalled();
     expect(on_timer).not.toHaveBeenCalled();
-    expect(has_tab_timer_sends()).toBe(false);
+    expect(has_tab_timer_sends()).toBe(true);
+
+    vi.advanceTimersByTime(5_000);
+    expect(on_timer).toHaveBeenCalledTimes(1);
   });
 
-  it("flushes each waiting send exactly once", () => {
+  it("refuses undo and send now once the timer has started sending", async () => {
     const on_send_immediately = vi.fn();
 
     add_tab_timer_send("tab-3", vi.fn(), on_send_immediately);
 
-    expect(flush_tab_timer_sends()).toBe(1);
-    expect(flush_tab_timer_sends()).toBe(0);
-    expect(on_send_immediately).toHaveBeenCalledTimes(1);
+    expect(undo_send_manager.begin_tab_timer_send("tab-3")).toBe(true);
+    expect(undo_send_manager.begin_tab_timer_send("tab-3")).toBe(false);
+
+    const listener = vi.fn();
+
+    window.addEventListener("astermail:undo-send", listener);
+    const result = await mount_hook();
+    let outcome = true;
+
+    await act(async () => {
+      outcome = await result.current.cancel_send("tab-3");
+      result.current.send_immediately("tab-3");
+    });
+    window.removeEventListener("astermail:undo-send", listener);
+
+    expect(outcome).toBe(false);
+    expect(show_toast).toHaveBeenCalledWith(expect.any(String), "error");
+    expect(listener).not.toHaveBeenCalled();
+    expect(on_send_immediately).not.toHaveBeenCalled();
+    expect(undo_send_manager.get("tab-3")?.is_in_flight).toBe(true);
+    expect(has_tab_timer_sends()).toBe(true);
+  });
+
+  it("does not start a send that was undone or already sent", () => {
+    add_tab_timer_send("tab-5", vi.fn(), vi.fn());
+    undo_send_manager.remove("tab-5");
+
+    expect(undo_send_manager.begin_tab_timer_send("tab-5")).toBe(false);
+  });
+
+  it("reports a send that this tab lost on reload exactly once", () => {
+    add_tab_timer_send("tab-6", vi.fn(), vi.fn());
+
+    expect(take_interrupted_tab_sends()).toBe(0);
+
+    const stored = localStorage.getItem("astermail:waiting_tab_sends") ?? "";
+
+    expect(stored).not.toContain("a@example.com");
+    undo_send_manager.remove("tab-6");
+    localStorage.setItem("astermail:waiting_tab_sends", stored);
+
+    expect(take_interrupted_tab_sends()).toBe(1);
+    expect(take_interrupted_tab_sends()).toBe(0);
+  });
+
+  it("does not report a send that finished, was undone, or is going out", () => {
+    add_tab_timer_send("tab-7", vi.fn(), vi.fn());
+    undo_send_manager.remove("tab-7");
+    add_tab_timer_send("tab-8", vi.fn(), vi.fn());
+    undo_send_manager.begin_tab_timer_send("tab-8");
+
+    expect(localStorage.getItem("astermail:waiting_tab_sends")).toBeNull();
+    expect(take_interrupted_tab_sends()).toBe(0);
+  });
+
+  it("waits before reporting a send that another tab may still hold", () => {
+    localStorage.setItem(
+      "astermail:waiting_tab_sends",
+      JSON.stringify([
+        { id: "other-1", tab: "other", due: Date.now() + 5_000 },
+      ]),
+    );
+
+    expect(take_interrupted_tab_sends()).toBe(0);
+    vi.advanceTimersByTime(70_000);
+    expect(take_interrupted_tab_sends()).toBe(1);
+    expect(localStorage.getItem("astermail:waiting_tab_sends")).toBeNull();
+  });
+
+  it("forgets waiting sends on sign-out", () => {
+    const on_timer = vi.fn();
+
+    add_tab_timer_send("tab-9", on_timer, vi.fn());
+    clear_undo_send_state();
+    vi.advanceTimersByTime(10_000);
+
+    expect(on_timer).not.toHaveBeenCalled();
+    expect(localStorage.getItem("astermail:waiting_tab_sends")).toBeNull();
   });
 
   it("asks before the tab closes while a send is waiting", () => {
@@ -248,7 +330,9 @@ describe("sends that wait on a timer in this tab", () => {
       on_send_immediately,
     });
 
-    expect(flush_tab_timer_sends()).toBe(0);
+    window.dispatchEvent(new Event("pagehide"));
+    expect(has_tab_timer_sends()).toBe(false);
+    expect(localStorage.getItem("astermail:waiting_tab_sends")).toBeNull();
     expect(on_send_immediately).not.toHaveBeenCalled();
     expect(undo_send_manager.get("server-1")).toBeDefined();
   });

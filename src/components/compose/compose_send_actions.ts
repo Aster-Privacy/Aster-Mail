@@ -444,6 +444,7 @@ export async function execute_external_email_send(
     reply_id = email_id;
 
     const timeout_id = window.setTimeout(async () => {
+      if (!undo_send_manager.begin_tab_timer_send(email_id)) return;
       try {
         const sent_id = await execute_external_send(external_email_data, true);
 
@@ -660,6 +661,7 @@ export async function execute_external_account_email_send(
     const email_id = crypto.randomUUID();
 
     const timeout_id = window.setTimeout(async () => {
+      if (!undo_send_manager.begin_tab_timer_send(email_id)) return;
       try {
         const result = await send_via_external_account(
           account_token,
