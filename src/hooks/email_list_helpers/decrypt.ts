@@ -25,6 +25,7 @@ import {
   get_passphrase_bytes,
   get_passphrase_from_memory,
   get_vault_from_memory,
+  on_keys_ready,
   on_vault_cleared,
   wait_for_keys_ready,
 } from "@/services/crypto/memory_key_store";
@@ -66,8 +67,16 @@ export async function try_decrypt_with_identity_key(
 
 const ENVELOPE_CACHE_MAX = 2000;
 const ENVELOPE_CACHE_TAIL = 64;
+const FAILED_ENVELOPE_MAX = 2000;
+const FAILED_ENVELOPE_TTL_MS = 5 * 60 * 1000;
 
 const envelope_cache = new Map<string, Promise<DecryptedEnvelope | null>>();
+const failed_envelopes = new Map<string, number>();
+const pending_generations = new WeakMap<
+  Promise<DecryptedEnvelope | null>,
+  number
+>();
+let key_generation = 0;
 let envelope_cache_armed = false;
 
 function envelope_cache_key(
@@ -85,11 +94,42 @@ function arm_envelope_cache(): void {
   envelope_cache_armed = true;
   on_vault_cleared(() => {
     envelope_cache.clear();
+    forget_failed_envelopes();
   });
+  on_keys_ready(() => {
+    forget_failed_envelopes();
+  });
+}
+
+function forget_failed_envelopes(): void {
+  failed_envelopes.clear();
+  key_generation += 1;
+}
+
+function failed_recently(key: string): boolean {
+  const expires_at = failed_envelopes.get(key);
+
+  if (expires_at === undefined) return false;
+  if (expires_at > Date.now()) return true;
+  failed_envelopes.delete(key);
+
+  return false;
+}
+
+function remember_failure(key: string): void {
+  failed_envelopes.delete(key);
+  failed_envelopes.set(key, Date.now() + FAILED_ENVELOPE_TTL_MS);
+  while (failed_envelopes.size > FAILED_ENVELOPE_MAX) {
+    const oldest = failed_envelopes.keys().next().value;
+
+    if (oldest === undefined) break;
+    failed_envelopes.delete(oldest);
+  }
 }
 
 export function clear_envelope_cache(): void {
   envelope_cache.clear();
+  forget_failed_envelopes();
 }
 
 export async function decrypt_envelope(
@@ -107,14 +147,17 @@ export async function decrypt_envelope(
     return envelope;
   }
 
+  arm_envelope_cache();
+  if (failed_recently(key)) return null;
+
   let pending = envelope_cache.get(key);
 
   if (pending) {
     envelope_cache.delete(key);
     envelope_cache.set(key, pending);
   } else {
-    arm_envelope_cache();
     pending = open_envelope(encrypted, nonce, mail_item_id);
+    pending_generations.set(pending, key_generation);
     envelope_cache.set(key, pending);
     while (envelope_cache.size > ENVELOPE_CACHE_MAX) {
       const oldest = envelope_cache.keys().next().value;
@@ -135,6 +178,9 @@ export async function decrypt_envelope(
 
   if (!envelope) {
     if (envelope_cache.get(key) === pending) envelope_cache.delete(key);
+    if (pending_generations.get(pending) === key_generation) {
+      remember_failure(key);
+    }
 
     return null;
   }
