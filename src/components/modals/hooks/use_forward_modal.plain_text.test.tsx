@@ -402,6 +402,26 @@ describe("forward comment send formatting", () => {
     });
     expect(mocks.schedule.mock.calls[0][2].sender_alias_hash).toBe("hash-1");
   });
+  it("refuses to schedule a forward from a connected account", async () => {
+    const account = {
+      id: "account-1",
+      email: "me@connected.example",
+      type: "external",
+      is_enabled: true,
+      address_hash: "account-token",
+    };
+
+    await setup(plain_comment);
+    await act(async () => latest.set_selected_sender(account as never));
+    await act(async () =>
+      latest.set_scheduled_time(new Date("2027-01-01T10:00:00Z")),
+    );
+    await act(async () => {
+      await latest.handle_scheduled_send();
+    });
+    expect(mocks.schedule).not.toHaveBeenCalled();
+    expect(latest.error_message).toBe("common.scheduled_connected_account");
+  });
   it("keeps formatted HTML when rich text mode is used", async () => {
     await setup("<b>Meet at 10</b>", false);
     await act(async () => {

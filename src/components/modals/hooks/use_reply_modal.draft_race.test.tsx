@@ -946,6 +946,34 @@ describe("reply modal drafts around a send", () => {
     );
   });
 
+  it("refuses to schedule a reply from a connected account", async () => {
+    const { create_scheduled_email } = await import("@/services/api/scheduled");
+    const sender = {
+      id: "account-1",
+      email: "me@connected.example",
+      type: "external",
+      is_enabled: true,
+      address_hash: "account-token",
+    };
+
+    vi.mocked(create_scheduled_email).mockClear();
+    vi.mocked(create_scheduled_email).mockResolvedValue({
+      data: { id: "s4", scheduled_at: "x", success: true },
+    } as never);
+    mocks.sender_state.options = [sender];
+    await render_hook(base_props({ reply_from_address: sender.email }));
+    await type_reply("<p>Thanks!</p>");
+    await act(async () =>
+      latest!.set_scheduled_time(new Date("2030-01-01T09:00:00.000Z")),
+    );
+    await act(async () => {
+      await latest!.handle_scheduled_send();
+    });
+
+    expect(create_scheduled_email).not.toHaveBeenCalled();
+    expect(latest!.error_message).toBe("common.scheduled_connected_account");
+  });
+
   it("schedules a reply that stays in the original thread", async () => {
     const { create_scheduled_email } = await import("@/services/api/scheduled");
 
