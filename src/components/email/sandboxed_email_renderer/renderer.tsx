@@ -162,9 +162,8 @@ export function SandboxedEmailRenderer({
   const observer_ref = useRef<ResizeObserver | null>(null);
   const mutation_observer_ref = useRef<MutationObserver | null>(null);
   const raf_ref = useRef<number>(0);
-  const stable_timer_ref = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reveal_cleanup_ref = useRef<(() => void) | null>(null);
-  const has_fired_ready_ref = useRef(!!cached_height);
+  const has_fired_ready_ref = useRef(false);
   const load_remote_ref = useRef(load_remote_content);
   const document_ready_cleanup_ref = useRef<(() => void) | null>(null);
   const remeasure_ref = useRef<(() => void) | null>(null);
@@ -445,11 +444,7 @@ export function SandboxedEmailRenderer({
     set_iframe_height(new_cached ? `${new_cached}px` : "0px");
     set_height_ready(!!new_cached);
     set_contrast_ready(!contrast_repair_active);
-    has_fired_ready_ref.current = !!new_cached;
-    if (stable_timer_ref.current) {
-      clearTimeout(stable_timer_ref.current);
-      stable_timer_ref.current = null;
-    }
+    has_fired_ready_ref.current = false;
   }
 
   const email_body_ink = build_email_body_ink(accent_hex, body_ink_surface);
@@ -737,7 +732,6 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
       observer_ref,
       raf_ref,
       remeasure_ref,
-      stable_timer_ref,
       on_document_ready_ref,
       set_height_ready,
       set_iframe_height,
@@ -833,7 +827,6 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
       observer_ref.current?.disconnect();
       mutation_observer_ref.current?.disconnect();
       if (raf_ref.current) cancelAnimationFrame(raf_ref.current);
-      if (stable_timer_ref.current) clearTimeout(stable_timer_ref.current);
       settle_timers_ref.current.forEach(clearTimeout);
       settle_timers_ref.current = [];
       reveal_cleanup_ref.current?.();
