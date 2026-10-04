@@ -23,6 +23,7 @@ import type { MailItemMetadata } from "@/types/email";
 import { api_client, type ApiResponse } from "./client";
 import { with_folder_unlock } from "./folder_unlock_retry";
 
+import { ignore_error } from "@/lib/ignore_error";
 import { get_unlock_token } from "@/services/folder_unlock_store";
 import {
   ack_flag_intents,
@@ -339,8 +340,6 @@ export async function list_encrypted_mail_items(
   return api_client.get<MailItemsListResponse>(endpoint, { cache_ttl: 0 });
 }
 
-const prefetch_cache = new Map<string, Promise<ApiResponse<MailItem>>>();
-
 async function fetch_mail_item(
   item_id: string,
 ): Promise<ApiResponse<MailItem>> {
@@ -359,24 +358,14 @@ async function fetch_mail_item(
 }
 
 export function prefetch_mail_item(item_id: string): void {
-  if (prefetch_cache.has(item_id)) return;
-  const promise = fetch_mail_item(item_id);
-
-  prefetch_cache.set(item_id, promise);
-  setTimeout(() => prefetch_cache.delete(item_id), 60_000);
+  fetch_mail_item(item_id).catch((caught) =>
+    ignore_error("services/api/mail:prefetch_mail_item", caught),
+  );
 }
 
 export async function get_mail_item(
   item_id: string,
 ): Promise<ApiResponse<MailItem>> {
-  const cached = prefetch_cache.get(item_id);
-
-  if (cached) {
-    prefetch_cache.delete(item_id);
-
-    return cached;
-  }
-
   return fetch_mail_item(item_id);
 }
 
