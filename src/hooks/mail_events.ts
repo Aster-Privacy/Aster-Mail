@@ -40,6 +40,7 @@ export const MAIL_EVENTS = {
   CONTACTS_CHANGED: "astermail:contacts-changed",
   SNOOZED_CHANGED: "astermail:snoozed-changed",
   TAGS_CHANGED: "astermail:tags-changed",
+  DEFINITIONS_STALE: "astermail:definitions-stale",
   ALIASES_CHANGED: "astermail:aliases-changed",
   THREAD_REPLY_SENT: "astermail:thread-reply-sent",
   THREAD_REPLY_OPTIMISTIC: "astermail:thread-reply-optimistic",
@@ -180,6 +181,7 @@ type EventDetailMap = {
   [MAIL_EVENTS.CONTACTS_CHANGED]: undefined;
   [MAIL_EVENTS.SNOOZED_CHANGED]: undefined;
   [MAIL_EVENTS.TAGS_CHANGED]: undefined;
+  [MAIL_EVENTS.DEFINITIONS_STALE]: undefined;
   [MAIL_EVENTS.ALIASES_CHANGED]: undefined;
   [MAIL_EVENTS.THREAD_REPLY_SENT]: ThreadReplySentEventDetail;
   [MAIL_EVENTS.THREAD_REPLY_OPTIMISTIC]: ThreadReplyOptimisticEventDetail;
@@ -340,6 +342,10 @@ export function emit_snoozed_changed(): void {
 
 export function emit_tags_changed(): void {
   mail_event_bus.emit(MAIL_EVENTS.TAGS_CHANGED);
+}
+
+export function emit_definitions_stale(): void {
+  mail_event_bus.emit(MAIL_EVENTS.DEFINITIONS_STALE);
 }
 
 export function emit_aliases_changed(): void {
