@@ -262,6 +262,39 @@ describe("TagManagementModal parent picker", () => {
     );
   });
 
+  it("keeps the rename button disabled for an unreadable label", async () => {
+    const render_rename = async (name: string) => {
+      await act(async () => {
+        root.render(
+          <TagManagementModal
+            action="rename"
+            is_open={true}
+            on_close={() => {}}
+            tag_color="#3b82f6"
+            tag_id={`id-${name}`}
+            tag_name={name}
+          />,
+        );
+      });
+    };
+    const rename_button = () =>
+      Array.from(container.querySelectorAll("button")).find(
+        (button) => button.textContent === "common.rename",
+      );
+
+    await render_rename("travel");
+
+    expect(rename_button()?.disabled).toBe(false);
+
+    await render_rename("unreadable");
+
+    expect(rename_button()?.disabled).toBe(true);
+
+    await click(rename_button() ?? null);
+
+    expect(mocks.update_existing_tag).not.toHaveBeenCalled();
+  });
+
   it("blocks a move that would duplicate a sibling name", async () => {
     mocks.tags = [
       make_tag("work", 0),

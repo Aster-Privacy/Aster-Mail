@@ -46,6 +46,7 @@ import { is_low_network } from "@/services/low_network_state";
 import { sync_recent } from "@/services/category_index";
 import { ignore_error } from "@/lib/ignore_error";
 import { CATCH_UP_WHILE_LIVE_MS } from "@/services/sync_timing";
+import { request_cache } from "@/services/api/request_cache";
 
 export { CATCH_UP_WHILE_LIVE_MS };
 
@@ -376,6 +377,8 @@ class SyncClient {
       return;
     }
     this.last_definitions_refresh_at = Date.now();
+    request_cache.invalidate("/mail/v1/labels");
+    request_cache.invalidate("/mail/v1/tags");
     emit_definitions_stale();
   }
 
@@ -531,12 +534,14 @@ class SyncClient {
     }
 
     if (data.type === "folders_changed") {
+      request_cache.invalidate("/mail/v1/labels");
       emit_folders_changed();
 
       return;
     }
 
     if (data.type === "tags_changed") {
+      request_cache.invalidate("/mail/v1/tags");
       emit_tags_changed();
 
       return;

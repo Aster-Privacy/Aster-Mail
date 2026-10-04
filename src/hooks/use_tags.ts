@@ -45,7 +45,11 @@ import {
 import { emit_tags_changed, MAIL_EVENTS } from "@/hooks/mail_events";
 import { use_auth_safe } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
-import { reparent_children_of_removed_tag } from "@/hooks/tag_tree";
+import {
+  effective_parent_token,
+  reparent_children_of_removed_tag,
+} from "@/hooks/tag_tree";
+import { request_cache } from "@/services/api/request_cache";
 
 export interface DecryptedTag {
   id: string;
@@ -74,6 +78,24 @@ interface TagCounts {
 
 const TAG_RETRY_DELAYS_MS = [400, 1_200, 3_000];
 const TAG_BACKGROUND_RETRY_DELAYS_MS = [8_000, 20_000, 45_000];
+const TAGS_REFETCH_DEBOUNCE_MS = 300;
+const TAG_PARENT_ERROR_CODES = new Set([
+  "TAG_PARENT_NOT_FOUND",
+  "TAG_PARENT_SELF",
+  "TAG_PARENT_CYCLE",
+  "TAG_PARENT_TOO_DEEP",
+]);
+
+function is_tag_parent_error(response: {
+  error?: string;
+  server_code?: string;
+}): boolean {
+  return (
+    (!!response.server_code &&
+      TAG_PARENT_ERROR_CODES.has(response.server_code)) ||
+    (!!response.error && TAG_PARENT_ERROR_CODES.has(response.error))
+  );
+}
 
 const tags_loaded_listeners = new Set<() => void>();
 
@@ -135,7 +157,7 @@ interface UseTagsReturn {
     tag_token: string,
   ) => Promise<boolean>;
   get_tag_by_token: (tag_token: string) => DecryptedTag | undefined;
-  refresh: () => Promise<void>;
+  refresh: () => Promise<DecryptedTag[]>;
 }
 
 function array_to_base64(array: Uint8Array): string {
@@ -519,11 +541,15 @@ export function use_tags(): UseTagsReturn {
         return null;
       }
 
+      const known_tokens = new Set(
+        cached_tags.data.map((tag) => tag.tag_token),
+      );
       const duplicate_exists = cached_tags.data.some(
         (tag) =>
           !tag.is_undecryptable &&
           tag.name.toLowerCase() === trimmed_name.toLowerCase() &&
-          (tag.parent_token || undefined) === (parent_token || undefined),
+          effective_parent_token(tag, known_tokens) ===
+            (parent_token || undefined),
       );
 
       if (duplicate_exists) {
@@ -565,6 +591,11 @@ export function use_tags(): UseTagsReturn {
         const response = await create_tag(request);
 
         if (response.error || !response.data) {
+          if (is_tag_parent_error(response)) {
+            request_cache.invalidate("/mail/v1/tags");
+            void fetch_tags();
+          }
+
           return null;
         }
 
@@ -601,7 +632,7 @@ export function use_tags(): UseTagsReturn {
         return null;
       }
     },
-    [],
+    [fetch_tags],
   );
 
   const update_existing_tag = useCallback(
@@ -616,6 +647,15 @@ export function use_tags(): UseTagsReturn {
       const vault = get_vault_from_memory();
 
       if (!vault?.identity_key) {
+        return false;
+      }
+
+      if (
+        name !== undefined &&
+        cached_tags.data.some(
+          (tag) => tag.id === tag_id && tag.is_undecryptable,
+        )
+      ) {
         return false;
       }
 
@@ -663,6 +703,11 @@ export function use_tags(): UseTagsReturn {
         const response = await update_tag(tag_id, request);
 
         if (response.error) {
+          if (is_tag_parent_error(response)) {
+            request_cache.invalidate("/mail/v1/tags");
+            void fetch_tags();
+          }
+
           return false;
         }
 
@@ -702,7 +747,7 @@ export function use_tags(): UseTagsReturn {
         return false;
       }
     },
-    [],
+    [fetch_tags],
   );
 
   const delete_existing_tag = useCallback(
@@ -821,8 +866,10 @@ export function use_tags(): UseTagsReturn {
     [state.tags],
   );
 
-  const refresh = useCallback(async (): Promise<void> => {
+  const refresh = useCallback(async (): Promise<DecryptedTag[]> => {
     await fetch_tags();
+
+    return cached_tags.data;
   }, [fetch_tags]);
 
   useEffect(() => {
@@ -869,6 +916,7 @@ export function use_tags(): UseTagsReturn {
 
   useEffect(() => {
     let counts_debounce: ReturnType<typeof setTimeout> | null = null;
+    let tags_debounce: ReturnType<typeof setTimeout> | null = null;
 
     const counts_handler = () => {
       if (counts_debounce) clearTimeout(counts_debounce);
@@ -880,9 +928,13 @@ export function use_tags(): UseTagsReturn {
     };
 
     const tags_handler = () => {
-      if (has_passphrase_in_memory()) {
-        fetch_tags();
-      }
+      if (tags_debounce) clearTimeout(tags_debounce);
+      tags_debounce = setTimeout(() => {
+        tags_debounce = null;
+        if (has_passphrase_in_memory()) {
+          fetch_tags();
+        }
+      }, TAGS_REFETCH_DEBOUNCE_MS);
     };
 
     const auth_ready_handler = () => {
@@ -932,6 +984,7 @@ export function use_tags(): UseTagsReturn {
 
     return () => {
       if (counts_debounce) clearTimeout(counts_debounce);
+      if (tags_debounce) clearTimeout(tags_debounce);
       window.removeEventListener(MAIL_EVENTS.MAIL_CHANGED, counts_handler);
       window.removeEventListener(MAIL_EVENTS.MAIL_SOFT_REFRESH, counts_handler);
       window.removeEventListener(MAIL_EVENTS.EMAIL_RECEIVED, counts_handler);

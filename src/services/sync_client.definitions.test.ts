@@ -64,6 +64,7 @@ vi.mock("@/services/lockdown_store", () => ({
 import { sync_client } from "./sync_client";
 
 import { MAIL_EVENTS } from "@/hooks/mail_events";
+import { request_cache } from "@/services/api/request_cache";
 
 class FakeSocket {
   static instances: FakeSocket[] = [];
@@ -178,6 +179,26 @@ describe("sync_client folder and tag definition events", () => {
 
     expect(counts.tags).toBe(1);
     expect(counts.folders).toBe(0);
+  });
+
+  it("drops the cached folder list when the server reports a folder change", async () => {
+    const socket = await connect_first_time();
+    const invalidate = vi.spyOn(request_cache, "invalidate");
+
+    deliver(socket, { type: "folders_changed" });
+
+    expect(invalidate).toHaveBeenCalledWith("/mail/v1/labels");
+    invalidate.mockRestore();
+  });
+
+  it("drops the cached label list when the server reports a label change", async () => {
+    const socket = await connect_first_time();
+    const invalidate = vi.spyOn(request_cache, "invalidate");
+
+    deliver(socket, { type: "tags_changed" });
+
+    expect(invalidate).toHaveBeenCalledWith("/mail/v1/tags");
+    invalidate.mockRestore();
   });
 
   it("ignores a message type it does not know", async () => {

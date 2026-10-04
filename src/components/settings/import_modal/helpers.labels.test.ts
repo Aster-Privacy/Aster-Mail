@@ -23,6 +23,7 @@ import type { ParsedEmail } from "@/services/import/parser";
 import { describe, expect, it } from "vitest";
 
 import {
+  MAX_KEYWORD_LABELS_PER_EMAIL,
   MAX_TAGS_PER_EMAIL,
   classify_import_email,
   classify_import_labels,
@@ -276,6 +277,19 @@ describe("keyword_labels", () => {
         email_with({ "x-keywords": "$Forwarded NonJunk $label1 work" }),
       ),
     ).toEqual(["work"]);
+  });
+
+  it("caps the labels taken from one keyword header", () => {
+    const names = Array.from({ length: 80 }, (_, i) => `Keyword ${i}`);
+    const labels = keyword_labels(
+      email_with({ "x-keywords": `$Forwarded, ${names.join(", ")}` }),
+    );
+
+    expect(labels).toHaveLength(MAX_KEYWORD_LABELS_PER_EMAIL);
+    expect(labels[0]).toBe("Keyword 0");
+    expect(labels[MAX_KEYWORD_LABELS_PER_EMAIL - 1]).toBe(
+      `Keyword ${MAX_KEYWORD_LABELS_PER_EMAIL - 1}`,
+    );
   });
 });
 

@@ -28,12 +28,13 @@ const mocks = vi.hoisted(() => ({
   server_names: [] as string[],
   list_tags: vi.fn(),
   create_tag: vi.fn(),
+  update_tag: vi.fn(),
 }));
 
 vi.mock("@/services/api/tags", () => ({
   list_tags: mocks.list_tags,
   create_tag: mocks.create_tag,
-  update_tag: vi.fn(),
+  update_tag: mocks.update_tag,
   delete_tag: vi.fn(),
   get_tag_counts: vi.fn(async () => ({ data: { counts: [] }, error: null })),
   add_tag_to_item: vi.fn(),
@@ -105,6 +106,7 @@ describe("use_tags undecryptable labels", () => {
   let tags: DecryptedTag[];
   let fetch_tags: () => Promise<void>;
   let create_new_tag: (name: string) => Promise<DecryptedTag | null>;
+  let update_existing_tag: ReturnType<typeof use_tags>["update_existing_tag"];
 
   async function load(names: string[]): Promise<void> {
     mocks.server_names = names;
@@ -136,6 +138,10 @@ describe("use_tags undecryptable labels", () => {
         error: null,
       }),
     );
+    mocks.update_tag.mockImplementation(async () => ({
+      data: { success: true },
+      error: null,
+    }));
 
     function Probe() {
       const result = use_tags();
@@ -143,6 +149,7 @@ describe("use_tags undecryptable labels", () => {
       tags = result.state.tags;
       fetch_tags = result.fetch_tags;
       create_new_tag = result.create_new_tag;
+      update_existing_tag = result.update_existing_tag;
 
       return null;
     }
@@ -197,6 +204,73 @@ describe("use_tags undecryptable labels", () => {
 
     expect(created).not.toBeNull();
     expect(mocks.create_tag).toHaveBeenCalledTimes(1);
+  });
+
+  it("refuses to rename an unreadable label without calling the server", async () => {
+    await load([`${UNREADABLE_PREFIX}-one`]);
+
+    let renamed = true;
+
+    await act(async () => {
+      renamed = await update_existing_tag(
+        `id-${UNREADABLE_PREFIX}-one`,
+        "common.label_unable_to_decrypt",
+        "#ff0000",
+      );
+    });
+
+    expect(renamed).toBe(false);
+    expect(mocks.update_tag).not.toHaveBeenCalled();
+    expect(tags[0].is_undecryptable).toBe(true);
+  });
+
+  it("still changes the color and icon of an unreadable label", async () => {
+    await load([`${UNREADABLE_PREFIX}-one`]);
+
+    let updated = false;
+
+    await act(async () => {
+      updated = await update_existing_tag(
+        `id-${UNREADABLE_PREFIX}-one`,
+        undefined,
+        "#ff0000",
+        "star",
+      );
+    });
+
+    expect(updated).toBe(true);
+    expect(mocks.update_tag).toHaveBeenCalledTimes(1);
+
+    const request = mocks.update_tag.mock.calls[0][1];
+
+    expect("encrypted_name" in request).toBe(false);
+    expect("name_nonce" in request).toBe(false);
+    expect(request.encrypted_color).toBeTruthy();
+    expect(tags[0].is_undecryptable).toBe(true);
+    expect(tags[0].color).toBe("#ff0000");
+  });
+
+  it("still moves an unreadable label", async () => {
+    await load(["work", `${UNREADABLE_PREFIX}-one`]);
+
+    let moved = false;
+
+    await act(async () => {
+      moved = await update_existing_tag(
+        `id-${UNREADABLE_PREFIX}-one`,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        "token-work",
+      );
+    });
+
+    expect(moved).toBe(true);
+    expect(mocks.update_tag).toHaveBeenCalledWith(
+      `id-${UNREADABLE_PREFIX}-one`,
+      { parent_token: "token-work" },
+    );
   });
 
   it("builds a placeholder that keeps the server identity of the label", () => {

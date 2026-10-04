@@ -22,6 +22,7 @@
 export const MAX_TAG_NAME_LENGTH = 100;
 export const MAX_CONSECUTIVE_TAG_FAILURES = 3;
 export const MAX_IMPORT_TAG_LEVELS = 5;
+export const MAX_IMPORT_CREATED_TAGS = 200;
 
 export interface ImportTagSource {
   name: string;
@@ -43,6 +44,15 @@ export interface ResolveImportTagsInput {
     parent_token?: string,
   ) => Promise<ImportTagSource | null>;
   should_stop?: () => boolean;
+  find_existing?: (
+    name: string,
+    parent_token?: string,
+  ) => Promise<ImportTagSource | null | undefined>;
+}
+
+interface EnsuredTag {
+  token: string | null;
+  is_complete: boolean;
 }
 
 export function import_tag_key(name: string): string {
@@ -61,6 +71,20 @@ export function import_tag_segments(path: string): string[] {
     ...segments.slice(0, MAX_IMPORT_TAG_LEVELS - 1),
     segments.slice(MAX_IMPORT_TAG_LEVELS - 1).join("/"),
   ];
+}
+
+export function find_import_tag<T extends ImportTagSource>(
+  tags: T[],
+  name: string,
+  parent_token?: string,
+): T | undefined {
+  const key = import_tag_key(name);
+
+  return tags.find(
+    (tag) =>
+      import_tag_key(tag.name) === key &&
+      (tag.parent_token || undefined) === (parent_token || undefined),
+  );
 }
 
 function path_key(segments: string[]): string {
@@ -99,6 +123,7 @@ export async function resolve_import_tags({
   existing_tags,
   create_tag,
   should_stop,
+  find_existing,
 }: ResolveImportTagsInput): Promise<ImportTagResolution> {
   const tag_map = new Map<string, string>();
   const known = existing_tag_paths(existing_tags);
@@ -106,16 +131,16 @@ export async function resolve_import_tags({
   let skipped = 0;
   let consecutive_failures = 0;
 
-  const ensure_tag = async (path: string): Promise<string | null> => {
+  const ensure_tag = async (path: string): Promise<EnsuredTag> => {
     const whole = known.get(import_tag_key(path));
 
-    if (whole) return whole;
+    if (whole) return { token: whole, is_complete: true };
 
     const segments = import_tag_segments(path);
 
-    if (segments.length === 0) return null;
+    if (segments.length === 0) return { token: null, is_complete: false };
     if (segments.some((segment) => segment.length > MAX_TAG_NAME_LENGTH)) {
-      return null;
+      return { token: null, is_complete: false };
     }
 
     let parent_token: string | undefined;
@@ -129,16 +154,30 @@ export async function resolve_import_tags({
         continue;
       }
 
-      if (consecutive_failures >= MAX_CONSECUTIVE_TAG_FAILURES) return null;
+      if (
+        consecutive_failures >= MAX_CONSECUTIVE_TAG_FAILURES ||
+        created >= MAX_IMPORT_CREATED_TAGS
+      ) {
+        return { token: parent_token ?? null, is_complete: false };
+      }
 
-      const tag = await create_tag(segments[level - 1], parent_token).catch(
-        () => null,
-      );
+      const segment = segments[level - 1];
+      const tag = await create_tag(segment, parent_token).catch(() => null);
 
       if (!tag) {
+        const found = find_existing
+          ? await find_existing(segment, parent_token).catch(() => null)
+          : null;
+
+        if (found) {
+          known.set(key, found.tag_token);
+          parent_token = found.tag_token;
+          continue;
+        }
+
         consecutive_failures += 1;
 
-        return null;
+        return { token: parent_token ?? null, is_complete: false };
       }
 
       consecutive_failures = 0;
@@ -147,7 +186,7 @@ export async function resolve_import_tags({
       parent_token = tag.tag_token;
     }
 
-    return parent_token ?? null;
+    return { token: parent_token ?? null, is_complete: true };
   };
 
   for (const name of names) {
@@ -156,10 +195,10 @@ export async function resolve_import_tags({
     if (!key || tag_map.has(key)) continue;
     if (should_stop?.()) break;
 
-    const token = await ensure_tag(name);
+    const { token, is_complete } = await ensure_tag(name);
 
     if (token) tag_map.set(key, token);
-    else skipped += 1;
+    if (!token || !is_complete) skipped += 1;
   }
 
   return { tag_map, created, skipped };

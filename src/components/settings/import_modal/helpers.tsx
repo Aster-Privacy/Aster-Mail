@@ -137,6 +137,7 @@ const KEYWORD_HEADERS = ["x-keywords"];
 const KEYWORD_FLAGS = new Set(["nonjunk", "notjunk"]);
 
 export const MAX_TAGS_PER_EMAIL = 50;
+export const MAX_KEYWORD_LABELS_PER_EMAIL = 20;
 
 export function split_label_list(raw: string, on_whitespace = false): string[] {
   const out: string[] = [];
@@ -206,6 +207,7 @@ export function keyword_labels(email: ParsedEmail): string[] {
     for (const name of split_label_list(raw, on_whitespace)) {
       if (name.startsWith("$") || name.startsWith("\\")) continue;
       if (KEYWORD_FLAGS.has(name.toLowerCase())) continue;
+      if (out.length >= MAX_KEYWORD_LABELS_PER_EMAIL) return out;
       out.push(name);
     }
   }

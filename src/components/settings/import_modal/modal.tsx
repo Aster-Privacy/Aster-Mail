@@ -40,7 +40,7 @@ import {
   folder_for_email,
   tag_tokens_for_email,
 } from "./helpers";
-import { resolve_import_tags } from "./import_tags";
+import { find_import_tag, resolve_import_tags } from "./import_tags";
 
 import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { use_auth } from "@/contexts/auth_context";
@@ -436,14 +436,20 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
         let skipped_label_count = 0;
 
         if (source_tags.length > 0) {
+          let current_tags = tags_ref.current.state.tags;
+
           if (tags_ref.current.state.is_loading) {
-            await tags_ref.current.refresh();
+            const refreshed_tags = await tags_ref.current.refresh();
+
             await new Promise((resolve) => setTimeout(resolve, 0));
+            current_tags = Array.isArray(refreshed_tags)
+              ? refreshed_tags
+              : tags_ref.current.state.tags;
           }
 
           const resolution = await resolve_import_tags({
             names: source_tags,
-            existing_tags: tags_ref.current.state.tags,
+            existing_tags: current_tags.filter((tag) => !tag.is_undecryptable),
             create_tag: (name, parent_token) =>
               tags_ref.current.create_new_tag(
                 name,
@@ -452,6 +458,16 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
                 parent_token,
               ),
             should_stop: () => cancel_ref.current,
+            find_existing: async (name, parent_token) => {
+              const refreshed_tags = await tags_ref.current.refresh();
+              const readable_tags = (
+                Array.isArray(refreshed_tags)
+                  ? refreshed_tags
+                  : tags_ref.current.state.tags
+              ).filter((tag) => !tag.is_undecryptable);
+
+              return find_import_tag(readable_tags, name, parent_token);
+            },
           });
 
           if (cancel_ref.current) {

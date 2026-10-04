@@ -165,7 +165,8 @@ export function TagManagementModal({
     t,
   ]);
 
-  const can_rename = trimmed_name && !rename_validation_error;
+  const can_rename =
+    trimmed_name && !rename_validation_error && !current_tag?.is_undecryptable;
 
   useEffect(() => {
     set_new_name(tag_name);
@@ -179,6 +180,12 @@ export function TagManagementModal({
   }, [is_open, tag_id, current_parent_token]);
 
   const handle_rename = async () => {
+    if (current_tag?.is_undecryptable) {
+      set_error(t("common.failed_to_rename_label"));
+
+      return;
+    }
+
     if (!trimmed_name) {
       set_error(t("common.label_name_cannot_be_empty"));
 

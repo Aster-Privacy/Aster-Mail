@@ -39,7 +39,7 @@ import { use_translation } from "@/lib/i18n";
 interface TagContextMenuProps {
   children: React.ReactNode;
   tag_color: string;
-  on_rename: () => void;
+  on_rename?: () => void;
   on_recolor: () => void;
   on_reicon: () => void;
   on_delete: () => void;
@@ -70,10 +70,12 @@ export function TagContextMenu({
           </ContextMenuItem>
         )}
 
-        <ContextMenuItem onClick={on_rename}>
-          <PencilIcon className="me-2 h-4 w-4" />
-          {t("common.rename")}
-        </ContextMenuItem>
+        {on_rename && (
+          <ContextMenuItem onClick={on_rename}>
+            <PencilIcon className="me-2 h-4 w-4" />
+            {t("common.rename")}
+          </ContextMenuItem>
+        )}
 
         <ContextMenuItem onClick={on_recolor}>
           <TagIcon className="me-2 h-4 w-4" style={{ color: tag_color }} />

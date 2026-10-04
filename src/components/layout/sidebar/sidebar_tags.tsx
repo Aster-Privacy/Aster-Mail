@@ -222,7 +222,11 @@ export const SidebarTags = memo(function SidebarTags({
                 on_move={() => handle_tag_modal(tag_data, "move")}
                 on_recolor={() => handle_tag_modal(tag_data, "recolor")}
                 on_reicon={() => handle_tag_modal(tag_data, "reicon")}
-                on_rename={() => handle_tag_modal(tag_data, "rename")}
+                on_rename={
+                  tag.is_undecryptable
+                    ? undefined
+                    : () => handle_tag_modal(tag_data, "rename")
+                }
                 tag_color={tag_color}
               >
                 <div

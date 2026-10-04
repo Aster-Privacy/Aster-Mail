@@ -82,6 +82,8 @@ const TWO_FOLDERS = {
   data: { folders: [{ id: "f1" }, { id: "f2" }], total: 2 },
 };
 
+const REFETCH_SETTLE_MS = 400;
+
 let root: Root;
 let container: HTMLDivElement;
 let probe: UseFoldersReturn;
@@ -101,7 +103,7 @@ async function settle() {
 async function announce(event: string) {
   await act(async () => {
     window.dispatchEvent(new CustomEvent(event));
-    await vi.advanceTimersByTimeAsync(50);
+    await vi.advanceTimersByTimeAsync(REFETCH_SETTLE_MS);
   });
 }
 
@@ -157,6 +159,43 @@ describe("use_folders remote refresh", () => {
 
     expect(mocks.list_folders.mock.calls.length).toBeGreaterThan(calls);
     expect(probe.state.folders).toHaveLength(2);
+  });
+
+  it("fetches once for a burst of change reports", async () => {
+    const calls = mocks.list_folders.mock.calls.length;
+
+    await act(async () => {
+      for (let index = 0; index < 5; index += 1) {
+        window.dispatchEvent(new CustomEvent(MAIL_EVENTS.FOLDERS_CHANGED));
+        await vi.advanceTimersByTimeAsync(100);
+      }
+      window.dispatchEvent(new CustomEvent(MAIL_EVENTS.DEFINITIONS_STALE));
+    });
+
+    expect(mocks.list_folders).toHaveBeenCalledTimes(calls);
+
+    await settle();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(REFETCH_SETTLE_MS);
+    });
+
+    expect(mocks.list_folders).toHaveBeenCalledTimes(calls + 1);
+  });
+
+  it("drops a pending refetch when the hook unmounts", async () => {
+    const calls = mocks.list_folders.mock.calls.length;
+
+    await act(async () => {
+      window.dispatchEvent(new CustomEvent(MAIL_EVENTS.FOLDERS_CHANGED));
+    });
+    await act(async () => {
+      root.render(null);
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(REFETCH_SETTLE_MS);
+    });
+
+    expect(mocks.list_folders).toHaveBeenCalledTimes(calls);
   });
 
   it("stops listening once the hook unmounts", async () => {

@@ -75,6 +75,15 @@ import {
   clear_tags_cache,
   type DecryptedTag,
 } from "@/hooks/use_tags";
+import { MAIL_EVENTS } from "@/hooks/mail_events";
+
+const REFETCH_SETTLE_MS = 400;
+
+async function wait_for_refetch(): Promise<void> {
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, REFETCH_SETTLE_MS));
+  });
+}
 
 function server_tag(seed: ServerSeed, index: number) {
   return {
@@ -347,6 +356,148 @@ describe("use_tags parent label mapping", () => {
 
     expect(moved).toBe(false);
     expect(parent_of("invoices")).toBeUndefined();
+  });
+
+  it("reloads labels when the server rejects the parent of a move", async () => {
+    await load([{ name: "work" }, { name: "invoices" }]);
+    mocks.update_tag.mockImplementationOnce(async () => ({
+      data: null,
+      error: "Bad request",
+      server_code: "TAG_PARENT_NOT_FOUND",
+    }));
+    mocks.server_seeds = [{ name: "invoices" }];
+
+    const calls = mocks.list_tags.mock.calls.length;
+    let moved = true;
+
+    await act(async () => {
+      moved = await hook.update_existing_tag(
+        "id-invoices",
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        "token-work",
+      );
+    });
+    await flush();
+
+    expect(moved).toBe(false);
+    expect(mocks.list_tags.mock.calls.length).toBe(calls + 1);
+    expect(tags.map((tag) => tag.name)).toEqual(["invoices"]);
+  });
+
+  it("reloads labels when the server rejects the parent of a new label", async () => {
+    await load([{ name: "work" }]);
+    mocks.create_tag.mockImplementationOnce(async () => ({
+      data: null,
+      error: "TAG_PARENT_TOO_DEEP",
+    }));
+    mocks.server_seeds = [];
+
+    const calls = mocks.list_tags.mock.calls.length;
+    let created: DecryptedTag | null = null;
+
+    await act(async () => {
+      created = await hook.create_new_tag(
+        "invoices",
+        undefined,
+        undefined,
+        "token-work",
+      );
+    });
+    await flush();
+
+    expect(created).toBeNull();
+    expect(mocks.list_tags.mock.calls.length).toBe(calls + 1);
+    expect(tags).toEqual([]);
+  });
+
+  it("does not reload labels for an unrelated server error", async () => {
+    await load([{ name: "work" }, { name: "invoices" }]);
+    mocks.update_tag.mockImplementationOnce(async () => ({
+      data: null,
+      error: "Server error",
+      server_code: "INTERNAL",
+    }));
+
+    const calls = mocks.list_tags.mock.calls.length;
+
+    await act(async () => {
+      await hook.update_existing_tag(
+        "id-invoices",
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        "token-work",
+      );
+    });
+    await flush();
+
+    expect(mocks.list_tags.mock.calls.length).toBe(calls);
+  });
+
+  it("treats a label with a missing parent as top-level for duplicates", async () => {
+    await load([{ name: "invoices", parent: "gone" }]);
+
+    let duplicate: DecryptedTag | null = null;
+
+    await act(async () => {
+      duplicate = await hook.create_new_tag("Invoices");
+    });
+
+    expect(duplicate).toBeNull();
+    expect(mocks.create_tag).not.toHaveBeenCalled();
+  });
+
+  it("fetches once for a burst of change reports", async () => {
+    await load([{ name: "work" }]);
+
+    const calls = mocks.list_tags.mock.calls.length;
+
+    await act(async () => {
+      for (let index = 0; index < 5; index += 1) {
+        window.dispatchEvent(new CustomEvent(MAIL_EVENTS.TAGS_CHANGED));
+      }
+      window.dispatchEvent(new CustomEvent(MAIL_EVENTS.DEFINITIONS_STALE));
+    });
+
+    expect(mocks.list_tags.mock.calls.length).toBe(calls);
+
+    mocks.server_seeds = [{ name: "work" }, { name: "travel" }];
+    await wait_for_refetch();
+
+    expect(mocks.list_tags.mock.calls.length).toBe(calls + 1);
+    expect(tags.map((tag) => tag.name)).toEqual(["work", "travel"]);
+  });
+
+  it("drops a pending refetch when the hook unmounts", async () => {
+    await load([{ name: "work" }]);
+
+    const calls = mocks.list_tags.mock.calls.length;
+
+    await act(async () => {
+      window.dispatchEvent(new CustomEvent(MAIL_EVENTS.TAGS_CHANGED));
+    });
+    await act(async () => {
+      root.render(null);
+    });
+    await wait_for_refetch();
+
+    expect(mocks.list_tags.mock.calls.length).toBe(calls);
+  });
+
+  it("returns the fetched labels from refresh", async () => {
+    mocks.server_seeds = [{ name: "work" }, { name: "travel" }];
+
+    let refreshed: DecryptedTag[] = [];
+
+    await act(async () => {
+      refreshed = await hook.refresh();
+    });
+
+    expect(refreshed.map((tag) => tag.name)).toEqual(["work", "travel"]);
   });
 
   it("moves sublabels up one level when their parent is deleted", async () => {

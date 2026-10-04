@@ -52,7 +52,7 @@ export function compare_sibling_tags(a: TagTreeItem, b: TagTreeItem): number {
   );
 }
 
-function effective_parent_token<T extends TagTreeItem>(
+export function effective_parent_token<T extends TagTreeItem>(
   tag: T,
   token_set: Set<string>,
 ): string | undefined {
