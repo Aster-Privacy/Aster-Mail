@@ -27,6 +27,10 @@ const h = vi.hoisted(() => ({
   identity_attempts: 0,
   legacy_attempts: 0,
   vault_fetches: 0,
+  vault_refresh_fails: false,
+  first_byte: 0,
+  ecies_attempts: 0,
+  ecies_throws: false,
 }));
 
 vi.mock("@/services/crypto/memory_key_store", () => ({
@@ -50,7 +54,14 @@ vi.mock("@/services/crypto/vault_refresh", () => ({
   fetch_refreshed_vault: vi.fn(async () => {
     h.vault_fetches += 1;
 
-    return null;
+    if (h.vault_refresh_fails) return null;
+
+    return {
+      vault: h.vault,
+      encrypted_vault: "server_vault",
+      vault_nonce: "n1",
+      user_id: "user-1",
+    };
   }),
   adopt_refreshed_vault: vi.fn(async () => true),
 }));
@@ -61,7 +72,7 @@ vi.mock("@/services/crypto/envelope", async (importOriginal) => {
 
   return {
     ...original,
-    first_base64_byte: () => 0,
+    first_base64_byte: () => h.first_byte,
     decrypt_envelope_with_identity_key: vi.fn(
       async (
         ...args: Parameters<typeof original.decrypt_envelope_with_identity_key>
@@ -82,11 +93,29 @@ vi.mock("@/services/crypto/legacy_ios_envelope", () => ({
   }),
 }));
 
+vi.mock("@/components/email/shared/decrypt_envelope", () => ({
+  decrypt_mail_envelope: vi.fn(async () => {
+    h.ecies_attempts += 1;
+    if (h.ecies_throws) throw new Error("chunk failed to load");
+
+    return null;
+  }),
+}));
+
 import {
   clear_envelope_cache,
   decrypt_envelope,
 } from "@/hooks/email_list_helpers/decrypt";
-import { encrypt_envelope_with_identity_key } from "@/services/crypto/envelope";
+import {
+  array_to_base64,
+  encrypt_envelope_with_identity_key,
+} from "@/services/crypto/envelope";
+import { derive_account_data_key_raw } from "@/services/crypto/account_data_key";
+import {
+  clear_account_key_derived_keks,
+  get_account_key_generation,
+  load_account_key_derived_keks_into_memory,
+} from "@/services/crypto/legacy_keks";
 
 const STALE_VAULT = {
   identity_key: "identity-key-a",
@@ -111,12 +140,47 @@ async function sealed_to_missing_key() {
   );
 }
 
+async function sealed_to_account_key(account_key: Uint8Array) {
+  const raw = await derive_account_data_key_raw(
+    account_key,
+    "astermail-draft-v2",
+  );
+  const crypto_key = await crypto.subtle.importKey(
+    "raw",
+    raw,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["encrypt"],
+  );
+  const nonce = crypto.getRandomValues(new Uint8Array(12));
+  const encrypted = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv: nonce },
+    crypto_key,
+    new TextEncoder().encode(
+      JSON.stringify({
+        subject: "Sealed to the account key",
+        from: { name: "A", email: "a@example.test" },
+      }),
+    ),
+  );
+
+  return {
+    encrypted: array_to_base64(new Uint8Array(encrypted)),
+    nonce: array_to_base64(nonce),
+  };
+}
+
 describe("email list envelopes that fail to decrypt", () => {
   beforeEach(() => {
     h.vault = STALE_VAULT;
     h.identity_attempts = 0;
     h.legacy_attempts = 0;
     h.vault_fetches = 0;
+    h.vault_refresh_fails = false;
+    h.first_byte = 0;
+    h.ecies_attempts = 0;
+    h.ecies_throws = false;
+    clear_account_key_derived_keks();
     clear_envelope_cache();
   });
 
@@ -194,6 +258,95 @@ describe("email list envelopes that fail to decrypt", () => {
 
     const result = await decrypt_envelope(sealed.encrypted, sealed.nonce, "m1");
 
+    expect(result?.subject).toBe("Quarterly report");
+  });
+
+  it("retries when the account keys finish loading after the keys are ready", async () => {
+    const account_key = crypto.getRandomValues(new Uint8Array(32));
+    const sealed = await sealed_to_account_key(account_key);
+
+    h.keys_ready.forEach((callback) => callback());
+
+    expect(await decrypt_envelope(sealed.encrypted, sealed.nonce, "m1")).toBe(
+      null,
+    );
+
+    const first_refresh = attempts();
+
+    expect(await decrypt_envelope(sealed.encrypted, sealed.nonce, "m1")).toBe(
+      null,
+    );
+    expect(attempts()).toBe(first_refresh);
+
+    expect(
+      await load_account_key_derived_keks_into_memory(
+        account_key,
+        get_account_key_generation(),
+      ),
+    ).toBe(true);
+
+    const result = await decrypt_envelope(sealed.encrypted, sealed.nonce, "m1");
+
+    expect(result?.subject).toBe("Sealed to the account key");
+  });
+
+  it("does not remember a failure from an attempt that began before the account keys loaded", async () => {
+    const account_key = crypto.getRandomValues(new Uint8Array(32));
+    const sealed = await sealed_to_account_key(account_key);
+    const early = decrypt_envelope(sealed.encrypted, sealed.nonce, "m1");
+
+    await load_account_key_derived_keks_into_memory(
+      account_key,
+      get_account_key_generation(),
+    );
+    await early;
+
+    const result = await decrypt_envelope(sealed.encrypted, sealed.nonce, "m1");
+
+    expect(result?.subject).toBe("Sealed to the account key");
+  });
+
+  it("does not remember a failure when the vault refresh is unavailable", async () => {
+    const sealed = await sealed_to_missing_key();
+
+    h.vault_refresh_fails = true;
+
+    expect(await decrypt_envelope(sealed.encrypted, sealed.nonce, "m1")).toBe(
+      null,
+    );
+
+    const first_refresh = attempts();
+
+    expect(await decrypt_envelope(sealed.encrypted, sealed.nonce, "m1")).toBe(
+      null,
+    );
+    expect(attempts()).toBe(first_refresh * 2);
+    expect(h.vault_fetches).toBe(2);
+  });
+
+  it("does not remember a failure when the decrypt step throws", async () => {
+    const sealed = await encrypt_envelope_with_identity_key(
+      {
+        subject: "Quarterly report",
+        from: { name: "A", email: "a@example.test" },
+      },
+      "identity-key-a",
+    );
+
+    h.first_byte = 2;
+    h.ecies_throws = true;
+
+    expect(await decrypt_envelope(sealed.encrypted, sealed.nonce, "m1")).toBe(
+      null,
+    );
+    expect(h.ecies_attempts).toBe(1);
+    expect(attempts()).toBe(0);
+
+    h.ecies_throws = false;
+
+    const result = await decrypt_envelope(sealed.encrypted, sealed.nonce, "m1");
+
+    expect(h.ecies_attempts).toBe(2);
     expect(result?.subject).toBe("Quarterly report");
   });
 

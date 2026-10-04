@@ -29,6 +29,7 @@ import {
   on_vault_cleared,
   wait_for_keys_ready,
 } from "@/services/crypto/memory_key_store";
+import { on_account_keys_added } from "@/services/crypto/account_key_events";
 import { decrypt_pgp_message_parallel } from "@/workers/pgp_decrypt_pool";
 import {
   adopt_refreshed_vault,
@@ -70,12 +71,24 @@ const ENVELOPE_CACHE_TAIL = 64;
 const FAILED_ENVELOPE_MAX = 2000;
 const FAILED_ENVELOPE_TTL_MS = 5 * 60 * 1000;
 
-const envelope_cache = new Map<string, Promise<DecryptedEnvelope | null>>();
+interface EnvelopeAttempt {
+  envelope: DecryptedEnvelope | null;
+  exhausted: boolean;
+}
+
+const UNRESOLVED_ATTEMPT: EnvelopeAttempt = {
+  envelope: null,
+  exhausted: false,
+};
+const EXHAUSTED_ATTEMPT: EnvelopeAttempt = { envelope: null, exhausted: true };
+
+function opened_attempt(envelope: DecryptedEnvelope): EnvelopeAttempt {
+  return { envelope, exhausted: false };
+}
+
+const envelope_cache = new Map<string, Promise<EnvelopeAttempt>>();
 const failed_envelopes = new Map<string, number>();
-const pending_generations = new WeakMap<
-  Promise<DecryptedEnvelope | null>,
-  number
->();
+const pending_generations = new WeakMap<Promise<EnvelopeAttempt>, number>();
 let key_generation = 0;
 let envelope_cache_armed = false;
 
@@ -97,6 +110,9 @@ function arm_envelope_cache(): void {
     forget_failed_envelopes();
   });
   on_keys_ready(() => {
+    forget_failed_envelopes();
+  });
+  on_account_keys_added(() => {
     forget_failed_envelopes();
   });
 }
@@ -140,7 +156,7 @@ export async function decrypt_envelope(
   const key = envelope_cache_key(encrypted, nonce, mail_item_id);
 
   if (key === null) {
-    const envelope = await open_envelope(encrypted, nonce, mail_item_id);
+    const { envelope } = await open_envelope(encrypted, nonce, mail_item_id);
 
     register_envelope_attachment_keys(mail_item_id, envelope);
 
@@ -167,18 +183,23 @@ export async function decrypt_envelope(
     }
   }
 
-  let envelope: DecryptedEnvelope | null;
+  let attempt: EnvelopeAttempt;
 
   try {
-    envelope = await pending;
+    attempt = await pending;
   } catch (caught) {
     if (envelope_cache.get(key) === pending) envelope_cache.delete(key);
     throw caught;
   }
 
+  const { envelope } = attempt;
+
   if (!envelope) {
     if (envelope_cache.get(key) === pending) envelope_cache.delete(key);
-    if (pending_generations.get(pending) === key_generation) {
+    if (
+      attempt.exhausted &&
+      pending_generations.get(pending) === key_generation
+    ) {
       remember_failure(key);
     }
 
@@ -194,7 +215,7 @@ async function open_envelope(
   encrypted: string,
   nonce: string,
   mail_item_id?: string,
-): Promise<DecryptedEnvelope | null> {
+): Promise<EnvelopeAttempt> {
   const nonce_bytes = nonce ? base64_to_array(nonce) : new Uint8Array(0);
 
   if (nonce_bytes.length === 0) {
@@ -203,7 +224,7 @@ async function open_envelope(
       const text = new TextDecoder().decode(encrypted_bytes);
 
       if (!text.startsWith("-----BEGIN PGP")) {
-        return JSON.parse(text) as DecryptedEnvelope;
+        return opened_attempt(JSON.parse(text) as DecryptedEnvelope);
       }
 
       let vault = get_vault_from_memory();
@@ -215,51 +236,58 @@ async function open_envelope(
         pass = get_passphrase_from_memory();
       }
 
-      if (!vault?.identity_key || !pass) return null;
+      if (!vault?.identity_key || !pass) return UNRESOLVED_ATTEMPT;
 
       const passphrase = pass;
       const decrypt_pgp_with_keys = async (keys: string[]) => {
-        const decrypted = await decrypt_pgp_message_parallel(
-          text,
-          keys,
-          passphrase,
-        );
+        try {
+          const decrypted = await decrypt_pgp_message_parallel(
+            text,
+            keys,
+            passphrase,
+          );
 
-        return JSON.parse(decrypted) as DecryptedEnvelope;
+          return JSON.parse(decrypted) as DecryptedEnvelope;
+        } catch {
+          return null;
+        }
       };
       const pgp_keys = [vault.identity_key, ...(vault.previous_keys ?? [])];
+      const from_vault = await decrypt_pgp_with_keys(pgp_keys);
 
-      try {
-        return await decrypt_pgp_with_keys(pgp_keys);
-      } catch (pgp_error) {
-        const refreshed = await fetch_refreshed_vault();
+      if (from_vault) return opened_attempt(from_vault);
 
-        if (refreshed?.vault.identity_key) {
-          const tried = new Set(pgp_keys);
-          const refreshed_keys = [
-            refreshed.vault.identity_key,
-            ...(refreshed.vault.previous_keys ?? []),
-          ].filter((key) => !tried.has(key));
+      const refreshed = await fetch_refreshed_vault();
 
-          if (refreshed_keys.length > 0) {
-            const healed = await decrypt_pgp_with_keys(refreshed_keys);
+      if (!refreshed) return UNRESOLVED_ATTEMPT;
 
+      if (refreshed.vault.identity_key) {
+        const tried = new Set(pgp_keys);
+        const refreshed_keys = [
+          refreshed.vault.identity_key,
+          ...(refreshed.vault.previous_keys ?? []),
+        ].filter((key) => !tried.has(key));
+
+        if (refreshed_keys.length > 0) {
+          const healed = await decrypt_pgp_with_keys(refreshed_keys);
+
+          if (healed) {
             await adopt_refreshed_vault(refreshed);
 
-            return healed;
+            return opened_attempt(healed);
           }
         }
-
-        throw pgp_error;
       }
+
+      return EXHAUSTED_ATTEMPT;
     } catch {
-      return null;
+      return UNRESOLVED_ATTEMPT;
     }
   }
 
   const passphrase = get_passphrase_bytes();
 
-  if (!passphrase) return null;
+  if (!passphrase) return UNRESOLVED_ATTEMPT;
 
   try {
     if (nonce_bytes.length === 1 && nonce_bytes[0] === 1) {
@@ -270,7 +298,7 @@ async function open_envelope(
 
       zero_uint8_array(passphrase);
 
-      return result;
+      return result ? opened_attempt(result) : EXHAUSTED_ATTEMPT;
     }
 
     zero_uint8_array(passphrase);
@@ -289,7 +317,7 @@ async function open_envelope(
         mail_item_id,
       );
 
-      if (ecies_result) return ecies_result;
+      if (ecies_result) return opened_attempt(ecies_result);
     }
 
     let vault = get_vault_from_memory();
@@ -320,7 +348,7 @@ async function open_envelope(
       : [];
     const result = await try_identity_keys(identity_keys);
 
-    if (result) return result;
+    if (result) return opened_attempt(result);
 
     const refreshed = await fetch_refreshed_vault();
 
@@ -336,7 +364,7 @@ async function open_envelope(
         if (healed) {
           await adopt_refreshed_vault(refreshed);
 
-          return healed;
+          return opened_attempt(healed);
         }
       }
     }
@@ -352,13 +380,13 @@ async function open_envelope(
 
       if (legacy_from) parsed.from = legacy_from;
 
-      return parsed as DecryptedEnvelope;
+      return opened_attempt(parsed as DecryptedEnvelope);
     }
 
-    return null;
+    return refreshed ? EXHAUSTED_ATTEMPT : UNRESOLVED_ATTEMPT;
   } catch {
     zero_uint8_array(passphrase);
 
-    return null;
+    return UNRESOLVED_ATTEMPT;
   }
 }
