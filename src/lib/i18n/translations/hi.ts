@@ -6848,6 +6848,12 @@ export const hi = {
       "{{count}} फ़ोल्डर नहीं बन सके, इसलिए उनके संदेश आपके इनबॉक्स में हैं।",
     import_folders_skipped_plural:
       "{{count}} फ़ोल्डर नहीं बन सके, इसलिए उनके संदेश आपके इनबॉक्स में हैं।",
+    import_labels_created: "{{count}} लेबल बनाए गए",
+    import_labels_created_one: "{{count}} लेबल बनाया गया",
+    import_labels_skipped:
+      "{{count}} लेबल नहीं बन सके, इसलिए उनके संदेश उनके बिना इंपोर्ट हुए हैं।",
+    import_labels_skipped_one:
+      "{{count}} लेबल नहीं बन सका, इसलिए उसके संदेश उसके बिना इंपोर्ट हुए हैं।",
     storage_quota_reached:
       "आपका स्टोरेज भर गया है। प्लान बढ़ाने या कुछ ईमेल हटाने से और इंपोर्ट के लिए जगह बनेगी।",
     no_emails_in_file:

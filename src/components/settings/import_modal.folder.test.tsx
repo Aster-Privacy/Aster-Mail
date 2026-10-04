@@ -42,6 +42,14 @@ vi.mock("@/hooks/use_folders", () => ({
   }),
 }));
 
+vi.mock("@/hooks/use_tags", () => ({
+  use_tags: () => ({
+    create_new_tag: vi.fn(async () => null),
+    refresh: vi.fn(async () => {}),
+    state: { tags: [], is_loading: false },
+  }),
+}));
+
 vi.mock("@/provider", () => ({
   use_should_reduce_motion: () => true,
 }));

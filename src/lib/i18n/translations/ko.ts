@@ -5582,6 +5582,9 @@ export const ko = {
       "폴더 {{count}}개를 만들지 못해 해당 메일은 받은 편지함에 있습니다.",
     import_folders_skipped_plural:
       "폴더 {{count}}개를 만들지 못해 해당 메일은 받은 편지함에 있습니다.",
+    import_labels_created: "라벨 {{count}}개 생성됨",
+    import_labels_skipped:
+      "라벨 {{count}}개를 만들지 못해 해당 메일은 라벨 없이 가져옵니다.",
     storage_quota_reached:
       "저장 공간이 가득 찼습니다. 요금제를 업그레이드하거나 이메일을 일부 제거하면 더 가져올 공간이 생깁니다.",
     no_emails_in_file:

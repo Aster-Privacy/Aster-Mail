@@ -5730,6 +5730,12 @@ export const fr = {
       "{{count}} dossiers n'ont pas pu être créés, donc leurs messages sont dans votre boîte de réception.",
     import_folders_skipped_plural:
       "{{count}} dossiers n'ont pas pu être créés, donc leurs messages sont dans votre boîte de réception.",
+    import_labels_created: "{{count}} libellés créés",
+    import_labels_created_one: "{{count}} libellé créé",
+    import_labels_skipped:
+      "{{count}} libellés n'ont pas pu être créés, donc leurs messages sont importés sans eux.",
+    import_labels_skipped_one:
+      "{{count}} libellé n'a pas pu être créé, donc ses messages sont importés sans lui.",
     storage_quota_reached:
       "Votre stockage est plein. Mettre à niveau votre plan, ou retirer quelques messages, fera de la place pour plus d'imports.",
     no_emails_in_file:

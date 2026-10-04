@@ -6778,6 +6778,12 @@ export const en: Translations = {
       "{{count}} folders couldn't be created, so their messages are in your inbox.",
     import_folders_skipped_plural:
       "{{count}} folders couldn't be created, so their messages are in your inbox.",
+    import_labels_created: "{{count}} labels created",
+    import_labels_created_one: "{{count}} label created",
+    import_labels_skipped:
+      "{{count}} labels couldn't be created, so their messages are imported without them.",
+    import_labels_skipped_one:
+      "{{count}} label couldn't be created, so its messages are imported without it.",
     storage_quota_reached:
       "Your storage is full. Upgrading your plan, or removing some emails, will make room for more imports.",
     no_emails_in_file:

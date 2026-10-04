@@ -5676,6 +5676,9 @@ export const ar = {
       "تعذر إنشاء {{count}} مجلدات، لذلك توجد رسائلها في صندوق الوارد.",
     import_folders_skipped_plural:
       "تعذر إنشاء {{count}} مجلدات، لذلك توجد رسائلها في صندوق الوارد.",
+    import_labels_created: "التصنيفات التي تم إنشاؤها: {{count}}",
+    import_labels_skipped:
+      "تعذر إنشاء تصنيفات عددها {{count}}، لذلك تُستورد رسائلها بدونها.",
     storage_quota_reached:
       "تخزينك ممتلئ. ترقية خطتك أو إزالة بعض الرسائل تفسح مجالًا لاستيرادات أكثر.",
     no_emails_in_file:

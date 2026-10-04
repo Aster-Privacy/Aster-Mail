@@ -35,7 +35,13 @@ import { format_decimal } from "@/lib/utils";
 
 const READ_CHUNK_BYTES = 8 * 1024 * 1024;
 
-const SUMMARY_HEADER_KEYS = ["in-reply-to", "references", "x-gmail-labels"];
+const SUMMARY_HEADER_KEYS = [
+  "in-reply-to",
+  "references",
+  "x-gmail-labels",
+  "x-keywords",
+  "keywords",
+];
 
 function detach_string(value: string): string {
   return JSON.parse(JSON.stringify(value)) as string;

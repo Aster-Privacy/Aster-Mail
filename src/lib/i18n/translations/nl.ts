@@ -5555,6 +5555,12 @@ export const nl = {
       "{{count}} mappen konden niet worden aangemaakt, dus de berichten daaruit staan in je postvak IN.",
     import_folders_skipped_plural:
       "{{count}} mappen konden niet worden aangemaakt, dus de berichten daaruit staan in je postvak IN.",
+    import_labels_created: "{{count}} labels aangemaakt",
+    import_labels_created_one: "{{count}} label aangemaakt",
+    import_labels_skipped:
+      "{{count}} labels konden niet worden aangemaakt, dus de berichten worden zonder die labels geïmporteerd.",
+    import_labels_skipped_one:
+      "{{count}} label kon niet worden aangemaakt, dus de berichten worden zonder dat label geïmporteerd.",
     storage_quota_reached:
       "Je opslag is vol. Je abonnement upgraden of wat e-mails verwijderen maakt ruimte voor meer imports.",
     no_emails_in_file:

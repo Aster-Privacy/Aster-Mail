@@ -5575,6 +5575,9 @@ export const ja = {
       "{{count}} 件のフォルダを作成できなかったため、その中のメールは受信トレイに入っています。",
     import_folders_skipped_plural:
       "{{count}} 件のフォルダを作成できなかったため、その中のメールは受信トレイに入っています。",
+    import_labels_created: "{{count}} 件のラベルを作成しました",
+    import_labels_skipped:
+      "{{count}} 件のラベルを作成できなかったため、該当するメールはラベルなしでインポートされます。",
     storage_quota_reached:
       "ストレージが満杯です。プランをアップグレードするか、メールを削除すると、追加のインポート用に空きを作れます。",
     no_emails_in_file:

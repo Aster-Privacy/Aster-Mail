@@ -32,17 +32,20 @@ import {
   ImportStep,
   PICKER_REOPEN_DELAY_MS,
   build_thread_map,
-  classify_import_labels,
+  classify_import_email,
   derive_manual_import_source,
   detect_item_type,
   extract_source_folders,
+  extract_source_tags,
   folder_for_email,
-  source_labels,
+  tag_tokens_for_email,
 } from "./helpers";
+import { resolve_import_tags } from "./import_tags";
 
 import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { use_auth } from "@/contexts/auth_context";
 import { use_folders } from "@/hooks/use_folders";
+import { use_tags } from "@/hooks/use_tags";
 import { use_should_reduce_motion } from "@/provider";
 import {
   compute_message_id_hash,
@@ -82,6 +85,11 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
   const { t } = use_i18n();
   const { vault, user } = use_auth();
   const { create_new_folder, state: folders_state } = use_folders();
+  const tags = use_tags();
+  const tags_ref = useRef(tags);
+
+  tags_ref.current = tags;
+
   const reduce_motion = use_should_reduce_motion();
   const dialog_ref = useRef<HTMLDivElement>(null);
   const title_id = useId();
@@ -101,6 +109,8 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
     failed: number;
     quota_exceeded?: boolean;
     folders_skipped?: number;
+    labels_created?: number;
+    labels_skipped?: number;
     warnings?: string[];
   } | null>(null);
   const [parse_warnings, set_parse_warnings] = useState<string[]>([]);
@@ -328,7 +338,7 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
 
             return;
           }
-          if (classify_import_labels(source_labels(email)).skip) {
+          if (classify_import_email(email).skip) {
             drafts_skipped_count++;
 
             return;
@@ -420,6 +430,35 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
           });
         }
 
+        const source_tags = extract_source_tags(emails_to_import);
+        let tag_token_map = new Map<string, string>();
+        let created_label_count = 0;
+        let skipped_label_count = 0;
+
+        if (source_tags.length > 0) {
+          if (tags_ref.current.state.is_loading) {
+            await tags_ref.current.refresh();
+            await new Promise((resolve) => setTimeout(resolve, 0));
+          }
+
+          const resolution = await resolve_import_tags({
+            names: source_tags,
+            existing_tags: tags_ref.current.state.tags,
+            create_tag: (name) => tags_ref.current.create_new_tag(name),
+            should_stop: () => cancel_ref.current,
+          });
+
+          if (cancel_ref.current) {
+            await finish_cancelled();
+
+            return;
+          }
+
+          tag_token_map = resolution.tag_map;
+          created_label_count = resolution.created;
+          skipped_label_count = resolution.skipped;
+        }
+
         const BATCH_SIZE = 10;
         let quota_exceeded = false;
         let attempted_count = 0;
@@ -493,7 +532,7 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
                 encrypted.thread_token = token;
               }
 
-              const disposition = classify_import_labels(source_labels(email));
+              const disposition = classify_import_email(email);
               const type = detect_item_type(email, user_addresses);
 
               if (type === "sent" || disposition.sent) {
@@ -504,6 +543,12 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
 
               if (target_folder) {
                 encrypted.folder_token = target_folder;
+              }
+
+              const tag_tokens = tag_tokens_for_email(email, tag_token_map);
+
+              if (tag_tokens.length > 0) {
+                encrypted.tag_tokens = tag_tokens;
               }
 
               if (disposition.is_read !== undefined) {
@@ -554,6 +599,8 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
           failed: failed_count,
           quota_exceeded,
           folders_skipped: skipped_folder_count,
+          labels_created: created_label_count,
+          labels_skipped: skipped_label_count,
         });
         set_step("complete");
 
@@ -956,6 +1003,20 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
                   <p className="text-xs text-amber-500">
                     {t("settings.import_folders_skipped", {
                       count: import_result.folders_skipped ?? 0,
+                    })}
+                  </p>
+                )}
+                {(import_result.labels_created ?? 0) > 0 && (
+                  <p className="text-xs text-txt-muted">
+                    {t("settings.import_labels_created", {
+                      count: import_result.labels_created ?? 0,
+                    })}
+                  </p>
+                )}
+                {(import_result.labels_skipped ?? 0) > 0 && (
+                  <p className="text-xs text-amber-500">
+                    {t("settings.import_labels_skipped", {
+                      count: import_result.labels_skipped ?? 0,
                     })}
                   </p>
                 )}
