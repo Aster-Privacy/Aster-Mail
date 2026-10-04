@@ -73,6 +73,55 @@ describe("format_signature_html", () => {
       ),
     ).toContain(">&lt;b&gt;&amp;</div>");
   });
+
+  it("drops the line breaks and indentation of pasted HTML source", () => {
+    const content = [
+      '<table border="0" width="420" style="border-collapse: collapse">',
+      "  <tbody>",
+      "    <tr>",
+      '      <td width="110" valign="top">',
+      '        <img src="https://example.com/logo.png" width="96" alt="Example Co">',
+      "      </td>",
+      '      <td valign="top">',
+      "        <div><b>Alex Sample</b></div>",
+      "        <div>e:",
+      '          <a href="mailto:alex@example.com">alex@example.com</a></div>',
+      "        <div>",
+      '          <a href="https://example.com/in"><img src="https://example.com/in.png" alt="in"></a>',
+      '          <a href="https://example.com/x"><img src="https://example.com/x.png" alt="x"></a>',
+      "        </div>",
+      "        <pre>keep\n  this</pre>",
+      "      </td>",
+      "    </tr>",
+      "  </tbody>",
+      "</table>",
+    ].join("\n");
+
+    const html = format_signature_html(
+      { id: "sig_2", content, is_html: true },
+      false,
+    );
+
+    expect(html).toBe(
+      '<div data-aster-signature="1" data-aster-signature-id="sig_2">' +
+        '<table border="0" width="420" style="border-collapse: collapse"><tbody><tr>' +
+        '<td width="110" valign="top"><img src="https://example.com/logo.png" width="96" alt="Example Co"></td>' +
+        '<td valign="top"><div><b>Alex Sample</b></div>' +
+        '<div>e: <a href="mailto:alex@example.com">alex@example.com</a></div>' +
+        '<div><a href="https://example.com/in"><img src="https://example.com/in.png" alt="in"></a> ' +
+        '<a href="https://example.com/x"><img src="https://example.com/x.png" alt="x"></a></div>' +
+        "<pre>keep\n  this</pre></td></tr></tbody></table></div>",
+    );
+  });
+
+  it("keeps spaces typed inside a rich signature", () => {
+    expect(
+      format_signature_html(
+        { id: "s", content: "<b>Alex</b>  Sample", is_html: true },
+        false,
+      ),
+    ).toContain("<b>Alex</b>  Sample</div>");
+  });
 });
 
 const signature_markup = format_signature_html(plain_signature, false);
