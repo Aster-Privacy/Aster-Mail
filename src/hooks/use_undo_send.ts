@@ -276,6 +276,54 @@ export function settle_restored_sends_missing_from_server(): void {
   }
 }
 
+function is_tab_timer_send(pending: PendingSend): boolean {
+  return !pending.is_server_queued && pending.timeout_id !== undefined;
+}
+
+export function has_tab_timer_sends(): boolean {
+  return undo_send_manager.get_all().some(is_tab_timer_send);
+}
+
+export function flush_tab_timer_sends(): number {
+  const now = Date.now();
+  const waiting = undo_send_manager
+    .get_all()
+    .filter(
+      (pending) =>
+        is_tab_timer_send(pending) &&
+        !!pending.on_send_immediately &&
+        pending.scheduled_time > now,
+    );
+
+  for (const pending of waiting) {
+    undo_send_manager.remove(pending.id);
+    try {
+      pending.on_send_immediately?.();
+    } catch (caught) {
+      ignore_error("hooks/use_undo_send:flush_tab_timer_sends", caught);
+    }
+  }
+
+  return waiting.length;
+}
+
+function install_tab_timer_unload_guards(): void {
+  if (typeof window === "undefined") return;
+
+  window.addEventListener("pagehide", () => {
+    flush_tab_timer_sends();
+  });
+
+  window.addEventListener("beforeunload", (event) => {
+    if (!has_tab_timer_sends()) return;
+
+    event.preventDefault();
+    event.returnValue = "";
+  });
+}
+
+install_tab_timer_unload_guards();
+
 export function clear_undo_send_state(): void {
   undo_send_manager.clear();
   clear_storage();
@@ -337,6 +385,18 @@ export function use_undo_send(): UseUndoSendReturn {
           outcome === "failed"
             ? get_active_translations().common.something_went_wrong_try_again
             : get_active_translations().common.undo_send_too_late,
+          "error",
+        );
+
+        return false;
+      }
+
+      payload = take_pending_send_payload(id);
+      undo_send_manager.remove(id);
+    } else if (pending.timeout_id !== undefined) {
+      if (pending.scheduled_time <= Date.now()) {
+        show_toast(
+          get_active_translations().common.undo_send_too_late,
           "error",
         );
 
