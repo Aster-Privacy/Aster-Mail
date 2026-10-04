@@ -266,6 +266,7 @@ export function use_email_viewer({
     string | undefined
   >();
   const [refresh_key, set_refresh_key] = useState(0);
+  const [pending_thread_count, set_pending_thread_count] = useState(0);
   const [committed_email_id, set_committed_email_id] = useState<string | null>(
     null,
   );
@@ -437,6 +438,7 @@ export function use_email_viewer({
       }
       set_error(null);
       set_sending_message(null);
+      set_pending_thread_count(0);
       thread_sanitized_ref.current = preloaded.thread_sanitized;
       was_preloaded_ref.current = true;
       set_is_loading(false);
@@ -460,6 +462,7 @@ export function use_email_viewer({
         set_thread_messages([]);
         set_thread_draft(null);
         set_sending_message(null);
+        set_pending_thread_count(0);
         set_committed_email_id(null);
         was_preloaded_ref.current = false;
         thread_sanitized_ref.current = new Map();
@@ -620,6 +623,30 @@ export function use_email_viewer({
 
         return;
       }
+
+      const should_load_thread =
+        preferences.conversation_grouping !== false && !!item.thread_token;
+      const thread_options = {
+        is_trashed: !!item.is_trashed,
+        is_spam: !!item.is_spam,
+      };
+      const request_thread = (our_email?: string) =>
+        fetch_and_decrypt_thread_messages(
+          item.thread_token!,
+          our_email,
+          thread_options,
+        ).catch((caught) => {
+          ignore_error(
+            "components/email/use_email_viewer:thread_messages",
+            caught,
+          );
+
+          return null;
+        });
+      const early_thread_request =
+        should_load_thread && has_passphrase_in_memory()
+          ? request_thread()
+          : null;
 
       const envelope = await decrypt_mail_envelope<LocalDecryptedEnvelope>(
         item.encrypted_envelope,
@@ -853,21 +880,28 @@ export function use_email_viewer({
 
       await resolve_reaction_emojis([single_message], user_email);
 
-      const should_load_thread =
-        preferences.conversation_grouping !== false && !!item.thread_token;
-
       if (should_load_thread) {
-        const thread_result = await fetch_and_decrypt_thread_messages(
-          item.thread_token!,
-          user_email,
-          { is_trashed: !!item.is_trashed, is_spam: !!item.is_spam },
-        );
+        if (!cancelled && !reloading_same_email) {
+          set_thread_messages([single_message]);
+          set_pending_thread_count(
+            Math.max(0, (item.thread_message_count ?? 1) - 1),
+          );
+          set_is_loading(false);
+          set_committed_email_id(email_id);
+        }
 
-        if (!cancelled) {
-          set_thread_messages(
-            include_opened_message(thread_result.messages, single_message),
+        const thread_result = await (early_thread_request ??
+          request_thread(user_email));
+
+        if (!cancelled && thread_result) {
+          set_thread_messages((prev) =>
+            keep_unchanged_messages(
+              prev,
+              include_opened_message(thread_result.messages, single_message),
+            ),
           );
         }
+        if (!cancelled) set_pending_thread_count(0);
       } else if (
         !cancelled &&
         preferences.conversation_grouping !== false &&
@@ -1505,6 +1539,7 @@ export function use_email_viewer({
     thread_messages,
     set_thread_messages,
     is_content_current: committed_email_id === email_id,
+    pending_thread_count,
     was_preloaded: was_preloaded_ref.current,
     thread_sanitized: thread_sanitized_ref.current,
     current_user_email,
