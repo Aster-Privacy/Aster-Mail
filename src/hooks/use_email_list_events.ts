@@ -40,7 +40,8 @@ export { compute_should_remove_from_view } from "./view_membership";
 import { add_app_state_listener } from "@/native/capacitor_bridge";
 import { has_passphrase_in_memory } from "@/services/crypto/memory_key_store";
 import { request_cache } from "@/services/api/request_cache";
-import { CATCH_UP_WHILE_LIVE_MS, sync_client } from "@/services/sync_client";
+import { sync_client } from "@/services/sync_client";
+import { CATCH_UP_WHILE_LIVE_MS } from "@/services/sync_timing";
 import {
   mark_preload_stale,
   delete_preloaded_email,

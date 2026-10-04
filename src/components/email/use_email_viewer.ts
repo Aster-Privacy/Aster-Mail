@@ -91,7 +91,8 @@ import {
   keep_readable_bodies,
   keep_unchanged_messages,
 } from "@/components/email/thread_message_merge";
-import { CATCH_UP_WHILE_LIVE_MS, sync_client } from "@/services/sync_client";
+import { sync_client } from "@/services/sync_client";
+import { CATCH_UP_WHILE_LIVE_MS } from "@/services/sync_timing";
 import {
   claim_auto_read,
   is_read_ticket_current,
