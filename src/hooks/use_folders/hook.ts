@@ -974,6 +974,7 @@ export function use_folders(): UseFoldersReturn {
     window.addEventListener(MAIL_EVENTS.MAIL_SOFT_REFRESH, counts_handler);
     window.addEventListener(MAIL_EVENTS.MAIL_ITEM_UPDATED, item_update_handler);
     window.addEventListener(MAIL_EVENTS.FOLDERS_CHANGED, folders_handler);
+    window.addEventListener(MAIL_EVENTS.DEFINITIONS_STALE, folders_handler);
     window.addEventListener(MAIL_EVENTS.AUTH_READY, auth_ready_handler);
     document.addEventListener("visibilitychange", visibility_handler);
     channel?.addEventListener("message", broadcast_handler);
@@ -992,6 +993,10 @@ export function use_folders(): UseFoldersReturn {
         item_update_handler,
       );
       window.removeEventListener(MAIL_EVENTS.FOLDERS_CHANGED, folders_handler);
+      window.removeEventListener(
+        MAIL_EVENTS.DEFINITIONS_STALE,
+        folders_handler,
+      );
       window.removeEventListener(MAIL_EVENTS.AUTH_READY, auth_ready_handler);
       document.removeEventListener("visibilitychange", visibility_handler);
       channel?.removeEventListener("message", broadcast_handler);

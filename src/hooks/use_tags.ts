@@ -872,6 +872,7 @@ export function use_tags(): UseTagsReturn {
     );
     window.addEventListener(MAIL_EVENTS.MAIL_ITEMS_REMOVED, counts_handler);
     window.addEventListener(MAIL_EVENTS.TAGS_CHANGED, tags_handler);
+    window.addEventListener(MAIL_EVENTS.DEFINITIONS_STALE, tags_handler);
     window.addEventListener(MAIL_EVENTS.AUTH_READY, auth_ready_handler);
     document.addEventListener("visibilitychange", visibility_handler);
 
@@ -891,6 +892,7 @@ export function use_tags(): UseTagsReturn {
         counts_handler,
       );
       window.removeEventListener(MAIL_EVENTS.TAGS_CHANGED, tags_handler);
+      window.removeEventListener(MAIL_EVENTS.DEFINITIONS_STALE, tags_handler);
       window.removeEventListener(MAIL_EVENTS.AUTH_READY, auth_ready_handler);
       document.removeEventListener("visibilitychange", visibility_handler);
     };
