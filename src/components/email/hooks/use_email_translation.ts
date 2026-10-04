@@ -45,10 +45,10 @@ import {
   grant_route_consent,
   route_consent_granted,
 } from "@/services/translation/download_consent";
+import { load_translate_document } from "@/services/translation/load_translate_document";
 import { ignore_error } from "@/lib/ignore_error";
 
-export const load_translate_document = () =>
-  import("@/services/translation/translate_document");
+export { load_translate_document };
 
 export type TranslationStatus =
   | "idle"

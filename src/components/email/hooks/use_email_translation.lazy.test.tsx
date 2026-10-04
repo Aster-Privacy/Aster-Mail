@@ -20,45 +20,58 @@
 //
 import type { EmailTranslationControl } from "./use_email_translation";
 
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 const engine = vi.hoisted(() => ({
-  loads: 0,
   fail_load: true,
   translate_message_body: vi.fn(async () => ({ translated: true, swapped: 1 })),
   translate_plain_text: vi.fn(async () => "Translated subject"),
   pending_download_bytes: vi.fn(async () => 0),
+  available_source_languages: vi.fn(async () => []),
 }));
 
-vi.mock("@/services/translation/translate_document", () => {
-  engine.loads += 1;
+const network = vi.hoisted(() => ({
+  fetch: vi.fn(() => Promise.reject(new TypeError("network is off in tests"))),
+}));
 
-  if (engine.fail_load) {
-    throw new TypeError("Failed to fetch dynamically imported module");
-  }
+vi.mock("@/services/translation/translate_document", () => ({
+  translate_message_body: engine.translate_message_body,
+  translate_plain_text: engine.translate_plain_text,
+  pending_download_bytes: engine.pending_download_bytes,
+  available_source_languages: engine.available_source_languages,
+}));
 
-  return {
-    translate_message_body: engine.translate_message_body,
-    translate_plain_text: engine.translate_plain_text,
-    pending_download_bytes: engine.pending_download_bytes,
-  };
-});
+vi.mock("@/services/translation/load_translate_document", () => ({
+  load_translate_document: () =>
+    engine.fail_load
+      ? Promise.reject(
+          new TypeError("Failed to fetch dynamically imported module"),
+        )
+      : Promise.resolve({
+          translate_message_body: engine.translate_message_body,
+          translate_plain_text: engine.translate_plain_text,
+          pending_download_bytes: engine.pending_download_bytes,
+          available_source_languages: engine.available_source_languages,
+        }),
+}));
 
 vi.mock("@/services/translation/language_detect", () => ({
   decide_translation: () => ({ kind: "translate", language: "de" }),
   should_keep_translation: () => true,
 }));
 
+const settings = vi.hoisted(() => ({
+  preferences: {
+    translate_incoming: "always",
+    translate_languages: [] as string[],
+    translate_never_languages: [] as string[],
+  },
+}));
+
 vi.mock("@/contexts/preferences_context", () => ({
-  use_preferences: () => ({
-    preferences: {
-      translate_incoming: "always",
-      translate_languages: [],
-      translate_never_languages: [],
-    },
-  }),
+  use_preferences: () => settings,
 }));
 
 vi.mock("@/lib/i18n/context", () => ({
@@ -112,6 +125,11 @@ async function mount_translation(
   return { control: () => latest!, body };
 }
 
+beforeEach(() => {
+  network.fetch.mockClear();
+  vi.stubGlobal("fetch", network.fetch);
+});
+
 afterEach(() => {
   act(() => {
     root?.unmount();
@@ -119,6 +137,7 @@ afterEach(() => {
   container?.remove();
   root = null;
   container = null;
+  vi.unstubAllGlobals();
 });
 
 describe("use_email_translation with an on demand engine", () => {
@@ -132,6 +151,7 @@ describe("use_email_translation with an on demand engine", () => {
 
     expect(body.style.opacity).toBe("");
     expect(engine.translate_message_body).not.toHaveBeenCalled();
+    expect(network.fetch).not.toHaveBeenCalled();
   });
 
   it("translates automatically once the engine loads", async () => {
@@ -146,5 +166,6 @@ describe("use_email_translation with an on demand engine", () => {
 
     expect(engine.translate_message_body).toHaveBeenCalledTimes(1);
     expect(control().translated_subject).toBe("Translated subject");
+    expect(network.fetch).not.toHaveBeenCalled();
   });
 });
