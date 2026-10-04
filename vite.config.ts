@@ -70,6 +70,8 @@ function source_map_fix_plugin(): Plugin {
 
 const api_target = process.env.VITE_API_TARGET || "http://127.0.0.1:3000";
 const ws_target = process.env.VITE_WS_TARGET || "ws://127.0.0.1:3000";
+const content_blocker_bait_pattern =
+  /track|pixel|analytic|beacon|telemetry|advert/i;
 
 function get_build_hash(): string {
   const nonce = Date.now().toString(36).slice(-5).toUpperCase();
@@ -227,6 +229,10 @@ export default defineConfig({
         defaultHandler(warning);
       },
       output: {
+        chunkFileNames: (chunk_info) =>
+          content_blocker_bait_pattern.test(chunk_info.name)
+            ? "assets/chunk-[hash].js"
+            : "assets/[name]-[hash].js",
         manualChunks: {
           "vendor-react": ["react", "react-dom", "react-router-dom"],
           "vendor-crypto": ["openpgp"],
