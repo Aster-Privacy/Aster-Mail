@@ -92,6 +92,10 @@ import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { request_cache } from "@/services/api/request_cache";
 import { drop_removed_after } from "@/services/removed_items";
 import {
+  read_list_snapshot,
+  schedule_list_snapshot,
+} from "@/services/list_snapshot_store";
+import {
   apply_flag_intents,
   resolve_read_intent,
 } from "@/services/read_intent";
@@ -594,6 +598,9 @@ export function use_category_inbox(
         return;
       }
 
+      let snapshot_painted = false;
+      let fetch_settled = false;
+
       const schedule_retry = (): boolean => {
         const retry_sig = `${active_category}|${target_page}`;
         const prev = fetch_retry_ref.current;
@@ -607,7 +614,11 @@ export function use_category_inbox(
         }
         fetch_retry_timer_ref.current = setTimeout(() => {
           fetch_retry_timer_ref.current = null;
-          void fetch_page_ref.current?.(target_page, limit, options);
+          void fetch_page_ref.current?.(
+            target_page,
+            limit,
+            snapshot_painted ? { ...options, silent: true } : options,
+          );
         }, FETCH_RETRY_DELAY_MS);
 
         return true;
@@ -663,6 +674,36 @@ export function use_category_inbox(
       }
       fetch_in_flight_ref.current = true;
 
+      const owner = user?.email || "";
+
+      if (!silent && !force && target_page === 0 && owner) {
+        void read_list_snapshot(
+          `category:${fetch_category}`,
+          owner,
+          cache_key,
+          format_options,
+        ).then((snapshot) => {
+          if (!snapshot || fetch_settled) return;
+          if (controller.signal.aborted) return;
+          if (committed_category_ref.current !== fetch_category) return;
+
+          const rows = drop_removed_after(
+            correct_received_rows(snapshot.emails),
+            snapshot.saved_at,
+          );
+
+          if (rows.length === 0) return;
+
+          set_state((prev) => {
+            if (prev.emails.length > 0) return prev;
+
+            snapshot_painted = true;
+
+            return build_list_state(prev, rows, total, has_more);
+          });
+        });
+      }
+
       const fetch_started_at = Date.now();
 
       try {
@@ -676,6 +717,8 @@ export function use_category_inbox(
           format_options,
           user?.email || "",
         );
+
+        fetch_settled = true;
 
         if (controller.signal.aborted) return;
         if (committed_category_ref.current !== fetch_category) return;
@@ -733,6 +776,15 @@ export function use_category_inbox(
 
         touch_cache_entry(page_cache.current, cache_key, grouped);
 
+        if (target_page === 0 && owner) {
+          schedule_list_snapshot(
+            `category:${fetch_category}`,
+            owner,
+            cache_key,
+            grouped,
+          );
+        }
+
         const pruned =
           missing_ids.length > 0 ||
           stale_fetched.length > 0 ||
@@ -746,6 +798,7 @@ export function use_category_inbox(
           build_list_state(prev, grouped, effective_total, effective_has_more),
         );
       } catch {
+        fetch_settled = true;
         if (controller.signal.aborted) return;
         if (committed_category_ref.current !== fetch_category) return;
         if (schedule_retry()) return;
@@ -820,6 +873,7 @@ export function use_category_inbox(
                 : received_only;
 
             touch_cache_entry(page_cache.current, key, grouped);
+            schedule_list_snapshot(`category:${tab}`, account, key, grouped);
           } catch {
             return;
           }

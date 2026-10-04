@@ -25,6 +25,10 @@ import {
   device_decrypt,
 } from "@/services/crypto/secure_storage";
 import { get_current_account_id } from "@/services/account_manager";
+import {
+  cancel_pending_list_snapshots,
+  drop_list_snapshot,
+} from "@/services/list_snapshot_store";
 
 const DB_NAME = "astermail_offline_cache";
 const STORE_NAME = "email_lists";
@@ -136,6 +140,8 @@ export async function get_cached_email_list(
 }
 
 export async function clear_email_cache(): Promise<void> {
+  cancel_pending_list_snapshots();
+
   try {
     const db = await open_db();
 
@@ -157,6 +163,8 @@ export async function clear_email_cache(): Promise<void> {
 }
 
 export async function clear_view_cache(view: string): Promise<void> {
+  await drop_list_snapshot(`view:${view}`);
+
   try {
     const cache_key = await build_cache_key(view);
     const db = await open_db();
