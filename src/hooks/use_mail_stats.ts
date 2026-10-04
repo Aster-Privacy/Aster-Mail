@@ -365,6 +365,18 @@ class MailStatsStore {
     return this.active_request;
   }
 
+  fetch_initial(): Promise<MailStats | null> {
+    if (
+      this.cache.fetching &&
+      this.active_request &&
+      Date.now() - this.fetch_started_at < FETCH_STUCK_MS
+    ) {
+      return this.active_request;
+    }
+
+    return this.fetch(true);
+  }
+
   private async execute_fetch(): Promise<MailStats | null> {
     const fetch_generation = this.account_generation;
     const fetch_sequence = ++this.fetch_sequence;
@@ -781,7 +793,11 @@ export function use_mail_stats(): UseMailStatsReturn {
 
     if (stats_store.is_stale() || keys_just_became_available) {
       stats_timer = setTimeout(() => {
-        stats_store.fetch(keys_just_became_available);
+        if (keys_just_became_available) {
+          stats_store.fetch_initial();
+        } else {
+          stats_store.fetch(false);
+        }
       }, INITIAL_STATS_DELAY_MS);
     }
 
@@ -876,7 +892,7 @@ export function use_mail_stats(): UseMailStatsReturn {
     if (has_passphrase_in_memory()) {
       if (stats_store.is_stale()) {
         stats_timer = setTimeout(() => {
-          stats_store.fetch(true);
+          stats_store.fetch_initial();
         }, INITIAL_STATS_DELAY_MS);
       }
     }
@@ -888,7 +904,7 @@ export function use_mail_stats(): UseMailStatsReturn {
       if (stats_store.is_stale()) {
         if (stats_timer) clearTimeout(stats_timer);
         stats_timer = setTimeout(() => {
-          stats_store.fetch(true);
+          stats_store.fetch_initial();
         }, INITIAL_STATS_DELAY_MS);
       }
     });
