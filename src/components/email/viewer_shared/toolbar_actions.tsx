@@ -30,6 +30,8 @@ import {
   XMarkIcon,
   NoSymbolIcon,
   CheckCircleIcon,
+  ExclamationTriangleIcon,
+  ShieldCheckIcon,
   ArchiveBoxIcon,
   TrashIcon,
   EnvelopeIcon,
@@ -382,7 +384,7 @@ export function ViewerToolbarActions({
               variant="ghost"
               onClick={on_not_spam}
             >
-              <NoSymbolIcon className={icon_size} />
+              <ShieldCheckIcon className={icon_size} />
             </Button>
           </Tooltip>
         ) : (
@@ -396,7 +398,7 @@ export function ViewerToolbarActions({
               variant="ghost"
               onClick={on_spam}
             >
-              <NoSymbolIcon className={icon_size} />
+              <ExclamationTriangleIcon className={icon_size} />
             </Button>
           </Tooltip>
         ))}
@@ -570,12 +572,12 @@ export function ViewerToolbarActions({
           <DropdownMenuSeparator />
           {is_spam && on_not_spam ? (
             <DropdownMenuItem disabled={is_spam_loading} onClick={on_not_spam}>
-              <NoSymbolIcon className="w-4 h-4 me-2" />
+              <ShieldCheckIcon className="w-4 h-4 me-2" />
               {t("mail.not_spam")}
             </DropdownMenuItem>
           ) : (
             <DropdownMenuItem disabled={is_spam_loading} onClick={on_spam}>
-              <NoSymbolIcon className="w-4 h-4 me-2" />
+              <ExclamationTriangleIcon className="w-4 h-4 me-2" />
               {t("mail.report_spam")}
             </DropdownMenuItem>
           )}

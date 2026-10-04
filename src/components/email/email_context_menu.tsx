@@ -39,7 +39,7 @@ import {
   TrashIcon,
   PrinterIcon,
   InboxIcon,
-  ShieldExclamationIcon,
+  ShieldCheckIcon,
   ArrowPathIcon,
   ClockIcon,
   CalendarIcon,
@@ -630,7 +630,7 @@ function EmailContextMenuContentInner({
           disabled={loading_action === "not_spam"}
           onClick={() => handle_action("not_spam", on_mark_not_spam)}
         >
-          <ShieldExclamationIcon className="me-2 h-4 w-4" />
+          <ShieldCheckIcon className="me-2 h-4 w-4" />
           {t("mail.not_spam")}
         </ContextMenuItem>
       )}
