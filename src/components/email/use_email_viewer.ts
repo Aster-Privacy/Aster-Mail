@@ -93,6 +93,7 @@ import {
 } from "@/components/email/thread_message_merge";
 import { sync_client } from "@/services/sync_client";
 import { CATCH_UP_WHILE_LIVE_MS } from "@/services/sync_timing";
+import { use_thread_decrypt_hold } from "@/hooks/use_thread_decrypt_hold";
 import {
   claim_auto_read,
   is_read_ticket_current,
@@ -1044,6 +1045,8 @@ export function use_email_viewer({
     open_thread_token_ref.current =
       email && email.id === email_id ? (email.thread_token ?? null) : null;
   }, [email, email_id]);
+
+  use_thread_decrypt_hold(email?.thread_token);
 
   const still_showing = useCallback(
     (thread_token: string, original_email_id?: string | null): boolean =>

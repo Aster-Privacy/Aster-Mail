@@ -27,6 +27,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { MAIL_EVENTS } from "@/hooks/mail_events";
 
 const THREAD = "thread-counts";
+const OTHER_THREAD = "thread-other";
 const THREAD_SIZE = 40;
 
 type ServerMessage = {
@@ -40,10 +41,12 @@ type ServerMessage = {
   message_ts: string;
   created_at: string;
   is_external: boolean;
+  thread_token?: string;
 };
 
 const h = vi.hoisted(() => ({
   server: [] as ServerMessage[],
+  other: [] as ServerMessage[],
   socket_live: true,
   fetches: 0,
   envelope_decrypts: 0,
@@ -139,20 +142,28 @@ vi.mock("@/services/account_manager", () => ({
 
 vi.mock("@/services/api/mail", () => ({
   get_mail_item: async (id: string) => {
-    const own = h.server.find((m) => m.id === id) ?? h.server[0];
+    const own =
+      [...h.server, ...h.other].find((m) => m.id === id) ?? h.server[0];
 
     return {
-      data: { ...own, id, thread_token: THREAD, labels: [] },
+      data: {
+        ...own,
+        id,
+        thread_token: own.thread_token ?? THREAD,
+        labels: [],
+      },
       error: null,
     };
   },
-  get_thread_messages: async () => {
+  get_thread_messages: async (thread_token: string) => {
     h.fetches += 1;
 
     return {
       data: {
-        thread: { thread_token: THREAD },
-        messages: h.server.map((m) => ({ ...m })),
+        thread: { thread_token },
+        messages: (thread_token === OTHER_THREAD ? h.other : h.server).map(
+          (m) => ({ ...m }),
+        ),
       },
       error: null,
     };
@@ -217,20 +228,22 @@ vi.mock("@/hooks/use_mail_stats", () => ({ adjust_stats_unread: vi.fn() }));
 const { use_email_viewer } =
   await import("@/components/email/use_email_viewer");
 const { clear_mail_cache } = await import("@/hooks/email_list_cache");
+const { thread_decrypt_cache_size, CLOSED_THREAD_GRACE_MS } =
+  await import("@/services/thread_decrypt_cache");
 
 type Rendered = {
   root: Root;
   messages: () => DecryptedThreadMessage[];
+  show: (email_id: string) => void;
 };
 
 let mounted: Rendered | null = null;
+const extra_roots: Root[] = [];
 
-function render_viewer(): Rendered {
+function render_viewer(initial_id = `m${THREAD_SIZE - 1}`): Rendered {
   let latest: DecryptedThreadMessage[] = [];
 
-  const email_id = `m${THREAD_SIZE - 1}`;
-
-  function Harness() {
+  function Harness({ email_id }: { email_id: string }) {
     const view = use_email_viewer({ email_id, on_dismiss: () => {} });
 
     latest = view.thread_messages;
@@ -243,12 +256,20 @@ function render_viewer(): Rendered {
 
   act(() => {
     root = createRoot(container);
-    root.render(createElement(Harness));
+    root.render(createElement(Harness, { email_id: initial_id }));
   });
 
-  mounted = { root, messages: () => latest };
+  const rendered: Rendered = {
+    root,
+    messages: () => latest,
+    show: (email_id) =>
+      act(() => root.render(createElement(Harness, { email_id }))),
+  };
 
-  return mounted;
+  if (mounted) extra_roots.push(root);
+  else mounted = rendered;
+
+  return rendered;
 }
 
 async function advance(ms: number): Promise<void> {
@@ -299,6 +320,10 @@ describe("open thread refresh work for a 40-message thread", () => {
     vi.useFakeTimers();
     clear_mail_cache();
     h.server = Array.from({ length: THREAD_SIZE }, (_, i) => server_message(i));
+    h.other = Array.from({ length: THREAD_SIZE }, (_, i) => ({
+      ...server_message(100 + i),
+      thread_token: OTHER_THREAD,
+    }));
     h.socket_live = true;
     reset_counts();
   });
@@ -308,6 +333,7 @@ describe("open thread refresh work for a 40-message thread", () => {
 
     mounted = null;
     if (rendered) act(() => rendered.root.unmount());
+    for (const root of extra_roots.splice(0)) act(() => root.unmount());
     vi.useRealTimers();
   });
 
@@ -431,5 +457,76 @@ describe("open thread refresh work for a 40-message thread", () => {
     await advance(2_000);
 
     expect(counts()).toEqual({ fetches: 1, decrypts: THREAD_SIZE * 2 });
+  });
+
+  it("goes back to the previous thread within the grace period without decrypting", async () => {
+    const rendered = await open_thread();
+
+    rendered.show("m139");
+    await advance(10);
+    expect(rendered.messages()[0]?.id).toBe("m100");
+    rendered.show(`m${THREAD_SIZE - 1}`);
+    reset_counts();
+    await advance(10);
+
+    expect(counts()).toEqual({ fetches: 1, decrypts: 2 });
+    expect(rendered.messages()).toHaveLength(THREAD_SIZE);
+  });
+
+  it("decrypts the previous thread's bodies again after the grace period", async () => {
+    const rendered = await open_thread();
+
+    rendered.show("m139");
+    await advance(10);
+    await advance(CLOSED_THREAD_GRACE_MS);
+    rendered.show(`m${THREAD_SIZE - 1}`);
+    reset_counts();
+    await advance(10);
+
+    expect(counts()).toEqual({ fetches: 1, decrypts: THREAD_SIZE + 2 });
+  });
+
+  it("empties the content cache for a thread once its viewer closes", async () => {
+    const rendered = await open_thread();
+
+    expect(thread_decrypt_cache_size()).toBe(THREAD_SIZE);
+
+    mounted = null;
+    act(() => rendered.root.unmount());
+    await advance(CLOSED_THREAD_GRACE_MS);
+
+    expect(thread_decrypt_cache_size()).toBe(0);
+  });
+
+  it("drops the old thread once the viewer has switched to another one", async () => {
+    const rendered = await open_thread();
+
+    rendered.show("m139");
+    await advance(10);
+    await advance(CLOSED_THREAD_GRACE_MS);
+
+    expect(thread_decrypt_cache_size()).toBe(THREAD_SIZE);
+    expect(rendered.messages().every((m) => Number(m.id.slice(1)) >= 100)).toBe(
+      true,
+    );
+  });
+
+  it("keeps a thread shown in two viewers until both close", async () => {
+    const first = await open_thread();
+    const second = render_viewer();
+
+    await advance(10);
+    act(() => first.root.unmount());
+    mounted = second;
+    await advance(CLOSED_THREAD_GRACE_MS);
+
+    expect(thread_decrypt_cache_size()).toBe(THREAD_SIZE);
+
+    mounted = null;
+    act(() => second.root.unmount());
+    extra_roots.splice(0);
+    await advance(CLOSED_THREAD_GRACE_MS);
+
+    expect(thread_decrypt_cache_size()).toBe(0);
   });
 });
