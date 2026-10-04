@@ -5588,7 +5588,10 @@ export const tr = {
     import_folders_skipped_plural:
       "{{count}} klasör oluşturulamadı, bu yüzden iletileri gelen kutunuzda.",
     import_labels_created: "{{count}} etiket oluşturuldu",
+    import_labels_created_one: "{{count}} etiket oluşturuldu",
     import_labels_skipped:
+      "{{count}} etiket oluşturulamadı, bu yüzden iletileri bu etiketler olmadan içe aktarılır.",
+    import_labels_skipped_one:
       "{{count}} etiket oluşturulamadı, bu yüzden iletileri bu etiketler olmadan içe aktarılır.",
     storage_quota_reached:
       "Depolama alanınız dolu. Planınızı yükseltmek ya da bir miktar e-postayı kaldırmak daha fazla içe aktarım için yer açar.",

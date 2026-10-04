@@ -5827,7 +5827,10 @@ export const pl = {
     import_folders_skipped_plural:
       "Nie udało się utworzyć folderów: {{count}}. Ich wiadomości są w skrzynce odbiorczej.",
     import_labels_created: "Utworzone etykiety: {{count}}",
+    import_labels_created_one: "Utworzone etykiety: {{count}}",
     import_labels_skipped:
+      "Nie udało się utworzyć etykiet: {{count}}. Ich wiadomości są importowane bez nich.",
+    import_labels_skipped_one:
       "Nie udało się utworzyć etykiet: {{count}}. Ich wiadomości są importowane bez nich.",
     storage_quota_reached:
       "Pamięć jest pełna. Ulepszenie planu lub usunięcie wiadomości zrobi miejsce na kolejne importy.",

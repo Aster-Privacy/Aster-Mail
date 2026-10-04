@@ -5793,7 +5793,10 @@ export const ru = {
     import_folders_skipped_plural:
       "Не удалось создать папки: {{count}}. Письма из них находятся во входящих.",
     import_labels_created: "Создано меток: {{count}}",
+    import_labels_created_one: "Создано меток: {{count}}",
     import_labels_skipped:
+      "Не удалось создать метки: {{count}}. Письма с ними импортируются без этих меток.",
+    import_labels_skipped_one:
       "Не удалось создать метки: {{count}}. Письма с ними импортируются без этих меток.",
     storage_quota_reached:
       "Хранилище заполнено. Повышение тарифа или удаление части писем освобождает место для новых импортов.",
