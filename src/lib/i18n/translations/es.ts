@@ -7337,6 +7337,7 @@ export const es = {
       "Aster Bridge debe estar instalado y en ejecución. Descárgalo en Ajustes > Bridge.",
     desktop_bridge_not_opened:
       "Aster Bridge no se abrió. Comprueba que esté instalado y en ejecución, o descárgalo en Ajustes > Bridge.",
+    desktop_bridge_opening: "Abriendo Aster Bridge...",
     desktop_bridge_set_up: "Configurar {{ client }}",
     bridge: "Bridge",
     bridge_description:

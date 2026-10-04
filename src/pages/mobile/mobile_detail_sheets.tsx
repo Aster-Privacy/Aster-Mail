@@ -37,7 +37,7 @@ import {
   ShieldExclamationIcon,
   ShieldCheckIcon,
   ClipboardDocumentIcon,
-  NoSymbolIcon,
+  ExclamationTriangleIcon,
   AdjustmentsHorizontalIcon,
   HandRaisedIcon,
   BellSnoozeIcon,
@@ -306,7 +306,7 @@ export function MobileActionMenuSheet({
               type="button"
               onClick={on_spam}
             >
-              <NoSymbolIcon className="h-5 w-5 text-[var(--text-muted)]" />
+              <ExclamationTriangleIcon className="h-5 w-5 text-[var(--text-muted)]" />
               <span className="text-[14px] text-[var(--text-primary)]">
                 {t("mail.report_spam")}
               </span>
@@ -970,7 +970,7 @@ export function MobileMessageDetailsSheet({
             </div>
           </div>
           <HeadersBox
-            className="max-h-[50dvh] rounded-xl text-[11px]"
+            className="rounded-xl text-[11px]"
             mode={headers_mode}
             raw_headers={message?.raw_headers}
             text={headers}

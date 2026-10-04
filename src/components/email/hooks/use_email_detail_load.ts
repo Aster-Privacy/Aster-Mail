@@ -87,6 +87,7 @@ import { use_email_detail_actions } from "@/components/email/hooks/email_detail_
 import { prefetch_attachment_meta } from "@/services/attachment_meta_cache";
 import { prefetch_attachment_previews } from "@/services/attachment_preview_cache";
 import { ignore_error } from "@/lib/ignore_error";
+import { use_thread_decrypt_hold } from "@/hooks/use_thread_decrypt_hold";
 import {
   claim_auto_read,
   is_read_ticket_current,
@@ -120,6 +121,9 @@ export function use_email_detail_load() {
   const [mail_item, set_mail_item] = useState<
     import("@/services/api/mail").MailItem | null
   >(null);
+
+  use_thread_decrypt_hold(mail_item?.thread_token);
+
   const [email, set_email] = useState<
     import("@/components/email/hooks/email_detail_types").DecryptedEmail | null
   >(null);

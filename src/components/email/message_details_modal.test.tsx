@@ -303,3 +303,43 @@ describe("MessageDetailsModal headers", () => {
     expect(await blob.text()).toBe(raw);
   });
 });
+
+describe("MessageDetailsModal layout", () => {
+  const TALL = "[@media(min-height:800px)]:";
+  const classes = (el: Element) => el.className.split(/\s+/);
+  const scroll_classes = (el: Element) =>
+    classes(el).filter((c) =>
+      /(^|:)(overflow(-[xy])?-(auto|scroll)|max-h-)/.test(c),
+    );
+
+  it("scrolls only the headers list, which fills the space left in the modal", () => {
+    render({ spf_result: "pass", dkim_result: "pass", dmarc_result: "pass" });
+    const body = box().closest<HTMLElement>(".aster_modal_body")!;
+    const section = document.querySelector<HTMLElement>(
+      '[data-testid="message-headers-section"]',
+    )!;
+
+    expect(box().parentElement).toBe(section);
+    expect(section.parentElement).toBe(body);
+    expect(classes(body)).toEqual(
+      expect.arrayContaining([`${TALL}flex`, `${TALL}flex-col`]),
+    );
+    expect(classes(section)).toEqual(
+      expect.arrayContaining([
+        `${TALL}flex`,
+        `${TALL}flex-col`,
+        `${TALL}flex-1`,
+        `${TALL}min-h-0`,
+      ]),
+    );
+    expect(classes(box())).toEqual(
+      expect.arrayContaining([`${TALL}flex-1`, `${TALL}min-h-32`]),
+    );
+    expect(scroll_classes(box())).toEqual(["overflow-y-auto"]);
+    expect(
+      [body, ...body.querySelectorAll("*")]
+        .filter((el) => el !== box())
+        .flatMap(scroll_classes),
+    ).toEqual([]);
+  });
+});

@@ -42,6 +42,8 @@ import {
   proxy_css_urls,
   list_remote_css_urls,
   escape_style_terminator,
+  strip_dark_media_queries,
+  scope_css_to_media_attribute,
 } from "./html_sanitizer_css";
 
 export { is_transparent_color_value } from "./html_sanitizer_css";
@@ -149,6 +151,20 @@ function classify_local_image_url(value: string): LocalImageUrl {
   }
 
   return { kind: "local" };
+}
+
+function has_alternate_image_source(img: Element): boolean {
+  if (img.getAttribute("srcset")?.trim()) return true;
+
+  const parent = img.parentElement;
+
+  if (!parent || parent.tagName.toLowerCase() !== "picture") return false;
+
+  return Array.from(parent.children).some(
+    (sibling) =>
+      sibling.tagName.toLowerCase() === "source" &&
+      !!sibling.getAttribute("srcset")?.trim(),
+  );
 }
 
 const MAX_RESERVED_PIXEL_HEIGHT = 40;
@@ -312,6 +328,8 @@ const PREVIEW_FORBIDDEN_REGEX =
   /<\/?(?:style|script|noscript|template|link|meta|base|iframe|object|embed)\b[^>]*>/gi;
 
 const PREVIEW_STYLE_BLOCK_REGEX = /<style[\s\S]*?<\/style\s*>/gi;
+const STYLE_MEDIA_ATTRIBUTE =
+  /(?:^|\s)media\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+))/i;
 
 function strip_until_stable(input: string, pattern: RegExp): string {
   let previous: string;
@@ -544,11 +562,20 @@ function sanitize_html_impl(
     : null;
 
   if (head_match) {
-    const style_regex = /<style[^>]*>([\s\S]*?)<\/style\s*>/gi;
+    const style_regex = /<style([^>]*)>([\s\S]*?)<\/style\s*>/gi;
     let style_match;
 
     while ((style_match = style_regex.exec(head_match[0])) !== null) {
-      let sanitized_css = sanitize_css_block(style_match[1], sandbox_mode);
+      const media_match = style_match[1].match(STYLE_MEDIA_ATTRIBUTE);
+      let sanitized_css = sanitize_css_block(
+        scope_css_to_media_attribute(
+          style_match[2],
+          media_match
+            ? (media_match[1] ?? media_match[2] ?? media_match[3])
+            : null,
+        ),
+        sandbox_mode,
+      );
 
       if (block_fonts) {
         const font_matches = sanitized_css.match(/@font-face\s*\{/gi) || [];
@@ -754,7 +781,10 @@ function sanitize_html_impl(
       if (!sandbox_mode) {
         return null;
       }
-      const raw_css = element.textContent || "";
+      const raw_css = scope_css_to_media_attribute(
+        element.textContent || "",
+        element.getAttribute("media"),
+      );
       let sanitized_css = sanitize_css_block(raw_css, sandbox_mode);
 
       if (block_fonts) {
@@ -810,6 +840,18 @@ function sanitize_html_impl(
       }
 
       return fragment;
+    }
+
+    if (tag_name === "source" && element.hasAttribute("media")) {
+      const media = strip_dark_media_queries(
+        element.getAttribute("media") || "",
+      );
+
+      if (media === null) {
+        return null;
+      }
+
+      element.setAttribute("media", media);
     }
 
     const new_element = output_doc.createElement(tag_name);
@@ -972,6 +1014,10 @@ function sanitize_html_impl(
 
     if (tag_name === "img") {
       let src = new_element.getAttribute("src") || "";
+
+      if (!src.trim() && !has_alternate_image_source(element)) {
+        return null;
+      }
       const local_image = classify_local_image_url(src);
 
       if (local_image.kind === "local") {

@@ -7412,6 +7412,7 @@ export const fr = {
       "Aster Bridge doit être installé et en cours d'exécution. Téléchargez-le depuis Paramètres > Bridge.",
     desktop_bridge_not_opened:
       "Aster Bridge ne s'est pas ouvert. Vérifiez qu'il est installé et en cours d'exécution, ou téléchargez-le depuis Paramètres > Bridge.",
+    desktop_bridge_opening: "Ouverture d'Aster Bridge...",
     desktop_bridge_set_up: "Configurer {{ client }}",
     bridge: "Bridge",
     bridge_description:

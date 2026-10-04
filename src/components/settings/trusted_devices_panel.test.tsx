@@ -24,7 +24,15 @@ import { createRoot, type Root } from "react-dom/client";
 
 import { TrustedDevicesPanel } from "./trusted_devices_panel";
 
-import { show_toast } from "@/components/toast/simple_toast";
+import { dismiss_toast, show_toast } from "@/components/toast/simple_toast";
+import {
+  clear_plan_cache,
+  get_current_plan_code,
+} from "@/services/plan_limits";
+
+const plan_state = vi.hoisted(() => ({
+  limits: { plan_code: "star" } as { plan_code: string } | null,
+}));
 
 vi.mock("@/lib/i18n/context", () => ({
   use_i18n: () => ({
@@ -35,7 +43,7 @@ vi.mock("@/lib/i18n/context", () => ({
 
 vi.mock("@/hooks/use_plan_limits", () => ({
   use_plan_limits: () => ({
-    limits: { plan_code: "star" },
+    limits: plan_state.limits,
     is_loading: false,
     load_failed: false,
     refresh: vi.fn(),
@@ -61,7 +69,8 @@ vi.mock("@/services/plan_limits", () => ({
 }));
 
 vi.mock("@/components/toast/simple_toast", () => ({
-  show_toast: vi.fn(),
+  show_toast: vi.fn(() => "opening-toast"),
+  dismiss_toast: vi.fn(),
 }));
 
 declare global {
@@ -70,6 +79,13 @@ declare global {
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
 const mocked_toast = vi.mocked(show_toast);
+const mocked_dismiss = vi.mocked(dismiss_toast);
+const mocked_plan_code = vi.mocked(get_current_plan_code);
+const mocked_clear_plan = vi.mocked(clear_plan_cache);
+
+function error_toasts() {
+  return mocked_toast.mock.calls.filter(([, kind]) => kind === "error");
+}
 
 describe("TrustedDevicesPanel desktop client setup", () => {
   let container: HTMLDivElement;
@@ -79,6 +95,7 @@ describe("TrustedDevicesPanel desktop client setup", () => {
 
   beforeEach(() => {
     vi.useFakeTimers();
+    plan_state.limits = { plan_code: "star" };
     opened_urls = [];
     Object.defineProperty(window, "location", {
       configurable: true,
@@ -127,16 +144,28 @@ describe("TrustedDevicesPanel desktop client setup", () => {
     expect(opened_urls).toEqual(["aster-mail://provision?label=Thunderbird"]);
   });
 
+  it("says Bridge is opening as soon as a client is picked", async () => {
+    await click_set_up("Thunderbird");
+
+    expect(mocked_toast).toHaveBeenCalledTimes(1);
+    expect(mocked_toast.mock.calls[0][0]).toBe(
+      "settings.desktop_bridge_opening",
+    );
+    expect(mocked_toast.mock.calls[0][1]).toBe("info");
+    expect(mocked_dismiss).not.toHaveBeenCalled();
+  });
+
   it("explains how to get Bridge when nothing opened the link", async () => {
     await click_set_up("Apple Mail");
-    expect(mocked_toast).not.toHaveBeenCalled();
+    expect(error_toasts()).toHaveLength(0);
 
     await act(async () => {
       vi.advanceTimersByTime(3000);
     });
 
-    expect(mocked_toast).toHaveBeenCalledTimes(1);
-    const [message, kind, , action] = mocked_toast.mock.calls[0];
+    expect(mocked_dismiss).toHaveBeenCalledWith("opening-toast");
+    expect(error_toasts()).toHaveLength(1);
+    const [message, kind, , action] = error_toasts()[0];
 
     expect(message).toBe("settings.desktop_bridge_not_opened");
     expect(kind).toBe("error");
@@ -161,7 +190,8 @@ describe("TrustedDevicesPanel desktop client setup", () => {
       vi.advanceTimersByTime(3000);
     });
 
-    expect(mocked_toast).not.toHaveBeenCalled();
+    expect(mocked_dismiss).toHaveBeenCalledWith("opening-toast");
+    expect(error_toasts()).toHaveLength(0);
   });
 
   it("stays quiet when the page is hidden by the handoff", async () => {
@@ -177,6 +207,57 @@ describe("TrustedDevicesPanel desktop client setup", () => {
     });
     visibility.mockRestore();
 
-    expect(mocked_toast).not.toHaveBeenCalled();
+    expect(mocked_dismiss).toHaveBeenCalledWith("opening-toast");
+    expect(error_toasts()).toHaveLength(0);
+  });
+
+  it("trusts a paid plan it already knows without asking again", async () => {
+    await click_set_up("Thunderbird");
+
+    expect(mocked_clear_plan).not.toHaveBeenCalled();
+    expect(mocked_plan_code).not.toHaveBeenCalled();
+    expect(opened_urls).toEqual(["aster-mail://provision?label=Thunderbird"]);
+  });
+
+  it("checks the plan again when it is not known yet", async () => {
+    plan_state.limits = null;
+    let resolve_plan: (code: string) => void = () => {};
+
+    mocked_plan_code.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolve_plan = resolve;
+        }),
+    );
+    await click_set_up("Outlook");
+
+    expect(mocked_clear_plan).toHaveBeenCalledTimes(1);
+    expect(mocked_plan_code).toHaveBeenCalledTimes(1);
+    expect(mocked_toast.mock.calls[0][0]).toBe(
+      "settings.desktop_bridge_opening",
+    );
+    expect(opened_urls).toEqual([]);
+
+    await act(async () => {
+      resolve_plan("star");
+    });
+
+    expect(opened_urls).toEqual(["aster-mail://provision?label=Outlook"]);
+  });
+
+  it("offers the upgrade instead when the fresh plan is free", async () => {
+    plan_state.limits = null;
+    mocked_plan_code.mockResolvedValueOnce("free");
+    await click_set_up("Generic IMAP");
+
+    expect(mocked_clear_plan).toHaveBeenCalledTimes(1);
+    expect(opened_urls).toEqual([]);
+    expect(mocked_dismiss).toHaveBeenCalledWith("opening-toast");
+
+    await act(async () => {
+      vi.advanceTimersByTime(3000);
+    });
+
+    expect(error_toasts()).toHaveLength(0);
   });
 });
