@@ -1298,6 +1298,7 @@ export const ko = {
     tracking_pixel: "추적 픽셀",
     image_blocked: "이미지 차단됨",
     tracking_pixel_blocked: "추적 픽셀 차단됨",
+    tracking_pixels_highlighted: "메시지에서 강조 표시됨: {{count}}",
     tracking_pixels_blocked_count: "추적 픽셀 {{count}}개 차단됨",
     me: "나",
     notification_banner_message:

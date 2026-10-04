@@ -37,6 +37,10 @@ import { TrackingProtectionShield } from "@/components/email/tracking_protection
 import { MobileExternalContentBanner } from "@/pages/mobile/mobile_detail_banners";
 import { I18nProvider, use_i18n } from "@/lib/i18n/context";
 import { get_translations_async } from "@/lib/i18n/translations";
+import {
+  report_tracking_pixel_markers,
+  use_tracking_pixels_highlighted,
+} from "@/stores/tracking_pixel_highlight_store";
 
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean;
@@ -81,6 +85,18 @@ function MobileBanner({ blocked }: { blocked: ExternalContentReport }) {
   return (
     <MobileExternalContentBanner on_load={() => {}} report={blocked} t={t} />
   );
+}
+
+function HighlightProbe() {
+  return (
+    <span data-testid="highlight-probe">
+      {use_tracking_pixels_highlighted() ? "on" : "off"}
+    </span>
+  );
+}
+
+function highlight_state(): string | null {
+  return document.querySelector("[data-testid='highlight-probe']")!.textContent;
 }
 
 function render(node: React.ReactNode, language: LanguageCode = "en") {
@@ -145,6 +161,156 @@ describe("subject tracking protection shield", () => {
       "t.beacon.example",
     ]);
     no_remote_loads();
+  });
+});
+
+describe("highlighting pixels in the message body", () => {
+  const owner = Symbol("test_markers");
+
+  afterEach(() => {
+    act(() => report_tracking_pixel_markers(owner, 0));
+  });
+
+  function shield(blocked = report(THREE_PIXELS)) {
+    render(
+      <>
+        <TrackingProtectionShield report={blocked} />
+        <HighlightProbe />
+      </>,
+    );
+
+    return container.querySelector("button")!;
+  }
+
+  function status_text(): string | null {
+    const status = document.querySelector(
+      "[data-testid='tracking-pixel-highlight-note']",
+    );
+
+    return status ? status.textContent : null;
+  }
+
+  it("is off until the shield is used", () => {
+    shield();
+
+    expect(highlight_state()).toBe("off");
+  });
+
+  it("highlights while the subject shield is hovered and stops when the pointer leaves", () => {
+    const trigger = shield();
+
+    act(() => {
+      trigger.dispatchEvent(new PointerEvent("pointerover", { bubbles: true }));
+    });
+    expect(highlight_state()).toBe("on");
+    act(() => {
+      trigger.dispatchEvent(
+        new PointerEvent("pointerout", {
+          bubbles: true,
+          relatedTarget: document.body,
+        }),
+      );
+    });
+    expect(highlight_state()).toBe("off");
+  });
+
+  it("highlights while the shield has keyboard focus", () => {
+    const trigger = shield();
+    const matches = trigger.matches.bind(trigger);
+
+    vi.spyOn(trigger, "matches").mockImplementation((selector: string) =>
+      selector === ":focus-visible" ? true : matches(selector),
+    );
+    act(() => trigger.focus());
+    expect(highlight_state()).toBe("on");
+    act(() => trigger.blur());
+    expect(highlight_state()).toBe("off");
+  });
+
+  it("keeps the highlight while the popover is open and says how many are marked", () => {
+    const trigger = shield();
+
+    act(() => {
+      trigger.click();
+    });
+    expect(highlight_state()).toBe("on");
+    const status = document.querySelector(
+      "[data-testid='tracking-pixel-highlight-note']",
+    )!;
+
+    expect(status.getAttribute("role")).toBe("status");
+    expect(status.textContent).toBe("");
+    act(() => report_tracking_pixel_markers(owner, 2));
+    expect(status_text()).toBe("Highlighted in the message: 2");
+  });
+
+  it("opens the popover beside the shield so it leaves the top of the message visible", () => {
+    const trigger = shield();
+
+    act(() => {
+      trigger.click();
+    });
+
+    const content = document.querySelector(
+      "[data-radix-popper-content-wrapper] > *",
+    )!;
+
+    expect(content.getAttribute("data-side")).toBe("left");
+  });
+
+  it("does not highlight from the shield when only links were cleaned", () => {
+    const trigger = shield({
+      ...report([], []),
+      cleaned_links: [
+        {
+          original_url: "https://shop.example/?utm_source=mail",
+          cleaned_url: "https://shop.example/",
+          params_removed: ["utm_source"],
+        },
+      ],
+    });
+
+    act(() => {
+      trigger.dispatchEvent(new PointerEvent("pointerover", { bubbles: true }));
+      trigger.click();
+    });
+    expect(highlight_state()).toBe("off");
+  });
+
+  it("highlights on mobile only while the tracker list is expanded", () => {
+    act(() => report_tracking_pixel_markers(owner, 3));
+    render(
+      <>
+        <MobileBanner blocked={report(THREE_PIXELS)} />
+        <HighlightProbe />
+      </>,
+    );
+    const toggle = container.querySelector<HTMLButtonElement>(
+      "[data-testid='tracking-pixel-indicator']",
+    )!;
+
+    expect(highlight_state()).toBe("off");
+    expect(status_text()).toBeNull();
+    act(() => toggle.click());
+    expect(highlight_state()).toBe("on");
+    expect(status_text()).toBe("Highlighted in the message: 3");
+    act(() => toggle.click());
+    expect(highlight_state()).toBe("off");
+    expect(status_text()).toBeNull();
+  });
+
+  it("does not highlight when no tracking pixels were blocked", () => {
+    render(
+      <>
+        <MobileBanner blocked={report([])} />
+        <HighlightProbe />
+      </>,
+    );
+
+    expect(
+      container.querySelector("[data-testid='tracking-pixel-indicator']"),
+    ).toBeNull();
+    expect(highlight_state()).toBe("off");
   });
 });
 

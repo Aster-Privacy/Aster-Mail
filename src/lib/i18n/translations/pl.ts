@@ -1277,6 +1277,7 @@ export const pl = {
     tracking_pixel: "Piksel śledzący",
     image_blocked: "Obraz zablokowany",
     tracking_pixel_blocked: "Piksel śledzący zablokowany",
+    tracking_pixels_highlighted: "Zaznaczone w wiadomości: {{count}}",
     tracking_pixels_blocked_count: "Zablokowano {{count}} piksele śledzące",
     tracking_pixels_blocked_count_one: "Zablokowano {{count}} piksel śledzący",
     tracking_pixels_blocked_count_few: "Zablokowano {{count}} piksele śledzące",

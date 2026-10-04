@@ -20,7 +20,7 @@
 //
 import type { ExternalContentReport } from "@/lib/html_sanitizer";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { ShieldCheckIcon } from "@heroicons/react/24/solid";
 
 import {
@@ -32,6 +32,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { summarize_tracking_pixels } from "@/lib/tracking_pixel_summary";
 import { TrackingPixelDomainList } from "@/components/email/tracking_pixel_domain_list";
 import { use_preferences } from "@/contexts/preferences_context";
+import { use_tracking_pixel_highlight_request } from "@/stores/tracking_pixel_highlight_store";
 
 interface TrackingProtectionShieldProps {
   report: ExternalContentReport;
@@ -42,8 +43,11 @@ export function TrackingProtectionShield({
   report,
   size = 16,
 }: TrackingProtectionShieldProps) {
-  const { t } = use_i18n();
+  const { t, is_rtl } = use_i18n();
   const { preferences } = use_preferences();
+  const [is_open, set_is_open] = useState(false);
+  const [is_hovered, set_is_hovered] = useState(false);
+  const [is_focused, set_is_focused] = useState(false);
 
   const spy_pixels = useMemo(
     () => summarize_tracking_pixels({ blocked_items: report.blocked_items }),
@@ -64,18 +68,30 @@ export function TrackingProtectionShield({
 
   const total_count = spy_pixels.count + report.cleaned_links.length;
 
+  use_tracking_pixel_highlight_request(
+    preferences.block_external_content &&
+      spy_pixels.count > 0 &&
+      (is_open || is_hovered || is_focused),
+  );
+
   if (!preferences.block_external_content) return null;
   if (total_count === 0) return null;
 
   return (
-    <Popover modal>
+    <Popover modal open={is_open} onOpenChange={set_is_open}>
       <PopoverTrigger asChild>
         <button
           className="flex-shrink-0 inline-flex items-center gap-1 transition-colors hover:opacity-80"
           style={{ color: "rgb(16, 185, 129)" }}
           type="button"
+          onBlur={() => set_is_focused(false)}
           onClick={(e) => e.stopPropagation()}
+          onFocus={(e) =>
+            set_is_focused(e.currentTarget.matches(":focus-visible"))
+          }
           onKeyDown={(e) => e.stopPropagation()}
+          onPointerEnter={() => set_is_hovered(true)}
+          onPointerLeave={() => set_is_hovered(false)}
         >
           <ShieldCheckIcon
             className="flex-shrink-0"
@@ -93,6 +109,8 @@ export function TrackingProtectionShield({
       <PopoverContent
         align="start"
         className="w-80 p-0"
+        collisionPadding={8}
+        side={is_rtl ? "right" : "left"}
         sideOffset={8}
         onClick={(e) => e.stopPropagation()}
       >

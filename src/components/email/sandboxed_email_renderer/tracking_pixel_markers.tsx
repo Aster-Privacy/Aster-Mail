@@ -18,14 +18,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { ShieldCheckIcon } from "@heroicons/react/24/solid";
-import { Tooltip } from "@aster/ui";
+import { useEffect, useRef, useState, type RefObject } from "react";
+
+import { TrackingPixelDot } from "@/components/email/tracking_pixel_dot";
+import {
+  report_tracking_pixel_markers,
+  use_tracking_pixels_highlighted,
+} from "@/stores/tracking_pixel_highlight_store";
 
 export const TRACKING_PIXEL_MARKER_SIZE_PX = 16;
-export const TRACKING_PIXEL_MARKER_GLYPH_PX = 11;
-
-const MARKER_OUTLINE =
-  "drop-shadow(0 0 0.5px var(--bg-primary)) drop-shadow(0 0 0.5px var(--bg-primary))";
 
 const TRACKING_PIXEL_SELECTOR =
   "img[data-blocked='true'][data-tracking-pixel='true']";
@@ -185,15 +186,46 @@ export function watch_tracking_pixel_markers(
 }
 
 interface TrackingPixelMarkersProps {
-  markers: TrackingPixelMarker[];
+  iframe_ref: RefObject<HTMLIFrameElement | null>;
   label: string;
 }
 
 export function TrackingPixelMarkers({
-  markers,
+  iframe_ref,
   label,
 }: TrackingPixelMarkersProps) {
-  if (markers.length === 0) return null;
+  const owner_ref = useRef(Symbol("tracking_pixel_markers"));
+  const highlighted = use_tracking_pixels_highlighted();
+  const [markers, set_markers] = useState<TrackingPixelMarker[]>([]);
+
+  useEffect(() => {
+    const iframe = iframe_ref.current;
+
+    if (!highlighted || !iframe) return;
+    let stop = watch_tracking_pixel_markers(iframe, set_markers);
+    const restart = () => {
+      stop();
+      stop = watch_tracking_pixel_markers(iframe, set_markers);
+    };
+
+    iframe.addEventListener("load", restart);
+
+    return () => {
+      iframe.removeEventListener("load", restart);
+      stop();
+      set_markers([]);
+    };
+  }, [highlighted, iframe_ref]);
+
+  useEffect(() => {
+    const owner = owner_ref.current;
+
+    report_tracking_pixel_markers(owner, markers.length);
+
+    return () => report_tracking_pixel_markers(owner, 0);
+  }, [markers.length]);
+
+  if (!highlighted || markers.length === 0) return null;
 
   return (
     <div
@@ -201,29 +233,21 @@ export function TrackingPixelMarkers({
       data-testid="tracking-pixel-markers"
     >
       {markers.map((marker) => (
-        <Tooltip key={marker.key} position="top" tip={label}>
-          <span
-            aria-label={label}
-            className="pointer-events-auto absolute flex items-center justify-center text-emerald-600 dark:text-emerald-500"
-            data-tracking-pixel-marker=""
-            role="img"
-            style={{
-              top: marker.top,
-              left: marker.left,
-              width: TRACKING_PIXEL_MARKER_SIZE_PX,
-              height: TRACKING_PIXEL_MARKER_SIZE_PX,
-            }}
-          >
-            <ShieldCheckIcon
-              aria-hidden="true"
-              style={{
-                width: TRACKING_PIXEL_MARKER_GLYPH_PX,
-                height: TRACKING_PIXEL_MARKER_GLYPH_PX,
-                filter: MARKER_OUTLINE,
-              }}
-            />
-          </span>
-        </Tooltip>
+        <span
+          key={marker.key}
+          aria-label={label}
+          className="absolute flex items-center justify-center"
+          data-tracking-pixel-marker=""
+          role="img"
+          style={{
+            top: marker.top,
+            left: marker.left,
+            width: TRACKING_PIXEL_MARKER_SIZE_PX,
+            height: TRACKING_PIXEL_MARKER_SIZE_PX,
+          }}
+        >
+          <TrackingPixelDot />
+        </span>
       ))}
     </div>
   );

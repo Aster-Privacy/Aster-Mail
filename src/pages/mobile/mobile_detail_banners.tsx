@@ -33,6 +33,7 @@ import { ShieldCheckIcon } from "@heroicons/react/24/solid";
 import { is_system_email } from "@/lib/utils";
 import { summarize_tracking_pixels } from "@/lib/tracking_pixel_summary";
 import { TrackingPixelDomainList } from "@/components/email/tracking_pixel_domain_list";
+import { use_tracking_pixel_highlight_request } from "@/stores/tracking_pixel_highlight_store";
 import {
   execute_unsubscribe,
   get_sender_domain,
@@ -215,9 +216,13 @@ export function MobileExternalContentBanner({
   const [dismissed, set_dismissed] = useState(false);
   const [trackers_open, set_trackers_open] = useState(false);
 
-  if (dismissed || report.blocked_count === 0) return null;
-
   const tracking_pixels = summarize_tracking_pixels(report);
+
+  use_tracking_pixel_highlight_request(
+    trackers_open && !dismissed && tracking_pixels.count > 0,
+  );
+
+  if (dismissed || report.blocked_count === 0) return null;
   const parts: string[] = [];
 
   if (report.has_remote_images) {

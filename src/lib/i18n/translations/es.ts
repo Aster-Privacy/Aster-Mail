@@ -1274,6 +1274,7 @@ export const es = {
     tracking_pixel: "Píxel de rastreo",
     image_blocked: "Imagen bloqueada",
     tracking_pixel_blocked: "Píxel de rastreo bloqueado",
+    tracking_pixels_highlighted: "Resaltados en el mensaje: {{count}}",
     tracking_pixels_blocked_count: "{{count}} píxeles de rastreo bloqueados",
     tracking_pixels_blocked_count_one: "{{count}} píxel de rastreo bloqueado",
     me: "yo",

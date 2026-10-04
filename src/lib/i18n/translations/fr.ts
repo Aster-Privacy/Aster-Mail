@@ -1285,6 +1285,7 @@ export const fr = {
     tracking_pixel: "Pixel de suivi",
     image_blocked: "Image bloquée",
     tracking_pixel_blocked: "Pixel de suivi bloqué",
+    tracking_pixels_highlighted: "Mis en évidence dans le message : {{count}}",
     tracking_pixels_blocked_count: "{{count}} pixels de suivi bloqués",
     tracking_pixels_blocked_count_one: "{{count}} pixel de suivi bloqué",
     me: "moi",

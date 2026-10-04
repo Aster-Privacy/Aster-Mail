@@ -1113,6 +1113,7 @@ export const de = {
     tracking_pixel: "Tracking-Pixel",
     image_blocked: "Bild blockiert",
     tracking_pixel_blocked: "Tracking-Pixel blockiert",
+    tracking_pixels_highlighted: "In der Nachricht markiert: {{count}}",
     tracking_pixels_blocked_count: "{{count}} Tracking-Pixel blockiert",
     tracking_pixels_blocked_count_one: "{{count}} Tracking-Pixel blockiert",
     me: "ich",

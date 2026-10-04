@@ -1216,6 +1216,7 @@ export const ar = {
     tracking_pixel: "بكسل تتبع",
     image_blocked: "تم حظر الصورة",
     tracking_pixel_blocked: "تم حظر بكسل التتبع",
+    tracking_pixels_highlighted: "مميّزة في الرسالة: {{count}}",
     tracking_pixels_blocked_count: "تم حظر {{count}} بكسل تتبع",
     tracking_pixels_blocked_count_one: "تم حظر {{count}} بكسل تتبع",
     tracking_pixels_blocked_count_two: "تم حظر {{count}} من بكسلات التتبع",

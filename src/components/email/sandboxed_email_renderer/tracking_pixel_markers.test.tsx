@@ -23,11 +23,16 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 import {
-  TRACKING_PIXEL_MARKER_GLYPH_PX,
   TRACKING_PIXEL_MARKER_SIZE_PX,
   TrackingPixelMarkers,
   locate_tracking_pixel_markers,
 } from "./tracking_pixel_markers";
+
+import { TRACKING_PIXEL_DOT_PX } from "@/components/email/tracking_pixel_dot";
+import {
+  request_tracking_pixel_highlight,
+  use_tracking_pixel_marker_total,
+} from "@/stores/tracking_pixel_highlight_store";
 
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean;
@@ -138,31 +143,110 @@ describe("locate_tracking_pixel_markers", () => {
 describe("TrackingPixelMarkers", () => {
   let container: HTMLDivElement;
   let root: Root;
+  let iframe: HTMLIFrameElement;
+  let release_highlight: (() => void) | null = null;
+
+  function highlight() {
+    act(() => {
+      release_highlight = request_tracking_pixel_highlight();
+    });
+  }
+
+  function release() {
+    act(() => release_highlight?.());
+    release_highlight = null;
+  }
+
+  function MarkedTotal() {
+    return (
+      <span data-testid="marked-total">
+        {use_tracking_pixel_marker_total()}
+      </span>
+    );
+  }
+
+  function marked_total(): string | null {
+    return container.querySelector("[data-testid='marked-total']")!.textContent;
+  }
+
+  function show(label = "Tracking pixel blocked") {
+    act(() => {
+      root.render(
+        <>
+          <TrackingPixelMarkers
+            iframe_ref={{ current: iframe }}
+            label={label}
+          />
+          <MarkedTotal />
+        </>,
+      );
+    });
+  }
+
+  function add_pixel(box: DOMRect | null) {
+    const img = pixel("https://open.mailmetrics.example/o/1.gif");
+
+    document.body.append(img);
+    place(img, box);
+    const measure = vi.fn(img.getBoundingClientRect);
+
+    img.getBoundingClientRect = measure;
+
+    return measure;
+  }
 
   beforeEach(() => {
+    const frame_box = document.createElement("div");
+
+    iframe = document.createElement("iframe");
+    Object.defineProperty(iframe, "contentDocument", {
+      configurable: true,
+      get: () => document,
+    });
+    Object.defineProperty(frame_box, "clientWidth", { value: 600 });
+    Object.defineProperty(frame_box, "clientHeight", { value: 400 });
+    frame_box.append(iframe);
     container = document.createElement("div");
-    document.body.appendChild(container);
+    document.body.append(frame_box, container);
     root = createRoot(container);
   });
 
   afterEach(() => {
+    release();
     act(() => root.unmount());
-    container.remove();
     vi.restoreAllMocks();
   });
 
-  it("draws labelled badges in an overlay that never takes layout space or prints", () => {
-    act(() => {
-      root.render(
-        <TrackingPixelMarkers
-          label="Tracking pixel blocked"
-          markers={[
-            { key: "a", left: 40, top: 12 },
-            { key: "b", left: 8, top: 300 },
-          ]}
-        />,
-      );
-    });
+  it("draws nothing and measures nothing until the shield asks for it", () => {
+    const measure = add_pixel(rect(40, 20, 1, 1));
+
+    show();
+
+    expect(
+      container.querySelector("[data-testid='tracking-pixel-markers']"),
+    ).toBeNull();
+    expect(measure).not.toHaveBeenCalled();
+    expect(marked_total()).toBe("0");
+
+    highlight();
+    expect(
+      container.querySelectorAll("[data-tracking-pixel-marker]"),
+    ).toHaveLength(1);
+    expect(measure).toHaveBeenCalled();
+    expect(marked_total()).toBe("1");
+
+    release();
+    expect(
+      container.querySelector("[data-testid='tracking-pixel-markers']"),
+    ).toBeNull();
+    expect(marked_total()).toBe("0");
+  });
+
+  it("draws labelled static dots in an overlay that never takes layout space or prints", () => {
+    add_pixel(rect(40, 20, 1, 1));
+    add_pixel(rect(8, 300, 1, 1));
+    highlight();
+    show();
 
     const layer = container.querySelector<HTMLElement>(
       "[data-testid='tracking-pixel-markers']",
@@ -175,27 +259,35 @@ describe("TrackingPixelMarkers", () => {
     expect(layer.className).toContain("inset-0");
     expect(layer.className).toContain("pointer-events-none");
     expect(layer.className).toContain("print:hidden");
+    expect(badges.map((badge) => badge.getAttribute("role"))).toEqual([
+      "img",
+      "img",
+    ]);
     expect(badges.map((badge) => badge.getAttribute("aria-label"))).toEqual([
       "Tracking pixel blocked",
       "Tracking pixel blocked",
     ]);
-    expect(badges[0].className).toContain("absolute");
     expect(badges[0].style.left).toBe("40px");
-    expect(badges[0].style.top).toBe("12px");
     expect(badges[0].style.width).toBe(`${TRACKING_PIXEL_MARKER_SIZE_PX}px`);
-    const glyph = badges[0].querySelector("svg")!;
+    const dot = badges[0].querySelector<HTMLElement>(
+      "[data-tracking-pixel-dot]",
+    )!;
 
-    expect(glyph.style.width).toBe(`${TRACKING_PIXEL_MARKER_GLYPH_PX}px`);
-    expect(glyph.style.height).toBe(`${TRACKING_PIXEL_MARKER_GLYPH_PX}px`);
-    expect(glyph.getAttribute("aria-hidden")).toBe("true");
-    expect(badges[0].className).not.toContain("rounded-full");
+    expect(badges[0].querySelector("svg")).toBeNull();
+    expect(dot.style.width).toBe(`${TRACKING_PIXEL_DOT_PX}px`);
+    expect(dot.getAttribute("aria-hidden")).toBe("true");
+    expect(dot.className).toContain("bg-emerald-600");
+    expect(dot.className).toContain("rgb(255_255_255)");
+    expect(layer.innerHTML).not.toMatch(/animate-|transition/);
+    expect(layer.children).toHaveLength(2);
   });
 
-  it("renders nothing without visible pixels", () => {
-    act(() => {
-      root.render(<TrackingPixelMarkers label="x" markers={[]} />);
-    });
+  it("skips hidden pixels and draws nothing when none are visible", () => {
+    add_pixel(null);
+    highlight();
+    show();
 
-    expect(container.innerHTML).toBe("");
+    expect(container.querySelector("[data-tracking-pixel-marker]")).toBeNull();
+    expect(marked_total()).toBe("0");
   });
 });

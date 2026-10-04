@@ -1258,6 +1258,7 @@ export const ru = {
     tracking_pixel: "Пиксель отслеживания",
     image_blocked: "Изображение заблокировано",
     tracking_pixel_blocked: "Пиксель отслеживания заблокирован",
+    tracking_pixels_highlighted: "Отмечены в письме: {{count}}",
     tracking_pixels_blocked_count:
       "Заблокировано {{count}} пикселя отслеживания",
     tracking_pixels_blocked_count_one:

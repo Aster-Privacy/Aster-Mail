@@ -21,6 +21,11 @@
 import type { TrackingPixelSummary } from "@/lib/tracking_pixel_summary";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { TrackingPixelDot } from "@/components/email/tracking_pixel_dot";
+import {
+  use_tracking_pixel_marker_total,
+  use_tracking_pixels_highlighted,
+} from "@/stores/tracking_pixel_highlight_store";
 
 interface TrackingPixelDomainListProps {
   summary: TrackingPixelSummary;
@@ -30,6 +35,8 @@ export function TrackingPixelDomainList({
   summary,
 }: TrackingPixelDomainListProps) {
   const { t } = use_i18n();
+  const highlighted = use_tracking_pixels_highlighted();
+  const marked_count = use_tracking_pixel_marker_total();
 
   return (
     <div className="space-y-0.5" data-testid="tracking-pixel-domains">
@@ -53,6 +60,18 @@ export function TrackingPixelDomainList({
           )}
         </div>
       ))}
+      <p
+        className="flex items-center gap-2 px-2 pt-1.5 text-[11px] text-txt-muted empty:hidden"
+        data-testid="tracking-pixel-highlight-note"
+        role="status"
+      >
+        {highlighted && marked_count > 0 && (
+          <>
+            <TrackingPixelDot />
+            {t("common.tracking_pixels_highlighted", { count: marked_count })}
+          </>
+        )}
+      </p>
     </div>
   );
 }

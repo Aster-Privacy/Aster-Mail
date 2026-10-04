@@ -1302,6 +1302,7 @@ export const en: Translations = {
     tracking_pixel: "Tracking pixel",
     image_blocked: "Image blocked",
     tracking_pixel_blocked: "Tracking pixel blocked",
+    tracking_pixels_highlighted: "Highlighted in the message: {{count}}",
     tracking_pixels_blocked_count: "{{count}} tracking pixels blocked",
     tracking_pixels_blocked_count_one: "{{count}} tracking pixel blocked",
     me: "Me",
