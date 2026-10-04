@@ -29,7 +29,12 @@ import {
   clear_flag_intents,
   note_flag_intents,
   pick_flag_intents,
+  type FlagIntents,
 } from "@/services/read_intent";
+import {
+  note_own_mail_mutation,
+  settle_own_mail_mutation,
+} from "@/services/own_mail_mutations";
 import {
   remember_items_folder_context,
   remember_item_folder_context,
@@ -409,7 +414,14 @@ export async function reencrypt_mail_item_envelope(
 export async function delete_mail_item(
   item_id: string,
 ): Promise<ApiResponse<{ status: string }>> {
-  return api_client.delete<{ status: string }>(`/mail/v1/messages/${item_id}`);
+  const own = note_own_mail_mutation([item_id], ["delete"]);
+  const result = await api_client.delete<{ status: string }>(
+    `/mail/v1/messages/${item_id}`,
+  );
+
+  settle_own_mail_mutation(own, !result.error);
+
+  return result;
 }
 
 export async function bulk_update_mail_items(
@@ -484,18 +496,29 @@ export async function restore_mail_item(
 export async function permanent_delete_mail_item(
   item_id: string,
 ): Promise<ApiResponse<{ success: boolean; deleted_count: number }>> {
-  return api_client.delete<{ success: boolean; deleted_count: number }>(
-    `/mail/v1/messages/${item_id}/permanent`,
-  );
+  const own = note_own_mail_mutation([item_id], ["delete"]);
+  const result = await api_client.delete<{
+    success: boolean;
+    deleted_count: number;
+  }>(`/mail/v1/messages/${item_id}/permanent`);
+
+  settle_own_mail_mutation(own, !result.error);
+
+  return result;
 }
 
 export async function bulk_permanent_delete(
   ids: string[],
 ): Promise<ApiResponse<{ success: boolean; deleted_count: number }>> {
-  return api_client.delete<{ success: boolean; deleted_count: number }>(
-    "/mail/v1/messages/trash/bulk",
-    { data: { ids } },
-  );
+  const own = note_own_mail_mutation(ids, ["delete"]);
+  const result = await api_client.delete<{
+    success: boolean;
+    deleted_count: number;
+  }>("/mail/v1/messages/trash/bulk", { data: { ids } });
+
+  settle_own_mail_mutation(own, !result.error);
+
+  return result;
 }
 
 export async function empty_trash(): Promise<
@@ -705,15 +728,47 @@ export async function patch_mail_item_metadata(
 
   note_flag_intents([item_id], intent);
 
+  const own = note_own_mail_mutation(
+    [item_id],
+    metadata_echo_actions([intent]),
+  );
   const result = await api_client.put<{
     success: boolean;
     updated_count: number;
   }>(`/mail/v1/messages/${item_id}/metadata`, data);
 
+  settle_own_mail_mutation(own, !result.error);
   if (result.error) clear_flag_intents([item_id], intent);
   else ack_flag_intents([item_id], intent);
 
   return result;
+}
+
+const METADATA_ECHO_ALIASES: ReadonlyArray<
+  [keyof FlagIntents, boolean, readonly string[]]
+> = [
+  ["is_archived", true, ["archive"]],
+  ["is_archived", false, ["unarchive"]],
+  ["is_trashed", true, ["trash"]],
+  ["is_trashed", false, ["restore_trash"]],
+  ["is_spam", true, ["mark_spam", "spam"]],
+  ["is_spam", false, ["unmark_spam"]],
+  ["is_read", true, ["mark_read"]],
+  ["is_read", false, ["mark_unread"]],
+  ["is_starred", true, ["star"]],
+  ["is_starred", false, ["unstar"]],
+];
+
+function metadata_echo_actions(intents: FlagIntents[]): string[] {
+  const actions = ["update_metadata"];
+
+  for (const [flag, value, names] of METADATA_ECHO_ALIASES) {
+    if (intents.every((intent) => intent[flag] === value)) {
+      actions.push(...names);
+    }
+  }
+
+  return actions;
 }
 
 function note_bulk_read_intents(items: BulkPatchMetadataItem[]): void {
@@ -740,10 +795,16 @@ export async function bulk_patch_metadata(
 ): Promise<ApiResponse<{ success: boolean; updated_count: number }>> {
   note_bulk_read_intents(data.items);
 
+  const own = note_own_mail_mutation(
+    data.items.map((item) => item.id),
+    metadata_echo_actions(data.items.map((item) => pick_flag_intents(item))),
+  );
   const result = await api_client.put<{
     success: boolean;
     updated_count: number;
   }>("/mail/v1/messages/bulk/metadata", data);
+
+  settle_own_mail_mutation(own, !result.error);
 
   settle_bulk_read_intents(
     data.items,

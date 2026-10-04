@@ -22,6 +22,10 @@ import { api_client, type ApiResponse } from "./client";
 
 import { BATCH_LIMITS } from "@/constants/batch_config";
 import { clear_flag_intents, note_flag_intents } from "@/services/read_intent";
+import {
+  note_own_mail_mutation,
+  settle_own_mail_mutation,
+} from "@/services/own_mail_mutations";
 
 export interface ArchiveTierStats {
   tier: string;
@@ -133,9 +137,16 @@ export async function batch_archive(
 ): Promise<ApiResponse<BatchArchiveResponse>> {
   note_flag_intents(data.ids, { is_archived: true });
 
+  const own = note_own_mail_mutation(data.ids, ["archive"]);
   const result = await api_client.post<BatchArchiveResponse>(
     "/mail/v1/archive/batch",
     data,
+  );
+
+  settle_own_mail_mutation(
+    own,
+    !result.error && result.data?.success === true,
+    result.data?.failed_ids,
   );
 
   settle_archive_intents(
@@ -153,9 +164,16 @@ export async function batch_unarchive(
 ): Promise<ApiResponse<BatchUnarchiveResponse>> {
   note_flag_intents(data.ids, { is_archived: false });
 
+  const own = note_own_mail_mutation(data.ids, ["unarchive"]);
   const result = await api_client.post<BatchUnarchiveResponse>(
     "/mail/v1/archive/unarchive/batch",
     data,
+  );
+
+  settle_own_mail_mutation(
+    own,
+    !result.error && result.data?.success === true,
+    result.data?.failed_ids,
   );
 
   settle_archive_intents(
