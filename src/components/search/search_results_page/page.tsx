@@ -21,6 +21,7 @@
 import type { InboxEmail } from "@/types/email";
 
 import { useState, useMemo, useCallback, useRef } from "react";
+import { useLocation } from "react-router-dom";
 import {
   ArrowLeftIcon,
   ArrowPathIcon,
@@ -89,6 +90,7 @@ import { bulk_add_folder, bulk_remove_folder } from "@/services/api/mail";
 import { use_tags } from "@/hooks/use_tags";
 import { bulk_add_tag, bulk_remove_tag } from "@/services/api/tags";
 import { open_email_in_new_window } from "@/utils/open_email_window";
+import { search_view_for_path } from "@/utils/search_query";
 
 export function SearchResultsPage(props: SearchResultsPageProps) {
   const {
@@ -103,6 +105,8 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
     on_reply,
     on_forward,
   } = props;
+  const location = useLocation();
+  const scope_view = search_view_for_path(location.pathname);
   const {
     t,
     preferences,
@@ -834,6 +838,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
               on_advanced_click={() => set_advanced_open(true)}
               on_query_change={on_search_submit}
               query={query}
+              scope_view={scope_view}
             />
           )}
           {state.index_incomplete && (

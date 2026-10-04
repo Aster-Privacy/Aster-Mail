@@ -458,6 +458,15 @@ describe("structural chunk skipping", () => {
     expect(skip_query("in:archive", received)).toBe(false);
     expect(skip_query("in:archived", received)).toBe(false);
     expect(skip_query("in:anywhere", received)).toBe(false);
+    expect(skip_query("in:snoozed", received)).toBe(false);
+  });
+
+  it("skips by item type for in:scheduled", () => {
+    const received = summarize([{ item: { item_type: "received" } }]);
+    const scheduled = summarize([{ item: { item_type: "scheduled" } }]);
+
+    expect(skip_query("in:scheduled", received)).toBe(true);
+    expect(skip_query("in:scheduled", scheduled)).toBe(false);
   });
 
   it("never skips in: when a folder name could match", () => {

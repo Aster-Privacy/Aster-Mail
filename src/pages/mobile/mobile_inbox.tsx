@@ -982,7 +982,9 @@ function MobileInbox({
       ) : (
         <MobileHeader
           on_menu={on_open_drawer}
-          on_search={() => navigate("/search")}
+          on_search={() =>
+            navigate("/search", { state: { search_view: current_view } })
+          }
           right_actions={
             <>
               {is_trash_view && active_emails.length > 0 && (
