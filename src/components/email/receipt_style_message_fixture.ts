@@ -50,7 +50,7 @@ function style_block(): string {
     ".preheader { display: none !important; visibility: hidden; mso-hide: all; font-size: 1px; line-height: 1px; max-height: 0; max-width: 0; opacity: 0; overflow: hidden; }",
   ];
 
-  for (let index = 0; index < 90; index += 1) {
+  for (let index = 0; index < 60; index += 1) {
     rules.push(
       `.receipt_row_${index} td.receipt_cell_${index}, .receipt_row_${index} th { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Ubuntu, sans-serif; font-size: ${12 + (index % 5)}px; line-height: ${16 + (index % 7)}px; color: #414552; padding: ${index % 9}px ${index % 13}px; }`,
     );
@@ -92,11 +92,11 @@ export const RECEIPT_STYLE_MARKERS = [
 export function build_receipt_style_html(): string {
   const items: string[] = [];
 
-  for (let index = 0; index < 28; index += 1) items.push(line_item(index));
+  for (let index = 0; index < 20; index += 1) items.push(line_item(index));
 
   const footer_links: string[] = [];
 
-  for (let index = 0; index < 22; index += 1) {
+  for (let index = 0; index < 15; index += 1) {
     footer_links.push(
       `<a href="${tracking_link(9000 + index)}" target="_blank" rel="noopener" style="color:#625afa;text-decoration:none;font-weight:500;white-space:nowrap;">Footer link ${index + 1}</a>`,
     );
