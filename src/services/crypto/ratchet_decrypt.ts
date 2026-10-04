@@ -42,7 +42,12 @@ import {
 } from "./ratchet_plaintext_cache";
 import { detect_identity_pin_drift } from "./ratchet_prekey_bundle";
 import { has_peer_advertised_pq } from "./ratchet_identity_pin";
-import { record_peer_identity_event } from "./ratchet_verification_status";
+import {
+  is_unauthenticated_plaintext,
+  mark_unauthenticated_plaintext,
+  record_message_sender_identity,
+  record_peer_identity_event,
+} from "./ratchet_verification_status";
 import { open_recovery_lane } from "./ratchet_recovery_lane";
 import {
   archive_ratchet_state,
@@ -190,12 +195,23 @@ async function attempt_ratchet_decrypt(
         envelope.sender_identity_key,
       );
 
-      note_message_sender_identity(
-        message_id ?? dedupe_key ?? "",
-        sender_email,
-      );
+      const unauthenticated = is_unauthenticated_plaintext(plaintext);
 
-      if (dedupe_key) {
+      if (unauthenticated) {
+        record_message_sender_identity(
+          message_id ?? dedupe_key ?? "",
+          "unverified",
+        );
+      } else {
+        note_message_sender_identity(
+          message_id ?? dedupe_key ?? "",
+          sender_email,
+        );
+      }
+
+      if (dedupe_key && unauthenticated) {
+        await set_cached_ratchet_plaintext(dedupe_key, plaintext, true);
+      } else if (dedupe_key) {
         await set_cached_ratchet_plaintext(dedupe_key, plaintext);
         void upload_to_escrow(dedupe_key, plaintext).catch((caught) =>
           ignore_error(
@@ -783,7 +799,11 @@ async function decrypt_ratchet_for_recipient(
         vault,
       );
 
-      if (recovered !== null) return recovered;
+      if (recovered !== null) {
+        mark_unauthenticated_plaintext(recovered);
+
+        return recovered;
+      }
 
       if (data.recovery) {
         const refreshed = await fetch_refreshed_vault();
@@ -797,6 +817,7 @@ async function decrypt_ratchet_for_recipient(
           );
 
           if (recovered_refreshed !== null) {
+            mark_unauthenticated_plaintext(recovered_refreshed);
             await adopt_refreshed_vault(refreshed);
 
             return recovered_refreshed;

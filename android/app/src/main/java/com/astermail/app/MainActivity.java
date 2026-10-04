@@ -52,6 +52,7 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(ClipboardImagePlugin.class);
         registerPlugin(WidgetBridgePlugin.class);
+        registerPlugin(ScreenPrivacyPlugin.class);
         super.onCreate(savedInstanceState);
     }
 

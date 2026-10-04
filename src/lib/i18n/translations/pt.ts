@@ -1441,7 +1441,7 @@ export const pt = {
       "Esta mensagem falhou nestas verificações de remetente:",
     auth_fail_tooltip_spf:
       "O servidor que enviou isto não é um remetente aprovado para o domínio na linha De.",
-    back_to_inbox: "Voltar para a caixa de entrada",
+    back_to_inbox: "Voltar à caixa de entrada",
     birthday_section: "Aniversário",
     blocked_items_count: "{{count}} itens",
     call: "Ligar",
@@ -5881,7 +5881,7 @@ export const pt = {
     import_add_another: "Adicionar outra conta",
     import_choose_source: "Escolha uma origem",
     import_emails_description:
-      "Traga os seus e-mails do Gmail, Outlook ou outros serviços de e-mail. Os seus e-mails são encriptados no seu dispositivo antes de serem armazenados.",
+      "Traga os seus emails do Gmail, Outlook ou outros serviços de email. Os ficheiros que carrega são encriptados no seu dispositivo, e o correio de uma conta ligada é encriptado pelos servidores do Aster antes de ser guardado.",
     import_emails_button: "Importar e-mails",
     recent_imports: "Importações recentes",
     status_pending: "Pendente",
@@ -6799,6 +6799,11 @@ export const pt = {
       "Os extras são renovados todos os anos e faturados separadamente do seu plano. Se pagar com cripto, escolhe por quanto tempo pré-pagar.",
     storage_addon_supernova_nudge:
       "Se precisa de mais de 1 TB, considere o Supernova, que inclui 5 TB de armazenamento.",
+    storage_addon_add_size: "Adicionar {{size}}",
+    storage_addon_usage_near:
+      "O seu armazenamento está quase cheio. Adicione mais espaço para continuar a receber e-mails.",
+    storage_addon_usage_full:
+      "O seu armazenamento está cheio. Adicione mais espaço para continuar a receber e-mails.",
     bill_addon_summary: "{size} de armazenamento extra",
     bill_addon_pick_size: "Escolha quanto quer adicionar",
     storage_addons_description:
@@ -7182,7 +7187,7 @@ export const pt = {
       "As chaves de acesso podem ser adicionadas na aplicação web da Aster em app.astermail.org. Ainda pode visualizar e remover as chaves de acesso existentes aqui.",
     app_lock_pin: "Bloqueio por PIN",
     app_lock_pin_description:
-      "Requer um PIN para abrir o Aster Mail no navegador",
+      "Pede um PIN antes de mostrar o Aster Mail neste navegador. Oculta o seu correio de outras pessoas que utilizam este dispositivo, mas não encripta os dados aqui armazenados.",
     app_lock_choose_digits: "Escolher comprimento do PIN",
     app_lock_digits_4: "4 dígitos",
     app_lock_digits_6: "6 dígitos",
@@ -7748,9 +7753,9 @@ export const pt = {
       "Tem a certeza de que deseja parar a sincronização? Os e-mails já importados serão mantidos.",
     connect_modal_title: "Ligar {{provider}} ao Aster",
     connect_modal_description:
-      "Inicie sessão no {{provider}} para importar os seus e-mails para o Aster. As suas mensagens são encriptadas neste dispositivo antes de qualquer dado ser armazenado nos nossos servidores.",
+      "Inicie sessão em {{ provider }} para importar o seu correio para o Aster. Os servidores do Aster transferem as suas mensagens de {{ provider }} e encriptam-nas antes de as guardar.",
     connect_modal_privacy_note:
-      "O Aster pede apenas as permissões de e-mail necessárias para importar a sua caixa de entrada. Nunca lemos, analisamos nem vendemos as suas mensagens.",
+      "O Aster pede apenas o acesso ao correio necessário para importar a sua caixa de entrada, e nunca analisa nem vende as suas mensagens.",
     connect_provider_name_google: "Gmail",
     connect_provider_name_microsoft: "Outlook",
     connect_provider_name_yahoo: "Yahoo",
@@ -9507,6 +9512,9 @@ export const pt = {
     verifying_credentials: "A verificar credenciais...",
     decrypting_vault: "A desencriptar o seu cofre de chaves...",
     getting_user_info: "A obter informações do utilizador...",
+    checkout_confirm_title: "Concluir o início de sessão",
+    checkout_confirm_description:
+      "A sua compra está concluída. Para abrir a sua caixa de correio, continue como {{email}}.",
     enter_backup_code: "Introduza o código de cópia de segurança",
     backup_code_length_error:
       "Um código de cópia de segurança tem 12 caracteres (8 nos códigos antigos). Verifique o código e tente novamente.",
@@ -9777,7 +9785,7 @@ export const pt = {
     n_recovery_codes: "{{count}} códigos de recuperação",
     import_mail_step_title: "Traga o seu correio consigo",
     import_mail_step_desc:
-      "Mova mensagens de outra conta para o Aster. Tudo é encriptado no seu dispositivo antes de ser guardado.",
+      "Mova mensagens de outra conta para o Aster. Os ficheiros que carrega são encriptados no seu dispositivo, e o correio de uma conta ligada é encriptado pelos servidores do Aster antes de ser guardado.",
     recovery_code_already_used:
       "Este código já foi usado. Cada código funciona uma vez, por isso introduza outro da sua lista guardada.",
     recovery_code_replaced:
@@ -10478,6 +10486,8 @@ export const pt = {
       "Não foi possível ler esta expressão. Verifique a sintaxe e tente novamente.",
     expr_line_col: "(linha {{line}}, coluna {{col}})",
     editor_description: "Dê um nome à sua regra e indique-lhe o que fazer.",
+    editor_server_notice:
+      "As regras são executadas nos servidores da Aster, pelo que a Aster pode ler as respetivas condições e endereços de reencaminhamento.",
     drag_handle: "Pega para arrastar",
     no_labels: "Sem etiquetas",
     no_labels_create_hint: "Nenhuma etiqueta ainda. Crie uma na barra lateral.",

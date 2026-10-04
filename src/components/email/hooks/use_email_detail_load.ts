@@ -802,6 +802,7 @@ export function use_email_detail_load() {
             ...(resolve_forwarding_display(
               envelope.from,
               envelope.raw_headers,
+              response.data,
             ) ?? {}),
             raw_headers: envelope.raw_headers,
             subject: envelope.subject || t("mail.no_subject"),

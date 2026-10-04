@@ -44,6 +44,7 @@ import { reprotect_vault_keys_for_password_change } from "@/services/crypto/iden
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { show_toast } from "@/components/toast/simple_toast";
+import { generate_auth_salt } from "@/services/crypto/auth_salt_guard";
 import { use_i18n } from "@/lib/i18n/context";
 import { clamp_password } from "@/services/sanitize";
 import { ButtonSpinner } from "@/components/ui/spinner";
@@ -449,7 +450,7 @@ export function SecuritySection({
         serialize_kek_for_vault(old_tag_hash),
       );
 
-      const new_salt = crypto.getRandomValues(new Uint8Array(16));
+      const new_salt = generate_auth_salt();
       const { hash: new_pw_hash, salt: new_pw_salt } =
         await derive_password_hash(new_password, new_salt);
       const { encrypted_vault: new_enc_vault, vault_nonce: new_v_nonce } =

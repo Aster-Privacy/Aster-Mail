@@ -5760,7 +5760,7 @@ export const pt_br = {
     import_add_another: "Adicionar outra conta",
     import_choose_source: "Escolha uma origem",
     import_emails_description:
-      "Traga seus e-mails do Gmail, Outlook ou outros serviços de e-mail. Seus e-mails são criptografados no seu dispositivo antes de serem armazenados.",
+      "Traga seus e-mails do Gmail, Outlook ou outros serviços de e-mail. Os arquivos que você envia são criptografados no seu dispositivo, e os e-mails de uma conta conectada são criptografados pelos servidores do Aster antes de serem armazenados.",
     import_emails_button: "Importar e-mails",
     recent_imports: "Importações recentes",
     status_pending: "Pendente",
@@ -6667,6 +6667,11 @@ export const pt_br = {
       "Os complementos são renovados todo ano e cobrados separadamente do seu plano. Se você pagar com cripto, escolhe por quanto tempo pré-pagar.",
     storage_addon_supernova_nudge:
       "Se você precisa de mais de 1 TB, considere o Supernova, que inclui 5 TB de armazenamento.",
+    storage_addon_add_size: "Adicionar {{size}}",
+    storage_addon_usage_near:
+      "Seu armazenamento está quase cheio. Adicione mais espaço para continuar recebendo e-mails.",
+    storage_addon_usage_full:
+      "Seu armazenamento está cheio. Adicione mais espaço para continuar recebendo e-mails.",
     bill_addon_summary: "{size} de armazenamento extra",
     bill_addon_pick_size: "Escolha quanto quer adicionar",
     storage_addons_description:
@@ -7045,7 +7050,7 @@ export const pt_br = {
       "As chaves de acesso podem ser adicionadas no aplicativo web da Aster em app.astermail.org. Você ainda pode visualizar e remover as chaves de acesso existentes aqui.",
     app_lock_pin: "Bloqueio por PIN",
     app_lock_pin_description:
-      "Requer um PIN para abrir o Aster Mail no navegador",
+      "Pede um PIN antes de mostrar o Aster Mail neste navegador. Ele oculta seus e-mails de outras pessoas que usam este dispositivo, mas não criptografa os dados armazenados aqui.",
     app_lock_choose_digits: "Escolher comprimento do PIN",
     app_lock_digits_4: "4 dígitos",
     app_lock_digits_6: "6 dígitos",
@@ -7610,9 +7615,9 @@ export const pt_br = {
       "Tem certeza de que deseja parar a sincronização? Os e-mails já importados serão mantidos.",
     connect_modal_title: "Conectar {{provider}} ao Aster",
     connect_modal_description:
-      "Entre no {{provider}} para importar seus e-mails para o Aster. Suas mensagens são criptografadas neste dispositivo antes de qualquer coisa ser armazenada em nossos servidores.",
+      "Entre em {{ provider }} para importar seus e-mails para o Aster. Os servidores do Aster baixam suas mensagens de {{ provider }} e as criptografam antes de armazená-las.",
     connect_modal_privacy_note:
-      "O Aster solicita apenas as permissões de e-mail necessárias para importar sua caixa de entrada. Nunca lemos, analisamos ou vendemos suas mensagens.",
+      "O Aster solicita apenas o acesso necessário para importar sua caixa de entrada e nunca analisa nem vende suas mensagens.",
     connect_provider_name_google: "Gmail",
     connect_provider_name_microsoft: "Outlook",
     connect_provider_name_yahoo: "Yahoo",
@@ -9454,6 +9459,9 @@ export const pt_br = {
     verifying_credentials: "Verificando credenciais...",
     decrypting_vault: "Descriptografando seu cofre de chaves...",
     getting_user_info: "Obtendo informações do usuário...",
+    checkout_confirm_title: "Concluir o login",
+    checkout_confirm_description:
+      "Sua compra foi concluída. Para abrir sua caixa de entrada, continue como {{email}}.",
     enter_backup_code: "Digite o código de backup",
     backup_code_length_error:
       "Um código de backup tem 12 caracteres (8 em códigos antigos). Confira o código e tente novamente.",
@@ -9709,7 +9717,7 @@ export const pt_br = {
     n_recovery_codes: "{{count}} códigos de recuperação",
     import_mail_step_title: "Traga seus e-mails com você",
     import_mail_step_desc:
-      "Mova mensagens de outra conta para o Aster. Tudo é criptografado no seu dispositivo antes de ser armazenado.",
+      "Mova mensagens de outra conta para o Aster. Os arquivos que você envia são criptografados no seu dispositivo, e os e-mails de uma conta conectada são criptografados pelos servidores do Aster antes de serem armazenados.",
     import_mail_skip: "Começar com a caixa vazia",
     import_mail_privacy_note:
       "Você também pode importar mais tarde em Configurações.",
@@ -10415,6 +10423,8 @@ export const pt_br = {
       "Não foi possível ler esta expressão. Verifique a sintaxe e tente novamente.",
     expr_line_col: "(linha {{line}}, coluna {{col}})",
     editor_description: "Dê um nome à sua regra e diga o que ela deve fazer.",
+    editor_server_notice:
+      "As regras são executadas nos servidores da Aster, então a Aster pode ler as condições e os endereços de encaminhamento delas.",
     drag_handle: "Alça de arrastar",
     no_labels: "Sem etiquetas",
     no_labels_create_hint: "Nenhuma etiqueta ainda. Crie uma na barra lateral.",

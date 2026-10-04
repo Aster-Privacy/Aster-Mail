@@ -32,6 +32,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -63,6 +65,13 @@ jobs:
             build-essential \
             file \
             xdg-utils
+
+      - name: Install frontend dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci --no-audit --no-fund --ignore-scripts
+          npx --no-install patch-package
 
       - name: Import Apple certificate
         if: matrix.leg == 'mac'
@@ -104,21 +113,12 @@ jobs:
           echo "$APPLE_API_KEY_CONTENT" | base64 --decode > ~/private_keys/AuthKey_${APPLE_API_KEY}.p8
           echo "APPLE_API_KEY_PATH=$HOME/private_keys/AuthKey_${APPLE_API_KEY}.p8" >> "$GITHUB_ENV"
 
-      - name: Build @aster/ui
-        run: |
-          git clone --depth=1 https://github.com/Aster-Privacy/aster-ui.git ../aster-ui
-          cd ../aster-ui
-          npm ci --no-audit --no-fund
-          npm run build
-
-      - name: Install frontend dependencies
-        run: npm ci --no-audit --no-fund
-
       - name: Build and publish release
         uses: tauri-apps/tauri-action@84b9d35b5fc46c1e45415bdb6144030364f7ebc5 # v0.6.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
           APPLE_SIGNING_IDENTITY: ${{ env.APPLE_SIGNING_IDENTITY }}
           APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
           APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
@@ -141,6 +141,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         shell: bash
         run: |
           set -uo pipefail
@@ -213,6 +214,8 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Rewrite latest.json with canonical asset URLs
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -284,6 +287,8 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Carry forward any missing canonical installers
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -326,6 +331,8 @@ jobs:
       attestations: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Download the canonical installers
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -353,6 +360,8 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Ensure the release body carries the wordmark and install alert
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

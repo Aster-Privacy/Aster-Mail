@@ -248,7 +248,10 @@ export function PopupEmailHeader({
                 {show_sender_name}
               </span>
               <OfficialBadge sender={email} />
-              <VerifiedSenderBadge domain={email.sender_verified_domain} />
+              <VerifiedSenderBadge
+                domain={email.sender_verified_domain}
+                shown_email={show_sender_email}
+              />
               {snoozed_until && (
                 <SnoozeBadge
                   className="flex-shrink-0"

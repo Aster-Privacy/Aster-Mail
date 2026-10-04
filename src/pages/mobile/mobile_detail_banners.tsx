@@ -35,7 +35,6 @@ import {
   get_manual_unsubscribe_url,
 } from "@/utils/unsubscribe_detector";
 import { open_external } from "@/utils/open_link";
-import { track_subscription } from "@/services/api/subscriptions";
 import {
   persist_unsubscribe,
   use_unsubscribed_senders,
@@ -44,7 +43,6 @@ import { show_action_toast } from "@/components/toast/action_toast";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { use_preferences } from "@/contexts/preferences_context";
 import { get_undo_send_delay_ms } from "@/services/send_queue";
-import { ignore_error } from "@/lib/ignore_error";
 
 export function MobileUnsubscribeBanner({
   email,
@@ -104,18 +102,6 @@ export function MobileUnsubscribeBanner({
       preferences.undo_send_enabled,
       preferences.undo_send_seconds,
       preferences.undo_send_period,
-    );
-
-    track_subscription({
-      sender_email: email.sender_email,
-      sender_name: email.sender,
-      unsubscribe_link: info.unsubscribe_link,
-      list_unsubscribe_header: info.list_unsubscribe_header,
-    }).catch((caught) =>
-      ignore_error(
-        "pages/mobile/mobile_detail_banners:handle_unsubscribe",
-        caught,
-      ),
     );
 
     if (delay_ms > 0) {

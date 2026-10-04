@@ -40,6 +40,7 @@ import {
   store_session_passphrase,
   get_session_passphrase,
   has_stored_session_passphrase,
+  is_session_passphrase_on_device,
   clear_session_passphrase,
   clear_all_session_passphrases,
 } from "./session_passphrase";
@@ -76,6 +77,29 @@ describe("session passphrase storage", () => {
     expect(sessionStorage.getItem(KEY_NAME)).not.toBeNull();
     expect(has_stored_session_passphrase(ACCOUNT)).toBe(true);
     expect(await get_session_passphrase(ACCOUNT)).toBe("hunter2-long-pass");
+  });
+
+  it("reports whether the passphrase is kept on the device", async () => {
+    expect(is_session_passphrase_on_device(ACCOUNT)).toBe(false);
+
+    await store_session_passphrase(ACCOUNT, "hunter2-long-pass", false);
+    expect(is_session_passphrase_on_device(ACCOUNT)).toBe(false);
+
+    await store_session_passphrase(ACCOUNT, "hunter2-long-pass");
+    expect(is_session_passphrase_on_device(ACCOUNT)).toBe(true);
+  });
+
+  it("keeps a tab-only passphrase tab-only when it is replaced", async () => {
+    await store_session_passphrase(ACCOUNT, "old-long-passphrase", false);
+    await store_session_passphrase(
+      ACCOUNT,
+      "new-long-passphrase",
+      is_session_passphrase_on_device(ACCOUNT),
+    );
+
+    expect(localStorage.getItem(KEY_NAME)).toBeNull();
+    expect(localStorage.getItem(IV_NAME)).toBeNull();
+    expect(await get_session_passphrase(ACCOUNT)).toBe("new-long-passphrase");
   });
 
   it("is gone once the tab storage is cleared", async () => {

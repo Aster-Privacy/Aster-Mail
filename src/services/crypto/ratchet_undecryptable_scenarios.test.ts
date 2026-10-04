@@ -99,6 +99,14 @@ import {
   RecoveryLaneUnavailableError,
 } from "@/services/crypto/ratchet_manager";
 
+import { upload_to_escrow } from "@/services/crypto/message_escrow";
+import { set_cached_ratchet_plaintext } from "@/services/crypto/ratchet_plaintext_cache";
+import {
+  get_message_sender_identity,
+  is_unauthenticated_plaintext,
+} from "@/services/crypto/ratchet_verification_status";
+import { is_ratchet_verified_body } from "@/utils/email_crypto";
+
 const SENDER = "sender@astermail.org";
 const RECIPIENT = "recipient@astermail.org";
 const ALIAS = "support@astermail.org";
@@ -648,5 +656,66 @@ describe("undecryptable-message failure modes", () => {
         "stranger1",
       ),
     ).toBeNull();
+  });
+});
+
+describe("recovery lane trust", () => {
+  beforeEach(() => {
+    h.vault = null;
+    h.bundle = null;
+    h.store.clear();
+    vi.mocked(upload_to_escrow).mockClear();
+    vi.mocked(set_cached_ratchet_plaintext).mockClear();
+  });
+
+  it("never marks lane-recovered mail as verified or escrows it", async () => {
+    const sender_vault = make_vault((await generate_ratchet_keys())!);
+    const receiver_vault = make_vault((await generate_ratchet_keys())!);
+
+    h.bundle = bundle_for(receiver_vault);
+
+    const envelope = await send("opened through the lane", sender_vault);
+    const parsed = parse_ratchet_envelope(envelope)!;
+
+    Reflect.deleteProperty(parsed.recipients[RECIPIENT], "ephemeral_key");
+    h.store.clear();
+    h.vault = receiver_vault;
+
+    const plaintext = await decrypt_ratchet_message(
+      RECIPIENT,
+      SENDER,
+      parsed,
+      receiver_vault,
+      "lane-1",
+    );
+
+    expect(plaintext).toBe("opened through the lane");
+    expect(is_unauthenticated_plaintext(plaintext)).toBe(true);
+    expect(is_ratchet_verified_body(envelope, plaintext)).toBe(false);
+    expect(get_message_sender_identity("lane-1")).toBe("unverified");
+    expect(upload_to_escrow).not.toHaveBeenCalled();
+    expect(set_cached_ratchet_plaintext).toHaveBeenCalledWith(
+      expect.stringContaining("lane-1"),
+      "opened through the lane",
+      true,
+    );
+  });
+
+  it("keeps ratchet-decrypted mail verified and escrowed", async () => {
+    const sender_vault = make_vault((await generate_ratchet_keys())!);
+    const receiver_vault = make_vault((await generate_ratchet_keys())!);
+
+    h.bundle = bundle_for(receiver_vault);
+
+    const envelope = await send("opened through the ratchet", sender_vault);
+
+    h.store.clear();
+
+    const plaintext = await receive(envelope, receiver_vault, "ratchet-1");
+
+    expect(plaintext).toBe("opened through the ratchet");
+    expect(is_unauthenticated_plaintext(plaintext)).toBe(false);
+    expect(is_ratchet_verified_body(envelope, plaintext)).toBe(true);
+    expect(upload_to_escrow).toHaveBeenCalledTimes(1);
   });
 });

@@ -23,6 +23,7 @@ import { describe, it, expect } from "vitest";
 import {
   detect_forwarded_alias,
   resolve_forwarding_display,
+  is_forwarder_authenticated,
   displayed_sender,
 } from "./forwarding_alias";
 
@@ -227,6 +228,58 @@ describe("resolve_forwarding_display", () => {
         headers({ From: "real@gmail.com" }),
       ),
     ).toBeUndefined();
+  });
+});
+
+describe("forwarder authentication", () => {
+  const forwarded = headers({
+    "X-SimpleLogin-Type": "Forward",
+    "X-SimpleLogin-Original-From": "Bank <alerts@bank.example>",
+  });
+
+  it("keeps the original sender when DMARC passes", () => {
+    expect(
+      resolve_forwarding_display(SL_ALIAS, forwarded, {
+        dkim_result: "pass",
+        dmarc_result: "pass",
+      })?.display_sender_email,
+    ).toBe("alerts@bank.example");
+  });
+
+  it("keeps the original sender for mail stored without results", () => {
+    expect(
+      resolve_forwarding_display(SL_ALIAS, forwarded, {})?.display_sender_email,
+    ).toBe("alerts@bank.example");
+  });
+
+  it("shows the literal sender when DMARC fails", () => {
+    expect(
+      resolve_forwarding_display(SL_ALIAS, forwarded, {
+        dkim_result: "pass",
+        dmarc_result: "fail",
+      }),
+    ).toBeUndefined();
+  });
+
+  it("shows the literal sender when DKIM fails and DMARC is absent", () => {
+    expect(
+      resolve_forwarding_display(SL_ALIAS, forwarded, { dkim_result: "fail" }),
+    ).toBeUndefined();
+    expect(
+      resolve_forwarding_display(SL_ALIAS, forwarded, {
+        dkim_result: "none",
+        dmarc_result: "none",
+      }),
+    ).toBeUndefined();
+  });
+
+  it("accepts a DKIM pass when the domain publishes no DMARC policy", () => {
+    expect(
+      is_forwarder_authenticated({ dkim_result: "PASS", dmarc_result: "none" }),
+    ).toBe(true);
+    expect(is_forwarder_authenticated({ dmarc_result: "temperror" })).toBe(
+      false,
+    );
   });
 });
 

@@ -25,6 +25,10 @@ import {
   generate_keypair,
   type EncryptedMessage,
 } from "./double_ratchet";
+import {
+  append_legacy_key_raw_bytes,
+  clear_legacy_keks_from_memory,
+} from "./legacy_keks";
 
 vi.mock("./encrypted_storage", () => ({
   encrypted_get: vi.fn(),
@@ -197,5 +201,75 @@ describe("DoubleRatchet state-corruption resistance", () => {
     await expect(bob.decrypt(forged)).rejects.toThrow();
 
     expect(snapshot_state(bob)).toBe(before);
+  });
+});
+
+describe("DoubleRatchet header version downgrade", () => {
+  it("never opens a stripped-version message with an account or legacy key", async () => {
+    const legacy_raw = crypto.getRandomValues(new Uint8Array(32));
+    const legacy_key = await crypto.subtle.importKey(
+      "raw",
+      legacy_raw,
+      { name: "AES-GCM", length: 256 },
+      false,
+      ["encrypt"],
+    );
+
+    await append_legacy_key_raw_bytes(legacy_raw.slice());
+
+    try {
+      const { alice } = await make_pair();
+      const enc = await alice.encrypt("real message");
+      const nonce = crypto.getRandomValues(new Uint8Array(12));
+      const foreign = new Uint8Array(
+        await crypto.subtle.encrypt(
+          { name: "AES-GCM", iv: nonce },
+          legacy_key,
+          new TextEncoder().encode("account secret"),
+        ),
+      );
+      const forged: EncryptedMessage = {
+        header: { ...enc.header, v: undefined },
+        ciphertext: btoa(String.fromCharCode(...foreign)),
+        nonce: btoa(String.fromCharCode(...nonce)),
+      };
+      const unrelated_key = crypto.getRandomValues(new Uint8Array(32));
+
+      await expect(
+        DoubleRatchet.decrypt_with_message_key(forged, unrelated_key),
+      ).rejects.toThrow();
+    } finally {
+      clear_legacy_keks_from_memory();
+    }
+  });
+
+  it("still opens genuine v1 messages under their own message key", async () => {
+    const message_key = crypto.getRandomValues(new Uint8Array(32));
+    const key = await crypto.subtle.importKey(
+      "raw",
+      message_key,
+      { name: "AES-GCM", length: 256 },
+      false,
+      ["encrypt"],
+    );
+    const nonce = crypto.getRandomValues(new Uint8Array(12));
+    const sealed = new Uint8Array(
+      await crypto.subtle.encrypt(
+        { name: "AES-GCM", iv: nonce },
+        key,
+        new TextEncoder().encode("legacy v1 mail"),
+      ),
+    );
+    const { alice } = await make_pair();
+    const enc = await alice.encrypt("x");
+    const v1: EncryptedMessage = {
+      header: { ...enc.header, v: undefined },
+      ciphertext: btoa(String.fromCharCode(...sealed)),
+      nonce: btoa(String.fromCharCode(...nonce)),
+    };
+
+    expect(await DoubleRatchet.decrypt_with_message_key(v1, message_key)).toBe(
+      "legacy v1 mail",
+    );
   });
 });

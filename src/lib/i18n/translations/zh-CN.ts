@@ -5194,7 +5194,7 @@ export const zh_CN = {
     import_add_another: "添加另一个账户",
     import_choose_source: "选择来源",
     import_emails_description:
-      "从 Gmail、Outlook 或其他邮件服务导入邮件。邮件在设备上加密后再存储。",
+      "从 Gmail、Outlook 或其他电子邮件服务导入邮件。你上传的文件会在你的设备上加密，来自已连接账户的邮件会在存储前由 Aster 服务器加密。",
     import_emails_button: "导入邮件",
     recent_imports: "最近的导入",
     status_pending: "待处理",
@@ -5375,6 +5375,11 @@ export const zh_CN = {
       "附加项每年续订，并与您的套餐分开计费。如果使用加密货币付款，您可以选择预付时长。",
     storage_addon_supernova_nudge:
       "如果您需要超过 1 TB 的空间，可以考虑 Supernova，它包含 5 TB 存储空间。",
+    storage_addon_add_size: "添加 {{size}}",
+    storage_addon_usage_near:
+      "您的存储空间即将用完。请添加空间以继续接收邮件。",
+    storage_addon_usage_full:
+      "您的存储空间已满。请添加空间以继续接收邮件。",
     bill_addon_summary: "{size} 额外存储空间",
     bill_addon_pick_size: "选择要添加的容量",
     storage_addons_description:
@@ -6256,7 +6261,8 @@ export const zh_CN = {
     passkeys_desktop_note:
       "您可以在 app.astermail.org 的 Aster 网页版中添加通行密钥。在这里可以查看和移除已有的通行密钥。",
     app_lock_pin: "PIN 锁定",
-    app_lock_pin_description: "在浏览器中打开 Aster Mail 时需要 PIN",
+    app_lock_pin_description:
+      "在此浏览器中显示 Aster Mail 之前要求输入 PIN。它会对使用此设备的其他人隐藏你的邮件，但不会加密存储在此处的数据。",
     app_lock_choose_digits: "选择 PIN 位数",
     app_lock_digits_4: "4 位",
     app_lock_digits_6: "6 位",
@@ -6692,9 +6698,9 @@ export const zh_CN = {
       "此连接是从另一个 Aster Mail 账户发起的。请使用该账户登录后重试。",
     connect_modal_title: "连接 {{provider}}",
     connect_modal_description:
-      "登录 {{ provider }} 以将邮件导入 Aster。在我们的服务器存储任何内容之前，您的邮件会先在此设备上加密。",
+      "登录 {{ provider }} 以将邮件导入 Aster。Aster 服务器会从 {{ provider }} 下载你的邮件，并在存储前对其加密。",
     connect_modal_privacy_note:
-      "Aster 仅请求导入收件箱所需的邮件权限范围。我们绝不会读取、扫描或出售您的邮件。",
+      "Aster 仅请求导入收件箱所需的邮件访问权限，绝不会扫描或出售你的邮件。",
     connect_provider_name_google: "Gmail",
     connect_provider_name_microsoft: "Outlook",
     connect_provider_name_yahoo: "Yahoo",
@@ -8373,6 +8379,9 @@ export const zh_CN = {
     verifying_credentials: "验证凭据中...",
     decrypting_vault: "解密密钥库中...",
     getting_user_info: "获取用户信息中...",
+    checkout_confirm_title: "完成登录",
+    checkout_confirm_description:
+      "您的购买已完成。要打开邮箱，请以 {{email}} 身份继续。",
     enter_backup_code: "输入备份代码",
     backup_code_length_error:
       "备份码为 12 个字符（旧版为 8 个）。请检查备份码后重试。",
@@ -8641,7 +8650,7 @@ export const zh_CN = {
     review_codes_left_other: "还剩 {{count}} 个恢复代码。",
     import_mail_step_title: "把邮件一起带过来",
     import_mail_step_desc:
-      "将其他账户中的邮件迁移到 Aster。所有内容都会先在您的设备上加密，再进行存储。",
+      "将其他账户中的邮件移至 Aster。你上传的文件会在你的设备上加密，来自已连接账户的邮件会在存储前由 Aster 服务器加密。",
     import_mail_skip: "从空收件箱开始",
     import_mail_privacy_note: "您也可以稍后在设置中导入。",
     password_reset_successful: "您的密码已重置",
@@ -9197,6 +9206,8 @@ export const zh_CN = {
     expr_internal_error: "无法读取此表达式。请检查语法后重试。",
     expr_line_col: "(第 {{line}} 行，第 {{col}} 列)",
     editor_description: "为规则命名并指定它的操作。",
+    editor_server_notice:
+      "规则在 Aster 服务器上运行，因此 Aster 可以读取规则的条件和转发地址。",
     drag_handle: "拖动手柄",
     title: "邮件规则",
     subtitle: "自动整理收件箱。",

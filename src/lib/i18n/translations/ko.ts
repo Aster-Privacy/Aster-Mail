@@ -5737,7 +5737,7 @@ export const ko = {
     import_add_another: "다른 계정 추가",
     import_choose_source: "가져올 곳 선택",
     import_emails_description:
-      "Gmail, Outlook 또는 기타 이메일 서비스에서 이메일을 가져오세요. 이메일은 저장되기 전에 기기에서 암호화됩니다.",
+      "Gmail, Outlook 또는 다른 이메일 서비스에서 이메일을 가져오세요. 업로드한 파일은 기기에서 암호화되고, 연결된 계정의 메일은 저장되기 전에 Aster 서버에서 암호화됩니다.",
     import_emails_button: "이메일 가져오기",
     recent_imports: "최근 가져오기",
     status_pending: "대기 중",
@@ -5939,6 +5939,11 @@ export const ko = {
       "애드온은 매년 갱신되며 요금제와 별도로 청구됩니다. 암호화폐로 결제하면 선불 기간을 선택할 수 있습니다.",
     storage_addon_supernova_nudge:
       "1TB보다 많은 용량이 필요하다면 5TB 저장 공간이 포함된 Supernova를 고려해 보세요.",
+    storage_addon_add_size: "{{size}} 추가",
+    storage_addon_usage_near:
+      "저장 공간이 거의 가득 찼습니다. 메일을 계속 받으려면 공간을 추가하세요.",
+    storage_addon_usage_full:
+      "저장 공간이 가득 찼습니다. 메일을 계속 받으려면 공간을 추가하세요.",
     bill_addon_summary: "추가 저장 공간 {size}",
     bill_addon_pick_size: "추가할 용량을 선택하세요",
     storage_addons_description:
@@ -6861,7 +6866,7 @@ export const ko = {
       "패스키는 app.astermail.org의 Aster 웹 앱에서 추가할 수 있습니다. 여기에서는 기존 패스키를 보고 삭제할 수 있습니다.",
     app_lock_pin: "PIN 잠금",
     app_lock_pin_description:
-      "브라우저에서 Aster Mail을 열 때 PIN이 필요합니다",
+      "이 브라우저에서 Aster Mail을 표시하기 전에 PIN을 요청합니다. 이 기기를 사용하는 다른 사람에게서 메일을 숨기지만, 여기에 저장된 데이터를 암호화하지는 않습니다.",
     app_lock_choose_digits: "PIN 자릿수 선택",
     app_lock_digits_4: "4자리",
     app_lock_digits_6: "6자리",
@@ -7389,9 +7394,9 @@ export const ko = {
     stop_sync_description: "이 계정의 이메일 동기화를 중지하시겠습니까?",
     connect_modal_title: "{{provider}}를 Aster에 연결",
     connect_modal_description:
-      "{{provider}} 계정을 연결하여 Aster Mail에서 이메일을 보고 보낼 수 있습니다.",
+      "{{ provider }}에 로그인하여 메일을 Aster로 가져옵니다. Aster 서버가 {{ provider }}에서 메시지를 다운로드하고 저장하기 전에 암호화합니다.",
     connect_modal_privacy_note:
-      "이메일은 기기에서 종단간 암호화됩니다. 서버는 이메일을 읽을 수 없습니다.",
+      "Aster는 받은편지함을 가져오는 데 필요한 메일 접근 권한만 요청하며, 메시지를 검사하거나 판매하지 않습니다.",
     connect_provider_name_google: "Gmail",
     connect_provider_name_microsoft: "Outlook",
     connect_provider_name_yahoo: "Yahoo",
@@ -9044,6 +9049,9 @@ export const ko = {
     verifying_credentials: "자격 증명 확인 중...",
     decrypting_vault: "키 금고 복호화 중...",
     getting_user_info: "사용자 정보 가져오는 중...",
+    checkout_confirm_title: "로그인 완료",
+    checkout_confirm_description:
+      "구매가 완료되었습니다. 메일함을 열려면 {{email}}(으)로 계속하세요.",
     enter_backup_code: "백업 코드 입력",
     backup_code_length_error:
       "백업 코드는 12자입니다(이전 코드는 8자). 코드를 확인하고 다시 시도하세요.",
@@ -9330,7 +9338,7 @@ export const ko = {
     review_codes_left_other: "복구 코드가 {{count}}개 남았습니다.",
     import_mail_step_title: "메일을 함께 가져오세요",
     import_mail_step_desc:
-      "다른 계정의 메시지를 Aster로 옮깁니다. 모든 내용은 저장 전에 기기에서 암호화됩니다.",
+      "다른 계정의 메시지를 Aster로 옮깁니다. 업로드한 파일은 기기에서 암호화되고, 연결된 계정의 메일은 저장되기 전에 Aster 서버에서 암호화됩니다.",
     import_mail_skip: "빈 받은편지함으로 시작",
     import_mail_privacy_note: "나중에 설정에서 가져올 수도 있습니다.",
     password_reset_successful: "비밀번호가 재설정되었습니다",
@@ -9947,6 +9955,8 @@ export const ko = {
       "이 표현식을 읽을 수 없습니다. 구문을 확인한 후 다시 시도하세요.",
     expr_line_col: "({{line}}행, {{col}}열)",
     editor_description: "규칙에 이름을 붙이고 할 일을 지정하세요.",
+    editor_server_notice:
+      "규칙은 Aster 서버에서 실행되므로 Aster가 규칙의 조건과 전달 주소를 읽을 수 있습니다.",
     drag_handle: "드래그 핸들",
     title: "메일 규칙",
     subtitle: "수신 메일을 자동으로 정리합니다.",

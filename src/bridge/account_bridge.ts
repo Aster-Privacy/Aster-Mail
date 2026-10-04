@@ -65,8 +65,9 @@ import {
 } from "@/lib/crypto/device_envelope";
 
 const CHANNEL = "aster_account_link";
-const SUPPORT_SITE_ACTIONS = new Set(["accounts", "set_current", "sign_out"]);
-const MAX_LINK_ATTEMPTS_PER_LOAD = 3;
+const SUPPORT_SITE_ACTIONS = new Set(["accounts", "sign_out"]);
+const MAX_FAILED_LINKS_PER_TAB = 3;
+const LINK_ATTEMPTS_KEY = "aster_bridge_link_attempts";
 const MAX_ACCOUNTS = 20;
 const MAX_PROFILE_PICTURE_LENGTH = 512_000;
 const CODE_PATTERN = /^[A-Za-z0-9_-]{4,128}$/;
@@ -104,16 +105,19 @@ interface token_session {
   csrf_token: string;
 }
 
+interface link_attempts {
+  failed: number;
+  linked: number;
+}
+
 interface session_call<T> {
   data?: T;
   error?: bridge_error;
 }
 
-let link_attempts = 0;
-let link_completed = false;
+let link_state: link_attempts = { failed: 0, linked: 0 };
 let parent_origin: string | null = null;
 let changed_timer: number | null = null;
-
 
 function error_from_api_code(code: ApiErrorCode | undefined): bridge_error {
   if (code === "UNAUTHORIZED" || code === "FORBIDDEN") return "session";
@@ -147,6 +151,47 @@ function base_headers(): Record<string, string> {
   return headers;
 }
 
+function count_of(value: unknown): number {
+  return typeof value === "number" && Number.isInteger(value) && value > 0
+    ? value
+    : 0;
+}
+
+function read_link_attempts(): link_attempts {
+  try {
+    const stored = JSON.parse(
+      sessionStorage.getItem(LINK_ATTEMPTS_KEY) ?? "null",
+    ) as Partial<link_attempts> | null;
+
+    return {
+      failed: count_of(stored?.failed),
+      linked: count_of(stored?.linked),
+    };
+  } catch {
+    return { failed: 0, linked: 0 };
+  }
+}
+
+function load_link_attempts(): link_attempts {
+  const stored = read_link_attempts();
+
+  link_state = {
+    failed: Math.max(link_state.failed, stored.failed),
+    linked: Math.max(link_state.linked, stored.linked),
+  };
+
+  return link_state;
+}
+
+function save_link_attempts(next: link_attempts): void {
+  link_state = next;
+  try {
+    sessionStorage.setItem(LINK_ATTEMPTS_KEY, JSON.stringify(next));
+  } catch {
+    return;
+  }
+}
+
 function profile_picture_of(account: StoredAccount): string | null {
   const picture = account.user.profile_picture;
 
@@ -174,7 +219,9 @@ function personal_accounts(accounts: StoredAccount[]): StoredAccount[] {
     .slice(0, MAX_ACCOUNTS);
 }
 
-async function handle_accounts(): Promise<bridge_result> {
+async function handle_accounts(
+  include_pictures: boolean,
+): Promise<bridge_result> {
   const accounts = await get_all_accounts();
 
   if (accounts_storage_unreadable()) {
@@ -193,7 +240,7 @@ async function handle_accounts(): Promise<bridge_result> {
         email: account.user.email,
         display_name: account.user.display_name ?? null,
         profile_color: account.user.profile_color ?? null,
-        profile_picture: profile_picture_of(account),
+        profile_picture: include_pictures ? profile_picture_of(account) : null,
         is_current,
         linkable:
           has_unlock_material(account.id) &&
@@ -310,11 +357,16 @@ async function handle_link(
   code: string,
   account_id: string,
 ): Promise<bridge_result> {
-  if (link_completed || link_attempts >= MAX_LINK_ATTEMPTS_PER_LOAD) {
+  const attempts = load_link_attempts();
+
+  if (
+    attempts.failed >= MAX_FAILED_LINKS_PER_TAB ||
+    attempts.linked >= MAX_ACCOUNTS
+  ) {
     return { ok: false, error: "rate_limited" };
   }
 
-  link_attempts += 1;
+  save_link_attempts({ ...attempts, failed: attempts.failed + 1 });
 
   const accounts = personal_accounts(await get_all_accounts());
   const account = accounts.find((candidate) => candidate.id === account_id);
@@ -363,7 +415,10 @@ async function handle_link(
 
   if (confirmed.error) return { ok: false, error: confirmed.error };
 
-  link_completed = true;
+  save_link_attempts({
+    failed: Math.max(0, link_state.failed - 1),
+    linked: link_state.linked + 1,
+  });
 
   return { ok: true };
 }
@@ -410,11 +465,23 @@ async function sign_out_one(
 async function handle_sign_out(
   account_ids: unknown,
   all: unknown,
+  may_purge_device: boolean,
 ): Promise<bridge_result> {
   const accounts = personal_accounts(await get_all_accounts());
 
   if (accounts_storage_unreadable()) {
     return { ok: false, error: "storage_unreadable" };
+  }
+
+  if (all === true && !may_purge_device) {
+    const current_id = await get_current_account_id();
+    let removed = 0;
+
+    for (const account of accounts) {
+      if (await sign_out_one(account, current_id)) removed += 1;
+    }
+
+    return { ok: true, removed };
   }
 
   if (all === true) {
@@ -466,10 +533,13 @@ async function handle_set_current(account_id: string): Promise<bridge_result> {
   return switched ? { ok: true } : { ok: false, error: "unavailable" };
 }
 
-function handle(request: bridge_request): Promise<bridge_result> {
+function handle(
+  request: bridge_request,
+  trusted_app: boolean,
+): Promise<bridge_result> {
   switch (request.action) {
     case "accounts":
-      return handle_accounts();
+      return handle_accounts(trusted_app);
     case "set_current":
       if (
         typeof request.account_id === "string" &&
@@ -491,7 +561,7 @@ function handle(request: bridge_request): Promise<bridge_result> {
 
       return Promise.resolve({ ok: false, error: "unsupported" });
     case "sign_out":
-      return handle_sign_out(request.account_ids, request.all);
+      return handle_sign_out(request.account_ids, request.all, trusted_app);
     default:
       return Promise.resolve({ ok: false, error: "unsupported" });
   }
@@ -550,7 +620,7 @@ function start_bridge() {
     parent_origin = event.origin;
 
     const outcome = action_allowed(event.origin, request.action)
-      ? handle(request)
+      ? handle(request, account_link_origins().includes(event.origin))
       : Promise.resolve<bridge_result>({ ok: false, error: "unsupported" });
 
     outcome

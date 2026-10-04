@@ -261,41 +261,6 @@ async function generate_search_token(value: string): Promise<string> {
   return array_to_base64(new Uint8Array(signature));
 }
 
-export async function import_vcard(
-  vcard_data: string,
-  parsed_contacts: ContactFormData[],
-): Promise<ApiResponse<ImportResult>> {
-  const contacts: ImportVCardContact[] = await Promise.all(
-    parsed_contacts.map(async (contact) => {
-      const contact_token = await generate_contact_token(contact);
-      const { encrypted_data, data_nonce } =
-        await encrypt_contact_data(contact);
-
-      const full_name = `${contact.first_name} ${contact.last_name}`.trim();
-      const name_search_token = full_name
-        ? await generate_search_token(full_name)
-        : undefined;
-      const email_search_token =
-        contact.emails.length > 0
-          ? await generate_search_token(contact.emails[0])
-          : undefined;
-
-      return {
-        contact_token,
-        encrypted_data,
-        data_nonce,
-        name_search_token,
-        email_search_token,
-      };
-    }),
-  );
-
-  return api_client.post<ImportResult>("/contacts/v1/import/vcard", {
-    vcard_data,
-    contacts,
-  });
-}
-
 const IMPORT_TIMEOUT_MS = 120000;
 
 export async function import_csv(

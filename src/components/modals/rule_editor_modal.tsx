@@ -692,6 +692,9 @@ export function RuleEditorModal({
       </ModalHeader>
 
       <ModalBody className="space-y-5">
+        <p className="text-xs text-txt-muted">
+          {t("mail_rules.editor_server_notice")}
+        </p>
         <div className="flex items-center gap-3">
           <Input
             className="flex-1"

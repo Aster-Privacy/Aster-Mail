@@ -32,7 +32,7 @@ import {
 } from "react";
 
 import { is_icon_failed, mark_icon_failed } from "@/lib/icon_cache";
-import { get_favicon_url } from "@/lib/favicon_url";
+import { use_favicon_src } from "@/hooks/use_favicon_src";
 import { CloseIcon, LockIcon } from "@/components/common/icons";
 import { EmailAutocomplete } from "@/components/common/email_autocomplete";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
@@ -62,7 +62,11 @@ export const DdgFavicon = memo(function DdgFavicon({
   const domain = get_domain_from_email(email);
   const [error, set_error] = useState(() => is_icon_failed(domain));
   const [prev_email, set_prev_email] = useState(email);
-  const url = domain && !is_icon_failed(domain) ? get_favicon_url(domain) : "";
+  const loaded = use_favicon_src(domain, !!domain && !is_icon_failed(domain));
+  const url =
+    domain && !is_icon_failed(domain) && !loaded.startsWith("data:")
+      ? loaded
+      : "";
 
   if (email !== prev_email) {
     set_prev_email(email);

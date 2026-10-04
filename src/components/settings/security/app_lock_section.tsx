@@ -52,6 +52,7 @@ import {
   is_locked_out,
   mark_session_unlocked,
   duress_pin_correct,
+  has_duress_pin,
   ensure_pepper,
   KDF_VERSION_PEPPER,
 } from "@/services/app_lock_store";
@@ -541,22 +542,22 @@ function SetupPinModal({
         try {
           const salt = generate_pin_salt();
           const existing = get_app_lock_config(account_id);
-          const duress_collides = existing?.duress_pin_hash
+          const had_duress = await has_duress_pin(account_id);
+          const duress_collides = had_duress
             ? await duress_pin_correct(account_id, next)
             : false;
           const duress_format_changed =
             existing?.pin_type !== "numeric" ||
             existing?.digits !== chosen_digits;
           const carrying_duress =
-            !duress_collides &&
-            !duress_format_changed &&
-            !!existing?.duress_pin_hash;
+            !duress_collides && !duress_format_changed && had_duress;
           const dropping_duress =
-            !carrying_duress && !!existing?.duress_pin_hash && !duress_collides;
+            !carrying_duress && had_duress && !duress_collides;
           const duress_fields = carrying_duress
             ? {
                 duress_pin_hash: existing!.duress_pin_hash,
                 duress_pin_salt: existing!.duress_pin_salt,
+                duress_tag: existing!.duress_tag,
               }
             : {};
           const use_pepper =
@@ -639,20 +640,20 @@ function SetupPinModal({
         try {
           const salt = generate_pin_salt();
           const existing = get_app_lock_config(account_id);
-          const duress_collides = existing?.duress_pin_hash
+          const had_duress = await has_duress_pin(account_id);
+          const duress_collides = had_duress
             ? await duress_pin_correct(account_id, text_input)
             : false;
           const duress_format_changed = existing?.pin_type !== "text";
           const carrying_duress =
-            !duress_collides &&
-            !duress_format_changed &&
-            !!existing?.duress_pin_hash;
+            !duress_collides && !duress_format_changed && had_duress;
           const dropping_duress =
-            !carrying_duress && !!existing?.duress_pin_hash && !duress_collides;
+            !carrying_duress && had_duress && !duress_collides;
           const duress_fields = carrying_duress
             ? {
                 duress_pin_hash: existing!.duress_pin_hash,
                 duress_pin_salt: existing!.duress_pin_salt,
+                duress_tag: existing!.duress_tag,
               }
             : {};
           const use_pepper =
