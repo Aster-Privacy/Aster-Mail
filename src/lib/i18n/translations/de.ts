@@ -4932,6 +4932,8 @@ export const de = {
     failed_remove_wkd:
       "Ihr Schlüssel wurde nicht aus dem öffentlichen Verzeichnis entfernt. Versuchen Sie es erneut.",
     key_published_keyserver: "Schlüssel auf Schlüsselserver veröffentlicht",
+    keyserver_publish_unconfirmed:
+      "Veröffentlichungsanfrage gesendet, aber der Status konnte nicht bestätigt werden.",
     keys_cannot_remove_keyservers:
       "Sobald ein Schlüssel auf einem öffentlichen Keyserver liegt, lässt er sich nicht mehr zurücknehmen. Vor dem Veröffentlichen einen Moment der Überlegung wert.",
     copied_to_clipboard: "In die Zwischenablage kopiert",

@@ -5082,6 +5082,8 @@ export const fr = {
     failed_remove_wkd:
       "Votre clé n'a pas été retirée de l'annuaire public. Réessayez.",
     key_published_keyserver: "Clé publiée sur le serveur de clés",
+    keyserver_publish_unconfirmed:
+      "Demande de publication envoyée, mais l'état n'a pas pu être confirmé.",
     failed_publish_keyserver:
       "Votre clé publique n'a pas été publiée sur le serveur de clés. Réessayez.",
     mailto_unregister_manual:

@@ -4973,6 +4973,8 @@ export const ko = {
     failed_remove_wkd:
       "공개 디렉터리에서 키를 삭제하지 못했습니다. 다시 시도하세요.",
     key_published_keyserver: "키서버에 키가 게시되었습니다",
+    keyserver_publish_unconfirmed:
+      "게시 요청을 보냈지만 상태를 확인할 수 없습니다.",
     failed_publish_keyserver:
       "공개 키를 키 서버에 게시하지 못했습니다. 다시 시도하세요.",
     mailto_unregister_manual:

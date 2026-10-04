@@ -4947,6 +4947,8 @@ export const ja = {
     failed_remove_wkd:
       "鍵を公開ディレクトリから削除できませんでした。もう一度お試しください。",
     key_published_keyserver: "キーサーバーにキーを公開しました",
+    keyserver_publish_unconfirmed:
+      "公開リクエストを送信しましたが、状態を確認できませんでした。",
     failed_publish_keyserver:
       "公開鍵を鍵サーバーに公開できませんでした。もう一度お試しください。",
     mailto_unregister_manual:

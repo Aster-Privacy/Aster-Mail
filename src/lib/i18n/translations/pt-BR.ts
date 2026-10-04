@@ -4977,6 +4977,8 @@ export const pt_br = {
     failed_remove_wkd:
       "Sua chave não foi removida do diretório público. Tente novamente.",
     key_published_keyserver: "Chave publicada no servidor de chaves",
+    keyserver_publish_unconfirmed:
+      "Solicitação de publicação enviada, mas não foi possível confirmar o status.",
     failed_publish_keyserver:
       "Sua chave pública não foi publicada no servidor de chaves. Tente novamente.",
     mailto_unregister_manual:

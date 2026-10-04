@@ -5148,6 +5148,8 @@ export const ru = {
     failed_remove_wkd:
       "Ключ не удалён из публичного каталога. Попробуйте снова.",
     key_published_keyserver: "Ключ опубликован на сервере ключей",
+    keyserver_publish_unconfirmed:
+      "Запрос на публикацию отправлен, но подтвердить его статус не удалось.",
     failed_publish_keyserver:
       "Открытый ключ не опубликован на сервере ключей. Попробуйте снова.",
     mailto_unregister_manual:

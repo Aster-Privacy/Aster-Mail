@@ -5209,6 +5209,7 @@ export interface SettingsTranslations {
   failed_publish_wkd: string;
   failed_remove_wkd: string;
   key_published_keyserver: string;
+  keyserver_publish_unconfirmed: string;
   failed_publish_keyserver: string;
   mailto_unregister_manual: string;
   failed_save_setting: string;

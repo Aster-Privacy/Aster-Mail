@@ -5909,6 +5909,8 @@ export const en: Translations = {
     failed_remove_wkd:
       "Your key was not removed from the public directory. Try again.",
     key_published_keyserver: "Key published to keyserver",
+    keyserver_publish_unconfirmed:
+      "Publish request sent, but the status could not be confirmed.",
     failed_publish_keyserver:
       "Your public key did not publish to the keyserver. Try again.",
     mailto_unregister_manual:

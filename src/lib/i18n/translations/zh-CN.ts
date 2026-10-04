@@ -4511,6 +4511,7 @@ export const zh_CN = {
       "您的公钥未能发布到公共目录。请重试。您的密钥未受影响。",
     failed_remove_wkd: "未能从公共目录中移除您的密钥。请重试。",
     key_published_keyserver: "密钥已发布到密钥服务器",
+    keyserver_publish_unconfirmed: "已发送发布请求，但无法确认其状态。",
     failed_publish_keyserver: "您的公钥未能发布到密钥服务器。请重试。",
     mailto_unregister_manual:
       "若不想让 Aster Mail 打开 mailto 链接，请在浏览器设置中移除该处理程序。",
