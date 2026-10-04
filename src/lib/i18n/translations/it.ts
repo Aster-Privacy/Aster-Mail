@@ -6798,6 +6798,12 @@ export const it = {
       "Non è stato possibile creare {{count}} cartelle, quindi i loro messaggi sono in Posta in arrivo.",
     import_folders_skipped_plural:
       "Non è stato possibile creare {{count}} cartelle, quindi i loro messaggi sono in Posta in arrivo.",
+    import_labels_created: "{{count}} etichette create",
+    import_labels_created_one: "{{count}} etichetta creata",
+    import_labels_skipped:
+      "Non è stato possibile creare {{count}} etichette, quindi i loro messaggi vengono importati senza.",
+    import_labels_skipped_one:
+      "Non è stato possibile creare {{count}} etichetta, quindi i suoi messaggi vengono importati senza.",
     storage_quota_reached:
       "Il suo spazio di archiviazione è pieno. Passare a un piano superiore, o rimuovere alcune email, farà spazio per più importazioni.",
     no_emails_in_file:

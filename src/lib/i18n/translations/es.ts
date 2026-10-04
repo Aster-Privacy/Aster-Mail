@@ -5687,6 +5687,12 @@ export const es = {
       "No se pudieron crear {{count}} carpetas, así que sus mensajes están en tu bandeja de entrada.",
     import_folders_skipped_plural:
       "No se pudieron crear {{count}} carpetas, así que sus mensajes están en tu bandeja de entrada.",
+    import_labels_created: "{{count}} etiquetas creadas",
+    import_labels_created_one: "{{count}} etiqueta creada",
+    import_labels_skipped:
+      "No se pudieron crear {{count}} etiquetas, así que sus mensajes se importan sin ellas.",
+    import_labels_skipped_one:
+      "No se pudo crear {{count}} etiqueta, así que sus mensajes se importan sin ella.",
     storage_quota_reached:
       "Tu almacenamiento está lleno. Mejorar tu plan, o quitar algunos correos, hará sitio para más importaciones.",
     no_emails_in_file:

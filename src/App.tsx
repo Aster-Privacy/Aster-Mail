@@ -65,7 +65,7 @@ import { FolderUnlockPrompt } from "@/components/folders/folder_unlock_prompt";
 import { OfflineIndicator } from "@/components/common/offline_indicator";
 import { FullPageLoader } from "@/components/common/full_page_loader";
 import { ErrorBoundary } from "@/components/ui/error_boundary";
-import { AppLock } from "@/components/mobile";
+import { AppLock } from "@/components/mobile/app_lock";
 import { install_global_autoscroll } from "@/lib/global_autoscroll";
 import { ignore_error } from "@/lib/ignore_error";
 import { safe_local_get } from "@/lib/safe_storage";

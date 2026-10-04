@@ -5620,6 +5620,12 @@ export const pt_br = {
       "Não foi possível criar {{count}} pastas, então as mensagens delas estão na sua caixa de entrada.",
     import_folders_skipped_plural:
       "Não foi possível criar {{count}} pastas, então as mensagens delas estão na sua caixa de entrada.",
+    import_labels_created: "{{count}} etiquetas criadas",
+    import_labels_created_one: "{{count}} etiqueta criada",
+    import_labels_skipped:
+      "Não foi possível criar {{count}} etiquetas, então as mensagens delas são importadas sem elas.",
+    import_labels_skipped_one:
+      "Não foi possível criar {{count}} etiqueta, então as mensagens dela são importadas sem ela.",
     storage_quota_reached:
       "Seu armazenamento está cheio. Fazer upgrade do plano, ou remover alguns e-mails, abrirá espaço para mais importações.",
     no_emails_in_file:

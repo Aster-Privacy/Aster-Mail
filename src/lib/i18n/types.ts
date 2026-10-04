@@ -5787,6 +5787,10 @@ export interface SettingsTranslations {
   import_folders_skipped_one?: string;
   import_folders_skipped_other: string;
   import_folders_skipped_plural: string;
+  import_labels_created: string;
+  import_labels_created_one?: string;
+  import_labels_skipped: string;
+  import_labels_skipped_one?: string;
   storage_quota_reached: string;
   no_emails_in_file: string;
   import_failed: string;

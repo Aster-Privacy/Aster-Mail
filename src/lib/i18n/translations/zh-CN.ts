@@ -5072,6 +5072,8 @@ export const zh_CN = {
       "有 {{count}} 个文件夹无法创建，其中的邮件已放入收件箱。",
     import_folders_skipped_plural:
       "有 {{count}} 个文件夹无法创建，其中的邮件已放入收件箱。",
+    import_labels_created: "已创建 {{count}} 个标签",
+    import_labels_skipped: "有 {{count}} 个标签无法创建，相关邮件在导入时不带这些标签。",
     storage_quota_reached:
       "您的存储空间已满。升级方案，或移除一些邮件，就可以腾出空间以导入更多。",
     no_emails_in_file:

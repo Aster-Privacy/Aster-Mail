@@ -5560,6 +5560,12 @@ export const de = {
       "{{count}} Ordner konnten nicht erstellt werden, daher liegen ihre Nachrichten im Posteingang.",
     import_folders_skipped_plural:
       "{{count}} Ordner konnten nicht erstellt werden, daher liegen ihre Nachrichten im Posteingang.",
+    import_labels_created: "{{count}} Labels erstellt",
+    import_labels_created_one: "{{count}} Label erstellt",
+    import_labels_skipped:
+      "{{count}} Labels konnten nicht erstellt werden, daher werden ihre Nachrichten ohne sie importiert.",
+    import_labels_skipped_one:
+      "{{count}} Label konnte nicht erstellt werden, daher werden seine Nachrichten ohne es importiert.",
     storage_quota_reached:
       "Ihr Speicher ist voll. Eine Tarif-Erweiterung oder das Entfernen einiger Mails schafft Platz für weitere Importe.",
     no_emails_in_file:
