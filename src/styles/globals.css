@@ -1463,10 +1463,10 @@
     --sidebar-border: var(--border-primary);
     --indicator-border: var(--border-secondary);
     --thread-card-border: var(--border-primary);
-    --input-border: color-mix(in srgb, var(--text-primary) 50%, transparent);
+    --input-border: color-mix(in srgb, var(--text-primary) 10%, transparent);
     --input-border-hover: color-mix(
       in srgb,
-      var(--text-primary) 64%,
+      var(--text-primary) 18%,
       transparent
     );
     --input: var(--input-border);
@@ -1480,12 +1480,6 @@
 
   .dark {
     --border-primary: color-mix(in srgb, var(--text-primary) 16%, transparent);
-    --input-border: color-mix(in srgb, var(--text-primary) 38%, transparent);
-    --input-border-hover: color-mix(
-      in srgb,
-      var(--text-primary) 50%,
-      transparent
-    );
   }
 
   .aster_input:where(
