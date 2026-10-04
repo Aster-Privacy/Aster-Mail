@@ -222,8 +222,26 @@ export function mark_conversation_read(
   if (!thread_token) return;
   if (!conversation_needs_thread_read(options)) return;
 
-  const thread_ids = get_thread_entry_ids(thread_token);
+  const { acted_id } = options;
+  const indexed_ids = get_thread_entry_ids(thread_token);
+  const thread_ids =
+    acted_id &&
+    !indexed_ids.includes(acted_id) &&
+    get_read_intent(acted_id) !== false
+      ? [...indexed_ids, acted_id]
+      : indexed_ids;
   const tickets = capture_read_tickets(thread_ids);
+  const release_intents = (): void => {
+    const unchanged = current_read_ids(thread_ids, tickets);
+
+    clear_read_intent(
+      unchanged.filter((id) => id !== acted_id),
+      true,
+    );
+    if (acted_id && unchanged.includes(acted_id)) {
+      ack_flag_intents([acted_id], { is_read: true });
+    }
+  };
 
   note_read_intent(thread_ids, true);
   void mark_thread_read(thread_token)
@@ -239,11 +257,11 @@ export function mark_conversation_read(
         emit_mail_soft_refresh();
         invalidate_mail_stats();
       } else {
-        clear_read_intent(unchanged, true);
+        release_intents();
       }
     })
     .catch((caught) => {
-      clear_read_intent(current_read_ids(thread_ids, tickets), true);
+      release_intents();
       ignore_error(
         "hooks/mark_conversation_read:mark_conversation_read",
         caught,

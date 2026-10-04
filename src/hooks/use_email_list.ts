@@ -26,6 +26,7 @@ import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { Capacitor } from "@capacitor/core";
 
 import { drop_removed_after } from "@/services/removed_items";
+import { apply_flag_intents } from "@/services/read_intent";
 import { merge_silent_refresh_emails } from "./email_list_helpers/silent_refresh";
 
 import {
@@ -64,6 +65,19 @@ import { request_cache } from "@/services/api/request_cache";
 import { ignore_error } from "@/lib/ignore_error";
 
 export type { UseEmailListReturn } from "./email_list_types";
+
+function settle_fetched_rows(
+  rows: InboxEmail[],
+  fetched_at: number,
+): InboxEmail[] {
+  return apply_flag_intents(drop_removed_after(rows, fetched_at), fetched_at);
+}
+
+function overlay_cached_state(cached: EmailListState): EmailListState {
+  const emails = apply_flag_intents(cached.emails);
+
+  return emails === cached.emails ? cached : { ...cached, emails };
+}
 export {
   invalidate_mail_cache,
   clear_mail_cache,
@@ -120,9 +134,9 @@ export function use_email_list(
         cached.conversation_grouping ===
         (preferences.conversation_grouping ?? true);
 
-      return grouping_matches
-        ? cached.state
-        : { ...cached.state, is_loading: true };
+      const restored = overlay_cached_state(cached.state);
+
+      return grouping_matches ? restored : { ...restored, is_loading: true };
     }
 
     return {
@@ -161,8 +175,10 @@ export function use_email_list(
         cached.conversation_grouping ===
         (preferences.conversation_grouping ?? true);
 
+      const restored = overlay_cached_state(cached.state);
+
       set_state(
-        grouping_matches ? cached.state : { ...cached.state, is_loading: true },
+        grouping_matches ? restored : { ...restored, is_loading: true },
       );
       page_ref.current =
         cached.page ??
@@ -277,7 +293,7 @@ export function use_email_list(
           const selected_ids = new Set(
             prev.emails.filter((e) => e.is_selected).map((e) => e.id),
           );
-          const surviving = drop_removed_after(
+          const surviving = settle_fetched_rows(
             cached_page.state.emails,
             cached_page.time,
           );
@@ -323,7 +339,7 @@ export function use_email_list(
               set_state((prev) => {
                 if (prev.emails.length > 0) return prev;
 
-                const surviving = drop_removed_after(partial_emails, start);
+                const surviving = settle_fetched_rows(partial_emails, start);
 
                 if (surviving.length === 0) return prev;
 
@@ -393,7 +409,7 @@ export function use_email_list(
           const selected_ids = new Set(
             prev.emails.filter((e) => e.is_selected).map((e) => e.id),
           );
-          const surviving = drop_removed_after(result.emails, start);
+          const surviving = settle_fetched_rows(result.emails, start);
           const emails =
             selected_ids.size > 0
               ? surviving.map((e) =>
@@ -601,7 +617,7 @@ export function use_email_list(
 
       set_state((prev) => {
         const existing_ids = new Set(prev.emails.map((e) => e.id));
-        const appended = drop_removed_after(
+        const appended = settle_fetched_rows(
           result.emails,
           load_more_start,
         ).filter((e) => !existing_ids.has(e.id));
@@ -763,11 +779,11 @@ export function use_email_list(
           cached.conversation_grouping ===
           (preferences.conversation_grouping ?? true);
 
+        const restored = overlay_cached_state(cached.state);
+
         state_view_ref.current = current_view;
         set_state(
-          grouping_matches
-            ? cached.state
-            : { ...cached.state, is_loading: true },
+          grouping_matches ? restored : { ...restored, is_loading: true },
         );
         page_ref.current =
           cached.page ??

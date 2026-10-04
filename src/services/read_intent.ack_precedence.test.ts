@@ -94,11 +94,11 @@ describe("flag intent acknowledgment precedence", () => {
     note_flag_intents(["m1"], { is_starred: true });
     vi.setSystemTime(BASE_NOW + 1_000);
     ack_flag_intents(["m1"], { is_starred: true });
-    vi.setSystemTime(BASE_NOW + 2_000);
+    vi.setSystemTime(BASE_NOW + 7_000);
 
     const [fresh] = apply_flag_intents(
       [row("m1", false, false)],
-      BASE_NOW + 1_500,
+      BASE_NOW + 6_500,
     );
 
     expect(fresh.is_starred).toBe(false);

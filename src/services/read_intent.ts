@@ -20,6 +20,7 @@
 //
 const PENDING_MAX_AGE_MS = 30_000;
 const ACKED_MAX_AGE_MS = 10 * 60_000;
+const ACK_SETTLE_MS = 5_000;
 const MAX_INTENTS = 2000;
 
 export const BOOLEAN_INTENT_FLAGS = [
@@ -85,8 +86,12 @@ function read_entry(
   if (!current) return undefined;
 
   const { acked_at } = current;
+  const settling = acked_at !== null && now_ms() - acked_at < ACK_SETTLE_MS;
   const superseded =
-    acked_at !== null && fetched_at !== undefined && fetched_at >= acked_at;
+    acked_at !== null &&
+    !settling &&
+    fetched_at !== undefined &&
+    fetched_at >= acked_at;
   const expired =
     acked_at === null
       ? now_ms() - current.at >= PENDING_MAX_AGE_MS

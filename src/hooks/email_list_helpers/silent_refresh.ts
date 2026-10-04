@@ -22,6 +22,7 @@
 import type { InboxEmail } from "@/types/email";
 
 import { drop_removed_after } from "@/services/removed_items";
+import { apply_flag_intents } from "@/services/read_intent";
 
 function same_value(left: unknown, right: unknown): boolean {
   if (left === right) return true;
@@ -67,7 +68,10 @@ export function merge_silent_refresh_emails(
   incoming: InboxEmail[],
   started_at: number,
 ): InboxEmail[] {
-  const surviving = drop_removed_after(incoming, started_at);
+  const surviving = apply_flag_intents(
+    drop_removed_after(incoming, started_at),
+    started_at,
+  );
   const selected_ids = new Set(
     previous.filter((e) => e.is_selected).map((e) => e.id),
   );
