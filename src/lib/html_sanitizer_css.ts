@@ -673,42 +673,65 @@ function requires_dark_scheme(query: string): boolean {
 }
 
 export function strip_dark_mode_media(css: string): string {
-  let result = css;
-  const pattern = /@media\b([^{};]*)\{/gi;
+  const head = /@media\b/gi;
+  const parts: string[] = [];
+  let copied = 0;
   let match;
 
-  while ((match = pattern.exec(result)) !== null) {
-    const queries = split_media_queries(match[1]);
+  while ((match = head.exec(css)) !== null) {
+    const prelude_start = head.lastIndex;
+    let open = prelude_start;
 
-    if (!queries.some(requires_dark_scheme)) continue;
+    while (
+      open < css.length &&
+      css[open] !== "{" &&
+      css[open] !== "}" &&
+      css[open] !== ";"
+    ) {
+      open++;
+    }
+
+    if (open >= css.length) break;
+
+    if (css[open] !== "{") {
+      head.lastIndex = open;
+      continue;
+    }
+
+    const queries = split_media_queries(css.slice(prelude_start, open));
+
+    if (!queries.some(requires_dark_scheme)) {
+      head.lastIndex = open + 1;
+      continue;
+    }
 
     const kept = queries.filter((query) => !requires_dark_scheme(query));
 
-    if (kept.length > 0) {
-      const prelude = `@media ${kept.join(", ")} {`;
+    parts.push(css.slice(copied, match.index));
 
-      result =
-        result.slice(0, match.index) +
-        prelude +
-        result.slice(match.index + match[0].length);
-      pattern.lastIndex = match.index + prelude.length;
+    if (kept.length > 0) {
+      parts.push(`@media ${kept.join(", ")} {`);
+      copied = open + 1;
+      head.lastIndex = open + 1;
       continue;
     }
 
     let depth = 1;
-    let i = match.index + match[0].length;
+    let i = open + 1;
 
-    while (i < result.length && depth > 0) {
-      if (result[i] === "{") depth++;
-      else if (result[i] === "}") depth--;
+    while (i < css.length && depth > 0) {
+      if (css[i] === "{") depth++;
+      else if (css[i] === "}") depth--;
       i++;
     }
 
-    result = result.slice(0, match.index) + result.slice(i);
-    pattern.lastIndex = match.index;
+    copied = i;
+    head.lastIndex = i;
   }
 
-  return result;
+  parts.push(css.slice(copied));
+
+  return parts.join("");
 }
 
 export function sanitize_css_block(css: string, _sandbox_mode = false): string {
