@@ -40,7 +40,6 @@ const SUMMARY_HEADER_KEYS = [
   "references",
   "x-gmail-labels",
   "x-keywords",
-  "keywords",
 ];
 
 function detach_string(value: string): string {

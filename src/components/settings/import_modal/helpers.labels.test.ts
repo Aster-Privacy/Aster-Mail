@@ -262,12 +262,12 @@ describe("keyword_labels", () => {
       "work",
       "todo",
     ]);
+  });
+
+  it("ignores the sender-controlled keywords header", () => {
     expect(
       keyword_labels(email_with({ keywords: "Project Alpha, Receipts" })),
-    ).toEqual(["Project Alpha", "Receipts"]);
-    expect(keyword_labels(email_with({ keywords: "Project Alpha" }))).toEqual([
-      "Project Alpha",
-    ]);
+    ).toEqual([]);
   });
 
   it("ignores mail client state keywords", () => {
@@ -320,7 +320,6 @@ describe("classify_import_email", () => {
       email_with({
         "x-gmail-labels": "Inbox,Work,work,Family",
         "x-keywords": "WORK, family, Travel",
-        keywords: "travel",
       }),
     );
 

@@ -133,7 +133,7 @@ export function is_canonical_folder(name: string): boolean {
 }
 
 const LABEL_HEADER = "x-gmail-labels";
-const KEYWORD_HEADERS = ["x-keywords", "keywords"];
+const KEYWORD_HEADERS = ["x-keywords"];
 const KEYWORD_FLAGS = new Set(["nonjunk", "notjunk"]);
 
 export const MAX_TAGS_PER_EMAIL = 50;
