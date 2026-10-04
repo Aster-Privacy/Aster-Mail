@@ -61,6 +61,7 @@ vi.mock("@/services/api/mail", () => ({
 
 import {
   on_user_opened_mail,
+  register_visible_rows,
   reset_opened_mail_scope,
   revert_user_opened_mail,
 } from "./user_opened_mail";
@@ -93,6 +94,36 @@ describe("on_user_opened_mail", () => {
     hoisted.view_cache.clear();
     clear_read_intent(["m1", "m2", "m3"]);
     reset_opened_mail_scope();
+  });
+
+  it("marks a row read at the click when only the visible list holds it", () => {
+    hoisted.update_item_metadata.mockReturnValue(new Promise(() => {}));
+
+    const rows = [unread_row("m1", { encrypted_metadata: undefined })];
+    const unregister = register_visible_rows((id) =>
+      rows.find((row) => row.id === id),
+    );
+
+    const applied = on_user_opened_mail("m1", { delay: "immediate" });
+
+    unregister();
+
+    expect(applied).toBe(true);
+    expect(get_read_intent("m1")).toBe(true);
+    expect(hoisted.emit_mail_item_updated).toHaveBeenCalledWith({
+      id: "m1",
+      is_read: true,
+    });
+    expect(on_user_opened_mail("m2", { delay: "immediate" })).toBe(false);
+  });
+
+  it("stops consulting a visible list once it unregisters", () => {
+    const unregister = register_visible_rows(() => unread_row("m1"));
+
+    unregister();
+
+    expect(on_user_opened_mail("m1", { delay: "immediate" })).toBe(false);
+    expect(get_read_intent("m1")).toBeUndefined();
   });
 
   it("shows read in the same call while the seen write hangs", async () => {
