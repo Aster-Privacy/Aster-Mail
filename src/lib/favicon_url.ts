@@ -29,6 +29,22 @@ const WEB_BASE = "/api/images/v1/favicon";
 const EMPTY_FAVICON =
   "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'/>";
 const FAILED_FAVICON = "data:,";
+
+export const PENDING_FAVICON_SRC = EMPTY_FAVICON;
+export const FAILED_FAVICON_SRC = FAILED_FAVICON;
+
+export function same_origin_favicon_domain(url: string): string | null {
+  const prefix = `${WEB_BASE}/`;
+
+  if (!url.startsWith(prefix)) return null;
+  try {
+    const domain = decodeURIComponent(url.slice(prefix.length));
+
+    return is_valid_favicon_domain(domain) ? domain : null;
+  } catch {
+    return null;
+  }
+}
 const DOMAIN_PATTERN =
   /^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/;
 

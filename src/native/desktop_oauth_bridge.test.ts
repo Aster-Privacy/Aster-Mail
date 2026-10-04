@@ -29,12 +29,21 @@ vi.mock("@/services/api/external_accounts", () => ({
 
 import {
   DESKTOP_OAUTH_CALLBACK_EVENT,
+  expect_oauth_state,
   handle_oauth_callback_url,
   parse_oauth_callback_url,
   type DesktopOAuthCallbackDetail,
 } from "./desktop_oauth_bridge";
 
 const STATE = "a".repeat(64);
+
+function expect_state(state: string): void {
+  expect(
+    expect_oauth_state(
+      `https://accounts.example/o/oauth2/auth?client_id=x&state=${state}`,
+    ),
+  ).toBe(true);
+}
 
 function next_callback(): Promise<DesktopOAuthCallbackDetail> {
   return new Promise((resolve) => {
@@ -105,6 +114,7 @@ describe("handle_oauth_callback_url", () => {
     });
     const pending = next_callback();
 
+    expect_state("b".repeat(64));
     await handle_oauth_callback_url(
       `aster://oauth/callback?state=${"b".repeat(64)}&code=abc`,
     );
@@ -126,6 +136,7 @@ describe("handle_oauth_callback_url", () => {
     });
     const pending = next_callback();
 
+    expect_state("c".repeat(64));
     await handle_oauth_callback_url(
       `aster://oauth/callback?state=${"c".repeat(64)}&code=abc`,
     );
@@ -142,6 +153,7 @@ describe("handle_oauth_callback_url", () => {
     });
     const pending = next_callback();
 
+    expect_state("d".repeat(64));
     await handle_oauth_callback_url(
       `aster://oauth/callback?state=${"d".repeat(64)}&code=abc`,
     );
@@ -156,6 +168,7 @@ describe("handle_oauth_callback_url", () => {
     complete_oauth_authorize.mockClear();
     const pending = next_callback();
 
+    expect_state("e".repeat(64));
     await handle_oauth_callback_url(
       `aster://oauth/callback?state=${"e".repeat(64)}&error=provider_denied`,
     );
@@ -174,8 +187,70 @@ describe("handle_oauth_callback_url", () => {
     });
     const url = `aster://oauth/callback?state=${"f".repeat(64)}&code=abc`;
 
+    expect_state("f".repeat(64));
     await handle_oauth_callback_url(url);
     await handle_oauth_callback_url(url);
+
+    expect(complete_oauth_authorize).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("pending oauth states", () => {
+  it("ignores a callback whose state this app never started", async () => {
+    complete_oauth_authorize.mockClear();
+    const listener = vi.fn();
+
+    window.addEventListener(DESKTOP_OAUTH_CALLBACK_EVENT, listener);
+    await handle_oauth_callback_url(
+      `aster://oauth/callback?state=${"1".repeat(64)}&code=attacker`,
+    );
+    await handle_oauth_callback_url(
+      `aster://oauth/callback?state=${"2".repeat(64)}&error=provider_denied`,
+    );
+    window.removeEventListener(DESKTOP_OAUTH_CALLBACK_EVENT, listener);
+
+    expect(complete_oauth_authorize).not.toHaveBeenCalled();
+    expect(listener).not.toHaveBeenCalled();
+  });
+
+  it("rejects an authorize url without a valid state", () => {
+    expect(expect_oauth_state("not a url")).toBe(false);
+    expect(expect_oauth_state("https://accounts.example/auth")).toBe(false);
+    expect(
+      expect_oauth_state("https://accounts.example/auth?state=short"),
+    ).toBe(false);
+  });
+
+  it("forgets a pending state after it expires", async () => {
+    vi.useFakeTimers();
+    try {
+      complete_oauth_authorize.mockClear();
+      expect_state("3".repeat(64));
+      vi.advanceTimersByTime(15 * 60 * 1000 + 1);
+
+      await handle_oauth_callback_url(
+        `aster://oauth/callback?state=${"3".repeat(64)}&code=abc`,
+      );
+
+      expect(complete_oauth_authorize).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("accepts a pending state once", async () => {
+    complete_oauth_authorize.mockClear();
+    complete_oauth_authorize.mockResolvedValue({
+      data: { success: true, provider: "google" },
+    });
+    expect_state("4".repeat(64));
+
+    await handle_oauth_callback_url(
+      `aster://oauth/callback?state=${"4".repeat(64)}&code=abc`,
+    );
+    await handle_oauth_callback_url(
+      `aster://oauth/callback?state=${"4".repeat(64)}&code=abc`,
+    );
 
     expect(complete_oauth_authorize).toHaveBeenCalledTimes(1);
   });

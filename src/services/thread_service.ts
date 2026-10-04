@@ -346,7 +346,11 @@ async function decode_thread_envelope(
     sender_name:
       envelope.from?.name || envelope.from?.email?.split("@")[0] || "",
     sender_email: envelope.from?.email || "",
-    ...(resolve_forwarding_display(envelope.from, envelope.raw_headers) ?? {}),
+    ...(resolve_forwarding_display(
+      envelope.from,
+      envelope.raw_headers,
+      msg,
+    ) ?? {}),
     subject: envelope.subject,
     body: body_content,
     html_content: effective_html,
@@ -401,7 +405,7 @@ export async function fetch_and_decrypt_thread_messages(
 
   const decrypt_promises = messages_to_decrypt.map(async (msg) => {
     const [content, decrypted_metadata] = await Promise.all([
-      decrypt_thread_content_cached(msg, cache_user, () =>
+      decrypt_thread_content_cached(msg, thread_token, cache_user, () =>
         decode_thread_envelope(msg, our_email),
       ),
       msg.encrypted_metadata && msg.metadata_nonce
@@ -672,8 +676,11 @@ export async function fetch_and_decrypt_virtual_group(
       sender_name:
         envelope.from?.name || envelope.from?.email?.split("@")[0] || "",
       sender_email: envelope.from?.email || "",
-      ...(resolve_forwarding_display(envelope.from, envelope.raw_headers) ??
-        {}),
+      ...(resolve_forwarding_display(
+        envelope.from,
+        envelope.raw_headers,
+        item,
+      ) ?? {}),
       subject: envelope.subject,
       body: body_content,
       html_content: effective_html,

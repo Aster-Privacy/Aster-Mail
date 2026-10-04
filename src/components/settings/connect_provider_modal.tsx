@@ -32,6 +32,7 @@ import { start_oauth_authorize } from "@/services/api/external_accounts";
 import {
   DESKTOP_OAUTH_CALLBACK_EVENT,
   DESKTOP_OAUTH_RETURN_TO,
+  expect_oauth_state,
   type DesktopOAuthCallbackDetail,
 } from "@/native/desktop_oauth_bridge";
 
@@ -191,6 +192,18 @@ export function ConnectProviderModal({
         parsed = new URL(result.data.authorize_url);
         if (parsed.protocol !== "https:") throw new Error("invalid_protocol");
       } catch {
+        show_toast(
+          t("settings.oauth_import_error", {
+            reason: t("settings.oauth_reason_unknown"),
+          }),
+          "error",
+        );
+        set_is_loading(false);
+
+        return;
+      }
+
+      if (desktop && !expect_oauth_state(parsed.toString())) {
         show_toast(
           t("settings.oauth_import_error", {
             reason: t("settings.oauth_reason_unknown"),

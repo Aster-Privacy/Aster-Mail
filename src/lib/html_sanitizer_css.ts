@@ -79,18 +79,57 @@ export function strip_css_comments(css: string): string {
   return result;
 }
 
+const CSS_HEX_ESCAPE = /^[0-9a-fA-F]{1,6}/;
+const CSS_ESCAPE_WHITESPACE = /[ \t\n\r\f]/;
+
+function decode_css_hex(hex: string): string {
+  const cp = parseInt(hex, 16);
+
+  if (cp === 0 || (cp >= 0xd800 && cp <= 0xdfff) || cp > 0x10ffff) {
+    return "�";
+  }
+
+  return String.fromCodePoint(cp);
+}
+
 function decode_css_escapes(css: string): string {
-  return css
-    .replace(/\\([0-9a-fA-F]{1,6})\s?/g, (_, hex) => {
-      const cp = parseInt(hex, 16);
+  let result = "";
+  let index = 0;
 
-      if (cp === 0 || (cp >= 0xd800 && cp <= 0xdfff) || cp > 0x10ffff) {
-        return "�";
+  while (index < css.length) {
+    const char = css[index];
+
+    if (char !== "\\") {
+      result += char;
+      index++;
+      continue;
+    }
+
+    const hex = CSS_HEX_ESCAPE.exec(css.slice(index + 1, index + 7));
+
+    if (hex) {
+      index += 1 + hex[0].length;
+      if (css[index] === "\r" && css[index + 1] === "\n") {
+        index += 2;
+      } else if (CSS_ESCAPE_WHITESPACE.test(css[index] ?? "")) {
+        index++;
       }
+      const decoded = decode_css_hex(hex[0]);
 
-      return String.fromCodePoint(cp);
-    })
-    .replace(/\\(.)/g, "$1");
+      if (decoded !== "\\") result += decoded;
+      continue;
+    }
+
+    const next = css[index + 1];
+
+    index += 2;
+    if (next === undefined || next === "\\" || /[\n\r\f]/.test(next)) {
+      continue;
+    }
+    result += next;
+  }
+
+  return result;
 }
 
 export function decode_css_entities(raw: string): string {
@@ -682,43 +721,85 @@ export function strip_dark_media_queries(media: string): string | null {
   return kept.length > 0 ? kept.join(", ") : null;
 }
 
+const MEDIA_ATTRIBUTE_CHARACTERS = /^[\w\s(),:.\-/<>=]*$/;
+
+export function scope_css_to_media_attribute(
+  css: string,
+  media: string | null | undefined,
+): string {
+  const value = (media || "").trim();
+
+  if (!value) return css;
+  if (!MEDIA_ATTRIBUTE_CHARACTERS.test(value)) return "";
+
+  const queries = split_media_queries(value);
+  const kept = queries.filter((query) => !requires_dark_scheme(query));
+
+  if (kept.length === 0) return "";
+
+  return `@media ${kept.join(", ")} {\n${css}\n}`;
+}
+
 export function strip_dark_mode_media(css: string): string {
-  let result = css;
-  const pattern = /@media\b([^{};]*)\{/gi;
+  const head = /@media\b/gi;
+  const parts: string[] = [];
+  let copied = 0;
   let match;
 
-  while ((match = pattern.exec(result)) !== null) {
-    const queries = split_media_queries(match[1]);
+  while ((match = head.exec(css)) !== null) {
+    const prelude_start = head.lastIndex;
+    let open = prelude_start;
 
-    if (!queries.some(requires_dark_scheme)) continue;
+    while (
+      open < css.length &&
+      css[open] !== "{" &&
+      css[open] !== "}" &&
+      css[open] !== ";"
+    ) {
+      open++;
+    }
+
+    if (open >= css.length) break;
+
+    if (css[open] !== "{") {
+      head.lastIndex = open;
+      continue;
+    }
+
+    const queries = split_media_queries(css.slice(prelude_start, open));
+
+    if (!queries.some(requires_dark_scheme)) {
+      head.lastIndex = open + 1;
+      continue;
+    }
 
     const kept = queries.filter((query) => !requires_dark_scheme(query));
 
-    if (kept.length > 0) {
-      const prelude = `@media ${kept.join(", ")} {`;
+    parts.push(css.slice(copied, match.index));
 
-      result =
-        result.slice(0, match.index) +
-        prelude +
-        result.slice(match.index + match[0].length);
-      pattern.lastIndex = match.index + prelude.length;
+    if (kept.length > 0) {
+      parts.push(`@media ${kept.join(", ")} {`);
+      copied = open + 1;
+      head.lastIndex = open + 1;
       continue;
     }
 
     let depth = 1;
-    let i = match.index + match[0].length;
+    let i = open + 1;
 
-    while (i < result.length && depth > 0) {
-      if (result[i] === "{") depth++;
-      else if (result[i] === "}") depth--;
+    while (i < css.length && depth > 0) {
+      if (css[i] === "{") depth++;
+      else if (css[i] === "}") depth--;
       i++;
     }
 
-    result = result.slice(0, match.index) + result.slice(i);
-    pattern.lastIndex = match.index;
+    copied = i;
+    head.lastIndex = i;
   }
 
-  return result;
+  parts.push(css.slice(copied));
+
+  return parts.join("");
 }
 
 export function sanitize_css_block(css: string, _sandbox_mode = false): string {

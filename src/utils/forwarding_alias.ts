@@ -127,10 +127,37 @@ export function detect_forwarded_alias(
   return undefined;
 }
 
+export interface ForwardingAuthResults {
+  dkim_result?: string;
+  dmarc_result?: string;
+}
+
+function auth_status(raw: string | undefined): string {
+  const value = (raw ?? "").trim().toLowerCase();
+
+  return value === "missing" ? "" : value;
+}
+
+export function is_forwarder_authenticated(
+  auth: ForwardingAuthResults | undefined,
+): boolean {
+  const dkim = auth_status(auth?.dkim_result);
+  const dmarc = auth_status(auth?.dmarc_result);
+
+  if (!dkim && !dmarc) return true;
+  if (dmarc === "pass") return true;
+  if (dmarc && dmarc !== "none") return false;
+
+  return dkim === "pass";
+}
+
 export function resolve_forwarding_display(
   from: { name?: string; email: string } | undefined,
   raw_headers: HeaderLike[] | undefined,
+  auth?: ForwardingAuthResults,
 ): ForwardingDisplay | undefined {
+  if (!is_forwarder_authenticated(auth)) return undefined;
+
   const literal = from?.email
     ? { name: from.name, email: from.email }
     : undefined;

@@ -179,7 +179,9 @@ describe("ImportModal skip counts and Gmail labels (integration)", () => {
   });
 
   it("imports nested system-named labels and reports each skip reason", async () => {
-    duplicate_hashes.add(await compute_message_id_hash("dup@example.com"));
+    duplicate_hashes.add(
+      await compute_message_id_hash("dup@example.com", "test-identity-key"),
+    );
 
     const mbox =
       mbox_message("plain", "Inbox,Opened") +

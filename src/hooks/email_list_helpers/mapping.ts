@@ -188,6 +188,7 @@ export function mail_to_email(
   const forwarding = resolve_forwarding_display(
     envelope.from,
     envelope.raw_headers,
+    item,
   );
 
   return {

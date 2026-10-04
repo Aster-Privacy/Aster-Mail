@@ -65,7 +65,7 @@ import {
   type ForwardingCondition,
   type ForwardingDestinationStatus,
 } from "@/services/api/auto_forward";
-import { get_favicon_url } from "@/lib/favicon_url";
+import { FaviconImg } from "@/components/ui/favicon_or_initial";
 import { show_toast } from "@/components/toast/simple_toast";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
@@ -447,7 +447,7 @@ export function AutoForwardSection() {
     return t("mail.forwarded_count", { count });
   };
 
-  const get_forward_favicon_url = (forward_to: string[]): string | null => {
+  const get_forward_favicon_domain = (forward_to: string[]): string | null => {
     const first_email = forward_to[0];
 
     if (!first_email || !first_email.includes("@")) return null;
@@ -455,7 +455,7 @@ export function AutoForwardSection() {
 
     if (!domain) return null;
 
-    return get_favicon_url(domain);
+    return domain;
   };
 
   if (is_loading) {
@@ -604,11 +604,11 @@ export function AutoForwardSection() {
                       : "color-mix(in srgb, var(--text-primary) 7%, transparent)",
                   }}
                 >
-                  {get_forward_favicon_url(rule.forward_to) ? (
-                    <img
+                  {get_forward_favicon_domain(rule.forward_to) ? (
+                    <FaviconImg
                       alt=""
                       className="w-5 h-5 rounded-full"
-                      src={get_forward_favicon_url(rule.forward_to)!}
+                      domain={get_forward_favicon_domain(rule.forward_to)!}
                       onError={(e) => {
                         e.currentTarget.style.display = "none";
                         e.currentTarget.nextElementSibling?.classList.remove(
@@ -618,7 +618,7 @@ export function AutoForwardSection() {
                     />
                   ) : null}
                   <ArrowTopRightOnSquareIcon
-                    className={`w-4 h-4 ${get_forward_favicon_url(rule.forward_to) ? "hidden" : ""}`}
+                    className={`w-4 h-4 ${get_forward_favicon_domain(rule.forward_to) ? "hidden" : ""}`}
                     style={{
                       color: rule.is_enabled
                         ? "var(--accent-color)"

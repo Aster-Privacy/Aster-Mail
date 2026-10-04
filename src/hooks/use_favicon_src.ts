@@ -18,24 +18,88 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, useEffect } from "react";
+import type { LogoTone } from "@/lib/logo_tone";
+
+import { useState, useEffect, useCallback, useSyncExternalStore } from "react";
 
 import { routed_fetch } from "@/services/routing/routing_provider";
 import { connection_store } from "@/services/routing/connection_store";
-import { get_favicon_url, is_valid_favicon_domain } from "@/lib/favicon_url";
 import {
+  FAILED_FAVICON_SRC,
+  PENDING_FAVICON_SRC,
+  get_favicon_url,
+  is_valid_favicon_domain,
+  same_origin_favicon_domain,
+} from "@/lib/favicon_url";
+import {
+  adopt_favicon_blob,
   get_favicon_object_url,
   peek_favicon_object_url,
   cache_favicon_blob,
+  peek_favicon_tone,
+  subscribe_favicon_tones,
 } from "@/lib/favicon_cache_db";
+import { mark_icon_failed } from "@/lib/icon_cache";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { ignore_error } from "@/lib/ignore_error";
 
-function resolve_initial_src(domain: string): string {
-  return peek_favicon_object_url(domain) || get_favicon_url(domain);
+const cookieless_loads = new Map<string, Promise<string | null>>();
+
+function load_cookieless_favicon(
+  domain: string,
+  url: string,
+): Promise<string | null> {
+  const existing = cookieless_loads.get(domain);
+
+  if (existing) return existing;
+
+  const promise = routed_fetch(url, { credentials: "omit" })
+    .then((r) => {
+      if (!r.ok) {
+        if (r.status >= 400 && r.status < 500) mark_icon_failed(domain);
+
+        return null;
+      }
+      const ct = r.headers.get("content-type") ?? "";
+
+      if (!ALLOWED_FAVICON_TYPES.some((t) => ct.startsWith(t))) return null;
+
+      return r.blob();
+    })
+    .then((blob) => {
+      if (!blob || blob.size > MAX_FAVICON_BYTES) return null;
+      const object_url = adopt_favicon_blob(domain, blob);
+
+      cache_favicon_blob(domain, blob).catch((caught) =>
+        ignore_error("hooks/use_favicon_src:cache_favicon_blob", caught),
+      );
+
+      return object_url;
+    })
+    .catch((caught) => {
+      ignore_error("hooks/use_favicon_src:load_cookieless_favicon", caught);
+
+      return null;
+    })
+    .finally(() => {
+      cookieless_loads.delete(domain);
+    });
+
+  cookieless_loads.set(domain, promise);
+
+  return promise;
 }
 
-export function use_favicon_src(domain: string): string {
+function resolve_initial_src(domain: string): string {
+  const cached = peek_favicon_object_url(domain);
+
+  if (cached) return cached;
+  const url = get_favicon_url(domain);
+
+  return same_origin_favicon_domain(url) ? PENDING_FAVICON_SRC : url;
+}
+
+export function use_favicon_src(domain: string, enabled = true): string {
   const [src, set_src] = useState(() => resolve_initial_src(domain));
   const [prev_domain, set_prev_domain] = useState(domain);
 
@@ -54,18 +118,45 @@ export function use_favicon_src(domain: string): string {
     if (method === "tor" || method === "tor_snowflake") return;
 
     let cancelled = false;
+    const url = get_favicon_url(domain);
+    const fetch_cookieless = enabled && same_origin_favicon_domain(url) !== null;
 
-    get_favicon_object_url(domain).then((object_url) => {
-      if (cancelled || !object_url) return;
-      set_src((prev) => (prev === object_url ? prev : object_url));
-    });
+    get_favicon_object_url(domain)
+      .then((object_url) => {
+        if (cancelled) return;
+        if (object_url) {
+          set_src((prev) => (prev === object_url ? prev : object_url));
+
+          return;
+        }
+        if (!fetch_cookieless) return;
+
+        return load_cookieless_favicon(domain, url).then((loaded) => {
+          if (cancelled) return;
+          set_src(loaded ?? FAILED_FAVICON_SRC);
+        });
+      })
+      .catch((caught) => ignore_error("hooks/use_favicon_src:effect", caught));
 
     return () => {
       cancelled = true;
     };
-  }, [domain]);
+  }, [domain, enabled]);
 
   return src;
+}
+
+export function use_favicon_tone(domain: string): LogoTone | null {
+  const get_snapshot = useCallback(
+    () => (domain ? peek_favicon_tone(domain) : null),
+    [domain],
+  );
+
+  return useSyncExternalStore(
+    subscribe_favicon_tones,
+    get_snapshot,
+    get_snapshot,
+  );
 }
 
 const ALLOWED_FAVICON_TYPES = [
@@ -146,7 +237,10 @@ function fetch_and_cache_favicon(
   domain: string,
   loaded_src: string,
 ): Promise<void> {
-  return routed_fetch(loaded_src, {})
+  return routed_fetch(loaded_src, {
+    credentials: "omit",
+    cache: "force-cache",
+  })
     .then((r) => {
       if (!r.ok) return null;
       const ct = r.headers.get("content-type") ?? "";

@@ -26,6 +26,7 @@ import {
   track_subscription,
   unsubscribe,
 } from "@/services/api/subscriptions";
+import { header_unsubscribe_link } from "@/utils/unsubscribe_detector";
 
 const LOAD_PAGE_SIZE = 100;
 const LOAD_MAX_PAGES = 50;
@@ -101,7 +102,9 @@ export async function persist_unsubscribe(
       sender_email: normalized,
       sender_name:
         sender_name.trim().slice(0, MAX_SENDER_NAME_LENGTH) || undefined,
-      unsubscribe_link: sanitize_unsubscribe_link(info.unsubscribe_link),
+      unsubscribe_link: sanitize_unsubscribe_link(
+        header_unsubscribe_link(info),
+      ),
       list_unsubscribe_header: sanitize_unsubscribe_header(
         info.list_unsubscribe_header,
       ),

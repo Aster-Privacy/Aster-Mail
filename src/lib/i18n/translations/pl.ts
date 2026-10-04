@@ -5967,7 +5967,7 @@ export const pl = {
     import_add_another: "Dodaj kolejne konto",
     import_choose_source: "Wybierz źródło",
     import_emails_description:
-      "Przenieś e-maile z Gmail, Outlook lub innych usług pocztowych. Twoje e-maile są szyfrowane na urządzeniu przed zapisaniem.",
+      "Przenieś e-maile z Gmail, Outlook lub innych usług pocztowych. Przesyłane pliki są szyfrowane na Twoim urządzeniu, a poczta z połączonego konta jest szyfrowana przez serwery Aster przed zapisaniem.",
     import_emails_button: "Importuj e-maile",
     recent_imports: "Ostatnie importy",
     status_pending: "Oczekujący",
@@ -6178,6 +6178,11 @@ export const pl = {
       "Dodatki odnawiają się co roku i są rozliczane oddzielnie od planu. Jeśli płacisz kryptowalutą, wybierasz okres przedpłaty.",
     storage_addon_supernova_nudge:
       "Jeśli potrzebujesz więcej niż 1 TB, rozważ plan Supernova, który obejmuje 5 TB miejsca.",
+    storage_addon_add_size: "Dodaj {{size}}",
+    storage_addon_usage_near:
+      "Twoja przestrzeń dyskowa jest prawie pełna. Dodaj więcej miejsca, aby nadal otrzymywać pocztę.",
+    storage_addon_usage_full:
+      "Twoja przestrzeń dyskowa jest pełna. Dodaj więcej miejsca, aby nadal otrzymywać pocztę.",
     bill_addon_summary: "{size} dodatkowej przestrzeni",
     bill_addon_pick_size: "Wybierz, ile chcesz dodać",
     storage_addons_description:
@@ -7256,7 +7261,7 @@ export const pl = {
       "Klucze dostępu dodasz w aplikacji internetowej Aster na app.astermail.org. Tutaj możesz przeglądać i usuwać istniejące.",
     app_lock_pin: "Blokada PIN",
     app_lock_pin_description:
-      "Wymaga kodu PIN do otwarcia Aster Mail w przeglądarce",
+      "Prosi o kod PIN przed wyświetleniem Aster Mail w tej przeglądarce. Ukrywa pocztę przed innymi osobami korzystającymi z tego urządzenia, ale nie szyfruje przechowywanych tu danych.",
     app_lock_choose_digits: "Wybierz długość kodu PIN",
     app_lock_digits_4: "4 cyfry",
     app_lock_digits_6: "6 cyfr",
@@ -7817,9 +7822,9 @@ export const pl = {
       "Czy na pewno chcesz zatrzymać synchronizację? Już zaimportowane wiadomości pozostaną.",
     connect_modal_title: "Połącz {{ provider }} z Asterem",
     connect_modal_description:
-      "Zaloguj się do {{ provider }}, aby zaimportować pocztę do Astera. Wiadomości są szyfrowane na tym urządzeniu przed zapisaniem na naszych serwerach.",
+      "Zaloguj się do {{ provider }}, aby zaimportować pocztę do Aster. Serwery Aster pobierają wiadomości z {{ provider }} i szyfrują je przed zapisaniem.",
     connect_modal_privacy_note:
-      "Aster żąda tylko uprawnień do poczty niezbędnych do importowania skrzynki odbiorczej. Nigdy nie czytamy, nie skanujemy ani nie sprzedajemy Twoich wiadomości.",
+      "Aster prosi tylko o dostęp do poczty potrzebny do zaimportowania skrzynki odbiorczej i nigdy nie skanuje ani nie sprzedaje Twoich wiadomości.",
     connect_provider_name_google: "Gmail",
     connect_provider_name_microsoft: "Outlook",
     connect_provider_name_yahoo: "Yahoo",
@@ -9641,6 +9646,9 @@ export const pl = {
     verifying_credentials: "Weryfikowanie poświadczeń...",
     decrypting_vault: "Odszyfrowywanie sejfu kluczy...",
     getting_user_info: "Pobieranie informacji o użytkowniku...",
+    checkout_confirm_title: "Dokończ logowanie",
+    checkout_confirm_description:
+      "Zakup został zakończony. Aby otworzyć skrzynkę pocztową, kontynuuj jako {{email}}.",
     enter_backup_code: "Wprowadź kod zapasowy",
     backup_code_length_error:
       "Kod zapasowy ma 12 znaków (8 w przypadku starszych kodów). Sprawdź kod i spróbuj ponownie.",
@@ -9937,7 +9945,7 @@ export const pl = {
     review_codes_left_other: "Pozostało {{count}} kodu odzyskiwania.",
     import_mail_step_title: "Zabierz pocztę ze sobą",
     import_mail_step_desc:
-      "Przenieś wiadomości z innego konta do Aster. Wszystko jest szyfrowane na Twoim urządzeniu przed zapisaniem.",
+      "Przenieś wiadomości z innego konta do Aster. Przesyłane pliki są szyfrowane na Twoim urządzeniu, a poczta z połączonego konta jest szyfrowana przez serwery Aster przed zapisaniem.",
     import_mail_skip: "Zacznij z pustą skrzynką",
     import_mail_privacy_note: "Możesz też zaimportować później w Ustawieniach.",
     password_reset_successful: "Twoje hasło zostało zresetowane",
@@ -10579,6 +10587,8 @@ export const pl = {
       "Nie udało się odczytać tego wyrażenia. Sprawdź składnię i spróbuj ponownie.",
     expr_line_col: "(wiersz {{line}}, kolumna {{col}})",
     editor_description: "Nazwij regułę i określ, co ma robić.",
+    editor_server_notice:
+      "Reguły działają na serwerach Aster, więc Aster może odczytać ich warunki i adresy przekazywania.",
     drag_handle: "Uchwyt przeciągania",
     no_labels: "Brak etykiet",
     no_labels_create_hint: "Brak etykiet. Utwórz jedną w pasku bocznym.",

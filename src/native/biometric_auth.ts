@@ -59,13 +59,13 @@ export async function authenticate_biometric(
   reason: string = "Authenticate to continue",
 ): Promise<boolean> {
   if (!is_native_platform()) {
-    return true;
+    return false;
   }
 
   const availability = await check_biometric_availability();
 
   if (!availability.is_available) {
-    return true;
+    return false;
   }
 
   try {

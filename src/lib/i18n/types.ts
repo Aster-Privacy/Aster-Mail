@@ -402,6 +402,7 @@ export interface FolderRetentionTranslations {
 
 export interface MailRulesTranslations {
   editor_description: string;
+  editor_server_notice: string;
   drag_handle: string;
   title: string;
   subtitle: string;
@@ -4408,6 +4409,9 @@ export interface SettingsTranslations {
   storage_addons_monthly_note: string;
   storage_addons_yearly_note: string;
   storage_addon_supernova_nudge: string;
+  storage_addon_add_size: string;
+  storage_addon_usage_near: string;
+  storage_addon_usage_full: string;
   bill_addon_summary: string;
   bill_addon_pick_size: string;
   storage_addons_description: string;
@@ -8259,6 +8263,8 @@ export interface AuthTranslations {
   verifying_credentials: string;
   decrypting_vault: string;
   getting_user_info: string;
+  checkout_confirm_title: string;
+  checkout_confirm_description: string;
   enter_backup_code: string;
   backup_code_length_error: string;
   two_fa_temporarily_locked: string;

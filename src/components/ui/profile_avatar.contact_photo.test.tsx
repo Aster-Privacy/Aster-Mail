@@ -40,6 +40,7 @@ vi.mock("@/hooks/use_peer_profile", () => ({
 
 vi.mock("@/hooks/use_favicon_src", () => ({
   use_favicon_src: () => "",
+  use_favicon_tone: () => null,
   store_favicon_if_api_url: () => undefined,
 }));
 

@@ -9,6 +9,7 @@
   var origEncrypt = s.encrypt.bind(s);
   var origDecrypt = s.decrypt.bind(s);
   var origSign = s.sign.bind(s);
+  var origVerify = s.verify.bind(s);
   var origDigest = s.digest.bind(s);
   var keyStore = new WeakMap();
   function algName(a) {
@@ -43,14 +44,39 @@
   function hashName(h) {
     return typeof h === "string" ? h : (h && h.name) || "SHA-256";
   }
+  function denied(message) {
+    return Promise.reject(new DOMException(message, "InvalidAccessError"));
+  }
+  function frozenAlgorithm(alg) {
+    var src = typeof alg === "string" ? { name: alg } : alg || {};
+    var out = { name: src.name };
+    if (src.length !== undefined) out.length = src.length;
+    if (src.hash !== undefined)
+      out.hash = Object.freeze({ name: hashName(src.hash) });
+    return Object.freeze(out);
+  }
   function fakeKey(alg, ext, usages, raw) {
-    var algObj = typeof alg === "string" ? { name: alg } : alg;
-    var k = { type: "secret", algorithm: algObj, extractable: ext, usages: usages };
+    var k = Object.freeze({
+      type: "secret",
+      algorithm: frozenAlgorithm(alg),
+      extractable: ext === true,
+      usages: Object.freeze(Array.prototype.slice.call(usages || [])),
+    });
     keyStore.set(k, raw);
     return k;
   }
   function getRaw(key) {
     return key ? keyStore.get(key) : null;
+  }
+  function allows(key, usage, algorithm) {
+    if (key.usages.indexOf(usage) === -1) return false;
+    return algName(key.algorithm) === algName(algorithm);
+  }
+  function sameBytes(a, b) {
+    if (a.length !== b.length) return false;
+    var diff = 0;
+    for (var i = 0; i < a.length; i++) diff |= a[i] ^ b[i];
+    return diff === 0;
   }
   function effectiveExtractable(algorithm, requested) {
     if (isKdf(algorithm)) return false;
@@ -89,41 +115,43 @@
   s.exportKey = function (format, key) {
     var raw = getRaw(key);
     if (raw && format === "raw") {
-      if (key && key.extractable === false) {
-        return Promise.reject(
-          new DOMException("key is not extractable", "InvalidAccessError"),
-        );
-      }
+      if (key.extractable !== true) return denied("key is not extractable");
       return Promise.resolve(new Uint8Array(raw).buffer);
     }
     return origExport(format, key);
   };
+  function deriveRawBits(algorithm, raw, length) {
+    var n = algName(algorithm);
+    if (n === "PBKDF2") {
+      return invoke("crypto_pbkdf2", {
+        password: raw,
+        salt: toArr(algorithm.salt),
+        iterations: algorithm.iterations,
+        hash: hashName(algorithm.hash),
+        bits: length,
+      }).then(function (r) {
+        return new Uint8Array(r).buffer;
+      });
+    }
+    if (n === "HKDF") {
+      return invoke("crypto_hkdf", {
+        keyMaterial: raw,
+        salt: toArr(algorithm.salt),
+        info: toArr(algorithm.info),
+        hash: hashName(algorithm.hash),
+        bits: length,
+      }).then(function (r) {
+        return new Uint8Array(r).buffer;
+      });
+    }
+    return denied("key does not allow derivation");
+  }
   s.deriveBits = function (algorithm, baseKey, length) {
     var raw = getRaw(baseKey);
     if (raw) {
-      var n = algName(algorithm);
-      if (n === "PBKDF2") {
-        return invoke("crypto_pbkdf2", {
-          password: raw,
-          salt: toArr(algorithm.salt),
-          iterations: algorithm.iterations,
-          hash: hashName(algorithm.hash),
-          bits: length,
-        }).then(function (r) {
-          return new Uint8Array(r).buffer;
-        });
-      }
-      if (n === "HKDF") {
-        return invoke("crypto_hkdf", {
-          keyMaterial: raw,
-          salt: toArr(algorithm.salt),
-          info: toArr(algorithm.info),
-          hash: hashName(algorithm.hash),
-          bits: length,
-        }).then(function (r) {
-          return new Uint8Array(r).buffer;
-        });
-      }
+      if (!allows(baseKey, "deriveBits", algorithm))
+        return denied("key does not allow deriveBits");
+      return deriveRawBits(algorithm, raw, length);
     }
     return origDeriveBits(algorithm, baseKey, length);
   };
@@ -136,8 +164,10 @@
   ) {
     var raw = getRaw(baseKey);
     if (raw) {
+      if (!allows(baseKey, "deriveKey", algorithm))
+        return denied("key does not allow deriveKey");
       var bits = derivedKeyType.length || 256;
-      return s.deriveBits(algorithm, baseKey, bits).then(function (derived) {
+      return deriveRawBits(algorithm, raw, bits).then(function (derived) {
         return s.importKey(
           "raw",
           derived,
@@ -151,7 +181,9 @@
   };
   s.encrypt = function (algorithm, key, data) {
     var raw = getRaw(key);
-    if (raw && algName(algorithm) === "AES-GCM") {
+    if (raw) {
+      if (!allows(key, "encrypt", algorithm) || algName(algorithm) !== "AES-GCM")
+        return denied("key does not allow encrypt");
       return invoke("crypto_aes_gcm_encrypt", {
         key: raw,
         iv: toArr(algorithm.iv),
@@ -164,7 +196,9 @@
   };
   s.decrypt = function (algorithm, key, data) {
     var raw = getRaw(key);
-    if (raw && algName(algorithm) === "AES-GCM") {
+    if (raw) {
+      if (!allows(key, "decrypt", algorithm) || algName(algorithm) !== "AES-GCM")
+        return denied("key does not allow decrypt");
       return invoke("crypto_aes_gcm_decrypt", {
         key: raw,
         iv: toArr(algorithm.iv),
@@ -175,16 +209,31 @@
     }
     return origDecrypt(algorithm, key, data);
   };
+  function hmacSign(raw, data) {
+    return invoke("crypto_hmac_sign", { key: raw, data: toArr(data) });
+  }
   s.sign = function (algorithm, key, data) {
     var raw = getRaw(key);
     if (raw) {
-      return invoke("crypto_hmac_sign", { key: raw, data: toArr(data) }).then(
-        function (r) {
-          return new Uint8Array(r).buffer;
-        },
-      );
+      if (!allows(key, "sign", algorithm) || algName(algorithm) !== "HMAC")
+        return denied("key does not allow sign");
+      return hmacSign(raw, data).then(function (r) {
+        return new Uint8Array(r).buffer;
+      });
     }
     return origSign(algorithm, key, data);
+  };
+  s.verify = function (algorithm, key, signature, data) {
+    var raw = getRaw(key);
+    if (raw) {
+      if (!allows(key, "verify", algorithm) || algName(algorithm) !== "HMAC")
+        return denied("key does not allow verify");
+      var expected = toArr(signature);
+      return hmacSign(raw, data).then(function (r) {
+        return sameBytes(Array.from(r), expected);
+      });
+    }
+    return origVerify(algorithm, key, signature, data);
   };
   s.digest = function (algorithm, data) {
     return origDigest(algorithm, data);

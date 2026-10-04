@@ -26,7 +26,7 @@ import {
   mark_icon_failed,
   mark_icon_ok,
 } from "@/lib/icon_cache";
-import { get_favicon_url, is_valid_favicon_domain } from "@/lib/favicon_url";
+import { is_valid_favicon_domain } from "@/lib/favicon_url";
 import { get_initials, get_active_locale } from "@/lib/initials";
 import {
   use_favicon_src,
@@ -91,10 +91,14 @@ export function ContactAvatar({
     : avatar_url ||
       (is_aster ? (peer_profile?.profile_picture ?? undefined) : undefined);
 
-  const cached_favicon_src = use_favicon_src(domain);
+  const favicon_enabled =
+    !low_network &&
+    favicon_eligible &&
+    preferences.show_profile_pictures !== false;
+  const cached_favicon_src = use_favicon_src(domain, favicon_enabled);
   const favicon_src =
-    !low_network && favicon_eligible
-      ? cached_favicon_src || get_favicon_url(domain)
+    favicon_enabled && !cached_favicon_src.startsWith("data:")
+      ? cached_favicon_src
       : undefined;
 
   const initials = get_initials(name, email, get_active_locale());

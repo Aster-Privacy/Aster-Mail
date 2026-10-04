@@ -76,6 +76,7 @@ interface ParsedRow {
   local_part: string;
   original_domain: string;
   display_name?: string;
+  note?: string;
   enabled?: boolean;
 }
 
@@ -88,6 +89,7 @@ interface PreviewRow extends ParsedRow {
   existing_id?: string;
   existing_domain_id?: string;
   existing_enabled?: boolean;
+  existing_note?: string;
   invalid_reason?: string;
 }
 
@@ -185,6 +187,24 @@ function parse_protonpass_json(text: string): ParsedRow[] {
   return rows;
 }
 
+const MAX_NOTE_LENGTH = 500;
+
+function sanitize_note(value: string): string | undefined {
+  const cleaned = value
+    .replace(/[\x00-\x08\x0b-\x1f\x7f]/g, "")
+    .trim()
+    .slice(0, MAX_NOTE_LENGTH)
+    .trim();
+
+  return cleaned || undefined;
+}
+
+function read_cell(cols: string[], index: number): string | undefined {
+  if (index < 0 || !cols[index]) return undefined;
+
+  return strip_formula_guard(cols[index]).trim() || undefined;
+}
+
 function parse_csv_file(text: string): ParsedRow[] {
   const without_bom = text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
   const lines = without_bom.split(/\r?\n/).filter((l) => l.trim().length > 0);
@@ -204,9 +224,8 @@ function parse_csv_file(text: string): ParsedRow[] {
   const alias_col = header.findIndex((h) =>
     ["alias", "email", "address"].includes(h),
   );
-  const note_col = header.findIndex((h) =>
-    ["note", "description", "display_name"].includes(h),
-  );
+  const display_name_col = header.indexOf("display_name");
+  const note_col = header.findIndex((h) => ["note", "description"].includes(h));
   const enabled_col = header.findIndex((h) =>
     ["enabled", "active"].includes(h),
   );
@@ -239,10 +258,11 @@ function parse_csv_file(text: string): ParsedRow[] {
     if (seen.has(seen_key)) continue;
     seen.add(seen_key);
 
+    const note_cell = read_cell(cols, note_col);
     const display_name =
-      note_col >= 0 && cols[note_col]
-        ? strip_formula_guard(cols[note_col]).trim() || undefined
-        : undefined;
+      display_name_col >= 0 ? read_cell(cols, display_name_col) : note_cell;
+    const note =
+      display_name_col >= 0 && note_cell ? sanitize_note(note_cell) : undefined;
     const enabled_raw =
       enabled_col >= 0 && cols[enabled_col]
         ? cols[enabled_col].trim().toLowerCase()
@@ -258,7 +278,7 @@ function parse_csv_file(text: string): ParsedRow[] {
     const enabled =
       enabled_raw !== undefined ? !DISABLED_VALUES.has(enabled_raw) : undefined;
 
-    rows.push({ local_part, original_domain, display_name, enabled });
+    rows.push({ local_part, original_domain, display_name, note, enabled });
   }
 
   return rows;
@@ -318,6 +338,7 @@ function build_preview(
         status: "exists" as RowStatus,
         existing_id: existing_alias.id,
         existing_enabled: existing_alias.is_enabled,
+        existing_note: existing_alias.note,
       };
     }
 
@@ -618,6 +639,12 @@ export function AliasImportModal({
             item.encrypted_display_name = enc_dn.encrypted;
             item.display_name_nonce = enc_dn.nonce;
           }
+          if (row.note) {
+            const enc_note = await encrypt_alias_field(row.note);
+
+            item.encrypted_note = enc_note.encrypted;
+            item.note_nonce = enc_note.nonce;
+          }
           items.push(item);
           set_progress_current(ei + 1);
         }
@@ -715,6 +742,7 @@ export function AliasImportModal({
         } else {
           const response = await update_alias(row.existing_id, {
             is_enabled: true,
+            ...(row.note && !row.existing_note ? { note: row.note } : {}),
           });
 
           if (response.error) {

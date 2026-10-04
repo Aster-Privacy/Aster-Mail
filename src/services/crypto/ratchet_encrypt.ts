@@ -76,6 +76,7 @@ import {
   bundle_is_downgraded,
   bundle_supports_pq,
   perform_x3dh_sender,
+  restrict_bundle_to_signed_pq_key,
   X3DH_VERSION_LEGACY,
   type PrekeyBundle,
 } from "./x3dh";
@@ -339,7 +340,11 @@ async function encrypt_for_ratchet_recipient_unlocked(
 
       const x3dh_result = await perform_x3dh_sender(
         sender_identity_jwk,
-        bundle,
+        restrict_bundle_to_signed_pq_key(
+          bundle,
+          bundle_verification.verdict === "verified" &&
+            bundle_verification.strict,
+        ),
       );
 
       try {
