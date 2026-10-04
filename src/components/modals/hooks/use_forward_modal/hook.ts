@@ -1100,7 +1100,7 @@ export function use_forward_modal({
       subject: `${t("mail.forward_subject_prefix")} ${email_subject}`,
       body: scheduled_body,
       scheduled_at: scheduled_time.toISOString(),
-      ...(scheduled_alias?.is_catch_all
+      ...(scheduled_alias
         ? {
             from: {
               name: scheduled_alias.display_name || "",

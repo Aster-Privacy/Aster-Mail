@@ -379,6 +379,29 @@ describe("forward comment send formatting", () => {
       html_comment + "<br><br>",
     );
   });
+  it("schedules a forward from a saved alias with its From", async () => {
+    const alias = {
+      id: "alias-1",
+      email: "orders@alias.example",
+      type: "alias",
+      is_enabled: true,
+      address_hash: "hash-1",
+    };
+
+    await setup(plain_comment);
+    await act(async () => latest.set_selected_sender(alias as never));
+    await act(async () =>
+      latest.set_scheduled_time(new Date("2027-01-01T10:00:00Z")),
+    );
+    await act(async () => {
+      await latest.handle_scheduled_send();
+    });
+    expect(mocks.schedule.mock.calls[0][1].from).toEqual({
+      name: "",
+      email: alias.email,
+    });
+    expect(mocks.schedule.mock.calls[0][2].sender_alias_hash).toBe("hash-1");
+  });
   it("keeps formatted HTML when rich text mode is used", async () => {
     await setup("<b>Meet at 10</b>", false);
     await act(async () => {

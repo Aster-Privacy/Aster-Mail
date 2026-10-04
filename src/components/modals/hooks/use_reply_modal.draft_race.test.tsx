@@ -220,6 +220,12 @@ vi.mock("@/services/scheduled_send_gate", () => ({
   })),
 }));
 
+vi.mock("@/services/thread_service", () => ({
+  get_or_create_thread_token: vi.fn(
+    async (_email_id: string, existing?: string) => existing ?? "thread_new",
+  ),
+}));
+
 vi.mock("@/services/lockdown_store", () => ({
   is_any_lockdown_active: () => false,
 }));
@@ -906,7 +912,7 @@ describe("reply modal drafts around a send", () => {
     );
   });
 
-  it("leaves a scheduled reply from a saved alias as it was", async () => {
+  it("schedules a reply from a saved alias with its From and address hash", async () => {
     const { create_scheduled_email } = await import("@/services/api/scheduled");
     const sender = {
       id: "alias-1",
@@ -931,9 +937,38 @@ describe("reply modal drafts around a send", () => {
 
     expect(create_scheduled_email).toHaveBeenCalledWith(
       stable.auth.vault,
-      expect.not.objectContaining({ from: expect.anything() }),
-      expect.objectContaining({ allow_non_post_quantum: false }),
+      expect.objectContaining({ from: { name: "", email: sender.email } }),
+      expect.objectContaining({
+        sender_alias_hash: "hash-1",
+        sender_email: sender.email,
+        allow_non_post_quantum: false,
+      }),
     );
+  });
+
+  it("schedules a reply that stays in the original thread", async () => {
+    const { create_scheduled_email } = await import("@/services/api/scheduled");
+
+    vi.mocked(create_scheduled_email).mockClear();
+    vi.mocked(create_scheduled_email).mockResolvedValue({
+      data: { id: "s3", scheduled_at: "x", success: true },
+    } as never);
+    await render_hook(
+      base_props({ original_rfc_message_id: "<original@example.com>" }),
+    );
+    await type_reply("<p>Thanks!</p>");
+    await act(async () =>
+      latest!.set_scheduled_time(new Date("2030-01-01T09:00:00.000Z")),
+    );
+    await act(async () => {
+      await latest!.handle_scheduled_send();
+    });
+
+    const content = vi.mocked(create_scheduled_email).mock.calls[0][1];
+
+    expect(content.in_reply_to).toBe("<original@example.com>");
+    expect(content.thread_id).toBe("thread_1");
+    expect(content.from).toBeUndefined();
   });
 
   it("restores the draft sender ahead of the delivery address", async () => {
