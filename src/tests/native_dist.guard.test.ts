@@ -20,6 +20,7 @@
 //
 import { execFileSync } from "node:child_process";
 import {
+  existsSync,
   mkdirSync,
   mkdtempSync,
   readdirSync,
@@ -47,6 +48,38 @@ function list_files(dir: string, base = dir): string[] {
         : [relative(base, join(dir, entry.name)).split(sep).join("/")],
     )
     .sort();
+}
+
+const GENERATED_DIRS = new Set([
+  "node_modules",
+  "target",
+  "build",
+  "gen",
+  ".gradle",
+  "Pods",
+  "DerivedData",
+  "public",
+  "bergamot",
+  "fonts",
+]);
+const TEXT_FILE =
+  /(\.(tsx?|jsx?|mjs|cjs|css|html|json|webmanifest|xml|gradle|kts|java|kt|plist|swift|m|h|storyboard|xib|pbxproj|xcconfig|strings|properties|rs|toml|nsh|txt)|^_headers)$/;
+
+function list_text_files(name: string): string[] {
+  const walk = (dir: string): string[] =>
+    readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+      if (entry.isDirectory()) {
+        return GENERATED_DIRS.has(entry.name)
+          ? []
+          : walk(join(dir, entry.name));
+      }
+
+      return TEXT_FILE.test(entry.name)
+        ? [relative(root, join(dir, entry.name)).split(sep).join("/")]
+        : [];
+    });
+
+  return existsSync(join(root, name)) ? walk(join(root, name)).sort() : [];
 }
 
 function web_only_files(): string[] {
@@ -85,6 +118,27 @@ describe("native packages ship a slim copy of the web build", () => {
     expect(pkg.scripts["capacitor:copy:before"]).toBe(
       "node scripts/prepare_native_dist.mjs",
     );
+  });
+
+  it("prepares the native directory before every capacitor command that reads it", () => {
+    const pkg = JSON.parse(read("package.json"));
+    const reads_web_dir = Object.entries<string>(pkg.scripts).filter(
+      ([, command]) => /\bcap (sync|copy|run|build)\b/.test(command),
+    );
+
+    expect(reads_web_dir.map(([name]) => name)).toEqual(
+      expect.arrayContaining(["cap:sync", "cap:android", "android"]),
+    );
+
+    for (const [name, command] of reads_web_dir) {
+      expect(command, name).toMatch(
+        /node scripts\/prepare_native_dist\.mjs && npx cap (sync|copy|run|build)\b/,
+      );
+    }
+  });
+
+  it("keeps the native directory out of version control", () => {
+    expect(read(".gitignore").split(/\r?\n/)).toContain("dist-native");
   });
 
   it("copies the build without source maps or web-only images", () => {
@@ -148,23 +202,36 @@ describe("native packages ship a slim copy of the web build", () => {
   });
 
   it("only leaves out files the app never references", () => {
-    const sources = [
+    const names = [
       "index.html",
       "bridge.html",
       "vite.config.ts",
-      ...list_files(join(root, "src"))
-        .filter((f) => /\.(tsx?|css|html|json)$/.test(f))
-        .filter((f) => !/\.test\.tsx?$/.test(f))
-        .map((f) => `src/${f}`),
-    ].map(read);
+      "capacitor.config.ts",
+      ...list_text_files("src").filter((f) => !/\.test\.tsx?$/.test(f)),
+      ...list_text_files("public"),
+      ...list_text_files("src-tauri"),
+      ...list_text_files("android"),
+      ...list_text_files("ios"),
+    ];
+    const sources = names.map((name) => ({ name, text: read(name) }));
 
     expect(web_only_files().length).toBeGreaterThan(0);
+    expect(names).toEqual(
+      expect.arrayContaining([
+        "public/desktop_ready.js",
+        "src-tauri/tauri.conf.json",
+        "src-tauri/src/main.rs",
+        "android/app/src/main/AndroidManifest.xml",
+      ]),
+    );
 
     for (const file of web_only_files()) {
       expect(
-        sources.filter((text) => text.includes(file)),
+        sources
+          .filter(({ text }) => text.includes(file))
+          .map(({ name }) => name),
         file,
-      ).toHaveLength(0);
+      ).toEqual([]);
     }
   });
 });
