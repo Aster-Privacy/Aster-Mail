@@ -27,6 +27,7 @@ import {
   has_aes_crypto_key,
 } from "./memory_key_store";
 import { HASH_ALG, generate_random_bytes } from "./key_manager_core";
+import { complete_p256_private_jwk } from "./p256_jwk";
 
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
@@ -95,7 +96,7 @@ export async function import_ke_private_key(
 
   const crypto_key = await crypto.subtle.importKey(
     "jwk",
-    jwk,
+    complete_p256_private_jwk(jwk),
     { name: _KE, namedCurve: _KC },
     false,
     ["deriveBits"],

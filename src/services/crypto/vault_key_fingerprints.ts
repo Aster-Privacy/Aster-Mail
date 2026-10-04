@@ -21,6 +21,7 @@
 import type { EncryptedVault } from "./key_manager_core";
 
 import { array_to_base64, base64_to_array } from "./base64";
+import { complete_p256_private_jwk } from "./p256_jwk";
 
 const MAX_VAULT_KEY_FINGERPRINTS = 128;
 
@@ -35,7 +36,7 @@ function base64url_to_array(value: string): Uint8Array {
 
 function identity_public_from_jwk(jwk_text: string): string | null {
   try {
-    const jwk = JSON.parse(jwk_text) as { x?: string; y?: string };
+    const jwk = complete_p256_private_jwk(JSON.parse(jwk_text) as JsonWebKey);
 
     if (!jwk.x || !jwk.y) return null;
 
