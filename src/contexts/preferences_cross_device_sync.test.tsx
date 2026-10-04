@@ -26,6 +26,7 @@ import { PreferencesProvider, use_preferences } from "./preferences_context";
 
 import {
   DEFAULT_PREFERENCES,
+  get_preferences,
   type UserPreferences,
 } from "@/services/api/preferences";
 
@@ -62,6 +63,18 @@ vi.mock("@/services/api/preferences", async (import_original) => {
     get_cached_sidebar_state: vi.fn(() => false),
     sync_quiet_hours_to_server: vi.fn(),
     save_dev_mode: vi.fn(),
+  };
+});
+
+const socket_state = { connected: false };
+
+vi.mock("@/services/sync_client", async (import_original) => {
+  const actual =
+    await import_original<typeof import("@/services/sync_client")>();
+
+  return {
+    ...actual,
+    sync_client: { is_connected: () => socket_state.connected },
   };
 });
 
@@ -145,6 +158,7 @@ describe("preferences pick up changes made on another device", () => {
   beforeEach(() => {
     server_writes.length = 0;
     server_state.loaded = true;
+    socket_state.connected = false;
     server_state.data = { ...DEFAULT_PREFERENCES, muted_folder_tokens: [] };
     vi.useFakeTimers();
     container = document.createElement("div");
@@ -238,5 +252,63 @@ describe("preferences pick up changes made on another device", () => {
     expect(
       server_writes[server_writes.length - 1].muted_folder_tokens,
     ).toContain("token-from-web");
+  });
+
+  const count_fetches_over = async (ms: number) => {
+    vi.mocked(get_preferences).mockClear();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(ms);
+    });
+
+    return vi.mocked(get_preferences).mock.calls.length;
+  };
+
+  it("polls rarely while the sync socket is connected", async () => {
+    socket_state.connected = true;
+    await mount();
+
+    expect(await count_fetches_over(10 * 60_000)).toBe(2);
+  });
+
+  it("keeps polling every 20 seconds while the sync socket is down", async () => {
+    await mount();
+
+    expect(await count_fetches_over(10 * 60_000)).toBe(30);
+  });
+
+  it("goes back to the 20 second poll when the sync socket drops", async () => {
+    socket_state.connected = true;
+    await mount();
+
+    expect(await count_fetches_over(60_000)).toBe(0);
+
+    socket_state.connected = false;
+
+    expect(await count_fetches_over(60_000)).toBe(3);
+  });
+
+  it("refetches on focus while the sync socket is connected", async () => {
+    socket_state.connected = true;
+    await mount();
+
+    server_state.data = {
+      ...DEFAULT_PREFERENCES,
+      muted_folder_tokens: ["token-from-phone"],
+    };
+
+    expect(await count_fetches_over(60_000)).toBe(0);
+
+    vi.mocked(get_preferences).mockClear();
+    await act(async () => {
+      window.dispatchEvent(new Event("focus"));
+      window.dispatchEvent(new Event("focus"));
+      document.dispatchEvent(new Event("visibilitychange"));
+      await vi.advanceTimersByTimeAsync(0);
+    });
+
+    expect(vi.mocked(get_preferences).mock.calls.length).toBe(1);
+    expect(captured.preferences.muted_folder_tokens).toEqual([
+      "token-from-phone",
+    ]);
   });
 });
