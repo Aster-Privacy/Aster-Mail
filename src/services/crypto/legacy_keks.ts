@@ -22,6 +22,7 @@ import type { LegacyDerivedKek } from "./key_manager_core";
 
 import { array_to_base64, base64_to_array } from "./base64";
 import { zero_uint8_array } from "./secure_memory";
+import { notify_account_keys_added } from "./account_key_events";
 import {
   ACCOUNT_DATA_CONTEXTS,
   ACCOUNT_KEY_LENGTH,
@@ -291,6 +292,7 @@ export async function load_account_key_derived_keks_into_memory(
   loaded_account_key_ids.add(key_id);
   account_crypto_keys = [...account_crypto_keys, ...aes_keys];
   account_hkdf_keys = [...account_hkdf_keys, ...hkdf_keys];
+  notify_account_keys_added();
 
   return true;
 }

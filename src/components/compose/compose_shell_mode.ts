@@ -21,6 +21,10 @@
 
 export type ComposeShellMode = "minimized" | "expanded" | "docked";
 
+export const WINDOW_WIDTH = 700;
+export const WINDOW_WIDTH_MINIMIZED = 320;
+export const WINDOW_HEIGHT_NORMAL = 600;
+
 export function compose_shell_mode(
   is_minimized: boolean,
   is_expanded: boolean,

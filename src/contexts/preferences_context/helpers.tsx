@@ -203,6 +203,7 @@ export const PreferencesSaveStatusContext =
   createContext<PreferencesSaveStatusContextType | null>(null);
 
 export const CROSS_DEVICE_REFRESH_POLL_MS = 20_000;
+export const CROSS_DEVICE_REFRESH_LIVE_POLL_MS = 300_000;
 export const CROSS_DEVICE_REFRESH_MIN_INTERVAL_MS = 10_000;
 
 export const FONT_SIZE_MIN = 12;

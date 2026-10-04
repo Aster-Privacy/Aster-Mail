@@ -23,7 +23,7 @@ import type { CapacitorConfig } from "@capacitor/cli";
 const config: CapacitorConfig = {
   appId: "com.astermail.app",
   appName: "Aster Mail",
-  webDir: "dist",
+  webDir: "dist-native",
   server: {
     androidScheme: "https",
     iosScheme: "astermail",

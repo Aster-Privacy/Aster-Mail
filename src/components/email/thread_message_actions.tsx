@@ -20,7 +20,7 @@
 //
 import type { DecryptedThreadMessage } from "@/types/thread";
 
-import { Fragment, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowUturnLeftIcon,
@@ -34,7 +34,6 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from "@/components/ui/popover";
-import EmojiPicker from "@/components/compose/emoji_picker";
 import {
   is_own_reaction_address,
   send_reaction,
@@ -51,6 +50,11 @@ import { use_preferences } from "@/contexts/preferences_context";
 import { use_auth_safe } from "@/contexts/auth_context";
 import { emit_mail_soft_refresh } from "@/hooks/mail_events";
 import { use_should_reduce_motion } from "@/provider";
+import {
+  LazyEmojiPicker,
+  preload_emoji_picker,
+} from "@/components/compose/lazy_emoji_picker";
+import { preload_when_idle } from "@/utils/lazy_with_retry";
 
 interface ReactionChipGroup {
   emoji: string;
@@ -191,6 +195,12 @@ export function ThreadMessageActions({
     : "";
   const show_react_button =
     can_react || (restriction !== "disabled" && restriction !== "own_message");
+
+  useEffect(() => {
+    if (!can_react) return;
+
+    return preload_when_idle(preload_emoji_picker);
+  }, [can_react]);
 
   function send_reaction_emoji(emoji: string): void {
     if (restriction !== null) {
@@ -371,6 +381,8 @@ export function ThreadMessageActions({
                   className="aster_pill aster_pill_tonal h-10 w-10 flex-shrink-0 !rounded-full !px-0"
                   title={t("mail.react")}
                   type="button"
+                  onFocus={preload_emoji_picker}
+                  onPointerEnter={preload_emoji_picker}
                 >
                   <FaceSmileIcon className="w-5 h-5" />
                 </button>
@@ -379,7 +391,7 @@ export function ThreadMessageActions({
                 align="start"
                 className="w-auto border-none bg-transparent p-0 shadow-none"
               >
-                <EmojiPicker
+                <LazyEmojiPicker
                   anchor_ref={picker_anchor_ref}
                   on_dismiss={() => set_is_picker_open(false)}
                   on_select={handle_reaction_select}

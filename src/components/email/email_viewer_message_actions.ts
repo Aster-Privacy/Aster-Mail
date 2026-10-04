@@ -37,7 +37,7 @@ import {
   emit_mail_item_updated,
   emit_mail_items_removed,
 } from "@/hooks/mail_events";
-import { print_email } from "@/utils/print_email";
+import { print_email } from "@/utils/print_email_loader";
 import { adjust_stats_unread } from "@/hooks/use_mail_stats";
 import { conversation_has_unread_sibling } from "@/hooks/unread_read_delta";
 import { report_spam_sender, remove_spam_sender } from "@/services/api/mail";

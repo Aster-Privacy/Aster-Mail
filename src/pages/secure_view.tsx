@@ -33,7 +33,8 @@ import { sanitize_download_filename } from "@/lib/attachment_utils";
 import { use_i18n } from "@/lib/i18n/context";
 import { sanitize_html } from "@/lib/html_sanitizer";
 import { inline_secure_view_images } from "@/lib/secure_view_inline_images";
-import { EMAIL_BODY_CSS } from "@/lib/email_body_styles";
+import { build_email_body_css } from "@/lib/email_body_styles";
+import { EMAIL_INLINE_FONT_FACE_CSS } from "@/lib/email_inline_fonts";
 import {
   derive_auth_proof,
   decrypt_secure_message,
@@ -67,7 +68,8 @@ function is_transient_load_failure(err: unknown): boolean {
 }
 
 const SECURE_BODY_CSS =
-  EMAIL_BODY_CSS +
+  EMAIL_INLINE_FONT_FACE_CSS +
+  build_email_body_css() +
   `
 html { color-scheme: dark !important; background: transparent !important; }
 body { background: transparent !important; padding: 16px 18px !important; color: #e5e7eb !important; }

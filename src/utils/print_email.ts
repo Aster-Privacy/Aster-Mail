@@ -31,6 +31,7 @@ import { get_image_proxy_url } from "@/lib/image_proxy";
 import { is_native_platform } from "@/native/capacitor_bridge";
 import { get_cached_preferences } from "@/services/api/preferences";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
+import { strip_style_blocks } from "@/utils/strip_style_blocks";
 
 type Translator = (
   key: TranslationKey,
@@ -63,16 +64,6 @@ function escape_html(text: string): string {
   div.textContent = text;
 
   return div.innerHTML;
-}
-
-export function strip_style_blocks(html: string): string {
-  const doc = new DOMParser().parseFromString(html, "text/html");
-
-  doc
-    .querySelectorAll("style, link[rel='stylesheet']")
-    .forEach((el) => el.remove());
-
-  return doc.body.innerHTML;
 }
 
 const FORBIDDEN_PRINT_SELECTOR =

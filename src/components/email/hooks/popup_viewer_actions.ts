@@ -27,7 +27,7 @@ import type {
 } from "@/components/email/hooks/popup_viewer_types";
 
 import type { MutableRefObject } from "react";
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 import { is_system_email, is_astermail_sender } from "@/lib/utils";
 import { extract_reply_to } from "@/utils/reply_to";
@@ -46,7 +46,8 @@ import {
   emit_mail_item_updated,
   emit_mail_items_removed,
 } from "@/hooks/mail_events";
-import { print_email } from "@/utils/print_email";
+import { preload_print_email, print_email } from "@/utils/print_email_loader";
+import { preload_when_idle } from "@/utils/lazy_with_retry";
 import {
   execute_unsubscribe,
   get_manual_unsubscribe_url,
@@ -616,6 +617,14 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
       original_mail_id: deps.email.id,
     });
   }, [deps.email, deps.on_forward, deps.mail_item]);
+
+  useEffect(
+    () =>
+      preload_when_idle(() => {
+        void preload_print_email();
+      }),
+    [],
+  );
 
   const handle_print = useCallback(() => {
     if (!deps.email) return;

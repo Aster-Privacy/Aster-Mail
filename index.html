@@ -231,7 +231,16 @@
       href="/fonts/GoogleSansFlex-500.woff2"
       crossorigin
     />
-    <link rel="preload" as="image" href="/text_logo.png" fetchpriority="high" />
+    <link
+      rel="preload"
+      as="image"
+      imagesrcset="
+        /text_logo_28.webp 1x,
+        /text_logo_56.webp 2x,
+        /text_logo_84.webp 3x
+      "
+      fetchpriority="high"
+    />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
@@ -250,9 +259,14 @@
         <img
           alt="Aster"
           draggable="false"
-          height="199"
-          src="/text_logo.png"
-          width="800"
+          height="84"
+          src="/text_logo_84.webp"
+          srcset="
+            /text_logo_28.webp 1x,
+            /text_logo_56.webp 2x,
+            /text_logo_84.webp 3x
+          "
+          width="338"
         />
         <div id="initial-loader-stack">
           <div id="initial-loader-spinner"></div>

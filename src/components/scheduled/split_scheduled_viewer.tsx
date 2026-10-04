@@ -46,7 +46,7 @@ import { SchedulePicker } from "@/components/compose/schedule_picker";
 import { use_auth } from "@/contexts/auth_context";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { show_toast } from "@/components/toast/simple_toast";
-import { DdgFavicon } from "@/components/compose/compose_shared";
+import { DdgFavicon } from "@/components/compose/ddg_favicon";
 import {
   sanitize_html,
   is_html_content,

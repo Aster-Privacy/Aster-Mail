@@ -29,7 +29,7 @@ import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import { InfoPopover } from "@/components/ui/info_popover";
 import { language_display_name } from "@/services/translation/accepted_languages";
-import { available_source_languages } from "@/services/translation/translate_document";
+import { load_translate_document } from "@/components/email/hooks/use_email_translation";
 import { ignore_error } from "@/lib/ignore_error";
 import { format_bytes } from "@/lib/utils";
 
@@ -106,7 +106,10 @@ export function TranslationBanner({
 
     let active = true;
 
-    void available_source_languages(target_language)
+    void load_translate_document()
+      .then((translator) =>
+        translator.available_source_languages(target_language),
+      )
       .then((codes) => {
         if (!active || codes.length === 0) return;
 

@@ -9,6 +9,7 @@ paths-ignore:
   - android/**
   - ios/**
   - dist/**
+  - dist-native/**
   - node_modules/**
   - coverage/**
   - '**/*.test.ts'

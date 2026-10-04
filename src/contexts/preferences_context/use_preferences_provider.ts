@@ -24,6 +24,7 @@ import type { UserPreferences } from "@/services/api/preferences";
 import { useEffect, useCallback } from "react";
 
 import {
+  CROSS_DEVICE_REFRESH_LIVE_POLL_MS,
   CROSS_DEVICE_REFRESH_MIN_INTERVAL_MS,
   CROSS_DEVICE_REFRESH_POLL_MS,
   FONT_SIZE_DEFAULT,
@@ -48,6 +49,7 @@ import { get_csrf_token_from_cookie } from "@/services/api/csrf";
 import { request_cache } from "@/services/api/request_cache";
 import { get_effective_base_url } from "@/services/routing/routing_provider";
 import { connection_store } from "@/services/routing/connection_store";
+import { sync_client } from "@/services/sync_client";
 import { sync_haptic_state } from "@/native/haptic_feedback";
 import { write_support_theme_cookie } from "@/lib/support_theme_cookie";
 import { set_toast_min_duration } from "@/components/toast/simple_toast";
@@ -707,8 +709,19 @@ export function use_preferences_provider() {
         });
     };
 
+    const poll_from_other_devices = () => {
+      if (
+        sync_client.is_connected() &&
+        Date.now() - last_refresh_ms < CROSS_DEVICE_REFRESH_LIVE_POLL_MS
+      ) {
+        return;
+      }
+
+      refresh_from_other_devices();
+    };
+
     const poll_id = window.setInterval(
-      refresh_from_other_devices,
+      poll_from_other_devices,
       CROSS_DEVICE_REFRESH_POLL_MS,
     );
 

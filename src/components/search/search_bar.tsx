@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { TranslationKey } from "@/lib/i18n/types";
 import type { SearchResultItem } from "@/hooks/use_search";
 import type { FormatOptions } from "@/utils/date_format";
 
@@ -67,28 +66,17 @@ import { is_page_search_route, set_page_search } from "@/hooks/use_page_search";
 import { use_i18n } from "@/lib/i18n/context";
 import { has_open_overlay_layer } from "@/lib/overlay_layer_stack";
 import { use_preferences } from "@/contexts/preferences_context";
-import { meets_min_search_length } from "@/utils/search_query";
+import {
+  meets_min_search_length,
+  scope_search_query,
+  search_placeholder_label_key,
+  search_view_for_path,
+} from "@/utils/search_query";
 import { is_composing } from "@/utils/ime";
 
 const DEBOUNCE_MS = 180;
 const PREVIEW_LIMIT = 5;
 const PREVIEW_DEBOUNCE_MS = 90;
-
-const VIEW_SCOPES: Record<
-  string,
-  { label_key: TranslationKey; token: string }
-> = {
-  "/": { label_key: "mail.inbox", token: "inbox" },
-  "/all": { label_key: "mail.all_mail", token: "all" },
-  "/starred": { label_key: "mail.starred", token: "starred" },
-  "/sent": { label_key: "mail.sent", token: "sent" },
-  "/drafts": { label_key: "mail.drafts", token: "drafts" },
-  "/scheduled": { label_key: "mail.scheduled", token: "scheduled" },
-  "/snoozed": { label_key: "mail.snoozed", token: "snoozed" },
-  "/archive": { label_key: "mail.archive", token: "archive" },
-  "/spam": { label_key: "mail.spam", token: "spam" },
-  "/trash": { label_key: "mail.trash", token: "trash" },
-};
 
 interface SearchBarProps {
   is_pill?: boolean;
@@ -112,7 +100,8 @@ export function SearchBar({
 }: SearchBarProps) {
   const { t } = use_i18n();
   const location = useLocation();
-  const scope = VIEW_SCOPES[location.pathname];
+  const scope_view = search_view_for_path(location.pathname);
+  const scope_label_key = search_placeholder_label_key(scope_view);
   const is_page_filter = is_page_search_route(location.pathname);
   const page_filter_placeholder = `${t("mail.search_in")} ${
     location.pathname === "/contacts"
@@ -156,6 +145,13 @@ export function SearchBar({
     clear_index();
   }, [update_preference, clear_index]);
 
+  const is_view_scoped = !is_page_filter && !search_context;
+  const scope_query = useCallback(
+    (raw: string) =>
+      is_view_scoped ? scope_search_query(raw, scope_view) : raw.trim(),
+    [is_view_scoped, scope_view],
+  );
+
   const close = useCallback(() => {
     set_is_open(false);
     window.dispatchEvent(new Event("aster:search-closed"));
@@ -172,18 +168,18 @@ export function SearchBar({
         return;
       }
       if (!meets_min_search_length(trimmed)) return;
-      on_search_submit(trimmed);
+      on_search_submit(scope_query(trimmed));
     },
-    [on_search_submit],
+    [on_search_submit, scope_query],
   );
 
   const submit_full = useCallback(
     (q: string) => {
-      if (on_search_submit) on_search_submit(q.trim());
+      if (on_search_submit) on_search_submit(scope_query(q));
       close();
       input_ref.current?.blur();
     },
-    [on_search_submit, close],
+    [on_search_submit, scope_query, close],
   );
 
   const handle_advanced_submit = useCallback(
@@ -357,6 +353,7 @@ export function SearchBar({
   }, [location.pathname, on_search_submit]);
 
   const preview_query = query.trim();
+  const preview_search_query = scope_query(preview_query);
   const preview_enabled =
     meets_min_search_length(preview_query) && !preview_query.endsWith(":");
 
@@ -368,12 +365,12 @@ export function SearchBar({
       return;
     }
     const timer = setTimeout(() => {
-      void search(preview_query);
+      void search(preview_search_query);
     }, PREVIEW_DEBOUNCE_MS);
 
     return () => clearTimeout(timer);
   }, [
-    preview_query,
+    preview_search_query,
     preview_enabled,
     is_open,
     is_page_filter,
@@ -384,12 +381,12 @@ export function SearchBar({
   const preview_results = search_state.results.slice(0, PREVIEW_LIMIT);
   const active_correction =
     search_state.correction &&
-    search_state.correction.original_query === preview_query
+    search_state.correction.original_query === preview_search_query
       ? search_state.correction
       : null;
   const effective_query = active_correction
     ? active_correction.corrected_query
-    : preview_query;
+    : preview_search_query;
   const preview_terms = useMemo(
     () => extract_query_terms(effective_query),
     [effective_query],
@@ -506,8 +503,8 @@ export function SearchBar({
             placeholder={
               is_page_filter
                 ? page_filter_placeholder
-                : scope
-                  ? `${t("mail.search_in")} ${t(scope.label_key)}`
+                : scope_label_key
+                  ? `${t("mail.search_in")} ${t(scope_label_key)}`
                   : t("common.search")
             }
             role={is_page_filter ? undefined : "combobox"}
@@ -630,7 +627,7 @@ export function SearchBar({
                   type="button"
                   onClick={() => {
                     clear_index();
-                    search(preview_query);
+                    search(preview_search_query);
                   }}
                 >
                   <ArrowPathIcon className="w-3.5 h-3.5" />

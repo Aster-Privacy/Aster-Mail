@@ -23,15 +23,86 @@ import type {
   DraftAttachmentData,
 } from "@/services/api/multi_drafts";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import {
+  useState,
+  useCallback,
+  useEffect,
+  useRef,
+  Suspense,
+  type ReactNode,
+} from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
-import { ComposeWindow } from "@/components/compose/compose_window";
+import {
+  compose_shell_mode,
+  WINDOW_HEIGHT_NORMAL,
+  WINDOW_WIDTH,
+  WINDOW_WIDTH_MINIMIZED,
+} from "@/components/compose/compose_shell_mode";
 import { use_should_reduce_motion } from "@/provider";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_translation } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { play_iconic_sound } from "@/services/iconic_sounds";
+import { LazyLoadBoundary } from "@/components/ui/lazy_load_boundary";
+import { Spinner } from "@/components/ui/spinner";
+import { ignore_error } from "@/lib/ignore_error";
+import { lazy_on_demand, preload_when_idle } from "@/utils/lazy_with_retry";
+
+export const load_compose_window = () =>
+  import("@/components/compose/compose_window");
+
+const ComposeWindow = lazy_on_demand(() =>
+  load_compose_window().then((m) => ({ default: m.ComposeWindow })),
+);
+
+export function preload_compose_window(): void {
+  void load_compose_window().catch((caught) =>
+    ignore_error("components/compose/compose_manager:preload", caught),
+  );
+}
+
+function ComposeWindowFallback({
+  is_minimized,
+}: {
+  is_minimized: boolean;
+}): ReactNode {
+  const { t } = use_translation();
+  const { preferences } = use_preferences();
+  const shell_mode = compose_shell_mode(
+    is_minimized,
+    (preferences.compose_window_mode ?? "default") === "fullscreen",
+  );
+  const is_narrow = window.innerWidth < 640;
+
+  return (
+    <div
+      aria-busy="true"
+      aria-label={t("common.loading")}
+      className={`flex items-center justify-center shadow-[var(--aster-floating-shadow)] overflow-hidden bg-[var(--aster-dialog-bg,var(--modal-bg))] text-txt-muted ${
+        shell_mode === "minimized"
+          ? "h-[53px] rounded-t-[var(--aster-radius-floating,16px)]"
+          : shell_mode === "expanded"
+            ? "fixed inset-4 z-50 rounded-[var(--aster-radius-floating,16px)]"
+            : "fixed inset-0 z-50 sm:relative sm:inset-auto sm:z-auto rounded-none sm:rounded-t-[var(--aster-radius-floating,16px)]"
+      }`}
+      role="status"
+      style={
+        shell_mode === "minimized"
+          ? { width: WINDOW_WIDTH_MINIMIZED }
+          : shell_mode === "docked" && !is_narrow
+            ? {
+                width: WINDOW_WIDTH,
+                height: WINDOW_HEIGHT_NORMAL,
+                maxWidth: window.innerWidth - 48,
+              }
+            : undefined
+      }
+    >
+      <Spinner size="md" />
+    </div>
+  );
+}
 
 const MAX_COMPOSE_INSTANCES = 3;
 
@@ -179,8 +250,19 @@ export function ComposeManager({
   on_draft_cleared,
 }: ComposeManagerComponentProps) {
   const reduce_motion = use_should_reduce_motion();
+  const { t } = use_translation();
   const container_ref = useRef<HTMLDivElement>(null);
   const [show_scroll_hint, set_show_scroll_hint] = useState(false);
+
+  const handle_load_error = useCallback(
+    (id: string) => {
+      show_toast(t("common.unable_to_load_composer"), "error");
+      on_close(id);
+    },
+    [on_close, t],
+  );
+
+  useEffect(() => preload_when_idle(preload_compose_window), []);
 
   useEffect(() => {
     const container = container_ref.current;
@@ -247,16 +329,28 @@ export function ComposeManager({
               initial={reduce_motion ? false : { opacity: 0 }}
               transition={{ duration: reduce_motion ? 0 : 0.15 }}
             >
-              <ComposeWindow
-                edit_draft={instance.edit_draft}
-                initial_ghost_mode={instance.initial_ghost_mode}
-                initial_to={instance.initial_to}
-                instance_id={instance.id}
-                is_minimized={instance.is_minimized}
-                on_close={() => on_close(instance.id)}
-                on_draft_cleared={on_draft_cleared}
-                on_toggle_minimize={() => on_toggle_minimize(instance.id)}
-              />
+              <LazyLoadBoundary
+                on_load_error={() => handle_load_error(instance.id)}
+              >
+                <Suspense
+                  fallback={
+                    <ComposeWindowFallback
+                      is_minimized={instance.is_minimized}
+                    />
+                  }
+                >
+                  <ComposeWindow
+                    edit_draft={instance.edit_draft}
+                    initial_ghost_mode={instance.initial_ghost_mode}
+                    initial_to={instance.initial_to}
+                    instance_id={instance.id}
+                    is_minimized={instance.is_minimized}
+                    on_close={() => on_close(instance.id)}
+                    on_draft_cleared={on_draft_cleared}
+                    on_toggle_minimize={() => on_toggle_minimize(instance.id)}
+                  />
+                </Suspense>
+              </LazyLoadBoundary>
             </motion.div>
           ))}
         </AnimatePresence>

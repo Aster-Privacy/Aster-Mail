@@ -144,15 +144,37 @@ const MOBILE_SHELL_MODULES = [
   "components/mobile/swipe_actions.tsx",
 ];
 
+const INBOX_ON_DEMAND_MODULES = [
+  "components/compose/compose_window.tsx",
+  "components/compose/emoji_picker.tsx",
+  "components/modals/forward_modal.tsx",
+  "components/modals/reply_modal.tsx",
+  "utils/print_email.ts",
+  "services/translation/translate_document.ts",
+  "services/translation/engine_bergamot.ts",
+];
+
 function reached(entry: string, modules: string[]): string[] {
   const loaded = eagerly_loaded(entry);
 
   return modules.filter((module) => loaded.has(module));
 }
 
+function inlining_fonts(entry: string): string[] {
+  return [...eagerly_loaded(entry)].filter((module) =>
+    /data:font\/[\w-]+;base64,[\w+/]{64}/.test(
+      readFileSync(join(src, module), "utf8"),
+    ),
+  );
+}
+
 describe("startup bundle", () => {
   it("finds the modules it guards", () => {
-    for (const module of [...HEAVY_MODULES, ...MOBILE_SHELL_MODULES]) {
+    for (const module of [
+      ...HEAVY_MODULES,
+      ...MOBILE_SHELL_MODULES,
+      ...INBOX_ON_DEMAND_MODULES,
+    ]) {
       expect(existsSync(join(src, module))).toBe(true);
     }
   });
@@ -178,4 +200,17 @@ describe("startup bundle", () => {
       expect(reached(entry, MOBILE_SHELL_MODULES)).toEqual([]);
     },
   );
+
+  it.each([
+    "components/email/sandboxed_email_renderer/renderer.tsx",
+    "components/email/hooks/preload_cache.ts",
+  ])("%s does not inline font files", (entry) => {
+    expect(inlining_fonts(entry)).toEqual([]);
+  });
+});
+
+describe("inbox route bundle", () => {
+  it("loads compose, reply, forward, emoji, print and translation on demand", () => {
+    expect(reached("pages/index.tsx", INBOX_ON_DEMAND_MODULES)).toEqual([]);
+  });
 });

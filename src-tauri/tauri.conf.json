@@ -6,8 +6,8 @@
   "build": {
     "beforeDevCommand": "npx vite --host 127.0.0.1 --port 1420",
     "devUrl": "http://127.0.0.1:1420",
-    "beforeBuildCommand": "npx vite build",
-    "frontendDist": "../dist"
+    "beforeBuildCommand": "npx vite build && node scripts/prepare_native_dist.mjs",
+    "frontendDist": "../dist-native"
   },
   "app": {
     "windows": [
