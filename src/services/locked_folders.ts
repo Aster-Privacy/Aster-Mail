@@ -234,7 +234,7 @@ export async function purge_locked_folder_local_caches(): Promise<void> {
   try {
     const { clear_mail_cache } = await import("@/hooks/email_list_cache");
 
-    clear_mail_cache();
+    tasks.push(clear_mail_cache());
   } catch (caught) {
     ignore_error(
       "services/locked_folders:purge_locked_folder_local_caches",

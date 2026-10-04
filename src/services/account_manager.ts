@@ -34,13 +34,17 @@ import {
   safe_local_set,
 } from "@/lib/safe_storage";
 
-async function clear_offline_email_cache(): Promise<void> {
+async function clear_offline_email_cache(
+  removed_account_id?: string,
+): Promise<void> {
   try {
     const { clear_email_cache } = await import(
       "@/services/offline_email_cache"
     );
 
-    await clear_email_cache();
+    await clear_email_cache(
+      removed_account_id ? { account_id: removed_account_id } : "none",
+    );
   } catch {
     return;
   }
@@ -707,7 +711,7 @@ export async function remove_account(
   await save_accounts_data(data);
   await clear_account_session_material(account_id);
   clear_expanded_folders(account_id);
-  await clear_offline_email_cache();
+  await clear_offline_email_cache(account_id);
   await clear_account_scoped_preferences_cache();
   await clear_account_scoped_contact_index();
 

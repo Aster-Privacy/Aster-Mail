@@ -23,11 +23,13 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const hoisted = vi.hoisted(() => ({
   calls: [] as string[],
+  snapshot_scopes: [] as unknown[],
 }));
 
 vi.mock("./auth_helpers", () => ({
-  clear_account_scoped_caches: async () => {
+  clear_account_scoped_caches: async (snapshots: unknown) => {
     hoisted.calls.push("clear_account_scoped_caches");
+    hoisted.snapshot_scopes.push(snapshots);
   },
 }));
 
@@ -79,6 +81,7 @@ import { clear_signed_out_account_caches } from "./signed_out_account_caches";
 describe("signing out one account clears its decrypted caches", () => {
   beforeEach(() => {
     hoisted.calls.length = 0;
+    hoisted.snapshot_scopes.length = 0;
   });
 
   it("clears every cache a full sign-out clears", async () => {
@@ -101,5 +104,17 @@ describe("signing out one account clears its decrypted caches", () => {
 
     expect(hoisted.calls[0]).toBe("lock_all_folders");
     expect(hoisted.calls).toContain("clear_account_scoped_caches");
+  });
+
+  it("removes the saved lists of the account that signed out", async () => {
+    await clear_signed_out_account_caches("acct-2");
+    await clear_signed_out_account_caches();
+    await clear_signed_out_account_caches(null);
+
+    expect(hoisted.snapshot_scopes).toEqual([
+      { account_id: "acct-2" },
+      "current_account",
+      "current_account",
+    ]);
   });
 });

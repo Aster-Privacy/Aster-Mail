@@ -1049,7 +1049,7 @@ export function use_auth_account_state() {
 
         stop_session_timeout();
         clear_vault_from_memory();
-        await clear_signed_out_account_caches();
+        await clear_signed_out_account_caches(account_id);
 
         if (result.switched_to) {
           const survivor = result.switched_to;

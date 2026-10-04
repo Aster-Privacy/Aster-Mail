@@ -29,6 +29,7 @@ import { clear_list_decrypt_cache } from "./email_list_helpers/decrypt_cache";
 
 import {
   clear_email_cache,
+  type SnapshotClearScope,
   clear_view_cache,
 } from "@/services/offline_email_cache";
 import { request_cache } from "@/services/api/request_cache";
@@ -102,13 +103,18 @@ export function invalidate_mail_cache(view?: string): void {
   request_cache.invalidate("GET:/mail/v1/messages");
 }
 
-export function clear_mail_cache(): void {
+export function clear_mail_cache(
+  snapshots: SnapshotClearScope = "current_account",
+): Promise<void> {
   view_cache.clear();
   clear_list_decrypt_cache();
-  clear_email_cache().catch((caught) =>
+  const stored_cleared = clear_email_cache(snapshots).catch((caught) =>
     ignore_error("hooks/email_list_cache:clear_mail_cache", caught),
   );
+
   clear_thread_decrypt_cache();
+
+  return stored_cleared;
 }
 
 export function stale_all_view_caches(): void {

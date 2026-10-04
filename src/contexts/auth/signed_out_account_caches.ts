@@ -38,7 +38,9 @@ function run_clearer(clear: () => void): void {
   }
 }
 
-export async function clear_signed_out_account_caches(): Promise<void> {
+export async function clear_signed_out_account_caches(
+  account_id?: string | null,
+): Promise<void> {
   run_clearer(() => lock_all_folders());
   run_clearer(() => clear_escrow_miss_cache());
   run_clearer(() => clear_billing_cache());
@@ -47,5 +49,7 @@ export async function clear_signed_out_account_caches(): Promise<void> {
   run_clearer(() => clear_detection_cache());
   run_clearer(() => release_engines());
 
-  await clear_account_scoped_caches();
+  await clear_account_scoped_caches(
+    account_id ? { account_id } : "current_account",
+  );
 }

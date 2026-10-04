@@ -119,7 +119,7 @@ export async function purge_all_local_data(): Promise<boolean> {
   }
   clear_cache();
   clear_mail_stats();
-  clear_mail_cache();
+  await clear_mail_cache();
   clear_drafts_cache();
   clear_scheduled_cache();
   clear_recovery_email_cache();

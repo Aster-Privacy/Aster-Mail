@@ -427,7 +427,7 @@ export function use_auth_provider_state() {
       if (other && current_id) {
         stop_session_timeout();
         clear_vault_from_memory();
-        await with_timeout(clear_signed_out_account_caches(), 3000);
+        await with_timeout(clear_signed_out_account_caches(current_id), 3000);
         await with_timeout(delete_category_index_for_account(current_id), 2000);
         clear_stored_encrypted_vault(current_id);
         await with_timeout(clear_session_passphrase(current_id), 2000);
@@ -583,7 +583,7 @@ export function use_auth_provider_state() {
 
       stop_session_timeout();
       clear_vault_from_memory();
-      await with_timeout(clear_signed_out_account_caches(), 3000);
+      await with_timeout(clear_signed_out_account_caches(current_id), 3000);
 
       if (current_id) {
         await with_timeout(delete_category_index_for_account(current_id), 2000);
