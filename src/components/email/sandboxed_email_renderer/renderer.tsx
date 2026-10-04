@@ -43,6 +43,7 @@ import {
 import { should_retry_cid, cid_retry_delay_ms } from "@/lib/cid_retry";
 import {
   build_email_body_css,
+  build_email_font_face_css,
   build_auto_dark_mode_css,
   build_email_body_ink,
   build_forced_dark_mode_css,
@@ -73,6 +74,7 @@ import { use_resolved_accent } from "@/lib/resolved_accent";
 import { is_transparent_color_value } from "@/lib/html_sanitizer";
 import { get_image_proxy_url } from "@/lib/image_proxy";
 import { build_proxied_content_csp } from "@/lib/email_content_csp";
+import { email_font_src, preload_email_fonts } from "@/lib/email_font_sources";
 import {
   build_font_face_css,
   get_email_font_stack,
@@ -205,6 +207,10 @@ export function SandboxedEmailRenderer({
       pending_revoke_ref.current = [];
     }
   }, [internal_cid_html]);
+
+  useEffect(() => {
+    void preload_email_fonts();
+  }, []);
 
   useEffect(() => {
     cid_retry_attempt_ref.current = 0;
@@ -549,10 +555,13 @@ a:focus-visible {
       ? `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data: blob:; style-src 'unsafe-inline'; font-src 'self' data:; media-src 'none'; object-src 'none'; frame-src 'none'; connect-src 'none'; script-src 'none'; base-uri 'self'; form-action 'none';">`
       : `<meta http-equiv="Content-Security-Policy" content="${build_proxied_content_csp(get_image_proxy_url(), `${document_base}/`)}">`;
 
-  const doc_nonce = useMemo(() => {
+  const { doc_nonce, body_font_face_css } = useMemo(() => {
     doc_nonce_ref.current += 1;
 
-    return doc_nonce_ref.current;
+    return {
+      doc_nonce: doc_nonce_ref.current,
+      body_font_face_css: build_email_font_face_css(email_font_src),
+    };
   }, [resolved_html, email_id, is_html_email]);
 
   const srcdoc_html = `<!DOCTYPE html>
@@ -566,6 +575,7 @@ ${tor_csp}
 ${force_light_scheme ? `<meta name="color-scheme" content="light only">` : ""}
 <base href="${document_base}/">
 ${contrast_repair_active ? `<style ${LINK_INK_LAYER_ATTRIBUTE}>${LINK_INK_LAYER_CSS}</style>` : ""}
+<style>${body_font_face_css}</style>
 <style>${iframe_css}</style>
 <style>body{zoom:${email_zoom}}</style>
 ${preferences.dyslexia_font ? `<style>@font-face{font-family:'OpenDyslexic';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/OpenDyslexic-Regular.woff2') format('woff2');}@font-face{font-family:'OpenDyslexic';font-style:normal;font-weight:700;font-display:swap;src:url('/fonts/OpenDyslexic-Bold.woff2') format('woff2');}body, body *:not(code):not(pre):not(kbd):not(samp):not([style*="font-family"]):not(font){font-family:${dyslexia_font_stack};}</style>` : ""}
