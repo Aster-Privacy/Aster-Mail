@@ -70,6 +70,7 @@ import { is_composing } from "@/utils/ime";
 import { get_undo_send_delay_ms } from "@/services/send_queue";
 import { with_caret_block } from "@/lib/signature_html";
 import { show_toast } from "@/components/toast/simple_toast";
+import { plan_reply_cancel } from "@/components/email/reply_cancel_outcome";
 
 type SendState = "idle" | "queued" | "sending" | "sent" | "error";
 
@@ -618,18 +619,19 @@ export const InlineReplySection = forwardRef<
 
   const handle_undo = useCallback(async () => {
     if (!queued_id) return;
-    const outcome = await cancel_mail_action(queued_id);
+    const plan = plan_reply_cancel(await cancel_mail_action(queued_id));
 
-    if (outcome !== "cancelled") {
-      show_toast(
-        outcome === "failed"
-          ? t("common.something_went_wrong_try_again")
-          : t("common.undo_send_too_late"),
-        "error",
-      );
+    if (plan.toast_key) show_toast(t(plan.toast_key), "error");
+
+    if (plan.is_sent) {
+      set_send_state("sent");
+      set_queued_id(null);
+      set_countdown(0);
 
       return;
     }
+
+    if (plan.toast_key) return;
 
     set_send_state("idle");
     set_queued_id(null);
@@ -649,21 +651,21 @@ export const InlineReplySection = forwardRef<
   };
 
   const handle_cancel = useCallback(async () => {
+    let keeps_text = false;
+
     if (send_state === "queued" && queued_id) {
-      const outcome = await cancel_mail_action(queued_id);
+      const plan = plan_reply_cancel(await cancel_mail_action(queued_id));
 
-      if (outcome !== "cancelled") {
-        show_toast(
-          outcome === "failed"
-            ? t("common.something_went_wrong_try_again")
-            : t("common.undo_send_too_late"),
-          "error",
-        );
+      if (plan.toast_key) show_toast(t(plan.toast_key), "error");
 
-        return;
+      if (plan.is_sent) {
+        set_send_state("sent");
+        set_queued_id(null);
       }
+
+      keeps_text = plan.keeps_text;
     }
-    set_reply_text("");
+    if (!keeps_text) set_reply_text("");
     on_close();
   }, [send_state, queued_id, on_close, t]);
 

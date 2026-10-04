@@ -40,6 +40,7 @@ import {
   record_send,
 } from "@/components/compose/send_lock";
 import { use_i18n } from "@/lib/i18n/context";
+import { plan_reply_cancel } from "@/components/email/reply_cancel_outcome";
 import { use_signatures } from "@/contexts/signatures_context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { is_system_email } from "@/lib/utils";
@@ -236,18 +237,19 @@ export function EmailReplySection({
 
   const handle_undo = useCallback(async () => {
     if (!queued_id) return;
-    const outcome = await cancel_mail_action(queued_id);
+    const plan = plan_reply_cancel(await cancel_mail_action(queued_id));
 
-    if (outcome !== "cancelled") {
-      show_toast(
-        outcome === "failed"
-          ? t("common.something_went_wrong_try_again")
-          : t("common.undo_send_too_late"),
-        "error",
-      );
+    if (plan.toast_key) show_toast(t(plan.toast_key), "error");
+
+    if (plan.is_sent) {
+      set_send_state("sent");
+      set_queued_id(null);
+      set_countdown(0);
 
       return;
     }
+
+    if (plan.toast_key) return;
 
     set_send_state("idle");
     set_queued_id(null);
@@ -266,22 +268,22 @@ export function EmailReplySection({
   };
 
   const handle_cancel = useCallback(async () => {
+    let keeps_text = false;
+
     if (send_state === "queued" && queued_id) {
-      const outcome = await cancel_mail_action(queued_id);
+      const plan = plan_reply_cancel(await cancel_mail_action(queued_id));
 
-      if (outcome !== "cancelled") {
-        show_toast(
-          outcome === "failed"
-            ? t("common.something_went_wrong_try_again")
-            : t("common.undo_send_too_late"),
-          "error",
-        );
+      if (plan.toast_key) show_toast(t(plan.toast_key), "error");
 
-        return;
+      if (plan.is_sent) {
+        set_send_state("sent");
+        set_queued_id(null);
       }
+
+      keeps_text = plan.keeps_text;
     }
     set_show_reply_menu(false);
-    set_reply_text("");
+    if (!keeps_text) set_reply_text("");
   }, [send_state, queued_id, set_show_reply_menu, set_reply_text, t]);
 
   const reduce_motion = use_should_reduce_motion();
