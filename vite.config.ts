@@ -239,6 +239,13 @@ export default defineConfig({
             "@radix-ui/react-tooltip",
             "@radix-ui/react-alert-dialog",
           ],
+          "vendor-aster-ui": ["@aster/ui", "tailwind-merge"],
+          "vendor-icons": [
+            "@heroicons/react/16/solid",
+            "@heroicons/react/20/solid",
+            "@heroicons/react/24/outline",
+            "@heroicons/react/24/solid",
+          ],
           "vendor-motion": ["framer-motion"],
           "vendor-date": ["date-fns"],
           "vendor-sanitize": ["dompurify"],
