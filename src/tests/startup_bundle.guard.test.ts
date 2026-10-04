@@ -135,6 +135,15 @@ const HEAVY_MODULES = [
   "services/thread_service.ts",
 ];
 
+const MOBILE_SHELL_MODULES = [
+  "components/mobile/index.ts",
+  "components/mobile/mobile_drawer.tsx",
+  "components/mobile/mobile_email_list.tsx",
+  "components/mobile/mobile_email_row.tsx",
+  "components/mobile/mobile_fab.tsx",
+  "components/mobile/swipe_actions.tsx",
+];
+
 function reached(entry: string, modules: string[]): string[] {
   const loaded = eagerly_loaded(entry);
 
@@ -143,7 +152,7 @@ function reached(entry: string, modules: string[]): string[] {
 
 describe("startup bundle", () => {
   it("finds the modules it guards", () => {
-    for (const module of HEAVY_MODULES) {
+    for (const module of [...HEAVY_MODULES, ...MOBILE_SHELL_MODULES]) {
       expect(existsSync(join(src, module))).toBe(true);
     }
   });
@@ -162,4 +171,11 @@ describe("startup bundle", () => {
   ])("%s does not load the mail renderer or compose UI", (entry) => {
     expect(reached(entry, RENDERER_AND_UI_MODULES)).toEqual([]);
   });
+
+  it.each(["App.tsx", "pages/index.tsx"])(
+    "%s does not load the mobile shell",
+    (entry) => {
+      expect(reached(entry, MOBILE_SHELL_MODULES)).toEqual([]);
+    },
+  );
 });
