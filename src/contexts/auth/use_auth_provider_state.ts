@@ -36,6 +36,7 @@ import {
   safe_log_error,
   with_timeout,
 } from "./auth_helpers";
+import { clear_signed_out_account_caches } from "./signed_out_account_caches";
 import { use_auth_account_state } from "./use_auth_account_state";
 
 import { user_facing_error } from "@/utils/user_facing_error";
@@ -426,7 +427,7 @@ export function use_auth_provider_state() {
       if (other && current_id) {
         stop_session_timeout();
         clear_vault_from_memory();
-        await with_timeout(clear_account_scoped_caches(), 3000);
+        await with_timeout(clear_signed_out_account_caches(), 3000);
         await with_timeout(delete_category_index_for_account(current_id), 2000);
         clear_stored_encrypted_vault(current_id);
         await with_timeout(clear_session_passphrase(current_id), 2000);
@@ -582,7 +583,7 @@ export function use_auth_provider_state() {
 
       stop_session_timeout();
       clear_vault_from_memory();
-      await with_timeout(clear_account_scoped_caches(), 3000);
+      await with_timeout(clear_signed_out_account_caches(), 3000);
 
       if (current_id) {
         await with_timeout(delete_category_index_for_account(current_id), 2000);
