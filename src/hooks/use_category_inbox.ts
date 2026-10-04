@@ -95,6 +95,7 @@ import {
   apply_flag_intents,
   resolve_read_intent,
 } from "@/services/read_intent";
+import { register_visible_rows } from "@/services/user_opened_mail";
 import { get_thread_messages, trash_thread } from "@/services/api/mail";
 import { batch_archive as api_batch_archive } from "@/services/api/archive";
 import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
@@ -330,6 +331,18 @@ export function use_category_inbox(
   const committed_category_ref = useRef(active_category);
 
   committed_category_ref.current = active_category;
+
+  const visible_rows_ref = useRef(state.emails);
+
+  visible_rows_ref.current = state.emails;
+
+  useEffect(
+    () =>
+      register_visible_rows((id) =>
+        visible_rows_ref.current.find((email) => email.id === id),
+      ),
+    [],
+  );
 
   const page_variant = useMemo(
     () =>

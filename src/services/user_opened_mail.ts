@@ -56,6 +56,8 @@ export interface OpenedMailOptions {
   row?: OpenedMailRow | null;
 }
 
+export type VisibleRowLookup = (id: string) => OpenedMailRow | undefined;
+
 interface MetadataFields {
   encrypted_metadata?: string;
   metadata_nonce?: string;
@@ -73,6 +75,7 @@ const OPEN_REVERT_WINDOW_MS = 30_000;
 const PENDING_OPEN_CAP = 200;
 
 const pending_opens = new Map<string, PendingOpen>();
+const visible_row_lookups = new Set<VisibleRowLookup>();
 let open_scope = 0;
 
 export function current_opened_mail_scope(): number {
@@ -120,7 +123,21 @@ function write_unread(id: string, fields: MetadataFields): void {
   ).catch(() => undefined);
 }
 
+export function register_visible_rows(lookup: VisibleRowLookup): () => void {
+  visible_row_lookups.add(lookup);
+
+  return () => {
+    visible_row_lookups.delete(lookup);
+  };
+}
+
 export function find_cached_mail_row(id: string): OpenedMailRow | undefined {
+  for (const lookup of visible_row_lookups) {
+    const row = lookup(id);
+
+    if (row) return row;
+  }
+
   for (const entry of view_cache.values()) {
     const row = entry.state.emails.find((email) => email.id === id);
 
