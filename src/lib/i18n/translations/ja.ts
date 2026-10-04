@@ -7191,6 +7191,7 @@ export const ja = {
       "Aster Bridge をインストールして起動しておく必要があります。設定 > Bridge からダウンロードしてください。",
     desktop_bridge_not_opened:
       "Aster Bridge が開きませんでした。インストールされて起動していることを確認するか、設定 > Bridge からダウンロードしてください。",
+    desktop_bridge_opening: "Aster Bridge を開いています...",
     desktop_bridge_set_up: "{{ client }}をセットアップ",
     bridge: "Bridge",
     bridge_description:

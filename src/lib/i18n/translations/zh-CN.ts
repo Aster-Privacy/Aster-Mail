@@ -6407,6 +6407,7 @@ export const zh_CN = {
       "必须安装并运行 Aster Bridge。请前往“设置 > Bridge”下载。",
     desktop_bridge_not_opened:
       "Aster Bridge 未打开。请确认它已安装并正在运行，或前往“设置 > Bridge”下载。",
+    desktop_bridge_opening: "正在打开 Aster Bridge...",
     desktop_bridge_upgrade_title: "使用您喜欢的邮件客户端",
     desktop_bridge_upgrade_description:
       "通过 Aster Bridge 将 Apple Mail、Thunderbird 或 Outlook 连接到 Aster。适用于 Star 及以上套餐。",
