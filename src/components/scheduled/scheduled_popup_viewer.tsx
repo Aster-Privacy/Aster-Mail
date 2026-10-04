@@ -68,7 +68,7 @@ import { get_image_proxy_url } from "@/lib/image_proxy";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { get_email_username } from "@/lib/utils";
 import { SandboxedEmailRenderer } from "@/components/email/sandboxed_email_renderer";
-import { DdgFavicon } from "@/components/compose/compose_shared";
+import { DdgFavicon } from "@/components/compose/ddg_favicon";
 import {
   emit_email_sent,
   emit_mail_changed,

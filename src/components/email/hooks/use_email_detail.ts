@@ -36,7 +36,7 @@ import { MAIL_EVENTS } from "@/hooks/mail_events";
 import {
   print_thread,
   setup_thread_print_intercept,
-} from "@/utils/print_email";
+} from "@/utils/print_email_loader";
 import { set_forward_mail_id } from "@/services/forward_store";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 

@@ -34,7 +34,10 @@ import {
 import { AttachmentIcon } from "@/components/common/icons";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
-import EmojiPicker from "@/components/compose/emoji_picker";
+import {
+  LazyEmojiPicker,
+  preload_emoji_picker,
+} from "@/components/compose/lazy_emoji_picker";
 
 const EMOJI_PICKER_WIDTH = 360;
 const EMOJI_PICKER_MAX_HEIGHT = 420;
@@ -180,7 +183,9 @@ export function InsertTools({ compose }: { compose: ComposeToolbarState }) {
               if (!show_emoji) freeze_selection();
               set_show_emoji(!show_emoji);
             }}
+            onFocus={preload_emoji_picker}
             onMouseDown={(e) => e.preventDefault()}
+            onPointerEnter={preload_emoji_picker}
           >
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
               <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z" />
@@ -198,7 +203,7 @@ export function InsertTools({ compose }: { compose: ComposeToolbarState }) {
                   bottom: emoji_pos.bottom,
                 }}
               >
-                <EmojiPicker
+                <LazyEmojiPicker
                   anchor_ref={emoji_btn_ref}
                   on_dismiss={close_emoji}
                   on_select={(emoji) => {

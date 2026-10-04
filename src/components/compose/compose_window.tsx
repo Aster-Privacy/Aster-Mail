@@ -24,6 +24,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   compose_shell_mode,
   shows_expanded_backdrop,
+  WINDOW_HEIGHT_NORMAL,
+  WINDOW_WIDTH,
+  WINDOW_WIDTH_MINIMIZED,
 } from "@/components/compose/compose_shell_mode";
 import { CloseIcon } from "@/components/common/icons";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
@@ -62,9 +65,6 @@ interface ComposeWindowProps {
   initial_ghost_mode?: boolean;
 }
 
-const WINDOW_WIDTH = 700;
-const WINDOW_WIDTH_MINIMIZED = 320;
-const WINDOW_HEIGHT_NORMAL = 600;
 const RESIZE_MIN_WIDTH = 420;
 const RESIZE_MIN_HEIGHT = 340;
 

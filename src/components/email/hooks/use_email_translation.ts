@@ -45,11 +45,10 @@ import {
   grant_route_consent,
   route_consent_granted,
 } from "@/services/translation/download_consent";
-import {
-  pending_download_bytes,
-  translate_message_body,
-  translate_plain_text,
-} from "@/services/translation/translate_document";
+import { load_translate_document } from "@/services/translation/load_translate_document";
+import { ignore_error } from "@/lib/ignore_error";
+
+export { load_translate_document };
 
 export type TranslationStatus =
   | "idle"
@@ -311,7 +310,36 @@ export function use_email_translation({
       set_download_bytes(0);
       set_status("translating");
 
-      const result = await translate_message_body({
+      let translator: Awaited<ReturnType<typeof load_translate_document>>;
+
+      try {
+        translator = await load_translate_document();
+      } catch (caught) {
+        ignore_error(
+          "components/email/hooks/use_email_translation:run_translation",
+          caught,
+        );
+
+        if (controller.signal.aborted) {
+          reveal_concealed(render.body);
+
+          return;
+        }
+
+        render.remeasure();
+        reveal_concealed(render.body);
+        set_status("unavailable");
+
+        return;
+      }
+
+      if (controller.signal.aborted) {
+        reveal_concealed(render.body);
+
+        return;
+      }
+
+      const result = await translator.translate_message_body({
         root: render.body,
         account_id,
         message_id: email_id,
@@ -343,7 +371,7 @@ export function use_email_translation({
       set_showing_original(false);
       set_status("translated");
 
-      const next_subject = await translate_plain_text(
+      const next_subject = await translator.translate_plain_text(
         subject,
         from,
         to,
@@ -361,7 +389,17 @@ export function use_email_translation({
   const offer_translation = useCallback(
     async (from: LanguageCode, automatic: boolean) => {
       const { target_language: to } = config_ref.current;
-      const bytes = await pending_download_bytes(from, to);
+      const bytes = await load_translate_document().then(
+        (translator) => translator.pending_download_bytes(from, to),
+        (caught: unknown) => {
+          ignore_error(
+            "components/email/hooks/use_email_translation:offer_translation",
+            caught,
+          );
+
+          return 0;
+        },
+      );
 
       if (source_ref.current !== from) return;
 

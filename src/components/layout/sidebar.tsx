@@ -66,6 +66,7 @@ import { RailTipLayer } from "@/components/layout/sidebar/rail_tip_layer";
 import { use_sidebar_aliases } from "@/hooks/use_sidebar_aliases";
 import { use_preferences } from "@/contexts/preferences_context";
 import { cache_sidebar_state } from "@/services/api/preferences";
+import { preload_compose_window } from "@/components/compose/compose_manager";
 import {
   is_lockdown_enabled,
   LOCKDOWN_CHANGED_EVENT,
@@ -670,14 +671,20 @@ const sidebar_base = ({
         )}
       </SidebarTopBarView>
 
-      <SidebarComposeButtonView
-        is_collapsed={is_collapsed}
-        label={t("mail.compose")}
-        on_click={() => {
-          on_modal_open?.();
-          on_compose();
-        }}
-      />
+      <div
+        className="contents"
+        onFocus={preload_compose_window}
+        onPointerEnter={preload_compose_window}
+      >
+        <SidebarComposeButtonView
+          is_collapsed={is_collapsed}
+          label={t("mail.compose")}
+          on_click={() => {
+            on_modal_open?.();
+            on_compose();
+          }}
+        />
+      </div>
 
       <ShareModal
         is_open={is_share_open}

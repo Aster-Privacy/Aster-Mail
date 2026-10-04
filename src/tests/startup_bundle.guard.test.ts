@@ -135,6 +135,16 @@ const HEAVY_MODULES = [
   "services/thread_service.ts",
 ];
 
+const INBOX_ON_DEMAND_MODULES = [
+  "components/compose/compose_window.tsx",
+  "components/compose/emoji_picker.tsx",
+  "components/modals/forward_modal.tsx",
+  "components/modals/reply_modal.tsx",
+  "utils/print_email.ts",
+  "services/translation/translate_document.ts",
+  "services/translation/engine_bergamot.ts",
+];
+
 function reached(entry: string, modules: string[]): string[] {
   const loaded = eagerly_loaded(entry);
 
@@ -151,7 +161,7 @@ function inlining_fonts(entry: string): string[] {
 
 describe("startup bundle", () => {
   it("finds the modules it guards", () => {
-    for (const module of HEAVY_MODULES) {
+    for (const module of [...HEAVY_MODULES, ...INBOX_ON_DEMAND_MODULES]) {
       expect(existsSync(join(src, module))).toBe(true);
     }
   });
@@ -176,5 +186,11 @@ describe("startup bundle", () => {
     "components/email/hooks/preload_cache.ts",
   ])("%s does not inline font files", (entry) => {
     expect(inlining_fonts(entry)).toEqual([]);
+  });
+});
+
+describe("inbox route bundle", () => {
+  it("loads compose, reply, forward, emoji, print and translation on demand", () => {
+    expect(reached("pages/index.tsx", INBOX_ON_DEMAND_MODULES)).toEqual([]);
   });
 });
