@@ -830,7 +830,7 @@ export async function recover_fallback_sends(): Promise<void> {
 
   for (const record of records) {
     try {
-      await enqueue_action("send_email", record.payload);
+      await enqueue_action("send_email", record.payload, record.queue_id);
       await remove_fallback_send(record.queue_id);
     } catch (caught) {
       ignore_error("send_queue:recover_fallback_sends", caught);
