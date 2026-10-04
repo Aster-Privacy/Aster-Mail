@@ -37,6 +37,8 @@ const mocks = vi.hoisted(() => ({
   fetch_mail_from_api: vi.fn(),
   read_list_snapshot: vi.fn(),
   schedule_list_snapshot: vi.fn(),
+  set_view_cache: vi.fn(),
+  user: { id: "u1", email: "a@b.c" },
   removed_ids: new Set<string>(),
 }));
 
@@ -57,7 +59,7 @@ vi.mock("@/hooks/email_list_helpers/silent_refresh", () => ({
 
 vi.mock("@/hooks/email_list_cache", () => ({
   get_view_cache: () => undefined,
-  set_view_cache: vi.fn(),
+  set_view_cache: mocks.set_view_cache,
   invalidate_mail_cache: vi.fn(),
   clear_mail_cache: vi.fn(),
   remove_email_from_view_cache: vi.fn(),
@@ -95,7 +97,7 @@ vi.mock("@/contexts/auth_context", () => ({
     has_keys: true,
     is_loading: false,
     is_authenticated: true,
-    user: { id: "u1", email: "a@b.c" },
+    user: mocks.user,
     is_completing_registration: false,
   }),
 }));
@@ -205,6 +207,7 @@ describe("use_email_list snapshot first paint", () => {
     mocks.fetch_mail_from_api.mockReset();
     mocks.read_list_snapshot.mockReset();
     mocks.schedule_list_snapshot.mockReset();
+    mocks.set_view_cache.mockReset();
     mocks.removed_ids.clear();
     mocks.read_list_snapshot.mockResolvedValue(null);
     mocks.fetch_mail_from_api.mockResolvedValue(fetch_ok(SERVER_ROWS));
@@ -353,6 +356,52 @@ describe("use_email_list snapshot first paint", () => {
     await settle();
 
     expect(states.at(-1)!.subjects).toEqual(["saved one", "saved two"]);
+
+    act(() => root.unmount());
+  });
+
+  it("does not store unverified saved rows as fresh after a failed load", async () => {
+    mocks.fetch_mail_from_api.mockRejectedValue(new Error("offline"));
+    mocks.read_list_snapshot.mockResolvedValue({
+      emails: SNAPSHOT_ROWS,
+      saved_at: Date.now() - 60_000,
+    });
+
+    const { states, root } = render_hook("starred");
+
+    await settle();
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 1700));
+    });
+    await settle();
+
+    expect(states.at(-1)).toEqual({
+      is_loading: false,
+      subjects: ["saved one", "saved two"],
+    });
+    expect(mocks.set_view_cache).not.toHaveBeenCalled();
+    expect(mocks.schedule_list_snapshot).not.toHaveBeenCalled();
+
+    act(() => root.unmount());
+  });
+
+  it("stores the rows once the server has confirmed them", async () => {
+    mocks.read_list_snapshot.mockResolvedValue({
+      emails: SNAPSHOT_ROWS,
+      saved_at: Date.now() - 60_000,
+    });
+
+    const { root } = render_hook("starred");
+
+    await settle();
+
+    expect(mocks.set_view_cache).toHaveBeenCalled();
+    expect(
+      mocks.set_view_cache.mock.calls
+        .at(-1)![1]
+        .state.emails.map((email: { subject: string }) => email.subject),
+    ).toEqual(["server one", "server two"]);
+    expect(mocks.schedule_list_snapshot).toHaveBeenCalled();
 
     act(() => root.unmount());
   });

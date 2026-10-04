@@ -346,6 +346,7 @@ describe("use_category_inbox snapshot first paint", () => {
       is_loading: false,
       subjects: ["saved one", "saved two"],
     });
+    expect(mocks.schedule_list_snapshot).not.toHaveBeenCalled();
 
     act(() => root.unmount());
   });

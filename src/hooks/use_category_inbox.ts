@@ -726,6 +726,7 @@ export function use_category_inbox(
         if (!request_ok) {
           if (schedule_retry()) return;
 
+          if (snapshot_painted) last_signature_ref.current = "";
           set_state(build_load_failed_state);
 
           return;
@@ -803,6 +804,7 @@ export function use_category_inbox(
         if (committed_category_ref.current !== fetch_category) return;
         if (schedule_retry()) return;
 
+        if (snapshot_painted) last_signature_ref.current = "";
         set_state(build_load_failed_state);
       } finally {
         if (abort_ref.current === controller || abort_ref.current === null) {

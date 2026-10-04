@@ -264,6 +264,7 @@ export function use_email_list(
   );
 
   const snapshot_token_ref = useRef(0);
+  const unverified_snapshot_view_ref = useRef<string | null>(null);
   const snapshot_context_ref = useRef({
     owner: "",
     signature: "",
@@ -316,7 +317,10 @@ export function use_email_list(
         windowed_page_ref.current = true;
         page_limit_ref.current = limit;
         state_view_ref.current = current_view;
+        unverified_snapshot_view_ref.current = null;
         set_state((prev) => {
+          unverified_snapshot_view_ref.current = null;
+
           const selected_ids = new Set(
             prev.emails.filter((e) => e.is_selected).map((e) => e.id),
           );
@@ -430,9 +434,12 @@ export function use_email_list(
         windowed_page_ref.current = true;
         page_limit_ref.current = limit;
         state_view_ref.current = current_view;
+        unverified_snapshot_view_ref.current = null;
         page_offset_ref.current.set(page + 1, offset + result.raw_consumed);
 
         set_state((prev) => {
+          unverified_snapshot_view_ref.current = null;
+
           const selected_ids = new Set(
             prev.emails.filter((e) => e.is_selected).map((e) => e.id),
           );
@@ -564,8 +571,11 @@ export function use_email_list(
       };
       page_ref.current = active_page;
       state_view_ref.current = current_view;
+      unverified_snapshot_view_ref.current = null;
 
       set_state((prev) => {
+        unverified_snapshot_view_ref.current = null;
+
         const emails = merge_silent_refresh_emails(
           prev.emails,
           result.emails,
@@ -753,7 +763,8 @@ export function use_email_list(
       state.has_initial_load &&
       !state.is_loading &&
       !state.has_load_error &&
-      state_view_ref.current === current_view
+      state_view_ref.current === current_view &&
+      unverified_snapshot_view_ref.current !== current_view
     ) {
       set_view_cache(current_view, {
         state,
@@ -866,7 +877,9 @@ export function use_email_list(
     }
 
     const nothing_changed = !auth_changed && !view_changed && !user_changed;
-    const already_has_data = has_data_ref.current;
+    const already_has_data =
+      has_data_ref.current &&
+      unverified_snapshot_view_ref.current !== current_view;
 
     if (has_keys && has_passphrase_in_memory()) {
       if (!is_online && Capacitor.isNativePlatform()) {
@@ -946,13 +959,23 @@ export function use_email_list(
 
             if (rows.length === 0) return;
 
-            set_state((prev) =>
-              prev.emails.length > 0 ||
-              prev.has_initial_load ||
-              !prev.is_loading
-                ? prev
-                : { ...prev, emails: rows },
-            );
+            set_state((prev) => {
+              if (
+                prev.emails.length > 0 ||
+                prev.has_initial_load ||
+                !prev.is_loading
+              ) {
+                return prev;
+              }
+
+              unverified_snapshot_view_ref.current = current_view;
+
+              return {
+                ...prev,
+                emails: rows,
+                total_messages: prev.total_messages || rows.length,
+              };
+            });
           });
         }
 
