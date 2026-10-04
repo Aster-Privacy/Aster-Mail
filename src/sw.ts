@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 /// <reference lib="webworker" />
+import { kept_across_updates } from "@/lib/app_update_caches";
 import { ignore_error } from "@/lib/ignore_error";
 import { push_fallback_body } from "@/lib/push_fallback_strings";
 
@@ -43,7 +44,9 @@ self.addEventListener("activate", (event: ExtendableEvent) => {
 
           await Promise.all(
             keys
-              .filter((k) => k !== PUSH_STRINGS_CACHE)
+              .filter(
+                (k) => k !== PUSH_STRINGS_CACHE && !kept_across_updates(k),
+              )
               .map((k) => caches.delete(k).catch(() => false)),
           );
         }
