@@ -27,6 +27,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 ).IS_REACT_ACT_ENVIRONMENT = true;
 
 const mock_load = vi.fn();
+const mock_save = vi.fn();
 const stable_vault = { id: "vault" };
 
 vi.mock("@/contexts/auth_context", () => ({
@@ -35,7 +36,7 @@ vi.mock("@/contexts/auth_context", () => ({
 
 vi.mock("@/services/subscription_cache", () => ({
   load_subscription_cache: (...args: unknown[]) => mock_load(...args),
-  save_subscription_cache: () => Promise.resolve(true),
+  save_subscription_cache: (...args: unknown[]) => mock_save(...args),
   SUBSCRIPTION_CACHE_SAVED_EVENT: "astermail:subscription-cache-saved",
   SUBSCRIPTION_CACHE_VERSION: 2,
 }));
@@ -67,11 +68,13 @@ vi.mock("@/lib/i18n/context", () => ({
 import { use_subscriptions } from "./use_subscriptions";
 
 let latest_count = -1;
+let latest_reactivate: (sender_email: string) => Promise<void> = async () => {};
 
 function Probe() {
-  const { subscriptions } = use_subscriptions();
+  const { subscriptions, reactivate } = use_subscriptions();
 
   latest_count = subscriptions.length;
+  latest_reactivate = reactivate;
 
   return null;
 }
@@ -109,6 +112,8 @@ describe("use_subscriptions revalidation", () => {
     vi.useFakeTimers();
     mock_load.mockReset();
     mock_load.mockResolvedValue(cache_with(1));
+    mock_save.mockReset();
+    mock_save.mockResolvedValue(true);
     latest_count = -1;
     container = document.createElement("div");
     document.body.appendChild(container);
@@ -184,6 +189,56 @@ describe("use_subscriptions revalidation", () => {
       await vi.advanceTimersByTimeAsync(5_000);
       set_visibility("hidden");
       set_visibility("visible");
+      await vi.advanceTimersByTimeAsync(0);
+    });
+
+    expect(mock_load).toHaveBeenCalledTimes(1);
+  });
+
+  it("reloads once after a change settles when a save arrived meanwhile", async () => {
+    let finish_save: (saved: boolean) => void = () => {};
+
+    mock_save.mockReturnValue(
+      new Promise<boolean>((resolve) => {
+        finish_save = resolve;
+      }),
+    );
+
+    let change: Promise<void> = Promise.resolve();
+
+    await act(async () => {
+      change = latest_reactivate("sender0@example.com");
+      await vi.advanceTimersByTimeAsync(0);
+    });
+
+    mock_load.mockResolvedValue(cache_with(4));
+
+    await act(async () => {
+      window.dispatchEvent(
+        new CustomEvent("astermail:subscription-cache-saved"),
+      );
+      window.dispatchEvent(
+        new CustomEvent("astermail:subscription-cache-saved"),
+      );
+      await vi.advanceTimersByTimeAsync(0);
+    });
+
+    expect(mock_load).toHaveBeenCalledTimes(1);
+    expect(latest_count).toBe(1);
+
+    await act(async () => {
+      finish_save(true);
+      await change;
+      await vi.advanceTimersByTimeAsync(0);
+    });
+
+    expect(mock_load).toHaveBeenCalledTimes(2);
+    expect(latest_count).toBe(4);
+  });
+
+  it("does not reload after a change when nothing was saved meanwhile", async () => {
+    await act(async () => {
+      await latest_reactivate("sender0@example.com");
       await vi.advanceTimersByTimeAsync(0);
     });
 
