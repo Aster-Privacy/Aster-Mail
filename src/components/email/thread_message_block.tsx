@@ -31,6 +31,7 @@ import {
   TrashIcon,
   PrinterIcon,
   ShieldExclamationIcon,
+  ShieldCheckIcon,
   NoSymbolIcon,
   CodeBracketIcon,
   ClipboardDocumentIcon,
@@ -736,7 +737,7 @@ export function ThreadMessageBlock(
                     on_not_spam(message);
                   }}
                 >
-                  <ShieldExclamationIcon className="w-4 h-4 me-2" />
+                  <ShieldCheckIcon className="w-4 h-4 me-2" />
                   {t("mail.not_spam")}
                 </DropdownMenuItem>
               ) : on_report_phishing ? (
