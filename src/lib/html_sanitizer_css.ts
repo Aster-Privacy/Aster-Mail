@@ -711,6 +711,16 @@ function requires_dark_scheme(query: string): boolean {
   return DARK_SCHEME_FEATURE.test(query) && !NEGATED_DARK_SCHEME.test(query);
 }
 
+export function strip_dark_media_queries(media: string): string | null {
+  const queries = split_media_queries(media);
+
+  if (!queries.some(requires_dark_scheme)) return media;
+
+  const kept = queries.filter((query) => !requires_dark_scheme(query));
+
+  return kept.length > 0 ? kept.join(", ") : null;
+}
+
 const MEDIA_ATTRIBUTE_CHARACTERS = /^[\w\s(),:.\-/<>=]*$/;
 
 export function scope_css_to_media_attribute(
