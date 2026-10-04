@@ -25,15 +25,39 @@ import {
   device_decrypt,
 } from "@/services/crypto/secure_storage";
 import { get_current_account_id } from "@/services/account_manager";
+import {
+  cancel_pending_list_snapshots,
+  drop_list_snapshot,
+} from "@/services/list_snapshot_store";
 
 const DB_NAME = "astermail_offline_cache";
 const STORE_NAME = "email_lists";
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 const MAX_EMAILS_PER_VIEW = 200;
 
+const SNAPSHOT_KEY_PREFIX = "snapshot:";
+
+export type SnapshotClearScope =
+  "current_account" | "none" | { account_id: string };
+
 interface CacheEntry {
   emails: InboxEmail[];
   cached_at: number;
+}
+
+async function resolve_snapshot_prefix(
+  snapshots: SnapshotClearScope,
+): Promise<string | null> {
+  if (snapshots === "none") return null;
+
+  const account_id =
+    snapshots === "current_account"
+      ? await get_current_account_id().catch(() => null)
+      : snapshots.account_id;
+
+  return account_id
+    ? `${SNAPSHOT_KEY_PREFIX}${account_id}:`
+    : SNAPSHOT_KEY_PREFIX;
 }
 
 async function build_cache_key(view: string): Promise<string> {
@@ -135,15 +159,34 @@ export async function get_cached_email_list(
   }
 }
 
-export async function clear_email_cache(): Promise<void> {
+export async function clear_email_cache(
+  snapshots: SnapshotClearScope = "current_account",
+): Promise<void> {
+  cancel_pending_list_snapshots();
+
   try {
+    const snapshot_prefix = await resolve_snapshot_prefix(snapshots);
     const db = await open_db();
 
     await new Promise<void>((resolve, reject) => {
       const tx = db.transaction(STORE_NAME, "readwrite");
       const store = tx.objectStore(STORE_NAME);
+      const keys_request = store.getAllKeys();
 
-      store.clear();
+      keys_request.onsuccess = () => {
+        for (const key of keys_request.result) {
+          const is_snapshot =
+            typeof key === "string" && key.startsWith(SNAPSHOT_KEY_PREFIX);
+
+          if (
+            !is_snapshot ||
+            (snapshot_prefix !== null &&
+              (key as string).startsWith(snapshot_prefix))
+          ) {
+            store.delete(key);
+          }
+        }
+      };
       tx.oncomplete = () => resolve();
       tx.onerror = () => reject(tx.error);
     });
@@ -157,6 +200,8 @@ export async function clear_email_cache(): Promise<void> {
 }
 
 export async function clear_view_cache(view: string): Promise<void> {
+  await drop_list_snapshot(`view:${view}`);
+
   try {
     const cache_key = await build_cache_key(view);
     const db = await open_db();

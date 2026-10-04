@@ -45,6 +45,7 @@ import { get_cached_profile } from "@/services/api/sender_profiles";
 export interface MailToEmailOptions {
   collapsed_threads?: boolean;
   body_summary?: ListBodySummary;
+  envelope_chars?: number;
 }
 
 export interface ListBodySummary {
@@ -161,7 +162,10 @@ export function mail_to_email(
       send_error: item.send_error,
       size_bytes:
         effective_metadata.size_bytes ||
-        Math.ceil((item.encrypted_envelope?.length || 0) * 0.75),
+        Math.ceil(
+          (options.envelope_chars ?? (item.encrypted_envelope?.length || 0)) *
+            0.75,
+        ),
     };
   }
 
@@ -242,7 +246,10 @@ export function mail_to_email(
     send_error: item.send_error,
     size_bytes:
       effective_metadata.size_bytes ||
-      Math.ceil((item.encrypted_envelope?.length || 0) * 0.75),
+      Math.ceil(
+        (options.envelope_chars ?? (item.encrypted_envelope?.length || 0)) *
+          0.75,
+      ),
     phishing_level: item.phishing_level,
   };
 }

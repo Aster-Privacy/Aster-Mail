@@ -241,3 +241,75 @@ describe("inbox route bundle", () => {
     expect(reached("pages/index.tsx", INBOX_ON_DEMAND_MODULES)).toEqual([]);
   });
 });
+
+function vendor_chunks(): Map<string, string> {
+  const file = join(process.cwd(), "vite.config.ts");
+  const source = ts.createSourceFile(
+    file,
+    readFileSync(file, "utf8"),
+    ts.ScriptTarget.Latest,
+    false,
+    ts.ScriptKind.TS,
+  );
+  const chunk_of = new Map<string, string>();
+
+  const visit = (node: ts.Node): void => {
+    if (
+      ts.isPropertyAssignment(node) &&
+      ts.isIdentifier(node.name) &&
+      node.name.text === "manualChunks" &&
+      ts.isObjectLiteralExpression(node.initializer)
+    ) {
+      for (const property of node.initializer.properties) {
+        if (
+          !ts.isPropertyAssignment(property) ||
+          !ts.isStringLiteral(property.name) ||
+          !ts.isArrayLiteralExpression(property.initializer)
+        )
+          continue;
+
+        for (const element of property.initializer.elements) {
+          if (ts.isStringLiteral(element)) {
+            chunk_of.set(element.text, property.name.text);
+          }
+        }
+      }
+    }
+    ts.forEachChild(node, visit);
+  };
+
+  visit(source);
+
+  return chunk_of;
+}
+
+function heroicons_entry_points(): string[] {
+  const found = new Set<string>();
+
+  for (const file of ts.sys.readDirectory(src, [".ts", ".tsx"])) {
+    for (const match of readFileSync(file, "utf8").matchAll(
+      /from "(@heroicons\/react\/[^"]+)"/g,
+    )) {
+      found.add(match[1]);
+    }
+  }
+
+  return [...found].sort();
+}
+
+describe("vendor chunks", () => {
+  it.each(["@aster/ui", "tailwind-merge"])(
+    "keeps %s out of the app code chunk",
+    (name) => {
+      expect(vendor_chunks().get(name)).toMatch(/^vendor-/);
+    },
+  );
+
+  it("keeps every heroicons entry point the app imports out of the app code chunk", () => {
+    const chunks = vendor_chunks();
+    const entry_points = heroicons_entry_points();
+
+    expect(entry_points.length).toBeGreaterThan(0);
+    expect(entry_points.filter((entry) => !chunks.has(entry))).toEqual([]);
+  });
+});

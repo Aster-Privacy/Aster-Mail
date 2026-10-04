@@ -39,6 +39,10 @@ import {
 import { get_swipe_action } from "@/components/mobile/swipe_action_registry";
 import { PinIcon } from "@/components/common/icons";
 import { OfficialBadge } from "@/components/email/official_badge";
+import {
+  press_control,
+  use_press_prefetch,
+} from "@/components/email/hooks/use_press_prefetch";
 import { is_system_email, trust_source_for_display } from "@/lib/utils";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { SnoozeBadge } from "@/components/ui/snooze_badge";
@@ -173,6 +177,22 @@ export const MobileEmailRow = memo(function MobileEmailRow(
     [email.id, on_press, selection_mode],
   );
 
+  const press_prefetch = use_press_prefetch({
+    conversation_grouping: preferences.conversation_grouping !== false,
+    resolve_id: (e) => {
+      if (selection_mode || preferences.low_network_mode) return null;
+      if (current_view === "drafts" || current_view === "scheduled") {
+        return null;
+      }
+      if (email.item_type === "draft" || email.item_type === "scheduled") {
+        return null;
+      }
+      if (press_control(e.target) !== e.currentTarget) return null;
+
+      return email.id;
+    },
+  });
+
   const star_ref = useRef<HTMLDivElement>(null);
 
   const handle_star_click = useCallback(
@@ -294,6 +314,10 @@ export const MobileEmailRow = memo(function MobileEmailRow(
           (e.currentTarget as HTMLElement).click();
         }
       }}
+      onPointerCancel={press_prefetch.onPointerCancel}
+      onPointerDown={press_prefetch.onPointerDown}
+      onPointerMove={press_prefetch.onPointerMove}
+      onPointerUp={press_prefetch.onPointerUp}
       onTouchCancel={handle_touch_end}
       onTouchEnd={handle_touch_end}
       onTouchMove={handle_touch_move}

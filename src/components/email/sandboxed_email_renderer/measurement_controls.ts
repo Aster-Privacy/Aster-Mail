@@ -24,6 +24,7 @@ import type { SandboxedEmailRendererProps } from "./renderer";
 import {
   FIT_SLACK_PX,
   body_has_renderable_content,
+  dispatch_iframe_ready,
   fit_natural_width,
   fit_zoom_for,
   measure_content_bounds,
@@ -43,7 +44,6 @@ export interface measurement_context {
   observer_ref: { current: ResizeObserver | null };
   raf_ref: { current: number };
   remeasure_ref: { current: (() => void) | null };
-  stable_timer_ref: { current: ReturnType<typeof setTimeout> | null };
   on_document_ready_ref: {
     current: SandboxedEmailRendererProps["on_document_ready"];
   };
@@ -62,7 +62,6 @@ export function build_measurement_controls(ctx: measurement_context) {
     observer_ref,
     raf_ref,
     remeasure_ref,
-    stable_timer_ref,
     on_document_ready_ref,
     set_height_ready,
     set_iframe_height,
@@ -77,17 +76,10 @@ export function build_measurement_controls(ctx: measurement_context) {
 
   let first_apply_at = 0;
 
-  const schedule_ready = () => {
+  const signal_ready = () => {
     if (has_fired_ready_ref.current || !email_id) return;
-    if (stable_timer_ref.current) clearTimeout(stable_timer_ref.current);
-    stable_timer_ref.current = setTimeout(() => {
-      if (!has_fired_ready_ref.current) {
-        has_fired_ready_ref.current = true;
-        window.dispatchEvent(
-          new CustomEvent("astermail:iframe-ready", { detail: email_id }),
-        );
-      }
-    }, 100);
+    has_fired_ready_ref.current = true;
+    dispatch_iframe_ready(email_id);
   };
 
   let last_height = 0;
@@ -272,7 +264,7 @@ export function build_measurement_controls(ctx: measurement_context) {
     set_height_ready(true);
     if (email_id) {
       remember_measured_height(email_id, body, height);
-      schedule_ready();
+      signal_ready();
     }
   };
 
@@ -305,7 +297,7 @@ export function build_measurement_controls(ctx: measurement_context) {
       set_height_ready(true);
       if (email_id) {
         remember_measured_height(email_id, content_doc.body, clamped);
-        schedule_ready();
+        signal_ready();
       }
     }
   };
@@ -348,7 +340,7 @@ export function build_measurement_controls(ctx: measurement_context) {
     set_height_ready(true);
     if (email_id) {
       remember_measured_height(email_id, body, candidate);
-      schedule_ready();
+      signal_ready();
     }
   };
 

@@ -45,7 +45,7 @@ vi.mock("@/hooks/use_sidebar_aliases", () => ({
 
 vi.mock("@/hooks/use_alias_delivery", () => ({
   normalize_alias_candidates: () => "",
-  use_alias_delivery: () => null,
+  use_alias_row_info: () => ({ delivery: null, custom_domain_label: null }),
 }));
 
 vi.mock("@/components/ui/profile_avatar", () => ({

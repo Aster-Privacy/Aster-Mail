@@ -202,6 +202,23 @@ describe("offline queue storage at rest", () => {
     expect(stored).not.toContain("friend@example.com");
   });
 
+  it("queues a recovered send once under its original id", async () => {
+    const { enqueue_action } = await import("./offline_queue");
+    const payload = {
+      to: ["friend@example.com"],
+      subject: "recovered",
+      body: "body",
+    };
+
+    const first_id = await enqueue_action("send_email", payload, "queue_1");
+    const second_id = await enqueue_action("send_email", payload, "queue_1");
+    const queue = await get_queue();
+
+    expect(first_id).toBe("queue_1");
+    expect(second_id).toBe("queue_1");
+    expect(queue.filter((action) => action.id === "queue_1")).toHaveLength(1);
+  });
+
   it("reseals a plaintext queue left by an older version", async () => {
     localStorage.setItem(SCOPED_KEY_B, JSON.stringify([star_action("p1")]));
     hoisted.account_id.value = "acct_b";

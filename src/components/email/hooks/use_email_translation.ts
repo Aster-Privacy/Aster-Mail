@@ -431,7 +431,8 @@ export function use_email_translation({
         mode: current_mode,
         translatable,
         message_id: email_id,
-        body_text: read_body_text(body),
+        body_text:
+          current_mode !== "off" && translatable ? read_body_text(body) : "",
         target: current_target,
         configured_accepted: current_configured,
         never_languages: current_never,

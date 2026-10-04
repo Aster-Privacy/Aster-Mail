@@ -40,6 +40,7 @@ import {
   safe_log_error,
   with_timeout,
 } from "./auth_helpers";
+import { clear_signed_out_account_caches } from "./signed_out_account_caches";
 
 import { ensure_ratchet_keys } from "@/services/crypto/ensure_ratchet_keys";
 import {
@@ -188,7 +189,7 @@ export function use_auth_account_state() {
 
       if (all_accounts.length > 1 && affected) {
         try {
-          await clear_account_scoped_caches();
+          await clear_signed_out_account_caches();
         } catch (e) {
           safe_log_error(e);
         }
@@ -1048,7 +1049,7 @@ export function use_auth_account_state() {
 
         stop_session_timeout();
         clear_vault_from_memory();
-        await clear_account_scoped_caches();
+        await clear_signed_out_account_caches(account_id);
 
         if (result.switched_to) {
           const survivor = result.switched_to;

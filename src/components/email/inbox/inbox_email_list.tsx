@@ -47,6 +47,10 @@ import {
   preload_email_detail,
   is_preload_busy,
 } from "@/components/email/hooks/use_email_detail";
+import {
+  press_control,
+  use_press_prefetch,
+} from "@/components/email/hooks/use_press_prefetch";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_attachment_previews } from "@/hooks/use_attachment_previews";
@@ -541,6 +545,28 @@ export function EmailList({
     if (email) row_context_menu_ref.current?.(email);
   }, []);
 
+  const press_prefetch = use_press_prefetch({
+    conversation_grouping: preferences.conversation_grouping !== false,
+    resolve_id: (e) => {
+      if (preferences.low_network_mode || is_special_view) return null;
+      if (Date.now() - close_time_ref.current < 300) return null;
+
+      const row = press_control(e.target)?.parentElement;
+      const id = row?.dataset["rowEmailId"];
+
+      if (!id || id === selected_email_id) return null;
+
+      const email = email_by_id_ref.current.get(id);
+
+      if (!email) return null;
+      if (email.item_type === "draft" || email.item_type === "scheduled") {
+        return null;
+      }
+
+      return id;
+    },
+  });
+
   const first_row_id = (pinned_emails[0] ?? primary_emails[0])?.id;
   const last_row_id = (primary_emails.at(-1) ?? pinned_emails.at(-1))?.id;
 
@@ -585,6 +611,10 @@ export function EmailList({
           onFocus={handle_list_focus}
           onMouseOut={handle_list_mouse_out}
           onMouseOver={handle_list_mouse_over}
+          onPointerCancel={press_prefetch.onPointerCancel}
+          onPointerDown={press_prefetch.onPointerDown}
+          onPointerMove={press_prefetch.onPointerMove}
+          onPointerUp={press_prefetch.onPointerUp}
         >
           {pinned_emails.length > 0 && (
             <>

@@ -23,6 +23,8 @@ import { useEffect, useMemo, useRef } from "react";
 import {
   handle_restored_send_settled,
   settle_restored_sends_missing_from_server,
+  take_interrupted_tab_sends,
+  next_interrupted_tab_send_check_ms,
   use_undo_send,
 } from "@/hooks/use_undo_send";
 import { is_typing } from "@/hooks/use_keyboard_shortcuts";
@@ -37,6 +39,8 @@ import {
 } from "@/components/toast/toast_action_router";
 import { use_toast_action_bridge } from "@/components/toast/use_toast_action_hosts";
 import { ignore_error } from "@/lib/ignore_error";
+import { show_toast } from "@/components/toast/simple_toast";
+import { get_active_translations } from "@/lib/i18n/translations";
 
 interface UndoSendContainerProps {
   position?: string;
@@ -78,7 +82,24 @@ export function UndoSendContainer({
           ),
         );
 
+      const report_interrupted_sends = () => {
+        if (take_interrupted_tab_sends() > 0) {
+          show_toast(
+            get_active_translations().common.failed_to_send_email,
+            "error",
+          );
+        }
+      };
+
+      report_interrupted_sends();
+      const recheck_ms = next_interrupted_tab_send_check_ms();
+      const recheck_timer =
+        recheck_ms === null
+          ? null
+          : window.setTimeout(report_interrupted_sends, recheck_ms);
+
       return () => {
+        if (recheck_timer !== null) window.clearTimeout(recheck_timer);
         stop_restored_listener();
         server_undo_manager.stop_polling();
       };

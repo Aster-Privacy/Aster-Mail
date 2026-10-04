@@ -21,6 +21,7 @@
 import type { EncryptedVault } from "./crypto/key_manager";
 
 import { api_client } from "./api/client";
+import { request_cache } from "./api/request_cache";
 import { check_and_replenish_prekeys } from "./crypto/prekey_service";
 import { connection_store } from "./routing/connection_store";
 import { TorUnavailableError } from "./routing/tor_unavailable_error";
@@ -240,6 +241,7 @@ class SyncClient {
           return;
         }
 
+        request_cache.end_fresh_joins();
         this.handle_message(data);
 
         if (data.type === "auth_success") {
@@ -799,6 +801,7 @@ if (typeof window !== "undefined") {
         { type?: string } | null | undefined;
 
       if (data?.type === PUSH_ARRIVED_MESSAGE) {
+        request_cache.end_fresh_joins();
         sync_client.catch_up_now();
       }
     });

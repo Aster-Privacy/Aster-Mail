@@ -23,9 +23,10 @@ import {
   queue_email_to_server,
   cancel_send,
   send_now,
-  cancel_server_queued_email,
+  cancel_server_queued_email_with_reason,
   send_server_queued_immediately,
 } from "./send_queue";
+import type { UndoCancelResult } from "./undo_send_manager";
 import { get_or_create_thread_token } from "./thread_service";
 import { ensure_external_key_trust } from "./key_trust_consent";
 import {
@@ -595,18 +596,20 @@ export async function send_forward(
   return { success: true, queued_id };
 }
 
-export function cancel_mail_action(queued_id: string): boolean {
-  const cancelled = cancel_send(queued_id);
-
-  if (cancelled !== null) {
-    return true;
+export async function cancel_mail_action(
+  queued_id: string,
+): Promise<UndoCancelResult> {
+  if (cancel_send(queued_id) !== null) {
+    return "cancelled";
   }
 
-  cancel_server_queued_email(queued_id).catch((caught) =>
-    ignore_error("services/mail_actions:cancel_mail_action", caught),
-  );
+  try {
+    return await cancel_server_queued_email_with_reason(queued_id);
+  } catch (caught) {
+    ignore_error("services/mail_actions:cancel_mail_action", caught);
 
-  return true;
+    return "failed";
+  }
 }
 
 export function send_mail_now(queued_id: string): void {
