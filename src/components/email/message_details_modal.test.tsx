@@ -251,6 +251,45 @@ describe("MessageDetailsModal headers", () => {
     expect(box().textContent).toBe(raw.replace(/\n/g, ""));
   });
 
+  it("decodes encoded words in the formatted view only, as text", () => {
+    const encoded = [
+      {
+        name: "Subject",
+        value: "=?utf-8?Q?CAF=C3=89=20CONCERTS=202026=20|=20Spring=20season?=",
+      },
+      {
+        name: "Reply-To",
+        value: "=?utf-8?Q?Example_Tickets?= <reply@shop.example>",
+      },
+      {
+        name: "X-Evil",
+        value: "=?utf-8?Q?=3Cimg_src=3Dx_onerror=3Dalert(1)=3E?=",
+      },
+    ];
+
+    render({}, encoded);
+
+    const lines = [
+      ...box().querySelectorAll<HTMLElement>("[data-header-line]"),
+    ].map((line) => line.textContent);
+
+    expect(lines).toEqual([
+      "Subject: CAFÉ CONCERTS 2026 | Spring season",
+      "Reply-To: Example Tickets <reply@shop.example>",
+      "X-Evil: <img src=x onerror=alert(1)>",
+    ]);
+    expect(box().querySelector("img")).toBeNull();
+
+    act(() =>
+      document
+        .querySelectorAll<HTMLButtonElement>("button[aria-pressed]")[1]
+        .click(),
+    );
+    expect(box().textContent).toBe(
+      encoded.map((h) => `${h.name}: ${h.value}`).join(""),
+    );
+  });
+
   it("copies and downloads the exact raw headers", async () => {
     render({});
     const buttons = [...document.querySelectorAll("button")];

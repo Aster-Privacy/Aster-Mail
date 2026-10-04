@@ -26,6 +26,7 @@ import type {
 import { normalize_email_auth_status } from "@/utils/email_authentication";
 import { get_root_domain } from "@/lib/utils";
 import { extract_reply_to } from "@/utils/reply_to";
+import { decode_header_for_display } from "@/services/import/mime_utils";
 
 export interface RawHeader {
   name: string;
@@ -60,6 +61,19 @@ const HEADER_NAME = /^[\x21-\x39\x3b-\x7e]+$/;
 const MAX_SHOWN_DOMAIN = 253;
 const MAX_LIST_ID = 200;
 const DOMAIN = /^[a-z0-9-]+(?:\.[a-z0-9-]+)+$/;
+const STRUCTURED_HEADERS = new Set([
+  "received",
+  "return-path",
+  "date",
+  "message-id",
+  "in-reply-to",
+  "references",
+  "dkim-signature",
+  "authentication-results",
+  "received-spf",
+  "list-unsubscribe",
+  "list-unsubscribe-post",
+]);
 const RESULT_TOKEN =
   /\b((?:spf|dkim|dmarc|arc|bimi|compauth|auth)=)(pass|fail|hardfail|softfail|neutral|none|temperror|permerror|policy)\b/gi;
 const LEADING_RESULT =
@@ -112,12 +126,18 @@ export function to_display_headers(
     const topic = has_valid_name ? header_help_topic(name) : undefined;
     const help = topic && !helped.has(topic) ? topic : undefined;
     const lower = name.toLowerCase();
+    const value = header.value.replace(/\r\n?/g, "\n");
 
     if (help) helped.add(help);
 
     return {
       name,
-      value: header.value.replace(/\r\n?/g, "\n"),
+      value:
+        has_valid_name &&
+        !STRUCTURED_HEADERS.has(lower) &&
+        !lower.startsWith("arc-")
+          ? decode_header_for_display(value)
+          : value,
       has_valid_name,
       help,
       highlight_results:

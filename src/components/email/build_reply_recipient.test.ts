@@ -55,6 +55,27 @@ describe("build_reply_recipient", () => {
     expect(result.recipient_email).not.toBe("sender@mail.example.com");
   });
 
+  it("addresses a reply with the decoded Reply-To name", () => {
+    const result = build_reply_recipient_for_message({
+      item_type: "received",
+      sender_name: "Example Tickets",
+      sender_email: "news@shop.example",
+      raw_headers: [
+        {
+          name: "From",
+          value: "=?utf-8?Q?Example_Tickets?= <news@shop.example>",
+        },
+        {
+          name: "Reply-To",
+          value: "=?utf-8?Q?Example_Tickets_Help?= <help@shop.example>",
+        },
+      ],
+    });
+
+    expect(result.recipient_name).toBe("Example Tickets Help");
+    expect(result.recipient_email).toBe("help@shop.example");
+  });
+
   it("uses Reply-To display name when present", () => {
     const result = build_reply_recipient(
       {

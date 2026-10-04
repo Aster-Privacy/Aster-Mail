@@ -129,6 +129,37 @@ describe("extract_reply_to", () => {
     ).toEqual({ name: "Last, First", email: "user@external.example" });
   });
 
+  it("decodes an encoded display name", () => {
+    expect(
+      extract_reply_to([
+        {
+          name: "Reply-To",
+          value: "=?utf-8?Q?Example_Tickets?= <reply@shop.example>",
+        },
+      ]),
+    ).toEqual({ name: "Example Tickets", email: "reply@shop.example" });
+    expect(
+      extract_reply_to([
+        {
+          name: "Reply-To",
+          value:
+            '"=?ISO-8859-1?Q?Jos=E9?= =?utf-8?B?w5xuw69jw7hkw6k=?=" <reply@shop.example>',
+        },
+      ]),
+    ).toEqual({ name: "JoséÜnïcødé", email: "reply@shop.example" });
+  });
+
+  it("keeps a comma inside an encoded display name with its address", () => {
+    expect(
+      extract_reply_to([
+        {
+          name: "Reply-To",
+          value: "=?utf-8?Q?Last=2C_First?= <reply@shop.example>, b@x.example",
+        },
+      ]),
+    ).toEqual({ name: "Last, First", email: "reply@shop.example" });
+  });
+
   it("issue #13 scenario: From and Reply-To differ", () => {
     const headers = [
       { name: "From", value: "Sender <sender@mail.example.com>" },
