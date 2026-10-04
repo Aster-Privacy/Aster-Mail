@@ -69,6 +69,7 @@ import { ignore_error } from "@/lib/ignore_error";
 import { is_composing } from "@/utils/ime";
 import { get_undo_send_delay_ms } from "@/services/send_queue";
 import { with_caret_block } from "@/lib/signature_html";
+import { show_toast } from "@/components/toast/simple_toast";
 
 type SendState = "idle" | "queued" | "sending" | "sent" | "error";
 
@@ -615,13 +616,25 @@ export const InlineReplySection = forwardRef<
     t,
   ]);
 
-  const handle_undo = useCallback(() => {
+  const handle_undo = useCallback(async () => {
     if (!queued_id) return;
-    cancel_mail_action(queued_id);
+    const outcome = await cancel_mail_action(queued_id);
+
+    if (outcome !== "cancelled") {
+      show_toast(
+        outcome === "failed"
+          ? t("common.something_went_wrong_try_again")
+          : t("common.undo_send_too_late"),
+        "error",
+      );
+
+      return;
+    }
+
     set_send_state("idle");
     set_queued_id(null);
     set_countdown(0);
-  }, [queued_id]);
+  }, [queued_id, t]);
 
   const handle_send_now = useCallback(() => {
     if (!queued_id) return;
@@ -635,13 +648,24 @@ export const InlineReplySection = forwardRef<
     textarea_ref.current?.focus();
   };
 
-  const handle_cancel = useCallback(() => {
+  const handle_cancel = useCallback(async () => {
     if (send_state === "queued" && queued_id) {
-      cancel_mail_action(queued_id);
+      const outcome = await cancel_mail_action(queued_id);
+
+      if (outcome !== "cancelled") {
+        show_toast(
+          outcome === "failed"
+            ? t("common.something_went_wrong_try_again")
+            : t("common.undo_send_too_late"),
+          "error",
+        );
+
+        return;
+      }
     }
     set_reply_text("");
     on_close();
-  }, [send_state, queued_id, on_close]);
+  }, [send_state, queued_id, on_close, t]);
 
   const handle_key_down = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {

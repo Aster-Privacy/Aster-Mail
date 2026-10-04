@@ -234,13 +234,25 @@ export function EmailReplySection({
     t,
   ]);
 
-  const handle_undo = useCallback(() => {
+  const handle_undo = useCallback(async () => {
     if (!queued_id) return;
-    cancel_mail_action(queued_id);
+    const outcome = await cancel_mail_action(queued_id);
+
+    if (outcome !== "cancelled") {
+      show_toast(
+        outcome === "failed"
+          ? t("common.something_went_wrong_try_again")
+          : t("common.undo_send_too_late"),
+        "error",
+      );
+
+      return;
+    }
+
     set_send_state("idle");
     set_queued_id(null);
     set_countdown(0);
-  }, [queued_id]);
+  }, [queued_id, t]);
 
   const handle_send_now = useCallback(() => {
     if (!queued_id) return;
@@ -253,13 +265,24 @@ export function EmailReplySection({
     set_show_emoji_picker(false);
   };
 
-  const handle_cancel = useCallback(() => {
+  const handle_cancel = useCallback(async () => {
     if (send_state === "queued" && queued_id) {
-      cancel_mail_action(queued_id);
+      const outcome = await cancel_mail_action(queued_id);
+
+      if (outcome !== "cancelled") {
+        show_toast(
+          outcome === "failed"
+            ? t("common.something_went_wrong_try_again")
+            : t("common.undo_send_too_late"),
+          "error",
+        );
+
+        return;
+      }
     }
     set_show_reply_menu(false);
     set_reply_text("");
-  }, [send_state, queued_id, set_show_reply_menu, set_reply_text]);
+  }, [send_state, queued_id, set_show_reply_menu, set_reply_text, t]);
 
   const reduce_motion = use_should_reduce_motion();
   const is_disabled = send_state !== "idle";
