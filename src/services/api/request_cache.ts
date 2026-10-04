@@ -35,6 +35,16 @@ interface FreshInFlightEntry {
   started_at: number;
 }
 
+function private_copy<T>(value: T): T {
+  if (value === null || typeof value !== "object") return value;
+
+  try {
+    return structuredClone(value);
+  } catch {
+    return value;
+  }
+}
+
 export class RequestCache {
   private response_cache = new Map<string, CacheEntry>();
   private in_flight = new Map<string, Promise<unknown>>();
@@ -75,7 +85,7 @@ export class RequestCache {
       const fresh = this.fresh_in_flight.get(cache_key);
 
       if (fresh && Date.now() - fresh.started_at < FRESH_JOIN_WINDOW_MS) {
-        return fresh.promise as Promise<T>;
+        return (fresh.promise as Promise<T>).then(private_copy);
       }
 
       const entry: FreshInFlightEntry = {
@@ -191,6 +201,10 @@ export class RequestCache {
     return typeof pattern === "string"
       ? key.includes(pattern)
       : pattern.test(key);
+  }
+
+  end_fresh_joins(): void {
+    this.fresh_in_flight.clear();
   }
 
   invalidate_for_mutation(endpoint: string): void {

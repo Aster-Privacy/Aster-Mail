@@ -286,4 +286,71 @@ describe("RequestCache skip_cache sharing", () => {
     expect(results.every((r) => r.status === "rejected")).toBe(true);
     expect(cache.pending_count).toBe(0);
   });
+
+  it("does not join a request that started before a sync event", async () => {
+    const cache = new RequestCache();
+    const before_event = deferred<{ unread: number }>();
+    const after_event = deferred<{ unread: number }>();
+    const queue = [before_event, after_event];
+    let calls = 0;
+    const fetcher = () => queue[calls++].promise;
+
+    const early = cache.get_or_fetch(COUNTS_KEY, fetcher, 15_000, true);
+
+    cache.end_fresh_joins();
+    const late = cache.get_or_fetch(COUNTS_KEY, fetcher, 15_000, true);
+    const later = cache.get_or_fetch(COUNTS_KEY, fetcher, 15_000, true);
+
+    before_event.resolve({ unread: 1 });
+    after_event.resolve({ unread: 2 });
+
+    expect(calls).toBe(2);
+    expect((await early).unread).toBe(1);
+    expect((await late).unread).toBe(2);
+    expect((await later).unread).toBe(2);
+    expect(cache.pending_count).toBe(0);
+  });
+
+  it("gives each joined caller its own copy of the response", async () => {
+    const cache = new RequestCache();
+    const pending = deferred<{ data: { items: string[] } }>();
+    const fetcher = () => pending.promise;
+
+    const first = cache.get_or_fetch(COUNTS_KEY, fetcher, 15_000, true);
+    const second = cache.get_or_fetch(COUNTS_KEY, fetcher, 15_000, true);
+    const third = cache.get_or_fetch(COUNTS_KEY, fetcher, 15_000, true);
+
+    pending.resolve({ data: { items: ["a", "b"] } });
+
+    const [one, two, three] = await Promise.all([first, second, third]);
+
+    two.data.items.push("mutated");
+    three.data.items.length = 0;
+
+    expect(one.data.items).toEqual(["a", "b"]);
+    expect(two.data.items).toEqual(["a", "b", "mutated"]);
+    expect(three.data.items).toEqual([]);
+    expect(two).not.toBe(one);
+    expect(three).not.toBe(two);
+  });
+
+  it("drops every shared request when the account changes", async () => {
+    const cache = new RequestCache();
+    const pending = deferred<{ unread: number }>();
+    let calls = 0;
+    const fetcher = () => {
+      calls++;
+
+      return pending.promise;
+    };
+
+    void cache.get_or_fetch(COUNTS_KEY, fetcher, 15_000, true);
+    cache.clear();
+    void cache.get_or_fetch(COUNTS_KEY, fetcher, 15_000, true);
+    pending.resolve({ unread: 1 });
+    await pending.promise;
+    await Promise.resolve();
+
+    expect(calls).toBe(2);
+  });
 });
