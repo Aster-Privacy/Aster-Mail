@@ -31,6 +31,10 @@ import { is_undecryptable_body } from "@/utils/undecryptable_body";
 const MAX_ENTRIES = 2000;
 const MAX_CACHED_CHARS = 8_000_000;
 const ENTRY_OVERHEAD_CHARS = 1024;
+const UNIQUE_NONCE_MIN_CHARS = 16;
+const PASSPHRASE_ENVELOPE_NONCE = "AQ==";
+const PASSPHRASE_ENVELOPE_HEAD_CHARS = 40;
+const CIPHERTEXT_TAIL_CHARS = 48;
 
 const LIST_HEADER_NAMES = new Set([
   "auto-submitted",
@@ -89,8 +93,7 @@ function has_metadata(item: MailItem): boolean {
   return !!(item.encrypted_metadata && item.metadata_nonce);
 }
 
-function fingerprint(value: string | undefined): string {
-  const text = value ?? "";
+function hash_fingerprint(text: string): string {
   let h1 = 0xdeadbeef;
   let h2 = 0x41c6ce57;
 
@@ -109,14 +112,36 @@ function fingerprint(value: string | undefined): string {
   return `${text.length}:${(h1 >>> 0).toString(36)}:${(h2 >>> 0).toString(36)}`;
 }
 
+function fingerprint(value: string | undefined, nonce: string): string {
+  const text = value ?? "";
+
+  if (nonce.length >= UNIQUE_NONCE_MIN_CHARS) {
+    return `${text.length}:${text.slice(-CIPHERTEXT_TAIL_CHARS)}`;
+  }
+
+  if (nonce === PASSPHRASE_ENVELOPE_NONCE) {
+    return `${text.length}:${text.slice(0, PASSPHRASE_ENVELOPE_HEAD_CHARS)}:${text.slice(-CIPHERTEXT_TAIL_CHARS)}`;
+  }
+
+  return hash_fingerprint(text);
+}
+
+function envelope_fingerprint(item: MailItem): string {
+  return fingerprint(item.encrypted_envelope, item.envelope_nonce ?? "");
+}
+
+function metadata_fingerprint(item: MailItem): string {
+  return fingerprint(item.encrypted_metadata, item.metadata_nonce ?? "");
+}
+
 function matches(entry: CacheEntry, item: MailItem, user_email: string) {
   return (
     entry.user_email === user_email &&
     entry.envelope_nonce === item.envelope_nonce &&
     entry.metadata_nonce === (item.metadata_nonce ?? "") &&
     entry.metadata_version === item.metadata_version &&
-    entry.envelope_fingerprint === fingerprint(item.encrypted_envelope) &&
-    entry.metadata_fingerprint === fingerprint(item.encrypted_metadata)
+    entry.envelope_fingerprint === envelope_fingerprint(item) &&
+    entry.metadata_fingerprint === metadata_fingerprint(item)
   );
 }
 
@@ -194,9 +219,9 @@ function store(item: MailItem, user_email: string, result: DecryptedListItem) {
 
   entries.set(item.id, {
     user_email,
-    envelope_fingerprint: fingerprint(item.encrypted_envelope),
+    envelope_fingerprint: envelope_fingerprint(item),
     envelope_nonce: item.envelope_nonce,
-    metadata_fingerprint: fingerprint(item.encrypted_metadata),
+    metadata_fingerprint: metadata_fingerprint(item),
     metadata_nonce: item.metadata_nonce ?? "",
     metadata_version: item.metadata_version,
     envelope: trimmed,
