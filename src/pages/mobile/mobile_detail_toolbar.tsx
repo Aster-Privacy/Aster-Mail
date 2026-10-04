@@ -28,7 +28,8 @@ import {
   EnvelopeIcon,
   EnvelopeOpenIcon,
   PrinterIcon,
-  NoSymbolIcon,
+  ExclamationTriangleIcon,
+  ShieldCheckIcon,
   EllipsisHorizontalIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
@@ -50,7 +51,7 @@ export const TOOLBAR_ACTION_MAP: Record<
     group: "organize",
   },
   spam: {
-    icon: NoSymbolIcon,
+    icon: ExclamationTriangleIcon,
     label_key: "mail.report_spam",
     group: "organize",
   },
@@ -132,7 +133,7 @@ export function MobileToolbar({
               : action === "archive" && is_archived
                 ? InboxIcon
                 : action === "spam" && is_spam
-                  ? InboxIcon
+                  ? ShieldCheckIcon
                   : action === "mark_read" && is_read
                     ? EnvelopeIcon
                     : config.icon;

@@ -405,7 +405,7 @@ export async function fetch_and_decrypt_thread_messages(
 
   const decrypt_promises = messages_to_decrypt.map(async (msg) => {
     const [content, decrypted_metadata] = await Promise.all([
-      decrypt_thread_content_cached(msg, cache_user, () =>
+      decrypt_thread_content_cached(msg, thread_token, cache_user, () =>
         decode_thread_envelope(msg, our_email),
       ),
       msg.encrypted_metadata && msg.metadata_nonce

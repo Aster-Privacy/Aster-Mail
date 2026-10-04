@@ -151,6 +151,20 @@ function classify_local_image_url(value: string): LocalImageUrl {
   return { kind: "local" };
 }
 
+function has_alternate_image_source(img: Element): boolean {
+  if (img.getAttribute("srcset")?.trim()) return true;
+
+  const parent = img.parentElement;
+
+  if (!parent || parent.tagName.toLowerCase() !== "picture") return false;
+
+  return Array.from(parent.children).some(
+    (sibling) =>
+      sibling.tagName.toLowerCase() === "source" &&
+      !!sibling.getAttribute("srcset")?.trim(),
+  );
+}
+
 const MAX_RESERVED_PIXEL_HEIGHT = 40;
 
 const SRCSET_WHITESPACE_CODES = new Set([32, 9, 10, 13, 12]);
@@ -972,6 +986,10 @@ function sanitize_html_impl(
 
     if (tag_name === "img") {
       let src = new_element.getAttribute("src") || "";
+
+      if (!src.trim() && !has_alternate_image_source(element)) {
+        return null;
+      }
       const local_image = classify_local_image_url(src);
 
       if (local_image.kind === "local") {

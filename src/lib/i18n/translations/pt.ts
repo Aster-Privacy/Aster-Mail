@@ -1441,7 +1441,7 @@ export const pt = {
       "Esta mensagem falhou nestas verificações de remetente:",
     auth_fail_tooltip_spf:
       "O servidor que enviou isto não é um remetente aprovado para o domínio na linha De.",
-    back_to_inbox: "Voltar para a caixa de entrada",
+    back_to_inbox: "Voltar à caixa de entrada",
     birthday_section: "Aniversário",
     blocked_items_count: "{{count}} itens",
     call: "Ligar",

@@ -35,6 +35,11 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 import { AliasImportModal } from "./alias_import_modal";
+import {
+  ALIAS_COLUMNS,
+  build_alias_rows,
+  build_csv,
+} from "./alias_export_utils";
 
 import { I18nProvider } from "@/lib/i18n/context";
 import { get_translations_async } from "@/lib/i18n/translations";
@@ -382,5 +387,107 @@ describe("import summary", () => {
     expect(text).toContain("Imported 2 aliases.");
     expect(text).toContain("2 imported");
     expect(text).toContain("2 failed");
+  });
+});
+
+describe("notes", () => {
+  function exported_csv(aliases: DecryptedEmailAlias[]): string {
+    return build_csv(ALIAS_COLUMNS, build_alias_rows(aliases, ALIAS_COLUMNS));
+  }
+
+  function with_note(alias: DecryptedEmailAlias, note: string) {
+    return { ...alias, note } as DecryptedEmailAlias;
+  }
+
+  it("keeps notes when re-importing an alias export", async () => {
+    const csv = exported_csv([
+      with_note(make_alias("shopping", true, "Shopping"), "Online stores"),
+      with_note(make_alias("newsletters", false), "Weekly digests"),
+      make_alias("plain", true, "Plain"),
+    ]);
+
+    await render_modal();
+    await load_csv(csv);
+    await confirm_import();
+
+    const items = vi.mocked(bulk_create_aliases).mock.calls[0][0];
+
+    expect(items).toHaveLength(3);
+    expect(items[0]).toMatchObject({
+      encrypted_display_name: "enc:Shopping",
+      encrypted_note: "enc:Online stores",
+      note_nonce: "nonce",
+      is_enabled: true,
+    });
+    expect(items[1]).toMatchObject({
+      encrypted_note: "enc:Weekly digests",
+      note_nonce: "nonce",
+      is_enabled: false,
+    });
+    expect(items[1].encrypted_display_name).toBeUndefined();
+    expect(items[2].encrypted_display_name).toBe("enc:Plain");
+    expect(items[2].encrypted_note).toBeUndefined();
+    expect(items[2].note_nonce).toBeUndefined();
+  });
+
+  it("does not use the note as a display name when display_name is empty", async () => {
+    await render_modal();
+    await load_csv(
+      '"address","display_name","note","websites","enabled","created_at"\n' +
+        '"travel@astermail.org","","Booking sites","","true",""\n',
+    );
+    await confirm_import();
+
+    const [item] = vi.mocked(bulk_create_aliases).mock.calls[0][0];
+
+    expect(item.encrypted_display_name).toBeUndefined();
+    expect(item.display_name_nonce).toBeUndefined();
+    expect(item.encrypted_note).toBe("enc:Booking sites");
+    expect(item.note_nonce).toBe("nonce");
+  });
+
+  it("still uses the note as the display name when there is no display_name column", async () => {
+    await render_modal();
+    await load_csv("alias,note\ntravel@astermail.org,Travel\n");
+    await confirm_import();
+
+    const [item] = vi.mocked(bulk_create_aliases).mock.calls[0][0];
+
+    expect(item.encrypted_display_name).toBe("enc:Travel");
+    expect(item.encrypted_note).toBeUndefined();
+  });
+
+  it("fills a missing note on re-enable but never replaces an existing one", async () => {
+    await render_modal({
+      existing_aliases: [
+        make_alias("blank", false),
+        with_note(make_alias("kept", false), "Original note"),
+        with_note(make_alias("emptied", false), "Stays put"),
+      ],
+    });
+    await load_csv(
+      exported_csv([
+        with_note(make_alias("blank", false), "Restored note"),
+        with_note(make_alias("kept", false), "Other note"),
+        make_alias("emptied", false),
+      ]),
+    );
+    await click(row_for("blank@astermail.org"));
+    await click(row_for("kept@astermail.org"));
+    await click(row_for("emptied@astermail.org"));
+    await choose_reenable();
+    await confirm_import();
+
+    expect(update_alias).toHaveBeenCalledTimes(3);
+    expect(update_alias).toHaveBeenCalledWith("alias-blank", {
+      is_enabled: true,
+      note: "Restored note",
+    });
+    expect(update_alias).toHaveBeenCalledWith("alias-kept", {
+      is_enabled: true,
+    });
+    expect(update_alias).toHaveBeenCalledWith("alias-emptied", {
+      is_enabled: true,
+    });
   });
 });

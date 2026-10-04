@@ -21,6 +21,10 @@
 import { describe, it, expect, vi } from "vitest";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
+import {
+  ExclamationTriangleIcon,
+  ShieldCheckIcon,
+} from "@heroicons/react/24/outline";
 
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean;
@@ -69,6 +73,44 @@ function render_toolbar(props: Partial<Parameters<typeof MobileToolbar>[0]>) {
   return labels;
 }
 
+function first_icon(props: Partial<Parameters<typeof MobileToolbar>[0]>) {
+  const host = document.createElement("div");
+  const root = createRoot(host);
+
+  act(() => {
+    root.render(
+      <MobileToolbar
+        is_starred={false}
+        on_archive={() => {}}
+        on_delete={() => {}}
+        on_mark_read={() => {}}
+        on_more={() => {}}
+        on_print={() => {}}
+        on_spam={() => {}}
+        on_star={() => {}}
+        {...props}
+      />,
+    );
+  });
+  const markup = host.querySelector("button svg")?.innerHTML;
+
+  act(() => root.unmount());
+
+  return markup;
+}
+
+function icon_markup(Icon: typeof ShieldCheckIcon) {
+  const host = document.createElement("div");
+  const root = createRoot(host);
+
+  act(() => root.render(<Icon />));
+  const markup = host.querySelector("svg")?.innerHTML;
+
+  act(() => root.unmount());
+
+  return markup;
+}
+
 describe("mobile detail toolbar", () => {
   it("shows the same four actions the other clients default to", () => {
     const labels = render_toolbar({});
@@ -101,5 +143,14 @@ describe("mobile detail toolbar", () => {
     const labels = render_toolbar({ actions: ["archive"], is_archived: true });
 
     expect(labels[0]).toBe("mail.move_to_inbox");
+  });
+
+  it("uses the shared spam icons for report spam and not spam", () => {
+    expect(first_icon({ actions: ["spam"] })).toBe(
+      icon_markup(ExclamationTriangleIcon),
+    );
+    expect(first_icon({ actions: ["spam"], is_spam: true })).toBe(
+      icon_markup(ShieldCheckIcon),
+    );
   });
 });

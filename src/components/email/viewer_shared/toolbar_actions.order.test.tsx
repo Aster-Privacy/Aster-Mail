@@ -21,6 +21,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
+import {
+  ExclamationTriangleIcon,
+  ShieldCheckIcon,
+} from "@heroicons/react/24/outline";
 
 import { ViewerToolbarActions } from "./toolbar_actions";
 
@@ -58,6 +62,18 @@ declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+
+const icon_markup = (Icon: typeof ShieldCheckIcon) => {
+  const host = document.createElement("div");
+  const icon_root = createRoot(host);
+
+  act(() => icon_root.render(<Icon />));
+  const markup = host.querySelector("svg")?.innerHTML;
+
+  act(() => icon_root.unmount());
+
+  return markup;
+};
 
 const noop = () => {};
 
@@ -158,5 +174,26 @@ describe("ViewerToolbarActions button order", () => {
       "mail.move_to_trash",
       "common.more",
     ]);
+  });
+
+  it("gives not spam its own icon instead of the report spam one", async () => {
+    toolbar_mode = "advanced";
+    const button_icon = (label: string) =>
+      container
+        .querySelector(`button[aria-label="${label}"]`)
+        ?.querySelector("svg")?.innerHTML;
+
+    await render();
+    const report_icon = button_icon("mail.report_spam");
+
+    await act(async () => {
+      root.render(
+        <ViewerToolbarActions {...props} is_spam on_not_spam={noop} />,
+      );
+    });
+    const not_spam_icon = button_icon("mail.not_spam");
+
+    expect(report_icon).toBe(icon_markup(ExclamationTriangleIcon));
+    expect(not_spam_icon).toBe(icon_markup(ShieldCheckIcon));
   });
 });
