@@ -85,7 +85,11 @@ const HEADERS = [
   { name: "From", value: "Shop <news@shop.example>" },
 ];
 
-function render(results: Record<string, string>, headers = HEADERS) {
+function render(
+  results: Record<string, string>,
+  headers = HEADERS,
+  on_close = () => {},
+) {
   const container = document.createElement("div");
 
   document.body.appendChild(container);
@@ -111,7 +115,7 @@ function render(results: Record<string, string>, headers = HEADERS) {
             ...results,
           } as never
         }
-        on_close={() => {}}
+        on_close={on_close}
       />,
     );
   });
@@ -302,5 +306,107 @@ describe("MessageDetailsModal layout", () => {
         .filter((el) => el !== box())
         .flatMap(scroll_classes),
     ).toEqual([]);
+  });
+});
+
+describe("MessageDetailsModal popovers", () => {
+  const RESULTS = {
+    spf_result: "pass",
+    dkim_result: "pass",
+    dmarc_result: "pass",
+  };
+  const pill = (check: string) =>
+    document.querySelector<HTMLButtonElement>(`button[data-check="${check}"]`)!;
+  const help = () =>
+    box().querySelector<HTMLButtonElement>("button[aria-haspopup]")!;
+  const open_cards = () =>
+    document.querySelectorAll("[data-radix-popper-content-wrapper]").length;
+  const settle = () =>
+    act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+  const hit_target = (el: HTMLElement) => {
+    for (let node: HTMLElement | null = el; node; node = node.parentElement) {
+      if (node.style.pointerEvents === "auto") return el;
+      if (node.style.pointerEvents === "none") return document.documentElement;
+    }
+
+    return el;
+  };
+  const press = (el: HTMLElement) => {
+    const target = hit_target(el);
+    const init = { bubbles: true, cancelable: true, button: 0 };
+
+    act(() => {
+      target.dispatchEvent(
+        new PointerEvent("pointerdown", { ...init, pointerType: "mouse" }),
+      );
+      target.dispatchEvent(new MouseEvent("mousedown", init));
+      target.dispatchEvent(
+        new PointerEvent("pointerup", { ...init, pointerType: "mouse" }),
+      );
+      target.dispatchEvent(new MouseEvent("mouseup", init));
+      target.dispatchEvent(new MouseEvent("click", init));
+    });
+  };
+  const open = async (trigger: HTMLElement) => {
+    press(trigger);
+    await settle();
+    expect(open_cards()).toBe(1);
+  };
+
+  it("closes a pill's card on a press elsewhere in the modal", async () => {
+    render(RESULTS);
+    await open(pill("spf"));
+
+    press(document.querySelector<HTMLElement>("h4")!);
+
+    expect(open_cards()).toBe(0);
+  });
+
+  it("closes a header help card on a press elsewhere in the modal", async () => {
+    render(RESULTS);
+    await open(help());
+
+    press(document.querySelector<HTMLElement>("h4")!);
+
+    expect(open_cards()).toBe(0);
+  });
+
+  it("never leaves two cards open", async () => {
+    render(RESULTS);
+    await open(pill("spf"));
+
+    press(pill("dkim"));
+    await settle();
+
+    expect(pill("spf").getAttribute("aria-expanded")).toBe("false");
+    expect(open_cards()).toBeLessThanOrEqual(1);
+  });
+
+  it("closes the card when its pill is pressed again", async () => {
+    render(RESULTS);
+    await open(pill("spf"));
+
+    press(pill("spf"));
+
+    expect(open_cards()).toBe(0);
+  });
+
+  it("closes the card on Escape and keeps the modal open", async () => {
+    const on_close = vi.fn();
+
+    render(RESULTS, HEADERS, on_close);
+    await open(pill("spf"));
+
+    act(() => {
+      (document.activeElement ?? document.body).dispatchEvent(
+        new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+      );
+    });
+
+    expect(open_cards()).toBe(0);
+    expect(on_close).not.toHaveBeenCalled();
+    expect(document.querySelector('[aria-modal="true"]')).not.toBeNull();
   });
 });
