@@ -42,6 +42,9 @@ import { mark_view_stale } from "@/hooks/email_list_cache";
 import { is_low_network } from "@/services/low_network_state";
 import { sync_recent } from "@/services/category_index";
 import { ignore_error } from "@/lib/ignore_error";
+import { CATCH_UP_WHILE_LIVE_MS } from "@/services/sync_timing";
+
+export { CATCH_UP_WHILE_LIVE_MS };
 
 type ServerMessageType =
   | "auth_success"
@@ -76,7 +79,6 @@ const HEARTBEAT_INTERVAL_MS = 30000;
 const LIVENESS_TIMEOUT_MS = 75000;
 const CATCH_UP_TICK_MS = 60000;
 export const PUSH_ARRIVED_MESSAGE = "aster_push_arrived";
-export const CATCH_UP_WHILE_LIVE_MS = 180000;
 const MUTATION_REFRESH_DEBOUNCE_MS = 600;
 const REMOVAL_ACTIONS = new Set([
   "trash",
