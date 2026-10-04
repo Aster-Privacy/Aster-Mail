@@ -59,6 +59,7 @@ import { reveal_list_row } from "@/components/email/inbox/use_inbox_list_scroll"
 import { use_empty_folder_request } from "@/components/email/inbox/empty_folder_request";
 import { StorageBanner } from "@/components/email/inbox/inbox_storage_banner";
 import { TrashBanner } from "@/components/email/inbox/inbox_trash_banner";
+import { order_folders_as_tree } from "@/hooks/use_folders/tree";
 
 export type {
   ReplyData,
@@ -324,16 +325,17 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
             display_count={header_display_count}
             excluded_count={selection.excluded_ids.length}
             filtered_count={effective_total_for_pages}
-            folders={folders_state.folders
-              .filter((f) => !f.is_system)
-              .map((f) => ({
+            folders={order_folders_as_tree(folders_state.folders).map(
+              ({ folder: f, depth }) => ({
                 folder_token: f.folder_token,
                 name: f.name,
                 color: f.color || "#6366f1",
+                depth,
                 status: selection.get_folder_status_for_selection(
                   f.folder_token,
                 ),
-              }))}
+              }),
+            )}
             is_archive_view={is_archive_view}
             is_drafts_view={is_drafts_view}
             is_scheduled_view={is_scheduled_view}

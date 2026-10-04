@@ -106,7 +106,7 @@ export interface ThreadMessageBlockProps {
   on_report_phishing?: (message: DecryptedThreadMessage) => void;
   on_block_sender?: (message: DecryptedThreadMessage) => void;
   on_not_spam?: (message: DecryptedThreadMessage) => void;
-  folders?: { id: string; name: string; color: string }[];
+  folders?: { id: string; name: string; color: string; depth?: number }[];
   message_folder_tokens?: string[];
   on_move_to_folder?: (
     message: DecryptedThreadMessage,

@@ -23,6 +23,7 @@ import type { DecryptedFolder } from "@/hooks/use_folders";
 import { describe, expect, it } from "vitest";
 
 import {
+  rule_custom_folder_options,
   rule_custom_folders,
   rule_folder_name,
   rule_system_folder_type,
@@ -122,6 +123,21 @@ describe("rule_custom_folders", () => {
     expect(rule_custom_folders([folder("t_x", "folder", "Odd", true)])).toEqual(
       [],
     );
+  });
+});
+
+describe("rule_custom_folder_options", () => {
+  it("lists a nested folder under its parent with its depth", () => {
+    const child = {
+      ...folder("t_invoices", "folder", "Invoices"),
+      parent_token: "t_receipts",
+    };
+
+    expect(
+      rule_custom_folder_options([child, ...all_folders]).map(
+        (entry) => `${entry.depth}:${entry.folder.folder_token}`,
+      ),
+    ).toEqual(["0:t_receipts", "1:t_invoices", "0:t_work"]);
   });
 });
 

@@ -24,6 +24,7 @@ import { useCallback, useMemo } from "react";
 
 import { use_context_menu_actions } from "@/components/email/inbox/inbox_context_menu_handler";
 import { use_folders } from "@/hooks/use_folders";
+import { order_folders_as_tree } from "@/hooks/use_folders/tree";
 import { use_tags } from "@/hooks/use_tags";
 
 export type SplitEmailViewParams = {
@@ -128,13 +129,14 @@ export function use_split_email_view({
   );
   const viewer_folders = useMemo(
     () =>
-      folders_state.folders
-        .filter((f) => !f.is_system)
-        .map((f) => ({
+      order_folders_as_tree(folders_state.folders).map(
+        ({ folder: f, depth }) => ({
           id: f.folder_token,
           name: f.name,
           color: f.color || "#6366f1",
-        })),
+          depth,
+        }),
+      ),
     [folders_state.folders],
   );
   const handle_viewer_folder_toggle = useCallback(

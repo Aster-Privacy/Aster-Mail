@@ -72,12 +72,14 @@ import { DEFAULT_PAGE_SIZE } from "@/hooks/email_list_helpers";
 import { ignore_error } from "@/lib/ignore_error";
 import { app_locale } from "@/utils/date_format";
 import { compute_snooze_target } from "@/utils/snooze_targets";
+import { folder_option_indent } from "@/hooks/use_folders/tree";
 
 interface FolderOption {
   folder_token: string;
   name: string;
   color: string;
   status: "all" | "some" | "none";
+  depth?: number;
 }
 
 interface TagOption {
@@ -677,6 +679,15 @@ export function InboxHeader({
                           key={folder.folder_token}
                           onClick={() => on_folder_toggle(folder.folder_token)}
                         >
+                          {folder.depth ? (
+                            <span
+                              aria-hidden="true"
+                              className="flex-shrink-0"
+                              style={{
+                                width: folder_option_indent(folder.depth),
+                              }}
+                            />
+                          ) : null}
                           <div
                             className="w-2.5 h-2.5 rounded-full me-2 flex-shrink-0"
                             style={{ backgroundColor: folder.color }}
@@ -838,6 +849,15 @@ export function InboxHeader({
                                 on_folder_toggle(folder.folder_token)
                               }
                             >
+                              {folder.depth ? (
+                                <span
+                                  aria-hidden="true"
+                                  className="flex-shrink-0"
+                                  style={{
+                                    width: folder_option_indent(folder.depth),
+                                  }}
+                                />
+                              ) : null}
                               <div
                                 className="w-2.5 h-2.5 rounded-full me-2 flex-shrink-0"
                                 style={{ backgroundColor: folder.color }}

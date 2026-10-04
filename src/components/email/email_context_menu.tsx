@@ -71,12 +71,14 @@ import {
 } from "@/components/ui/context_menu";
 import { compute_snooze_target } from "@/utils/snooze_targets";
 import { is_tauri_env } from "@/services/api/client/helpers";
+import { folder_option_indent } from "@/hooks/use_folders/tree";
 
 interface FolderOption {
   id: string;
   name: string;
   color: string;
   is_assigned?: boolean;
+  depth?: number;
 }
 
 interface TagOption {
@@ -510,6 +512,13 @@ function EmailContextMenuContentInner({
                     on_folder_toggle(folder.id);
                   }}
                 >
+                  {folder.depth ? (
+                    <span
+                      aria-hidden="true"
+                      className="flex-shrink-0"
+                      style={{ width: folder_option_indent(folder.depth) }}
+                    />
+                  ) : null}
                   {(selection
                     ? folder.is_assigned
                     : current_folder_id === folder.id) && (

@@ -86,6 +86,7 @@ import { MessageDetailCard } from "@/components/email/message_detail_card";
 import { SenderProfileTrigger } from "@/components/profile/sender_profile_trigger";
 import { PgpPasswordProtectedMessage } from "@/components/email/pgp_password_prompt";
 import { open_external } from "@/utils/open_link";
+import { folder_option_indent } from "@/hooks/use_folders/tree";
 
 export function ThreadMessageBlock(
   props: ThreadMessageBlockProps,
@@ -674,6 +675,15 @@ export function ThreadMessageBlock(
                             on_move_to_folder(message, folder.id);
                           }}
                         >
+                          {folder.depth ? (
+                            <span
+                              aria-hidden="true"
+                              className="flex-shrink-0"
+                              style={{
+                                width: folder_option_indent(folder.depth),
+                              }}
+                            />
+                          ) : null}
                           {is_current && (
                             <CheckIcon className="me-0.5 h-3 w-3 flex-shrink-0" />
                           )}
