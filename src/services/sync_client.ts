@@ -47,7 +47,6 @@ import { is_low_network } from "@/services/low_network_state";
 import { sync_recent } from "@/services/category_index";
 import { ignore_error } from "@/lib/ignore_error";
 import { CATCH_UP_WHILE_LIVE_MS } from "@/services/sync_timing";
-import { request_cache } from "@/services/api/request_cache";
 
 export { CATCH_UP_WHILE_LIVE_MS };
 
