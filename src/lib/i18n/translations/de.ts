@@ -230,6 +230,17 @@ export const de = {
     select_parent_folder: "Übergeordneten Ordner auswählen",
     top_level_no_parent: "Oberste Ebene (kein übergeordneter Ordner)",
     parent_folder: "Übergeordneter Ordner",
+    create_sublabel: "Unterlabel erstellen",
+    move_label: "Label verschieben",
+    move_label_description:
+      "Neues übergeordnetes Label für dieses Label auswählen",
+    select_parent_label: "Übergeordnetes Label auswählen",
+    parent_label: "Übergeordnetes Label",
+    no_parent_label: "Oberste Ebene (kein übergeordnetes Label)",
+    failed_to_move_label:
+      "Dieses Label wurde nicht verschoben. Versuchen Sie es erneut.",
+    label_delete_keeps_sublabels:
+      "Unterlabels werden nicht gelöscht. Sie rücken eine Ebene nach oben.",
     move_up: "Nach oben",
     move_down: "Nach unten",
     sort_a_to_z: "Von A bis Z sortieren",

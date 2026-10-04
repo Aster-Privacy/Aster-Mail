@@ -50,6 +50,7 @@ import {
 import { RULE_CATEGORY_OPTIONS } from "@/data/category_catalog";
 import { use_folders } from "@/hooks/use_folders";
 import { folder_option_indent } from "@/hooks/use_folders/tree";
+import { order_tags_as_tree, tag_option_indent } from "@/hooks/tag_tree";
 import { use_tags } from "@/hooks/use_tags";
 import { use_i18n } from "@/lib/i18n/context";
 import { cn } from "@/lib/utils";
@@ -159,7 +160,10 @@ export function ActionTargetDropdown(props: ActionTargetDropdownProps) {
 
   const system_folder_options = rule_system_folders(folders_state.folders);
   const folder_options = rule_custom_folder_options(folders_state.folders);
-  const label_options = tags_state.tags;
+  const label_options = React.useMemo(
+    () => order_tags_as_tree(tags_state.tags),
+    [tags_state.tags],
+  );
 
   void cn;
 
@@ -322,7 +326,7 @@ export function ActionTargetDropdown(props: ActionTargetDropdownProps) {
                 {t("mail_rules.no_labels_create_hint")}
               </DropdownMenuItem>
             )}
-          {label_options.map((label) => {
+          {label_options.map(({ tag: label, depth }) => {
             const is_selected = labels_props.value.includes(label.tag_token);
 
             return (
@@ -344,6 +348,13 @@ export function ActionTargetDropdown(props: ActionTargetDropdownProps) {
                 }}
               >
                 <span className="flex items-center gap-2 min-w-0">
+                  {depth > 0 ? (
+                    <span
+                      aria-hidden="true"
+                      className="flex-shrink-0"
+                      style={{ width: tag_option_indent(depth) }}
+                    />
+                  ) : null}
                   <span
                     className="w-2.5 h-2.5 rounded-sm flex-shrink-0"
                     style={{ backgroundColor: label.color || "#a3a3a3" }}

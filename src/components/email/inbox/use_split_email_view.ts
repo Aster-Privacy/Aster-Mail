@@ -25,6 +25,7 @@ import { useCallback, useMemo } from "react";
 import { use_context_menu_actions } from "@/components/email/inbox/inbox_context_menu_handler";
 import { use_folders } from "@/hooks/use_folders";
 import { order_folders_as_tree } from "@/hooks/use_folders/tree";
+import { order_tags_as_tree } from "@/hooks/tag_tree";
 import { use_tags } from "@/hooks/use_tags";
 
 export type SplitEmailViewParams = {
@@ -120,10 +121,11 @@ export function use_split_email_view({
   );
   const list_tags = useMemo(
     () =>
-      tags_state.tags.map((tag) => ({
+      order_tags_as_tree(tags_state.tags).map(({ tag, depth }) => ({
         tag_token: tag.tag_token,
         name: tag.name,
         color: tag.color || "#6366f1",
+        depth,
       })),
     [tags_state.tags],
   );

@@ -72,6 +72,7 @@ import {
 import { compute_snooze_target } from "@/utils/snooze_targets";
 import { is_tauri_env } from "@/services/api/client/helpers";
 import { folder_option_indent } from "@/hooks/use_folders/tree";
+import { tag_option_indent } from "@/hooks/tag_tree";
 
 interface FolderOption {
   id: string;
@@ -85,6 +86,7 @@ interface TagOption {
   tag_token: string;
   name: string;
   color: string;
+  depth?: number;
   is_assigned: boolean;
 }
 
@@ -554,6 +556,13 @@ function EmailContextMenuContentInner({
                     on_tag_toggle(tag.tag_token);
                   }}
                 >
+                  {tag.depth ? (
+                    <span
+                      aria-hidden="true"
+                      className="flex-shrink-0"
+                      style={{ width: tag_option_indent(tag.depth) }}
+                    />
+                  ) : null}
                   {tag.is_assigned && (
                     <CheckIcon className="me-0.5 h-3 w-3 flex-shrink-0" />
                   )}

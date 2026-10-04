@@ -60,6 +60,7 @@ import { use_empty_folder_request } from "@/components/email/inbox/empty_folder_
 import { StorageBanner } from "@/components/email/inbox/inbox_storage_banner";
 import { TrashBanner } from "@/components/email/inbox/inbox_trash_banner";
 import { order_folders_as_tree } from "@/hooks/use_folders/tree";
+import { order_tags_as_tree } from "@/hooks/tag_tree";
 
 export type {
   ReplyData,
@@ -404,11 +405,12 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
             selection_scope_title={active_category_title}
             some_selected={selection.some_selected}
             spam_count={email_state.emails.filter((e) => e.is_spam).length}
-            tags={tags_state.tags.map((t) => ({
-              tag_token: t.tag_token,
-              name: t.name,
-              color: t.color || "#6366f1",
-              status: selection.get_tag_status_for_selection(t.tag_token),
+            tags={order_tags_as_tree(tags_state.tags).map(({ tag, depth }) => ({
+              tag_token: tag.tag_token,
+              name: tag.name,
+              color: tag.color || "#6366f1",
+              depth,
+              status: selection.get_tag_status_for_selection(tag.tag_token),
             }))}
             total_email_count={nav.visible_ids.length}
             total_messages={effective_total_for_pages}

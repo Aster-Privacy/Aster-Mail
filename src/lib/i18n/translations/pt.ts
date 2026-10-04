@@ -1317,6 +1317,16 @@ export const pt = {
     select_parent_folder: "Selecionar pasta superior",
     top_level_no_parent: "Nível superior (sem pasta superior)",
     parent_folder: "Pasta superior",
+    create_sublabel: "Criar subetiqueta",
+    move_label: "Mover etiqueta",
+    move_label_description:
+      "Escolha uma nova etiqueta superior para esta etiqueta",
+    select_parent_label: "Selecionar etiqueta superior",
+    parent_label: "Etiqueta superior",
+    no_parent_label: "Nível superior (sem etiqueta superior)",
+    failed_to_move_label: "Esta etiqueta não foi movida. Tente novamente.",
+    label_delete_keeps_sublabels:
+      "As subetiquetas não são eliminadas. Sobem um nível.",
     move_up: "Mover para cima",
     move_down: "Mover para baixo",
     sort_a_to_z: "Ordenar de A a Z",

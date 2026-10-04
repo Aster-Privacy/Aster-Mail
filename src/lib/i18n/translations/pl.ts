@@ -310,6 +310,16 @@ export const pl = {
     select_parent_folder: "Wybierz folder nadrzędny",
     top_level_no_parent: "Poziom główny (bez nadrzędnego)",
     parent_folder: "Folder nadrzędny",
+    create_sublabel: "Utwórz etykietę podrzędną",
+    move_label: "Przenieś etykietę",
+    move_label_description: "Wybierz nową etykietę nadrzędną dla tej etykiety",
+    select_parent_label: "Wybierz etykietę nadrzędną",
+    parent_label: "Etykieta nadrzędna",
+    no_parent_label: "Poziom główny (bez etykiety nadrzędnej)",
+    failed_to_move_label:
+      "Ta etykieta nie została przeniesiona. Spróbuj ponownie.",
+    label_delete_keeps_sublabels:
+      "Etykiety podrzędne nie są usuwane. Przechodzą o jeden poziom wyżej.",
     move_up: "Przenieś w górę",
     move_down: "Przenieś w dół",
     sort_a_to_z: "Sortuj od A do Z",

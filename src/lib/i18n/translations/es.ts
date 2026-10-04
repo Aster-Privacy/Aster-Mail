@@ -316,6 +316,16 @@ export const es = {
     select_parent_folder: "Seleccionar carpeta principal",
     top_level_no_parent: "Nivel superior (sin padre)",
     parent_folder: "Carpeta principal",
+    create_sublabel: "Crear subetiqueta",
+    move_label: "Mover etiqueta",
+    move_label_description:
+      "Elige una nueva etiqueta principal para esta etiqueta",
+    select_parent_label: "Seleccionar etiqueta principal",
+    parent_label: "Etiqueta principal",
+    no_parent_label: "Nivel superior (sin etiqueta principal)",
+    failed_to_move_label: "Esta etiqueta no se movió. Inténtalo de nuevo.",
+    label_delete_keeps_sublabels:
+      "Las subetiquetas no se eliminan. Suben un nivel.",
     move_up: "Subir",
     move_down: "Bajar",
     sort_a_to_z: "Ordenar de la A a la Z",

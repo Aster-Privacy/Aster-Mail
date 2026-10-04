@@ -356,6 +356,16 @@ export const ja = {
     select_parent_folder: "親フォルダを選択",
     top_level_no_parent: "トップレベル（親なし）",
     parent_folder: "親フォルダ",
+    create_sublabel: "サブラベルを作成",
+    move_label: "ラベルを移動",
+    move_label_description: "このラベルの新しい親ラベルを選択",
+    select_parent_label: "親ラベルを選択",
+    parent_label: "親ラベル",
+    no_parent_label: "トップレベル（親なし）",
+    failed_to_move_label:
+      "このラベルを移動できませんでした。もう一度お試しください。",
+    label_delete_keeps_sublabels:
+      "サブラベルは削除されず、1 つ上の階層に移動します。",
     move_up: "上へ移動",
     move_down: "下へ移動",
     sort_a_to_z: "名前順で並べ替え",

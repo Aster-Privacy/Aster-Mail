@@ -19,7 +19,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import {
+  ArrowRightIcon,
   PencilIcon,
+  PlusIcon,
   SparklesIcon,
   TagIcon,
   TrashIcon,
@@ -41,6 +43,8 @@ interface TagContextMenuProps {
   on_recolor: () => void;
   on_reicon: () => void;
   on_delete: () => void;
+  on_add_sublabel?: () => void;
+  on_move?: () => void;
 }
 
 export function TagContextMenu({
@@ -50,6 +54,8 @@ export function TagContextMenu({
   on_recolor,
   on_reicon,
   on_delete,
+  on_add_sublabel,
+  on_move,
 }: TagContextMenuProps): React.ReactElement {
   const { t } = use_translation();
 
@@ -57,6 +63,13 @@ export function TagContextMenu({
     <ContextMenu>
       <ContextMenuTrigger asChild>{children}</ContextMenuTrigger>
       <ContextMenuContent className="w-48">
+        {on_add_sublabel && (
+          <ContextMenuItem onClick={on_add_sublabel}>
+            <PlusIcon className="me-2 h-4 w-4" />
+            {t("common.create_sublabel")}
+          </ContextMenuItem>
+        )}
+
         <ContextMenuItem onClick={on_rename}>
           <PencilIcon className="me-2 h-4 w-4" />
           {t("common.rename")}
@@ -71,6 +84,13 @@ export function TagContextMenu({
           <SparklesIcon className="me-2 h-4 w-4" />
           {t("common.change_icon")}
         </ContextMenuItem>
+
+        {on_move && (
+          <ContextMenuItem onClick={on_move}>
+            <ArrowRightIcon className="me-2 h-4 w-4 rtl:-scale-x-100" />
+            {t("common.move_label")}
+          </ContextMenuItem>
+        )}
 
         <ContextMenuSeparator />
 

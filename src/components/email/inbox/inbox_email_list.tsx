@@ -126,7 +126,7 @@ export interface EmailListProps {
   on_email_click: (id: string) => void;
   current_view: string;
   folders: { id: string; name: string; color: string; depth?: number }[];
-  tags: { tag_token: string; name: string; color: string }[];
+  tags: { tag_token: string; name: string; color: string; depth?: number }[];
   on_reply: (email: InboxEmail) => void;
   on_reply_all?: (email: InboxEmail) => void;
   on_forward: (email: InboxEmail) => void;

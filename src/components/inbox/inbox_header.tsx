@@ -73,6 +73,7 @@ import { ignore_error } from "@/lib/ignore_error";
 import { app_locale } from "@/utils/date_format";
 import { compute_snooze_target } from "@/utils/snooze_targets";
 import { folder_option_indent } from "@/hooks/use_folders/tree";
+import { tag_option_indent } from "@/hooks/tag_tree";
 
 interface FolderOption {
   folder_token: string;
@@ -86,6 +87,7 @@ interface TagOption {
   tag_token: string;
   name: string;
   color: string;
+  depth?: number;
   status: "all" | "some" | "none";
 }
 
@@ -731,6 +733,15 @@ export function InboxHeader({
                           key={tag.tag_token}
                           onClick={() => on_tag_toggle(tag.tag_token)}
                         >
+                          {tag.depth ? (
+                            <span
+                              aria-hidden="true"
+                              className="flex-shrink-0"
+                              style={{
+                                width: tag_option_indent(tag.depth),
+                              }}
+                            />
+                          ) : null}
                           <div
                             className="w-2.5 h-2.5 rounded-full me-2 flex-shrink-0"
                             style={{ backgroundColor: tag.color }}
@@ -889,6 +900,15 @@ export function InboxHeader({
                               key={tag.tag_token}
                               onClick={() => on_tag_toggle(tag.tag_token)}
                             >
+                              {tag.depth ? (
+                                <span
+                                  aria-hidden="true"
+                                  className="flex-shrink-0"
+                                  style={{
+                                    width: tag_option_indent(tag.depth),
+                                  }}
+                                />
+                              ) : null}
                               <div
                                 className="w-2.5 h-2.5 rounded-full me-2 flex-shrink-0"
                                 style={{ backgroundColor: tag.color }}

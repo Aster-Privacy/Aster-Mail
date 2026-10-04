@@ -45,6 +45,7 @@ import {
 import { emit_tags_changed, MAIL_EVENTS } from "@/hooks/mail_events";
 import { use_auth_safe } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
+import { reparent_children_of_removed_tag } from "@/hooks/tag_tree";
 
 export interface DecryptedTag {
   id: string;
@@ -53,6 +54,7 @@ export interface DecryptedTag {
   color?: string;
   icon?: string;
   sort_order: number;
+  parent_token?: string;
   item_count?: number;
   created_at: string;
   updated_at: string;
@@ -116,6 +118,7 @@ interface UseTagsReturn {
     name: string,
     color?: string,
     icon?: string,
+    parent_token?: string,
   ) => Promise<DecryptedTag | null>;
   update_existing_tag: (
     tag_id: string,
@@ -123,6 +126,7 @@ interface UseTagsReturn {
     color?: string,
     icon?: string,
     sort_order?: number,
+    parent_token?: string | null,
   ) => Promise<boolean>;
   delete_existing_tag: (tag_id: string) => Promise<boolean>;
   add_tag_to_email: (email_id: string, tag_token: string) => Promise<boolean>;
@@ -263,6 +267,7 @@ async function decrypt_tag(
     color,
     icon,
     sort_order: tag.sort_order,
+    parent_token: tag.parent_token || undefined,
     item_count: tag.item_count,
     created_at: tag.created_at,
     updated_at: tag.updated_at,
@@ -280,6 +285,7 @@ export function build_undecryptable_tag(
     color: undefined,
     icon: undefined,
     sort_order: tag.sort_order,
+    parent_token: tag.parent_token || undefined,
     item_count: tag.item_count,
     created_at: tag.created_at,
     updated_at: tag.updated_at,
@@ -499,6 +505,7 @@ export function use_tags(): UseTagsReturn {
       name: string,
       color?: string,
       icon?: string,
+      parent_token?: string,
     ): Promise<DecryptedTag | null> => {
       const trimmed_name = name.trim();
 
@@ -515,7 +522,8 @@ export function use_tags(): UseTagsReturn {
       const duplicate_exists = cached_tags.data.some(
         (tag) =>
           !tag.is_undecryptable &&
-          tag.name.toLowerCase() === trimmed_name.toLowerCase(),
+          tag.name.toLowerCase() === trimmed_name.toLowerCase() &&
+          (tag.parent_token || undefined) === (parent_token || undefined),
       );
 
       if (duplicate_exists) {
@@ -550,6 +558,10 @@ export function use_tags(): UseTagsReturn {
           request.icon_nonce = icon_nonce;
         }
 
+        if (parent_token) {
+          request.parent_token = parent_token;
+        }
+
         const response = await create_tag(request);
 
         if (response.error || !response.data) {
@@ -563,6 +575,7 @@ export function use_tags(): UseTagsReturn {
           color,
           icon,
           sort_order: 0,
+          parent_token: parent_token || undefined,
           item_count: 0,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
@@ -598,6 +611,7 @@ export function use_tags(): UseTagsReturn {
       color?: string,
       icon?: string,
       sort_order?: number,
+      parent_token?: string | null,
     ): Promise<boolean> => {
       const vault = get_vault_from_memory();
 
@@ -642,6 +656,10 @@ export function use_tags(): UseTagsReturn {
           request.sort_order = sort_order;
         }
 
+        if (parent_token !== undefined) {
+          request.parent_token = parent_token ?? "";
+        }
+
         const response = await update_tag(tag_id, request);
 
         if (response.error) {
@@ -660,6 +678,9 @@ export function use_tags(): UseTagsReturn {
                   ...(color !== undefined && { color }),
                   ...(icon !== undefined && { icon }),
                   ...(sort_order !== undefined && { sort_order }),
+                  ...(parent_token !== undefined && {
+                    parent_token: parent_token || undefined,
+                  }),
                   updated_at: new Date().toISOString(),
                 }
               : tag,
@@ -694,7 +715,10 @@ export function use_tags(): UseTagsReturn {
         }
 
         set_state((prev) => {
-          const updated_tags = prev.tags.filter((tag) => tag.id !== tag_id);
+          const updated_tags = reparent_children_of_removed_tag(
+            prev.tags,
+            tag_id,
+          );
 
           cached_tags.data = updated_tags;
           cached_tags.total = updated_tags.length;
