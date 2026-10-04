@@ -141,6 +141,29 @@ function reached(entry: string, modules: string[]): string[] {
   return modules.filter((module) => loaded.has(module));
 }
 
+function duplicated_packages(scope: string): string[] {
+  const lock = JSON.parse(
+    readFileSync(join(process.cwd(), "package-lock.json"), "utf8"),
+  ) as { packages: Record<string, { version?: string }> };
+  const versions = new Map<string, Set<string>>();
+
+  for (const [path, entry] of Object.entries(lock.packages)) {
+    const at = path.lastIndexOf(`node_modules/${scope}/`);
+
+    if (at === -1 || !entry.version) continue;
+
+    const name = path.slice(at + "node_modules/".length);
+    const seen = versions.get(name) ?? new Set<string>();
+
+    seen.add(entry.version);
+    versions.set(name, seen);
+  }
+
+  return [...versions]
+    .filter(([, seen]) => seen.size > 1)
+    .map(([name, seen]) => `${name}@${[...seen].sort().join("|")}`);
+}
+
 function inlining_fonts(entry: string): string[] {
   return [...eagerly_loaded(entry)].filter((module) =>
     /data:font\/[\w-]+;base64,[\w+/]{64}/.test(
@@ -176,5 +199,9 @@ describe("startup bundle", () => {
     "components/email/hooks/preload_cache.ts",
   ])("%s does not inline font files", (entry) => {
     expect(inlining_fonts(entry)).toEqual([]);
+  });
+
+  it("installs a single copy of each Radix package", () => {
+    expect(duplicated_packages("@radix-ui")).toEqual([]);
   });
 });
