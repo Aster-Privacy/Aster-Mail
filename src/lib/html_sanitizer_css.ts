@@ -802,24 +802,46 @@ export function strip_dark_mode_media(css: string): string {
   return parts.join("");
 }
 
+const BLOCKED_CSS_RULE_PASS_LIMIT = 8;
+
+function strip_blocked_css_rules(css: string): string {
+  return css
+    .replace(/@import[^;]*;?/gi, "")
+    .replace(/@charset[^;]*;?/gi, "")
+    .replace(/expression\s*\([^)]*\)/gi, "")
+    .replace(/javascript\s*:[^;]*/gi, "")
+    .replace(/vbscript\s*:[^;]*/gi, "")
+    .replace(/-moz-binding\s*:[^;]*/gi, "")
+    .replace(/behavior\s*:[^;]*/gi, "")
+    .replace(/@namespace[^;]*;?/gi, "")
+    .replace(/@document[^;]*;?/gi, "")
+    .replace(/-moz-document[^;{]*\{[^}]*\}/gi, "");
+}
+
 export function sanitize_css_block(css: string, _sandbox_mode = false): string {
   let decoded = strip_css_comments(
     decode_css_escapes(decode_css_entities(css)),
   );
 
-  decoded = decoded.replace(/@import[^;]*;?/gi, "");
-  decoded = decoded.replace(/@charset[^;]*;?/gi, "");
-  decoded = decoded.replace(/expression\s*\([^)]*\)/gi, "");
-  decoded = decoded.replace(/javascript\s*:[^;]*/gi, "");
-  decoded = decoded.replace(/vbscript\s*:[^;]*/gi, "");
-  decoded = decoded.replace(/-moz-binding\s*:[^;]*/gi, "");
-  decoded = decoded.replace(/behavior\s*:[^;]*/gi, "");
-  decoded = decoded.replace(/@namespace[^;]*;?/gi, "");
-  decoded = decoded.replace(/@document[^;]*;?/gi, "");
-  decoded = decoded.replace(/-moz-document[^;{]*\{[^}]*\}/gi, "");
+  decoded = strip_blocked_css_rules(decoded);
   decoded = keep_embedded_image_sets(decoded);
   decoded = replace_balanced_calls(decoded, CROSS_FADE_HEAD, () => "none");
-  decoded = strip_dark_mode_media(decoded);
+
+  let is_settled = false;
+
+  for (let pass = 0; pass < BLOCKED_CSS_RULE_PASS_LIMIT; pass++) {
+    const next = strip_blocked_css_rules(strip_dark_mode_media(decoded));
+
+    if (next === decoded) {
+      is_settled = true;
+      break;
+    }
+    decoded = next;
+  }
+
+  if (!is_settled) {
+    return "";
+  }
 
   decoded = decoded.replace(
     /position\s*:\s*(fixed|sticky)/gi,
