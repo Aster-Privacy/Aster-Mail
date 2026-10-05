@@ -16,7 +16,7 @@ std = []
 wasm = ["wasm-bindgen", "getrandom/js", "console_error_panic_hook"]
 
 [dependencies]
-pgp = "0.14"
+pgp = "0.20"
 smallvec = "1.13"
 rand = "0.8.6"
 
