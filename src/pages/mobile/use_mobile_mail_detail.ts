@@ -519,7 +519,42 @@ export function use_mobile_mail_detail() {
     [read_ids],
   );
 
+  const mark_message_read_ref = useRef(mark_message_read);
+  const auto_read_timeouts = useRef<number[]>([]);
+
+  mark_message_read_ref.current = mark_message_read;
+
+  useEffect(
+    () => () => {
+      auto_read_timeouts.current.forEach((id) => window.clearTimeout(id));
+      auto_read_timeouts.current = [];
+    },
+    [detail.email_id],
+  );
+
+  const auto_mark_message_read = useCallback(
+    (msg: DecryptedThreadMessage) => {
+      const delay = preferences.mark_as_read_delay;
+
+      if (delay === "immediate") {
+        mark_message_read(msg);
+
+        return;
+      }
+
+      auto_read_timeouts.current.push(
+        window.setTimeout(
+          () => mark_message_read_ref.current(msg),
+          delay === "1_second" ? 1000 : 3000,
+        ),
+      );
+    },
+    [mark_message_read, preferences.mark_as_read_delay],
+  );
+
   useEffect(() => {
+    if (preferences.mark_as_read_delay === "never") return;
+
     display_messages.forEach((msg) => {
       const is_unread = !msg.is_read && !read_ids.has(msg.id);
 
@@ -530,7 +565,7 @@ export function use_mobile_mail_detail() {
         !held_read_ids_ref.current.has(msg.id)
       ) {
         auto_read_ids.current.add(msg.id);
-        mark_message_read(msg);
+        auto_mark_message_read(msg);
       }
     });
   }, [expanded_ids, message_ids_key, pending_thread_count]);
