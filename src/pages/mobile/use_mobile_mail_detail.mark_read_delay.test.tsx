@@ -56,6 +56,7 @@ const detail = vi.hoisted(() => ({
   email: null,
   mail_item: null,
   thread_messages: [] as unknown[],
+  pending_thread_count: 0,
   current_user_email: "me@example.com",
   is_loading: false,
   can_go_newer: false,
@@ -167,6 +168,21 @@ function mount() {
   act(() => root.render(<Detail />));
 }
 
+function show(
+  messages: DecryptedThreadMessage[],
+  pending: number,
+  email_id = "c",
+) {
+  detail.email_id = email_id;
+  detail.thread_messages = messages;
+  detail.pending_thread_count = pending;
+  act(() => root.render(<Detail />));
+}
+
+function full_thread(opened_is_read = false): DecryptedThreadMessage[] {
+  return [message("a"), message("b", true), message("c", opened_is_read)];
+}
+
 function marked_ids(): string[] {
   return update_item_metadata.mock.calls.map(
     (call) => (call as unknown as [string])[0],
@@ -179,6 +195,7 @@ beforeEach(() => {
   preferences.mark_as_read_delay = "immediate";
   detail.email_id = "c";
   detail.thread_messages = [message("a"), message("b", true), message("c")];
+  detail.pending_thread_count = 0;
 });
 
 afterEach(() => {
@@ -278,5 +295,93 @@ describe("mobile mail detail honours the mark as read setting", () => {
     expect(marked_ids()).toEqual(["a"]);
     act(() => vi.advanceTimersByTime(3_000));
     expect(marked_ids().sort()).toEqual(["a", "c", "d", "e", "f", "g"]);
+  });
+});
+
+describe("mobile mail detail delays marking read until the thread arrives", () => {
+  beforeEach(() => {
+    detail.thread_messages = [message("c")];
+    detail.pending_thread_count = 2;
+  });
+
+  it("marks nothing while the thread is still loading", () => {
+    mount();
+    act(() => vi.advanceTimersByTime(10_000));
+    expect(current.expanded_ids.has("c")).toBe(true);
+    expect(update_item_metadata).not.toHaveBeenCalled();
+  });
+
+  it("marks the expanded unread messages as soon as the thread arrives", () => {
+    mount();
+    show(full_thread(), 0);
+    expect(marked_ids().sort()).toEqual(["a", "c"]);
+  });
+
+  it("starts the delay when the thread arrives", () => {
+    preferences.mark_as_read_delay = "1_second";
+    mount();
+    act(() => vi.advanceTimersByTime(10_000));
+    expect(update_item_metadata).not.toHaveBeenCalled();
+    show(full_thread(), 0);
+    act(() => vi.advanceTimersByTime(999));
+    expect(update_item_metadata).not.toHaveBeenCalled();
+    act(() => vi.advanceTimersByTime(1));
+    expect(marked_ids().sort()).toEqual(["a", "c"]);
+  });
+
+  it("does not mark the opened message again when it is already read on arrival", () => {
+    preferences.mark_as_read_delay = "1_second";
+    mount();
+    act(() => vi.advanceTimersByTime(5_000));
+    show(full_thread(true), 0);
+    act(() => vi.advanceTimersByTime(10_000));
+    expect(marked_ids()).toEqual(["a"]);
+  });
+
+  it("leaves every message unread after the thread arrives when set to never", () => {
+    preferences.mark_as_read_delay = "never";
+    mount();
+    show(full_thread(), 0);
+    act(() => vi.advanceTimersByTime(10_000));
+    expect(update_item_metadata).not.toHaveBeenCalled();
+  });
+
+  it("marks the opened message after the delay when the thread never arrives", () => {
+    preferences.mark_as_read_delay = "3_seconds";
+    mount();
+    act(() => vi.advanceTimersByTime(5_000));
+    show(detail.thread_messages as DecryptedThreadMessage[], 0);
+    act(() => vi.advanceTimersByTime(2_999));
+    expect(update_item_metadata).not.toHaveBeenCalled();
+    act(() => vi.advanceTimersByTime(1));
+    expect(marked_ids()).toEqual(["c"]);
+  });
+
+  it("marks nothing when another email opens while the thread is loading", () => {
+    preferences.mark_as_read_delay = "1_second";
+    mount();
+    act(() => vi.advanceTimersByTime(500));
+    show([message("d", true)], 0, "d");
+    act(() => vi.advanceTimersByTime(10_000));
+    expect(update_item_metadata).not.toHaveBeenCalled();
+  });
+
+  it("marks nothing when another email opens after the thread arrives but before the delay ends", () => {
+    preferences.mark_as_read_delay = "3_seconds";
+    mount();
+    show(full_thread(), 0);
+    act(() => vi.advanceTimersByTime(2_000));
+    show([message("d", true)], 0, "d");
+    act(() => vi.advanceTimersByTime(10_000));
+    expect(update_item_metadata).not.toHaveBeenCalled();
+  });
+
+  it("marks nothing for the email left behind when its thread arrives late", () => {
+    preferences.mark_as_read_delay = "1_second";
+    mount();
+    show([message("c")], 2, "d");
+    show([message("d", true)], 0, "d");
+    act(() => vi.advanceTimersByTime(10_000));
+    expect(update_item_metadata).not.toHaveBeenCalled();
   });
 });

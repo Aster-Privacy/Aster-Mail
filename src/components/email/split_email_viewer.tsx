@@ -676,6 +676,7 @@ export function SplitEmailViewer({
                     : undefined
                 }
                 on_view_source={viewer.handle_per_message_view_source}
+                pending_thread_count={viewer.pending_thread_count}
                 size_bytes={viewer.mail_item?.metadata?.size_bytes}
                 thread_draft={viewer.thread_draft}
                 thread_list_ref={viewer.thread_list_ref}

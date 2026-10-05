@@ -188,6 +188,7 @@ export default function EmailDetailPage() {
               on_external_content_detected={
                 detail.handle_external_content_detected
               }
+              pending_thread_count={detail.pending_thread_count}
               set_is_block_sender_modal_open={
                 detail.set_is_block_sender_modal_open
               }

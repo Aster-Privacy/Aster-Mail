@@ -21,7 +21,14 @@
 import type { DecryptedThreadMessage } from "@/types/thread";
 import type { ExternalContentReport } from "@/lib/html_sanitizer";
 
-import { useState, useCallback, useMemo, useEffect, useRef } from "react";
+import {
+  useState,
+  useCallback,
+  useMemo,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+} from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 import { swipe_nav_state } from "./mobile_mail_detail_swipe";
@@ -66,6 +73,9 @@ import { app_locale } from "@/utils/date_format";
 import { resolve_reply_references } from "@/lib/reply_references";
 import { sanitize_outgoing_html } from "@/lib/html_sanitizer_compose";
 import { inline_email_css } from "@/lib/forward_css_inliner";
+
+const RELEASE_EVENTS = ["touchstart", "wheel", "pointerdown", "keydown"];
+const ANCHOR_HOLD_MS = 1000;
 
 export function use_mobile_mail_detail() {
   const navigate = useNavigate();
@@ -189,7 +199,8 @@ export function use_mobile_mail_detail() {
   ]);
 
   const auto_read_ids = useRef<Set<string>>(new Set());
-  const first_unread_ref = useRef<HTMLDivElement>(null);
+  const first_unread_ref = useRef<HTMLDivElement | null>(null);
+  const opened_message_ref = useRef<HTMLDivElement | null>(null);
   const has_scrolled = useRef(false);
   const open_email_id_ref = useRef(detail.email_id);
 
@@ -254,13 +265,107 @@ export function use_mobile_mail_detail() {
     [display_messages],
   );
 
-  useEffect(() => {
+  const pending_thread_count = detail.pending_thread_count;
+  const pending_row_count =
+    display_messages.length === 1 ? Math.min(pending_thread_count, 3) : 0;
+  const shown_while_pending_ref = useRef<Set<string> | null>(null);
+  const opened_offset_ref = useRef<number | null>(null);
+  const merge_anchor_ref = useRef<number | null>(null);
+  const held_read_ids_ref = useRef<Set<string>>(new Set());
+  const release_anchor_ref = useRef<(() => void) | null>(null);
+  const [anchor_request, set_anchor_request] = useState(0);
+
+  const offset_in_scroll = useCallback((el: HTMLElement): number | null => {
+    const container = scroll_ref.current;
+
+    if (!container) return null;
+
+    return (
+      el.getBoundingClientRect().top -
+      container.getBoundingClientRect().top +
+      container.scrollTop
+    );
+  }, []);
+
+  useLayoutEffect(() => {
+    shown_while_pending_ref.current = null;
+    opened_offset_ref.current = null;
+    merge_anchor_ref.current = null;
+    held_read_ids_ref.current = new Set();
+  }, [detail.email_id]);
+
+  useLayoutEffect(() => {
+    if (pending_thread_count === 0 || !opened_message_ref.current) return;
+
+    opened_offset_ref.current = offset_in_scroll(opened_message_ref.current);
+  });
+
+  useLayoutEffect(() => {
     if (display_messages.length === 0) return;
+
+    const shown_while_pending = shown_while_pending_ref.current;
+
+    shown_while_pending_ref.current =
+      pending_thread_count > 0
+        ? new Set(display_messages.map((m) => m.id))
+        : null;
+
+    if (shown_while_pending) {
+      const current_ids = new Set(display_messages.map((m) => m.id));
+      const last = display_messages[display_messages.length - 1];
+      const usual_expanded = new Set([
+        last.id,
+        ...display_messages
+          .filter((m) => !m.is_read)
+          .slice(-5)
+          .map((m) => m.id),
+      ]);
+
+      held_read_ids_ref.current = new Set(
+        [...held_read_ids_ref.current].filter(
+          (id) => current_ids.has(id) && !usual_expanded.has(id),
+        ),
+      );
+      set_expanded_ids((prev) => {
+        const next = new Set([...prev].filter((id) => current_ids.has(id)));
+
+        if (!shown_while_pending.has(last.id)) next.add(last.id);
+        display_messages
+          .filter((m) => !m.is_read)
+          .slice(-5)
+          .forEach((m) => {
+            if (!shown_while_pending.has(m.id)) next.add(m.id);
+          });
+
+        return next;
+      });
+      set_read_ids((prev) => {
+        const next = new Set<string>();
+
+        display_messages.forEach((m) => {
+          if (m.is_read || prev.has(m.id)) next.add(m.id);
+        });
+
+        return next;
+      });
+      auto_read_ids.current = new Set(
+        [...auto_read_ids.current].filter((id) => current_ids.has(id)),
+      );
+      has_scrolled.current = true;
+      merge_anchor_ref.current = opened_offset_ref.current;
+      opened_offset_ref.current = null;
+
+      return;
+    }
 
     const new_expanded = new Set<string>();
 
+    held_read_ids_ref.current = new Set();
     if (display_messages.length === 1) {
       new_expanded.add(display_messages[0].id);
+      if (pending_thread_count > 0) {
+        held_read_ids_ref.current.add(display_messages[0].id);
+      }
     } else {
       new_expanded.add(display_messages[display_messages.length - 1].id);
       display_messages
@@ -279,6 +384,87 @@ export function use_mobile_mail_detail() {
 
     auto_read_ids.current = new Set();
   }, [message_ids_key]);
+
+  useLayoutEffect(() => {
+    if (pending_thread_count > 0) return;
+
+    if (shown_while_pending_ref.current) {
+      held_read_ids_ref.current = new Set();
+      if (opened_offset_ref.current !== null) {
+        merge_anchor_ref.current = opened_offset_ref.current;
+        set_anchor_request((n) => n + 1);
+      }
+    }
+    shown_while_pending_ref.current = null;
+    opened_offset_ref.current = null;
+  }, [pending_thread_count]);
+
+  useLayoutEffect(() => {
+    const previous_offset = merge_anchor_ref.current;
+    const anchor = opened_message_ref.current;
+    const container = scroll_ref.current;
+
+    merge_anchor_ref.current = null;
+    if (previous_offset === null || !anchor || !container) return;
+
+    const screen_top = previous_offset - container.scrollTop;
+    let last_set_top = container.scrollTop;
+    let observer: ResizeObserver | null = null;
+    let release_timer: number | null = null;
+    const moved_elsewhere = () =>
+      Math.abs(container.scrollTop - last_set_top) >= 1;
+    const release = () => {
+      observer?.disconnect();
+      observer = null;
+      if (release_timer !== null) window.clearTimeout(release_timer);
+      release_timer = null;
+      container.removeEventListener("scroll", on_scroll);
+      for (const type of RELEASE_EVENTS) {
+        container.removeEventListener(type, release);
+      }
+      if (release_anchor_ref.current === release) {
+        release_anchor_ref.current = null;
+      }
+    };
+    const hold = () => {
+      if (moved_elsewhere()) {
+        release();
+
+        return;
+      }
+
+      const offset = offset_in_scroll(anchor);
+
+      if (offset === null) return;
+
+      const target = offset - screen_top;
+
+      if (Math.abs(target - container.scrollTop) >= 1) {
+        container.scrollTop = target;
+      }
+      last_set_top = container.scrollTop;
+    };
+    const on_scroll = () => {
+      if (moved_elsewhere()) release();
+    };
+
+    hold();
+
+    if (typeof ResizeObserver === "undefined") return;
+
+    observer = new ResizeObserver(hold);
+    for (const child of Array.from(container.children)) {
+      observer.observe(child);
+    }
+    container.addEventListener("scroll", on_scroll, { passive: true });
+    for (const type of RELEASE_EVENTS) {
+      container.addEventListener(type, release, { passive: true });
+    }
+    release_timer = window.setTimeout(release, ANCHOR_HOLD_MS);
+    release_anchor_ref.current = release;
+
+    return release;
+  }, [expanded_ids, detail.email_id, offset_in_scroll, anchor_request]);
 
   const mark_message_read = useCallback(
     (msg: DecryptedThreadMessage) => {
@@ -375,13 +561,14 @@ export function use_mobile_mail_detail() {
       if (
         expanded_ids.has(msg.id) &&
         is_unread &&
-        !auto_read_ids.current.has(msg.id)
+        !auto_read_ids.current.has(msg.id) &&
+        !held_read_ids_ref.current.has(msg.id)
       ) {
         auto_read_ids.current.add(msg.id);
         auto_mark_message_read(msg);
       }
     });
-  }, [expanded_ids, message_ids_key]);
+  }, [expanded_ids, message_ids_key, pending_thread_count]);
 
   const first_unread_id = useMemo(() => {
     const unread = display_messages.find(
@@ -396,6 +583,7 @@ export function use_mobile_mail_detail() {
     if (!first_unread_ref.current) return;
     has_scrolled.current = true;
     requestAnimationFrame(() => {
+      release_anchor_ref.current?.();
       first_unread_ref.current?.scrollIntoView({
         behavior: "smooth",
         block: "start",
@@ -1007,8 +1195,11 @@ export function use_mobile_mail_detail() {
     details_message,
     set_details_message,
     first_unread_ref,
+    opened_message_ref,
     scroll_ref,
     display_messages,
+    pending_thread_count,
+    pending_row_count,
     first_unread_id,
     handle_back,
     handle_toggle_expand,

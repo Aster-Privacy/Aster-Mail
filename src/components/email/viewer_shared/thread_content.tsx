@@ -70,6 +70,7 @@ export interface ViewerThreadContentProps {
   external_content_mode?: "always";
   on_external_content_detected?: (report: ExternalContentReport) => void;
   thread_sanitized?: Map<string, PreloadedSanitizedContent>;
+  pending_thread_count?: number;
   size_bytes?: number;
   on_unsubscribe?: () => Promise<"success" | "manual">;
   on_manual_unsubscribed?: () => void;
@@ -102,6 +103,7 @@ export function ViewerThreadContent({
   external_content_mode,
   on_external_content_detected,
   thread_sanitized,
+  pending_thread_count,
   size_bytes,
   on_unsubscribe,
   on_manual_unsubscribed,
@@ -254,6 +256,7 @@ export function ViewerThreadContent({
           on_trash={on_trash}
           on_unsubscribe={on_unsubscribe}
           on_view_source={on_view_source}
+          pending_earlier_count={pending_thread_count}
           preloaded_sanitized={thread_sanitized}
           size_bytes={size_bytes}
           subject={email.subject}
