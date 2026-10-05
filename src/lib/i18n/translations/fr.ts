@@ -10319,6 +10319,8 @@ export const fr = {
       "Vos clés privées sont verrouillées sur cet appareil. Votre mot de passe les déverrouillera. Vos clés sur le serveur sont intactes.",
     encryption_keys_unavailable:
       "Vos clés privées sont verrouillées sur cet appareil. Votre mot de passe les déverrouillera. Vos clés sur le serveur sont intactes.",
+    crypto_module_unavailable:
+      "Le chiffrement n'a pas pu être chargé sur cet appareil. Recharger la page règle généralement le problème. Si cela se reproduit, vérifiez votre connexion.",
     failed_decrypt_draft:
       "Impossible d'ouvrir ce brouillon sur cet appareil. Déconnectez-vous, reconnectez-vous, puis réessayez.",
     failed_encrypt_draft:

@@ -26,6 +26,7 @@ import {
   decode_password_protected_body,
   decrypt_pgp_with_password,
 } from "@/utils/email_crypto";
+import { is_crypto_module_load_error } from "@/services/crypto/openpgp_loader";
 
 interface PgpPasswordPromptProps {
   block: string;
@@ -63,20 +64,23 @@ export function PgpPasswordPrompt({
   const [password, set_password] = useState("");
   const [busy, set_busy] = useState(false);
   const [failed, set_failed] = useState(false);
+  const [load_failed, set_load_failed] = useState(false);
 
   const submit = async () => {
     if (!password || busy) return;
 
     set_busy(true);
     set_failed(false);
+    set_load_failed(false);
 
     try {
       const plaintext = await decrypt_pgp_with_password(block, password);
 
       set_password("");
       on_decrypted(plaintext);
-    } catch {
-      set_failed(true);
+    } catch (error) {
+      if (is_crypto_module_load_error(error)) set_load_failed(true);
+      else set_failed(true);
     } finally {
       set_busy(false);
     }
@@ -124,6 +128,11 @@ export function PgpPasswordPrompt({
           {failed && (
             <p className="mt-2 text-[13px] text-red-500">
               {t("mail.pgp_password_incorrect")}
+            </p>
+          )}
+          {load_failed && (
+            <p className="mt-2 text-[13px] text-red-500">
+              {t("errors.crypto_module_unavailable")}
             </p>
           )}
         </div>

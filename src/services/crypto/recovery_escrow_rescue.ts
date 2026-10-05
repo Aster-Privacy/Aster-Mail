@@ -18,8 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import * as openpgp from "openpgp";
-
 import { fetch_recovery_escrow_keys } from "../api/recovery";
 
 import { seal_account_key_token } from "./account_key_token";
@@ -30,6 +28,8 @@ import {
   open_account_key_from_escrow,
 } from "./recovery_key_escrow";
 import { zero_uint8_array } from "./secure_memory";
+
+import { load_openpgp } from "@/services/crypto/openpgp_loader";
 
 export interface RescuedAccountKeyToken {
   token: string;
@@ -42,6 +42,8 @@ async function reseal(
   new_password: string,
   serial: number,
 ): Promise<RescuedAccountKeyToken | null> {
+  const openpgp = await load_openpgp();
+
   try {
     const token = await seal_account_key_token(
       account_key,

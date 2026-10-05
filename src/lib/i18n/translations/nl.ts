@@ -10140,6 +10140,8 @@ export const nl = {
       "Je sessie is beëindigd. Je wachtwoord pakt hem weer op. Je werk is opgeslagen.",
     encryption_keys_unavailable:
       "Je privésleutels zijn vergrendeld op dit apparaat. Je wachtwoord ontgrendelt ze. Je sleutels op de server zijn onaangetast.",
+    crypto_module_unavailable:
+      "De versleuteling kon niet worden geladen op dit apparaat. De pagina opnieuw laden lost dit meestal op. Blijft het gebeuren, controleer dan je verbinding.",
     session_expired_send:
       "Je sessie eindigde voordat deze e-mail kon worden verzonden. Opnieuw aanmelden verstuurt hem. Je concept is opgeslagen.",
     failed_encrypt_envelope:

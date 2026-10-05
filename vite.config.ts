@@ -235,7 +235,10 @@ export default defineConfig({
             : "assets/[name]-[hash].js",
         manualChunks: {
           "vendor-react": ["react", "react-dom", "react-router-dom"],
-          "vendor-crypto": ["openpgp"],
+          "vendor-crypto": [
+            "openpgp",
+            path.resolve(__dirname, "src/services/crypto/openpgp_limits.ts"),
+          ],
           "vendor-ui": [
             "@radix-ui/react-dialog",
             "@radix-ui/react-dropdown-menu",

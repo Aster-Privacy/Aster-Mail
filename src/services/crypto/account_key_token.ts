@@ -18,14 +18,14 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import * as openpgp from "openpgp";
-
 import { array_to_base64 } from "./base64";
 import { ACCOUNT_KEY_LENGTH, decode_account_key } from "./account_data_key";
 import {
   decrypt_message_verified_with_any_key,
   encrypt_message,
 } from "./key_manager_pgp_messages";
+
+import { load_openpgp } from "@/services/crypto/openpgp_loader";
 
 export const ACCOUNT_KEY_TOKEN_TYPE = "aster-account-key";
 export const ACCOUNT_KEY_TOKEN_VERSION = 2;
@@ -118,6 +118,8 @@ export function parse_account_key_token_payload(
 async function fingerprint_of(
   armored_private_key: string,
 ): Promise<string | null> {
+  const openpgp = await load_openpgp();
+
   try {
     const key = await openpgp.readPrivateKey({
       armoredKey: armored_private_key,
@@ -143,6 +145,8 @@ async function own_fingerprints(
 async function to_public_armored(
   armored_private_key: string,
 ): Promise<string | null> {
+  const openpgp = await load_openpgp();
+
   try {
     const key = await openpgp.readPrivateKey({
       armoredKey: armored_private_key,

@@ -80,6 +80,7 @@ import { get_read_intent } from "@/services/read_intent";
 import { read_clears_conversation } from "@/hooks/unread_read_delta";
 import { mark_conversation_read } from "@/hooks/mark_conversation_read";
 import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelope";
+import { is_crypto_module_load_error } from "@/services/crypto/openpgp_loader";
 import { use_email_viewer_actions } from "@/components/email/email_viewer_actions";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { normalize_address_ignoring_dots } from "@/utils/address_dots";
@@ -971,7 +972,11 @@ export function use_email_viewer({
       load_email(reloading_same_email).catch((caught) => {
         ignore_error("components/email/use_email_viewer:load_email", caught);
         if (!cancelled && !reloading_same_email) {
-          set_error(t("common.failed_to_load_email"));
+          set_error(
+            is_crypto_module_load_error(caught)
+              ? t("errors.crypto_module_unavailable")
+              : t("common.failed_to_load_email"),
+          );
           set_is_loading(false);
         }
       });

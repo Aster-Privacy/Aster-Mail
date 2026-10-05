@@ -60,6 +60,7 @@ import {
   discover_external_recipient_keys,
 } from "@/utils/email_crypto";
 import { format_bytes } from "@/lib/utils";
+import { load_openpgp } from "@/services/crypto/openpgp_loader";
 import { get_active_translations } from "@/lib/i18n/translations";
 import {
   extract_inline_images,
@@ -358,6 +359,10 @@ export async function execute_external_send(
   let every_recipient_has_a_key = false;
 
   if (encryption_opts) {
+    if (!email.recipient_keys && encryption_opts.auto_discover_keys) {
+      await load_openpgp();
+    }
+
     try {
       let recipient_keys = email.recipient_keys;
 

@@ -39,6 +39,7 @@ import {
 import { with_vault_write_lock } from "@/services/crypto/vault_write_lock";
 import { get_vault_history, update_vault } from "@/services/api/key_rotation";
 import { get_current_account } from "@/services/account_manager";
+import { load_openpgp } from "@/services/crypto/openpgp_loader";
 
 async function derive_public_or_null(
   armored_secret_key: string,
@@ -71,6 +72,8 @@ export async function recover_private_keys_from_history(): Promise<string[]> {
   const passphrase = get_passphrase_from_memory();
 
   if (!vault || !passphrase) return [];
+
+  await load_openpgp();
 
   const response = await get_vault_history();
 

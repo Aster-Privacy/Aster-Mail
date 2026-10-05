@@ -18,8 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import * as openpgp from "openpgp";
-
 import {
   encrypted_get,
   encrypted_set,
@@ -33,6 +31,7 @@ import {
 } from "./ratchet_verification_status";
 import { KeyPinUnavailableError } from "./ratchet_types";
 
+import { load_openpgp } from "@/services/crypto/openpgp_loader";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 
 const PIN_STORAGE_KEY_PREFIX = "ratchet_identity_pin_";
@@ -270,6 +269,8 @@ export async function is_recipient_flagged_untrusted(
 export async function owner_key_fingerprint(
   armored_public_key: string,
 ): Promise<string> {
+  const openpgp = await load_openpgp();
+
   const key = await openpgp.readKey({ armoredKey: armored_public_key });
 
   return key.getFingerprint().toLowerCase();
@@ -295,6 +296,8 @@ export async function check_owner_key_pin(
   } catch {
     throw new KeyPinUnavailableError(pin_id);
   }
+
+  await load_openpgp();
 
   let fingerprint: string;
 

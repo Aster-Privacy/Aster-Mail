@@ -49,6 +49,7 @@ import {
 } from "./send_queue_types";
 
 import { derive_own_public_key } from "@/utils/email_crypto";
+import { load_openpgp } from "@/services/crypto/openpgp_loader";
 import { get_active_translations } from "@/lib/i18n/translations";
 import {
   normalize_address_ignoring_dots,
@@ -365,6 +366,8 @@ export async function encrypt_for_recipients(
       get_active_translations().errors.cannot_send_no_recipient_keys,
     );
   }
+
+  await load_openpgp();
 
   try {
     const passphrase = get_passphrase_from_memory();

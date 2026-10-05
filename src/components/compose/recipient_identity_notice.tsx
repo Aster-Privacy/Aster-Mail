@@ -90,15 +90,17 @@ export function RecipientIdentityNotice({
         email,
         status: await get_recipient_identity_status(email),
       })),
-    ).then((results) => {
-      if (cancelled) return;
+    )
+      .then((results) => {
+        if (cancelled) return;
 
-      set_changed(
-        results.filter(
-          (entry): entry is ChangedRecipient => entry.status !== "unchanged",
-        ),
-      );
-    });
+        set_changed(
+          results.filter(
+            (entry): entry is ChangedRecipient => entry.status !== "unchanged",
+          ),
+        );
+      })
+      .catch(() => undefined);
 
     return () => {
       cancelled = true;

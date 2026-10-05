@@ -10195,6 +10195,8 @@ export const es = {
       "Tus claves privadas están bloqueadas en este dispositivo. Tu contraseña las desbloqueará. Tus claves en el servidor no se han tocado.",
     encryption_keys_unavailable:
       "Tus claves privadas están bloqueadas en este dispositivo. Tu contraseña las desbloqueará. Tus claves en el servidor no se han tocado.",
+    crypto_module_unavailable:
+      "No se pudo cargar el cifrado en este dispositivo. Recargar la página suele solucionarlo. Si sigue ocurriendo, comprueba tu conexión.",
     failed_decrypt_draft:
       "No pudimos abrir este borrador en este dispositivo. Cierra sesión, vuelve a iniciarla e inténtalo de nuevo.",
     failed_encrypt_draft:

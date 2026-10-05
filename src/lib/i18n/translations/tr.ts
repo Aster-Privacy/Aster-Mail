@@ -10037,6 +10037,8 @@ export const tr = {
       "Oturumunuz sona erdi. Şifreniz kaldığınız yerden devam etmenizi sağlar. Çalışmanız kaydedildi.",
     encryption_keys_unavailable:
       "Özel anahtarlarınız bu cihazda kilitli. Şifreniz onları açacaktır. Sunucudaki anahtarlarınız değişmedi.",
+    crypto_module_unavailable:
+      "Şifreleme bu cihazda yüklenemedi. Sayfayı yeniden yüklemek genellikle sorunu çözer. Tekrarlanırsa bağlantınızı kontrol edin.",
     session_expired_send:
       "Bu e-posta gönderilmeden önce oturumunuz sona erdi. Yeniden oturum açmak onu gönderir. Taslağınız kaydedildi.",
     failed_encrypt_envelope:

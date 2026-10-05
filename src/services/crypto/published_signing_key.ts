@@ -22,6 +22,8 @@ import type { EncryptedVault } from "./key_manager_core";
 
 import { select_private_key_matching_public } from "./key_manager_pgp";
 
+import { load_openpgp } from "@/services/crypto/openpgp_loader";
+
 const CACHE_TTL_MS = 5 * 60 * 1000;
 const PGP_PRIVATE_KEY_HEADER = "-----BEGIN PGP PRIVATE KEY";
 
@@ -93,6 +95,8 @@ export async function select_published_signing_key(
   }
 
   if (!published) return vault.identity_key;
+
+  await load_openpgp();
 
   try {
     const matching = await select_private_key_matching_public(

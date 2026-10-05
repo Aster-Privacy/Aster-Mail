@@ -40,6 +40,7 @@ import { get_pinned_identity_fingerprint } from "./ratchet_identity_pin";
 import { type PrekeyBundle } from "./x3dh";
 
 import { HASH_ALG } from "@/services/crypto/constants";
+import { load_openpgp } from "@/services/crypto/openpgp_loader";
 
 export async function detect_identity_pin_drift(
   pin_id: string,
@@ -244,6 +245,8 @@ export async function upload_prekey_bundle_result(
   }
 
   if (vault.identity_key && passphrase) {
+    await load_openpgp();
+
     try {
       signature = await sign_ratchet_prekey_bundle(
         await select_bundle_signing_key(vault),

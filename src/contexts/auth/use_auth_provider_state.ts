@@ -87,6 +87,7 @@ import {
 } from "@/services/plan_limits";
 import { ensure_default_labels } from "@/services/labels/ensure_defaults";
 import { ensure_pgp_key_published } from "@/services/crypto/ensure_pgp_key_published";
+import { preload_openpgp } from "@/services/crypto/openpgp_loader";
 import { show_toast } from "@/components/toast/simple_toast";
 import { hard_redirect } from "@/lib/hard_redirect";
 import { take_post_switch_path } from "@/lib/post_switch_path";
@@ -753,6 +754,10 @@ export function use_auth_provider_state() {
 
     process_offline_queue().catch(safe_log_error);
   }, [state.is_authenticated, state.current_account_id]);
+
+  useEffect(() => {
+    if (state.has_keys) preload_openpgp();
+  }, [state.has_keys]);
 
   useEffect(() => {
     if (!state.is_authenticated) return;

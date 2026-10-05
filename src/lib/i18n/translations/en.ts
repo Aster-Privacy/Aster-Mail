@@ -9864,6 +9864,8 @@ export const en: Translations = {
       "Your session has ended. Your password will pick it back up. Your work is saved.",
     encryption_keys_unavailable:
       "Your private keys are locked on this device. Your password will unlock them. Your keys on the server are untouched.",
+    crypto_module_unavailable:
+      "Encryption could not load on this device. Reloading the page usually fixes it. If it keeps happening, check your connection.",
     session_expired_send:
       "Your session ended before this email could send. Signing in again will send it. Your draft is saved.",
     failed_encrypt_envelope:

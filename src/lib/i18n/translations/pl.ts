@@ -10384,6 +10384,8 @@ export const pl = {
       "Twoja sesja wygasła. Hasło pozwoli kontynuować od miejsca, w którym skończyłeś(-aś). Praca jest zapisana.",
     encryption_keys_unavailable:
       "Twoje prywatne klucze są zablokowane na tym urządzeniu. Hasło je odblokuje. Klucze na serwerze nie zostały zmienione.",
+    crypto_module_unavailable:
+      "Nie udało się wczytać szyfrowania na tym urządzeniu. Odświeżenie strony zwykle rozwiązuje problem. Jeśli to się powtarza, sprawdź połączenie.",
     session_expired_send:
       "Sesja wygasła przed wysłaniem tej wiadomości. Zalogowanie ponownie ją wyśle. Wersja robocza jest zapisana.",
     failed_encrypt_envelope:

@@ -24,7 +24,21 @@ import * as openpgp from "openpgp";
 const h = vi.hoisted(() => ({
   store: new Map<string, unknown>(),
   key: new Uint8Array(32).fill(7) as Uint8Array | null,
+  fail_openpgp_load: false,
 }));
+
+vi.mock("@/services/crypto/openpgp_loader", async (import_original) => {
+  const actual =
+    await import_original<typeof import("@/services/crypto/openpgp_loader")>();
+
+  return {
+    ...actual,
+    load_openpgp: () =>
+      h.fail_openpgp_load
+        ? Promise.reject(new Error("chunk load failed"))
+        : actual.load_openpgp(),
+  };
+});
 
 vi.mock("@/services/crypto/memory_key_store", () => ({
   get_derived_encryption_key: () => (h.key ? new Uint8Array(h.key) : null),
@@ -236,6 +250,7 @@ describe("owner key pin", () => {
   beforeEach(() => {
     h.store.clear();
     h.key = new Uint8Array(32).fill(7);
+    h.fail_openpgp_load = false;
     clear_ratchet_verification_status();
   });
 
@@ -261,6 +276,20 @@ describe("owner key pin", () => {
   it("treats an unparseable key as changed once a key is pinned", async () => {
     expect(await check_owner_key_pin("alice", owner_a)).toBe("first");
     expect(await check_owner_key_pin("alice", "not a key")).toBe("changed");
+  });
+
+  it("fails instead of reporting a changed key when openpgp cannot load", async () => {
+    expect(await check_owner_key_pin("alice", owner_a)).toBe("first");
+
+    h.fail_openpgp_load = true;
+
+    await expect(check_owner_key_pin("alice", owner_a)).rejects.toThrow(
+      "chunk load failed",
+    );
+
+    h.fail_openpgp_load = false;
+
+    expect(await check_owner_key_pin("alice", owner_a)).toBe("ok");
   });
 
   it("persists an untrusted flag until the user trusts the new keys", async () => {

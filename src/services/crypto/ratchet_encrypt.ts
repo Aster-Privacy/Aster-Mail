@@ -82,6 +82,7 @@ import {
 } from "./x3dh";
 
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
+import { is_crypto_module_load_error } from "@/services/crypto/openpgp_loader";
 
 async function adopt_server_state_before_send(
   conversation_id: string,
@@ -462,7 +463,8 @@ async function encrypt_for_ratchet_recipient_unlocked(
     if (
       err instanceof RecoveryLaneUnavailableError ||
       err instanceof RecipientKeyUntrustedError ||
-      err instanceof KeyPinUnavailableError
+      err instanceof KeyPinUnavailableError ||
+      is_crypto_module_load_error(err)
     ) {
       throw err;
     }

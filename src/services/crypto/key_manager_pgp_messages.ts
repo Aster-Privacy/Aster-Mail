@@ -18,15 +18,15 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import * as openpgp from "openpgp";
-
-import "@/services/crypto/openpgp_limits";
+import type { Key, PrivateKey } from "openpgp";
 
 import { type EncryptedKeyHandle } from "./key_manager_core";
 import { unlock_private_key } from "./key_manager_pgp_unlocked_cache";
 import { order_keys_for_message } from "./pgp_key_selection";
 import { with_decrypted_key } from "./key_manager_pgp_usage";
 import { with_aes_kw_fallback } from "./webcrypto_aes_kw";
+
+import { load_openpgp } from "@/services/crypto/openpgp_loader";
 
 export type sender_verification_status =
   | "verified"
@@ -48,11 +48,12 @@ export interface sender_signing_key {
 
 async function parse_signing_keys(
   signing_key: sender_signing_key | sender_signing_key[] | undefined,
-): Promise<openpgp.PrivateKey[] | undefined> {
+): Promise<PrivateKey[] | undefined> {
   if (!signing_key) return undefined;
 
   const inputs = Array.isArray(signing_key) ? signing_key : [signing_key];
-  const parsed: openpgp.PrivateKey[] = [];
+  const parsed: PrivateKey[] = [];
+  const openpgp = await load_openpgp();
 
   for (const input of inputs) {
     try {
@@ -96,6 +97,8 @@ export async function sign_detached(
   const signing_keys = await parse_signing_keys(signing_key);
 
   if (!signing_keys) return null;
+
+  const openpgp = await load_openpgp();
 
   try {
     const signature = await openpgp.sign({
@@ -141,6 +144,8 @@ export async function select_private_key_matching_public(
 ): Promise<string | null> {
   let public_fingerprint: string;
 
+  const openpgp = await load_openpgp();
+
   try {
     const public_key = await openpgp.readKey({
       armoredKey: armored_public_key,
@@ -171,6 +176,7 @@ export async function derive_public_keys_from_private(
   armored_private_keys: string[],
 ): Promise<string[]> {
   const derived: string[] = [];
+  const openpgp = await load_openpgp();
 
   for (const armored of armored_private_keys) {
     try {
@@ -187,10 +193,11 @@ export async function derive_public_keys_from_private(
 
 async function parse_verification_keys(
   verification_keys: string[] | undefined,
-): Promise<openpgp.Key[]> {
+): Promise<Key[]> {
   if (!verification_keys || verification_keys.length === 0) return [];
 
-  const parsed: openpgp.Key[] = [];
+  const parsed: Key[] = [];
+  const openpgp = await load_openpgp();
 
   for (const armored of verification_keys) {
     try {
@@ -238,6 +245,8 @@ export async function encrypt_message(
   recipient_public_key: string,
   signing_key?: sender_signing_key | sender_signing_key[],
 ): Promise<string> {
+  const openpgp = await load_openpgp();
+
   const public_key = await openpgp.readKey({
     armoredKey: recipient_public_key,
   });
@@ -264,6 +273,7 @@ export async function encrypt_message_multi(
     throw new Error("At least one recipient public key is required");
   }
 
+  const openpgp = await load_openpgp();
   const parse_results = await Promise.all(
     recipient_public_keys.map(async (key) => {
       try {
@@ -274,7 +284,7 @@ export async function encrypt_message_multi(
     }),
   );
 
-  const valid_keys = parse_results.filter((k): k is openpgp.Key => k !== null);
+  const valid_keys = parse_results.filter((k): k is Key => k !== null);
 
   if (valid_keys.length === 0) {
     throw new Error("No valid PGP keys found among provided recipient keys");
@@ -303,6 +313,7 @@ export async function decrypt_message_verified(
 
   const parsed_verification_keys =
     await parse_verification_keys(verification_keys);
+  const openpgp = await load_openpgp();
   const result = await with_aes_kw_fallback(async () =>
     openpgp.decrypt({
       message: await openpgp.readMessage({ armoredMessage: ciphertext }),

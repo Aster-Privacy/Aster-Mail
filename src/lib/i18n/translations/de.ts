@@ -10322,6 +10322,8 @@ export const de = {
       "Ihre privaten Schlüssel sind auf diesem Gerät gesperrt. Ihr Passwort entsperrt sie. Ihre Schlüssel auf dem Server sind unverändert.",
     encryption_keys_unavailable:
       "Ihre privaten Schlüssel sind auf diesem Gerät gesperrt. Ihr Passwort entsperrt sie. Ihre Schlüssel auf dem Server sind unverändert.",
+    crypto_module_unavailable:
+      "Die Verschlüsselung konnte auf diesem Gerät nicht geladen werden. Ein Neuladen der Seite behebt das meistens. Wenn es weiter passiert, prüfen Sie Ihre Verbindung.",
     failed_decrypt_draft:
       "Wir konnten diesen Entwurf auf diesem Gerät nicht öffnen. Ab- und erneutes Anmelden, dann ein weiterer Versuch, löst das Problem in der Regel.",
     failed_encrypt_draft:

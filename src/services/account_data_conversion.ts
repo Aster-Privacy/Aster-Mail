@@ -36,6 +36,7 @@ import {
   decrypt_envelope_plaintext_with_bytes,
 } from "./crypto/envelope";
 import { decrypt_message_with_any_key } from "./crypto/key_manager";
+import { load_openpgp } from "./crypto/openpgp_loader";
 import {
   get_passphrase_bytes,
   get_passphrase_from_memory,
@@ -281,6 +282,8 @@ async function open_attachment_meta(
   }
 
   if (text.startsWith(PGP_MESSAGE_HEADER)) {
+    await load_openpgp();
+
     try {
       return await decrypt_message_with_any_key(
         text,

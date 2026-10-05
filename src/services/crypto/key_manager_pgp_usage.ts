@@ -20,10 +20,6 @@
 //
 import { user_facing_error } from "@/utils/user_facing_error";
 
-import * as openpgp from "openpgp";
-
-import "@/services/crypto/openpgp_limits";
-
 import {
   KEY_USAGE_LOG,
   PINNED_FINGERPRINTS,
@@ -38,6 +34,7 @@ import {
 } from "./key_manager_core";
 import { clear_unlocked_key_cache } from "./key_manager_pgp_unlocked_cache";
 
+import { load_openpgp } from "@/services/crypto/openpgp_loader";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 
 export async function with_decrypted_key<T>(
@@ -68,6 +65,8 @@ export async function with_decrypted_key<T>(
     const decoder = new TextDecoder();
 
     key_string = decoder.decode(decrypted_material);
+
+    const openpgp = await load_openpgp();
 
     const public_key_obj = await openpgp.readPrivateKey({
       armoredKey: key_string,

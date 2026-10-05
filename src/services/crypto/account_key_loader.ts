@@ -21,8 +21,6 @@
 import type { EncryptedVault } from "./key_manager_core";
 import type { AccountKeyTokenResponse } from "@/services/api/account_key";
 
-import * as openpgp from "openpgp";
-
 import { get_current_account } from "../account_manager";
 
 import { ACCOUNT_KEY_LENGTH } from "./account_data_key";
@@ -38,6 +36,7 @@ import {
 import { sync_recovery_escrow } from "./recovery_escrow";
 import { zero_uint8_array } from "./secure_memory";
 
+import { load_openpgp } from "@/services/crypto/openpgp_loader";
 import {
   MAX_ACCOUNT_KEY_HISTORY,
   get_account_key_token,
@@ -68,6 +67,7 @@ async function create_account_key_if_absent(
     return null;
   }
 
+  const openpgp = await load_openpgp();
   const account_key = crypto.getRandomValues(
     new Uint8Array(ACCOUNT_KEY_LENGTH),
   );

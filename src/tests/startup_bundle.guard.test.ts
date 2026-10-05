@@ -60,7 +60,7 @@ function is_type_only(statement: ts.ImportDeclaration): boolean {
   );
 }
 
-function static_imports(file: string): string[] {
+function static_specifiers(file: string): string[] {
   const source = ts.createSourceFile(
     file,
     readFileSync(file, "utf8"),
@@ -83,12 +83,38 @@ function static_imports(file: string): string[] {
       specifier = (statement.moduleSpecifier as ts.StringLiteral).text;
     }
 
-    const target = specifier ? resolve_import(file, specifier) : null;
-
-    if (target) found.push(target);
+    if (specifier) found.push(specifier);
   }
 
   return found;
+}
+
+function static_imports(file: string): string[] {
+  return static_specifiers(file)
+    .map((specifier) => resolve_import(file, specifier))
+    .filter((target): target is string => target !== null);
+}
+
+function package_name(specifier: string): string | null {
+  if (specifier.startsWith(".") || specifier.startsWith("@/")) return null;
+
+  const parts = specifier.split("/");
+
+  return specifier.startsWith("@") ? parts.slice(0, 2).join("/") : parts[0];
+}
+
+function eager_packages(entry: string): Set<string> {
+  const packages = new Set<string>();
+
+  for (const module of eagerly_loaded(entry)) {
+    for (const specifier of static_specifiers(join(src, module))) {
+      const name = package_name(specifier);
+
+      if (name) packages.add(name);
+    }
+  }
+
+  return packages;
 }
 
 const graph_cache = new Map<string, string[]>();
@@ -234,6 +260,19 @@ describe("startup bundle", () => {
   it("installs a single copy of each Radix package", () => {
     expect(duplicated_packages("@radix-ui")).toEqual([]);
   });
+});
+
+describe("crypto libraries", () => {
+  it("finds the packages the entry imports", () => {
+    expect(eager_packages("main.tsx").has("react")).toBe(true);
+  });
+
+  it.each(["main.tsx", "App.tsx", "pages/index.tsx"])(
+    "%s does not statically import openpgp",
+    (entry) => {
+      expect(eager_packages(entry).has("openpgp")).toBe(false);
+    },
+  );
 });
 
 describe("inbox route bundle", () => {

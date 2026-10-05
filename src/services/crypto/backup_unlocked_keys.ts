@@ -22,6 +22,7 @@ import type { EncryptedVault } from "./key_manager_core";
 
 import { lock_unlocked_pgp_key } from "./key_manager_pgp_keygen";
 import { unlock_private_key } from "./key_manager_pgp_unlocked_cache";
+import { load_openpgp } from "./openpgp_loader";
 
 const MAX_UNLOCKED_KEYS = 16;
 
@@ -38,6 +39,8 @@ export async function build_backup_vault(
   const base = strip_backup_fields(vault);
   const unlocked_keys: UnlockedKeyPair[] = [];
   const seen = new Set<string>();
+
+  await load_openpgp();
 
   for (const armored of [base.identity_key, ...(base.previous_keys ?? [])]) {
     if (!armored || seen.has(armored)) continue;
