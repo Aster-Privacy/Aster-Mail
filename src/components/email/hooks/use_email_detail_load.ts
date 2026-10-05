@@ -87,6 +87,7 @@ import { use_email_detail_actions } from "@/components/email/hooks/email_detail_
 import { prefetch_attachment_meta } from "@/services/attachment_meta_cache";
 import { prefetch_attachment_previews } from "@/services/attachment_preview_cache";
 import { ignore_error } from "@/lib/ignore_error";
+import { keep_unchanged_messages } from "@/components/email/thread_message_merge";
 import { use_thread_decrypt_hold } from "@/hooks/use_thread_decrypt_hold";
 import {
   claim_auto_read,
@@ -851,6 +852,22 @@ export function use_email_detail_load() {
           e2e_verified,
         );
 
+        const awaits_conversation =
+          preferences.conversation_grouping !== false &&
+          (!!response.data.thread_token ||
+            (!!stored_grouped_email_ids &&
+              stored_grouped_email_ids.length > 1 &&
+              stored_grouped_email_ids.includes(email_id)));
+
+        if (awaits_conversation) {
+          set_thread_messages((prev) =>
+            prev.length === 0 ? [single_message] : prev,
+          );
+          void attachment_meta_ready.then(() => {
+            if (!is_stale()) set_is_loading(false);
+          });
+        }
+
         if (
           preferences.conversation_grouping !== false &&
           response.data.thread_token
@@ -874,7 +891,9 @@ export function use_email_detail_load() {
 
           if (is_stale()) return;
           if (thread_result.messages.length > 0) {
-            set_thread_messages(thread_result.messages);
+            set_thread_messages((prev) =>
+              keep_unchanged_messages(prev, thread_result.messages),
+            );
             set_thread_truncated(thread_result.truncated);
           } else {
             set_thread_messages([single_message]);
@@ -900,7 +919,9 @@ export function use_email_detail_load() {
 
           if (is_stale()) return;
           if (group_messages.length > 0) {
-            set_thread_messages(group_messages);
+            set_thread_messages((prev) =>
+              keep_unchanged_messages(prev, group_messages),
+            );
           } else {
             set_thread_messages([single_message]);
           }

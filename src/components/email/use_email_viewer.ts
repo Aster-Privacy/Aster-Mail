@@ -855,33 +855,60 @@ export function use_email_viewer({
 
       const should_load_thread =
         preferences.conversation_grouping !== false && !!item.thread_token;
+      const group_ids =
+        !should_load_thread &&
+        preferences.conversation_grouping !== false &&
+        grouped_email_ids_ref.current &&
+        grouped_email_ids_ref.current.length > 1 &&
+        grouped_email_ids_ref.current.includes(email_id)
+          ? grouped_email_ids_ref.current
+          : null;
+
+      if (
+        !cancelled &&
+        !reloading_same_email &&
+        (should_load_thread || group_ids)
+      ) {
+        set_thread_messages([single_message]);
+        set_is_loading(false);
+        set_committed_email_id(email_id);
+      }
 
       if (should_load_thread) {
         const thread_result = await fetch_and_decrypt_thread_messages(
           item.thread_token!,
           user_email,
           { is_trashed: !!item.is_trashed, is_spam: !!item.is_spam },
-        );
+        ).catch((caught) => {
+          ignore_error(
+            "components/email/use_email_viewer:thread_messages",
+            caught,
+          );
+
+          return null;
+        });
 
         if (!cancelled) {
-          set_thread_messages(
-            include_opened_message(thread_result.messages, single_message),
-          );
+          set_thread_messages((prev) => {
+            if (!thread_result)
+              return prev.length > 0 ? prev : [single_message];
+
+            return keep_unchanged_messages(
+              prev,
+              include_opened_message(thread_result.messages, single_message),
+            );
+          });
         }
-      } else if (
-        !cancelled &&
-        preferences.conversation_grouping !== false &&
-        grouped_email_ids_ref.current &&
-        grouped_email_ids_ref.current.length > 1 &&
-        grouped_email_ids_ref.current.includes(email_id)
-      ) {
+      } else if (!cancelled && group_ids) {
         const group_messages = await fetch_and_decrypt_virtual_group(
-          grouped_email_ids_ref.current,
+          group_ids,
           user_email,
         );
 
         if (!cancelled && group_messages.length > 0) {
-          set_thread_messages(group_messages);
+          set_thread_messages((prev) =>
+            keep_unchanged_messages(prev, group_messages),
+          );
         } else if (!cancelled) {
           set_thread_messages([single_message]);
         }
