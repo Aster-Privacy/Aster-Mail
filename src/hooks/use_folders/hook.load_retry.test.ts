@@ -210,6 +210,73 @@ describe("use_folders load retry", () => {
     expect(mocks.list_folders).toHaveBeenCalledTimes(1);
   });
 
+  it("keeps retrying a failed fetch until the list loads", async () => {
+    mocks.list_folders.mockResolvedValue(FAILED);
+
+    await act(async () => {
+      void first.fetch_folders();
+    });
+    await advance(4_600 + 73_000);
+
+    expect(mocks.list_folders).toHaveBeenCalledTimes(7);
+    expect(first.state.error).toBe("common.failed_to_fetch_folders");
+
+    await advance(60_000);
+
+    expect(mocks.list_folders).toHaveBeenCalledTimes(8);
+
+    mocks.list_folders.mockResolvedValue(ONE_FOLDER);
+    mocks.decrypt_folder.mockResolvedValue({ id: "f1", name: "Work" });
+    await advance(60_000);
+
+    expect(first.state.error).toBeNull();
+    expect(first.state.folders.map((f) => f.name)).toEqual(["Work"]);
+
+    const calls = mocks.list_folders.mock.calls.length;
+
+    await advance(180_000);
+
+    expect(mocks.list_folders).toHaveBeenCalledTimes(calls);
+  });
+
+  it("stops polling once the folders are listed as unreadable", async () => {
+    mocks.list_folders.mockResolvedValue(ONE_FOLDER);
+    mocks.decrypt_folder.mockResolvedValue(null);
+
+    await act(async () => {
+      void first.fetch_folders();
+    });
+    await advance(4_600 + 73_000);
+
+    const calls = mocks.list_folders.mock.calls.length;
+
+    await advance(300_000);
+
+    expect(mocks.list_folders).toHaveBeenCalledTimes(calls);
+    expect(first.state.error).toBeNull();
+  });
+
+  it("loads again when the connection returns", async () => {
+    mocks.list_folders.mockResolvedValue(FAILED);
+
+    await act(async () => {
+      void first.fetch_folders();
+    });
+    await advance(4_600);
+
+    expect(first.state.error).toBe("common.failed_to_fetch_folders");
+
+    mocks.list_folders.mockResolvedValue(EMPTY_LIST);
+
+    await act(async () => {
+      window.dispatchEvent(new Event("online"));
+    });
+    await advance(0);
+
+    expect(first.state.error).toBeNull();
+    expect(second.state.error).toBeNull();
+  });
+
   it("stops retrying after the hook unmounts", async () => {
     mocks.list_folders.mockResolvedValue(FAILED);
 
