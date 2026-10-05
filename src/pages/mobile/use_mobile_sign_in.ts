@@ -41,6 +41,7 @@ import { emit_auth_ready } from "@/hooks/mail_events";
 import { get_app_query_param } from "@/lib/hard_redirect";
 import { ignore_error } from "@/lib/ignore_error";
 import { user_facing_error } from "@/utils/user_facing_error";
+import { is_crypto_module_load_error } from "@/services/crypto/openpgp_loader";
 
 export function use_mobile_sign_in() {
   const navigate = useNavigate();
@@ -281,7 +282,9 @@ export function use_mobile_sign_in() {
 
           return;
         }
-        if (err instanceof Error && err.message.includes("decrypt")) {
+        if (is_crypto_module_load_error(err)) {
+          set_error(t("errors.crypto_module_unavailable"));
+        } else if (err instanceof Error && err.message.includes("decrypt")) {
           set_error(t("errors.wrong_vault_password"));
         } else {
           set_error(user_facing_error(err, t("errors.login_failed")));

@@ -10225,6 +10225,8 @@ export const it = {
       "Le sue chiavi private sono bloccate su questo dispositivo. La sua password le sbloccherà. Le sue chiavi sul server sono intatte.",
     encryption_keys_unavailable:
       "Le sue chiavi private sono bloccate su questo dispositivo. La sua password le sbloccherà. Le sue chiavi sul server sono intatte.",
+    crypto_module_unavailable:
+      "Non è stato possibile caricare la crittografia su questo dispositivo. Ricaricare la pagina di solito risolve il problema. Se continua a succedere, controlli la connessione.",
     failed_decrypt_draft:
       "Non siamo riusciti ad aprire questa bozza su questo dispositivo. Disconnettersi e accedere di nuovo, poi un altro tentativo, di solito risolve.",
     failed_encrypt_draft:

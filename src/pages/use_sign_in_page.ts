@@ -65,7 +65,10 @@ import { sign_in_with_hub_account } from "@/services/hub_linked_login";
 import { is_tauri } from "@/native/desktop_device_auth";
 import { user_facing_error } from "@/utils/user_facing_error";
 import { is_auth_salt_collision } from "@/services/crypto/auth_salt_guard";
-import { preload_openpgp } from "@/services/crypto/openpgp_loader";
+import {
+  is_crypto_module_load_error,
+  preload_openpgp,
+} from "@/services/crypto/openpgp_loader";
 import { preload_when_idle } from "@/utils/lazy_with_retry";
 
 const HUB_AUTO_SIGN_IN_KEY = "aster_hub_auto_sign_in_attempted";
@@ -522,6 +525,8 @@ export function use_sign_in_page() {
             raw_password,
           );
         } catch (vault_err) {
+          if (is_crypto_module_load_error(vault_err)) throw vault_err;
+
           throw new Error(
             `Vault decryption failed: ${vault_err instanceof Error ? vault_err.message : "unknown"}`,
           );
@@ -587,6 +592,8 @@ export function use_sign_in_page() {
         if (is_auth_salt_collision(err)) {
           void api_client.clear_session_cookies();
           set_error(translate("errors.auth_salt_collision"));
+        } else if (is_crypto_module_load_error(err)) {
+          set_error(translate("errors.crypto_module_unavailable"));
         } else if (err instanceof Error && /decrypt/i.test(err.message)) {
           set_error(translate("errors.wrong_vault_password"));
         } else {
@@ -647,7 +654,7 @@ export function use_sign_in_page() {
             password,
           );
         } catch (vault_err) {
-          if (password) {
+          if (password || is_crypto_module_load_error(vault_err)) {
             throw vault_err;
           }
 
@@ -844,6 +851,8 @@ export function use_sign_in_page() {
         if (is_auth_salt_collision(err)) {
           void api_client.clear_session_cookies();
           set_error(t("errors.auth_salt_collision"));
+        } else if (is_crypto_module_load_error(err)) {
+          set_error(t("errors.crypto_module_unavailable"));
         } else if (err instanceof Error && /decrypt/i.test(err.message)) {
           set_error(t("errors.wrong_vault_password"));
         } else {

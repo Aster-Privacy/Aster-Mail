@@ -249,9 +249,9 @@ export async function armored_private_key_matches(
     return false;
   }
 
-  try {
-    const openpgp = await load_openpgp();
+  const openpgp = await load_openpgp();
 
+  try {
     const private_key = await openpgp.readPrivateKey({ armoredKey: armored });
 
     return private_key.getFingerprint().toUpperCase() === wanted;
@@ -269,12 +269,12 @@ export async function find_unlockable_private_key(
 
   if (!wanted) return null;
 
+  const openpgp = await load_openpgp();
+
   for (const armored of armored_keys) {
     if (!armored) continue;
 
     try {
-      const openpgp = await load_openpgp();
-
       const private_key = await openpgp.readPrivateKey({ armoredKey: armored });
 
       if (private_key.getFingerprint().toUpperCase() !== wanted) continue;

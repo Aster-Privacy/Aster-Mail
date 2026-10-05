@@ -202,8 +202,9 @@ const aster_key_cache = new Map<
 async function fingerprint_of_public_key(
   armored_key: string,
 ): Promise<string | null> {
+  const openpgp = await load_openpgp();
+
   try {
-    const openpgp = await load_openpgp();
     const key = await openpgp.readKey({ armoredKey: armored_key });
 
     return key.getFingerprint().toUpperCase();

@@ -118,9 +118,9 @@ export function parse_account_key_token_payload(
 async function fingerprint_of(
   armored_private_key: string,
 ): Promise<string | null> {
-  try {
-    const openpgp = await load_openpgp();
+  const openpgp = await load_openpgp();
 
+  try {
     const key = await openpgp.readPrivateKey({
       armoredKey: armored_private_key,
     });
@@ -145,9 +145,9 @@ async function own_fingerprints(
 async function to_public_armored(
   armored_private_key: string,
 ): Promise<string | null> {
-  try {
-    const openpgp = await load_openpgp();
+  const openpgp = await load_openpgp();
 
+  try {
     const key = await openpgp.readPrivateKey({
       armoredKey: armored_private_key,
     });

@@ -55,6 +55,10 @@ import {
 import { decrypt_legacy_ios_envelope } from "@/services/crypto/legacy_ios_envelope";
 import { resolve_sender_verification_keys } from "@/services/crypto/sender_verification";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
+import {
+  is_crypto_module_load_error,
+  load_openpgp,
+} from "@/services/crypto/openpgp_loader";
 import { ignore_error } from "@/lib/ignore_error";
 
 const INBOUND_ECIES_MARKER = 0x02;
@@ -418,6 +422,8 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
 
         const envelope_keys = collect_envelope_identity_keys(vault);
 
+        await load_openpgp();
+
         try {
           return await decrypt_pgp_envelope(envelope_keys);
         } catch (pgp_error) {
@@ -444,6 +450,8 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
 
       return null;
     } catch (error) {
+      if (is_crypto_module_load_error(error)) throw error;
+
       if (import.meta.env.DEV) console.error(error);
 
       return null;

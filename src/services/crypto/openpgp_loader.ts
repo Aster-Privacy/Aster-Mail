@@ -18,27 +18,76 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { import_with_retry } from "@/utils/lazy_with_retry";
+import type { TranslationKey } from "@/lib/i18n/types";
 
 export type openpgp_module = typeof import("openpgp");
 
+const LOAD_ATTEMPTS = 3;
+const LOAD_RETRY_BASE_DELAY_MS = 250;
+
+export class CryptoModuleLoadError extends Error {
+  readonly i18n_key: TranslationKey = "errors.crypto_module_unavailable";
+  readonly source: unknown;
+
+  constructor(source: unknown, message = "crypto_module_unavailable") {
+    super(message);
+    this.name = "CryptoModuleLoadError";
+    this.source = source;
+  }
+}
+
+export function is_crypto_module_load_error(
+  value: unknown,
+): value is CryptoModuleLoadError {
+  return value instanceof CryptoModuleLoadError;
+}
+
 let pending: Promise<openpgp_module> | null = null;
+
+function import_openpgp(): Promise<openpgp_module> {
+  return Promise.all([
+    import("openpgp"),
+    import("@/services/crypto/openpgp_limits"),
+  ]).then(([openpgp]) => openpgp);
+}
+
+async function localized_load_message(): Promise<string | undefined> {
+  try {
+    const { get_active_translations } = await import("@/lib/i18n/translations");
+
+    return get_active_translations().errors.crypto_module_unavailable;
+  } catch {
+    return undefined;
+  }
+}
+
+async function import_with_backoff(): Promise<openpgp_module> {
+  let last_error: unknown;
+
+  for (let attempt = 0; attempt < LOAD_ATTEMPTS; attempt++) {
+    if (attempt > 0) {
+      const delay = LOAD_RETRY_BASE_DELAY_MS * 2 ** (attempt - 1);
+
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+
+    try {
+      return await import_openpgp();
+    } catch (error) {
+      last_error = error;
+    }
+  }
+
+  throw new CryptoModuleLoadError(last_error, await localized_load_message());
+}
 
 export function load_openpgp(): Promise<openpgp_module> {
   if (!pending) {
-    pending = import_with_retry(() =>
-      Promise.all([
-        import("openpgp"),
-        import("@/services/crypto/openpgp_limits"),
-      ]),
-    ).then(
-      ([openpgp]) => openpgp,
-      (error: unknown) => {
-        pending = null;
+    pending = import_with_backoff().catch((error: unknown) => {
+      pending = null;
 
-        throw error;
-      },
-    );
+      throw error;
+    });
   }
 
   return pending;

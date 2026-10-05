@@ -45,6 +45,7 @@ import {
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { register_envelope_attachment_keys } from "@/services/crypto/inbound_attachment_keys";
 import { decrypt_legacy_ios_envelope } from "@/services/crypto/legacy_ios_envelope";
+import { load_openpgp } from "@/services/crypto/openpgp_loader";
 
 export async function try_decrypt_with_identity_key(
   encrypted: string | Uint8Array,
@@ -237,6 +238,8 @@ async function open_envelope(
       }
 
       if (!vault?.identity_key || !pass) return UNRESOLVED_ATTEMPT;
+
+      await load_openpgp();
 
       const passphrase = pass;
       const decrypt_pgp_with_keys = async (keys: string[]) => {

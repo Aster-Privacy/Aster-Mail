@@ -78,6 +78,7 @@ import { decrypt_mail_metadata } from "@/services/crypto/mail_metadata";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_compose_manager } from "@/components/compose/compose_manager";
 import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelope";
+import { is_crypto_module_load_error } from "@/services/crypto/openpgp_loader";
 import {
   get_preload_cache,
   get_preload_in_flight,
@@ -968,7 +969,11 @@ export function use_email_detail_load() {
       if (load_seq_ref.current !== my_seq) return;
 
       if (!has_loaded_once.current) {
-        set_error(t("common.something_went_wrong_try_again"));
+        set_error(
+          is_crypto_module_load_error(caught)
+            ? t("errors.crypto_module_unavailable")
+            : t("common.something_went_wrong_try_again"),
+        );
       }
       set_is_loading(false);
     }

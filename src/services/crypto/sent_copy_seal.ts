@@ -23,6 +23,7 @@ import {
   derive_public_keys_from_private,
   encrypt_message,
 } from "./key_manager_pgp_messages";
+import { load_openpgp } from "./openpgp_loader";
 
 import { get_account_key_capabilities } from "@/services/api/account_key";
 
@@ -48,6 +49,8 @@ export async function seal_sent_plaintext(
   identity_key: string,
   passphrase: string,
 ): Promise<SealedSentEnvelope | null> {
+  await load_openpgp();
+
   try {
     const [public_key] = await derive_public_keys_from_private([identity_key]);
 

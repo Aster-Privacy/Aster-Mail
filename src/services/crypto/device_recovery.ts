@@ -55,6 +55,7 @@ import {
   harvest_storage_keys,
 } from "./restore_inactive_keys";
 import { zero_uint8_array } from "./secure_memory";
+import { load_openpgp } from "./openpgp_loader";
 import { with_vault_write_lock } from "./vault_write_lock";
 
 const SNAPSHOT_VERSION = 1;
@@ -243,6 +244,8 @@ async function build_payload(
 ): Promise<DeviceSnapshotPayload> {
   const unlocked_keys: [string, string][] = [];
   const seen = new Set<string>();
+
+  await load_openpgp();
 
   for (const armored of [vault.identity_key, ...(vault.previous_keys ?? [])]) {
     if (!armored || seen.has(armored)) continue;

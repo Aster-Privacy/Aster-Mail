@@ -38,6 +38,7 @@ import { ignore_error } from "@/lib/ignore_error";
 import { set_post_switch_path } from "@/lib/post_switch_path";
 import { get_safe_next_path } from "@/pages/sign_in_helpers";
 import { user_facing_error } from "@/utils/user_facing_error";
+import { is_crypto_module_load_error } from "@/services/crypto/openpgp_loader";
 import { is_auth_salt_collision } from "@/services/crypto/auth_salt_guard";
 import { api_client } from "@/services/api/client";
 import { same_address_ignoring_dots } from "@/utils/address_dots";
@@ -402,6 +403,8 @@ export function build_mobile_sign_in_handlers(
       if (is_auth_salt_collision(err)) {
         void api_client.clear_session_cookies();
         set_error(t("errors.auth_salt_collision"));
+      } else if (is_crypto_module_load_error(err)) {
+        set_error(t("errors.crypto_module_unavailable"));
       } else if (err instanceof Error && err.message.includes("decrypt")) {
         set_error(t("errors.wrong_vault_password"));
       } else {

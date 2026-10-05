@@ -9727,6 +9727,8 @@ export const ko = {
       "세션이 종료되었습니다. 다시 로그인하면 이어서 사용할 수 있습니다.",
     encryption_keys_unavailable:
       "암호화 키를 사용할 수 없습니다. 로그아웃 후 다시 로그인하면 됩니다.",
+    crypto_module_unavailable:
+      "이 기기에서 암호화를 불러오지 못했습니다. 페이지를 새로고침하면 대개 해결됩니다. 계속 발생하면 연결을 확인하세요.",
     session_expired_send:
       "세션이 종료되어 이메일을 보낼 수 없습니다. 다시 로그인하면 됩니다.",
     failed_encrypt_envelope:

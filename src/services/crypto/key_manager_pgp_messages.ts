@@ -53,11 +53,10 @@ async function parse_signing_keys(
 
   const inputs = Array.isArray(signing_key) ? signing_key : [signing_key];
   const parsed: PrivateKey[] = [];
+  const openpgp = await load_openpgp();
 
   for (const input of inputs) {
     try {
-      const openpgp = await load_openpgp();
-
       const decrypted = await openpgp.decryptKey({
         ["privateKey" as const]: await openpgp.readPrivateKey({
           armoredKey: input.armored_secret_key,
@@ -99,9 +98,9 @@ export async function sign_detached(
 
   if (!signing_keys) return null;
 
-  try {
-    const openpgp = await load_openpgp();
+  const openpgp = await load_openpgp();
 
+  try {
     const signature = await openpgp.sign({
       message: await openpgp.createMessage({ binary: data }),
       signingKeys: signing_keys,
@@ -177,11 +176,10 @@ export async function derive_public_keys_from_private(
   armored_private_keys: string[],
 ): Promise<string[]> {
   const derived: string[] = [];
+  const openpgp = await load_openpgp();
 
   for (const armored of armored_private_keys) {
     try {
-      const openpgp = await load_openpgp();
-
       const private_key = await openpgp.readPrivateKey({ armoredKey: armored });
 
       derived.push(private_key.toPublic().armor());
@@ -199,11 +197,10 @@ async function parse_verification_keys(
   if (!verification_keys || verification_keys.length === 0) return [];
 
   const parsed: Key[] = [];
+  const openpgp = await load_openpgp();
 
   for (const armored of verification_keys) {
     try {
-      const openpgp = await load_openpgp();
-
       parsed.push(await openpgp.readKey({ armoredKey: armored }));
     } catch {
       continue;

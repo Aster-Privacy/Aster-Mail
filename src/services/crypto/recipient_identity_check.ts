@@ -31,6 +31,8 @@ import {
   trust_recipient_keys,
 } from "./ratchet_identity_pin";
 
+import { is_crypto_module_load_error } from "@/services/crypto/openpgp_loader";
+
 export type RecipientIdentityStatus = "unchanged" | "rotated" | "untrusted";
 
 interface RecipientIdentitySnapshot {
@@ -87,7 +89,9 @@ async function snapshot_recipient_identity(
     }
 
     return none;
-  } catch {
+  } catch (error) {
+    if (is_crypto_module_load_error(error)) throw error;
+
     return none;
   }
 }

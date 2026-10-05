@@ -53,8 +53,9 @@ function read_key_ids(
 }
 
 async function message_key_ids(ciphertext: string): Promise<string[] | null> {
+  const openpgp = await load_openpgp();
+
   try {
-    const openpgp = await load_openpgp();
     const message = await openpgp.readMessage({ armoredMessage: ciphertext });
     const ids = message.getEncryptionKeyIDs();
 

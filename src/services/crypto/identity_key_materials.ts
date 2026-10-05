@@ -58,9 +58,9 @@ export function vault_identity_key_materials(
 }
 
 async function key_identity(armored: string): Promise<string> {
-  try {
-    const openpgp = await load_openpgp();
+  const openpgp = await load_openpgp();
 
+  try {
     const key = await openpgp.readKey({ armoredKey: armored });
 
     return `fp:${key.getFingerprint().toUpperCase()}`;

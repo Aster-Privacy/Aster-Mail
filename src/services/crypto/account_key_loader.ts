@@ -67,6 +67,7 @@ async function create_account_key_if_absent(
     return null;
   }
 
+  const openpgp = await load_openpgp();
   const account_key = crypto.getRandomValues(
     new Uint8Array(ACCOUNT_KEY_LENGTH),
   );
@@ -81,8 +82,6 @@ async function create_account_key_if_absent(
 
     reopened = await open_account_key_token(token, [identity_key], passphrase);
     if (!reopened || !same_bytes(reopened, account_key)) return null;
-
-    const openpgp = await load_openpgp();
 
     const private_key = await openpgp.readPrivateKey({
       armoredKey: identity_key,

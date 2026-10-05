@@ -98,9 +98,9 @@ export async function verify_vault_password(
     }
   }
 
-  try {
-    const openpgp = await load_openpgp();
+  const openpgp = await load_openpgp();
 
+  try {
     await openpgp.decryptKey({
       ["privateKey" as const]: await openpgp.readPrivateKey({
         armoredKey: vault.identity_key,
@@ -153,9 +153,9 @@ async function sign_new_identity_key(
   password: string,
   new_key_bytes: Uint8Array,
 ): Promise<string | null> {
-  try {
-    const openpgp = await load_openpgp();
+  const openpgp = await load_openpgp();
 
+  try {
     const signing_key = await openpgp.decryptKey({
       privateKey: await openpgp.readPrivateKey({
         armoredKey: current_identity_key,
@@ -438,11 +438,10 @@ export async function get_decryption_key_for_message(
   passphrase: string,
 ): Promise<string | null> {
   const keys_to_try = [vault.identity_key, ...(vault.previous_keys ?? [])];
+  const openpgp = await load_openpgp();
 
   for (const private_key_armored of keys_to_try) {
     try {
-      const openpgp = await load_openpgp();
-
       const decrypted_key = await openpgp.decryptKey({
         ["privateKey" as const]: await openpgp.readPrivateKey({
           armoredKey: private_key_armored,
@@ -499,11 +498,10 @@ export async function decrypt_with_key_fallback(
   }
 
   const keys_to_try = [vault.identity_key, ...(vault.previous_keys ?? [])];
+  const openpgp = await load_openpgp();
 
   for (let i = 0; i < keys_to_try.length; i++) {
     try {
-      const openpgp = await load_openpgp();
-
       const decrypted_key = await openpgp.decryptKey({
         ["privateKey" as const]: await openpgp.readPrivateKey({
           armoredKey: keys_to_try[i],

@@ -52,10 +52,9 @@ export async function is_publishable_armored_key(
   armored_key: string,
 ): Promise<boolean> {
   let key: Key;
+  const openpgp = await load_openpgp();
 
   try {
-    const openpgp = await load_openpgp();
-
     key = await openpgp.readKey({ armoredKey: armored_key });
   } catch {
     return true;

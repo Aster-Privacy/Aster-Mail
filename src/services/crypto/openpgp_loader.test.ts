@@ -18,43 +18,66 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-const h = vi.hoisted(() => ({ failures_left: 0, retry_calls: 0 }));
+const h = vi.hoisted(() => ({ failures_left: 0, attempts: 0 }));
 
-vi.mock("@/utils/lazy_with_retry", async (import_original) => {
-  const actual =
-    await import_original<typeof import("@/utils/lazy_with_retry")>();
+vi.mock("@/services/crypto/openpgp_limits", async (import_original) => {
+  h.attempts += 1;
 
-  return {
-    ...actual,
-    import_with_retry: <T>(import_fn: () => Promise<T>) => {
-      h.retry_calls += 1;
+  if (h.failures_left > 0) {
+    h.failures_left -= 1;
 
-      if (h.failures_left > 0) {
-        h.failures_left -= 1;
+    throw new TypeError("Failed to fetch dynamically imported module");
+  }
 
-        return Promise.reject(new Error("chunk load failed"));
-      }
-
-      return actual.import_with_retry(import_fn, 0, 0);
-    },
-  };
+  return import_original();
 });
 
-import { load_openpgp } from "@/services/crypto/openpgp_loader";
-import { MAX_DECOMPRESSED_MESSAGE_SIZE } from "@/services/crypto/openpgp_limits";
+vi.mock("@/lib/chunk_recovery", async (import_original) => {
+  const actual = await import_original<typeof import("@/lib/chunk_recovery")>();
+
+  return { ...actual, trigger_chunk_recovery: vi.fn(() => true) };
+});
+
+import {
+  CryptoModuleLoadError,
+  is_crypto_module_load_error,
+  load_openpgp,
+} from "@/services/crypto/openpgp_loader";
+import { trigger_chunk_recovery } from "@/lib/chunk_recovery";
+import { en } from "@/lib/i18n/translations";
 
 describe("load_openpgp", () => {
-  it("loads through the chunk retry helper and retries after a failure", async () => {
-    h.failures_left = 1;
+  afterEach(() => {
+    h.failures_left = 0;
+    h.attempts = 0;
+  });
 
-    await expect(load_openpgp()).rejects.toThrow("chunk load failed");
+  it("settles with a CryptoModuleLoadError after its retries, without a recovery reload", async () => {
+    h.failures_left = 3;
+
+    const error = await load_openpgp().catch((caught: unknown) => caught);
+
+    expect(error).toBeInstanceOf(CryptoModuleLoadError);
+    expect(is_crypto_module_load_error(error)).toBe(true);
+    expect((error as CryptoModuleLoadError).i18n_key).toBe(
+      "errors.crypto_module_unavailable",
+    );
+    expect((error as Error).message).toBe(en.errors.crypto_module_unavailable);
+    expect(h.attempts).toBe(3);
+    expect(trigger_chunk_recovery).not.toHaveBeenCalled();
+  });
+
+  it("recovers on a later call, retrying a transient failure within it", async () => {
+    h.failures_left = 4;
+
+    await expect(load_openpgp()).rejects.toBeInstanceOf(CryptoModuleLoadError);
 
     const openpgp = await load_openpgp();
 
     expect(typeof openpgp.readKey).toBe("function");
-    expect(h.retry_calls).toBe(2);
+    expect(h.attempts).toBe(5);
   });
 
   it("shares one module load across callers", () => {
@@ -63,6 +86,8 @@ describe("load_openpgp", () => {
 
   it("applies the decompression limit before handing out the module", async () => {
     const openpgp = await load_openpgp();
+    const { MAX_DECOMPRESSED_MESSAGE_SIZE } =
+      await import("@/services/crypto/openpgp_limits");
 
     expect(openpgp.config.maxDecompressedMessageSize).toBe(
       MAX_DECOMPRESSED_MESSAGE_SIZE,

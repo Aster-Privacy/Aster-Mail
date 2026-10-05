@@ -31,7 +31,13 @@ const h = vi.hoisted(() => ({
     error: null,
     data: { salt: "c2FsdA==" },
   })),
-  login_user: vi.fn(async () => ({ error: "stop here", data: null })),
+  login_user: vi.fn(
+    async (): Promise<{ error: string | null; data: unknown }> => ({
+      error: "stop here",
+      data: null,
+    }),
+  ),
+  decrypt_vault: vi.fn(async (): Promise<unknown> => ({})),
 }));
 
 vi.mock("@/contexts/auth_context", () => ({
@@ -74,7 +80,7 @@ vi.mock("./sign_in_helpers", async (import_original) => ({
 vi.mock("@/services/crypto/key_manager", () => ({
   hash_email: vi.fn(async (email: string) => `hash:${email}`),
   derive_password_hash: vi.fn(async () => ({ hash: "derived" })),
-  decrypt_vault: vi.fn(async () => ({})),
+  decrypt_vault: h.decrypt_vault,
   base64_to_array: () => new Uint8Array(16),
 }));
 
@@ -89,6 +95,8 @@ vi.mock("@/native/desktop_device_auth", () => ({
 }));
 
 const { use_sign_in_page } = await import("./use_sign_in_page");
+const { CryptoModuleLoadError } =
+  await import("@/services/crypto/openpgp_loader");
 
 type hook_result = ReturnType<typeof use_sign_in_page>;
 
@@ -160,6 +168,36 @@ describe("checkout sign-in link", () => {
     expect(h.clear_session_cookies).toHaveBeenCalledTimes(1);
     expect(h.login_user).toHaveBeenCalledTimes(1);
     expect(window.location.search).not.toContain("ep=");
+  });
+
+  it("shows the load error instead of a wrong password when encryption cannot load", async () => {
+    h.login_user.mockResolvedValueOnce({
+      error: null,
+      data: {
+        user_id: "user-1",
+        username: "victim",
+        email: "victim@astermail.org",
+        encrypted_vault: "dmF1bHQ=",
+        vault_nonce: "bm9uY2U=",
+      },
+    });
+    h.decrypt_vault.mockRejectedValueOnce(
+      new CryptoModuleLoadError(
+        new TypeError("Failed to fetch dynamically imported module"),
+      ),
+    );
+
+    await mount();
+    await flush();
+
+    await act(async () => {
+      latest!.confirm_checkout_login();
+    });
+    await flush();
+
+    expect(h.decrypt_vault).toHaveBeenCalledTimes(1);
+    expect(latest!.error).toBe("errors.crypto_module_unavailable");
+    expect(h.login).not.toHaveBeenCalled();
   });
 
   it("drops the link without signing in when the user cancels", async () => {

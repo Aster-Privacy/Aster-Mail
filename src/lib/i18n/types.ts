@@ -8576,6 +8576,7 @@ export interface AuthTranslations {
 }
 
 export interface ErrorTranslations {
+  crypto_module_unavailable: string;
   auth_salt_collision: string;
   upload_too_large: string;
   post_quantum_unavailable: string;

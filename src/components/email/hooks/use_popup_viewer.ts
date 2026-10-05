@@ -80,6 +80,7 @@ import {
   fetch_and_decrypt_virtual_group,
 } from "@/services/thread_service";
 import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelope";
+import { is_crypto_module_load_error } from "@/services/crypto/openpgp_loader";
 import { await_preloaded_email } from "@/components/email/hooks/preload_cache";
 import { get_recipient_hint } from "@/stores/recipient_hint_store";
 import {
@@ -764,7 +765,11 @@ export function use_popup_viewer({
 
       if (!was_same_email) {
         requested_email_id_ref.current = null;
-        set_error(t("common.failed_to_load_email"));
+        set_error(
+          is_crypto_module_load_error(caught)
+            ? t("errors.crypto_module_unavailable")
+            : t("common.failed_to_load_email"),
+        );
       }
     }
   }, [email_id, load_popup_email, t]);

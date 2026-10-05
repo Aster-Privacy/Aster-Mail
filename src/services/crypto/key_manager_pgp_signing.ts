@@ -27,9 +27,9 @@ export async function verify_prekey_signature(
   signature: string,
   identity_public_key: string,
 ): Promise<boolean> {
-  try {
-    const openpgp = await load_openpgp();
+  const openpgp = await load_openpgp();
 
+  try {
     const identity_key = await openpgp.readKey({
       armoredKey: identity_public_key,
     });
@@ -202,9 +202,9 @@ export async function read_ratchet_prekey_signature_format(
     return "hash";
   }
 
-  try {
-    const openpgp = await load_openpgp();
+  const openpgp = await load_openpgp();
 
+  try {
     const cleartext = await openpgp.readCleartextMessage({
       cleartextMessage: armored,
     });

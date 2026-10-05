@@ -42,6 +42,8 @@ async function reseal(
   new_password: string,
   serial: number,
 ): Promise<RescuedAccountKeyToken | null> {
+  const openpgp = await load_openpgp();
+
   try {
     const token = await seal_account_key_token(
       account_key,
@@ -49,8 +51,6 @@ async function reseal(
       new_password,
       serial,
     );
-    const openpgp = await load_openpgp();
-
     const private_key = await openpgp.readPrivateKey({
       armoredKey: new_identity_private_key,
     });

@@ -413,9 +413,9 @@ export function split_pgp_block(text: string): PgpBlockSplit | null {
 export async function is_password_encrypted_pgp(
   armored: string,
 ): Promise<boolean> {
-  try {
-    const openpgp = await load_openpgp();
+  const openpgp = await load_openpgp();
 
+  try {
     const message = await openpgp.readMessage({ armoredMessage: armored });
 
     return message.getEncryptionKeyIDs().length === 0;

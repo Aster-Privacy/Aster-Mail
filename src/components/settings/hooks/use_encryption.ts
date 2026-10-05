@@ -30,7 +30,10 @@ import { copy_text_or_throw } from "@/utils/copy_text";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { api_client } from "@/services/api/client";
-import { ensure_pgp_key_published } from "@/services/crypto/ensure_pgp_key_published";
+import {
+  ensure_pgp_key_published,
+  type PgpPublishHealResult,
+} from "@/services/crypto/ensure_pgp_key_published";
 import {
   derive_password_hash,
   base64_to_array,
@@ -179,7 +182,9 @@ export function use_encryption() {
       if (key_response.data) {
         set_pgp_key(key_response.data);
       } else if (key_response.code === "NOT_FOUND") {
-        const heal_result = await ensure_pgp_key_published({ force: true });
+        const heal_result = await ensure_pgp_key_published({
+          force: true,
+        }).catch((): PgpPublishHealResult => "failed");
 
         if (heal_result === "healed") {
           const refetched = await api_client

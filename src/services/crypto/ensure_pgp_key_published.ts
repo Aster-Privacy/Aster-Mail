@@ -134,9 +134,9 @@ async function rekey_unpublishable_identity_key(
 async function identity_key_is_publishable(
   armored_identity_key: string,
 ): Promise<boolean> {
-  try {
-    const openpgp = await load_openpgp();
+  const openpgp = await load_openpgp();
 
+  try {
     const private_key = await openpgp.readPrivateKey({
       armoredKey: armored_identity_key,
     });
@@ -151,9 +151,9 @@ export async function republish_identity_key(
   armored_identity_key: string,
   passphrase: string,
 ): Promise<boolean> {
-  try {
-    const openpgp = await load_openpgp();
+  const openpgp = await load_openpgp();
 
+  try {
     const private_key = await openpgp.readPrivateKey({
       armoredKey: armored_identity_key,
     });
