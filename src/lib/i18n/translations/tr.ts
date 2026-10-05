@@ -4615,6 +4615,11 @@ export const tr = {
     keyserver_republish_btn: "Yeniden yayınla",
     keyserver_permanent_warning:
       "Yayınlanan anahtarlar çoğu sunucudan tamamen silinemez.",
+    keyserver_addresses_title: "Yayımlanacak adresler",
+    keyserver_addresses_hint:
+      "Genel anahtarınızla birlikte listelenecek adresleri seçin. Seçilen adreslerin aynı anahtarı paylaştığını herkes görebilir. Anahtar sunucusu her adrese bir onay e-postası gönderir.",
+    keyserver_key_update_failed:
+      "Seçilen adresler anahtarınıza eklenmedi. Tekrar deneyin.",
     keyserver_add_custom_label: "Özel Sunucu Ekle",
     info_require_encryption_title: "Şifreleme Zorunlu",
     info_require_encryption_description:

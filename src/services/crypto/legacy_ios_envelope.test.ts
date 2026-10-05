@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 const account = {
   user: { id: "user-1", email: "djozman@astermail.org", username: "djozman" },
@@ -12,10 +12,19 @@ vi.mock("@/services/account_manager", () => ({
 
 const salt_bytes = new Uint8Array(16).fill(7);
 
+const salt_lookup = vi.hoisted(() => ({
+  mode: "ok" as "ok" | "error" | "throw",
+  calls: 0,
+}));
+
 vi.mock("@/services/api/auth", () => ({
-  get_user_salt: async () => ({
-    data: { salt: btoa(String.fromCharCode(...salt_bytes)) },
-  }),
+  get_user_salt: async () => {
+    salt_lookup.calls++;
+    if (salt_lookup.mode === "throw") throw new Error("network");
+    if (salt_lookup.mode === "error") return { error: "unavailable" };
+
+    return { data: { salt: btoa(String.fromCharCode(...salt_bytes)) } };
+  },
 }));
 
 vi.mock("@/services/crypto/memory_key_store", () => ({
@@ -25,6 +34,7 @@ vi.mock("@/services/crypto/memory_key_store", () => ({
 import {
   decrypt_legacy_ios_envelope,
   clear_legacy_ios_envelope_key,
+  LEGACY_KEY_RETRY_DELAY_MS,
 } from "./legacy_ios_envelope";
 
 async function derive_ios_key_material(
@@ -71,8 +81,48 @@ async function seal_like_ios(
 describe("decrypt_legacy_ios_envelope", () => {
   beforeEach(() => {
     current_passphrase = "correct horse battery staple";
+    salt_lookup.mode = "ok";
+    salt_lookup.calls = 0;
     clear_legacy_ios_envelope_key();
   });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  for (const mode of ["error", "throw"] as const) {
+    it(`opens the envelope again once a failed salt lookup (${mode}) recovers`, async () => {
+      const key_material = await derive_ios_key_material(
+        "correct horse battery staple",
+        salt_bytes,
+      );
+      const nonce = new Uint8Array(12).fill(5);
+      const ciphertext = await seal_like_ios(
+        JSON.stringify({ subject: "Still here" }),
+        key_material,
+        nonce,
+      );
+      const started_at = 1_000_000;
+      const clock = vi.spyOn(Date, "now").mockReturnValue(started_at);
+
+      salt_lookup.mode = mode;
+      expect(await decrypt_legacy_ios_envelope(ciphertext, nonce)).toBeNull();
+      expect(salt_lookup.calls).toBe(1);
+
+      salt_lookup.mode = "ok";
+      expect(await decrypt_legacy_ios_envelope(ciphertext, nonce)).toBeNull();
+      expect(salt_lookup.calls).toBe(1);
+
+      clock.mockReturnValue(started_at + LEGACY_KEY_RETRY_DELAY_MS);
+
+      const plaintext = await decrypt_legacy_ios_envelope(ciphertext, nonce);
+
+      expect(salt_lookup.calls).toBe(2);
+      expect(JSON.parse(new TextDecoder().decode(plaintext!))).toEqual({
+        subject: "Still here",
+      });
+    }, 30000);
+  }
 
   it("opens an envelope sealed the way older iOS builds sealed sent mail", async () => {
     const envelope = JSON.stringify({

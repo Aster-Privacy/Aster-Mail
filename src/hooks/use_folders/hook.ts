@@ -47,6 +47,7 @@ import {
   FolderCounts,
   FoldersState,
   has_sibling_named,
+  is_system_folder_type,
 } from "./tree";
 import { CreateFolderOptions, UseFoldersReturn } from "./types";
 
@@ -168,7 +169,9 @@ export function use_folders(): UseFoldersReturn {
         return prev;
       });
 
-      const attempt_fetch = async (): Promise<"done" | "stale" | "retry"> => {
+      const attempt_fetch = async (
+        show_unreadable: boolean,
+      ): Promise<"done" | "stale" | "retry" | "unreadable"> => {
         const vault = get_vault_from_memory();
 
         if (!has_passphrase_in_memory() || !vault?.identity_key) return "retry";
@@ -196,12 +199,14 @@ export function use_folders(): UseFoldersReturn {
             (f): f is DecryptedFolder => f !== null,
           );
 
-          if (
-            response.data.folders.length > 0 &&
-            decrypted_folders.length === 0
-          ) {
-            return "retry";
-          }
+          const none_readable =
+            decrypted_folders.length === 0 &&
+            response.data.folders.some(
+              (folder: FolderDefinition) =>
+                !folder.is_system && !is_system_folder_type(folder.folder_type),
+            );
+
+          if (none_readable && !show_unreadable) return "retry";
 
           const undecryptable_folders = response.data.folders.filter(
             (_folder: FolderDefinition, index: number) =>
@@ -217,7 +222,7 @@ export function use_folders(): UseFoldersReturn {
 
           cached_folders.data = visible_folders;
           cached_folders.total = visible_folders.length;
-          cached_folders.has_loaded = true;
+          cached_folders.has_loaded = !none_readable;
 
           set_state({
             folders: visible_folders,
@@ -235,7 +240,7 @@ export function use_folders(): UseFoldersReturn {
             emit_protected_folders_ready();
           }
 
-          return "done";
+          return none_readable ? "unreadable" : "done";
         } catch {
           if (this_generation !== fetch_generation_ref.current) return "stale";
 
@@ -243,41 +248,51 @@ export function use_folders(): UseFoldersReturn {
         }
       };
 
-      for (let attempt = 0; ; attempt += 1) {
-        const outcome = await attempt_fetch();
+      let last_outcome: "retry" | "unreadable" = "retry";
 
-        if (outcome !== "retry") return;
-        if (attempt >= FOLDER_RETRY_DELAYS_MS.length) break;
+      for (let attempt = 0; ; attempt += 1) {
+        const is_last_attempt = attempt >= FOLDER_RETRY_DELAYS_MS.length;
+        const outcome = await attempt_fetch(is_last_attempt);
+
+        if (outcome === "done" || outcome === "stale") return;
+
+        last_outcome = outcome;
+
+        if (is_last_attempt) break;
 
         await wait(FOLDER_RETRY_DELAYS_MS[attempt]);
 
         if (this_generation !== fetch_generation_ref.current) return;
       }
 
-      set_state((prev) =>
-        cached_folders.has_loaded
-          ? {
-              folders: cached_folders.data,
-              is_loading: false,
-              error: null,
-              total: cached_folders.total,
-            }
-          : {
-              ...prev,
-              is_loading: false,
-              error:
-                prev.folders.length > 0
-                  ? null
-                  : t("common.failed_to_fetch_folders"),
-            },
-      );
+      if (last_outcome === "retry") {
+        set_state((prev) =>
+          cached_folders.has_loaded
+            ? {
+                folders: cached_folders.data,
+                is_loading: false,
+                error: null,
+                total: cached_folders.total,
+              }
+            : {
+                ...prev,
+                is_loading: false,
+                error:
+                  prev.folders.length > 0
+                    ? null
+                    : t("common.failed_to_fetch_folders"),
+              },
+        );
+      }
 
       const retry_in_background = async (): Promise<void> => {
         for (const delay of FOLDER_BACKGROUND_RETRY_DELAYS_MS) {
           await wait(delay);
 
           if (this_generation !== fetch_generation_ref.current) return;
-          if ((await attempt_fetch()) !== "retry") return;
+          const outcome = await attempt_fetch(true);
+
+          if (outcome === "done" || outcome === "stale") return;
         }
       };
 

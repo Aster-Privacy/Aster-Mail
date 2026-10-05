@@ -4653,6 +4653,11 @@ export const ko = {
     keyserver_republish_btn: "키 재게시",
     keyserver_permanent_warning:
       "게시된 키는 대부분의 키 서버에서 완전히 삭제할 수 없습니다.",
+    keyserver_addresses_title: "게시할 주소",
+    keyserver_addresses_hint:
+      "공개 키와 함께 표시할 주소를 선택하세요. 선택한 주소가 하나의 키를 함께 사용한다는 것을 누구나 볼 수 있습니다. 키 서버가 각 주소로 확인 이메일을 보냅니다.",
+    keyserver_key_update_failed:
+      "선택한 주소를 키에 추가하지 못했습니다. 다시 시도하세요.",
     keyserver_add_custom_label: "사용자 지정 서버 추가",
     info_require_encryption_title: "암호화 필수",
     info_require_encryption_description:

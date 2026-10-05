@@ -54,6 +54,19 @@ import { ignore_error } from "@/lib/ignore_error";
 const REVALIDATE_INTERVAL_MS = 5 * 60 * 1000;
 const FOCUS_REVALIDATE_MIN_MS = 30 * 1000;
 
+function with_subscriptions(
+  previous: SubscriptionCacheData | null,
+  subscriptions: CachedSubscription[],
+): SubscriptionCacheData {
+  const last_scan_ts = previous?.last_scan_ts || new Date().toISOString();
+
+  if (!previous) {
+    return { subscriptions, last_scan_ts, version: SUBSCRIPTION_CACHE_VERSION };
+  }
+
+  return { ...previous, subscriptions, last_scan_ts };
+}
+
 export function use_subscriptions() {
   const { vault } = use_auth();
   const { t } = use_i18n();
@@ -168,12 +181,7 @@ export function use_subscriptions() {
           : s,
       );
 
-      cache_ref.current = {
-        subscriptions: updated,
-        last_scan_ts:
-          cache_ref.current?.last_scan_ts || new Date().toISOString(),
-        version: SUBSCRIPTION_CACHE_VERSION,
-      };
+      cache_ref.current = with_subscriptions(cache_ref.current, updated);
       set_subscriptions(updated);
       save_subscription_cache(cache_ref.current, vault);
     };
@@ -204,11 +212,7 @@ export function use_subscriptions() {
         : s,
     );
 
-    cache_ref.current = {
-      subscriptions: reverted,
-      last_scan_ts: cache_ref.current?.last_scan_ts || new Date().toISOString(),
-      version: SUBSCRIPTION_CACHE_VERSION,
-    };
+    cache_ref.current = with_subscriptions(cache_ref.current, reverted);
     set_subscriptions(reverted);
   }, []);
 
@@ -257,12 +261,7 @@ export function use_subscriptions() {
           : s,
       );
 
-      cache_ref.current = {
-        subscriptions: optimistic,
-        last_scan_ts:
-          cache_ref.current?.last_scan_ts || new Date().toISOString(),
-        version: SUBSCRIPTION_CACHE_VERSION,
-      };
+      cache_ref.current = with_subscriptions(cache_ref.current, optimistic);
       set_subscriptions(optimistic);
 
       try {
@@ -333,12 +332,7 @@ export function use_subscriptions() {
             : s,
         );
 
-        cache_ref.current = {
-          subscriptions: optimistic,
-          last_scan_ts:
-            cache_ref.current?.last_scan_ts || new Date().toISOString(),
-          version: SUBSCRIPTION_CACHE_VERSION,
-        };
+        cache_ref.current = with_subscriptions(cache_ref.current, optimistic);
         set_subscriptions(optimistic);
 
         await persist_cache();
@@ -382,12 +376,7 @@ export function use_subscriptions() {
               : s,
           );
 
-          cache_ref.current = {
-            subscriptions: reverted,
-            last_scan_ts:
-              cache_ref.current?.last_scan_ts || new Date().toISOString(),
-            version: SUBSCRIPTION_CACHE_VERSION,
-          };
+          cache_ref.current = with_subscriptions(cache_ref.current, reverted);
           set_subscriptions(reverted);
           await save_subscription_cache(cache_ref.current, vault!);
           if (failed.length > 0) {
@@ -434,12 +423,7 @@ export function use_subscriptions() {
             : s,
         );
 
-        cache_ref.current = {
-          subscriptions: updated,
-          last_scan_ts:
-            cache_ref.current?.last_scan_ts || new Date().toISOString(),
-          version: SUBSCRIPTION_CACHE_VERSION,
-        };
+        cache_ref.current = with_subscriptions(cache_ref.current, updated);
         set_subscriptions(updated);
 
         const saved = await persist_cache();

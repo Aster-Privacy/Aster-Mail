@@ -4815,6 +4815,9 @@ export interface SettingsTranslations {
   keyserver_publish_btn: string;
   keyserver_republish_btn: string;
   keyserver_permanent_warning: string;
+  keyserver_addresses_title: string;
+  keyserver_addresses_hint: string;
+  keyserver_key_update_failed: string;
   keyserver_add_custom_label: string;
   info_require_encryption_title: string;
   info_require_encryption_description: string;

@@ -28,6 +28,7 @@ import { use_popup_drag_resize } from "@/components/email/hooks/popup_viewer_dra
 import { REPLY_ARRIVAL_POLL_DELAYS_MS } from "@/components/email/use_email_viewer";
 import { get_mail_item, type MailItem } from "@/services/api/mail";
 import { ignore_error } from "@/lib/ignore_error";
+import { keep_unchanged_messages } from "@/components/email/thread_message_merge";
 import {
   get_draft_by_thread,
   type DraftContent,
@@ -62,7 +63,7 @@ import { read_clears_conversation } from "@/hooks/unread_read_delta";
 import { mark_conversation_read } from "@/hooks/mark_conversation_read";
 import { use_date_format } from "@/hooks/use_date_format";
 import { detect_unsubscribe_info } from "@/utils/unsubscribe_detector";
-import { extract_email_details } from "@/services/extraction/extractor";
+import { use_email_extraction } from "@/components/email/hooks/use_email_extraction";
 import { get_email_username } from "@/lib/utils";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
 import { extract_reply_to } from "@/utils/reply_to";
@@ -217,17 +218,18 @@ export function use_popup_viewer({
     return detect_unsubscribe_info(email.body, email.body);
   }, [email]);
 
-  const extraction_result = useMemo(() => {
-    if (!email) return null;
-
-    return extract_email_details(
-      email.subject,
-      email.body,
-      undefined,
-      email.sender_email,
-      email.sender,
-    );
-  }, [email]);
+  const extraction_result = use_email_extraction(
+    email
+      ? {
+          email_id: email.id,
+          subject: email.subject,
+          body_text: email.body,
+          body_html: undefined,
+          from_email: email.sender_email,
+          from_name: email.sender,
+        }
+      : null,
+  );
 
   const handle_external_content_detected = useCallback(
     (report: ExternalContentReport) => {
@@ -664,6 +666,10 @@ export function use_popup_viewer({
           e2e_verified,
         );
 
+        set_thread_messages((prev) =>
+          prev.length === 0 ? [single_message] : prev,
+        );
+
         if (
           preferences.conversation_grouping !== false &&
           response.data.thread_token
@@ -680,7 +686,9 @@ export function use_popup_viewer({
           if (fetch_seq !== fetch_seq_ref.current) return;
 
           if (thread_result.messages.length > 0) {
-            set_thread_messages(thread_result.messages);
+            set_thread_messages((prev) =>
+              keep_unchanged_messages(prev, thread_result.messages),
+            );
           } else {
             set_thread_messages([single_message]);
           }
@@ -698,7 +706,9 @@ export function use_popup_viewer({
           if (fetch_seq !== fetch_seq_ref.current) return;
 
           if (group_messages.length > 0) {
-            set_thread_messages(group_messages);
+            set_thread_messages((prev) =>
+              keep_unchanged_messages(prev, group_messages),
+            );
           } else {
             set_thread_messages([single_message]);
           }

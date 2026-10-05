@@ -23,6 +23,7 @@ import * as openpgp from "openpgp";
 import "@/services/crypto/openpgp_limits";
 
 import { assert_vault_salt_not_auth_salt } from "./auth_salt_guard";
+import { MAX_LEGACY_IDENTITY_KEYS } from "./identity_key_materials";
 import {
   HASH_ALG,
   KEY_DERIVATION_ITERATIONS,
@@ -306,7 +307,10 @@ export async function decrypt_vault(
 const MOBILE_PGP_PRIVATE_KEY_HEADER = "-----BEGIN PGP PRIVATE KEY";
 
 export function normalize_vault_fields(vault: EncryptedVault): EncryptedVault {
-  const raw = vault as EncryptedVault & { pgp_private_key?: string };
+  const raw = vault as EncryptedVault & {
+    pgp_private_key?: string;
+    identity_private_key?: string;
+  };
 
   if (
     !raw.identity_key &&
@@ -314,6 +318,24 @@ export function normalize_vault_fields(vault: EncryptedVault): EncryptedVault {
     raw.pgp_private_key.startsWith(MOBILE_PGP_PRIVATE_KEY_HEADER)
   ) {
     raw.identity_key = raw.pgp_private_key;
+  }
+
+  const mobile_identity = raw.identity_private_key;
+
+  if (
+    typeof mobile_identity === "string" &&
+    mobile_identity.length > 0 &&
+    mobile_identity !== raw.identity_key
+  ) {
+    const retained = Array.isArray(raw.legacy_identity_keys)
+      ? raw.legacy_identity_keys
+      : [];
+
+    if (!retained.includes(mobile_identity)) {
+      raw.legacy_identity_keys = [...retained, mobile_identity].slice(
+        -MAX_LEGACY_IDENTITY_KEYS,
+      );
+    }
   }
 
   return raw;
