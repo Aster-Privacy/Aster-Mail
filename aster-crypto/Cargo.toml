@@ -20,7 +20,7 @@ pgp = "0.14"
 smallvec = "1.13"
 rand = "0.8.6"
 
-argon2 = "0.5"
+argon2 = "0.6"
 sha2 = "0.10"
 
 rand_core = "0.6"
