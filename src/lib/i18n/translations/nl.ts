@@ -4604,6 +4604,11 @@ export const nl = {
     keyserver_republish_btn: "Opnieuw publiceren",
     keyserver_permanent_warning:
       "Eenmaal gepubliceerde sleutels kunnen bij de meeste servers niet volledig worden verwijderd.",
+    keyserver_addresses_title: "Te publiceren adressen",
+    keyserver_addresses_hint:
+      "Selecteer de adressen die je bij je openbare sleutel wilt vermelden. Iedereen kan zien dat de geselecteerde adressen dezelfde sleutel delen. De sleutelserver stuurt een bevestigingsmail naar elk adres.",
+    keyserver_key_update_failed:
+      "De geselecteerde adressen zijn niet aan je sleutel toegevoegd. Probeer het opnieuw.",
     keyserver_add_custom_label: "Aangepaste server toevoegen",
     info_require_encryption_title: "Versleuteling vereisen",
     info_require_encryption_description:

@@ -65,6 +65,8 @@ vi.mock("@/services/crypto/memory_key_store", () => ({
   get_vault_from_memory: () => null,
   wait_for_keys_ready: vi.fn(async () => undefined),
   are_keys_ready: () => true,
+  get_vault_account_epoch: () => 0,
+  on_vault_cleared: () => () => {},
 }));
 
 vi.mock("@/services/account_manager", () => ({

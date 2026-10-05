@@ -47,6 +47,7 @@ import {
   FolderCounts,
   FoldersState,
   has_sibling_named,
+  is_system_folder_type,
 } from "./tree";
 import { CreateFolderOptions, UseFoldersReturn } from "./types";
 
@@ -87,6 +88,7 @@ const COUNTS_CONFIRM_MS = 4_000;
 const FOLDERS_REFETCH_DEBOUNCE_MS = 300;
 const FOLDER_RETRY_DELAYS_MS = [400, 1_200, 3_000];
 const FOLDER_BACKGROUND_RETRY_DELAYS_MS = [8_000, 20_000, 45_000];
+const FOLDER_FAILED_FETCH_RETRY_MS = 60_000;
 
 function wait(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -168,7 +170,9 @@ export function use_folders(): UseFoldersReturn {
         return prev;
       });
 
-      const attempt_fetch = async (): Promise<"done" | "stale" | "retry"> => {
+      const attempt_fetch = async (
+        show_unreadable: boolean,
+      ): Promise<"done" | "stale" | "retry" | "unreadable"> => {
         const vault = get_vault_from_memory();
 
         if (!has_passphrase_in_memory() || !vault?.identity_key) return "retry";
@@ -196,12 +200,14 @@ export function use_folders(): UseFoldersReturn {
             (f): f is DecryptedFolder => f !== null,
           );
 
-          if (
-            response.data.folders.length > 0 &&
-            decrypted_folders.length === 0
-          ) {
-            return "retry";
-          }
+          const none_readable =
+            decrypted_folders.length === 0 &&
+            response.data.folders.some(
+              (folder: FolderDefinition) =>
+                !folder.is_system && !is_system_folder_type(folder.folder_type),
+            );
+
+          if (none_readable && !show_unreadable) return "retry";
 
           const undecryptable_folders = response.data.folders.filter(
             (_folder: FolderDefinition, index: number) =>
@@ -217,7 +223,7 @@ export function use_folders(): UseFoldersReturn {
 
           cached_folders.data = visible_folders;
           cached_folders.total = visible_folders.length;
-          cached_folders.has_loaded = true;
+          cached_folders.has_loaded = !none_readable;
 
           set_state({
             folders: visible_folders,
@@ -235,7 +241,7 @@ export function use_folders(): UseFoldersReturn {
             emit_protected_folders_ready();
           }
 
-          return "done";
+          return none_readable ? "unreadable" : "done";
         } catch {
           if (this_generation !== fetch_generation_ref.current) return "stale";
 
@@ -243,41 +249,68 @@ export function use_folders(): UseFoldersReturn {
         }
       };
 
-      for (let attempt = 0; ; attempt += 1) {
-        const outcome = await attempt_fetch();
+      let fetch_failed = false;
 
-        if (outcome !== "retry") return;
-        if (attempt >= FOLDER_RETRY_DELAYS_MS.length) break;
+      for (let attempt = 0; ; attempt += 1) {
+        const is_last_attempt = attempt >= FOLDER_RETRY_DELAYS_MS.length;
+        const outcome = await attempt_fetch(is_last_attempt);
+
+        if (outcome === "done" || outcome === "stale") return;
+
+        if (is_last_attempt) {
+          fetch_failed = outcome === "retry";
+          break;
+        }
 
         await wait(FOLDER_RETRY_DELAYS_MS[attempt]);
 
         if (this_generation !== fetch_generation_ref.current) return;
       }
 
-      set_state((prev) =>
-        cached_folders.has_loaded
-          ? {
-              folders: cached_folders.data,
-              is_loading: false,
-              error: null,
-              total: cached_folders.total,
-            }
-          : {
-              ...prev,
-              is_loading: false,
-              error:
-                prev.folders.length > 0
-                  ? null
-                  : t("common.failed_to_fetch_folders"),
-            },
-      );
+      if (fetch_failed) {
+        set_state((prev) =>
+          cached_folders.has_loaded
+            ? {
+                folders: cached_folders.data,
+                is_loading: false,
+                error: null,
+                total: cached_folders.total,
+              }
+            : {
+                ...prev,
+                is_loading: false,
+                error:
+                  prev.folders.length > 0
+                    ? null
+                    : t("common.failed_to_fetch_folders"),
+              },
+        );
+      }
 
       const retry_in_background = async (): Promise<void> => {
         for (const delay of FOLDER_BACKGROUND_RETRY_DELAYS_MS) {
           await wait(delay);
 
           if (this_generation !== fetch_generation_ref.current) return;
-          if ((await attempt_fetch()) !== "retry") return;
+          const outcome = await attempt_fetch(true);
+
+          if (outcome === "done" || outcome === "stale") return;
+        }
+
+        if (!fetch_failed) return;
+
+        for (;;) {
+          await wait(FOLDER_FAILED_FETCH_RETRY_MS);
+
+          if (this_generation !== fetch_generation_ref.current) return;
+          if (!has_passphrase_in_memory()) return;
+          if (!navigator.onLine || document.visibilityState === "hidden") {
+            continue;
+          }
+
+          const outcome = await attempt_fetch(true);
+
+          if (outcome !== "retry") return;
         }
       };
 
@@ -945,7 +978,7 @@ export function use_folders(): UseFoldersReturn {
       }, FOLDERS_REFETCH_DEBOUNCE_MS);
     };
 
-    const auth_ready_handler = () => {
+    const reload_handler = () => {
       if (has_passphrase_in_memory()) {
         fetch_folders();
         fetch_counts();
@@ -981,8 +1014,9 @@ export function use_folders(): UseFoldersReturn {
     window.addEventListener(MAIL_EVENTS.MAIL_ITEM_UPDATED, item_update_handler);
     window.addEventListener(MAIL_EVENTS.FOLDERS_CHANGED, folders_handler);
     window.addEventListener(MAIL_EVENTS.DEFINITIONS_STALE, folders_handler);
-    window.addEventListener(MAIL_EVENTS.AUTH_READY, auth_ready_handler);
+    window.addEventListener(MAIL_EVENTS.AUTH_READY, reload_handler);
     document.addEventListener("visibilitychange", visibility_handler);
+    window.addEventListener("online", reload_handler);
     channel?.addEventListener("message", broadcast_handler);
 
     return () => {
@@ -1004,8 +1038,9 @@ export function use_folders(): UseFoldersReturn {
         MAIL_EVENTS.DEFINITIONS_STALE,
         folders_handler,
       );
-      window.removeEventListener(MAIL_EVENTS.AUTH_READY, auth_ready_handler);
+      window.removeEventListener(MAIL_EVENTS.AUTH_READY, reload_handler);
       document.removeEventListener("visibilitychange", visibility_handler);
+      window.removeEventListener("online", reload_handler);
       channel?.removeEventListener("message", broadcast_handler);
     };
   }, [fetch_counts, fetch_folders]);

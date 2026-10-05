@@ -20,13 +20,7 @@
 //
 import type { LanguageCode, Translations } from "../types";
 
-import { en } from "./en";
-
 import { safe_local_get } from "@/lib/safe_storage";
-
-type PartialTranslations = {
-  [K in keyof Translations]?: Partial<Translations[K]>;
-};
 
 const SUPPORTED_LOCALE_CODES = new Set<LanguageCode>([
   "es",
@@ -46,26 +40,22 @@ const SUPPORTED_LOCALE_CODES = new Set<LanguageCode>([
   "hi",
 ]);
 
-function deep_merge(
-  base: Translations,
-  override: PartialTranslations,
-): Translations {
-  const result = {} as Record<string, Record<string, string>>;
+const EMPTY_NAMESPACE = new Proxy(
+  {},
+  { get: (_target, key) => (typeof key === "string" ? "" : undefined) },
+);
+const EMPTY_TRANSLATIONS = new Proxy(
+  {},
+  {
+    get: (_target, key) =>
+      typeof key === "string" ? EMPTY_NAMESPACE : undefined,
+  },
+) as Translations;
 
-  for (const ns of Object.keys(base) as (keyof Translations)[]) {
-    result[ns] = {
-      ...(base[ns] as unknown as Record<string, string>),
-      ...(override[ns] as unknown as Record<string, string> | undefined),
-    };
-  }
-
-  return result as unknown as Translations;
-}
-
-async function load_partial(
-  code: LanguageCode,
-): Promise<PartialTranslations | null> {
+async function load_table(code: LanguageCode): Promise<unknown> {
   switch (code) {
+    case "en":
+      return (await import("./en")).en;
     case "es":
       return (await import("./es")).es;
     case "fr":
@@ -101,19 +91,19 @@ async function load_partial(
   }
 }
 
-const translations_cache: Partial<Record<LanguageCode, Translations>> = { en };
+const translations_cache: Partial<Record<LanguageCode, Translations>> = {};
 const pending_loads = new Map<LanguageCode, Promise<Translations>>();
+let latest_loaded: Translations | null = null;
 
 async function load_and_cache(code: LanguageCode): Promise<Translations> {
-  const partial = await load_partial(code);
+  const table = (await load_table(code)) as Translations | null;
 
-  if (!partial) return en;
+  if (!table) return get_translations_async("en");
 
-  const merged = deep_merge(en, partial);
+  translations_cache[code] = table;
+  latest_loaded = table;
 
-  translations_cache[code] = merged;
-
-  return merged;
+  return table;
 }
 
 export function get_translations_async(
@@ -137,7 +127,12 @@ export function get_translations_async(
 }
 
 export function get_translations(code: LanguageCode): Translations {
-  return translations_cache[code] ?? en;
+  return (
+    translations_cache[code] ??
+    translations_cache.en ??
+    latest_loaded ??
+    EMPTY_TRANSLATIONS
+  );
 }
 
 export function get_cached_translations(
@@ -167,5 +162,3 @@ export function get_active_language(): LanguageCode {
 export function get_active_translations(): Translations {
   return get_translations(get_active_language());
 }
-
-export { en };

@@ -463,7 +463,7 @@ export function use_popup_viewer({
     const preloaded = await await_preloaded_email(
       email_id,
       preferences.conversation_grouping !== false,
-      { fresh_only: true },
+      { fresh_only: true, user_email: user?.email },
     );
 
     if (fetch_seq !== fetch_seq_ref.current) return;
@@ -730,7 +730,9 @@ export function use_popup_viewer({
           if (fetch_seq !== fetch_seq_ref.current) return;
 
           if (group_messages.length > 0) {
-            set_thread_messages(group_messages);
+            set_thread_messages((prev) =>
+              keep_unchanged_messages(prev, group_messages),
+            );
           } else {
             set_thread_messages([single_message]);
           }

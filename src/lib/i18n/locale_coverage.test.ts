@@ -70,7 +70,11 @@ describe("locale coverage", () => {
     const missing = [...flat(en)].filter(
       (key) =>
         !present.has(key) &&
-        !(NO_PLURAL_ONE_FORM.has(code) && key.endsWith("_one")),
+        !(
+          NO_PLURAL_ONE_FORM.has(code) &&
+          key.endsWith("_one") &&
+          present.has(key.slice(0, -"_one".length))
+        ),
     );
 
     expect(missing).toEqual([]);

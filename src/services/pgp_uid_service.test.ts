@@ -23,7 +23,10 @@ import type { EncryptedVault } from "@/services/crypto/key_manager_core";
 import { describe, it, expect } from "vitest";
 import * as openpgp from "openpgp";
 
-import { add_address_to_identity_key } from "./pgp_uid_service";
+import {
+  add_address_to_identity_key,
+  add_addresses_to_identity_key,
+} from "./pgp_uid_service";
 
 const PASSPHRASE = "correct horse battery staple";
 
@@ -98,5 +101,59 @@ describe("add_address_to_identity_key", () => {
         "Old",
       ),
     ).toBeNull();
+  });
+});
+
+describe("add_addresses_to_identity_key", () => {
+  it("appends every missing address after the existing user IDs", async () => {
+    const vault = await make_vault();
+    const next = await add_addresses_to_identity_key(
+      vault,
+      PASSPHRASE,
+      [
+        { email: "old@example.test" },
+        { email: "alias@example.test", name: "Alias" },
+        { email: "me@custom.test" },
+        { email: "ALIAS@example.test" },
+      ],
+      "last",
+    );
+
+    const before = await openpgp.readKey({ armoredKey: vault.identity_key });
+    const after = await openpgp.readKey({ armoredKey: next!.identity_key });
+
+    expect(after.getFingerprint()).toBe(before.getFingerprint());
+    expect(after.users.map((user) => user.userID?.email)).toEqual([
+      "old@example.test",
+      "alias@example.test",
+      "me@custom.test",
+    ]);
+    expect(next!.legacy_identity_keys).toEqual([vault.identity_key]);
+  });
+
+  it("returns null when every address is already on the key", async () => {
+    const vault = await make_vault();
+
+    expect(
+      await add_addresses_to_identity_key(
+        vault,
+        PASSPHRASE,
+        [{ email: " OLD@example.test " }],
+        "last",
+      ),
+    ).toBeNull();
+  });
+
+  it("rejects an address that is not a valid email", async () => {
+    const vault = await make_vault();
+
+    await expect(
+      add_addresses_to_identity_key(
+        vault,
+        PASSPHRASE,
+        [{ email: "not an address" }],
+        "last",
+      ),
+    ).rejects.toThrow();
   });
 });

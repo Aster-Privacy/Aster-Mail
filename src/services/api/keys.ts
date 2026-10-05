@@ -428,12 +428,12 @@ export async function unpublish_key_from_wkd(): Promise<
   return api_client.delete<PublishKeyResponse>("/crypto/v1/keys/publish/wkd");
 }
 
-export async function publish_key_to_keyserver(): Promise<
-  ApiResponse<PublishKeyResponse>
-> {
+export async function publish_key_to_keyserver(
+  addresses?: string[],
+): Promise<ApiResponse<PublishKeyResponse>> {
   return api_client.post<PublishKeyResponse>(
     "/crypto/v1/keys/publish/keyserver",
-    {},
+    addresses && addresses.length > 0 ? { addresses } : {},
   );
 }
 
@@ -452,8 +452,14 @@ export type KeyserverPublicationState =
   | "failed"
   | "published";
 
+export interface KeyserverAddressStatus {
+  address: string;
+  state: KeyserverPublicationState;
+}
+
 export interface KeyserverPublicationStatus {
   published: boolean;
+  addresses?: KeyserverAddressStatus[];
   fingerprint?: string;
   state?: KeyserverPublicationState;
   error?: string;
@@ -466,5 +472,6 @@ export async function get_keyserver_publication_status(): Promise<
 > {
   return api_client.get<KeyserverPublicationStatus>(
     "/crypto/v1/keys/publish/keyserver/status",
+    { skip_cache: true },
   );
 }

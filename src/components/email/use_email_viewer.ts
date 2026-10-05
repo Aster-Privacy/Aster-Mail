@@ -448,7 +448,7 @@ export function use_email_viewer({
 
     async function load_email(reloading_same_email: boolean) {
       const cached = usable_preloaded(
-        get_preloaded_email(email_id),
+        get_preloaded_email(email_id, user?.email),
         preferences.conversation_grouping !== false,
       );
 
@@ -474,6 +474,7 @@ export function use_email_viewer({
           await await_preloaded_email(
             email_id,
             preferences.conversation_grouping !== false,
+            { user_email: user?.email },
           ),
           preferences.conversation_grouping !== false,
         );
@@ -880,6 +881,15 @@ export function use_email_viewer({
 
       await resolve_reaction_emojis([single_message], user_email);
 
+      const group_ids =
+        !should_load_thread &&
+        preferences.conversation_grouping !== false &&
+        grouped_email_ids_ref.current &&
+        grouped_email_ids_ref.current.length > 1 &&
+        grouped_email_ids_ref.current.includes(email_id)
+          ? grouped_email_ids_ref.current
+          : null;
+
       if (should_load_thread) {
         if (!cancelled && !reloading_same_email) {
           set_thread_messages([single_message]);
@@ -902,20 +912,22 @@ export function use_email_viewer({
           );
         }
         if (!cancelled) set_pending_thread_count(0);
-      } else if (
-        !cancelled &&
-        preferences.conversation_grouping !== false &&
-        grouped_email_ids_ref.current &&
-        grouped_email_ids_ref.current.length > 1 &&
-        grouped_email_ids_ref.current.includes(email_id)
-      ) {
+      } else if (!cancelled && group_ids) {
+        if (!reloading_same_email) {
+          set_thread_messages([single_message]);
+          set_is_loading(false);
+          set_committed_email_id(email_id);
+        }
+
         const group_messages = await fetch_and_decrypt_virtual_group(
-          grouped_email_ids_ref.current,
+          group_ids,
           user_email,
         );
 
         if (!cancelled && group_messages.length > 0) {
-          set_thread_messages(group_messages);
+          set_thread_messages((prev) =>
+            keep_unchanged_messages(prev, group_messages),
+          );
         } else if (!cancelled) {
           set_thread_messages([single_message]);
         }

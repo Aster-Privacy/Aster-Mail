@@ -19,6 +19,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
+import { clear_account_memory_stores } from "./account_memory_stores";
+
 import { request_cache } from "@/services/api/request_cache";
 import { clear_mail_stats } from "@/hooks/use_mail_stats";
 import { clear_plan_limits_cache } from "@/hooks/use_plan_limits";
@@ -51,6 +53,7 @@ import { clear_recovery_email_cache } from "@/services/api/recovery_email";
 import { clear_preferences_cache } from "@/services/api/preferences";
 import { clear_category_index_memory } from "@/services/category_index";
 import { reset_opened_mail_scope } from "@/services/user_opened_mail";
+import { clear_own_mail_mutations } from "@/services/own_mail_mutations";
 import { clear_profiles_cache } from "@/services/api/profiles";
 import { clear_contact_photo_cache } from "@/services/contact_photo_cache";
 import { clear_unsubscribed_senders_cache } from "@/hooks/use_unsubscribed_senders";
@@ -85,6 +88,7 @@ export async function clear_account_scoped_caches(
   clear_preferences_cache();
   clear_category_index_memory();
   reset_opened_mail_scope();
+  clear_own_mail_mutations();
   clear_undo_send_state();
   clear_sender_aliases_cache();
   clear_persisted_draft_deletes();
@@ -102,6 +106,7 @@ export async function clear_account_scoped_caches(
   clear_ghost_entries();
   clear_recipient_hints();
   clear_label_hints();
+  clear_account_memory_stores();
   request_cache.clear();
   await Promise.all([mail_cache_cleared, clear_all_ratchet_states()]);
 }

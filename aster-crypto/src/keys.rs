@@ -145,6 +145,27 @@ impl PublicKey {
         }
     }
 
+    pub fn user_id_emails(&self) -> Vec<String> {
+        let users = match &self.inner {
+            PublicKeyInner::Standalone(pk) => &pk.details.users,
+            PublicKeyInner::FromSecret(sk) => &sk.details.users,
+        };
+
+        let mut emails: Vec<String> = Vec::new();
+
+        for user in users {
+            let raw = String::from_utf8_lossy(user.id.id()).to_string();
+
+            if let Some(email) = email_from_user_id(&raw) {
+                if !emails.contains(&email) {
+                    emails.push(email);
+                }
+            }
+        }
+
+        emails
+    }
+
     pub fn is_standalone(&self) -> bool {
         matches!(&self.inner, PublicKeyInner::Standalone(_))
     }
@@ -279,6 +300,25 @@ fn check_import_size(len: usize) -> Result<()> {
     Ok(())
 }
 
+fn email_from_user_id(user_id: &str) -> Option<String> {
+    let candidate = match (user_id.rfind('<'), user_id.rfind('>')) {
+        (Some(open), Some(close)) if open < close => &user_id[open + 1..close],
+        _ => user_id,
+    };
+    let email = candidate.trim().to_lowercase();
+    let (local, domain) = email.split_once('@')?;
+
+    if local.is_empty()
+        || domain.is_empty()
+        || domain.contains('@')
+        || email.chars().any(|c| c.is_whitespace() || c.is_control())
+    {
+        return None;
+    }
+
+    Some(email)
+}
+
 const INVALID_KEY_FORMAT_MSG: &str = "invalid key format";
 
 pub fn import_public_key(armored: &str) -> Result<PublicKey> {
@@ -370,6 +410,32 @@ pub(crate) fn generate_legacy_rsa_keypair(name: &str, email: &str) -> Result<Key
 mod tests {
     use super::*;
     use pgp::crypto::public_key::PublicKeyAlgorithm;
+
+    #[test]
+    fn user_id_emails_reads_the_address_of_every_user_id() {
+        let keypair = generate_keypair("Alice", "Alice@AsterMail.org").unwrap();
+        let public = import_public_key(&keypair.public_key_armored().unwrap()).unwrap();
+
+        assert_eq!(
+            public.user_id_emails(),
+            vec!["alice@astermail.org".to_string()]
+        );
+    }
+
+    #[test]
+    fn email_from_user_id_handles_bare_and_named_forms() {
+        assert_eq!(
+            email_from_user_id("Jordan Doe <Jordan@Example.com>"),
+            Some("jordan@example.com".to_string())
+        );
+        assert_eq!(
+            email_from_user_id("jordan@example.com"),
+            Some("jordan@example.com".to_string())
+        );
+        assert_eq!(email_from_user_id("Jordan Doe"), None);
+        assert_eq!(email_from_user_id("Jordan <not an address>"), None);
+        assert_eq!(email_from_user_id("<a@b@c>"), None);
+    }
 
     #[test]
     fn test_generate_keypair() {

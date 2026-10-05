@@ -171,13 +171,131 @@ describe("use_folders load retry", () => {
     });
     await advance(4_600);
 
-    expect(first.state.error).toBe("common.failed_to_fetch_folders");
+    expect(first.state.error).toBeNull();
+    expect(first.state.is_loading).toBe(false);
+    expect(first.state.folders.map((f) => f.name)).toEqual([
+      "common.unable_to_decrypt",
+    ]);
 
     mocks.decrypt_folder.mockResolvedValue({ id: "f1", name: "Work" });
     await advance(8_000);
 
     expect(first.state.error).toBeNull();
-    expect(first.state.folders).toHaveLength(1);
+    expect(first.state.folders.map((f) => f.name)).toEqual(["Work"]);
+  });
+
+  it("loads at once when only system folder names are unreadable", async () => {
+    mocks.list_folders.mockResolvedValue({
+      data: {
+        folders: [
+          { id: "s1", is_system: true, folder_type: "inbox" },
+          { id: "s2", is_system: false, folder_type: "trash" },
+        ],
+        total: 2,
+      },
+    });
+    mocks.decrypt_folder.mockResolvedValue(null);
+
+    await act(async () => {
+      await first.fetch_folders();
+    });
+
+    expect(mocks.list_folders).toHaveBeenCalledTimes(1);
+    expect(first.state.error).toBeNull();
+    expect(first.state.is_loading).toBe(false);
+    expect(first.state.folders).toHaveLength(2);
+
+    await advance(80_000);
+
+    expect(mocks.list_folders).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps retrying a failed fetch until the list loads", async () => {
+    mocks.list_folders.mockResolvedValue(FAILED);
+
+    await act(async () => {
+      void first.fetch_folders();
+    });
+    await advance(4_600 + 73_000);
+
+    expect(mocks.list_folders).toHaveBeenCalledTimes(7);
+    expect(first.state.error).toBe("common.failed_to_fetch_folders");
+
+    await advance(60_000);
+
+    expect(mocks.list_folders).toHaveBeenCalledTimes(8);
+
+    mocks.list_folders.mockResolvedValue(ONE_FOLDER);
+    mocks.decrypt_folder.mockResolvedValue({ id: "f1", name: "Work" });
+    await advance(60_000);
+
+    expect(first.state.error).toBeNull();
+    expect(first.state.folders.map((f) => f.name)).toEqual(["Work"]);
+
+    const calls = mocks.list_folders.mock.calls.length;
+
+    await advance(180_000);
+
+    expect(mocks.list_folders).toHaveBeenCalledTimes(calls);
+  });
+
+  it("waits for the connection before retrying a failed fetch", async () => {
+    mocks.list_folders.mockResolvedValue(FAILED);
+
+    await act(async () => {
+      void first.fetch_folders();
+    });
+    await advance(4_600 + 73_000);
+
+    const calls = mocks.list_folders.mock.calls.length;
+    const on_line = vi.spyOn(navigator, "onLine", "get").mockReturnValue(false);
+
+    await advance(180_000);
+
+    expect(mocks.list_folders).toHaveBeenCalledTimes(calls);
+
+    on_line.mockRestore();
+    await advance(60_000);
+
+    expect(mocks.list_folders).toHaveBeenCalledTimes(calls + 1);
+  });
+
+  it("stops polling once the folders are listed as unreadable", async () => {
+    mocks.list_folders.mockResolvedValue(ONE_FOLDER);
+    mocks.decrypt_folder.mockResolvedValue(null);
+
+    await act(async () => {
+      void first.fetch_folders();
+    });
+    await advance(4_600 + 73_000);
+
+    const calls = mocks.list_folders.mock.calls.length;
+
+    await advance(300_000);
+
+    expect(mocks.list_folders).toHaveBeenCalledTimes(calls);
+    expect(first.state.error).toBeNull();
+  });
+
+  it("loads again when the connection returns", async () => {
+    mocks.list_folders.mockResolvedValue(FAILED);
+
+    await act(async () => {
+      void first.fetch_folders();
+    });
+    await advance(4_600);
+
+    expect(first.state.error).toBe("common.failed_to_fetch_folders");
+
+    mocks.list_folders.mockResolvedValue(EMPTY_LIST);
+
+    await act(async () => {
+      window.dispatchEvent(new Event("online"));
+    });
+    await advance(0);
+
+    expect(first.state.error).toBeNull();
+    expect(second.state.error).toBeNull();
   });
 
   it("stops retrying after the hook unmounts", async () => {

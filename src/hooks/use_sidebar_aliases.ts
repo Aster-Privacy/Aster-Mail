@@ -230,6 +230,13 @@ function rebuild_alias_index(): void {
   );
 }
 
+export function clear_sidebar_aliases_cache(): void {
+  cached_aliases.data = [];
+  cached_ghost_aliases.data = [];
+  rebuild_alias_index();
+  notify_alias_subscribers();
+}
+
 async function refresh_ghost_alias_index(): Promise<void> {
   try {
     const response = await list_ghost_aliases();

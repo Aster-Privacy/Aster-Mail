@@ -325,3 +325,82 @@ describe("stale-vault self-heal on inbound envelope decrypt failure", () => {
     expect(localStorage.getItem("astermail_encrypted_vault_user-1")).toBeNull();
   });
 });
+
+describe("an account whose ratchet keys were first saved by a mobile app", () => {
+  beforeEach(() => {
+    h.vault = null;
+    h.refreshed_vault = null;
+    h.vault_fetches = 0;
+    h.passphrase = "correct horse battery staple";
+    reset_vault_refresh_state();
+    localStorage.clear();
+  });
+
+  function compact_private_jwk(identity: TestIdentity): string {
+    const { d } = JSON.parse(identity.private_jwk_str) as { d: string };
+
+    return `{"kty":"EC","crv":"P-256","d":"${d}"}`;
+  }
+
+  it("opens mail sealed to a current key that was saved without its public point", async () => {
+    const mobile = await generate_identity();
+
+    h.vault = {
+      identity_key: "",
+      ratchet_identity_key: compact_private_jwk(mobile),
+      ratchet_identity_public: mobile.public_b64,
+    } as unknown as EncryptedVault;
+
+    const sealed = await seal_inbound_ecies(
+      { subject: "welcome" },
+      mobile.public_raw,
+    );
+    const result = await decrypt_mail_envelope<{ subject?: string }>(
+      sealed.encrypted_envelope,
+      sealed.envelope_nonce,
+    );
+
+    expect(result?.subject).toBe("welcome");
+    expect(h.vault_fetches).toBe(0);
+  });
+
+  it("opens mail sealed to that key after a later sign-in archived it as a previous key", async () => {
+    const mobile = await generate_identity();
+    const current = await generate_identity();
+
+    h.vault = {
+      identity_key: "",
+      ratchet_identity_key: current.private_jwk_str,
+      ratchet_identity_public: current.public_b64,
+      ratchet_previous_keys: [
+        {
+          ratchet_identity_key: compact_private_jwk(mobile),
+          ratchet_signed_prekey: compact_private_jwk(mobile),
+          ratchet_identity_public: mobile.public_b64,
+        },
+      ],
+    } as unknown as EncryptedVault;
+
+    const older = await seal_inbound_ecies(
+      { subject: "received before the first web sign-in" },
+      mobile.public_raw,
+    );
+    const newer = await seal_inbound_ecies(
+      { subject: "received after it" },
+      current.public_raw,
+    );
+
+    const older_result = await decrypt_mail_envelope<{ subject?: string }>(
+      older.encrypted_envelope,
+      older.envelope_nonce,
+    );
+    const newer_result = await decrypt_mail_envelope<{ subject?: string }>(
+      newer.encrypted_envelope,
+      newer.envelope_nonce,
+    );
+
+    expect(older_result?.subject).toBe("received before the first web sign-in");
+    expect(newer_result?.subject).toBe("received after it");
+    expect(h.vault_fetches).toBe(0);
+  });
+});

@@ -5554,6 +5554,11 @@ export const en: Translations = {
     keyserver_republish_btn: "Re-publish Key",
     keyserver_permanent_warning:
       "Once published, keys cannot be fully removed from most keyservers.",
+    keyserver_addresses_title: "Addresses to publish",
+    keyserver_addresses_hint:
+      "Select the addresses to list with your public key. Anyone can see that the selected addresses share one key. The keyserver sends a confirmation email to each address.",
+    keyserver_key_update_failed:
+      "The selected addresses weren't added to your key. Try again.",
     keyserver_add_custom_label: "Add Custom Keyserver",
     info_require_encryption_title: "Require Encryption",
     info_require_encryption_description:

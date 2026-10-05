@@ -62,6 +62,10 @@ import {
 import { read_clears_conversation } from "@/hooks/unread_read_delta";
 import { mark_conversation_read } from "@/hooks/mark_conversation_read";
 import { ThreadMessageBlock } from "@/components/email/thread_message_block";
+import {
+  VISIBLE_TAIL_COUNT,
+  opened_message_is_collapsed,
+} from "@/components/email/hooks/use_opened_message_anchor";
 import { same_address_ignoring_dots } from "@/utils/address_dots";
 import { resolve_reply_references } from "@/lib/reply_references";
 import {
@@ -479,6 +483,18 @@ export const ThreadMessagesList = forwardRef<
 
     const current_ids = new Set(regular_messages.map((m) => m.id));
 
+    if (
+      main_email_id &&
+      prev_ids.size === 1 &&
+      prev_ids.has(main_email_id) &&
+      opened_message_is_collapsed(
+        display_messages.map((m) => m.id),
+        main_email_id,
+      )
+    ) {
+      set_hidden_group_revealed(true);
+    }
+
     set_expanded_ids((prev) => {
       const next = new Set<string>();
 
@@ -502,7 +518,7 @@ export const ThreadMessagesList = forwardRef<
     auto_read_ids.current = new Set(
       [...auto_read_ids.current].filter((id) => current_ids.has(id)),
     );
-  }, [message_ids_key, regular_messages]);
+  }, [message_ids_key, regular_messages, display_messages, main_email_id]);
 
   const mark_as_read = useCallback(
     (msg: DecryptedThreadMessage, pending_ids?: Set<string>) => {
@@ -912,7 +928,7 @@ export const ThreadMessagesList = forwardRef<
       .length;
   }, [regular_messages, read_ids]);
 
-  const visible_tail_count = 2;
+  const visible_tail_count = VISIBLE_TAIL_COUNT;
 
   const hidden_count = useMemo(() => {
     if (

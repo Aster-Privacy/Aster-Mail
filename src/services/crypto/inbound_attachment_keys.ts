@@ -18,6 +18,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { on_vault_cleared } from "@/services/crypto/memory_key_store";
+
 export interface InboundAttachmentEntry {
   key: string;
   filename?: string;
@@ -64,11 +66,24 @@ const notify_listeners_soon = (): void => {
   });
 };
 
+let vault_listener_armed = false;
+
+const arm_vault_listener = (): void => {
+  if (vault_listener_armed) return;
+  vault_listener_armed = true;
+  on_vault_cleared((event) => {
+    if (event?.same_owner) return;
+    clear_attachment_keys();
+  });
+};
+
 export const register_attachment_entry = (
   mail_item_id: string,
   seq: number,
   entry: InboundAttachmentEntry,
 ): void => {
+  arm_vault_listener();
+
   const key = registry_key(mail_item_id, seq);
   const existing = registry.get(key);
 

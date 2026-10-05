@@ -59,6 +59,7 @@ import {
   clear_vault_from_memory,
   has_vault_in_memory,
   has_vault_in_memory_for,
+  get_last_vault_owner_id,
 } from "@/services/crypto/memory_key_store";
 import {
   type User,
@@ -748,6 +749,16 @@ export function use_auth_account_state() {
       vault_nonce?: string,
       remember_on_device: boolean = true,
     ) => {
+      const previous_owner_id = get_last_vault_owner_id();
+
+      if (previous_owner_id !== null && previous_owner_id !== user.id) {
+        try {
+          await with_timeout(clear_account_scoped_caches(), 3000);
+        } catch (e) {
+          safe_log_error(e);
+        }
+      }
+
       await store_vault_in_memory(vault, passphrase, user.id);
       api_client.set_expected_user_id(user.id);
 

@@ -30,7 +30,7 @@ import {
   external_account_error_message,
   list_account_folders,
 } from "@/services/api/external_accounts/api";
-import { en } from "@/lib/i18n/translations";
+import { en } from "@/lib/i18n/translations/en";
 
 const credentials = {
   host: "imap.example.com",

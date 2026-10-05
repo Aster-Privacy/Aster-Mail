@@ -59,4 +59,72 @@ describe("normalize_vault_fields (mobile vault compat)", () => {
 
     expect(normalized.identity_key).toBeUndefined();
   });
+
+  it("keeps a mobile identity_private_key as a legacy identity key", () => {
+    const vault = {
+      pgp_private_key: ARMORED_KEY,
+      identity_private_key: "cmF3LWVkMjU1MTkta2V5",
+    } as unknown as EncryptedVault;
+
+    const normalized = normalize_vault_fields(vault);
+
+    expect(normalized.identity_key).toBe(ARMORED_KEY);
+    expect(normalized.legacy_identity_keys).toEqual(["cmF3LWVkMjU1MTkta2V5"]);
+  });
+
+  it("appends the mobile key to existing legacy identity keys once", () => {
+    const vault = {
+      identity_key: ARMORED_KEY,
+      identity_private_key: "cmF3LWVkMjU1MTkta2V5",
+      legacy_identity_keys: ["older"],
+    } as unknown as EncryptedVault;
+
+    const once = normalize_vault_fields(vault);
+    const twice = normalize_vault_fields(once);
+
+    expect(twice.legacy_identity_keys).toEqual([
+      "older",
+      "cmF3LWVkMjU1MTkta2V5",
+    ]);
+  });
+
+  it("adds nothing when the mobile key already is the identity key", () => {
+    const vault = {
+      identity_key: "same",
+      identity_private_key: "same",
+    } as unknown as EncryptedVault;
+
+    const normalized = normalize_vault_fields(vault);
+
+    expect(normalized.legacy_identity_keys).toBeUndefined();
+  });
+});
+
+describe("folder names written by a mobile app with its own identity key", () => {
+  it("decrypt on web once the vault is loaded into memory", async () => {
+    const { store_vault_in_memory, clear_vault_from_memory } =
+      await import("@/services/crypto/memory_key_store");
+    const { encrypt_folder_field, decrypt_folder_field } =
+      await import("@/hooks/use_folders/crypto");
+    const mobile_identity = "cmF3LWVkMjU1MTkta2V5";
+    const sealed = await encrypt_folder_field("Receipts", mobile_identity);
+    const vault = normalize_vault_fields({
+      pgp_private_key: ARMORED_KEY,
+      identity_private_key: mobile_identity,
+    } as unknown as EncryptedVault);
+
+    await store_vault_in_memory(vault, "passphrase");
+
+    try {
+      expect(
+        await decrypt_folder_field(
+          sealed.encrypted,
+          sealed.nonce,
+          vault.identity_key,
+        ),
+      ).toBe("Receipts");
+    } finally {
+      clear_vault_from_memory();
+    }
+  });
 });

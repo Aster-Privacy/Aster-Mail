@@ -5813,6 +5813,11 @@ export const it = {
     keyserver_republish_btn: "Ripubblica chiave",
     keyserver_permanent_warning:
       "Una volta pubblicate, le chiavi non possono essere rimosse completamente dalla maggior parte dei server.",
+    keyserver_addresses_title: "Indirizzi da pubblicare",
+    keyserver_addresses_hint:
+      "Seleziona gli indirizzi da elencare con la tua chiave pubblica. Chiunque può vedere che gli indirizzi selezionati condividono una sola chiave. Il keyserver invia un'email di conferma a ogni indirizzo.",
+    keyserver_key_update_failed:
+      "Gli indirizzi selezionati non sono stati aggiunti alla chiave. Riprova.",
     keyserver_add_custom_label: "Aggiungi server personalizzato",
     info_require_encryption_title: "Richiedi cifratura",
     info_require_encryption_description:

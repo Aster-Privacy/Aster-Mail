@@ -4772,6 +4772,11 @@ export const ar = {
     keyserver_republish_btn: "إعادة نشر المفتاح",
     keyserver_permanent_warning:
       "بعد النشر، لا يمكن حذف المفاتيح بالكامل من معظم الخوادم.",
+    keyserver_addresses_title: "العناوين المراد نشرها",
+    keyserver_addresses_hint:
+      "حدّد العناوين التي تريد إدراجها مع مفتاحك العام. يمكن لأي شخص أن يرى أن العناوين المحددة تشترك في مفتاح واحد. يرسل خادم المفاتيح رسالة تأكيد إلى كل عنوان.",
+    keyserver_key_update_failed:
+      "لم تُضف العناوين المحددة إلى مفتاحك. حاول مجددًا.",
     keyserver_add_custom_label: "إضافة خادم مخصص",
     info_require_encryption_title: "طلب التشفير",
     info_require_encryption_description:

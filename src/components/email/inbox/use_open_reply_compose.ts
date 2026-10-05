@@ -146,7 +146,7 @@ export function use_open_reply_compose(
         (is_sentinel(email.body_html) ? "" : email.body_html) ||
         (is_sentinel(email.preview) ? "" : email.preview) ||
         "";
-      const cached = get_preloaded_email(email.id)?.email;
+      const cached = get_preloaded_email(email.id, user_email)?.email;
       const cached_body = cached?.body ?? "";
 
       if (!cached_body) {
@@ -158,7 +158,11 @@ export function use_open_reply_compose(
           try {
             await preload_email_detail(email.id, user_email);
 
-            const preloaded = await await_preloaded_email(email.id);
+            const preloaded = await await_preloaded_email(
+              email.id,
+              undefined,
+              { user_email },
+            );
             const body = preloaded?.email.body ?? "";
 
             resolved_headers = preloaded?.email.raw_headers;

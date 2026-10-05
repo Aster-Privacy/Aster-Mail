@@ -95,9 +95,27 @@ let derived_encryption_key: Uint8Array | null = null;
 let session_expire_unsubscribe: (() => void) | null = null;
 let keys_ready_listeners: Set<() => void> = new Set();
 let keys_ready_seen = false;
-const vault_cleared_listeners: Set<() => void> = new Set();
 
-export function on_vault_cleared(callback: () => void): () => void {
+export interface VaultClearedEvent {
+  same_owner: boolean;
+}
+
+const vault_cleared_listeners: Set<(event: VaultClearedEvent) => void> =
+  new Set();
+let vault_account_epoch = 0;
+let last_vault_owner_id: string | null = null;
+
+export function get_vault_account_epoch(): number {
+  return vault_account_epoch;
+}
+
+export function get_last_vault_owner_id(): string | null {
+  return last_vault_owner_id;
+}
+
+export function on_vault_cleared(
+  callback: (event: VaultClearedEvent) => void,
+): () => void {
   vault_cleared_listeners.add(callback);
 
   return () => {
@@ -404,6 +422,7 @@ export async function store_vault_in_memory(
   clear_vault_from_memory({ keep_account_keys: same_owner });
 
   vault_owner_id = next_owner_id;
+  if (next_owner_id !== null) last_vault_owner_id = next_owner_id;
 
   vault_in_memory = {
     identity_key: vault.identity_key,
@@ -616,9 +635,13 @@ export function clear_vault_from_memory(
     session_expire_unsubscribe = null;
   }
 
+  const event: VaultClearedEvent = { same_owner: !!options.keep_account_keys };
+
+  if (!event.same_owner) vault_account_epoch += 1;
+
   vault_cleared_listeners.forEach((callback) => {
     try {
-      callback();
+      callback(event);
     } catch {
       return;
     }

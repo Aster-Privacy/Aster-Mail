@@ -208,7 +208,7 @@ vi.mock("@/services/api/multi_drafts", () => ({
 }));
 
 vi.mock("@/components/email/hooks/preload_cache", () => ({
-  get_preload_cache: () => new Map(),
+  peek_preloaded_email: () => undefined,
   get_preload_in_flight: () => new Map(),
   preload_email_detail: vi.fn(),
 }));
