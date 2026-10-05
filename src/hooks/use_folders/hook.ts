@@ -88,6 +88,7 @@ const COUNTS_CONFIRM_MS = 4_000;
 const FOLDERS_REFETCH_DEBOUNCE_MS = 300;
 const FOLDER_RETRY_DELAYS_MS = [400, 1_200, 3_000];
 const FOLDER_BACKGROUND_RETRY_DELAYS_MS = [8_000, 20_000, 45_000];
+const FOLDER_FAILED_FETCH_RETRY_MS = 60_000;
 
 function wait(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -248,7 +249,7 @@ export function use_folders(): UseFoldersReturn {
         }
       };
 
-      let last_outcome: "retry" | "unreadable" = "retry";
+      let fetch_failed = false;
 
       for (let attempt = 0; ; attempt += 1) {
         const is_last_attempt = attempt >= FOLDER_RETRY_DELAYS_MS.length;
@@ -256,16 +257,17 @@ export function use_folders(): UseFoldersReturn {
 
         if (outcome === "done" || outcome === "stale") return;
 
-        last_outcome = outcome;
-
-        if (is_last_attempt) break;
+        if (is_last_attempt) {
+          fetch_failed = outcome === "retry";
+          break;
+        }
 
         await wait(FOLDER_RETRY_DELAYS_MS[attempt]);
 
         if (this_generation !== fetch_generation_ref.current) return;
       }
 
-      if (last_outcome === "retry") {
+      if (fetch_failed) {
         set_state((prev) =>
           cached_folders.has_loaded
             ? {
@@ -293,6 +295,22 @@ export function use_folders(): UseFoldersReturn {
           const outcome = await attempt_fetch(true);
 
           if (outcome === "done" || outcome === "stale") return;
+        }
+
+        if (!fetch_failed) return;
+
+        for (;;) {
+          await wait(FOLDER_FAILED_FETCH_RETRY_MS);
+
+          if (this_generation !== fetch_generation_ref.current) return;
+          if (!has_passphrase_in_memory()) return;
+          if (!navigator.onLine || document.visibilityState === "hidden") {
+            continue;
+          }
+
+          const outcome = await attempt_fetch(true);
+
+          if (outcome !== "retry") return;
         }
       };
 
@@ -960,7 +978,7 @@ export function use_folders(): UseFoldersReturn {
       }, FOLDERS_REFETCH_DEBOUNCE_MS);
     };
 
-    const auth_ready_handler = () => {
+    const reload_handler = () => {
       if (has_passphrase_in_memory()) {
         fetch_folders();
         fetch_counts();
@@ -996,8 +1014,9 @@ export function use_folders(): UseFoldersReturn {
     window.addEventListener(MAIL_EVENTS.MAIL_ITEM_UPDATED, item_update_handler);
     window.addEventListener(MAIL_EVENTS.FOLDERS_CHANGED, folders_handler);
     window.addEventListener(MAIL_EVENTS.DEFINITIONS_STALE, folders_handler);
-    window.addEventListener(MAIL_EVENTS.AUTH_READY, auth_ready_handler);
+    window.addEventListener(MAIL_EVENTS.AUTH_READY, reload_handler);
     document.addEventListener("visibilitychange", visibility_handler);
+    window.addEventListener("online", reload_handler);
     channel?.addEventListener("message", broadcast_handler);
 
     return () => {
@@ -1019,8 +1038,9 @@ export function use_folders(): UseFoldersReturn {
         MAIL_EVENTS.DEFINITIONS_STALE,
         folders_handler,
       );
-      window.removeEventListener(MAIL_EVENTS.AUTH_READY, auth_ready_handler);
+      window.removeEventListener(MAIL_EVENTS.AUTH_READY, reload_handler);
       document.removeEventListener("visibilitychange", visibility_handler);
+      window.removeEventListener("online", reload_handler);
       channel?.removeEventListener("message", broadcast_handler);
     };
   }, [fetch_counts, fetch_folders]);
