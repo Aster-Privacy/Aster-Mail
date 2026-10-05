@@ -36,8 +36,8 @@ tracing = "0.1"
 ed25519-dalek = { version = "3", features = ["rand_core"] }
 x25519-dalek = { version = "3", features = ["static_secrets"] }
 ml-kem = "0.2"
-chacha20poly1305 = "0.11"
-aes-gcm = "0.11"
+chacha20poly1305 = { version = "0.11", features = ["zeroize"] }
+aes-gcm = { version = "0.11", features = ["zeroize"] }
 hkdf = "0.13"
 hmac = "0.13"
 pbkdf2 = "0.13"
