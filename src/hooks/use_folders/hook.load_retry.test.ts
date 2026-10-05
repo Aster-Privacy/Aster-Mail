@@ -239,6 +239,27 @@ describe("use_folders load retry", () => {
     expect(mocks.list_folders).toHaveBeenCalledTimes(calls);
   });
 
+  it("waits for the connection before retrying a failed fetch", async () => {
+    mocks.list_folders.mockResolvedValue(FAILED);
+
+    await act(async () => {
+      void first.fetch_folders();
+    });
+    await advance(4_600 + 73_000);
+
+    const calls = mocks.list_folders.mock.calls.length;
+    const on_line = vi.spyOn(navigator, "onLine", "get").mockReturnValue(false);
+
+    await advance(180_000);
+
+    expect(mocks.list_folders).toHaveBeenCalledTimes(calls);
+
+    on_line.mockRestore();
+    await advance(60_000);
+
+    expect(mocks.list_folders).toHaveBeenCalledTimes(calls + 1);
+  });
+
   it("stops polling once the folders are listed as unreadable", async () => {
     mocks.list_folders.mockResolvedValue(ONE_FOLDER);
     mocks.decrypt_folder.mockResolvedValue(null);

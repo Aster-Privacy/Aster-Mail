@@ -304,6 +304,9 @@ export function use_folders(): UseFoldersReturn {
 
           if (this_generation !== fetch_generation_ref.current) return;
           if (!has_passphrase_in_memory()) return;
+          if (!navigator.onLine || document.visibilityState === "hidden") {
+            continue;
+          }
 
           const outcome = await attempt_fetch(true);
 
@@ -975,7 +978,7 @@ export function use_folders(): UseFoldersReturn {
       }, FOLDERS_REFETCH_DEBOUNCE_MS);
     };
 
-    const auth_ready_handler = () => {
+    const reload_handler = () => {
       if (has_passphrase_in_memory()) {
         fetch_folders();
         fetch_counts();
@@ -1011,9 +1014,9 @@ export function use_folders(): UseFoldersReturn {
     window.addEventListener(MAIL_EVENTS.MAIL_ITEM_UPDATED, item_update_handler);
     window.addEventListener(MAIL_EVENTS.FOLDERS_CHANGED, folders_handler);
     window.addEventListener(MAIL_EVENTS.DEFINITIONS_STALE, folders_handler);
-    window.addEventListener(MAIL_EVENTS.AUTH_READY, auth_ready_handler);
+    window.addEventListener(MAIL_EVENTS.AUTH_READY, reload_handler);
     document.addEventListener("visibilitychange", visibility_handler);
-    window.addEventListener("online", auth_ready_handler);
+    window.addEventListener("online", reload_handler);
     channel?.addEventListener("message", broadcast_handler);
 
     return () => {
@@ -1035,9 +1038,9 @@ export function use_folders(): UseFoldersReturn {
         MAIL_EVENTS.DEFINITIONS_STALE,
         folders_handler,
       );
-      window.removeEventListener(MAIL_EVENTS.AUTH_READY, auth_ready_handler);
+      window.removeEventListener(MAIL_EVENTS.AUTH_READY, reload_handler);
       document.removeEventListener("visibilitychange", visibility_handler);
-      window.removeEventListener("online", auth_ready_handler);
+      window.removeEventListener("online", reload_handler);
       channel?.removeEventListener("message", broadcast_handler);
     };
   }, [fetch_counts, fetch_folders]);
