@@ -21,9 +21,11 @@
 import type { MailItemMetadata } from "@/types/email";
 
 import { api_client, type ApiResponse } from "./client";
+import { begin_foreground_request } from "./client/request_priority";
 import { with_folder_unlock } from "./folder_unlock_retry";
 
 import { ignore_error } from "@/lib/ignore_error";
+import { MAX_INBOX_PAGE_SIZE } from "@/lib/inbox_page_size";
 import { get_unlock_token } from "@/services/folder_unlock_store";
 import {
   ack_flag_intents,
@@ -241,6 +243,9 @@ export async function get_mail_stats(
   );
 }
 
+const MAIL_ITEM_FETCH_RETRIES = 2;
+const MAIL_ITEM_FETCH_TIMEOUT_MS = 45_000;
+
 export async function list_mail_items(
   params: ListMailItemsParams = {},
 ): Promise<ApiResponse<MailItemsListResponse>> {
@@ -271,6 +276,10 @@ export async function list_mail_items(
   }
 
   const query_params = new URLSearchParams();
+  const is_bulk_scan =
+    params.limit !== undefined &&
+    params.limit > MAX_INBOX_PAGE_SIZE &&
+    params.offset === undefined;
 
   if (params.limit) query_params.set("limit", params.limit.toString());
   if (params.offset !== undefined)
@@ -317,6 +326,7 @@ export async function list_mail_items(
 
   const response = await api_client.get<MailItemsListResponse>(endpoint, {
     retry: 2,
+    ...(is_bulk_scan ? { request_priority: "background" as const } : {}),
     ...(unlock_token ? { folder_unlock_token: unlock_token } : {}),
   });
 
@@ -342,24 +352,34 @@ export async function list_encrypted_mail_items(
   const query_string = query_params.toString();
   const endpoint = `/mail/v1/messages/encrypted${query_string ? `?${query_string}` : ""}`;
 
-  return api_client.get<MailItemsListResponse>(endpoint, { cache_ttl: 0 });
+  return api_client.get<MailItemsListResponse>(endpoint, {
+    cache_ttl: 0,
+    request_priority: "background",
+  });
 }
 
 async function fetch_mail_item(
   item_id: string,
 ): Promise<ApiResponse<MailItem>> {
-  const response = await with_folder_unlock<MailItem>(
-    resolve_item_unlock_token(item_id),
-    (unlock_token) =>
-      api_client.get<MailItem>(
-        `/mail/v1/messages/${item_id}`,
-        unlock_token ? { folder_unlock_token: unlock_token } : undefined,
-      ),
-  );
+  const end_foreground_request = begin_foreground_request();
 
-  if (response.data) remember_item_folder_context(response.data);
+  try {
+    const response = await with_folder_unlock<MailItem>(
+      resolve_item_unlock_token(item_id),
+      (unlock_token) =>
+        api_client.get<MailItem>(`/mail/v1/messages/${item_id}`, {
+          retry: MAIL_ITEM_FETCH_RETRIES,
+          timeout: MAIL_ITEM_FETCH_TIMEOUT_MS,
+          ...(unlock_token ? { folder_unlock_token: unlock_token } : {}),
+        }),
+    );
 
-  return response;
+    if (response.data) remember_item_folder_context(response.data);
+
+    return response;
+  } finally {
+    end_foreground_request();
+  }
 }
 
 export function prefetch_mail_item(item_id: string): void {

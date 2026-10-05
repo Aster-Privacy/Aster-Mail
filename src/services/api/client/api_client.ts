@@ -76,6 +76,12 @@ import {
   write_last_auth_ms,
 } from "./helpers";
 import { should_show_server_message } from "./server_message";
+import {
+  MAX_PREEMPTIONS_PER_REQUEST,
+  track_background_request,
+  wait_for_foreground_idle,
+  type BackgroundRequest,
+} from "./request_priority";
 
 import { get_active_translations } from "@/lib/i18n/translations";
 import { extend_passphrase_timeout } from "@/services/crypto/memory_key_store";
@@ -1494,8 +1500,9 @@ export class ApiClient {
     url: string,
     options: RequestInit,
     timeout: number,
+    shared_controller?: AbortController,
   ): Promise<Response> {
-    const controller = new AbortController();
+    const controller = shared_controller ?? new AbortController();
     const timeout_id = setTimeout(() => controller.abort(), timeout);
     const aborted = new Promise<never>((_resolve, reject) => {
       controller.signal.addEventListener(
@@ -1614,6 +1621,7 @@ export class ApiClient {
       skip_session_refresh = false,
       skip_upgrade_prompt = false,
       folder_unlock_token,
+      request_priority,
       ...options
     } = config;
 
@@ -1680,15 +1688,33 @@ export class ApiClient {
     let has_attempted_refresh = false;
 
     let rate_limit_retried = false;
+    let preemptions = 0;
 
     for (let attempt = 0; attempt <= retry; attempt++) {
+      let background: BackgroundRequest | null = null;
+
+      const yield_to_foreground = (): boolean => {
+        if (!background?.was_preempted()) return false;
+        if (preemptions >= MAX_PREEMPTIONS_PER_REQUEST) return false;
+        preemptions += 1;
+
+        return true;
+      };
+
       try {
         await this.wait_for_rate_limit_window();
 
+        if (request_priority === "background") {
+          await wait_for_foreground_idle();
+          background = track_background_request();
+        }
+
+        const started_at = Date.now();
         const response = await this.request_with_timeout(
           url,
           { ...options, headers, credentials: "include" },
           timeout,
+          background?.controller,
         );
 
         if (!response.ok) {
@@ -2084,6 +2110,11 @@ export class ApiClient {
           const raw = await response.text().catch(() => null);
 
           if (raw === null) {
+            if (yield_to_foreground()) {
+              attempt--;
+              continue;
+            }
+
             last_error = {
               error: this.get_generic_error_message("NETWORK_ERROR"),
               code: "NETWORK_ERROR",
@@ -2119,9 +2150,15 @@ export class ApiClient {
 
         extend_passphrase_timeout();
         write_last_auth_ms(Date.now());
+        background?.settle(Date.now() - started_at);
 
         return { data };
       } catch (error) {
+        if (yield_to_foreground()) {
+          attempt--;
+          continue;
+        }
+
         if (error instanceof Error) {
           if (error.name === "AbortError") {
             last_error = {
@@ -2136,10 +2173,14 @@ export class ApiClient {
           }
         }
 
+        background?.stalled();
+
         if (attempt < retry && !is_state_changing_method(method)) {
           await this.delay(retry_delay * (attempt + 1));
           continue;
         }
+      } finally {
+        background?.release();
       }
     }
 

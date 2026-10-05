@@ -36,6 +36,7 @@ import {
   SUBSCRIPTION_CACHE_VERSION,
 } from "@/services/subscription_cache";
 import { list_mail_items } from "@/services/api/mail";
+import { background_page_size } from "@/services/api/client/request_priority";
 import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelope";
 import {
   detect_unsubscribe_info,
@@ -507,7 +508,7 @@ export async function run_background_scan(
 
     const { data, error, status } = await list_mail_items({
       ...SUBSCRIPTION_SCAN_PARAMS,
-      limit: SCAN_PAGE_SIZE,
+      limit: background_page_size(SCAN_PAGE_SIZE),
       cursor,
     });
 
