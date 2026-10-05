@@ -118,14 +118,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OUTDIR: ${{ steps.collect.outputs.outdir }}
+          TAG: ${{ inputs.tag }}
         shell: bash
         run: |
           set -euo pipefail
-          gh release upload "${{ inputs.tag }}" \
+          gh release upload "$TAG" \
             "$OUTDIR/Aster-Mail-aarch64.AppImage" \
             --repo "$GITHUB_REPOSITORY" --clobber
           if [ -f "$OUTDIR/Aster-Mail-aarch64.AppImage.sig" ]; then
-            gh release upload "${{ inputs.tag }}" \
+            gh release upload "$TAG" \
               "$OUTDIR/Aster-Mail-aarch64.AppImage.sig" \
               --repo "$GITHUB_REPOSITORY" --clobber
           fi
