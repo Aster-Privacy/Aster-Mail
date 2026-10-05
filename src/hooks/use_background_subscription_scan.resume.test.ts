@@ -36,6 +36,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 interface MailboxItem {
   item: MailItem;
   sender: string;
+  name?: string;
+  link?: string;
+  plain?: boolean;
 }
 
 interface TestVault {
@@ -91,9 +94,16 @@ vi.mock("@/components/email/shared/decrypt_envelope", () => ({
 
       if (!entry) return null;
 
+      if (entry.plain) {
+        return {
+          from: { name: entry.name ?? entry.sender, email: entry.sender },
+        };
+      }
+
       return {
-        from: { name: entry.sender, email: entry.sender },
-        list_unsubscribe: `<https://${entry.sender.split("@")[1]}/unsubscribe>`,
+        from: { name: entry.name ?? entry.sender, email: entry.sender },
+        list_unsubscribe:
+          entry.link ?? `<https://${entry.sender.split("@")[1]}/unsubscribe>`,
         list_unsubscribe_post: "List-Unsubscribe=One-Click",
       };
     },
@@ -427,14 +437,14 @@ describe("background subscription scan resume", () => {
     const finished = state.saved.at(-1);
 
     expect(finished?.scan_progress).toBeUndefined();
-    expect(finished?.subscriptions).toHaveLength(SENDER_COUNT + 1);
+    expect(finished?.subscriptions).toHaveLength(SENDER_COUNT);
     expect(find(finished, sender_address(0))).toMatchObject({
       status: "unsubscribed",
       unsubscribed_at: "2026-08-01T00:00:00.000Z",
       email_count: 50,
     });
-    expect(find(finished, "gone@news.example.com")?.email_count).toBe(4);
-    expect(total_count(finished)).toBe(1504);
+    expect(find(finished, "gone@news.example.com")).toBeUndefined();
+    expect(total_count(finished)).toBe(1500);
   });
 
   it("keeps a status change made while the scan is running", async () => {
@@ -464,6 +474,182 @@ describe("background subscription scan resume", () => {
       email_count: 50,
     });
   });
+});
+
+function fill_mixed_mailbox(total: number): void {
+  fill_mailbox(total);
+
+  state.mailbox.forEach((entry, index) => {
+    const page = Math.floor(index / 200);
+
+    switch (index % 10) {
+      case 6:
+        entry.sender = `friend${index % 3}@friends.example.org`;
+        entry.name = "Friend";
+        entry.plain = true;
+        break;
+      case 7:
+        entry.sender = "shop@shop.example.com";
+        entry.name = index < 1100 ? "Shop" : "Shop Weekly Digest";
+        entry.plain = index < 100;
+        break;
+      case 8:
+        entry.sender = "letters@letters.example.net";
+        entry.name = index < 300 ? "" : "Letters";
+        entry.link = `<https://letters.example.net/u/${page}>`;
+        break;
+      case 9:
+        entry.sender = "deals@promo.example.com";
+        entry.name = index < 1000 ? "Promo" : "Promo Deals";
+        entry.plain = index < 100;
+        break;
+    }
+  });
+}
+
+function stale_cache(): SubscriptionCacheData {
+  return {
+    subscriptions: [
+      stored("gone@news.example.com", { email_count: 4 }),
+      stored("left@news.example.com", {
+        status: "unsubscribed",
+        unsubscribed_at: "2026-07-01T00:00:00.000Z",
+        email_count: 12,
+      }),
+      stored("friend0@friends.example.org", { email_count: 3 }),
+      stored("shop@shop.example.com", { email_count: 999 }),
+      stored(sender_address(2), {
+        status: "unsubscribed",
+        unsubscribed_at: "2026-08-01T00:00:00.000Z",
+      }),
+    ],
+    last_scan_ts: "2026-09-01T00:00:00.000Z",
+    last_scan_message_ts: "2026-09-01T00:00:00.000Z",
+    version: SUBSCRIPTION_CACHE_VERSION - 1,
+  };
+}
+
+function snapshot(data: SubscriptionCacheData | undefined) {
+  return {
+    subscriptions: [...(data?.subscriptions ?? [])].sort((a, b) =>
+      a.sender_email.localeCompare(b.sender_email),
+    ),
+    last_scan_ts: data?.last_scan_ts,
+    last_scan_message_ts: data?.last_scan_message_ts,
+    version: data?.version,
+    scan_progress: data?.scan_progress,
+  };
+}
+
+describe("background subscription scan stale senders", () => {
+  it("drops senders a finished rescan did not see", async () => {
+    fill_mixed_mailbox(450);
+    state.cache = stale_cache();
+
+    await run();
+
+    const finished = state.saved.at(-1);
+
+    expect(finished?.scan_progress).toBeUndefined();
+    expect(find(finished, "gone@news.example.com")).toBeUndefined();
+    expect(find(finished, "friend0@friends.example.org")).toBeUndefined();
+    expect(find(finished, "left@news.example.com")).toMatchObject({
+      status: "unsubscribed",
+      unsubscribed_at: "2026-07-01T00:00:00.000Z",
+      email_count: 0,
+    });
+    expect(find(finished, sender_address(2))).toMatchObject({
+      status: "unsubscribed",
+      email_count: 15,
+    });
+  });
+
+  it("keeps them while the rescan is unfinished", async () => {
+    fill_mixed_mailbox(1500);
+    state.cache = stale_cache();
+    state.failures.set(3, 503);
+
+    await run();
+
+    const checkpoint = state.saved.at(-1);
+
+    expect(checkpoint?.scan_progress?.cursor).toBe("600");
+    expect(checkpoint?.scan_progress?.carried).toEqual(
+      expect.arrayContaining([
+        "gone@news.example.com",
+        "left@news.example.com",
+        "friend0@friends.example.org",
+      ]),
+    );
+    expect(checkpoint?.scan_progress?.carried).not.toContain(
+      "shop@shop.example.com",
+    );
+    expect(find(checkpoint, "gone@news.example.com")?.email_count).toBe(4);
+    expect(find(checkpoint, "left@news.example.com")?.email_count).toBe(12);
+    expect(find(checkpoint, "friend0@friends.example.org")?.email_count).toBe(
+      3,
+    );
+    expect(find(checkpoint, "shop@shop.example.com")?.email_count).toBe(60);
+    expect(JSON.stringify(checkpoint)).not.toContain("friend1@");
+    expect(JSON.stringify(checkpoint)).not.toContain("friend2@");
+  });
+
+  it("keeps them on an incremental scan", async () => {
+    fill_mixed_mailbox(20);
+    state.cache = {
+      ...stale_cache(),
+      last_scan_ts: state.mailbox[5].item.created_at,
+      last_scan_message_ts: state.mailbox[5].item.message_ts,
+      version: SUBSCRIPTION_CACHE_VERSION,
+    };
+
+    await run();
+
+    const finished = state.saved.at(-1);
+
+    expect(find(finished, "gone@news.example.com")?.email_count).toBe(4);
+    expect(find(finished, "friend0@friends.example.org")?.email_count).toBe(3);
+  });
+});
+
+describe("background subscription scan resumed result", () => {
+  const scenarios: [string, () => SubscriptionCacheData | null][] = [
+    ["a first scan", () => null],
+    ["an upgrade rescan", stale_cache],
+  ];
+
+  for (const [label, initial_cache] of scenarios) {
+    it(`matches an uninterrupted run for ${label}`, async () => {
+      fill_mixed_mailbox(1500);
+      state.cache = initial_cache();
+
+      await run();
+
+      const clean = snapshot(state.saved.at(-1));
+
+      expect(state.requests).toHaveLength(8);
+      expect(clean.subscriptions.length).toBeGreaterThan(0);
+
+      for (let failing = 1; failing < 8; failing++) {
+        state.cache = initial_cache();
+        state.saved = [];
+        state.requests = [];
+        state.failures = new Map([[failing, 503]]);
+
+        await run();
+
+        state.failures.clear();
+
+        await run();
+
+        const cursors = state.requests.map((params) => params.cursor);
+
+        expect(state.requests).toHaveLength(9);
+        expect(new Set(cursors).size).toBe(8);
+        expect(snapshot(state.saved.at(-1))).toEqual(clean);
+      }
+    });
+  }
 });
 
 describe("background subscription scan with bad resume state", () => {
@@ -516,8 +702,8 @@ describe("background subscription scan with bad resume state", () => {
       ]);
       expect(finished?.scan_progress).toBeUndefined();
       expect(find(finished, sender_address(0))?.email_count).toBe(15);
-      expect(find(finished, "gone@news.example.com")?.email_count).toBe(4);
-      expect(total_count(finished)).toBe(454);
+      expect(find(finished, "gone@news.example.com")).toBeUndefined();
+      expect(total_count(finished)).toBe(450);
     }
   });
 
