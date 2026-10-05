@@ -86,9 +86,8 @@ import {
 import { use_auth_safe } from "@/contexts/auth_context";
 import { use_attachment_keys_version } from "@/hooks/use_attachment_keys_version";
 import { ignore_error } from "@/lib/ignore_error";
+import { run_after_next_paint } from "@/lib/run_after_next_paint";
 import { clip_with_ellipsis } from "@/utils/preview_text";
-
-const AFTER_PAINT_FALLBACK_MS = 100;
 
 interface SanitizedContent {
   html: string;
@@ -106,33 +105,6 @@ const PENDING_CONTENT: SanitizedContent = {
   report: null,
   body_background: undefined,
 };
-
-function run_after_next_paint(task: () => void): () => void {
-  if (
-    typeof requestAnimationFrame !== "function" ||
-    typeof cancelAnimationFrame !== "function"
-  ) {
-    const immediate = setTimeout(task, 0);
-
-    return () => clearTimeout(immediate);
-  }
-
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  const frame = requestAnimationFrame(() => {
-    clearTimeout(fallback);
-    timer = setTimeout(task, 0);
-  });
-  const fallback = setTimeout(() => {
-    cancelAnimationFrame(frame);
-    task();
-  }, AFTER_PAINT_FALLBACK_MS);
-
-  return () => {
-    cancelAnimationFrame(frame);
-    clearTimeout(fallback);
-    if (timer !== undefined) clearTimeout(timer);
-  };
-}
 
 export interface ThreadMessageBlockProps {
   message: DecryptedThreadMessage;

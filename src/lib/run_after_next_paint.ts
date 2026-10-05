@@ -21,6 +21,15 @@
 const AFTER_PAINT_FALLBACK_MS = 100;
 
 export function run_after_next_paint(task: () => void): () => void {
+  if (
+    typeof requestAnimationFrame !== "function" ||
+    typeof cancelAnimationFrame !== "function"
+  ) {
+    const immediate = setTimeout(task, 0);
+
+    return () => clearTimeout(immediate);
+  }
+
   let timer: ReturnType<typeof setTimeout> | undefined;
   const frame = requestAnimationFrame(() => {
     clearTimeout(fallback);
