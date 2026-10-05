@@ -60,7 +60,7 @@ core-foundation = "0.10"
 webview2-com = "0.38"
 windows-core = "0.61"
 rfd = "0.15"
-windows-registry = "0.5"
+windows-registry = "0.6"
 
 [patch.crates-io]
 glib = { path = "patches/glib-0.18.5" }
