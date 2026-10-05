@@ -18,11 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import * as openpgp from "openpgp";
-
-import "@/services/crypto/openpgp_limits";
-
 import { array_to_base64, base64_to_array } from "./key_manager_core";
+
+import { load_openpgp } from "@/services/crypto/openpgp_loader";
 
 export async function verify_prekey_signature(
   prekey_public: string,
@@ -30,6 +28,8 @@ export async function verify_prekey_signature(
   identity_public_key: string,
 ): Promise<boolean> {
   try {
+    const openpgp = await load_openpgp();
+
     const identity_key = await openpgp.readKey({
       armoredKey: identity_public_key,
     });
@@ -79,6 +79,8 @@ export async function verify_key_binding(
   identity_fingerprint: string;
   prekey_fingerprint: string;
 }> {
+  const openpgp = await load_openpgp();
+
   const identity_key = await openpgp.readKey({
     armoredKey: identity_public_key,
   });
@@ -133,6 +135,8 @@ export async function sign_ratchet_prekey_bundle(
   signed_prekey: string,
   pq_identity_key?: string | null,
 ): Promise<string> {
+  const openpgp = await load_openpgp();
+
   const identity_key = await openpgp.decryptKey({
     ["privateKey" as const]: await openpgp.readPrivateKey({
       armoredKey: identity_secret_key,
@@ -199,6 +203,8 @@ export async function read_ratchet_prekey_signature_format(
   }
 
   try {
+    const openpgp = await load_openpgp();
+
     const cleartext = await openpgp.readCleartextMessage({
       cleartextMessage: armored,
     });
@@ -229,6 +235,8 @@ export async function verify_ratchet_prekey_bundle_detailed(
   }
 
   let signed_text: string;
+
+  const openpgp = await load_openpgp();
 
   try {
     const cleartext = await openpgp.readCleartextMessage({

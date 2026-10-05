@@ -18,15 +18,19 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import * as openpgp from "openpgp";
-
-import "@/services/crypto/openpgp_limits";
+import {
+  load_openpgp,
+  type openpgp_module,
+} from "@/services/crypto/openpgp_loader";
 
 const KEY_ID_CACHE_MAX_ENTRIES = 128;
 
 const KEY_ID_CACHE = new Map<string, Promise<string[] | null>>();
 
-function read_key_ids(armored: string): Promise<string[] | null> {
+function read_key_ids(
+  openpgp: openpgp_module,
+  armored: string,
+): Promise<string[] | null> {
   const cached = KEY_ID_CACHE.get(armored);
 
   if (cached) return cached;
@@ -50,6 +54,7 @@ function read_key_ids(armored: string): Promise<string[] | null> {
 
 async function message_key_ids(ciphertext: string): Promise<string[] | null> {
   try {
+    const openpgp = await load_openpgp();
     const message = await openpgp.readMessage({ armoredMessage: ciphertext });
     const ids = message.getEncryptionKeyIDs();
 
@@ -71,12 +76,13 @@ export async function order_keys_for_message(
 
   if (!wanted) return keys;
 
+  const openpgp = await load_openpgp();
   const wanted_set = new Set(wanted);
   const matched: string[] = [];
   const unknown: string[] = [];
 
   for (const key of keys) {
-    const ids = await read_key_ids(key);
+    const ids = await read_key_ids(openpgp, key);
 
     if (ids === null) {
       unknown.push(key);

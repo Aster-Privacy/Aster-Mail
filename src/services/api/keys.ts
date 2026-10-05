@@ -23,6 +23,8 @@ import type { TranslationKey } from "@/lib/i18n/types";
 import { api_client, type ApiResponse } from "./client";
 import { GHOST_DOMAIN } from "./ghost_aliases";
 
+import { load_openpgp } from "@/services/crypto/openpgp_loader";
+
 interface PublicKeyResponse {
   username: string;
   public_key: string;
@@ -201,7 +203,7 @@ async function fingerprint_of_public_key(
   armored_key: string,
 ): Promise<string | null> {
   try {
-    const openpgp = await import("openpgp");
+    const openpgp = await load_openpgp();
     const key = await openpgp.readKey({ armoredKey: armored_key });
 
     return key.getFingerprint().toUpperCase();

@@ -18,8 +18,23 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { describe, it, expect, beforeAll } from "vitest";
+import { describe, it, expect, beforeAll, vi } from "vitest";
 import * as openpgp from "openpgp";
+
+const h = vi.hoisted(() => ({ fail_openpgp_load: false }));
+
+vi.mock("@/services/crypto/openpgp_loader", async (import_original) => {
+  const actual =
+    await import_original<typeof import("@/services/crypto/openpgp_loader")>();
+
+  return {
+    ...actual,
+    load_openpgp: () =>
+      h.fail_openpgp_load
+        ? Promise.reject(new Error("chunk load failed"))
+        : actual.load_openpgp(),
+  };
+});
 
 import {
   sign_ratchet_prekey_bundle,
@@ -189,6 +204,30 @@ describe("ratchet prekey bundle signature", () => {
     );
 
     expect(verdict).toBe("unknown");
+  });
+
+  it("fails instead of reporting 'tampered' when openpgp cannot load", async () => {
+    const field = await sign_ratchet_prekey_bundle(
+      owner_private,
+      PASSPHRASE,
+      KEM_IDENTITY,
+      SIGNED_PREKEY,
+    );
+
+    h.fail_openpgp_load = true;
+
+    try {
+      await expect(
+        verify_ratchet_prekey_bundle_detailed(
+          field,
+          KEM_IDENTITY,
+          SIGNED_PREKEY,
+          owner_public,
+        ),
+      ).rejects.toThrow("chunk load failed");
+    } finally {
+      h.fail_openpgp_load = false;
+    }
   });
 
   it("verifies a v2 canonical binding the pq identity key", async () => {

@@ -69,6 +69,8 @@ import { array_to_base64 } from "@/services/crypto/key_manager_core";
 import { MASTER_KEY_VAULT_FORMAT } from "@/services/crypto/memory_key_store";
 import { register_user } from "@/services/api/auth";
 import { check_and_replenish_prekeys } from "@/services/crypto/prekey_service";
+import { preload_openpgp } from "@/services/crypto/openpgp_loader";
+import { preload_when_idle } from "@/utils/lazy_with_retry";
 import {
   generate_ratchet_keys,
   upload_prekey_bundle,
@@ -398,6 +400,14 @@ export function use_registration(options?: RegistrationClaimOptions) {
   const persist_state_promise_ref = useRef<Promise<void> | null>(null);
   const saving_recovery_email_ref = useRef(false);
   const handoff_ref = useRef(false);
+
+  const has_typed_password = password.length > 0;
+
+  useEffect(() => {
+    if (!has_typed_password) return;
+
+    return preload_when_idle(preload_openpgp);
+  }, [has_typed_password]);
 
   useEffect(() => {
     if (has_existing_session && !handoff_ref.current) {

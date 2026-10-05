@@ -18,17 +18,17 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import * as openpgp from "openpgp";
-
-import "@/services/crypto/openpgp_limits";
+import type { PrivateKey } from "openpgp";
 
 import { compute_hash } from "./key_manager_core";
 import { clear_key_id_cache } from "./pgp_key_selection";
 
+import { load_openpgp } from "@/services/crypto/openpgp_loader";
+
 const UNLOCKED_KEY_CACHE_MAX_ENTRIES = 64;
 const FAILED_UNLOCK_MAX_ENTRIES = 64;
 
-const UNLOCKED_KEY_CACHE = new Map<string, Promise<openpgp.PrivateKey>>();
+const UNLOCKED_KEY_CACHE = new Map<string, Promise<PrivateKey>>();
 const FAILED_UNLOCKS = new Set<string>();
 
 export class unlock_failed_error extends Error {
@@ -61,7 +61,8 @@ function evict_oldest<T>(entries: Map<string, T> | Set<string>, max: number) {
 export async function unlock_private_key(
   secret_key: string,
   passphrase: string,
-): Promise<openpgp.PrivateKey> {
+): Promise<PrivateKey> {
+  const openpgp = await load_openpgp();
   const cache_id = await unlocked_key_cache_id(secret_key, passphrase);
 
   if (FAILED_UNLOCKS.has(cache_id)) throw new unlock_failed_error();

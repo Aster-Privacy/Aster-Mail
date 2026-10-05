@@ -19,9 +19,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { EncryptedVault } from "@/services/crypto/key_manager_core";
+import type { Key } from "openpgp";
 
-import * as openpgp from "openpgp";
-
+import { load_openpgp } from "@/services/crypto/openpgp_loader";
 import {
   prepare_pgp_key_data,
   encrypt_vault,
@@ -45,7 +45,7 @@ interface UserId {
 const UID_EMAIL_PATTERN =
   /^[^\p{C}\p{Z}@<>\u005C]+@[^\p{C}\p{Z}@<>\u005C]+[^\p{C}\p{Z}\p{P}]$/u;
 
-function existing_user_ids(key: openpgp.Key): UserId[] {
+function existing_user_ids(key: Key): UserId[] {
   const ids: UserId[] = [];
 
   for (const user of key.users) {
@@ -108,6 +108,8 @@ export async function add_address_to_identity_key(
   new_address: string,
   display_name: string,
 ): Promise<EncryptedVault | null> {
+  const openpgp = await load_openpgp();
+
   const private_key = await openpgp.readPrivateKey({
     armoredKey: vault.identity_key,
   });
@@ -231,6 +233,8 @@ async function run_identity_republish(
           vault_nonce,
         );
       }
+
+      const openpgp = await load_openpgp();
 
       const private_key = await openpgp.readPrivateKey({
         armoredKey: published_vault.identity_key,

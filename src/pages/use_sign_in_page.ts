@@ -65,6 +65,8 @@ import { sign_in_with_hub_account } from "@/services/hub_linked_login";
 import { is_tauri } from "@/native/desktop_device_auth";
 import { user_facing_error } from "@/utils/user_facing_error";
 import { is_auth_salt_collision } from "@/services/crypto/auth_salt_guard";
+import { preload_openpgp } from "@/services/crypto/openpgp_loader";
+import { preload_when_idle } from "@/utils/lazy_with_retry";
 
 const HUB_AUTO_SIGN_IN_KEY = "aster_hub_auto_sign_in_attempted";
 
@@ -356,6 +358,14 @@ export function use_sign_in_page() {
   useEffect(() => {
     document.title = `${t("auth.sign_in")} | ${t("common.aster_mail")}`;
   }, [t]);
+
+  const has_typed_credentials = username.length > 0 || password.length > 0;
+
+  useEffect(() => {
+    if (!has_typed_credentials) return;
+
+    return preload_when_idle(preload_openpgp);
+  }, [has_typed_credentials]);
 
   useEffect(() => {
     if (!preloaded.current) {

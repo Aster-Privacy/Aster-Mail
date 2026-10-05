@@ -18,12 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import * as openpgp from "openpgp";
-
+import { load_openpgp } from "@/services/crypto/openpgp_loader";
 import { user_facing_error } from "@/utils/user_facing_error";
-
-import "@/services/crypto/openpgp_limits";
-
 import { HASH_ALG } from "@/services/crypto/constants";
 import {
   type EncryptedVault,
@@ -103,6 +99,8 @@ export async function verify_vault_password(
   }
 
   try {
+    const openpgp = await load_openpgp();
+
     await openpgp.decryptKey({
       ["privateKey" as const]: await openpgp.readPrivateKey({
         armoredKey: vault.identity_key,
@@ -156,6 +154,8 @@ async function sign_new_identity_key(
   new_key_bytes: Uint8Array,
 ): Promise<string | null> {
   try {
+    const openpgp = await load_openpgp();
+
     const signing_key = await openpgp.decryptKey({
       privateKey: await openpgp.readPrivateKey({
         armoredKey: current_identity_key,
@@ -441,6 +441,8 @@ export async function get_decryption_key_for_message(
 
   for (const private_key_armored of keys_to_try) {
     try {
+      const openpgp = await load_openpgp();
+
       const decrypted_key = await openpgp.decryptKey({
         ["privateKey" as const]: await openpgp.readPrivateKey({
           armoredKey: private_key_armored,
@@ -500,6 +502,8 @@ export async function decrypt_with_key_fallback(
 
   for (let i = 0; i < keys_to_try.length; i++) {
     try {
+      const openpgp = await load_openpgp();
+
       const decrypted_key = await openpgp.decryptKey({
         ["privateKey" as const]: await openpgp.readPrivateKey({
           armoredKey: keys_to_try[i],

@@ -18,9 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import * as openpgp from "openpgp";
+import type { Key } from "openpgp";
 
-import "@/services/crypto/openpgp_limits";
+import { load_openpgp } from "@/services/crypto/openpgp_loader";
 
 const MODERN_ALGORITHMS = new Set(["x25519", "x448", "ed25519", "ed448"]);
 
@@ -40,7 +40,7 @@ function packet_is_known_bad(key: KeyLike): boolean {
   }
 }
 
-export function is_known_bad_key(key: openpgp.Key): boolean {
+export function is_known_bad_key(key: Key): boolean {
   if (packet_is_known_bad(key as unknown as KeyLike)) return true;
 
   return key
@@ -51,9 +51,11 @@ export function is_known_bad_key(key: openpgp.Key): boolean {
 export async function is_publishable_armored_key(
   armored_key: string,
 ): Promise<boolean> {
-  let key: openpgp.Key;
+  let key: Key;
 
   try {
+    const openpgp = await load_openpgp();
+
     key = await openpgp.readKey({ armoredKey: armored_key });
   } catch {
     return true;

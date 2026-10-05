@@ -18,10 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import * as openpgp from "openpgp";
-
-import "@/services/crypto/openpgp_limits";
-
 import { assert_vault_salt_not_auth_salt } from "./auth_salt_guard";
 import {
   HASH_ALG,
@@ -40,6 +36,7 @@ import {
   type VaultEncryptionResult,
 } from "./key_manager_core";
 
+import { load_openpgp } from "@/services/crypto/openpgp_loader";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 
 const VAULT_SCHEME_VERSION = 1;
@@ -180,6 +177,8 @@ export async function decrypt_vault_to_handles(
   identity_combined.set(identity_encrypted.salt, 0);
   identity_combined.set(identity_encrypted.nonce, 32);
   identity_combined.set(identity_encrypted.encrypted, 44);
+
+  const openpgp = await load_openpgp();
 
   const identity_secret_key = await openpgp.readPrivateKey({
     armoredKey: vault.identity_key,

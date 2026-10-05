@@ -18,10 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import * as openpgp from "openpgp";
-
-import "@/services/crypto/openpgp_limits";
-
+import { load_openpgp } from "@/services/crypto/openpgp_loader";
 import { ignore_error } from "@/lib/ignore_error";
 import {
   get_passphrase_from_memory,
@@ -417,6 +414,8 @@ export async function is_password_encrypted_pgp(
   armored: string,
 ): Promise<boolean> {
   try {
+    const openpgp = await load_openpgp();
+
     const message = await openpgp.readMessage({ armoredMessage: armored });
 
     return message.getEncryptionKeyIDs().length === 0;
@@ -454,6 +453,8 @@ export async function decrypt_pgp_with_password(
   armored: string,
   password: string,
 ): Promise<string> {
+  const openpgp = await load_openpgp();
+
   const message = await openpgp.readMessage({ armoredMessage: armored });
   const result = await openpgp.decrypt({ message, passwords: [password] });
   const plaintext = result.data.toString();
@@ -857,6 +858,7 @@ export async function discover_external_recipient_keys(
 
   const recipients_with_keys: RecipientKeyResult[] = [];
   const recipients_without_keys: string[] = [];
+  const openpgp = await load_openpgp();
 
   for (const email of unique_emails) {
     const key_info = key_map.get(email.toLowerCase());
@@ -912,6 +914,8 @@ export async function derive_own_public_key(): Promise<string | null> {
   if (own_public_key_cache?.private_key === vault.identity_key) {
     return own_public_key_cache.public_key;
   }
+
+  const openpgp = await load_openpgp();
 
   try {
     const private_key = await openpgp.readPrivateKey({

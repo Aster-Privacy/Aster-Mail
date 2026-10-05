@@ -18,9 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import * as openpgp from "openpgp";
-
-import "@/services/crypto/openpgp_limits";
 import { require_usable_auth_salt } from "./auth_salt_guard";
 import {
   HASH_ALG,
@@ -36,6 +33,7 @@ import {
   verify_entropy_quality,
 } from "./key_manager_core";
 
+import { load_openpgp } from "@/services/crypto/openpgp_loader";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { clamp_password } from "@/services/sanitize";
 import { normalize_address_ignoring_dots } from "@/utils/address_dots";
@@ -108,6 +106,8 @@ export async function generate_identity_keypair(
     );
   }
 
+  const openpgp = await load_openpgp();
+
   const { privateKey, publicKey } = await openpgp.generateKey({
     type: "ecc",
     curve: "ed25519Legacy",
@@ -147,6 +147,8 @@ export async function generate_signed_prekey(
       "entropy_source_failure: system entropy source is inadequate",
     );
   }
+
+  const openpgp = await load_openpgp();
 
   const { privateKey, publicKey } = await openpgp.generateKey({
     type: "ecc",
@@ -195,6 +197,8 @@ export async function reprotect_pgp_key(
   old_passphrase: string,
   new_passphrase: string,
 ): Promise<string> {
+  const openpgp = await load_openpgp();
+
   const read_key = await openpgp.readPrivateKey({
     armoredKey: armored_private_key,
   });
@@ -214,6 +218,8 @@ export async function lock_unlocked_pgp_key(
   unlocked_armored: string,
   passphrase: string,
 ): Promise<string> {
+  const openpgp = await load_openpgp();
+
   const read_key = await openpgp.readPrivateKey({
     armoredKey: unlocked_armored,
   });
@@ -244,6 +250,8 @@ export async function armored_private_key_matches(
   }
 
   try {
+    const openpgp = await load_openpgp();
+
     const private_key = await openpgp.readPrivateKey({ armoredKey: armored });
 
     return private_key.getFingerprint().toUpperCase() === wanted;
@@ -265,6 +273,8 @@ export async function find_unlockable_private_key(
     if (!armored) continue;
 
     try {
+      const openpgp = await load_openpgp();
+
       const private_key = await openpgp.readPrivateKey({ armoredKey: armored });
 
       if (private_key.getFingerprint().toUpperCase() !== wanted) continue;
@@ -311,6 +321,8 @@ export async function prepare_pgp_key_data(
   keypair: KeyPair,
   password: string,
 ): Promise<PgpKeyData> {
+  const openpgp = await load_openpgp();
+
   const public_key_obj = await openpgp.readKey({
     armoredKey: keypair.public_key,
   });

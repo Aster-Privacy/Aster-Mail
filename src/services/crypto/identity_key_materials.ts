@@ -20,9 +20,9 @@
 //
 import type { EncryptedVault } from "./key_manager_core";
 
-import * as openpgp from "openpgp";
-
 import { reprotect_pgp_key } from "./key_manager_pgp_keygen";
+
+import { load_openpgp } from "@/services/crypto/openpgp_loader";
 
 export const MAX_PREVIOUS_KEYS = 10;
 export const MAX_LEGACY_IDENTITY_KEYS = 32;
@@ -59,6 +59,8 @@ export function vault_identity_key_materials(
 
 async function key_identity(armored: string): Promise<string> {
   try {
+    const openpgp = await load_openpgp();
+
     const key = await openpgp.readKey({ armoredKey: armored });
 
     return `fp:${key.getFingerprint().toUpperCase()}`;

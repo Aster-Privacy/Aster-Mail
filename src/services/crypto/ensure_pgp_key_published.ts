@@ -18,10 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import * as openpgp from "openpgp";
-
-import "@/services/crypto/openpgp_limits";
-
+import { load_openpgp } from "@/services/crypto/openpgp_loader";
 import { api_client } from "@/services/api/client";
 import { republish_pgp_key } from "@/services/api/key_rotation";
 import { prepare_pgp_key_data } from "@/services/crypto/key_manager";
@@ -138,6 +135,8 @@ async function identity_key_is_publishable(
   armored_identity_key: string,
 ): Promise<boolean> {
   try {
+    const openpgp = await load_openpgp();
+
     const private_key = await openpgp.readPrivateKey({
       armoredKey: armored_identity_key,
     });
@@ -153,6 +152,8 @@ export async function republish_identity_key(
   passphrase: string,
 ): Promise<boolean> {
   try {
+    const openpgp = await load_openpgp();
+
     const private_key = await openpgp.readPrivateKey({
       armoredKey: armored_identity_key,
     });
