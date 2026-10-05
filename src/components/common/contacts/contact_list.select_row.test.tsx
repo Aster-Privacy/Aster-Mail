@@ -77,7 +77,7 @@ const noop = () => {};
 describe("contact list select-all and auto-save rows", () => {
   let container: HTMLDivElement;
   let root: Root;
-  let on_toggle_select_all: ReturnType<typeof vi.fn>;
+  let on_toggle_select_all: ReturnType<typeof vi.fn<() => void>>;
 
   const render_list = async () => {
     await act(async () => {
@@ -170,7 +170,7 @@ describe("contact list select-all and auto-save rows", () => {
   beforeEach(() => {
     auto_save = false;
     update_preference.mockReset();
-    on_toggle_select_all = vi.fn();
+    on_toggle_select_all = vi.fn<() => void>();
     vi.spyOn(contacts_api, "list_contact_groups").mockResolvedValue({
       data: { groups: [] },
     } as never);
