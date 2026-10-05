@@ -367,12 +367,14 @@ export function use_email_inbox_state(props: EmailInboxProps) {
         : stats_total_for_view || 0
       : is_alias_view && !alias_scoped_by_server
         ? filtered_emails.length
-        : Math.max(
-            0,
-            !email_state.has_load_error && email_state.total_messages > 0
-              ? email_state.total_messages
-              : stats_total_for_view || 0,
-          );
+        : !email_state.has_initial_load
+          ? 0
+          : Math.max(
+              0,
+              !email_state.has_load_error && email_state.total_messages > 0
+                ? email_state.total_messages
+                : stats_total_for_view || 0,
+            );
   const total_pages = compute_total_pages({
     effective_total: effective_total_for_pages,
     page_size,
