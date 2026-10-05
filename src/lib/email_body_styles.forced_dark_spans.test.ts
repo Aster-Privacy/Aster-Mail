@@ -91,7 +91,7 @@ function is_cleared(root: HTMLElement, query: string): boolean {
   return true;
 }
 
-function outlook_paragraph(inner: string): string {
+function word_processor_paragraph(inner: string): string {
   return (
     '<div class="WordSection1"><p class="MsoNormal">' +
     '<span style="color:#17375E;mso-style-textfill-fill-color:#17375E;mso-style-textfill-fill-alpha:100.0%">' +
@@ -105,9 +105,9 @@ afterEach(() => {
 });
 
 describe("forced dark mode on inline span backgrounds", () => {
-  it("clears an Outlook white span inside coloured text", () => {
+  it("clears a white span inside colored text", () => {
     const root = render(
-      outlook_paragraph(
+      word_processor_paragraph(
         '<span class="word" style="background:white">award </span>',
       ),
     );
@@ -115,9 +115,9 @@ describe("forced dark mode on inline span backgrounds", () => {
     expect(is_cleared(root, "span.word")).toBe(true);
   });
 
-  it("clears a span with a white hex background colour", () => {
+  it("clears a span with a white hex background color", () => {
     const root = render(
-      outlook_paragraph(
+      word_processor_paragraph(
         '<span class="word" style="background-color:#ffffff">award</span>',
       ),
     );
@@ -125,25 +125,25 @@ describe("forced dark mode on inline span backgrounds", () => {
     expect(is_cleared(root, "span.word")).toBe(true);
   });
 
-  it("clears near white and light grey spans", () => {
+  it("clears near white and light gray spans", () => {
     const root = render(
-      outlook_paragraph(
+      word_processor_paragraph(
         '<span class="near" style="background:#FEFEFE">award</span>' +
           '<span class="rgb" style="background-color:rgb(255, 255, 255)">award</span>' +
           '<span class="short" style="background:#fff">award</span>' +
-          '<span class="grey" style="background-color:#f2f2f2">award</span>',
+          '<span class="gray" style="background-color:#f2f2f2">award</span>',
       ),
     );
 
     expect(is_cleared(root, "span.near")).toBe(true);
     expect(is_cleared(root, "span.rgb")).toBe(true);
     expect(is_cleared(root, "span.short")).toBe(true);
-    expect(is_cleared(root, "span.grey")).toBe(true);
+    expect(is_cleared(root, "span.gray")).toBe(true);
   });
 
-  it("keeps coloured marker highlights", () => {
+  it("keeps colored marker highlights", () => {
     const root = render(
-      outlook_paragraph(
+      word_processor_paragraph(
         '<span class="yellow" style="background:yellow;mso-highlight:yellow">award</span>' +
           '<span class="green" style="background:lime;mso-highlight:lime">award</span>' +
           '<span class="pink" style="background-color:#ffc0cb">award</span>',
