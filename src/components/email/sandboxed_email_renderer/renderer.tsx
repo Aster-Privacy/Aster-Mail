@@ -24,6 +24,7 @@ import * as dom_cleanup from "./dom_cleanup";
 import { build_measurement_controls } from "./measurement_controls";
 import { TrackingPixelMarkers } from "./tracking_pixel_markers";
 import { attach_iframe_interactions } from "./iframe_interactions";
+import { has_designed_background } from "./designed_background";
 import {
   BODY_PADDING,
   CONTENT_READY_FALLBACK_MS,
@@ -71,7 +72,6 @@ import {
   type BlockedImageLabels,
 } from "@/lib/blocked_image_placeholder";
 import { use_resolved_accent } from "@/lib/resolved_accent";
-import { is_transparent_color_value } from "@/lib/html_sanitizer";
 import { get_image_proxy_url } from "@/lib/image_proxy";
 import { build_proxied_content_csp } from "@/lib/email_content_csp";
 import { email_font_src, preload_email_fonts } from "@/lib/email_font_sources";
@@ -311,23 +311,12 @@ export function SandboxedEmailRenderer({
     const has_block_html =
       /<(div|p|table|tr|td|h[1-6]|ul|ol|li|blockquote)\b/i.test(layout_probe);
     const has_table_layout = /<table\b/i.test(layout_probe);
-    const has_designed_bg = (
-      layout_probe.match(/background(?:-color)?\s*:\s*[^;"'}]+/gi) ?? []
-    ).some((declaration) => {
-      const value_match = declaration.match(
-        /background(?:-color)?\s*:\s*([^;"'}]+)$/i,
-      );
-      const value = value_match ? value_match[1].trim() : "";
-
-      return (
-        /^(?:#[0-9a-f]|rgba?\(|hsla?\(|white\b|black\b|[a-z]+gr[ae]y\b)/i.test(
-          value,
-        ) && !is_transparent_color_value(value)
-      );
-    });
-    const has_style_block = /<style\b[^>]*>[\s\S]*?background/i.test(
+    const has_designed_bg = has_designed_background(
       layout_probe,
+      body_background,
     );
+    const has_style_block =
+      /<style\b[^>]*>(?:(?!<\/style\b)[\s\S])*?background/i.test(layout_probe);
     const has_centered_card =
       /max-width\s*:\s*[3456789]\d{2}px[^;}"']*;[^"']*margin\s*:[^;}"']*auto/i.test(
         layout_probe,
@@ -351,7 +340,7 @@ export function SandboxedEmailRenderer({
       has_newsletter_layout,
       declares_light_scheme,
     };
-  }, [sanitized_html]);
+  }, [sanitized_html, body_background]);
   const {
     has_block_html,
     has_table_layout,
