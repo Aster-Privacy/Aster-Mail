@@ -233,11 +233,11 @@ describe("subject tracking protection shield", () => {
     expect(title?.textContent).toBe("Tracking Protection");
     expect(domain_rows()).toEqual([
       ["open.mailmetrics.example", "x2"],
-      ["t.beacon.example", "x1"],
+      ["t.beacon.example", ""],
     ]);
     expect(domain_row_names()).toEqual([
       "open.mailmetrics.examplex22 tracking pixels",
-      "t.beacon.examplex11 tracking pixel",
+      "t.beacon.example1 tracking pixel",
     ]);
     list_is_inert();
   });
@@ -342,7 +342,7 @@ describe("mobile blocked content banner", () => {
     );
     expect(domain_rows()).toEqual([
       ["open.mailmetrics.example", "x2"],
-      ["t.beacon.example", "x1"],
+      ["t.beacon.example", ""],
     ]);
     list_is_inert();
   });

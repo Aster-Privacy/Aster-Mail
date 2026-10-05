@@ -46,13 +46,15 @@ export function TrackingPixelDomainList({
           >
             {domain}
           </span>
-          <span
-            aria-hidden="true"
-            className="flex-shrink-0 text-[11px] tabular-nums text-txt-muted"
-            data-testid="tracking-pixel-domain-count"
-          >
-            x{count}
-          </span>
+          {count > 1 && (
+            <span
+              aria-hidden="true"
+              className="flex-shrink-0 text-[11px] tabular-nums text-txt-muted"
+              data-testid="tracking-pixel-domain-count"
+            >
+              x{count}
+            </span>
+          )}
           <span className="sr-only">
             {t("common.tracking_pixels_count", { count })}
           </span>
