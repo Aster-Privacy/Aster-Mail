@@ -22,18 +22,27 @@ import type { DecryptedThreadMessage } from "@/types/thread";
 import type { TranslationKey } from "@/lib/i18n";
 import type { PhishingLevel } from "@/lib/phishing_analyzer";
 
-import { useMemo, useEffect, useState } from "react";
+import { useMemo, useEffect, useRef, useState } from "react";
 import {
   ArrowUturnLeftIcon,
   ArrowUturnRightIcon,
   EllipsisHorizontalIcon,
 } from "@heroicons/react/24/outline";
 
-import { SandboxedEmailRenderer } from "@/components/email/sandboxed_email_renderer";
+import {
+  SandboxedEmailRenderer,
+  get_cached_iframe_height,
+} from "@/components/email/sandboxed_email_renderer";
+import { UNMEASURED_PLACEHOLDER_HEIGHT } from "@/components/email/sandboxed_email_renderer/helpers";
+import {
+  guard_body_step,
+  readable_fallback_html,
+} from "@/components/email/message_body_fallback";
 import { TranslationBanner } from "@/components/email/banners/translation_banner";
 import { use_email_translation } from "@/components/email/hooks/use_email_translation";
 import { analyze_email_content } from "@/lib/phishing_analyzer";
 import { ignore_error } from "@/lib/ignore_error";
+import { run_after_next_paint } from "@/lib/run_after_next_paint";
 import {
   sanitize_html,
   is_html_content,
@@ -41,6 +50,7 @@ import {
   plain_text_to_html,
   strip_html_tags_bounded,
   type ExternalContentReport,
+  type SanitizeResult,
 } from "@/lib/html_sanitizer";
 import {
   extract_preview_html,
@@ -77,6 +87,27 @@ import {
   use_alias_delivery,
 } from "@/hooks/use_alias_delivery";
 import { strip_reply_quotes } from "@/lib/strip_reply_quotes";
+
+interface SanitizeJob {
+  ready?: SanitizeResult;
+  run?: () => SanitizeResult;
+}
+
+const EMPTY_EXTERNAL_CONTENT: ExternalContentReport = {
+  has_remote_images: false,
+  has_remote_fonts: false,
+  has_remote_css: false,
+  has_tracking_pixels: false,
+  blocked_count: 0,
+  blocked_items: [],
+  cleaned_links: [],
+};
+
+const PENDING_CONTENT: SanitizeResult = {
+  html: "",
+  external_content: EMPTY_EXTERNAL_CONTENT,
+  body_background: undefined,
+};
 
 export function format_safe_date(
   timestamp: string | number | undefined,
@@ -224,53 +255,124 @@ export function MobileThreadMessage({
   );
   const alias_delivery = use_alias_delivery(undefined, alias_candidates_key);
 
-  const sanitize_result = useMemo(() => {
-    if (!is_html_content(clean_body)) {
-      return {
-        html: plain_text_to_html(clean_body),
-        external_content: {
-          has_remote_images: false,
-          has_remote_fonts: false,
-          has_remote_css: false,
-          has_tracking_pixels: false,
-          blocked_count: 0,
-          blocked_items: [],
-          cleaned_links: [],
-        } as ExternalContentReport,
-        body_background: undefined,
-      };
-    }
+  const is_body_visible =
+    is_expanded &&
+    !message.is_deleted &&
+    !password_protected &&
+    !is_ratchet_undecryptable;
 
-    return sanitize_html(clean_body, {
-      external_content_mode: lockdown_active
-        ? "never"
-        : is_system
-          ? "always"
-          : preferences.load_remote_images,
-      image_proxy_url: get_image_proxy_url(),
-      sandbox_mode: true,
-      lockdown_mode: lockdown_active,
-      content_blocking:
-        !is_system && preferences.block_external_content
-          ? {
-              block_remote_images:
-                lockdown_active || preferences.block_remote_images,
-              block_remote_fonts:
-                lockdown_active || preferences.block_remote_fonts,
-              block_remote_css: lockdown_active || preferences.block_remote_css,
-              block_tracking_pixels:
-                lockdown_active || preferences.block_tracking_pixels,
-            }
-          : lockdown_active
-            ? {
-                block_remote_images: true,
-                block_remote_fonts: true,
-                block_remote_css: true,
-                block_tracking_pixels: true,
-              }
-            : undefined,
+  const sanitize_job = useMemo((): SanitizeJob => {
+    const fallback_content = (): SanitizeResult => ({
+      html: readable_fallback_html(clean_body, message.body),
+      external_content: EMPTY_EXTERNAL_CONTENT,
+      body_background: undefined,
     });
-  }, [clean_body, is_system, preferences, lockdown_active]);
+
+    const build_sanitize_job = (): SanitizeJob => {
+      if (!is_html_content(clean_body)) {
+        return {
+          ready: {
+            html: plain_text_to_html(clean_body),
+            external_content: EMPTY_EXTERNAL_CONTENT,
+            body_background: undefined,
+          },
+        };
+      }
+
+      const sanitize = (): SanitizeResult =>
+        sanitize_html(clean_body, {
+          external_content_mode: lockdown_active
+            ? "never"
+            : is_system
+              ? "always"
+              : preferences.load_remote_images,
+          image_proxy_url: get_image_proxy_url(),
+          sandbox_mode: true,
+          lockdown_mode: lockdown_active,
+          content_blocking:
+            !is_system && preferences.block_external_content
+              ? {
+                  block_remote_images:
+                    lockdown_active || preferences.block_remote_images,
+                  block_remote_fonts:
+                    lockdown_active || preferences.block_remote_fonts,
+                  block_remote_css:
+                    lockdown_active || preferences.block_remote_css,
+                  block_tracking_pixels:
+                    lockdown_active || preferences.block_tracking_pixels,
+                }
+              : lockdown_active
+                ? {
+                    block_remote_images: true,
+                    block_remote_fonts: true,
+                    block_remote_css: true,
+                    block_tracking_pixels: true,
+                  }
+                : undefined,
+        });
+
+      return {
+        run: () =>
+          guard_body_step(
+            "pages/mobile/mobile_thread_message:sanitize",
+            sanitize,
+            fallback_content,
+          ),
+      };
+    };
+
+    return guard_body_step(
+      "pages/mobile/mobile_thread_message:sanitize",
+      build_sanitize_job,
+      () => ({ ready: fallback_content() }),
+    );
+  }, [clean_body, message.body, is_system, preferences, lockdown_active]);
+
+  const [deferred_content, set_deferred_content] = useState<{
+    job: SanitizeJob;
+    content: SanitizeResult;
+  } | null>(null);
+  const shown_message_ref = useRef<string | null>(null);
+  const same_render_ref = useRef<{
+    job: SanitizeJob;
+    content: SanitizeResult;
+  } | null>(null);
+
+  const ready_content = useMemo((): SanitizeResult | null => {
+    if (sanitize_job.ready) return sanitize_job.ready;
+    if (deferred_content?.job === sanitize_job) return deferred_content.content;
+    if (same_render_ref.current?.job === sanitize_job) {
+      return same_render_ref.current.content;
+    }
+    if (!is_body_visible) return PENDING_CONTENT;
+    if (shown_message_ref.current !== message.id) return null;
+
+    const content = sanitize_job.run!();
+
+    same_render_ref.current = { job: sanitize_job, content };
+
+    return content;
+  }, [sanitize_job, deferred_content, is_body_visible, message.id]);
+
+  const is_sanitize_pending = ready_content === null;
+
+  useEffect(() => {
+    if (!is_sanitize_pending || !sanitize_job.run) return;
+    const run = sanitize_job.run;
+
+    return run_after_next_paint(() => {
+      set_deferred_content({ job: sanitize_job, content: run() });
+    });
+  }, [is_sanitize_pending, sanitize_job]);
+
+  if (ready_content && is_body_visible) {
+    shown_message_ref.current = message.id;
+  }
+
+  const sanitize_result = ready_content ?? PENDING_CONTENT;
+  const pending_body_height = is_sanitize_pending
+    ? get_cached_iframe_height(message.id)
+    : undefined;
 
   const sanitized_html = sanitize_result.html;
 
@@ -533,17 +635,28 @@ export function MobileThreadMessage({
                 target_language={translation.target_language}
               />
             </div>
-            <SandboxedEmailRenderer
-              body_background={sanitize_result.body_background}
-              disable_auto_dark_mode={disable_auto_dark_mode}
-              email_id={message.id}
-              force_dark_mode={force_dark_mode}
-              is_plain_text={!has_rich_html(clean_body)}
-              load_remote_content={!lockdown_active && load_remote_content}
-              on_document_ready={translation.on_document_ready}
-              sanitized_html={sanitized_html}
-              variant="mobile"
-            />
+            {is_sanitize_pending ? (
+              <div
+                aria-hidden="true"
+                style={{
+                  height: pending_body_height
+                    ? `${pending_body_height}px`
+                    : UNMEASURED_PLACEHOLDER_HEIGHT,
+                }}
+              />
+            ) : (
+              <SandboxedEmailRenderer
+                body_background={sanitize_result.body_background}
+                disable_auto_dark_mode={disable_auto_dark_mode}
+                email_id={message.id}
+                force_dark_mode={force_dark_mode}
+                is_plain_text={!has_rich_html(clean_body)}
+                load_remote_content={!lockdown_active && load_remote_content}
+                on_document_ready={translation.on_document_ready}
+                sanitized_html={sanitized_html}
+                variant="mobile"
+              />
+            )}
           </>
         )}
       </div>
