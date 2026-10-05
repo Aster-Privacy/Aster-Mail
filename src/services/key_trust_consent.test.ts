@@ -179,4 +179,12 @@ describe("external key trust consent", () => {
       KeyTrustCheckError,
     );
   });
+
+  it("retries a failed key lookup once before blocking the send", async () => {
+    vi.mocked(discover_external_keys_batch).mockResolvedValueOnce({
+      error: "unavailable",
+    });
+
+    await expect(ensure_external_key_trust([settled])).resolves.toBe(true);
+  });
 });

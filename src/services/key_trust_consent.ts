@@ -38,6 +38,8 @@ export type KeyTrustPromptHandler = (
   changes: KeyFingerprintChange[],
 ) => Promise<boolean>;
 
+const KEY_TRUST_RETRY_MS = 600;
+
 let prompt_handler: KeyTrustPromptHandler | null = null;
 
 export class KeyTrustCheckError extends Error {
@@ -69,7 +71,12 @@ export async function find_key_fingerprint_changes(
 
   if (external.length === 0) return [];
 
-  const response = await discover_external_keys_batch(external);
+  let response = await discover_external_keys_batch(external);
+
+  if (response.error || !response.data) {
+    await new Promise((resolve) => setTimeout(resolve, KEY_TRUST_RETRY_MS));
+    response = await discover_external_keys_batch(external);
+  }
 
   if (response.error || !response.data) throw new KeyTrustCheckError();
 

@@ -90,6 +90,13 @@ export function describe_send_refusal(
     };
   }
 
+  if (result.server_code === "ENCRYPTION_REQUIRED_NO_KEY") {
+    return {
+      kind: "send_failed",
+      message: get_active_translations().errors.cannot_send_no_recipient_keys,
+    };
+  }
+
   if (result.code === "RATE_LIMIT_EXCEEDED" && result.resets_at) {
     return {
       kind: "rate_limited",

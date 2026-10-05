@@ -73,6 +73,16 @@ describe("describe_send_refusal", () => {
     expect(refusal?.message).toContain("50");
   });
 
+  it("explains a send refused because encryption is required", () => {
+    const refusal = describe_send_refusal({
+      code: "VALIDATION_ERROR",
+      server_code: "ENCRYPTION_REQUIRED_NO_KEY",
+    });
+
+    expect(refusal?.kind).toBe("send_failed");
+    expect(refusal?.message).toBe(en.errors.cannot_send_no_recipient_keys);
+  });
+
   it("falls back to a neutral phrase when the server names no domain", () => {
     const refusal = describe_send_refusal({
       server_code: "RECIPIENT_CONCENTRATION",

@@ -23,6 +23,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { undo_send_manager } from "./undo_send_manager";
 import { undo_send_api } from "./api/undo_send";
 
+import { en } from "@/lib/i18n/translations/en";
+
 vi.mock("./api/undo_send", () => ({
   undo_send_api: {
     queue_email: vi.fn(),
@@ -185,6 +187,33 @@ describe("undo_send_manager send finalization", () => {
       options,
     );
   }
+
+  it("explains a queue request refused because encryption is required", async () => {
+    const on_error = vi.fn();
+
+    mocked_api.queue_email.mockResolvedValue({
+      error: "An unexpected error occurred. Try again.",
+      code: "VALIDATION_ERROR",
+      server_code: "ENCRYPTION_REQUIRED_NO_KEY",
+    } as never);
+
+    const pending = await undo_send_manager.queue_email(
+      {
+        to: ["ghost@realiased.me"],
+        cc: [],
+        bcc: [],
+        subject: "hi",
+        body: "b",
+        delay_seconds: 1,
+      } as never,
+      { on_error },
+    );
+
+    expect(pending).toBeNull();
+    expect(on_error).toHaveBeenCalledWith(
+      en.errors.cannot_send_no_recipient_keys,
+    );
+  });
 
   it("waits for a terminal status instead of assuming the send succeeded", async () => {
     const on_sent = vi.fn();
