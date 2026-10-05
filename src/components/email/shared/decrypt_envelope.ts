@@ -338,6 +338,54 @@ async function decrypt_inbound_with_key_sets(
     if (plain) return plain;
   }
 
+  if (marker !== INBOUND_PQ_HYBRID_MARKER) return null;
+
+  return decrypt_inbound_hybrid_across_key_sets(
+    key_sets,
+    enc_bytes,
+    nonce_bytes,
+  );
+}
+
+async function decrypt_inbound_hybrid_across_key_sets(
+  key_sets: InboundRatchetKeySet[],
+  enc_bytes: Uint8Array,
+  nonce_bytes: Uint8Array,
+): Promise<Uint8Array | null> {
+  const pq_secrets: Array<string | undefined> = [];
+
+  for (const key_set of key_sets) {
+    pq_secrets.push(await resolve_inbound_pq(key_set));
+  }
+
+  const tried = new Set<string>();
+
+  key_sets.forEach((key_set, index) => {
+    const own = pq_secrets[index];
+
+    if (own) tried.add(`${key_set.ecdh}|${own}`);
+  });
+
+  for (const key_set of key_sets) {
+    for (const pq of pq_secrets) {
+      if (!pq) continue;
+
+      const pair = `${key_set.ecdh}|${pq}`;
+
+      if (tried.has(pair)) continue;
+      tried.add(pair);
+
+      const plain = await decrypt_inbound_pq_hybrid(
+        enc_bytes,
+        nonce_bytes,
+        key_set.ecdh,
+        pq,
+      );
+
+      if (plain) return plain;
+    }
+  }
+
   return null;
 }
 
