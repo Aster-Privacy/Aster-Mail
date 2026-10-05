@@ -36,6 +36,7 @@ import {
 import { detect_unsubscribe_info } from "@/utils/unsubscribe_detector";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
 import { build_body_preview } from "@/utils/preview_text";
+import { ignore_error } from "@/lib/ignore_error";
 
 export interface ProcessedEnvelope {
   body_text: string;
@@ -44,7 +45,54 @@ export interface ProcessedEnvelope {
   e2e_verified: boolean;
 }
 
+function as_displayable(value: unknown): string | undefined {
+  if (typeof value !== "string" || !value) return undefined;
+  if (is_ratchet_envelope(value)) return undefined;
+  if (value.includes("-----BEGIN PGP MESSAGE-----")) return undefined;
+
+  return value;
+}
+
+export function raw_envelope_body(
+  envelope: DecryptedEnvelope,
+): ProcessedEnvelope {
+  return {
+    body_text:
+      as_displayable(envelope?.body_text) ??
+      as_displayable(envelope?.text_body) ??
+      "",
+    safe_html:
+      as_displayable(envelope?.body_html) ??
+      as_displayable(envelope?.html_body),
+    unsubscribe_info: undefined,
+    e2e_verified: false,
+  };
+}
+
 export async function process_envelope_body(
+  envelope: DecryptedEnvelope,
+  user_email?: string,
+  message_id?: string,
+  dkim_result?: string,
+): Promise<ProcessedEnvelope> {
+  try {
+    return await resolve_envelope_body(
+      envelope,
+      user_email,
+      message_id,
+      dkim_result,
+    );
+  } catch (caught) {
+    ignore_error(
+      "components/email/shared/build_email_from_envelope:process",
+      caught,
+    );
+
+    return raw_envelope_body(envelope);
+  }
+}
+
+async function resolve_envelope_body(
   envelope: DecryptedEnvelope,
   user_email?: string,
   message_id?: string,
@@ -134,11 +182,20 @@ export async function process_envelope_body(
     envelope.subject = html_bundle.subject;
   }
 
-  const unsubscribe = detect_unsubscribe_info(resolved_html || "", body_text, {
-    list_unsubscribe: envelope.list_unsubscribe,
-    list_unsubscribe_post: envelope.list_unsubscribe_post,
-    dkim_result,
-  });
+  let unsubscribe: UnsubscribeInfo | null | undefined;
+
+  try {
+    unsubscribe = detect_unsubscribe_info(resolved_html || "", body_text, {
+      list_unsubscribe: envelope.list_unsubscribe,
+      list_unsubscribe_post: envelope.list_unsubscribe_post,
+      dkim_result,
+    });
+  } catch (caught) {
+    ignore_error(
+      "components/email/shared/build_email_from_envelope:unsubscribe",
+      caught,
+    );
+  }
 
   return {
     body_text,

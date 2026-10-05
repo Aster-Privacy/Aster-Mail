@@ -33,11 +33,9 @@ const pending = new Map<string, PendingThread>();
 const owner_of = new Map<string, string>();
 const settle_timers = new Map<string, ReturnType<typeof setTimeout>>();
 const listeners = new Set<() => void>();
-let version = 0;
 let events_bound = false;
 
 function notify(): void {
-  version += 1;
   listeners.forEach((listener) => listener());
 }
 
@@ -147,18 +145,14 @@ function subscribe(listener: () => void): () => void {
   };
 }
 
-function get_version(): number {
-  return version;
-}
-
 export function use_shown_thread_count(
   thread_token: string | undefined,
   server_count: number | null | undefined,
 ): number {
   bind_reply_events();
-  useSyncExternalStore(subscribe, get_version, get_version);
 
-  const shown = shown_thread_count(thread_token, server_count);
+  const get_shown = () => shown_thread_count(thread_token, server_count);
+  const shown = useSyncExternalStore(subscribe, get_shown, get_shown);
 
   useEffect(() => {
     note_thread_count_baseline(thread_token, server_count ?? 1);

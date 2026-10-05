@@ -76,6 +76,7 @@ import {
   type ScheduledEmailContent,
 } from "@/services/api/scheduled";
 import { check_scheduled_send } from "@/services/scheduled_send_gate";
+import { get_or_create_thread_token } from "@/services/thread_service";
 import { emit_scheduled_changed } from "@/hooks/mail_events";
 import { create_draft, delete_thread_draft } from "@/services/api/multi_drafts";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
@@ -878,6 +879,19 @@ export function use_reply_modal(props: UseReplyModalProps) {
       resolve_placement,
     );
 
+    let scheduled_thread_id = thread_token;
+
+    if (original_email_id) {
+      const resolved_token = await get_or_create_thread_token(
+        original_email_id,
+        thread_token,
+      ).catch(() => null);
+
+      if (resolved_token) {
+        scheduled_thread_id = resolved_token;
+      }
+    }
+
     const content: ScheduledEmailContent = {
       to_recipients: send_recipients.to,
       cc_recipients: send_recipients.cc,
@@ -888,11 +902,15 @@ export function use_reply_modal(props: UseReplyModalProps) {
       ),
       body: message_with_signature,
       scheduled_at: scheduled_time.toISOString(),
-      ...(selected_sender?.is_catch_all
+      ...(original_rfc_message_id
+        ? { in_reply_to: original_rfc_message_id }
+        : {}),
+      ...(scheduled_thread_id ? { thread_id: scheduled_thread_id } : {}),
+      ...(scheduled_alias
         ? {
             from: {
-              name: selected_sender.display_name || "",
-              email: selected_sender.email,
+              name: scheduled_alias.display_name || "",
+              email: scheduled_alias.email,
             },
           }
         : {}),
@@ -952,6 +970,9 @@ export function use_reply_modal(props: UseReplyModalProps) {
     reply_from_mismatch,
     expires_at,
     preferences.require_encryption,
+    thread_token,
+    original_email_id,
+    original_rfc_message_id,
   ]);
 
   handle_send_ref.current = handle_send;

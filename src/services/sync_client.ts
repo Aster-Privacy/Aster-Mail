@@ -21,6 +21,7 @@
 import type { EncryptedVault } from "./crypto/key_manager";
 
 import { api_client } from "./api/client";
+import { request_cache } from "./api/request_cache";
 import { check_and_replenish_prekeys } from "./crypto/prekey_service";
 import { connection_store } from "./routing/connection_store";
 import { TorUnavailableError } from "./routing/tor_unavailable_error";
@@ -37,6 +38,9 @@ import {
   emit_reactions_changed,
   emit_mail_items_removed,
   emit_contacts_changed,
+  emit_folders_changed,
+  emit_tags_changed,
+  emit_definitions_stale,
 } from "@/hooks/mail_events";
 import { mark_view_stale } from "@/hooks/email_list_cache";
 import { is_low_network } from "@/services/low_network_state";
@@ -59,6 +63,8 @@ type ServerMessageType =
   | "prekey_low"
   | "session_revoked"
   | "contacts_changed"
+  | "folders_changed"
+  | "tags_changed"
   | "mail_mutation"
   | "ping"
   | "pong";
@@ -78,6 +84,7 @@ interface ServerMessage {
 const HEARTBEAT_INTERVAL_MS = 30000;
 const LIVENESS_TIMEOUT_MS = 75000;
 const CATCH_UP_TICK_MS = 60000;
+const DEFINITIONS_REFRESH_MIN_MS = 30000;
 export const PUSH_ARRIVED_MESSAGE = "aster_push_arrived";
 const MUTATION_REFRESH_DEBOUNCE_MS = 600;
 const REMOVAL_ACTIONS = new Set([
@@ -109,6 +116,7 @@ class SyncClient {
   private reconnect_attempt = 0;
   private has_authenticated_before = false;
   private last_catch_up_at = 0;
+  private last_definitions_refresh_at = 0;
   private catch_up_timer: ReturnType<typeof setInterval> | null = null;
   private pending_connect_reject: ((err: Error) => void) | null = null;
   private heartbeat_timer: ReturnType<typeof setInterval> | null = null;
@@ -232,6 +240,7 @@ class SyncClient {
           return;
         }
 
+        request_cache.end_fresh_joins();
         this.handle_message(data);
 
         if (data.type === "auth_success") {
@@ -251,6 +260,7 @@ class SyncClient {
             window.dispatchEvent(
               new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
             );
+            this.refresh_definitions();
           }
           settle_resolve();
         } else if (data.type === "auth_error") {
@@ -350,6 +360,27 @@ class SyncClient {
     if (socket_live && Date.now() - this.last_catch_up_at >= CATCH_UP_TICK_MS) {
       this.catch_up_now();
     }
+
+    if (
+      this.should_reconnect &&
+      Date.now() - this.last_definitions_refresh_at >=
+        DEFINITIONS_REFRESH_MIN_MS
+    ) {
+      this.refresh_definitions();
+    }
+  }
+
+  private refresh_definitions(): void {
+    if (
+      typeof document !== "undefined" &&
+      document.visibilityState === "hidden"
+    ) {
+      return;
+    }
+    this.last_definitions_refresh_at = Date.now();
+    request_cache.invalidate("/mail/v1/labels");
+    request_cache.invalidate("/mail/v1/tags");
+    emit_definitions_stale();
   }
 
   reconnect_now(): void {
@@ -453,6 +484,7 @@ class SyncClient {
       this.mutation_refresh_timer = null;
       window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
       window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_STATS_STALE));
+      window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_REMOTE_MUTATION));
     }, MUTATION_REFRESH_DEBOUNCE_MS);
   }
 
@@ -499,6 +531,20 @@ class SyncClient {
 
     if (data.type === "contacts_changed") {
       emit_contacts_changed();
+
+      return;
+    }
+
+    if (data.type === "folders_changed") {
+      request_cache.invalidate("/mail/v1/labels");
+      emit_folders_changed();
+
+      return;
+    }
+
+    if (data.type === "tags_changed") {
+      request_cache.invalidate("/mail/v1/tags");
+      emit_tags_changed();
 
       return;
     }
@@ -632,6 +678,7 @@ class SyncClient {
     this.auth_error_count = 0;
     this.reconnect_attempt = 0;
     this.has_authenticated_before = false;
+    this.last_definitions_refresh_at = 0;
     if (this.reconnect_timeout) {
       clearTimeout(this.reconnect_timeout);
       this.reconnect_timeout = null;
@@ -753,6 +800,7 @@ if (typeof window !== "undefined") {
         { type?: string } | null | undefined;
 
       if (data?.type === PUSH_ARRIVED_MESSAGE) {
+        request_cache.end_fresh_joins();
         sync_client.catch_up_now();
       }
     });

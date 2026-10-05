@@ -31,7 +31,10 @@ import {
   delete_draft,
   type Draft,
 } from "@/services/api/multi_drafts";
-import { send_reply } from "@/services/mail_actions";
+import { cancel_mail_action, send_reply } from "@/services/mail_actions";
+import { show_toast } from "@/components/toast/simple_toast";
+
+vi.mock("@/components/toast/simple_toast", () => ({ show_toast: vi.fn() }));
 
 vi.mock("@/services/api/multi_drafts", () => ({
   create_draft: vi.fn(),
@@ -148,6 +151,7 @@ vi.mock("@/utils/ime", () => ({ is_composing: () => false }));
 const mocked_create = vi.mocked(create_draft);
 const mocked_delete = vi.mocked(delete_draft);
 const mocked_send = vi.mocked(send_reply);
+const mocked_cancel = vi.mocked(cancel_mail_action);
 
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean;
@@ -183,14 +187,26 @@ describe("InlineReplySection draft race on send", () => {
     });
   };
 
-  const render_section = async () => {
+  const click_button = async (label: string) => {
+    const target = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent?.trim() === label,
+    );
+
+    if (!target) throw new Error(`${label} button not found`);
+
+    await act(async () => {
+      target.click();
+    });
+  };
+
+  const render_section = async (on_close: () => void = vi.fn()) => {
     await act(async () => {
       root.render(
         <InlineReplySection
           body="original body"
           email_id="email_1"
           is_visible={true}
-          on_close={vi.fn()}
+          on_close={on_close}
           on_reply_sent={vi.fn()}
           sender_email="them@example.com"
           sender_name="Them"
@@ -270,5 +286,74 @@ describe("InlineReplySection draft race on send", () => {
     });
 
     expect(mocked_delete).toHaveBeenCalledWith("draft_inflight");
+  });
+
+  it("closes the reply when the cancel request fails", async () => {
+    const on_close = vi.fn();
+
+    mocked_cancel.mockResolvedValue("failed");
+    await render_section(on_close);
+    await type_text("a reply");
+    await click_send();
+    await click_button("common.cancel");
+
+    expect(show_toast).toHaveBeenCalledWith(
+      "common.something_went_wrong_try_again",
+      "error",
+    );
+    expect(on_close).toHaveBeenCalledTimes(1);
+    expect(container.querySelector("textarea")?.value).toBe("a reply");
+  });
+
+  it("closes the reply and says it was sent when undo is too late", async () => {
+    const on_close = vi.fn();
+
+    mocked_cancel.mockResolvedValue("expired");
+    await render_section(on_close);
+    await type_text("a reply");
+    await click_send();
+    await click_button("common.cancel");
+
+    expect(show_toast).toHaveBeenCalledWith(
+      "common.undo_send_too_late",
+      "error",
+    );
+    expect(on_close).toHaveBeenCalledTimes(1);
+    expect(container.querySelector("textarea")?.value).toBe("");
+  });
+
+  it("shows the sent state when undo is too late, then lets the reply close", async () => {
+    const on_close = vi.fn();
+
+    mocked_cancel.mockResolvedValue("expired");
+    await render_section(on_close);
+    await type_text("a reply");
+    await click_send();
+    await click_button("common.undo");
+
+    expect(container.textContent).toContain("mail.reply_sent_successfully");
+    expect(container.textContent).not.toContain("common.undo");
+
+    await click_button("common.cancel");
+
+    expect(mocked_cancel).toHaveBeenCalledTimes(1);
+    expect(on_close).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps the queued send visible when undo fails, and cancel still closes", async () => {
+    const on_close = vi.fn();
+
+    mocked_cancel.mockResolvedValue("failed");
+    await render_section(on_close);
+    await type_text("a reply");
+    await click_send();
+    await click_button("common.undo");
+
+    expect(container.textContent).toContain("common.undo");
+    expect(on_close).not.toHaveBeenCalled();
+
+    await click_button("common.cancel");
+
+    expect(on_close).toHaveBeenCalledTimes(1);
   });
 });

@@ -129,7 +129,6 @@ const fit = (
     observer_ref: { current: null },
     raf_ref: { current: 0 },
     remeasure_ref: { current: null },
-    stable_timer_ref: { current: null },
     on_document_ready_ref: { current: undefined },
     set_height_ready: vi.fn(),
     set_iframe_height: vi.fn(),

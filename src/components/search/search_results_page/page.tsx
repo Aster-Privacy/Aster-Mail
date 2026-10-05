@@ -85,6 +85,8 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { use_open_reply_compose } from "@/components/email/inbox/use_open_reply_compose";
 import { use_auth } from "@/contexts/auth_context";
 import { use_folders } from "@/hooks/use_folders";
+import { order_folders_as_tree } from "@/hooks/use_folders/tree";
+import { order_tags_as_tree } from "@/hooks/tag_tree";
 import { snooze_email } from "@/services/api/snooze";
 import { bulk_add_folder, bulk_remove_folder } from "@/services/api/mail";
 import { use_tags } from "@/hooks/use_tags";
@@ -249,10 +251,11 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
   const { state: tags_state } = use_tags();
   const menu_tags = useMemo(
     () =>
-      tags_state.tags.map((tag) => ({
+      order_tags_as_tree(tags_state.tags).map(({ tag, depth }) => ({
         tag_token: tag.tag_token,
         name: tag.name,
         color: tag.color || "#6366f1",
+        depth,
         is_assigned: (menu_email?.tags ?? []).some(
           (assigned) => assigned.id === tag.tag_token,
         ),
@@ -291,13 +294,12 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
   const { state: folders_state } = use_folders();
   const menu_folders = useMemo(
     () =>
-      folders_state.folders
-        .filter((folder) => !folder.is_system)
-        .map((folder) => ({
-          id: folder.folder_token,
-          name: folder.name,
-          color: folder.color || "#6366f1",
-        })),
+      order_folders_as_tree(folders_state.folders).map(({ folder, depth }) => ({
+        id: folder.folder_token,
+        name: folder.name,
+        color: folder.color || "#6366f1",
+        depth,
+      })),
     [folders_state.folders],
   );
 

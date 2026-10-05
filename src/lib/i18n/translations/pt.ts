@@ -185,6 +185,7 @@ export const pt = {
     labels: "Etiquetas",
     no_folders_yet: "Nenhuma pasta ainda",
     no_labels_yet: "Nenhuma etiqueta ainda",
+    label_unable_to_decrypt: "Não foi possível desencriptar",
     aliases: "Aliases",
     no_aliases_yet: "Ainda sem aliases",
     storage_used: "Armazenamento usado",
@@ -1316,6 +1317,16 @@ export const pt = {
     select_parent_folder: "Selecionar pasta superior",
     top_level_no_parent: "Nível superior (sem pasta superior)",
     parent_folder: "Pasta superior",
+    create_sublabel: "Criar subetiqueta",
+    move_label: "Mover etiqueta",
+    move_label_description:
+      "Escolha uma nova etiqueta superior para esta etiqueta",
+    select_parent_label: "Selecionar etiqueta superior",
+    parent_label: "Etiqueta superior",
+    no_parent_label: "Nível superior (sem etiqueta superior)",
+    failed_to_move_label: "Esta etiqueta não foi movida. Tente novamente.",
+    label_delete_keeps_sublabels:
+      "As subetiquetas não são eliminadas. Sobem um nível.",
     move_up: "Mover para cima",
     move_down: "Mover para baixo",
     sort_a_to_z: "Ordenar de A a Z",
@@ -5078,6 +5089,8 @@ export const pt = {
     failed_remove_wkd:
       "A sua chave não foi removida do diretório público. Tente novamente.",
     key_published_keyserver: "Chave publicada no servidor de chaves",
+    keyserver_publish_unconfirmed:
+      "Pedido de publicação enviado, mas não foi possível confirmar o estado.",
     failed_publish_keyserver:
       "A sua chave pública não foi publicada no servidor de chaves. Tente novamente.",
     mailto_unregister_manual:
@@ -5720,6 +5733,12 @@ export const pt = {
       "Não foi possível criar {{count}} pastas, então as mensagens delas estão na sua caixa de entrada.",
     import_folders_skipped_plural:
       "Não foi possível criar {{count}} pastas, então as mensagens delas estão na sua caixa de entrada.",
+    import_labels_created: "{{count}} etiquetas criadas",
+    import_labels_created_one: "{{count}} etiqueta criada",
+    import_labels_skipped:
+      "Não foi possível criar {{count}} etiquetas, então as mensagens delas são importadas sem elas.",
+    import_labels_skipped_one:
+      "Não foi possível criar {{count}} etiqueta, então as mensagens dela são importadas sem ela.",
     storage_quota_reached:
       "O seu armazenamento está cheio. Para ter espaço para mais importações, atualize o plano ou remova alguns e-mails.",
     no_emails_in_file:

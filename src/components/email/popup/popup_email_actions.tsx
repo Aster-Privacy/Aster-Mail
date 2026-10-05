@@ -43,6 +43,7 @@ import {
 import { Button, Tooltip } from "@aster/ui";
 
 import { PinIcon } from "@/components/common/icons";
+import { folder_option_indent } from "@/hooks/use_folders/tree";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -69,7 +70,7 @@ interface PopupEmailActionsProps {
   unsubscribe_info: UnsubscribeInfo | null;
   is_archived?: boolean;
   is_spam?: boolean;
-  folders?: { id: string; name: string; color: string }[];
+  folders?: { id: string; name: string; color: string; depth?: number }[];
   applied_folder_tokens?: string[];
   on_unarchive?: () => void;
   on_not_spam?: () => void;
@@ -386,6 +387,13 @@ export function PopupEmailActions({
                         on_folder_toggle(folder.id);
                       }}
                     >
+                      {folder.depth ? (
+                        <span
+                          aria-hidden="true"
+                          className="flex-shrink-0"
+                          style={{ width: folder_option_indent(folder.depth) }}
+                        />
+                      ) : null}
                       {is_current && (
                         <CheckIcon className="me-0.5 h-3 w-3 flex-shrink-0" />
                       )}

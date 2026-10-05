@@ -241,6 +241,7 @@ export const ja = {
     labels: "ラベル",
     no_folders_yet: "フォルダはまだありません",
     no_labels_yet: "ラベルはまだありません",
+    label_unable_to_decrypt: "復号できません",
     aliases: "エイリアス",
     no_aliases_yet: "エイリアスはまだありません",
     storage_used: "使用済みストレージ",
@@ -355,6 +356,16 @@ export const ja = {
     select_parent_folder: "親フォルダを選択",
     top_level_no_parent: "トップレベル（親なし）",
     parent_folder: "親フォルダ",
+    create_sublabel: "サブラベルを作成",
+    move_label: "ラベルを移動",
+    move_label_description: "このラベルの新しい親ラベルを選択",
+    select_parent_label: "親ラベルを選択",
+    parent_label: "親ラベル",
+    no_parent_label: "トップレベル（親なし）",
+    failed_to_move_label:
+      "このラベルを移動できませんでした。もう一度お試しください。",
+    label_delete_keeps_sublabels:
+      "サブラベルは削除されず、1 つ上の階層に移動します。",
     move_up: "上へ移動",
     move_down: "下へ移動",
     sort_a_to_z: "名前順で並べ替え",
@@ -4947,6 +4958,8 @@ export const ja = {
     failed_remove_wkd:
       "鍵を公開ディレクトリから削除できませんでした。もう一度お試しください。",
     key_published_keyserver: "キーサーバーにキーを公開しました",
+    keyserver_publish_unconfirmed:
+      "公開リクエストを送信しましたが、状態を確認できませんでした。",
     failed_publish_keyserver:
       "公開鍵を鍵サーバーに公開できませんでした。もう一度お試しください。",
     mailto_unregister_manual:
@@ -5575,6 +5588,9 @@ export const ja = {
       "{{count}} 件のフォルダを作成できなかったため、その中のメールは受信トレイに入っています。",
     import_folders_skipped_plural:
       "{{count}} 件のフォルダを作成できなかったため、その中のメールは受信トレイに入っています。",
+    import_labels_created: "{{count}} 件のラベルを作成しました",
+    import_labels_skipped:
+      "{{count}} 件のラベルを作成できなかったため、該当するメールはラベルなしでインポートされます。",
     storage_quota_reached:
       "ストレージが満杯です。プランをアップグレードするか、メールを削除すると、追加のインポート用に空きを作れます。",
     no_emails_in_file:

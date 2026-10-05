@@ -366,11 +366,37 @@ export async function load_ratchet_from_server(
   return { ratchet, version: response.data.state_version };
 }
 
+interface ListedRatchetState {
+  conversation_id: string;
+  version: number;
+  updated_at: string;
+  encrypted_state?: string;
+  state_nonce?: string;
+}
+
+async function load_listed_ratchet_state(
+  listed: ListedRatchetState,
+  encryption_key: CryptoKey,
+): Promise<{ ratchet: DoubleRatchet; version: number } | null> {
+  if (!listed.encrypted_state || !listed.state_nonce) {
+    return load_ratchet_from_server(listed.conversation_id, encryption_key);
+  }
+
+  const state_json = await decrypt_state_from_server(
+    listed.encrypted_state,
+    listed.state_nonce,
+    encryption_key,
+  );
+
+  return {
+    ratchet: DoubleRatchet.deserialize(JSON.parse(state_json)),
+    version: listed.version,
+  };
+}
+
 export async function list_server_ratchet_states(
   _encryption_key: CryptoKey,
-): Promise<
-  Array<{ conversation_id: string; version: number; updated_at: string }>
-> {
+): Promise<ListedRatchetState[]> {
   const response = await api_client.get<RatchetStateResponse[]>(
     `${API_BASE}/states`,
   );
@@ -385,6 +411,8 @@ export async function list_server_ratchet_states(
     ),
     version: r.state_version,
     updated_at: r.updated_at,
+    encrypted_state: r.encrypted_state,
+    state_nonce: r.state_nonce,
   }));
 }
 
@@ -437,8 +465,8 @@ export async function sync_all_ratchet_states(
           }
         } else if (server_info.version > local_ratchet.get_state_version()) {
           try {
-            const loaded = await load_ratchet_from_server(
-              conversation_id,
+            const loaded = await load_listed_ratchet_state(
+              server_info,
               encryption_key,
             );
 
@@ -464,10 +492,10 @@ export async function sync_all_ratchet_states(
       }
     }
 
-    for (const [conversation_id] of server_map) {
+    for (const [conversation_id, server_info] of server_map) {
       try {
-        const loaded = await load_ratchet_from_server(
-          conversation_id,
+        const loaded = await load_listed_ratchet_state(
+          server_info,
           encryption_key,
         );
 

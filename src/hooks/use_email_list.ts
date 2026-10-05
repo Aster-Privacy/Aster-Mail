@@ -60,11 +60,23 @@ import {
   cache_email_list,
   get_cached_email_list,
 } from "@/services/offline_email_cache";
+import {
+  read_list_snapshot,
+  schedule_list_snapshot,
+} from "@/services/list_snapshot_store";
 import { use_online_status } from "@/hooks/use_online_status";
 import { request_cache } from "@/services/api/request_cache";
 import { ignore_error } from "@/lib/ignore_error";
 
 export type { UseEmailListReturn } from "./email_list_types";
+
+const SNAPSHOT_VIEWS = new Set<string>([
+  "inbox",
+  "all",
+  "starred",
+  "sent",
+  "archive",
+]);
 
 function settle_fetched_rows(
   rows: InboxEmail[],
@@ -251,6 +263,22 @@ export function use_email_list(
     ],
   );
 
+  const snapshot_token_ref = useRef(0);
+  const unverified_snapshot_view_ref = useRef<string | null>(null);
+  const snapshot_context_ref = useRef({
+    owner: "",
+    signature: "",
+    format_options,
+  });
+
+  snapshot_context_ref.current = {
+    owner: user?.email || "",
+    signature: `${(preferences.conversation_grouping ?? true) ? "g1" : "g0"}|${
+      preferences.inbox_sort_order ?? "newest_first"
+    }`,
+    format_options,
+  };
+
   const fetch_page = useCallback(
     async (
       page: number,
@@ -289,7 +317,10 @@ export function use_email_list(
         windowed_page_ref.current = true;
         page_limit_ref.current = limit;
         state_view_ref.current = current_view;
+        unverified_snapshot_view_ref.current = null;
         set_state((prev) => {
+          unverified_snapshot_view_ref.current = null;
+
           const selected_ids = new Set(
             prev.emails.filter((e) => e.is_selected).map((e) => e.id),
           );
@@ -403,9 +434,12 @@ export function use_email_list(
         windowed_page_ref.current = true;
         page_limit_ref.current = limit;
         state_view_ref.current = current_view;
+        unverified_snapshot_view_ref.current = null;
         page_offset_ref.current.set(page + 1, offset + result.raw_consumed);
 
         set_state((prev) => {
+          unverified_snapshot_view_ref.current = null;
+
           const selected_ids = new Set(
             prev.emails.filter((e) => e.is_selected).map((e) => e.id),
           );
@@ -517,6 +551,8 @@ export function use_email_list(
         refresh_offset,
         preferences.conversation_grouping ?? true,
         preferences.inbox_sort_order ?? "newest_first",
+        undefined,
+        { reuse_known_envelopes: true },
       );
 
       if (
@@ -535,8 +571,11 @@ export function use_email_list(
       };
       page_ref.current = active_page;
       state_view_ref.current = current_view;
+      unverified_snapshot_view_ref.current = null;
 
       set_state((prev) => {
+        unverified_snapshot_view_ref.current = null;
+
         const emails = merge_silent_refresh_emails(
           prev.emails,
           result.emails,
@@ -724,7 +763,8 @@ export function use_email_list(
       state.has_initial_load &&
       !state.is_loading &&
       !state.has_load_error &&
-      state_view_ref.current === current_view
+      state_view_ref.current === current_view &&
+      unverified_snapshot_view_ref.current !== current_view
     ) {
       set_view_cache(current_view, {
         state,
@@ -734,6 +774,17 @@ export function use_email_list(
         page: page_ref.current,
         page_offsets: [...page_offset_ref.current.entries()],
       });
+
+      if (page_ref.current === 0 && SNAPSHOT_VIEWS.has(current_view)) {
+        const { owner, signature } = snapshot_context_ref.current;
+
+        schedule_list_snapshot(
+          `view:${current_view}`,
+          owner,
+          signature,
+          state.emails,
+        );
+      }
     }
   }, [state, current_view, preferences.conversation_grouping]);
 
@@ -744,6 +795,7 @@ export function use_email_list(
     const prev_view = prev_view_ref.current;
     const prev_user_id = prev_user_id_ref.current;
     const current_user_id = user?.id || null;
+    const snapshot_token = ++snapshot_token_ref.current;
 
     const auth_changed =
       prev_auth !== null &&
@@ -825,7 +877,9 @@ export function use_email_list(
     }
 
     const nothing_changed = !auth_changed && !view_changed && !user_changed;
-    const already_has_data = has_data_ref.current;
+    const already_has_data =
+      has_data_ref.current &&
+      unverified_snapshot_view_ref.current !== current_view;
 
     if (has_keys && has_passphrase_in_memory()) {
       if (!is_online && Capacitor.isNativePlatform()) {
@@ -884,6 +938,47 @@ export function use_email_list(
           };
         }
         main_effect_fetched_ref.current = true;
+
+        const snapshot_context = snapshot_context_ref.current;
+
+        if (snapshot_context.owner && SNAPSHOT_VIEWS.has(current_view)) {
+          void read_list_snapshot(
+            `view:${current_view}`,
+            snapshot_context.owner,
+            snapshot_context.signature,
+            snapshot_context.format_options,
+          ).then((snapshot) => {
+            if (!snapshot) return;
+            if (snapshot_token_ref.current !== snapshot_token) return;
+            if (committed_view_ref.current !== current_view) return;
+
+            const rows = settle_fetched_rows(
+              snapshot.emails,
+              snapshot.saved_at,
+            );
+
+            if (rows.length === 0) return;
+
+            set_state((prev) => {
+              if (
+                prev.emails.length > 0 ||
+                prev.has_initial_load ||
+                !prev.is_loading
+              ) {
+                return prev;
+              }
+
+              unverified_snapshot_view_ref.current = current_view;
+
+              return {
+                ...prev,
+                emails: rows,
+                total_messages: prev.total_messages || rows.length,
+              };
+            });
+          });
+        }
+
         fetch_page_ref.current?.(0, page_size, { force: true });
       }
     } else if (!is_online && Capacitor.isNativePlatform() && has_keys) {

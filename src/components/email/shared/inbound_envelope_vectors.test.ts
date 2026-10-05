@@ -45,6 +45,12 @@ function recipient_identity_jwk(): string {
   });
 }
 
+function android_identity_jwk(): string {
+  const scalar = b64_to_bytes(vectors.recipient_p256_private_scalar_b64);
+
+  return `{"kty":"EC","crv":"P-256","d":"${bytes_to_b64url(scalar)}"}`;
+}
+
 describe("inbound envelope cross-language vectors", () => {
   it("matches the backend wire layout", () => {
     const ecdh = b64_to_bytes(vectors.ecdh_compressed.envelope_b64);
@@ -111,5 +117,33 @@ describe("inbound envelope cross-language vectors", () => {
     );
 
     expect(plain).toBeNull();
+  });
+
+  it("decrypts a marker 0x03 envelope with an Android identity key", async () => {
+    const plain = await decrypt_inbound_ecies(
+      b64_to_bytes(vectors.ecdh_compressed.envelope_b64),
+      b64_to_bytes(vectors.ecdh_compressed.nonce_b64),
+      android_identity_jwk(),
+      true,
+    );
+
+    expect(plain).not.toBeNull();
+    expect(new TextDecoder().decode(plain as Uint8Array)).toBe(
+      vectors.plaintext_utf8,
+    );
+  });
+
+  it("decrypts a marker 0x04 envelope with an Android identity key", async () => {
+    const plain = await decrypt_inbound_pq_hybrid(
+      b64_to_bytes(vectors.pq_hybrid.envelope_b64),
+      b64_to_bytes(vectors.pq_hybrid.nonce_b64),
+      android_identity_jwk(),
+      vectors.recipient_ml_kem768_decapsulation_key_b64,
+    );
+
+    expect(plain).not.toBeNull();
+    expect(new TextDecoder().decode(plain as Uint8Array)).toBe(
+      vectors.plaintext_utf8,
+    );
   });
 });

@@ -23,6 +23,8 @@ import { createElement, act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 const warm = new Map<string, string>([["warm.example", "blob:warm"]]);
+const slow_reads = new Map<string, Promise<string | null>[]>();
+const failed = new Set<string>();
 
 vi.mock("@/services/routing/routing_provider", () => ({
   routed_fetch: vi.fn(),
@@ -50,6 +52,7 @@ vi.mock("@/lib/favicon_url", () => ({
 vi.mock("@/lib/favicon_cache_db", () => ({
   peek_favicon_object_url: (domain: string) => warm.get(domain) ?? null,
   get_favicon_object_url: (domain: string) =>
+    slow_reads.get(domain)?.shift() ??
     Promise.resolve(warm.get(domain) ?? null),
   adopt_favicon_blob: (domain: string) => {
     const url = `blob:${domain}`;
@@ -62,7 +65,10 @@ vi.mock("@/lib/favicon_cache_db", () => ({
 }));
 
 vi.mock("@/lib/icon_cache", () => ({
-  mark_icon_failed: vi.fn(),
+  is_icon_failed: (domain: string) => failed.has(domain),
+  mark_icon_failed: vi.fn((domain: string) => {
+    failed.add(domain);
+  }),
 }));
 
 const { use_favicon_src, store_favicon_if_api_url } =
@@ -180,6 +186,22 @@ describe("use_favicon_src", () => {
     expect(mark_icon_failed).toHaveBeenCalledWith("missing.example");
   });
 
+  it("does not ask again for a favicon that is already known to be missing", async () => {
+    const fetch_mock = vi.mocked(routed_fetch);
+
+    fetch_mock.mockReset();
+    fetch_mock.mockResolvedValue(new Response(null, { status: 404 }));
+    mount("gone.example");
+    await settle();
+    act(() => root!.unmount());
+    container?.remove();
+    mount("gone.example");
+    await settle();
+
+    expect(fetch_mock).toHaveBeenCalledTimes(1);
+    expect(observed[observed.length - 1]).toBe("data:,");
+  });
+
   it("rejects a response that is not an image", async () => {
     const fetch_mock = vi.mocked(routed_fetch);
 
@@ -194,6 +216,44 @@ describe("use_favicon_src", () => {
     await settle();
 
     expect(observed[observed.length - 1]).toBe("data:,");
+  });
+
+  it("fetches a favicon once when a second picture finishes its cache read after the first load", async () => {
+    const fetch_mock = vi.mocked(routed_fetch);
+    let finish_fetch!: (response: Response) => void;
+    let finish_read!: (url: string | null) => void;
+
+    fetch_mock.mockReset();
+    fetch_mock.mockReturnValueOnce(
+      new Promise<Response>((resolve) => {
+        finish_fetch = resolve;
+      }),
+    );
+    mount("shared.example");
+    await settle();
+
+    slow_reads.set("shared.example", [
+      new Promise<string | null>((resolve) => {
+        finish_read = resolve;
+      }),
+    ]);
+    const second_container = document.createElement("div");
+    const second_root = createRoot(second_container);
+
+    act(() => {
+      second_root.render(createElement(Probe, { domain: "shared.example" }));
+    });
+    await settle();
+
+    finish_fetch(png_response());
+    await settle();
+    finish_read(null);
+    await settle();
+
+    expect(fetch_mock).toHaveBeenCalledTimes(1);
+    expect(observed[observed.length - 1]).toBe("blob:shared.example");
+
+    act(() => second_root.unmount());
   });
 
   it("re-resolves synchronously when the domain changes", () => {

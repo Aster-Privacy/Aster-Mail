@@ -48,6 +48,9 @@ export interface CachedSubscription {
 
 export const SUBSCRIPTION_CACHE_VERSION = 3;
 
+export const SUBSCRIPTION_CACHE_SAVED_EVENT =
+  "astermail:subscription-cache-saved";
+
 export interface SubscriptionCacheData {
   subscriptions: CachedSubscription[];
   last_scan_ts: string;
@@ -171,7 +174,13 @@ export async function save_subscription_cache(
       },
     );
 
-    return !response.error && response.data?.success === true;
+    const saved = !response.error && response.data?.success === true;
+
+    if (saved && typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent(SUBSCRIPTION_CACHE_SAVED_EVENT));
+    }
+
+    return saved;
   } catch {
     return false;
   }

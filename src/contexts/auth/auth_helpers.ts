@@ -26,6 +26,8 @@ import { clear_resubscribe_cache } from "@/hooks/use_resubscribe";
 import { clear_attachment_limits_cache } from "@/services/attachment_limits";
 import { clear_aliases_cache } from "@/components/settings/hooks/use_aliases";
 import { clear_plan_cache } from "@/services/plan_limits";
+import type { SnapshotClearScope } from "@/services/offline_email_cache";
+
 import { clear_mail_cache } from "@/hooks/use_email_list";
 import { clear_folders_cache } from "@/hooks/use_folders";
 import { clear_tags_cache } from "@/hooks/use_tags";
@@ -61,9 +63,12 @@ import { reset_special_offer_status } from "@/stores/special_offer_status";
 
 export const AUTH_VERIFY_TIMEOUT_MS = 12000;
 
-export async function clear_account_scoped_caches(): Promise<void> {
+export async function clear_account_scoped_caches(
+  snapshots: SnapshotClearScope = "none",
+): Promise<void> {
   clear_mail_stats();
-  clear_mail_cache();
+  const mail_cache_cleared = clear_mail_cache(snapshots);
+
   clear_folders_cache();
   clear_tags_cache();
   clear_preload_cache();
@@ -98,7 +103,7 @@ export async function clear_account_scoped_caches(): Promise<void> {
   clear_recipient_hints();
   clear_label_hints();
   request_cache.clear();
-  await clear_all_ratchet_states();
+  await Promise.all([mail_cache_cleared, clear_all_ratchet_states()]);
 }
 
 export function safe_log_error(err: unknown): void {

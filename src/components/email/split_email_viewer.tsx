@@ -89,7 +89,7 @@ interface SplitEmailViewerProps {
   current_index?: number;
   total_count?: number;
   grouped_email_ids?: string[];
-  folders?: { id: string; name: string; color: string }[];
+  folders?: { id: string; name: string; color: string; depth?: number }[];
   on_folder_toggle?: (folder_id: string) => void;
   on_move_out_of_bin?: () => void;
   on_snooze?: () => void;

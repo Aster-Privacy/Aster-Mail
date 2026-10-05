@@ -285,9 +285,10 @@ export async function initialize_offline_queue(): Promise<void> {
 export async function enqueue_action(
   type: QueuedAction["type"],
   payload: unknown,
+  stable_id?: string,
 ): Promise<string> {
   const action: QueuedAction = {
-    id: crypto.randomUUID(),
+    id: stable_id || crypto.randomUUID(),
     type,
     payload,
     created_at: Date.now(),
@@ -296,6 +297,8 @@ export async function enqueue_action(
 
   await run_exclusive(async () => {
     const queue = await read_queue_unlocked();
+
+    if (stable_id && queue.some((queued) => queued.id === stable_id)) return;
 
     queue.push(action);
     await write_queue_unlocked(queue);

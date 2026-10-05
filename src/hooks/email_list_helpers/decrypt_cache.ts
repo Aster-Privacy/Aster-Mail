@@ -72,7 +72,15 @@ interface CacheEntry {
   envelope: DecryptedEnvelope;
   metadata: MailItemMetadata | null;
   body_summary: ListBodySummary;
+  envelope_chars: number;
   size: number;
+}
+
+export interface ReusedListItem {
+  envelope: DecryptedEnvelope;
+  metadata: MailItemMetadata | null;
+  body_summary: ListBodySummary;
+  envelope_chars: number;
 }
 
 const entries = new Map<string, CacheEntry>();
@@ -227,6 +235,7 @@ function store(item: MailItem, user_email: string, result: DecryptedListItem) {
     envelope: trimmed,
     metadata: metadata ? structuredClone(metadata) : null,
     body_summary,
+    envelope_chars: item.encrypted_envelope?.length ?? 0,
     size,
   });
   cached_chars += size;
@@ -272,6 +281,42 @@ export async function decrypt_list_item_cached(
   }
 
   return result;
+}
+
+export function has_reusable_list_items(): boolean {
+  return entries.size > 0;
+}
+
+export function reuse_list_item_without_envelope(
+  item: MailItem,
+  user_email: string,
+): ReusedListItem | null {
+  register_listeners();
+
+  if (item.item_type !== "received") return null;
+
+  const entry = entries.get(item.id);
+
+  if (
+    !entry ||
+    entry.user_email !== user_email ||
+    entry.metadata_nonce !== (item.metadata_nonce ?? "") ||
+    entry.metadata_version !== item.metadata_version ||
+    entry.metadata_fingerprint !== metadata_fingerprint(item)
+  ) {
+    return null;
+  }
+
+  entries.delete(item.id);
+  entries.set(item.id, entry);
+  register_envelope_attachment_keys(item.id, entry.envelope);
+
+  return {
+    envelope: structuredClone(entry.envelope),
+    metadata: entry.metadata ? structuredClone(entry.metadata) : null,
+    body_summary: { ...entry.body_summary },
+    envelope_chars: entry.envelope_chars,
+  };
 }
 
 export function clear_list_decrypt_cache(): void {
