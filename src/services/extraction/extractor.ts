@@ -54,8 +54,21 @@ function decode_basic_entities(text: string): string {
   );
 }
 
+function extraction_source(text: string, html?: string): string {
+  return text && text.trim() ? text : (html ?? "");
+}
+
+export function extraction_needs_markup_parse(
+  text: string,
+  html?: string,
+): boolean {
+  const source = extraction_source(text, html);
+
+  return source !== "" && is_html_content(source);
+}
+
 function normalize_email_text(text: string, html?: string): string {
-  const source = text && text.trim() ? text : (html ?? "");
+  const source = extraction_source(text, html);
 
   if (!source) return "";
   if (is_html_content(source)) return html_to_readable_plain_text(source);
