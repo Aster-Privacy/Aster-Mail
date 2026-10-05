@@ -108,6 +108,15 @@ const PENDING_CONTENT: SanitizedContent = {
 };
 
 function run_after_next_paint(task: () => void): () => void {
+  if (
+    typeof requestAnimationFrame !== "function" ||
+    typeof cancelAnimationFrame !== "function"
+  ) {
+    const immediate = setTimeout(task, 0);
+
+    return () => clearTimeout(immediate);
+  }
+
   let timer: ReturnType<typeof setTimeout> | undefined;
   const frame = requestAnimationFrame(() => {
     clearTimeout(fallback);
@@ -540,6 +549,7 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
     is_body_visible,
     preloaded_sanitized,
     clean_body,
+    message.id,
     message.body,
     base_image_mode,
     load_remote_content,

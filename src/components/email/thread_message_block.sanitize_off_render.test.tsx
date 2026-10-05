@@ -27,7 +27,7 @@ import { createRoot, type Root } from "react-dom/client";
 
 const probe = vi.hoisted(() => ({
   sanitize_calls: 0,
-  sanitize_throws: false,
+  should_throw: false,
   sanitized_outputs: new Set<string>(),
   bodies: [] as { email_id?: string; html: string }[],
 }));
@@ -41,7 +41,7 @@ vi.mock("@/lib/html_sanitizer", async (import_original) => {
       ...args: Parameters<typeof actual.sanitize_html>
     ): ReturnType<typeof actual.sanitize_html> => {
       probe.sanitize_calls += 1;
-      if (probe.sanitize_throws) throw new Error("sanitize failed");
+      if (probe.should_throw) throw new RangeError("sanitizer failed");
       const result = actual.sanitize_html(...args);
 
       probe.sanitized_outputs.add(result.html);
@@ -148,7 +148,7 @@ let container: HTMLDivElement | null = null;
 beforeEach(() => {
   vi.useFakeTimers();
   probe.sanitize_calls = 0;
-  probe.sanitize_throws = false;
+  probe.should_throw = false;
   probe.sanitized_outputs.clear();
   probe.bodies.length = 0;
   settings.preferences = { ...DEFAULT_PREFERENCES };
@@ -164,6 +164,7 @@ afterEach(() => {
   container?.remove();
   root = null;
   container = null;
+  vi.unstubAllGlobals();
   vi.useRealTimers();
 });
 
@@ -189,6 +190,19 @@ async function flush_scheduled(): Promise<void> {
   await act(async () => {
     vi.runAllTimers();
   });
+}
+
+function body_is_mounted(): boolean {
+  return container!.querySelector('[data-testid="message-body"]') !== null;
+}
+
+function expect_inert_fallback(html: string): void {
+  expect(html).toContain("Weekly digest");
+  expect(html).not.toContain(RAW_MARKER);
+  expect(html).not.toContain("<script");
+  expect(html).not.toContain("<img");
+  expect(html).not.toContain("onerror");
+  expect(html).not.toContain("javascript:");
 }
 
 function header_text(): string {
@@ -290,29 +304,172 @@ describe("ThreadMessageBlock sanitizing off the first render", () => {
   });
 
   it("shows the readable fallback when the deferred sanitize throws", async () => {
-    probe.sanitize_throws = true;
+    probe.should_throw = true;
     render_block(make_message("news_1"));
 
     expect(probe.bodies).toHaveLength(0);
-    expect(container!.querySelector('div[aria-hidden="true"][style]')).not.toBe(
-      null,
-    );
 
     await flush_scheduled();
 
-    expect(probe.sanitize_calls).toBeGreaterThan(0);
-    expect(container!.querySelector('[data-testid="message-body"]')).not.toBe(
-      null,
-    );
-    expect(container!.querySelector('div[aria-hidden="true"][style]')).toBe(
-      null,
-    );
+    expect(probe.sanitize_calls).toBe(1);
+    expect(body_is_mounted()).toBe(true);
+    expect(probe.bodies.length).toBeGreaterThan(0);
+    for (const body of probe.bodies) expect_inert_fallback(body.html);
 
-    const shown = probe.bodies.at(-1)!.html;
+    await flush_scheduled();
 
-    expect(shown).toContain("Weekly digest");
-    expect(shown).not.toContain(RAW_MARKER);
-    expect(shown).not.toContain("<script");
-    expect(shown).not.toContain("<img");
+    expect(probe.sanitize_calls).toBe(1);
+  });
+
+  it("shows the readable fallback when a same-render sanitize throws", async () => {
+    render_block(make_message("news_1"));
+    await flush_scheduled();
+    const shown = probe.bodies.length;
+
+    probe.should_throw = true;
+    settings.preferences = {
+      ...settings.preferences,
+      block_remote_images: false,
+    };
+    render_block(make_message("news_1"));
+
+    expect(probe.sanitize_calls).toBe(2);
+    expect(body_is_mounted()).toBe(true);
+    expect(probe.bodies.length).toBeGreaterThan(shown);
+    for (const body of probe.bodies.slice(shown)) {
+      expect_inert_fallback(body.html);
+    }
+  });
+
+  it("shows the readable fallback when the preloaded result is unusable", async () => {
+    const preloaded = {
+      get html(): string {
+        throw new Error("preload unavailable");
+      },
+    } as unknown as PreloadedSanitizedContent;
+
+    render_block(make_message("news_1"), { preloaded_sanitized: preloaded });
+
+    expect(probe.sanitize_calls).toBe(0);
+    expect(probe.bodies.length).toBeGreaterThan(0);
+    for (const body of probe.bodies) expect_inert_fallback(body.html);
+  });
+
+  it("keeps message markup out of the placeholder", () => {
+    render_block(make_message("news_1"));
+
+    const markup = container!.innerHTML;
+
+    expect(body_is_mounted()).toBe(false);
+    expect(markup).not.toContain(RAW_MARKER);
+    expect(markup).not.toContain("<script");
+    expect(markup).not.toContain("onerror");
+    expect(markup).not.toContain("javascript:");
+    expect(container!.querySelector("iframe")).toBe(null);
+  });
+
+  it("drops the scheduled sanitize when the message changes first", async () => {
+    render_block(make_message("news_1"));
+    render_block(make_message("news_2", RAW_HTML.replace("Weekly", "Daily")));
+
+    expect(probe.sanitize_calls).toBe(0);
+
+    await flush_scheduled();
+
+    expect(probe.sanitize_calls).toBe(1);
+    expect(probe.bodies.length).toBeGreaterThan(0);
+    expect(probe.bodies.every((body) => body.email_id === "news_2")).toBe(true);
+    expect(probe.bodies.every((body) => body.html.includes("Daily"))).toBe(
+      true,
+    );
+    expect_only_sanitized_bodies();
+  });
+
+  it("sanitizes again for a different message with the same body", async () => {
+    render_block(make_message("news_1"));
+    await flush_scheduled();
+    render_block(make_message("news_2"));
+
+    expect(
+      probe.bodies.filter((body) => body.email_id === "news_2"),
+    ).toHaveLength(0);
+
+    await flush_scheduled();
+
+    expect(probe.sanitize_calls).toBe(2);
+    expect(
+      probe.bodies.filter((body) => body.email_id === "news_2").length,
+    ).toBeGreaterThan(0);
+    expect_only_sanitized_bodies();
+  });
+
+  it("drops the scheduled sanitize when the block unmounts first", async () => {
+    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    render_block(make_message("news_1"));
+    act(() => {
+      root!.unmount();
+    });
+    root = null;
+
+    await flush_scheduled();
+
+    expect(probe.sanitize_calls).toBe(0);
+    expect(probe.bodies).toHaveLength(0);
+    expect(errors).not.toHaveBeenCalled();
+    errors.mockRestore();
+  });
+
+  it("sanitizes once and keeps the body mounted across re-renders", async () => {
+    const message = make_message("news_1");
+
+    render_block(message);
+    await flush_scheduled();
+
+    for (let pass = 0; pass < 5; pass += 1) {
+      render_block(message);
+      expect(body_is_mounted()).toBe(true);
+      render_block(make_message("news_1"));
+      expect(body_is_mounted()).toBe(true);
+      await flush_scheduled();
+    }
+
+    expect(probe.sanitize_calls).toBe(1);
+    expect(new Set(probe.bodies.map((body) => body.html)).size).toBe(1);
+    expect_only_sanitized_bodies();
+  });
+
+  it("still shows the body when frame callbacks are unavailable", async () => {
+    vi.stubGlobal("requestAnimationFrame", undefined);
+    vi.stubGlobal("cancelAnimationFrame", undefined);
+    render_block(make_message("news_1"));
+
+    expect(probe.bodies).toHaveLength(0);
+
+    await flush_scheduled();
+
+    expect(probe.sanitize_calls).toBe(1);
+    expect(body_is_mounted()).toBe(true);
+    expect_only_sanitized_bodies();
+  });
+
+  it("still shows the body when no frame is ever produced", async () => {
+    vi.stubGlobal("requestAnimationFrame", () => 1);
+    vi.stubGlobal("cancelAnimationFrame", () => {});
+    render_block(make_message("news_1"));
+
+    await act(async () => {
+      vi.advanceTimersByTime(99);
+    });
+
+    expect(probe.sanitize_calls).toBe(0);
+
+    await act(async () => {
+      vi.advanceTimersByTime(1);
+    });
+
+    expect(probe.sanitize_calls).toBe(1);
+    expect(body_is_mounted()).toBe(true);
+    expect_only_sanitized_bodies();
   });
 });
