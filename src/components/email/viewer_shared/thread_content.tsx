@@ -40,7 +40,7 @@ import { PurchaseDetailsBanner } from "@/components/email/banners/purchase_detai
 import { ShippingDetailsBanner } from "@/components/email/banners/shipping_details_banner";
 import { CalendarInviteBanner } from "@/components/email/banners/calendar_invite_banner";
 import { SendFailureBanner } from "@/components/email/banners/send_failure_banner";
-import { extract_email_details } from "@/services/extraction/extractor";
+import { use_email_extraction } from "@/components/email/hooks/use_email_extraction";
 
 export interface ViewerThreadContentProps {
   email: DecryptedEmail;
@@ -185,23 +185,14 @@ export function ViewerThreadContent({
     ],
   );
 
-  const extraction = useMemo(
-    () =>
-      extract_email_details(
-        email.subject ?? "",
-        email.body ?? "",
-        email.html_content,
-        email.sender_email ?? "",
-        email.sender ?? "",
-      ),
-    [
-      email.subject,
-      email.body,
-      email.html_content,
-      email.sender_email,
-      email.sender,
-    ],
-  );
+  const extraction = use_email_extraction({
+    email_id: email.id,
+    subject: email.subject ?? "",
+    body_text: email.body ?? "",
+    body_html: email.html_content,
+    from_email: email.sender_email ?? "",
+    from_name: email.sender ?? "",
+  });
 
   return (
     <div className="mt-4">
@@ -210,14 +201,14 @@ export function ViewerThreadContent({
         send_error={email.send_error}
         send_status={email.send_status}
       />
-      {extraction.has_purchase_details && extraction.purchase && (
+      {extraction?.has_purchase_details && extraction.purchase && (
         <PurchaseDetailsBanner
           className="mx-3 @md:mx-4 mb-3"
           details={extraction.purchase}
           email_id={email.id}
         />
       )}
-      {extraction.has_shipping_details && extraction.shipping && (
+      {extraction?.has_shipping_details && extraction.shipping && (
         <ShippingDetailsBanner
           className="mx-3 @md:mx-4 mb-3"
           details={extraction.shipping}

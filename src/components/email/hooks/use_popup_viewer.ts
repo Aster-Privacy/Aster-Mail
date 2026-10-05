@@ -62,7 +62,7 @@ import { read_clears_conversation } from "@/hooks/unread_read_delta";
 import { mark_conversation_read } from "@/hooks/mark_conversation_read";
 import { use_date_format } from "@/hooks/use_date_format";
 import { detect_unsubscribe_info } from "@/utils/unsubscribe_detector";
-import { extract_email_details } from "@/services/extraction/extractor";
+import { use_email_extraction } from "@/components/email/hooks/use_email_extraction";
 import { get_email_username } from "@/lib/utils";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
 import { extract_reply_to } from "@/utils/reply_to";
@@ -223,17 +223,18 @@ export function use_popup_viewer({
     return detect_unsubscribe_info(email.body, email.body);
   }, [email]);
 
-  const extraction_result = useMemo(() => {
-    if (!email) return null;
-
-    return extract_email_details(
-      email.subject,
-      email.body,
-      undefined,
-      email.sender_email,
-      email.sender,
-    );
-  }, [email]);
+  const extraction_result = use_email_extraction(
+    email
+      ? {
+          email_id: email.id,
+          subject: email.subject,
+          body_text: email.body,
+          body_html: undefined,
+          from_email: email.sender_email,
+          from_name: email.sender,
+        }
+      : null,
+  );
 
   const handle_external_content_detected = useCallback(
     (report: ExternalContentReport) => {
