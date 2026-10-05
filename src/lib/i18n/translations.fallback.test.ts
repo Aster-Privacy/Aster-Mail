@@ -20,7 +20,7 @@
 //
 import type { LanguageCode, Translations } from "./types";
 
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 
 import { get_translations_async } from "./translations";
 import { en } from "./translations/en";
@@ -60,14 +60,53 @@ function flat_keys(source: Translations): Map<string, string> {
 }
 
 const english = flat_keys(en as unknown as Translations);
+const NO_PLURAL_ONE_FORM = new Set<LanguageCode>(["zh-CN", "ja", "ko"]);
 
-describe("locale loading falls back to English", () => {
-  it.each(LOCALES)("%s resolves every English key", async (code) => {
+describe("locale loading", () => {
+  it.each(LOCALES)("%s resolves every English key by itself", async (code) => {
     const loaded = flat_keys(await get_translations_async(code));
 
-    const missing = [...english.keys()].filter((key) => !loaded.has(key));
+    const missing = [...english.keys()].filter(
+      (key) =>
+        !loaded.has(key) &&
+        !(
+          NO_PLURAL_ONE_FORM.has(code) &&
+          key.endsWith("_one") &&
+          loaded.has(key.slice(0, -"_one".length))
+        ),
+    );
 
     expect(missing).toEqual([]);
+  });
+
+  it("does not load English for a user of another language", async () => {
+    vi.resetModules();
+
+    const fresh = await import("./translations");
+    const german = await fresh.get_translations_async("de");
+
+    expect(fresh.get_cached_translations("en")).toBeUndefined();
+    expect(fresh.get_translations("en")).toBe(german);
+    expect(fresh.get_translations("de")).toBe(german);
+  });
+
+  it("returns empty strings before any language has loaded", async () => {
+    vi.resetModules();
+
+    const fresh = await import("./translations");
+
+    expect(fresh.get_translations("en").common.loading).toBe("");
+    expect(fresh.get_cached_translations("en")).toBeUndefined();
+  });
+
+  it("loads English on request", async () => {
+    vi.resetModules();
+
+    const fresh = await import("./translations");
+    const english_table = await fresh.get_translations_async("en");
+
+    expect(english_table.common.loading).toBe(en.common.loading);
+    expect(fresh.get_translations("fr")).toBe(english_table);
   });
 
   it.each(LOCALES)("%s keeps its own translated strings", async (code) => {

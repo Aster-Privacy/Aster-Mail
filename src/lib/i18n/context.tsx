@@ -209,7 +209,7 @@ export function I18nProvider({
 
     set_is_loading(true);
     get_translations_async(language)
-      .catch(() => get_translations("en"))
+      .catch(() => get_translations_async("en"))
       .then((loaded) => {
         if (!cancelled) {
           set_translations(loaded);
@@ -311,7 +311,9 @@ const FALLBACK_I18N: I18nContextType = {
   language: "en",
   set_language: () => {},
   t: (key: TranslationKey) => key,
-  translations: get_translations("en"),
+  get translations() {
+    return get_translations("en");
+  },
   is_rtl: false,
   is_loading: false,
 };

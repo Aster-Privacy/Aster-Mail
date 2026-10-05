@@ -324,8 +324,21 @@ if (typeof globalThis.indexedDB === "undefined") {
   });
 }
 
-beforeEach(() => {
+async function load_english_strings(): Promise<void> {
+  try {
+    const translations = await import("@/lib/i18n/translations");
+
+    await translations.get_translations_async("en");
+  } catch {
+    return;
+  }
+}
+
+await load_english_strings();
+
+beforeEach(async () => {
   vi.clearAllMocks();
+  await load_english_strings();
 });
 
 afterEach(() => {
