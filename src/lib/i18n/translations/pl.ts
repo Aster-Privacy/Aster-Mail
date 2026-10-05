@@ -4852,6 +4852,11 @@ export const pl = {
     keyserver_republish_btn: "Opublikuj ponownie",
     keyserver_permanent_warning:
       "Raz opublikowane klucze nie mogą być całkowicie usunięte z większości serwerów.",
+    keyserver_addresses_title: "Adresy do opublikowania",
+    keyserver_addresses_hint:
+      "Wybierz adresy, które mają być widoczne przy Twoim kluczu publicznym. Każdy może zobaczyć, że wybrane adresy korzystają z jednego klucza. Serwer kluczy wysyła wiadomość z potwierdzeniem na każdy adres.",
+    keyserver_key_update_failed:
+      "Wybrane adresy nie zostały dodane do klucza. Spróbuj ponownie.",
     keyserver_add_custom_label: "Dodaj niestandardowy serwer",
     info_require_encryption_title: "Wymagaj szyfrowania",
     info_require_encryption_description:

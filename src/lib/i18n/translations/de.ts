@@ -4611,6 +4611,11 @@ export const de = {
     keyserver_republish_btn: "Erneut veröffentlichen",
     keyserver_permanent_warning:
       "Einmal veröffentlichte Schlüssel können von den meisten Schlüsselservern nicht vollständig entfernt werden.",
+    keyserver_addresses_title: "Zu veröffentlichende Adressen",
+    keyserver_addresses_hint:
+      "Wählen Sie die Adressen aus, die mit Ihrem öffentlichen Schlüssel aufgeführt werden sollen. Jeder kann sehen, dass die ausgewählten Adressen denselben Schlüssel verwenden. Der Schlüsselserver sendet eine Bestätigungs-E-Mail an jede Adresse.",
+    keyserver_key_update_failed:
+      "Die ausgewählten Adressen wurden Ihrem Schlüssel nicht hinzugefügt. Versuchen Sie es erneut.",
     keyserver_add_custom_label: "Benutzerdefinierten Server hinzufügen",
     info_require_encryption_title: "Verschlüsselung erforderlich",
     info_require_encryption_description:

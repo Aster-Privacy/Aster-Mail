@@ -75,6 +75,11 @@ export function EncryptionSection() {
         handle_wkd_toggle={encryption.handle_wkd_toggle}
         is_publishing_keyserver={encryption.is_publishing_keyserver}
         is_saving_keyservers={encryption.is_saving_keyservers}
+        handle_keyserver_address_toggle={
+          encryption.handle_keyserver_address_toggle
+        }
+        keyserver_address_rows={encryption.keyserver_address_rows}
+        keyserver_can_publish={encryption.keyserver_can_publish}
         keyserver_error={encryption.keyserver_error}
         keyserver_input={encryption.keyserver_input}
         keyserver_published={encryption.keyserver_published}

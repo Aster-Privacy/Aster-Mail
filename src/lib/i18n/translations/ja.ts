@@ -4620,6 +4620,11 @@ export const ja = {
     keyserver_republish_btn: "鍵を再公開",
     keyserver_permanent_warning:
       "一度公開した鍵は、ほとんどの鍵サーバーから完全に削除できません。",
+    keyserver_addresses_title: "公開するアドレス",
+    keyserver_addresses_hint:
+      "公開鍵と一緒に掲載するアドレスを選択します。選択したアドレスが同じ鍵を使っていることは誰でも確認できます。鍵サーバーは各アドレスに確認メールを送信します。",
+    keyserver_key_update_failed:
+      "選択したアドレスを鍵に追加できませんでした。もう一度お試しください。",
     keyserver_add_custom_label: "カスタムサーバーを追加",
     info_require_encryption_title: "暗号化を必須にする",
     info_require_encryption_description:

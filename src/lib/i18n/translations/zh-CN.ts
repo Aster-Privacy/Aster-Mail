@@ -4223,6 +4223,10 @@ export const zh_CN = {
     keyserver_publish_btn: "发布密钥",
     keyserver_republish_btn: "重新发布密钥",
     keyserver_permanent_warning: "密钥一旦发布，大多数密钥服务器无法完全删除。",
+    keyserver_addresses_title: "要发布的地址",
+    keyserver_addresses_hint:
+      "选择要与公钥一起列出的地址。任何人都能看到所选地址共用同一个密钥。密钥服务器会向每个地址发送确认邮件。",
+    keyserver_key_update_failed: "所选地址未能添加到您的密钥。请重试。",
     keyserver_add_custom_label: "添加自定义服务器",
     info_require_encryption_title: "要求加密",
     info_require_encryption_description:

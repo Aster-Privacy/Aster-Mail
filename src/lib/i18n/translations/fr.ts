@@ -4736,6 +4736,11 @@ export const fr = {
     keyserver_republish_btn: "Re-publier la clé",
     keyserver_permanent_warning:
       "Une fois publiées, les clés ne peuvent pas être entièrement supprimées de la plupart des serveurs de clés.",
+    keyserver_addresses_title: "Adresses à publier",
+    keyserver_addresses_hint:
+      "Sélectionnez les adresses à associer à votre clé publique. Tout le monde peut voir que les adresses sélectionnées partagent une même clé. Le serveur de clés envoie un e-mail de confirmation à chaque adresse.",
+    keyserver_key_update_failed:
+      "Les adresses sélectionnées n'ont pas été ajoutées à votre clé. Réessayez.",
     keyserver_add_custom_label: "Ajouter un serveur personnalisé",
     info_require_encryption_title: "Exiger le chiffrement",
     info_require_encryption_description:
