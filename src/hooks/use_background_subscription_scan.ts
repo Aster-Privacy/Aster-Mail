@@ -22,6 +22,7 @@ import type {
   CachedSubscription,
   SubscriptionCacheData,
   SubscriptionCacheCategory,
+  SubscriptionScanProgress,
 } from "@/services/subscription_cache";
 import type { ListMailItemsParams, MailItem } from "@/services/api/mail";
 
@@ -42,6 +43,8 @@ import {
 } from "@/utils/unsubscribe_detector";
 import { has_protected_folder_label } from "@/hooks/use_folders";
 import { ignore_error } from "@/lib/ignore_error";
+import { safe_local_get, safe_local_set } from "@/lib/safe_storage";
+import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
 
 interface ScanEnvelope {
   from?: { name?: string; email?: string };
@@ -51,11 +54,37 @@ interface ScanEnvelope {
   body_text?: string;
 }
 
+interface ScannedSender {
+  email: string;
+  name: string;
+  domain: string;
+  count: number;
+  last_received: string;
+  unsubscribe_link?: string;
+  list_unsubscribe_header?: string;
+  list_unsubscribe_post?: string;
+  has_one_click: boolean;
+  category: SubscriptionCacheCategory;
+}
+
+export interface BackgroundScanOptions {
+  defer_upgrade?: boolean;
+  is_cancelled?: () => boolean;
+  random?: () => number;
+  now?: () => number;
+}
+
 const SCAN_COOLDOWN_MS = 5 * 60 * 1000;
 const DECRYPT_CONCURRENCY = 8;
 const SCAN_IDLE_TIMEOUT_MS = 10000;
 const SCAN_PAGE_SIZE = 200;
 const SCAN_PAGE_PAUSE_MS = 250;
+const SCAN_CHECKPOINT_PAGES = 5;
+const SCAN_CURSOR_MAX_LENGTH = 512;
+const SCAN_REJECTED_CURSOR_STATUSES = [400, 422];
+
+export const SCAN_UPGRADE_JITTER_MS = 10 * 60 * 1000;
+export const SCAN_UPGRADE_STORAGE_KEY = "aster_subscription_scan_not_before";
 
 export const SUBSCRIPTION_SCAN_PARAMS: ListMailItemsParams = {
   item_type: "all",
@@ -73,24 +102,137 @@ export function is_subscription_scan_item(item: MailItem): boolean {
   );
 }
 
-function carry_over_previous_subscriptions(
-  scanned: Map<string, CachedSubscription>,
-  previous: CachedSubscription[],
-): void {
-  for (const sub of previous) {
-    const current = scanned.get(sub.sender_email);
+export function upgrade_scan_delay_ms(
+  now: number,
+  random: () => number,
+): number {
+  try {
+    const stored = JSON.parse(
+      safe_local_get(SCAN_UPGRADE_STORAGE_KEY) || "null",
+    ) as { version?: unknown; not_before?: unknown } | null;
 
-    if (!current) {
-      scanned.set(sub.sender_email, sub);
+    if (
+      stored &&
+      stored.version === SUBSCRIPTION_CACHE_VERSION &&
+      typeof stored.not_before === "number" &&
+      Number.isFinite(stored.not_before) &&
+      stored.not_before - now <= SCAN_UPGRADE_JITTER_MS
+    ) {
+      return Math.max(0, stored.not_before - now);
+    }
+  } catch (caught) {
+    ignore_error(
+      "hooks/use_background_subscription_scan:upgrade_scan_delay_ms",
+      caught,
+    );
+  }
+
+  const delay = Math.floor(
+    Math.min(Math.max(random(), 0), 1) * SCAN_UPGRADE_JITTER_MS,
+  );
+
+  safe_local_set(
+    SCAN_UPGRADE_STORAGE_KEY,
+    JSON.stringify({
+      version: SUBSCRIPTION_CACHE_VERSION,
+      not_before: now + delay,
+    }),
+  );
+
+  return delay;
+}
+
+export function read_scan_progress(
+  cached: SubscriptionCacheData,
+): SubscriptionScanProgress | null {
+  const progress: unknown = cached.scan_progress;
+
+  if (!progress || typeof progress !== "object") return null;
+
+  const { cursor, last_scan_ts, last_scan_message_ts, carried } =
+    progress as Record<string, unknown>;
+
+  if (
+    typeof cursor !== "string" ||
+    cursor.length === 0 ||
+    cursor.length > SCAN_CURSOR_MAX_LENGTH
+  ) {
+    return null;
+  }
+  if (
+    typeof last_scan_ts !== "string" ||
+    typeof last_scan_message_ts !== "string"
+  ) {
+    return null;
+  }
+  if (
+    !Array.isArray(carried) ||
+    carried.some((email) => typeof email !== "string")
+  ) {
+    return null;
+  }
+
+  return { cursor, last_scan_ts, last_scan_message_ts, carried };
+}
+
+function merge_scanned_senders(
+  scanned: Map<string, ScannedSender>,
+  subscriptions: Map<string, CachedSubscription>,
+  carried: Set<string>,
+  is_full_scan: boolean,
+): void {
+  for (const [email, sender] of Array.from(scanned)) {
+    const existing = subscriptions.get(email);
+    const is_carried = carried.has(email);
+    const has_unsub_mechanism =
+      sender.has_one_click ||
+      !!sender.unsubscribe_link ||
+      !!sender.list_unsubscribe_header;
+
+    if (!has_unsub_mechanism && (!is_full_scan || !existing || is_carried)) {
       continue;
     }
 
-    scanned.set(sub.sender_email, {
-      ...current,
-      status: sub.status,
-      unsubscribed_at: sub.unsubscribed_at,
+    scanned.delete(email);
+
+    if (existing && !is_carried) {
+      subscriptions.set(email, {
+        ...existing,
+        email_count: existing.email_count + sender.count,
+        last_received:
+          sender.last_received > existing.last_received
+            ? sender.last_received
+            : existing.last_received,
+        sender_name: sender.name || existing.sender_name,
+        unsubscribe_link: sender.unsubscribe_link || existing.unsubscribe_link,
+        list_unsubscribe_header:
+          sender.list_unsubscribe_header || existing.list_unsubscribe_header,
+        list_unsubscribe_post:
+          sender.list_unsubscribe_post || existing.list_unsubscribe_post,
+        has_one_click: sender.has_one_click || existing.has_one_click,
+        category:
+          existing.category === "unknown" ? sender.category : existing.category,
+      });
+      continue;
+    }
+
+    carried.delete(email);
+    subscriptions.set(email, {
+      sender_email: email,
+      sender_name: sender.name,
+      domain: sender.domain,
+      email_count: sender.count,
+      last_received: sender.last_received,
+      unsubscribe_link: sender.unsubscribe_link,
+      list_unsubscribe_header: sender.list_unsubscribe_header,
+      list_unsubscribe_post: sender.list_unsubscribe_post,
+      has_one_click: sender.has_one_click,
       category:
-        current.category === "unknown" ? sub.category : current.category,
+        existing && sender.category === "unknown"
+          ? existing.category
+          : sender.category,
+      status: existing ? existing.status : "active",
+      unsubscribed_at: existing?.unsubscribed_at,
     });
   }
 }
@@ -227,66 +369,135 @@ export function select_fresh_scan_items(
 
 export async function run_background_scan(
   vault: NonNullable<ReturnType<typeof use_auth>["vault"]>,
-): Promise<void> {
+  options: BackgroundScanOptions = {},
+): Promise<number> {
+  const is_cancelled = options.is_cancelled ?? (() => false);
   const raw_cached = await load_subscription_cache(vault);
+
+  if (is_cancelled()) return 0;
 
   const is_outdated =
     !!raw_cached && raw_cached.version !== SUBSCRIPTION_CACHE_VERSION;
-  const cached = is_outdated ? null : raw_cached;
-  const previous_subscriptions =
-    is_outdated && raw_cached ? raw_cached.subscriptions : [];
+
+  if (is_outdated && options.defer_upgrade) {
+    const delay = upgrade_scan_delay_ms(
+      (options.now ?? Date.now)(),
+      options.random ?? Math.random,
+    );
+
+    if (delay > 0) return delay;
+  }
+
+  const progress =
+    raw_cached && !is_outdated ? read_scan_progress(raw_cached) : null;
+  const must_restart =
+    !!raw_cached &&
+    (is_outdated || (raw_cached.scan_progress !== undefined && !progress));
 
   const existing_map = new Map<string, CachedSubscription>();
 
-  if (cached) {
-    for (const sub of cached.subscriptions) {
-      existing_map.set(sub.sender_email, sub);
-    }
+  for (const sub of raw_cached?.subscriptions ?? []) {
+    existing_map.set(sub.sender_email, sub);
   }
 
-  const should_full_scan = should_run_full_scan(cached);
-  const last_scan_ts = should_full_scan ? "" : cached?.last_scan_ts || "";
-  const last_scan_message_ts = should_full_scan
+  const is_full_scan =
+    must_restart || !!progress || should_run_full_scan(raw_cached);
+  const last_scan_ts = is_full_scan ? "" : raw_cached?.last_scan_ts || "";
+  const last_scan_message_ts = is_full_scan
     ? ""
-    : cached?.last_scan_message_ts || "";
-  let max_processed_ts = "";
-  let max_processed_message_ts = "";
+    : raw_cached?.last_scan_message_ts || "";
+  let max_processed_ts = progress?.last_scan_ts ?? "";
+  let max_processed_message_ts = progress?.last_scan_message_ts ?? "";
+  let carried = new Set<string>(
+    progress ? progress.carried : must_restart ? existing_map.keys() : [],
+  );
 
-  const sender_counts = new Map<
-    string,
-    {
-      email: string;
-      name: string;
-      domain: string;
-      count: number;
-      last_received: string;
-      unsubscribe_link?: string;
-      list_unsubscribe_header?: string;
-      list_unsubscribe_post?: string;
-      has_one_click: boolean;
-      category: SubscriptionCacheCategory;
+  const sender_counts = new Map<string, ScannedSender>();
+
+  const persist = async (resume_cursor?: string): Promise<boolean> => {
+    merge_scanned_senders(sender_counts, existing_map, carried, is_full_scan);
+
+    if (is_full_scan) {
+      const latest = await load_subscription_cache(vault);
+
+      for (const sub of latest?.subscriptions ?? []) {
+        const existing = existing_map.get(sub.sender_email);
+
+        if (existing) {
+          existing_map.set(sub.sender_email, {
+            ...existing,
+            status: sub.status,
+            unsubscribed_at: sub.unsubscribed_at,
+          });
+        }
+      }
     }
-  >();
 
-  let cursor: string | undefined;
+    if (is_cancelled()) return false;
+
+    const new_cache: SubscriptionCacheData = {
+      subscriptions: Array.from(existing_map.values()),
+      last_scan_ts:
+        max_processed_ts ||
+        (is_full_scan ? "" : raw_cached?.last_scan_ts) ||
+        "",
+      last_scan_message_ts:
+        max_processed_message_ts ||
+        (is_full_scan ? "" : raw_cached?.last_scan_message_ts) ||
+        "",
+      version: SUBSCRIPTION_CACHE_VERSION,
+    };
+
+    if (resume_cursor) {
+      new_cache.scan_progress = {
+        cursor: resume_cursor,
+        last_scan_ts: max_processed_ts,
+        last_scan_message_ts: max_processed_message_ts,
+        carried: Array.from(carried),
+      };
+    }
+
+    return save_subscription_cache(new_cache, vault);
+  };
+
+  let cursor: string | undefined = progress?.cursor;
   let has_next = true;
   let aborted = false;
+  let can_restart = !!progress;
+  let unsaved_pages = 0;
 
   while (has_next) {
     if (cursor) {
       await new Promise((resolve) => setTimeout(resolve, SCAN_PAGE_PAUSE_MS));
     }
 
-    const { data, error } = await list_mail_items({
+    const { data, error, status } = await list_mail_items({
       ...SUBSCRIPTION_SCAN_PARAMS,
       limit: SCAN_PAGE_SIZE,
       cursor,
     });
 
+    if (is_cancelled()) return 0;
+
     if (error || !data) {
+      if (
+        can_restart &&
+        status !== undefined &&
+        SCAN_REJECTED_CURSOR_STATUSES.includes(status)
+      ) {
+        can_restart = false;
+        cursor = undefined;
+        carried = new Set(existing_map.keys());
+        max_processed_ts = "";
+        max_processed_message_ts = "";
+        continue;
+      }
+
       aborted = true;
       break;
     }
+
+    can_restart = false;
 
     const { items, has_more, next_cursor } = data;
 
@@ -404,72 +615,38 @@ export async function run_background_scan(
       }
     }
 
+    if (is_cancelled()) return 0;
     if (stop) break;
 
-    has_next = has_more && !!next_cursor;
+    has_next = has_more && !!next_cursor && next_cursor !== cursor;
     cursor = next_cursor;
-  }
+    unsaved_pages++;
 
-  if (aborted) return;
-
-  for (const [email, sender] of sender_counts) {
-    const has_unsub_mechanism =
-      sender.has_one_click ||
-      !!sender.unsubscribe_link ||
-      !!sender.list_unsubscribe_header;
-
-    if (!has_unsub_mechanism) continue;
-
-    const existing = existing_map.get(email);
-
-    if (existing) {
-      existing_map.set(email, {
-        ...existing,
-        email_count: existing.email_count + sender.count,
-        last_received:
-          sender.last_received > existing.last_received
-            ? sender.last_received
-            : existing.last_received,
-        sender_name: sender.name || existing.sender_name,
-        unsubscribe_link: sender.unsubscribe_link || existing.unsubscribe_link,
-        list_unsubscribe_header:
-          sender.list_unsubscribe_header || existing.list_unsubscribe_header,
-        list_unsubscribe_post:
-          sender.list_unsubscribe_post || existing.list_unsubscribe_post,
-        has_one_click: sender.has_one_click || existing.has_one_click,
-        category:
-          existing.category === "unknown" ? sender.category : existing.category,
-      });
-    } else {
-      existing_map.set(email, {
-        sender_email: email,
-        sender_name: sender.name,
-        domain: sender.domain,
-        email_count: sender.count,
-        last_received: sender.last_received,
-        unsubscribe_link: sender.unsubscribe_link,
-        list_unsubscribe_header: sender.list_unsubscribe_header,
-        list_unsubscribe_post: sender.list_unsubscribe_post,
-        has_one_click: sender.has_one_click,
-        category: sender.category,
-        status: "active",
-      });
+    if (is_full_scan && has_next && unsaved_pages >= SCAN_CHECKPOINT_PAGES) {
+      if (await persist(cursor)) unsaved_pages = 0;
+      if (is_cancelled()) return 0;
     }
   }
 
-  carry_over_previous_subscriptions(existing_map, previous_subscriptions);
+  if (aborted) {
+    if (is_full_scan && cursor && unsaved_pages > 0) await persist(cursor);
 
-  if (!max_processed_ts && existing_map.size === 0) return;
+    return 0;
+  }
 
-  const new_cache: SubscriptionCacheData = {
-    subscriptions: Array.from(existing_map.values()),
-    last_scan_ts: max_processed_ts || cached?.last_scan_ts || "",
-    last_scan_message_ts:
-      max_processed_message_ts || cached?.last_scan_message_ts || "",
-    version: SUBSCRIPTION_CACHE_VERSION,
-  };
+  merge_scanned_senders(sender_counts, existing_map, carried, is_full_scan);
 
-  await save_subscription_cache(new_cache, vault);
+  if (
+    !max_processed_ts &&
+    existing_map.size === 0 &&
+    !raw_cached?.scan_progress
+  ) {
+    return 0;
+  }
+
+  await persist();
+
+  return 0;
 }
 
 let scan_in_flight = false;
@@ -502,9 +679,24 @@ export function use_background_subscription_scan(): void {
   const has_started_ref = useRef(false);
   const is_scanning_ref = useRef(false);
   const last_scan_completed_at_ref = useRef(0);
+  const deferred_scan_ref = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const active_identity_ref = useRef<string | null>(null);
+  const identity_key = vault?.identity_key ?? null;
+
+  useEffect(() => {
+    active_identity_ref.current = identity_key;
+
+    return () => {
+      active_identity_ref.current = null;
+      if (deferred_scan_ref.current !== null) {
+        clearTimeout(deferred_scan_ref.current);
+        deferred_scan_ref.current = null;
+      }
+    };
+  }, [identity_key]);
 
   const trigger_scan = useCallback(
-    (respect_cooldown = false) => {
+    (respect_cooldown = false, defer_upgrade = true) => {
       if (!vault || is_scanning_ref.current) return;
       if (
         respect_cooldown &&
@@ -516,7 +708,20 @@ export function use_background_subscription_scan(): void {
       is_scanning_ref.current = true;
       set_scan_in_flight(true);
 
-      run_background_scan(vault)
+      run_background_scan(vault, {
+        defer_upgrade,
+        is_cancelled: () =>
+          get_vault_from_memory()?.identity_key !== vault.identity_key,
+      })
+        .then((delay) => {
+          if (delay <= 0 || deferred_scan_ref.current !== null) return;
+          if (active_identity_ref.current !== vault.identity_key) return;
+
+          deferred_scan_ref.current = setTimeout(() => {
+            deferred_scan_ref.current = null;
+            trigger_scan(false, false);
+          }, delay);
+        })
         .catch((caught) =>
           ignore_error(
             "hooks/use_background_subscription_scan:use_background_subscription_scan",

@@ -51,11 +51,19 @@ export const SUBSCRIPTION_CACHE_VERSION = 3;
 export const SUBSCRIPTION_CACHE_SAVED_EVENT =
   "astermail:subscription-cache-saved";
 
+export interface SubscriptionScanProgress {
+  cursor: string;
+  last_scan_ts: string;
+  last_scan_message_ts: string;
+  carried: string[];
+}
+
 export interface SubscriptionCacheData {
   subscriptions: CachedSubscription[];
   last_scan_ts: string;
   last_scan_message_ts?: string;
   version?: number;
+  scan_progress?: SubscriptionScanProgress;
 }
 
 interface GetSubscriptionsApiResponse {
