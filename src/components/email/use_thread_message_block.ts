@@ -88,6 +88,52 @@ import { use_attachment_keys_version } from "@/hooks/use_attachment_keys_version
 import { ignore_error } from "@/lib/ignore_error";
 import { clip_with_ellipsis } from "@/utils/preview_text";
 
+const AFTER_PAINT_FALLBACK_MS = 100;
+
+interface SanitizedContent {
+  html: string;
+  report: ExternalContentReport | null;
+  body_background: string | undefined;
+}
+
+interface SanitizeJob {
+  ready?: SanitizedContent;
+  run?: () => SanitizedContent;
+}
+
+const PENDING_CONTENT: SanitizedContent = {
+  html: "",
+  report: null,
+  body_background: undefined,
+};
+
+function run_after_next_paint(task: () => void): () => void {
+  if (
+    typeof requestAnimationFrame !== "function" ||
+    typeof cancelAnimationFrame !== "function"
+  ) {
+    const immediate = setTimeout(task, 0);
+
+    return () => clearTimeout(immediate);
+  }
+
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const frame = requestAnimationFrame(() => {
+    clearTimeout(fallback);
+    timer = setTimeout(task, 0);
+  });
+  const fallback = setTimeout(() => {
+    cancelAnimationFrame(frame);
+    task();
+  }, AFTER_PAINT_FALLBACK_MS);
+
+  return () => {
+    cancelAnimationFrame(frame);
+    clearTimeout(fallback);
+    if (timer !== undefined) clearTimeout(timer);
+  };
+}
+
 export interface ThreadMessageBlockProps {
   message: DecryptedThreadMessage;
   is_own_message: boolean;
@@ -396,16 +442,20 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
   const has_loaded_types =
     loaded_content_types && loaded_content_types.size > 0;
 
-  const sanitized_content = useMemo(() => {
+  const sanitize_job = useMemo((): SanitizeJob => {
     if (!is_body_visible) {
-      return { html: "", report: null, body_background: undefined };
+      return {
+        ready: { html: "", report: null, body_background: undefined },
+      };
     }
 
-    const build_sanitized_content = (): {
-      html: string;
-      report: ExternalContentReport | null;
-      body_background: string | undefined;
-    } => {
+    const fallback_content = (): SanitizedContent => ({
+      html: readable_fallback_html(clean_body, message.body),
+      report: null,
+      body_background: undefined,
+    });
+
+    const build_sanitize_job = (): SanitizeJob => {
       if (
         preloaded_sanitized &&
         html_has_renderable_content(preloaded_sanitized.html) &&
@@ -419,17 +469,21 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
             : null;
 
         return {
-          html: preloaded_sanitized.html,
-          report,
-          body_background: preloaded_sanitized.body_background,
+          ready: {
+            html: preloaded_sanitized.html,
+            report,
+            body_background: preloaded_sanitized.body_background,
+          },
         };
       }
 
       if (!is_html_content(clean_body)) {
         return {
-          html: plain_text_to_html(clean_body),
-          report: null,
-          body_background: undefined,
+          ready: {
+            html: plain_text_to_html(clean_body),
+            report: null,
+            body_background: undefined,
+          },
         };
       }
 
@@ -445,48 +499,57 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
         },
       });
 
-      const result = sanitize_html(clean_body, {
-        external_content_mode: lockdown_active
-          ? "never"
-          : load_remote_content
-            ? "always"
-            : base_image_mode,
-        image_proxy_url: get_image_proxy_url(),
-        sandbox_mode: true,
-        lockdown_mode: lockdown_active,
-        content_blocking:
-          !is_system && (lockdown_active || preferences.block_external_content)
-            ? {
-                ...resolved_blocking,
-              }
-            : undefined,
-      });
+      const sanitize = (): SanitizedContent => {
+        const result = sanitize_html(clean_body, {
+          external_content_mode: lockdown_active
+            ? "never"
+            : load_remote_content
+              ? "always"
+              : base_image_mode,
+          image_proxy_url: get_image_proxy_url(),
+          sandbox_mode: true,
+          lockdown_mode: lockdown_active,
+          content_blocking:
+            !is_system &&
+            (lockdown_active || preferences.block_external_content)
+              ? {
+                  ...resolved_blocking,
+                }
+              : undefined,
+        });
 
-      const report: ExternalContentReport | null =
-        result.external_content.blocked_count > 0
-          ? result.external_content
-          : null;
+        const report: ExternalContentReport | null =
+          result.external_content.blocked_count > 0
+            ? result.external_content
+            : null;
+
+        return {
+          html: result.html,
+          report,
+          body_background: result.body_background,
+        };
+      };
 
       return {
-        html: result.html,
-        report,
-        body_background: result.body_background,
+        run: () =>
+          guard_body_step(
+            "components/email/use_thread_message_block:sanitized_content",
+            sanitize,
+            fallback_content,
+          ),
       };
     };
 
     return guard_body_step(
       "components/email/use_thread_message_block:sanitized_content",
-      build_sanitized_content,
-      () => ({
-        html: readable_fallback_html(clean_body, message.body),
-        report: null,
-        body_background: undefined,
-      }),
+      build_sanitize_job,
+      () => ({ ready: fallback_content() }),
     );
   }, [
     is_body_visible,
     preloaded_sanitized,
     clean_body,
+    message.id,
     message.body,
     base_image_mode,
     load_remote_content,
@@ -499,6 +562,37 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
     preferences.block_remote_css,
     preferences.block_tracking_pixels,
   ]);
+
+  const [deferred_content, set_deferred_content] = useState<{
+    job: SanitizeJob;
+    content: SanitizedContent;
+  } | null>(null);
+  const shown_message_ref = useRef<string | null>(null);
+
+  const ready_content = useMemo((): SanitizedContent | null => {
+    if (sanitize_job.ready) return sanitize_job.ready;
+    if (deferred_content?.job === sanitize_job) return deferred_content.content;
+    if (shown_message_ref.current === message.id) return sanitize_job.run!();
+
+    return null;
+  }, [sanitize_job, deferred_content, message.id]);
+
+  const is_sanitize_pending = ready_content === null;
+
+  useEffect(() => {
+    if (!is_sanitize_pending || !sanitize_job.run) return;
+    const run = sanitize_job.run;
+
+    return run_after_next_paint(() => {
+      set_deferred_content({ job: sanitize_job, content: run() });
+    });
+  }, [is_sanitize_pending, sanitize_job]);
+
+  if (ready_content && is_body_visible) {
+    shown_message_ref.current = message.id;
+  }
+
+  const sanitized_content = ready_content ?? PENDING_CONTENT;
 
   useEffect(() => {
     if (
@@ -538,6 +632,7 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
   );
 
   useEffect(() => {
+    if (is_sanitize_pending) return;
     if (cid_preload_consumed_ref.current) {
       cid_preload_consumed_ref.current = false;
 
@@ -600,6 +695,7 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
       cancelled = true;
     };
   }, [
+    is_sanitize_pending,
     sanitized_content.html,
     message.id,
     is_expanded,
@@ -666,6 +762,7 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
     translation,
     load_remote_content,
     sanitized_content,
+    is_sanitize_pending,
     effective_html,
     html_blocked,
     plain_text_html,

@@ -78,6 +78,8 @@ import { AttachmentList } from "@/components/email/attachment_list";
 import { InlineReplyComposer } from "@/components/email/inline_reply_composer";
 import { build_reply_recipient_for_message } from "@/components/email/build_reply_recipient";
 import { ThreadMessageBody } from "@/components/email/thread_message_body";
+import { get_cached_iframe_height } from "@/components/email/sandboxed_email_renderer";
+import { UNMEASURED_PLACEHOLDER_HEIGHT } from "@/components/email/sandboxed_email_renderer/helpers";
 import { SpamReasonsBanner } from "@/components/email/banners/spam_reasons_banner";
 import { TranslationBanner } from "@/components/email/banners/translation_banner";
 import { ThreadMessageActions } from "@/components/email/thread_message_actions";
@@ -162,6 +164,7 @@ export function ThreadMessageBlock(
     translation,
     load_remote_content,
     sanitized_content,
+    is_sanitize_pending,
     effective_html,
     html_blocked,
     plain_text_html,
@@ -172,6 +175,9 @@ export function ThreadMessageBlock(
   const shows_full_message =
     !message.is_deleted &&
     (is_expanded || is_last_in_thread || is_single_message);
+  const pending_body_height = is_sanitize_pending
+    ? get_cached_iframe_height(message.id)
+    : undefined;
 
   const wrap_in_island = (
     content: React.ReactNode,
@@ -898,6 +904,15 @@ export function ThreadMessageBlock(
           <p className="mx-4 mb-3 rounded-[20px] bg-surf-primary px-4 py-3 text-sm italic text-txt-muted">
             {t("mail.encrypted_message_unavailable")}
           </p>
+        ) : is_sanitize_pending && !html_blocked ? (
+          <div
+            aria-hidden="true"
+            style={{
+              height: pending_body_height
+                ? `${pending_body_height}px`
+                : UNMEASURED_PLACEHOLDER_HEIGHT,
+            }}
+          />
         ) : (
           <ThreadMessageBody
             body_background={
