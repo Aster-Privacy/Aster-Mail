@@ -692,14 +692,18 @@ export function use_email_detail_load() {
           thread_token!,
           user?.email,
           thread_options,
-        ).catch((caught) => {
-          ignore_error(
-            "components/email/hooks/use_email_detail_load:thread_messages",
-            caught,
-          );
+        )
+          .then((result) =>
+            result.thread_data || result.messages.length > 0 ? result : null,
+          )
+          .catch((caught) => {
+            ignore_error(
+              "components/email/hooks/use_email_detail_load:thread_messages",
+              caught,
+            );
 
-          return null;
-        });
+            return null;
+          });
       const early_thread_request =
         should_load_thread && are_keys_ready() ? request_thread() : null;
 
@@ -948,8 +952,6 @@ export function use_email_detail_load() {
           if (is_stale()) return;
           if (group_messages && group_messages.length > 0) {
             set_thread_messages(group_messages);
-          } else if (group_messages) {
-            set_thread_messages([single_message]);
           } else {
             set_thread_messages((prev) =>
               prev.length > 0 ? prev : [single_message],
@@ -1044,6 +1046,8 @@ export function use_email_detail_load() {
       }
       set_is_loading(false);
     }
+
+    if (load_seq_ref.current === my_seq) set_pending_thread_count(0);
   }, [load_email, t]);
 
   return {

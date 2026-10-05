@@ -798,6 +798,8 @@ export function use_popup_viewer({
         set_error(t("common.failed_to_load_email"));
       }
     }
+
+    if (fetch_seq_ref.current === my_seq) set_pending_thread_count(0);
   }, [email_id, load_popup_email, t]);
 
   useEffect(() => {

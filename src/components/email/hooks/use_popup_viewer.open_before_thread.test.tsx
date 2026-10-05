@@ -50,6 +50,7 @@ const h = vi.hoisted(() => ({
   envelope_decrypts_done: 0,
   decrypt_gate: null as Promise<void> | null,
   thread_response: null as Promise<unknown> | null,
+  has_thread: true,
   mark_as_read_delay: "never" as string,
   opened_is_read: true,
   read_updates: [] as string[],
@@ -166,8 +167,8 @@ vi.mock("@/services/api/mail", () => ({
   get_mail_item: async (id: string) => ({
     data: {
       ...server_message(Number(id.slice(1))),
-      thread_token: THREAD,
-      thread_message_count: THREAD_SIZE,
+      thread_token: h.has_thread ? THREAD : undefined,
+      thread_message_count: h.has_thread ? THREAD_SIZE : 1,
       labels: [],
     },
     error: null,
@@ -239,6 +240,7 @@ vi.mock("@/contexts/auth_context", () => ({
 
 vi.mock("@/hooks/use_mail_stats", () => ({ adjust_stats_unread: vi.fn() }));
 
+const { MAIL_EVENTS } = await import("@/hooks/mail_events");
 const { use_popup_viewer } =
   await import("@/components/email/hooks/use_popup_viewer");
 
@@ -294,6 +296,7 @@ describe("opening a threaded message in the popup", () => {
     h.envelope_decrypts_done = 0;
     h.decrypt_gate = null;
     h.thread_response = null;
+    h.has_thread = true;
     h.mark_as_read_delay = "never";
     h.opened_is_read = true;
     h.read_updates = [];
@@ -360,6 +363,25 @@ describe("opening a threaded message in the popup", () => {
 
     expect(h.thread_requests).toBe(1);
     expect(view().error).toBeNull();
+    expect(view().pending).toBe(0);
+    expect(view().messages.map((m) => m.id)).toEqual([OPENED]);
+  });
+
+  it("stops waiting for the thread when a refresh finds the message has none", async () => {
+    const thread = deferred<unknown>();
+
+    h.thread_response = thread.promise;
+    const view = render_popup();
+
+    await settle();
+    expect(view().pending).toBe(THREAD_SIZE - 1);
+
+    h.has_thread = false;
+    act(() => {
+      window.dispatchEvent(new Event(MAIL_EVENTS.REFRESH_REQUESTED));
+    });
+    await settle();
+
     expect(view().pending).toBe(0);
     expect(view().messages.map((m) => m.id)).toEqual([OPENED]);
   });

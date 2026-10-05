@@ -50,6 +50,9 @@ const h = vi.hoisted(() => ({
   envelope_decrypts_done: 0,
   decrypt_gate: null as Promise<void> | null,
   thread_response: null as Promise<unknown> | null,
+  mail_item_error: null as string | null,
+  has_thread: true,
+  group_response: null as unknown,
   mark_as_read_delay: "never" as string,
   opened_is_read: true,
   read_updates: [] as string[],
@@ -171,22 +174,26 @@ vi.mock("@/services/account_manager", () => ({
 }));
 
 vi.mock("@/services/api/mail", () => ({
-  get_mail_item: async (id: string) => ({
-    data: {
-      ...server_message(Number(id.slice(1))),
-      thread_token: THREAD,
-      thread_message_count: THREAD_SIZE,
-      labels: [],
-      folders: [],
-    },
-    error: null,
-  }),
+  get_mail_item: async (id: string) =>
+    h.mail_item_error
+      ? { data: null, error: h.mail_item_error }
+      : {
+          data: {
+            ...server_message(Number(id.slice(1))),
+            thread_token: h.has_thread ? THREAD : undefined,
+            thread_message_count: h.has_thread ? THREAD_SIZE : 1,
+            labels: [],
+            folders: [],
+          },
+          error: null,
+        },
   get_thread_messages: async () => {
     h.thread_requests += 1;
 
     return h.thread_response ?? thread_payload();
   },
-  list_mail_items: async () => ({ data: null, error: "unused" }),
+  list_mail_items: async () =>
+    h.group_response ?? { data: null, error: "unused" },
   create_thread: async () => ({ data: null, error: "unused" }),
   link_mail_to_thread: async () => ({ data: null, error: "unused" }),
 }));
@@ -221,6 +228,7 @@ vi.mock("@/components/compose/compose_manager", () => ({
 
 vi.mock("@/hooks/use_folders", () => ({
   use_folders: () => h.folders_state,
+  get_cached_folders: () => [],
 }));
 
 vi.mock("@/hooks/use_document_title", () => ({
@@ -345,6 +353,10 @@ describe("opening a threaded message on the detail page", () => {
     h.envelope_decrypts_done = 0;
     h.decrypt_gate = null;
     h.thread_response = null;
+    h.mail_item_error = null;
+    h.has_thread = true;
+    h.group_response = null;
+    sessionStorage.removeItem("astermail_email_nav");
     h.mark_as_read_delay = "never";
     h.opened_is_read = true;
     h.read_updates = [];
@@ -414,6 +426,92 @@ describe("opening a threaded message on the detail page", () => {
     expect(view().error).toBeNull();
     expect(view().messages).toHaveLength(THREAD_SIZE);
     expect(view().messages.at(-1)?.id).toBe(OPENED);
+  });
+
+  it("keeps the whole thread when a reload of the same message gets an error response", async () => {
+    const view = render_detail();
+
+    await settle();
+    expect(view().messages).toHaveLength(THREAD_SIZE);
+
+    h.thread_response = Promise.resolve({ data: null, error: "unavailable" });
+    await act(async () => {
+      await reload();
+    });
+    await settle();
+
+    expect(h.thread_requests).toBe(2);
+    expect(view().error).toBeNull();
+    expect(view().messages).toHaveLength(THREAD_SIZE);
+    expect(view().messages.at(-1)?.id).toBe(OPENED);
+  });
+
+  it("keeps the opened message when the first thread request gets an error response", async () => {
+    h.thread_response = Promise.resolve({ data: null, error: "unavailable" });
+    const view = render_detail();
+
+    await settle();
+
+    expect(view().error).toBeNull();
+    expect(view().is_loading).toBe(false);
+    expect(view().pending).toBe(0);
+    expect(view().messages.map((m) => m.id)).toEqual([OPENED]);
+  });
+
+  it("keeps the grouped messages when a reload cannot fetch the group", async () => {
+    const grouped = [`m${THREAD_SIZE - 2}`, OPENED];
+
+    h.has_thread = false;
+    h.group_response = {
+      data: {
+        items: [
+          server_message(THREAD_SIZE - 2),
+          server_message(THREAD_SIZE - 1),
+        ],
+      },
+      error: null,
+    };
+    sessionStorage.setItem(
+      "astermail_email_nav",
+      JSON.stringify({ email_ids: grouped, grouped_email_ids: grouped }),
+    );
+    const view = render_detail();
+
+    await settle();
+    expect(view().messages.map((m) => m.id)).toEqual(grouped);
+
+    h.group_response = { data: null, error: "unavailable" };
+    await act(async () => {
+      await reload();
+    });
+    await settle();
+
+    expect(view().error).toBeNull();
+    expect(view().messages.map((m) => m.id)).toEqual(grouped);
+  });
+
+  it("stops waiting for the thread when a reload of the same message fails", async () => {
+    const thread = deferred<unknown>();
+
+    h.thread_response = thread.promise;
+    const view = render_detail();
+
+    await settle();
+    expect(view().pending).toBe(THREAD_SIZE - 1);
+
+    h.mail_item_error = "unavailable";
+    await act(async () => {
+      await reload();
+    });
+    await settle();
+
+    expect(view().pending).toBe(0);
+    expect(view().messages.map((m) => m.id)).toEqual([OPENED]);
+
+    thread.resolve(thread_payload());
+    await settle();
+
+    expect(view().pending).toBe(0);
   });
 
   it("marks the opened message read once", async () => {
