@@ -57,7 +57,7 @@ objc2-foundation = { version = "0.3", features = ["NSString", "NSURL"] }
 core-foundation = "0.10"
 
 [target.'cfg(windows)'.dependencies]
-webview2-com = "0.38"
+webview2-com = "0.39"
 windows-core = "0.61"
 rfd = "0.15"
 windows-registry = "0.6"
