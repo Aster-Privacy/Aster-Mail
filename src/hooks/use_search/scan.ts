@@ -31,28 +31,54 @@ import {
 import { type MailItem } from "@/services/api/mail";
 import { open_snapshot_reader } from "@/services/search_index_store";
 
+function yield_to_main(): Promise<void> {
+  return new Promise<void>((r) => setTimeout(r, 0));
+}
+
+type SliceOutcome = "done" | "stopped" | "aborted";
+
+async function visit_in_slices(
+  items: MailItem[],
+  entries: ReadonlyMap<string, DecryptedIndexEntry>,
+  visit: (item: MailItem, entry: DecryptedIndexEntry) => boolean,
+  is_aborted: () => boolean,
+  clock: { yielded_at: number },
+): Promise<SliceOutcome> {
+  for (const item of items) {
+    const entry = entries.get(item.id);
+
+    if (!entry) continue;
+    if (!visit(item, entry)) return "stopped";
+
+    if (Date.now() - clock.yielded_at >= SCAN_YIELD_MS) {
+      await yield_to_main();
+
+      if (is_aborted()) return "aborted";
+
+      clock.yielded_at = Date.now();
+    }
+  }
+
+  return "done";
+}
+
 export async function scan_search_index(
   index: CachedIndex,
   visit: (item: MailItem, entry: DecryptedIndexEntry) => boolean,
   is_aborted: () => boolean,
   options?: ScanOptions,
 ): Promise<boolean> {
-  let yielded_at = Date.now();
+  const clock = { yielded_at: Date.now() };
 
-  for (const item of index.items) {
-    const entry = index.decrypted.get(item.id);
+  const hot = await visit_in_slices(
+    index.items,
+    index.decrypted,
+    visit,
+    is_aborted,
+    clock,
+  );
 
-    if (!entry) continue;
-    if (!visit(item, entry)) return true;
-
-    if (Date.now() - yielded_at >= SCAN_YIELD_MS) {
-      await new Promise<void>((r) => setTimeout(r, 0));
-
-      if (is_aborted()) return true;
-
-      yielded_at = Date.now();
-    }
-  }
+  if (hot !== "done") return true;
 
   options?.on_chunk?.();
 
@@ -95,9 +121,19 @@ export async function scan_search_index(
 
     const chunk = await reader.read(chunk_id);
 
+    if (is_aborted()) return true;
+
     if (!chunk) {
       options?.on_unreadable_chunk?.();
       continue;
+    }
+
+    if (Date.now() - clock.yielded_at >= SCAN_YIELD_MS) {
+      await yield_to_main();
+
+      if (is_aborted()) return true;
+
+      clock.yielded_at = Date.now();
     }
 
     const entries = new Map<string, DecryptedIndexEntry>();
@@ -106,26 +142,23 @@ export async function scan_search_index(
       entries.set(entry.id, entry);
     }
 
-    let stopped = false;
-
-    for (const item of chunk.items) {
-      const entry = entries.get(item.id);
-
-      if (!entry) continue;
-      if (!visit(item, entry)) {
-        stopped = true;
-        break;
-      }
-    }
+    const outcome = await visit_in_slices(
+      chunk.items,
+      entries,
+      visit,
+      is_aborted,
+      clock,
+    );
 
     entries.clear();
 
-    if (stopped) return true;
+    if (outcome !== "done") return true;
 
     settle(chunk_id);
     options?.on_chunk?.();
 
-    await new Promise<void>((r) => setTimeout(r, 0));
+    await yield_to_main();
+    clock.yielded_at = Date.now();
   }
 
   return false;

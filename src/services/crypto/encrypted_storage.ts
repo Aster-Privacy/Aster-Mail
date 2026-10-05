@@ -37,6 +37,7 @@ interface EncryptedEntry {
 }
 
 const CURRENT_VERSION = 1;
+const PARSE_YIELD_BYTES = 256 * 1024;
 
 let db_instance: IDBDatabase | null = null;
 let db_promise: Promise<IDBDatabase> | null = null;
@@ -247,6 +248,10 @@ export async function encrypted_get<T>(
     const decrypted_bytes = new Uint8Array(decrypted_buffer);
 
     zero_uint8_array(decrypted_bytes);
+
+    if (decrypted_bytes.length >= PARSE_YIELD_BYTES) {
+      await new Promise<void>((r) => setTimeout(r, 0));
+    }
 
     return JSON.parse(json_string) as T;
   } catch {
