@@ -121,7 +121,7 @@ describe("folder decryption failure on a cold cache", () => {
     latest = null;
   });
 
-  it("reports an error instead of an empty folder list", async () => {
+  it("lists the folder as unreadable instead of an empty folder list", async () => {
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -134,7 +134,10 @@ describe("folder decryption failure on a cold cache", () => {
       await latest!.fetch_folders();
     });
 
-    expect(latest!.state.error).toBe("common.failed_to_fetch_folders");
-    expect(latest!.state.folders).toHaveLength(0);
+    expect(latest!.state.error).toBeNull();
+    expect(latest!.state.is_loading).toBe(false);
+    expect(latest!.state.folders.map((f) => f.name)).toEqual([
+      "common.unable_to_decrypt",
+    ]);
   });
 });
