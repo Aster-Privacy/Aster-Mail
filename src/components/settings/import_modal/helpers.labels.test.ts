@@ -23,10 +23,18 @@ import type { ParsedEmail } from "@/services/import/parser";
 import { describe, expect, it } from "vitest";
 
 import {
+  MAX_KEYWORD_LABELS_PER_EMAIL,
+  MAX_TAGS_PER_EMAIL,
+  classify_import_email,
   classify_import_labels,
   extract_source_folders,
+  extract_source_tags,
   folder_for_email,
+  keyword_labels,
+  normalize_label_path,
   source_labels,
+  split_label_list,
+  tag_tokens_for_email,
 } from "./helpers";
 
 function email_with(headers: Record<string, string>, folder?: string) {
@@ -174,13 +182,17 @@ describe("nested labels named like system folders", () => {
     ]);
   });
 
-  it("creates the folder for a nested Archive label", () => {
-    expect(
-      extract_source_folders([
-        email_with({ "x-gmail-labels": "Archived,Clients/Archive" }),
-        email_with({ "x-gmail-labels": "Inbox,Team/Chat" }),
-      ]),
-    ).toEqual(["Clients/Archive", "Team/Chat"]);
+  it("turns a nested Archive label from the label header into a label", () => {
+    const emails = [
+      email_with({ "x-gmail-labels": "Archived,Clients/Archive" }),
+      email_with({ "x-gmail-labels": "Inbox,Team/Chat" }),
+    ];
+
+    expect(extract_source_folders(emails)).toEqual([]);
+    expect(extract_source_tags(emails)).toEqual([
+      "Clients/Archive",
+      "Team/Chat",
+    ]);
   });
 });
 
@@ -194,14 +206,15 @@ describe("source_labels and folders", () => {
     ]);
   });
 
-  it("creates folders only for custom labels of imported mail", () => {
-    const folders = extract_source_folders([
+  it("creates folders only for real source folders of imported mail", () => {
+    const emails = [
       email_with({ "x-gmail-labels": "Inbox, Work, IMAP_Forwarded" }),
       email_with({ "x-gmail-labels": "Drafts, Ideas" }),
       email_with({}, "Family"),
-    ]);
+    ];
 
-    expect(folders).toEqual(["Work", "Family"]);
+    expect(extract_source_folders(emails)).toEqual(["Family"]);
+    expect(extract_source_tags(emails)).toEqual(["Work"]);
   });
 
   it("resolves the folder token from the source folder", () => {
@@ -209,5 +222,196 @@ describe("source_labels and folders", () => {
 
     expect(folder_for_email(email_with({}, "Family"), map)).toBe("tok");
     expect(folder_for_email(email_with({}, "Inbox"), map)).toBeUndefined();
+  });
+});
+
+describe("split_label_list", () => {
+  it("keeps commas inside quoted labels", () => {
+    expect(split_label_list('Inbox,"Taxes, 2025",Work')).toEqual([
+      "Inbox",
+      "Taxes, 2025",
+      "Work",
+    ]);
+  });
+
+  it("reads doubled and escaped quotes inside a quoted label", () => {
+    expect(split_label_list('"Say ""hi"", again","A \\"B\\""')).toEqual([
+      'Say "hi", again',
+      'A "B"',
+    ]);
+  });
+
+  it("drops empty entries and trims the rest", () => {
+    expect(split_label_list(" Work , ,Family,")).toEqual(["Work", "Family"]);
+  });
+
+  it("splits on whitespace when asked and still honors quotes", () => {
+    expect(split_label_list('work "to do" later', true)).toEqual([
+      "work",
+      "to do",
+      "later",
+    ]);
+  });
+});
+
+describe("keyword_labels", () => {
+  it("reads comma-separated and space-separated keyword headers", () => {
+    expect(
+      keyword_labels(email_with({ "x-keywords": "Work, Tax Return" })),
+    ).toEqual(["Work", "Tax Return"]);
+    expect(keyword_labels(email_with({ "x-keywords": "work todo" }))).toEqual([
+      "work",
+      "todo",
+    ]);
+  });
+
+  it("ignores the sender-controlled keywords header", () => {
+    expect(
+      keyword_labels(email_with({ keywords: "Project Alpha, Receipts" })),
+    ).toEqual([]);
+  });
+
+  it("ignores mail client state keywords", () => {
+    expect(
+      keyword_labels(
+        email_with({ "x-keywords": "$Forwarded NonJunk $label1 work" }),
+      ),
+    ).toEqual(["work"]);
+  });
+
+  it("caps the labels taken from one keyword header", () => {
+    const names = Array.from({ length: 80 }, (_, i) => `Keyword ${i}`);
+    const labels = keyword_labels(
+      email_with({ "x-keywords": `$Forwarded, ${names.join(", ")}` }),
+    );
+
+    expect(labels).toHaveLength(MAX_KEYWORD_LABELS_PER_EMAIL);
+    expect(labels[0]).toBe("Keyword 0");
+    expect(labels[MAX_KEYWORD_LABELS_PER_EMAIL - 1]).toBe(
+      `Keyword ${MAX_KEYWORD_LABELS_PER_EMAIL - 1}`,
+    );
+  });
+});
+
+describe("classify_import_email", () => {
+  it("turns every custom label of the label header into a label", () => {
+    const d = classify_import_email(
+      email_with({
+        "x-gmail-labels": 'Inbox,Work,"Taxes, 2025",Receipts/2025,Starred',
+      }),
+    );
+
+    expect(d.tag_names).toEqual(["Work", "Taxes, 2025", "Receipts/2025"]);
+    expect(d.custom_labels).toEqual([]);
+    expect(d.is_starred).toBe(true);
+    expect(d.is_archived).toBe(false);
+  });
+
+  it("archives labeled mail that is not in the inbox", () => {
+    const d = classify_import_email(
+      email_with({ "x-gmail-labels": "Archived,Receipts" }),
+    );
+
+    expect(d.is_archived).toBe(true);
+    expect(d.tag_names).toEqual(["Receipts"]);
+  });
+
+  it("excludes system and state labels", () => {
+    const d = classify_import_email(
+      email_with({
+        "x-gmail-labels":
+          "Inbox,Sent,Spam,Trash,Starred,Important,Unread,Opened,Category Updates,IMAP_Forwarded,[Imap]/Sent",
+        "x-keywords": "Junk, Archive, Flagged, Inbox",
+      }),
+    );
+
+    expect(d.tag_names).toEqual([]);
+    expect(d.custom_labels).toEqual([]);
+  });
+
+  it("dedupes labels case-insensitively across headers", () => {
+    const d = classify_import_email(
+      email_with({
+        "x-gmail-labels": "Inbox,Work,work,Family",
+        "x-keywords": "WORK, family, Travel",
+      }),
+    );
+
+    expect(d.tag_names).toEqual(["Work", "Family", "Travel"]);
+  });
+
+  it("keeps a real source folder as a folder and adds keywords as labels", () => {
+    const email = email_with({ "x-keywords": "Urgent" }, "Projects/Alpha");
+    const d = classify_import_email(email);
+
+    expect(d.custom_labels).toEqual(["Projects/Alpha"]);
+    expect(d.tag_names).toEqual(["Urgent"]);
+    expect(extract_source_folders([email])).toEqual(["Projects/Alpha"]);
+  });
+
+  it("does not let keywords change where the message goes", () => {
+    const d = classify_import_email(
+      email_with({ "x-keywords": "Trash, Spam, Drafts, Sent" }),
+    );
+
+    expect(d).toMatchObject({
+      skip: false,
+      sent: false,
+      is_trashed: false,
+      is_spam: false,
+      tag_names: [],
+    });
+  });
+});
+
+describe("label names and tokens", () => {
+  it("normalizes label paths", () => {
+    expect(normalize_label_path(" Parent / Child ")).toBe("Parent/Child");
+    expect(normalize_label_path("/Parent//Child/")).toBe("Parent/Child");
+  });
+
+  it("collects unique labels of imported mail in first-seen order", () => {
+    expect(
+      extract_source_tags([
+        email_with({ "x-gmail-labels": "Inbox,Work,Family" }),
+        email_with({ "x-gmail-labels": "Inbox,work,Travel" }),
+        email_with({ "x-gmail-labels": "Drafts,Ideas" }),
+      ]),
+    ).toEqual(["Work", "Family", "Travel"]);
+  });
+
+  it("puts a message with three labels in no folder and gives it three tokens", () => {
+    const email = email_with({ "x-gmail-labels": "Inbox,Work,Family,Travel" });
+    const tag_map = new Map([
+      ["work", "t1"],
+      ["family", "t2"],
+      ["travel", "t3"],
+    ]);
+
+    expect(folder_for_email(email, new Map([["Work", "folder"]]))).toBe(
+      undefined,
+    );
+    expect(tag_tokens_for_email(email, tag_map)).toEqual(["t1", "t2", "t3"]);
+  });
+
+  it("leaves out labels that have no token", () => {
+    const email = email_with({ "x-gmail-labels": "Inbox,Work,Family" });
+
+    expect(tag_tokens_for_email(email, new Map([["family", "t2"]]))).toEqual([
+      "t2",
+    ]);
+    expect(tag_tokens_for_email(email, new Map())).toEqual([]);
+  });
+
+  it("caps the tokens sent for one message", () => {
+    const names = Array.from({ length: 60 }, (_, i) => `Label ${i}`);
+    const email = email_with({ "x-gmail-labels": names.join(",") });
+    const tag_map = new Map(
+      names.map((name) => [name.toLowerCase(), "tok-" + name]),
+    );
+    const tokens = tag_tokens_for_email(email, tag_map);
+
+    expect(tokens).toHaveLength(MAX_TAGS_PER_EMAIL);
+    expect(tokens[0]).toBe("tok-Label 0");
   });
 });

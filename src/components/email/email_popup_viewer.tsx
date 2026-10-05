@@ -23,6 +23,7 @@ import { motion } from "framer-motion";
 
 import { use_should_reduce_motion } from "@/provider";
 import { get_cached_folders } from "@/hooks/use_folders";
+import { order_folders_as_tree } from "@/hooks/use_folders/tree";
 import { bulk_add_folder, bulk_remove_folder } from "@/services/api/mail";
 import {
   mail_event_bus,
@@ -89,12 +90,13 @@ export function EmailPopupViewer({
 
   const folder_options = useMemo(
     () =>
-      available_folders
-        .filter((folder) => !folder.is_system && !folder.is_password_protected)
-        .map((folder) => ({
+      order_folders_as_tree(available_folders)
+        .filter(({ folder }) => !folder.is_password_protected)
+        .map(({ folder, depth }) => ({
           id: folder.folder_token,
           name: folder.name,
           color: folder.color ?? "",
+          depth,
         })),
     [available_folders],
   );

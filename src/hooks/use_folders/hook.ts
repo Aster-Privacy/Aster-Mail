@@ -84,6 +84,7 @@ import { use_i18n } from "@/lib/i18n/context";
 
 const COUNTS_DEBOUNCE_MS = 500;
 const COUNTS_CONFIRM_MS = 4_000;
+const FOLDERS_REFETCH_DEBOUNCE_MS = 300;
 const FOLDER_RETRY_DELAYS_MS = [400, 1_200, 3_000];
 const FOLDER_BACKGROUND_RETRY_DELAYS_MS = [8_000, 20_000, 45_000];
 
@@ -896,6 +897,7 @@ export function use_folders(): UseFoldersReturn {
   useEffect(() => {
     let counts_debounce: ReturnType<typeof setTimeout> | null = null;
     let counts_confirm: ReturnType<typeof setTimeout> | null = null;
+    let folders_debounce: ReturnType<typeof setTimeout> | null = null;
 
     const counts_handler = () => {
       if (counts_debounce) clearTimeout(counts_debounce);
@@ -934,9 +936,13 @@ export function use_folders(): UseFoldersReturn {
     };
 
     const folders_handler = () => {
-      if (has_passphrase_in_memory()) {
-        fetch_folders();
-      }
+      if (folders_debounce) clearTimeout(folders_debounce);
+      folders_debounce = setTimeout(() => {
+        folders_debounce = null;
+        if (has_passphrase_in_memory()) {
+          fetch_folders();
+        }
+      }, FOLDERS_REFETCH_DEBOUNCE_MS);
     };
 
     const auth_ready_handler = () => {
@@ -974,6 +980,7 @@ export function use_folders(): UseFoldersReturn {
     window.addEventListener(MAIL_EVENTS.MAIL_SOFT_REFRESH, counts_handler);
     window.addEventListener(MAIL_EVENTS.MAIL_ITEM_UPDATED, item_update_handler);
     window.addEventListener(MAIL_EVENTS.FOLDERS_CHANGED, folders_handler);
+    window.addEventListener(MAIL_EVENTS.DEFINITIONS_STALE, folders_handler);
     window.addEventListener(MAIL_EVENTS.AUTH_READY, auth_ready_handler);
     document.addEventListener("visibilitychange", visibility_handler);
     channel?.addEventListener("message", broadcast_handler);
@@ -981,6 +988,7 @@ export function use_folders(): UseFoldersReturn {
     return () => {
       if (counts_debounce) clearTimeout(counts_debounce);
       if (counts_confirm) clearTimeout(counts_confirm);
+      if (folders_debounce) clearTimeout(folders_debounce);
       window.removeEventListener(MAIL_EVENTS.MAIL_CHANGED, counts_handler);
       window.removeEventListener(MAIL_EVENTS.EMAIL_RECEIVED, counts_handler);
       window.removeEventListener(MAIL_EVENTS.EMAIL_SENT, counts_handler);
@@ -992,6 +1000,10 @@ export function use_folders(): UseFoldersReturn {
         item_update_handler,
       );
       window.removeEventListener(MAIL_EVENTS.FOLDERS_CHANGED, folders_handler);
+      window.removeEventListener(
+        MAIL_EVENTS.DEFINITIONS_STALE,
+        folders_handler,
+      );
       window.removeEventListener(MAIL_EVENTS.AUTH_READY, auth_ready_handler);
       document.removeEventListener("visibilitychange", visibility_handler);
       channel?.removeEventListener("message", broadcast_handler);

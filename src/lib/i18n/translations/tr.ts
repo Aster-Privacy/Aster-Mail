@@ -188,6 +188,7 @@ export const tr = {
     labels: "Etiketler",
     no_folders_yet: "Henüz klasör yok",
     no_labels_yet: "Henüz etiket yok",
+    label_unable_to_decrypt: "Şifre çözülemiyor",
     aliases: "Takma adlar",
     no_aliases_yet: "Henüz takma ad yok",
     storage_used: "Kullanılan depolama",
@@ -305,6 +306,15 @@ export const tr = {
     select_parent_folder: "Üst klasör seçin",
     top_level_no_parent: "Üst düzey (üst yok)",
     parent_folder: "Üst klasör",
+    create_sublabel: "Alt etiket oluştur",
+    move_label: "Etiketi taşı",
+    move_label_description: "Bu etiket için yeni bir üst etiket seçin",
+    select_parent_label: "Üst etiket seçin",
+    parent_label: "Üst etiket",
+    no_parent_label: "Üst düzey (üst etiket yok)",
+    failed_to_move_label: "Bu etiket taşınmadı. Tekrar deneyin.",
+    label_delete_keeps_sublabels:
+      "Alt etiketler silinmez. Bir düzey yukarı taşınır.",
     move_up: "Yukarı taşı",
     move_down: "Aşağı taşı",
     sort_a_to_z: "A'dan Z'ye sırala",
@@ -5577,6 +5587,12 @@ export const tr = {
       "{{count}} klasör oluşturulamadı, bu yüzden iletileri gelen kutunuzda.",
     import_folders_skipped_plural:
       "{{count}} klasör oluşturulamadı, bu yüzden iletileri gelen kutunuzda.",
+    import_labels_created: "{{count}} etiket oluşturuldu",
+    import_labels_created_one: "{{count}} etiket oluşturuldu",
+    import_labels_skipped:
+      "{{count}} etiket oluşturulamadı, bu yüzden iletileri bu etiketler olmadan içe aktarılır.",
+    import_labels_skipped_one:
+      "{{count}} etiket oluşturulamadı, bu yüzden iletileri bu etiketler olmadan içe aktarılır.",
     storage_quota_reached:
       "Depolama alanınız dolu. Planınızı yükseltmek ya da bir miktar e-postayı kaldırmak daha fazla içe aktarım için yer açar.",
     no_emails_in_file:

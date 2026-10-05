@@ -182,6 +182,7 @@ export const ar = {
     labels: "التصنيفات",
     no_folders_yet: "لا توجد مجلدات بعد",
     no_labels_yet: "لا توجد تصنيفات بعد",
+    label_unable_to_decrypt: "تعذّر فك التشفير",
     aliases: "الأسماء المستعارة",
     no_aliases_yet: "لا توجد أسماء مستعارة بعد",
     storage_used: "التخزين المستخدم",
@@ -299,6 +300,15 @@ export const ar = {
     select_parent_folder: "تحديد المجلد الرئيسي",
     top_level_no_parent: "المستوى الأعلى (بدون أصل)",
     parent_folder: "المجلد الأصل",
+    create_sublabel: "إنشاء تصنيف فرعي",
+    move_label: "نقل التصنيف",
+    move_label_description: "اختر تصنيفًا رئيسيًا جديدًا لهذا التصنيف",
+    select_parent_label: "تحديد التصنيف الرئيسي",
+    parent_label: "التصنيف الرئيسي",
+    no_parent_label: "المستوى الأعلى (بدون تصنيف رئيسي)",
+    failed_to_move_label: "لم يتم نقل هذا التصنيف. حاول مجددًا.",
+    label_delete_keeps_sublabels:
+      "لن تُحذف التصنيفات الفرعية، بل تنتقل مستوى واحدًا إلى الأعلى.",
     move_up: "تحريك لأعلى",
     move_down: "تحريك لأسفل",
     sort_a_to_z: "ترتيب من أ إلى ي",
@@ -5676,6 +5686,12 @@ export const ar = {
       "تعذر إنشاء {{count}} مجلدات، لذلك توجد رسائلها في صندوق الوارد.",
     import_folders_skipped_plural:
       "تعذر إنشاء {{count}} مجلدات، لذلك توجد رسائلها في صندوق الوارد.",
+    import_labels_created: "التصنيفات التي تم إنشاؤها: {{count}}",
+    import_labels_created_one: "التصنيفات التي تم إنشاؤها: {{count}}",
+    import_labels_skipped:
+      "تعذر إنشاء تصنيفات عددها {{count}}، لذلك تُستورد رسائلها بدونها.",
+    import_labels_skipped_one:
+      "تعذر إنشاء تصنيفات عددها {{count}}، لذلك تُستورد رسائلها بدونها.",
     storage_quota_reached:
       "تخزينك ممتلئ. ترقية خطتك أو إزالة بعض الرسائل تفسح مجالًا لاستيرادات أكثر.",
     no_emails_in_file:

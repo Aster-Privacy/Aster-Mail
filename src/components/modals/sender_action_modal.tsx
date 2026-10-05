@@ -59,6 +59,7 @@ import {
 import { use_auth } from "@/contexts/auth_context";
 import { get_email_username, get_email_domain } from "@/lib/utils";
 import { has_protected_folder_label } from "@/hooks/use_folders";
+import { folder_option_indent } from "@/hooks/use_folders/tree";
 import {
   emit_mail_items_removed,
   emit_mail_soft_refresh,
@@ -106,6 +107,7 @@ interface Folder {
   token: string;
   name: string;
   color?: string;
+  depth?: number;
 }
 
 interface SenderActionModalProps {
@@ -736,6 +738,15 @@ export function SenderActionModal({
                                   set_selected_folder(folder.token)
                                 }
                               >
+                                {folder.depth ? (
+                                  <span
+                                    aria-hidden="true"
+                                    className="flex-shrink-0"
+                                    style={{
+                                      width: folder_option_indent(folder.depth),
+                                    }}
+                                  />
+                                ) : null}
                                 <FolderIcon
                                   className="w-4 h-4 flex-shrink-0"
                                   style={{ color: folder.color || "#3b82f6" }}

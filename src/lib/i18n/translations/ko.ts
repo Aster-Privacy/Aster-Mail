@@ -248,6 +248,7 @@ export const ko = {
     labels: "라벨",
     no_folders_yet: "아직 폴더가 없습니다",
     no_labels_yet: "아직 라벨이 없습니다",
+    label_unable_to_decrypt: "복호화할 수 없음",
     aliases: "별칭",
     no_aliases_yet: "아직 별칭이 없습니다",
     storage_used: "사용된 저장 공간",
@@ -363,6 +364,15 @@ export const ko = {
     select_parent_folder: "상위 폴더 선택",
     top_level_no_parent: "최상위 (상위 없음)",
     parent_folder: "상위 폴더",
+    create_sublabel: "하위 라벨 만들기",
+    move_label: "라벨 이동",
+    move_label_description: "이 라벨의 새 상위 라벨 선택",
+    select_parent_label: "상위 라벨 선택",
+    parent_label: "상위 라벨",
+    no_parent_label: "최상위 (상위 라벨 없음)",
+    failed_to_move_label: "이 라벨을 이동하지 못했습니다. 다시 시도하세요.",
+    label_delete_keeps_sublabels:
+      "하위 라벨은 삭제되지 않고 한 단계 위로 이동합니다.",
     move_up: "위로 이동",
     move_down: "아래로 이동",
     sort_a_to_z: "이름순 정렬",
@@ -5582,6 +5592,9 @@ export const ko = {
       "폴더 {{count}}개를 만들지 못해 해당 메일은 받은 편지함에 있습니다.",
     import_folders_skipped_plural:
       "폴더 {{count}}개를 만들지 못해 해당 메일은 받은 편지함에 있습니다.",
+    import_labels_created: "라벨 {{count}}개 생성됨",
+    import_labels_skipped:
+      "라벨 {{count}}개를 만들지 못해 해당 메일은 라벨 없이 가져옵니다.",
     storage_quota_reached:
       "저장 공간이 가득 찼습니다. 요금제를 업그레이드하거나 이메일을 일부 제거하면 더 가져올 공간이 생깁니다.",
     no_emails_in_file:

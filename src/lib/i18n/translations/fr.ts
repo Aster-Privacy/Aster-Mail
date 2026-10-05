@@ -197,6 +197,7 @@ export const fr = {
     labels: "Libellés",
     no_folders_yet: "Aucun dossier pour le moment",
     no_labels_yet: "Aucun libellé pour le moment",
+    label_unable_to_decrypt: "Déchiffrement impossible",
     aliases: "Alias",
     no_aliases_yet: "Pas encore d'alias",
     storage_used: "Stockage utilisé",
@@ -318,6 +319,15 @@ export const fr = {
     select_parent_folder: "Sélectionner le dossier parent",
     top_level_no_parent: "Niveau supérieur (sans parent)",
     parent_folder: "Dossier parent",
+    create_sublabel: "Créer un sous-libellé",
+    move_label: "Déplacer le libellé",
+    move_label_description: "Choisir un nouveau libellé parent pour ce libellé",
+    select_parent_label: "Sélectionner le libellé parent",
+    parent_label: "Libellé parent",
+    no_parent_label: "Niveau supérieur (sans parent)",
+    failed_to_move_label: "Ce libellé n'a pas été déplacé. Réessayez.",
+    label_delete_keeps_sublabels:
+      "Les sous-libellés ne sont pas supprimés. Ils remontent d'un niveau.",
     move_up: "Monter",
     move_down: "Descendre",
     sort_a_to_z: "Trier de A à Z",
@@ -5730,6 +5740,12 @@ export const fr = {
       "{{count}} dossiers n'ont pas pu être créés, donc leurs messages sont dans votre boîte de réception.",
     import_folders_skipped_plural:
       "{{count}} dossiers n'ont pas pu être créés, donc leurs messages sont dans votre boîte de réception.",
+    import_labels_created: "{{count}} libellés créés",
+    import_labels_created_one: "{{count}} libellé créé",
+    import_labels_skipped:
+      "{{count}} libellés n'ont pas pu être créés, donc leurs messages sont importés sans eux.",
+    import_labels_skipped_one:
+      "{{count}} libellé n'a pas pu être créé, donc ses messages sont importés sans lui.",
     storage_quota_reached:
       "Votre stockage est plein. Mettre à niveau votre plan, ou retirer quelques messages, fera de la place pour plus d'imports.",
     no_emails_in_file:

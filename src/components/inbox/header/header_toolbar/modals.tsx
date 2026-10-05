@@ -26,6 +26,7 @@ import { MassUnsubscribeModal } from "@/components/modals/mass_unsubscribe_modal
 import { SnoozeSimilarModal } from "@/components/modals/snooze_similar_modal";
 import { ArchiveNewslettersModal } from "@/components/modals/archive_newsletters_modal";
 import { use_folders } from "@/hooks/use_folders";
+import { order_folders_as_tree } from "@/hooks/use_folders/tree";
 import { use_i18n } from "@/lib/i18n/context";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 
@@ -70,13 +71,14 @@ export function ToolbarModals({
     <>
       <SenderActionModal
         action_type={sender_modal_action}
-        folders={folders_state.folders
-          .filter((f) => !f.is_system)
-          .map((f) => ({
+        folders={order_folders_as_tree(folders_state.folders).map(
+          ({ folder: f, depth }) => ({
             token: f.folder_token,
             name: f.name,
             color: f.color,
-          }))}
+            depth,
+          }),
+        )}
         is_open={is_sender_modal_open}
         on_close={() => set_is_sender_modal_open(false)}
       />

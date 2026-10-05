@@ -999,6 +999,19 @@ export function use_category_inbox(
       }, SENT_REFETCH_DEBOUNCE_MS);
     };
 
+    let remote_refetch_timer: ReturnType<typeof setTimeout> | null = null;
+
+    const handle_remote_mutation = () => {
+      if (!has_passphrase_in_memory()) return;
+      if (remote_refetch_timer !== null) clearTimeout(remote_refetch_timer);
+      remote_refetch_timer = setTimeout(() => {
+        remote_refetch_timer = null;
+        if (cancelled) return;
+        page_cache.current.clear();
+        void fetch_page(page, page_size, { silent: true, force: true });
+      }, SENT_REFETCH_DEBOUNCE_MS);
+    };
+
     let arrival_refetch_timer: ReturnType<typeof setTimeout> | null = null;
 
     const schedule_arrival_refetch = () => {
@@ -1054,6 +1067,10 @@ export function use_category_inbox(
       handle_refresh_requested,
     );
     window.addEventListener(MAIL_EVENTS.EMAIL_SENT, handle_email_sent);
+    window.addEventListener(
+      MAIL_EVENTS.MAIL_REMOTE_MUTATION,
+      handle_remote_mutation,
+    );
     window.addEventListener(MAIL_EVENTS.EMAIL_RECEIVED, handle_email_received);
     document.addEventListener("visibilitychange", handle_visible);
 
@@ -1067,7 +1084,15 @@ export function use_category_inbox(
         clearTimeout(arrival_refetch_timer);
         arrival_refetch_timer = null;
       }
+      if (remote_refetch_timer !== null) {
+        clearTimeout(remote_refetch_timer);
+        remote_refetch_timer = null;
+      }
       document.removeEventListener("visibilitychange", handle_visible);
+      window.removeEventListener(
+        MAIL_EVENTS.MAIL_REMOTE_MUTATION,
+        handle_remote_mutation,
+      );
       window.removeEventListener(
         MAIL_EVENTS.EMAIL_RECEIVED,
         handle_email_received,

@@ -112,6 +112,7 @@ export const de = {
     labels: "Labels",
     no_folders_yet: "Noch keine Ordner",
     no_labels_yet: "Noch keine Labels",
+    label_unable_to_decrypt: "Entschlüsselung nicht möglich",
     aliases: "Aliase",
     no_aliases_yet: "Noch keine Aliase",
     storage_used: "Speicher belegt",
@@ -229,6 +230,17 @@ export const de = {
     select_parent_folder: "Übergeordneten Ordner auswählen",
     top_level_no_parent: "Oberste Ebene (kein übergeordneter Ordner)",
     parent_folder: "Übergeordneter Ordner",
+    create_sublabel: "Unterlabel erstellen",
+    move_label: "Label verschieben",
+    move_label_description:
+      "Neues übergeordnetes Label für dieses Label auswählen",
+    select_parent_label: "Übergeordnetes Label auswählen",
+    parent_label: "Übergeordnetes Label",
+    no_parent_label: "Oberste Ebene (kein übergeordnetes Label)",
+    failed_to_move_label:
+      "Dieses Label wurde nicht verschoben. Versuchen Sie es erneut.",
+    label_delete_keeps_sublabels:
+      "Unterlabels werden nicht gelöscht. Sie rücken eine Ebene nach oben.",
     move_up: "Nach oben",
     move_down: "Nach unten",
     sort_a_to_z: "Von A bis Z sortieren",
@@ -5548,6 +5560,12 @@ export const de = {
       "{{count}} Ordner konnten nicht erstellt werden, daher liegen ihre Nachrichten im Posteingang.",
     import_folders_skipped_plural:
       "{{count}} Ordner konnten nicht erstellt werden, daher liegen ihre Nachrichten im Posteingang.",
+    import_labels_created: "{{count}} Labels erstellt",
+    import_labels_created_one: "{{count}} Label erstellt",
+    import_labels_skipped:
+      "{{count}} Labels konnten nicht erstellt werden, daher werden ihre Nachrichten ohne sie importiert.",
+    import_labels_skipped_one:
+      "{{count}} Label konnte nicht erstellt werden, daher werden seine Nachrichten ohne es importiert.",
     storage_quota_reached:
       "Ihr Speicher ist voll. Eine Tarif-Erweiterung oder das Entfernen einiger Mails schafft Platz für weitere Importe.",
     no_emails_in_file:
