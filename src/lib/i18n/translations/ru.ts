@@ -4812,6 +4812,11 @@ export const ru = {
     keyserver_republish_btn: "Переопубликовать ключ",
     keyserver_permanent_warning:
       "После публикации ключи нельзя полностью удалить с большинства серверов.",
+    keyserver_addresses_title: "Адреса для публикации",
+    keyserver_addresses_hint:
+      "Выберите адреса, которые нужно указать вместе с открытым ключом. Любой может увидеть, что выбранные адреса используют один ключ. Сервер ключей отправляет письмо с подтверждением на каждый адрес.",
+    keyserver_key_update_failed:
+      "Выбранные адреса не добавлены в ключ. Попробуйте снова.",
     keyserver_add_custom_label: "Добавить пользовательский сервер",
     info_require_encryption_title: "Требовать шифрование",
     info_require_encryption_description:

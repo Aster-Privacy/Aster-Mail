@@ -20,11 +20,12 @@
 //
 import type { ApiResponse } from "@/services/api/client";
 import type {
+  KeyserverAddressStatus,
   KeyserverPublicationState,
   KeyserverPublicationStatus,
 } from "@/services/api/keys";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 import { copy_text_or_throw } from "@/utils/copy_text";
 import { use_i18n } from "@/lib/i18n/context";
@@ -51,6 +52,25 @@ import {
 } from "@/services/crypto/key_manager_pgp";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
+import { use_sender_aliases } from "@/hooks/use_sender_aliases";
+import { ensure_identity_key_addresses } from "@/services/pgp_uid_service";
+
+const KEYSERVER_MAX_ADDRESSES = 10;
+const KEYSERVER_POLL_INTERVAL_MS = 60_000;
+const KEYSERVER_POLL_MIN_GAP_MS = 15_000;
+
+export interface KeyserverAddressRow {
+  email: string;
+  selected: boolean;
+  disabled: boolean;
+  state: KeyserverPublicationState | null;
+}
+
+interface KeyserverCandidate {
+  email: string;
+  name?: string;
+  is_primary: boolean;
+}
 
 export interface PgpKeyInfo {
   fingerprint: string;
@@ -94,6 +114,117 @@ export function use_encryption() {
   const [keyserver_error, set_keyserver_error] = useState<string | null>(null);
   const [is_publishing_keyserver, set_is_publishing_keyserver] =
     useState(false);
+  const [keyserver_addresses, set_keyserver_addresses] = useState<
+    KeyserverAddressStatus[]
+  >([]);
+  const [keyserver_selection, set_keyserver_selection] = useState<
+    string[] | null
+  >(null);
+  const { sender_options } = use_sender_aliases();
+
+  const keyserver_candidates = useMemo(() => {
+    const seen = new Set<string>();
+    const candidates: KeyserverCandidate[] = [];
+
+    for (const option of sender_options) {
+      if (!option.is_enabled || option.is_catch_all) continue;
+      if (
+        option.type !== "primary" &&
+        option.type !== "alias" &&
+        option.type !== "domain"
+      ) {
+        continue;
+      }
+
+      const email = option.email.trim().toLowerCase();
+
+      if (!email || seen.has(email)) continue;
+
+      seen.add(email);
+      candidates.push({
+        email,
+        name: option.display_name,
+        is_primary: option.type === "primary",
+      });
+    }
+
+    return candidates;
+  }, [sender_options]);
+
+  const keyserver_selected = useMemo(() => {
+    const available = new Set(
+      keyserver_candidates.map((candidate) => candidate.email),
+    );
+
+    if (keyserver_selection) {
+      return keyserver_selection.filter((email) => available.has(email));
+    }
+
+    const requested = keyserver_addresses
+      .map((entry) => entry.address.toLowerCase())
+      .filter((email) => available.has(email));
+
+    if (requested.length > 0) return requested;
+
+    return keyserver_candidates
+      .filter((candidate) => candidate.is_primary)
+      .map((candidate) => candidate.email);
+  }, [keyserver_candidates, keyserver_selection, keyserver_addresses]);
+
+  const keyserver_address_rows = useMemo(() => {
+    const states = new Map(
+      keyserver_addresses.map((entry) => [
+        entry.address.toLowerCase(),
+        entry.state,
+      ]),
+    );
+    const at_limit = keyserver_selected.length >= KEYSERVER_MAX_ADDRESSES;
+    const rows: KeyserverAddressRow[] = keyserver_candidates.map(
+      (candidate) => {
+        const selected = keyserver_selected.includes(candidate.email);
+
+        return {
+          email: candidate.email,
+          selected,
+          disabled: !selected && at_limit,
+          state: states.get(candidate.email) ?? null,
+        };
+      },
+    );
+
+    for (const [email, state] of states) {
+      if (rows.some((row) => row.email === email)) continue;
+
+      rows.push({ email, selected: false, disabled: true, state });
+    }
+
+    return rows;
+  }, [keyserver_candidates, keyserver_selected, keyserver_addresses]);
+
+  const keyserver_can_publish =
+    keyserver_candidates.length <= 1 || keyserver_selected.length > 0;
+
+  const keyserver_awaiting =
+    keyserver_state === "awaiting_verification" ||
+    keyserver_addresses.some(
+      (entry) => entry.state === "awaiting_verification",
+    );
+
+  const handle_keyserver_address_toggle = (email: string) => {
+    const target = email.toLowerCase();
+
+    if (keyserver_selected.includes(target)) {
+      set_keyserver_selection(
+        keyserver_selected.filter((entry) => entry !== target),
+      );
+
+      return;
+    }
+
+    if (keyserver_selected.length >= KEYSERVER_MAX_ADDRESSES) return;
+
+    set_keyserver_selection([...keyserver_selected, target]);
+  };
 
   const apply_keyserver_status = (status: KeyserverPublicationStatus) => {
     set_keyserver_published(status.published);
@@ -101,6 +232,7 @@ export function use_encryption() {
       status.state ?? (status.published ? "published" : "not_published"),
     );
     set_keyserver_error(status.error ?? null);
+    set_keyserver_addresses(status.addresses ?? []);
   };
 
   const refresh_keyserver_status = async () => {
@@ -592,18 +724,47 @@ export function use_encryption() {
   };
 
   const handle_publish_to_keyservers = async () => {
+    if (!keyserver_can_publish) return;
+
     set_is_publishing_keyserver(true);
 
-    const result = await publish_key_to_keyserver();
+    try {
+      const selected = keyserver_selected;
+      const chosen = keyserver_candidates.filter((candidate) =>
+        selected.includes(candidate.email),
+      );
 
-    if (result.error || result.data?.success === false) {
-      show_toast(t("settings.failed_publish_keyserver"), "error");
-      await refresh_keyserver_status();
-    } else {
-      update_preference("publish_to_keyservers", true, true);
-      show_keyserver_publish_result(await refresh_keyserver_status());
+      if (chosen.some((candidate) => !candidate.is_primary)) {
+        const key_result = await ensure_identity_key_addresses(
+          chosen.map((candidate) => ({
+            email: candidate.email,
+            name: candidate.name,
+          })),
+          true,
+        ).catch(() => "failed" as const);
+
+        if (key_result === "failed") {
+          show_toast(t("settings.keyserver_key_update_failed"), "error");
+
+          return;
+        }
+      }
+
+      const result = await publish_key_to_keyserver(
+        selected.length > 0 ? selected : undefined,
+      );
+
+      if (result.error || result.data?.success === false) {
+        show_toast(t("settings.failed_publish_keyserver"), "error");
+        await refresh_keyserver_status();
+      } else {
+        update_preference("publish_to_keyservers", true, true);
+        set_keyserver_selection(null);
+        show_keyserver_publish_result(await refresh_keyserver_status());
+      }
+    } finally {
+      set_is_publishing_keyserver(false);
     }
-    set_is_publishing_keyserver(false);
   };
 
   const save_keyserver_urls = async (
@@ -705,6 +866,31 @@ export function use_encryption() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!keyserver_awaiting) return;
+
+    let last_check = Date.now();
+
+    const recheck = () => {
+      if (document.visibilityState !== "visible") return;
+      if (Date.now() - last_check < KEYSERVER_POLL_MIN_GAP_MS) return;
+
+      last_check = Date.now();
+      void refresh_keyserver_status();
+    };
+
+    const timer = window.setInterval(recheck, KEYSERVER_POLL_INTERVAL_MS);
+
+    window.addEventListener("focus", recheck);
+    document.addEventListener("visibilitychange", recheck);
+
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("focus", recheck);
+      document.removeEventListener("visibilitychange", recheck);
+    };
+  }, [keyserver_awaiting]);
+
   return {
     is_initial_load,
     is_exporting_private_key,
@@ -745,5 +931,8 @@ export function use_encryption() {
     keyserver_error,
     is_publishing_keyserver,
     handle_publish_to_keyservers,
+    keyserver_address_rows,
+    keyserver_can_publish,
+    handle_keyserver_address_toggle,
   };
 }

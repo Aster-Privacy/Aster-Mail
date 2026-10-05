@@ -5631,6 +5631,11 @@ export const hi = {
     keyserver_republish_btn: "कुंजी फिर से प्रकाशित करें",
     keyserver_permanent_warning:
       "एक बार प्रकाशित होने पर ज़्यादातर कीसर्वर से कुंजियां पूरी तरह नहीं हटाई जा सकतीं।",
+    keyserver_addresses_title: "प्रकाशित किए जाने वाले पते",
+    keyserver_addresses_hint:
+      "वे पते चुनें जिन्हें आप अपनी सार्वजनिक कुंजी के साथ दिखाना चाहते हैं। कोई भी देख सकता है कि चुने गए पते एक ही कुंजी का इस्तेमाल करते हैं। कीसर्वर हर पते पर पुष्टि का ईमेल भेजता है।",
+    keyserver_key_update_failed:
+      "चुने गए पते आपकी कुंजी में नहीं जोड़े गए। फिर से कोशिश करें।",
     keyserver_add_custom_label: "अपना कीसर्वर जोड़ें",
     info_require_encryption_title: "एन्क्रिप्शन ज़रूरी करें",
     info_require_encryption_description:

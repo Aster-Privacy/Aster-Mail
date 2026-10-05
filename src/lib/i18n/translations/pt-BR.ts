@@ -4642,6 +4642,11 @@ export const pt_br = {
     keyserver_republish_btn: "Publicar chave novamente",
     keyserver_permanent_warning:
       "Depois de publicadas, as chaves não podem ser totalmente removidas da maioria dos servidores de chaves.",
+    keyserver_addresses_title: "Endereços a publicar",
+    keyserver_addresses_hint:
+      "Selecione os endereços que você quer listar com sua chave pública. Qualquer pessoa pode ver que os endereços selecionados compartilham uma chave. O servidor de chaves envia um e-mail de confirmação para cada endereço.",
+    keyserver_key_update_failed:
+      "Os endereços selecionados não foram adicionados à sua chave. Tente novamente.",
     keyserver_add_custom_label: "Adicionar servidor de chaves personalizado",
     info_require_encryption_title: "Exigir criptografia",
     info_require_encryption_description:

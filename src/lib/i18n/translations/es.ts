@@ -4700,6 +4700,11 @@ export const es = {
     keyserver_republish_btn: "Volver a publicar clave",
     keyserver_permanent_warning:
       "Una vez publicadas, las claves no se pueden eliminar completamente de la mayoría de servidores.",
+    keyserver_addresses_title: "Direcciones que se publican",
+    keyserver_addresses_hint:
+      "Selecciona las direcciones que quieres mostrar con tu clave pública. Cualquier persona puede ver que las direcciones seleccionadas comparten una clave. El servidor de claves envía un correo de confirmación a cada dirección.",
+    keyserver_key_update_failed:
+      "Las direcciones seleccionadas no se añadieron a tu clave. Inténtalo de nuevo.",
     keyserver_add_custom_label: "Añadir servidor personalizado",
     info_require_encryption_title: "Requerir cifrado",
     info_require_encryption_description:

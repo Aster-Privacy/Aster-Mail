@@ -43,6 +43,13 @@ interface UserId {
   email?: string;
 }
 
+export interface IdentityAddress {
+  email: string;
+  name?: string;
+}
+
+export type IdentityAddressResult = "unchanged" | "updated" | "failed";
+
 const UID_EMAIL_PATTERN =
   /^[^\p{C}\p{Z}@<>\u005C]+@[^\p{C}\p{Z}@<>\u005C]+[^\p{C}\p{Z}\p{P}]$/u;
 
@@ -103,19 +110,61 @@ function stamp_local_vault(
   }
 }
 
+function missing_addresses(
+  user_ids: UserId[],
+  addresses: IdentityAddress[],
+): IdentityAddress[] {
+  const missing: IdentityAddress[] = [];
+
+  for (const address of addresses) {
+    const email = address.email.trim();
+
+    if (!email || has_email(user_ids, email)) continue;
+    if (has_email(missing, email)) continue;
+
+    missing.push({ email, name: address.name });
+  }
+
+  return missing;
+}
+
 export async function add_address_to_identity_key(
   vault: EncryptedVault,
   passphrase: string,
   new_address: string,
   display_name: string,
 ): Promise<EncryptedVault | null> {
+  return add_addresses_to_identity_key(
+    vault,
+    passphrase,
+    [{ email: new_address, name: display_name }],
+    "first",
+  );
+}
+
+export async function add_addresses_to_identity_key(
+  vault: EncryptedVault,
+  passphrase: string,
+  addresses: IdentityAddress[],
+  placement: "first" | "last",
+): Promise<EncryptedVault | null> {
   const private_key = await openpgp.readPrivateKey({
     armoredKey: vault.identity_key,
   });
 
   const user_ids = existing_user_ids(private_key);
+  const missing = missing_addresses(user_ids, addresses);
 
-  if (has_email(user_ids, new_address)) return null;
+  if (missing.length === 0) return null;
+
+  if (missing.some((entry) => !UID_EMAIL_PATTERN.test(entry.email))) {
+    throw new Error("invalid identity address");
+  }
+
+  const added: UserId[] = missing.map((entry) => ({
+    name: safe_uid_name(entry.name ?? "", entry.email),
+    email: entry.email,
+  }));
 
   const unlocked = private_key.isDecrypted()
     ? private_key
@@ -130,10 +179,8 @@ export async function add_address_to_identity_key(
 
   const reformatted = await openpgp.reformatKey({
     privateKey: unlocked,
-    userIDs: [
-      { name: safe_uid_name(display_name, new_address), email: new_address },
-      ...user_ids,
-    ],
+    userIDs:
+      placement === "first" ? [...added, ...user_ids] : [...user_ids, ...added],
     keyExpirationTime: key_expiration_time,
     format: "object",
   });
@@ -155,18 +202,46 @@ export async function add_address_to_identity_key(
   };
 }
 
-let uid_update_in_flight: { key: string; run: Promise<boolean> } | null = null;
+let uid_update_in_flight: {
+  key: string;
+  run: Promise<IdentityAddressResult>;
+} | null = null;
 
 export async function republish_identity_with_new_address(
   new_address: string,
   display_name: string,
 ): Promise<boolean> {
+  const result = await shared_identity_republish(
+    [{ email: new_address, name: display_name }],
+    "first",
+    true,
+  );
+
+  return result !== "failed";
+}
+
+export async function ensure_identity_key_addresses(
+  addresses: IdentityAddress[],
+  force_republish = false,
+): Promise<IdentityAddressResult> {
+  return shared_identity_republish(addresses, "last", force_republish);
+}
+
+async function shared_identity_republish(
+  addresses: IdentityAddress[],
+  placement: "first" | "last",
+  always_republish: boolean,
+): Promise<IdentityAddressResult> {
   const account = await get_current_account();
-  const key = `${account?.user?.id ?? ""}|${new_address.trim().toLowerCase()}`;
+  const emails = addresses
+    .map((address) => address.email.trim().toLowerCase())
+    .sort()
+    .join(",");
+  const key = `${account?.user?.id ?? ""}|${placement}|${always_republish}|${emails}`;
 
   if (uid_update_in_flight?.key === key) return uid_update_in_flight.run;
 
-  const run = run_identity_republish(new_address, display_name);
+  const run = run_identity_republish(addresses, placement, always_republish);
 
   uid_update_in_flight = { key, run };
 
@@ -178,16 +253,17 @@ export async function republish_identity_with_new_address(
 }
 
 async function run_identity_republish(
-  new_address: string,
-  display_name: string,
-): Promise<boolean> {
+  addresses: IdentityAddress[],
+  placement: "first" | "last",
+  always_republish: boolean,
+): Promise<IdentityAddressResult> {
   try {
     return await with_vault_write_lock(async () => {
       const { sync_vault_with_server } =
         await import("@/services/crypto/ensure_ratchet_keys");
       const freshness = await sync_vault_with_server();
 
-      if (freshness.status === "unverified") return false;
+      if (freshness.status === "unverified") return "failed";
 
       const current_vault =
         freshness.status === "adopted"
@@ -195,22 +271,24 @@ async function run_identity_republish(
           : get_vault_from_memory();
       const passphrase = get_passphrase_from_memory();
 
-      if (!current_vault || !passphrase) return false;
+      if (!current_vault || !passphrase) return "failed";
 
       if (
         !current_vault.identity_key
           ?.trimStart()
           .startsWith("-----BEGIN PGP PRIVATE KEY")
       ) {
-        return false;
+        return "failed";
       }
 
-      const next_vault = await add_address_to_identity_key(
+      const next_vault = await add_addresses_to_identity_key(
         current_vault,
         passphrase,
-        new_address,
-        display_name,
+        addresses,
+        placement,
       );
+
+      if (!next_vault && !always_republish) return "unchanged";
 
       const published_vault = next_vault ?? current_vault;
 
@@ -232,7 +310,7 @@ async function run_identity_republish(
           next_vault,
         );
 
-        if (!vault_saved.success) return false;
+        if (!vault_saved.success) return "failed";
 
         await store_vault_in_memory(next_vault, passphrase);
         stamp_local_vault(
@@ -259,7 +337,9 @@ async function run_identity_republish(
         pgp_key_data as unknown as Record<string, unknown>,
       );
 
-      return published.data?.success === true;
+      if (published.data?.success !== true) return "failed";
+
+      return next_vault ? "updated" : "unchanged";
     });
   } catch (caught) {
     ignore_error(
@@ -267,6 +347,6 @@ async function run_identity_republish(
       caught,
     );
 
-    return false;
+    return "failed";
   }
 }
