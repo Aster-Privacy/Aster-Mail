@@ -271,6 +271,18 @@ describe("zero_uint8_array", () => {
 
     expect(array.every((b) => b === 0)).toBe(true);
   });
+
+  it("should wipe with a single pass and no random bytes", () => {
+    const array = new Uint8Array(200_000).fill(0xab);
+    const random = vi.spyOn(crypto, "getRandomValues");
+    const fill = vi.spyOn(array, "fill");
+
+    zero_uint8_array(array);
+
+    expect(random).not.toHaveBeenCalled();
+    expect(fill).toHaveBeenCalledTimes(1);
+    expect(array.every((b) => b === 0)).toBe(true);
+  });
 });
 
 describe("constant_time_compare", () => {
