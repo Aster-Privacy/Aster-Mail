@@ -57,7 +57,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
 import { Button, Checkbox, PillButton, Switch, Tooltip } from "@aster/ui";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useId, useMemo, useState } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { ContactGroupsPane } from "@/components/common/contacts/contact_groups_pane";
@@ -265,6 +265,8 @@ export function ContactList({
 }: ContactListProps) {
   const { preferences, update_preference } = use_preferences();
   const auto_save = !!preferences.auto_save_recent_recipients;
+  const auto_save_switch_id = useId();
+  const select_all_id = useId();
   const { groups: all_groups } = use_contact_groups();
   const group_by_id = useMemo(
     () => new Map(all_groups.map((group) => [group.id, group])),
@@ -671,6 +673,23 @@ export function ContactList({
             </button>
           </div>
         )}
+        <div className="aster_island mx-4 mt-1 mb-1 flex flex-shrink-0 items-center gap-3 px-3.5 py-2">
+          <label
+            className="min-w-0 flex-1 cursor-pointer text-[12.5px] text-txt-secondary"
+            htmlFor={auto_save_switch_id}
+          >
+            {t("settings.auto_save_recipients_to_contacts")}
+          </label>
+          <Switch
+            aria-checked={auto_save}
+            checked={auto_save}
+            id={auto_save_switch_id}
+            role="switch"
+            onCheckedChange={() =>
+              update_preference("auto_save_recent_recipients", !auto_save, true)
+            }
+          />
+        </div>
         {has_selection ? (
           <div className="flex items-center gap-1 px-4 py-2">
             <Tooltip
@@ -773,33 +792,23 @@ export function ContactList({
             </Tooltip>
           </div>
         ) : (
-          <div className="flex items-center justify-between px-4 py-2">
-            {filtered_contacts.length > 0 && (
-              <Tooltip tip={t("common.select_all")}>
-                <span className="flex items-center pe-3">
-                  <Checkbox
-                    aria-label={t("common.select_all")}
-                    checked={false}
-                    onCheckedChange={on_toggle_select_all}
-                  />
-                </span>
-              </Tooltip>
-            )}
-            <p className="text-[12px] text-txt-muted pe-3 flex-1">
-              {t("settings.auto_save_recipients_to_contacts")}
-            </p>
-            <Switch
-              aria-label={t("settings.auto_save_recipients_to_contacts")}
-              checked={auto_save}
-              onCheckedChange={() =>
-                update_preference(
-                  "auto_save_recent_recipients",
-                  !auto_save,
-                  true,
-                )
-              }
-            />
-          </div>
+          filtered_contacts.length > 0 && (
+            <div className="flex min-h-12 items-center gap-1 px-4 py-2">
+              <span className="flex items-center pe-2">
+                <Checkbox
+                  checked={false}
+                  id={select_all_id}
+                  onCheckedChange={on_toggle_select_all}
+                />
+              </span>
+              <label
+                className="cursor-pointer text-[12px] font-medium text-txt-muted"
+                htmlFor={select_all_id}
+              >
+                {t("common.select_all")}
+              </label>
+            </div>
+          )
         )}
 
         {error && (
