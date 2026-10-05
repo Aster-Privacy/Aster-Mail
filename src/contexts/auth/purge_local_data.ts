@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { clear_all_session_passphrases } from "./session_passphrase";
+import { clear_account_memory_stores } from "./account_memory_stores";
 
 import { api_client } from "@/services/api/client";
 import { logout_user } from "@/services/api/auth";
@@ -85,6 +86,7 @@ export async function purge_all_local_data(): Promise<boolean> {
   sync_client.disconnect();
   clear_vault_from_memory();
   clear_preload_cache();
+  clear_account_memory_stores();
   clear_escrow_miss_cache();
   reset_special_offer_status();
   api_client.set_expected_user_id(null);

@@ -52,3 +52,7 @@ export function has_pending_send_stash(key: string): boolean {
 export function clear_pending_send_stash(key: string): void {
   stashes.delete(key);
 }
+
+export function clear_all_pending_send_stashes(): void {
+  stashes.clear();
+}

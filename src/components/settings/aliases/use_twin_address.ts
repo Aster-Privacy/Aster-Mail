@@ -31,6 +31,7 @@ const cache_key = "aster_twin_address_v1";
 
 let cached_twin: TwinAddressResponse | null = null;
 let cached_twin_loaded = false;
+let cache_generation = 0;
 
 function read_session_cache(): boolean {
   if (cached_twin_loaded) return true;
@@ -60,6 +61,21 @@ function write_session_cache(value: TwinAddressResponse | null) {
   } catch (caught) {
     ignore_error(
       "components/settings/aliases/use_twin_address:write_session_cache",
+      caught,
+    );
+  }
+}
+
+export function clear_twin_address_cache(): void {
+  cache_generation += 1;
+  cached_twin = null;
+  cached_twin_loaded = false;
+
+  try {
+    sessionStorage.removeItem(cache_key);
+  } catch (caught) {
+    ignore_error(
+      "components/settings/aliases/use_twin_address:clear_twin_address_cache",
       caught,
     );
   }
@@ -101,6 +117,7 @@ export function use_twin_address(refresh_token: number): TwinAddressState {
     let cancelled = false;
 
     const load = async () => {
+      const generation = cache_generation;
       let value: TwinAddressResponse | null = null;
 
       try {
@@ -113,6 +130,8 @@ export function use_twin_address(refresh_token: number): TwinAddressState {
           caught,
         );
       }
+
+      if (generation !== cache_generation) return;
 
       cached_twin = value;
       cached_twin_loaded = true;

@@ -19,6 +19,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
+import { clear_account_memory_stores } from "./account_memory_stores";
+
 import { request_cache } from "@/services/api/request_cache";
 import { clear_mail_stats } from "@/hooks/use_mail_stats";
 import { clear_plan_limits_cache } from "@/hooks/use_plan_limits";
@@ -102,6 +104,7 @@ export async function clear_account_scoped_caches(
   clear_ghost_entries();
   clear_recipient_hints();
   clear_label_hints();
+  clear_account_memory_stores();
   request_cache.clear();
   await Promise.all([mail_cache_cleared, clear_all_ratchet_states()]);
 }

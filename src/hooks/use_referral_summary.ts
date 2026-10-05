@@ -27,8 +27,19 @@ let cached_info: ReferralInfo | null = null;
 let in_flight: Promise<ReferralInfo | null> | null = null;
 const listeners = new Set<(info: ReferralInfo | null) => void>();
 
+let cache_generation = 0;
+
+export function clear_referral_summary_cache(): void {
+  cache_generation += 1;
+  cached_info = null;
+  in_flight = null;
+  listeners.forEach((listener) => listener(null));
+}
+
 async function load_referral_info(): Promise<ReferralInfo | null> {
   if (in_flight) return in_flight;
+
+  const generation = cache_generation;
 
   in_flight = get_referral_info()
     .then((res) => res.data ?? null)
@@ -38,6 +49,8 @@ async function load_referral_info(): Promise<ReferralInfo | null> {
       return null;
     })
     .then((info) => {
+      if (generation !== cache_generation) return null;
+
       cached_info = info;
       in_flight = null;
       listeners.forEach((listener) => listener(info));
