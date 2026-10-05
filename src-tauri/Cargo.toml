@@ -46,7 +46,7 @@ zeroize = { version = "1", features = ["zeroize_derive"] }
 base64 = "0.22"
 rand_core = { version = "0.6", features = ["getrandom"] }
 rand = "0.10"
-whoami = "1"
+whoami = "2"
 uuid = { version = "1", features = ["v4", "serde"] }
 keyring = { version = "3", features = ["apple-native", "windows-native", "sync-secret-service"] }
 tauri-plugin-window-state = "2"
