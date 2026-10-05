@@ -28,6 +28,7 @@ import {
 } from "./envelope_normalize";
 
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import { ignore_error } from "@/lib/ignore_error";
 
 export { normalize_envelope_from, normalize_envelope_recipients };
 export { array_to_base64, base64_to_array, first_base64_byte } from "./base64";
@@ -289,20 +290,32 @@ export async function decrypt_envelope_with_identity_key<T>(
   finalize: (plaintext: ArrayBuffer) => T,
 ): Promise<T | null> {
   for (const version of ENVELOPE_KEY_VERSIONS) {
+    let decrypted: ArrayBuffer;
+
     try {
       const crypto_key = await with_cached_envelope_key(
         `identity:${version}:${identity_key}`,
         () => import_identity_envelope_key(identity_key, version),
       );
-      const decrypted = await decrypt_aes_gcm_with_fallback(
+
+      decrypted = await decrypt_aes_gcm_with_fallback(
         crypto_key,
         encrypted_bytes,
         nonce_bytes,
       );
-
-      return finalize(decrypted);
     } catch {
       continue;
+    }
+
+    try {
+      return finalize(decrypted);
+    } catch (caught) {
+      ignore_error(
+        "services/crypto/envelope:identity_envelope_unreadable_after_decrypt",
+        caught,
+      );
+
+      return null;
     }
   }
 
