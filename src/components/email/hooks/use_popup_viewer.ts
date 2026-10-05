@@ -457,7 +457,7 @@ export function use_popup_viewer({
     const preloaded = await await_preloaded_email(
       email_id,
       preferences.conversation_grouping !== false,
-      { fresh_only: true },
+      { fresh_only: true, user_email: user?.email },
     );
 
     if (fetch_seq !== fetch_seq_ref.current) return;

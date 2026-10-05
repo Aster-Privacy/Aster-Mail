@@ -63,6 +63,7 @@ import { release_engines } from "@/services/translation/engine_registry";
 import { reset_special_offer_status } from "@/stores/special_offer_status";
 import { ignore_error } from "@/lib/ignore_error";
 import { safe_local_keys, safe_local_remove } from "@/lib/safe_storage";
+import { clear_preload_cache } from "@/components/email/hooks/preload_cache_store";
 import { clear_billing_cache } from "@/components/settings/billing/billing_cache";
 import { clear_family_cache } from "@/components/settings/billing/family_section/family_cache";
 
@@ -83,6 +84,7 @@ export async function purge_all_local_data(): Promise<boolean> {
 
   sync_client.disconnect();
   clear_vault_from_memory();
+  clear_preload_cache();
   clear_escrow_miss_cache();
   reset_special_offer_status();
   api_client.set_expected_user_id(null);

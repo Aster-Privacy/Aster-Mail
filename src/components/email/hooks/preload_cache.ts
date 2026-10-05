@@ -104,7 +104,9 @@ import {
   get_preload_email_zoom,
   get_preload_generation,
   get_preload_in_flight,
+  get_preload_account_epoch,
   invalidate_in_flight_preloads,
+  peek_preloaded_email,
   type PreloadedSanitizedContent,
 } from "@/components/email/hooks/preload_cache_store";
 
@@ -119,6 +121,7 @@ export {
   is_preload_busy,
   is_preloaded_email_fresh,
   mark_preload_stale,
+  peek_preloaded_email,
   pop_preloaded_cid,
   pop_preloaded_thread_cid,
   PRELOAD_FRESH_MS,
@@ -464,7 +467,7 @@ export async function preload_email_detail(
   conversation_grouping?: boolean,
 ): Promise<void> {
   if (!force) {
-    const existing = preload_cache.get(target_id);
+    const existing = peek_preloaded_email(target_id, user_email);
 
     if (
       existing &&
@@ -475,6 +478,7 @@ export async function preload_email_detail(
   }
   if (preload_in_flight.has(target_id)) return preload_in_flight.get(target_id);
   const started_generation = get_preload_generation();
+  const started_account_epoch = get_preload_account_epoch();
 
   let task: Promise<void> | undefined;
 
@@ -818,7 +822,16 @@ export async function preload_email_detail(
         item.metadata = decrypted_metadata;
       }
 
-      if (get_preload_generation() !== started_generation) return;
+      if (
+        get_preload_generation() !== started_generation ||
+        get_preload_account_epoch() !== started_account_epoch
+      ) {
+        if (cid_resolved) revoke_cid_blob_urls(cid_resolved.blob_urls);
+        for (const resolved of thread_cid_resolved.values())
+          revoke_cid_blob_urls(resolved.blob_urls);
+
+        return;
+      }
 
       preload_cache.set(target_id, {
         mail_item: item,
@@ -827,6 +840,7 @@ export async function preload_email_detail(
         thread_draft,
         current_user_email: user_email || "",
         current_user_name,
+        vault_account_epoch: started_account_epoch,
         thread_sanitized,
         cid_resolved,
         thread_cid_resolved,

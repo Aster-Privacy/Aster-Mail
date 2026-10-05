@@ -24,6 +24,7 @@ vi.mock("./memory_key_store", () => ({
   get_passphrase_bytes: vi.fn(() => null),
   get_passphrase_from_memory: vi.fn(() => null),
   get_vault_from_memory: vi.fn(() => null),
+  on_vault_cleared: vi.fn(() => () => {}),
 }));
 
 vi.mock("./key_manager", () => ({

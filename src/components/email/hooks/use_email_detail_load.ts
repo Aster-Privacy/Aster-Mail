@@ -79,8 +79,8 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_compose_manager } from "@/components/compose/compose_manager";
 import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelope";
 import {
-  get_preload_cache,
   get_preload_in_flight,
+  peek_preloaded_email,
   preload_email_detail,
 } from "@/components/email/hooks/preload_cache";
 import { use_email_detail_actions } from "@/components/email/hooks/email_detail_actions";
@@ -415,14 +415,13 @@ export function use_email_detail_load() {
     }
 
     const preload_in_flight = get_preload_in_flight();
-    const preload_cache = get_preload_cache();
     const in_flight = preload_in_flight.get(email_id);
 
     if (in_flight) {
       await in_flight;
     }
 
-    const cached = preload_cache.get(email_id);
+    const cached = peek_preloaded_email(email_id, user?.email);
     const current_grouping = preferences.conversation_grouping !== false;
 
     if (cached && cached.conversation_grouping === current_grouping) {
@@ -533,7 +532,7 @@ export function use_email_detail_load() {
           .then(() => {
             if (is_stale()) return;
 
-            const fresh = get_preload_cache().get(revalidate_id);
+            const fresh = peek_preloaded_email(revalidate_id, user?.email);
 
             if (fresh) {
               set_mail_item(fresh.mail_item);

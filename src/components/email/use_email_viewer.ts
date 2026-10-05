@@ -446,7 +446,7 @@ export function use_email_viewer({
 
     async function load_email(reloading_same_email: boolean) {
       const cached = usable_preloaded(
-        get_preloaded_email(email_id),
+        get_preloaded_email(email_id, user?.email),
         preferences.conversation_grouping !== false,
       );
 
@@ -471,6 +471,7 @@ export function use_email_viewer({
           await await_preloaded_email(
             email_id,
             preferences.conversation_grouping !== false,
+            { user_email: user?.email },
           ),
           preferences.conversation_grouping !== false,
         );
