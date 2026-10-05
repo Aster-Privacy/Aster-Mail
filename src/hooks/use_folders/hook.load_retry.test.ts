@@ -171,13 +171,43 @@ describe("use_folders load retry", () => {
     });
     await advance(4_600);
 
-    expect(first.state.error).toBe("common.failed_to_fetch_folders");
+    expect(first.state.error).toBeNull();
+    expect(first.state.is_loading).toBe(false);
+    expect(first.state.folders.map((f) => f.name)).toEqual([
+      "common.unable_to_decrypt",
+    ]);
 
     mocks.decrypt_folder.mockResolvedValue({ id: "f1", name: "Work" });
     await advance(8_000);
 
     expect(first.state.error).toBeNull();
-    expect(first.state.folders).toHaveLength(1);
+    expect(first.state.folders.map((f) => f.name)).toEqual(["Work"]);
+  });
+
+  it("loads at once when only system folder names are unreadable", async () => {
+    mocks.list_folders.mockResolvedValue({
+      data: {
+        folders: [
+          { id: "s1", is_system: true, folder_type: "inbox" },
+          { id: "s2", is_system: false, folder_type: "trash" },
+        ],
+        total: 2,
+      },
+    });
+    mocks.decrypt_folder.mockResolvedValue(null);
+
+    await act(async () => {
+      await first.fetch_folders();
+    });
+
+    expect(mocks.list_folders).toHaveBeenCalledTimes(1);
+    expect(first.state.error).toBeNull();
+    expect(first.state.is_loading).toBe(false);
+    expect(first.state.folders).toHaveLength(2);
+
+    await advance(80_000);
+
+    expect(mocks.list_folders).toHaveBeenCalledTimes(1);
   });
 
   it("stops retrying after the hook unmounts", async () => {
