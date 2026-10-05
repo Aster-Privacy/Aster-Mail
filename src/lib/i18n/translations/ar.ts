@@ -5091,6 +5091,8 @@ export const ar = {
       "لم يُنشر مفتاحك العام في الدليل العام. حاول مجددًا. مفاتيحك لم تتغير.",
     failed_remove_wkd: "لم تتم إزالة مفتاحك من الدليل العام. حاول مجددًا.",
     key_published_keyserver: "تم نشر المفتاح إلى خادم المفاتيح",
+    keyserver_publish_unconfirmed:
+      "تم إرسال طلب النشر، لكن تعذّر تأكيد الحالة.",
     failed_publish_keyserver:
       "لم يُنشر مفتاحك العام على خادم المفاتيح. حاول مجددًا.",
     mailto_unregister_manual:

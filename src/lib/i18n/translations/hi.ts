@@ -5992,6 +5992,8 @@ export const hi = {
     failed_remove_wkd:
       "आपकी कुंजी सार्वजनिक डायरेक्टरी से हटाई नहीं गई। फिर से कोशिश करें।",
     key_published_keyserver: "कुंजी कीसर्वर पर प्रकाशित हो गई",
+    keyserver_publish_unconfirmed:
+      "प्रकाशन अनुरोध भेजा गया, लेकिन स्थिति की पुष्टि नहीं हो सकी।",
     failed_publish_keyserver:
       "आपकी सार्वजनिक कुंजी कीसर्वर पर प्रकाशित नहीं हुई। फिर से कोशिश करें।",
     mailto_unregister_manual:

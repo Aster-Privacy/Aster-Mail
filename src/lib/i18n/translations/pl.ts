@@ -5190,6 +5190,8 @@ export const pl = {
     failed_remove_wkd:
       "Klucz nie został usunięty z publicznego katalogu. Spróbuj ponownie.",
     key_published_keyserver: "Klucz opublikowany na serwerze kluczy",
+    keyserver_publish_unconfirmed:
+      "Wysłano żądanie publikacji, ale nie udało się potwierdzić jego stanu.",
     failed_publish_keyserver:
       "Klucz publiczny nie został opublikowany na serwerze kluczy. Spróbuj ponownie.",
     mailto_unregister_manual:

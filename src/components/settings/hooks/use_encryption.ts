@@ -119,15 +119,23 @@ export function use_encryption() {
   const show_keyserver_publish_result = (
     status: KeyserverPublicationStatus | null | undefined,
   ) => {
+    if (!status) {
+      show_toast(t("settings.keyserver_publish_unconfirmed"), "info");
+
+      return;
+    }
+
     const state =
-      status?.state ?? (status?.published ? "published" : "not_published");
+      status.state ?? (status.published ? "published" : "not_published");
 
     if (state === "awaiting_verification") {
       show_toast(t("settings.keyserver_awaiting_hint"), "info");
     } else if (state === "failed") {
       show_toast(t("settings.keyserver_failed_hint"), "error");
-    } else {
+    } else if (state === "published") {
       show_toast(t("settings.key_published_keyserver"), "success");
+    } else {
+      show_toast(t("settings.keyserver_publish_unconfirmed"), "info");
     }
   };
   const format_fingerprint = (fp: string): string => {

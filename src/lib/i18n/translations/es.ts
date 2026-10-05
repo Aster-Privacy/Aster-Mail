@@ -5046,6 +5046,8 @@ export const es = {
     failed_remove_wkd:
       "Tu clave no se quitó del directorio público. Inténtalo de nuevo.",
     key_published_keyserver: "Clave publicada en servidor de claves",
+    keyserver_publish_unconfirmed:
+      "Solicitud de publicación enviada, pero no se pudo confirmar el estado.",
     failed_publish_keyserver:
       "Tu clave pública no se publicó en el servidor de claves. Inténtalo de nuevo.",
     mailto_unregister_manual:

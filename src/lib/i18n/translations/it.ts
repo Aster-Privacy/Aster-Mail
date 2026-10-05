@@ -6160,6 +6160,8 @@ export const it = {
     failed_remove_wkd:
       "La chiave non è stata rimossa dalla directory pubblica. Riprova.",
     key_published_keyserver: "Chiave pubblicata sul keyserver",
+    keyserver_publish_unconfirmed:
+      "Richiesta di pubblicazione inviata, ma non è stato possibile confermarne lo stato.",
     failed_publish_keyserver:
       "La chiave pubblica non è stata pubblicata sul keyserver. Riprova.",
     mailto_unregister_manual:

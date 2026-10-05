@@ -4958,6 +4958,8 @@ export const tr = {
     failed_remove_wkd:
       "Anahtarınız genel dizinden kaldırılmadı. Tekrar deneyin.",
     key_published_keyserver: "Anahtar sunucuya yayınlandı",
+    keyserver_publish_unconfirmed:
+      "Yayınlama isteği gönderildi ancak durum doğrulanamadı.",
     failed_publish_keyserver:
       "Genel anahtarınız anahtar sunucusunda yayımlanmadı. Tekrar deneyin.",
     mailto_unregister_manual:

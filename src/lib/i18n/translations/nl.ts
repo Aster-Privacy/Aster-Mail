@@ -4941,6 +4941,8 @@ export const nl = {
     failed_remove_wkd:
       "Je sleutel is niet verwijderd uit de openbare map. Probeer het opnieuw.",
     key_published_keyserver: "Sleutel gepubliceerd naar sleutelserver",
+    keyserver_publish_unconfirmed:
+      "Publicatieverzoek verzonden, maar de status kon niet worden bevestigd.",
     failed_publish_keyserver:
       "Je openbare sleutel is niet gepubliceerd op de sleutelserver. Probeer het opnieuw.",
     mailto_unregister_manual:
