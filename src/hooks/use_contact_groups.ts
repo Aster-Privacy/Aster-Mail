@@ -42,8 +42,10 @@ const cached_groups: { data: ContactGroup[]; loaded: boolean } = {
 };
 
 let inflight_fetch: Promise<string | null> | null = null;
+let cache_generation = 0;
 
 export function clear_contact_groups_cache(): void {
+  cache_generation += 1;
   cached_groups.data = [];
   cached_groups.loaded = false;
   inflight_fetch = null;
@@ -87,10 +89,12 @@ export function use_contact_groups() {
     set_state((prev) => ({ ...prev, is_loading: prev.groups.length === 0 }));
 
     if (!inflight_fetch) {
+      const generation = cache_generation;
       const pending = (async (): Promise<string | null> => {
         const response = await list_contact_groups();
 
         if (response.error || !response.data) return response.error || "";
+        if (generation !== cache_generation) return null;
 
         const sorted = sort_groups(response.data.groups);
 

@@ -32,16 +32,25 @@ import { ignore_error } from "@/lib/ignore_error";
 const LEGACY_NONCE_LENGTH = 12;
 const MINIMUM_GCM_LENGTH = 16;
 
+export const LEGACY_KEY_RETRY_DELAY_MS = 30_000;
+
 let cached_key: CryptoKey | null = null;
 let cached_owner_id: string | null = null;
-let cached_failure_owner_id: string | null = null;
+let failed_owner_id: string | null = null;
+let retry_not_before = 0;
 let in_flight: Promise<CryptoKey | null> | null = null;
 
 export function clear_legacy_ios_envelope_key(): void {
   cached_key = null;
   cached_owner_id = null;
-  cached_failure_owner_id = null;
+  failed_owner_id = null;
+  retry_not_before = 0;
   in_flight = null;
+}
+
+function remember_failure(owner_id: string): void {
+  failed_owner_id = owner_id;
+  retry_not_before = Date.now() + LEGACY_KEY_RETRY_DELAY_MS;
 }
 
 async function derive_key(owner_id: string): Promise<CryptoKey | null> {
@@ -91,7 +100,9 @@ async function load_key(): Promise<CryptoKey | null> {
   if (!owner_id) return null;
 
   if (cached_key && cached_owner_id === owner_id) return cached_key;
-  if (cached_failure_owner_id === owner_id) return null;
+  if (failed_owner_id === owner_id && Date.now() < retry_not_before) {
+    return null;
+  }
   if (in_flight) return in_flight;
 
   in_flight = derive_key(owner_id)
@@ -99,16 +110,17 @@ async function load_key(): Promise<CryptoKey | null> {
       if (key) {
         cached_key = key;
         cached_owner_id = owner_id;
-        cached_failure_owner_id = null;
+        failed_owner_id = null;
+        retry_not_before = 0;
       } else {
-        cached_failure_owner_id = owner_id;
+        remember_failure(owner_id);
       }
 
       return key;
     })
     .catch((caught) => {
       ignore_error("services/crypto/legacy_ios_envelope:load_key", caught);
-      cached_failure_owner_id = owner_id;
+      remember_failure(owner_id);
 
       return null;
     })

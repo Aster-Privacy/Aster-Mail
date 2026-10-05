@@ -30,6 +30,7 @@ import {
   useCallback,
   useMemo,
   useEffect,
+  useLayoutEffect,
   useRef,
   useImperativeHandle,
   forwardRef,
@@ -38,6 +39,7 @@ import { Fragment } from "react";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import { Island, IslandDivider } from "@aster/ui";
 
+import { Skeleton } from "@/components/ui/skeleton";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_email_dark_mode } from "@/components/email/use_email_dark_mode";
@@ -50,6 +52,7 @@ import {
   MAIL_EVENTS,
 } from "@/hooks/mail_events";
 import { get_cached_folders } from "@/hooks/use_folders";
+import { order_folders_as_tree } from "@/hooks/use_folders/tree";
 import { bulk_add_folder, bulk_remove_folder } from "@/services/api/mail";
 import { show_action_toast } from "@/components/toast/action_toast";
 import {
@@ -59,6 +62,10 @@ import {
 import { read_clears_conversation } from "@/hooks/unread_read_delta";
 import { mark_conversation_read } from "@/hooks/mark_conversation_read";
 import { ThreadMessageBlock } from "@/components/email/thread_message_block";
+import {
+  VISIBLE_TAIL_COUNT,
+  opened_message_is_collapsed,
+} from "@/components/email/hooks/use_opened_message_anchor";
 import { same_address_ignoring_dots } from "@/utils/address_dots";
 import { resolve_reply_references } from "@/lib/reply_references";
 import {
@@ -93,6 +100,24 @@ function resolve_local_flag(
   }
 
   return entry.value;
+}
+
+function find_scroll_container(el: HTMLElement): HTMLElement | null {
+  let container = el.parentElement;
+
+  while (container) {
+    const style = getComputedStyle(container);
+
+    if (
+      (style.overflowY === "auto" || style.overflowY === "scroll") &&
+      container.scrollHeight > container.clientHeight
+    ) {
+      return container;
+    }
+    container = container.parentElement;
+  }
+
+  return null;
 }
 
 interface ThreadMessagesListProps {
@@ -138,6 +163,7 @@ interface ThreadMessagesListProps {
     content: import("@/services/api/multi_drafts").DraftContent;
   } | null;
   preloaded_sanitized?: Map<string, PreloadedSanitizedContent>;
+  pending_earlier_count?: number;
   size_bytes?: number;
   on_unsubscribe?: () => Promise<"success" | "manual">;
   on_manual_unsubscribed?: () => void;
@@ -196,6 +222,7 @@ export const ThreadMessagesList = forwardRef<
     on_draft_saved,
     existing_draft,
     preloaded_sanitized,
+    pending_earlier_count = 0,
     size_bytes,
     on_unsubscribe,
     on_manual_unsubscribed,
@@ -244,12 +271,13 @@ export const ThreadMessagesList = forwardRef<
 
   const folder_options = useMemo(
     () =>
-      available_folders
-        .filter((folder) => !folder.is_system && !folder.is_password_protected)
-        .map((folder) => ({
+      order_folders_as_tree(available_folders)
+        .filter(({ folder }) => !folder.is_password_protected)
+        .map(({ folder, depth }) => ({
           id: folder.folder_token,
           name: folder.name,
           color: folder.color ?? "",
+          depth,
         })),
     [available_folders],
   );
@@ -455,6 +483,18 @@ export const ThreadMessagesList = forwardRef<
 
     const current_ids = new Set(regular_messages.map((m) => m.id));
 
+    if (
+      main_email_id &&
+      prev_ids.size === 1 &&
+      prev_ids.has(main_email_id) &&
+      opened_message_is_collapsed(
+        display_messages.map((m) => m.id),
+        main_email_id,
+      )
+    ) {
+      set_hidden_group_revealed(true);
+    }
+
     set_expanded_ids((prev) => {
       const next = new Set<string>();
 
@@ -478,7 +518,7 @@ export const ThreadMessagesList = forwardRef<
     auto_read_ids.current = new Set(
       [...auto_read_ids.current].filter((id) => current_ids.has(id)),
     );
-  }, [message_ids_key, regular_messages]);
+  }, [message_ids_key, regular_messages, display_messages, main_email_id]);
 
   const mark_as_read = useCallback(
     (msg: DecryptedThreadMessage, pending_ids?: Set<string>) => {
@@ -769,7 +809,7 @@ export const ThreadMessagesList = forwardRef<
     }
   }, [regular_messages]);
 
-  const first_unread_ref = useRef<HTMLDivElement>(null);
+  const first_unread_ref = useRef<HTMLDivElement | null>(null);
 
   const scroll_target_id = useMemo(() => {
     const unread = regular_messages.find(
@@ -796,19 +836,7 @@ export const ThreadMessagesList = forwardRef<
 
       if (!el) return;
 
-      let container = el.parentElement;
-
-      while (container) {
-        const style = getComputedStyle(container);
-
-        if (
-          (style.overflowY === "auto" || style.overflowY === "scroll") &&
-          container.scrollHeight > container.clientHeight
-        ) {
-          break;
-        }
-        container = container.parentElement;
-      }
+      const container = find_scroll_container(el);
 
       if (container) {
         const el_top = el.getBoundingClientRect().top;
@@ -821,6 +849,40 @@ export const ThreadMessagesList = forwardRef<
       }
     });
   }, [scroll_target_id]);
+
+  const list_root_ref = useRef<HTMLDivElement>(null);
+  const main_island_ref = useRef<HTMLDivElement | null>(null);
+  const lone_main_offset_ref = useRef<number | null>(null);
+
+  useLayoutEffect(() => {
+    const previous_offset = lone_main_offset_ref.current;
+    const anchor = main_island_ref.current;
+    const root = list_root_ref.current;
+
+    lone_main_offset_ref.current = null;
+    if (!anchor || !root) return;
+
+    const offset =
+      anchor.getBoundingClientRect().top - root.getBoundingClientRect().top;
+
+    if (display_messages.length === 1) {
+      lone_main_offset_ref.current = offset;
+
+      return;
+    }
+
+    if (previous_offset === null) return;
+
+    const shift = offset - previous_offset;
+
+    if (shift < 1) return;
+
+    const container = find_scroll_container(root);
+
+    if (container) {
+      container.scrollTop += shift;
+    }
+  }, [message_ids_key, display_messages.length]);
 
   const send_anchor_ref = useRef<HTMLDivElement>(null);
   const last_sending_id = useMemo(() => {
@@ -837,19 +899,7 @@ export const ThreadMessagesList = forwardRef<
 
       if (!el) return;
 
-      let container: HTMLElement | null = el.parentElement;
-
-      while (container) {
-        const style = getComputedStyle(container);
-
-        if (
-          (style.overflowY === "auto" || style.overflowY === "scroll") &&
-          container.scrollHeight > container.clientHeight
-        ) {
-          break;
-        }
-        container = container.parentElement;
-      }
+      const container = find_scroll_container(el);
 
       if (container) {
         container.scrollTop = container.scrollHeight;
@@ -878,7 +928,7 @@ export const ThreadMessagesList = forwardRef<
       .length;
   }, [regular_messages, read_ids]);
 
-  const visible_tail_count = 2;
+  const visible_tail_count = VISIBLE_TAIL_COUNT;
 
   const hidden_count = useMemo(() => {
     if (
@@ -1005,7 +1055,14 @@ export const ThreadMessagesList = forwardRef<
         }
         is_single_message={regular_messages.length === 1}
         is_starred={starred_ids.has(msg.id)}
-        island_ref={msg.id === scroll_target_id ? first_unread_ref : undefined}
+        island_ref={
+          msg.id === scroll_target_id || msg.id === main_email_id
+            ? (el: HTMLDivElement | null) => {
+                if (msg.id === scroll_target_id) first_unread_ref.current = el;
+                if (msg.id === main_email_id) main_island_ref.current = el;
+              }
+            : undefined
+        }
         loaded_content_types={loaded_content_types}
         message={msg}
         message_folder_tokens={applied_folders.get(msg.id)}
@@ -1069,12 +1126,55 @@ export const ThreadMessagesList = forwardRef<
     rows.push({ key: msg.id, node: render_message(msg, idx) });
   });
 
+  if (pending_earlier_count > 0 && regular_messages.length === 1) {
+    const is_desc = preferences.conversation_order === "desc";
+    const kinds: ("message" | "group")[] =
+      pending_earlier_count + 1 > visible_tail_count + 2
+        ? is_desc
+          ? ["group", "message", "message"]
+          : ["message", "group", "message"]
+        : Array.from({ length: pending_earlier_count }, () => "message");
+    const placeholders = kinds.map((kind, idx) => ({
+      key: `pending_${idx}`,
+      node:
+        kind === "group" ? (
+          <div
+            aria-hidden="true"
+            className="flex items-center px-4 py-3 text-[13px]"
+          >
+            <Skeleton className="block h-3 w-28 !rounded-[var(--aster-radius-item)]" />
+            &nbsp;
+          </div>
+        ) : (
+          <div
+            aria-hidden="true"
+            className="flex items-center gap-3 px-4 py-3.5"
+          >
+            <Skeleton className="block h-10 w-10 flex-shrink-0 !rounded-full" />
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center text-sm">
+                <Skeleton className="block h-3.5 w-full max-w-[140px] !rounded-[var(--aster-radius-item)]" />
+                &nbsp;
+              </div>
+              <div className="mt-0.5 flex items-center text-[13px]">
+                <Skeleton className="block h-3 w-full max-w-[60%] !rounded-[var(--aster-radius-item)]" />
+                &nbsp;
+              </div>
+            </div>
+          </div>
+        ),
+    }));
+
+    if (is_desc) rows.push(...placeholders);
+    else rows.unshift(...placeholders);
+  }
+
   if (footer) {
     rows.push({ key: "footer", node: footer });
   }
 
   return (
-    <div className="flex flex-col gap-2">
+    <div ref={list_root_ref} className="flex flex-col gap-2">
       {(thread_message_count ?? regular_messages.length) > 1 &&
         !hide_counter && (
           <div className="flex items-center justify-end px-1">

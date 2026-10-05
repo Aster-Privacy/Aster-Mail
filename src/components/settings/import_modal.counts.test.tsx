@@ -28,6 +28,8 @@ import { createRoot, type Root } from "react-dom/client";
 
 const stored_ids: string[] = [];
 const created_folders: string[] = [];
+const created_tags: string[] = [];
+const stored_tag_tokens = new Map<string, string[]>();
 const duplicate_hashes = new Set<string>();
 
 vi.mock("@/contexts/auth_context", () => ({
@@ -45,6 +47,18 @@ vi.mock("@/hooks/use_folders", () => ({
       return { folder: { folder_token: "tok-" + name } };
     }),
     state: { folders: [] },
+  }),
+}));
+
+vi.mock("@/hooks/use_tags", () => ({
+  use_tags: () => ({
+    create_new_tag: vi.fn(async (name: string) => {
+      created_tags.push(name);
+
+      return { name, tag_token: "tag-" + name };
+    }),
+    refresh: vi.fn(async () => {}),
+    state: { tags: [], is_loading: false },
   }),
 }));
 
@@ -90,8 +104,14 @@ vi.mock("@/services/api/email_import", () => ({
     data: { duplicates: hashes.filter((h) => duplicate_hashes.has(h)) },
   })),
   store_imported_emails: vi.fn(
-    async (_job: string, batch: { message_id_hash: string }[]) => {
-      for (const item of batch) stored_ids.push(item.message_id_hash);
+    async (
+      _job: string,
+      batch: { message_id_hash: string; tag_tokens?: string[] }[],
+    ) => {
+      for (const item of batch) {
+        stored_ids.push(item.message_id_hash);
+        stored_tag_tokens.set(item.message_id_hash, item.tag_tokens ?? []);
+      }
 
       return {
         data: {
@@ -167,6 +187,8 @@ describe("ImportModal skip counts and Gmail labels (integration)", () => {
   beforeEach(() => {
     stored_ids.length = 0;
     created_folders.length = 0;
+    created_tags.length = 0;
+    stored_tag_tokens.clear();
     duplicate_hashes.clear();
     container = document.createElement("div");
     document.body.appendChild(container);
@@ -185,7 +207,7 @@ describe("ImportModal skip counts and Gmail labels (integration)", () => {
 
     const mbox =
       mbox_message("plain", "Inbox,Opened") +
-      mbox_message("team-chat", "Inbox,Team/Chat") +
+      mbox_message("team-chat", 'Inbox,Team/Chat,"Taxes, 2025"') +
       mbox_message("project-draft", "Inbox,Projects/Draft") +
       mbox_message("client-archive", "Archived,Clients/Archive") +
       mbox_message("draft-1", "Drafts") +
@@ -229,9 +251,23 @@ describe("ImportModal skip counts and Gmail labels (integration)", () => {
         "team-chat@example.com",
       ].sort(),
     );
-    expect(created_folders.sort()).toEqual(
-      ["Clients/Archive", "Projects/Draft", "Team/Chat"].sort(),
+    expect(created_folders).toEqual([]);
+    expect(created_tags.sort()).toEqual(
+      [
+        "Archive",
+        "Chat",
+        "Clients",
+        "Draft",
+        "Projects",
+        "Taxes, 2025",
+        "Team",
+      ].sort(),
     );
+    expect(stored_tag_tokens.get("team-chat@example.com")).toEqual([
+      "tag-Chat",
+      "tag-Taxes, 2025",
+    ]);
+    expect(stored_tag_tokens.get("plain@example.com")).toEqual([]);
 
     const text = container.textContent ?? "";
 
@@ -239,6 +275,8 @@ describe("ImportModal skip counts and Gmail labels (integration)", () => {
     expect(text).toContain('settings.duplicates_skipped {"count":1}');
     expect(text).toContain('settings.import_drafts_chats_skipped {"count":3}');
     expect(text).toContain('settings.import_invalid_skipped {"count":1}');
+    expect(text).toContain('settings.import_labels_created {"count":7}');
+    expect(text).not.toContain("settings.import_labels_skipped");
 
     expect(update_import_job).toHaveBeenLastCalledWith("job-1", {
       status: "completed",

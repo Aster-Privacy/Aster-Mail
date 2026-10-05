@@ -219,6 +219,7 @@ export const zh_CN = {
     labels: "标签",
     no_folders_yet: "暂无文件夹",
     no_labels_yet: "暂无标签",
+    label_unable_to_decrypt: "无法解密",
     aliases: "别名",
     no_aliases_yet: "暂无别名",
     storage_used: "已用存储空间",
@@ -1230,6 +1231,14 @@ export const zh_CN = {
     select_parent_folder: "选择父文件夹",
     top_level_no_parent: "顶级（无父文件夹）",
     parent_folder: "上级文件夹",
+    create_sublabel: "创建子标签",
+    move_label: "移动标签",
+    move_label_description: "为此标签选择新的父标签",
+    select_parent_label: "选择父标签",
+    parent_label: "父标签",
+    no_parent_label: "顶级（无父标签）",
+    failed_to_move_label: "未能移动此标签。请重试。",
+    label_delete_keeps_sublabels: "子标签不会被删除，而是上移一级。",
     move_up: "上移",
     move_down: "下移",
     sort_a_to_z: "按名称排序",
@@ -4214,6 +4223,10 @@ export const zh_CN = {
     keyserver_publish_btn: "发布密钥",
     keyserver_republish_btn: "重新发布密钥",
     keyserver_permanent_warning: "密钥一旦发布，大多数密钥服务器无法完全删除。",
+    keyserver_addresses_title: "要发布的地址",
+    keyserver_addresses_hint:
+      "选择要与公钥一起列出的地址。任何人都能看到所选地址共用同一个密钥。密钥服务器会向每个地址发送确认邮件。",
+    keyserver_key_update_failed: "所选地址未能添加到您的密钥。请重试。",
     keyserver_add_custom_label: "添加自定义服务器",
     info_require_encryption_title: "要求加密",
     info_require_encryption_description:
@@ -4511,6 +4524,7 @@ export const zh_CN = {
       "您的公钥未能发布到公共目录。请重试。您的密钥未受影响。",
     failed_remove_wkd: "未能从公共目录中移除您的密钥。请重试。",
     key_published_keyserver: "密钥已发布到密钥服务器",
+    keyserver_publish_unconfirmed: "已发送发布请求，但无法确认其状态。",
     failed_publish_keyserver: "您的公钥未能发布到密钥服务器。请重试。",
     mailto_unregister_manual:
       "若不想让 Aster Mail 打开 mailto 链接，请在浏览器设置中移除该处理程序。",
@@ -5063,6 +5077,8 @@ export const zh_CN = {
       "有 {{count}} 个文件夹无法创建，其中的邮件已放入收件箱。",
     import_folders_skipped_plural:
       "有 {{count}} 个文件夹无法创建，其中的邮件已放入收件箱。",
+    import_labels_created: "已创建 {{count}} 个标签",
+    import_labels_skipped: "有 {{count}} 个标签无法创建，相关邮件在导入时不带这些标签。",
     storage_quota_reached:
       "您的存储空间已满。升级方案，或移除一些邮件，就可以腾出空间以导入更多。",
     no_emails_in_file:

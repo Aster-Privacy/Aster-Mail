@@ -59,6 +59,8 @@ import { reveal_list_row } from "@/components/email/inbox/use_inbox_list_scroll"
 import { use_empty_folder_request } from "@/components/email/inbox/empty_folder_request";
 import { StorageBanner } from "@/components/email/inbox/inbox_storage_banner";
 import { TrashBanner } from "@/components/email/inbox/inbox_trash_banner";
+import { order_folders_as_tree } from "@/hooks/use_folders/tree";
+import { order_tags_as_tree } from "@/hooks/tag_tree";
 
 export type {
   ReplyData,
@@ -324,16 +326,17 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
             display_count={header_display_count}
             excluded_count={selection.excluded_ids.length}
             filtered_count={effective_total_for_pages}
-            folders={folders_state.folders
-              .filter((f) => !f.is_system)
-              .map((f) => ({
+            folders={order_folders_as_tree(folders_state.folders).map(
+              ({ folder: f, depth }) => ({
                 folder_token: f.folder_token,
                 name: f.name,
                 color: f.color || "#6366f1",
+                depth,
                 status: selection.get_folder_status_for_selection(
                   f.folder_token,
                 ),
-              }))}
+              }),
+            )}
             is_archive_view={is_archive_view}
             is_drafts_view={is_drafts_view}
             is_scheduled_view={is_scheduled_view}
@@ -402,11 +405,12 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
             selection_scope_title={active_category_title}
             some_selected={selection.some_selected}
             spam_count={email_state.emails.filter((e) => e.is_spam).length}
-            tags={tags_state.tags.map((t) => ({
-              tag_token: t.tag_token,
-              name: t.name,
-              color: t.color || "#6366f1",
-              status: selection.get_tag_status_for_selection(t.tag_token),
+            tags={order_tags_as_tree(tags_state.tags).map(({ tag, depth }) => ({
+              tag_token: tag.tag_token,
+              name: tag.name,
+              color: tag.color || "#6366f1",
+              depth,
+              status: selection.get_tag_status_for_selection(tag.tag_token),
             }))}
             total_email_count={nav.visible_ids.length}
             total_messages={effective_total_for_pages}

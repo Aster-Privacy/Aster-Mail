@@ -197,6 +197,7 @@ export const es = {
     labels: "Etiquetas",
     no_folders_yet: "Aún no hay carpetas",
     no_labels_yet: "Aún no hay etiquetas",
+    label_unable_to_decrypt: "No se puede descifrar",
     aliases: "Alias",
     no_aliases_yet: "Aún no hay alias",
     storage_used: "Almacenamiento usado",
@@ -315,6 +316,16 @@ export const es = {
     select_parent_folder: "Seleccionar carpeta principal",
     top_level_no_parent: "Nivel superior (sin padre)",
     parent_folder: "Carpeta principal",
+    create_sublabel: "Crear subetiqueta",
+    move_label: "Mover etiqueta",
+    move_label_description:
+      "Elige una nueva etiqueta principal para esta etiqueta",
+    select_parent_label: "Seleccionar etiqueta principal",
+    parent_label: "Etiqueta principal",
+    no_parent_label: "Nivel superior (sin etiqueta principal)",
+    failed_to_move_label: "Esta etiqueta no se movió. Inténtalo de nuevo.",
+    label_delete_keeps_sublabels:
+      "Las subetiquetas no se eliminan. Suben un nivel.",
     move_up: "Subir",
     move_down: "Bajar",
     sort_a_to_z: "Ordenar de la A a la Z",
@@ -4689,6 +4700,11 @@ export const es = {
     keyserver_republish_btn: "Volver a publicar clave",
     keyserver_permanent_warning:
       "Una vez publicadas, las claves no se pueden eliminar completamente de la mayoría de servidores.",
+    keyserver_addresses_title: "Direcciones que se publican",
+    keyserver_addresses_hint:
+      "Selecciona las direcciones que quieres mostrar con tu clave pública. Cualquier persona puede ver que las direcciones seleccionadas comparten una clave. El servidor de claves envía un correo de confirmación a cada dirección.",
+    keyserver_key_update_failed:
+      "Las direcciones seleccionadas no se añadieron a tu clave. Inténtalo de nuevo.",
     keyserver_add_custom_label: "Añadir servidor personalizado",
     info_require_encryption_title: "Requerir cifrado",
     info_require_encryption_description:
@@ -5035,6 +5051,8 @@ export const es = {
     failed_remove_wkd:
       "Tu clave no se quitó del directorio público. Inténtalo de nuevo.",
     key_published_keyserver: "Clave publicada en servidor de claves",
+    keyserver_publish_unconfirmed:
+      "Solicitud de publicación enviada, pero no se pudo confirmar el estado.",
     failed_publish_keyserver:
       "Tu clave pública no se publicó en el servidor de claves. Inténtalo de nuevo.",
     mailto_unregister_manual:
@@ -5676,6 +5694,12 @@ export const es = {
       "No se pudieron crear {{count}} carpetas, así que sus mensajes están en tu bandeja de entrada.",
     import_folders_skipped_plural:
       "No se pudieron crear {{count}} carpetas, así que sus mensajes están en tu bandeja de entrada.",
+    import_labels_created: "{{count}} etiquetas creadas",
+    import_labels_created_one: "{{count}} etiqueta creada",
+    import_labels_skipped:
+      "No se pudieron crear {{count}} etiquetas, así que sus mensajes se importan sin ellas.",
+    import_labels_skipped_one:
+      "No se pudo crear {{count}} etiqueta, así que sus mensajes se importan sin ella.",
     storage_quota_reached:
       "Tu almacenamiento está lleno. Mejorar tu plan, o quitar algunos correos, hará sitio para más importaciones.",
     no_emails_in_file:

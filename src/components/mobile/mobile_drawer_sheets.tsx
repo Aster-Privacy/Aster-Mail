@@ -293,6 +293,8 @@ interface EditTagSheetProps {
   handle_delete: () => void;
 }
 
+const ignore_name_change = (): void => undefined;
+
 export function EditTagSheet({
   editing_tag,
   on_close,
@@ -333,7 +335,9 @@ export function EditTagSheet({
         title={t("common.edit_label")}
         on_color_change={set_edit_color}
         on_delete={handle_delete}
-        on_name_change={set_edit_name}
+        on_name_change={
+          editing_tag?.is_undecryptable ? ignore_name_change : set_edit_name
+        }
         on_save={handle_save}
       />
     </MobileBottomSheet>

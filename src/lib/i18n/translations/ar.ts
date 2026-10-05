@@ -182,6 +182,7 @@ export const ar = {
     labels: "التصنيفات",
     no_folders_yet: "لا توجد مجلدات بعد",
     no_labels_yet: "لا توجد تصنيفات بعد",
+    label_unable_to_decrypt: "تعذّر فك التشفير",
     aliases: "الأسماء المستعارة",
     no_aliases_yet: "لا توجد أسماء مستعارة بعد",
     storage_used: "التخزين المستخدم",
@@ -299,6 +300,15 @@ export const ar = {
     select_parent_folder: "تحديد المجلد الرئيسي",
     top_level_no_parent: "المستوى الأعلى (بدون أصل)",
     parent_folder: "المجلد الأصل",
+    create_sublabel: "إنشاء تصنيف فرعي",
+    move_label: "نقل التصنيف",
+    move_label_description: "اختر تصنيفًا رئيسيًا جديدًا لهذا التصنيف",
+    select_parent_label: "تحديد التصنيف الرئيسي",
+    parent_label: "التصنيف الرئيسي",
+    no_parent_label: "المستوى الأعلى (بدون تصنيف رئيسي)",
+    failed_to_move_label: "لم يتم نقل هذا التصنيف. حاول مجددًا.",
+    label_delete_keeps_sublabels:
+      "لن تُحذف التصنيفات الفرعية، بل تنتقل مستوى واحدًا إلى الأعلى.",
     move_up: "تحريك لأعلى",
     move_down: "تحريك لأسفل",
     sort_a_to_z: "ترتيب من أ إلى ي",
@@ -4762,6 +4772,11 @@ export const ar = {
     keyserver_republish_btn: "إعادة نشر المفتاح",
     keyserver_permanent_warning:
       "بعد النشر، لا يمكن حذف المفاتيح بالكامل من معظم الخوادم.",
+    keyserver_addresses_title: "العناوين المراد نشرها",
+    keyserver_addresses_hint:
+      "حدّد العناوين التي تريد إدراجها مع مفتاحك العام. يمكن لأي شخص أن يرى أن العناوين المحددة تشترك في مفتاح واحد. يرسل خادم المفاتيح رسالة تأكيد إلى كل عنوان.",
+    keyserver_key_update_failed:
+      "لم تُضف العناوين المحددة إلى مفتاحك. حاول مجددًا.",
     keyserver_add_custom_label: "إضافة خادم مخصص",
     info_require_encryption_title: "طلب التشفير",
     info_require_encryption_description:
@@ -5081,6 +5096,8 @@ export const ar = {
       "لم يُنشر مفتاحك العام في الدليل العام. حاول مجددًا. مفاتيحك لم تتغير.",
     failed_remove_wkd: "لم تتم إزالة مفتاحك من الدليل العام. حاول مجددًا.",
     key_published_keyserver: "تم نشر المفتاح إلى خادم المفاتيح",
+    keyserver_publish_unconfirmed:
+      "تم إرسال طلب النشر، لكن تعذّر تأكيد الحالة.",
     failed_publish_keyserver:
       "لم يُنشر مفتاحك العام على خادم المفاتيح. حاول مجددًا.",
     mailto_unregister_manual:
@@ -5676,6 +5693,12 @@ export const ar = {
       "تعذر إنشاء {{count}} مجلدات، لذلك توجد رسائلها في صندوق الوارد.",
     import_folders_skipped_plural:
       "تعذر إنشاء {{count}} مجلدات، لذلك توجد رسائلها في صندوق الوارد.",
+    import_labels_created: "التصنيفات التي تم إنشاؤها: {{count}}",
+    import_labels_created_one: "التصنيفات التي تم إنشاؤها: {{count}}",
+    import_labels_skipped:
+      "تعذر إنشاء تصنيفات عددها {{count}}، لذلك تُستورد رسائلها بدونها.",
+    import_labels_skipped_one:
+      "تعذر إنشاء تصنيفات عددها {{count}}، لذلك تُستورد رسائلها بدونها.",
     storage_quota_reached:
       "تخزينك ممتلئ. ترقية خطتك أو إزالة بعض الرسائل تفسح مجالًا لاستيرادات أكثر.",
     no_emails_in_file:

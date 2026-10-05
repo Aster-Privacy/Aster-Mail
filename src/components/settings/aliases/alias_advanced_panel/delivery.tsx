@@ -41,6 +41,7 @@ import {
 } from "@/components/ui/select";
 import { use_folders } from "@/hooks/use_folders";
 import { use_tags } from "@/hooks/use_tags";
+import { order_tags_as_tree, tag_path_label } from "@/hooks/tag_tree";
 import { load_rules, use_mail_rules_store } from "@/stores/mail_rules_store";
 import {
   alias_rule_delivery,
@@ -534,9 +535,9 @@ export function DeliveryPanel({
             <SelectItem value={DELIVERY_NO_LABEL_VALUE}>
               {t("settings.alias_delivery_label_none")}
             </SelectItem>
-            {tags_state.tags.map((tag) => (
+            {order_tags_as_tree(tags_state.tags).map(({ tag }) => (
               <SelectItem key={tag.tag_token} value={tag.tag_token}>
-                {tag.name}
+                {tag_path_label(tags_state.tags, tag.tag_token)}
               </SelectItem>
             ))}
             {is_missing_label && (

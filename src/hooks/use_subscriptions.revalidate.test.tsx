@@ -236,6 +236,42 @@ describe("use_subscriptions revalidation", () => {
     expect(latest_count).toBe(4);
   });
 
+  it("keeps the stored scan state when a change is saved", async () => {
+    const scan_progress = {
+      cursor: "next",
+      last_scan_ts: "2026-01-01T00:00:00Z",
+      last_scan_message_ts: "2026-01-01T00:00:00Z",
+      carried: ["sender0@example.com"],
+    };
+
+    mock_load.mockResolvedValue({
+      ...cache_with(1),
+      version: 1,
+      last_scan_message_ts: "2026-01-02T00:00:00Z",
+      scan_progress,
+    });
+
+    await act(async () => {
+      window.dispatchEvent(
+        new CustomEvent("astermail:subscription-cache-saved"),
+      );
+      await vi.advanceTimersByTimeAsync(0);
+    });
+
+    await act(async () => {
+      await latest_reactivate("sender0@example.com");
+      await vi.advanceTimersByTimeAsync(0);
+    });
+
+    expect(mock_save).toHaveBeenCalledTimes(1);
+    expect(mock_save.mock.calls[0][0]).toMatchObject({
+      version: 1,
+      last_scan_ts: "2026-01-01T00:00:00Z",
+      last_scan_message_ts: "2026-01-02T00:00:00Z",
+      scan_progress,
+    });
+  });
+
   it("does not reload after a change when nothing was saved meanwhile", async () => {
     await act(async () => {
       await latest_reactivate("sender0@example.com");

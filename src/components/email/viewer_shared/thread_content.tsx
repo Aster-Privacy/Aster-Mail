@@ -40,7 +40,7 @@ import { PurchaseDetailsBanner } from "@/components/email/banners/purchase_detai
 import { ShippingDetailsBanner } from "@/components/email/banners/shipping_details_banner";
 import { CalendarInviteBanner } from "@/components/email/banners/calendar_invite_banner";
 import { SendFailureBanner } from "@/components/email/banners/send_failure_banner";
-import { extract_email_details } from "@/services/extraction/extractor";
+import { use_email_extraction } from "@/components/email/hooks/use_email_extraction";
 
 export interface ViewerThreadContentProps {
   email: DecryptedEmail;
@@ -70,6 +70,7 @@ export interface ViewerThreadContentProps {
   external_content_mode?: "always";
   on_external_content_detected?: (report: ExternalContentReport) => void;
   thread_sanitized?: Map<string, PreloadedSanitizedContent>;
+  pending_thread_count?: number;
   size_bytes?: number;
   on_unsubscribe?: () => Promise<"success" | "manual">;
   on_manual_unsubscribed?: () => void;
@@ -102,6 +103,7 @@ export function ViewerThreadContent({
   external_content_mode,
   on_external_content_detected,
   thread_sanitized,
+  pending_thread_count,
   size_bytes,
   on_unsubscribe,
   on_manual_unsubscribed,
@@ -183,23 +185,14 @@ export function ViewerThreadContent({
     ],
   );
 
-  const extraction = useMemo(
-    () =>
-      extract_email_details(
-        email.subject ?? "",
-        email.body ?? "",
-        email.html_content,
-        email.sender_email ?? "",
-        email.sender ?? "",
-      ),
-    [
-      email.subject,
-      email.body,
-      email.html_content,
-      email.sender_email,
-      email.sender,
-    ],
-  );
+  const extraction = use_email_extraction({
+    email_id: email.id,
+    subject: email.subject ?? "",
+    body_text: email.body ?? "",
+    body_html: email.html_content,
+    from_email: email.sender_email ?? "",
+    from_name: email.sender ?? "",
+  });
 
   return (
     <div className="mt-4">
@@ -208,14 +201,14 @@ export function ViewerThreadContent({
         send_error={email.send_error}
         send_status={email.send_status}
       />
-      {extraction.has_purchase_details && extraction.purchase && (
+      {extraction?.has_purchase_details && extraction.purchase && (
         <PurchaseDetailsBanner
           className="mx-3 @md:mx-4 mb-3"
           details={extraction.purchase}
           email_id={email.id}
         />
       )}
-      {extraction.has_shipping_details && extraction.shipping && (
+      {extraction?.has_shipping_details && extraction.shipping && (
         <ShippingDetailsBanner
           className="mx-3 @md:mx-4 mb-3"
           details={extraction.shipping}
@@ -263,6 +256,7 @@ export function ViewerThreadContent({
           on_trash={on_trash}
           on_unsubscribe={on_unsubscribe}
           on_view_source={on_view_source}
+          pending_earlier_count={pending_thread_count}
           preloaded_sanitized={thread_sanitized}
           size_bytes={size_bytes}
           subject={email.subject}

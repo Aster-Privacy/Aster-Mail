@@ -503,7 +503,7 @@ fn set_file_permissions_restrictive(path: &std::path::Path) -> Result<(), String
     {
         use std::os::windows::process::CommandExt;
         const CREATE_NO_WINDOW: u32 = 0x0800_0000;
-        let user = whoami::fallible::username()
+        let user = whoami::username()
             .unwrap_or_else(|_| std::env::var("USERNAME").unwrap_or_default());
         if !user.is_empty() {
             let target = path.to_string_lossy().into_owned();
@@ -617,7 +617,9 @@ pub fn device_get_pubkeys() -> Result<DevicePubkeys, String> {
         ed25519_pk,
         mlkem_pk,
         x25519_pk,
-        machine_name: whoami::devicename(),
+        machine_name: whoami::devicename()
+            .or_else(|_| whoami::hostname())
+            .unwrap_or_else(|_| "LocalHost".to_string()),
     })
 }
 

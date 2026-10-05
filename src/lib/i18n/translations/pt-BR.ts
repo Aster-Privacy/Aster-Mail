@@ -183,6 +183,7 @@ export const pt_br = {
     labels: "Etiquetas",
     no_folders_yet: "Nenhuma pasta ainda",
     no_labels_yet: "Nenhuma etiqueta ainda",
+    label_unable_to_decrypt: "Não foi possível descriptografar",
     aliases: "Aliases",
     no_aliases_yet: "Nenhum alias ainda",
     storage_used: "Armazenamento usado",
@@ -1308,6 +1309,15 @@ export const pt_br = {
     select_parent_folder: "Selecionar pasta pai",
     top_level_no_parent: "Nível superior (sem pai)",
     parent_folder: "Pasta pai",
+    create_sublabel: "Criar subetiqueta",
+    move_label: "Mover etiqueta",
+    move_label_description: "Escolha uma nova etiqueta pai para esta etiqueta",
+    select_parent_label: "Selecionar etiqueta pai",
+    parent_label: "Etiqueta pai",
+    no_parent_label: "Nível superior (sem etiqueta pai)",
+    failed_to_move_label: "Esta etiqueta não foi movida. Tente novamente.",
+    label_delete_keeps_sublabels:
+      "As subetiquetas não são excluídas. Elas sobem um nível.",
     move_up: "Mover para cima",
     move_down: "Mover para baixo",
     move_to: "Mover para",
@@ -4632,6 +4642,11 @@ export const pt_br = {
     keyserver_republish_btn: "Publicar chave novamente",
     keyserver_permanent_warning:
       "Depois de publicadas, as chaves não podem ser totalmente removidas da maioria dos servidores de chaves.",
+    keyserver_addresses_title: "Endereços a publicar",
+    keyserver_addresses_hint:
+      "Selecione os endereços que você quer listar com sua chave pública. Qualquer pessoa pode ver que os endereços selecionados compartilham uma chave. O servidor de chaves envia um e-mail de confirmação para cada endereço.",
+    keyserver_key_update_failed:
+      "Os endereços selecionados não foram adicionados à sua chave. Tente novamente.",
     keyserver_add_custom_label: "Adicionar servidor de chaves personalizado",
     info_require_encryption_title: "Exigir criptografia",
     info_require_encryption_description:
@@ -4977,6 +4992,8 @@ export const pt_br = {
     failed_remove_wkd:
       "Sua chave não foi removida do diretório público. Tente novamente.",
     key_published_keyserver: "Chave publicada no servidor de chaves",
+    keyserver_publish_unconfirmed:
+      "Solicitação de publicação enviada, mas não foi possível confirmar o status.",
     failed_publish_keyserver:
       "Sua chave pública não foi publicada no servidor de chaves. Tente novamente.",
     mailto_unregister_manual:
@@ -5610,6 +5627,12 @@ export const pt_br = {
       "Não foi possível criar {{count}} pastas, então as mensagens delas estão na sua caixa de entrada.",
     import_folders_skipped_plural:
       "Não foi possível criar {{count}} pastas, então as mensagens delas estão na sua caixa de entrada.",
+    import_labels_created: "{{count}} etiquetas criadas",
+    import_labels_created_one: "{{count}} etiqueta criada",
+    import_labels_skipped:
+      "Não foi possível criar {{count}} etiquetas, então as mensagens delas são importadas sem elas.",
+    import_labels_skipped_one:
+      "Não foi possível criar {{count}} etiqueta, então as mensagens dela são importadas sem ela.",
     storage_quota_reached:
       "Seu armazenamento está cheio. Fazer upgrade do plano, ou remover alguns e-mails, abrirá espaço para mais importações.",
     no_emails_in_file:

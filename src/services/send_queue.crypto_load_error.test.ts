@@ -36,7 +36,7 @@ vi.mock("./send_queue_encryption", async (import_original) => ({
 import { send_queue } from "./send_queue";
 
 import { CryptoModuleLoadError } from "@/services/crypto/openpgp_loader";
-import { en } from "@/lib/i18n/translations";
+import { en } from "@/lib/i18n/translations/en";
 
 describe("send queue when the encryption module cannot load", () => {
   it("reports the load error and hands the email back instead of sending", async () => {

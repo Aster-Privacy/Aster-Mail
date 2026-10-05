@@ -88,7 +88,7 @@ interface FullEmailViewerProps {
   current_index?: number;
   total_count?: number;
   grouped_email_ids?: string[];
-  folders?: { id: string; name: string; color: string }[];
+  folders?: { id: string; name: string; color: string; depth?: number }[];
   on_folder_toggle?: (folder_id: string) => void;
   on_move_out_of_bin?: () => void;
   on_snooze?: () => void;
@@ -625,6 +625,7 @@ export function FullEmailViewer({
                     : undefined
                 }
                 on_view_source={viewer.handle_per_message_view_source}
+                pending_thread_count={viewer.pending_thread_count}
                 sending_message={viewer.sending_message}
                 size_bytes={viewer.mail_item?.metadata?.size_bytes}
                 thread_draft={viewer.thread_draft}

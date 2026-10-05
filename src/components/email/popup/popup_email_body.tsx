@@ -68,6 +68,7 @@ interface PopupEmailBodyProps {
   error: string | null;
   is_fullscreen: boolean;
   thread_messages: DecryptedThreadMessage[];
+  pending_thread_count?: number;
   timestamp_date: React.MutableRefObject<Date | null>;
   extraction_result: ExtractionResult | null;
   external_content_state: {
@@ -122,6 +123,7 @@ export function PopupEmailBody({
   error,
   is_fullscreen,
   thread_messages,
+  pending_thread_count = 0,
   timestamp_date,
   extraction_result,
   external_content_state,
@@ -303,6 +305,7 @@ export function PopupEmailBody({
           mail_item={mail_item}
           on_close={on_close}
           on_compose={on_compose}
+          pending_thread_count={pending_thread_count}
           snoozed_until={snoozed_until}
           t={t}
           thread_messages={thread_messages}
@@ -354,6 +357,7 @@ export function PopupEmailBody({
                 ? handle_unsubscribe
                 : undefined
             }
+            pending_earlier_count={pending_thread_count}
             subject={email.subject}
             thread_token={thread_token}
             unsubscribe_url={email.unsubscribe_info?.unsubscribe_link}

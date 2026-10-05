@@ -44,11 +44,18 @@ export {
   compare_sibling_folders,
   flatten_folder_tree,
   flatten_visible_tree,
+  folder_option_indent,
   get_sibling_folders,
   has_sibling_named,
   is_system_folder_type,
+  order_folders_as_tree,
   partition_folders_by_parent,
 } from "./tree";
-export type { DecryptedFolder, FolderTreeGuides, FolderTreeNode } from "./tree";
+export type {
+  DecryptedFolder,
+  FolderTreeGuides,
+  FolderTreeNode,
+  OrderedFolder,
+} from "./tree";
 export { encrypt_folder_field, generate_folder_token } from "./hook";
 export type { FolderCounts, FoldersState } from "./hook";

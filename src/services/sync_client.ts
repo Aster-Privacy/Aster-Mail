@@ -38,12 +38,19 @@ import {
   emit_reactions_changed,
   emit_mail_items_removed,
   emit_contacts_changed,
+  emit_folders_changed,
+  emit_tags_changed,
+  emit_definitions_stale,
 } from "@/hooks/mail_events";
 import { mark_view_stale } from "@/hooks/email_list_cache";
 import { is_low_network } from "@/services/low_network_state";
 import { sync_recent } from "@/services/category_index";
 import { ignore_error } from "@/lib/ignore_error";
 import { CATCH_UP_WHILE_LIVE_MS } from "@/services/sync_timing";
+import {
+  claim_own_mail_mutation_echo,
+  clear_own_mail_mutations,
+} from "@/services/own_mail_mutations";
 
 export { CATCH_UP_WHILE_LIVE_MS };
 
@@ -60,6 +67,8 @@ type ServerMessageType =
   | "prekey_low"
   | "session_revoked"
   | "contacts_changed"
+  | "folders_changed"
+  | "tags_changed"
   | "mail_mutation"
   | "ping"
   | "pong";
@@ -79,8 +88,10 @@ interface ServerMessage {
 const HEARTBEAT_INTERVAL_MS = 30000;
 const LIVENESS_TIMEOUT_MS = 75000;
 const CATCH_UP_TICK_MS = 60000;
+const DEFINITIONS_REFRESH_MIN_MS = 30000;
 export const PUSH_ARRIVED_MESSAGE = "aster_push_arrived";
 const MUTATION_REFRESH_DEBOUNCE_MS = 600;
+const ECHO_RECONCILE_MS = 30000;
 const REMOVAL_ACTIONS = new Set([
   "trash",
   "delete",
@@ -110,11 +121,14 @@ class SyncClient {
   private reconnect_attempt = 0;
   private has_authenticated_before = false;
   private last_catch_up_at = 0;
+  private last_definitions_refresh_at = 0;
   private catch_up_timer: ReturnType<typeof setInterval> | null = null;
   private pending_connect_reject: ((err: Error) => void) | null = null;
   private heartbeat_timer: ReturnType<typeof setInterval> | null = null;
   private last_message_at = 0;
   private mutation_refresh_timer: ReturnType<typeof setTimeout> | null = null;
+  private echo_reconcile_timer: ReturnType<typeof setTimeout> | null = null;
+  private last_soft_refresh_at = 0;
 
   async connect(): Promise<void> {
     const method = connection_store.get_method();
@@ -253,6 +267,7 @@ class SyncClient {
             window.dispatchEvent(
               new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
             );
+            this.refresh_definitions();
           }
           settle_resolve();
         } else if (data.type === "auth_error") {
@@ -352,6 +367,27 @@ class SyncClient {
     if (socket_live && Date.now() - this.last_catch_up_at >= CATCH_UP_TICK_MS) {
       this.catch_up_now();
     }
+
+    if (
+      this.should_reconnect &&
+      Date.now() - this.last_definitions_refresh_at >=
+        DEFINITIONS_REFRESH_MIN_MS
+    ) {
+      this.refresh_definitions();
+    }
+  }
+
+  private refresh_definitions(): void {
+    if (
+      typeof document !== "undefined" &&
+      document.visibilityState === "hidden"
+    ) {
+      return;
+    }
+    this.last_definitions_refresh_at = Date.now();
+    request_cache.invalidate("/mail/v1/labels");
+    request_cache.invalidate("/mail/v1/tags");
+    emit_definitions_stale();
   }
 
   reconnect_now(): void {
@@ -447,6 +483,14 @@ class SyncClient {
       emit_mail_items_removed({ ids });
     }
 
+    const echo = claim_own_mail_mutation_echo(action, ids);
+
+    if (echo) {
+      this.schedule_echo_reconcile(echo.settled_at);
+
+      return;
+    }
+
     if (this.mutation_refresh_timer) {
       clearTimeout(this.mutation_refresh_timer);
     }
@@ -455,7 +499,29 @@ class SyncClient {
       this.mutation_refresh_timer = null;
       window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
       window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_STATS_STALE));
+      window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_REMOTE_MUTATION));
     }, MUTATION_REFRESH_DEBOUNCE_MS);
+  }
+
+  private schedule_echo_reconcile(settled_at: number | null): void {
+    if (settled_at !== null && this.last_soft_refresh_at >= settled_at) {
+      return;
+    }
+    if (this.echo_reconcile_timer || this.mutation_refresh_timer) return;
+
+    this.echo_reconcile_timer = setTimeout(() => {
+      this.echo_reconcile_timer = null;
+      window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
+      window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_STATS_STALE));
+    }, ECHO_RECONCILE_MS);
+  }
+
+  note_soft_refresh(): void {
+    this.last_soft_refresh_at = Date.now();
+    if (this.echo_reconcile_timer) {
+      clearTimeout(this.echo_reconcile_timer);
+      this.echo_reconcile_timer = null;
+    }
   }
 
   private handle_message(data: ServerMessage): void {
@@ -501,6 +567,20 @@ class SyncClient {
 
     if (data.type === "contacts_changed") {
       emit_contacts_changed();
+
+      return;
+    }
+
+    if (data.type === "folders_changed") {
+      request_cache.invalidate("/mail/v1/labels");
+      emit_folders_changed();
+
+      return;
+    }
+
+    if (data.type === "tags_changed") {
+      request_cache.invalidate("/mail/v1/tags");
+      emit_tags_changed();
 
       return;
     }
@@ -634,6 +714,7 @@ class SyncClient {
     this.auth_error_count = 0;
     this.reconnect_attempt = 0;
     this.has_authenticated_before = false;
+    this.last_definitions_refresh_at = 0;
     if (this.reconnect_timeout) {
       clearTimeout(this.reconnect_timeout);
       this.reconnect_timeout = null;
@@ -644,6 +725,12 @@ class SyncClient {
       clearTimeout(this.mutation_refresh_timer);
       this.mutation_refresh_timer = null;
     }
+    if (this.echo_reconcile_timer) {
+      clearTimeout(this.echo_reconcile_timer);
+      this.echo_reconcile_timer = null;
+    }
+    this.last_soft_refresh_at = 0;
+    clear_own_mail_mutations();
     this.clear_pending_requests();
     this.authenticated = false;
     this.socket?.close();
@@ -740,6 +827,9 @@ if (typeof window !== "undefined") {
   });
   window.addEventListener("online", () => {
     sync_client.on_wake();
+  });
+  window.addEventListener(MAIL_EVENTS.MAIL_SOFT_REFRESH, () => {
+    sync_client.note_soft_refresh();
   });
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") {

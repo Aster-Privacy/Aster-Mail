@@ -67,6 +67,7 @@ import {
 } from "@/components/ui/dropdown_menu";
 import { type ThreadMessagesListRef } from "@/components/email/thread_message_block";
 import { app_locale } from "@/utils/date_format";
+import { folder_option_indent } from "@/hooks/use_folders/tree";
 
 export interface ViewerToolbarActionsProps {
   is_pinned: boolean;
@@ -98,7 +99,7 @@ export interface ViewerToolbarActionsProps {
   on_snooze?: () => void;
   on_block_sender_on_alias?: () => void;
   show_block_sender_on_alias?: boolean;
-  folders?: { id: string; name: string; color: string }[];
+  folders?: { id: string; name: string; color: string; depth?: number }[];
   on_folder_toggle?: (folder_id: string) => void;
   on_move_out_of_bin?: () => void;
   can_go_prev?: boolean;
@@ -501,6 +502,13 @@ export function ViewerToolbarActions({
                         on_folder_toggle(folder.id);
                       }}
                     >
+                      {folder.depth ? (
+                        <span
+                          aria-hidden="true"
+                          className="flex-shrink-0"
+                          style={{ width: folder_option_indent(folder.depth) }}
+                        />
+                      ) : null}
                       {is_current && (
                         <CheckIcon className="me-0.5 h-3 w-3 flex-shrink-0" />
                       )}
@@ -624,6 +632,13 @@ export function ViewerToolbarActions({
                         on_folder_toggle(folder.id);
                       }}
                     >
+                      {folder.depth ? (
+                        <span
+                          aria-hidden="true"
+                          className="flex-shrink-0"
+                          style={{ width: folder_option_indent(folder.depth) }}
+                        />
+                      ) : null}
                       {is_current && (
                         <CheckIcon className="me-0.5 h-3 w-3 flex-shrink-0" />
                       )}

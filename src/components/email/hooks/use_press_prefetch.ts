@@ -23,8 +23,8 @@ import type React from "react";
 import { useMemo, useRef } from "react";
 
 import {
-  get_preload_cache,
   get_preload_in_flight,
+  peek_preloaded_email,
 } from "@/components/email/hooks/preload_cache_store";
 import { prefetch_mail_item } from "@/services/api/mail";
 
@@ -46,7 +46,7 @@ export function prefetch_item_on_press(
 ): boolean {
   if (get_preload_in_flight().has(email_id)) return false;
 
-  const cached = get_preload_cache().get(email_id);
+  const cached = peek_preloaded_email(email_id);
 
   if (
     cached &&

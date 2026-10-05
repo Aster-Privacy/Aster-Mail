@@ -132,18 +132,84 @@ export function is_canonical_folder(name: string): boolean {
   );
 }
 
+const LABEL_HEADER = "x-gmail-labels";
+const KEYWORD_HEADERS = ["x-keywords"];
+const KEYWORD_FLAGS = new Set(["nonjunk", "notjunk"]);
+
+export const MAX_TAGS_PER_EMAIL = 50;
+export const MAX_KEYWORD_LABELS_PER_EMAIL = 20;
+
+export function split_label_list(raw: string, on_whitespace = false): string[] {
+  const out: string[] = [];
+  let current = "";
+  let in_quotes = false;
+
+  const flush = () => {
+    const name = current.trim();
+
+    if (name) out.push(name);
+    current = "";
+  };
+
+  for (let i = 0; i < raw.length; i++) {
+    const char = raw[i];
+
+    if (char === "\\" && in_quotes && raw[i + 1] === '"') {
+      current += '"';
+      i++;
+    } else if (char === '"') {
+      if (in_quotes && raw[i + 1] === '"') {
+        current += '"';
+        i++;
+      } else {
+        in_quotes = !in_quotes;
+      }
+    } else if (
+      !in_quotes &&
+      (on_whitespace ? /\s/.test(char) : char === ",")
+    ) {
+      flush();
+    } else {
+      current += char;
+    }
+  }
+  flush();
+
+  return out;
+}
+
+export function normalize_label_path(name: string): string {
+  return name
+    .split("/")
+    .map((segment) => segment.trim())
+    .filter((segment) => segment.length > 0)
+    .join("/");
+}
+
 export function source_labels(email: ParsedEmail): string[] {
-  const raw = email.raw_headers["x-gmail-labels"];
+  const raw = email.raw_headers[LABEL_HEADER];
+
+  if (raw) return split_label_list(raw);
+  if (email.source_folder) return [email.source_folder];
+
+  return [];
+}
+
+export function keyword_labels(email: ParsedEmail): string[] {
   const out: string[] = [];
 
-  if (raw) {
-    for (const piece of raw.split(",")) {
-      const name = piece.trim();
+  for (const header of KEYWORD_HEADERS) {
+    const raw = email.raw_headers[header];
 
-      if (name) out.push(name);
+    if (!raw) continue;
+    const on_whitespace = header === "x-keywords" && !raw.includes(",");
+
+    for (const name of split_label_list(raw, on_whitespace)) {
+      if (name.startsWith("$") || name.startsWith("\\")) continue;
+      if (KEYWORD_FLAGS.has(name.toLowerCase())) continue;
+      if (out.length >= MAX_KEYWORD_LABELS_PER_EMAIL) return out;
+      out.push(name);
     }
-  } else if (email.source_folder) {
-    out.push(email.source_folder);
   }
 
   return out;
@@ -158,9 +224,13 @@ export interface ImportDisposition {
   is_spam: boolean;
   is_trashed: boolean;
   custom_labels: string[];
+  tag_names: string[];
 }
 
-export function classify_import_labels(labels: string[]): ImportDisposition {
+export function classify_import_labels(
+  labels: string[],
+  custom_as_tags = false,
+): ImportDisposition {
   const disposition: ImportDisposition = {
     skip: false,
     sent: false,
@@ -169,6 +239,7 @@ export function classify_import_labels(labels: string[]): ImportDisposition {
     is_spam: false,
     is_trashed: false,
     custom_labels: [],
+    tag_names: [],
   };
   let inbox = false;
   let archived = false;
@@ -193,6 +264,7 @@ export function classify_import_labels(labels: string[]): ImportDisposition {
     else if (SPAM_LABELS.has(name)) disposition.is_spam = true;
     else if (ARCHIVE_LABELS.has(name)) archived = true;
     else if (STARRED_LABELS.has(name)) disposition.is_starred = true;
+    else if (custom_as_tags) disposition.tag_names.push(label.trim());
     else disposition.custom_labels.push(label.trim());
   }
 
@@ -209,6 +281,71 @@ export function classify_import_labels(labels: string[]): ImportDisposition {
   }
 
   return disposition;
+}
+
+function unique_tag_names(names: string[]): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+
+  for (const raw of names) {
+    const name = normalize_label_path(raw);
+    const key = name.toLowerCase();
+
+    if (!name || seen.has(key)) continue;
+    seen.add(key);
+    out.push(name);
+  }
+
+  return out;
+}
+
+export function classify_import_email(email: ParsedEmail): ImportDisposition {
+  const has_label_header = Boolean(email.raw_headers[LABEL_HEADER]);
+  const disposition = classify_import_labels(
+    source_labels(email),
+    has_label_header,
+  );
+  const keyword_tags = classify_import_labels(
+    keyword_labels(email),
+    true,
+  ).tag_names;
+
+  disposition.tag_names = unique_tag_names([
+    ...disposition.tag_names,
+    ...keyword_tags,
+  ]);
+
+  return disposition;
+}
+
+export function extract_source_tags(emails: ParsedEmail[]): string[] {
+  const names: string[] = [];
+
+  for (const email of emails) {
+    const disposition = classify_import_email(email);
+
+    if (disposition.skip) continue;
+    names.push(...disposition.tag_names);
+  }
+
+  return unique_tag_names(names);
+}
+
+export function tag_tokens_for_email(
+  email: ParsedEmail,
+  tag_map: Map<string, string>,
+): string[] {
+  const tokens: string[] = [];
+
+  for (const name of classify_import_email(email).tag_names) {
+    const token = tag_map.get(name.toLowerCase());
+
+    if (!token || tokens.includes(token)) continue;
+    tokens.push(token);
+    if (tokens.length >= MAX_TAGS_PER_EMAIL) break;
+  }
+
+  return tokens;
 }
 
 export function derive_manual_import_source(files: File[]): ImportSource {
@@ -232,7 +369,7 @@ export function extract_source_folders(emails: ParsedEmail[]): string[] {
   const out = new Set<string>();
 
   for (const email of emails) {
-    const disposition = classify_import_labels(source_labels(email));
+    const disposition = classify_import_email(email);
 
     if (disposition.skip) continue;
     for (const name of disposition.custom_labels) {
@@ -247,7 +384,7 @@ export function folder_for_email(
   email: ParsedEmail,
   label_map: Map<string, string>,
 ): string | undefined {
-  for (const name of source_labels(email)) {
+  for (const name of classify_import_email(email).custom_labels) {
     const token = label_map.get(name.trim());
 
     if (token) return token;

@@ -39,7 +39,7 @@ import {
   peek_favicon_tone,
   subscribe_favicon_tones,
 } from "@/lib/favicon_cache_db";
-import { mark_icon_failed } from "@/lib/icon_cache";
+import { is_icon_failed, mark_icon_failed } from "@/lib/icon_cache";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { ignore_error } from "@/lib/ignore_error";
 
@@ -49,6 +49,11 @@ function load_cookieless_favicon(
   domain: string,
   url: string,
 ): Promise<string | null> {
+  const loaded = peek_favicon_object_url(domain);
+
+  if (loaded) return Promise.resolve(loaded);
+  if (is_icon_failed(domain)) return Promise.resolve(null);
+
   const existing = cookieless_loads.get(domain);
 
   if (existing) return existing;

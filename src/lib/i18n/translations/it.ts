@@ -185,6 +185,7 @@ export const it = {
     labels: "Etichette",
     no_folders_yet: "Nessuna cartella ancora",
     no_labels_yet: "Nessuna etichetta ancora",
+    label_unable_to_decrypt: "Impossibile decifrare",
     aliases: "Alias",
     no_aliases_yet: "Nessun alias ancora",
     storage_used: "Spazio utilizzato",
@@ -306,6 +307,16 @@ export const it = {
     select_parent_folder: "Seleziona cartella principale",
     top_level_no_parent: "Livello superiore (senza genitore)",
     parent_folder: "Cartella principale",
+    create_sublabel: "Crea sottoetichetta",
+    move_label: "Sposta etichetta",
+    move_label_description:
+      "Scegli una nuova etichetta principale per questa etichetta",
+    select_parent_label: "Seleziona etichetta principale",
+    parent_label: "Etichetta principale",
+    no_parent_label: "Livello superiore (nessuna etichetta principale)",
+    failed_to_move_label: "Questa etichetta non è stata spostata. Riprova.",
+    label_delete_keeps_sublabels:
+      "Le sottoetichette non vengono eliminate. Salgono di un livello.",
     move_up: "Sposta su",
     move_down: "Sposta giù",
     sort_a_to_z: "Ordina dalla A alla Z",
@@ -5802,6 +5813,11 @@ export const it = {
     keyserver_republish_btn: "Ripubblica chiave",
     keyserver_permanent_warning:
       "Una volta pubblicate, le chiavi non possono essere rimosse completamente dalla maggior parte dei server.",
+    keyserver_addresses_title: "Indirizzi da pubblicare",
+    keyserver_addresses_hint:
+      "Seleziona gli indirizzi da elencare con la tua chiave pubblica. Chiunque può vedere che gli indirizzi selezionati condividono una sola chiave. Il keyserver invia un'email di conferma a ogni indirizzo.",
+    keyserver_key_update_failed:
+      "Gli indirizzi selezionati non sono stati aggiunti alla chiave. Riprova.",
     keyserver_add_custom_label: "Aggiungi server personalizzato",
     info_require_encryption_title: "Richiedi cifratura",
     info_require_encryption_description:
@@ -6149,6 +6165,8 @@ export const it = {
     failed_remove_wkd:
       "La chiave non è stata rimossa dalla directory pubblica. Riprova.",
     key_published_keyserver: "Chiave pubblicata sul keyserver",
+    keyserver_publish_unconfirmed:
+      "Richiesta di pubblicazione inviata, ma non è stato possibile confermarne lo stato.",
     failed_publish_keyserver:
       "La chiave pubblica non è stata pubblicata sul keyserver. Riprova.",
     mailto_unregister_manual:
@@ -6787,6 +6805,12 @@ export const it = {
       "Non è stato possibile creare {{count}} cartelle, quindi i loro messaggi sono in Posta in arrivo.",
     import_folders_skipped_plural:
       "Non è stato possibile creare {{count}} cartelle, quindi i loro messaggi sono in Posta in arrivo.",
+    import_labels_created: "{{count}} etichette create",
+    import_labels_created_one: "{{count}} etichetta creata",
+    import_labels_skipped:
+      "Non è stato possibile creare {{count}} etichette, quindi i loro messaggi vengono importati senza.",
+    import_labels_skipped_one:
+      "Non è stato possibile creare {{count}} etichetta, quindi i suoi messaggi vengono importati senza.",
     storage_quota_reached:
       "Il suo spazio di archiviazione è pieno. Passare a un piano superiore, o rimuovere alcune email, farà spazio per più importazioni.",
     no_emails_in_file:

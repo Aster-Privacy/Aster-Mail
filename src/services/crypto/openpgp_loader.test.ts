@@ -46,7 +46,7 @@ import {
   load_openpgp,
 } from "@/services/crypto/openpgp_loader";
 import { trigger_chunk_recovery } from "@/lib/chunk_recovery";
-import { en } from "@/lib/i18n/translations";
+import { en } from "@/lib/i18n/translations/en";
 
 describe("load_openpgp", () => {
   afterEach(() => {

@@ -323,6 +323,35 @@ describe("repair_email_contrast", () => {
     expect(contrast_ratio(repaired, "#121212")).toBeGreaterThanOrEqual(4.5);
   });
 
+  it("keeps text readable on a highlight inside repaired text", () => {
+    const doc = build_document();
+
+    doc.body.innerHTML =
+      '<p><span data-color="rgb(23, 55, 94)" id="line">Please ' +
+      '<span data-bg="rgb(255, 255, 0)" id="mark">bring your ticket</span>' +
+      " to the desk.</span></p>";
+
+    const view = fake_view();
+
+    repair_email_contrast(doc, { surface: "#121212", view });
+
+    const ink_of = (id: string) =>
+      rgba_to_hex(
+        parse_css_color(
+          view
+            .getComputedStyle(doc.getElementById(id)!)
+            .getPropertyValue("color"),
+        )!,
+      );
+
+    expect(contrast_ratio(ink_of("line"), "#121212")).toBeGreaterThanOrEqual(
+      4.5,
+    );
+    expect(contrast_ratio(ink_of("mark"), "#ffff00")).toBeGreaterThanOrEqual(
+      4.5,
+    );
+  });
+
   it("falls back to the app surface when a background image blocks resolution", () => {
     const doc = build_document();
 

@@ -26,7 +26,7 @@ import type { DecryptedEmail } from "@/components/email/hooks/use_email_detail";
 import type { MailItem } from "@/services/api/mail";
 import type { ExternalContentReport } from "@/lib/html_sanitizer";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   ExclamationCircleIcon,
   LockClosedIcon,
@@ -42,7 +42,7 @@ import { SendFailureBanner } from "@/components/email/banners/send_failure_banne
 import { CalendarInviteBanner } from "@/components/email/banners/calendar_invite_banner";
 import { PurchaseDetailsBanner } from "@/components/email/banners/purchase_details_banner";
 import { ShippingDetailsBanner } from "@/components/email/banners/shipping_details_banner";
-import { extract_email_details } from "@/services/extraction/extractor";
+import { use_email_extraction } from "@/components/email/hooks/use_email_extraction";
 import { ThreadMessagesList } from "@/components/email/thread_message_block";
 import { ThreadDraftBadge } from "@/components/email/thread_draft_badge";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -58,6 +58,7 @@ interface EmailDetailBodyProps {
   error: string | null;
   thread_messages: DecryptedThreadMessage[];
   thread_truncated?: boolean;
+  pending_thread_count?: number;
   load_all_thread_messages?: () => void;
   thread_draft: DraftWithContent | null;
   current_user_email: string;
@@ -84,6 +85,7 @@ export function EmailDetailBody({
   error,
   thread_messages,
   thread_truncated,
+  pending_thread_count = 0,
   load_all_thread_messages,
   thread_draft,
   current_user_email,
@@ -129,22 +131,17 @@ export function EmailDetailBody({
   const show_sender_email =
     email?.display_sender_email ?? email?.sender_email ?? "";
 
-  const extraction = useMemo(
-    () =>
-      extract_email_details(
-        email?.subject ?? "",
-        email?.body ?? "",
-        email?.html_content,
-        email?.sender_email ?? "",
-        email?.sender ?? "",
-      ),
-    [
-      email?.subject,
-      email?.body,
-      email?.html_content,
-      email?.sender_email,
-      email?.sender,
-    ],
+  const extraction = use_email_extraction(
+    email
+      ? {
+          email_id: email.id,
+          subject: email.subject ?? "",
+          body_text: email.body ?? "",
+          body_html: email.html_content,
+          from_email: email.sender_email ?? "",
+          from_name: email.sender ?? "",
+        }
+      : null,
   );
 
   return (
@@ -235,14 +232,14 @@ export function EmailDetailBody({
             html_content={email.html_content}
           />
 
-          {extraction.has_purchase_details && extraction.purchase && (
+          {extraction?.has_purchase_details && extraction.purchase && (
             <PurchaseDetailsBanner
               className="mb-4 sm:mb-6"
               details={extraction.purchase}
               email_id={email.id}
             />
           )}
-          {extraction.has_shipping_details && extraction.shipping && (
+          {extraction?.has_shipping_details && extraction.shipping && (
             <ShippingDetailsBanner
               className="mb-4 sm:mb-6"
               details={extraction.shipping}
@@ -343,6 +340,7 @@ export function EmailDetailBody({
               on_toggle_message_read={handle_toggle_message_read}
               on_trash={handle_per_message_trash}
               on_view_source={handle_per_message_view_source}
+              pending_earlier_count={pending_thread_count}
               size_bytes={mail_item?.metadata?.size_bytes}
               subject={email.subject}
               thread_token={mail_item?.thread_token}

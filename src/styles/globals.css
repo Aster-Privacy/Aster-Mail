@@ -4673,6 +4673,12 @@ html:not(.dark) .sender_logo_light > img {
   color: var(--accent-color) !important;
 }
 
+.aster_island_divided > .aster_island_row + .aster_island_row::before {
+  height: 0;
+  background: none;
+  border-top: 1px solid var(--aster-island-divider);
+}
+
 .quick_contacts_row.aster_island_row {
   border-radius: 0;
 }

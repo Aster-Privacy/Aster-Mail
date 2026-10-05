@@ -25,6 +25,10 @@ import type { MailItem } from "@/services/api/mail";
 import type { DraftWithContent } from "@/services/api/multi_drafts";
 
 import { LOCKDOWN_CHANGED_EVENT } from "@/services/lockdown_store";
+import {
+  get_vault_account_epoch,
+  on_vault_cleared,
+} from "@/services/crypto/memory_key_store";
 import { clear_iframe_height_cache } from "@/components/email/sandboxed_email_renderer/helpers";
 import { revoke_cid_blob_urls } from "@/lib/cid_resolver";
 import { clear_attachment_meta_cache } from "@/services/attachment_meta_cache";
@@ -44,6 +48,7 @@ export interface PreloadedEmail {
   thread_draft: DraftWithContent | null;
   current_user_email: string;
   current_user_name: string;
+  vault_account_epoch?: number;
   thread_sanitized: Map<string, PreloadedSanitizedContent>;
   cid_resolved?: { html: string; blob_urls: string[] };
   thread_cid_resolved: Map<string, { html: string; blob_urls: string[] }>;
@@ -65,6 +70,70 @@ if (typeof window !== "undefined") {
   window.addEventListener(LOCKDOWN_CHANGED_EVENT, () => clear_preload_cache());
 }
 
+let account_scope_armed = false;
+
+export function get_preload_account_epoch(): number {
+  if (!account_scope_armed) {
+    account_scope_armed = true;
+    on_vault_cleared((event) => {
+      if (event?.same_owner) return;
+      clear_preload_cache();
+    });
+  }
+
+  return get_vault_account_epoch();
+}
+
+function revoke_entry_blob_urls(entry: PreloadedEmail): void {
+  if (entry.cid_resolved) revoke_cid_blob_urls(entry.cid_resolved.blob_urls);
+  for (const r of entry.thread_cid_resolved.values())
+    revoke_cid_blob_urls(r.blob_urls);
+}
+
+function is_from_current_account(entry: PreloadedEmail): boolean {
+  return (
+    entry.vault_account_epoch === undefined ||
+    entry.vault_account_epoch === get_preload_account_epoch()
+  );
+}
+
+function normalize_account_email(value?: string | null): string {
+  return (value ?? "").trim().toLowerCase();
+}
+
+export function is_preloaded_for_user(
+  entry: PreloadedEmail,
+  user_email?: string | null,
+): boolean {
+  const expected = normalize_account_email(user_email);
+  const cached_for = normalize_account_email(entry.current_user_email);
+
+  if (!expected || !cached_for) return true;
+
+  return expected === cached_for;
+}
+
+export function peek_preloaded_email(
+  email_id: string,
+  user_email?: string | null,
+): PreloadedEmail | null {
+  const entry = preload_cache.get(email_id);
+
+  if (!entry) return null;
+
+  if (
+    !is_from_current_account(entry) ||
+    !is_preloaded_for_user(entry, user_email)
+  ) {
+    revoke_entry_blob_urls(entry);
+    preload_cache.delete(email_id);
+
+    return null;
+  }
+
+  return entry;
+}
+
 export function is_preload_busy(): boolean {
   return preload_in_flight.size > 0;
 }
@@ -73,14 +142,17 @@ export function get_preload_generation(): number {
   return preload_generation;
 }
 
-export function get_preloaded_email(email_id: string): PreloadedEmail | null {
+export function get_preloaded_email(
+  email_id: string,
+  user_email?: string | null,
+): PreloadedEmail | null {
   const in_flight = preload_in_flight.get(email_id);
 
   if (in_flight) {
     return null;
   }
 
-  return preload_cache.get(email_id) ?? null;
+  return peek_preloaded_email(email_id, user_email);
 }
 
 export const consume_preloaded_email = get_preloaded_email;
@@ -97,7 +169,11 @@ export function is_preloaded_email_fresh(
 export async function await_preloaded_email(
   email_id: string,
   conversation_grouping?: boolean,
-  options?: { fresh_only?: boolean; max_age_ms?: number },
+  options?: {
+    fresh_only?: boolean;
+    max_age_ms?: number;
+    user_email?: string | null;
+  },
 ): Promise<PreloadedEmail | null> {
   const in_flight = preload_in_flight.get(email_id);
 
@@ -116,7 +192,7 @@ export async function await_preloaded_email(
     }
   }
 
-  const cached = preload_cache.get(email_id) ?? null;
+  const cached = peek_preloaded_email(email_id, options?.user_email);
 
   if (
     cached &&
@@ -145,24 +221,19 @@ export function evict_stale_cache_entries(): void {
     const to_remove = entries.length - MAX_PRELOAD_CACHE_SIZE;
 
     for (let i = 0; i < to_remove; i++) {
-      const evicted = entries[i][1];
-
-      if (evicted.cid_resolved)
-        revoke_cid_blob_urls(evicted.cid_resolved.blob_urls);
-      for (const r of evicted.thread_cid_resolved.values())
-        revoke_cid_blob_urls(r.blob_urls);
+      revoke_entry_blob_urls(entries[i][1]);
       preload_cache.delete(entries[i][0]);
     }
   }
 }
 
 export function clear_preload_cache(): void {
+  invalidate_in_flight_preloads();
   for (const entry of preload_cache.values()) {
-    if (entry.cid_resolved) revoke_cid_blob_urls(entry.cid_resolved.blob_urls);
-    for (const r of entry.thread_cid_resolved.values())
-      revoke_cid_blob_urls(r.blob_urls);
+    revoke_entry_blob_urls(entry);
   }
   preload_cache.clear();
+  preload_in_flight.clear();
   clear_attachment_meta_cache();
   clear_attachment_preview_cache();
 }
@@ -186,17 +257,14 @@ export function delete_preloaded_email(email_id: string): void {
   invalidate_in_flight_preloads();
   const entry = preload_cache.get(email_id);
 
-  if (entry?.cid_resolved) revoke_cid_blob_urls(entry.cid_resolved.blob_urls);
-  if (entry)
-    for (const r of entry.thread_cid_resolved.values())
-      revoke_cid_blob_urls(r.blob_urls);
+  if (entry) revoke_entry_blob_urls(entry);
   preload_cache.delete(email_id);
 }
 
 export function pop_preloaded_cid(
   email_id: string,
 ): { html: string; blob_urls: string[] } | null {
-  const entry = preload_cache.get(email_id);
+  const entry = peek_preloaded_email(email_id);
 
   if (!entry?.cid_resolved) return null;
   const result = entry.cid_resolved;
@@ -210,6 +278,8 @@ export function pop_preloaded_thread_cid(
   message_id: string,
 ): { html: string; blob_urls: string[] } | null {
   for (const entry of preload_cache.values()) {
+    if (!is_from_current_account(entry)) continue;
+
     const result = entry.thread_cid_resolved.get(message_id);
 
     if (result) {

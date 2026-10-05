@@ -89,7 +89,7 @@ interface SplitEmailViewerProps {
   current_index?: number;
   total_count?: number;
   grouped_email_ids?: string[];
-  folders?: { id: string; name: string; color: string }[];
+  folders?: { id: string; name: string; color: string; depth?: number }[];
   on_folder_toggle?: (folder_id: string) => void;
   on_move_out_of_bin?: () => void;
   on_snooze?: () => void;
@@ -676,6 +676,7 @@ export function SplitEmailViewer({
                     : undefined
                 }
                 on_view_source={viewer.handle_per_message_view_source}
+                pending_thread_count={viewer.pending_thread_count}
                 size_bytes={viewer.mail_item?.metadata?.size_bytes}
                 thread_draft={viewer.thread_draft}
                 thread_list_ref={viewer.thread_list_ref}

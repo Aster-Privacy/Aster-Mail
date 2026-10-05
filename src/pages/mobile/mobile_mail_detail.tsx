@@ -45,6 +45,28 @@ import { MobileHeader } from "@/components/mobile/mobile_header";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 
+function MobilePendingMessageRow({ with_divider }: { with_divider: boolean }) {
+  return (
+    <div aria-hidden="true" className="overflow-hidden">
+      {with_divider && <IslandDivider />}
+      <div className="flex items-center gap-3 px-4 py-3">
+        <Skeleton className="block h-8 w-8 shrink-0 !rounded-full" />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center text-[14px]">
+            <Skeleton className="block h-3.5 w-full max-w-[140px] !rounded-[var(--aster-radius-item)]" />
+            &nbsp;
+          </div>
+          <div className="flex items-center text-[13px]">
+            <Skeleton className="block h-3 w-full max-w-[60%] !rounded-[var(--aster-radius-item)]" />
+            &nbsp;
+          </div>
+        </div>
+        <div className="h-9 w-9 shrink-0" />
+      </div>
+    </div>
+  );
+}
+
 function MobileMailDetail() {
   const {
     detail,
@@ -83,8 +105,11 @@ function MobileMailDetail() {
     details_message,
     set_details_message,
     first_unread_ref,
+    opened_message_ref,
     scroll_ref,
     display_messages,
+    pending_thread_count,
+    pending_row_count,
     first_unread_id,
     handle_back,
     handle_toggle_expand,
@@ -172,7 +197,14 @@ function MobileMailDetail() {
   const email = detail.email;
   const starred = is_starred ?? email.is_starred;
   const pinned = is_pinned ?? email.is_pinned ?? false;
-  const thread_count = display_messages.length;
+  const thread_count = display_messages.length + pending_thread_count;
+  const is_desc = preferences.conversation_order === "desc";
+  const pending_rows = Array.from({ length: pending_row_count }, (_, idx) => (
+    <MobilePendingMessageRow
+      key={`pending_${idx}`}
+      with_divider={is_desc || idx > 0}
+    />
+  ));
 
   const entrance_x =
     swipe_nav_state.direction === "right"
@@ -257,16 +289,30 @@ function MobileMailDetail() {
           )}
 
         <Island className="mx-3 mt-1 mb-6 overflow-hidden">
+          {!is_desc && pending_rows}
           {(preferences.conversation_order === "desc"
             ? [...display_messages].reverse()
             : display_messages
           ).map((msg, idx) => (
             <div
               key={msg.id}
-              ref={msg.id === first_unread_id ? first_unread_ref : undefined}
+              ref={
+                msg.id === first_unread_id || msg.id === detail.email_id
+                  ? (el: HTMLDivElement | null) => {
+                      if (msg.id === first_unread_id) {
+                        first_unread_ref.current = el;
+                      }
+                      if (msg.id === detail.email_id) {
+                        opened_message_ref.current = el;
+                      }
+                    }
+                  : undefined
+              }
               className="overflow-hidden"
             >
-              {idx > 0 && <IslandDivider />}
+              {(idx > 0 || (!is_desc && pending_row_count > 0)) && (
+                <IslandDivider />
+              )}
               <MobileThreadMessage
                 disable_auto_dark_mode={is_dark_mode_opted_out(msg.id)}
                 force_dark_mode={is_dark_mode_message(msg.id)}
@@ -290,6 +336,7 @@ function MobileMailDetail() {
               />
             </div>
           ))}
+          {is_desc && pending_rows}
         </Island>
       </div>
 

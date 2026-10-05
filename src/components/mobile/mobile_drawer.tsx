@@ -509,9 +509,11 @@ export const MobileDrawer = memo(function MobileDrawer({
 
   const handle_save_tag = useCallback(async () => {
     if (!editing_tag) return;
-    const name = edit_tag_name.trim();
+    const name = editing_tag.is_undecryptable
+      ? undefined
+      : edit_tag_name.trim();
 
-    if (!name) return;
+    if (name === "") return;
     const success = await update_existing_tag(
       editing_tag.id,
       name,

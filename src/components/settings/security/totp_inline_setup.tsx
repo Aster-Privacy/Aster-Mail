@@ -40,31 +40,20 @@ import { use_i18n } from "@/lib/i18n/context";
 import { Spinner } from "@/components/ui/spinner";
 import mail_logo_url from "@/assets/mail_logo.webp";
 import { copy_text } from "@/utils/copy_text";
+import {
+  clear_totp_setup_cache,
+  read_cached_totp_setup,
+  store_totp_setup,
+} from "@/components/settings/security/totp_setup_cache";
 
 interface TotpInlineSetupProps {
   on_success: () => void;
 }
 
-const SETUP_CACHE_TTL_MS = 9 * 60 * 1000;
-
-let cached_setup_data: TotpSetupInitiateResponse | null = null;
-let cached_setup_at = 0;
-
-function read_cached_setup(): TotpSetupInitiateResponse | null {
-  if (!cached_setup_data) return null;
-  if (Date.now() - cached_setup_at > SETUP_CACHE_TTL_MS) {
-    cached_setup_data = null;
-
-    return null;
-  }
-
-  return cached_setup_data;
-}
-
 export function TotpInlineSetup({ on_success }: TotpInlineSetupProps) {
   const { t } = use_i18n();
   const [setup_data, set_setup_data] =
-    useState<TotpSetupInitiateResponse | null>(read_cached_setup());
+    useState<TotpSetupInitiateResponse | null>(read_cached_totp_setup());
   const [verification_code, set_verification_code] = useState("");
   const [backup_codes, set_backup_codes] = useState<string[]>([]);
   const [show_backup_codes, set_show_backup_codes] = useState(false);
@@ -87,8 +76,7 @@ export function TotpInlineSetup({ on_success }: TotpInlineSetupProps) {
     }
 
     if (response.data) {
-      cached_setup_data = response.data;
-      cached_setup_at = Date.now();
+      store_totp_setup(response.data);
       set_setup_data(response.data);
     }
 
@@ -98,7 +86,7 @@ export function TotpInlineSetup({ on_success }: TotpInlineSetupProps) {
   useEffect(() => {
     if (!initiated_ref.current) {
       initiated_ref.current = true;
-      if (!read_cached_setup()) {
+      if (!read_cached_totp_setup()) {
         initiate_setup();
       }
     }
@@ -117,7 +105,7 @@ export function TotpInlineSetup({ on_success }: TotpInlineSetupProps) {
     });
 
     if (response.error) {
-      if (!read_cached_setup()) {
+      if (!read_cached_totp_setup()) {
         set_setup_data(null);
         void initiate_setup();
       }
@@ -129,7 +117,7 @@ export function TotpInlineSetup({ on_success }: TotpInlineSetupProps) {
     }
 
     if (response.data) {
-      cached_setup_data = null;
+      clear_totp_setup_cache();
       set_backup_codes(response.data.backup_codes);
       set_show_backup_codes(true);
     }

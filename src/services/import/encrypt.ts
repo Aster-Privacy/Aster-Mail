@@ -102,6 +102,7 @@ export interface EncryptedImportEmail {
   thread_token?: string;
   item_type?: string;
   folder_token?: string;
+  tag_tokens?: string[];
   is_read?: boolean;
   is_starred?: boolean;
   is_archived?: boolean;

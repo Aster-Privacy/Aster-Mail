@@ -269,21 +269,32 @@ export function trim_ascii_whitespace(value: string): string {
     : value.substring(start, end);
 }
 
+const FIRST_WINS_HEADERS = new Set(["x-gmail-labels", "x-keywords"]);
+
 export function parse_headers(headers_raw: string): Record<string, string> {
   const headers: Record<string, string> = {};
   const lines = headers_raw.split(/\r?\n/);
   let current_key = "";
   let current_value = "";
 
+  const store_header = () => {
+    const key = current_key.toLowerCase();
+
+    if (
+      FIRST_WINS_HEADERS.has(key) &&
+      Object.prototype.hasOwnProperty.call(headers, key)
+    ) {
+      return;
+    }
+
+    headers[key] = decode_header(reinterpret_as_utf8(current_value));
+  };
+
   for (const line of lines) {
     if (/^[ \t]/.test(line) && current_key) {
       current_value += " " + trim_ascii_whitespace(line);
     } else {
-      if (current_key) {
-        headers[current_key.toLowerCase()] = decode_header(
-          reinterpret_as_utf8(current_value),
-        );
-      }
+      if (current_key) store_header();
       const colon_index = line.indexOf(":");
 
       if (colon_index > 0) {
@@ -292,11 +303,7 @@ export function parse_headers(headers_raw: string): Record<string, string> {
       }
     }
   }
-  if (current_key) {
-    headers[current_key.toLowerCase()] = decode_header(
-      reinterpret_as_utf8(current_value),
-    );
-  }
+  if (current_key) store_header();
 
   return headers;
 }

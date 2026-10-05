@@ -18,7 +18,11 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { DecryptedFolder } from "@/hooks/use_folders";
+import {
+  order_folders_as_tree,
+  type DecryptedFolder,
+  type OrderedFolder,
+} from "@/hooks/use_folders/tree";
 import type { TranslationKey } from "@/lib/i18n";
 
 export type RuleSystemFolderType = "inbox" | "archive" | "spam" | "trash";
@@ -95,6 +99,12 @@ export function rule_custom_folders(
     (f) =>
       !f.is_system && RULE_CUSTOM_FOLDER_TYPES.has(f.folder_type ?? "custom"),
   );
+}
+
+export function rule_custom_folder_options(
+  folders: DecryptedFolder[],
+): OrderedFolder[] {
+  return order_folders_as_tree(rule_custom_folders(folders));
 }
 
 export function rule_folder_name(

@@ -264,6 +264,11 @@ export function undone_send_is_restored_by_host(): boolean {
   );
 }
 
+export function clear_pending_toast_actions(): void {
+  pending_view = null;
+  pending_draft = null;
+}
+
 export function reset_toast_action_router(): void {
   active_navigator = null;
   active_view_host = null;

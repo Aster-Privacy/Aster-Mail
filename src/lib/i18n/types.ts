@@ -726,6 +726,7 @@ export interface CommonTranslations {
   labels: string;
   no_folders_yet: string;
   no_labels_yet: string;
+  label_unable_to_decrypt: string;
   aliases: string;
   no_aliases_yet: string;
   storage_used: string;
@@ -889,6 +890,14 @@ export interface CommonTranslations {
   select_parent_folder: string;
   top_level_no_parent: string;
   parent_folder: string;
+  create_sublabel: string;
+  move_label: string;
+  move_label_description: string;
+  select_parent_label: string;
+  parent_label: string;
+  no_parent_label: string;
+  failed_to_move_label: string;
+  label_delete_keeps_sublabels: string;
   move_up: string;
   move_down: string;
   sort_a_to_z: string;
@@ -4806,6 +4815,9 @@ export interface SettingsTranslations {
   keyserver_publish_btn: string;
   keyserver_republish_btn: string;
   keyserver_permanent_warning: string;
+  keyserver_addresses_title: string;
+  keyserver_addresses_hint: string;
+  keyserver_key_update_failed: string;
   keyserver_add_custom_label: string;
   info_require_encryption_title: string;
   info_require_encryption_description: string;
@@ -5209,6 +5221,7 @@ export interface SettingsTranslations {
   failed_publish_wkd: string;
   failed_remove_wkd: string;
   key_published_keyserver: string;
+  keyserver_publish_unconfirmed: string;
   failed_publish_keyserver: string;
   mailto_unregister_manual: string;
   failed_save_setting: string;
@@ -5778,6 +5791,10 @@ export interface SettingsTranslations {
   import_folders_skipped_one?: string;
   import_folders_skipped_other: string;
   import_folders_skipped_plural: string;
+  import_labels_created: string;
+  import_labels_created_one?: string;
+  import_labels_skipped: string;
+  import_labels_skipped_one?: string;
   storage_quota_reached: string;
   no_emails_in_file: string;
   import_failed: string;

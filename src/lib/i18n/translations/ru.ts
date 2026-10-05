@@ -183,6 +183,7 @@ export const ru = {
     labels: "Метки",
     no_folders_yet: "Папок пока нет",
     no_labels_yet: "Меток пока нет",
+    label_unable_to_decrypt: "Не удалось расшифровать",
     aliases: "Псевдонимы",
     no_aliases_yet: "Псевдонимов пока нет",
     storage_used: "Использовано хранилища",
@@ -301,6 +302,15 @@ export const ru = {
     select_parent_folder: "Выбрать родительскую папку",
     top_level_no_parent: "Верхний уровень (без родителя)",
     parent_folder: "Родительская папка",
+    create_sublabel: "Создать вложенную метку",
+    move_label: "Переместить метку",
+    move_label_description: "Выберите новую родительскую метку для этой метки",
+    select_parent_label: "Выбрать родительскую метку",
+    parent_label: "Родительская метка",
+    no_parent_label: "Верхний уровень (без родительской метки)",
+    failed_to_move_label: "Эта метка не перемещена. Попробуйте снова.",
+    label_delete_keeps_sublabels:
+      "Вложенные метки не удаляются. Они поднимаются на один уровень.",
     move_up: "Вверх",
     move_down: "Вниз",
     sort_a_to_z: "Сортировать от А до Я",
@@ -4802,6 +4812,11 @@ export const ru = {
     keyserver_republish_btn: "Переопубликовать ключ",
     keyserver_permanent_warning:
       "После публикации ключи нельзя полностью удалить с большинства серверов.",
+    keyserver_addresses_title: "Адреса для публикации",
+    keyserver_addresses_hint:
+      "Выберите адреса, которые нужно указать вместе с открытым ключом. Любой может увидеть, что выбранные адреса используют один ключ. Сервер ключей отправляет письмо с подтверждением на каждый адрес.",
+    keyserver_key_update_failed:
+      "Выбранные адреса не добавлены в ключ. Попробуйте снова.",
     keyserver_add_custom_label: "Добавить пользовательский сервер",
     info_require_encryption_title: "Требовать шифрование",
     info_require_encryption_description:
@@ -5148,6 +5163,8 @@ export const ru = {
     failed_remove_wkd:
       "Ключ не удалён из публичного каталога. Попробуйте снова.",
     key_published_keyserver: "Ключ опубликован на сервере ключей",
+    keyserver_publish_unconfirmed:
+      "Запрос на публикацию отправлен, но подтвердить его статус не удалось.",
     failed_publish_keyserver:
       "Открытый ключ не опубликован на сервере ключей. Попробуйте снова.",
     mailto_unregister_manual:
@@ -5782,6 +5799,12 @@ export const ru = {
       "Не удалось создать папки: {{count}}. Письма из них находятся во входящих.",
     import_folders_skipped_plural:
       "Не удалось создать папки: {{count}}. Письма из них находятся во входящих.",
+    import_labels_created: "Создано меток: {{count}}",
+    import_labels_created_one: "Создано меток: {{count}}",
+    import_labels_skipped:
+      "Не удалось создать метки: {{count}}. Письма с ними импортируются без этих меток.",
+    import_labels_skipped_one:
+      "Не удалось создать метки: {{count}}. Письма с ними импортируются без этих меток.",
     storage_quota_reached:
       "Хранилище заполнено. Повышение тарифа или удаление части писем освобождает место для новых импортов.",
     no_emails_in_file:

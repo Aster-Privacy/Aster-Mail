@@ -20,6 +20,7 @@
 //
 import type { UserPreferences } from "@/services/api/preferences";
 import type { KeyserverPublicationState } from "@/services/api/keys";
+import type { KeyserverAddressRow } from "@/components/settings/hooks/use_encryption";
 
 import {
   ShieldCheckIcon,
@@ -32,7 +33,7 @@ import {
   ExclamationCircleIcon,
   MinusCircleIcon,
 } from "@heroicons/react/24/outline";
-import { Button, Input, IslandRow, IslandSection } from "@aster/ui";
+import { Button, Checkbox, Input, IslandRow, IslandSection } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { InfoPopover } from "@/components/ui/info_popover";
@@ -122,6 +123,9 @@ interface EncryptionSettingsFormProps {
   keyserver_error: string | null;
   is_publishing_keyserver: boolean;
   handle_publish_to_keyservers: () => Promise<void>;
+  keyserver_address_rows: KeyserverAddressRow[];
+  keyserver_can_publish: boolean;
+  handle_keyserver_address_toggle: (email: string) => void;
 }
 
 export function EncryptionSettingsForm({
@@ -142,29 +146,28 @@ export function EncryptionSettingsForm({
   keyserver_error,
   is_publishing_keyserver,
   handle_publish_to_keyservers,
+  keyserver_address_rows,
+  keyserver_can_publish,
+  handle_keyserver_address_toggle,
 }: EncryptionSettingsFormProps) {
   const { t } = use_i18n();
 
-  const keyserver_badge = () => {
-    if (keyserver_published === null) return null;
-    if (
-      keyserver_state === "published" ||
-      (keyserver_published && !keyserver_state)
-    ) {
+  const state_badge = (state: KeyserverPublicationState | null) => {
+    if (state === "published") {
       return status_text(
         CheckCircleIcon,
         "var(--color-success)",
         t("settings.keyserver_status_published"),
       );
     }
-    if (keyserver_state === "failed") {
+    if (state === "failed") {
       return status_text(
         ExclamationCircleIcon,
         "var(--color-danger)",
         t("settings.keyserver_status_failed"),
       );
     }
-    if (keyserver_state === "awaiting_verification") {
+    if (state === "awaiting_verification") {
       return status_text(
         ClockIcon,
         "var(--color-warning)",
@@ -176,6 +179,14 @@ export function EncryptionSettingsForm({
       MinusCircleIcon,
       "var(--text-muted)",
       t("settings.keyserver_status_not_published"),
+    );
+  };
+
+  const keyserver_badge = () => {
+    if (keyserver_published === null) return null;
+
+    return state_badge(
+      keyserver_published && !keyserver_state ? "published" : keyserver_state,
     );
   };
 
@@ -292,7 +303,7 @@ export function EncryptionSettingsForm({
           layout="stacked"
           trailing={
             <Button
-              disabled={is_publishing_keyserver}
+              disabled={is_publishing_keyserver || !keyserver_can_publish}
               variant="depth"
               onClick={handle_publish_to_keyservers}
             >
@@ -303,6 +314,30 @@ export function EncryptionSettingsForm({
             </Button>
           }
         />
+
+        {keyserver_address_rows.length > 1 && (
+          <>
+            <IslandRow
+              description={t("settings.keyserver_addresses_hint")}
+              label={t("settings.keyserver_addresses_title")}
+              layout="stacked"
+            />
+            {keyserver_address_rows.map((row) => (
+              <IslandRow
+                key={row.email}
+                label={
+                  <Checkbox
+                    checked={row.selected}
+                    disabled={row.disabled || is_publishing_keyserver}
+                    label={row.email}
+                    onChange={() => handle_keyserver_address_toggle(row.email)}
+                  />
+                }
+                trailing={row.state ? state_badge(row.state) : undefined}
+              />
+            ))}
+          </>
+        )}
 
         {DEFAULT_KEYSERVERS.map((url) => (
           <IslandRow

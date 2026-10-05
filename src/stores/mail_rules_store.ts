@@ -145,9 +145,31 @@ function get_state(): MailRulesState {
   return state;
 }
 
+let store_generation = 0;
+
+export function reset_mail_rules_store(): void {
+  store_generation += 1;
+  stop_all_run_polls();
+  run_poll_delays.clear();
+  run_poll_failures.clear();
+  pending_seed = null;
+  last_save_error = null;
+  set_state({
+    rules: [],
+    loading: false,
+    loaded: false,
+    error: null,
+    runs: {},
+  });
+}
+
 export async function load_rules(): Promise<void> {
+  const generation = store_generation;
+
   set_state({ loading: true, error: null });
   const response = await list_rules();
+
+  if (generation !== store_generation) return;
 
   if (response.data) {
     const sorted = [...response.data.rules].sort(
@@ -189,7 +211,10 @@ export async function create_rule(
 ): Promise<Rule | null> {
   last_save_error = null;
 
+  const generation = store_generation;
   const response = await api_create_rule(req);
+
+  if (generation !== store_generation) return null;
 
   if (response.data) {
     const max_sort_order = state.rules.reduce(
@@ -225,7 +250,10 @@ export async function update_rule(
 
   set_state({ rules: optimistic });
 
+  const generation = store_generation;
   const response = await api_update_rule(id, patch);
+
+  if (generation !== store_generation) return null;
 
   if (response.data) {
     const next = state.rules.map((r) => (r.id === id ? response.data! : r));
@@ -250,7 +278,10 @@ export async function delete_rule(id: string): Promise<boolean> {
   set_state({ rules: state.rules.filter((r) => r.id !== id) });
   stop_run_poll(id);
 
+  const generation = store_generation;
   const response = await api_delete_rule(id);
+
+  if (generation !== store_generation) return !response.error;
 
   if (response.error) {
     set_state({ rules: previous, error: response.error });
@@ -274,7 +305,10 @@ export async function reorder(ordered_ids: string[]): Promise<boolean> {
 
   set_state({ rules: next });
 
+  const generation = store_generation;
   const response = await api_reorder_rules(ordered_ids);
+
+  if (generation !== store_generation) return !response.error;
 
   if (response.error) {
     set_state({ rules: previous, error: response.error });
@@ -289,7 +323,10 @@ export async function run_on_existing(
   id: string,
   include_trashed = false,
 ): Promise<boolean> {
+  const generation = store_generation;
   const response = await api_run_on_existing(id, include_trashed);
+
+  if (generation !== store_generation) return false;
 
   if (response.error) {
     set_state({ error: response.error });
@@ -312,7 +349,10 @@ export async function run_on_existing(
 }
 
 export async function refresh_run(id: string): Promise<void> {
+  const generation = store_generation;
   const response = await api_get_rule_run(id);
+
+  if (generation !== store_generation) return;
 
   if (response.error) {
     const failures = (run_poll_failures.get(id) ?? 0) + 1;
@@ -340,7 +380,10 @@ export async function refresh_run(id: string): Promise<void> {
 }
 
 export async function cancel_run(id: string): Promise<boolean> {
+  const generation = store_generation;
   const response = await api_cancel_rule_run(id);
+
+  if (generation !== store_generation) return false;
 
   if (response.error) {
     set_state({ error: response.error });
@@ -354,7 +397,10 @@ export async function cancel_run(id: string): Promise<boolean> {
 }
 
 export async function load_runs(): Promise<void> {
+  const generation = store_generation;
   const response = await api_list_rule_runs();
+
+  if (generation !== store_generation) return;
 
   if (!response.data) {
     return;

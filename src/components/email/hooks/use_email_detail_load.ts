@@ -80,14 +80,18 @@ import { use_compose_manager } from "@/components/compose/compose_manager";
 import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelope";
 import { is_crypto_module_load_error } from "@/services/crypto/openpgp_loader";
 import {
-  get_preload_cache,
   get_preload_in_flight,
+  peek_preloaded_email,
   preload_email_detail,
 } from "@/components/email/hooks/preload_cache";
 import { use_email_detail_actions } from "@/components/email/hooks/email_detail_actions";
 import { prefetch_attachment_meta } from "@/services/attachment_meta_cache";
 import { prefetch_attachment_previews } from "@/services/attachment_preview_cache";
 import { ignore_error } from "@/lib/ignore_error";
+import {
+  include_opened_message,
+  keep_unchanged_messages,
+} from "@/components/email/thread_message_merge";
 import { use_thread_decrypt_hold } from "@/hooks/use_thread_decrypt_hold";
 import {
   claim_auto_read,
@@ -193,6 +197,7 @@ export function use_email_detail_load() {
   >([]);
   const swept_threads_ref = useRef<Set<string>>(new Set());
   const [thread_truncated, set_thread_truncated] = useState(false);
+  const [pending_thread_count, set_pending_thread_count] = useState(0);
   const [thread_draft, set_thread_draft] = useState<DraftWithContent | null>(
     null,
   );
@@ -409,20 +414,20 @@ export function use_email_detail_load() {
       });
       set_email(null);
       set_thread_messages([]);
+      set_pending_thread_count(0);
       set_tracking_report(null);
       set_thread_truncated(false);
       set_is_loading(true);
     }
 
     const preload_in_flight = get_preload_in_flight();
-    const preload_cache = get_preload_cache();
     const in_flight = preload_in_flight.get(email_id);
 
     if (in_flight) {
       await in_flight;
     }
 
-    const cached = preload_cache.get(email_id);
+    const cached = peek_preloaded_email(email_id, user?.email);
     const current_grouping = preferences.conversation_grouping !== false;
 
     if (cached && cached.conversation_grouping === current_grouping) {
@@ -430,6 +435,7 @@ export function use_email_detail_load() {
       set_mail_item(cached.mail_item);
       set_email(cached.email);
       set_thread_messages(cached.thread_messages);
+      set_pending_thread_count(0);
       set_thread_draft(cached.thread_draft);
       set_current_user_email(cached.current_user_email);
       set_is_loading(false);
@@ -533,7 +539,7 @@ export function use_email_detail_load() {
           .then(() => {
             if (is_stale()) return;
 
-            const fresh = get_preload_cache().get(revalidate_id);
+            const fresh = peek_preloaded_email(revalidate_id, user?.email);
 
             if (fresh) {
               set_mail_item(fresh.mail_item);
@@ -672,6 +678,34 @@ export function use_email_detail_load() {
       }
 
       set_mail_item(response.data);
+
+      const thread_token = response.data.thread_token;
+      const should_load_thread =
+        preferences.conversation_grouping !== false && !!thread_token;
+      const thread_options = {
+        is_trashed: !!response.data.is_trashed,
+        is_spam: !!response.data.is_spam,
+        limit: preferences.low_network_mode ? 4 : undefined,
+      };
+      const request_thread = () =>
+        fetch_and_decrypt_thread_messages(
+          thread_token!,
+          user?.email,
+          thread_options,
+        )
+          .then((result) =>
+            result.thread_data || result.messages.length > 0 ? result : null,
+          )
+          .catch((caught) => {
+            ignore_error(
+              "components/email/hooks/use_email_detail_load:thread_messages",
+              caught,
+            );
+
+            return null;
+          });
+      const early_thread_request =
+        should_load_thread && are_keys_ready() ? request_thread() : null;
 
       let decrypted_metadata = response.data.metadata ?? null;
 
@@ -852,44 +886,85 @@ export function use_email_detail_load() {
           e2e_verified,
         );
 
-        if (
-          preferences.conversation_grouping !== false &&
-          response.data.thread_token
-        ) {
-          const thread_result = await fetch_and_decrypt_thread_messages(
-            response.data.thread_token,
-            user?.email,
-            {
-              is_trashed: !!response.data.is_trashed,
-              is_spam: !!response.data.is_spam,
-              limit: preferences.low_network_mode ? 4 : undefined,
-            },
-          );
+        if (should_load_thread) {
+          const shows_opened_first = is_new_open || is_first_load;
 
-          if (is_stale()) return;
-          if (thread_result.messages.length > 0) {
-            set_thread_messages(thread_result.messages);
-            set_thread_truncated(thread_result.truncated);
-          } else {
+          if (shows_opened_first) {
             set_thread_messages([single_message]);
             set_thread_truncated(false);
+            set_pending_thread_count(
+              Math.max(0, (response.data.thread_message_count ?? 1) - 1),
+            );
+            if (user?.email) {
+              set_current_user_email(user.email);
+            }
+            await attachment_meta_ready;
+
+            if (is_stale()) return;
+            has_loaded_once.current = true;
+            set_is_loading(false);
           }
+
+          const thread_result = await (early_thread_request ??
+            request_thread());
+
+          if (is_stale()) return;
+          if (thread_result && thread_result.messages.length > 0) {
+            set_thread_messages((prev) =>
+              shows_opened_first
+                ? keep_unchanged_messages(
+                    prev,
+                    include_opened_message(
+                      thread_result.messages,
+                      single_message,
+                    ),
+                  )
+                : thread_result.messages,
+            );
+            set_thread_truncated(thread_result.truncated);
+          } else if (thread_result && !shows_opened_first) {
+            set_thread_messages([single_message]);
+            set_thread_truncated(false);
+          } else {
+            set_thread_messages((prev) =>
+              prev.length > 0 ? prev : [single_message],
+            );
+          }
+          set_pending_thread_count(0);
         } else if (
           preferences.conversation_grouping !== false &&
           stored_grouped_email_ids &&
           stored_grouped_email_ids.length > 1 &&
           stored_grouped_email_ids.includes(email_id)
         ) {
+          set_thread_messages((prev) =>
+            prev.length === 0 ? [single_message] : prev,
+          );
+          void attachment_meta_ready.then(() => {
+            if (!is_stale()) set_is_loading(false);
+          });
+
           const group_messages = await fetch_and_decrypt_virtual_group(
             stored_grouped_email_ids,
             user?.email,
-          );
+          ).catch((caught) => {
+            ignore_error(
+              "components/email/hooks/use_email_detail_load:virtual_group",
+              caught,
+            );
+
+            return null;
+          });
 
           if (is_stale()) return;
-          if (group_messages.length > 0) {
-            set_thread_messages(group_messages);
+          if (group_messages && group_messages.length > 0) {
+            set_thread_messages((prev) =>
+              keep_unchanged_messages(prev, group_messages),
+            );
           } else {
-            set_thread_messages([single_message]);
+            set_thread_messages((prev) =>
+              prev.length > 0 ? prev : [single_message],
+            );
           }
         } else {
           set_thread_messages([single_message]);
@@ -900,21 +975,28 @@ export function use_email_detail_load() {
         }
 
         if (response.data.thread_token) {
-          if (!are_keys_ready()) {
-            await wait_for_keys_ready();
-          }
-
-          const current_vault = get_vault_from_memory();
-
-          if (current_vault && !is_stale()) {
-            const draft_result = await get_draft_by_thread(
-              response.data.thread_token,
-              current_vault,
-            );
-
-            if (draft_result.data && !is_stale()) {
-              set_thread_draft(draft_result.data);
+          try {
+            if (!are_keys_ready()) {
+              await wait_for_keys_ready();
             }
+
+            const current_vault = get_vault_from_memory();
+
+            if (current_vault && !is_stale()) {
+              const draft_result = await get_draft_by_thread(
+                response.data.thread_token,
+                current_vault,
+              );
+
+              if (draft_result.data && !is_stale()) {
+                set_thread_draft(draft_result.data);
+              }
+            }
+          } catch (caught) {
+            ignore_error(
+              "components/email/hooks/use_email_detail_load:thread_draft",
+              caught,
+            );
           }
         }
       }
@@ -977,6 +1059,8 @@ export function use_email_detail_load() {
       }
       set_is_loading(false);
     }
+
+    if (load_seq_ref.current === my_seq) set_pending_thread_count(0);
   }, [load_email, t]);
 
   return {
@@ -1019,6 +1103,7 @@ export function use_email_detail_load() {
     set_thread_messages,
     thread_truncated,
     set_thread_truncated,
+    pending_thread_count,
     thread_draft,
     set_thread_draft,
     current_user_email,

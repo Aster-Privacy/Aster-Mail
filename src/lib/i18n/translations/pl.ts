@@ -193,6 +193,7 @@ export const pl = {
     labels: "Etykiety",
     no_folders_yet: "Brak folderów",
     no_labels_yet: "Brak etykiet",
+    label_unable_to_decrypt: "Nie można odszyfrować",
     aliases: "Aliasy",
     no_aliases_yet: "Brak aliasów",
     storage_used: "Wykorzystane miejsce",
@@ -309,6 +310,16 @@ export const pl = {
     select_parent_folder: "Wybierz folder nadrzędny",
     top_level_no_parent: "Poziom główny (bez nadrzędnego)",
     parent_folder: "Folder nadrzędny",
+    create_sublabel: "Utwórz etykietę podrzędną",
+    move_label: "Przenieś etykietę",
+    move_label_description: "Wybierz nową etykietę nadrzędną dla tej etykiety",
+    select_parent_label: "Wybierz etykietę nadrzędną",
+    parent_label: "Etykieta nadrzędna",
+    no_parent_label: "Poziom główny (bez etykiety nadrzędnej)",
+    failed_to_move_label:
+      "Ta etykieta nie została przeniesiona. Spróbuj ponownie.",
+    label_delete_keeps_sublabels:
+      "Etykiety podrzędne nie są usuwane. Przechodzą o jeden poziom wyżej.",
     move_up: "Przenieś w górę",
     move_down: "Przenieś w dół",
     sort_a_to_z: "Sortuj od A do Z",
@@ -4841,6 +4852,11 @@ export const pl = {
     keyserver_republish_btn: "Opublikuj ponownie",
     keyserver_permanent_warning:
       "Raz opublikowane klucze nie mogą być całkowicie usunięte z większości serwerów.",
+    keyserver_addresses_title: "Adresy do opublikowania",
+    keyserver_addresses_hint:
+      "Wybierz adresy, które mają być widoczne przy Twoim kluczu publicznym. Każdy może zobaczyć, że wybrane adresy korzystają z jednego klucza. Serwer kluczy wysyła wiadomość z potwierdzeniem na każdy adres.",
+    keyserver_key_update_failed:
+      "Wybrane adresy nie zostały dodane do klucza. Spróbuj ponownie.",
     keyserver_add_custom_label: "Dodaj niestandardowy serwer",
     info_require_encryption_title: "Wymagaj szyfrowania",
     info_require_encryption_description:
@@ -5179,6 +5195,8 @@ export const pl = {
     failed_remove_wkd:
       "Klucz nie został usunięty z publicznego katalogu. Spróbuj ponownie.",
     key_published_keyserver: "Klucz opublikowany na serwerze kluczy",
+    keyserver_publish_unconfirmed:
+      "Wysłano żądanie publikacji, ale nie udało się potwierdzić jego stanu.",
     failed_publish_keyserver:
       "Klucz publiczny nie został opublikowany na serwerze kluczy. Spróbuj ponownie.",
     mailto_unregister_manual:
@@ -5815,6 +5833,12 @@ export const pl = {
       "Nie udało się utworzyć folderów: {{count}}. Ich wiadomości są w skrzynce odbiorczej.",
     import_folders_skipped_plural:
       "Nie udało się utworzyć folderów: {{count}}. Ich wiadomości są w skrzynce odbiorczej.",
+    import_labels_created: "Utworzone etykiety: {{count}}",
+    import_labels_created_one: "Utworzone etykiety: {{count}}",
+    import_labels_skipped:
+      "Nie udało się utworzyć etykiet: {{count}}. Ich wiadomości są importowane bez nich.",
+    import_labels_skipped_one:
+      "Nie udało się utworzyć etykiet: {{count}}. Ich wiadomości są importowane bez nich.",
     storage_quota_reached:
       "Pamięć jest pełna. Ulepszenie planu lub usunięcie wiadomości zrobi miejsce na kolejne importy.",
     no_emails_in_file:
