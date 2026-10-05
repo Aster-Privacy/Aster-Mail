@@ -23,7 +23,10 @@ import type { PlaceholderPaint } from "@/lib/blocked_image_placeholder";
 import { accent_foreground_for } from "@/lib/resolved_accent";
 import { derive_link_ink, derive_visited_ink } from "@/lib/email_ink";
 import { LINK_VISITED_VAR } from "@/lib/email_contrast_repair";
-import { BRAND_BACKGROUND_MARK } from "@/lib/email_brand_backgrounds";
+import {
+  BRAND_BACKGROUND_MARK,
+  LIGHT_SPAN_BACKGROUND_MARK,
+} from "@/lib/email_brand_backgrounds";
 import { LONG_TOKEN_MARK } from "@/lib/email_long_tokens";
 import { email_placeholder_paint } from "@/lib/blocked_image_placeholder";
 
@@ -399,7 +402,7 @@ article${FORCED_NEUTRALIZE_EXCLUDE}, aside${FORCED_NEUTRALIZE_EXCLUDE}, nav${FOR
 center${FORCED_NEUTRALIZE_EXCLUDE}, form${FORCED_NEUTRALIZE_EXCLUDE}, fieldset${FORCED_NEUTRALIZE_EXCLUDE},
 legend${FORCED_NEUTRALIZE_EXCLUDE}, figure${FORCED_NEUTRALIZE_EXCLUDE}, figcaption${FORCED_NEUTRALIZE_EXCLUDE},
 details${FORCED_NEUTRALIZE_EXCLUDE}, summary${FORCED_NEUTRALIZE_EXCLUDE}, address${FORCED_NEUTRALIZE_EXCLUDE},
-hgroup${FORCED_NEUTRALIZE_EXCLUDE} {
+hgroup${FORCED_NEUTRALIZE_EXCLUDE}, span[${LIGHT_SPAN_BACKGROUND_MARK}]${FORCED_NEUTRALIZE_EXCLUDE} {
   background-color: transparent !important;
   background-image: none !important;
 }

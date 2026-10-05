@@ -27,6 +27,8 @@ import { relative_luminance } from "@/lib/email_ink";
 
 export const BRAND_BACKGROUND_MARK = "data-aster-keep-bg";
 
+export const LIGHT_SPAN_BACKGROUND_MARK = "data-aster-light-bg";
+
 export const PAGE_SURFACE_LUMINANCE_LIMIT = 0.5;
 
 export const NEUTRAL_PAGE_LUMINANCE_LIMIT = 0.18;
@@ -46,6 +48,19 @@ export function is_page_surface(color: string): boolean {
   if (luminance >= PAGE_SURFACE_LUMINANCE_LIMIT) return true;
 
   return luminance >= NEUTRAL_PAGE_LUMINANCE_LIMIT && is_neutral_ink(hex);
+}
+
+export function is_light_neutral_surface(color: string): boolean {
+  const parsed = parse_css_color(color);
+
+  if (!parsed || parsed.a < 1) return false;
+
+  const hex = rgba_to_hex(parsed);
+
+  return (
+    relative_luminance(hex) >= PAGE_SURFACE_LUMINANCE_LIMIT &&
+    is_neutral_ink(hex)
+  );
 }
 
 function declared_background(element: Element): string | null {
@@ -73,7 +88,12 @@ export function mark_brand_backgrounds(root: Element): void {
     const background = declared_background(element);
 
     if (!background || !parse_css_color(background)) continue;
-    if (is_page_surface(background)) continue;
+    if (is_page_surface(background)) {
+      if (element.tagName === "SPAN" && is_light_neutral_surface(background)) {
+        element.setAttribute(LIGHT_SPAN_BACKGROUND_MARK, "1");
+      }
+      continue;
+    }
 
     element.setAttribute(BRAND_BACKGROUND_MARK, "1");
 
