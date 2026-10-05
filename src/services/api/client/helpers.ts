@@ -258,6 +258,7 @@ export interface RequestConfig extends RequestInit {
   skip_dedup?: boolean;
   skip_upgrade_prompt?: boolean;
   folder_unlock_token?: string;
+  request_priority?: "foreground" | "background";
 }
 
 export const FOLDER_UNLOCK_HEADER = "X-Folder-Unlock";

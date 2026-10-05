@@ -23,6 +23,7 @@ import {
   type QueueEmailRequest,
   type QueuedEmailStatus,
 } from "./api/undo_send";
+import { describe_send_refusal } from "./send_refusal";
 
 import { get_active_translations } from "@/lib/i18n/translations";
 
@@ -83,7 +84,9 @@ class UndoSendManager {
     if (response.error || !response.data) {
       if (options.on_error) {
         options.on_error(
-          response.error || get_active_translations().errors.failed_queue_email,
+          describe_send_refusal(response)?.message ||
+            response.error ||
+            get_active_translations().errors.failed_queue_email,
         );
       }
 

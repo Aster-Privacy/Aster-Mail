@@ -36,6 +36,7 @@ import {
   sync_mail_items,
   type MailItem,
 } from "@/services/api/mail";
+import { background_page_size } from "@/services/api/client/request_priority";
 import {
   decrypt_mail_metadata,
   update_item_metadata,
@@ -2189,7 +2190,7 @@ export async function build_index(options?: {
           is_spam: false,
           is_archived: false,
           is_snoozed: false,
-          limit: BUILD_FETCH_SIZE,
+          limit: background_page_size(BUILD_FETCH_SIZE),
           skip_total: true,
           ...(cursor ? { cursor } : {}),
         }),
