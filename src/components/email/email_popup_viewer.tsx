@@ -404,6 +404,7 @@ export function EmailPopupViewer({
         }
         on_per_message_trash={viewer.handle_per_message_trash}
         on_toggle_message_read={viewer.handle_toggle_message_read}
+        pending_thread_count={viewer.pending_thread_count}
         snoozed_until={snoozed_until}
         t={viewer.t}
         thread_messages={viewer.thread_messages}

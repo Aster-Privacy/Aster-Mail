@@ -80,6 +80,11 @@ import {
   fetch_and_decrypt_virtual_group,
 } from "@/services/thread_service";
 import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelope";
+import {
+  include_opened_message,
+  keep_unchanged_messages,
+} from "@/components/email/thread_message_merge";
+import { has_passphrase_in_memory } from "@/services/crypto/memory_key_store";
 import { await_preloaded_email } from "@/components/email/hooks/preload_cache";
 import { get_recipient_hint } from "@/stores/recipient_hint_store";
 import {
@@ -153,6 +158,7 @@ export function use_popup_viewer({
   const [current_thread_token, set_current_thread_token] = useState<
     string | null
   >(null);
+  const [pending_thread_count, set_pending_thread_count] = useState(0);
   const [thread_draft, set_thread_draft] = useState<DraftWithContent | null>(
     null,
   );
@@ -448,6 +454,7 @@ export function use_popup_viewer({
       set_email(null);
       set_mail_item(null);
       set_thread_messages([]);
+      set_pending_thread_count(0);
       set_current_thread_token(null);
       set_thread_draft(null);
     }
@@ -506,6 +513,7 @@ export function use_popup_viewer({
       set_is_read(pe.is_read);
       set_is_pinned(preloaded.mail_item.metadata?.is_pinned ?? false);
       set_thread_messages(preloaded.thread_messages);
+      set_pending_thread_count(0);
       set_current_thread_token(preloaded.mail_item.thread_token || null);
       schedule_mark_as_read(preloaded.mail_item, pe.is_read);
 
@@ -551,6 +559,26 @@ export function use_popup_viewer({
     }
 
     if (response.data) {
+      const item = response.data;
+      const should_load_thread =
+        preferences.conversation_grouping !== false && !!item.thread_token;
+      const request_thread = () =>
+        fetch_and_decrypt_thread_messages(item.thread_token!, user?.email, {
+          is_trashed: !!item.is_trashed,
+          is_spam: !!item.is_spam,
+        }).catch((caught) => {
+          ignore_error(
+            "components/email/hooks/use_popup_viewer:thread_messages",
+            caught,
+          );
+
+          return null;
+        });
+      const early_thread_request =
+        should_load_thread && has_passphrase_in_memory()
+          ? request_thread()
+          : null;
+
       let decrypted_metadata = response.data.metadata ?? null;
 
       if (
@@ -664,26 +692,29 @@ export function use_popup_viewer({
           e2e_verified,
         );
 
-        if (
-          preferences.conversation_grouping !== false &&
-          response.data.thread_token
-        ) {
-          const thread_result = await fetch_and_decrypt_thread_messages(
-            response.data.thread_token,
-            user?.email,
-            {
-              is_trashed: !!response.data.is_trashed,
-              is_spam: !!response.data.is_spam,
-            },
-          );
+        if (should_load_thread) {
+          if (!is_same_email) {
+            set_thread_messages([single_message]);
+            set_pending_thread_count(
+              Math.max(0, (item.thread_message_count ?? 1) - 1),
+            );
+          }
+          schedule_mark_as_read(response.data, is_read_on_server);
+
+          const thread_result = await (early_thread_request ??
+            request_thread());
 
           if (fetch_seq !== fetch_seq_ref.current) return;
 
-          if (thread_result.messages.length > 0) {
-            set_thread_messages(thread_result.messages);
-          } else {
-            set_thread_messages([single_message]);
+          if (thread_result) {
+            set_thread_messages((prev) =>
+              keep_unchanged_messages(
+                prev,
+                include_opened_message(thread_result.messages, single_message),
+              ),
+            );
           }
+          set_pending_thread_count(0);
         } else if (
           preferences.conversation_grouping !== false &&
           grouped_email_ids_ref.current &&
@@ -702,8 +733,10 @@ export function use_popup_viewer({
           } else {
             set_thread_messages([single_message]);
           }
+          schedule_mark_as_read(response.data, is_read_on_server);
         } else {
           set_thread_messages([single_message]);
+          schedule_mark_as_read(response.data, is_read_on_server);
         }
 
         if (response.data.thread_token) {
@@ -733,8 +766,6 @@ export function use_popup_viewer({
             }
           }
         }
-
-        schedule_mark_as_read(response.data, is_read_on_server);
       }
     }
   }, [
@@ -1262,6 +1293,7 @@ export function use_popup_viewer({
     popup_ref: drag.popup_ref,
     timestamp_date,
     thread_messages,
+    pending_thread_count,
     thread_draft,
     handle_draft_saved,
     unsubscribe_info,

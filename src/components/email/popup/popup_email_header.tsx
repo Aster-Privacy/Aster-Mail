@@ -56,6 +56,7 @@ interface PopupEmailHeaderProps {
   mail_item: MailItem | null;
   is_fullscreen: boolean;
   thread_messages: DecryptedThreadMessage[];
+  pending_thread_count?: number;
   timestamp_date: React.MutableRefObject<Date | null>;
   snoozed_until?: string;
   format_email_popup: (date: Date) => string;
@@ -77,6 +78,7 @@ export function PopupEmailHeader({
   mail_item,
   is_fullscreen,
   thread_messages,
+  pending_thread_count = 0,
   timestamp_date,
   snoozed_until,
   format_email_popup,
@@ -228,7 +230,7 @@ export function PopupEmailHeader({
         )}
       </div>
 
-      {thread_messages.length > 1 && (
+      {thread_messages.length + pending_thread_count > 1 && (
         <div className="flex items-start gap-3">
           <ProfileAvatar
             clickable

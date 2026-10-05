@@ -87,6 +87,10 @@ import { use_email_detail_actions } from "@/components/email/hooks/email_detail_
 import { prefetch_attachment_meta } from "@/services/attachment_meta_cache";
 import { prefetch_attachment_previews } from "@/services/attachment_preview_cache";
 import { ignore_error } from "@/lib/ignore_error";
+import {
+  include_opened_message,
+  keep_unchanged_messages,
+} from "@/components/email/thread_message_merge";
 import { use_thread_decrypt_hold } from "@/hooks/use_thread_decrypt_hold";
 import {
   claim_auto_read,
@@ -192,6 +196,7 @@ export function use_email_detail_load() {
   >([]);
   const swept_threads_ref = useRef<Set<string>>(new Set());
   const [thread_truncated, set_thread_truncated] = useState(false);
+  const [pending_thread_count, set_pending_thread_count] = useState(0);
   const [thread_draft, set_thread_draft] = useState<DraftWithContent | null>(
     null,
   );
@@ -408,6 +413,7 @@ export function use_email_detail_load() {
       });
       set_email(null);
       set_thread_messages([]);
+      set_pending_thread_count(0);
       set_tracking_report(null);
       set_thread_truncated(false);
       set_is_loading(true);
@@ -429,6 +435,7 @@ export function use_email_detail_load() {
       set_mail_item(cached.mail_item);
       set_email(cached.email);
       set_thread_messages(cached.thread_messages);
+      set_pending_thread_count(0);
       set_thread_draft(cached.thread_draft);
       set_current_user_email(cached.current_user_email);
       set_is_loading(false);
@@ -876,14 +883,42 @@ export function use_email_detail_load() {
         );
 
         if (should_load_thread) {
+          const shows_opened_first = is_new_open || is_first_load;
+
+          if (shows_opened_first) {
+            set_thread_messages([single_message]);
+            set_thread_truncated(false);
+            set_pending_thread_count(
+              Math.max(0, (response.data.thread_message_count ?? 1) - 1),
+            );
+            if (user?.email) {
+              set_current_user_email(user.email);
+            }
+            await attachment_meta_ready;
+
+            if (is_stale()) return;
+            has_loaded_once.current = true;
+            set_is_loading(false);
+          }
+
           const thread_result = await (early_thread_request ??
             request_thread());
 
           if (is_stale()) return;
           if (thread_result && thread_result.messages.length > 0) {
-            set_thread_messages(thread_result.messages);
+            set_thread_messages((prev) =>
+              shows_opened_first
+                ? keep_unchanged_messages(
+                    prev,
+                    include_opened_message(
+                      thread_result.messages,
+                      single_message,
+                    ),
+                  )
+                : thread_result.messages,
+            );
             set_thread_truncated(thread_result.truncated);
-          } else if (thread_result) {
+          } else if (thread_result && !shows_opened_first) {
             set_thread_messages([single_message]);
             set_thread_truncated(false);
           } else {
@@ -891,6 +926,7 @@ export function use_email_detail_load() {
               prev.length > 0 ? prev : [single_message],
             );
           }
+          set_pending_thread_count(0);
         } else if (
           preferences.conversation_grouping !== false &&
           stored_grouped_email_ids &&
@@ -1050,6 +1086,7 @@ export function use_email_detail_load() {
     set_thread_messages,
     thread_truncated,
     set_thread_truncated,
+    pending_thread_count,
     thread_draft,
     set_thread_draft,
     current_user_email,

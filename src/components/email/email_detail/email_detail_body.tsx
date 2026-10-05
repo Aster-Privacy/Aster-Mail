@@ -58,6 +58,7 @@ interface EmailDetailBodyProps {
   error: string | null;
   thread_messages: DecryptedThreadMessage[];
   thread_truncated?: boolean;
+  pending_thread_count?: number;
   load_all_thread_messages?: () => void;
   thread_draft: DraftWithContent | null;
   current_user_email: string;
@@ -84,6 +85,7 @@ export function EmailDetailBody({
   error,
   thread_messages,
   thread_truncated,
+  pending_thread_count = 0,
   load_all_thread_messages,
   thread_draft,
   current_user_email,
@@ -343,6 +345,7 @@ export function EmailDetailBody({
               on_toggle_message_read={handle_toggle_message_read}
               on_trash={handle_per_message_trash}
               on_view_source={handle_per_message_view_source}
+              pending_earlier_count={pending_thread_count}
               size_bytes={mail_item?.metadata?.size_bytes}
               subject={email.subject}
               thread_token={mail_item?.thread_token}
