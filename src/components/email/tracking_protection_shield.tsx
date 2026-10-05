@@ -20,7 +20,7 @@
 //
 import type { ExternalContentReport } from "@/lib/html_sanitizer";
 
-import { useMemo, useState } from "react";
+import { useId, useMemo } from "react";
 import { ShieldCheckIcon } from "@heroicons/react/24/solid";
 
 import {
@@ -29,10 +29,11 @@ import {
   PopoverContent,
 } from "@/components/ui/popover";
 import { use_i18n } from "@/lib/i18n/context";
-import { summarize_tracking_pixels } from "@/lib/tracking_pixel_summary";
-import { TrackingPixelDomainList } from "@/components/email/tracking_pixel_domain_list";
+import {
+  TrackingProtectionDetails,
+  summarize_tracking_protection,
+} from "@/components/email/tracking_protection_details";
 import { use_preferences } from "@/contexts/preferences_context";
-import { use_tracking_pixel_highlight_request } from "@/stores/tracking_pixel_highlight_store";
 
 interface TrackingProtectionShieldProps {
   report: ExternalContentReport;
@@ -45,55 +46,29 @@ export function TrackingProtectionShield({
 }: TrackingProtectionShieldProps) {
   const { t, is_rtl } = use_i18n();
   const { preferences } = use_preferences();
-  const [is_open, set_is_open] = useState(false);
-  const [is_hovered, set_is_hovered] = useState(false);
-  const [is_focused, set_is_focused] = useState(false);
-
-  const spy_pixels = useMemo(
-    () => summarize_tracking_pixels({ blocked_items: report.blocked_items }),
-    [report.blocked_items],
+  const title_id = useId();
+  const summary = useMemo(
+    () => summarize_tracking_protection(report),
+    [report],
   );
-
-  const param_summary = useMemo(() => {
-    const counts = new Map<string, number>();
-
-    for (const link of report.cleaned_links) {
-      for (const param of link.params_removed) {
-        counts.set(param, (counts.get(param) || 0) + 1);
-      }
-    }
-
-    return counts;
-  }, [report.cleaned_links]);
-
-  const total_count = spy_pixels.count + report.cleaned_links.length;
-
-  use_tracking_pixel_highlight_request(
-    preferences.block_external_content &&
-      spy_pixels.count > 0 &&
-      (is_open || is_hovered || is_focused),
-  );
+  const { total_count } = summary;
 
   if (!preferences.block_external_content) return null;
   if (total_count === 0) return null;
 
   return (
-    <Popover modal open={is_open} onOpenChange={set_is_open}>
+    <Popover modal>
       <PopoverTrigger asChild>
         <button
+          aria-label={`${t("mail.tracking_protection")}: ${t("mail.n_blocked", { count: total_count })}`}
           className="flex-shrink-0 inline-flex items-center gap-1 transition-colors hover:opacity-80"
           style={{ color: "rgb(16, 185, 129)" }}
           type="button"
-          onBlur={() => set_is_focused(false)}
           onClick={(e) => e.stopPropagation()}
-          onFocus={(e) =>
-            set_is_focused(e.currentTarget.matches(":focus-visible"))
-          }
           onKeyDown={(e) => e.stopPropagation()}
-          onPointerEnter={() => set_is_hovered(true)}
-          onPointerLeave={() => set_is_hovered(false)}
         >
           <ShieldCheckIcon
+            aria-hidden="true"
             className="flex-shrink-0"
             style={{ width: size, height: size, color: "inherit" }}
           />
@@ -108,51 +83,18 @@ export function TrackingProtectionShield({
 
       <PopoverContent
         align="start"
+        aria-labelledby={title_id}
         className="w-80 p-0"
         collisionPadding={8}
         side={is_rtl ? "right" : "left"}
         sideOffset={8}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center gap-2.5 px-4 pt-3 pb-2">
-          <ShieldCheckIcon className="w-4 h-4 text-emerald-600 dark:text-emerald-500 flex-shrink-0" />
-          <span className="text-[13px] font-semibold text-txt-primary">
-            {t("mail.tracking_protection")}
-          </span>
-          <span className="ms-auto text-[11px] font-medium tabular-nums text-txt-muted">
-            {t("mail.n_blocked", { count: total_count })}
-          </span>
-        </div>
-
-        <div className="px-4 py-3 space-y-3 max-h-64 overflow-y-auto">
-          {spy_pixels.count > 0 && (
-            <div>
-              <div className="text-[11px] font-semibold uppercase tracking-wider text-txt-muted mb-1.5">
-                {t("mail.spy_pixels_blocked")}
-              </div>
-              <TrackingPixelDomainList summary={spy_pixels} />
-            </div>
-          )}
-
-          {report.cleaned_links.length > 0 && (
-            <div>
-              {spy_pixels.count > 0 && <div className="mb-2" />}
-              <div className="text-[11px] font-semibold uppercase tracking-wider text-txt-muted mb-1.5">
-                {t("mail.links_cleaned")}
-              </div>
-              <div className="space-y-0.5">
-                {Array.from(param_summary.entries()).map(([param, count]) => (
-                  <div
-                    key={param}
-                    className="py-1 px-2 rounded text-[12px] text-txt-secondary"
-                  >
-                    {t("mail.param_removed_from_n_links", { param, count })}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+        <TrackingProtectionDetails
+          body_class_name="max-h-64 overflow-y-auto"
+          summary={summary}
+          title_id={title_id}
+        />
       </PopoverContent>
     </Popover>
   );

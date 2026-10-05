@@ -37,10 +37,6 @@ import { TrackingProtectionShield } from "@/components/email/tracking_protection
 import { MobileExternalContentBanner } from "@/pages/mobile/mobile_detail_banners";
 import { I18nProvider, use_i18n } from "@/lib/i18n/context";
 import { get_translations_async } from "@/lib/i18n/translations";
-import {
-  report_tracking_pixel_markers,
-  use_tracking_pixels_highlighted,
-} from "@/stores/tracking_pixel_highlight_store";
 
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean;
@@ -70,9 +66,18 @@ function report(
 }
 
 const THREE_PIXELS = [
-  "https://open.mailmetrics.example/o/1.gif",
-  "https://t.beacon.example/open?id=9",
-  "https://open.mailmetrics.example/o/2.gif",
+  "https://open.mailmetrics.example/o/1.gif?uid=reader-7f3a91&list=weekly",
+  "https://t.beacon.example/open?id=9&email=reader%40mail.example",
+  "https://open.mailmetrics.example/o/2.gif?uid=reader-7f3a91",
+];
+
+const PIXEL_URL_FRAGMENTS = [
+  "/o/1.gif",
+  "/open",
+  "uid=",
+  "reader-7f3a91",
+  "reader%40mail.example",
+  "https://",
 ];
 
 let container: HTMLDivElement;
@@ -87,18 +92,6 @@ function MobileBanner({ blocked }: { blocked: ExternalContentReport }) {
   );
 }
 
-function HighlightProbe() {
-  return (
-    <span data-testid="highlight-probe">
-      {use_tracking_pixels_highlighted() ? "on" : "off"}
-    </span>
-  );
-}
-
-function highlight_state(): string | null {
-  return document.querySelector("[data-testid='highlight-probe']")!.textContent;
-}
-
 function render(node: React.ReactNode, language: LanguageCode = "en") {
   act(() => {
     root.render(
@@ -107,7 +100,19 @@ function render(node: React.ReactNode, language: LanguageCode = "en") {
   });
 }
 
-function domain_rows(): string[] {
+function domain_rows(): [string, string][] {
+  return Array.from(
+    document.querySelectorAll(
+      "[data-testid='tracking-pixel-domains'] [data-domain]",
+    ),
+  ).map((row) => [
+    row.getAttribute("data-domain") ?? "",
+    row.querySelector("[data-testid='tracking-pixel-domain-count']")
+      ?.textContent ?? "",
+  ]);
+}
+
+function domain_row_names(): string[] {
   return Array.from(
     document.querySelectorAll(
       "[data-testid='tracking-pixel-domains'] [data-domain]",
@@ -115,14 +120,68 @@ function domain_rows(): string[] {
   ).map((row) => row.textContent ?? "");
 }
 
-function no_remote_loads() {
+function list_is_inert() {
   const list = document.querySelector(
     "[data-testid='tracking-pixel-domains']",
   )!;
 
-  expect(list.querySelectorAll("img, a, iframe, link, source")).toHaveLength(0);
-  expect(document.body.innerHTML).not.toContain("/o/1.gif");
+  expect(
+    list.querySelectorAll(
+      "img, a, iframe, link, source, svg image, [href], [src], [role='link']",
+    ),
+  ).toHaveLength(0);
+  for (const fragment of PIXEL_URL_FRAGMENTS) {
+    expect(document.body.innerHTML).not.toContain(fragment);
+  }
   expect(fetch_spy).not.toHaveBeenCalled();
+}
+
+function press(target: Element) {
+  const init = { bubbles: true, cancelable: true, button: 0 };
+
+  act(() => {
+    target.dispatchEvent(
+      new PointerEvent("pointerdown", { ...init, pointerType: "mouse" }),
+    );
+    target.dispatchEvent(new MouseEvent("mousedown", init));
+    target.dispatchEvent(
+      new PointerEvent("pointerup", { ...init, pointerType: "mouse" }),
+    );
+    target.dispatchEvent(new MouseEvent("mouseup", init));
+    target.dispatchEvent(new MouseEvent("click", init));
+  });
+}
+
+function press_escape() {
+  const target = document.activeElement ?? document.body;
+
+  act(() => {
+    target.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        key: "Escape",
+        bubbles: true,
+        cancelable: true,
+      }),
+    );
+  });
+}
+
+async function settle() {
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+}
+
+async function wait_until(check: () => boolean) {
+  for (let i = 0; i < 50 && !check(); i++) {
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    });
+  }
+}
+
+function tracker_dialog(): HTMLElement | null {
+  return document.querySelector<HTMLElement>("[role='dialog']");
 }
 
 beforeAll(async () => {
@@ -141,176 +200,87 @@ afterEach(() => {
   act(() => root.unmount());
   container.remove();
   document.body.innerHTML = "";
+  document.body.removeAttribute("style");
   vi.unstubAllGlobals();
 });
 
 describe("subject tracking protection shield", () => {
-  it("lists each tracking pixel domain once with its count", () => {
+  function shield(): HTMLButtonElement {
     render(<TrackingProtectionShield report={report(THREE_PIXELS)} />);
-
-    const trigger = container.querySelector("button")!;
-
-    expect(trigger.textContent).toBe("3");
-    expect(domain_rows()).toEqual([]);
-    act(() => {
-      trigger.click();
-    });
-
-    expect(domain_rows()).toEqual([
-      "open.mailmetrics.examplex2",
-      "t.beacon.example",
-    ]);
-    no_remote_loads();
-  });
-});
-
-describe("highlighting pixels in the message body", () => {
-  const owner = Symbol("test_markers");
-
-  afterEach(() => {
-    act(() => report_tracking_pixel_markers(owner, 0));
-  });
-
-  function shield(blocked = report(THREE_PIXELS)) {
-    render(
-      <>
-        <TrackingProtectionShield report={blocked} />
-        <HighlightProbe />
-      </>,
-    );
 
     return container.querySelector("button")!;
   }
 
-  function status_text(): string | null {
-    const status = document.querySelector(
-      "[data-testid='tracking-pixel-highlight-note']",
-    );
-
-    return status ? status.textContent : null;
-  }
-
-  it("is off until the shield is used", () => {
-    shield();
-
-    expect(highlight_state()).toBe("off");
-  });
-
-  it("highlights while the subject shield is hovered and stops when the pointer leaves", () => {
+  it("opens the tracker list from the count with each hostname once and its count", async () => {
     const trigger = shield();
 
-    act(() => {
-      trigger.dispatchEvent(new PointerEvent("pointerover", { bubbles: true }));
-    });
-    expect(highlight_state()).toBe("on");
-    act(() => {
-      trigger.dispatchEvent(
-        new PointerEvent("pointerout", {
-          bubbles: true,
-          relatedTarget: document.body,
-        }),
-      );
-    });
-    expect(highlight_state()).toBe("off");
-  });
-
-  it("highlights while the shield has keyboard focus", () => {
-    const trigger = shield();
-    const matches = trigger.matches.bind(trigger);
-
-    vi.spyOn(trigger, "matches").mockImplementation((selector: string) =>
-      selector === ":focus-visible" ? true : matches(selector),
+    expect(trigger.textContent).toBe("3");
+    expect(trigger.getAttribute("aria-label")).toBe(
+      "Tracking Protection: 3 blocked",
     );
-    act(() => trigger.focus());
-    expect(highlight_state()).toBe("on");
-    act(() => trigger.blur());
-    expect(highlight_state()).toBe("off");
+    expect(trigger.getAttribute("aria-haspopup")).toBe("dialog");
+    expect(domain_rows()).toEqual([]);
+
+    press(trigger);
+    await settle();
+
+    expect(trigger.getAttribute("aria-expanded")).toBe("true");
+    const dialog = tracker_dialog()!;
+    const title = document.getElementById(
+      dialog.getAttribute("aria-labelledby") ?? "",
+    );
+
+    expect(title?.textContent).toBe("Tracking Protection");
+    expect(domain_rows()).toEqual([
+      ["open.mailmetrics.example", "x2"],
+      ["t.beacon.example", "x1"],
+    ]);
+    expect(domain_row_names()).toEqual([
+      "open.mailmetrics.examplex22 tracking pixels",
+      "t.beacon.examplex11 tracking pixel",
+    ]);
+    list_is_inert();
   });
 
-  it("keeps the highlight while the popover is open and says how many are marked", () => {
-    const trigger = shield();
-
-    act(() => {
-      trigger.click();
-    });
-    expect(highlight_state()).toBe("on");
-    const status = document.querySelector(
-      "[data-testid='tracking-pixel-highlight-note']",
-    )!;
-
-    expect(status.getAttribute("role")).toBe("status");
-    expect(status.textContent).toBe("");
-    act(() => report_tracking_pixel_markers(owner, 2));
-    expect(status_text()).toBe("Highlighted in the message: 2");
-  });
-
-  it("opens the popover beside the shield so it leaves the top of the message visible", () => {
+  it("closes the tracker list on Escape", async () => {
     const trigger = shield();
 
-    act(() => {
-      trigger.click();
-    });
+    press(trigger);
+    await settle();
+    expect(tracker_dialog()).not.toBeNull();
 
-    const content = document.querySelector(
-      "[data-radix-popper-content-wrapper] > *",
-    )!;
+    press_escape();
+    await settle();
 
-    expect(content.getAttribute("data-side")).toBe("left");
+    expect(tracker_dialog()).toBeNull();
+    expect(trigger.getAttribute("aria-expanded")).toBe("false");
   });
 
-  it("does not highlight from the shield when only links were cleaned", () => {
-    const trigger = shield({
-      ...report([], []),
-      cleaned_links: [
-        {
-          original_url: "https://shop.example/?utm_source=mail",
-          cleaned_url: "https://shop.example/",
-          params_removed: ["utm_source"],
-        },
-      ],
-    });
+  it("closes the tracker list on a press outside it", async () => {
+    const outside = document.createElement("button");
 
-    act(() => {
-      trigger.dispatchEvent(new PointerEvent("pointerover", { bubbles: true }));
-      trigger.click();
-    });
-    expect(highlight_state()).toBe("off");
+    document.body.appendChild(outside);
+    const trigger = shield();
+
+    press(trigger);
+    await settle();
+    expect(tracker_dialog()).not.toBeNull();
+
+    press(outside);
+    await settle();
+
+    expect(tracker_dialog()).toBeNull();
+    expect(trigger.getAttribute("aria-expanded")).toBe("false");
   });
 
-  it("highlights on mobile only while the tracker list is expanded", () => {
-    act(() => report_tracking_pixel_markers(owner, 3));
-    render(
-      <>
-        <MobileBanner blocked={report(THREE_PIXELS)} />
-        <HighlightProbe />
-      </>,
-    );
-    const toggle = container.querySelector<HTMLButtonElement>(
-      "[data-testid='tracking-pixel-indicator']",
-    )!;
-
-    expect(highlight_state()).toBe("off");
-    expect(status_text()).toBeNull();
-    act(() => toggle.click());
-    expect(highlight_state()).toBe("on");
-    expect(status_text()).toBe("Highlighted in the message: 3");
-    act(() => toggle.click());
-    expect(highlight_state()).toBe("off");
-    expect(status_text()).toBeNull();
-  });
-
-  it("does not highlight when no tracking pixels were blocked", () => {
-    render(
-      <>
-        <MobileBanner blocked={report([])} />
-        <HighlightProbe />
-      </>,
-    );
+  it("has no message highlight status in the list", async () => {
+    press(shield());
+    await settle();
 
     expect(
-      container.querySelector("[data-testid='tracking-pixel-indicator']"),
+      document.querySelector("[data-testid='tracking-pixel-highlight-note']"),
     ).toBeNull();
-    expect(highlight_state()).toBe("off");
+    expect(document.body.textContent).not.toContain("Highlighted");
   });
 });
 
@@ -325,45 +295,93 @@ describe("mobile blocked content banner", () => {
     return button;
   }
 
+  async function open_sheet() {
+    act(() => {
+      indicator().click();
+    });
+    await settle();
+    expect(tracker_dialog()).not.toBeNull();
+  }
+
   it("counts tracking pixels apart from blocked images", () => {
     render(<MobileBanner blocked={report(THREE_PIXELS)} />);
 
     expect(container.textContent).toContain(
       "External content blocked (2 images)",
     );
-    expect(indicator().textContent).toBe("3 tracking pixels blocked");
+    expect(indicator().textContent).toBe("3 tracking pixels");
   });
 
   it("uses the singular for one pixel and drops the sentence when only pixels were blocked", () => {
     render(<MobileBanner blocked={report(THREE_PIXELS.slice(0, 1), [])} />);
 
-    expect(indicator().textContent).toBe("1 tracking pixel blocked");
+    expect(indicator().textContent).toBe("1 tracking pixel");
     expect(container.textContent).not.toContain("External content blocked");
   });
 
   it("translates the count with European Portuguese plural forms", () => {
     render(<MobileBanner blocked={report(THREE_PIXELS)} />, "pt");
-    expect(indicator().textContent).toBe("3 píxeis de rastreio bloqueados");
+    expect(indicator().textContent).toBe("3 píxeis de rastreio");
 
     render(<MobileBanner blocked={report(THREE_PIXELS.slice(0, 1))} />, "pt");
-    expect(indicator().textContent).toBe("1 píxel de rastreio bloqueado");
+    expect(indicator().textContent).toBe("1 píxel de rastreio");
   });
 
-  it("expands inline into the domain list without loading anything", () => {
+  it("opens the tracker list in a sheet from the count", async () => {
     render(<MobileBanner blocked={report(THREE_PIXELS)} />);
 
+    expect(indicator().getAttribute("aria-haspopup")).toBe("dialog");
     expect(indicator().getAttribute("aria-expanded")).toBe("false");
     expect(domain_rows()).toEqual([]);
 
-    act(() => {
-      indicator().click();
-    });
+    await open_sheet();
 
     expect(indicator().getAttribute("aria-expanded")).toBe("true");
+    expect(tracker_dialog()!.getAttribute("aria-label")).toBe(
+      "Tracking Protection",
+    );
     expect(domain_rows()).toEqual([
-      "open.mailmetrics.examplex2",
-      "t.beacon.example",
+      ["open.mailmetrics.example", "x2"],
+      ["t.beacon.example", "x1"],
     ]);
-    no_remote_loads();
+    list_is_inert();
+  });
+
+  it("closes the sheet on Escape", async () => {
+    render(<MobileBanner blocked={report(THREE_PIXELS)} />);
+    await open_sheet();
+
+    press_escape();
+    await wait_until(() => tracker_dialog() === null);
+
+    expect(tracker_dialog()).toBeNull();
+    expect(indicator().getAttribute("aria-expanded")).toBe("false");
+  });
+
+  it("closes the sheet on a press outside it", async () => {
+    render(<MobileBanner blocked={report(THREE_PIXELS)} />);
+    await open_sheet();
+
+    const backdrop = tracker_dialog()!.previousElementSibling!;
+
+    press(backdrop);
+    await wait_until(() => tracker_dialog() === null);
+
+    expect(tracker_dialog()).toBeNull();
+    expect(indicator().getAttribute("aria-expanded")).toBe("false");
+  });
+
+  it("closes the sheet from its close button", async () => {
+    render(<MobileBanner blocked={report(THREE_PIXELS)} />);
+    await open_sheet();
+
+    const close = Array.from(
+      tracker_dialog()!.querySelectorAll<HTMLButtonElement>("button"),
+    ).find((button) => button.textContent === "Close")!;
+
+    act(() => close.click());
+    await wait_until(() => tracker_dialog() === null);
+
+    expect(tracker_dialog()).toBeNull();
   });
 });

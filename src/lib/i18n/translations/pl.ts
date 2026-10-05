@@ -1288,14 +1288,11 @@ export const pl = {
     tracking_pixel: "Piksel śledzący",
     image_blocked: "Obraz zablokowany",
     tracking_pixel_blocked: "Piksel śledzący zablokowany",
-    tracking_pixels_highlighted: "Zaznaczone w wiadomości: {{count}}",
-    tracking_pixels_blocked_count: "Zablokowano {{count}} piksele śledzące",
-    tracking_pixels_blocked_count_one: "Zablokowano {{count}} piksel śledzący",
-    tracking_pixels_blocked_count_few: "Zablokowano {{count}} piksele śledzące",
-    tracking_pixels_blocked_count_many:
-      "Zablokowano {{count}} pikseli śledzących",
-    tracking_pixels_blocked_count_other:
-      "Zablokowano {{count}} piksela śledzącego",
+    tracking_pixels_count: "{{count}} piksele śledzące",
+    tracking_pixels_count_one: "{{count}} piksel śledzący",
+    tracking_pixels_count_few: "{{count}} piksele śledzące",
+    tracking_pixels_count_many: "{{count}} pikseli śledzących",
+    tracking_pixels_count_other: "{{count}} piksela śledzącego",
     me: "ja",
     notification_banner_message:
       "Włącz powiadomienia pulpitowe, aby być na bieżąco z nowymi e-mailami",

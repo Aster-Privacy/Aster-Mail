@@ -21,11 +21,6 @@
 import type { TrackingPixelSummary } from "@/lib/tracking_pixel_summary";
 
 import { use_i18n } from "@/lib/i18n/context";
-import { TrackingPixelDot } from "@/components/email/tracking_pixel_dot";
-import {
-  use_tracking_pixel_marker_total,
-  use_tracking_pixels_highlighted,
-} from "@/stores/tracking_pixel_highlight_store";
 
 interface TrackingPixelDomainListProps {
   summary: TrackingPixelSummary;
@@ -35,43 +30,34 @@ export function TrackingPixelDomainList({
   summary,
 }: TrackingPixelDomainListProps) {
   const { t } = use_i18n();
-  const highlighted = use_tracking_pixels_highlighted();
-  const marked_count = use_tracking_pixel_marker_total();
 
   return (
-    <div className="space-y-0.5" data-testid="tracking-pixel-domains">
+    <ul className="space-y-0.5" data-testid="tracking-pixel-domains">
       {summary.domains.map(({ domain, count }) => (
-        <div
+        <li
           key={domain}
-          className="flex items-center justify-between rounded px-2 py-1 text-[12px]"
+          className="flex items-center justify-between gap-3 rounded px-2 py-1 text-[12px]"
           data-domain={domain}
         >
-          <span className="me-3 truncate font-mono text-txt-secondary">
+          <span
+            className="min-w-0 truncate font-mono text-txt-secondary"
+            dir="ltr"
+            title={domain}
+          >
             {domain}
           </span>
-          {count > 1 && (
-            <span
-              aria-label={t("common.tracking_pixels_blocked_count", { count })}
-              className="flex-shrink-0 text-[11px] tabular-nums text-txt-muted"
-              data-testid="tracking-pixel-domain-count"
-            >
-              x{count}
-            </span>
-          )}
-        </div>
+          <span
+            aria-hidden="true"
+            className="flex-shrink-0 text-[11px] tabular-nums text-txt-muted"
+            data-testid="tracking-pixel-domain-count"
+          >
+            x{count}
+          </span>
+          <span className="sr-only">
+            {t("common.tracking_pixels_count", { count })}
+          </span>
+        </li>
       ))}
-      <p
-        className="flex items-center gap-2 px-2 pt-1.5 text-[11px] text-txt-muted empty:hidden"
-        data-testid="tracking-pixel-highlight-note"
-        role="status"
-      >
-        {highlighted && marked_count > 0 && (
-          <>
-            <TrackingPixelDot />
-            {t("common.tracking_pixels_highlighted", { count: marked_count })}
-          </>
-        )}
-      </p>
-    </div>
+    </ul>
   );
 }

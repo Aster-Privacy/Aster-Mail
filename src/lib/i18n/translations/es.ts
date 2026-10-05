@@ -1285,9 +1285,8 @@ export const es = {
     tracking_pixel: "Píxel de rastreo",
     image_blocked: "Imagen bloqueada",
     tracking_pixel_blocked: "Píxel de rastreo bloqueado",
-    tracking_pixels_highlighted: "Resaltados en el mensaje: {{count}}",
-    tracking_pixels_blocked_count: "{{count}} píxeles de rastreo bloqueados",
-    tracking_pixels_blocked_count_one: "{{count}} píxel de rastreo bloqueado",
+    tracking_pixels_count: "{{count}} píxeles de rastreo",
+    tracking_pixels_count_one: "{{count}} píxel de rastreo",
     me: "yo",
     notification_banner_message:
       "Activa las notificaciones de escritorio para estar al día de los correos nuevos",
