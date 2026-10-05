@@ -254,7 +254,6 @@ describe("background subscription scan scope", () => {
     expect(senders(rescanned)).toEqual([
       "archived@news.example.com",
       "fresh@news.example.com",
-      "gone@news.example.com",
       "left@news.example.com",
     ]);
     expect(

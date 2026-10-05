@@ -175,6 +175,31 @@ export function read_scan_progress(
   return { cursor, last_scan_ts, last_scan_message_ts, carried };
 }
 
+function prune_unseen_senders(
+  subscriptions: Map<string, CachedSubscription>,
+  carried: Set<string>,
+  scanned: Map<string, ScannedSender>,
+): void {
+  for (const email of Array.from(carried)) {
+    const existing = subscriptions.get(email);
+
+    if (!existing) continue;
+
+    if (existing.status !== "unsubscribed") {
+      subscriptions.delete(email);
+      continue;
+    }
+
+    const seen = scanned.get(email);
+
+    subscriptions.set(email, {
+      ...existing,
+      email_count: seen?.count ?? 0,
+      last_received: seen?.last_received ?? existing.last_received,
+    });
+  }
+}
+
 function merge_scanned_senders(
   scanned: Map<string, ScannedSender>,
   subscriptions: Map<string, CachedSubscription>,
@@ -196,6 +221,9 @@ function merge_scanned_senders(
     scanned.delete(email);
 
     if (existing && !is_carried) {
+      const newer = is_full_scan ? existing : sender;
+      const older = is_full_scan ? sender : existing;
+
       subscriptions.set(email, {
         ...existing,
         email_count: existing.email_count + sender.count,
@@ -203,12 +231,14 @@ function merge_scanned_senders(
           sender.last_received > existing.last_received
             ? sender.last_received
             : existing.last_received,
-        sender_name: sender.name || existing.sender_name,
-        unsubscribe_link: sender.unsubscribe_link || existing.unsubscribe_link,
+        sender_name: is_full_scan
+          ? existing.sender_name || sender.name
+          : sender.name || existing.sender_name,
+        unsubscribe_link: newer.unsubscribe_link || older.unsubscribe_link,
         list_unsubscribe_header:
-          sender.list_unsubscribe_header || existing.list_unsubscribe_header,
+          newer.list_unsubscribe_header || older.list_unsubscribe_header,
         list_unsubscribe_post:
-          sender.list_unsubscribe_post || existing.list_unsubscribe_post,
+          newer.list_unsubscribe_post || older.list_unsubscribe_post,
         has_one_click: sender.has_one_click || existing.has_one_click,
         category:
           existing.category === "unknown" ? sender.category : existing.category,
@@ -433,6 +463,10 @@ export async function run_background_scan(
       }
     }
 
+    if (is_full_scan && !resume_cursor) {
+      prune_unseen_senders(existing_map, carried, sender_counts);
+    }
+
     if (is_cancelled()) return false;
 
     const new_cache: SubscriptionCacheData = {
@@ -565,6 +599,16 @@ export async function run_background_scan(
             existing.count++;
             if (item.created_at > existing.last_received) {
               existing.last_received = item.created_at;
+            }
+            if (!existing.name && envelope.from.name) {
+              existing.name = envelope.from.name;
+            }
+            if (existing.category === "unknown") {
+              existing.category = categorize_sender(
+                domain,
+                envelope.from.name || email,
+                unsubscribe_info.has_unsubscribe,
+              );
             }
             if (
               !existing.unsubscribe_link &&
