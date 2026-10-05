@@ -93,6 +93,7 @@ export const en: Translations = {
     labels: "Labels",
     no_folders_yet: "No folders yet",
     no_labels_yet: "No labels yet",
+    label_unable_to_decrypt: "Unable to decrypt",
     aliases: "Aliases",
     no_aliases_yet: "No aliases yet",
     storage_used: "Storage used",
@@ -289,6 +290,15 @@ export const en: Translations = {
     select_parent_folder: "Select parent folder",
     top_level_no_parent: "Top level (no parent)",
     parent_folder: "Parent folder",
+    create_sublabel: "Create sublabel",
+    move_label: "Move label",
+    move_label_description: "Choose a new parent for this label",
+    select_parent_label: "Select parent label",
+    parent_label: "Parent label",
+    no_parent_label: "Top level (no parent)",
+    failed_to_move_label: "This label was not moved. Try again.",
+    label_delete_keeps_sublabels:
+      "Sublabels are not deleted. They move up one level.",
     move_up: "Move up",
     move_down: "Move down",
     sort_a_to_z: "Sort A to Z",
@@ -5909,6 +5919,8 @@ export const en: Translations = {
     failed_remove_wkd:
       "Your key was not removed from the public directory. Try again.",
     key_published_keyserver: "Key published to keyserver",
+    keyserver_publish_unconfirmed:
+      "Publish request sent, but the status could not be confirmed.",
     failed_publish_keyserver:
       "Your public key did not publish to the keyserver. Try again.",
     mailto_unregister_manual:
@@ -6778,6 +6790,12 @@ export const en: Translations = {
       "{{count}} folders couldn't be created, so their messages are in your inbox.",
     import_folders_skipped_plural:
       "{{count}} folders couldn't be created, so their messages are in your inbox.",
+    import_labels_created: "{{count}} labels created",
+    import_labels_created_one: "{{count}} label created",
+    import_labels_skipped:
+      "{{count}} labels couldn't be created, so their messages are imported without them.",
+    import_labels_skipped_one:
+      "{{count}} label couldn't be created, so its messages are imported without it.",
     storage_quota_reached:
       "Your storage is full. Upgrading your plan, or removing some emails, will make room for more imports.",
     no_emails_in_file:

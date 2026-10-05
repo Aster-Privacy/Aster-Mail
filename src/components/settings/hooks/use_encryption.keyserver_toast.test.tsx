@@ -151,6 +151,57 @@ describe("use_encryption keyserver publish toast", () => {
     );
   });
 
+  it("does not claim publication when the status cannot be read", async () => {
+    get_keyserver_publication_status.mockResolvedValue({
+      data: null,
+      error: "network_error",
+    });
+
+    await publish();
+
+    expect(show_toast).not.toHaveBeenCalledWith(
+      "settings.key_published_keyserver",
+      "success",
+    );
+    expect(show_toast).toHaveBeenCalledWith(
+      "settings.keyserver_publish_unconfirmed",
+      "info",
+    );
+    expect(show_toast).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not claim publication when the status request throws", async () => {
+    get_keyserver_publication_status.mockRejectedValue(new Error("offline"));
+
+    await publish();
+
+    expect(show_toast).not.toHaveBeenCalledWith(
+      "settings.key_published_keyserver",
+      "success",
+    );
+    expect(show_toast).toHaveBeenCalledWith(
+      "settings.keyserver_publish_unconfirmed",
+      "info",
+    );
+  });
+
+  it("does not claim publication when the keyserver reports it unpublished", async () => {
+    get_keyserver_publication_status.mockResolvedValue({
+      data: { published: false, state: "not_published" },
+    });
+
+    await publish();
+
+    expect(show_toast).not.toHaveBeenCalledWith(
+      "settings.key_published_keyserver",
+      "success",
+    );
+    expect(show_toast).toHaveBeenCalledWith(
+      "settings.keyserver_publish_unconfirmed",
+      "info",
+    );
+  });
+
   it("keeps the failure toast when the publish request fails", async () => {
     publish_key_to_keyserver.mockResolvedValue({ error: "network_error" });
     get_keyserver_publication_status.mockResolvedValue({ data: null });

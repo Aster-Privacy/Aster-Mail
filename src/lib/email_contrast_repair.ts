@@ -545,6 +545,11 @@ function make_state(hex: string, authored = false): BackgroundState {
   return { hex, rgba, authored };
 }
 
+interface InheritedRepair {
+  from: string;
+  to: string;
+}
+
 interface TextPlan {
   element: HTMLElement;
   color: string | null;
@@ -689,6 +694,7 @@ export function repair_email_contrast(
   }
 
   const backgrounds = new Map<Element, BackgroundState>();
+  const inherited_repairs = new Map<Element, InheritedRepair>();
   const plans: TextPlan[] = [];
   const repair_borders = options.repair_borders !== false;
 
@@ -723,6 +729,15 @@ export function repair_email_contrast(
 
       backgrounds.set(element, state);
 
+      const computed_color = style.getPropertyValue("color");
+      const parent_repair = parent ? inherited_repairs.get(parent) : undefined;
+      const inherited_repair =
+        parent_repair && parent_repair.from === computed_color
+          ? parent_repair
+          : undefined;
+
+      if (inherited_repair) inherited_repairs.set(element, inherited_repair);
+
       const tag = element.tagName;
 
       if (SKIP_TAGS.has(tag)) continue;
@@ -746,7 +761,7 @@ export function repair_email_contrast(
       let final_color: string | null = null;
 
       if (paints_text) {
-        const parsed = parse_css_color(style.getPropertyValue("color"));
+        const parsed = parse_css_color(computed_color);
         const hidden_link = is_link && !!parsed && parsed.a < HIDDEN_LINK_ALPHA;
 
         if (parsed && !hidden_link) {
@@ -771,6 +786,18 @@ export function repair_email_contrast(
               repaired_color = next;
               final_color = next;
             }
+          } else if (
+            inherited_repair &&
+            contrast_ratio(inherited_repair.to, state.hex) < threshold
+          ) {
+            repaired_color = composited;
+          }
+
+          if (repaired_color) {
+            inherited_repairs.set(element, {
+              from: computed_color,
+              to: repaired_color,
+            });
           }
         }
       }

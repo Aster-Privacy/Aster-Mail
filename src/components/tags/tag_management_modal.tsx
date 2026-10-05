@@ -20,6 +20,7 @@
 //
 import { useState, useEffect, useMemo } from "react";
 import {
+  ArrowRightIcon,
   PencilIcon,
   TagIcon,
   TrashIcon,
@@ -44,6 +45,12 @@ import {
 } from "@/components/ui/email_tag";
 import { TagIconPicker } from "@/components/tags/tag_icon_picker";
 import { use_tags } from "@/hooks/use_tags";
+import {
+  get_eligible_parent_tags,
+  get_tag_descendant_tokens,
+  has_sibling_tag_named,
+  tag_option_indent,
+} from "@/hooks/tag_tree";
 import { use_i18n } from "@/lib/i18n/context";
 import { is_composing } from "@/utils/ime";
 
@@ -57,7 +64,7 @@ interface TagManagementModalProps {
   tag_name: string;
   tag_color: string;
   tag_icon?: string;
-  action: "rename" | "recolor" | "reicon" | "delete" | null;
+  action: "rename" | "recolor" | "reicon" | "move" | "delete" | null;
 }
 
 export function TagManagementModal({
@@ -82,8 +89,52 @@ export function TagManagementModal({
   const [new_icon, set_new_icon] = useState<string | undefined>(tag_icon);
   const [is_loading, set_is_loading] = useState(false);
   const [error, set_error] = useState("");
+  const [selected_parent_token, set_selected_parent_token] = useState("");
 
   const trimmed_name = new_name.trim();
+  const current_tag = useMemo(
+    () => tags_state.tags.find((tag) => tag.id === tag_id),
+    [tags_state.tags, tag_id],
+  );
+  const current_parent_token = useMemo(() => {
+    const parent_token = current_tag?.parent_token;
+
+    return parent_token &&
+      tags_state.tags.some((tag) => tag.tag_token === parent_token)
+      ? parent_token
+      : "";
+  }, [current_tag, tags_state.tags]);
+  const eligible_parents = useMemo(
+    () => get_eligible_parent_tags(tags_state.tags, tag_id),
+    [tags_state.tags, tag_id],
+  );
+  const has_sublabels = useMemo(
+    () =>
+      current_tag
+        ? get_tag_descendant_tokens(tags_state.tags, current_tag.tag_token)
+            .size > 0
+        : false,
+    [current_tag, tags_state.tags],
+  );
+  const move_validation_error = useMemo(() => {
+    if (selected_parent_token === current_parent_token) return null;
+
+    return has_sibling_tag_named(
+      tags_state.tags,
+      tag_name,
+      selected_parent_token,
+      tag_id,
+    )
+      ? t("common.label_already_exists")
+      : null;
+  }, [
+    selected_parent_token,
+    current_parent_token,
+    tags_state.tags,
+    tag_name,
+    tag_id,
+    t,
+  ]);
 
   const rename_validation_error = useMemo(() => {
     if (!trimmed_name) return null;
@@ -93,10 +144,11 @@ export function TagManagementModal({
     if (trimmed_name.toLowerCase() === tag_name.toLowerCase()) {
       return null;
     }
-    const duplicate_exists = tags_state.tags.some(
-      (tag) =>
-        tag.id !== tag_id &&
-        tag.name.toLowerCase() === trimmed_name.toLowerCase(),
+    const duplicate_exists = has_sibling_tag_named(
+      tags_state.tags,
+      trimmed_name,
+      current_parent_token,
+      tag_id,
     );
 
     if (duplicate_exists) {
@@ -104,9 +156,17 @@ export function TagManagementModal({
     }
 
     return null;
-  }, [trimmed_name, tag_name, tag_id, tags_state.tags, t]);
+  }, [
+    trimmed_name,
+    tag_name,
+    tag_id,
+    tags_state.tags,
+    current_parent_token,
+    t,
+  ]);
 
-  const can_rename = trimmed_name && !rename_validation_error;
+  const can_rename =
+    trimmed_name && !rename_validation_error && !current_tag?.is_undecryptable;
 
   useEffect(() => {
     set_new_name(tag_name);
@@ -115,7 +175,17 @@ export function TagManagementModal({
     set_error("");
   }, [tag_name, tag_color, tag_icon, is_open]);
 
+  useEffect(() => {
+    if (is_open) set_selected_parent_token(current_parent_token);
+  }, [is_open, tag_id, current_parent_token]);
+
   const handle_rename = async () => {
+    if (current_tag?.is_undecryptable) {
+      set_error(t("common.failed_to_rename_label"));
+
+      return;
+    }
+
     if (!trimmed_name) {
       set_error(t("common.label_name_cannot_be_empty"));
 
@@ -174,6 +244,34 @@ export function TagManagementModal({
       on_close();
     } else {
       set_error(t("common.failed_to_change_label_icon"));
+    }
+  };
+
+  const handle_move = async () => {
+    if (move_validation_error) {
+      set_error(move_validation_error);
+
+      return;
+    }
+
+    set_is_loading(true);
+    set_error("");
+
+    const success = await update_existing_tag(
+      tag_id,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      selected_parent_token || null,
+    );
+
+    set_is_loading(false);
+
+    if (success) {
+      on_close();
+    } else {
+      set_error(t("common.failed_to_move_label"));
     }
   };
 
@@ -391,6 +489,88 @@ export function TagManagementModal({
           </>
         );
 
+      case "move":
+        return (
+          <>
+            <ModalHeader>
+              <div className="flex items-start gap-3">
+                <ArrowRightIcon className="w-5 h-5 text-brand flex-shrink-0 mt-0.5 rtl:-scale-x-100" />
+                <div className="min-w-0">
+                  <ModalTitle>{t("common.move_label")}</ModalTitle>
+                  <ModalDescription>
+                    {t("common.move_label_description")}
+                  </ModalDescription>
+                </div>
+              </div>
+            </ModalHeader>
+
+            <ModalBody>
+              <p className="text-[13px] font-medium mb-2 text-txt-secondary">
+                {t("common.select_parent_label")}
+              </p>
+              <div className="flex flex-col gap-1 max-h-56 overflow-y-auto">
+                <button
+                  className={`flex items-center gap-2 rounded-lg px-3 py-2 text-[13px] text-start transition-colors ${selected_parent_token === "" ? "bg-brand/15 text-brand" : "hover:bg-surface-secondary"}`}
+                  data-testid="tag-parent-option-root"
+                  type="button"
+                  onClick={() => set_selected_parent_token("")}
+                >
+                  <TagIcon className="w-4 h-4 flex-shrink-0" />
+                  {t("common.no_parent_label")}
+                </button>
+                {eligible_parents.map(({ tag, depth }) => (
+                  <button
+                    key={tag.id}
+                    className={`flex items-center gap-2 rounded-lg px-3 py-2 text-[13px] text-start transition-colors ${selected_parent_token === tag.tag_token ? "bg-brand/15 text-brand" : "hover:bg-surface-secondary"}`}
+                    data-testid={`tag-parent-option-${tag.id}`}
+                    style={{
+                      paddingInlineStart: 12 + tag_option_indent(depth),
+                    }}
+                    type="button"
+                    onClick={() => set_selected_parent_token(tag.tag_token)}
+                  >
+                    <TagIcon
+                      className="w-4 h-4 flex-shrink-0"
+                      style={{ color: tag.color || "#3b82f6" }}
+                    />
+                    <span className="truncate">{tag.name}</span>
+                  </button>
+                ))}
+              </div>
+
+              {(move_validation_error || error) && (
+                <p className="text-[13px] text-red-500 mt-4" role="alert">
+                  {move_validation_error || error}
+                </p>
+              )}
+            </ModalBody>
+
+            <ModalFooter>
+              <Button
+                className="flex-1"
+                disabled={is_loading}
+                variant="outline"
+                onClick={on_close}
+              >
+                {t("common.cancel")}
+              </Button>
+              <Button
+                className="flex-1"
+                disabled={
+                  is_loading ||
+                  selected_parent_token === current_parent_token ||
+                  !!move_validation_error
+                }
+                variant="depth"
+                onClick={handle_move}
+              >
+                {t("common.move_label")}
+                {is_loading && <ButtonSpinner />}
+              </Button>
+            </ModalFooter>
+          </>
+        );
+
       case "delete":
         return (
           <>
@@ -415,6 +595,11 @@ export function TagManagementModal({
                     <p className="text-[12px] text-red-100">
                       {t("common.label_permanently_deleted_warning")}
                     </p>
+                    {has_sublabels && (
+                      <p className="text-[12px] text-red-100 mt-1">
+                        {t("common.label_delete_keeps_sublabels")}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>

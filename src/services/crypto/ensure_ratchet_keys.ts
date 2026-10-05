@@ -42,6 +42,7 @@ import { merge_previous_ratchet_keys } from "./key_manager_core";
 import { clear_all_ratchet_states } from "./ratchet_state_store";
 import { report_envelope_capability_if_due } from "./envelope_capability";
 import { with_vault_write_lock } from "./vault_write_lock";
+import { complete_p256_private_jwk, is_compact_p256_private_jwk } from "./p256_jwk";
 import { recover_ratchet_keys_from_history_locked } from "./vault_key_recovery";
 import { collect_vault_key_fingerprints } from "./vault_key_fingerprints";
 
@@ -191,7 +192,7 @@ async function keypairs_consistent(
   public_b64: string,
 ): Promise<boolean> {
   try {
-    const jwk: JsonWebKey = JSON.parse(jwk_string);
+    const jwk = complete_p256_private_jwk(JSON.parse(jwk_string));
 
     if (!jwk.x || !jwk.y || !jwk.d) return false;
 
@@ -299,7 +300,7 @@ function retain_replaced_pq_identity(
 
 function derive_public_b64_from_jwk(jwk_string: string): string | null {
   try {
-    const jwk: JsonWebKey = JSON.parse(jwk_string);
+    const jwk = complete_p256_private_jwk(JSON.parse(jwk_string));
 
     if (!jwk.x || !jwk.y || !jwk.d) return null;
 
@@ -580,7 +581,9 @@ async function run_locked_with_vault(
       !!vault.ratchet_pq_identity_seed;
 
     const need_forced_regen =
-      !localStorage.getItem(FORCED_REGEN_KEY) && !vault.ratchet_regen_v4_done;
+      !localStorage.getItem(FORCED_REGEN_KEY) &&
+      !vault.ratchet_regen_v4_done &&
+      !is_compact_p256_private_jwk(vault.ratchet_identity_key);
 
     if (
       vault.ratchet_regen_v4_done &&

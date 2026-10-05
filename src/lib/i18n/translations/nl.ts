@@ -184,6 +184,7 @@ export const nl = {
     labels: "Labels",
     no_folders_yet: "Nog geen mappen",
     no_labels_yet: "Nog geen labels",
+    label_unable_to_decrypt: "Kan niet worden ontsleuteld",
     aliases: "Aliassen",
     no_aliases_yet: "Nog geen aliassen",
     storage_used: "Opslag gebruikt",
@@ -297,6 +298,15 @@ export const nl = {
     select_parent_folder: "Selecteer bovenliggende map",
     top_level_no_parent: "Hoogste niveau (geen bovenliggend)",
     parent_folder: "Bovenliggende map",
+    create_sublabel: "Sublabel maken",
+    move_label: "Label verplaatsen",
+    move_label_description: "Kies een nieuw bovenliggend label voor dit label",
+    select_parent_label: "Selecteer bovenliggend label",
+    parent_label: "Bovenliggend label",
+    no_parent_label: "Hoogste niveau (geen bovenliggend label)",
+    failed_to_move_label: "Dit label is niet verplaatst. Probeer het opnieuw.",
+    label_delete_keeps_sublabels:
+      "Sublabels worden niet verwijderd. Ze schuiven één niveau omhoog.",
     move_up: "Omhoog",
     move_down: "Omlaag",
     sort_a_to_z: "Sorteren van A tot Z",
@@ -4931,6 +4941,8 @@ export const nl = {
     failed_remove_wkd:
       "Je sleutel is niet verwijderd uit de openbare map. Probeer het opnieuw.",
     key_published_keyserver: "Sleutel gepubliceerd naar sleutelserver",
+    keyserver_publish_unconfirmed:
+      "Publicatieverzoek verzonden, maar de status kon niet worden bevestigd.",
     failed_publish_keyserver:
       "Je openbare sleutel is niet gepubliceerd op de sleutelserver. Probeer het opnieuw.",
     mailto_unregister_manual:
@@ -5555,6 +5567,12 @@ export const nl = {
       "{{count}} mappen konden niet worden aangemaakt, dus de berichten daaruit staan in je postvak IN.",
     import_folders_skipped_plural:
       "{{count}} mappen konden niet worden aangemaakt, dus de berichten daaruit staan in je postvak IN.",
+    import_labels_created: "{{count}} labels aangemaakt",
+    import_labels_created_one: "{{count}} label aangemaakt",
+    import_labels_skipped:
+      "{{count}} labels konden niet worden aangemaakt, dus de berichten worden zonder die labels geïmporteerd.",
+    import_labels_skipped_one:
+      "{{count}} label kon niet worden aangemaakt, dus de berichten worden zonder dat label geïmporteerd.",
     storage_quota_reached:
       "Je opslag is vol. Je abonnement upgraden of wat e-mails verwijderen maakt ruimte voor meer imports.",
     no_emails_in_file:

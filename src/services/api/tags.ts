@@ -30,6 +30,8 @@ export interface TagDefinition {
   encrypted_icon?: string;
   icon_nonce?: string;
   sort_order: number;
+  parent_token?: string;
+  parent_id?: string;
   item_count?: number;
   created_at: string;
   updated_at: string;
@@ -56,6 +58,7 @@ export interface CreateTagRequest {
   encrypted_icon?: string;
   icon_nonce?: string;
   sort_order?: number;
+  parent_token?: string;
 }
 
 export interface CreateTagResponse {
@@ -72,6 +75,7 @@ export interface UpdateTagRequest {
   encrypted_icon?: string;
   icon_nonce?: string;
   sort_order?: number;
+  parent_token?: string;
 }
 
 export interface TagCountsResponse {

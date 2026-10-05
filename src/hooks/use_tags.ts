@@ -45,6 +45,11 @@ import {
 import { emit_tags_changed, MAIL_EVENTS } from "@/hooks/mail_events";
 import { use_auth_safe } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
+import {
+  effective_parent_token,
+  reparent_children_of_removed_tag,
+} from "@/hooks/tag_tree";
+import { request_cache } from "@/services/api/request_cache";
 
 export interface DecryptedTag {
   id: string;
@@ -53,9 +58,11 @@ export interface DecryptedTag {
   color?: string;
   icon?: string;
   sort_order: number;
+  parent_token?: string;
   item_count?: number;
   created_at: string;
   updated_at: string;
+  is_undecryptable?: boolean;
 }
 
 interface TagsState {
@@ -71,6 +78,24 @@ interface TagCounts {
 
 const TAG_RETRY_DELAYS_MS = [400, 1_200, 3_000];
 const TAG_BACKGROUND_RETRY_DELAYS_MS = [8_000, 20_000, 45_000];
+const TAGS_REFETCH_DEBOUNCE_MS = 300;
+const TAG_PARENT_ERROR_CODES = new Set([
+  "TAG_PARENT_NOT_FOUND",
+  "TAG_PARENT_SELF",
+  "TAG_PARENT_CYCLE",
+  "TAG_PARENT_TOO_DEEP",
+]);
+
+function is_tag_parent_error(response: {
+  error?: string;
+  server_code?: string;
+}): boolean {
+  return (
+    (!!response.server_code &&
+      TAG_PARENT_ERROR_CODES.has(response.server_code)) ||
+    (!!response.error && TAG_PARENT_ERROR_CODES.has(response.error))
+  );
+}
 
 const tags_loaded_listeners = new Set<() => void>();
 
@@ -115,6 +140,7 @@ interface UseTagsReturn {
     name: string,
     color?: string,
     icon?: string,
+    parent_token?: string,
   ) => Promise<DecryptedTag | null>;
   update_existing_tag: (
     tag_id: string,
@@ -122,6 +148,7 @@ interface UseTagsReturn {
     color?: string,
     icon?: string,
     sort_order?: number,
+    parent_token?: string | null,
   ) => Promise<boolean>;
   delete_existing_tag: (tag_id: string) => Promise<boolean>;
   add_tag_to_email: (email_id: string, tag_token: string) => Promise<boolean>;
@@ -130,7 +157,7 @@ interface UseTagsReturn {
     tag_token: string,
   ) => Promise<boolean>;
   get_tag_by_token: (tag_token: string) => DecryptedTag | undefined;
-  refresh: () => Promise<void>;
+  refresh: () => Promise<DecryptedTag[]>;
 }
 
 function array_to_base64(array: Uint8Array): string {
@@ -262,9 +289,29 @@ async function decrypt_tag(
     color,
     icon,
     sort_order: tag.sort_order,
+    parent_token: tag.parent_token || undefined,
     item_count: tag.item_count,
     created_at: tag.created_at,
     updated_at: tag.updated_at,
+  };
+}
+
+export function build_undecryptable_tag(
+  tag: TagDefinition,
+  fallback_name: string,
+): DecryptedTag {
+  return {
+    id: tag.id,
+    tag_token: tag.tag_token,
+    name: fallback_name,
+    color: undefined,
+    icon: undefined,
+    sort_order: tag.sort_order,
+    parent_token: tag.parent_token || undefined,
+    item_count: tag.item_count,
+    created_at: tag.created_at,
+    updated_at: tag.updated_at,
+    is_undecryptable: true,
   };
 }
 
@@ -336,24 +383,30 @@ export function use_tags(): UseTagsReturn {
 
           if (this_generation !== fetch_generation_ref.current) return "stale";
 
-          const decrypted_tags = decrypted_results.filter(
-            (tag): tag is DecryptedTag => tag !== null,
-          );
+          const decrypted_count = decrypted_results.filter(
+            (tag) => tag !== null,
+          ).length;
 
           if (
             response.data.tags.length > 0 &&
-            decrypted_tags.length === 0 &&
-            cached_tags.data.length > 0
+            decrypted_count === 0 &&
+            cached_tags.data.some((tag) => !tag.is_undecryptable)
           ) {
             return "retry";
           }
 
-          cached_tags.data = decrypted_tags;
-          cached_tags.total = decrypted_tags.length;
+          const visible_tags = response.data.tags.map(
+            (tag: TagDefinition, index: number) =>
+              decrypted_results[index] ??
+              build_undecryptable_tag(tag, t("common.label_unable_to_decrypt")),
+          );
+
+          cached_tags.data = visible_tags;
+          cached_tags.total = visible_tags.length;
           cached_tags.has_loaded = true;
 
           set_state({
-            tags: decrypted_tags,
+            tags: visible_tags,
             is_loading: false,
             error: null,
             total: response.data.total,
@@ -474,6 +527,7 @@ export function use_tags(): UseTagsReturn {
       name: string,
       color?: string,
       icon?: string,
+      parent_token?: string,
     ): Promise<DecryptedTag | null> => {
       const trimmed_name = name.trim();
 
@@ -487,8 +541,15 @@ export function use_tags(): UseTagsReturn {
         return null;
       }
 
+      const known_tokens = new Set(
+        cached_tags.data.map((tag) => tag.tag_token),
+      );
       const duplicate_exists = cached_tags.data.some(
-        (tag) => tag.name.toLowerCase() === trimmed_name.toLowerCase(),
+        (tag) =>
+          !tag.is_undecryptable &&
+          tag.name.toLowerCase() === trimmed_name.toLowerCase() &&
+          effective_parent_token(tag, known_tokens) ===
+            (parent_token || undefined),
       );
 
       if (duplicate_exists) {
@@ -523,9 +584,18 @@ export function use_tags(): UseTagsReturn {
           request.icon_nonce = icon_nonce;
         }
 
+        if (parent_token) {
+          request.parent_token = parent_token;
+        }
+
         const response = await create_tag(request);
 
         if (response.error || !response.data) {
+          if (is_tag_parent_error(response)) {
+            request_cache.invalidate("/mail/v1/tags");
+            void fetch_tags();
+          }
+
           return null;
         }
 
@@ -536,6 +606,7 @@ export function use_tags(): UseTagsReturn {
           color,
           icon,
           sort_order: 0,
+          parent_token: parent_token || undefined,
           item_count: 0,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
@@ -561,7 +632,7 @@ export function use_tags(): UseTagsReturn {
         return null;
       }
     },
-    [],
+    [fetch_tags],
   );
 
   const update_existing_tag = useCallback(
@@ -571,10 +642,20 @@ export function use_tags(): UseTagsReturn {
       color?: string,
       icon?: string,
       sort_order?: number,
+      parent_token?: string | null,
     ): Promise<boolean> => {
       const vault = get_vault_from_memory();
 
       if (!vault?.identity_key) {
+        return false;
+      }
+
+      if (
+        name !== undefined &&
+        cached_tags.data.some(
+          (tag) => tag.id === tag_id && tag.is_undecryptable,
+        )
+      ) {
         return false;
       }
 
@@ -615,9 +696,18 @@ export function use_tags(): UseTagsReturn {
           request.sort_order = sort_order;
         }
 
+        if (parent_token !== undefined) {
+          request.parent_token = parent_token ?? "";
+        }
+
         const response = await update_tag(tag_id, request);
 
         if (response.error) {
+          if (is_tag_parent_error(response)) {
+            request_cache.invalidate("/mail/v1/tags");
+            void fetch_tags();
+          }
+
           return false;
         }
 
@@ -626,10 +716,16 @@ export function use_tags(): UseTagsReturn {
             tag.id === tag_id
               ? {
                   ...tag,
-                  ...(name !== undefined && { name }),
+                  ...(name !== undefined && {
+                    name,
+                    is_undecryptable: false,
+                  }),
                   ...(color !== undefined && { color }),
                   ...(icon !== undefined && { icon }),
                   ...(sort_order !== undefined && { sort_order }),
+                  ...(parent_token !== undefined && {
+                    parent_token: parent_token || undefined,
+                  }),
                   updated_at: new Date().toISOString(),
                 }
               : tag,
@@ -651,7 +747,7 @@ export function use_tags(): UseTagsReturn {
         return false;
       }
     },
-    [],
+    [fetch_tags],
   );
 
   const delete_existing_tag = useCallback(
@@ -664,7 +760,10 @@ export function use_tags(): UseTagsReturn {
         }
 
         set_state((prev) => {
-          const updated_tags = prev.tags.filter((tag) => tag.id !== tag_id);
+          const updated_tags = reparent_children_of_removed_tag(
+            prev.tags,
+            tag_id,
+          );
 
           cached_tags.data = updated_tags;
           cached_tags.total = updated_tags.length;
@@ -767,8 +866,10 @@ export function use_tags(): UseTagsReturn {
     [state.tags],
   );
 
-  const refresh = useCallback(async (): Promise<void> => {
+  const refresh = useCallback(async (): Promise<DecryptedTag[]> => {
     await fetch_tags();
+
+    return cached_tags.data;
   }, [fetch_tags]);
 
   useEffect(() => {
@@ -815,6 +916,7 @@ export function use_tags(): UseTagsReturn {
 
   useEffect(() => {
     let counts_debounce: ReturnType<typeof setTimeout> | null = null;
+    let tags_debounce: ReturnType<typeof setTimeout> | null = null;
 
     const counts_handler = () => {
       if (counts_debounce) clearTimeout(counts_debounce);
@@ -826,9 +928,13 @@ export function use_tags(): UseTagsReturn {
     };
 
     const tags_handler = () => {
-      if (has_passphrase_in_memory()) {
-        fetch_tags();
-      }
+      if (tags_debounce) clearTimeout(tags_debounce);
+      tags_debounce = setTimeout(() => {
+        tags_debounce = null;
+        if (has_passphrase_in_memory()) {
+          fetch_tags();
+        }
+      }, TAGS_REFETCH_DEBOUNCE_MS);
     };
 
     const auth_ready_handler = () => {
@@ -872,11 +978,13 @@ export function use_tags(): UseTagsReturn {
     );
     window.addEventListener(MAIL_EVENTS.MAIL_ITEMS_REMOVED, counts_handler);
     window.addEventListener(MAIL_EVENTS.TAGS_CHANGED, tags_handler);
+    window.addEventListener(MAIL_EVENTS.DEFINITIONS_STALE, tags_handler);
     window.addEventListener(MAIL_EVENTS.AUTH_READY, auth_ready_handler);
     document.addEventListener("visibilitychange", visibility_handler);
 
     return () => {
       if (counts_debounce) clearTimeout(counts_debounce);
+      if (tags_debounce) clearTimeout(tags_debounce);
       window.removeEventListener(MAIL_EVENTS.MAIL_CHANGED, counts_handler);
       window.removeEventListener(MAIL_EVENTS.MAIL_SOFT_REFRESH, counts_handler);
       window.removeEventListener(MAIL_EVENTS.EMAIL_RECEIVED, counts_handler);
@@ -891,6 +999,7 @@ export function use_tags(): UseTagsReturn {
         counts_handler,
       );
       window.removeEventListener(MAIL_EVENTS.TAGS_CHANGED, tags_handler);
+      window.removeEventListener(MAIL_EVENTS.DEFINITIONS_STALE, tags_handler);
       window.removeEventListener(MAIL_EVENTS.AUTH_READY, auth_ready_handler);
       document.removeEventListener("visibilitychange", visibility_handler);
     };

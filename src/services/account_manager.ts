@@ -27,6 +27,7 @@ import { write_account_index_hint } from "@/lib/account_index_url";
 import { get_active_translations } from "@/lib/i18n/translations";
 import { ignore_error } from "@/lib/ignore_error";
 import { clear_expanded_folders } from "@/services/expanded_folders_store";
+import { clear_expanded_tags } from "@/services/expanded_tags_store";
 import {
   safe_local_get,
   safe_local_keys,
@@ -711,6 +712,7 @@ export async function remove_account(
   await save_accounts_data(data);
   await clear_account_session_material(account_id);
   clear_expanded_folders(account_id);
+  clear_expanded_tags(account_id);
   await clear_offline_email_cache(account_id);
   await clear_account_scoped_preferences_cache();
   await clear_account_scoped_contact_index();

@@ -863,7 +863,14 @@ export function use_email_detail_load() {
               is_spam: !!response.data.is_spam,
               limit: preferences.low_network_mode ? 4 : undefined,
             },
-          );
+          ).catch((caught) => {
+            ignore_error(
+              "components/email/hooks/use_email_detail_load:thread_messages",
+              caught,
+            );
+
+            return { messages: [], thread_data: null, truncated: false };
+          });
 
           if (is_stale()) return;
           if (thread_result.messages.length > 0) {
@@ -882,7 +889,14 @@ export function use_email_detail_load() {
           const group_messages = await fetch_and_decrypt_virtual_group(
             stored_grouped_email_ids,
             user?.email,
-          );
+          ).catch((caught) => {
+            ignore_error(
+              "components/email/hooks/use_email_detail_load:virtual_group",
+              caught,
+            );
+
+            return [];
+          });
 
           if (is_stale()) return;
           if (group_messages.length > 0) {
@@ -899,21 +913,28 @@ export function use_email_detail_load() {
         }
 
         if (response.data.thread_token) {
-          if (!are_keys_ready()) {
-            await wait_for_keys_ready();
-          }
-
-          const current_vault = get_vault_from_memory();
-
-          if (current_vault && !is_stale()) {
-            const draft_result = await get_draft_by_thread(
-              response.data.thread_token,
-              current_vault,
-            );
-
-            if (draft_result.data && !is_stale()) {
-              set_thread_draft(draft_result.data);
+          try {
+            if (!are_keys_ready()) {
+              await wait_for_keys_ready();
             }
+
+            const current_vault = get_vault_from_memory();
+
+            if (current_vault && !is_stale()) {
+              const draft_result = await get_draft_by_thread(
+                response.data.thread_token,
+                current_vault,
+              );
+
+              if (draft_result.data && !is_stale()) {
+                set_thread_draft(draft_result.data);
+              }
+            }
+          } catch (caught) {
+            ignore_error(
+              "components/email/hooks/use_email_detail_load:thread_draft",
+              caught,
+            );
           }
         }
       }

@@ -91,6 +91,7 @@ export const hi = {
     labels: "लेबल",
     no_folders_yet: "अभी कोई फ़ोल्डर नहीं",
     no_labels_yet: "अभी कोई लेबल नहीं",
+    label_unable_to_decrypt: "डिक्रिप्ट नहीं किया जा सका",
     aliases: "एलियास",
     no_aliases_yet: "अभी कोई एलियास नहीं",
     storage_used: "इस्तेमाल हुआ स्टोरेज",
@@ -290,6 +291,15 @@ export const hi = {
     select_parent_folder: "मूल फ़ोल्डर चुनें",
     top_level_no_parent: "सबसे ऊपरी स्तर (कोई मूल फ़ोल्डर नहीं)",
     parent_folder: "मूल फ़ोल्डर",
+    create_sublabel: "सब-लेबल बनाएं",
+    move_label: "लेबल ले जाएं",
+    move_label_description: "इस लेबल के लिए नया मूल लेबल चुनें",
+    select_parent_label: "मूल लेबल चुनें",
+    parent_label: "मूल लेबल",
+    no_parent_label: "सबसे ऊपरी स्तर (कोई मूल लेबल नहीं)",
+    failed_to_move_label: "यह लेबल नहीं ले जाया गया। फिर से कोशिश करें।",
+    label_delete_keeps_sublabels:
+      "सब-लेबल हटाए नहीं जाते। वे एक स्तर ऊपर चले जाते हैं।",
     move_up: "ऊपर ले जाएं",
     move_down: "नीचे ले जाएं",
     sort_a_to_z: "A से Z क्रम में लगाएं",
@@ -5982,6 +5992,8 @@ export const hi = {
     failed_remove_wkd:
       "आपकी कुंजी सार्वजनिक डायरेक्टरी से हटाई नहीं गई। फिर से कोशिश करें।",
     key_published_keyserver: "कुंजी कीसर्वर पर प्रकाशित हो गई",
+    keyserver_publish_unconfirmed:
+      "प्रकाशन अनुरोध भेजा गया, लेकिन स्थिति की पुष्टि नहीं हो सकी।",
     failed_publish_keyserver:
       "आपकी सार्वजनिक कुंजी कीसर्वर पर प्रकाशित नहीं हुई। फिर से कोशिश करें।",
     mailto_unregister_manual:
@@ -6848,6 +6860,12 @@ export const hi = {
       "{{count}} फ़ोल्डर नहीं बन सके, इसलिए उनके संदेश आपके इनबॉक्स में हैं।",
     import_folders_skipped_plural:
       "{{count}} फ़ोल्डर नहीं बन सके, इसलिए उनके संदेश आपके इनबॉक्स में हैं।",
+    import_labels_created: "{{count}} लेबल बनाए गए",
+    import_labels_created_one: "{{count}} लेबल बनाया गया",
+    import_labels_skipped:
+      "{{count}} लेबल नहीं बन सके, इसलिए उनके संदेश उनके बिना इंपोर्ट हुए हैं।",
+    import_labels_skipped_one:
+      "{{count}} लेबल नहीं बन सका, इसलिए उसके संदेश उसके बिना इंपोर्ट हुए हैं।",
     storage_quota_reached:
       "आपका स्टोरेज भर गया है। प्लान बढ़ाने या कुछ ईमेल हटाने से और इंपोर्ट के लिए जगह बनेगी।",
     no_emails_in_file:

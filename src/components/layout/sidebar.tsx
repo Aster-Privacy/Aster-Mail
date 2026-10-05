@@ -21,7 +21,10 @@
 import type { EditDraftData } from "@/components/compose/compose_manager";
 import type { SettingsSection } from "@/components/settings/settings_content";
 import type { FolderModalData } from "@/components/layout/sidebar/sidebar_folders";
-import type { TagModalData } from "@/components/layout/sidebar/sidebar_tags";
+import type {
+  TagModalAction,
+  TagModalData,
+} from "@/components/layout/sidebar/sidebar_tags";
 
 import {
   useState,
@@ -296,9 +299,11 @@ const sidebar_base = ({
   const [labels_expanded, set_labels_expanded] = useState(false);
   const [aliases_expanded, set_aliases_expanded] = useState(false);
   const [is_create_tag_open, set_is_create_tag_open] = useState(false);
-  const [tag_modal_action, set_tag_modal_action] = useState<
-    "rename" | "recolor" | "reicon" | "delete" | null
-  >(null);
+  const [tag_modal_action, set_tag_modal_action] =
+    useState<TagModalAction | null>(null);
+  const [create_tag_parent_token, set_create_tag_parent_token] = useState<
+    string | undefined
+  >(undefined);
   const [selected_tag_for_modal, set_selected_tag_for_modal] =
     useState<TagModalData | null>(null);
   const [password_modal_folder, set_password_modal_folder] = useState<{
@@ -396,7 +401,7 @@ const sidebar_base = ({
   }, [selected_folder_for_modal, location.pathname, navigate]);
 
   const handle_tag_modal = useCallback(
-    (tag: TagModalData, action: "rename" | "recolor" | "reicon" | "delete") => {
+    (tag: TagModalData, action: TagModalAction) => {
       set_selected_tag_for_modal(tag);
       set_tag_modal_action(action);
     },
@@ -719,8 +724,12 @@ const sidebar_base = ({
         on_deleted={handle_folder_deleted}
       />
       <CreateTagModal
+        initial_parent_token={create_tag_parent_token}
         is_open={is_create_tag_open}
-        on_close={() => set_is_create_tag_open(false)}
+        on_close={() => {
+          set_is_create_tag_open(false);
+          set_create_tag_parent_token(undefined);
+        }}
       />
       <TagManagementModal
         action={tag_modal_action}
@@ -838,6 +847,7 @@ const sidebar_base = ({
         />
 
         <SidebarTags
+          account_id={user?.id ?? ""}
           effective_selected={effective_selected}
           handle_nav_click={handle_nav_click}
           handle_tag_modal={handle_tag_modal}
@@ -846,6 +856,10 @@ const sidebar_base = ({
           labels_expanded={labels_expanded}
           load_failed={Boolean(tags_state.error)}
           navigate={navigate}
+          on_create_sublabel={(parent_token) => {
+            set_create_tag_parent_token(parent_token);
+            set_is_create_tag_open(true);
+          }}
           on_drop_emails={on_drop_to_tag}
           on_retry={() => void refresh_tags()}
           on_toggle_section={toggle_labels_collapsed}

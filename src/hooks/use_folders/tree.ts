@@ -188,6 +188,35 @@ export function flatten_folder_tree(nodes: FolderTreeNode[]): FolderTreeNode[] {
 
 export const MAX_FOLDER_DEPTH = 4;
 
+export const FOLDER_OPTION_INDENT_PX = 14;
+
+export interface OrderedFolder {
+  folder: DecryptedFolder;
+  depth: number;
+}
+
+export function order_folders_as_tree(
+  folders: DecryptedFolder[],
+): OrderedFolder[] {
+  const ordered: OrderedFolder[] = flatten_folder_tree(
+    build_folder_tree(folders),
+  ).map((node) => ({ folder: node.folder, depth: node.depth }));
+  const placed = new Set(ordered.map((entry) => entry.folder.folder_token));
+
+  for (const folder of folders) {
+    if (!folder.is_system && !placed.has(folder.folder_token)) {
+      placed.add(folder.folder_token);
+      ordered.push({ folder, depth: 0 });
+    }
+  }
+
+  return ordered;
+}
+
+export function folder_option_indent(depth: number | undefined): number {
+  return Math.max(0, depth ?? 0) * FOLDER_OPTION_INDENT_PX;
+}
+
 export function flatten_visible_tree(
   nodes: FolderTreeNode[],
   expanded: Set<string>,

@@ -25,6 +25,7 @@ import { CheckIcon } from "@heroicons/react/16/solid";
 
 import { Input } from "@/components/ui/input";
 import { use_tags, type DecryptedTag } from "@/hooks/use_tags";
+import { order_tags_as_tree, tag_option_indent } from "@/hooks/tag_tree";
 import { CreateTagModal } from "@/components/tags/create_tag_modal";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
@@ -56,13 +57,13 @@ export function TagPicker({
   use_escape_layer(is_open, on_close, "tag_picker", false);
 
   const filtered_tags = useMemo(() => {
-    if (!search_query.trim()) return tags_state.tags;
+    if (!search_query.trim()) return order_tags_as_tree(tags_state.tags);
 
     const query = search_query.toLowerCase();
 
-    return tags_state.tags.filter((tag: DecryptedTag) =>
-      tag.name.toLowerCase().includes(query),
-    );
+    return tags_state.tags
+      .filter((tag: DecryptedTag) => tag.name.toLowerCase().includes(query))
+      .map((tag) => ({ tag, depth: 0 }));
   }, [tags_state.tags, search_query]);
 
   const computed_position = useMemo(() => {
@@ -122,13 +123,19 @@ export function TagPicker({
                   : t("common.no_labels_yet")}
               </p>
             )}
-            {filtered_tags.map((tag: DecryptedTag) => {
+            {filtered_tags.map(({ tag, depth }) => {
               const assigned = is_tag_assigned(tag.tag_token);
 
               return (
                 <button
                   key={tag.id}
                   className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-[var(--aster-radius-item,8px)] text-[13px] transition-colors hover:bg-[var(--aster-floating-hover,var(--bg-hover))] text-txt-primary"
+                  data-testid={`tag-picker-option-${tag.id}`}
+                  style={
+                    depth > 0
+                      ? { paddingInlineStart: 10 + tag_option_indent(depth) }
+                      : undefined
+                  }
                   onClick={() => on_toggle_tag(tag.tag_token, !assigned)}
                 >
                   <div

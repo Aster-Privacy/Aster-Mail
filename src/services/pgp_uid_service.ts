@@ -34,6 +34,7 @@ import {
   MASTER_KEY_VAULT_FORMAT,
 } from "@/services/crypto/memory_key_store";
 import { with_vault_write_lock } from "@/services/crypto/vault_write_lock";
+import { MAX_LEGACY_IDENTITY_KEYS } from "@/services/crypto/identity_key_materials";
 import { get_current_account } from "@/services/account_manager";
 import { ignore_error } from "@/lib/ignore_error";
 
@@ -142,7 +143,16 @@ export async function add_address_to_identity_key(
     passphrase,
   });
 
-  return { ...vault, identity_key: protected_key.armor() };
+  return {
+    ...vault,
+    identity_key: protected_key.armor(),
+    legacy_identity_keys: [
+      vault.identity_key,
+      ...(vault.legacy_identity_keys ?? []).filter(
+        (armored) => armored && armored !== vault.identity_key,
+      ),
+    ].slice(0, MAX_LEGACY_IDENTITY_KEYS),
+  };
 }
 
 let uid_update_in_flight: { key: string; run: Promise<boolean> } | null = null;

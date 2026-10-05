@@ -82,6 +82,7 @@ export interface ImportedEmailData {
   envelope_nonce: string;
   content_hash?: string;
   folder_token?: string;
+  tag_tokens?: string[];
   item_type?: string;
   received_at?: string;
   thread_token?: string;

@@ -55,6 +55,7 @@ import {
   flatten_folder_tree,
   is_folder_tree_sorted_a_z,
 } from "@/hooks/use_folders";
+import { order_tags_as_tree } from "@/hooks/tag_tree";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
 import { AliasNavIcon } from "@/components/common/alias_nav_icon";
 import { SidebarNavButton } from "@/components/mobile/sidebar_nav_button";
@@ -164,6 +165,7 @@ export const DrawerNavContent = memo(function DrawerNavContent({
   const can_sort_folders =
     folders.length > 1 && !is_folder_tree_sorted_a_z(folders);
   const folder_guides = build_tree_guides(folder_tree);
+  const tag_rows = order_tags_as_tree(tags);
 
   const is_active = (path: string) => {
     if (path === "/") return active_path === "/" || active_path === "/inbox";
@@ -421,24 +423,31 @@ export const DrawerNavContent = memo(function DrawerNavContent({
           skeleton_rows={2}
         />
       )}
-      {tags.map((tag) => {
+      {tag_rows.map(({ tag, depth }) => {
         const path = `/tag/${encodeURIComponent(tag.tag_token)}`;
 
         return (
-          <SidebarNavButton
+          <div
             key={tag.tag_token}
-            active={is_active(path)}
-            count={tag_counts[tag.tag_token]}
-            icon={
-              <MobileDrawerTagIcon
-                color={tag.color || "#3b82f6"}
-                icon={tag.icon}
-              />
+            data-testid={`mobile-tag-row-${tag.id}`}
+            style={
+              depth > 0 ? { paddingInlineStart: `${depth * 16}px` } : undefined
             }
-            label={tag.name}
-            on_click={() => handle_nav(path)}
-            on_long_press={() => on_open_edit_tag(tag)}
-          />
+          >
+            <SidebarNavButton
+              active={is_active(path)}
+              count={tag_counts[tag.tag_token]}
+              icon={
+                <MobileDrawerTagIcon
+                  color={tag.color || "#3b82f6"}
+                  icon={tag.icon}
+                />
+              }
+              label={tag.name}
+              on_click={() => handle_nav(path)}
+              on_long_press={() => on_open_edit_tag(tag)}
+            />
+          </div>
         );
       })}
 
