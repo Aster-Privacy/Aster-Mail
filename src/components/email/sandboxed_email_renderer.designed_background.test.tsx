@@ -78,14 +78,14 @@ vi.mock("@/components/email/reveal_on_fonts_ready", () => ({
 const { SandboxedEmailRenderer } =
   await import("@/components/email/sandboxed_email_renderer");
 
-const OUTLOOK_STYLE =
+const OFFICE_STYLE =
   '<style>p.MsoNormal, li.MsoNormal, div.MsoNormal { margin:0cm; font-size:11.0pt; font-family:"Calibri",sans-serif; }' +
   "a:link, span.MsoHyperlink { mso-style-priority:99; color:#0563C1; text-decoration:underline; }" +
   ".MsoChpDefault { mso-style-type:export-only; }</style>";
 
-function outlook_email(word_html: string): string {
+function office_email(word_html: string): string {
   return (
-    OUTLOOK_STYLE +
+    OFFICE_STYLE +
     '<div class="WordSection1">' +
     '<p class="MsoNormal">Hi Sam,</p>' +
     '<p class="MsoNormal">&nbsp;</p>' +
@@ -145,7 +145,7 @@ describe("SandboxedEmailRenderer designed background detection", () => {
   it("adapts a plain email whose only background is one white span", () => {
     expect(
       renders_as_designed(
-        outlook_email('<span style="background:white">agenda</span>'),
+        office_email('<span style="background:white">agenda</span>'),
       ),
     ).toBe(false);
   });
@@ -153,7 +153,7 @@ describe("SandboxedEmailRenderer designed background detection", () => {
   it("adapts a plain email with a yellow highlighted word", () => {
     expect(
       renders_as_designed(
-        outlook_email(
+        office_email(
           '<span style="background:#FFFF00;mso-highlight:yellow">agenda</span>',
         ),
       ),
@@ -163,7 +163,7 @@ describe("SandboxedEmailRenderer designed background detection", () => {
   it("adapts highlights written with mark and font", () => {
     expect(
       renders_as_designed(
-        outlook_email(
+        office_email(
           '<mark style="background-color:rgb(255, 242, 0)">agenda</mark> ' +
             '<font style="background-color:#ffffff">notes</font>',
         ),
@@ -174,7 +174,7 @@ describe("SandboxedEmailRenderer designed background detection", () => {
   it("adapts a plain email with one short paragraph on a tinted background", () => {
     expect(
       renders_as_designed(
-        outlook_email("agenda") +
+        office_email("agenda") +
           '<p class="MsoNormal" style="background:#f2f2f2">Sent from a mobile</p>',
       ),
     ).toBe(false);
@@ -192,7 +192,7 @@ describe("SandboxedEmailRenderer designed background detection", () => {
     ).toBe(true);
   });
 
-  it("keeps an email with a coloured body background", () => {
+  it("keeps an email with a colored body background", () => {
     expect(
       renders_as_designed(
         "<p>Your weekly summary is ready.</p><p>Three new tasks were added.</p>",
@@ -211,7 +211,7 @@ describe("SandboxedEmailRenderer designed background detection", () => {
     ).toBe(true);
   });
 
-  it("keeps a full-width coloured section", () => {
+  it("keeps a full-width colored section", () => {
     expect(
       renders_as_designed(
         '<div style="background-color:#ffcc00;padding:24px;width:100%">Big sale</div>' +
@@ -231,6 +231,30 @@ describe("SandboxedEmailRenderer designed background detection", () => {
   });
 
   it("does not treat a white body background as a design", () => {
-    expect(renders_as_designed(outlook_email("agenda"), "#ffffff")).toBe(false);
+    expect(renders_as_designed(office_email("agenda"), "#ffffff")).toBe(false);
+  });
+
+  it("ignores a highlight whose padding is all zero lengths", () => {
+    expect(
+      renders_as_designed(
+        office_email(
+          '<span style="background:#ffff00;padding:0 0px 0.0em 0%">agenda</span>',
+        ),
+      ),
+    ).toBe(false);
+  });
+
+  it("checks a long malformed padding value without stalling", async () => {
+    const { has_designed_background } =
+      await import("@/components/email/sandboxed_email_renderer/designed_background");
+    const padding = "0." + "000.".repeat(20000) + "x";
+    const started = performance.now();
+
+    expect(
+      has_designed_background(
+        `<p>Hi <span style="background:#ffff00;padding:${padding}">Sam</span></p>`,
+      ),
+    ).toBe(true);
+    expect(performance.now() - started).toBeLessThan(2000);
   });
 });

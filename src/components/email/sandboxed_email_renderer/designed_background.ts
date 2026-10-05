@@ -27,7 +27,7 @@ const PAGE_BACKGROUND_RE =
   /^(?:#f{3}|#f{6}|white|rgba?\(\s*255\s*,\s*255\s*,\s*255\s*(?:,\s*1(?:\.0+)?\s*)?\))$/i;
 const BOX_PROPERTY_RE =
   /^(?:padding(?:-[a-z]+)?|width|min-width|height|min-height)$/;
-const ZERO_LENGTH_RE = /^(?:0(?:\.0+)?[a-z%]*\s*)+$/i;
+const ZERO_LENGTH_RE = /^0(?:\.0+)?[a-z%]*$/i;
 const LAYOUT_TAGS = new Set([
   "table",
   "thead",
@@ -104,7 +104,10 @@ function sets_box_layout(style: string): boolean {
 
     if (property === "display") return value !== "inline";
 
-    return BOX_PROPERTY_RE.test(property) && !ZERO_LENGTH_RE.test(value);
+    return (
+      BOX_PROPERTY_RE.test(property) &&
+      !value.split(/\s+/).every((length) => ZERO_LENGTH_RE.test(length))
+    );
   });
 }
 
