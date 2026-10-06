@@ -94,6 +94,14 @@ vi.mock("@/hooks/use_tags", () => ({
   use_tags: () => ({ get_tag_by_token: () => undefined }),
 }));
 
+vi.mock("@/components/email/viewer_shared/use_viewer_labels", () => ({
+  use_viewer_labels: () => ({
+    labels: [],
+    applied_tag_tokens: [],
+    toggle_label: undefined,
+  }),
+}));
+
 vi.mock("@/components/email/use_email_viewer", () => ({
   use_email_viewer: () => viewer,
 }));

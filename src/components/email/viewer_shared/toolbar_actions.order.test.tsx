@@ -179,6 +179,78 @@ describe("ViewerToolbarActions button order", () => {
     ]);
   });
 
+  it("adds the labels menu after move to when the account has labels", async () => {
+    toolbar_mode = "advanced";
+    await act(async () => {
+      root.render(
+        <ViewerToolbarActions
+          {...props}
+          applied_label_tokens={["t1"]}
+          labels={[
+            { tag_token: "t1", name: "Clients", color: "#00ff00", depth: 0 },
+            { tag_token: "t2", name: "Acme", color: "#00ff00", depth: 1 },
+          ]}
+          on_label_toggle={noop}
+        />,
+      );
+    });
+
+    expect(labels()).toEqual([
+      "mail.pin_to_top",
+      "mail.archive_action",
+      "mail.report_spam",
+      "mail.move_to_trash",
+      "mail.mark_as_unread",
+      "mail.move_to_folder",
+      "common.labels",
+      "common.more",
+    ]);
+  });
+
+  it("hides the labels menu without labels or without a handler", async () => {
+    toolbar_mode = "advanced";
+    await act(async () => {
+      root.render(
+        <ViewerToolbarActions {...props} labels={[]} on_label_toggle={noop} />,
+      );
+    });
+    expect(labels()).not.toContain("common.labels");
+
+    await act(async () => {
+      root.render(
+        <ViewerToolbarActions
+          {...props}
+          labels={[
+            { tag_token: "t1", name: "Clients", color: "#00ff00", depth: 0 },
+          ]}
+        />,
+      );
+    });
+    expect(labels()).not.toContain("common.labels");
+  });
+
+  it("keeps labels out of the inline buttons in simple mode", async () => {
+    toolbar_mode = "simple";
+    await act(async () => {
+      root.render(
+        <ViewerToolbarActions
+          {...props}
+          labels={[
+            { tag_token: "t1", name: "Clients", color: "#00ff00", depth: 0 },
+          ]}
+          on_label_toggle={noop}
+        />,
+      );
+    });
+
+    expect(labels()).toEqual([
+      "mail.pin_to_top",
+      "mail.archive_action",
+      "mail.move_to_trash",
+      "common.more",
+    ]);
+  });
+
   it("gives not spam its own icon instead of the report spam one", async () => {
     toolbar_mode = "advanced";
     const button_icon = (label: string) =>

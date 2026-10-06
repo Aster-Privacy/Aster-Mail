@@ -32,6 +32,7 @@ import {
 } from "@/components/email/sandboxed_email_renderer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmailOpenSkeleton } from "@/components/email/viewer_shared/email_open_skeleton";
+import { use_viewer_labels } from "@/components/email/viewer_shared/use_viewer_labels";
 import { use_i18n } from "@/lib/i18n/context";
 import { type DraftWithContent } from "@/services/api/multi_drafts";
 import { is_system_email } from "@/lib/utils";
@@ -138,6 +139,11 @@ export function FullEmailViewer({
     use_refresh_listener: !local_email,
     grouped_email_ids,
   });
+  const viewer_labels = use_viewer_labels({
+    email_id,
+    mail_item: viewer.mail_item,
+    grouped_email_ids,
+  });
 
   const label_chips = useMemo(() => {
     const seen = new Set<string>();
@@ -173,7 +179,7 @@ export function FullEmailViewer({
         });
       }
     }
-    for (const token of viewer.mail_item?.tag_tokens ?? []) {
+    for (const token of viewer_labels.applied_tag_tokens) {
       const tag = get_tag_by_token(token);
 
       if (tag?.name && !seen.has(token)) {
@@ -212,7 +218,7 @@ export function FullEmailViewer({
   }, [
     viewer.mail_item?.labels,
     viewer.mail_item?.folders,
-    viewer.mail_item?.tag_tokens,
+    viewer_labels.applied_tag_tokens,
     label_hints,
     get_tag_by_token,
     viewer.email,
@@ -483,6 +489,7 @@ export function FullEmailViewer({
               current_index={current_index}
               dropdown_align="end"
               email={email}
+              applied_label_tokens={viewer_labels.applied_tag_tokens}
               folders={folders}
               is_archive_loading={viewer.is_archive_loading}
               is_archived={email.is_archived === true}
@@ -492,6 +499,7 @@ export function FullEmailViewer({
               is_spam={viewer.mail_item?.is_spam === true}
               is_spam_loading={viewer.is_spam_loading}
               is_trash_loading={viewer.is_trash_loading}
+              labels={viewer_labels.labels}
               mail_item={viewer.mail_item}
               on_archive={viewer.handle_archive}
               on_block_sender_on_alias={
@@ -500,6 +508,7 @@ export function FullEmailViewer({
                   : undefined
               }
               on_folder_toggle={on_folder_toggle}
+              on_label_toggle={viewer_labels.toggle_label}
               on_move_out_of_bin={on_move_out_of_bin}
               on_navigate_next={on_navigate_next}
               on_navigate_prev={on_navigate_prev}

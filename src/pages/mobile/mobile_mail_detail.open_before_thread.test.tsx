@@ -95,8 +95,16 @@ vi.mock("./mobile_detail_sheets", () => ({
   MobileActionMenuSheet: () => null,
   MobileViewSourceSheet: () => null,
   MobileSnoozeSheet: () => null,
+  MobileLabelsSheet: () => null,
   MobileToolbarCustomizerSheet: () => null,
   MobileMessageDetailsSheet: () => null,
+}));
+vi.mock("@/components/email/viewer_shared/use_viewer_labels", () => ({
+  use_viewer_labels: () => ({
+    labels: [],
+    applied_tag_tokens: [],
+    toggle_label: undefined,
+  }),
 }));
 vi.mock("@/components/mobile/mobile_header", () => ({
   MobileHeader: () => null,

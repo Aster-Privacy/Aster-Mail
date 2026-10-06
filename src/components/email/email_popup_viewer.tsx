@@ -40,6 +40,7 @@ import {
   use_popup_viewer,
 } from "@/components/email/hooks/use_popup_viewer";
 import { PopupEmailActions } from "@/components/email/popup/popup_email_actions";
+import { use_viewer_labels } from "@/components/email/viewer_shared/use_viewer_labels";
 import { PopupEmailBody } from "@/components/email/popup/popup_email_body";
 import { use_spam_confirm } from "@/components/email/use_spam_confirm";
 
@@ -68,6 +69,21 @@ export function EmailPopupViewer({
     snoozed_until,
     grouped_email_ids,
   });
+  const viewer_labels = use_viewer_labels({
+    email_id,
+    mail_item: viewer.mail_item,
+    grouped_email_ids,
+  });
+  const labeled_mail_item = useMemo(
+    () =>
+      viewer.mail_item
+        ? {
+            ...viewer.mail_item,
+            tag_tokens: viewer_labels.applied_tag_tokens,
+          }
+        : viewer.mail_item,
+    [viewer.mail_item, viewer_labels.applied_tag_tokens],
+  );
 
   const [available_folders, set_available_folders] =
     useState(get_cached_folders);
@@ -337,6 +353,7 @@ export function EmailPopupViewer({
     >
       <PopupEmailActions
         applied_folder_tokens={applied_folder_tokens}
+        applied_label_tokens={viewer_labels.applied_tag_tokens}
         folders={folder_options}
         is_archive_loading={viewer.is_archive_loading}
         is_archived={viewer.mail_item?.is_archived === true}
@@ -348,11 +365,13 @@ export function EmailPopupViewer({
         is_spam={viewer.mail_item?.is_spam === true}
         is_spam_loading={viewer.is_spam_loading}
         is_trash_loading={viewer.is_trash_loading}
+        labels={viewer_labels.labels}
         mail_item={viewer.mail_item}
         on_archive={viewer.handle_archive}
         on_close={on_close}
         on_drag_start={viewer.handle_drag_start}
         on_folder_toggle={handle_folder_toggle}
+        on_label_toggle={viewer_labels.toggle_label}
         on_move_out_of_bin={bin_flag ? () => move_out_of_bin(null) : undefined}
         on_fullscreen={viewer.handle_fullscreen}
         on_not_spam={viewer.handle_not_spam}
@@ -382,7 +401,7 @@ export function EmailPopupViewer({
         is_spam={viewer.mail_item?.is_spam === true}
         label_hints={label_hints}
         loaded_content_types={viewer.loaded_content_types}
-        mail_item={viewer.mail_item}
+        mail_item={labeled_mail_item}
         on_close={on_close}
         on_compose={on_compose}
         on_dismiss_external_content={viewer.handle_dismiss_external_content}

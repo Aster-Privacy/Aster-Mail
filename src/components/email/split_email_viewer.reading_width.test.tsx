@@ -49,6 +49,14 @@ vi.mock("@/hooks/use_tags", () => ({
   use_tags: () => ({ get_tag_by_token: () => undefined }),
 }));
 
+vi.mock("@/components/email/viewer_shared/use_viewer_labels", () => ({
+  use_viewer_labels: () => ({
+    labels: [],
+    applied_tag_tokens: [],
+    toggle_label: undefined,
+  }),
+}));
+
 vi.mock("@/components/email/sandboxed_email_renderer", () => ({
   get_cached_iframe_height: () => undefined,
   CONTENT_READY_FALLBACK_MS: 1500,

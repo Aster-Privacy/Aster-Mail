@@ -24,6 +24,7 @@ import type {} from "@/services/api/multi_drafts";
 import type {} from "@/lib/html_sanitizer";
 import type { DecryptedEmail } from "@/components/email/use_email_viewer";
 import type {} from "@/components/email/hooks/preload_cache";
+import type { ViewerLabelOption } from "@/components/email/viewer_shared/use_viewer_labels";
 
 import React from "react";
 import {
@@ -47,6 +48,7 @@ import {
   CheckIcon,
   ArrowUturnLeftIcon,
   ArrowUturnRightIcon,
+  TagIcon,
 } from "@heroicons/react/24/outline";
 import { Button, Tooltip } from "@aster/ui";
 
@@ -70,6 +72,7 @@ import {
 import { type ThreadMessagesListRef } from "@/components/email/thread_message_block";
 import { app_locale } from "@/utils/date_format";
 import { folder_option_indent } from "@/hooks/use_folders/tree";
+import { tag_option_indent } from "@/hooks/tag_tree";
 
 export interface ViewerToolbarActionsProps {
   is_pinned: boolean;
@@ -103,6 +106,9 @@ export interface ViewerToolbarActionsProps {
   show_block_sender_on_alias?: boolean;
   folders?: { id: string; name: string; color: string; depth?: number }[];
   on_folder_toggle?: (folder_id: string) => void;
+  labels?: ViewerLabelOption[];
+  applied_label_tokens?: string[];
+  on_label_toggle?: (tag_token: string) => void;
   on_move_out_of_bin?: () => void;
   can_go_prev?: boolean;
   can_go_next?: boolean;
@@ -151,6 +157,9 @@ export function ViewerToolbarActions({
   show_block_sender_on_alias = false,
   folders = [],
   on_folder_toggle,
+  labels = [],
+  applied_label_tokens = [],
+  on_label_toggle,
   on_move_out_of_bin,
   button_size = "h-9 w-9",
   button_px,
@@ -189,6 +198,38 @@ export function ViewerToolbarActions({
   const btn_base = `${btn_common} hover:!text-[var(--text-primary)] hover:bg-[color-mix(in_srgb,var(--text-primary)_8%,transparent)]`;
   const btn_trash = btn_base;
   const btn_spam = btn_base;
+  const label_items =
+    labels.length > 0 && on_label_toggle
+      ? labels.map((label) => (
+          <DropdownMenuItem
+            key={label.tag_token}
+            onSelect={(e) => {
+              e.preventDefault();
+              on_label_toggle(label.tag_token);
+            }}
+          >
+            {label.depth ? (
+              <span
+                aria-hidden="true"
+                className="flex-shrink-0"
+                style={{ width: tag_option_indent(label.depth) }}
+              />
+            ) : null}
+            {applied_label_tokens.includes(label.tag_token) && (
+              <CheckIcon className="me-0.5 h-3 w-3 flex-shrink-0" />
+            )}
+            <span
+              className="me-1.5 h-2.5 w-2.5 rounded-full flex-shrink-0"
+              style={
+                label.color.startsWith("#")
+                  ? { backgroundColor: label.color }
+                  : {}
+              }
+            />
+            <span className="truncate">{label.name}</span>
+          </DropdownMenuItem>
+        ))
+      : null;
   const thread_message_count = thread_messages.length;
   const archive_label =
     thread_message_count > 1
@@ -541,6 +582,29 @@ export function ViewerToolbarActions({
               </Button>
             </Tooltip>
           )}
+
+          {label_items && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  aria-label={t("common.labels")}
+                  className={btn_base}
+                  size="icon"
+                  style={muted_style}
+                  title={t("common.labels")}
+                  variant="ghost"
+                >
+                  <TagIcon className={icon_size} />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="start"
+                className="w-48 max-h-64 overflow-y-auto"
+              >
+                {label_items}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </>
       )}
 
@@ -663,6 +727,17 @@ export function ViewerToolbarActions({
               <FolderIcon className="w-4 h-4 me-2" />
               {t("mail.move_to_folder")}
             </DropdownMenuItem>
+          )}
+          {label_items && (
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
+                <TagIcon className="w-4 h-4 me-2" />
+                {t("common.labels")}
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent className="w-48 max-h-64 overflow-y-auto">
+                {label_items}
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
           )}
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={on_print}>

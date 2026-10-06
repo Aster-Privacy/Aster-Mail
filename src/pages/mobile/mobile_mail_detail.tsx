@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { StarIcon } from "@heroicons/react/24/outline";
 import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
@@ -35,6 +36,7 @@ import {
   MobileActionMenuSheet,
   MobileViewSourceSheet,
   MobileSnoozeSheet,
+  MobileLabelsSheet,
   MobileToolbarCustomizerSheet,
   MobileMessageDetailsSheet,
 } from "./mobile_detail_sheets";
@@ -44,6 +46,7 @@ import { use_mobile_mail_detail } from "./use_mobile_mail_detail";
 import { MobileHeader } from "@/components/mobile/mobile_header";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
+import { use_viewer_labels } from "@/components/email/viewer_shared/use_viewer_labels";
 
 function MobilePendingMessageRow({ with_divider }: { with_divider: boolean }) {
   return (
@@ -146,6 +149,12 @@ function MobileMailDetail() {
     handle_touch_end,
     get_last_message,
   } = use_mobile_mail_detail();
+  const [show_labels_sheet, set_show_labels_sheet] = useState(false);
+  const viewer_labels = use_viewer_labels({
+    email_id: detail.email_id,
+    mail_item: detail.mail_item,
+  });
+  const toggle_label = viewer_labels.toggle_label;
 
   if (detail.error) {
     return (
@@ -409,6 +418,14 @@ function MobileMailDetail() {
           set_show_toolbar_customizer(true);
         }}
         on_forward={handle_menu_forward}
+        on_labels={
+          viewer_labels.labels.length > 0 && toggle_label
+            ? () => {
+                set_menu_message(null);
+                setTimeout(() => set_show_labels_sheet(true), 100);
+              }
+            : undefined
+        }
         on_message_details={() => {
           const msg = menu_message;
 
@@ -465,6 +482,16 @@ function MobileMailDetail() {
         is_open={show_snooze_sheet}
         on_close={() => set_show_snooze_sheet(false)}
         on_snooze={handle_snooze}
+      />
+
+      <MobileLabelsSheet
+        applied_label_tokens={viewer_labels.applied_tag_tokens}
+        is_open={show_labels_sheet}
+        labels={viewer_labels.labels}
+        on_close={() => set_show_labels_sheet(false)}
+        on_label_toggle={(tag_token) => {
+          void toggle_label?.(tag_token);
+        }}
       />
 
       <MobileToolbarCustomizerSheet

@@ -296,6 +296,7 @@ if (typeof window !== "undefined") {
     const has_read_change = detail.is_read !== undefined;
     const has_star_change = detail.is_starred !== undefined;
     const has_pin_change = detail.is_pinned !== undefined;
+    const has_tag_change = detail.tags !== undefined;
     const has_metadata_change =
       detail.encrypted_metadata !== undefined &&
       detail.metadata_nonce !== undefined;
@@ -316,6 +317,7 @@ if (typeof window !== "undefined") {
       !has_read_change &&
       !has_star_change &&
       !has_pin_change &&
+      !has_tag_change &&
       !has_metadata_change
     ) {
       return;
@@ -333,6 +335,9 @@ if (typeof window !== "undefined") {
         ...(has_read_change && { is_read: detail.is_read }),
         ...(has_star_change && { is_starred: detail.is_starred }),
         ...(has_pin_change && { is_pinned: detail.is_pinned }),
+        ...(has_tag_change && {
+          tag_tokens: detail.tags!.map((tag) => tag.id),
+        }),
         ...(has_pin_change &&
           cached.mail_item.metadata && {
             metadata: {

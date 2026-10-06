@@ -21,6 +21,7 @@
 import type { DecryptedThreadMessage } from "@/types/thread";
 import type { UserPreferences } from "@/services/api/preferences";
 import type { TranslationKey } from "@/lib/i18n";
+import type { ViewerLabelOption } from "@/components/email/viewer_shared/use_viewer_labels";
 
 import { useState } from "react";
 import {
@@ -42,6 +43,8 @@ import {
   SunIcon,
   InformationCircleIcon,
   ArrowDownTrayIcon,
+  TagIcon,
+  CheckIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
 
@@ -62,6 +65,7 @@ import { compute_snooze_target } from "@/utils/snooze_targets";
 import { trigger_download } from "@/utils/download_blob";
 import { copy_text_or_throw } from "@/utils/copy_text";
 import { PinIcon } from "@/components/common/icons";
+import { tag_option_indent } from "@/hooks/tag_tree";
 import { use_i18n } from "@/lib/i18n/context";
 import { MobileBottomSheet } from "@/components/mobile/mobile_bottom_sheet";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
@@ -94,6 +98,7 @@ export function MobileActionMenuSheet({
   on_toggle_pin,
   on_toggle_read,
   on_snooze,
+  on_labels,
   on_archive,
   is_archived = false,
   on_spam,
@@ -126,6 +131,7 @@ export function MobileActionMenuSheet({
   on_toggle_pin: () => void;
   on_toggle_read: () => void;
   on_snooze: () => void;
+  on_labels?: () => void;
   on_archive: () => void;
   is_archived?: boolean;
   on_spam: () => void;
@@ -276,6 +282,18 @@ export function MobileActionMenuSheet({
               {t("common.snooze_label")}
             </span>
           </button>
+          {on_labels && (
+            <button
+              className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-start active:bg-[var(--bg-tertiary)]"
+              type="button"
+              onClick={on_labels}
+            >
+              <TagIcon className="h-5 w-5 text-[var(--text-muted)]" />
+              <span className="text-[14px] text-[var(--text-primary)]">
+                {t("common.labels")}
+              </span>
+            </button>
+          )}
           <button
             className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-start active:bg-[var(--bg-tertiary)]"
             type="button"
@@ -552,6 +570,76 @@ export function MobileSnoozeSheet({
               </div>
             </button>
           ))}
+        </div>
+      </div>
+    </MobileBottomSheet>
+  );
+}
+
+export function MobileLabelsSheet({
+  is_open,
+  on_close,
+  labels,
+  applied_label_tokens,
+  on_label_toggle,
+}: {
+  is_open: boolean;
+  on_close: () => void;
+  labels: ViewerLabelOption[];
+  applied_label_tokens: string[];
+  on_label_toggle: (tag_token: string) => void;
+}) {
+  const { t } = use_i18n();
+
+  return (
+    <MobileBottomSheet
+      aria_label={t("common.labels")}
+      is_open={is_open}
+      on_close={on_close}
+    >
+      <div className="px-4 pb-4">
+        <h3 className="mb-3 text-[16px] font-semibold text-[var(--text-primary)]">
+          {t("common.labels")}
+        </h3>
+        <div className="max-h-[60vh] space-y-1 overflow-y-auto">
+          {labels.map((label) => {
+            const is_applied = applied_label_tokens.includes(label.tag_token);
+
+            return (
+              <button
+                key={label.tag_token}
+                aria-pressed={is_applied}
+                className="flex w-full items-center gap-3 rounded-[16px] px-3 py-3 text-start active:bg-[var(--bg-tertiary)]"
+                type="button"
+                onClick={() => on_label_toggle(label.tag_token)}
+              >
+                {label.depth ? (
+                  <span
+                    aria-hidden="true"
+                    className="flex-shrink-0"
+                    style={{ width: tag_option_indent(label.depth) }}
+                  />
+                ) : null}
+                <span
+                  className="h-2.5 w-2.5 flex-shrink-0 rounded-full"
+                  style={
+                    label.color.startsWith("#")
+                      ? { backgroundColor: label.color }
+                      : {}
+                  }
+                />
+                <span
+                  className="min-w-0 flex-1 truncate text-[14px] font-medium text-[var(--text-primary)]"
+                  dir="auto"
+                >
+                  {label.name}
+                </span>
+                {is_applied && (
+                  <CheckIcon className="h-5 w-5 flex-shrink-0 text-[var(--text-muted)]" />
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
     </MobileBottomSheet>

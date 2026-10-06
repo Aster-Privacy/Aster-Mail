@@ -22,6 +22,7 @@ import type { UnsubscribeInfo } from "@/types/email";
 import type { MailItem } from "@/services/api/mail";
 import type { TranslationKey } from "@/lib/i18n";
 import type { PopupSize } from "@/components/email/hooks/use_popup_viewer";
+import type { ViewerLabelOption } from "@/components/email/viewer_shared/use_viewer_labels";
 
 import {
   XMarkIcon,
@@ -37,6 +38,7 @@ import {
   EllipsisHorizontalIcon,
   PrinterIcon,
   FolderIcon,
+  TagIcon,
 } from "@heroicons/react/24/outline";
 import { Button, Tooltip } from "@aster/ui";
 
@@ -46,6 +48,7 @@ import {
 } from "@/components/email/spam_action_icons";
 import { PinIcon } from "@/components/common/icons";
 import { folder_option_indent } from "@/hooks/use_folders/tree";
+import { tag_option_indent } from "@/hooks/tag_tree";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -74,6 +77,9 @@ interface PopupEmailActionsProps {
   is_spam?: boolean;
   folders?: { id: string; name: string; color: string; depth?: number }[];
   applied_folder_tokens?: string[];
+  labels?: ViewerLabelOption[];
+  applied_label_tokens?: string[];
+  on_label_toggle?: (tag_token: string) => void;
   on_unarchive?: () => void;
   on_not_spam?: () => void;
   on_folder_toggle?: (folder_id: string) => void | Promise<void>;
@@ -108,6 +114,9 @@ export function PopupEmailActions({
   is_spam = false,
   folders = [],
   applied_folder_tokens = [],
+  labels = [],
+  applied_label_tokens = [],
+  on_label_toggle,
   on_unarchive,
   on_not_spam,
   on_folder_toggle,
@@ -418,6 +427,45 @@ export function PopupEmailActions({
               <FolderIcon className="w-4 h-4 me-2" />
               {t("mail.move_to_folder")}
             </DropdownMenuItem>
+          )}
+          {labels.length > 0 && on_label_toggle && (
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
+                <TagIcon className="w-4 h-4 me-2" />
+                {t("common.labels")}
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent className="w-48 max-h-64 overflow-y-auto">
+                {labels.map((label) => (
+                  <DropdownMenuItem
+                    key={label.tag_token}
+                    onSelect={(e) => {
+                      e.preventDefault();
+                      on_label_toggle(label.tag_token);
+                    }}
+                  >
+                    {label.depth ? (
+                      <span
+                        aria-hidden="true"
+                        className="flex-shrink-0"
+                        style={{ width: tag_option_indent(label.depth) }}
+                      />
+                    ) : null}
+                    {applied_label_tokens.includes(label.tag_token) && (
+                      <CheckIcon className="me-0.5 h-3 w-3 flex-shrink-0" />
+                    )}
+                    <span
+                      className="me-1.5 h-2.5 w-2.5 rounded-full flex-shrink-0"
+                      style={
+                        label.color.startsWith("#")
+                          ? { backgroundColor: label.color }
+                          : {}
+                      }
+                    />
+                    <span className="truncate">{label.name}</span>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
           )}
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={on_print}>
