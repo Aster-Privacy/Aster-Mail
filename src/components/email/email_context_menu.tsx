@@ -35,11 +35,9 @@ import {
   FolderPlusIcon,
   TagIcon,
   ArchiveBoxIcon,
-  ExclamationTriangleIcon,
   TrashIcon,
   PrinterIcon,
   InboxIcon,
-  ShieldCheckIcon,
   ArrowPathIcon,
   ClockIcon,
   CalendarIcon,
@@ -49,6 +47,10 @@ import {
   ArrowTopRightOnSquareIcon,
 } from "@heroicons/react/24/outline";
 
+import {
+  NotSpamIcon,
+  ReportSpamIcon,
+} from "@/components/email/spam_action_icons";
 import { PinIcon } from "@/components/common/icons";
 import { category_icon } from "@/data/category_icons";
 import { use_i18n } from "@/lib/i18n/context";
@@ -648,7 +650,7 @@ function EmailContextMenuContentInner({
           disabled={loading_action === "not_spam"}
           onClick={() => handle_action("not_spam", on_mark_not_spam)}
         >
-          <ShieldCheckIcon className="me-2 h-4 w-4" />
+          <NotSpamIcon className="me-2 h-4 w-4" />
           {t("mail.not_spam")}
         </ContextMenuItem>
       )}
@@ -673,7 +675,7 @@ function EmailContextMenuContentInner({
           disabled={loading_action === "spam"}
           onClick={() => handle_action("spam", on_spam)}
         >
-          <ExclamationTriangleIcon className="me-2 h-4 w-4" />
+          <ReportSpamIcon className="me-2 h-4 w-4" />
           {t("mail.report_spam")}
         </ContextMenuItem>
       )}

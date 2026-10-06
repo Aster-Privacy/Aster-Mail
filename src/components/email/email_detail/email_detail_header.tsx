@@ -28,13 +28,13 @@ import {
   EllipsisVerticalIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  ExclamationTriangleIcon,
   PrinterIcon,
   DocumentTextIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { Button, IslandIconButton, Tooltip } from "@aster/ui";
 
+import { ReportSpamIcon } from "@/components/email/spam_action_icons";
 import { MobileMenuButton } from "@/components/layout/sidebar";
 import {
   DropdownMenu,
@@ -156,7 +156,7 @@ export function EmailDetailHeader({
               variant="ghost"
               onClick={handle_report_spam}
             >
-              <ExclamationTriangleIcon className="w-4 h-4 text-txt-secondary" />
+              <ReportSpamIcon className="w-4 h-4 text-txt-secondary" />
             </Button>
           </Tooltip>
         )}
@@ -244,7 +244,7 @@ export function EmailDetailHeader({
             </DropdownMenuItem>
             {handle_report_spam && (
               <DropdownMenuItem onClick={handle_report_spam}>
-                <ExclamationTriangleIcon className="w-4 h-4 me-2" />
+                <ReportSpamIcon className="w-4 h-4 me-2" />
                 {t("mail.report_spam")}
               </DropdownMenuItem>
             )}

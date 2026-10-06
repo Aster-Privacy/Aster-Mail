@@ -18,15 +18,18 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { ComponentType, SVGProps } from "react";
+
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import {
-  ExclamationTriangleIcon,
-  ShieldCheckIcon,
-} from "@heroicons/react/24/outline";
 
 import { ViewerToolbarActions } from "./toolbar_actions";
+
+import {
+  NotSpamIcon,
+  ReportSpamIcon,
+} from "@/components/email/spam_action_icons";
 
 let toolbar_mode: "simple" | "advanced" = "advanced";
 
@@ -63,7 +66,7 @@ declare global {
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
-const icon_markup = (Icon: typeof ShieldCheckIcon) => {
+const icon_markup = (Icon: ComponentType<SVGProps<SVGSVGElement>>) => {
   const host = document.createElement("div");
   const icon_root = createRoot(host);
 
@@ -193,7 +196,7 @@ describe("ViewerToolbarActions button order", () => {
     });
     const not_spam_icon = button_icon("mail.not_spam");
 
-    expect(report_icon).toBe(icon_markup(ExclamationTriangleIcon));
-    expect(not_spam_icon).toBe(icon_markup(ShieldCheckIcon));
+    expect(report_icon).toBe(icon_markup(ReportSpamIcon));
+    expect(not_spam_icon).toBe(icon_markup(NotSpamIcon));
   });
 });

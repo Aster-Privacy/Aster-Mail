@@ -29,7 +29,6 @@ import {
   TrashIcon,
   EnvelopeOpenIcon,
   EnvelopeIcon,
-  ExclamationTriangleIcon,
   ArrowUturnLeftIcon,
   InboxIcon,
   ClockIcon,
@@ -44,6 +43,7 @@ import {
 import { Button, Checkbox, Tooltip } from "@aster/ui";
 import { Capacitor } from "@capacitor/core";
 
+import { ReportSpamIcon } from "@/components/email/spam_action_icons";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -647,7 +647,7 @@ export function InboxHeader({
                       className="h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)] text-[var(--icon-secondary)] hover:text-[var(--icon-active)]"
                       onClick={on_spam}
                     >
-                      <ExclamationTriangleIcon className="w-[18px] h-[18px]" />
+                      <ReportSpamIcon className="w-[18px] h-[18px]" />
                     </button>
                   </Tooltip>
                 )}
@@ -792,7 +792,7 @@ export function InboxHeader({
                       !hide_mail_actions &&
                       on_spam && (
                         <DropdownMenuItem onClick={on_spam}>
-                          <ExclamationTriangleIcon className="w-4 h-4 me-2" />
+                          <ReportSpamIcon className="w-4 h-4 me-2" />
                           {t("mail.report_spam")}
                         </DropdownMenuItem>
                       )}

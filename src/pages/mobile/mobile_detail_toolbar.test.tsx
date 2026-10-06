@@ -18,13 +18,11 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { ComponentType, SVGProps } from "react";
+
 import { describe, it, expect, vi } from "vitest";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
-import {
-  ExclamationTriangleIcon,
-  ShieldCheckIcon,
-} from "@heroicons/react/24/outline";
 
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean;
@@ -40,6 +38,11 @@ import {
   DEFAULT_TOOLBAR,
   MAX_TOOLBAR_ACTIONS,
 } from "./mobile_detail_toolbar";
+
+import {
+  NotSpamIcon,
+  ReportSpamIcon,
+} from "@/components/email/spam_action_icons";
 
 function render_toolbar(props: Partial<Parameters<typeof MobileToolbar>[0]>) {
   const host = document.createElement("div");
@@ -99,7 +102,7 @@ function first_icon(props: Partial<Parameters<typeof MobileToolbar>[0]>) {
   return markup;
 }
 
-function icon_markup(Icon: typeof ShieldCheckIcon) {
+function icon_markup(Icon: ComponentType<SVGProps<SVGSVGElement>>) {
   const host = document.createElement("div");
   const root = createRoot(host);
 
@@ -146,11 +149,9 @@ describe("mobile detail toolbar", () => {
   });
 
   it("uses the shared spam icons for report spam and not spam", () => {
-    expect(first_icon({ actions: ["spam"] })).toBe(
-      icon_markup(ExclamationTriangleIcon),
-    );
+    expect(first_icon({ actions: ["spam"] })).toBe(icon_markup(ReportSpamIcon));
     expect(first_icon({ actions: ["spam"], is_spam: true })).toBe(
-      icon_markup(ShieldCheckIcon),
+      icon_markup(NotSpamIcon),
     );
   });
 });

@@ -37,11 +37,13 @@ import {
   EllipsisHorizontalIcon,
   PrinterIcon,
   FolderIcon,
-  ShieldCheckIcon,
-  ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 import { Button, Tooltip } from "@aster/ui";
 
+import {
+  NotSpamIcon,
+  ReportSpamIcon,
+} from "@/components/email/spam_action_icons";
 import { PinIcon } from "@/components/common/icons";
 import { folder_option_indent } from "@/hooks/use_folders/tree";
 import {
@@ -242,9 +244,9 @@ export function PopupEmailActions({
           onClick={is_spam && on_not_spam ? on_not_spam : on_spam}
         >
           {is_spam && on_not_spam ? (
-            <ShieldCheckIcon className="w-[18px] h-[18px]" />
+            <NotSpamIcon className="w-[18px] h-[18px]" />
           ) : (
-            <ExclamationTriangleIcon className="w-[18px] h-[18px]" />
+            <ReportSpamIcon className="w-[18px] h-[18px]" />
           )}
         </Button>
       </Tooltip>
@@ -315,12 +317,12 @@ export function PopupEmailActions({
           )}
           {is_spam && on_not_spam ? (
             <DropdownMenuItem disabled={is_spam_loading} onClick={on_not_spam}>
-              <ShieldCheckIcon className="w-4 h-4 me-2" />
+              <NotSpamIcon className="w-4 h-4 me-2" />
               {t("mail.not_spam")}
             </DropdownMenuItem>
           ) : (
             <DropdownMenuItem disabled={is_spam_loading} onClick={on_spam}>
-              <ExclamationTriangleIcon className="w-4 h-4 me-2" />
+              <ReportSpamIcon className="w-4 h-4 me-2" />
               {t("mail.report_spam")}
             </DropdownMenuItem>
           )}
