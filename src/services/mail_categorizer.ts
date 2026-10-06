@@ -30,6 +30,7 @@ import { get_sender_domain } from "@/utils/unsubscribe_detector";
 import { is_official_sender } from "@/lib/utils";
 import {
   ASTER_DOMAIN_SUFFIXES,
+  PERSONAL_MAILBOX_DOMAINS,
   SOCIAL_DOMAIN_SUFFIXES,
   FORUM_DOMAIN_SUFFIXES,
   FINANCE_DOMAIN_SUFFIXES,
@@ -55,7 +56,7 @@ import {
   DEFAULT_ENABLED_CATEGORIES,
 } from "@/data/category_catalog";
 
-export const CLASSIFIER_VERSION = 4;
+export const CLASSIFIER_VERSION = 5;
 
 export const CATEGORY_TABS: readonly EmailCategory[] = [
   "primary",
@@ -94,6 +95,7 @@ const PROMO_LOCALPARTS = new Set([
 // Sets are built once. domain_in_set walks parent domains (a.b.c -> b.c -> c),
 // so it is O(labels) per lookup regardless of list size and matches subdomains.
 const ASTER_SET = new Set(ASTER_DOMAIN_SUFFIXES);
+const PERSONAL_MAILBOX_SET = new Set(PERSONAL_MAILBOX_DOMAINS);
 const SOCIAL_SET = new Set(SOCIAL_DOMAIN_SUFFIXES);
 const FORUM_SET = new Set(FORUM_DOMAIN_SUFFIXES);
 const FINANCE_SET = new Set(FINANCE_DOMAIN_SUFFIXES);
@@ -316,6 +318,35 @@ export function classify(
     return custom_match;
   }
 
+  const list_shaped =
+    headers.has("list-id") ||
+    headers.has("list-post") ||
+    headers.has("mailing-list") ||
+    !!envelope.list_unsubscribe ||
+    headers.has("list-unsubscribe");
+  const has_unsubscribe =
+    !!envelope.list_unsubscribe ||
+    !!envelope.list_unsubscribe_post ||
+    headers.has("list-unsubscribe");
+  const auto_submitted = (headers.get("auto-submitted") || "").toLowerCase();
+  const machine_sent = auto_submitted !== "" && auto_submitted !== "no";
+  const bulk_precedence =
+    precedence === "bulk" ||
+    precedence === "list" ||
+    precedence === "auto_replied";
+
+  if (
+    PERSONAL_MAILBOX_SET.has(from_domain) &&
+    !list_shaped &&
+    !has_unsubscribe &&
+    !machine_sent &&
+    !bulk_precedence &&
+    !in_any(MARKETING_SET) &&
+    !in_any(BULK_INFRA_SET)
+  ) {
+    return "primary";
+  }
+
   // 2. Social networks - reliable, unambiguous sender-domain signal.
   if (domain_in_set(from_domain, SOCIAL_SET)) {
     return "social";
@@ -349,12 +380,6 @@ export function classify(
   //     a brand selling to you. This has to run before the list-header branch
   //     below, because an editorial send carries the same List-Id and
   //     List-Unsubscribe as a mailing list and would otherwise read as a forum.
-  const list_shaped =
-    headers.has("list-id") ||
-    headers.has("list-post") ||
-    headers.has("mailing-list") ||
-    !!envelope.list_unsubscribe ||
-    headers.has("list-unsubscribe");
   const hard_sell = matches_any(subject, PROMOTIONS_SUBJECT_PATTERNS);
   const discussion_shaped =
     headers.has("list-post") ||
@@ -390,21 +415,12 @@ export function classify(
 
   // 4. Is this bulk / automated at all? Personal, human-sent mail has none of
   //    these markers and must NEVER be pulled out of Primary. Precision guard.
-  const has_unsubscribe =
-    !!envelope.list_unsubscribe ||
-    !!envelope.list_unsubscribe_post ||
-    headers.has("list-unsubscribe");
-  const auto_submitted = (headers.get("auto-submitted") || "").toLowerCase();
-  const bulk_precedence =
-    precedence === "bulk" ||
-    precedence === "list" ||
-    precedence === "auto_replied";
   const is_automated =
     has_unsubscribe ||
     bulk_precedence ||
     headers.has("feedback-id") ||
     headers.has("x-csa-complaints") ||
-    (auto_submitted !== "" && auto_submitted !== "no") ||
+    machine_sent ||
     BULK_LOCALPARTS_SET.has(localpart) ||
     in_any(MARKETING_SET) ||
     in_any(BULK_INFRA_SET);
