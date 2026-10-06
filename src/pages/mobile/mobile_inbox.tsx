@@ -230,6 +230,9 @@ function MobileInbox({
 
   useEffect(() => {
     set_active_filter("all");
+  }, [current_view]);
+
+  useEffect(() => {
     set_selection_mode(false);
     set_selected_ids(new Set());
     set_snooze_email_target(null);
@@ -1212,7 +1215,7 @@ function MobileInbox({
         )}
       </div>
 
-      {categories.enabled && (
+      {categories.enabled && categories.restored && (
         <CategoryTabs
           compact
           active_category={categories.active_category}

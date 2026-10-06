@@ -202,7 +202,6 @@ export function CategoryTabs({
               aria-label={label}
               className={`relative flex min-h-14 min-w-20 flex-1 flex-col items-center justify-center gap-1 px-2 py-2 text-xs font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand ${is_active ? "aster_cat_tab_current text-brand" : "text-txt-secondary"}`}
               style={color_style}
-              title={label}
               type="button"
               onClick={() => on_change(key)}
             >
