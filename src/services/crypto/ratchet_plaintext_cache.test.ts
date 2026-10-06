@@ -25,7 +25,10 @@ const h = vi.hoisted(() => ({
   state: { uid: "acct-a" as string | null },
 }));
 
-vi.mock("./encrypted_storage", () => ({
+vi.mock("./encrypted_storage", async () => ({
+  ...(
+    await import("@/tests/fixtures/storage_name_support")
+  ).storage_name_support(h.store),
   encrypted_get: vi.fn(async (key: string) =>
     h.store.has(key) ? JSON.parse(JSON.stringify(h.store.get(key))) : null,
   ),
@@ -56,12 +59,13 @@ import {
   clear_ratchet_verification_status,
   is_unauthenticated_plaintext,
 } from "./ratchet_verification_status";
+import { scoped_storage_name } from "@/services/crypto/storage_key_names";
 
 const HOUR = 60 * 60 * 1000;
 const DAY = 24 * HOUR;
 
-function cache_id(message_id: string): string {
-  return `ratchet_plaintext_${h.state.uid}_${message_id}`;
+function cache_id(message_id: string): Promise<string> {
+  return scoped_storage_name("ratchet_plaintext_", h.state.uid, message_id);
 }
 
 describe("ratchet plaintext cache durability", () => {
@@ -93,7 +97,9 @@ describe("ratchet plaintext cache durability", () => {
     vi.spyOn(Date, "now").mockReturnValue(stored + 2 * DAY);
     await get_cached_ratchet_plaintext("msg1");
 
-    const refreshed = h.store.get(cache_id("msg1")) as { stored_at: number };
+    const refreshed = h.store.get(await cache_id("msg1")) as {
+      stored_at: number;
+    };
 
     expect(refreshed.stored_at).toBe(stored + 2 * DAY);
   });
@@ -106,7 +112,7 @@ describe("ratchet plaintext cache durability", () => {
     vi.spyOn(Date, "now").mockReturnValue(stored + 91 * DAY);
 
     expect(await get_cached_ratchet_plaintext("msg1")).toBeNull();
-    expect(h.store.has(cache_id("msg1"))).toBe(false);
+    expect(h.store.has(await cache_id("msg1"))).toBe(false);
   });
 
   it("restores the unauthenticated mark after a reload", async () => {
@@ -119,7 +125,7 @@ describe("ratchet plaintext cache durability", () => {
     expect(await get_cached_ratchet_plaintext("lane")).toBe("from the lane");
     expect(is_unauthenticated_plaintext("from the lane")).toBe(true);
     expect(
-      (h.store.get(cache_id("lane")) as { unauthenticated?: boolean })
+      (h.store.get(await cache_id("lane")) as { unauthenticated?: boolean })
         .unauthenticated,
     ).toBe(true);
     expect(await get_cached_ratchet_plaintext("plain")).toBe(

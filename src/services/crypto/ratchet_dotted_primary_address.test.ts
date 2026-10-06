@@ -51,7 +51,10 @@ vi.mock("@/services/account_manager", () => ({
   get_current_account_id: vi.fn(async () => "user-1"),
 }));
 
-vi.mock("@/services/crypto/encrypted_storage", () => ({
+vi.mock("@/services/crypto/encrypted_storage", async () => ({
+  ...(
+    await import("@/tests/fixtures/storage_name_support")
+  ).storage_name_support(h.store),
   encrypted_get: vi.fn(async (key: string) =>
     h.store.has(key) ? JSON.parse(JSON.stringify(h.store.get(key))) : undefined,
   ),
@@ -106,6 +109,7 @@ import {
   decrypt_ratchet_message,
 } from "@/services/crypto/ratchet_manager";
 import { reset_vault_refresh_state } from "@/services/crypto/vault_refresh";
+import { scoped_storage_name } from "@/services/crypto/storage_key_names";
 
 const CANONICAL_EMAIL = "firstlast@astermail.org";
 const DISPLAY_EMAIL = "first.last@astermail.org";
@@ -223,13 +227,24 @@ describe("dotted primary address", () => {
       PEER_EMAIL,
     );
     const display_id = await derive_conversation_id(DISPLAY_EMAIL, PEER_EMAIL);
+    const canonical_name = await scoped_storage_name(
+      "ratchet_state_",
+      "user-1",
+      canonical_id,
+    );
+    const display_name = await scoped_storage_name(
+      "ratchet_state_",
+      "user-1",
+      display_id,
+    );
     const own_state_keys = stored_state_keys().filter(
       (key) => !peer_state_keys.includes(key),
     );
 
-    expect(own_state_keys.some((key) => key.includes(display_id))).toBe(false);
+    expect(own_state_keys).not.toContain(display_name);
+    expect(stored_state_keys()).toContain(canonical_name);
     expect(stored_state_keys().some((key) => key.includes(canonical_id))).toBe(
-      true,
+      false,
     );
   });
 });

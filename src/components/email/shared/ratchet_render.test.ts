@@ -37,6 +37,7 @@ vi.mock("@/services/crypto/key_manager_pgp", async (import_original) => ({
 const h = vi.hoisted(() => ({
   vault: null as unknown,
   bundle: null as unknown,
+  names: new Map<string, unknown>(),
 }));
 
 vi.mock("@/services/crypto/memory_key_store", () => ({
@@ -47,8 +48,13 @@ vi.mock("@/services/crypto/memory_key_store", () => ({
   has_vault_in_memory: () => h.vault !== null,
 }));
 
-vi.mock("@/services/crypto/encrypted_storage", () => ({
-  encrypted_get: vi.fn(async () => undefined),
+vi.mock("@/services/crypto/encrypted_storage", async () => ({
+  ...(
+    await import("@/tests/fixtures/storage_name_support")
+  ).storage_name_support(h.names),
+  encrypted_get: vi.fn(async (key: string) =>
+    key.startsWith("storage_name_key") ? h.names.get(key) : undefined,
+  ),
   encrypted_set: vi.fn(async () => {}),
   encrypted_delete: vi.fn(async () => {}),
 }));

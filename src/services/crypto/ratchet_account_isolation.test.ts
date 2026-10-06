@@ -25,7 +25,10 @@ const h = vi.hoisted(() => ({
   state: { uid: "acct-a" as string | null, unreadable: false },
 }));
 
-vi.mock("./encrypted_storage", () => ({
+vi.mock("./encrypted_storage", async () => ({
+  ...(
+    await import("@/tests/fixtures/storage_name_support")
+  ).storage_name_support(h.store),
   encrypted_get: vi.fn(async (key: string) =>
     h.store.has(key) ? JSON.parse(JSON.stringify(h.store.get(key))) : null,
   ),
@@ -55,11 +58,16 @@ import {
   clear_all_ratchet_states,
 } from "./ratchet_state_store";
 import { DoubleRatchet } from "./double_ratchet";
+import { scoped_storage_name } from "@/services/crypto/storage_key_names";
 
 function fake_ratchet(conversation_id: string, marker: number): DoubleRatchet {
   return {
     serialize: async () => ({ conversation_id, state: { marker } }),
   } as unknown as DoubleRatchet;
+}
+
+function state_name(uid: string, conversation_id: string): Promise<string> {
+  return scoped_storage_name("ratchet_state_", uid, conversation_id);
 }
 
 describe("ratchet storage account isolation", () => {
@@ -72,6 +80,8 @@ describe("ratchet storage account isolation", () => {
   it("refuses to fall back to the global key space when account storage is unreadable", async () => {
     await save_ratchet_state(fake_ratchet("cid1", 1));
 
+    const kept_name = await state_name("acct-a", "cid1");
+
     h.state.uid = null;
     h.state.unreadable = true;
 
@@ -80,7 +90,7 @@ describe("ratchet storage account isolation", () => {
 
     expect(h.store.has("ratchet_state_cid1")).toBe(false);
 
-    const kept = h.store.get("ratchet_state_acct-a_cid1") as {
+    const kept = h.store.get(kept_name) as {
       state: { marker: number };
     };
 
@@ -90,7 +100,7 @@ describe("ratchet storage account isolation", () => {
   it("writes ratchet state under the account namespace, not the global key", async () => {
     await save_ratchet_state(fake_ratchet("cid1", 1));
 
-    expect(h.store.has("ratchet_state_acct-a_cid1")).toBe(true);
+    expect(h.store.has(await state_name("acct-a", "cid1"))).toBe(true);
     expect(h.store.has("ratchet_state_cid1")).toBe(false);
     expect(h.store.get("ratchet_conversation_index_acct-a")).toEqual(["cid1"]);
     expect(h.store.has("ratchet_conversation_index")).toBe(false);
@@ -102,10 +112,10 @@ describe("ratchet storage account isolation", () => {
     h.state.uid = "acct-b";
     await save_ratchet_state(fake_ratchet("shared", 2));
 
-    const a = h.store.get("ratchet_state_acct-a_shared") as {
+    const a = h.store.get(await state_name("acct-a", "shared")) as {
       state: { marker: number };
     };
-    const b = h.store.get("ratchet_state_acct-b_shared") as {
+    const b = h.store.get(await state_name("acct-b", "shared")) as {
       state: { marker: number };
     };
 
@@ -121,7 +131,7 @@ describe("ratchet storage account isolation", () => {
 
     await load_ratchet_state("legacycid").catch(() => null);
 
-    expect(h.store.has("ratchet_state_acct-a_legacycid")).toBe(true);
+    expect(h.store.has(await state_name("acct-a", "legacycid"))).toBe(true);
     expect(h.store.has("ratchet_state_legacycid")).toBe(false);
     expect(h.store.get("ratchet_conversation_index_acct-a")).toContain(
       "legacycid",
@@ -137,7 +147,7 @@ describe("ratchet storage account isolation", () => {
     const result = await load_ratchet_state("cid1").catch(() => null);
 
     expect(result).toBeNull();
-    expect(h.store.has("ratchet_state_acct-a_cid1")).toBe(false);
+    expect(h.store.has(await state_name("acct-a", "cid1"))).toBe(false);
     expect(h.store.has("ratchet_state_acct-b_cid1")).toBe(true);
   });
 
@@ -150,7 +160,7 @@ describe("ratchet storage account isolation", () => {
 
     await delete_ratchet_state("cid1");
 
-    expect(h.store.has("ratchet_state_acct-a_cid1")).toBe(false);
+    expect(h.store.has(await state_name("acct-a", "cid1"))).toBe(false);
     expect(h.store.has("ratchet_state_cid1")).toBe(false);
     expect(h.store.has("ratchet_conversation_index_acct-a")).toBe(false);
   });
@@ -177,7 +187,7 @@ describe("ratchet storage account isolation", () => {
 
     await clear_all_ratchet_states();
 
-    expect(h.store.has("ratchet_state_acct-a_a1")).toBe(false);
+    expect(h.store.has(await state_name("acct-a", "a1"))).toBe(false);
     expect(h.store.has("ratchet_conversation_index_acct-a")).toBe(false);
     expect(h.store.has("ratchet_state_legacy")).toBe(false);
     expect(h.store.has("ratchet_conversation_index")).toBe(false);

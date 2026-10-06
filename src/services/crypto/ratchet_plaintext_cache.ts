@@ -18,22 +18,23 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import {
-  encrypted_get,
-  encrypted_set,
-  encrypted_delete,
-  encrypted_list_keys,
-} from "./encrypted_storage";
+import { encrypted_delete_where } from "./encrypted_storage";
 import {
   get_derived_encryption_key,
   has_vault_in_memory,
 } from "./memory_key_store";
 
 import { mark_unauthenticated_plaintext } from "./ratchet_verification_status";
+import {
+  RATCHET_PLAINTEXT_PREFIX,
+  delete_scoped_entries,
+  scoped_delete,
+  scoped_get,
+  scoped_set,
+} from "./storage_key_names";
 
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 
-const CACHE_KEY_PREFIX = "ratchet_plaintext_";
 const REFRESH_AFTER_MS = 24 * 60 * 60 * 1000;
 const RETENTION_MS = 90 * 24 * 60 * 60 * 1000;
 
@@ -43,7 +44,11 @@ interface CachedPlaintext {
   unauthenticated?: boolean;
 }
 
-async function namespaced_cache_id(message_id: string): Promise<string | null> {
+interface CacheScope {
+  uid: string | null;
+}
+
+async function current_cache_scope(): Promise<CacheScope | null> {
   try {
     const { get_current_account_id, accounts_storage_unreadable } =
       await import("@/services/account_manager");
@@ -51,7 +56,7 @@ async function namespaced_cache_id(message_id: string): Promise<string | null> {
 
     if (uid === null && accounts_storage_unreadable()) return null;
 
-    return `${CACHE_KEY_PREFIX}${uid ?? ""}_${message_id}`;
+    return { uid };
   } catch {
     return null;
   }
@@ -86,18 +91,24 @@ export async function get_cached_ratchet_plaintext(
 
     if (!key) return null;
 
-    const cache_id = await namespaced_cache_id(message_id);
+    const scope = await current_cache_scope();
 
-    if (!cache_id) return null;
+    if (!scope) return null;
 
-    const entry = await encrypted_get<CachedPlaintext>(cache_id, key);
+    const entry = await scoped_get<CachedPlaintext>(
+      RATCHET_PLAINTEXT_PREFIX,
+      scope.uid,
+      message_id,
+      key,
+      { include_unscoped: false },
+    );
 
     if (!entry) return null;
 
     const age = Date.now() - entry.stored_at;
 
     if (age > RETENTION_MS) {
-      await encrypted_delete(cache_id);
+      await scoped_delete(RATCHET_PLAINTEXT_PREFIX, scope.uid, message_id);
 
       return null;
     }
@@ -109,7 +120,13 @@ export async function get_cached_ratchet_plaintext(
         ...(entry.unauthenticated ? { unauthenticated: true } : {}),
       };
 
-      await encrypted_set(cache_id, refreshed, key);
+      await scoped_set(
+        RATCHET_PLAINTEXT_PREFIX,
+        scope.uid,
+        message_id,
+        refreshed,
+        key,
+      );
     }
 
     if (entry.unauthenticated) {
@@ -139,11 +156,17 @@ export async function set_cached_ratchet_plaintext(
       ...(unauthenticated ? { unauthenticated: true } : {}),
     };
 
-    const cache_id = await namespaced_cache_id(message_id);
+    const scope = await current_cache_scope();
 
-    if (!cache_id) return;
+    if (!scope) return;
 
-    await encrypted_set(cache_id, entry, key);
+    await scoped_set(
+      RATCHET_PLAINTEXT_PREFIX,
+      scope.uid,
+      message_id,
+      entry,
+      key,
+    );
   } catch {
     /* best-effort */
   }
@@ -151,13 +174,19 @@ export async function set_cached_ratchet_plaintext(
 
 export async function clear_plaintext_cache(): Promise<void> {
   try {
-    const keys = await encrypted_list_keys();
+    await encrypted_delete_where((key) =>
+      key.startsWith(RATCHET_PLAINTEXT_PREFIX),
+    );
+  } catch {
+    /* best-effort */
+  }
+}
 
-    for (const key of keys) {
-      if (key.startsWith(CACHE_KEY_PREFIX)) {
-        await encrypted_delete(key);
-      }
-    }
+export async function clear_account_plaintext_cache(
+  account_id: string,
+): Promise<void> {
+  try {
+    await delete_scoped_entries(RATCHET_PLAINTEXT_PREFIX, account_id);
   } catch {
     /* best-effort */
   }

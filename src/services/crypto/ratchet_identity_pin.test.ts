@@ -44,7 +44,10 @@ vi.mock("@/services/crypto/memory_key_store", () => ({
   get_derived_encryption_key: () => (h.key ? new Uint8Array(h.key) : null),
 }));
 
-vi.mock("@/services/crypto/encrypted_storage", () => ({
+vi.mock("@/services/crypto/encrypted_storage", async () => ({
+  ...(
+    await import("@/tests/fixtures/storage_name_support")
+  ).storage_name_support(h.store),
   encrypted_get: vi.fn(async (key: string) =>
     h.store.has(key) ? JSON.parse(JSON.stringify(h.store.get(key))) : null,
   ),
@@ -76,9 +79,14 @@ import {
   clear_ratchet_verification_status,
   get_peer_identity_event,
 } from "@/services/crypto/ratchet_verification_status";
+import { scoped_storage_name } from "@/services/crypto/storage_key_names";
 
 const KEY_A = btoa("identity-key-aaaaaaaaaaaaaaaaaaaaaaaa");
 const KEY_B = btoa("identity-key-bbbbbbbbbbbbbbbbbbbbbbbb");
+
+function pin_name(prefix: string, peer: string): Promise<string> {
+  return scoped_storage_name(prefix, "acct-1", peer);
+}
 
 describe("ratchet identity pin", () => {
   beforeEach(() => {
@@ -177,7 +185,9 @@ describe("ratchet identity pin", () => {
     expect(change?.fingerprint).toBe(
       await get_pinned_identity_fingerprint("alice"),
     );
-    expect(h.store.has("ratchet_identity_change_acct-1_alice")).toBe(true);
+    expect(
+      h.store.has(await pin_name("ratchet_identity_change_", "alice")),
+    ).toBe(true);
     expect(get_peer_identity_event("alice")?.event).toBe("rotated");
 
     expect(await check_and_pin_identity("alice", KEY_B, true)).toBe("ok");
@@ -205,13 +215,15 @@ describe("ratchet identity pin", () => {
   it("moves a legacy unscoped pin into the account and removes the old entry", async () => {
     await check_and_pin_identity("alice", KEY_A);
 
-    const scoped = h.store.get("ratchet_identity_pin_acct-1_alice");
+    const scoped_name = await pin_name("ratchet_identity_pin_", "alice");
+    const scoped = h.store.get(scoped_name);
 
-    h.store.delete("ratchet_identity_pin_acct-1_alice");
+    expect(scoped).toBeDefined();
+    h.store.delete(scoped_name);
     h.store.set("ratchet_identity_pin_alice", scoped);
 
     expect(await check_and_pin_identity("alice", KEY_A)).toBe("ok");
-    expect(h.store.has("ratchet_identity_pin_acct-1_alice")).toBe(true);
+    expect(h.store.has(scoped_name)).toBe(true);
     expect(h.store.has("ratchet_identity_pin_alice")).toBe(false);
   });
 

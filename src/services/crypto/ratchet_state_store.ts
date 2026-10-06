@@ -28,10 +28,16 @@ import {
   has_vault_in_memory,
 } from "./memory_key_store";
 import { DoubleRatchet, type SerializedState } from "./double_ratchet";
+import {
+  RATCHET_STATE_PREFIX,
+  delete_scoped_entries,
+  scoped_delete,
+  scoped_get,
+  scoped_set,
+} from "./storage_key_names";
 
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 
-const RATCHET_STORAGE_KEY_PREFIX = "ratchet_state_";
 const RATCHET_INDEX_KEY = "ratchet_conversation_index";
 const MAX_ARCHIVED_RATCHET_STATES = 3;
 
@@ -60,9 +66,8 @@ async function get_storage_encryption_key(): Promise<CryptoKey> {
 }
 
 async function current_account_uid(): Promise<string | null> {
-  const { get_current_account_id, accounts_storage_unreadable } = await import(
-    "@/services/account_manager"
-  );
+  const { get_current_account_id, accounts_storage_unreadable } =
+    await import("@/services/account_manager");
 
   const uid = await get_current_account_id();
 
@@ -73,14 +78,8 @@ async function current_account_uid(): Promise<string | null> {
   return uid;
 }
 
-function legacy_state_key(conversation_id: string): string {
-  return `${RATCHET_STORAGE_KEY_PREFIX}${conversation_id}`;
-}
-
-function state_key_for(uid: string | null, conversation_id: string): string {
-  if (!uid) return legacy_state_key(conversation_id);
-
-  return `${RATCHET_STORAGE_KEY_PREFIX}${uid}_${conversation_id}`;
+function archive_name(conversation_id: string): string {
+  return `${conversation_id}_archive`;
 }
 
 function index_key_for(uid: string | null): string {
@@ -109,14 +108,15 @@ export async function save_ratchet_state(
   const serialized = await ratchet.serialize();
   const storage_key = await get_storage_encryption_key();
   const uid = await current_account_uid();
-  const state_key = state_key_for(uid, serialized.conversation_id);
 
-  await encrypted_set(state_key, serialized, storage_key);
+  await scoped_set(
+    RATCHET_STATE_PREFIX,
+    uid,
+    serialized.conversation_id,
+    serialized,
+    storage_key,
+  );
   await add_conversation_to_index(storage_key, uid, serialized.conversation_id);
-}
-
-function archive_key_for(uid: string | null, conversation_id: string): string {
-  return `${state_key_for(uid, conversation_id)}_archive`;
 }
 
 function archived_entry_id(state: SerializedState): string {
@@ -128,9 +128,12 @@ export async function load_archived_ratchet_states(
 ): Promise<DoubleRatchet[]> {
   const storage_key = await get_storage_encryption_key();
   const uid = await current_account_uid();
-  const archived = await encrypted_get<SerializedState[]>(
-    archive_key_for(uid, conversation_id),
+  const archived = await scoped_get<SerializedState[]>(
+    RATCHET_STATE_PREFIX,
+    uid,
+    archive_name(conversation_id),
     storage_key,
+    { include_unscoped: false },
   );
 
   if (!archived || archived.length === 0) return [];
@@ -143,16 +146,24 @@ export async function archive_ratchet_state(
 ): Promise<void> {
   const storage_key = await get_storage_encryption_key();
   const uid = await current_account_uid();
-  const key = archive_key_for(uid, state.conversation_id);
+  const name = archive_name(state.conversation_id);
   const stored =
-    (await encrypted_get<SerializedState[]>(key, storage_key)) || [];
+    (await scoped_get<SerializedState[]>(
+      RATCHET_STATE_PREFIX,
+      uid,
+      name,
+      storage_key,
+      { include_unscoped: false },
+    )) || [];
   const id = archived_entry_id(state);
   const kept = stored.filter((entry) => archived_entry_id(entry) !== id);
 
   kept.push(state);
 
-  await encrypted_set(
-    key,
+  await scoped_set(
+    RATCHET_STATE_PREFIX,
+    uid,
+    name,
     kept.slice(Math.max(0, kept.length - MAX_ARCHIVED_RATCHET_STATES)),
     storage_key,
   );
@@ -163,23 +174,15 @@ export async function load_ratchet_state(
 ): Promise<DoubleRatchet | null> {
   const storage_key = await get_storage_encryption_key();
   const uid = await current_account_uid();
-  const state_key = state_key_for(uid, conversation_id);
+  const state = await scoped_get<SerializedState>(
+    RATCHET_STATE_PREFIX,
+    uid,
+    conversation_id,
+    storage_key,
+  );
 
-  let state = await encrypted_get<SerializedState>(state_key, storage_key);
-
-  if (!state && uid) {
-    const legacy_key = legacy_state_key(conversation_id);
-    const legacy_state = await encrypted_get<SerializedState>(
-      legacy_key,
-      storage_key,
-    );
-
-    if (legacy_state) {
-      await encrypted_set(state_key, legacy_state, storage_key);
-      await encrypted_delete(legacy_key);
-      await add_conversation_to_index(storage_key, uid, conversation_id);
-      state = legacy_state;
-    }
+  if (state && uid) {
+    await add_conversation_to_index(storage_key, uid, conversation_id);
   }
 
   if (!state) return null;
@@ -193,12 +196,10 @@ export async function delete_ratchet_state(
   const storage_key = await get_storage_encryption_key();
   const uid = await current_account_uid();
 
-  await encrypted_delete(state_key_for(uid, conversation_id));
-  await encrypted_delete(archive_key_for(uid, conversation_id));
-
-  if (uid) {
-    await encrypted_delete(legacy_state_key(conversation_id));
-  }
+  await scoped_delete(RATCHET_STATE_PREFIX, uid, conversation_id, {
+    include_unscoped: true,
+  });
+  await scoped_delete(RATCHET_STATE_PREFIX, uid, archive_name(conversation_id));
 
   const index_key = index_key_for(uid);
   const index = (await encrypted_get<string[]>(index_key, storage_key)) || [];
@@ -226,31 +227,44 @@ export async function list_ratchet_conversations(): Promise<string[]> {
   }
 }
 
-export async function clear_all_ratchet_states(): Promise<void> {
+async function clear_unscoped_ratchet_states(): Promise<void> {
+  const storage_key = await get_storage_encryption_key();
+  const index =
+    (await encrypted_get<string[]>(RATCHET_INDEX_KEY, storage_key)) || [];
+
+  for (const conversation_id of index) {
+    await scoped_delete(RATCHET_STATE_PREFIX, null, conversation_id);
+    await scoped_delete(
+      RATCHET_STATE_PREFIX,
+      null,
+      archive_name(conversation_id),
+    );
+  }
+
+  await encrypted_delete(RATCHET_INDEX_KEY);
+}
+
+export async function clear_all_ratchet_states(
+  account_id?: string,
+): Promise<void> {
   try {
-    const storage_key = await get_storage_encryption_key();
-    const uid = await current_account_uid();
-    const index_keys = uid
-      ? [index_key_for(uid), RATCHET_INDEX_KEY]
-      : [RATCHET_INDEX_KEY];
+    if (account_id) {
+      await delete_scoped_entries(RATCHET_STATE_PREFIX, account_id);
+      await encrypted_delete(index_key_for(account_id));
 
-    for (const key of index_keys) {
-      const is_legacy = key === RATCHET_INDEX_KEY && uid !== null;
-      const index = (await encrypted_get<string[]>(key, storage_key)) || [];
-
-      for (const conversation_id of index) {
-        const state_key = is_legacy
-          ? legacy_state_key(conversation_id)
-          : state_key_for(uid, conversation_id);
-
-        await encrypted_delete(state_key);
-        await encrypted_delete(
-          archive_key_for(is_legacy ? null : uid, conversation_id),
-        );
-      }
-
-      await encrypted_delete(key);
+      return;
     }
+
+    await get_storage_encryption_key();
+
+    const uid = await current_account_uid();
+
+    if (uid) {
+      await delete_scoped_entries(RATCHET_STATE_PREFIX, uid);
+      await encrypted_delete(index_key_for(uid));
+    }
+
+    await clear_unscoped_ratchet_states();
   } catch {
     return;
   }

@@ -38,7 +38,10 @@ vi.mock("@/services/crypto/secure_memory", () => ({
   zero_uint8_array: () => undefined,
 }));
 
-vi.mock("@/services/crypto/encrypted_storage", () => ({
+vi.mock("@/services/crypto/encrypted_storage", async () => ({
+  ...(
+    await import("@/tests/fixtures/storage_name_support")
+  ).storage_name_support(h.store),
   encrypted_get: vi.fn(async (key: string) =>
     h.store.has(key) ? JSON.parse(JSON.stringify(h.store.get(key))) : null,
   ),

@@ -29,7 +29,10 @@ vi.mock("@/services/crypto/memory_key_store", () => ({
   get_derived_encryption_key: () => (h.key ? new Uint8Array(h.key) : null),
 }));
 
-vi.mock("@/services/crypto/encrypted_storage", () => ({
+vi.mock("@/services/crypto/encrypted_storage", async () => ({
+  ...(
+    await import("@/tests/fixtures/storage_name_support")
+  ).storage_name_support(h.store),
   encrypted_get: vi.fn(async (key: string) =>
     h.store.has(key) ? JSON.parse(JSON.stringify(h.store.get(key))) : null,
   ),
@@ -53,9 +56,14 @@ import {
   clear_ratchet_verification_status,
   get_peer_identity_event,
 } from "@/services/crypto/ratchet_verification_status";
+import { scoped_storage_name } from "@/services/crypto/storage_key_names";
 
 const KEY_A = btoa("identity-key-aaaaaaaaaaaaaaaaaaaaaaaa");
 const KEY_B = btoa("identity-key-bbbbbbbbbbbbbbbbbbbbbbbb");
+
+function pin_name(prefix: string, peer: string): Promise<string> {
+  return scoped_storage_name(prefix, "acct-1", peer);
+}
 
 describe("ratchet identity pin pq memory and failure modes", () => {
   beforeEach(() => {
@@ -80,7 +88,9 @@ describe("ratchet identity pin pq memory and failure modes", () => {
   it("persists the pq flag in the account scoped pin", async () => {
     await check_and_pin_identity("bob", KEY_A, true, true);
 
-    const stored = h.store.get("ratchet_identity_pin_acct-1_bob") as {
+    const stored = h.store.get(
+      await pin_name("ratchet_identity_pin_", "bob"),
+    ) as {
       pq_seen?: boolean;
       verified: boolean;
     };

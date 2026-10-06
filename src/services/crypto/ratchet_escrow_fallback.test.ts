@@ -53,7 +53,10 @@ vi.mock("@/services/account_manager", () => ({
   get_current_account_id: vi.fn(async () => "user-1"),
 }));
 
-vi.mock("@/services/crypto/encrypted_storage", () => ({
+vi.mock("@/services/crypto/encrypted_storage", async () => ({
+  ...(
+    await import("@/tests/fixtures/storage_name_support")
+  ).storage_name_support(h.store),
   encrypted_get: vi.fn(async (key: string) =>
     h.store.has(key) ? JSON.parse(JSON.stringify(h.store.get(key))) : undefined,
   ),

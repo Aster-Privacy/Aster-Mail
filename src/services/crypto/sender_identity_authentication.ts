@@ -18,7 +18,11 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { encrypted_get, encrypted_set } from "./encrypted_storage";
+import {
+  SENDER_HISTORY_PREFIX,
+  scoped_get,
+  scoped_set,
+} from "./storage_key_names";
 import { get_derived_encryption_key } from "./memory_key_store";
 import {
   fetch_prekey_bundle,
@@ -35,7 +39,6 @@ import { extract_username_from_email } from "@/services/api/keys";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 
 const PUBLISHED_CACHE_TTL_MS = 5 * 60 * 1000;
-const HISTORY_STORAGE_PREFIX = "ratchet_sender_identity_history_";
 const MAX_REMEMBERED_IDENTITIES = 12;
 
 interface PublishedCacheEntry {
@@ -68,9 +71,8 @@ export class SenderIdentityUnverifiedError extends Error {
 
 async function current_account_uid(): Promise<string | null> {
   try {
-    const { get_current_account_id } = await import(
-      "@/services/account_manager"
-    );
+    const { get_current_account_id } =
+      await import("@/services/account_manager");
 
     return await get_current_account_id();
   } catch {
@@ -79,9 +81,7 @@ async function current_account_uid(): Promise<string | null> {
 }
 
 function history_key_for(uid: string | null, peer: string): string {
-  if (!uid) return `${HISTORY_STORAGE_PREFIX}${peer}`;
-
-  return `${HISTORY_STORAGE_PREFIX}${uid}_${peer}`;
+  return `${uid ?? ""}\u0000${peer}`;
 }
 
 async function history_storage_key(): Promise<CryptoKey | null> {
@@ -118,19 +118,12 @@ async function load_identity_history(peer: string): Promise<string[]> {
 
     if (!storage_key) return [];
 
-    let stored = await encrypted_get<string[]>(cache_key, storage_key);
-
-    if (!Array.isArray(stored) && uid) {
-      const legacy = await encrypted_get<string[]>(
-        history_key_for(null, peer),
-        storage_key,
-      );
-
-      if (Array.isArray(legacy)) {
-        stored = legacy;
-        await encrypted_set(cache_key, legacy, storage_key);
-      }
-    }
+    const stored = await scoped_get<string[]>(
+      SENDER_HISTORY_PREFIX,
+      uid,
+      peer,
+      storage_key,
+    );
 
     const history = Array.isArray(stored) ? stored : [];
 
@@ -163,7 +156,7 @@ async function remember_identity(
 
     if (!storage_key) return;
 
-    await encrypted_set(cache_key, next, storage_key);
+    await scoped_set(SENDER_HISTORY_PREFIX, uid, peer, next, storage_key);
   } catch {
     return;
   }

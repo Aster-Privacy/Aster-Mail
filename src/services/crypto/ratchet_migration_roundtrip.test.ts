@@ -25,7 +25,10 @@ const h = vi.hoisted(() => ({
   state: { uid: "acct-a" as string | null },
 }));
 
-vi.mock("./encrypted_storage", () => ({
+vi.mock("./encrypted_storage", async () => ({
+  ...(
+    await import("@/tests/fixtures/storage_name_support")
+  ).storage_name_support(h.store),
   encrypted_get: vi.fn(async (key: string) =>
     h.store.has(key) ? JSON.parse(JSON.stringify(h.store.get(key))) : null,
   ),
@@ -49,6 +52,11 @@ vi.mock("@/services/account_manager", () => ({
 
 import { save_ratchet_state, load_ratchet_state } from "./ratchet_state_store";
 import { DoubleRatchet, generate_keypair } from "./double_ratchet";
+import { scoped_storage_name } from "@/services/crypto/storage_key_names";
+
+function state_name(uid: string, conversation_id: string): Promise<string> {
+  return scoped_storage_name("ratchet_state_", uid, conversation_id);
+}
 
 describe("ratchet migrate-on-read keeps existing conversations decryptable", () => {
   beforeEach(() => {
@@ -89,7 +97,7 @@ describe("ratchet migrate-on-read keeps existing conversations decryptable", () 
       "message before migration",
     );
 
-    expect(h.store.has(`ratchet_state_acct-a_${conversation_id}`)).toBe(true);
+    expect(h.store.has(await state_name("acct-a", conversation_id))).toBe(true);
     expect(h.store.has(`ratchet_state_${conversation_id}`)).toBe(false);
   });
 
@@ -118,6 +126,6 @@ describe("ratchet migrate-on-read keeps existing conversations decryptable", () 
     const ciphertext = await sender.encrypt("after reload");
 
     expect(await reloaded!.decrypt(ciphertext)).toBe("after reload");
-    expect(h.store.has(`ratchet_state_acct-a_${conversation_id}`)).toBe(true);
+    expect(h.store.has(await state_name("acct-a", conversation_id))).toBe(true);
   });
 });

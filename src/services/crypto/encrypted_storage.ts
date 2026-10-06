@@ -149,12 +149,12 @@ async function derive_storage_key_from_crypto_key(
   );
 }
 
-export async function encrypted_set(
+async function seal_entry(
   key: string,
   value: unknown,
   encryption_key: CryptoKey,
-): Promise<void> {
-  const db = await open_database();
+  timestamp: number = Date.now(),
+): Promise<EncryptedEntry> {
   const storage_key = await derive_storage_key_from_crypto_key(
     encryption_key,
     key,
@@ -173,34 +173,18 @@ export async function encrypted_set(
 
   zero_uint8_array(plaintext);
 
-  const entry: EncryptedEntry = {
+  return {
     iv,
     ciphertext: new Uint8Array(encrypted_buffer),
     version: CURRENT_VERSION,
-    timestamp: Date.now(),
+    timestamp,
   };
-
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction(STORE_NAME, "readwrite");
-    const store = transaction.objectStore(STORE_NAME);
-    const request = store.put(entry, key);
-
-    request.onsuccess = () => resolve();
-    request.onerror = () => reject(new Error("Failed to store encrypted data"));
-  });
 }
 
-export async function encrypted_get<T>(
-  key: string,
-  decryption_key: CryptoKey,
-): Promise<T | null> {
+async function read_raw_entry(key: string): Promise<EncryptedEntry | null> {
   const db = await open_database();
-  const storage_key = await derive_storage_key_from_crypto_key(
-    decryption_key,
-    key,
-  );
 
-  const entry = await new Promise<EncryptedEntry | null>((resolve, reject) => {
+  return new Promise<EncryptedEntry | null>((resolve, reject) => {
     const transaction = db.transaction(STORE_NAME, "readonly");
     const store = transaction.objectStore(STORE_NAME);
     const request = store.get(key);
@@ -209,16 +193,23 @@ export async function encrypted_get<T>(
     request.onerror = () =>
       reject(new Error("Failed to retrieve encrypted data"));
   });
+}
 
-  if (!entry) {
-    return null;
-  }
-
+async function open_entry<T>(
+  key: string,
+  entry: EncryptedEntry,
+  decryption_key: CryptoKey,
+): Promise<T | null> {
   if (entry.version > CURRENT_VERSION) {
     throw new Error(
       "Data encrypted with newer version. Please update the application.",
     );
   }
+
+  const storage_key = await derive_storage_key_from_crypto_key(
+    decryption_key,
+    key,
+  );
 
   try {
     let decrypted_buffer: ArrayBuffer;
@@ -257,6 +248,194 @@ export async function encrypted_get<T>(
   } catch {
     return null;
   }
+}
+
+export async function encrypted_set(
+  key: string,
+  value: unknown,
+  encryption_key: CryptoKey,
+): Promise<void> {
+  const db = await open_database();
+  const entry = await seal_entry(key, value, encryption_key);
+
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(STORE_NAME, "readwrite");
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.put(entry, key);
+
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(new Error("Failed to store encrypted data"));
+  });
+}
+
+export async function encrypted_get<T>(
+  key: string,
+  decryption_key: CryptoKey,
+): Promise<T | null> {
+  const db_entry = await read_raw_entry(key);
+
+  if (!db_entry) {
+    return null;
+  }
+
+  return open_entry<T>(key, db_entry, decryption_key);
+}
+
+export async function encrypted_has(key: string): Promise<boolean> {
+  return (await read_raw_entry(key)) !== null;
+}
+
+function same_stored_entry(a: EncryptedEntry, b: EncryptedEntry): boolean {
+  if (a.timestamp !== b.timestamp) return false;
+  if (a.iv.length !== b.iv.length) return false;
+
+  for (let i = 0; i < a.iv.length; i++) {
+    if (a.iv[i] !== b.iv[i]) return false;
+  }
+
+  return true;
+}
+
+export type EncryptedMoveOutcome =
+  "moved" | "missing" | "unreadable" | "kept_existing";
+
+const MOVE_ATTEMPTS = 3;
+
+type MoveStep = EncryptedMoveOutcome | "changed";
+
+export async function encrypted_move(
+  from_key: string,
+  to_key: string,
+  encryption_key: CryptoKey,
+): Promise<EncryptedMoveOutcome> {
+  if (from_key === to_key) return "kept_existing";
+
+  const db = await open_database();
+
+  for (let attempt = 0; attempt < MOVE_ATTEMPTS; attempt++) {
+    const source = await read_raw_entry(from_key);
+
+    if (!source) return "missing";
+
+    const value = await open_entry<unknown>(from_key, source, encryption_key);
+
+    if (value === null) return "unreadable";
+
+    const sealed = await seal_entry(
+      to_key,
+      value,
+      encryption_key,
+      source.timestamp,
+    );
+
+    const step = await new Promise<MoveStep>((resolve, reject) => {
+      const transaction = db.transaction(STORE_NAME, "readwrite");
+      const store = transaction.objectStore(STORE_NAME);
+      let result: MoveStep = "changed";
+
+      transaction.oncomplete = () => resolve(result);
+      transaction.onerror = () =>
+        reject(new Error("Failed to move encrypted data"));
+      transaction.onabort = () =>
+        reject(new Error("Failed to move encrypted data"));
+
+      const source_request = store.get(from_key);
+
+      source_request.onsuccess = () => {
+        const live_source = source_request.result as EncryptedEntry | undefined;
+
+        if (!live_source) {
+          result = "missing";
+
+          return;
+        }
+
+        if (!same_stored_entry(live_source, source)) {
+          result = "changed";
+
+          return;
+        }
+
+        const target_request = store.get(to_key);
+
+        target_request.onsuccess = () => {
+          const target = target_request.result as EncryptedEntry | undefined;
+
+          if (target && target.timestamp >= live_source.timestamp) {
+            result = "kept_existing";
+          } else {
+            store.put(sealed, to_key);
+            result = "moved";
+          }
+
+          store.delete(from_key);
+        };
+      };
+    });
+
+    if (step !== "changed") return step;
+  }
+
+  return "unreadable";
+}
+
+export async function encrypted_set_if_absent(
+  key: string,
+  value: unknown,
+  encryption_key: CryptoKey,
+): Promise<boolean> {
+  const db = await open_database();
+  const entry = await seal_entry(key, value, encryption_key);
+
+  return new Promise<boolean>((resolve, reject) => {
+    const transaction = db.transaction(STORE_NAME, "readwrite");
+    const store = transaction.objectStore(STORE_NAME);
+    let stored = false;
+
+    transaction.oncomplete = () => resolve(stored);
+    transaction.onerror = () =>
+      reject(new Error("Failed to store encrypted data"));
+    transaction.onabort = () =>
+      reject(new Error("Failed to store encrypted data"));
+
+    const existing = store.get(key);
+
+    existing.onsuccess = () => {
+      if (existing.result) return;
+
+      store.put(entry, key);
+      stored = true;
+    };
+  });
+}
+
+export async function encrypted_delete_where(
+  matches: (key: string) => boolean,
+): Promise<number> {
+  const db = await open_database();
+
+  return new Promise<number>((resolve, reject) => {
+    const transaction = db.transaction(STORE_NAME, "readwrite");
+    const store = transaction.objectStore(STORE_NAME);
+    let removed = 0;
+
+    transaction.oncomplete = () => resolve(removed);
+    transaction.onerror = () =>
+      reject(new Error("Failed to delete encrypted data"));
+    transaction.onabort = () =>
+      reject(new Error("Failed to delete encrypted data"));
+
+    const request = store.getAllKeys();
+
+    request.onsuccess = () => {
+      for (const key of request.result) {
+        if (typeof key !== "string" || !matches(key)) continue;
+
+        store.delete(key);
+        removed += 1;
+      }
+    };
+  });
 }
 
 export async function encrypted_delete(key: string): Promise<void> {
