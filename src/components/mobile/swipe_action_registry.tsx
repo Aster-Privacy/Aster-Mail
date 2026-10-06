@@ -26,8 +26,9 @@ import {
   EnvelopeOpenIcon,
   ClockIcon,
   StarIcon,
-  ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
+
+import { ReportSpamIcon } from "@/components/email/spam_action_icons";
 
 export type SwipeActionId =
   | "archive"
@@ -79,7 +80,7 @@ const SWIPE_ACTION_REGISTRY: Record<string, SwipeActionDefinition> = {
   spam: {
     id: "spam",
     label_key: "mail.report_spam",
-    icon: ExclamationTriangleIcon,
+    icon: ReportSpamIcon,
     color: "var(--color-danger)",
   },
 };

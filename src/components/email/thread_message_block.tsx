@@ -31,7 +31,6 @@ import {
   TrashIcon,
   PrinterIcon,
   ShieldExclamationIcon,
-  ShieldCheckIcon,
   NoSymbolIcon,
   CodeBracketIcon,
   ClipboardDocumentIcon,
@@ -49,6 +48,10 @@ import { IslandDivider, IslandIconButton, Tooltip } from "@aster/ui";
 import { render_collapsed_thread_message } from "./thread_message_collapsed";
 import { use_thread_message_block } from "./use_thread_message_block";
 
+import {
+  NotSpamIcon,
+  ReportSpamIcon,
+} from "@/components/email/spam_action_icons";
 import { copy_text_or_throw } from "@/utils/copy_text";
 import { is_system_email, trust_source_for_display } from "@/lib/utils";
 import { EmailTag } from "@/components/ui/email_tag";
@@ -753,7 +756,7 @@ export function ThreadMessageBlock(
                     on_not_spam(message);
                   }}
                 >
-                  <ShieldCheckIcon className="w-4 h-4 me-2" />
+                  <NotSpamIcon className="w-4 h-4 me-2" />
                   {t("mail.not_spam")}
                 </DropdownMenuItem>
               ) : on_report_phishing ? (
@@ -763,7 +766,7 @@ export function ThreadMessageBlock(
                     on_report_phishing(message);
                   }}
                 >
-                  <ShieldExclamationIcon className="w-4 h-4 me-2 text-amber-500" />
+                  <ReportSpamIcon className="w-4 h-4 me-2 text-amber-500" />
                   <span className="text-amber-500">
                     {t("common.report_phishing")}
                   </span>

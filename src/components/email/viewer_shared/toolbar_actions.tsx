@@ -30,8 +30,6 @@ import {
   XMarkIcon,
   NoSymbolIcon,
   CheckCircleIcon,
-  ExclamationTriangleIcon,
-  ShieldCheckIcon,
   ArchiveBoxIcon,
   TrashIcon,
   EnvelopeIcon,
@@ -52,6 +50,10 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button, Tooltip } from "@aster/ui";
 
+import {
+  NotSpamIcon,
+  ReportSpamIcon,
+} from "@/components/email/spam_action_icons";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { PinIcon } from "@/components/common/icons";
@@ -385,7 +387,7 @@ export function ViewerToolbarActions({
               variant="ghost"
               onClick={on_not_spam}
             >
-              <ShieldCheckIcon className={icon_size} />
+              <NotSpamIcon className={icon_size} />
             </Button>
           </Tooltip>
         ) : (
@@ -399,7 +401,7 @@ export function ViewerToolbarActions({
               variant="ghost"
               onClick={on_spam}
             >
-              <ExclamationTriangleIcon className={icon_size} />
+              <ReportSpamIcon className={icon_size} />
             </Button>
           </Tooltip>
         ))}
@@ -580,12 +582,12 @@ export function ViewerToolbarActions({
           <DropdownMenuSeparator />
           {is_spam && on_not_spam ? (
             <DropdownMenuItem disabled={is_spam_loading} onClick={on_not_spam}>
-              <ShieldCheckIcon className="w-4 h-4 me-2" />
+              <NotSpamIcon className="w-4 h-4 me-2" />
               {t("mail.not_spam")}
             </DropdownMenuItem>
           ) : (
             <DropdownMenuItem disabled={is_spam_loading} onClick={on_spam}>
-              <ExclamationTriangleIcon className="w-4 h-4 me-2" />
+              <ReportSpamIcon className="w-4 h-4 me-2" />
               {t("mail.report_spam")}
             </DropdownMenuItem>
           )}

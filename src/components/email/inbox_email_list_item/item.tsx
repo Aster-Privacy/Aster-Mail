@@ -34,10 +34,8 @@ import {
   ArchiveBoxArrowDownIcon,
   ArrowUturnLeftIcon,
   AtSymbolIcon,
-  ShieldCheckIcon,
   EnvelopeIcon,
   EnvelopeOpenIcon,
-  ExclamationTriangleIcon,
   InboxIcon,
   PaperClipIcon,
   TrashIcon,
@@ -58,6 +56,10 @@ import {
   truncate_preview,
 } from "./helpers";
 
+import {
+  NotSpamIcon,
+  ReportSpamIcon,
+} from "@/components/email/spam_action_icons";
 import { use_i18n } from "@/lib/i18n/context";
 import { strip_preview_filler } from "@/utils/preview_text";
 import {
@@ -941,7 +943,7 @@ export const InboxEmailListItem = memo(
                       className="p-1.5 rounded-[14px] hover:bg-black/10 dark:hover:bg-white/10"
                       onClick={() => on_mark_not_spam(email)}
                     >
-                      <ShieldCheckIcon className="w-4 h-4 text-txt-muted" />
+                      <NotSpamIcon className="w-4 h-4 text-txt-muted" />
                     </button>
                   </Tooltip>
                 )}
@@ -963,7 +965,7 @@ export const InboxEmailListItem = memo(
                       className="p-1.5 rounded-[14px] hover:bg-black/10 dark:hover:bg-white/10"
                       onClick={() => on_spam(email)}
                     >
-                      <ExclamationTriangleIcon className="w-4 h-4 text-txt-muted" />
+                      <ReportSpamIcon className="w-4 h-4 text-txt-muted" />
                     </button>
                   </Tooltip>
                 )}

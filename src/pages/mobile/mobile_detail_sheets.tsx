@@ -34,10 +34,7 @@ import {
   EnvelopeOpenIcon,
   PrinterIcon,
   CodeBracketIcon,
-  ShieldExclamationIcon,
-  ShieldCheckIcon,
   ClipboardDocumentIcon,
-  ExclamationTriangleIcon,
   AdjustmentsHorizontalIcon,
   HandRaisedIcon,
   BellSnoozeIcon,
@@ -56,6 +53,10 @@ import {
   MAX_TOOLBAR_ACTIONS,
 } from "./mobile_detail_toolbar";
 
+import {
+  NotSpamIcon,
+  ReportSpamIcon,
+} from "@/components/email/spam_action_icons";
 import { format_datetime_hint } from "@/utils/date_format";
 import { compute_snooze_target } from "@/utils/snooze_targets";
 import { trigger_download } from "@/utils/download_blob";
@@ -295,7 +296,7 @@ export function MobileActionMenuSheet({
               type="button"
               onClick={on_not_spam}
             >
-              <ShieldCheckIcon className="h-5 w-5 text-emerald-500" />
+              <NotSpamIcon className="h-5 w-5 text-emerald-500" />
               <span className="text-[14px] text-[var(--text-primary)]">
                 {t("mail.not_spam")}
               </span>
@@ -306,7 +307,7 @@ export function MobileActionMenuSheet({
               type="button"
               onClick={on_spam}
             >
-              <ExclamationTriangleIcon className="h-5 w-5 text-[var(--text-muted)]" />
+              <ReportSpamIcon className="h-5 w-5 text-[var(--text-muted)]" />
               <span className="text-[14px] text-[var(--text-primary)]">
                 {t("mail.report_spam")}
               </span>
@@ -420,7 +421,7 @@ export function MobileActionMenuSheet({
             type="button"
             onClick={on_report_phishing}
           >
-            <ShieldExclamationIcon className="h-5 w-5 text-amber-500" />
+            <ReportSpamIcon className="h-5 w-5 text-amber-500" />
             <span className="text-[14px] text-amber-500">
               {t("common.report_phishing")}
             </span>
