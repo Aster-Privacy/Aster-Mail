@@ -22,10 +22,14 @@ import { describe, expect, it } from "vitest";
 
 import {
   FOLDER_OPTION_INDENT_PX,
+  MAX_FOLDER_DEPTH,
+  build_folder_tree,
+  flatten_folder_tree,
   folder_option_indent,
   order_folders_as_tree,
   type DecryptedFolder,
 } from "@/hooks/use_folders/tree";
+import { MAX_INDENT_DEPTH } from "@/hooks/tree_indent";
 
 const folder = (
   folder_token: string,
@@ -90,6 +94,32 @@ describe("order_folders_as_tree", () => {
       ]),
     ).toEqual(["0:top", "0:loop_a", "0:loop_b"]);
   });
+
+  it("nests ten levels and keeps an eleventh visible at the top level", () => {
+    const chain = Array.from({ length: 11 }, (_, index) =>
+      folder(`level${index}`, 0, index > 0 ? `level${index - 1}` : undefined),
+    );
+
+    expect(MAX_FOLDER_DEPTH + 1).toBe(10);
+    expect(summarize(chain)).toEqual([
+      "0:level0",
+      "1:level1",
+      "2:level2",
+      "3:level3",
+      "4:level4",
+      "5:level5",
+      "6:level6",
+      "7:level7",
+      "8:level8",
+      "9:level9",
+      "0:level10",
+    ]);
+    expect(
+      flatten_folder_tree(build_folder_tree(chain)).map(
+        (node) => node.folder.folder_token,
+      ),
+    ).toHaveLength(11);
+  });
 });
 
 describe("folder_option_indent", () => {
@@ -101,5 +131,11 @@ describe("folder_option_indent", () => {
   it("indents one step for each level of nesting", () => {
     expect(folder_option_indent(1)).toBe(FOLDER_OPTION_INDENT_PX);
     expect(folder_option_indent(3)).toBe(FOLDER_OPTION_INDENT_PX * 3);
+  });
+
+  it("stops indenting past the visual cap so deep rows stay readable", () => {
+    expect(folder_option_indent(MAX_FOLDER_DEPTH)).toBe(
+      FOLDER_OPTION_INDENT_PX * MAX_INDENT_DEPTH,
+    );
   });
 });

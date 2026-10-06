@@ -56,6 +56,7 @@ import {
   is_folder_tree_sorted_a_z,
 } from "@/hooks/use_folders";
 import { order_tags_as_tree } from "@/hooks/tag_tree";
+import { indent_depth, indent_guide_trail } from "@/hooks/tree_indent";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
 import { AliasNavIcon } from "@/components/common/alias_nav_icon";
 import { SidebarNavButton } from "@/components/mobile/sidebar_nav_button";
@@ -363,9 +364,9 @@ export const DrawerNavContent = memo(function DrawerNavContent({
             active={is_active(path)}
             color={folder.color || "#3b82f6"}
             count={count}
-            depth={node.depth}
+            depth={indent_depth(node.depth)}
             guide_has_next={guides?.has_next}
-            guide_trail={guides?.trail}
+            guide_trail={indent_guide_trail(guides?.trail, node.depth)}
             label={folder.name}
             locale={locale}
             lock_closed={folder.is_locked || !is_folder_unlocked(folder.id)}
@@ -431,7 +432,9 @@ export const DrawerNavContent = memo(function DrawerNavContent({
             key={tag.tag_token}
             data-testid={`mobile-tag-row-${tag.id}`}
             style={
-              depth > 0 ? { paddingInlineStart: `${depth * 16}px` } : undefined
+              depth > 0
+                ? { paddingInlineStart: `${indent_depth(depth) * 16}px` }
+                : undefined
             }
           >
             <SidebarNavButton

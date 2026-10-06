@@ -19,9 +19,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
+import { MAX_TAG_DEPTH } from "@/hooks/tag_tree";
+
 export const MAX_TAG_NAME_LENGTH = 100;
 export const MAX_CONSECUTIVE_TAG_FAILURES = 3;
-export const MAX_IMPORT_TAG_LEVELS = 5;
+export const MAX_IMPORT_TAG_LEVELS = MAX_TAG_DEPTH + 1;
 export const MAX_IMPORT_CREATED_TAGS = 200;
 
 export interface ImportTagSource {

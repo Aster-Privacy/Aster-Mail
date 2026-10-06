@@ -43,6 +43,7 @@ import {
   get_eligible_parent_tags,
   has_sibling_tag_named,
 } from "@/hooks/tag_tree";
+import { indent_depth } from "@/hooks/tree_indent";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import { is_composing } from "@/utils/ime";
@@ -259,7 +260,9 @@ export function CreateTagModal({
                         {parent_options.map(({ tag, depth }) => (
                           <DropdownMenuItem
                             key={tag.id}
-                            style={{ paddingInlineStart: 8 + depth * 14 }}
+                            style={{
+                              paddingInlineStart: 8 + indent_depth(depth) * 14,
+                            }}
                             onClick={() =>
                               set_selected_parent_token(tag.tag_token)
                             }

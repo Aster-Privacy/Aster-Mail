@@ -44,6 +44,8 @@ import {
   flatten_folder_tree,
   has_sibling_named,
 } from "@/hooks/use_folders";
+import { MAX_FOLDER_DEPTH } from "@/hooks/use_folders/tree";
+import { indent_depth } from "@/hooks/tree_indent";
 import { use_should_reduce_motion } from "@/provider";
 import {
   MAX_FOLDER_NAME_LENGTH,
@@ -88,7 +90,7 @@ export function CreateFolderModal({
   const parent_options = useMemo(
     () =>
       flatten_folder_tree(build_folder_tree(folders_state.folders)).filter(
-        (node) => node.depth < 4,
+        (node) => node.depth < MAX_FOLDER_DEPTH,
       ),
     [folders_state.folders],
   );
@@ -264,7 +266,10 @@ export function CreateFolderModal({
                       {parent_options.map((node) => (
                         <DropdownMenuItem
                           key={node.folder.id}
-                          style={{ paddingInlineStart: 8 + node.depth * 14 }}
+                          style={{
+                            paddingInlineStart:
+                              8 + indent_depth(node.depth) * 14,
+                          }}
                           onClick={() =>
                             set_selected_parent_token(node.folder.folder_token)
                           }

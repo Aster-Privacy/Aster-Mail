@@ -19,6 +19,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
+import { indent_depth } from "@/hooks/tree_indent";
+
 export interface TagTreeItem {
   id: string;
   tag_token: string;
@@ -40,7 +42,7 @@ export interface OrderedTag<T extends TagTreeItem = TagTreeItem> {
   depth: number;
 }
 
-export const MAX_TAG_DEPTH = 4;
+export const MAX_TAG_DEPTH = 9;
 
 export const TAG_OPTION_INDENT_PX = 14;
 
@@ -153,7 +155,7 @@ export function order_tags_as_tree<T extends TagTreeItem>(
 }
 
 export function tag_option_indent(depth: number | undefined): number {
-  return Math.max(0, depth ?? 0) * TAG_OPTION_INDENT_PX;
+  return indent_depth(depth) * TAG_OPTION_INDENT_PX;
 }
 
 export function get_tag_descendant_tokens(

@@ -47,6 +47,8 @@ import {
   get_sibling_folders,
   is_folder_tree_sorted_a_z,
 } from "@/hooks/use_folders";
+import { MAX_FOLDER_DEPTH } from "@/hooks/use_folders/tree";
+import { indent_depth, indent_guide_trail } from "@/hooks/tree_indent";
 import { EMAIL_DRAG_MIME } from "@/components/email/inbox/category_drag";
 import { NavSectionSkeleton } from "@/components/common/nav_section_skeleton";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
@@ -342,7 +344,7 @@ export const SidebarFolders = memo(function SidebarFolders({
             return (
               <FolderContextMenu
                 key={folder.id}
-                can_have_children={node.depth < 4}
+                can_have_children={node.depth < MAX_FOLDER_DEPTH}
                 can_move_down={
                   sibling_index >= 0 && sibling_index < siblings.length - 1
                 }
@@ -395,11 +397,11 @@ export const SidebarFolders = memo(function SidebarFolders({
                     }}
                     collapse_label={t("common.collapse")}
                     color={folder_color}
-                    depth={node.depth}
+                    depth={indent_depth(node.depth)}
                     drag_over={drag_over_token === folder.folder_token}
                     expand_label={t("common.expand")}
                     guide_has_next={guides?.has_next ?? false}
-                    guide_trail={guides?.trail}
+                    guide_trail={indent_guide_trail(guides?.trail, node.depth)}
                     has_children={hasChildren}
                     is_collapsed={is_collapsed}
                     is_expanded={is_expanded}

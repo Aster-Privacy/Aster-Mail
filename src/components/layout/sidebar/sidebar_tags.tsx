@@ -51,6 +51,7 @@ import { tag_icon_map } from "@/components/ui/email_tag";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_delayed_flag } from "@/hooks/use_delayed_flag";
 import { build_tag_tree, flatten_visible_tag_tree } from "@/hooks/tag_tree";
+import { indent_depth } from "@/hooks/tree_indent";
 import {
   get_expanded_tags,
   set_expanded_tags,
@@ -199,7 +200,9 @@ export const SidebarTags = memo(function SidebarTags({
             const has_children = node.children.length > 0;
             const is_expanded = expanded_tags.has(tag.tag_token);
             const row_inset =
-              !is_collapsed && node.depth > 0 ? node.depth * 16 + 4 : 0;
+              !is_collapsed && node.depth > 0
+                ? indent_depth(node.depth) * 16 + 4
+                : 0;
             const RowIcon = tag.icon ? (tag_icon_map[tag.icon] ?? null) : null;
             const tag_data: TagModalData = {
               tag_id: tag.id,

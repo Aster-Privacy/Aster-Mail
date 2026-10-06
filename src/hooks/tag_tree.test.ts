@@ -37,6 +37,11 @@ import {
   type OrderedTag,
   type TagTreeItem,
 } from "@/hooks/tag_tree";
+import {
+  MAX_INDENT_DEPTH,
+  indent_depth,
+  indent_guide_trail,
+} from "@/hooks/tree_indent";
 
 function make_tag(
   name: string,
@@ -135,7 +140,7 @@ describe("order_tags_as_tree", () => {
   });
 
   it("never renders deeper than the depth limit and drops nothing", () => {
-    const ordered = summarize(order_tags_as_tree(make_chain(6)));
+    const ordered = summarize(order_tags_as_tree(make_chain(11)));
 
     expect(ordered).toEqual([
       "level0:0",
@@ -143,9 +148,17 @@ describe("order_tags_as_tree", () => {
       "level2:2",
       "level3:3",
       "level4:4",
-      "level5:0",
+      "level5:5",
+      "level6:6",
+      "level7:7",
+      "level8:8",
+      "level9:9",
+      "level10:0",
     ]);
-    expect(MAX_TAG_DEPTH).toBe(4);
+  });
+
+  it("allows ten levels", () => {
+    expect(MAX_TAG_DEPTH + 1).toBe(10);
   });
 });
 
@@ -211,16 +224,26 @@ describe("get_eligible_parent_tags", () => {
   });
 
   it("excludes parents that would push a new label past the limit", () => {
-    const names = get_eligible_parent_tags(make_chain(5)).map(
+    const names = get_eligible_parent_tags(make_chain(10)).map(
       (entry) => entry.tag.name,
     );
 
-    expect(names).toEqual(["level0", "level1", "level2", "level3"]);
+    expect(names).toEqual([
+      "level0",
+      "level1",
+      "level2",
+      "level3",
+      "level4",
+      "level5",
+      "level6",
+      "level7",
+      "level8",
+    ]);
   });
 
   it("accounts for the height of the moving subtree", () => {
     const tags = [
-      ...make_chain(5),
+      ...make_chain(10),
       make_tag("moving", 1),
       make_tag("moving_child", 0, "moving"),
     ];
@@ -228,7 +251,16 @@ describe("get_eligible_parent_tags", () => {
       (entry) => entry.tag.name,
     );
 
-    expect(names).toEqual(["level0", "level1", "level2"]);
+    expect(names).toEqual([
+      "level0",
+      "level1",
+      "level2",
+      "level3",
+      "level4",
+      "level5",
+      "level6",
+      "level7",
+    ]);
   });
 
   it("does not loop forever when the stored parents form a cycle", () => {
@@ -374,5 +406,33 @@ describe("tag_option_indent", () => {
     expect(tag_option_indent(undefined)).toBe(0);
     expect(tag_option_indent(2)).toBe(2 * TAG_OPTION_INDENT_PX);
     expect(tag_option_indent(-3)).toBe(0);
+  });
+
+  it("stops indenting past the visual cap so deep rows stay readable", () => {
+    expect(tag_option_indent(MAX_INDENT_DEPTH)).toBe(
+      MAX_INDENT_DEPTH * TAG_OPTION_INDENT_PX,
+    );
+    expect(tag_option_indent(MAX_TAG_DEPTH)).toBe(
+      MAX_INDENT_DEPTH * TAG_OPTION_INDENT_PX,
+    );
+  });
+});
+
+describe("tree indent helpers", () => {
+  it("clamps the depth used for layout", () => {
+    expect(indent_depth(undefined)).toBe(0);
+    expect(indent_depth(-2)).toBe(0);
+    expect(indent_depth(3)).toBe(3);
+    expect(indent_depth(MAX_INDENT_DEPTH + 3)).toBe(MAX_INDENT_DEPTH);
+  });
+
+  it("keeps the nearest ancestors when a guide trail is longer than the cap", () => {
+    const trail = [true, false, true, false, true, false, true, true, false];
+
+    expect(indent_guide_trail(undefined, 4)).toBeUndefined();
+    expect(indent_guide_trail([true, false], 2)).toEqual([true, false]);
+    expect(indent_guide_trail(trail, trail.length)).toEqual(
+      trail.slice(trail.length - MAX_INDENT_DEPTH),
+    );
   });
 });

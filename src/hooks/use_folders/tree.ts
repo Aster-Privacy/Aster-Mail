@@ -19,6 +19,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
+import { indent_depth } from "@/hooks/tree_indent";
+
 export interface DecryptedFolder {
   id: string;
   folder_token: string;
@@ -110,7 +112,25 @@ export function build_folder_tree(
       depth,
     }));
 
-  return build(roots, 0);
+  const tree = build(roots, 0);
+  const placed = new Set<string>();
+  const mark = (nodes: FolderTreeNode[]) => {
+    for (const node of nodes) {
+      placed.add(node.folder.folder_token);
+      mark(node.children);
+    }
+  };
+
+  mark(tree);
+
+  for (const folder of non_system) {
+    if (!placed.has(folder.folder_token)) {
+      placed.add(folder.folder_token);
+      tree.push({ folder, children: [], depth: 0 });
+    }
+  }
+
+  return tree;
 }
 
 export function get_sibling_folders(
@@ -186,7 +206,7 @@ export function flatten_folder_tree(nodes: FolderTreeNode[]): FolderTreeNode[] {
   return result;
 }
 
-export const MAX_FOLDER_DEPTH = 4;
+export const MAX_FOLDER_DEPTH = 9;
 
 export const FOLDER_OPTION_INDENT_PX = 14;
 
@@ -214,7 +234,7 @@ export function order_folders_as_tree(
 }
 
 export function folder_option_indent(depth: number | undefined): number {
-  return Math.max(0, depth ?? 0) * FOLDER_OPTION_INDENT_PX;
+  return indent_depth(depth) * FOLDER_OPTION_INDENT_PX;
 }
 
 export function flatten_visible_tree(

@@ -308,7 +308,7 @@ describe("resolve_import_tags", () => {
     const create_tag = creator();
 
     await resolve_import_tags({
-      names: ["a/b/c/d/e/f"],
+      names: ["a/b/c/d/e/f/g/h/i/j/k"],
       existing_tags: [],
       create_tag,
     });
@@ -318,7 +318,35 @@ describe("resolve_import_tags", () => {
       "b",
       "c",
       "d",
-      "e/f",
+      "e",
+      "f",
+      "g",
+      "h",
+      "i",
+      "j/k",
+    ]);
+  });
+
+  it("keeps ten levels as ten nested labels", async () => {
+    const create_tag = creator();
+
+    await resolve_import_tags({
+      names: ["a/b/c/d/e/f/g/h/i/j"],
+      existing_tags: [],
+      create_tag,
+    });
+
+    expect(create_tag.mock.calls.map((call) => call[0])).toEqual([
+      "a",
+      "b",
+      "c",
+      "d",
+      "e",
+      "f",
+      "g",
+      "h",
+      "i",
+      "j",
     ]);
   });
 });
