@@ -23,7 +23,7 @@ import type { TranslationKey } from "@/lib/i18n";
 
 import { useState, useRef, useEffect } from "react";
 import {
-  ChevronDownIcon,
+  ChevronRightIcon,
   EnvelopeIcon,
   ShieldExclamationIcon,
   XMarkIcon,
@@ -31,9 +31,11 @@ import {
 import { ShieldCheckIcon } from "@heroicons/react/24/solid";
 
 import { is_system_email } from "@/lib/utils";
-import { summarize_tracking_pixels } from "@/lib/tracking_pixel_summary";
-import { TrackingPixelDomainList } from "@/components/email/tracking_pixel_domain_list";
-import { use_tracking_pixel_highlight_request } from "@/stores/tracking_pixel_highlight_store";
+import {
+  TrackingProtectionDetails,
+  summarize_tracking_protection,
+} from "@/components/email/tracking_protection_details";
+import { MobileBottomSheet } from "@/components/mobile/mobile_bottom_sheet";
 import {
   execute_unsubscribe,
   get_sender_domain,
@@ -216,11 +218,8 @@ export function MobileExternalContentBanner({
   const [dismissed, set_dismissed] = useState(false);
   const [trackers_open, set_trackers_open] = useState(false);
 
-  const tracking_pixels = summarize_tracking_pixels(report);
-
-  use_tracking_pixel_highlight_request(
-    trackers_open && !dismissed && tracking_pixels.count > 0,
-  );
+  const tracking_summary = summarize_tracking_protection(report);
+  const tracking_pixels = tracking_summary.spy_pixels;
 
   if (dismissed || report.blocked_count === 0) return null;
   const parts: string[] = [];
@@ -253,17 +252,22 @@ export function MobileExternalContentBanner({
           {tracking_pixels.count > 0 && (
             <button
               aria-expanded={trackers_open}
+              aria-haspopup="dialog"
               className="-ms-1 inline-flex items-center gap-1 rounded-[var(--aster-radius-control)] px-1 py-0.5 text-[12px] font-medium text-[var(--text-secondary)] active:bg-[var(--bg-tertiary)]"
               data-testid="tracking-pixel-indicator"
               type="button"
-              onClick={() => set_trackers_open((open) => !open)}
+              onClick={() => set_trackers_open(true)}
             >
-              <ShieldCheckIcon className="h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-500" />
-              {t("common.tracking_pixels_blocked_count", {
+              <ShieldCheckIcon
+                aria-hidden="true"
+                className="h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-500"
+              />
+              {t("common.tracking_pixels_count", {
                 count: tracking_pixels.count,
               })}
-              <ChevronDownIcon
-                className={`h-3.5 w-3.5 shrink-0 stroke-[2.25] transition-transform duration-150 ${trackers_open ? "rotate-180" : ""}`}
+              <ChevronRightIcon
+                aria-hidden="true"
+                className="h-3.5 w-3.5 shrink-0 stroke-[2.25] rtl:rotate-180"
               />
             </button>
           )}
@@ -285,11 +289,30 @@ export function MobileExternalContentBanner({
           </button>
         </div>
       </div>
-      {trackers_open && tracking_pixels.count > 0 && (
-        <div className="mt-2.5 border-t border-[var(--border-primary)] pt-2.5">
-          <TrackingPixelDomainList summary={tracking_pixels} />
-        </div>
-      )}
+      <div
+        className="contents"
+        onTouchEnd={(e) => e.stopPropagation()}
+        onTouchMove={(e) => e.stopPropagation()}
+        onTouchStart={(e) => e.stopPropagation()}
+      >
+        <MobileBottomSheet
+          aria_label={t("mail.tracking_protection")}
+          is_open={trackers_open && tracking_pixels.count > 0}
+          on_close={() => set_trackers_open(false)}
+        >
+          <div className="px-2 pb-2">
+            <TrackingProtectionDetails summary={tracking_summary} />
+            <div className="mx-4 my-1 border-t border-[var(--border-primary)]" />
+            <button
+              className="flex w-full items-center justify-center rounded-[16px] px-4 py-3 text-[15px] font-medium text-[var(--text-secondary)] active:bg-[var(--bg-tertiary)]"
+              type="button"
+              onClick={() => set_trackers_open(false)}
+            >
+              {t("common.close")}
+            </button>
+          </div>
+        </MobileBottomSheet>
+      </div>
     </div>
   );
 }

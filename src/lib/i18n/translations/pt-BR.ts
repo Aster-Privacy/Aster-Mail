@@ -1168,11 +1168,8 @@ export const pt_br = {
     tracking_pixel: "Pixel de rastreamento",
     image_blocked: "Imagem bloqueada",
     tracking_pixel_blocked: "Pixel de rastreamento bloqueado",
-    tracking_pixels_highlighted: "Destacados na mensagem: {{count}}",
-    tracking_pixels_blocked_count:
-      "{{count}} pixels de rastreamento bloqueados",
-    tracking_pixels_blocked_count_one:
-      "{{count}} pixel de rastreamento bloqueado",
+    tracking_pixels_count: "{{count}} pixels de rastreamento",
+    tracking_pixels_count_one: "{{count}} pixel de rastreamento",
     me: "Eu",
     notification_banner_message:
       "Ative as notificações de desktop para ficar atualizado sobre novos e-mails",

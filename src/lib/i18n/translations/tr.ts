@@ -1261,9 +1261,8 @@ export const tr = {
     tracking_pixel: "İzleme pikseli",
     image_blocked: "Görsel engellendi",
     tracking_pixel_blocked: "İzleme pikseli engellendi",
-    tracking_pixels_highlighted: "Mesajda vurgulanan: {{count}}",
-    tracking_pixels_blocked_count: "{{count}} izleme pikseli engellendi",
-    tracking_pixels_blocked_count_one: "{{count}} izleme pikseli engellendi",
+    tracking_pixels_count: "{{count}} izleme pikseli",
+    tracking_pixels_count_one: "{{count}} izleme pikseli",
     me: "ben",
     notification_banner_message:
       "Yeni e-postalardan haberdar olmak için masaüstü bildirimlerini etkinleştirin",
