@@ -19,10 +19,68 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { start_iframe_autoscroll } from "@/components/email/iframe_autoscroll";
+import {
+  FRAME_TIP_EVENT,
+  type FrameTipDetail,
+} from "@/components/ui/title_tip_layer";
 import { forward_iframe_outside_interaction } from "@/lib/iframe_outside_interaction";
 
 const ASTER_PATH_ALLOWLIST = /^(?:settings(?:\/[a-z0-9_-]{1,32})?)$/i;
 const ABSOLUTE_URL_REGEX = /^[a-z][a-z0-9+.-]*:/i;
+const FRAME_TIP_ATTR = "data-aster-tip";
+
+function send_frame_tip(detail: FrameTipDetail | null): void {
+  window.dispatchEvent(new CustomEvent(FRAME_TIP_EVENT, { detail }));
+}
+
+function attach_frame_tips(
+  iframe: HTMLIFrameElement,
+  iframe_doc: Document,
+): void {
+  let active: Element | null = null;
+
+  const hide = () => {
+    if (!active) return;
+    active = null;
+    send_frame_tip(null);
+  };
+
+  iframe_doc.addEventListener("pointerover", (e) => {
+    if ((e as PointerEvent).pointerType === "touch") return;
+
+    const el =
+      (e.target as Element | null)?.closest?.(`[${FRAME_TIP_ATTR}]`) ?? null;
+
+    if (el === active) return;
+    hide();
+    if (!el) return;
+
+    const text = el.getAttribute(FRAME_TIP_ATTR) ?? "";
+
+    if (!text) return;
+
+    const frame = iframe.getBoundingClientRect();
+    const inner = el.getBoundingClientRect();
+    const scale_x = iframe.clientWidth ? frame.width / iframe.clientWidth : 1;
+    const scale_y = iframe.clientHeight
+      ? frame.height / iframe.clientHeight
+      : 1;
+
+    active = el;
+    send_frame_tip({
+      text,
+      rect: new DOMRect(
+        frame.left + inner.left * scale_x,
+        frame.top + inner.top * scale_y,
+        inner.width * scale_x,
+        inner.height * scale_y,
+      ),
+    });
+  });
+  iframe_doc.addEventListener("pointerdown", hide, true);
+  iframe_doc.addEventListener("keydown", hide, true);
+  iframe_doc.documentElement.addEventListener("pointerleave", hide);
+}
 
 function resolve_link_url(link: HTMLAnchorElement, href: string): string {
   if (ABSOLUTE_URL_REGEX.test(href)) return href;
@@ -58,6 +116,7 @@ export function attach_iframe_interactions(
   zoom_fn_ref: { current: ((src: string | null) => void) | null },
 ): void {
   forward_iframe_outside_interaction(iframe_doc);
+  attach_frame_tips(iframe, iframe_doc);
 
   iframe_doc.addEventListener(
     "wheel",

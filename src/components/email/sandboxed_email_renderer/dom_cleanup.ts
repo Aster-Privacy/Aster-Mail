@@ -114,7 +114,8 @@ function fill_quote_toggle(
     : t("mail.show_quoted_text");
 
   toggle_btn.textContent = "";
-  toggle_btn.title = label;
+  toggle_btn.removeAttribute("title");
+  toggle_btn.setAttribute("data-aster-tip", label);
   toggle_btn.setAttribute("aria-label", label);
   toggle_btn.setAttribute("aria-expanded", expanded ? "true" : "false");
 

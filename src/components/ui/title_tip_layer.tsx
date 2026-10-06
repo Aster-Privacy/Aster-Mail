@@ -32,6 +32,13 @@ const EDGE_PADDING_PX = 8;
 const TIP_ID = "aster_title_tip";
 const STASH_ATTR = "data-aster-title";
 
+export const FRAME_TIP_EVENT = "aster-frame-tip";
+
+export interface FrameTipDetail {
+  text: string;
+  rect: DOMRect;
+}
+
 function stash_title(el: HTMLElement): string {
   const live = el.getAttribute("title");
 
@@ -172,6 +179,17 @@ export function TitleTipLayer() {
       if (!e.relatedTarget) release();
     };
 
+    const handle_frame_tip = (e: Event) => {
+      const detail = (e as CustomEvent<FrameTipDetail | null>).detail;
+
+      release();
+      if (!detail || !detail.text) return;
+      timer = window.setTimeout(() => {
+        timer = null;
+        set_tip({ text: detail.text, rect: detail.rect });
+      }, SHOW_DELAY_MS);
+    };
+
     document.addEventListener("pointerover", handle_over, true);
     document.addEventListener("pointerout", handle_leave_window, true);
     document.addEventListener("focusin", handle_focus_in, true);
@@ -185,9 +203,11 @@ export function TitleTipLayer() {
     });
     window.addEventListener("wheel", release, { passive: true });
     window.addEventListener("resize", release);
+    window.addEventListener(FRAME_TIP_EVENT, handle_frame_tip);
 
     return () => {
       release();
+      window.removeEventListener(FRAME_TIP_EVENT, handle_frame_tip);
       document.removeEventListener("pointerover", handle_over, true);
       document.removeEventListener("pointerout", handle_leave_window, true);
       document.removeEventListener("focusin", handle_focus_in, true);
