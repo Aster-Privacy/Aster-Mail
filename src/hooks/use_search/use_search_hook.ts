@@ -69,7 +69,10 @@ import {
 import { user_facing_error } from "@/utils/user_facing_error";
 import { type MailItem } from "@/services/api/mail";
 import { meets_min_search_length } from "@/utils/search_query";
-import { parse_search_query } from "@/utils/search_operators";
+import {
+  parse_search_query,
+  unrecognized_has_values,
+} from "@/utils/search_operators";
 import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -238,6 +241,30 @@ export function use_search() {
           .filter(meets_min_search_length)
           .map((t) => t.toLowerCase());
         const operators = parsed.operators;
+        const unknown_has = unrecognized_has_values(operators);
+
+        if (unknown_has.length > 0) {
+          last_scan_ref.current = null;
+          empty_chunks_ref.current = null;
+          controller.abort();
+          set_state((prev) => ({
+            ...prev,
+            results: [],
+            results_query: query,
+            correction: null,
+            is_searching: false,
+            has_more: false,
+            total_results: 0,
+            search_time_ms: Date.now() - start,
+            hidden_spam_trash: 0,
+            index_incomplete: false,
+            error: t("mail.filter_has_not_recognized", {
+              value: unknown_has[0],
+            }),
+          }));
+
+          return;
+        }
 
         if (terms.length === 0 && operators.length === 0) {
           last_scan_ref.current = null;

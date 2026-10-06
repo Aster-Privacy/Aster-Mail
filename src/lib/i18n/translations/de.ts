@@ -9257,6 +9257,11 @@ export const de = {
     filter_label: "Label: {{ value }}",
     filter_larger: "Größer: {{ value }}",
     filter_no_attachments: "Keine Anhänge",
+    filter_no_label: "Kein Label",
+    filter_has_any_label: "Hat ein Label",
+    filter_has_not_recognized:
+      "Aster Mail erkennt den Filter has:{{ value }} nicht. Verwende has:attachment, has:nolabel oder einen Dateityp wie has:pdf.",
+    op_no_label: "Hat kein Label",
     filter_no_type: "Kein {{ type }}",
     filter_not_prefix: "Nicht ",
     filter_not_starred: "Nicht markiert",

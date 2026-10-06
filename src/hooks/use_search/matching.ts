@@ -30,7 +30,9 @@ import { build_body_preview } from "@/utils/preview_text";
 import { get_email_username } from "@/lib/utils";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
 import {
+  NO_LABEL_HAS_VALUE,
   expand_date_shortcut,
+  is_known_has_value,
   parse_size_value,
   parse_size_range,
   type ParsedOperator,
@@ -172,6 +174,9 @@ export function matches_operator(
     case "subject":
       return includes_folded(hay.subject, fold_search_text(val) || val);
     case "has": {
+      if (val === NO_LABEL_HAS_VALUE)
+        return (item.tag_tokens ?? []).length === 0;
+      if (!is_known_has_value(val)) return op.negated;
       if (val === "attachment" || val === "attachments")
         return metadata?.has_attachments ?? false;
       if (!metadata?.has_attachments) return false;
@@ -367,7 +372,12 @@ export function operator_needs_body(op: ParsedOperator): boolean {
   if (op.type === "has") {
     const val = op.value.toLowerCase();
 
-    return val !== "attachment" && val !== "attachments";
+    return (
+      val !== "attachment" &&
+      val !== "attachments" &&
+      val !== NO_LABEL_HAS_VALUE &&
+      is_known_has_value(val)
+    );
   }
 
   return false;

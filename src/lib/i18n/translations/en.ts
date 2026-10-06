@@ -9085,6 +9085,11 @@ export const en: Translations = {
     filter_contact: "Contact: {{ value }}",
     filter_subject: "Subject: {{ value }}",
     filter_no_attachments: "No attachments",
+    filter_no_label: "No label",
+    filter_has_any_label: "Has a label",
+    filter_has_not_recognized:
+      "Aster Mail doesn't recognize the filter has:{{ value }}. Try has:attachment, has:nolabel, or a file type such as has:pdf.",
+    op_no_label: "Has no label",
     filter_has_type: "Has {{ type }}",
     filter_no_type: "No {{ type }}",
     filter_type_pdf: "PDF",

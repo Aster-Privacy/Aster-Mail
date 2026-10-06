@@ -24,6 +24,7 @@ import { is_valid_date_shortcut } from "./dates";
 import { parse_size_range, parse_size_value } from "./size";
 import {
   DATE_REGEX,
+  HAS_OPERATOR_VALUES,
   OPERATOR_REGEX,
   ParsedOperator,
   ParsedSearchQuery,
@@ -80,6 +81,21 @@ export function parse_search_query(query: string): ParsedSearchQuery {
   };
 }
 
+export function is_known_has_value(value: string): boolean {
+  return HAS_OPERATOR_VALUES.includes(value.toLowerCase());
+}
+
+export function unrecognized_has_values(operators: ParsedOperator[]): string[] {
+  const values: string[] = [];
+
+  for (const op of operators) {
+    if (op.type !== "has" || is_known_has_value(op.value)) continue;
+    if (!values.includes(op.value)) values.push(op.value);
+  }
+
+  return values;
+}
+
 export function validate_operator(operator: ParsedOperator): boolean {
   switch (operator.type) {
     case "from":
@@ -94,17 +110,7 @@ export function validate_operator(operator: ParsedOperator): boolean {
       return operator.value.length > 0;
 
     case "has":
-      return [
-        "attachment",
-        "attachments",
-        "pdf",
-        "image",
-        "document",
-        "spreadsheet",
-        "video",
-        "audio",
-        "archive",
-      ].includes(operator.value.toLowerCase());
+      return is_known_has_value(operator.value);
 
     case "is":
       return ["unread", "read", "starred", "unstarred"].includes(
@@ -208,6 +214,10 @@ export function get_operator_suggestions(
     {
       operator: "has:archive",
       description: tr("mail.op_has_archive", "Has archive attachments"),
+    },
+    {
+      operator: "has:nolabel",
+      description: tr("mail.op_no_label", "Has no label"),
     },
     {
       operator: "is:unread",

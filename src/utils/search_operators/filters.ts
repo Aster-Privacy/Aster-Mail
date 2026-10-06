@@ -25,6 +25,7 @@ import {
   ATTACHMENT_MIME_MAP,
   ActiveFilter,
   DATE_REGEX,
+  NO_LABEL_HAS_VALUE,
   ParsedOperator,
   TranslateFn,
 } from "./types";
@@ -257,6 +258,14 @@ export function create_active_filters(
             : t
               ? t("mail.filter_has_attachment")
               : "Has attachment";
+        } else if (has_value === NO_LABEL_HAS_VALUE) {
+          label = op.negated
+            ? t
+              ? t("mail.filter_has_any_label")
+              : "Has a label"
+            : t
+              ? t("mail.filter_no_label")
+              : "No label";
         } else {
           const type_labels: Record<string, string> = {
             pdf: t ? t("mail.filter_type_pdf") : "PDF",

@@ -9219,6 +9219,11 @@ export const tr = {
     filter_contact: "Kişi: {{ value }}",
     filter_subject: "Konu: {{ value }}",
     filter_no_attachments: "Ek yok",
+    filter_no_label: "Etiket yok",
+    filter_has_any_label: "Etiketi var",
+    filter_has_not_recognized:
+      "Aster Mail, has:{{ value }} filtresini tanımıyor. has:attachment, has:nolabel veya has:pdf gibi bir dosya türü deneyin.",
+    op_no_label: "Etiketi yok",
     filter_has_type: "{{ type }} var",
     filter_no_type: "{{ type }} yok",
     filter_type_pdf: "PDF",

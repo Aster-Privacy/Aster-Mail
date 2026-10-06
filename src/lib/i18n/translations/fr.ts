@@ -9276,6 +9276,11 @@ export const fr = {
     filter_label: "Étiquette : {{ value }}",
     filter_larger: "Plus grand que : {{ value }}",
     filter_no_attachments: "Aucune pièce jointe",
+    filter_no_label: "Aucune étiquette",
+    filter_has_any_label: "A une étiquette",
+    filter_has_not_recognized:
+      "Aster Mail ne reconnaît pas le filtre has:{{ value }}. Essayez has:attachment, has:nolabel ou un type de fichier comme has:pdf.",
+    op_no_label: "N'a aucune étiquette",
     filter_no_type: "Aucun {{ type }}",
     filter_not_prefix: "non",
     filter_not_starred: "Sans étoile",

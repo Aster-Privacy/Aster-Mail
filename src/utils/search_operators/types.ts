@@ -54,7 +54,23 @@ export type HasOperatorValue =
   | "spreadsheet"
   | "video"
   | "audio"
-  | "archive";
+  | "archive"
+  | "nolabel";
+
+export const NO_LABEL_HAS_VALUE = "nolabel";
+
+export const HAS_OPERATOR_VALUES: readonly string[] = [
+  "attachment",
+  "attachments",
+  "pdf",
+  "image",
+  "document",
+  "spreadsheet",
+  "video",
+  "audio",
+  "archive",
+  NO_LABEL_HAS_VALUE,
+];
 
 export type IsOperatorValue = "unread" | "read" | "starred" | "unstarred";
 export type InOperatorValue =

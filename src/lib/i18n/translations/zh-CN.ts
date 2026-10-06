@@ -8158,6 +8158,11 @@ export const zh_CN = {
     filter_contact: "联系人：{{ value }}",
     filter_subject: "主题：{{ value }}",
     filter_no_attachments: "无附件",
+    filter_no_label: "无标签",
+    filter_has_any_label: "有标签",
+    filter_has_not_recognized:
+      "Aster Mail 无法识别筛选条件 has:{{ value }}。请尝试 has:attachment、has:nolabel 或 has:pdf 等文件类型。",
+    op_no_label: "无标签",
     filter_has_type: "包含 {{ type }}",
     filter_no_type: "不含 {{ type }}",
     filter_type_pdf: "PDF",

@@ -338,6 +338,7 @@ export function AdvancedSearchModal({
                           desc: t("mail.has_attachments_search"),
                         },
                         { op: "has:pdf", desc: t("mail.has_pdf_search") },
+                        { op: "has:nolabel", desc: t("mail.op_no_label") },
                         {
                           op: "is:unread",
                           desc: t("mail.unread_emails_search"),

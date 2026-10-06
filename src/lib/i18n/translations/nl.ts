@@ -9193,6 +9193,11 @@ export const nl = {
     filter_contact: "Contact: {{ value }}",
     filter_subject: "Onderwerp: {{ value }}",
     filter_no_attachments: "Geen bijlagen",
+    filter_no_label: "Geen label",
+    filter_has_any_label: "Heeft een label",
+    filter_has_not_recognized:
+      "Aster Mail herkent het filter has:{{ value }} niet. Probeer has:attachment, has:nolabel of een bestandstype zoals has:pdf.",
+    op_no_label: "Heeft geen label",
     filter_has_type: "Heeft {{ type }}",
     filter_no_type: "Geen {{ type }}",
     filter_type_pdf: "PDF",

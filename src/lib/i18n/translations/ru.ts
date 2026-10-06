@@ -9355,6 +9355,11 @@ export const ru = {
     filter_label: "Метка: {{ value }}",
     filter_larger: "Больше: {{ value }}",
     filter_no_attachments: "Нет вложений",
+    filter_no_label: "Без метки",
+    filter_has_any_label: "Есть метка",
+    filter_has_not_recognized:
+      "Aster Mail не распознаёт фильтр has:{{ value }}. Попробуйте has:attachment, has:nolabel или тип файла, например has:pdf.",
+    op_no_label: "Нет метки",
     filter_no_type: "Нет {{ type }}",
     filter_not_prefix: "Не ",
     filter_not_starred: "Без отметки",

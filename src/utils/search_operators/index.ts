@@ -24,7 +24,9 @@ export { create_active_filters, operators_to_filters } from "./filters";
 export type { ExtendedSearchFilters } from "./filters";
 export {
   get_operator_suggestions,
+  is_known_has_value,
   parse_search_query,
+  unrecognized_has_values,
   validate_operator,
 } from "./parse";
 export type { OperatorSuggestion } from "./parse";
@@ -42,6 +44,7 @@ export {
   parse_size_range,
   parse_size_value,
 } from "./size";
+export { HAS_OPERATOR_VALUES, NO_LABEL_HAS_VALUE } from "./types";
 export type {
   ActiveFilter,
   DateShortcut,

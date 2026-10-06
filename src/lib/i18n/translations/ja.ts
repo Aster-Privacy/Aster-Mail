@@ -9013,6 +9013,11 @@ export const ja = {
     filter_contact: "連絡先：{{ value }}",
     filter_subject: "件名：{{ value }}",
     filter_no_attachments: "添付ファイルなし",
+    filter_no_label: "ラベルなし",
+    filter_has_any_label: "ラベルあり",
+    filter_has_not_recognized:
+      "Aster Mail はフィルタ has:{{ value }} を認識できません。has:attachment、has:nolabel、または has:pdf などのファイルタイプをお試しください。",
+    op_no_label: "ラベルなし",
     filter_has_type: "{{ type }} あり",
     filter_no_type: "{{ type }} なし",
     filter_type_pdf: "PDF",

@@ -9129,6 +9129,11 @@ export const ar = {
     filter_contact: "جهة الاتصال: {{ value }}",
     filter_subject: "الموضوع: {{ value }}",
     filter_no_attachments: "بدون مرفقات",
+    filter_no_label: "بدون تصنيف",
+    filter_has_any_label: "له تصنيف",
+    filter_has_not_recognized:
+      "لا يتعرّف Aster Mail على عامل التصفية has:{{ value }}. جرّب has:attachment أو has:nolabel أو نوع ملف مثل has:pdf.",
+    op_no_label: "ليس له تصنيف",
     filter_has_type: "يحتوي {{ type }}",
     filter_no_type: "لا يحتوي {{ type }}",
     filter_type_pdf: "PDF",

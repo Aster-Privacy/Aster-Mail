@@ -9134,6 +9134,11 @@ export const hi = {
     filter_contact: "संपर्क: {{ value }}",
     filter_subject: "विषय: {{ value }}",
     filter_no_attachments: "कोई अटैचमेंट नहीं",
+    filter_no_label: "कोई लेबल नहीं",
+    filter_has_any_label: "लेबल है",
+    filter_has_not_recognized:
+      "Aster Mail फ़िल्टर has:{{ value }} को नहीं पहचानता। has:attachment, has:nolabel या has:pdf जैसा कोई फ़ाइल प्रकार आज़माएं।",
+    op_no_label: "कोई लेबल नहीं है",
     filter_has_type: "{{ type }} है",
     filter_no_type: "कोई {{ type }} नहीं",
     filter_type_pdf: "PDF",

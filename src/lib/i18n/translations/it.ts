@@ -9379,6 +9379,11 @@ export const it = {
     filter_contact: "Contatto: {{ value }}",
     filter_subject: "Oggetto: {{ value }}",
     filter_no_attachments: "Nessun allegato",
+    filter_no_label: "Nessuna etichetta",
+    filter_has_any_label: "Ha un'etichetta",
+    filter_has_not_recognized:
+      "Aster Mail non riconosce il filtro has:{{ value }}. Prova has:attachment, has:nolabel o un tipo di file come has:pdf.",
+    op_no_label: "Non ha etichette",
     filter_has_type: "Ha {{ type }}",
     filter_no_type: "Nessun {{ type }}",
     filter_type_pdf: "PDF",

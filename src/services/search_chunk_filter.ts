@@ -22,7 +22,9 @@ import type { DecryptedEnvelope, MailItemMetadata } from "@/types/email";
 import type { MailItem } from "@/services/api/mail";
 
 import {
+  NO_LABEL_HAS_VALUE,
   expand_date_shortcut,
+  is_known_has_value,
   parse_size_range,
   parse_size_value,
   type ParsedOperator,
@@ -505,6 +507,10 @@ function operator_summary_test(
 
   switch (op.type) {
     case "has":
+      if (val === NO_LABEL_HAS_VALUE) return null;
+      if (!is_known_has_value(val)) return () => true;
+
+      return (summary) => !has_flag(summary.flags, FLAG_ATTACHMENT);
     case "filename":
     case "attachment":
       return (summary) => !has_flag(summary.flags, FLAG_ATTACHMENT);

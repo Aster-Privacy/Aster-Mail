@@ -8952,6 +8952,11 @@ export const ko = {
     filter_contact: "연락처: {{ value }}",
     filter_subject: "제목: {{ value }}",
     filter_no_attachments: "첨부 파일 없음",
+    filter_no_label: "라벨 없음",
+    filter_has_any_label: "라벨 있음",
+    filter_has_not_recognized:
+      "Aster Mail에서 has:{{ value }} 필터를 인식할 수 없습니다. has:attachment, has:nolabel 또는 has:pdf와 같은 파일 유형을 사용해 보세요.",
+    op_no_label: "라벨 없음",
     filter_has_type: "{{ type }} 있음",
     filter_no_type: "{{ type }} 없음",
     filter_type_pdf: "PDF",

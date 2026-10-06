@@ -8135,6 +8135,10 @@ export interface MailTranslations {
   filter_contact: string;
   filter_subject: string;
   filter_no_attachments: string;
+  filter_no_label: string;
+  filter_has_any_label: string;
+  filter_has_not_recognized: string;
+  op_no_label: string;
   filter_has_type: string;
   filter_no_type: string;
   filter_type_pdf: string;
