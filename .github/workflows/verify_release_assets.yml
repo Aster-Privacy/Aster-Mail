@@ -82,6 +82,16 @@ jobs:
                   gh release download "$prev" --repo "$REPO" --pattern "Aster-Mail-universal.dmg" --dir "$TMP" --clobber
                   gh release upload "$TAG" "$TMP/Aster-Mail-universal.dmg" --repo "$REPO" --clobber
                   echo "::warning::carried over Aster-Mail-universal.dmg from $prev - cut a fresh macOS build to replace it"
+                  marker="\`Aster-Mail-universal.dmg\` was not built for this release"
+                  body="$(gh release view "$TAG" --repo "$REPO" --json body -q .body 2>/dev/null || true)"
+                  if ! printf '%s' "$body" | grep -qF -- "$marker"; then
+                    {
+                      printf '%s\n\n' "$body"
+                      echo '> [!WARNING]'
+                      echo "> $marker. It is the file from $prev."
+                    } > "$TMP/release_body.md"
+                    gh release edit "$TAG" --repo "$REPO" --notes-file "$TMP/release_body.md"
+                  fi
                   break
                 fi
               done

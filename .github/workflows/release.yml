@@ -325,6 +325,7 @@ jobs:
           assets_of() { gh release view "$1" --json assets --jq '.assets[].name' 2>/dev/null; }
           current=$(assets_of "$TAG")
           prior_tags=$(gh release list --limit 40 --json tagName --jq '.[].tagName' | grep -vx "$TAG")
+          carried=""
           for a in $ASSETS; do
             if printf '%s\n' "$current" | grep -qx "$a"; then
               continue
@@ -336,11 +337,45 @@ jobs:
                 if gh release download "$pt" --pattern "$a" --dir "$TMP" --clobber 2>/dev/null; then
                   gh release upload "$TAG" "$TMP/$a" --clobber
                   echo "Carried forward $a from $pt"
+                  if [ "$a" != "Aster-Mail.apk" ]; then
+                    carried="$carried $a=$pt"
+                  fi
                   break
                 fi
               fi
             done
           done
+
+          # A carried-forward installer is an older build under this release's
+          # name. Say so in the release body, so nobody takes it for a build of
+          # this version. The APK is excluded: it is built in another
+          # repository and uploaded to each release separately.
+          if [ -z "$carried" ]; then
+            exit 0
+          fi
+          body=$(gh release view "$TAG" --json body --jq .body 2>/dev/null || true)
+          : > carried.md
+          for entry in $carried; do
+            a="${entry%%=*}"
+            pt="${entry#*=}"
+            marker="\`$a\` was not built for this release"
+            if ! printf '%s' "$body" | grep -qF -- "$marker"; then
+              echo "> $marker. It is the file from $pt." >> carried.md
+            fi
+          done
+          if [ ! -s carried.md ]; then
+            exit 0
+          fi
+          {
+            printf '%s\n\n' "$body"
+            echo '> [!WARNING]'
+            cat carried.md
+          } > release_body.md
+          gh release edit "$TAG" --notes-file release_body.md
+          {
+            echo '### Installers carried forward'
+            cat carried.md
+          } >> "$GITHUB_STEP_SUMMARY"
 
   attest_provenance:
     needs: build
