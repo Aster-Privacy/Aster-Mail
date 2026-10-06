@@ -161,6 +161,7 @@ function save_and_close(
     expires_at: email_data.expires_at,
     expiry_password: email_data.expiry_password,
     attachments: email_data.attachments,
+    restore_verbatim: true,
   });
 
   const saved_data = {

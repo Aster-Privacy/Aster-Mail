@@ -316,6 +316,7 @@ describe("the pending payload keeps the draft context for undo", () => {
         rfc_message_id: "<abc@example.com>",
         thread_token: "thread-1",
         expires_at: "2030-01-01T00:00:00.000Z",
+        restore_verbatim: true,
       }),
     );
     expect(undo_send_add).toHaveBeenCalledWith(

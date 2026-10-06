@@ -56,5 +56,6 @@ export function draft_from_undone_send(
     from_email: payload?.sender_email ?? pending.sender_email,
     updated_at: new Date().toISOString(),
     attachments,
+    is_restored_send: payload?.restore_verbatim,
   };
 }
