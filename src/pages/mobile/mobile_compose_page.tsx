@@ -151,6 +151,11 @@ function MobileComposePage({
   ]);
   const is_sending = compose.is_sending;
   const has_recipients = compose.has_sendable_recipients;
+  const all_recipients = [
+    ...compose.recipients.to,
+    ...compose.recipients.cc,
+    ...compose.recipients.bcc,
+  ];
 
   const contact_avatar_map = useMemo(() => {
     const map = new Map<string, string>();
@@ -417,10 +422,13 @@ function MobileComposePage({
         <div className="border-b border-[var(--border-primary)] px-4 py-2">
           <div className="flex items-center gap-2">
             <MobileRecipientRow
+              all_recipients={all_recipients}
               contact_avatar_map={contact_avatar_map}
+              contacts={compose.contacts}
               input_value={compose.inputs.to}
               is_expanded={to_expanded}
               label={t("mail.to")}
+              on_add_recipient={(email) => compose.add_recipient("to", email)}
               on_blur={() => {
                 to_handlers.on_blur();
                 set_to_expanded(false);
@@ -449,10 +457,13 @@ function MobileComposePage({
         {cc_bcc_visible && (
           <div className="border-b border-[var(--border-primary)] px-4 py-2">
             <MobileRecipientRow
+              all_recipients={all_recipients}
               contact_avatar_map={contact_avatar_map}
+              contacts={compose.contacts}
               input_value={compose.inputs.cc}
               is_expanded={cc_expanded}
               label={t("common.cc_label")}
+              on_add_recipient={(email) => compose.add_recipient("cc", email)}
               on_blur={() => {
                 cc_handlers.on_blur();
                 set_cc_expanded(false);
@@ -470,10 +481,13 @@ function MobileComposePage({
         {cc_bcc_visible && (
           <div className="border-b border-[var(--border-primary)] px-4 py-2">
             <MobileRecipientRow
+              all_recipients={all_recipients}
               contact_avatar_map={contact_avatar_map}
+              contacts={compose.contacts}
               input_value={compose.inputs.bcc}
               is_expanded={bcc_expanded}
               label={t("common.bcc_label")}
+              on_add_recipient={(email) => compose.add_recipient("bcc", email)}
               on_blur={() => {
                 bcc_handlers.on_blur();
                 set_bcc_expanded(false);

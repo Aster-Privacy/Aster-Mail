@@ -18,11 +18,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { DecryptedContact } from "@/types/contacts";
+
 import { XMarkIcon } from "@heroicons/react/24/outline";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { Input } from "@/components/ui/input";
+import { RecipientContactPicker } from "@/components/compose/recipient_contact_picker";
 
 export function MobileRecipientRow({
   label,
@@ -37,6 +40,9 @@ export function MobileRecipientRow({
   on_blur,
   on_expand,
   placeholder,
+  contacts,
+  all_recipients,
+  on_add_recipient,
 }: {
   label: string;
   recipients: string[];
@@ -50,11 +56,14 @@ export function MobileRecipientRow({
   on_blur: () => void;
   on_expand: () => void;
   placeholder?: string;
+  contacts: DecryptedContact[];
+  all_recipients: string[];
+  on_add_recipient: (email: string) => void;
 }) {
   const { t } = use_i18n();
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex min-w-0 flex-1 items-center gap-2">
       <span className="text-[13px] leading-none text-[var(--text-muted)]">
         {label}:
       </span>
@@ -115,6 +124,12 @@ export function MobileRecipientRow({
           </span>
         </div>
       )}
+      <RecipientContactPicker
+        contacts={contacts}
+        existing_recipients={all_recipients}
+        label={label}
+        on_add_recipient={on_add_recipient}
+      />
     </div>
   );
 }

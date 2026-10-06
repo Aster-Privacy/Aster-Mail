@@ -31,6 +31,7 @@ import { cn, get_email_username } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { RecipientIdentityNotice } from "@/components/compose/recipient_identity_notice";
+import { RecipientContactPicker } from "@/components/compose/recipient_contact_picker";
 import { discover_external_keys_batch } from "@/services/api/keys";
 import {
   classify_recipients,
@@ -772,6 +773,12 @@ export function RecipientField({
           </div>
         </div>
       </div>
+      <RecipientContactPicker
+        contacts={contacts}
+        existing_recipients={all_recipients ?? recipients}
+        label={label}
+        on_add_recipient={on_add_recipient}
+      />
       {show_cc_bcc_buttons && (
         <div className="flex items-center gap-1 flex-shrink-0 py-1">
           {!show_cc && (
