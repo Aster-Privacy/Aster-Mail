@@ -102,6 +102,7 @@ import { send_via_external_account } from "@/services/api/external_accounts";
 import { prepare_external_attachments } from "@/services/crypto/attachment_crypto";
 import { escape_html as escape_plain_text } from "@/hooks/editor_utils";
 import { ignore_error } from "@/lib/ignore_error";
+import { outgoing_html_to_plain_text } from "@/lib/outgoing_plain_text";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 import { user_facing_error } from "@/utils/user_facing_error";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
@@ -712,11 +713,19 @@ export function use_reply_modal(props: UseReplyModalProps) {
           resolve_reply_prefix(t("mail.reply_subject_prefix")),
         );
 
+        const undo_body = is_plain_text_mode
+          ? escape_plain_text(
+              [trimmed_reply, outgoing_html_to_plain_text(quoted_content)]
+                .filter((part) => part.length > 0)
+                .join("\n\n"),
+            ).replace(/\n/g, "<br>")
+          : message_with_signature;
+
         store_pending_send_payload(result.queued_id, {
           to: send_recipients.to,
           cc: send_recipients.cc,
           subject: undo_subject,
-          body: message_with_signature,
+          body: undo_body,
           sender_email: sender_email_value,
           thread_token: reply_thread_token || undefined,
           draft_type: "reply",
@@ -725,6 +734,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
           expires_at: expires_at?.toISOString(),
           attachments: attachments.length > 0 ? attachments : undefined,
           restore_verbatim: true,
+          is_plain_text: is_plain_text_mode || undefined,
         });
         undo_send_manager.add({
           id: result.queued_id,

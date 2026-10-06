@@ -316,6 +316,8 @@ vi.mock("@/services/crypto/attachment_crypto", () => ({
 vi.mock("@/lib/ignore_error", () => ({ ignore_error: () => undefined }));
 
 const { use_reply_modal } = await import("./use_reply_modal");
+const { store_pending_send_payload } = await import("@/hooks/use_undo_send");
+const { escaped_html_to_plain_text } = await import("@/hooks/editor_utils");
 
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean;
@@ -670,6 +672,38 @@ describe("reply modal drafts around a send", () => {
     expect(params.message).toContain("&gt; older text<br>&gt; more");
     expect(params.message).not.toContain("<blockquote");
     expect(params.message).not.toContain("<b>");
+  });
+
+  it("stores a plain reply's undo copy as plain text with the quote", async () => {
+    mocks.send_reply.mockResolvedValue(queued_send_result());
+    vi.mocked(store_pending_send_payload).mockClear();
+    await render_hook(
+      base_props({ original_body: "<p>older <b>text</b></p><p>more</p>" }),
+    );
+    const element = document.createElement("div");
+    const typed = 'Use <project> & "quotes"\n\n  indented\tline';
+
+    Object.assign(latest!.message_editor_ref, { current: element });
+    await act(async () => latest!.toggle_plain_text_mode());
+    Object.defineProperty(element, "innerText", {
+      configurable: true,
+      writable: true,
+      value: typed,
+    });
+    await type_reply(typed);
+    await act(async () => {
+      await latest!.handle_send();
+    });
+
+    const payload = vi.mocked(store_pending_send_payload).mock.calls[0][1];
+    const restored = escaped_html_to_plain_text(payload.body);
+
+    expect(payload.is_plain_text).toBe(true);
+    expect(payload.restore_verbatim).toBe(true);
+    expect(payload.body).not.toContain("<div");
+    expect(restored).toBe(
+      `${typed}\n\nmail.reply_quote_header\n\n> older text\n> more`,
+    );
   });
 
   it("keeps the html quote and no plain flag for a rich reply", async () => {
