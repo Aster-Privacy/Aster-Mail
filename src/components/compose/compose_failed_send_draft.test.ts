@@ -136,4 +136,19 @@ describe("a failed send is saved back to Drafts with its attachments", () => {
       undefined,
     );
   });
+
+  it("keeps plain text mode on the saved draft", async () => {
+    const store = make_store([true, true]);
+
+    await save_failed_send_as_draft(store, vault, failed, null, null, true);
+    await save_failed_send_as_draft(store, vault, failed, null);
+
+    expect(store.save_draft.mock.calls[0][1]).toMatchObject({
+      is_plain_text: true,
+    });
+    expect(store.save_draft.mock.calls[1][1]).not.toHaveProperty(
+      "is_plain_text",
+      true,
+    );
+  });
 });

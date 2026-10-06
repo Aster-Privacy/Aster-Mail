@@ -24,6 +24,7 @@ export interface PendingSendStash {
   bcc_recipients: string[];
   subject: string;
   message: string;
+  is_plain_text?: boolean;
 }
 
 const stashes = new Map<string, PendingSendStash>();

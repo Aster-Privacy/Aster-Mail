@@ -213,6 +213,32 @@ export function escape_html(str: string): string {
     .replace(/'/g, "&#039;");
 }
 
+const ESCAPED_PLAIN_TEXT_ENTITIES: Record<string, string> = {
+  "&amp;": "&",
+  "&lt;": "<",
+  "&gt;": ">",
+  "&quot;": '"',
+  "&#039;": "'",
+};
+
+export function escaped_html_to_plain_text(html: string): string | null {
+  const lines = html.split("<br>");
+
+  for (const line of lines) {
+    if (/[<>"']/.test(line)) return null;
+    if (/&(?!(?:amp|lt|gt|quot|#039);)/.test(line)) return null;
+  }
+
+  return lines
+    .map((line) =>
+      line.replace(
+        /&(?:amp|lt|gt|quot|#039);/g,
+        (entity) => ESCAPED_PLAIN_TEXT_ENTITIES[entity],
+      ),
+    )
+    .join("\n");
+}
+
 export function plain_text_to_editor_html(text: string): string {
   return text
     .replace(/\r\n?/g, "\n")

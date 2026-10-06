@@ -57,5 +57,6 @@ export function draft_from_undone_send(
     updated_at: new Date().toISOString(),
     attachments,
     is_restored_send: payload?.restore_verbatim,
+    is_plain_text: payload?.is_plain_text,
   };
 }

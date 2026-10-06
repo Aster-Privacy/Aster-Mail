@@ -119,6 +119,7 @@ export interface DraftListItem extends InboxEmail {
   from_email?: string;
   updated_at: string;
   draft_attachments?: DraftAttachmentData[];
+  is_plain_text?: boolean;
 }
 
 export interface DraftsListState {
@@ -191,6 +192,7 @@ function transform_draft(
     from_email: draft.content.from_email,
     updated_at: draft.updated_at,
     draft_attachments: draft.content.attachments,
+    is_plain_text: draft.content.is_plain_text,
   };
 }
 
@@ -683,6 +685,7 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
             cc_recipients: detail.cc_recipients,
             bcc_recipients: detail.bcc_recipients,
             full_message: detail.message,
+            is_plain_text: detail.is_plain_text,
           };
         }),
       );
