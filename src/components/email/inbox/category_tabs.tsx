@@ -61,6 +61,7 @@ function format_count(value: number): string {
 }
 
 interface CategoryTabsProps {
+  compact?: boolean;
   active_category: EmailCategory;
   counts: CategoryCounts;
   counts_pending?: boolean;
@@ -69,6 +70,7 @@ interface CategoryTabsProps {
 }
 
 export function CategoryTabs({
+  compact = false,
   active_category,
   counts,
   counts_pending = false,
@@ -126,7 +128,7 @@ export function CategoryTabs({
     t,
   ]);
 
-  const previews = use_category_previews(true);
+  const previews = use_category_previews(!compact);
   const drag_active = use_category_drag_active();
   const drop_enabled = drag_active && !!on_category_drop;
   const [drop_target, set_drop_target] = useState<EmailCategory | null>(null);
@@ -172,7 +174,9 @@ export function CategoryTabs({
 
   return (
     <div
-      className="aster_scrollbar_thin group/tabs relative flex shrink-0 select-none items-stretch gap-0 overflow-x-auto overflow-y-hidden border-b border-edge-primary bg-surf-primary px-2 sm:px-3"
+      aria-label={t("mail.inbox")}
+      className={`aster_scrollbar_thin group/tabs relative flex shrink-0 select-none items-stretch gap-0 overflow-x-auto overflow-y-hidden border-b border-edge-primary bg-surf-primary ${compact ? "px-1" : "px-2 sm:px-3"}`}
+      role="navigation"
       onWheel={handle_wheel}
     >
       {tabs.map((tab) => {
@@ -189,6 +193,27 @@ export function CategoryTabs({
         const is_drop_target = drop_enabled && drop_target === key;
         const preview = show_new ? previews[key] : undefined;
         const show_preview = !drop_enabled && !!preview;
+
+        if (compact) {
+          return (
+            <button
+              key={key}
+              aria-current={is_active ? "page" : undefined}
+              aria-label={label}
+              className={`relative flex min-h-14 min-w-20 flex-1 flex-col items-center justify-center gap-1 px-2 py-2 text-xs font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand ${is_active ? "aster_cat_tab_current text-brand" : "text-txt-secondary"}`}
+              style={color_style}
+              title={label}
+              type="button"
+              onClick={() => on_change(key)}
+            >
+              <Icon className="h-4 w-4 shrink-0" />
+              <span className="whitespace-nowrap">{label}</span>
+              {is_active && (
+                <span className="pointer-events-none absolute inset-x-0 bottom-0 h-[3px] rounded-t-full bg-brand" />
+              )}
+            </button>
+          );
+        }
 
         const tab_button = (
           <button

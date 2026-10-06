@@ -36,10 +36,16 @@ import {
   TagIcon,
   BellSnoozeIcon,
   ExclamationTriangleIcon,
+  ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
 } from "@heroicons/react/24/outline";
 
 import { NotSpamIcon } from "@/components/email/spam_action_icons";
 import { use_email_list } from "@/hooks/use_email_list";
+import { use_inbox_categories } from "@/hooks/use_inbox_categories";
+import { use_category_inbox } from "@/hooks/use_category_inbox";
+import { CategoryTabs } from "@/components/email/inbox/category_tabs";
 import { use_drafts_list, type DraftListItem } from "@/hooks/use_drafts_list";
 import { use_scheduled_emails } from "@/hooks/use_scheduled_emails";
 import { reschedule_email, send_scheduled_now } from "@/services/api/scheduled";
@@ -156,13 +162,28 @@ function MobileInbox({
   const is_drafts_view = current_view === "drafts";
   const is_scheduled_view = current_view === "scheduled";
 
+  const categories = use_inbox_categories(current_view);
+  const [category_pagination, set_category_pagination] = useState({
+    category: categories.active_category,
+    page: 0,
+  });
+  const category_page =
+    category_pagination.category === categories.active_category
+      ? category_pagination.page
+      : 0;
+  const default_list = use_email_list(current_view, !categories.enabled);
+  const category_list = use_category_inbox(
+    categories.active_category,
+    category_page,
+    categories.enabled && categories.restored,
+  );
   const {
     state: mail_state,
     load_more,
     update_email,
     remove_email,
     refresh,
-  } = use_email_list(current_view);
+  } = categories.enabled ? category_list : default_list;
 
   const {
     state: drafts_state,
@@ -214,7 +235,16 @@ function MobileInbox({
     set_snooze_email_target(null);
     set_scheduled_target_id(null);
     set_permanent_delete_target(null);
-  }, [current_view]);
+  }, [
+    current_view,
+    categories.active_category,
+    categories.enabled,
+    category_page,
+  ]);
+
+  useEffect(() => {
+    set_category_pagination({ category: categories.active_category, page: 0 });
+  }, [current_view, categories.active_category, categories.enabled]);
 
   const is_trash_view = current_view === "trash";
   const is_spam_view = current_view === "spam";
@@ -330,6 +360,10 @@ function MobileInbox({
     set_selected_ids(new Set());
   }, []);
 
+  useEffect(() => {
+    exit_selection_mode();
+  }, [active_filter, exit_selection_mode]);
+
   const handle_toggle_select = useCallback((id: string) => {
     set_selected_ids((prev) => {
       const next = new Set(prev);
@@ -359,8 +393,31 @@ function MobileInbox({
   }, []);
 
   const handle_select_all = useCallback(() => {
+    set_selection_mode(all_visible_emails.length > 0);
     set_selected_ids(new Set(all_visible_emails.map((e) => e.id)));
   }, [all_visible_emails]);
+
+  const all_selected =
+    all_visible_emails.length > 0 &&
+    all_visible_emails.every((email) => selected_ids.has(email.id));
+  const some_selected = all_visible_emails.some((email) =>
+    selected_ids.has(email.id),
+  );
+
+  const handle_select_by_filter = (
+    filter: "all" | "none" | "read" | "unread",
+  ) => {
+    const emails = all_visible_emails.filter((email) => {
+      if (filter === "none") return false;
+      if (filter === "read") return email.is_read;
+      if (filter === "unread") return !email.is_read;
+
+      return true;
+    });
+
+    set_selected_ids(new Set(emails.map((email) => email.id)));
+    set_selection_mode(emails.length > 0);
+  };
 
   const handle_email_press = useCallback(
     (id: string) => {
@@ -842,6 +899,7 @@ function MobileInbox({
   );
 
   const handle_load_more = useCallback(() => {
+    if (categories.enabled) return;
     if (is_scheduled_view) return;
     if (is_drafts_view) {
       if (drafts_state.has_more) refresh_drafts();
@@ -852,6 +910,7 @@ function MobileInbox({
       load_more();
     }
   }, [
+    categories.enabled,
     is_drafts_view,
     is_scheduled_view,
     drafts_state.has_more,
@@ -974,9 +1033,9 @@ function MobileInbox({
           <button
             className="rounded-[var(--aster-radius-control)] px-3 py-1.5 text-[13px] font-medium text-[var(--accent-color,#3b82f6)]"
             type="button"
-            onClick={handle_select_all}
+            onClick={all_selected ? exit_selection_mode : handle_select_all}
           >
-            {t("common.select_all")}
+            {t(all_selected ? "common.deselect_all" : "common.select_all")}
           </button>
         </header>
       ) : (
@@ -996,62 +1055,6 @@ function MobileInbox({
                   <TrashIcon className="h-5 w-5" />
                 </button>
               )}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    aria-label={t("mail.filter")}
-                    className={`flex h-11 w-11 items-center justify-center rounded-full ${
-                      active_filter !== "all" ||
-                      (alias_address && alias_direction !== "all")
-                        ? "text-brand"
-                        : "text-[var(--text-secondary)]"
-                    } active:bg-[var(--bg-tertiary)]`}
-                    type="button"
-                  >
-                    <FunnelIcon className="h-5 w-5" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  {alias_address && (
-                    <AliasDirectionMenuItems direction={alias_direction} />
-                  )}
-                  <DropdownMenuLabel>{t("mail.filter")}</DropdownMenuLabel>
-                  <DropdownMenuItem onClick={() => set_active_filter("all")}>
-                    <span className="w-4 me-2">
-                      {active_filter === "all" && (
-                        <CheckIcon className="w-4 h-4" />
-                      )}
-                    </span>
-                    {t("mail.all_emails")}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => set_active_filter("unread")}>
-                    <span className="w-4 me-2">
-                      {active_filter === "unread" && (
-                        <CheckIcon className="w-4 h-4" />
-                      )}
-                    </span>
-                    {t("mail.unread_only")}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => set_active_filter("read")}>
-                    <span className="w-4 me-2">
-                      {active_filter === "read" && (
-                        <CheckIcon className="w-4 h-4" />
-                      )}
-                    </span>
-                    {t("mail.read_only")}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => set_active_filter("attachments")}
-                  >
-                    <span className="w-4 me-2">
-                      {active_filter === "attachments" && (
-                        <CheckIcon className="w-4 h-4" />
-                      )}
-                    </span>
-                    {t("mail.with_attachments")}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
               <button
                 className="flex h-11 w-11 items-center justify-center rounded-full text-[var(--text-secondary)] active:bg-[var(--bg-tertiary)]"
                 type="button"
@@ -1062,6 +1065,160 @@ function MobileInbox({
             </>
           }
           title={view_title}
+        />
+      )}
+
+      <div className="flex shrink-0 items-center gap-1 border-b border-edge-primary bg-surf-primary px-2 py-1">
+        <label className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-[var(--aster-radius-control)] focus-within:ring-2 focus-within:ring-brand">
+          <input
+            ref={(input) => {
+              if (input) input.indeterminate = some_selected && !all_selected;
+            }}
+            aria-label={t("common.select_all")}
+            checked={all_selected}
+            className="h-5 w-5 cursor-pointer accent-[var(--accent-color,#3b82f6)]"
+            disabled={all_visible_emails.length === 0 || bulk_action_busy}
+            type="checkbox"
+            onChange={() =>
+              all_selected ? exit_selection_mode() : handle_select_all()
+            }
+          />
+        </label>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              aria-label={t("common.select_label")}
+              className="flex h-11 w-6 shrink-0 items-center justify-center rounded-[var(--aster-radius-control)] text-txt-secondary focus-visible:ring-2 focus-visible:ring-brand"
+              disabled={all_visible_emails.length === 0 || bulk_action_busy}
+              type="button"
+            >
+              <ChevronDownIcon className="h-4 w-4" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start">
+            <DropdownMenuItem onClick={() => handle_select_by_filter("all")}>
+              {t("common.select_all")}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handle_select_by_filter("none")}>
+              {t("common.select_none")}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handle_select_by_filter("read")}>
+              {t("common.select_read")}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handle_select_by_filter("unread")}>
+              {t("common.select_unread")}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <div className="min-w-0 flex-1" />
+        <button
+          aria-pressed={active_filter === "unread"}
+          className={`h-9 rounded-[var(--aster-radius-control)] border px-2 text-xs font-medium ${active_filter === "unread" ? "border-brand bg-brand/10 text-brand" : "border-edge-primary text-txt-secondary"}`}
+          type="button"
+          onClick={() =>
+            set_active_filter(active_filter === "unread" ? "all" : "unread")
+          }
+        >
+          {t("mail.filter_unread")}
+        </button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              aria-label={t("mail.filter")}
+              className={`flex h-9 items-center justify-center gap-1.5 rounded-[var(--aster-radius-control)] border border-edge-primary px-2 text-xs font-medium ${
+                active_filter !== "all" ||
+                (alias_address && alias_direction !== "all")
+                  ? "text-brand"
+                  : "text-[var(--text-secondary)]"
+              } active:bg-[var(--bg-tertiary)]`}
+              type="button"
+            >
+              <FunnelIcon className="h-4 w-4" />
+              <span>{t("mail.filter")}</span>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            {alias_address && (
+              <AliasDirectionMenuItems direction={alias_direction} />
+            )}
+            <DropdownMenuLabel>{t("mail.filter")}</DropdownMenuLabel>
+            <DropdownMenuItem onClick={() => set_active_filter("all")}>
+              <span className="w-4 me-2">
+                {active_filter === "all" && <CheckIcon className="w-4 h-4" />}
+              </span>
+              {t("mail.all_emails")}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => set_active_filter("unread")}>
+              <span className="w-4 me-2">
+                {active_filter === "unread" && (
+                  <CheckIcon className="w-4 h-4" />
+                )}
+              </span>
+              {t("mail.unread_only")}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => set_active_filter("read")}>
+              <span className="w-4 me-2">
+                {active_filter === "read" && <CheckIcon className="w-4 h-4" />}
+              </span>
+              {t("mail.read_only")}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => set_active_filter("attachments")}>
+              <span className="w-4 me-2">
+                {active_filter === "attachments" && (
+                  <CheckIcon className="w-4 h-4" />
+                )}
+              </span>
+              {t("mail.with_attachments")}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        {categories.enabled && (
+          <div className="flex shrink-0">
+            <button
+              aria-label={t("common.previous")}
+              className="flex h-11 w-8 items-center justify-center rounded-[var(--aster-radius-control)] text-txt-secondary disabled:opacity-30 focus-visible:ring-2 focus-visible:ring-brand"
+              disabled={
+                category_page === 0 || mail_state.is_loading || bulk_action_busy
+              }
+              type="button"
+              onClick={() =>
+                set_category_pagination({
+                  category: categories.active_category,
+                  page: category_page - 1,
+                })
+              }
+            >
+              <ChevronLeftIcon className="h-4 w-4 rtl:rotate-180" />
+            </button>
+            <button
+              aria-label={t("common.next")}
+              className="flex h-11 w-8 items-center justify-center rounded-[var(--aster-radius-control)] text-txt-secondary disabled:opacity-30 focus-visible:ring-2 focus-visible:ring-brand"
+              disabled={
+                !mail_state.has_more ||
+                mail_state.is_loading ||
+                bulk_action_busy
+              }
+              type="button"
+              onClick={() =>
+                set_category_pagination({
+                  category: categories.active_category,
+                  page: category_page + 1,
+                })
+              }
+            >
+              <ChevronRightIcon className="h-4 w-4 rtl:rotate-180" />
+            </button>
+          </div>
+        )}
+      </div>
+
+      {categories.enabled && (
+        <CategoryTabs
+          compact
+          active_category={categories.active_category}
+          counts={categories.counts}
+          counts_pending={categories.counts_pending}
+          on_change={categories.set_active_category}
         />
       )}
 
@@ -1138,6 +1295,7 @@ function MobileInbox({
         !scheduled_error_visible &&
         !drafts_error_visible && (
           <MobileEmailList
+            key={`${current_view}:${categories.enabled ? `${categories.active_category}:${category_page}` : "all"}`}
             current_view={current_view}
             emails={enriched_unpinned}
             has_initial_load={
@@ -1159,7 +1317,7 @@ function MobileInbox({
                 ? drafts_state.has_more
                 : is_scheduled_view
                   ? false
-                  : mail_state.has_more
+                  : !categories.enabled && mail_state.has_more
             }
             is_loading={
               is_drafts_view
