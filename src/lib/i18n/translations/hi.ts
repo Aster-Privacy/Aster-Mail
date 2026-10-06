@@ -7990,6 +7990,8 @@ export const hi = {
     alias_import_summary_unselected: "{{count}} चुने नहीं गए",
     alias_import_summary_unselected_one: "{{count}} चुना नहीं गया",
     alias_import_summary_failed: "{{count}} विफल",
+    alias_import_failed_hint:
+      "कोई पता तब इंपोर्ट नहीं किया जा सकता जब वह पहले से उपयोग में हो, जिसमें कोई दूसरा Aster Mail खाता भी शामिल है, जब उसका पहले उपयोग हो चुका हो, या जब आप अपने प्लान की उपनाम सीमा तक पहुँच गए हों।",
     alias_import_error_no_aliases:
       "इस फ़ाइल में इंपोर्ट करने लायक कोई एलियास नहीं मिला।",
     alias_import_protonpass_encrypted_error:

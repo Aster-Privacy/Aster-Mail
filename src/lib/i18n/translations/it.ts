@@ -3162,6 +3162,8 @@ export const it = {
     alias_import_summary_unselected_one: "{{count}} non selezionato",
     alias_import_summary_failed: "{{count}} non riusciti",
     alias_import_summary_failed_one: "{{count}} non riuscito",
+    alias_import_failed_hint:
+      "Non è possibile importare un indirizzo se è già in uso, anche in un altro account Aster Mail, se è stato usato in precedenza o se hai raggiunto il limite di alias del tuo piano.",
     alias_import_error_no_aliases:
       "Nessun alias importabile trovato in questo file.",
     alias_import_protonpass_encrypted_error:

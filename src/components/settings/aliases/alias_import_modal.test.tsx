@@ -388,6 +388,28 @@ describe("import summary", () => {
     expect(text).toContain("2 imported");
     expect(text).toContain("2 failed");
   });
+
+  it("shows no failure explanation when every address imports", async () => {
+    await render_modal();
+    await load_csv([EXPORT_HEADER, "first@astermail.org,,true", ""].join("\n"));
+    await confirm_import();
+
+    expect(summary_text()).not.toContain("already in use");
+  });
+
+  it("explains why an address can fail when the server rejects it", async () => {
+    vi.mocked(bulk_create_aliases).mockImplementation(
+      async () => ({ data: { created: 0, failed: 1 } }) as never,
+    );
+    await render_modal();
+    await load_csv([EXPORT_HEADER, "taken@astermail.org,,true", ""].join("\n"));
+    await confirm_import();
+
+    const text = summary_text();
+
+    expect(text).toContain("1 failed");
+    expect(text).toContain("already in use");
+  });
 });
 
 describe("notes", () => {

@@ -1111,6 +1111,11 @@ export function AliasImportModal({
                 </div>
               )}
             </div>
+            {result.failed > 0 && (
+              <p className="text-sm text-txt-muted">
+                {t("settings.alias_import_failed_hint")}
+              </p>
+            )}
           </div>
         )}
       </ModalBody>

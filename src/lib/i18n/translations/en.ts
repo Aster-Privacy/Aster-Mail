@@ -7899,6 +7899,8 @@ export const en: Translations = {
     alias_import_summary_invalid: "{{count}} invalid",
     alias_import_summary_unselected: "{{count}} not selected",
     alias_import_summary_failed: "{{count}} failed",
+    alias_import_failed_hint:
+      "An address can't be imported when it's already in use, including on another Aster Mail account, when it was used before, or when you've reached your plan's alias limit.",
     alias_import_error_no_aliases: "No importable aliases found in this file.",
     alias_import_protonpass_encrypted_error:
       "This Proton Pass export is encrypted. Use 'Export without encryption' in Proton Pass, then re-import.",
