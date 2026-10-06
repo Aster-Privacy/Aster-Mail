@@ -125,7 +125,7 @@ describe("sync_all_ratchet_states with listed states", () => {
     mock_save.mockReset();
 
     mock_decrypt.mockImplementation(async () =>
-      new TextEncoder().encode(JSON.stringify({ stub: true })),
+      new TextEncoder().encode(JSON.stringify({ state: { stub: true } })),
     );
     mock_deserialize.mockImplementation(() => fake_ratchet("restored"));
     mock_save.mockResolvedValue(undefined);

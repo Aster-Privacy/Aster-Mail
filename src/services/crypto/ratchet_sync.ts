@@ -29,6 +29,13 @@ import {
   merge_discards_local_epoch,
   merge_ratchet_states,
 } from "./ratchet_state_merge";
+import {
+  decode_ratchet_state_container,
+  encode_ratchet_state_container,
+  next_sync_version,
+  ratchet_state_bound_aad,
+} from "./ratchet_state_container";
+import { raise_sync_floor, read_sync_floor } from "./ratchet_sync_floor";
 
 import { user_facing_error } from "@/utils/user_facing_error";
 import { api_client } from "@/services/api/client";
@@ -74,23 +81,103 @@ async function encrypt_state_for_server(
   };
 }
 
-async function decrypt_state_from_server(
+async function open_state_from_server(
   encrypted_state: string,
   state_nonce: string,
   encryption_key: CryptoKey,
-): Promise<string> {
+  conversation_id: string,
+): Promise<{ plaintext: string; opened_bound: boolean }> {
   const ciphertext = base64_to_array(encrypted_state);
   const nonce = base64_to_array(state_nonce);
-
-  const plaintext = await decrypt_aes_gcm_with_fallback(
-    encryption_key,
-    ciphertext,
-    nonce,
-  );
-
   const decoder = new TextDecoder();
 
-  return decoder.decode(plaintext);
+  try {
+    const bound = await crypto.subtle.decrypt(
+      {
+        name: "AES-GCM",
+        iv: nonce,
+        additionalData: ratchet_state_bound_aad(conversation_id),
+      },
+      encryption_key,
+      ciphertext,
+    );
+
+    return { plaintext: decoder.decode(bound), opened_bound: true };
+  } catch {
+    const legacy = await decrypt_aes_gcm_with_fallback(
+      encryption_key,
+      ciphertext,
+      nonce,
+    );
+
+    return { plaintext: decoder.decode(legacy), opened_bound: false };
+  }
+}
+
+async function read_server_state(
+  encrypted_state: string,
+  state_nonce: string,
+  encryption_key: CryptoKey,
+  conversation_id: string,
+): Promise<SerializedState> {
+  const { plaintext, opened_bound } = await open_state_from_server(
+    encrypted_state,
+    state_nonce,
+    encryption_key,
+    conversation_id,
+  );
+  const decoded = decode_ratchet_state_container(
+    plaintext,
+    conversation_id,
+    await read_sync_floor(conversation_id),
+    opened_bound,
+  );
+
+  if (decoded.kind !== "accepted") {
+    throw new Error(`Synced ratchet state refused: ${decoded.kind}`);
+  }
+
+  if (decoded.sync_version !== null) {
+    await raise_sync_floor(conversation_id, decoded.sync_version);
+  }
+
+  return decoded.state;
+}
+
+async function observe_server_version(
+  encrypted_state: string | undefined,
+  state_nonce: string | undefined,
+  encryption_key: CryptoKey,
+  conversation_id: string,
+): Promise<void> {
+  if (!encrypted_state || !state_nonce) return;
+
+  try {
+    await read_server_state(
+      encrypted_state,
+      state_nonce,
+      encryption_key,
+      conversation_id,
+    );
+  } catch {
+    return;
+  }
+}
+
+async function seal_state_for_server(
+  ratchet: DoubleRatchet,
+  encryption_key: CryptoKey,
+): Promise<EncryptedStatePayload & { sync_version: number }> {
+  const sync_version = next_sync_version(
+    await read_sync_floor(ratchet.get_conversation_id()),
+    Date.now(),
+  );
+  const sealed = await encrypt_state_for_server(
+    encode_ratchet_state_container(await ratchet.serialize(), sync_version),
+    encryption_key,
+  );
+
+  return { ...sealed, sync_version };
 }
 
 const sync_locks = new Map<string, Promise<number>>();
@@ -162,16 +249,13 @@ async function absorb_server_state(
   lookup: Extract<LookupResult, { kind: "found" }>,
 ): Promise<boolean> {
   try {
-    const remote_json = await decrypt_state_from_server(
+    const local = await ratchet.serialize();
+    const remote = await read_server_state(
       lookup.encrypted_state,
       lookup.state_nonce,
       encryption_key,
+      local.conversation_id,
     );
-
-    const remote = JSON.parse(remote_json) as SerializedState;
-    const local = await ratchet.serialize();
-
-    if (remote.conversation_id !== local.conversation_id) return false;
 
     if (merge_discards_local_epoch(local, remote)) {
       await archive_ratchet_state(local);
@@ -201,11 +285,6 @@ async function do_sync(
   let last_error = "Failed to sync ratchet state";
 
   for (let attempt = 0; attempt < MAX_SYNC_ATTEMPTS; attempt++) {
-    const { encrypted_state, state_nonce } = await encrypt_state_for_server(
-      JSON.stringify(await ratchet.serialize()),
-      encryption_key,
-    );
-
     if (known_version === undefined) {
       const lookup = await lookup_server_state(conversation_id_b64);
 
@@ -215,10 +294,11 @@ async function do_sync(
       }
 
       if (lookup.kind === "not_found") {
+        const sealed = await seal_state_for_server(ratchet, encryption_key);
         const response = await post_state(
           conversation_id_b64,
-          encrypted_state,
-          state_nonce,
+          sealed.encrypted_state,
+          sealed.state_nonce,
         );
 
         if (!response.error && response.data) {
@@ -227,6 +307,7 @@ async function do_sync(
             response.data.state_version,
           );
           not_found_cache.delete(conversation_id);
+          await raise_sync_floor(conversation_id, sealed.sync_version);
 
           return response.data.state_version;
         }
@@ -245,14 +326,21 @@ async function do_sync(
 
         continue;
       } else {
+        await observe_server_version(
+          lookup.encrypted_state,
+          lookup.state_nonce,
+          encryption_key,
+          conversation_id,
+        );
         known_version = lookup.version;
       }
     }
 
+    const sealed = await seal_state_for_server(ratchet, encryption_key);
     const put_response = await put_state(
       conversation_id_b64,
-      encrypted_state,
-      state_nonce,
+      sealed.encrypted_state,
+      sealed.state_nonce,
       known_version,
     );
 
@@ -261,6 +349,7 @@ async function do_sync(
         conversation_id,
         put_response.data.state_version,
       );
+      await raise_sync_floor(conversation_id, sealed.sync_version);
 
       return put_response.data.state_version;
     }
@@ -354,13 +443,12 @@ export async function load_ratchet_from_server(
     throw new Error(response.error || "Failed to load ratchet state");
   }
 
-  const state_json = await decrypt_state_from_server(
+  const serialized = await read_server_state(
     response.data.encrypted_state,
     response.data.state_nonce,
     encryption_key,
+    conversation_id,
   );
-
-  const serialized = JSON.parse(state_json);
   const ratchet = DoubleRatchet.deserialize(serialized);
 
   return { ratchet, version: response.data.state_version };
@@ -382,14 +470,15 @@ async function load_listed_ratchet_state(
     return load_ratchet_from_server(listed.conversation_id, encryption_key);
   }
 
-  const state_json = await decrypt_state_from_server(
+  const serialized = await read_server_state(
     listed.encrypted_state,
     listed.state_nonce,
     encryption_key,
+    listed.conversation_id,
   );
 
   return {
-    ratchet: DoubleRatchet.deserialize(JSON.parse(state_json)),
+    ratchet: DoubleRatchet.deserialize(serialized),
     version: listed.version,
   };
 }
@@ -452,6 +541,12 @@ export async function sync_all_ratchet_states(
           result.synced.push(conversation_id);
         } else if (local_ratchet.is_dirty_since_sync()) {
           try {
+            await observe_server_version(
+              server_info.encrypted_state,
+              server_info.state_nonce,
+              encryption_key,
+              conversation_id,
+            );
             await sync_ratchet_to_server(
               local_ratchet,
               encryption_key,
