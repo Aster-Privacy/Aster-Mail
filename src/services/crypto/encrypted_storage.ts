@@ -65,6 +65,9 @@ async function open_database(): Promise<IDBDatabase> {
         db_instance = null;
         db_promise = null;
       };
+      db_instance.onversionchange = () => {
+        close_database();
+      };
       resolve(db_instance);
     };
 
