@@ -46,7 +46,7 @@ const attribute_filters: { option: FilterOption; label_key: TranslationKey }[] =
   ];
 
 const chip_base =
-  "inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-[12px] whitespace-nowrap transition-colors";
+  "inline-flex flex-shrink-0 items-center gap-1.5 h-7 px-2.5 rounded-full text-[12px] whitespace-nowrap transition-colors";
 
 const chip_active = "bg-brand text-[var(--accent-fg,#ffffff)]";
 
@@ -68,7 +68,7 @@ export function ContactGroupChips({
 
   return (
     <>
-      <div className="flex items-center gap-1.5 overflow-x-auto px-4 pt-0.5 pb-2">
+      <div className="flex min-w-0 flex-shrink-0 items-center gap-1.5 overflow-x-auto px-4 pt-0.5 pb-2">
         <button
           aria-pressed={is_all}
           className={cn(chip_base, is_all ? chip_active : chip_inactive)}

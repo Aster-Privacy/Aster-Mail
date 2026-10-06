@@ -373,16 +373,16 @@ export function ContactList({
   ];
 
   return (
-    <div className="w-full md:w-1/2 md:flex-shrink-0 md:min-w-0 md:border-e md:border-edge-primary min-h-0 flex flex-col">
-      <div className="flex items-center gap-2 px-4 pt-4 pb-2">
+    <div className="@container/contact-list w-full min-w-0 md:w-1/2 md:flex-shrink-0 md:border-e md:border-edge-primary min-h-0 flex flex-col">
+      <div className="flex flex-shrink-0 flex-wrap items-center gap-2 px-4 pt-4 pb-2">
         <div className="md:hidden">
           <MobileMenuButton on_click={on_mobile_menu_toggle} />
         </div>
-        <h1 className="text-[20px] font-semibold leading-none text-txt-primary">
+        <h1 className="flex-shrink-0 whitespace-nowrap text-[20px] font-semibold leading-none text-txt-primary">
           {t("common.contacts")}
         </h1>
         <div className="flex-1" />
-        <div className="contact_encryption_info h-8 w-8 flex items-center justify-center">
+        <div className="contact_encryption_info h-8 w-8 flex-shrink-0 flex items-center justify-center">
           <EncryptionInfoDropdown
             description_key="common.only_you_can_read_contacts"
             e2e_verified
@@ -391,13 +391,13 @@ export function ContactList({
             size={20}
           />
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="ms-auto flex max-w-full flex-shrink-0 flex-wrap items-center gap-1.5">
           <DropdownMenu>
             <Tooltip tip={`${t("common.sort")}: ${sort_label}`}>
               <DropdownMenuTrigger asChild>
                 <Button
                   aria-label={`${t("common.sort")}: ${sort_label}`}
-                  className="h-9 gap-1.5 rounded-full px-3 text-[13px] font-medium text-[var(--text-secondary)] hover:bg-[var(--aster-hover)] hover:text-[var(--text-primary)]"
+                  className="h-9 flex-shrink-0 whitespace-nowrap gap-1.5 rounded-full px-3 text-[13px] font-medium text-[var(--text-secondary)] hover:bg-[var(--aster-hover)] hover:text-[var(--text-primary)]"
                   disabled={!is_list_tab}
                   size="sm"
                   variant="ghost"
@@ -407,8 +407,10 @@ export function ContactList({
                   ) : (
                     <BarsArrowDownIcon className="w-[18px] h-[18px]" />
                   )}
-                  <span className="hidden lg:inline">{sort_label}</span>
-                  <ChevronDownIcon className="hidden lg:inline-block w-3.5 h-3.5 opacity-60" />
+                  <span className="hidden @min-[560px]/contact-list:inline">
+                    {sort_label}
+                  </span>
+                  <ChevronDownIcon className="hidden @min-[560px]/contact-list:inline-block w-3.5 h-3.5 flex-shrink-0 opacity-60" />
                 </Button>
               </DropdownMenuTrigger>
             </Tooltip>
@@ -438,7 +440,7 @@ export function ContactList({
                   : t("settings.density_compact")
               }
               aria-pressed={is_compact}
-              className="h-9 w-9 rounded-full hover:bg-[var(--aster-hover)] text-[var(--icon-secondary)] hover:text-[var(--icon-active)]"
+              className="h-9 w-9 flex-shrink-0 rounded-full hover:bg-[var(--aster-hover)] text-[var(--icon-secondary)] hover:text-[var(--icon-active)]"
               size="icon"
               variant="ghost"
               onClick={() => set_view_mode(is_compact ? "list" : "compact")}
@@ -456,7 +458,7 @@ export function ContactList({
               <DropdownMenuTrigger asChild>
                 <Button
                   aria-label={t("common.manage_contacts")}
-                  className="h-9 w-9 rounded-full hover:bg-[var(--aster-hover)] text-[var(--icon-secondary)] hover:text-[var(--icon-active)]"
+                  className="h-9 w-9 flex-shrink-0 rounded-full hover:bg-[var(--aster-hover)] text-[var(--icon-secondary)] hover:text-[var(--icon-active)]"
                   size="icon"
                   variant="ghost"
                 >
@@ -517,15 +519,15 @@ export function ContactList({
               <DropdownMenuTrigger asChild>
                 <Button
                   aria-label={t("common.create_contact")}
-                  className="h-9 gap-1.5 rounded-[var(--aster-radius-control)] px-3.5 text-[13px] font-medium"
+                  className="h-9 flex-shrink-0 whitespace-nowrap gap-1.5 rounded-[var(--aster-radius-control)] px-3.5 text-[13px] font-medium"
                   size="sm"
                   variant="primary"
                 >
                   <PlusIcon className="w-[18px] h-[18px]" />
-                  <span className="hidden sm:inline">
+                  <span className="hidden @min-[420px]/contact-list:inline">
                     {t("common.create_contact")}
                   </span>
-                  <ChevronDownIcon className="hidden sm:inline-block w-3.5 h-3.5 opacity-70" />
+                  <ChevronDownIcon className="hidden @min-[420px]/contact-list:inline-block w-3.5 h-3.5 flex-shrink-0 opacity-70" />
                 </Button>
               </DropdownMenuTrigger>
             </Tooltip>
@@ -691,7 +693,7 @@ export function ContactList({
           />
         </div>
         {has_selection ? (
-          <div className="flex items-center gap-1 px-4 py-2">
+          <div className="flex flex-shrink-0 flex-wrap items-center gap-1 px-4 py-2">
             <Tooltip
               tip={
                 selection_state.all_selected
