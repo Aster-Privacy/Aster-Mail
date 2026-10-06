@@ -308,7 +308,7 @@ export async function scoped_get<T>(
     }
   }
 
-  return null;
+  return encrypted_get<T>(name, storage_key);
 }
 
 export async function scoped_set(

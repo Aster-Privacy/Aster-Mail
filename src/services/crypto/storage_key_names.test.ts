@@ -386,6 +386,44 @@ describe("storage name migration", () => {
     await expect_every_entry_readable(second);
   });
 
+  it("finds an entry another tab renames between its two lookups", async () => {
+    const first = await open_tab();
+
+    await seed_plain_entries(first);
+
+    const sweeper = await open_tab();
+    const reader = await open_tab();
+    const read = reader.storage.encrypted_get;
+    let renamed_meanwhile = false;
+
+    vi.spyOn(reader.storage, "encrypted_get").mockImplementation(
+      async (name, key) => {
+        const value = await read(name, key);
+
+        if (
+          !renamed_meanwhile &&
+          value === null &&
+          name.startsWith("ratchet_state_")
+        ) {
+          renamed_meanwhile = true;
+          await sweeper.names.migrate_storage_names(ACCOUNT);
+        }
+
+        return value;
+      },
+    );
+
+    expect(
+      await reader.names.scoped_get(
+        "ratchet_state_",
+        ACCOUNT,
+        CONVERSATION,
+        master,
+      ),
+    ).toEqual(ratchet_state("live"));
+    expect(renamed_meanwhile).toBe(true);
+  });
+
   it("gives two tabs that start together the same name key", async () => {
     const first = await open_tab();
     const second = await open_tab();
