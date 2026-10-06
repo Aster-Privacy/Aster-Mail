@@ -3108,6 +3108,8 @@ export const ja = {
     alias_import_summary_invalid: "{{count}}件が無効",
     alias_import_summary_unselected: "{{count}}件は未選択",
     alias_import_summary_failed: "{{count}}件失敗しました",
+    alias_import_failed_hint:
+      "アドレスがすでに使用されている場合 (別の Aster Mail アカウントでの使用を含む)、過去に使用されていた場合、またはプランのエイリアス上限に達している場合は、インポートできません。",
     alias_import_error_no_aliases:
       "このファイルにインポート可能なエイリアスが見つかりませんでした。",
     alias_import_protonpass_encrypted_error:

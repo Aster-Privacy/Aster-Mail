@@ -7257,6 +7257,7 @@ export interface SettingsTranslations {
   alias_import_summary_unselected_one?: string;
   alias_import_summary_failed: string;
   alias_import_summary_failed_one?: string;
+  alias_import_failed_hint: string;
   alias_import_error_no_aliases: string;
   alias_import_protonpass_encrypted_error: string;
   alias_import_target_domain: string;

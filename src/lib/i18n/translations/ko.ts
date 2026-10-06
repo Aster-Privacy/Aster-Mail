@@ -3035,6 +3035,8 @@ export const ko = {
     alias_import_summary_invalid: "{{count}}개 유효하지 않음",
     alias_import_summary_unselected: "{{count}}개 선택 안 됨",
     alias_import_summary_failed: "{{count}}개 실패",
+    alias_import_failed_hint:
+      "주소가 이미 사용 중이거나(다른 Aster Mail 계정 포함), 이전에 사용된 적이 있거나, 요금제의 별칭 한도에 도달한 경우에는 가져올 수 없습니다.",
     alias_import_error_no_aliases:
       "이 파일에서 가져올 수 있는 별칭을 찾을 수 없습니다.",
     alias_import_protonpass_encrypted_error:

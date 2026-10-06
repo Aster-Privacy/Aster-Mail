@@ -2850,6 +2850,8 @@ export const zh_CN = {
     alias_import_summary_invalid: "{{count}} 个无效",
     alias_import_summary_unselected: "{{count}} 个未选择",
     alias_import_summary_failed: "{{count}} 个失败",
+    alias_import_failed_hint:
+      "如果地址已在使用中（包括在另一个 Aster Mail 账户中）、曾被使用过，或者你已达到套餐的别名上限，则无法导入该地址。",
     alias_import_error_no_aliases: "此文件中未找到可导入的别名。",
     alias_import_protonpass_encrypted_error:
       "此 Proton Pass 导出文件已加密。请在 Proton Pass 中使用“不加密导出”，然后重新导入。",

@@ -3278,6 +3278,8 @@ export const ru = {
     alias_import_summary_invalid: "Недействительно: {{count}}",
     alias_import_summary_unselected: "Не выбрано: {{count}}",
     alias_import_summary_failed: "Не удалось: {{count}}",
+    alias_import_failed_hint:
+      "Адрес нельзя импортировать, если он уже используется, в том числе в другом аккаунте Aster Mail, если он использовался ранее или если достигнут лимит псевдонимов вашего тарифа.",
     alias_import_error_no_aliases:
       "В этом файле не найдено псевдонимов для импорта.",
     alias_import_protonpass_encrypted_error:

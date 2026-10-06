@@ -3092,6 +3092,8 @@ export const tr = {
     alias_import_summary_invalid: "{{count}} geçersiz",
     alias_import_summary_unselected: "{{count}} seçilmedi",
     alias_import_summary_failed: "{{count}} başarısız",
+    alias_import_failed_hint:
+      "Bir adres zaten kullanılıyorsa (başka bir Aster Mail hesabı dahil), daha önce kullanıldıysa veya planınızın takma ad sınırına ulaştıysanız içe aktarılamaz.",
     alias_import_error_no_aliases:
       "Bu dosyada içe aktarılabilir rumuz bulunamadı.",
     alias_import_protonpass_encrypted_error:

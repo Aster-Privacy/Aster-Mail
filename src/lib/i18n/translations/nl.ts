@@ -3083,6 +3083,8 @@ export const nl = {
     alias_import_summary_invalid: "{{count}} ongeldig",
     alias_import_summary_unselected: "{{count}} niet geselecteerd",
     alias_import_summary_failed: "{{count}} mislukt",
+    alias_import_failed_hint:
+      "Een adres kan niet worden geïmporteerd als het al in gebruik is, ook in een ander Aster Mail-account, als het eerder is gebruikt of als je de aliaslimiet van je abonnement hebt bereikt.",
     alias_import_error_no_aliases:
       "Geen importeerbare aliassen gevonden in dit bestand.",
     alias_import_protonpass_encrypted_error:

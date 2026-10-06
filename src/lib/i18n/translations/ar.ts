@@ -3208,6 +3208,8 @@ export const ar = {
     alias_import_summary_invalid: "{{count}} غير صالح",
     alias_import_summary_unselected: "{{count}} غير محدد",
     alias_import_summary_failed: "{{count}} فشل",
+    alias_import_failed_hint:
+      "لا يمكن استيراد عنوان إذا كان مستخدمًا بالفعل، بما في ذلك في حساب Aster Mail آخر، أو إذا سبق استخدامه، أو إذا بلغت حد الأسماء المستعارة في خطتك.",
     alias_import_error_no_aliases:
       "لم يُعثر على أسماء مستعارة قابلة للاستيراد في هذا الملف.",
     alias_import_protonpass_encrypted_error:
