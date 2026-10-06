@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { ComponentType, SVGProps } from "react";
+
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
@@ -64,7 +66,7 @@ declare global {
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
-const icon_markup = (Icon: typeof NotSpamIcon) => {
+const icon_markup = (Icon: ComponentType<SVGProps<SVGSVGElement>>) => {
   const host = document.createElement("div");
   const icon_root = createRoot(host);
 

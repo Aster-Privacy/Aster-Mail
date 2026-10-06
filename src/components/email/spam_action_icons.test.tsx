@@ -47,6 +47,19 @@ function icon_markup(Icon: Icon): string | undefined {
   return markup;
 }
 
+function render_svg(Icon: Icon, props: SVGProps<SVGSVGElement> = {}) {
+  const host = document.createElement("div");
+  const root = createRoot(host);
+
+  act(() => root.render(<Icon {...props} />));
+  const svg = host.querySelector("svg")?.cloneNode(true) as
+    SVGSVGElement | undefined;
+
+  act(() => root.unmount());
+
+  return svg;
+}
+
 function shield_icons(set: Record<string, unknown>): Icon[] {
   return Object.entries(set)
     .filter(([name]) => name.startsWith("Shield"))
@@ -68,6 +81,39 @@ describe("spam action icons", () => {
       expect(NotSpamIcon).not.toBe(shield);
       expect(icon_markup(NotSpamIcon)).not.toBe(icon_markup(shield));
     }
+  });
+
+  it("draws not spam as an envelope with a check mark", () => {
+    const svg = render_svg(NotSpamIcon);
+    const path = svg?.querySelector("path")?.getAttribute("d") ?? "";
+
+    expect(path).toContain("M15 18.75l2.25 2.25 4.5-4.5");
+    expect(path).toContain("l-7.5 4.615");
+    expect(icon_markup(NotSpamIcon)).not.toBe(
+      icon_markup(outline.EnvelopeIcon),
+    );
+    expect(icon_markup(NotSpamIcon)).not.toBe(
+      icon_markup(outline.InboxArrowDownIcon),
+    );
+  });
+
+  it("draws not spam in the same outline style as the heroicons around it", () => {
+    const svg = render_svg(NotSpamIcon, { className: "w-4 h-4" });
+    const reference = render_svg(outline.EnvelopeIcon);
+
+    for (const attribute of ["viewBox", "fill", "stroke", "stroke-width"]) {
+      expect(svg?.getAttribute(attribute)).toBe(
+        reference?.getAttribute(attribute),
+      );
+    }
+    expect(svg?.getAttribute("class")).toBe("w-4 h-4");
+    expect(svg?.getAttribute("aria-hidden")).toBe("true");
+    expect(svg?.querySelector("path")?.getAttribute("stroke-linecap")).toBe(
+      "round",
+    );
+    expect(svg?.querySelector("path")?.getAttribute("stroke-linejoin")).toBe(
+      "round",
+    );
   });
 
   it("keeps report spam off the shield icons used for security", () => {

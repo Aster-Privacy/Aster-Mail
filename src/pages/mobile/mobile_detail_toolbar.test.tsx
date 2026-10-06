@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { ComponentType, SVGProps } from "react";
+
 import { describe, it, expect, vi } from "vitest";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
@@ -100,7 +102,7 @@ function first_icon(props: Partial<Parameters<typeof MobileToolbar>[0]>) {
   return markup;
 }
 
-function icon_markup(Icon: typeof NotSpamIcon) {
+function icon_markup(Icon: ComponentType<SVGProps<SVGSVGElement>>) {
   const host = document.createElement("div");
   const root = createRoot(host);
 
