@@ -1103,6 +1103,7 @@ export const nl = {
     write_your_reply: "Schrijf je antwoord...",
     switch_to_rich_text: "Overschakelen naar rich text",
     switch_to_plain_text: "Overschakelen naar platte tekst",
+    plain_text_label: "Platte tekst",
     font_size_label: "Lettergrootte",
     font_family_label: "Lettertype",
     font_family_default: "Standaardlettertype",

@@ -1127,6 +1127,7 @@ export const ru = {
     write_your_reply: "Напишите ваш ответ...",
     switch_to_rich_text: "Переключить на форматированный текст",
     switch_to_plain_text: "Переключить на обычный текст",
+    plain_text_label: "Обычный текст",
     font_size_label: "Размер шрифта",
     font_family_label: "Шрифт",
     font_family_default: "Шрифт по умолчанию",

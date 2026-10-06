@@ -1188,6 +1188,7 @@ export const en: Translations = {
     write_your_reply: "Write your reply...",
     switch_to_rich_text: "Switch to rich text",
     switch_to_plain_text: "Switch to plain text",
+    plain_text_label: "Plain text",
     font_size_label: "Font size",
     font_family_label: "Font",
     font_family_default: "Default font",

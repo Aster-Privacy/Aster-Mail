@@ -1195,6 +1195,7 @@ export const hi = {
     write_your_reply: "अपना जवाब लिखें...",
     switch_to_rich_text: "रिच टेक्स्ट पर जाएं",
     switch_to_plain_text: "सादे पाठ पर जाएं",
+    plain_text_label: "सादा पाठ",
     font_size_label: "फ़ॉन्ट का आकार",
     font_family_label: "फ़ॉन्ट",
     font_family_default: "डिफ़ॉल्ट फ़ॉन्ट",

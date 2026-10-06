@@ -1169,6 +1169,7 @@ export const ja = {
     write_your_reply: "返信を入力...",
     switch_to_rich_text: "リッチテキストに切り替え",
     switch_to_plain_text: "プレーンテキストに切り替え",
+    plain_text_label: "プレーンテキスト",
     font_size_label: "フォントサイズ",
     font_family_label: "フォント",
     font_family_default: "既定のフォント",

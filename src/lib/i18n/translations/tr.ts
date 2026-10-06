@@ -1123,6 +1123,7 @@ export const tr = {
     write_your_reply: "Yanıtınızı yazın...",
     switch_to_rich_text: "Zengin metne geç",
     switch_to_plain_text: "Düz metne geç",
+    plain_text_label: "Düz metin",
     font_size_label: "Yazı tipi boyutu",
     font_family_label: "Yazı tipi",
     font_family_default: "Varsayılan yazı tipi",

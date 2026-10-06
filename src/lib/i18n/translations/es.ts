@@ -1143,6 +1143,7 @@ export const es = {
     write_your_reply: "Escribe tu respuesta...",
     switch_to_rich_text: "Cambiar a texto enriquecido",
     switch_to_plain_text: "Cambiar a texto plano",
+    plain_text_label: "Texto plano",
     font_size_label: "Tamaño de fuente",
     font_family_label: "Fuente",
     font_family_default: "Fuente predeterminada",

@@ -999,6 +999,7 @@ export const de = {
     write_your_reply: "Schreiben Sie Ihre Antwort...",
     switch_to_rich_text: "Zu Rich-Text wechseln",
     switch_to_plain_text: "Zu Nur-Text wechseln",
+    plain_text_label: "Nur-Text",
     font_size_label: "Schriftgröße",
     font_family_label: "Schriftart",
     font_family_default: "Standardschrift",

@@ -1141,6 +1141,7 @@ export const it = {
     write_your_reply: "Scrivi la tua risposta...",
     switch_to_rich_text: "Passa al testo formattato",
     switch_to_plain_text: "Passa al testo semplice",
+    plain_text_label: "Testo semplice",
     font_size_label: "Dimensione carattere",
     font_family_label: "Carattere",
     font_family_default: "Carattere predefinito",

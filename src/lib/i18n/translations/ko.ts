@@ -1174,6 +1174,7 @@ export const ko = {
     write_your_reply: "답장을 작성하세요...",
     switch_to_rich_text: "서식 있는 텍스트로 전환",
     switch_to_plain_text: "일반 텍스트로 전환",
+    plain_text_label: "일반 텍스트",
     font_size_label: "글꼴 크기",
     font_family_label: "글꼴",
     font_family_default: "기본 글꼴",

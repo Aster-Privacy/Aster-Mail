@@ -1033,6 +1033,7 @@ export const pt = {
     write_your_reply: "Escreva a sua resposta...",
     switch_to_rich_text: "Mudar para texto formatado",
     switch_to_plain_text: "Mudar para texto simples",
+    plain_text_label: "Texto simples",
     font_size_label: "Tamanho do tipo de letra",
     font_family_label: "Tipo de letra",
     font_family_default: "Tipo de letra predefinido",

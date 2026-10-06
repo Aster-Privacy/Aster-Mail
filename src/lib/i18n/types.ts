@@ -1748,6 +1748,7 @@ export interface CommonTranslations {
   write_your_reply: string;
   switch_to_rich_text: string;
   switch_to_plain_text: string;
+  plain_text_label: string;
   font_size_label: string;
   font_family_label: string;
   font_family_default: string;
