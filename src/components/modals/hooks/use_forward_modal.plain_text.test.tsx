@@ -345,6 +345,20 @@ describe("forward comment send formatting", () => {
       "<p>Original message</p>",
     );
   });
+  it("marks a plain text forward so its mime has no html part", async () => {
+    await setup(plain_comment);
+    await act(async () => {
+      await latest.handle_forward();
+    });
+    expect(mocks.send_forward.mock.calls[0][0].is_plain_text).toBe(true);
+  });
+  it("does not mark a rich text forward as plain", async () => {
+    await setup(html_comment, false);
+    await act(async () => {
+      await latest.handle_forward();
+    });
+    expect(mocks.send_forward.mock.calls[0][0].is_plain_text).toBeFalsy();
+  });
   it("preserves plain text when sending through an external account", async () => {
     const external = {
       id: "external_1",

@@ -76,6 +76,7 @@ export interface ReplyParams {
   in_reply_to?: string;
   attachments?: import("@/components/compose/compose_shared").Attachment[];
   require_encryption?: boolean;
+  is_plain_text?: boolean;
 }
 
 export interface ForwardParams {
@@ -93,6 +94,7 @@ export interface ForwardParams {
   attachments?: import("@/components/compose/compose_shared").Attachment[];
   forward_original_mail_id?: string;
   require_encryption?: boolean;
+  is_plain_text?: boolean;
 }
 
 export interface MailActionResult {
@@ -369,6 +371,7 @@ export async function send_reply(
         encryption_options: reply_encryption_options(
           params.require_encryption,
         ),
+        is_plain_text: params.is_plain_text,
       },
       delay_seconds,
       {
@@ -540,6 +543,7 @@ export async function send_forward(
         encryption_options: reply_encryption_options(
           params.require_encryption,
         ),
+        is_plain_text: params.is_plain_text,
       },
       delay_seconds,
       {

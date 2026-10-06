@@ -33,6 +33,8 @@ import {
 } from "./pgp_protected_mime";
 import { select_published_signing_key } from "./crypto/published_signing_key";
 
+import { outgoing_html_to_plain_text } from "@/lib/outgoing_plain_text";
+
 export interface SignedMimePayload {
   signed_mime: string;
   signed_mime_signature: string;
@@ -48,6 +50,7 @@ export interface SignedMimeParams {
   bcc?: string[];
   attachments?: Attachment[];
   obscure_subject?: boolean;
+  is_plain_text?: boolean;
 }
 
 export function should_obscure_outer_subject(params: {
@@ -149,8 +152,10 @@ export async function build_signed_mime_payload(
 
   const mime = build_protected_mime_entity({
     subject: params.subject,
-    body: params.body,
-    is_html: true,
+    body: params.is_plain_text
+      ? outgoing_html_to_plain_text(params.body)
+      : params.body,
+    is_html: !params.is_plain_text,
     from: params.from,
     to: params.to,
     cc: params.cc,

@@ -446,7 +446,9 @@ export function use_reply_modal(props: UseReplyModalProps) {
       to: original_to,
     };
 
-    const quoted_content = include_quoted ? build_quoted_content() : "";
+    const quoted_content = include_quoted
+      ? build_quoted_content(is_plain_text_mode ? "plain" : false)
+      : "";
     const trimmed_reply = reply_message.trim();
     const reply_body = is_plain_text_mode
       ? escape_plain_text(trimmed_reply).replace(/\n/g, "<br>")
@@ -574,6 +576,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
         in_reply_to: original_rfc_message_id,
         attachments: attachments.length > 0 ? attachments : undefined,
         require_encryption: preferences.require_encryption === true,
+        is_plain_text: is_plain_text_mode,
       },
       {
         on_complete: (sent_id?: string) => {
@@ -868,7 +871,9 @@ export function use_reply_modal(props: UseReplyModalProps) {
     set_is_scheduling(true);
     set_error_message(null);
 
-    const quoted_content = include_quoted ? build_quoted_content() : "";
+    const quoted_content = include_quoted
+      ? build_quoted_content(is_plain_text_mode ? "plain" : false)
+      : "";
     const sched_trimmed = reply_message.trim();
     const sched_reply_body = is_plain_text_mode
       ? escape_plain_text(sched_trimmed).replace(/\n/g, "<br>")

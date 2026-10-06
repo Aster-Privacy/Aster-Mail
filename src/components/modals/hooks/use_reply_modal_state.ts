@@ -94,6 +94,8 @@ import {
   restore_compose_image_sources,
 } from "@/lib/compose_image_sources";
 import { inline_email_css } from "@/lib/forward_css_inliner";
+import { outgoing_html_to_plain_text } from "@/lib/outgoing_plain_text";
+import { escape_html as escape_plain_text } from "@/hooks/editor_utils";
 import { fetch_my_badges } from "@/services/api/user";
 import { use_my_badge_prefs } from "@/stores/my_badge_prefs_store";
 import {
@@ -501,7 +503,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
   }, []);
 
   const build_quoted_content = useCallback(
-    (for_display: boolean = false): string => {
+    (for_display: boolean | "plain" = false): string => {
       const formatted_date = format_date(original_timestamp);
       const attribution_name = quote_sender_name || recipient_name;
       const attribution_email = quote_sender_email || recipient_email;
@@ -517,6 +519,17 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
         date: formatted_date,
         name: `${safe_name} &lt;${safe_email}&gt;`,
       });
+
+      if (for_display === "plain") {
+        const quoted_text = outgoing_html_to_plain_text(
+          strip_aster_footers_html(original_body),
+        )
+          .split("\n")
+          .map((line) => (line.length > 0 ? `> ${line}` : ">"))
+          .join("\n");
+
+        return `<br><br><div>${header}<br><br>${escape_plain_text(quoted_text).replace(/\n/g, "<br>")}</div>`;
+      }
 
       if (for_display) {
         const plain_body = (() => {

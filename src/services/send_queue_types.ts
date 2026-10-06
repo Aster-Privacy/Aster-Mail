@@ -108,6 +108,7 @@ export interface EmailParams {
   force_pgp?: boolean;
   allow_non_post_quantum?: boolean;
   client_send_id?: string;
+  is_plain_text?: boolean;
 }
 
 export interface QueueCallbacks {

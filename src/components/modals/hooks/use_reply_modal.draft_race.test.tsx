@@ -645,6 +645,47 @@ describe("reply modal drafts around a send", () => {
     );
   });
 
+  it("sends a plain text reply with the original quoted as text", async () => {
+    mocks.send_reply.mockResolvedValue(queued_send_result());
+    await render_hook(
+      base_props({ original_body: "<p>older <b>text</b></p><p>more</p>" }),
+    );
+    const element = document.createElement("div");
+
+    Object.assign(latest!.message_editor_ref, { current: element });
+    await act(async () => latest!.toggle_plain_text_mode());
+    Object.defineProperty(element, "innerText", {
+      configurable: true,
+      writable: true,
+      value: "Sounds good",
+    });
+    await type_reply(element.innerText);
+    await act(async () => {
+      await latest!.handle_send();
+    });
+
+    const params = mocks.send_reply.mock.calls[0][0];
+
+    expect(params.is_plain_text).toBe(true);
+    expect(params.message).toContain("&gt; older text<br>&gt; more");
+    expect(params.message).not.toContain("<blockquote");
+    expect(params.message).not.toContain("<b>");
+  });
+
+  it("keeps the html quote and no plain flag for a rich reply", async () => {
+    mocks.send_reply.mockResolvedValue(queued_send_result());
+    await render_hook(base_props());
+    await type_reply("Sounds good");
+    await act(async () => {
+      await latest!.handle_send();
+    });
+
+    const params = mocks.send_reply.mock.calls[0][0];
+
+    expect(params.is_plain_text).toBeFalsy();
+    expect(params.message).toContain("<blockquote");
+  });
+
   it("keeps literal markup and line breaks when switching back to rich text", async () => {
     await render_hook(base_props());
     const element = document.createElement("div");
