@@ -30,6 +30,8 @@ export interface InboundAttachmentEntry {
 
 const registry = new Map<string, InboundAttachmentEntry>();
 
+const listed_items = new Set<string>();
+
 const registry_key = (mail_item_id: string, seq: number): string =>
   `${mail_item_id}:${seq}`;
 
@@ -113,6 +115,7 @@ export const register_envelope_attachment_keys = (
       continue;
     }
 
+    listed_items.add(mail_item_id);
     register_attachment_entry(mail_item_id, entry.seq, {
       key: entry.key,
       filename: typeof entry.filename === "string" ? entry.filename : undefined,
@@ -134,8 +137,26 @@ export const get_attachment_entry = (
 export const get_attachment_key = (mail_item_id: string, seq: number): string =>
   registry.get(registry_key(mail_item_id, seq))?.key ?? "";
 
+export const has_envelope_attachment_keys = (mail_item_id: string): boolean =>
+  listed_items.has(mail_item_id);
+
+export const is_attachment_row_listed = (
+  mail_item_id: string,
+  seq: number,
+): boolean =>
+  !listed_items.has(mail_item_id) ||
+  registry.has(registry_key(mail_item_id, seq));
+
+export const listed_attachment_rows = <
+  Row extends { mail_item_id: string; seq_num: number },
+>(
+  rows: Row[],
+): Row[] =>
+  rows.filter((row) => is_attachment_row_listed(row.mail_item_id, row.seq_num));
+
 export const clear_attachment_keys = (): void => {
   registry.clear();
+  listed_items.clear();
   item_versions.clear();
   version += 1;
 

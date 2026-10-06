@@ -26,6 +26,7 @@ import {
   decrypt_attachment_meta,
   decrypt_attachment_data,
 } from "@/services/crypto/attachment_crypto";
+import { listed_attachment_rows } from "@/services/crypto/inbound_attachment_keys";
 import {
   is_previewable_image,
   build_previewable_image_blob,
@@ -153,7 +154,7 @@ function fetch_records(mail_item_id: string): Promise<MailAttachment[]> {
         return [];
       }
 
-      const records = response.data.attachments ?? [];
+      const records = listed_attachment_rows(response.data.attachments ?? []);
 
       if (records.length > 0) {
         const byte_map = new Map<string, AttachmentBytes>(

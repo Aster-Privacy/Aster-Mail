@@ -64,6 +64,7 @@ vi.mock("@/components/email/pdf_preview_modal", () => ({
 vi.mock("@/services/crypto/memory_key_store", () => ({
   get_passphrase_bytes: () => new Uint8Array(32).fill(9),
   get_vault_from_memory: () => null,
+  on_vault_cleared: vi.fn(),
 }));
 
 vi.mock("@/services/crypto/key_manager", () => ({
@@ -71,93 +72,87 @@ vi.mock("@/services/crypto/key_manager", () => ({
   decrypt_message_with_any_key: vi.fn(),
 }));
 
-vi.mock("@/services/crypto/inbound_attachment_keys", () => ({
-  has_envelope_attachment_keys: () => false,
-  is_attachment_row_listed: () => true,
-  listed_attachment_rows: (rows: unknown[]) => rows,
-  attachment_keys_version: () => 0,
-  get_attachment_key: () => "",
-  get_attachment_entry: () => null,
-}));
-
 const { AttachmentList } = await import("./attachment_list");
 const { array_to_base64 } = await import("@/services/crypto/envelope");
-const { prefetch_attachment_meta, clear_attachment_meta_cache } = await import(
-  "@/services/attachment_meta_cache"
-);
+const { prefetch_attachment_meta, clear_attachment_meta_cache } =
+  await import("@/services/attachment_meta_cache");
+const { register_envelope_attachment_keys, clear_attachment_keys } =
+  await import("@/services/crypto/inbound_attachment_keys");
 
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
-const MAIL_ITEM_ID = "8c1f0a55-0000-4000-8000-0000000012ab";
+const MAIL_ITEM_ID = "8c1f0a55-0000-4000-8000-0000000034cd";
 
-function encrypted_meta_for(filename: string) {
-  return array_to_base64(
-    new TextEncoder().encode(
-      JSON.stringify({
-        filename,
-        content_type: "application/pdf",
-        session_key: "",
-      }),
-    ),
-  );
-}
-
-function list_payload() {
+function meta_row(seq_num: number, filename: string) {
   return {
-    data: {
-      attachments: [
-        {
-          id: "att-listed-1",
-          mail_item_id: MAIL_ITEM_ID,
-          seq_num: 0,
-          size_bytes: 24,
-          meta_nonce: array_to_base64(new Uint8Array(12)),
-          encrypted_meta: encrypted_meta_for("statement.pdf"),
-          encrypted_data: "",
-          data_nonce: "",
-        },
-      ],
-      total: 1,
-    },
+    id: `att-meta-${seq_num}`,
+    mail_item_id: MAIL_ITEM_ID,
+    seq_num,
+    size_bytes: 24,
+    meta_nonce: array_to_base64(new Uint8Array(12)),
+    encrypted_meta: array_to_base64(
+      new TextEncoder().encode(
+        JSON.stringify({
+          filename,
+          content_type: "application/pdf",
+          session_key: "",
+        }),
+      ),
+    ),
   };
 }
 
-function empty_meta_payload() {
-  return { data: { items: {} } };
+function list_first_row_only(): void {
+  register_envelope_attachment_keys(MAIL_ITEM_ID, {
+    attachment_keys: [
+      { seq: 0, key: array_to_base64(new Uint8Array(32).fill(1)) },
+    ],
+  });
+}
+
+async function render_list(): Promise<HTMLDivElement> {
+  const host = document.createElement("div");
+
+  document.body.appendChild(host);
+  container = host;
+  root = createRoot(host);
+
+  act(() => {
+    root!.render(<AttachmentList mail_item_id={MAIL_ITEM_ID} />);
+  });
+
+  await act(async () => {
+    for (let turn = 0; turn < 12; turn++) await Promise.resolve();
+  });
+
+  return host;
 }
 
 let root: Root | null = null;
 let container: HTMLDivElement | null = null;
 
-async function render_list(hint: number) {
-  container = document.createElement("div");
-  document.body.appendChild(container);
-  root = createRoot(container);
-
-  act(() => {
-    root!.render(
-      <AttachmentList
-        hint_attachment_count={hint}
-        mail_item_id={MAIL_ITEM_ID}
-      />,
-    );
-  });
-
-  await act(async () => {
-    for (let i = 0; i < 8; i += 1) await Promise.resolve();
-  });
-}
-
-describe("AttachmentList when the metadata batch comes back empty", () => {
+describe("AttachmentList for mail whose envelope lists keys", () => {
   beforeEach(() => {
+    clear_attachment_keys();
     clear_attachment_meta_cache();
     list_attachments_mock.mockReset();
     batch_attachment_meta_mock.mockReset();
-    list_attachments_mock.mockResolvedValue(list_payload());
-    batch_attachment_meta_mock.mockResolvedValue(empty_meta_payload());
+    list_attachments_mock.mockResolvedValue({
+      data: { attachments: [], total: 0 },
+    });
+    batch_attachment_meta_mock.mockResolvedValue({
+      data: {
+        items: {
+          [MAIL_ITEM_ID]: [
+            meta_row(0, "statement.pdf"),
+            meta_row(1, "planted.pdf"),
+          ],
+        },
+      },
+    });
 
     Object.defineProperty(URL, "createObjectURL", {
       configurable: true,
@@ -178,29 +173,35 @@ describe("AttachmentList when the metadata batch comes back empty", () => {
     root = null;
     container = null;
     clear_attachment_meta_cache();
+    clear_attachment_keys();
   });
 
-  it("asks the attachment endpoint when the message is known to carry a file", async () => {
-    await render_list(1);
-
-    expect(list_attachments_mock).toHaveBeenCalledWith(MAIL_ITEM_ID);
-    expect(container?.textContent).toContain("statement.pdf");
-  });
-
-  it("does not ask the attachment endpoint when the message carries no files", async () => {
-    await render_list(0);
-
-    expect(list_attachments_mock).not.toHaveBeenCalled();
-  });
-
-  it("ignores an empty cached list when the message is known to carry a file", async () => {
+  it("shows every row when the envelope lists no keys", async () => {
     await prefetch_attachment_meta([MAIL_ITEM_ID]);
 
-    batch_attachment_meta_mock.mockClear();
+    const host = await render_list();
 
-    await render_list(1);
+    expect(host.textContent).toContain("statement.pdf");
+    expect(host.textContent).toContain("planted.pdf");
+  });
 
-    expect(list_attachments_mock).toHaveBeenCalledWith(MAIL_ITEM_ID);
-    expect(container?.textContent).toContain("statement.pdf");
+  it("hides a row the envelope does not list", async () => {
+    list_first_row_only();
+
+    const host = await render_list();
+
+    expect(host.textContent).toContain("statement.pdf");
+    expect(host.textContent).not.toContain("planted.pdf");
+  });
+
+  it("hides an unlisted row that was cached before the envelope opened", async () => {
+    await prefetch_attachment_meta([MAIL_ITEM_ID]);
+
+    list_first_row_only();
+
+    const host = await render_list();
+
+    expect(host.textContent).toContain("statement.pdf");
+    expect(host.textContent).not.toContain("planted.pdf");
   });
 });

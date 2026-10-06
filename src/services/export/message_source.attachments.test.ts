@@ -26,6 +26,10 @@ const decrypt_mail_envelope = vi.fn();
 const decrypt_attachment_meta = vi.fn();
 const decrypt_attachment_data = vi.fn();
 
+vi.mock("@/services/crypto/memory_key_store", () => ({
+  on_vault_cleared: vi.fn(),
+}));
+
 vi.mock("@/services/api/mail", () => ({
   list_mail_items: (...args: unknown[]) => list_mail_items(...args),
 }));
@@ -46,6 +50,11 @@ vi.mock("@/services/crypto/attachment_crypto", () => ({
 }));
 
 import { create_account_message_source } from "./message_source";
+
+import {
+  clear_attachment_keys,
+  register_envelope_attachment_keys,
+} from "@/services/crypto/inbound_attachment_keys";
 
 import type { ExportError, ExportScope, PipelineMessage } from "./pipeline";
 
@@ -94,6 +103,7 @@ async function collect(
 
 beforeEach(() => {
   vi.clearAllMocks();
+  clear_attachment_keys();
   list_mail_items.mockResolvedValue({
     data: {
       items: [mail_item("mail_1")],
@@ -109,6 +119,35 @@ beforeEach(() => {
 });
 
 describe("export message source attachment reporting", () => {
+  it("exports only the attachments the envelope lists", async () => {
+    register_envelope_attachment_keys("mail_1", {
+      attachment_keys: [
+        {
+          seq: 1,
+          key: btoa(String.fromCharCode(...new Uint8Array(32).fill(1))),
+        },
+      ],
+    });
+    list_attachments.mockResolvedValue({
+      data: { attachments: [attachment(0), attachment(1), attachment(2)] },
+    });
+    decrypt_attachment_meta.mockImplementation(async () => ({
+      filename: "ok.txt",
+      content_type: "text/plain",
+      session_key: "",
+      is_inline: false,
+    }));
+    decrypt_attachment_data.mockResolvedValue(new Uint8Array([1, 2, 3]).buffer);
+
+    const errors: ExportError[] = [];
+    const messages = await collect((e) => errors.push(e));
+
+    expect(messages[0].attachments).toHaveLength(1);
+    expect(decrypt_attachment_meta).toHaveBeenCalledTimes(1);
+    expect(decrypt_attachment_meta.mock.calls[0][3]).toBe(1);
+    expect(errors).toEqual([]);
+  });
+
   it("reports an undecryptable attachment instead of swallowing it", async () => {
     list_attachments.mockResolvedValue({
       data: { attachments: [attachment(0)] },

@@ -117,6 +117,7 @@ import {
   decrypt_attachment_data,
   prepare_external_attachments,
 } from "@/services/crypto/attachment_crypto";
+import { listed_attachment_rows } from "@/services/crypto/inbound_attachment_keys";
 import {
   get_forward_mail_id,
   clear_forward_mail_id,
@@ -531,7 +532,9 @@ export function use_forward_modal({
         let dropped = 0;
         let locked = 0;
 
-        const original_attachments = response.data.attachments;
+        const original_attachments = listed_attachment_rows(
+          response.data.attachments,
+        );
 
         for (let index = 0; index < original_attachments.length; index++) {
           const att = original_attachments[index];

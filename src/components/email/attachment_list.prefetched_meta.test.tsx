@@ -72,6 +72,9 @@ vi.mock("@/services/crypto/key_manager", () => ({
 }));
 
 vi.mock("@/services/crypto/inbound_attachment_keys", () => ({
+  has_envelope_attachment_keys: () => false,
+  is_attachment_row_listed: () => true,
+  listed_attachment_rows: (rows: unknown[]) => rows,
   attachment_keys_version: () => 0,
   get_attachment_key: () => "",
   get_attachment_entry: () => null,

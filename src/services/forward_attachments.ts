@@ -26,6 +26,7 @@ import {
   decrypt_attachment_meta,
   decrypt_attachment_data,
 } from "@/services/crypto/attachment_crypto";
+import { listed_attachment_rows } from "@/services/crypto/inbound_attachment_keys";
 import {
   extract_cid_references,
   extract_cid_inline_filenames,
@@ -102,7 +103,9 @@ export async function load_forward_attachments(
     return [];
   }
 
-  const items = response.data?.attachments;
+  const items = response.data?.attachments
+    ? listed_attachment_rows(response.data.attachments)
+    : undefined;
 
   if (response.error) {
     on_dropped?.(items?.length ?? 1, "unavailable");

@@ -41,6 +41,7 @@ import {
   decrypt_attachment_meta,
   decrypt_attachment_data,
 } from "@/services/crypto/attachment_crypto";
+import { listed_attachment_rows } from "@/services/crypto/inbound_attachment_keys";
 
 const PAGE_SIZE = 500;
 
@@ -94,7 +95,7 @@ async function build_attachments(
 
   if (!list.data?.attachments?.length) return result;
 
-  for (const att of list.data.attachments) {
+  for (const att of listed_attachment_rows(list.data.attachments)) {
     try {
       const meta = await decrypt_attachment_meta(
         att.encrypted_meta,

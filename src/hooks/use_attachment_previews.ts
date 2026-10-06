@@ -29,6 +29,7 @@ import {
   resolve_attachment_meta,
   DEFAULT_ATTACHMENT_CONTENT_TYPE,
 } from "@/services/crypto/attachment_crypto";
+import { listed_attachment_rows } from "@/services/crypto/inbound_attachment_keys";
 import { get_type_label, get_type_color } from "@/lib/attachment_utils";
 
 export interface AttachmentPreviewInfo {
@@ -206,7 +207,9 @@ export function use_attachment_previews(
         const unresolved = new Set<string>();
 
         const decrypt_promises = ids_to_fetch.map(async (mail_id) => {
-          const items = response.data!.items[mail_id] || [];
+          const items = listed_attachment_rows(
+            response.data!.items[mail_id] || [],
+          );
 
           if (items.length === 0) {
             results.set(mail_id, { state: "loaded", attachments: [] });

@@ -44,6 +44,7 @@ import {
   attachment_keys_version,
   get_attachment_key,
   get_attachment_entry,
+  has_envelope_attachment_keys,
   type InboundAttachmentEntry,
 } from "@/services/crypto/inbound_attachment_keys";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
@@ -443,6 +444,16 @@ export async function resolve_attachment_meta(
   const entry = keyed ? get_attachment_entry(mail_item_id, seq_num) : null;
   const row_key = keyed ? `${mail_item_id}:${seq_num}` : null;
 
+  if (keyed && !entry && has_envelope_attachment_keys(mail_item_id)) {
+    return {
+      filename: null,
+      content_type: null,
+      session_key: "",
+      size_bytes: input.size_bytes ?? 0,
+      is_placeholder: true,
+    };
+  }
+
   const row_meta = await read_row_attachment_meta(
     input.encrypted_meta,
     input.meta_nonce,
@@ -463,7 +474,7 @@ export async function resolve_attachment_meta(
   return {
     filename,
     content_type,
-    session_key: row_meta?.session_key || entry?.key || "",
+    session_key: entry?.key || row_meta?.session_key || "",
     content_id: entry?.content_id ?? row_meta?.content_id,
     is_inline: row_meta?.is_inline,
     size_bytes: entry?.size ?? row_meta?.size_bytes ?? input.size_bytes ?? 0,
@@ -620,6 +631,19 @@ export async function decrypt_attachment_data(
   mail_item_id?: string,
   seq_num?: number,
 ): Promise<ArrayBuffer> {
+  if (
+    mail_item_id !== undefined &&
+    seq_num !== undefined &&
+    has_envelope_attachment_keys(mail_item_id)
+  ) {
+    return decrypt_listed_attachment_data(
+      encrypted_data_b64,
+      data_nonce_b64,
+      get_attachment_entry(mail_item_id, seq_num),
+      seq_num,
+    );
+  }
+
   const resolved_key =
     session_key_b64 && session_key_b64.length > 0
       ? session_key_b64
@@ -683,6 +707,53 @@ export async function decrypt_attachment_data(
 
     throw error;
   }
+}
+
+async function decrypt_listed_attachment_data(
+  encrypted_data_b64: string,
+  data_nonce_b64: string,
+  entry: InboundAttachmentEntry | null,
+  seq_num: number,
+): Promise<ArrayBuffer> {
+  if (!entry || entry.key.length === 0) {
+    throw new AttachmentKeyUnavailableError(
+      "attachment is not listed in the message envelope",
+    );
+  }
+
+  const key_bytes = base64_to_array(entry.key);
+  const encrypted_data = base64_to_array(encrypted_data_b64);
+  const nonce = base64_to_array(data_nonce_b64);
+
+  const session_key = await crypto.subtle.importKey(
+    "raw",
+    key_bytes,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["decrypt"],
+  );
+
+  zero_uint8_array(key_bytes);
+
+  const plaintext = await crypto.subtle
+    .decrypt(
+      {
+        name: "AES-GCM",
+        iv: nonce,
+        additionalData: attachment_data_aad(seq_num),
+      },
+      session_key,
+      encrypted_data,
+    )
+    .catch(() =>
+      decrypt_aes_gcm_with_fallback(session_key, encrypted_data, nonce),
+    );
+
+  if (entry.size !== undefined && plaintext.byteLength !== entry.size) {
+    throw new Error("attachment size differs from the message envelope");
+  }
+
+  return plaintext;
 }
 
 function read_unencrypted_attachment(data_b64: string): ArrayBuffer {

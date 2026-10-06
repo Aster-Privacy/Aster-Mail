@@ -52,6 +52,10 @@ import {
 } from "@/services/crypto/attachment_crypto";
 import { get_cached_attachment_meta } from "@/services/attachment_meta_cache";
 import {
+  is_attachment_row_listed,
+  listed_attachment_rows,
+} from "@/services/crypto/inbound_attachment_keys";
+import {
   fetch_attachment_bytes,
   get_cached_preview_url,
   set_cached_preview_url,
@@ -91,7 +95,10 @@ export function AttachmentList({
       const cached = get_cached_attachment_meta(mail_item_id);
 
       return cached
-        ? build_cards_from_cached_meta(cached, t("common.encrypted_attachment"))
+        ? build_cards_from_cached_meta(
+            listed_attachment_rows(cached),
+            t("common.encrypted_attachment"),
+          )
         : [];
     },
   );
@@ -328,6 +335,8 @@ export function AttachmentList({
       encrypted_data: string,
       data_nonce: string,
     ): Promise<DecryptedAttachmentInfo | null> {
+      if (!is_attachment_row_listed(att.mail_item_id, att.seq_num)) return null;
+
       try {
         const meta = await decrypt_attachment_meta(
           att.encrypted_meta,
@@ -423,7 +432,7 @@ export function AttachmentList({
 
       if (cached_meta && cached_meta_is_trustworthy) {
         const cards = build_cards_from_cached_meta(
-          cached_meta,
+          listed_attachment_rows(cached_meta),
           t("common.encrypted_attachment"),
         );
 

@@ -34,12 +34,21 @@ vi.mock("@/services/crypto/attachment_crypto", () => ({
   decrypt_attachment_data,
 }));
 
+vi.mock("@/services/crypto/memory_key_store", () => ({
+  on_vault_cleared: vi.fn(),
+}));
+
 vi.mock("@/services/attachment_limits", () => ({
   get_max_attachment_size: () => 4096,
   get_max_total_attachments_size: () => 8192,
 }));
 
 import { load_forward_attachments } from "./forward_attachments";
+
+import {
+  clear_attachment_keys,
+  register_envelope_attachment_keys,
+} from "@/services/crypto/inbound_attachment_keys";
 
 interface StoredAttachment {
   filename: string;
@@ -94,6 +103,32 @@ function stub_source_attachments(stored: StoredAttachment[]): void {
 describe("load_forward_attachments", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    clear_attachment_keys();
+  });
+
+  it("carries only the attachments the envelope lists", async () => {
+    stub_source_attachments([
+      { filename: "report.pdf", content_type: "application/pdf", bytes: 2048 },
+      { filename: "planted.pdf", content_type: "application/pdf", bytes: 1024 },
+    ]);
+    register_envelope_attachment_keys("mail-1", {
+      attachment_keys: [
+        {
+          seq: 0,
+          key: btoa(String.fromCharCode(...new Uint8Array(32).fill(1))),
+        },
+      ],
+    });
+
+    const carried = await load_forward_attachments("mail-1", {
+      body_html: "<p>original body</p>",
+    });
+
+    expect(carried.map((attachment) => attachment.name)).toEqual([
+      "report.pdf",
+    ]);
+    expect(decrypt_attachment_meta).toHaveBeenCalledTimes(1);
+    expect(decrypt_attachment_data).toHaveBeenCalledTimes(1);
   });
 
   it("carries non-inline attachments of the forwarded message", async () => {

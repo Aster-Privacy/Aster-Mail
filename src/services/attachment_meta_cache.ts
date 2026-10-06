@@ -23,6 +23,7 @@ import {
   type AttachmentMetaItem,
 } from "@/services/api/attachments";
 import { resolve_attachment_meta } from "@/services/crypto/attachment_crypto";
+import { listed_attachment_rows } from "@/services/crypto/inbound_attachment_keys";
 import { ignore_error } from "@/lib/ignore_error";
 
 export interface CachedAttachmentMeta {
@@ -136,7 +137,7 @@ export function prefetch_attachment_meta(
           if (!items) continue;
 
           for (const mail_item_id of chunk) {
-            const list = items[mail_item_id] ?? [];
+            const list = listed_attachment_rows(items[mail_item_id] ?? []);
             const cached = await Promise.all(list.map(to_cached_meta));
 
             store_cached_meta(mail_item_id, cached);
