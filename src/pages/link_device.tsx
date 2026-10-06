@@ -36,6 +36,7 @@ import {
   base64url_encode,
   base64url_decode,
 } from "@/lib/crypto/device_envelope";
+import { fingerprint_of_encoded_device_keys } from "@/lib/crypto/device_fingerprint";
 import { get_passphrase_from_memory } from "@/services/crypto/memory_key_store";
 import { app_pathname } from "@/lib/account_index_url";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -446,6 +447,11 @@ export default function LinkDevice() {
   const [device_info, set_device_info] = useState<DeviceInfo | null>(null);
   const [error, set_error] = useState<string | null>(null);
   const [is_verifying, set_is_verifying] = useState(false);
+  const device_fingerprint = useMemo(
+    () =>
+      device_info ? fingerprint_of_encoded_device_keys(device_info) : null,
+    [device_info],
+  );
 
   useEffect(() => {
     if (auth_loading) return;
@@ -511,6 +517,12 @@ export default function LinkDevice() {
         return;
       }
 
+      if (!fingerprint_of_encoded_device_keys(response.data)) {
+        set_error(t("auth.link_device_failed"));
+
+        return;
+      }
+
       set_device_info(response.data);
       set_page_state("confirming_device");
     } catch {
@@ -521,7 +533,7 @@ export default function LinkDevice() {
   };
 
   const handle_confirm = async () => {
-    if (!device_info) return;
+    if (!device_info || !device_fingerprint) return;
 
     set_page_state("sealing");
     set_error(null);
@@ -696,7 +708,7 @@ export default function LinkDevice() {
     );
   }
 
-  if (page_state === "confirming_device" && device_info) {
+  if (page_state === "confirming_device" && device_info && device_fingerprint) {
     return (
       <LinkDeviceShell
         description={t("auth.link_device_confirm_prompt")}
@@ -724,6 +736,30 @@ export default function LinkDevice() {
                   {t("auth.link_device_desktop")}
                 </span>
               </div>
+            </div>
+            <div
+              className="mt-3.5 border-t pt-3.5"
+              data-testid="device_fingerprint"
+              style={{ borderColor: "var(--border-secondary)" }}
+            >
+              <span
+                className="block text-[11px] font-medium leading-tight"
+                style={{ color: "var(--text-muted)" }}
+              >
+                {t("auth.device_fingerprint")}
+              </span>
+              <span
+                className="mt-1 block select-text font-mono text-[15px] font-semibold tracking-wide"
+                style={{ color: "var(--text-primary)" }}
+              >
+                {device_fingerprint}
+              </span>
+              <span
+                className="mt-1.5 block text-[11px] leading-relaxed"
+                style={{ color: "var(--text-muted)" }}
+              >
+                {t("auth.link_device_fingerprint_hint")}
+              </span>
             </div>
           </div>
         </Panel>

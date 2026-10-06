@@ -10034,6 +10034,9 @@ export const ru = {
       "Хотите привязать это устройство к своему аккаунту?",
     link_device_confirming: "Привязка устройства...",
     link_device_desktop: "Десктопное приложение",
+    device_fingerprint: "Отпечаток устройства",
+    link_device_fingerprint_hint: "Если привязываемое устройство показывает отпечаток устройства, перед привязкой убедитесь, что он совпадает с этим.",
+    device_code_fingerprint_hint: "При вводе кода убедитесь, что отпечаток устройства в браузере совпадает с этим, прежде чем привязывать устройство.",
     link_device_change_account: "Сменить аккаунт",
     link_device_choose_account: "Выберите аккаунт",
     link_device_choose_account_description:

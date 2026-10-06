@@ -10063,6 +10063,9 @@ export const pl = {
     link_device_confirming: "Łączenie urządzenia...",
     link_device_cancel: "Anuluj",
     link_device_desktop: "Aplikacja desktopowa",
+    device_fingerprint: "Odcisk urządzenia",
+    link_device_fingerprint_hint: "Jeśli łączone urządzenie pokazuje odcisk urządzenia, przed połączeniem upewnij się, że jest zgodny z tym odciskiem.",
+    device_code_fingerprint_hint: "Podczas wpisywania kodu upewnij się, że odcisk urządzenia widoczny w przeglądarce jest zgodny z tym odciskiem, zanim połączysz urządzenie.",
     link_device_change_account: "Zmień konto",
     link_device_choose_account: "Wybierz konto",
     link_device_choose_account_description:

@@ -9946,6 +9946,9 @@ export const pt = {
       "Pretende associar este dispositivo à sua conta?",
     link_device_confirming: "A associar dispositivo...",
     link_device_desktop: "Aplicação para computador",
+    device_fingerprint: "Impressão digital do dispositivo",
+    link_device_fingerprint_hint: "Se o dispositivo que está a associar mostrar uma impressão digital do dispositivo, confirme que corresponde a esta antes de o associar.",
+    device_code_fingerprint_hint: "Ao introduzir o código, confirme que a impressão digital do dispositivo apresentada no navegador corresponde a esta antes de associar o dispositivo.",
     link_device_change_account: "Mudar de conta",
     link_device_choose_account: "Escolha uma conta",
     link_device_choose_account_description:

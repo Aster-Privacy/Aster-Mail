@@ -63,6 +63,7 @@ import {
   base64url_encode,
   seal_vault_key_for_device,
 } from "@/lib/crypto/device_envelope";
+import { fingerprint_of_encoded_device_keys } from "@/lib/crypto/device_fingerprint";
 
 const CHANNEL = "aster_account_link";
 const SUPPORT_SITE_ACTIONS = new Set(["accounts", "sign_out"]);
@@ -70,6 +71,7 @@ const MAX_FAILED_LINKS_PER_TAB = 3;
 const LINK_ATTEMPTS_KEY = "aster_bridge_link_attempts";
 const MAX_ACCOUNTS = 20;
 const MAX_PROFILE_PICTURE_LENGTH = 512_000;
+const FINGERPRINT_PATTERN = /^[0-9A-F]{4}( [0-9A-F]{4}){4}$/;
 const CODE_PATTERN = /^[A-Za-z0-9_-]{4,128}$/;
 const ACCOUNT_ID_PATTERN = /^[A-Za-z0-9_-]{1,128}$/;
 const PROFILE_PICTURE_PATTERN =
@@ -80,6 +82,7 @@ type bridge_error =
   | "rate_limited"
   | "session"
   | "code_not_found"
+  | "fingerprint_mismatch"
   | "storage_unreadable"
   | "unsupported"
   | "unavailable";
@@ -89,6 +92,7 @@ interface bridge_request {
   id: string;
   action: string;
   code?: unknown;
+  fingerprint?: unknown;
   account_id?: unknown;
   account_ids?: unknown;
   all?: unknown;
@@ -353,7 +357,24 @@ function token_session_client(session: token_session): link_client {
   };
 }
 
-async function handle_link(
+async function open_link_client(
+  account_id: string,
+): Promise<{ client?: link_client; account?: StoredAccount }> {
+  const accounts = personal_accounts(await get_all_accounts());
+  const account = accounts.find((candidate) => candidate.id === account_id);
+
+  if (!account || !has_unlock_material(account.id)) return {};
+
+  if (account.id === (await get_current_account_id())) {
+    return { client: current_session_client, account };
+  }
+
+  const session = await open_token_session(account).catch(() => null);
+
+  return session ? { client: token_session_client(session), account } : {};
+}
+
+async function handle_link_preview(
   code: string,
   account_id: string,
 ): Promise<bridge_result> {
@@ -368,29 +389,63 @@ async function handle_link(
 
   save_link_attempts({ ...attempts, failed: attempts.failed + 1 });
 
-  const accounts = personal_accounts(await get_all_accounts());
-  const account = accounts.find((candidate) => candidate.id === account_id);
+  const { client } = await open_link_client(account_id);
 
-  if (!account || !has_unlock_material(account.id)) {
-    return { ok: false, error: "session" };
-  }
-
-  const current_id = await get_current_account_id();
-  let client: link_client;
-
-  if (account.id === current_id) {
-    client = current_session_client;
-  } else {
-    const session = await open_token_session(account).catch(() => null);
-
-    if (!session) return { ok: false, error: "session" };
-    client = token_session_client(session);
-  }
+  if (!client) return { ok: false, error: "session" };
 
   const verified = await client.verify(code);
 
   if (verified.error || !verified.data) {
     return { ok: false, error: verified.error ?? "code_not_found" };
+  }
+
+  const fingerprint = fingerprint_of_encoded_device_keys(verified.data);
+
+  if (!fingerprint) return { ok: false, error: "code_not_found" };
+
+  save_link_attempts({
+    ...link_state,
+    failed: Math.max(0, link_state.failed - 1),
+  });
+
+  return {
+    ok: true,
+    fingerprint,
+    machine_name: String(verified.data.machine_name ?? "").slice(0, 128),
+  };
+}
+
+async function handle_link(
+  code: string,
+  account_id: string,
+  expected_fingerprint: string | null,
+): Promise<bridge_result> {
+  const attempts = load_link_attempts();
+
+  if (
+    attempts.failed >= MAX_FAILED_LINKS_PER_TAB ||
+    attempts.linked >= MAX_ACCOUNTS
+  ) {
+    return { ok: false, error: "rate_limited" };
+  }
+
+  save_link_attempts({ ...attempts, failed: attempts.failed + 1 });
+
+  const { client, account } = await open_link_client(account_id);
+
+  if (!client || !account) return { ok: false, error: "session" };
+
+  const verified = await client.verify(code);
+
+  if (verified.error || !verified.data) {
+    return { ok: false, error: verified.error ?? "code_not_found" };
+  }
+
+  if (
+    expected_fingerprint !== null &&
+    fingerprint_of_encoded_device_keys(verified.data) !== expected_fingerprint
+  ) {
+    return { ok: false, error: "fingerprint_mismatch" };
   }
 
   const passphrase = await get_session_passphrase(account.id).catch(() => null);
@@ -549,14 +604,32 @@ function handle(
       }
 
       return Promise.resolve({ ok: false, error: "unsupported" });
-    case "link":
+    case "link_preview":
       if (
         typeof request.code === "string" &&
         CODE_PATTERN.test(request.code) &&
         typeof request.account_id === "string" &&
         ACCOUNT_ID_PATTERN.test(request.account_id)
       ) {
-        return handle_link(request.code, request.account_id);
+        return handle_link_preview(request.code, request.account_id);
+      }
+
+      return Promise.resolve({ ok: false, error: "unsupported" });
+    case "link":
+      if (
+        typeof request.code === "string" &&
+        CODE_PATTERN.test(request.code) &&
+        typeof request.account_id === "string" &&
+        ACCOUNT_ID_PATTERN.test(request.account_id) &&
+        (request.fingerprint === undefined ||
+          (typeof request.fingerprint === "string" &&
+            FINGERPRINT_PATTERN.test(request.fingerprint)))
+      ) {
+        return handle_link(
+          request.code,
+          request.account_id,
+          request.fingerprint ?? null,
+        );
       }
 
       return Promise.resolve({ ok: false, error: "unsupported" });

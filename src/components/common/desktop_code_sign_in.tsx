@@ -31,6 +31,7 @@ import {
   poll_device_code_status,
   complete_device_pairing,
 } from "@/native/desktop_device_auth";
+import { fingerprint_of_encoded_device_keys } from "@/lib/crypto/device_fingerprint";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { decrypt_vault } from "@/services/crypto/key_manager";
@@ -141,6 +142,9 @@ export function DesktopCodeSignIn({
   const reduce_motion = use_should_reduce_motion();
   const [flow_state, set_flow_state] = useState<FlowState>("requesting_code");
   const [code, set_code] = useState<string | null>(null);
+  const [device_fingerprint, set_device_fingerprint] = useState<string | null>(
+    null,
+  );
   const [time_left, set_time_left] = useState(0);
   const [error_detail, set_error_detail] = useState<string | null>(null);
   const [flow_key, set_flow_key] = useState(0);
@@ -251,6 +255,7 @@ export function DesktopCodeSignIn({
 
         if (cancelled) return;
 
+        set_device_fingerprint(fingerprint_of_encoded_device_keys(pubkeys));
         set_code(result.code);
         set_time_left(result.expires_in);
         set_flow_state("showing_code");
@@ -512,6 +517,23 @@ export function DesktopCodeSignIn({
                   ))}
                 </button>
               </div>
+
+              {device_fingerprint && (
+                <div
+                  className="w-full mt-5 text-center"
+                  data-testid="device_fingerprint"
+                >
+                  <span className="block text-xs font-medium text-txt-muted">
+                    {t("auth.device_fingerprint")}
+                  </span>
+                  <span className="mt-1 block select-text font-mono text-sm font-semibold tracking-wide text-txt-primary">
+                    {device_fingerprint}
+                  </span>
+                  <span className="mt-1.5 block text-xs leading-relaxed text-txt-muted">
+                    {t("auth.device_code_fingerprint_hint")}
+                  </span>
+                </div>
+              )}
 
               <div className="flex items-center gap-3 w-full mt-6">
                 <button

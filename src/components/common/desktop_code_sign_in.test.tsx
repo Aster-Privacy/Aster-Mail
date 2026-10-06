@@ -148,6 +148,29 @@ describe("desktop code sign-in", () => {
     expect(poll_device_code_status_mock.mock.calls.length).toBeGreaterThan(60);
   });
 
+  it("shows the fingerprint of its own keys beside the code", async () => {
+    const encode = (length: number, value: number) =>
+      btoa(String.fromCharCode(...new Uint8Array(length).fill(value)))
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/, "");
+
+    invoke_mock.mockResolvedValue({
+      ed25519_pk: encode(32, 1),
+      mlkem_pk: encode(1184, 2),
+      x25519_pk: encode(32, 3),
+      machine_name: "desk",
+      device_id: null,
+    });
+
+    await render_sign_in();
+
+    expect(
+      container!.querySelector('[data-testid="device_fingerprint"]')
+        ?.textContent,
+    ).toContain("9B16 AF79 0A6A E2F2 55D3");
+  });
+
   it("keeps polling after a failed status request", async () => {
     poll_device_code_status_mock
       .mockRejectedValueOnce(new Error("device_code_status_unavailable"))

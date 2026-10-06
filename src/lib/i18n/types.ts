@@ -8252,6 +8252,9 @@ export interface AuthTranslations {
   link_device_confirming: string;
   link_device_cancel: string;
   link_device_desktop: string;
+  device_fingerprint: string;
+  link_device_fingerprint_hint: string;
+  device_code_fingerprint_hint: string;
   link_device_change_account: string;
   link_device_choose_account: string;
   link_device_choose_account_description: string;

@@ -9724,6 +9724,9 @@ export const tr = {
     link_device_confirming: "Cihaz bağlanıyor...",
     link_device_cancel: "İptal",
     link_device_desktop: "Masaüstü uygulaması",
+    device_fingerprint: "Cihaz parmak izi",
+    link_device_fingerprint_hint: "Bağladığınız cihaz bir cihaz parmak izi gösteriyorsa cihazı bağlamadan önce bununla eşleştiğinden emin olun.",
+    device_code_fingerprint_hint: "Kodu girerken, cihazı bağlamadan önce tarayıcınızda gösterilen cihaz parmak izinin bununla eşleştiğinden emin olun.",
     link_device_change_account: "Hesap değiştir",
     link_device_choose_account: "Bir hesap seçin",
     link_device_choose_account_description:

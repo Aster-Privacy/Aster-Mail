@@ -9285,6 +9285,9 @@ export const hi = {
     link_device_upgrade_title: "यह डिवाइस लिंक करने के लिए अपग्रेड करें",
     link_device_upgrade_description:
       "अपने खाते से डेस्कटॉप Bridge जोड़ने के लिए Star या उससे ऊपर का प्लान चाहिए। नीचे कोई प्लान चुनें और चेकआउट के तुरंत बाद आपका डिवाइस लिंक हो जाएगा।",
+    device_fingerprint: "डिवाइस फ़िंगरप्रिंट",
+    link_device_fingerprint_hint: "अगर आप जिस डिवाइस को लिंक कर रहे हैं वह डिवाइस फ़िंगरप्रिंट दिखाता है, तो डिवाइस लिंक करने से पहले पक्का करें कि वह इससे मेल खाता है।",
+    device_code_fingerprint_hint: "कोड डालते समय, डिवाइस लिंक करने से पहले पक्का करें कि आपके ब्राउज़र में दिखाया गया डिवाइस फ़िंगरप्रिंट इससे मेल खाता है।",
     link_device_change_account: "खाता बदलें",
     link_device_choose_account: "कोई खाता चुनें",
     link_device_choose_account_description: "अपना डेस्कटॉप ऐप लिंक करने के लिए",
