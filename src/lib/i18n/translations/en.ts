@@ -3168,7 +3168,7 @@ export const en: Translations = {
     default_sender_no_addresses: "No other addresses",
     compose_defaults_title: "Default formatting",
     compose_defaults_description:
-      "Choose how new messages look when you start writing. Replies and forwarded messages keep their original formatting.",
+      "Choose how new messages, replies and forwards look when you start writing.",
     compose_default_font_size: "Default font size",
     compose_default_font_size_description:
       "New messages start at this size. You can still change the size while you write.",

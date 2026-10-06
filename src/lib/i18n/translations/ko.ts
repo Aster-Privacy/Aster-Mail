@@ -4196,7 +4196,7 @@ export const ko = {
     default_sender_no_addresses: "다른 주소 없음",
     compose_defaults_title: "기본 서식",
     compose_defaults_description:
-      "새 메시지를 쓰기 시작할 때의 모양을 선택하세요. 답장과 전달한 메시지는 원래 서식을 유지합니다.",
+      "새 메시지, 답장, 전달을 쓰기 시작할 때의 모양을 선택하세요.",
     compose_default_font_size: "기본 글자 크기",
     compose_default_font_size_description:
       "새 메시지가 이 크기로 시작합니다. 작성하는 중에도 크기를 변경할 수 있습니다.",

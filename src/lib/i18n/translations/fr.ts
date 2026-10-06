@@ -4247,7 +4247,7 @@ export const fr = {
     default_sender_no_addresses: "Aucune autre adresse",
     compose_defaults_title: "Mise en forme par défaut",
     compose_defaults_description:
-      "Choisissez l'apparence des nouveaux messages au moment où vous commencez à écrire. Les réponses et les messages transférés conservent leur mise en forme d'origine.",
+      "Choisissez l'apparence des nouveaux messages, des réponses et des transferts au moment où vous commencez à écrire.",
     compose_default_font_size: "Taille de police par défaut",
     compose_default_font_size_description:
       "Les nouveaux messages commencent avec cette taille. Vous pouvez toujours modifier la taille pendant que vous écrivez.",

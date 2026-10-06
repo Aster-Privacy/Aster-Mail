@@ -3801,8 +3801,7 @@ export const zh_CN = {
       "新邮件从该地址发出。回复时使用邮件原本寄达的地址。",
     default_sender_no_addresses: "没有其他地址",
     compose_defaults_title: "默认格式",
-    compose_defaults_description:
-      "选择开始撰写新邮件时的外观。回复和转发的邮件会保留原有格式。",
+    compose_defaults_description: "选择开始撰写新邮件、回复和转发时的外观。",
     compose_default_font_size: "默认字号",
     compose_default_font_size_description:
       "新邮件以此字号开始。撰写时仍可更改字号。",

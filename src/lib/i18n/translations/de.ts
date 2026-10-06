@@ -5917,7 +5917,7 @@ export const de = {
     default_sender_no_addresses: "Keine weiteren Adressen",
     compose_defaults_title: "Standardformatierung",
     compose_defaults_description:
-      "Legen Sie fest, wie neue Nachrichten aussehen, wenn Sie mit dem Schreiben beginnen. Antworten und weitergeleitete Nachrichten behalten ihre ursprüngliche Formatierung.",
+      "Legen Sie fest, wie neue Nachrichten, Antworten und Weiterleitungen aussehen, wenn Sie mit dem Schreiben beginnen.",
     compose_default_font_size: "Standardschriftgröße",
     compose_default_font_size_description:
       "Neue Nachrichten beginnen mit dieser Größe. Sie können die Größe beim Schreiben jederzeit ändern.",

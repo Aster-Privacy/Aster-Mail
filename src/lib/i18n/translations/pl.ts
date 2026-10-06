@@ -4367,7 +4367,7 @@ export const pl = {
     default_sender_no_addresses: "Brak innych adresów",
     compose_defaults_title: "Domyślne formatowanie",
     compose_defaults_description:
-      "Wybierz, jak wyglądają nowe wiadomości, gdy zaczynasz pisać. Odpowiedzi i przekazane wiadomości zachowują oryginalne formatowanie.",
+      "Wybierz, jak wyglądają nowe wiadomości, odpowiedzi i przekazania, gdy zaczynasz pisać.",
     compose_default_font_size: "Domyślny rozmiar czcionki",
     compose_default_font_size_description:
       "Nowe wiadomości zaczynają się od tego rozmiaru. Rozmiar możesz zmienić także podczas pisania.",

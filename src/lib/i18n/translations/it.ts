@@ -4288,7 +4288,7 @@ export const it = {
     default_sender_no_addresses: "Nessun altro indirizzo",
     compose_defaults_title: "Formattazione predefinita",
     compose_defaults_description:
-      "Scegli l'aspetto dei nuovi messaggi quando inizi a scrivere. Le risposte e i messaggi inoltrati mantengono la formattazione originale.",
+      "Scegli l'aspetto dei nuovi messaggi, delle risposte e degli inoltri quando inizi a scrivere.",
     compose_default_font_size: "Dimensione carattere predefinita",
     compose_default_font_size_description:
       "I nuovi messaggi partono da questa dimensione. Puoi cambiare la dimensione mentre scrivi.",

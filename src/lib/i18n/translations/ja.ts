@@ -4143,7 +4143,7 @@ export const ja = {
     default_sender_no_addresses: "ほかのアドレスがありません",
     compose_defaults_title: "デフォルトの書式",
     compose_defaults_description:
-      "新規メッセージを書き始めるときの見た目を選択します。返信と転送メッセージは元の書式を保持します。",
+      "新規メッセージ、返信、転送を書き始めるときの見た目を選択します。",
     compose_default_font_size: "デフォルトの文字サイズ",
     compose_default_font_size_description:
       "新規メッセージはこのサイズで始まります。作成中にサイズを変更することもできます。",

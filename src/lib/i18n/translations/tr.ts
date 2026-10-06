@@ -4140,7 +4140,7 @@ export const tr = {
     default_sender_no_addresses: "Başka adres yok",
     compose_defaults_title: "Varsayılan biçimlendirme",
     compose_defaults_description:
-      "Yeni iletilerin, yazmaya başladığınızda nasıl görüneceğini seçin. Yanıtlar ve iletilen iletiler özgün biçimlendirmesini korur.",
+      "Yeni iletilerin, yanıtların ve iletmelerin yazmaya başladığınızda nasıl görüneceğini seçin.",
     compose_default_font_size: "Varsayılan yazı tipi boyutu",
     compose_default_font_size_description:
       "Yeni iletiler bu boyutta başlar. Yazarken boyutu yine de değiştirebilirsiniz.",

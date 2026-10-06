@@ -4254,7 +4254,7 @@ export const pt = {
     default_sender_no_addresses: "Sem outros endereços",
     compose_defaults_title: "Formatação predefinida",
     compose_defaults_description:
-      "Escolha o aspeto das novas mensagens quando começa a escrever. As respostas e as mensagens reencaminhadas mantêm a formatação original.",
+      "Escolha o aspeto das novas mensagens, respostas e reencaminhamentos quando começa a escrever.",
     compose_default_font_size: "Tamanho de letra predefinido",
     compose_default_font_size_description:
       "As novas mensagens começam com este tamanho. Pode alterar o tamanho enquanto escreve.",

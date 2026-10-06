@@ -4313,7 +4313,7 @@ export const ar = {
     default_sender_no_addresses: "لا توجد عناوين أخرى",
     compose_defaults_title: "التنسيق الافتراضي",
     compose_defaults_description:
-      "اختر شكل الرسائل الجديدة عند بدء الكتابة. تحتفظ الردود والرسائل المُعاد توجيهها بتنسيقها الأصلي.",
+      "اختر شكل الرسائل الجديدة والردود والرسائل المحوّلة عند بدء الكتابة.",
     compose_default_font_size: "حجم الخط الافتراضي",
     compose_default_font_size_description:
       "تبدأ الرسائل الجديدة بهذا الحجم. ويمكنك تغيير الحجم أثناء الكتابة.",

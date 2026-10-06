@@ -5890,7 +5890,7 @@ export const nl = {
     default_sender_no_addresses: "Geen andere adressen",
     compose_defaults_title: "Standaardopmaak",
     compose_defaults_description:
-      "Kies hoe nieuwe berichten eruitzien wanneer je begint te schrijven. Antwoorden en doorgestuurde berichten behouden hun oorspronkelijke opmaak.",
+      "Kies hoe nieuwe berichten, antwoorden en doorgestuurde berichten eruitzien wanneer je begint te schrijven.",
     compose_default_font_size: "Standaardlettergrootte",
     compose_default_font_size_description:
       "Nieuwe berichten beginnen met deze grootte. Je kunt de grootte tijdens het schrijven nog aanpassen.",

@@ -3247,7 +3247,7 @@ export const hi = {
     default_sender_no_addresses: "कोई अन्य पता नहीं",
     compose_defaults_title: "डिफ़ॉल्ट फ़ॉर्मैटिंग",
     compose_defaults_description:
-      "चुनें कि लिखना शुरू करने पर नए संदेश कैसे दिखें। जवाब और फ़ॉरवर्ड किए गए संदेश अपनी मूल फ़ॉर्मैटिंग बनाए रखते हैं।",
+      "चुनें कि लिखना शुरू करने पर नए संदेश, जवाब और फ़ॉरवर्ड कैसे दिखें।",
     compose_default_font_size: "डिफ़ॉल्ट फ़ॉन्ट आकार",
     compose_default_font_size_description:
       "नए संदेश इसी आकार में शुरू होते हैं। लिखते समय आप आकार बदल भी सकते हैं।",
