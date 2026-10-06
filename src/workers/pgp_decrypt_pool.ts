@@ -120,7 +120,13 @@ export function reset_pgp_decrypt_pool(): void {
   reject_all_pending(new vault_cleared_error());
 }
 
-on_vault_cleared(reset_pgp_decrypt_pool);
+let vault_reset_armed = false;
+
+function arm_vault_reset(): void {
+  if (vault_reset_armed) return;
+  on_vault_cleared(reset_pgp_decrypt_pool);
+  vault_reset_armed = true;
+}
 
 function handle_worker_failure(event: Event | ErrorEvent | MessageEvent): void {
   const message =
@@ -152,6 +158,7 @@ function get_pool(): Worker[] | null {
   }
 
   try {
+    arm_vault_reset();
     workers = Array.from({ length: POOL_SIZE }, () => {
       const worker = new Worker(
         new URL("./pgp_decrypt_worker.ts", import.meta.url),
