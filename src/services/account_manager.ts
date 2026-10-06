@@ -686,6 +686,18 @@ export async function switch_account(
   return account;
 }
 
+async function clear_account_key_storage(account_id: string): Promise<void> {
+  try {
+    const { delete_account_storage } = await import(
+      "@/services/crypto/storage_key_names"
+    );
+
+    await delete_account_storage(account_id);
+  } catch (caught) {
+    ignore_error("services/account_manager:clear_account_key_storage", caught);
+  }
+}
+
 export async function remove_account(
   account_id: string,
 ): Promise<{ removed: boolean; switched_to: StoredAccount | null }> {
@@ -711,6 +723,7 @@ export async function remove_account(
 
   await save_accounts_data(data);
   await clear_account_session_material(account_id);
+  await clear_account_key_storage(account_id);
   clear_expanded_folders(account_id);
   clear_expanded_tags(account_id);
   await clear_offline_email_cache(account_id);

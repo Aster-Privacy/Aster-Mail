@@ -24,6 +24,27 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const hoisted = vi.hoisted(() => ({
   calls: [] as string[],
   snapshot_scopes: [] as unknown[],
+  deleted_accounts: [] as string[],
+}));
+
+vi.mock("@/lib/icon_cache", () => ({
+  clear_icon_cache: () => {
+    hoisted.calls.push("clear_icon_cache");
+  },
+}));
+
+vi.mock("@/lib/favicon_cache_db", () => ({
+  purge_favicon_cache: async () => {
+    hoisted.calls.push("purge_favicon_cache");
+  },
+}));
+
+vi.mock("@/services/crypto/storage_key_names", () => ({
+  delete_account_storage: async (account_id: string) => {
+    hoisted.deleted_accounts.push(account_id);
+
+    return 0;
+  },
 }));
 
 vi.mock("./auth_helpers", () => ({
@@ -82,6 +103,7 @@ describe("signing out one account clears its decrypted caches", () => {
   beforeEach(() => {
     hoisted.calls.length = 0;
     hoisted.snapshot_scopes.length = 0;
+    hoisted.deleted_accounts.length = 0;
   });
 
   it("clears every cache a full sign-out clears", async () => {
@@ -93,10 +115,19 @@ describe("signing out one account clears its decrypted caches", () => {
       "clear_detection_cache",
       "clear_escrow_miss_cache",
       "clear_family_cache",
+      "clear_icon_cache",
       "clear_translation_cache",
       "lock_all_folders",
+      "purge_favicon_cache",
       "release_engines",
     ]);
+  });
+
+  it("deletes the key store entries of the account that signed out", async () => {
+    await clear_signed_out_account_caches("acct-2");
+    await clear_signed_out_account_caches();
+
+    expect(hoisted.deleted_accounts).toEqual(["acct-2"]);
   });
 
   it("keeps clearing when one cache throws", async () => {

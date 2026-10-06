@@ -31,6 +31,19 @@ vi.mock("@/services/crypto/secure_storage", () => ({
   ),
 }));
 
+const key_entries = new Map<string, unknown>();
+
+vi.mock("@/services/crypto/encrypted_storage", async () => ({
+  ...(
+    await import("@/tests/fixtures/storage_name_support")
+  ).storage_name_support(key_entries),
+  encrypted_get: vi.fn(async () => null),
+  encrypted_set: vi.fn(async () => undefined),
+  encrypted_delete: vi.fn(async (key: string) => {
+    key_entries.delete(key);
+  }),
+}));
+
 vi.mock("@/services/offline_email_cache", () => ({
   clear_email_cache: vi.fn(async () => undefined),
 }));
@@ -54,9 +67,8 @@ vi.mock("@/services/api/client", () => ({
 }));
 
 const { remove_account } = await import("./account_manager");
-const { store_encrypted_vault, get_stored_encrypted_vault } = await import(
-  "@/contexts/auth/session_passphrase"
-);
+const { store_encrypted_vault, get_stored_encrypted_vault } =
+  await import("@/contexts/auth/session_passphrase");
 
 const ACCOUNTS_KEY = "astermail_accounts_v6";
 const FIRST = "3c74a773-b6e8-40ed-a375-c9a26fe97d04";
@@ -96,6 +108,30 @@ describe("remove_account", () => {
     expect(localStorage.getItem(`astermail_session_passphrase_${FIRST}`)).toBe(
       "cipher",
     );
+  });
+
+  it("deletes the removed account's key store entries without the vault", async () => {
+    key_entries.clear();
+    for (const account of [FIRST, SECOND]) {
+      key_entries.set(`ratchet_state_${account}_h1_aaaa`, 1);
+      key_entries.set(`ratchet_plaintext_${account}_h1_bbbb`, 1);
+      key_entries.set(`ratchet_identity_pin_${account}_h1_cccc`, 1);
+      key_entries.set(`ratchet_identity_change_${account}_h1_dddd`, 1);
+      key_entries.set(`ratchet_owner_key_pin_${account}_h1_eeee`, 1);
+      key_entries.set(`ratchet_identity_untrusted_${account}_h1_ffff`, 1);
+      key_entries.set(`ratchet_sender_identity_history_${account}_h1_gggg`, 1);
+      key_entries.set(`ratchet_conversation_index_${account}`, 1);
+      key_entries.set(`storage_name_key_${account}`, 1);
+    }
+
+    const result = await remove_account(FIRST);
+
+    expect(result.removed).toBe(true);
+
+    const left = [...key_entries.keys()];
+
+    expect(left.filter((key) => key.includes(FIRST))).toEqual([]);
+    expect(left.filter((key) => key.includes(SECOND))).toHaveLength(9);
   });
 
   it("leaves stored material alone when the account is not on the roster", async () => {

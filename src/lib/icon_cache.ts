@@ -21,6 +21,7 @@
 import { ignore_error } from "@/lib/ignore_error";
 
 const STORAGE_KEY = "aster_icon_cache_v10";
+const RETIRED_STORAGE_KEYS: readonly string[] = ["aster_icon_cache_v9"];
 const OK_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const FAIL_TTL_MS = 6 * 60 * 60 * 1000;
 
@@ -82,6 +83,23 @@ function schedule_flush(): void {
 }
 
 load_from_storage();
+
+export function clear_icon_cache(): void {
+  if (flush_timer) {
+    clearTimeout(flush_timer);
+    flush_timer = null;
+  }
+
+  memory_cache.clear();
+
+  for (const key of [STORAGE_KEY, ...RETIRED_STORAGE_KEYS]) {
+    try {
+      localStorage.removeItem(key);
+    } catch (caught) {
+      ignore_error("lib/icon_cache:clear_icon_cache", caught);
+    }
+  }
+}
 
 export function is_icon_failed(domain: string): boolean {
   return memory_cache.get(domain)?.status === "fail";

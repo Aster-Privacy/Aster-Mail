@@ -29,6 +29,9 @@ import { release_engines } from "@/services/translation/engine_registry";
 import { clear_billing_cache } from "@/components/settings/billing/billing_cache";
 import { clear_family_cache } from "@/components/settings/billing/family_section/family_cache";
 import { ignore_error } from "@/lib/ignore_error";
+import { clear_icon_cache } from "@/lib/icon_cache";
+import { purge_favicon_cache } from "@/lib/favicon_cache_db";
+import { delete_account_storage } from "@/services/crypto/storage_key_names";
 
 function run_clearer(clear: () => void): void {
   try {
@@ -48,6 +51,20 @@ export async function clear_signed_out_account_caches(
   run_clearer(() => clear_translation_cache());
   run_clearer(() => clear_detection_cache());
   run_clearer(() => release_engines());
+  run_clearer(() => clear_icon_cache());
+
+  if (account_id) {
+    await delete_account_storage(account_id).catch((caught) =>
+      ignore_error(
+        "contexts/auth/signed_out_account_caches:account_storage",
+        caught,
+      ),
+    );
+  }
+
+  await purge_favicon_cache().catch((caught) =>
+    ignore_error("contexts/auth/signed_out_account_caches:favicons", caught),
+  );
 
   await clear_account_scoped_caches(
     account_id ? { account_id } : "current_account",

@@ -24,6 +24,7 @@ import { clear_account_memory_stores } from "./account_memory_stores";
 import { api_client } from "@/services/api/client";
 import { logout_user } from "@/services/api/auth";
 import { purge_favicon_cache } from "@/lib/favicon_cache_db";
+import { clear_icon_cache } from "@/lib/icon_cache";
 import { wipe_all_storage } from "@/services/crypto/secure_storage";
 import {
   logout_all as storage_logout_all,
@@ -177,6 +178,8 @@ export async function purge_all_local_data(): Promise<boolean> {
   } catch (e) {
     errors.push(e instanceof Error ? e : new Error(String(e)));
   }
+
+  clear_icon_cache();
 
   try {
     await purge_favicon_cache();
