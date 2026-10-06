@@ -824,9 +824,14 @@ export function use_compose({
         set_is_loading_forward_attachments(false);
       }
 
+      const plain_load_token = inject_token_ref.current;
+
       setTimeout(() => {
         if (plain_draft_text !== null) {
-          if (message_textarea_ref.current) {
+          if (
+            message_textarea_ref.current &&
+            inject_token_ref.current === plain_load_token
+          ) {
             message_textarea_ref.current.innerText = plain_draft_text;
           }
 

@@ -146,9 +146,9 @@ describe("a failed send is saved back to Drafts with its attachments", () => {
     expect(store.save_draft.mock.calls[0][1]).toMatchObject({
       is_plain_text: true,
     });
-    expect(store.save_draft.mock.calls[1][1]).not.toHaveProperty(
-      "is_plain_text",
-      true,
-    );
+    expect(
+      (store.save_draft.mock.calls[1][1] as { is_plain_text?: boolean })
+        .is_plain_text,
+    ).toBeUndefined();
   });
 });
