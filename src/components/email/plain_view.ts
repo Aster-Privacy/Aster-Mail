@@ -28,12 +28,7 @@ import {
 import { is_html_content, plain_text_to_html } from "@/lib/html_sanitizer";
 import { renderable_html_part } from "@/lib/message_markup";
 import { strip_reply_quotes } from "@/lib/strip_reply_quotes";
-import {
-  PGP_UNDECRYPTABLE_SENTINEL,
-  RATCHET_UNDECRYPTABLE_SENTINEL,
-  is_password_protected_body,
-  is_ratchet_envelope,
-} from "@/utils/email_crypto";
+import { parse_ratchet_envelope } from "@/services/crypto/ratchet_types";
 
 type PlainViewFields = Pick<
   DecryptedThreadMessage,
@@ -45,6 +40,14 @@ const HTML_MARKUP_RE =
 
 const MIME_HEADER_RE = /^content-type\s*:/im;
 
+const INTERNAL_MARKER = "\x00ASTER_";
+
+function is_internal_body(text: string): boolean {
+  return (
+    text.startsWith(INTERNAL_MARKER) || parse_ratchet_envelope(text) !== null
+  );
+}
+
 export function sender_text_alternative(
   html: string | undefined,
   text: string | undefined,
@@ -54,10 +57,8 @@ export function sender_text_alternative(
     return undefined;
   }
   if (
-    text === RATCHET_UNDECRYPTABLE_SENTINEL ||
-    text === PGP_UNDECRYPTABLE_SENTINEL ||
-    is_ratchet_envelope(text) ||
-    is_password_protected_body(text) ||
+    text.includes(INTERNAL_MARKER) ||
+    is_internal_body(text) ||
     text.includes("-----BEGIN PGP MESSAGE-----") ||
     MIME_HEADER_RE.test(text) ||
     HTML_MARKUP_RE.test(text)
@@ -81,8 +82,8 @@ export function message_has_html_view(message: PlainViewFields): boolean {
   const source =
     renderable_html_part(message.html_content, message.body) || message.body;
 
-  if (!source || is_ratchet_envelope(source)) return false;
-  if (is_password_protected_body(message.body)) return false;
+  if (!source || is_internal_body(source)) return false;
+  if (message.body && is_internal_body(message.body)) return false;
 
   return is_html_content(source);
 }

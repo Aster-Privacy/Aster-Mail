@@ -20,8 +20,6 @@
 //
 import { useCallback, useSyncExternalStore } from "react";
 
-import { on_vault_cleared } from "@/services/crypto/memory_key_store";
-
 const MAX_OVERRIDES = 200;
 
 const overrides = new Map<string, boolean>();
@@ -35,7 +33,13 @@ function notify(): void {
 function register_vault_listener(): void {
   if (vault_listener_registered) return;
   vault_listener_registered = true;
-  on_vault_cleared(() => clear_plain_view_overrides());
+  import("@/services/crypto/memory_key_store")
+    .then(({ on_vault_cleared }) =>
+      on_vault_cleared(() => clear_plain_view_overrides()),
+    )
+    .catch(() => {
+      vault_listener_registered = false;
+    });
 }
 
 export function get_plain_view_override(id: string): boolean | undefined {
