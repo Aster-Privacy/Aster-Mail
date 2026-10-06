@@ -9240,7 +9240,7 @@ export const ru = {
     mailing_list_label: "Список рассылки:",
     list_unsubscribe_available: "Есть ссылка для отписки",
     email_auth_summary_authenticated:
-      "Это письмо прошло SPF, DKIM и DMARC для {{domain}}.",
+      "Проверки подтвердили, что это письмо отправил {{domain}}.",
     email_auth_summary_unverified:
       "Проверки не подтвердили, что это письмо отправил {{domain}}.",
     email_auth_summary_unavailable:

@@ -44,6 +44,13 @@ vi.mock("@/components/toast/simple_toast", () => ({ show_toast: () => {} }));
 
 const { MessageDetailsModal } = await import("./message_details_modal");
 
+const LOCALES = Object.entries(
+  import.meta.glob<Record<string, Record<string, Record<string, string>>>>(
+    ["../../lib/i18n/translations/*.ts", "!**/index.ts"],
+    { eager: true },
+  ),
+).map(([file, table]) => [file, Object.values(table)[0]] as const);
+
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
@@ -171,6 +178,71 @@ describe("MessageDetailsModal authentication", () => {
     render({ spf_result: "fail", dkim_result: "pass", dmarc_result: "pass" });
 
     expect(summary()).toBe("authenticated");
+  });
+
+  it("shows the stored SPF result and a summary that does not claim SPF passed", () => {
+    render({ spf_result: "none", dkim_result: "pass", dmarc_result: "pass" }, [
+      {
+        name: "Authentication-Results",
+        value:
+          "mx.example.org; spf=pass smtp.mailfrom=bounce@mail.shop.example; dkim=pass header.d=shop.example; dmarc=pass",
+      },
+      ...HEADERS,
+    ]);
+
+    expect(pills()).toEqual([
+      ["spf", "none"],
+      ["dkim", "pass"],
+      ["dmarc", "pass"],
+    ]);
+    expect(summary()).toBe("authenticated");
+    for (const [file, table] of LOCALES) {
+      expect(table.mail.email_auth_summary_authenticated, file).not.toMatch(
+        /SPF/,
+      );
+    }
+  });
+
+  it("never names a check in the summary unless its pill passed", () => {
+    const values = ["pass", "fail", "none", "softfail", undefined];
+
+    expect(LOCALES).toHaveLength(16);
+    for (const spf of values) {
+      for (const dkim of values) {
+        for (const dmarc of values) {
+          render(
+            Object.fromEntries(
+              Object.entries({
+                spf_result: spf,
+                dkim_result: dkim,
+                dmarc_result: dmarc,
+              }).filter(([, value]) => value !== undefined),
+            ) as Record<string, string>,
+          );
+          const shown = pills();
+          const key = document
+            .querySelector<HTMLElement>("[data-auth-summary]")
+            ?.textContent?.match(/^mail\.(\w+)/)?.[1];
+
+          expect(key).toBeTruthy();
+          for (const [file, table] of LOCALES) {
+            const text = table.mail[key!];
+
+            expect(text, `${file} ${key}`).toBeTruthy();
+            for (const [check, status] of shown) {
+              if (text.includes(check!.toUpperCase())) {
+                expect(status, `${file} ${key} ${spf}/${dkim}/${dmarc}`).toBe(
+                  "pass",
+                );
+              }
+            }
+          }
+          act(() => root?.unmount());
+          root = null;
+          document.body.innerHTML = "";
+        }
+      }
+    }
   });
 
   it("calls unusual results inconclusive", () => {

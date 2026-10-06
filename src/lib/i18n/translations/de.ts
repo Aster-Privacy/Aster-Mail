@@ -9132,7 +9132,7 @@ export const de = {
     mailing_list_label: "Mailingliste:",
     list_unsubscribe_available: "Abmeldelink enthalten",
     email_auth_summary_authenticated:
-      "Diese Nachricht hat SPF, DKIM und DMARC für {{domain}} bestanden.",
+      "Die Prüfungen bestätigen, dass {{domain}} diese Nachricht gesendet hat.",
     email_auth_summary_unverified:
       "Die Prüfungen konnten nicht bestätigen, dass {{domain}} diese Nachricht gesendet hat.",
     email_auth_summary_unavailable:

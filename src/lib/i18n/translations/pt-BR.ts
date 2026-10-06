@@ -9060,7 +9060,7 @@ export const pt_br = {
     mailing_list_label: "Lista de e-mails:",
     list_unsubscribe_available: "Inclui link para cancelar a inscrição",
     email_auth_summary_authenticated:
-      "Esta mensagem passou em SPF, DKIM e DMARC para {{domain}}.",
+      "As verificações confirmam que {{domain}} enviou esta mensagem.",
     email_auth_summary_unverified:
       "As verificações não confirmaram que {{domain}} enviou esta mensagem.",
     email_auth_summary_unavailable:

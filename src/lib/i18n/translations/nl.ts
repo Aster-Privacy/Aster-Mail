@@ -9030,7 +9030,7 @@ export const nl = {
     mailing_list_label: "Mailinglijst:",
     list_unsubscribe_available: "Afmeldlink aanwezig",
     email_auth_summary_authenticated:
-      "Dit bericht heeft SPF, DKIM en DMARC doorstaan voor {{domain}}.",
+      "De controles bevestigen dat {{domain}} dit bericht heeft verzonden.",
     email_auth_summary_unverified:
       "De controles konden niet bevestigen dat {{domain}} dit bericht heeft verzonden.",
     email_auth_summary_unavailable:

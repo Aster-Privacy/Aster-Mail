@@ -9056,7 +9056,7 @@ export const es = {
     mailing_list_label: "Lista de correo:",
     list_unsubscribe_available: "Incluye enlace para darse de baja",
     email_auth_summary_authenticated:
-      "Este mensaje superó SPF, DKIM y DMARC para {{domain}}.",
+      "Las comprobaciones confirman que {{domain}} envió este mensaje.",
     email_auth_summary_unverified:
       "Las comprobaciones no pudieron confirmar que {{domain}} enviara este mensaje.",
     email_auth_summary_unavailable:

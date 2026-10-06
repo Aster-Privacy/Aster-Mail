@@ -9292,7 +9292,7 @@ export const pl = {
     mailing_list_label: "Lista mailingowa:",
     list_unsubscribe_available: "Zawiera link do wypisania się",
     email_auth_summary_authenticated:
-      "Ta wiadomość przeszła SPF, DKIM i DMARC dla {{domain}}.",
+      "Kontrole potwierdziły, że {{domain}} wysłała tę wiadomość.",
     email_auth_summary_unverified:
       "Kontrole nie potwierdziły, że {{domain}} wysłała tę wiadomość.",
     email_auth_summary_unavailable:

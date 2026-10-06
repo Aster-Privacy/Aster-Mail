@@ -8693,7 +8693,7 @@ export const ko = {
     mailing_list_label: "메일링 리스트:",
     list_unsubscribe_available: "구독 취소 링크 포함",
     email_auth_summary_authenticated:
-      "이 메시지는 {{domain}}에 대한 SPF, DKIM, DMARC를 통과했습니다.",
+      "검사 결과 {{domain}}에서 이 메시지를 보낸 것으로 확인되었습니다.",
     email_auth_summary_unverified:
       "검사로는 {{domain}}에서 이 메시지를 보냈는지 확인할 수 없었습니다.",
     email_auth_summary_unavailable: "이 메시지의 인증 결과가 없습니다.",

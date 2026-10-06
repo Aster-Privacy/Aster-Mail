@@ -8860,7 +8860,7 @@ export const ja = {
     mailing_list_label: "メーリングリスト:",
     list_unsubscribe_available: "配信停止リンクあり",
     email_auth_summary_authenticated:
-      "このメッセージは {{domain}} の SPF、DKIM、DMARC に合格しました。",
+      "このメッセージを {{domain}} が送信したことを確認しました。",
     email_auth_summary_unverified:
       "このメッセージを {{domain}} が送信したことは確認できませんでした。",
     email_auth_summary_unavailable: "このメッセージの認証結果はありません。",
