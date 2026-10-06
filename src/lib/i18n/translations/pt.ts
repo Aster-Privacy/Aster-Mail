@@ -2526,7 +2526,7 @@ export const pt = {
       "Quando o remetente inclui uma versão em texto simples, abre-a em vez da versão HTML. Os e-mails sem essa versão são apresentados normalmente.",
     plain_text_compose_label: "Escrever em texto simples",
     plain_text_compose_description:
-      "Utilizar texto simples por predefinição ao escrever novos e-mails",
+      "As novas mensagens, respostas e reencaminhamentos começam em texto simples. Pode mudar cada mensagem na barra de ferramentas.",
     family_plan_title: "Plano familiar",
     family_plan_subtitle:
       "Gira os membros e o armazenamento do seu grupo familiar",

@@ -2647,7 +2647,7 @@ export const pl = {
       "Gdy nadawca dołącza wersję w zwykłym tekście, otwiera się ona zamiast wersji HTML. Wiadomości bez takiej wersji są wyświetlane normalnie.",
     plain_text_compose_label: "Twórz w zwykłym tekście",
     plain_text_compose_description:
-      "Domyślnie używaj zwykłego tekstu podczas pisania nowych wiadomości",
+      "Nowe wiadomości, odpowiedzi i przekazania zaczynają się jako zwykły tekst. Każdą wiadomość możesz nadal przełączyć na pasku narzędzi.",
     family_plan_title: "Plan rodzinny",
     family_plan_subtitle: "Zarządzaj członkami grupy rodzinnej i pamięcią",
     family_members: "Członkowie",

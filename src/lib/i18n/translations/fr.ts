@@ -2501,7 +2501,7 @@ export const fr = {
       "Lorsque l'expéditeur inclut une version en texte brut, elle s'ouvre à la place de la version HTML. Les e-mails sans cette version s'affichent normalement.",
     plain_text_compose_label: "Rédiger en texte brut",
     plain_text_compose_description:
-      "Utiliser le texte brut par défaut lors de la rédaction de nouveaux e-mails",
+      "Les nouveaux messages, les réponses et les transferts commencent en texte brut. Vous pouvez toujours changer chaque message depuis la barre d’outils.",
     family_plan_title: "Forfait Famille",
     family_plan_subtitle:
       "Gérez les membres de votre groupe familial et le stockage",

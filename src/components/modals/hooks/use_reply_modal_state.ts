@@ -242,7 +242,22 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
   const [draft_status, set_draft_status] = useState<DraftStatus>("idle");
   const [last_saved_time, set_last_saved_time] = useState<Date | null>(null);
   const [show_delete_confirm, set_show_delete_confirm] = useState(false);
-  const [is_plain_text_mode, set_is_plain_text_mode] = useState(false);
+  const [is_plain_text_mode, set_is_plain_text_mode] = useState(
+    preferences.compose_mode === "plain_text",
+  );
+  const is_plain_text_ref = useRef(is_plain_text_mode);
+  const default_plain_text_ref = useRef(false);
+
+  is_plain_text_ref.current = is_plain_text_mode;
+  default_plain_text_ref.current = preferences.compose_mode === "plain_text";
+
+  const read_editor_message = useCallback(
+    (editor: HTMLElement): string =>
+      is_plain_text_ref.current
+        ? editor.innerText
+        : restore_compose_image_sources(editor.innerHTML),
+    [],
+  );
   const [show_from_mismatch, set_show_from_mismatch] = useState(false);
   const [send_after_sender_switch, set_send_after_sender_switch] =
     useState(false);
@@ -641,11 +656,15 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     set_draft_status(matching_draft ? "saved" : "idle");
     set_last_saved_time(null);
     set_show_delete_confirm(false);
-    set_is_plain_text_mode(false);
     const saved_plain_text = matching_draft?.content.is_plain_text
       ? escaped_html_to_plain_text(matching_draft.content.message)
       : null;
+    const starts_plain =
+      saved_plain_text !== null ||
+      (!matching_draft && default_plain_text_ref.current);
 
+    is_plain_text_ref.current = starts_plain;
+    set_is_plain_text_mode(starts_plain);
     last_saved_text.current =
       saved_plain_text ?? matching_draft?.content.message ?? "";
     last_saved_plain.current = saved_plain_text !== null;
@@ -681,9 +700,8 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
         ? escaped_html_to_plain_text(matching_draft.content.message)
         : null;
 
-      if (plain_text !== null) {
-        set_is_plain_text_mode(true);
-      }
+      is_plain_text_ref.current = plain_text !== null;
+      set_is_plain_text_mode(plain_text !== null);
 
       setTimeout(() => {
         if (!message_editor_ref.current) return;
@@ -702,9 +720,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
         );
 
         message_editor_ref.current.innerHTML = sanitized_result.html;
-        set_reply_message(
-          restore_compose_image_sources(message_editor_ref.current.innerHTML),
-        );
+        set_reply_message(read_editor_message(message_editor_ref.current));
         message_editor_ref.current.focus();
       }, 0);
 
@@ -747,9 +763,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
           message_editor_ref.current,
           sanitized_result.html,
         );
-        set_reply_message(
-          restore_compose_image_sources(message_editor_ref.current.innerHTML),
-        );
+        set_reply_message(read_editor_message(message_editor_ref.current));
         mark_signature_applied(signature);
 
         return;
@@ -757,12 +771,10 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
 
       message_editor_ref.current.innerHTML = sanitized_result.html;
       mark_signature_applied(signature);
-      initial_content_ref.current = restore_compose_image_sources(
-        message_editor_ref.current.innerHTML,
+      initial_content_ref.current = read_editor_message(
+        message_editor_ref.current,
       );
-      set_reply_message(
-        restore_compose_image_sources(message_editor_ref.current.innerHTML),
-      );
+      set_reply_message(initial_content_ref.current);
       message_editor_ref.current.focus();
     }, 0);
   }, [
@@ -778,6 +790,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     active_badge,
     badges_loaded,
     get_formatted_signature,
+    read_editor_message,
     t,
   ]);
 

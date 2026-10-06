@@ -2474,7 +2474,7 @@ export const de = {
       "Wenn der Absender eine Version als reinen Text mitschickt, wird sie statt der HTML-Version geöffnet. E-Mails ohne diese Version werden normal angezeigt.",
     plain_text_compose_label: "Als reinen Text verfassen",
     plain_text_compose_description:
-      "Beim Schreiben neuer E-Mails standardmäßig reinen Text verwenden",
+      "Neue Nachrichten, Antworten und Weiterleitungen beginnen als reiner Text. Sie können jede Nachricht weiterhin über die Symbolleiste umstellen.",
     family_plan_title: "Familientarif",
     family_plan_subtitle:
       "Verwalten Sie die Mitglieder und den Speicher Ihrer Familiengruppe",

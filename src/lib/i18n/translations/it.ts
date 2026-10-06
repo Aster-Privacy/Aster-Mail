@@ -2500,7 +2500,7 @@ export const it = {
       "Se il mittente include una versione in testo semplice, viene aperta al posto della versione HTML. Le email senza questa versione vengono mostrate normalmente.",
     plain_text_compose_label: "Componi in testo semplice",
     plain_text_compose_description:
-      "Usa il testo semplice come impostazione predefinita quando scrivi nuove email",
+      "I nuovi messaggi, le risposte e gli inoltri partono in testo semplice. Puoi comunque cambiare ogni messaggio dalla barra degli strumenti.",
     family_plan_title: "Piano Famiglia",
     family_plan_subtitle:
       "Gestisci i membri del tuo gruppo famiglia e lo spazio di archiviazione",

@@ -2430,7 +2430,7 @@ export const nl = {
       "Als de afzender een versie in platte tekst meestuurt, wordt die geopend in plaats van de HTML-versie. E-mails zonder die versie worden normaal weergegeven.",
     plain_text_compose_label: "Opstellen in platte tekst",
     plain_text_compose_description:
-      "Standaard platte tekst gebruiken bij het schrijven van nieuwe e-mails",
+      "Nieuwe berichten, antwoorden en doorgestuurde berichten beginnen in platte tekst. Je kunt elk bericht nog via de werkbalk omzetten.",
     family_plan_title: "Gezinsabonnement",
     family_plan_subtitle: "Beheer je gezinsleden en opslag",
     family_members: "Leden",
