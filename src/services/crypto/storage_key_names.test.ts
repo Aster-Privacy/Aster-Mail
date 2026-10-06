@@ -463,6 +463,120 @@ describe("storage name migration", () => {
     expect(await leaking_names()).toEqual([]);
   });
 
+  it("keeps looking at earlier names while an entry stays unreadable", async () => {
+    const tab = await open_tab();
+    const locked = `ratchet_identity_pin_${ACCOUNT}_bob@example.org`;
+
+    await seed_plain_entries(tab);
+    vault.key = new Uint8Array(32).fill(9);
+    await tab.storage.encrypted_set(locked, { fingerprint: "b" }, master);
+    vault.key = new Uint8Array(32).fill(7);
+
+    expect(await tab.names.migrate_storage_names(ACCOUNT)).toEqual({
+      moved: PLAIN_ENTRIES.length,
+      unreadable: 1,
+    });
+
+    await tab.storage.encrypted_set(
+      `ratchet_identity_pin_carol@example.org`,
+      { fingerprint: "c" },
+      master,
+    );
+
+    expect(
+      await tab.names.scoped_get(
+        "ratchet_identity_pin_",
+        ACCOUNT,
+        "carol@example.org",
+        master,
+      ),
+    ).toEqual({ fingerprint: "c" });
+    expect(await stored_names()).toContain(locked);
+  });
+
+  it("retries only the unreadable entries on the next run", async () => {
+    const tab = await open_tab();
+    const locked = `ratchet_identity_pin_${ACCOUNT}_bob@example.org`;
+    const late = `ratchet_identity_pin_${ACCOUNT}_dave@example.org`;
+
+    await seed_plain_entries(tab);
+    vault.key = new Uint8Array(32).fill(9);
+    await tab.storage.encrypted_set(locked, { fingerprint: "b" }, master);
+    vault.key = new Uint8Array(32).fill(7);
+
+    await tab.names.migrate_storage_names(ACCOUNT);
+    await tab.storage.encrypted_set(late, { fingerprint: "d" }, master);
+
+    expect(await tab.names.migrate_storage_names(ACCOUNT)).toEqual({
+      moved: 0,
+      unreadable: 1,
+    });
+    expect(await stored_names()).toContain(late);
+
+    vault.key = new Uint8Array(32).fill(9);
+
+    expect(await tab.names.migrate_storage_names(ACCOUNT)).toEqual({
+      moved: 1,
+      unreadable: 0,
+    });
+    expect(await stored_names()).not.toContain(locked);
+
+    vault.key = new Uint8Array(32).fill(7);
+
+    expect(await tab.names.migrate_storage_names(ACCOUNT)).toEqual({
+      moved: 1,
+      unreadable: 0,
+    });
+    expect(await stored_names()).not.toContain(late);
+  });
+
+  it("finds ratchet state an older build writes under the old name after the sweep", async () => {
+    const tab = await open_tab();
+
+    await seed_plain_entries(tab);
+    await tab.names.migrate_storage_names(ACCOUNT);
+    await pause(5);
+    await tab.storage.encrypted_set(
+      `ratchet_state_${ACCOUNT}_${CONVERSATION}`,
+      ratchet_state("older-build"),
+      master,
+    );
+
+    const loaded = await tab.states.load_ratchet_state(CONVERSATION);
+
+    expect((loaded as unknown as { state: unknown }).state).toEqual(
+      ratchet_state("older-build"),
+    );
+    expect(await leaking_names()).toEqual([]);
+  });
+
+  it("keeps newer ratchet state over an old-name entry written before it", async () => {
+    const tab = await open_tab();
+
+    await seed_plain_entries(tab);
+    await tab.names.migrate_storage_names(ACCOUNT);
+    await tab.storage.encrypted_set(
+      `ratchet_state_${ACCOUNT}_${CONVERSATION}`,
+      ratchet_state("older-build"),
+      master,
+    );
+    await pause(5);
+    await tab.names.scoped_set(
+      "ratchet_state_",
+      ACCOUNT,
+      CONVERSATION,
+      ratchet_state("advanced"),
+      master,
+    );
+
+    const loaded = await tab.states.load_ratchet_state(CONVERSATION);
+
+    expect((loaded as unknown as { state: unknown }).state).toEqual(
+      ratchet_state("advanced"),
+    );
+    expect(await leaking_names()).toEqual([]);
+  });
+
   it("leaves another account's entries alone", async () => {
     const tab = await open_tab();
     const foreign = `ratchet_identity_pin_${OTHER_ACCOUNT}_${PEER}`;

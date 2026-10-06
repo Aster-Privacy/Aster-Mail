@@ -80,6 +80,7 @@ export class StorageNamesUnavailableError extends Error {
 
 const name_keys = new Map<string, Promise<CryptoKey>>();
 const swept_accounts = new Set<string>();
+const unreadable_entries = new Map<string, PlainEntry[]>();
 let sweep_in_flight: Promise<StorageNameMigrationResult> | null = null;
 let sweep_requested = false;
 let hooks_armed = false;
@@ -290,17 +291,26 @@ export async function scoped_get<T>(
 ): Promise<T | null> {
   const name = await scoped_storage_name(prefix, uid, rest);
   const value = await encrypted_get<T>(name, storage_key);
-
-  if (value !== null) return value;
-  if (swept_accounts.has(account_slot(uid))) return null;
-
-  const candidates = await earlier_names(
-    prefix,
-    uid,
-    rest,
+  const adopted = await encrypted_move(
+    plain_name(prefix, uid, rest),
+    name,
     storage_key,
-    options.include_unscoped !== false,
   );
+
+  if (adopted === "moved") return encrypted_get<T>(name, storage_key);
+  if (value !== null) return value;
+
+  const candidates = swept_accounts.has(account_slot(uid))
+    ? []
+    : (
+        await earlier_names(
+          prefix,
+          uid,
+          rest,
+          storage_key,
+          options.include_unscoped !== false,
+        )
+      ).slice(1);
 
   for (const candidate of candidates) {
     const outcome = await encrypted_move(candidate, name, storage_key);
@@ -345,6 +355,7 @@ export async function delete_account_storage(uid: string): Promise<number> {
 
   name_keys.delete(uid);
   swept_accounts.delete(uid);
+  unreadable_entries.delete(uid);
 
   const scoped = SCOPED_PREFIXES.map((prefix) => `${prefix}${uid}_`);
   const exact = new Set([
@@ -426,19 +437,25 @@ export async function migrate_storage_names(
   if (!uid) return result;
 
   const wrap = await wrapping_key();
-  const keys = await encrypted_list_keys();
+  const slot = account_slot(uid);
+  const entries =
+    unreadable_entries.get(slot) ??
+    (await encrypted_list_keys())
+      .map((key) => classify_plain_entry(key, uid, other_account_ids))
+      .filter((entry): entry is PlainEntry => entry !== null);
+  const still_unreadable: PlainEntry[] = [];
   let handled = 0;
 
-  for (const key of keys) {
-    const entry = classify_plain_entry(key, uid, other_account_ids);
-
-    if (!entry) continue;
-
+  for (const entry of entries) {
     const target = await scoped_storage_name(entry.prefix, uid, entry.rest);
     const outcome = await encrypted_move(entry.key, target, wrap);
 
     if (outcome === "moved" || outcome === "kept_existing") result.moved += 1;
-    if (outcome === "unreadable") result.unreadable += 1;
+
+    if (outcome === "unreadable") {
+      result.unreadable += 1;
+      still_unreadable.push(entry);
+    }
 
     handled += 1;
 
@@ -447,7 +464,13 @@ export async function migrate_storage_names(
     }
   }
 
-  swept_accounts.add(account_slot(uid));
+  if (still_unreadable.length > 0) {
+    unreadable_entries.set(slot, still_unreadable);
+    swept_accounts.delete(slot);
+  } else {
+    unreadable_entries.delete(slot);
+    swept_accounts.add(slot);
+  }
 
   return result;
 }
@@ -496,6 +519,7 @@ export function schedule_storage_name_migration(): void {
 export function reset_storage_name_state(): void {
   name_keys.clear();
   swept_accounts.clear();
+  unreadable_entries.clear();
 }
 
 arm_hooks();
