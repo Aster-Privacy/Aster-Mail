@@ -2468,6 +2468,9 @@ export const de = {
     html_rendering_mode_label: "HTML-Darstellung blockieren",
     html_rendering_mode_description:
       "Zeigt eingehende E-Mails als reinen Text an, um Tracking, Layout-Spoofing und visuelles Phishing zu verhindern",
+    prefer_plain_text_label: "Reinen Text bevorzugen",
+    prefer_plain_text_description:
+      "Wenn der Absender eine Version als reinen Text mitschickt, wird sie statt der HTML-Version geöffnet. E-Mails ohne diese Version werden normal angezeigt.",
     plain_text_compose_label: "Als reinen Text verfassen",
     plain_text_compose_description:
       "Beim Schreiben neuer E-Mails standardmäßig reinen Text verwenden",
@@ -8708,6 +8711,8 @@ export const de = {
     mute: "Stummschalten",
     print: "Drucken",
     view_source: "Quelltext anzeigen",
+    show_plain_text: "Als reinen Text anzeigen",
+    show_original: "Original anzeigen",
     share: "Teilen",
     move_to_folder: "In Ordner verschieben",
     apply_label: "Label anwenden",

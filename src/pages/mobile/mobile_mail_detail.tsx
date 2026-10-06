@@ -131,6 +131,8 @@ function MobileMailDetail() {
     handle_toggle_dark_mode,
     handle_toggle_all_dark_mode,
     handle_view_source,
+    menu_plain_view,
+    handle_toggle_plain_view,
     handle_report_phishing,
     handle_menu_archive,
     handle_menu_trash,
@@ -435,6 +437,7 @@ function MobileMailDetail() {
         on_toggle_all_dark_mode={handle_toggle_all_dark_mode}
         on_toggle_dark_mode={handle_toggle_dark_mode}
         on_toggle_pin={handle_toggle_pin}
+        on_toggle_plain_view={handle_toggle_plain_view}
         on_toggle_read={() => {
           if (menu_message) {
             detail.handle_toggle_message_read(menu_message.id);
@@ -444,6 +447,7 @@ function MobileMailDetail() {
         on_toggle_star={handle_toggle_star}
         on_trash={handle_menu_trash}
         on_view_source={handle_view_source}
+        plain_view={menu_plain_view}
         t={detail.t}
       />
 

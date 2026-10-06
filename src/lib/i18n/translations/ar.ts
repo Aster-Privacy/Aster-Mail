@@ -2572,6 +2572,9 @@ export const ar = {
     html_rendering_mode_label: "حظر عرض HTML",
     html_rendering_mode_description:
       "عرض الرسائل الواردة كنص عادي لمنع التتبع وانتحال التخطيط والتصيّد البصري",
+    prefer_plain_text_label: "تفضيل النص العادي",
+    prefer_plain_text_description:
+      "عندما يرفق المرسل نسخة بنص عادي، تُفتح بدلاً من نسخة HTML. تُعرض الرسائل التي لا تتضمن هذه النسخة بشكل طبيعي.",
     plain_text_compose_label: "الكتابة بنص عادي",
     plain_text_compose_description:
       "استخدام النص العادي افتراضيًا عند كتابة رسائل جديدة",
@@ -8457,6 +8460,8 @@ export const ar = {
     mute: "كتم",
     print: "طباعة",
     view_source: "عرض المصدر",
+    show_plain_text: "عرض كنص عادي",
+    show_original: "عرض الأصل",
     share: "مشاركة",
     move_to_folder: "نقل إلى مجلد",
     apply_label: "تطبيق تصنيف",

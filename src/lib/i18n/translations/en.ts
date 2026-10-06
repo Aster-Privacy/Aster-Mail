@@ -3004,6 +3004,9 @@ export const en: Translations = {
     html_rendering_mode_label: "Block HTML Rendering",
     html_rendering_mode_description:
       "Show incoming emails as plain text to prevent tracking, layout spoofing, and visual phishing",
+    prefer_plain_text_label: "Prefer Plain Text",
+    prefer_plain_text_description:
+      "When the sender includes a plain text version, open it instead of the HTML version. Emails without one display normally.",
     plain_text_compose_label: "Compose in Plain Text",
     plain_text_compose_description:
       "Default to plain text when writing new emails",
@@ -8385,6 +8388,8 @@ export const en: Translations = {
     mute: "Mute",
     print: "Print",
     view_source: "View source",
+    show_plain_text: "Show as plain text",
+    show_original: "Show original",
     share: "Share",
     download_file_named: "Download {{ filename }}",
     to_recipients_prefix: "to {{ recipients }}",

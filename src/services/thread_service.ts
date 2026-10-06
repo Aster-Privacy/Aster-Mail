@@ -68,6 +68,7 @@ import { resolve_forwarding_display } from "@/utils/forwarding_alias";
 import { is_reaction_payload_body } from "@/lib/reaction_payload";
 import { compare_timestamps_asc } from "@/utils/email_timestamp";
 import { has_readable_body } from "@/components/email/thread_message_merge";
+import { sender_text_alternative } from "@/components/email/plain_view";
 
 interface DecryptedEnvelope {
   subject: string;
@@ -354,6 +355,7 @@ async function decode_thread_envelope(
     subject: envelope.subject,
     body: body_content,
     html_content: effective_html,
+    text_part: sender_text_alternative(effective_html, resolved_text),
     sent_at: envelope.sent_at,
     e2e_verified,
     to_recipients: envelope.to || [],
@@ -466,6 +468,7 @@ export async function fetch_and_decrypt_thread_messages(
       subject: content.subject,
       body: content.body,
       html_content: content.html_content,
+      text_part: content.text_part,
       timestamp: content.sent_at || msg.created_at,
       is_read: decrypted_metadata?.is_read ?? false,
       is_starred: decrypted_metadata?.is_starred ?? false,
@@ -684,6 +687,7 @@ export async function fetch_and_decrypt_virtual_group(
       subject: envelope.subject,
       body: body_content,
       html_content: effective_html,
+      text_part: sender_text_alternative(effective_html, resolved_text),
       timestamp: envelope.sent_at || item.message_ts || item.created_at,
       is_read: decrypted_metadata?.is_read ?? false,
       is_starred: decrypted_metadata?.is_starred ?? false,

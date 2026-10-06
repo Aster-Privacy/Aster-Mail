@@ -2462,6 +2462,9 @@ export const ja = {
     html_rendering_mode_label: "HTMLレンダリングをブロック",
     html_rendering_mode_description:
       "受信メールをプレーンテキストで表示し、トラッキング、レイアウトの偽装、視覚的なフィッシングを防ぎます",
+    prefer_plain_text_label: "プレーンテキストを優先",
+    prefer_plain_text_description:
+      "送信者がプレーンテキスト版を含めている場合は、HTML版の代わりにそちらを開きます。プレーンテキスト版のないメールは通常どおり表示されます。",
     plain_text_compose_label: "プレーンテキストで作成",
     plain_text_compose_description:
       "新規メールの作成時にプレーンテキストを既定にします",
@@ -8436,6 +8439,8 @@ export const ja = {
     mute: "ミュート",
     print: "印刷",
     view_source: "ソースを表示",
+    show_plain_text: "プレーンテキストで表示",
+    show_original: "元の形式で表示",
     share: "共有",
     move_to_folder: "フォルダに移動",
     apply_label: "ラベルを適用",

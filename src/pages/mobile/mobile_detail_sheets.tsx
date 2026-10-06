@@ -35,6 +35,7 @@ import {
   PrinterIcon,
   CodeBracketIcon,
   ClipboardDocumentIcon,
+  DocumentTextIcon,
   AdjustmentsHorizontalIcon,
   HandRaisedIcon,
   BellSnoozeIcon,
@@ -104,6 +105,8 @@ export function MobileActionMenuSheet({
   on_toggle_all_dark_mode,
   on_print,
   on_view_source,
+  plain_view,
+  on_toggle_plain_view,
   on_copy_id,
   on_message_details,
   on_block,
@@ -136,6 +139,8 @@ export function MobileActionMenuSheet({
   on_toggle_all_dark_mode: () => void;
   on_print: () => void;
   on_view_source: () => void;
+  plain_view?: { available: boolean; active: boolean };
+  on_toggle_plain_view?: () => void;
   on_copy_id: () => void;
   on_message_details: () => void;
   on_block: () => void;
@@ -372,6 +377,20 @@ export function MobileActionMenuSheet({
               {t("mail.print")}
             </span>
           </button>
+          {plain_view?.available && on_toggle_plain_view && (
+            <button
+              className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-start active:bg-[var(--bg-tertiary)]"
+              type="button"
+              onClick={on_toggle_plain_view}
+            >
+              <DocumentTextIcon className="h-5 w-5 text-[var(--text-muted)]" />
+              <span className="text-[14px] text-[var(--text-primary)]">
+                {plain_view.active
+                  ? t("mail.show_original")
+                  : t("mail.show_plain_text")}
+              </span>
+            </button>
+          )}
           <button
             className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-start active:bg-[var(--bg-tertiary)]"
             type="button"

@@ -3082,6 +3082,9 @@ export const hi = {
     html_rendering_mode_label: "HTML दिखाना रोकें",
     html_rendering_mode_description:
       "ट्रैकिंग, लेआउट धोखाधड़ी और दिखने में असली लगने वाली फ़िशिंग रोकने के लिए आने वाली ईमेल सादे टेक्स्ट में दिखाएं",
+    prefer_plain_text_label: "सादा टेक्स्ट पसंद करें",
+    prefer_plain_text_description:
+      "जब भेजने वाला सादे टेक्स्ट वाला संस्करण शामिल करता है, तो HTML संस्करण की जगह वही खुलता है। जिन ईमेल में यह संस्करण नहीं होता, वे सामान्य रूप से दिखते हैं।",
     plain_text_compose_label: "सादे टेक्स्ट में लिखें",
     plain_text_compose_description:
       "नई ईमेल लिखते समय डिफ़ॉल्ट रूप से सादा टेक्स्ट इस्तेमाल करें",
@@ -8443,6 +8446,8 @@ export const hi = {
     mute: "म्यूट करें",
     print: "प्रिंट करें",
     view_source: "स्रोत देखें",
+    show_plain_text: "सादे टेक्स्ट के रूप में दिखाएं",
+    show_original: "मूल दिखाएं",
     share: "साझा करें",
     download_file_named: "{{ filename }} डाउनलोड करें",
     to_recipients_prefix: "{{ recipients }} को",

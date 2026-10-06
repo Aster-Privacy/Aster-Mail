@@ -2494,6 +2494,9 @@ export const it = {
     html_rendering_mode_label: "Blocca il rendering HTML",
     html_rendering_mode_description:
       "Mostra le email in arrivo come testo semplice per impedire tracciamento, falsificazione del layout e phishing visivo",
+    prefer_plain_text_label: "Preferisci testo semplice",
+    prefer_plain_text_description:
+      "Se il mittente include una versione in testo semplice, viene aperta al posto della versione HTML. Le email senza questa versione vengono mostrate normalmente.",
     plain_text_compose_label: "Componi in testo semplice",
     plain_text_compose_description:
       "Usa il testo semplice come impostazione predefinita quando scrivi nuove email",
@@ -8667,6 +8670,8 @@ export const it = {
     mute: "Silenzia",
     print: "Stampa",
     view_source: "Visualizza sorgente",
+    show_plain_text: "Mostra come testo semplice",
+    show_original: "Mostra originale",
     share: "Condividi",
     move_to_folder: "Sposta in cartella",
     apply_label: "Applica etichetta",

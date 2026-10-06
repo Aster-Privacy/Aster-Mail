@@ -2480,6 +2480,9 @@ export const es = {
     html_rendering_mode_label: "Bloquear renderizado de HTML",
     html_rendering_mode_description:
       "Muestra los correos entrantes como texto sin formato para evitar el rastreo, la suplantación de diseño y el phishing visual",
+    prefer_plain_text_label: "Preferir texto sin formato",
+    prefer_plain_text_description:
+      "Cuando el remitente incluye una versión en texto sin formato, se abre en lugar de la versión HTML. Los correos sin esa versión se muestran con normalidad.",
     plain_text_compose_label: "Redactar en texto sin formato",
     plain_text_compose_description:
       "Usar texto sin formato de forma predeterminada al escribir correos nuevos",
@@ -8626,6 +8629,8 @@ export const es = {
     mute: "Silenciar",
     print: "Imprimir",
     view_source: "Ver fuente",
+    show_plain_text: "Mostrar como texto sin formato",
+    show_original: "Mostrar original",
     share: "Compartir",
     move_to_folder: "Mover a carpeta",
     apply_label: "Aplicar etiqueta",

@@ -2495,6 +2495,9 @@ export const fr = {
     html_rendering_mode_label: "Bloquer le rendu HTML",
     html_rendering_mode_description:
       "Affiche les e-mails entrants en texte brut pour empêcher le pistage, l'usurpation de mise en page et l'hameçonnage visuel",
+    prefer_plain_text_label: "Préférer le texte brut",
+    prefer_plain_text_description:
+      "Lorsque l'expéditeur inclut une version en texte brut, elle s'ouvre à la place de la version HTML. Les e-mails sans cette version s'affichent normalement.",
     plain_text_compose_label: "Rédiger en texte brut",
     plain_text_compose_description:
       "Utiliser le texte brut par défaut lors de la rédaction de nouveaux e-mails",
@@ -8720,6 +8723,8 @@ export const fr = {
     mute: "Couper le son",
     print: "Imprimer",
     view_source: "Voir la source",
+    show_plain_text: "Afficher en texte brut",
+    show_original: "Afficher l'original",
     share: "Partager",
     move_to_folder: "Déplacer vers un dossier",
     apply_label: "Appliquer un libellé",

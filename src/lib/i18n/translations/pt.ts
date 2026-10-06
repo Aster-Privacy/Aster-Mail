@@ -2520,6 +2520,9 @@ export const pt = {
     html_rendering_mode_label: "Bloquear a apresentação de HTML",
     html_rendering_mode_description:
       "Mostra os e-mails recebidos como texto simples para evitar o rastreio, a falsificação de esquema e o phishing visual",
+    prefer_plain_text_label: "Preferir texto simples",
+    prefer_plain_text_description:
+      "Quando o remetente inclui uma versão em texto simples, abre-a em vez da versão HTML. Os e-mails sem essa versão são apresentados normalmente.",
     plain_text_compose_label: "Escrever em texto simples",
     plain_text_compose_description:
       "Utilizar texto simples por predefinição ao escrever novos e-mails",
@@ -8712,6 +8715,8 @@ export const pt = {
     mute: "Silenciar",
     print: "Imprimir",
     view_source: "Ver código-fonte",
+    show_plain_text: "Mostrar como texto simples",
+    show_original: "Mostrar original",
     share: "Partilhar",
     move_to_folder: "Mover para pasta",
     apply_label: "Aplicar etiqueta",

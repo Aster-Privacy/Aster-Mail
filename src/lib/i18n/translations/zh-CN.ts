@@ -2266,6 +2266,9 @@ export const zh_CN = {
     html_rendering_mode_label: "屏蔽 HTML 渲染",
     html_rendering_mode_description:
       "将收到的邮件显示为纯文本，以防止追踪、版面伪造和视觉钓鱼",
+    prefer_plain_text_label: "优先使用纯文本",
+    prefer_plain_text_description:
+      "如果发件人附带了纯文本版本，将打开该版本而不是 HTML 版本。没有纯文本版本的邮件照常显示。",
     plain_text_compose_label: "以纯文本撰写",
     plain_text_compose_description: "撰写新邮件时默认使用纯文本",
     family_plan_title: "家庭套餐",
@@ -7640,6 +7643,8 @@ export const zh_CN = {
     mute: "静音",
     print: "打印",
     view_source: "查看源代码",
+    show_plain_text: "以纯文本显示",
+    show_original: "显示原始格式",
     share: "分享",
     move_to_folder: "移至文件夹",
     apply_label: "应用标签",
