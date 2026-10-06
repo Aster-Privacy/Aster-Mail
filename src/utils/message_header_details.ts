@@ -325,3 +325,26 @@ export function get_mailing_list(
     ),
   };
 }
+
+export type BodyFormat = "html" | "plain" | "html_and_plain";
+
+const BODY_FORMATS: Record<string, BodyFormat> = {
+  "text/html": "html",
+  "text/plain": "plain",
+  "multipart/alternative": "html_and_plain",
+};
+
+export function get_body_format(
+  raw_headers: RawHeader[] | undefined,
+): BodyFormat | null {
+  const types = new Set(
+    find_values(raw_headers, "content-type").map((v) =>
+      v.split(";")[0].trim().toLowerCase(),
+    ),
+  );
+
+  if (types.size !== 1) return null;
+  const [type] = types;
+
+  return BODY_FORMATS[type] ?? null;
+}

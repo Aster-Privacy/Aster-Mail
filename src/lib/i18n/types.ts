@@ -8100,6 +8100,10 @@ export interface MailTranslations {
   message_id_label: string;
   size_label: string;
   encryption_label: string;
+  format_label: string;
+  format_html: string;
+  format_plain_text: string;
+  format_html_and_plain_text: string;
   location_label: string;
   zero_access_encrypted: string;
   download_headers: string;

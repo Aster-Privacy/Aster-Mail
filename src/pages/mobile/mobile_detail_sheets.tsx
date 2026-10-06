@@ -73,6 +73,7 @@ import {
   get_message_id,
 } from "@/utils/message_header_details";
 import {
+  BodyFormatRow,
   DetailsRow,
   EmailAuthDetails,
   HeadersBox,
@@ -910,6 +911,8 @@ export function MobileMessageDetailsSheet({
                 size={14}
               />
             </div>
+
+            <BodyFormatRow format={insights.body_format} variant="mobile" />
           </div>
         )}
 

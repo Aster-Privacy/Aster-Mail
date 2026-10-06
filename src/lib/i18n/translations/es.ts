@@ -9162,6 +9162,10 @@ export const es = {
     email_is_clean:
       "Este correo parece limpio: no se detectaron elementos de seguimiento.",
     encryption_label: "Cifrado",
+    format_label: "Formato",
+    format_html: "HTML",
+    format_plain_text: "Texto plano",
+    format_html_and_plain_text: "HTML y texto plano",
     filter_after: "Después de: {{ value }}",
     filter_before: "Antes de: {{ value }}",
     filter_date: "Fecha: {{ value }}",

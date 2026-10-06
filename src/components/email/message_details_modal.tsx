@@ -45,6 +45,7 @@ import {
   get_message_id,
 } from "@/utils/message_header_details";
 import {
+  BodyFormatRow,
   DetailsRow,
   EmailAuthDetails,
   HeadersBox,
@@ -255,6 +256,8 @@ export function MessageDetailsModal({
               size={14}
             />
           </div>
+
+          <BodyFormatRow format={insights.body_format} variant="desktop" />
 
           {is_received && (
             <section className="mt-3 space-y-2.5 border-t border-edge-primary pt-3">

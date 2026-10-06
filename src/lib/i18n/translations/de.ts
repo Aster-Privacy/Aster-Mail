@@ -9247,6 +9247,10 @@ export const de = {
     email_is_clean:
       "Diese E-Mail erscheint sauber - keine Tracking-Elemente wurden erkannt.",
     encryption_label: "Verschlüsselung:",
+    format_label: "Format:",
+    format_html: "HTML",
+    format_plain_text: "Nur-Text",
+    format_html_and_plain_text: "HTML und Nur-Text",
     filter_after: "Nach: {{ value }}",
     filter_before: "Vor: {{ value }}",
     filter_date: "Datum: {{ value }}",
