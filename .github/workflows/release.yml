@@ -158,6 +158,36 @@ jobs:
             fi
           done
 
+      - name: Collect the installers built in this run
+        shell: bash
+        run: |
+          # Provenance is issued only for these files. They never leave the
+          # runner that built them before the attestation job reads them, so a
+          # file that was carried forward or uploaded by hand cannot get one.
+          set -euo pipefail
+          mkdir -p provenance
+          for dir in src-tauri/target/release/bundle src-tauri/target/universal-apple-darwin/release/bundle; do
+            if [ ! -d "$dir" ]; then
+              continue
+            fi
+            for kind in nsis/*.exe msi/*.msi appimage/*.AppImage deb/*.deb rpm/*.rpm dmg/*.dmg macos/*.app.tar.gz; do
+              for file in "$dir"/$kind; do
+                if [ -f "$file" ]; then
+                  cp "$file" provenance/
+                fi
+              done
+            done
+          done
+          ls -l provenance
+
+      - name: Hand the built installers to the provenance job
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: provenance-${{ matrix.leg }}
+          path: provenance/*
+          if-no-files-found: warn
+          retention-days: 1
+
       - name: Rename assets to canonical names
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -313,34 +343,28 @@ jobs:
           done
 
   attest_provenance:
-    needs: ensure_canonical_assets
+    needs: build
     if: always()
     runs-on: ubuntu-22.04
     continue-on-error: true
     permissions:
-      contents: read
       id-token: write
       attestations: write
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # Provenance ties an installer to this commit, this workflow and this run,
+      # so it covers only the files the build legs of this run produced. The
+      # fixed-name copies on the release are byte-identical and verify by
+      # digest. Installers carried forward from an older release and the
+      # Android APK, which is built elsewhere, are never attested here.
+      # The job is advisory and never blocks a release.
+      - name: Download the installers built in this run
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
-          persist-credentials: false
-      - name: Download the canonical installers
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Provenance ties each shipped installer to this commit, this workflow
-          # and this run. It is advisory: the job never blocks a release, so a
-          # transient signing failure cannot keep an installer off the site.
-          V=$(node -p "require('./package.json').version")
-          TAG="v${V}"
-          mkdir -p attest
-          ASSETS="Aster-Mail-x64-setup.exe Aster-Mail-x64.msi Aster-Mail-x64.AppImage Aster-Mail-amd64.deb Aster-Mail-x86_64.rpm Aster-Mail-universal.dmg Aster-Mail.apk"
-          for a in $ASSETS; do
-            gh release download "$TAG" --pattern "$a" --dir attest --clobber 2>/dev/null || \
-              echo "::warning::$a absent on $TAG, not attested"
-          done
-          ls -l attest || true
+          pattern: provenance-*
+          path: attest
+          merge-multiple: true
+      - name: List the files to attest
+        run: ls -l attest
       - name: Attest build provenance
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
