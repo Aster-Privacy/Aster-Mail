@@ -24,6 +24,7 @@ import type {
 } from "./pgp_decrypt_worker";
 
 import { decrypt_message_with_any_key } from "@/services/crypto/key_manager_pgp";
+import { on_vault_cleared } from "@/services/crypto/memory_key_store";
 
 const POOL_SIZE = Math.min(
   Math.max(
@@ -41,6 +42,13 @@ class worker_decrypt_error extends Error {
   constructor(message: string) {
     super(message);
     this.name = "worker_decrypt_error";
+  }
+}
+
+class vault_cleared_error extends Error {
+  constructor() {
+    super("pgp decrypt cancelled because the vault was cleared");
+    this.name = "vault_cleared_error";
   }
 }
 
@@ -74,34 +82,45 @@ function handle_worker_message(
   }
 }
 
-function reject_all_pending(reason: string): void {
+function reject_all_pending(error: Error): void {
   const entries = Array.from(pending_requests.values());
 
   pending_requests.clear();
 
   for (const pending of entries) {
     clearTimeout(pending.timer);
-    pending.reject(new Error(reason));
+    pending.reject(error);
+  }
+}
+
+function terminate_workers(): void {
+  const active = workers;
+
+  workers = null;
+  next_worker_index = 0;
+
+  if (!active) return;
+
+  for (const worker of active) {
+    worker.onmessage = null;
+    worker.onerror = null;
+    worker.onmessageerror = null;
+    worker.terminate();
   }
 }
 
 function shutdown_pool(reason: string): void {
-  const active = workers;
-
-  workers = null;
   pool_init_failed = true;
-
-  if (active) {
-    for (const worker of active) {
-      worker.onmessage = null;
-      worker.onerror = null;
-      worker.onmessageerror = null;
-      worker.terminate();
-    }
-  }
-
-  reject_all_pending(reason);
+  terminate_workers();
+  reject_all_pending(new Error(reason));
 }
+
+export function reset_pgp_decrypt_pool(): void {
+  terminate_workers();
+  reject_all_pending(new vault_cleared_error());
+}
+
+on_vault_cleared(reset_pgp_decrypt_pool);
 
 function handle_worker_failure(event: Event | ErrorEvent | MessageEvent): void {
   const message =
@@ -197,6 +216,7 @@ export async function decrypt_pgp_message_parallel(
     }
   }).catch(async (error: unknown) => {
     if (error instanceof worker_decrypt_error) throw error;
+    if (error instanceof vault_cleared_error) throw error;
 
     return decrypt_message_with_any_key(ciphertext, secret_keys, passphrase);
   });

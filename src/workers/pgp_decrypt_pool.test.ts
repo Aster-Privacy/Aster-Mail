@@ -20,7 +20,10 @@
 //
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-vi.mock("@/services/crypto/key_manager_pgp", () => ({
+vi.mock("@/services/crypto/key_manager_pgp", async (import_original) => ({
+  ...(await import_original<
+    typeof import("@/services/crypto/key_manager_pgp")
+  >()),
   decrypt_message_with_any_key: vi.fn(),
 }));
 
@@ -134,5 +137,69 @@ describe("decrypt_pgp_message_parallel", () => {
 
     await expect(promise).resolves.toBe("fallback");
     expect(decrypt_message_with_any_key).toHaveBeenCalledTimes(1);
+  });
+
+  it("terminates every worker and drops pending work when the vault is cleared", async () => {
+    const { decrypt_pgp_message_parallel } = await load_pool();
+    const { clear_vault_from_memory } = await import(
+      "@/services/crypto/memory_key_store"
+    );
+    const pending = decrypt_pgp_message_parallel("cipher", ["key"], "pass");
+    const before = [...fake_worker.instances];
+
+    expect(before.length).toBe(2);
+
+    clear_vault_from_memory();
+
+    await expect(pending).rejects.toThrow("vault was cleared");
+    expect(before.every((w) => w.terminated)).toBe(true);
+    expect(before.every((w) => w.onmessage === null)).toBe(true);
+    expect(decrypt_message_with_any_key).not.toHaveBeenCalled();
+  });
+
+  it("terminates the workers when the vault is cleared for the same owner", async () => {
+    const { decrypt_pgp_message_parallel } = await load_pool();
+    const { clear_vault_from_memory } = await import(
+      "@/services/crypto/memory_key_store"
+    );
+
+    void decrypt_pgp_message_parallel("cipher", ["key"], "pass").catch(
+      () => undefined,
+    );
+
+    const before = [...fake_worker.instances];
+
+    clear_vault_from_memory({ keep_account_keys: true });
+
+    expect(before.every((w) => w.terminated)).toBe(true);
+  });
+
+  it("starts fresh workers for the next unlock after a vault clear", async () => {
+    const { decrypt_pgp_message_parallel } = await load_pool();
+    const { clear_vault_from_memory } = await import(
+      "@/services/crypto/memory_key_store"
+    );
+
+    void decrypt_pgp_message_parallel("cipher", ["key"], "pass").catch(
+      () => undefined,
+    );
+
+    const before = [...fake_worker.instances];
+
+    clear_vault_from_memory();
+
+    const promise = decrypt_pgp_message_parallel("cipher", ["key"], "pass");
+    const fresh = fake_worker.instances.filter((w) => !before.includes(w));
+
+    expect(fresh.length).toBe(2);
+    expect(fresh.every((w) => !w.terminated)).toBe(true);
+
+    const request = fresh[0].posted[0] as { id: number };
+
+    fresh[0].onmessage?.({
+      data: { id: request.id, plaintext: "hello" },
+    } as MessageEvent);
+
+    await expect(promise).resolves.toBe("hello");
   });
 });
