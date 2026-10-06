@@ -20,7 +20,13 @@
 //
 import type { TranslationKey } from "@/lib/i18n/types";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowLeftIcon,
@@ -48,10 +54,12 @@ import {
   GALLERY_CATEGORIES,
   fetch_gallery_image,
   gallery_thumb_url,
+  is_gallery_available,
   load_gallery_manifest,
   type GalleryCategory,
   type GalleryItem,
 } from "@/services/profile_picture_gallery";
+import { connection_store } from "@/services/routing/connection_store";
 import {
   close_profile_picture_dialog,
   use_profile_picture_dialog_open,
@@ -60,6 +68,10 @@ import {
 type DialogView = "main" | "gallery";
 type GalleryFilter = GalleryCategory | "all";
 type GalleryStatus = "idle" | "loading" | "ready" | "failed";
+
+function subscribe_connection(listener: () => void): () => void {
+  return connection_store.subscribe(listener);
+}
 
 const VIEW_EASE: [number, number, number, number] = [0.2, 0, 0, 1];
 const VIEW_SHIFT = 24;
@@ -134,6 +146,12 @@ export function ProfilePictureDialogView({
   const [filter, set_filter] = useState<GalleryFilter>("all");
   const [pending_slug, set_pending_slug] = useState<string | null>(null);
   const [gallery_error, set_gallery_error] = useState(false);
+  const gallery_available = useSyncExternalStore(
+    subscribe_connection,
+    is_gallery_available,
+  );
+
+  const shown_view: DialogView = gallery_available ? view : "main";
 
   useEffect(() => {
     if (!is_open) return;
@@ -155,6 +173,8 @@ export function ProfilePictureDialogView({
   }, []);
 
   const open_gallery = useCallback(() => {
+    if (!is_gallery_available()) return;
+
     set_view("gallery");
     set_gallery_error(false);
     if (status === "idle" || status === "failed") load_gallery();
@@ -198,7 +218,7 @@ export function ProfilePictureDialogView({
   );
 
   const busy = uploading || removing;
-  const shift = view === "gallery" ? VIEW_SHIFT : -VIEW_SHIFT;
+  const shift = shown_view === "gallery" ? VIEW_SHIFT : -VIEW_SHIFT;
   const view_initial = reduce_motion ? false : { opacity: 0, x: shift };
   const view_exit = reduce_motion ? { opacity: 1 } : { opacity: 0, x: shift };
   const view_transition = { duration: 0.2, ease: VIEW_EASE };
@@ -207,7 +227,7 @@ export function ProfilePictureDialogView({
     <Modal is_open={is_open} on_close={on_close} size="md">
       <ModalHeader>
         <div className="flex items-center gap-2">
-          {view === "gallery" && (
+          {shown_view === "gallery" && (
             <button
               aria-label={t("common.back")}
               className="profile_picture_back -ms-2 flex h-8 w-8 items-center justify-center rounded-full text-txt-secondary"
@@ -218,7 +238,7 @@ export function ProfilePictureDialogView({
             </button>
           )}
           <ModalTitle>
-            {view === "gallery"
+            {shown_view === "gallery"
               ? t("common.profile_picture_gallery")
               : t("common.profile_picture_title")}
           </ModalTitle>
@@ -227,7 +247,7 @@ export function ProfilePictureDialogView({
 
       <ModalBody className="overflow-hidden pb-6">
         <AnimatePresence initial={false} mode="wait">
-          {view === "main" ? (
+          {shown_view === "main" ? (
             <motion.div
               key="main"
               animate={{ opacity: 1, x: 0 }}
@@ -270,13 +290,15 @@ export function ProfilePictureDialogView({
               </div>
 
               <div className="space-y-2">
-                <OptionRow
-                  disabled={busy}
-                  hint={t("common.profile_picture_gallery_hint")}
-                  icon={<PhotoIcon className="h-6 w-6" />}
-                  label={t("common.profile_picture_gallery")}
-                  on_click={open_gallery}
-                />
+                {gallery_available && (
+                  <OptionRow
+                    disabled={busy}
+                    hint={t("common.profile_picture_gallery_hint")}
+                    icon={<PhotoIcon className="h-6 w-6" />}
+                    label={t("common.profile_picture_gallery")}
+                    on_click={open_gallery}
+                  />
+                )}
                 <OptionRow
                   disabled={busy}
                   hint={t("common.profile_picture_upload_hint")}

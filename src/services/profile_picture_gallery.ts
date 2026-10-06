@@ -18,6 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { is_onion_host } from "@/lib/onion_host";
+import { connection_store } from "@/services/routing/connection_store";
+
 const GALLERY_BASE = "https://aster-wallpapers.pages.dev";
 const MANIFEST_TIMEOUT_MS = 15000;
 const MAX_ITEMS = 2000;
@@ -78,11 +81,23 @@ export function parse_gallery_manifest(payload: unknown): GalleryItem[] {
   return items;
 }
 
+export function is_gallery_available(): boolean {
+  return connection_store.get_method() === "direct" && !is_onion_host();
+}
+
+function assert_gallery_available(): void {
+  if (!is_gallery_available()) {
+    throw new Error("gallery unavailable on a routed connection");
+  }
+}
+
 export function gallery_thumb_url(slug: string): string {
   return `${GALLERY_BASE}/thumb/${slug}.webp`;
 }
 
 async function request_manifest(): Promise<GalleryItem[]> {
+  assert_gallery_available();
+
   const controller = new AbortController();
   const timer = window.setTimeout(
     () => controller.abort(),
@@ -121,6 +136,8 @@ export function load_gallery_manifest(): Promise<GalleryItem[]> {
 
 export async function fetch_gallery_image(slug: string): Promise<File> {
   if (!SLUG_PATTERN.test(slug)) throw new Error("gallery image not allowed");
+
+  assert_gallery_available();
 
   const response = await fetch(gallery_thumb_url(slug), {
     credentials: "omit",

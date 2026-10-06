@@ -18,10 +18,19 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+const h = vi.hoisted(() => ({ method: "direct" }));
+
+vi.mock("@/services/routing/connection_store", () => ({
+  connection_store: { get_method: () => h.method },
+}));
 
 import {
+  fetch_gallery_image,
   gallery_thumb_url,
+  is_gallery_available,
+  load_gallery_manifest,
   parse_gallery_manifest,
 } from "./profile_picture_gallery";
 
@@ -82,5 +91,42 @@ describe("parse_gallery_manifest", () => {
 describe("gallery_thumb_url", () => {
   it("points at the thumbnail for a slug", () => {
     expect(gallery_thumb_url("aurora_01")).toMatch(/\/thumb\/aurora_01\.webp$/);
+  });
+});
+
+describe("gallery requests on a routed connection", () => {
+  afterEach(() => {
+    h.method = "direct";
+    vi.unstubAllGlobals();
+  });
+
+  it.each(["tor", "tor_snowflake", "cdn_relay"])(
+    "sends nothing to the gallery host in %s mode",
+    async (method) => {
+      const fetch_mock = vi.fn();
+
+      vi.stubGlobal("fetch", fetch_mock);
+      h.method = method;
+
+      expect(is_gallery_available()).toBe(false);
+      await expect(load_gallery_manifest()).rejects.toThrow();
+      await expect(fetch_gallery_image("aurora_01")).rejects.toThrow();
+      expect(fetch_mock).not.toHaveBeenCalled();
+    },
+  );
+
+  it("loads the gallery on a direct connection", async () => {
+    const fetch_mock = vi.fn(
+      async () => new Response(new Blob(["x"]), { status: 200 }),
+    );
+
+    vi.stubGlobal("fetch", fetch_mock);
+
+    expect(is_gallery_available()).toBe(true);
+
+    const file = await fetch_gallery_image("aurora_01");
+
+    expect(file.name).toBe("aurora_01.webp");
+    expect(fetch_mock).toHaveBeenCalledTimes(1);
   });
 });
