@@ -109,7 +109,7 @@ const REFRESH_LOCK_PREFIX = "aster-session-refresh";
 
 interface TimedResponse {
   response: Response;
-  within_deadline: <R>(work: Promise<R>) => Promise<R>;
+  read_text: () => Promise<string>;
   release: () => void;
 }
 
@@ -1513,7 +1513,11 @@ export class ApiClient {
     shared_controller?: AbortController,
   ): Promise<TimedResponse> {
     const controller = shared_controller ?? new AbortController();
-    const timeout_id = setTimeout(() => controller.abort(), timeout);
+    let timeout_id = setTimeout(() => controller.abort(), timeout);
+    const rearm = (): void => {
+      clearTimeout(timeout_id);
+      timeout_id = setTimeout(() => controller.abort(), timeout);
+    };
     const aborted = new Promise<never>((_resolve, reject) => {
       const reject_with_timeout = (): void => {
         const err = new Error(get_active_translations().errors.request_timeout);
@@ -1546,7 +1550,37 @@ export class ApiClient {
         }),
       );
 
-      return { response, within_deadline, release };
+      const read_text = async (): Promise<string> => {
+        const body = response.body;
+
+        if (!body || typeof body.getReader !== "function") {
+          rearm();
+
+          return within_deadline(response.text());
+        }
+
+        const reader = body.getReader();
+        const decoder = new TextDecoder();
+        const parts: string[] = [];
+
+        try {
+          for (;;) {
+            rearm();
+            const { done, value } = await within_deadline(reader.read());
+
+            if (done) break;
+            parts.push(decoder.decode(value, { stream: true }));
+          }
+          parts.push(decoder.decode());
+
+          return parts.join("");
+        } catch (error) {
+          reader.cancel().catch(() => undefined);
+          throw error;
+        }
+      };
+
+      return { response, read_text, release };
     } catch (error) {
       release();
       throw error;
@@ -1741,7 +1775,7 @@ export class ApiClient {
           timeout,
           background?.controller,
         );
-        const { response, within_deadline } = timed;
+        const { response, read_text } = timed;
 
         release_deadline = timed.release;
 
@@ -1754,7 +1788,7 @@ export class ApiClient {
           } = {};
 
           try {
-            error_data = await within_deadline(response.json());
+            error_data = JSON.parse(await read_text());
           } catch {
             error_data = import.meta.env.DEV
               ? { error: response.statusText }
@@ -2135,13 +2169,11 @@ export class ApiClient {
         ) {
           data = undefined as T;
         } else {
-          const raw = await within_deadline(response.text()).catch(
-            (read_error: unknown) => {
-              if (is_abort_error(read_error)) throw read_error;
+          const raw = await read_text().catch((read_error: unknown) => {
+            if (is_abort_error(read_error)) throw read_error;
 
-              return null;
-            },
-          );
+            return null;
+          });
 
           if (raw === null) {
             if (yield_to_foreground()) {

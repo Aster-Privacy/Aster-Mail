@@ -160,13 +160,61 @@ describe("api client body download failure", () => {
     expect(result.code).toBe("TIMEOUT_ERROR");
   });
 
+  it("keeps reading a slow body while data keeps arriving", async () => {
+    const encoder = new TextEncoder();
+    const json = JSON.stringify({ items: [], total: 9 });
+    const pieces = [json.slice(0, 5), json.slice(5, 12), json.slice(12)];
+    const body = new ReadableStream<Uint8Array>({
+      async start(stream) {
+        for (const piece of pieces) {
+          await new Promise((resolve) => setTimeout(resolve, 30));
+          stream.enqueue(encoder.encode(piece));
+        }
+        stream.close();
+      },
+    });
+
+    vi.mocked(routed_fetch).mockResolvedValue(
+      new Response(body, { status: 200 }),
+    );
+
+    const result = await api_client.get<{ items: unknown[]; total: number }>(
+      "/mail/v1/messages?case=slow_stream",
+      { skip_cache: true, timeout: 60 },
+    );
+
+    expect(result.error).toBeUndefined();
+    expect(result.data?.total).toBe(9);
+  });
+
+  it("times out when a streamed body stops arriving", async () => {
+    const encoder = new TextEncoder();
+    const body = new ReadableStream<Uint8Array>({
+      start(stream) {
+        stream.enqueue(encoder.encode('{"items":['));
+      },
+    });
+
+    vi.mocked(routed_fetch).mockResolvedValue(
+      new Response(body, { status: 200 }),
+    );
+
+    const result = await api_client.get("/mail/v1/messages?case=stream_stall", {
+      skip_cache: true,
+      timeout: 20,
+    });
+
+    expect(result.data).toBeUndefined();
+    expect(result.code).toBe("TIMEOUT_ERROR");
+  });
+
   it("times out when an error body stalls", async () => {
     const stalled_error = {
       ok: false,
       status: 500,
       statusText: "Server Error",
       headers: { get: () => null },
-      json: () => new Promise<unknown>(() => undefined),
+      text: () => new Promise<string>(() => undefined),
     } as unknown as Response;
 
     vi.mocked(routed_fetch).mockResolvedValue(stalled_error);
