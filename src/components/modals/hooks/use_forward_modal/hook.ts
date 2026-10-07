@@ -127,6 +127,7 @@ import { use_my_badge_prefs } from "@/stores/my_badge_prefs_store";
 import { build_badge_html } from "@/components/compose/compose_draft_helpers";
 import { use_signatures } from "@/contexts/signatures_context";
 import { sanitize_html, sanitize_outgoing_html } from "@/lib/html_sanitizer";
+import { outgoing_html_to_plain_text } from "@/lib/outgoing_plain_text";
 import {
   get_compose_sanitize_options,
   restore_compose_image_sources,
@@ -949,12 +950,18 @@ export function use_forward_modal({
       handed_off = true;
       if (delay_seconds > 0) {
         const undo_subject = forward_subject;
-        const undo_body =
-          (outgoing_forward_message
-            ? outgoing_forward_message + "<br><br>"
-            : "") +
+        const forwarded_html =
           sanitize_outgoing_html(send_content) +
           get_aster_footer(t, preferences.show_aster_branding);
+        const undo_body = is_plain_text_mode
+          ? escape_plain_text(
+              [forward_message, outgoing_html_to_plain_text(forwarded_html)]
+                .filter((part) => part.length > 0)
+                .join("\n\n"),
+            ).replace(/\n/g, "<br>")
+          : (outgoing_forward_message
+              ? outgoing_forward_message + "<br><br>"
+              : "") + forwarded_html;
 
         store_pending_send_payload(result.queued_id, {
           to: send_recipients.to,
@@ -968,6 +975,7 @@ export function use_forward_modal({
           expires_at: expires_at?.toISOString(),
           attachments: fwd_attachments,
           restore_verbatim: true,
+          is_plain_text: is_plain_text_mode || undefined,
         });
         undo_send_manager.add({
           id: result.queued_id,
@@ -1002,6 +1010,7 @@ export function use_forward_modal({
     email_subject,
     email_body,
     email_timestamp,
+    forward_message,
     outgoing_forward_message,
     is_plain_text_mode,
     preferences.undo_send_period,
