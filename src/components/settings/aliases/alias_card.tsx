@@ -57,6 +57,7 @@ import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
 import { PinIcon } from "@/components/common/icons";
 import { AliasDisplayNameEditor } from "@/components/settings/aliases/alias_display_name_editor";
 import { AliasMetaEditor } from "@/components/settings/aliases/alias_meta_editor";
+import { AliasNoteEditor } from "@/components/settings/aliases/alias_note_editor";
 
 const AVATAR_MAX_SIZE = 256;
 
@@ -516,6 +517,7 @@ interface DomainAddressItemProps {
   on_toggle?: (id: string, domain_id: string, enabled: boolean) => void;
   on_avatar_changed?: () => void;
   on_display_name_saved?: (address_id: string, name: string) => void;
+  on_note_saved?: (address_id: string, note: string) => void;
   on_open_editor: () => void;
   deleting: boolean;
   is_avatar_locked: boolean;
@@ -527,6 +529,7 @@ export function DomainAddressItem({
   on_toggle,
   on_avatar_changed,
   on_display_name_saved,
+  on_note_saved,
   on_open_editor,
   deleting,
   is_avatar_locked,
@@ -713,6 +716,14 @@ export function DomainAddressItem({
               })
             }
             on_saved={(name) => on_display_name_saved?.(address.id, name)}
+          />
+          <AliasNoteEditor
+            alias_address={full_address}
+            note={address.note}
+            on_save={(note) =>
+              update_domain_address(address.domain_id, address.id, { note })
+            }
+            on_saved={(note) => on_note_saved?.(address.id, note)}
           />
         </div>
 

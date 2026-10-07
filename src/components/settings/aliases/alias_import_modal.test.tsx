@@ -121,12 +121,14 @@ function make_alias(
 function make_domain_address(
   local_part: string,
   is_enabled: boolean,
+  note?: string,
 ): DecryptedDomainAddress & { domain_name: string } {
   return {
     id: `addr-${local_part}`,
     domain_id: "domain-1",
     domain_name: "example.com",
     local_part,
+    note,
     is_enabled,
     is_primary: false,
     created_at: "2026-01-01T00:00:00Z",
@@ -511,6 +513,74 @@ describe("notes", () => {
     expect(update_alias).toHaveBeenCalledWith("alias-emptied", {
       is_enabled: true,
     });
+  });
+});
+
+describe("custom domain notes", () => {
+  it("imports each note with new custom domain addresses", async () => {
+    await render_modal({
+      available_domains: ["example.com"],
+      custom_domains: [{ name: "example.com", id: "domain-1" }],
+    });
+    await load_csv(
+      `alias,display_name,note,enabled
+billing@example.com,Billing,Invoices only,true
+sales@example.com,Sales,,true
+`,
+    );
+    await confirm_import();
+
+    expect(bulk_add_domain_addresses).toHaveBeenCalledWith(
+      "domain-1",
+      "example.com",
+      [
+        {
+          local_part: "billing",
+          display_name: "Billing",
+          note: "Invoices only",
+          is_enabled: true,
+        },
+        {
+          local_part: "sales",
+          display_name: "Sales",
+          note: undefined,
+          is_enabled: true,
+        },
+      ],
+    );
+  });
+
+  it("fills a missing note on re-enable but never replaces an existing one", async () => {
+    await render_modal({
+      available_domains: ["example.com"],
+      custom_domains: [{ name: "example.com", id: "domain-1" }],
+      existing_domain_addresses: [
+        make_domain_address("blank", false),
+        make_domain_address("kept", false, "Original note"),
+      ],
+    });
+    await load_csv(
+      `alias,display_name,note,enabled
+blank@example.com,,Restored note,false
+kept@example.com,,Other note,false
+`,
+    );
+    await click(row_for("blank@example.com"));
+    await click(row_for("kept@example.com"));
+    await choose_reenable();
+    await confirm_import();
+
+    expect(update_domain_address).toHaveBeenCalledTimes(2);
+    expect(update_domain_address).toHaveBeenCalledWith(
+      "domain-1",
+      "addr-blank",
+      { is_enabled: true, note: "Restored note" },
+    );
+    expect(update_domain_address).toHaveBeenCalledWith(
+      "domain-1",
+      "addr-kept",
+      { is_enabled: true },
+    );
   });
 });
 

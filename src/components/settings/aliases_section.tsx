@@ -308,6 +308,9 @@ export function AliasesSection() {
               on_domain_address_display_name_saved={
                 hook.handle_domain_address_display_name_saved
               }
+              on_domain_address_note_saved={
+                hook.handle_domain_address_note_saved
+              }
               on_domain_address_toggle={hook.handle_domain_address_toggle}
               on_open_domain_editor={set_editing_address_id}
               on_open_editor={set_editing_alias_id}

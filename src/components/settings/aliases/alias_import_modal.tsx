@@ -353,6 +353,7 @@ function build_preview(
         existing_id: existing_domain_addr.id,
         existing_domain_id: existing_domain_addr.domain_id,
         existing_enabled: existing_domain_addr.is_enabled,
+        existing_note: existing_domain_addr.note,
       };
     }
 
@@ -713,6 +714,7 @@ export function AliasImportModal({
                 batch.map((r) => ({
                   local_part: r.local_part,
                   display_name: r.display_name,
+                  note: r.note,
                   is_enabled: r.enabled,
                 })),
               );
@@ -747,7 +749,10 @@ export function AliasImportModal({
           const response = await update_domain_address(
             row.existing_domain_id,
             row.existing_id,
-            { is_enabled: true },
+            {
+              is_enabled: true,
+              ...(row.note && !row.existing_note ? { note: row.note } : {}),
+            },
           );
 
           if (response.error) {

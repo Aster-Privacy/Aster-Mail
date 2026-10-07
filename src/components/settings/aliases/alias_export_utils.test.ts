@@ -30,6 +30,7 @@ import {
   ALIAS_COLUMNS,
   CSV_LINE_BREAK,
   DIRECTORY_COLUMNS,
+  DOMAIN_ADDRESS_COLUMNS,
   GHOST_COLUMNS,
   UTF8_BOM,
   build_alias_rows,
@@ -246,6 +247,27 @@ describe("build_domain_address_rows", () => {
         ["address", "display_name", "enabled", "created_at"],
       ),
     ).toEqual([["shop@example.com", "Shop", false, "2026-02-01T00:00:00Z"]]);
+  });
+
+  it("exports the note so a re-import restores it", () => {
+    const address = {
+      id: "d2",
+      domain_id: "dom1",
+      local_part: "billing",
+      note: "Invoices only",
+      is_enabled: true,
+      is_primary: false,
+      created_at: "2026-02-01T00:00:00Z",
+      domain_name: "example.com",
+    } satisfies DecryptedDomainAddress & { domain_name: string };
+
+    expect(DOMAIN_ADDRESS_COLUMNS).toContain("note");
+    expect(build_domain_address_rows([address], ["address", "note"])).toEqual([
+      ["billing@example.com", "Invoices only"],
+    ]);
+    expect(
+      build_domain_address_rows([{ ...address, note: undefined }], ["note"]),
+    ).toEqual([[""]]);
   });
 });
 

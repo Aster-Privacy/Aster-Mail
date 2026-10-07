@@ -177,6 +177,8 @@ interface ReEncryptedDomainAddress {
   local_part_hash: string;
   encrypted_display_name?: string;
   display_name_nonce?: string;
+  encrypted_note?: string;
+  note_nonce?: string;
 }
 
 interface RekeyRequest {

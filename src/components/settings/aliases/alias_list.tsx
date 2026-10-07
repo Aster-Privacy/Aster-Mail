@@ -102,6 +102,7 @@ interface AliasListProps {
     address_id: string,
     name: string,
   ) => void;
+  on_domain_address_note_saved?: (address_id: string, note: string) => void;
   on_alias_pin_toggle: (id: string) => void;
   on_open_editor: (alias_id: string) => void;
   on_open_domain_editor: (address_id: string) => void;
@@ -269,6 +270,7 @@ export function AliasList({
   on_avatar_changed,
   on_aliases_changed,
   on_domain_address_display_name_saved,
+  on_domain_address_note_saved,
   on_alias_pin_toggle,
   on_open_editor,
   on_open_domain_editor,
@@ -328,7 +330,8 @@ export function AliasList({
       result = result.filter(
         (a) =>
           `${a.local_part}@${a.domain_name}`.toLowerCase().includes(query) ||
-          (a.display_name ?? "").toLowerCase().includes(query),
+          (a.display_name ?? "").toLowerCase().includes(query) ||
+          (a.note ?? "").toLowerCase().includes(query),
       );
     }
     if (filter_mode === "enabled") {
@@ -759,6 +762,7 @@ export function AliasList({
               on_avatar_changed={on_avatar_changed}
               on_delete={on_domain_addr_delete}
               on_display_name_saved={on_domain_address_display_name_saved}
+              on_note_saved={on_domain_address_note_saved}
               on_open_editor={() => on_open_domain_editor(entry.address.id)}
               on_toggle={on_domain_address_toggle}
             />

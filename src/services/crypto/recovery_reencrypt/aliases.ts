@@ -403,6 +403,18 @@ export async function re_encrypt_alias_sub_items_recovery(
             entry.display_name_nonce = nonce;
           }
 
+          if (address.encrypted_note && address.note_nonce) {
+            const { encrypted, nonce } = await re_encrypt_field(
+              address.encrypted_note,
+              address.note_nonce,
+              old_aes,
+              new_aes,
+            );
+
+            entry.encrypted_note = encrypted;
+            entry.note_nonce = nonce;
+          }
+
           re_encrypted_domain_addresses.push(entry);
         } catch {
           continue;

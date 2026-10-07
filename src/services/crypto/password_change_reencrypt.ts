@@ -677,6 +677,20 @@ export async function re_encrypt_user_data(
             result.display_name_nonce = display_name_nonce;
           }
 
+          if (address.encrypted_note && address.note_nonce) {
+            const { encrypted: encrypted_note, nonce: note_nonce } =
+              await carry_forward_field(
+                address.encrypted_note,
+                address.note_nonce,
+                old_keys,
+                new_aes,
+                skipped,
+              );
+
+            result.encrypted_note = encrypted_note;
+            result.note_nonce = note_nonce;
+          }
+
           re_encrypted_domain_addresses.push(result);
         } catch {
           skipped.domain_address_ids.push(address.id);
