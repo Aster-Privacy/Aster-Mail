@@ -483,6 +483,54 @@ describe("reply window format when it opens", () => {
 
     expect(reply!.is_plain_text_mode).toBe(true);
   });
+
+  it("reopens a saved rich text reply draft in rich text", async () => {
+    stable.preferences.compose_mode = "plain_text";
+    finish_signature_load(signature);
+    await render_reply({
+      ...reply_props(),
+      existing_draft: {
+        id: "draft_1",
+        version: 1,
+        reply_to_id: "email_1",
+        content: {
+          to_recipients: ["sam@example.com"],
+          cc_recipients: [],
+          bcc_recipients: [],
+          subject: "Re: Plans",
+          message: "<p><b>Saved</b> reply</p>",
+        },
+      } as never,
+    });
+    await advance(0);
+
+    expect(reply!.is_plain_text_mode).toBe(false);
+    expect(reply!.reply_message).toContain("<b>Saved</b>");
+  });
+
+  it("reopens a saved plain text reply draft in plain text", async () => {
+    finish_signature_load(signature);
+    await render_reply({
+      ...reply_props(),
+      existing_draft: {
+        id: "draft_1",
+        version: 1,
+        reply_to_id: "email_1",
+        content: {
+          to_recipients: ["sam@example.com"],
+          cc_recipients: [],
+          bcc_recipients: [],
+          subject: "Re: Plans",
+          message: "Saved &lt;plain&gt; reply",
+          is_plain_text: true,
+        },
+      } as never,
+    });
+    await advance(0);
+
+    expect(reply!.is_plain_text_mode).toBe(true);
+    expect(reply!.reply_message).toBe("Saved <plain> reply");
+  });
 });
 
 describe("forward window format when it opens", () => {
