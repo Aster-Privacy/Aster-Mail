@@ -1143,6 +1143,7 @@ export const pl = {
     write_your_reply: "Napisz swoją odpowiedź...",
     switch_to_rich_text: "Przełącz na tekst sformatowany",
     switch_to_plain_text: "Przełącz na zwykły tekst",
+    plain_text_label: "Zwykły tekst",
     font_size_label: "Rozmiar czcionki",
     font_family_label: "Czcionka",
     font_family_default: "Domyślna czcionka",

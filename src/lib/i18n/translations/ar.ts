@@ -1089,6 +1089,7 @@ export const ar = {
     write_your_reply: "اكتب ردك...",
     switch_to_rich_text: "التبديل إلى نص منسق",
     switch_to_plain_text: "التبديل إلى نص عادي",
+    plain_text_label: "نص عادي",
     font_size_label: "حجم الخط",
     font_family_label: "نوع الخط",
     font_family_default: "الخط الافتراضي",

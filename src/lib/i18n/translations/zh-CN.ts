@@ -980,6 +980,7 @@ export const zh_CN = {
     write_your_reply: "写下您的回复...",
     switch_to_rich_text: "切换到富文本",
     switch_to_plain_text: "切换到纯文本",
+    plain_text_label: "纯文本",
     font_size_label: "字体大小",
     font_family_label: "字体",
     font_family_default: "默认字体",

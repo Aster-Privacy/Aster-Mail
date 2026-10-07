@@ -1153,6 +1153,7 @@ export const fr = {
     write_your_reply: "Rédigez votre réponse...",
     switch_to_rich_text: "Passer en texte enrichi",
     switch_to_plain_text: "Passer en texte brut",
+    plain_text_label: "Texte brut",
     font_size_label: "Taille de la police",
     font_family_label: "Police",
     font_family_default: "Police par défaut",
