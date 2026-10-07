@@ -374,6 +374,23 @@ interface ImportResult {
   failed: number;
 }
 
+export function pick_target_domain(
+  rows: ParsedRow[],
+  selectable_domains: string[],
+): string {
+  const fallback = selectable_domains[0] ?? "";
+  const file_domains = new Set(rows.map((row) => row.original_domain));
+
+  if (file_domains.size !== 1) return fallback;
+
+  const [file_domain] = file_domains;
+  const match = selectable_domains.find(
+    (domain) => domain.toLowerCase() === file_domain,
+  );
+
+  return match ?? fallback;
+}
+
 function needs_re_enable(row: PreviewRow): boolean {
   return row.status === "exists" && row.existing_enabled === false;
 }
@@ -505,7 +522,7 @@ export function AliasImportModal({
     }
 
     set_error_msg(null);
-    const domain = selectable_domains[0] ?? "";
+    const domain = pick_target_domain(parsed, selectable_domains);
 
     set_parsed_rows(parsed);
     set_target_domain(domain);

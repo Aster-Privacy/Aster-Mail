@@ -34,7 +34,7 @@ import {
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
-import { AliasImportModal } from "./alias_import_modal";
+import { AliasImportModal, pick_target_domain } from "./alias_import_modal";
 import {
   ALIAS_COLUMNS,
   build_alias_rows,
@@ -511,5 +511,79 @@ describe("notes", () => {
     expect(update_alias).toHaveBeenCalledWith("alias-emptied", {
       is_enabled: true,
     });
+  });
+});
+
+describe("target domain", () => {
+  it("preselects the custom domain every address in the file uses", async () => {
+    await render_modal({
+      available_domains: ["astermail.org", "example.com"],
+      custom_domains: [{ name: "example.com", id: "domain-1" }],
+    });
+    await load_csv(
+      `${EXPORT_HEADER}
+billing@example.com,Billing,true
+sales@example.com,Sales,true
+`,
+    );
+
+    expect(row_for("billing@example.com")).toBeTruthy();
+    expect(row_for("sales@example.com")).toBeTruthy();
+
+    await confirm_import();
+
+    expect(bulk_add_domain_addresses).toHaveBeenCalledWith(
+      "domain-1",
+      "example.com",
+      expect.any(Array),
+    );
+    expect(bulk_create_aliases).not.toHaveBeenCalled();
+  });
+
+  it("keeps the default when the file mixes domains", async () => {
+    await render_modal({
+      available_domains: ["astermail.org", "example.com"],
+      custom_domains: [{ name: "example.com", id: "domain-1" }],
+    });
+    await load_csv(
+      `${EXPORT_HEADER}
+billing@example.com,,true
+news@astermail.org,,true
+`,
+    );
+
+    expect(row_for("billing@astermail.org")).toBeTruthy();
+    expect(row_for("news@astermail.org")).toBeTruthy();
+  });
+
+  it("keeps the default when the file domain is not available", async () => {
+    await render_modal({
+      available_domains: ["astermail.org", "example.com"],
+    });
+    await load_csv(`${EXPORT_HEADER}
+billing@other.net,,true
+`);
+
+    expect(row_for("billing@astermail.org")).toBeTruthy();
+  });
+});
+
+describe("pick_target_domain", () => {
+  const row = (original_domain: string) => ({
+    local_part: "a",
+    original_domain,
+  });
+
+  it("matches the available domain case-insensitively", () => {
+    expect(
+      pick_target_domain(
+        [row("example.com")],
+        ["astermail.org", "Example.com"],
+      ),
+    ).toBe("Example.com");
+  });
+
+  it("returns an empty string when no domain is selectable", () => {
+    expect(pick_target_domain([row("example.com")], [])).toBe("");
   });
 });
