@@ -1923,6 +1923,16 @@ label {
   --aster-btn-spinner-end: 10px;
 }
 
+.aster_btn.label_folder_action:not(:has(> .aster_btn_spinner)) {
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+}
+
+.aster_btn.label_folder_action:disabled:not(:has(> .aster_btn_spinner)) {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .aster_btn_spinner {
   position: absolute;
   inset: 0;
