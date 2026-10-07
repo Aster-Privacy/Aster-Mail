@@ -84,6 +84,7 @@ export interface DraftUpdatedEventDetail {
   bcc_recipients: string[];
   subject: string;
   message: string;
+  is_plain_text?: boolean;
 }
 
 export interface ThreadDraftChangedEventDetail {

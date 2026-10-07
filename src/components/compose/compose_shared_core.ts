@@ -126,12 +126,14 @@ export interface EditDraftData {
   updated_at: string;
   attachments?: DraftAttachmentData[];
   is_restored_send?: boolean;
+  is_plain_text?: boolean;
 }
 
 export interface DraftRefData {
   recipients: RecipientsState;
   subject: string;
   message: string;
+  is_plain_text?: boolean;
   from_email?: string;
 }
 

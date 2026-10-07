@@ -597,6 +597,7 @@ export function use_inbox_view_state(props: EmailInboxProps) {
           from_email: draft.content.from_email,
           updated_at: draft.updated_at,
           attachments: draft.content.attachments,
+          is_plain_text: draft.content.is_plain_text,
         });
       }
     },

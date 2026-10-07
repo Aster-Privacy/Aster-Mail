@@ -36,6 +36,7 @@ export interface UseComposeEditorOptions {
 export interface UseComposeEditorReturn {
   editor: UseEditorReturn;
   is_plain_text_mode: boolean;
+  set_plain_text_mode: (value: boolean) => void;
   show_plain_text_confirm: boolean;
   toggle_plain_text_mode: () => void;
   confirm_plain_text_mode: () => void;
@@ -160,6 +161,7 @@ export function use_compose_editor({
   return {
     editor,
     is_plain_text_mode,
+    set_plain_text_mode: set_is_plain_text_mode,
     show_plain_text_confirm,
     toggle_plain_text_mode,
     confirm_plain_text_mode,

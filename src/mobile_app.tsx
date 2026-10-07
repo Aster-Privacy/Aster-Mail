@@ -284,6 +284,7 @@ function MobileApp() {
       bcc_recipients: string[];
       from_email?: string;
       updated_at: string;
+      is_plain_text?: boolean;
     }) => {
       edit_draft_ref.current = {
         id: draft.id,
@@ -298,6 +299,7 @@ function MobileApp() {
         bcc_recipients: draft.bcc_recipients,
         from_email: draft.from_email,
         updated_at: draft.updated_at,
+        is_plain_text: draft.is_plain_text,
       };
       set_is_compose_open(true);
     },

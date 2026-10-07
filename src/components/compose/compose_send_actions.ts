@@ -64,6 +64,7 @@ export interface SendActionContext {
   undo_send_seconds: number;
   undo_send_period: string;
   message: string;
+  is_plain_text?: boolean;
   session_storage_key: string;
   edit_draft?: EditDraftData | null;
   on_close: () => void;
@@ -162,6 +163,7 @@ function save_and_close(
     expiry_password: email_data.expiry_password,
     attachments: email_data.attachments,
     restore_verbatim: true,
+    is_plain_text: ctx.is_plain_text || undefined,
   });
 
   const saved_data = {
@@ -170,6 +172,7 @@ function save_and_close(
     bcc_recipients: email_data.bcc || [],
     subject: email_data.subject,
     message: ctx.message,
+    is_plain_text: ctx.is_plain_text || undefined,
   };
 
   ctx.set_queued_email_id(email_id);

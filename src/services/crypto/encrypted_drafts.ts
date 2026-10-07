@@ -41,6 +41,7 @@ export interface DraftData {
   message: string;
   from_email?: string;
   attachments?: DraftAttachmentData[];
+  is_plain_text?: boolean;
 }
 
 export class DraftServiceError extends Error {
@@ -101,6 +102,7 @@ async function compute_content_hash(data: DraftData): Promise<string> {
     message: data.message,
     from: data.from_email || "",
     att: (data.attachments || []).map((a) => a.id).sort(),
+    plain: data.is_plain_text === true,
   });
   const encoder = new TextEncoder();
   const data_buffer = encoder.encode(content_string);
@@ -233,6 +235,7 @@ class DraftManager {
           data.attachments && data.attachments.length > 0
             ? data.attachments
             : undefined,
+        is_plain_text: data.is_plain_text === true ? true : undefined,
       };
 
       if (context.is_deleted) {
@@ -296,6 +299,7 @@ class DraftManager {
               bcc_recipients: content.bcc_recipients,
               subject: content.subject,
               message: content.message,
+              is_plain_text: content.is_plain_text,
             });
 
             return;
@@ -344,6 +348,7 @@ class DraftManager {
             bcc_recipients: content.bcc_recipients,
             subject: content.subject,
             message: content.message,
+            is_plain_text: content.is_plain_text,
           });
         } else if (response.error) {
           throw new DraftServiceError(response.error);

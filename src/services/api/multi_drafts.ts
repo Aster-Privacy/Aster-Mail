@@ -57,6 +57,7 @@ export interface DraftContent {
   message: string;
   from_email?: string;
   attachments?: DraftAttachmentData[];
+  is_plain_text?: boolean;
 }
 
 export interface Draft {
@@ -381,6 +382,7 @@ export function normalize_draft_content(parsed: unknown): DraftContent {
     attachments: Array.isArray(record.attachments)
       ? (record.attachments as DraftAttachmentData[])
       : undefined,
+    is_plain_text: record.is_plain_text === true ? true : undefined,
   };
 }
 

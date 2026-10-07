@@ -167,3 +167,10 @@ it("does not mark a rich text message as plain", async () => {
   await act(async () => hook.handle_send());
   expect(mocks.send.mock.calls[0][1].is_plain_text).toBeUndefined();
 });
+it("passes plain mode to the send context used for undo", async () => {
+  options.is_plain_text = true;
+  options.message = "Hello<br>there";
+  await render();
+  await act(async () => hook.handle_send());
+  expect(mocks.send.mock.calls[0][0].is_plain_text).toBe(true);
+});

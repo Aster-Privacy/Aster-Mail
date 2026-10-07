@@ -205,13 +205,14 @@ export function use_compose_send({
         failed,
         kept_draft,
         edit_draft,
+        is_plain_text,
       );
 
       if (!saved) {
         show_toast(t("common.failed_to_save"), "error");
       }
     },
-    [vault, edit_draft, t],
+    [vault, edit_draft, is_plain_text, t],
   );
 
   const build_send_context = useCallback(
@@ -220,6 +221,7 @@ export function use_compose_send({
       undo_send_seconds: preferences.undo_send_seconds,
       undo_send_period: preferences.undo_send_period,
       message,
+      is_plain_text,
       session_storage_key,
       edit_draft,
       on_close,
@@ -236,6 +238,7 @@ export function use_compose_send({
       preferences.undo_send_seconds,
       preferences.undo_send_period,
       message,
+      is_plain_text,
       session_storage_key,
       edit_draft,
       on_close,
