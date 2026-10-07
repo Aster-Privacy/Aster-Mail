@@ -6698,6 +6698,9 @@ export const nl = {
     domain_purchase_search_placeholder: "Zoek een domeinnaam",
     domain_purchase_per_year: "{{price}}/jaar",
     domain_purchase_taken: "Bezet",
+    domain_purchase_unchecked: "Niet gecontroleerd",
+    domain_purchase_unchecked_hint:
+      "Dit domein kan nu niet worden gecontroleerd. Probeer het later opnieuw.",
     domain_purchase_no_results: "Geen beschikbare domeinen gevonden",
     domain_purchase_renews_at: "Verlengt tegen {{price}}/jaar",
     domain_purchase_years: "Registratieperiode",

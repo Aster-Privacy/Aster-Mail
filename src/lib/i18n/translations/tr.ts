@@ -6675,6 +6675,9 @@ export const tr = {
     domain_purchase_search_placeholder: "Bir alan adı arayın",
     domain_purchase_per_year: "{{price}}/yıl",
     domain_purchase_taken: "Alınmış",
+    domain_purchase_unchecked: "Kontrol edilemedi",
+    domain_purchase_unchecked_hint:
+      "Bu alan adı şu anda kontrol edilemedi. Daha sonra tekrar deneyin.",
     domain_purchase_no_results: "Uygun alan adı bulunamadı",
     domain_purchase_renews_at: "Yenileme: {{price}}/yıl",
     domain_purchase_years: "Kayıt süresi",

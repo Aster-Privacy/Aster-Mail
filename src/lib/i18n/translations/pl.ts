@@ -6905,6 +6905,9 @@ export const pl = {
     domain_purchase_search_placeholder: "Wyszukaj nazwę domeny",
     domain_purchase_per_year: "{{price}}/rok",
     domain_purchase_taken: "Zajęta",
+    domain_purchase_unchecked: "Nie sprawdzono",
+    domain_purchase_unchecked_hint:
+      "Nie można teraz sprawdzić tej domeny. Spróbuj ponownie później.",
     domain_purchase_no_results: "Nie znaleziono dostępnych domen",
     domain_purchase_renews_at: "Odnowienie za {{price}}/rok",
     domain_purchase_years: "Okres rejestracji",

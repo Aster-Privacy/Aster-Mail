@@ -6863,6 +6863,9 @@ export const es = {
     domain_purchase_search_placeholder: "Busca un nombre de dominio",
     domain_purchase_per_year: "{{price}}/año",
     domain_purchase_taken: "No disponible",
+    domain_purchase_unchecked: "Sin comprobar",
+    domain_purchase_unchecked_hint:
+      "No se pudo comprobar este dominio ahora. Inténtalo de nuevo más tarde.",
     domain_purchase_no_results: "No se encontraron dominios disponibles",
     domain_purchase_renews_at: "Se renueva a {{price}}/año",
     domain_purchase_years: "Período de registro",

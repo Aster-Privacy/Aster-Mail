@@ -6640,6 +6640,9 @@ export const de = {
     domain_purchase_search_placeholder: "Nach einem Domainnamen suchen",
     domain_purchase_per_year: "{{price}}/Jahr",
     domain_purchase_taken: "Vergeben",
+    domain_purchase_unchecked: "Nicht geprüft",
+    domain_purchase_unchecked_hint:
+      "Diese Domain konnte gerade nicht geprüft werden. Versuchen Sie es später erneut.",
     domain_purchase_no_results: "Keine verfügbaren Domains gefunden",
     domain_purchase_renews_at: "Verlängerung: {{price}}/Jahr",
     domain_purchase_years: "Registrierungszeitraum",

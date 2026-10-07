@@ -4914,6 +4914,8 @@ export interface SettingsTranslations {
   domain_purchase_search_placeholder: string;
   domain_purchase_per_year: string;
   domain_purchase_taken: string;
+  domain_purchase_unchecked: string;
+  domain_purchase_unchecked_hint: string;
   domain_purchase_no_results: string;
   domain_purchase_renews_at: string;
   domain_purchase_years: string;
