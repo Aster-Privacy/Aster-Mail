@@ -56,10 +56,69 @@ export type MirrorOutcome =
   | { status: "cancelled" }
   | { status: "error" };
 
+function decode_utf16_base64(encoded: string): string | null {
+  const base64 = encoded.replace(/,/g, "/");
+  const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
+  let binary: string;
+
+  try {
+    binary = atob(padded);
+  } catch {
+    return null;
+  }
+
+  if (binary.length % 2 !== 0) return null;
+
+  const units: number[] = [];
+
+  for (let i = 0; i < binary.length; i += 2) {
+    units.push((binary.charCodeAt(i) << 8) | binary.charCodeAt(i + 1));
+  }
+
+  return String.fromCharCode(...units);
+}
+
+export function decode_modified_utf7(name: string): string {
+  if (!name.includes("&")) return name;
+
+  let decoded = "";
+  let i = 0;
+
+  while (i < name.length) {
+    const start = name.indexOf("&", i);
+
+    if (start === -1) {
+      decoded += name.slice(i);
+      break;
+    }
+
+    decoded += name.slice(i, start);
+    const end = name.indexOf("-", start + 1);
+
+    if (end === -1) return name;
+
+    if (end === start + 1) {
+      decoded += "&";
+    } else {
+      const chunk = decode_utf16_base64(name.slice(start + 1, end));
+
+      if (chunk === null) return name;
+      decoded += chunk;
+    }
+
+    i = end + 1;
+  }
+
+  return decoded;
+}
+
 function folder_path_parts(folder: OAuthFolderInfo): string[] {
   const parts = folder.delimiter
-    ? folder.name.split(folder.delimiter).filter((part) => part.length > 0)
-    : [folder.name];
+    ? folder.name
+        .split(folder.delimiter)
+        .filter((part) => part.length > 0)
+        .map(decode_modified_utf7)
+    : [decode_modified_utf7(folder.name)];
 
   if (parts.length > 1 && parts[0].toUpperCase() === "INBOX") {
     return parts.slice(1);

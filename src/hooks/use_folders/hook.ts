@@ -52,7 +52,7 @@ import {
 import { CreateFolderOptions, UseFoldersReturn } from "./types";
 
 import {
-  list_folders,
+  list_all_folders,
   create_folder,
   update_folder,
   delete_folder,
@@ -178,7 +178,7 @@ export function use_folders(): UseFoldersReturn {
         if (!has_passphrase_in_memory() || !vault?.identity_key) return "retry";
 
         try {
-          const response = await list_folders({
+          const response = await list_all_folders({
             include_system: true,
             include_counts: true,
             ...params,

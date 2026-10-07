@@ -38,6 +38,7 @@ vi.mock("@/services/labels/ensure_defaults", () => ({
 vi.mock("@/hooks/mail_events", () => ({ emit_folders_changed: vi.fn() }));
 
 import {
+  decode_modified_utf7,
   mirror_folder_tree,
   type ExistingFolder,
 } from "@/services/external_folder_mirror";
@@ -157,5 +158,43 @@ describe("mirror_folder_tree", () => {
 
     expect(result.mapping).toEqual({ Fine: "t_Fine" });
     expect(result.failures).toBe(2);
+  });
+
+  it("creates decoded names but keeps raw names as mapping keys", async () => {
+    const { created, create } = recorder();
+    const result = await mirror_folder_tree(
+      [folder("Clientes"), folder("Clientes/Ag&AOo-ncia")],
+      [],
+      create,
+    );
+
+    expect(created).toEqual([
+      { name: "Clientes", parent: undefined },
+      { name: "Agência", parent: "tok_1" },
+    ]);
+    expect(result.mapping).toEqual({
+      Clientes: "tok_1",
+      "Clientes/Ag&AOo-ncia": "tok_2",
+    });
+  });
+});
+
+describe("decode_modified_utf7", () => {
+  it("decodes accented names", () => {
+    expect(decode_modified_utf7("Ag&AOo-ncia")).toBe("Agência");
+    expect(decode_modified_utf7("Associa&AOcA4w-o")).toBe("Associação");
+    expect(decode_modified_utf7("BALC&AMM-O AUTOM&ANM-VEL")).toBe(
+      "BALCÃO AUTOMÓVEL",
+    );
+  });
+
+  it("decodes characters outside the basic plane and the escaped ampersand", () => {
+    expect(decode_modified_utf7("&2D3eAQ-")).toBe("\u{1F601}");
+    expect(decode_modified_utf7("R&-D")).toBe("R&D");
+  });
+
+  it("leaves plain and malformed names unchanged", () => {
+    expect(decode_modified_utf7("Finances")).toBe("Finances");
+    expect(decode_modified_utf7("Bad&AOo")).toBe("Bad&AOo");
   });
 });
