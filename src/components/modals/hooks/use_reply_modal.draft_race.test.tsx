@@ -1153,6 +1153,7 @@ describe("reply modal drafts around a send", () => {
       "Use &lt;project&gt; &amp; &quot;quotes&quot; &#039;here&#039;<br><br>  indented\ttab<br>&amp;amp; stays";
 
     async function type_plain(text: string) {
+      await advance(0);
       const element = document.createElement("div");
 
       Object.assign(latest!.message_editor_ref, { current: element });
