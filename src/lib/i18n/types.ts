@@ -5953,6 +5953,8 @@ export interface SettingsTranslations {
   import_how_it_works: string;
   import_oauth_title: string;
   import_oauth_description: string;
+  import_labels_title: string;
+  import_labels_description: string;
   import_manual_title: string;
   import_manual_step_1: string;
   import_manual_step_2: string;

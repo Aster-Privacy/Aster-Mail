@@ -6788,6 +6788,9 @@ export const ko = {
     import_oauth_title: "계정 연결",
     import_oauth_description:
       "계정을 연결하면 보관처리된 메일, 보낸 메일, 라벨을 포함한 모든 메일을 가져옵니다. Gmail은 앱 비밀번호로, Outlook은 계정 로그인으로 연결합니다. 메일함이 크면 완료까지 며칠이 걸릴 수 있습니다.",
+    import_labels_title: "라벨이 여러 개인 메시지",
+    import_labels_description:
+      "다른 계정에서 라벨을 사용하는 경우 메시지 하나에 라벨이 여러 개 있을 수 있습니다. Aster는 각 메시지를 폴더 하나에 넣고 원래 라벨마다 Aster 라벨을 추가하므로 어느 라벨에서든 메시지를 찾을 수 있습니다.",
     import_manual_title: "수동 가져오기",
     import_manual_step_1:
       "현재 이메일 제공업체에서 MBOX, EML 또는 PST 파일로 이메일을 내보내세요",

@@ -5542,6 +5542,9 @@ export const it = {
     import_oauth_title: "Collega un account",
     import_oauth_description:
       "Collega un account per importare tutta la sua posta, compresi i messaggi archiviati, quelli inviati e le etichette. Gmail si collega con una password per le app, Outlook con l’accesso al tuo account. L’importazione di caselle di grandi dimensioni può richiedere alcuni giorni.",
+    import_labels_title: "Messaggi con più etichette",
+    import_labels_description:
+      "Se l'altro account usa le etichette, un messaggio può averne più di una. Aster mette ogni messaggio in una cartella e aggiunge un'etichetta Aster per ciascuna delle sue etichette, così lo trovi sotto ognuna.",
     import_manual_title: "Importazione manuale",
     import_manual_step_1:
       "Esporta le tue email dal tuo provider attuale come file MBOX, EML o PST",

@@ -39,6 +39,7 @@ const hoisted = vi.hoisted(() => ({
 
 vi.mock("@/services/api/folders", () => ({
   list_folders: () => hoisted.list_folders(),
+  list_all_folders: () => hoisted.list_folders(),
   create_folder: vi.fn(),
   update_folder: vi.fn(),
   delete_folder: vi.fn(),

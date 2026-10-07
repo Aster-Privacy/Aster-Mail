@@ -6796,6 +6796,9 @@ export const ja = {
     import_oauth_title: "アカウントを接続",
     import_oauth_description:
       "アカウントを接続すると、アーカイブ済みのメール、送信済みのメール、ラベルを含むすべてのメールをインポートできます。Gmail はアプリパスワードで、Outlook はアカウントへのログインで接続します。メールボックスが大きい場合は、完了まで数日かかることがあります。",
+    import_labels_title: "複数のラベルが付いたメッセージ",
+    import_labels_description:
+      "もう一方のアカウントでラベルを使っている場合、1 通のメッセージに複数のラベルが付いていることがあります。Aster は各メッセージを 1 つのフォルダに入れ、元のラベルごとに Aster ラベルを追加するので、どのラベルからでもメッセージを見つけられます。",
     import_manual_title: "手動インポート",
     import_manual_step_1:
       "現在のプロバイダーからMBOX、EML、またはPSTファイルとしてメールをエクスポートします",

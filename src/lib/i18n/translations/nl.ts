@@ -6898,6 +6898,9 @@ export const nl = {
     import_oauth_title: "Account verbinden",
     import_oauth_description:
       "Verbind een account om al je e-mail ervan te importeren, inclusief gearchiveerde en verzonden berichten en labels. Gmail verbind je met een app-wachtwoord en Outlook door in te loggen op je account. Grote postvakken kunnen een paar dagen nodig hebben.",
+    import_labels_title: "Berichten met meerdere labels",
+    import_labels_description:
+      "Als je andere account labels gebruikt, kan een bericht er meerdere hebben. Aster zet elk bericht in één map en voegt voor elk van zijn labels een Aster-label toe, zodat je het onder elk label terugvindt.",
     import_manual_title: "Handmatige import",
     import_manual_step_1:
       "Exporteer je e-mails van je huidige provider als MBOX-, EML- of PST-bestanden",

@@ -7073,6 +7073,9 @@ export const pl = {
     import_oauth_title: "Połącz konto",
     import_oauth_description:
       "Połącz konto, aby zaimportować całą jego pocztę, w tym wiadomości zarchiwizowane, wysłane i etykiety. Gmail łączy się za pomocą hasła do aplikacji, a Outlook przez zalogowanie na konto. Import dużych skrzynek może potrwać kilka dni.",
+    import_labels_title: "Wiadomości z kilkoma etykietami",
+    import_labels_description:
+      "Jeśli Twoje drugie konto używa etykiet, jedna wiadomość może mieć ich kilka. Aster umieszcza każdą wiadomość w jednym folderze i dodaje etykietę Aster dla każdej z jej etykiet, aby można ją było znaleźć pod każdą z nich.",
     import_manual_title: "Import ręczny",
     import_manual_step_1:
       "Wyeksportuj e-maile z dotychczasowego dostawcy jako pliki MBOX, EML lub PST",

@@ -1045,9 +1045,14 @@ export interface OAuthFolderInfo {
   excluded: boolean;
 }
 
+export interface OAuthFolderList {
+  folders: OAuthFolderInfo[];
+  uses_labels?: boolean;
+}
+
 export async function list_oauth_folders(
   account_token: string,
-): Promise<ApiResponse<{ folders: OAuthFolderInfo[] }>> {
+): Promise<ApiResponse<OAuthFolderList>> {
   const token_error = validate_account_token(account_token);
 
   if (token_error) {
@@ -1055,7 +1060,7 @@ export async function list_oauth_folders(
   }
 
   try {
-    const response = await api_client.post<{ folders: OAuthFolderInfo[] }>(
+    const response = await api_client.post<OAuthFolderList>(
       "/mail/v1/external_accounts/oauth/folders",
       { account_token },
       { timeout: 90000, retry: 1 },
@@ -1085,6 +1090,7 @@ export async function list_oauth_folders(
 export async function save_folder_mapping(
   account_token: string,
   folder_mapping: Record<string, string>,
+  label_mapping: Record<string, string> = {},
 ): Promise<ApiResponse<{ success: boolean }>> {
   const token_error = validate_account_token(account_token);
 
@@ -1095,7 +1101,7 @@ export async function save_folder_mapping(
   try {
     const response = await api_client.put<{ success: boolean }>(
       "/mail/v1/external_accounts/folder_mapping",
-      { account_token, folder_mapping },
+      { account_token, folder_mapping, label_mapping },
     );
 
     if (response.error || !response.data) {
