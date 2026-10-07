@@ -6685,6 +6685,9 @@ export const pt = {
     show_badges_in_signature: "Mostrar medalhas nos e-mails",
     import_how_it_works: "Como funciona",
     import_oauth_title: "Ligar uma conta",
+    import_labels_title: "Mensagens com várias etiquetas",
+    import_labels_description:
+      "Se a sua outra conta usa etiquetas, uma mensagem pode ter várias. O Aster coloca cada mensagem numa pasta e adiciona uma etiqueta do Aster por cada uma das suas etiquetas, para que a encontre em todas elas.",
     import_manual_title: "Importação manual",
     import_oauth_button: "OAuth",
     import_manual_button: "Manual",

@@ -6159,6 +6159,9 @@ export const zh_CN = {
     import_oauth_title: "连接账户",
     import_oauth_description:
       "连接账户后，即可导入其中的所有邮件，包括已归档邮件、已发邮件和标签。Gmail 使用应用专用密码连接，Outlook 通过登录账户连接。邮箱较大时，导入可能需要几天。",
+    import_labels_title: "带有多个标签的邮件",
+    import_labels_description:
+      "如果你的另一个账户使用标签，一封邮件可能有多个标签。Aster 会把每封邮件放入一个文件夹，并为它的每个标签添加一个 Aster 标签，让你可以在每个标签下找到它。",
     import_manual_title: "手动导入",
     import_manual_step_1: "从当前邮件提供商导出邮件为 MBOX、EML 或 PST 文件",
     import_manual_step_2:

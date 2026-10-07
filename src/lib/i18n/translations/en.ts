@@ -6992,6 +6992,9 @@ export const en: Translations = {
     import_oauth_title: "Connect an account",
     import_oauth_description:
       "Connect an account to import all of its mail, including archived mail, sent mail, and labels. Gmail connects with an app password, and Outlook connects when you sign in to your account. Large mailboxes can take a few days to finish.",
+    import_labels_title: "Messages with several labels",
+    import_labels_description:
+      "If your other account uses labels, one message can have several. Aster puts each message in one folder and adds an Aster label for each of its labels, so you can find it under every label it had.",
     import_manual_title: "Manual Import",
     import_manual_step_1:
       "Export your emails from your current provider as MBOX, EML, or PST files",

@@ -6840,6 +6840,9 @@ export const de = {
     import_oauth_title: "Konto verbinden",
     import_oauth_description:
       "Verbinden Sie ein Konto, um alle E-Mails daraus zu importieren, einschließlich archivierter und gesendeter Nachrichten sowie Labels. Gmail wird mit einem App-Passwort verbunden, Outlook über Ihre Kontoanmeldung. Bei großen Postfächern kann der Import einige Tage dauern.",
+    import_labels_title: "Nachrichten mit mehreren Labels",
+    import_labels_description:
+      "Wenn Ihr anderes Konto Labels verwendet, kann eine Nachricht mehrere haben. Aster legt jede Nachricht in einem Ordner ab und fügt für jedes ihrer Labels ein Aster-Label hinzu, damit Sie sie unter jedem ihrer Labels finden.",
     import_manual_title: "Manueller Import",
     import_manual_step_1:
       "Exportieren Sie Ihre E-Mails von Ihrem aktuellen Anbieter als MBOX-, EML- oder PST-Dateien",

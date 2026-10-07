@@ -6745,6 +6745,9 @@ export const ru = {
     show_badges_in_signature: "Показывать значки в письмах",
     import_how_it_works: "Как это работает",
     import_oauth_title: "Подключение аккаунта",
+    import_labels_title: "Письма с несколькими ярлыками",
+    import_labels_description:
+      "Если в другом аккаунте используются ярлыки, у одного письма их может быть несколько. Aster помещает каждое письмо в одну папку и добавляет ярлык Aster для каждого его ярлыка, чтобы письмо можно было найти под любым из них.",
     import_manual_title: "Ручной импорт",
     import_oauth_button: "OAuth",
     import_manual_button: "Вручную",

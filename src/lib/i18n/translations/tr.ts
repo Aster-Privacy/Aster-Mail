@@ -6535,6 +6535,9 @@ export const tr = {
     show_badges_in_signature: "Rozetleri e-postalarda göster",
     import_how_it_works: "Nasıl Çalışır",
     import_oauth_title: "Hesap bağlayın",
+    import_labels_title: "Birden fazla etiketi olan iletiler",
+    import_labels_description:
+      "Diğer hesabınız etiket kullanıyorsa bir iletinin birden fazla etiketi olabilir. Aster her iletiyi tek bir klasöre koyar ve iletinin her etiketi için bir Aster etiketi ekler, böylece iletiyi her etiketin altında bulabilirsiniz.",
     import_manual_title: "Manuel İçe Aktarma",
     import_oauth_button: "OAuth",
     import_manual_button: "Manuel",

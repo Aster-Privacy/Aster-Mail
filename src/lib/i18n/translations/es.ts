@@ -6639,6 +6639,9 @@ export const es = {
     show_badges_in_signature: "Mostrar insignias en correos",
     import_how_it_works: "Cómo funciona",
     import_oauth_title: "Conectar una cuenta",
+    import_labels_title: "Mensajes con varias etiquetas",
+    import_labels_description:
+      "Si tu otra cuenta usa etiquetas, un mensaje puede tener varias. Aster coloca cada mensaje en una carpeta y añade una etiqueta de Aster por cada una de sus etiquetas, para que lo encuentres en todas ellas.",
     import_manual_title: "Importación manual",
     import_oauth_button: "OAuth",
     import_manual_button: "Manual",

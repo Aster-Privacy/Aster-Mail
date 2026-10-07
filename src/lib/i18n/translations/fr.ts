@@ -6705,6 +6705,9 @@ export const fr = {
     show_badges_in_signature: "Afficher les badges dans les e-mails",
     import_how_it_works: "Comment ça marche",
     import_oauth_title: "Connecter un compte",
+    import_labels_title: "Messages avec plusieurs libellés",
+    import_labels_description:
+      "Si votre autre compte utilise des libellés, un message peut en avoir plusieurs. Aster place chaque message dans un seul dossier et ajoute un libellé Aster pour chacun de ses libellés, pour que vous le retrouviez sous chacun d'eux.",
     import_manual_title: "Import manuel",
     import_oauth_button: "OAuth",
     import_manual_button: "Manuel",

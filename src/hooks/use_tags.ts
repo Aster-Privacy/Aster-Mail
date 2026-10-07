@@ -240,7 +240,7 @@ async function decrypt_tag_field(
   return new TextDecoder().decode(decrypted);
 }
 
-async function decrypt_tag(
+export async function decrypt_tag(
   tag: TagDefinition,
   identity_key: string,
 ): Promise<DecryptedTag | null> {
