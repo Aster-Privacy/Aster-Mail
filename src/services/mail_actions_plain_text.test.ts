@@ -116,6 +116,31 @@ describe("plain text replies and forwards reach the server queue marked plain", 
     expect(queue_email_to_server.mock.calls[0]![0].is_plain_text).toBe(true);
   });
 
+  it("marks a plain text reply sent without undo", async () => {
+    await send_reply(
+      { original, message: "my reply", is_plain_text: true },
+      callbacks,
+      0,
+    );
+
+    expect(queue_email.mock.calls[0]![0].is_plain_text).toBe(true);
+  });
+
+  it("marks a plain text forward sent without undo", async () => {
+    await send_forward(
+      {
+        original,
+        recipients: ["reader@example.org"],
+        message: "fyi",
+        is_plain_text: true,
+      },
+      callbacks,
+      0,
+    );
+
+    expect(queue_email.mock.calls[0]![0].is_plain_text).toBe(true);
+  });
+
   it("leaves a rich reply unmarked", async () => {
     await send_reply({ original, message: "<b>my reply</b>" }, callbacks, 5000);
 
