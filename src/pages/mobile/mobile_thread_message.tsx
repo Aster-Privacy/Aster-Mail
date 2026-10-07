@@ -87,6 +87,12 @@ import {
   use_alias_delivery,
 } from "@/hooks/use_alias_delivery";
 import { strip_reply_quotes } from "@/lib/strip_reply_quotes";
+import {
+  message_text_alternative,
+  plain_view_html,
+  resolve_plain_view,
+} from "@/components/email/plain_view";
+import { use_plain_view_override } from "@/components/email/plain_view_store";
 
 interface SanitizeJob {
   ready?: SanitizeResult;
@@ -207,6 +213,31 @@ export function MobileThreadMessage({
       is_ratchet_envelope(message.body) ||
       is_ratchet_envelope(message.html_content));
 
+  const plain_view_override = use_plain_view_override(message.id);
+  const has_text_alternative = useMemo(
+    () =>
+      guard_body_step(
+        "pages/mobile/mobile_thread_message:text_alternative",
+        () =>
+          message_text_alternative({
+            body: message.body,
+            html_content: message.html_content,
+            text_part: message.text_part,
+          }) !== undefined,
+        () => false,
+      ),
+    [message.body, message.html_content, message.text_part],
+  );
+  const plain_view = resolve_plain_view({
+    has_html:
+      !password_protected &&
+      !is_ratchet_undecryptable &&
+      is_html_content(clean_body),
+    has_text_alternative,
+    prefer_plain_text: preferences.prefer_plain_text === true,
+    override: plain_view_override,
+  });
+
   const collapsed_preview = useMemo(() => {
     if (password_protected) {
       return t("mail.pgp_password_protected_title");
@@ -269,6 +300,20 @@ export function MobileThreadMessage({
     });
 
     const build_sanitize_job = (): SanitizeJob => {
+      if (plain_view) {
+        return {
+          ready: {
+            html: plain_view_html(clean_body, {
+              body: message.body,
+              html_content: message.html_content,
+              text_part: message.text_part,
+            }),
+            external_content: EMPTY_EXTERNAL_CONTENT,
+            body_background: undefined,
+          },
+        };
+      }
+
       if (!is_html_content(clean_body)) {
         return {
           ready: {
@@ -326,7 +371,16 @@ export function MobileThreadMessage({
       build_sanitize_job,
       () => ({ ready: fallback_content() }),
     );
-  }, [clean_body, message.body, is_system, preferences, lockdown_active]);
+  }, [
+    clean_body,
+    message.body,
+    message.html_content,
+    message.text_part,
+    plain_view,
+    is_system,
+    preferences,
+    lockdown_active,
+  ]);
 
   const [deferred_content, set_deferred_content] = useState<{
     job: SanitizeJob;
@@ -650,8 +704,10 @@ export function MobileThreadMessage({
                 disable_auto_dark_mode={disable_auto_dark_mode}
                 email_id={message.id}
                 force_dark_mode={force_dark_mode}
-                is_plain_text={!has_rich_html(clean_body)}
-                load_remote_content={!lockdown_active && load_remote_content}
+                is_plain_text={plain_view || !has_rich_html(clean_body)}
+                load_remote_content={
+                  !plain_view && !lockdown_active && load_remote_content
+                }
                 on_document_ready={translation.on_document_ready}
                 sanitized_html={sanitized_html}
                 variant="mobile"

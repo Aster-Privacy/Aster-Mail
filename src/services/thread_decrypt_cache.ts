@@ -47,6 +47,7 @@ export type ThreadMessageContent = Pick<
   | "subject"
   | "body"
   | "html_content"
+  | "text_part"
   | "e2e_verified"
   | "to_recipients"
   | "cc_recipients"
@@ -371,6 +372,7 @@ function content_size(content: ThreadMessageContent): number {
     (content.subject ?? "").length +
     (content.body ?? "").length +
     (content.html_content ?? "").length +
+    (content.text_part ?? "").length +
     (content.sender_name ?? "").length +
     (content.sender_email ?? "").length +
     (content.display_sender_name ?? "").length +

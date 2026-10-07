@@ -517,6 +517,18 @@ export function SecuritySection({
         title={t("settings.html_content_section_title")}
       >
         <SettingToggleRow
+          checked={preferences.prefer_plain_text}
+          description={t("settings.prefer_plain_text_description")}
+          label={t("settings.prefer_plain_text_label")}
+          on_change={() =>
+            update_preference(
+              "prefer_plain_text",
+              !preferences.prefer_plain_text,
+              true,
+            )
+          }
+        />
+        <SettingToggleRow
           checked={preferences.html_rendering_mode === "plain_text"}
           description={t("settings.html_rendering_mode_description")}
           label={t("settings.html_rendering_mode_label")}

@@ -999,6 +999,7 @@ export const de = {
     write_your_reply: "Schreiben Sie Ihre Antwort...",
     switch_to_rich_text: "Zu Rich-Text wechseln",
     switch_to_plain_text: "Zu Nur-Text wechseln",
+    plain_text_label: "Nur-Text",
     font_size_label: "Schriftgröße",
     font_family_label: "Schriftart",
     font_family_default: "Standardschrift",
@@ -2468,6 +2469,9 @@ export const de = {
     html_rendering_mode_label: "HTML-Darstellung blockieren",
     html_rendering_mode_description:
       "Zeigt eingehende E-Mails als reinen Text an, um Tracking, Layout-Spoofing und visuelles Phishing zu verhindern",
+    prefer_plain_text_label: "Reinen Text bevorzugen",
+    prefer_plain_text_description:
+      "Wenn der Absender eine Version als reinen Text mitschickt, wird sie statt der HTML-Version geöffnet. E-Mails ohne diese Version werden normal angezeigt.",
     plain_text_compose_label: "Als reinen Text verfassen",
     plain_text_compose_description:
       "Beim Schreiben neuer E-Mails standardmäßig reinen Text verwenden",
@@ -6636,6 +6640,9 @@ export const de = {
     domain_purchase_search_placeholder: "Nach einem Domainnamen suchen",
     domain_purchase_per_year: "{{price}}/Jahr",
     domain_purchase_taken: "Vergeben",
+    domain_purchase_unchecked: "Nicht geprüft",
+    domain_purchase_unchecked_hint:
+      "Diese Domain konnte gerade nicht geprüft werden. Versuchen Sie es später erneut.",
     domain_purchase_no_results: "Keine verfügbaren Domains gefunden",
     domain_purchase_renews_at: "Verlängerung: {{price}}/Jahr",
     domain_purchase_years: "Registrierungszeitraum",
@@ -6840,6 +6847,9 @@ export const de = {
     import_oauth_title: "Konto verbinden",
     import_oauth_description:
       "Verbinden Sie ein Konto, um alle E-Mails daraus zu importieren, einschließlich archivierter und gesendeter Nachrichten sowie Labels. Gmail wird mit einem App-Passwort verbunden, Outlook über Ihre Kontoanmeldung. Bei großen Postfächern kann der Import einige Tage dauern.",
+    import_labels_title: "Nachrichten mit mehreren Labels",
+    import_labels_description:
+      "Wenn Ihr anderes Konto Labels verwendet, kann eine Nachricht mehrere haben. Aster legt jede Nachricht in einem Ordner ab und fügt für jedes ihrer Labels ein Aster-Label hinzu, damit Sie sie unter jedem ihrer Labels finden.",
     import_manual_title: "Manueller Import",
     import_manual_step_1:
       "Exportieren Sie Ihre E-Mails von Ihrem aktuellen Anbieter als MBOX-, EML- oder PST-Dateien",
@@ -8708,6 +8718,8 @@ export const de = {
     mute: "Stummschalten",
     print: "Drucken",
     view_source: "Quelltext anzeigen",
+    show_plain_text: "Als reinen Text anzeigen",
+    show_original: "Original anzeigen",
     share: "Teilen",
     move_to_folder: "In Ordner verschieben",
     apply_label: "Label anwenden",
@@ -9132,7 +9144,7 @@ export const de = {
     mailing_list_label: "Mailingliste:",
     list_unsubscribe_available: "Abmeldelink enthalten",
     email_auth_summary_authenticated:
-      "Diese Nachricht hat SPF, DKIM und DMARC für {{domain}} bestanden.",
+      "Die Prüfungen bestätigen, dass {{domain}} diese Nachricht gesendet hat.",
     email_auth_summary_unverified:
       "Die Prüfungen konnten nicht bestätigen, dass {{domain}} diese Nachricht gesendet hat.",
     email_auth_summary_unavailable:
@@ -9247,6 +9259,10 @@ export const de = {
     email_is_clean:
       "Diese E-Mail erscheint sauber - keine Tracking-Elemente wurden erkannt.",
     encryption_label: "Verschlüsselung:",
+    format_label: "Format:",
+    format_html: "HTML",
+    format_plain_text: "Nur-Text",
+    format_html_and_plain_text: "HTML und Nur-Text",
     filter_after: "Nach: {{ value }}",
     filter_before: "Vor: {{ value }}",
     filter_date: "Datum: {{ value }}",

@@ -1153,6 +1153,7 @@ export const fr = {
     write_your_reply: "Rédigez votre réponse...",
     switch_to_rich_text: "Passer en texte enrichi",
     switch_to_plain_text: "Passer en texte brut",
+    plain_text_label: "Texte brut",
     font_size_label: "Taille de la police",
     font_family_label: "Police",
     font_family_default: "Police par défaut",
@@ -2495,6 +2496,9 @@ export const fr = {
     html_rendering_mode_label: "Bloquer le rendu HTML",
     html_rendering_mode_description:
       "Affiche les e-mails entrants en texte brut pour empêcher le pistage, l'usurpation de mise en page et l'hameçonnage visuel",
+    prefer_plain_text_label: "Préférer le texte brut",
+    prefer_plain_text_description:
+      "Lorsque l'expéditeur inclut une version en texte brut, elle s'ouvre à la place de la version HTML. Les e-mails sans cette version s'affichent normalement.",
     plain_text_compose_label: "Rédiger en texte brut",
     plain_text_compose_description:
       "Utiliser le texte brut par défaut lors de la rédaction de nouveaux e-mails",
@@ -6705,6 +6709,9 @@ export const fr = {
     show_badges_in_signature: "Afficher les badges dans les e-mails",
     import_how_it_works: "Comment ça marche",
     import_oauth_title: "Connecter un compte",
+    import_labels_title: "Messages avec plusieurs libellés",
+    import_labels_description:
+      "Si votre autre compte utilise des libellés, un message peut en avoir plusieurs. Aster place chaque message dans un seul dossier et ajoute un libellé Aster pour chacun de ses libellés, pour que vous le retrouviez sous chacun d'eux.",
     import_manual_title: "Import manuel",
     import_oauth_button: "OAuth",
     import_manual_button: "Manuel",
@@ -6921,6 +6928,9 @@ export const fr = {
     domain_purchase_search_placeholder: "Rechercher un nom de domaine",
     domain_purchase_per_year: "{{price}}/an",
     domain_purchase_taken: "Indisponible",
+    domain_purchase_unchecked: "Non vérifié",
+    domain_purchase_unchecked_hint:
+      "Impossible de vérifier ce domaine pour le moment. Réessayez plus tard.",
     domain_purchase_no_results: "Aucun domaine disponible trouvé",
     domain_purchase_renews_at: "Renouvellement à {{price}}/an",
     domain_purchase_years: "Période d'enregistrement",
@@ -8720,6 +8730,8 @@ export const fr = {
     mute: "Couper le son",
     print: "Imprimer",
     view_source: "Voir la source",
+    show_plain_text: "Afficher en texte brut",
+    show_original: "Afficher l'original",
     share: "Partager",
     move_to_folder: "Déplacer vers un dossier",
     apply_label: "Appliquer un libellé",
@@ -9157,7 +9169,7 @@ export const fr = {
     mailing_list_label: "Liste de diffusion :",
     list_unsubscribe_available: "Lien de désabonnement inclus",
     email_auth_summary_authenticated:
-      "Ce message a réussi SPF, DKIM et DMARC pour {{domain}}.",
+      "Les vérifications confirment que {{domain}} a envoyé ce message.",
     email_auth_summary_unverified:
       "Les vérifications n'ont pas pu confirmer que {{domain}} a envoyé ce message.",
     email_auth_summary_unavailable:
@@ -9266,6 +9278,10 @@ export const fr = {
     email_is_clean:
       "Cet e-mail semble sain : aucun élément de suivi n'a été détecté.",
     encryption_label: "Chiffrement",
+    format_label: "Format",
+    format_html: "HTML",
+    format_plain_text: "Texte brut",
+    format_html_and_plain_text: "HTML et texte brut",
     filter_after: "Après : {{ value }}",
     filter_before: "Avant : {{ value }}",
     filter_date: "Date : {{ value }}",

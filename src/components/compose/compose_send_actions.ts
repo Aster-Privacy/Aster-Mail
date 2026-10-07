@@ -64,6 +64,7 @@ export interface SendActionContext {
   undo_send_seconds: number;
   undo_send_period: string;
   message: string;
+  is_plain_text?: boolean;
   session_storage_key: string;
   edit_draft?: EditDraftData | null;
   on_close: () => void;
@@ -161,6 +162,8 @@ function save_and_close(
     expires_at: email_data.expires_at,
     expiry_password: email_data.expiry_password,
     attachments: email_data.attachments,
+    restore_verbatim: true,
+    is_plain_text: ctx.is_plain_text || undefined,
   });
 
   const saved_data = {
@@ -169,6 +172,7 @@ function save_and_close(
     bcc_recipients: email_data.bcc || [],
     subject: email_data.subject,
     message: ctx.message,
+    is_plain_text: ctx.is_plain_text || undefined,
   };
 
   ctx.set_queued_email_id(email_id);
@@ -224,6 +228,7 @@ export async function execute_internal_send(
     expires_at?: string;
     attachments?: Attachment[];
     allow_non_post_quantum?: boolean;
+    is_plain_text?: boolean;
   },
 ): Promise<boolean> {
   if (blocked_by_plan(ctx, email_data)) return false;
@@ -450,6 +455,7 @@ export async function execute_external_email_send(
     expiry_password?: string;
     secure_external?: boolean;
     attachments?: Attachment[];
+    is_plain_text?: boolean;
   },
   pgp_enabled = false,
   pgp_override: boolean | null = null,

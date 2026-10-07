@@ -71,7 +71,7 @@ import {
   get_compose_sanitize_options,
   restore_compose_image_sources,
 } from "@/lib/compose_image_sources";
-import { escape_html } from "@/hooks/editor_utils";
+import { escape_html, escaped_html_to_plain_text } from "@/hooks/editor_utils";
 import { get_max_total_attachments_size } from "@/services/attachment_limits";
 import { build_compose_default_block } from "@/lib/compose_defaults";
 import {
@@ -407,6 +407,7 @@ export function use_compose({
     recipients,
     subject,
     message: outgoing_message,
+    is_plain_text: editor_hook.is_plain_text_mode,
     from_email: selected_sender?.email,
     attachments: attachment_hook.attachments,
     attachments_ref: attachment_hook.attachments_ref,
@@ -443,6 +444,7 @@ export function use_compose({
     recipients,
     subject,
     message: outgoing_message,
+    is_plain_text: editor_hook.is_plain_text_mode,
     attachments: attachment_hook.attachments,
     has_pending_attachment_reads: attachment_hook.has_pending_attachment_reads,
     is_loading_forward_attachments,
@@ -724,7 +726,14 @@ export function use_compose({
         emails: edit_draft.bcc_recipients,
       });
       set_subject(edit_draft.subject);
-      set_message(edit_draft.message);
+      const plain_draft_text = edit_draft.is_plain_text
+        ? escaped_html_to_plain_text(edit_draft.message)
+        : null;
+
+      if (plain_draft_text !== null) {
+        editor_hook.set_plain_text_mode(true);
+      }
+      set_message(plain_draft_text ?? edit_draft.message);
       const parsed_expiry = edit_draft.expires_at
         ? new Date(edit_draft.expires_at)
         : null;
@@ -815,7 +824,19 @@ export function use_compose({
         set_is_loading_forward_attachments(false);
       }
 
+      const plain_load_token = inject_token_ref.current;
+
       setTimeout(() => {
+        if (plain_draft_text !== null) {
+          if (
+            message_textarea_ref.current &&
+            inject_token_ref.current === plain_load_token
+          ) {
+            message_textarea_ref.current.innerText = plain_draft_text;
+          }
+
+          return;
+        }
         if (message_textarea_ref.current && edit_draft.message) {
           draft_hook.just_loaded_draft_ref.current = true;
           const sanitized_result = sanitize_html(
@@ -1099,7 +1120,17 @@ export function use_compose({
             emails: data.bcc_recipients || [],
           });
           set_subject(data.subject || "");
-          set_message(data.message || "");
+          const plain_text = data.is_plain_text
+            ? escaped_html_to_plain_text(data.message || "")
+            : null;
+
+          if (plain_text !== null) {
+            editor_hook.set_plain_text_mode(true);
+            if (message_textarea_ref.current) {
+              message_textarea_ref.current.innerText = plain_text;
+            }
+          }
+          set_message(plain_text ?? (data.message || ""));
           set_visibility({
             cc: (data.cc_recipients || []).length > 0,
             bcc: (data.bcc_recipients || []).length > 0,

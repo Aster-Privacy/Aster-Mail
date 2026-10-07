@@ -22,6 +22,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   clear_pending_send_stash,
   has_pending_send_stash,
+  take_pending_send_stash,
 } from "@/components/compose/pending_send_stash";
 
 const queue_email_to_server = vi.fn();
@@ -316,11 +317,63 @@ describe("the pending payload keeps the draft context for undo", () => {
         rfc_message_id: "<abc@example.com>",
         thread_token: "thread-1",
         expires_at: "2030-01-01T00:00:00.000Z",
+        restore_verbatim: true,
       }),
     );
     expect(undo_send_add).toHaveBeenCalledWith(
       expect.objectContaining({ thread_token: "thread-1" }),
     );
+  });
+});
+
+describe("undo keeps the compose mode", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    undo_send_delay_ms = 10_000;
+    clear_pending_send_stash("compose_test");
+  });
+
+  const undo_ctx = (overrides: Record<string, unknown> = {}) =>
+    make_ctx({
+      undo_send_enabled: true,
+      undo_send_seconds: 10,
+      undo_send_period: "seconds",
+      message: "a &lt;b&gt;<br>c",
+      ...overrides,
+    });
+
+  it("marks a plain text message in the undo payload and the stash", async () => {
+    queue_email_to_server.mockResolvedValue({ queue_id: "queue_plain" });
+
+    await execute_internal_send(undo_ctx({ is_plain_text: true }), {
+      ...email_data,
+      body: "a &lt;b&gt;<br>c",
+    });
+
+    expect(store_pending_send_payload).toHaveBeenCalledWith(
+      "queue_plain",
+      expect.objectContaining({
+        body: "a &lt;b&gt;<br>c",
+        is_plain_text: true,
+      }),
+    );
+    expect(take_pending_send_stash("compose_test")).toMatchObject({
+      message: "a &lt;b&gt;<br>c",
+      is_plain_text: true,
+    });
+  });
+
+  it("leaves a rich message unmarked", async () => {
+    queue_email_to_server.mockResolvedValue({ queue_id: "queue_rich" });
+
+    await execute_internal_send(undo_ctx(), email_data);
+
+    expect(
+      store_pending_send_payload.mock.calls[0][1].is_plain_text,
+    ).toBeUndefined();
+    expect(
+      take_pending_send_stash("compose_test")?.is_plain_text,
+    ).toBeUndefined();
   });
 });
 

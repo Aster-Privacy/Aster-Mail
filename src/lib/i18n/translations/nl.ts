@@ -1103,6 +1103,7 @@ export const nl = {
     write_your_reply: "Schrijf je antwoord...",
     switch_to_rich_text: "Overschakelen naar rich text",
     switch_to_plain_text: "Overschakelen naar platte tekst",
+    plain_text_label: "Platte tekst",
     font_size_label: "Lettergrootte",
     font_family_label: "Lettertype",
     font_family_default: "Standaardlettertype",
@@ -2424,6 +2425,9 @@ export const nl = {
     html_rendering_mode_label: "HTML-weergave blokkeren",
     html_rendering_mode_description:
       "Toon inkomende e-mails als platte tekst om tracking, layoutvervalsing en visuele phishing te voorkomen",
+    prefer_plain_text_label: "Voorkeur voor platte tekst",
+    prefer_plain_text_description:
+      "Als de afzender een versie in platte tekst meestuurt, wordt die geopend in plaats van de HTML-versie. E-mails zonder die versie worden normaal weergegeven.",
     plain_text_compose_label: "Opstellen in platte tekst",
     plain_text_compose_description:
       "Standaard platte tekst gebruiken bij het schrijven van nieuwe e-mails",
@@ -6694,6 +6698,9 @@ export const nl = {
     domain_purchase_search_placeholder: "Zoek een domeinnaam",
     domain_purchase_per_year: "{{price}}/jaar",
     domain_purchase_taken: "Bezet",
+    domain_purchase_unchecked: "Niet gecontroleerd",
+    domain_purchase_unchecked_hint:
+      "Dit domein kan nu niet worden gecontroleerd. Probeer het later opnieuw.",
     domain_purchase_no_results: "Geen beschikbare domeinen gevonden",
     domain_purchase_renews_at: "Verlengt tegen {{price}}/jaar",
     domain_purchase_years: "Registratieperiode",
@@ -6897,6 +6904,9 @@ export const nl = {
     import_oauth_title: "Account verbinden",
     import_oauth_description:
       "Verbind een account om al je e-mail ervan te importeren, inclusief gearchiveerde en verzonden berichten en labels. Gmail verbind je met een app-wachtwoord en Outlook door in te loggen op je account. Grote postvakken kunnen een paar dagen nodig hebben.",
+    import_labels_title: "Berichten met meerdere labels",
+    import_labels_description:
+      "Als je andere account labels gebruikt, kan een bericht er meerdere hebben. Aster zet elk bericht in één map en voegt voor elk van zijn labels een Aster-label toe, zodat je het onder elk label terugvindt.",
     import_manual_title: "Handmatige import",
     import_manual_step_1:
       "Exporteer je e-mails van je huidige provider als MBOX-, EML- of PST-bestanden",
@@ -8596,6 +8606,8 @@ export const nl = {
     mute: "Dempen",
     print: "Afdrukken",
     view_source: "Bron bekijken",
+    show_plain_text: "Tonen als platte tekst",
+    show_original: "Origineel tonen",
     share: "Delen",
     move_to_folder: "Naar map verplaatsen",
     apply_label: "Label toepassen",
@@ -9030,7 +9042,7 @@ export const nl = {
     mailing_list_label: "Mailinglijst:",
     list_unsubscribe_available: "Afmeldlink aanwezig",
     email_auth_summary_authenticated:
-      "Dit bericht heeft SPF, DKIM en DMARC doorstaan voor {{domain}}.",
+      "De controles bevestigen dat {{domain}} dit bericht heeft verzonden.",
     email_auth_summary_unverified:
       "De controles konden niet bevestigen dat {{domain}} dit bericht heeft verzonden.",
     email_auth_summary_unavailable:
@@ -9169,6 +9181,10 @@ export const nl = {
     message_id_label: "Bericht-ID:",
     size_label: "Grootte:",
     encryption_label: "Versleuteling:",
+    format_label: "Indeling:",
+    format_html: "HTML",
+    format_plain_text: "Platte tekst",
+    format_html_and_plain_text: "HTML en platte tekst",
     location_label: "Locatie:",
     zero_access_encrypted: "End-to-end versleuteld",
     download_headers: "Downloaden",

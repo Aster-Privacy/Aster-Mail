@@ -207,6 +207,37 @@ export async function list_folders(
   return { error: response.error, code: response.code };
 }
 
+const FOLDER_PAGE_SIZE = 500;
+const MAX_FOLDER_PAGES = 40;
+
+export async function list_all_folders(
+  params: Omit<ListFoldersParams, "limit" | "offset"> = {},
+): Promise<ApiResponse<FoldersListResponse>> {
+  const folders: FolderDefinition[] = [];
+  let total = 0;
+
+  for (let page = 0; page < MAX_FOLDER_PAGES; page++) {
+    const response = await list_folders({
+      ...params,
+      limit: FOLDER_PAGE_SIZE,
+      offset: page * FOLDER_PAGE_SIZE,
+    });
+
+    if (response.error || !response.data) {
+      return { error: response.error, code: response.code };
+    }
+
+    folders.push(...response.data.folders);
+    total = response.data.total;
+
+    if (!response.data.has_more || response.data.folders.length === 0) {
+      break;
+    }
+  }
+
+  return { data: { folders, total, has_more: false } };
+}
+
 export async function get_folder(
   folder_id: string,
 ): Promise<ApiResponse<FolderDefinition>> {

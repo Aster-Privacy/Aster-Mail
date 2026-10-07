@@ -89,6 +89,7 @@ export interface UseComposeSendOptions {
   recipients: RecipientsState;
   subject: string;
   message: string;
+  is_plain_text?: boolean;
   attachments: Attachment[];
   is_loading_forward_attachments?: boolean;
   has_pending_attachment_reads?: () => boolean;
@@ -125,6 +126,7 @@ export function use_compose_send({
   recipients,
   subject,
   message,
+  is_plain_text = false,
   attachments,
   is_loading_forward_attachments,
   has_pending_attachment_reads,
@@ -204,13 +206,14 @@ export function use_compose_send({
         failed,
         kept_draft,
         edit_draft,
+        is_plain_text,
       );
 
       if (!saved) {
         show_toast(t("common.failed_to_save"), "error");
       }
     },
-    [vault, edit_draft, t],
+    [vault, edit_draft, is_plain_text, t],
   );
 
   const build_send_context = useCallback(
@@ -219,6 +222,7 @@ export function use_compose_send({
       undo_send_seconds: preferences.undo_send_seconds,
       undo_send_period: preferences.undo_send_period,
       message,
+      is_plain_text,
       session_storage_key,
       edit_draft,
       on_close,
@@ -235,6 +239,7 @@ export function use_compose_send({
       preferences.undo_send_seconds,
       preferences.undo_send_period,
       message,
+      is_plain_text,
       session_storage_key,
       edit_draft,
       on_close,
@@ -577,6 +582,7 @@ export function use_compose_send({
         expiry_password: expiry_password || undefined,
         secure_external: expiry_password ? true : undefined,
         attachments: attachments.length > 0 ? attachments : undefined,
+        is_plain_text: is_plain_text || undefined,
       };
 
       const all_recipients = [
@@ -791,6 +797,7 @@ export function use_compose_send({
     recipients,
     subject,
     message,
+    is_plain_text,
     user,
     contacts,
     clear_all_errors,

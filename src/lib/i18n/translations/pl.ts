@@ -1143,6 +1143,7 @@ export const pl = {
     write_your_reply: "Napisz swoją odpowiedź...",
     switch_to_rich_text: "Przełącz na tekst sformatowany",
     switch_to_plain_text: "Przełącz na zwykły tekst",
+    plain_text_label: "Zwykły tekst",
     font_size_label: "Rozmiar czcionki",
     font_family_label: "Czcionka",
     font_family_default: "Domyślna czcionka",
@@ -2641,6 +2642,9 @@ export const pl = {
     html_rendering_mode_label: "Blokuj renderowanie HTML",
     html_rendering_mode_description:
       "Wyświetlaj przychodzące wiadomości jako zwykły tekst, aby zapobiec śledzeniu, podszywaniu się pod układ i wizualnemu phishingowi",
+    prefer_plain_text_label: "Preferuj zwykły tekst",
+    prefer_plain_text_description:
+      "Gdy nadawca dołącza wersję w zwykłym tekście, otwiera się ona zamiast wersji HTML. Wiadomości bez takiej wersji są wyświetlane normalnie.",
     plain_text_compose_label: "Twórz w zwykłym tekście",
     plain_text_compose_description:
       "Domyślnie używaj zwykłego tekstu podczas pisania nowych wiadomości",
@@ -6901,6 +6905,9 @@ export const pl = {
     domain_purchase_search_placeholder: "Wyszukaj nazwę domeny",
     domain_purchase_per_year: "{{price}}/rok",
     domain_purchase_taken: "Zajęta",
+    domain_purchase_unchecked: "Nie sprawdzono",
+    domain_purchase_unchecked_hint:
+      "Nie można teraz sprawdzić tej domeny. Spróbuj ponownie później.",
     domain_purchase_no_results: "Nie znaleziono dostępnych domen",
     domain_purchase_renews_at: "Odnowienie za {{price}}/rok",
     domain_purchase_years: "Okres rejestracji",
@@ -7072,6 +7079,9 @@ export const pl = {
     import_oauth_title: "Połącz konto",
     import_oauth_description:
       "Połącz konto, aby zaimportować całą jego pocztę, w tym wiadomości zarchiwizowane, wysłane i etykiety. Gmail łączy się za pomocą hasła do aplikacji, a Outlook przez zalogowanie na konto. Import dużych skrzynek może potrwać kilka dni.",
+    import_labels_title: "Wiadomości z kilkoma etykietami",
+    import_labels_description:
+      "Jeśli Twoje drugie konto używa etykiet, jedna wiadomość może mieć ich kilka. Aster umieszcza każdą wiadomość w jednym folderze i dodaje etykietę Aster dla każdej z jej etykiet, aby można ją było znaleźć pod każdą z nich.",
     import_manual_title: "Import ręczny",
     import_manual_step_1:
       "Wyeksportuj e-maile z dotychczasowego dostawcy jako pliki MBOX, EML lub PST",
@@ -8852,6 +8862,8 @@ export const pl = {
     mute: "Wycisz",
     print: "Drukuj",
     view_source: "Wyświetl źródło",
+    show_plain_text: "Pokaż jako zwykły tekst",
+    show_original: "Pokaż oryginał",
     share: "Udostępnij",
     move_to_folder: "Przenieś do folderu",
     apply_label: "Zastosuj etykietę",
@@ -9292,7 +9304,7 @@ export const pl = {
     mailing_list_label: "Lista mailingowa:",
     list_unsubscribe_available: "Zawiera link do wypisania się",
     email_auth_summary_authenticated:
-      "Ta wiadomość przeszła SPF, DKIM i DMARC dla {{domain}}.",
+      "Kontrole potwierdziły, że {{domain}} wysłała tę wiadomość.",
     email_auth_summary_unverified:
       "Kontrole nie potwierdziły, że {{domain}} wysłała tę wiadomość.",
     email_auth_summary_unavailable:
@@ -9532,6 +9544,10 @@ export const pl = {
     message_id_label: "ID wiadomości:",
     size_label: "Rozmiar:",
     encryption_label: "Szyfrowanie:",
+    format_label: "Format:",
+    format_html: "HTML",
+    format_plain_text: "Zwykły tekst",
+    format_html_and_plain_text: "HTML i zwykły tekst",
     location_label: "Lokalizacja:",
     zero_access_encrypted: "Zaszyfrowane end-to-end",
     download_headers: "Pobierz",

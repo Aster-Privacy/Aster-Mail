@@ -1033,6 +1033,7 @@ export const pt = {
     write_your_reply: "Escreva a sua resposta...",
     switch_to_rich_text: "Mudar para texto formatado",
     switch_to_plain_text: "Mudar para texto simples",
+    plain_text_label: "Texto simples",
     font_size_label: "Tamanho do tipo de letra",
     font_family_label: "Tipo de letra",
     font_family_default: "Tipo de letra predefinido",
@@ -2520,6 +2521,9 @@ export const pt = {
     html_rendering_mode_label: "Bloquear a apresentação de HTML",
     html_rendering_mode_description:
       "Mostra os e-mails recebidos como texto simples para evitar o rastreio, a falsificação de esquema e o phishing visual",
+    prefer_plain_text_label: "Preferir texto simples",
+    prefer_plain_text_description:
+      "Quando o remetente inclui uma versão em texto simples, abre-a em vez da versão HTML. Os e-mails sem essa versão são apresentados normalmente.",
     plain_text_compose_label: "Escrever em texto simples",
     plain_text_compose_description:
       "Utilizar texto simples por predefinição ao escrever novos e-mails",
@@ -6685,6 +6689,9 @@ export const pt = {
     show_badges_in_signature: "Mostrar medalhas nos e-mails",
     import_how_it_works: "Como funciona",
     import_oauth_title: "Ligar uma conta",
+    import_labels_title: "Mensagens com várias etiquetas",
+    import_labels_description:
+      "Se a sua outra conta usa etiquetas, uma mensagem pode ter várias. O Aster coloca cada mensagem numa pasta e adiciona uma etiqueta do Aster por cada uma das suas etiquetas, para que a encontre em todas elas.",
     import_manual_title: "Importação manual",
     import_oauth_button: "OAuth",
     import_manual_button: "Manual",
@@ -6876,6 +6883,9 @@ export const pt = {
     domain_purchase_search_placeholder: "Pesquise um nome de domínio",
     domain_purchase_per_year: "{{price}}/ano",
     domain_purchase_taken: "Indisponível",
+    domain_purchase_unchecked: "Não verificado",
+    domain_purchase_unchecked_hint:
+      "Não foi possível verificar este domínio agora. Tente novamente mais tarde.",
     domain_purchase_no_results: "Nenhum domínio disponível encontrado",
     domain_purchase_renews_at: "Renova por {{price}}/ano",
     domain_purchase_years: "Período de registo",
@@ -8712,6 +8722,8 @@ export const pt = {
     mute: "Silenciar",
     print: "Imprimir",
     view_source: "Ver código-fonte",
+    show_plain_text: "Mostrar como texto simples",
+    show_original: "Mostrar original",
     share: "Partilhar",
     move_to_folder: "Mover para pasta",
     apply_label: "Aplicar etiqueta",
@@ -9112,7 +9124,7 @@ export const pt = {
     mailing_list_label: "Lista de correio:",
     list_unsubscribe_available: "Inclui ligação para cancelar a subscrição",
     email_auth_summary_authenticated:
-      "Esta mensagem passou SPF, DKIM e DMARC para {{domain}}.",
+      "As verificações confirmam que {{domain}} enviou esta mensagem.",
     email_auth_summary_unverified:
       "As verificações não confirmaram que {{domain}} enviou esta mensagem.",
     email_auth_summary_unavailable:
@@ -9384,6 +9396,10 @@ export const pt = {
     message_id_label: "ID da mensagem:",
     size_label: "Tamanho:",
     encryption_label: "Encriptação:",
+    format_label: "Formato:",
+    format_html: "HTML",
+    format_plain_text: "Texto simples",
+    format_html_and_plain_text: "HTML e texto simples",
     location_label: "Localização:",
     zero_access_encrypted: "Encriptado de ponta a ponta",
     download_headers: "Transferir",

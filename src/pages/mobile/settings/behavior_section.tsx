@@ -520,6 +520,18 @@ export function BehaviorSection({
 
         <SettingsGroup title={t("settings.html_content_section_title")}>
           <SettingsRow
+            description={t("settings.prefer_plain_text_description")}
+            label={t("settings.prefer_plain_text_label")}
+            trailing={
+              <Switch
+                checked={preferences.prefer_plain_text}
+                onCheckedChange={(v) =>
+                  update_preference("prefer_plain_text", v, true)
+                }
+              />
+            }
+          />
+          <SettingsRow
             label={t("settings.html_rendering_mode_label")}
             trailing={
               <Switch

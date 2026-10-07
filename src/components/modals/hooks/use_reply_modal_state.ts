@@ -94,6 +94,11 @@ import {
   restore_compose_image_sources,
 } from "@/lib/compose_image_sources";
 import { inline_email_css } from "@/lib/forward_css_inliner";
+import { outgoing_html_to_plain_text } from "@/lib/outgoing_plain_text";
+import {
+  escape_html as escape_plain_text,
+  escaped_html_to_plain_text,
+} from "@/hooks/editor_utils";
 import { fetch_my_badges } from "@/services/api/user";
 import { use_my_badge_prefs } from "@/stores/my_badge_prefs_store";
 import {
@@ -253,6 +258,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
   const optimistic_id_ref = useRef<string | null>(null);
   const save_draft_timeout = useRef<number | null>(null);
   const last_saved_text = useRef<string>("");
+  const last_saved_plain = useRef(false);
   const last_saved_from = useRef<string | undefined>(undefined);
   const last_saved_attachments = useRef<string>("");
   const is_sending_ref = useRef(false);
@@ -501,7 +507,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
   }, []);
 
   const build_quoted_content = useCallback(
-    (for_display: boolean = false): string => {
+    (for_display: boolean | "plain" = false): string => {
       const formatted_date = format_date(original_timestamp);
       const attribution_name = quote_sender_name || recipient_name;
       const attribution_email = quote_sender_email || recipient_email;
@@ -517,6 +523,17 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
         date: formatted_date,
         name: `${safe_name} &lt;${safe_email}&gt;`,
       });
+
+      if (for_display === "plain") {
+        const quoted_text = outgoing_html_to_plain_text(
+          strip_aster_footers_html(original_body),
+        )
+          .split("\n")
+          .map((line) => (line.length > 0 ? `> ${line}` : ">"))
+          .join("\n");
+
+        return `<br><br><div>${header}<br><br>${escape_plain_text(quoted_text).replace(/\n/g, "<br>")}</div>`;
+      }
 
       if (for_display) {
         const plain_body = (() => {
@@ -625,7 +642,13 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     set_last_saved_time(null);
     set_show_delete_confirm(false);
     set_is_plain_text_mode(false);
-    last_saved_text.current = matching_draft?.content.message ?? "";
+    const saved_plain_text = matching_draft?.content.is_plain_text
+      ? escaped_html_to_plain_text(matching_draft.content.message)
+      : null;
+
+    last_saved_text.current =
+      saved_plain_text ?? matching_draft?.content.message ?? "";
+    last_saved_plain.current = saved_plain_text !== null;
     last_saved_from.current = matching_draft?.content.from_email;
     last_saved_attachments.current = attachments_key(
       matching_draft?.content.attachments?.map((a) => a.id) ?? [],
@@ -654,8 +677,24 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     if (matching_draft && !has_typed_text()) {
       content_initialized_ref.current = true;
 
+      const plain_text = matching_draft.content.is_plain_text
+        ? escaped_html_to_plain_text(matching_draft.content.message)
+        : null;
+
+      if (plain_text !== null) {
+        set_is_plain_text_mode(true);
+      }
+
       setTimeout(() => {
         if (!message_editor_ref.current) return;
+
+        if (plain_text !== null) {
+          message_editor_ref.current.innerText = plain_text;
+          set_reply_message(plain_text);
+          message_editor_ref.current.focus();
+
+          return;
+        }
 
         const sanitized_result = sanitize_html(
           matching_draft.content.message,
@@ -792,12 +831,15 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
         cc_recipients: recipients.cc,
         bcc_recipients: [],
         subject,
-        message: text,
+        message: is_plain_text_mode
+          ? escape_plain_text(text).replace(/\n/g, "<br>")
+          : text,
         from_email: selected_sender?.email,
         attachments:
           attachments.length > 0
             ? attachments_to_draft_data(attachments)
             : undefined,
+        is_plain_text: is_plain_text_mode || undefined,
       };
 
       const previous_save = pending_save_ref.current;
@@ -845,6 +887,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
           } else if (result.data && !result.error) {
             set_draft_version(result.data.version);
             last_saved_text.current = text;
+            last_saved_plain.current = is_plain_text_mode;
             last_saved_from.current = selected_sender?.email;
             last_saved_attachments.current = attachments_signature;
             set_draft_status("saved");
@@ -893,6 +936,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
         set_draft_id(result.data.id);
         set_draft_version(result.data.version);
         last_saved_text.current = text;
+        last_saved_plain.current = is_plain_text_mode;
         last_saved_from.current = selected_sender?.email;
         last_saved_attachments.current = attachments_signature;
         set_draft_status("saved");
@@ -934,6 +978,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
       attachments,
       attachments_signature,
       has_user_content,
+      is_plain_text_mode,
     ],
   );
 
@@ -951,6 +996,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
 
         if (
           (current_text !== last_saved_text.current ||
+            is_plain_text_mode !== last_saved_plain.current ||
             attachments_signature !== last_saved_attachments.current ||
             selected_sender?.email !== last_saved_from.current) &&
           (has_user_content(current_text) || attachments_signature !== "") &&
@@ -967,6 +1013,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     has_user_content,
     attachments_signature,
     selected_sender?.email,
+    is_plain_text_mode,
   ]);
 
   useEffect(() => {
@@ -975,6 +1022,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
       return;
     if (
       reply_message === last_saved_text.current &&
+      is_plain_text_mode === last_saved_plain.current &&
       attachments_signature === last_saved_attachments.current &&
       selected_sender?.email === last_saved_from.current
     )
@@ -1001,6 +1049,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     selected_sender?.email,
     has_user_content,
     attachments_signature,
+    is_plain_text_mode,
   ]);
 
   useEffect(() => {

@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { ApiResponse } from "@/services/api/client";
+
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -45,12 +47,14 @@ import { use_i18n } from "@/lib/i18n/context";
 import { is_desktop } from "@/native/invoke_bridge";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_auth } from "@/contexts/auth_context";
+import { use_settings_cache } from "@/contexts/settings_cache_context";
 import { get_session_passphrase } from "@/contexts/auth/session_passphrase";
 import {
   list_hardware_keys,
   remove_hardware_key,
   rename_hardware_key,
   type HardwareKeyInfo,
+  type HardwareKeysListResponse,
 } from "@/services/api/webauthn";
 import {
   register_platform_passkey,
@@ -215,6 +219,7 @@ function KeyRow({
 export function PasskeySection() {
   const { t } = use_i18n();
   const { current_account_id } = use_auth();
+  const cache = use_settings_cache();
   const [keys, set_keys] = useState<HardwareKeyInfo[]>([]);
   const [loading, set_loading] = useState(true);
   const [load_error, set_load_error] = useState(false);
@@ -238,13 +243,19 @@ export function PasskeySection() {
 
       if (resp.data) {
         set_keys(resp.data.keys);
+        cache.set_entry("passkey_list", {
+          data: resp,
+          error: null,
+          fetched_at: Date.now(),
+          is_loading: false,
+        });
       } else {
         set_load_error(true);
       }
     } finally {
       set_loading(false);
     }
-  }, []);
+  }, [cache]);
 
   useEffect(() => {
     load_keys();
@@ -263,6 +274,24 @@ export function PasskeySection() {
 
         if (resp.data?.success) {
           set_keys((prev) => prev.filter((k) => k.id !== key_id));
+          const cached =
+            cache.get_entry<ApiResponse<HardwareKeysListResponse>>(
+              "passkey_list",
+            );
+
+          cache.set_entry("passkey_list", {
+            data: {
+              ...cached?.data,
+              data: {
+                keys: (cached?.data?.data?.keys ?? keys).filter(
+                  (key) => key.id !== key_id,
+                ),
+              },
+            },
+            error: null,
+            fetched_at: Date.now(),
+            is_loading: false,
+          });
           set_step_up_key_id(null);
           show_toast(t("passkeys.removed"), "success");
 
@@ -281,7 +310,7 @@ export function PasskeySection() {
         set_removing_id(null);
       }
     },
-    [t],
+    [cache, keys, t],
   );
 
   const handle_rename = useCallback((key_id: string, name: string | null) => {

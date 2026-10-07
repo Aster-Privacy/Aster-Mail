@@ -22,6 +22,7 @@ import { describe, it, expect } from "vitest";
 
 import {
   format_raw_headers,
+  get_body_format,
   get_dkim_domains,
   get_mailed_by,
   get_mailing_list,
@@ -291,5 +292,28 @@ describe("header insights", () => {
     expect(
       get_message_id([{ name: "Message-Id", value: "abc@x.example" }]),
     ).toBe("<abc@x.example>");
+  });
+});
+
+describe("get_body_format", () => {
+  const ct = (...values: string[]) =>
+    values.map((value) => ({ name: "Content-Type", value }));
+
+  it("maps the top-level media type", () => {
+    expect(get_body_format(ct("text/plain"))).toBe("plain");
+    expect(get_body_format(ct(" TEXT/HTML ; charset=utf-8"))).toBe("html");
+    expect(get_body_format(ct('multipart/alternative; boundary="x"'))).toBe(
+      "html_and_plain",
+    );
+  });
+
+  it("returns null when the structure is unknown or contradictory", () => {
+    expect(get_body_format(undefined)).toBeNull();
+    expect(get_body_format([])).toBeNull();
+    expect(get_body_format(ct("multipart/mixed"))).toBeNull();
+    expect(get_body_format(ct("multipart/related"))).toBeNull();
+    expect(get_body_format(ct("text/calendar"))).toBeNull();
+    expect(get_body_format(ct("text/plain", "text/html"))).toBeNull();
+    expect(get_body_format(ct("text/plain", "text/plain"))).toBe("plain");
   });
 });

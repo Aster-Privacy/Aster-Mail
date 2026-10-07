@@ -568,6 +568,7 @@ export async function execute_external_send(
       bcc: email.bcc ?? [],
       attachments: smtp_attachments,
       obscure_subject: obscure_outer_subject,
+      is_plain_text: email.is_plain_text,
     });
 
     if (signed) {

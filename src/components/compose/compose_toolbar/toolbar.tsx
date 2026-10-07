@@ -44,6 +44,30 @@ export interface ComposeToolbarProps {
   extra_toolbar_items?: React.ReactNode;
 }
 
+function PlainTextTag({ compose }: { compose: ComposeToolbarState }) {
+  const { t } = use_i18n();
+
+  const handle_click = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const had_focus = document.activeElement === e.currentTarget;
+
+    compose.toggle_plain_text_mode?.();
+    if (had_focus) compose.editor?.focus();
+  };
+
+  return (
+    <button
+      aria-pressed
+      className="inline-flex h-6 flex-shrink-0 items-center whitespace-nowrap rounded-full border border-[color-mix(in_srgb,var(--text-primary)_14%,transparent)] px-2 text-[11px] font-medium leading-4 text-txt-secondary outline-none transition-colors hover:bg-[var(--aster-hover)] hover:text-txt-primary focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--accent-color)_70%,transparent)]"
+      title={t("common.switch_to_rich_text")}
+      type="button"
+      onClick={handle_click}
+      onMouseDown={(e) => e.preventDefault()}
+    >
+      {t("common.plain_text_label")}
+    </button>
+  );
+}
+
 export function ComposeToolbar({
   compose,
   reduce_motion,
@@ -103,6 +127,10 @@ export function ComposeToolbar({
             {t("mail.send")}
             {compose.is_sending && <ButtonSpinner />}
           </Button>
+        )}
+
+        {compose.is_plain_text_mode && compose.toggle_plain_text_mode && (
+          <PlainTextTag compose={compose} />
         )}
 
         <div className="flex items-center gap-1 ms-1">

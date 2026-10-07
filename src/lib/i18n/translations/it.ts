@@ -1141,6 +1141,7 @@ export const it = {
     write_your_reply: "Scrivi la tua risposta...",
     switch_to_rich_text: "Passa al testo formattato",
     switch_to_plain_text: "Passa al testo semplice",
+    plain_text_label: "Testo semplice",
     font_size_label: "Dimensione carattere",
     font_family_label: "Carattere",
     font_family_default: "Carattere predefinito",
@@ -2494,6 +2495,9 @@ export const it = {
     html_rendering_mode_label: "Blocca il rendering HTML",
     html_rendering_mode_description:
       "Mostra le email in arrivo come testo semplice per impedire tracciamento, falsificazione del layout e phishing visivo",
+    prefer_plain_text_label: "Preferisci testo semplice",
+    prefer_plain_text_description:
+      "Se il mittente include una versione in testo semplice, viene aperta al posto della versione HTML. Le email senza questa versione vengono mostrate normalmente.",
     plain_text_compose_label: "Componi in testo semplice",
     plain_text_compose_description:
       "Usa il testo semplice come impostazione predefinita quando scrivi nuove email",
@@ -5370,6 +5374,9 @@ export const it = {
     domain_purchase_search_placeholder: "Cerca un nome di dominio",
     domain_purchase_per_year: "{{price}}/anno",
     domain_purchase_taken: "Non disponibile",
+    domain_purchase_unchecked: "Non verificato",
+    domain_purchase_unchecked_hint:
+      "Al momento non è possibile verificare questo dominio. Riprova più tardi.",
     domain_purchase_no_results: "Nessun dominio disponibile trovato",
     domain_purchase_renews_at: "Si rinnova a {{price}}/anno",
     domain_purchase_years: "Periodo di registrazione",
@@ -5541,6 +5548,9 @@ export const it = {
     import_oauth_title: "Collega un account",
     import_oauth_description:
       "Collega un account per importare tutta la sua posta, compresi i messaggi archiviati, quelli inviati e le etichette. Gmail si collega con una password per le app, Outlook con l’accesso al tuo account. L’importazione di caselle di grandi dimensioni può richiedere alcuni giorni.",
+    import_labels_title: "Messaggi con più etichette",
+    import_labels_description:
+      "Se l'altro account usa le etichette, un messaggio può averne più di una. Aster mette ogni messaggio in una cartella e aggiunge un'etichetta Aster per ciascuna delle sue etichette, così lo trovi sotto ognuna.",
     import_manual_title: "Importazione manuale",
     import_manual_step_1:
       "Esporta le tue email dal tuo provider attuale come file MBOX, EML o PST",
@@ -8667,6 +8677,8 @@ export const it = {
     mute: "Silenzia",
     print: "Stampa",
     view_source: "Visualizza sorgente",
+    show_plain_text: "Mostra come testo semplice",
+    show_original: "Mostra originale",
     share: "Condividi",
     move_to_folder: "Sposta in cartella",
     apply_label: "Applica etichetta",
@@ -9109,7 +9121,7 @@ export const it = {
     mailing_list_label: "Mailing list:",
     list_unsubscribe_available: "Link di disiscrizione incluso",
     email_auth_summary_authenticated:
-      "Questo messaggio ha superato SPF, DKIM e DMARC per {{domain}}.",
+      "I controlli confermano che {{domain}} ha inviato questo messaggio.",
     email_auth_summary_unverified:
       "I controlli non hanno potuto confermare che {{domain}} abbia inviato questo messaggio.",
     email_auth_summary_unavailable:
@@ -9363,6 +9375,10 @@ export const it = {
     message_id_label: "ID messaggio:",
     size_label: "Dimensione:",
     encryption_label: "Crittografia:",
+    format_label: "Formato:",
+    format_html: "HTML",
+    format_plain_text: "Testo semplice",
+    format_html_and_plain_text: "HTML e testo semplice",
     location_label: "Posizione:",
     zero_access_encrypted: "Crittografato end-to-end",
     download_headers: "Scarica",

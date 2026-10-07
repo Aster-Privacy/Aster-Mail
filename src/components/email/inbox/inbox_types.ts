@@ -66,6 +66,7 @@ export interface DraftClickData {
   from_email?: string;
   updated_at: string;
   attachments?: import("@/services/api/multi_drafts").DraftAttachmentData[];
+  is_plain_text?: boolean;
 }
 
 export interface ScheduledClickData {

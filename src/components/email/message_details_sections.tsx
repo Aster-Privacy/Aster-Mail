@@ -25,6 +25,7 @@ import type {
   EmailAuthResults,
 } from "@/utils/email_authentication";
 import type {
+  BodyFormat,
   HeaderHelpTopic,
   RawHeader,
 } from "@/utils/message_header_details";
@@ -51,6 +52,7 @@ import {
 } from "@/components/email/email_auth_indicator";
 import { summarize_email_authentication } from "@/utils/email_authentication";
 import {
+  get_body_format,
   get_mailed_by,
   get_mailing_list,
   get_reply_to,
@@ -71,6 +73,12 @@ const HEADER_HELP: Record<HeaderHelpTopic, TranslationKey> = {
   message_id: "mail.header_help_message_id",
   list_unsubscribe: "mail.header_help_list_unsubscribe",
   spam: "mail.header_help_spam",
+};
+
+const BODY_FORMAT_LABEL: Record<BodyFormat, TranslationKey> = {
+  html: "mail.format_html",
+  plain: "mail.format_plain_text",
+  html_and_plain: "mail.format_html_and_plain_text",
 };
 
 const LABEL_CLASS = {
@@ -239,7 +247,26 @@ export function get_header_insights(
     mailing_list: get_mailing_list(raw_headers),
     mailed_by: get_mailed_by(raw_headers, results),
     signed_by: get_signed_by(raw_headers, results, sender_email),
+    body_format: get_body_format(raw_headers),
   };
+}
+
+export function BodyFormatRow({
+  format,
+  variant,
+}: {
+  format: BodyFormat | null;
+  variant: Variant;
+}) {
+  const { t } = use_i18n();
+
+  if (!format) return null;
+
+  return (
+    <DetailsRow label={t("mail.format_label")} variant={variant}>
+      {t(BODY_FORMAT_LABEL[format])}
+    </DetailsRow>
+  );
 }
 
 export function ReplyToValue({

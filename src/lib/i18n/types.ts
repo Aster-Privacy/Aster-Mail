@@ -1748,6 +1748,7 @@ export interface CommonTranslations {
   write_your_reply: string;
   switch_to_rich_text: string;
   switch_to_plain_text: string;
+  plain_text_label: string;
   font_size_label: string;
   font_family_label: string;
   font_family_default: string;
@@ -3186,6 +3187,8 @@ export interface SettingsTranslations {
   html_content_section_title: string;
   html_rendering_mode_label: string;
   html_rendering_mode_description: string;
+  prefer_plain_text_label: string;
+  prefer_plain_text_description: string;
   plain_text_compose_label: string;
   plain_text_compose_description: string;
   images_section_title: string;
@@ -4911,6 +4914,8 @@ export interface SettingsTranslations {
   domain_purchase_search_placeholder: string;
   domain_purchase_per_year: string;
   domain_purchase_taken: string;
+  domain_purchase_unchecked: string;
+  domain_purchase_unchecked_hint: string;
   domain_purchase_no_results: string;
   domain_purchase_renews_at: string;
   domain_purchase_years: string;
@@ -5952,6 +5957,8 @@ export interface SettingsTranslations {
   import_how_it_works: string;
   import_oauth_title: string;
   import_oauth_description: string;
+  import_labels_title: string;
+  import_labels_description: string;
   import_manual_title: string;
   import_manual_step_1: string;
   import_manual_step_2: string;
@@ -7478,6 +7485,8 @@ export interface MailTranslations {
   mute: string;
   print: string;
   view_source: string;
+  show_plain_text: string;
+  show_original: string;
   share: string;
   download_file_named: string;
   to_recipients_prefix: string;
@@ -8100,6 +8109,10 @@ export interface MailTranslations {
   message_id_label: string;
   size_label: string;
   encryption_label: string;
+  format_label: string;
+  format_html: string;
+  format_plain_text: string;
+  format_html_and_plain_text: string;
   location_label: string;
   zero_access_encrypted: string;
   download_headers: string;

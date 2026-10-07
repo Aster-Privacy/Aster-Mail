@@ -56,6 +56,7 @@ export async function save_failed_send_as_draft(
     EditDraftData,
     "draft_type" | "reply_to_id" | "forward_from_id"
   > | null,
+  is_plain_text = false,
 ): Promise<boolean> {
   const draft_type = edit_draft?.draft_type ?? "new";
   const data: DraftData = {
@@ -66,6 +67,7 @@ export async function save_failed_send_as_draft(
     message: failed.body,
     from_email: failed.sender_email,
     attachments: attachments_to_draft_data(failed.attachments ?? []),
+    is_plain_text: is_plain_text || undefined,
   };
 
   const save_into = async (context_id: string): Promise<boolean> => {

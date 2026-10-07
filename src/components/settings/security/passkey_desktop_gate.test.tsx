@@ -77,6 +77,8 @@ vi.mock("@/components/toast/simple_toast", () => ({
 
 import { PasskeySection } from "./passkey_section";
 
+import { SettingsCacheProvider } from "@/contexts/settings_cache_context";
+
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
@@ -88,7 +90,11 @@ describe("PasskeySection desktop gate", () => {
 
   const render = async () => {
     await act(async () => {
-      root.render(<PasskeySection />);
+      root.render(
+        <SettingsCacheProvider>
+          <PasskeySection />
+        </SettingsCacheProvider>,
+      );
     });
   };
 

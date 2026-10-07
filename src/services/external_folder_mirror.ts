@@ -28,10 +28,21 @@ import {
   encrypt_folder_field,
   generate_folder_token,
 } from "@/hooks/use_folders";
+import {
+  decrypt_tag,
+  encrypt_tag_field,
+  generate_tag_token,
+} from "@/hooks/use_tags";
 import { create_folder } from "@/services/api/folders";
+import { create_tag, list_tags } from "@/services/api/tags";
+import { request_cache } from "@/services/api/request_cache";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
 import { ensure_default_labels } from "@/services/labels/ensure_defaults";
-import { emit_folders_changed } from "@/hooks/mail_events";
+import { emit_folders_changed, emit_tags_changed } from "@/hooks/mail_events";
+
+const MAX_TAG_DEPTH = 4;
+const TAG_LIST_PAGE_SIZE = 500;
+const TAG_LIST_MAX_PAGES = 40;
 
 export interface ExistingFolder {
   folder_token: string;
@@ -56,16 +67,84 @@ export type MirrorOutcome =
   | { status: "cancelled" }
   | { status: "error" };
 
+function decode_utf16_base64(encoded: string): string | null {
+  const base64 = encoded.replace(/,/g, "/");
+  const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
+  let binary: string;
+
+  try {
+    binary = atob(padded);
+  } catch {
+    return null;
+  }
+
+  if (binary.length % 2 !== 0) return null;
+
+  const units: number[] = [];
+
+  for (let i = 0; i < binary.length; i += 2) {
+    units.push((binary.charCodeAt(i) << 8) | binary.charCodeAt(i + 1));
+  }
+
+  return String.fromCharCode(...units);
+}
+
+export function decode_modified_utf7(name: string): string {
+  if (!name.includes("&")) return name;
+
+  let decoded = "";
+  let i = 0;
+
+  while (i < name.length) {
+    const start = name.indexOf("&", i);
+
+    if (start === -1) {
+      decoded += name.slice(i);
+      break;
+    }
+
+    decoded += name.slice(i, start);
+    const end = name.indexOf("-", start + 1);
+
+    if (end === -1) return name;
+
+    if (end === start + 1) {
+      decoded += "&";
+    } else {
+      const chunk = decode_utf16_base64(name.slice(start + 1, end));
+
+      if (chunk === null) return name;
+      decoded += chunk;
+    }
+
+    i = end + 1;
+  }
+
+  return decoded;
+}
+
 function folder_path_parts(folder: OAuthFolderInfo): string[] {
   const parts = folder.delimiter
-    ? folder.name.split(folder.delimiter).filter((part) => part.length > 0)
-    : [folder.name];
+    ? folder.name
+        .split(folder.delimiter)
+        .filter((part) => part.length > 0)
+        .map(decode_modified_utf7)
+    : [decode_modified_utf7(folder.name)];
 
   if (parts.length > 1 && parts[0].toUpperCase() === "INBOX") {
     return parts.slice(1);
   }
 
   return parts;
+}
+
+function cap_path_depth(parts: string[], max_depth?: number): string[] {
+  if (!max_depth || parts.length <= max_depth) return parts;
+
+  return [
+    ...parts.slice(0, max_depth - 1),
+    parts.slice(max_depth - 1).join("/"),
+  ];
 }
 
 export function select_mirrored_folders(
@@ -82,6 +161,7 @@ export async function mirror_folder_tree(
   existing: ExistingFolder[],
   create: CreateFolderFn,
   is_cancelled: () => boolean = () => false,
+  max_depth?: number,
 ): Promise<FolderTreeMirror> {
   const mapping: Record<string, string> = {};
   const path_tokens = new Map<string, string>();
@@ -98,7 +178,7 @@ export async function mirror_folder_tree(
   for (const folder of select_mirrored_folders(folders)) {
     if (is_cancelled()) break;
 
-    const parts = folder_path_parts(folder);
+    const parts = cap_path_depth(folder_path_parts(folder), max_depth);
     let parent_token: string | undefined;
     let branch_ok = true;
 
@@ -186,13 +266,103 @@ export async function mirror_external_account_folders(
 
   if (is_cancelled()) return { status: "cancelled" };
 
+  const label_mapping = listed.data.uses_labels
+    ? await mirror_source_labels(
+        listed.data.folders ?? [],
+        identity_key,
+        is_cancelled,
+      )
+    : {};
+
+  if (is_cancelled()) return { status: "cancelled" };
+
   const mapped = Object.keys(result.mapping).length;
 
-  if (mapped > 0) {
-    const saved = await save_folder_mapping(account_token, result.mapping);
+  if (mapped > 0 || Object.keys(label_mapping).length > 0) {
+    const saved = await save_folder_mapping(
+      account_token,
+      result.mapping,
+      label_mapping,
+    );
 
     if (saved.error) return { status: "error" };
   }
 
   return { status: "ok", mapped, failures: result.failures };
+}
+
+async function load_existing_tags(
+  identity_key: string,
+): Promise<ExistingFolder[] | null> {
+  const existing: ExistingFolder[] = [];
+
+  for (let page = 0; page < TAG_LIST_MAX_PAGES; page++) {
+    const response = await list_tags({
+      limit: TAG_LIST_PAGE_SIZE,
+      offset: page * TAG_LIST_PAGE_SIZE,
+    });
+
+    if (response.error || !response.data) return null;
+
+    const decrypted = await Promise.all(
+      response.data.tags.map((tag) => decrypt_tag(tag, identity_key)),
+    );
+
+    for (const tag of decrypted) {
+      if (!tag) continue;
+      existing.push({
+        folder_token: tag.tag_token,
+        name: tag.name,
+        parent_token: tag.parent_token ?? null,
+      });
+    }
+
+    if (!response.data.has_more) return existing;
+  }
+
+  return existing;
+}
+
+export async function mirror_source_labels(
+  folders: OAuthFolderInfo[],
+  identity_key: string,
+  is_cancelled: () => boolean = () => false,
+): Promise<Record<string, string>> {
+  const existing = await load_existing_tags(identity_key);
+
+  if (!existing) return {};
+
+  let limit_reached = false;
+  const result = await mirror_folder_tree(
+    folders,
+    existing,
+    async (name, parent_token) => {
+      const tag_token = generate_tag_token();
+      const { encrypted, nonce } = await encrypt_tag_field(
+        name,
+        identity_key,
+      );
+      const created = await create_tag({
+        tag_token,
+        encrypted_name: encrypted,
+        name_nonce: nonce,
+        parent_token,
+      });
+
+      if (created.server_code === "PLAN_LIMIT_EXCEEDED") {
+        limit_reached = true;
+      }
+
+      return created.error ? null : tag_token;
+    },
+    () => limit_reached || is_cancelled(),
+    MAX_TAG_DEPTH,
+  );
+
+  if (Object.keys(result.mapping).length > 0 || result.failures > 0) {
+    request_cache.invalidate("/mail/v1/tags");
+    emit_tags_changed();
+  }
+
+  return result.mapping;
 }

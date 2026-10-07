@@ -1188,6 +1188,7 @@ export const en: Translations = {
     write_your_reply: "Write your reply...",
     switch_to_rich_text: "Switch to rich text",
     switch_to_plain_text: "Switch to plain text",
+    plain_text_label: "Plain text",
     font_size_label: "Font size",
     font_family_label: "Font",
     font_family_default: "Default font",
@@ -3004,6 +3005,9 @@ export const en: Translations = {
     html_rendering_mode_label: "Block HTML Rendering",
     html_rendering_mode_description:
       "Show incoming emails as plain text to prevent tracking, layout spoofing, and visual phishing",
+    prefer_plain_text_label: "Prefer Plain Text",
+    prefer_plain_text_description:
+      "When the sender includes a plain text version, open it instead of the HTML version. Emails without one display normally.",
     plain_text_compose_label: "Compose in Plain Text",
     plain_text_compose_description:
       "Default to plain text when writing new emails",
@@ -6227,6 +6231,9 @@ export const en: Translations = {
     domain_purchase_search_placeholder: "Search for a domain name",
     domain_purchase_per_year: "{{price}}/yr",
     domain_purchase_taken: "Taken",
+    domain_purchase_unchecked: "Couldn't check",
+    domain_purchase_unchecked_hint:
+      "Couldn't check this domain right now. Try again later.",
     domain_purchase_no_results: "No available domains found",
     domain_purchase_renews_at: "Renews at {{price}}/yr",
     domain_purchase_years: "Registration period",
@@ -6992,6 +6999,9 @@ export const en: Translations = {
     import_oauth_title: "Connect an account",
     import_oauth_description:
       "Connect an account to import all of its mail, including archived mail, sent mail, and labels. Gmail connects with an app password, and Outlook connects when you sign in to your account. Large mailboxes can take a few days to finish.",
+    import_labels_title: "Messages with several labels",
+    import_labels_description:
+      "If your other account uses labels, one message can have several. Aster puts each message in one folder and adds an Aster label for each of its labels, so you can find it under every label it had.",
     import_manual_title: "Manual Import",
     import_manual_step_1:
       "Export your emails from your current provider as MBOX, EML, or PST files",
@@ -8385,6 +8395,8 @@ export const en: Translations = {
     mute: "Mute",
     print: "Print",
     view_source: "View source",
+    show_plain_text: "Show as plain text",
+    show_original: "Show original",
     share: "Share",
     download_file_named: "Download {{ filename }}",
     to_recipients_prefix: "to {{ recipients }}",
@@ -9009,7 +9021,7 @@ export const en: Translations = {
     mailing_list_label: "Mailing list:",
     list_unsubscribe_available: "Unsubscribe link included",
     email_auth_summary_authenticated:
-      "This message passed SPF, DKIM and DMARC for {{domain}}.",
+      "The checks confirm that {{domain}} sent this message.",
     email_auth_summary_unverified:
       "The checks couldn't confirm that {{domain}} sent this message.",
     email_auth_summary_unavailable:
@@ -9052,6 +9064,10 @@ export const en: Translations = {
     message_id_label: "Message ID:",
     size_label: "Size:",
     encryption_label: "Encryption:",
+    format_label: "Format:",
+    format_html: "HTML",
+    format_plain_text: "Plain text",
+    format_html_and_plain_text: "HTML and plain text",
     location_label: "Location:",
     zero_access_encrypted: "End-to-end encrypted",
     download_headers: "Download",

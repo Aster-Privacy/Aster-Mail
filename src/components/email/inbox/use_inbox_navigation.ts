@@ -245,6 +245,7 @@ export function use_inbox_navigation({
           from_email: draft.from_email,
           updated_at: draft.updated_at || new Date().toISOString(),
           attachments: draft.draft_attachments,
+          is_plain_text: draft.is_plain_text,
         });
 
         return;

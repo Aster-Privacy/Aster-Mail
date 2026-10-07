@@ -1174,6 +1174,7 @@ export const ko = {
     write_your_reply: "답장을 작성하세요...",
     switch_to_rich_text: "서식 있는 텍스트로 전환",
     switch_to_plain_text: "일반 텍스트로 전환",
+    plain_text_label: "일반 텍스트",
     font_size_label: "글꼴 크기",
     font_family_label: "글꼴",
     font_family_default: "기본 글꼴",
@@ -2404,6 +2405,9 @@ export const ko = {
     html_rendering_mode_label: "HTML 렌더링 차단",
     html_rendering_mode_description:
       "추적, 레이아웃 위조, 시각적 피싱을 방지하기 위해 수신 이메일을 일반 텍스트로 표시합니다",
+    prefer_plain_text_label: "일반 텍스트 우선",
+    prefer_plain_text_description:
+      "보낸 사람이 일반 텍스트 버전을 포함한 경우 HTML 버전 대신 해당 버전을 엽니다. 일반 텍스트 버전이 없는 이메일은 평소대로 표시됩니다.",
     plain_text_compose_label: "일반 텍스트로 작성",
     plain_text_compose_description:
       "새 이메일을 작성할 때 기본적으로 일반 텍스트를 사용합니다",
@@ -6617,6 +6621,9 @@ export const ko = {
     domain_purchase_search_placeholder: "도메인 이름 검색",
     domain_purchase_per_year: "{{price}}/년",
     domain_purchase_taken: "사용 불가",
+    domain_purchase_unchecked: "확인 불가",
+    domain_purchase_unchecked_hint:
+      "지금은 이 도메인을 확인할 수 없습니다. 나중에 다시 시도해 주세요.",
     domain_purchase_no_results: "사용 가능한 도메인이 없습니다",
     domain_purchase_renews_at: "갱신 요금 {{price}}/년",
     domain_purchase_years: "등록 기간",
@@ -6787,6 +6794,9 @@ export const ko = {
     import_oauth_title: "계정 연결",
     import_oauth_description:
       "계정을 연결하면 보관처리된 메일, 보낸 메일, 라벨을 포함한 모든 메일을 가져옵니다. Gmail은 앱 비밀번호로, Outlook은 계정 로그인으로 연결합니다. 메일함이 크면 완료까지 며칠이 걸릴 수 있습니다.",
+    import_labels_title: "라벨이 여러 개인 메시지",
+    import_labels_description:
+      "다른 계정에서 라벨을 사용하는 경우 메시지 하나에 라벨이 여러 개 있을 수 있습니다. Aster는 각 메시지를 폴더 하나에 넣고 원래 라벨마다 Aster 라벨을 추가하므로 어느 라벨에서든 메시지를 찾을 수 있습니다.",
     import_manual_title: "수동 가져오기",
     import_manual_step_1:
       "현재 이메일 제공업체에서 MBOX, EML 또는 PST 파일로 이메일을 내보내세요",
@@ -8280,6 +8290,8 @@ export const ko = {
     mute: "음소거",
     print: "인쇄",
     view_source: "소스 보기",
+    show_plain_text: "일반 텍스트로 보기",
+    show_original: "원본 보기",
     share: "공유",
     move_to_folder: "폴더로 이동",
     apply_label: "라벨 적용",
@@ -8693,7 +8705,7 @@ export const ko = {
     mailing_list_label: "메일링 리스트:",
     list_unsubscribe_available: "구독 취소 링크 포함",
     email_auth_summary_authenticated:
-      "이 메시지는 {{domain}}에 대한 SPF, DKIM, DMARC를 통과했습니다.",
+      "검사 결과 {{domain}}에서 이 메시지를 보낸 것으로 확인되었습니다.",
     email_auth_summary_unverified:
       "검사로는 {{domain}}에서 이 메시지를 보냈는지 확인할 수 없었습니다.",
     email_auth_summary_unavailable: "이 메시지의 인증 결과가 없습니다.",
@@ -8928,6 +8940,10 @@ export const ko = {
     message_id_label: "메시지 ID",
     size_label: "크기",
     encryption_label: "암호화",
+    format_label: "형식",
+    format_html: "HTML",
+    format_plain_text: "일반 텍스트",
+    format_html_and_plain_text: "HTML 및 일반 텍스트",
     location_label: "위치",
     zero_access_encrypted: "종단간 암호화됨",
     download_headers: "헤더 다운로드",

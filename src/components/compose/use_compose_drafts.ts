@@ -69,6 +69,7 @@ export interface UseComposeDraftsOptions {
   recipients: RecipientsState;
   subject: string;
   message: string;
+  is_plain_text?: boolean;
   from_email?: string;
   attachments: Attachment[];
   attachments_ref: React.MutableRefObject<Attachment[]>;
@@ -101,6 +102,7 @@ export function use_compose_drafts({
   recipients,
   subject,
   message,
+  is_plain_text = false,
   from_email,
   attachments,
   attachments_ref,
@@ -123,6 +125,7 @@ export function use_compose_drafts({
     recipients,
     subject,
     message,
+    is_plain_text,
     from_email,
   });
   const just_loaded_draft_ref = useRef(false);
@@ -139,8 +142,14 @@ export function use_compose_drafts({
   }, [t]);
 
   useEffect(() => {
-    draft_data_ref.current = { recipients, subject, message, from_email };
-  }, [recipients, subject, message, from_email]);
+    draft_data_ref.current = {
+      recipients,
+      subject,
+      message,
+      is_plain_text,
+      from_email,
+    };
+  }, [recipients, subject, message, is_plain_text, from_email]);
 
   useEffect(() => {
     if (!auto_save_drafts || !vault || !draft_context_id_ref.current) return;
@@ -212,6 +221,7 @@ export function use_compose_drafts({
         bcc_recipients: data.recipients.bcc,
         subject: data.subject,
         message: data.message,
+        is_plain_text: data.is_plain_text || undefined,
         from_email: data.from_email,
         attachments: att_data,
       };
@@ -286,6 +296,7 @@ export function use_compose_drafts({
     recipients,
     subject,
     message,
+    is_plain_text,
     from_email,
     attachments,
     auto_save_drafts,
@@ -375,6 +386,7 @@ export function use_compose_drafts({
                   bcc_recipients: data.recipients.bcc,
                   subject: data.subject,
                   message: data.message,
+                  is_plain_text: data.is_plain_text || undefined,
                   from_email: data.from_email,
                   attachments: close_att_data,
                 },
@@ -506,6 +518,7 @@ export function use_compose_drafts({
         bcc_recipients: data.recipients.bcc,
         subject: data.subject,
         message: data.message,
+        is_plain_text: data.is_plain_text || undefined,
         from_email: data.from_email,
         attachments: flush_att_data,
       },

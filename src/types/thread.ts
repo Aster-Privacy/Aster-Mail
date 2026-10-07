@@ -45,6 +45,7 @@ export interface DecryptedThreadMessage {
   subject: string;
   body: string;
   html_content?: string;
+  text_part?: string;
   timestamp: string;
   is_read: boolean;
   is_starred: boolean;

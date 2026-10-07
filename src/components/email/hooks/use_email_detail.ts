@@ -308,6 +308,7 @@ export function use_email_detail() {
         message: draft.content.message,
         from_email: draft.content.from_email,
         updated_at: draft.updated_at,
+        is_plain_text: draft.content.is_plain_text,
       });
     },
     [open_compose],

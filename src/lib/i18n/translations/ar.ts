@@ -1089,6 +1089,7 @@ export const ar = {
     write_your_reply: "اكتب ردك...",
     switch_to_rich_text: "التبديل إلى نص منسق",
     switch_to_plain_text: "التبديل إلى نص عادي",
+    plain_text_label: "نص عادي",
     font_size_label: "حجم الخط",
     font_family_label: "نوع الخط",
     font_family_default: "الخط الافتراضي",
@@ -2572,6 +2573,9 @@ export const ar = {
     html_rendering_mode_label: "حظر عرض HTML",
     html_rendering_mode_description:
       "عرض الرسائل الواردة كنص عادي لمنع التتبع وانتحال التخطيط والتصيّد البصري",
+    prefer_plain_text_label: "تفضيل النص العادي",
+    prefer_plain_text_description:
+      "عندما يرفق المرسل نسخة بنص عادي، تُفتح بدلاً من نسخة HTML. تُعرض الرسائل التي لا تتضمن هذه النسخة بشكل طبيعي.",
     plain_text_compose_label: "الكتابة بنص عادي",
     plain_text_compose_description:
       "استخدام النص العادي افتراضيًا عند كتابة رسائل جديدة",
@@ -6695,6 +6699,9 @@ export const ar = {
     domain_purchase_search_placeholder: "ابحث عن اسم نطاق",
     domain_purchase_per_year: "{{price}}/سنة",
     domain_purchase_taken: "محجوز",
+    domain_purchase_unchecked: "تعذّر التحقق",
+    domain_purchase_unchecked_hint:
+      "تعذّر التحقق من هذا النطاق الآن. حاول مرة أخرى لاحقًا.",
     domain_purchase_no_results: "لم يتم العثور على نطاقات متاحة",
     domain_purchase_renews_at: "يتجدد بسعر {{price}}/سنة",
     domain_purchase_years: "مدة التسجيل",
@@ -6863,6 +6870,9 @@ export const ar = {
     import_oauth_title: "ربط حساب",
     import_oauth_description:
       "اربط حسابًا لاستيراد كل بريده، بما في ذلك الرسائل المؤرشفة والمرسلة والتصنيفات. يتصل Gmail باستخدام كلمة مرور تطبيق، ويتصل Outlook عند تسجيل الدخول إلى حسابك. قد يستغرق استيراد صناديق البريد الكبيرة بضعة أيام.",
+    import_labels_title: "الرسائل ذات التصنيفات المتعددة",
+    import_labels_description:
+      "إذا كان حسابك الآخر يستخدم التصنيفات، فقد تحمل الرسالة الواحدة عدة تصنيفات. يضع Aster كل رسالة في مجلد واحد ويضيف تصنيف Aster لكل تصنيف من تصنيفاتها، لتجدها تحت كل تصنيف كانت تحمله.",
     import_manual_title: "استيراد يدوي",
     import_manual_step_1:
       "صدّر رسائلك من مزودك الحالي بصيغة MBOX أو EML أو PST",
@@ -8457,6 +8467,8 @@ export const ar = {
     mute: "كتم",
     print: "طباعة",
     view_source: "عرض المصدر",
+    show_plain_text: "عرض كنص عادي",
+    show_original: "عرض الأصل",
     share: "مشاركة",
     move_to_folder: "نقل إلى مجلد",
     apply_label: "تطبيق تصنيف",
@@ -8875,7 +8887,7 @@ export const ar = {
     mailing_list_label: "القائمة البريدية:",
     list_unsubscribe_available: "يتضمن رابط إلغاء الاشتراك",
     email_auth_summary_authenticated:
-      "اجتازت هذه الرسالة فحوص SPF وDKIM وDMARC للنطاق {{domain}}.",
+      "أكدت الفحوص أن {{domain}} أرسل هذه الرسالة.",
     email_auth_summary_unverified:
       "لم تؤكد الفحوص أن {{domain}} أرسل هذه الرسالة.",
     email_auth_summary_unavailable: "نتائج المصادقة غير متاحة لهذه الرسالة.",
@@ -9105,6 +9117,10 @@ export const ar = {
     message_id_label: "معرف الرسالة:",
     size_label: "الحجم:",
     encryption_label: "التشفير:",
+    format_label: "التنسيق:",
+    format_html: "HTML",
+    format_plain_text: "نص عادي",
+    format_html_and_plain_text: "HTML ونص عادي",
     location_label: "الموقع:",
     zero_access_encrypted: "مشفر من طرف إلى طرف",
     download_headers: "تنزيل",

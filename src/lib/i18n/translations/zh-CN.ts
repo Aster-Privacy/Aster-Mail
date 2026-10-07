@@ -980,6 +980,7 @@ export const zh_CN = {
     write_your_reply: "写下您的回复...",
     switch_to_rich_text: "切换到富文本",
     switch_to_plain_text: "切换到纯文本",
+    plain_text_label: "纯文本",
     font_size_label: "字体大小",
     font_family_label: "字体",
     font_family_default: "默认字体",
@@ -2266,6 +2267,9 @@ export const zh_CN = {
     html_rendering_mode_label: "屏蔽 HTML 渲染",
     html_rendering_mode_description:
       "将收到的邮件显示为纯文本，以防止追踪、版面伪造和视觉钓鱼",
+    prefer_plain_text_label: "优先使用纯文本",
+    prefer_plain_text_description:
+      "如果发件人附带了纯文本版本，将打开该版本而不是 HTML 版本。没有纯文本版本的邮件照常显示。",
     plain_text_compose_label: "以纯文本撰写",
     plain_text_compose_description: "撰写新邮件时默认使用纯文本",
     family_plan_title: "家庭套餐",
@@ -5997,6 +6001,8 @@ export const zh_CN = {
     domain_purchase_search_placeholder: "搜索域名",
     domain_purchase_per_year: "{{price}}/年",
     domain_purchase_taken: "已被注册",
+    domain_purchase_unchecked: "无法检查",
+    domain_purchase_unchecked_hint: "目前无法检查此域名,请稍后重试。",
     domain_purchase_no_results: "未找到可用域名",
     domain_purchase_renews_at: "续费价 {{price}}/年",
     domain_purchase_years: "注册年限",
@@ -6159,6 +6165,9 @@ export const zh_CN = {
     import_oauth_title: "连接账户",
     import_oauth_description:
       "连接账户后，即可导入其中的所有邮件，包括已归档邮件、已发邮件和标签。Gmail 使用应用专用密码连接，Outlook 通过登录账户连接。邮箱较大时，导入可能需要几天。",
+    import_labels_title: "带有多个标签的邮件",
+    import_labels_description:
+      "如果你的另一个账户使用标签，一封邮件可能有多个标签。Aster 会把每封邮件放入一个文件夹，并为它的每个标签添加一个 Aster 标签，让你可以在每个标签下找到它。",
     import_manual_title: "手动导入",
     import_manual_step_1: "从当前邮件提供商导出邮件为 MBOX、EML 或 PST 文件",
     import_manual_step_2:
@@ -7640,6 +7649,8 @@ export const zh_CN = {
     mute: "静音",
     print: "打印",
     view_source: "查看源代码",
+    show_plain_text: "以纯文本显示",
+    show_original: "显示原始格式",
     share: "分享",
     move_to_folder: "移至文件夹",
     apply_label: "应用标签",
@@ -8032,7 +8043,7 @@ export const zh_CN = {
     mailing_list_label: "邮件列表：",
     list_unsubscribe_available: "包含退订链接",
     email_auth_summary_authenticated:
-      "此邮件通过了 {{domain}} 的 SPF、DKIM 和 DMARC 检查。",
+      "检查确认此邮件由 {{domain}} 发送。",
     email_auth_summary_unverified: "检查无法确认此邮件由 {{domain}} 发送。",
     email_auth_summary_unavailable: "此邮件没有可用的身份验证结果。",
     email_auth_spf_pass: "发送服务器获准代表此域名发送邮件。",
@@ -8189,6 +8200,10 @@ export const zh_CN = {
     message_id_label: "消息 ID：",
     size_label: "大小：",
     encryption_label: "加密：",
+    format_label: "格式：",
+    format_html: "HTML",
+    format_plain_text: "纯文本",
+    format_html_and_plain_text: "HTML 和纯文本",
     location_label: "位置：",
     zero_access_encrypted: "端到端加密",
     download_headers: "下载",

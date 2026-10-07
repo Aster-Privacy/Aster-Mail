@@ -1169,6 +1169,7 @@ export const ja = {
     write_your_reply: "返信を入力...",
     switch_to_rich_text: "リッチテキストに切り替え",
     switch_to_plain_text: "プレーンテキストに切り替え",
+    plain_text_label: "プレーンテキスト",
     font_size_label: "フォントサイズ",
     font_family_label: "フォント",
     font_family_default: "既定のフォント",
@@ -2462,6 +2463,9 @@ export const ja = {
     html_rendering_mode_label: "HTMLレンダリングをブロック",
     html_rendering_mode_description:
       "受信メールをプレーンテキストで表示し、トラッキング、レイアウトの偽装、視覚的なフィッシングを防ぎます",
+    prefer_plain_text_label: "プレーンテキストを優先",
+    prefer_plain_text_description:
+      "送信者がプレーンテキスト版を含めている場合は、HTML版の代わりにそちらを開きます。プレーンテキスト版のないメールは通常どおり表示されます。",
     plain_text_compose_label: "プレーンテキストで作成",
     plain_text_compose_description:
       "新規メールの作成時にプレーンテキストを既定にします",
@@ -6627,6 +6631,9 @@ export const ja = {
     domain_purchase_search_placeholder: "ドメイン名を検索",
     domain_purchase_per_year: "{{price}}/年",
     domain_purchase_taken: "取得済み",
+    domain_purchase_unchecked: "確認できません",
+    domain_purchase_unchecked_hint:
+      "現在このドメインを確認できません。しばらくしてからもう一度お試しください。",
     domain_purchase_no_results: "利用可能なドメインが見つかりません",
     domain_purchase_renews_at: "更新料 {{price}}/年",
     domain_purchase_years: "登録期間",
@@ -6795,6 +6802,9 @@ export const ja = {
     import_oauth_title: "アカウントを接続",
     import_oauth_description:
       "アカウントを接続すると、アーカイブ済みのメール、送信済みのメール、ラベルを含むすべてのメールをインポートできます。Gmail はアプリパスワードで、Outlook はアカウントへのログインで接続します。メールボックスが大きい場合は、完了まで数日かかることがあります。",
+    import_labels_title: "複数のラベルが付いたメッセージ",
+    import_labels_description:
+      "もう一方のアカウントでラベルを使っている場合、1 通のメッセージに複数のラベルが付いていることがあります。Aster は各メッセージを 1 つのフォルダに入れ、元のラベルごとに Aster ラベルを追加するので、どのラベルからでもメッセージを見つけられます。",
     import_manual_title: "手動インポート",
     import_manual_step_1:
       "現在のプロバイダーからMBOX、EML、またはPSTファイルとしてメールをエクスポートします",
@@ -8436,6 +8446,8 @@ export const ja = {
     mute: "ミュート",
     print: "印刷",
     view_source: "ソースを表示",
+    show_plain_text: "プレーンテキストで表示",
+    show_original: "元の形式で表示",
     share: "共有",
     move_to_folder: "フォルダに移動",
     apply_label: "ラベルを適用",
@@ -8860,7 +8872,7 @@ export const ja = {
     mailing_list_label: "メーリングリスト:",
     list_unsubscribe_available: "配信停止リンクあり",
     email_auth_summary_authenticated:
-      "このメッセージは {{domain}} の SPF、DKIM、DMARC に合格しました。",
+      "このメッセージを {{domain}} が送信したことを確認しました。",
     email_auth_summary_unverified:
       "このメッセージを {{domain}} が送信したことは確認できませんでした。",
     email_auth_summary_unavailable: "このメッセージの認証結果はありません。",
@@ -8989,6 +9001,10 @@ export const ja = {
     message_id_label: "メッセージ ID：",
     size_label: "サイズ：",
     encryption_label: "暗号化：",
+    format_label: "形式：",
+    format_html: "HTML",
+    format_plain_text: "プレーンテキスト",
+    format_html_and_plain_text: "HTML とプレーンテキスト",
     location_label: "場所：",
     zero_access_encrypted: "エンドツーエンド暗号化",
     download_headers: "ダウンロード",

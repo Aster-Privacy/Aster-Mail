@@ -301,8 +301,8 @@ export function build_protected_mime_entity(input: ProtectedMimeInput): string {
   } else {
     body_part =
       "Content-Type: text/plain; charset=utf-8\r\n" +
-      "Content-Transfer-Encoding: 8bit\r\n\r\n" +
-      `${input.body}\r\n`;
+      "Content-Transfer-Encoding: base64\r\n\r\n" +
+      base64_body(input.body.replace(/\r\n|\r|\n/g, "\r\n"));
   }
 
   let mime =

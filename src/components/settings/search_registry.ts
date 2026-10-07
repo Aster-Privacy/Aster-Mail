@@ -1497,6 +1497,14 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
     keywords: ["exif", "metadata removal", "image privacy"],
   },
   {
+    label: "Prefer Plain Text",
+    label_key: "settings.prefer_plain_text_label",
+    section: "security",
+    breadcrumb: "Security > Content Protection",
+    crumb_key: "settings_search.content_protection",
+    keywords: ["plain text version", "text alternative", "multipart"],
+  },
+  {
     label: "Block HTML Rendering",
     label_key: "settings.html_rendering_mode_label",
     section: "security",

@@ -1127,6 +1127,7 @@ export const ru = {
     write_your_reply: "Напишите ваш ответ...",
     switch_to_rich_text: "Переключить на форматированный текст",
     switch_to_plain_text: "Переключить на обычный текст",
+    plain_text_label: "Обычный текст",
     font_size_label: "Размер шрифта",
     font_family_label: "Шрифт",
     font_family_default: "Шрифт по умолчанию",
@@ -2610,6 +2611,9 @@ export const ru = {
     html_rendering_mode_label: "Блокировать отображение HTML",
     html_rendering_mode_description:
       "Показывать входящие письма как обычный текст, чтобы предотвратить отслеживание, подмену вёрстки и визуальный фишинг",
+    prefer_plain_text_label: "Предпочитать обычный текст",
+    prefer_plain_text_description:
+      "Если отправитель добавил версию в виде обычного текста, она открывается вместо HTML-версии. Письма без такой версии отображаются как обычно.",
     plain_text_compose_label: "Писать обычным текстом",
     plain_text_compose_description:
       "По умолчанию использовать обычный текст при написании новых писем",
@@ -6745,6 +6749,9 @@ export const ru = {
     show_badges_in_signature: "Показывать значки в письмах",
     import_how_it_works: "Как это работает",
     import_oauth_title: "Подключение аккаунта",
+    import_labels_title: "Письма с несколькими ярлыками",
+    import_labels_description:
+      "Если в другом аккаунте используются ярлыки, у одного письма их может быть несколько. Aster помещает каждое письмо в одну папку и добавляет ярлык Aster для каждого его ярлыка, чтобы письмо можно было найти под любым из них.",
     import_manual_title: "Ручной импорт",
     import_oauth_button: "OAuth",
     import_manual_button: "Вручную",
@@ -6959,6 +6966,9 @@ export const ru = {
     domain_purchase_search_placeholder: "Поиск доменного имени",
     domain_purchase_per_year: "{{price}}/год",
     domain_purchase_taken: "Занят",
+    domain_purchase_unchecked: "Не проверен",
+    domain_purchase_unchecked_hint:
+      "Сейчас не удалось проверить этот домен. Попробуйте позже.",
     domain_purchase_no_results: "Доступных доменов не найдено",
     domain_purchase_renews_at: "Продление: {{price}}/год",
     domain_purchase_years: "Срок регистрации",
@@ -8810,6 +8820,8 @@ export const ru = {
     mute: "Отключить звук",
     print: "Печать",
     view_source: "Показать исходный код",
+    show_plain_text: "Показать как обычный текст",
+    show_original: "Показать оригинал",
     share: "Поделиться",
     move_to_folder: "Переместить в папку",
     apply_label: "Применить метку",
@@ -9240,7 +9252,7 @@ export const ru = {
     mailing_list_label: "Список рассылки:",
     list_unsubscribe_available: "Есть ссылка для отписки",
     email_auth_summary_authenticated:
-      "Это письмо прошло SPF, DKIM и DMARC для {{domain}}.",
+      "Проверки подтвердили, что это письмо отправил {{domain}}.",
     email_auth_summary_unverified:
       "Проверки не подтвердили, что это письмо отправил {{domain}}.",
     email_auth_summary_unavailable:
@@ -9345,6 +9357,10 @@ export const ru = {
     email_is_clean:
       "Это письмо выглядит чистым - элементы отслеживания не обнаружены.",
     encryption_label: "Шифрование:",
+    format_label: "Формат:",
+    format_html: "HTML",
+    format_plain_text: "Обычный текст",
+    format_html_and_plain_text: "HTML и обычный текст",
     filter_after: "После: {{ value }}",
     filter_before: "До: {{ value }}",
     filter_date: "Дата: {{ value }}",

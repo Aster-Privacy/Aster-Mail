@@ -62,6 +62,65 @@ const HEADERS = [
 ];
 
 describe("MobileMessageDetailsSheet", () => {
+  it("keeps the stored SPF result next to an authenticated summary", () => {
+    const container = document.createElement("div");
+
+    document.body.appendChild(container);
+    root = createRoot(container);
+    act(() => {
+      root!.render(
+        <MobileMessageDetailsSheet
+          format_detail={() => "today"}
+          message={
+            {
+              id: "m1",
+              item_type: "received",
+              sender_name: "Shop",
+              sender_email: "news@shop.example",
+              subject: "Hi",
+              body: "",
+              timestamp: "2026-09-30T09:21:00Z",
+              is_read: true,
+              is_starred: false,
+              is_deleted: false,
+              is_external: true,
+              raw_headers: [
+                {
+                  name: "Authentication-Results",
+                  value:
+                    "mx.example.org; spf=pass smtp.mailfrom=bounce@mail.shop.example; dkim=pass; dmarc=pass",
+                },
+                ...HEADERS,
+              ],
+              spf_result: "none",
+              dkim_result: "pass",
+              dmarc_result: "pass",
+            } as never
+          }
+          on_close={() => {}}
+          t={(key) => key}
+        />,
+      );
+    });
+
+    expect(
+      [...document.querySelectorAll<HTMLElement>("button[data-check]")].map(
+        (pill) => [
+          pill.dataset.check,
+          pill.querySelector<HTMLElement>("[data-status]")?.dataset.status,
+        ],
+      ),
+    ).toEqual([
+      ["spf", "none"],
+      ["dkim", "pass"],
+      ["dmarc", "pass"],
+    ]);
+    expect(
+      document.querySelector<HTMLElement>("[data-auth-summary]")?.dataset
+        .authSummary,
+    ).toBe("authenticated");
+  });
+
   it("matches the desktop details: pills, real Message-ID, wrapped headers, exact copy", () => {
     const container = document.createElement("div");
 

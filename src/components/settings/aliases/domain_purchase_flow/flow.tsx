@@ -35,6 +35,8 @@ import { Button, Input } from "@aster/ui";
 
 import {
   filter_results,
+  is_purchasable,
+  is_unchecked,
   sort_results,
   paginate,
   type results_filter,
@@ -492,8 +494,8 @@ export function DomainPurchaseFlow({
     [results, filter, active_tld, max_price, sort],
   );
   const visible_results = paginate(filtered_results, visible_count);
-  const best_match =
-    visible_results.find((r) => r.available && r.price_cents !== null) ?? null;
+  const best_match = visible_results.find((r) => is_purchasable(r)) ?? null;
+  const has_unchecked = results.some((r) => is_unchecked(r));
   const rest_results = best_match
     ? visible_results.filter((r) => r.domain !== best_match.domain)
     : visible_results;
@@ -1027,6 +1029,17 @@ export function DomainPurchaseFlow({
                   <ExclamationTriangleIcon className="w-4 h-4 mt-0.5 text-yellow-500 flex-shrink-0" />
                   <p className="text-sm text-txt-secondary">
                     {t("settings.domain_purchase_search_rate_limited")}
+                  </p>
+                </div>
+              )}
+              {!rate_limited && has_unchecked && (
+                <div
+                  className="flex items-start gap-2 mb-2 px-3 py-2.5 rounded-lg bg-yellow-500/10"
+                  role="status"
+                >
+                  <ExclamationTriangleIcon className="w-4 h-4 mt-0.5 text-yellow-500 flex-shrink-0" />
+                  <p className="text-sm text-txt-secondary">
+                    {t("settings.domain_purchase_unchecked_hint")}
                   </p>
                 </div>
               )}

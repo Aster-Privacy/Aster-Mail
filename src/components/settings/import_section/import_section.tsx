@@ -844,6 +844,14 @@ export function ImportSection() {
             {t("settings.import_oauth_description")}
           </p>
         </div>
+        <div className="space-y-1">
+          <p className="text-xs font-medium text-txt-secondary">
+            {t("settings.import_labels_title")}
+          </p>
+          <p className="text-xs text-txt-muted leading-relaxed">
+            {t("settings.import_labels_description")}
+          </p>
+        </div>
         <div className="space-y-2">
           <p className="text-xs font-medium text-txt-secondary">
             {t("settings.import_manual_title")}

@@ -1123,6 +1123,7 @@ export const tr = {
     write_your_reply: "Yanıtınızı yazın...",
     switch_to_rich_text: "Zengin metne geç",
     switch_to_plain_text: "Düz metne geç",
+    plain_text_label: "Düz metin",
     font_size_label: "Yazı tipi boyutu",
     font_family_label: "Yazı tipi",
     font_family_default: "Varsayılan yazı tipi",
@@ -2444,6 +2445,9 @@ export const tr = {
     html_rendering_mode_label: "HTML Görüntülemeyi Engelle",
     html_rendering_mode_description:
       "Takibi, düzen sahteciliğini ve görsel kimlik avını önlemek için gelen e-postaları düz metin olarak gösterin",
+    prefer_plain_text_label: "Düz Metni Tercih Et",
+    prefer_plain_text_description:
+      "Gönderen bir düz metin sürümü eklediğinde HTML sürümü yerine o açılır. Bu sürümü olmayan e-postalar normal şekilde görüntülenir.",
     plain_text_compose_label: "Düz Metinle Yaz",
     plain_text_compose_description:
       "Yeni e-postalar yazarken varsayılan olarak düz metin kullanın",
@@ -6535,6 +6539,9 @@ export const tr = {
     show_badges_in_signature: "Rozetleri e-postalarda göster",
     import_how_it_works: "Nasıl Çalışır",
     import_oauth_title: "Hesap bağlayın",
+    import_labels_title: "Birden fazla etiketi olan iletiler",
+    import_labels_description:
+      "Diğer hesabınız etiket kullanıyorsa bir iletinin birden fazla etiketi olabilir. Aster her iletiyi tek bir klasöre koyar ve iletinin her etiketi için bir Aster etiketi ekler, böylece iletiyi her etiketin altında bulabilirsiniz.",
     import_manual_title: "Manuel İçe Aktarma",
     import_oauth_button: "OAuth",
     import_manual_button: "Manuel",
@@ -6668,6 +6675,9 @@ export const tr = {
     domain_purchase_search_placeholder: "Bir alan adı arayın",
     domain_purchase_per_year: "{{price}}/yıl",
     domain_purchase_taken: "Alınmış",
+    domain_purchase_unchecked: "Kontrol edilemedi",
+    domain_purchase_unchecked_hint:
+      "Bu alan adı şu anda kontrol edilemedi. Daha sonra tekrar deneyin.",
     domain_purchase_no_results: "Uygun alan adı bulunamadı",
     domain_purchase_renews_at: "Yenileme: {{price}}/yıl",
     domain_purchase_years: "Kayıt süresi",
@@ -8525,6 +8535,8 @@ export const tr = {
     mute: "Sessize al",
     print: "Yazdır",
     view_source: "Kaynağı görüntüle",
+    show_plain_text: "Düz metin olarak göster",
+    show_original: "Orijinali göster",
     share: "Paylaş",
     move_to_folder: "Klasöre taşı",
     apply_label: "Etiket uygula",
@@ -8949,7 +8961,7 @@ export const tr = {
     mailing_list_label: "E-posta listesi:",
     list_unsubscribe_available: "Abonelikten çıkma bağlantısı var",
     email_auth_summary_authenticated:
-      "Bu ileti {{domain}} için SPF, DKIM ve DMARC denetimlerini geçti.",
+      "Denetimler bu iletinin {{domain}} tarafından gönderildiğini doğruladı.",
     email_auth_summary_unverified:
       "Denetimler bu iletinin {{domain}} tarafından gönderildiğini doğrulayamadı.",
     email_auth_summary_unavailable:
@@ -9195,6 +9207,10 @@ export const tr = {
     message_id_label: "Mesaj Kimliği:",
     size_label: "Boyut:",
     encryption_label: "Şifreleme:",
+    format_label: "Biçim:",
+    format_html: "HTML",
+    format_plain_text: "Düz metin",
+    format_html_and_plain_text: "HTML ve düz metin",
     location_label: "Konum:",
     zero_access_encrypted: "Uçtan uca şifreli",
     download_headers: "İndir",

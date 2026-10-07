@@ -316,6 +316,8 @@ vi.mock("@/services/crypto/attachment_crypto", () => ({
 vi.mock("@/lib/ignore_error", () => ({ ignore_error: () => undefined }));
 
 const { use_reply_modal } = await import("./use_reply_modal");
+const { store_pending_send_payload } = await import("@/hooks/use_undo_send");
+const { escaped_html_to_plain_text } = await import("@/hooks/editor_utils");
 
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean;
@@ -643,6 +645,79 @@ describe("reply modal drafts around a send", () => {
     expect(mocks.send_reply.mock.calls[0][0].message).not.toContain(
       "&lt;b&gt;",
     );
+  });
+
+  it("sends a plain text reply with the original quoted as text", async () => {
+    mocks.send_reply.mockResolvedValue(queued_send_result());
+    await render_hook(
+      base_props({ original_body: "<p>older <b>text</b></p><p>more</p>" }),
+    );
+    const element = document.createElement("div");
+
+    Object.assign(latest!.message_editor_ref, { current: element });
+    await act(async () => latest!.toggle_plain_text_mode());
+    Object.defineProperty(element, "innerText", {
+      configurable: true,
+      writable: true,
+      value: "Sounds good",
+    });
+    await type_reply(element.innerText);
+    await act(async () => {
+      await latest!.handle_send();
+    });
+
+    const params = mocks.send_reply.mock.calls[0][0];
+
+    expect(params.is_plain_text).toBe(true);
+    expect(params.message).toContain("&gt; older text<br>&gt; more");
+    expect(params.message).not.toContain("<blockquote");
+    expect(params.message).not.toContain("<b>");
+  });
+
+  it("stores a plain reply's undo copy as plain text with the quote", async () => {
+    mocks.send_reply.mockResolvedValue(queued_send_result());
+    vi.mocked(store_pending_send_payload).mockClear();
+    await render_hook(
+      base_props({ original_body: "<p>older <b>text</b></p><p>more</p>" }),
+    );
+    const element = document.createElement("div");
+    const typed = 'Use <project> & "quotes"\n\n  indented\tline';
+
+    Object.assign(latest!.message_editor_ref, { current: element });
+    await act(async () => latest!.toggle_plain_text_mode());
+    Object.defineProperty(element, "innerText", {
+      configurable: true,
+      writable: true,
+      value: typed,
+    });
+    await type_reply(typed);
+    await act(async () => {
+      await latest!.handle_send();
+    });
+
+    const payload = vi.mocked(store_pending_send_payload).mock.calls[0][1];
+    const restored = escaped_html_to_plain_text(payload.body);
+
+    expect(payload.is_plain_text).toBe(true);
+    expect(payload.restore_verbatim).toBe(true);
+    expect(payload.body).not.toContain("<div");
+    expect(restored).toBe(
+      `${typed}\n\nmail.reply_quote_header\n\n> older text\n> more`,
+    );
+  });
+
+  it("keeps the html quote and no plain flag for a rich reply", async () => {
+    mocks.send_reply.mockResolvedValue(queued_send_result());
+    await render_hook(base_props());
+    await type_reply("Sounds good");
+    await act(async () => {
+      await latest!.handle_send();
+    });
+
+    const params = mocks.send_reply.mock.calls[0][0];
+
+    expect(params.is_plain_text).toBeFalsy();
+    expect(params.message).toContain("<blockquote");
   });
 
   it("keeps literal markup and line breaks when switching back to rich text", async () => {
@@ -1069,5 +1144,137 @@ describe("reply modal drafts around a send", () => {
     expect(mocks.update_draft.mock.calls.at(-1)![1].from_email).toBe(
       primary.email,
     );
+  });
+
+  describe("plain text drafts", () => {
+    const typed =
+      "Use <project> & \"quotes\" 'here'\n\n  indented\ttab\n&amp; stays";
+    const stored =
+      "Use &lt;project&gt; &amp; &quot;quotes&quot; &#039;here&#039;<br><br>  indented\ttab<br>&amp;amp; stays";
+
+    async function type_plain(text: string) {
+      const element = document.createElement("div");
+
+      Object.assign(latest!.message_editor_ref, { current: element });
+      await act(async () => latest!.toggle_plain_text_mode());
+      Object.defineProperty(element, "innerText", {
+        configurable: true,
+        writable: true,
+        value: text,
+      });
+      await type_reply(text);
+
+      return element;
+    }
+
+    it("saves the typed text escaped with line breaks, like the compose window", async () => {
+      mocks.create_draft.mockResolvedValue({
+        data: { id: "draft_1", version: 1 },
+      });
+      await render_hook(base_props());
+      await type_plain(typed);
+      await advance(1_600);
+
+      expect(mocks.create_draft).toHaveBeenCalledTimes(1);
+      expect(mocks.create_draft.mock.calls[0][0]).toMatchObject({
+        message: stored,
+        is_plain_text: true,
+      });
+    });
+
+    it("reopens a saved plain draft in plain mode with the text as typed", async () => {
+      mocks.create_draft.mockResolvedValue({
+        data: { id: "draft_1", version: 1 },
+      });
+      await render_hook(base_props());
+      await type_plain(typed);
+      await advance(1_600);
+
+      const saved = mocks.create_draft.mock.calls[0][0];
+
+      await act(async () => root!.unmount());
+      root = createRoot(container!);
+      mocks.create_draft.mockClear();
+      await render_hook(
+        base_props({
+          existing_draft: {
+            id: "draft_1",
+            version: 1,
+            reply_to_id: "email_1",
+            content: saved,
+          },
+        }),
+      );
+      const element = document.createElement("div");
+
+      Object.defineProperty(element, "innerText", {
+        configurable: true,
+        writable: true,
+        value: "",
+      });
+      Object.assign(latest!.message_editor_ref, { current: element });
+      await advance(0);
+
+      expect(latest!.is_plain_text_mode).toBe(true);
+      expect(element.innerText).toBe(typed);
+      expect(latest!.reply_message).toBe(typed);
+
+      await advance(1_600);
+
+      expect(mocks.create_draft).not.toHaveBeenCalled();
+      expect(mocks.update_draft).not.toHaveBeenCalled();
+
+      mocks.update_draft.mockResolvedValue({ data: { version: 2 } });
+      await type_reply(`${typed}\nmore`);
+      await advance(1_600);
+
+      expect(mocks.update_draft.mock.calls[0][1]).toMatchObject({
+        message: `${stored}<br>more`,
+        is_plain_text: true,
+      });
+    });
+
+    it("keeps a rich draft's html and leaves it unmarked", async () => {
+      mocks.create_draft.mockResolvedValue({
+        data: { id: "draft_1", version: 1 },
+      });
+      await render_hook(base_props());
+      await type_reply("<p>See <b>you</b></p>");
+      await advance(1_600);
+
+      expect(mocks.create_draft.mock.calls[0][0].message).toBe(
+        "<p>See <b>you</b></p>",
+      );
+      expect(mocks.create_draft.mock.calls[0][0].is_plain_text).toBeUndefined();
+    });
+
+    it("saves a reply that fails after the send in the same encoding", async () => {
+      mocks.create_draft.mockResolvedValue({
+        data: { id: "kept", version: 1 },
+      });
+      mocks.send_reply.mockImplementation(
+        async (
+          _params: unknown,
+          callbacks: { on_error: (error: string) => void },
+        ) => {
+          setTimeout(() => callbacks.on_error("failed"), 10);
+
+          return queued_send_result();
+        },
+      );
+      await render_hook(base_props());
+      await type_plain(typed);
+      await act(async () => {
+        await latest!.handle_send();
+      });
+      mocks.create_draft.mockClear();
+      await advance(20);
+
+      expect(mocks.create_draft).toHaveBeenCalledTimes(1);
+      expect(mocks.create_draft.mock.calls[0][0]).toMatchObject({
+        message: stored,
+        is_plain_text: true,
+      });
+    });
   });
 });

@@ -297,6 +297,55 @@ describe("classify", () => {
 
     expect(classify(envelope)).toBe("newsletters");
   });
+  it("keeps personal mailbox mail with a feedback id in primary", () => {
+    const envelope = make_envelope({
+      from: { name: "Sam", email: "sam@proton.me" },
+      subject: "Test delivery confirmation",
+      raw_headers: [
+        { name: "Feedback-ID", value: "abc123:proton" },
+        {
+          name: "DKIM-Signature",
+          value: "v=1; a=rsa-sha256; d=proton.me; s=x",
+        },
+      ],
+    });
+
+    expect(classify(envelope)).toBe("primary");
+  });
+
+  it("keeps personal mailbox mail from a generic localpart in primary", () => {
+    const envelope = make_envelope({
+      from: { name: "Alex", email: "contact@gmail.com" },
+      subject: "Payment for dinner last night",
+    });
+
+    expect(classify(envelope)).toBe("primary");
+  });
+
+  it("does not force a personal mailbox address on a list into primary", () => {
+    const envelope = make_envelope({
+      from: { name: "Deals", email: "deals@gmail.com" },
+      subject: "Weekend sale starts now",
+      list_unsubscribe: "<mailto:unsubscribe@example.com>",
+    });
+
+    expect(classify(envelope)).toBe("promotions");
+  });
+
+  it("does not force bulk-service mail from a personal mailbox address into primary", () => {
+    const envelope = make_envelope({
+      from: { name: "Billing", email: "billing@outlook.com" },
+      subject: "Your receipt",
+      raw_headers: [
+        {
+          name: "DKIM-Signature",
+          value: "v=1; a=rsa-sha256; d=sendgrid.net; s=x",
+        },
+      ],
+    });
+
+    expect(classify(envelope)).toBe("transactions");
+  });
 });
 
 describe("category folding", () => {

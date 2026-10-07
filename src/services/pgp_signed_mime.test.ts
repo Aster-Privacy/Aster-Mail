@@ -437,3 +437,117 @@ describe("build_signed_mime_payload", () => {
     );
   });
 });
+
+describe("plain text mode", () => {
+  function body_parts(entity: string): string[] {
+    const outer = /boundary="([^"]+)"/.exec(entity)![1];
+
+    return entity
+      .split(`--${outer}`)
+      .slice(1, -1)
+      .filter((part) => !part.includes("text/rfc822-headers"));
+  }
+
+  function decode_part(part: string): string {
+    const [, payload] = part.split("\r\n\r\n");
+
+    return decode_base64_utf8(payload.replace(/\r\n/g, ""));
+  }
+
+  async function sign_plain(body: string) {
+    memory_identity_key = sender_private;
+    memory_passphrase = PASSPHRASE;
+
+    const payload = await build_signed_mime_payload({
+      subject: "Plain",
+      body,
+      from: "sender@astermail.org",
+      to: ["external@example.org"],
+      cc: [],
+      is_plain_text: true,
+    });
+
+    expect(payload).toBeDefined();
+
+    return {
+      payload: payload!,
+      entity: decode_base64_utf8(payload!.signed_mime),
+    };
+  }
+
+  it("signs a single text/plain part with no html alternative", async () => {
+    const { payload, entity } = await sign_plain(
+      "Don&#039;t &lt;panic&gt; &amp; olá<br>second line",
+    );
+    const parts = body_parts(entity);
+
+    expect(entity).not.toContain("text/html");
+    expect(entity).not.toContain("multipart/alternative");
+    expect(parts).toHaveLength(1);
+    expect(parts[0]).toContain(
+      "Content-Type: text/plain; charset=utf-8\r\nContent-Transfer-Encoding: base64\r\n",
+    );
+    expect(decode_part(parts[0])).toBe("Don't <panic> & olá\r\nsecond line");
+
+    const verified = await openpgp.verify({
+      message: await openpgp.createMessage({ binary: encoder.encode(entity) }),
+      signature: await openpgp.readSignature({
+        armoredSignature: payload.signed_mime_signature,
+      }),
+      verificationKeys: await openpgp.readKey({ armoredKey: sender_public }),
+    });
+
+    expect(await verified.signatures[0].verified).toBe(true);
+  });
+
+  it("sends the signature as text", async () => {
+    const { entity } = await sign_plain(
+      'Thanks<div data-aster-signature="1">--<br><b>Jane Doe</b><br><a href="https://example.org/jane">My page</a></div>',
+    );
+    const [part] = body_parts(entity);
+
+    expect(decode_part(part)).toBe(
+      "Thanks\r\n--\r\nJane Doe\r\nMy page <https://example.org/jane>",
+    );
+  });
+
+  it("sends a reply quote as > lines", async () => {
+    const { entity } = await sign_plain(
+      "Sounds good<br><br><div>Sam &lt;sam@example.org&gt; wrote:<br><br>&gt; First line<br>&gt; Second line</div>",
+    );
+    const [part] = body_parts(entity);
+
+    expect(decode_part(part)).toBe(
+      "Sounds good\r\n\r\nSam <sam@example.org> wrote:\r\n\r\n> First line\r\n> Second line",
+    );
+  });
+
+  it("keeps attachments next to the single text part", async () => {
+    memory_identity_key = sender_private;
+    memory_passphrase = PASSPHRASE;
+
+    const payload = await build_signed_mime_payload({
+      subject: "Plain",
+      body: "See attached",
+      from: "sender@astermail.org",
+      to: ["external@example.org"],
+      cc: [],
+      is_plain_text: true,
+      attachments: [
+        {
+          id: "a1",
+          name: "note.txt",
+          size: "1 B",
+          size_bytes: 1,
+          mime_type: "text/plain",
+          data: new TextEncoder().encode("x").buffer,
+        },
+      ],
+    });
+    const parts = body_parts(decode_base64_utf8(payload!.signed_mime));
+
+    expect(parts).toHaveLength(2);
+    expect(decode_part(parts[0])).toBe("See attached");
+    expect(parts[1]).toContain('filename="note.txt"');
+  });
+});

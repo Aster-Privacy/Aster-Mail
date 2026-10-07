@@ -461,6 +461,19 @@ describe("draft_from_undone_send", () => {
     expect(draft.thread_token).toBe("thread_1");
   });
 
+  it("restores a finished message without adding its signature again", () => {
+    const draft = draft_from_undone_send(pending, {
+      to: ["c"],
+      subject: "payload subject",
+      body: "payload body",
+      draft_type: "reply",
+      restore_verbatim: true,
+    });
+
+    expect(draft.is_restored_send).toBe(true);
+    expect(draft_from_undone_send(pending).is_restored_send).toBeUndefined();
+  });
+
   it("falls back to the pending summary without a payload", () => {
     const draft = draft_from_undone_send(pending);
 

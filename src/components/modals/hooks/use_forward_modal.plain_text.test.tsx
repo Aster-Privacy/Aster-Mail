@@ -264,6 +264,7 @@ vi.mock("@/services/forward_store", () => ({
   clear_forward_mail_id: vi.fn(),
 }));
 const { use_forward_modal } = await import("./use_forward_modal/hook");
+const { escaped_html_to_plain_text } = await import("@/hooks/editor_utils");
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 let latest: ReturnType<typeof use_forward_modal>;
 let root: Root;
@@ -338,12 +339,41 @@ describe("forward comment send formatting", () => {
     });
     expect(mocks.send_forward).toHaveBeenCalledTimes(1);
     expect(mocks.send_forward.mock.calls[0][0].message).toBe(html_comment);
-    expect(mocks.store_payload.mock.calls[0][1].body).toContain(
-      html_comment + "<br><br>",
-    );
-    expect(mocks.store_payload.mock.calls[0][1].body).toContain(
-      "<p>Original message</p>",
-    );
+    const payload = mocks.store_payload.mock.calls[0][1];
+
+    expect(payload.is_plain_text).toBe(true);
+    expect(payload.body).not.toContain("<p>");
+    expect(payload.body.startsWith(html_comment + "<br><br>")).toBe(true);
+    const restored = escaped_html_to_plain_text(payload.body);
+
+    expect(restored).not.toBeNull();
+    expect(restored!.startsWith(plain_comment + "\n\n")).toBe(true);
+    expect(restored).toContain("Original message");
+  });
+  it("keeps the html body and no plain flag in a rich forward's undo payload", async () => {
+    await setup(html_comment, false);
+    await act(async () => {
+      await latest.handle_forward();
+    });
+    const payload = mocks.store_payload.mock.calls[0][1];
+
+    expect(payload.is_plain_text).toBeUndefined();
+    expect(payload.body).toContain(html_comment + "<br><br>");
+    expect(payload.body).toContain("<p>Original message</p>");
+  });
+  it("marks a plain text forward so its mime has no html part", async () => {
+    await setup(plain_comment);
+    await act(async () => {
+      await latest.handle_forward();
+    });
+    expect(mocks.send_forward.mock.calls[0][0].is_plain_text).toBe(true);
+  });
+  it("does not mark a rich text forward as plain", async () => {
+    await setup(html_comment, false);
+    await act(async () => {
+      await latest.handle_forward();
+    });
+    expect(mocks.send_forward.mock.calls[0][0].is_plain_text).toBeFalsy();
   });
   it("preserves plain text when sending through an external account", async () => {
     const external = {

@@ -1195,6 +1195,7 @@ export const hi = {
     write_your_reply: "अपना जवाब लिखें...",
     switch_to_rich_text: "रिच टेक्स्ट पर जाएं",
     switch_to_plain_text: "सादे पाठ पर जाएं",
+    plain_text_label: "सादा पाठ",
     font_size_label: "फ़ॉन्ट का आकार",
     font_family_label: "फ़ॉन्ट",
     font_family_default: "डिफ़ॉल्ट फ़ॉन्ट",
@@ -3082,6 +3083,9 @@ export const hi = {
     html_rendering_mode_label: "HTML दिखाना रोकें",
     html_rendering_mode_description:
       "ट्रैकिंग, लेआउट धोखाधड़ी और दिखने में असली लगने वाली फ़िशिंग रोकने के लिए आने वाली ईमेल सादे टेक्स्ट में दिखाएं",
+    prefer_plain_text_label: "सादा टेक्स्ट पसंद करें",
+    prefer_plain_text_description:
+      "जब भेजने वाला सादे टेक्स्ट वाला संस्करण शामिल करता है, तो HTML संस्करण की जगह वही खुलता है। जिन ईमेल में यह संस्करण नहीं होता, वे सामान्य रूप से दिखते हैं।",
     plain_text_compose_label: "सादे टेक्स्ट में लिखें",
     plain_text_compose_description:
       "नई ईमेल लिखते समय डिफ़ॉल्ट रूप से सादा टेक्स्ट इस्तेमाल करें",
@@ -6298,6 +6302,9 @@ export const hi = {
     domain_purchase_search_placeholder: "डोमेन नाम खोजें",
     domain_purchase_per_year: "{{price}}/वर्ष",
     domain_purchase_taken: "लिया जा चुका है",
+    domain_purchase_unchecked: "जाँच नहीं हो सकी",
+    domain_purchase_unchecked_hint:
+      "अभी इस डोमेन की जाँच नहीं हो सकी। बाद में फिर से कोशिश करें।",
     domain_purchase_no_results: "कोई उपलब्ध डोमेन नहीं मिला",
     domain_purchase_renews_at: "{{price}}/वर्ष पर नवीनीकृत होता है",
     domain_purchase_years: "पंजीकरण की अवधि",
@@ -7061,6 +7068,9 @@ export const hi = {
     import_oauth_title: "खाता कनेक्ट करें",
     import_oauth_description:
       "किसी खाते को कनेक्ट करके उसके सभी मेल इंपोर्ट करें, जिनमें संग्रहित मेल, भेजे गए मेल और लेबल भी शामिल हैं। Gmail ऐप पासवर्ड से कनेक्ट होता है और Outlook आपके खाते में साइन इन करके। बड़े मेलबॉक्स को इंपोर्ट होने में कुछ दिन लग सकते हैं।",
+    import_labels_title: "कई लेबल वाले संदेश",
+    import_labels_description:
+      "अगर आपका दूसरा खाता लेबल इस्तेमाल करता है, तो एक संदेश के कई लेबल हो सकते हैं। Aster हर संदेश को एक फ़ोल्डर में रखता है और उसके हर लेबल के लिए एक Aster लेबल जोड़ता है, ताकि आप उसे हर लेबल के तहत ढूँढ सकें।",
     import_manual_title: "मैन्युअल इंपोर्ट",
     import_manual_step_1:
       "अपने मौजूदा प्रदाता से अपनी ईमेल MBOX, EML या PST फ़ाइलों के रूप में एक्सपोर्ट करें",
@@ -8443,6 +8453,8 @@ export const hi = {
     mute: "म्यूट करें",
     print: "प्रिंट करें",
     view_source: "स्रोत देखें",
+    show_plain_text: "सादे टेक्स्ट के रूप में दिखाएं",
+    show_original: "मूल दिखाएं",
     share: "साझा करें",
     download_file_named: "{{ filename }} डाउनलोड करें",
     to_recipients_prefix: "{{ recipients }} को",
@@ -9057,7 +9069,7 @@ export const hi = {
     mailing_list_label: "मेलिंग सूची:",
     list_unsubscribe_available: "सदस्यता छोड़ने का लिंक शामिल है",
     email_auth_summary_authenticated:
-      "यह संदेश {{domain}} के लिए SPF, DKIM और DMARC जांच में पास हुआ।",
+      "जांचों ने पुष्टि की कि यह संदेश {{domain}} ने भेजा।",
     email_auth_summary_unverified:
       "जांचें पुष्टि नहीं कर पाईं कि यह संदेश {{domain}} ने भेजा।",
     email_auth_summary_unavailable:
@@ -9101,6 +9113,10 @@ export const hi = {
     message_id_label: "संदेश ID:",
     size_label: "आकार:",
     encryption_label: "एन्क्रिप्शन:",
+    format_label: "प्रारूप:",
+    format_html: "HTML",
+    format_plain_text: "सादा पाठ",
+    format_html_and_plain_text: "HTML और सादा पाठ",
     location_label: "जगह:",
     zero_access_encrypted: "एंड-टू-एंड एन्क्रिप्टेड",
     download_headers: "डाउनलोड करें",
