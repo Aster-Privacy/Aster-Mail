@@ -9266,6 +9266,10 @@ export const fr = {
     email_is_clean:
       "Cet e-mail semble sain : aucun élément de suivi n'a été détecté.",
     encryption_label: "Chiffrement",
+    format_label: "Format",
+    format_html: "HTML",
+    format_plain_text: "Texte brut",
+    format_html_and_plain_text: "HTML et texte brut",
     filter_after: "Après : {{ value }}",
     filter_before: "Avant : {{ value }}",
     filter_date: "Date : {{ value }}",

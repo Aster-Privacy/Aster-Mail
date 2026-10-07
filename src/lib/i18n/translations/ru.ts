@@ -9345,6 +9345,10 @@ export const ru = {
     email_is_clean:
       "Это письмо выглядит чистым - элементы отслеживания не обнаружены.",
     encryption_label: "Шифрование:",
+    format_label: "Формат:",
+    format_html: "HTML",
+    format_plain_text: "Обычный текст",
+    format_html_and_plain_text: "HTML и обычный текст",
     filter_after: "После: {{ value }}",
     filter_before: "До: {{ value }}",
     filter_date: "Дата: {{ value }}",
