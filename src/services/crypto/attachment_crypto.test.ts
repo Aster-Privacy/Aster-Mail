@@ -155,3 +155,72 @@ describe("encrypt_attachments_for_send recipient-key invariant", () => {
     expect(recipient_meta).not.toContain("session_key");
   });
 });
+
+describe("encrypt_attachments_for_send split for mixed recipients", () => {
+  it("keeps the outside copy readable and seals a copy for each Aster recipient", async () => {
+    const result = await encrypt_attachments_for_send(
+      [make_attachment()],
+      ["ASTER_PUBLIC_KEY"],
+      false,
+      {},
+      ["friend@astermail.org", "pal@astermail.org"],
+    );
+
+    const outside = JSON.parse(
+      decode_meta(result[0].recipient_encrypted_meta || ""),
+    );
+
+    expect(outside.filename).toBe("secret.pdf");
+    expect(result[0].recipient_metas).toEqual({
+      "friend@astermail.org": expect.any(String),
+      "pal@astermail.org": expect.any(String),
+    });
+    for (const sealed of Object.values(result[0].recipient_metas ?? {})) {
+      expect(decode_meta(sealed)).toBe("PGP_ENCRYPTED_META");
+    }
+  });
+
+  it("refuses a split when Aster recipients have no key", async () => {
+    await expect(
+      encrypt_attachments_for_send(
+        [make_attachment()],
+        undefined,
+        false,
+        {},
+        ["friend@astermail.org"],
+      ),
+    ).rejects.toThrow(/recipient encryption keys unavailable/);
+  });
+
+  it("allows a split with no shared Aster recipients when only hidden copies are sealed", async () => {
+    const result = await encrypt_attachments_for_send(
+      [make_attachment()],
+      undefined,
+      false,
+      { "hidden@astermail.org": ["HIDDEN_KEY"] },
+      [],
+    );
+
+    expect(
+      JSON.parse(decode_meta(result[0].recipient_encrypted_meta || ""))
+        .filename,
+    ).toBe("secret.pdf");
+    expect(Object.keys(result[0].recipient_metas ?? {})).toEqual([
+      "hidden@astermail.org",
+    ]);
+  });
+
+  it("never uses the sealed meta as the outside copy even when encryption is required", async () => {
+    const result = await encrypt_attachments_for_send(
+      [make_attachment()],
+      ["ASTER_PUBLIC_KEY"],
+      true,
+      {},
+      ["friend@astermail.org"],
+    );
+
+    expect(
+      decode_meta(result[0].recipient_encrypted_meta || ""),
+    ).not.toBe("PGP_ENCRYPTED_META");
+  });
+});

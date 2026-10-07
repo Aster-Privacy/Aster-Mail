@@ -558,13 +558,6 @@ async function process_send_email(
   const has_external = recipients.some((r) => !is_internal_recipient(r));
   const has_internal = recipients.some((r) => is_internal_recipient(r));
 
-  if (has_external && has_internal) {
-    throw new OfflineActionError(
-      strings.cannot_mix_recipients,
-      GATE_REJECTED_STATUS,
-    );
-  }
-
   const { execute_send } = await import("@/services/send_queue_encryption");
   const { base64_to_array } = await import("@/services/crypto/envelope");
 
@@ -597,6 +590,12 @@ async function process_send_email(
     client_send_id,
   };
 
+  if (has_external && has_internal) {
+    await send_mixed_after_gates(email, recipients, strings);
+
+    return;
+  }
+
   if (has_external) {
     await send_external_after_gates(email, recipients, strings);
 
@@ -613,14 +612,19 @@ async function process_send_email(
   });
 }
 
-async function send_external_after_gates(
-  email: import("@/services/send_queue_types").EmailParams,
+interface OfflineGateStrings {
+  cannot_send_key_changed_offline: string;
+  offline_settings_unavailable: string;
+}
+
+async function offline_encryption_options(
   recipients: string[],
-  strings: {
-    cannot_send_key_changed_offline: string;
-    offline_settings_unavailable: string;
-  },
-): Promise<void> {
+  strings: OfflineGateStrings,
+): Promise<
+  NonNullable<
+    import("@/services/send_queue_types").EmailParams["encryption_options"]
+  >
+> {
   const { get_cached_preferences } = await import("@/services/api/preferences");
   const preferences = get_cached_preferences();
 
@@ -640,21 +644,63 @@ async function send_external_after_gates(
 
   const use_pgp = preferences.encrypt_emails === true;
   const require_encryption = preferences.require_encryption === true;
+
+  return {
+    auto_discover_keys: use_pgp || require_encryption,
+    encrypt_emails: use_pgp,
+    require_encryption,
+    obscure_subject: preferences.obscure_subject_when_encrypted === true,
+  };
+}
+
+async function send_external_after_gates(
+  email: import("@/services/send_queue_types").EmailParams,
+  recipients: string[],
+  strings: OfflineGateStrings,
+): Promise<void> {
+  const encryption_options = await offline_encryption_options(
+    recipients,
+    strings,
+  );
   const { execute_external_send } =
     await import("@/services/send_queue_encryption");
 
-  await execute_external_send(
+  await execute_external_send({ ...email, encryption_options }, true);
+}
+
+export const OFFLINE_MIXED_SEND_DELAY_SECONDS = 1;
+
+async function send_mixed_after_gates(
+  email: import("@/services/send_queue_types").EmailParams,
+  recipients: string[],
+  strings: OfflineGateStrings,
+): Promise<void> {
+  const encryption_options = await offline_encryption_options(
+    recipients,
+    strings,
+  );
+  const { queue_email_to_server } = await import("@/services/send_queue");
+  let queue_error: string | null = null;
+
+  const result = await queue_email_to_server(
+    { ...email, encryption_options, allow_non_post_quantum: false },
+    OFFLINE_MIXED_SEND_DELAY_SECONDS,
     {
-      ...email,
-      encryption_options: {
-        auto_discover_keys: use_pgp || require_encryption,
-        encrypt_emails: use_pgp,
-        require_encryption,
-        obscure_subject: preferences.obscure_subject_when_encrypted === true,
+      on_error: (message) => {
+        queue_error = message;
       },
     },
-    true,
   );
+
+  if (!result) {
+    const { get_active_translations } =
+      await import("@/lib/i18n/translations");
+
+    throw new OfflineActionError(
+      queue_error || get_active_translations().errors.failed_queue_email,
+      GATE_REJECTED_STATUS,
+    );
+  }
 }
 
 async function process_archive(payload: EmailActionPayload): Promise<void> {

@@ -1078,8 +1078,8 @@ export const nl = {
       "Een e-mail die je offline hebt geschreven, kon niet worden verzonden.",
     offline_email_queued:
       "Je bent op dit moment offline. Deze e-mail wordt verzonden zodra je weer verbinding hebt.",
-    cannot_mix_recipients:
-      "Aster-gebruikers en externe adressen kunnen niet in dezelfde e-mail. Ze als twee aparte berichten verzenden werkt.",
+    password_needs_outside_recipients_only:
+      "Wachtwoordbeveiliging werkt alleen als alle ontvangers een andere e-mailprovider gebruiken. Als je Aster-gebruikers wilt toevoegen, schakel je de wachtwoordbeveiliging uit of stuur je hun een apart bericht.",
     failed_to_schedule_email:
       "De planning is niet opgeslagen. Probeer het opnieuw. Je concept is opgeslagen.",
     failed_to_restore_draft:

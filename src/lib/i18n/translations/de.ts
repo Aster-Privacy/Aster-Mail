@@ -1197,8 +1197,8 @@ export const de = {
       "Diese E-Mail wurde nicht über Ihr verknüpftes externes Konto gesendet. Versuchen Sie es erneut. Ihr Entwurf ist gespeichert.",
     failed_to_queue_offline:
       "Diese E-Mail konnte nicht für den späteren Versand eingereiht werden. Versuchen Sie es erneut. Ihr Entwurf ist gespeichert.",
-    cannot_mix_recipients:
-      "Aster-Nutzer und externe Adressen lassen sich nicht in derselben E-Mail kombinieren. Ein Versand als zwei getrennte Nachrichten funktioniert.",
+    password_needs_outside_recipients_only:
+      "Der Passwortschutz funktioniert nur, wenn alle Empfänger einen anderen E-Mail-Anbieter nutzen. Um Aster-Nutzer einzubeziehen, deaktivieren Sie den Passwortschutz oder senden Sie ihnen eine separate Nachricht.",
     duplicate_send_blocked:
       "Diese Nachricht wurde gerade gesendet. Prüfen Sie Ihren Ordner „Gesendet“, bevor Sie sie erneut senden.",
     empty_body_error:

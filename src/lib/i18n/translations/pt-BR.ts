@@ -998,8 +998,8 @@ export const pt_br = {
       "Você está offline no momento. Este e-mail será enviado assim que você se reconectar.",
     failed_to_queue_offline:
       "Não foi possível colocar este e-mail na fila para envio posterior. Tente novamente. Seu rascunho está salvo.",
-    cannot_mix_recipients:
-      "Usuários do Aster e endereços externos não podem ir no mesmo e-mail. Enviá-los em duas mensagens separadas vai funcionar.",
+    password_needs_outside_recipients_only:
+      "A proteção por senha só funciona quando todos os destinatários usam outro provedor de e-mail. Para incluir usuários do Aster, desative a proteção por senha ou envie a eles uma mensagem separada.",
     failed_to_schedule_email:
       "O agendamento não foi salvo. Tente novamente. Seu rascunho está salvo.",
     failed_to_restore_draft:

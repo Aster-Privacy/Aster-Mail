@@ -1127,8 +1127,8 @@ export const fr = {
       "Vous êtes hors ligne pour l'instant. Ce message s'enverra dès que vous serez reconnecté.",
     failed_to_queue_offline:
       "Impossible de mettre cet e-mail en file d'attente pour un envoi ultérieur. Réessayez. Votre brouillon est enregistré.",
-    cannot_mix_recipients:
-      "Les utilisateurs Aster et les adresses externes ne peuvent pas figurer dans le même message. Les envoyer en deux messages séparés fonctionnera.",
+    password_needs_outside_recipients_only:
+      "La protection par mot de passe ne fonctionne que si tous les destinataires utilisent un autre fournisseur de messagerie. Pour inclure des utilisateurs Aster, désactivez la protection par mot de passe ou envoyez-leur un message séparé.",
     failed_to_schedule_email:
       "La programmation n'a pas été enregistrée. Réessayez. Votre brouillon est enregistré.",
     failed_to_restore_draft:

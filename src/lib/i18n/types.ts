@@ -1724,7 +1724,7 @@ export interface CommonTranslations {
   offline_send_failed: string;
   offline_email_queued: string;
   failed_to_queue_offline: string;
-  cannot_mix_recipients: string;
+  password_needs_outside_recipients_only: string;
   empty_body_error: string;
   duplicate_send_blocked: string;
   subject_too_long: string;

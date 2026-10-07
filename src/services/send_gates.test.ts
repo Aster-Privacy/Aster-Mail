@@ -80,7 +80,7 @@ describe("check_scheduled_send", () => {
     });
   });
 
-  it("blocks mixed Aster and outside recipients", async () => {
+  it("allows mixed Aster and outside recipients with consent for Aster recipients only", async () => {
     const result = await check_scheduled_send(
       ["friend@astermail.org", "bob@example.com"],
       "me@astermail.org",
@@ -88,10 +88,38 @@ describe("check_scheduled_send", () => {
       false,
     );
 
+    expect(consent).toHaveBeenCalledWith(
+      ["friend@astermail.org"],
+      "me@astermail.org",
+    );
+    expect(result).toEqual({ proceed: true, allow_non_post_quantum: false });
+  });
+
+  it("blocks mixed recipients when encryption is required", async () => {
+    const result = await check_scheduled_send(
+      ["friend@astermail.org", "bob@example.com"],
+      "me@astermail.org",
+      soon(),
+      true,
+    );
+
     expect(result).toEqual({
       proceed: false,
-      blocked_by: "common.cannot_mix_recipients",
+      blocked_by: "common.scheduled_requires_encryption",
     });
+    expect(consent).not.toHaveBeenCalled();
+  });
+
+  it("does not ask for consent when every recipient is outside", async () => {
+    const result = await check_scheduled_send(
+      ["bob@example.com"],
+      "me@astermail.org",
+      soon(),
+      false,
+    );
+
+    expect(consent).not.toHaveBeenCalled();
+    expect(result).toEqual({ proceed: true, allow_non_post_quantum: false });
   });
 
   it("blocks outside recipients when encryption is required", async () => {
@@ -160,13 +188,55 @@ describe("check_scheduled_send", () => {
 });
 
 describe("check_reply_send", () => {
-  it("blocks mixed recipients", async () => {
+  it("allows mixed recipients when encryption is optional", async () => {
     expect(
       await check_reply_send(
         ["friend@astermail.org", "bob@example.com"],
         false,
       ),
-    ).toBe(strings().common.cannot_mix_recipients);
+    ).toBeNull();
+    expect(discover).not.toHaveBeenCalled();
+  });
+
+  it("checks keys only for the outside half of a mixed reply", async () => {
+    discover.mockResolvedValue({
+      recipients_with_keys: [key_for("bob@example.com")],
+    });
+
+    expect(
+      await check_reply_send(
+        ["friend@astermail.org", "bob@example.com"],
+        true,
+      ),
+    ).toBeNull();
+    expect(discover).toHaveBeenCalledWith(["bob@example.com"], true);
+  });
+
+  it("blocks a mixed reply when an outside recipient has no key and encryption is required", async () => {
+    discover.mockResolvedValue({ recipients_with_keys: [] });
+
+    const error = await check_reply_send(
+      ["friend@astermail.org", "bob@example.com"],
+      true,
+    );
+
+    expect(error).toBe(strings().errors.cannot_send_no_recipient_keys);
+    expect(discover).toHaveBeenCalledWith(["bob@example.com"], true);
+  });
+
+  it("names only the outside recipient without a key in a mixed reply", async () => {
+    discover.mockResolvedValue({
+      recipients_with_keys: [key_for("bob@example.com")],
+    });
+
+    const error = await check_reply_send(
+      ["friend@astermail.org", "bob@example.com", "eve@example.com"],
+      true,
+    );
+
+    expect(error).toContain("eve@example.com");
+    expect(error).not.toContain("friend@astermail.org");
+    expect(error).not.toContain("bob@example.com");
   });
 
   it("blocks outside recipients without a key when encryption is required", async () => {

@@ -1116,8 +1116,8 @@ export const it = {
       "Lei è offline in questo momento. Questa email verrà inviata appena si riconnetterà.",
     failed_to_queue_offline:
       "Impossibile mettere in coda questa email per l'invio successivo. Riprova. La bozza è salvata.",
-    cannot_mix_recipients:
-      "Gli utenti Aster e gli indirizzi esterni non possono andare nella stessa email. Inviarli come due messaggi separati funzionerà.",
+    password_needs_outside_recipients_only:
+      "La protezione con password funziona solo se tutti i destinatari usano un altro provider di posta. Per includere utenti Aster, disattiva la protezione con password o invia loro un messaggio separato.",
     failed_to_schedule_email:
       "La programmazione non è stata salvata. Riprova. La bozza è salvata.",
     failed_to_restore_draft:

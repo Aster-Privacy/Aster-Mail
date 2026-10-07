@@ -1149,8 +1149,8 @@ export const ko = {
       "지금은 오프라인 상태입니다. 이 이메일은 다시 연결되는 즉시 발송됩니다.",
     failed_to_queue_offline:
       "이 이메일을 나중에 보내도록 대기열에 추가하지 못했습니다. 다시 시도하세요. 임시 보관함에 저장되었습니다.",
-    cannot_mix_recipients:
-      "Aster 사용자와 외부 주소는 같은 이메일에 함께 넣을 수 없습니다. 두 통의 별도 메시지로 보내면 됩니다.",
+    password_needs_outside_recipients_only:
+      "비밀번호 보호는 모든 수신자가 다른 이메일 서비스를 사용할 때만 작동합니다. Aster 사용자를 포함하려면 비밀번호 보호를 끄거나 별도의 메시지를 보내세요.",
     failed_to_schedule_email:
       "예약을 저장하지 못했습니다. 다시 시도하세요. 임시 보관함에 저장되었습니다.",
     failed_to_restore_draft:

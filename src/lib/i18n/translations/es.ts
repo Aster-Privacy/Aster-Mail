@@ -1118,8 +1118,8 @@ export const es = {
       "Estás sin conexión ahora mismo. Este correo se enviará cuando vuelvas a conectarte.",
     failed_to_queue_offline:
       "No pudimos poner este correo en cola para enviarlo más tarde. Inténtalo de nuevo. Tu borrador está guardado.",
-    cannot_mix_recipients:
-      "No puedes enviar a usuarios de Aster y a direcciones externas en un mismo correo. Enviarlos como dos mensajes separados funcionará.",
+    password_needs_outside_recipients_only:
+      "La protección con contraseña solo funciona cuando todos los destinatarios usan otro proveedor de correo. Para incluir a usuarios de Aster, desactiva la protección con contraseña o envíales un mensaje aparte.",
     failed_to_schedule_email:
       "La programación no se guardó. Inténtalo de nuevo. Tu borrador está guardado.",
     failed_to_restore_draft:

@@ -958,8 +958,8 @@ export const zh_CN = {
     offline_email_queued: "您当前处于离线状态，这封邮件会在您重新联网后发出。",
     failed_to_queue_offline:
       "我们无法将此邮件加入稍后发送的队列。请重试。您的草稿已保存。",
-    cannot_mix_recipients:
-      "Aster 用户和外部地址不能放在同一封邮件中，分两封发送就可以。",
+    password_needs_outside_recipients_only:
+      "仅当所有收件人都使用其他邮件服务商时，密码保护才有效。如需包含 Aster 用户，请关闭密码保护或另外给他们发送一封邮件。",
     failed_to_schedule_email: "定时设置未能保存。请重试。您的草稿已保存。",
     failed_to_restore_draft:
       "我们无法找回这份草稿，重新打开一次通常可以。您的其他草稿不受影响。",
