@@ -2445,6 +2445,9 @@ export const tr = {
     html_rendering_mode_label: "HTML Görüntülemeyi Engelle",
     html_rendering_mode_description:
       "Takibi, düzen sahteciliğini ve görsel kimlik avını önlemek için gelen e-postaları düz metin olarak gösterin",
+    prefer_plain_text_label: "Düz Metni Tercih Et",
+    prefer_plain_text_description:
+      "Gönderen bir düz metin sürümü eklediğinde HTML sürümü yerine o açılır. Bu sürümü olmayan e-postalar normal şekilde görüntülenir.",
     plain_text_compose_label: "Düz Metinle Yaz",
     plain_text_compose_description:
       "Yeni e-postalar yazarken varsayılan olarak düz metin kullanın",
@@ -8529,6 +8532,8 @@ export const tr = {
     mute: "Sessize al",
     print: "Yazdır",
     view_source: "Kaynağı görüntüle",
+    show_plain_text: "Düz metin olarak göster",
+    show_original: "Orijinali göster",
     share: "Paylaş",
     move_to_folder: "Klasöre taşı",
     apply_label: "Etiket uygula",

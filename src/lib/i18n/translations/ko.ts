@@ -2405,6 +2405,9 @@ export const ko = {
     html_rendering_mode_label: "HTML 렌더링 차단",
     html_rendering_mode_description:
       "추적, 레이아웃 위조, 시각적 피싱을 방지하기 위해 수신 이메일을 일반 텍스트로 표시합니다",
+    prefer_plain_text_label: "일반 텍스트 우선",
+    prefer_plain_text_description:
+      "보낸 사람이 일반 텍스트 버전을 포함한 경우 HTML 버전 대신 해당 버전을 엽니다. 일반 텍스트 버전이 없는 이메일은 평소대로 표시됩니다.",
     plain_text_compose_label: "일반 텍스트로 작성",
     plain_text_compose_description:
       "새 이메일을 작성할 때 기본적으로 일반 텍스트를 사용합니다",
@@ -8284,6 +8287,8 @@ export const ko = {
     mute: "음소거",
     print: "인쇄",
     view_source: "소스 보기",
+    show_plain_text: "일반 텍스트로 보기",
+    show_original: "원본 보기",
     share: "공유",
     move_to_folder: "폴더로 이동",
     apply_label: "라벨 적용",

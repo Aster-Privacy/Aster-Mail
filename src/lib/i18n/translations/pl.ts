@@ -2642,6 +2642,9 @@ export const pl = {
     html_rendering_mode_label: "Blokuj renderowanie HTML",
     html_rendering_mode_description:
       "Wyświetlaj przychodzące wiadomości jako zwykły tekst, aby zapobiec śledzeniu, podszywaniu się pod układ i wizualnemu phishingowi",
+    prefer_plain_text_label: "Preferuj zwykły tekst",
+    prefer_plain_text_description:
+      "Gdy nadawca dołącza wersję w zwykłym tekście, otwiera się ona zamiast wersji HTML. Wiadomości bez takiej wersji są wyświetlane normalnie.",
     plain_text_compose_label: "Twórz w zwykłym tekście",
     plain_text_compose_description:
       "Domyślnie używaj zwykłego tekstu podczas pisania nowych wiadomości",
@@ -8856,6 +8859,8 @@ export const pl = {
     mute: "Wycisz",
     print: "Drukuj",
     view_source: "Wyświetl źródło",
+    show_plain_text: "Pokaż jako zwykły tekst",
+    show_original: "Pokaż oryginał",
     share: "Udostępnij",
     move_to_folder: "Przenieś do folderu",
     apply_label: "Zastosuj etykietę",

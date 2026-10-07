@@ -65,6 +65,7 @@ export function keep_readable_bodies(
       ...message,
       body: earlier.body,
       html_content: earlier.html_content,
+      text_part: earlier.text_part,
     };
   });
 
@@ -97,6 +98,7 @@ export function include_opened_message(
     ...existing,
     body: opened.body,
     html_content: opened.html_content,
+    text_part: opened.text_part,
   };
 
   return next;

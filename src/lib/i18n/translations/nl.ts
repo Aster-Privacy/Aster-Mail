@@ -2425,6 +2425,9 @@ export const nl = {
     html_rendering_mode_label: "HTML-weergave blokkeren",
     html_rendering_mode_description:
       "Toon inkomende e-mails als platte tekst om tracking, layoutvervalsing en visuele phishing te voorkomen",
+    prefer_plain_text_label: "Voorkeur voor platte tekst",
+    prefer_plain_text_description:
+      "Als de afzender een versie in platte tekst meestuurt, wordt die geopend in plaats van de HTML-versie. E-mails zonder die versie worden normaal weergegeven.",
     plain_text_compose_label: "Opstellen in platte tekst",
     plain_text_compose_description:
       "Standaard platte tekst gebruiken bij het schrijven van nieuwe e-mails",
@@ -8600,6 +8603,8 @@ export const nl = {
     mute: "Dempen",
     print: "Afdrukken",
     view_source: "Bron bekijken",
+    show_plain_text: "Tonen als platte tekst",
+    show_original: "Origineel tonen",
     share: "Delen",
     move_to_folder: "Naar map verplaatsen",
     apply_label: "Label toepassen",

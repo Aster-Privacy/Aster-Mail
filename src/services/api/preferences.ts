@@ -223,6 +223,7 @@ export interface UserPreferences {
   migration_viewer_toolbar_v1_done: boolean;
   migration_signature_placement_v1_done: boolean;
   html_rendering_mode: "html" | "plain_text";
+  prefer_plain_text: boolean;
   low_network_mode: boolean;
   low_network_mode_user_set: boolean;
   show_side_panel: boolean;
@@ -809,6 +810,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   migration_viewer_toolbar_v1_done: false,
   migration_signature_placement_v1_done: false,
   html_rendering_mode: "html",
+  prefer_plain_text: false,
   low_network_mode: false,
   low_network_mode_user_set: false,
   show_side_panel: true,

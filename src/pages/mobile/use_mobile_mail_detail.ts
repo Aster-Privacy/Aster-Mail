@@ -73,6 +73,11 @@ import { app_locale } from "@/utils/date_format";
 import { resolve_reply_references } from "@/lib/reply_references";
 import { sanitize_outgoing_html } from "@/lib/html_sanitizer_compose";
 import { inline_email_css } from "@/lib/forward_css_inliner";
+import { message_plain_view_state } from "@/components/email/plain_view";
+import {
+  set_plain_view_override,
+  use_plain_view_override,
+} from "@/components/email/plain_view_store";
 
 const RELEASE_EVENTS = ["touchstart", "wheel", "pointerdown", "keydown"];
 const ANCHOR_HOLD_MS = 1000;
@@ -936,6 +941,28 @@ export function use_mobile_mail_detail() {
     set_menu_message(null);
   }, [menu_message]);
 
+  const menu_plain_view_override = use_plain_view_override(
+    menu_message?.id ?? "",
+  );
+  const menu_plain_view = useMemo(
+    () =>
+      menu_message
+        ? message_plain_view_state(
+            menu_message,
+            preferences.prefer_plain_text === true,
+            menu_plain_view_override,
+          )
+        : { available: false, active: false },
+    [menu_message, preferences.prefer_plain_text, menu_plain_view_override],
+  );
+
+  const handle_toggle_plain_view = useCallback(() => {
+    if (menu_message) {
+      set_plain_view_override(menu_message.id, !menu_plain_view.active);
+    }
+    set_menu_message(null);
+  }, [menu_message, menu_plain_view.active]);
+
   const handle_report_phishing = useCallback(() => {
     if (menu_message) {
       const target = menu_message;
@@ -1218,6 +1245,8 @@ export function use_mobile_mail_detail() {
     handle_toggle_dark_mode,
     handle_toggle_all_dark_mode,
     handle_view_source,
+    menu_plain_view,
+    handle_toggle_plain_view,
     handle_report_phishing,
     handle_menu_archive,
     handle_menu_trash,

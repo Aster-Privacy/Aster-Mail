@@ -33,6 +33,7 @@ import {
   ShieldExclamationIcon,
   NoSymbolIcon,
   CodeBracketIcon,
+  DocumentTextIcon,
   ClipboardDocumentIcon,
   FolderIcon,
   CheckIcon,
@@ -169,7 +170,10 @@ export function ThreadMessageBlock(
     sanitized_content,
     is_sanitize_pending,
     effective_html,
-    html_blocked,
+    show_as_text,
+    plain_view,
+    can_toggle_plain_view,
+    toggle_plain_view,
     plain_text_html,
     name,
     can_collapse,
@@ -740,6 +744,19 @@ export function ThreadMessageBlock(
                     : t("mail.view_dark_mode")}
                 </DropdownMenuItem>
               )}
+              {can_toggle_plain_view && (
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggle_plain_view();
+                  }}
+                >
+                  <DocumentTextIcon className="w-4 h-4 me-2" />
+                  {plain_view
+                    ? t("mail.show_original")
+                    : t("mail.show_plain_text")}
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem
                 onClick={(e) => {
                   e.stopPropagation();
@@ -879,11 +896,11 @@ export function ThreadMessageBlock(
         )}
 
       <div
-        className={`${is_plain_text || html_blocked ? "ps-[52px] pb-4" : "pb-0"} pt-1`}
+        className={`${is_plain_text || show_as_text ? "ps-[52px] pb-4" : "pb-0"} pt-1`}
       >
         {!is_ratchet_undecryptable && (
           <div
-            className={`min-w-0 ${is_plain_text || html_blocked ? "pe-4" : "ps-[52px] pe-4"}`}
+            className={`min-w-0 ${is_plain_text || show_as_text ? "pe-4" : "ps-[52px] pe-4"}`}
           >
             <TranslationBanner
               download_bytes={translation.download_bytes}
@@ -907,7 +924,7 @@ export function ThreadMessageBlock(
           <p className="mx-4 mb-3 rounded-[20px] bg-surf-primary px-4 py-3 text-sm italic text-txt-muted">
             {t("mail.encrypted_message_unavailable")}
           </p>
-        ) : is_sanitize_pending && !html_blocked ? (
+        ) : is_sanitize_pending && !show_as_text ? (
           <div
             aria-hidden="true"
             style={{
@@ -919,18 +936,18 @@ export function ThreadMessageBlock(
         ) : (
           <ThreadMessageBody
             body_background={
-              html_blocked ? undefined : sanitized_content.body_background
+              show_as_text ? undefined : sanitized_content.body_background
             }
             clean_body={clean_body}
             disable_auto_dark_mode={disable_auto_dark_mode}
             email_id={message.id}
             force_dark_mode={force_dark_mode}
-            is_plain_text={html_blocked ? true : is_plain_text}
-            load_remote_content={html_blocked ? false : load_remote_content}
+            is_plain_text={show_as_text ? true : is_plain_text}
+            load_remote_content={show_as_text ? false : load_remote_content}
             on_document_ready={translation.on_document_ready}
             preserve_formatting={message.is_sending === true}
             sanitized_html={
-              html_blocked ? (plain_text_html ?? "") : effective_html
+              show_as_text ? (plain_text_html ?? "") : effective_html
             }
             set_wrap_source={set_wrap_source}
             viewing_source={viewing_source}
@@ -939,7 +956,7 @@ export function ThreadMessageBlock(
         )}
 
         <div
-          className={is_plain_text || html_blocked ? "" : "ps-[52px]"}
+          className={is_plain_text || show_as_text ? "" : "ps-[52px]"}
           onClick={(e) => e.stopPropagation()}
         >
           <AttachmentList

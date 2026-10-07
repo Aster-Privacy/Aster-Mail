@@ -86,6 +86,15 @@ import {
 import { use_auth_safe } from "@/contexts/auth_context";
 import { use_attachment_keys_version } from "@/hooks/use_attachment_keys_version";
 import { ignore_error } from "@/lib/ignore_error";
+import {
+  message_text_alternative,
+  plain_view_html,
+  resolve_plain_view,
+} from "@/components/email/plain_view";
+import {
+  set_plain_view_override,
+  use_plain_view_override,
+} from "@/components/email/plain_view_store";
 import { run_after_next_paint } from "@/lib/run_after_next_paint";
 import { clip_with_ellipsis } from "@/utils/preview_text";
 
@@ -320,6 +329,38 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
       message.body === PGP_UNDECRYPTABLE_SENTINEL ||
       is_ratchet_envelope(message.body) ||
       is_ratchet_envelope(message.html_content));
+  const html_blocked =
+    is_html_content(clean_body) &&
+    (preferences.html_rendering_mode === "plain_text" ||
+      preferences.low_network_mode);
+  const plain_view_override = use_plain_view_override(message.id);
+  const has_text_alternative = useMemo(
+    () =>
+      guard_body_step(
+        "components/email/use_thread_message_block:text_alternative",
+        () =>
+          message_text_alternative({
+            body: message.body,
+            html_content: message.html_content,
+            text_part: message.text_part,
+          }) !== undefined,
+        () => false,
+      ),
+    [message.body, message.html_content, message.text_part],
+  );
+  const can_toggle_plain_view =
+    !password_protected &&
+    !is_ratchet_undecryptable &&
+    !html_blocked &&
+    is_html_content(clean_body);
+  const plain_view = resolve_plain_view({
+    has_html: can_toggle_plain_view,
+    has_text_alternative,
+    prefer_plain_text: preferences.prefer_plain_text === true,
+    override: plain_view_override,
+  });
+  const toggle_plain_view = () =>
+    set_plain_view_override(message.id, !plain_view);
   const rich_html_source = message.html_content || message.body;
   const is_plain_text = useMemo(
     () =>
@@ -415,7 +456,7 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
     loaded_content_types && loaded_content_types.size > 0;
 
   const sanitize_job = useMemo((): SanitizeJob => {
-    if (!is_body_visible) {
+    if (!is_body_visible || plain_view) {
       return {
         ready: { html: "", report: null, body_background: undefined },
       };
@@ -519,6 +560,7 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
     );
   }, [
     is_body_visible,
+    plain_view,
     preloaded_sanitized,
     clean_body,
     message.id,
@@ -684,12 +726,21 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
 
   const effective_html = cid_resolved_html ?? sanitized_content.html;
 
-  const html_blocked =
-    is_html_content(clean_body) &&
-    (preferences.html_rendering_mode === "plain_text" ||
-      preferences.low_network_mode);
+  const show_as_text = html_blocked || plain_view;
 
   const plain_text_html = useMemo(() => {
+    if (plain_view) {
+      return guard_body_step(
+        "components/email/use_thread_message_block:plain_view_html",
+        () =>
+          plain_view_html(clean_body, {
+            body: message.body,
+            html_content: message.html_content,
+            text_part: message.text_part,
+          }),
+        () => readable_fallback_html(clean_body, message.body),
+      );
+    }
     if (!html_blocked) return null;
 
     return guard_body_step(
@@ -700,7 +751,14 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
         ),
       () => readable_fallback_html(clean_body, message.body),
     );
-  }, [html_blocked, clean_body, message.body]);
+  }, [
+    html_blocked,
+    plain_view,
+    clean_body,
+    message.body,
+    message.html_content,
+    message.text_part,
+  ]);
 
   const name = is_own_message ? t("common.me") : show_sender_name;
   const can_collapse = !is_single_message && !is_last_in_thread;
@@ -736,7 +794,10 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
     sanitized_content,
     is_sanitize_pending,
     effective_html,
-    html_blocked,
+    show_as_text,
+    plain_view,
+    can_toggle_plain_view,
+    toggle_plain_view,
     plain_text_html,
     name,
     can_collapse,

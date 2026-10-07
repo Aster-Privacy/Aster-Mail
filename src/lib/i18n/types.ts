@@ -3187,6 +3187,8 @@ export interface SettingsTranslations {
   html_content_section_title: string;
   html_rendering_mode_label: string;
   html_rendering_mode_description: string;
+  prefer_plain_text_label: string;
+  prefer_plain_text_description: string;
   plain_text_compose_label: string;
   plain_text_compose_description: string;
   images_section_title: string;
@@ -7481,6 +7483,8 @@ export interface MailTranslations {
   mute: string;
   print: string;
   view_source: string;
+  show_plain_text: string;
+  show_original: string;
   share: string;
   download_file_named: string;
   to_recipients_prefix: string;
