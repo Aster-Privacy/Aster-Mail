@@ -347,7 +347,7 @@ export function TagManagementModal({
                 {t("common.cancel")}
               </Button>
               <Button
-                className="flex-1"
+                className="flex-1 label_folder_action"
                 disabled={is_loading || !can_rename}
                 variant="depth"
                 onClick={handle_rename}
@@ -421,9 +421,9 @@ export function TagManagementModal({
                 {t("common.cancel")}
               </Button>
               <Button
-                className="flex-1 text-white"
+                className="flex-1 label_folder_action"
                 disabled={is_loading}
-                style={{ backgroundColor: new_color }}
+                style={{ backgroundColor: new_color, color: "#fff" }}
                 variant="depth"
                 onClick={handle_recolor}
               >
@@ -477,7 +477,7 @@ export function TagManagementModal({
                 {t("common.cancel")}
               </Button>
               <Button
-                className="flex-1"
+                className="flex-1 label_folder_action"
                 disabled={is_loading}
                 variant="depth"
                 onClick={handle_reicon}
@@ -555,7 +555,7 @@ export function TagManagementModal({
                 {t("common.cancel")}
               </Button>
               <Button
-                className="flex-1"
+                className="flex-1 label_folder_action"
                 disabled={
                   is_loading ||
                   selected_parent_token === current_parent_token ||

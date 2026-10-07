@@ -346,10 +346,10 @@ export function CreateFolderModal({
                 {t("common.cancel")}
               </Button>
               <Button
-                className="text-white"
+                className="label_folder_action"
                 disabled={!trimmed_name || is_creating || !!validation_error}
                 is_loading={is_creating}
-                style={{ backgroundColor: selected_color }}
+                style={{ backgroundColor: selected_color, color: "#fff" }}
                 variant="depth"
                 onClick={handle_create}
               >
