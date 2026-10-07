@@ -36,7 +36,7 @@ type PlainViewFields = Pick<
 >;
 
 const HTML_MARKUP_RE =
-  /<\/?(?:html|head|body|div|p|br|table|tr|td|span|font|img|style|center)[\s/>]/i;
+  /<\/?(?:html|head|body|div|p|br|table|tr|td|span|font|img|style|center|a|h[1-6]|ul|ol|li|blockquote|hr|pre)[\s/>]/i;
 
 const MIME_HEADER_RE = /^content-type\s*:/im;
 

@@ -51,6 +51,9 @@ describe("sender_text_alternative", () => {
   it("ignores text parts that are markup, MIME or still encrypted", () => {
     expect(sender_text_alternative(HTML, "<div>Hi</div>")).toBe(undefined);
     expect(
+      sender_text_alternative(HTML, '<h1>Sale</h1><a href="x">Shop</a>'),
+    ).toBe(undefined);
+    expect(
       sender_text_alternative(HTML, "Content-Type: text/plain\n\nHi"),
     ).toBe(undefined);
     expect(
