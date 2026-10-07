@@ -1111,4 +1111,136 @@ describe("reply modal drafts around a send", () => {
       primary.email,
     );
   });
+
+  describe("plain text drafts", () => {
+    const typed =
+      "Use <project> & \"quotes\" 'here'\n\n  indented\ttab\n&amp; stays";
+    const stored =
+      "Use &lt;project&gt; &amp; &quot;quotes&quot; &#039;here&#039;<br><br>  indented\ttab<br>&amp;amp; stays";
+
+    async function type_plain(text: string) {
+      const element = document.createElement("div");
+
+      Object.assign(latest!.message_editor_ref, { current: element });
+      await act(async () => latest!.toggle_plain_text_mode());
+      Object.defineProperty(element, "innerText", {
+        configurable: true,
+        writable: true,
+        value: text,
+      });
+      await type_reply(text);
+
+      return element;
+    }
+
+    it("saves the typed text escaped with line breaks, like the compose window", async () => {
+      mocks.create_draft.mockResolvedValue({
+        data: { id: "draft_1", version: 1 },
+      });
+      await render_hook(base_props());
+      await type_plain(typed);
+      await advance(1_600);
+
+      expect(mocks.create_draft).toHaveBeenCalledTimes(1);
+      expect(mocks.create_draft.mock.calls[0][0]).toMatchObject({
+        message: stored,
+        is_plain_text: true,
+      });
+    });
+
+    it("reopens a saved plain draft in plain mode with the text as typed", async () => {
+      mocks.create_draft.mockResolvedValue({
+        data: { id: "draft_1", version: 1 },
+      });
+      await render_hook(base_props());
+      await type_plain(typed);
+      await advance(1_600);
+
+      const saved = mocks.create_draft.mock.calls[0][0];
+
+      await act(async () => root!.unmount());
+      root = createRoot(container!);
+      mocks.create_draft.mockClear();
+      await render_hook(
+        base_props({
+          existing_draft: {
+            id: "draft_1",
+            version: 1,
+            reply_to_id: "email_1",
+            content: saved,
+          },
+        }),
+      );
+      const element = document.createElement("div");
+
+      Object.defineProperty(element, "innerText", {
+        configurable: true,
+        writable: true,
+        value: "",
+      });
+      Object.assign(latest!.message_editor_ref, { current: element });
+      await advance(0);
+
+      expect(latest!.is_plain_text_mode).toBe(true);
+      expect(element.innerText).toBe(typed);
+      expect(latest!.reply_message).toBe(typed);
+
+      await advance(1_600);
+
+      expect(mocks.create_draft).not.toHaveBeenCalled();
+      expect(mocks.update_draft).not.toHaveBeenCalled();
+
+      mocks.update_draft.mockResolvedValue({ data: { version: 2 } });
+      await type_reply(`${typed}\nmore`);
+      await advance(1_600);
+
+      expect(mocks.update_draft.mock.calls[0][1]).toMatchObject({
+        message: `${stored}<br>more`,
+        is_plain_text: true,
+      });
+    });
+
+    it("keeps a rich draft's html and leaves it unmarked", async () => {
+      mocks.create_draft.mockResolvedValue({
+        data: { id: "draft_1", version: 1 },
+      });
+      await render_hook(base_props());
+      await type_reply("<p>See <b>you</b></p>");
+      await advance(1_600);
+
+      expect(mocks.create_draft.mock.calls[0][0].message).toBe(
+        "<p>See <b>you</b></p>",
+      );
+      expect(mocks.create_draft.mock.calls[0][0].is_plain_text).toBeUndefined();
+    });
+
+    it("saves a reply that fails after the send in the same encoding", async () => {
+      mocks.create_draft.mockResolvedValue({
+        data: { id: "kept", version: 1 },
+      });
+      mocks.send_reply.mockImplementation(
+        async (
+          _params: unknown,
+          callbacks: { on_error: (error: string) => void },
+        ) => {
+          setTimeout(() => callbacks.on_error("failed"), 10);
+
+          return queued_send_result();
+        },
+      );
+      await render_hook(base_props());
+      await type_plain(typed);
+      await act(async () => {
+        await latest!.handle_send();
+      });
+      mocks.create_draft.mockClear();
+      await advance(20);
+
+      expect(mocks.create_draft).toHaveBeenCalledTimes(1);
+      expect(mocks.create_draft.mock.calls[0][0]).toMatchObject({
+        message: stored,
+        is_plain_text: true,
+      });
+    });
+  });
 });

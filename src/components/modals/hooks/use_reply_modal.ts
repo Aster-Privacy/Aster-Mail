@@ -542,12 +542,15 @@ export function use_reply_modal(props: UseReplyModalProps) {
             original_subject,
             resolve_reply_prefix(t("mail.reply_subject_prefix")),
           ),
-          message: reply_message,
+          message: is_plain_text_mode
+            ? escape_plain_text(reply_message).replace(/\n/g, "<br>")
+            : reply_message,
           from_email: selected_sender?.email,
           attachments:
             attachments.length > 0
               ? attachments_to_draft_data(attachments)
               : undefined,
+          is_plain_text: is_plain_text_mode || undefined,
         },
         draft_vault,
         "reply",
