@@ -464,7 +464,7 @@ export async function perform_x3dh_receiver(
       }
 
       import("./pq_secret_reconciler")
-        .then((m) => m.handle_missing_pq_secret())
+        .then((m) => m.handle_missing_pq_secret(pq_input.pq_key_id))
         .catch((caught) =>
           ignore_error("services/crypto/x3dh:perform_x3dh_receiver", caught),
         );

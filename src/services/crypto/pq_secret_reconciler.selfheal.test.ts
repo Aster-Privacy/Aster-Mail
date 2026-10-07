@@ -18,7 +18,8 @@ vi.mock("@/services/crypto/prekey_service", () => ({
 
 vi.mock("@/services/crypto/pq_prekey_store", () => ({
   list_pq_secret_ids: async () => [],
-  backfill_pq_secrets_to_server: async () => {},
+  fetch_server_pq_key_ids: async () => null,
+  load_pq_secret: async () => null,
 }));
 
 vi.mock("@/services/crypto/memory_key_store", () => ({
