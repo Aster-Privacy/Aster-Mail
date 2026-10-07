@@ -107,6 +107,16 @@ const REFRESH_MIN_GAP_MS = 5000;
 const REFRESH_LOCK_WAIT_MS = 20_000;
 const REFRESH_LOCK_PREFIX = "aster-session-refresh";
 
+interface TimedResponse {
+  response: Response;
+  within_deadline: <R>(work: Promise<R>) => Promise<R>;
+  release: () => void;
+}
+
+function is_abort_error(error: unknown): boolean {
+  return error instanceof Error && error.name === "AbortError";
+}
+
 export class ApiClient {
   private refresh_timeout: number | null = null;
   private is_authenticated_flag: boolean = false;
@@ -1501,34 +1511,45 @@ export class ApiClient {
     options: RequestInit,
     timeout: number,
     shared_controller?: AbortController,
-  ): Promise<Response> {
+  ): Promise<TimedResponse> {
     const controller = shared_controller ?? new AbortController();
     const timeout_id = setTimeout(() => controller.abort(), timeout);
     const aborted = new Promise<never>((_resolve, reject) => {
-      controller.signal.addEventListener(
-        "abort",
-        () => {
-          const err = new Error(
-            get_active_translations().errors.request_timeout,
-          );
+      const reject_with_timeout = (): void => {
+        const err = new Error(get_active_translations().errors.request_timeout);
 
-          err.name = "AbortError";
-          reject(err);
-        },
-        { once: true },
-      );
+        err.name = "AbortError";
+        reject(err);
+      };
+
+      if (controller.signal.aborted) {
+        reject_with_timeout();
+
+        return;
+      }
+      controller.signal.addEventListener("abort", reject_with_timeout, {
+        once: true,
+      });
     });
 
+    aborted.catch(() => undefined);
+
+    const release = (): void => clearTimeout(timeout_id);
+    const within_deadline = <R>(work: Promise<R>): Promise<R> =>
+      Promise.race([work, aborted]);
+
     try {
-      return (await Promise.race([
+      const response = await within_deadline(
         routed_fetch(url, {
           ...options,
           signal: controller.signal,
         }),
-        aborted,
-      ])) as Response;
-    } finally {
-      clearTimeout(timeout_id);
+      );
+
+      return { response, within_deadline, release };
+    } catch (error) {
+      release();
+      throw error;
     }
   }
 
@@ -1690,10 +1711,14 @@ export class ApiClient {
     let rate_limit_retried = false;
     let preemptions = 0;
 
+    const replay_safe = !is_state_changing_method(method);
+
     for (let attempt = 0; attempt <= retry; attempt++) {
       let background: BackgroundRequest | null = null;
+      let release_deadline: (() => void) | null = null;
 
       const yield_to_foreground = (): boolean => {
+        if (!replay_safe) return false;
         if (!background?.was_preempted()) return false;
         if (preemptions >= MAX_PREEMPTIONS_PER_REQUEST) return false;
         preemptions += 1;
@@ -1710,12 +1735,15 @@ export class ApiClient {
         }
 
         const started_at = Date.now();
-        const response = await this.request_with_timeout(
+        const timed = await this.request_with_timeout(
           url,
           { ...options, headers, credentials: "include" },
           timeout,
           background?.controller,
         );
+        const { response, within_deadline } = timed;
+
+        release_deadline = timed.release;
 
         if (!response.ok) {
           let error_data: {
@@ -1726,7 +1754,7 @@ export class ApiClient {
           } = {};
 
           try {
-            error_data = await response.json();
+            error_data = await within_deadline(response.json());
           } catch {
             error_data = import.meta.env.DEV
               ? { error: response.statusText }
@@ -2107,7 +2135,13 @@ export class ApiClient {
         ) {
           data = undefined as T;
         } else {
-          const raw = await response.text().catch(() => null);
+          const raw = await within_deadline(response.text()).catch(
+            (read_error: unknown) => {
+              if (is_abort_error(read_error)) throw read_error;
+
+              return null;
+            },
+          );
 
           if (raw === null) {
             if (yield_to_foreground()) {
@@ -2160,7 +2194,7 @@ export class ApiClient {
         }
 
         if (error instanceof Error) {
-          if (error.name === "AbortError") {
+          if (is_abort_error(error)) {
             last_error = {
               error: this.get_generic_error_message("TIMEOUT_ERROR"),
               code: "TIMEOUT_ERROR",
@@ -2175,11 +2209,14 @@ export class ApiClient {
 
         background?.stalled();
 
-        if (attempt < retry && !is_state_changing_method(method)) {
+        if (attempt < retry && replay_safe) {
           await this.delay(retry_delay * (attempt + 1));
           continue;
         }
+
+        break;
       } finally {
+        release_deadline?.();
         background?.release();
       }
     }

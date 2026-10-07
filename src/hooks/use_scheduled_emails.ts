@@ -178,6 +178,13 @@ interface ScheduledListing {
   failed: boolean;
 }
 
+interface ScheduledFetchResult {
+  emails: ScheduledListItem[];
+  has_more: boolean;
+  failed: boolean;
+  unloaded_ids: string[];
+}
+
 interface ListingPass {
   offset: number;
   total: number | null;
@@ -261,11 +268,7 @@ async function fetch_scheduled_from_api(
   labels: ScheduledTimestampLabels,
   t: (key: TranslationKey) => string,
   on_progress: () => void,
-): Promise<{
-  emails: ScheduledListItem[];
-  has_more: boolean;
-  failed: boolean;
-} | null> {
+): Promise<ScheduledFetchResult | null> {
   const vault = get_vault_from_memory();
 
   if (!vault) return null;
@@ -274,7 +277,8 @@ async function fetch_scheduled_from_api(
 
   if (signal.aborted || !listing) return null;
 
-  const results: PromiseSettledResult<ScheduledListItem | null>[] = [];
+  const loaded: ScheduledListItem[] = [];
+  const unloaded_ids: string[] = [];
 
   for (let i = 0; i < listing.items.length; i += SCHEDULED_FETCH_LIMIT) {
     const chunk = listing.items.slice(i, i + SCHEDULED_FETCH_LIMIT);
@@ -283,37 +287,68 @@ async function fetch_scheduled_from_api(
         if (signal.aborted) throw new Error("aborted");
         const detail = await get_scheduled_email(email.id, vault);
 
-        return detail.data
-          ? transform_scheduled(detail.data, format_options, labels, t)
-          : null;
+        if (detail.data) {
+          return transform_scheduled(detail.data, format_options, labels, t);
+        }
+        if (detail.code === "NOT_FOUND") return null;
+        throw new Error("detail unavailable");
       }),
     );
 
     if (signal.aborted) return null;
     on_progress();
-    results.push(...chunk_results);
+    chunk_results.forEach((result, index) => {
+      if (result.status === "rejected") {
+        unloaded_ids.push(chunk[index].id);
+      } else if (result.value) {
+        loaded.push(result.value);
+      }
+    });
   }
 
-  const has_loaded_detail = results.some(
-    (r) => r.status === "fulfilled" && r.value !== null,
+  if (
+    listing.items.length > 0 &&
+    loaded.length === 0 &&
+    unloaded_ids.length > 0
+  ) {
+    return null;
+  }
+
+  const emails = sort_by_send_time(
+    loaded.filter((e) => ACTIVE_SCHEDULED_STATUSES.has(e.status)),
   );
 
-  if (listing.items.length > 0 && !has_loaded_detail) return null;
+  return {
+    emails,
+    has_more: !listing.complete || unloaded_ids.length > 0,
+    failed: listing.failed,
+    unloaded_ids,
+  };
+}
 
-  const emails = results
-    .filter(
-      (r): r is PromiseFulfilledResult<ScheduledListItem | null> =>
-        r.status === "fulfilled",
-    )
-    .map((r) => r.value)
-    .filter((e): e is ScheduledListItem => e !== null)
-    .filter((e) => ACTIVE_SCHEDULED_STATUSES.has(e.status))
-    .sort(
-      (a, b) =>
-        new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime(),
-    );
+function sort_by_send_time(items: ScheduledListItem[]): ScheduledListItem[] {
+  return [...items].sort(
+    (a, b) =>
+      new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime(),
+  );
+}
 
-  return { emails, has_more: !listing.complete, failed: listing.failed };
+export function keep_unloaded_scheduled(
+  fresh: ScheduledListItem[],
+  unloaded_ids: string[],
+  previous: ScheduledListItem[],
+): ScheduledListItem[] {
+  if (unloaded_ids.length === 0) return fresh;
+
+  const unloaded = new Set(unloaded_ids);
+  const fresh_ids = new Set(fresh.map((email) => email.id));
+  const kept = previous.filter(
+    (email) => unloaded.has(email.id) && !fresh_ids.has(email.id),
+  );
+
+  if (kept.length === 0) return fresh;
+
+  return sort_by_send_time([...fresh, ...kept]);
 }
 
 export function use_scheduled_emails(
@@ -415,9 +450,11 @@ export function use_scheduled_emails(
         set_error(t("common.failed_to_load_scheduled_emails"));
       } else if (result) {
         has_loaded_ref.current = true;
-        set_emails(result.emails);
+        set_emails((previous) =>
+          keep_unloaded_scheduled(result.emails, result.unloaded_ids, previous),
+        );
         set_has_more(result.has_more);
-        if (result.failed) {
+        if (result.failed || result.unloaded_ids.length > 0) {
           set_error(t("common.failed_to_load_scheduled_emails"));
         }
         invalidate_mail_stats();
