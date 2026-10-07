@@ -1098,8 +1098,8 @@ export const tr = {
       "Şu anda çevrimdışısınız. Bu e-posta yeniden bağlanır bağlanmaz gönderilir.",
     failed_to_queue_offline:
       "Bu e-posta daha sonra gönderilmek üzere sıraya alınamadı. Tekrar deneyin. Taslağınız kaydedildi.",
-    cannot_mix_recipients:
-      "Aster kullanıcıları ile dış adresler aynı e-postaya konulamaz. Onları iki ayrı mesaj olarak göndermek işe yarar.",
+    password_needs_outside_recipients_only:
+      "Parola koruması yalnızca tüm alıcılar başka bir e-posta sağlayıcısı kullandığında çalışır. Aster kullanıcılarını eklemek için parola korumasını kapatın veya onlara ayrı bir ileti gönderin.",
     failed_to_schedule_email:
       "Zamanlama kaydedilmedi. Tekrar deneyin. Taslağınız kaydedildi.",
     failed_to_restore_draft:

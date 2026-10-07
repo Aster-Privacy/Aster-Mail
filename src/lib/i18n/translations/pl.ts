@@ -1118,8 +1118,8 @@ export const pl = {
       "Jesteś teraz offline. Ta wiadomość zostanie wysłana, gdy tylko nastąpi ponowne połączenie.",
     failed_to_queue_offline:
       "Nie udało się dodać tej wiadomości do kolejki wysyłki. Spróbuj ponownie. Szkic jest zapisany.",
-    cannot_mix_recipients:
-      "Użytkownicy Aster i adresy zewnętrzne nie mogą być w tej samej wiadomości. Wyślij do nich dwie osobne wiadomości.",
+    password_needs_outside_recipients_only:
+      "Ochrona hasłem działa tylko wtedy, gdy wszyscy odbiorcy korzystają z innego dostawcy poczty. Aby uwzględnić użytkowników Aster, wyłącz ochronę hasłem lub wyślij im osobną wiadomość.",
     failed_to_schedule_email:
       "Harmonogram nie został zapisany. Spróbuj ponownie. Szkic jest zapisany.",
     failed_to_restore_draft:

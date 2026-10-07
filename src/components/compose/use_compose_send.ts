@@ -69,6 +69,7 @@ import {
 } from "@/components/compose/compose_shared";
 import {
   execute_internal_send,
+  execute_mixed_send,
   execute_external_email_send,
   execute_external_account_email_send,
   type FailedSendData,
@@ -640,12 +641,72 @@ export function use_compose_send({
       const has_external = all_recipients.some(
         (r) => !is_internal_recipient(r),
       );
-      const has_internal = all_recipients.some((r) => is_internal_recipient(r));
+      const internal_recipients = all_recipients.filter((r) =>
+        is_internal_recipient(r),
+      );
+      const is_mixed = has_external && internal_recipients.length > 0;
 
-      if (has_external && has_internal) {
-        show_toast(t("common.cannot_mix_recipients"), "error");
+      if (is_mixed && email_data.secure_external) {
+        show_toast(t("common.password_needs_outside_recipients_only"), "error");
         last_send_time_ref.current = 0;
         forget_send(send_fingerprint);
+
+        return;
+      }
+
+      if (is_mixed) {
+        let key_trusted = false;
+
+        try {
+          key_trusted = await ensure_external_key_trust(all_recipients);
+        } catch (error) {
+          show_toast(
+            error instanceof Error
+              ? error.message
+              : t("errors.key_trust_check_failed"),
+            "error",
+          );
+        }
+
+        if (!key_trusted) {
+          last_send_time_ref.current = 0;
+          forget_send(send_fingerprint);
+
+          return;
+        }
+
+        const mixed_consent = await ensure_post_quantum_consent(
+          internal_recipients,
+          email_data.sender_email || user?.email,
+        );
+
+        if (!mixed_consent.proceed) {
+          last_send_time_ref.current = 0;
+          forget_send(send_fingerprint);
+
+          if (mixed_consent.blocked_by)
+            show_toast(t(mixed_consent.blocked_by), "error");
+
+          return;
+        }
+
+        const mixed_sent = await execute_mixed_send(
+          ctx,
+          {
+            ...email_data,
+            allow_non_post_quantum: mixed_consent.allow_non_post_quantum,
+          },
+          pgp_enabled,
+          pgp_override,
+          preferences.require_encryption === true,
+          preferences.obscure_subject_when_encrypted === true,
+        );
+
+        if (mixed_sent) {
+          await confirm_draft_deleted();
+        } else if (!compose_released) {
+          void keep_unsent_message();
+        }
 
         return;
       }

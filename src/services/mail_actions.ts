@@ -34,6 +34,7 @@ import {
   type PostQuantumConsentBlock,
 } from "./post_quantum_consent";
 import { check_reply_send } from "./reply_send_gate";
+import { is_internal_recipient } from "./recipient_classification";
 import { get_cached_preferences } from "./api/preferences";
 import type { EncryptionOptions } from "./send_queue_types";
 
@@ -244,6 +245,18 @@ async function blocked_by_key_trust(
   return { success: false };
 }
 
+export function server_queue_seconds(
+  recipients: string[],
+  delay_seconds: number,
+): number {
+  if (delay_seconds > 0) return delay_seconds;
+
+  const has_internal = recipients.some((r) => is_internal_recipient(r));
+  const has_external = recipients.some((r) => !is_internal_recipient(r));
+
+  return has_internal && has_external ? 1 : 0;
+}
+
 function track_queue_errors(callbacks: MailActionCallbacks) {
   const reported: { error?: string } = {};
 
@@ -349,7 +362,12 @@ export async function send_reply(
     return { success: false };
   }
 
-  if (delay_seconds > 0) {
+  const reply_queue_seconds = server_queue_seconds(
+    [...recipients, ...(cc ?? [])],
+    delay_seconds,
+  );
+
+  if (reply_queue_seconds > 0) {
     const queue_errors = track_queue_errors(callbacks);
     const result = await queue_email_to_server(
       {
@@ -370,7 +388,7 @@ export async function send_reply(
           params.require_encryption,
         ),
       },
-      delay_seconds,
+      reply_queue_seconds,
       {
         on_sent: callbacks.on_complete,
         on_cancelled: callbacks.on_cancel,
@@ -520,7 +538,16 @@ export async function send_forward(
     return { success: false };
   }
 
-  if (delay_seconds > 0) {
+  const forward_queue_seconds = server_queue_seconds(
+    [
+      ...params.recipients,
+      ...(params.cc_recipients ?? []),
+      ...(params.bcc_recipients ?? []),
+    ],
+    delay_seconds,
+  );
+
+  if (forward_queue_seconds > 0) {
     const queue_errors = track_queue_errors(callbacks);
     const result = await queue_email_to_server(
       {
@@ -541,7 +568,7 @@ export async function send_forward(
           params.require_encryption,
         ),
       },
-      delay_seconds,
+      forward_queue_seconds,
       {
         on_sent: callbacks.on_complete,
         on_cancelled: callbacks.on_cancel,

@@ -29,6 +29,13 @@ const hoisted = vi.hoisted(() => ({
   execute_external_send: vi.fn(
     async (_email: unknown, _ack?: boolean): Promise<void> => {},
   ),
+  queue_email_to_server: vi.fn(
+    async (
+      _email: unknown,
+      _delay: number,
+      _callbacks?: { on_error?: (message: string) => void },
+    ): Promise<unknown> => ({ queue_id: "q1", pending_send: {} }),
+  ),
   key_changes: { value: [] as unknown[] },
   preferences: {
     value: {
@@ -87,6 +94,10 @@ vi.mock("@/services/crypto/secure_storage", () => ({
 vi.mock("@/services/send_queue_encryption", () => ({
   execute_send: hoisted.execute_send,
   execute_external_send: hoisted.execute_external_send,
+}));
+
+vi.mock("@/services/send_queue", () => ({
+  queue_email_to_server: hoisted.queue_email_to_server,
 }));
 
 vi.mock("@/services/recipient_classification", () => ({
@@ -470,6 +481,7 @@ describe("offline queue replay gates", () => {
     hoisted.execute_send.mockResolvedValue(undefined);
     hoisted.execute_external_send.mockReset();
     hoisted.execute_external_send.mockResolvedValue(undefined);
+    hoisted.queue_email_to_server.mockClear();
     hoisted.key_changes.value = [];
     hoisted.preferences.value = {
       encrypt_emails: false,
@@ -498,7 +510,12 @@ describe("offline queue replay gates", () => {
     expect(await get_failed_actions()).toHaveLength(1);
   });
 
-  it("refuses mixed Aster and outside recipients", async () => {
+  it("sends mixed Aster and outside recipients through the server queue", async () => {
+    hoisted.preferences.value = {
+      encrypt_emails: true,
+      require_encryption: false,
+      obscure_subject_when_encrypted: false,
+    };
     localStorage.setItem(
       SCOPED_KEY_A,
       JSON.stringify([
@@ -513,6 +530,103 @@ describe("offline queue replay gates", () => {
 
     expect(hoisted.execute_send).not.toHaveBeenCalled();
     expect(hoisted.execute_external_send).not.toHaveBeenCalled();
+    expect(hoisted.queue_email_to_server).toHaveBeenCalledTimes(1);
+    const [sent, delay] = hoisted.queue_email_to_server.mock.calls[0] as [
+      Record<string, unknown>,
+      number,
+    ];
+
+    expect(delay).toBe(1);
+    expect(sent.allow_non_post_quantum).toBe(false);
+    expect(sent.client_send_id).toBe("g1");
+    expect(sent.to).toEqual(["friend@astermail.org"]);
+    expect(sent.cc).toEqual(["friend@example.com"]);
+    expect(sent.encryption_options).toEqual({
+      auto_discover_keys: true,
+      encrypt_emails: true,
+      require_encryption: false,
+      obscure_subject: false,
+    });
+    expect(await get_queue()).toHaveLength(0);
+    expect(await get_failed_actions()).toHaveLength(0);
+  });
+
+  it("fails a mixed send for good when the server queue rejects it", async () => {
+    hoisted.queue_email_to_server.mockImplementationOnce(
+      async (_email, _delay, callbacks) => {
+        callbacks?.on_error?.("rejected");
+
+        return null;
+      },
+    );
+    localStorage.setItem(
+      SCOPED_KEY_A,
+      JSON.stringify([
+        send_payload({
+          to: ["friend@astermail.org", "friend@example.com"],
+        }),
+      ]),
+    );
+
+    await process_offline_queue();
+
+    expect(hoisted.queue_email_to_server).toHaveBeenCalledTimes(1);
+    expect(await get_queue()).toHaveLength(0);
+    const failed = await get_failed_actions();
+
+    expect(failed).toHaveLength(1);
+    expect(failed[0].retry_count).toBe(1);
+  });
+
+  it("refuses a mixed send when an outside key changed", async () => {
+    hoisted.key_changes.value = [{ email: "friend@example.com" }];
+    localStorage.setItem(
+      SCOPED_KEY_A,
+      JSON.stringify([
+        send_payload({
+          to: ["friend@astermail.org", "friend@example.com"],
+        }),
+      ]),
+    );
+
+    await process_offline_queue();
+
+    expect(hoisted.queue_email_to_server).not.toHaveBeenCalled();
+    expect(await get_failed_actions()).toHaveLength(1);
+  });
+
+  it("keeps a mixed send queued while preferences are unavailable", async () => {
+    hoisted.preferences.value = null;
+    localStorage.setItem(
+      SCOPED_KEY_A,
+      JSON.stringify([
+        send_payload({
+          to: ["friend@astermail.org", "friend@example.com"],
+        }),
+      ]),
+    );
+
+    await process_offline_queue();
+
+    expect(hoisted.queue_email_to_server).not.toHaveBeenCalled();
+    expect(await get_queue()).toHaveLength(1);
+  });
+
+  it("never sends a password-protected mixed message", async () => {
+    localStorage.setItem(
+      SCOPED_KEY_A,
+      JSON.stringify([
+        send_payload({
+          to: ["friend@astermail.org", "friend@example.com"],
+          expiry_password: "correct horse battery staple",
+          secure_external: true,
+        }),
+      ]),
+    );
+
+    await process_offline_queue();
+
+    expect(hoisted.queue_email_to_server).not.toHaveBeenCalled();
     expect(await get_failed_actions()).toHaveLength(1);
   });
 

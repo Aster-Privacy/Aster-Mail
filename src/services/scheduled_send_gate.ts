@@ -30,7 +30,6 @@ import {
 import { exceeds_sealed_schedule_window } from "@/lib/schedule_window";
 
 export type ScheduledGateBlock =
-  | "common.cannot_mix_recipients"
   | "common.scheduled_requires_encryption"
   | "common.scheduled_too_far_ahead"
   | PostQuantumConsentBlock;
@@ -52,24 +51,20 @@ export async function check_scheduled_send(
   await classify_recipients(recipients);
 
   const has_external = recipients.some((r) => !is_internal_recipient(r));
-  const has_internal = recipients.some((r) => is_internal_recipient(r));
+  const internal = recipients.filter((r) => is_internal_recipient(r));
 
-  if (has_external && has_internal) {
-    return { proceed: false, blocked_by: "common.cannot_mix_recipients" };
+  if (has_external && require_encryption) {
+    return {
+      proceed: false,
+      blocked_by: "common.scheduled_requires_encryption",
+    };
   }
 
-  if (has_external) {
-    if (require_encryption) {
-      return {
-        proceed: false,
-        blocked_by: "common.scheduled_requires_encryption",
-      };
-    }
-
+  if (internal.length === 0) {
     return { proceed: true, allow_non_post_quantum: false };
   }
 
-  const consent = await ensure_post_quantum_consent(recipients, sender_email);
+  const consent = await ensure_post_quantum_consent(internal, sender_email);
 
   if (!consent.proceed)
     return { proceed: false, blocked_by: consent.blocked_by };

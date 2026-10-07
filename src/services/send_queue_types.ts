@@ -27,7 +27,6 @@ export type SendErrorType =
   | "send_failed"
   | "rate_limited"
   | "recipient_error"
-  | "mixed_recipients"
   | "post_quantum_unavailable";
 
 export class SendError extends Error {

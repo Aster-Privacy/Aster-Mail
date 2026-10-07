@@ -1143,8 +1143,8 @@ export const en: Translations = {
       "You are offline right now. This email will send as soon as you reconnect.",
     failed_to_queue_offline:
       "We could not queue this email for later sending. Try again. Your draft is saved.",
-    cannot_mix_recipients:
-      "Aster users and outside addresses cannot go in the same email. Sending them as two separate messages will work.",
+    password_needs_outside_recipients_only:
+      "Password protection works only when every recipient uses another email provider. To include Aster users, turn off password protection or send them a separate message.",
     post_quantum_unavailable_title: "Send without post-quantum encryption?",
     post_quantum_unavailable_message:
       "{{recipients}} has not published post-quantum keys yet, so this message can only use standard end-to-end encryption. Ask them to open Aster or update their app to turn post-quantum protection back on.",
