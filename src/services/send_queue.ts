@@ -633,6 +633,7 @@ async function prepare_email_for_server_queue(
       cc: email.cc ?? [],
       bcc: email.bcc ?? [],
       attachments: all_attachments,
+      is_plain_text: email.is_plain_text,
     });
 
     if (signed) {

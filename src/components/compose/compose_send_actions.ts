@@ -225,6 +225,7 @@ export async function execute_internal_send(
     expires_at?: string;
     attachments?: Attachment[];
     allow_non_post_quantum?: boolean;
+    is_plain_text?: boolean;
   },
 ): Promise<boolean> {
   if (blocked_by_plan(ctx, email_data)) return false;
@@ -348,6 +349,7 @@ export async function execute_external_email_send(
     expiry_password?: string;
     secure_external?: boolean;
     attachments?: Attachment[];
+    is_plain_text?: boolean;
   },
   pgp_enabled = false,
   pgp_override: boolean | null = null,

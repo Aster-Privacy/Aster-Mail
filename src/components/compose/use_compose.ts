@@ -443,6 +443,7 @@ export function use_compose({
     recipients,
     subject,
     message: outgoing_message,
+    is_plain_text: editor_hook.is_plain_text_mode,
     attachments: attachment_hook.attachments,
     has_pending_attachment_reads: attachment_hook.has_pending_attachment_reads,
     is_loading_forward_attachments,

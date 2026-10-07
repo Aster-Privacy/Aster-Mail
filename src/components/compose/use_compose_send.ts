@@ -88,6 +88,7 @@ export interface UseComposeSendOptions {
   recipients: RecipientsState;
   subject: string;
   message: string;
+  is_plain_text?: boolean;
   attachments: Attachment[];
   is_loading_forward_attachments?: boolean;
   has_pending_attachment_reads?: () => boolean;
@@ -124,6 +125,7 @@ export function use_compose_send({
   recipients,
   subject,
   message,
+  is_plain_text = false,
   attachments,
   is_loading_forward_attachments,
   has_pending_attachment_reads,
@@ -576,6 +578,7 @@ export function use_compose_send({
         expiry_password: expiry_password || undefined,
         secure_external: expiry_password ? true : undefined,
         attachments: attachments.length > 0 ? attachments : undefined,
+        is_plain_text: is_plain_text || undefined,
       };
 
       const all_recipients = [
@@ -730,6 +733,7 @@ export function use_compose_send({
     recipients,
     subject,
     message,
+    is_plain_text,
     user,
     contacts,
     clear_all_errors,

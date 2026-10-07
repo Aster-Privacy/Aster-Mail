@@ -899,6 +899,7 @@ export function use_forward_modal({
         attachments: fwd_attachments,
         forward_original_mail_id: fwd_server_source_id,
         require_encryption: preferences.require_encryption === true,
+        is_plain_text: is_plain_text_mode,
       },
       {
         on_complete: (sent_id?: string) => {
@@ -1002,6 +1003,7 @@ export function use_forward_modal({
     email_body,
     email_timestamp,
     outgoing_forward_message,
+    is_plain_text_mode,
     preferences.undo_send_period,
     preferences.undo_send_enabled,
     preferences.undo_send_seconds,
