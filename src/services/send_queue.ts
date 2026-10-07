@@ -47,6 +47,7 @@ import {
   execute_send,
   create_sent_envelope,
 } from "./send_queue_encryption";
+import { resolve_client_send_id } from "./send_queue_execute";
 import {
   build_signed_mime_payload,
   should_attach_signed_mime,
@@ -614,6 +615,7 @@ async function prepare_email_for_server_queue(
     in_reply_to: email.in_reply_to,
     expires_at: email.expires_at,
     force_pgp: email.force_pgp,
+    client_send_id: resolve_client_send_id(email.client_send_id),
   };
 
   if (
