@@ -9157,7 +9157,7 @@ export const fr = {
     mailing_list_label: "Liste de diffusion :",
     list_unsubscribe_available: "Lien de désabonnement inclus",
     email_auth_summary_authenticated:
-      "Ce message a réussi SPF, DKIM et DMARC pour {{domain}}.",
+      "Les vérifications confirment que {{domain}} a envoyé ce message.",
     email_auth_summary_unverified:
       "Les vérifications n'ont pas pu confirmer que {{domain}} a envoyé ce message.",
     email_auth_summary_unavailable:

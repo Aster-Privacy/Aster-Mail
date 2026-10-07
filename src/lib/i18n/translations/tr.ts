@@ -8949,7 +8949,7 @@ export const tr = {
     mailing_list_label: "E-posta listesi:",
     list_unsubscribe_available: "Abonelikten çıkma bağlantısı var",
     email_auth_summary_authenticated:
-      "Bu ileti {{domain}} için SPF, DKIM ve DMARC denetimlerini geçti.",
+      "Denetimler bu iletinin {{domain}} tarafından gönderildiğini doğruladı.",
     email_auth_summary_unverified:
       "Denetimler bu iletinin {{domain}} tarafından gönderildiğini doğrulayamadı.",
     email_auth_summary_unavailable:

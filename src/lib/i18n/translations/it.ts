@@ -9109,7 +9109,7 @@ export const it = {
     mailing_list_label: "Mailing list:",
     list_unsubscribe_available: "Link di disiscrizione incluso",
     email_auth_summary_authenticated:
-      "Questo messaggio ha superato SPF, DKIM e DMARC per {{domain}}.",
+      "I controlli confermano che {{domain}} ha inviato questo messaggio.",
     email_auth_summary_unverified:
       "I controlli non hanno potuto confermare che {{domain}} abbia inviato questo messaggio.",
     email_auth_summary_unavailable:

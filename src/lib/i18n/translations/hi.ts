@@ -9057,7 +9057,7 @@ export const hi = {
     mailing_list_label: "मेलिंग सूची:",
     list_unsubscribe_available: "सदस्यता छोड़ने का लिंक शामिल है",
     email_auth_summary_authenticated:
-      "यह संदेश {{domain}} के लिए SPF, DKIM और DMARC जांच में पास हुआ।",
+      "जांचों ने पुष्टि की कि यह संदेश {{domain}} ने भेजा।",
     email_auth_summary_unverified:
       "जांचें पुष्टि नहीं कर पाईं कि यह संदेश {{domain}} ने भेजा।",
     email_auth_summary_unavailable:

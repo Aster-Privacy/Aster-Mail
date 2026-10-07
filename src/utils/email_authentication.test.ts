@@ -35,6 +35,8 @@ describe("summarize_email_authentication", () => {
     expect(verdict("pass", "pass", "pass")).toBe("authenticated");
     expect(verdict("pass", "none", "pass")).toBe("authenticated");
     expect(verdict("fail", "pass", "pass")).toBe("authenticated");
+    expect(verdict("none", "pass", "pass")).toBe("authenticated");
+    expect(verdict("pass", "fail", "pass")).toBe("authenticated");
   });
 
   it("fails when a check failed and DMARC did not pass", () => {

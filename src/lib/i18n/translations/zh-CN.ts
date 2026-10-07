@@ -8032,7 +8032,7 @@ export const zh_CN = {
     mailing_list_label: "邮件列表：",
     list_unsubscribe_available: "包含退订链接",
     email_auth_summary_authenticated:
-      "此邮件通过了 {{domain}} 的 SPF、DKIM 和 DMARC 检查。",
+      "检查确认此邮件由 {{domain}} 发送。",
     email_auth_summary_unverified: "检查无法确认此邮件由 {{domain}} 发送。",
     email_auth_summary_unavailable: "此邮件没有可用的身份验证结果。",
     email_auth_spf_pass: "发送服务器获准代表此域名发送邮件。",

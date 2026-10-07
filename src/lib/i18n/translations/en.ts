@@ -9009,7 +9009,7 @@ export const en: Translations = {
     mailing_list_label: "Mailing list:",
     list_unsubscribe_available: "Unsubscribe link included",
     email_auth_summary_authenticated:
-      "This message passed SPF, DKIM and DMARC for {{domain}}.",
+      "The checks confirm that {{domain}} sent this message.",
     email_auth_summary_unverified:
       "The checks couldn't confirm that {{domain}} sent this message.",
     email_auth_summary_unavailable:

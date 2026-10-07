@@ -9112,7 +9112,7 @@ export const pt = {
     mailing_list_label: "Lista de correio:",
     list_unsubscribe_available: "Inclui ligação para cancelar a subscrição",
     email_auth_summary_authenticated:
-      "Esta mensagem passou SPF, DKIM e DMARC para {{domain}}.",
+      "As verificações confirmam que {{domain}} enviou esta mensagem.",
     email_auth_summary_unverified:
       "As verificações não confirmaram que {{domain}} enviou esta mensagem.",
     email_auth_summary_unavailable:

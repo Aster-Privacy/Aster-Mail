@@ -8875,7 +8875,7 @@ export const ar = {
     mailing_list_label: "القائمة البريدية:",
     list_unsubscribe_available: "يتضمن رابط إلغاء الاشتراك",
     email_auth_summary_authenticated:
-      "اجتازت هذه الرسالة فحوص SPF وDKIM وDMARC للنطاق {{domain}}.",
+      "أكدت الفحوص أن {{domain}} أرسل هذه الرسالة.",
     email_auth_summary_unverified:
       "لم تؤكد الفحوص أن {{domain}} أرسل هذه الرسالة.",
     email_auth_summary_unavailable: "نتائج المصادقة غير متاحة لهذه الرسالة.",
