@@ -6001,6 +6001,8 @@ export const zh_CN = {
     domain_purchase_search_placeholder: "搜索域名",
     domain_purchase_per_year: "{{price}}/年",
     domain_purchase_taken: "已被注册",
+    domain_purchase_unchecked: "无法检查",
+    domain_purchase_unchecked_hint: "目前无法检查此域名,请稍后重试。",
     domain_purchase_no_results: "未找到可用域名",
     domain_purchase_renews_at: "续费价 {{price}}/年",
     domain_purchase_years: "注册年限",

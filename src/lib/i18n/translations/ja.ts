@@ -6631,6 +6631,9 @@ export const ja = {
     domain_purchase_search_placeholder: "ドメイン名を検索",
     domain_purchase_per_year: "{{price}}/年",
     domain_purchase_taken: "取得済み",
+    domain_purchase_unchecked: "確認できません",
+    domain_purchase_unchecked_hint:
+      "現在このドメインを確認できません。しばらくしてからもう一度お試しください。",
     domain_purchase_no_results: "利用可能なドメインが見つかりません",
     domain_purchase_renews_at: "更新料 {{price}}/年",
     domain_purchase_years: "登録期間",

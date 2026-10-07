@@ -6231,6 +6231,9 @@ export const en: Translations = {
     domain_purchase_search_placeholder: "Search for a domain name",
     domain_purchase_per_year: "{{price}}/yr",
     domain_purchase_taken: "Taken",
+    domain_purchase_unchecked: "Couldn't check",
+    domain_purchase_unchecked_hint:
+      "Couldn't check this domain right now. Try again later.",
     domain_purchase_no_results: "No available domains found",
     domain_purchase_renews_at: "Renews at {{price}}/yr",
     domain_purchase_years: "Registration period",

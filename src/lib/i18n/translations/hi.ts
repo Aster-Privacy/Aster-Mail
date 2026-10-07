@@ -6302,6 +6302,9 @@ export const hi = {
     domain_purchase_search_placeholder: "डोमेन नाम खोजें",
     domain_purchase_per_year: "{{price}}/वर्ष",
     domain_purchase_taken: "लिया जा चुका है",
+    domain_purchase_unchecked: "जाँच नहीं हो सकी",
+    domain_purchase_unchecked_hint:
+      "अभी इस डोमेन की जाँच नहीं हो सकी। बाद में फिर से कोशिश करें।",
     domain_purchase_no_results: "कोई उपलब्ध डोमेन नहीं मिला",
     domain_purchase_renews_at: "{{price}}/वर्ष पर नवीनीकृत होता है",
     domain_purchase_years: "पंजीकरण की अवधि",

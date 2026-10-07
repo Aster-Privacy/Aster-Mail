@@ -6699,6 +6699,9 @@ export const ar = {
     domain_purchase_search_placeholder: "ابحث عن اسم نطاق",
     domain_purchase_per_year: "{{price}}/سنة",
     domain_purchase_taken: "محجوز",
+    domain_purchase_unchecked: "تعذّر التحقق",
+    domain_purchase_unchecked_hint:
+      "تعذّر التحقق من هذا النطاق الآن. حاول مرة أخرى لاحقًا.",
     domain_purchase_no_results: "لم يتم العثور على نطاقات متاحة",
     domain_purchase_renews_at: "يتجدد بسعر {{price}}/سنة",
     domain_purchase_years: "مدة التسجيل",

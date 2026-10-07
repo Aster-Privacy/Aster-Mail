@@ -6621,6 +6621,9 @@ export const ko = {
     domain_purchase_search_placeholder: "도메인 이름 검색",
     domain_purchase_per_year: "{{price}}/년",
     domain_purchase_taken: "사용 불가",
+    domain_purchase_unchecked: "확인 불가",
+    domain_purchase_unchecked_hint:
+      "지금은 이 도메인을 확인할 수 없습니다. 나중에 다시 시도해 주세요.",
     domain_purchase_no_results: "사용 가능한 도메인이 없습니다",
     domain_purchase_renews_at: "갱신 요금 {{price}}/년",
     domain_purchase_years: "등록 기간",

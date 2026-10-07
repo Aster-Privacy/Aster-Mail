@@ -5374,6 +5374,9 @@ export const it = {
     domain_purchase_search_placeholder: "Cerca un nome di dominio",
     domain_purchase_per_year: "{{price}}/anno",
     domain_purchase_taken: "Non disponibile",
+    domain_purchase_unchecked: "Non verificato",
+    domain_purchase_unchecked_hint:
+      "Al momento non è possibile verificare questo dominio. Riprova più tardi.",
     domain_purchase_no_results: "Nessun dominio disponibile trovato",
     domain_purchase_renews_at: "Si rinnova a {{price}}/anno",
     domain_purchase_years: "Periodo di registrazione",

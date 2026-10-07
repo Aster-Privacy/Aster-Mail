@@ -6966,6 +6966,9 @@ export const ru = {
     domain_purchase_search_placeholder: "Поиск доменного имени",
     domain_purchase_per_year: "{{price}}/год",
     domain_purchase_taken: "Занят",
+    domain_purchase_unchecked: "Не проверен",
+    domain_purchase_unchecked_hint:
+      "Сейчас не удалось проверить этот домен. Попробуйте позже.",
     domain_purchase_no_results: "Доступных доменов не найдено",
     domain_purchase_renews_at: "Продление: {{price}}/год",
     domain_purchase_years: "Срок регистрации",
