@@ -74,14 +74,17 @@ vi.mock("@/services/account_manager", () => ({
 
 import {
   backfill_pq_secrets_to_server,
-  delete_pq_secret,
-  resolve_upload_state,
-  select_ids_needing_upload,
+  select_ids_missing_on_server,
+  upload_state_is_current,
 } from "./pq_prekey_store";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
+const SECRET_IDS_URL = "/crypto/v1/ratchet/pq-secret/ids";
 
 let server_ids: number[] = [];
+let secret_ids_response: () => Promise<unknown> = async () => ({
+  data: { key_ids: [] },
+});
 
 function seed_local(ids: number[]): void {
   storage.set("pq_prekey_secret_index_u1", [...ids]);
@@ -93,12 +96,28 @@ function seed_local(ids: number[]): void {
   }
 }
 
+function serve_secret_ids(ids: number[]): void {
+  secret_ids_response = async () => ({ data: { key_ids: [...ids] } });
+}
+
 function uploaded_ids_per_call(): number[][] {
   return post_mock.mock.calls
     .filter(([url]) => url === "/crypto/v1/ratchet/pq-secret/bulk")
     .map(([, body]) =>
       (body as { secrets: { key_id: number }[] }).secrets.map((s) => s.key_id),
     );
+}
+
+function secret_ids_fetches(): number {
+  return get_mock.mock.calls.filter(([url]) => url === SECRET_IDS_URL).length;
+}
+
+async function prime_state(ids: number[]): Promise<void> {
+  seed_local(ids);
+  server_ids = [...ids];
+  await backfill_pq_secrets_to_server();
+  post_mock.mockClear();
+  get_mock.mockClear();
 }
 
 beforeEach(() => {
@@ -108,10 +127,12 @@ beforeEach(() => {
   delete_mock.mockReset();
   master_byte = 1;
   server_ids = [];
+  serve_secret_ids([]);
   get_mock.mockImplementation(async (url: string) => {
     if (url === "/crypto/v1/keys/prekeys/ids") {
       return { data: { pq_key_ids: [...server_ids] } };
     }
+    if (url === SECRET_IDS_URL) return secret_ids_response();
 
     return { error: "unexpected", code: "NOT_FOUND" };
   });
@@ -125,135 +146,176 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-describe("resolve_upload_state", () => {
+describe("upload_state_is_current", () => {
   const now = 1_000_000_000_000;
 
-  it("keeps a state that matches the wrap key and is inside the refresh window", () => {
-    const state = resolve_upload_state(
-      {
-        fingerprint: "fp",
-        epoch_started_at: now - DAY_MS,
-        uploaded_ids: [1, 2],
-      },
-      "fp",
-      now,
-    );
-
-    expect(state.uploaded_ids).toEqual([1, 2]);
-    expect(state.epoch_started_at).toBe(now - DAY_MS);
+  it("accepts a matching fingerprint inside the refresh window", () => {
+    expect(
+      upload_state_is_current(
+        { fingerprint: "fp", epoch_started_at: now - DAY_MS },
+        "fp",
+        now,
+      ),
+    ).toBe(true);
   });
 
-  it("starts over when the wrap key fingerprint changed", () => {
-    const state = resolve_upload_state(
-      { fingerprint: "old", epoch_started_at: now, uploaded_ids: [1, 2] },
-      "new",
-      now,
-    );
-
-    expect(state).toEqual({
-      fingerprint: "new",
-      epoch_started_at: now,
-      uploaded_ids: [],
-    });
+  it("accepts a state written by the previous format", () => {
+    expect(
+      upload_state_is_current(
+        { fingerprint: "fp", epoch_started_at: now, uploaded_ids: [1] },
+        "fp",
+        now,
+      ),
+    ).toBe(true);
   });
 
-  it("starts over after the seven day refresh window", () => {
-    const state = resolve_upload_state(
-      {
-        fingerprint: "fp",
-        epoch_started_at: now - 7 * DAY_MS,
-        uploaded_ids: [1],
-      },
-      "fp",
-      now,
-    );
+  it("rejects a changed or missing fingerprint, a stale or future epoch, and malformed state", () => {
+    const valid = { fingerprint: "fp", epoch_started_at: now };
 
-    expect(state.uploaded_ids).toEqual([]);
-  });
-
-  it("starts over when the clock moved backwards", () => {
-    const state = resolve_upload_state(
-      { fingerprint: "fp", epoch_started_at: now + 1000, uploaded_ids: [1] },
-      "fp",
-      now,
-    );
-
-    expect(state.uploaded_ids).toEqual([]);
-  });
-
-  it("starts over on malformed stored state", () => {
+    expect(upload_state_is_current(valid, "other", now)).toBe(false);
+    expect(upload_state_is_current(valid, null, now)).toBe(false);
+    expect(
+      upload_state_is_current(
+        { fingerprint: "fp", epoch_started_at: now - 7 * DAY_MS },
+        "fp",
+        now,
+      ),
+    ).toBe(false);
+    expect(
+      upload_state_is_current(
+        { fingerprint: "fp", epoch_started_at: now + 1000 },
+        "fp",
+        now,
+      ),
+    ).toBe(false);
     for (const stored of [
       null,
       undefined,
       "x",
       { key_id: 4, secret_key_b64: "AAAA" },
-      { fingerprint: "fp", epoch_started_at: now, uploaded_ids: ["1"] },
-      { fingerprint: "", epoch_started_at: now, uploaded_ids: [] },
+      { fingerprint: "", epoch_started_at: now },
+      { fingerprint: "fp", epoch_started_at: Number.NaN },
     ]) {
-      expect(resolve_upload_state(stored, "fp", now).uploaded_ids).toEqual([]);
+      expect(upload_state_is_current(stored, "fp", now)).toBe(false);
     }
-  });
-
-  it("selects only ids not yet uploaded", () => {
-    expect(
-      select_ids_needing_upload([1, 2, 3], {
-        fingerprint: "fp",
-        epoch_started_at: now,
-        uploaded_ids: [2],
-      }),
-    ).toEqual([1, 3]);
   });
 });
 
-describe("backfill uploads each secret once per wrap key", () => {
-  it("uploads the server-held secrets on the first run and nothing on the next", async () => {
+describe("select_ids_missing_on_server", () => {
+  it("keeps only ids the server does not list", () => {
+    expect(select_ids_missing_on_server([1, 2, 3], new Set([2]))).toEqual([
+      1, 3,
+    ]);
+  });
+
+  it("keeps every id when the server list is unknown", () => {
+    expect(select_ids_missing_on_server([1, 2, 3], null)).toEqual([1, 2, 3]);
+  });
+});
+
+describe("backfill decides uploads from the server secret list", () => {
+  it("uploads every eligible secret on the first run without asking for the secret list", async () => {
     seed_local([1, 2, 3, 4]);
     server_ids = [2, 3, 4, 99];
+    serve_secret_ids([2, 3, 4]);
 
     await backfill_pq_secrets_to_server();
+
     expect(uploaded_ids_per_call()).toEqual([[2, 3, 4]]);
+    expect(secret_ids_fetches()).toBe(0);
+  });
 
-    post_mock.mockClear();
+  it("uploads nothing when the server holds every secret under the same wrap key", async () => {
+    await prime_state([1, 2, 3]);
+    serve_secret_ids([1, 2, 3]);
+
     await backfill_pq_secrets_to_server();
+
+    expect(secret_ids_fetches()).toBe(1);
     expect(post_mock).not.toHaveBeenCalled();
   });
 
-  it("uploads only a newly listed id on a later run", async () => {
-    seed_local([1, 2, 3]);
-    server_ids = [1, 2];
+  it("uploads a secret the server lost even though an earlier run uploaded it", async () => {
+    await prime_state([1, 2, 3]);
+    serve_secret_ids([1, 3]);
 
     await backfill_pq_secrets_to_server();
-    post_mock.mockClear();
 
+    expect(uploaded_ids_per_call()).toEqual([[2]]);
+  });
+
+  it("uploads a newly listed prekey the server holds no secret for", async () => {
+    await prime_state([1, 2]);
+    seed_local([1, 2, 3]);
     server_ids = [1, 2, 3];
+    serve_secret_ids([1, 2]);
+
     await backfill_pq_secrets_to_server();
 
     expect(uploaded_ids_per_call()).toEqual([[3]]);
   });
 
-  it("re-uploads everything after the wrap key changes", async () => {
-    seed_local([1, 2, 3]);
-    server_ids = [1, 2, 3];
+  it("uploads everything when the secret list returns 404", async () => {
+    await prime_state([1, 2]);
+    secret_ids_response = async () => ({
+      error: "not found",
+      code: "NOT_FOUND",
+    });
 
     await backfill_pq_secrets_to_server();
-    post_mock.mockClear();
 
+    expect(uploaded_ids_per_call()).toEqual([[1, 2]]);
+  });
+
+  it("uploads everything when the secret list request throws", async () => {
+    await prime_state([1, 2]);
+    secret_ids_response = async () => {
+      throw new Error("network");
+    };
+
+    await backfill_pq_secrets_to_server();
+
+    expect(uploaded_ids_per_call()).toEqual([[1, 2]]);
+  });
+
+  it("uploads everything when the secret list is malformed", async () => {
+    for (const data of [
+      undefined,
+      null,
+      {},
+      { key_ids: "1,2" },
+      { key_ids: [1, "2"] },
+      { key_ids: [1, 2.5] },
+      { pq_key_ids: [1, 2] },
+    ]) {
+      storage.clear();
+      await prime_state([1, 2]);
+      secret_ids_response = async () => ({ data });
+
+      await backfill_pq_secrets_to_server();
+
+      expect(uploaded_ids_per_call()).toEqual([[1, 2]]);
+    }
+  });
+
+  it("uploads everything after a wrap key change even when the server lists every id", async () => {
+    await prime_state([1, 2, 3]);
+    serve_secret_ids([1, 2, 3]);
     master_byte = 2;
+
     await backfill_pq_secrets_to_server();
 
     expect(uploaded_ids_per_call()).toEqual([[1, 2, 3]]);
+    expect(secret_ids_fetches()).toBe(0);
 
     post_mock.mockClear();
     await backfill_pq_secrets_to_server();
     expect(post_mock).not.toHaveBeenCalled();
   });
 
-  it("re-uploads everything once the refresh window passes", async () => {
-    seed_local([1, 2]);
-    server_ids = [1, 2];
-
-    await backfill_pq_secrets_to_server();
-    post_mock.mockClear();
+  it("uploads everything once the refresh window passes", async () => {
+    await prime_state([1, 2]);
+    serve_secret_ids([1, 2]);
 
     vi.setSystemTime(new Date(Date.now() + 6 * DAY_MS));
     await backfill_pq_secrets_to_server();
@@ -264,9 +326,10 @@ describe("backfill uploads each secret once per wrap key", () => {
     expect(uploaded_ids_per_call()).toEqual([[1, 2]]);
   });
 
-  it("does not record a failed upload and retries it next time", async () => {
+  it("keeps doing full uploads until one completes without a failed chunk", async () => {
     seed_local([1, 2]);
     server_ids = [1, 2];
+    serve_secret_ids([1, 2]);
     post_mock.mockResolvedValueOnce({ error: "boom", code: "SERVER_ERROR" });
 
     await backfill_pq_secrets_to_server();
@@ -275,13 +338,18 @@ describe("backfill uploads each secret once per wrap key", () => {
     post_mock.mockClear();
     await backfill_pq_secrets_to_server();
     expect(uploaded_ids_per_call()).toEqual([[1, 2]]);
+
+    post_mock.mockClear();
+    await backfill_pq_secrets_to_server();
+    expect(post_mock).not.toHaveBeenCalled();
   });
 
-  it("keeps progress from earlier chunks when a later chunk is rate limited", async () => {
+  it("does not record the wrap key when a full upload is rate limited partway", async () => {
     const ids = Array.from({ length: 450 }, (_, i) => i + 1);
 
     seed_local(ids);
     server_ids = ids;
+    serve_secret_ids(ids);
     post_mock
       .mockResolvedValueOnce({ data: { stored: 200 } })
       .mockResolvedValueOnce({
@@ -294,36 +362,22 @@ describe("backfill uploads each secret once per wrap key", () => {
 
     post_mock.mockReset();
     post_mock.mockResolvedValue({ data: { stored: 1 } });
+    get_mock.mockClear();
     vi.setSystemTime(new Date(Date.now() + 2 * 60 * 1000));
     await backfill_pq_secrets_to_server();
 
-    const resumed = uploaded_ids_per_call().flat();
-
-    expect(resumed).toHaveLength(250);
-    expect(resumed[0]).toBe(201);
+    expect(uploaded_ids_per_call().flat()).toHaveLength(450);
+    expect(secret_ids_fetches()).toBe(0);
   });
 
-  it("uploads nothing when the server id list is unavailable", async () => {
+  it("uploads nothing when the prekey id list is unavailable", async () => {
     seed_local([1, 2]);
+    server_ids = [1, 2];
     get_mock.mockResolvedValue({ error: "boom", code: "SERVER_ERROR" });
 
     await backfill_pq_secrets_to_server();
 
     expect(post_mock).not.toHaveBeenCalled();
-  });
-
-  it("forgets a deleted id so a reused id is uploaded again", async () => {
-    seed_local([1, 2]);
-    server_ids = [1, 2];
-
-    await backfill_pq_secrets_to_server();
-    await delete_pq_secret(2);
-    post_mock.mockClear();
-
-    seed_local([1, 2]);
-    await backfill_pq_secrets_to_server();
-
-    expect(uploaded_ids_per_call()).toEqual([[2]]);
   });
 
   it("never sends the same nonce twice for a re-upload", async () => {

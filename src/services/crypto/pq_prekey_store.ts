@@ -609,7 +609,6 @@ export async function delete_pq_secret(key_id: number): Promise<boolean> {
     await update_index(storage_key, uid, (current) =>
       current.filter((id) => id !== key_id),
     );
-    await forget_uploaded_pq_id(storage_key, uid, key_id);
   } catch {
     /* fall through */
   }
@@ -649,7 +648,6 @@ const PQ_WRAP_FINGERPRINT_LABEL = "aster-pq-secret-wrap-fingerprint-v1";
 export interface PqUploadState {
   fingerprint: string;
   epoch_started_at: number;
-  uploaded_ids: number[];
 }
 
 function upload_state_key(uid: string | null): string {
@@ -664,40 +662,53 @@ function is_upload_state(value: unknown): value is PqUploadState {
     typeof candidate.fingerprint === "string" &&
     candidate.fingerprint.length > 0 &&
     typeof candidate.epoch_started_at === "number" &&
-    Number.isFinite(candidate.epoch_started_at) &&
-    Array.isArray(candidate.uploaded_ids) &&
-    candidate.uploaded_ids.every((id) => Number.isInteger(id))
+    Number.isFinite(candidate.epoch_started_at)
   );
 }
 
-export function resolve_upload_state(
+export function upload_state_is_current(
   stored: unknown,
-  fingerprint: string,
+  fingerprint: string | null,
   now: number,
-): PqUploadState {
-  if (
+): boolean {
+  return (
+    fingerprint !== null &&
     is_upload_state(stored) &&
     stored.fingerprint === fingerprint &&
     now >= stored.epoch_started_at &&
     now - stored.epoch_started_at < PQ_UPLOAD_REFRESH_MS
-  ) {
-    return {
-      fingerprint,
-      epoch_started_at: stored.epoch_started_at,
-      uploaded_ids: [...stored.uploaded_ids],
-    };
-  }
-
-  return { fingerprint, epoch_started_at: now, uploaded_ids: [] };
+  );
 }
 
-export function select_ids_needing_upload(
+export function select_ids_missing_on_server(
   candidate_ids: number[],
-  state: PqUploadState,
+  server_secret_ids: Set<number> | null,
 ): number[] {
-  const uploaded = new Set(state.uploaded_ids);
+  if (!server_secret_ids) return [...candidate_ids];
 
-  return candidate_ids.filter((key_id) => !uploaded.has(key_id));
+  return candidate_ids.filter((key_id) => !server_secret_ids.has(key_id));
+}
+
+export async function fetch_server_pq_secret_ids(): Promise<Set<number> | null> {
+  try {
+    const response = await api_client.get<{ key_ids: unknown }>(
+      "/crypto/v1/ratchet/pq-secret/ids",
+    );
+
+    if (response.error || !response.data) return null;
+    const key_ids = response.data.key_ids;
+
+    if (
+      !Array.isArray(key_ids) ||
+      !key_ids.every((key_id) => Number.isInteger(key_id))
+    ) {
+      return null;
+    }
+
+    return new Set(key_ids as number[]);
+  } catch {
+    return null;
+  }
 }
 
 async function read_upload_state(
@@ -721,23 +732,6 @@ async function write_upload_state(
   } catch {
     /* best-effort */
   }
-}
-
-async function forget_uploaded_pq_id(
-  storage_key: CryptoKey,
-  uid: string | null,
-  key_id: number,
-): Promise<void> {
-  const stored = await read_upload_state(storage_key, uid);
-
-  if (!is_upload_state(stored) || !stored.uploaded_ids.includes(key_id)) {
-    return;
-  }
-
-  await write_upload_state(storage_key, uid, {
-    ...stored,
-    uploaded_ids: stored.uploaded_ids.filter((id) => id !== key_id),
-  });
 }
 
 async function wrap_key_fingerprint(master: Uint8Array): Promise<string> {
@@ -796,34 +790,30 @@ export async function backfill_pq_secrets_to_server(): Promise<void> {
     if (!wrap) return;
 
     const fingerprint = wrap.fingerprint;
-    const state = fingerprint
-      ? resolve_upload_state(
-          await read_upload_state(storage_key, uid),
-          fingerprint,
-          Date.now(),
-        )
-      : null;
-    const uploaded = new Set(
-      (state?.uploaded_ids ?? []).filter((key_id) => server_ids.has(key_id)),
+    const now = Date.now();
+    const incremental = upload_state_is_current(
+      await read_upload_state(storage_key, uid),
+      fingerprint,
+      now,
     );
-    const ids = state
-      ? select_ids_needing_upload(candidate_ids, state)
+    const ids = incremental
+      ? select_ids_missing_on_server(
+          candidate_ids,
+          await fetch_server_pq_secret_ids(),
+        )
       : candidate_ids;
     const pending: { key_id: number; secret: Uint8Array }[] = [];
+    let all_posted = true;
 
     const flush = async () => {
       if (pending.length === 0) return;
       try {
         const ok = await post_pq_secrets_bulk(pending, wrap.sync_key);
 
-        if (ok && state) {
-          for (const entry of pending) uploaded.add(entry.key_id);
-          await write_upload_state(storage_key, uid, {
-            fingerprint: state.fingerprint,
-            epoch_started_at: state.epoch_started_at,
-            uploaded_ids: [...uploaded],
-          });
-        }
+        if (!ok) all_posted = false;
+      } catch (error) {
+        all_posted = false;
+        throw error;
       } finally {
         for (const entry of pending) entry.secret.fill(0);
         pending.length = 0;
@@ -851,6 +841,13 @@ export async function backfill_pq_secrets_to_server(): Promise<void> {
     }
 
     await flush();
+
+    if (!incremental && all_posted && fingerprint) {
+      await write_upload_state(storage_key, uid, {
+        fingerprint,
+        epoch_started_at: now,
+      });
+    }
   } catch {
     /* best-effort */
   }
