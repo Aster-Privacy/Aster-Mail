@@ -8683,6 +8683,13 @@ export const pl = {
       "Trzymaj kontakty i inne szybkie narzędzia w panelu obok wiadomości.",
   },
   mail: {
+    image_size_prompt_title: "Zmniejszyć rozmiar obrazów w tej wiadomości?",
+    image_size_prompt_description:
+      "Mniejsze obrazy wysyłają się szybciej i mieszczą się w limitach rozmiaru innych dostawców poczty. Oryginalny rozmiar zachowuje wszystkie szczegóły.",
+    image_size_reduce: "Zmniejsz rozmiar obrazów",
+    image_size_original: "Zachowaj oryginalny rozmiar",
+    link_menu_open: "Otwórz link",
+    link_menu_copy: "Kopiuj link",
     alias_view_sent: "Pokaż wysłane wiadomości",
     alias_direction_label: "Kierunek poczty",
     alias_direction_all: "Wszystkie",

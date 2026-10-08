@@ -8462,6 +8462,13 @@ export const es = {
       "Ten los contactos y otras herramientas rápidas en un panel junto a tu correo.",
   },
   mail: {
+    image_size_prompt_title: "¿Reducir el tamaño de las imágenes de este mensaje?",
+    image_size_prompt_description:
+      "Las imágenes más pequeñas se envían más rápido y respetan los límites de tamaño de otros proveedores de correo. El tamaño original conserva todos los detalles.",
+    image_size_reduce: "Reducir tamaño de imagen",
+    image_size_original: "Mantener tamaño original",
+    link_menu_open: "Abrir enlace",
+    link_menu_copy: "Copiar enlace",
     alias_view_sent: "Ver correo enviado",
     alias_direction_label: "Dirección del correo",
     alias_direction_all: "Todos",

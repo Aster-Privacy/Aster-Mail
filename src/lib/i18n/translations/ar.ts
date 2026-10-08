@@ -8310,6 +8310,13 @@ export const ar = {
     sync_now_tooltip: "المزامنة الآن",
   },
   mail: {
+    image_size_prompt_title: "هل تريد تقليل حجم الصور في هذه الرسالة؟",
+    image_size_prompt_description:
+      "تُرسل الصور الأصغر بشكل أسرع وتبقى ضمن حدود الحجم لدى مزودي البريد الإلكتروني الآخرين. يحتفظ الحجم الأصلي بكل التفاصيل.",
+    image_size_reduce: "تقليل حجم الصور",
+    image_size_original: "الاحتفاظ بالحجم الأصلي",
+    link_menu_open: "فتح الرابط",
+    link_menu_copy: "نسخ الرابط",
     alias_view_sent: "عرض البريد المرسل",
     alias_direction_label: "اتجاه البريد",
     alias_direction_all: "الكل",

@@ -8552,6 +8552,13 @@ export const de = {
     usage_external_accounts: "Externe Konten",
   },
   mail: {
+    image_size_prompt_title: "Größe der Bilder in dieser Nachricht verringern?",
+    image_size_prompt_description:
+      "Kleinere Bilder werden schneller gesendet und bleiben innerhalb der Größenlimits anderer E-Mail-Anbieter. Die Originalgröße behält jedes Detail.",
+    image_size_reduce: "Bildgröße verringern",
+    image_size_original: "Originalgröße behalten",
+    link_menu_open: "Link öffnen",
+    link_menu_copy: "Link kopieren",
     alias_view_sent: "Gesendete Nachrichten anzeigen",
     alias_direction_label: "Nachrichtenrichtung",
     alias_direction_all: "Alle",

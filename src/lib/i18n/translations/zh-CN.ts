@@ -7486,6 +7486,13 @@ export const zh_CN = {
       "POP3 把邮件下载到一台设备上，不会把更改传回服务器。",
   },
   mail: {
+    image_size_prompt_title: "要缩小此邮件中的图片吗？",
+    image_size_prompt_description:
+      "较小的图片发送更快，并且不会超出其他邮件服务商的大小限制。原始大小会保留所有细节。",
+    image_size_reduce: "缩小图片",
+    image_size_original: "保留原始大小",
+    link_menu_open: "打开链接",
+    link_menu_copy: "复制链接",
     alias_view_sent: "查看已发送邮件",
     alias_direction_label: "邮件方向",
     alias_direction_all: "全部",

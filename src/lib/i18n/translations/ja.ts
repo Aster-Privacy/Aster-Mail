@@ -8276,6 +8276,13 @@ export const ja = {
       "連絡先やそのほかのツールを、メールの横のパネルに表示します。",
   },
   mail: {
+    image_size_prompt_title: "このメッセージの画像サイズを縮小しますか？",
+    image_size_prompt_description:
+      "小さい画像はより速く送信でき、他のメールプロバイダのサイズ制限内に収まります。元のサイズではすべての細部が保たれます。",
+    image_size_reduce: "画像サイズを縮小",
+    image_size_original: "元のサイズを保持",
+    link_menu_open: "リンクを開く",
+    link_menu_copy: "リンクをコピー",
     alias_view_sent: "送信済みメールを表示",
     alias_direction_label: "メールの方向",
     alias_direction_all: "すべて",

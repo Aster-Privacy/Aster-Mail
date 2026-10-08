@@ -35,6 +35,7 @@ import {
   merge_pending_recipients,
 } from "./helpers";
 
+import { prepare_image_attachments } from "@/services/image_size_reduction";
 import { use_draggable_modal } from "@/hooks/use_draggable_modal";
 import { use_editor } from "@/hooks/use_editor";
 import { escape_html as escape_plain_text } from "@/hooks/editor_utils";
@@ -1180,10 +1181,17 @@ export function use_forward_modal({
 
   const handle_file_select = useCallback(
     async (event: React.ChangeEvent<HTMLInputElement>) => {
-      const files = event.target.files;
+      const selected = event.target.files;
 
-      if (!files || files.length === 0) return;
+      if (!selected || selected.length === 0) return;
 
+      const files = await prepare_image_attachments(Array.from(selected));
+
+      if (!files) {
+        if (file_input_ref.current) file_input_ref.current.value = "";
+
+        return;
+      }
       set_attachment_error(null);
       await ensure_attachment_limits();
       const new_attachments: Attachment[] = [];
@@ -1264,7 +1272,10 @@ export function use_forward_modal({
   );
 
   const handle_files_drop = useCallback(
-    async (files: File[]) => {
+    async (dropped: File[]) => {
+      const files = await prepare_image_attachments(dropped);
+
+      if (!files) return;
       set_attachment_error(null);
       await ensure_attachment_limits();
       const new_attachments: Attachment[] = [];

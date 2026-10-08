@@ -8430,6 +8430,13 @@ export const nl = {
       "Houd je contacten en andere snelle hulpmiddelen in een paneel naast je berichten.",
   },
   mail: {
+    image_size_prompt_title: "Grootte van afbeeldingen in dit bericht verkleinen?",
+    image_size_prompt_description:
+      "Kleinere afbeeldingen worden sneller verstuurd en blijven binnen de groottelimieten van andere e-mailproviders. De oorspronkelijke grootte behoudt elk detail.",
+    image_size_reduce: "Afbeeldingen verkleinen",
+    image_size_original: "Oorspronkelijke grootte behouden",
+    link_menu_open: "Link openen",
+    link_menu_copy: "Link kopiëren",
     alias_view_sent: "Verzonden e-mail tonen",
     alias_direction_label: "Richting van e-mail",
     alias_direction_all: "Alle",
