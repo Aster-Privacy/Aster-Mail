@@ -43,7 +43,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_email_dark_mode } from "@/components/email/use_email_dark_mode";
-import { update_item_metadata } from "@/services/crypto/mail_metadata";
+import {
+  bulk_update_metadata_by_ids,
+  update_item_metadata,
+} from "@/services/crypto/mail_metadata";
 import { get_read_intent } from "@/services/read_intent";
 import {
   emit_mail_item_updated,
@@ -139,6 +142,7 @@ interface ThreadMessagesListProps {
   on_report_phishing?: (message: DecryptedThreadMessage) => void;
   on_block_sender?: (message: DecryptedThreadMessage) => void;
   on_not_spam?: (message: DecryptedThreadMessage) => void;
+  bin_source?: "trash" | "spam";
   hide_counter?: boolean;
   hide_expand_collapse?: boolean;
   thread_message_count?: number;
@@ -207,6 +211,7 @@ export const ThreadMessagesList = forwardRef<
     on_report_phishing,
     on_block_sender,
     on_not_spam,
+    bin_source,
     hide_counter = false,
     hide_expand_collapse: _hide_expand_collapse = false,
     thread_message_count,
@@ -297,7 +302,25 @@ export const ThreadMessagesList = forwardRef<
 
       let result: Awaited<ReturnType<typeof bulk_add_folder>>;
 
+      const bin_flag =
+        bin_source === "trash"
+          ? "is_trashed"
+          : bin_source === "spam"
+            ? "is_spam"
+            : null;
+      const leaves_bin = !was_applied && bin_flag !== null;
+
       try {
+        if (leaves_bin) {
+          const cleared = await bulk_update_metadata_by_ids([msg.id], {
+            [bin_flag]: false,
+          });
+
+          if (cleared.failed_ids.length > 0) {
+            throw new Error("clear bin flag failed");
+          }
+        }
+
         result = was_applied
           ? await bulk_remove_folder([msg.id], folder_token)
           : await bulk_add_folder([msg.id], folder_token);
@@ -352,6 +375,10 @@ export const ThreadMessagesList = forwardRef<
             }
           }
 
+          if (leaves_bin) {
+            await bulk_update_metadata_by_ids([msg.id], { [bin_flag]: true });
+          }
+
           set_applied_folders((prev) => {
             const next = new Map(prev);
 
@@ -364,7 +391,7 @@ export const ThreadMessagesList = forwardRef<
       });
       emit_mail_soft_refresh();
     },
-    [applied_folders, t],
+    [applied_folders, bin_source, t],
   );
   const [hidden_group_revealed, set_hidden_group_revealed] = useState(false);
   const [expanded_ids, set_expanded_ids] = useState<Set<string>>(() => {
