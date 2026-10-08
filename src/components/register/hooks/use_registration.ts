@@ -844,7 +844,11 @@ export function use_registration(options?: RegistrationClaimOptions) {
 
           return;
         }
-        set_error(response.error);
+        set_error(
+          response.code === "RATE_LIMIT_EXCEEDED"
+            ? t("errors.rate_limited")
+            : response.error,
+        );
         set_step("email");
         registration_promise_ref.current = null;
 
