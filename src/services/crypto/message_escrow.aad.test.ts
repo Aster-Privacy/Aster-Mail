@@ -172,6 +172,22 @@ describe("escrow entries are bound to their message", () => {
     expect(cached.has("mail-b:BA==:1")).toBe(false);
   });
 
+  it("opens the escrow vector shared with the Android and iOS apps", async () => {
+    const dedupe_key =
+      "73e9433f-67d5-4b28-9b2f-51bc53819c5d:BAbCdEf0123456789xyz=:7";
+
+    served.set(dedupe_key, {
+      message_id: dedupe_key,
+      encrypted_plaintext:
+        "y8cIU6Ssg4bk6eKQohqECUVi3WGoxw1aVg90oJANtQtVDCIb47SoqbnYgDjlvPXMubLJmBc6RYV2jDDKDg==",
+      plaintext_nonce: "oKGio6Slpqeoqaqr",
+    });
+
+    expect(await fetch_from_escrow(dedupe_key)).toBe(
+      "Hello from the escrow vector. Ünïcödé ✓",
+    );
+  });
+
   it("skips swapped entries during a full sync", async () => {
     const for_a = await seal(
       "mail-a:BA==:1",

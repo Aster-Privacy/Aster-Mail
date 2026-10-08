@@ -179,6 +179,10 @@ export function mark_unauthenticated_plaintext(plaintext: string): void {
   }
 }
 
+export function clear_unauthenticated_plaintext(plaintext: string): void {
+  unauthenticated_plaintexts.delete(plaintext);
+}
+
 export function is_unauthenticated_plaintext(
   plaintext: string | null | undefined,
 ): boolean {
