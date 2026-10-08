@@ -567,6 +567,22 @@ export function AliasImportModal({
     });
   };
 
+  const choose_conflict_mode = (mode: ConflictMode) => {
+    set_conflict_mode(mode);
+    set_selected_indices((prev) => {
+      const next = new Set(prev);
+
+      preview_rows.forEach((row, i) => {
+        if (!needs_re_enable(row)) return;
+
+        if (mode === "update") next.add(i);
+        else next.delete(i);
+      });
+
+      return next;
+    });
+  };
+
   const toggle_all_rows = () => {
     if (selected_indices.size === selectable_count) {
       set_selected_indices(new Set());
@@ -1032,7 +1048,7 @@ export function AliasImportModal({
                       className="accent-[var(--accent-color)]"
                       name="conflict_mode"
                       type="radio"
-                      onChange={() => set_conflict_mode("skip")}
+                      onChange={() => choose_conflict_mode("skip")}
                     />
                     <span className="text-txt-primary">
                       {t("settings.alias_import_skip_existing")}
@@ -1044,7 +1060,7 @@ export function AliasImportModal({
                       className="accent-[var(--accent-color)]"
                       name="conflict_mode"
                       type="radio"
-                      onChange={() => set_conflict_mode("update")}
+                      onChange={() => choose_conflict_mode("update")}
                     />
                     <span className="text-txt-primary">
                       {t("settings.alias_import_update_existing")}

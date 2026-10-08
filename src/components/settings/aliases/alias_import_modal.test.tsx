@@ -292,6 +292,47 @@ describe("re-enable if disabled", () => {
     expect(summary_text()).toContain("1 already existed");
   });
 
+  it("selects the disabled rows when re-enable is chosen", async () => {
+    await render_modal({
+      available_domains: ["example.com"],
+      custom_domains: [{ name: "example.com", id: "domain-1" }],
+      existing_domain_addresses: [
+        make_domain_address("billing", false),
+        make_domain_address("sales", true),
+      ],
+    });
+    await load_csv(
+      `${EXPORT_HEADER}\nbilling@example.com,Billing team,true\nsales@example.com,Sales team,true\nnew@example.com,New,true\n`,
+    );
+    await choose_reenable();
+    await confirm_import();
+
+    expect(update_domain_address).toHaveBeenCalledTimes(1);
+    expect(update_domain_address).toHaveBeenCalledWith(
+      "domain-1",
+      "addr-billing",
+      { is_enabled: true },
+    );
+    expect(bulk_add_domain_addresses).toHaveBeenCalledTimes(1);
+    expect(summary_text()).toContain("1 re-enabled");
+  });
+
+  it("deselects the disabled rows when skip existing is chosen again", async () => {
+    await render_modal({
+      available_domains: ["example.com"],
+      custom_domains: [{ name: "example.com", id: "domain-1" }],
+      existing_domain_addresses: [make_domain_address("billing", false)],
+    });
+    await load_csv(`${EXPORT_HEADER}\nbilling@example.com,Billing team,true\n`);
+    await choose_reenable();
+    const radios = container.querySelectorAll('input[name="conflict_mode"]');
+    await click(radios[0]);
+    await confirm_import();
+
+    expect(update_domain_address).not.toHaveBeenCalled();
+    expect(bulk_add_domain_addresses).not.toHaveBeenCalled();
+  });
+
   it("re-enables a disabled custom domain address without renaming it", async () => {
     await render_modal({
       available_domains: ["example.com"],
