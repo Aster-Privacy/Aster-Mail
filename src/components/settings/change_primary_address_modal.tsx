@@ -56,6 +56,7 @@ import {
   SelectItem,
   SelectTrigger,
 } from "@/components/ui/select";
+import { PrimaryAddressAliasPicker } from "@/components/settings/primary_address_alias_picker";
 import { use_i18n } from "@/lib/i18n/context";
 import type { TranslationKey } from "@/lib/i18n/types";
 import { use_auth } from "@/contexts/auth_context";
@@ -857,22 +858,16 @@ export function ChangePrimaryAddressModal({
                 <p className="mb-2 text-sm font-medium text-txt-primary">
                   {t("settings.address_change_use_alias")}
                 </p>
-                <div className="flex flex-wrap gap-2">
-                  {eligible_aliases.map((address) => (
-                    <button
-                      key={address}
-                      className={`h-9 px-3 rounded-lg border text-sm transition-colors ${
-                        routing_form(new_address) === routing_form(address)
-                          ? "border-accent-primary text-txt-primary"
-                          : "border-edge-secondary text-txt-secondary hover:bg-surf-hover"
-                      }`}
-                      type="button"
-                      onClick={() => pick_alias(address)}
-                    >
-                      {address}
-                    </button>
-                  ))}
-                </div>
+                <PrimaryAddressAliasPicker
+                  aliases={eligible_aliases}
+                  selected={
+                    eligible_aliases.find(
+                      (address) =>
+                        routing_form(address) === routing_form(new_address),
+                    ) ?? null
+                  }
+                  on_select={pick_alias}
+                />
               </div>
             )}
 
@@ -919,7 +914,7 @@ export function ChangePrimaryAddressModal({
                 <Select value={domain} onValueChange={set_domain}>
                   <SelectTrigger
                     aria-label={t("settings.address_change_domain_label")}
-                    className="h-10 w-auto shrink-0 rounded-lg border border-edge-secondary bg-transparent text-sm px-3 focus:ring-0 focus:ring-offset-0"
+                    className="h-10 w-auto shrink-0 text-sm px-3"
                   >
                     <span className="text-txt-muted me-0.5">@</span>
                     <span className="truncate">{domain}</span>

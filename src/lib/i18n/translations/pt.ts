@@ -4885,6 +4885,9 @@ export const pt = {
       "{{email}} não pode voltar a ser o seu endereço principal.",
     address_change_pick_title: "Escolha o seu novo endereço",
     address_change_use_alias: "Utilizar um dos seus aliases",
+    address_change_alias_placeholder: "Escolha um alias",
+    address_change_alias_search: "Pesquisar aliases",
+    address_change_alias_no_results: "Nenhum alias corresponde à sua pesquisa.",
     address_change_use_new: "Escolher um novo endereço",
     address_change_name_rule:
       "Use de 3 a 40 letras, números ou pontos. Um ponto não pode iniciar nem terminar o endereço, e os pontos não podem repetir-se.",

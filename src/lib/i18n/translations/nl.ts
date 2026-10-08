@@ -4746,6 +4746,9 @@ export const nl = {
       "{{email}} kan niet opnieuw je primaire adres worden.",
     address_change_pick_title: "Kies je nieuwe adres",
     address_change_use_alias: "Een van je aliassen gebruiken",
+    address_change_alias_placeholder: "Kies een alias",
+    address_change_alias_search: "Aliassen zoeken",
+    address_change_alias_no_results: "Geen aliassen komen overeen met je zoekopdracht.",
     address_change_use_new: "Een nieuw adres kiezen",
     address_change_name_rule:
       "Gebruik 3 tot 40 letters, cijfers of punten. Een punt mag niet aan het begin of eind staan en punten mogen zich niet herhalen.",

@@ -5069,6 +5069,9 @@ export interface SettingsTranslations {
   address_change_permanent_body: string;
   address_change_pick_title: string;
   address_change_use_alias: string;
+  address_change_alias_placeholder: string;
+  address_change_alias_search: string;
+  address_change_alias_no_results: string;
   address_change_use_new: string;
   address_change_name_rule: string;
   address_change_name_placeholder: string;

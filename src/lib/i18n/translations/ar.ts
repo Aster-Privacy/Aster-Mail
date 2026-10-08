@@ -4913,6 +4913,9 @@ export const ar = {
     address_change_permanent_body: "لا يمكن أن يعود {{email}} عنوانك الأساسي.",
     address_change_pick_title: "اختر عنوانك الجديد",
     address_change_use_alias: "استخدام أحد أسمائك المستعارة",
+    address_change_alias_placeholder: "اختر اسمًا مستعارًا",
+    address_change_alias_search: "البحث في الأسماء المستعارة",
+    address_change_alias_no_results: "لا توجد أسماء مستعارة تطابق بحثك.",
     address_change_use_new: "اختيار عنوان جديد",
     address_change_name_rule:
       "استخدم من 3 إلى 40 حرفًا أو رقمًا أو نقطة. لا يمكن أن تبدأ النقطة العنوان أو تنهيه، ولا يمكن تكرار النقاط.",

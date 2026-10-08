@@ -143,6 +143,18 @@ vi.mock("@/components/ui/select", () => ({
   ),
 }));
 
+vi.mock("@/components/ui/popover", () => ({
+  Popover: ({ children }: { children?: unknown }) => (
+    <div>{children as never}</div>
+  ),
+  PopoverTrigger: ({ children }: { children?: unknown }) => (
+    <>{children as never}</>
+  ),
+  PopoverContent: ({ children }: { children?: unknown }) => (
+    <div>{children as never}</div>
+  ),
+}));
+
 vi.mock("@aster/ui", async (import_original) => ({
   ...(await import_original<typeof import("@aster/ui")>()),
   Button: ({

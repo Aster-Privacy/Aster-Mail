@@ -4882,6 +4882,9 @@ export const fr = {
       "{{email}} ne peut plus redevenir votre adresse principale.",
     address_change_pick_title: "Choisissez votre nouvelle adresse",
     address_change_use_alias: "Utiliser un de vos alias",
+    address_change_alias_placeholder: "Choisir un alias",
+    address_change_alias_search: "Rechercher des alias",
+    address_change_alias_no_results: "Aucun alias ne correspond à votre recherche.",
     address_change_use_new: "Choisir une nouvelle adresse",
     address_change_name_rule:
       "Utilisez 3 à 40 lettres, chiffres ou points. Un point ne peut ni commencer ni terminer l\\'adresse, et les points ne peuvent pas se répéter.",
