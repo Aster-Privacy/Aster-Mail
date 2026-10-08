@@ -34,7 +34,7 @@ import {
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
-import { AliasImportModal } from "./alias_import_modal";
+import { AliasImportModal, pick_target_domain } from "./alias_import_modal";
 import {
   ALIAS_COLUMNS,
   build_alias_rows,
@@ -121,12 +121,14 @@ function make_alias(
 function make_domain_address(
   local_part: string,
   is_enabled: boolean,
+  note?: string,
 ): DecryptedDomainAddress & { domain_name: string } {
   return {
     id: `addr-${local_part}`,
     domain_id: "domain-1",
     domain_name: "example.com",
     local_part,
+    note,
     is_enabled,
     is_primary: false,
     created_at: "2026-01-01T00:00:00Z",
@@ -288,6 +290,47 @@ describe("re-enable if disabled", () => {
     });
     expect(summary_text()).toContain("1 re-enabled");
     expect(summary_text()).toContain("1 already existed");
+  });
+
+  it("selects the disabled rows when re-enable is chosen", async () => {
+    await render_modal({
+      available_domains: ["example.com"],
+      custom_domains: [{ name: "example.com", id: "domain-1" }],
+      existing_domain_addresses: [
+        make_domain_address("billing", false),
+        make_domain_address("sales", true),
+      ],
+    });
+    await load_csv(
+      `${EXPORT_HEADER}\nbilling@example.com,Billing team,true\nsales@example.com,Sales team,true\nnew@example.com,New,true\n`,
+    );
+    await choose_reenable();
+    await confirm_import();
+
+    expect(update_domain_address).toHaveBeenCalledTimes(1);
+    expect(update_domain_address).toHaveBeenCalledWith(
+      "domain-1",
+      "addr-billing",
+      { is_enabled: true },
+    );
+    expect(bulk_add_domain_addresses).toHaveBeenCalledTimes(1);
+    expect(summary_text()).toContain("1 re-enabled");
+  });
+
+  it("deselects the disabled rows when skip existing is chosen again", async () => {
+    await render_modal({
+      available_domains: ["example.com"],
+      custom_domains: [{ name: "example.com", id: "domain-1" }],
+      existing_domain_addresses: [make_domain_address("billing", false)],
+    });
+    await load_csv(`${EXPORT_HEADER}\nbilling@example.com,Billing team,true\n`);
+    await choose_reenable();
+    const radios = container.querySelectorAll('input[name="conflict_mode"]');
+    await click(radios[0]);
+    await confirm_import();
+
+    expect(update_domain_address).not.toHaveBeenCalled();
+    expect(bulk_add_domain_addresses).not.toHaveBeenCalled();
   });
 
   it("re-enables a disabled custom domain address without renaming it", async () => {
@@ -511,5 +554,147 @@ describe("notes", () => {
     expect(update_alias).toHaveBeenCalledWith("alias-emptied", {
       is_enabled: true,
     });
+  });
+});
+
+describe("custom domain notes", () => {
+  it("imports each note with new custom domain addresses", async () => {
+    await render_modal({
+      available_domains: ["example.com"],
+      custom_domains: [{ name: "example.com", id: "domain-1" }],
+    });
+    await load_csv(
+      `alias,display_name,note,enabled
+billing@example.com,Billing,Invoices only,true
+sales@example.com,Sales,,true
+`,
+    );
+    await confirm_import();
+
+    expect(bulk_add_domain_addresses).toHaveBeenCalledWith(
+      "domain-1",
+      "example.com",
+      [
+        {
+          local_part: "billing",
+          display_name: "Billing",
+          note: "Invoices only",
+          is_enabled: true,
+        },
+        {
+          local_part: "sales",
+          display_name: "Sales",
+          note: undefined,
+          is_enabled: true,
+        },
+      ],
+    );
+  });
+
+  it("fills a missing note on re-enable but never replaces an existing one", async () => {
+    await render_modal({
+      available_domains: ["example.com"],
+      custom_domains: [{ name: "example.com", id: "domain-1" }],
+      existing_domain_addresses: [
+        make_domain_address("blank", false),
+        make_domain_address("kept", false, "Original note"),
+      ],
+    });
+    await load_csv(
+      `alias,display_name,note,enabled
+blank@example.com,,Restored note,false
+kept@example.com,,Other note,false
+`,
+    );
+    await click(row_for("blank@example.com"));
+    await click(row_for("kept@example.com"));
+    await choose_reenable();
+    await confirm_import();
+
+    expect(update_domain_address).toHaveBeenCalledTimes(2);
+    expect(update_domain_address).toHaveBeenCalledWith(
+      "domain-1",
+      "addr-blank",
+      { is_enabled: true, note: "Restored note" },
+    );
+    expect(update_domain_address).toHaveBeenCalledWith(
+      "domain-1",
+      "addr-kept",
+      { is_enabled: true },
+    );
+  });
+});
+
+describe("target domain", () => {
+  it("preselects the custom domain every address in the file uses", async () => {
+    await render_modal({
+      available_domains: ["astermail.org", "example.com"],
+      custom_domains: [{ name: "example.com", id: "domain-1" }],
+    });
+    await load_csv(
+      `${EXPORT_HEADER}
+billing@example.com,Billing,true
+sales@example.com,Sales,true
+`,
+    );
+
+    expect(row_for("billing@example.com")).toBeTruthy();
+    expect(row_for("sales@example.com")).toBeTruthy();
+
+    await confirm_import();
+
+    expect(bulk_add_domain_addresses).toHaveBeenCalledWith(
+      "domain-1",
+      "example.com",
+      expect.any(Array),
+    );
+    expect(bulk_create_aliases).not.toHaveBeenCalled();
+  });
+
+  it("keeps the default when the file mixes domains", async () => {
+    await render_modal({
+      available_domains: ["astermail.org", "example.com"],
+      custom_domains: [{ name: "example.com", id: "domain-1" }],
+    });
+    await load_csv(
+      `${EXPORT_HEADER}
+billing@example.com,,true
+news@astermail.org,,true
+`,
+    );
+
+    expect(row_for("billing@astermail.org")).toBeTruthy();
+    expect(row_for("news@astermail.org")).toBeTruthy();
+  });
+
+  it("keeps the default when the file domain is not available", async () => {
+    await render_modal({
+      available_domains: ["astermail.org", "example.com"],
+    });
+    await load_csv(`${EXPORT_HEADER}
+billing@other.net,,true
+`);
+
+    expect(row_for("billing@astermail.org")).toBeTruthy();
+  });
+});
+
+describe("pick_target_domain", () => {
+  const row = (original_domain: string) => ({
+    local_part: "a",
+    original_domain,
+  });
+
+  it("matches the available domain case-insensitively", () => {
+    expect(
+      pick_target_domain(
+        [row("example.com")],
+        ["astermail.org", "Example.com"],
+      ),
+    ).toBe("Example.com");
+  });
+
+  it("returns an empty string when no domain is selectable", () => {
+    expect(pick_target_domain([row("example.com")], [])).toBe("");
   });
 });

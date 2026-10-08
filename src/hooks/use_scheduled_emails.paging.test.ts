@@ -33,6 +33,8 @@ const server = vi.hoisted(() => ({
   ignore_offset: false,
   descending: false,
   fail_call: -1,
+  failing_details: new Set<string>(),
+  gone_details: new Set<string>(),
   details_in_flight: 0,
   max_details_in_flight: 0,
   on_list: null as null | ((call: number) => void),
@@ -78,7 +80,11 @@ vi.mock("@/services/api/scheduled", () => ({
     server.details_in_flight--;
     const item = server.items.find((i) => i.id === id);
 
-    if (!item) return { error: "not found" };
+    if (server.failing_details.has(id)) {
+      return { data: null, error: "Request failed", code: "TIMEOUT_ERROR" };
+    }
+    if (!item || server.gone_details.has(id))
+      return { data: null, error: "not found", code: "NOT_FOUND" };
 
     return {
       data: {
@@ -201,6 +207,8 @@ describe("use_scheduled_emails paging", () => {
     server.on_list = null;
     server.list_calls = [];
     server.fail_call = -1;
+    server.failing_details = new Set();
+    server.gone_details = new Set();
     server.details_in_flight = 0;
     server.max_details_in_flight = 0;
   });
@@ -435,6 +443,55 @@ describe("use_scheduled_emails paging", () => {
 
     expect(latest().state.emails).toHaveLength(300);
     expect(server.max_details_in_flight).toBeLessThanOrEqual(50);
+
+    act(() => root.unmount());
+  });
+
+  it("keeps a loaded message when its detail fails on refresh", async () => {
+    server.items = make_items(3);
+    const { latest, root } = render_hook();
+
+    await flush();
+    expect(ids(latest())).toEqual(["s000", "s001", "s002"]);
+    expect(latest().state.error).toBeNull();
+
+    server.failing_details = new Set(["s001"]);
+    act(() => latest().refresh());
+    await flush();
+
+    expect(ids(latest())).toEqual(["s000", "s001", "s002"]);
+    expect(latest().state.total_count).toBe(3);
+    expect(latest().state.error).toBe("common.failed_to_load_scheduled_emails");
+
+    act(() => root.unmount());
+  });
+
+  it("marks a first load as incomplete when a detail fails", async () => {
+    server.items = make_items(3);
+    server.failing_details = new Set(["s002"]);
+    const { latest, root } = render_hook();
+
+    await flush();
+
+    expect(ids(latest())).toEqual(["s000", "s001"]);
+    expect(latest().state.has_more).toBe(true);
+    expect(latest().state.error).toBe("common.failed_to_load_scheduled_emails");
+
+    act(() => root.unmount());
+  });
+
+  it("drops a message whose detail is gone from the server", async () => {
+    server.items = make_items(3);
+    const { latest, root } = render_hook();
+
+    await flush();
+    server.gone_details = new Set(["s001"]);
+    act(() => latest().refresh());
+    await flush();
+
+    expect(ids(latest())).toEqual(["s000", "s002"]);
+    expect(latest().state.error).toBeNull();
+    expect(latest().state.has_more).toBe(false);
 
     act(() => root.unmount());
   });

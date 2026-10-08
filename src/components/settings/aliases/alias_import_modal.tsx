@@ -353,6 +353,7 @@ function build_preview(
         existing_id: existing_domain_addr.id,
         existing_domain_id: existing_domain_addr.domain_id,
         existing_enabled: existing_domain_addr.is_enabled,
+        existing_note: existing_domain_addr.note,
       };
     }
 
@@ -372,6 +373,23 @@ interface ImportResult {
   invalid: number;
   unselected: number;
   failed: number;
+}
+
+export function pick_target_domain(
+  rows: ParsedRow[],
+  selectable_domains: string[],
+): string {
+  const fallback = selectable_domains[0] ?? "";
+  const file_domains = new Set(rows.map((row) => row.original_domain));
+
+  if (file_domains.size !== 1) return fallback;
+
+  const [file_domain] = file_domains;
+  const match = selectable_domains.find(
+    (domain) => domain.toLowerCase() === file_domain,
+  );
+
+  return match ?? fallback;
 }
 
 function needs_re_enable(row: PreviewRow): boolean {
@@ -505,7 +523,7 @@ export function AliasImportModal({
     }
 
     set_error_msg(null);
-    const domain = selectable_domains[0] ?? "";
+    const domain = pick_target_domain(parsed, selectable_domains);
 
     set_parsed_rows(parsed);
     set_target_domain(domain);
@@ -544,6 +562,22 @@ export function AliasImportModal({
 
       if (next.has(index)) next.delete(index);
       else next.add(index);
+
+      return next;
+    });
+  };
+
+  const choose_conflict_mode = (mode: ConflictMode) => {
+    set_conflict_mode(mode);
+    set_selected_indices((prev) => {
+      const next = new Set(prev);
+
+      preview_rows.forEach((row, i) => {
+        if (!needs_re_enable(row)) return;
+
+        if (mode === "update") next.add(i);
+        else next.delete(i);
+      });
 
       return next;
     });
@@ -696,6 +730,7 @@ export function AliasImportModal({
                 batch.map((r) => ({
                   local_part: r.local_part,
                   display_name: r.display_name,
+                  note: r.note,
                   is_enabled: r.enabled,
                 })),
               );
@@ -730,7 +765,10 @@ export function AliasImportModal({
           const response = await update_domain_address(
             row.existing_domain_id,
             row.existing_id,
-            { is_enabled: true },
+            {
+              is_enabled: true,
+              ...(row.note && !row.existing_note ? { note: row.note } : {}),
+            },
           );
 
           if (response.error) {
@@ -1010,7 +1048,7 @@ export function AliasImportModal({
                       className="accent-[var(--accent-color)]"
                       name="conflict_mode"
                       type="radio"
-                      onChange={() => set_conflict_mode("skip")}
+                      onChange={() => choose_conflict_mode("skip")}
                     />
                     <span className="text-txt-primary">
                       {t("settings.alias_import_skip_existing")}
@@ -1022,7 +1060,7 @@ export function AliasImportModal({
                       className="accent-[var(--accent-color)]"
                       name="conflict_mode"
                       type="radio"
-                      onChange={() => set_conflict_mode("update")}
+                      onChange={() => choose_conflict_mode("update")}
                     />
                     <span className="text-txt-primary">
                       {t("settings.alias_import_update_existing")}

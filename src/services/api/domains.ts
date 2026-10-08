@@ -203,6 +203,8 @@ export interface DomainAddress {
   encrypted_display_name?: string;
   display_name_nonce?: string;
   profile_picture?: string;
+  encrypted_note?: string | null;
+  note_nonce?: string | null;
   is_enabled: boolean;
   is_primary: boolean;
   created_at: string;
@@ -215,6 +217,7 @@ export interface DecryptedDomainAddress {
   local_part_hash?: string;
   display_name?: string;
   profile_picture?: string;
+  note?: string;
   is_enabled: boolean;
   is_primary: boolean;
   created_at: string;
@@ -363,6 +366,19 @@ export async function decrypt_domain_address(
     );
   }
 
+  let note: string | undefined;
+
+  if (address.encrypted_note && address.note_nonce) {
+    try {
+      note = await decrypt_address_field(
+        address.encrypted_note,
+        address.note_nonce,
+      );
+    } catch {
+      note = undefined;
+    }
+  }
+
   return {
     id: address.id,
     domain_id: address.domain_id,
@@ -370,6 +386,7 @@ export async function decrypt_domain_address(
     local_part_hash: address.local_part_hash,
     display_name,
     profile_picture: address.profile_picture,
+    note: note || undefined,
     is_enabled: address.is_enabled,
     is_primary: address.is_primary,
     created_at: address.created_at,
@@ -510,6 +527,7 @@ export async function bulk_add_domain_addresses(
   items: Array<{
     local_part: string;
     display_name?: string;
+    note?: string;
     is_enabled?: boolean;
   }>,
 ): Promise<ApiResponse<{ created: number; failed: number }>> {
@@ -528,6 +546,8 @@ export async function bulk_add_domain_addresses(
         address_routing_hash: string;
         encrypted_display_name?: string;
         display_name_nonce?: string;
+        encrypted_note?: string;
+        note_nonce?: string;
         is_enabled?: boolean;
       } = {
         encrypted_local_part: enc.encrypted,
@@ -542,6 +562,12 @@ export async function bulk_add_domain_addresses(
 
         entry.encrypted_display_name = enc_dn.encrypted;
         entry.display_name_nonce = enc_dn.nonce;
+      }
+      if (item.note) {
+        const enc_note = await encrypt_address_field(item.note);
+
+        entry.encrypted_note = enc_note.encrypted;
+        entry.note_nonce = enc_note.nonce;
       }
 
       return entry;
@@ -615,6 +641,7 @@ export async function update_domain_address(
   updates: {
     profile_picture?: string | null;
     display_name?: string;
+    note?: string;
     is_enabled?: boolean;
   },
 ): Promise<ApiResponse<{ success: boolean }>> {
@@ -622,6 +649,8 @@ export async function update_domain_address(
     profile_picture?: string | null;
     encrypted_display_name?: string;
     display_name_nonce?: string;
+    encrypted_note?: string | null;
+    note_nonce?: string | null;
     is_enabled?: boolean;
   } = {};
 
@@ -640,6 +669,18 @@ export async function update_domain_address(
 
     body.encrypted_display_name = encrypted;
     body.display_name_nonce = nonce;
+  }
+
+  if (updates.note !== undefined) {
+    if (updates.note) {
+      const { encrypted, nonce } = await encrypt_address_field(updates.note);
+
+      body.encrypted_note = encrypted;
+      body.note_nonce = nonce;
+    } else {
+      body.encrypted_note = null;
+      body.note_nonce = null;
+    }
   }
 
   return api_client.patch<{ success: boolean }>(

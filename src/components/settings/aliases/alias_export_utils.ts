@@ -43,6 +43,7 @@ export const ALIAS_COLUMNS = [
 export const DOMAIN_ADDRESS_COLUMNS = [
   "address",
   "display_name",
+  "note",
   "enabled",
   "created_at",
 ] as const;
@@ -182,6 +183,8 @@ export function build_domain_address_rows(
           return `${address.local_part}@${address.domain_name}`;
         case "display_name":
           return text_cell(address.display_name);
+        case "note":
+          return text_cell(address.note);
         case "enabled":
           return address.is_enabled;
         case "created_at":
