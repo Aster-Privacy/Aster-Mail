@@ -466,6 +466,11 @@ describe("reply window format when it opens", () => {
       expect(reply!.is_plain_text_mode).toBe(true);
       expect(reply!.reply_message).toContain("Sam Doe");
       expect(reply!.reply_message).not.toContain("<");
+      expect(
+        reply!.message_editor_ref.current!.querySelector(
+          "[data-aster-signature]",
+        ),
+      ).toBeNull();
     },
   );
 
@@ -548,6 +553,11 @@ describe("forward window format when it opens", () => {
     expect(forward!.is_plain_text_mode).toBe(true);
     expect(forward!.forward_message).toContain("Sam Doe");
     expect(forward!.forward_message).not.toContain("<");
+    expect(
+      forward!.message_editor_ref.current!.querySelector(
+        "[data-aster-signature]",
+      ),
+    ).toBeNull();
   });
 
   it("still lets the toolbar switch this forward to rich text", async () => {

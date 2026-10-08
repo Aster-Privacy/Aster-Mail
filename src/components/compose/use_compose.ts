@@ -974,13 +974,18 @@ export function use_compose({
           if (!message_textarea_ref.current) return;
 
           message_textarea_ref.current.innerHTML = resolved_html;
-          set_message(
-            is_plain_text_ref.current
-              ? message_textarea_ref.current.innerText
-              : restore_compose_image_sources(
-                  message_textarea_ref.current.innerHTML,
-                ),
-          );
+          if (is_plain_text_ref.current) {
+            const text = message_textarea_ref.current.innerText;
+
+            message_textarea_ref.current.innerText = text;
+            set_message(text);
+          } else {
+            set_message(
+              restore_compose_image_sources(
+                message_textarea_ref.current.innerHTML,
+              ),
+            );
+          }
         },
       );
     }, INITIAL_CONTENT_DELAY_MS);

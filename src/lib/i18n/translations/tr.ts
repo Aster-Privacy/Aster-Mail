@@ -2448,7 +2448,7 @@ export const tr = {
     prefer_plain_text_label: "Düz Metni Tercih Et",
     prefer_plain_text_description:
       "Gönderen bir düz metin sürümü eklediğinde HTML sürümü yerine o açılır. Bu sürümü olmayan e-postalar normal şekilde görüntülenir.",
-    plain_text_compose_label: "Düz Metinle Yaz",
+    plain_text_compose_label: "Düz metinle yaz",
     plain_text_compose_description:
       "Yeni iletiler, yanıtlar ve iletmeler düz metin olarak başlar. Her iletiyi araç çubuğundan yine de değiştirebilirsiniz.",
     family_plan_title: "Aile Planı",

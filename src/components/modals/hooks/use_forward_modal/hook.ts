@@ -500,11 +500,16 @@ export function use_forward_modal({
         message_editor_ref.current.innerHTML = sanitized.html;
       }
       mark_signature_applied(signature);
-      set_forward_message(
-        is_plain_text_ref.current
-          ? message_editor_ref.current.innerText
-          : restore_compose_image_sources(message_editor_ref.current.innerHTML),
-      );
+      if (is_plain_text_ref.current) {
+        const text = message_editor_ref.current.innerText;
+
+        message_editor_ref.current.innerText = text;
+        set_forward_message(text);
+      } else {
+        set_forward_message(
+          restore_compose_image_sources(message_editor_ref.current.innerHTML),
+        );
+      }
     }, 0);
   }, [
     is_open,

@@ -3008,7 +3008,7 @@ export const en: Translations = {
     prefer_plain_text_label: "Prefer Plain Text",
     prefer_plain_text_description:
       "When the sender includes a plain text version, open it instead of the HTML version. Emails without one display normally.",
-    plain_text_compose_label: "Compose in Plain Text",
+    plain_text_compose_label: "Compose in plain text",
     plain_text_compose_description:
       "New messages, replies and forwards start in plain text. You can still switch each message from the toolbar.",
     images_section_title: "Images",

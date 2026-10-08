@@ -251,13 +251,17 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
   is_plain_text_ref.current = is_plain_text_mode;
   default_plain_text_ref.current = preferences.compose_mode === "plain_text";
 
-  const read_editor_message = useCallback(
-    (editor: HTMLElement): string =>
-      is_plain_text_ref.current
-        ? editor.innerText
-        : restore_compose_image_sources(editor.innerHTML),
-    [],
-  );
+  const read_editor_message = useCallback((editor: HTMLElement): string => {
+    if (!is_plain_text_ref.current) {
+      return restore_compose_image_sources(editor.innerHTML);
+    }
+
+    const text = editor.innerText;
+
+    editor.innerText = text;
+
+    return text;
+  }, []);
   const [show_from_mismatch, set_show_from_mismatch] = useState(false);
   const [send_after_sender_switch, set_send_after_sender_switch] =
     useState(false);
