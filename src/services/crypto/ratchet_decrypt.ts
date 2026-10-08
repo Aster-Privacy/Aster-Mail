@@ -43,6 +43,7 @@ import {
 import { detect_identity_pin_drift } from "./ratchet_prekey_bundle";
 import { has_peer_advertised_pq } from "./ratchet_identity_pin";
 import {
+  clear_unauthenticated_plaintext,
   is_unauthenticated_plaintext,
   mark_unauthenticated_plaintext,
   record_message_sender_identity,
@@ -140,6 +141,50 @@ interface RatchetDecryptAttempt {
   error: unknown;
 }
 
+const MAX_ESCROW_UPGRADE_MISSES = 2048;
+const escrow_upgrade_misses = new Set<string>();
+
+function note_escrow_upgrade_miss(dedupe_key: string): void {
+  escrow_upgrade_misses.add(dedupe_key);
+
+  while (escrow_upgrade_misses.size > MAX_ESCROW_UPGRADE_MISSES) {
+    const oldest = escrow_upgrade_misses.values().next();
+
+    if (oldest.done) return;
+
+    escrow_upgrade_misses.delete(oldest.value);
+  }
+}
+
+async function prefer_escrowed_plaintext(
+  plaintext: string,
+  dedupe_key: string,
+  message_id: string | undefined,
+  sender_email: string,
+): Promise<string> {
+  if (!is_unauthenticated_plaintext(plaintext)) return plaintext;
+  if (escrow_upgrade_misses.has(dedupe_key)) return plaintext;
+
+  const escrowed = await fetch_from_escrow(dedupe_key).catch(() => null);
+
+  if (escrowed === null) {
+    note_escrow_upgrade_miss(dedupe_key);
+
+    return plaintext;
+  }
+
+  clear_unauthenticated_plaintext(escrowed);
+  note_message_sender_identity(message_id ?? dedupe_key, sender_email);
+  await set_cached_ratchet_plaintext(dedupe_key, escrowed).catch((caught) =>
+    ignore_error(
+      "services/crypto/ratchet_decrypt:prefer_escrowed_plaintext",
+      caught,
+    ),
+  );
+
+  return escrowed;
+}
+
 async function attempt_ratchet_decrypt(
   our_email: string,
   sender_email: string,
@@ -155,7 +200,17 @@ async function attempt_ratchet_decrypt(
   if (dedupe_key) {
     const cached = await get_cached_ratchet_plaintext(dedupe_key);
 
-    if (cached !== null) return { plaintext: cached, error: null };
+    if (cached !== null) {
+      return {
+        plaintext: await prefer_escrowed_plaintext(
+          cached,
+          dedupe_key,
+          message_id,
+          sender_email,
+        ),
+        error: null,
+      };
+    }
   }
 
   const conversation_id = await derive_conversation_id(our_email, sender_email);
@@ -164,7 +219,17 @@ async function attempt_ratchet_decrypt(
     if (dedupe_key) {
       const cached = await get_cached_ratchet_plaintext(dedupe_key);
 
-      if (cached !== null) return { plaintext: cached, error: null };
+      if (cached !== null) {
+        return {
+          plaintext: await prefer_escrowed_plaintext(
+            cached,
+            dedupe_key,
+            message_id,
+            sender_email,
+          ),
+          error: null,
+        };
+      }
     }
 
     let plaintext: string | null = null;
@@ -194,6 +259,15 @@ async function attempt_ratchet_decrypt(
         sender_email.toLowerCase(),
         envelope.sender_identity_key,
       );
+
+      if (dedupe_key && is_unauthenticated_plaintext(plaintext)) {
+        plaintext = await prefer_escrowed_plaintext(
+          plaintext,
+          dedupe_key,
+          message_id,
+          sender_email,
+        );
+      }
 
       const unauthenticated = is_unauthenticated_plaintext(plaintext);
 
