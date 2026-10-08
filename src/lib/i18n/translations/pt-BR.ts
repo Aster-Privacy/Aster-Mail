@@ -10527,6 +10527,18 @@ export const pt_br = {
       "Parado. Atualizados: {{applied}}. Esta regra ignorou {{count}} mensagens criptografadas porque só o seu dispositivo consegue lê-las.",
     apply_to_existing_error:
       "Falha ao aplicar ao e-mail existente. Tente novamente.",
+    local_apply_progress:
+      "Verificando mensagens criptografadas neste dispositivo: {{checked}} de {{total}}",
+    local_apply_done:
+      "Mensagens criptografadas verificadas neste dispositivo: {{checked}}, atualizadas: {{applied}}.",
+    local_apply_unreadable:
+      "Mensagens que não puderam ser descriptografadas: {{unreadable}}.",
+    local_apply_capped:
+      "Apenas as suas {{limit}} mensagens mais recentes foram verificadas.",
+    local_apply_failed:
+      "Não foi possível atualizar algumas mensagens criptografadas. Tente novamente.",
+    local_apply_unsupported:
+      "Esta regra usa condições que só o servidor pode verificar, por isso não consegue organizar mensagens criptografadas.",
     empty_title: "Nenhuma regra ainda",
     empty_description:
       "Crie sua primeira regra para organizar automaticamente os e-mails recebidos.",

@@ -10701,6 +10701,18 @@ export const pl = {
       "Zatrzymano: zaktualizowano {{applied}}. Ta reguła pominęła {{count}} zaszyfrowanych wiadomości, ponieważ tylko Twoje urządzenie może je odczytać.",
     apply_to_existing_error:
       "Zastosowanie do istniejacej poczty nie udalo sie. Spróbuj ponownie.",
+    local_apply_progress:
+      "Sprawdzanie zaszyfrowanych wiadomości na tym urządzeniu: {{checked}} z {{total}}",
+    local_apply_done:
+      "Zaszyfrowane wiadomości sprawdzone na tym urządzeniu: {{checked}}, zaktualizowano: {{applied}}.",
+    local_apply_unreadable:
+      "Wiadomości, których nie udało się odszyfrować: {{unreadable}}.",
+    local_apply_capped:
+      "Sprawdzono tylko {{limit}} najnowszych wiadomości.",
+    local_apply_failed:
+      "Nie udało się zaktualizować niektórych zaszyfrowanych wiadomości. Spróbuj ponownie.",
+    local_apply_unsupported:
+      "Ta reguła używa warunków, które może sprawdzić tylko serwer, więc nie może sortować zaszyfrowanych wiadomości.",
     empty_title: "Brak reguł",
     empty_description:
       "Utwórz pierwszą regułę, aby automatycznie organizować przychodzącą pocztę.",

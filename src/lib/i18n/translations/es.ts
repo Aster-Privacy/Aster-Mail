@@ -10476,6 +10476,18 @@ export const es = {
       "Detenido. Actualizados: {{applied}}. Esta regla omitió {{count}} mensajes cifrados porque solo tu dispositivo puede leerlos.",
     apply_to_existing_error:
       "No se pudo aplicar al correo existente. Intentalo de nuevo.",
+    local_apply_progress:
+      "Comprobando mensajes cifrados en este dispositivo: {{checked}} de {{total}}",
+    local_apply_done:
+      "Mensajes cifrados comprobados en este dispositivo: {{checked}}, actualizados: {{applied}}.",
+    local_apply_unreadable:
+      "Mensajes que no se pudieron descifrar: {{unreadable}}.",
+    local_apply_capped:
+      "Solo se comprobaron tus {{limit}} mensajes más recientes.",
+    local_apply_failed:
+      "No se pudieron actualizar algunos mensajes cifrados. Inténtalo de nuevo.",
+    local_apply_unsupported:
+      "Esta regla usa condiciones que solo el servidor puede comprobar, así que no puede ordenar mensajes cifrados.",
     at_limit_upgrade:
       "Has alcanzado el límite de reglas de tu plan. Actualiza para agregar más.",
     auth_fail: "falló",

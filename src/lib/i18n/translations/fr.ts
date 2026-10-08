@@ -10603,6 +10603,18 @@ export const fr = {
       "Arrêté : {{applied}} mis à jour. Cette règle a ignoré {{count}} messages chiffrés, car seul votre appareil peut les lire.",
     apply_to_existing_error:
       "L'application au courrier existant a echoue. Reessayez.",
+    local_apply_progress:
+      "Vérification des messages chiffrés sur cet appareil : {{checked}} sur {{total}}",
+    local_apply_done:
+      "Messages chiffrés vérifiés sur cet appareil : {{checked}}, mis à jour : {{applied}}.",
+    local_apply_unreadable:
+      "Messages impossibles à déchiffrer : {{unreadable}}.",
+    local_apply_capped:
+      "Seuls vos {{limit}} messages les plus récents ont été vérifiés.",
+    local_apply_failed:
+      "Certains messages chiffrés n'ont pas pu être mis à jour. Réessayez.",
+    local_apply_unsupported:
+      "Cette règle utilise des conditions que seul le serveur peut vérifier. Elle ne peut donc pas trier les messages chiffrés.",
     at_limit_upgrade:
       "Vous avez atteint la limite de règles de votre forfait. Mettez à niveau pour en ajouter.",
     auth_fail: "échoué",

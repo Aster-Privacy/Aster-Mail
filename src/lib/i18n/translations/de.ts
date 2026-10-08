@@ -10616,6 +10616,18 @@ export const de = {
       "Gestoppt: {{applied}} aktualisiert. Diese Regel hat {{count}} verschlüsselte Nachrichten übersprungen, weil nur Ihr Gerät sie lesen kann.",
     apply_to_existing_error:
       "Anwenden auf vorhandene Mail fehlgeschlagen. Bitte erneut versuchen.",
+    local_apply_progress:
+      "Verschlüsselte Nachrichten werden auf diesem Gerät geprüft: {{checked}} von {{total}}",
+    local_apply_done:
+      "Auf diesem Gerät geprüfte verschlüsselte Nachrichten: {{checked}}, {{applied}} aktualisiert.",
+    local_apply_unreadable:
+      "Nicht entschlüsselbare Nachrichten: {{unreadable}}.",
+    local_apply_capped:
+      "Nur Ihre neuesten {{limit}} Nachrichten wurden geprüft.",
+    local_apply_failed:
+      "Einige verschlüsselte Nachrichten konnten nicht aktualisiert werden. Bitte erneut versuchen.",
+    local_apply_unsupported:
+      "Diese Regel nutzt Bedingungen, die nur der Server prüfen kann. Verschlüsselte Nachrichten kann sie daher nicht sortieren.",
     at_limit_upgrade:
       "Sie haben das Regelimit Ihres Tarifs erreicht. Ein Upgrade ermöglicht mehr.",
     auth_fail: "fehlgeschlagen",

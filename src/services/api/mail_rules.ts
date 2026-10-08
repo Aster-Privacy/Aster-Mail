@@ -798,6 +798,23 @@ export async function run_on_existing(
   return { error: response.error, code: response.code };
 }
 
+export const APPLY_TO_ITEMS_MAX_IDS = 500;
+
+export interface ApplyToItemsResult {
+  requested: number;
+  eligible: number;
+  applied: number;
+}
+
+export async function apply_rule_to_items(
+  id: string,
+  ids: string[],
+): Promise<ApiResponse<ApplyToItemsResult>> {
+  return api_client.post<ApplyToItemsResult>(`${BASE}/${id}/apply-to-items`, {
+    ids,
+  });
+}
+
 export async function get_rule_run(
   id: string,
 ): Promise<ApiResponse<RuleRun | null>> {

@@ -10162,6 +10162,18 @@ export const en: Translations = {
     apply_to_existing_canceled_encrypted_other:
       "Stopped: {{applied}} updated. This rule skipped {{count}} encrypted messages because only your device can read them.",
     apply_to_existing_error: "Applying to existing mail failed. Try again.",
+    local_apply_progress:
+      "Checking encrypted messages on this device: {{checked}} of {{total}}",
+    local_apply_done:
+      "Encrypted messages checked on this device: {{checked}}, {{applied}} updated.",
+    local_apply_unreadable:
+      "Messages that couldn't be decrypted: {{unreadable}}.",
+    local_apply_capped:
+      "Only your newest {{limit}} messages were checked.",
+    local_apply_failed:
+      "Some encrypted messages couldn't be updated. Try again.",
+    local_apply_unsupported:
+      "This rule uses conditions that only the server can check, so it can't sort encrypted messages.",
     empty_title: "No rules yet",
     empty_description:
       "Create your first rule to automatically organize incoming mail.",

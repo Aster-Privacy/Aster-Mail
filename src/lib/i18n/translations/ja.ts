@@ -10254,6 +10254,18 @@ export const ja = {
       "停止しました: {{applied}} 件更新。暗号化された {{count}} 件はお使いのデバイスでしか読めないため、このルールではスキップされました。",
     apply_to_existing_error:
       "既存のメールへの適用に失敗しました。もう一度お試しください。",
+    local_apply_progress:
+      "このデバイスで暗号化メッセージを確認中: {{total}} 件中 {{checked}} 件",
+    local_apply_done:
+      "このデバイスで確認した暗号化メッセージ: {{checked}} 件、{{applied}} 件更新。",
+    local_apply_unreadable:
+      "復号できなかったメッセージ: {{unreadable}} 件。",
+    local_apply_capped:
+      "最新の {{limit}} 件のメッセージのみ確認しました。",
+    local_apply_failed:
+      "一部の暗号化メッセージを更新できませんでした。もう一度お試しください。",
+    local_apply_unsupported:
+      "このルールはサーバーでしか確認できない条件を使用しているため、暗号化メッセージを振り分けられません。",
     empty_title: "ルールはまだありません",
     empty_description:
       "最初のルールを作成して受信メールを自動的に整理しましょう。",

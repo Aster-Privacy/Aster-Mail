@@ -10450,6 +10450,18 @@ export const nl = {
       "Gestopt: {{applied}} bijgewerkt. Deze regel heeft {{count}} versleutelde berichten overgeslagen omdat alleen jouw apparaat ze kan lezen.",
     apply_to_existing_error:
       "Toepassen op bestaande mail is mislukt. Probeer het opnieuw.",
+    local_apply_progress:
+      "Versleutelde berichten controleren op dit apparaat: {{checked}} van {{total}}",
+    local_apply_done:
+      "Versleutelde berichten gecontroleerd op dit apparaat: {{checked}}, {{applied}} bijgewerkt.",
+    local_apply_unreadable:
+      "Berichten die niet konden worden ontsleuteld: {{unreadable}}.",
+    local_apply_capped:
+      "Alleen je {{limit}} nieuwste berichten zijn gecontroleerd.",
+    local_apply_failed:
+      "Sommige versleutelde berichten konden niet worden bijgewerkt. Probeer het opnieuw.",
+    local_apply_unsupported:
+      "Deze regel gebruikt voorwaarden die alleen de server kan controleren, dus versleutelde berichten kan hij niet sorteren.",
     empty_title: "Nog geen regels",
     empty_description:
       "Maak je eerste regel aan om inkomende e-mail automatisch te organiseren.",

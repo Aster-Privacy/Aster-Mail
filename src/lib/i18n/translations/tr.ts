@@ -10344,6 +10344,18 @@ export const tr = {
       "Durduruldu: {{applied}} güncellendi. Bu kural {{count}} şifreli iletiyi atladı, çünkü bunları yalnızca cihazınız okuyabilir.",
     apply_to_existing_error:
       "Mevcut postaya uygulama basarisiz oldu. Tekrar deneyin.",
+    local_apply_progress:
+      "Bu cihazda şifreli iletiler denetleniyor: {{checked}} / {{total}}",
+    local_apply_done:
+      "Bu cihazda denetlenen şifreli iletiler: {{checked}}, güncellenen: {{applied}}.",
+    local_apply_unreadable:
+      "Şifresi çözülemeyen iletiler: {{unreadable}}.",
+    local_apply_capped:
+      "Yalnızca en yeni {{limit}} iletiniz denetlendi.",
+    local_apply_failed:
+      "Bazı şifreli iletiler güncellenemedi. Tekrar deneyin.",
+    local_apply_unsupported:
+      "Bu kural yalnızca sunucunun denetleyebildiği koşullar kullanıyor, bu yüzden şifreli iletileri sıralayamaz.",
     empty_title: "Henüz kural yok",
     empty_description:
       "Gelen postaları otomatik olarak düzenlemek için ilk kuralınızı oluşturun.",
