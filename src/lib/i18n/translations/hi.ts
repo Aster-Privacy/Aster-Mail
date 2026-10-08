@@ -5778,6 +5778,9 @@ export const hi = {
       "{{email}} दोबारा आपका प्राथमिक पता नहीं बन सकता।",
     address_change_pick_title: "अपना नया पता चुनें",
     address_change_use_alias: "अपने किसी उपनाम का उपयोग करें",
+    address_change_alias_placeholder: "कोई उपनाम चुनें",
+    address_change_alias_search: "उपनाम खोजें",
+    address_change_alias_no_results: "आपकी खोज से कोई उपनाम मेल नहीं खाता।",
     address_change_use_new: "नया पता चुनें",
     address_change_name_rule:
       "3 से 40 अक्षर, अंक या बिंदु इस्तेमाल करें। बिंदु न शुरुआत में हो सकता है, न अंत में, और बिंदु दोहराए नहीं जा सकते।",

@@ -4761,6 +4761,9 @@ export const ja = {
       "{{email}} を再びメインのアドレスにすることはできません。",
     address_change_pick_title: "新しいアドレスを選ぶ",
     address_change_use_alias: "エイリアスから選ぶ",
+    address_change_alias_placeholder: "エイリアスを選択",
+    address_change_alias_search: "エイリアスを検索",
+    address_change_alias_no_results: "検索に一致するエイリアスはありません。",
     address_change_use_new: "新しいアドレスを入力する",
     address_change_name_rule:
       "3～40 文字の英数字またはドットを使ってください。ドットは先頭と末尾には置けず、連続もできません。",

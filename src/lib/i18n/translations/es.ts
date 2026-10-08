@@ -4845,6 +4845,9 @@ export const es = {
       "{{email}} no puede volver a ser tu dirección principal.",
     address_change_pick_title: "Elige tu nueva dirección",
     address_change_use_alias: "Usar uno de tus alias",
+    address_change_alias_placeholder: "Elige un alias",
+    address_change_alias_search: "Buscar alias",
+    address_change_alias_no_results: "Ningún alias coincide con tu búsqueda.",
     address_change_use_new: "Elegir una dirección nueva",
     address_change_name_rule:
       "Usa de 3 a 40 letras, números o puntos. Un punto no puede ir al principio ni al final, y los puntos no pueden repetirse.",

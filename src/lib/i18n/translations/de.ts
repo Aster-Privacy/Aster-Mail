@@ -4754,6 +4754,9 @@ export const de = {
       "{{email}} kann nicht wieder Ihre primäre Adresse werden.",
     address_change_pick_title: "Wählen Sie Ihre neue Adresse",
     address_change_use_alias: "Einen Ihrer Aliase verwenden",
+    address_change_alias_placeholder: "Alias auswählen",
+    address_change_alias_search: "Aliase durchsuchen",
+    address_change_alias_no_results: "Keine Aliase entsprechen Ihrer Suche.",
     address_change_use_new: "Neue Adresse wählen",
     address_change_name_rule:
       "Verwenden Sie 3 bis 40 Buchstaben, Ziffern oder Punkte. Ein Punkt darf nicht am Anfang oder Ende stehen, und Punkte dürfen sich nicht wiederholen.",

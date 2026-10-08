@@ -4953,6 +4953,9 @@ export const ru = {
       "{{email}} больше не сможет стать вашим основным адресом.",
     address_change_pick_title: "Выберите новый адрес",
     address_change_use_alias: "Использовать один из ваших псевдонимов",
+    address_change_alias_placeholder: "Выберите псевдоним",
+    address_change_alias_search: "Поиск псевдонимов",
+    address_change_alias_no_results: "Нет псевдонимов, соответствующих запросу.",
     address_change_use_new: "Выбрать новый адрес",
     address_change_name_rule:
       "Используйте от 3 до 40 букв, цифр или точек. Точка не может быть в начале или конце адреса, и точки не могут повторяться.",

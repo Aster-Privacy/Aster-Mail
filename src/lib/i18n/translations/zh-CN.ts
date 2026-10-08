@@ -4360,6 +4360,9 @@ export const zh_CN = {
     address_change_permanent_body: "{{email}} 无法再成为您的主地址。",
     address_change_pick_title: "选择您的新地址",
     address_change_use_alias: "使用您的某个别名",
+    address_change_alias_placeholder: "选择别名",
+    address_change_alias_search: "搜索别名",
+    address_change_alias_no_results: "没有与搜索匹配的别名。",
     address_change_use_new: "选择一个新地址",
     address_change_name_rule:
       "请使用 3 到 40 个字母、数字或点。点不能位于开头或结尾，点也不能连续出现。",

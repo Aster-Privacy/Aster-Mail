@@ -4759,6 +4759,9 @@ export const tr = {
       "{{email}} yeniden birincil adresiniz olamaz.",
     address_change_pick_title: "Yeni adresinizi seçin",
     address_change_use_alias: "Takma adlarınızdan birini kullanın",
+    address_change_alias_placeholder: "Bir takma ad seçin",
+    address_change_alias_search: "Takma adlarda ara",
+    address_change_alias_no_results: "Aramanızla eşleşen takma ad yok.",
     address_change_use_new: "Yeni bir adres seçin",
     address_change_name_rule:
       "3 ile 40 arasında harf, rakam veya nokta kullanın. Nokta adresin başında veya sonunda olamaz ve noktalar tekrarlanamaz.",

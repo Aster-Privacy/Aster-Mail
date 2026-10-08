@@ -5701,6 +5701,9 @@ export const en: Translations = {
       "{{email}} cannot become your primary address again.",
     address_change_pick_title: "Pick your new address",
     address_change_use_alias: "Use one of your aliases",
+    address_change_alias_placeholder: "Choose an alias",
+    address_change_alias_search: "Search aliases",
+    address_change_alias_no_results: "No aliases match your search.",
     address_change_use_new: "Choose a new address",
     address_change_name_rule:
       "Use 3 to 40 letters, numbers, or dots. A dot cannot start or end the address, and dots cannot repeat.",

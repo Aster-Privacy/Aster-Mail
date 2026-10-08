@@ -4796,6 +4796,9 @@ export const ko = {
       "{{email}}은 다시 기본 주소가 될 수 없습니다.",
     address_change_pick_title: "새 주소 선택",
     address_change_use_alias: "별칭 중에서 선택",
+    address_change_alias_placeholder: "별칭 선택",
+    address_change_alias_search: "별칭 검색",
+    address_change_alias_no_results: "검색과 일치하는 별칭이 없습니다.",
     address_change_use_new: "새 주소 직접 입력",
     address_change_name_rule:
       "3자에서 40자의 영문, 숫자, 점을 사용하세요. 점은 맨 앞이나 맨 뒤에 올 수 없고, 점을 연속해서 쓸 수도 없습니다.",
