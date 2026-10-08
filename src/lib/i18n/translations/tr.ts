@@ -8358,6 +8358,13 @@ export const tr = {
       "Kişilerinizi ve diğer hızlı araçları iletilerinizin yanındaki bir panelde tutun.",
   },
   mail: {
+    image_size_prompt_title: "Bu iletideki görsellerin boyutu küçültülsün mü?",
+    image_size_prompt_description:
+      "Daha küçük görseller daha hızlı gönderilir ve diğer e-posta sağlayıcılarının boyut sınırları içinde kalır. Orijinal boyut tüm ayrıntıları korur.",
+    image_size_reduce: "Görsel Boyutunu Küçült",
+    image_size_original: "Orijinal Boyutu Koru",
+    link_menu_open: "Bağlantıyı Aç",
+    link_menu_copy: "Bağlantıyı Kopyala",
     alias_view_sent: "Gönderilen postaları görüntüle",
     alias_direction_label: "Posta yönü",
     alias_direction_all: "Tümü",

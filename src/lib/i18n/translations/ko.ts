@@ -8119,6 +8119,13 @@ export const ko = {
       "연락처와 다른 빠른 도구를 메일 옆 패널에 표시합니다.",
   },
   mail: {
+    image_size_prompt_title: "이 메시지의 이미지 크기를 줄일까요?",
+    image_size_prompt_description:
+      "작은 이미지는 더 빠르게 전송되며 다른 이메일 제공업체의 크기 제한을 넘지 않습니다. 원본 크기는 모든 세부 정보를 유지합니다.",
+    image_size_reduce: "이미지 크기 줄이기",
+    image_size_original: "원본 크기 유지",
+    link_menu_open: "링크 열기",
+    link_menu_copy: "링크 복사",
     alias_view_sent: "보낸 메일 보기",
     alias_direction_label: "이메일 방향",
     alias_direction_all: "전체",

@@ -8552,6 +8552,13 @@ export const fr = {
       "Gardez vos contacts et d’autres outils rapides dans un panneau à côté de vos messages.",
   },
   mail: {
+    image_size_prompt_title: "Réduire la taille des images de ce message ?",
+    image_size_prompt_description:
+      "Les images plus petites s’envoient plus vite et respectent les limites de taille des autres fournisseurs de messagerie. La taille d’origine conserve tous les détails.",
+    image_size_reduce: "Réduire la taille des images",
+    image_size_original: "Conserver la taille d’origine",
+    link_menu_open: "Ouvrir le lien",
+    link_menu_copy: "Copier le lien",
     alias_view_sent: "Voir les messages envoyés",
     alias_direction_label: "Direction du courrier",
     alias_direction_all: "Tous",

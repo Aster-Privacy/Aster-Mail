@@ -263,6 +263,13 @@ export function EmailDetailBody({
             <ThreadMessagesList
               key={email.id}
               hide_counter
+              bin_source={
+                mail_item?.is_trashed
+                  ? "trash"
+                  : mail_item?.is_spam
+                    ? "spam"
+                    : undefined
+              }
               current_user_email={current_user_email}
               default_expanded_id={email.id}
               footer={

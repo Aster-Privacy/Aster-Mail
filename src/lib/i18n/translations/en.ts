@@ -8230,6 +8230,13 @@ export const en: Translations = {
     usage_external_accounts: "External Accounts",
   },
   mail: {
+    image_size_prompt_title: "Reduce the size of images in this message?",
+    image_size_prompt_description:
+      "Smaller images send faster and stay within the size limits of other email providers. The original size keeps every detail.",
+    image_size_reduce: "Reduce Image Size",
+    image_size_original: "Keep Original Size",
+    link_menu_open: "Open Link",
+    link_menu_copy: "Copy Link",
     alias_view_sent: "View sent mail",
     alias_direction_label: "Mail direction",
     alias_direction_all: "All",

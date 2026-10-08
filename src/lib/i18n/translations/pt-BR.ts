@@ -8492,6 +8492,13 @@ export const pt_br = {
     plan_f_sort_folders: "Ordenar pastas de A a Z",
   },
   mail: {
+    image_size_prompt_title: "Reduzir o tamanho das imagens nesta mensagem?",
+    image_size_prompt_description:
+      "Imagens menores são enviadas mais rápido e ficam dentro dos limites de tamanho de outros provedores de e-mail. O tamanho original mantém todos os detalhes.",
+    image_size_reduce: "Reduzir tamanho da imagem",
+    image_size_original: "Manter tamanho original",
+    link_menu_open: "Abrir link",
+    link_menu_copy: "Copiar link",
     alias_view_sent: "Ver mensagens enviadas",
     alias_direction_label: "Direção do correio",
     alias_direction_all: "Todos",

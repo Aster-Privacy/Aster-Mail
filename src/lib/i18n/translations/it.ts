@@ -8497,6 +8497,13 @@ export const it = {
       "Tieni i contatti e altri strumenti rapidi in un pannello accanto ai tuoi messaggi.",
   },
   mail: {
+    image_size_prompt_title: "Ridurre le dimensioni delle immagini in questo messaggio?",
+    image_size_prompt_description:
+      "Le immagini più piccole si inviano più velocemente e rispettano i limiti di dimensione degli altri provider email. Le dimensioni originali mantengono ogni dettaglio.",
+    image_size_reduce: "Riduci dimensioni immagini",
+    image_size_original: "Mantieni dimensioni originali",
+    link_menu_open: "Apri link",
+    link_menu_copy: "Copia link",
     alias_view_sent: "Mostra i messaggi inviati",
     alias_direction_label: "Direzione della posta",
     alias_direction_all: "Tutti",

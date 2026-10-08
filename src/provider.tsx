@@ -32,6 +32,8 @@ import { ExternalLinkProvider } from "@/contexts/external_link_context";
 import { SignaturesProvider } from "@/contexts/signatures_context";
 import { TemplatesProvider } from "@/contexts/templates_context";
 import { TitleTipLayer } from "@/components/ui/title_tip_layer";
+import { LinkMenuLayer } from "@/components/email/link_menu_layer";
+import { ImageSizePromptLayer } from "@/components/compose/image_size_prompt_layer";
 import { I18nProvider, use_i18n } from "@/lib/i18n/context";
 
 const ReducedMotionContext = createContext(false);
@@ -123,6 +125,8 @@ export function Provider({ children }: { children: React.ReactNode }) {
                     <TemplatesProvider>
                       {children}
                       <TitleTipLayer />
+                      <LinkMenuLayer />
+                      <ImageSizePromptLayer />
                     </TemplatesProvider>
                   </SignaturesProvider>
                 </MotionWrapper>

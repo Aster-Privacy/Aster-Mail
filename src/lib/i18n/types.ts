@@ -7347,6 +7347,12 @@ export interface SettingsTranslations {
 }
 
 export interface MailTranslations {
+  image_size_prompt_title: string;
+  image_size_prompt_description: string;
+  image_size_reduce: string;
+  image_size_original: string;
+  link_menu_open: string;
+  link_menu_copy: string;
   alias_view_sent: string;
   alias_direction_label: string;
   alias_direction_all: string;

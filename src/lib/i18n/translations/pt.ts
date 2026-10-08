@@ -8544,6 +8544,13 @@ export const pt = {
       "Mantenha os contactos e outras ferramentas rápidas num painel ao lado das mensagens.",
   },
   mail: {
+    image_size_prompt_title: "Reduzir o tamanho das imagens nesta mensagem?",
+    image_size_prompt_description:
+      "As imagens mais pequenas são enviadas mais depressa e respeitam os limites de tamanho de outros fornecedores de e-mail. O tamanho original mantém todos os detalhes.",
+    image_size_reduce: "Reduzir tamanho da imagem",
+    image_size_original: "Manter tamanho original",
+    link_menu_open: "Abrir ligação",
+    link_menu_copy: "Copiar ligação",
     alias_view_sent: "Ver mensagens enviadas",
     alias_direction_label: "Direção do correio",
     alias_direction_all: "Todos",

@@ -27,6 +27,7 @@ import {
 } from "./reply_modal_types";
 import { use_reply_modal_state } from "./use_reply_modal_state";
 
+import { prepare_image_attachments } from "@/services/image_size_reduction";
 import {
   store_pending_send_payload,
   undo_send_manager,
@@ -1128,10 +1129,17 @@ export function use_reply_modal(props: UseReplyModalProps) {
 
   const handle_file_select = useCallback(
     async (event: React.ChangeEvent<HTMLInputElement>) => {
-      const files = event.target.files;
+      const selected = event.target.files;
 
-      if (!files || files.length === 0) return;
+      if (!selected || selected.length === 0) return;
 
+      const files = await prepare_image_attachments(Array.from(selected));
+
+      if (!files) {
+        if (file_input_ref.current) file_input_ref.current.value = "";
+
+        return;
+      }
       set_attachment_error(null);
       await ensure_attachment_limits();
       const new_attachments: Attachment[] = [];
@@ -1211,7 +1219,10 @@ export function use_reply_modal(props: UseReplyModalProps) {
   );
 
   const handle_files_drop = useCallback(
-    async (files: File[]) => {
+    async (dropped: File[]) => {
+      const files = await prepare_image_attachments(dropped);
+
+      if (!files) return;
       set_attachment_error(null);
       await ensure_attachment_limits();
       const new_attachments: Attachment[] = [];
