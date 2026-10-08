@@ -45,8 +45,8 @@ describe("parse_gallery_manifest", () => {
     });
 
     expect(items).toEqual([
-      { slug: "aurora_01", category: "aurora" },
-      { slug: "deep-space-2", category: "space" },
+      { slug: "aurora_01", category: "aurora", credit: null },
+      { slug: "deep-space-2", category: "space", credit: null },
     ]);
   });
 
@@ -66,7 +66,7 @@ describe("parse_gallery_manifest", () => {
       ],
     });
 
-    expect(items).toEqual([{ slug: "fine", category: "ocean" }]);
+    expect(items).toEqual([{ slug: "fine", category: "ocean", credit: null }]);
   });
 
   it("returns an empty list for malformed payloads", () => {
@@ -74,6 +74,28 @@ describe("parse_gallery_manifest", () => {
     expect(parse_gallery_manifest("nope")).toEqual([]);
     expect(parse_gallery_manifest({})).toEqual([]);
     expect(parse_gallery_manifest({ items: "nope" })).toEqual([]);
+  });
+
+  it("keeps a clean credit line", () => {
+    const items = parse_gallery_manifest({
+      items: [
+        { slug: "a", category: "space", credit: "  NASA,   public domain " },
+        { slug: "b", category: "space", credit: "Name\u202eevil\nCC BY 4.0" },
+        { slug: "c", category: "space", credit: "x".repeat(500) },
+        { slug: "d", category: "space", credit: "   " },
+        { slug: "e", category: "space", credit: 7 },
+        { slug: "f", category: "space" },
+      ],
+    });
+
+    expect(items.map((item) => item.credit)).toEqual([
+      "NASA, public domain",
+      "Name evil CC BY 4.0",
+      "x".repeat(200),
+      null,
+      null,
+      null,
+    ]);
   });
 
   it("caps the number of items", () => {

@@ -419,30 +419,53 @@ export function ProfilePictureDialogView({
                     </div>
                     <div className="profile_picture_grid min-h-0 flex-1 overflow-y-auto overscroll-contain">
                       <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-                        {visible_items.map((item) => (
-                          <button
-                            key={item.slug}
-                            className="profile_picture_tile relative aspect-square overflow-hidden rounded-2xl"
-                            disabled={!!pending_slug || busy}
-                            type="button"
-                            onClick={() => choose_gallery_image(item.slug)}
-                          >
-                            <img
-                              alt=""
-                              className="h-full w-full object-cover"
-                              decoding="async"
-                              draggable={false}
-                              loading="lazy"
-                              referrerPolicy="no-referrer"
-                              src={gallery_thumb_url(item.slug)}
-                            />
-                            {pending_slug === item.slug && (
-                              <span className="aster_scrim absolute inset-0 flex items-center justify-center">
-                                <Spinner className="text-white" size="sm" />
-                              </span>
-                            )}
-                          </button>
-                        ))}
+                        {visible_items.map((item) => {
+                          const credit = item.credit
+                            ? t("common.profile_picture_credit", {
+                                credit: `\u2068${item.credit}\u2069`,
+                              })
+                            : null;
+
+                          return (
+                            <div
+                              key={item.slug}
+                              className="flex min-w-0 flex-col gap-1"
+                            >
+                              <button
+                                aria-label={credit ?? undefined}
+                                className="profile_picture_tile relative aspect-square overflow-hidden rounded-2xl"
+                                disabled={!!pending_slug || busy}
+                                title={credit ?? undefined}
+                                type="button"
+                                onClick={() => choose_gallery_image(item.slug)}
+                              >
+                                <img
+                                  alt=""
+                                  className="h-full w-full object-cover"
+                                  decoding="async"
+                                  draggable={false}
+                                  loading="lazy"
+                                  referrerPolicy="no-referrer"
+                                  src={gallery_thumb_url(item.slug)}
+                                />
+                                {pending_slug === item.slug && (
+                                  <span className="aster_scrim absolute inset-0 flex items-center justify-center">
+                                    <Spinner className="text-white" size="sm" />
+                                  </span>
+                                )}
+                              </button>
+                              {credit && (
+                                <p
+                                  aria-hidden="true"
+                                  className="profile_picture_credit break-words text-[10px] leading-snug text-txt-muted"
+                                  dir="auto"
+                                >
+                                  {credit}
+                                </p>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                     {(gallery_error || error) && (

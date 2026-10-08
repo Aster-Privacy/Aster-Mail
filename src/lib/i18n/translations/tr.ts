@@ -139,6 +139,7 @@ export const tr = {
     profile_picture_cat_mountains: "Dağlar",
     profile_picture_cat_ocean: "Okyanus",
     profile_picture_cat_desert: "Çöl",
+    profile_picture_credit: "Fotoğraf: {{credit}}. Kırpıldı ve yeniden boyutlandırıldı.",
     toggle_alias: "Bu rumuzu etkinleştir veya devre dışı bırak",
     enter_passphrase: "Parolanızı girin",
     app_name: "Aster Mail",

@@ -135,6 +135,7 @@ export const nl = {
     profile_picture_cat_mountains: "Bergen",
     profile_picture_cat_ocean: "Oceaan",
     profile_picture_cat_desert: "Woestijn",
+    profile_picture_credit: "Foto: {{credit}}. Bijgesneden en geschaald.",
     toggle_alias: "Deze alias in- of uitschakelen",
     enter_passphrase: "Voer je wachtwoordzin in",
     app_name: "Aster Mail",
