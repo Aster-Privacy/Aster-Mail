@@ -136,6 +136,7 @@ export const pt = {
     profile_picture_cat_mountains: "Montanhas",
     profile_picture_cat_ocean: "Oceano",
     profile_picture_cat_desert: "Deserto",
+    profile_picture_credit: "Foto: {{credit}}. Recortada e redimensionada.",
     toggle_alias: "Ativar ou desativar este alias",
     enter_passphrase: "Introduza a sua frase-passe",
     app_name: "Aster Mail",

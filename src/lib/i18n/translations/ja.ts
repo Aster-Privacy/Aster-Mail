@@ -192,6 +192,7 @@ export const ja = {
     profile_picture_cat_mountains: "山",
     profile_picture_cat_ocean: "海",
     profile_picture_cat_desert: "砂漠",
+    profile_picture_credit: "写真: {{credit}}。トリミングとサイズ変更を行っています。",
     toggle_alias: "このエイリアスを有効または無効にする",
     enter_passphrase: "パスフレーズを入力してください",
     app_name: "Aster Mail",

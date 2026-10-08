@@ -133,6 +133,7 @@ export const ar = {
     profile_picture_cat_mountains: "الجبال",
     profile_picture_cat_ocean: "المحيط",
     profile_picture_cat_desert: "الصحراء",
+    profile_picture_credit: "الصورة: {{credit}}. تم اقتصاصها وتغيير حجمها.",
     toggle_alias: "تفعيل هذا الاسم المستعار أو تعطيله",
     enter_passphrase: "أدخل عبارة المرور الخاصة بك",
     app_name: "Aster Mail",
