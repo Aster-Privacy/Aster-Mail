@@ -4602,7 +4602,7 @@ export const en: Translations = {
     plan_f_templates: "{{value}} email templates",
     plan_f_read_receipts: "Read receipts",
     plan_tip_attachments:
-      "The total size of all attachments on one message. Each file can be up to 50 MB, or up to your plan's limit if that is lower.",
+      "The total size of all attachments on one message. A single file can be up to 50 MB.",
     plan_tip_signed_in_accounts:
       "How many Aster accounts you can keep signed in on the same device at the same time. Each account remains its own subscription; switching between them prompts for that account's password.",
     plan_tip_send_limit:

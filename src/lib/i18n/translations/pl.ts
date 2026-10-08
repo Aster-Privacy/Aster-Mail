@@ -6276,7 +6276,7 @@ export const pl = {
     plan_f_templates: "{{value}} szablonów e-mail",
     plan_f_read_receipts: "Potwierdzenia przeczytania",
     plan_tip_attachments:
-      "Łączny rozmiar wszystkich załączników w jednej wiadomości. Pojedynczy plik może mieć do 50 MB lub do limitu Twojego planu, jeśli jest niższy.",
+      "Łączny rozmiar wszystkich załączników w jednej wiadomości. Pojedynczy plik może mieć do 50 MB.",
     plan_tip_signed_in_accounts:
       "Ile kont Aster możesz mieć jednocześnie zalogowanych na tym samym urządzeniu. Każde konto zachowuje własną subskrypcję, a przełączanie wymaga hasła do danego konta.",
     plan_tip_send_limit:

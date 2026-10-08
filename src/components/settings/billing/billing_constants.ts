@@ -390,11 +390,6 @@ export const FAMILY_PLAN_DUO_FEATURES: FamilyPlanFeature[] = [
     on: true,
     icon: "shield",
   },
-  {
-    label_key: "settings.family_feat_storage_controls",
-    on: true,
-    icon: "controls",
-  },
   { label_key: "settings.plan_f_support_priority", on: true, icon: "support" },
 ];
 

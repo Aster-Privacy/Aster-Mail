@@ -4513,7 +4513,7 @@ export const it = {
     plan_f_templates: "{{value}} modelli email",
     plan_f_read_receipts: "Conferme di lettura",
     plan_tip_attachments:
-      "La dimensione totale di tutti gli allegati di un messaggio. Un singolo file può arrivare a 50 MB, o al limite del tuo piano se è inferiore.",
+      "La dimensione totale di tutti gli allegati di un messaggio. Un singolo file può arrivare a 50 MB.",
     plan_tip_signed_in_accounts:
       "Quanti account Aster puoi tenere connessi contemporaneamente sullo stesso dispositivo. Ogni account mantiene il proprio abbonamento e per passare da uno all'altro devi inserire la password di quell'account.",
     plan_tip_send_limit:

@@ -6091,7 +6091,7 @@ export const fr = {
     plan_f_templates: "{{value}} modèles d'e-mail",
     plan_f_read_receipts: "Accusés de réception",
     plan_tip_attachments:
-      "La taille totale des pièces jointes d'un message. Un même fichier peut atteindre 50 Mo, ou la limite de ton forfait si elle est inférieure.",
+      "La taille totale des pièces jointes d'un message. Un même fichier peut atteindre 50 Mo.",
     plan_tip_signed_in_accounts:
       "Le nombre de comptes Aster que tu peux garder connectés sur le même appareil en même temps. Chaque compte conserve son propre abonnement ; basculer entre eux demande le mot de passe de chaque compte.",
     plan_tip_send_limit:

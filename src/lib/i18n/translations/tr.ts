@@ -5939,7 +5939,7 @@ export const tr = {
     plan_f_templates: "{{value}} e-posta şablonu",
     plan_f_read_receipts: "Okundu bilgileri",
     plan_tip_attachments:
-      "Bir iletideki tüm eklerin toplam boyutu. Tek bir dosya en fazla 50 MB olabilir, planının sınırı daha düşükse o sınıra kadar.",
+      "Bir iletideki tüm eklerin toplam boyutu. Tek bir dosya en fazla 50 MB olabilir.",
     plan_tip_signed_in_accounts:
       "Aynı cihazda aynı anda kaç Aster hesabında oturum açık tutabileceğin. Her hesap kendi aboneliğini korur ve hesaplar arasında geçerken o hesabın parolası istenir.",
     plan_tip_send_limit:

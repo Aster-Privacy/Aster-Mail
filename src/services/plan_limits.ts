@@ -24,12 +24,12 @@ import { get_account_limit } from "@/services/api/switch";
 export const UNLIMITED_ACCOUNTS = -1;
 
 const ACCOUNT_LIMITS: Record<string, number> = {
-  free: 2,
-  star: 3,
+  free: 1,
+  star: 2,
   nova: 5,
   supernova: 20,
   duo: 15,
-  family: UNLIMITED_ACCOUNTS,
+  family: 15,
   family_duo: UNLIMITED_ACCOUNTS,
   family_full: UNLIMITED_ACCOUNTS,
 };

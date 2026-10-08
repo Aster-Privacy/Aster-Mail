@@ -6075,7 +6075,7 @@ export const de = {
     plan_f_templates: "{{value}} E-Mail-Vorlagen",
     plan_f_read_receipts: "Lesebestätigungen",
     plan_tip_attachments:
-      "Die Gesamtgröße aller Anhänge einer Nachricht. Eine einzelne Datei darf bis zu 50 MB groß sein, oder bis zum Limit Ihres Tarifs, falls dieses niedriger ist.",
+      "Die Gesamtgröße aller Anhänge einer Nachricht. Eine einzelne Datei darf bis zu 50 MB groß sein.",
     plan_tip_signed_in_accounts:
       "Wie viele Aster-Konten Sie gleichzeitig auf demselben Gerät angemeldet halten können. Jedes Konto bleibt ein eigenes Abonnement; beim Wechseln wird das Passwort des jeweiligen Kontos abgefragt.",
     plan_tip_send_limit:
