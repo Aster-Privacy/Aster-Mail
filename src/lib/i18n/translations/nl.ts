@@ -1078,8 +1078,8 @@ export const nl = {
       "Een e-mail die je offline hebt geschreven, kon niet worden verzonden.",
     offline_email_queued:
       "Je bent op dit moment offline. Deze e-mail wordt verzonden zodra je weer verbinding hebt.",
-    cannot_mix_recipients:
-      "Aster-gebruikers en externe adressen kunnen niet in dezelfde e-mail. Ze als twee aparte berichten verzenden werkt.",
+    password_needs_outside_recipients_only:
+      "Wachtwoordbeveiliging werkt alleen als alle ontvangers een andere e-mailprovider gebruiken. Als je Aster-gebruikers wilt toevoegen, schakel je de wachtwoordbeveiliging uit of stuur je hun een apart bericht.",
     failed_to_schedule_email:
       "De planning is niet opgeslagen. Probeer het opnieuw. Je concept is opgeslagen.",
     failed_to_restore_draft:
@@ -6698,6 +6698,9 @@ export const nl = {
     domain_purchase_search_placeholder: "Zoek een domeinnaam",
     domain_purchase_per_year: "{{price}}/jaar",
     domain_purchase_taken: "Bezet",
+    domain_purchase_unchecked: "Niet gecontroleerd",
+    domain_purchase_unchecked_hint:
+      "Dit domein kan nu niet worden gecontroleerd. Probeer het later opnieuw.",
     domain_purchase_no_results: "Geen beschikbare domeinen gevonden",
     domain_purchase_renews_at: "Verlengt tegen {{price}}/jaar",
     domain_purchase_years: "Registratieperiode",
@@ -8427,6 +8430,13 @@ export const nl = {
       "Houd je contacten en andere snelle hulpmiddelen in een paneel naast je berichten.",
   },
   mail: {
+    image_size_prompt_title: "Grootte van afbeeldingen in dit bericht verkleinen?",
+    image_size_prompt_description:
+      "Kleinere afbeeldingen worden sneller verstuurd en blijven binnen de groottelimieten van andere e-mailproviders. De oorspronkelijke grootte behoudt elk detail.",
+    image_size_reduce: "Afbeeldingen verkleinen",
+    image_size_original: "Oorspronkelijke grootte behouden",
+    link_menu_open: "Link openen",
+    link_menu_copy: "Link kopiëren",
     alias_view_sent: "Verzonden e-mail tonen",
     alias_direction_label: "Richting van e-mail",
     alias_direction_all: "Alle",
@@ -10447,6 +10457,18 @@ export const nl = {
       "Gestopt: {{applied}} bijgewerkt. Deze regel heeft {{count}} versleutelde berichten overgeslagen omdat alleen jouw apparaat ze kan lezen.",
     apply_to_existing_error:
       "Toepassen op bestaande mail is mislukt. Probeer het opnieuw.",
+    local_apply_progress:
+      "Versleutelde berichten controleren op dit apparaat: {{checked}} van {{total}}",
+    local_apply_done:
+      "Versleutelde berichten gecontroleerd op dit apparaat: {{checked}}, {{applied}} bijgewerkt.",
+    local_apply_unreadable:
+      "Berichten die niet konden worden ontsleuteld: {{unreadable}}.",
+    local_apply_capped:
+      "Alleen je {{limit}} nieuwste berichten zijn gecontroleerd.",
+    local_apply_failed:
+      "Sommige versleutelde berichten konden niet worden bijgewerkt. Probeer het opnieuw.",
+    local_apply_unsupported:
+      "Deze regel gebruikt voorwaarden die alleen de server kan controleren, dus versleutelde berichten kan hij niet sorteren.",
     empty_title: "Nog geen regels",
     empty_description:
       "Maak je eerste regel aan om inkomende e-mail automatisch te organiseren.",

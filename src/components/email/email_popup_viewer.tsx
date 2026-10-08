@@ -353,8 +353,8 @@ export function EmailPopupViewer({
         on_close={on_close}
         on_drag_start={viewer.handle_drag_start}
         on_folder_toggle={handle_folder_toggle}
-        on_move_out_of_bin={bin_flag ? () => move_out_of_bin(null) : undefined}
         on_fullscreen={viewer.handle_fullscreen}
+        on_move_out_of_bin={bin_flag ? () => move_out_of_bin(null) : undefined}
         on_not_spam={viewer.handle_not_spam}
         on_pin_toggle={viewer.handle_pin_toggle}
         on_print={viewer.handle_print}
@@ -380,6 +380,7 @@ export function EmailPopupViewer({
         format_email_popup={viewer.format_email_popup}
         is_fullscreen={viewer.is_fullscreen}
         is_spam={viewer.mail_item?.is_spam === true}
+        is_trashed={viewer.mail_item?.is_trashed === true}
         label_hints={label_hints}
         loaded_content_types={viewer.loaded_content_types}
         mail_item={viewer.mail_item}

@@ -39,11 +39,6 @@ export async function check_reply_send(
   }
 
   const external = recipients.filter((r) => !is_internal_recipient(r));
-  const has_internal = recipients.some((r) => is_internal_recipient(r));
-
-  if (external.length > 0 && has_internal) {
-    return strings.common.cannot_mix_recipients;
-  }
 
   if (external.length > 0 && require_encryption) {
     try {

@@ -1116,8 +1116,8 @@ export const it = {
       "Lei è offline in questo momento. Questa email verrà inviata appena si riconnetterà.",
     failed_to_queue_offline:
       "Impossibile mettere in coda questa email per l'invio successivo. Riprova. La bozza è salvata.",
-    cannot_mix_recipients:
-      "Gli utenti Aster e gli indirizzi esterni non possono andare nella stessa email. Inviarli come due messaggi separati funzionerà.",
+    password_needs_outside_recipients_only:
+      "La protezione con password funziona solo se tutti i destinatari usano un altro provider di posta. Per includere utenti Aster, disattiva la protezione con password o invia loro un messaggio separato.",
     failed_to_schedule_email:
       "La programmazione non è stata salvata. Riprova. La bozza è salvata.",
     failed_to_restore_draft:
@@ -5374,6 +5374,9 @@ export const it = {
     domain_purchase_search_placeholder: "Cerca un nome di dominio",
     domain_purchase_per_year: "{{price}}/anno",
     domain_purchase_taken: "Non disponibile",
+    domain_purchase_unchecked: "Non verificato",
+    domain_purchase_unchecked_hint:
+      "Al momento non è possibile verificare questo dominio. Riprova più tardi.",
     domain_purchase_no_results: "Nessun dominio disponibile trovato",
     domain_purchase_renews_at: "Si rinnova a {{price}}/anno",
     domain_purchase_years: "Periodo di registrazione",
@@ -8494,6 +8497,13 @@ export const it = {
       "Tieni i contatti e altri strumenti rapidi in un pannello accanto ai tuoi messaggi.",
   },
   mail: {
+    image_size_prompt_title: "Ridurre le dimensioni delle immagini in questo messaggio?",
+    image_size_prompt_description:
+      "Le immagini più piccole si inviano più velocemente e rispettano i limiti di dimensione degli altri provider email. Le dimensioni originali mantengono ogni dettaglio.",
+    image_size_reduce: "Riduci dimensioni immagini",
+    image_size_original: "Mantieni dimensioni originali",
+    link_menu_open: "Apri link",
+    link_menu_copy: "Copia link",
     alias_view_sent: "Mostra i messaggi inviati",
     alias_direction_label: "Direzione della posta",
     alias_direction_all: "Tutti",
@@ -10530,6 +10540,18 @@ export const it = {
       "Interrotto. Aggiornati: {{applied}}. Questa regola ha ignorato {{count}} messaggi cifrati perché solo il tuo dispositivo può leggerli.",
     apply_to_existing_error:
       "Applicazione alla posta esistente non riuscita. Riprova.",
+    local_apply_progress:
+      "Controllo dei messaggi cifrati su questo dispositivo: {{checked}} di {{total}}",
+    local_apply_done:
+      "Messaggi cifrati controllati su questo dispositivo: {{checked}}, aggiornati: {{applied}}.",
+    local_apply_unreadable:
+      "Messaggi che non è stato possibile decifrare: {{unreadable}}.",
+    local_apply_capped:
+      "Sono stati controllati solo i tuoi {{limit}} messaggi più recenti.",
+    local_apply_failed:
+      "Non è stato possibile aggiornare alcuni messaggi cifrati. Riprova.",
+    local_apply_unsupported:
+      "Questa regola usa condizioni che solo il server può verificare, quindi non può ordinare i messaggi cifrati.",
     empty_title: "Nessuna regola ancora",
     empty_description:
       "Crea la tua prima regola per organizzare automaticamente la posta in arrivo.",

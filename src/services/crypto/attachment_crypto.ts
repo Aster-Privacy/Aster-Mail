@@ -151,12 +151,17 @@ export async function encrypt_attachments_for_send(
   recipient_public_keys?: string[],
   require_recipient_encryption = false,
   private_recipient_keys: Record<string, string[]> = {},
+  sealed_copy_recipients: string[] | null = null,
 ): Promise<EncryptedAttachmentForSend[]> {
   const has_recipient_keys = !!(
     recipient_public_keys && recipient_public_keys.length > 0
   );
+  const split_outside_copy = sealed_copy_recipients !== null;
+  const needs_shared_keys = split_outside_copy
+    ? sealed_copy_recipients.length > 0
+    : require_recipient_encryption;
 
-  if (require_recipient_encryption && !has_recipient_keys) {
+  if (needs_shared_keys && !has_recipient_keys) {
     throw new Error(
       "recipient encryption keys unavailable for encrypted attachment",
     );
@@ -217,25 +222,32 @@ export async function encrypt_attachments_for_send(
         ? new Uint8Array(NONCE_LENGTH)
         : crypto.getRandomValues(new Uint8Array(NONCE_LENGTH));
 
-      let recipient_encrypted_meta: string | undefined;
+      const plain_meta = array_to_base64(
+        new TextEncoder().encode(JSON.stringify(meta)),
+      );
+      const sealed_shared_meta =
+        recipient_public_keys && recipient_public_keys.length > 0
+          ? array_to_base64(
+              new TextEncoder().encode(
+                await encrypt_message_multi(
+                  JSON.stringify(meta),
+                  recipient_public_keys,
+                ),
+              ),
+            )
+          : undefined;
 
-      if (recipient_public_keys && recipient_public_keys.length > 0) {
-        const meta_json = JSON.stringify(meta);
-        const pgp_encrypted = await encrypt_message_multi(
-          meta_json,
-          recipient_public_keys,
-        );
-
-        recipient_encrypted_meta = array_to_base64(
-          new TextEncoder().encode(pgp_encrypted),
-        );
-      } else {
-        recipient_encrypted_meta = array_to_base64(
-          new TextEncoder().encode(JSON.stringify(meta)),
-        );
-      }
+      const recipient_encrypted_meta = split_outside_copy
+        ? plain_meta
+        : (sealed_shared_meta ?? plain_meta);
 
       const recipient_metas: Record<string, string> = {};
+
+      if (sealed_copy_recipients && sealed_shared_meta) {
+        for (const recipient of sealed_copy_recipients) {
+          recipient_metas[recipient] = sealed_shared_meta;
+        }
+      }
 
       for (const [recipient, keys] of Object.entries(private_recipient_keys)) {
         if (keys.length === 0) {

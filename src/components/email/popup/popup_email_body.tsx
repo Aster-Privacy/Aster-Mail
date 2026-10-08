@@ -94,6 +94,7 @@ interface PopupEmailBodyProps {
   on_per_message_report_phishing: (msg: DecryptedThreadMessage) => void;
   on_per_message_not_spam?: (msg: DecryptedThreadMessage) => void;
   is_spam?: boolean;
+  is_trashed?: boolean;
   on_toggle_message_read: (message_id: string, next_read: boolean) => void;
   on_draft_saved?: (draft: {
     id: string;
@@ -146,6 +147,7 @@ export function PopupEmailBody({
   on_per_message_report_phishing,
   on_per_message_not_spam,
   is_spam,
+  is_trashed,
   on_toggle_message_read,
   on_draft_saved,
   existing_draft,
@@ -316,6 +318,7 @@ export function PopupEmailBody({
         <div className="mt-4">
           <ThreadMessagesList
             hide_counter
+            bin_source={is_trashed ? "trash" : is_spam ? "spam" : undefined}
             current_user_email={current_user_email}
             default_expanded_id={get_latest_expanded_id(thread_messages)}
             existing_draft={existing_draft}

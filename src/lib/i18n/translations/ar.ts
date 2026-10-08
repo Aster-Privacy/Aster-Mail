@@ -1066,8 +1066,8 @@ export const ar = {
       "أنت غير متصل حاليًا. هذا البريد سيُرسل بمجرد عودة الاتصال.",
     failed_to_queue_offline:
       "تعذّر وضع هذه الرسالة في قائمة الانتظار لإرسالها لاحقًا. حاول مجددًا. مسوّدتك محفوظة.",
-    cannot_mix_recipients:
-      "مستخدمو Aster والعناوين الخارجية لا يجتمعون في رسالة واحدة. إرسالهما رسالتين منفصلتين سيعمل.",
+    password_needs_outside_recipients_only:
+      "تعمل الحماية بكلمة مرور فقط عندما يستخدم جميع المستلمين مزوّد بريد آخر. لتضمين مستخدمي Aster، أوقف الحماية بكلمة مرور أو أرسل إليهم رسالة منفصلة.",
     failed_to_schedule_email: "لم تُحفظ الجدولة. حاول مجددًا. مسوّدتك محفوظة.",
     failed_to_restore_draft:
       "تعذّر استعادة هذه المسودّة. فتحها مجددًا غالبًا ما يحل الأمر. مسوّداتك الأخرى لم تتأثر.",
@@ -6699,6 +6699,9 @@ export const ar = {
     domain_purchase_search_placeholder: "ابحث عن اسم نطاق",
     domain_purchase_per_year: "{{price}}/سنة",
     domain_purchase_taken: "محجوز",
+    domain_purchase_unchecked: "تعذّر التحقق",
+    domain_purchase_unchecked_hint:
+      "تعذّر التحقق من هذا النطاق الآن. حاول مرة أخرى لاحقًا.",
     domain_purchase_no_results: "لم يتم العثور على نطاقات متاحة",
     domain_purchase_renews_at: "يتجدد بسعر {{price}}/سنة",
     domain_purchase_years: "مدة التسجيل",
@@ -8307,6 +8310,13 @@ export const ar = {
     sync_now_tooltip: "المزامنة الآن",
   },
   mail: {
+    image_size_prompt_title: "هل تريد تقليل حجم الصور في هذه الرسالة؟",
+    image_size_prompt_description:
+      "تُرسل الصور الأصغر بشكل أسرع وتبقى ضمن حدود الحجم لدى مزودي البريد الإلكتروني الآخرين. يحتفظ الحجم الأصلي بكل التفاصيل.",
+    image_size_reduce: "تقليل حجم الصور",
+    image_size_original: "الاحتفاظ بالحجم الأصلي",
+    link_menu_open: "فتح الرابط",
+    link_menu_copy: "نسخ الرابط",
     alias_view_sent: "عرض البريد المرسل",
     alias_direction_label: "اتجاه البريد",
     alias_direction_all: "الكل",
@@ -10252,6 +10262,18 @@ export const ar = {
       "تم الإيقاف: تم تحديث {{applied}}. تخطّت هذه القاعدة {{count}} رسالة مشفّرة لأن جهازك وحده يمكنه قراءتها.",
     apply_to_existing_error:
       "فشل تطبيق القاعدة على البريد الموجود. حاول مرة أخرى.",
+    local_apply_progress:
+      "جارٍ فحص الرسائل المشفّرة على هذا الجهاز: {{checked}} من {{total}}",
+    local_apply_done:
+      "الرسائل المشفّرة التي فُحصت على هذا الجهاز: {{checked}}، وتم تحديث {{applied}}.",
+    local_apply_unreadable:
+      "الرسائل التي تعذّر فك تشفيرها: {{unreadable}}.",
+    local_apply_capped:
+      "فُحصت أحدث {{limit}} رسالة فقط.",
+    local_apply_failed:
+      "تعذّر تحديث بعض الرسائل المشفّرة. حاول مرة أخرى.",
+    local_apply_unsupported:
+      "تستخدم هذه القاعدة شروطًا لا يمكن التحقق منها إلا على الخادم، لذا لا يمكنها فرز الرسائل المشفّرة.",
     empty_title: "لا توجد قواعد بعد",
     empty_description: "أنشئ قاعدتك الأولى لتنظيم البريد الوارد تلقائيًا.",
     empty_cta: "إنشاء قاعدة",

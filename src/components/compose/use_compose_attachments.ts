@@ -25,6 +25,7 @@ import { use_preferences } from "@/contexts/preferences_context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { format_bytes } from "@/lib/utils";
 import { play_iconic_sound } from "@/services/iconic_sounds";
+import { prepare_image_attachments } from "@/services/image_size_reduction";
 import { strip_metadata } from "@/lib/strip_image_metadata";
 import {
   type Attachment,
@@ -243,7 +244,10 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
   );
 
   const read_files = useCallback(
-    async (files: File[]) => {
+    async (selected: File[]) => {
+      const files = await prepare_image_attachments(selected);
+
+      if (!files) return;
       set_attachment_error(null);
       await ensure_attachment_limits();
       const new_attachments: Attachment[] = [];

@@ -339,6 +339,109 @@ export async function execute_internal_send(
   }
 }
 
+export const MIXED_SEND_MIN_DELAY_SECONDS = 1;
+
+export async function execute_mixed_send(
+  ctx: SendActionContext,
+  email_data: {
+    to: string[];
+    cc?: string[];
+    bcc?: string[];
+    subject: string;
+    body: string;
+    sender_email?: string;
+    expires_at?: string;
+    attachments?: Attachment[];
+    allow_non_post_quantum?: boolean;
+  },
+  pgp_enabled = false,
+  pgp_override: boolean | null = null,
+  require_encryption = false,
+  obscure_subject = false,
+): Promise<boolean> {
+  if (blocked_by_plan(ctx, email_data)) return false;
+
+  const { delay_ms, delay_seconds } = compute_delay(ctx);
+  const queue_delay_seconds = Math.max(
+    MIXED_SEND_MIN_DELAY_SECONDS,
+    delay_seconds,
+  );
+  let handed_off = false;
+  let reply_id: string | null = null;
+  const settle_reply = () => {
+    if (reply_id) settle_pending_thread_reply(reply_id);
+  };
+  const drop_reply = () => {
+    if (reply_id) remove_pending_thread_reply(reply_id);
+  };
+
+  const result = await queue_email_to_server(
+    {
+      ...email_data,
+      client_send_id: crypto.randomUUID(),
+      encryption_options: {
+        auto_discover_keys: pgp_enabled || require_encryption,
+        encrypt_emails: pgp_enabled,
+        require_encryption,
+        obscure_subject,
+      },
+      ...(pgp_override !== null ? { force_pgp: pgp_override } : {}),
+    },
+    queue_delay_seconds,
+    {
+      on_sent: (sent_id?: string) => {
+        settle_reply();
+        ctx.set_queued_email_id(null);
+        clear_stash(ctx);
+        invalidate_mail_stats();
+        dispatch_email_sent();
+        log_activities_for_sent(ctx, email_data);
+        ctx.on_close();
+        record_review_prompt_action();
+        show_email_sent_toast(ctx.t("common.email_sent"), sent_id);
+      },
+      on_cancelled: () => {
+        drop_reply();
+        ctx.set_queued_email_id(null);
+      },
+      on_error: (error: string) => {
+        drop_reply();
+        ctx.set_queued_email_id(null);
+        show_toast(error || ctx.t("common.failed_to_send_email"), "error");
+        if (handed_off) restore_failed_send(ctx, email_data);
+      },
+    },
+  );
+
+  if (!result) {
+    return false;
+  }
+
+  if (delay_seconds > 0) {
+    undo_send_manager.add({
+      id: result.queue_id,
+      to: email_data.to,
+      cc: email_data.cc,
+      bcc: email_data.bcc,
+      subject: email_data.subject,
+      body: email_data.body,
+      sender_email: email_data.sender_email,
+      thread_token: ctx.edit_draft?.thread_token,
+      scheduled_time: Date.now() + delay_ms,
+      total_seconds: delay_seconds,
+      is_server_queued: true,
+      server_queue_id: result.queue_id,
+    });
+  }
+
+  reply_id = result.queue_id;
+  track_queued_reply(ctx, reply_id);
+  handed_off = true;
+  save_and_close(ctx, result.queue_id, email_data);
+
+  return true;
+}
+
 export async function execute_external_email_send(
   ctx: SendActionContext,
   email_data: {

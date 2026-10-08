@@ -998,8 +998,8 @@ export const pt_br = {
       "Você está offline no momento. Este e-mail será enviado assim que você se reconectar.",
     failed_to_queue_offline:
       "Não foi possível colocar este e-mail na fila para envio posterior. Tente novamente. Seu rascunho está salvo.",
-    cannot_mix_recipients:
-      "Usuários do Aster e endereços externos não podem ir no mesmo e-mail. Enviá-los em duas mensagens separadas vai funcionar.",
+    password_needs_outside_recipients_only:
+      "A proteção por senha só funciona quando todos os destinatários usam outro provedor de e-mail. Para incluir usuários do Aster, desative a proteção por senha ou envie a eles uma mensagem separada.",
     failed_to_schedule_email:
       "O agendamento não foi salvo. Tente novamente. Seu rascunho está salvo.",
     failed_to_restore_draft:
@@ -6750,6 +6750,9 @@ export const pt_br = {
     domain_purchase_search_placeholder: "Pesquise um nome de domínio",
     domain_purchase_per_year: "{{price}}/ano",
     domain_purchase_taken: "Indisponível",
+    domain_purchase_unchecked: "Não verificado",
+    domain_purchase_unchecked_hint:
+      "Não foi possível verificar este domínio agora. Tente novamente mais tarde.",
     domain_purchase_no_results: "Nenhum domínio disponível encontrado",
     domain_purchase_renews_at: "Renova por {{price}}/ano",
     domain_purchase_years: "Período de registro",
@@ -8489,6 +8492,13 @@ export const pt_br = {
     plan_f_sort_folders: "Ordenar pastas de A a Z",
   },
   mail: {
+    image_size_prompt_title: "Reduzir o tamanho das imagens nesta mensagem?",
+    image_size_prompt_description:
+      "Imagens menores são enviadas mais rápido e ficam dentro dos limites de tamanho de outros provedores de e-mail. O tamanho original mantém todos os detalhes.",
+    image_size_reduce: "Reduzir tamanho da imagem",
+    image_size_original: "Manter tamanho original",
+    link_menu_open: "Abrir link",
+    link_menu_copy: "Copiar link",
     alias_view_sent: "Ver mensagens enviadas",
     alias_direction_label: "Direção do correio",
     alias_direction_all: "Todos",
@@ -10524,6 +10534,18 @@ export const pt_br = {
       "Parado. Atualizados: {{applied}}. Esta regra ignorou {{count}} mensagens criptografadas porque só o seu dispositivo consegue lê-las.",
     apply_to_existing_error:
       "Falha ao aplicar ao e-mail existente. Tente novamente.",
+    local_apply_progress:
+      "Verificando mensagens criptografadas neste dispositivo: {{checked}} de {{total}}",
+    local_apply_done:
+      "Mensagens criptografadas verificadas neste dispositivo: {{checked}}, atualizadas: {{applied}}.",
+    local_apply_unreadable:
+      "Mensagens que não puderam ser descriptografadas: {{unreadable}}.",
+    local_apply_capped:
+      "Apenas as suas {{limit}} mensagens mais recentes foram verificadas.",
+    local_apply_failed:
+      "Não foi possível atualizar algumas mensagens criptografadas. Tente novamente.",
+    local_apply_unsupported:
+      "Esta regra usa condições que só o servidor pode verificar, por isso não consegue organizar mensagens criptografadas.",
     empty_title: "Nenhuma regra ainda",
     empty_description:
       "Crie sua primeira regra para organizar automaticamente os e-mails recebidos.",

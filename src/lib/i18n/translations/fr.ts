@@ -1127,8 +1127,8 @@ export const fr = {
       "Vous êtes hors ligne pour l'instant. Ce message s'enverra dès que vous serez reconnecté.",
     failed_to_queue_offline:
       "Impossible de mettre cet e-mail en file d'attente pour un envoi ultérieur. Réessayez. Votre brouillon est enregistré.",
-    cannot_mix_recipients:
-      "Les utilisateurs Aster et les adresses externes ne peuvent pas figurer dans le même message. Les envoyer en deux messages séparés fonctionnera.",
+    password_needs_outside_recipients_only:
+      "La protection par mot de passe ne fonctionne que si tous les destinataires utilisent un autre fournisseur de messagerie. Pour inclure des utilisateurs Aster, désactivez la protection par mot de passe ou envoyez-leur un message séparé.",
     failed_to_schedule_email:
       "La programmation n'a pas été enregistrée. Réessayez. Votre brouillon est enregistré.",
     failed_to_restore_draft:
@@ -6928,6 +6928,9 @@ export const fr = {
     domain_purchase_search_placeholder: "Rechercher un nom de domaine",
     domain_purchase_per_year: "{{price}}/an",
     domain_purchase_taken: "Indisponible",
+    domain_purchase_unchecked: "Non vérifié",
+    domain_purchase_unchecked_hint:
+      "Impossible de vérifier ce domaine pour le moment. Réessayez plus tard.",
     domain_purchase_no_results: "Aucun domaine disponible trouvé",
     domain_purchase_renews_at: "Renouvellement à {{price}}/an",
     domain_purchase_years: "Période d'enregistrement",
@@ -8549,6 +8552,13 @@ export const fr = {
       "Gardez vos contacts et d’autres outils rapides dans un panneau à côté de vos messages.",
   },
   mail: {
+    image_size_prompt_title: "Réduire la taille des images de ce message ?",
+    image_size_prompt_description:
+      "Les images plus petites s’envoient plus vite et respectent les limites de taille des autres fournisseurs de messagerie. La taille d’origine conserve tous les détails.",
+    image_size_reduce: "Réduire la taille des images",
+    image_size_original: "Conserver la taille d’origine",
+    link_menu_open: "Ouvrir le lien",
+    link_menu_copy: "Copier le lien",
     alias_view_sent: "Voir les messages envoyés",
     alias_direction_label: "Direction du courrier",
     alias_direction_all: "Tous",
@@ -10600,6 +10610,18 @@ export const fr = {
       "Arrêté : {{applied}} mis à jour. Cette règle a ignoré {{count}} messages chiffrés, car seul votre appareil peut les lire.",
     apply_to_existing_error:
       "L'application au courrier existant a echoue. Reessayez.",
+    local_apply_progress:
+      "Vérification des messages chiffrés sur cet appareil : {{checked}} sur {{total}}",
+    local_apply_done:
+      "Messages chiffrés vérifiés sur cet appareil : {{checked}}, mis à jour : {{applied}}.",
+    local_apply_unreadable:
+      "Messages impossibles à déchiffrer : {{unreadable}}.",
+    local_apply_capped:
+      "Seuls vos {{limit}} messages les plus récents ont été vérifiés.",
+    local_apply_failed:
+      "Certains messages chiffrés n'ont pas pu être mis à jour. Réessayez.",
+    local_apply_unsupported:
+      "Cette règle utilise des conditions que seul le serveur peut vérifier. Elle ne peut donc pas trier les messages chiffrés.",
     at_limit_upgrade:
       "Vous avez atteint la limite de règles de votre forfait. Mettez à niveau pour en ajouter.",
     auth_fail: "échoué",

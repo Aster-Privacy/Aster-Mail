@@ -958,8 +958,8 @@ export const zh_CN = {
     offline_email_queued: "您当前处于离线状态，这封邮件会在您重新联网后发出。",
     failed_to_queue_offline:
       "我们无法将此邮件加入稍后发送的队列。请重试。您的草稿已保存。",
-    cannot_mix_recipients:
-      "Aster 用户和外部地址不能放在同一封邮件中，分两封发送就可以。",
+    password_needs_outside_recipients_only:
+      "仅当所有收件人都使用其他邮件服务商时，密码保护才有效。如需包含 Aster 用户，请关闭密码保护或另外给他们发送一封邮件。",
     failed_to_schedule_email: "定时设置未能保存。请重试。您的草稿已保存。",
     failed_to_restore_draft:
       "我们无法找回这份草稿，重新打开一次通常可以。您的其他草稿不受影响。",
@@ -6001,6 +6001,8 @@ export const zh_CN = {
     domain_purchase_search_placeholder: "搜索域名",
     domain_purchase_per_year: "{{price}}/年",
     domain_purchase_taken: "已被注册",
+    domain_purchase_unchecked: "无法检查",
+    domain_purchase_unchecked_hint: "目前无法检查此域名,请稍后重试。",
     domain_purchase_no_results: "未找到可用域名",
     domain_purchase_renews_at: "续费价 {{price}}/年",
     domain_purchase_years: "注册年限",
@@ -7484,6 +7486,13 @@ export const zh_CN = {
       "POP3 把邮件下载到一台设备上，不会把更改传回服务器。",
   },
   mail: {
+    image_size_prompt_title: "要缩小此邮件中的图片吗？",
+    image_size_prompt_description:
+      "较小的图片发送更快，并且不会超出其他邮件服务商的大小限制。原始大小会保留所有细节。",
+    image_size_reduce: "缩小图片",
+    image_size_original: "保留原始大小",
+    link_menu_open: "打开链接",
+    link_menu_copy: "复制链接",
     alias_view_sent: "查看已发送邮件",
     alias_direction_label: "邮件方向",
     alias_direction_all: "全部",
@@ -9291,6 +9300,18 @@ export const zh_CN = {
     apply_to_existing_canceled_encrypted_other:
       "已停止：已更新 {{applied}} 封。此规则跳过了 {{count}} 封加密邮件，因为只有您的设备才能读取它们。",
     apply_to_existing_error: "应用到现有邮件失败。请重试。",
+    local_apply_progress:
+      "正在此设备上检查加密邮件：{{checked}} / {{total}}",
+    local_apply_done:
+      "已在此设备上检查加密邮件 {{checked}} 封，已更新 {{applied}} 封。",
+    local_apply_unreadable:
+      "无法解密的邮件：{{unreadable}} 封。",
+    local_apply_capped:
+      "仅检查了您最新的 {{limit}} 封邮件。",
+    local_apply_failed:
+      "部分加密邮件无法更新。请重试。",
+    local_apply_unsupported:
+      "此规则使用了只有服务器才能检查的条件，因此无法整理加密邮件。",
     empty_title: "暂无规则",
     empty_description: "创建您的第一条规则以自动整理收件邮件。",
     empty_cta: "创建规则",

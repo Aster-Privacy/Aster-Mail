@@ -1143,8 +1143,8 @@ export const en: Translations = {
       "You are offline right now. This email will send as soon as you reconnect.",
     failed_to_queue_offline:
       "We could not queue this email for later sending. Try again. Your draft is saved.",
-    cannot_mix_recipients:
-      "Aster users and outside addresses cannot go in the same email. Sending them as two separate messages will work.",
+    password_needs_outside_recipients_only:
+      "Password protection works only when every recipient uses another email provider. To include Aster users, turn off password protection or send them a separate message.",
     post_quantum_unavailable_title: "Send without post-quantum encryption?",
     post_quantum_unavailable_message:
       "{{recipients}} has not published post-quantum keys yet, so this message can only use standard end-to-end encryption. Ask them to open Aster or update their app to turn post-quantum protection back on.",
@@ -6231,6 +6231,9 @@ export const en: Translations = {
     domain_purchase_search_placeholder: "Search for a domain name",
     domain_purchase_per_year: "{{price}}/yr",
     domain_purchase_taken: "Taken",
+    domain_purchase_unchecked: "Couldn't check",
+    domain_purchase_unchecked_hint:
+      "Couldn't check this domain right now. Try again later.",
     domain_purchase_no_results: "No available domains found",
     domain_purchase_renews_at: "Renews at {{price}}/yr",
     domain_purchase_years: "Registration period",
@@ -8227,6 +8230,13 @@ export const en: Translations = {
     usage_external_accounts: "External Accounts",
   },
   mail: {
+    image_size_prompt_title: "Reduce the size of images in this message?",
+    image_size_prompt_description:
+      "Smaller images send faster and stay within the size limits of other email providers. The original size keeps every detail.",
+    image_size_reduce: "Reduce Image Size",
+    image_size_original: "Keep Original Size",
+    link_menu_open: "Open Link",
+    link_menu_copy: "Copy Link",
     alias_view_sent: "View sent mail",
     alias_direction_label: "Mail direction",
     alias_direction_all: "All",
@@ -10159,6 +10169,18 @@ export const en: Translations = {
     apply_to_existing_canceled_encrypted_other:
       "Stopped: {{applied}} updated. This rule skipped {{count}} encrypted messages because only your device can read them.",
     apply_to_existing_error: "Applying to existing mail failed. Try again.",
+    local_apply_progress:
+      "Checking encrypted messages on this device: {{checked}} of {{total}}",
+    local_apply_done:
+      "Encrypted messages checked on this device: {{checked}}, {{applied}} updated.",
+    local_apply_unreadable:
+      "Messages that couldn't be decrypted: {{unreadable}}.",
+    local_apply_capped:
+      "Only your newest {{limit}} messages were checked.",
+    local_apply_failed:
+      "Some encrypted messages couldn't be updated. Try again.",
+    local_apply_unsupported:
+      "This rule uses conditions that only the server can check, so it can't sort encrypted messages.",
     empty_title: "No rules yet",
     empty_description:
       "Create your first rule to automatically organize incoming mail.",

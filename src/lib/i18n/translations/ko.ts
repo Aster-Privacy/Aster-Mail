@@ -1149,8 +1149,8 @@ export const ko = {
       "지금은 오프라인 상태입니다. 이 이메일은 다시 연결되는 즉시 발송됩니다.",
     failed_to_queue_offline:
       "이 이메일을 나중에 보내도록 대기열에 추가하지 못했습니다. 다시 시도하세요. 임시 보관함에 저장되었습니다.",
-    cannot_mix_recipients:
-      "Aster 사용자와 외부 주소는 같은 이메일에 함께 넣을 수 없습니다. 두 통의 별도 메시지로 보내면 됩니다.",
+    password_needs_outside_recipients_only:
+      "비밀번호 보호는 모든 수신자가 다른 이메일 서비스를 사용할 때만 작동합니다. Aster 사용자를 포함하려면 비밀번호 보호를 끄거나 별도의 메시지를 보내세요.",
     failed_to_schedule_email:
       "예약을 저장하지 못했습니다. 다시 시도하세요. 임시 보관함에 저장되었습니다.",
     failed_to_restore_draft:
@@ -6621,6 +6621,9 @@ export const ko = {
     domain_purchase_search_placeholder: "도메인 이름 검색",
     domain_purchase_per_year: "{{price}}/년",
     domain_purchase_taken: "사용 불가",
+    domain_purchase_unchecked: "확인 불가",
+    domain_purchase_unchecked_hint:
+      "지금은 이 도메인을 확인할 수 없습니다. 나중에 다시 시도해 주세요.",
     domain_purchase_no_results: "사용 가능한 도메인이 없습니다",
     domain_purchase_renews_at: "갱신 요금 {{price}}/년",
     domain_purchase_years: "등록 기간",
@@ -8116,6 +8119,13 @@ export const ko = {
       "연락처와 다른 빠른 도구를 메일 옆 패널에 표시합니다.",
   },
   mail: {
+    image_size_prompt_title: "이 메시지의 이미지 크기를 줄일까요?",
+    image_size_prompt_description:
+      "작은 이미지는 더 빠르게 전송되며 다른 이메일 제공업체의 크기 제한을 넘지 않습니다. 원본 크기는 모든 세부 정보를 유지합니다.",
+    image_size_reduce: "이미지 크기 줄이기",
+    image_size_original: "원본 크기 유지",
+    link_menu_open: "링크 열기",
+    link_menu_copy: "링크 복사",
     alias_view_sent: "보낸 메일 보기",
     alias_direction_label: "이메일 방향",
     alias_direction_all: "전체",
@@ -10047,6 +10057,18 @@ export const ko = {
       "중지됨: {{applied}}개 업데이트. 암호화된 {{count}}개는 사용자의 기기에서만 읽을 수 있어 이 규칙에서 건너뛰었습니다.",
     apply_to_existing_error:
       "기존 메일에 적용하지 못했습니다. 다시 시도하세요.",
+    local_apply_progress:
+      "이 기기에서 암호화된 메시지 확인 중: {{total}}개 중 {{checked}}개",
+    local_apply_done:
+      "이 기기에서 확인한 암호화된 메시지: {{checked}}개, {{applied}}개 업데이트.",
+    local_apply_unreadable:
+      "복호화하지 못한 메시지: {{unreadable}}개.",
+    local_apply_capped:
+      "최신 메시지 {{limit}}개만 확인했습니다.",
+    local_apply_failed:
+      "일부 암호화된 메시지를 업데이트하지 못했습니다. 다시 시도하세요.",
+    local_apply_unsupported:
+      "이 규칙은 서버에서만 확인할 수 있는 조건을 사용하므로 암호화된 메시지를 분류할 수 없습니다.",
     empty_title: "아직 규칙이 없습니다",
     empty_description: "첫 번째 규칙을 만들어 수신 메일을 자동으로 정리하세요.",
     empty_cta: "규칙 만들기",

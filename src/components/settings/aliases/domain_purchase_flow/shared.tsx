@@ -22,9 +22,12 @@ import type { ApiErrorCode } from "@/services/api/client";
 
 import {
   CheckCircleIcon as CheckCircleSolid,
+  ExclamationCircleIcon as ExclamationCircleSolid,
   XCircleIcon as XCircleSolid,
 } from "@heroicons/react/24/solid";
 import { Badge, Skeleton, Tooltip } from "@aster/ui";
+
+import { is_purchasable, is_unchecked } from "../domain_results_utils";
 
 import { use_i18n } from "@/lib/i18n/context";
 import {
@@ -137,7 +140,8 @@ export function ResultRow({
   on_select: (r: DomainSearchResult) => void;
 }) {
   const { t } = use_i18n();
-  const available = result.available && result.price_cents !== null;
+  const available = is_purchasable(result);
+  const unchecked = is_unchecked(result);
 
   return (
     <button
@@ -145,6 +149,9 @@ export function ResultRow({
         available ? "hover:bg-surf-secondary" : "cursor-default"
       }`}
       disabled={!available}
+      title={
+        unchecked ? t("settings.domain_purchase_unchecked_hint") : undefined
+      }
       onClick={() => on_select(result)}
     >
       <span className="flex items-center gap-2.5 min-w-0">
@@ -152,6 +159,11 @@ export function ResultRow({
           <CheckCircleSolid
             className="w-[18px] h-[18px] flex-shrink-0"
             style={{ color: "var(--color-success)" }}
+          />
+        ) : unchecked ? (
+          <ExclamationCircleSolid
+            className="w-[18px] h-[18px] flex-shrink-0"
+            style={{ color: "var(--color-warning)" }}
           />
         ) : (
           <XCircleSolid
@@ -165,7 +177,9 @@ export function ResultRow({
               ? primary
                 ? "text-[16px] font-semibold text-txt-primary"
                 : "text-[15px] text-txt-primary"
-              : "text-[15px] text-txt-muted line-through decoration-[var(--color-danger)]/40"
+              : unchecked
+                ? "text-[15px] text-txt-muted"
+                : "text-[15px] text-txt-muted line-through decoration-[var(--color-danger)]/40"
           }`}
         >
           {result.domain}
@@ -227,6 +241,10 @@ export function ResultRow({
               {t("common.continue")}
             </span>
           )}
+        </span>
+      ) : unchecked ? (
+        <span className="text-[13px] font-medium flex-shrink-0 text-txt-muted">
+          {t("settings.domain_purchase_unchecked")}
         </span>
       ) : (
         <span

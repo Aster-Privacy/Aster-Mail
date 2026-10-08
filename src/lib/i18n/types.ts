@@ -453,6 +453,12 @@ export interface MailRulesTranslations {
   apply_to_existing_canceled_encrypted_other: string;
 
   apply_to_existing_error: string;
+  local_apply_progress: string;
+  local_apply_done: string;
+  local_apply_unreadable: string;
+  local_apply_capped: string;
+  local_apply_failed: string;
+  local_apply_unsupported: string;
   empty_title: string;
   empty_description: string;
   empty_cta: string;
@@ -1724,7 +1730,7 @@ export interface CommonTranslations {
   offline_send_failed: string;
   offline_email_queued: string;
   failed_to_queue_offline: string;
-  cannot_mix_recipients: string;
+  password_needs_outside_recipients_only: string;
   empty_body_error: string;
   duplicate_send_blocked: string;
   subject_too_long: string;
@@ -4914,6 +4920,8 @@ export interface SettingsTranslations {
   domain_purchase_search_placeholder: string;
   domain_purchase_per_year: string;
   domain_purchase_taken: string;
+  domain_purchase_unchecked: string;
+  domain_purchase_unchecked_hint: string;
   domain_purchase_no_results: string;
   domain_purchase_renews_at: string;
   domain_purchase_years: string;
@@ -7339,6 +7347,12 @@ export interface SettingsTranslations {
 }
 
 export interface MailTranslations {
+  image_size_prompt_title: string;
+  image_size_prompt_description: string;
+  image_size_reduce: string;
+  image_size_original: string;
+  link_menu_open: string;
+  link_menu_copy: string;
   alias_view_sent: string;
   alias_direction_label: string;
   alias_direction_all: string;

@@ -24,6 +24,11 @@ import {
   type FrameTipDetail,
 } from "@/components/ui/title_tip_layer";
 import { forward_iframe_outside_interaction } from "@/lib/iframe_outside_interaction";
+import {
+  LINK_MENU_EVENT,
+  link_menu_host,
+  type LinkMenuDetail,
+} from "@/lib/link_menu_event";
 
 const ASTER_PATH_ALLOWLIST = /^(?:settings(?:\/[a-z0-9_-]{1,32})?)$/i;
 const ABSOLUTE_URL_REGEX = /^[a-z][a-z0-9+.-]*:/i;
@@ -246,6 +251,34 @@ export function attach_iframe_interactions(
     e.stopPropagation();
 
     activate_link(link as HTMLAnchorElement, href);
+  });
+
+  iframe_body.addEventListener("contextmenu", (e) => {
+    const link = (e.target as HTMLElement).closest("a");
+
+    if (!link) return;
+    const href = link.getAttribute("href") || "";
+
+    if (!href || href.startsWith("#") || href.startsWith("aster:")) return;
+    const url = resolve_link_url(link as HTMLAnchorElement, href);
+
+    if (!link_menu_host(url)) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const frame = iframe.getBoundingClientRect();
+    const scale_x = iframe.clientWidth ? frame.width / iframe.clientWidth : 1;
+    const scale_y = iframe.clientHeight
+      ? frame.height / iframe.clientHeight
+      : 1;
+    const detail: LinkMenuDetail = {
+      url,
+      x: frame.left + e.clientX * scale_x,
+      y: frame.top + e.clientY * scale_y,
+    };
+
+    window.dispatchEvent(new CustomEvent(LINK_MENU_EVENT, { detail }));
   });
 
   iframe_body.addEventListener("auxclick", (e) => {

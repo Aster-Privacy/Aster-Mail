@@ -1197,8 +1197,8 @@ export const de = {
       "Diese E-Mail wurde nicht über Ihr verknüpftes externes Konto gesendet. Versuchen Sie es erneut. Ihr Entwurf ist gespeichert.",
     failed_to_queue_offline:
       "Diese E-Mail konnte nicht für den späteren Versand eingereiht werden. Versuchen Sie es erneut. Ihr Entwurf ist gespeichert.",
-    cannot_mix_recipients:
-      "Aster-Nutzer und externe Adressen lassen sich nicht in derselben E-Mail kombinieren. Ein Versand als zwei getrennte Nachrichten funktioniert.",
+    password_needs_outside_recipients_only:
+      "Der Passwortschutz funktioniert nur, wenn alle Empfänger einen anderen E-Mail-Anbieter nutzen. Um Aster-Nutzer einzubeziehen, deaktivieren Sie den Passwortschutz oder senden Sie ihnen eine separate Nachricht.",
     duplicate_send_blocked:
       "Diese Nachricht wurde gerade gesendet. Prüfen Sie Ihren Ordner „Gesendet“, bevor Sie sie erneut senden.",
     empty_body_error:
@@ -6640,6 +6640,9 @@ export const de = {
     domain_purchase_search_placeholder: "Nach einem Domainnamen suchen",
     domain_purchase_per_year: "{{price}}/Jahr",
     domain_purchase_taken: "Vergeben",
+    domain_purchase_unchecked: "Nicht geprüft",
+    domain_purchase_unchecked_hint:
+      "Diese Domain konnte gerade nicht geprüft werden. Versuchen Sie es später erneut.",
     domain_purchase_no_results: "Keine verfügbaren Domains gefunden",
     domain_purchase_renews_at: "Verlängerung: {{price}}/Jahr",
     domain_purchase_years: "Registrierungszeitraum",
@@ -8549,6 +8552,13 @@ export const de = {
     usage_external_accounts: "Externe Konten",
   },
   mail: {
+    image_size_prompt_title: "Größe der Bilder in dieser Nachricht verringern?",
+    image_size_prompt_description:
+      "Kleinere Bilder werden schneller gesendet und bleiben innerhalb der Größenlimits anderer E-Mail-Anbieter. Die Originalgröße behält jedes Detail.",
+    image_size_reduce: "Bildgröße verringern",
+    image_size_original: "Originalgröße behalten",
+    link_menu_open: "Link öffnen",
+    link_menu_copy: "Link kopieren",
     alias_view_sent: "Gesendete Nachrichten anzeigen",
     alias_direction_label: "Nachrichtenrichtung",
     alias_direction_all: "Alle",
@@ -10613,6 +10623,18 @@ export const de = {
       "Gestoppt: {{applied}} aktualisiert. Diese Regel hat {{count}} verschlüsselte Nachrichten übersprungen, weil nur Ihr Gerät sie lesen kann.",
     apply_to_existing_error:
       "Anwenden auf vorhandene Mail fehlgeschlagen. Bitte erneut versuchen.",
+    local_apply_progress:
+      "Verschlüsselte Nachrichten werden auf diesem Gerät geprüft: {{checked}} von {{total}}",
+    local_apply_done:
+      "Auf diesem Gerät geprüfte verschlüsselte Nachrichten: {{checked}}, {{applied}} aktualisiert.",
+    local_apply_unreadable:
+      "Nicht entschlüsselbare Nachrichten: {{unreadable}}.",
+    local_apply_capped:
+      "Nur Ihre neuesten {{limit}} Nachrichten wurden geprüft.",
+    local_apply_failed:
+      "Einige verschlüsselte Nachrichten konnten nicht aktualisiert werden. Bitte erneut versuchen.",
+    local_apply_unsupported:
+      "Diese Regel nutzt Bedingungen, die nur der Server prüfen kann. Verschlüsselte Nachrichten kann sie daher nicht sortieren.",
     at_limit_upgrade:
       "Sie haben das Regelimit Ihres Tarifs erreicht. Ein Upgrade ermöglicht mehr.",
     auth_fail: "fehlgeschlagen",

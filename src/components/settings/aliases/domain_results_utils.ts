@@ -22,13 +22,23 @@
 import type { DomainSearchResult } from "@/services/api/domains";
 
 export type results_sort =
-  | "relevance"
-  | "price_low"
-  | "price_high"
-  | "az"
-  | "discount";
+  "relevance" | "price_low" | "price_high" | "az" | "discount";
 
 export type results_filter = "all" | "available" | "taken";
+
+export function is_unchecked(r: DomainSearchResult): boolean {
+  return r.availability_unknown === true;
+}
+
+export function is_purchasable(r: DomainSearchResult): boolean {
+  return r.available && !is_unchecked(r) && r.price_cents !== null;
+}
+
+function availability_rank(r: DomainSearchResult): number {
+  if (is_unchecked(r)) return 1;
+
+  return r.available ? 0 : 2;
+}
 
 export function discount_percent(r: DomainSearchResult): number | null {
   if (r.price_cents === null || r.renewal_price_cents === null) return null;
@@ -53,8 +63,8 @@ export function filter_results(
   max_price_cents: number | null,
 ): DomainSearchResult[] {
   return results.filter((r) => {
-    if (filter === "available" && !r.available) return false;
-    if (filter === "taken" && r.available) return false;
+    if (filter === "available" && !is_purchasable(r)) return false;
+    if (filter === "taken" && (r.available || is_unchecked(r))) return false;
     if (tld !== null && result_tld(r) !== tld.toLowerCase()) return false;
     if (
       max_price_cents !== null &&
@@ -97,7 +107,9 @@ export function sort_results(
   const indexed = results.map((r, i) => ({ r, i }));
 
   indexed.sort((x, y) => {
-    if (x.r.available !== y.r.available) return x.r.available ? -1 : 1;
+    const rank = availability_rank(x.r) - availability_rank(y.r);
+
+    if (rank !== 0) return rank;
     let cmp = 0;
 
     if (sort === "price_low") cmp = compare_price(x.r, y.r, 1);

@@ -1144,8 +1144,8 @@ export const ja = {
       "現在オフラインです。このメールは接続が戻り次第、送信されます。",
     failed_to_queue_offline:
       "このメールを後で送信するためのキューに追加できませんでした。もう一度お試しください。下書きは保存されています。",
-    cannot_mix_recipients:
-      "Aster ユーザーと外部アドレスを同じメールに含めることはできません。2 通の別々のメッセージとして送信することで届けられます。",
+    password_needs_outside_recipients_only:
+      "パスワード保護は、すべての受信者が他のメールプロバイダを使用している場合にのみ機能します。Aster ユーザーを含めるには、パスワード保護をオフにするか、別のメッセージを送信してください。",
     failed_to_schedule_email:
       "予約を保存できませんでした。もう一度お試しください。下書きは保存されています。",
     failed_to_restore_draft:
@@ -6631,6 +6631,9 @@ export const ja = {
     domain_purchase_search_placeholder: "ドメイン名を検索",
     domain_purchase_per_year: "{{price}}/年",
     domain_purchase_taken: "取得済み",
+    domain_purchase_unchecked: "確認できません",
+    domain_purchase_unchecked_hint:
+      "現在このドメインを確認できません。しばらくしてからもう一度お試しください。",
     domain_purchase_no_results: "利用可能なドメインが見つかりません",
     domain_purchase_renews_at: "更新料 {{price}}/年",
     domain_purchase_years: "登録期間",
@@ -8273,6 +8276,13 @@ export const ja = {
       "連絡先やそのほかのツールを、メールの横のパネルに表示します。",
   },
   mail: {
+    image_size_prompt_title: "このメッセージの画像サイズを縮小しますか？",
+    image_size_prompt_description:
+      "小さい画像はより速く送信でき、他のメールプロバイダのサイズ制限内に収まります。元のサイズではすべての細部が保たれます。",
+    image_size_reduce: "画像サイズを縮小",
+    image_size_original: "元のサイズを保持",
+    link_menu_open: "リンクを開く",
+    link_menu_copy: "リンクをコピー",
     alias_view_sent: "送信済みメールを表示",
     alias_direction_label: "メールの方向",
     alias_direction_all: "すべて",
@@ -10251,6 +10261,18 @@ export const ja = {
       "停止しました: {{applied}} 件更新。暗号化された {{count}} 件はお使いのデバイスでしか読めないため、このルールではスキップされました。",
     apply_to_existing_error:
       "既存のメールへの適用に失敗しました。もう一度お試しください。",
+    local_apply_progress:
+      "このデバイスで暗号化メッセージを確認中: {{total}} 件中 {{checked}} 件",
+    local_apply_done:
+      "このデバイスで確認した暗号化メッセージ: {{checked}} 件、{{applied}} 件更新。",
+    local_apply_unreadable:
+      "復号できなかったメッセージ: {{unreadable}} 件。",
+    local_apply_capped:
+      "最新の {{limit}} 件のメッセージのみ確認しました。",
+    local_apply_failed:
+      "一部の暗号化メッセージを更新できませんでした。もう一度お試しください。",
+    local_apply_unsupported:
+      "このルールはサーバーでしか確認できない条件を使用しているため、暗号化メッセージを振り分けられません。",
     empty_title: "ルールはまだありません",
     empty_description:
       "最初のルールを作成して受信メールを自動的に整理しましょう。",

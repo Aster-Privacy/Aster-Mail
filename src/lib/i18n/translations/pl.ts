@@ -1118,8 +1118,8 @@ export const pl = {
       "Jesteś teraz offline. Ta wiadomość zostanie wysłana, gdy tylko nastąpi ponowne połączenie.",
     failed_to_queue_offline:
       "Nie udało się dodać tej wiadomości do kolejki wysyłki. Spróbuj ponownie. Szkic jest zapisany.",
-    cannot_mix_recipients:
-      "Użytkownicy Aster i adresy zewnętrzne nie mogą być w tej samej wiadomości. Wyślij do nich dwie osobne wiadomości.",
+    password_needs_outside_recipients_only:
+      "Ochrona hasłem działa tylko wtedy, gdy wszyscy odbiorcy korzystają z innego dostawcy poczty. Aby uwzględnić użytkowników Aster, wyłącz ochronę hasłem lub wyślij im osobną wiadomość.",
     failed_to_schedule_email:
       "Harmonogram nie został zapisany. Spróbuj ponownie. Szkic jest zapisany.",
     failed_to_restore_draft:
@@ -6905,6 +6905,9 @@ export const pl = {
     domain_purchase_search_placeholder: "Wyszukaj nazwę domeny",
     domain_purchase_per_year: "{{price}}/rok",
     domain_purchase_taken: "Zajęta",
+    domain_purchase_unchecked: "Nie sprawdzono",
+    domain_purchase_unchecked_hint:
+      "Nie można teraz sprawdzić tej domeny. Spróbuj ponownie później.",
     domain_purchase_no_results: "Nie znaleziono dostępnych domen",
     domain_purchase_renews_at: "Odnowienie za {{price}}/rok",
     domain_purchase_years: "Okres rejestracji",
@@ -8680,6 +8683,13 @@ export const pl = {
       "Trzymaj kontakty i inne szybkie narzędzia w panelu obok wiadomości.",
   },
   mail: {
+    image_size_prompt_title: "Zmniejszyć rozmiar obrazów w tej wiadomości?",
+    image_size_prompt_description:
+      "Mniejsze obrazy wysyłają się szybciej i mieszczą się w limitach rozmiaru innych dostawców poczty. Oryginalny rozmiar zachowuje wszystkie szczegóły.",
+    image_size_reduce: "Zmniejsz rozmiar obrazów",
+    image_size_original: "Zachowaj oryginalny rozmiar",
+    link_menu_open: "Otwórz link",
+    link_menu_copy: "Kopiuj link",
     alias_view_sent: "Pokaż wysłane wiadomości",
     alias_direction_label: "Kierunek poczty",
     alias_direction_all: "Wszystkie",
@@ -10698,6 +10708,18 @@ export const pl = {
       "Zatrzymano: zaktualizowano {{applied}}. Ta reguła pominęła {{count}} zaszyfrowanych wiadomości, ponieważ tylko Twoje urządzenie może je odczytać.",
     apply_to_existing_error:
       "Zastosowanie do istniejacej poczty nie udalo sie. Spróbuj ponownie.",
+    local_apply_progress:
+      "Sprawdzanie zaszyfrowanych wiadomości na tym urządzeniu: {{checked}} z {{total}}",
+    local_apply_done:
+      "Zaszyfrowane wiadomości sprawdzone na tym urządzeniu: {{checked}}, zaktualizowano: {{applied}}.",
+    local_apply_unreadable:
+      "Wiadomości, których nie udało się odszyfrować: {{unreadable}}.",
+    local_apply_capped:
+      "Sprawdzono tylko {{limit}} najnowszych wiadomości.",
+    local_apply_failed:
+      "Nie udało się zaktualizować niektórych zaszyfrowanych wiadomości. Spróbuj ponownie.",
+    local_apply_unsupported:
+      "Ta reguła używa warunków, które może sprawdzić tylko serwer, więc nie może sortować zaszyfrowanych wiadomości.",
     empty_title: "Brak reguł",
     empty_description:
       "Utwórz pierwszą regułę, aby automatycznie organizować przychodzącą pocztę.",

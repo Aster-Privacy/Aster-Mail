@@ -152,6 +152,7 @@ export interface DomainSearchResult {
   price_cents: number | null;
   renewal_price_cents: number | null;
   currency: string;
+  availability_unknown?: boolean;
 }
 
 export interface DomainSearchResponse {

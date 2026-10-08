@@ -1118,8 +1118,8 @@ export const es = {
       "Estás sin conexión ahora mismo. Este correo se enviará cuando vuelvas a conectarte.",
     failed_to_queue_offline:
       "No pudimos poner este correo en cola para enviarlo más tarde. Inténtalo de nuevo. Tu borrador está guardado.",
-    cannot_mix_recipients:
-      "No puedes enviar a usuarios de Aster y a direcciones externas en un mismo correo. Enviarlos como dos mensajes separados funcionará.",
+    password_needs_outside_recipients_only:
+      "La protección con contraseña solo funciona cuando todos los destinatarios usan otro proveedor de correo. Para incluir a usuarios de Aster, desactiva la protección con contraseña o envíales un mensaje aparte.",
     failed_to_schedule_email:
       "La programación no se guardó. Inténtalo de nuevo. Tu borrador está guardado.",
     failed_to_restore_draft:
@@ -6863,6 +6863,9 @@ export const es = {
     domain_purchase_search_placeholder: "Busca un nombre de dominio",
     domain_purchase_per_year: "{{price}}/año",
     domain_purchase_taken: "No disponible",
+    domain_purchase_unchecked: "Sin comprobar",
+    domain_purchase_unchecked_hint:
+      "No se pudo comprobar este dominio ahora. Inténtalo de nuevo más tarde.",
     domain_purchase_no_results: "No se encontraron dominios disponibles",
     domain_purchase_renews_at: "Se renueva a {{price}}/año",
     domain_purchase_years: "Período de registro",
@@ -8459,6 +8462,13 @@ export const es = {
       "Ten los contactos y otras herramientas rápidas en un panel junto a tu correo.",
   },
   mail: {
+    image_size_prompt_title: "¿Reducir el tamaño de las imágenes de este mensaje?",
+    image_size_prompt_description:
+      "Las imágenes más pequeñas se envían más rápido y respetan los límites de tamaño de otros proveedores de correo. El tamaño original conserva todos los detalles.",
+    image_size_reduce: "Reducir tamaño de imagen",
+    image_size_original: "Mantener tamaño original",
+    link_menu_open: "Abrir enlace",
+    link_menu_copy: "Copiar enlace",
     alias_view_sent: "Ver correo enviado",
     alias_direction_label: "Dirección del correo",
     alias_direction_all: "Todos",
@@ -10473,6 +10483,18 @@ export const es = {
       "Detenido. Actualizados: {{applied}}. Esta regla omitió {{count}} mensajes cifrados porque solo tu dispositivo puede leerlos.",
     apply_to_existing_error:
       "No se pudo aplicar al correo existente. Intentalo de nuevo.",
+    local_apply_progress:
+      "Comprobando mensajes cifrados en este dispositivo: {{checked}} de {{total}}",
+    local_apply_done:
+      "Mensajes cifrados comprobados en este dispositivo: {{checked}}, actualizados: {{applied}}.",
+    local_apply_unreadable:
+      "Mensajes que no se pudieron descifrar: {{unreadable}}.",
+    local_apply_capped:
+      "Solo se comprobaron tus {{limit}} mensajes más recientes.",
+    local_apply_failed:
+      "No se pudieron actualizar algunos mensajes cifrados. Inténtalo de nuevo.",
+    local_apply_unsupported:
+      "Esta regla usa condiciones que solo el servidor puede comprobar, así que no puede ordenar mensajes cifrados.",
     at_limit_upgrade:
       "Has alcanzado el límite de reglas de tu plan. Actualiza para agregar más.",
     auth_fail: "falló",

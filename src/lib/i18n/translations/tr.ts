@@ -1098,8 +1098,8 @@ export const tr = {
       "Şu anda çevrimdışısınız. Bu e-posta yeniden bağlanır bağlanmaz gönderilir.",
     failed_to_queue_offline:
       "Bu e-posta daha sonra gönderilmek üzere sıraya alınamadı. Tekrar deneyin. Taslağınız kaydedildi.",
-    cannot_mix_recipients:
-      "Aster kullanıcıları ile dış adresler aynı e-postaya konulamaz. Onları iki ayrı mesaj olarak göndermek işe yarar.",
+    password_needs_outside_recipients_only:
+      "Parola koruması yalnızca tüm alıcılar başka bir e-posta sağlayıcısı kullandığında çalışır. Aster kullanıcılarını eklemek için parola korumasını kapatın veya onlara ayrı bir ileti gönderin.",
     failed_to_schedule_email:
       "Zamanlama kaydedilmedi. Tekrar deneyin. Taslağınız kaydedildi.",
     failed_to_restore_draft:
@@ -6675,6 +6675,9 @@ export const tr = {
     domain_purchase_search_placeholder: "Bir alan adı arayın",
     domain_purchase_per_year: "{{price}}/yıl",
     domain_purchase_taken: "Alınmış",
+    domain_purchase_unchecked: "Kontrol edilemedi",
+    domain_purchase_unchecked_hint:
+      "Bu alan adı şu anda kontrol edilemedi. Daha sonra tekrar deneyin.",
     domain_purchase_no_results: "Uygun alan adı bulunamadı",
     domain_purchase_renews_at: "Yenileme: {{price}}/yıl",
     domain_purchase_years: "Kayıt süresi",
@@ -8355,6 +8358,13 @@ export const tr = {
       "Kişilerinizi ve diğer hızlı araçları iletilerinizin yanındaki bir panelde tutun.",
   },
   mail: {
+    image_size_prompt_title: "Bu iletideki görsellerin boyutu küçültülsün mü?",
+    image_size_prompt_description:
+      "Daha küçük görseller daha hızlı gönderilir ve diğer e-posta sağlayıcılarının boyut sınırları içinde kalır. Orijinal boyut tüm ayrıntıları korur.",
+    image_size_reduce: "Görsel Boyutunu Küçült",
+    image_size_original: "Orijinal Boyutu Koru",
+    link_menu_open: "Bağlantıyı Aç",
+    link_menu_copy: "Bağlantıyı Kopyala",
     alias_view_sent: "Gönderilen postaları görüntüle",
     alias_direction_label: "Posta yönü",
     alias_direction_all: "Tümü",
@@ -10341,6 +10351,18 @@ export const tr = {
       "Durduruldu: {{applied}} güncellendi. Bu kural {{count}} şifreli iletiyi atladı, çünkü bunları yalnızca cihazınız okuyabilir.",
     apply_to_existing_error:
       "Mevcut postaya uygulama basarisiz oldu. Tekrar deneyin.",
+    local_apply_progress:
+      "Bu cihazda şifreli iletiler denetleniyor: {{checked}} / {{total}}",
+    local_apply_done:
+      "Bu cihazda denetlenen şifreli iletiler: {{checked}}, güncellenen: {{applied}}.",
+    local_apply_unreadable:
+      "Şifresi çözülemeyen iletiler: {{unreadable}}.",
+    local_apply_capped:
+      "Yalnızca en yeni {{limit}} iletiniz denetlendi.",
+    local_apply_failed:
+      "Bazı şifreli iletiler güncellenemedi. Tekrar deneyin.",
+    local_apply_unsupported:
+      "Bu kural yalnızca sunucunun denetleyebildiği koşullar kullanıyor, bu yüzden şifreli iletileri sıralayamaz.",
     empty_title: "Henüz kural yok",
     empty_description:
       "Gelen postaları otomatik olarak düzenlemek için ilk kuralınızı oluşturun.",
