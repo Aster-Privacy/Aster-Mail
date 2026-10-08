@@ -28,6 +28,7 @@ vi.mock("@/services/routing/connection_store", () => ({
 
 import {
   fetch_gallery_image,
+  gallery_full_url,
   gallery_thumb_url,
   is_gallery_available,
   load_gallery_manifest,
@@ -116,6 +117,14 @@ describe("gallery_thumb_url", () => {
   });
 });
 
+describe("gallery_full_url", () => {
+  it("points at the full size image for a slug", () => {
+    expect(gallery_full_url("aurora_01")).toBe(
+      "https://aster-wallpapers.pages.dev/full/aurora_01.webp",
+    );
+  });
+});
+
 describe("gallery requests on a routed connection", () => {
   afterEach(() => {
     h.method = "direct";
@@ -150,5 +159,12 @@ describe("gallery requests on a routed connection", () => {
 
     expect(file.name).toBe("aurora_01.webp");
     expect(fetch_mock).toHaveBeenCalledTimes(1);
+    expect(fetch_mock).toHaveBeenCalledWith(
+      "https://aster-wallpapers.pages.dev/full/aurora_01.webp",
+      expect.objectContaining({
+        credentials: "omit",
+        referrerPolicy: "no-referrer",
+      }),
+    );
   });
 });
