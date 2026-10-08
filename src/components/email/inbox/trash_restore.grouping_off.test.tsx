@@ -233,7 +233,10 @@ describe("restoring from trash follows conversation grouping", () => {
       ["thread-1", false],
       ["thread-1", true],
     ]);
-    expect(metadata_mock.bulk_update_metadata_by_ids).not.toHaveBeenCalled();
+    expect(metadata_mock.bulk_update_metadata_by_ids.mock.calls).toEqual([
+      [["m1"], { is_trashed: false }],
+      [["m1"], { is_trashed: true }],
+    ]);
   });
 
   it("context menu restore and undo touch only the clicked message when grouping is off", async () => {

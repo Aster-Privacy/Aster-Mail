@@ -35,7 +35,7 @@ import {
 
 import { bulk_action_result } from "@/hooks/bulk_action_result";
 import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
-import { trash_thread } from "@/services/api/mail";
+import { set_thread_trashed } from "@/services/trash_state";
 import { batched_archive, batched_unarchive } from "@/services/api/archive";
 import {
   adjust_stats_unread as adjust_unread_count,
@@ -210,7 +210,13 @@ export function use_email_list_bulk({
       const thread_outcomes = await Promise.all(
         unique_thread_tokens.map(async (token) => {
           try {
-            const result = await trash_thread(token, true);
+            const result = await set_thread_trashed(
+              token,
+              threaded_emails
+                .filter((e) => e.thread_token === token)
+                .flatMap(expand_email_ids),
+              true,
+            );
 
             return { token, ok: !!result.data };
           } catch {

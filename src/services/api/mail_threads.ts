@@ -164,11 +164,16 @@ export async function mark_thread_read(
   );
 }
 
+export interface TrashThreadResponse {
+  trashed: number;
+  ids?: string[];
+}
+
 export async function trash_thread(
   thread_token: string,
   is_trashed: boolean,
-): Promise<ApiResponse<{ trashed: number }>> {
-  return api_client.put<{ trashed: number }>(
+): Promise<ApiResponse<TrashThreadResponse>> {
+  return api_client.put<TrashThreadResponse>(
     `/mail/v1/messages/threads/${encodeURIComponent(thread_token)}/trash`,
     { is_trashed },
   );

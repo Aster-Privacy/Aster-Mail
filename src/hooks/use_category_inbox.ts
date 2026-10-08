@@ -100,7 +100,8 @@ import {
   resolve_read_intent,
 } from "@/services/read_intent";
 import { register_visible_rows } from "@/services/user_opened_mail";
-import { get_thread_messages, trash_thread } from "@/services/api/mail";
+import { get_thread_messages } from "@/services/api/mail";
+import { set_thread_trashed } from "@/services/trash_state";
 import { batch_archive as api_batch_archive } from "@/services/api/archive";
 import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
 import { emit_mail_soft_refresh } from "@/hooks/email_action_types";
@@ -1262,8 +1263,12 @@ export function use_category_inbox(
       const email = state.emails.find((e) => e.id === id);
 
       await delete_email(id);
-      finish_thread_action(email, async () => {
-        const result = await trash_thread(email!.thread_token!, true);
+      finish_thread_action(email, async (sibling_ids) => {
+        const result = await set_thread_trashed(
+          email!.thread_token!,
+          [id, ...sibling_ids],
+          true,
+        );
 
         return !!result.data;
       });

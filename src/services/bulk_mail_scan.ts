@@ -25,7 +25,7 @@ import {
 } from "@/services/api/mail";
 import {
   decrypt_mail_metadata,
-  create_default_metadata,
+  extract_metadata_from_server,
 } from "@/services/crypto/mail_metadata";
 import { yield_to_browser } from "@/lib/scheduling";
 
@@ -55,29 +55,23 @@ export async function decrypt_items_metadata_for_action(
     if (item.metadata) continue;
 
     if (!item.encrypted_metadata || !item.metadata_nonce) {
-      const is_sent =
-        item.item_type === "sent" ||
-        item.item_type === "draft" ||
-        item.item_type === "scheduled";
-      const defaults = create_default_metadata(item.item_type);
-
-      defaults.is_read = is_sent;
-      if (item.message_ts) defaults.message_ts = item.message_ts;
-      item.metadata = defaults;
+      item.metadata = extract_metadata_from_server(null, item);
       continue;
     }
 
+    let decrypted = null;
+
     try {
-      const meta = await decrypt_mail_metadata(
+      decrypted = await decrypt_mail_metadata(
         item.encrypted_metadata,
         item.metadata_nonce,
         item.metadata_version,
       );
-
-      item.metadata = meta ?? create_default_metadata(item.item_type);
     } catch {
-      item.metadata = create_default_metadata(item.item_type);
+      decrypted = null;
     }
+
+    item.metadata = extract_metadata_from_server(decrypted, item);
   }
 }
 

@@ -65,10 +65,10 @@ import {
 import {
   permanent_delete_mail_item,
   batched_bulk_permanent_delete,
-  trash_thread,
   report_spam_sender,
   remove_spam_sender,
 } from "@/services/api/mail";
+import { set_thread_trashed } from "@/services/trash_state";
 import {
   update_item_metadata,
   bulk_update_metadata_by_ids,
@@ -203,7 +203,7 @@ export function build_core_context_menu_actions(
     if (thread_token) {
       note_flag_intents(grouped_ids, { is_trashed: true });
 
-      const result = await trash_thread(thread_token, true);
+      const result = await set_thread_trashed(thread_token, grouped_ids, true);
 
       if (result.data) {
         for (const id of grouped_ids) {
@@ -214,7 +214,11 @@ export function build_core_context_menu_actions(
           action_type: "trash",
           email_ids: grouped_ids,
           on_undo: async () => {
-            const undo_result = await trash_thread(thread_token, false);
+            const undo_result = await set_thread_trashed(
+              thread_token,
+              grouped_ids,
+              false,
+            );
 
             if (!undo_result.data) throw new Error("undo trash failed");
 

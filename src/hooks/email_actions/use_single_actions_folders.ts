@@ -34,7 +34,6 @@ import {
   add_mail_item_folder,
   remove_mail_item_folder,
   move_mail_item,
-  restore_mail_item,
   permanent_delete_mail_item,
   report_spam_sender,
   remove_spam_sender,
@@ -48,6 +47,8 @@ import {
 } from "@/hooks/use_mail_stats";
 import { remove_email_from_view_cache } from "@/hooks/email_list_cache";
 import { ignore_error } from "@/lib/ignore_error";
+import { restore_item_from_trash } from "@/services/trash_state";
+import { expand_email_ids } from "@/hooks/email_list_helpers";
 import {
   compute_untrash_deltas,
   apply_stat_deltas,
@@ -392,7 +393,10 @@ export function use_single_actions_folders(params: SingleActionsFolderParams) {
         email,
         "restore",
         { is_trashed: false, is_archived: restore_to === "archive" },
-        () => restore_mail_item(email.id, { target: restore_to }),
+        () =>
+          restore_item_from_trash(email.id, expand_email_ids(email), {
+            target: restore_to,
+          }),
         true,
         {
           message: t("common.restored_from_trash"),

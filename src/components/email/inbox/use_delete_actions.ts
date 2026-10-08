@@ -54,8 +54,8 @@ import {
   permanent_delete_mail_item,
   batched_bulk_permanent_delete,
   empty_trash,
-  trash_thread,
 } from "@/services/api/mail";
+import { set_thread_trashed } from "@/services/trash_state";
 import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
 import {
   invalidate_mail_cache,
@@ -230,7 +230,15 @@ export function use_delete_actions({
         email_ids: succeeded_ids,
         on_undo: async () => {
           const thread_results = await Promise.all(
-            undo_thread_tokens.map((token) => trash_thread(token, false)),
+            undo_thread_tokens.map((token) =>
+              set_thread_trashed(
+                token,
+                succeeded_emails
+                  .filter((e) => e.thread_token === token)
+                  .flatMap(expand_email_ids),
+                false,
+              ),
+            ),
           );
           const undo_result =
             undo_ids.length > 0
@@ -433,7 +441,11 @@ export function use_delete_actions({
       apply_stat_deltas(deltas);
 
       if (thread_scope_token) {
-        const result = await trash_thread(thread_scope_token, true);
+        const result = await set_thread_trashed(
+          thread_scope_token,
+          grouped_ids,
+          true,
+        );
 
         if (result.data) {
           show_action_toast({
@@ -442,7 +454,7 @@ export function use_delete_actions({
             email_ids: grouped_ids,
             on_undo: async () => {
               revert_stat_deltas(deltas);
-              await trash_thread(thread_scope_token, false);
+              await set_thread_trashed(thread_scope_token, grouped_ids, false);
               window.dispatchEvent(
                 new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
               );
