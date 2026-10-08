@@ -23,20 +23,23 @@ import { is_transparent_color_value } from "./html_sanitizer_css";
 import { looks_format_flowed, unflow_format_flowed } from "./format_flowed";
 import { repair_comment_markup } from "./html_sanitizer_utils";
 
+const HTML_TAG_NAMES =
+  "a|abbr|address|area|article|aside|audio|b|base|bdi|bdo|big|blockquote|body|br|button|caption|center|cite|code|col|colgroup|dd|del|details|dfn|div|dl|dt|em|figcaption|figure|font|footer|form|h[1-6]|head|header|hr|html|i|img|input|ins|kbd|label|li|link|main|map|mark|meta|nav|o:p|ol|p|picture|pre|q|s|samp|section|small|source|span|strike|strong|style|sub|summary|sup|svg|table|tbody|td|tfoot|th|thead|title|tr|tt|u|ul|v:[a-z]+|video|wbr|xml";
+
+const HTML_PATTERNS = [
+  new RegExp(`<(?:${HTML_TAG_NAMES})(?=[\\s/>])[^<>]*>`, "i"),
+  new RegExp(`</(?:${HTML_TAG_NAMES})\\s*>`, "i"),
+  /<!(?:doctype\b|--)/i,
+  /&(?:nbsp|amp|lt|gt|quot|apos|copy|reg|trade|hellip|mdash|ndash|lsquo|rsquo|ldquo|rdquo|laquo|raquo|bull|middot|shy|zwnj|zwj|euro|pound);/i,
+  /&#(?:\d+|x[0-9a-f]+);/i,
+];
+
 export function is_html_content(content: string): boolean {
   if (!content || typeof content !== "string") {
     return false;
   }
 
-  const html_patterns = [
-    /<(?:o:p|[a-z][a-z0-9-]*)(?=[\s/>])[^<>]*>/i,
-    /<\/[a-z][a-z0-9-]*\s*>/i,
-    /<!(?:doctype\b|--)/i,
-    /&[a-z]+;/i,
-    /&#\d+;/i,
-  ];
-
-  return html_patterns.some((pattern) => pattern.test(content));
+  return HTML_PATTERNS.some((pattern) => pattern.test(content));
 }
 
 const QUOTE_CONTAINER_START_RE =
