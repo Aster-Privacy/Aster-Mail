@@ -480,7 +480,12 @@ export function ComposeWindow({
               </div>
 
               <div className="pb-2 min-h-0 overflow-y-auto">
-                <ComposeFormFields compose={compose} />
+                <ComposeFormFields
+                  auto_focus_to={
+                    !edit_draft && compose.recipients.to.length === 0
+                  }
+                  compose={compose}
+                />
               </div>
 
               <ComposeEditor compose={compose} />
