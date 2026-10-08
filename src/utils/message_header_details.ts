@@ -77,8 +77,9 @@ const STRUCTURED_HEADERS = new Set([
 ]);
 const ASTER_MX = "mx.astermail.org";
 const ASTER_ARC_DOMAIN = "astermail.org";
-const ASTER_RECEIVED = /\bby\s+mx\.astermail\.org(?![\w.-])/i;
-const ASTER_RECEIVED_SPF = /(?:\(|\breceiver=)mx\.astermail\.org(?![\w.-])/i;
+const ASTER_RECEIVED = /^from\s+\S+\s+by\s+mx\.astermail\.org\s/i;
+const ASTER_RECEIVED_SPF =
+  /^\s*(?:pass|fail|softfail|neutral|none|temperror|permerror)\s+\(mx\.astermail\.org:/i;
 const FILTER_HEADER = /^x-(?:spam|spamd|rspamd)(?:-|$)/;
 const VERDICT_HEADER =
   /^(?:[a-z0-9-]*authentication-results|received-spf|x-aster-spam|x-(?:spam|spamd|rspamd)(?:-[a-z0-9-]*)?)$/;
@@ -123,6 +124,24 @@ export function header_help_topic(name: string): HeaderHelpTopic | undefined {
   return undefined;
 }
 
+function without_comments(value: string): string {
+  let depth = 0;
+  let out = "";
+
+  for (const ch of value) {
+    if (ch === "(") {
+      depth += 1;
+    } else if (ch === ")") {
+      if (depth === 0) return "";
+      depth -= 1;
+    } else if (depth === 0) {
+      out += ch;
+    }
+  }
+
+  return depth === 0 ? out.replace(/\s+/g, " ").trim() + " " : "";
+}
+
 function authserv_id(value: string): string {
   return (value.split(";")[0] ?? "").trim().split(/\s+/)[0].toLowerCase();
 }
@@ -164,7 +183,9 @@ export function count_aster_added_headers(
   const names = headers.map((h) => h.name.trim().toLowerCase());
   const top = names.indexOf("received");
 
-  if (top < 0 || !ASTER_RECEIVED.test(headers[top].value)) return 0;
+  if (top < 0 || !ASTER_RECEIVED.test(without_comments(headers[top].value))) {
+    return 0;
+  }
 
   const seen = new Set<string>();
   let stage = 0;

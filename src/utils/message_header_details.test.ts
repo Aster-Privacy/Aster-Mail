@@ -293,6 +293,69 @@ describe("headers added before the message reached Aster", () => {
     ]);
   });
 
+  it("reads Aster's Received by its layout, not by a mention of the host", () => {
+    const rest = ARRIVED.slice(3);
+    const with_top = (value: string) => [
+      ...ARRIVED.slice(0, 2),
+      { name: "Received", value },
+      ...rest,
+    ];
+
+    expect(
+      count_aster_added_headers(
+        with_top(
+          "from a.example (by mx.astermail.org ) by mx.other.example with ESMTP",
+        ),
+      ),
+    ).toBe(0);
+    expect(
+      count_aster_added_headers(
+        with_top("from a.example by mx.other.example (by mx.astermail.org )"),
+      ),
+    ).toBe(0);
+    expect(
+      count_aster_added_headers(
+        with_top("from a.example (b.example by mx.astermail.org with ESMTP"),
+      ),
+    ).toBe(0);
+    expect(
+      count_aster_added_headers(
+        with_top("from a.example) by mx.astermail.org with ESMTP"),
+      ),
+    ).toBe(0);
+    expect(
+      count_aster_added_headers(
+        with_top("from a.example by mx.astermail.org.other.example with ESMTP"),
+      ),
+    ).toBe(0);
+    expect(
+      count_aster_added_headers(
+        with_top(
+          "from a.example (a.example [192.0.2.1])\r\n\tby mx.astermail.org (Stalwart SMTP) with ESMTPS",
+        ),
+      ),
+    ).toBe(14);
+  });
+
+  it("reads Aster's Received-SPF by its layout, not by a later mention", () => {
+    const top = ARRIVED.slice(0, 4);
+    const spf = (value: string) => [...top, { name: "Received-SPF", value }];
+
+    expect(
+      count_aster_added_headers(
+        spf("pass (mx.other.example: ok) receiver=mx.astermail.org"),
+      ),
+    ).toBe(4);
+    expect(
+      count_aster_added_headers(
+        spf("pass (mx.other.example: ok (mx.astermail.org: ok))"),
+      ),
+    ).toBe(4);
+    expect(
+      count_aster_added_headers(spf("pass (mx.astermail.org: ok) x=y")),
+    ).toBe(5);
+  });
+
   it("does not stretch Aster's block over a sender's look-alike lines", () => {
     const top = ARRIVED.slice(0, 4);
     const after_return_path = [
