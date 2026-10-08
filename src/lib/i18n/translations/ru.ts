@@ -134,6 +134,7 @@ export const ru = {
     profile_picture_cat_mountains: "Горы",
     profile_picture_cat_ocean: "Океан",
     profile_picture_cat_desert: "Пустыня",
+    profile_picture_credit: "Фото: {{credit}}. Обрезано и масштабировано.",
     toggle_alias: "Включить или отключить этот псевдоним",
     enter_passphrase: "Введите кодовую фразу",
     app_name: "Aster Mail",

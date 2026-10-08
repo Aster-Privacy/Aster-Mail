@@ -25,6 +25,9 @@ const GALLERY_BASE = "https://aster-wallpapers.pages.dev";
 const MANIFEST_TIMEOUT_MS = 15000;
 const MAX_ITEMS = 2000;
 const SLUG_PATTERN = /^[a-z0-9][a-z0-9_-]{0,80}$/;
+const MAX_CREDIT_LENGTH = 200;
+const CONTROL_CHARACTERS =
+  /[\u0000-\u001f\u007f-\u009f\u200e\u200f\u202a-\u202e\u2066-\u2069]/g;
 
 export const GALLERY_CATEGORIES = [
   "space",
@@ -45,6 +48,7 @@ export type GalleryCategory = (typeof GALLERY_CATEGORIES)[number];
 export interface GalleryItem {
   slug: string;
   category: GalleryCategory;
+  credit: string | null;
 }
 
 let manifest_promise: Promise<GalleryItem[]> | null = null;
@@ -54,6 +58,19 @@ function is_gallery_category(value: unknown): value is GalleryCategory {
     typeof value === "string" &&
     (GALLERY_CATEGORIES as readonly string[]).includes(value)
   );
+}
+
+function parse_credit(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+
+  const credit = value
+    .replace(CONTROL_CHARACTERS, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, MAX_CREDIT_LENGTH)
+    .trim();
+
+  return credit.length > 0 ? credit : null;
 }
 
 export function parse_gallery_manifest(payload: unknown): GalleryItem[] {
@@ -69,13 +86,17 @@ export function parse_gallery_manifest(payload: unknown): GalleryItem[] {
   for (const entry of raw.slice(0, MAX_ITEMS)) {
     if (!entry || typeof entry !== "object") continue;
 
-    const { slug, category } = entry as { slug?: unknown; category?: unknown };
+    const { slug, category, credit } = entry as {
+      slug?: unknown;
+      category?: unknown;
+      credit?: unknown;
+    };
 
     if (typeof slug !== "string" || !SLUG_PATTERN.test(slug)) continue;
     if (!is_gallery_category(category) || seen.has(slug)) continue;
 
     seen.add(slug);
-    items.push({ slug, category });
+    items.push({ slug, category, credit: parse_credit(credit) });
   }
 
   return items;

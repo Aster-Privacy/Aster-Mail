@@ -170,6 +170,7 @@ export const zh_CN = {
     profile_picture_cat_mountains: "山脉",
     profile_picture_cat_ocean: "海洋",
     profile_picture_cat_desert: "沙漠",
+    profile_picture_credit: "照片：{{credit}}。已裁剪并调整大小。",
     toggle_alias: "启用或停用此别名",
     enter_passphrase: "输入您的口令",
     app_name: "Aster Mail",

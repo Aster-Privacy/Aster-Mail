@@ -196,6 +196,7 @@ export const en: Translations = {
     profile_picture_cat_mountains: "Mountains",
     profile_picture_cat_ocean: "Ocean",
     profile_picture_cat_desert: "Desert",
+    profile_picture_credit: "Photo: {{credit}}. Cropped and resized.",
     failed_save_profile_color: "Your color choice did not save. Try again.",
     failed_upload_image: "The upload did not finish. Try again.",
     image_load_failed: "This image did not load. A refresh usually does it.",

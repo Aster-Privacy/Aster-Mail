@@ -193,6 +193,7 @@ export const hi = {
     profile_picture_cat_mountains: "पहाड़",
     profile_picture_cat_ocean: "महासागर",
     profile_picture_cat_desert: "रेगिस्तान",
+    profile_picture_credit: "फ़ोटो: {{credit}}. क्रॉप और रीसाइज़ की गई।",
     failed_save_profile_color:
       "आपका चुना हुआ रंग सहेजा नहीं गया। फिर से कोशिश करें।",
     failed_upload_image: "फिर से कोशिश करें।",

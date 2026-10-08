@@ -39,7 +39,10 @@ vi.mock("@/services/routing/connection_store", () => ({
 }));
 
 vi.mock("@/lib/i18n/context", () => ({
-  use_i18n: () => ({ t: (key: string) => key }),
+  use_i18n: () => ({
+    t: (key: string, params?: Record<string, string>) =>
+      params?.credit ? `${key}|${params.credit}` : key,
+  }),
 }));
 
 vi.mock("@/provider", () => ({
@@ -78,13 +81,13 @@ async function mount(): Promise<void> {
         error={null}
         has_saved_picture={false}
         name="Ada"
-        picture={null}
-        removing={false}
-        uploading={false}
         on_choose_file={async () => undefined}
         on_close={() => undefined}
         on_remove={() => undefined}
         on_upload={() => undefined}
+        picture={null}
+        removing={false}
+        uploading={false}
       />,
     );
   });
@@ -110,7 +113,13 @@ describe("profile picture gallery on a routed connection", () => {
       async () =>
         new Response(
           JSON.stringify({
-            items: [{ slug: "aurora_01", category: "aurora" }],
+            items: [
+              {
+                slug: "aurora_01",
+                category: "aurora",
+                credit: "Ada Lovelace, CC BY-SA 4.0",
+              },
+            ],
           }),
           { status: 200 },
         ),
@@ -168,6 +177,25 @@ describe("profile picture gallery on a routed connection", () => {
     ).toHaveLength(1);
     expect(document.querySelectorAll('img[src*="/thumb/"]')).toHaveLength(1);
     expect(fetch_mock).toHaveBeenCalledTimes(1);
+  });
+
+  it("credits the photographer under each tile", async () => {
+    await mount();
+
+    await act(async () => {
+      gallery_row()?.click();
+    });
+
+    const expected =
+      "common.profile_picture_credit|\u2068Ada Lovelace, CC BY-SA 4.0\u2069";
+    const tile = document.querySelector<HTMLButtonElement>(
+      ".profile_picture_tile",
+    );
+
+    expect(tile?.getAttribute("aria-label")).toBe(expected);
+    expect(document.querySelector(".profile_picture_credit")?.textContent).toBe(
+      expected,
+    );
   });
 
   it("drops the thumbnails when the connection becomes routed", async () => {

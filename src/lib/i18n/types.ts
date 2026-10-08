@@ -815,6 +815,7 @@ export interface CommonTranslations {
   profile_picture_cat_mountains: string;
   profile_picture_cat_ocean: string;
   profile_picture_cat_desert: string;
+  profile_picture_credit: string;
   failed_save_profile_color: string;
   failed_upload_image: string;
   image_load_failed: string;

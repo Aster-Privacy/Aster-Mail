@@ -199,6 +199,7 @@ export const ko = {
     profile_picture_cat_mountains: "산",
     profile_picture_cat_ocean: "바다",
     profile_picture_cat_desert: "사막",
+    profile_picture_credit: "사진: {{credit}}. 자르고 크기를 조정했습니다.",
     toggle_alias: "이 별칭 사용 또는 사용 안 함",
     enter_passphrase: "암호문을 입력하세요",
     app_name: "Aster Mail",
