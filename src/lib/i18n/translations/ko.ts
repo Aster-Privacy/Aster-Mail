@@ -2410,7 +2410,7 @@ export const ko = {
       "보낸 사람이 일반 텍스트 버전을 포함한 경우 HTML 버전 대신 해당 버전을 엽니다. 일반 텍스트 버전이 없는 이메일은 평소대로 표시됩니다.",
     plain_text_compose_label: "일반 텍스트로 작성",
     plain_text_compose_description:
-      "새 이메일을 작성할 때 기본적으로 일반 텍스트를 사용합니다",
+      "새 메시지, 답장, 전달이 일반 텍스트로 시작합니다. 메시지마다 도구 모음에서 전환할 수 있습니다.",
     family_plan_title: "가족 요금제",
     family_plan_subtitle: "가족 그룹 구성원과 저장 공간을 관리하세요",
     family_members: "구성원",
@@ -4196,7 +4196,7 @@ export const ko = {
     default_sender_no_addresses: "다른 주소 없음",
     compose_defaults_title: "기본 서식",
     compose_defaults_description:
-      "새 메시지를 쓰기 시작할 때의 모양을 선택하세요. 답장과 전달한 메시지는 원래 서식을 유지합니다.",
+      "새 메시지, 답장, 전달을 쓰기 시작할 때의 모양을 선택하세요.",
     compose_default_font_size: "기본 글자 크기",
     compose_default_font_size_description:
       "새 메시지가 이 크기로 시작합니다. 작성하는 중에도 크기를 변경할 수 있습니다.",

@@ -2526,7 +2526,7 @@ export const pt = {
       "Quando o remetente inclui uma versão em texto simples, abre-a em vez da versão HTML. Os e-mails sem essa versão são apresentados normalmente.",
     plain_text_compose_label: "Escrever em texto simples",
     plain_text_compose_description:
-      "Utilizar texto simples por predefinição ao escrever novos e-mails",
+      "As novas mensagens, respostas e reencaminhamentos começam em texto simples. Pode mudar cada mensagem na barra de ferramentas.",
     family_plan_title: "Plano familiar",
     family_plan_subtitle:
       "Gira os membros e o armazenamento do seu grupo familiar",
@@ -4254,7 +4254,7 @@ export const pt = {
     default_sender_no_addresses: "Sem outros endereços",
     compose_defaults_title: "Formatação predefinida",
     compose_defaults_description:
-      "Escolha o aspeto das novas mensagens quando começa a escrever. As respostas e as mensagens reencaminhadas mantêm a formatação original.",
+      "Escolha o aspeto das novas mensagens, respostas e reencaminhamentos quando começa a escrever.",
     compose_default_font_size: "Tamanho de letra predefinido",
     compose_default_font_size_description:
       "As novas mensagens começam com este tamanho. Pode alterar o tamanho enquanto escreve.",

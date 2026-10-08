@@ -2647,7 +2647,7 @@ export const pl = {
       "Gdy nadawca dołącza wersję w zwykłym tekście, otwiera się ona zamiast wersji HTML. Wiadomości bez takiej wersji są wyświetlane normalnie.",
     plain_text_compose_label: "Twórz w zwykłym tekście",
     plain_text_compose_description:
-      "Domyślnie używaj zwykłego tekstu podczas pisania nowych wiadomości",
+      "Nowe wiadomości, odpowiedzi i przekazania zaczynają się jako zwykły tekst. Każdą wiadomość możesz nadal przełączyć na pasku narzędzi.",
     family_plan_title: "Plan rodzinny",
     family_plan_subtitle: "Zarządzaj członkami grupy rodzinnej i pamięcią",
     family_members: "Członkowie",
@@ -4367,7 +4367,7 @@ export const pl = {
     default_sender_no_addresses: "Brak innych adresów",
     compose_defaults_title: "Domyślne formatowanie",
     compose_defaults_description:
-      "Wybierz, jak wyglądają nowe wiadomości, gdy zaczynasz pisać. Odpowiedzi i przekazane wiadomości zachowują oryginalne formatowanie.",
+      "Wybierz, jak wyglądają nowe wiadomości, odpowiedzi i przekazania, gdy zaczynasz pisać.",
     compose_default_font_size: "Domyślny rozmiar czcionki",
     compose_default_font_size_description:
       "Nowe wiadomości zaczynają się od tego rozmiaru. Rozmiar możesz zmienić także podczas pisania.",

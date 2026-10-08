@@ -2271,7 +2271,8 @@ export const zh_CN = {
     prefer_plain_text_description:
       "如果发件人附带了纯文本版本，将打开该版本而不是 HTML 版本。没有纯文本版本的邮件照常显示。",
     plain_text_compose_label: "以纯文本撰写",
-    plain_text_compose_description: "撰写新邮件时默认使用纯文本",
+    plain_text_compose_description:
+      "新邮件、回复和转发均以纯文本开始。仍可在工具栏中为每封邮件单独切换。",
     family_plan_title: "家庭套餐",
     family_plan_subtitle: "管理您的家庭组成员和存储空间",
     family_members: "成员",
@@ -3800,8 +3801,7 @@ export const zh_CN = {
       "新邮件从该地址发出。回复时使用邮件原本寄达的地址。",
     default_sender_no_addresses: "没有其他地址",
     compose_defaults_title: "默认格式",
-    compose_defaults_description:
-      "选择开始撰写新邮件时的外观。回复和转发的邮件会保留原有格式。",
+    compose_defaults_description: "选择开始撰写新邮件、回复和转发时的外观。",
     compose_default_font_size: "默认字号",
     compose_default_font_size_description:
       "新邮件以此字号开始。撰写时仍可更改字号。",

@@ -2500,7 +2500,7 @@ export const it = {
       "Se il mittente include una versione in testo semplice, viene aperta al posto della versione HTML. Le email senza questa versione vengono mostrate normalmente.",
     plain_text_compose_label: "Componi in testo semplice",
     plain_text_compose_description:
-      "Usa il testo semplice come impostazione predefinita quando scrivi nuove email",
+      "I nuovi messaggi, le risposte e gli inoltri partono in testo semplice. Puoi comunque cambiare ogni messaggio dalla barra degli strumenti.",
     family_plan_title: "Piano Famiglia",
     family_plan_subtitle:
       "Gestisci i membri del tuo gruppo famiglia e lo spazio di archiviazione",
@@ -4288,7 +4288,7 @@ export const it = {
     default_sender_no_addresses: "Nessun altro indirizzo",
     compose_defaults_title: "Formattazione predefinita",
     compose_defaults_description:
-      "Scegli l'aspetto dei nuovi messaggi quando inizi a scrivere. Le risposte e i messaggi inoltrati mantengono la formattazione originale.",
+      "Scegli l'aspetto dei nuovi messaggi, delle risposte e degli inoltri quando inizi a scrivere.",
     compose_default_font_size: "Dimensione carattere predefinita",
     compose_default_font_size_description:
       "I nuovi messaggi partono da questa dimensione. Puoi cambiare la dimensione mentre scrivi.",

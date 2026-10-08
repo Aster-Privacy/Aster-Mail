@@ -2448,9 +2448,9 @@ export const tr = {
     prefer_plain_text_label: "Düz Metni Tercih Et",
     prefer_plain_text_description:
       "Gönderen bir düz metin sürümü eklediğinde HTML sürümü yerine o açılır. Bu sürümü olmayan e-postalar normal şekilde görüntülenir.",
-    plain_text_compose_label: "Düz Metinle Yaz",
+    plain_text_compose_label: "Düz metinle yaz",
     plain_text_compose_description:
-      "Yeni e-postalar yazarken varsayılan olarak düz metin kullanın",
+      "Yeni iletiler, yanıtlar ve iletmeler düz metin olarak başlar. Her iletiyi araç çubuğundan yine de değiştirebilirsiniz.",
     family_plan_title: "Aile Planı",
     family_plan_subtitle:
       "Aile grubu üyelerinizi ve depolama alanınızı yönetin",
@@ -4140,7 +4140,7 @@ export const tr = {
     default_sender_no_addresses: "Başka adres yok",
     compose_defaults_title: "Varsayılan biçimlendirme",
     compose_defaults_description:
-      "Yeni iletilerin, yazmaya başladığınızda nasıl görüneceğini seçin. Yanıtlar ve iletilen iletiler özgün biçimlendirmesini korur.",
+      "Yeni iletilerin, yanıtların ve iletmelerin yazmaya başladığınızda nasıl görüneceğini seçin.",
     compose_default_font_size: "Varsayılan yazı tipi boyutu",
     compose_default_font_size_description:
       "Yeni iletiler bu boyutta başlar. Yazarken boyutu yine de değiştirebilirsiniz.",

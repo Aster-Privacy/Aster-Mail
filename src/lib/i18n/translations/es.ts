@@ -2486,7 +2486,7 @@ export const es = {
       "Cuando el remitente incluye una versión en texto sin formato, se abre en lugar de la versión HTML. Los correos sin esa versión se muestran con normalidad.",
     plain_text_compose_label: "Redactar en texto sin formato",
     plain_text_compose_description:
-      "Usar texto sin formato de forma predeterminada al escribir correos nuevos",
+      "Los mensajes nuevos, las respuestas y los reenvíos empiezan en texto sin formato. Puedes cambiar cada mensaje desde la barra de herramientas.",
     family_plan_title: "Plan Familiar",
     family_plan_subtitle:
       "Gestiona los miembros y el almacenamiento de tu grupo familiar",
@@ -4214,7 +4214,7 @@ export const es = {
     default_sender_no_addresses: "No hay otras direcciones",
     compose_defaults_title: "Formato predeterminado",
     compose_defaults_description:
-      "Elige el aspecto de los mensajes nuevos cuando empiezas a escribir. Las respuestas y los mensajes reenviados conservan su formato original.",
+      "Elige el aspecto de los mensajes nuevos, las respuestas y los reenvíos cuando empiezas a escribir.",
     compose_default_font_size: "Tamaño de fuente predeterminado",
     compose_default_font_size_description:
       "Los mensajes nuevos empiezan con este tamaño. Puedes cambiar el tamaño mientras escribes.",

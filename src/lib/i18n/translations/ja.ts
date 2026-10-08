@@ -2468,7 +2468,7 @@ export const ja = {
       "送信者がプレーンテキスト版を含めている場合は、HTML版の代わりにそちらを開きます。プレーンテキスト版のないメールは通常どおり表示されます。",
     plain_text_compose_label: "プレーンテキストで作成",
     plain_text_compose_description:
-      "新規メールの作成時にプレーンテキストを既定にします",
+      "新規メッセージ、返信、転送はプレーンテキストで始まります。メッセージごとにツールバーから切り替えることもできます。",
     family_plan_title: "ファミリープラン",
     family_plan_subtitle:
       "ファミリーグループのメンバーとストレージを管理します",
@@ -4143,7 +4143,7 @@ export const ja = {
     default_sender_no_addresses: "ほかのアドレスがありません",
     compose_defaults_title: "デフォルトの書式",
     compose_defaults_description:
-      "新規メッセージを書き始めるときの見た目を選択します。返信と転送メッセージは元の書式を保持します。",
+      "新規メッセージ、返信、転送を書き始めるときの見た目を選択します。",
     compose_default_font_size: "デフォルトの文字サイズ",
     compose_default_font_size_description:
       "新規メッセージはこのサイズで始まります。作成中にサイズを変更することもできます。",

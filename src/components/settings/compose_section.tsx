@@ -68,6 +68,11 @@ export function ComposeSection() {
       ],
     },
     {
+      label: t("settings.plain_text_compose_label"),
+      breadcrumb,
+      keywords: ["plain text", "rich text", "html", "format", "compose"],
+    },
+    {
       label: t("settings.compose_default_font_size"),
       breadcrumb,
       keywords: ["font size", "text size", "compose", "default font"],
@@ -136,6 +141,21 @@ export function ComposeSection() {
         icon={<PaintBrushIcon />}
         title={t("settings.compose_defaults_title")}
       >
+        <ToggleSetting
+          description={t("settings.plain_text_compose_description")}
+          enabled={preferences.compose_mode === "plain_text"}
+          on_toggle={() =>
+            update_preference(
+              "compose_mode",
+              preferences.compose_mode === "plain_text"
+                ? "rich_text"
+                : "plain_text",
+              true,
+            )
+          }
+          title={t("settings.plain_text_compose_label")}
+        />
+
         <SelectSetting
           description={t("settings.compose_default_font_size_description")}
           on_change={(value) =>

@@ -246,7 +246,14 @@ export function use_forward_modal({
   const [attachment_error, set_attachment_error] = useState<string | null>(
     null,
   );
-  const [is_plain_text_mode, set_is_plain_text_mode] = useState(false);
+  const [is_plain_text_mode, set_is_plain_text_mode] = useState(
+    preferences.compose_mode === "plain_text",
+  );
+  const is_plain_text_ref = useRef(is_plain_text_mode);
+  const default_plain_text_ref = useRef(false);
+
+  is_plain_text_ref.current = is_plain_text_mode;
+  default_plain_text_ref.current = preferences.compose_mode === "plain_text";
   const contacts = use_suggestion_contacts(is_open);
   const [draft_status] = useState<DraftStatus>("idle");
   const [last_saved_time] = useState<Date | null>(null);
@@ -442,7 +449,8 @@ export function use_forward_modal({
       sender_manually_selected_ref.current = false;
       set_selected_sender_state(null);
       set_is_forward_visible(false);
-      set_is_plain_text_mode(false);
+      is_plain_text_ref.current = default_plain_text_ref.current;
+      set_is_plain_text_mode(default_plain_text_ref.current);
       is_sending_ref.current = false;
       send_lock_started_at_ref.current = 0;
       content_initialized_ref.current = false;
@@ -492,9 +500,16 @@ export function use_forward_modal({
         message_editor_ref.current.innerHTML = sanitized.html;
       }
       mark_signature_applied(signature);
-      set_forward_message(
-        restore_compose_image_sources(message_editor_ref.current.innerHTML),
-      );
+      if (is_plain_text_ref.current) {
+        const text = message_editor_ref.current.innerText;
+
+        message_editor_ref.current.innerText = text;
+        set_forward_message(text);
+      } else {
+        set_forward_message(
+          restore_compose_image_sources(message_editor_ref.current.innerHTML),
+        );
+      }
     }, 0);
   }, [
     is_open,

@@ -3008,9 +3008,9 @@ export const en: Translations = {
     prefer_plain_text_label: "Prefer Plain Text",
     prefer_plain_text_description:
       "When the sender includes a plain text version, open it instead of the HTML version. Emails without one display normally.",
-    plain_text_compose_label: "Compose in Plain Text",
+    plain_text_compose_label: "Compose in plain text",
     plain_text_compose_description:
-      "Default to plain text when writing new emails",
+      "New messages, replies and forwards start in plain text. You can still switch each message from the toolbar.",
     images_section_title: "Images",
     block_remote_images_label: "Block Remote Images",
     block_remote_images_description:
@@ -3168,7 +3168,7 @@ export const en: Translations = {
     default_sender_no_addresses: "No other addresses",
     compose_defaults_title: "Default formatting",
     compose_defaults_description:
-      "Choose how new messages look when you start writing. Replies and forwarded messages keep their original formatting.",
+      "Choose how new messages, replies and forwards look when you start writing.",
     compose_default_font_size: "Default font size",
     compose_default_font_size_description:
       "New messages start at this size. You can still change the size while you write.",
