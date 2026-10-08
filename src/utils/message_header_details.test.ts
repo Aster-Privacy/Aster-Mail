@@ -21,6 +21,7 @@
 import { describe, it, expect } from "vitest";
 
 import {
+  count_aster_added_headers,
   format_raw_headers,
   get_body_format,
   get_dkim_domains,
@@ -32,6 +33,72 @@ import {
   segment_auth_value,
   to_display_headers,
 } from "./message_header_details";
+
+const ARRIVED = [
+  { name: "Delivered-To", value: "alex@astermail.org" },
+  {
+    name: "X-Aster-Spam",
+    value: "verdict=inbox; score=1.2; threshold=6; reason=none",
+  },
+  {
+    name: "Received",
+    value:
+      "from mail-out.shop.example (mail-out.shop.example [192.0.2.25])\r\n\tby mx.astermail.org (Stalwart SMTP) with ESMTPS id 4AbCdE for <alex@astermail.org>; Thu, 8 Oct 2026 09:21:04 +0000",
+  },
+  {
+    name: "Authentication-Results",
+    value:
+      "mx.astermail.org;\r\n\tdkim=pass header.d=shop.example;\r\n\tspf=pass smtp.mailfrom=shop.example;\r\n\tdmarc=pass header.from=shop.example",
+  },
+  {
+    name: "Received-SPF",
+    value:
+      "pass (mx.astermail.org: domain of bounce@shop.example designates 192.0.2.25 as permitted sender) receiver=mx.astermail.org; client-ip=192.0.2.25",
+  },
+  {
+    name: "ARC-Seal",
+    value: "i=1; a=rsa-sha256; s=arc; d=astermail.org; cv=none; b=AAAA",
+  },
+  {
+    name: "ARC-Message-Signature",
+    value: "i=1; a=rsa-sha256; s=arc; d=astermail.org; h=From; b=BBBB",
+  },
+  {
+    name: "ARC-Authentication-Results",
+    value: "i=1; mx.astermail.org; dkim=pass; spf=pass; dmarc=pass",
+  },
+  { name: "Return-Path", value: "<bounce@shop.example>" },
+  { name: "X-Spamd-Bar", value: "/" },
+  { name: "X-Spamd-Result", value: "default: False [0.40 / 15.00]" },
+  { name: "X-Rspamd-Action", value: "no action" },
+  { name: "X-Rspamd-Server", value: "filter-2" },
+  { name: "X-Spam-Status", value: "No, score=0.40" },
+  {
+    name: "DKIM-Signature",
+    value: "v=1; a=rsa-sha256; d=shop.example; s=s1; b=CCCC",
+  },
+  {
+    name: "Received",
+    value: "by internal.shop.example with SMTP; Thu, 8 Oct 2026 09:21:00 +0000",
+  },
+  {
+    name: "Authentication-Results",
+    value: "mx.astermail.org; dkim=pass; spf=pass; dmarc=pass",
+  },
+  {
+    name: "Authentication-Results",
+    value: "mx.microsoft.com 1; spf=fail smtp.mailfrom=shop.example",
+  },
+  { name: "X-Spam-Status", value: "No, score=-5.0" },
+  { name: "From", value: "Shop <news@shop.example>" },
+];
+
+const marks = (headers: { name: string; value: string }[]) =>
+  to_display_headers(headers).map((h) => [
+    h.name,
+    h.added_before_aster,
+    h.highlight_results,
+  ]);
 
 const PASS = { spf_result: "pass", dkim_result: "pass", dmarc_result: "pass" };
 
@@ -161,6 +228,109 @@ describe("to_display_headers", () => {
     ]);
 
     expect(subject.value).toBe("a  From: ceo@bank.example");
+  });
+});
+
+describe("headers added before the message reached Aster", () => {
+  it("ends Aster's block at the first header the sender wrote", () => {
+    expect(count_aster_added_headers(ARRIVED)).toBe(14);
+  });
+
+  it("labels sender-added results and keeps only Aster's coloured", () => {
+    expect(marks(ARRIVED)).toEqual([
+      ["Delivered-To", false, false],
+      ["X-Aster-Spam", false, false],
+      ["Received", false, false],
+      ["Authentication-Results", false, true],
+      ["Received-SPF", false, true],
+      ["ARC-Seal", false, false],
+      ["ARC-Message-Signature", false, false],
+      ["ARC-Authentication-Results", false, true],
+      ["Return-Path", false, false],
+      ["X-Spamd-Bar", false, false],
+      ["X-Spamd-Result", false, false],
+      ["X-Rspamd-Action", false, false],
+      ["X-Rspamd-Server", false, false],
+      ["X-Spam-Status", false, false],
+      ["DKIM-Signature", false, false],
+      ["Received", false, false],
+      ["Authentication-Results", true, false],
+      ["Authentication-Results", true, false],
+      ["X-Spam-Status", true, false],
+      ["From", false, false],
+    ]);
+  });
+
+  it("labels every result when the newest Received is not Aster's", () => {
+    const headers = [
+      { name: "X-Aster-Spam", value: "verdict=inbox" },
+      { name: "Received", value: "from a.example by mx.other.example" },
+      {
+        name: "Authentication-Results",
+        value: "mx.astermail.org; dmarc=pass",
+      },
+      { name: "Received", value: "from b.example by mx.astermail.org" },
+      { name: "Received-SPF", value: "pass (mx.astermail.org: ok)" },
+    ];
+
+    expect(count_aster_added_headers(headers)).toBe(0);
+    expect(marks(headers).filter(([, added]) => added)).toEqual([
+      ["X-Aster-Spam", true, false],
+      ["Authentication-Results", true, false],
+      ["Received-SPF", true, false],
+    ]);
+  });
+
+  it("labels every result when there is no Received header", () => {
+    const headers = [
+      { name: "Authentication-Results", value: "mx.astermail.org; spf=pass" },
+      { name: "X-Spam-Status", value: "No" },
+    ];
+
+    expect(marks(headers)).toEqual([
+      ["Authentication-Results", true, false],
+      ["X-Spam-Status", true, false],
+    ]);
+  });
+
+  it("does not stretch Aster's block over a sender's look-alike lines", () => {
+    const top = ARRIVED.slice(0, 4);
+    const after_return_path = [
+      ...top,
+      { name: "Return-Path", value: "<bounce@shop.example>" },
+      {
+        name: "Received-SPF",
+        value: "pass (mx.astermail.org: ok) receiver=mx.astermail.org",
+      },
+      {
+        name: "ARC-Authentication-Results",
+        value: "i=2; mx.astermail.org; dmarc=pass",
+      },
+    ];
+    const second_copy = [
+      ...top,
+      {
+        name: "Authentication-Results",
+        value: "mx.astermail.org; dmarc=pass",
+      },
+    ];
+    const other_signer = [
+      ...top,
+      { name: "ARC-Seal", value: "i=2; d=astermail.org.evil.example; b=x" },
+      {
+        name: "ARC-Authentication-Results",
+        value: "i=2; mx.astermail.org.evil.example; dmarc=pass",
+      },
+    ];
+
+    expect(count_aster_added_headers(after_return_path)).toBe(5);
+    expect(count_aster_added_headers(second_copy)).toBe(4);
+    expect(count_aster_added_headers(other_signer)).toBe(4);
+    expect(
+      marks(after_return_path)
+        .slice(5)
+        .every(([, added, coloured]) => added && !coloured),
+    ).toBe(true);
   });
 });
 

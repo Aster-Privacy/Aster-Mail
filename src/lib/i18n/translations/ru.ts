@@ -9297,6 +9297,8 @@ export const ru = {
       "Уникальный идентификатор, который отправитель присвоил письму.",
     header_help_list_unsubscribe: "Как отписаться от этого списка рассылки.",
     header_help_spam: "Вердикт и оценка спам-фильтра.",
+    header_added_before_aster:
+      "Добавлено до поступления в Aster — не проверено",
     headers_formatted: "Форматированный",
     headers_raw: "Исходный",
     headers_view_label: "Вид заголовков",

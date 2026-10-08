@@ -50,6 +50,7 @@ export interface DisplayHeader {
   has_valid_name: boolean;
   help?: HeaderHelpTopic;
   highlight_results: boolean;
+  added_before_aster: boolean;
 }
 
 export interface ValueSegment {
@@ -74,6 +75,13 @@ const STRUCTURED_HEADERS = new Set([
   "list-unsubscribe",
   "list-unsubscribe-post",
 ]);
+const ASTER_MX = "mx.astermail.org";
+const ASTER_ARC_DOMAIN = "astermail.org";
+const ASTER_RECEIVED = /\bby\s+mx\.astermail\.org(?![\w.-])/i;
+const ASTER_RECEIVED_SPF = /(?:\(|\breceiver=)mx\.astermail\.org(?![\w.-])/i;
+const FILTER_HEADER = /^x-(?:spam|spamd|rspamd)(?:-|$)/;
+const VERDICT_HEADER =
+  /^(?:[a-z0-9-]*authentication-results|received-spf|x-aster-spam|x-(?:spam|spamd|rspamd)(?:-[a-z0-9-]*)?)$/;
 const RESULT_TOKEN =
   /\b((?:spf|dkim|dmarc|arc|bimi|compauth|auth)=)(pass|fail|hardfail|softfail|neutral|none|temperror|permerror|policy)\b/gi;
 const LEADING_RESULT =
@@ -115,18 +123,85 @@ export function header_help_topic(name: string): HeaderHelpTopic | undefined {
   return undefined;
 }
 
+function authserv_id(value: string): string {
+  return (value.split(";")[0] ?? "").trim().split(/\s+/)[0].toLowerCase();
+}
+
+function signing_domain(value: string): string | undefined {
+  return value
+    .replace(/\s+/g, "")
+    .split(";")
+    .find((part) => part.toLowerCase().startsWith("d="))
+    ?.slice(2)
+    .toLowerCase();
+}
+
+function aster_block_stage(name: string, value: string): number | null {
+  if (name === "authentication-results") {
+    return authserv_id(value) === ASTER_MX ? 0 : null;
+  }
+  if (name === "arc-authentication-results") {
+    const rest = value.replace(/^\s*i\s*=\s*\d+\s*;/i, "");
+
+    return authserv_id(rest) === ASTER_MX ? 0 : null;
+  }
+  if (name === "received-spf") {
+    return ASTER_RECEIVED_SPF.test(value) ? 0 : null;
+  }
+  if (name === "arc-seal" || name === "arc-message-signature") {
+    return signing_domain(value) === ASTER_ARC_DOMAIN ? 0 : null;
+  }
+  if (name === "return-path") return 1;
+  if (FILTER_HEADER.test(name)) return 2;
+
+  return null;
+}
+
+export function count_aster_added_headers(
+  raw_headers: RawHeader[] | undefined | null,
+): number {
+  const headers = raw_headers ?? [];
+  const names = headers.map((h) => h.name.trim().toLowerCase());
+  const top = names.indexOf("received");
+
+  if (top < 0 || !ASTER_RECEIVED.test(headers[top].value)) return 0;
+
+  const seen = new Set<string>();
+  let stage = 0;
+  let end = top + 1;
+
+  for (; end < headers.length; end++) {
+    const name = names[end];
+    const next = aster_block_stage(name, headers[end].value);
+
+    if (next === null || next < stage || seen.has(name)) break;
+    seen.add(name);
+    stage = next;
+  }
+
+  return end;
+}
+
+export function is_verdict_header(name: string): boolean {
+  return VERDICT_HEADER.test(name.trim().toLowerCase());
+}
+
 export function to_display_headers(
   raw_headers: RawHeader[] | undefined | null,
 ): DisplayHeader[] {
   const helped = new Set<HeaderHelpTopic>();
+  const aster_added = count_aster_added_headers(raw_headers);
 
-  return (raw_headers ?? []).map((header) => {
+  return (raw_headers ?? []).map((header, index) => {
     const name = header.name;
     const has_valid_name = HEADER_NAME.test(name);
     const topic = has_valid_name ? header_help_topic(name) : undefined;
     const help = topic && !helped.has(topic) ? topic : undefined;
     const lower = name.toLowerCase();
     const value = header.value.replace(/\r\n?/g, "\n");
+
+    const added_before_aster =
+      has_valid_name && index >= aster_added && is_verdict_header(name);
 
     if (help) helped.add(help);
 
@@ -142,9 +217,11 @@ export function to_display_headers(
       help,
       highlight_results:
         has_valid_name &&
+        !added_before_aster &&
         (lower === "authentication-results" ||
           lower === "arc-authentication-results" ||
           lower === "received-spf"),
+      added_before_aster,
     };
   });
 }

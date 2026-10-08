@@ -9173,6 +9173,8 @@ export const pt = {
     header_help_list_unsubscribe:
       "Como cancelar a subscrição desta lista de correio.",
     header_help_spam: "O veredicto e a pontuação do filtro de spam.",
+    header_added_before_aster:
+      "Adicionado antes de chegar ao Aster — não verificado",
     headers_formatted: "Formatado",
     headers_raw: "Original",
     headers_view_label: "Vista dos cabeçalhos",

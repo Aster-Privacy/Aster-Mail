@@ -8115,6 +8115,7 @@ export interface MailTranslations {
   header_help_message_id: string;
   header_help_list_unsubscribe: string;
   header_help_spam: string;
+  header_added_before_aster: string;
   headers_formatted: string;
   headers_raw: string;
   headers_view_label: string;

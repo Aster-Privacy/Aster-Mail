@@ -9065,6 +9065,7 @@ export const en: Translations = {
     header_help_message_id: "A unique identifier the sender gave this message.",
     header_help_list_unsubscribe: "How to unsubscribe from this mailing list.",
     header_help_spam: "The spam filter's verdict and score.",
+    header_added_before_aster: "Added before reaching Aster — not verified",
     headers_formatted: "Formatted",
     headers_raw: "Raw",
     headers_view_label: "Headers view",

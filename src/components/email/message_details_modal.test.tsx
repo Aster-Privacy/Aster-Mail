@@ -380,6 +380,105 @@ describe("MessageDetailsModal headers", () => {
   });
 });
 
+describe("MessageDetailsModal results added before Aster", () => {
+  const arrived = [
+    { name: "X-Aster-Spam", value: "verdict=inbox; score=1.2" },
+    {
+      name: "Received",
+      value:
+        "from mail-out.shop.example\r\n\tby mx.astermail.org (Stalwart SMTP) with ESMTPS id 4AbCdE",
+    },
+    {
+      name: "Authentication-Results",
+      value: "mx.astermail.org; dkim=pass; spf=fail; dmarc=fail",
+    },
+    { name: "Return-Path", value: "<bounce@shop.example>" },
+    { name: "X-Spam-Status", value: "Yes, score=9.1" },
+    { name: "DKIM-Signature", value: "v=1; d=shop.example; b=abc" },
+    {
+      name: "Authentication-Results",
+      value: "mx.astermail.org; dkim=pass; spf=pass; dmarc=pass",
+    },
+    {
+      name: "Authentication-Results",
+      value: "mx.microsoft.com 1; spf=pass smtp.mailfrom=shop.example",
+    },
+    { name: "From", value: "Shop <news@shop.example>" },
+  ];
+  const lines = () => [
+    ...box().querySelectorAll<HTMLElement>("[data-header-line]"),
+  ];
+  const noted = () =>
+    lines().map((line) => !!line.querySelector("[data-added-before-aster]"));
+  const coloured = () =>
+    lines().map((line) =>
+      [...line.querySelectorAll<HTMLElement>("[data-result]")].map(
+        (el) => el.dataset.result,
+      ),
+    );
+
+  it("notes results a sender added and leaves them uncoloured", () => {
+    render({}, arrived);
+
+    expect(noted()).toEqual([
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+    ]);
+    expect(coloured()).toEqual([
+      [],
+      [],
+      ["pass", "fail", "fail"],
+      [],
+      [],
+      [],
+      [],
+      [],
+      [],
+    ]);
+    expect(lines()[6].textContent).toContain("mail.header_added_before_aster");
+    expect(lines()[6].textContent).toContain(
+      "mx.astermail.org; dkim=pass; spf=pass; dmarc=pass",
+    );
+  });
+
+  it("notes every result when Aster's Received header is missing", () => {
+    render({}, arrived.slice(2));
+
+    expect(noted()).toEqual([true, false, true, false, true, true, false]);
+    expect(coloured().flat()).toEqual([]);
+  });
+
+  it("leaves the raw view exactly as stored", () => {
+    render({}, arrived);
+    act(() =>
+      document
+        .querySelectorAll<HTMLButtonElement>("button[aria-pressed]")[1]
+        .click(),
+    );
+
+    expect(box().querySelector("[data-added-before-aster]")).toBeNull();
+    expect(box().textContent).toBe(
+      arrived
+        .map((h) => `${h.name}: ${h.value}`)
+        .join("\n")
+        .replace(/\n/g, ""),
+    );
+  });
+
+  it("has the note in every language", () => {
+    for (const [file, table] of LOCALES) {
+      expect(table.mail?.header_added_before_aster, file).toBeTruthy();
+    }
+  });
+});
+
 describe("MessageDetailsModal layout", () => {
   const TALL = "[@media(min-height:800px)]:";
   const classes = (el: Element) => el.className.split(/\s+/);

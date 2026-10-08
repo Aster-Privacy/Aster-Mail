@@ -8928,6 +8928,7 @@ export const ar = {
     header_help_list_unsubscribe:
       "طريقة إلغاء الاشتراك في هذه القائمة البريدية.",
     header_help_spam: "حكم مرشح البريد العشوائي ودرجته.",
+    header_added_before_aster: "أُضيف قبل الوصول إلى Aster — لم يتم التحقق منه",
     headers_formatted: "منسّق",
     headers_raw: "خام",
     headers_view_label: "عرض الترويسات",

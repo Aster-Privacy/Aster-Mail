@@ -9121,6 +9121,8 @@ export const pt_br = {
     header_help_list_unsubscribe:
       "Como cancelar a inscrição nesta lista de e-mails.",
     header_help_spam: "O veredito e a pontuação do filtro de spam.",
+    header_added_before_aster:
+      "Adicionado antes de chegar ao Aster — não verificado",
     headers_formatted: "Formatado",
     headers_raw: "Original",
     headers_view_label: "Visualização dos cabeçalhos",

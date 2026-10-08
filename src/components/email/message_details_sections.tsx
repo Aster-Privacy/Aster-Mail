@@ -451,6 +451,14 @@ const FormattedHeaders = memo(function FormattedHeaders({
                     )
                   : header.value}
               </span>
+              {header.added_before_aster && (
+                <span
+                  className="mt-0.5 block indent-0 font-sans text-[11px] italic text-txt-muted"
+                  data-added-before-aster=""
+                >
+                  {t("mail.header_added_before_aster")}
+                </span>
+              )}
             </>
           ) : (
             `${header.name}: ${header.value}`
