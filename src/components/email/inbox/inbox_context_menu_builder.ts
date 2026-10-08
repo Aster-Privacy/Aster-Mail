@@ -54,10 +54,10 @@ import { leaves_view_on_folder_move } from "@/hooks/view_membership";
 import {
   bulk_add_folder,
   bulk_remove_folder,
-  trash_thread,
   report_spam_sender,
   remove_spam_sender,
 } from "@/services/api/mail";
+import { set_thread_trashed } from "@/services/trash_state";
 import { bulk_add_tag, bulk_remove_tag } from "@/services/api/tags";
 import { open_email_in_new_window } from "@/utils/open_email_window";
 import {
@@ -416,7 +416,11 @@ export function build_context_menu_actions(
     apply_stat_deltas(deltas);
 
     if (is_thread) {
-      const result = await trash_thread(email.thread_token!, false);
+      const result = await set_thread_trashed(
+        email.thread_token!,
+        grouped_ids,
+        false,
+      );
 
       if (result.data) {
         for (const id of grouped_ids) {
@@ -430,7 +434,7 @@ export function build_context_menu_actions(
           email_ids: grouped_ids,
           on_undo: async () => {
             revert_stat_deltas(deltas);
-            await trash_thread(email.thread_token!, true);
+            await set_thread_trashed(email.thread_token!, grouped_ids, true);
             for (const id of grouped_ids) {
               emit_mail_item_updated({ id, is_trashed: true });
             }

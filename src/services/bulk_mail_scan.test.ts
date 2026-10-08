@@ -29,10 +29,19 @@ vi.mock("@/services/api/mail", () => ({
     list_encrypted_mail_items(...args),
 }));
 
-vi.mock("@/services/crypto/mail_metadata", () => ({
-  decrypt_mail_metadata: vi.fn(async () => ({ is_read: true })),
-  create_default_metadata: vi.fn(() => ({ is_read: false })),
-}));
+vi.mock("@/services/crypto/mail_metadata", async () => {
+  const core = await vi.importActual<
+    typeof import("@/services/crypto/mail_metadata_core")
+  >("@/services/crypto/mail_metadata_core");
+
+  return {
+    decrypt_mail_metadata: vi.fn(async () => ({
+      is_read: true,
+      is_trashed: true,
+    })),
+    extract_metadata_from_server: core.extract_metadata_from_server,
+  };
+});
 
 import {
   scan_received_items,
@@ -164,5 +173,34 @@ describe("bulk_mail_scan", () => {
     await decrypt_items_metadata_for_action(items as never, controller.signal);
 
     expect(items.every((item) => !("metadata" in item))).toBe(true);
+  });
+
+  it("lets the server trash flag override a stale encrypted blob", async () => {
+    const items = [
+      {
+        id: "restored",
+        item_type: "received",
+        encrypted_metadata: "x",
+        metadata_nonce: "n",
+        is_trashed: false,
+      },
+      {
+        id: "no_blob",
+        item_type: "received",
+        is_trashed: false,
+        is_read: true,
+      },
+    ];
+
+    await decrypt_items_metadata_for_action(items as never);
+
+    const [restored, no_blob] = items as unknown as {
+      metadata: { is_trashed: boolean; is_read: boolean };
+    }[];
+
+    expect(restored.metadata.is_trashed).toBe(false);
+    expect(restored.metadata.is_read).toBe(true);
+    expect(no_blob.metadata.is_trashed).toBe(false);
+    expect(no_blob.metadata.is_read).toBe(true);
   });
 });

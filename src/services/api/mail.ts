@@ -218,6 +218,12 @@ export interface RestoreMailItemRequest {
   target?: "inbox" | "archive";
 }
 
+export interface RestoreMailItemResponse {
+  success: boolean;
+  restored_count: number;
+  restored_ids?: string[];
+}
+
 export interface MailUserStatsResponse {
   total_items: number;
   total_items_collapsed?: number;
@@ -495,8 +501,8 @@ export async function move_mail_item(
 export async function restore_mail_item(
   item_id: string,
   data: RestoreMailItemRequest = {},
-): Promise<ApiResponse<{ status: string }>> {
-  return api_client.put<{ status: string }>(
+): Promise<ApiResponse<RestoreMailItemResponse>> {
+  return api_client.put<RestoreMailItemResponse>(
     `/mail/v1/messages/${item_id}/restore`,
     data,
   );
@@ -986,6 +992,7 @@ export type {
   CreateThreadRequest,
   RethreadItem,
   RethreadResponse,
+  TrashThreadResponse,
 } from "./mail_threads";
 export {
   list_threads,

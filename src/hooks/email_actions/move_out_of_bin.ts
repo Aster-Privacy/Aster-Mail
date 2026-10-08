@@ -25,7 +25,6 @@ import {
   trashes_whole_thread,
 } from "@/hooks/email_list_helpers";
 import {
-  trash_thread,
   batched_bulk_add_folder,
   batched_bulk_remove_folder,
   report_spam_sender,
@@ -33,6 +32,7 @@ import {
 } from "@/services/api/mail";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
 import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
+import { set_thread_trashed } from "@/services/trash_state";
 import { ignore_error } from "@/lib/ignore_error";
 
 export type BinSource = "trash" | "spam";
@@ -103,7 +103,13 @@ async function set_bin_flag(
 
   const thread_results = await Promise.all(
     thread_tokens.map((token) =>
-      trash_thread(token, in_bin).catch(() => ({ data: null })),
+      set_thread_trashed(
+        token,
+        thread_emails
+          .filter((e) => e.thread_token === token)
+          .flatMap(expand_email_ids),
+        in_bin,
+      ).catch(() => ({ data: null })),
     ),
   );
   const failed_threads = new Set(

@@ -65,8 +65,8 @@ import {
   empty_spam,
   report_spam_sender,
   remove_spam_sender,
-  trash_thread,
 } from "@/services/api/mail";
+import { set_thread_trashed } from "@/services/trash_state";
 import { emit_mail_soft_refresh } from "@/hooks/email_action_types";
 import {
   expand_email_ids,
@@ -534,7 +534,9 @@ export function use_inbox_toolbar_actions({
     }
 
     const read_ids = Array.from(
-      new Set(selected.flatMap((email) => [email.id, ...expand_email_ids(email)])),
+      new Set(
+        selected.flatMap((email) => [email.id, ...expand_email_ids(email)]),
+      ),
     );
     const read_ticket = begin_read_change(read_ids);
     const is_live = (email: InboxEmail): boolean =>
@@ -652,7 +654,9 @@ export function use_inbox_toolbar_actions({
     }
 
     const read_ids = Array.from(
-      new Set(selected.flatMap((email) => [email.id, ...expand_email_ids(email)])),
+      new Set(
+        selected.flatMap((email) => [email.id, ...expand_email_ids(email)]),
+      ),
     );
     const read_ticket = begin_read_change(read_ids);
     const is_live = (email: InboxEmail): boolean =>
@@ -929,8 +933,14 @@ export function use_inbox_toolbar_actions({
         expand_email_ids(e),
       );
 
+      const thread_ids_of = (tok: string): string[] =>
+        selected
+          .filter((e) => e.thread_token === tok)
+          .flatMap((e) => expand_email_ids(e));
       const thread_results = await Promise.all(
-        thread_tokens.map((tok) => trash_thread(tok, false)),
+        thread_tokens.map((tok) =>
+          set_thread_trashed(tok, thread_ids_of(tok), false),
+        ),
       );
       const bulk_result =
         singleton_ids.length > 0
@@ -1023,7 +1033,9 @@ export function use_inbox_toolbar_actions({
             : { is_trashed: true };
 
           await Promise.all([
-            ...undo_threads.map((tok) => trash_thread(tok, true)),
+            ...undo_threads.map((tok) =>
+              set_thread_trashed(tok, thread_ids_of(tok), true),
+            ),
             undo_ids.length > 0
               ? bulk_update_metadata_by_ids(undo_ids, undo_update)
               : Promise.resolve(),

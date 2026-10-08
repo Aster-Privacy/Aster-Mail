@@ -29,7 +29,7 @@ import {
   try_enqueue_offline_action,
 } from "../email_action_types";
 
-import { trash_thread } from "@/services/api/mail";
+import { set_thread_trashed } from "@/services/trash_state";
 import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
 import {
   batch_archive as api_batch_archive,
@@ -575,7 +575,11 @@ export function use_single_actions_flags(params: SingleActionsFlagsParams) {
         { is_trashed: true },
         async () => {
           if (thread_scope_token) {
-            const result = await trash_thread(thread_scope_token, true);
+            const result = await set_thread_trashed(
+              thread_scope_token,
+              grouped_ids,
+              true,
+            );
 
             if (!result.data) {
               return { error: t("common.failed_to_delete_emails") };
@@ -616,7 +620,11 @@ export function use_single_actions_flags(params: SingleActionsFlagsParams) {
             revert_stat_deltas(deltas);
             note_flag_intents(grouped_ids, { is_trashed: false });
             if (thread_scope_token) {
-              const undo_result = await trash_thread(thread_scope_token, false);
+              const undo_result = await set_thread_trashed(
+                thread_scope_token,
+                grouped_ids,
+                false,
+              );
 
               if (undo_result.error) {
                 clear_flag_intents(grouped_ids, { is_trashed: false });

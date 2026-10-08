@@ -290,7 +290,7 @@ describe("move_out_of_bin", () => {
     });
 
     expect(api_mock.trash_thread).toHaveBeenCalledWith("thread-1", false);
-    expect(metadata_mock.bulk_update_metadata_by_ids).not.toHaveBeenCalled();
+    expect(flag_calls()).toEqual([[["m1", "m2", "m3"], { is_trashed: false }]]);
     expect(api_mock.batched_bulk_add_folder).toHaveBeenCalledWith(
       ["m1", "m2", "m3"],
       "receipts",

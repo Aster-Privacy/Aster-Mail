@@ -195,6 +195,9 @@ describe("toolbar delete and undo follow conversation grouping", () => {
       ["thread-1", true],
       ["thread-1", false],
     ]);
-    expect(metadata_mock.bulk_update_metadata_by_ids).not.toHaveBeenCalled();
+    expect(metadata_mock.bulk_update_metadata_by_ids.mock.calls).toEqual([
+      [["m1"], { is_trashed: true }],
+      [["m1"], { is_trashed: false }],
+    ]);
   });
 });
