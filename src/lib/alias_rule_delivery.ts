@@ -20,6 +20,11 @@
 //
 import type { Action, Condition, Rule } from "@/services/api/mail_rules";
 
+import {
+  address_list_entries,
+  address_matches,
+} from "@/lib/mail_rules/address_match";
+
 export interface AliasRuleDelivery {
   rule_id: string;
   rule_name: string;
@@ -57,30 +62,17 @@ function address_condition_matches(
   value: string,
   address: string,
 ): boolean {
-  const needle = value.trim();
-
-  if (!needle) {
+  if (!value.trim()) {
     return false;
   }
-  const lower_needle = needle.toLowerCase();
-  const lower_address = address.toLowerCase();
-
-  if (operator === "is") {
-    return lower_needle === lower_address;
-  }
-  if (operator === "contains") {
-    return lower_address.includes(lower_needle);
-  }
-  if (operator === "starts_with") {
-    return lower_address.startsWith(lower_needle);
-  }
-  if (operator === "ends_with") {
-    return lower_address.endsWith(lower_needle);
-  }
-  if (operator === "matches_domain") {
-    const domain = lower_address.slice(lower_address.lastIndexOf("@") + 1);
-
-    return domain === lower_needle.replace(/^@/, "");
+  if (
+    operator === "is" ||
+    operator === "contains" ||
+    operator === "starts_with" ||
+    operator === "ends_with" ||
+    operator === "matches_domain"
+  ) {
+    return address_matches(address.trim(), operator, value.trim(), false);
   }
 
   return false;
@@ -121,9 +113,9 @@ export function condition_exact_addresses(condition: Condition): string[] {
   if (leaf.operator !== "is") {
     return [];
   }
-  const address = leaf.value.trim();
-
-  return address.includes("@") ? [address] : [];
+  return address_list_entries(leaf.value).filter((address) =>
+    address.includes("@"),
+  );
 }
 
 export function rule_targets_address(rule: Rule, address: string): boolean {

@@ -453,6 +453,12 @@ export interface MailRulesTranslations {
   apply_to_existing_canceled_encrypted_other: string;
 
   apply_to_existing_error: string;
+  local_apply_progress: string;
+  local_apply_done: string;
+  local_apply_unreadable: string;
+  local_apply_capped: string;
+  local_apply_failed: string;
+  local_apply_unsupported: string;
   empty_title: string;
   empty_description: string;
   empty_cta: string;

@@ -10533,6 +10533,18 @@ export const it = {
       "Interrotto. Aggiornati: {{applied}}. Questa regola ha ignorato {{count}} messaggi cifrati perché solo il tuo dispositivo può leggerli.",
     apply_to_existing_error:
       "Applicazione alla posta esistente non riuscita. Riprova.",
+    local_apply_progress:
+      "Controllo dei messaggi cifrati su questo dispositivo: {{checked}} di {{total}}",
+    local_apply_done:
+      "Messaggi cifrati controllati su questo dispositivo: {{checked}}, aggiornati: {{applied}}.",
+    local_apply_unreadable:
+      "Messaggi che non è stato possibile decifrare: {{unreadable}}.",
+    local_apply_capped:
+      "Sono stati controllati solo i tuoi {{limit}} messaggi più recenti.",
+    local_apply_failed:
+      "Non è stato possibile aggiornare alcuni messaggi cifrati. Riprova.",
+    local_apply_unsupported:
+      "Questa regola usa condizioni che solo il server può verificare, quindi non può ordinare i messaggi cifrati.",
     empty_title: "Nessuna regola ancora",
     empty_description:
       "Crea la tua prima regola per organizzare automaticamente la posta in arrivo.",

@@ -101,6 +101,13 @@ import {
   rule_run_status_label,
 } from "@/components/modals/rule_editor_helpers";
 import { ignore_error } from "@/lib/ignore_error";
+import { rule_supports_local_evaluation } from "@/lib/mail_rules/local_rule_evaluator";
+import {
+  apply_rule_to_sealed_items,
+  empty_local_apply_result,
+  type LocalApplyResult,
+} from "@/services/mail_rules_local_apply";
+import { SCAN_ITEM_CAP } from "@/services/bulk_mail_scan";
 
 const MAX_RULE_CONDITIONS = 32;
 
@@ -148,6 +155,10 @@ export function RuleEditorModal({
   const [reset_token, set_reset_token] = React.useState(0);
   const [baseline_snapshot, set_baseline_snapshot] = React.useState("");
   const [running_existing, set_running_existing] = React.useState(false);
+  const [local_result, set_local_result] =
+    React.useState<LocalApplyResult | null>(null);
+  const [local_running, set_local_running] = React.useState(false);
+  const local_abort_ref = React.useRef<AbortController | null>(null);
   const { runs } = use_mail_rules_store();
   const active_run = rule ? runs[rule.id] : undefined;
   const run_in_flight =
@@ -555,6 +566,55 @@ export function RuleEditorModal({
     void refresh_run(rule.id);
   }, [is_open, rule?.id]);
 
+  React.useEffect(() => {
+    if (is_open) return;
+    local_abort_ref.current?.abort();
+    local_abort_ref.current = null;
+    set_local_result(null);
+    set_local_running(false);
+  }, [is_open]);
+
+  React.useEffect(
+    () => () => {
+      local_abort_ref.current?.abort();
+    },
+    [],
+  );
+
+  const run_local_pass = async (target: Rule) => {
+    if (!rule_supports_local_evaluation(target)) {
+      set_local_result(empty_local_apply_result(false));
+
+      return;
+    }
+    local_abort_ref.current?.abort();
+    const controller = new AbortController();
+
+    local_abort_ref.current = controller;
+    set_local_running(true);
+    set_local_result(empty_local_apply_result(true));
+    try {
+      const result = await apply_rule_to_sealed_items(
+        target,
+        controller.signal,
+        (progress) => {
+          if (!controller.signal.aborted) set_local_result(progress);
+        },
+      );
+
+      if (!controller.signal.aborted) set_local_result(result);
+    } catch {
+      if (!controller.signal.aborted) {
+        set_local_result({ ...empty_local_apply_result(true), failed: true });
+      }
+    } finally {
+      if (local_abort_ref.current === controller) {
+        local_abort_ref.current = null;
+        set_local_running(false);
+      }
+    }
+  };
+
   const handle_run_on_existing = async () => {
     if (!rule) return;
     set_running_existing(true);
@@ -567,13 +627,55 @@ export function RuleEditorModal({
         : t("mail_rules.apply_to_existing_failed"),
       ok ? "success" : "error",
     );
+    if (ok) void run_local_pass(rule);
   };
+
+  const local_status_lines = (): string[] => {
+    if (!local_result) return [];
+    if (!local_result.supported) {
+      return [t("mail_rules.local_apply_unsupported")];
+    }
+    if (local_running) {
+      return [
+        t("mail_rules.local_apply_progress", {
+          checked: local_result.checked,
+          total: local_result.sealed,
+        }),
+      ];
+    }
+    const lines = [
+      t("mail_rules.local_apply_done", {
+        checked: local_result.checked,
+        applied: local_result.applied,
+      }),
+    ];
+
+    if (local_result.unreadable > 0) {
+      lines.push(
+        t("mail_rules.local_apply_unreadable", {
+          unreadable: local_result.unreadable,
+        }),
+      );
+    }
+    if (local_result.reached_cap) {
+      lines.push(t("mail_rules.local_apply_capped", { limit: SCAN_ITEM_CAP }));
+    }
+    if (local_result.failed) lines.push(t("mail_rules.local_apply_failed"));
+
+    return lines;
+  };
+
+  const apply_in_flight = run_in_flight || local_running;
 
   const run_status_label = (): string | null =>
     active_run ? rule_run_status_label(active_run, t) : null;
 
   const handle_cancel_run = async () => {
     if (!rule) return;
+    local_abort_ref.current?.abort();
+    local_abort_ref.current = null;
+    set_local_running(false);
+    if (!run_in_flight) return;
     set_running_existing(true);
     const ok = await cancel_run(rule.id);
 
@@ -695,16 +797,16 @@ export function RuleEditorModal({
         <p className="text-xs text-txt-muted">
           {t("mail_rules.editor_server_notice")}
         </p>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <Input
-            className="flex-1"
+            className="w-full sm:flex-1"
             maxLength={200}
             placeholder={t("mail_rules.rule_name_placeholder")}
             size="md"
             value={name}
             onChange={(e) => set_name(e.target.value)}
           />
-          <div className="flex items-center gap-1.5">
+          <div className="flex shrink-0 flex-wrap items-center gap-1.5">
             {RULE_COLORS.map((c) => (
               <button
                 key={c}
@@ -939,62 +1041,78 @@ export function RuleEditorModal({
         </div>
       </ModalBody>
 
-      <ModalFooter className="justify-between">
-        <div className="flex flex-col items-start gap-0.5">
-          <div className="flex items-center gap-1">
-            {is_edit && (
-              <>
-                <Button
-                  className="text-rose-500 hover:text-rose-600"
-                  disabled={saving || running_existing}
-                  variant="ghost"
-                  onClick={() => set_confirm_delete_open(true)}
-                >
-                  {t("mail_rules.delete")}
-                </Button>
-                {run_in_flight ? (
-                  <Button
-                    disabled={saving || running_existing}
-                    variant="ghost"
-                    onClick={handle_cancel_run}
-                  >
-                    {t("mail_rules.apply_to_existing_cancel")}
-                  </Button>
-                ) : (
-                  <Button
-                    disabled={saving || running_existing}
-                    variant="ghost"
-                    onClick={handle_run_on_existing}
-                  >
-                    {t("mail_rules.apply_to_existing")}
-                  </Button>
-                )}
-              </>
-            )}
-          </div>
-          {is_edit && active_run && (
-            <span className="text-[11.5px] text-txt-muted">
-              {run_status_label()}
-            </span>
-          )}
-        </div>
-        <div className="flex flex-col items-end gap-1">
-          <div className="flex items-center gap-2">
-            <Button disabled={saving} variant="ghost" onClick={request_close}>
-              {t("mail_rules.cancel")}
-            </Button>
-            <Button
-              disabled={saving || !!disabled_hint}
-              variant="depth"
-              onClick={handle_save}
+      <ModalFooter>
+        <div className="flex w-full flex-col gap-3">
+          {is_edit && (active_run || local_result) && (
+            <div
+              aria-live="polite"
+              className="w-full space-y-1 text-left text-[12px] leading-snug text-txt-muted"
+              data-testid="rule_apply_status"
             >
-              {t("mail_rules.save_rule")}
-            </Button>
+              {active_run && <p>{run_status_label()}</p>}
+              {local_status_lines().map((line) => (
+                <p key={line}>{line}</p>
+              ))}
+            </div>
+          )}
+          <div className="flex w-full flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="grid w-full grid-cols-1 gap-2 empty:hidden min-[400px]:grid-cols-[auto_1fr] sm:flex sm:w-auto sm:items-center">
+              {is_edit && (
+                <>
+                  <Button
+                    className="w-full max-[399px]:order-last sm:w-auto"
+                    disabled={saving || running_existing}
+                    style={{ color: "var(--color-danger)" }}
+                    variant="secondary"
+                    onClick={() => set_confirm_delete_open(true)}
+                  >
+                    {t("mail_rules.delete")}
+                  </Button>
+                  {apply_in_flight ? (
+                    <Button
+                      className="w-full sm:w-auto"
+                      disabled={saving || running_existing}
+                      variant="secondary"
+                      onClick={handle_cancel_run}
+                    >
+                      {t("mail_rules.apply_to_existing_cancel")}
+                    </Button>
+                  ) : (
+                    <Button
+                      className="w-full sm:w-auto"
+                      disabled={saving || running_existing}
+                      variant="secondary"
+                      onClick={handle_run_on_existing}
+                    >
+                      {t("mail_rules.apply_to_existing")}
+                    </Button>
+                  )}
+                </>
+              )}
+            </div>
+            <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:items-center">
+              <Button
+                className="w-full sm:w-auto"
+                disabled={saving}
+                variant="ghost"
+                onClick={request_close}
+              >
+                {t("mail_rules.cancel")}
+              </Button>
+              <Button
+                className="w-full sm:w-auto"
+                disabled={saving || !!disabled_hint}
+                variant="depth"
+                onClick={handle_save}
+              >
+                {t("mail_rules.save_rule")}
+              </Button>
+            </div>
           </div>
           {disabled_hint && (
-            <span className="text-[11.5px] text-txt-muted">
+            <p className="w-full text-left text-[12px] leading-snug text-txt-muted sm:text-right">
               {disabled_hint}
-            </span>
+            </p>
           )}
         </div>
       </ModalFooter>

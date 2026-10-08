@@ -9293,6 +9293,18 @@ export const zh_CN = {
     apply_to_existing_canceled_encrypted_other:
       "已停止：已更新 {{applied}} 封。此规则跳过了 {{count}} 封加密邮件，因为只有您的设备才能读取它们。",
     apply_to_existing_error: "应用到现有邮件失败。请重试。",
+    local_apply_progress:
+      "正在此设备上检查加密邮件：{{checked}} / {{total}}",
+    local_apply_done:
+      "已在此设备上检查加密邮件 {{checked}} 封，已更新 {{applied}} 封。",
+    local_apply_unreadable:
+      "无法解密的邮件：{{unreadable}} 封。",
+    local_apply_capped:
+      "仅检查了您最新的 {{limit}} 封邮件。",
+    local_apply_failed:
+      "部分加密邮件无法更新。请重试。",
+    local_apply_unsupported:
+      "此规则使用了只有服务器才能检查的条件，因此无法整理加密邮件。",
     empty_title: "暂无规则",
     empty_description: "创建您的第一条规则以自动整理收件邮件。",
     empty_cta: "创建规则",

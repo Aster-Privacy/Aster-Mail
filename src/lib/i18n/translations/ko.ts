@@ -10050,6 +10050,18 @@ export const ko = {
       "중지됨: {{applied}}개 업데이트. 암호화된 {{count}}개는 사용자의 기기에서만 읽을 수 있어 이 규칙에서 건너뛰었습니다.",
     apply_to_existing_error:
       "기존 메일에 적용하지 못했습니다. 다시 시도하세요.",
+    local_apply_progress:
+      "이 기기에서 암호화된 메시지 확인 중: {{total}}개 중 {{checked}}개",
+    local_apply_done:
+      "이 기기에서 확인한 암호화된 메시지: {{checked}}개, {{applied}}개 업데이트.",
+    local_apply_unreadable:
+      "복호화하지 못한 메시지: {{unreadable}}개.",
+    local_apply_capped:
+      "최신 메시지 {{limit}}개만 확인했습니다.",
+    local_apply_failed:
+      "일부 암호화된 메시지를 업데이트하지 못했습니다. 다시 시도하세요.",
+    local_apply_unsupported:
+      "이 규칙은 서버에서만 확인할 수 있는 조건을 사용하므로 암호화된 메시지를 분류할 수 없습니다.",
     empty_title: "아직 규칙이 없습니다",
     empty_description: "첫 번째 규칙을 만들어 수신 메일을 자동으로 정리하세요.",
     empty_cta: "규칙 만들기",

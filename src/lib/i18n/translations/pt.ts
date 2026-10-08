@@ -10591,6 +10591,18 @@ export const pt = {
       "Parado. Atualizados: {{applied}}. Esta regra ignorou {{count}} mensagens encriptadas porque só o seu dispositivo consegue lê-las.",
     apply_to_existing_error:
       "Não foi possível aplicar ao e-mail existente. Tente novamente.",
+    local_apply_progress:
+      "A verificar mensagens encriptadas neste dispositivo: {{checked}} de {{total}}",
+    local_apply_done:
+      "Mensagens encriptadas verificadas neste dispositivo: {{checked}}, atualizadas: {{applied}}.",
+    local_apply_unreadable:
+      "Mensagens que não foi possível desencriptar: {{unreadable}}.",
+    local_apply_capped:
+      "Apenas as suas {{limit}} mensagens mais recentes foram verificadas.",
+    local_apply_failed:
+      "Não foi possível atualizar algumas mensagens encriptadas. Tente novamente.",
+    local_apply_unsupported:
+      "Esta regra usa condições que só o servidor pode verificar, por isso não consegue organizar mensagens encriptadas.",
     empty_title: "Nenhuma regra ainda",
     empty_description:
       "Crie a sua primeira regra para organizar automaticamente os e-mails recebidos.",
