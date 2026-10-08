@@ -6038,7 +6038,7 @@ export const es = {
     plan_f_templates: "{{value}} plantillas de correo",
     plan_f_read_receipts: "Acuses de recibo",
     plan_tip_attachments:
-      "El tamaño total de los archivos adjuntos de un mensaje. Cada archivo puede ocupar hasta 50 MB.",
+      "El tamaño total de los archivos adjuntos de un mensaje. Cada archivo puede ocupar hasta 50 MB, o hasta el límite de tu plan si es menor.",
     plan_tip_signed_in_accounts:
       "Cuántas cuentas de Aster puedes tener con sesión iniciada en el mismo dispositivo a la vez. Cada cuenta mantiene su propia suscripción; al cambiar entre ellas se pedirá la contraseña de esa cuenta.",
     plan_tip_send_limit:

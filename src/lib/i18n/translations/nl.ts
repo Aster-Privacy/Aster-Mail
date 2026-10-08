@@ -6050,7 +6050,7 @@ export const nl = {
     plan_f_templates: "{{value}} e-mailsjablonen",
     plan_f_read_receipts: "Leesbevestigingen",
     plan_tip_attachments:
-      "De totale grootte van alle bijlagen in één bericht. Eén bestand mag maximaal 50 MB zijn.",
+      "De totale grootte van alle bijlagen in één bericht. Eén bestand mag maximaal 50 MB zijn, of de limiet van je abonnement als die lager is.",
     plan_tip_signed_in_accounts:
       "Hoeveel Aster-accounts je tegelijk aangemeld kunt houden op hetzelfde apparaat. Elk account houdt zijn eigen abonnement en bij het wisselen vraagt Aster om het wachtwoord van dat account.",
     plan_tip_send_limit:

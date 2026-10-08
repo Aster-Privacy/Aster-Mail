@@ -6029,7 +6029,7 @@ export const ko = {
     plan_f_templates: "{{value}}개 이메일 템플릿",
     plan_f_read_receipts: "읽음 확인",
     plan_tip_attachments:
-      "메일 한 통의 총 첨부 파일 크기입니다. 파일 하나는 최대 50MB입니다.",
+      "메일 한 통의 총 첨부 파일 크기입니다. 파일 하나는 최대 50MB이며, 요금제 한도가 더 낮으면 그 한도까지입니다.",
     plan_tip_signed_in_accounts:
       "동일한 기기에서 동시에 로그인을 유지할 수 있는 Aster 계정 수. 각 계정은 자체 구독으로 유지되며, 전환할 때 해당 계정의 비밀번호를 요청합니다.",
     plan_tip_send_limit:
