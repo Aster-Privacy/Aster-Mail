@@ -800,6 +800,7 @@ export default function IndexPage() {
             is_open={state.is_command_palette_open}
             on_close={() => state.set_is_command_palette_open(false)}
             on_compose={state.open_compose}
+            on_navigate={state.handle_header_view_change}
             on_settings={() => state.open_settings()}
             on_shortcuts={() => state.set_is_shortcuts_open(true)}
           />

@@ -9112,6 +9112,7 @@ export const pl = {
     go_to_trash: "Przejdź do kosza",
     go_to_spam: "Przejdź do spamu",
     go_to_scheduled: "Przejdź do zaplanowanych",
+    go_to_all_mail: "Przejdź do wszystkich wiadomości",
     view_inbox: "Wyświetl skrzynkę odbiorczą",
     view_sent: "Wyświetl wysłane e-maile",
     view_drafts: "Wyświetl szkice e-maili",
@@ -9120,6 +9121,7 @@ export const pl = {
     view_deleted: "Wyświetl usunięte e-maile",
     view_spam: "Wyświetl spam",
     view_scheduled: "Wyświetl zaplanowane e-maile",
+    view_all_mail: "Wyświetl wszystkie e-maile",
     start_new_message: "Zacznij pisać nową wiadomość",
     mark_all_unread_as_read:
       "Oznacz wszystkie nieprzeczytane e-maile jako przeczytane",

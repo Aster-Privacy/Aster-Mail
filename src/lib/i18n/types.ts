@@ -7790,6 +7790,7 @@ export interface MailTranslations {
   go_to_trash: string;
   go_to_spam: string;
   go_to_scheduled: string;
+  go_to_all_mail: string;
   view_inbox: string;
   view_sent: string;
   view_drafts: string;
@@ -7798,6 +7799,7 @@ export interface MailTranslations {
   view_deleted: string;
   view_spam: string;
   view_scheduled: string;
+  view_all_mail: string;
   start_new_message: string;
   mark_all_unread_as_read: string;
   move_read_to_archive: string;

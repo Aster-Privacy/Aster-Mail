@@ -39,6 +39,7 @@ import {
   PlusIcon,
   ClockIcon,
   ArrowPathIcon,
+  InboxStackIcon,
   MagnifyingGlassIcon,
   EyeIcon,
 } from "@heroicons/react/24/outline";
@@ -70,7 +71,9 @@ import {
 } from "@/services/bulk_mail_scan";
 import { yield_to_browser } from "@/lib/scheduling";
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
-import { emit_mail_changed } from "@/hooks/mail_events";
+import { emit_mail_changed, emit_refresh_requested } from "@/hooks/mail_events";
+import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
+import { REFRESH_STATE_MS } from "@/constants/timings";
 
 interface CommandAction {
   id: string;
@@ -95,6 +98,7 @@ interface CommandPaletteProps {
   on_compose?: () => void;
   on_settings?: () => void;
   on_shortcuts?: () => void;
+  on_navigate?: (route: string) => void;
 }
 
 export function CommandPalette({
@@ -103,6 +107,7 @@ export function CommandPalette({
   on_compose,
   on_settings,
   on_shortcuts,
+  on_navigate,
 }: CommandPaletteProps) {
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
@@ -117,6 +122,24 @@ export function CommandPalette({
     useState(false);
   const input_ref = useRef<HTMLInputElement>(null);
   const list_ref = useRef<HTMLDivElement>(null);
+  const running_ref = useRef(false);
+  const on_close_ref = useRef(on_close);
+
+  on_close_ref.current = on_close;
+
+  const close_palette = useCallback(() => on_close_ref.current(), []);
+
+  const go_to = useCallback(
+    (route: string) => {
+      if (on_navigate) {
+        on_navigate(route);
+      } else {
+        navigate(route);
+      }
+      close_palette();
+    },
+    [on_navigate, navigate, close_palette],
+  );
 
   const decrypt_items_metadata = useCallback(
     async (items: MailItem[]): Promise<Map<string, MailItemMetadata>> => {
@@ -280,7 +303,7 @@ export function CommandPalette({
               );
             },
           });
-          on_close();
+          close_palette();
         } else {
           show_action_toast({
             message: t("common.failed_to_update_emails"),
@@ -298,7 +321,7 @@ export function CommandPalette({
         set_loading_action(null);
       }
     },
-    [t, on_close, fetch_and_filter],
+    [t, close_palette, fetch_and_filter],
   );
 
   const execute_archive_action = useCallback(
@@ -362,7 +385,7 @@ export function CommandPalette({
             action_type: "archive",
             email_ids: [],
           });
-          on_close();
+          close_palette();
 
           return;
         }
@@ -378,7 +401,7 @@ export function CommandPalette({
             );
           },
         });
-        on_close();
+        close_palette();
       } catch {
         show_action_toast({
           message: t("common.something_went_wrong"),
@@ -389,7 +412,7 @@ export function CommandPalette({
         set_loading_action(null);
       }
     },
-    [t, on_close, fetch_and_filter],
+    [t, close_palette, fetch_and_filter],
   );
 
   const commands: CommandAction[] = useMemo(
@@ -404,7 +427,7 @@ export function CommandPalette({
         keywords: ["new", "write", "create", "message"],
         action: () => {
           on_compose?.();
-          on_close();
+          close_palette();
         },
       },
       {
@@ -416,8 +439,7 @@ export function CommandPalette({
         category: "navigation",
         keywords: ["home", "main"],
         action: () => {
-          navigate("/");
-          on_close();
+          go_to("/");
         },
       },
       {
@@ -425,11 +447,11 @@ export function CommandPalette({
         label: t("mail.go_to_sent"),
         description: t("mail.view_sent"),
         icon: PaperAirplaneIcon,
+        shortcut: "G T",
         category: "navigation",
         keywords: ["outbox"],
         action: () => {
-          navigate("/sent");
-          on_close();
+          go_to("/sent");
         },
       },
       {
@@ -437,10 +459,10 @@ export function CommandPalette({
         label: t("mail.go_to_drafts"),
         description: t("mail.view_drafts"),
         icon: DocumentTextIcon,
+        shortcut: "G D",
         category: "navigation",
         action: () => {
-          navigate("/drafts");
-          on_close();
+          go_to("/drafts");
         },
       },
       {
@@ -452,8 +474,19 @@ export function CommandPalette({
         category: "navigation",
         keywords: ["important", "flagged"],
         action: () => {
-          navigate("/starred");
-          on_close();
+          go_to("/starred");
+        },
+      },
+      {
+        id: "all_mail",
+        label: t("mail.go_to_all_mail"),
+        description: t("mail.view_all_mail"),
+        icon: InboxStackIcon,
+        shortcut: "G A",
+        category: "navigation",
+        keywords: ["everything"],
+        action: () => {
+          go_to("/all");
         },
       },
       {
@@ -463,8 +496,7 @@ export function CommandPalette({
         icon: ArchiveBoxIcon,
         category: "navigation",
         action: () => {
-          navigate("/archive");
-          on_close();
+          go_to("/archive");
         },
       },
       {
@@ -474,8 +506,7 @@ export function CommandPalette({
         icon: TrashIcon,
         category: "navigation",
         action: () => {
-          navigate("/trash");
-          on_close();
+          go_to("/trash");
         },
       },
       {
@@ -485,8 +516,7 @@ export function CommandPalette({
         icon: ExclamationTriangleIcon,
         category: "navigation",
         action: () => {
-          navigate("/spam");
-          on_close();
+          go_to("/spam");
         },
       },
       {
@@ -496,8 +526,7 @@ export function CommandPalette({
         icon: ClockIcon,
         category: "navigation",
         action: () => {
-          navigate("/scheduled");
-          on_close();
+          go_to("/scheduled");
         },
       },
       {
@@ -626,12 +655,18 @@ export function CommandPalette({
         label: t("common.refresh_inbox"),
         description: t("mail.check_new_emails"),
         icon: ArrowPathIcon,
-        shortcut: "R",
         category: "actions",
-        keywords: ["sync", "update", "fetch"],
+        keywords: ["sync", "update", "fetch", "reload"],
         action: () => {
-          emit_mail_changed();
-          on_close();
+          emit_refresh_requested();
+          invalidate_mail_stats();
+          show_action_toast({
+            message: t("common.inbox_refreshed"),
+            action_type: "refresh",
+            email_ids: [],
+            duration_ms: REFRESH_STATE_MS,
+          });
+          close_palette();
         },
       },
       {
@@ -652,7 +687,7 @@ export function CommandPalette({
             build_theme_mode_update(preferences, new_theme),
             true,
           );
-          on_close();
+          close_palette();
         },
       },
       {
@@ -660,12 +695,11 @@ export function CommandPalette({
         label: t("mail.open_settings"),
         description: t("mail.configure_preferences"),
         icon: Cog6ToothIcon,
-        shortcut: ",",
         category: "settings",
         keywords: ["preferences", "options", "config"],
         action: () => {
           on_settings?.();
-          on_close();
+          close_palette();
         },
       },
       {
@@ -678,7 +712,7 @@ export function CommandPalette({
         keywords: ["keys", "hotkeys", "help"],
         action: () => {
           on_shortcuts?.();
-          on_close();
+          close_palette();
         },
       },
       {
@@ -689,16 +723,17 @@ export function CommandPalette({
         category: "settings",
         keywords: ["exit", "leave"],
         action: async () => {
+          close_palette();
           await logout();
           navigate("/sign-in");
-          on_close();
         },
       },
     ],
     [
       t,
       navigate,
-      on_close,
+      go_to,
+      close_palette,
       on_compose,
       on_settings,
       on_shortcuts,
@@ -713,14 +748,15 @@ export function CommandPalette({
   );
 
   const filtered_commands = useMemo(() => {
-    if (!query.trim()) return commands;
-    const search = query.toLowerCase();
+    const search = query.trim().toLowerCase();
+
+    if (!search) return commands;
 
     return commands.filter(
       (cmd) =>
         cmd.label.toLowerCase().includes(search) ||
         cmd.description?.toLowerCase().includes(search) ||
-        cmd.keywords?.some((k) => k.includes(search)),
+        cmd.keywords?.some((k) => k.toLowerCase().includes(search)),
     );
   }, [commands, query]);
 
@@ -741,11 +777,35 @@ export function CommandPalette({
   }, [filtered_commands]);
 
   const flat_commands = useMemo(
-    () =>
-      Object.values(grouped_commands)
-        .flat()
-        .filter((g) => g),
+    () => Object.values(grouped_commands).flat(),
     [grouped_commands],
+  );
+
+  const run_command = useCallback(
+    (cmd: CommandAction | undefined) => {
+      if (!cmd || cmd.disabled || loading_action || running_ref.current) {
+        return;
+      }
+      running_ref.current = true;
+      let result: void | Promise<void>;
+
+      try {
+        result = cmd.action();
+      } catch {
+        running_ref.current = false;
+        show_toast(t("common.something_went_wrong"), "error");
+
+        return;
+      }
+      Promise.resolve(result)
+        .catch(() => {
+          show_toast(t("common.something_went_wrong"), "error");
+        })
+        .finally(() => {
+          running_ref.current = false;
+        });
+    },
+    [loading_action, t],
   );
 
   useEffect(() => {
@@ -782,28 +842,30 @@ export function CommandPalette({
 
   const handle_keydown = useCallback(
     (e: React.KeyboardEvent) => {
+      if (e.nativeEvent.isComposing) return;
+      const count = flat_commands.length;
+
       switch (e.key) {
         case "ArrowDown":
           e.preventDefault();
-          set_selected_index((i) => Math.min(i + 1, flat_commands.length - 1));
+          if (count > 0) set_selected_index((i) => (i + 1) % count);
           break;
         case "ArrowUp":
           e.preventDefault();
-          set_selected_index((i) => Math.max(i - 1, 0));
+          if (count > 0) set_selected_index((i) => (i - 1 + count) % count);
           break;
         case "Enter":
           e.preventDefault();
-          if (flat_commands[selected_index] && !loading_action) {
-            flat_commands[selected_index].action();
-          }
+          if (e.repeat) break;
+          run_command(flat_commands[selected_index]);
           break;
         case "Escape":
           e.preventDefault();
-          on_close();
+          close_palette();
           break;
       }
     },
-    [flat_commands, selected_index, loading_action, on_close],
+    [flat_commands, selected_index, run_command, close_palette],
   );
 
   const category_labels: Record<string, string> = {
@@ -836,11 +898,11 @@ export function CommandPalette({
         emit_mail_changed();
         show_toast(t("common.trash_empty_failed"), "error");
       }
-      on_close();
+      close_palette();
     } catch {
       emit_mail_changed();
       show_toast(t("common.trash_empty_failed"), "error");
-      on_close();
+      close_palette();
     } finally {
       set_loading_action(null);
     }
@@ -933,10 +995,13 @@ export function CommandPalette({
                                 className={`w-full flex items-center gap-3 px-2.5 py-2 rounded-[var(--aster-radius-item,8px)] text-start ${is_selected ? "bg-[var(--aster-floating-hover,var(--bg-hover))]" : "bg-transparent"}`}
                                 data-index={global_index}
                                 disabled={!!loading_action}
-                                onClick={() => !loading_action && cmd.action()}
-                                onMouseEnter={() =>
-                                  set_selected_index(global_index)
-                                }
+                                type="button"
+                                onClick={() => run_command(cmd)}
+                                onMouseMove={() => {
+                                  if (selected_index !== global_index) {
+                                    set_selected_index(global_index);
+                                  }
+                                }}
                               >
                                 <Icon
                                   className="w-4 h-4 flex-shrink-0"
