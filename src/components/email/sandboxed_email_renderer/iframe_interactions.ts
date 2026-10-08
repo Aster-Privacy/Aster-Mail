@@ -28,7 +28,7 @@ import {
   LINK_MENU_EVENT,
   link_menu_host,
   type LinkMenuDetail,
-} from "@/components/email/link_menu_layer";
+} from "@/lib/link_menu_event";
 
 const ASTER_PATH_ALLOWLIST = /^(?:settings(?:\/[a-z0-9_-]{1,32})?)$/i;
 const ABSOLUTE_URL_REGEX = /^[a-z][a-z0-9+.-]*:/i;

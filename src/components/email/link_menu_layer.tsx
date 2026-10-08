@@ -35,31 +35,14 @@ import { use_external_link } from "@/contexts/external_link_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { copy_text } from "@/utils/copy_text";
-
-export const LINK_MENU_EVENT = "aster-link-menu";
-
-export interface LinkMenuDetail {
-  url: string;
-  x: number;
-  y: number;
-}
+import {
+  LINK_MENU_EVENT,
+  link_menu_host,
+  type LinkMenuDetail,
+} from "@/lib/link_menu_event";
 
 interface LinkMenuState extends LinkMenuDetail {
   host: string;
-}
-
-export function link_menu_host(url: string): string | null {
-  try {
-    const parsed = new URL(url);
-
-    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-      return null;
-    }
-
-    return parsed.hostname;
-  } catch {
-    return null;
-  }
 }
 
 export function LinkMenuLayer() {

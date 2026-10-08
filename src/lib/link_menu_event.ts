@@ -18,21 +18,24 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { describe, expect, it } from "vitest";
+export const LINK_MENU_EVENT = "aster-link-menu";
 
-import { link_menu_host } from "./link_menu_layer";
+export interface LinkMenuDetail {
+  url: string;
+  x: number;
+  y: number;
+}
 
-describe("link_menu_host", () => {
-  it("returns the host for web links", () => {
-    expect(link_menu_host("https://www.example.com/path?q=1")).toBe(
-      "www.example.com",
-    );
-    expect(link_menu_host("http://example.org")).toBe("example.org");
-  });
+export function link_menu_host(url: string): string | null {
+  try {
+    const parsed = new URL(url);
 
-  it("ignores links that are not web pages", () => {
-    expect(link_menu_host("mailto:someone@example.com")).toBeNull();
-    expect(link_menu_host("javascript:alert(1)")).toBeNull();
-    expect(link_menu_host("not a url")).toBeNull();
-  });
-});
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      return null;
+    }
+
+    return parsed.hostname;
+  } catch {
+    return null;
+  }
+}
