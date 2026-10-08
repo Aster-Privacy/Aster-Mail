@@ -655,7 +655,7 @@ export function AccountSection() {
         <div className="px-5 pb-5 -mt-8 flex items-end justify-between">
           <button
             aria-label={t("auth.change_photo")}
-            className="group relative h-20 w-20 rounded-full overflow-hidden bg-surf-primary ring-4 ring-[var(--aster-island-fill,var(--bg-primary))] focus:outline-none focus-visible:ring-[var(--accent-color)]"
+            className="profile_avatar_edit relative h-20 w-20 flex-shrink-0 rounded-full overflow-hidden bg-surf-primary"
             title={t("auth.change_photo")}
             type="button"
             onClick={open_profile_picture_dialog}
@@ -681,7 +681,7 @@ export function AccountSection() {
                 {get_initials(name, user?.email, get_active_locale())}
               </span>
             )}
-            <span className="absolute inset-0 flex items-center justify-center rounded-full opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100 bg-black/55">
+            <span className="profile_avatar_edit_overlay absolute inset-0 flex items-center justify-center rounded-full bg-black/55">
               <CameraIcon className="w-6 h-6 text-white" />
             </span>
           </button>
