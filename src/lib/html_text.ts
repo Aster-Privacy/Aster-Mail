@@ -29,9 +29,9 @@ export function is_html_content(content: string): boolean {
   }
 
   const html_patterns = [
-    /<[a-z][\s\S]*>/i,
-    /<\/[a-z]+>/i,
-    /<br\s*\/?>/i,
+    /<(?:o:p|[a-z][a-z0-9-]*)(?=[\s/>])[^<>]*>/i,
+    /<\/[a-z][a-z0-9-]*\s*>/i,
+    /<!(?:doctype\b|--)/i,
     /&[a-z]+;/i,
     /&#\d+;/i,
   ];

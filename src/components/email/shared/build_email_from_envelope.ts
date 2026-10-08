@@ -22,6 +22,7 @@ import type { DecryptedEnvelope, UnsubscribeInfo } from "@/types/email";
 import type { DecryptedThreadMessage } from "@/types/thread";
 
 import { get_email_username } from "@/lib/utils";
+import { is_html_content } from "@/lib/html_text";
 import { get_active_translations } from "@/lib/i18n/translations";
 import {
   try_decrypt_ratchet_body,
@@ -151,7 +152,7 @@ async function resolve_envelope_body(
     resolved_html?.includes("-----BEGIN PGP MESSAGE-----") ?? false;
   const text_had_pgp =
     pre_pgp_text.includes("-----BEGIN PGP MESSAGE-----") && pgp_was_decrypted;
-  const content_is_html = /<[a-z][\s\S]*>/i.test(body_text);
+  const content_is_html = is_html_content(body_text);
   const decrypted_is_html =
     (html_has_pgp || text_had_pgp) && pgp_was_decrypted && content_is_html;
   let safe_html: string | undefined =

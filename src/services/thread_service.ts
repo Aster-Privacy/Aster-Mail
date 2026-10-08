@@ -53,6 +53,7 @@ import {
 
 import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelope";
 import { get_active_translations } from "@/lib/i18n/translations";
+import { is_html_content } from "@/lib/html_text";
 import { HASH_ALG } from "@/services/crypto/constants";
 import {
   try_extract_mime_body,
@@ -322,7 +323,7 @@ async function decode_thread_envelope(
     }
   }
 
-  const content_is_html = /<[a-z][\s\S]*>/i.test(body_content);
+  const content_is_html = is_html_content(body_content);
   const html_had_pgp =
     resolved_html?.includes("-----BEGIN PGP MESSAGE-----") ?? false;
   let effective_html: string | undefined =
@@ -652,7 +653,7 @@ export async function fetch_and_decrypt_virtual_group(
       }
     }
 
-    const content_is_html = /<[a-z][\s\S]*>/i.test(body_content);
+    const content_is_html = is_html_content(body_content);
     const html_had_pgp =
       resolved_html?.includes("-----BEGIN PGP MESSAGE-----") ?? false;
     let effective_html: string | undefined =

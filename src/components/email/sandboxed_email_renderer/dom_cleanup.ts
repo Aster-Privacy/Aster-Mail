@@ -428,6 +428,112 @@ export function trim_trailing_empty_blocks(doc: Document): void {
   }
 }
 
+const INLINE_LINE_TAGS = new Set([
+  "A",
+  "B",
+  "I",
+  "U",
+  "EM",
+  "STRONG",
+  "FONT",
+  "SMALL",
+  "CODE",
+]);
+
+interface TextLine {
+  start: Node;
+  end: Node;
+  text: string;
+}
+
+function line_top(node: Node): Node {
+  let top = node;
+
+  while (
+    top.parentNode &&
+    top.parentNode.nodeType === Node.ELEMENT_NODE &&
+    INLINE_LINE_TAGS.has((top.parentNode as Element).tagName.toUpperCase())
+  ) {
+    top = top.parentNode;
+  }
+
+  return top;
+}
+
+function is_line_break(node: Node): boolean {
+  return (
+    node.nodeType === Node.ELEMENT_NODE &&
+    (node as Element).tagName.toUpperCase() === "BR"
+  );
+}
+
+function line_containing(node: Node): TextLine {
+  const top = line_top(node);
+  let start = top;
+  let end = top;
+
+  while (start.previousSibling && !is_line_break(start.previousSibling)) {
+    start = start.previousSibling;
+  }
+  while (end.nextSibling && !is_line_break(end.nextSibling)) {
+    end = end.nextSibling;
+  }
+
+  let text = "";
+
+  for (let cur: Node | null = start; cur; cur = cur.nextSibling) {
+    text += cur.textContent || "";
+    if (cur === end) break;
+  }
+
+  return { start, end, text: text.trim() };
+}
+
+function line_after(line: TextLine): TextLine | null {
+  const br = line.end.nextSibling;
+
+  if (!br || !br.nextSibling || is_line_break(br.nextSibling)) return null;
+
+  return line_containing(br.nextSibling);
+}
+
+function split_block_at_line(block: Element, line_start: Node): Element {
+  if (line_start.parentNode !== block) return block;
+  if (block.closest(HIDDEN_QUOTE_SELECTOR)) return block;
+
+  let has_text_before = false;
+
+  for (let p = line_start.previousSibling; p; p = p.previousSibling) {
+    if ((p.textContent || "").trim()) {
+      has_text_before = true;
+      break;
+    }
+  }
+
+  if (!has_text_before) return block;
+
+  const tail = block.cloneNode(false) as Element;
+
+  tail.removeAttribute("id");
+
+  let cur: Node | null = line_start;
+
+  while (cur) {
+    const next: Node | null = cur.nextSibling;
+
+    tail.appendChild(cur);
+    cur = next;
+  }
+
+  while (block.lastChild && is_line_break(block.lastChild)) {
+    block.removeChild(block.lastChild);
+  }
+
+  block.after(tail);
+
+  return tail;
+}
+
 export function collapse_quoted_replies(doc: Document, t: translate_fn): void {
   const body = doc.body;
 
@@ -474,6 +580,18 @@ export function collapse_quoted_replies(doc: Document, t: translate_fn): void {
       marker_text = walker.currentNode as Text;
       break;
     }
+    if (!text) continue;
+
+    const line = line_containing(walker.currentNode);
+
+    if (!line.text || line.text.length > max_attribution_length) continue;
+    if (
+      wrote_re.test(line.text) ||
+      (/^On\s/.test(line.text) && line_after(line)?.text === "wrote:")
+    ) {
+      marker_text = walker.currentNode as Text;
+      break;
+    }
   }
 
   if (!marker_text) return;
@@ -497,6 +615,11 @@ export function collapse_quoted_replies(doc: Document, t: translate_fn): void {
     marker_block = marker_text.parentElement;
   }
   if (!marker_block || marker_block === body) return;
+
+  marker_block = split_block_at_line(
+    marker_block,
+    line_containing(marker_text).start,
+  );
 
   const has_content_before = (() => {
     let prev: Node | null = marker_block!.previousSibling;
