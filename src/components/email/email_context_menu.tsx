@@ -490,8 +490,7 @@ function EmailContextMenuContentInner({
               {can_move_to_inbox && (
                 <>
                   <ContextMenuItem
-                    onSelect={(e) => {
-                      e.preventDefault();
+                    onSelect={() => {
                       if (can_move_out_of_bin) {
                         void handle_action("move_inbox", on_move_to_inbox);
 
@@ -511,10 +510,7 @@ function EmailContextMenuContentInner({
               {folders.map((folder) => (
                 <ContextMenuItem
                   key={folder.id}
-                  onSelect={(e) => {
-                    e.preventDefault();
-                    on_folder_toggle(folder.id);
-                  }}
+                  onSelect={() => on_folder_toggle(folder.id)}
                 >
                   {folder.depth ? (
                     <span
@@ -600,10 +596,7 @@ function EmailContextMenuContentInner({
                 return (
                   <ContextMenuItem
                     key={id}
-                    onSelect={(e) => {
-                      e.preventDefault();
-                      on_category_change(id as EmailCategory);
-                    }}
+                    onSelect={() => on_category_change(id as EmailCategory)}
                   >
                     {!selection && effective_category(email) === id && (
                       <CheckIcon className="me-0.5 h-3 w-3 flex-shrink-0" />
