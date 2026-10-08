@@ -4469,6 +4469,39 @@ html:not(.dark) .sender_logo_light > img {
   animation: aster_tip_fade_in 120ms ease-out;
 }
 
+.profile_avatar_edit {
+  outline: none;
+  box-shadow: 0 0 0 4px var(--aster-island-fill, var(--bg-primary));
+  transition: box-shadow 160ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+html[data-input-modality="keyboard"] .profile_avatar_edit:focus-visible {
+  box-shadow:
+    0 0 0 4px var(--aster-island-fill, var(--bg-primary)),
+    0 0 0 6px var(--accent-color, #3b82f6);
+}
+
+.profile_avatar_edit_overlay {
+  opacity: 0;
+  transition: opacity 200ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+@media (hover: hover) {
+  .profile_avatar_edit:hover .profile_avatar_edit_overlay {
+    opacity: 1;
+  }
+}
+
+html[data-input-modality="keyboard"]
+  .profile_avatar_edit:focus-visible
+  .profile_avatar_edit_overlay {
+  opacity: 1;
+}
+
+.profile_picture_stage {
+  height: min(420px, calc(100dvh - 11rem));
+}
+
 .profile_picture_option {
   background-color: var(--aster-field-bg, var(--bg-hover));
   transition:

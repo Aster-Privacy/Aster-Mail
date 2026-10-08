@@ -142,6 +142,34 @@ describe("profile picture gallery on a routed connection", () => {
     },
   );
 
+  it("settles on one view when the gallery is opened and closed quickly", async () => {
+    await mount();
+
+    const back_button = () =>
+      document.querySelector<HTMLButtonElement>(
+        'button[aria-label="common.back"]',
+      );
+
+    await act(async () => {
+      gallery_row()?.click();
+    });
+    await act(async () => {
+      back_button()?.click();
+    });
+    await act(async () => {
+      gallery_row()?.click();
+    });
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    });
+
+    expect(
+      document.querySelectorAll('button[aria-label="common.back"]'),
+    ).toHaveLength(1);
+    expect(document.querySelectorAll('img[src*="/thumb/"]')).toHaveLength(1);
+    expect(fetch_mock).toHaveBeenCalledTimes(1);
+  });
+
   it("drops the thumbnails when the connection becomes routed", async () => {
     await mount();
 
