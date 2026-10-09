@@ -684,6 +684,30 @@ function split_after(node: Node, scope: Node): Node {
   return current;
 }
 
+function break_preformatted_lines(doc: Document, body: Element): void {
+  const walker = doc.createTreeWalker(body, NodeFilter.SHOW_TEXT);
+  const targets: Text[] = [];
+
+  while (walker.nextNode()) {
+    const node = walker.currentNode as Text;
+
+    if (!node.data.includes("\n")) continue;
+    if (!node.parentElement?.closest("pre")) continue;
+    targets.push(node);
+  }
+
+  for (const node of targets) {
+    const parts = node.data.split(/\r?\n/);
+    const fragment = doc.createDocumentFragment();
+
+    parts.forEach((part, index) => {
+      if (index > 0) fragment.appendChild(doc.createElement("br"));
+      if (part) fragment.appendChild(doc.createTextNode(part));
+    });
+    node.parentNode?.replaceChild(fragment, node);
+  }
+}
+
 export function collapse_quoted_replies(doc: Document, t: translate_fn): void {
   const body = doc.body;
 
@@ -691,6 +715,8 @@ export function collapse_quoted_replies(doc: Document, t: translate_fn): void {
   remove_aster_footers(body, true);
   if (body.querySelector("details.aster-forwarded-collapse")) return;
   if (body.querySelector(".aster-quote-toggle")) return;
+
+  break_preformatted_lines(doc, body);
 
   const lines = collect_lines(body);
   const found = find_quote_start(lines) ?? find_trailing_quote(lines);

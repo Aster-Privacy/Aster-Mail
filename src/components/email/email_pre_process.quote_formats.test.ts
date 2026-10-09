@@ -262,6 +262,42 @@ describe("reply layouts", () => {
     expect(doc.querySelector(".aster-quoted-content")).toBeNull();
   });
 
+  it("collapses a quote inside preformatted html", () => {
+    const doc = render_html(
+      "<pre>Sounds good.\n\nOn Tue, Oct 6, 2026 at 9:00 AM Someone &lt;a@example.com&gt; wrote:\n&gt; earlier text\n&gt; more text\n</pre>",
+    );
+
+    expect(visible_text(doc)).toContain("Sounds good.");
+    expect(visible_text(doc)).not.toContain("earlier text");
+    expect(hidden_text(doc)).toContain("earlier text");
+  });
+
+  it("collapses a crlf plain-text quote", () => {
+    const doc = render_plain(
+      "Thanks.\r\n\r\nOn Tue, Oct 6, 2026 at 9:00 AM Someone <a@example.com> wrote:\r\n> earlier text\r\n",
+    );
+
+    expect(visible_text(doc)).toContain("Thanks.");
+    expect(visible_text(doc)).not.toContain("earlier text");
+  });
+
+  it("collapses a quote inside a table cell", () => {
+    const doc = render_html(
+      "<table><tr><td><div>Cell reply.</div><div>On Tue, Oct 6, 2026 at 9:00 AM Someone &lt;a@example.com&gt; wrote:</div><blockquote>older</blockquote></td></tr></table>",
+    );
+
+    expect(visible_text(doc)).toContain("Cell reply.");
+    expect(visible_text(doc)).not.toContain("older");
+  });
+
+  it("leaves a message that is only a quote readable", () => {
+    const doc = render_plain(
+      "On Tue, Oct 6, 2026 at 9:00 AM Someone <a@example.com> wrote:\n> only quoted text",
+    );
+
+    expect(visible_text(doc)).toContain("only quoted text");
+  });
+
   it("is idempotent", () => {
     const text = [
       "Reply.",
