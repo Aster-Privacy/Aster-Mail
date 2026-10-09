@@ -66,6 +66,7 @@ import {
   upload_to_escrow,
 } from "./message_escrow";
 import { array_to_base64, base64_to_array } from "./base64";
+import { is_unauthenticated_plaintext } from "./ratchet_verification_status";
 
 async function escrow_key(): Promise<CryptoKey> {
   const base = await crypto.subtle.importKey("raw", MASTER, "HKDF", false, [
@@ -157,6 +158,23 @@ describe("escrow entries are bound to their message", () => {
     served.set("mail-old:BA==:1", await seal("mail-old:BA==:1", "old body"));
 
     expect(await fetch_from_escrow("mail-old:BA==:1")).toBe("old body");
+    expect(is_unauthenticated_plaintext("old body")).toBe(true);
+  });
+
+  it("refuses an unbound entry when a bound one is required", async () => {
+    served.set("mail-old:BA==:2", await seal("mail-old:BA==:2", "old two"));
+
+    expect(
+      await fetch_from_escrow("mail-old:BA==:2", { require_bound: true }),
+    ).toBeNull();
+  });
+
+  it("keeps a bound entry authenticated", async () => {
+    await upload_to_escrow("mail-1:BA==:3", "bound body");
+    served.set("mail-1:BA==:3", posted[0]);
+
+    expect(await fetch_from_escrow("mail-1:BA==:3")).toBe("bound body");
+    expect(is_unauthenticated_plaintext("bound body")).toBe(false);
   });
 
   it("rejects a bound entry served for a different message", async () => {

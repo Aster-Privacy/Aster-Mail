@@ -22,6 +22,7 @@ import { array_to_base64, base64_to_array } from "./base64";
 import { get_derived_encryption_key } from "./memory_key_store";
 import { decrypt_with_legacy_derived_keys } from "./legacy_keks";
 import { set_cached_ratchet_plaintext } from "./ratchet_plaintext_cache";
+import { mark_unauthenticated_plaintext } from "./ratchet_verification_status";
 
 import { ignore_error } from "@/lib/ignore_error";
 import { api_client } from "@/services/api/client";
@@ -209,7 +210,7 @@ async function decrypt_escrow_payload(
   ciphertext: Uint8Array,
   nonce: Uint8Array,
   dedupe_key: string,
-): Promise<ArrayBuffer> {
+): Promise<{ bytes: ArrayBuffer; bound: boolean }> {
   const bound = await open_escrow(
     escrow_key,
     ciphertext,
@@ -217,11 +218,11 @@ async function decrypt_escrow_payload(
     escrow_aad_v2(dedupe_key),
   );
 
-  if (bound) return bound;
+  if (bound) return { bytes: bound, bound: true };
 
   const unbound = await open_escrow(escrow_key, ciphertext, nonce);
 
-  if (unbound) return unbound;
+  if (unbound) return { bytes: unbound, bound: false };
 
   const recovered = await decrypt_with_legacy_derived_keys(
     derive_escrow_key_from_base,
@@ -231,7 +232,7 @@ async function decrypt_escrow_payload(
 
   if (!recovered) throw new Error("escrow entry did not decrypt");
 
-  return recovered;
+  return { bytes: recovered, bound: false };
 }
 
 export async function upload_to_escrow(
@@ -268,6 +269,7 @@ export async function upload_to_escrow(
 
 export async function fetch_from_escrow(
   dedupe_key: string,
+  options: { require_bound?: boolean } = {},
 ): Promise<string | null> {
   if (!dedupe_key) return null;
 
@@ -296,16 +298,20 @@ export async function fetch_from_escrow(
     const ciphertext = base64_to_array(response.data.encrypted_plaintext);
     const nonce = base64_to_array(response.data.plaintext_nonce);
 
-    const plaintext_bytes = await decrypt_escrow_payload(
+    const opened = await decrypt_escrow_payload(
       escrow_key,
       ciphertext,
       nonce,
       dedupe_key,
     );
 
-    const plaintext = new TextDecoder().decode(plaintext_bytes);
+    if (!opened.bound && options.require_bound) return null;
 
-    await set_cached_ratchet_plaintext(dedupe_key, plaintext);
+    const plaintext = new TextDecoder().decode(opened.bytes);
+
+    if (!opened.bound) mark_unauthenticated_plaintext(plaintext);
+
+    await set_cached_ratchet_plaintext(dedupe_key, plaintext, !opened.bound);
 
     return plaintext;
   } catch {
@@ -329,16 +335,20 @@ export async function sync_escrow_to_cache(): Promise<void> {
       const ciphertext = base64_to_array(entry.encrypted_plaintext);
       const nonce = base64_to_array(entry.plaintext_nonce);
 
-      const plaintext_bytes = await decrypt_escrow_payload(
+      const opened = await decrypt_escrow_payload(
         escrow_key,
         ciphertext,
         nonce,
         entry.message_id,
       );
 
-      const plaintext = new TextDecoder().decode(plaintext_bytes);
+      const plaintext = new TextDecoder().decode(opened.bytes);
 
-      await set_cached_ratchet_plaintext(entry.message_id, plaintext);
+      await set_cached_ratchet_plaintext(
+        entry.message_id,
+        plaintext,
+        !opened.bound,
+      );
     } catch {
       /* skip entries that fail to decrypt */
     }

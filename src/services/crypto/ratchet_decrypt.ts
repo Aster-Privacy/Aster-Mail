@@ -165,7 +165,9 @@ async function prefer_escrowed_plaintext(
   if (!is_unauthenticated_plaintext(plaintext)) return plaintext;
   if (escrow_upgrade_misses.has(dedupe_key)) return plaintext;
 
-  const escrowed = await fetch_from_escrow(dedupe_key).catch(() => null);
+  const escrowed = await fetch_from_escrow(dedupe_key, {
+    require_bound: true,
+  }).catch(() => null);
 
   if (escrowed === null) {
     note_escrow_upgrade_miss(dedupe_key);
@@ -301,7 +303,16 @@ async function attempt_ratchet_decrypt(
     if (dedupe_key) {
       const escrowed = await fetch_from_escrow(dedupe_key).catch(() => null);
 
-      if (escrowed !== null) return { plaintext: escrowed, error: null };
+      if (escrowed !== null) {
+        if (is_unauthenticated_plaintext(escrowed)) {
+          record_message_sender_identity(
+            message_id ?? dedupe_key,
+            "unverified",
+          );
+        }
+
+        return { plaintext: escrowed, error: null };
+      }
     }
 
     return { plaintext: null, error: decrypt_error };

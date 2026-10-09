@@ -786,6 +786,9 @@ describe("recovery lane trust", () => {
       expect.any(String),
       "cached through the lane",
     );
+    expect(fetch_from_escrow).toHaveBeenCalledWith(expect.any(String), {
+      require_bound: true,
+    });
   });
 
   it("keeps the warning on a cached lane message the escrow does not have", async () => {
