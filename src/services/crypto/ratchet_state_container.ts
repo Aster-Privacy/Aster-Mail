@@ -99,7 +99,9 @@ export function decode_ratchet_state_container(
     return { kind: "rolled_back" };
   }
 
-  const { conversation_id: _bound_inner, ...inner_state } = state;
+  const inner_state = { ...state };
+
+  delete inner_state.conversation_id;
 
   return {
     kind: "accepted",

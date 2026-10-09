@@ -39,12 +39,22 @@ import { raise_sync_floor, read_sync_floor } from "./ratchet_sync_floor";
 
 import { user_facing_error } from "@/utils/user_facing_error";
 import { api_client } from "@/services/api/client";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import {
+  decrypt_aes_gcm_with_fallback,
+  decrypt_with_legacy_derived_keys,
+} from "@/services/crypto/legacy_keks";
 import { HASH_ALG } from "@/services/crypto/constants";
 
 const API_BASE = "/crypto/v1/ratchet";
 
 const NOT_FOUND_TTL_MS = 5 * 60 * 1000;
+
+export class RatchetStateUnreadableError extends Error {
+  constructor() {
+    super("Synced ratchet state is not readable with any available key");
+    this.name = "RatchetStateUnreadableError";
+  }
+}
 const not_found_cache = new Map<string, number>();
 
 interface RatchetStateResponse {
@@ -108,9 +118,21 @@ async function open_state_from_server(
       encryption_key,
       ciphertext,
       nonce,
+    ).catch(() => null);
+
+    if (legacy) {
+      return { plaintext: decoder.decode(legacy), opened_bound: false };
+    }
+
+    const derived = await decrypt_with_legacy_derived_keys(
+      derive_ratchet_encryption_key_from_base,
+      ciphertext,
+      nonce,
     );
 
-    return { plaintext: decoder.decode(legacy), opened_bound: false };
+    if (!derived) throw new RatchetStateUnreadableError();
+
+    return { plaintext: decoder.decode(derived), opened_bound: false };
   }
 }
 
@@ -142,26 +164,6 @@ async function read_server_state(
   }
 
   return decoded.state;
-}
-
-async function observe_server_version(
-  encrypted_state: string | undefined,
-  state_nonce: string | undefined,
-  encryption_key: CryptoKey,
-  conversation_id: string,
-): Promise<void> {
-  if (!encrypted_state || !state_nonce) return;
-
-  try {
-    await read_server_state(
-      encrypted_state,
-      state_nonce,
-      encryption_key,
-      conversation_id,
-    );
-  } catch {
-    return;
-  }
 }
 
 async function seal_state_for_server(
@@ -243,11 +245,16 @@ async function lookup_server_state(
   };
 }
 
+type AbsorbOutcome = "absorbed" | "refused" | "unreadable";
+
 async function absorb_server_state(
   ratchet: DoubleRatchet,
   encryption_key: CryptoKey,
-  lookup: Extract<LookupResult, { kind: "found" }>,
-): Promise<boolean> {
+  lookup: Pick<
+    Extract<LookupResult, { kind: "found" }>,
+    "encrypted_state" | "state_nonce"
+  >,
+): Promise<AbsorbOutcome> {
   try {
     const local = await ratchet.serialize();
     const remote = await read_server_state(
@@ -263,9 +270,28 @@ async function absorb_server_state(
 
     ratchet.adopt_state(merge_ratchet_states(local, remote));
 
-    return true;
-  } catch {
-    return false;
+    return "absorbed";
+  } catch (error) {
+    return error instanceof RatchetStateUnreadableError
+      ? "unreadable"
+      : "refused";
+  }
+}
+
+async function absorb_or_refuse_overwrite(
+  ratchet: DoubleRatchet,
+  encryption_key: CryptoKey,
+  lookup: Pick<
+    Extract<LookupResult, { kind: "found" }>,
+    "encrypted_state" | "state_nonce"
+  >,
+): Promise<void> {
+  const outcome = await absorb_server_state(ratchet, encryption_key, lookup);
+
+  if (outcome === "unreadable") throw new RatchetStateUnreadableError();
+
+  if (outcome === "absorbed") {
+    await save_ratchet_state(ratchet).catch(() => undefined);
   }
 }
 
@@ -317,21 +343,13 @@ async function do_sync(
         const recheck = await lookup_server_state(conversation_id_b64);
 
         if (recheck.kind === "found") {
-          if (await absorb_server_state(ratchet, encryption_key, recheck)) {
-            await save_ratchet_state(ratchet).catch(() => undefined);
-          }
-
+          await absorb_or_refuse_overwrite(ratchet, encryption_key, recheck);
           known_version = recheck.version;
         }
 
         continue;
       } else {
-        await observe_server_version(
-          lookup.encrypted_state,
-          lookup.state_nonce,
-          encryption_key,
-          conversation_id,
-        );
+        await absorb_or_refuse_overwrite(ratchet, encryption_key, lookup);
         known_version = lookup.version;
       }
     }
@@ -369,8 +387,8 @@ async function do_sync(
 
     if (recheck.version === known_version) {
       await new Promise((r) => setTimeout(r, 50 * (attempt + 1)));
-    } else if (await absorb_server_state(ratchet, encryption_key, recheck)) {
-      await save_ratchet_state(ratchet).catch(() => undefined);
+    } else {
+      await absorb_or_refuse_overwrite(ratchet, encryption_key, recheck);
     }
 
     known_version = recheck.version;
@@ -541,12 +559,12 @@ export async function sync_all_ratchet_states(
           result.synced.push(conversation_id);
         } else if (local_ratchet.is_dirty_since_sync()) {
           try {
-            await observe_server_version(
-              server_info.encrypted_state,
-              server_info.state_nonce,
-              encryption_key,
-              conversation_id,
-            );
+            if (server_info.encrypted_state && server_info.state_nonce) {
+              await absorb_or_refuse_overwrite(local_ratchet, encryption_key, {
+                encrypted_state: server_info.encrypted_state,
+                state_nonce: server_info.state_nonce,
+              });
+            }
             await sync_ratchet_to_server(
               local_ratchet,
               encryption_key,
