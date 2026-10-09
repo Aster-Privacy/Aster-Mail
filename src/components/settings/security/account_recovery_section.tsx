@@ -26,6 +26,8 @@ import {
 } from "@heroicons/react/24/outline";
 import { Badge, Button, Island, IslandRow, IslandSection } from "@aster/ui";
 
+import { RecoverDataModal } from "@/components/common/recover_data_modal";
+import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { SETTINGS_ANCHORS } from "@/lib/settings_links";
 import {
@@ -67,6 +69,9 @@ export function AccountRecoverySection({
   const [modal_mode, set_modal_mode] =
     useState<RecoveryCodesModalMode>("regenerate");
   const [load_error, set_load_error] = useState(false);
+  const [show_recover_data, set_show_recover_data] = useState(false);
+  const { user } = use_auth();
+  const account_id = user?.id ?? null;
 
   const fetch_methods = useCallback(async () => {
     const [methods_response, status_response] = await Promise.all([
@@ -89,6 +94,7 @@ export function AccountRecoverySection({
   }, [fetch_methods]);
 
   const has_codes = methods?.has_codes ?? false;
+  const has_locked_data = (methods?.inactive_key_sets ?? 0) > 0;
   const has_offline_method = has_codes || (methods?.has_phrase ?? false);
   const remaining = status?.remaining ?? 0;
   const is_low =
@@ -223,8 +229,35 @@ export function AccountRecoverySection({
               }
             />
           )}
+
+          {has_locked_data && account_id && (
+            <IslandRow
+              description={t("common.locked_data_banner_message")}
+              label={t("common.recover_data_title")}
+              layout="stacked"
+              trailing={
+                <Button
+                  variant="depth"
+                  onClick={() => set_show_recover_data(true)}
+                >
+                  {t("common.locked_data_banner_action")}
+                </Button>
+              }
+            />
+          )}
         </Island>
       </IslandSection>
+
+      {account_id && (
+        <RecoverDataModal
+          account_id={account_id}
+          is_open={show_recover_data}
+          on_close={() => {
+            set_show_recover_data(false);
+            void fetch_methods();
+          }}
+        />
+      )}
 
       <RecoveryCodesModal
         has_codes={has_codes}
