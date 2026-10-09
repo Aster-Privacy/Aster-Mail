@@ -26,6 +26,7 @@ import { ACCOUNT_KEY_LENGTH } from "./account_data_key";
 import { array_to_base64 } from "./base64";
 import { base64_to_array } from "./key_manager";
 import { zero_uint8_array } from "./secure_memory";
+import { decrypt_aes_gcm_bound_or_unbound } from "./aes_gcm_aad_fallback";
 
 export const ESCROW_SEED_LENGTH = 32;
 export const ESCROW_PUBLIC_KEY_LENGTH = 32;
@@ -222,14 +223,11 @@ export async function open_account_key_from_escrow(
     zero_uint8_array(shared);
 
     const plaintext = new Uint8Array(
-      await crypto.subtle.decrypt(
-        {
-          name: "AES-GCM",
-          iv: nonce,
-          additionalData: seal_aad(user_id, token_version),
-        },
+      await decrypt_aes_gcm_bound_or_unbound(
         key,
+        nonce,
         ciphertext,
+        seal_aad(user_id, token_version),
       ),
     );
 

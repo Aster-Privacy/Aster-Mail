@@ -28,6 +28,7 @@ import {
   safe_session_remove,
   safe_session_set,
 } from "@/lib/safe_storage";
+import { decrypt_aes_gcm_bound_or_unbound } from "@/services/crypto/aes_gcm_aad_fallback";
 
 const MAX_ATTEMPTS = 5;
 const BASE_LOCKOUT_MS = 5 * 60 * 1000;
@@ -221,14 +222,11 @@ async function open_duress_tag(
 
   if (!key) return false;
   try {
-    const opened = await crypto.subtle.decrypt(
-      {
-        name: "AES-GCM",
-        iv: bytes.slice(0, DURESS_TAG_NONCE_BYTES),
-        additionalData: duress_tag_aad(account_id, duress_salt),
-      },
+    const opened = await decrypt_aes_gcm_bound_or_unbound(
       key,
+      bytes.slice(0, DURESS_TAG_NONCE_BYTES),
       bytes.slice(DURESS_TAG_NONCE_BYTES),
+      duress_tag_aad(account_id, duress_salt),
     );
 
     return new TextDecoder().decode(opened) === DURESS_TAG_PLAINTEXT;

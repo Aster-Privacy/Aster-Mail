@@ -57,6 +57,7 @@ import {
 import { zero_uint8_array } from "./secure_memory";
 import { load_openpgp } from "./openpgp_loader";
 import { with_vault_write_lock } from "./vault_write_lock";
+import { decrypt_aes_gcm_bound_or_unbound } from "./aes_gcm_aad_fallback";
 
 const SNAPSHOT_VERSION = 1;
 const SECRET_LENGTH = 32;
@@ -204,10 +205,11 @@ export async function open_device_snapshot(
 
   try {
     combined = new Uint8Array(
-      await crypto.subtle.decrypt(
-        { name: "AES-GCM", iv: record.iv, additionalData: aad },
+      await decrypt_aes_gcm_bound_or_unbound(
         device_key,
+        record.iv,
         record.sealed,
+        aad,
       ),
     );
 
@@ -216,14 +218,11 @@ export async function open_device_snapshot(
     const inner_key = await derive_inner_key(secret, record.snapshot_id);
 
     plaintext = new Uint8Array(
-      await crypto.subtle.decrypt(
-        {
-          name: "AES-GCM",
-          iv: combined.slice(0, IV_LENGTH),
-          additionalData: aad,
-        },
+      await decrypt_aes_gcm_bound_or_unbound(
         inner_key,
+        combined.slice(0, IV_LENGTH),
         combined.slice(IV_LENGTH),
+        aad,
       ),
     );
 
