@@ -24,8 +24,8 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { update_profile_picture } from "@/services/api/user";
+import { compress_square_avatar } from "@/utils/square_avatar_image";
 
-const MAX_SIZE = 256;
 const MAX_FILE_BYTES = 5 * 1024 * 1024;
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const PICKER_CLEANUP_DELAY_MS = 1500;
@@ -49,40 +49,6 @@ function set_file_picker_open(open: boolean) {
 
     window.addEventListener("focus", clear);
   }
-}
-
-export function compress_image(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const url = URL.createObjectURL(file);
-
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      const canvas = document.createElement("canvas");
-      let { width, height } = img;
-
-      if (width > height && width > MAX_SIZE) {
-        height = Math.round((height * MAX_SIZE) / width);
-        width = MAX_SIZE;
-      } else if (height > MAX_SIZE) {
-        width = Math.round((width * MAX_SIZE) / height);
-        height = MAX_SIZE;
-      }
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext("2d");
-
-      if (ctx) {
-        ctx.drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL("image/webp", 0.8));
-      } else reject(new Error("No canvas context"));
-    };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error("Load failed"));
-    };
-    img.src = url;
-  });
 }
 
 interface UseProfilePictureUploadOptions {
@@ -130,7 +96,7 @@ export function use_profile_picture_upload(
       report_error(null);
 
       try {
-        const compressed = await compress_image(file);
+        const compressed = await compress_square_avatar(file);
 
         set_preview(compressed);
 

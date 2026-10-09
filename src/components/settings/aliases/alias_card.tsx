@@ -40,6 +40,7 @@ import { Badge, Button, Checkbox, Island, Switch } from "@aster/ui";
 import { get_grace_days_remaining } from "./grace_period";
 
 import { copy_text_or_throw } from "@/utils/copy_text";
+import { compress_square_avatar } from "@/utils/square_avatar_image";
 import { Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -58,42 +59,6 @@ import { PinIcon } from "@/components/common/icons";
 import { AliasDisplayNameEditor } from "@/components/settings/aliases/alias_display_name_editor";
 import { AliasMetaEditor } from "@/components/settings/aliases/alias_meta_editor";
 import { AliasNoteEditor } from "@/components/settings/aliases/alias_note_editor";
-
-const AVATAR_MAX_SIZE = 256;
-
-function compress_avatar(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const url = URL.createObjectURL(file);
-
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      const canvas = document.createElement("canvas");
-      let { width, height } = img;
-
-      if (width > height && width > AVATAR_MAX_SIZE) {
-        height = Math.round((height * AVATAR_MAX_SIZE) / width);
-        width = AVATAR_MAX_SIZE;
-      } else if (height > AVATAR_MAX_SIZE) {
-        width = Math.round((width * AVATAR_MAX_SIZE) / height);
-        height = AVATAR_MAX_SIZE;
-      }
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext("2d");
-
-      if (ctx) {
-        ctx.drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL("image/webp", 0.8));
-      } else reject(new Error("No canvas context"));
-    };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error("Load failed"));
-    };
-    img.src = url;
-  });
-}
 
 function AliasAvatar({
   profile_picture,
@@ -285,7 +250,7 @@ export function AliasItem({
 
     set_uploading(true);
     try {
-      const compressed = await compress_avatar(file);
+      const compressed = await compress_square_avatar(file);
 
       set_local_picture(compressed);
       const response = await update_alias(alias.id, {
@@ -597,7 +562,7 @@ export function DomainAddressItem({
 
     set_uploading(true);
     try {
-      const compressed = await compress_avatar(file);
+      const compressed = await compress_square_avatar(file);
 
       set_local_picture(compressed);
       const response = await update_domain_address(

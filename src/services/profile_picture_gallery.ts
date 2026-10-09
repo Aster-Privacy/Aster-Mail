@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { is_onion_host } from "@/lib/onion_host";
+import { curate_gallery_items } from "@/services/profile_picture_curation";
 import { connection_store } from "@/services/routing/connection_store";
 
 const GALLERY_BASE = "https://aster-wallpapers.pages.dev";
@@ -116,6 +117,10 @@ export function gallery_thumb_url(slug: string): string {
   return `${GALLERY_BASE}/thumb/${slug}.webp`;
 }
 
+export function gallery_full_url(slug: string): string {
+  return `${GALLERY_BASE}/full/${slug}.webp`;
+}
+
 async function request_manifest(): Promise<GalleryItem[]> {
   assert_gallery_available();
 
@@ -134,7 +139,9 @@ async function request_manifest(): Promise<GalleryItem[]> {
 
     if (!response.ok) throw new Error("gallery manifest unavailable");
 
-    const items = parse_gallery_manifest(await response.json());
+    const items = curate_gallery_items(
+      parse_gallery_manifest(await response.json()),
+    );
 
     if (items.length === 0) throw new Error("gallery manifest empty");
 
@@ -160,7 +167,7 @@ export async function fetch_gallery_image(slug: string): Promise<File> {
 
   assert_gallery_available();
 
-  const response = await fetch(gallery_thumb_url(slug), {
+  const response = await fetch(gallery_full_url(slug), {
     credentials: "omit",
     referrerPolicy: "no-referrer",
   });

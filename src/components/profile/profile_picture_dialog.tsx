@@ -23,7 +23,9 @@ import type { TranslationKey } from "@/lib/i18n/types";
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
+  useRef,
   useState,
   useSyncExternalStore,
 } from "react";
@@ -170,6 +172,23 @@ export function ProfilePictureDialogView({
   );
 
   const shown_view: DialogView = gallery_available ? view : "main";
+  const main_content_ref = useRef<HTMLDivElement>(null);
+  const [main_height, set_main_height] = useState<number | null>(null);
+
+  useLayoutEffect(() => {
+    const node = main_content_ref.current;
+
+    if (!node || shown_view !== "main") return;
+    const measure = () => set_main_height(node.offsetHeight);
+
+    measure();
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(measure);
+
+    observer.observe(node);
+
+    return () => observer.disconnect();
+  }, [shown_view, is_open]);
 
   useEffect(() => {
     if (!is_open) return;
@@ -255,7 +274,12 @@ export function ProfilePictureDialogView({
   };
 
   return (
-    <Modal is_open={is_open} on_close={on_close} size="md">
+    <Modal
+      className="max-sm:mx-2 max-sm:my-2 max-sm:max-h-[calc(100dvh-1rem)]"
+      is_open={is_open}
+      on_close={on_close}
+      size="md"
+    >
       <ModalHeader>
         <div className="relative h-8">
           <AnimatePresence custom={slide_direction} initial={false}>
@@ -285,7 +309,15 @@ export function ProfilePictureDialogView({
       </ModalHeader>
 
       <ModalBody className="pb-6">
-        <div className="profile_picture_stage relative overflow-hidden">
+        <div
+          className="profile_picture_stage relative overflow-hidden"
+          data-view={shown_view}
+          style={
+            shown_view === "main" && main_height !== null
+              ? { height: main_height }
+              : undefined
+          }
+        >
           <AnimatePresence custom={slide_direction} initial={false}>
             {shown_view === "main" ? (
               <motion.div
@@ -293,80 +325,82 @@ export function ProfilePictureDialogView({
                 className="absolute inset-0 overflow-y-auto overscroll-contain"
                 {...view_motion}
               >
-                <div className="flex justify-center pb-6 pt-1">
-                  <div className="relative h-36 w-36 overflow-hidden rounded-full">
-                    {picture ? (
-                      <motion.img
-                        key={picture}
-                        alt=""
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="absolute inset-0 h-full w-full object-cover"
-                        draggable={false}
-                        initial={
-                          reduce_motion ? false : { opacity: 0, scale: 1.06 }
-                        }
-                        src={picture}
-                        transition={{ duration: 0.28, ease: VIEW_EASE }}
-                      />
-                    ) : (
-                      <div
-                        className="absolute inset-0 flex select-none items-center justify-center text-[44px] font-semibold leading-none"
-                        style={{
-                          backgroundColor: color,
-                          color: get_contrast_text(color),
-                        }}
-                      >
-                        {get_initials(name, email, get_active_locale())}
-                      </div>
-                    )}
-                    {busy && (
-                      <div className="aster_scrim absolute inset-0 flex items-center justify-center">
-                        <Spinner className="text-white" size="md" />
-                      </div>
-                    )}
+                <div ref={main_content_ref}>
+                  <div className="flex justify-center pb-6 pt-1">
+                    <div className="relative h-36 w-36 overflow-hidden rounded-full">
+                      {picture ? (
+                        <motion.img
+                          key={picture}
+                          alt=""
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="absolute inset-0 h-full w-full object-cover"
+                          draggable={false}
+                          initial={
+                            reduce_motion ? false : { opacity: 0, scale: 1.06 }
+                          }
+                          src={picture}
+                          transition={{ duration: 0.28, ease: VIEW_EASE }}
+                        />
+                      ) : (
+                        <div
+                          className="absolute inset-0 flex select-none items-center justify-center text-[44px] font-semibold leading-none"
+                          style={{
+                            backgroundColor: color,
+                            color: get_contrast_text(color),
+                          }}
+                        >
+                          {get_initials(name, email, get_active_locale())}
+                        </div>
+                      )}
+                      {busy && (
+                        <div className="aster_scrim absolute inset-0 flex items-center justify-center">
+                          <Spinner className="text-white" size="md" />
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  {gallery_available && (
+                  <div className="space-y-2">
+                    {gallery_available && (
+                      <OptionRow
+                        disabled={busy}
+                        hint={t("common.profile_picture_gallery_hint")}
+                        icon={<PhotoIcon className="h-6 w-6" />}
+                        label={t("common.profile_picture_gallery")}
+                        on_click={open_gallery}
+                      />
+                    )}
                     <OptionRow
                       disabled={busy}
-                      hint={t("common.profile_picture_gallery_hint")}
-                      icon={<PhotoIcon className="h-6 w-6" />}
-                      label={t("common.profile_picture_gallery")}
-                      on_click={open_gallery}
+                      hint={t("common.profile_picture_upload_hint")}
+                      icon={<ArrowUpTrayIcon className="h-6 w-6" />}
+                      label={t("common.profile_picture_upload")}
+                      on_click={on_upload}
                     />
-                  )}
-                  <OptionRow
-                    disabled={busy}
-                    hint={t("common.profile_picture_upload_hint")}
-                    icon={<ArrowUpTrayIcon className="h-6 w-6" />}
-                    label={t("common.profile_picture_upload")}
-                    on_click={on_upload}
-                  />
-                </div>
-
-                {error && (
-                  <p
-                    className="pt-3 text-center text-xs font-medium text-[var(--color-danger)]"
-                    role="alert"
-                  >
-                    {error}
-                  </p>
-                )}
-
-                {has_saved_picture && (
-                  <div className="flex justify-center pt-4">
-                    <Button
-                      disabled={busy}
-                      size="sm"
-                      variant="ghost"
-                      onClick={on_remove}
-                    >
-                      {t("common.remove_photo")}
-                    </Button>
                   </div>
-                )}
+
+                  {error && (
+                    <p
+                      className="pt-3 text-center text-xs font-medium text-[var(--color-danger)]"
+                      role="alert"
+                    >
+                      {error}
+                    </p>
+                  )}
+
+                  {has_saved_picture && (
+                    <div className="flex justify-center pt-4">
+                      <Button
+                        disabled={busy}
+                        size="sm"
+                        variant="ghost"
+                        onClick={on_remove}
+                      >
+                        {t("common.remove_photo")}
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </motion.div>
             ) : (
               <motion.div
@@ -418,7 +452,7 @@ export function ProfilePictureDialogView({
                       )}
                     </div>
                     <div className="profile_picture_grid min-h-0 flex-1 overflow-y-auto overscroll-contain">
-                      <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                      <div className="grid grid-cols-3 gap-x-2 gap-y-3 sm:grid-cols-4">
                         {visible_items.map((item) => {
                           const credit = item.credit
                             ? t("common.profile_picture_credit", {
@@ -433,7 +467,7 @@ export function ProfilePictureDialogView({
                             >
                               <button
                                 aria-label={credit ?? undefined}
-                                className="profile_picture_tile relative aspect-square overflow-hidden rounded-2xl"
+                                className="profile_picture_tile relative aspect-square w-full overflow-hidden rounded-full"
                                 disabled={!!pending_slug || busy}
                                 title={credit ?? undefined}
                                 type="button"
@@ -457,7 +491,7 @@ export function ProfilePictureDialogView({
                               {credit && (
                                 <p
                                   aria-hidden="true"
-                                  className="profile_picture_credit break-words text-[10px] leading-snug text-txt-muted"
+                                  className="profile_picture_credit break-words text-center text-[10px] leading-snug text-txt-muted"
                                   dir="auto"
                                 >
                                   {credit}

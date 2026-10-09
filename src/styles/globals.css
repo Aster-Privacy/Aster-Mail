@@ -4500,6 +4500,19 @@ html[data-input-modality="keyboard"]
 
 .profile_picture_stage {
   height: min(420px, calc(100dvh - 11rem));
+  max-height: calc(100dvh - 11rem);
+  transition: height 240ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+@media (max-width: 639px) {
+  .profile_picture_stage {
+    height: min(400px, calc(100dvh - 7.5rem));
+    max-height: calc(100dvh - 7.5rem);
+  }
+
+  .profile_picture_stage[data-view="gallery"] {
+    height: calc(100dvh - 7.5rem);
+  }
 }
 
 .profile_picture_option {
@@ -4571,6 +4584,7 @@ html[data-input-modality="keyboard"]
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .profile_picture_stage,
   .profile_picture_option,
   .profile_picture_chip,
   .profile_picture_tile img {
