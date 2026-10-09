@@ -135,6 +135,7 @@ export function use_external_accounts_form(t: I18nTranslate) {
       username: form_username.trim(),
       password: normalize_app_password(form_host, form_password),
       use_tls: form_use_tls,
+      smtp_use_tls: get_effective_smtp_use_tls(),
       smtp_host:
         form_smtp_host.trim() !== ""
           ? sanitize_hostname(form_smtp_host)
@@ -153,6 +154,7 @@ export function use_external_accounts_form(t: I18nTranslate) {
       form_username,
       form_password,
       form_use_tls,
+      get_effective_smtp_use_tls,
       smtp_same_as_incoming,
       form_smtp_host,
       form_smtp_port,
@@ -499,11 +501,15 @@ export function use_external_accounts_form(t: I18nTranslate) {
           set_form_use_tls(settings.use_tls);
           set_has_stored_password(settings.has_password);
           set_has_stored_smtp_password(settings.has_smtp_password);
+          const smtp_use_tls = settings.smtp_use_tls ?? true;
+
+          set_form_smtp_use_tls(smtp_use_tls);
 
           const smtp_matches_incoming =
             settings.smtp_host === settings.host &&
             settings.smtp_username === settings.username &&
-            settings.smtp_port === 587;
+            settings.smtp_port === 587 &&
+            smtp_use_tls === settings.use_tls;
 
           set_smtp_same_as_incoming(smtp_matches_incoming);
           set_form_smtp_host(settings.smtp_host);

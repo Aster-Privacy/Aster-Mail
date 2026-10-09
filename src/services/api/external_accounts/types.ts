@@ -37,6 +37,7 @@ export interface ExternalAccountCredentials {
   smtp_port: number;
   smtp_username: string;
   smtp_password: string;
+  smtp_use_tls: boolean;
 }
 
 export interface ExternalAccountResponse {
@@ -141,6 +142,8 @@ export interface ExternalAccountConnectionSettings {
   port: number;
   username: string;
   use_tls: boolean;
+  // Older API responses may omit the outgoing TLS preference.
+  smtp_use_tls?: boolean;
   smtp_host: string;
   smtp_port: number;
   smtp_username: string;

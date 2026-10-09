@@ -172,6 +172,40 @@ describe("use_external_accounts_form edit prefill", () => {
     expect(hook.form_delete_after_fetch).toBe(false);
   });
 
+  it.each([false, true, undefined])(
+    "restores saved SMTP TLS (%s) with a secure legacy default",
+    async (smtp_use_tls) => {
+      get_connection_settings.mockResolvedValue({
+        data: {
+          host: "mail.example.com",
+          port: 993,
+          username: "person@example.com",
+          use_tls: true,
+          smtp_host: "mail.example.com",
+          smtp_port: 587,
+          smtp_username: "person@example.com",
+          smtp_use_tls,
+          has_password: true,
+          has_smtp_password: true,
+        },
+      });
+
+      await act(async () => {
+        hook.handle_edit(account);
+      });
+      await flush();
+
+      expect(hook.form_smtp_use_tls).toBe(smtp_use_tls ?? true);
+      expect(hook.build_credentials()).toHaveProperty(
+        "smtp_use_tls",
+        smtp_use_tls ?? true,
+      );
+      if (smtp_use_tls === false) {
+        expect(hook.smtp_same_as_incoming).toBe(false);
+      }
+    },
+  );
+
   it("never receives a password from the server", async () => {
     await act(async () => {
       hook.handle_edit(account);

@@ -45,9 +45,8 @@ vi.mock("@/services/api/external_accounts", () => ({
   list_account_folders: vi.fn(),
 }));
 
-const { use_external_accounts_form } = await import(
-  "@/components/settings/hooks/use_external_accounts_form"
-);
+const { use_external_accounts_form } =
+  await import("@/components/settings/hooks/use_external_accounts_form");
 
 type FormHook = ReturnType<typeof use_external_accounts_form>;
 
@@ -121,6 +120,40 @@ describe("use_external_accounts_form provider presets", () => {
       root.unmount();
     });
     container.remove();
+  });
+
+  it.each([false, true])(
+    "includes independent SMTP TLS (%s) in saved credentials",
+    async (use_tls) => {
+      await act(async () => {
+        hook.handle_email_change("person@gmail.com");
+        hook.handle_smtp_same_toggle(false);
+        hook.set_form_use_tls(!use_tls);
+        hook.set_form_smtp_use_tls(use_tls);
+      });
+
+      expect(hook.build_credentials()).toMatchObject({
+        use_tls: !use_tls,
+        smtp_use_tls: use_tls,
+      });
+
+      await act(async () => {
+        hook.set_form_smtp_use_tls(!use_tls);
+      });
+      expect(hook.build_credentials()).toHaveProperty("smtp_use_tls", !use_tls);
+    },
+  );
+
+  it("inherits incoming TLS when SMTP uses the incoming server fallback", async () => {
+    await act(async () => {
+      hook.handle_host_change("mail.example.com");
+      hook.set_form_use_tls(false);
+    });
+
+    expect(hook.build_credentials()).toMatchObject({
+      use_tls: false,
+      smtp_use_tls: false,
+    });
   });
 
   it("fills the Gmail servers as soon as a gmail address is typed", async () => {
