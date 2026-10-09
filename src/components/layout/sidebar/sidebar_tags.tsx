@@ -43,7 +43,10 @@ import {
   SidebarTagRow,
 } from "@aster/ui";
 
-import { EMAIL_DRAG_MIME } from "@/components/email/inbox/category_drag";
+import {
+  EMAIL_DRAG_MIME,
+  run_scope_drop,
+} from "@/components/email/inbox/category_drag";
 import { NavSectionSkeleton } from "@/components/common/nav_section_skeleton";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { TagContextMenu } from "@/components/tags/tag_context_menu";
@@ -319,6 +322,15 @@ export const SidebarTags = memo(function SidebarTags({
                       e.preventDefault();
                       e.stopPropagation();
                       set_drag_over_token(null);
+                      if (
+                        run_scope_drop(e.dataTransfer, {
+                          kind: "tag",
+                          token: tag.tag_token,
+                          name: tag.name,
+                        })
+                      ) {
+                        return;
+                      }
                       const raw = e.dataTransfer.getData(EMAIL_DRAG_MIME);
 
                       if (!raw || !on_drop_emails) return;

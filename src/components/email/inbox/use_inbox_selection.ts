@@ -98,19 +98,41 @@ export function use_inbox_selection({
 
   const [select_all_mode, set_select_all_mode] = useState(false);
   const [excluded_ids, set_excluded_ids] = useState<string[]>([]);
+  const excluded_groups_ref = useRef(new Map<string, string[]>());
   const activate_select_all_mode = useCallback(() => {
+    excluded_groups_ref.current.clear();
     set_excluded_ids([]);
     set_select_all_mode(true);
   }, []);
   const exit_select_all_mode = useCallback(() => {
+    excluded_groups_ref.current.clear();
     set_excluded_ids([]);
     set_select_all_mode(false);
   }, []);
   const excluded_from_select_all = useCallback((id: string): void => {
+    const row = emails_ref.current.find((e) => e.id === id);
+
+    excluded_groups_ref.current.set(
+      id,
+      row?.grouped_email_ids && row.grouped_email_ids.length > 0
+        ? row.grouped_email_ids
+        : [id],
+    );
     set_excluded_ids((prev) => (prev.includes(id) ? prev : [...prev, id]));
   }, []);
   const included_in_select_all = useCallback((id: string): void => {
+    excluded_groups_ref.current.delete(id);
     set_excluded_ids((prev) => prev.filter((existing) => existing !== id));
+  }, []);
+  const get_excluded_message_ids = useCallback((): string[] => {
+    const message_ids = new Set<string>();
+
+    for (const [row_id, grouped] of excluded_groups_ref.current) {
+      message_ids.add(row_id);
+      for (const grouped_id of grouped) message_ids.add(grouped_id);
+    }
+
+    return [...message_ids];
   }, []);
 
   const selection_scope_ref = useRef({
@@ -130,6 +152,7 @@ export function use_inbox_selection({
       category: active_category,
     };
     set_select_all_mode(false);
+    excluded_groups_ref.current.clear();
     set_excluded_ids([]);
     shift_anchor_ref.current = null;
     last_shift_target_ref.current = null;
@@ -384,5 +407,6 @@ export function use_inbox_selection({
     activate_select_all_mode,
     exit_select_all_mode,
     excluded_ids,
+    get_excluded_message_ids,
   };
 }

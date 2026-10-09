@@ -1592,11 +1592,19 @@ export function is_representative_unread(id: string): boolean {
   return ensure_derived().unread_reps.has(id);
 }
 
-export function get_category_action_ids(category: EmailCategory): {
+export function get_category_action_ids(
+  category: EmailCategory,
+  excluded_ids: readonly string[] = [],
+): {
   rep_ids: string[];
   all_ids: string[];
 } {
-  const rep_ids = ensure_derived().pages.get(category) ?? [];
+  const page_ids = ensure_derived().pages.get(category) ?? [];
+  const excluded = new Set(excluded_ids);
+  const rep_ids =
+    excluded.size === 0
+      ? page_ids
+      : page_ids.filter((id) => !excluded.has(id));
   const rep_set = new Set(rep_ids);
   const thread_tokens = new Set<string>();
 

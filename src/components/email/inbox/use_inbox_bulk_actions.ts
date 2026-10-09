@@ -21,6 +21,8 @@
 import type { TranslationKey } from "@/lib/i18n/types";
 import type { ActionToastConfig } from "@/components/toast/action_toast";
 import type { CategoryBulkOutcome } from "@/components/email/inbox/category_bulk_actions";
+import type { EmailCategory } from "@/types/email";
+import type { ScopeDropTarget } from "@/components/email/inbox/category_drag";
 
 import { useState, useCallback } from "react";
 
@@ -31,14 +33,17 @@ import {
 } from "@/components/toast/action_toast";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
-  get_category_action_ids,
+  get_index_entries,
   is_fully_built,
   is_index_capped,
+  note_recent_pin,
   remove_ids as remove_index_ids,
+  upsert_entries,
   wait_for_index_ready,
 } from "@/services/category_index";
 import {
   run_category_scope_action,
+  scope_category_ids,
   supports_category_scope,
 } from "@/components/email/inbox/category_bulk_actions";
 import { collect_scope_ids } from "@/components/email/inbox/collect_scope_ids";
@@ -115,6 +120,15 @@ const BULK_SCOPE_TOAST: Record<
     action_type: "restore",
   },
 };
+
+const DROP_PROTECTED_VIEWS = new Set([
+  "sent",
+  "drafts",
+  "scheduled",
+  "trash",
+  "spam",
+  "archive",
+]);
 
 export type PendingSelectAllAction = {
   label_key: TranslationKey;
@@ -210,7 +224,7 @@ export function use_inbox_bulk_actions({
   const run_scope_action = useCallback(
     async (action: BulkScopeAction) => {
       const progress = { completed: 0, total: 0 };
-      const exclude_ids = selection.excluded_ids;
+      const exclude_ids = selection.get_excluded_message_ids();
       const settle_view = (refetch: boolean) => {
         selection.exit_select_all_mode();
         selection.handle_clear_selection();
@@ -396,15 +410,14 @@ export function use_inbox_bulk_actions({
             return;
           }
 
-          const excluded = new Set(selection.excluded_ids);
-
-          ids = get_category_action_ids(
+          ids = scope_category_ids(
             categories.active_category,
-          ).all_ids.filter((id) => !excluded.has(id));
+            selection.get_excluded_message_ids(),
+          );
         } else {
           const collected = await collect_scope_ids({
             view: current_view,
-            exclude_ids: selection.excluded_ids,
+            exclude_ids: selection.get_excluded_message_ids(),
             on_progress: (collected_count) => report(0, collected_count),
           });
 
@@ -563,15 +576,14 @@ export function use_inbox_bulk_actions({
             return;
           }
 
-          const excluded = new Set(selection.excluded_ids);
-
-          ids = get_category_action_ids(
+          ids = scope_category_ids(
             categories.active_category,
-          ).all_ids.filter((id) => !excluded.has(id));
+            selection.get_excluded_message_ids(),
+          );
         } else {
           const collected = await collect_scope_ids({
             view: current_view,
-            exclude_ids: selection.excluded_ids,
+            exclude_ids: selection.get_excluded_message_ids(),
             on_progress: (collected_count) => report(0, collected_count),
           });
 
@@ -643,6 +655,145 @@ export function use_inbox_bulk_actions({
     ],
   );
 
+  const run_scope_category_move = useCallback(
+    async (category: EmailCategory): Promise<void> => {
+      if (!categories.enabled) return;
+
+      if (!is_fully_built() || is_index_capped()) {
+        show_toast(
+          is_index_capped()
+            ? t("mail.bulk_action_index_capped")
+            : t("mail.bulk_action_index_not_ready"),
+          "error",
+        );
+
+        return;
+      }
+
+      const ids = scope_category_ids(
+        categories.active_category,
+        selection.get_excluded_message_ids(),
+      );
+
+      if (ids.length === 0 || category === categories.active_category) {
+        return;
+      }
+
+      try {
+        const result = await bulk_update_metadata_by_ids(ids, {
+          category,
+          category_pinned: true,
+        });
+        const failed = new Set(result.failed_ids);
+        const moved_ids = ids.filter((id) => !failed.has(id));
+
+        for (const id of moved_ids) note_recent_pin(id, category);
+        upsert_entries(
+          get_index_entries(moved_ids).map((entry) => ({
+            ...entry,
+            category,
+            category_pinned: true,
+          })),
+        );
+
+        selection.exit_select_all_mode();
+        selection.handle_clear_selection();
+        set_current_page(0);
+        fetch_page(0, page_size, { force: true });
+        mail_event_bus.emit(MAIL_EVENTS.MAIL_CHANGED);
+
+        if (failed.size > 0) {
+          show_toast(
+            moved_ids.length === 0
+              ? result.undecryptable_ids.length > 0
+                ? t("errors.metadata_undecryptable_change")
+                : t("common.failed_to_update_emails")
+              : t("common.bulk_action_partially_applied", {
+                  count: moved_ids.length,
+                  total: ids.length,
+                }),
+            "error",
+          );
+
+          return;
+        }
+
+        show_action_toast({
+          message: t("mail.moved_to_category"),
+          action_type: "folder",
+          email_ids: [],
+        });
+      } catch (e) {
+        if (import.meta.env.DEV) console.error(e);
+        fetch_page(0, page_size, { force: true });
+        show_toast(t("common.something_went_wrong"), "error");
+      }
+    },
+    [
+      categories.enabled,
+      categories.active_category,
+      selection,
+      fetch_page,
+      set_current_page,
+      page_size,
+      t,
+    ],
+  );
+
+  const handle_category_change_wrapped = useCallback(
+    (category: EmailCategory): boolean => {
+      if (!selection.select_all_mode) return false;
+
+      queue_select_all_action("mail.move_to_category", () => {
+        void run_scope_category_move(category);
+      });
+
+      return true;
+    },
+    [selection, run_scope_category_move, queue_select_all_action],
+  );
+
+  const handle_scope_drop = useCallback(
+    (target: ScopeDropTarget): void => {
+      if (target.kind === "category") {
+        handle_category_change_wrapped(target.category);
+
+        return;
+      }
+
+      if (target.kind === "tag") {
+        queue_select_all_action("mail.apply_label", () => {
+          void run_scope_label_action("tag", target.token, false);
+        });
+
+        return;
+      }
+
+      if (current_view === `folder-${target.token}`) {
+        show_toast(t("common.already_in_folder", { folder: target.name }));
+
+        return;
+      }
+
+      if (DROP_PROTECTED_VIEWS.has(current_view)) {
+        show_toast(t("common.cannot_move_from_view"), "error");
+
+        return;
+      }
+
+      queue_select_all_action("mail.move_to_folder", () => {
+        void run_scope_label_action("folder", target.token, false);
+      });
+    },
+    [
+      current_view,
+      handle_category_change_wrapped,
+      run_scope_label_action,
+      queue_select_all_action,
+      t,
+    ],
+  );
+
   const handle_snooze_wrapped = useCallback(
     async (snooze_until: Date): Promise<boolean> => {
       if (selection.select_all_mode) {
@@ -706,7 +857,7 @@ export function use_inbox_bulk_actions({
     try {
       const collected = await collect_scope_ids({
         view: "trash",
-        exclude_ids: selection.excluded_ids,
+        exclude_ids: selection.get_excluded_message_ids(),
       });
 
       selection.exit_select_all_mode();
@@ -757,7 +908,7 @@ export function use_inbox_bulk_actions({
           : "mail.move_to_trash",
         () => {
           if (current_view === "trash") {
-            if (selection.excluded_ids.length > 0) {
+            if (selection.get_excluded_message_ids().length > 0) {
               void run_trash_scope_permanent_delete();
 
               return;
@@ -937,5 +1088,7 @@ export function use_inbox_bulk_actions({
     handle_folder_toggle_wrapped,
     handle_tag_toggle_wrapped,
     handle_snooze_wrapped,
+    handle_category_change_wrapped,
+    handle_scope_drop,
   };
 }

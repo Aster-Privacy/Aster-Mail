@@ -37,6 +37,13 @@ import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 
 export const CATEGORY_ACTION_CHUNK_SIZE = 100;
 
+export function scope_category_ids(
+  category: EmailCategory,
+  excluded_ids: readonly string[],
+): string[] {
+  return get_category_action_ids(category, excluded_ids).all_ids;
+}
+
 export type CategoryBulkOutcome = "done" | "noop" | "not_ready" | "unsupported";
 
 export const CATEGORY_SCOPE_ACTIONS: ReadonlySet<BulkScopeAction> =
@@ -118,12 +125,7 @@ export async function run_category_scope_action(
   if (!is_fully_built()) return "not_ready";
   if (is_index_capped()) return "not_ready";
 
-  const excluded = new Set(options?.exclude_ids ?? []);
-  const { all_ids: scoped_ids } = get_category_action_ids(category);
-  const all_ids =
-    excluded.size === 0
-      ? scoped_ids
-      : scoped_ids.filter((id) => !excluded.has(id));
+  const all_ids = scope_category_ids(category, options?.exclude_ids ?? []);
 
   if (all_ids.length === 0) return "noop";
 

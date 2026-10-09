@@ -103,6 +103,10 @@ import { empty_selection_snapshot } from "@/components/email/inbox/selection_sna
 import {
   begin_category_drag,
   end_category_drag,
+  EMAIL_SCOPE_DRAG_MIME,
+  is_scope_drag_active,
+  loaded_selection_snapshot,
+  scope_drag_count,
 } from "@/components/email/inbox/category_drag";
 import mail_logo_url from "@/assets/mail_logo.webp";
 import { use_shown_thread_count } from "@/hooks/pending_thread_replies";
@@ -244,8 +248,16 @@ export const InboxEmailListItem = memo(
       const handle_drag_start = (e: React.DragEvent<HTMLDivElement>) => {
         sweep_drag_images();
 
-        const snapshot = selection?.current ?? empty_selection_snapshot;
-        const is_multi = !!email.is_selected && snapshot.ids.length > 1;
+        const loaded_snapshot = email.is_selected
+          ? loaded_selection_snapshot()
+          : null;
+        const snapshot =
+          loaded_snapshot && loaded_snapshot.ids.includes(email.id)
+            ? loaded_snapshot
+            : (selection?.current ?? empty_selection_snapshot);
+        const is_scope = !!email.is_selected && is_scope_drag_active();
+        const is_multi =
+          !!email.is_selected && (is_scope || snapshot.ids.length > 1);
         const ids = is_multi
           ? snapshot.grouped_ids.length > 0
             ? snapshot.grouped_ids
@@ -253,7 +265,11 @@ export const InboxEmailListItem = memo(
           : email.grouped_email_ids && email.grouped_email_ids.length > 1
             ? email.grouped_email_ids
             : [email.id];
-        const count = is_multi ? snapshot.ids.length : 1;
+        const count = is_scope
+          ? Math.max(scope_drag_count(), snapshot.ids.length)
+          : is_multi
+            ? snapshot.ids.length
+            : 1;
 
         const drag_el = document.createElement("div");
 
@@ -303,6 +319,7 @@ export const InboxEmailListItem = memo(
           "application/x-astermail-emails",
           JSON.stringify(ids),
         );
+        if (is_scope) e.dataTransfer.setData(EMAIL_SCOPE_DRAG_MIME, "1");
 
         const folder_tokens = is_multi
           ? snapshot.folder_tokens

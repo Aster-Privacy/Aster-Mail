@@ -47,7 +47,10 @@ import {
   get_sibling_folders,
   is_folder_tree_sorted_a_z,
 } from "@/hooks/use_folders";
-import { EMAIL_DRAG_MIME } from "@/components/email/inbox/category_drag";
+import {
+  EMAIL_DRAG_MIME,
+  run_scope_drop,
+} from "@/components/email/inbox/category_drag";
 import { NavSectionSkeleton } from "@/components/common/nav_section_skeleton";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { FolderContextMenu } from "@/components/folders/folder_context_menu";
@@ -464,6 +467,15 @@ export const SidebarFolders = memo(function SidebarFolders({
                       e.preventDefault();
                       e.stopPropagation();
                       set_drag_over_token(null);
+                      if (
+                        run_scope_drop(e.dataTransfer, {
+                          kind: "folder",
+                          token: folder.folder_token,
+                          name: folder.name,
+                        })
+                      ) {
+                        return;
+                      }
                       const raw = e.dataTransfer.getData(EMAIL_DRAG_MIME);
 
                       if (!raw || !on_drop_emails) return;

@@ -18,6 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { EmailCategory } from "@/types/email";
+import type { SelectionSnapshot } from "@/components/email/inbox/selection_snapshot";
+
 import { useSyncExternalStore } from "react";
 
 export const EMAIL_DRAG_MIME = "application/x-astermail-emails";
@@ -66,4 +69,54 @@ export function end_category_drag(): void {
 
 export function use_category_drag_active(): boolean {
   return useSyncExternalStore(subscribe, get_snapshot, () => false);
+}
+
+export const EMAIL_SCOPE_DRAG_MIME = "application/x-astermail-select-all";
+
+export type ScopeDropTarget =
+  | { kind: "folder"; token: string; name: string }
+  | { kind: "tag"; token: string; name: string }
+  | { kind: "category"; category: EmailCategory };
+
+interface ScopeDragHandler {
+  is_active: () => boolean;
+  count: () => number;
+  selection_snapshot: () => SelectionSnapshot;
+  run: (target: ScopeDropTarget) => void;
+}
+
+let scope_drag_handler: ScopeDragHandler | null = null;
+
+export function register_scope_drag_handler(
+  handler: ScopeDragHandler,
+): () => void {
+  scope_drag_handler = handler;
+
+  return () => {
+    if (scope_drag_handler === handler) scope_drag_handler = null;
+  };
+}
+
+export function is_scope_drag_active(): boolean {
+  return scope_drag_handler?.is_active() ?? false;
+}
+
+export function scope_drag_count(): number {
+  return scope_drag_handler?.count() ?? 0;
+}
+
+export function loaded_selection_snapshot(): SelectionSnapshot | null {
+  return scope_drag_handler?.selection_snapshot() ?? null;
+}
+
+export function run_scope_drop(
+  data_transfer: DataTransfer,
+  target: ScopeDropTarget,
+): boolean {
+  if (!data_transfer.types.includes(EMAIL_SCOPE_DRAG_MIME)) return false;
+  if (!scope_drag_handler || !scope_drag_handler.is_active()) return false;
+
+  scope_drag_handler.run(target);
+
+  return true;
 }

@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { api_client, type ApiResponse } from "./client";
+import { BULK_REQUEST_LIMIT, send_in_chunks } from "./chunked_request";
 
 export interface SnoozeResponse {
   id: string;
@@ -52,10 +53,19 @@ export async function bulk_snooze_emails(
   mail_item_ids: string[],
   snoozed_until: Date,
 ): Promise<ApiResponse<BulkSnoozeResponse>> {
-  return api_client.post("/mail/v1/snooze/bulk", {
+  return send_in_chunks(
     mail_item_ids,
-    snoozed_until: snoozed_until.toISOString(),
-  });
+    BULK_REQUEST_LIMIT,
+    (chunk) =>
+      api_client.post<BulkSnoozeResponse>("/mail/v1/snooze/bulk", {
+        mail_item_ids: chunk,
+        snoozed_until: snoozed_until.toISOString(),
+      }),
+    (total, next) => ({
+      snoozed_count: total.snoozed_count + next.snoozed_count,
+      failed_count: total.failed_count + next.failed_count,
+    }),
+  );
 }
 
 export async function list_snoozed_emails(

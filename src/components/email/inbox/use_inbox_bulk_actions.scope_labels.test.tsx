@@ -105,6 +105,7 @@ function make_params(overrides: Record<string, unknown> = {}) {
   const selection = {
     select_all_mode: true,
     excluded_ids: [] as string[],
+    get_excluded_message_ids: (): string[] => selection.excluded_ids,
     exit_select_all_mode: vi.fn(),
     handle_clear_selection: vi.fn(),
   };
