@@ -389,7 +389,7 @@ export const InlineReplyComposer = forwardRef<
       </div>
       <div className="py-0.5">
         <RecipientField
-          show_bcc
+          show_bcc={reply_modal.show_bcc}
           show_cc_bcc_buttons
           all_recipients={reply_all_recipients}
           chip_class_name={field_chip_class}
@@ -420,6 +420,7 @@ export const InlineReplyComposer = forwardRef<
             })
           }
           on_show_cc={() => reply_modal.set_show_cc(true)}
+          on_show_bcc={() => reply_modal.set_show_bcc(true)}
           recipients={reply_modal.recipients.to}
           show_cc={reply_modal.show_cc}
         />
@@ -469,6 +470,54 @@ export const InlineReplyComposer = forwardRef<
               })
             }
             recipients={reply_modal.recipients.cc}
+          />
+        </div>
+      )}
+      {reply_modal.show_bcc && (
+        <div className="py-0.5">
+          <RecipientField
+            all_recipients={reply_all_recipients}
+            chip_class_name={field_chip_class}
+            class_name="items-start"
+            input_class_name="min-w-[80px]"
+            list_class_name="min-h-9"
+            label_class_name={field_label_class}
+            contacts={reply_modal.contacts}
+            input_value={reply_modal.inputs.bcc}
+            label={t("mail.bcc")}
+            on_add_recipient={(email) =>
+              reply_modal.dispatch_recipients({
+                type: "ADD",
+                field: "bcc",
+                email,
+              })
+            }
+            on_close={() => {
+              reply_modal.dispatch_recipients({
+                type: "SET",
+                field: "bcc",
+                emails: [],
+              });
+              reply_modal.set_inputs((prev) => ({ ...prev, bcc: "" }));
+              reply_modal.set_show_bcc(false);
+            }}
+            on_input_change={(val) =>
+              reply_modal.set_inputs((prev) => ({ ...prev, bcc: val }))
+            }
+            on_remove_last={() =>
+              reply_modal.dispatch_recipients({
+                type: "REMOVE_LAST",
+                field: "bcc",
+              })
+            }
+            on_remove_recipient={(email) =>
+              reply_modal.dispatch_recipients({
+                type: "REMOVE",
+                field: "bcc",
+                email,
+              })
+            }
+            recipients={reply_modal.recipients.bcc}
           />
         </div>
       )}

@@ -148,6 +148,8 @@ export function use_reply_modal(props: UseReplyModalProps) {
     set_inputs,
     show_cc,
     set_show_cc,
+    show_bcc,
+    set_show_bcc,
     contacts,
     reply_message,
     set_reply_message,
@@ -380,7 +382,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
     const recipient_violation = recipient_limit_violation(
       send_recipients.to,
       send_recipients.cc,
-      [],
+      send_recipients.bcc,
     );
 
     if (recipient_violation) {
@@ -413,7 +415,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
     }
 
     const send_fingerprint = build_send_fingerprint(
-      [...send_recipients.to, ...send_recipients.cc],
+      [...send_recipients.to, ...send_recipients.cc, ...send_recipients.bcc],
       original_subject,
       reply_message,
     );
@@ -433,7 +435,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
 
     if (preferences.auto_save_recent_recipients) {
       void auto_save_recipients_to_contacts(
-        [...send_recipients.to, ...send_recipients.cc],
+        [...send_recipients.to, ...send_recipients.cc, ...send_recipients.bcc],
         { own_addresses },
       );
     }
@@ -474,7 +476,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
         selected_sender.address_hash,
         send_recipients.to,
         send_recipients.cc,
-        [],
+        send_recipients.bcc,
         subject,
         message_with_signature,
         external_attachments,
@@ -539,7 +541,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
         {
           to_recipients: send_recipients.to,
           cc_recipients: send_recipients.cc,
-          bcc_recipients: [],
+          bcc_recipients: send_recipients.bcc,
           subject: build_reply_subject(
             original_subject,
             resolve_reply_prefix(t("mail.reply_subject_prefix")),
@@ -571,6 +573,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
         reply_all,
         to_recipients: send_recipients.to,
         cc_recipients: send_recipients.cc,
+        bcc_recipients: send_recipients.bcc,
         own_addresses,
         thread_token,
         original_email_id,
@@ -725,6 +728,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
         store_pending_send_payload(result.queued_id, {
           to: send_recipients.to,
           cc: send_recipients.cc,
+          bcc: send_recipients.bcc,
           subject: undo_subject,
           body: undo_body,
           sender_email: sender_email_value,
@@ -741,6 +745,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
           id: result.queued_id,
           to: send_recipients.to,
           cc: send_recipients.cc,
+          bcc: send_recipients.bcc,
           subject: undo_subject,
           body: message_with_signature,
           sender_email: sender_email_value,
@@ -839,7 +844,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
     const recipient_violation = recipient_limit_violation(
       send_recipients.to,
       send_recipients.cc,
-      [],
+      send_recipients.bcc,
     );
 
     if (recipient_violation) {
@@ -862,7 +867,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
         : null;
     const scheduled_sender_email = scheduled_alias?.email ?? user.email;
     const scheduled_gate = await check_scheduled_send(
-      [...send_recipients.to, ...send_recipients.cc],
+      [...send_recipients.to, ...send_recipients.cc, ...send_recipients.bcc],
       scheduled_sender_email,
       scheduled_time,
       preferences.require_encryption === true,
@@ -914,7 +919,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
     const content: ScheduledEmailContent = {
       to_recipients: send_recipients.to,
       cc_recipients: send_recipients.cc,
-      bcc_recipients: [],
+      bcc_recipients: send_recipients.bcc,
       subject: build_reply_subject(
         original_subject,
         resolve_reply_prefix(t("mail.reply_subject_prefix")),
@@ -1322,6 +1327,8 @@ export function use_reply_modal(props: UseReplyModalProps) {
     set_inputs,
     show_cc,
     set_show_cc,
+    show_bcc,
+    set_show_bcc,
     contacts,
     reply_message,
     is_sending,

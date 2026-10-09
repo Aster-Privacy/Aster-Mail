@@ -251,4 +251,41 @@ describe("send_reply cc wiring", () => {
 
     expect(payload.cc).toEqual(["alice@example.com", "bob@example.com"]);
   });
+  it.each([0, 5000])(
+    "preserves Bcc and checks its encryption policy (delay %i)",
+    async (delay) => {
+      const { check_reply_send } = await import("./reply_send_gate");
+      const { ensure_external_key_trust } = await import("./key_trust_consent");
+      const { ensure_post_quantum_consent } =
+        await import("./post_quantum_consent");
+      await send_reply(
+        {
+          original,
+          message: "body",
+          bcc_recipients: ["archive@example.com"],
+        },
+        callbacks,
+        delay,
+      );
+
+      const payload = delay
+        ? queue_email_to_server.mock.calls[0][0]
+        : queue_email.mock.calls[0][0];
+      expect(payload.bcc).toEqual(["archive@example.com"]);
+      expect(payload.to).toEqual(["sender@example.com"]);
+      expect(payload.cc).toBeUndefined();
+      expect(check_reply_send).toHaveBeenCalledWith(
+        ["sender@example.com", "archive@example.com"],
+        false,
+      );
+      expect(ensure_external_key_trust).toHaveBeenCalledWith([
+        "sender@example.com",
+        "archive@example.com",
+      ]);
+      expect(ensure_post_quantum_consent).toHaveBeenCalledWith(
+        ["sender@example.com", "archive@example.com"],
+        "me@astermail.org",
+      );
+    },
+  );
 });

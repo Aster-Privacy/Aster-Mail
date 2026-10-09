@@ -422,6 +422,118 @@ describe("reply modal drafts around a send", () => {
     vi.useRealTimers();
   });
 
+  const bcc_draft_props = () =>
+    base_props({
+      existing_draft: {
+        id: "draft_bcc",
+        version: 1,
+        reply_to_id: "email_1",
+        content: {
+          to_recipients: ["sam@example.com"],
+          cc_recipients: [],
+          bcc_recipients: ["archive@example.com"],
+          subject: "Re: Plans",
+          message: "<p>See you</p>",
+        },
+      },
+    });
+
+  it("preserves saved Bcc recipients when editing a reply from the thread", async () => {
+    mocks.update_draft.mockResolvedValue({
+      data: { id: "draft_bcc", version: 2 },
+    });
+    await render_hook(bcc_draft_props());
+    await type_reply("<p>See you on Friday</p>");
+    await advance(1_600);
+
+    expect(mocks.update_draft.mock.calls[0][1].bcc_recipients).toEqual([
+      "archive@example.com",
+    ]);
+    expect(latest!.recipients.bcc).toEqual(["archive@example.com"]);
+    expect(latest!.show_bcc).toBe(true);
+  });
+
+  it("saves Bcc recipient changes even when the reply body is unchanged", async () => {
+    mocks.update_draft.mockResolvedValue({
+      data: { id: "draft_bcc", version: 2 },
+    });
+    await render_hook(bcc_draft_props());
+    await type_reply("<p>See you</p>");
+    await advance(1_600);
+    mocks.update_draft.mockClear();
+
+    await act(async () => {
+      latest!.dispatch_recipients({ type: "SET", field: "bcc", emails: [] });
+    });
+    await advance(1_600);
+
+    expect(mocks.update_draft).toHaveBeenCalledTimes(1);
+    expect(mocks.update_draft.mock.calls[0][1].bcc_recipients).toEqual([]);
+  });
+
+  it("carries saved Bcc recipients through sending and undo", async () => {
+    mocks.send_reply.mockResolvedValue(queued_send_result());
+    await render_hook(bcc_draft_props());
+    await type_reply("<p>See you on Friday</p>");
+    await act(async () => {
+      await latest!.handle_send();
+    });
+
+    expect(mocks.send_reply.mock.calls[0][0].bcc_recipients).toEqual([
+      "archive@example.com",
+    ]);
+    expect(mocks.undo_add).toHaveBeenCalledWith(
+      expect.objectContaining({
+        bcc: ["archive@example.com"],
+      }),
+    );
+  });
+
+  it("does not carry Bcc from a closed draft into a new reply", async () => {
+    const props = bcc_draft_props();
+    await render_hook(props);
+    expect(latest!.recipients.bcc).toEqual(["archive@example.com"]);
+    await render_hook({ ...props, is_open: false });
+    await render_hook(base_props({ original_email_id: "email_2" }));
+    expect(latest!.recipients.bcc).toEqual([]);
+    expect(latest!.show_bcc).toBe(false);
+  });
+
+  it("keeps a draft's Bcc when sender aliases finish loading", async () => {
+    const props = bcc_draft_props();
+    await render_hook(props);
+    mocks.sender_state.options = [
+      {
+        id: "alias",
+        email: "alias@astermail.org",
+        type: "alias",
+        is_enabled: true,
+      },
+    ];
+    await render_hook(props);
+    expect(latest!.recipients.bcc).toEqual(["archive@example.com"]);
+  });
+
+  it("preserves Bcc when scheduling a saved reply", async () => {
+    const { create_scheduled_email } = await import("@/services/api/scheduled");
+    vi.mocked(create_scheduled_email).mockResolvedValue({
+      data: { id: "scheduled_bcc" },
+    } as never);
+    await render_hook(bcc_draft_props());
+    await type_reply("<p>See you on Friday</p>");
+    await act(async () => {
+      latest!.set_scheduled_time(new Date("2027-01-01T10:00:00.000Z"));
+    });
+    await act(async () => {
+      await latest!.handle_scheduled_send();
+    });
+    expect(create_scheduled_email).toHaveBeenLastCalledWith(
+      expect.anything(),
+      expect.objectContaining({ bcc_recipients: ["archive@example.com"] }),
+      expect.anything(),
+    );
+  });
+
   it("deletes a draft whose create lands after the send", async () => {
     const create = deferred<unknown>();
 

@@ -132,6 +132,36 @@ const original = {
 };
 
 describe("reply routing", () => {
+  it.each([
+    ["friend@astermail.org", "bob@example.com"],
+    ["bob@example.com", "friend@astermail.org"],
+  ])(
+    "routes mixed To %s and Bcc %s through the server queue",
+    async (to, bcc) => {
+      const result = await send_reply(
+        {
+          original,
+          message: "reply",
+          to_recipients: [to],
+          bcc_recipients: [bcc],
+          is_plain_text: true,
+        },
+        callbacks(),
+        0,
+      );
+
+      expect(queue_email).not.toHaveBeenCalled();
+      expect(queue_email_to_server).toHaveBeenCalledTimes(1);
+      const [sent, delay] = queue_email_to_server.mock.calls[0];
+
+      expect(delay).toBe(1);
+      expect(sent.to).toEqual([to]);
+      expect(sent.bcc).toEqual([bcc]);
+      expect(sent.is_plain_text).toBe(true);
+      expect(result).toMatchObject({ success: true, is_server_queued: true });
+    },
+  );
+
   it("routes a mixed reply-all through the server queue without an undo delay", async () => {
     const result = await send_reply(
       {
