@@ -386,6 +386,7 @@ export function EmailAutocomplete({
           className="w-full bg-transparent border-none outline-none py-1.5 text-sm text-txt-primary placeholder:text-txt-muted"
           placeholder={placeholder}
           autoCapitalize="none"
+          autoCorrect="off"
           inputMode="email"
           spellCheck={false}
           type="text"
