@@ -53,10 +53,11 @@ import {
 } from "@/services/local_address_avatars";
 import { is_sendable_address } from "@/utils/sender_address";
 import {
+  CATCH_ALL_FEATURE,
   catch_all_sender_options,
-  is_catch_all_sending_enabled,
   set_catch_all_context,
 } from "@/services/catch_all_sender";
+import { use_plan_limits } from "@/hooks/use_plan_limits";
 
 export type SenderOptionType =
   "primary" | "alias" | "domain" | "external" | "ghost";
@@ -170,6 +171,7 @@ export function clear_sender_aliases_cache(): void {
 export function use_sender_aliases(
   candidates: (string | null | undefined)[] = [],
 ) {
+  const { is_feature_locked } = use_plan_limits();
   const [catch_all_domains, set_catch_all_domains] = useState(
     cached_catch_all_domains,
   );
@@ -426,7 +428,7 @@ export function use_sender_aliases(
   return {
     sender_options: [
       ...sender_options,
-      ...(is_catch_all_sending_enabled()
+      ...(!is_feature_locked(CATCH_ALL_FEATURE)
         ? catch_all_sender_options(
             catch_all_domains,
             candidates,

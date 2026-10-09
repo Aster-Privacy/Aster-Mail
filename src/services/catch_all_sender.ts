@@ -21,11 +21,14 @@
 import type { SenderOption } from "@/hooks/use_sender_aliases";
 import type { CustomDomain } from "@/services/api/domains";
 
+import { is_cached_feature_unlocked } from "@/hooks/use_plan_limits";
 import { normalize_address_ignoring_dots } from "@/utils/address_dots";
 import { extract_delivered_to } from "@/utils/delivered_to";
 
+export const CATCH_ALL_FEATURE = "has_catch_all";
+
 export function is_catch_all_sending_enabled(): boolean {
-  return import.meta.env.VITE_CATCH_ALL_SENDING === "true";
+  return is_cached_feature_unlocked(CATCH_ALL_FEATURE);
 }
 
 let context_domains: CustomDomain[] = [];
@@ -58,6 +61,7 @@ function to_concrete_address(
 
   if (
     local === "*" ||
+    local.startsWith("+") ||
     local.startsWith(".") ||
     local.endsWith(".") ||
     local.includes("..")

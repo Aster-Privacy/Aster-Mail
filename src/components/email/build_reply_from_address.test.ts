@@ -32,6 +32,13 @@ import {
 
 import { set_catch_all_context } from "@/services/catch_all_sender";
 
+const plan_state = vi.hoisted(() => ({ catch_all_unlocked: false }));
+
+vi.mock("@/hooks/use_plan_limits", () => ({
+  is_cached_feature_unlocked: (key: string) =>
+    key === "has_catch_all" && plan_state.catch_all_unlocked,
+}));
+
 const catch_all_domain = {
   id: "d1",
   domain_name: "example.com",
@@ -45,7 +52,7 @@ function delivered_to(...values: string[]) {
 
 describe("build_reply_from_address with catch-all sending", () => {
   beforeEach(() => {
-    vi.stubEnv("VITE_CATCH_ALL_SENDING", "true");
+    plan_state.catch_all_unlocked = true;
     set_catch_all_context(
       [
         catch_all_domain,
@@ -61,7 +68,7 @@ describe("build_reply_from_address with catch-all sending", () => {
   });
 
   afterEach(() => {
-    vi.unstubAllEnvs();
+    plan_state.catch_all_unlocked = false;
     set_catch_all_context([], []);
   });
 
@@ -150,8 +157,8 @@ describe("build_reply_from_address with catch-all sending", () => {
     ).toBeUndefined();
   });
 
-  it("matches main exactly when the flag is off", () => {
-    vi.stubEnv("VITE_CATCH_ALL_SENDING", "false");
+  it("matches main exactly without a paid plan", () => {
+    plan_state.catch_all_unlocked = false;
     expect(
       build_reply_from_address(
         {

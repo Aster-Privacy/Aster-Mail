@@ -95,6 +95,10 @@ export function get_cached_plan_code(): string | null {
   return cached_limits?.plan_code ?? read_plan_hint();
 }
 
+export function is_cached_feature_unlocked(feature_key: string): boolean {
+  return !resolve_feature_locked(cached_limits, feature_key);
+}
+
 export function clear_plan_limits_cache(): void {
   cached_limits = null;
   cached_account_id = null;

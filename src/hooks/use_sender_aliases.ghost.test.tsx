@@ -101,6 +101,17 @@ vi.mock("@/services/api/ghost_aliases", () => ({
   ]),
 }));
 
+const plan_state = vi.hoisted(() => ({ catch_all_unlocked: false }));
+
+vi.mock("@/hooks/use_plan_limits", () => ({
+  use_plan_limits: () => ({
+    is_feature_locked: (key: string) =>
+      !(key === "has_catch_all" && plan_state.catch_all_unlocked),
+  }),
+  is_cached_feature_unlocked: (key: string) =>
+    key === "has_catch_all" && plan_state.catch_all_unlocked,
+}));
+
 vi.mock("@/stores/ghost_alias_store", () => ({
   register_ghost_email: vi.fn(),
 }));
@@ -139,7 +150,7 @@ async function flush() {
 }
 
 beforeEach(() => {
-  vi.unstubAllEnvs();
+  plan_state.catch_all_unlocked = false;
   clear_sender_aliases_cache();
   latest_options = [];
   latest_loading = true;
@@ -149,7 +160,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  vi.unstubAllEnvs();
+  plan_state.catch_all_unlocked = false;
   act(() => root.unmount());
   container.remove();
 });
@@ -209,10 +220,9 @@ describe("use_sender_aliases ghost inclusion (reply-from-ghost bug)", () => {
 });
 
 describe("catch-all reply identities", () => {
-  it.each([undefined, "false"])(
-    "keeps wildcard choices off unless enabled: %s",
-    async (flag) => {
-      vi.stubEnv("VITE_CATCH_ALL_SENDING", flag);
+  it.each(["free", "unknown"])(
+    "keeps wildcard choices off without a paid plan: %s",
+    async () => {
       const { list_domains } = await import("@/services/api/domains");
 
       vi.mocked(list_domains).mockResolvedValueOnce({
@@ -250,7 +260,7 @@ describe("catch-all reply identities", () => {
   });
 
   it("offers an unregistered reply address without creating it when enabled", async () => {
-    vi.stubEnv("VITE_CATCH_ALL_SENDING", "true");
+    plan_state.catch_all_unlocked = true;
     const { list_domains, list_domain_addresses } =
       await import("@/services/api/domains");
 
@@ -288,7 +298,7 @@ describe("catch-all reply identities", () => {
   });
 
   it("never revives a disabled alias or address and shares what is registered", async () => {
-    vi.stubEnv("VITE_CATCH_ALL_SENDING", "true");
+    plan_state.catch_all_unlocked = true;
     const aliases = await import("@/services/api/aliases");
     const domains = await import("@/services/api/domains");
 
