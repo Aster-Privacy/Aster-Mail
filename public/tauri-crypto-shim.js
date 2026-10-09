@@ -21,14 +21,7 @@
   }
   function isSymmetric(a) {
     var n = algName(a);
-    return (
-      n === "AES-GCM" ||
-      n === "AES-CBC" ||
-      n === "AES-CTR" ||
-      n === "AES-KW" ||
-      n === "HMAC" ||
-      isKdf(a)
-    );
+    return n === "AES-GCM" || n === "HMAC" || isKdf(a);
   }
   function invoke(cmd, args) {
     return window.__TAURI_INTERNALS__.invoke(cmd, args);
@@ -248,6 +241,24 @@
       });
     }
     return origVerify(algorithm, key, signature, data);
+  };
+  var origWrap = s.wrapKey.bind(s);
+  s.wrapKey = function (format, key, wrappingKey, wrapAlgorithm) {
+    var raw = getRaw(key);
+    if (raw) {
+      if (key.extractable !== true) return denied("key is not extractable");
+      if (format !== "raw") return denied("unsupported wrap format");
+      return origImport(
+        "raw",
+        new Uint8Array(raw),
+        key.algorithm,
+        true,
+        Array.prototype.slice.call(key.usages),
+      ).then(function (nativeKey) {
+        return origWrap("raw", nativeKey, wrappingKey, wrapAlgorithm);
+      });
+    }
+    return origWrap(format, key, wrappingKey, wrapAlgorithm);
   };
   s.digest = function (algorithm, data) {
     return origDigest(algorithm, data);

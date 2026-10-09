@@ -55,6 +55,7 @@ function load_shim(): {
     throw new Error("native");
   };
   const subtle = {
+    wrapKey: native,
     importKey: native,
     generateKey: native,
     exportKey: native,
@@ -262,5 +263,39 @@ describe("desktop crypto shim key rules", () => {
       shim.subtle.encrypt({ ...IV, tagLength: 96 }, key, RAW),
     ).rejects.toThrow("tag length");
     expect(shim.calls).toEqual([]);
+  });
+
+  it("leaves the ciphers the native bridge lacks to webcrypto", async () => {
+    for (const name of ["AES-CBC", "AES-CTR", "AES-KW"]) {
+      await expect(
+        shim.subtle.importKey("raw", RAW, name, false, ["encrypt"]),
+      ).rejects.toThrow("native");
+      await expect(
+        shim.subtle.generateKey({ name, length: 256 }, false, ["encrypt"]),
+      ).rejects.toThrow("native");
+    }
+    expect(shim.calls).toEqual([]);
+  });
+
+  it("derives a native key for ciphers the bridge lacks", async () => {
+    const base = await shim.subtle.importKey("raw", RAW, "PBKDF2", false, [
+      "deriveKey",
+    ]);
+
+    await expect(
+      shim.subtle.deriveKey(
+        {
+          name: "PBKDF2",
+          salt: new Uint8Array(16),
+          iterations: 1,
+          hash: "SHA-256",
+        },
+        base,
+        { name: "AES-CBC", length: 256 },
+        false,
+        ["encrypt"],
+      ),
+    ).rejects.toThrow("native");
+    expect(shim.calls).toEqual(["crypto_pbkdf2"]);
   });
 });
