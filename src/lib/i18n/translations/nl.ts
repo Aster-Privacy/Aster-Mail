@@ -9091,7 +9091,7 @@ export const nl = {
     header_help_list_unsubscribe: "Hoe je je afmeldt voor deze mailinglijst.",
     header_help_spam: "Het oordeel en de score van het spamfilter.",
     header_added_before_aster:
-      "Toegevoegd vóór aankomst bij Aster — niet geverifieerd",
+      "Toegevoegd vóór aankomst bij Aster - niet geverifieerd",
     headers_formatted: "Opgemaakt",
     headers_raw: "Onbewerkt",
     headers_view_label: "Weergave van headers",

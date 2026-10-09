@@ -9220,7 +9220,7 @@ export const fr = {
       "Comment se désabonner de cette liste de diffusion.",
     header_help_spam: "Le verdict et le score du filtre anti-spam.",
     header_added_before_aster:
-      "Ajouté avant l'arrivée chez Aster — non vérifié",
+      "Ajouté avant l'arrivée chez Aster - non vérifié",
     headers_formatted: "Mis en forme",
     headers_raw: "Brut",
     headers_view_label: "Affichage des en-têtes",

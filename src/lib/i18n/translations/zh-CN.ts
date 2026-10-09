@@ -8078,7 +8078,7 @@ export const zh_CN = {
     header_help_message_id: "发件人为此邮件指定的唯一标识符。",
     header_help_list_unsubscribe: "如何退订此邮件列表。",
     header_help_spam: "垃圾邮件过滤器的判定和评分。",
-    header_added_before_aster: "在到达 Aster 之前添加 — 未经验证",
+    header_added_before_aster: "在到达 Aster 之前添加 - 未经验证",
     headers_formatted: "格式化",
     headers_raw: "原始",
     headers_view_label: "邮件头视图",

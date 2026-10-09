@@ -8749,7 +8749,7 @@ export const ko = {
     header_help_list_unsubscribe:
       "이 메일링 리스트의 구독을 취소하는 방법입니다.",
     header_help_spam: "스팸 필터의 판정과 점수입니다.",
-    header_added_before_aster: "Aster에 도착하기 전에 추가됨 — 확인되지 않음",
+    header_added_before_aster: "Aster에 도착하기 전에 추가됨 - 확인되지 않음",
     headers_formatted: "서식 적용",
     headers_raw: "원본",
     headers_view_label: "헤더 보기",
