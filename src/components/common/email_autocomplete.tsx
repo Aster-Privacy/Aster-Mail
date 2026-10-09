@@ -323,7 +323,10 @@ export function EmailAutocomplete({
   const handle_paste = useCallback(
     (e: React.ClipboardEvent<HTMLInputElement>) => {
       const pasted = e.clipboardData.getData("text/plain");
-      const source = value.trim() ? `${value}${pasted}` : pasted;
+      const input = e.currentTarget;
+      const start = input.selectionStart ?? value.length;
+      const end = input.selectionEnd ?? start;
+      const source = value.slice(0, start) + pasted + value.slice(end);
 
       const parts = split_recipient_list(source);
 
@@ -382,7 +385,10 @@ export function EmailAutocomplete({
           ref={input_ref}
           className="w-full bg-transparent border-none outline-none py-1.5 text-sm text-txt-primary placeholder:text-txt-muted"
           placeholder={placeholder}
-          type="email"
+          autoCapitalize="none"
+          inputMode="email"
+          spellCheck={false}
+          type="text"
           value={value}
           onBlur={handle_blur}
           onChange={handle_change}

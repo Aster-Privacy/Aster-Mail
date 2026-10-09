@@ -331,6 +331,50 @@ describe("email autocomplete ranking", () => {
 });
 
 describe("email autocomplete pasting a recipient list", () => {
+  it("replaces selected text when pasting multiple recipients", () => {
+    render_input([]);
+    type_text("old");
+    get_input().select();
+
+    paste_text("new@example.com, second@example.com");
+
+    expect(added).toEqual(["new@example.com", "second@example.com"]);
+    expect(get_input().value).toBe("");
+  });
+
+  it("preserves unselected text around a pasted recipient list", () => {
+    render_input([]);
+    type_text("first@old@example.com");
+    get_input().setSelectionRange(6, 9);
+
+    paste_text("example.com, second");
+
+    expect(added).toEqual(["first@example.com", "second@example.com"]);
+    expect(get_input().value).toBe("");
+  });
+
+  it("inserts at the caret rather than appending to the input", () => {
+    render_input([]);
+    type_text("second@example.com");
+    get_input().setSelectionRange(0, 0);
+
+    paste_text("first@example.com, ");
+
+    expect(added).toEqual(["first@example.com", "second@example.com"]);
+    expect(get_input().value).toBe("");
+  });
+
+  it("leaves a single plain address to the browser's native paste behavior", () => {
+    render_input([]);
+    type_text("old");
+    get_input().select();
+
+    const event = paste_text("new@example.com");
+
+    expect(event.defaultPrevented).toBe(false);
+    expect(added).toEqual([]);
+  });
+
   it("adds every recipient of an Outlook list and leaves no name fragments", () => {
     render_input([]);
 
