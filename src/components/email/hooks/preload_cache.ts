@@ -563,7 +563,7 @@ export async function preload_email_detail(
       const text_had_pgp =
         pre_pgp_text.includes("-----BEGIN PGP MESSAGE-----") &&
         pgp_was_decrypted;
-      const content_is_html = /<[a-z][\s\S]*>/i.test(body_text);
+      const content_is_html = is_html_content(body_text);
       const decrypted_is_html =
         (html_has_pgp || text_had_pgp) && pgp_was_decrypted && content_is_html;
       let safe_html: string | undefined =

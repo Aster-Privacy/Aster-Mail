@@ -21,6 +21,15 @@
 import type { use_i18n } from "@/lib/i18n/context";
 
 import { IMAGE_PROXY_URL } from "./helpers";
+import {
+  collect_lines,
+  find_quote_start,
+  find_trailing_quote,
+  has_reply_text_before,
+  is_boilerplate_text,
+  is_separator_text,
+  resolve_quote_end,
+} from "./quote_detection";
 
 import {
   image_load_retry_delay_ms,
@@ -428,160 +437,168 @@ export function trim_trailing_empty_blocks(doc: Document): void {
   }
 }
 
-export function collapse_quoted_replies(doc: Document, t: translate_fn): void {
-  const body = doc.body;
+const INLINE_LINE_TAGS = new Set([
+  "A",
+  "B",
+  "I",
+  "U",
+  "EM",
+  "STRONG",
+  "FONT",
+  "SMALL",
+  "CODE",
+  "SPAN",
+]);
 
-  if (!body) return;
-  remove_aster_footers(body, true);
-  if (body.querySelector("details.aster-forwarded-collapse")) return;
-  if (body.querySelector(".aster-quote-toggle")) return;
+function line_top(node: Node): Node {
+  let top = node;
 
-  const wrote_re = /^On\s.+wrote:\s*$/;
-  const max_attribution_length = 400;
-  const attribution_block_text = (text_node: Node): string => {
-    let n: Node | null = text_node.parentNode;
+  while (
+    top.parentNode &&
+    top.parentNode.nodeType === Node.ELEMENT_NODE &&
+    INLINE_LINE_TAGS.has((top.parentNode as Element).tagName.toUpperCase()) &&
+    !top.previousSibling
+  ) {
+    top = top.parentNode;
+  }
 
-    while (n && n !== body) {
-      if (n.nodeType === Node.ELEMENT_NODE) {
-        const tag = (n as Element).tagName.toUpperCase();
+  return top;
+}
 
-        if (["DIV", "P", "SECTION", "LI", "TD"].includes(tag)) {
-          return (n.textContent || "").trim();
-        }
-      }
-      n = n.parentNode;
-    }
+function is_line_break(node: Node): boolean {
+  return (
+    node.nodeType === Node.ELEMENT_NODE &&
+    (node as Element).tagName.toUpperCase() === "BR"
+  );
+}
 
-    return "";
-  };
-  const walker = doc.createTreeWalker(body, NodeFilter.SHOW_TEXT);
-  let marker_text: Text | null = null;
+function is_meaningful(node: Node): boolean {
+  if ((node.textContent || "").trim().length > 0) return true;
+
+  return contains_media(node);
+}
+
+function previous_meaningful_sibling(node: Node): Node | null {
+  let prev = node.previousSibling;
+
+  while (prev && !is_meaningful(prev) && !is_separator_node(prev)) {
+    prev = prev.previousSibling;
+  }
+
+  return prev;
+}
+
+function is_separator_node(node: Node): boolean {
+  if (node.nodeType !== Node.ELEMENT_NODE) return false;
+  const el = node as Element;
+
+  if (el.tagName.toUpperCase() === "HR") return true;
+
+  return is_separator_text((el.textContent || "").trim());
+}
+
+function quote_start_node(body: Element, first: Node): Node {
+  let node = line_top(first);
+
+  while (
+    node.parentNode &&
+    node.parentNode !== body &&
+    !(node.parentNode as Element).matches?.("td, th") &&
+    !previous_meaningful_sibling(node)
+  ) {
+    node = node.parentNode;
+  }
+
+  const prev = previous_meaningful_sibling(node);
+
+  if (prev && is_separator_node(prev)) return prev;
+
+  return node;
+}
+
+function has_media_before_node(doc: Document, body: Element, node: Node) {
+  const walker = doc.createTreeWalker(body, NodeFilter.SHOW_ELEMENT);
 
   while (walker.nextNode()) {
-    const text = (walker.currentNode.textContent || "").trim();
+    const current = walker.currentNode;
 
-    if (text && wrote_re.test(text)) {
-      marker_text = walker.currentNode as Text;
-      break;
+    if (current === node || node.contains(current)) return false;
+    if (VISIBLE_MEDIA_TAGS.includes((current as Element).tagName)) return true;
+  }
+
+  return false;
+}
+
+function has_content_after_node(doc: Document, body: Element, node: Node) {
+  const walker = doc.createTreeWalker(
+    body,
+    NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT,
+  );
+  let past = false;
+
+  while (walker.nextNode()) {
+    const current = walker.currentNode;
+
+    if (!past) {
+      if (current === node) past = true;
+      continue;
     }
-    const block_text = attribution_block_text(walker.currentNode);
+    if (node.contains(current)) continue;
+    if (current.nodeType === Node.TEXT_NODE) {
+      if ((current.textContent || "").trim()) return true;
+      continue;
+    }
+    if (VISIBLE_MEDIA_TAGS.includes((current as Element).tagName)) return true;
+  }
 
-    if (
-      block_text &&
-      block_text.length <= max_attribution_length &&
-      wrote_re.test(block_text)
+  return false;
+}
+
+function trim_edge_breaks(node: Node | null, at_end: boolean): void {
+  let el: Node | null = node;
+
+  for (let depth = 0; el && depth < 4; depth++) {
+    if (el.nodeType !== Node.ELEMENT_NODE) return;
+    let edge: Node | null = at_end ? el.lastChild : el.firstChild;
+
+    while (
+      edge &&
+      (is_line_break(edge) ||
+        (edge.nodeType === Node.TEXT_NODE && !(edge.textContent || "").trim()))
     ) {
-      marker_text = walker.currentNode as Text;
-      break;
+      const next: Node | null = at_end
+        ? edge.previousSibling
+        : edge.nextSibling;
+
+      el.removeChild(edge);
+      edge = next;
+    }
+    el = edge;
+  }
+}
+
+function strip_quote_prefixes(doc: Document, content: Element): void {
+  const strip_walker = doc.createTreeWalker(content, NodeFilter.SHOW_TEXT);
+
+  while (strip_walker.nextNode()) {
+    const text_node = strip_walker.currentNode;
+
+    if (!text_node.textContent) continue;
+
+    const prev = text_node.previousSibling;
+    const is_line_start = !prev || is_line_break(prev);
+
+    if (is_line_start && /^(>\s?)+/.test(text_node.textContent)) {
+      text_node.textContent = text_node.textContent.replace(/^(>\s?)+/, "");
     }
   }
+}
 
-  if (!marker_text) return;
-
-  let marker_block: Element | null = null;
-  let n: Node | null = marker_text.parentNode;
-
-  while (n && n !== body) {
-    if (n.nodeType === Node.ELEMENT_NODE) {
-      const tag = (n as Element).tagName.toUpperCase();
-
-      if (["DIV", "P", "SPAN", "SECTION", "BR"].includes(tag)) {
-        marker_block = n as Element;
-        break;
-      }
-    }
-    n = n.parentNode;
-  }
-
-  if (!marker_block) {
-    marker_block = marker_text.parentElement;
-  }
-  if (!marker_block || marker_block === body) return;
-
-  const has_content_before = (() => {
-    let prev: Node | null = marker_block!.previousSibling;
-
-    while (prev) {
-      if ((prev.textContent || "").trim().length > 0) return true;
-      prev = prev.previousSibling;
-    }
-
-    return false;
-  })();
-
-  const to_collapse: Node[] = [];
-
-  if (has_content_before) {
-    let sib: Node | null = marker_block;
-
-    while (sib) {
-      const next: ChildNode | null = sib.nextSibling;
-
-      to_collapse.push(sib);
-      sib = next;
-    }
-  } else {
-    to_collapse.push(marker_block!);
-    let sib: Node | null = marker_block!.nextSibling;
-
-    while (sib) {
-      const tag =
-        sib.nodeType === Node.ELEMENT_NODE
-          ? (sib as Element).tagName.toUpperCase()
-          : null;
-      const text = (sib.textContent || "").trim();
-      const is_quoted_block = tag === "BLOCKQUOTE" || !text;
-
-      if (is_quoted_block) {
-        to_collapse.push(sib);
-        sib = sib.nextSibling;
-      } else {
-        break;
-      }
-    }
-  }
-
-  if (to_collapse.length === 0) return;
-
-  const collapse_contains = (node: Node): boolean =>
-    to_collapse.some(
-      (c) =>
-        c === node ||
-        (c.nodeType === Node.ELEMENT_NODE && (c as Element).contains(node)),
-    );
-  const has_visible_outside = (() => {
-    const outside_walker = doc.createTreeWalker(body, NodeFilter.SHOW_TEXT);
-
-    while (outside_walker.nextNode()) {
-      const node = outside_walker.currentNode;
-
-      if (collapse_contains(node)) continue;
-      if ((node.textContent || "").trim().length > 0) return true;
-    }
-
-    return false;
-  })();
-
-  const hidden_by_default_selector =
-    ".aster_quote, .gmail_quote, .protonmail_quote, .yahoo_quoted, .moz-cite-prefix";
-
-  if (!has_visible_outside) {
-    for (const node of to_collapse) {
-      if (node.nodeType !== Node.ELEMENT_NODE) continue;
-
-      const el = node as Element;
-
-      if (el.matches(hidden_by_default_selector)) {
-        (el as HTMLElement).style.display = "block";
-      }
-      el.querySelectorAll(hidden_by_default_selector).forEach((child) => {
-        (child as HTMLElement).style.display = "block";
-      });
-    }
-
-    return;
-  }
-
+function build_quote_wrapper(
+  doc: Document,
+  t: translate_fn,
+  content: Node,
+): HTMLDivElement {
   const wrapper = doc.createElement("div");
 
   wrapper.className = "aster-quoted-wrapper";
@@ -596,28 +613,8 @@ export function collapse_quoted_replies(doc: Document, t: translate_fn): void {
 
   content_div.className = "aster-quoted-content";
   content_div.style.display = "none";
-
-  for (const node of to_collapse) {
-    content_div.appendChild(node);
-  }
-
-  const strip_walker = doc.createTreeWalker(content_div, NodeFilter.SHOW_TEXT);
-
-  while (strip_walker.nextNode()) {
-    const text_node = strip_walker.currentNode;
-
-    if (!text_node.textContent) continue;
-
-    const prev = text_node.previousSibling;
-    const is_line_start =
-      !prev ||
-      (prev.nodeType === Node.ELEMENT_NODE &&
-        (prev as Element).tagName === "BR");
-
-    if (is_line_start && /^(>\s?)+/.test(text_node.textContent)) {
-      text_node.textContent = text_node.textContent.replace(/^(>\s?)+/, "");
-    }
-  }
+  content_div.appendChild(content);
+  strip_quote_prefixes(doc, content_div);
 
   toggle_btn.addEventListener("click", () => {
     const is_hidden = content_div.style.display === "none";
@@ -629,7 +626,219 @@ export function collapse_quoted_replies(doc: Document, t: translate_fn): void {
 
   wrapper.appendChild(toggle_btn);
   wrapper.appendChild(content_div);
-  body.appendChild(wrapper);
+
+  return wrapper;
+}
+
+function shallow_clone(el: Node): Node {
+  const clone = el.cloneNode(false);
+
+  if (clone.nodeType === Node.ELEMENT_NODE) {
+    (clone as Element).removeAttribute("id");
+  }
+
+  return clone;
+}
+
+function split_before(node: Node, scope: Node): Node {
+  let current = node;
+
+  while (current.parentNode && current.parentNode !== scope) {
+    const parent = current.parentNode;
+
+    if (current.previousSibling && parent.parentNode) {
+      const clone = shallow_clone(parent);
+      let moving: Node | null = current;
+
+      while (moving) {
+        const next: Node | null = moving.nextSibling;
+
+        clone.appendChild(moving);
+        moving = next;
+      }
+      parent.parentNode.insertBefore(clone, parent.nextSibling);
+      current = clone;
+    } else {
+      current = parent;
+    }
+  }
+
+  return current;
+}
+
+function split_after(node: Node, scope: Node): Node {
+  let current = node;
+
+  while (current.parentNode && current.parentNode !== scope) {
+    const parent = current.parentNode;
+
+    if (current.nextSibling && parent.parentNode) {
+      const clone = shallow_clone(parent);
+
+      while (current.nextSibling) clone.appendChild(current.nextSibling);
+      parent.parentNode.insertBefore(clone, parent.nextSibling);
+    }
+    current = parent;
+  }
+
+  return current;
+}
+
+function break_preformatted_lines(doc: Document, body: Element): void {
+  const walker = doc.createTreeWalker(body, NodeFilter.SHOW_TEXT);
+  const targets: Text[] = [];
+
+  while (walker.nextNode()) {
+    const node = walker.currentNode as Text;
+
+    if (!node.data.includes("\n")) continue;
+    if (!node.parentElement?.closest("pre")) continue;
+    targets.push(node);
+  }
+
+  for (const node of targets) {
+    const parts = node.data.split(/\r?\n/);
+    const fragment = doc.createDocumentFragment();
+
+    parts.forEach((part, index) => {
+      if (index > 0) fragment.appendChild(doc.createElement("br"));
+      if (part) fragment.appendChild(doc.createTextNode(part));
+    });
+    node.parentNode?.replaceChild(fragment, node);
+  }
+}
+
+export function collapse_quoted_replies(doc: Document, t: translate_fn): void {
+  const body = doc.body;
+
+  if (!body) return;
+  remove_aster_footers(body, true);
+  if (body.querySelector("details.aster-forwarded-collapse")) return;
+  if (body.querySelector(".aster-quote-toggle")) return;
+
+  break_preformatted_lines(doc, body);
+
+  const lines = collect_lines(body);
+  const found = find_quote_start(lines) ?? find_trailing_quote(lines);
+
+  if (!found) return;
+
+  const quote_end = resolve_quote_end(lines, found.body_from);
+
+  if (!quote_end) return;
+
+  const start_node = quote_start_node(body, lines[found.start].first);
+  const end_node = quote_end.to_end ? null : lines[quote_end.end].last;
+  const cell = (
+    start_node.nodeType === Node.ELEMENT_NODE
+      ? (start_node as Element)
+      : start_node.parentElement
+  )?.closest("td, th");
+  const end_scope: Node = cell ?? body;
+
+  if (!end_scope.lastChild) return;
+
+  const content_before =
+    has_reply_text_before(lines, found.start) ||
+    has_media_before_node(doc, body, start_node);
+
+  if (!content_before) {
+    if (end_node) {
+      if (!has_content_after_node(doc, body, end_node)) return;
+    } else {
+      const to_collapse: Node[] = [start_node];
+      let sib: Node | null = start_node.nextSibling;
+
+      while (sib) {
+        const tag =
+          sib.nodeType === Node.ELEMENT_NODE
+            ? (sib as Element).tagName.toUpperCase()
+            : null;
+
+        if (tag !== "BLOCKQUOTE" && (sib.textContent || "").trim()) break;
+        to_collapse.push(sib);
+        sib = sib.nextSibling;
+      }
+
+      const outside =
+        lines.some(
+          (line) =>
+            !is_boilerplate_text(line.text) &&
+            !to_collapse.some(
+              (n) => n === line.first || n.contains(line.first),
+            ),
+        ) ||
+        Array.from(body.querySelectorAll(VISIBLE_MEDIA_TAGS.join(","))).some(
+          (media) => !to_collapse.some((n) => n.contains(media)),
+        );
+
+      if (!outside) {
+        to_collapse.forEach((n) => {
+          if (n.nodeType === Node.ELEMENT_NODE) {
+            reveal_hidden_quote_blocks(n as Element);
+          }
+        });
+
+        return;
+      }
+
+      const fragment = doc.createDocumentFragment();
+
+      to_collapse.forEach((n) => fragment.appendChild(n));
+      body.appendChild(build_quote_wrapper(doc, t, fragment));
+
+      return;
+    }
+  }
+
+  if (end_node && !end_scope.contains(end_node)) return;
+
+  const first_top = split_before(start_node, end_scope);
+  const last_top = end_node
+    ? split_after(line_top_end(end_node), end_scope)
+    : end_scope.lastChild!;
+
+  if (
+    first_top !== last_top &&
+    !(
+      first_top.compareDocumentPosition(last_top) &
+      Node.DOCUMENT_POSITION_FOLLOWING
+    )
+  ) {
+    return;
+  }
+
+  const anchor = last_top.nextSibling;
+  const fragment = doc.createDocumentFragment();
+  let moving: Node | null = first_top;
+
+  while (moving) {
+    const next: Node | null = moving === last_top ? null : moving.nextSibling;
+
+    fragment.appendChild(moving);
+    moving = next;
+  }
+
+  const wrapper = build_quote_wrapper(doc, t, fragment);
+
+  end_scope.insertBefore(wrapper, anchor);
+  trim_edge_breaks(wrapper.previousSibling, true);
+  trim_edge_breaks(wrapper.nextSibling, false);
+}
+
+function line_top_end(node: Node): Node {
+  let top = node;
+
+  while (
+    top.parentNode &&
+    top.parentNode.nodeType === Node.ELEMENT_NODE &&
+    INLINE_LINE_TAGS.has((top.parentNode as Element).tagName.toUpperCase()) &&
+    !top.nextSibling
+  ) {
+    top = top.parentNode;
+  }
+
+  return top;
 }
 
 const COLLAPSE_CONTAINER_SELECTOR =
