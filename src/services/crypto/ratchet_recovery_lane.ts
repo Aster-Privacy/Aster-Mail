@@ -28,6 +28,7 @@ import {
 } from "./key_manager";
 
 import { HASH_ALG } from "@/services/crypto/constants";
+import { decrypt_aes_gcm_bound_or_unbound } from "@/services/crypto/aes_gcm_aad_fallback";
 
 export const RECOVERY_LANE_VERSION = 1;
 
@@ -280,14 +281,11 @@ export async function open_recovery_lane(
       info,
     );
 
-    const plaintext = await crypto.subtle.decrypt(
-      {
-        name: AES_ALG,
-        iv: base64_to_array(data.nonce),
-        additionalData: info,
-      },
+    const plaintext = await decrypt_aes_gcm_bound_or_unbound(
       lane_key,
+      base64_to_array(data.nonce),
       base64_to_array(data.ciphertext),
+      info,
     );
 
     return new TextDecoder().decode(plaintext);
