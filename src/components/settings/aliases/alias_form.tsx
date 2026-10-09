@@ -273,7 +273,11 @@ export function CreateAliasModal({
         );
 
         if (response.error) {
-          set_error(response.error);
+          set_error(
+            response.code === "CONFLICT"
+              ? t("settings.alias_already_taken")
+              : response.error,
+          );
           set_captcha_token(null);
           turnstile_ref.current?.reset();
         } else {
