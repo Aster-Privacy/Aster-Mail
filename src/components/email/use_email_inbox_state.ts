@@ -424,12 +424,13 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     };
   }
 
-  if (totals_authoritative) {
+  useLayoutEffect(() => {
+    if (!totals_authoritative) return;
     settled_header_count_ref.current = {
       key: header_count_key,
       count: list_header_count,
     };
-  }
+  }, [totals_authoritative, header_count_key, list_header_count]);
 
   const settled_live_count_ref = useRef<{
     key: string;
