@@ -9008,6 +9008,7 @@ export const tr = {
     header_help_message_id: "Gönderenin bu iletiye verdiği benzersiz kimlik.",
     header_help_list_unsubscribe: "Bu e-posta listesinden nasıl çıkılacağı.",
     header_help_spam: "Spam filtresinin kararı ve puanı.",
+    header_added_before_aster: "Aster'a ulaşmadan önce eklendi - doğrulanmadı",
     headers_formatted: "Biçimli",
     headers_raw: "Ham",
     headers_view_label: "Üst bilgi görünümü",

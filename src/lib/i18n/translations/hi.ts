@@ -9117,6 +9117,8 @@ export const hi = {
       "भेजने वाले द्वारा इस संदेश को दिया गया अनोखा पहचानकर्ता।",
     header_help_list_unsubscribe: "इस मेलिंग सूची की सदस्यता कैसे छोड़ें।",
     header_help_spam: "स्पैम फ़िल्टर का फ़ैसला और स्कोर।",
+    header_added_before_aster:
+      "Aster तक पहुँचने से पहले जोड़ा गया - सत्यापित नहीं",
     headers_formatted: "फ़ॉर्मैट किया हुआ",
     headers_raw: "मूल",
     headers_view_label: "हेडर दृश्य",

@@ -181,4 +181,69 @@ describe("MobileMessageDetailsSheet", () => {
       HEADERS.map((h) => `${h.name}: ${h.value}`).join("\n"),
     );
   });
+
+  it("notes results added before Aster in the formatted headers", () => {
+    const container = document.createElement("div");
+
+    document.body.appendChild(container);
+    root = createRoot(container);
+    act(() => {
+      root!.render(
+        <MobileMessageDetailsSheet
+          format_detail={() => "today"}
+          message={
+            {
+              id: "m1",
+              item_type: "received",
+              sender_name: "Shop",
+              sender_email: "news@shop.example",
+              subject: "Hi",
+              body: "",
+              timestamp: "2026-09-30T09:21:00Z",
+              is_read: true,
+              is_starred: false,
+              is_deleted: false,
+              is_external: true,
+              raw_headers: [
+                {
+                  name: "Received",
+                  value: "from a.example by mx.astermail.org with ESMTPS",
+                },
+                {
+                  name: "Authentication-Results",
+                  value: "mx.astermail.org; dmarc=fail",
+                },
+                {
+                  name: "Authentication-Results",
+                  value: "mx.astermail.org; dmarc=pass",
+                },
+              ],
+              spf_result: "fail",
+              dkim_result: "none",
+              dmarc_result: "fail",
+            } as never
+          }
+          on_close={() => {}}
+          t={(key) => key}
+        />,
+      );
+    });
+
+    const lines = [
+      ...document.querySelectorAll<HTMLElement>(
+        '[data-testid="message-headers"] [data-header-line]',
+      ),
+    ];
+
+    expect(
+      lines.map((line) => !!line.querySelector("[data-added-before-aster]")),
+    ).toEqual([false, false, true]);
+    expect(
+      lines.map((line) =>
+        [...line.querySelectorAll<HTMLElement>("[data-result]")].map(
+          (el) => el.dataset.result,
+        ),
+      ),
+    ).toEqual([[], ["fail"], []]);
+  });
 });

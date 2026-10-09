@@ -8919,6 +8919,7 @@ export const ja = {
     header_help_list_unsubscribe:
       "このメーリングリストの配信を停止する方法です。",
     header_help_spam: "迷惑メールフィルターの判定とスコアです。",
+    header_added_before_aster: "Aster に届く前に追加 - 未検証",
     headers_formatted: "整形",
     headers_raw: "未加工",
     headers_view_label: "ヘッダーの表示",

@@ -9352,6 +9352,8 @@ export const pl = {
       "Unikalny identyfikator nadany tej wiadomości przez nadawcę.",
     header_help_list_unsubscribe: "Jak wypisać się z tej listy mailingowej.",
     header_help_spam: "Werdykt i wynik filtra antyspamowego.",
+    header_added_before_aster:
+      "Dodano przed dotarciem do Aster - niezweryfikowane",
     headers_formatted: "Sformatowane",
     headers_raw: "Surowe",
     headers_view_label: "Widok nagłówków",

@@ -9172,6 +9172,8 @@ export const it = {
       "Un identificatore univoco che il mittente ha dato a questo messaggio.",
     header_help_list_unsubscribe: "Come disiscriversi da questa mailing list.",
     header_help_spam: "Il verdetto e il punteggio del filtro antispam.",
+    header_added_before_aster:
+      "Aggiunto prima dell'arrivo su Aster - non verificato",
     headers_formatted: "Formattato",
     headers_raw: "Originale",
     headers_view_label: "Visualizzazione intestazioni",

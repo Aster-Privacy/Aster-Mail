@@ -9196,6 +9196,8 @@ export const de = {
     header_help_list_unsubscribe:
       "So meldest du dich von dieser Mailingliste ab.",
     header_help_spam: "Urteil und Punktzahl des Spamfilters.",
+    header_added_before_aster:
+      "Vor dem Eingang bei Aster hinzugefügt - nicht überprüft",
     headers_formatted: "Formatiert",
     headers_raw: "Roh",
     headers_view_label: "Ansicht der Header",

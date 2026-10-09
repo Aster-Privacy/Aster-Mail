@@ -9119,6 +9119,8 @@ export const es = {
       "Un identificador único que el remitente dio a este mensaje.",
     header_help_list_unsubscribe: "Cómo darse de baja de esta lista de correo.",
     header_help_spam: "El veredicto y la puntuación del filtro de spam.",
+    header_added_before_aster:
+      "Añadido antes de llegar a Aster - sin verificar",
     headers_formatted: "Con formato",
     headers_raw: "Original",
     headers_view_label: "Vista de encabezados",
