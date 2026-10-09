@@ -30,6 +30,7 @@ const {
   batched_bulk_remove_tag,
   show_action_toast,
   show_toast,
+  emit_mail_items_removed,
 } = vi.hoisted(() => ({
   list_mail_items: vi.fn(),
   batched_bulk_add_folder: vi.fn(),
@@ -38,6 +39,12 @@ const {
   batched_bulk_remove_tag: vi.fn(),
   show_action_toast: vi.fn(),
   show_toast: vi.fn(),
+  emit_mail_items_removed: vi.fn(),
+}));
+
+vi.mock("@/hooks/mail_events", async (import_original) => ({
+  ...(await import_original<typeof import("@/hooks/mail_events")>()),
+  emit_mail_items_removed,
 }));
 
 vi.mock("@/services/api/mail", () => ({
@@ -312,5 +319,40 @@ describe("select-all folder and tag actions", () => {
 
     expect(show_toast).toHaveBeenCalled();
     expect(show_toast.mock.calls.at(-1)?.[1]).toBe("error");
+  });
+  it("drops moved conversations from the inbox view once the move lands", async () => {
+    const { params } = make_params();
+
+    batched_bulk_add_folder.mockResolvedValue({ failed_ids: ["id-3"] });
+    render_hook(params);
+
+    act(() => {
+      hook.handle_folder_toggle_wrapped("folder-token", false);
+    });
+    await run_pending_select_all();
+
+    expect(emit_mail_items_removed).toHaveBeenCalledTimes(1);
+
+    const removed = emit_mail_items_removed.mock.calls[0][0].ids;
+
+    expect(removed).toHaveLength(TOTAL - 1);
+    expect(removed).not.toContain("id-3");
+  });
+
+  it("keeps conversations in the view when the move does not leave it", async () => {
+    const { params } = make_params({ current_view: "folder-folder-token" });
+
+    render_hook(params);
+
+    act(() => {
+      hook.handle_tag_toggle_wrapped("tag-token", false);
+    });
+    await run_pending_select_all();
+    act(() => {
+      hook.handle_folder_toggle_wrapped("folder-token", true);
+    });
+    await run_pending_select_all();
+
+    expect(emit_mail_items_removed).not.toHaveBeenCalled();
   });
 });

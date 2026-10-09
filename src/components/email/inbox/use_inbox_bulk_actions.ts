@@ -64,7 +64,12 @@ import {
   batched_bulk_remove_tag,
 } from "@/services/api/tags";
 import { BATCH_LIMITS, PROGRESS_THRESHOLDS } from "@/constants/batch_config";
-import { MAIL_EVENTS, mail_event_bus } from "@/hooks/mail_events";
+import {
+  MAIL_EVENTS,
+  emit_mail_items_removed,
+  mail_event_bus,
+} from "@/hooks/mail_events";
+import { leaves_view_on_folder_move } from "@/hooks/view_membership";
 import {
   bulk_action_by_scope,
   type BulkScopeAction,
@@ -465,6 +470,16 @@ export function use_inbox_bulk_actions({
 
         const failed = new Set(result.failed_ids);
         const succeeded = ids.length - failed.size;
+
+        if (
+          kind === "folder" &&
+          !should_remove &&
+          leaves_view_on_folder_move(current_view, token)
+        ) {
+          const moved_ids = ids.filter((id) => !failed.has(id));
+
+          if (moved_ids.length > 0) emit_mail_items_removed({ ids: moved_ids });
+        }
 
         selection.exit_select_all_mode();
         selection.handle_clear_selection();
