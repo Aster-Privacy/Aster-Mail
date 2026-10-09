@@ -20,7 +20,12 @@
 //
 import { describe, it, expect, vi } from "vitest";
 
-import { generate_keypair, DoubleRatchet } from "./double_ratchet";
+import {
+  generate_keypair,
+  DoubleRatchet,
+  decode_ratchet_secret,
+} from "./double_ratchet";
+import { array_to_base64 } from "./base64";
 
 vi.mock("./encrypted_storage", () => ({
   encrypted_get: vi.fn(),
@@ -247,5 +252,38 @@ describe("DoubleRatchet sync-safety (dirty tracking)", () => {
     expect(DoubleRatchet.deserialize(serialized).is_dirty_since_sync()).toBe(
       true,
     );
+  });
+});
+
+describe("decode_ratchet_secret", () => {
+  const to_base64url = (bytes: Uint8Array) =>
+    array_to_base64(bytes)
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=/g, "");
+
+  it("reads the raw scalar written by web and android", async () => {
+    const keypair = await generate_keypair();
+
+    expect(decode_ratchet_secret(array_to_base64(keypair.secret_key))).toEqual(
+      keypair.secret_key,
+    );
+  });
+
+  it("reads the jwk written by older ios builds", async () => {
+    const keypair = await generate_keypair();
+    const jwk = JSON.stringify({
+      kty: "EC",
+      crv: "P-256",
+      x: to_base64url(keypair.public_key.slice(1, 33)),
+      y: to_base64url(keypair.public_key.slice(33, 65)),
+      d: to_base64url(keypair.secret_key),
+    });
+
+    expect(decode_ratchet_secret(jwk)).toEqual(keypair.secret_key);
+  });
+
+  it("rejects a jwk without a scalar", () => {
+    expect(() => decode_ratchet_secret('{"kty":"EC"}')).toThrow();
   });
 });

@@ -181,6 +181,28 @@ function to_base64url(bytes: Uint8Array): string {
     .replace(/=/g, "");
 }
 
+function from_base64url(value: string): Uint8Array {
+  const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
+
+  return base64_to_array(
+    normalized + "=".repeat((4 - (normalized.length % 4)) % 4),
+  );
+}
+
+export function decode_ratchet_secret(secret_key: string): Uint8Array {
+  if (!secret_key.trimStart().startsWith("{")) {
+    return base64_to_array(secret_key);
+  }
+
+  const jwk = JSON.parse(secret_key) as { d?: unknown };
+
+  if (typeof jwk.d !== "string" || jwk.d.length === 0) {
+    throw new Error("Invalid ratchet secret key");
+  }
+
+  return from_base64url(jwk.d);
+}
+
 function split_raw_public_key(public_key: Uint8Array): {
   x: Uint8Array;
   y: Uint8Array;
@@ -641,7 +663,7 @@ export class DoubleRatchet {
 
     const root_key = base64_to_array(state.root_key);
     const secret_key = await import_secret_key(
-      base64_to_array(state.dh_keypair.secret_key),
+      decode_ratchet_secret(state.dh_keypair.secret_key),
       base64_to_array(state.dh_keypair.public_key),
     );
     const public_key = await import_public_key(remote_public_key);
