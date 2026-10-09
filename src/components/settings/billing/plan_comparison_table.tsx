@@ -234,6 +234,14 @@ export function get_plan_comparison_rows(
     },
     {
       category: mail,
+      label: t("settings.plan_f_read_receipts"),
+      free: no,
+      star: no,
+      nova: no,
+      supernova: yes,
+    },
+    {
+      category: mail,
       label: t("settings.plan_f_smart_folders"),
       tip: t("settings.plan_tip_smart_folders"),
       free: no,
