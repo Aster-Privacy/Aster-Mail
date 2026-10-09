@@ -41,7 +41,11 @@ export function encode_ratchet_state_container(
   state: SerializedState,
   sync_version: number,
 ): string {
-  return JSON.stringify({ ...state, sync_version });
+  return JSON.stringify({
+    state: { ...state.state, conversation_id: state.conversation_id },
+    conversation_id: state.conversation_id,
+    sync_version,
+  });
 }
 
 function as_record(value: unknown): Record<string, unknown> | null {
@@ -95,10 +99,12 @@ export function decode_ratchet_state_container(
     return { kind: "rolled_back" };
   }
 
+  const { conversation_id: _bound_inner, ...inner_state } = state;
+
   return {
     kind: "accepted",
     state: {
-      state: state as unknown as SerializedState["state"],
+      state: inner_state as unknown as SerializedState["state"],
       conversation_id,
     },
     sync_version,

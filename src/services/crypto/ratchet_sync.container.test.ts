@@ -245,7 +245,7 @@ describe("synced ratchet state container", () => {
     const written = await open_legacy(key, mock_put.mock.calls[0][1]);
 
     expect(written).toEqual({
-      state: { root_key: "local" },
+      state: { root_key: "local", conversation_id: "conv-write" },
       conversation_id: "conv-write",
       sync_version: FAR_FUTURE + 1,
     });

@@ -54,8 +54,37 @@ describe("ratchet state container", () => {
     );
 
     expect(encoded).toEqual({
-      state: STATE,
+      state: { ...STATE, conversation_id: "conv-a" },
       conversation_id: "conv-a",
+      sync_version: 77,
+    });
+  });
+
+  it("binds the inner state to its conversation for the mobile readers", () => {
+    const encoded = JSON.parse(
+      encode_ratchet_state_container(
+        { state: STATE, conversation_id: "conv-a" } as never,
+        77,
+      ),
+    );
+
+    expect(encoded.state.conversation_id).toBe("conv-a");
+  });
+
+  it("round trips without leaking the binding into the ratchet state", () => {
+    const result = decode_ratchet_state_container(
+      encode_ratchet_state_container(
+        { state: STATE, conversation_id: "conv-a" } as never,
+        77,
+      ),
+      "conv-a",
+      0,
+      false,
+    );
+
+    expect(result).toEqual({
+      kind: "accepted",
+      state: { state: STATE, conversation_id: "conv-a" },
       sync_version: 77,
     });
   });
