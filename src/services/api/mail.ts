@@ -266,17 +266,26 @@ export async function list_mail_items(
       params.folder_unlock_token ??
       get_unlock_token_for_label(params.label_token) ??
       resolve_items_unlock_token(batch_ids);
-    const response = await with_folder_unlock<MailItemsListResponse>(
-      known_token,
-      (unlock_token) =>
-        api_client.post<MailItemsListResponse>(
-          "/mail/v1/messages/batch",
-          {
-            ids: batch_ids,
-            limit: params.limit,
-          },
-          unlock_token ? { folder_unlock_token: unlock_token } : {},
+    const response = await send_in_chunks<string, MailItemsListResponse>(
+      batch_ids,
+      BULK_REQUEST_LIMIT,
+      (chunk) =>
+        with_folder_unlock<MailItemsListResponse>(known_token, (unlock_token) =>
+          api_client.post<MailItemsListResponse>(
+            "/mail/v1/messages/batch",
+            {
+              ids: chunk,
+              limit: params.limit,
+            },
+            unlock_token ? { folder_unlock_token: unlock_token } : {},
+          ),
         ),
+      (total, next) => ({
+        ...next,
+        items: [...total.items, ...next.items],
+        total: total.total + next.total,
+        has_more: total.has_more || next.has_more,
+      }),
     );
 
     if (response.data?.items) {

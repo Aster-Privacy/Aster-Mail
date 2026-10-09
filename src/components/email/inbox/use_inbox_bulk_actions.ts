@@ -610,18 +610,29 @@ export function use_inbox_bulk_actions({
 
         let snoozed = 0;
         let failed = 0;
+        let last_error: string | undefined;
+        const applied_ids: string[] = [];
 
         for (let i = 0; i < ids.length; i += BATCH_LIMITS.MAIL_BULK) {
           const chunk = ids.slice(i, i + BATCH_LIMITS.MAIL_BULK);
           const response = await bulk_snooze_emails(chunk, snooze_until);
 
-          if (response.error) throw new Error(response.error);
-          snoozed += response.data?.snoozed_count ?? chunk.length;
-          failed += response.data?.failed_count ?? 0;
+          if (response.error) {
+            last_error = response.error;
+            failed += chunk.length;
+          } else {
+            applied_ids.push(...chunk);
+            snoozed += response.data?.snoozed_count ?? chunk.length;
+            failed += response.data?.failed_count ?? 0;
+          }
           report(Math.min(i + chunk.length, ids.length), ids.length);
         }
 
-        remove_index_ids(ids);
+        if (applied_ids.length === 0 && last_error) {
+          throw new Error(last_error);
+        }
+
+        remove_index_ids(applied_ids);
         selection.exit_select_all_mode();
         selection.handle_clear_selection();
         set_current_page(0);
@@ -909,6 +920,10 @@ export function use_inbox_bulk_actions({
         action_type: "trash",
         email_ids: [],
       });
+
+      if (collected.capped) {
+        show_toast(t("mail.bulk_action_index_capped"), "info");
+      }
     } catch (e) {
       if (import.meta.env.DEV) console.error(e);
       show_toast(t("common.failed_to_permanently_delete"), "error");
