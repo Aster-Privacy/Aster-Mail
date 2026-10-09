@@ -44,6 +44,14 @@
   function hashName(h) {
     return typeof h === "string" ? h : (h && h.name) || "SHA-256";
   }
+  function gcmAad(algorithm) {
+    return algorithm.additionalData === undefined
+      ? null
+      : toArr(algorithm.additionalData);
+  }
+  function gcmTagOk(algorithm) {
+    return algorithm.tagLength === undefined || algorithm.tagLength === 128;
+  }
   function denied(message) {
     return Promise.reject(new DOMException(message, "InvalidAccessError"));
   }
@@ -184,10 +192,13 @@
     if (raw) {
       if (!allows(key, "encrypt", algorithm) || algName(algorithm) !== "AES-GCM")
         return denied("key does not allow encrypt");
+      if (!gcmTagOk(algorithm))
+        return denied("unsupported aes-gcm tag length");
       return invoke("crypto_aes_gcm_encrypt", {
         key: raw,
         iv: toArr(algorithm.iv),
         data: toArr(data),
+        aad: gcmAad(algorithm),
       }).then(function (r) {
         return new Uint8Array(r).buffer;
       });
@@ -199,10 +210,13 @@
     if (raw) {
       if (!allows(key, "decrypt", algorithm) || algName(algorithm) !== "AES-GCM")
         return denied("key does not allow decrypt");
+      if (!gcmTagOk(algorithm))
+        return denied("unsupported aes-gcm tag length");
       return invoke("crypto_aes_gcm_decrypt", {
         key: raw,
         iv: toArr(algorithm.iv),
         data: toArr(data),
+        aad: gcmAad(algorithm),
       }).then(function (r) {
         return new Uint8Array(r).buffer;
       });

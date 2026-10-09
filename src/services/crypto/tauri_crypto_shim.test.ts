@@ -44,8 +44,13 @@ interface ShimmedSubtle {
 const fake_mac = (key: number[], data: number[]) =>
   data.map((byte, index) => byte ^ key[index % key.length]);
 
-function load_shim(): { subtle: ShimmedSubtle; calls: string[] } {
+function load_shim(): {
+  subtle: ShimmedSubtle;
+  calls: string[];
+  args: Record<string, unknown>[];
+} {
   const calls: string[] = [];
+  const args: Record<string, unknown>[] = [];
   const native = async () => {
     throw new Error("native");
   };
@@ -63,12 +68,14 @@ function load_shim(): { subtle: ShimmedSubtle; calls: string[] } {
   };
   const fake_window = {
     __TAURI_INTERNALS__: {
-      invoke: async (cmd: string, args: Record<string, number[]>) => {
+      invoke: async (cmd: string, cmd_args: Record<string, number[]>) => {
         calls.push(cmd);
-        if (cmd === "crypto_hmac_sign") return fake_mac(args.key, args.data);
+        args.push(cmd_args);
+        if (cmd === "crypto_hmac_sign")
+          return fake_mac(cmd_args.key, cmd_args.data);
         if (cmd === "crypto_pbkdf2") return [1, 2, 3, 4];
 
-        return args.data;
+        return cmd_args.data;
       },
     },
   };
@@ -80,7 +87,7 @@ function load_shim(): { subtle: ShimmedSubtle; calls: string[] } {
 
   run(fake_window, { userAgent: "Mozilla/5.0 (Macintosh)" }, fake_crypto);
 
-  return { subtle: subtle as unknown as ShimmedSubtle, calls };
+  return { subtle: subtle as unknown as ShimmedSubtle, calls, args };
 }
 
 const RAW = new Uint8Array(32).fill(9);
@@ -222,6 +229,38 @@ describe("desktop crypto shim key rules", () => {
     await expect(shim.subtle.exportKey("raw", forged)).rejects.toThrow(
       "native",
     );
+    expect(shim.calls).toEqual([]);
+  });
+
+  it("passes additional data to the native aes-gcm calls", async () => {
+    const key = await shim.subtle.importKey("raw", RAW, "AES-GCM", false, [
+      "encrypt",
+      "decrypt",
+    ]);
+    const aad = new Uint8Array([4, 5, 6]);
+
+    await shim.subtle.encrypt({ ...IV, additionalData: aad }, key, RAW);
+    await shim.subtle.decrypt({ ...IV, additionalData: aad }, key, RAW);
+    await shim.subtle.encrypt(IV, key, RAW);
+
+    expect(shim.calls).toEqual([
+      "crypto_aes_gcm_encrypt",
+      "crypto_aes_gcm_decrypt",
+      "crypto_aes_gcm_encrypt",
+    ]);
+    expect(shim.args[0].aad).toEqual([4, 5, 6]);
+    expect(shim.args[1].aad).toEqual([4, 5, 6]);
+    expect(shim.args[2].aad).toBeNull();
+  });
+
+  it("refuses an aes-gcm tag length the native side cannot honor", async () => {
+    const key = await shim.subtle.importKey("raw", RAW, "AES-GCM", false, [
+      "encrypt",
+    ]);
+
+    await expect(
+      shim.subtle.encrypt({ ...IV, tagLength: 96 }, key, RAW),
+    ).rejects.toThrow("tag length");
     expect(shim.calls).toEqual([]);
   });
 });
