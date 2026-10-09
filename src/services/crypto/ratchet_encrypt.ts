@@ -186,7 +186,7 @@ function is_bundle_verification_rejected(
   );
 }
 
-function resolve_recovery_lane_keys(
+export function resolve_recovery_lane_keys(
   bundle: PrekeyBundle | null,
   bootstrap: BootstrapData | null,
 ): RecoveryLaneRecipientKeys | null {
@@ -195,9 +195,15 @@ function resolve_recovery_lane_keys(
 
   if (!identity_public) return null;
 
-  const pq_identity_public = bundle?.kem_identity_key
-    ? (bundle.pq_kem_public_key ?? "")
-    : (bootstrap?.recipient_pq_identity_key ?? "");
+  const pinned_pq =
+    bootstrap?.recipient_identity_key === identity_public
+      ? bootstrap.recipient_pq_identity_key
+      : undefined;
+  const pq_identity_public =
+    pinned_pq ||
+    (bundle?.kem_identity_key
+      ? (bundle.pq_kem_public_key ?? "")
+      : (bootstrap?.recipient_pq_identity_key ?? ""));
 
   return { identity_public, pq_identity_public };
 }
