@@ -20,7 +20,7 @@
 //
 import { list_mail_items } from "@/services/api/mail";
 import { filter_locked_mail_items } from "@/services/locked_folders";
-import { build_view_list_params } from "@/hooks/email_list_helpers/views";
+import { resolve_view_list_params } from "@/hooks/email_list_helpers/views";
 
 export const SCOPE_ID_PAGE_SIZE = 500;
 
@@ -44,7 +44,12 @@ export async function collect_scope_ids({
   signal,
   on_progress,
 }: CollectScopeIdsOptions): Promise<CollectedScopeIds> {
-  const base_params = build_view_list_params(view);
+  const base_params = await resolve_view_list_params(view, signal);
+
+  if (!base_params) {
+    if (signal?.aborted) return { ids: [], capped: false };
+    throw new Error("alias view is not resolved");
+  }
   const excluded = new Set(exclude_ids);
   const seen = new Set<string>();
   const ids: string[] = [];

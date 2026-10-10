@@ -20,7 +20,10 @@
 //
 
 import { type ListMailItemsParams } from "@/services/api/mail";
-import { get_alias_hash_by_address } from "@/hooks/use_sidebar_aliases";
+import {
+  get_alias_hash_by_address,
+  subscribe_aliases,
+} from "@/hooks/use_sidebar_aliases";
 import { parse_alias_view } from "@/hooks/email_list_helpers/alias_view";
 
 export const DEFAULT_PAGE_SIZE = 50;
@@ -87,6 +90,48 @@ export function build_view_list_params(view: string): ListMailItemsParams {
   }
 
   return params;
+}
+
+export const ALIAS_RESOLVE_TIMEOUT_MS = 10_000;
+
+export function is_unresolved_alias_view(
+  view: string,
+  params: ListMailItemsParams,
+): boolean {
+  return view.startsWith("alias-") && !params.routing_token;
+}
+
+export async function resolve_view_list_params(
+  view: string,
+  signal?: AbortSignal,
+  timeout_ms = ALIAS_RESOLVE_TIMEOUT_MS,
+): Promise<ListMailItemsParams | null> {
+  const params = build_view_list_params(view);
+
+  if (!is_unresolved_alias_view(view, params)) return params;
+  if (signal?.aborted) return null;
+
+  await new Promise<void>((resolve) => {
+    let unsubscribe: () => void = () => {};
+    const finish = () => {
+      clearTimeout(timer);
+      unsubscribe();
+      signal?.removeEventListener("abort", finish);
+      resolve();
+    };
+    const timer = setTimeout(finish, timeout_ms);
+
+    unsubscribe = subscribe_aliases(() => {
+      if (!is_unresolved_alias_view(view, build_view_list_params(view))) {
+        finish();
+      }
+    });
+    signal?.addEventListener("abort", finish);
+  });
+
+  const resolved = build_view_list_params(view);
+
+  return is_unresolved_alias_view(view, resolved) ? null : resolved;
 }
 
 export const VIEWS_EXCLUDING_TRASHED_SPAM = new Set<string>([

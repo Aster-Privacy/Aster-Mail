@@ -120,6 +120,20 @@ export function resolve_refresh_offset(
   return page_offsets.get(active_page) ?? active_page * window_size;
 }
 
+export function shift_page_offsets(
+  page_offsets: Map<number, number>,
+  removed: number,
+): Map<number, number> {
+  if (removed <= 0) return page_offsets;
+  const shifted = new Map<number, number>();
+
+  for (const [page, offset] of page_offsets) {
+    shifted.set(page, Math.max(0, offset - removed));
+  }
+
+  return shifted;
+}
+
 export function use_email_list(
   current_view: string,
   enabled = true,
@@ -698,6 +712,9 @@ export function use_email_list(
   const has_emails_ref = useRef(false);
 
   has_emails_ref.current = state.emails.length > 0;
+  const loaded_emails_ref = useRef<InboxEmail[]>([]);
+
+  loaded_emails_ref.current = state.emails;
 
   const refresh = useCallback(() => {
     const keep_visible = has_emails_ref.current;
@@ -1123,7 +1140,10 @@ export function use_email_list(
 
   const remove_email = useCallback((id: string): void => {
     page_cache_ref.current.clear();
-    page_offset_ref.current.clear();
+    page_offset_ref.current = shift_page_offsets(
+      page_offset_ref.current,
+      loaded_emails_ref.current.some((e) => e.id === id) ? 1 : 0,
+    );
     set_state((prev) => ({
       ...prev,
       emails: prev.emails.filter((e) => e.id !== id),
@@ -1135,7 +1155,13 @@ export function use_email_list(
     const id_set = new Set(ids);
 
     page_cache_ref.current.clear();
-    page_offset_ref.current.clear();
+    const removed = loaded_emails_ref.current.filter((e) =>
+      id_set.has(e.id),
+    ).length;
+    page_offset_ref.current = shift_page_offsets(
+      page_offset_ref.current,
+      removed,
+    );
 
     set_state((prev) => ({
       ...prev,
