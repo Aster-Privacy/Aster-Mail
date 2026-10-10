@@ -1,0 +1,415 @@
+{
+  "version": 1,
+  "vectors": [
+    {
+      "id": "plain_authenticated",
+      "input": { "name": "Jordan Lee", "email": "jordan@example.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "Jordan Lee", "address": "jordan@example.com", "domain": "example.com", "auth_state": "authenticated", "warning": null, "contact_notice": null, "reply_to": null, "show_identity_marks": true, "show_verified_badge": false }
+    },
+    {
+      "id": "address_in_name_other_domain",
+      "input": { "name": "security@paypal.com", "email": "attacker@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "address": "attacker@evil.example", "warning": { "kind": "address_in_name", "claimed": "security@paypal.com" }, "show_identity_marks": false }
+    },
+    {
+      "id": "address_in_name_with_padding",
+      "input": { "name": "ceo@bigcorp.com                                                                 .", "email": "x@evil.example", "sender_aligned": true, "dkim_result": "pass" },
+      "expect": { "name": "", "warning": { "kind": "address_in_name", "claimed": "ceo@bigcorp.com" } }
+    },
+    {
+      "id": "address_in_name_angle_form",
+      "input": { "name": "Billing <billing@netflix.com>", "email": "x@evil.example", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "address_in_name", "claimed": "billing@netflix.com" } }
+    },
+    {
+      "id": "address_in_name_zero_width_split",
+      "input": { "name": "ad​min@pay​pal.com", "email": "x@evil.example", "sender_aligned": true },
+      "expect": { "warning": { "kind": "address_in_name", "claimed": "admin@paypal.com" } }
+    },
+    {
+      "id": "name_equals_address",
+      "input": { "name": "Jordan@Example.com", "email": "jordan@example.com", "sender_aligned": true },
+      "expect": { "name": "", "address": "jordan@example.com", "warning": null }
+    },
+    {
+      "id": "address_in_name_same_domain",
+      "input": { "name": "sales@example.com", "email": "bounce@mail.example.com", "sender_aligned": true },
+      "expect": { "name": "sales@example.com", "warning": null }
+    },
+    {
+      "id": "address_in_name_relay",
+      "input": { "name": "friend@example.org", "email": "abc123@mozmail.com", "sender_aligned": true },
+      "expect": { "name": "friend@example.org", "warning": null }
+    },
+    {
+      "id": "capital_i_for_l_name",
+      "input": { "name": "PayPaI", "email": "x@evil.example", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "lookalike_name", "claimed": "PayPal" } }
+    },
+    {
+      "id": "capital_i_for_l_name_with_generic",
+      "input": { "name": "PaypaI Support", "email": "x@evil.example", "sender_aligned": true },
+      "expect": { "warning": { "kind": "lookalike_name", "claimed": "PayPal" } }
+    },
+    {
+      "id": "lowercase_l_for_capital_i_name",
+      "input": { "name": "lnstagram", "email": "x@evil.example", "sender_aligned": true },
+      "expect": { "warning": { "kind": "lookalike_name", "claimed": "Instagram" } }
+    },
+    {
+      "id": "digit_one_for_l_name",
+      "input": { "name": "Netf1ix", "email": "x@evil.example", "sender_aligned": true },
+      "expect": { "warning": { "kind": "lookalike_name", "claimed": "Netflix" } }
+    },
+    {
+      "id": "cyrillic_name",
+      "input": { "name": "Аmаzоn", "email": "x@evil.example", "sender_aligned": true },
+      "expect": { "warning": { "kind": "lookalike_name", "claimed": "Amazon" } }
+    },
+    {
+      "id": "rn_for_m_name",
+      "input": { "name": "Arnazon", "email": "x@evil.example", "sender_aligned": true },
+      "expect": { "warning": { "kind": "lookalike_name", "claimed": "Amazon" } }
+    },
+    {
+      "id": "fullwidth_name",
+      "input": { "name": "ＰａｙＰａｌ", "email": "x@evil.example", "sender_aligned": true },
+      "expect": { "warning": { "kind": "brand_name", "claimed": "PayPal" } }
+    },
+    {
+      "id": "brand_exact_wrong_domain",
+      "input": { "name": "PayPal", "email": "service@evil.example", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "PayPal" }, "show_identity_marks": false }
+    },
+    {
+      "id": "brand_uppercase_wrong_domain",
+      "input": { "name": "LINKEDIN", "email": "x@evil.example", "sender_aligned": true },
+      "expect": { "warning": { "kind": "brand_name", "claimed": "LinkedIn" } }
+    },
+    {
+      "id": "brand_lowercase_wrong_domain",
+      "input": { "name": "instagram support", "email": "x@evil.example", "sender_aligned": true },
+      "expect": { "warning": { "kind": "brand_name", "claimed": "Instagram" } }
+    },
+    {
+      "id": "brand_with_generic_words",
+      "input": { "name": "The Microsoft account team", "email": "x@evil.example", "sender_aligned": true },
+      "expect": { "warning": { "kind": "brand_name", "claimed": "Microsoft" } }
+    },
+    {
+      "id": "brand_multiword",
+      "input": { "name": "Bank of America Alerts", "email": "x@evil.example", "sender_aligned": true },
+      "expect": { "warning": { "kind": "brand_name", "claimed": "Bank of America" } }
+    },
+    {
+      "id": "brand_real_domain",
+      "input": { "name": "PayPal", "email": "service@paypal.com", "sender_aligned": true, "dkim_result": "pass", "dmarc_result": "pass" },
+      "expect": { "name": "PayPal", "warning": null, "show_identity_marks": true }
+    },
+    {
+      "id": "brand_real_subdomain",
+      "input": { "name": "Netflix", "email": "info@members.netflix.com", "sender_aligned": true },
+      "expect": { "name": "Netflix", "warning": null }
+    },
+    {
+      "id": "brand_country_suffix",
+      "input": { "name": "Amazon.co.uk", "email": "order-update@amazon.co.uk", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "brand_suffix_not_allowed",
+      "input": { "name": "Coinbase", "email": "x@coinbase.support", "sender_aligned": true },
+      "expect": { "warning": { "kind": "brand_name", "claimed": "Coinbase" } }
+    },
+    {
+      "id": "brand_as_subdomain_of_other",
+      "input": { "name": "PayPal", "email": "x@paypal.com.evil.example", "sender_aligned": true },
+      "expect": { "warning": { "kind": "brand_name", "claimed": "PayPal" } }
+    },
+    {
+      "id": "brand_verified_sender_suppressed",
+      "input": { "name": "Spotify", "email": "x@partner.example", "sender_aligned": true, "dmarc_result": "pass", "sender_verified": true, "sender_verified_domain": "partner.example" },
+      "expect": { "name": "Spotify", "warning": null, "show_verified_badge": true }
+    },
+    {
+      "id": "ambiguous_alone_no_warning",
+      "input": { "name": "Apple", "email": "apple@farm.example", "sender_aligned": true },
+      "expect": { "name": "Apple", "warning": null }
+    },
+    {
+      "id": "ambiguous_surname_no_warning",
+      "input": { "name": "Chase Morgan", "email": "chase@example.com", "sender_aligned": true },
+      "expect": { "name": "Chase Morgan", "warning": null }
+    },
+    {
+      "id": "ambiguous_with_generic",
+      "input": { "name": "Apple Support", "email": "x@evil.example", "sender_aligned": true },
+      "expect": { "warning": { "kind": "brand_name", "claimed": "Apple" } }
+    },
+    {
+      "id": "ambiguous_solo_name",
+      "input": { "name": "iCloud", "email": "x@evil.example", "sender_aligned": true },
+      "expect": { "warning": { "kind": "brand_name", "claimed": "iCloud" } }
+    },
+    {
+      "id": "ambiguous_lookalike",
+      "input": { "name": "AppIe", "email": "x@evil.example", "sender_aligned": true },
+      "expect": { "warning": { "kind": "lookalike_name", "claimed": "Apple" } }
+    },
+    {
+      "id": "first_name_america_no_warning",
+      "input": { "name": "America", "email": "america@example.com", "sender_aligned": true },
+      "expect": { "name": "America", "warning": null }
+    },
+    {
+      "id": "name_containing_brand_substring_no_warning",
+      "input": { "name": "Metallica Fan Club", "email": "news@fans.example", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "person_at_company_no_warning",
+      "input": { "name": "Sam from Googleplex Tours", "email": "sam@tours.example", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "lookalike_domain_digit",
+      "input": { "name": "Service", "email": "service@paypa1.com", "sender_aligned": true },
+      "expect": { "name": "Service", "warning": { "kind": "lookalike_domain", "claimed": "paypal.com" }, "show_identity_marks": false }
+    },
+    {
+      "id": "lookalike_domain_rn",
+      "input": { "name": "", "email": "x@rnicrosoft.com", "sender_aligned": true },
+      "expect": { "warning": { "kind": "lookalike_domain", "claimed": "microsoft.com" } }
+    },
+    {
+      "id": "lookalike_domain_other_suffix",
+      "input": { "name": "", "email": "x@g00gle.net", "sender_aligned": true },
+      "expect": { "warning": { "kind": "lookalike_domain", "claimed": "google.com" } }
+    },
+    {
+      "id": "lookalike_domain_cyrillic",
+      "input": { "name": "", "email": "x@аpple.com", "sender_aligned": true },
+      "expect": { "domain": "xn--pple-43d.com", "address": "x@xn--pple-43d.com", "warning": { "kind": "lookalike_domain", "claimed": "apple.com" } }
+    },
+    {
+      "id": "lookalike_domain_punycode_input",
+      "input": { "name": "", "email": "x@xn--pple-43d.com", "sender_aligned": true },
+      "expect": { "domain": "xn--pple-43d.com", "warning": { "kind": "lookalike_domain", "claimed": "apple.com" } }
+    },
+    {
+      "id": "lookalike_home_domain",
+      "input": { "name": "", "email": "hello@asterrnail.org", "sender_aligned": true },
+      "expect": { "warning": { "kind": "lookalike_domain", "claimed": "astermail.org" } }
+    },
+    {
+      "id": "lookalike_own_domain",
+      "input": { "name": "", "email": "boss@examp1e.com", "sender_aligned": true, "own_addresses": ["me@example.com"] },
+      "expect": { "warning": { "kind": "lookalike_domain", "claimed": "example.com" } }
+    },
+    {
+      "id": "lookalike_contact_domain",
+      "input": { "name": "", "email": "pat@acrne-industries.example", "sender_aligned": true, "contacts": [{ "name": "Pat Doe", "emails": ["pat@acme-industries.example"] }] },
+      "expect": { "warning": { "kind": "lookalike_domain", "claimed": "acme-industries.example" } }
+    },
+    {
+      "id": "real_domain_not_lookalike",
+      "input": { "name": "", "email": "x@mail.google.com", "sender_aligned": true },
+      "expect": { "domain": "mail.google.com", "warning": null }
+    },
+    {
+      "id": "short_label_not_lookalike",
+      "input": { "name": "", "email": "x@g0o.io", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "idn_latin_shown",
+      "input": { "name": "", "email": "info@münchen.example", "sender_aligned": true },
+      "expect": { "domain": "münchen.example", "address": "info@münchen.example", "warning": null }
+    },
+    {
+      "id": "idn_latin_from_punycode_shown",
+      "input": { "name": "", "email": "info@xn--mnchen-3ya.example", "sender_aligned": true },
+      "expect": { "domain": "münchen.example" }
+    },
+    {
+      "id": "idn_mixed_script_punycode",
+      "input": { "name": "", "email": "x@exаmple-shop.example", "sender_aligned": true },
+      "expect": { "domain": "xn--exmple-shop-zij.example" }
+    },
+    {
+      "id": "idn_cjk_shown",
+      "input": { "name": "", "email": "x@例え.example", "sender_aligned": true },
+      "expect": { "domain": "例え.example" }
+    },
+    {
+      "id": "domain_uppercase_and_trailing_dot",
+      "input": { "name": "", "email": "X@Example.COM.", "sender_aligned": true },
+      "expect": { "address": "X@example.com", "domain": "example.com" }
+    },
+    {
+      "id": "home_brand_external",
+      "input": { "name": "Aster Mail", "email": "x@evil.example", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "home_brand_name", "claimed": "Aster" } }
+    },
+    {
+      "id": "home_brand_user_address",
+      "input": { "name": "Aster Support", "email": "randomuser@astermail.org", "is_internal": true },
+      "expect": { "auth_state": "internal", "warning": { "kind": "home_brand_name", "claimed": "Aster" } }
+    },
+    {
+      "id": "home_brand_official_internal",
+      "input": { "name": "Aster Support", "email": "support@astermail.org", "is_internal": true },
+      "expect": { "name": "Aster Support", "warning": null, "show_identity_marks": true }
+    },
+    {
+      "id": "home_brand_official_spoofed",
+      "input": { "name": "Aster Support", "email": "support@astermail.org", "sender_aligned": false, "spf_result": "fail", "dmarc_result": "fail" },
+      "expect": { "auth_state": "failed", "warning": { "kind": "home_brand_name", "claimed": "Aster" }, "show_identity_marks": false }
+    },
+    {
+      "id": "home_brand_lookalike",
+      "input": { "name": "Aster MaiI", "email": "x@evil.example", "sender_aligned": true },
+      "expect": { "warning": { "kind": "home_brand_name", "claimed": "Aster" } }
+    },
+    {
+      "id": "home_first_name_no_warning",
+      "input": { "name": "Aster", "email": "aster@example.com", "sender_aligned": true },
+      "expect": { "name": "Aster", "warning": null }
+    },
+    {
+      "id": "home_person_name_no_warning",
+      "input": { "name": "Aster Bekele", "email": "aster.bekele@example.com", "sender_aligned": true },
+      "expect": { "name": "Aster Bekele", "warning": null }
+    },
+    {
+      "id": "own_address_never_warns",
+      "input": { "name": "PayPal", "email": "me@example.com", "own_addresses": ["me@example.com"], "is_internal": true },
+      "expect": { "name": "PayPal", "warning": null }
+    },
+    {
+      "id": "sanitize_bidi_override",
+      "input": { "name": "‮moc.elgoog‬ Jordan", "email": "j@example.com", "sender_aligned": true },
+      "expect": { "name": "moc.elgoog Jordan" }
+    },
+    {
+      "id": "sanitize_controls_and_spaces",
+      "input": { "name": "  \"Jordan\u0000\t   Lee\"\r\n ", "email": "j@example.com", "sender_aligned": true },
+      "expect": { "name": "Jordan Lee" }
+    },
+    {
+      "id": "sanitize_invisible_only",
+      "input": { "name": "​⁠ㅤ‍", "email": "j@example.com", "sender_aligned": true },
+      "expect": { "name": "" }
+    },
+    {
+      "id": "sanitize_keeps_emoji_joiner",
+      "input": { "name": "Sam 👩‍💻", "email": "sam@example.com", "sender_aligned": true },
+      "expect": { "name": "Sam 👩‍💻" }
+    },
+    {
+      "id": "sanitize_length_cap",
+      "input": { "name": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "email": "j@example.com", "sender_aligned": true },
+      "expect": { "name": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" }
+    },
+    {
+      "id": "auth_aligned_false_no_failures",
+      "input": { "name": "Jordan", "email": "j@nodns.example", "sender_aligned": false, "spf_result": "none", "dkim_result": "none", "dmarc_result": "none" },
+      "expect": { "auth_state": "unverified", "warning": null, "show_identity_marks": false }
+    },
+    {
+      "id": "auth_aligned_false_passes_for_other_domain",
+      "input": { "name": "Jordan", "email": "j@victim.example", "sender_aligned": false, "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "none" },
+      "expect": { "auth_state": "unverified", "show_identity_marks": false }
+    },
+    {
+      "id": "auth_aligned_false_with_failure",
+      "input": { "name": "Jordan", "email": "j@victim.example", "sender_aligned": false, "spf_result": "fail", "dkim_result": "none", "dmarc_result": "fail" },
+      "expect": { "auth_state": "failed", "show_identity_marks": false }
+    },
+    {
+      "id": "auth_legacy_all_missing",
+      "input": { "name": "Jordan", "email": "j@example.com" },
+      "expect": { "auth_state": "unknown", "show_identity_marks": true }
+    },
+    {
+      "id": "auth_legacy_all_none",
+      "input": { "name": "Jordan", "email": "j@example.com", "spf_result": "none", "dkim_result": "none", "dmarc_result": "none" },
+      "expect": { "auth_state": "unverified", "show_identity_marks": false }
+    },
+    {
+      "id": "auth_legacy_pass",
+      "input": { "name": "Jordan", "email": "j@example.com", "spf_result": "pass", "dkim_result": "none", "dmarc_result": "none" },
+      "expect": { "auth_state": "authenticated", "show_identity_marks": true }
+    },
+    {
+      "id": "auth_legacy_dmarc_fail",
+      "input": { "name": "Jordan", "email": "j@example.com", "spf_result": "pass", "dkim_result": "none", "dmarc_result": "FAIL" },
+      "expect": { "auth_state": "failed" }
+    },
+    {
+      "id": "auth_legacy_temperror",
+      "input": { "name": "Jordan", "email": "j@example.com", "spf_result": "temperror", "dkim_result": "none", "dmarc_result": "none" },
+      "expect": { "auth_state": "unknown", "show_identity_marks": true }
+    },
+    {
+      "id": "verified_badge_wrong_domain",
+      "input": { "name": "Brand", "email": "x@other.example", "sender_aligned": true, "sender_verified": true, "sender_verified_domain": "brand.example" },
+      "expect": { "show_verified_badge": false }
+    },
+    {
+      "id": "verified_badge_subdomain",
+      "input": { "name": "Brand", "email": "x@news.brand.example", "sender_aligned": true, "sender_verified": true, "sender_verified_domain": "brand.example" },
+      "expect": { "show_verified_badge": true }
+    },
+    {
+      "id": "verified_badge_not_aligned",
+      "input": { "name": "Brand", "email": "x@brand.example", "sender_aligned": false, "sender_verified": true, "sender_verified_domain": "brand.example" },
+      "expect": { "show_verified_badge": false }
+    },
+    {
+      "id": "verified_badge_flag_missing",
+      "input": { "name": "Brand", "email": "x@brand.example", "sender_aligned": true, "sender_verified_domain": "brand.example" },
+      "expect": { "show_verified_badge": false }
+    },
+    {
+      "id": "reply_to_other_domain",
+      "input": { "name": "Jordan", "email": "j@example.com", "sender_aligned": true, "reply_to": "Jordan <jordan@elsewhere.example>" },
+      "expect": { "reply_to": "jordan@elsewhere.example", "warning": null }
+    },
+    {
+      "id": "reply_to_same_org",
+      "input": { "name": "Jordan", "email": "j@example.com", "sender_aligned": true, "reply_to": "replies@support.example.com" },
+      "expect": { "reply_to": null }
+    },
+    {
+      "id": "contact_name_other_address",
+      "input": { "name": "Pat Doe", "email": "pat.doe@freemail.example", "sender_aligned": true, "contacts": [{ "name": "Pat Doe", "emails": ["pat@acme.example"] }] },
+      "expect": { "name": "Pat Doe", "warning": null, "contact_notice": "Pat Doe" }
+    },
+    {
+      "id": "contact_name_lookalike",
+      "input": { "name": "Pat  Dоe", "email": "pat.doe@freemail.example", "sender_aligned": true, "contacts": [{ "name": "Pat Doe", "emails": ["pat@acme.example"] }] },
+      "expect": { "contact_notice": "Pat Doe" }
+    },
+    {
+      "id": "contact_known_address",
+      "input": { "name": "Pat Doe", "email": "PAT@acme.example", "sender_aligned": true, "contacts": [{ "name": "Pat Doe", "emails": ["pat@acme.example"] }] },
+      "expect": { "contact_notice": null }
+    },
+    {
+      "id": "contact_single_word_name",
+      "input": { "name": "Mom", "email": "x@freemail.example", "sender_aligned": true, "contacts": [{ "name": "Mom", "emails": ["mom@family.example"] }] },
+      "expect": { "contact_notice": null }
+    },
+    {
+      "id": "invalid_address",
+      "input": { "name": "Jordan", "email": "not an address" },
+      "expect": { "name": "Jordan", "domain": "", "warning": null, "show_identity_marks": false, "show_verified_badge": false }
+    },
+    {
+      "id": "missing_everything",
+      "input": {},
+      "expect": { "name": "", "address": "", "domain": "", "warning": null, "show_identity_marks": false }
+    }
+  ]
+}

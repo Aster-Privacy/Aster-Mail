@@ -5087,7 +5087,8 @@ export const zh_CN = {
     import_folders_skipped_plural:
       "有 {{count}} 个文件夹无法创建，其中的邮件已放入收件箱。",
     import_labels_created: "已创建 {{count}} 个标签",
-    import_labels_skipped: "有 {{count}} 个标签无法创建，相关邮件在导入时不带这些标签。",
+    import_labels_skipped:
+      "有 {{count}} 个标签无法创建，相关邮件在导入时不带这些标签。",
     storage_quota_reached:
       "您的存储空间已满。升级方案，或移除一些邮件，就可以腾出空间以导入更多。",
     no_emails_in_file:
@@ -5405,8 +5406,7 @@ export const zh_CN = {
     storage_addon_add_size: "添加 {{size}}",
     storage_addon_usage_near:
       "您的存储空间即将用完。请添加空间以继续接收邮件。",
-    storage_addon_usage_full:
-      "您的存储空间已满。请添加空间以继续接收邮件。",
+    storage_addon_usage_full: "您的存储空间已满。请添加空间以继续接收邮件。",
     bill_addon_summary: "{size} 额外存储空间",
     bill_addon_pick_size: "选择要添加的容量",
     storage_addons_description:
@@ -8035,6 +8035,24 @@ export const zh_CN = {
     mark_read: "标记为已读",
     verified_sender: "已验证的发件人",
     verified_sender_desc: "此邮件的发件人已验证其拥有 {{domain}}。",
+    sender_warning_title: "请检查发件人地址",
+    sender_warning_address_in_name:
+      "发件人名称显示为 {{claimed}}，但此邮件来自 {{address}}。",
+    sender_warning_lookalike_name:
+      "发件人名称的写法看起来像 {{claimed}}，但此邮件来自 {{address}}。",
+    sender_warning_brand_name:
+      "发件人名称中提到了 {{claimed}}，但此邮件来自 {{address}}，这不是 {{claimed}} 已知使用的地址。",
+    sender_warning_home_brand_name:
+      "此邮件并非来自 Aster，而是来自 {{address}}。Aster 绝不会通过电子邮件索要你的密码或恢复短语。",
+    sender_warning_lookalike_domain:
+      "域名 {{domain}} 看起来像 {{claimed}}，但它是另一个域名。",
+    sender_contact_notice:
+      "此发件人与你的联系人 {{name}} 同名，但使用了不同的地址。",
+    sender_reply_to_notice:
+      "对此邮件的回复会发送到 {{address}}，该地址与发件人不属于同一域名。",
+    email_auth_unverified: "未验证",
+    email_auth_unverified_desc:
+      "Aster 无法确认此邮件是由 {{domain}} 发送的。在打开链接或附件之前，请确认你认识发件人。",
     email_auth_label: "发件人校验：{{verdict}}",
     email_auth_partial: "校验结果不确定",
     email_auth_partial_desc:
@@ -8055,8 +8073,7 @@ export const zh_CN = {
     reply_to_other_domain: "回复将发送到与发件人不同的域名。",
     mailing_list_label: "邮件列表：",
     list_unsubscribe_available: "包含退订链接",
-    email_auth_summary_authenticated:
-      "检查确认此邮件由 {{domain}} 发送。",
+    email_auth_summary_authenticated: "检查确认此邮件由 {{domain}} 发送。",
     email_auth_summary_unverified: "检查无法确认此邮件由 {{domain}} 发送。",
     email_auth_summary_unavailable: "此邮件没有可用的身份验证结果。",
     email_auth_spf_pass: "发送服务器获准代表此域名发送邮件。",
@@ -8783,8 +8800,10 @@ export const zh_CN = {
     link_device_cancel: "取消",
     link_device_desktop: "桌面应用",
     device_fingerprint: "设备指纹",
-    link_device_fingerprint_hint: "如果您要关联的设备显示了设备指纹，请在关联设备之前确认它与此指纹一致。",
-    device_code_fingerprint_hint: "输入代码时，请在关联设备之前确认浏览器中显示的设备指纹与此指纹一致。",
+    link_device_fingerprint_hint:
+      "如果您要关联的设备显示了设备指纹，请在关联设备之前确认它与此指纹一致。",
+    device_code_fingerprint_hint:
+      "输入代码时，请在关联设备之前确认浏览器中显示的设备指纹与此指纹一致。",
     link_device_change_account: "切换账号",
     link_device_choose_account: "选择账号",
     link_device_choose_account_description: "以关联桌面应用",
@@ -9307,16 +9326,12 @@ export const zh_CN = {
     apply_to_existing_canceled_encrypted_other:
       "已停止：已更新 {{applied}} 封。此规则跳过了 {{count}} 封加密邮件，因为只有您的设备才能读取它们。",
     apply_to_existing_error: "应用到现有邮件失败。请重试。",
-    local_apply_progress:
-      "正在此设备上检查加密邮件：{{checked}} / {{total}}",
+    local_apply_progress: "正在此设备上检查加密邮件：{{checked}} / {{total}}",
     local_apply_done:
       "已在此设备上检查加密邮件 {{checked}} 封，已更新 {{applied}} 封。",
-    local_apply_unreadable:
-      "无法解密的邮件：{{unreadable}} 封。",
-    local_apply_capped:
-      "仅检查了您最新的 {{limit}} 封邮件。",
-    local_apply_failed:
-      "部分加密邮件无法更新。请重试。",
+    local_apply_unreadable: "无法解密的邮件：{{unreadable}} 封。",
+    local_apply_capped: "仅检查了您最新的 {{limit}} 封邮件。",
+    local_apply_failed: "部分加密邮件无法更新。请重试。",
     local_apply_unsupported:
       "此规则使用了只有服务器才能检查的条件，因此无法整理加密邮件。",
     empty_title: "暂无规则",

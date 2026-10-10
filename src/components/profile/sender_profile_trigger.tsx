@@ -59,6 +59,7 @@ export interface SenderProfileTriggerProps {
   children: React.ReactNode;
   on_compose?: (email: string) => void;
   className?: string;
+  plain?: boolean;
 }
 
 export function SenderProfileTrigger({
@@ -67,6 +68,7 @@ export function SenderProfileTrigger({
   children,
   on_compose,
   className,
+  plain,
 }: SenderProfileTriggerProps) {
   const { t } = use_i18n();
   const navigate = useNavigate();
@@ -279,6 +281,7 @@ export function SenderProfileTrigger({
       className={className}
       email={email}
       name={display_name}
+      plain={plain}
       size={size}
     />
   );

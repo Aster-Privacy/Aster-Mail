@@ -87,6 +87,7 @@ export interface Email {
   expiry_type?: "sender" | "recipient";
   sender_verification?: SenderVerificationStatus;
   sender_verified_domain?: string;
+  sender_aligned?: boolean;
   send_status?: string;
   send_error?: string;
 }
@@ -159,6 +160,8 @@ export interface InboxEmail {
   system_origin?: boolean;
   sender_verification?: SenderVerificationStatus;
   sender_verified_domain?: string;
+  sender_aligned?: boolean;
+  is_outgoing?: boolean;
   labels?: InboxEmailLabel[];
   folders?: InboxEmailFolder[];
   tags?: InboxEmailTag[];
@@ -227,6 +230,7 @@ export interface DecryptedEnvelope {
   raw_headers?: { name: string; value: string }[];
   sender_verification?: SenderVerificationStatus;
   sender_verified_domain?: string;
+  sender_aligned?: boolean;
   attachment_metadata?: Array<{
     filename?: string;
     content_type?: string;

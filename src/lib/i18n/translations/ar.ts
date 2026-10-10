@@ -8879,6 +8879,24 @@ export const ar = {
     mark_read: "تعليم كمقروء",
     verified_sender: "مرسل موثّق",
     verified_sender_desc: "أكّد مرسل هذه الرسالة أنه يملك النطاق {{domain}}.",
+    sender_warning_title: "تحقّق من عنوان المرسل",
+    sender_warning_address_in_name:
+      "يعرض اسم المرسل {{claimed}}، لكن هذه الرسالة واردة من {{address}}.",
+    sender_warning_lookalike_name:
+      "اسم المرسل مكتوب ليبدو مثل {{claimed}}، لكن هذه الرسالة واردة من {{address}}.",
+    sender_warning_brand_name:
+      "يذكر اسم المرسل {{claimed}}، لكن هذه الرسالة واردة من {{address}}، وهو ليس عنوانًا معروفًا لـ {{claimed}}.",
+    sender_warning_home_brand_name:
+      "هذه الرسالة ليست من Aster. إنها واردة من {{address}}. لا يطلب Aster أبدًا كلمة مرورك أو عبارة الاسترداد عبر البريد الإلكتروني.",
+    sender_warning_lookalike_domain:
+      "النطاق {{domain}} يشبه {{claimed}}، لكنه نطاق مختلف.",
+    sender_contact_notice:
+      "يحمل هذا المرسل الاسم نفسه لجهة اتصالك {{name}}، لكنه يستخدم عنوانًا مختلفًا.",
+    sender_reply_to_notice:
+      "تُرسل الردود على هذه الرسالة إلى {{address}}، وهو عنوان على نطاق مختلف عن نطاق المرسل.",
+    email_auth_unverified: "غير مُتحقَّق منه",
+    email_auth_unverified_desc:
+      "تعذّر على Aster تأكيد أن {{domain}} أرسل هذه الرسالة. قبل فتح الروابط أو المرفقات، تأكّد من أنك تعرف المرسل.",
     email_auth_label: "مصادقة المرسل: {{verdict}}",
     email_auth_partial: "فحوصات غير حاسمة",
     email_auth_partial_desc:
@@ -9680,8 +9698,10 @@ export const ar = {
     link_device_cancel: "إلغاء",
     link_device_desktop: "تطبيق سطح المكتب",
     device_fingerprint: "بصمة الجهاز",
-    link_device_fingerprint_hint: "إذا عرض الجهاز الذي تربطه بصمة جهاز، فتأكد من أنها تطابق هذه البصمة قبل ربط الجهاز.",
-    device_code_fingerprint_hint: "عند إدخال الرمز، تأكد من أن بصمة الجهاز المعروضة في متصفحك تطابق هذه البصمة قبل ربط الجهاز.",
+    link_device_fingerprint_hint:
+      "إذا عرض الجهاز الذي تربطه بصمة جهاز، فتأكد من أنها تطابق هذه البصمة قبل ربط الجهاز.",
+    device_code_fingerprint_hint:
+      "عند إدخال الرمز، تأكد من أن بصمة الجهاز المعروضة في متصفحك تطابق هذه البصمة قبل ربط الجهاز.",
     link_device_change_account: "تغيير الحساب",
     link_device_choose_account: "اختر حسابًا",
     link_device_choose_account_description: "لربط تطبيق سطح المكتب",
@@ -10273,12 +10293,9 @@ export const ar = {
       "جارٍ فحص الرسائل المشفّرة على هذا الجهاز: {{checked}} من {{total}}",
     local_apply_done:
       "الرسائل المشفّرة التي فُحصت على هذا الجهاز: {{checked}}، وتم تحديث {{applied}}.",
-    local_apply_unreadable:
-      "الرسائل التي تعذّر فك تشفيرها: {{unreadable}}.",
-    local_apply_capped:
-      "فُحصت أحدث {{limit}} رسالة فقط.",
-    local_apply_failed:
-      "تعذّر تحديث بعض الرسائل المشفّرة. حاول مرة أخرى.",
+    local_apply_unreadable: "الرسائل التي تعذّر فك تشفيرها: {{unreadable}}.",
+    local_apply_capped: "فُحصت أحدث {{limit}} رسالة فقط.",
+    local_apply_failed: "تعذّر تحديث بعض الرسائل المشفّرة. حاول مرة أخرى.",
     local_apply_unsupported:
       "تستخدم هذه القاعدة شروطًا لا يمكن التحقق منها إلا على الخادم، لذا لا يمكنها فرز الرسائل المشفّرة.",
     empty_title: "لا توجد قواعد بعد",

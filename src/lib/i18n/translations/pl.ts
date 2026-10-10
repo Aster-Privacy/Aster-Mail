@@ -9295,6 +9295,24 @@ export const pl = {
     verified_sender: "Zweryfikowany nadawca",
     verified_sender_desc:
       "Nadawca tej wiadomości potwierdził, że jest właścicielem domeny {{domain}}.",
+    sender_warning_title: "Sprawdź adres nadawcy",
+    sender_warning_address_in_name:
+      "Nazwa nadawcy pokazuje {{claimed}}, ale ta wiadomość pochodzi z adresu {{address}}.",
+    sender_warning_lookalike_name:
+      "Nazwa nadawcy jest zapisana tak, aby wyglądała jak {{claimed}}, ale ta wiadomość pochodzi z adresu {{address}}.",
+    sender_warning_brand_name:
+      "Nazwa nadawcy wymienia {{claimed}}, ale ta wiadomość pochodzi z adresu {{address}}, który nie jest znanym adresem {{claimed}}.",
+    sender_warning_home_brand_name:
+      "Ta wiadomość nie pochodzi od Aster. Wysłano ją z adresu {{address}}. Aster nigdy nie prosi w wiadomości e-mail o hasło ani frazę odzyskiwania.",
+    sender_warning_lookalike_domain:
+      "Domena {{domain}} wygląda jak {{claimed}}, ale jest to inna domena.",
+    sender_contact_notice:
+      "Ten nadawca ma taką samą nazwę jak Twój kontakt {{name}}, ale używa innego adresu.",
+    sender_reply_to_notice:
+      "Odpowiedzi na tę wiadomość trafiają na adres {{address}}, który należy do innej domeny niż nadawca.",
+    email_auth_unverified: "Niezweryfikowany",
+    email_auth_unverified_desc:
+      "Aster nie mógł potwierdzić, że domena {{domain}} wysłała tę wiadomość. Zanim otworzysz linki lub załączniki, sprawdź, czy znasz nadawcę.",
     email_auth_label: "Uwierzytelnienie nadawcy: {{verdict}}",
     email_auth_partial: "Niejednoznaczne kontrole",
     email_auth_partial_desc:
@@ -10095,8 +10113,10 @@ export const pl = {
     link_device_cancel: "Anuluj",
     link_device_desktop: "Aplikacja desktopowa",
     device_fingerprint: "Odcisk urządzenia",
-    link_device_fingerprint_hint: "Jeśli łączone urządzenie pokazuje odcisk urządzenia, przed połączeniem upewnij się, że jest zgodny z tym odciskiem.",
-    device_code_fingerprint_hint: "Podczas wpisywania kodu upewnij się, że odcisk urządzenia widoczny w przeglądarce jest zgodny z tym odciskiem, zanim połączysz urządzenie.",
+    link_device_fingerprint_hint:
+      "Jeśli łączone urządzenie pokazuje odcisk urządzenia, przed połączeniem upewnij się, że jest zgodny z tym odciskiem.",
+    device_code_fingerprint_hint:
+      "Podczas wpisywania kodu upewnij się, że odcisk urządzenia widoczny w przeglądarce jest zgodny z tym odciskiem, zanim połączysz urządzenie.",
     link_device_change_account: "Zmień konto",
     link_device_choose_account: "Wybierz konto",
     link_device_choose_account_description:
@@ -10722,8 +10742,7 @@ export const pl = {
       "Zaszyfrowane wiadomości sprawdzone na tym urządzeniu: {{checked}}, zaktualizowano: {{applied}}.",
     local_apply_unreadable:
       "Wiadomości, których nie udało się odszyfrować: {{unreadable}}.",
-    local_apply_capped:
-      "Sprawdzono tylko {{limit}} najnowszych wiadomości.",
+    local_apply_capped: "Sprawdzono tylko {{limit}} najnowszych wiadomości.",
     local_apply_failed:
       "Nie udało się zaktualizować niektórych zaszyfrowanych wiadomości. Spróbuj ponownie.",
     local_apply_unsupported:

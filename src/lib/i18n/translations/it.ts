@@ -8501,7 +8501,8 @@ export const it = {
       "Tieni i contatti e altri strumenti rapidi in un pannello accanto ai tuoi messaggi.",
   },
   mail: {
-    image_size_prompt_title: "Ridurre le dimensioni delle immagini in questo messaggio?",
+    image_size_prompt_title:
+      "Ridurre le dimensioni delle immagini in questo messaggio?",
     image_size_prompt_description:
       "Le immagini più piccole si inviano più velocemente e rispettano i limiti di dimensione degli altri provider email. Le dimensioni originali mantengono ogni dettaglio.",
     image_size_reduce: "Riduci dimensioni immagini",
@@ -9112,6 +9113,24 @@ export const it = {
     verified_sender: "Mittente verificato",
     verified_sender_desc:
       "Il mittente di questa email ha verificato di possedere {{domain}}.",
+    sender_warning_title: "Controlla l'indirizzo del mittente",
+    sender_warning_address_in_name:
+      "Il nome del mittente mostra {{claimed}}, ma questo messaggio proviene da {{address}}.",
+    sender_warning_lookalike_name:
+      "Il nome del mittente è scritto in modo da sembrare {{claimed}}, ma questo messaggio proviene da {{address}}.",
+    sender_warning_brand_name:
+      "Il nome del mittente cita {{claimed}}, ma questo messaggio proviene da {{address}}, che non è un indirizzo noto di {{claimed}}.",
+    sender_warning_home_brand_name:
+      "Questo messaggio non proviene da Aster. Proviene da {{address}}. Aster non ti chiede mai la password o la frase di recupero via email.",
+    sender_warning_lookalike_domain:
+      "Il dominio {{domain}} assomiglia a {{claimed}}, ma è un dominio diverso.",
+    sender_contact_notice:
+      "Questo mittente ha lo stesso nome del tuo contatto {{name}}, ma usa un indirizzo diverso.",
+    sender_reply_to_notice:
+      "Le risposte a questo messaggio vengono inviate a {{address}}, che appartiene a un dominio diverso da quello del mittente.",
+    email_auth_unverified: "Non verificato",
+    email_auth_unverified_desc:
+      "Aster non ha potuto confermare che {{domain}} abbia inviato questo messaggio. Prima di aprire link o allegati, controlla di conoscere il mittente.",
     email_auth_label: "Autenticazione del mittente: {{verdict}}",
     email_auth_partial: "Controlli non conclusivi",
     email_auth_partial_desc:
@@ -9923,8 +9942,10 @@ export const it = {
     link_device_confirming: "Collegamento dispositivo...",
     link_device_desktop: "App desktop",
     device_fingerprint: "Impronta del dispositivo",
-    link_device_fingerprint_hint: "Se il dispositivo che stai collegando mostra un'impronta del dispositivo, verifica che corrisponda a questa prima di collegarlo.",
-    device_code_fingerprint_hint: "Quando inserisci il codice, verifica che l'impronta del dispositivo mostrata nel browser corrisponda a questa prima di collegare il dispositivo.",
+    link_device_fingerprint_hint:
+      "Se il dispositivo che stai collegando mostra un'impronta del dispositivo, verifica che corrisponda a questa prima di collegarlo.",
+    device_code_fingerprint_hint:
+      "Quando inserisci il codice, verifica che l'impronta del dispositivo mostrata nel browser corrisponda a questa prima di collegare il dispositivo.",
     link_device_change_account: "Cambia account",
     link_device_choose_account: "Scegli un account",
     link_device_choose_account_description: "Per collegare la tua app desktop",

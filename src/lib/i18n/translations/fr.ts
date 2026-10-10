@@ -4885,7 +4885,8 @@ export const fr = {
     address_change_use_alias: "Utiliser un de vos alias",
     address_change_alias_placeholder: "Choisir un alias",
     address_change_alias_search: "Rechercher des alias",
-    address_change_alias_no_results: "Aucun alias ne correspond à votre recherche.",
+    address_change_alias_no_results:
+      "Aucun alias ne correspond à votre recherche.",
     address_change_use_new: "Choisir une nouvelle adresse",
     address_change_name_rule:
       "Utilisez 3 à 40 lettres, chiffres ou points. Un point ne peut ni commencer ni terminer l\\'adresse, et les points ne peuvent pas se répéter.",
@@ -9160,6 +9161,24 @@ export const fr = {
     verified_sender: "Expéditeur vérifié",
     verified_sender_desc:
       "L'expéditeur de cet e-mail a vérifié qu'il est propriétaire de {{domain}}.",
+    sender_warning_title: "Vérifiez l'adresse de l'expéditeur",
+    sender_warning_address_in_name:
+      "Le nom de l'expéditeur affiche {{claimed}}, mais ce message provient de {{address}}.",
+    sender_warning_lookalike_name:
+      "Le nom de l'expéditeur est écrit pour ressembler à {{claimed}}, mais ce message provient de {{address}}.",
+    sender_warning_brand_name:
+      "Le nom de l'expéditeur mentionne {{claimed}}, mais ce message provient de {{address}}, qui n'est pas une adresse connue de {{claimed}}.",
+    sender_warning_home_brand_name:
+      "Ce message ne vient pas d'Aster. Il provient de {{address}}. Aster ne vous demande jamais votre mot de passe ni votre phrase de récupération par e-mail.",
+    sender_warning_lookalike_domain:
+      "Le domaine {{domain}} ressemble à {{claimed}}, mais il s'agit d'un autre domaine.",
+    sender_contact_notice:
+      "Cet expéditeur porte le même nom que votre contact {{name}}, mais utilise une autre adresse.",
+    sender_reply_to_notice:
+      "Les réponses à ce message sont envoyées à {{address}}, qui appartient à un autre domaine que celui de l'expéditeur.",
+    email_auth_unverified: "Non vérifié",
+    email_auth_unverified_desc:
+      "Aster n'a pas pu confirmer que {{domain}} a envoyé ce message. Avant d'ouvrir des liens ou des pièces jointes, vérifiez que vous connaissez l'expéditeur.",
     email_auth_label: "Authentification de l'expéditeur : {{verdict}}",
     email_auth_partial: "Vérifications non concluantes",
     email_auth_partial_desc:
@@ -9998,8 +10017,10 @@ export const fr = {
     link_device_confirming: "Confirmation en cours...",
     link_device_desktop: "Associer un appareil de bureau",
     device_fingerprint: "Empreinte de l'appareil",
-    link_device_fingerprint_hint: "Si l'appareil que vous associez affiche une empreinte, vérifiez qu'elle correspond à celle-ci avant d'associer l'appareil.",
-    device_code_fingerprint_hint: "Lorsque vous saisissez le code, vérifiez que l'empreinte de l'appareil affichée dans votre navigateur correspond à celle-ci avant d'associer l'appareil.",
+    link_device_fingerprint_hint:
+      "Si l'appareil que vous associez affiche une empreinte, vérifiez qu'elle correspond à celle-ci avant d'associer l'appareil.",
+    device_code_fingerprint_hint:
+      "Lorsque vous saisissez le code, vérifiez que l'empreinte de l'appareil affichée dans votre navigateur correspond à celle-ci avant d'associer l'appareil.",
     link_device_change_account: "Changer de compte",
     link_device_choose_account: "Choisissez un compte",
     link_device_choose_account_description:

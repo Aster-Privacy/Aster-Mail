@@ -20,10 +20,19 @@
 //
 import type { AuthProviderProps } from "./auth_types";
 
+import { useEffect } from "react";
+
 import { AuthContext } from "./use_auth_hook";
 import { use_auth_provider_state } from "./use_auth_provider_state";
+
+import { set_trust_primary_address } from "@/lib/sender_trust_store";
 export function AuthProvider({ children }: AuthProviderProps) {
   const { context_value } = use_auth_provider_state();
+  const primary_address = context_value.user?.email;
+
+  useEffect(() => {
+    set_trust_primary_address(primary_address);
+  }, [primary_address]);
 
   return (
     <AuthContext.Provider value={context_value}>

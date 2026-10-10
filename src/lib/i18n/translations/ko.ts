@@ -8697,6 +8697,24 @@ export const ko = {
     verified_sender: "인증된 발신자",
     verified_sender_desc:
       "이 이메일의 발신자가 {{domain}}을(를) 소유하고 있음을 확인했습니다.",
+    sender_warning_title: "발신자 주소를 확인하세요",
+    sender_warning_address_in_name:
+      "발신자 이름에는 {{claimed}}(이)라고 표시되지만, 이 메시지는 {{address}}에서 보냈습니다.",
+    sender_warning_lookalike_name:
+      "발신자 이름이 {{claimed}}처럼 보이도록 작성되었지만, 이 메시지는 {{address}}에서 보냈습니다.",
+    sender_warning_brand_name:
+      "발신자 이름에 {{claimed}}이(가) 포함되어 있지만, 이 메시지는 {{address}}에서 보냈으며 이 주소는 {{claimed}}이(가) 사용하는 것으로 알려진 주소가 아닙니다.",
+    sender_warning_home_brand_name:
+      "이 메시지는 Aster에서 보낸 것이 아닙니다. {{address}}에서 보냈습니다. Aster는 이메일로 비밀번호나 복구 문구를 요청하지 않습니다.",
+    sender_warning_lookalike_domain:
+      "도메인 {{domain}}은(는) {{claimed}}와(과) 비슷해 보이지만 다른 도메인입니다.",
+    sender_contact_notice:
+      "이 발신자는 연락처 {{name}}와(과) 이름이 같지만 다른 주소를 사용합니다.",
+    sender_reply_to_notice:
+      "이 메시지에 대한 답장은 {{address}}(으)로 전송되며, 이 주소는 발신자와 다른 도메인에 속합니다.",
+    email_auth_unverified: "확인되지 않음",
+    email_auth_unverified_desc:
+      "Aster가 {{domain}}에서 이 메시지를 보냈는지 확인하지 못했습니다. 링크나 첨부 파일을 열기 전에 아는 발신자인지 확인하세요.",
     email_auth_label: "발신자 확인: {{verdict}}",
     email_auth_partial: "검사 결과 불확실",
     email_auth_partial_desc:
@@ -9477,8 +9495,10 @@ export const ko = {
     link_device_cancel: "취소",
     link_device_desktop: "데스크톱 앱",
     device_fingerprint: "기기 지문",
-    link_device_fingerprint_hint: "연결하려는 기기에 기기 지문이 표시되면 기기를 연결하기 전에 이 지문과 일치하는지 확인하세요.",
-    device_code_fingerprint_hint: "코드를 입력할 때 기기를 연결하기 전에 브라우저에 표시된 기기 지문이 이 지문과 일치하는지 확인하세요.",
+    link_device_fingerprint_hint:
+      "연결하려는 기기에 기기 지문이 표시되면 기기를 연결하기 전에 이 지문과 일치하는지 확인하세요.",
+    device_code_fingerprint_hint:
+      "코드를 입력할 때 기기를 연결하기 전에 브라우저에 표시된 기기 지문이 이 지문과 일치하는지 확인하세요.",
     link_device_change_account: "계정 변경",
     link_device_choose_account: "계정 선택",
     link_device_choose_account_description: "데스크톱 앱을 연결합니다",
@@ -10068,10 +10088,8 @@ export const ko = {
       "이 기기에서 암호화된 메시지 확인 중: {{total}}개 중 {{checked}}개",
     local_apply_done:
       "이 기기에서 확인한 암호화된 메시지: {{checked}}개, {{applied}}개 업데이트.",
-    local_apply_unreadable:
-      "복호화하지 못한 메시지: {{unreadable}}개.",
-    local_apply_capped:
-      "최신 메시지 {{limit}}개만 확인했습니다.",
+    local_apply_unreadable: "복호화하지 못한 메시지: {{unreadable}}개.",
+    local_apply_capped: "최신 메시지 {{limit}}개만 확인했습니다.",
     local_apply_failed:
       "일부 암호화된 메시지를 업데이트하지 못했습니다. 다시 시도하세요.",
     local_apply_unsupported:

@@ -49,6 +49,7 @@ import { SearchContentBanner } from "@/components/search/search_content_banner";
 import { SearchResultSkeleton } from "@/components/search/search_results_list";
 import { CorrectionNotice } from "@/components/search/correction_notice";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
+import { use_search_sender_trust } from "@/hooks/use_sender_trust";
 import {
   format_date,
   format_date_short,
@@ -769,7 +770,8 @@ const PreviewRow = memo(function PreviewRow({
   on_click: () => void;
 }) {
   const { preferences } = use_preferences();
-  const participants = result.sender_name || result.sender_email || "";
+  const { shown_name, marks_hidden } = use_search_sender_trust(result);
+  const participants = shown_name || result.sender_email || "";
 
   return (
     <button
@@ -779,8 +781,9 @@ const PreviewRow = memo(function PreviewRow({
     >
       <ProfileAvatar
         email={result.sender_email}
-        image_url={result.avatar_url}
+        image_url={marks_hidden ? undefined : result.avatar_url}
         name={participants}
+        plain={marks_hidden}
         size="sm"
         use_domain_logo={preferences.show_profile_pictures !== false}
       />

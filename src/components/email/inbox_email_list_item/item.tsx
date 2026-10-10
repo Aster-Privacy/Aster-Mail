@@ -71,6 +71,7 @@ import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { OfficialBadge } from "@/components/email/official_badge";
 import { BadgeChip } from "@/components/ui/badge_chip";
 import { use_peer_profile } from "@/hooks/use_peer_profile";
+import { use_sender_trust } from "@/hooks/use_sender_trust";
 import {
   EmailTag,
   hex_to_variant,
@@ -173,9 +174,25 @@ export const InboxEmailListItem = memo(
       const show_sender_name = outgoing_names
         ? outgoing_names[0]
         : (email.display_sender_name ?? email.sender_name);
+      const raw_list_name = peer_profile?.display_name ?? show_sender_name;
+      const evaluated_trust = use_sender_trust(
+        { ...email, reply_to: email.reply_to?.email },
+        {
+          shown_name: raw_list_name,
+          shown_email: show_sender_email,
+        },
+      );
+      const sender_trust =
+        outgoing_names || email.is_outgoing ? null : evaluated_trust;
+      const marks_hidden = sender_trust?.show_identity_marks === false;
+      const list_sender_name = sender_trust
+        ? sender_trust.name || sender_trust.address || raw_list_name
+        : raw_list_name;
       const peer_badge = peer_profile?.active_badge ?? null;
       const show_sender_badge =
-        (peer_profile?.show_badge_profile ?? false) && !!peer_badge;
+        (peer_profile?.show_badge_profile ?? false) &&
+        !!peer_badge &&
+        !sender_trust?.warning;
       const compact_rows = is_compact_density(
         density,
         preferences.compact_mode ?? false,
@@ -454,12 +471,19 @@ export const InboxEmailListItem = memo(
                       <ProfileAvatar
                         email={show_sender_email}
                         image_url={
-                          peer_profile?.profile_picture ?? email.avatar_url
+                          marks_hidden
+                            ? undefined
+                            : (peer_profile?.profile_picture ??
+                              email.avatar_url)
                         }
-                        name={peer_profile?.display_name ?? show_sender_name}
-                        sender_authenticated={is_system_email(
-                          trust_source_for_display(email, show_sender_email),
-                        )}
+                        name={list_sender_name}
+                        plain={marks_hidden}
+                        sender_authenticated={
+                          !marks_hidden &&
+                          is_system_email(
+                            trust_source_for_display(email, show_sender_email),
+                          )
+                        }
                         size={compact_rows ? "sm_compact" : "sm"}
                         use_domain_logo={show_profile_pictures}
                       />
@@ -520,21 +544,25 @@ export const InboxEmailListItem = memo(
               >
                 {resolve_list_display_name({
                   outgoing_names,
-                  thread_participant_names: email.thread_participant_names,
-                  fallback_name: peer_profile?.display_name ?? show_sender_name,
+                  thread_participant_names: sender_trust?.warning
+                    ? undefined
+                    : email.thread_participant_names,
+                  fallback_name: list_sender_name,
                   to_prefix: t("mail.to"),
                 })}
               </span>
 
-              <OfficialBadge
-                address_only={!!outgoing_names}
-                className="hidden sm:inline-flex"
-                sender={
-                  outgoing_names
-                    ? { sender_email: profile_target_email }
-                    : trust_source_for_display(email, email.sender_email)
-                }
-              />
+              {!sender_trust?.warning && (
+                <OfficialBadge
+                  address_only={!!outgoing_names}
+                  className="hidden sm:inline-flex"
+                  sender={
+                    outgoing_names
+                      ? { sender_email: profile_target_email }
+                      : trust_source_for_display(email, email.sender_email)
+                  }
+                />
+              )}
 
               {show_thread_count &&
                 thread_message_count > 1 &&

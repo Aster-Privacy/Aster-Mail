@@ -613,6 +613,7 @@ export async function preload_email_detail(
         sender_verified_domain: item.sender_verified
           ? item.sender_verified_domain
           : undefined,
+        sender_aligned: item.sender_aligned,
         send_status: item.send_status,
         send_error: item.send_error,
         raw_headers: envelope.raw_headers,
@@ -673,6 +674,7 @@ export async function preload_email_detail(
         sender_verified_domain: item.sender_verified
           ? item.sender_verified_domain
           : undefined,
+        sender_aligned: item.sender_aligned,
         encrypted_metadata: item.encrypted_metadata,
         metadata_nonce: item.metadata_nonce,
         to_recipients: envelope.to || [],

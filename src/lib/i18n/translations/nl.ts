@@ -4749,7 +4749,8 @@ export const nl = {
     address_change_use_alias: "Een van je aliassen gebruiken",
     address_change_alias_placeholder: "Kies een alias",
     address_change_alias_search: "Aliassen zoeken",
-    address_change_alias_no_results: "Geen aliassen komen overeen met je zoekopdracht.",
+    address_change_alias_no_results:
+      "Geen aliassen komen overeen met je zoekopdracht.",
     address_change_use_new: "Een nieuw adres kiezen",
     address_change_name_rule:
       "Gebruik 3 tot 40 letters, cijfers of punten. Een punt mag niet aan het begin of eind staan en punten mogen zich niet herhalen.",
@@ -8434,7 +8435,8 @@ export const nl = {
       "Houd je contacten en andere snelle hulpmiddelen in een paneel naast je berichten.",
   },
   mail: {
-    image_size_prompt_title: "Grootte van afbeeldingen in dit bericht verkleinen?",
+    image_size_prompt_title:
+      "Grootte van afbeeldingen in dit bericht verkleinen?",
     image_size_prompt_description:
       "Kleinere afbeeldingen worden sneller verstuurd en blijven binnen de groottelimieten van andere e-mailproviders. De oorspronkelijke grootte behoudt elk detail.",
     image_size_reduce: "Afbeeldingen verkleinen",
@@ -9033,6 +9035,24 @@ export const nl = {
     verified_sender: "Geverifieerde afzender",
     verified_sender_desc:
       "De afzender van deze e-mail heeft bevestigd eigenaar te zijn van {{domain}}.",
+    sender_warning_title: "Controleer het adres van de afzender",
+    sender_warning_address_in_name:
+      "De naam van de afzender toont {{claimed}}, maar dit bericht komt van {{address}}.",
+    sender_warning_lookalike_name:
+      "De naam van de afzender is zo geschreven dat hij op {{claimed}} lijkt, maar dit bericht komt van {{address}}.",
+    sender_warning_brand_name:
+      "De naam van de afzender noemt {{claimed}}, maar dit bericht komt van {{address}}. Dat is geen bekend adres van {{claimed}}.",
+    sender_warning_home_brand_name:
+      "Dit bericht komt niet van Aster, maar van {{address}}. Aster vraagt nooit per e-mail om je wachtwoord of herstelzin.",
+    sender_warning_lookalike_domain:
+      "Het domein {{domain}} lijkt op {{claimed}}, maar is een ander domein.",
+    sender_contact_notice:
+      "Deze afzender heeft dezelfde naam als je contact {{name}}, maar gebruikt een ander adres.",
+    sender_reply_to_notice:
+      "Antwoorden op dit bericht gaan naar {{address}}. Dat adres hoort bij een ander domein dan de afzender.",
+    email_auth_unverified: "Niet geverifieerd",
+    email_auth_unverified_desc:
+      "Aster kon niet bevestigen dat {{domain}} dit bericht heeft verzonden. Controleer of je de afzender kent voordat je links of bijlagen opent.",
     email_auth_label: "Afzenderauthenticatie: {{verdict}}",
     email_auth_partial: "Controles niet eenduidig",
     email_auth_partial_desc:
@@ -9849,8 +9869,10 @@ export const nl = {
     link_device_cancel: "Annuleren",
     link_device_desktop: "Desktop-app",
     device_fingerprint: "Apparaatvingerafdruk",
-    link_device_fingerprint_hint: "Als het apparaat dat je koppelt een apparaatvingerafdruk toont, controleer dan of die overeenkomt met deze voordat je het apparaat koppelt.",
-    device_code_fingerprint_hint: "Controleer bij het invoeren van de code of de apparaatvingerafdruk in je browser overeenkomt met deze voordat je het apparaat koppelt.",
+    link_device_fingerprint_hint:
+      "Als het apparaat dat je koppelt een apparaatvingerafdruk toont, controleer dan of die overeenkomt met deze voordat je het apparaat koppelt.",
+    device_code_fingerprint_hint:
+      "Controleer bij het invoeren van de code of de apparaatvingerafdruk in je browser overeenkomt met deze voordat je het apparaat koppelt.",
     link_device_change_account: "Account wijzigen",
     link_device_choose_account: "Kies een account",
     link_device_choose_account_description: "Om je desktop-app te koppelen",

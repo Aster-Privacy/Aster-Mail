@@ -45,6 +45,7 @@ import {
 } from "@/components/email/hooks/use_press_prefetch";
 import { is_system_email, trust_source_for_display } from "@/lib/utils";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
+import { use_sender_trust } from "@/hooks/use_sender_trust";
 import { SnoozeBadge } from "@/components/ui/snooze_badge";
 import {
   normalize_alias_candidates,
@@ -276,12 +277,6 @@ export const MobileEmailRow = memo(function MobileEmailRow(
   const show_sender_name = outgoing_names
     ? outgoing_names[0]
     : (email.display_sender_name ?? email.sender_name);
-  const display_name_label = resolve_list_display_name({
-    outgoing_names,
-    thread_participant_names: undefined,
-    fallback_name: show_sender_name,
-    to_prefix: t("mail.to"),
-  });
   const show_sender_email = outgoing_names
     ? outgoing_profile_email(
         current_view,
@@ -289,6 +284,22 @@ export const MobileEmailRow = memo(function MobileEmailRow(
         email.sender_email,
       )
     : (email.display_sender_email ?? email.sender_email);
+  const evaluated_trust = use_sender_trust(
+    { ...email, reply_to: email.reply_to?.email },
+    { shown_name: show_sender_name, shown_email: show_sender_email },
+  );
+  const sender_trust =
+    outgoing_names || email.is_outgoing ? null : evaluated_trust;
+  const marks_hidden = sender_trust?.show_identity_marks === false;
+  const list_sender_name = sender_trust
+    ? sender_trust.name || sender_trust.address || show_sender_name
+    : show_sender_name;
+  const display_name_label = resolve_list_display_name({
+    outgoing_names,
+    thread_participant_names: undefined,
+    fallback_name: list_sender_name,
+    to_prefix: t("mail.to"),
+  });
 
   const alias_candidates_key = useMemo(
     () => normalize_alias_candidates(email.recipient_addresses ?? []),
@@ -328,10 +339,14 @@ export const MobileEmailRow = memo(function MobileEmailRow(
           <ProfileAvatar
             use_domain_logo
             email={show_sender_email}
-            name={show_sender_name}
-            sender_authenticated={is_system_email(
-              trust_source_for_display(email, show_sender_email),
-            )}
+            name={list_sender_name}
+            plain={marks_hidden}
+            sender_authenticated={
+              !marks_hidden &&
+              is_system_email(
+                trust_source_for_display(email, show_sender_email),
+              )
+            }
             size="md"
           />
           {selection_mode && is_selected && (
@@ -376,15 +391,17 @@ export const MobileEmailRow = memo(function MobileEmailRow(
             {display_name_label}
           </span>
 
-          <OfficialBadge
-            address_only={!!outgoing_names}
-            className="shrink-0"
-            sender={
-              outgoing_names
-                ? { sender_email: show_sender_email }
-                : trust_source_for_display(email, show_sender_email)
-            }
-          />
+          {!sender_trust?.warning && (
+            <OfficialBadge
+              address_only={!!outgoing_names}
+              className="shrink-0"
+              sender={
+                outgoing_names
+                  ? { sender_email: show_sender_email }
+                  : trust_source_for_display(email, show_sender_email)
+              }
+            />
+          )}
 
           {alias_delivery && (
             <Tooltip

@@ -130,6 +130,7 @@ export function detect_forwarded_alias(
 export interface ForwardingAuthResults {
   dkim_result?: string;
   dmarc_result?: string;
+  sender_aligned?: boolean | null;
 }
 
 function auth_status(raw: string | undefined): string {
@@ -144,6 +145,8 @@ export function is_forwarder_authenticated(
   const dkim = auth_status(auth?.dkim_result);
   const dmarc = auth_status(auth?.dmarc_result);
 
+  if (auth?.sender_aligned === false) return false;
+  if (auth?.sender_aligned === true) return true;
   if (!dkim && !dmarc) return true;
   if (dmarc === "pass") return true;
   if (dmarc && dmarc !== "none") return false;

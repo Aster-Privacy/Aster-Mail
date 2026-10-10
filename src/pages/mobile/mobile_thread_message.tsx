@@ -66,6 +66,9 @@ import {
   download_attachment_by_id,
 } from "@/utils/attachment_download";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
+import { SenderTrustBanner } from "@/components/email/banners/sender_trust_banner";
+import { use_sender_trust } from "@/hooks/use_sender_trust";
+import { extract_reply_to } from "@/utils/reply_to";
 import { use_preferences } from "@/contexts/preferences_context";
 import { clip_with_ellipsis } from "@/utils/preview_text";
 import {
@@ -257,9 +260,26 @@ export function MobileThreadMessage({
   }, [clean_body, password_protected, t]);
 
   const is_system = is_system_email(message);
-  const show_sender_name = message.display_sender_name ?? message.sender_name;
+  const raw_sender_name = message.display_sender_name ?? message.sender_name;
   const show_sender_email =
     message.display_sender_email ?? message.sender_email;
+  const reply_to_address = useMemo(
+    () => extract_reply_to(message.raw_headers)?.email,
+    [message.raw_headers],
+  );
+  const evaluated_trust = use_sender_trust(
+    { ...message, reply_to: reply_to_address },
+    { shown_name: raw_sender_name, shown_email: show_sender_email },
+  );
+  const sender_trust =
+    message.item_type === "received" && !is_own_message
+      ? evaluated_trust
+      : null;
+  const marks_hidden = sender_trust?.show_identity_marks === false;
+  const show_sender_name = sender_trust
+    ? sender_trust.name || sender_trust.address || raw_sender_name
+    : raw_sender_name;
+  const shown_address = sender_trust?.address || show_sender_email;
   const received_on_address = useMemo(
     () =>
       message.item_type === "received"
@@ -535,7 +555,8 @@ export function MobileThreadMessage({
               use_domain_logo
               email={show_sender_email}
               name={show_sender_name}
-              sender_authenticated={is_system}
+              plain={marks_hidden}
+              sender_authenticated={!marks_hidden && is_system}
               size="sm"
             />
           </div>
@@ -596,7 +617,8 @@ export function MobileThreadMessage({
             use_domain_logo
             email={show_sender_email}
             name={show_sender_name}
-            sender_authenticated={is_system}
+            plain={marks_hidden}
+            sender_authenticated={!marks_hidden && is_system}
             size="md"
           />
         </div>
@@ -631,8 +653,8 @@ export function MobileThreadMessage({
                 : t("mail.unknown_recipient")}
             </p>
           ) : (
-            <p className="-mt-0.5 text-[12px] leading-tight text-[var(--text-muted)]">
-              {show_sender_email}
+            <p className="-mt-0.5 break-all text-[12px] leading-tight text-[var(--text-muted)]">
+              <bdi>{shown_address}</bdi>
             </p>
           )}
           {received_on_address && (
@@ -662,6 +684,8 @@ export function MobileThreadMessage({
           </div>
         </div>
       </div>
+
+      <SenderTrustBanner className="mx-4 mb-3" trust={sender_trust} />
 
       <div className={`overflow-hidden ${is_system ? "pt-2 pb-1" : ""}`}>
         {password_protected ? (

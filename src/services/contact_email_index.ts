@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { DecryptedContact } from "@/types/contacts";
+import type { SenderTrustContact } from "@/lib/sender_trust";
 
 import {
   list_contacts,
@@ -26,6 +27,7 @@ import {
   get_contacts_encryption_key,
 } from "@/services/api/contacts";
 import { is_contact_trashed } from "@/lib/contact_trash";
+import { set_trust_contacts } from "@/lib/sender_trust_store";
 import { on_mail_event, MAIL_EVENTS } from "@/hooks/mail_events";
 import {
   on_keys_ready,
@@ -45,6 +47,7 @@ type ContactIndexContact = Pick<
 interface ContactIndexBuild {
   entries: Map<string, ContactIndexEntry>;
   versions: Map<string, string>;
+  trust_contacts: SenderTrustContact[];
 }
 
 const PAGE_SIZE = 100;
@@ -132,6 +135,29 @@ export function build_contact_email_map(
   return next;
 }
 
+export function build_trust_contacts(
+  contacts: (ContactIndexContact &
+    Partial<Pick<DecryptedContact, "first_name" | "last_name">>)[],
+): SenderTrustContact[] {
+  const result: SenderTrustContact[] = [];
+
+  for (const contact of contacts) {
+    if (is_contact_trashed(contact)) continue;
+    const emails = collect_contact_emails(contact);
+
+    if (emails.length === 0) continue;
+    const name = [contact.first_name, contact.last_name]
+      .filter((part): part is string => typeof part === "string")
+      .map((part) => part.trim())
+      .filter(Boolean)
+      .join(" ");
+
+    result.push({ name, emails });
+  }
+
+  return result;
+}
+
 function build_contact_versions(
   contacts: ContactIndexContact[],
 ): Map<string, string> {
@@ -189,6 +215,7 @@ async function fetch_index(
   return {
     entries: build_contact_email_map(contacts),
     versions: build_contact_versions(contacts),
+    trust_contacts: build_trust_contacts(contacts),
   };
 }
 
@@ -299,6 +326,7 @@ export function ensure_contact_email_index(): Promise<
       versions = next.versions;
       built_at = Date.now();
       last_failure_at = 0;
+      set_trust_contacts(next.trust_contacts);
       if (changed && changed.size > 0) run_invalidation_handlers(changed);
       notify_change();
 
@@ -349,6 +377,7 @@ export function invalidate_contact_email_index(): void {
   built_at = 0;
   pending = null;
   last_failure_at = 0;
+  set_trust_contacts([]);
   run_invalidation_handlers(null);
   notify_change();
 }

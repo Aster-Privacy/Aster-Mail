@@ -122,6 +122,7 @@ export interface MailItem {
   rule_category?: string;
   sender_verified?: boolean;
   sender_verified_domain?: string;
+  sender_aligned?: boolean;
   is_reaction?: boolean;
   reactions?: ReactionSummary[];
   spf_result?: string;

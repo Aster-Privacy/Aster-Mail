@@ -192,7 +192,8 @@ export const ja = {
     profile_picture_cat_mountains: "山",
     profile_picture_cat_ocean: "海",
     profile_picture_cat_desert: "砂漠",
-    profile_picture_credit: "写真: {{credit}}。トリミングとサイズ変更を行っています。",
+    profile_picture_credit:
+      "写真: {{credit}}。トリミングとサイズ変更を行っています。",
     toggle_alias: "このエイリアスを有効または無効にする",
     enter_passphrase: "パスフレーズを入力してください",
     app_name: "Aster Mail",
@@ -8864,6 +8865,24 @@ export const ja = {
     verified_sender: "認証済みの送信者",
     verified_sender_desc:
       "このメールの送信者は {{domain}} を所有していることを確認済みです。",
+    sender_warning_title: "送信者のアドレスを確認してください",
+    sender_warning_address_in_name:
+      "送信者名には {{claimed}} と表示されていますが、このメッセージは {{address}} から届いています。",
+    sender_warning_lookalike_name:
+      "送信者名は {{claimed}} に見えるように書かれていますが、このメッセージは {{address}} から届いています。",
+    sender_warning_brand_name:
+      "送信者名には {{claimed}} とありますが、このメッセージは {{address}} から届いています。これは {{claimed}} が使用しているアドレスとして確認されていません。",
+    sender_warning_home_brand_name:
+      "このメッセージは Aster からのものではありません。{{address}} から届いています。Aster がメールでパスワードやリカバリーフレーズを尋ねることはありません。",
+    sender_warning_lookalike_domain:
+      "ドメイン {{domain}} は {{claimed}} に似ていますが、別のドメインです。",
+    sender_contact_notice:
+      "この送信者は連絡先の {{name}} と同じ名前ですが、別のアドレスを使用しています。",
+    sender_reply_to_notice:
+      "このメッセージへの返信は {{address}} に送られます。これは送信者とは別のドメインのアドレスです。",
+    email_auth_unverified: "未確認",
+    email_auth_unverified_desc:
+      "Aster は {{domain}} がこのメッセージを送信したことを確認できませんでした。リンクや添付ファイルを開く前に、送信者に心当たりがあるか確認してください。",
     email_auth_label: "送信元の確認：{{verdict}}",
     email_auth_partial: "確認結果が不確か",
     email_auth_partial_desc:
@@ -9662,8 +9681,10 @@ export const ja = {
     link_device_cancel: "キャンセル",
     link_device_desktop: "デスクトップアプリ",
     device_fingerprint: "デバイスのフィンガープリント",
-    link_device_fingerprint_hint: "リンクするデバイスにフィンガープリントが表示されている場合は、デバイスをリンクする前に、この値と一致することを確認してください。",
-    device_code_fingerprint_hint: "コードを入力するときは、デバイスをリンクする前に、ブラウザに表示されるデバイスのフィンガープリントがこの値と一致することを確認してください。",
+    link_device_fingerprint_hint:
+      "リンクするデバイスにフィンガープリントが表示されている場合は、デバイスをリンクする前に、この値と一致することを確認してください。",
+    device_code_fingerprint_hint:
+      "コードを入力するときは、デバイスをリンクする前に、ブラウザに表示されるデバイスのフィンガープリントがこの値と一致することを確認してください。",
     link_device_change_account: "アカウントを切り替える",
     link_device_choose_account: "アカウントを選択",
     link_device_choose_account_description: "デスクトップアプリを連携します",
@@ -10272,10 +10293,8 @@ export const ja = {
       "このデバイスで暗号化メッセージを確認中: {{total}} 件中 {{checked}} 件",
     local_apply_done:
       "このデバイスで確認した暗号化メッセージ: {{checked}} 件、{{applied}} 件更新。",
-    local_apply_unreadable:
-      "復号できなかったメッセージ: {{unreadable}} 件。",
-    local_apply_capped:
-      "最新の {{limit}} 件のメッセージのみ確認しました。",
+    local_apply_unreadable: "復号できなかったメッセージ: {{unreadable}} 件。",
+    local_apply_capped: "最新の {{limit}} 件のメッセージのみ確認しました。",
     local_apply_failed:
       "一部の暗号化メッセージを更新できませんでした。もう一度お試しください。",
     local_apply_unsupported:

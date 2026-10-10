@@ -52,8 +52,10 @@ export function render_collapsed_thread_message(
     is_ghost_sender,
     show_sender_name,
     show_sender_email,
+    sender_trust,
     name,
   } = state;
+  const marks_hidden = sender_trust?.show_identity_marks === false;
 
   return (
     <div
@@ -77,9 +79,11 @@ export function render_collapsed_thread_message(
         className="flex-shrink-0"
         email={show_sender_email}
         name={show_sender_name}
-        sender_authenticated={is_system_email(
-          trust_source_for_display(message, show_sender_email),
-        )}
+        plain={marks_hidden}
+        sender_authenticated={
+          !marks_hidden &&
+          is_system_email(trust_source_for_display(message, show_sender_email))
+        }
         size="md"
       />
       <div className="flex-1 min-w-0">

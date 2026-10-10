@@ -48,6 +48,7 @@ import { use_tags } from "@/hooks/use_tags";
 import { is_system_email, trust_source_for_display } from "@/lib/utils";
 import { OfficialBadge } from "@/components/email/official_badge";
 import { VerifiedSenderBadge } from "@/components/email/verified_sender_badge";
+import { use_sender_trust } from "@/hooks/use_sender_trust";
 import { get_label_hints } from "@/stores/label_hints_store";
 
 interface PopupEmailHeaderProps {
@@ -171,8 +172,34 @@ export function PopupEmailHeader({
     t,
   ]);
 
-  const show_sender_name = email.display_sender_name ?? email.sender;
+  const raw_sender_name = email.display_sender_name ?? email.sender;
   const show_sender_email = email.display_sender_email ?? email.sender_email;
+  const evaluated_trust = use_sender_trust(
+    {
+      sender_name: email.sender,
+      sender_email: email.sender_email,
+      display_sender_name: email.display_sender_name,
+      display_sender_email: email.display_sender_email,
+      spf_result: mail_item?.spf_result,
+      dkim_result: mail_item?.dkim_result,
+      dmarc_result: mail_item?.dmarc_result,
+      sender_aligned: mail_item?.sender_aligned ?? email.sender_aligned,
+      sender_verified_domain: email.sender_verified_domain,
+      is_external: mail_item?.is_external ?? email.is_external ?? true,
+      system_origin: email.system_origin,
+      sender_verification: email.sender_verification,
+      item_type: mail_item?.item_type,
+    },
+    { shown_name: raw_sender_name, shown_email: show_sender_email },
+  );
+  const sender_trust =
+    (mail_item?.item_type ?? "received") === "received"
+      ? evaluated_trust
+      : null;
+  const marks_hidden = sender_trust?.show_identity_marks === false;
+  const show_sender_name = sender_trust
+    ? sender_trust.name || sender_trust.address || raw_sender_name
+    : raw_sender_name;
 
   return (
     <>
@@ -238,9 +265,13 @@ export function PopupEmailHeader({
             email={show_sender_email}
             name={show_sender_name}
             on_compose={on_compose}
-            sender_authenticated={is_system_email(
-              trust_source_for_display(email, show_sender_email),
-            )}
+            plain={marks_hidden}
+            sender_authenticated={
+              !marks_hidden &&
+              is_system_email(
+                trust_source_for_display(email, show_sender_email),
+              )
+            }
             size="md"
           />
 
@@ -249,11 +280,13 @@ export function PopupEmailHeader({
               <span className="font-medium text-sm text-txt-primary">
                 {show_sender_name}
               </span>
-              <OfficialBadge sender={email} />
-              <VerifiedSenderBadge
-                domain={email.sender_verified_domain}
-                shown_email={show_sender_email}
-              />
+              {!sender_trust?.warning && <OfficialBadge sender={email} />}
+              {sender_trust?.show_verified_badge !== false && (
+                <VerifiedSenderBadge
+                  domain={email.sender_verified_domain}
+                  shown_email={show_sender_email}
+                />
+              )}
               {snoozed_until && (
                 <SnoozeBadge
                   className="flex-shrink-0"

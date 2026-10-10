@@ -9012,6 +9012,24 @@ export const en: Translations = {
     verified_sender: "Verified sender",
     verified_sender_desc:
       "The sender of this email has verified that they own {{domain}}.",
+    sender_warning_title: "Check the sender's address",
+    sender_warning_address_in_name:
+      "The sender's name shows {{claimed}}, but this message comes from {{address}}.",
+    sender_warning_lookalike_name:
+      "The sender's name is written to look like {{claimed}}, but this message comes from {{address}}.",
+    sender_warning_brand_name:
+      "The sender's name mentions {{claimed}}, but this message comes from {{address}}, which isn't an address that {{claimed}} is known to use.",
+    sender_warning_home_brand_name:
+      "This message isn't from Aster. It comes from {{address}}. Aster never asks for your password or recovery phrase by email.",
+    sender_warning_lookalike_domain:
+      "The domain {{domain}} looks like {{claimed}}, but it's a different domain.",
+    sender_contact_notice:
+      "This sender has the same name as your contact {{name}}, but uses a different address.",
+    sender_reply_to_notice:
+      "Replies to this message go to {{address}}, which is on a different domain than the sender.",
+    email_auth_unverified: "Unverified",
+    email_auth_unverified_desc:
+      "Aster couldn't confirm that {{domain}} sent this message. Before you open links or attachments, check that you know the sender.",
     email_auth_label: "Sender authentication: {{verdict}}",
     email_auth_partial: "Inconclusive checks",
     email_auth_partial_desc:
@@ -9254,8 +9272,10 @@ export const en: Translations = {
     link_device_cancel: "Cancel",
     link_device_desktop: "Desktop app",
     device_fingerprint: "Device fingerprint",
-    link_device_fingerprint_hint: "If the device you're linking shows a device fingerprint, make sure that it matches this one before you link the device.",
-    device_code_fingerprint_hint: "When you enter the code, make sure that the device fingerprint shown in your browser matches this one before you link the device.",
+    link_device_fingerprint_hint:
+      "If the device you're linking shows a device fingerprint, make sure that it matches this one before you link the device.",
+    device_code_fingerprint_hint:
+      "When you enter the code, make sure that the device fingerprint shown in your browser matches this one before you link the device.",
     link_device_change_account: "Change account",
     link_device_choose_account: "Choose an account",
     link_device_choose_account_description: "To link your desktop app",
@@ -10182,8 +10202,7 @@ export const en: Translations = {
       "Encrypted messages checked on this device: {{checked}}, {{applied}} updated.",
     local_apply_unreadable:
       "Messages that couldn't be decrypted: {{unreadable}}.",
-    local_apply_capped:
-      "Only your newest {{limit}} messages were checked.",
+    local_apply_capped: "Only your newest {{limit}} messages were checked.",
     local_apply_failed:
       "Some encrypted messages couldn't be updated. Try again.",
     local_apply_unsupported:

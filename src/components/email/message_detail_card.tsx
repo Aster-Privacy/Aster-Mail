@@ -44,6 +44,7 @@ interface MessageDetailCardProps {
   sender_name: string;
   sender_email: string;
   sender_authenticated?: boolean;
+  plain_avatar?: boolean;
   delivered_to_address?: string | null;
   to_recipients?: DetailRecipient[];
   cc_recipients?: DetailRecipient[];
@@ -76,6 +77,7 @@ export function MessageDetailCard({
   sender_name,
   sender_email,
   sender_authenticated = false,
+  plain_avatar = false,
   delivered_to_address,
   to_recipients,
   cc_recipients,
@@ -140,6 +142,7 @@ export function MessageDetailCard({
             use_domain_logo
             email={sender_email}
             name={sender_name}
+            plain={plain_avatar}
             sender_authenticated={sender_authenticated}
             size="xs"
           />
@@ -150,8 +153,16 @@ export function MessageDetailCard({
             type="button"
             onClick={() => copy_address(sender_email)}
           >
-            {sender_name}{" "}
-            <span className="text-txt-muted">&lt;{sender_email}&gt;</span>
+            {sender_name && sender_name !== sender_email ? (
+              <>
+                {sender_name}{" "}
+                <span className="text-txt-muted">
+                  &lt;<bdi>{sender_email}</bdi>&gt;
+                </span>
+              </>
+            ) : (
+              <bdi>{sender_email}</bdi>
+            )}
           </button>
         </span>
       </DetailRow>

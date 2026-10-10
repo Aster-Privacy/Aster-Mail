@@ -58,6 +58,10 @@ import {
   set_catch_all_context,
 } from "@/services/catch_all_sender";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
+import {
+  clear_sender_trust_context,
+  set_trust_own_addresses,
+} from "@/lib/sender_trust_store";
 
 export type SenderOptionType =
   "primary" | "alias" | "domain" | "external" | "ghost";
@@ -164,6 +168,7 @@ export function clear_sender_aliases_cache(): void {
   cached_ghost_options = [];
   cached_user = null;
   cache_populated = false;
+  clear_sender_trust_context();
   set_catch_all_context([], []);
   clear_local_address_avatars();
 }
@@ -355,6 +360,16 @@ export function use_sender_aliases(
 
       cache_populated = true;
       set_catch_all_context(cached_catch_all_domains, [
+        cached_user?.email,
+        ...cached_aliases.map((a) => a.full_address),
+        ...[
+          ...cached_domain_options,
+          ...cached_ghost_options,
+          ...cached_external_options,
+        ].map((o) => o.email),
+        ...cached_disabled_addresses,
+      ]);
+      set_trust_own_addresses([
         cached_user?.email,
         ...cached_aliases.map((a) => a.full_address),
         ...[

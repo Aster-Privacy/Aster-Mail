@@ -9061,6 +9061,24 @@ export const hi = {
     verified_sender: "सत्यापित भेजने वाला",
     verified_sender_desc:
       "इस ईमेल के भेजने वाले ने पुष्टि की है कि {{domain}} उनका है।",
+    sender_warning_title: "भेजने वाले का पता जाँचें",
+    sender_warning_address_in_name:
+      "भेजने वाले के नाम में {{claimed}} दिख रहा है, लेकिन यह संदेश {{address}} से आया है।",
+    sender_warning_lookalike_name:
+      "भेजने वाले का नाम इस तरह लिखा गया है कि वह {{claimed}} जैसा दिखे, लेकिन यह संदेश {{address}} से आया है।",
+    sender_warning_brand_name:
+      "भेजने वाले के नाम में {{claimed}} का ज़िक्र है, लेकिन यह संदेश {{address}} से आया है, जो {{claimed}} का ज्ञात पता नहीं है।",
+    sender_warning_home_brand_name:
+      "यह संदेश Aster की ओर से नहीं है। यह {{address}} से आया है। Aster कभी भी ईमेल से आपका पासवर्ड या रिकवरी वाक्यांश नहीं माँगता।",
+    sender_warning_lookalike_domain:
+      "डोमेन {{domain}} देखने में {{claimed}} जैसा है, लेकिन यह एक अलग डोमेन है।",
+    sender_contact_notice:
+      "इस भेजने वाले का नाम आपके संपर्क {{name}} जैसा ही है, लेकिन पता अलग है।",
+    sender_reply_to_notice:
+      "इस संदेश के जवाब {{address}} पर जाते हैं, जो भेजने वाले से अलग डोमेन पर है।",
+    email_auth_unverified: "असत्यापित",
+    email_auth_unverified_desc:
+      "Aster यह पुष्टि नहीं कर सका कि {{domain}} ने यह संदेश भेजा है। लिंक या अटैचमेंट खोलने से पहले जाँच लें कि आप भेजने वाले को जानते हैं।",
     email_auth_label: "प्रेषक प्रमाणीकरण: {{verdict}}",
     email_auth_partial: "अनिर्णायक जांचें",
     email_auth_partial_desc:
@@ -9317,8 +9335,10 @@ export const hi = {
     link_device_upgrade_description:
       "अपने खाते से डेस्कटॉप Bridge जोड़ने के लिए Star या उससे ऊपर का प्लान चाहिए। नीचे कोई प्लान चुनें और चेकआउट के तुरंत बाद आपका डिवाइस लिंक हो जाएगा।",
     device_fingerprint: "डिवाइस फ़िंगरप्रिंट",
-    link_device_fingerprint_hint: "अगर आप जिस डिवाइस को लिंक कर रहे हैं वह डिवाइस फ़िंगरप्रिंट दिखाता है, तो डिवाइस लिंक करने से पहले पक्का करें कि वह इससे मेल खाता है।",
-    device_code_fingerprint_hint: "कोड डालते समय, डिवाइस लिंक करने से पहले पक्का करें कि आपके ब्राउज़र में दिखाया गया डिवाइस फ़िंगरप्रिंट इससे मेल खाता है।",
+    link_device_fingerprint_hint:
+      "अगर आप जिस डिवाइस को लिंक कर रहे हैं वह डिवाइस फ़िंगरप्रिंट दिखाता है, तो डिवाइस लिंक करने से पहले पक्का करें कि वह इससे मेल खाता है।",
+    device_code_fingerprint_hint:
+      "कोड डालते समय, डिवाइस लिंक करने से पहले पक्का करें कि आपके ब्राउज़र में दिखाया गया डिवाइस फ़िंगरप्रिंट इससे मेल खाता है।",
     link_device_change_account: "खाता बदलें",
     link_device_choose_account: "कोई खाता चुनें",
     link_device_choose_account_description: "अपना डेस्कटॉप ऐप लिंक करने के लिए",
@@ -10235,8 +10255,7 @@ export const hi = {
       "इस डिवाइस पर जांचे गए एन्क्रिप्टेड संदेश: {{checked}}, {{applied}} अपडेट हुए।",
     local_apply_unreadable:
       "जिन संदेशों को डिक्रिप्ट नहीं किया जा सका: {{unreadable}}।",
-    local_apply_capped:
-      "सिर्फ़ आपके सबसे नए {{limit}} संदेश जांचे गए।",
+    local_apply_capped: "सिर्फ़ आपके सबसे नए {{limit}} संदेश जांचे गए।",
     local_apply_failed:
       "कुछ एन्क्रिप्टेड संदेश अपडेट नहीं हो सके। फिर से कोशिश करें।",
     local_apply_unsupported:

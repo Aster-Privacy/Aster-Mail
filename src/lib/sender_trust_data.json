@@ -1,0 +1,731 @@
+{
+  "version": 1,
+  "max_name_length": 96,
+  "confusables": {
+    "I": "l",
+    "1": "l",
+    "|": "l",
+    "0": "o",
+    "а": "a",
+    "е": "e",
+    "о": "o",
+    "р": "p",
+    "с": "c",
+    "у": "y",
+    "х": "x",
+    "і": "i",
+    "ј": "j",
+    "ѕ": "s",
+    "һ": "h",
+    "ԁ": "d",
+    "ԛ": "q",
+    "ԝ": "w",
+    "ӏ": "l",
+    "к": "k",
+    "м": "m",
+    "н": "h",
+    "т": "t",
+    "г": "r",
+    "п": "n",
+    "ѵ": "v",
+    "ү": "y",
+    "А": "a",
+    "В": "b",
+    "Е": "e",
+    "К": "k",
+    "М": "m",
+    "Н": "h",
+    "О": "o",
+    "Р": "p",
+    "С": "c",
+    "Т": "t",
+    "У": "y",
+    "Х": "x",
+    "Ѕ": "s",
+    "І": "l",
+    "Ј": "j",
+    "Ӏ": "l",
+    "Ԛ": "q",
+    "Ԝ": "w",
+    "α": "a",
+    "ε": "e",
+    "ο": "o",
+    "ρ": "p",
+    "κ": "k",
+    "ν": "v",
+    "τ": "t",
+    "ι": "i",
+    "υ": "u",
+    "χ": "x",
+    "γ": "y",
+    "ω": "w",
+    "η": "n",
+    "ϲ": "c",
+    "ϳ": "j",
+    "Α": "a",
+    "Β": "b",
+    "Ε": "e",
+    "Ζ": "z",
+    "Η": "h",
+    "Ι": "l",
+    "Κ": "k",
+    "Μ": "m",
+    "Ν": "n",
+    "Ο": "o",
+    "Ρ": "p",
+    "Τ": "t",
+    "Υ": "y",
+    "Χ": "x",
+    "ı": "i",
+    "ɑ": "a",
+    "ɡ": "g",
+    "ȷ": "j",
+    "ɩ": "i",
+    "ł": "l",
+    "ø": "o",
+    "đ": "d",
+    "ħ": "h",
+    "ĸ": "k",
+    "ǀ": "l",
+    "օ": "o",
+    "ս": "u",
+    "հ": "h",
+    "ո": "n",
+    "յ": "j",
+    "ᴀ": "a",
+    "ʙ": "b",
+    "ᴄ": "c",
+    "ᴅ": "d",
+    "ᴇ": "e",
+    "ɢ": "g",
+    "ʜ": "h",
+    "ɪ": "i",
+    "ᴊ": "j",
+    "ᴋ": "k",
+    "ʟ": "l",
+    "ᴍ": "m",
+    "ɴ": "n",
+    "ᴏ": "o",
+    "ᴘ": "p",
+    "ʀ": "r",
+    "ꜱ": "s",
+    "ᴛ": "t",
+    "ᴜ": "u",
+    "ᴠ": "v",
+    "ᴡ": "w",
+    "ʏ": "y",
+    "ᴢ": "z"
+  },
+  "digraphs": [
+    [
+      "rn",
+      "m"
+    ],
+    [
+      "vv",
+      "w"
+    ]
+  ],
+  "second_level_suffixes": [
+    "co",
+    "com",
+    "net",
+    "org",
+    "gov",
+    "ac",
+    "edu",
+    "ne",
+    "or",
+    "go",
+    "mil"
+  ],
+  "generic_words": [
+    "support",
+    "team",
+    "security",
+    "secure",
+    "service",
+    "services",
+    "customer",
+    "care",
+    "help",
+    "helpdesk",
+    "billing",
+    "account",
+    "accounts",
+    "alert",
+    "alerts",
+    "notification",
+    "notifications",
+    "noreply",
+    "no",
+    "reply",
+    "info",
+    "admin",
+    "official",
+    "inc",
+    "llc",
+    "ltd",
+    "corp",
+    "the",
+    "from",
+    "at",
+    "via",
+    "com",
+    "mail",
+    "email",
+    "payments",
+    "payment",
+    "id",
+    "online",
+    "center",
+    "centre",
+    "verification",
+    "verify",
+    "update",
+    "updates",
+    "notice",
+    "department",
+    "dept",
+    "safety",
+    "trust",
+    "login",
+    "signin"
+  ],
+  "relay_domains": [
+    "mozmail.com",
+    "simplelogin.co",
+    "simplelogin.com",
+    "slmail.me",
+    "aleeas.com",
+    "anonaddy.me",
+    "anonaddy.com",
+    "addy.io",
+    "duck.com",
+    "passmail.net",
+    "passinbox.com",
+    "passfwd.com",
+    "privaterelay.appleid.com",
+    "groups.io",
+    "googlegroups.com"
+  ],
+  "home_brand": {
+    "id": "aster",
+    "names": [
+      "Aster",
+      "Aster Mail",
+      "Astermail",
+      "Aster Privacy"
+    ],
+    "solo_names": [
+      "Aster Mail",
+      "Astermail",
+      "Aster Privacy"
+    ],
+    "domains": [
+      "astermail.org",
+      "aster.cx"
+    ],
+    "official_local_parts": [
+      "hello",
+      "support",
+      "security",
+      "privacy",
+      "billing",
+      "abuse",
+      "legal",
+      "press",
+      "team",
+      "noreply",
+      "no-reply",
+      "updates"
+    ]
+  },
+  "brands": [
+    {
+      "id": "paypal",
+      "names": [
+        "PayPal"
+      ],
+      "ambiguous": false,
+      "any_suffix": true,
+      "domains": [
+        "paypal.com",
+        "paypal.me",
+        "paypalobjects.com",
+        "paypal-communication.com",
+        "paypal-brasil.com.br",
+        "xoom.com",
+        "venmo.com"
+      ]
+    },
+    {
+      "id": "google",
+      "names": [
+        "Google",
+        "Gmail",
+        "Google Workspace",
+        "Google Play",
+        "Google Cloud",
+        "YouTube",
+        "Google Pay"
+      ],
+      "ambiguous": false,
+      "any_suffix": true,
+      "domains": [
+        "google.com",
+        "gmail.com",
+        "googlemail.com",
+        "youtube.com",
+        "withgoogle.com",
+        "android.com",
+        "googleapis.com",
+        "goo.gl",
+        "google.dev",
+        "chromium.org",
+        "nest.com",
+        "fitbit.com",
+        "waze.com"
+      ]
+    },
+    {
+      "id": "microsoft",
+      "names": [
+        "Microsoft",
+        "Microsoft 365",
+        "Office 365",
+        "Outlook",
+        "OneDrive",
+        "Microsoft Teams"
+      ],
+      "ambiguous": false,
+      "any_suffix": true,
+      "domains": [
+        "microsoft.com",
+        "microsoftonline.com",
+        "outlook.com",
+        "live.com",
+        "hotmail.com",
+        "msn.com",
+        "office.com",
+        "office365.com",
+        "azure.com",
+        "xbox.com",
+        "skype.com",
+        "sharepointonline.com",
+        "microsoftstore.com",
+        "onedrive.com",
+        "windows.com",
+        "bing.com",
+        "linkedin.com",
+        "github.com",
+        "microsoftemail.com",
+        "microsoft365.com",
+        "outlook.fr",
+        "outlook.de",
+        "live.co.uk",
+        "hotmail.co.uk",
+        "hotmail.fr"
+      ]
+    },
+    {
+      "id": "apple",
+      "names": [
+        "Apple",
+        "iCloud",
+        "Apple ID",
+        "App Store",
+        "Apple Pay"
+      ],
+      "solo_names": [
+        "iCloud",
+        "Apple ID",
+        "App Store",
+        "Apple Pay"
+      ],
+      "ambiguous": true,
+      "any_suffix": false,
+      "domains": [
+        "apple.com",
+        "icloud.com",
+        "me.com",
+        "mac.com",
+        "itunes.com",
+        "apple.news",
+        "applemusic.com"
+      ]
+    },
+    {
+      "id": "amazon",
+      "names": [
+        "Amazon",
+        "Amazon Prime",
+        "Amazon Web Services",
+        "AWS",
+        "Amazon Pay"
+      ],
+      "ambiguous": false,
+      "any_suffix": true,
+      "domains": [
+        "amazon.com",
+        "amazonaws.com",
+        "amazonses.com",
+        "amazonpay.com",
+        "audible.com",
+        "primevideo.com",
+        "amazon.work",
+        "a2z.com",
+        "aboutamazon.com",
+        "aws.com",
+        "aws.dev",
+        "awsevents.com",
+        "amazon.jobs",
+        "amazon.science",
+        "twitch.tv",
+        "kindle.com"
+      ]
+    },
+    {
+      "id": "netflix",
+      "names": [
+        "Netflix"
+      ],
+      "ambiguous": false,
+      "any_suffix": true,
+      "domains": [
+        "netflix.com",
+        "netflix.net"
+      ]
+    },
+    {
+      "id": "meta",
+      "names": [
+        "Facebook",
+        "Instagram",
+        "WhatsApp",
+        "Meta",
+        "Messenger"
+      ],
+      "solo_names": [
+        "Facebook",
+        "Instagram",
+        "WhatsApp"
+      ],
+      "ambiguous": true,
+      "any_suffix": false,
+      "domains": [
+        "facebook.com",
+        "facebookmail.com",
+        "fb.com",
+        "meta.com",
+        "metamail.com",
+        "instagram.com",
+        "whatsapp.com",
+        "messenger.com",
+        "workplace.com",
+        "oculus.com",
+        "threads.net",
+        "threads.com",
+        "internet.org"
+      ]
+    },
+    {
+      "id": "linkedin",
+      "names": [
+        "LinkedIn"
+      ],
+      "ambiguous": false,
+      "any_suffix": true,
+      "domains": [
+        "linkedin.com",
+        "microsoft.com",
+        "lnkd.in"
+      ]
+    },
+    {
+      "id": "github",
+      "names": [
+        "GitHub"
+      ],
+      "ambiguous": false,
+      "any_suffix": false,
+      "domains": [
+        "github.com",
+        "githubusercontent.com",
+        "github.io",
+        "microsoft.com",
+        "githubapp.com",
+        "github.blog",
+        "githubnext.com",
+        "github.dev"
+      ]
+    },
+    {
+      "id": "dropbox",
+      "names": [
+        "Dropbox"
+      ],
+      "ambiguous": false,
+      "any_suffix": false,
+      "domains": [
+        "dropbox.com",
+        "dropboxmail.com",
+        "hellosign.com",
+        "dropboxforum.com",
+        "docsend.com",
+        "getdropbox.com"
+      ]
+    },
+    {
+      "id": "coinbase",
+      "names": [
+        "Coinbase"
+      ],
+      "ambiguous": false,
+      "any_suffix": false,
+      "domains": [
+        "coinbase.com",
+        "base.org"
+      ]
+    },
+    {
+      "id": "binance",
+      "names": [
+        "Binance"
+      ],
+      "ambiguous": false,
+      "any_suffix": true,
+      "domains": [
+        "binance.com",
+        "binance.us",
+        "binance.org"
+      ]
+    },
+    {
+      "id": "stripe",
+      "names": [
+        "Stripe"
+      ],
+      "ambiguous": true,
+      "any_suffix": false,
+      "domains": [
+        "stripe.com",
+        "stripe.dev",
+        "stripe.network"
+      ]
+    },
+    {
+      "id": "chase",
+      "names": [
+        "Chase",
+        "JPMorgan Chase",
+        "JPMorgan",
+        "Chase Bank"
+      ],
+      "solo_names": [
+        "JPMorgan Chase",
+        "JPMorgan",
+        "Chase Bank"
+      ],
+      "ambiguous": true,
+      "any_suffix": false,
+      "domains": [
+        "chase.com",
+        "jpmorgan.com",
+        "jpmorganchase.com",
+        "jpmchase.com"
+      ]
+    },
+    {
+      "id": "wells_fargo",
+      "names": [
+        "Wells Fargo",
+        "Wells Fargo Bank"
+      ],
+      "ambiguous": false,
+      "any_suffix": false,
+      "domains": [
+        "wellsfargo.com",
+        "wf.com",
+        "wellsfargoadvisors.com",
+        "wellsfargoemail.com"
+      ]
+    },
+    {
+      "id": "bank_of_america",
+      "names": [
+        "Bank of America",
+        "BofA"
+      ],
+      "ambiguous": false,
+      "any_suffix": false,
+      "domains": [
+        "bankofamerica.com",
+        "bofa.com",
+        "ml.com",
+        "merrill.com",
+        "bofasecurities.com"
+      ]
+    },
+    {
+      "id": "dhl",
+      "names": [
+        "DHL",
+        "DHL Express"
+      ],
+      "ambiguous": false,
+      "any_suffix": true,
+      "domains": [
+        "dhl.com",
+        "dhl.de",
+        "dhl-news.com",
+        "dpdhl.com",
+        "dhlecommerce.com",
+        "dhlparcel.nl",
+        "dhlparcel.co.uk"
+      ]
+    },
+    {
+      "id": "fedex",
+      "names": [
+        "FedEx",
+        "FedEx Express",
+        "FedEx Ground",
+        "FedEx Delivery"
+      ],
+      "ambiguous": false,
+      "any_suffix": true,
+      "domains": [
+        "fedex.com"
+      ]
+    },
+    {
+      "id": "usps",
+      "names": [
+        "USPS"
+      ],
+      "ambiguous": false,
+      "any_suffix": false,
+      "domains": [
+        "usps.com",
+        "usps.gov"
+      ]
+    },
+    {
+      "id": "twitter",
+      "names": [
+        "Twitter"
+      ],
+      "ambiguous": false,
+      "any_suffix": false,
+      "domains": [
+        "twitter.com",
+        "x.com",
+        "t.co"
+      ]
+    },
+    {
+      "id": "discord",
+      "names": [
+        "Discord"
+      ],
+      "ambiguous": true,
+      "any_suffix": false,
+      "domains": [
+        "discord.com",
+        "discordapp.com",
+        "discord.gg"
+      ]
+    },
+    {
+      "id": "yahoo",
+      "names": [
+        "Yahoo"
+      ],
+      "ambiguous": false,
+      "any_suffix": true,
+      "domains": [
+        "yahoo.com",
+        "yahooinc.com",
+        "ymail.com",
+        "rocketmail.com",
+        "aol.com",
+        "yahoo-inc.com"
+      ]
+    },
+    {
+      "id": "docusign",
+      "names": [
+        "DocuSign"
+      ],
+      "ambiguous": false,
+      "any_suffix": true,
+      "domains": [
+        "docusign.com",
+        "docusign.net"
+      ]
+    },
+    {
+      "id": "spotify",
+      "names": [
+        "Spotify"
+      ],
+      "ambiguous": false,
+      "any_suffix": true,
+      "domains": [
+        "spotify.com",
+        "spotifymail.com"
+      ]
+    },
+    {
+      "id": "adobe",
+      "names": [
+        "Adobe"
+      ],
+      "ambiguous": true,
+      "any_suffix": false,
+      "domains": [
+        "adobe.com",
+        "adobesign.com",
+        "adobelogin.com",
+        "behance.net"
+      ]
+    }
+  ],
+  "lookalike_only_domains": [
+    "proton.me",
+    "protonmail.com",
+    "tuta.com",
+    "tutanota.com",
+    "fastmail.com",
+    "zoom.us",
+    "slack.com",
+    "telegram.org",
+    "signal.org",
+    "ups.com",
+    "ebay.com",
+    "wise.com",
+    "revolut.com",
+    "kraken.com",
+    "metamask.io",
+    "ledger.com",
+    "trezor.io",
+    "steampowered.com",
+    "epicgames.com",
+    "roblox.com",
+    "tiktok.com",
+    "reddit.com",
+    "snapchat.com",
+    "booking.com",
+    "airbnb.com",
+    "uber.com",
+    "americanexpress.com",
+    "citi.com",
+    "capitalone.com",
+    "hsbc.com",
+    "barclays.co.uk",
+    "santander.com",
+    "irs.gov",
+    "gov.uk"
+  ]
+}

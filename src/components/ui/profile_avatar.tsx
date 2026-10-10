@@ -66,6 +66,7 @@ interface ProfileAvatarProps {
   on_compose?: (email: string) => void;
   profile_color?: string;
   sender_authenticated?: boolean;
+  plain?: boolean;
 }
 
 const ASTER_SYSTEM_EMAILS = new Set([
@@ -132,10 +133,11 @@ export const ProfileAvatar = memo(function ProfileAvatar({
   on_compose,
   profile_color,
   sender_authenticated = false,
+  plain = false,
 }: ProfileAvatarProps) {
   const { user } = use_auth();
   const { preferences } = use_preferences();
-  const low_network = preferences.low_network_mode;
+  const low_network = preferences.low_network_mode || plain;
   const domain_logos_allowed =
     use_domain_logo && preferences.show_profile_pictures !== false;
   const is_current_user =
@@ -380,6 +382,7 @@ export const ProfileAvatar = memo(function ProfileAvatar({
           email={email}
           name={name}
           on_compose={on_compose}
+          plain={plain}
         >
           {avatar_element}
         </SenderProfileTrigger>
