@@ -18,13 +18,30 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { CSSProperties } from "react";
+import { useCallback, useState, type CSSProperties } from "react";
+import { UsersIcon } from "@heroicons/react/24/outline";
+
+import { AsterSecurityMark } from "@/components/icons/aster_security_mark";
 
 interface AppRailIconProps {
   name: "contacts" | "security";
 }
 
 export function AppRailIcon({ name }: AppRailIconProps) {
+  const [has_failed, set_has_failed] = useState(false);
+
+  const handle_error = useCallback(() => {
+    set_has_failed(true);
+  }, []);
+
+  if (has_failed) {
+    return name === "contacts" ? (
+      <UsersIcon className="h-5 w-5 shrink-0" />
+    ) : (
+      <AsterSecurityMark className="h-5 w-5 shrink-0" />
+    );
+  }
+
   const base = `/icons/${name}/${name}`;
   const tint_style = {
     "--app-rail-icon-tint": `url("${base}_tint_72.png")`,
@@ -42,6 +59,7 @@ export function AppRailIcon({ name }: AppRailIconProps) {
         src={`${base}_detail_24.png`}
         srcSet={`${base}_detail_24.png 1x, ${base}_detail_48.png 2x, ${base}_detail_72.png 3x`}
         width={24}
+        onError={handle_error}
       />
     </span>
   );
