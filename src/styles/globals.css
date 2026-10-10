@@ -2873,10 +2873,21 @@ button.press_scale:active {
 }
 
 [role="alertdialog"].fixed {
-  inset: 0;
-  margin: auto;
-  height: fit-content;
-  translate: none;
+  top: 50%;
+  right: 0;
+  bottom: auto;
+  left: 0;
+  margin-right: auto;
+  margin-left: auto;
+  height: auto;
+  translate: 0 -50%;
+}
+
+@supports (translate: 0 round(down, -50%, 1px)) {
+  [role="alertdialog"].fixed {
+    top: round(down, 50%, 1px);
+    translate: 0 round(down, -50%, 1px);
+  }
 }
 
 .aster_checkbox_text,
