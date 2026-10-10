@@ -67,8 +67,11 @@ import {
 } from "@/utils/attachment_download";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { SenderTrustBanner } from "@/components/email/banners/sender_trust_banner";
-import { use_sender_trust } from "@/hooks/use_sender_trust";
-import { extract_reply_to } from "@/utils/reply_to";
+import {
+  trusted_sender_name,
+  use_sender_trust,
+} from "@/hooks/use_sender_trust";
+import { reply_to_header_value } from "@/utils/reply_to";
 import { use_preferences } from "@/contexts/preferences_context";
 import { clip_with_ellipsis } from "@/utils/preview_text";
 import {
@@ -264,7 +267,7 @@ export function MobileThreadMessage({
   const show_sender_email =
     message.display_sender_email ?? message.sender_email;
   const reply_to_address = useMemo(
-    () => extract_reply_to(message.raw_headers)?.email,
+    () => reply_to_header_value(message.raw_headers),
     [message.raw_headers],
   );
   const evaluated_trust = use_sender_trust(
@@ -276,9 +279,11 @@ export function MobileThreadMessage({
       ? evaluated_trust
       : null;
   const marks_hidden = sender_trust?.show_identity_marks === false;
-  const show_sender_name = sender_trust
-    ? sender_trust.name || sender_trust.address || raw_sender_name
-    : raw_sender_name;
+  const show_sender_name = trusted_sender_name(
+    sender_trust,
+    raw_sender_name,
+    t("common.unknown_sender"),
+  );
   const shown_address = sender_trust?.address || show_sender_email;
   const received_on_address = useMemo(
     () =>

@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "vectors": [
     {
       "id": "plain_authenticated",
@@ -127,9 +127,9 @@
       "expect": { "warning": { "kind": "brand_name", "claimed": "PayPal" } }
     },
     {
-      "id": "brand_verified_sender_suppressed",
+      "id": "brand_verified_sender_still_warns",
       "input": { "name": "Spotify", "email": "x@partner.example", "sender_aligned": true, "dmarc_result": "pass", "sender_verified": true, "sender_verified_domain": "partner.example" },
-      "expect": { "name": "Spotify", "warning": null, "show_verified_badge": true }
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "Spotify" }, "show_identity_marks": false, "show_verified_badge": false }
     },
     {
       "id": "ambiguous_alone_no_warning",
@@ -339,7 +339,7 @@
     {
       "id": "auth_legacy_pass",
       "input": { "name": "Jordan", "email": "j@example.com", "spf_result": "pass", "dkim_result": "none", "dmarc_result": "none" },
-      "expect": { "auth_state": "authenticated", "show_identity_marks": true }
+      "expect": { "auth_state": "unknown", "show_identity_marks": true }
     },
     {
       "id": "auth_legacy_dmarc_fail",
@@ -404,12 +404,252 @@
     {
       "id": "invalid_address",
       "input": { "name": "Jordan", "email": "not an address" },
-      "expect": { "name": "Jordan", "domain": "", "warning": null, "show_identity_marks": false, "show_verified_badge": false }
+      "expect": { "name": "", "address": "", "domain": "", "auth_state": "unverified", "warning": null, "show_identity_marks": false, "show_verified_badge": false }
     },
     {
       "id": "missing_everything",
       "input": {},
       "expect": { "name": "", "address": "", "domain": "", "warning": null, "show_identity_marks": false }
+    },
+    {
+      "id": "auth_legacy_dmarc_pass",
+      "input": { "name": "Jordan", "email": "j@example.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass" },
+      "expect": { "auth_state": "authenticated", "show_identity_marks": true }
+    },
+    {
+      "id": "auth_legacy_dkim_only",
+      "input": { "name": "Jordan", "email": "j@example.com", "spf_result": "none", "dkim_result": "pass", "dmarc_result": "none" },
+      "expect": { "auth_state": "unknown" }
+    },
+    {
+      "id": "invalid_address_keeps_at_form",
+      "input": { "name": "PayPal", "email": "security@paypal", "sender_aligned": true },
+      "expect": { "name": "", "address": "security@paypal", "domain": "", "auth_state": "unverified", "warning": null, "show_identity_marks": false }
+    },
+    {
+      "id": "invalid_address_name_as_address",
+      "input": { "name": "PayPal Security", "email": "PayPal Security" },
+      "expect": { "name": "", "address": "", "auth_state": "unverified", "show_identity_marks": false }
+    },
+    {
+      "id": "blank_address_plain_name",
+      "input": { "name": "Jordan", "email": "" },
+      "expect": { "name": "Jordan", "address": "", "warning": null, "show_identity_marks": false }
+    },
+    {
+      "id": "blank_address_brand_name",
+      "input": { "name": "PayPal", "email": "" },
+      "expect": { "name": "", "address": "", "show_identity_marks": false }
+    },
+    {
+      "id": "blank_address_address_in_name",
+      "input": { "name": "billing@paypal.com", "email": "" },
+      "expect": { "name": "", "address": "" }
+    },
+    {
+      "id": "brand_public_mailbox",
+      "input": { "name": "Google", "email": "someone@gmail.com", "sender_aligned": true, "dmarc_result": "pass" },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "Google" } }
+    },
+    {
+      "id": "brand_public_mailbox_generic",
+      "input": { "name": "Microsoft Support", "email": "helpdesk@outlook.com", "sender_aligned": true },
+      "expect": { "warning": { "kind": "brand_name", "claimed": "Microsoft" } }
+    },
+    {
+      "id": "brand_public_mailbox_reserved",
+      "input": { "name": "iCloud", "email": "noreply@icloud.com", "sender_aligned": true },
+      "expect": { "name": "iCloud", "warning": null }
+    },
+    {
+      "id": "brand_public_mailbox_reserved_unauthenticated",
+      "input": { "name": "iCloud", "email": "noreply@icloud.com", "sender_aligned": false },
+      "expect": { "warning": { "kind": "brand_name", "claimed": "iCloud" } }
+    },
+    {
+      "id": "brand_public_mailbox_subdomain",
+      "input": { "name": "Yahoo", "email": "mail@email.yahoo.com", "sender_aligned": true },
+      "expect": { "name": "Yahoo", "warning": null }
+    },
+    {
+      "id": "public_mailbox_plain_person",
+      "input": { "name": "Jordan Lee", "email": "jordan.lee@gmail.com", "sender_aligned": true },
+      "expect": { "name": "Jordan Lee", "warning": null, "show_identity_marks": true }
+    },
+    {
+      "id": "brand_unlisted_suffix",
+      "input": { "name": "PayPal", "email": "x@paypal.xyz", "sender_aligned": true },
+      "expect": { "warning": { "kind": "brand_name", "claimed": "PayPal" } }
+    },
+    {
+      "id": "brand_listed_country_suffix",
+      "input": { "name": "PayPal", "email": "service@paypal.de", "sender_aligned": true },
+      "expect": { "name": "PayPal", "warning": null }
+    },
+    {
+      "id": "brand_secondary_label_other_suffix",
+      "input": { "name": "Microsoft", "email": "x@live.de", "sender_aligned": true },
+      "expect": { "warning": { "kind": "brand_name", "claimed": "Microsoft" } }
+    },
+    {
+      "id": "brand_hosting_domain",
+      "input": { "name": "GitHub", "email": "x@someone.github.io", "sender_aligned": true },
+      "expect": { "warning": { "kind": "brand_name", "claimed": "GitHub" } }
+    },
+    {
+      "id": "brand_notification_subdomain",
+      "input": { "name": "AWS Notifications", "email": "no-reply@sns.amazonaws.com", "sender_aligned": true },
+      "expect": { "name": "AWS Notifications", "warning": null }
+    },
+    {
+      "id": "brand_cloud_tenant_domain",
+      "input": { "name": "Amazon", "email": "x@ec2-1-2-3-4.compute.amazonaws.com", "sender_aligned": true },
+      "expect": { "warning": { "kind": "brand_name", "claimed": "Amazon" } }
+    },
+    {
+      "id": "brand_trademark_symbol",
+      "input": { "name": "PayPal™", "email": "x@evil.example", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "PayPal" } }
+    },
+    {
+      "id": "brand_emoji_decoration",
+      "input": { "name": "🔒 PayPal Security ✅", "email": "x@evil.example", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "PayPal" } }
+    },
+    {
+      "id": "brand_trailing_digits",
+      "input": { "name": "PayPal 2024", "email": "x@evil.example", "sender_aligned": true },
+      "expect": { "warning": { "kind": "brand_name", "claimed": "PayPal" } }
+    },
+    {
+      "id": "brand_refund_department",
+      "input": { "name": "Netflix Refund Department", "email": "x@evil.example", "sender_aligned": true },
+      "expect": { "warning": { "kind": "brand_name", "claimed": "Netflix" } }
+    },
+    {
+      "id": "office_alone_is_not_a_brand",
+      "input": { "name": "Office", "email": "office@smallbiz.example", "sender_aligned": true },
+      "expect": { "name": "Office", "warning": null }
+    },
+    {
+      "id": "app_alone_is_not_a_brand",
+      "input": { "name": "App Support", "email": "help@smallbiz.example", "sender_aligned": true },
+      "expect": { "name": "App Support", "warning": null }
+    },
+    {
+      "id": "person_named_like_ambiguous_brand",
+      "input": { "name": "Chase Miller", "email": "chase@smallbiz.example", "sender_aligned": true },
+      "expect": { "name": "Chase Miller", "warning": null }
+    },
+    {
+      "id": "address_in_name_spaced",
+      "input": { "name": "ceo @ bigbank.example", "email": "x@evil.example", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "address_in_name", "claimed": "ceo@bigbank.example" } }
+    },
+    {
+      "id": "at_sign_without_domain",
+      "input": { "name": "Lunch @ Noon", "email": "x@cafe.example", "sender_aligned": true },
+      "expect": { "name": "Lunch @ Noon", "warning": null }
+    },
+    {
+      "id": "address_in_name_second_relay",
+      "input": { "name": "bob@example.org", "email": "abc123@passmail.com", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "reply_to_second_address",
+      "input": { "name": "Jordan", "email": "j@example.com", "sender_aligned": true, "reply_to": "a@example.com, b@evil.example" },
+      "expect": { "reply_to": "b@evil.example" }
+    },
+    {
+      "id": "reply_to_quoted_comma",
+      "input": { "name": "Jordan", "email": "j@example.com", "sender_aligned": true, "reply_to": "\"Doe, Jane\" <jane@example.com>" },
+      "expect": { "reply_to": null }
+    },
+    {
+      "id": "reply_to_quoted_decoy",
+      "input": { "name": "Jordan", "email": "j@example.com", "sender_aligned": true, "reply_to": "\"a@example.com, x\" <b@evil.example>" },
+      "expect": { "reply_to": "b@evil.example" }
+    },
+    {
+      "id": "own_address_spoofed",
+      "input": { "name": "PayPal", "email": "me@example.com", "own_addresses": ["me@example.com"], "sender_aligned": false, "spf_result": "fail" },
+      "expect": { "name": "", "auth_state": "failed", "warning": { "kind": "brand_name", "claimed": "PayPal" }, "show_identity_marks": false }
+    },
+    {
+      "id": "brand_name_mixed_case",
+      "input": { "name": "LInkedin", "email": "jobs@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "LinkedIn" }, "show_identity_marks": false }
+    },
+    {
+      "id": "brand_name_mixed_case_real_domain",
+      "input": { "name": "LInkedin", "email": "jobs@linkedin.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "LInkedin", "warning": null }
+    },
+    {
+      "id": "address_in_name_trailing_slash",
+      "input": { "name": "ceo@bigcorp.com/", "email": "attacker@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "address_in_name", "claimed": "ceo@bigcorp.com" } }
+    },
+    {
+      "id": "address_in_name_other_public_mailbox",
+      "input": { "name": "john.boss@gmail.com", "email": "john.b0ss.attacker@gmail.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "address_in_name", "claimed": "john.boss@gmail.com" } }
+    },
+    {
+      "id": "address_in_name_same_public_mailbox",
+      "input": { "name": "Jane.Doe@gmail.com", "email": "jane.doe@gmail.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "address_in_name_same_company_domain",
+      "input": { "name": "support@example.com", "email": "noreply@example.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "brand_domain_in_name",
+      "input": { "name": "www.paypal.com", "email": "billing@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "paypal.com" }, "show_identity_marks": false }
+    },
+    {
+      "id": "brand_domain_in_name_homograph",
+      "input": { "name": "PaypaI.com Billing", "email": "billing@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "paypal.com" } }
+    },
+    {
+      "id": "brand_domain_in_name_real_sender",
+      "input": { "name": "PayPal.com", "email": "service@paypal.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "PayPal.com", "warning": null }
+    },
+    {
+      "id": "brand_domain_in_name_sibling_domain",
+      "input": { "name": "Amazon.com", "email": "store-news@amazon.co.uk", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "Amazon.com", "warning": null }
+    },
+    {
+      "id": "brand_domain_in_name_shared_owner",
+      "input": { "name": "microsoft.com", "email": "jobs@linkedin.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "home_domain_in_name",
+      "input": { "name": "astermail.org support", "email": "help@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "home_brand_name", "claimed": "Aster" } }
+    },
+    {
+      "id": "unknown_domain_in_name",
+      "input": { "name": "Node.js Weekly at example.org", "email": "news@cooperpress.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "Node.js Weekly at example.org", "warning": null }
+    },
+    {
+      "id": "public_mailbox_domain_in_name",
+      "input": { "name": "Sam (gmail.com)", "email": "sam@work.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "Sam (gmail.com)", "warning": null }
+    },
+    {
+      "id": "abbreviation_is_not_a_domain",
+      "input": { "name": "U.S. Bancorp Inc. News", "email": "news@unrelated.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
     }
   ]
 }

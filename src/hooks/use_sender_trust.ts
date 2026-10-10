@@ -94,6 +94,16 @@ export function sender_trust_input(
   };
 }
 
+export function trusted_sender_name(
+  trust: SenderTrust | null | undefined,
+  raw_name: string | null | undefined,
+  placeholder: string,
+): string {
+  if (!trust) return raw_name || placeholder;
+
+  return trust.name || trust.address || placeholder;
+}
+
 export function sender_trust_for(
   message: SenderTrustMessage,
   overrides: SenderTrustOverrides = {},
@@ -131,7 +141,10 @@ export interface SearchSenderTrustSource {
   dmarc_result?: string;
 }
 
-export function use_search_sender_trust(result: SearchSenderTrustSource): {
+export function use_search_sender_trust(
+  result: SearchSenderTrustSource,
+  placeholder: string,
+): {
   shown_name: string;
   marks_hidden: boolean;
 } {
@@ -143,18 +156,18 @@ export function use_search_sender_trust(result: SearchSenderTrustSource): {
     dkim_result: result.dkim_result,
     dmarc_result: result.dmarc_result,
     sender_aligned: result.sender_aligned,
-    is_external: result.is_external,
+    is_external: result.is_external ?? true,
     system_origin: result.system_origin,
     sender_verification: result.sender_verification,
     item_type: result.item_type,
   });
 
-  if (result.is_outgoing !== false || result.is_external === undefined) {
+  if (result.is_outgoing === true) {
     return { shown_name: result.sender_name, marks_hidden: false };
   }
 
   return {
-    shown_name: evaluated.name || evaluated.address || result.sender_name,
+    shown_name: trusted_sender_name(evaluated, result.sender_name, placeholder),
     marks_hidden: !evaluated.show_identity_marks,
   };
 }

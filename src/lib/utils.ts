@@ -209,7 +209,7 @@ export function is_official_sender(source: SenderTrustSource): boolean {
   if (has_system_origin(source)) return true;
 
   return (
-    source.is_external !== true && source.sender_verification === "verified"
+    source.is_external === false && source.sender_verification === "verified"
   );
 }
 

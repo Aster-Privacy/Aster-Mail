@@ -84,8 +84,11 @@ import {
   use_alias_delivery,
 } from "@/hooks/use_alias_delivery";
 import { use_auth_safe } from "@/contexts/auth_context";
-import { use_sender_trust } from "@/hooks/use_sender_trust";
-import { extract_reply_to } from "@/utils/reply_to";
+import {
+  trusted_sender_name,
+  use_sender_trust,
+} from "@/hooks/use_sender_trust";
+import { reply_to_header_value } from "@/utils/reply_to";
 import { use_attachment_keys_version } from "@/hooks/use_attachment_keys_version";
 import { ignore_error } from "@/lib/ignore_error";
 import {
@@ -295,7 +298,7 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
   const show_sender_email =
     message.display_sender_email ?? message.sender_email;
   const reply_to_address = useMemo(
-    () => extract_reply_to(message.raw_headers)?.email,
+    () => reply_to_header_value(message.raw_headers),
     [message.raw_headers],
   );
   const evaluated_trust = use_sender_trust(
@@ -306,9 +309,11 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
     message.item_type === "received" && !is_own_message
       ? evaluated_trust
       : null;
-  const show_sender_name = sender_trust
-    ? sender_trust.name || sender_trust.address || raw_sender_name
-    : raw_sender_name;
+  const show_sender_name = trusted_sender_name(
+    sender_trust,
+    raw_sender_name,
+    t("common.unknown_sender"),
+  );
   const received_on_address = useMemo(
     () =>
       message.item_type === "received"

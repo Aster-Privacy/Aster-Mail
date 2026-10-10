@@ -769,9 +769,13 @@ const PreviewRow = memo(function PreviewRow({
   terms: string[];
   on_click: () => void;
 }) {
+  const { t } = use_i18n();
   const { preferences } = use_preferences();
-  const { shown_name, marks_hidden } = use_search_sender_trust(result);
-  const participants = shown_name || result.sender_email || "";
+  const { shown_name, marks_hidden } = use_search_sender_trust(
+    result,
+    t("common.unknown_sender"),
+  );
+  const participants = shown_name;
 
   return (
     <button

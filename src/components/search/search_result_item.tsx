@@ -122,7 +122,7 @@ const SearchResultRowBase = forwardRef<
   const { t } = use_i18n();
   const { preferences } = use_preferences();
   const { shown_name: shown_sender_name, marks_hidden } =
-    use_search_sender_trust(result);
+    use_search_sender_trust(result, t("common.unknown_sender"));
 
   const preview_lines = useMemo(() => {
     const raw_preview = result.preview || "";

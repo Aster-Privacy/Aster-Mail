@@ -66,6 +66,12 @@ import { PinIcon } from "@/components/common/icons";
 import { use_i18n } from "@/lib/i18n/context";
 import { MobileBottomSheet } from "@/components/mobile/mobile_bottom_sheet";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
+import {
+  sender_trust_for,
+  trusted_sender_name,
+  use_sender_trust_context,
+} from "@/hooks/use_sender_trust";
+import { reply_to_header_value } from "@/utils/reply_to";
 import { show_toast } from "@/components/toast/simple_toast";
 import { format_bytes } from "@/lib/utils";
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
@@ -84,6 +90,30 @@ import {
   get_header_insights,
   type HeadersViewMode,
 } from "@/components/email/message_details_sections";
+
+function sheet_sender(
+  message: DecryptedThreadMessage | null,
+  placeholder: string,
+): { name: string; plain: boolean } {
+  if (!message) return { name: "", plain: false };
+
+  const trust =
+    message.item_type === "received"
+      ? sender_trust_for({
+          ...message,
+          reply_to: reply_to_header_value(message.raw_headers),
+        })
+      : null;
+
+  return {
+    name: trusted_sender_name(
+      trust,
+      message.display_sender_name ?? message.sender_name,
+      placeholder,
+    ),
+    plain: trust?.show_identity_marks === false,
+  };
+}
 
 export function MobileActionMenuSheet({
   menu_message,
@@ -154,6 +184,10 @@ export function MobileActionMenuSheet({
   format_detail: (date: Date) => string;
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
 }) {
+  use_sender_trust_context();
+
+  const menu_sender = sheet_sender(menu_message, t("common.unknown_sender"));
+
   return (
     <MobileBottomSheet
       aria_label={t("common.actions")}
@@ -168,9 +202,8 @@ export function MobileActionMenuSheet({
               email={
                 menu_message.display_sender_email ?? menu_message.sender_email
               }
-              name={
-                menu_message.display_sender_name ?? menu_message.sender_name
-              }
+              name={menu_sender.name}
+              plain={menu_sender.plain}
               size="sm"
             />
             <div className="min-w-0 flex-1">
@@ -178,7 +211,7 @@ export function MobileActionMenuSheet({
                 className="truncate text-[14px] font-medium text-[var(--text-primary)]"
                 dir="auto"
               >
-                {menu_message.display_sender_name ?? menu_message.sender_name}
+                {menu_sender.name}
               </p>
               <p className="truncate text-[12px] text-[var(--text-muted)]">
                 {format_safe_date(menu_message.timestamp, format_detail)}
@@ -754,6 +787,9 @@ export function MobileMessageDetailsSheet({
   format_detail: (date: Date) => string;
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
 }) {
+  use_sender_trust_context();
+
+  const details_sender = sheet_sender(message, t("common.unknown_sender"));
   const headers = message ? build_message_headers(message) : "";
   const [headers_mode, set_headers_mode] =
     useState<HeadersViewMode>("formatted");
@@ -803,7 +839,7 @@ export function MobileMessageDetailsSheet({
                 className="min-w-0 text-[12px] text-[var(--text-secondary)] break-all"
                 dir="auto"
               >
-                {message.display_sender_name ?? message.sender_name} &lt;
+                {details_sender.name} &lt;
                 {message.display_sender_email ?? message.sender_email}&gt;
               </span>
             </div>

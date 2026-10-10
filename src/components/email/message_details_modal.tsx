@@ -38,6 +38,10 @@ import { EncryptionInfoDropdown } from "@/components/common/encryption_info_drop
 import { format_bytes } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_date_format } from "@/hooks/use_date_format";
+import {
+  trusted_sender_name,
+  use_sender_trust,
+} from "@/hooks/use_sender_trust";
 import { show_toast } from "@/components/toast/simple_toast";
 import { resolve_received_on_address } from "@/utils/delivered_to";
 import {
@@ -83,6 +87,12 @@ export function MessageDetailsModal({
     [message.raw_headers],
   );
   const is_received = message.item_type === "received";
+  const evaluated_trust = use_sender_trust(message);
+  const shown_sender_name = trusted_sender_name(
+    is_received ? evaluated_trust : null,
+    message.display_sender_name ?? message.sender_name,
+    t("common.unknown_sender"),
+  );
   const sender_email = message.display_sender_email ?? message.sender_email;
   const insights = useMemo(
     () =>
@@ -123,7 +133,7 @@ export function MessageDetailsModal({
               {t("common.from_label")}
             </span>
             <span className="min-w-0 text-txt-secondary break-words">
-              {message.display_sender_name ?? message.sender_name} &lt;
+              {shown_sender_name} &lt;
               {message.display_sender_email ?? message.sender_email}&gt;
             </span>
           </div>

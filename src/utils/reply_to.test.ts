@@ -20,7 +20,11 @@
 //
 import { describe, it, expect } from "vitest";
 
-import { parse_address, extract_reply_to } from "./reply_to";
+import {
+  parse_address,
+  extract_reply_to,
+  reply_to_header_value,
+} from "./reply_to";
 
 describe("parse_address", () => {
   it("parses bare email", () => {
@@ -171,5 +175,28 @@ describe("extract_reply_to", () => {
     expect(extract_reply_to(headers)).toEqual({
       email: "user@external.example",
     });
+  });
+});
+
+describe("reply_to_header_value", () => {
+  it("returns nothing when no Reply-To header exists", () => {
+    expect(reply_to_header_value(undefined)).toBeUndefined();
+    expect(reply_to_header_value([])).toBeUndefined();
+    expect(
+      reply_to_header_value([{ name: "From", value: "a@x.example" }]),
+    ).toBeUndefined();
+    expect(
+      reply_to_header_value([{ name: "Reply-To", value: "  " }]),
+    ).toBeUndefined();
+  });
+
+  it("joins every Reply-To header so a later one cannot hide", () => {
+    expect(
+      reply_to_header_value([
+        { name: "Reply-To", value: "a@bank.example" },
+        { name: "Subject", value: "Hello" },
+        { name: "reply-to", value: "b@evil.example" },
+      ]),
+    ).toBe("a@bank.example, b@evil.example");
   });
 });

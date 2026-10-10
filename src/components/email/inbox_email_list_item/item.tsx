@@ -71,7 +71,10 @@ import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { OfficialBadge } from "@/components/email/official_badge";
 import { BadgeChip } from "@/components/ui/badge_chip";
 import { use_peer_profile } from "@/hooks/use_peer_profile";
-import { use_sender_trust } from "@/hooks/use_sender_trust";
+import {
+  trusted_sender_name,
+  use_sender_trust,
+} from "@/hooks/use_sender_trust";
 import {
   EmailTag,
   hex_to_variant,
@@ -185,9 +188,11 @@ export const InboxEmailListItem = memo(
       const sender_trust =
         outgoing_names || email.is_outgoing ? null : evaluated_trust;
       const marks_hidden = sender_trust?.show_identity_marks === false;
-      const list_sender_name = sender_trust
-        ? sender_trust.name || sender_trust.address || raw_list_name
-        : raw_list_name;
+      const list_sender_name = trusted_sender_name(
+        sender_trust,
+        raw_list_name,
+        t("common.unknown_sender"),
+      );
       const peer_badge = peer_profile?.active_badge ?? null;
       const show_sender_badge =
         (peer_profile?.show_badge_profile ?? false) &&
@@ -544,7 +549,7 @@ export const InboxEmailListItem = memo(
               >
                 {resolve_list_display_name({
                   outgoing_names,
-                  thread_participant_names: sender_trust?.warning
+                  thread_participant_names: sender_trust
                     ? undefined
                     : email.thread_participant_names,
                   fallback_name: list_sender_name,
@@ -552,7 +557,7 @@ export const InboxEmailListItem = memo(
                 })}
               </span>
 
-              {!sender_trust?.warning && (
+              {!sender_trust?.warning && !marks_hidden && (
                 <OfficialBadge
                   address_only={!!outgoing_names}
                   className="hidden sm:inline-flex"

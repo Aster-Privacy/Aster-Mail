@@ -321,8 +321,9 @@ function MobileMailDetail() {
                 format_detail={format_email_detail}
                 is_expanded={expanded_ids.has(msg.id)}
                 is_own_message={
+                  (msg.item_type === "sent" || msg.is_external === false) &&
                   msg.sender_email.toLowerCase() ===
-                  detail.current_user_email?.toLowerCase()
+                    detail.current_user_email?.toLowerCase()
                 }
                 load_remote_content={external_content_loaded}
                 message={msg}

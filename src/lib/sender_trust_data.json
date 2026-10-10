@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "max_name_length": 96,
   "confusables": {
     "I": "l",
@@ -137,7 +137,15 @@
     "ne",
     "or",
     "go",
-    "mil"
+    "mil",
+    "ltd",
+    "plc",
+    "sch",
+    "nhs",
+    "gob",
+    "gouv",
+    "nom",
+    "asn"
   ],
   "generic_words": [
     "support",
@@ -190,7 +198,47 @@
     "safety",
     "trust",
     "login",
-    "signin"
+    "signin",
+    "refund",
+    "refunds",
+    "fraud",
+    "prevention",
+    "protection",
+    "resolution",
+    "invoice",
+    "invoices",
+    "order",
+    "orders",
+    "delivery",
+    "shipping",
+    "shipment",
+    "tracking",
+    "receipt",
+    "receipts",
+    "confirmation",
+    "rewards",
+    "member",
+    "members",
+    "membership",
+    "subscription",
+    "subscriptions",
+    "renewal",
+    "recovery",
+    "password",
+    "reset",
+    "statement",
+    "statements",
+    "transaction",
+    "transactions",
+    "dispute",
+    "disputes",
+    "claims",
+    "compliance",
+    "legal",
+    "desk",
+    "business",
+    "ads",
+    "premium"
   ],
   "relay_domains": [
     "mozmail.com",
@@ -207,7 +255,66 @@
     "passfwd.com",
     "privaterelay.appleid.com",
     "groups.io",
-    "googlegroups.com"
+    "googlegroups.com",
+    "passmail.com"
+  ],
+  "public_mailbox_domains": [
+    "gmail.com",
+    "googlemail.com",
+    "outlook.com",
+    "hotmail.com",
+    "live.com",
+    "msn.com",
+    "outlook.fr",
+    "outlook.de",
+    "live.co.uk",
+    "hotmail.co.uk",
+    "hotmail.fr",
+    "icloud.com",
+    "me.com",
+    "mac.com",
+    "yahoo.com",
+    "ymail.com",
+    "rocketmail.com",
+    "aol.com"
+  ],
+  "reserved_local_parts": [
+    "noreply",
+    "no-reply",
+    "no_reply",
+    "postmaster",
+    "mailer-daemon",
+    "account-security-noreply"
+  ],
+  "country_suffixes": [
+    "co.uk",
+    "de",
+    "fr",
+    "it",
+    "es",
+    "nl",
+    "be",
+    "at",
+    "ch",
+    "se",
+    "dk",
+    "no",
+    "fi",
+    "ie",
+    "pt",
+    "pl",
+    "ca",
+    "com.au",
+    "co.nz",
+    "co.jp",
+    "in",
+    "co.in",
+    "com.br",
+    "com.mx",
+    "com.sg",
+    "ae",
+    "com.tr",
+    "co.za"
   ],
   "home_brand": {
     "id": "aster",
@@ -249,6 +356,9 @@
       ],
       "ambiguous": false,
       "any_suffix": true,
+      "suffix_labels": [
+        "paypal"
+      ],
       "domains": [
         "paypal.com",
         "paypal.me",
@@ -272,6 +382,10 @@
       ],
       "ambiguous": false,
       "any_suffix": true,
+      "suffix_labels": [
+        "google",
+        "youtube"
+      ],
       "domains": [
         "google.com",
         "gmail.com",
@@ -300,6 +414,9 @@
       ],
       "ambiguous": false,
       "any_suffix": true,
+      "suffix_labels": [
+        "microsoft"
+      ],
       "domains": [
         "microsoft.com",
         "microsoftonline.com",
@@ -309,7 +426,6 @@
         "msn.com",
         "office.com",
         "office365.com",
-        "azure.com",
         "xbox.com",
         "skype.com",
         "sharepointonline.com",
@@ -366,10 +482,11 @@
       ],
       "ambiguous": false,
       "any_suffix": true,
+      "suffix_labels": [
+        "amazon"
+      ],
       "domains": [
         "amazon.com",
-        "amazonaws.com",
-        "amazonses.com",
         "amazonpay.com",
         "audible.com",
         "primevideo.com",
@@ -382,7 +499,7 @@
         "amazon.jobs",
         "amazon.science",
         "twitch.tv",
-        "kindle.com"
+        "sns.amazonaws.com"
       ]
     },
     {
@@ -392,6 +509,9 @@
       ],
       "ambiguous": false,
       "any_suffix": true,
+      "suffix_labels": [
+        "netflix"
+      ],
       "domains": [
         "netflix.com",
         "netflix.net"
@@ -436,6 +556,9 @@
       ],
       "ambiguous": false,
       "any_suffix": true,
+      "suffix_labels": [
+        "linkedin"
+      ],
       "domains": [
         "linkedin.com",
         "microsoft.com",
@@ -451,8 +574,6 @@
       "any_suffix": false,
       "domains": [
         "github.com",
-        "githubusercontent.com",
-        "github.io",
         "microsoft.com",
         "githubapp.com",
         "github.blog",
@@ -495,6 +616,9 @@
       ],
       "ambiguous": false,
       "any_suffix": true,
+      "suffix_labels": [
+        "binance"
+      ],
       "domains": [
         "binance.com",
         "binance.us",
@@ -575,6 +699,9 @@
       ],
       "ambiguous": false,
       "any_suffix": true,
+      "suffix_labels": [
+        "dhl"
+      ],
       "domains": [
         "dhl.com",
         "dhl.de",
@@ -595,6 +722,9 @@
       ],
       "ambiguous": false,
       "any_suffix": true,
+      "suffix_labels": [
+        "fedex"
+      ],
       "domains": [
         "fedex.com"
       ]
@@ -643,7 +773,7 @@
         "Yahoo"
       ],
       "ambiguous": false,
-      "any_suffix": true,
+      "any_suffix": false,
       "domains": [
         "yahoo.com",
         "yahooinc.com",
@@ -660,6 +790,9 @@
       ],
       "ambiguous": false,
       "any_suffix": true,
+      "suffix_labels": [
+        "docusign"
+      ],
       "domains": [
         "docusign.com",
         "docusign.net"
@@ -672,6 +805,9 @@
       ],
       "ambiguous": false,
       "any_suffix": true,
+      "suffix_labels": [
+        "spotify"
+      ],
       "domains": [
         "spotify.com",
         "spotifymail.com"
@@ -726,6 +862,9 @@
     "barclays.co.uk",
     "santander.com",
     "irs.gov",
-    "gov.uk"
+    "gov.uk",
+    "azure.com",
+    "amazonses.com",
+    "githubusercontent.com"
   ]
 }

@@ -77,6 +77,7 @@ interface BrandEntry {
   solo_names?: string[];
   ambiguous: boolean;
   any_suffix: boolean;
+  suffix_labels?: string[];
   domains: string[];
 }
 
@@ -95,6 +96,11 @@ const DIGRAPHS = trust_data.digraphs as string[][];
 const SECOND_LEVEL = new Set<string>(trust_data.second_level_suffixes);
 const GENERIC_WORDS = new Set<string>(trust_data.generic_words);
 const RELAY_DOMAINS = trust_data.relay_domains as string[];
+const PUBLIC_MAILBOX_DOMAINS = new Set<string>(
+  trust_data.public_mailbox_domains,
+);
+const RESERVED_LOCAL_PARTS = new Set<string>(trust_data.reserved_local_parts);
+const COUNTRY_SUFFIXES = new Set<string>(trust_data.country_suffixes);
 const BRANDS = trust_data.brands as BrandEntry[];
 const HOME_BRAND = trust_data.home_brand;
 const MAX_NAME_LENGTH = trust_data.max_name_length;
@@ -159,8 +165,12 @@ const SEPARATOR_RANGES: [number, number][] = [
   [0x00a1, 0x00bf],
   [0x2010, 0x2027],
   [0x2030, 0x205e],
+  [0x2190, 0x2bff],
   [0x3001, 0x303f],
+  [0x1f000, 0x1faff],
 ];
+
+const MARK_SYMBOLS = /[\u2120\u2122]/g;
 
 const SCRIPT_RANGES: [number, number, string][] = [
   [0x0370, 0x03ff, "greek"],
@@ -640,7 +650,9 @@ function tokenize(text: string): string[] {
   const tokens: string[] = [];
   let current = "";
 
-  for (const code of code_points(clean_text(text.normalize("NFKC"), false))) {
+  const spaced = text.replace(MARK_SYMBOLS, " ");
+
+  for (const code of code_points(clean_text(spaced.normalize("NFKC"), false))) {
     if (in_ranges(code, SEPARATOR_RANGES) || in_ranges(code, SPACE_RANGES)) {
       if (current) tokens.push(current);
       current = "";
@@ -656,11 +668,14 @@ function tokenize(text: string): string[] {
 interface NameClaim {
   compact_skeleton: string;
   compact_fold: string;
+  bare_skeleton: string;
+  bare_fold: string;
   has_generic: boolean;
 }
 
 function name_claim(text: string): NameClaim {
   const kept: string[] = [];
+  const bare: string[] = [];
   let has_generic = false;
 
   for (const token of tokenize(text)) {
@@ -669,13 +684,17 @@ function name_claim(text: string): NameClaim {
       continue;
     }
     kept.push(token);
+    if (!/^[0-9]+$/.test(token)) bare.push(token);
   }
 
   const joined = kept.join("");
+  const bare_joined = bare.join("");
 
   return {
     compact_skeleton: skeleton(joined),
     compact_fold: fold(joined),
+    bare_skeleton: skeleton(bare_joined),
+    bare_fold: fold(bare_joined),
     has_generic,
   };
 }
@@ -714,20 +733,44 @@ function match_brand_name(
 
   for (const name of names) {
     for (const variant of name.variants) {
-      if (variant.compact_skeleton !== claim.compact_skeleton) continue;
-
-      return {
-        claimed: name.candidate,
-        lookalike: variant.compact_fold !== claim.compact_fold,
-        solo: name.solo,
-      };
+      if (
+        variant.compact_fold === claim.compact_fold ||
+        variant.compact_fold === claim.bare_fold
+      ) {
+        return { claimed: name.candidate, lookalike: false, solo: name.solo };
+      }
+      if (variant.compact_skeleton === claim.compact_skeleton) {
+        return {
+          claimed: name.candidate,
+          lookalike: variant.compact_fold !== claim.compact_fold,
+          solo: name.solo,
+        };
+      }
+      if (variant.compact_skeleton === claim.bare_skeleton) {
+        return {
+          claimed: name.candidate,
+          lookalike: variant.compact_fold !== claim.bare_fold,
+          solo: name.solo,
+        };
+      }
     }
   }
 
   return null;
 }
 
-function is_brand_domain(parsed: ParsedAddress, brand: BrandEntry): boolean {
+function is_brand_domain(
+  parsed: ParsedAddress,
+  brand: BrandEntry,
+  authenticated: boolean,
+): boolean {
+  if (PUBLIC_MAILBOX_DOMAINS.has(parsed.ascii_domain)) {
+    return (
+      authenticated &&
+      brand.domains.includes(parsed.ascii_domain) &&
+      RESERVED_LOCAL_PARTS.has(parsed.local.toLowerCase())
+    );
+  }
   if (
     brand.domains.some((domain) => within_domain(parsed.ascii_domain, domain))
   ) {
@@ -737,9 +780,9 @@ function is_brand_domain(parsed: ParsedAddress, brand: BrandEntry): boolean {
 
   const label = registrable_label(parsed.registrable);
 
-  return brand.domains.some(
-    (domain) => registrable_label(registrable_domain(domain)) === label,
-  );
+  if (!(brand.suffix_labels ?? []).includes(label)) return false;
+
+  return COUNTRY_SUFFIXES.has(parsed.registrable.slice(label.length + 1));
 }
 
 function is_official_home_address(parsed: ParsedAddress): boolean {
@@ -750,15 +793,62 @@ function is_official_home_address(parsed: ParsedAddress): boolean {
 }
 
 function find_address_in_name(name: string): ParsedAddress | null {
-  const folded = clean_text(name.normalize("NFKC"), false);
+  const folded = clean_text(name.normalize("NFKC"), false).replace(
+    / *@ */g,
+    "@",
+  );
   const pattern = /[^\s<>()\[\]"',;:]+@[^\s<>()\[\]"',;:@]+/g;
   let match = pattern.exec(folded);
 
   while (match !== null) {
-    const parsed = parse_address(match[0].replace(/[.!?]+$/, ""));
+    const parsed = parse_address(match[0].replace(/[^\p{L}\p{N}]+$/u, ""));
 
     if (parsed) return parsed;
     match = pattern.exec(folded);
+  }
+
+  return null;
+}
+
+function is_domain_label_char(code: number): boolean {
+  return (
+    (code >= 0x61 && code <= 0x7a) ||
+    (code >= 0x30 && code <= 0x39) ||
+    code === 0x2d ||
+    code === 0x2e
+  );
+}
+
+function domain_shaped(run: string): string | null {
+  const trimmed = run.replace(/^[.-]+|[.-]+$/g, "");
+  const labels = trimmed.split(".");
+
+  if (labels.length < 2 || labels.some((label) => label === "")) return null;
+  if (!/^[a-z]{2,}$/.test(labels[labels.length - 1])) return null;
+
+  return trimmed;
+}
+
+function find_brand_domain_in_name(name: string): string | null {
+  let run = "";
+  const runs: string[] = [];
+
+  for (const code of code_points(skeleton(name))) {
+    if (is_domain_label_char(code)) {
+      run += String.fromCodePoint(code);
+      continue;
+    }
+    if (run) runs.push(run);
+    run = "";
+  }
+  if (run) runs.push(run);
+
+  for (const candidate of runs) {
+    const shaped = domain_shaped(candidate);
+    const target = shaped ? registrable_domain(shaped) : null;
+    const known = target ? BRAND_DOMAIN_INDEX.by_skeleton.get(target) : null;
+
+    if (known && !PUBLIC_MAILBOX_DOMAINS.has(known)) return known;
   }
 
   return null;
@@ -943,21 +1033,34 @@ function auth_state_of(input: SenderTrustInput): SenderAuthState {
     return has("fail") ? "failed" : "unverified";
   if (statuses.every((status) => status === "missing")) return "unknown";
   if (statuses[2] === "fail") return "failed";
-  if (has("pass")) return "authenticated";
-  if (has("other")) return "unknown";
+  if (statuses[2] === "pass") return "authenticated";
+  if (has("pass") || has("other")) return "unknown";
   if (has("fail")) return "failed";
 
   return "unverified";
 }
 
+function claims_identity(name: string): boolean {
+  if (!name) return false;
+  if (find_address_in_name(name)) return true;
+
+  const claim = name_claim(name);
+
+  if (match_brand_name(claim, HOME_NAMES)) return true;
+
+  return BRAND_NAMES.some((names) => match_brand_name(claim, names) !== null);
+}
+
 function find_warning(
   name: string,
   parsed: ParsedAddress,
-  input: SenderTrustInput,
   auth_state: SenderAuthState,
   personal: PersonalContext,
 ): SenderWarning | null {
-  if (personal.own_keys.has(address_key(parsed))) return null;
+  const trusted_auth =
+    auth_state === "internal" || auth_state === "authenticated";
+
+  if (trusted_auth && personal.own_keys.has(address_key(parsed))) return null;
 
   const lookalike =
     lookalike_of(parsed, BRAND_DOMAIN_INDEX) ??
@@ -967,22 +1070,54 @@ function find_warning(
   if (!name) return null;
 
   const in_name = find_address_in_name(name);
+  const relayed = RELAY_DOMAINS.some((domain) =>
+    within_domain(parsed.ascii_domain, domain),
+  );
+  const other_mailbox =
+    in_name !== null &&
+    PUBLIC_MAILBOX_DOMAINS.has(parsed.ascii_domain) &&
+    address_key(in_name) !== address_key(parsed);
 
   if (
     in_name &&
-    in_name.registrable !== parsed.registrable &&
-    !RELAY_DOMAINS.some((domain) => within_domain(parsed.ascii_domain, domain))
+    (in_name.registrable !== parsed.registrable || other_mailbox) &&
+    !relayed
   ) {
     return { kind: "address_in_name", claimed: in_name.address };
+  }
+
+  const named_domain = relayed ? null : find_brand_domain_in_name(name);
+
+  if (named_domain && named_domain !== parsed.registrable) {
+    const home_named = HOME_BRAND.domains.some(
+      (domain) => registrable_domain(domain) === named_domain,
+    );
+    const from_home = HOME_BRAND.domains.some((domain) =>
+      within_domain(parsed.ascii_domain, domain),
+    );
+    const owners = BRANDS.filter((entry) =>
+      entry.domains.some(
+        (domain) => registrable_domain(domain) === named_domain,
+      ),
+    );
+
+    if (home_named) {
+      if (!from_home) {
+        return { kind: "home_brand_name", claimed: HOME_BRAND.names[0] };
+      }
+    } else if (
+      owners.length > 0 &&
+      !owners.some((entry) => is_brand_domain(parsed, entry, trusted_auth))
+    ) {
+      return { kind: "brand_name", claimed: named_domain };
+    }
   }
 
   const claim = name_claim(name);
   const home = match_brand_name(claim, HOME_NAMES);
 
   if (home && (home.lookalike || home.solo || claim.has_generic)) {
-    const trusted =
-      is_official_home_address(parsed) &&
-      (auth_state === "internal" || auth_state === "authenticated");
+    const trusted = is_official_home_address(parsed) && trusted_auth;
 
     return trusted
       ? null
@@ -994,12 +1129,9 @@ function find_warning(
     const match = match_brand_name(claim, BRAND_NAMES[position]);
 
     if (!match) continue;
-    if (is_brand_domain(parsed, brand)) return null;
+    if (is_brand_domain(parsed, brand, trusted_auth)) return null;
     if (match.lookalike) {
       return { kind: "lookalike_name", claimed: match.claimed };
-    }
-    if (input.sender_verified === true && auth_state === "authenticated") {
-      return null;
     }
     if (match.solo || claim.has_generic) {
       return { kind: "brand_name", claimed: match.claimed };
@@ -1030,19 +1162,55 @@ function find_contact_notice(
   return personal.contact_names.get(name_key) ?? null;
 }
 
+const MAX_REPLY_TO_ENTRIES = 20;
+
+function split_address_list(text: string): string[] {
+  const entries: string[] = [];
+  let current = "";
+  let quoted = false;
+  let escaped = false;
+  let angle = false;
+
+  for (const char of text) {
+    if (escaped) {
+      escaped = false;
+      current += char;
+      continue;
+    }
+    if (quoted && char === "\\") {
+      escaped = true;
+      current += char;
+      continue;
+    }
+    if (char === '"' && !angle) quoted = !quoted;
+    else if (!quoted && char === "<") angle = true;
+    else if (!quoted && char === ">") angle = false;
+    if (!quoted && !angle && (char === "," || char === ";")) {
+      if (current.trim()) entries.push(current);
+      current = "";
+      if (entries.length >= MAX_REPLY_TO_ENTRIES) return entries;
+      continue;
+    }
+    current += char;
+  }
+  if (current.trim()) entries.push(current);
+
+  return entries;
+}
+
 function reply_to_notice(
   parsed: ParsedAddress,
   reply_to: string | null | undefined,
 ): string | null {
   if (typeof reply_to !== "string" || !reply_to.trim()) return null;
 
-  const first = reply_to.split(",")[0];
-  const reply = parse_address(first);
+  for (const entry of split_address_list(reply_to)) {
+    const reply = parse_address(entry);
 
-  if (!reply) return null;
-  if (reply.registrable === parsed.registrable) return null;
+    if (reply && reply.registrable !== parsed.registrable) return reply.address;
+  }
 
-  return reply.address;
+  return null;
 }
 
 export function evaluate_sender_trust(input: SenderTrustInput): SenderTrust {
@@ -1051,16 +1219,20 @@ export function evaluate_sender_trust(input: SenderTrustInput): SenderTrust {
   const auth_state = auth_state_of(input);
 
   if (!parsed) {
-    const fallback = cap_code_points(
+    const cleaned = cap_code_points(
       clean_text(typeof input.email === "string" ? input.email : "", false),
       MAX_ADDRESS_LENGTH,
     );
+    const has_address = cleaned !== "";
+    const fallback =
+      cleaned.includes("@") && !cleaned.includes(" ") ? cleaned : "";
 
     return {
-      name: sanitized,
+      name: has_address || claims_identity(sanitized) ? "" : sanitized,
       address: fallback,
       domain: "",
-      auth_state,
+      auth_state:
+        has_address && auth_state !== "internal" ? "unverified" : auth_state,
       warning: null,
       contact_notice: null,
       reply_to: null,
@@ -1075,7 +1247,7 @@ export function evaluate_sender_trust(input: SenderTrustInput): SenderTrust {
   const base_name = name_is_address ? "" : sanitized;
   const internal = auth_state === "internal";
   const personal = personal_context_of(input);
-  const warning = find_warning(base_name, parsed, input, auth_state, personal);
+  const warning = find_warning(base_name, parsed, auth_state, personal);
   const hide_name = warning !== null && warning.kind !== "lookalike_domain";
   const distrusted = auth_state === "failed" || auth_state === "unverified";
   const verified_domain = domain_to_ascii(input.sender_verified_domain ?? "");

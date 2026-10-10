@@ -20,7 +20,9 @@
 //
 import { describe, expect, it } from "vitest";
 
-import { sender_trust_input } from "./use_sender_trust";
+import { sender_trust_input, trusted_sender_name } from "./use_sender_trust";
+
+import { evaluate_sender_trust } from "@/lib/sender_trust";
 
 const context = { own_addresses: ["me@astermail.org"], contacts: [] };
 
@@ -96,5 +98,41 @@ describe("sender_trust_input", () => {
     );
 
     expect(input.name).toBe("Shown");
+  });
+});
+
+describe("trusted_sender_name", () => {
+  it("uses the raw name only when no trust result exists", () => {
+    expect(trusted_sender_name(null, "Ana", "Unknown")).toBe("Ana");
+    expect(trusted_sender_name(undefined, "", "Unknown")).toBe("Unknown");
+  });
+
+  it("never shows an address claimed inside the name", () => {
+    const trust = evaluate_sender_trust({
+      name: "ceo@bank.example",
+      email: "attacker@evil.example",
+      own_addresses: [],
+      contacts: [],
+    });
+    const shown = trusted_sender_name(trust, "ceo@bank.example", "Unknown");
+
+    expect(shown).not.toContain("bank.example");
+    expect(shown).toBe(trust.name || trust.address);
+  });
+
+  it("falls back to the placeholder when the result has no name or address", () => {
+    const trust = evaluate_sender_trust({
+      name: "ceo@bank.example",
+      email: "",
+      own_addresses: [],
+      contacts: [],
+    });
+
+    expect(trusted_sender_name(trust, "ceo@bank.example", "Unknown")).toBe(
+      trust.name || trust.address || "Unknown",
+    );
+    expect(
+      trusted_sender_name(trust, "ceo@bank.example", "Unknown"),
+    ).not.toContain("bank.example");
   });
 });

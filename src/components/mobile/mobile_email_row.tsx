@@ -45,7 +45,10 @@ import {
 } from "@/components/email/hooks/use_press_prefetch";
 import { is_system_email, trust_source_for_display } from "@/lib/utils";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
-import { use_sender_trust } from "@/hooks/use_sender_trust";
+import {
+  trusted_sender_name,
+  use_sender_trust,
+} from "@/hooks/use_sender_trust";
 import { SnoozeBadge } from "@/components/ui/snooze_badge";
 import {
   normalize_alias_candidates,
@@ -291,9 +294,11 @@ export const MobileEmailRow = memo(function MobileEmailRow(
   const sender_trust =
     outgoing_names || email.is_outgoing ? null : evaluated_trust;
   const marks_hidden = sender_trust?.show_identity_marks === false;
-  const list_sender_name = sender_trust
-    ? sender_trust.name || sender_trust.address || show_sender_name
-    : show_sender_name;
+  const list_sender_name = trusted_sender_name(
+    sender_trust,
+    show_sender_name,
+    t("common.unknown_sender"),
+  );
   const display_name_label = resolve_list_display_name({
     outgoing_names,
     thread_participant_names: undefined,
@@ -391,7 +396,7 @@ export const MobileEmailRow = memo(function MobileEmailRow(
             {display_name_label}
           </span>
 
-          {!sender_trust?.warning && (
+          {!sender_trust?.warning && !marks_hidden && (
             <OfficialBadge
               address_only={!!outgoing_names}
               className="shrink-0"

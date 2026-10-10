@@ -362,16 +362,17 @@ export function ThreadMessageBlock(
                 {name}
               </SenderProfileTrigger>
             )}
-            {!is_own_message && !sender_trust?.warning && (
+            {!is_own_message && !sender_trust?.warning && !marks_hidden && (
               <OfficialBadge className="flex-shrink-0" sender={message} />
             )}
-            {!is_own_message && sender_trust?.show_verified_badge !== false && (
-              <VerifiedSenderBadge
-                className="flex-shrink-0"
-                domain={message.sender_verified_domain}
-                shown_email={show_sender_email}
-              />
-            )}
+            {!is_own_message &&
+              (!sender_trust || sender_trust.show_verified_badge === true) && (
+                <VerifiedSenderBadge
+                  className="flex-shrink-0"
+                  domain={message.sender_verified_domain}
+                  shown_email={show_sender_email}
+                />
+              )}
             {message.item_type === "received" && (
               <EmailAuthIndicator
                 className="min-w-0 max-w-full"
