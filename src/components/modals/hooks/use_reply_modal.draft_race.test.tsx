@@ -534,6 +534,34 @@ describe("reply modal drafts around a send", () => {
     );
   });
 
+  it("keeps an open Bcc field when the first saved draft comes back", async () => {
+    mocks.create_draft.mockResolvedValue({
+      data: { id: "draft_new", version: 1 },
+    });
+    const props = base_props();
+
+    await render_hook(props);
+    await act(async () => {
+      latest!.set_show_bcc(true);
+    });
+    await type_reply("<p>See you on Friday</p>");
+    await advance(1_600);
+
+    const saved = vi.mocked(props.on_draft_saved).mock.calls[0][0];
+
+    await act(async () => {
+      latest!.set_inputs((prev) => ({ ...prev, bcc: "archive@exam" }));
+    });
+    await render_hook({
+      ...props,
+      existing_draft: { ...saved, reply_to_id: "email_1" },
+    });
+
+    expect(latest!.show_bcc).toBe(true);
+    expect(latest!.inputs.bcc).toBe("archive@exam");
+    expect(latest!.recipients.to).toEqual(["sam@example.com"]);
+  });
+
   it("deletes a draft whose create lands after the send", async () => {
     const create = deferred<unknown>();
 

@@ -971,6 +971,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
           return;
         }
 
+        draft_seeded_ref.current = result.data.id;
         set_draft_id(result.data.id);
         set_draft_version(result.data.version);
         last_saved_text.current = text;
