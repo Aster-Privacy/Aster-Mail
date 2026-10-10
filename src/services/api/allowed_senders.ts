@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { api_client, type ApiResponse } from "./client";
+import { BULK_REQUEST_LIMIT, send_in_chunks } from "./chunked_request";
 import {
   array_to_base64,
   base64_to_array,
@@ -398,14 +399,21 @@ export async function bulk_remove_allowed_senders_by_tokens(
   sender_tokens: string[],
 ): Promise<ApiResponse<{ success: boolean; removed_count: number }>> {
   try {
-    const response = await api_client.delete<{
-      success: boolean;
-      removed_count: number;
-    }>("/contacts/v1/allowed_senders/bulk", {
-      body: JSON.stringify({ sender_tokens }),
-    });
-
-    return response;
+    return await send_in_chunks(
+      sender_tokens,
+      BULK_REQUEST_LIMIT,
+      (chunk) =>
+        api_client.delete<{
+          success: boolean;
+          removed_count: number;
+        }>("/contacts/v1/allowed_senders/bulk", {
+          body: JSON.stringify({ sender_tokens: chunk }),
+        }),
+      (total, next) => ({
+        success: total.success && next.success,
+        removed_count: total.removed_count + next.removed_count,
+      }),
+    );
   } catch (err) {
     return {
       error: user_facing_error(err, get_active_translations().errors.generic),

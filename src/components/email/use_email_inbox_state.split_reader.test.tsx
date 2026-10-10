@@ -36,6 +36,9 @@ const { preferences_mock, view_state, selection_stub, noop } = vi.hoisted(
       selection_stub: {
         handle_toggle_select: noop,
         handle_toggle_select_all: noop,
+        select_all_mode: false,
+        excluded_ids: [] as string[],
+        get_excluded_message_ids: () => [] as string[],
       },
       noop,
     };

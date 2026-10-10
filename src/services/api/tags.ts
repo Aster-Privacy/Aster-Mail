@@ -19,6 +19,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { api_client, type ApiResponse } from "./client";
+import {
+  BULK_REQUEST_LIMIT,
+  merge_affected,
+  send_in_chunks,
+} from "./chunked_request";
 
 export interface TagDefinition {
   id: string;
@@ -176,9 +181,15 @@ export async function bulk_add_tag(
   ids: string[],
   tag_token: string,
 ): Promise<ApiResponse<{ status: string; affected: number }>> {
-  return api_client.post<{ status: string; affected: number }>(
-    "/mail/v1/messages/bulk/tags",
-    { ids, tag_token },
+  return send_in_chunks(
+    ids,
+    BULK_REQUEST_LIMIT,
+    (chunk) =>
+      api_client.post<{ status: string; affected: number }>(
+        "/mail/v1/messages/bulk/tags",
+        { ids: chunk, tag_token },
+      ),
+    merge_affected,
   );
 }
 
@@ -186,9 +197,15 @@ export async function bulk_remove_tag(
   ids: string[],
   tag_token: string,
 ): Promise<ApiResponse<{ status: string; affected: number }>> {
-  return api_client.post<{ status: string; affected: number }>(
-    "/mail/v1/messages/bulk/tags/remove",
-    { ids, tag_token },
+  return send_in_chunks(
+    ids,
+    BULK_REQUEST_LIMIT,
+    (chunk) =>
+      api_client.post<{ status: string; affected: number }>(
+        "/mail/v1/messages/bulk/tags/remove",
+        { ids: chunk, tag_token },
+      ),
+    merge_affected,
   );
 }
 

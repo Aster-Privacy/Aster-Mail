@@ -169,4 +169,52 @@ describe("get_category_action_ids", () => {
     expect(all_ids.sort()).toEqual(["a1", "a2"]);
     expect(get_counts().primary!.total).toBe(2);
   });
+  it("drops a whole conversation when its row is unselected", () => {
+    upsert_entries([
+      {
+        id: "a1",
+        thread_token: "t1",
+        message_ts: "2026-07-01T00:00:00.000Z",
+        is_read: false,
+        category: "primary",
+      },
+      {
+        id: "a2",
+        thread_token: "t1",
+        message_ts: "2026-07-02T00:00:00.000Z",
+        is_read: false,
+        category: "primary",
+      },
+      {
+        id: "b1",
+        message_ts: "2026-07-03T00:00:00.000Z",
+        is_read: false,
+        category: "primary",
+      },
+    ]);
+
+    const { rep_ids, all_ids } = get_category_action_ids("primary", [
+      "a2",
+      "a1",
+    ]);
+
+    expect(rep_ids).toEqual(["b1"]);
+    expect(all_ids).toEqual(["b1"]);
+  });
+
+  it("returns every message in a large category, not only the first page", () => {
+    upsert_entries(
+      Array.from({ length: 300 }, (_, i) => ({
+        id: `m${i}`,
+        message_ts: new Date(Date.UTC(2026, 0, 1, 0, i)).toISOString(),
+        is_read: false,
+        category: "primary" as const,
+      })),
+    );
+
+    const { all_ids } = get_category_action_ids("primary", ["m5"]);
+
+    expect(all_ids).toHaveLength(299);
+    expect(all_ids).not.toContain("m5");
+  });
 });

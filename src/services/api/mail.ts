@@ -21,6 +21,11 @@
 import type { MailItemMetadata } from "@/types/email";
 
 import { api_client, type ApiResponse } from "./client";
+import {
+  BULK_REQUEST_LIMIT,
+  merge_affected,
+  send_in_chunks,
+} from "./chunked_request";
 import { begin_foreground_request } from "./client/request_priority";
 import { with_folder_unlock } from "./folder_unlock_retry";
 
@@ -261,17 +266,26 @@ export async function list_mail_items(
       params.folder_unlock_token ??
       get_unlock_token_for_label(params.label_token) ??
       resolve_items_unlock_token(batch_ids);
-    const response = await with_folder_unlock<MailItemsListResponse>(
-      known_token,
-      (unlock_token) =>
-        api_client.post<MailItemsListResponse>(
-          "/mail/v1/messages/batch",
-          {
-            ids: batch_ids,
-            limit: params.limit,
-          },
-          unlock_token ? { folder_unlock_token: unlock_token } : {},
+    const response = await send_in_chunks<string, MailItemsListResponse>(
+      batch_ids,
+      BULK_REQUEST_LIMIT,
+      (chunk) =>
+        with_folder_unlock<MailItemsListResponse>(known_token, (unlock_token) =>
+          api_client.post<MailItemsListResponse>(
+            "/mail/v1/messages/batch",
+            {
+              ids: chunk,
+              limit: params.limit,
+            },
+            unlock_token ? { folder_unlock_token: unlock_token } : {},
+          ),
         ),
+      (total, next) => ({
+        ...next,
+        items: [...total.items, ...next.items],
+        total: total.total + next.total,
+        has_more: total.has_more || next.has_more,
+      }),
     );
 
     if (response.data?.items) {
@@ -442,9 +456,17 @@ export async function delete_mail_item(
 export async function bulk_update_mail_items(
   data: BulkUpdateRequest,
 ): Promise<ApiResponse<{ status: string; affected: number }>> {
-  return api_client.put<{ status: string; affected: number }>(
-    "/mail/v1/messages/bulk",
-    data,
+  const { ids, ...fields } = data;
+
+  return send_in_chunks(
+    ids,
+    BULK_REQUEST_LIMIT,
+    (chunk) =>
+      api_client.put<{ status: string; affected: number }>(
+        "/mail/v1/messages/bulk",
+        { ...fields, ids: chunk },
+      ),
+    merge_affected,
   );
 }
 
@@ -526,10 +548,19 @@ export async function bulk_permanent_delete(
   ids: string[],
 ): Promise<ApiResponse<{ success: boolean; deleted_count: number }>> {
   const own = note_own_mail_mutation(ids, ["delete"]);
-  const result = await api_client.delete<{
-    success: boolean;
-    deleted_count: number;
-  }>("/mail/v1/messages/trash/bulk", { data: { ids } });
+  const result = await send_in_chunks(
+    ids,
+    BULK_REQUEST_LIMIT,
+    (chunk) =>
+      api_client.delete<{
+        success: boolean;
+        deleted_count: number;
+      }>("/mail/v1/messages/trash/bulk", { data: { ids: chunk } }),
+    (total, next) => ({
+      success: total.success && next.success,
+      deleted_count: total.deleted_count + next.deleted_count,
+    }),
+  );
 
   settle_own_mail_mutation(own, !result.error);
 
@@ -621,12 +652,18 @@ export async function bulk_add_folder(
   ids: string[],
   folder_token: string,
 ): Promise<ApiResponse<{ status: string; affected: number }>> {
-  return api_client.post<{ status: string; affected: number }>(
-    "/mail/v1/messages/bulk/labels",
-    {
-      ids,
-      label_token: folder_token,
-    },
+  return send_in_chunks(
+    ids,
+    BULK_REQUEST_LIMIT,
+    (chunk) =>
+      api_client.post<{ status: string; affected: number }>(
+        "/mail/v1/messages/bulk/labels",
+        {
+          ids: chunk,
+          label_token: folder_token,
+        },
+      ),
+    merge_affected,
   );
 }
 
@@ -634,12 +671,18 @@ export async function bulk_remove_folder(
   ids: string[],
   folder_token: string,
 ): Promise<ApiResponse<{ status: string; affected: number }>> {
-  return api_client.post<{ status: string; affected: number }>(
-    "/mail/v1/messages/bulk/labels/remove",
-    {
-      ids,
-      label_token: folder_token,
-    },
+  return send_in_chunks(
+    ids,
+    BULK_REQUEST_LIMIT,
+    (chunk) =>
+      api_client.post<{ status: string; affected: number }>(
+        "/mail/v1/messages/bulk/labels/remove",
+        {
+          ids: chunk,
+          label_token: folder_token,
+        },
+      ),
+    merge_affected,
   );
 }
 
@@ -814,10 +857,20 @@ export async function bulk_patch_metadata(
     data.items.map((item) => item.id),
     metadata_echo_actions(data.items.map((item) => pick_flag_intents(item))),
   );
-  const result = await api_client.put<{
-    success: boolean;
-    updated_count: number;
-  }>("/mail/v1/messages/bulk/metadata", data);
+  const { items, ...rest } = data;
+  const result = await send_in_chunks(
+    items,
+    BULK_REQUEST_LIMIT,
+    (chunk) =>
+      api_client.put<{
+        success: boolean;
+        updated_count: number;
+      }>("/mail/v1/messages/bulk/metadata", { ...rest, items: chunk }),
+    (total, next) => ({
+      success: total.success && next.success,
+      updated_count: total.updated_count + next.updated_count,
+    }),
+  );
 
   settle_own_mail_mutation(own, !result.error);
 

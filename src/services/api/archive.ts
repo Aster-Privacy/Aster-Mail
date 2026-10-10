@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { api_client, type ApiResponse } from "./client";
+import { send_in_chunks } from "./chunked_request";
 
 import { BATCH_LIMITS } from "@/constants/batch_config";
 import { clear_flag_intents, note_flag_intents } from "@/services/read_intent";
@@ -138,9 +139,20 @@ export async function batch_archive(
   note_flag_intents(data.ids, { is_archived: true });
 
   const own = note_own_mail_mutation(data.ids, ["archive"]);
-  const result = await api_client.post<BatchArchiveResponse>(
-    "/mail/v1/archive/batch",
-    data,
+  const result = await send_in_chunks(
+    data.ids,
+    BATCH_LIMITS.ARCHIVE,
+    (chunk) =>
+      api_client.post<BatchArchiveResponse>("/mail/v1/archive/batch", {
+        ...data,
+        ids: chunk,
+      }),
+    (total, next) => ({
+      success: total.success && next.success,
+      archived_count: total.archived_count + next.archived_count,
+      total_size_bytes: total.total_size_bytes + next.total_size_bytes,
+      failed_ids: [...(total.failed_ids ?? []), ...(next.failed_ids ?? [])],
+    }),
   );
 
   settle_own_mail_mutation(
@@ -165,9 +177,19 @@ export async function batch_unarchive(
   note_flag_intents(data.ids, { is_archived: false });
 
   const own = note_own_mail_mutation(data.ids, ["unarchive"]);
-  const result = await api_client.post<BatchUnarchiveResponse>(
-    "/mail/v1/archive/unarchive/batch",
-    data,
+  const result = await send_in_chunks(
+    data.ids,
+    BATCH_LIMITS.ARCHIVE,
+    (chunk) =>
+      api_client.post<BatchUnarchiveResponse>(
+        "/mail/v1/archive/unarchive/batch",
+        { ...data, ids: chunk },
+      ),
+    (total, next) => ({
+      success: total.success && next.success,
+      unarchived_count: total.unarchived_count + next.unarchived_count,
+      failed_ids: [...(total.failed_ids ?? []), ...(next.failed_ids ?? [])],
+    }),
   );
 
   settle_own_mail_mutation(

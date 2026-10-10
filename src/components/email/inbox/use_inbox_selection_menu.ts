@@ -62,6 +62,7 @@ export function use_inbox_selection_menu({
     handle_folder_toggle_wrapped,
     handle_tag_toggle_wrapped,
     handle_snooze_wrapped,
+    handle_category_change_wrapped,
   } = bulk_actions;
 
   const selected_emails = useMemo(
@@ -108,6 +109,7 @@ export function use_inbox_selection_menu({
       },
       on_category_change: categories.enabled
         ? (category: EmailCategory) => {
+            if (handle_category_change_wrapped(category)) return;
             void handle_category_drop(
               category,
               selected_emails.map((e) => e.id),
@@ -133,6 +135,7 @@ export function use_inbox_selection_menu({
     handle_folder_toggle_wrapped,
     handle_tag_toggle_wrapped,
     handle_snooze_wrapped,
+    handle_category_change_wrapped,
   ]);
 
   return selection_menu;

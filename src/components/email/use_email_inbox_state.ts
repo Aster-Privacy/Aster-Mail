@@ -60,6 +60,8 @@ import { use_split_reader_advance } from "@/components/email/inbox/use_split_rea
 import { use_inbox_selection } from "@/components/email/inbox/use_inbox_selection";
 import { use_inbox_selection_menu } from "@/components/email/inbox/use_inbox_selection_menu";
 import { use_inbox_bulk_actions } from "@/components/email/inbox/use_inbox_bulk_actions";
+import { register_scope_drag_handler } from "@/components/email/inbox/category_drag";
+import { build_selection_snapshot } from "@/components/email/inbox/selection_snapshot";
 
 export type {
   ReplyData,
@@ -630,6 +632,34 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     handle_snooze_wrapped,
   } = bulk_actions;
 
+  const scope_drag_count_ref = useRef(0);
+
+  scope_drag_count_ref.current = Math.max(
+    effective_total_for_pages - selection.excluded_ids.length,
+    0,
+  );
+  const select_all_mode_ref = useRef(selection.select_all_mode);
+
+  select_all_mode_ref.current = selection.select_all_mode;
+  const loaded_emails_ref = useRef(email_state.emails);
+
+  loaded_emails_ref.current = email_state.emails;
+  const scope_drop_ref = useRef(bulk_actions.handle_scope_drop);
+
+  scope_drop_ref.current = bulk_actions.handle_scope_drop;
+
+  useEffect(
+    () =>
+      register_scope_drag_handler({
+        is_active: () => select_all_mode_ref.current,
+        count: () => scope_drag_count_ref.current,
+        selection_snapshot: () =>
+          build_selection_snapshot(loaded_emails_ref.current),
+        run: (target) => scope_drop_ref.current(target),
+      }),
+    [],
+  );
+
   const selection_menu = use_inbox_selection_menu({
     categories,
     selection,
@@ -685,10 +715,55 @@ export function use_email_inbox_state(props: EmailInboxProps) {
       is_archive: current_view === "archive" || email.is_archived,
     });
 
+    const selection_for = (email: InboxEmail) =>
+      selection_menu && email.is_selected ? selection_menu : null;
+
     return {
       ...context_menu_actions,
+      handle_delete: (email: InboxEmail) => {
+        const scope = selection_for(email);
+
+        if (scope) {
+          scope.on_delete();
+
+          return;
+        }
+
+        context_menu_actions.handle_delete(email);
+      },
+      handle_toggle_read: async (email: InboxEmail) => {
+        const scope = selection_for(email);
+
+        if (scope) {
+          if (email.is_read) {
+            scope.on_mark_unread();
+          } else {
+            scope.on_mark_read();
+          }
+
+          return;
+        }
+
+        await context_menu_actions.handle_toggle_read(email);
+      },
+      handle_toggle_star: async (email: InboxEmail) => {
+        if (selection_for(email)) {
+          handle_toggle_star_wrapped();
+
+          return;
+        }
+
+        await context_menu_actions.handle_toggle_star(email);
+      },
       handle_archive: (email: InboxEmail) => {
         const state = describe(email);
+        const scope = selection_for(email);
+
+        if (scope && state.is_archive) {
+          scope.on_move_to_inbox();
+
+          return;
+        }
 
         if (state.is_archive) {
           void context_menu_actions.handle_move_to_inbox(email);
@@ -705,10 +780,23 @@ export function use_email_inbox_state(props: EmailInboxProps) {
           return;
         }
 
+        if (scope) {
+          scope.on_archive();
+
+          return;
+        }
+
         context_menu_actions.handle_archive(email);
       },
       handle_spam: (email: InboxEmail) => {
         const state = describe(email);
+        const scope = selection_for(email);
+
+        if (scope && state.is_spam) {
+          scope.on_mark_not_spam();
+
+          return;
+        }
 
         if (state.is_spam) {
           void context_menu_actions.handle_mark_not_spam(email);
@@ -718,10 +806,23 @@ export function use_email_inbox_state(props: EmailInboxProps) {
 
         if (state.is_trash || is_drafts_view || is_scheduled_view) return;
 
+        if (scope) {
+          scope.on_spam();
+
+          return;
+        }
+
         context_menu_actions.handle_spam(email);
       },
     };
-  }, [context_menu_actions, current_view, is_drafts_view, is_scheduled_view]);
+  }, [
+    context_menu_actions,
+    current_view,
+    is_drafts_view,
+    is_scheduled_view,
+    selection_menu,
+    handle_toggle_star_wrapped,
+  ]);
 
   use_inbox_keyboard(
     email_state.emails,

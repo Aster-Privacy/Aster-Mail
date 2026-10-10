@@ -35,7 +35,7 @@ import { should_keep_email_in_view } from "./display";
 import { group_emails_by_thread, sort_emails_by_timestamp } from "./grouping";
 import { mail_to_email_safe, type ListBodySummary } from "./mapping";
 import {
-  build_view_list_params,
+  resolve_view_list_params,
   DEFAULT_PAGE_SIZE,
   MAX_PAGE_TOP_UP_ROUNDS,
   UNKNOWN_TOTAL,
@@ -164,8 +164,15 @@ export async function fetch_mail_from_api(
     view === "inbox" ? await import("@/services/category_index") : null;
   const index_generation = category_index_module?.get_index_generation();
 
+  const view_params = await resolve_view_list_params(view, signal);
+
+  if (signal.aborted) return null;
+  if (!view_params) {
+    return { emails: [], total: 0, has_more: false, raw_consumed: 0 };
+  }
+
   const params: ListMailItemsParams = {
-    ...build_view_list_params(view),
+    ...view_params,
     limit,
     order,
     pinned_first: true,

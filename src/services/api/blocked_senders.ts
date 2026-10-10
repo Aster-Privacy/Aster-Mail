@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { api_client, type ApiResponse } from "./client";
+import { BULK_REQUEST_LIMIT, send_in_chunks } from "./chunked_request";
 import {
   array_to_base64,
   base64_to_array,
@@ -416,14 +417,21 @@ export async function bulk_unblock_senders(
       emails.map((email) => generate_sender_token(email)),
     );
 
-    const response = await api_client.delete<{
-      success: boolean;
-      unblocked_count: number;
-    }>("/contacts/v1/blocked_senders/bulk", {
-      body: JSON.stringify({ sender_tokens }),
-    });
-
-    return response;
+    return await send_in_chunks(
+      sender_tokens,
+      BULK_REQUEST_LIMIT,
+      (chunk) =>
+        api_client.delete<{
+          success: boolean;
+          unblocked_count: number;
+        }>("/contacts/v1/blocked_senders/bulk", {
+          body: JSON.stringify({ sender_tokens: chunk }),
+        }),
+      (total, next) => ({
+        success: total.success && next.success,
+        unblocked_count: total.unblocked_count + next.unblocked_count,
+      }),
+    );
   } catch (err) {
     return {
       error: user_facing_error(
@@ -438,14 +446,21 @@ export async function bulk_unblock_senders_by_tokens(
   sender_tokens: string[],
 ): Promise<ApiResponse<{ success: boolean; unblocked_count: number }>> {
   try {
-    const response = await api_client.delete<{
-      success: boolean;
-      unblocked_count: number;
-    }>("/contacts/v1/blocked_senders/bulk", {
-      body: JSON.stringify({ sender_tokens }),
-    });
-
-    return response;
+    return await send_in_chunks(
+      sender_tokens,
+      BULK_REQUEST_LIMIT,
+      (chunk) =>
+        api_client.delete<{
+          success: boolean;
+          unblocked_count: number;
+        }>("/contacts/v1/blocked_senders/bulk", {
+          body: JSON.stringify({ sender_tokens: chunk }),
+        }),
+      (total, next) => ({
+        success: total.success && next.success,
+        unblocked_count: total.unblocked_count + next.unblocked_count,
+      }),
+    );
   } catch (err) {
     return {
       error: user_facing_error(

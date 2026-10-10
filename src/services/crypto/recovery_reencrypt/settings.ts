@@ -87,6 +87,8 @@ export async function re_encrypt_templates(
   );
 }
 
+const ALLOWED_SENDERS_PAGE_SIZE = 500;
+
 export async function re_encrypt_blocked_senders(
   old_aes: CryptoKey,
 ): Promise<boolean> {
@@ -135,9 +137,11 @@ export async function re_encrypt_blocked_senders(
 
   const old_tokens = resp.data.blocked_senders.map((b) => b.sender_token);
 
-  await bulk_unblock_senders_by_tokens(old_tokens).catch(() => {
-    ok = false;
-  });
+  const unblocked = await bulk_unblock_senders_by_tokens(old_tokens).catch(
+    () => null,
+  );
+
+  if (!unblocked || unblocked.error) ok = false;
 
   for (const item of decrypted) {
     await block_sender(
@@ -156,14 +160,24 @@ export async function re_encrypt_blocked_senders(
 export async function re_encrypt_allowed_senders(
   old_aes: CryptoKey,
 ): Promise<boolean> {
-  const resp = await api_client.get<{
-    allowed_senders: AllowedSenderResponse[];
-    total: number;
-  }>("/contacts/v1/allowed_senders?limit=500&offset=0");
+  const allowed_senders: AllowedSenderResponse[] = [];
 
-  if (resp.error || !resp.data) return false;
+  for (let offset = 0; ; offset += ALLOWED_SENDERS_PAGE_SIZE) {
+    const page = await api_client.get<{
+      allowed_senders: AllowedSenderResponse[];
+      total: number;
+    }>(
+      `/contacts/v1/allowed_senders?limit=${ALLOWED_SENDERS_PAGE_SIZE}&offset=${offset}`,
+    );
 
-  if (resp.data.allowed_senders.length === 0) return true;
+    if (page.error || !page.data) return false;
+
+    allowed_senders.push(...page.data.allowed_senders);
+
+    if (page.data.allowed_senders.length < ALLOWED_SENDERS_PAGE_SIZE) break;
+  }
+
+  if (allowed_senders.length === 0) return true;
 
   const decrypted: Array<{
     email: string;
@@ -173,7 +187,7 @@ export async function re_encrypt_allowed_senders(
 
   let ok = true;
 
-  for (const item of resp.data.allowed_senders) {
+  for (const item of allowed_senders) {
     try {
       const ct = base64_to_array(item.encrypted_sender_data);
       const iv = base64_to_array(item.sender_data_nonce);
@@ -197,11 +211,13 @@ export async function re_encrypt_allowed_senders(
 
   if (decrypted.length === 0) return ok;
 
-  const old_tokens = resp.data.allowed_senders.map((a) => a.sender_token);
+  const old_tokens = allowed_senders.map((a) => a.sender_token);
 
-  await bulk_remove_allowed_senders_by_tokens(old_tokens).catch(() => {
-    ok = false;
-  });
+  const removed = await bulk_remove_allowed_senders_by_tokens(old_tokens).catch(
+    () => null,
+  );
+
+  if (!removed || removed.error) ok = false;
 
   for (const item of decrypted) {
     await allow_sender(item.email, item.name, item.is_domain).catch(() => {

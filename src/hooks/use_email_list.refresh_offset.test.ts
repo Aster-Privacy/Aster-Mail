@@ -20,7 +20,7 @@
 //
 import { describe, it, expect } from "vitest";
 
-import { resolve_refresh_offset } from "./use_email_list";
+import { resolve_refresh_offset, shift_page_offsets } from "./use_email_list";
 
 describe("resolve_refresh_offset", () => {
   it("refreshes from the top when the list is not windowed", () => {
@@ -37,5 +37,30 @@ describe("resolve_refresh_offset", () => {
 
   it("keeps page zero at the start of the list", () => {
     expect(resolve_refresh_offset(true, 0, 30, new Map([[1, 41]]))).toBe(0);
+  });
+});
+
+describe("shift_page_offsets", () => {
+  it("pulls the next page back by the rows that left the view", () => {
+    const shifted = shift_page_offsets(
+      new Map([
+        [1, 50],
+        [6, 300],
+      ]),
+      40,
+    );
+
+    expect(shifted.get(1)).toBe(10);
+    expect(shifted.get(6)).toBe(260);
+  });
+
+  it("never goes below the start of the list", () => {
+    expect(shift_page_offsets(new Map([[1, 30]]), 45).get(1)).toBe(0);
+  });
+
+  it("leaves offsets alone when nothing loaded was removed", () => {
+    const offsets = new Map([[2, 100]]);
+
+    expect(shift_page_offsets(offsets, 0)).toBe(offsets);
   });
 });

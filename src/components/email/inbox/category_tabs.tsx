@@ -40,6 +40,7 @@ import {
 import { ignore_error } from "@/lib/ignore_error";
 import {
   EMAIL_DRAG_MIME,
+  run_scope_drop,
   end_category_drag,
   use_category_drag_active,
 } from "@/components/email/inbox/category_drag";
@@ -142,6 +143,10 @@ export function CategoryTabs({
       e.preventDefault();
       set_drop_target(null);
       end_category_drag();
+
+      if (run_scope_drop(e.dataTransfer, { kind: "category", category })) {
+        return;
+      }
 
       const raw = e.dataTransfer.getData(EMAIL_DRAG_MIME);
 
