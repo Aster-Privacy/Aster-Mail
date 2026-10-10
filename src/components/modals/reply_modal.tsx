@@ -219,6 +219,8 @@ export function ReplyModal({
                   ? () => {}
                   : modal.set_selected_sender
               }
+              set_show_bcc={modal.set_show_bcc}
+              show_bcc={modal.show_bcc}
               set_show_cc={modal.set_show_cc}
               show_cc={modal.show_cc}
             />

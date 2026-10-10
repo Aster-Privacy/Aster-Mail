@@ -211,6 +211,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     bcc: "",
   });
   const [show_cc, set_show_cc] = useState(false);
+  const [show_bcc, set_show_bcc] = useState(false);
   const contacts = use_suggestion_contacts(is_open);
   const [reply_message, set_reply_message] = useState("");
   const [is_sending, set_is_sending] = useState(false);
@@ -279,6 +280,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
   const last_saved_text = useRef<string>("");
   const last_saved_plain = useRef(false);
   const last_saved_from = useRef<string | undefined>(undefined);
+  const last_saved_recipients = useRef<string>("");
   const last_saved_attachments = useRef<string>("");
   const is_sending_ref = useRef(false);
   const has_sent_ref = useRef(false);
@@ -436,6 +438,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
       id: existing_draft.id,
       to,
       cc: existing_draft.content.cc_recipients ?? [],
+      bcc: existing_draft.content.bcc_recipients ?? [],
     };
   }, [existing_draft, original_email_id]);
 
@@ -447,17 +450,20 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
       return;
     }
 
-    const apply = (to: string[], cc: string[]) => {
+    const apply = (to: string[], cc: string[], bcc: string[]) => {
       dispatch_recipients({ type: "SET", field: "to", emails: to });
       dispatch_recipients({ type: "SET", field: "cc", emails: cc });
+      dispatch_recipients({ type: "SET", field: "bcc", emails: bcc });
       set_inputs({ to: "", cc: "", bcc: "" });
-      if (cc.length > 0) set_show_cc(true);
+      set_show_cc(cc.length > 0);
+      set_show_bcc(bcc.length > 0);
     };
 
-    if (draft_recipients && draft_seeded_ref.current === null) {
+    if (draft_recipients) {
+      if (draft_seeded_ref.current === draft_recipients.id) return;
       draft_seeded_ref.current = draft_recipients.id;
       seeded_signature_ref.current = seed_signature;
-      apply(draft_recipients.to, draft_recipients.cc);
+      apply(draft_recipients.to, draft_recipients.cc, draft_recipients.bcc);
 
       return;
     }
@@ -465,12 +471,13 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     if (seeded_signature_ref.current === seed_signature) return;
 
     seeded_signature_ref.current = seed_signature;
-    apply(seeded_recipients.to, seeded_recipients.cc);
+    apply(seeded_recipients.to, seeded_recipients.cc, []);
   }, [is_open, seed_signature, seeded_recipients, draft_recipients]);
 
   const commit_pending_recipient_inputs = useCallback(() => {
     const pending_to = inputs.to.trim();
     const pending_cc = inputs.cc.trim();
+    const pending_bcc = inputs.bcc.trim();
 
     if (pending_to) {
       dispatch_recipients({ type: "ADD", field: "to", email: pending_to });
@@ -479,6 +486,11 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     if (pending_cc) {
       dispatch_recipients({ type: "ADD", field: "cc", email: pending_cc });
       set_inputs((prev) => ({ ...prev, cc: "" }));
+    }
+
+    if (pending_bcc) {
+      dispatch_recipients({ type: "ADD", field: "bcc", email: pending_bcc });
+      set_inputs((prev) => ({ ...prev, bcc: "" }));
     }
 
     const merge = (existing: string[], pending: string) => {
@@ -493,8 +505,9 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     return {
       to: merge(recipients.to, pending_to),
       cc: merge(recipients.cc, pending_cc),
+      bcc: merge(recipients.bcc, pending_bcc),
     };
-  }, [inputs.to, inputs.cc, recipients.to, recipients.cc]);
+  }, [inputs, recipients]);
 
   const select_sender = use_ghost_sender_binding(
     ghost_mode,
@@ -673,6 +686,11 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
       saved_plain_text ?? matching_draft?.content.message ?? "";
     last_saved_plain.current = saved_plain_text !== null;
     last_saved_from.current = matching_draft?.content.from_email;
+    last_saved_recipients.current = JSON.stringify({
+      to: matching_draft?.content.to_recipients ?? [],
+      cc: matching_draft?.content.cc_recipients ?? [],
+      bcc: matching_draft?.content.bcc_recipients ?? [],
+    });
     last_saved_attachments.current = attachments_key(
       matching_draft?.content.attachments?.map((a) => a.id) ?? [],
     );
@@ -803,6 +821,8 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     [attachments],
   );
 
+  const recipients_signature = JSON.stringify(recipients);
+
   const has_user_content = useCallback((text: string) => {
     if (!text.trim()) return false;
     if (text === initial_content_ref.current) return false;
@@ -846,7 +866,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
         to_recipients:
           recipients.to.length > 0 ? recipients.to : [recipient_email],
         cc_recipients: recipients.cc,
-        bcc_recipients: [],
+        bcc_recipients: recipients.bcc,
         subject,
         message: is_plain_text_mode
           ? escape_plain_text(text).replace(/\n/g, "<br>")
@@ -906,6 +926,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
             last_saved_text.current = text;
             last_saved_plain.current = is_plain_text_mode;
             last_saved_from.current = selected_sender?.email;
+            last_saved_recipients.current = recipients_signature;
             last_saved_attachments.current = attachments_signature;
             set_draft_status("saved");
             set_last_saved_time(new Date());
@@ -950,11 +971,13 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
           return;
         }
 
+        draft_seeded_ref.current = result.data.id;
         set_draft_id(result.data.id);
         set_draft_version(result.data.version);
         last_saved_text.current = text;
         last_saved_plain.current = is_plain_text_mode;
         last_saved_from.current = selected_sender?.email;
+        last_saved_recipients.current = recipients_signature;
         last_saved_attachments.current = attachments_signature;
         set_draft_status("saved");
         set_last_saved_time(new Date());
@@ -989,6 +1012,8 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
       selected_sender?.email,
       recipients.to,
       recipients.cc,
+      recipients.bcc,
+      recipients_signature,
       set_draft_id,
       set_draft_version,
       on_draft_saved,
@@ -1014,6 +1039,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
         if (
           (current_text !== last_saved_text.current ||
             is_plain_text_mode !== last_saved_plain.current ||
+            recipients_signature !== last_saved_recipients.current ||
             attachments_signature !== last_saved_attachments.current ||
             selected_sender?.email !== last_saved_from.current) &&
           (has_user_content(current_text) || attachments_signature !== "") &&
@@ -1031,6 +1057,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     attachments_signature,
     selected_sender?.email,
     is_plain_text_mode,
+    recipients_signature,
   ]);
 
   useEffect(() => {
@@ -1040,6 +1067,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     if (
       reply_message === last_saved_text.current &&
       is_plain_text_mode === last_saved_plain.current &&
+      recipients_signature === last_saved_recipients.current &&
       attachments_signature === last_saved_attachments.current &&
       selected_sender?.email === last_saved_from.current
     )
@@ -1063,6 +1091,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     original_email_id,
     reply_message,
     save_thread_draft,
+    recipients_signature,
     selected_sender?.email,
     has_user_content,
     attachments_signature,
@@ -1101,6 +1130,8 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     set_inputs,
     show_cc,
     set_show_cc,
+    show_bcc,
+    set_show_bcc,
     contacts,
     reply_message,
     set_reply_message,

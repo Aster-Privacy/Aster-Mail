@@ -50,6 +50,8 @@ interface ReplyHeaderProps {
   set_inputs: React.Dispatch<React.SetStateAction<InputsState>>;
   show_cc: boolean;
   set_show_cc: (val: boolean) => void;
+  show_bcc: boolean;
+  set_show_bcc: (val: boolean) => void;
   contacts?: DecryptedContact[];
   original_subject: string;
   on_create_ghost?: () => void;
@@ -78,6 +80,8 @@ export function ReplyHeader({
   set_inputs,
   show_cc,
   set_show_cc,
+  show_bcc,
+  set_show_bcc,
   contacts,
   original_subject,
   on_create_ghost,
@@ -201,7 +205,7 @@ export function ReplyHeader({
           </div>
           <div className="px-4 py-2 border-b border-[var(--aster-floating-divider)]">
             <RecipientField
-              show_bcc
+              show_bcc={show_bcc}
               show_cc_bcc_buttons
               contacts={contacts}
               input_value={inputs.to}
@@ -219,6 +223,7 @@ export function ReplyHeader({
                 dispatch_recipients({ type: "REMOVE", field: "to", email })
               }
               on_show_cc={() => set_show_cc(true)}
+              on_show_bcc={() => set_show_bcc(true)}
               recipients={recipients.to}
               show_cc={show_cc}
             />
@@ -248,6 +253,38 @@ export function ReplyHeader({
                   dispatch_recipients({ type: "REMOVE", field: "cc", email })
                 }
                 recipients={recipients.cc}
+              />
+            </div>
+          )}
+
+          {show_bcc && (
+            <div className="px-4 py-2 border-b border-[var(--aster-floating-divider)]">
+              <RecipientField
+                contacts={contacts}
+                input_value={inputs.bcc}
+                label={t("mail.bcc")}
+                on_add_recipient={(email) =>
+                  dispatch_recipients({ type: "ADD", field: "bcc", email })
+                }
+                on_close={() => {
+                  dispatch_recipients({
+                    type: "SET",
+                    field: "bcc",
+                    emails: [],
+                  });
+                  set_inputs((prev) => ({ ...prev, bcc: "" }));
+                  set_show_bcc(false);
+                }}
+                on_input_change={(val) =>
+                  set_inputs((prev) => ({ ...prev, bcc: val }))
+                }
+                on_remove_last={() =>
+                  dispatch_recipients({ type: "REMOVE_LAST", field: "bcc" })
+                }
+                on_remove_recipient={(email) =>
+                  dispatch_recipients({ type: "REMOVE", field: "bcc", email })
+                }
+                recipients={recipients.bcc}
               />
             </div>
           )}

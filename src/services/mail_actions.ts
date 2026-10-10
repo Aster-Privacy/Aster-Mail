@@ -67,6 +67,7 @@ export interface ReplyParams {
   reply_all?: boolean;
   to_recipients?: string[];
   cc_recipients?: string[];
+  bcc_recipients?: string[];
   own_addresses?: string[];
   thread_token?: string;
   original_email_id?: string;
@@ -310,6 +311,7 @@ export async function send_reply(
   }
 
   const cc = cc_recipients.length > 0 ? cc_recipients : undefined;
+  const bcc = params.bcc_recipients?.length ? params.bcc_recipients : undefined;
   const subject = build_reply_subject(params.original.subject);
   const base_subject = strip_reply_prefix(
     params.original.subject,
@@ -331,7 +333,7 @@ export async function send_reply(
   }
 
   const reply_blocked = await blocked_by_send_policy(
-    [...recipients, ...(cc ?? [])],
+    [...recipients, ...(cc ?? []), ...(bcc ?? [])],
     params.require_encryption,
     callbacks,
   );
@@ -339,14 +341,14 @@ export async function send_reply(
   if (reply_blocked) return reply_blocked;
 
   const reply_untrusted = await blocked_by_key_trust(
-    [...recipients, ...(cc ?? [])],
+    [...recipients, ...(cc ?? []), ...(bcc ?? [])],
     callbacks,
   );
 
   if (reply_untrusted) return reply_untrusted;
 
   const consent = await ensure_post_quantum_consent(
-    [...recipients, ...(cc ?? [])],
+    [...recipients, ...(cc ?? []), ...(bcc ?? [])],
     params.sender_email || current_user_email,
   );
 
@@ -365,7 +367,7 @@ export async function send_reply(
   }
 
   const reply_queue_seconds = server_queue_seconds(
-    [...recipients, ...(cc ?? [])],
+    [...recipients, ...(cc ?? []), ...(bcc ?? [])],
     delay_seconds,
   );
 
@@ -376,6 +378,7 @@ export async function send_reply(
         to: recipients,
         allow_non_post_quantum: consent.allow_non_post_quantum,
         cc,
+        bcc,
         subject,
         envelope_subject: base_subject,
         body: params.message,
@@ -417,6 +420,7 @@ export async function send_reply(
     {
       to: recipients,
       cc,
+      bcc,
       allow_non_post_quantum: consent.allow_non_post_quantum,
       subject,
       envelope_subject: base_subject,
