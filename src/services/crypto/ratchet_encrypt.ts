@@ -268,6 +268,10 @@ async function encrypt_for_ratchet_recipient_unlocked(
       }
 
       if (sender_changed || recipient_changed) {
+        await ratchet
+          .serialize()
+          .then(archive_ratchet_state)
+          .catch(() => undefined);
         ratchet = null;
       }
     }
