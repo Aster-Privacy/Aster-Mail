@@ -2437,6 +2437,16 @@ button.press_scale:active {
   user-select: none;
 }
 
+@media (forced-colors: active) {
+  .app_rail_icon::before {
+    background-color: ButtonText;
+  }
+
+  .app_rail_icon_detail {
+    visibility: hidden;
+  }
+}
+
 .app_rail_column {
   transition:
     width 0.22s cubic-bezier(0.32, 0.72, 0, 1),
