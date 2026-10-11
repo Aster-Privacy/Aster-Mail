@@ -124,7 +124,7 @@
     {
       "id": "brand_as_subdomain_of_other",
       "input": { "name": "PayPal", "email": "x@paypal.com.evil.example", "sender_aligned": true },
-      "expect": { "warning": { "kind": "brand_name", "claimed": "PayPal" } }
+      "expect": { "name": "", "warning": { "kind": "lookalike_domain", "claimed": "paypal.com" } }
     },
     {
       "id": "brand_verified_sender_still_warns",
@@ -785,6 +785,166 @@
       "id": "encoded_own_domain_in_name",
       "input": { "name": "xn--bcher-kva.example", "email": "info@xn--bcher-kva.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
       "expect": { "warning": null }
+    },
+    {
+      "id": "brand_name_with_action_words",
+      "input": { "name": "PayPal Action Required", "email": "eve@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "PayPal" } }
+    },
+    {
+      "id": "home_name_staff",
+      "input": { "name": "Aster Staff", "email": "eve@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "home_brand_name", "claimed": "Aster" } }
+    },
+    {
+      "id": "home_name_administrator",
+      "input": { "name": "Aster Mail Administrator", "email": "eve@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "home_brand_name", "claimed": "Aster" } }
+    },
+    {
+      "id": "home_name_abuse_desk",
+      "input": { "name": "Aster Abuse Desk", "email": "eve@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "home_brand_name", "claimed": "Aster" } }
+    },
+    {
+      "id": "home_name_help",
+      "input": { "name": "Aster Help", "email": "hi@asterhelp.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "home_brand_name", "claimed": "Aster" } }
+    },
+    {
+      "id": "home_name_neutral_then_role",
+      "input": { "name": "Aster Online Support", "email": "eve@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "home_brand_name", "claimed": "Aster" } }
+    },
+    {
+      "id": "home_word_online_ordinary",
+      "input": { "name": "Aster Online", "email": "hello@aster-online.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "home_word_ltd_ordinary",
+      "input": { "name": "Aster Ltd", "email": "info@asterltd.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "home_word_care_ordinary",
+      "input": { "name": "Aster Care", "email": "team@astercare.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "home_word_the_ordinary",
+      "input": { "name": "The Aster", "email": "stay@theaster.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "brand_domain_in_name_with_tail",
+      "input": { "name": "paypal.com.messages", "email": "eve@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "paypal.com" } }
+    },
+    {
+      "id": "brand_domain_in_name_after_other_domain",
+      "input": { "name": "proton.me paypal.com", "email": "eve@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "paypal.com" } }
+    },
+    {
+      "id": "country_brand_domain_own_name",
+      "input": { "name": "amazon.com.br", "email": "pedidos@amazon.com.br", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "brand_name_modifier_apostrophe",
+      "input": { "name": "PayPal\u02bc Support", "email": "eve@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "PayPal" } }
+    },
+    {
+      "id": "brand_name_middle_dot",
+      "input": { "name": "PayPal\u30fbSupport", "email": "eve@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "PayPal" } }
+    },
+    {
+      "id": "brand_name_trailing_point",
+      "input": { "name": "PayPal\u05b4", "email": "eve@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "lookalike_name", "claimed": "PayPal" } }
+    },
+    {
+      "id": "brand_name_enclosed_letters",
+      "input": { "name": "\ud83c\udd7f\ud83c\udd70\ud83c\udd88\ud83c\udd7f\ud83c\udd70\ud83c\udd7b", "email": "eve@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "PayPal" } }
+    },
+    {
+      "id": "brand_name_stroke_letter",
+      "input": { "name": "Mi\u023crosoft", "email": "eve@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "lookalike_name", "claimed": "Microsoft" } }
+    },
+    {
+      "id": "lookalike_domain_stroke_l",
+      "input": { "name": "", "email": "service@paypa\u019a.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": { "kind": "lookalike_domain", "claimed": "paypal.com" } }
+    },
+    {
+      "id": "lookalike_domain_stroke_t",
+      "input": { "name": "", "email": "service@ne\u0167flix.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": { "kind": "lookalike_domain", "claimed": "netflix.com" } }
+    },
+    {
+      "id": "brand_domain_as_subdomain",
+      "input": { "name": "Account Services", "email": "service@paypal.com.evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "Account Services", "warning": { "kind": "lookalike_domain", "claimed": "paypal.com" } }
+    },
+    {
+      "id": "brand_country_domain_no_subdomain_trick",
+      "input": { "name": "", "email": "info@mail.amazon.com.br", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "address_with_second_at",
+      "input": { "name": "Bank", "email": "service@paypal.com@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": { "kind": "lookalike_domain", "claimed": "paypal.com" } }
+    },
+    {
+      "id": "other_mailbox_in_name_dots_matter",
+      "input": { "name": "john.doe@outlook.com", "email": "johndoe@outlook.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "address_in_name", "claimed": "john.doe@outlook.com" } }
+    },
+    {
+      "id": "same_mailbox_in_name_dots_ignored",
+      "input": { "name": "john.doe@gmail.com", "email": "johndoe@gmail.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "other_mailbox_in_name_regional_provider",
+      "input": { "name": "accounts@gmx.com", "email": "accounts.dept@gmx.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "address_in_name", "claimed": "accounts@gmx.com" } }
+    },
+    {
+      "id": "capitals_acronym_ordinary",
+      "input": { "name": "DHI", "email": "jobs@dhigroupinc.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "capitals_acronym_with_team_ordinary",
+      "input": { "name": "DHI Team", "email": "jobs@dhigroupinc.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "capitals_name_lowercase_l",
+      "input": { "name": "LlNKEDlN", "email": "eve@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "lookalike_name", "claimed": "LinkedIn" } }
+    },
+    {
+      "id": "foreign_word_ordinary",
+      "input": { "name": "\u043c\u0435\u0442\u0430", "email": "news@meta-shop.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "foreign_script_brand_with_role",
+      "input": { "name": "\u041c\u0415\u0422\u0410 Support", "email": "eve@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "Meta" } }
+    },
+    {
+      "id": "foreign_script_solo_brand",
+      "input": { "name": "\u0440\u0430\u0443\u0440\u0430\u04cf", "email": "eve@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "lookalike_name", "claimed": "PayPal" } }
     }
   ]
 }
