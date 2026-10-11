@@ -646,6 +646,12 @@ function address_key(parsed: ParsedAddress): string {
   return `${fold(parsed.local)}@${parsed.ascii_domain}`;
 }
 
+function mailbox_key(parsed: ParsedAddress): string {
+  const local = fold(parsed.local).split("+")[0].split(".").join("");
+
+  return `${local}@${parsed.ascii_domain}`;
+}
+
 function tokenize(text: string): string[] {
   const tokens: string[] = [];
   let current = "";
@@ -792,6 +798,45 @@ function is_official_home_address(parsed: ParsedAddress): boolean {
   );
 }
 
+function is_letter_or_number(code: number): boolean {
+  return /[\p{L}\p{N}]/u.test(String.fromCodePoint(code));
+}
+
+function is_local_part_char(code: number): boolean {
+  return (
+    is_letter_or_number(code) ||
+    code === 0x2e ||
+    code === 0x2d ||
+    code === 0x5f ||
+    code === 0x2b
+  );
+}
+
+function tighten_address(candidate: string): string {
+  const points = code_points(candidate);
+  const at = points.lastIndexOf(0x40);
+
+  if (at < 0) return candidate;
+
+  let start = at;
+
+  while (start > 0 && is_local_part_char(points[start - 1])) start -= 1;
+
+  let end = at + 1;
+
+  while (
+    end < points.length &&
+    (is_letter_or_number(points[end]) ||
+      points[end] === 0x2d ||
+      points[end] === 0x2e)
+  ) {
+    end += 1;
+  }
+  while (end > at + 1 && !is_letter_or_number(points[end - 1])) end -= 1;
+
+  return String.fromCodePoint(...points.slice(start, end));
+}
+
 function find_address_in_name(name: string): ParsedAddress | null {
   const folded = clean_text(name.normalize("NFKC"), false).replace(
     / *@ */g,
@@ -801,7 +846,7 @@ function find_address_in_name(name: string): ParsedAddress | null {
   let match = pattern.exec(folded);
 
   while (match !== null) {
-    const parsed = parse_address(match[0].replace(/[^\p{L}\p{N}]+$/u, ""));
+    const parsed = parse_address(tighten_address(match[0]));
 
     if (parsed) return parsed;
     match = pattern.exec(folded);
@@ -829,24 +874,37 @@ function domain_shaped(run: string): string | null {
   return trimmed;
 }
 
-function find_brand_domain_in_name(name: string): string | null {
-  let run = "";
-  const runs: string[] = [];
+function domains_in_name(name: string): string[] {
+  const targets: string[] = [];
 
-  for (const code of code_points(skeleton(name))) {
-    if (is_domain_label_char(code)) {
-      run += String.fromCodePoint(code);
-      continue;
+  for (const text of [skeleton(name), skeleton(fold(name))]) {
+    let run = "";
+    const runs: string[] = [];
+
+    for (const code of code_points(text)) {
+      if (is_domain_label_char(code)) {
+        run += String.fromCodePoint(code);
+        continue;
+      }
+      if (run) runs.push(run);
+      run = "";
     }
     if (run) runs.push(run);
-    run = "";
-  }
-  if (run) runs.push(run);
 
-  for (const candidate of runs) {
-    const shaped = domain_shaped(candidate);
-    const target = shaped ? registrable_domain(shaped) : null;
-    const known = target ? BRAND_DOMAIN_INDEX.by_skeleton.get(target) : null;
+    for (const candidate of runs) {
+      const shaped = domain_shaped(candidate);
+      const target = shaped ? registrable_domain(shaped) : "";
+
+      if (target && !targets.includes(target)) targets.push(target);
+    }
+  }
+
+  return targets;
+}
+
+function find_brand_domain(targets: string[]): string | null {
+  for (const target of targets) {
+    const known = BRAND_DOMAIN_INDEX.by_skeleton.get(target);
 
     if (known && !PUBLIC_MAILBOX_DOMAINS.has(known)) return known;
   }
@@ -1073,10 +1131,13 @@ function find_warning(
   const relayed = RELAY_DOMAINS.some((domain) =>
     within_domain(parsed.ascii_domain, domain),
   );
+  const from_home = HOME_BRAND.domains.some((domain) =>
+    within_domain(parsed.ascii_domain, domain),
+  );
   const other_mailbox =
     in_name !== null &&
-    PUBLIC_MAILBOX_DOMAINS.has(parsed.ascii_domain) &&
-    address_key(in_name) !== address_key(parsed);
+    (PUBLIC_MAILBOX_DOMAINS.has(parsed.ascii_domain) || from_home) &&
+    mailbox_key(in_name) !== mailbox_key(parsed);
 
   if (
     in_name &&
@@ -1086,14 +1147,12 @@ function find_warning(
     return { kind: "address_in_name", claimed: in_name.address };
   }
 
-  const named_domain = relayed ? null : find_brand_domain_in_name(name);
+  const named_targets = relayed ? [] : domains_in_name(name);
+  const named_domain = find_brand_domain(named_targets);
 
   if (named_domain && named_domain !== parsed.registrable) {
     const home_named = HOME_BRAND.domains.some(
       (domain) => registrable_domain(domain) === named_domain,
-    );
-    const from_home = HOME_BRAND.domains.some((domain) =>
-      within_domain(parsed.ascii_domain, domain),
     );
     const owners = BRANDS.filter((entry) =>
       entry.domains.some(
@@ -1110,6 +1169,38 @@ function find_warning(
       !owners.some((entry) => is_brand_domain(parsed, entry, trusted_auth))
     ) {
       return { kind: "brand_name", claimed: named_domain };
+    }
+  }
+
+  for (const target of named_targets) {
+    if (target === parsed.registrable) continue;
+    if (BRAND_DOMAIN_INDEX.by_skeleton.has(target)) continue;
+
+    const label = registrable_label(target);
+    const label_claim = name_claim(label);
+    const home_label = match_brand_name(label_claim, HOME_NAMES);
+
+    if (home_label && (home_label.lookalike || home_label.solo)) {
+      if (!from_home) {
+        return { kind: "home_brand_name", claimed: HOME_BRAND.names[0] };
+      }
+      continue;
+    }
+
+    const country = COUNTRY_SUFFIXES.has(target.slice(label.length + 1));
+
+    for (let position = 0; position < BRANDS.length; position += 1) {
+      const match = match_brand_name(label_claim, BRAND_NAMES[position]);
+
+      if (!match) continue;
+      if (is_brand_domain(parsed, BRANDS[position], trusted_auth)) break;
+      if (match.lookalike) {
+        return { kind: "lookalike_name", claimed: match.claimed };
+      }
+      if (match.solo || country) {
+        return { kind: "brand_name", claimed: match.claimed };
+      }
+      break;
     }
   }
 

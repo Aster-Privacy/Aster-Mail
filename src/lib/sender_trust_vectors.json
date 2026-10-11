@@ -650,6 +650,71 @@
       "id": "abbreviation_is_not_a_domain",
       "input": { "name": "U.S. Bancorp Inc. News", "email": "news@unrelated.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
       "expect": { "warning": null }
+    },
+    {
+      "id": "address_in_name_dotted_same_mailbox",
+      "input": { "name": "j.smith@gmail.com", "email": "jsmith@gmail.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "address_in_name_tagged_same_mailbox",
+      "input": { "name": "jane@gmail.com", "email": "jane+news@gmail.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "address_in_name_glued_prefix_same_mailbox",
+      "input": { "name": "Jane|jane@gmail.com", "email": "jane@gmail.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "address_in_name_glued_suffix",
+      "input": { "name": "john.boss@gmail.com/x", "email": "john.b0ss.attacker@gmail.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "address_in_name", "claimed": "john.boss@gmail.com" } }
+    },
+    {
+      "id": "address_in_name_glued_suffix_other_domain",
+      "input": { "name": "ceo@bigcorp.example|CEO", "email": "eve@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "address_in_name", "claimed": "ceo@bigcorp.example" } }
+    },
+    {
+      "id": "address_in_name_other_home_mailbox",
+      "input": { "name": "support@astermail.org", "email": "eve@astermail.org", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "is_internal": true },
+      "expect": { "name": "", "warning": { "kind": "address_in_name", "claimed": "support@astermail.org" } }
+    },
+    {
+      "id": "address_in_name_same_home_mailbox",
+      "input": { "name": "eve@astermail.org", "email": "eve@astermail.org", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "is_internal": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "brand_country_domain_in_name",
+      "input": { "name": "Amazon.co.uk", "email": "orders@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "Amazon" } }
+    },
+    {
+      "id": "brand_country_domain_in_name_real_sender",
+      "input": { "name": "Amazon.co.uk", "email": "orders@amazon.co.uk", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "brand_other_suffix_domain_in_name",
+      "input": { "name": "PayPal.de", "email": "service@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "PayPal" } }
+    },
+    {
+      "id": "brand_domain_in_name_uppercase",
+      "input": { "name": "WINDOWS.COM Security", "email": "alert@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "windows.com" } }
+    },
+    {
+      "id": "ambiguous_label_domain_in_name",
+      "input": { "name": "apple.farm", "email": "hello@orchard.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "own_domain_in_name",
+      "input": { "name": "Amazon.tools", "email": "hello@amazon.tools", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
     }
   ]
 }
