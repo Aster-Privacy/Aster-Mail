@@ -1636,6 +1636,38 @@ function split_address_list(text: string): string[] {
   return entries;
 }
 
+const REPLY_TO_DELIMITERS = /[ \t\n\r<>()\[\],;:"\\]/;
+
+function embedded_reply_to(
+  parsed: ParsedAddress,
+  entry: string,
+  is_parsed: boolean,
+): string | null {
+  const cleaned = clean_text(entry, false);
+  const first = cleaned.indexOf("@");
+
+  if (first < 0) return null;
+  if (is_parsed && cleaned.indexOf("@", first + 1) < 0) return null;
+
+  for (const piece of cleaned.split(REPLY_TO_DELIMITERS)) {
+    if (!piece.includes("@")) continue;
+
+    const parts = piece.split("@");
+
+    for (let index = 1; index < parts.length; index++) {
+      const local = parts[index - 1];
+      const reply = parse_address(`${local || "a"}@${parts[index]}`);
+
+      if (!reply) return cap_code_points(piece, MAX_ADDRESS_LENGTH);
+      if (reply.registrable !== parsed.registrable) {
+        return local ? reply.address : reply.domain;
+      }
+    }
+  }
+
+  return null;
+}
+
 function reply_to_notice(
   parsed: ParsedAddress,
   reply_to: string | null | undefined,
@@ -1648,6 +1680,10 @@ function reply_to_notice(
     const reply = parse_address(entry);
 
     if (reply && reply.registrable !== parsed.registrable) return reply.address;
+
+    const embedded = embedded_reply_to(parsed, entry, reply !== null);
+
+    if (embedded) return embedded;
   }
 
   return null;
