@@ -1603,9 +1603,6 @@ function find_contact_notice(
   return personal.contact_names.get(name_key) ?? null;
 }
 
-const MAX_REPLY_TO_ENTRIES = 32768;
-const MAX_REPLY_TO_LENGTH = 32768;
-
 function split_address_list(text: string): string[] {
   const entries: string[] = [];
   let current = "";
@@ -1630,7 +1627,6 @@ function split_address_list(text: string): string[] {
     if (!quoted && !angle && (char === "," || char === ";")) {
       if (current.trim()) entries.push(current);
       current = "";
-      if (entries.length >= MAX_REPLY_TO_ENTRIES) return entries;
       continue;
     }
     current += char;
@@ -1646,7 +1642,7 @@ function reply_to_notice(
 ): string | null {
   if (typeof reply_to !== "string" || !reply_to.trim()) return null;
 
-  const entries = split_address_list(reply_to.slice(0, MAX_REPLY_TO_LENGTH));
+  const entries = split_address_list(reply_to);
 
   for (const entry of entries) {
     const reply = parse_address(entry);
