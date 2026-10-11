@@ -1,5 +1,5 @@
 {
-  "version": 5,
+  "version": 6,
   "max_name_length": 96,
   "confusables": {
     "I": "l",
@@ -309,10 +309,6 @@
     "info",
     "admin",
     "official",
-    "inc",
-    "llc",
-    "ltd",
-    "corp",
     "the",
     "from",
     "at",
@@ -435,11 +431,17 @@
     "failed",
     "ticket",
     "tickets",
+    "hq",
+    "headquarters"
+  ],
+  "company_words": [
+    "inc",
+    "llc",
+    "ltd",
+    "corp",
     "limited",
     "corporation",
     "incorporated",
-    "hq",
-    "headquarters",
     "plc",
     "gmbh"
   ],
@@ -671,10 +673,6 @@
       "updates"
     ],
     "neutral_words": [
-      "inc",
-      "llc",
-      "ltd",
-      "corp",
       "the",
       "from",
       "at",
@@ -690,14 +688,7 @@
       "shipment",
       "tracking",
       "order",
-      "orders",
-      "limited",
-      "corporation",
-      "incorporated",
-      "hq",
-      "headquarters",
-      "plc",
-      "gmbh"
+      "orders"
     ]
   },
   "brands": [

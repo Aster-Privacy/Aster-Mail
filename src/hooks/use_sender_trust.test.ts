@@ -93,6 +93,21 @@ describe("sender_trust_input", () => {
 
     expect(evaluate_sender_trust(legacy).auth_state).toBe("unknown");
 
+    const signed = sender_trust_input(
+      { ...relayed, spf_result: "pass", dkim_result: "pass", dmarc_result: "none" },
+      context,
+    );
+
+    expect(evaluate_sender_trust(signed).auth_state).toBe("unknown");
+
+    const unsigned = sender_trust_input(
+      { ...relayed, spf_result: "pass", dkim_result: "fail", dmarc_result: "none" },
+      context,
+    );
+
+    expect(unsigned.sender_aligned).toBe(false);
+    expect(evaluate_sender_trust(unsigned).auth_state).not.toBe("unknown");
+
     const failed = sender_trust_input(
       {
         ...relayed,

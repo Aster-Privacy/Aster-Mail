@@ -263,6 +263,10 @@ describe("sender trust helpers", () => {
     expect(registrable_domain("a.example.co.uk")).toBe("example.co.uk");
     expect(registrable_domain("mail.u-tokyo.ac.jp")).toBe("u-tokyo.ac.jp");
     expect(registrable_domain("a.b.example.io")).toBe("example.io");
+    expect(registrable_domain("a.onmicrosoft.com")).toBe("a.onmicrosoft.com");
+    expect(registrable_domain("x.a.github.io")).toBe("a.github.io");
+    expect(registrable_domain("github.io")).toBe("github.io");
+    expect(registrable_domain("mail.acme.uk.com")).toBe("acme.uk.com");
   });
 
   it("sanitizes names without throwing on any input", () => {

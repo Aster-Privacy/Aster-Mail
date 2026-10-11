@@ -1062,9 +1062,9 @@
       "expect": { "reply_to": "attacker@evil.example" }
     },
     {
-      "id": "reply_to_other_mailbox_shared_domain",
+      "id": "reply_to_other_mailbox_public_domain",
       "input": { "name": "Boss", "email": "boss@gmail.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "b0ss@gmail.com" },
-      "expect": { "reply_to": "b0ss@gmail.com" }
+      "expect": { "reply_to": null }
     },
     {
       "id": "reply_to_same_mailbox_shared_domain",
@@ -1075,6 +1075,61 @@
       "id": "reply_to_other_mailbox_plain_domain",
       "input": { "name": "Jane Doe", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "support@company.example" },
       "expect": { "reply_to": null }
+    },
+    {
+      "id": "reply_to_other_tenant",
+      "input": { "name": "Finance", "email": "finance@victim.onmicrosoft.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "finance@evil.onmicrosoft.com" },
+      "expect": { "domain": "victim.onmicrosoft.com", "reply_to": "finance@evil.onmicrosoft.com" }
+    },
+    {
+      "id": "reply_to_same_tenant",
+      "input": { "name": "Finance", "email": "noreply@contoso.onmicrosoft.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "helpdesk@contoso.onmicrosoft.com" },
+      "expect": { "reply_to": null }
+    },
+    {
+      "id": "reply_to_tenant_parent",
+      "input": { "name": "Blog Host", "email": "no-reply@wordpress.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "help@wordpress.com" },
+      "expect": { "reply_to": null }
+    },
+    {
+      "id": "same_tenant_other_mailbox_in_name",
+      "input": { "name": "info@acme.uk.com", "email": "sales@acme.uk.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "reply_to_after_junk_entries",
+      "input": { "name": "Jane Doe", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,attacker@evil.example" },
+      "expect": { "reply_to": "attacker@evil.example" }
+    },
+    {
+      "id": "ambiguous_brand_with_company_word",
+      "input": { "name": "Chase Corporation", "email": "info@chasecorp.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "Chase Corporation", "warning": null }
+    },
+    {
+      "id": "ambiguous_brand_with_short_company_word",
+      "input": { "name": "Chase Corp", "email": "info@chasecorp.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "Chase Corp", "warning": null }
+    },
+    {
+      "id": "home_brand_with_hq_word",
+      "input": { "name": "Aster HQ", "email": "x@gmail.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "home_brand_name", "claimed": "Aster" } }
+    },
+    {
+      "id": "brand_domain_inside_tenant_host",
+      "input": { "name": "PayPal", "email": "x@paypal.com.uk.com", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "lookalike_domain", "claimed": "paypal.com" } }
+    },
+    {
+      "id": "lookalike_tenant_label",
+      "input": { "name": "Billing", "email": "billing@paypa1.zendesk.com", "sender_aligned": true },
+      "expect": { "warning": { "kind": "lookalike_domain", "claimed": "paypal.com" } }
+    },
+    {
+      "id": "plain_tenant_host_no_warning",
+      "input": { "name": "Acme Support", "email": "support@acme.zendesk.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "Acme Support", "warning": null, "auth_state": "authenticated" }
     }
   ]
 }

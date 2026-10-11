@@ -95,6 +95,7 @@ const CONFUSABLES = new Map<string, string>(
 const DIGRAPHS = trust_data.digraphs as string[][];
 const SECOND_LEVEL = new Set<string>(trust_data.second_level_suffixes);
 const GENERIC_WORDS = new Set<string>(trust_data.generic_words);
+const COMPANY_WORDS = new Set<string>(trust_data.company_words);
 const RELAY_DOMAINS = trust_data.relay_domains as string[];
 const PUBLIC_MAILBOX_DOMAINS = new Set<string>(
   trust_data.public_mailbox_domains,
@@ -658,11 +659,23 @@ export function registrable_domain(ascii_domain: string): string {
 
   if (labels.length <= 2) return ascii_domain;
 
+  for (const tenant of SHARED_TENANT_DOMAINS) {
+    if (ascii_domain.endsWith(`.${tenant}`)) {
+      return labels.slice(-(tenant.split(".").length + 1)).join(".");
+    }
+  }
+
   const tld = labels[labels.length - 1];
   const second = labels[labels.length - 2];
   const take = tld.length === 2 && SECOND_LEVEL.has(second) ? 3 : 2;
 
   return labels.slice(-take).join(".");
+}
+
+function is_tenant_host(registrable: string): boolean {
+  return SHARED_TENANT_DOMAINS.some((tenant) =>
+    registrable.endsWith(`.${tenant}`),
+  );
 }
 
 function registrable_label(registrable: string): string {
@@ -722,9 +735,6 @@ function is_shared_domain(parsed: ParsedAddress): boolean {
   return (
     PUBLIC_MAILBOX_DOMAINS.has(parsed.ascii_domain) ||
     HOME_BRAND.domains.some((domain) =>
-      within_domain(parsed.ascii_domain, domain),
-    ) ||
-    SHARED_TENANT_DOMAINS.some((domain) =>
       within_domain(parsed.ascii_domain, domain),
     )
   );
@@ -791,6 +801,7 @@ function name_claim(text: string, capitals_aware: boolean): NameClaim {
   for (const token of tokenize(text)) {
     const word = token.toLowerCase();
 
+    if (COMPANY_WORDS.has(word)) continue;
     if (GENERIC_WORDS.has(word)) {
       has_generic = true;
       if (!HOME_NEUTRAL_WORDS.has(word)) has_home_generic = true;
@@ -1265,7 +1276,10 @@ function lookalike_of(
   }
 
   const labels = parsed.ascii_domain.split(".");
-  const depth = labels.length - parsed.registrable.split(".").length;
+  const depth =
+    labels.length -
+    parsed.registrable.split(".").length +
+    (is_tenant_host(parsed.registrable) ? 1 : 0);
 
   for (let start = 0; start < depth; start += 1) {
     for (let size = 2; size <= 3; size += 1) {
@@ -1578,7 +1592,8 @@ function find_contact_notice(
   return personal.contact_names.get(name_key) ?? null;
 }
 
-const MAX_REPLY_TO_ENTRIES = 400;
+const MAX_REPLY_TO_ENTRIES = 2048;
+const MAX_REPLY_TO_LENGTH = 4096;
 
 function split_address_list(text: string): string[] {
   const entries: string[] = [];
@@ -1620,18 +1635,12 @@ function reply_to_notice(
 ): string | null {
   if (typeof reply_to !== "string" || !reply_to.trim()) return null;
 
-  const shared_domain = is_shared_domain(parsed);
+  const entries = split_address_list(reply_to.slice(0, MAX_REPLY_TO_LENGTH));
 
-  for (const entry of split_address_list(reply_to)) {
+  for (const entry of entries) {
     const reply = parse_address(entry);
 
-    if (!reply) continue;
-    if (
-      reply.registrable !== parsed.registrable ||
-      (shared_domain && mailbox_key(reply) !== mailbox_key(parsed))
-    ) {
-      return reply.address;
-    }
+    if (reply && reply.registrable !== parsed.registrable) return reply.address;
   }
 
   return null;
