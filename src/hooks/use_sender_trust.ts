@@ -77,14 +77,14 @@ export function sender_trust_input(
   const is_rewritten =
     email.trim().toLowerCase() !== actual_email.trim().toLowerCase();
   const aligned = message.sender_aligned ?? undefined;
-  const dkim = recorded_status(message.dkim_result);
   const dmarc = recorded_status(message.dmarc_result);
+  const unrecorded =
+    !recorded_status(message.spf_result) &&
+    !recorded_status(message.dkim_result) &&
+    !dmarc;
   const carrier_trusted =
     aligned === true ||
-    (aligned === undefined &&
-      ((!dkim && !dmarc) ||
-        dmarc === "pass" ||
-        (dkim === "pass" && (!dmarc || dmarc === "none"))));
+    (aligned === undefined && (unrecorded || dmarc === "pass"));
   const drop_auth = is_rewritten && carrier_trusted;
 
   return {

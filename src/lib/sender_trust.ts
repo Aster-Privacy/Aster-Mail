@@ -76,6 +76,7 @@ interface BrandEntry {
   names: string[];
   solo_names?: string[];
   ambiguous: boolean;
+  company_claim?: boolean;
   any_suffix: boolean;
   suffix_labels?: string[];
   domains: string[];
@@ -770,6 +771,7 @@ interface NameClaim {
   bare_fold: string;
   has_generic: boolean;
   has_home_generic: boolean;
+  has_company: boolean;
   foreign_script: boolean;
 }
 
@@ -797,11 +799,15 @@ function name_claim(text: string, capitals_aware: boolean): NameClaim {
   const bare: string[] = [];
   let has_generic = false;
   let has_home_generic = false;
+  let has_company = false;
 
   for (const token of tokenize(text)) {
     const word = token.toLowerCase();
 
-    if (COMPANY_WORDS.has(word)) continue;
+    if (COMPANY_WORDS.has(word)) {
+      has_company = true;
+      continue;
+    }
     if (GENERIC_WORDS.has(word)) {
       has_generic = true;
       if (!HOME_NEUTRAL_WORDS.has(word)) has_home_generic = true;
@@ -823,6 +829,7 @@ function name_claim(text: string, capitals_aware: boolean): NameClaim {
     bare_fold: fold(bare_joined),
     has_generic,
     has_home_generic,
+    has_company,
     foreign_script: is_foreign_script(joined),
   };
 }
@@ -1563,7 +1570,11 @@ function find_warning(
     if (reads_as_lookalike(match, claim)) {
       return { kind: "lookalike_name", claimed: match.claimed };
     }
-    if (match.solo || claim.has_generic) {
+    if (
+      match.solo ||
+      claim.has_generic ||
+      (claim.has_company && brand.company_claim === true)
+    ) {
       return { kind: "brand_name", claimed: match.claimed };
     }
 
@@ -1592,8 +1603,8 @@ function find_contact_notice(
   return personal.contact_names.get(name_key) ?? null;
 }
 
-const MAX_REPLY_TO_ENTRIES = 2048;
-const MAX_REPLY_TO_LENGTH = 4096;
+const MAX_REPLY_TO_ENTRIES = 32768;
+const MAX_REPLY_TO_LENGTH = 32768;
 
 function split_address_list(text: string): string[] {
   const entries: string[] = [];

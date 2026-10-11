@@ -98,7 +98,8 @@ describe("sender_trust_input", () => {
       context,
     );
 
-    expect(evaluate_sender_trust(signed).auth_state).toBe("unknown");
+    expect(signed.sender_aligned).toBe(false);
+    expect(evaluate_sender_trust(signed).auth_state).not.toBe("unknown");
 
     const unsigned = sender_trust_input(
       { ...relayed, spf_result: "pass", dkim_result: "fail", dmarc_result: "none" },
@@ -107,6 +108,14 @@ describe("sender_trust_input", () => {
 
     expect(unsigned.sender_aligned).toBe(false);
     expect(evaluate_sender_trust(unsigned).auth_state).not.toBe("unknown");
+
+    const spf_only = sender_trust_input(
+      { ...relayed, spf_result: "fail", dkim_result: "", dmarc_result: "" },
+      context,
+    );
+
+    expect(spf_only.sender_aligned).toBe(false);
+    expect(evaluate_sender_trust(spf_only).auth_state).not.toBe("unknown");
 
     const failed = sender_trust_input(
       {

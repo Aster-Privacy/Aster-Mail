@@ -1,5 +1,5 @@
 {
-  "version": 6,
+  "version": 7,
   "max_name_length": 96,
   "confusables": {
     "I": "l",
@@ -803,6 +803,7 @@
         "Apple Pay"
       ],
       "ambiguous": true,
+      "company_claim": true,
       "any_suffix": false,
       "domains": [
         "apple.com",
@@ -974,6 +975,7 @@
         "Stripe"
       ],
       "ambiguous": true,
+      "company_claim": true,
       "any_suffix": false,
       "domains": [
         "stripe.com",
@@ -1103,6 +1105,7 @@
         "Discord"
       ],
       "ambiguous": true,
+      "company_claim": true,
       "any_suffix": false,
       "domains": [
         "discord.com",
@@ -1162,6 +1165,7 @@
         "Adobe"
       ],
       "ambiguous": true,
+      "company_claim": true,
       "any_suffix": false,
       "domains": [
         "adobe.com",
