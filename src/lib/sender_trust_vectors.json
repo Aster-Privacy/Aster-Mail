@@ -755,6 +755,36 @@
       "id": "long_ordinary_name",
       "input": { "name": "Regional customer care and account services desk Regional customer care and account services desk Regional customer care and account services desk", "email": "desk@studio.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
       "expect": { "warning": null }
+    },
+    {
+      "id": "brand_domain_in_name_space_after_dot",
+      "input": { "name": "venmo. com Support", "email": "alert@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "venmo.com" } }
+    },
+    {
+      "id": "brand_domain_in_name_spaces_around_dot",
+      "input": { "name": "Venmo . com", "email": "alert@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "venmo.com" } }
+    },
+    {
+      "id": "brand_domain_in_name_encoded",
+      "input": { "name": "xn--pypal-4ve.com", "email": "eve@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "paypal.com" } }
+    },
+    {
+      "id": "sentence_break_ordinary_name",
+      "input": { "name": "Thanks. Come again", "email": "hi@studio.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "initial_ordinary_name",
+      "input": { "name": "R. Tanaka", "email": "r.tanaka@studio.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "encoded_own_domain_in_name",
+      "input": { "name": "xn--bcher-kva.example", "email": "info@xn--bcher-kva.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
     }
   ]
 }

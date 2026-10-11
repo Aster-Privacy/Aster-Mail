@@ -963,32 +963,96 @@ function plain_dots(name: string): string {
   return String.fromCodePoint(...out);
 }
 
-function domains_in_name(name: string): string[] {
-  const targets: string[] = [];
-  const plain = plain_dots(name);
-  const bases = plain === name ? [name] : [name, plain];
-  const texts = bases.flatMap((base) => [skeleton(base), skeleton(fold(base))]);
+function loose_dots(name: string): string {
+  const points = code_points(name);
+  const out: number[] = [];
+  let position = 0;
 
-  for (const text of texts) {
-    let run = "";
-    const runs: string[] = [];
+  while (position < points.length) {
+    const code = points[position];
 
-    for (const code of code_points(text)) {
-      if (is_domain_label_char(code)) {
-        run += String.fromCodePoint(code);
+    if (code === 0x2e) {
+      let before = out.length;
+      let after = position + 1;
+
+      while (before > 0 && is_gap(out[before - 1])) before -= 1;
+      while (is_gap(points[after])) after += 1;
+      if (
+        before > 0 &&
+        after < points.length &&
+        is_letter_or_number(out[before - 1]) &&
+        is_letter_or_number(points[after])
+      ) {
+        out.length = before;
+        out.push(0x2e);
+        position = after;
         continue;
       }
-      if (run) runs.push(run);
-      run = "";
+    }
+    out.push(code);
+    position += 1;
+  }
+
+  return String.fromCodePoint(...out);
+}
+
+function label_runs(text: string): string[] {
+  const runs: string[] = [];
+  let run = "";
+
+  for (const code of code_points(text)) {
+    if (is_domain_label_char(code)) {
+      run += String.fromCodePoint(code);
+      continue;
     }
     if (run) runs.push(run);
+    run = "";
+  }
+  if (run) runs.push(run);
 
-    for (const candidate of runs) {
-      const shaped = domain_shaped(candidate);
-      const target = shaped ? registrable_domain(shaped) : "";
+  return runs;
+}
 
-      if (target && !targets.includes(target)) targets.push(target);
+function shaped_targets(text: string): string[] {
+  const targets: string[] = [];
+
+  for (const candidate of label_runs(text)) {
+    const shaped = domain_shaped(candidate);
+
+    if (shaped) targets.push(registrable_domain(shaped));
+  }
+
+  return targets;
+}
+
+function domains_in_name(name: string): string[] {
+  const targets: string[] = [];
+  const keep = (target: string) => {
+    if (target && !targets.includes(target)) targets.push(target);
+  };
+  const plain = plain_dots(name);
+  const bases = plain === name ? [name] : [name, plain];
+
+  for (const base of bases) {
+    shaped_targets(skeleton(base)).forEach(keep);
+    shaped_targets(skeleton(fold(base))).forEach(keep);
+  }
+
+  const loose = loose_dots(plain);
+
+  if (loose !== plain) {
+    for (const text of [skeleton(loose), skeleton(fold(loose))]) {
+      for (const target of shaped_targets(text)) {
+        if (BRAND_DOMAIN_INDEX.by_skeleton.has(target)) keep(target);
+      }
     }
+  }
+  for (const target of shaped_targets(fold(plain))) {
+    if (!target.includes("xn--")) continue;
+
+    const unicode = domain_unicode(target);
+
+    if (unicode !== target) keep(skeleton(unicode));
   }
 
   return targets;
