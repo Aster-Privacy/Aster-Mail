@@ -874,10 +874,95 @@ function domain_shaped(run: string): string | null {
   return trimmed;
 }
 
+function is_gap(code: number | undefined): boolean {
+  return code === 0x20 || code === 0x09 || code === 0xa0;
+}
+
+function ascii_lower(code: number | undefined): number {
+  if (code === undefined) return -1;
+
+  return code >= 0x41 && code <= 0x5a ? code + 0x20 : code;
+}
+
+function bracketed_dot_end(points: number[], open: number): number {
+  let position = open + 1;
+
+  while (is_gap(points[position])) position += 1;
+  if (points[position] === 0x2e) {
+    position += 1;
+  } else if (
+    ascii_lower(points[position]) === 0x64 &&
+    ascii_lower(points[position + 1]) === 0x6f &&
+    ascii_lower(points[position + 2]) === 0x74
+  ) {
+    position += 3;
+  } else {
+    return -1;
+  }
+  while (is_gap(points[position])) position += 1;
+
+  const close = points[position];
+
+  return close === 0x29 || close === 0x5d || close === 0x7d ? position + 1 : -1;
+}
+
+function starts_framework_suffix(points: number[], position: number): boolean {
+  const after = points[position + 3];
+
+  return (
+    ascii_lower(points[position]) === 0x6e &&
+    ascii_lower(points[position + 1]) === 0x65 &&
+    ascii_lower(points[position + 2]) === 0x74 &&
+    (after === undefined || !is_letter_or_number(after))
+  );
+}
+
+function plain_dots(name: string): string {
+  const points = code_points(name);
+  const out: number[] = [];
+  let position = 0;
+
+  while (position < points.length) {
+    const code = points[position];
+    const end =
+      code === 0x28 || code === 0x5b || code === 0x7b
+        ? bracketed_dot_end(points, position)
+        : -1;
+
+    if (end >= 0) {
+      while (out.length > 0 && is_gap(out[out.length - 1])) out.pop();
+      out.push(0x2e);
+      position = end;
+      while (is_gap(points[position])) position += 1;
+      continue;
+    }
+    if (
+      code === 0x2e &&
+      out.length > 0 &&
+      is_gap(out[out.length - 1]) &&
+      position + 1 < points.length &&
+      is_letter_or_number(points[position + 1]) &&
+      !starts_framework_suffix(points, position + 1)
+    ) {
+      while (out.length > 0 && is_gap(out[out.length - 1])) out.pop();
+      out.push(0x2e);
+      position += 1;
+      continue;
+    }
+    out.push(code);
+    position += 1;
+  }
+
+  return String.fromCodePoint(...out);
+}
+
 function domains_in_name(name: string): string[] {
   const targets: string[] = [];
+  const plain = plain_dots(name);
+  const bases = plain === name ? [name] : [name, plain];
+  const texts = bases.flatMap((base) => [skeleton(base), skeleton(fold(base))]);
 
-  for (const text of [skeleton(name), skeleton(fold(name))]) {
+  for (const text of texts) {
     let run = "";
     const runs: string[] = [];
 
@@ -1067,7 +1152,10 @@ function personal_context_of(input: SenderTrustInput): PersonalContext {
 }
 
 function status_of(raw: string | null | undefined): string {
-  const value = typeof raw === "string" ? raw.trim().toLowerCase() : "";
+  const value =
+    typeof raw === "string"
+      ? raw.replace(/^[ \t\r\n]+|[ \t\r\n]+$/g, "").toLowerCase()
+      : "";
 
   if (!value || value === "missing") return "missing";
   if (value === "pass" || value === "none") return value;

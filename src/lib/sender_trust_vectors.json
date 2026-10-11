@@ -715,6 +715,36 @@
       "id": "own_domain_in_name",
       "input": { "name": "Amazon.tools", "email": "hello@amazon.tools", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
       "expect": { "warning": null }
+    },
+    {
+      "id": "brand_domain_in_name_spaced_dot",
+      "input": { "name": "venmo .com Support", "email": "alert@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "venmo.com" } }
+    },
+    {
+      "id": "brand_domain_in_name_bracketed_dot",
+      "input": { "name": "xoom[.]com", "email": "alert@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "xoom.com" } }
+    },
+    {
+      "id": "brand_domain_in_name_word_dot",
+      "input": { "name": "Venmo (dot) com", "email": "alert@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "venmo.com" } }
+    },
+    {
+      "id": "framework_suffix_in_name",
+      "input": { "name": "Jane .NET Developer", "email": "jane@devshop.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "bracketed_dot_ordinary_name",
+      "input": { "name": "Hello (dot) world", "email": "hi@studio.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "spaced_dot_ordinary_name",
+      "input": { "name": "Sam .Reyes", "email": "sam@studio.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
     }
   ]
 }
