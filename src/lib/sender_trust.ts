@@ -250,6 +250,7 @@ function is_lone_surrogate(code: number): boolean {
 
 function clean_text(text: string, keep_joiners: boolean): string {
   let result = "";
+  let after_joiner = false;
   let pending_space = false;
 
   for (const code of code_points(text)) {
@@ -259,12 +260,18 @@ function clean_text(text: string, keep_joiners: boolean): string {
       continue;
     }
     if (in_ranges(code, INVISIBLE_RANGES)) continue;
-    if (!keep_joiners && in_ranges(code, JOINER_RANGES)) continue;
+    if (in_ranges(code, JOINER_RANGES)) {
+      if (!keep_joiners || pending_space || after_joiner || !result) continue;
+      result += String.fromCodePoint(code);
+      after_joiner = true;
+      continue;
+    }
     if (pending_space) {
       result += " ";
       pending_space = false;
     }
     result += String.fromCodePoint(code);
+    after_joiner = false;
   }
 
   return result;
@@ -932,22 +939,23 @@ function tighten_address(candidate: string): string {
   return String.fromCodePoint(...points.slice(start, end));
 }
 
-function find_address_in_name(name: string): ParsedAddress | null {
+function find_addresses_in_name(name: string): ParsedAddress[] {
   const folded = clean_text(name.normalize("NFKC"), false).replace(
     / *@ */g,
     "@",
   );
   const pattern = /[^\s<>()\[\]"',;:]+@[^\s<>()\[\]"',;:@]+/g;
+  const found: ParsedAddress[] = [];
   let match = pattern.exec(folded);
 
   while (match !== null) {
     const parsed = parse_address(tighten_address(match[0]));
 
-    if (parsed) return parsed;
+    if (parsed) found.push(parsed);
     match = pattern.exec(folded);
   }
 
-  return null;
+  return found;
 }
 
 function is_domain_label_char(code: number): boolean {
@@ -1387,7 +1395,7 @@ function auth_state_of(input: SenderTrustInput): SenderAuthState {
 
 function claims_identity(name: string): boolean {
   if (!name) return false;
-  if (find_address_in_name(name)) return true;
+  if (find_addresses_in_name(name).length > 0) return true;
 
   const claim = name_claim(name, true);
 
@@ -1422,23 +1430,23 @@ function find_warning(
   }
   if (!name) return null;
 
-  const in_name = find_address_in_name(name);
   const relayed = RELAY_DOMAINS.some((domain) =>
     within_domain(parsed.ascii_domain, domain),
   );
   const from_home = HOME_BRAND.domains.some((domain) =>
     within_domain(parsed.ascii_domain, domain),
   );
-  const other_mailbox =
-    in_name !== null &&
-    (PUBLIC_MAILBOX_DOMAINS.has(parsed.ascii_domain) || from_home) &&
-    mailbox_key(in_name) !== mailbox_key(parsed);
+  const shared_domain =
+    PUBLIC_MAILBOX_DOMAINS.has(parsed.ascii_domain) || from_home;
+  const in_name = relayed
+    ? undefined
+    : find_addresses_in_name(name).find(
+        (candidate) =>
+          candidate.registrable !== parsed.registrable ||
+          (shared_domain && mailbox_key(candidate) !== mailbox_key(parsed)),
+      );
 
-  if (
-    in_name &&
-    (in_name.registrable !== parsed.registrable || other_mailbox) &&
-    !relayed
-  ) {
+  if (in_name) {
     return { kind: "address_in_name", claimed: in_name.address };
   }
 

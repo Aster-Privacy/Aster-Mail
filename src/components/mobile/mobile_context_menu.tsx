@@ -38,6 +38,7 @@ import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
 import { use_platform } from "@/hooks/use_platform";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
+import { safe_sender_name } from "@/lib/sender_trust_store";
 
 interface MobileContextMenuProps {
   email: InboxEmail | null;
@@ -163,7 +164,12 @@ export const MobileContextMenu = memo(function MobileContextMenu({
       reduce_motion={reduce_motion}
       safe_area_bottom={safe_area_insets.bottom}
       subtitle={email ? email.subject || t("mail.no_subject") : undefined}
-      title={email ? email.sender_name : undefined}
+      title={
+        email
+          ? safe_sender_name(email.sender_name, email.sender_email) ||
+            email.sender_email
+          : undefined
+      }
       on_close={on_close}
     />
   );

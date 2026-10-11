@@ -44,6 +44,7 @@ import { use_mobile_mail_detail } from "./use_mobile_mail_detail";
 import { MobileHeader } from "@/components/mobile/mobile_header";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
+import { safe_sender_name } from "@/lib/sender_trust_store";
 
 function MobilePendingMessageRow({ with_divider }: { with_divider: boolean }) {
   return (
@@ -399,7 +400,11 @@ function MobileMailDetail() {
           if (menu_message) {
             set_block_target({
               email: menu_message.sender_email,
-              name: menu_message.sender_name,
+              name:
+                safe_sender_name(
+                  menu_message.sender_name,
+                  menu_message.sender_email,
+                ) || menu_message.sender_email,
             });
           }
           set_menu_message(null);

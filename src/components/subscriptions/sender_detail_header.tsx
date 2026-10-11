@@ -26,6 +26,7 @@ import { Badge, PillButton } from "@aster/ui";
 
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { use_i18n } from "@/lib/i18n/context";
+import { safe_sender_name } from "@/lib/sender_trust_store";
 import { use_external_link } from "@/contexts/external_link_context";
 import {
   get_category_badge_color,
@@ -72,19 +73,22 @@ export function SenderDetailHeader({
     }
   };
 
+  const shown_name =
+    safe_sender_name(sub.sender_name, sub.sender_email) || sub.sender_email;
+
   return (
     <div className="flex-shrink-0 px-4 pb-2 pt-3">
       <div className="aster_island aster_island_pad_sm flex items-center gap-3">
         <ProfileAvatar
           use_domain_logo
           email={sub.sender_email}
-          name={sub.sender_name || sub.sender_email}
+          name={shown_name}
           size="lg"
         />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <span className="text-base font-semibold text-txt-primary truncate">
-              {sub.sender_name || sub.sender_email}
+              {shown_name}
             </span>
             <Badge
               className="flex-shrink-0 whitespace-nowrap"

@@ -128,7 +128,7 @@ export function safe_sender_name(
     contacts: snapshot.contacts,
   });
 
-  return trust.warning !== null && trust.name === "" ? "" : name;
+  return trust.name;
 }
 
 export function subscribe_sender_trust_context(

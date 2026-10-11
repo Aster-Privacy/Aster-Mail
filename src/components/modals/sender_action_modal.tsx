@@ -58,6 +58,7 @@ import {
 } from "@/services/crypto/mail_metadata";
 import { use_auth } from "@/contexts/auth_context";
 import { get_email_username, get_email_domain } from "@/lib/utils";
+import { safe_sender_name } from "@/lib/sender_trust_store";
 import { has_protected_folder_label } from "@/hooks/use_folders";
 import { folder_option_indent } from "@/hooks/use_folders/tree";
 import {
@@ -214,7 +215,9 @@ export function SenderActionModal({
 
               if (!envelope) continue;
               const email = envelope.from?.email || "unknown@unknown.com";
-              const name = envelope.from?.name || get_email_username(email);
+              const name =
+                safe_sender_name(envelope.from?.name, email) ||
+                get_email_username(email);
 
               if (sender_map.has(email)) {
                 const existing = sender_map.get(email)!;

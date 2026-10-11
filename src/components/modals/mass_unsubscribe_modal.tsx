@@ -53,6 +53,7 @@ import {
   metadata_flag_patch,
 } from "@/services/crypto/mail_metadata";
 import { get_email_username, get_email_domain } from "@/lib/utils";
+import { safe_sender_name } from "@/lib/sender_trust_store";
 import { has_protected_folder_label } from "@/hooks/use_folders";
 import { emit_mail_items_removed } from "@/hooks/mail_events";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
@@ -127,7 +128,9 @@ async function resolve_unsubscribe_fact(
 
     return {
       email,
-      name: envelope.from.name || get_email_username(email),
+      name:
+        safe_sender_name(envelope.from.name, email) ||
+        get_email_username(email),
       unsub: unsub_info.has_unsubscribe ? unsub_info : null,
     };
   } catch (error) {

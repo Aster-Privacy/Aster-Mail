@@ -71,6 +71,7 @@ import { get_undo_send_delay_ms } from "@/services/send_queue";
 import { with_caret_block } from "@/lib/signature_html";
 import { show_toast } from "@/components/toast/simple_toast";
 import { plan_reply_cancel } from "@/components/email/reply_cancel_outcome";
+import { safe_sender_name } from "@/lib/sender_trust_store";
 
 type SendState = "idle" | "queued" | "sending" | "sent" | "error";
 
@@ -106,7 +107,7 @@ export const InlineReplySection = forwardRef<
 >(function InlineReplySection(
   {
     email_id,
-    sender_name,
+    sender_name: claimed_sender_name,
     sender_email,
     subject,
     body,
@@ -127,6 +128,8 @@ export const InlineReplySection = forwardRef<
   const { preferences } = use_preferences();
   const { default_signature, get_formatted_signature } = use_signatures();
   const reduce_motion = use_should_reduce_motion();
+  const sender_name =
+    safe_sender_name(claimed_sender_name, sender_email) || sender_email;
 
   const matching_draft =
     existing_draft &&

@@ -52,6 +52,7 @@ import {
   metadata_flag_patch,
 } from "@/services/crypto/mail_metadata";
 import { get_email_username, get_email_domain } from "@/lib/utils";
+import { safe_sender_name } from "@/lib/sender_trust_store";
 import { has_protected_folder_label } from "@/hooks/use_folders";
 import {
   emit_mail_items_removed,
@@ -189,7 +190,9 @@ export function ArchiveNewslettersModal({
             if (!unsub_info.has_unsubscribe) continue;
 
             const email = envelope.from.email.toLowerCase();
-            const name = envelope.from.name || get_email_username(email);
+            const name =
+              safe_sender_name(envelope.from.name, email) ||
+              get_email_username(email);
 
             if (sender_map.has(email)) {
               const existing = sender_map.get(email)!;

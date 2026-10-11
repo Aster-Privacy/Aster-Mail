@@ -52,6 +52,7 @@ import { get_favicon_url } from "@/lib/favicon_url";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { show_toast } from "@/components/toast/simple_toast";
 import { get_email_username, get_email_domain } from "@/lib/utils";
+import { safe_sender_name } from "@/lib/sender_trust_store";
 import { has_protected_folder_label } from "@/hooks/use_folders";
 import {
   emit_mail_changed,
@@ -177,7 +178,9 @@ export function SnoozeSimilarModal({
 
             if (!envelope) continue;
             const email = envelope.from?.email || "unknown@unknown.com";
-            const name = envelope.from?.name || get_email_username(email);
+            const name =
+              safe_sender_name(envelope.from?.name, email) ||
+              get_email_username(email);
 
             if (sender_map.has(email)) {
               const existing = sender_map.get(email)!;
