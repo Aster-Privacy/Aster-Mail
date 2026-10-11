@@ -41,6 +41,11 @@ vi.mock("@/services/subscription_cache", () => ({
   SUBSCRIPTION_CACHE_VERSION: 2,
 }));
 
+vi.mock("@/services/api/blocked_senders", () => ({
+  list_blocked_senders: async () => ({ data: [] }),
+  BLOCKED_SENDERS_CHANGED_EVENT: "astermail:blocked-senders-changed",
+}));
+
 vi.mock("@/utils/unsubscribe_detector", () => ({
   perform_unsubscribe: vi.fn(),
   execute_unsubscribe: vi.fn(),

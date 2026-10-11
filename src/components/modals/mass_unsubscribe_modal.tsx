@@ -72,6 +72,11 @@ import {
   type UnsubscribeFacts,
 } from "@/services/unsubscribe_index";
 import { map_in_chunks } from "@/lib/scheduling";
+import { list_blocked_senders } from "@/services/api/blocked_senders";
+import {
+  build_blocked_sender_index,
+  without_blocked_senders,
+} from "@/utils/blocked_subscriptions";
 
 const UNSUBSCRIBE_BATCH_SIZE = 5;
 
@@ -206,6 +211,10 @@ export function MassUnsubscribeModal({
         );
 
         const known_facts = await load_unsubscribe_facts();
+        const blocked_result = await list_blocked_senders().catch(() => null);
+        const blocked_index = build_blocked_sender_index(
+          blocked_result?.data ?? [],
+        );
 
         if (signal?.aborted) return;
 
@@ -223,18 +232,21 @@ export function MassUnsubscribeModal({
         >();
 
         const build_subscriptions = () =>
-          Array.from(sender_map.values()).map(
-            (sender) =>
-              ({
-                id: sender.email,
-                sender_email: sender.email,
-                sender_name: sender.name,
-                domain: get_email_domain(sender.email) || sender.email,
-                email_count: sender.count,
-                mail_ids: sender.ids,
-                items: sender.items,
-                unsub_info: sender.unsub_info,
-              }) as Subscription,
+          without_blocked_senders(
+            Array.from(sender_map.values()).map(
+              (sender) =>
+                ({
+                  id: sender.email,
+                  sender_email: sender.email,
+                  sender_name: sender.name,
+                  domain: get_email_domain(sender.email) || sender.email,
+                  email_count: sender.count,
+                  mail_ids: sender.ids,
+                  items: sender.items,
+                  unsub_info: sender.unsub_info,
+                }) as Subscription,
+            ),
+            blocked_index,
           );
 
         for (let i = 0; i < candidates.length; i += DECRYPT_YIELD_CHUNK) {
