@@ -745,6 +745,16 @@
       "id": "spaced_dot_ordinary_name",
       "input": { "name": "Sam .Reyes", "email": "sam@studio.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
       "expect": { "warning": null }
+    },
+    {
+      "id": "address_in_name_cut_by_length",
+      "input": { "name": "Regional customer care and account services desk Regional customer care and account support@bigcorp.example", "email": "eve@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "address_in_name", "claimed": "support@bigcorp.example" } }
+    },
+    {
+      "id": "long_ordinary_name",
+      "input": { "name": "Regional customer care and account services desk Regional customer care and account services desk Regional customer care and account services desk", "email": "desk@studio.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
     }
   ]
 }

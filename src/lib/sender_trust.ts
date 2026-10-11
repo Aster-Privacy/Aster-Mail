@@ -263,14 +263,21 @@ function cap_code_points(text: string, max: number): string {
   return String.fromCodePoint(...points.slice(0, max)).trim();
 }
 
-export function sanitize_display_name(raw: string | null | undefined): string {
+function capped_display_name(
+  raw: string | null | undefined,
+  max: number,
+): string {
   if (typeof raw !== "string") return "";
 
   const cleaned = strip_outer_quotes(clean_text(raw, true).trim());
 
   if (!clean_text(cleaned, false)) return "";
 
-  return cap_code_points(cleaned, MAX_NAME_LENGTH);
+  return cap_code_points(cleaned, max);
+}
+
+export function sanitize_display_name(raw: string | null | undefined): string {
+  return capped_display_name(raw, MAX_NAME_LENGTH);
 }
 
 function fold(text: string): string {
@@ -1426,7 +1433,14 @@ export function evaluate_sender_trust(input: SenderTrustInput): SenderTrust {
   const base_name = name_is_address ? "" : sanitized;
   const internal = auth_state === "internal";
   const personal = personal_context_of(input);
-  const warning = find_warning(base_name, parsed, auth_state, personal);
+  const whole_name = name_is_address
+    ? ""
+    : capped_display_name(input.name, MAX_NAME_LENGTH + MAX_ADDRESS_LENGTH);
+  const warning =
+    find_warning(base_name, parsed, auth_state, personal) ??
+    (whole_name === base_name
+      ? null
+      : find_warning(whole_name, parsed, auth_state, personal));
   const hide_name = warning !== null && warning.kind !== "lookalike_domain";
   const distrusted = auth_state === "failed" || auth_state === "unverified";
   const verified_domain = domain_to_ascii(input.sender_verified_domain ?? "");
