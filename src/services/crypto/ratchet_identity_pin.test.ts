@@ -69,6 +69,7 @@ import {
   check_owner_key_pin,
   flag_recipient_untrusted,
   get_pinned_owner_key_fingerprint,
+  is_recipient_bundle_accepted,
   is_recipient_flagged_untrusted,
   trust_recipient_keys,
   get_identity_change,
@@ -83,6 +84,12 @@ import { scoped_storage_name } from "@/services/crypto/storage_key_names";
 
 const KEY_A = btoa("identity-key-aaaaaaaaaaaaaaaaaaaaaaaa");
 const KEY_B = btoa("identity-key-bbbbbbbbbbbbbbbbbbbbbbbb");
+const ACCEPTED_BUNDLE = {
+  kem_identity_key: KEY_A,
+  signed_prekey: "signed-prekey",
+  signed_prekey_signature: "signature",
+  pq_kem_public_key: "pq-key" as string | null,
+};
 
 function pin_name(prefix: string, peer: string): Promise<string> {
   return scoped_storage_name(prefix, "acct-1", peer);
@@ -318,6 +325,58 @@ describe("owner key pin", () => {
     expect(get_peer_identity_event("alice")).toBeNull();
     expect(await check_owner_key_pin("alice", owner_b)).toBe("ok");
     expect(await check_and_pin_identity("alice", KEY_B)).toBe("ok");
+  });
+
+  it("remembers the exact bundle the user accepted", async () => {
+    await trust_recipient_keys("alice", KEY_A, owner_a, ACCEPTED_BUNDLE);
+
+    expect(await is_recipient_bundle_accepted("alice", ACCEPTED_BUNDLE)).toBe(
+      true,
+    );
+    expect(await is_recipient_bundle_accepted("bob", ACCEPTED_BUNDLE)).toBe(
+      false,
+    );
+  });
+
+  it("does not extend an acceptance to a bundle that differs in any field", async () => {
+    await trust_recipient_keys("alice", KEY_A, owner_a, ACCEPTED_BUNDLE);
+
+    for (const changed of [
+      { ...ACCEPTED_BUNDLE, kem_identity_key: KEY_B },
+      { ...ACCEPTED_BUNDLE, signed_prekey: "other-prekey" },
+      { ...ACCEPTED_BUNDLE, signed_prekey_signature: "other-signature" },
+      { ...ACCEPTED_BUNDLE, pq_kem_public_key: "other-pq-key" },
+      { ...ACCEPTED_BUNDLE, pq_kem_public_key: null },
+    ]) {
+      expect(await is_recipient_bundle_accepted("alice", changed)).toBe(false);
+    }
+  });
+
+  it("drops the acceptance when keys are trusted without a bundle", async () => {
+    await trust_recipient_keys("alice", KEY_A, owner_a, ACCEPTED_BUNDLE);
+    await trust_recipient_keys("alice", KEY_A, owner_a);
+
+    expect(await is_recipient_bundle_accepted("alice", ACCEPTED_BUNDLE)).toBe(
+      false,
+    );
+  });
+
+  it("drops the acceptance on reset", async () => {
+    await trust_recipient_keys("alice", KEY_A, owner_a, ACCEPTED_BUNDLE);
+    await reset_identity_pin("alice");
+
+    expect(await is_recipient_bundle_accepted("alice", ACCEPTED_BUNDLE)).toBe(
+      false,
+    );
+  });
+
+  it("reports no acceptance when key material is unavailable", async () => {
+    await trust_recipient_keys("alice", KEY_A, owner_a, ACCEPTED_BUNDLE);
+    h.key = null;
+
+    expect(await is_recipient_bundle_accepted("alice", ACCEPTED_BUNDLE)).toBe(
+      false,
+    );
   });
 
   it("clears the owner pin and flag on reset", async () => {

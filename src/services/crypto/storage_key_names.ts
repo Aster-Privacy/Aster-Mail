@@ -44,6 +44,7 @@ export const IDENTITY_PIN_PREFIX = "ratchet_identity_pin_";
 export const IDENTITY_CHANGE_PREFIX = "ratchet_identity_change_";
 export const OWNER_KEY_PIN_PREFIX = "ratchet_owner_key_pin_";
 export const IDENTITY_UNTRUSTED_PREFIX = "ratchet_identity_untrusted_";
+export const ACCEPTED_BUNDLE_PREFIX = "ratchet_accepted_bundle_";
 export const RATCHET_STATE_PREFIX = "ratchet_state_";
 export const RATCHET_PLAINTEXT_PREFIX = "ratchet_plaintext_";
 export const RATCHET_SYNC_FLOOR_PREFIX = "ratchet_sync_floor_";
@@ -54,6 +55,7 @@ const SCOPED_PREFIXES: readonly string[] = [
   IDENTITY_CHANGE_PREFIX,
   OWNER_KEY_PIN_PREFIX,
   IDENTITY_UNTRUSTED_PREFIX,
+  ACCEPTED_BUNDLE_PREFIX,
   RATCHET_STATE_PREFIX,
   RATCHET_PLAINTEXT_PREFIX,
   RATCHET_SYNC_FLOOR_PREFIX,

@@ -39,6 +39,7 @@ import {
   check_owner_key_pin,
   flag_recipient_untrusted,
   has_peer_advertised_pq,
+  is_recipient_bundle_accepted,
   is_recipient_flagged_untrusted,
   type OwnerKeyPinStatus,
 } from "./ratchet_identity_pin";
@@ -139,7 +140,11 @@ export async function encrypt_for_ratchet_recipient(
 
 type BundleVerification = Awaited<
   ReturnType<typeof verify_ratchet_prekey_bundle_detailed>
-> & { owner_pin: OwnerKeyPinStatus; flagged_untrusted: boolean };
+> & {
+  owner_pin: OwnerKeyPinStatus;
+  flagged_untrusted: boolean;
+  accepted_by_user: boolean;
+};
 
 async function verify_recipient_bundle(
   bundle: PrekeyBundle,
@@ -165,12 +170,16 @@ async function verify_recipient_bundle(
     bundle.pq_kem_public_key ?? null,
   );
 
-  return { ...verification, owner_pin, flagged_untrusted };
+  const accepted_by_user =
+    verification.verdict === "tampered" &&
+    (await is_recipient_bundle_accepted(pin_id, bundle));
+
+  return { ...verification, owner_pin, flagged_untrusted, accepted_by_user };
 }
 
 function is_bundle_untrusted(verification: BundleVerification): boolean {
   return (
-    verification.verdict === "tampered" ||
+    (verification.verdict === "tampered" && !verification.accepted_by_user) ||
     verification.owner_pin === "changed" ||
     verification.flagged_untrusted
   );
@@ -181,6 +190,7 @@ function is_bundle_verification_rejected(
 ): boolean {
   return (
     is_bundle_untrusted(verification) ||
+    verification.verdict === "tampered" ||
     (is_strict_recipient_bundle_enforced() &&
       verification.verdict !== "verified")
   );
