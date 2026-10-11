@@ -38,6 +38,7 @@ import {
   Radio,
 } from "@aster/ui";
 
+import { safe_sender_name } from "@/lib/sender_trust_store";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_shift_range_select } from "@/lib/use_shift_range_select";
 import { Input } from "@/components/ui/input";
@@ -498,7 +499,7 @@ export function AllowlistSection() {
                   use_domain_logo
                   className="flex-shrink-0"
                   email={sender.email}
-                  name={sender.name || sender.email}
+                  name={safe_sender_name(sender.name, sender.email) || sender.email}
                   size="md"
                 />
               )}
@@ -523,10 +524,10 @@ export function AllowlistSection() {
                     {t("settings.unreadable_entry_hint")}
                   </p>
                 ) : (
-                  sender.name &&
-                  !sender.is_domain && (
+                  !sender.is_domain &&
+                  safe_sender_name(sender.name, sender.email) && (
                     <p className="text-[12px] truncate text-txt-muted">
-                      {sender.name}
+                      {safe_sender_name(sender.name, sender.email)}
                     </p>
                   )
                 )}
