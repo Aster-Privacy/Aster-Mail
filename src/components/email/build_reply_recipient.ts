@@ -18,8 +18,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { evaluate_sender_trust } from "@/lib/sender_trust";
-import { get_sender_trust_context } from "@/lib/sender_trust_store";
+import { safe_sender_name } from "@/lib/sender_trust_store";
 import { get_email_username } from "@/lib/utils";
 import { extract_reply_to } from "@/utils/reply_to";
 import { normalize_address_ignoring_dots } from "@/utils/address_dots";
@@ -41,15 +40,7 @@ export interface ReplyRecipient {
 function safe_recipient_name(name: string, email: string): string {
   if (!name) return name;
 
-  const context = get_sender_trust_context();
-  const trust = evaluate_sender_trust({
-    name,
-    email,
-    own_addresses: context.own_addresses,
-    contacts: context.contacts,
-  });
-
-  return trust.warning !== null && trust.name === "" ? email : name;
+  return safe_sender_name(name, email) || email;
 }
 
 export function build_reply_recipient(

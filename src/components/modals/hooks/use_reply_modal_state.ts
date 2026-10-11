@@ -37,6 +37,7 @@ import { MODAL_SIZES } from "@/constants/modal";
 import { build_reply_recipients } from "@/services/mail_actions";
 import { strip_aster_footers_html } from "@/lib/aster_footer_strip";
 import { build_reply_subject } from "@/lib/reply_subject";
+import { safe_sender_name } from "@/lib/sender_trust_store";
 import {
   reply_includes_quoted_by_default,
   resolve_reply_prefix,
@@ -543,7 +544,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
       const formatted_date = format_date(original_timestamp);
       const attribution_name = quote_sender_name || recipient_name;
       const attribution_email = quote_sender_email || recipient_email;
-      const safe_name = attribution_name
+      const safe_name = safe_sender_name(attribution_name, attribution_email)
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;");
@@ -553,7 +554,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
         .replace(/>/g, "&gt;");
       const header = t("mail.reply_quote_header", {
         date: formatted_date,
-        name: `${safe_name} &lt;${safe_email}&gt;`,
+        name: safe_name ? `${safe_name} &lt;${safe_email}&gt;` : safe_email,
       });
 
       if (for_display === "plain") {

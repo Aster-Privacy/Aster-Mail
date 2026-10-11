@@ -18,7 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { SenderTrustContact } from "@/lib/sender_trust";
+import {
+  evaluate_sender_trust,
+  type SenderTrustContact,
+} from "@/lib/sender_trust";
 
 export interface SenderTrustContext {
   own_addresses: string[];
@@ -110,6 +113,22 @@ export function clear_sender_trust_context(): void {
 
 export function get_sender_trust_context(): SenderTrustContext {
   return snapshot;
+}
+
+export function safe_sender_name(
+  name: string | null | undefined,
+  email: string | null | undefined,
+): string {
+  if (typeof name !== "string" || !name) return "";
+
+  const trust = evaluate_sender_trust({
+    name,
+    email,
+    own_addresses: snapshot.own_addresses,
+    contacts: snapshot.contacts,
+  });
+
+  return trust.warning !== null && trust.name === "" ? "" : name;
 }
 
 export function subscribe_sender_trust_context(

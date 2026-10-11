@@ -59,6 +59,7 @@ import { draft_manager } from "@/services/crypto/encrypted_drafts";
 import { show_email_sent_toast } from "@/components/toast/email_sent_toast";
 import { play_iconic_sound } from "@/services/iconic_sounds";
 import { format_bytes } from "@/lib/utils";
+import { safe_sender_name } from "@/lib/sender_trust_store";
 import {
   MAX_RECIPIENTS_PER_FIELD,
   MAX_RECIPIENTS_PER_SEND,
@@ -335,7 +336,7 @@ export function use_forward_modal({
 
   const build_forward_content = useCallback((): string => {
     const formatted_date = format_date(email_timestamp);
-    const safe_name = sender_name
+    const safe_name = safe_sender_name(sender_name, sender_email)
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;");
@@ -344,7 +345,7 @@ export function use_forward_modal({
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;");
 
-    const header = `---------- ${t("common.forwarded_message")} ---------<br>${t("common.from_label")} ${safe_name} &lt;${safe_email}&gt;<br>${t("common.date_label")} ${formatted_date}<br>${t("common.subject_label")} ${email_subject.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}<br><br>`;
+    const header = `---------- ${t("common.forwarded_message")} ---------<br>${t("common.from_label")} ${safe_name ? `${safe_name} &lt;${safe_email}&gt;` : safe_email}<br>${t("common.date_label")} ${formatted_date}<br>${t("common.subject_label")} ${email_subject.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}<br><br>`;
 
     return header + inline_email_css(email_body);
   }, [
