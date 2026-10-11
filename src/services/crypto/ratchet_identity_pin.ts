@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import {
+  ACCEPTED_BUNDLE_PREFIX,
   IDENTITY_CHANGE_PREFIX,
   IDENTITY_PIN_PREFIX,
   IDENTITY_UNTRUSTED_PREFIX,
@@ -47,6 +48,18 @@ interface StoredOwnerKeyPin {
 
 interface StoredUntrustedFlag {
   flagged_at: number;
+}
+
+interface StoredAcceptedBundle {
+  fingerprint: string;
+  accepted_at: number;
+}
+
+export interface RecipientBundleBinding {
+  kem_identity_key: string;
+  signed_prekey: string;
+  signed_prekey_signature: string;
+  pq_kem_public_key?: string | null;
 }
 
 export type IdentityPinStatus =
@@ -239,6 +252,45 @@ export async function is_recipient_flagged_untrusted(
   }
 }
 
+async function bundle_binding_fingerprint(
+  bundle: RecipientBundleBinding,
+): Promise<string> {
+  return compute_hash(
+    new TextEncoder().encode(
+      [
+        bundle.kem_identity_key,
+        bundle.signed_prekey,
+        bundle.signed_prekey_signature,
+        bundle.pq_kem_public_key ?? "",
+      ].join("."),
+    ),
+  );
+}
+
+export async function is_recipient_bundle_accepted(
+  pin_id: string,
+  bundle: RecipientBundleBinding,
+): Promise<boolean> {
+  try {
+    if (!pin_id) return false;
+
+    const storage_key = await get_pin_storage_key();
+    const uid = await current_account_uid();
+    const accepted = await scoped_get<StoredAcceptedBundle>(
+      ACCEPTED_BUNDLE_PREFIX,
+      uid,
+      pin_id,
+      storage_key,
+    );
+
+    if (!accepted) return false;
+
+    return accepted.fingerprint === (await bundle_binding_fingerprint(bundle));
+  } catch {
+    return false;
+  }
+}
+
 export async function owner_key_fingerprint(
   armored_public_key: string,
 ): Promise<string> {
@@ -324,10 +376,26 @@ export async function trust_recipient_keys(
   pin_id: string,
   kem_identity_key: string | null,
   armored_public_key: string | null,
+  accepted_bundle: RecipientBundleBinding | null = null,
 ): Promise<void> {
   const storage_key = await get_pin_storage_key();
   const uid = await current_account_uid();
   const existing = await load_pin(storage_key, uid, pin_id);
+
+  if (accepted_bundle) {
+    await scoped_set(
+      ACCEPTED_BUNDLE_PREFIX,
+      uid,
+      pin_id,
+      {
+        fingerprint: await bundle_binding_fingerprint(accepted_bundle),
+        accepted_at: Date.now(),
+      } satisfies StoredAcceptedBundle,
+      storage_key,
+    );
+  } else {
+    await scoped_delete(ACCEPTED_BUNDLE_PREFIX, uid, pin_id);
+  }
 
   if (kem_identity_key) {
     await scoped_set(
@@ -429,6 +497,7 @@ export async function reset_identity_pin(pin_id: string): Promise<void> {
     await scoped_delete(IDENTITY_CHANGE_PREFIX, uid, pin_id);
     await scoped_delete(OWNER_KEY_PIN_PREFIX, uid, pin_id);
     await scoped_delete(IDENTITY_UNTRUSTED_PREFIX, uid, pin_id);
+    await scoped_delete(ACCEPTED_BUNDLE_PREFIX, uid, pin_id);
 
     if (uid) {
       await scoped_delete(IDENTITY_PIN_PREFIX, null, pin_id);

@@ -45,6 +45,7 @@ import { with_vault_write_lock } from "./vault_write_lock";
 import { complete_p256_private_jwk, is_compact_p256_private_jwk } from "./p256_jwk";
 import { recover_ratchet_keys_from_history_locked } from "./vault_key_recovery";
 import { collect_vault_key_fingerprints } from "./vault_key_fingerprints";
+import { published_bundle_needs_resigning } from "./published_signing_key";
 
 import { ignore_error } from "@/lib/ignore_error";
 
@@ -370,10 +371,22 @@ async function published_bundle_matches_vault(
 
     if (!keys_match) return false;
 
-    return await published_signature_is_current(
-      vault,
-      response.data.signed_prekey_signature,
-    );
+    const signature_field = response.data.signed_prekey_signature;
+
+    if (!(await published_signature_is_current(vault, signature_field))) {
+      return false;
+    }
+
+    if (!signature_field) return true;
+
+    const needs_resigning = await published_bundle_needs_resigning(vault, {
+      kem_identity_key: vault.ratchet_identity_public ?? "",
+      signed_prekey: vault.ratchet_signed_prekey_public ?? "",
+      signed_prekey_signature: signature_field,
+      pq_kem_public_key: vault.ratchet_pq_identity_public ?? null,
+    });
+
+    return !needs_resigning;
   } catch {
     return null;
   }

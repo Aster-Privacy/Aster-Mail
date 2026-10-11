@@ -20,7 +20,10 @@
 //
 import type { EncryptedVault } from "./key_manager_core";
 
-import { select_private_key_matching_public } from "./key_manager_pgp";
+import {
+  select_private_key_matching_public,
+  verify_ratchet_prekey_bundle_detailed,
+} from "./key_manager_pgp";
 
 import { load_openpgp } from "@/services/crypto/openpgp_loader";
 
@@ -112,6 +115,53 @@ export async function select_published_signing_key(
   const healed = await heal_published_key_mismatch(vault);
 
   return healed ? vault.identity_key : null;
+}
+
+export interface PublishedBundleBinding {
+  kem_identity_key: string;
+  signed_prekey: string;
+  signed_prekey_signature: string;
+  pq_kem_public_key?: string | null;
+}
+
+export async function published_bundle_needs_resigning(
+  vault: EncryptedVault,
+  bundle: PublishedBundleBinding,
+): Promise<boolean> {
+  try {
+    const candidates = signing_key_candidates(vault);
+
+    if (candidates.length === 0) return false;
+
+    const { get_passphrase_from_memory } = await import("./memory_key_store");
+
+    if (!get_passphrase_from_memory()) return false;
+
+    reset_published_signing_key_cache();
+
+    const published = await fetch_published_public_key();
+
+    if (!published) return false;
+
+    const verification = await verify_ratchet_prekey_bundle_detailed(
+      bundle.signed_prekey_signature,
+      bundle.kem_identity_key,
+      bundle.signed_prekey,
+      published,
+      bundle.pq_kem_public_key ?? null,
+    );
+
+    if (verification.verdict !== "tampered") return false;
+
+    const held = await select_private_key_matching_public(
+      candidates,
+      published,
+    );
+
+    return held !== null;
+  } catch {
+    return false;
+  }
 }
 
 async function heal_published_key_mismatch(
