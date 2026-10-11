@@ -28,6 +28,50 @@ import {
 import { extract_reply_to } from "@/utils/reply_to";
 
 describe("build_reply_recipient", () => {
+  it("labels a reply with the real address when the sender name is an address", () => {
+    const result = build_reply_recipient(
+      {
+        sender_name: "support@paypal.com",
+        sender_email: "eve@evil.example",
+      },
+      false,
+    );
+
+    expect(result.recipient_name).toBe("eve@evil.example");
+    expect(result.recipient_email).toBe("eve@evil.example");
+  });
+
+  it("labels a reply with the real address when the Reply-To name imitates a brand", () => {
+    const result = build_reply_recipient(
+      {
+        sender_name: "Sender",
+        sender_email: "sender@mail.example.com",
+        reply_to: { name: "PayPal Support", email: "eve@evil.example" },
+      },
+      false,
+    );
+
+    expect(result.recipient_name).toBe("eve@evil.example");
+  });
+
+  it("keeps an ordinary sender name on a reply", () => {
+    const result = build_reply_recipient(
+      { sender_name: "Jane Doe", sender_email: "jane@company.example" },
+      false,
+    );
+
+    expect(result.recipient_name).toBe("Jane Doe");
+  });
+
+  it("keeps a brand name on a reply to the brand's own domain", () => {
+    const result = build_reply_recipient(
+      { sender_name: "PayPal", sender_email: "service@paypal.com" },
+      false,
+    );
+
+    expect(result.recipient_name).toBe("PayPal");
+  });
+
   it("issue #13: replies to Reply-To, not From", () => {
     const raw_headers = [
       { name: "From", value: "Sender <sender@mail.example.com>" },
