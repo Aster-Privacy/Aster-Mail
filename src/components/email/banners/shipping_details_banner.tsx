@@ -35,6 +35,7 @@ import {
 
 import { open_external } from "@/utils/open_link";
 import { use_i18n } from "@/lib/i18n/context";
+import { safe_sender_name } from "@/lib/sender_trust_store";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { ContactAvatar } from "@/components/common/contacts/contact_avatar";
 
@@ -74,10 +75,11 @@ interface ShippingDetailsBannerProps {
 export function ShippingDetailsBanner({
   details,
   sender_email,
-  sender_name,
+  sender_name: claimed_name,
   className,
 }: ShippingDetailsBannerProps) {
   const { t } = use_i18n();
+  const sender_name = safe_sender_name(claimed_name, sender_email);
   const [is_collapsed, set_is_collapsed] = useState(read_collapsed_pref);
 
   const STATUS_CONFIG: Record<
