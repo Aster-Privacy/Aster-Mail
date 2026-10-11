@@ -1,5 +1,5 @@
 {
-  "version": 4,
+  "version": 5,
   "max_name_length": 96,
   "confusables": {
     "I": "l",
@@ -434,7 +434,14 @@
     "declined",
     "failed",
     "ticket",
-    "tickets"
+    "tickets",
+    "limited",
+    "corporation",
+    "incorporated",
+    "hq",
+    "headquarters",
+    "plc",
+    "gmbh"
   ],
   "relay_domains": [
     "mozmail.com",
@@ -568,6 +575,32 @@
     "gmail.com",
     "googlemail.com"
   ],
+  "shared_tenant_domains": [
+    "onmicrosoft.com",
+    "sharepoint.com",
+    "github.io",
+    "web.app",
+    "firebaseapp.com",
+    "appspot.com",
+    "herokuapp.com",
+    "pages.dev",
+    "workers.dev",
+    "netlify.app",
+    "vercel.app",
+    "azurewebsites.net",
+    "cloudfront.net",
+    "blogspot.com",
+    "wordpress.com",
+    "wixsite.com",
+    "weebly.com",
+    "myshopify.com",
+    "zendesk.com",
+    "freshdesk.com",
+    "uk.com",
+    "us.com",
+    "eu.com",
+    "de.com"
+  ],
   "reserved_local_parts": [
     "noreply",
     "no-reply",
@@ -657,7 +690,14 @@
       "shipment",
       "tracking",
       "order",
-      "orders"
+      "orders",
+      "limited",
+      "corporation",
+      "incorporated",
+      "hq",
+      "headquarters",
+      "plc",
+      "gmbh"
     ]
   },
   "brands": [

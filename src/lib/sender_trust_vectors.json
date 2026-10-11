@@ -1005,6 +1005,76 @@
       "id": "own_address_twice_in_name",
       "input": { "name": "jane@company.example jane@company.example", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
       "expect": { "warning": null }
+    },
+    {
+      "id": "shared_tenant_other_tenant_in_name",
+      "input": { "name": "ceo@victim.onmicrosoft.com", "email": "x@evil.onmicrosoft.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "address_in_name", "claimed": "ceo@victim.onmicrosoft.com" } }
+    },
+    {
+      "id": "shared_tenant_own_address_in_name",
+      "input": { "name": "Jane jane@team.onmicrosoft.com", "email": "jane@team.onmicrosoft.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "shared_tenant_other_site_in_name",
+      "input": { "name": "admin@bank.github.io", "email": "admin@evil.github.io", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": { "kind": "address_in_name", "claimed": "admin@bank.github.io" } }
+    },
+    {
+      "id": "plain_domain_other_mailbox_in_name",
+      "input": { "name": "sales@company.example", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "brand_with_corporate_suffix",
+      "input": { "name": "PayPal Limited", "email": "x@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "PayPal" } }
+    },
+    {
+      "id": "brand_with_corporation_word",
+      "input": { "name": "Microsoft Corporation", "email": "x@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "Microsoft" } }
+    },
+    {
+      "id": "brand_with_hq_word",
+      "input": { "name": "Netflix HQ", "email": "x@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "Netflix" } }
+    },
+    {
+      "id": "brand_with_corporate_suffix_own_domain",
+      "input": { "name": "PayPal Limited", "email": "service@paypal.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "PayPal Limited", "warning": null }
+    },
+    {
+      "id": "home_word_with_corporate_suffix",
+      "input": { "name": "Aster Limited", "email": "info@asterdm.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "Aster Limited", "warning": null }
+    },
+    {
+      "id": "unrelated_name_with_corporate_suffix",
+      "input": { "name": "Northwind Traders Limited", "email": "info@northwind.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "Northwind Traders Limited", "warning": null }
+    },
+    {
+      "id": "reply_to_after_many_entries",
+      "input": { "name": "Jane Doe", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "list0@company.example, list1@company.example, list2@company.example, list3@company.example, list4@company.example, list5@company.example, list6@company.example, list7@company.example, list8@company.example, list9@company.example, list10@company.example, list11@company.example, list12@company.example, list13@company.example, list14@company.example, list15@company.example, list16@company.example, list17@company.example, list18@company.example, list19@company.example, list20@company.example, list21@company.example, list22@company.example, list23@company.example, list24@company.example, attacker@evil.example" },
+      "expect": { "reply_to": "attacker@evil.example" }
+    },
+    {
+      "id": "reply_to_other_mailbox_shared_domain",
+      "input": { "name": "Boss", "email": "boss@gmail.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "b0ss@gmail.com" },
+      "expect": { "reply_to": "b0ss@gmail.com" }
+    },
+    {
+      "id": "reply_to_same_mailbox_shared_domain",
+      "input": { "name": "Boss", "email": "the.boss@gmail.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "theboss+news@gmail.com" },
+      "expect": { "reply_to": null }
+    },
+    {
+      "id": "reply_to_other_mailbox_plain_domain",
+      "input": { "name": "Jane Doe", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "support@company.example" },
+      "expect": { "reply_to": null }
     }
   ]
 }

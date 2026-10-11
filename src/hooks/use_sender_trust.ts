@@ -55,6 +55,12 @@ export interface SenderTrustOverrides {
   shown_email?: string | null;
 }
 
+function recorded_status(raw: string | null | undefined): string {
+  const value = (raw ?? "").trim().toLowerCase();
+
+  return value === "missing" ? "" : value;
+}
+
 export function sender_trust_input(
   message: SenderTrustMessage,
   context: SenderTrustContext,
@@ -70,15 +76,25 @@ export function sender_trust_input(
     "";
   const is_rewritten =
     email.trim().toLowerCase() !== actual_email.trim().toLowerCase();
+  const aligned = message.sender_aligned ?? undefined;
+  const unrecorded =
+    aligned === undefined &&
+    !recorded_status(message.spf_result) &&
+    !recorded_status(message.dkim_result) &&
+    !recorded_status(message.dmarc_result);
+  const carrier_trusted =
+    aligned === true ||
+    (aligned === undefined && recorded_status(message.dmarc_result) === "pass");
+  const drop_auth = is_rewritten && (unrecorded || carrier_trusted);
 
   return {
     name,
     email,
     reply_to: message.reply_to ?? undefined,
-    spf_result: message.spf_result ?? undefined,
-    dkim_result: message.dkim_result ?? undefined,
-    dmarc_result: message.dmarc_result ?? undefined,
-    sender_aligned: message.sender_aligned ?? undefined,
+    spf_result: drop_auth ? undefined : (message.spf_result ?? undefined),
+    dkim_result: drop_auth ? undefined : (message.dkim_result ?? undefined),
+    dmarc_result: drop_auth ? undefined : (message.dmarc_result ?? undefined),
+    sender_aligned: drop_auth ? undefined : is_rewritten ? false : aligned,
     sender_verified: is_rewritten
       ? false
       : (message.sender_verified ?? !!message.sender_verified_domain),

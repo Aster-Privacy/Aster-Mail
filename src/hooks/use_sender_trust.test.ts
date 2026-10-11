@@ -64,6 +64,66 @@ describe("sender_trust_input", () => {
     expect(input.sender_verified_domain).toBeUndefined();
   });
 
+  it("does not lend the carrier's authentication to a rewritten sender", () => {
+    const relayed = {
+      sender_name: "Bank",
+      sender_email: "relay@forwarder.example",
+      display_sender_email: "ceo@bank.example",
+      is_external: true,
+    };
+    const passed = sender_trust_input(
+      {
+        ...relayed,
+        spf_result: "pass",
+        dkim_result: "pass",
+        dmarc_result: "pass",
+        sender_aligned: true,
+      },
+      context,
+    );
+
+    expect(passed.sender_aligned).toBeUndefined();
+    expect(passed.dmarc_result).toBeUndefined();
+    expect(evaluate_sender_trust(passed).auth_state).toBe("unknown");
+
+    const legacy = sender_trust_input(
+      { ...relayed, dkim_result: "pass", dmarc_result: "pass" },
+      context,
+    );
+
+    expect(evaluate_sender_trust(legacy).auth_state).toBe("unknown");
+
+    const failed = sender_trust_input(
+      {
+        ...relayed,
+        spf_result: "fail",
+        dkim_result: "fail",
+        dmarc_result: "fail",
+        sender_aligned: false,
+      },
+      context,
+    );
+
+    expect(failed.sender_aligned).toBe(false);
+    expect(evaluate_sender_trust(failed).auth_state).toBe("failed");
+
+    const direct = sender_trust_input(
+      {
+        sender_name: "Bank",
+        sender_email: "ceo@bank.example",
+        is_external: true,
+        spf_result: "pass",
+        dkim_result: "pass",
+        dmarc_result: "pass",
+        sender_aligned: true,
+      },
+      context,
+    );
+
+    expect(direct.sender_aligned).toBe(true);
+    expect(evaluate_sender_trust(direct).auth_state).toBe("authenticated");
+  });
+
   it("reads a verified domain as verified when no flag is carried", () => {
     const message = {
       sender_name: "Shop",

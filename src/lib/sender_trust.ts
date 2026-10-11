@@ -102,6 +102,7 @@ const PUBLIC_MAILBOX_DOMAINS = new Set<string>(
 const DOTLESS_MAILBOX_DOMAINS = new Set<string>(
   trust_data.dotless_mailbox_domains,
 );
+const SHARED_TENANT_DOMAINS = trust_data.shared_tenant_domains as string[];
 const RESERVED_LOCAL_PARTS = new Set<string>(trust_data.reserved_local_parts);
 const COUNTRY_SUFFIXES = new Set<string>(trust_data.country_suffixes);
 const BRANDS = trust_data.brands as BrandEntry[];
@@ -715,6 +716,18 @@ function mailbox_key(parsed: ParsedAddress): string {
     : tagless;
 
   return `${local}@${parsed.ascii_domain}`;
+}
+
+function is_shared_domain(parsed: ParsedAddress): boolean {
+  return (
+    PUBLIC_MAILBOX_DOMAINS.has(parsed.ascii_domain) ||
+    HOME_BRAND.domains.some((domain) =>
+      within_domain(parsed.ascii_domain, domain),
+    ) ||
+    SHARED_TENANT_DOMAINS.some((domain) =>
+      within_domain(parsed.ascii_domain, domain),
+    )
+  );
 }
 
 function tokenize(text: string): string[] {
@@ -1436,8 +1449,7 @@ function find_warning(
   const from_home = HOME_BRAND.domains.some((domain) =>
     within_domain(parsed.ascii_domain, domain),
   );
-  const shared_domain =
-    PUBLIC_MAILBOX_DOMAINS.has(parsed.ascii_domain) || from_home;
+  const shared_domain = is_shared_domain(parsed);
   const in_name = relayed
     ? undefined
     : find_addresses_in_name(name).find(
@@ -1566,7 +1578,7 @@ function find_contact_notice(
   return personal.contact_names.get(name_key) ?? null;
 }
 
-const MAX_REPLY_TO_ENTRIES = 20;
+const MAX_REPLY_TO_ENTRIES = 400;
 
 function split_address_list(text: string): string[] {
   const entries: string[] = [];
@@ -1608,10 +1620,18 @@ function reply_to_notice(
 ): string | null {
   if (typeof reply_to !== "string" || !reply_to.trim()) return null;
 
+  const shared_domain = is_shared_domain(parsed);
+
   for (const entry of split_address_list(reply_to)) {
     const reply = parse_address(entry);
 
-    if (reply && reply.registrable !== parsed.registrable) return reply.address;
+    if (!reply) continue;
+    if (
+      reply.registrable !== parsed.registrable ||
+      (shared_domain && mailbox_key(reply) !== mailbox_key(parsed))
+    ) {
+      return reply.address;
+    }
   }
 
   return null;

@@ -36,6 +36,7 @@ import { get_email_username, get_email_domain } from "@/lib/utils";
 import { ProfileNotesBox } from "@/components/profile/profile_notes_box";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_peer_profile } from "@/hooks/use_peer_profile";
+import { safe_sender_name } from "@/lib/sender_trust_store";
 
 interface ProfilePopupProps {
   is_open: boolean;
@@ -73,7 +74,9 @@ export function ProfilePopup({
 
   const peer_profile = use_peer_profile(is_open ? email : null);
   const peer_display_name = peer_profile?.display_name;
-  const display_name = peer_display_name || name || get_email_username(email);
+  const display_name =
+    safe_sender_name(peer_display_name || name, email) ||
+    get_email_username(email);
   const domain = get_email_domain(email);
   const active_badge = peer_profile?.active_badge ?? null;
   const show_profile_badge =
