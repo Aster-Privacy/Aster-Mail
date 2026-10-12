@@ -117,6 +117,17 @@ describe("editable forwarded message", () => {
     );
   });
 
+  it("restores a blocked image whose description names the parked attribute", () => {
+    const container = mount(
+      '<img alt="b data-aster-parked-src=x" src="https://cdn.example/logo.png">',
+      true,
+    );
+    const result = read_editable_quoted_html(container);
+
+    expect(result).toContain('src="https://cdn.example/logo.png"');
+    expect(result).toContain("b data-aster-parked-src=x");
+  });
+
   it("leaves the live editor untouched when it reads the content", () => {
     const container = mount('<img src="cid:logo@example">');
 

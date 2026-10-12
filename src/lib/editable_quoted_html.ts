@@ -60,17 +60,24 @@ export function build_editable_quoted_fragment(
   return template.content;
 }
 
+const IMAGE_TAG_PATTERN = /<img\b(?:[^>"']|"[^"]*"|'[^']*')*>/gi;
+const PARKED_SOURCE_TOKEN_PATTERN = new RegExp(
+  `"[^"]*"|'[^']*'|\\s${PARKED_SOURCE_ATTRIBUTE}=`,
+  "g",
+);
+
+function restore_parked_sources(html: string): string {
+  if (!html.includes(PARKED_SOURCE_ATTRIBUTE)) return html;
+
+  return html.replace(IMAGE_TAG_PATTERN, (tag) =>
+    tag.replace(PARKED_SOURCE_TOKEN_PATTERN, (token) =>
+      token.startsWith('"') || token.startsWith("'") ? token : " src=",
+    ),
+  );
+}
+
 export function read_editable_quoted_html(container: HTMLElement): string {
-  const copy = container.cloneNode(true) as HTMLElement;
-
-  copy.querySelectorAll(`[${PARKED_SOURCE_ATTRIBUTE}]`).forEach((element) => {
-    const source = element.getAttribute(PARKED_SOURCE_ATTRIBUTE) ?? "";
-
-    element.removeAttribute(PARKED_SOURCE_ATTRIBUTE);
-    if (element.tagName === "IMG" && source) {
-      element.setAttribute("src", source);
-    }
-  });
-
-  return restore_compose_image_sources(copy.innerHTML);
+  return restore_compose_image_sources(
+    restore_parked_sources(container.innerHTML),
+  );
 }
