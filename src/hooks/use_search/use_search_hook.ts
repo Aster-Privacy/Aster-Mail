@@ -117,6 +117,7 @@ export function use_search() {
 
   const abort_ref = useRef<AbortController | null>(null);
   const search_seq_ref = useRef(0);
+  const requested_query_ref = useRef("");
   const search_ref = useRef<
     (
       query: string,
@@ -188,6 +189,8 @@ export function use_search() {
       applied_correction?: AppliedCorrection,
     ) => {
       const my_seq = ++search_seq_ref.current;
+
+      requested_query_ref.current = query;
 
       if (preserve_limit_ref.current) {
         preserve_limit_ref.current = false;
@@ -588,6 +591,7 @@ export function use_search() {
     abort_ref.current?.abort();
     abort_ref.current = null;
     search_seq_ref.current += 1;
+    requested_query_ref.current = "";
     set_state({
       query: "",
       results: [],
@@ -609,9 +613,13 @@ export function use_search() {
   }, []);
 
   const set_query = useCallback((query: string) => {
+    if (requested_query_ref.current !== query) {
+      requested_query_ref.current = query;
+      abort_ref.current?.abort();
+    }
+
     set_state((prev) => {
       if (prev.query === query) return prev;
-      abort_ref.current?.abort();
 
       const cleared = !meets_min_search_length(query);
 

@@ -488,9 +488,45 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
     </div>
   );
 
+  const indexing_notice = (
+    <div className="flex flex-col items-center justify-center py-16 px-4">
+      <ArrowPathIcon
+        className="w-10 h-10 mb-4 animate-spin"
+        style={{ color: "var(--text-muted)" }}
+      />
+      <p
+        className="text-sm font-medium mb-1"
+        style={{ color: "var(--text-primary)" }}
+      >
+        {t("mail.indexing_messages")}
+      </p>
+      <p
+        className="text-xs text-center max-w-[280px]"
+        style={{ color: "var(--text-muted)" }}
+      >
+        {indexing.total > 0
+          ? t("mail.message_download_status", {
+              done: Math.min(
+                Math.max(state.indexed_count, indexing.current),
+                indexing.total,
+              ),
+              total: indexing.total,
+            })
+          : t("mail.message_download_count", {
+              done: Math.max(state.indexed_count, indexing.current),
+            })}
+      </p>
+    </div>
+  );
+
   const email_list_body = (
     <>
-      {is_loading && filtered_results.length === 0 ? (
+      {is_loading &&
+      filtered_results.length === 0 &&
+      is_slow &&
+      (state.index_pending || indexing.building) ? (
+        indexing_notice
+      ) : is_loading && filtered_results.length === 0 ? (
         <div>
           {is_slow && slow_notice}
           {Array.from({ length: 10 }).map((_, i) => (
@@ -521,34 +557,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
           </button>
         </div>
       ) : filtered_results.length === 0 && state.index_pending ? (
-        <div className="flex flex-col items-center justify-center py-16 px-4">
-          <ArrowPathIcon
-            className="w-10 h-10 mb-4 animate-spin"
-            style={{ color: "var(--text-muted)" }}
-          />
-          <p
-            className="text-sm font-medium mb-1"
-            style={{ color: "var(--text-primary)" }}
-          >
-            {t("mail.indexing_messages")}
-          </p>
-          <p
-            className="text-xs text-center max-w-[280px]"
-            style={{ color: "var(--text-muted)" }}
-          >
-            {indexing.total > 0
-              ? t("mail.message_download_status", {
-                  done: Math.min(
-                    Math.max(state.indexed_count, indexing.current),
-                    indexing.total,
-                  ),
-                  total: indexing.total,
-                })
-              : t("mail.message_download_count", {
-                  done: Math.max(state.indexed_count, indexing.current),
-                })}
-          </p>
-        </div>
+        indexing_notice
       ) : filtered_results.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 px-4">
           <MagnifyingGlassIcon
