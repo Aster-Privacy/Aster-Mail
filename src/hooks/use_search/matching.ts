@@ -105,14 +105,25 @@ export function build_search_haystack(
   };
 }
 
-type EnvelopeAttachment = { filename?: string; content_type?: string };
+export type AttachmentDetail = {
+  filename?: string | null;
+  content_type?: string | null;
+};
 
-function envelope_attachments(
+export type AttachmentDetails = ReadonlyMap<string, AttachmentDetail[]>;
+
+export function envelope_attachments(
   envelope: DecryptedEnvelope,
-): EnvelopeAttachment[] | null {
+): AttachmentDetail[] | null {
   const list = envelope.attachment_metadata ?? envelope.attachment_keys;
 
   return list && list.length > 0 ? list : null;
+}
+
+export function operator_needs_attachment_details(op: ParsedOperator): boolean {
+  if (BODY_CONTENT_OPERATOR_TYPES.has(op.type)) return true;
+
+  return op.type === "has" && !is_attachment_presence(op.value.toLowerCase());
 }
 
 function folded_value(value: string): string {
@@ -138,6 +149,7 @@ export function matches_operator(
   label_name_to_tokens?: Map<string, string[]>,
   search_body_text?: string,
   haystack?: SearchHaystack,
+  attachment_details?: AttachmentDetails,
 ): boolean {
   const val = op.value.toLowerCase();
   const hay = haystack ?? build_search_haystack(envelope);
@@ -192,7 +204,8 @@ export function matches_operator(
 
       if (!extensions) return false;
 
-      const attachments = envelope_attachments(envelope);
+      const attachments =
+        envelope_attachments(envelope) ?? attachment_details?.get(item.id);
 
       if (!attachments) return false;
 
@@ -283,7 +296,8 @@ export function matches_operator(
     case "filename":
     case "attachment": {
       if (!metadata?.has_attachments) return false;
-      const attachments = envelope_attachments(envelope);
+      const attachments =
+        envelope_attachments(envelope) ?? attachment_details?.get(item.id);
 
       if (!attachments) return false;
 
@@ -414,6 +428,7 @@ export function matches_query(
   search_body: boolean = true,
   search_body_text?: string,
   haystack?: SearchHaystack,
+  attachment_details?: AttachmentDetails,
 ): boolean {
   if (!envelope) return false;
 
@@ -467,6 +482,7 @@ export function matches_query(
           label_name_to_tokens,
           search_body_text,
           hay,
+          attachment_details,
         );
 
   if (operators.length > 0) {

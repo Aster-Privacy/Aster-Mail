@@ -31,5 +31,6 @@ export const DEEP_SEGMENT_ITEMS = 10000;
 export const DEEP_SEGMENT_PAUSE_MS = 1500;
 export const MAX_SEARCH_RESULTS = 500;
 export const SCAN_YIELD_MS = 8;
+export const ATTACHMENT_DETAIL_SCAN_LIMIT = 200;
 export const INDEX_TTL_MS = 5 * 60 * 1000;
 export const INDEX_TTL_MS_LOW_NETWORK = 20 * 60 * 1000;

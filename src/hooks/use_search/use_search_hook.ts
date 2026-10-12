@@ -43,6 +43,7 @@ import {
   subscribe_index_refresh,
 } from "./progress";
 import { entry_haystack } from "./haystack";
+import { load_attachment_details } from "./attachment_details";
 import { scan_search_index } from "./scan";
 import {
   PROGRESS_FLUSH_MS,
@@ -300,6 +301,16 @@ export function use_search() {
                 new Date(a.timestamp).getTime(),
             );
 
+        const attachment_details = await load_attachment_details(
+          index,
+          terms,
+          operators,
+          options,
+          () => controller.signal.aborted,
+        );
+
+        if (controller.signal.aborted) return;
+
         const visit = (item: MailItem, data: DecryptedIndexEntry): boolean => {
           const { envelope, metadata, search_body_text } = data;
           const hay = entry_haystack(data);
@@ -316,6 +327,7 @@ export function use_search() {
               options?.search_body !== false,
               search_body_text,
               hay,
+              attachment_details,
             )
           ) {
             return true;
