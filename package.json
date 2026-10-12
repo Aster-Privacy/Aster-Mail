@@ -158,7 +158,7 @@
   },
   "optionalDependencies": {
     "@rollup/rollup-linux-arm64-gnu": "^4.60.2",
-    "@rollup/rollup-linux-x64-gnu": "^4.60.2"
+    "@rollup/rollup-linux-x64-gnu": "^4.64.3"
   },
   "overrides": {
     "tar": ">=7.5.18",
