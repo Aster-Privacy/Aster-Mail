@@ -652,8 +652,8 @@ describe("editing the forwarded message", () => {
   it("starts with the original header and body", async () => {
     await open_forward();
 
-    expect(forward!.forward_content_ref.current).toContain("sam@example.com");
-    expect(forward!.forward_content_ref.current).toContain("older text");
+    expect(forward!.get_forward_content()).toContain("sam@example.com");
+    expect(forward!.get_forward_content()).toContain("older text");
   });
 
   it("keeps the edited text for the send", async () => {
@@ -663,7 +663,16 @@ describe("editing the forwarded message", () => {
       forward!.update_forward_content("<p>only this part</p>"),
     );
 
-    expect(forward!.forward_content_ref.current).toBe("<p>only this part</p>");
+    expect(forward!.get_forward_content()).toBe("<p>only this part</p>");
+    expect(forward!.forward_content_ref.current).toContain("older text");
+  });
+
+  it("sends nothing in place of a fully deleted forwarded message", async () => {
+    await open_forward();
+
+    await act(async () => forward!.update_forward_content(""));
+
+    expect(forward!.get_forward_content()).toBe("");
   });
 
   it("drops the edit when the forward opens again", async () => {
@@ -674,7 +683,7 @@ describe("editing the forwarded message", () => {
     await render_forward(forward_props());
     await advance(0);
 
-    expect(forward!.forward_content_ref.current).toContain("older text");
+    expect(forward!.get_forward_content()).toContain("older text");
   });
 
   it("closes an untouched forward without a discard prompt", async () => {

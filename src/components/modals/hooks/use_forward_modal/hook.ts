@@ -266,7 +266,7 @@ export function use_forward_modal({
   const is_sending_ref = useRef(false);
   const send_lock_started_at_ref = useRef(0);
   const forward_content_ref = useRef("");
-  const forward_content_edited_ref = useRef(false);
+  const edited_forward_content_ref = useRef<string | null>(null);
   const initial_message_ref = useRef("");
   const content_initialized_ref = useRef(false);
   const body_edited_ref = useRef(false);
@@ -364,9 +364,15 @@ export function use_forward_modal({
   const [is_discard_open, set_is_discard_open] = useState(false);
 
   const update_forward_content = useCallback((html: string) => {
-    forward_content_ref.current = html;
-    forward_content_edited_ref.current = true;
+    edited_forward_content_ref.current = html;
   }, []);
+
+  const get_forward_content = useCallback(
+    (): string =>
+      edited_forward_content_ref.current ??
+      (forward_content_ref.current || build_forward_content()),
+    [build_forward_content],
+  );
 
   const has_unsaved_content = useCallback(() => {
     if (
@@ -375,7 +381,7 @@ export function use_forward_modal({
     ) {
       return true;
     }
-    if (forward_content_edited_ref.current) return true;
+    if (edited_forward_content_ref.current !== null) return true;
     if (attachments_touched_ref.current) return true;
 
     const fields = ["to", "cc", "bcc"] as const;
@@ -471,7 +477,7 @@ export function use_forward_modal({
       content_initialized_ref.current = false;
       body_edited_ref.current = false;
       forward_content_ref.current = "";
-      forward_content_edited_ref.current = false;
+      edited_forward_content_ref.current = null;
       initial_message_ref.current = "";
       reset_signature();
     } else {
@@ -814,7 +820,7 @@ export function use_forward_modal({
 
     const { content: send_content, embedded_attachment_ids } =
       apply_inline_image_substitutions(
-        forward_content_ref.current || build_forward_content(),
+        get_forward_content(),
         attachments_ref.current,
       );
 
@@ -1072,7 +1078,7 @@ export function use_forward_modal({
     attachments,
     is_loading_attachments,
     original_mail_id,
-    build_forward_content,
+    get_forward_content,
     preferences.show_aster_branding,
     vault,
   ]);
@@ -1147,7 +1153,7 @@ export function use_forward_modal({
     set_error_message(null);
 
     const { content: scheduled_content } = apply_inline_image_substitutions(
-      forward_content_ref.current || build_forward_content(),
+      get_forward_content(),
       attachments_ref.current,
     );
     const scheduled_body =
@@ -1214,7 +1220,7 @@ export function use_forward_modal({
     outgoing_forward_message,
     on_close,
     attachments,
-    build_forward_content,
+    get_forward_content,
     preferences.show_aster_branding,
     preferences.require_encryption,
     selected_sender,
@@ -1458,6 +1464,7 @@ export function use_forward_modal({
     attachments_scroll_ref,
     forward_content_ref,
     update_forward_content,
+    get_forward_content,
     editor,
     active_formats,
     handle_drag_start,

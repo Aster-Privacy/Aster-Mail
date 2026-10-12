@@ -30,18 +30,19 @@ import { resolve_content_blocking } from "@/components/email/resolve_content_blo
 
 interface EditableQuotedHtmlProps {
   html: string;
+  is_hidden: boolean;
   label: string;
   on_change: (html: string) => void;
 }
 
 export function EditableQuotedHtml({
   html,
+  is_hidden,
   label,
   on_change,
 }: EditableQuotedHtmlProps) {
   const preferences = use_preferences_optional()?.preferences;
   const container_ref = useRef<HTMLDivElement>(null);
-  const initial_html_ref = useRef(html);
   const block_external_content = preferences?.block_external_content ?? false;
   const block_remote_images = preferences?.block_remote_images ?? true;
   const should_block_images_ref = useRef(false);
@@ -65,11 +66,11 @@ export function EditableQuotedHtml({
     if (!container) return;
 
     container.replaceChildren(
-      build_editable_quoted_fragment(initial_html_ref.current, {
+      build_editable_quoted_fragment(html, {
         block_remote_images: should_block_images_ref.current,
       }),
     );
-  }, []);
+  }, [html]);
 
   const report_change = () => {
     const container = container_ref.current;
@@ -88,6 +89,7 @@ export function EditableQuotedHtml({
       aria-multiline="true"
       className="mt-2 py-3 px-4 rounded-md text-sm leading-relaxed overflow-y-auto max-h-[320px] bg-surf-tertiary text-txt-secondary outline-none"
       data-selectable-region
+      hidden={is_hidden}
       role="textbox"
       style={{ wordBreak: "break-word", cursor: "text" }}
       onInput={report_change}

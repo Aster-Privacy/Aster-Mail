@@ -21,7 +21,7 @@
 import type { TranslationKey } from "@/lib/i18n";
 import type { UseEditorReturn } from "@/hooks/use_editor";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { sanitize_compose_paste } from "@/lib/html_sanitizer";
 import { proxy_compose_image_sources } from "@/lib/compose_image_sources";
@@ -124,6 +124,12 @@ export function ForwardBody({
   handle_template_select,
   on_discard,
 }: ForwardBodyProps) {
+  const [has_shown_forward, set_has_shown_forward] = useState(false);
+
+  useEffect(() => {
+    if (is_forward_visible) set_has_shown_forward(true);
+  }, [is_forward_visible]);
+
   useEffect(() => {
     const el = message_editor_ref.current;
 
@@ -197,9 +203,10 @@ export function ForwardBody({
                       : t("mail.show_forwarded")}
                   </span>
                 </button>
-                {is_forward_visible && (
+                {(is_forward_visible || has_shown_forward) && (
                   <EditableQuotedHtml
                     html={forward_content_ref.current ?? ""}
+                    is_hidden={!is_forward_visible}
                     label={t("common.forwarded_message")}
                     on_change={on_forward_content_change}
                   />
