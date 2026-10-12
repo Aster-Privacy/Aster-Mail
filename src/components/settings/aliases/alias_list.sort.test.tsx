@@ -99,24 +99,22 @@ let container: HTMLDivElement;
 function render() {
   act(() => {
     root.render(
-      createElement(
-        I18nProvider,
-        { default_language: "en" },
-        createElement(AliasList, {
-          aliases: ALIASES,
-          domain_addresses: DOMAIN_ADDRESSES,
-          aliases_loading: false,
-          toggling_id: null,
-          alias_deleting_id: null,
-          domain_addr_deleting_id: null,
-          on_alias_toggle: noop,
-          on_alias_delete: noop,
-          on_domain_addr_delete: noop,
-          on_alias_pin_toggle: noop,
-          on_open_editor: noop,
-          on_open_domain_editor: noop,
-        }),
-      ),
+      <I18nProvider default_language="en">
+        <AliasList
+          alias_deleting_id={null}
+          aliases={ALIASES}
+          aliases_loading={false}
+          domain_addr_deleting_id={null}
+          domain_addresses={DOMAIN_ADDRESSES}
+          on_alias_delete={noop}
+          on_alias_pin_toggle={noop}
+          on_alias_toggle={noop}
+          on_domain_addr_delete={noop}
+          on_open_domain_editor={noop}
+          on_open_editor={noop}
+          toggling_id={null}
+        />
+      </I18nProvider>,
     );
   });
 }
