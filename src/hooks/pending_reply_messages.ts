@@ -30,6 +30,10 @@ import { useLayoutEffect, useRef, useSyncExternalStore } from "react";
 
 import { MAIL_EVENTS } from "@/hooks/mail_events";
 import { request_cache } from "@/services/api/request_cache";
+import {
+  clear_pending_send_attachments,
+  set_pending_send_attachments,
+} from "@/services/pending_send_attachments";
 
 export const SETTLED_REPLY_MESSAGE_TTL_MS = 30_000;
 export const SENT_COPY_CLOCK_SKEW_MS = 120_000;
@@ -62,6 +66,8 @@ export function add_pending_reply_message(
   if (!detail.optimistic_id || !detail.thread_token) return;
   if (pending_entries.has(detail.optimistic_id)) return;
 
+  set_pending_send_attachments(detail.optimistic_id, detail.attachments);
+
   pending_entries.set(detail.optimistic_id, {
     thread_token: detail.thread_token,
     original_email_id: detail.original_email_id,
@@ -92,6 +98,7 @@ export function remove_pending_reply_message(optimistic_id: string): void {
 
   if (timer) clearTimeout(timer);
   settle_timers.delete(optimistic_id);
+  clear_pending_send_attachments(optimistic_id);
 
   if (pending_entries.delete(optimistic_id)) notify();
 }
@@ -119,6 +126,9 @@ export function has_pending_reply_message(optimistic_id: string): boolean {
 export function reset_pending_reply_messages(): void {
   settle_timers.forEach((timer) => clearTimeout(timer));
   settle_timers.clear();
+  pending_entries.forEach((_entry, optimistic_id) =>
+    clear_pending_send_attachments(optimistic_id),
+  );
 
   if (pending_entries.size === 0) return;
   pending_entries.clear();

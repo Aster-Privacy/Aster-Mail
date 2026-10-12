@@ -56,6 +56,7 @@ interface PdfPreviewModalProps {
   filename: string;
   on_close: () => void;
   reduce_motion: boolean;
+  local_data?: ArrayBuffer;
 }
 
 function DownloadIcon({ className }: { className?: string }) {
@@ -96,6 +97,7 @@ export function PdfPreviewModal({
   filename,
   on_close,
   reduce_motion,
+  local_data,
 }: PdfPreviewModalProps) {
   const { t } = use_i18n();
   const { dialog_ref, handle_backdrop_pointer_down } =
@@ -190,28 +192,36 @@ export function PdfPreviewModal({
       set_view_state("loading");
 
       try {
-        const meta = await decrypt_attachment_meta(
-          att.encrypted_meta,
-          att.meta_nonce,
-          att.mail_item_id,
-          att.seq_num,
-        );
+        if (local_data) {
+          decrypted_ref.current = {
+            data: local_data,
+            filename: att.filename,
+            content_type: att.content_type,
+          };
+        } else {
+          const meta = await decrypt_attachment_meta(
+            att.encrypted_meta,
+            att.meta_nonce,
+            att.mail_item_id,
+            att.seq_num,
+          );
 
-        const data = await decrypt_attachment_data(
-          att.encrypted_data,
-          att.data_nonce,
-          meta.session_key,
-          att.mail_item_id,
-          att.seq_num,
-        );
+          const data = await decrypt_attachment_data(
+            att.encrypted_data,
+            att.data_nonce,
+            meta.session_key,
+            att.mail_item_id,
+            att.seq_num,
+          );
 
-        if (cancelled_ref.current) return;
+          if (cancelled_ref.current) return;
 
-        decrypted_ref.current = {
-          data,
-          filename: meta.filename,
-          content_type: meta.content_type,
-        };
+          decrypted_ref.current = {
+            data,
+            filename: meta.filename,
+            content_type: meta.content_type,
+          };
+        }
 
         const doc = await open_document();
 
@@ -248,7 +258,7 @@ export function PdfPreviewModal({
       decrypted_ref.current = null;
       set_password_value("");
     };
-  }, [att, open_document, render_document]);
+  }, [att, local_data, open_document, render_document]);
 
   useEffect(() => {
     if (view_state === "password" && !is_unlocking) {

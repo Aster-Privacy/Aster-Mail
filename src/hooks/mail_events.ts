@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { DraftWithContent } from "@/services/api/multi_drafts";
+import type { Attachment } from "@/components/compose/compose_shared_core";
 
 import { forget_removed_ids, note_removed_ids } from "@/services/removed_items";
 import { request_cache } from "@/services/api/request_cache";
@@ -132,6 +133,7 @@ export interface ThreadReplyOptimisticEventDetail {
   display_body?: string;
   to_recipients: { name: string; email: string }[];
   cc_recipients?: { name: string; email: string }[];
+  attachments?: Attachment[];
 }
 
 export interface ThreadReplyCancelledEventDetail {

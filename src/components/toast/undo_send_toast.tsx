@@ -27,6 +27,7 @@ import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import { open_pending_send_preview } from "@/components/toast/toast_action_router";
 import { clip_with_ellipsis } from "@/utils/preview_text";
+import { peek_pending_send_payload } from "@/hooks/use_undo_send";
 
 interface UndoSendToastProps {
   queue_id: string;
@@ -132,8 +133,18 @@ export const UndoSendToast = forwardRef<HTMLDivElement, UndoSendToastProps>(
         cc: cc_list,
         bcc: bcc_list,
         sender_email,
+        attachments: peek_pending_send_payload(queue_id)?.attachments,
       });
-    }, [body, subject, to_list, recipient, cc_list, bcc_list, sender_email]);
+    }, [
+      body,
+      subject,
+      to_list,
+      recipient,
+      cc_list,
+      bcc_list,
+      sender_email,
+      queue_id,
+    ]);
 
     const y_offset = is_top ? -100 : 100;
 

@@ -704,6 +704,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
             name: "",
             email,
           })),
+          attachments: attachments.length > 0 ? attachments : undefined,
         });
       }
 

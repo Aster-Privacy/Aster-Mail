@@ -22,6 +22,9 @@ import type { NavigateOptions } from "react-router-dom";
 import type { LocalEmailData } from "@/components/email/email_viewer_types";
 import type { EditDraftData } from "@/components/compose/compose_manager";
 
+import { UNDO_SEND_PREVIEW_ID } from "@/components/email/email_viewer_types";
+import { set_pending_send_attachments } from "@/services/pending_send_attachments";
+
 import {
   account_index_path,
   get_active_account_index,
@@ -214,6 +217,8 @@ export function open_sent_folder(): void {
 
 export function open_pending_send_preview(data: LocalEmailData): boolean {
   if (!can_preview_pending_send()) return false;
+
+  set_pending_send_attachments(UNDO_SEND_PREVIEW_ID, data.attachments);
 
   if (active_view_host?.can_show_preview()) {
     pending_view = null;
