@@ -23,6 +23,8 @@ import { format_time_remaining } from "./send_queue_types";
 import { get_active_translations } from "@/lib/i18n/translations";
 import { format_bytes } from "@/lib/utils";
 
+export const SENDER_NOT_AUTHORIZED_CODE = "SENDER_NOT_AUTHORIZED";
+
 export interface SendRefusalSource {
   code?: string;
   server_code?: string;
@@ -94,6 +96,13 @@ export function describe_send_refusal(
     return {
       kind: "send_failed",
       message: get_active_translations().errors.cannot_send_no_recipient_keys,
+    };
+  }
+
+  if (result.server_code === SENDER_NOT_AUTHORIZED_CODE) {
+    return {
+      kind: "send_failed",
+      message: get_active_translations().errors.sender_address_refused,
     };
   }
 

@@ -10343,6 +10343,8 @@ export const pt = {
       "O início de sessão com chave de segurança não foi concluído ou foi cancelado. Tente novamente.",
     cannot_send_no_keys:
       "Tem a encriptação obrigatória ativada e não temos uma chave para {{recipients}}. Pedir-lhes que partilhem uma chave, ou desativar a encriptação obrigatória nas Definições, permitirá o envio. O seu rascunho está guardado.",
+    sender_address_refused:
+      "Não foi possível enviar esta mensagem a partir do endereço no campo De. Para a enviar, escolha outro endereço. O seu rascunho está guardado.",
     cannot_send_no_recipient_keys:
       "Tem a encriptação obrigatória ativada e nenhum dos seus destinatários tem uma chave registada. Pedir-lhes que partilhem uma, ou desativar a encriptação obrigatória nas Definições, permitirá o envio. O seu rascunho está guardado.",
     cannot_send_no_recovery_key:

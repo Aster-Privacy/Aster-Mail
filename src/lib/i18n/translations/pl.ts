@@ -10481,6 +10481,8 @@ export const pl = {
       "Ta wiadomość nie została wysłana. Spróbuj ponownie. Szkic jest zapisany.",
     cannot_send_no_keys:
       "Masz włączone obowiązkowe szyfrowanie i nie mamy klucza dla {{recipients}}. Poproś ich o udostępnienie klucza lub wyłącz obowiązkowe szyfrowanie w Ustawieniach. Wersja robocza jest zapisana.",
+    sender_address_refused:
+      "Aster nie mógł wysłać tej wiadomości z adresu w polu Od. Aby ją wysłać, wybierz inny adres. Wersja robocza jest zapisana.",
     cannot_send_no_recipient_keys:
       "Masz włączone obowiązkowe szyfrowanie i żaden z odbiorców nie ma klucza na pliku. Poproś ich o udostępnienie klucza lub wyłącz obowiązkowe szyfrowanie w Ustawieniach. Wersja robocza jest zapisana.",
     cannot_send_no_recovery_key:

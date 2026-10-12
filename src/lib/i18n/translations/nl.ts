@@ -10241,6 +10241,8 @@ export const nl = {
       "Deze e-mail is niet verzonden. Probeer het opnieuw. Je concept is opgeslagen.",
     cannot_send_no_keys:
       "Je hebt vereiste versleuteling ingeschakeld, en we hebben geen sleutel voor {{recipients}}. Hen vragen een sleutel te delen, of vereiste versleuteling uitschakelen in Instellingen, laat dit verzenden. Je concept is opgeslagen.",
+    sender_address_refused:
+      "Aster kon dit bericht niet verzenden vanaf het adres in het veld Van. Kies een ander adres om het te verzenden. Je concept is opgeslagen.",
     cannot_send_no_recipient_keys:
       "Je hebt vereiste versleuteling ingeschakeld, en geen van je ontvangers heeft een sleutel in het archief. Hen vragen er een te delen, of vereiste versleuteling uitschakelen in Instellingen, laat dit verzenden. Je concept is opgeslagen.",
     cannot_send_no_recovery_key:

@@ -10359,6 +10359,8 @@ export const fr = {
       "La connexion par clé de sécurité n'a pas abouti ou a été annulée. Réessayez.",
     cannot_send_no_keys:
       "Le chiffrement obligatoire est activé et nous n'avons pas de clé pour {{recipients}}. Leur demander de partager une clé, ou désactiver le chiffrement obligatoire dans les Paramètres, permettra l'envoi. Votre brouillon est enregistré.",
+    sender_address_refused:
+      "Aster n'a pas pu envoyer ce message depuis l'adresse du champ De. Pour l'envoyer, choisissez une autre adresse. Votre brouillon est enregistré.",
     cannot_send_no_recipient_keys:
       "Le chiffrement obligatoire est activé et aucun de vos destinataires n'a de clé enregistrée. Demandez-leur d'en partager une, ou désactivez le chiffrement obligatoire dans Paramètres pour envoyer ce message. Votre brouillon est enregistré.",
     cannot_send_no_recovery_key:

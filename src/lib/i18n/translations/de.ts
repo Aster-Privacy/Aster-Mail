@@ -10358,6 +10358,8 @@ export const de = {
       "Die Anmeldung mit dem Sicherheitsschlüssel wurde nicht abgeschlossen oder abgebrochen. Versuchen Sie es erneut.",
     cannot_send_no_keys:
       "Sie haben die erforderliche Verschlüsselung aktiviert und wir haben keinen Schlüssel für {{recipients}}. Bitten Sie sie, einen Schlüssel zu teilen, oder deaktivieren Sie die erforderliche Verschlüsselung in Einstellungen. Ihr Entwurf ist gespeichert.",
+    sender_address_refused:
+      "Aster konnte diese Nachricht nicht von der Adresse im Feld „Von“ senden. Wähle eine andere Adresse, um sie zu senden. Dein Entwurf ist gespeichert.",
     cannot_send_no_recipient_keys:
       "Sie haben die erforderliche Verschlüsselung aktiviert und keiner Ihrer Empfänger hat einen hinterlegten Schlüssel. Bitten Sie sie, einen zu teilen, oder deaktivieren Sie die erforderliche Verschlüsselung in Einstellungen. Ihr Entwurf ist gespeichert.",
     cannot_send_no_recovery_key:

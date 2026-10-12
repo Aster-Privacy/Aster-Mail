@@ -10281,6 +10281,8 @@ export const pt_br = {
       "O login com chave de segurança não foi concluído ou foi cancelado. Tente novamente.",
     cannot_send_no_keys:
       "Você tem criptografia obrigatória ativada, e não temos uma chave para {{recipients}}. Pedir que compartilhem uma chave, ou desativar a criptografia obrigatória em Configurações, vai permitir o envio. Seu rascunho está salvo.",
+    sender_address_refused:
+      "Não foi possível enviar esta mensagem a partir do endereço no campo De. Para enviá-la, escolha outro endereço. Seu rascunho está salvo.",
     cannot_send_no_recipient_keys:
       "Você tem criptografia obrigatória ativada, e nenhum dos seus destinatários tem uma chave registrada. Pedir que compartilhem uma, ou desativar a criptografia obrigatória em Configurações, vai permitir o envio. Seu rascunho está salvo.",
     cannot_send_no_recovery_key:

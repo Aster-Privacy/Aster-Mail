@@ -8735,6 +8735,7 @@ export interface ErrorTranslations {
   too_many_attachments: string;
   failed_send_email: string;
   cannot_send_no_keys: string;
+  sender_address_refused: string;
   cannot_send_no_recipient_keys: string;
   cannot_send_no_recovery_key: string;
   message_password_too_weak: string;

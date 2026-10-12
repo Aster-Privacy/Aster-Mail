@@ -103,6 +103,22 @@ describe("describe_send_refusal", () => {
     expect(refusal?.message).not.toContain("{{time}}");
   });
 
+  it("names the sending address when the server refuses it", () => {
+    const refusal = describe_send_refusal({
+      code: "FORBIDDEN",
+      server_code: "SENDER_NOT_AUTHORIZED",
+    });
+
+    expect(refusal?.kind).toBe("send_failed");
+    expect(refusal?.message).toBe(en.errors.sender_address_refused);
+  });
+
+  it("leaves an unrelated forbidden send to the caller", () => {
+    expect(
+      describe_send_refusal({ code: "FORBIDDEN", server_code: "FORBIDDEN" }),
+    ).toBeNull();
+  });
+
   it("leaves an unrelated failure to the caller", () => {
     expect(describe_send_refusal({ code: "SERVER_ERROR" })).toBeNull();
   });

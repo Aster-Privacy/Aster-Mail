@@ -10234,6 +10234,8 @@ export const es = {
       "El inicio de sesión con llave de seguridad no terminó o se canceló. Inténtalo de nuevo.",
     cannot_send_no_keys:
       "Tienes el cifrado obligatorio activado y no tenemos clave para {{recipients}}. Pedirles que compartan una clave, o desactivar el cifrado obligatorio en Configuración, permitirá el envío. Tu borrador está guardado.",
+    sender_address_refused:
+      "Aster no pudo enviar este mensaje desde la dirección del campo De. Para enviarlo, elige otra dirección. Tu borrador está guardado.",
     cannot_send_no_recipient_keys:
       "Tienes activado el cifrado obligatorio y ninguno de tus destinatarios tiene una clave registrada. Pídeles que compartan una o desactiva el cifrado obligatorio en Ajustes para enviarlo. Tu borrador está guardado.",
     cannot_send_no_recovery_key:
