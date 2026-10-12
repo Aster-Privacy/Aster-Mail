@@ -21,7 +21,10 @@
 import { get_recipient_public_key } from "../api/keys";
 
 import { base64_to_array, compute_hash } from "./key_manager_core";
-import { fetch_ratchet_identity } from "./ratchet_prekey_bundle";
+import {
+  fetch_prekey_bundle,
+  fetch_ratchet_identity,
+} from "./ratchet_prekey_bundle";
 import {
   get_identity_change,
   get_pinned_identity_fingerprint,
@@ -113,9 +116,13 @@ export async function trust_recipient_identity(email: string): Promise<void> {
 
   if (snapshot.status !== "untrusted") return;
 
+  const { pin_id, username } = lookup_parts(email);
+  const bundle = await fetch_prekey_bundle(username, pin_id).catch(() => null);
+
   await trust_recipient_keys(
-    lookup_parts(email).pin_id,
-    snapshot.kem_identity_key,
+    pin_id,
+    snapshot.kem_identity_key ?? bundle?.kem_identity_key ?? null,
     snapshot.owner_public_key,
+    bundle,
   );
 }

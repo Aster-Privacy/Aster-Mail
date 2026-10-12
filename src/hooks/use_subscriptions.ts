@@ -23,7 +23,7 @@ import type {
   SubscriptionCacheData,
 } from "@/services/subscription_cache";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 
 import {
   load_subscription_cache,
@@ -46,6 +46,16 @@ import {
   persist_resubscribe,
   persist_unsubscribe,
 } from "@/hooks/use_unsubscribed_senders";
+import {
+  BLOCKED_SENDERS_CHANGED_EVENT,
+  list_blocked_senders,
+} from "@/services/api/blocked_senders";
+import {
+  EMPTY_BLOCKED_SENDER_INDEX,
+  build_blocked_sender_index,
+  without_blocked_senders,
+  type BlockedSenderIndex,
+} from "@/utils/blocked_subscriptions";
 import { use_auth } from "@/contexts/auth_context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
@@ -72,6 +82,10 @@ export function use_subscriptions() {
   const { t } = use_i18n();
   const [subscriptions, set_subscriptions] = useState<CachedSubscription[]>([]);
   const [is_loading, set_is_loading] = useState(true);
+  const [blocked_index, set_blocked_index] = useState<BlockedSenderIndex>(
+    EMPTY_BLOCKED_SENDER_INDEX,
+  );
+  const [is_blocked_list_ready, set_is_blocked_list_ready] = useState(false);
   const cache_ref = useRef<SubscriptionCacheData | null>(null);
   const mounted_ref = useRef(false);
   const poll_ref = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -116,6 +130,20 @@ export function use_subscriptions() {
     set_is_loading(false);
   }, [vault]);
 
+  const load_blocked = useCallback(async () => {
+    if (!vault) return;
+
+    const result = await list_blocked_senders().catch(() => null);
+
+    if (!mounted_ref.current) return;
+
+    if (result?.data) {
+      set_blocked_index(build_blocked_sender_index(result.data));
+    }
+
+    set_is_blocked_list_ready(true);
+  }, [vault]);
+
   const end_mutation = useCallback(() => {
     mutating_ref.current = Math.max(0, mutating_ref.current - 1);
 
@@ -128,12 +156,18 @@ export function use_subscriptions() {
 
   useEffect(() => {
     load_cache();
+    load_blocked();
 
     poll_ref.current = setInterval(() => {
       if (document.visibilityState !== "visible") return;
 
       load_cache();
+      load_blocked();
     }, REVALIDATE_INTERVAL_MS);
+
+    const handle_blocked_changed = () => {
+      load_blocked();
+    };
 
     const handle_saved = () => {
       load_cache();
@@ -146,17 +180,26 @@ export function use_subscriptions() {
       }
 
       load_cache();
+      load_blocked();
     };
 
     window.addEventListener(SUBSCRIPTION_CACHE_SAVED_EVENT, handle_saved);
+    window.addEventListener(
+      BLOCKED_SENDERS_CHANGED_EVENT,
+      handle_blocked_changed,
+    );
     document.addEventListener("visibilitychange", handle_visibility);
 
     return () => {
       if (poll_ref.current) clearInterval(poll_ref.current);
       window.removeEventListener(SUBSCRIPTION_CACHE_SAVED_EVENT, handle_saved);
+      window.removeEventListener(
+        BLOCKED_SENDERS_CHANGED_EVENT,
+        handle_blocked_changed,
+      );
       document.removeEventListener("visibilitychange", handle_visibility);
     };
-  }, [load_cache]);
+  }, [load_cache, load_blocked]);
 
   useEffect(() => {
     const handle_external_unsub = (e: Event) => {
@@ -441,9 +484,14 @@ export function use_subscriptions() {
     [subscriptions, persist_cache, end_mutation],
   );
 
+  const visible_subscriptions = useMemo(
+    () => without_blocked_senders(subscriptions, blocked_index),
+    [subscriptions, blocked_index],
+  );
+
   return {
-    subscriptions,
-    is_loading,
+    subscriptions: visible_subscriptions,
+    is_loading: is_loading || !is_blocked_list_ready,
     unsubscribe: unsubscribe_sender,
     bulk_unsubscribe,
     reactivate,

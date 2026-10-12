@@ -29,7 +29,9 @@ const h = vi.hoisted(() => ({
   owner_key: null as string | null,
   fetch_calls: [] as Array<[string, string | undefined]>,
   owner_calls: [] as Array<[string, string]>,
-  trusted: [] as Array<[string, string | null, string | null]>,
+  trusted: [] as Array<[string, string | null, string | null, unknown]>,
+  bundle: null as Record<string, unknown> | null,
+  fail_bundle_fetch: false,
 }));
 
 vi.mock("@/services/crypto/key_manager_core", () => ({
@@ -42,6 +44,11 @@ vi.mock("@/services/crypto/ratchet_prekey_bundle", () => ({
     h.fetch_calls.push([username, email]);
 
     return h.identity;
+  }),
+  fetch_prekey_bundle: vi.fn(async () => {
+    if (h.fail_bundle_fetch) throw new Error("network unavailable");
+
+    return h.bundle;
   }),
 }));
 
@@ -60,8 +67,13 @@ vi.mock("@/services/crypto/ratchet_identity_pin", () => ({
   is_recipient_flagged_untrusted: vi.fn(async () => h.flagged),
   owner_key_fingerprint: vi.fn(async (armored: string) => `fp:${armored}`),
   trust_recipient_keys: vi.fn(
-    async (pin_id: string, kem: string | null, owner: string | null) => {
-      h.trusted.push([pin_id, kem, owner]);
+    async (
+      pin_id: string,
+      kem: string | null,
+      owner: string | null,
+      accepted_bundle: unknown = null,
+    ) => {
+      h.trusted.push([pin_id, kem, owner, accepted_bundle]);
     },
   ),
 }));
@@ -83,6 +95,8 @@ describe("get_recipient_identity_status", () => {
     h.fetch_calls = [];
     h.owner_calls = [];
     h.trusted = [];
+    h.bundle = null;
+    h.fail_bundle_fetch = false;
   });
 
   it("reports a recorded key change as rotated without a network request", async () => {
@@ -158,7 +172,37 @@ describe("get_recipient_identity_status", () => {
 
     await trust_recipient_identity("Alice@astermail.org");
 
-    expect(h.trusted).toEqual([["alice@astermail.org", "key-two", "new"]]);
+    expect(h.trusted).toEqual([
+      ["alice@astermail.org", "key-two", "new", null],
+    ]);
+  });
+
+  it("records the published bundle the user accepted", async () => {
+    h.flagged = true;
+    h.pinned_owner = "fp:new";
+    h.owner_key = "new";
+    h.bundle = {
+      kem_identity_key: "key-two",
+      signed_prekey: "spk",
+      signed_prekey_signature: "sig",
+    };
+
+    await trust_recipient_identity("alice@astermail.org");
+
+    expect(h.trusted).toEqual([
+      ["alice@astermail.org", "key-two", "new", h.bundle],
+    ]);
+  });
+
+  it("still re-pins when the published bundle cannot be fetched", async () => {
+    h.flagged = true;
+    h.pinned_owner = "fp:new";
+    h.owner_key = "new";
+    h.fail_bundle_fetch = true;
+
+    await trust_recipient_identity("alice@astermail.org");
+
+    expect(h.trusted).toEqual([["alice@astermail.org", null, "new", null]]);
   });
 
   it("does not re-pin a recipient whose keys are trusted", async () => {

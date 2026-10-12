@@ -27,8 +27,10 @@ import {
   derive_public_keys_from_private,
   generate_identity_keypair,
   sign_detached,
+  sign_ratchet_prekey_bundle,
 } from "./key_manager_pgp";
 import {
+  published_bundle_needs_resigning,
   reset_published_key_heal_attempts,
   reset_published_signing_key_cache,
   select_published_signing_key,
@@ -278,6 +280,84 @@ describe("select_published_signing_key with a drifted vault", () => {
       old_secret_key,
     );
     expect(state.republish_calls).toBe(1);
+    expect(state.fetch_calls).toBe(2);
+  });
+});
+
+describe("published_bundle_needs_resigning after a pgp rekey", () => {
+  const kem_identity_key = btoa("ratchet-identity-key-material-000001");
+  const signed_prekey = btoa("ratchet-signed-prekey-material-00001");
+
+  async function bundle_signed_with(secret_key: string) {
+    return {
+      kem_identity_key,
+      signed_prekey,
+      signed_prekey_signature: await sign_ratchet_prekey_bundle(
+        secret_key,
+        password,
+        kem_identity_key,
+        signed_prekey,
+        null,
+      ),
+      pq_kem_public_key: null,
+    };
+  }
+
+  it("asks for a new signature when the superseded key signed the bundle", async () => {
+    await expect(
+      published_bundle_needs_resigning(
+        rekeyed_vault,
+        await bundle_signed_with(old_secret_key),
+      ),
+    ).resolves.toBe(true);
+  });
+
+  it("leaves a bundle signed by the published key alone", async () => {
+    await expect(
+      published_bundle_needs_resigning(
+        rekeyed_vault,
+        await bundle_signed_with(new_secret_key),
+      ),
+    ).resolves.toBe(false);
+  });
+
+  it("does nothing when the vault lacks the published key", async () => {
+    await expect(
+      published_bundle_needs_resigning(
+        vault_with(old_secret_key),
+        await bundle_signed_with(old_secret_key),
+      ),
+    ).resolves.toBe(false);
+    expect(state.republish_calls).toBe(0);
+  });
+
+  it("does nothing without a passphrase in memory", async () => {
+    state.passphrase = null;
+
+    await expect(
+      published_bundle_needs_resigning(
+        rekeyed_vault,
+        await bundle_signed_with(old_secret_key),
+      ),
+    ).resolves.toBe(false);
+  });
+
+  it("does nothing when the published key lookup fails", async () => {
+    const bundle = await bundle_signed_with(old_secret_key);
+
+    state.throw_on_fetch = true;
+
+    await expect(
+      published_bundle_needs_resigning(rekeyed_vault, bundle),
+    ).resolves.toBe(false);
+  });
+
+  it("reads the published key fresh instead of trusting the cache", async () => {
+    const bundle = await bundle_signed_with(old_secret_key);
+
+    await select_published_signing_key(rekeyed_vault);
+    await published_bundle_needs_resigning(rekeyed_vault, bundle);
+
     expect(state.fetch_calls).toBe(2);
   });
 });

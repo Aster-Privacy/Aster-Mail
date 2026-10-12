@@ -29,6 +29,7 @@ const h = vi.hoisted(() => ({
   },
   bootstrap: null as Record<string, unknown> | null,
   owner_pin: "ok" as "first" | "ok" | "changed" | "unknown",
+  accepted: false,
 }));
 
 vi.mock("../api/keys", () => ({
@@ -41,6 +42,7 @@ vi.mock("./ratchet_identity_pin", async (import_original) => ({
   ...(await import_original<typeof import("./ratchet_identity_pin")>()),
   check_owner_key_pin: vi.fn(async () => h.owner_pin),
   is_recipient_flagged_untrusted: vi.fn(async () => false),
+  is_recipient_bundle_accepted: vi.fn(async () => h.accepted),
 }));
 
 vi.mock("./key_manager_pgp", () => ({
@@ -85,6 +87,7 @@ function pq_bundle(): Record<string, unknown> {
 describe("recipient_post_quantum_status", () => {
   beforeEach(() => {
     h.owner_pin = "ok";
+    h.accepted = false;
     h.bundle = pq_bundle();
     h.verification = { verdict: "verified", format: "v2", strict: true };
     h.bootstrap = null;
@@ -134,6 +137,33 @@ describe("recipient_post_quantum_status", () => {
     await expect(
       recipient_post_quantum_status("a@astermail.org", "b@aster.cx", "b"),
     ).resolves.toBe("untrusted");
+  });
+
+  it("reports unsupported, never supported, for a tampered bundle the user accepted", async () => {
+    h.verification = { verdict: "tampered", format: "v2", strict: false };
+    h.accepted = true;
+
+    await expect(
+      recipient_post_quantum_status("a@astermail.org", "b@aster.cx", "b"),
+    ).resolves.toBe("unsupported");
+  });
+
+  it("reports untrusted for an accepted bundle once the owner key changes", async () => {
+    h.verification = { verdict: "tampered", format: "v2", strict: false };
+    h.accepted = true;
+    h.owner_pin = "changed";
+
+    await expect(
+      recipient_post_quantum_status("a@astermail.org", "b@aster.cx", "b"),
+    ).resolves.toBe("untrusted");
+  });
+
+  it("ignores an acceptance for a bundle that verifies", async () => {
+    h.accepted = true;
+
+    await expect(
+      recipient_post_quantum_status("a@astermail.org", "b@aster.cx", "b"),
+    ).resolves.toBe("supported");
   });
 
   it("reports unsupported when no bundle is published", async () => {

@@ -20,10 +20,9 @@
 //
 import { memo, useCallback, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { UsersIcon } from "@heroicons/react/24/outline";
 import { AppRailView } from "@aster/ui";
 
-import { AsterSecurityMark } from "@/components/icons/aster_security_mark";
+import { AppRailIcon } from "@/components/icons/app_rail_icon";
 import { QuickContactsPanel } from "@/components/layout/quick_contacts_panel";
 import { QuickSecurityPanel } from "@/components/layout/quick_security_panel";
 import { use_panel_transition } from "@/components/layout/use_panel_transition";
@@ -169,20 +168,14 @@ function AppRailComponent({
           key: "contacts",
           label: t("common.contacts"),
           selected: is_contacts_open,
-          icon_src: "/icons/contacts/contacts_24.png",
-          icon_src_set:
-            "/icons/contacts/contacts_24.png 1x, /icons/contacts/contacts_48.png 2x, /icons/contacts/contacts_72.png 3x",
-          fallback_icon: <UsersIcon className="h-5 w-5 shrink-0" />,
+          fallback_icon: <AppRailIcon name="contacts" />,
           on_click: toggle_contacts,
         },
         {
           key: "security",
           label: t("common.security_center"),
           selected: is_security_open,
-          icon_src: "/icons/security/security_24.png",
-          icon_src_set:
-            "/icons/security/security_24.png 1x, /icons/security/security_48.png 2x, /icons/security/security_72.png 3x",
-          fallback_icon: <AsterSecurityMark className="h-5 w-5 shrink-0" />,
+          fallback_icon: <AppRailIcon name="security" />,
           on_click: toggle_security,
         },
       ]}

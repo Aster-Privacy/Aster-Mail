@@ -39,6 +39,15 @@ import { get_key, store_key } from "@/services/crypto/crypto_key_cache";
 
 const BLOCKED_SENDERS_HMAC_KEY_ID = "blocked_senders_hmac_key";
 
+export const BLOCKED_SENDERS_CHANGED_EVENT =
+  "astermail:blocked-senders-changed";
+
+function announce_blocked_senders_changed(): void {
+  if (typeof window === "undefined") return;
+
+  window.dispatchEvent(new CustomEvent(BLOCKED_SENDERS_CHANGED_EVENT));
+}
+
 async function get_hmac_key(): Promise<CryptoKey> {
   const cached = get_key(BLOCKED_SENDERS_HMAC_KEY_ID);
 
@@ -348,6 +357,8 @@ export async function block_sender(
       };
     }
 
+    announce_blocked_senders_changed();
+
     return {
       data: {
         id: response.data.id,
@@ -379,6 +390,8 @@ export async function unblock_sender(
       `/contacts/v1/blocked_senders?sender_token=${encodeURIComponent(sender_token)}`,
     );
 
+    if (!response.error) announce_blocked_senders_changed();
+
     return response;
   } catch (err) {
     return {
@@ -397,6 +410,8 @@ export async function unblock_sender_by_token(
     const response = await api_client.delete<{ success: boolean }>(
       `/contacts/v1/blocked_senders?sender_token=${encodeURIComponent(sender_token)}`,
     );
+
+    if (!response.error) announce_blocked_senders_changed();
 
     return response;
   } catch (err) {
@@ -417,7 +432,7 @@ export async function bulk_unblock_senders(
       emails.map((email) => generate_sender_token(email)),
     );
 
-    return await send_in_chunks(
+    const response = await send_in_chunks(
       sender_tokens,
       BULK_REQUEST_LIMIT,
       (chunk) =>
@@ -432,6 +447,10 @@ export async function bulk_unblock_senders(
         unblocked_count: total.unblocked_count + next.unblocked_count,
       }),
     );
+
+    announce_blocked_senders_changed();
+
+    return response;
   } catch (err) {
     return {
       error: user_facing_error(
@@ -446,7 +465,7 @@ export async function bulk_unblock_senders_by_tokens(
   sender_tokens: string[],
 ): Promise<ApiResponse<{ success: boolean; unblocked_count: number }>> {
   try {
-    return await send_in_chunks(
+    const response = await send_in_chunks(
       sender_tokens,
       BULK_REQUEST_LIMIT,
       (chunk) =>
@@ -461,6 +480,10 @@ export async function bulk_unblock_senders_by_tokens(
         unblocked_count: total.unblocked_count + next.unblocked_count,
       }),
     );
+
+    announce_blocked_senders_changed();
+
+    return response;
   } catch (err) {
     return {
       error: user_facing_error(
