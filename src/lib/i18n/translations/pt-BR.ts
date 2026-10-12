@@ -9063,6 +9063,24 @@ export const pt_br = {
     verified_sender: "Remetente verificado",
     verified_sender_desc:
       "O remetente deste e-mail verificou que é proprietário de {{domain}}.",
+    sender_warning_title: "Verifique o endereço do remetente",
+    sender_warning_address_in_name:
+      "O nome do remetente mostra {{claimed}}, mas esta mensagem vem de {{address}}.",
+    sender_warning_lookalike_name:
+      "O nome do remetente está escrito para se parecer com {{claimed}}, mas esta mensagem vem de {{address}}.",
+    sender_warning_brand_name:
+      "O nome do remetente menciona {{claimed}}, mas esta mensagem vem de {{address}}, que não é um endereço conhecido de {{claimed}}.",
+    sender_warning_home_brand_name:
+      "Esta mensagem não é da Aster. Ela vem de {{address}}. A Aster nunca pede sua senha nem sua frase de recuperação por e-mail.",
+    sender_warning_lookalike_domain:
+      "O domínio {{domain}} se parece com {{claimed}}, mas é um domínio diferente.",
+    sender_contact_notice:
+      "Este remetente tem o mesmo nome que seu contato {{name}}, mas usa um endereço diferente.",
+    sender_reply_to_notice:
+      "As respostas a esta mensagem vão para {{address}}, que pertence a um domínio diferente do remetente.",
+    email_auth_unverified: "Não verificado",
+    email_auth_unverified_desc:
+      "A Aster não conseguiu confirmar que {{domain}} enviou esta mensagem. Antes de abrir links ou anexos, verifique se você conhece o remetente.",
     email_auth_label: "Autenticação do remetente: {{verdict}}",
     email_auth_partial: "Verificações inconclusivas",
     email_auth_partial_desc:
@@ -9861,8 +9879,10 @@ export const pt_br = {
     link_device_confirming: "Vinculando dispositivo...",
     link_device_desktop: "Aplicativo desktop",
     device_fingerprint: "Impressão digital do dispositivo",
-    link_device_fingerprint_hint: "Se o dispositivo que você está vinculando mostrar uma impressão digital do dispositivo, confira se ela corresponde a esta antes de vincular o dispositivo.",
-    device_code_fingerprint_hint: "Ao inserir o código, confira se a impressão digital do dispositivo exibida no navegador corresponde a esta antes de vincular o dispositivo.",
+    link_device_fingerprint_hint:
+      "Se o dispositivo que você está vinculando mostrar uma impressão digital do dispositivo, confira se ela corresponde a esta antes de vincular o dispositivo.",
+    device_code_fingerprint_hint:
+      "Ao inserir o código, confira se a impressão digital do dispositivo exibida no navegador corresponde a esta antes de vincular o dispositivo.",
     link_device_change_account: "Mudar de conta",
     link_device_choose_account: "Escolha uma conta",
     link_device_choose_account_description:

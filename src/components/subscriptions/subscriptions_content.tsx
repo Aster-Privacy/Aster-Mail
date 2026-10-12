@@ -33,6 +33,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { use_subscriptions } from "@/hooks/use_subscriptions";
 import { use_subscription_scan_in_flight } from "@/hooks/use_background_subscription_scan";
 import { use_i18n } from "@/lib/i18n/context";
+import { safe_sender_name } from "@/lib/sender_trust_store";
 import { use_page_search } from "@/hooks/use_page_search";
 import { use_external_link } from "@/contexts/external_link_context";
 import { calendar_day_diff } from "@/utils/date_format";
@@ -435,6 +436,8 @@ function SubscriptionRow({
   on_reactivate,
 }: SubscriptionRowProps) {
   const { t } = use_i18n();
+  const shown_name =
+    safe_sender_name(sub.sender_name, sub.sender_email) || sub.sender_email;
 
   return (
     <div
@@ -461,14 +464,14 @@ function SubscriptionRow({
       <ProfileAvatar
         use_domain_logo
         email={sub.sender_email}
-        name={sub.sender_name || sub.sender_email}
+        name={shown_name}
         size="md"
       />
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-txt-primary truncate">
-            {sub.sender_name || sub.sender_email}
+            {shown_name}
           </span>
           <Badge
             className="flex-shrink-0 whitespace-nowrap"

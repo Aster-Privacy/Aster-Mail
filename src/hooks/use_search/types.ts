@@ -19,7 +19,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
-import type { DecryptedEnvelope, MailItemMetadata } from "@/types/email";
+import type {
+  DecryptedEnvelope,
+  MailItemMetadata,
+  SenderVerificationStatus,
+} from "@/types/email";
 
 import { type MailItem } from "@/services/api/mail";
 import { type ParsedOperator } from "@/utils/search_operators";
@@ -66,6 +70,15 @@ export interface SearchResultItem {
   has_attachment: boolean;
   avatar_url?: string;
   item_type?: string;
+  is_outgoing?: boolean;
+  actual_sender_email?: string;
+  is_external?: boolean;
+  system_origin?: boolean;
+  sender_verification?: SenderVerificationStatus;
+  sender_aligned?: boolean;
+  spf_result?: string;
+  dkim_result?: string;
+  dmarc_result?: string;
   folders?: { folder_token: string; name: string }[];
   thread_token?: string;
   thread_message_count?: number;

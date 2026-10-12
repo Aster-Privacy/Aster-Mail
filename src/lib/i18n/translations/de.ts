@@ -9135,6 +9135,24 @@ export const de = {
     verified_sender: "Verifizierter Absender",
     verified_sender_desc:
       "Der Absender dieser E-Mail hat bestätigt, dass ihm {{domain}} gehört.",
+    sender_warning_title: "Absenderadresse prüfen",
+    sender_warning_address_in_name:
+      "Der Absendername zeigt {{claimed}}, aber diese Nachricht stammt von {{address}}.",
+    sender_warning_lookalike_name:
+      "Der Absendername ist so geschrieben, dass er wie {{claimed}} aussieht, aber diese Nachricht stammt von {{address}}.",
+    sender_warning_brand_name:
+      "Der Absendername nennt {{claimed}}, aber diese Nachricht stammt von {{address}}. Diese Adresse ist nicht als Adresse von {{claimed}} bekannt.",
+    sender_warning_home_brand_name:
+      "Diese Nachricht stammt nicht von Aster, sondern von {{address}}. Aster fragt nie per E-Mail nach deinem Passwort oder deiner Wiederherstellungsphrase.",
+    sender_warning_lookalike_domain:
+      "Die Domain {{domain}} sieht aus wie {{claimed}}, ist aber eine andere Domain.",
+    sender_contact_notice:
+      "Dieser Absender hat denselben Namen wie dein Kontakt {{name}}, verwendet aber eine andere Adresse.",
+    sender_reply_to_notice:
+      "Antworten auf diese Nachricht gehen an {{address}}. Diese Adresse gehört zu einer anderen Domain als der Absender.",
+    email_auth_unverified: "Nicht bestätigt",
+    email_auth_unverified_desc:
+      "Aster konnte nicht bestätigen, dass {{domain}} diese Nachricht gesendet hat. Prüfe, ob du den Absender kennst, bevor du Links oder Anhänge öffnest.",
     email_auth_label: "Absenderauthentifizierung: {{verdict}}",
     email_auth_partial: "Prüfergebnisse unklar",
     email_auth_partial_desc:
@@ -9996,8 +10014,10 @@ export const de = {
     link_device_confirming: "Gerät wird verknüpft...",
     link_device_desktop: "Desktop-App",
     device_fingerprint: "Geräte-Fingerabdruck",
-    link_device_fingerprint_hint: "Wenn das Gerät, das du verknüpfst, einen Geräte-Fingerabdruck anzeigt, vergewissere dich vor dem Verknüpfen, dass er mit diesem übereinstimmt.",
-    device_code_fingerprint_hint: "Vergewissere dich bei der Eingabe des Codes, dass der in deinem Browser angezeigte Geräte-Fingerabdruck mit diesem übereinstimmt, bevor du das Gerät verknüpfst.",
+    link_device_fingerprint_hint:
+      "Wenn das Gerät, das du verknüpfst, einen Geräte-Fingerabdruck anzeigt, vergewissere dich vor dem Verknüpfen, dass er mit diesem übereinstimmt.",
+    device_code_fingerprint_hint:
+      "Vergewissere dich bei der Eingabe des Codes, dass der in deinem Browser angezeigte Geräte-Fingerabdruck mit diesem übereinstimmt, bevor du das Gerät verknüpfst.",
     link_device_change_account: "Konto wechseln",
     link_device_choose_account: "Konto auswählen",
     link_device_choose_account_description: "Um Ihre Desktop-App zu verknüpfen",

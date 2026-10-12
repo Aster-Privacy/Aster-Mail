@@ -762,6 +762,7 @@ export function use_email_viewer({
           sender_verified_domain: item.sender_verified
             ? item.sender_verified_domain
             : undefined,
+          sender_aligned: item.sender_aligned,
           send_status: item.send_status,
           send_error: item.send_error,
         });

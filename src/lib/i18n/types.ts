@@ -8079,6 +8079,16 @@ export interface MailTranslations {
   official_sender_desc: string;
   verified_sender: string;
   verified_sender_desc: string;
+  sender_warning_title: string;
+  sender_warning_address_in_name: string;
+  sender_warning_lookalike_name: string;
+  sender_warning_brand_name: string;
+  sender_warning_home_brand_name: string;
+  sender_warning_lookalike_domain: string;
+  sender_contact_notice: string;
+  sender_reply_to_notice: string;
+  email_auth_unverified: string;
+  email_auth_unverified_desc: string;
   email_auth_label: string;
   email_auth_partial: string;
   email_auth_partial_desc: string;

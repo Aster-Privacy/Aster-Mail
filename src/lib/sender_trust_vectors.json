@@ -1,0 +1,1265 @@
+{
+  "version": 2,
+  "vectors": [
+    {
+      "id": "plain_authenticated",
+      "input": { "name": "Jordan Lee", "email": "jordan@example.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "Jordan Lee", "address": "jordan@example.com", "domain": "example.com", "auth_state": "authenticated", "warning": null, "contact_notice": null, "reply_to": null, "show_identity_marks": true, "show_verified_badge": false }
+    },
+    {
+      "id": "address_in_name_other_domain",
+      "input": { "name": "security@paypal.com", "email": "attacker@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "address": "attacker@evil.example", "warning": { "kind": "address_in_name", "claimed": "security@paypal.com" }, "show_identity_marks": false }
+    },
+    {
+      "id": "address_in_name_with_padding",
+      "input": { "name": "ceo@bigcorp.com                                                                 .", "email": "x@evil.example", "sender_aligned": true, "dkim_result": "pass" },
+      "expect": { "name": "", "warning": { "kind": "address_in_name", "claimed": "ceo@bigcorp.com" } }
+    },
+    {
+      "id": "address_in_name_angle_form",
+      "input": { "name": "Billing <billing@netflix.com>", "email": "x@evil.example", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "address_in_name", "claimed": "billing@netflix.com" } }
+    },
+    {
+      "id": "address_in_name_zero_width_split",
+      "input": { "name": "ad​min@pay​pal.com", "email": "x@evil.example", "sender_aligned": true },
+      "expect": { "warning": { "kind": "address_in_name", "claimed": "admin@paypal.com" } }
+    },
+    {
+      "id": "name_equals_address",
+      "input": { "name": "Jordan@Example.com", "email": "jordan@example.com", "sender_aligned": true },
+      "expect": { "name": "", "address": "jordan@example.com", "warning": null }
+    },
+    {
+      "id": "address_in_name_same_domain",
+      "input": { "name": "sales@example.com", "email": "bounce@mail.example.com", "sender_aligned": true },
+      "expect": { "name": "sales@example.com", "warning": null }
+    },
+    {
+      "id": "address_in_name_relay",
+      "input": { "name": "friend@example.org", "email": "abc123@mozmail.com", "sender_aligned": true },
+      "expect": { "name": "friend@example.org", "warning": null }
+    },
+    {
+      "id": "capital_i_for_l_name",
+      "input": { "name": "PayPaI", "email": "x@evil.example", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "lookalike_name", "claimed": "PayPal" } }
+    },
+    {
+      "id": "capital_i_for_l_name_with_generic",
+      "input": { "name": "PaypaI Support", "email": "x@evil.example", "sender_aligned": true },
+      "expect": { "warning": { "kind": "lookalike_name", "claimed": "PayPal" } }
+    },
+    {
+      "id": "lowercase_l_for_capital_i_name",
+      "input": { "name": "lnstagram", "email": "x@evil.example", "sender_aligned": true },
+      "expect": { "warning": { "kind": "lookalike_name", "claimed": "Instagram" } }
+    },
+    {
+      "id": "digit_one_for_l_name",
+      "input": { "name": "Netf1ix", "email": "x@evil.example", "sender_aligned": true },
+      "expect": { "warning": { "kind": "lookalike_name", "claimed": "Netflix" } }
+    },
+    {
+      "id": "cyrillic_name",
+      "input": { "name": "Аmаzоn", "email": "x@evil.example", "sender_aligned": true },
+      "expect": { "warning": { "kind": "lookalike_name", "claimed": "Amazon" } }
+    },
+    {
+      "id": "rn_for_m_name",
+      "input": { "name": "Arnazon", "email": "x@evil.example", "sender_aligned": true },
+      "expect": { "warning": { "kind": "lookalike_name", "claimed": "Amazon" } }
+    },
+    {
+      "id": "fullwidth_name",
+      "input": { "name": "ＰａｙＰａｌ", "email": "x@evil.example", "sender_aligned": true },
+      "expect": { "warning": { "kind": "brand_name", "claimed": "PayPal" } }
+    },
+    {
+      "id": "brand_exact_wrong_domain",
+      "input": { "name": "PayPal", "email": "service@evil.example", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "PayPal" }, "show_identity_marks": false }
+    },
+    {
+      "id": "brand_uppercase_wrong_domain",
+      "input": { "name": "LINKEDIN", "email": "x@evil.example", "sender_aligned": true },
+      "expect": { "warning": { "kind": "brand_name", "claimed": "LinkedIn" } }
+    },
+    {
+      "id": "brand_lowercase_wrong_domain",
+      "input": { "name": "instagram support", "email": "x@evil.example", "sender_aligned": true },
+      "expect": { "warning": { "kind": "brand_name", "claimed": "Instagram" } }
+    },
+    {
+      "id": "brand_with_generic_words",
+      "input": { "name": "The Microsoft account team", "email": "x@evil.example", "sender_aligned": true },
+      "expect": { "warning": { "kind": "brand_name", "claimed": "Microsoft" } }
+    },
+    {
+      "id": "brand_multiword",
+      "input": { "name": "Bank of America Alerts", "email": "x@evil.example", "sender_aligned": true },
+      "expect": { "warning": { "kind": "brand_name", "claimed": "Bank of America" } }
+    },
+    {
+      "id": "brand_real_domain",
+      "input": { "name": "PayPal", "email": "service@paypal.com", "sender_aligned": true, "dkim_result": "pass", "dmarc_result": "pass" },
+      "expect": { "name": "PayPal", "warning": null, "show_identity_marks": true }
+    },
+    {
+      "id": "brand_real_subdomain",
+      "input": { "name": "Netflix", "email": "info@members.netflix.com", "sender_aligned": true },
+      "expect": { "name": "Netflix", "warning": null }
+    },
+    {
+      "id": "brand_country_suffix",
+      "input": { "name": "Amazon.co.uk", "email": "order-update@amazon.co.uk", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "brand_suffix_not_allowed",
+      "input": { "name": "Coinbase", "email": "x@coinbase.support", "sender_aligned": true },
+      "expect": { "warning": { "kind": "brand_name", "claimed": "Coinbase" } }
+    },
+    {
+      "id": "brand_as_subdomain_of_other",
+      "input": { "name": "PayPal", "email": "x@paypal.com.evil.example", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "lookalike_domain", "claimed": "paypal.com" } }
+    },
+    {
+      "id": "brand_verified_sender_still_warns",
+      "input": { "name": "Spotify", "email": "x@partner.example", "sender_aligned": true, "dmarc_result": "pass", "sender_verified": true, "sender_verified_domain": "partner.example" },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "Spotify" }, "show_identity_marks": false, "show_verified_badge": false }
+    },
+    {
+      "id": "ambiguous_alone_no_warning",
+      "input": { "name": "Apple", "email": "apple@farm.example", "sender_aligned": true },
+      "expect": { "name": "Apple", "warning": null }
+    },
+    {
+      "id": "ambiguous_surname_no_warning",
+      "input": { "name": "Chase Morgan", "email": "chase@example.com", "sender_aligned": true },
+      "expect": { "name": "Chase Morgan", "warning": null }
+    },
+    {
+      "id": "ambiguous_with_generic",
+      "input": { "name": "Apple Support", "email": "x@evil.example", "sender_aligned": true },
+      "expect": { "warning": { "kind": "brand_name", "claimed": "Apple" } }
+    },
+    {
+      "id": "ambiguous_solo_name",
+      "input": { "name": "iCloud", "email": "x@evil.example", "sender_aligned": true },
+      "expect": { "warning": { "kind": "brand_name", "claimed": "iCloud" } }
+    },
+    {
+      "id": "ambiguous_lookalike",
+      "input": { "name": "AppIe", "email": "x@evil.example", "sender_aligned": true },
+      "expect": { "warning": { "kind": "lookalike_name", "claimed": "Apple" } }
+    },
+    {
+      "id": "first_name_america_no_warning",
+      "input": { "name": "America", "email": "america@example.com", "sender_aligned": true },
+      "expect": { "name": "America", "warning": null }
+    },
+    {
+      "id": "name_containing_brand_substring_no_warning",
+      "input": { "name": "Metallica Fan Club", "email": "news@fans.example", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "person_at_company_no_warning",
+      "input": { "name": "Sam from Googleplex Tours", "email": "sam@tours.example", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "lookalike_domain_digit",
+      "input": { "name": "Service", "email": "service@paypa1.com", "sender_aligned": true },
+      "expect": { "name": "Service", "warning": { "kind": "lookalike_domain", "claimed": "paypal.com" }, "show_identity_marks": false }
+    },
+    {
+      "id": "lookalike_domain_rn",
+      "input": { "name": "", "email": "x@rnicrosoft.com", "sender_aligned": true },
+      "expect": { "warning": { "kind": "lookalike_domain", "claimed": "microsoft.com" } }
+    },
+    {
+      "id": "lookalike_domain_other_suffix",
+      "input": { "name": "", "email": "x@g00gle.net", "sender_aligned": true },
+      "expect": { "warning": { "kind": "lookalike_domain", "claimed": "google.com" } }
+    },
+    {
+      "id": "lookalike_domain_cyrillic",
+      "input": { "name": "", "email": "x@аpple.com", "sender_aligned": true },
+      "expect": { "domain": "xn--pple-43d.com", "address": "x@xn--pple-43d.com", "warning": { "kind": "lookalike_domain", "claimed": "apple.com" } }
+    },
+    {
+      "id": "lookalike_domain_punycode_input",
+      "input": { "name": "", "email": "x@xn--pple-43d.com", "sender_aligned": true },
+      "expect": { "domain": "xn--pple-43d.com", "warning": { "kind": "lookalike_domain", "claimed": "apple.com" } }
+    },
+    {
+      "id": "lookalike_home_domain",
+      "input": { "name": "", "email": "hello@asterrnail.org", "sender_aligned": true },
+      "expect": { "warning": { "kind": "lookalike_domain", "claimed": "astermail.org" } }
+    },
+    {
+      "id": "lookalike_own_domain",
+      "input": { "name": "", "email": "boss@examp1e.com", "sender_aligned": true, "own_addresses": ["me@example.com"] },
+      "expect": { "warning": { "kind": "lookalike_domain", "claimed": "example.com" } }
+    },
+    {
+      "id": "lookalike_contact_domain",
+      "input": { "name": "", "email": "pat@acrne-industries.example", "sender_aligned": true, "contacts": [{ "name": "Pat Doe", "emails": ["pat@acme-industries.example"] }] },
+      "expect": { "warning": { "kind": "lookalike_domain", "claimed": "acme-industries.example" } }
+    },
+    {
+      "id": "real_domain_not_lookalike",
+      "input": { "name": "", "email": "x@mail.google.com", "sender_aligned": true },
+      "expect": { "domain": "mail.google.com", "warning": null }
+    },
+    {
+      "id": "short_label_not_lookalike",
+      "input": { "name": "", "email": "x@g0o.io", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "idn_latin_shown",
+      "input": { "name": "", "email": "info@münchen.example", "sender_aligned": true },
+      "expect": { "domain": "münchen.example", "address": "info@münchen.example", "warning": null }
+    },
+    {
+      "id": "idn_latin_from_punycode_shown",
+      "input": { "name": "", "email": "info@xn--mnchen-3ya.example", "sender_aligned": true },
+      "expect": { "domain": "münchen.example" }
+    },
+    {
+      "id": "idn_mixed_script_punycode",
+      "input": { "name": "", "email": "x@exаmple-shop.example", "sender_aligned": true },
+      "expect": { "domain": "xn--exmple-shop-zij.example" }
+    },
+    {
+      "id": "idn_cjk_shown",
+      "input": { "name": "", "email": "x@例え.example", "sender_aligned": true },
+      "expect": { "domain": "例え.example" }
+    },
+    {
+      "id": "domain_uppercase_and_trailing_dot",
+      "input": { "name": "", "email": "X@Example.COM.", "sender_aligned": true },
+      "expect": { "address": "X@example.com", "domain": "example.com" }
+    },
+    {
+      "id": "home_brand_external",
+      "input": { "name": "Aster Mail", "email": "x@evil.example", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "home_brand_name", "claimed": "Aster" } }
+    },
+    {
+      "id": "home_brand_user_address",
+      "input": { "name": "Aster Support", "email": "randomuser@astermail.org", "is_internal": true },
+      "expect": { "auth_state": "internal", "warning": { "kind": "home_brand_name", "claimed": "Aster" } }
+    },
+    {
+      "id": "home_brand_official_internal",
+      "input": { "name": "Aster Support", "email": "support@astermail.org", "is_internal": true },
+      "expect": { "name": "Aster Support", "warning": null, "show_identity_marks": true }
+    },
+    {
+      "id": "home_brand_official_spoofed",
+      "input": { "name": "Aster Support", "email": "support@astermail.org", "sender_aligned": false, "spf_result": "fail", "dmarc_result": "fail" },
+      "expect": { "auth_state": "failed", "warning": { "kind": "home_brand_name", "claimed": "Aster" }, "show_identity_marks": false }
+    },
+    {
+      "id": "home_brand_lookalike",
+      "input": { "name": "Aster MaiI", "email": "x@evil.example", "sender_aligned": true },
+      "expect": { "warning": { "kind": "home_brand_name", "claimed": "Aster" } }
+    },
+    {
+      "id": "home_first_name_no_warning",
+      "input": { "name": "Aster", "email": "aster@example.com", "sender_aligned": true },
+      "expect": { "name": "Aster", "warning": null }
+    },
+    {
+      "id": "home_person_name_no_warning",
+      "input": { "name": "Aster Bekele", "email": "aster.bekele@example.com", "sender_aligned": true },
+      "expect": { "name": "Aster Bekele", "warning": null }
+    },
+    {
+      "id": "own_address_never_warns",
+      "input": { "name": "PayPal", "email": "me@example.com", "own_addresses": ["me@example.com"], "is_internal": true },
+      "expect": { "name": "PayPal", "warning": null }
+    },
+    {
+      "id": "sanitize_bidi_override",
+      "input": { "name": "‮moc.elgoog‬ Jordan", "email": "j@example.com", "sender_aligned": true },
+      "expect": { "name": "moc.elgoog Jordan" }
+    },
+    {
+      "id": "sanitize_controls_and_spaces",
+      "input": { "name": "  \"Jordan\u0000\t   Lee\"\r\n ", "email": "j@example.com", "sender_aligned": true },
+      "expect": { "name": "Jordan Lee" }
+    },
+    {
+      "id": "sanitize_invisible_only",
+      "input": { "name": "​⁠ㅤ‍", "email": "j@example.com", "sender_aligned": true },
+      "expect": { "name": "" }
+    },
+    {
+      "id": "sanitize_keeps_emoji_joiner",
+      "input": { "name": "Sam 👩‍💻", "email": "sam@example.com", "sender_aligned": true },
+      "expect": { "name": "Sam 👩‍💻" }
+    },
+    {
+      "id": "sanitize_length_cap",
+      "input": { "name": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "email": "j@example.com", "sender_aligned": true },
+      "expect": { "name": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" }
+    },
+    {
+      "id": "auth_aligned_false_no_failures",
+      "input": { "name": "Jordan", "email": "j@nodns.example", "sender_aligned": false, "spf_result": "none", "dkim_result": "none", "dmarc_result": "none" },
+      "expect": { "auth_state": "unverified", "warning": null, "show_identity_marks": false }
+    },
+    {
+      "id": "auth_aligned_false_passes_for_other_domain",
+      "input": { "name": "Jordan", "email": "j@victim.example", "sender_aligned": false, "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "none" },
+      "expect": { "auth_state": "unverified", "show_identity_marks": false }
+    },
+    {
+      "id": "auth_aligned_false_with_failure",
+      "input": { "name": "Jordan", "email": "j@victim.example", "sender_aligned": false, "spf_result": "fail", "dkim_result": "none", "dmarc_result": "fail" },
+      "expect": { "auth_state": "failed", "show_identity_marks": false }
+    },
+    {
+      "id": "auth_legacy_all_missing",
+      "input": { "name": "Jordan", "email": "j@example.com" },
+      "expect": { "auth_state": "unknown", "show_identity_marks": true }
+    },
+    {
+      "id": "auth_legacy_all_none",
+      "input": { "name": "Jordan", "email": "j@example.com", "spf_result": "none", "dkim_result": "none", "dmarc_result": "none" },
+      "expect": { "auth_state": "unverified", "show_identity_marks": false }
+    },
+    {
+      "id": "auth_legacy_pass",
+      "input": { "name": "Jordan", "email": "j@example.com", "spf_result": "pass", "dkim_result": "none", "dmarc_result": "none" },
+      "expect": { "auth_state": "unknown", "show_identity_marks": true }
+    },
+    {
+      "id": "auth_legacy_dmarc_fail",
+      "input": { "name": "Jordan", "email": "j@example.com", "spf_result": "pass", "dkim_result": "none", "dmarc_result": "FAIL" },
+      "expect": { "auth_state": "failed" }
+    },
+    {
+      "id": "auth_legacy_temperror",
+      "input": { "name": "Jordan", "email": "j@example.com", "spf_result": "temperror", "dkim_result": "none", "dmarc_result": "none" },
+      "expect": { "auth_state": "unknown", "show_identity_marks": true }
+    },
+    {
+      "id": "verified_badge_wrong_domain",
+      "input": { "name": "Brand", "email": "x@other.example", "sender_aligned": true, "sender_verified": true, "sender_verified_domain": "brand.example" },
+      "expect": { "show_verified_badge": false }
+    },
+    {
+      "id": "verified_badge_subdomain",
+      "input": { "name": "Brand", "email": "x@news.brand.example", "sender_aligned": true, "sender_verified": true, "sender_verified_domain": "brand.example" },
+      "expect": { "show_verified_badge": true }
+    },
+    {
+      "id": "verified_badge_not_aligned",
+      "input": { "name": "Brand", "email": "x@brand.example", "sender_aligned": false, "sender_verified": true, "sender_verified_domain": "brand.example" },
+      "expect": { "show_verified_badge": false }
+    },
+    {
+      "id": "verified_badge_flag_missing",
+      "input": { "name": "Brand", "email": "x@brand.example", "sender_aligned": true, "sender_verified_domain": "brand.example" },
+      "expect": { "show_verified_badge": false }
+    },
+    {
+      "id": "reply_to_other_domain",
+      "input": { "name": "Jordan", "email": "j@example.com", "sender_aligned": true, "reply_to": "Jordan <jordan@elsewhere.example>" },
+      "expect": { "reply_to": "jordan@elsewhere.example", "warning": null }
+    },
+    {
+      "id": "reply_to_same_org",
+      "input": { "name": "Jordan", "email": "j@example.com", "sender_aligned": true, "reply_to": "replies@support.example.com" },
+      "expect": { "reply_to": null }
+    },
+    {
+      "id": "contact_name_other_address",
+      "input": { "name": "Pat Doe", "email": "pat.doe@freemail.example", "sender_aligned": true, "contacts": [{ "name": "Pat Doe", "emails": ["pat@acme.example"] }] },
+      "expect": { "name": "Pat Doe", "warning": null, "contact_notice": "Pat Doe" }
+    },
+    {
+      "id": "contact_name_lookalike",
+      "input": { "name": "Pat  Dоe", "email": "pat.doe@freemail.example", "sender_aligned": true, "contacts": [{ "name": "Pat Doe", "emails": ["pat@acme.example"] }] },
+      "expect": { "contact_notice": "Pat Doe" }
+    },
+    {
+      "id": "contact_known_address",
+      "input": { "name": "Pat Doe", "email": "PAT@acme.example", "sender_aligned": true, "contacts": [{ "name": "Pat Doe", "emails": ["pat@acme.example"] }] },
+      "expect": { "contact_notice": null }
+    },
+    {
+      "id": "contact_single_word_name",
+      "input": { "name": "Mom", "email": "x@freemail.example", "sender_aligned": true, "contacts": [{ "name": "Mom", "emails": ["mom@family.example"] }] },
+      "expect": { "contact_notice": null }
+    },
+    {
+      "id": "invalid_address",
+      "input": { "name": "Jordan", "email": "not an address" },
+      "expect": { "name": "", "address": "", "domain": "", "auth_state": "unverified", "warning": null, "show_identity_marks": false, "show_verified_badge": false }
+    },
+    {
+      "id": "missing_everything",
+      "input": {},
+      "expect": { "name": "", "address": "", "domain": "", "warning": null, "show_identity_marks": false }
+    },
+    {
+      "id": "auth_legacy_dmarc_pass",
+      "input": { "name": "Jordan", "email": "j@example.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass" },
+      "expect": { "auth_state": "authenticated", "show_identity_marks": true }
+    },
+    {
+      "id": "auth_legacy_dkim_only",
+      "input": { "name": "Jordan", "email": "j@example.com", "spf_result": "none", "dkim_result": "pass", "dmarc_result": "none" },
+      "expect": { "auth_state": "unknown" }
+    },
+    {
+      "id": "invalid_address_keeps_at_form",
+      "input": { "name": "PayPal", "email": "security@paypal", "sender_aligned": true },
+      "expect": { "name": "", "address": "security@paypal", "domain": "", "auth_state": "unverified", "warning": null, "show_identity_marks": false }
+    },
+    {
+      "id": "invalid_address_name_as_address",
+      "input": { "name": "PayPal Security", "email": "PayPal Security" },
+      "expect": { "name": "", "address": "", "auth_state": "unverified", "show_identity_marks": false }
+    },
+    {
+      "id": "blank_address_plain_name",
+      "input": { "name": "Jordan", "email": "" },
+      "expect": { "name": "Jordan", "address": "", "warning": null, "show_identity_marks": false }
+    },
+    {
+      "id": "blank_address_brand_name",
+      "input": { "name": "PayPal", "email": "" },
+      "expect": { "name": "", "address": "", "show_identity_marks": false }
+    },
+    {
+      "id": "blank_address_address_in_name",
+      "input": { "name": "billing@paypal.com", "email": "" },
+      "expect": { "name": "", "address": "" }
+    },
+    {
+      "id": "brand_public_mailbox",
+      "input": { "name": "Google", "email": "someone@gmail.com", "sender_aligned": true, "dmarc_result": "pass" },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "Google" } }
+    },
+    {
+      "id": "brand_public_mailbox_generic",
+      "input": { "name": "Microsoft Support", "email": "helpdesk@outlook.com", "sender_aligned": true },
+      "expect": { "warning": { "kind": "brand_name", "claimed": "Microsoft" } }
+    },
+    {
+      "id": "brand_public_mailbox_reserved",
+      "input": { "name": "iCloud", "email": "noreply@icloud.com", "sender_aligned": true },
+      "expect": { "name": "iCloud", "warning": null }
+    },
+    {
+      "id": "brand_public_mailbox_reserved_unauthenticated",
+      "input": { "name": "iCloud", "email": "noreply@icloud.com", "sender_aligned": false },
+      "expect": { "warning": { "kind": "brand_name", "claimed": "iCloud" } }
+    },
+    {
+      "id": "brand_public_mailbox_subdomain",
+      "input": { "name": "Yahoo", "email": "mail@email.yahoo.com", "sender_aligned": true },
+      "expect": { "name": "Yahoo", "warning": null }
+    },
+    {
+      "id": "public_mailbox_plain_person",
+      "input": { "name": "Jordan Lee", "email": "jordan.lee@gmail.com", "sender_aligned": true },
+      "expect": { "name": "Jordan Lee", "warning": null, "show_identity_marks": true }
+    },
+    {
+      "id": "brand_unlisted_suffix",
+      "input": { "name": "PayPal", "email": "x@paypal.xyz", "sender_aligned": true },
+      "expect": { "warning": { "kind": "brand_name", "claimed": "PayPal" } }
+    },
+    {
+      "id": "brand_listed_country_suffix",
+      "input": { "name": "PayPal", "email": "service@paypal.de", "sender_aligned": true },
+      "expect": { "name": "PayPal", "warning": null }
+    },
+    {
+      "id": "brand_secondary_label_other_suffix",
+      "input": { "name": "Microsoft", "email": "x@live.de", "sender_aligned": true },
+      "expect": { "warning": { "kind": "brand_name", "claimed": "Microsoft" } }
+    },
+    {
+      "id": "brand_hosting_domain",
+      "input": { "name": "GitHub", "email": "x@someone.github.io", "sender_aligned": true },
+      "expect": { "warning": { "kind": "brand_name", "claimed": "GitHub" } }
+    },
+    {
+      "id": "brand_notification_subdomain",
+      "input": { "name": "AWS Notifications", "email": "no-reply@sns.amazonaws.com", "sender_aligned": true },
+      "expect": { "name": "AWS Notifications", "warning": null }
+    },
+    {
+      "id": "brand_cloud_tenant_domain",
+      "input": { "name": "Amazon", "email": "x@ec2-1-2-3-4.compute.amazonaws.com", "sender_aligned": true },
+      "expect": { "warning": { "kind": "brand_name", "claimed": "Amazon" } }
+    },
+    {
+      "id": "brand_trademark_symbol",
+      "input": { "name": "PayPal™", "email": "x@evil.example", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "PayPal" } }
+    },
+    {
+      "id": "brand_emoji_decoration",
+      "input": { "name": "🔒 PayPal Security ✅", "email": "x@evil.example", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "PayPal" } }
+    },
+    {
+      "id": "brand_trailing_digits",
+      "input": { "name": "PayPal 2024", "email": "x@evil.example", "sender_aligned": true },
+      "expect": { "warning": { "kind": "brand_name", "claimed": "PayPal" } }
+    },
+    {
+      "id": "brand_refund_department",
+      "input": { "name": "Netflix Refund Department", "email": "x@evil.example", "sender_aligned": true },
+      "expect": { "warning": { "kind": "brand_name", "claimed": "Netflix" } }
+    },
+    {
+      "id": "office_alone_is_not_a_brand",
+      "input": { "name": "Office", "email": "office@smallbiz.example", "sender_aligned": true },
+      "expect": { "name": "Office", "warning": null }
+    },
+    {
+      "id": "app_alone_is_not_a_brand",
+      "input": { "name": "App Support", "email": "help@smallbiz.example", "sender_aligned": true },
+      "expect": { "name": "App Support", "warning": null }
+    },
+    {
+      "id": "person_named_like_ambiguous_brand",
+      "input": { "name": "Chase Miller", "email": "chase@smallbiz.example", "sender_aligned": true },
+      "expect": { "name": "Chase Miller", "warning": null }
+    },
+    {
+      "id": "address_in_name_spaced",
+      "input": { "name": "ceo @ bigbank.example", "email": "x@evil.example", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "address_in_name", "claimed": "ceo@bigbank.example" } }
+    },
+    {
+      "id": "at_sign_without_domain",
+      "input": { "name": "Lunch @ Noon", "email": "x@cafe.example", "sender_aligned": true },
+      "expect": { "name": "Lunch @ Noon", "warning": null }
+    },
+    {
+      "id": "address_in_name_second_relay",
+      "input": { "name": "bob@example.org", "email": "abc123@passmail.com", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "reply_to_second_address",
+      "input": { "name": "Jordan", "email": "j@example.com", "sender_aligned": true, "reply_to": "a@example.com, b@evil.example" },
+      "expect": { "reply_to": "b@evil.example" }
+    },
+    {
+      "id": "reply_to_quoted_comma",
+      "input": { "name": "Jordan", "email": "j@example.com", "sender_aligned": true, "reply_to": "\"Doe, Jane\" <jane@example.com>" },
+      "expect": { "reply_to": null }
+    },
+    {
+      "id": "reply_to_quoted_decoy",
+      "input": { "name": "Jordan", "email": "j@example.com", "sender_aligned": true, "reply_to": "\"a@example.com, x\" <b@evil.example>" },
+      "expect": { "reply_to": "b@evil.example" }
+    },
+    {
+      "id": "own_address_spoofed",
+      "input": { "name": "PayPal", "email": "me@example.com", "own_addresses": ["me@example.com"], "sender_aligned": false, "spf_result": "fail" },
+      "expect": { "name": "", "auth_state": "failed", "warning": { "kind": "brand_name", "claimed": "PayPal" }, "show_identity_marks": false }
+    },
+    {
+      "id": "brand_name_mixed_case",
+      "input": { "name": "LInkedin", "email": "jobs@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "LinkedIn" }, "show_identity_marks": false }
+    },
+    {
+      "id": "brand_name_mixed_case_real_domain",
+      "input": { "name": "LInkedin", "email": "jobs@linkedin.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "LInkedin", "warning": null }
+    },
+    {
+      "id": "address_in_name_trailing_slash",
+      "input": { "name": "ceo@bigcorp.com/", "email": "attacker@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "address_in_name", "claimed": "ceo@bigcorp.com" } }
+    },
+    {
+      "id": "address_in_name_other_public_mailbox",
+      "input": { "name": "john.boss@gmail.com", "email": "john.b0ss.attacker@gmail.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "address_in_name", "claimed": "john.boss@gmail.com" } }
+    },
+    {
+      "id": "address_in_name_same_public_mailbox",
+      "input": { "name": "Jane.Doe@gmail.com", "email": "jane.doe@gmail.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "address_in_name_same_company_domain",
+      "input": { "name": "support@example.com", "email": "noreply@example.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "brand_domain_in_name",
+      "input": { "name": "www.paypal.com", "email": "billing@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "paypal.com" }, "show_identity_marks": false }
+    },
+    {
+      "id": "brand_domain_in_name_homograph",
+      "input": { "name": "PaypaI.com Billing", "email": "billing@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "paypal.com" } }
+    },
+    {
+      "id": "brand_domain_in_name_real_sender",
+      "input": { "name": "PayPal.com", "email": "service@paypal.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "PayPal.com", "warning": null }
+    },
+    {
+      "id": "brand_domain_in_name_sibling_domain",
+      "input": { "name": "Amazon.com", "email": "store-news@amazon.co.uk", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "Amazon.com", "warning": null }
+    },
+    {
+      "id": "brand_domain_in_name_shared_owner",
+      "input": { "name": "microsoft.com", "email": "jobs@linkedin.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "home_domain_in_name",
+      "input": { "name": "astermail.org support", "email": "help@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "home_brand_name", "claimed": "Aster" } }
+    },
+    {
+      "id": "unknown_domain_in_name",
+      "input": { "name": "Node.js Weekly at example.org", "email": "news@cooperpress.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "Node.js Weekly at example.org", "warning": null }
+    },
+    {
+      "id": "public_mailbox_domain_in_name",
+      "input": { "name": "Sam (gmail.com)", "email": "sam@work.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "Sam (gmail.com)", "warning": null }
+    },
+    {
+      "id": "abbreviation_is_not_a_domain",
+      "input": { "name": "U.S. Bancorp Inc. News", "email": "news@unrelated.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "address_in_name_dotted_same_mailbox",
+      "input": { "name": "j.smith@gmail.com", "email": "jsmith@gmail.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "address_in_name_tagged_same_mailbox",
+      "input": { "name": "jane@gmail.com", "email": "jane+news@gmail.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "address_in_name_glued_prefix_same_mailbox",
+      "input": { "name": "Jane|jane@gmail.com", "email": "jane@gmail.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "address_in_name_glued_suffix",
+      "input": { "name": "john.boss@gmail.com/x", "email": "john.b0ss.attacker@gmail.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "address_in_name", "claimed": "john.boss@gmail.com" } }
+    },
+    {
+      "id": "address_in_name_glued_suffix_other_domain",
+      "input": { "name": "ceo@bigcorp.example|CEO", "email": "eve@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "address_in_name", "claimed": "ceo@bigcorp.example" } }
+    },
+    {
+      "id": "address_in_name_other_home_mailbox",
+      "input": { "name": "support@astermail.org", "email": "eve@astermail.org", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "is_internal": true },
+      "expect": { "name": "", "warning": { "kind": "address_in_name", "claimed": "support@astermail.org" } }
+    },
+    {
+      "id": "address_in_name_same_home_mailbox",
+      "input": { "name": "eve@astermail.org", "email": "eve@astermail.org", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "is_internal": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "brand_country_domain_in_name",
+      "input": { "name": "Amazon.co.uk", "email": "orders@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "Amazon" } }
+    },
+    {
+      "id": "brand_country_domain_in_name_real_sender",
+      "input": { "name": "Amazon.co.uk", "email": "orders@amazon.co.uk", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "brand_other_suffix_domain_in_name",
+      "input": { "name": "PayPal.de", "email": "service@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "PayPal" } }
+    },
+    {
+      "id": "brand_domain_in_name_uppercase",
+      "input": { "name": "WINDOWS.COM Security", "email": "alert@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "windows.com" } }
+    },
+    {
+      "id": "ambiguous_label_domain_in_name",
+      "input": { "name": "apple.farm", "email": "hello@orchard.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "own_domain_in_name",
+      "input": { "name": "Amazon.tools", "email": "hello@amazon.tools", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "brand_domain_in_name_spaced_dot",
+      "input": { "name": "venmo .com Support", "email": "alert@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "venmo.com" } }
+    },
+    {
+      "id": "brand_domain_in_name_bracketed_dot",
+      "input": { "name": "xoom[.]com", "email": "alert@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "xoom.com" } }
+    },
+    {
+      "id": "brand_domain_in_name_word_dot",
+      "input": { "name": "Venmo (dot) com", "email": "alert@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "venmo.com" } }
+    },
+    {
+      "id": "framework_suffix_in_name",
+      "input": { "name": "Jane .NET Developer", "email": "jane@devshop.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "bracketed_dot_ordinary_name",
+      "input": { "name": "Hello (dot) world", "email": "hi@studio.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "spaced_dot_ordinary_name",
+      "input": { "name": "Sam .Reyes", "email": "sam@studio.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "address_in_name_cut_by_length",
+      "input": { "name": "Regional customer care and account services desk Regional customer care and account support@bigcorp.example", "email": "eve@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "address_in_name", "claimed": "support@bigcorp.example" } }
+    },
+    {
+      "id": "long_ordinary_name",
+      "input": { "name": "Regional customer care and account services desk Regional customer care and account services desk Regional customer care and account services desk", "email": "desk@studio.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "brand_domain_in_name_space_after_dot",
+      "input": { "name": "venmo. com Support", "email": "alert@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "venmo.com" } }
+    },
+    {
+      "id": "brand_domain_in_name_spaces_around_dot",
+      "input": { "name": "Venmo . com", "email": "alert@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "venmo.com" } }
+    },
+    {
+      "id": "brand_domain_in_name_encoded",
+      "input": { "name": "xn--pypal-4ve.com", "email": "eve@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "paypal.com" } }
+    },
+    {
+      "id": "sentence_break_ordinary_name",
+      "input": { "name": "Thanks. Come again", "email": "hi@studio.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "initial_ordinary_name",
+      "input": { "name": "R. Tanaka", "email": "r.tanaka@studio.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "encoded_own_domain_in_name",
+      "input": { "name": "xn--bcher-kva.example", "email": "info@xn--bcher-kva.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "brand_name_with_action_words",
+      "input": { "name": "PayPal Action Required", "email": "eve@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "PayPal" } }
+    },
+    {
+      "id": "home_name_staff",
+      "input": { "name": "Aster Staff", "email": "eve@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "home_brand_name", "claimed": "Aster" } }
+    },
+    {
+      "id": "home_name_administrator",
+      "input": { "name": "Aster Mail Administrator", "email": "eve@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "home_brand_name", "claimed": "Aster" } }
+    },
+    {
+      "id": "home_name_abuse_desk",
+      "input": { "name": "Aster Abuse Desk", "email": "eve@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "home_brand_name", "claimed": "Aster" } }
+    },
+    {
+      "id": "home_name_help",
+      "input": { "name": "Aster Help", "email": "hi@asterhelp.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "home_brand_name", "claimed": "Aster" } }
+    },
+    {
+      "id": "home_name_neutral_then_role",
+      "input": { "name": "Aster Online Support", "email": "eve@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "home_brand_name", "claimed": "Aster" } }
+    },
+    {
+      "id": "home_word_online_ordinary",
+      "input": { "name": "Aster Online", "email": "hello@aster-online.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "home_word_ltd_ordinary",
+      "input": { "name": "Aster Ltd", "email": "info@asterltd.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "home_word_care_ordinary",
+      "input": { "name": "Aster Care", "email": "team@astercare.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "home_word_the_ordinary",
+      "input": { "name": "The Aster", "email": "stay@theaster.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "brand_domain_in_name_with_tail",
+      "input": { "name": "paypal.com.messages", "email": "eve@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "paypal.com" } }
+    },
+    {
+      "id": "brand_domain_in_name_after_other_domain",
+      "input": { "name": "proton.me paypal.com", "email": "eve@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "paypal.com" } }
+    },
+    {
+      "id": "country_brand_domain_own_name",
+      "input": { "name": "amazon.com.br", "email": "pedidos@amazon.com.br", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "brand_name_modifier_apostrophe",
+      "input": { "name": "PayPal\u02bc Support", "email": "eve@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "PayPal" } }
+    },
+    {
+      "id": "brand_name_middle_dot",
+      "input": { "name": "PayPal\u30fbSupport", "email": "eve@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "PayPal" } }
+    },
+    {
+      "id": "brand_name_trailing_point",
+      "input": { "name": "PayPal\u05b4", "email": "eve@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "lookalike_name", "claimed": "PayPal" } }
+    },
+    {
+      "id": "brand_name_enclosed_letters",
+      "input": { "name": "\ud83c\udd7f\ud83c\udd70\ud83c\udd88\ud83c\udd7f\ud83c\udd70\ud83c\udd7b", "email": "eve@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "PayPal" } }
+    },
+    {
+      "id": "brand_name_stroke_letter",
+      "input": { "name": "Mi\u023crosoft", "email": "eve@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "lookalike_name", "claimed": "Microsoft" } }
+    },
+    {
+      "id": "lookalike_domain_stroke_l",
+      "input": { "name": "", "email": "service@paypa\u019a.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": { "kind": "lookalike_domain", "claimed": "paypal.com" } }
+    },
+    {
+      "id": "lookalike_domain_stroke_t",
+      "input": { "name": "", "email": "service@ne\u0167flix.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": { "kind": "lookalike_domain", "claimed": "netflix.com" } }
+    },
+    {
+      "id": "brand_domain_as_subdomain",
+      "input": { "name": "Account Services", "email": "service@paypal.com.evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "Account Services", "warning": { "kind": "lookalike_domain", "claimed": "paypal.com" } }
+    },
+    {
+      "id": "brand_country_domain_no_subdomain_trick",
+      "input": { "name": "", "email": "info@mail.amazon.com.br", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "address_with_second_at",
+      "input": { "name": "Bank", "email": "service@paypal.com@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": { "kind": "lookalike_domain", "claimed": "paypal.com" } }
+    },
+    {
+      "id": "other_mailbox_in_name_dots_matter",
+      "input": { "name": "john.doe@outlook.com", "email": "johndoe@outlook.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "address_in_name", "claimed": "john.doe@outlook.com" } }
+    },
+    {
+      "id": "same_mailbox_in_name_dots_ignored",
+      "input": { "name": "john.doe@gmail.com", "email": "johndoe@gmail.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "other_mailbox_in_name_regional_provider",
+      "input": { "name": "accounts@gmx.com", "email": "accounts.dept@gmx.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "address_in_name", "claimed": "accounts@gmx.com" } }
+    },
+    {
+      "id": "capitals_acronym_ordinary",
+      "input": { "name": "DHI", "email": "jobs@dhigroupinc.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "capitals_acronym_with_team_ordinary",
+      "input": { "name": "DHI Team", "email": "jobs@dhigroupinc.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "capitals_name_lowercase_l",
+      "input": { "name": "LlNKEDlN", "email": "eve@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "lookalike_name", "claimed": "LinkedIn" } }
+    },
+    {
+      "id": "foreign_word_ordinary",
+      "input": { "name": "\u043c\u0435\u0442\u0430", "email": "news@meta-shop.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "foreign_script_brand_with_role",
+      "input": { "name": "\u041c\u0415\u0422\u0410 Support", "email": "eve@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "Meta" } }
+    },
+    {
+      "id": "foreign_script_solo_brand",
+      "input": { "name": "\u0440\u0430\u0443\u0440\u0430\u04cf", "email": "eve@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "lookalike_name", "claimed": "PayPal" } }
+    },
+    {
+      "id": "brand_with_resolutions_word",
+      "input": { "name": "PayPal Resolutions", "email": "eve@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "PayPal" } }
+    },
+    {
+      "id": "brand_with_issue_words",
+      "input": { "name": "Netflix Billing Issue", "email": "eve@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "Netflix" } }
+    },
+    {
+      "id": "home_brand_helpline",
+      "input": { "name": "Aster Helpline", "email": "eve@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "home_brand_name", "claimed": "Aster" } }
+    },
+    {
+      "id": "capital_hook_letters_brand",
+      "input": { "name": "\u01a4ay\u01a4al", "email": "eve@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "lookalike_name", "claimed": "PayPal" } }
+    },
+    {
+      "id": "capital_straight_u_brand",
+      "input": { "name": "Pa\u04aePal", "email": "eve@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "lookalike_name", "claimed": "PayPal" } }
+    },
+    {
+      "id": "lisu_letters_brand",
+      "input": { "name": "\ua4d1\ua4ee\ua4ec\ua4d1\ua4ee\ua4e1", "email": "eve@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "lookalike_name", "claimed": "PayPal" } }
+    },
+    {
+      "id": "joiner_padding_brand",
+      "input": { "name": "\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200dPayPal Security", "email": "eve@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "PayPal" } }
+    },
+    {
+      "id": "joiner_padding_plain_name",
+      "input": { "name": "\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200dJane Doe", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "Jane Doe", "warning": null }
+    },
+    {
+      "id": "joiner_only_name",
+      "input": { "name": "\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d\u200d", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": null }
+    },
+    {
+      "id": "emoji_joiner_kept",
+      "input": { "name": "Jane \ud83d\udc69\u200d\ud83d\udcbb", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "Jane \ud83d\udc69\u200d\ud83d\udcbb", "warning": null }
+    },
+    {
+      "id": "second_address_in_name",
+      "input": { "name": "x@evil.example ceo@victimcorp.com", "email": "x@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "address_in_name", "claimed": "ceo@victimcorp.com" } }
+    },
+    {
+      "id": "own_address_twice_in_name",
+      "input": { "name": "jane@company.example jane@company.example", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "shared_tenant_other_tenant_in_name",
+      "input": { "name": "ceo@victim.onmicrosoft.com", "email": "x@evil.onmicrosoft.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "address_in_name", "claimed": "ceo@victim.onmicrosoft.com" } }
+    },
+    {
+      "id": "shared_tenant_own_address_in_name",
+      "input": { "name": "Jane jane@team.onmicrosoft.com", "email": "jane@team.onmicrosoft.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "shared_tenant_other_site_in_name",
+      "input": { "name": "admin@bank.github.io", "email": "admin@evil.github.io", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": { "kind": "address_in_name", "claimed": "admin@bank.github.io" } }
+    },
+    {
+      "id": "plain_domain_other_mailbox_in_name",
+      "input": { "name": "sales@company.example", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "brand_with_corporate_suffix",
+      "input": { "name": "PayPal Limited", "email": "x@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "PayPal" } }
+    },
+    {
+      "id": "brand_with_corporation_word",
+      "input": { "name": "Microsoft Corporation", "email": "x@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "Microsoft" } }
+    },
+    {
+      "id": "brand_with_hq_word",
+      "input": { "name": "Netflix HQ", "email": "x@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "Netflix" } }
+    },
+    {
+      "id": "brand_with_corporate_suffix_own_domain",
+      "input": { "name": "PayPal Limited", "email": "service@paypal.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "PayPal Limited", "warning": null }
+    },
+    {
+      "id": "home_word_with_corporate_suffix",
+      "input": { "name": "Aster Limited", "email": "info@asterdm.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "Aster Limited", "warning": null }
+    },
+    {
+      "id": "unrelated_name_with_corporate_suffix",
+      "input": { "name": "Northwind Traders Limited", "email": "info@northwind.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "Northwind Traders Limited", "warning": null }
+    },
+    {
+      "id": "reply_to_after_many_entries",
+      "input": { "name": "Jane Doe", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "list0@company.example, list1@company.example, list2@company.example, list3@company.example, list4@company.example, list5@company.example, list6@company.example, list7@company.example, list8@company.example, list9@company.example, list10@company.example, list11@company.example, list12@company.example, list13@company.example, list14@company.example, list15@company.example, list16@company.example, list17@company.example, list18@company.example, list19@company.example, list20@company.example, list21@company.example, list22@company.example, list23@company.example, list24@company.example, attacker@evil.example" },
+      "expect": { "reply_to": "attacker@evil.example" }
+    },
+    {
+      "id": "reply_to_other_mailbox_public_domain",
+      "input": { "name": "Boss", "email": "boss@gmail.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "b0ss@gmail.com" },
+      "expect": { "reply_to": null }
+    },
+    {
+      "id": "reply_to_same_mailbox_shared_domain",
+      "input": { "name": "Boss", "email": "the.boss@gmail.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "theboss+news@gmail.com" },
+      "expect": { "reply_to": null }
+    },
+    {
+      "id": "reply_to_other_mailbox_plain_domain",
+      "input": { "name": "Jane Doe", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "support@company.example" },
+      "expect": { "reply_to": null }
+    },
+    {
+      "id": "reply_to_other_tenant",
+      "input": { "name": "Finance", "email": "finance@victim.onmicrosoft.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "finance@evil.onmicrosoft.com" },
+      "expect": { "domain": "victim.onmicrosoft.com", "reply_to": "finance@evil.onmicrosoft.com" }
+    },
+    {
+      "id": "reply_to_same_tenant",
+      "input": { "name": "Finance", "email": "noreply@contoso.onmicrosoft.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "helpdesk@contoso.onmicrosoft.com" },
+      "expect": { "reply_to": null }
+    },
+    {
+      "id": "reply_to_tenant_parent",
+      "input": { "name": "Blog Host", "email": "no-reply@wordpress.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "help@wordpress.com" },
+      "expect": { "reply_to": null }
+    },
+    {
+      "id": "same_tenant_other_mailbox_in_name",
+      "input": { "name": "info@acme.uk.com", "email": "sales@acme.uk.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "warning": null }
+    },
+    {
+      "id": "reply_to_after_junk_entries",
+      "input": { "name": "Jane Doe", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,attacker@evil.example" },
+      "expect": { "reply_to": "attacker@evil.example" }
+    },
+    {
+      "id": "ambiguous_brand_with_company_word",
+      "input": { "name": "Chase Corporation", "email": "info@chasecorp.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "Chase Corporation", "warning": null }
+    },
+    {
+      "id": "ambiguous_brand_with_short_company_word",
+      "input": { "name": "Chase Corp", "email": "info@chasecorp.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "Chase Corp", "warning": null }
+    },
+    {
+      "id": "home_brand_with_hq_word",
+      "input": { "name": "Aster HQ", "email": "x@gmail.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "home_brand_name", "claimed": "Aster" } }
+    },
+    {
+      "id": "brand_domain_inside_tenant_host",
+      "input": { "name": "PayPal", "email": "x@paypal.com.uk.com", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "lookalike_domain", "claimed": "paypal.com" } }
+    },
+    {
+      "id": "lookalike_tenant_label",
+      "input": { "name": "Billing", "email": "billing@paypa1.zendesk.com", "sender_aligned": true },
+      "expect": { "warning": { "kind": "lookalike_domain", "claimed": "paypal.com" } }
+    },
+    {
+      "id": "plain_tenant_host_no_warning",
+      "input": { "name": "Acme Support", "email": "support@acme.zendesk.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "Acme Support", "warning": null, "auth_state": "authenticated" }
+    },
+    {
+      "id": "ambiguous_brand_legal_name",
+      "input": { "name": "Stripe, Inc.", "email": "billing@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "Stripe" } }
+    },
+    {
+      "id": "ambiguous_brand_legal_name_short",
+      "input": { "name": "Apple Inc.", "email": "x@evil.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "", "warning": { "kind": "brand_name", "claimed": "Apple" } }
+    },
+    {
+      "id": "ambiguous_brand_legal_name_own_domain",
+      "input": { "name": "Stripe, Inc.", "email": "billing@stripe.com", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true },
+      "expect": { "name": "Stripe, Inc.", "warning": null }
+    },
+    {
+      "id": "reply_to_after_long_padding",
+      "input": { "name": "Jane Doe", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, jane@company.example, attacker@evil.example" },
+      "expect": { "reply_to": "attacker@evil.example" }
+    },
+    {
+      "id": "reply_to_past_old_limit",
+      "input": { "name": "Jane Doe", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, a@company.example, attacker@evil.example" },
+      "expect": { "reply_to": "attacker@evil.example" }
+    },
+    {
+      "id": "reply_to_unbalanced_quote",
+      "input": { "name": "Jane Doe", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "\"<x@evil.example>, <jane@company.example>" },
+      "expect": { "reply_to": "x@evil.example" }
+    },
+    {
+      "id": "reply_to_unbalanced_angle",
+      "input": { "name": "Jane Doe", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "<x@evil.example, <jane@company.example>" },
+      "expect": { "reply_to": "x@evil.example" }
+    },
+    {
+      "id": "reply_to_comment_decoy",
+      "input": { "name": "Jane Doe", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "x@evil.example (<jane@company.example>)" },
+      "expect": { "reply_to": "x@evil.example" }
+    },
+    {
+      "id": "reply_to_group_syntax",
+      "input": { "name": "Jane Doe", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "team: x@evil.example;" },
+      "expect": { "reply_to": "x@evil.example" }
+    },
+    {
+      "id": "reply_to_name_without_brackets",
+      "input": { "name": "Jane Doe", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "Bob x@evil.example" },
+      "expect": { "reply_to": "x@evil.example" }
+    },
+    {
+      "id": "reply_to_quoted_local_part",
+      "input": { "name": "Jane Doe", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "\"x\"@evil.example" },
+      "expect": { "reply_to": "evil.example" }
+    },
+    {
+      "id": "reply_to_double_at",
+      "input": { "name": "Jane Doe", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "x@evil.example@company.example" },
+      "expect": { "reply_to": "x@evil.example" }
+    },
+    {
+      "id": "reply_to_address_literal",
+      "input": { "name": "Jane Doe", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "x@[192.0.2.1]" },
+      "expect": { "reply_to": "x@" }
+    },
+    {
+      "id": "reply_to_comment_same_domain",
+      "input": { "name": "Jane Doe", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "jane@company.example (Jane)" },
+      "expect": { "reply_to": null }
+    },
+    {
+      "id": "reply_to_own_address_as_name",
+      "input": { "name": "Jane Doe", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "\"jane@company.example\" <jane@company.example>" },
+      "expect": { "reply_to": null }
+    },
+    {
+      "id": "reply_to_name_with_comma",
+      "input": { "name": "Jane Doe", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "\"Doe, Jane\" <jane@company.example>" },
+      "expect": { "reply_to": null }
+    },
+    {
+      "id": "reply_to_name_with_partial_address",
+      "input": { "name": "Jane Doe", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "\"a@b\" <jane@company.example>" },
+      "expect": { "reply_to": null }
+    },
+    {
+      "id": "reply_to_repeated_then_foreign",
+      "input": { "name": "Jane Doe", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "jane@company.example, jane@company.example, x@evil.example, jane@company.example" },
+      "expect": { "reply_to": "x@evil.example" }
+    },
+    {
+      "id": "reply_to_underscore_host_decoy",
+      "input": { "name": "Jane Doe", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "x@a_b.evil.example (<jane@company.example>)" },
+      "expect": { "reply_to": "x@a_b.evil.example" }
+    },
+    {
+      "id": "reply_to_address_literal_decoy",
+      "input": { "name": "Jane Doe", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "x@[192.0.2.1] (<jane@company.example>)" },
+      "expect": { "reply_to": "x@" }
+    },
+    {
+      "id": "reply_to_long_address_decoy",
+      "input": { "name": "Jane Doe", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee@evil.example (<jane@company.example>)" },
+      "expect": { "reply_to": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee" }
+    },
+    {
+      "id": "reply_to_wide_at_sign_decoy",
+      "input": { "name": "Jane Doe", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "x\uff20evil.example (<jane@company.example>)" },
+      "expect": { "reply_to": "x@evil.example" }
+    },
+    {
+      "id": "reply_to_single_quoted",
+      "input": { "name": "Jane Doe", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "'jane@company.example'" },
+      "expect": { "reply_to": null }
+    },
+    {
+      "id": "reply_to_underscore_host_same_org",
+      "input": { "name": "Jane Doe", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "replies@em_1.company.example" },
+      "expect": { "reply_to": null }
+    },
+    {
+      "id": "reply_to_comment_with_at_sign",
+      "input": { "name": "Jane Doe", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "jane@company.example (Jane @ HQ)" },
+      "expect": { "reply_to": null }
+    },
+    {
+      "id": "reply_to_handle_in_name",
+      "input": { "name": "Jane Doe", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "Jane @jane <jane@company.example>" },
+      "expect": { "reply_to": null }
+    }
+  ]
+}

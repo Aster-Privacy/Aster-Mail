@@ -24,6 +24,7 @@ import type { ComponentType, SVGProps } from "react";
 import { useId, useRef, useState } from "react";
 import {
   ExclamationTriangleIcon,
+  QuestionMarkCircleIcon,
   XCircleIcon,
 } from "@heroicons/react/16/solid";
 import {
@@ -52,41 +53,55 @@ import {
 interface EmailAuthIndicatorProps {
   results: EmailAuthResults;
   sender_email?: string;
+  unverified?: boolean;
   on_show_details?: () => void;
   className?: string;
 }
 
 type Icon = ComponentType<SVGProps<SVGSVGElement>>;
 
-type ShownVerdict = Extract<EmailAuthVerdict, "partial" | "failed">;
+type ShownVerdict = Extract<
+  EmailAuthVerdict,
+  "partial" | "failed" | "unverified"
+>;
 
-const VERDICT_BADGE: Record<ShownVerdict, "amber" | "red"> = {
+const VERDICT_BADGE: Record<ShownVerdict, "amber" | "red" | "gray"> = {
   partial: "amber",
   failed: "red",
+  unverified: "gray",
 };
 
 const VERDICT_ICON: Record<ShownVerdict, Icon> = {
   partial: ExclamationTriangleIcon,
   failed: XCircleIcon,
+  unverified: QuestionMarkCircleIcon,
 };
 
 const VERDICT_COLOR: Record<ShownVerdict, string> = {
   partial: "var(--cat-amber-fg)",
   failed: "var(--cat-rose-fg)",
+  unverified: "var(--text-secondary)",
 };
 
 const VERDICT_LABEL: Record<ShownVerdict, TranslationKey> = {
   partial: "mail.email_auth_partial",
   failed: "mail.email_auth_failed",
+  unverified: "mail.email_auth_unverified",
 };
 
 const VERDICT_DESC: Record<ShownVerdict, TranslationKey> = {
   partial: "mail.email_auth_partial_desc",
   failed: "mail.email_auth_failed_desc",
+  unverified: "mail.email_auth_unverified_desc",
 };
 
-function is_shown(verdict: EmailAuthVerdict): verdict is ShownVerdict {
-  return verdict === "partial" || verdict === "failed";
+function shown_verdict(
+  verdict: EmailAuthVerdict | undefined,
+  unverified: boolean,
+): ShownVerdict | null {
+  if (verdict === "partial" || verdict === "failed") return verdict;
+
+  return unverified ? "unverified" : null;
 }
 
 export const CHECK_NAME: Record<EmailAuthCheck, string> = {
@@ -179,6 +194,7 @@ export function EmailAuthCheckStatus({
 export function EmailAuthIndicator({
   results,
   sender_email,
+  unverified = false,
   on_show_details,
   className = "",
 }: EmailAuthIndicatorProps) {
@@ -191,11 +207,11 @@ export function EmailAuthIndicator({
   const summary = summarize_email_authentication(results);
   const domain = display_domain(sender_email);
 
-  if (!summary || !domain) return null;
+  const verdict = shown_verdict(summary?.verdict, unverified);
 
-  const { verdict, checks } = summary;
+  if (!verdict || !domain) return null;
 
-  if (!is_shown(verdict)) return null;
+  const checks = summary?.checks ?? [];
   const VerdictIcon = VERDICT_ICON[verdict];
   const verdict_label = t(VERDICT_LABEL[verdict]);
   const label = t("mail.email_auth_label", { verdict: verdict_label });
@@ -273,7 +289,7 @@ export function EmailAuthIndicator({
             </p>
           </div>
         </div>
-        <ul className="mt-3 space-y-2">
+        <ul className={checks.length > 0 ? "mt-3 space-y-2" : "hidden"}>
           {checks.map((result) => (
             <li
               key={result.check}

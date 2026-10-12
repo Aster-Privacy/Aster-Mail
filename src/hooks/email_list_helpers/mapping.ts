@@ -149,6 +149,7 @@ export function mail_to_email(
       sender_verified_domain: item.sender_verified
         ? item.sender_verified_domain
         : undefined,
+      sender_aligned: item.sender_aligned,
       folders,
       tags,
       snoozed_until: effective_metadata.snoozed_until,
@@ -227,6 +228,7 @@ export function mail_to_email(
     sender_verified_domain: item.sender_verified
       ? item.sender_verified_domain
       : undefined,
+    sender_aligned: item.sender_aligned,
     sender_verification: envelope.sender_verification,
     folders,
     tags,

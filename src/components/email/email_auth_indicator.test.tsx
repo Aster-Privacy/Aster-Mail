@@ -145,6 +145,35 @@ describe("EmailAuthIndicator", () => {
     expect(icons.size).toBe(2);
   });
 
+  it("shows a quiet gray chip for an unverified sender", () => {
+    render(
+      <EmailAuthIndicator
+        unverified
+        results={{}}
+        sender_email="news@shop.test"
+      />,
+    );
+
+    const badge = trigger()?.querySelector(".aster_badge");
+
+    expect(trigger()?.dataset.verdict).toBe("unverified");
+    expect(badge?.textContent).toBe("mail.email_auth_unverified");
+    expect(badge?.classList.contains("aster_badge_red")).toBe(false);
+    open_popover();
+    expect(document.querySelector("bdi")?.textContent).toBe("shop.test");
+  });
+
+  it("keeps the failed badge when checks failed outright", () => {
+    render(
+      <EmailAuthIndicator
+        unverified
+        results={failed}
+        sender_email="news@shop.test"
+      />,
+    );
+    expect(trigger()?.dataset.verdict).toBe("failed");
+  });
+
   it("names the popover and shows the domain isolated and in ASCII", () => {
     render(
       <EmailAuthIndicator

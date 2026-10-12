@@ -39,6 +39,7 @@ import {
 } from "@/hooks/use_unsubscribed_senders";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
+import { safe_sender_name } from "@/lib/sender_trust_store";
 import { use_preferences } from "@/contexts/preferences_context";
 import { get_undo_send_delay_ms } from "@/services/send_queue";
 
@@ -52,10 +53,11 @@ interface UnsubscribeBannerProps {
 export function UnsubscribeBanner({
   unsubscribe_info,
   sender_email,
-  sender_name,
+  sender_name: claimed_name,
   on_unsubscribed,
 }: UnsubscribeBannerProps) {
   const { t } = use_i18n();
+  const sender_name = safe_sender_name(claimed_name, sender_email);
   const { preferences } = use_preferences();
   const reduce_motion = use_should_reduce_motion();
   const { is_unsubscribed } = use_unsubscribed_senders();

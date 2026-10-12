@@ -75,6 +75,7 @@ import {
 import { OfficialBadge } from "@/components/email/official_badge";
 import { VerifiedSenderBadge } from "@/components/email/verified_sender_badge";
 import { EmailAuthIndicator } from "@/components/email/email_auth_indicator";
+import { SenderTrustBanner } from "@/components/email/banners/sender_trust_banner";
 import { summarize_email_authentication } from "@/utils/email_authentication";
 import { catch_all_reply_address } from "@/services/catch_all_sender";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -160,6 +161,7 @@ export function ThreadMessageBlock(
     is_ghost_sender,
     show_sender_name,
     show_sender_email,
+    sender_trust,
     received_on_address,
     alias_delivery,
     delivered_to_address,
@@ -261,6 +263,8 @@ export function ThreadMessageBlock(
     );
   };
 
+  const marks_hidden = sender_trust?.show_identity_marks === false;
+  const shown_address = sender_trust?.address || show_sender_email;
   const auth_summary = summarize_email_authentication(message);
   const auth_failed_checks =
     auth_summary?.verdict === "failed"
@@ -324,15 +328,20 @@ export function ThreadMessageBlock(
           <SenderProfileTrigger
             className="flex-shrink-0 mt-0.5 rounded-full hover:opacity-80 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
             email={message.sender_email}
-            name={message.sender_name}
+            name={sender_trust ? sender_trust.name : message.sender_name}
+            plain={marks_hidden}
           >
             <ProfileAvatar
               use_domain_logo
               email={show_sender_email}
               name={show_sender_name}
-              sender_authenticated={is_system_email(
-                trust_source_for_display(message, show_sender_email),
-              )}
+              plain={marks_hidden}
+              sender_authenticated={
+                !marks_hidden &&
+                is_system_email(
+                  trust_source_for_display(message, show_sender_email),
+                )
+              }
               size="md"
             />
           </SenderProfileTrigger>
@@ -347,32 +356,39 @@ export function ThreadMessageBlock(
               <SenderProfileTrigger
                 className="text-sm font-semibold truncate text-txt-primary max-w-full hover:underline underline-offset-2 focus:outline-none"
                 email={message.sender_email}
-                name={message.sender_name}
+                name={sender_trust ? sender_trust.name : message.sender_name}
+                plain={marks_hidden}
               >
                 {name}
               </SenderProfileTrigger>
             )}
-            {!is_own_message && (
+            {!is_own_message && !sender_trust?.warning && !marks_hidden && (
               <OfficialBadge className="flex-shrink-0" sender={message} />
             )}
-            {!is_own_message && (
-              <VerifiedSenderBadge
-                className="flex-shrink-0"
-                domain={message.sender_verified_domain}
-                shown_email={show_sender_email}
-              />
-            )}
+            {!is_own_message &&
+              (!sender_trust || sender_trust.show_verified_badge === true) && (
+                <VerifiedSenderBadge
+                  className="flex-shrink-0"
+                  domain={message.sender_verified_domain}
+                  shown_email={show_sender_email}
+                />
+              )}
             {message.item_type === "received" && (
               <EmailAuthIndicator
                 className="min-w-0 max-w-full"
                 on_show_details={() => set_show_details_modal(true)}
                 results={message}
                 sender_email={message.sender_email}
+                unverified={sender_trust?.auth_state === "unverified"}
               />
             )}
-            <span className="text-xs text-txt-muted truncate hidden sm:inline max-w-full">
-              &lt;{show_sender_email}&gt;
-            </span>
+            {shown_address !== name && (
+              <span
+                className={`text-xs text-txt-muted truncate max-w-full ${sender_trust ? "" : "hidden sm:inline"}`}
+              >
+                &lt;<bdi>{shown_address}</bdi>&gt;
+              </span>
+            )}
             {is_ghost_sender && (
               <Tooltip tip={t("common.ghost_mode_tooltip")}>
                 <EmailTag
@@ -521,10 +537,14 @@ export function ThreadMessageBlock(
                   cc_recipients={message.cc_recipients}
                   date_label={format_email_detail(new Date(message.timestamp))}
                   delivered_to_address={delivered_to_address}
-                  sender_authenticated={is_system_email(
-                    trust_source_for_display(message, show_sender_email),
-                  )}
-                  sender_email={show_sender_email}
+                  plain_avatar={marks_hidden}
+                  sender_authenticated={
+                    !marks_hidden &&
+                    is_system_email(
+                      trust_source_for_display(message, show_sender_email),
+                    )
+                  }
+                  sender_email={shown_address}
                   sender_name={show_sender_name}
                   subject={message.subject || t("mail.no_subject")}
                   to_recipients={message.to_recipients}
@@ -884,6 +904,8 @@ export function ThreadMessageBlock(
           </div>
         </div>
       )}
+
+      <SenderTrustBanner trust={sender_trust} />
 
       {message.item_type === "received" &&
         on_not_spam &&

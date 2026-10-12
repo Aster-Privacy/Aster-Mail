@@ -28,6 +28,7 @@ import {
   type ImageLoadMode,
 } from "@/lib/html_sanitizer";
 import { get_image_proxy_url } from "@/lib/image_proxy";
+import { safe_sender_name } from "@/lib/sender_trust_store";
 import { is_native_platform } from "@/native/capacitor_bridge";
 import { get_cached_preferences } from "@/services/api/preferences";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
@@ -349,6 +350,14 @@ const PRINT_STYLES_NATIVE = `
   ${PRINT_CONTENT_STYLES}
 `;
 
+function print_sender(name: string, address: string): string {
+  const shown = safe_sender_name(name, address);
+
+  return shown
+    ? `${escape_html(shown)} &lt;${escape_html(address)}&gt;`
+    : escape_html(address);
+}
+
 function build_print_body(
   email: PrintEmailData,
   t: Translator,
@@ -367,7 +376,7 @@ function build_print_body(
     <div class="ap-subject">${escape_html(email.subject || t("common.print_no_subject"))}</div>
     <div class="ap-meta">
       <span class="ap-label">${escape_html(t("common.print_from"))}</span>
-      <span class="ap-value">${escape_html(email.sender)} &lt;${escape_html(email.sender_email)}&gt;</span>
+      <span class="ap-value">${print_sender(email.sender, email.sender_email)}</span>
     </div>
     <div class="ap-meta">
       <span class="ap-label">${escape_html(t("common.print_to"))}</span>
@@ -487,7 +496,7 @@ function build_thread_message_html(
     <div class="ap-msg-header">
       <div class="ap-meta">
         <span class="ap-label">${escape_html(t("common.print_from"))}</span>
-        <span class="ap-value">${escape_html(msg.sender)} &lt;${escape_html(msg.sender_email)}&gt;</span>
+        <span class="ap-value">${print_sender(msg.sender, msg.sender_email)}</span>
       </div>`;
 
   if (to_formatted) {

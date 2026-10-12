@@ -225,6 +225,7 @@ export function build_single_thread_message(
     system_origin?: boolean;
     sender_verified?: boolean;
     sender_verified_domain?: string;
+    sender_aligned?: boolean;
     has_recipient_key?: boolean;
     encrypted_metadata?: string;
     metadata_nonce?: string;
@@ -268,6 +269,7 @@ export function build_single_thread_message(
     sender_verified_domain: item.sender_verified
       ? item.sender_verified_domain
       : undefined,
+    sender_aligned: item.sender_aligned,
     has_recipient_key: item.has_recipient_key,
     encrypted_metadata: item.encrypted_metadata,
     metadata_nonce: item.metadata_nonce,

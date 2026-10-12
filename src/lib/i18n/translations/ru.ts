@@ -4956,7 +4956,8 @@ export const ru = {
     address_change_use_alias: "Использовать один из ваших псевдонимов",
     address_change_alias_placeholder: "Выберите псевдоним",
     address_change_alias_search: "Поиск псевдонимов",
-    address_change_alias_no_results: "Нет псевдонимов, соответствующих запросу.",
+    address_change_alias_no_results:
+      "Нет псевдонимов, соответствующих запросу.",
     address_change_use_new: "Выбрать новый адрес",
     address_change_name_rule:
       "Используйте от 3 до 40 букв, цифр или точек. Точка не может быть в начале или конце адреса, и точки не могут повторяться.",
@@ -9243,6 +9244,24 @@ export const ru = {
     verified_sender: "Проверенный отправитель",
     verified_sender_desc:
       "Отправитель этого письма подтвердил, что владеет доменом {{domain}}.",
+    sender_warning_title: "Проверьте адрес отправителя",
+    sender_warning_address_in_name:
+      "В имени отправителя указано {{claimed}}, но это письмо пришло с адреса {{address}}.",
+    sender_warning_lookalike_name:
+      "Имя отправителя написано так, чтобы выглядеть как {{claimed}}, но это письмо пришло с адреса {{address}}.",
+    sender_warning_brand_name:
+      "В имени отправителя упоминается {{claimed}}, но это письмо пришло с адреса {{address}}, который не относится к известным адресам {{claimed}}.",
+    sender_warning_home_brand_name:
+      "Это письмо не от Aster. Оно пришло с адреса {{address}}. Aster никогда не запрашивает по почте ваш пароль или фразу восстановления.",
+    sender_warning_lookalike_domain:
+      "Домен {{domain}} похож на {{claimed}}, но это другой домен.",
+    sender_contact_notice:
+      "У этого отправителя такое же имя, как у вашего контакта {{name}}, но другой адрес.",
+    sender_reply_to_notice:
+      "Ответы на это письмо уходят на адрес {{address}}, который относится к другому домену, чем отправитель.",
+    email_auth_unverified: "Не подтверждён",
+    email_auth_unverified_desc:
+      "Aster не удалось подтвердить, что это письмо отправлено с домена {{domain}}. Прежде чем открывать ссылки или вложения, убедитесь, что вы знаете отправителя.",
     email_auth_label: "Проверка отправителя: {{verdict}}",
     email_auth_partial: "Неоднозначные проверки",
     email_auth_partial_desc:
@@ -10066,8 +10085,10 @@ export const ru = {
     link_device_confirming: "Привязка устройства...",
     link_device_desktop: "Десктопное приложение",
     device_fingerprint: "Отпечаток устройства",
-    link_device_fingerprint_hint: "Если привязываемое устройство показывает отпечаток устройства, перед привязкой убедитесь, что он совпадает с этим.",
-    device_code_fingerprint_hint: "При вводе кода убедитесь, что отпечаток устройства в браузере совпадает с этим, прежде чем привязывать устройство.",
+    link_device_fingerprint_hint:
+      "Если привязываемое устройство показывает отпечаток устройства, перед привязкой убедитесь, что он совпадает с этим.",
+    device_code_fingerprint_hint:
+      "При вводе кода убедитесь, что отпечаток устройства в браузере совпадает с этим, прежде чем привязывать устройство.",
     link_device_change_account: "Сменить аккаунт",
     link_device_choose_account: "Выберите аккаунт",
     link_device_choose_account_description:
@@ -10695,8 +10716,7 @@ export const ru = {
       "Зашифрованных писем проверено на этом устройстве: {{checked}}, обновлено: {{applied}}.",
     local_apply_unreadable:
       "Писем, которые не удалось расшифровать: {{unreadable}}.",
-    local_apply_capped:
-      "Проверены только {{limit}} самых новых писем.",
+    local_apply_capped: "Проверены только {{limit}} самых новых писем.",
     local_apply_failed:
       "Не удалось обновить некоторые зашифрованные письма. Попробуйте снова.",
     local_apply_unsupported:

@@ -27,6 +27,7 @@ import {
   extraction_needs_markup_parse,
 } from "@/services/extraction/extractor";
 import { run_after_next_paint } from "@/lib/run_after_next_paint";
+import { safe_sender_name } from "@/lib/sender_trust_store";
 import { guard_body_step } from "@/components/email/message_body_fallback";
 
 function no_extracted_details(): EmailExtractionResult {
@@ -61,7 +62,11 @@ export function use_email_extraction(
   const body_text = source?.body_text ?? "";
   const body_html = source?.body_html;
   const from_email = source?.from_email ?? "";
-  const from_name = source?.from_name ?? "";
+  const claimed_name = source?.from_name ?? "";
+  const from_name = useMemo(
+    () => safe_sender_name(claimed_name, from_email),
+    [claimed_name, from_email],
+  );
 
   const job = useMemo((): ExtractionJob | null => {
     if (email_id === null) return null;

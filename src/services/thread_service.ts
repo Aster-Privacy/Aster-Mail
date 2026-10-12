@@ -440,6 +440,7 @@ export async function fetch_and_decrypt_thread_messages(
         sender_verified_domain: msg.sender_verified
           ? msg.sender_verified_domain
           : undefined,
+        sender_aligned: msg.sender_aligned,
         send_status: msg.send_status ?? decrypted_metadata?.send_status,
         send_error: msg.send_error,
         encrypted_metadata: msg.encrypted_metadata,
@@ -480,6 +481,7 @@ export async function fetch_and_decrypt_thread_messages(
       sender_verified_domain: msg.sender_verified
         ? msg.sender_verified_domain
         : undefined,
+      sender_aligned: msg.sender_aligned,
       send_status: msg.send_status ?? decrypted_metadata?.send_status,
       send_error: msg.send_error,
       encrypted_metadata: msg.encrypted_metadata,
@@ -562,6 +564,7 @@ export async function fetch_and_decrypt_virtual_group(
         sender_verified_domain: item.sender_verified
           ? item.sender_verified_domain
           : undefined,
+        sender_aligned: item.sender_aligned,
         send_status: item.send_status ?? decrypted_metadata?.send_status,
         send_error: item.send_error,
         encrypted_metadata: item.encrypted_metadata,
@@ -699,6 +702,7 @@ export async function fetch_and_decrypt_virtual_group(
       sender_verified_domain: item.sender_verified
         ? item.sender_verified_domain
         : undefined,
+      sender_aligned: item.sender_aligned,
       send_status: item.send_status ?? decrypted_metadata?.send_status,
       send_error: item.send_error,
       encrypted_metadata: item.encrypted_metadata,

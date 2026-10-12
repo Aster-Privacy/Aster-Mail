@@ -52,6 +52,18 @@ export function parse_address(value: string): ParsedAddress | undefined {
   return { email: bare };
 }
 
+export function reply_to_header_value(
+  raw_headers?: { name: string; value: string }[],
+): string | undefined {
+  if (!raw_headers || raw_headers.length === 0) return undefined;
+  const values = raw_headers
+    .filter((h) => h.name.toLowerCase() === "reply-to")
+    .map((h) => h.value)
+    .filter((value) => value.trim() !== "");
+
+  return values.length > 0 ? values.join(", ") : undefined;
+}
+
 export function extract_reply_to(
   raw_headers?: { name: string; value: string }[],
 ): ParsedAddress | undefined {

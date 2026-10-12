@@ -75,6 +75,7 @@ import { compute_snooze_target } from "@/utils/snooze_targets";
 import { is_tauri_env } from "@/services/api/client/helpers";
 import { folder_option_indent } from "@/hooks/use_folders/tree";
 import { tag_option_indent } from "@/hooks/tag_tree";
+import { safe_sender_name } from "@/lib/sender_trust_store";
 
 interface FolderOption {
   id: string;
@@ -697,7 +698,10 @@ function EmailContextMenuContentInner({
           <MagnifyingGlassIcon className="me-2 h-4 w-4" />
           <span className="truncate">
             {t("mail.find_emails_from", {
-              sender: email.sender_name || email.sender_email || "",
+              sender:
+                safe_sender_name(email.sender_name, email.sender_email) ||
+                email.sender_email ||
+                "",
             })}
           </span>
         </ContextMenuItem>

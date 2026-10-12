@@ -24,6 +24,7 @@ import { useMemo, forwardRef, memo } from "react";
 import { FolderIcon } from "@heroicons/react/24/outline";
 
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
+import { use_search_sender_trust } from "@/hooks/use_sender_trust";
 import { strip_html_tags } from "@/lib/html_sanitizer";
 import { strip_preview_filler } from "@/utils/preview_text";
 import { format_relative_time } from "@/utils/date_utils";
@@ -120,6 +121,8 @@ const SearchResultRowBase = forwardRef<
 ) {
   const { t } = use_i18n();
   const { preferences } = use_preferences();
+  const { shown_name: shown_sender_name, marks_hidden } =
+    use_search_sender_trust(result, t("common.unknown_sender"));
 
   const preview_lines = useMemo(() => {
     const raw_preview = result.preview || "";
@@ -156,14 +159,15 @@ const SearchResultRowBase = forwardRef<
     >
       <ProfileAvatar
         email={result.sender_email}
-        image_url={result.avatar_url}
-        name={result.sender_name}
+        image_url={marks_hidden ? undefined : result.avatar_url}
+        name={shown_sender_name}
+        plain={marks_hidden}
         size="sm"
         use_domain_logo={preferences.show_profile_pictures !== false}
       />
       <div className="flex-1 min-w-0 flex items-center gap-1.5">
         <span className="text-[13px] font-medium truncate text-txt-primary flex-shrink-0 max-w-[30%]">
-          {result.sender_name}
+          {shown_sender_name}
         </span>
         <span className="text-[11px] text-txt-muted flex-shrink-0">·</span>
         <span
@@ -326,6 +330,9 @@ function same_result(a: SearchResultItem, b: SearchResultItem): boolean {
       a.preview === b.preview &&
       a.sender_name === b.sender_name &&
       a.sender_email === b.sender_email &&
+      a.is_outgoing === b.is_outgoing &&
+      a.is_external === b.is_external &&
+      a.sender_aligned === b.sender_aligned &&
       a.timestamp === b.timestamp &&
       a.is_read === b.is_read &&
       a.is_starred === b.is_starred &&

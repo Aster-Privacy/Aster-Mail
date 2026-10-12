@@ -139,7 +139,8 @@ export const tr = {
     profile_picture_cat_mountains: "Dağlar",
     profile_picture_cat_ocean: "Okyanus",
     profile_picture_cat_desert: "Çöl",
-    profile_picture_credit: "Fotoğraf: {{credit}}. Kırpıldı ve yeniden boyutlandırıldı.",
+    profile_picture_credit:
+      "Fotoğraf: {{credit}}. Kırpıldı ve yeniden boyutlandırıldı.",
     toggle_alias: "Bu rumuzu etkinleştir veya devre dışı bırak",
     enter_passphrase: "Parolanızı girin",
     app_name: "Aster Mail",
@@ -8953,6 +8954,24 @@ export const tr = {
     verified_sender: "Doğrulanmış gönderen",
     verified_sender_desc:
       "Bu e-postanın göndereni {{domain}} alan adının sahibi olduğunu doğruladı.",
+    sender_warning_title: "Gönderenin adresini kontrol edin",
+    sender_warning_address_in_name:
+      "Gönderenin adında {{claimed}} görünüyor, ancak bu ileti {{address}} adresinden geliyor.",
+    sender_warning_lookalike_name:
+      "Gönderenin adı {{claimed}} gibi görünecek şekilde yazılmış, ancak bu ileti {{address}} adresinden geliyor.",
+    sender_warning_brand_name:
+      "Gönderenin adında {{claimed}} geçiyor, ancak bu ileti {{address}} adresinden geliyor ve bu adres {{claimed}} tarafından kullanıldığı bilinen bir adres değil.",
+    sender_warning_home_brand_name:
+      "Bu ileti Aster'dan gelmiyor. {{address}} adresinden geliyor. Aster, parolanızı veya kurtarma ifadenizi hiçbir zaman e-postayla istemez.",
+    sender_warning_lookalike_domain:
+      "{{domain}} alan adı {{claimed}} alan adına benziyor, ancak farklı bir alan adı.",
+    sender_contact_notice:
+      "Bu gönderen, kişiniz {{name}} ile aynı adı taşıyor, ancak farklı bir adres kullanıyor.",
+    sender_reply_to_notice:
+      "Bu iletiye verilen yanıtlar {{address}} adresine gider ve bu adres gönderenden farklı bir alan adına aittir.",
+    email_auth_unverified: "Doğrulanmadı",
+    email_auth_unverified_desc:
+      "Aster, bu iletiyi {{domain}} alan adının gönderdiğini doğrulayamadı. Bağlantıları veya ekleri açmadan önce göndereni tanıdığınızdan emin olun.",
     email_auth_label: "Gönderen doğrulaması: {{verdict}}",
     email_auth_partial: "Belirsiz denetimler",
     email_auth_partial_desc:
@@ -9755,8 +9774,10 @@ export const tr = {
     link_device_cancel: "İptal",
     link_device_desktop: "Masaüstü uygulaması",
     device_fingerprint: "Cihaz parmak izi",
-    link_device_fingerprint_hint: "Bağladığınız cihaz bir cihaz parmak izi gösteriyorsa cihazı bağlamadan önce bununla eşleştiğinden emin olun.",
-    device_code_fingerprint_hint: "Kodu girerken, cihazı bağlamadan önce tarayıcınızda gösterilen cihaz parmak izinin bununla eşleştiğinden emin olun.",
+    link_device_fingerprint_hint:
+      "Bağladığınız cihaz bir cihaz parmak izi gösteriyorsa cihazı bağlamadan önce bununla eşleştiğinden emin olun.",
+    device_code_fingerprint_hint:
+      "Kodu girerken, cihazı bağlamadan önce tarayıcınızda gösterilen cihaz parmak izinin bununla eşleştiğinden emin olun.",
     link_device_change_account: "Hesap değiştir",
     link_device_choose_account: "Bir hesap seçin",
     link_device_choose_account_description:
@@ -10362,12 +10383,9 @@ export const tr = {
       "Bu cihazda şifreli iletiler denetleniyor: {{checked}} / {{total}}",
     local_apply_done:
       "Bu cihazda denetlenen şifreli iletiler: {{checked}}, güncellenen: {{applied}}.",
-    local_apply_unreadable:
-      "Şifresi çözülemeyen iletiler: {{unreadable}}.",
-    local_apply_capped:
-      "Yalnızca en yeni {{limit}} iletiniz denetlendi.",
-    local_apply_failed:
-      "Bazı şifreli iletiler güncellenemedi. Tekrar deneyin.",
+    local_apply_unreadable: "Şifresi çözülemeyen iletiler: {{unreadable}}.",
+    local_apply_capped: "Yalnızca en yeni {{limit}} iletiniz denetlendi.",
+    local_apply_failed: "Bazı şifreli iletiler güncellenemedi. Tekrar deneyin.",
     local_apply_unsupported:
       "Bu kural yalnızca sunucunun denetleyebildiği koşullar kullanıyor, bu yüzden şifreli iletileri sıralayamaz.",
     empty_title: "Henüz kural yok",

@@ -43,6 +43,7 @@ import { sanitize_outgoing_html } from "@/lib/html_sanitizer";
 import { get_active_translations } from "@/lib/i18n/translations";
 import { resolve_reply_prefix } from "@/lib/reply_defaults";
 import { ignore_error } from "@/lib/ignore_error";
+import { safe_sender_name } from "@/lib/sender_trust_store";
 import { same_address_ignoring_dots } from "@/utils/address_dots";
 import {
   build_reply_subject as build_reply_subject_value,
@@ -472,7 +473,12 @@ export async function send_forward(
     ? params.original.subject
     : `${get_active_translations().mail.forward_subject_prefix} ${params.original.subject}`;
 
-  const safe_name = params.original.sender_name
+  const safe_name = (
+    safe_sender_name(
+      params.original.sender_name,
+      params.original.sender_email,
+    ) || params.original.sender_email
+  )
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");

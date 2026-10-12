@@ -239,7 +239,9 @@ export function use_mobile_mail_detail() {
       {
         id: detail.email.id,
         item_type: (detail.mail_item?.item_type || "received") as
-          "received" | "sent" | "draft",
+          | "received"
+          | "sent"
+          | "draft",
         sender_name: detail.email.sender,
         sender_email: detail.email.sender_email,
         display_sender_name: detail.email.display_sender_name,
@@ -252,7 +254,18 @@ export function use_mobile_mail_detail() {
         is_read: detail.email.is_read,
         is_starred: detail.email.is_starred,
         is_deleted: false,
-        is_external: false,
+        is_external:
+          detail.mail_item?.is_external ?? detail.email.is_external ?? true,
+        system_origin:
+          detail.mail_item?.system_origin ?? detail.email.system_origin,
+        sender_verified_domain: detail.mail_item?.sender_verified
+          ? detail.mail_item.sender_verified_domain
+          : undefined,
+        sender_aligned: detail.mail_item?.sender_aligned,
+        spf_result: detail.mail_item?.spf_result,
+        dkim_result: detail.mail_item?.dkim_result,
+        dmarc_result: detail.mail_item?.dmarc_result,
+        raw_headers: detail.email.raw_headers,
         attachments: (detail.email.attachments ?? []).map(
           (att: { name: string; size: string }, i: number) => ({
             id: `att-${i}`,
@@ -1177,7 +1190,18 @@ export function use_mobile_mail_detail() {
         is_read: detail.email.is_read,
         is_starred: detail.email.is_starred,
         is_deleted: false,
-        is_external: false,
+        is_external:
+          detail.mail_item?.is_external ?? detail.email.is_external ?? true,
+        system_origin:
+          detail.mail_item?.system_origin ?? detail.email.system_origin,
+        sender_verified_domain: detail.mail_item?.sender_verified
+          ? detail.mail_item.sender_verified_domain
+          : undefined,
+        sender_aligned: detail.mail_item?.sender_aligned,
+        spf_result: detail.mail_item?.spf_result,
+        dkim_result: detail.mail_item?.dkim_result,
+        dmarc_result: detail.mail_item?.dmarc_result,
+        raw_headers: detail.email.raw_headers,
       }
     );
   }, [detail, messages]);
