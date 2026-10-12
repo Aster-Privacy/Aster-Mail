@@ -25,6 +25,9 @@ import {
   compute_mobile_list_window,
   full_list_window,
   MOBILE_ROW_ESTIMATE_PX,
+  viewport_fill_wanted,
+  VIEWPORT_FILL_FILTERED_MAX_ATTEMPTS,
+  VIEWPORT_FILL_MAX_ATTEMPTS,
 } from "@/components/mobile/list_window";
 
 const uniform = { average_height: 100, overscan_px: 200 };
@@ -182,5 +185,81 @@ describe("full_list_window", () => {
       top_pad: 0,
       bottom_pad: 0,
     });
+  });
+});
+
+describe("viewport_fill_wanted", () => {
+  const short_list = {
+    scroll_top: 0,
+    scroll_height: 300,
+    client_height: 700,
+    list_filtered: false,
+    attempts: 0,
+  };
+  const long_list = {
+    scroll_top: 0,
+    scroll_height: 4000,
+    client_height: 700,
+    list_filtered: false,
+    attempts: 0,
+  };
+
+  it("loads more while the rows do not fill the viewport", () => {
+    expect(viewport_fill_wanted(short_list)).toBe(true);
+  });
+
+  it("stops an unfiltered short list after the usual attempts", () => {
+    expect(
+      viewport_fill_wanted({
+        ...short_list,
+        attempts: VIEWPORT_FILL_MAX_ATTEMPTS,
+      }),
+    ).toBe(false);
+  });
+
+  it("keeps a filtered short list loading past the usual attempts", () => {
+    expect(
+      viewport_fill_wanted({
+        ...short_list,
+        list_filtered: true,
+        attempts: VIEWPORT_FILL_MAX_ATTEMPTS,
+      }),
+    ).toBe(true);
+  });
+
+  it("caps a filtered list that never gains a row", () => {
+    expect(
+      viewport_fill_wanted({
+        ...short_list,
+        list_filtered: true,
+        attempts: VIEWPORT_FILL_FILTERED_MAX_ATTEMPTS,
+      }),
+    ).toBe(false);
+  });
+
+  it("leaves an unfiltered long list to the scroll handler", () => {
+    expect(viewport_fill_wanted({ ...long_list, scroll_top: 3300 })).toBe(
+      false,
+    );
+  });
+
+  it("loads more for a filtered long list resting near the end", () => {
+    expect(
+      viewport_fill_wanted({
+        ...long_list,
+        list_filtered: true,
+        scroll_top: 3300,
+      }),
+    ).toBe(true);
+  });
+
+  it("waits while a filtered long list is far from the end", () => {
+    expect(
+      viewport_fill_wanted({
+        ...long_list,
+        list_filtered: true,
+        scroll_top: 500,
+      }),
+    ).toBe(false);
   });
 });
