@@ -60,9 +60,13 @@ function contains_in_order(value: string, first: string, second: string) {
   );
 }
 
-const UNSUBSCRIBE_HREF_TESTS: ((href: string) => boolean)[] = [
+const EXPLICIT_UNSUBSCRIBE_HREF_TESTS: ((href: string) => boolean)[] = [
   (href) => href.includes("unsubscribe"),
   (href) => /opt-?out/.test(href),
+];
+
+const UNSUBSCRIBE_HREF_TESTS: ((href: string) => boolean)[] = [
+  ...EXPLICIT_UNSUBSCRIBE_HREF_TESTS,
   (href) => contains_in_order(href, "remove", "list"),
   (href) => contains_in_order(href, "manage", "preferences"),
   (href) => contains_in_order(href, "email", "preferences"),
@@ -234,6 +238,68 @@ function find_body_unsubscribe_link(
   }
 
   return null;
+}
+
+function is_explicit_unsubscribe_url(url: string): boolean {
+  const lowered = url.toLowerCase();
+
+  return EXPLICIT_UNSUBSCRIBE_HREF_TESTS.some((test) => test(lowered));
+}
+
+function has_explicit_body_unsubscribe_link(
+  html_content?: string,
+  text_content?: string,
+): boolean {
+  if (html_content) {
+    for (const match of html_content.matchAll(HREF_VALUE_PATTERN)) {
+      const url = decode_html_entities(match[1]);
+
+      if (is_explicit_unsubscribe_url(url) && is_valid_url(url)) {
+        return true;
+      }
+    }
+
+    for (const anchor of html_content.matchAll(ANCHOR_PATTERN)) {
+      if (!ANCHOR_TEXT_PATTERN.test(anchor[2])) continue;
+
+      const href_match = anchor[1].match(/href=["']([^"']+)["']/i);
+      const url = href_match ? decode_html_entities(href_match[1]) : "";
+
+      if (url && is_valid_url(url)) {
+        return true;
+      }
+    }
+  }
+
+  if (text_content) {
+    for (const raw_url of text_content.match(TEXT_URL_PATTERN) || []) {
+      if (
+        TEXT_URL_KEYWORD_PATTERN.test(raw_url.replace(/^https?:\/\/./i, "")) &&
+        is_valid_url(decode_html_entities(raw_url))
+      ) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+export function is_mailing_list_mail(
+  info: UnsubscribeInfo,
+  html_content?: string,
+  text_content?: string,
+): boolean {
+  if (info.list_unsubscribe_header) return true;
+  if (!info.has_unsubscribe) return false;
+  if (
+    info.unsubscribe_link &&
+    is_explicit_unsubscribe_url(info.unsubscribe_link)
+  ) {
+    return true;
+  }
+
+  return has_explicit_body_unsubscribe_link(html_content, text_content);
 }
 
 export function detect_unsubscribe_info(

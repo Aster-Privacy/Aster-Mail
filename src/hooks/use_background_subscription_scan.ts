@@ -41,6 +41,7 @@ import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelop
 import {
   detect_unsubscribe_info,
   get_sender_domain,
+  is_mailing_list_mail,
 } from "@/utils/unsubscribe_detector";
 import { has_protected_folder_label } from "@/hooks/use_folders";
 import { ignore_error } from "@/lib/ignore_error";
@@ -65,6 +66,7 @@ interface ScannedSender {
   list_unsubscribe_header?: string;
   list_unsubscribe_post?: string;
   has_one_click: boolean;
+  is_mailing_list: boolean;
   category: SubscriptionCacheCategory;
 }
 
@@ -210,12 +212,7 @@ function merge_scanned_senders(
   for (const [email, sender] of Array.from(scanned)) {
     const existing = subscriptions.get(email);
     const is_carried = carried.has(email);
-    const has_unsub_mechanism =
-      sender.has_one_click ||
-      !!sender.unsubscribe_link ||
-      !!sender.list_unsubscribe_header;
-
-    if (!has_unsub_mechanism && (!is_full_scan || !existing || is_carried)) {
+    if (!sender.is_mailing_list && (!is_full_scan || !existing || is_carried)) {
       continue;
     }
 
@@ -594,10 +591,16 @@ export async function run_background_scan(
             },
           );
 
+          const is_mailing_list = is_mailing_list_mail(
+            unsubscribe_info,
+            envelope.body_html,
+            envelope.body_text,
+          );
           const existing = sender_counts.get(email);
 
           if (existing) {
             existing.count++;
+            if (is_mailing_list) existing.is_mailing_list = true;
             if (item.created_at > existing.last_received) {
               existing.last_received = item.created_at;
             }
@@ -651,6 +654,7 @@ export async function run_background_scan(
               list_unsubscribe_header: unsubscribe_info.list_unsubscribe_header,
               list_unsubscribe_post: unsubscribe_info.list_unsubscribe_post,
               has_one_click: unsubscribe_info.method === "one-click",
+              is_mailing_list,
               category,
             });
           }

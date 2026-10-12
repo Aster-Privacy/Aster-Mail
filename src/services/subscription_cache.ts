@@ -46,7 +46,7 @@ export interface CachedSubscription {
   unsubscribed_at?: string;
 }
 
-export const SUBSCRIPTION_CACHE_VERSION = 3;
+export const SUBSCRIPTION_CACHE_VERSION = 4;
 
 export const SUBSCRIPTION_CACHE_SAVED_EVENT =
   "astermail:subscription-cache-saved";
