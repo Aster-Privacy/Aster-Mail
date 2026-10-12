@@ -182,7 +182,7 @@ dependencies = [
  "webpki-roots",
  "webview2-com",
  "whoami",
- "windows-core 0.61.2",
+ "windows-core 0.62.2",
  "windows-registry",
  "x25519-dalek",
  "zeroize",
