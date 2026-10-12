@@ -86,6 +86,7 @@ import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { normalize_address_ignoring_dots } from "@/utils/address_dots";
 import { viewer_still_showing } from "@/components/email/thread_reply_target";
 import { use_thread_draft_removal } from "@/components/email/hooks/use_thread_draft_removal";
+import { use_pending_reply_messages } from "@/hooks/pending_reply_messages";
 import {
   has_readable_body,
   include_opened_message,
@@ -254,6 +255,13 @@ export function use_email_viewer({
   );
 
   use_thread_draft_removal(email?.thread_token, set_thread_draft);
+  use_pending_reply_messages({
+    thread_token: email?.thread_token,
+    email_id,
+    enabled: preferences.conversation_grouping !== false,
+    thread_messages,
+    set_thread_messages,
+  });
   const [sending_message, set_sending_message] =
     useState<DecryptedThreadMessage | null>(null);
   const [view_source_message, set_view_source_message] =
@@ -1401,7 +1409,11 @@ export function use_email_viewer({
         cc_recipients: detail.cc_recipients ?? [],
       };
 
-      set_thread_messages((prev) => [...prev, optimistic_message]);
+      set_thread_messages((prev) =>
+        prev.some((msg) => msg.id === optimistic_message.id)
+          ? prev
+          : [...prev, optimistic_message],
+      );
 
       if (!email?.thread_token && email) {
         set_email({ ...email, thread_token: detail.thread_token });
