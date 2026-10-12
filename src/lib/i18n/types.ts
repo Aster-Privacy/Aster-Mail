@@ -2294,12 +2294,10 @@ export interface CommonTranslations {
   label_system_spam: string;
   label_system_archive: string;
   onboarding_checklist_title: string;
-  onboarding_checklist_dismiss: string;
   onboarding_checklist_install_app: string;
   onboarding_checklist_import_mail: string;
   onboarding_checklist_recovery_method: string;
   onboarding_checklist_complete: string;
-  onboarding_checklist_complete_plans: string;
   onboarding_checklist_domain_heading: string;
   onboarding_checklist_domain_badge: string;
   onboarding_checklist_domain_get: string;

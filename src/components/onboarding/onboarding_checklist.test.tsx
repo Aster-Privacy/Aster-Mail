@@ -32,6 +32,7 @@ const mocks = vi.hoisted(() => ({
   checklist: {
     state: null as ChecklistState | null,
     is_loading: false,
+    account_id: null as string | null,
     dismiss: vi.fn(async () => {}),
     refresh: vi.fn(async () => {}),
     mark_install_app_done: vi.fn(),
@@ -41,7 +42,10 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/i18n/context", () => ({
-  use_i18n: () => ({ t: (key: string) => key }),
+  use_i18n: () => ({
+    t: (key: string, params?: Record<string, unknown>) =>
+      params ? `${key} ${JSON.stringify(params)}` : key,
+  }),
 }));
 vi.mock("@/provider", () => ({ use_should_reduce_motion: () => true }));
 vi.mock("@/hooks/use_onboarding_checklist", () => ({
@@ -129,6 +133,16 @@ function launcher(): HTMLButtonElement {
   return container.querySelector("button[aria-expanded]") as HTMLButtonElement;
 }
 
+function progress_width(): string | undefined {
+  return container.querySelector<HTMLElement>(
+    '[data-testid="tutorial-list-progress"]',
+  )?.style.width;
+}
+
+function remaining_badge(): Element | null {
+  return container.querySelector('[data-testid="tutorial-list-remaining"]');
+}
+
 async function click(element: Element | null): Promise<void> {
   expect(element).not.toBeNull();
   await act(async () => {
@@ -141,6 +155,7 @@ beforeEach(() => {
   sessionStorage.clear();
   mocks.checklist.state = make_state();
   mocks.checklist.is_loading = false;
+  mocks.checklist.account_id = null;
   mocks.checklist.dismiss.mockClear();
   mocks.checklist.refresh.mockClear();
   mocks.checklist.mark_install_app_done.mockClear();
@@ -218,6 +233,59 @@ describe("OnboardingChecklist", () => {
     expect(launcher().getAttribute("aria-expanded")).toBe("true");
     expect(container.querySelectorAll("[data-done]").length).toBe(4);
     expect(localStorage.getItem(COLLAPSED_KEY)).toBeNull();
+  });
+
+  it("keeps the collapsed and seen flags separate per account", async () => {
+    const handlers = make_handlers();
+
+    mocks.checklist.account_id = "account-a";
+    await render(handlers);
+    await click(launcher());
+
+    expect(localStorage.getItem(`${COLLAPSED_KEY}_account-a`)).toBe("1");
+    expect(localStorage.getItem(`${SEEN_KEY}_account-a`)).toBe("1");
+    expect(localStorage.getItem(COLLAPSED_KEY)).toBeNull();
+    expect(localStorage.getItem(SEEN_KEY)).toBeNull();
+
+    mocks.checklist.account_id = "account-b";
+    mocks.checklist.state = make_state(ALL_DONE);
+    await render(handlers);
+
+    expect(container.innerHTML).toBe("");
+    expect(localStorage.getItem(`${SEEN_KEY}_account-b`)).toBeNull();
+    expect(localStorage.getItem(`${COLLAPSED_KEY}_account-b`)).toBeNull();
+
+    mocks.checklist.state = make_state();
+    await render(handlers);
+
+    expect(launcher().getAttribute("aria-expanded")).toBe("true");
+    expect(localStorage.getItem(`${SEEN_KEY}_account-b`)).toBe("1");
+  });
+
+  it("collapses on Escape from the launcher and names the progress", async () => {
+    await render(make_handlers());
+
+    expect(launcher().getAttribute("aria-describedby")).toBeNull();
+    await act(async () => {
+      launcher().dispatchEvent(
+        new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+      );
+    });
+
+    expect(launcher().getAttribute("aria-expanded")).toBe("false");
+    const described_by = launcher().getAttribute("aria-describedby");
+
+    expect(described_by).not.toBeNull();
+    expect(document.getElementById(described_by as string)?.textContent).toBe(
+      'common.x_of_y {"current":0,"total":4}',
+    );
+  });
+
+  it("puts the launcher before the panel in keyboard order", async () => {
+    await render(make_handlers());
+    const buttons = Array.from(container.querySelectorAll("button"));
+
+    expect(buttons[0]).toBe(launcher());
   });
 
   it("starts collapsed when the stored flag is set", async () => {
@@ -337,7 +405,10 @@ describe("OnboardingChecklist", () => {
     expect(handlers.on_all_tasks_done).toHaveBeenCalledTimes(1);
     expect(handlers.on_visibility_change).toHaveBeenLastCalledWith(true);
 
-    await click(find_button("common.onboarding_checklist_complete_plans"));
+    expect(container.textContent).toContain(
+      "common.onboarding_checklist_complete",
+    );
+    await click(find_button("common.plan_prompt_action"));
     expect(handlers.on_open_settings).toHaveBeenLastCalledWith("billing");
   });
 
@@ -355,6 +426,7 @@ describe("OnboardingChecklist", () => {
         "common.onboarding_checklist_complete",
       );
       expect(find_button("common.onboarding_checklist_complete")).toBeNull();
+      expect(find_button("common.plan_prompt_action")).toBeNull();
       expect(handlers.on_open_settings).not.toHaveBeenCalled();
     }
   });
@@ -418,6 +490,8 @@ describe("OnboardingChecklist", () => {
           labels={{
             heading: payload,
             complete: payload,
+            complete_action: payload,
+            progress: payload,
             task_done: payload,
             domain_heading: payload,
             domain_badge: payload,
@@ -449,6 +523,8 @@ describe("OnboardingChecklist", () => {
           labels={{
             heading: "heading",
             complete: "complete",
+            complete_action: "action",
+            progress: "0 of 0",
             task_done: "done",
             domain_heading: "domain",
             domain_badge: "badge",
@@ -467,5 +543,40 @@ describe("OnboardingChecklist", () => {
     expect(container.textContent).toContain("heading");
     expect(container.textContent).not.toContain("complete");
     expect(container.textContent).not.toContain("domain");
+    expect(progress_width()).toBe("0%");
+  });
+
+  it("shows progress in the header, the bar, and the collapsed badge", async () => {
+    const handlers = make_handlers();
+
+    mocks.checklist.state = make_state({ first_email: true });
+    await render(handlers);
+
+    expect(container.textContent).toContain(
+      'common.x_of_y {"current":1,"total":4}',
+    );
+    expect(progress_width()).toBe("25%");
+    expect(remaining_badge()).toBeNull();
+
+    await click(launcher());
+    expect(remaining_badge()?.textContent).toBe("3");
+
+    mocks.checklist.state = make_state(ALL_DONE);
+    await render(handlers);
+    expect(remaining_badge()).toBeNull();
+
+    await click(launcher());
+    expect(progress_width()).toBe("100%");
+  });
+
+  it("keeps the completed task rows usable", async () => {
+    const handlers = make_handlers();
+
+    await render(handlers);
+    mocks.checklist.state = make_state(ALL_DONE);
+    await render(handlers);
+
+    await click(find_button("common.onboarding_checklist_recovery_method"));
+    expect(handlers.on_open_settings).toHaveBeenLastCalledWith("account");
   });
 });

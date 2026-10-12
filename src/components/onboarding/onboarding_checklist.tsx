@@ -76,17 +76,35 @@ export function OnboardingChecklist({
 }: OnboardingChecklistProps): JSX.Element | null {
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
-  const { state, is_loading, dismiss, refresh, mark_install_app_done } =
-    use_onboarding_checklist();
+  const {
+    state,
+    is_loading,
+    account_id,
+    dismiss,
+    refresh,
+    mark_install_app_done,
+  } = use_onboarding_checklist();
+  const storage_suffix = account_id ? `_${account_id}` : "";
+  const collapsed_key = `${COLLAPSED_STORAGE_KEY}${storage_suffix}`;
+  const seen_incomplete_key = `${SEEN_INCOMPLETE_STORAGE_KEY}${storage_suffix}`;
+  const loaded_suffix_ref = useRef(storage_suffix);
   const { limits } = use_plan_limits();
   const is_free_plan = limits?.plan_code === "free";
   const reported_done_ref = useRef(false);
   const [is_collapsed, set_is_collapsed] = useState(
-    () => safe_local_get(COLLAPSED_STORAGE_KEY) === "1",
+    () => safe_local_get(collapsed_key) === "1",
   );
   const [seen_incomplete, set_seen_incomplete] = useState(
-    () => safe_local_get(SEEN_INCOMPLETE_STORAGE_KEY) === "1",
+    () => safe_local_get(seen_incomplete_key) === "1",
   );
+
+  useEffect(() => {
+    if (loaded_suffix_ref.current === storage_suffix) return;
+    loaded_suffix_ref.current = storage_suffix;
+    reported_done_ref.current = false;
+    set_is_collapsed(safe_local_get(collapsed_key) === "1");
+    set_seen_incomplete(safe_local_get(seen_incomplete_key) === "1");
+  }, [storage_suffix, collapsed_key, seen_incomplete_key]);
 
   const rows: ChecklistRow[] = useMemo(
     () => [
@@ -138,9 +156,16 @@ export function OnboardingChecklist({
 
   useEffect(() => {
     if (!is_active || all_tasks_done || seen_incomplete) return;
-    safe_local_set(SEEN_INCOMPLETE_STORAGE_KEY, "1");
+    if (loaded_suffix_ref.current !== storage_suffix) return;
+    safe_local_set(seen_incomplete_key, "1");
     set_seen_incomplete(true);
-  }, [is_active, all_tasks_done, seen_incomplete]);
+  }, [
+    is_active,
+    all_tasks_done,
+    seen_incomplete,
+    storage_suffix,
+    seen_incomplete_key,
+  ]);
 
   const visible = is_active && (!all_tasks_done || seen_incomplete);
 
@@ -150,16 +175,15 @@ export function OnboardingChecklist({
   }, [is_loading, visible, on_visibility_change]);
 
   const handle_toggle = useCallback(() => {
-    set_is_collapsed((previous) => !previous);
-  }, []);
+    const next_collapsed = !is_collapsed;
 
-  useEffect(() => {
-    if (is_collapsed) {
-      safe_local_set(COLLAPSED_STORAGE_KEY, "1");
+    if (next_collapsed) {
+      safe_local_set(collapsed_key, "1");
     } else {
-      safe_local_remove(COLLAPSED_STORAGE_KEY);
+      safe_local_remove(collapsed_key);
     }
-  }, [is_collapsed]);
+    set_is_collapsed(next_collapsed);
+  }, [is_collapsed, collapsed_key]);
 
   const handle_hide_forever = useCallback(() => {
     void dismiss();
@@ -202,12 +226,17 @@ export function OnboardingChecklist({
     [on_open_settings, t],
   );
 
+  const done_count = tasks.filter((task) => task.done).length;
+
   const labels: TutorialListLabels = useMemo(
     () => ({
       heading: t("common.onboarding_checklist_title"),
-      complete: is_free_plan
-        ? t("common.onboarding_checklist_complete_plans")
-        : t("common.onboarding_checklist_complete"),
+      complete: t("common.onboarding_checklist_complete"),
+      complete_action: t("common.plan_prompt_action"),
+      progress: t("common.x_of_y", {
+        current: done_count,
+        total: rows.length,
+      }),
       task_done: t("common.onboarding_checklist_task_done"),
       domain_heading: t("common.onboarding_checklist_domain_heading"),
       domain_badge: t("common.onboarding_checklist_domain_badge"),
@@ -216,7 +245,7 @@ export function OnboardingChecklist({
       open: t("common.onboarding_checklist_open"),
       close: t("common.onboarding_checklist_close"),
     }),
-    [is_free_plan, t],
+    [done_count, rows.length, t],
   );
 
   if (hidden || !visible) return null;

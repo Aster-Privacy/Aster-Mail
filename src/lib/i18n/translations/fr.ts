@@ -1693,10 +1693,7 @@ export const fr = {
     no_matching_labels: "Aucune étiquette correspondante",
     not_now: "Pas maintenant",
     on_separator: "le",
-    onboarding_checklist_dismiss: "Ignorer",
     onboarding_checklist_complete: "Configuration terminée",
-    onboarding_checklist_complete_plans:
-      "Configuration terminée. Voir les forfaits",
     onboarding_checklist_domain_heading: "Utiliser un domaine personnalisé",
     onboarding_checklist_domain_badge: "Facultatif",
     onboarding_checklist_domain_get: "Obtenir un domaine personnalisé",

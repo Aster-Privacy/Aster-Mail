@@ -1817,13 +1817,10 @@ export const pl = {
     label_system_spam: "Spam",
     label_system_archive: "Archiwum",
     onboarding_checklist_title: "Pierwsze kroki",
-    onboarding_checklist_dismiss: "Ukryj",
     onboarding_checklist_install_app: "Zainstaluj aplikację",
     onboarding_checklist_import_mail: "Zaimportuj starą pocztę",
     onboarding_checklist_recovery_method: "Dodaj metodę odzyskiwania",
     onboarding_checklist_complete: "Konfiguracja zakończona",
-    onboarding_checklist_complete_plans:
-      "Konfiguracja zakończona. Zobacz plany",
     onboarding_checklist_domain_heading: "Użyj własnej domeny",
     onboarding_checklist_domain_badge: "Opcjonalne",
     onboarding_checklist_domain_get: "Kup własną domenę",

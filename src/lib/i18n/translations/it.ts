@@ -1803,13 +1803,10 @@ export const it = {
     label_system_spam: "Spam",
     label_system_archive: "Archivio",
     onboarding_checklist_title: "Inizia",
-    onboarding_checklist_dismiss: "Nascondi",
     onboarding_checklist_install_app: "Installa l'app",
     onboarding_checklist_import_mail: "Importa la tua vecchia posta",
     onboarding_checklist_recovery_method: "Aggiungi un metodo di recupero",
     onboarding_checklist_complete: "Configurazione completata",
-    onboarding_checklist_complete_plans:
-      "Configurazione completata. Vedi i piani",
     onboarding_checklist_domain_heading: "Usa un dominio personalizzato",
     onboarding_checklist_domain_badge: "Facoltativo",
     onboarding_checklist_domain_get: "Ottieni un dominio personalizzato",

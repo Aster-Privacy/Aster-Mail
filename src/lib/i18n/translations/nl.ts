@@ -1665,10 +1665,7 @@ export const nl = {
     no_custom_fields_yet: "Nog geen aangepaste velden",
     not_now: "Niet nu",
     on_separator: "op",
-    onboarding_checklist_dismiss: "Verberg",
     onboarding_checklist_complete: "Installatie voltooid",
-    onboarding_checklist_complete_plans:
-      "Installatie voltooid. Bekijk abonnementen",
     onboarding_checklist_domain_heading: "Gebruik een eigen domein",
     onboarding_checklist_domain_badge: "Optioneel",
     onboarding_checklist_domain_get: "Koop een eigen domein",
