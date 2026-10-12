@@ -108,6 +108,13 @@ describe("includes_folded", () => {
     expect(checked).toBeGreaterThan(4000);
   });
 
+  it("answers for plain text without an accent the same as for accented text", () => {
+    expect(includes_folded("quarterly report", "report")).toBe(true);
+    expect(includes_folded("quarterly report", "resume")).toBe(false);
+    expect(includes_folded("mon résumé", "resume")).toBe(true);
+    expect(includes_folded("my resume", fold_search_text("résumé"))).toBe(true);
+  });
+
   it("treats pattern characters in the query as plain text", () => {
     const term = fold_search_text("a.*b(c)]\\e$^|+?{2}");
 

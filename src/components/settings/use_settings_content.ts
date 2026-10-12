@@ -45,6 +45,7 @@ import {
   flatten_nav_items,
   get_nav_items,
   resolve_nav_target,
+  is_settings_tab_available,
   get_persisted_section,
   resolve_settings_section,
   set_persisted_section,
@@ -85,6 +86,7 @@ import {
 } from "@/services/api/family";
 import { ignore_error } from "@/lib/ignore_error";
 import { is_onion_host } from "@/lib/onion_host";
+import { is_desktop_runtime } from "@/services/updates/updater";
 
 export type { SettingsSection } from "./settings_content_helpers";
 
@@ -521,10 +523,19 @@ export function use_settings_content(props: SettingsContentProps) {
       },
     );
     const seen = new Set<string>();
+    const tab_availability = {
+      show_developer: dev_mode_enabled,
+      show_updates: is_desktop_runtime(),
+      is_family_plan,
+      has_devices,
+    };
 
     return all
       .filter((entry) => {
         if (!visible_sections.has(entry.section)) return false;
+        if (!is_settings_tab_available(entry.tab, tab_availability)) {
+          return false;
+        }
         const matches =
           entry.label.toLowerCase().includes(q) ||
           entry.english_label.toLowerCase().includes(q) ||
@@ -541,7 +552,15 @@ export function use_settings_content(props: SettingsContentProps) {
         return true;
       })
       .slice(0, 12);
-  }, [search_query, nav_items, dynamic_entries, t]);
+  }, [
+    search_query,
+    nav_items,
+    dynamic_entries,
+    t,
+    dev_mode_enabled,
+    is_family_plan,
+    has_devices,
+  ]);
 
   useEffect(() => {
     if (!scroll_target) return;

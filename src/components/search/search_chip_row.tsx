@@ -130,6 +130,7 @@ interface ChipProps {
 function Chip({ label, is_active, has_caret, on_click }: ChipProps) {
   return (
     <button
+      aria-pressed={is_active}
       className={CHIP_CLASS}
       style={chip_style(is_active)}
       type="button"
