@@ -48,6 +48,8 @@ const stable = vi.hoisted(() => ({
     auto_save_recent_recipients: false,
     signature_placement: "below",
     compose_mode: "rich_text" as string,
+    compose_font_size: "normal" as string,
+    compose_font_color: "" as string,
   },
   auth: {
     user: { email: "me@astermail.org", username: "me", display_name: "Me" },
@@ -419,6 +421,8 @@ beforeEach(() => {
   stable.sender = { sender_options: [], loading: false };
   stable.resolved_sender = null;
   stable.preferences.compose_mode = "rich_text";
+  stable.preferences.compose_font_size = "normal";
+  stable.preferences.compose_font_color = "";
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
@@ -574,5 +578,136 @@ describe("forward window format when it opens", () => {
     await advance(0);
 
     expect(forward!.is_plain_text_mode).toBe(true);
+  });
+});
+
+describe("default font color and size on replies and forwards", () => {
+  const first_block = (editor: HTMLDivElement | null) =>
+    editor!.firstElementChild as HTMLElement;
+
+  it("starts a reply in the saved color and size", async () => {
+    stable.preferences.compose_font_color = "#1a73e8";
+    stable.preferences.compose_font_size = "large";
+    await open_reply();
+
+    const block = first_block(reply!.message_editor_ref.current);
+
+    expect(block.style.color).not.toBe("");
+    expect(block.style.fontSize).not.toBe("");
+    expect(block.textContent).toBe("");
+    expect(block.hasAttribute("data-aster-signature")).toBe(false);
+    expect(reply!.reply_message).toContain("color: #1a73e8");
+  });
+
+  it("starts a reply in the saved color when there is no signature", async () => {
+    stable.preferences.compose_font_color = "#1a73e8";
+    finish_signature_load(null);
+    await render_reply(reply_props());
+    await advance(0);
+
+    expect(
+      first_block(reply!.message_editor_ref.current).style.color,
+    ).not.toBe("");
+  });
+
+  it("leaves a reply unstyled when no default is saved", async () => {
+    await open_reply();
+
+    expect(
+      first_block(reply!.message_editor_ref.current).getAttribute("style"),
+    ).toBeNull();
+  });
+
+  it("keeps a plain text reply free of the styled block", async () => {
+    stable.preferences.compose_mode = "plain_text";
+    stable.preferences.compose_font_color = "#1a73e8";
+    await open_reply();
+
+    expect(reply!.reply_message).not.toContain("color");
+  });
+
+  it("starts a forward in the saved color", async () => {
+    stable.preferences.compose_font_color = "#1a73e8";
+    await open_forward();
+
+    expect(
+      first_block(forward!.message_editor_ref.current).style.color,
+    ).not.toBe("");
+    expect(forward!.forward_message).toContain("color: #1a73e8");
+  });
+
+  it("starts a forward in the saved color when there is no signature", async () => {
+    stable.preferences.compose_font_color = "#1a73e8";
+    finish_signature_load(null);
+    await render_forward(forward_props());
+    await advance(0);
+
+    expect(
+      first_block(forward!.message_editor_ref.current).style.color,
+    ).not.toBe("");
+  });
+});
+
+describe("editing the forwarded message", () => {
+  it("starts with the original header and body", async () => {
+    await open_forward();
+
+    expect(forward!.get_forward_content()).toContain("sam@example.com");
+    expect(forward!.get_forward_content()).toContain("older text");
+  });
+
+  it("keeps the edited text for the send", async () => {
+    await open_forward();
+
+    await act(async () =>
+      forward!.update_forward_content("<p>only this part</p>"),
+    );
+
+    expect(forward!.get_forward_content()).toBe("<p>only this part</p>");
+    expect(forward!.forward_content_ref.current).toContain("older text");
+  });
+
+  it("sends nothing in place of a fully deleted forwarded message", async () => {
+    await open_forward();
+
+    await act(async () => forward!.update_forward_content(""));
+
+    expect(forward!.get_forward_content()).toBe("");
+  });
+
+  it("drops the edit when the forward opens again", async () => {
+    await open_forward();
+    await act(async () => forward!.update_forward_content("<p>edited</p>"));
+
+    await render_forward({ ...forward_props(), is_open: false });
+    await render_forward(forward_props());
+    await advance(0);
+
+    expect(forward!.get_forward_content()).toContain("older text");
+  });
+
+  it("closes an untouched forward without a discard prompt", async () => {
+    const props = forward_props();
+
+    finish_signature_load(signature);
+    await render_forward(props);
+    await advance(0);
+    await act(async () => forward!.handle_close());
+
+    expect(props.on_close).toHaveBeenCalledTimes(1);
+    expect(forward!.is_discard_open).toBe(false);
+  });
+
+  it("asks before discarding an edited forwarded message", async () => {
+    const props = forward_props();
+
+    finish_signature_load(signature);
+    await render_forward(props);
+    await advance(0);
+    await act(async () => forward!.update_forward_content("<p>edited</p>"));
+    await act(async () => forward!.handle_close());
+
+    expect(props.on_close).not.toHaveBeenCalled();
+    expect(forward!.is_discard_open).toBe(true);
   });
 });
