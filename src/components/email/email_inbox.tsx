@@ -343,7 +343,9 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
             is_spam_view={current_view === "spam"}
             is_trash_view={current_view === "trash"}
             on_activate_select_all_mode={
-              scope_for_view ? selection.activate_select_all_mode : undefined
+              scope_for_view && active_filter === "all"
+                ? selection.activate_select_all_mode
+                : undefined
             }
             on_archive={handle_archive_wrapped}
             on_clear_selection={selection.handle_clear_selection}
