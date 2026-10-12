@@ -2005,6 +2005,7 @@ export const it = {
     tray_compat_off: "Riavvia con accelerazione hardware",
     tray_display_reset: "Reimposta la cache dello schermo e riavvia",
     push_new_message: "Hai un nuovo messaggio",
+    new_reaction_body: "Hai una nuova reazione",
     too_many_recipients_in_field:
       "Ogni campo A, Cc e Ccn contiene al massimo {{max}} indirizzi. Ne sposti una parte in un secondo messaggio per inviare questo.",
     too_many_recipients_in_message:
@@ -9266,6 +9267,7 @@ export const it = {
     to_recipients_prefix: "a {{ recipients }}",
     received_on_prefix: "ricevuto su {{ address }}",
     received_via_alias: "consegnato al tuo alias {{ address }}",
+    new_reaction: "Nuova reazione",
     load_external_content: "Carica contenuto esterno",
     image: "immagine",
     images: "immagini",

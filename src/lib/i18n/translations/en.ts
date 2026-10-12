@@ -1881,6 +1881,7 @@ export const en: Translations = {
     tray_compat_off: "Restart with hardware acceleration",
     tray_display_reset: "Reset display cache and restart",
     push_new_message: "You have a new message",
+    new_reaction_body: "You have a new reaction",
     too_many_recipients_in_field:
       "Each of the To, Cc, and Bcc fields holds at most {{max}} addresses. Move some of them to a second message to send this one.",
     too_many_recipients_in_message:
@@ -8418,6 +8419,7 @@ export const en: Translations = {
     to_recipients_prefix: "to {{ recipients }}",
     received_on_prefix: "received on {{ address }}",
     received_via_alias: "delivered to your alias {{ address }}",
+    new_reaction: "New reaction",
     move_to_folder: "Move to folder",
     apply_label: "Apply label",
     select: "Select",

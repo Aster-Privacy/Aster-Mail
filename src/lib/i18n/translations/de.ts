@@ -1926,6 +1926,7 @@ export const de = {
     tray_compat_off: "Mit Hardwarebeschleunigung neu starten",
     tray_display_reset: "Anzeige-Cache zurücksetzen und neu starten",
     push_new_message: "Sie haben eine neue Nachricht",
+    new_reaction_body: "Sie haben eine neue Reaktion",
     too_many_recipients_in_field:
       "Jedes Feld An, Cc und Bcc fasst höchstens {{max}} Adressen. Verschieben Sie einen Teil in eine zweite Nachricht, um diese zu senden.",
     too_many_recipients_in_message:
@@ -9491,6 +9492,7 @@ export const de = {
     to_recipients_prefix: "an {{ recipients }}",
     received_on_prefix: "empfangen an {{ address }}",
     received_via_alias: "zugestellt an Ihren Alias {{ address }}",
+    new_reaction: "Neue Reaktion",
     tracker: "Tracker",
     trackers: "Tracker",
     tracking_protection: "Tracking-Schutz",

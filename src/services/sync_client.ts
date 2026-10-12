@@ -36,6 +36,7 @@ import {
 import {
   MAIL_EVENTS,
   emit_reactions_changed,
+  emit_reaction_received,
   emit_mail_items_removed,
   emit_contacts_changed,
   emit_folders_changed,
@@ -51,6 +52,11 @@ import {
   claim_own_mail_mutation_echo,
   clear_own_mail_mutations,
 } from "@/services/own_mail_mutations";
+import {
+  note_reaction_added,
+  note_reaction_removed,
+  note_reactions_seen,
+} from "@/services/unseen_reactions";
 
 export { CATCH_UP_WHILE_LIVE_MS };
 
@@ -80,6 +86,9 @@ interface ServerMessage {
   success?: boolean;
   message?: string;
   mail_item_id?: string;
+  target_mail_item_id?: string | null;
+  thread_token?: string | null;
+  event?: string | null;
   action?: string;
   item_ids?: string[];
   origin_device?: string | null;
@@ -503,6 +512,40 @@ class SyncClient {
     }, MUTATION_REFRESH_DEBOUNCE_MS);
   }
 
+  private handle_reaction_event(data: ServerMessage): void {
+    const reaction_id = data.mail_item_id || "";
+    const target_id = data.target_mail_item_id || undefined;
+    const thread_token = data.thread_token || undefined;
+    const is_view_only = data.event === "seen" || data.event === "hidden";
+
+    if (data.event === "added") {
+      note_reaction_added({ reaction_id, target_id, thread_token });
+    } else if (data.event === "removed") {
+      note_reaction_removed(reaction_id);
+    } else if (is_view_only) {
+      note_reactions_seen({ target_id, thread_token });
+    }
+
+    mark_view_stale();
+
+    if (!is_view_only) {
+      emit_reactions_changed({ mail_item_id: reaction_id });
+    }
+
+    if (data.event === "added" && target_id && !is_low_network()) {
+      emit_reaction_received({ reaction_id, target_id });
+    }
+
+    if (data.event === undefined || data.event === null) return;
+    if (this.mutation_refresh_timer) return;
+
+    this.mutation_refresh_timer = setTimeout(() => {
+      this.mutation_refresh_timer = null;
+      window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
+      window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_STATS_STALE));
+    }, MUTATION_REFRESH_DEBOUNCE_MS);
+  }
+
   private schedule_echo_reconcile(settled_at: number | null): void {
     if (settled_at !== null && this.last_soft_refresh_at >= settled_at) {
       return;
@@ -552,7 +595,7 @@ class SyncClient {
     }
 
     if (data.type === "new_reaction") {
-      emit_reactions_changed({ mail_item_id: data.mail_item_id || "" });
+      this.handle_reaction_event(data);
 
       return;
     }

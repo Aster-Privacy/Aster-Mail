@@ -1951,6 +1951,7 @@ export const ko = {
     tray_compat_off: "하드웨어 가속으로 다시 시작",
     tray_display_reset: "디스플레이 캐시를 재설정하고 다시 시작",
     push_new_message: "새 메시지가 있습니다",
+    new_reaction_body: "새 반응이 있습니다",
     too_many_recipients_in_field:
       "받는 사람, 참조, 숨은 참조 각 항목에는 최대 {{max}}개의 주소가 들어갑니다. 일부를 두 번째 메시지로 옮기면 이 메시지를 보낼 수 있습니다.",
     too_many_recipients_in_message:
@@ -8843,6 +8844,7 @@ export const ko = {
     to_recipients_prefix: "{{ recipients }}에게",
     received_on_prefix: "{{ address }}(으)로 수신",
     received_via_alias: "별칭 {{ address }}(으)로 전달됨",
+    new_reaction: "새 반응",
     load_external_content: "외부 콘텐츠 불러오기",
     image: "이미지",
     images: "이미지",

@@ -2346,6 +2346,7 @@ export interface CommonTranslations {
   tray_compat_off: string;
   tray_display_reset: string;
   push_new_message: string;
+  new_reaction_body: string;
   too_many_recipients_in_field: string;
   too_many_recipients_in_message: string;
   credit_balance_changed: string;
@@ -7513,6 +7514,7 @@ export interface MailTranslations {
   to_recipients_prefix: string;
   received_on_prefix: string;
   received_via_alias: string;
+  new_reaction: string;
   move_to_folder: string;
   apply_label: string;
   select: string;

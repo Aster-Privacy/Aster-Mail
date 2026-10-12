@@ -2001,6 +2001,7 @@ export const es = {
     tray_compat_off: "Reiniciar con aceleración por hardware",
     tray_display_reset: "Restablecer la caché de pantalla y reiniciar",
     push_new_message: "Tienes un mensaje nuevo",
+    new_reaction_body: "Tienes una reacción nueva",
     too_many_recipients_in_field:
       "Cada campo Para, Cc y Cco admite un máximo de {{max}} direcciones. Mueve algunas a un segundo mensaje para enviar este.",
     too_many_recipients_in_message:
@@ -9407,6 +9408,7 @@ export const es = {
     to_recipients_prefix: "para {{ recipients }}",
     received_on_prefix: "recibido en {{ address }}",
     received_via_alias: "entregado a tu alias {{ address }}",
+    new_reaction: "Reacción nueva",
     tracker: "Rastreador",
     trackers: "Rastreadores",
     tracking_protection: "Protección contra rastreo",

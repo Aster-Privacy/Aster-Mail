@@ -87,6 +87,7 @@ import { normalize_address_ignoring_dots } from "@/utils/address_dots";
 import { viewer_still_showing } from "@/components/email/thread_reply_target";
 import { use_thread_draft_removal } from "@/components/email/hooks/use_thread_draft_removal";
 import { use_pending_reply_messages } from "@/hooks/pending_reply_messages";
+import { use_reactions_seen } from "@/hooks/use_reactions_seen";
 import {
   has_readable_body,
   include_opened_message,
@@ -261,6 +262,11 @@ export function use_email_viewer({
     enabled: preferences.conversation_grouping !== false,
     thread_messages,
     set_thread_messages,
+  });
+  use_reactions_seen({
+    email_id: email?.id === email_id ? email_id : undefined,
+    thread_token: email?.thread_token,
+    thread_messages,
   });
   const [sending_message, set_sending_message] =
     useState<DecryptedThreadMessage | null>(null);

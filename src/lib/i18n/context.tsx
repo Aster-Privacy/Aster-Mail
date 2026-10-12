@@ -285,7 +285,10 @@ export function I18nProvider({
     document.documentElement.dir = is_rtl ? "rtl" : "ltr";
     set_display_locale(language);
     void sync_tray_labels();
-    void publish_push_strings(translations.common.push_new_message);
+    void publish_push_strings(
+      translations.common.push_new_message,
+      translations.common.new_reaction_body,
+    );
   }, [language, is_rtl, translations]);
 
   const context_value = useMemo(

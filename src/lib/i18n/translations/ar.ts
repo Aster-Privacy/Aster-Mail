@@ -2111,6 +2111,7 @@ export const ar = {
     tray_compat_off: "إعادة التشغيل مع تسريع الأجهزة",
     tray_display_reset: "إعادة تعيين ذاكرة العرض المؤقتة وإعادة التشغيل",
     push_new_message: "لديك رسالة جديدة",
+    new_reaction_body: "لديك تفاعل جديد",
     too_many_recipients_in_field:
       "يتسع كل حقل من إلى ونسخة ونسخة مخفية لـ {{max}} عنوانا كحد أقصى. انقل بعضها إلى رسالة ثانية لإرسال هذه الرسالة.",
     too_many_recipients_in_message:
@@ -9023,6 +9024,7 @@ export const ar = {
     to_recipients_prefix: "إلى {{ recipients }}",
     received_on_prefix: "تم الاستلام على {{ address }}",
     received_via_alias: "تم التسليم إلى الاسم المستعار {{ address }}",
+    new_reaction: "تفاعل جديد",
     load_external_content: "تحميل المحتوى الخارجي",
     images: "صور",
     tracker: "متتبع",

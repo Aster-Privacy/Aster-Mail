@@ -1796,6 +1796,7 @@ export const zh_CN = {
     tray_compat_off: "启用硬件加速并重新启动",
     tray_display_reset: "重置显示缓存并重新启动",
     push_new_message: "您有一封新邮件",
+    new_reaction_body: "您有一个新回应",
     too_many_recipients_in_field:
       "收件人、抄送和密送每个字段最多容纳 {{max}} 个地址。将其中一部分移到第二封邮件即可发送这一封。",
     too_many_recipients_in_message:
@@ -8171,6 +8172,7 @@ export const zh_CN = {
     to_recipients_prefix: "给 {{ recipients }}",
     received_on_prefix: "通过 {{ address }} 接收",
     received_via_alias: "已送达别名 {{ address }}",
+    new_reaction: "新回应",
     download_file_named: "下载 {{ filename }}",
     load_external_content: "加载外部内容",
     image: "图片",

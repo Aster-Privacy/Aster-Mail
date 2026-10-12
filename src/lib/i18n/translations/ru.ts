@@ -2121,6 +2121,7 @@ export const ru = {
     tray_compat_off: "Перезапустить с аппаратным ускорением",
     tray_display_reset: "Сбросить кеш отображения и перезапустить",
     push_new_message: "У вас новое сообщение",
+    new_reaction_body: "У вас новая реакция",
     too_many_recipients_in_field:
       "В каждое поле Кому, Копия и Скрытая копия помещается не более {{max}} адресов. Перенесите часть во второе письмо, чтобы отправить это.",
     too_many_recipients_in_message:
@@ -9588,6 +9589,7 @@ export const ru = {
     to_recipients_prefix: "кому {{ recipients }}",
     received_on_prefix: "получено на {{ address }}",
     received_via_alias: "доставлено на псевдоним {{ address }}",
+    new_reaction: "Новая реакция",
     tracker: "трекер",
     trackers: "трекеры",
     tracking_protection: "Защита от слежки",

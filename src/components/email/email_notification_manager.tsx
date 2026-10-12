@@ -304,10 +304,52 @@ export function EmailNotificationManager() {
       })();
     };
 
+    const reaction_handler = (event: Event) => {
+      const detail = (event as CustomEvent).detail;
+      const reaction_id = detail?.reaction_id || "";
+      const target_id = detail?.target_id || "";
+
+      if (!reaction_id || !target_id) {
+        return;
+      }
+
+      if (!claim_notification(`reaction-${reaction_id}`)) {
+        return;
+      }
+
+      void (async () => {
+        const suppressed = await is_email_notification_suppressed(
+          target_id,
+          preferences_ref.current.muted_folder_tokens ?? [],
+        );
+
+        if (suppressed) {
+          return;
+        }
+
+        void show_notification(
+          "reaction",
+          {
+            title: t("common.aster_mail"),
+            body: t("common.new_reaction_body"),
+            tag: `reaction-${target_id}`,
+            data: { email_id: target_id },
+          },
+          preferences_ref.current,
+          is_lockdown_enabled(current_account_id ?? ""),
+        );
+      })();
+    };
+
     window.addEventListener(MAIL_EVENTS.EMAIL_RECEIVED, handler);
+    window.addEventListener(MAIL_EVENTS.REACTION_RECEIVED, reaction_handler);
 
     return () => {
       window.removeEventListener(MAIL_EVENTS.EMAIL_RECEIVED, handler);
+      window.removeEventListener(
+        MAIL_EVENTS.REACTION_RECEIVED,
+        reaction_handler,
+      );
       if (flush_timer !== null) {
         clearTimeout(flush_timer);
         flush_timer = null;

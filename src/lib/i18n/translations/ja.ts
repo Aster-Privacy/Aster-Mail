@@ -1953,6 +1953,7 @@ export const ja = {
     tray_compat_off: "ハードウェアアクセラレーションで再起動",
     tray_display_reset: "表示キャッシュをリセットして再起動",
     push_new_message: "新着メッセージがあります",
+    new_reaction_body: "新しいリアクションがあります",
     too_many_recipients_in_field:
       "宛先、Cc、Bcc の各欄に入るのは最大 {{max}} 件です。一部を 2 通目に移すと、このメールを送信できます。",
     too_many_recipients_in_message:
@@ -9008,6 +9009,7 @@ export const ja = {
     to_recipients_prefix: "{{ recipients }} 宛て",
     received_on_prefix: "{{ address }} で受信",
     received_via_alias: "エイリアス {{ address }} に配信",
+    new_reaction: "新しいリアクション",
     trash_auto_delete_notice:
       "ゴミ箱のアイテムは {{ days }} 日後に自動的に削除されます。",
     spam_auto_delete_notice:

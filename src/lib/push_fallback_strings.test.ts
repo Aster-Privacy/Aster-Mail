@@ -23,6 +23,7 @@ import { describe, expect, it } from "vitest";
 import {
   push_fallback_body,
   push_fallback_languages,
+  push_fallback_reaction_body,
 } from "./push_fallback_strings";
 import { get_translations_async } from "./i18n/translations";
 import type { LanguageCode } from "./i18n/types";
@@ -45,5 +46,29 @@ describe("push_fallback_body", () => {
     expect(push_fallback_body("de-AT")).toBe("Sie haben eine neue Nachricht");
     expect(push_fallback_body("xx")).toBe("You have a new message");
     expect(push_fallback_body(undefined)).toBe("You have a new message");
+  });
+});
+
+describe("push_fallback_reaction_body", () => {
+  it("matches the app translation for every language", async () => {
+    for (const code of push_fallback_languages()) {
+      const translations = await get_translations_async(code as LanguageCode);
+
+      expect(push_fallback_reaction_body(code)).toBe(
+        translations.common.new_reaction_body,
+      );
+    }
+  });
+
+  it("resolves regional and unknown browser languages", () => {
+    expect(push_fallback_reaction_body("pt-BR")).toBe(
+      "Você tem uma nova reação",
+    );
+    expect(push_fallback_reaction_body("pt-PT")).toBe("Tem uma nova reação");
+    expect(push_fallback_reaction_body("zh-TW")).toBe("您有一个新回应");
+    expect(push_fallback_reaction_body("xx")).toBe("You have a new reaction");
+    expect(push_fallback_reaction_body(undefined)).toBe(
+      "You have a new reaction",
+    );
   });
 });

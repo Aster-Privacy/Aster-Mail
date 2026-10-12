@@ -1986,6 +1986,7 @@ export const nl = {
     tray_compat_off: "Opnieuw starten met hardwareversnelling",
     tray_display_reset: "Weergavecache herstellen en opnieuw starten",
     push_new_message: "Je hebt een nieuw bericht",
+    new_reaction_body: "Je hebt een nieuwe reactie",
     too_many_recipients_in_field:
       "Elk veld Aan, Cc en Bcc bevat maximaal {{max}} adressen. Verplaats een deel naar een tweede bericht om dit bericht te versturen.",
     too_many_recipients_in_message:
@@ -9191,6 +9192,7 @@ export const nl = {
     to_recipients_prefix: "aan {{ recipients }}",
     received_on_prefix: "ontvangen op {{ address }}",
     received_via_alias: "bezorgd op je alias {{ address }}",
+    new_reaction: "Nieuwe reactie",
     trash_auto_delete_notice:
       "Items in de prullenbak worden na {{ days }} dagen automatisch verwijderd.",
     spam_auto_delete_notice:

@@ -2009,6 +2009,7 @@ export const fr = {
     tray_compat_off: "Redémarrer avec l'accélération matérielle",
     tray_display_reset: "Réinitialiser le cache d'affichage et redémarrer",
     push_new_message: "Vous avez un nouveau message",
+    new_reaction_body: "Vous avez une nouvelle réaction",
     too_many_recipients_in_field:
       "Chaque champ À, Cc et Cci accepte au maximum {{max}} adresses. Déplacez-en une partie vers un second message pour envoyer celui-ci.",
     too_many_recipients_in_message:
@@ -9512,6 +9513,7 @@ export const fr = {
     to_recipients_prefix: "à {{ recipients }}",
     received_on_prefix: "reçu sur {{ address }}",
     received_via_alias: "remis à votre alias {{ address }}",
+    new_reaction: "Nouvelle réaction",
     tracker: "Traqueur",
     trackers: "Traqueurs",
     tracking_protection: "Protection contre le suivi",

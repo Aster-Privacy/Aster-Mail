@@ -2161,6 +2161,7 @@ export const pl = {
     tray_compat_off: "Uruchom ponownie z akceleracją sprzętową",
     tray_display_reset: "Wyczyść pamięć podręczną obrazu i uruchom ponownie",
     push_new_message: "Masz nową wiadomość",
+    new_reaction_body: "Masz nową reakcję",
     too_many_recipients_in_field:
       "Limit adresów w każdym z pól Do, DW i UDW wynosi {{max}}. Aby wysłać tę wiadomość, przenieś część adresów do drugiej.",
     too_many_recipients_in_message:
@@ -9445,6 +9446,7 @@ export const pl = {
     to_recipients_prefix: "do {{ recipients }}",
     received_on_prefix: "odebrano na {{ address }}",
     received_via_alias: "dostarczono na alias {{ address }}",
+    new_reaction: "Nowa reakcja",
     load_external_content: "Załaduj zewnętrzną zawartość",
     image: "obraz",
     images: "obrazy",
