@@ -9954,6 +9954,8 @@ export const en: Translations = {
       "This email did not send. Try again. Your draft is saved.",
     cannot_send_no_keys:
       "You have required encryption turned on, and we do not have a key for {{recipients}}. Asking them to share a key, or turning off required encryption in Settings, will let this send. Your draft is saved.",
+    sender_address_refused:
+      "Aster couldn't send this message from the address in the From field. To send it, choose a different address. Your draft is saved.",
     cannot_send_no_recipient_keys:
       "You have required encryption turned on, and none of your recipients have a key on file. Asking them to share one, or turning off required encryption in Settings, will let this send. Your draft is saved.",
     post_quantum_unavailable:

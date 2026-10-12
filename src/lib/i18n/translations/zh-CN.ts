@@ -9108,6 +9108,8 @@ export const zh_CN = {
     failed_send_email: "此邮件未能发送。请重试。您的草稿已保存。",
     cannot_send_no_keys:
       "您已开启强制加密，但我们没有 {{recipients}} 的密钥。请对方分享密钥，或在设置中关闭强制加密，即可发送。您的草稿已保存。",
+    sender_address_refused:
+      "Aster 无法从“发件人”栏中的地址发送这封邮件。要发送邮件，请选择其他地址。你的草稿已保存。",
     cannot_send_no_recipient_keys:
       "您已开启强制加密，但所有收件人均没有密钥记录。请他们分享密钥，或在设置中关闭强制加密，即可发送。您的草稿已保存。",
     cannot_send_no_recovery_key:

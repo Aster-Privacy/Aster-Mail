@@ -2117,6 +2117,7 @@ export class ApiClient {
           if (
             response.status === 403 &&
             error_data.code !== "ACCOUNT_LOCKED" &&
+            error_data.code !== "SENDER_NOT_AUTHORIZED" &&
             is_state_changing_method(method) &&
             attempt === 0 &&
             !skip_session_refresh &&

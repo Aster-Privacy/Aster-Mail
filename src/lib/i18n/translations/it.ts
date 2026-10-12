@@ -10277,6 +10277,8 @@ export const it = {
       "L'accesso con chiave di sicurezza non è stato completato o è stato annullato. Riprova.",
     cannot_send_no_keys:
       "Ha la crittografia obbligatoria attivata e non abbiamo una chiave per {{recipients}}. Chiedere loro di condividere una chiave, o disattivare la crittografia obbligatoria in Impostazioni, permetterà l'invio. La sua bozza è salvata.",
+    sender_address_refused:
+      "Aster non ha potuto inviare questo messaggio dall'indirizzo nel campo Da. Per inviarlo, scegli un altro indirizzo. La bozza è salvata.",
     cannot_send_no_recipient_keys:
       "Ha la crittografia obbligatoria attivata e nessuno dei suoi destinatari ha una chiave registrata. Chiedere loro di condividerne una, o disattivare la crittografia obbligatoria in Impostazioni, permetterà l'invio. La sua bozza è salvata.",
     cannot_send_no_recovery_key:
