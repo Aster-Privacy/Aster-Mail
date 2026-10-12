@@ -99,6 +99,7 @@ import {
   strip_unavailable_actions,
   keep_unavailable_actions,
   rule_run_status_label,
+  trim_address_values,
 } from "@/components/modals/rule_editor_helpers";
 import { ignore_error } from "@/lib/ignore_error";
 import { rule_supports_local_evaluation } from "@/lib/mail_rules/local_rule_evaluator";
@@ -533,7 +534,7 @@ export function RuleEditorModal({
       color,
       enabled: rule?.enabled ?? true,
       match_mode: req_match_mode,
-      conditions: derived_conditions,
+      conditions: derived_conditions.map(trim_address_values),
       actions: [...actions, ...preserved_actions],
       expression: expression_value,
     };

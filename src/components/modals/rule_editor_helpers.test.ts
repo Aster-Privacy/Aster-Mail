@@ -23,6 +23,7 @@ import { describe, it, expect } from "vitest";
 
 import {
   condition_ready_to_save,
+  trim_address_values,
   default_condition,
 } from "./rule_editor_helpers";
 
@@ -56,5 +57,23 @@ describe("condition_ready_to_save", () => {
         value: "budget",
       } as typeof subject),
     ).toBe(true);
+  });
+});
+
+describe("trim_address_values", () => {
+  it("trims address values, including nested ones", () => {
+    const from = { type: "from", operator: "is", value: " a@example.com " };
+    const trimmed = trim_address_values({
+      type: "not",
+      condition: from,
+    } as never) as { condition: { value: string } };
+
+    expect(trimmed.condition.value).toBe("a@example.com");
+  });
+
+  it("leaves text values untouched", () => {
+    const subject = { type: "subject", operator: "contains", value: " budget" };
+
+    expect(trim_address_values(subject as never)).toBe(subject);
   });
 });

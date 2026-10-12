@@ -199,6 +199,21 @@ export function condition_has_value(c: Condition): boolean {
   return v !== undefined && v !== null;
 }
 
+export function trim_address_values(c: Condition): Condition {
+  if (c.type === "and" || c.type === "or") {
+    return { ...c, conditions: c.conditions.map(trim_address_values) };
+  }
+  if (c.type === "not") {
+    return { ...c, condition: trim_address_values(c.condition) };
+  }
+  if (field_kind(c.type) !== "address") return c;
+  const v = (c as { value?: unknown }).value;
+
+  if (typeof v !== "string" || v === v.trim()) return c;
+
+  return { ...c, value: v.trim() } as Condition;
+}
+
 export function condition_ready_to_save(c: Condition): boolean {
   if (c.type === "and" || c.type === "or") {
     return c.conditions.every(condition_ready_to_save);
