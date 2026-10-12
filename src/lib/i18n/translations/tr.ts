@@ -1779,7 +1779,6 @@ export const tr = {
     onboarding_checklist_install_app: "Uygulamayı yükleyin",
     onboarding_checklist_import_mail: "Eski postanızı içe aktarın",
     onboarding_checklist_recovery_method: "Kurtarma yöntemi ekleyin",
-    onboarding_checklist_complete: "Kurulum tamamlandı",
     onboarding_checklist_domain_heading: "Özel alan adı kullanın",
     onboarding_checklist_domain_badge: "İsteğe bağlı",
     onboarding_checklist_domain_get: "Özel alan adı alın",

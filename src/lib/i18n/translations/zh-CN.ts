@@ -1649,7 +1649,6 @@ export const zh_CN = {
     onboarding_checklist_install_app: "安装应用",
     onboarding_checklist_import_mail: "导入旧邮件",
     onboarding_checklist_recovery_method: "添加恢复方式",
-    onboarding_checklist_complete: "设置完成",
     onboarding_checklist_domain_heading: "使用自定义域名",
     onboarding_checklist_domain_badge: "可选",
     onboarding_checklist_domain_get: "获取自定义域名",

@@ -1643,7 +1643,6 @@ export const pt = {
     not_phishing: "Não é phishing",
     notes_section: "Notas",
     on_separator: "em",
-    onboarding_checklist_complete: "Configuração concluída",
     onboarding_checklist_domain_heading: "Utilize um domínio personalizado",
     onboarding_checklist_domain_badge: "Opcional",
     onboarding_checklist_domain_get: "Obtenha um domínio personalizado",

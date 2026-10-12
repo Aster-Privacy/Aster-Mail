@@ -1681,7 +1681,6 @@ export const es = {
     no_custom_fields_yet: "Aún no hay campos personalizados",
     not_now: "Ahora no",
     on_separator: "el",
-    onboarding_checklist_complete: "Configuración completada",
     onboarding_checklist_domain_heading: "Usar un dominio personalizado",
     onboarding_checklist_domain_badge: "Opcional",
     onboarding_checklist_domain_get: "Obtener un dominio personalizado",

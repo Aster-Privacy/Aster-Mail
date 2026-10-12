@@ -1625,7 +1625,6 @@ export const ar = {
     onboarding_checklist_install_app: "تثبيت التطبيق",
     onboarding_checklist_import_mail: "استيراد بريدك القديم",
     onboarding_checklist_recovery_method: "إضافة طريقة استرداد",
-    onboarding_checklist_complete: "اكتمل الإعداد",
     onboarding_checklist_domain_heading: "استخدم نطاقًا مخصصًا",
     onboarding_checklist_domain_badge: "اختياري",
     onboarding_checklist_domain_get: "احصل على نطاق مخصص",

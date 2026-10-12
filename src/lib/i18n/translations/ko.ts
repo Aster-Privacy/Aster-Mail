@@ -1685,7 +1685,6 @@ export const ko = {
     onboarding_checklist_install_app: "앱 설치",
     onboarding_checklist_import_mail: "이전 메일 가져오기",
     onboarding_checklist_recovery_method: "복구 방법 추가",
-    onboarding_checklist_complete: "설정 완료",
     onboarding_checklist_domain_heading: "맞춤 도메인 사용",
     onboarding_checklist_domain_badge: "선택 사항",
     onboarding_checklist_domain_get: "맞춤 도메인 구입",

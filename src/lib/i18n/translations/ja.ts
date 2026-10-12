@@ -1716,7 +1716,6 @@ export const ja = {
     n_more_recipients: "+{{count}}件",
     no_custom_fields_yet: "カスタムフィールドはまだ定義されていません",
     on_separator: "で",
-    onboarding_checklist_complete: "設定が完了しました",
     onboarding_checklist_domain_heading: "カスタムドメインを使う",
     onboarding_checklist_domain_badge: "任意",
     onboarding_checklist_domain_get: "カスタムドメインを取得",

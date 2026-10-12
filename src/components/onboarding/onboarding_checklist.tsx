@@ -32,7 +32,6 @@ import { TutorialList } from "@/components/onboarding/tutorial_list";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_should_reduce_motion } from "@/provider";
 import { use_onboarding_checklist } from "@/hooks/use_onboarding_checklist";
-import { use_plan_limits } from "@/hooks/use_plan_limits";
 import {
   safe_local_get,
   safe_local_remove,
@@ -62,7 +61,6 @@ interface ChecklistRow {
 
 const DOWNLOAD_URL = "https://astermail.org/download";
 const COLLAPSED_STORAGE_KEY = "aster_tutorial_list_collapsed";
-const SEEN_INCOMPLETE_STORAGE_KEY = "aster_tutorial_list_seen_incomplete";
 const DOMAIN_PURCHASE_SESSION_KEY = "alias_domains_purchase_open";
 const DOMAIN_PURCHASE_EVENT = "aster:open-domain-purchase";
 
@@ -86,16 +84,10 @@ export function OnboardingChecklist({
   } = use_onboarding_checklist();
   const storage_suffix = account_id ? `_${account_id}` : "";
   const collapsed_key = `${COLLAPSED_STORAGE_KEY}${storage_suffix}`;
-  const seen_incomplete_key = `${SEEN_INCOMPLETE_STORAGE_KEY}${storage_suffix}`;
   const loaded_suffix_ref = useRef(storage_suffix);
-  const { limits } = use_plan_limits();
-  const is_free_plan = limits?.plan_code === "free";
   const reported_done_ref = useRef(false);
   const [is_collapsed, set_is_collapsed] = useState(
     () => safe_local_get(collapsed_key) === "1",
-  );
-  const [seen_incomplete, set_seen_incomplete] = useState(
-    () => safe_local_get(seen_incomplete_key) === "1",
   );
 
   useEffect(() => {
@@ -103,8 +95,7 @@ export function OnboardingChecklist({
     loaded_suffix_ref.current = storage_suffix;
     reported_done_ref.current = false;
     set_is_collapsed(safe_local_get(collapsed_key) === "1");
-    set_seen_incomplete(safe_local_get(seen_incomplete_key) === "1");
-  }, [storage_suffix, collapsed_key, seen_incomplete_key]);
+  }, [storage_suffix, collapsed_key]);
 
   const rows: ChecklistRow[] = useMemo(
     () => [
@@ -154,20 +145,7 @@ export function OnboardingChecklist({
     on_all_tasks_done?.();
   }, [all_tasks_done, on_all_tasks_done]);
 
-  useEffect(() => {
-    if (!is_active || all_tasks_done || seen_incomplete) return;
-    if (loaded_suffix_ref.current !== storage_suffix) return;
-    safe_local_set(seen_incomplete_key, "1");
-    set_seen_incomplete(true);
-  }, [
-    is_active,
-    all_tasks_done,
-    seen_incomplete,
-    storage_suffix,
-    seen_incomplete_key,
-  ]);
-
-  const visible = is_active && (!all_tasks_done || seen_incomplete);
+  const visible = is_active && !all_tasks_done;
 
   useEffect(() => {
     if (is_loading) return;
@@ -188,10 +166,6 @@ export function OnboardingChecklist({
   const handle_hide_forever = useCallback(() => {
     void dismiss();
   }, [dismiss]);
-
-  const handle_complete_click = useCallback(() => {
-    on_open_settings("billing");
-  }, [on_open_settings]);
 
   const tasks: TutorialListTask[] = useMemo(
     () =>
@@ -231,8 +205,6 @@ export function OnboardingChecklist({
   const labels: TutorialListLabels = useMemo(
     () => ({
       heading: t("common.onboarding_checklist_title"),
-      complete: t("common.onboarding_checklist_complete"),
-      complete_action: t("common.plan_prompt_action"),
       progress: t("common.x_of_y", {
         current: done_count,
         total: rows.length,
@@ -255,7 +227,6 @@ export function OnboardingChecklist({
       domain_links={domain_links}
       is_open={!is_collapsed}
       labels={labels}
-      on_complete_click={is_free_plan ? handle_complete_click : undefined}
       on_hide_forever={handle_hide_forever}
       on_shortcuts={on_open_shortcuts}
       on_toggle={handle_toggle}

@@ -1603,7 +1603,6 @@ export const de = {
     no_custom_fields_yet: "Noch keine benutzerdefinierten Felder definiert",
     not_now: "Nicht jetzt",
     on_separator: "am",
-    onboarding_checklist_complete: "Einrichtung abgeschlossen",
     onboarding_checklist_domain_heading: "Eigene Domain verwenden",
     onboarding_checklist_domain_badge: "Optional",
     onboarding_checklist_domain_get: "Eigene Domain kaufen",

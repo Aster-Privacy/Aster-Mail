@@ -1709,7 +1709,6 @@ export const hi = {
     onboarding_checklist_install_app: "ऐप इंस्टॉल करें",
     onboarding_checklist_import_mail: "अपना पुराना मेल इंपोर्ट करें",
     onboarding_checklist_recovery_method: "रिकवरी का तरीका जोड़ें",
-    onboarding_checklist_complete: "सेटअप पूरा हुआ",
     onboarding_checklist_domain_heading: "कस्टम डोमेन का उपयोग करें",
     onboarding_checklist_domain_badge: "वैकल्पिक",
     onboarding_checklist_domain_get: "कस्टम डोमेन पाएँ",

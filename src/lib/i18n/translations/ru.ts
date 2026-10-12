@@ -1679,7 +1679,6 @@ export const ru = {
     no_custom_fields_yet: "Пользовательские поля ещё не определены",
     not_now: "Не сейчас",
     on_separator: "в",
-    onboarding_checklist_complete: "Настройка завершена",
     onboarding_checklist_domain_heading: "Используйте свой домен",
     onboarding_checklist_domain_badge: "Необязательно",
     onboarding_checklist_domain_get: "Купить свой домен",

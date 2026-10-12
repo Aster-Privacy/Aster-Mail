@@ -1718,7 +1718,6 @@ export const en: Translations = {
     onboarding_checklist_install_app: "Install the app",
     onboarding_checklist_import_mail: "Import your old mail",
     onboarding_checklist_recovery_method: "Add a recovery method",
-    onboarding_checklist_complete: "Setup complete",
     onboarding_checklist_domain_heading: "Use a custom domain",
     onboarding_checklist_domain_badge: "Optional",
     onboarding_checklist_domain_get: "Get a custom domain",

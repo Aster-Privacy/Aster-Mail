@@ -2297,7 +2297,6 @@ export interface CommonTranslations {
   onboarding_checklist_install_app: string;
   onboarding_checklist_import_mail: string;
   onboarding_checklist_recovery_method: string;
-  onboarding_checklist_complete: string;
   onboarding_checklist_domain_heading: string;
   onboarding_checklist_domain_badge: string;
   onboarding_checklist_domain_get: string;
