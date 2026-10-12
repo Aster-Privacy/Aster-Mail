@@ -242,6 +242,10 @@ function MobileSearchPage() {
     (search.state.results ?? []).length > 0 ||
     search.state.is_searching ||
     search.state.index_building;
+  const is_empty_after_search =
+    !is_loading && !search.state.error && has_searched && !has_results;
+  const is_index_pending = is_empty_after_search && search.state.index_pending;
+  const is_no_results = is_empty_after_search && !search.state.index_pending;
 
   return (
     <motion.div
@@ -353,7 +357,24 @@ function MobileSearchPage() {
           </div>
         )}
 
-        {!is_loading && !search.state.error && has_searched && !has_results && (
+        {is_index_pending && (
+          <div
+            className="flex flex-col items-center justify-center gap-3 px-8 pt-20"
+            data-testid="mobile-search-indexing"
+          >
+            <Spinner size="lg" />
+            <p className="text-center text-[15px] font-medium text-[var(--text-primary)]">
+              {t("mail.indexing_messages")}
+            </p>
+            <p className="text-center text-[14px] text-[var(--text-muted)]">
+              {t("mail.message_download_count", {
+                done: search.state.indexed_count,
+              })}
+            </p>
+          </div>
+        )}
+
+        {is_no_results && (
           <div className="flex flex-col items-center justify-center gap-3 px-8 pt-20">
             <p className="text-center text-[15px] font-medium text-[var(--text-primary)]">
               {t("mail.no_results_found")}

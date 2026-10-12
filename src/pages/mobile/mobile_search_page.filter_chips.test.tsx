@@ -25,6 +25,10 @@ import { MemoryRouter } from "react-router-dom";
 
 const search_mock = vi.fn();
 const clear_results_mock = vi.fn();
+const index_state = vi.hoisted(() => ({
+  index_pending: false,
+  indexed_count: 0,
+}));
 
 vi.mock("@/lib/i18n/context", () => ({
   use_i18n: () => ({ t: (key: string) => key, language: "en" }),
@@ -57,6 +61,8 @@ vi.mock("@/hooks/use_search", () => ({
       is_searching: false,
       index_building: false,
       error: null,
+      index_pending: index_state.index_pending,
+      indexed_count: index_state.indexed_count,
     },
     search: search_mock,
     clear_results: clear_results_mock,
@@ -76,6 +82,8 @@ let container: HTMLDivElement | null = null;
 beforeEach(() => {
   search_mock.mockReset();
   clear_results_mock.mockReset();
+  index_state.index_pending = false;
+  index_state.indexed_count = 0;
 });
 
 afterEach(() => {
@@ -220,5 +228,31 @@ describe("MobileSearchPage filter chips", () => {
     expect(
       document.querySelector('[data-testid="mobile-search-clear-filters"]'),
     ).toBeNull();
+  });
+
+  it("shows indexing progress, not an empty result, while the index builds", () => {
+    index_state.index_pending = true;
+    index_state.indexed_count = 120;
+
+    const input = render_page("inbox");
+
+    submit(input, "report");
+
+    expect(
+      document.querySelector('[data-testid="mobile-search-indexing"]'),
+    ).not.toBeNull();
+    expect(document.body.textContent).toContain("mail.indexing_messages");
+    expect(document.body.textContent).not.toContain("mail.no_results_found");
+  });
+
+  it("shows the empty result once the index is complete", () => {
+    const input = render_page("inbox");
+
+    submit(input, "report");
+
+    expect(
+      document.querySelector('[data-testid="mobile-search-indexing"]'),
+    ).toBeNull();
+    expect(document.body.textContent).toContain("mail.no_results_found");
   });
 });
