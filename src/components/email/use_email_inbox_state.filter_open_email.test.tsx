@@ -339,6 +339,40 @@ describe("use_email_inbox_state keeps the open email under a list filter", () =>
     expect(state().selection.all_selected).toBe(true);
   });
 
+  it("clears the selection and whole-folder mode when the filter changes", async () => {
+    await mount([email("a"), email("b"), email("c", true)], "all");
+    await act(async () => {
+      state().selection.handle_toggle_select_all();
+    });
+    await act(async () => {
+      state().selection.activate_select_all_mode();
+    });
+
+    expect(state().selection.select_all_mode).toBe(true);
+    expect(state().selection.page_selected_count).toBe(3);
+
+    await act(async () => {
+      state().handle_filter_change("unread");
+    });
+
+    expect(state().selection.select_all_mode).toBe(false);
+    expect(listed_ids()).toEqual(["a", "b"]);
+    expect(state().selection.page_selected_count).toBe(0);
+    expect(state().email_state.emails.some((e) => e.is_selected)).toBe(false);
+  });
+
+  it("keeps the selection when the same filter is chosen again", async () => {
+    await mount([email("a"), email("b")], "unread");
+    await act(async () => {
+      state().selection.handle_toggle_select_all();
+    });
+    await act(async () => {
+      state().handle_filter_change("unread");
+    });
+
+    expect(state().selection.page_selected_count).toBe(2);
+  });
+
   it("does not rebuild the list when an email is opened with no filter on", async () => {
     await mount([email("a"), email("b")], "all");
     const reported = on_email_list_change.mock.calls.length;

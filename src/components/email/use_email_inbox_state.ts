@@ -867,17 +867,29 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     on_split_scheduled_close,
   });
 
-  const { handle_list_scroll, handle_page_change, handle_filter_change } =
-    use_inbox_list_scroll({
-      show_full_email_viewer,
-      split_pane,
-      current_page,
-      page_size,
-      is_page_cached,
-      set_is_paginating,
-      set_current_page,
-      set_active_filter,
-    });
+  const {
+    handle_list_scroll,
+    handle_page_change,
+    handle_filter_change: apply_filter_change,
+  } = use_inbox_list_scroll({
+    show_full_email_viewer,
+    split_pane,
+    current_page,
+    page_size,
+    is_page_cached,
+    set_is_paginating,
+    set_current_page,
+    set_active_filter,
+  });
+
+  const clear_selection = selection.handle_clear_selection;
+  const handle_filter_change = useCallback(
+    (filter: InboxFilterType): void => {
+      if (filter !== active_filter) clear_selection();
+      apply_filter_change(filter);
+    },
+    [active_filter, clear_selection, apply_filter_change],
+  );
 
   return {
     t,
