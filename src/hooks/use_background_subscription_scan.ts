@@ -212,6 +212,7 @@ function merge_scanned_senders(
   for (const [email, sender] of Array.from(scanned)) {
     const existing = subscriptions.get(email);
     const is_carried = carried.has(email);
+
     if (!sender.is_mailing_list && (!is_full_scan || !existing || is_carried)) {
       continue;
     }

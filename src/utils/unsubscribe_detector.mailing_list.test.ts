@@ -51,6 +51,29 @@ describe("is_mailing_list_mail", () => {
     ).toBe(true);
   });
 
+  it("does not count a List-Unsubscribe header without a link or mailto", () => {
+    expect(list_mail(undefined, undefined, { list_unsubscribe: " " })).toBe(
+      false,
+    );
+    expect(list_mail(undefined, undefined, { list_unsubscribe: "<>" })).toBe(
+      false,
+    );
+    expect(
+      list_mail(undefined, undefined, {
+        list_unsubscribe: "<javascript:alert(1)>",
+      }),
+    ).toBe(false);
+  });
+
+  it("does not count a body link that is not http or https", () => {
+    expect(
+      list_mail('<a href="javascript:unsubscribe()">Unsubscribe</a>'),
+    ).toBe(false);
+    expect(list_mail(undefined, "ftp://shop.example.com/unsubscribe")).toBe(
+      false,
+    );
+  });
+
   it("counts a body link that says unsubscribe or opt out", () => {
     expect(
       list_mail('<a href="https://shop.example.com/unsubscribe?id=4">here</a>'),

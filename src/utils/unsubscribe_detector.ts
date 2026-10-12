@@ -240,6 +240,13 @@ function find_body_unsubscribe_link(
   return null;
 }
 
+function has_header_unsubscribe_target(header: string): boolean {
+  return (
+    extract_mailto_from_header(header) !== null ||
+    extract_http_links_from_header(header).length > 0
+  );
+}
+
 function is_explicit_unsubscribe_url(url: string): boolean {
   const lowered = url.toLowerCase();
 
@@ -290,7 +297,12 @@ export function is_mailing_list_mail(
   html_content?: string,
   text_content?: string,
 ): boolean {
-  if (info.list_unsubscribe_header) return true;
+  if (
+    info.list_unsubscribe_header &&
+    has_header_unsubscribe_target(info.list_unsubscribe_header)
+  ) {
+    return true;
+  }
   if (!info.has_unsubscribe) return false;
   if (
     info.unsubscribe_link &&
