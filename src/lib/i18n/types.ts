@@ -2298,6 +2298,17 @@ export interface CommonTranslations {
   onboarding_checklist_install_app: string;
   onboarding_checklist_import_mail: string;
   onboarding_checklist_recovery_method: string;
+  onboarding_checklist_complete: string;
+  onboarding_checklist_complete_plans: string;
+  onboarding_checklist_domain_heading: string;
+  onboarding_checklist_domain_badge: string;
+  onboarding_checklist_domain_get: string;
+  onboarding_checklist_domain_existing: string;
+  onboarding_checklist_hide_forever: string;
+  onboarding_checklist_shortcuts: string;
+  onboarding_checklist_open: string;
+  onboarding_checklist_close: string;
+  onboarding_checklist_task_done: string;
   onboarding_checklist_first_email: string;
   recovery_reminder_title: string;
   recovery_reminder_body: string;

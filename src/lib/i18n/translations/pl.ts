@@ -1821,6 +1821,18 @@ export const pl = {
     onboarding_checklist_install_app: "Zainstaluj aplikację",
     onboarding_checklist_import_mail: "Zaimportuj starą pocztę",
     onboarding_checklist_recovery_method: "Dodaj metodę odzyskiwania",
+    onboarding_checklist_complete: "Konfiguracja zakończona",
+    onboarding_checklist_complete_plans:
+      "Konfiguracja zakończona. Zobacz plany",
+    onboarding_checklist_domain_heading: "Użyj własnej domeny",
+    onboarding_checklist_domain_badge: "Opcjonalne",
+    onboarding_checklist_domain_get: "Kup własną domenę",
+    onboarding_checklist_domain_existing: "Użyj domeny, którą już masz",
+    onboarding_checklist_hide_forever: "Ukryj listę samouczków na stałe",
+    onboarding_checklist_shortcuts: "Skróty klawiszowe",
+    onboarding_checklist_open: "Pokaż listę samouczków",
+    onboarding_checklist_close: "Zamknij listę samouczków",
+    onboarding_checklist_task_done: "Ukończono",
     onboarding_checklist_first_email: "Wyślij pierwszą wiadomość",
     recovery_reminder_title: "Dodaj sposób na powrót do konta",
     recovery_reminder_body:

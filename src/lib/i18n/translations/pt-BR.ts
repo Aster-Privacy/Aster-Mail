@@ -1626,6 +1626,18 @@ export const pt_br = {
     notes_section: "Notas",
     on_separator: "em",
     onboarding_checklist_dismiss: "Ocultar",
+    onboarding_checklist_complete: "Configuração concluída",
+    onboarding_checklist_complete_plans: "Configuração concluída. Ver planos",
+    onboarding_checklist_domain_heading: "Use um domínio personalizado",
+    onboarding_checklist_domain_badge: "Opcional",
+    onboarding_checklist_domain_get: "Obtenha um domínio personalizado",
+    onboarding_checklist_domain_existing: "Use um domínio que você já tem",
+    onboarding_checklist_hide_forever:
+      "Ocultar a lista de tutoriais permanentemente",
+    onboarding_checklist_shortcuts: "Atalhos de teclado",
+    onboarding_checklist_open: "Mostrar a lista de tutoriais",
+    onboarding_checklist_close: "Fechar a lista de tutoriais",
+    onboarding_checklist_task_done: "Concluído",
     onboarding_checklist_first_email: "Envie seu primeiro e-mail",
     recovery_reminder_title: "Adicione uma forma de voltar à sua conta",
     recovery_reminder_body:

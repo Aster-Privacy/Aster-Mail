@@ -1807,6 +1807,19 @@ export const it = {
     onboarding_checklist_install_app: "Installa l'app",
     onboarding_checklist_import_mail: "Importa la tua vecchia posta",
     onboarding_checklist_recovery_method: "Aggiungi un metodo di recupero",
+    onboarding_checklist_complete: "Configurazione completata",
+    onboarding_checklist_complete_plans:
+      "Configurazione completata. Vedi i piani",
+    onboarding_checklist_domain_heading: "Usa un dominio personalizzato",
+    onboarding_checklist_domain_badge: "Facoltativo",
+    onboarding_checklist_domain_get: "Ottieni un dominio personalizzato",
+    onboarding_checklist_domain_existing: "Usa un dominio che possiedi",
+    onboarding_checklist_hide_forever:
+      "Nascondi definitivamente l'elenco dei tutorial",
+    onboarding_checklist_shortcuts: "Abbreviazioni da tastiera",
+    onboarding_checklist_open: "Mostra l'elenco dei tutorial",
+    onboarding_checklist_close: "Chiudi l'elenco dei tutorial",
+    onboarding_checklist_task_done: "Completato",
     onboarding_checklist_first_email: "Invia la tua prima email",
     recovery_reminder_title: "Aggiungi un modo per rientrare nel tuo account",
     recovery_reminder_body:

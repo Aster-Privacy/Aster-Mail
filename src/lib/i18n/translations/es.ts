@@ -1682,6 +1682,19 @@ export const es = {
     not_now: "Ahora no",
     on_separator: "el",
     onboarding_checklist_dismiss: "Ignorar",
+    onboarding_checklist_complete: "Configuración completada",
+    onboarding_checklist_complete_plans:
+      "Configuración completada. Ver planes",
+    onboarding_checklist_domain_heading: "Usar un dominio personalizado",
+    onboarding_checklist_domain_badge: "Opcional",
+    onboarding_checklist_domain_get: "Obtener un dominio personalizado",
+    onboarding_checklist_domain_existing: "Usar un dominio que ya tienes",
+    onboarding_checklist_hide_forever:
+      "Ocultar la lista de tutoriales de forma permanente",
+    onboarding_checklist_shortcuts: "Atajos de teclado",
+    onboarding_checklist_open: "Mostrar la lista de tutoriales",
+    onboarding_checklist_close: "Cerrar la lista de tutoriales",
+    onboarding_checklist_task_done: "Completado",
     onboarding_checklist_first_email: "Enviar tu primer correo",
     recovery_reminder_title: "Añade una forma de recuperar tu cuenta",
     recovery_reminder_body:

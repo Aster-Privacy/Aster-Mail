@@ -1666,6 +1666,18 @@ export const nl = {
     not_now: "Niet nu",
     on_separator: "op",
     onboarding_checklist_dismiss: "Verberg",
+    onboarding_checklist_complete: "Installatie voltooid",
+    onboarding_checklist_complete_plans:
+      "Installatie voltooid. Bekijk abonnementen",
+    onboarding_checklist_domain_heading: "Gebruik een eigen domein",
+    onboarding_checklist_domain_badge: "Optioneel",
+    onboarding_checklist_domain_get: "Koop een eigen domein",
+    onboarding_checklist_domain_existing: "Gebruik een domein dat je al hebt",
+    onboarding_checklist_hide_forever: "Verberg de tutoriallijst permanent",
+    onboarding_checklist_shortcuts: "Toetscombinaties",
+    onboarding_checklist_open: "Toon de tutoriallijst",
+    onboarding_checklist_close: "Sluit de tutoriallijst",
+    onboarding_checklist_task_done: "Voltooid",
     onboarding_checklist_first_email: "Stuur je eerste e-mail",
     recovery_reminder_title:
       "Voeg een manier toe om terug in je account te komen",

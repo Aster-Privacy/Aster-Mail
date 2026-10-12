@@ -1694,6 +1694,20 @@ export const fr = {
     not_now: "Pas maintenant",
     on_separator: "le",
     onboarding_checklist_dismiss: "Ignorer",
+    onboarding_checklist_complete: "Configuration terminée",
+    onboarding_checklist_complete_plans:
+      "Configuration terminée. Voir les forfaits",
+    onboarding_checklist_domain_heading: "Utiliser un domaine personnalisé",
+    onboarding_checklist_domain_badge: "Facultatif",
+    onboarding_checklist_domain_get: "Obtenir un domaine personnalisé",
+    onboarding_checklist_domain_existing:
+      "Utiliser un domaine que vous possédez",
+    onboarding_checklist_hide_forever:
+      "Masquer définitivement la liste des tutoriels",
+    onboarding_checklist_shortcuts: "Raccourcis clavier",
+    onboarding_checklist_open: "Afficher la liste des tutoriels",
+    onboarding_checklist_close: "Fermer la liste des tutoriels",
+    onboarding_checklist_task_done: "Terminé",
     onboarding_checklist_first_email: "Envoyer votre premier e-mail",
     recovery_reminder_title: "Ajoutez un moyen de récupérer votre compte",
     recovery_reminder_body:

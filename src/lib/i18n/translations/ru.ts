@@ -1680,6 +1680,18 @@ export const ru = {
     not_now: "Не сейчас",
     on_separator: "в",
     onboarding_checklist_dismiss: "Скрыть",
+    onboarding_checklist_complete: "Настройка завершена",
+    onboarding_checklist_complete_plans:
+      "Настройка завершена. Посмотреть тарифы",
+    onboarding_checklist_domain_heading: "Используйте свой домен",
+    onboarding_checklist_domain_badge: "Необязательно",
+    onboarding_checklist_domain_get: "Купить свой домен",
+    onboarding_checklist_domain_existing: "Использовать уже имеющийся домен",
+    onboarding_checklist_hide_forever: "Скрыть список обучения навсегда",
+    onboarding_checklist_shortcuts: "Сочетания клавиш",
+    onboarding_checklist_open: "Показать список обучения",
+    onboarding_checklist_close: "Закрыть список обучения",
+    onboarding_checklist_task_done: "Выполнено",
     onboarding_checklist_first_email: "Отправьте первое письмо",
     recovery_reminder_title: "Добавьте способ вернуться в аккаунт",
     recovery_reminder_body:
