@@ -8193,6 +8193,8 @@ export const ko = {
     category_empty_transactions_title: "구매 내역 없음",
     category_empty_transactions_desc:
       "상점과 서비스에서 온 주문, 결제, 영수증이 여기에 표시됩니다.",
+    filter_empty_title: "이 필터와 일치하는 메시지가 없습니다",
+    filter_empty_clear: "필터 지우기",
     category_empty_custom_desc:
       "이 카테고리의 규칙과 일치하는 메일이 여기에 표시됩니다.",
     block_sender_on_alias: "별칭에서 발신자 차단",

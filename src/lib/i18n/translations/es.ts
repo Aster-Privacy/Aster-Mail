@@ -8539,6 +8539,8 @@ export const es = {
     category_empty_transactions_title: "No hay recibos",
     category_empty_transactions_desc:
       "Aquí aparecen los pedidos, pagos y recibos de tiendas y servicios.",
+    filter_empty_title: "Ningún mensaje coincide con este filtro",
+    filter_empty_clear: "Borrar filtro",
     category_empty_custom_desc:
       "Los correos que coincidan con las reglas de esta categoría aparecerán aquí.",
     block_sender_on_alias: "Bloquear remitente en el alias",

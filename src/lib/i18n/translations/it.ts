@@ -8581,6 +8581,8 @@ export const it = {
     category_empty_transactions_title: "Nessuna ricevuta",
     category_empty_transactions_desc:
       "Ordini, pagamenti e ricevute di negozi e servizi vengono visualizzati qui.",
+    filter_empty_title: "Nessun messaggio corrisponde a questo filtro",
+    filter_empty_clear: "Cancella filtro",
     category_empty_custom_desc:
       "Le email corrispondenti alle regole di questa categoria appariranno qui.",
     block_sender_on_alias: "Blocca il mittente sull'alias",

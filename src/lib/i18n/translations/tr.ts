@@ -8440,6 +8440,8 @@ export const tr = {
     category_empty_transactions_title: "Alışveriş yok",
     category_empty_transactions_desc:
       "Mağaza ve hizmetlerden gelen siparişler, ödemeler ve makbuzlar burada görünür.",
+    filter_empty_title: "Bu filtreyle eşleşen ileti yok",
+    filter_empty_clear: "Filtreyi temizle",
     category_empty_custom_desc:
       "Bu kategorinin kurallarıyla eşleşen e-postalar burada görünecek.",
     block_sender_on_alias: "Göndereni rumuzda engelle",

@@ -8723,6 +8723,8 @@ export const ru = {
     category_empty_transactions_title: "Нет чеков",
     category_empty_transactions_desc:
       "Здесь появляются заказы, платежи и чеки от магазинов и сервисов.",
+    filter_empty_title: "Нет сообщений, соответствующих этому фильтру",
+    filter_empty_clear: "Сбросить фильтр",
     category_empty_custom_desc:
       "Здесь будут появляться письма, соответствующие правилам этой категории.",
     block_sender_on_alias: "Заблокировать отправителя на псевдониме",

@@ -8737,6 +8737,8 @@ export const hi = {
     category_empty_transactions_title: "कोई रसीद नहीं",
     category_empty_transactions_desc:
       "स्टोर और सेवाओं से आए ऑर्डर, भुगतान और रसीदें यहां दिखती हैं।",
+    filter_empty_title: "कोई संदेश इस फ़िल्टर से मेल नहीं खाता",
+    filter_empty_clear: "फ़िल्टर हटाएँ",
     category_empty_custom_desc:
       "इस श्रेणी के नियमों से मेल खाने वाले ईमेल यहां दिखेंगे।",
     report_spam: "स्पैम की शिकायत करें",

@@ -1303,6 +1303,8 @@ function MobileInbox({
             emails={enriched_unpinned}
             fill_reset_key={active_filter}
             list_filtered={active_filter !== "all" && !is_drafts_view}
+            filter_active={active_filter !== "all"}
+            on_clear_filter={() => set_active_filter("all")}
             has_initial_load={
               is_drafts_view
                 ? !drafts_state.is_loading

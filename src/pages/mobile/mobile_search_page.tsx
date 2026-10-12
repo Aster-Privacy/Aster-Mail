@@ -355,11 +355,14 @@ function MobileSearchPage() {
 
         {!is_loading && !search.state.error && has_searched && !has_results && (
           <div className="flex flex-col items-center justify-center gap-3 px-8 pt-20">
-            <p className="text-center text-[15px] text-[var(--text-muted)]">
-              {active_filter_count > 0
-                ? t("mail.search_filters_active")
-                : t("mail.no_results_found")}
+            <p className="text-center text-[15px] font-medium text-[var(--text-primary)]">
+              {t("mail.no_results_found")}
             </p>
+            {active_filter_count > 0 && (
+              <p className="text-center text-[14px] text-[var(--text-muted)]">
+                {t("mail.search_filters_active")}
+              </p>
+            )}
             {active_filter_count > 0 && (
               <button
                 className="text-[14px] font-medium text-[var(--accent-color,#3b82f6)]"

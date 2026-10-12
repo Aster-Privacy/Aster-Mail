@@ -50,6 +50,7 @@ import { use_delayed_flag } from "@/hooks/use_delayed_flag";
 import { Spinner } from "@/components/ui/spinner";
 import { MobileEmailRow } from "@/components/mobile/mobile_email_row";
 import { use_i18n } from "@/lib/i18n/context";
+import { FilterEmptyState } from "@/components/email/inbox/filter_empty_state";
 import { haptic_impact } from "@/native/haptic_feedback";
 import { use_platform } from "@/hooks/use_platform";
 import {
@@ -72,6 +73,8 @@ interface MobileEmailListProps {
   list_filtered?: boolean;
   fill_reset_key?: string;
   current_view: string;
+  filter_active?: boolean;
+  on_clear_filter?: () => void;
   on_email_press: (id: string) => void;
   on_long_press: (id: string) => void;
   on_load_more: () => void;
@@ -198,6 +201,8 @@ export const MobileEmailList = memo(function MobileEmailList({
   list_filtered = false,
   fill_reset_key = "",
   current_view,
+  filter_active,
+  on_clear_filter,
   on_email_press,
   on_long_press,
   on_load_more,
@@ -591,6 +596,14 @@ export const MobileEmailList = memo(function MobileEmailList({
             </button>
           )}
         </div>
+      </div>
+    );
+  }
+
+  if (empty_state_visible && filter_active && on_clear_filter) {
+    return (
+      <div className="relative flex flex-1 flex-col items-center justify-center">
+        <FilterEmptyState on_clear={on_clear_filter} />
       </div>
     );
   }

@@ -8351,6 +8351,8 @@ export const ja = {
     category_empty_transactions_title: "買い物のメールはありません",
     category_empty_transactions_desc:
       "ストアやサービスからの注文、支払い、領収書がここに表示されます。",
+    filter_empty_title: "このフィルタに一致するメッセージはありません",
+    filter_empty_clear: "フィルタを解除",
     category_empty_custom_desc:
       "このカテゴリのルールに一致するメールがここに表示されます。",
     block_sender_on_alias: "エイリアスで送信者をブロック",

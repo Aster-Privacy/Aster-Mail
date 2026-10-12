@@ -7558,6 +7558,8 @@ export const zh_CN = {
     category_empty_transactions_title: "没有收据",
     category_empty_transactions_desc:
       "来自商店和服务的订单、付款和收据会显示在这里。",
+    filter_empty_title: "没有符合此筛选条件的邮件",
+    filter_empty_clear: "清除筛选条件",
     category_empty_custom_desc: "符合此分类规则的邮件将显示在这里。",
     block_sender_on_alias: "在别名上屏蔽发件人",
     block_sender_on_alias_success: "已在 {{alias}} 上屏蔽 {{sender}}",

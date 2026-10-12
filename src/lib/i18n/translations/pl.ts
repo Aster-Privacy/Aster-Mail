@@ -8765,6 +8765,8 @@ export const pl = {
     category_empty_transactions_title: "Brak transakcji",
     category_empty_transactions_desc:
       "Tutaj pojawiają się zamówienia, płatności i potwierdzenia ze sklepów i serwisów.",
+    filter_empty_title: "Żadna wiadomość nie pasuje do tego filtra",
+    filter_empty_clear: "Wyczyść filtr",
     category_empty_custom_desc:
       "Wiadomości pasujące do reguł tej kategorii pojawią się tutaj.",
     block_sender_on_alias: "Blokuj nadawcę na aliasie",

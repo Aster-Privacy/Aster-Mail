@@ -8634,6 +8634,8 @@ export const fr = {
     category_empty_transactions_title: "Aucun reçu",
     category_empty_transactions_desc:
       "Les commandes, paiements et reçus des boutiques et des services apparaissent ici.",
+    filter_empty_title: "Aucun message ne correspond à ce filtre",
+    filter_empty_clear: "Effacer le filtre",
     category_empty_custom_desc:
       "Les e-mails correspondant aux règles de cette catégorie apparaîtront ici.",
     block_sender_on_alias: "Bloquer l'expéditeur sur l'alias",

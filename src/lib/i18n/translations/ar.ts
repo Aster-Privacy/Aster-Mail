@@ -8374,6 +8374,8 @@ export const ar = {
     category_empty_transactions_title: "لا توجد مشتريات",
     category_empty_transactions_desc:
       "تظهر هنا الطلبات والمدفوعات والإيصالات من المتاجر والخدمات.",
+    filter_empty_title: "لا توجد رسائل تطابق عامل التصفية هذا",
+    filter_empty_clear: "مسح عامل التصفية",
     category_empty_custom_desc: "ستظهر هنا الرسائل المطابقة لقواعد هذه الفئة.",
     block_sender_on_alias: "حظر المُرسِل على الاسم المستعار",
     block_sender_on_alias_success: "تم حظر {{sender}} على {{alias}}",

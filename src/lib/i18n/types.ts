@@ -7765,6 +7765,8 @@ export interface MailTranslations {
   category_empty_newsletters_desc: string;
   category_empty_transactions_title: string;
   category_empty_transactions_desc: string;
+  filter_empty_title: string;
+  filter_empty_clear: string;
   category_empty_custom_desc: string;
   report_spam: string;
   clear_selection: string;

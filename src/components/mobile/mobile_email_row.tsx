@@ -425,6 +425,15 @@ export const MobileEmailRow = memo(function MobileEmailRow(
             </Tooltip>
           )}
 
+          {email.item_type === "sent" && current_view !== "sent" && (
+            <span
+              className="shrink-0 rounded-[5px] bg-[color-mix(in_srgb,currentColor_12%,transparent)] px-1.5 text-[11px] text-[var(--text-muted)]"
+              data-testid="mobile-row-sent-tag"
+            >
+              {t("mail.sent_label")}
+            </span>
+          )}
+
           {thread_count > 1 && (
             <span className="shrink-0 rounded-[5px] bg-[color-mix(in_srgb,currentColor_12%,transparent)] px-1.5 text-[11px] tabular-nums text-[var(--text-muted)]">
               {thread_count}

@@ -8688,6 +8688,8 @@ export const en: Translations = {
     category_empty_transactions_title: "No purchases",
     category_empty_transactions_desc:
       "Orders, payments, and receipts from stores and services appear here.",
+    filter_empty_title: "No messages match this filter",
+    filter_empty_clear: "Clear filter",
     category_empty_custom_desc:
       "Emails matching this category's rules will appear here.",
     report_spam: "Report spam",

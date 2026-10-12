@@ -143,6 +143,7 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     if (prev_view_ref_page.current !== current_view) {
       prev_view_ref_page.current = current_view;
       initial_page_synced.current = false;
+      set_active_filter("all");
       set_current_page(0);
     }
   }, [current_view, set_current_page]);

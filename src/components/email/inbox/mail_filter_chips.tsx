@@ -245,6 +245,8 @@ export function MailFilterChips({
   const [is_advanced_open, set_is_advanced_open] = useState(false);
   const [is_date_open, set_is_date_open] = useState(false);
   const [show_custom_range, set_show_custom_range] = useState(false);
+  const [draft_after, set_draft_after] = useState("");
+  const [draft_before, set_draft_before] = useState("");
 
   const apply = useCallback(
     (next: ChipFilters) => {
@@ -281,6 +283,12 @@ export function MailFilterChips({
           open={is_date_open}
           onOpenChange={(open) => {
             set_is_date_open(open);
+            set_draft_after(
+              filters.date_window === "custom" ? filters.custom_after : "",
+            );
+            set_draft_before(
+              filters.date_window === "custom" ? filters.custom_before : "",
+            );
             if (!open) set_show_custom_range(filters.date_window === "custom");
           }}
         >
@@ -325,38 +333,33 @@ export function MailFilterChips({
                 <input
                   aria-label={t("settings.export_scope_date_from")}
                   className="w-full h-8 px-2 rounded-[var(--aster-radius-item)] bg-[var(--aster-hover)] text-xs text-[var(--text-primary)] outline-none"
-                  max={filters.custom_before || undefined}
+                  max={draft_before || undefined}
                   type="date"
-                  value={filters.custom_after}
-                  onChange={(event) =>
-                    set_filters({
-                      ...filters,
-                      custom_after: event.target.value,
-                    })
-                  }
+                  value={draft_after}
+                  onChange={(event) => set_draft_after(event.target.value)}
                   onKeyDown={(event) => event.stopPropagation()}
                 />
                 <input
                   aria-label={t("settings.export_scope_date_to")}
                   className="w-full h-8 px-2 rounded-[var(--aster-radius-item)] bg-[var(--aster-hover)] text-xs text-[var(--text-primary)] outline-none"
-                  min={filters.custom_after || undefined}
+                  min={draft_after || undefined}
                   type="date"
-                  value={filters.custom_before}
-                  onChange={(event) =>
-                    set_filters({
-                      ...filters,
-                      custom_before: event.target.value,
-                    })
-                  }
+                  value={draft_before}
+                  onChange={(event) => set_draft_before(event.target.value)}
                   onKeyDown={(event) => event.stopPropagation()}
                 />
                 <button
                   className="h-8 rounded-md text-xs font-medium bg-[var(--accent-blue)] text-[var(--accent-fg,#ffffff)] hover:opacity-90 transition-opacity disabled:opacity-50"
-                  disabled={!filters.custom_after && !filters.custom_before}
+                  disabled={!draft_after && !draft_before}
                   type="button"
                   onClick={() => {
                     set_is_date_open(false);
-                    apply({ ...filters, date_window: "custom" });
+                    apply({
+                      ...filters,
+                      date_window: "custom",
+                      custom_after: draft_after,
+                      custom_before: draft_before,
+                    });
                   }}
                 >
                   {t("common.apply")}
