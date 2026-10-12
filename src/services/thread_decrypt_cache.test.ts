@@ -477,7 +477,7 @@ describe("thread decrypt cache keeps only open conversations", () => {
 
     decrypts();
     close();
-    close = await open("a");
+    await open("a");
 
     expect(decrypts().envelope).toBe(3);
     expect(thread_decrypt_cache_size()).toBe(9);

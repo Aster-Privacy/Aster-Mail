@@ -227,7 +227,7 @@ async function name_key_for(uid: string | null): Promise<CryptoKey> {
   try {
     return await pending;
   } catch (caught) {
-    if (name_keys.get(slot) === pending) name_keys.delete(slot);
+    if (Object.is(name_keys.get(slot), pending)) name_keys.delete(slot);
     throw caught;
   }
 }

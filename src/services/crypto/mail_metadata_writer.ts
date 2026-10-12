@@ -328,7 +328,7 @@ export async function update_item_metadata(
     if (ticket_current()) clear_flag_intents([item_id], intent);
     throw caught;
   } finally {
-    if (in_flight_requests.get(dedup_key) === promise) {
+    if (Object.is(in_flight_requests.get(dedup_key), promise)) {
       in_flight_requests.delete(dedup_key);
     }
     if (item_chains.get(item_id) === chained) {
