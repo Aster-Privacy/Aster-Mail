@@ -142,7 +142,9 @@ async function set_bin_flag(
   return failed_emails;
 }
 
-function group_ids_by_folder(emails: InboxEmail[]): Map<string, string[]> {
+export function group_ids_by_folder(
+  emails: InboxEmail[],
+): Map<string, string[]> {
   const groups = new Map<string, string[]>();
 
   for (const email of emails) {
