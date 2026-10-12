@@ -70,6 +70,7 @@ interface MobileEmailListProps {
   has_more?: boolean;
   has_load_error?: boolean;
   list_filtered?: boolean;
+  fill_reset_key?: string;
   current_view: string;
   on_email_press: (id: string) => void;
   on_long_press: (id: string) => void;
@@ -195,6 +196,7 @@ export const MobileEmailList = memo(function MobileEmailList({
   has_more,
   has_load_error,
   list_filtered = false,
+  fill_reset_key = "",
   current_view,
   on_email_press,
   on_long_press,
@@ -388,7 +390,7 @@ export const MobileEmailList = memo(function MobileEmailList({
   useEffect(() => {
     fill_attempts_ref.current = 0;
     fill_baseline_ref.current = -1;
-  }, [current_view]);
+  }, [current_view, fill_reset_key]);
 
   useEffect(() => {
     if (!has_more || is_loading || is_loading_more || !has_initial_load) return;
@@ -426,6 +428,7 @@ export const MobileEmailList = memo(function MobileEmailList({
     on_load_more,
     current_view,
     list_filtered,
+    fill_reset_key,
     emails.length,
     pinned_emails?.length,
   ]);

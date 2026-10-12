@@ -416,6 +416,54 @@ describe("use_email_inbox_state keeps the open email under a list filter", () =>
     expect(state().total_pages).toBe(unfiltered_pages);
   });
 
+  it("drops a selected row from the selection once the filter hides it", async () => {
+    await mount([email("a"), email("b"), email("c")], "unread");
+    await act(async () => {
+      state().selection.handle_toggle_select_all();
+    });
+
+    expect(state().selection.selected_count).toBe(3);
+
+    await act(async () => {
+      update_email("a", { is_read: true });
+      update_email("b", { is_read: true });
+    });
+
+    expect(listed_ids()).toEqual(["c"]);
+    expect(
+      state()
+        .email_state.emails.filter((e) => e.is_selected)
+        .map((e) => e.id),
+    ).toEqual(["c"]);
+    expect(state().selection.selected_count).toBe(1);
+  });
+
+  it("keeps hidden rows selected when no filter is on", async () => {
+    await mount([email("a"), email("b")], "all");
+    await act(async () => {
+      state().selection.handle_toggle_select_all();
+    });
+    await act(async () => {
+      update_email("a", { is_read: true });
+    });
+
+    expect(state().selection.selected_count).toBe(2);
+  });
+
+  it("pages the header over the whole folder while a filter is on", async () => {
+    harness.server_total = 120;
+    harness.has_more = true;
+    await mount([email("a"), email("b", true), email("c", true)], "unread");
+
+    expect(state().pager_total).toBe(120);
+
+    await act(async () => {
+      state().handle_filter_change("all");
+    });
+
+    expect(state().pager_total).toBe(state().effective_total_for_pages);
+  });
+
   it("does not rebuild the list when an email is opened with no filter on", async () => {
     await mount([email("a"), email("b")], "all");
     const reported = on_email_list_change.mock.calls.length;

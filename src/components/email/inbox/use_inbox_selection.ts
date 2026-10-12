@@ -33,6 +33,7 @@ interface UseInboxSelectionOptions {
   emails: InboxEmail[];
   pinned_emails: InboxEmail[];
   primary_emails: InboxEmail[];
+  prune_hidden?: boolean;
   update_email: (id: string, updates: Partial<InboxEmail>) => void;
   update_draft: (id: string, updates: Partial<InboxEmail>) => void;
   update_scheduled: (id: string, updates: Partial<InboxEmail>) => void;
@@ -46,6 +47,7 @@ export function use_inbox_selection({
   emails,
   pinned_emails,
   primary_emails,
+  prune_hidden = false,
   update_email,
   update_draft,
   update_scheduled,
@@ -167,6 +169,23 @@ export function use_inbox_selection({
       }
     });
   }, [current_view, active_category, get_update_fn]);
+
+  useEffect(() => {
+    if (!prune_hidden) return;
+
+    const visible_ids = new Set(page_emails.map((e) => e.id));
+    const hidden_selected = emails.filter(
+      (e) => e.is_selected && !visible_ids.has(e.id),
+    );
+
+    if (hidden_selected.length === 0) return;
+
+    const update_fn = get_update_fn();
+
+    hidden_selected.forEach((e) => {
+      update_fn(e.id, { is_selected: false });
+    });
+  }, [prune_hidden, emails, page_emails, get_update_fn]);
 
   const handle_toggle_select = useCallback(
     (id: string): void => {

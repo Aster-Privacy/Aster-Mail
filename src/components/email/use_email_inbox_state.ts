@@ -525,6 +525,7 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     emails: email_state.emails,
     pinned_emails,
     primary_emails,
+    prune_hidden: is_client_filtered,
     update_email,
     update_draft: update_draft as (
       id: string,
@@ -930,6 +931,9 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     empty_state_visible,
     skeleton_visible,
     effective_total_for_pages,
+    pager_total: is_client_filtered
+      ? unfiltered_total_for_pages
+      : effective_total_for_pages,
     header_display_count,
     total_pages,
     selection,

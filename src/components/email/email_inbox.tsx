@@ -136,6 +136,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
     empty_state_visible,
     skeleton_visible,
     effective_total_for_pages,
+    pager_total,
     header_display_count,
     total_pages,
     selection,
@@ -336,7 +337,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
             current_page={current_page}
             display_count={header_display_count}
             excluded_count={selection.excluded_ids.length}
-            filtered_count={effective_total_for_pages}
+            filtered_count={pager_total}
             folders={order_folders_as_tree(folders_state.folders).map(
               ({ folder: f, depth }) => ({
                 folder_token: f.folder_token,
