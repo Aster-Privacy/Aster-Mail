@@ -53,7 +53,7 @@
     "@aster/ui": "npm:@aster-privacy/ui@0.2.2",
     "@capacitor-community/contacts": "^6.1.1",
     "@capacitor/app": "^6.0.0",
-    "@capacitor/browser": "^6.0.0",
+    "@capacitor/browser": "^8.0.5",
     "@capacitor/core": "^6.2.1",
     "@capacitor/haptics": "^6.0.0",
     "@capacitor/keyboard": "^6.0.0",
