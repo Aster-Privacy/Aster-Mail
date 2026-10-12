@@ -25,6 +25,8 @@ import { useRef, useEffect, useCallback } from "react";
 import { use_email_detail_load } from "./use_email_detail_load";
 import { use_thread_draft_removal } from "./use_thread_draft_removal";
 
+import { use_pending_reply_messages } from "@/hooks/pending_reply_messages";
+
 import { is_system_email } from "@/lib/utils";
 import { fetch_and_decrypt_thread_messages } from "@/services/thread_service";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -122,6 +124,15 @@ export function use_email_detail() {
   } = use_email_detail_load();
 
   use_thread_draft_removal(mail_item?.thread_token, set_thread_draft);
+  use_pending_reply_messages({
+    thread_token:
+      mail_item?.id === email_id ? mail_item?.thread_token : undefined,
+    email_id,
+    enabled: preferences.conversation_grouping !== false,
+    reload_drops_pending: true,
+    thread_messages,
+    set_thread_messages,
+  });
 
   useEffect(() => {
     fetch_email();

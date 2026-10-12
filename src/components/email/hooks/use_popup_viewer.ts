@@ -96,6 +96,7 @@ import { use_popup_viewer_actions } from "@/components/email/hooks/popup_viewer_
 import { register_popup_email } from "@/components/email/hooks/popup_email_registry";
 import { viewer_still_showing } from "@/components/email/thread_reply_target";
 import { use_thread_draft_removal } from "@/components/email/hooks/use_thread_draft_removal";
+import { use_pending_reply_messages } from "@/hooks/pending_reply_messages";
 import { use_thread_decrypt_hold } from "@/hooks/use_thread_decrypt_hold";
 import { UNDO_SEND_PREVIEW_ID } from "@/components/email/email_viewer_types";
 import {
@@ -165,6 +166,13 @@ export function use_popup_viewer({
   );
 
   use_thread_draft_removal(current_thread_token, set_thread_draft);
+  use_pending_reply_messages({
+    thread_token: current_thread_token,
+    email_id,
+    enabled: preferences.conversation_grouping !== false,
+    thread_messages,
+    set_thread_messages,
+  });
   use_thread_decrypt_hold(current_thread_token);
   const [external_content_state, set_external_content_state] = useState<{
     mode: "blocked" | "loaded" | "dismissed";
@@ -1054,7 +1062,11 @@ export function use_popup_viewer({
         cc_recipients: detail.cc_recipients ?? [],
       };
 
-      set_thread_messages((prev) => [...prev, optimistic_message]);
+      set_thread_messages((prev) =>
+        prev.some((msg) => msg.id === optimistic_message.id)
+          ? prev
+          : [...prev, optimistic_message],
+      );
 
       if (!current_thread_token) {
         set_current_thread_token(detail.thread_token);

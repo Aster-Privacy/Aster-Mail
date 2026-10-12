@@ -45,6 +45,7 @@ import {
 } from "@/hooks/use_stat_helpers";
 import {
   bin_source_of_view,
+  group_ids_by_folder,
   move_out_of_bin,
 } from "@/hooks/email_actions/move_out_of_bin";
 import { leaves_view_on_folder_move } from "@/hooks/view_membership";
@@ -314,13 +315,10 @@ export function use_folder_tag_actions({
             remove_index_ids(succeeded_ids);
           } else {
             await batched_bulk_remove_folder(succeeded_ids, folder_token);
-            for (const email of succeeded_emails) {
-              for (const previous of previous_states.get(email.id) ?? []) {
-                await batched_bulk_add_folder(
-                  expand_email_ids(email),
-                  previous.folder_token,
-                );
-              }
+            for (const [previous_token, ids] of group_ids_by_folder(
+              succeeded_emails,
+            )) {
+              await batched_bulk_add_folder(ids, previous_token);
             }
             reindex_ids(succeeded_ids);
           }
