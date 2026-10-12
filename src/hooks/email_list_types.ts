@@ -24,6 +24,8 @@ import type { RestoredEmailEntry } from "@/hooks/email_list_helpers";
 
 export const MIN_SKELETON_MS = 0;
 
+export type ListReadFilter = "all" | "unread" | "read";
+
 export interface FetchPageOptions {
   force?: boolean;
   silent?: boolean;

@@ -124,6 +124,8 @@ export interface CategoryCount {
 
 export type CategoryCounts = Partial<Record<EmailCategory, CategoryCount>>;
 
+export type CategoryReadFilter = "all" | "unread" | "read";
+
 interface PersistedIndex {
   entries: CategoryIndexEntry[];
   built_at_ms: number;
@@ -1577,15 +1579,49 @@ export function get_page_ids(
   category: EmailCategory,
   page: number,
   page_size: number,
+  read_filter: CategoryReadFilter = "all",
+  kept_ids?: ReadonlySet<string>,
 ): string[] {
-  const ids = ensure_derived().pages.get(category) ?? [];
+  const ids = filter_category_ids(category, read_filter, kept_ids);
   const start = page * page_size;
 
   return ids.slice(start, start + page_size);
 }
 
-export function get_category_total(category: EmailCategory): number {
-  return ensure_derived().counts[category]?.total ?? 0;
+export function get_category_total(
+  category: EmailCategory,
+  read_filter: CategoryReadFilter = "all",
+  kept_ids?: ReadonlySet<string>,
+): number {
+  if (read_filter !== "all" && kept_ids && kept_ids.size > 0) {
+    return filter_category_ids(category, read_filter, kept_ids).length;
+  }
+
+  const counts = ensure_derived().counts[category];
+
+  if (!counts) return 0;
+  if (read_filter === "unread") return counts.unread;
+  if (read_filter === "read") return Math.max(0, counts.total - counts.unread);
+
+  return counts.total;
+}
+
+function filter_category_ids(
+  category: EmailCategory,
+  read_filter: CategoryReadFilter,
+  kept_ids?: ReadonlySet<string>,
+): string[] {
+  const current = ensure_derived();
+  const all_ids = current.pages.get(category) ?? [];
+
+  if (read_filter === "all") return all_ids;
+  const wants_unread = read_filter === "unread";
+
+  return all_ids.filter(
+    (id) =>
+      current.unread_reps.has(id) === wants_unread ||
+      kept_ids?.has(id) === true,
+  );
 }
 
 export function is_representative_unread(id: string): boolean {

@@ -20,7 +20,11 @@
 //
 import type { InboxEmail, EmailListState } from "@/types/email";
 import type { FormatOptions } from "@/utils/date_format";
-import type { UseEmailListReturn, FetchPageOptions } from "./email_list_types";
+import type {
+  UseEmailListReturn,
+  FetchPageOptions,
+  ListReadFilter,
+} from "./email_list_types";
 
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { Capacitor } from "@capacitor/core";
@@ -134,9 +138,41 @@ export function shift_page_offsets(
   return shifted;
 }
 
+export function shift_page_offsets_after(
+  page_offsets: Map<number, number>,
+  after_page: number,
+  removed: number,
+): Map<number, number> {
+  if (removed <= 0) return page_offsets;
+  const shifted = new Map<number, number>();
+
+  for (const [page, offset] of page_offsets) {
+    shifted.set(
+      page,
+      page > after_page ? Math.max(0, offset - removed) : offset,
+    );
+  }
+
+  return shifted;
+}
+
+export function count_left_read_filter(
+  emails: InboxEmail[],
+  read_filter: ListReadFilter,
+): number {
+  if (read_filter === "all") return 0;
+  const wants_read = read_filter === "read";
+
+  return emails.reduce(
+    (count, email) => (email.is_read === wants_read ? count : count + 1),
+    0,
+  );
+}
+
 export function use_email_list(
   current_view: string,
   enabled = true,
+  read_filter: ListReadFilter = "all",
 ): UseEmailListReturn {
   const {
     has_keys,
@@ -147,13 +183,20 @@ export function use_email_list(
   } = use_auth();
   const { preferences } = use_preferences();
   const { is_online } = use_online_status();
+  const list_key =
+    read_filter === "all" ? current_view : `${current_view}#${read_filter}`;
+  const is_read_param =
+    read_filter === "all" ? undefined : read_filter === "read";
+  const read_filter_ref = useRef(read_filter);
+
+  read_filter_ref.current = read_filter;
   const page_size = resolve_effective_page_size(
     preferences.inbox_page_size,
     preferences.low_network_mode,
     DEFAULT_PAGE_SIZE,
   );
   const [state, set_state] = useState<EmailListState>(() => {
-    const cached = get_view_cache(current_view);
+    const cached = get_view_cache(list_key);
 
     if (cached && cached.state.has_initial_load) {
       const grouping_matches =
@@ -174,7 +217,8 @@ export function use_email_list(
       has_initial_load: false,
     };
   });
-  const [render_view, set_render_view] = useState(current_view);
+  const [render_view, set_render_view] = useState(list_key);
+  const [render_plain_view, set_render_plain_view] = useState(current_view);
   const page_ref = useRef(-1);
   const windowed_page_ref = useRef(false);
   const page_limit_ref = useRef(page_size);
@@ -182,6 +226,7 @@ export function use_email_list(
     Map<number, { state: EmailListState; time: number }>
   >(new Map());
   const page_offset_ref = useRef<Map<number, number>>(new Map());
+  const drift_accounted_ref = useRef(0);
 
   if (page_ref.current === -1) {
     page_ref.current = derive_page_from_list_length(
@@ -190,11 +235,15 @@ export function use_email_list(
     );
   }
 
-  if (render_view !== current_view) {
-    set_render_view(current_view);
+  if (render_view !== list_key) {
+    set_render_view(list_key);
+    const filter_only_change = render_plain_view === current_view;
+
+    if (!filter_only_change) set_render_plain_view(current_view);
+    drift_accounted_ref.current = 0;
     page_cache_ref.current.clear();
     page_offset_ref.current.clear();
-    const cached = get_view_cache(current_view);
+    const cached = filter_only_change ? undefined : get_view_cache(list_key);
 
     if (cached && cached.state.has_initial_load) {
       const grouping_matches =
@@ -235,6 +284,7 @@ export function use_email_list(
     is_authenticated: boolean;
   } | null>(null);
   const prev_view_ref = useRef<string | null>(null);
+  const prev_plain_view_ref = useRef(current_view);
   const prev_user_id_ref = useRef<string | null>(null);
   const fetch_page_ref = useRef<
     | ((
@@ -251,9 +301,9 @@ export function use_email_list(
     time: number;
   } | null>(null);
   const PAGE_CACHE_TTL_MS = 20_000;
-  const committed_view_ref = useRef(current_view);
+  const committed_view_ref = useRef(list_key);
 
-  committed_view_ref.current = current_view;
+  committed_view_ref.current = list_key;
   const has_data_ref = useRef(false);
 
   has_data_ref.current = state.has_initial_load && !state.is_loading;
@@ -309,14 +359,14 @@ export function use_email_list(
         return;
       }
 
-      const fetch_view = current_view;
+      const fetch_view = list_key;
       const now = Date.now();
       const last = last_fetch_ref.current;
 
       if (
         !force &&
         last &&
-        last.view === current_view &&
+        last.view === list_key &&
         last.page === page &&
         now - last.time < 2000
       ) {
@@ -326,11 +376,11 @@ export function use_email_list(
       const cached_page = page_cache_ref.current.get(page);
 
       if (!force && cached_page && now - cached_page.time < PAGE_CACHE_TTL_MS) {
-        last_fetch_ref.current = { view: current_view, page, time: now };
+        last_fetch_ref.current = { view: list_key, page, time: now };
         page_ref.current = page;
         windowed_page_ref.current = true;
         page_limit_ref.current = limit;
-        state_view_ref.current = current_view;
+        state_view_ref.current = list_key;
         unverified_snapshot_view_ref.current = null;
         set_state((prev) => {
           unverified_snapshot_view_ref.current = null;
@@ -349,7 +399,15 @@ export function use_email_list(
                 )
               : surviving;
 
-          return { ...cached_page.state, emails };
+          return {
+            ...cached_page.state,
+            emails,
+            total_messages: Math.max(
+              0,
+              cached_page.state.total_messages -
+                count_left_read_filter(prev.emails, read_filter),
+            ),
+          };
         });
 
         return;
@@ -364,6 +422,22 @@ export function use_email_list(
       fetch_in_flight_ref.current = true;
 
       try {
+        const left_filter = count_left_read_filter(
+          loaded_emails_ref.current,
+          read_filter,
+        );
+        const drift =
+          left_filter - Math.min(drift_accounted_ref.current, left_filter);
+
+        if (drift > 0) {
+          page_offset_ref.current = shift_page_offsets_after(
+            page_offset_ref.current,
+            page_ref.current,
+            drift,
+          );
+        }
+        drift_accounted_ref.current = left_filter;
+
         const offset = page_offset_ref.current.get(page) ?? page * limit;
         const load_page = () =>
           fetch_mail_from_api(
@@ -391,6 +465,7 @@ export function use_email_list(
                 return { ...prev, emails: surviving };
               });
             },
+            { is_read: is_read_param },
           );
 
         let result = await load_page().catch(() => null);
@@ -443,13 +518,14 @@ export function use_email_list(
 
         if (signal.aborted || committed_view_ref.current !== fetch_view) return;
 
-        last_fetch_ref.current = { view: current_view, page, time: now };
+        last_fetch_ref.current = { view: list_key, page, time: now };
         page_ref.current = page;
         windowed_page_ref.current = true;
         page_limit_ref.current = limit;
-        state_view_ref.current = current_view;
+        state_view_ref.current = list_key;
         unverified_snapshot_view_ref.current = null;
         page_offset_ref.current.set(page + 1, offset + result.raw_consumed);
+        drift_accounted_ref.current = 0;
 
         set_state((prev) => {
           unverified_snapshot_view_ref.current = null;
@@ -472,7 +548,11 @@ export function use_email_list(
             total_messages:
               typeof result.total === "number" && result.total >= 0
                 ? result.total
-                : prev.total_messages,
+                : Math.max(
+                    0,
+                    prev.total_messages -
+                      count_left_read_filter(prev.emails, read_filter),
+                  ),
             has_more: result.has_more,
             has_initial_load: true,
             has_load_error: false,
@@ -490,7 +570,11 @@ export function use_email_list(
           return next_state;
         });
 
-        if (Capacitor.isNativePlatform() && result.emails.length > 0) {
+        if (
+          Capacitor.isNativePlatform() &&
+          result.emails.length > 0 &&
+          read_filter === "all"
+        ) {
           cache_email_list(current_view, result.emails).catch((caught) =>
             ignore_error("hooks/use_email_list:use_email_list", caught),
           );
@@ -512,6 +596,9 @@ export function use_email_list(
     },
     [
       current_view,
+      list_key,
+      read_filter,
+      is_read_param,
       is_mail_view,
       format_options,
       user?.email,
@@ -566,26 +653,33 @@ export function use_email_list(
         preferences.conversation_grouping ?? true,
         preferences.inbox_sort_order ?? "newest_first",
         undefined,
-        { reuse_known_envelopes: true },
+        { reuse_known_envelopes: true, is_read: is_read_param },
       );
 
       if (
         signal.aborted ||
         !result ||
-        committed_view_ref.current !== current_view
+        committed_view_ref.current !== list_key
       )
         return;
       if (page_ref.current !== active_page) return;
       if (silent_seq_ref.current !== my_silent_seq) return;
 
       last_fetch_ref.current = {
-        view: current_view,
+        view: list_key,
         page: active_page,
         time: Date.now(),
       };
       page_ref.current = active_page;
-      state_view_ref.current = current_view;
+      state_view_ref.current = list_key;
       unverified_snapshot_view_ref.current = null;
+      if (read_filter !== "all") {
+        page_offset_ref.current.set(
+          active_page + 1,
+          refresh_offset + result.raw_consumed,
+        );
+        drift_accounted_ref.current = 0;
+      }
 
       set_state((prev) => {
         unverified_snapshot_view_ref.current = null;
@@ -596,6 +690,12 @@ export function use_email_list(
           start,
         );
 
+        const dropped_left = Math.max(
+          0,
+          count_left_read_filter(prev.emails, read_filter) -
+            count_left_read_filter(emails, read_filter),
+        );
+
         return {
           emails,
           is_loading: false,
@@ -603,7 +703,7 @@ export function use_email_list(
           total_messages:
             typeof result.total === "number" && result.total >= 0
               ? result.total
-              : prev.total_messages,
+              : Math.max(0, prev.total_messages - dropped_left),
           has_more: result.has_more,
           has_initial_load: true,
         };
@@ -613,6 +713,9 @@ export function use_email_list(
     }
   }, [
     current_view,
+    list_key,
+    read_filter,
+    is_read_param,
     is_mail_view,
     format_options,
     user?.email,
@@ -627,10 +730,19 @@ export function use_email_list(
     if (!is_mail_view || !has_passphrase_in_memory()) return;
     if (!state.has_more || state.is_loading_more) return;
 
-    const fetch_view = current_view;
+    const fetch_view = list_key;
     const next_page = page_ref.current + 1;
-    const offset =
-      page_offset_ref.current.get(next_page) ?? next_page * page_size;
+    const left_filter = count_left_read_filter(
+      loaded_emails_ref.current,
+      read_filter,
+    );
+    const drift =
+      left_filter - Math.min(drift_accounted_ref.current, left_filter);
+    const offset = Math.max(
+      0,
+      (page_offset_ref.current.get(next_page) ?? next_page * page_size) -
+        drift,
+    );
 
     set_state((prev) => ({ ...prev, is_loading_more: true }));
 
@@ -652,6 +764,8 @@ export function use_email_list(
         offset,
         preferences.conversation_grouping ?? true,
         preferences.inbox_sort_order ?? "newest_first",
+        undefined,
+        { is_read: is_read_param },
       );
 
       if (
@@ -665,6 +779,7 @@ export function use_email_list(
       }
 
       page_ref.current = next_page;
+      drift_accounted_ref.current = left_filter;
       windowed_page_ref.current = false;
       page_offset_ref.current.set(next_page + 1, offset + result.raw_consumed);
 
@@ -699,6 +814,9 @@ export function use_email_list(
     }
   }, [
     current_view,
+    list_key,
+    read_filter,
+    is_read_param,
     is_mail_view,
     format_options,
     user?.email,
@@ -773,15 +891,16 @@ export function use_email_list(
     };
   }, []);
 
-  const state_view_ref = useRef<string>(current_view);
+  const state_view_ref = useRef<string>(list_key);
 
   useEffect(() => {
     if (
+      read_filter === "all" &&
       state.has_initial_load &&
       !state.is_loading &&
       !state.has_load_error &&
-      state_view_ref.current === current_view &&
-      unverified_snapshot_view_ref.current !== current_view
+      state_view_ref.current === list_key &&
+      unverified_snapshot_view_ref.current !== list_key
     ) {
       set_view_cache(current_view, {
         state,
@@ -803,7 +922,13 @@ export function use_email_list(
         );
       }
     }
-  }, [state, current_view, preferences.conversation_grouping]);
+  }, [
+    state,
+    current_view,
+    list_key,
+    read_filter,
+    preferences.conversation_grouping,
+  ]);
 
   useEffect(() => {
     if (auth_loading || !is_mail_view) return;
@@ -818,14 +943,18 @@ export function use_email_list(
       prev_auth !== null &&
       (prev_auth.has_keys !== has_keys ||
         prev_auth.is_authenticated !== is_authenticated);
-    const view_changed = prev_view !== null && prev_view !== current_view;
+    const view_changed = prev_view !== null && prev_view !== list_key;
+    const filter_only_change =
+      view_changed && prev_plain_view_ref.current === current_view;
+
+    prev_plain_view_ref.current = current_view;
     const user_changed =
       prev_user_id !== null &&
       current_user_id !== null &&
       prev_user_id !== current_user_id;
 
     prev_auth_ref.current = { has_keys, is_authenticated };
-    prev_view_ref.current = current_view;
+    prev_view_ref.current = list_key;
     if (current_user_id !== null) {
       prev_user_id_ref.current = current_user_id;
     }
@@ -835,7 +964,7 @@ export function use_email_list(
 
     if (auth_changed || user_changed || view_changed) {
       last_fetch_ref.current = null;
-      const cached = get_view_cache(current_view);
+      const cached = filter_only_change ? undefined : get_view_cache(list_key);
 
       if (
         view_changed &&
@@ -850,7 +979,7 @@ export function use_email_list(
 
         const restored = overlay_cached_state(cached.state);
 
-        state_view_ref.current = current_view;
+        state_view_ref.current = list_key;
         set_state(
           grouping_matches ? restored : { ...restored, is_loading: true },
         );
@@ -896,7 +1025,7 @@ export function use_email_list(
     const nothing_changed = !auth_changed && !view_changed && !user_changed;
     const already_has_data =
       has_data_ref.current &&
-      unverified_snapshot_view_ref.current !== current_view;
+      unverified_snapshot_view_ref.current !== list_key;
 
     if (has_keys && has_passphrase_in_memory()) {
       if (!is_online && Capacitor.isNativePlatform()) {
@@ -908,7 +1037,7 @@ export function use_email_list(
         }
         get_cached_email_list(current_view)
           .then((cached) => {
-            if (committed_view_ref.current !== current_view) return;
+            if (committed_view_ref.current !== list_key) return;
             if (cached && cached.length > 0) {
               set_state({
                 emails: cached,
@@ -930,7 +1059,7 @@ export function use_email_list(
             }
           })
           .catch(() => {
-            if (committed_view_ref.current !== current_view) return;
+            if (committed_view_ref.current !== list_key) return;
             set_state({
               emails: [],
               is_loading: false,
@@ -943,7 +1072,7 @@ export function use_email_list(
           });
       } else {
         if (nothing_changed && already_has_data) {
-          const cached = get_view_cache(current_view);
+          const cached = get_view_cache(list_key);
 
           if (cached?.is_stale) {
             silent_fetch_ref.current?.();
@@ -958,7 +1087,11 @@ export function use_email_list(
 
         const snapshot_context = snapshot_context_ref.current;
 
-        if (snapshot_context.owner && SNAPSHOT_VIEWS.has(current_view)) {
+        if (
+          read_filter === "all" &&
+          snapshot_context.owner &&
+          SNAPSHOT_VIEWS.has(current_view)
+        ) {
           void read_list_snapshot(
             `view:${current_view}`,
             snapshot_context.owner,
@@ -967,7 +1100,7 @@ export function use_email_list(
           ).then((snapshot) => {
             if (!snapshot) return;
             if (snapshot_token_ref.current !== snapshot_token) return;
-            if (committed_view_ref.current !== current_view) return;
+            if (committed_view_ref.current !== list_key) return;
 
             const rows = settle_fetched_rows(
               snapshot.emails,
@@ -985,7 +1118,7 @@ export function use_email_list(
                 return prev;
               }
 
-              unverified_snapshot_view_ref.current = current_view;
+              unverified_snapshot_view_ref.current = list_key;
 
               return {
                 ...prev,
@@ -1001,7 +1134,7 @@ export function use_email_list(
     } else if (!is_online && Capacitor.isNativePlatform() && has_keys) {
       get_cached_email_list(current_view)
         .then((cached) => {
-          if (committed_view_ref.current !== current_view) return;
+          if (committed_view_ref.current !== list_key) return;
           if (cached && cached.length > 0) {
             set_state({
               emails: cached,
@@ -1023,7 +1156,7 @@ export function use_email_list(
           }
         })
         .catch(() => {
-          if (committed_view_ref.current !== current_view) return;
+          if (committed_view_ref.current !== list_key) return;
           set_state({
             emails: [],
             is_loading: false,
@@ -1066,6 +1199,8 @@ export function use_email_list(
     has_keys,
     is_authenticated,
     current_view,
+    list_key,
+    read_filter,
     is_mail_view,
     user?.id,
     is_completing_registration,
@@ -1140,9 +1275,16 @@ export function use_email_list(
 
   const remove_email = useCallback((id: string): void => {
     page_cache_ref.current.clear();
+    const removed_rows = loaded_emails_ref.current.filter((e) => e.id === id);
+    const absorbed = Math.min(
+      count_left_read_filter(removed_rows, read_filter_ref.current),
+      drift_accounted_ref.current,
+    );
+
+    drift_accounted_ref.current -= absorbed;
     page_offset_ref.current = shift_page_offsets(
       page_offset_ref.current,
-      loaded_emails_ref.current.some((e) => e.id === id) ? 1 : 0,
+      removed_rows.length - absorbed,
     );
     set_state((prev) => ({
       ...prev,
@@ -1155,12 +1297,18 @@ export function use_email_list(
     const id_set = new Set(ids);
 
     page_cache_ref.current.clear();
-    const removed = loaded_emails_ref.current.filter((e) =>
+    const removed_rows = loaded_emails_ref.current.filter((e) =>
       id_set.has(e.id),
-    ).length;
+    );
+    const absorbed = Math.min(
+      count_left_read_filter(removed_rows, read_filter_ref.current),
+      drift_accounted_ref.current,
+    );
+
+    drift_accounted_ref.current -= absorbed;
     page_offset_ref.current = shift_page_offsets(
       page_offset_ref.current,
-      removed,
+      removed_rows.length - absorbed,
     );
 
     set_state((prev) => ({

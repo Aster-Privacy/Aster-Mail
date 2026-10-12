@@ -18,7 +18,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { InboxEmail, EmailCategory } from "@/types/email";
+import type {
+  InboxEmail,
+  EmailCategory,
+  InboxFilterType,
+} from "@/types/email";
+import type { ListReadFilter } from "@/hooks/email_list_types";
 import type { DraftWithContent } from "@/services/api/multi_drafts";
 import type { EmailInboxProps } from "@/components/email/inbox/inbox_types";
 import type { MemberRetentionPolicy } from "@/services/api/family_org";
@@ -271,11 +276,24 @@ export function use_inbox_view_state(props: EmailInboxProps) {
   const category_page =
     page_category_ref.current === categories.active_category ? current_page : 0;
 
-  const default_list = use_email_list(current_view, !categories.enabled);
+  const [active_filter, set_active_filter] = useState<InboxFilterType>("all");
+  const read_filter: ListReadFilter =
+    is_drafts_view || is_scheduled_view || is_snoozed_view
+      ? "all"
+      : active_filter === "unread" || active_filter === "read"
+        ? active_filter
+        : "all";
+
+  const default_list = use_email_list(
+    current_view,
+    !categories.enabled,
+    read_filter,
+  );
   const category_list = use_category_inbox(
     categories.active_category,
     category_page,
     categories.enabled && categories.restored,
+    read_filter,
   );
 
   const prev_categories_enabled_ref = useRef(categories.enabled);
@@ -726,6 +744,9 @@ export function use_inbox_view_state(props: EmailInboxProps) {
     tag_not_found,
     locked_folder,
     page_category_ref,
+    active_filter,
+    set_active_filter,
+    read_filter,
     fetch_page,
     is_page_cached,
     update_email,
