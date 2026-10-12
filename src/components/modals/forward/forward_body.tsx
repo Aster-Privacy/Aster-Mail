@@ -25,7 +25,7 @@ import { useEffect } from "react";
 
 import { sanitize_compose_paste } from "@/lib/html_sanitizer";
 import { proxy_compose_image_sources } from "@/lib/compose_image_sources";
-import { QuotedHtmlPreview } from "@/components/compose/quoted_html_preview";
+import { EditableQuotedHtml } from "@/components/compose/editable_quoted_html";
 import { CloseIcon } from "@/components/common/icons";
 import { ExpirationPicker } from "@/components/compose/expiration_picker";
 import { SchedulePicker } from "@/components/compose/schedule_picker";
@@ -53,6 +53,7 @@ interface ForwardBodyProps {
   is_forward_visible: boolean;
   set_is_forward_visible: (val: boolean) => void;
   forward_content_ref: React.RefObject<string>;
+  on_forward_content_change: (html: string) => void;
   attachments: Attachment[];
   attachments_scroll_ref: React.RefObject<HTMLDivElement>;
   remove_attachment: (id: string) => void;
@@ -95,6 +96,7 @@ export function ForwardBody({
   is_forward_visible,
   set_is_forward_visible,
   forward_content_ref,
+  on_forward_content_change,
   attachments,
   attachments_scroll_ref,
   remove_attachment,
@@ -196,7 +198,11 @@ export function ForwardBody({
                   </span>
                 </button>
                 {is_forward_visible && (
-                  <QuotedHtmlPreview html={forward_content_ref.current ?? ""} />
+                  <EditableQuotedHtml
+                    html={forward_content_ref.current ?? ""}
+                    label={t("common.forwarded_message")}
+                    on_change={on_forward_content_change}
+                  />
                 )}
               </div>
             </div>

@@ -21,6 +21,7 @@
 import type { FontSizeLabel } from "@/hooks/editor_utils";
 
 import { FONT_SIZE_MAP } from "@/hooks/editor_utils";
+import { with_caret_block } from "@/lib/signature_html";
 
 export const DEFAULT_COMPOSE_FONT_SIZE: FontSizeLabel = "normal";
 export const DEFAULT_COMPOSE_FONT_COLOR = "";
@@ -75,4 +76,17 @@ export function build_compose_default_block(
   if (!style) return "";
 
   return `<div style="${style}"><br></div>`;
+}
+
+export function with_compose_default_block(
+  html: string,
+  size: unknown,
+  color: unknown,
+): string {
+  const default_block = build_compose_default_block(size, color);
+
+  if (!html) return default_block;
+  if (!default_block) return with_caret_block(html);
+
+  return with_caret_block(html, default_block);
 }

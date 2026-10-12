@@ -27,6 +27,7 @@ import {
   build_compose_default_style,
   normalize_compose_font_color,
   normalize_compose_font_size,
+  with_compose_default_block,
 } from "@/lib/compose_defaults";
 import { FONT_SIZE_MAP } from "@/hooks/editor_utils";
 
@@ -168,5 +169,38 @@ describe("build_compose_default_block", () => {
     const block = build_compose_default_block("normal", '#000" onload="x');
 
     expect(block).toBe("");
+  });
+});
+
+describe("with_compose_default_block", () => {
+  const styled = '<div style="color: #1a73e8"><br></div>';
+
+  it("returns only the styled line when there is nothing else", () => {
+    expect(with_compose_default_block("", "normal", "#1a73e8")).toBe(styled);
+  });
+
+  it("returns nothing for empty content with no saved style", () => {
+    expect(with_compose_default_block("", "normal", "")).toBe("");
+  });
+
+  it("puts the styled line before the content", () => {
+    expect(with_compose_default_block("<p>footer</p>", "normal", "#1a73e8")).toBe(
+      `${styled}<p>footer</p>`,
+    );
+  });
+
+  it("keeps the gap between the styled line and a signature", () => {
+    const signature = '<div data-aster-signature="1">Sam</div>';
+    const result = with_compose_default_block(signature, "normal", "#1a73e8");
+
+    expect(result.startsWith(styled)).toBe(true);
+    expect(result.endsWith(signature)).toBe(true);
+    expect(result.length).toBeGreaterThan(styled.length + signature.length);
+  });
+
+  it("falls back to a plain empty line with no saved style", () => {
+    expect(with_compose_default_block("<p>footer</p>", "normal", "")).toBe(
+      "<div><br></div><p>footer</p>",
+    );
   });
 });

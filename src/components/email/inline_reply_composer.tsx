@@ -660,6 +660,7 @@ export const InlineReplyComposer = forwardRef<
       expiry_password={forward_modal.expiry_password}
       file_input_ref={forward_modal.file_input_ref}
       forward_content_ref={forward_modal.forward_content_ref}
+      on_forward_content_change={forward_modal.update_forward_content}
       handle_file_select={forward_modal.handle_file_select}
       handle_forward={forward_modal.handle_forward}
       handle_scheduled_send={forward_modal.handle_scheduled_send}

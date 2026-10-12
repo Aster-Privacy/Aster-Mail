@@ -186,6 +186,7 @@ export function ForwardModal({
               expiry_password={modal.expiry_password}
               file_input_ref={modal.file_input_ref}
               forward_content_ref={modal.forward_content_ref}
+              on_forward_content_change={modal.update_forward_content}
               handle_file_select={modal.handle_file_select}
               handle_forward={modal.handle_forward}
               handle_scheduled_send={modal.handle_scheduled_send}

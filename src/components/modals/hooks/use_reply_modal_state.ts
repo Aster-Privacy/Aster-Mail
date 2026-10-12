@@ -119,6 +119,7 @@ import {
   has_typed_content,
   with_caret_block,
 } from "@/lib/signature_html";
+import { with_compose_default_block } from "@/lib/compose_defaults";
 
 function attachments_key(ids: string[]): string {
   return ids.join(",");
@@ -150,7 +151,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
   const { user, vault } = use_auth();
-  const { preferences } = use_preferences();
+  const { preferences, is_loading: preferences_loading } = use_preferences();
   const {
     default_signature,
     get_formatted_signature,
@@ -750,6 +751,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
       return;
     }
 
+    if (preferences_loading) return;
     if (preferences.signature_mode === "auto" && signatures_loading) return;
     if (include_badge_signature && !badges_loaded) return;
 
@@ -774,7 +776,13 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
           badge_html + get_aster_footer(t, preferences.show_aster_branding);
       }
 
-      content = with_caret_block(content);
+      content = is_plain_text_ref.current
+        ? with_caret_block(content)
+        : with_compose_default_block(
+            content,
+            preferences.compose_font_size,
+            preferences.compose_font_color,
+          );
 
       const sanitized_result = sanitize_html(
         content,
@@ -807,8 +815,11 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     default_signature,
     signature_ref,
     mark_signature_applied,
+    preferences_loading,
     preferences.show_aster_branding,
     preferences.signature_mode,
+    preferences.compose_font_size,
+    preferences.compose_font_color,
     include_badge_signature,
     active_badge,
     badges_loaded,

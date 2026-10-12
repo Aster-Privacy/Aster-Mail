@@ -149,6 +149,7 @@ import {
   has_typed_content,
   with_caret_block,
 } from "@/lib/signature_html";
+import { with_compose_default_block } from "@/lib/compose_defaults";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import {
   find_locked_expiry_feature,
@@ -171,7 +172,7 @@ export function use_forward_modal({
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
   const { user, vault } = use_auth();
-  const { preferences } = use_preferences();
+  const { preferences, is_loading: preferences_loading } = use_preferences();
   const { limits: plan_limits, is_feature_locked } = use_plan_limits();
   const {
     default_signature,
@@ -265,6 +266,8 @@ export function use_forward_modal({
   const is_sending_ref = useRef(false);
   const send_lock_started_at_ref = useRef(0);
   const forward_content_ref = useRef("");
+  const forward_content_edited_ref = useRef(false);
+  const initial_message_ref = useRef("");
   const content_initialized_ref = useRef(false);
   const body_edited_ref = useRef(false);
   const attachments_touched_ref = useRef(false);
@@ -360,8 +363,19 @@ export function use_forward_modal({
 
   const [is_discard_open, set_is_discard_open] = useState(false);
 
+  const update_forward_content = useCallback((html: string) => {
+    forward_content_ref.current = html;
+    forward_content_edited_ref.current = true;
+  }, []);
+
   const has_unsaved_content = useCallback(() => {
-    if (forward_message.trim()) return true;
+    if (
+      forward_message.trim() &&
+      forward_message !== initial_message_ref.current
+    ) {
+      return true;
+    }
+    if (forward_content_edited_ref.current) return true;
     if (attachments_touched_ref.current) return true;
 
     const fields = ["to", "cc", "bcc"] as const;
@@ -457,6 +471,8 @@ export function use_forward_modal({
       content_initialized_ref.current = false;
       body_edited_ref.current = false;
       forward_content_ref.current = "";
+      forward_content_edited_ref.current = false;
+      initial_message_ref.current = "";
       reset_signature();
     } else {
       clear_forward_mail_id();
@@ -465,6 +481,7 @@ export function use_forward_modal({
 
   useEffect(() => {
     if (!is_open || content_initialized_ref.current) return;
+    if (preferences_loading) return;
     if (preferences.signature_mode === "auto" && signatures_loading) return;
     if (include_badge_signature && !badges_loaded) return;
 
@@ -480,19 +497,26 @@ export function use_forward_modal({
         preferences.signature_mode === "auto" ? signature_ref.current : null;
 
       if (signature) {
-        const signature_html = get_formatted_signature(signature);
-
-        content = with_caret_block(signature_html + badge_html);
+        content = get_formatted_signature(signature) + badge_html;
       } else if (badge_html) {
-        content = with_caret_block(badge_html);
+        content = badge_html;
       }
+
+      content = is_plain_text_ref.current
+        ? with_caret_block(content)
+        : with_compose_default_block(
+            content,
+            preferences.compose_font_size,
+            preferences.compose_font_color,
+          );
 
       const sanitized = sanitize_html(content, get_compose_sanitize_options());
 
-      if (
+      const has_typed_text =
         body_edited_ref.current &&
-        has_typed_content(message_editor_ref.current)
-      ) {
+        has_typed_content(message_editor_ref.current);
+
+      if (has_typed_text) {
         append_template_after_typed_text(
           message_editor_ref.current,
           sanitized.html,
@@ -501,16 +525,19 @@ export function use_forward_modal({
         message_editor_ref.current.innerHTML = sanitized.html;
       }
       mark_signature_applied(signature);
-      if (is_plain_text_ref.current) {
-        const text = message_editor_ref.current.innerText;
 
-        message_editor_ref.current.innerText = text;
-        set_forward_message(text);
+      let seeded_message: string;
+
+      if (is_plain_text_ref.current) {
+        seeded_message = message_editor_ref.current.innerText;
+        message_editor_ref.current.innerText = seeded_message;
       } else {
-        set_forward_message(
-          restore_compose_image_sources(message_editor_ref.current.innerHTML),
+        seeded_message = restore_compose_image_sources(
+          message_editor_ref.current.innerHTML,
         );
       }
+      if (!has_typed_text) initial_message_ref.current = seeded_message;
+      set_forward_message(seeded_message);
     }, 0);
   }, [
     is_open,
@@ -523,7 +550,10 @@ export function use_forward_modal({
     signature_ref,
     mark_signature_applied,
     get_formatted_signature,
+    preferences_loading,
     preferences.signature_mode,
+    preferences.compose_font_size,
+    preferences.compose_font_color,
   ]);
 
   useEffect(() => {
@@ -1427,6 +1457,7 @@ export function use_forward_modal({
     file_input_ref,
     attachments_scroll_ref,
     forward_content_ref,
+    update_forward_content,
     editor,
     active_formats,
     handle_drag_start,
