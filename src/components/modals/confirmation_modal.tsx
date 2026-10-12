@@ -83,6 +83,7 @@ export function ConfirmationModal({
   const [is_saving, set_is_saving] = useState(false);
   const [internal_open, set_internal_open] = useState(false);
   const closing_ref = useRef(false);
+  const confirm_button_ref = useRef<HTMLButtonElement>(null);
   const button_variant = VARIANT_MAP[variant];
   const is_busy = is_saving || is_loading;
 
@@ -147,6 +148,10 @@ export function ConfirmationModal({
         className="gap-0 p-0 overflow-hidden max-w-[380px]"
         on_overlay_click={handle_cancel}
         onEscapeKeyDown={(e) => e.stopPropagation()}
+        onOpenAutoFocus={(e) => {
+          e.preventDefault();
+          confirm_button_ref.current?.focus({ preventScroll: true });
+        }}
       >
         <div className="px-6 pt-6 pb-5">
           <AlertDialogHeader className="space-y-2">
@@ -200,11 +205,15 @@ export function ConfirmationModal({
             {resolved_cancel_text}
           </Button>
           <Button
+            ref={confirm_button_ref}
             className="whitespace-nowrap max-sm:flex-1"
             disabled={is_busy}
             is_loading={is_busy}
             variant={button_variant}
             onClick={handle_confirm}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && e.repeat) e.preventDefault();
+            }}
           >
             {resolved_confirm_text}
           </Button>

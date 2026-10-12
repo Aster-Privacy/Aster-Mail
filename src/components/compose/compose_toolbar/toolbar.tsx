@@ -21,7 +21,7 @@
 import type {} from "@/lib/i18n/types";
 import type { ComposeToolbarState } from "@/components/compose/compose_shared";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { TrashIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
@@ -68,6 +68,13 @@ function PlainTextTag({ compose }: { compose: ComposeToolbarState }) {
   );
 }
 
+function is_discard_shortcut(e: KeyboardEvent): boolean {
+  if (e.repeat || e.altKey || !e.shiftKey) return false;
+  if (!e.ctrlKey && !e.metaKey) return false;
+
+  return e.code === "KeyD" || e.key.toLowerCase() === "d";
+}
+
 export function ComposeToolbar({
   compose,
   reduce_motion,
@@ -78,6 +85,35 @@ export function ComposeToolbar({
   const [show_format_bar, set_show_format_bar] = useState(
     read_format_bar_preference,
   );
+  const root_ref = useRef<HTMLDivElement>(null);
+  const show_delete_confirm_ref = useRef(compose.handle_show_delete_confirm);
+
+  show_delete_confirm_ref.current = compose.handle_show_delete_confirm;
+
+  const has_delete_action = !!compose.handle_show_delete_confirm;
+  const discard_shortcut_label = compose.is_mac ? "⌘+Shift+D" : "Ctrl+Shift+D";
+
+  useEffect(() => {
+    if (!has_delete_action) return;
+
+    const handle_keydown = (e: KeyboardEvent) => {
+      if (!is_discard_shortcut(e)) return;
+
+      const scope = root_ref.current?.parentElement;
+
+      if (!scope || !(e.target instanceof Node) || !scope.contains(e.target)) {
+        return;
+      }
+
+      e.preventDefault();
+      e.stopPropagation();
+      show_delete_confirm_ref.current?.();
+    };
+
+    document.addEventListener("keydown", handle_keydown, true);
+
+    return () => document.removeEventListener("keydown", handle_keydown, true);
+  }, [has_delete_action]);
 
   const toggle_format_bar = () => {
     set_show_format_bar((open) => {
@@ -88,7 +124,10 @@ export function ComposeToolbar({
   };
 
   return (
-    <div className="relative flex-shrink-0 border-t border-[var(--aster-floating-divider)]">
+    <div
+      ref={root_ref}
+      className="relative flex-shrink-0 border-t border-[var(--aster-floating-divider)]"
+    >
       {show_format_bar && !compose.is_plain_text_mode && (
         <div
           aria-label={t("mail.text_formatting")}
@@ -180,7 +219,7 @@ export function ComposeToolbar({
           />
           {compose.handle_show_delete_confirm && (
             <ToolbarButton
-              title={t("common.delete_draft")}
+              title={`${t("common.delete_draft")} (${discard_shortcut_label})`}
               onClick={compose.handle_show_delete_confirm}
             >
               <TrashIcon className="w-4 h-4" />
