@@ -1080,7 +1080,7 @@ export function RuleEditorModal({
                   ) : (
                     <Button
                       className="w-full sm:w-auto"
-                      disabled={saving || running_existing}
+                      disabled={saving || running_existing || is_dirty}
                       variant="secondary"
                       onClick={handle_run_on_existing}
                     >

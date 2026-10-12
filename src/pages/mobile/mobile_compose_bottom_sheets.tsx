@@ -65,6 +65,7 @@ import { PinIcon } from "@/components/common/icons";
 import { MobileBottomSheet } from "@/components/mobile/mobile_bottom_sheet";
 import { Input } from "@/components/ui/input";
 import { use_i18n } from "@/lib/i18n/context";
+import { fold_search_text } from "@/utils/search_fold";
 
 export function MobileSenderSheet({
   is_open,
@@ -86,15 +87,16 @@ export function MobileSenderSheet({
   on_set_preferred?: (id: string | null) => void;
 }) {
   const [sender_query, set_sender_query] = useState("");
-  const normalized_sender_query = sender_query.trim().toLowerCase();
+  const normalized_sender_query = fold_search_text(sender_query.trim());
   const filtered_sender_options = normalized_sender_query
     ? sender_options.filter(
         (sender) =>
-          sender.email.toLowerCase().includes(normalized_sender_query) ||
+          fold_search_text(sender.email).includes(normalized_sender_query) ||
           (sender.display_name
-            ?.toLowerCase()
-            .includes(normalized_sender_query) ??
-            false),
+            ? fold_search_text(sender.display_name).includes(
+                normalized_sender_query,
+              )
+            : false),
       )
     : sender_options;
 

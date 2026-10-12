@@ -337,6 +337,20 @@ function MobileInbox({
     return [...pinned, ...enriched_unpinned];
   }, [enriched_pinned, enriched_unpinned]);
 
+  useEffect(() => {
+    set_selected_ids((prev) => {
+      if (prev.size === 0) return prev;
+      const visible = new Set(all_visible_emails.map((email) => email.id));
+      const kept = new Set<string>();
+
+      for (const id of prev) {
+        if (visible.has(id)) kept.add(id);
+      }
+
+      return kept.size === prev.size ? prev : kept;
+    });
+  }, [all_visible_emails]);
+
   const folder_not_found = use_settled_not_found({
     kind: "folder",
     token: folder_token ?? null,

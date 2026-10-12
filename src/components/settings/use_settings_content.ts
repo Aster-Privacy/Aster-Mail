@@ -52,6 +52,7 @@ import {
 } from "./settings_content_helpers";
 
 import { safe_local_set } from "@/lib/safe_storage";
+import { fold_search_text } from "@/utils/search_fold";
 import {
   consume_pending_settings_anchor,
   scroll_to_settings_anchor,
@@ -481,13 +482,13 @@ export function use_settings_content(props: SettingsContentProps) {
   const is_searching = search_query.trim().length > 0;
 
   const search_results = useMemo(() => {
-    const q = search_query.trim().toLowerCase();
+    const q = fold_search_text(search_query.trim());
 
     if (!q) return [] as NavItem[];
     const match = (item: NavItem) =>
-      item.label.toLowerCase().includes(q) ||
-      item.description.toLowerCase().includes(q) ||
-      item.keywords.some((kw) => kw.includes(q));
+      fold_search_text(item.label).includes(q) ||
+      fold_search_text(item.description).includes(q) ||
+      item.keywords.some((kw) => fold_search_text(kw).includes(q));
 
     return flatten_nav_items(nav_items).filter(match);
   }, [search_query, nav_items]);
@@ -495,7 +496,7 @@ export function use_settings_content(props: SettingsContentProps) {
   const { dynamic_entries } = use_search_registry();
 
   const registry_results = useMemo(() => {
-    const q = search_query.trim().toLowerCase();
+    const q = fold_search_text(search_query.trim());
 
     if (q.length < 2) return [];
     const flat_items = flatten_nav_items(nav_items);
@@ -537,11 +538,11 @@ export function use_settings_content(props: SettingsContentProps) {
           return false;
         }
         const matches =
-          entry.label.toLowerCase().includes(q) ||
-          entry.english_label.toLowerCase().includes(q) ||
-          entry.breadcrumb.toLowerCase().includes(q) ||
-          entry.english_breadcrumb.toLowerCase().includes(q) ||
-          entry.keywords?.some((kw) => kw.includes(q));
+          fold_search_text(entry.label).includes(q) ||
+          fold_search_text(entry.english_label).includes(q) ||
+          fold_search_text(entry.breadcrumb).includes(q) ||
+          fold_search_text(entry.english_breadcrumb).includes(q) ||
+          entry.keywords?.some((kw) => fold_search_text(kw).includes(q));
 
         if (!matches) return false;
         const key = `${entry.section}::${entry.label}`;

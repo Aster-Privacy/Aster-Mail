@@ -876,14 +876,6 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
     keywords: ["automatic archive"],
   },
   {
-    label: "Auto forward",
-    label_key: "settings_search.auto_forward",
-    section: "mail_rules",
-    breadcrumb: "Mail Rules > Actions",
-    crumb_key: "settings_search.actions",
-    keywords: ["automatic forward"],
-  },
-  {
     label: "Move to folder",
     label_key: "mail.move_to_folder",
     section: "mail_rules",
@@ -1580,10 +1572,11 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
     label: "Auto-Forward",
     label_key: "settings.auto_forward_tab_label",
     section: "auto_forward",
-    breadcrumb: "Mail Management > Auto forward",
-    crumb_key: "settings_search.auto_forward",
+    breadcrumb: "Mail Management > Auto-Forward",
+    crumb_key: "settings.auto_forward_tab_label",
     keywords: [
       "forwarding",
+      "automatic forward",
       "email forwarding",
       "forward email",
       "forward all mail",

@@ -31,6 +31,7 @@ import {
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { BadgeChip } from "@/components/ui/badge_chip";
 import { cn, get_email_username } from "@/lib/utils";
+import { fold_search_text } from "@/utils/search_fold";
 import { use_peer_profile } from "@/hooks/use_peer_profile";
 import { is_composing } from "@/utils/ime";
 import { split_recipient_list } from "@/utils/recipient_list";
@@ -47,7 +48,7 @@ const SUBSTRING_MATCH = 2;
 const NO_MATCH = 3;
 
 function rank_address(address: string, query: string): number {
-  const lowered = address.toLowerCase();
+  const lowered = fold_search_text(address);
 
   if (lowered === query) return EXACT_MATCH;
   if (lowered.startsWith(query)) return PREFIX_MATCH;
@@ -56,7 +57,7 @@ function rank_address(address: string, query: string): number {
 }
 
 function rank_name(name: string, query: string): number {
-  const lowered = name.toLowerCase();
+  const lowered = fold_search_text(name);
 
   if (lowered.startsWith(query) || lowered.includes(` ${query}`)) {
     return PREFIX_MATCH;
@@ -179,7 +180,7 @@ export function EmailAutocomplete({
   const suggestions = useMemo((): EmailSuggestion[] => {
     if (!value.trim()) return [];
 
-    const query = value.toLowerCase().trim();
+    const query = fold_search_text(value.trim());
     const seen_emails = new Set<string>(
       existing_emails.map((e) => e.toLowerCase()),
     );
