@@ -50,40 +50,14 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_shift_key_ref } from "@/lib/use_shift_range_select";
 import { use_auth } from "@/contexts/auth_context";
 import { get_days_until_birthday } from "@/utils/contact_utils";
+import {
+  build_contact_haystack,
+  fold_contact_query,
+  haystack_matches_query,
+} from "@/utils/contact_search";
 
 const CONTACT_PAGE_LIMIT = 100;
 const MAX_CONTACT_PAGES = 100;
-
-function build_contact_haystack(contact: DecryptedContact): string {
-  const parts: string[] = [
-    contact.first_name,
-    contact.last_name,
-    contact.middle_name || "",
-    contact.nickname || "",
-    contact.phonetic_first_name || "",
-    contact.phonetic_middle_name || "",
-    contact.phonetic_last_name || "",
-    contact.title || "",
-    contact.name_suffix || "",
-    contact.company || "",
-    contact.job_title || "",
-    contact.role || "",
-    contact.department || "",
-    contact.notes || "",
-    contact.comment || "",
-    contact.pronouns || "",
-    (contact.emails || []).join(" "),
-    (contact.email_entries || []).map((e) => e.value).join(" "),
-    contact.phone || "",
-    (contact.phone_entries || []).map((p) => p.value).join(" "),
-    (contact.related_people || []).map((r) => r.value).join(" "),
-    (contact.social_networks || []).map((s) => s.value).join(" "),
-    (contact.websites || []).map((w) => w.value).join(" "),
-    (contact.instant_messengers || []).map((m) => m.value).join(" "),
-  ];
-
-  return parts.join(" \x01 ").toLowerCase();
-}
 
 export function use_contacts_data() {
   const { t } = use_i18n();
@@ -220,12 +194,12 @@ export function use_contacts_data() {
   const deferred_search_query = useDeferredValue(search_query);
 
   const filtered_contacts = useMemo(() => {
-    const query = deferred_search_query.trim().toLowerCase();
+    const query = fold_contact_query(deferred_search_query);
 
     if (!query) return sorted_contacts;
 
     return sorted_contacts.filter((contact) =>
-      (search_haystacks.get(contact) ?? "").includes(query),
+      haystack_matches_query(search_haystacks.get(contact) ?? "", query),
     );
   }, [sorted_contacts, deferred_search_query, search_haystacks]);
 

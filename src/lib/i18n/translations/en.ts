@@ -8693,6 +8693,8 @@ export const en: Translations = {
     category_empty_transactions_title: "No purchases",
     category_empty_transactions_desc:
       "Orders, payments, and receipts from stores and services appear here.",
+    filter_empty_title: "No messages match this filter",
+    filter_empty_clear: "Clear filter",
     category_empty_custom_desc:
       "Emails matching this category's rules will appear here.",
     report_spam: "Report spam",
@@ -8821,6 +8823,10 @@ export const en: Translations = {
     create_filter: "Create filter",
     search_placeholder_hint: "Search mail, contacts, and folders",
     no_results_found: "No results found",
+    search_filters_active:
+      "Filters are active. Clear them to see more results.",
+    clear_filters: "Clear filters",
+    chip_date_range: "{{ from }} to {{ to }}",
     try_adjusting_filters:
       "Try adjusting your filters or search for something else",
     no_emails_match_query: "No emails match \u201c{{query}}\u201d",

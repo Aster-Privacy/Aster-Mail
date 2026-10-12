@@ -137,16 +137,17 @@ describe("attachment search", () => {
     expect(match("-filename:invoice.pdf")).toBe(false);
     expect(match("-filename:other.pdf")).toBe(true);
   });
-  it("falls back to message text when the envelope lists no attachments", () => {
+  it("does not read attachments from message text when the envelope lists none", () => {
     const source = {
       ...envelope,
       body_text: "invoice.pdf",
       attachment_keys: undefined,
     };
 
-    expect(match("filename:invoice.pdf", source)).toBe(true);
-    expect(match("has:pdf", source)).toBe(true);
+    expect(match("filename:invoice.pdf", source)).toBe(false);
+    expect(match("has:pdf", source)).toBe(false);
     expect(match("has:video", source)).toBe(false);
+    expect(match("invoice.pdf", source)).toBe(true);
     expect(slim_envelope_for_index(source).attachment_metadata).toBeUndefined();
   });
   it("bounds the attachment metadata kept in the index", () => {
@@ -162,5 +163,32 @@ describe("attachment search", () => {
 
     expect(slim.attachment_metadata).toHaveLength(50);
     expect(slim.attachment_metadata?.[0].filename).toHaveLength(255);
+  });
+  it("uses fetched attachment details when the envelope lists none", () => {
+    const bare = { ...envelope, attachment_keys: undefined };
+    const details = new Map([
+      ["invoice", [{ filename: "Figures.pdf", content_type: null }]],
+    ]);
+    const run = (query: string, with_details: boolean) =>
+      matches_query(
+        [],
+        parse_search_query(query).operators,
+        bare,
+        metadata,
+        item,
+        undefined,
+        undefined,
+        true,
+        undefined,
+        undefined,
+        with_details ? details : undefined,
+      );
+
+    expect(run("has:pdf", false)).toBe(false);
+    expect(run("has:pdf", true)).toBe(true);
+    expect(run("has:image", true)).toBe(false);
+    expect(run("has:image has:pdf", true)).toBe(true);
+    expect(run("-has:pdf", true)).toBe(false);
+    expect(run("filename:figures", true)).toBe(true);
   });
 });

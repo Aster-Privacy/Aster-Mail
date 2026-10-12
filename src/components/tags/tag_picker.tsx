@@ -30,6 +30,7 @@ import { CreateTagModal } from "@/components/tags/create_tag_modal";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
+import { fold_search_text } from "@/utils/search_fold";
 
 interface TagPickerProps {
   is_open: boolean;
@@ -59,10 +60,12 @@ export function TagPicker({
   const filtered_tags = useMemo(() => {
     if (!search_query.trim()) return order_tags_as_tree(tags_state.tags);
 
-    const query = search_query.toLowerCase();
+    const query = fold_search_text(search_query.trim());
 
     return tags_state.tags
-      .filter((tag: DecryptedTag) => tag.name.toLowerCase().includes(query))
+      .filter((tag: DecryptedTag) =>
+        fold_search_text(tag.name).includes(query),
+      )
       .map((tag) => ({ tag, depth: 0 }));
   }, [tags_state.tags, search_query]);
 

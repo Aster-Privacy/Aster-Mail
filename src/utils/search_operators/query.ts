@@ -76,9 +76,13 @@ function day_after(date: string): string {
 
 export function date_range_operators(from: string, to: string): string[] {
   const operators: string[] = [];
+  const inverted =
+    DATE_REGEX.test(from) && DATE_REGEX.test(to) && from.localeCompare(to) > 0;
+  const first = inverted ? to : from;
+  const last = inverted ? from : to;
 
-  if (from) operators.push(`after:${from}`);
-  if (to) operators.push(`before:${day_after(to)}`);
+  if (first) operators.push(`after:${first}`);
+  if (last) operators.push(`before:${day_after(last)}`);
 
   return operators;
 }

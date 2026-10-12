@@ -8515,6 +8515,8 @@ export const nl = {
     category_empty_transactions_title: "Geen aankopen",
     category_empty_transactions_desc:
       "Bestellingen, betalingen en bonnen van winkels en diensten verschijnen hier.",
+    filter_empty_title: "Geen berichten komen overeen met dit filter",
+    filter_empty_clear: "Filter wissen",
     category_empty_custom_desc:
       "E-mails die voldoen aan de regels van deze categorie verschijnen hier.",
     block_sender_on_alias: "Afzender blokkeren op alias",
@@ -8938,6 +8940,10 @@ export const nl = {
     from_date: "Vanaf datum",
     to_date: "Tot datum",
     no_results_found: "Geen resultaten gevonden",
+    search_filters_active:
+      "Er zijn filters actief. Wis ze om meer resultaten te zien.",
+    clear_filters: "Filters wissen",
+    chip_date_range: "{{ from }} tot en met {{ to }}",
     view_all_results: "Alle resultaten bekijken voor “{{query}}”",
     folders: "Mappen",
     showing_results: "{{shown}} van {{total}} resultaten weergegeven",

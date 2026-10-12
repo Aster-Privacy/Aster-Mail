@@ -8770,6 +8770,8 @@ export const pl = {
     category_empty_transactions_title: "Brak transakcji",
     category_empty_transactions_desc:
       "Tutaj pojawiają się zamówienia, płatności i potwierdzenia ze sklepów i serwisów.",
+    filter_empty_title: "Żadna wiadomość nie pasuje do tego filtra",
+    filter_empty_clear: "Wyczyść filtr",
     category_empty_custom_desc:
       "Wiadomości pasujące do reguł tej kategorii pojawią się tutaj.",
     block_sender_on_alias: "Blokuj nadawcę na aliasie",
@@ -9194,6 +9196,10 @@ export const pl = {
     from_date: "Od daty",
     to_date: "Do daty",
     no_results_found: "Nie znaleziono wyników",
+    search_filters_active:
+      "Filtry są aktywne. Wyczyść je, aby zobaczyć więcej wyników.",
+    clear_filters: "Wyczyść filtry",
+    chip_date_range: "Od {{ from }} do {{ to }}",
     view_all_results: "Wyświetl wszystkie wyniki dla “{{query}}”",
     folders: "Foldery",
     showing_results: "Wyświetlanie {{shown}} z {{total}} wyników",

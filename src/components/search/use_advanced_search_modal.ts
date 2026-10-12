@@ -28,7 +28,10 @@ import {
   type SearchResultItem,
   extract_query_terms,
 } from "@/hooks/use_search";
-import { parse_search_query } from "@/utils/search_operators";
+import {
+  ends_with_bare_operator,
+  has_operator,
+} from "@/utils/search_operators";
 import { use_folders } from "@/hooks/use_folders";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
 import { use_email_actions } from "@/hooks/use_email_actions";
@@ -53,6 +56,7 @@ export function use_advanced_search_modal({
     state,
     search,
     clear_results,
+    remove_filter,
     add_quick_filter,
     set_sort_option,
     set_search_scope,
@@ -61,25 +65,6 @@ export function use_advanced_search_modal({
     load_more,
   } = use_advanced_search();
   const navigate = useNavigate();
-
-  const remove_filter = useCallback(
-    (id: string) => {
-      const target = parse_search_query(state.raw_query).operators.find(
-        (op) => `${op.type}-${op.value}` === id,
-      );
-
-      if (!target) return;
-
-      const next = state.raw_query
-        .replace(target.raw, " ")
-        .replace(/\s+/g, " ")
-        .trim();
-
-      set_raw_query(next);
-      search(next);
-    },
-    [state.raw_query, set_raw_query, search],
-  );
   const { state: folders_state } = use_folders();
 
   const [selected_index, set_selected_index] = useState(-1);
@@ -281,7 +266,10 @@ export function use_advanced_search_modal({
           e.preventDefault();
           if (selected_index >= 0 && selected_index < results_count) {
             handle_result_click(filtered_results[selected_index].id);
-          } else if (state.raw_query.trim().length > 0) {
+          } else if (
+            state.raw_query.trim().length > 0 &&
+            !ends_with_bare_operator(state.raw_query)
+          ) {
             const q = state.raw_query.trim();
 
             handle_close();
@@ -356,13 +344,33 @@ export function use_advanced_search_modal({
 
   const is_quick_filter_active = useCallback(
     (operator: string) => {
-      return state.raw_query.includes(operator);
+      const separator = operator.indexOf(":");
+
+      if (separator <= 0) return false;
+
+      return has_operator(
+        state.raw_query,
+        operator.slice(0, separator) as Parameters<typeof has_operator>[1],
+        operator.slice(separator + 1),
+      );
     },
     [state.raw_query],
   );
 
+  const handle_operator_insert = useCallback(
+    (text: string) => {
+      set_raw_query(text);
+      set_selected_index(-1);
+      set_show_operator_hints(false);
+      search(text);
+      input_ref.current?.focus();
+    },
+    [set_raw_query, search],
+  );
+
   const show_empty_state =
-    state.text_query &&
+    state.raw_query.trim().length > 0 &&
+    !ends_with_bare_operator(state.raw_query) &&
     !state.is_loading &&
     !state.is_searching &&
     filtered_results.length === 0 &&
@@ -385,6 +393,7 @@ export function use_advanced_search_modal({
     handle_key_down,
     handle_result_click,
     handle_quick_search,
+    handle_operator_insert,
     set_raw_query,
     clear_results,
     load_more,

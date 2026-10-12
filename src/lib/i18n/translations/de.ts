@@ -8625,6 +8625,8 @@ export const de = {
     category_empty_transactions_title: "Keine Einkäufe",
     category_empty_transactions_desc:
       "Bestellungen, Zahlungen und Belege von Shops und Diensten erscheinen hier.",
+    filter_empty_title: "Keine Nachrichten entsprechen diesem Filter",
+    filter_empty_clear: "Filter löschen",
     category_empty_custom_desc:
       "E-Mails, die den Regeln dieser Kategorie entsprechen, erscheinen hier.",
     block_sender_on_alias: "Absender für Alias blockieren",
@@ -9040,6 +9042,10 @@ export const de = {
     from_date: "Ab Datum",
     to_date: "Bis Datum",
     no_results_found: "Keine Ergebnisse gefunden",
+    search_filters_active:
+      "Filter sind aktiv. Entfernen Sie sie, um mehr Ergebnisse zu sehen.",
+    clear_filters: "Filter entfernen",
+    chip_date_range: "{{ from }} bis {{ to }}",
     view_all_results: "Alle Ergebnisse für “{{query}}” anzeigen",
     folders: "Ordner",
     showing_results: "{{shown}} von {{total}} Ergebnissen angezeigt",

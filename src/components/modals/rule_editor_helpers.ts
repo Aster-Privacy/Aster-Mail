@@ -188,7 +188,7 @@ export function condition_has_value(c: Condition): boolean {
   if ("operator" in c && c.operator === "is_empty") return true;
   const v = (c as { value?: unknown }).value;
 
-  if (typeof v === "string") return v.length > 0;
+  if (typeof v === "string") return v.trim().length > 0;
   if (typeof v === "number") {
     if (Number.isNaN(v)) return false;
     if (k === "numeric_size" || k === "numeric_plain") return v !== 0;
@@ -197,6 +197,21 @@ export function condition_has_value(c: Condition): boolean {
   }
 
   return v !== undefined && v !== null;
+}
+
+export function trim_address_values(c: Condition): Condition {
+  if (c.type === "and" || c.type === "or") {
+    return { ...c, conditions: c.conditions.map(trim_address_values) };
+  }
+  if (c.type === "not") {
+    return { ...c, condition: trim_address_values(c.condition) };
+  }
+  if (field_kind(c.type) !== "address") return c;
+  const v = (c as { value?: unknown }).value;
+
+  if (typeof v !== "string" || v === v.trim()) return c;
+
+  return { ...c, value: v.trim() } as Condition;
 }
 
 export function condition_ready_to_save(c: Condition): boolean {
@@ -208,7 +223,11 @@ export function condition_ready_to_save(c: Condition): boolean {
   }
   const v = (c as { value?: unknown }).value;
 
-  if (typeof v === "number") return !Number.isNaN(v);
+  if (typeof v === "number") {
+    if (Number.isNaN(v)) return false;
+
+    return field_kind(c.type) === "numeric_size" ? v > 0 : true;
+  }
 
   return condition_has_value(c);
 }

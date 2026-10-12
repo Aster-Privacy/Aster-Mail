@@ -8356,6 +8356,8 @@ export const ja = {
     category_empty_transactions_title: "買い物のメールはありません",
     category_empty_transactions_desc:
       "ストアやサービスからの注文、支払い、領収書がここに表示されます。",
+    filter_empty_title: "このフィルタに一致するメッセージはありません",
+    filter_empty_clear: "フィルタを解除",
     category_empty_custom_desc:
       "このカテゴリのルールに一致するメールがここに表示されます。",
     block_sender_on_alias: "エイリアスで送信者をブロック",
@@ -8771,6 +8773,10 @@ export const ja = {
     from_date: "開始日",
     to_date: "終了日",
     no_results_found: "結果が見つかりません",
+    search_filters_active:
+      "フィルターが有効です。解除すると、より多くの結果が表示されます。",
+    clear_filters: "フィルターを解除",
+    chip_date_range: "{{ from }}～{{ to }}",
     view_all_results: "“{{query}}”のすべての結果を表示",
     folders: "フォルダ",
     showing_results: "{{total}}件中{{shown}}件の結果を表示",

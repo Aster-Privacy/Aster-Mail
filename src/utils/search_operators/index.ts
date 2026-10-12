@@ -24,10 +24,21 @@ export { create_active_filters, operators_to_filters } from "./filters";
 export type { ExtendedSearchFilters } from "./filters";
 export {
   get_operator_suggestions,
+  locate_operators,
   parse_search_query,
   validate_operator,
 } from "./parse";
-export type { OperatorSuggestion } from "./parse";
+export type { LocatedOperator, OperatorSuggestion } from "./parse";
+export {
+  clear_filter_operators,
+  count_filter_operators,
+  ends_with_bare_operator,
+  has_operator,
+  is_filter_operator,
+  remove_operator_at,
+  strip_operators,
+  toggle_operator,
+} from "./rewrite";
 export {
   add_operator_to_query,
   date_range_operators,

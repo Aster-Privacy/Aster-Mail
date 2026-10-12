@@ -8544,6 +8544,8 @@ export const es = {
     category_empty_transactions_title: "No hay recibos",
     category_empty_transactions_desc:
       "Aquí aparecen los pedidos, pagos y recibos de tiendas y servicios.",
+    filter_empty_title: "Ningún mensaje coincide con este filtro",
+    filter_empty_clear: "Borrar filtro",
     category_empty_custom_desc:
       "Los correos que coincidan con las reglas de esta categoría aparecerán aquí.",
     block_sender_on_alias: "Bloquear remitente en el alias",
@@ -8959,6 +8961,10 @@ export const es = {
     from_date: "Desde fecha",
     to_date: "Hasta fecha",
     no_results_found: "No se encontraron resultados",
+    search_filters_active:
+      "Hay filtros activos. Bórralos para ver más resultados.",
+    clear_filters: "Borrar filtros",
+    chip_date_range: "{{ from }} a {{ to }}",
     view_all_results: "Ver todos los resultados para “{{query}}”",
     folders: "Carpetas",
     showing_results: "Mostrando {{shown}} de {{total}} resultados",

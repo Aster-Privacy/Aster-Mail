@@ -43,6 +43,12 @@ import { use_advanced_search_modal } from "@/components/search/use_advanced_sear
 import { use_dialog_shell } from "@/lib/use_dialog_shell";
 import { format_decimal } from "@/lib/utils";
 
+interface OperatorHint {
+  op: string;
+  insert?: string;
+  desc: string;
+}
+
 export function AdvancedSearchModal({
   is_open,
   on_close,
@@ -71,10 +77,10 @@ export function AdvancedSearchModal({
     handle_key_down,
     handle_result_click,
     handle_quick_search,
+    handle_operator_insert,
     set_raw_query,
     clear_results,
     load_more,
-    search,
     remove_filter,
     add_quick_filter,
     set_sort_option,
@@ -316,7 +322,7 @@ export function AdvancedSearchModal({
                 )}
 
                 {show_empty_state && (
-                  <EmptySearchState query={state.text_query} />
+                  <EmptySearchState query={state.raw_query.trim()} />
                 )}
 
                 {!state.raw_query && (
@@ -349,6 +355,7 @@ export function AdvancedSearchModal({
                         { op: "in:sent", desc: t("mail.in_sent_folder") },
                         {
                           op: "after:YYYY-MM-DD",
+                          insert: "after:",
                           desc: t("mail.after_date_search"),
                         },
                         { op: "date:today", desc: t("mail.from_today_search") },
@@ -357,15 +364,13 @@ export function AdvancedSearchModal({
                           desc: t("mail.larger_than_search"),
                         },
                         { op: "-from:", desc: t("mail.exclude_sender") },
-                      ].map((item) => (
+                      ].map((item: OperatorHint) => (
                         <button
                           key={item.op}
                           className="search_operator_row flex items-start gap-2 p-2 rounded-[14px] text-start"
-                          onClick={() => {
-                            set_raw_query(item.op);
-                            search(item.op);
-                            input_ref.current?.focus();
-                          }}
+                          onClick={() =>
+                            handle_operator_insert(item.insert ?? item.op)
+                          }
                         >
                           <code className="search_operator_code">
                             {item.op}
@@ -405,9 +410,7 @@ export function AdvancedSearchModal({
                   </div>
                   <div className="flex items-center gap-1.5">
                     <span>{t("mail.select")}</span>
-                    <kbd className="search_keycap">
-                      Enter
-                    </kbd>
+                    <kbd className="search_keycap">Enter</kbd>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
@@ -426,9 +429,7 @@ export function AdvancedSearchModal({
                   >
                     {t("common.close")}
                   </button>
-                  <kbd className="search_keycap hidden sm:inline-flex">
-                    ESC
-                  </kbd>
+                  <kbd className="search_keycap hidden sm:inline-flex">ESC</kbd>
                 </div>
               </div>
             </ErrorBoundary>

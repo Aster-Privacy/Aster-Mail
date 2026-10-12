@@ -30,10 +30,18 @@ import {
 } from "@heroicons/react/24/outline";
 
 import {
+  create_active_filters,
   date_range_operators,
   parse_search_query,
   format_date_for_operator,
+  remove_operator_at,
+  strip_operators,
 } from "@/utils/search_operators";
+import {
+  describe_date_filter,
+  is_chip_covered_operator,
+  person_chip_label,
+} from "@/components/search/chip_state";
 import { list_index_people } from "@/hooks/use_search";
 import {
   Popover,
@@ -66,20 +74,6 @@ function days_ago(days: number): string {
   return format_date_for_operator(date);
 }
 
-function strip_operators(
-  query: string,
-  predicate: (operator: ParsedOperator) => boolean,
-): string {
-  let next = query;
-
-  for (const operator of parse_search_query(query).operators) {
-    if (!predicate(operator)) continue;
-    next = next.replace(operator.raw, " ");
-  }
-
-  return next.replace(/\s+/g, " ").trim();
-}
-
 function append_token(query: string, token: string): string {
   const trimmed = query.trim();
 
@@ -99,10 +93,13 @@ function active_values(operators: ParsedOperator[], type: string): string[] {
 function detect_date_preset(operators: ParsedOperator[]): DatePreset {
   const before = active_values(operators, "before");
   const after = active_values(operators, "after");
+  const date = active_values(operators, "date");
 
-  if (before.length === 0 && after.length === 0) return "any";
+  if (before.length === 0 && after.length === 0 && date.length === 0) {
+    return "any";
+  }
 
-  if (before.length === 1 && after.length === 0) {
+  if (before.length === 1 && after.length === 0 && date.length === 0) {
     for (const key of Object.keys(PRESET_DAYS) as Array<
       keyof typeof PRESET_DAYS
     >) {
@@ -133,6 +130,7 @@ interface ChipProps {
 function Chip({ label, is_active, has_caret, on_click }: ChipProps) {
   return (
     <button
+      aria-pressed={is_active}
       className={CHIP_CLASS}
       style={chip_style(is_active)}
       type="button"
@@ -506,11 +504,28 @@ export function SearchChipRow({
       case "year":
         return t("mail.chip_older_than_year");
       case "custom":
-        return t("mail.chip_custom_range");
+        break;
       default:
         return t("mail.chip_any_time");
     }
-  }, [date_preset, t]);
+
+    const state = describe_date_filter(operators);
+
+    switch (state.kind) {
+      case "shortcut":
+        return t(state.label_key);
+      case "day":
+        return t("mail.filter_date", { value: state.value });
+      case "after":
+        return t("mail.filter_after", { value: state.value });
+      case "before":
+        return t("mail.filter_before", { value: state.value });
+      case "range":
+        return t("mail.chip_date_range", { from: state.from, to: state.to });
+      default:
+        return t("mail.chip_custom_range");
+    }
+  }, [date_preset, operators, t]);
 
   const attachment_type_label = useCallback(
     (type: AttachmentType) => {
@@ -534,7 +549,7 @@ export function SearchChipRow({
       clear_label={t("common.clear")}
       empty_label={t("mail.chip_no_people")}
       is_active={from_values.length > 0}
-      label={from_values.length > 0 ? from_values[0] : t("mail.from")}
+      label={person_chip_label(from_values) ?? t("mail.from")}
       on_clear={() => clear_person("from")}
       on_select={(email) => set_person("from", email)}
       people={() => list_index_people("from")}
@@ -548,7 +563,7 @@ export function SearchChipRow({
       clear_label={t("common.clear")}
       empty_label={t("mail.chip_no_people")}
       is_active={to_values.length > 0}
-      label={to_values.length > 0 ? to_values[0] : t("mail.to")}
+      label={person_chip_label(to_values) ?? t("mail.to")}
       on_clear={() => clear_person("to")}
       on_select={(email) => set_person("to", email)}
       people={() => list_index_people("to")}
@@ -706,6 +721,19 @@ export function SearchChipRow({
     ordered.push(entry.node);
   }
 
+  const extra_chips: ReactNode[] = operators.flatMap((operator, index) =>
+    is_chip_covered_operator(operator)
+      ? []
+      : [
+          <Chip
+            key={`extra_${index}`}
+            is_active
+            label={create_active_filters([operator], t)[0].label}
+            on_click={() => on_query_change(remove_operator_at(query, index))}
+          />,
+        ],
+  );
+
   const scope_chips: ReactNode[] = scope_view
     ? search_scope_chips(query, scope_view).map((chip) => (
         <Chip
@@ -731,6 +759,7 @@ export function SearchChipRow({
   return (
     <div className="flex items-center gap-2.5 px-4 py-2.5 overflow-x-auto scrollbar-none">
       {scope_chips}
+      {extra_chips}
       {ordered}
       <button
         className={CHIP_CLASS}

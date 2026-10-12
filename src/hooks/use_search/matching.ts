@@ -30,7 +30,6 @@ import { build_body_preview } from "@/utils/preview_text";
 import { get_email_username } from "@/lib/utils";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
 import {
-  expand_date_shortcut,
   parse_size_value,
   parse_size_range,
   type ParsedOperator,
@@ -40,7 +39,10 @@ import {
   normalize_envelope_from,
   normalize_envelope_recipients,
 } from "@/services/crypto/envelope_normalize";
-import { date_boundary_local } from "@/services/search_chunk_filter";
+import {
+  date_boundary_local,
+  date_operator_range,
+} from "@/services/search_chunk_filter";
 import {
   address_list_includes,
   is_full_address,
@@ -103,28 +105,40 @@ export function build_search_haystack(
   };
 }
 
-type EnvelopeAttachment = { filename?: string; content_type?: string };
+export type AttachmentDetail = {
+  filename?: string | null;
+  content_type?: string | null;
+};
 
-function envelope_attachments(
+export type AttachmentDetails = ReadonlyMap<string, AttachmentDetail[]>;
+
+export function envelope_attachments(
   envelope: DecryptedEnvelope,
-): EnvelopeAttachment[] | null {
+): AttachmentDetail[] | null {
   const list = envelope.attachment_metadata ?? envelope.attachment_keys;
 
   return list && list.length > 0 ? list : null;
 }
 
-function envelope_body_text(
-  envelope: DecryptedEnvelope,
-  search_body_text?: string,
-): string {
-  return (
-    search_body_text ||
-    (
-      (envelope.body_text || "") +
-      " " +
-      (envelope.body_html || envelope.html_body || "")
-    ).toLowerCase()
-  );
+export function operator_needs_attachment_details(op: ParsedOperator): boolean {
+  if (BODY_CONTENT_OPERATOR_TYPES.has(op.type)) return true;
+
+  return op.type === "has" && !is_attachment_presence(op.value.toLowerCase());
+}
+
+function folded_value(value: string): string {
+  return fold_search_text(value) || value.toLowerCase();
+}
+
+function item_label_names(item: MailItem): string[] {
+  return [
+    ...(item.labels || []).map((l) => folded_value(l.name || "")),
+    ...(item.folders || []).map((f) => folded_value(f.name || "")),
+  ].filter((name) => name.length > 0);
+}
+
+function is_attachment_presence(value: string): boolean {
+  return value === "attachment" || value === "attachments";
 }
 
 export function matches_operator(
@@ -135,6 +149,7 @@ export function matches_operator(
   label_name_to_tokens?: Map<string, string[]>,
   search_body_text?: string,
   haystack?: SearchHaystack,
+  attachment_details?: AttachmentDetails,
 ): boolean {
   const val = op.value.toLowerCase();
   const hay = haystack ?? build_search_haystack(envelope);
@@ -152,7 +167,8 @@ export function matches_operator(
       );
     }
     case "to":
-      if (is_full_address(val)) return hay.recipients.includes(val);
+      if (is_full_address(val))
+        return address_list_includes(hay.recipients, val);
 
       return includes_folded(hay.recipients, fold_search_text(val) || val);
     case "contact": {
@@ -172,7 +188,7 @@ export function matches_operator(
     case "subject":
       return includes_folded(hay.subject, fold_search_text(val) || val);
     case "has": {
-      if (val === "attachment" || val === "attachments")
+      if (is_attachment_presence(val))
         return metadata?.has_attachments ?? false;
       if (!metadata?.has_attachments) return false;
       const ext_map: Record<string, string[]> = {
@@ -186,15 +202,12 @@ export function matches_operator(
       };
       const extensions = ext_map[val];
 
-      if (!extensions) return true;
+      if (!extensions) return false;
 
-      const attachments = envelope_attachments(envelope);
+      const attachments =
+        envelope_attachments(envelope) ?? attachment_details?.get(item.id);
 
-      if (!attachments) {
-        const body = envelope_body_text(envelope, search_body_text);
-
-        return extensions.some((ext) => body.includes(ext));
-      }
+      if (!attachments) return false;
 
       return attachments.some((attachment) => {
         const filename = attachment.filename?.toLowerCase() ?? "";
@@ -270,28 +283,23 @@ export function matches_operator(
       const ts = new Date(item.message_ts || item.created_at).getTime();
       const target = date_boundary_local(op.value, false);
 
-      return !isNaN(target) && ts > target;
+      return !isNaN(target) && ts >= target;
     }
     case "date": {
-      const range = expand_date_shortcut(val);
+      const range = date_operator_range(op.value);
 
-      if (!range) return true;
+      if (!range) return false;
       const ts = new Date(item.message_ts || item.created_at).getTime();
-      const [fy, fm, fd] = range.date_from.split("-").map(Number);
-      const [ty, tm, td] = range.date_to.split("-").map(Number);
-      const from_ts = new Date(fy, fm - 1, fd, 0, 0, 0, 0).getTime();
-      const to_ts = new Date(ty, tm - 1, td, 23, 59, 59, 999).getTime();
 
-      return ts >= from_ts && ts <= to_ts;
+      return ts >= range.from && ts <= range.to;
     }
     case "filename":
     case "attachment": {
       if (!metadata?.has_attachments) return false;
-      const attachments = envelope_attachments(envelope);
+      const attachments =
+        envelope_attachments(envelope) ?? attachment_details?.get(item.id);
 
-      if (!attachments) {
-        return envelope_body_text(envelope, search_body_text).includes(val);
-      }
+      if (!attachments) return false;
 
       return attachments.some((attachment) =>
         includes_folded(
@@ -303,7 +311,7 @@ export function matches_operator(
     case "larger": {
       const threshold = parse_size_value(op.value);
 
-      if (threshold === null) return true;
+      if (threshold === null) return false;
       const size = metadata?.size_bytes ?? 0;
 
       return size > threshold;
@@ -311,7 +319,7 @@ export function matches_operator(
     case "smaller": {
       const threshold = parse_size_value(op.value);
 
-      if (threshold === null) return true;
+      if (threshold === null) return false;
       const size = metadata?.size_bytes ?? 0;
 
       return size < threshold;
@@ -319,7 +327,7 @@ export function matches_operator(
     case "size": {
       const range = parse_size_range(op.value);
 
-      if (!range) return true;
+      if (!range) return false;
       const size = metadata?.size_bytes ?? 0;
 
       return size >= range.min && size <= range.max;
@@ -328,14 +336,22 @@ export function matches_operator(
       return item.id === op.value;
     case "label":
     case "folder": {
+      const wanted = folded_value(val);
+
       if (label_name_to_tokens) {
-        const matching_tokens: string[] = [];
+        const exact_tokens: string[] = [];
+        const prefix_tokens: string[] = [];
 
         for (const [name, tokens] of label_name_to_tokens) {
-          if (name.includes(val)) {
-            matching_tokens.push(...tokens);
-          }
+          const folded = folded_value(name);
+
+          if (folded === wanted) exact_tokens.push(...tokens);
+          else if (folded.startsWith(wanted)) prefix_tokens.push(...tokens);
         }
+
+        const matching_tokens =
+          exact_tokens.length > 0 ? exact_tokens : prefix_tokens;
+
         if (matching_tokens.length > 0) {
           const item_tokens = [
             ...(item.labels || []).map((l) => l.token),
@@ -346,12 +362,26 @@ export function matches_operator(
           return item_tokens.some((t) => matching_tokens.includes(t));
         }
       }
-      const all_names = [
-        ...(item.labels || []).map((l) => l.name.toLowerCase()),
-        ...(item.folders || []).map((f) => f.name.toLowerCase()),
-      ];
+      const names = item_label_names(item);
 
-      return all_names.some((l) => l.length > 0 && l.includes(val));
+      return (
+        names.includes(wanted) || names.some((name) => name.startsWith(wanted))
+      );
+    }
+    case "text": {
+      const term = folded_value(val);
+
+      return (
+        includes_folded(hay.subject, term) ||
+        includes_folded(hay.sender_name, term) ||
+        includes_folded(hay.sender_email, term) ||
+        includes_folded(hay.recipients, term) ||
+        includes_folded(
+          search_body_text ??
+            strip_html_tags(searchable_body_source(envelope)).toLowerCase(),
+          term,
+        )
+      );
     }
     default:
       return true;
@@ -362,13 +392,20 @@ export const BODY_CONTENT_OPERATOR_TYPES = new Set(["filename", "attachment"]);
 
 export const ANY_OF_OPERATOR_TYPES = new Set(["from", "to", "contact"]);
 
+function any_of_group_key(op: ParsedOperator): string | null {
+  if (op.negated) return null;
+  if (ANY_OF_OPERATOR_TYPES.has(op.type)) return op.type;
+  if (op.type === "has" && !is_attachment_presence(op.value.toLowerCase())) {
+    return "has";
+  }
+
+  return null;
+}
+
 export function operator_needs_body(op: ParsedOperator): boolean {
   if (BODY_CONTENT_OPERATOR_TYPES.has(op.type)) return true;
-  if (op.type === "has") {
-    const val = op.value.toLowerCase();
-
-    return val !== "attachment" && val !== "attachments";
-  }
+  if (op.type === "text") return true;
+  if (op.type === "has") return !is_attachment_presence(op.value.toLowerCase());
 
   return false;
 }
@@ -391,20 +428,74 @@ export function matches_query(
   search_body: boolean = true,
   search_body_text?: string,
   haystack?: SearchHaystack,
+  attachment_details?: AttachmentDetails,
 ): boolean {
   if (!envelope) return false;
 
   const hay = haystack ?? build_search_haystack(envelope);
+  const search_all = !fields || fields.length === 0 || fields.includes("all");
+  const needs_text =
+    terms.length > 0 || operators.some((op) => op.type === "text");
+  const body =
+    search_body && needs_text
+      ? (search_body_text ??
+        strip_html_tags(searchable_body_source(envelope)).toLowerCase())
+      : "";
+
+  const term_matches = (raw_term: string): boolean => {
+    const term = fold_search_text(raw_term) || raw_term;
+
+    if (search_all) {
+      return (
+        includes_folded(hay.subject, term) ||
+        includes_folded(hay.sender_name, term) ||
+        includes_folded(hay.sender_email, term) ||
+        includes_folded(hay.recipients, term) ||
+        (search_body && includes_folded(body, term))
+      );
+    }
+    let match = false;
+
+    if (fields!.includes("subject"))
+      match = match || includes_folded(hay.subject, term);
+    if (fields!.includes("sender"))
+      match =
+        match ||
+        includes_folded(hay.sender_name, term) ||
+        includes_folded(hay.sender_email, term);
+    if (fields!.includes("recipient"))
+      match = match || includes_folded(hay.recipients, term);
+    if (search_body && fields!.includes("body"))
+      match = match || includes_folded(body, term);
+
+    return match;
+  };
+
+  const operator_matches = (op: ParsedOperator): boolean =>
+    op.type === "text"
+      ? term_matches(op.value.toLowerCase())
+      : matches_operator(
+          op,
+          envelope,
+          metadata,
+          item,
+          label_name_to_tokens,
+          search_body_text,
+          hay,
+          attachment_details,
+        );
 
   if (operators.length > 0) {
     const or_groups = new Map<string, ParsedOperator[]>();
 
     for (const op of operators) {
-      if (op.negated || !ANY_OF_OPERATOR_TYPES.has(op.type)) continue;
-      const group = or_groups.get(op.type);
+      const key = any_of_group_key(op);
+
+      if (!key) continue;
+      const group = or_groups.get(key);
 
       if (group) group.push(op);
-      else or_groups.set(op.type, [op]);
+      else or_groups.set(key, [op]);
     }
 
     const grouped = new Set<ParsedOperator>();
@@ -413,78 +504,19 @@ export function matches_query(
       if (group.length < 2 && group[0].type !== "contact") continue;
       group.forEach((op) => grouped.add(op));
 
-      const any_match = group.some((op) =>
-        matches_operator(
-          op,
-          envelope,
-          metadata,
-          item,
-          label_name_to_tokens,
-          search_body_text,
-          hay,
-        ),
-      );
-
-      if (!any_match) return false;
+      if (!group.some(operator_matches)) return false;
     }
 
     for (const op of operators) {
       if (grouped.has(op)) continue;
 
-      const result = matches_operator(
-        op,
-        envelope,
-        metadata,
-        item,
-        label_name_to_tokens,
-        search_body_text,
-        hay,
-      );
+      const result = operator_matches(op);
 
       if (op.negated ? result : !result) return false;
     }
   }
 
-  if (terms.length === 0) return true;
-
-  const search_all = !fields || fields.length === 0 || fields.includes("all");
-  const subject = hay.subject;
-  const sender_name = hay.sender_name;
-  const sender_email = hay.sender_email;
-  const recipients = hay.recipients;
-  const body = search_body
-    ? (search_body_text ??
-      strip_html_tags(searchable_body_source(envelope)).toLowerCase())
-    : "";
-
-  return terms.every((raw_term) => {
-    const term = fold_search_text(raw_term) || raw_term;
-
-    if (search_all) {
-      return (
-        includes_folded(subject, term) ||
-        includes_folded(sender_name, term) ||
-        includes_folded(sender_email, term) ||
-        includes_folded(recipients, term) ||
-        (search_body && includes_folded(body, term))
-      );
-    }
-    let match = false;
-
-    if (fields!.includes("subject"))
-      match = match || includes_folded(subject, term);
-    if (fields!.includes("sender"))
-      match =
-        match ||
-        includes_folded(sender_name, term) ||
-        includes_folded(sender_email, term);
-    if (fields!.includes("recipient"))
-      match = match || includes_folded(recipients, term);
-    if (search_body && fields!.includes("body"))
-      match = match || includes_folded(body, term);
-
-    return match;
-  });
+  return terms.every(term_matches);
 }
 
 type Translate = (

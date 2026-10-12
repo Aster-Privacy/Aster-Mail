@@ -7563,6 +7563,8 @@ export const zh_CN = {
     category_empty_transactions_title: "没有收据",
     category_empty_transactions_desc:
       "来自商店和服务的订单、付款和收据会显示在这里。",
+    filter_empty_title: "没有符合此筛选条件的邮件",
+    filter_empty_clear: "清除筛选条件",
     category_empty_custom_desc: "符合此分类规则的邮件将显示在这里。",
     block_sender_on_alias: "在别名上屏蔽发件人",
     block_sender_on_alias_success: "已在 {{alias}} 上屏蔽 {{sender}}",
@@ -7946,6 +7948,9 @@ export const zh_CN = {
     from_date: "开始日期",
     to_date: "结束日期",
     no_results_found: "未找到结果",
+    search_filters_active: "筛选条件已启用。清除后可查看更多结果。",
+    clear_filters: "清除筛选条件",
+    chip_date_range: "{{ from }} 至 {{ to }}",
     view_all_results: "查看“{{query}}”的所有结果",
     folders: "文件夹",
     showing_results: "显示{{shown}}/{{total}}条结果",

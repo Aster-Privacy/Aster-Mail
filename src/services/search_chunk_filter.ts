@@ -29,6 +29,7 @@ import {
 } from "@/utils/search_operators";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
 import { fold_search_text } from "@/utils/search_fold";
+import { date_from_zoned_parts } from "@/utils/date_format";
 import {
   normalize_envelope_from,
   normalize_envelope_recipients,
@@ -115,12 +116,38 @@ export function date_boundary_local(
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
 
   if (m && +m[2] >= 1 && +m[2] <= 12) {
-    return end_of_day
-      ? new Date(+m[1], +m[2] - 1, +m[3], 23, 59, 59, 999).getTime()
-      : new Date(+m[1], +m[2] - 1, +m[3], 0, 0, 0, 0).getTime();
+    const start = date_from_zoned_parts({
+      year: +m[1],
+      month: +m[2],
+      day: +m[3] + (end_of_day ? 1 : 0),
+      hours: 0,
+      minutes: 0,
+    }).getTime();
+
+    return end_of_day ? start - 1 : start;
   }
 
   return new Date(value).getTime();
+}
+
+const CALENDAR_DAY = /^\d{4}-\d{2}-\d{2}$/;
+
+export function date_operator_range(
+  value: string,
+): { from: number; to: number } | null {
+  const trimmed = value.trim();
+  const shortcut = expand_date_shortcut(trimmed);
+  const first = shortcut ? shortcut.date_from : trimmed;
+  const last = shortcut ? shortcut.date_to : trimmed;
+
+  if (!CALENDAR_DAY.test(first) || !CALENDAR_DAY.test(last)) return null;
+
+  const from = date_boundary_local(first, false);
+  const to = date_boundary_local(last, true);
+
+  if (!Number.isFinite(from) || !Number.isFinite(to)) return null;
+
+  return { from, to };
 }
 
 function is_gram_char(code: number): boolean {
@@ -462,13 +489,20 @@ function label_operator_test(
   val: string,
   label_name_to_tokens?: Map<string, string[]>,
 ): SummaryTest {
-  const matching: string[] = [];
+  const wanted_name = fold_search_text(val) || val;
+  const exact: string[] = [];
+  const prefix: string[] = [];
 
   if (label_name_to_tokens) {
     for (const [name, tokens] of label_name_to_tokens) {
-      if (name.includes(val)) matching.push(...tokens);
+      const folded = fold_search_text(name) || name.toLowerCase();
+
+      if (folded === wanted_name) exact.push(...tokens);
+      else if (folded.startsWith(wanted_name)) prefix.push(...tokens);
     }
   }
+
+  const matching = exact.length > 0 ? exact : prefix;
 
   if (matching.length > 0) {
     const wanted = new Set(matching);
@@ -480,21 +514,22 @@ function label_operator_test(
 
   return (summary) =>
     summary.names_complete &&
-    !summary.names.some((name) => name.length > 0 && name.includes(val));
+    !summary.names.some(
+      (name) =>
+        name.length > 0 &&
+        (fold_search_text(name) || name).startsWith(wanted_name),
+    );
 }
 
 function date_range_test(val: string): SummaryTest | null {
-  const range = expand_date_shortcut(val);
+  const range = date_operator_range(val);
 
   if (!range) return null;
 
-  const [fy, fm, fd] = range.date_from.split("-").map(Number);
-  const [ty, tm, td] = range.date_to.split("-").map(Number);
-  const from_ts = new Date(fy, fm - 1, fd, 0, 0, 0, 0).getTime();
-  const to_ts = new Date(ty, tm - 1, td, 23, 59, 59, 999).getTime();
-
   return (summary) =>
-    !summary.has_dated || summary.max_ts < from_ts || summary.min_ts > to_ts;
+    !summary.has_dated ||
+    summary.max_ts < range.from ||
+    summary.min_ts > range.to;
 }
 
 function operator_summary_test(
@@ -533,7 +568,7 @@ function operator_summary_test(
 
       if (!Number.isFinite(target)) return () => true;
 
-      return (summary) => !summary.has_dated || summary.max_ts <= target;
+      return (summary) => !summary.has_dated || summary.max_ts < target;
     }
     case "date":
       return date_range_test(val);
@@ -610,11 +645,12 @@ function filter_summary_tests(filters: ChunkSkipFilters): SummaryTest[] {
   return tests;
 }
 
-const GRAM_PROBE_OPERATOR_TYPES = new Set(["from", "to", "subject"]);
+const ANY_OF_GRAM_OPERATOR_TYPES = new Set(["from", "to", "contact"]);
 
 export function build_chunk_skip_plan(input: ChunkSkipInput): ChunkSkipPlan {
   const tests: SummaryTest[] = [];
   const required = new Set<string>();
+  const alternatives = new Map<string, string[][]>();
 
   if (input.probe_terms) {
     for (const term of input.terms) {
@@ -625,8 +661,20 @@ export function build_chunk_skip_plan(input: ChunkSkipInput): ChunkSkipPlan {
   for (const op of input.operators) {
     if (op.negated) continue;
 
-    if (GRAM_PROBE_OPERATOR_TYPES.has(op.type)) {
+    if (op.type === "subject") {
       collect_grams(op.value, required);
+      continue;
+    }
+
+    if (ANY_OF_GRAM_OPERATOR_TYPES.has(op.type)) {
+      const grams = new Set<string>();
+
+      collect_grams(op.value, grams);
+
+      const group = alternatives.get(op.type);
+
+      if (group) group.push([...grams]);
+      else alternatives.set(op.type, [[...grams]]);
       continue;
     }
 
@@ -640,12 +688,20 @@ export function build_chunk_skip_plan(input: ChunkSkipInput): ChunkSkipPlan {
   }
 
   const required_grams = [...required];
+  const any_of_groups = [...alternatives.values()].filter((group) =>
+    group.every((grams) => grams.length > 0),
+  );
 
   return {
     uses_summary: tests.length > 0,
-    uses_grams: required_grams.length > 0,
+    uses_grams: required_grams.length > 0 || any_of_groups.length > 0,
     skip_by_summary: (summary) => tests.some((test) => test(summary)),
     skip_by_grams: (filter) =>
-      required_grams.some((gram) => !gram_present(filter, gram)),
+      required_grams.some((gram) => !gram_present(filter, gram)) ||
+      any_of_groups.some((group) =>
+        group.every((grams) =>
+          grams.some((gram) => !gram_present(filter, gram)),
+        ),
+      ),
   };
 }

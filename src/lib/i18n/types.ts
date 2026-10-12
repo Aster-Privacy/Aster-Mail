@@ -7770,6 +7770,8 @@ export interface MailTranslations {
   category_empty_newsletters_desc: string;
   category_empty_transactions_title: string;
   category_empty_transactions_desc: string;
+  filter_empty_title: string;
+  filter_empty_clear: string;
   category_empty_custom_desc: string;
   report_spam: string;
   clear_selection: string;
@@ -7896,6 +7898,9 @@ export interface MailTranslations {
   create_filter: string;
   search_placeholder_hint: string;
   no_results_found: string;
+  search_filters_active: string;
+  clear_filters: string;
+  chip_date_range: string;
   try_adjusting_filters: string;
   no_emails_match_query: string;
   showing_results_for: string;

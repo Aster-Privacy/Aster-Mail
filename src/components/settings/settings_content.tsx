@@ -348,6 +348,18 @@ function SettingsContentInner(props: SettingsContentProps) {
 
       return;
     }
+    if (
+      !results_open &&
+      search_query.trim().length >= 2 &&
+      (e["key"] === "Enter" ||
+        e["key"] === "ArrowDown" ||
+        e["key"] === "ArrowUp")
+    ) {
+      e.preventDefault();
+      set_results_dismissed(false);
+
+      return;
+    }
     if (e["key"] === "ArrowDown") {
       e.preventDefault();
       set_active_result_index((prev) => (prev + 1) % registry_results.length);
@@ -389,6 +401,7 @@ function SettingsContentInner(props: SettingsContentProps) {
               type="search"
               value={search_query}
               onChange={(e) => set_search_query(e.target.value)}
+              onClick={() => set_results_dismissed(false)}
               onKeyDown={handle_search_keydown}
             />
             {search_query.length > 0 && (
@@ -599,9 +612,45 @@ function SettingsContentInner(props: SettingsContentProps) {
                   />
                 </div>
               </div>
-              {is_searching
-                ? search_results.map(render_mobile_nav_item)
-                : nav_items.map(render_mobile_nav_group)}
+              {is_searching ? (
+                <>
+                  {search_results.map(render_mobile_nav_item)}
+                  {registry_results.map((entry, idx) => (
+                    <button
+                      key={`${entry.section}-${idx}`}
+                      className="w-full flex flex-col items-start gap-0.5 px-4 py-3 text-start transition-colors duration-150 border-b border-b-edge-primary"
+                      type="button"
+                      onClick={() => {
+                        if (entry.tab) request_settings_tab(entry.tab);
+                        set_section(entry.section);
+                        set_persisted_section(entry.section);
+                        set_scroll_target(entry.label);
+                        set_search_query("");
+                        set_show_mobile_nav(false);
+                        on_section_change(entry.section);
+                      }}
+                    >
+                      <span className="text-[15px] text-txt-primary">
+                        {entry.label}
+                      </span>
+                      <span className="text-[12px] text-txt-muted">
+                        {entry.breadcrumb}
+                      </span>
+                    </button>
+                  ))}
+                  {search_results.length === 0 &&
+                    registry_results.length === 0 && (
+                      <div
+                        className="px-4 py-3 text-[13px]"
+                        style={{ color: "var(--text-secondary)" }}
+                      >
+                        {t("common.no_results")}
+                      </div>
+                    )}
+                </>
+              ) : (
+                nav_items.map(render_mobile_nav_group)
+              )}
             </div>
           )}
 

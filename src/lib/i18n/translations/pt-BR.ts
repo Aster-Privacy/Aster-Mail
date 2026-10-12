@@ -8577,6 +8577,8 @@ export const pt_br = {
     category_empty_transactions_title: "Nenhuma compra",
     category_empty_transactions_desc:
       "Pedidos, pagamentos e recibos de lojas e serviços aparecem aqui.",
+    filter_empty_title: "Nenhuma mensagem corresponde a este filtro",
+    filter_empty_clear: "Limpar filtro",
     category_empty_custom_desc:
       "E-mails que correspondem às regras desta categoria aparecerão aqui.",
     block_sender_on_alias: "Bloquear remetente no alias",
@@ -8987,6 +8989,10 @@ export const pt_br = {
     from_date: "Da data",
     to_date: "Até a data",
     no_results_found: "Nenhum resultado encontrado",
+    search_filters_active:
+      "Há filtros ativos. Limpe-os para ver mais resultados.",
+    clear_filters: "Limpar filtros",
+    chip_date_range: "{{ from }} a {{ to }}",
     view_all_results: "Ver todos os resultados para “{{query}}”",
     folders: "Pastas",
     showing_results: "Mostrando {{shown}} de {{total}} resultados",

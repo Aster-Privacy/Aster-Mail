@@ -8586,6 +8586,8 @@ export const it = {
     category_empty_transactions_title: "Nessuna ricevuta",
     category_empty_transactions_desc:
       "Ordini, pagamenti e ricevute di negozi e servizi vengono visualizzati qui.",
+    filter_empty_title: "Nessun messaggio corrisponde a questo filtro",
+    filter_empty_clear: "Cancella filtro",
     category_empty_custom_desc:
       "Le email corrispondenti alle regole di questa categoria appariranno qui.",
     block_sender_on_alias: "Blocca il mittente sull'alias",
@@ -9015,6 +9017,10 @@ export const it = {
     from_date: "Dalla data",
     to_date: "Alla data",
     no_results_found: "Nessun risultato trovato",
+    search_filters_active:
+      "Ci sono filtri attivi. Rimuovili per vedere più risultati.",
+    clear_filters: "Rimuovi filtri",
+    chip_date_range: "Dal {{ from }} al {{ to }}",
     view_all_results: "Visualizza tutti i risultati per “{{query}}”",
     folders: "Cartelle",
     showing_results: "Mostrando {{shown}} di {{total}} risultati",
