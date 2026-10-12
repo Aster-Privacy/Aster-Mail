@@ -8599,6 +8599,10 @@ export const ko = {
     from_date: "시작 날짜",
     to_date: "종료 날짜",
     no_results_found: "결과를 찾을 수 없습니다",
+    search_filters_active:
+      "필터가 적용되어 있습니다. 필터를 지우면 더 많은 결과를 볼 수 있습니다.",
+    clear_filters: "필터 지우기",
+    chip_date_range: "{{ from }} ~ {{ to }}",
     view_all_results: "“{{query}}”에 대한 모든 결과 보기",
     folders: "폴더",
     showing_results: "{{total}}개 중 {{shown}}개 결과 표시",

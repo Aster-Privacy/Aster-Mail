@@ -32,6 +32,21 @@ export function meets_min_search_length(value: string): boolean {
   return value.length >= min_search_length(value);
 }
 
+export function split_search_terms(text: string): string[] {
+  const terms: string[] = [];
+  const pattern = /"([^"]*)"|(\S+)/g;
+  let match: RegExpExecArray | null;
+
+  while ((match = pattern.exec(text)) !== null) {
+    const raw = match[1] !== undefined ? match[1] : match[2].replace(/"/g, "");
+    const term = raw.replace(/\s+/g, " ").trim().toLowerCase();
+
+    if (term && meets_min_search_length(term)) terms.push(term);
+  }
+
+  return terms;
+}
+
 export type SearchViewScope = "view" | "wide";
 
 export interface SearchScopeChip {

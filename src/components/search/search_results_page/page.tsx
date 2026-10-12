@@ -93,6 +93,7 @@ import { use_tags } from "@/hooks/use_tags";
 import { bulk_add_tag, bulk_remove_tag } from "@/services/api/tags";
 import { open_email_in_new_window } from "@/utils/open_email_window";
 import { search_view_for_path } from "@/utils/search_query";
+import { clear_filter_operators } from "@/utils/search_operators";
 
 export function SearchResultsPage(props: SearchResultsPageProps) {
   const {
@@ -565,9 +566,19 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
             style={{ color: "var(--text-muted)" }}
           >
             {active_filter_count > 0
-              ? t("mail.try_adjusting_filters")
+              ? t("mail.search_filters_active")
               : t("mail.no_emails_match_query", { query })}
           </p>
+          {active_filter_count > 0 && on_search_submit && (
+            <button
+              className="mt-3 text-xs font-medium text-brand rounded px-1.5 py-0.5 hover:bg-brand/10 transition-colors"
+              data-testid="search-clear-filters"
+              type="button"
+              onClick={() => on_search_submit(clear_filter_operators(query))}
+            >
+              {t("mail.clear_filters")}
+            </button>
+          )}
           {!content_search_enabled && (
             <button
               className="mt-3 text-xs font-medium text-brand rounded px-1.5 py-0.5 hover:bg-brand/10 transition-colors"

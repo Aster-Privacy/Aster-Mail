@@ -8865,6 +8865,10 @@ export const hi = {
     create_filter: "फ़िल्टर बनाएं",
     search_placeholder_hint: "मेल, संपर्क और फ़ोल्डर खोजें",
     no_results_found: "कोई नतीजा नहीं मिला",
+    search_filters_active:
+      "फ़िल्टर चालू हैं। ज़्यादा नतीजे देखने के लिए उन्हें हटाएँ।",
+    clear_filters: "फ़िल्टर हटाएँ",
+    chip_date_range: "{{ from }} से {{ to }}",
     try_adjusting_filters: "अपने फ़िल्टर बदलकर देखें या कुछ और खोजें",
     no_emails_match_query: "“{{query}}” से कोई ईमेल मेल नहीं खाता",
     showing_results_for: "“{{corrected}}” के नतीजे दिख रहे हैं",

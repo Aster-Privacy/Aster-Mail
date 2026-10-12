@@ -9189,6 +9189,10 @@ export const pl = {
     from_date: "Od daty",
     to_date: "Do daty",
     no_results_found: "Nie znaleziono wyników",
+    search_filters_active:
+      "Filtry są aktywne. Wyczyść je, aby zobaczyć więcej wyników.",
+    clear_filters: "Wyczyść filtry",
+    chip_date_range: "Od {{ from }} do {{ to }}",
     view_all_results: "Wyświetl wszystkie wyniki dla “{{query}}”",
     folders: "Foldery",
     showing_results: "Wyświetlanie {{shown}} z {{total}} wyników",

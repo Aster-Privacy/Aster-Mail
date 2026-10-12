@@ -8816,6 +8816,10 @@ export const en: Translations = {
     create_filter: "Create filter",
     search_placeholder_hint: "Search mail, contacts, and folders",
     no_results_found: "No results found",
+    search_filters_active:
+      "Filters are active. Clear them to see more results.",
+    clear_filters: "Clear filters",
+    chip_date_range: "{{ from }} to {{ to }}",
     try_adjusting_filters:
       "Try adjusting your filters or search for something else",
     no_emails_match_query: "No emails match \u201c{{query}}\u201d",

@@ -8766,6 +8766,10 @@ export const ja = {
     from_date: "開始日",
     to_date: "終了日",
     no_results_found: "結果が見つかりません",
+    search_filters_active:
+      "フィルターが有効です。解除すると、より多くの結果が表示されます。",
+    clear_filters: "フィルターを解除",
+    chip_date_range: "{{ from }}～{{ to }}",
     view_all_results: "“{{query}}”のすべての結果を表示",
     folders: "フォルダ",
     showing_results: "{{total}}件中{{shown}}件の結果を表示",

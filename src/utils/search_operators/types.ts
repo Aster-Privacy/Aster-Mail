@@ -43,7 +43,8 @@ export type SearchOperatorType =
   | "larger"
   | "smaller"
   | "size"
-  | "id";
+  | "id"
+  | "text";
 
 export type HasOperatorValue =
   | "attachment"
@@ -103,7 +104,9 @@ export interface SearchScope {
 }
 
 export const OPERATOR_REGEX =
-  /(?:^|\s)(-)?(?:NOT\s+)?(from|to|contact|subject|has|is|in|before|after|label|folder|date|filename|attachment|larger|smaller|size|id):("([^"]+)"|(\S+))/gi;
+  /(^|\s)(-)?(NOT\s+)?(from|to|contact|subject|has|is|in|before|after|label|folder|date|filename|attachment|larger|smaller|size|id):("([^"]+)"|(\S+))/gi;
+
+export const NOT_TERM_REGEX = /(^|\s)NOT\s+("([^"]+)"|(\S+))/g;
 
 export const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 

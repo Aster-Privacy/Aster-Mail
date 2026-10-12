@@ -37,7 +37,10 @@ import { use_i18n } from "@/lib/i18n/context";
 import { AdvancedSearchModal } from "@/components/search/advanced_search_modal";
 import { is_composing } from "@/utils/ime";
 import { local_date_key } from "@/utils/date_format";
-import { date_range_operators } from "@/utils/search_operators";
+import {
+  add_operator_to_query,
+  date_range_operators,
+} from "@/utils/search_operators";
 
 type DateWindowKey =
   | "any"
@@ -107,8 +110,12 @@ function date_window_boundary(days: number): string {
 export function build_chip_query(filters: ChipFilters): string {
   const parts: string[] = ["in:all"];
 
-  if (filters.from.trim()) parts.push(`from:${filters.from.trim()}`);
-  if (filters.to.trim()) parts.push(`to:${filters.to.trim()}`);
+  if (filters.from.trim()) {
+    parts.push(add_operator_to_query("", "from", filters.from.trim()));
+  }
+  if (filters.to.trim()) {
+    parts.push(add_operator_to_query("", "to", filters.to.trim()));
+  }
   if (filters.date_window === "custom") {
     parts.push(
       ...date_range_operators(filters.custom_after, filters.custom_before),

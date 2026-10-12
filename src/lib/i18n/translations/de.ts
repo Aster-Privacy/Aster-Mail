@@ -9035,6 +9035,10 @@ export const de = {
     from_date: "Ab Datum",
     to_date: "Bis Datum",
     no_results_found: "Keine Ergebnisse gefunden",
+    search_filters_active:
+      "Filter sind aktiv. Entfernen Sie sie, um mehr Ergebnisse zu sehen.",
+    clear_filters: "Filter entfernen",
+    chip_date_range: "{{ from }} bis {{ to }}",
     view_all_results: "Alle Ergebnisse für “{{query}}” anzeigen",
     folders: "Ordner",
     showing_results: "{{shown}} von {{total}} Ergebnissen angezeigt",

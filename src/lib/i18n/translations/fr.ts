@@ -9056,6 +9056,10 @@ export const fr = {
     from_date: "À partir de la date",
     to_date: "Jusqu'à la date",
     no_results_found: "Aucun résultat trouvé",
+    search_filters_active:
+      "Des filtres sont actifs. Effacez-les pour afficher plus de résultats.",
+    clear_filters: "Effacer les filtres",
+    chip_date_range: "Du {{ from }} au {{ to }}",
     view_all_results: "Voir tous les résultats pour “{{query}}”",
     folders: "Dossiers",
     showing_results: "Affichage de {{shown}} sur {{total}} résultats",

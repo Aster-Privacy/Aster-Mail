@@ -8933,6 +8933,10 @@ export const nl = {
     from_date: "Vanaf datum",
     to_date: "Tot datum",
     no_results_found: "Geen resultaten gevonden",
+    search_filters_active:
+      "Er zijn filters actief. Wis ze om meer resultaten te zien.",
+    clear_filters: "Filters wissen",
+    chip_date_range: "{{ from }} tot en met {{ to }}",
     view_all_results: "Alle resultaten bekijken voor “{{query}}”",
     folders: "Mappen",
     showing_results: "{{shown}} van {{total}} resultaten weergegeven",

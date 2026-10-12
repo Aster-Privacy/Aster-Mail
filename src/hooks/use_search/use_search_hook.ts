@@ -68,7 +68,10 @@ import {
 
 import { user_facing_error } from "@/utils/user_facing_error";
 import { type MailItem } from "@/services/api/mail";
-import { meets_min_search_length } from "@/utils/search_query";
+import {
+  meets_min_search_length,
+  split_search_terms,
+} from "@/utils/search_query";
 import { parse_search_query } from "@/utils/search_operators";
 import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
@@ -233,10 +236,7 @@ export function use_search() {
 
       try {
         const parsed = parse_search_query(query);
-        const terms = parsed.text_query
-          .split(/\s+/)
-          .filter(meets_min_search_length)
-          .map((t) => t.toLowerCase());
+        const terms = split_search_terms(parsed.text_query);
         const operators = parsed.operators;
 
         if (terms.length === 0 && operators.length === 0) {

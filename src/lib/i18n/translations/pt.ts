@@ -9034,6 +9034,10 @@ export const pt = {
     from_date: "Da data",
     to_date: "Até à data",
     no_results_found: "Nenhum resultado encontrado",
+    search_filters_active:
+      "Existem filtros ativos. Limpe-os para ver mais resultados.",
+    clear_filters: "Limpar filtros",
+    chip_date_range: "{{ from }} a {{ to }}",
     view_all_results: "Ver todos os resultados para “{{query}}”",
     folders: "Pastas",
     showing_results: "A mostrar {{shown}} de {{total}} resultados",

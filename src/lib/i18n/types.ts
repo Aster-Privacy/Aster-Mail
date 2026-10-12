@@ -7891,6 +7891,9 @@ export interface MailTranslations {
   create_filter: string;
   search_placeholder_hint: string;
   no_results_found: string;
+  search_filters_active: string;
+  clear_filters: string;
+  chip_date_range: string;
   try_adjusting_filters: string;
   no_emails_match_query: string;
   showing_results_for: string;

@@ -9137,6 +9137,10 @@ export const ru = {
     from_date: "С даты",
     to_date: "По дату",
     no_results_found: "Результаты не найдены",
+    search_filters_active:
+      "Фильтры активны. Сбросьте их, чтобы увидеть больше результатов.",
+    clear_filters: "Сбросить фильтры",
+    chip_date_range: "С {{ from }} по {{ to }}",
     view_all_results: "Просмотреть все результаты для “{{query}}”",
     folders: "Папки",
     showing_results: "Показано {{shown}} из {{total}} результатов",

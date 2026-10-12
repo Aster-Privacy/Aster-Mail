@@ -9010,6 +9010,10 @@ export const it = {
     from_date: "Dalla data",
     to_date: "Alla data",
     no_results_found: "Nessun risultato trovato",
+    search_filters_active:
+      "Ci sono filtri attivi. Rimuovili per vedere più risultati.",
+    clear_filters: "Rimuovi filtri",
+    chip_date_range: "Dal {{ from }} al {{ to }}",
     view_all_results: "Visualizza tutti i risultati per “{{query}}”",
     folders: "Cartelle",
     showing_results: "Mostrando {{shown}} di {{total}} risultati",

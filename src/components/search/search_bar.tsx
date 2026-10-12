@@ -74,6 +74,13 @@ import {
   search_view_for_path,
 } from "@/utils/search_query";
 import { is_composing } from "@/utils/ime";
+import {
+  add_operator_to_query,
+  ends_with_bare_operator,
+  has_operator,
+  strip_operators,
+  toggle_operator,
+} from "@/utils/search_operators";
 
 const DEBOUNCE_MS = 180;
 const PREVIEW_LIMIT = 5;
@@ -169,6 +176,7 @@ export function SearchBar({
         return;
       }
       if (!meets_min_search_length(trimmed)) return;
+      if (ends_with_bare_operator(trimmed)) return;
       on_search_submit(scope_query(trimmed));
     },
     [on_search_submit, scope_query],
@@ -176,6 +184,7 @@ export function SearchBar({
 
   const submit_full = useCallback(
     (q: string) => {
+      if (ends_with_bare_operator(q)) return;
       if (on_search_submit) on_search_submit(scope_query(q));
       close();
       input_ref.current?.blur();
@@ -185,10 +194,12 @@ export function SearchBar({
 
   const handle_advanced_submit = useCallback(
     (q: string) => {
-      set_query(q);
-      on_search_submit?.(q);
+      const scoped = scope_query(q);
+
+      set_query(scoped);
+      on_search_submit?.(scoped);
     },
-    [on_search_submit],
+    [on_search_submit, scope_query],
   );
 
   const handle_advanced_result_click = useCallback(
@@ -226,12 +237,45 @@ export function SearchBar({
     input_ref.current?.focus();
   };
 
-  const handle_chip = (suffix: string) => {
-    const next = query ? `${query} ${suffix}`.trim() : suffix;
-
+  const apply_chip_query = (next: string) => {
     set_query(next);
     if (debounce_ref.current) clearTimeout(debounce_ref.current);
     submit_query(next);
+    input_ref.current?.focus();
+  };
+
+  const week_boundary = week_ago_key();
+  const is_attachment_chip_active = has_operator(query, "has", "attachment");
+  const is_week_chip_active = has_operator(query, "after", week_boundary);
+
+  const handle_attachment_chip = () => {
+    apply_chip_query(toggle_operator(query, "has", "attachment"));
+  };
+
+  const handle_week_chip = () => {
+    const without_dates = strip_operators(
+      query,
+      (operator) =>
+        !operator.negated &&
+        (operator.type === "after" ||
+          operator.type === "before" ||
+          operator.type === "date"),
+    );
+
+    apply_chip_query(
+      is_week_chip_active
+        ? without_dates
+        : add_operator_to_query(without_dates, "after", week_boundary),
+    );
+  };
+
+  const handle_from_chip = () => {
+    if (!ends_with_bare_operator(query)) {
+      const trimmed = query.trim();
+
+      set_query(trimmed ? `${trimmed} from:` : "from:");
+    }
+    if (debounce_ref.current) clearTimeout(debounce_ref.current);
     input_ref.current?.focus();
   };
 
@@ -576,23 +620,20 @@ export function SearchBar({
             <div className="search_divider_b px-4 py-2 flex flex-wrap items-center gap-2">
               <Chip
                 icon={<PaperClipIcon className="w-3.5 h-3.5" />}
+                is_active={is_attachment_chip_active}
                 label={t("mail.has_attachments")}
-                on_click={() => handle_chip("has:attachment")}
+                on_click={handle_attachment_chip}
               />
               <Chip
                 icon={<CalendarIcon className="w-3.5 h-3.5" />}
+                is_active={is_week_chip_active}
                 label={t("mail.search_within_1_week")}
-                on_click={() => {
-                  const d = new Date();
-
-                  d.setDate(d.getDate() - 7);
-                  handle_chip(`after:${local_date_key(d)}`);
-                }}
+                on_click={handle_week_chip}
               />
               <Chip
                 icon={<UserIcon className="w-3.5 h-3.5" />}
                 label={t("common.from_label")}
-                on_click={() => handle_chip("from:")}
+                on_click={handle_from_chip}
               />
               <button
                 className="search_ghost_btn ms-auto -me-2.5 inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-xs"
@@ -817,18 +858,33 @@ const PreviewRow = memo(function PreviewRow({
   );
 });
 
+function week_ago_key(): string {
+  const boundary = new Date();
+
+  boundary.setDate(boundary.getDate() - 7);
+
+  return local_date_key(boundary);
+}
+
 function Chip({
   icon,
   label,
+  is_active,
   on_click,
 }: {
   icon: React.ReactNode;
   label: string;
+  is_active?: boolean;
   on_click: () => void;
 }) {
   return (
     <button
-      className="search_pill inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-xs"
+      aria-pressed={is_active === undefined ? undefined : is_active}
+      className={`inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-xs ${
+        is_active
+          ? "bg-[var(--accent-blue)] text-[var(--accent-fg,#ffffff)]"
+          : "search_pill"
+      }`}
       type="button"
       onClick={on_click}
     >

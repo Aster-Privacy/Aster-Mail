@@ -8849,6 +8849,10 @@ export const tr = {
     from_date: "Başlangıç tarihi",
     to_date: "Bitiş tarihi",
     no_results_found: "Sonuç bulunamadı",
+    search_filters_active:
+      "Filtreler etkin. Daha fazla sonuç görmek için filtreleri temizleyin.",
+    clear_filters: "Filtreleri temizle",
+    chip_date_range: "{{ from }} - {{ to }}",
     view_all_results: "“{{query}}” için tüm sonuçları görüntüle",
     folders: "Klasörler",
     showing_results: "{{total}} sonuçtan {{shown}} tanesi gösteriliyor",

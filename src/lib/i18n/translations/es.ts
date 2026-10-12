@@ -8954,6 +8954,10 @@ export const es = {
     from_date: "Desde fecha",
     to_date: "Hasta fecha",
     no_results_found: "No se encontraron resultados",
+    search_filters_active:
+      "Hay filtros activos. Bórralos para ver más resultados.",
+    clear_filters: "Borrar filtros",
+    chip_date_range: "{{ from }} a {{ to }}",
     view_all_results: "Ver todos los resultados para “{{query}}”",
     folders: "Carpetas",
     showing_results: "Mostrando {{shown}} de {{total}} resultados",

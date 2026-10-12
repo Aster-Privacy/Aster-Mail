@@ -63,10 +63,6 @@ export function extract_snippet(preview: string, terms: string[]): string {
 export type SortOption = "relevant" | "recent";
 
 export interface SearchFiltersState {
-  date_range: "any" | "today" | "week" | "month";
-  has_attachment: boolean | null;
-  exclude_social: boolean;
-  read_status: "any" | "read" | "unread";
   sort_by: SortOption;
 }
 
