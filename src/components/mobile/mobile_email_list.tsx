@@ -58,6 +58,7 @@ import {
   full_list_window,
   MOBILE_WINDOW_MIN_ROWS,
   type MobileListWindow,
+  viewport_fill_wanted,
 } from "@/components/mobile/list_window";
 
 interface MobileEmailListProps {
@@ -68,6 +69,8 @@ interface MobileEmailListProps {
   has_initial_load?: boolean;
   has_more?: boolean;
   has_load_error?: boolean;
+  list_filtered?: boolean;
+  fill_reset_key?: string;
   current_view: string;
   on_email_press: (id: string) => void;
   on_long_press: (id: string) => void;
@@ -184,10 +187,6 @@ function get_empty_text(
 
 const list_scroll_positions = new Map<string, number>();
 
-const VIEWPORT_FILL_SLACK_PX = 24;
-
-const VIEWPORT_FILL_MAX_ATTEMPTS = 5;
-
 export const MobileEmailList = memo(function MobileEmailList({
   emails,
   pinned_emails,
@@ -196,6 +195,8 @@ export const MobileEmailList = memo(function MobileEmailList({
   has_initial_load = true,
   has_more,
   has_load_error,
+  list_filtered = false,
+  fill_reset_key = "",
   current_view,
   on_email_press,
   on_long_press,
@@ -389,7 +390,7 @@ export const MobileEmailList = memo(function MobileEmailList({
   useEffect(() => {
     fill_attempts_ref.current = 0;
     fill_baseline_ref.current = -1;
-  }, [current_view]);
+  }, [current_view, fill_reset_key]);
 
   useEffect(() => {
     if (!has_more || is_loading || is_loading_more || !has_initial_load) return;
@@ -403,10 +404,16 @@ export const MobileEmailList = memo(function MobileEmailList({
       fill_attempts_ref.current = 0;
     }
 
-    if (fill_attempts_ref.current >= VIEWPORT_FILL_MAX_ATTEMPTS) return;
-
     const frame = requestAnimationFrame(() => {
-      if (el.scrollHeight <= el.clientHeight + VIEWPORT_FILL_SLACK_PX) {
+      if (
+        viewport_fill_wanted({
+          scroll_top: el.scrollTop,
+          scroll_height: el.scrollHeight,
+          client_height: el.clientHeight,
+          list_filtered,
+          attempts: fill_attempts_ref.current,
+        })
+      ) {
         fill_attempts_ref.current += 1;
         on_load_more();
       }
@@ -420,6 +427,8 @@ export const MobileEmailList = memo(function MobileEmailList({
     has_initial_load,
     on_load_more,
     current_view,
+    list_filtered,
+    fill_reset_key,
     emails.length,
     pinned_emails?.length,
   ]);

@@ -21,6 +21,35 @@
 export const MOBILE_WINDOW_MIN_ROWS = 200;
 export const MOBILE_WINDOW_OVERSCAN_PX = 1200;
 export const MOBILE_ROW_ESTIMATE_PX = 76;
+export const VIEWPORT_FILL_SLACK_PX = 24;
+export const VIEWPORT_FILL_MAX_ATTEMPTS = 5;
+export const VIEWPORT_FILL_FILTERED_MAX_ATTEMPTS = 20;
+export const VIEWPORT_FILL_NEAR_END_RATIO = 0.8;
+
+export interface ViewportFillInput {
+  scroll_top: number;
+  scroll_height: number;
+  client_height: number;
+  list_filtered: boolean;
+  attempts: number;
+}
+
+export function viewport_fill_wanted(input: ViewportFillInput): boolean {
+  const max_attempts = input.list_filtered
+    ? VIEWPORT_FILL_FILTERED_MAX_ATTEMPTS
+    : VIEWPORT_FILL_MAX_ATTEMPTS;
+
+  if (input.attempts >= max_attempts) return false;
+  if (input.scroll_height <= input.client_height + VIEWPORT_FILL_SLACK_PX) {
+    return true;
+  }
+  if (!input.list_filtered || input.scroll_height <= 0) return false;
+
+  return (
+    (input.scroll_top + input.client_height) / input.scroll_height >
+    VIEWPORT_FILL_NEAR_END_RATIO
+  );
+}
 
 export interface MobileListWindow {
   start: number;

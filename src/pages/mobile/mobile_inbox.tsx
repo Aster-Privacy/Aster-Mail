@@ -1301,6 +1301,8 @@ function MobileInbox({
             key={`${current_view}:${categories.enabled ? `${categories.active_category}:${category_page}` : "all"}`}
             current_view={current_view}
             emails={enriched_unpinned}
+            fill_reset_key={active_filter}
+            list_filtered={active_filter !== "all" && !is_drafts_view}
             has_initial_load={
               is_drafts_view
                 ? !drafts_state.is_loading

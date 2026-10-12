@@ -136,6 +136,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
     empty_state_visible,
     skeleton_visible,
     effective_total_for_pages,
+    pager_total,
     header_display_count,
     total_pages,
     selection,
@@ -230,16 +231,27 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
           folder_name={locked_folder.name}
         />
       ) : empty_state_visible ? (
-        categories.enabled && !email_state.has_load_error ? (
-          <CategoryEmptyState category={categories.active_category} />
-        ) : (
-          <EmptyState
-            current_view={current_view}
-            has_load_error={email_state.has_load_error}
-            on_retry={refresh_current_view}
-            user_email={user?.email}
-          />
-        )
+        <div className="flex flex-col h-full">
+          <div className="flex-1 min-h-0">
+            {categories.enabled && !email_state.has_load_error ? (
+              <CategoryEmptyState category={categories.active_category} />
+            ) : (
+              <EmptyState
+                current_view={current_view}
+                has_load_error={email_state.has_load_error}
+                on_retry={refresh_current_view}
+                user_email={user?.email}
+              />
+            )}
+          </div>
+          {active_filter !== "all" && total_pages > 1 && (
+            <BottomPagination
+              current_page={current_page}
+              on_page_change={handle_page_change}
+              total_pages={total_pages}
+            />
+          )}
+        </div>
       ) : (
         <div className="relative min-h-full -mt-px border-t border-edge-secondary">
           <div>
@@ -325,7 +337,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
             current_page={current_page}
             display_count={header_display_count}
             excluded_count={selection.excluded_ids.length}
-            filtered_count={effective_total_for_pages}
+            filtered_count={pager_total}
             folders={order_folders_as_tree(folders_state.folders).map(
               ({ folder: f, depth }) => ({
                 folder_token: f.folder_token,
@@ -343,7 +355,9 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
             is_spam_view={current_view === "spam"}
             is_trash_view={current_view === "trash"}
             on_activate_select_all_mode={
-              scope_for_view ? selection.activate_select_all_mode : undefined
+              scope_for_view && active_filter === "all"
+                ? selection.activate_select_all_mode
+                : undefined
             }
             on_archive={handle_archive_wrapped}
             on_clear_selection={selection.handle_clear_selection}
