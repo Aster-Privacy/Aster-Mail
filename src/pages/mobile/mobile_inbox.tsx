@@ -356,6 +356,20 @@ function MobileInbox({
     return [...pinned, ...enriched_unpinned];
   }, [enriched_pinned, enriched_unpinned]);
 
+  useEffect(() => {
+    set_selected_ids((prev) => {
+      if (prev.size === 0) return prev;
+      const visible = new Set(all_visible_emails.map((email) => email.id));
+      const kept = new Set<string>();
+
+      for (const id of prev) {
+        if (visible.has(id)) kept.add(id);
+      }
+
+      return kept.size === prev.size ? prev : kept;
+    });
+  }, [all_visible_emails]);
+
   const folder_not_found = use_settled_not_found({
     kind: "folder",
     token: folder_token ?? null,
@@ -1322,6 +1336,8 @@ function MobileInbox({
             emails={enriched_unpinned}
             fill_reset_key={active_filter}
             list_filtered={active_filter !== "all" && !is_drafts_view}
+            filter_active={active_filter !== "all"}
+            on_clear_filter={() => set_active_filter("all")}
             has_initial_load={
               is_drafts_view
                 ? !drafts_state.is_loading

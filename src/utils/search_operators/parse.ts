@@ -24,6 +24,7 @@ import { is_valid_date_shortcut } from "./dates";
 import { parse_size_range, parse_size_value } from "./size";
 import {
   DATE_REGEX,
+  NOT_TERM_REGEX,
   OPERATOR_REGEX,
   ParsedOperator,
   ParsedSearchQuery,
@@ -31,52 +32,93 @@ import {
   TranslateFn,
 } from "./types";
 
-export function parse_search_query(query: string): ParsedSearchQuery {
-  const operators: ParsedOperator[] = [];
-  let remaining_query = query;
+export interface LocatedOperator {
+  operator: ParsedOperator;
+  start: number;
+  end: number;
+}
 
-  let match: RegExpExecArray | null;
+function is_calendar_date(value: string): boolean {
+  if (!DATE_REGEX.test(value)) return false;
+
+  const [year, month, day] = value.split("-").map(Number);
+  const picked = new Date(Date.UTC(year, month - 1, day));
+
+  return (
+    picked.getUTCFullYear() === year &&
+    picked.getUTCMonth() === month - 1 &&
+    picked.getUTCDate() === day
+  );
+}
+
+export function locate_operators(query: string): LocatedOperator[] {
+  const located: LocatedOperator[] = [];
   const regex = new RegExp(OPERATOR_REGEX.source, "gi");
+  let match: RegExpExecArray | null;
 
   while ((match = regex.exec(query)) !== null) {
-    const negation_prefix = match[1] === "-";
-    const operator_type = match[2].toLowerCase() as SearchOperatorType;
-    const raw_value = match[4] || match[5];
-    const value = raw_value.trim();
+    const lead = match[1] ?? "";
+    const dash = match[2] ?? "";
+    const keyword = match[3] ?? "";
+    const keyword_negates = keyword.startsWith("NOT");
+    const keyword_is_word = keyword.length > 0 && !keyword_negates;
+    const start = keyword_is_word
+      ? match.index + lead.length + dash.length + keyword.length
+      : match.index + lead.length;
+    const end = match.index + match[0].length;
+    const operator: ParsedOperator = {
+      type: match[4].toLowerCase() as SearchOperatorType,
+      value: (match[6] || match[7]).trim(),
+      raw: query.slice(start, end),
+      negated: keyword_is_word ? false : dash === "-" || keyword_negates,
+    };
 
-    operators.push({
-      type: operator_type,
-      value,
-      raw: match[0].trim(),
-      negated: negation_prefix,
-    });
+    if (!validate_operator(operator)) continue;
 
-    remaining_query = remaining_query.replace(match[0], " ");
+    located.push({ operator, start, end });
   }
 
-  const not_keyword_regex = /(?:^|\s)NOT\s+(\S+)/gi;
+  const not_regex = new RegExp(NOT_TERM_REGEX.source, "g");
 
-  const not_matches = Array.from(remaining_query.matchAll(not_keyword_regex));
+  while ((match = not_regex.exec(query)) !== null) {
+    const start = match.index + (match[1] ?? "").length;
+    const end = match.index + match[0].length;
+    const value = (match[3] || match[4]).replace(/"/g, "").trim();
 
-  for (const candidate of not_matches) {
-    const term = candidate[1].trim();
-
-    if (!term.includes(":")) {
-      operators.push({
-        type: "subject" as SearchOperatorType,
-        value: term,
-        raw: candidate[0].trim(),
-        negated: true,
-      });
-      remaining_query = remaining_query.replace(candidate[0], " ");
+    if (!value) continue;
+    if (located.some((entry) => start < entry.end && entry.start < end)) {
+      continue;
     }
+
+    located.push({
+      operator: {
+        type: "text",
+        value,
+        raw: query.slice(start, end),
+        negated: true,
+      },
+      start,
+      end,
+    });
   }
 
-  const text_query = remaining_query.replace(/\s+/g, " ").trim();
+  return located.sort((a, b) => a.start - b.start);
+}
+
+export function parse_search_query(query: string): ParsedSearchQuery {
+  const located = locate_operators(query);
+  const kept: string[] = [];
+  let position = 0;
+
+  for (const entry of located) {
+    kept.push(query.slice(position, entry.start));
+    position = entry.end;
+  }
+  kept.push(query.slice(position));
 
   return {
-    text_query,
-    operators,
+    text_query: kept.join(" ").replace(/\s+/g, " ").trim(),
+    operators: located.map((entry) => entry.operator),
   };
 }
 
@@ -91,6 +133,8 @@ export function validate_operator(operator: ParsedOperator): boolean {
     case "filename":
     case "attachment":
     case "id":
+    case "text":
+    case "in":
       return operator.value.length > 0;
 
     case "has":
@@ -111,30 +155,13 @@ export function validate_operator(operator: ParsedOperator): boolean {
         operator.value.toLowerCase(),
       );
 
-    case "in":
-      return [
-        "inbox",
-        "sent",
-        "trash",
-        "drafts",
-        "draft",
-        "spam",
-        "archive",
-        "archived",
-        "starred",
-        "scheduled",
-        "snoozed",
-        "all",
-        "anywhere",
-      ].includes(operator.value.toLowerCase());
-
     case "before":
     case "after":
-      return DATE_REGEX.test(operator.value);
+      return is_calendar_date(operator.value);
 
     case "date":
       return (
-        DATE_REGEX.test(operator.value) ||
+        is_calendar_date(operator.value) ||
         is_valid_date_shortcut(operator.value)
       );
 
@@ -143,10 +170,7 @@ export function validate_operator(operator: ParsedOperator): boolean {
       return parse_size_value(operator.value) !== null;
 
     case "size":
-      return (
-        parse_size_value(operator.value) !== null ||
-        parse_size_range(operator.value) !== null
-      );
+      return parse_size_range(operator.value) !== null;
 
     default:
       return false;

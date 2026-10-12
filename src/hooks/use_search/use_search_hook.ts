@@ -43,6 +43,7 @@ import {
   subscribe_index_refresh,
 } from "./progress";
 import { entry_haystack } from "./haystack";
+import { load_attachment_details } from "./attachment_details";
 import { scan_search_index } from "./scan";
 import {
   PROGRESS_FLUSH_MS,
@@ -68,7 +69,10 @@ import {
 
 import { user_facing_error } from "@/utils/user_facing_error";
 import { type MailItem } from "@/services/api/mail";
-import { meets_min_search_length } from "@/utils/search_query";
+import {
+  meets_min_search_length,
+  split_search_terms,
+} from "@/utils/search_query";
 import { parse_search_query } from "@/utils/search_operators";
 import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
@@ -114,6 +118,7 @@ export function use_search() {
 
   const abort_ref = useRef<AbortController | null>(null);
   const search_seq_ref = useRef(0);
+  const requested_query_ref = useRef("");
   const search_ref = useRef<
     (
       query: string,
@@ -186,6 +191,8 @@ export function use_search() {
     ) => {
       const my_seq = ++search_seq_ref.current;
 
+      requested_query_ref.current = query;
+
       if (preserve_limit_ref.current) {
         preserve_limit_ref.current = false;
       } else {
@@ -233,10 +240,7 @@ export function use_search() {
 
       try {
         const parsed = parse_search_query(query);
-        const terms = parsed.text_query
-          .split(/\s+/)
-          .filter(meets_min_search_length)
-          .map((t) => t.toLowerCase());
+        const terms = split_search_terms(parsed.text_query);
         const operators = parsed.operators;
 
         if (terms.length === 0 && operators.length === 0) {
@@ -297,6 +301,16 @@ export function use_search() {
                 new Date(a.timestamp).getTime(),
             );
 
+        const attachment_details = await load_attachment_details(
+          index,
+          terms,
+          operators,
+          options,
+          () => controller.signal.aborted,
+        );
+
+        if (controller.signal.aborted) return;
+
         const visit = (item: MailItem, data: DecryptedIndexEntry): boolean => {
           const { envelope, metadata, search_body_text } = data;
           const hay = entry_haystack(data);
@@ -313,6 +327,7 @@ export function use_search() {
               options?.search_body !== false,
               search_body_text,
               hay,
+              attachment_details,
             )
           ) {
             return true;
@@ -588,6 +603,7 @@ export function use_search() {
     abort_ref.current?.abort();
     abort_ref.current = null;
     search_seq_ref.current += 1;
+    requested_query_ref.current = "";
     set_state({
       query: "",
       results: [],
@@ -609,9 +625,13 @@ export function use_search() {
   }, []);
 
   const set_query = useCallback((query: string) => {
+    if (requested_query_ref.current !== query) {
+      requested_query_ref.current = query;
+      abort_ref.current?.abort();
+    }
+
     set_state((prev) => {
       if (prev.query === query) return prev;
-      abort_ref.current?.abort();
 
       const cleared = !meets_min_search_length(query);
 

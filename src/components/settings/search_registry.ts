@@ -21,10 +21,18 @@
 import type { TranslationKey } from "@/lib/i18n/types";
 import type { SettingsSection } from "@/components/settings/settings_content";
 
+export type SettingsSearchTarget =
+  | SettingsSection
+  | "allowlist"
+  | "auto_forward"
+  | "vacation_reply"
+  | "external_accounts"
+  | "export";
+
 export interface SearchEntry {
   label: string;
   label_key?: TranslationKey;
-  section: SettingsSection;
+  section: SettingsSearchTarget;
   breadcrumb: string;
   crumb_key?: TranslationKey;
   keywords?: string[];
@@ -458,17 +466,17 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
   {
     label: "Custom domain",
     label_key: "settings_search.custom_domain",
-    section: "aliases",
-    breadcrumb: "Aliases > Domains",
-    crumb_key: "settings_search.domains",
+    section: "domains",
+    breadcrumb: "Domains > Manage",
+    crumb_key: "settings_search.manage",
     keywords: ["add domain", "domain setup"],
   },
   {
     label: "Buy a domain",
     label_key: "settings.domain_purchase_banner_cta",
-    section: "aliases",
-    breadcrumb: "Aliases > Domains",
-    crumb_key: "settings_search.domains",
+    section: "domains",
+    breadcrumb: "Domains > Manage",
+    crumb_key: "settings_search.manage",
     keywords: [
       "purchase domain",
       "register domain",
@@ -479,17 +487,17 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
   {
     label: "Verify All Records",
     label_key: "settings.verify_all_records",
-    section: "aliases",
-    breadcrumb: "Aliases > Domains",
-    crumb_key: "settings_search.domains",
+    section: "domains",
+    breadcrumb: "Domains > Manage",
+    crumb_key: "settings_search.manage",
     keywords: ["domain verification", "verify domain", "dns setup"],
   },
   {
     label: "DNS records",
     label_key: "settings_search.dns_records",
-    section: "aliases",
-    breadcrumb: "Aliases > Domains",
-    crumb_key: "settings_search.domains",
+    section: "domains",
+    breadcrumb: "Domains > Manage",
+    crumb_key: "settings_search.manage",
     keywords: ["mx record", "dkim", "spf", "dmarc"],
   },
   {
@@ -828,7 +836,7 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
   {
     label: "Allowlist",
     label_key: "settings_search.allowlist",
-    section: "sender_filters",
+    section: "allowlist",
     breadcrumb: "Mail Management > Allowlist",
     crumb_key: "settings_search.allowlist",
     keywords: ["whitelist", "safe senders", "trusted senders"],
@@ -866,14 +874,6 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
     breadcrumb: "Mail Rules > Actions",
     crumb_key: "settings_search.actions",
     keywords: ["automatic archive"],
-  },
-  {
-    label: "Auto forward",
-    label_key: "settings_search.auto_forward",
-    section: "mail_rules",
-    breadcrumb: "Mail Rules > Actions",
-    crumb_key: "settings_search.actions",
-    keywords: ["automatic forward"],
   },
   {
     label: "Move to folder",
@@ -1557,7 +1557,7 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
   {
     label: "Vacation Reply",
     label_key: "settings_search.vacation_reply",
-    section: "sender_filters",
+    section: "vacation_reply",
     breadcrumb: "Mail Management > Vacation Reply",
     crumb_key: "settings_search.vacation_reply",
     keywords: [
@@ -1571,11 +1571,12 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
   {
     label: "Auto-Forward",
     label_key: "settings.auto_forward_tab_label",
-    section: "sender_filters",
-    breadcrumb: "Mail Management > Auto forward",
-    crumb_key: "settings_search.auto_forward",
+    section: "auto_forward",
+    breadcrumb: "Mail Management > Auto-Forward",
+    crumb_key: "settings.auto_forward_tab_label",
     keywords: [
       "forwarding",
+      "automatic forward",
       "email forwarding",
       "forward email",
       "forward all mail",
@@ -1585,7 +1586,7 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
   {
     label: "External Accounts",
     label_key: "settings_search.external_accounts",
-    section: "sender_filters",
+    section: "external_accounts",
     breadcrumb: "Mail Management > External Accounts",
     crumb_key: "settings_search.external_accounts",
     keywords: [
@@ -1598,7 +1599,7 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
   {
     label: "Export emails",
     label_key: "settings.export_title",
-    section: "sender_filters",
+    section: "export",
     breadcrumb: "Mail Management > Export",
     crumb_key: "settings_search.export",
     keywords: [
@@ -1708,9 +1709,9 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
   {
     label: "Catch-all",
     label_key: "settings.catch_all_label",
-    section: "aliases",
-    breadcrumb: "Aliases > Domains",
-    crumb_key: "settings_search.domains",
+    section: "domains",
+    breadcrumb: "Domains > Manage",
+    crumb_key: "settings_search.manage",
     keywords: [
       "catch-all email address",
       "catch all",

@@ -178,6 +178,12 @@ export async function fetch_onboarding_checklist(): Promise<ChecklistFetchResult
     );
 
     if (response.data && !response.error) {
+      const tasks: unknown = response.data.tasks;
+
+      if (typeof tasks !== "object" || tasks === null) {
+        return { kind: "transient" };
+      }
+
       return { kind: "ok", state: response.data };
     }
 

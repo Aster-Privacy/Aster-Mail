@@ -846,6 +846,9 @@ export default function IndexPage() {
             on_open_settings={(section) => {
               state.open_settings(section);
             }}
+            on_open_shortcuts={
+              is_mobile ? undefined : () => state.set_is_shortcuts_open(true)
+            }
             on_visibility_change={set_checklist_visible}
           />
           <RecoveryReminder />

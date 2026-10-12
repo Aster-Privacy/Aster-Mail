@@ -1776,10 +1776,19 @@ export const tr = {
     label_system_spam: "Önemsiz",
     label_system_archive: "Arşiv",
     onboarding_checklist_title: "Başlayın",
-    onboarding_checklist_dismiss: "Gizle",
     onboarding_checklist_install_app: "Uygulamayı yükleyin",
     onboarding_checklist_import_mail: "Eski postanızı içe aktarın",
     onboarding_checklist_recovery_method: "Kurtarma yöntemi ekleyin",
+    onboarding_checklist_domain_heading: "Özel alan adı kullanın",
+    onboarding_checklist_domain_badge: "İsteğe bağlı",
+    onboarding_checklist_domain_get: "Özel alan adı alın",
+    onboarding_checklist_domain_existing:
+      "Sahip olduğunuz alan adını kullanın",
+    onboarding_checklist_hide_forever: "Eğitim listesini kalıcı olarak gizle",
+    onboarding_checklist_shortcuts: "Klavye kısayolları",
+    onboarding_checklist_open: "Eğitim listesini göster",
+    onboarding_checklist_close: "Eğitim listesini kapat",
+    onboarding_checklist_task_done: "Tamamlandı",
     onboarding_checklist_first_email: "İlk e-postanızı gönderin",
     recovery_reminder_title: "Hesabınıza geri dönmenin bir yolunu ekleyin",
     recovery_reminder_body:
@@ -8445,6 +8454,8 @@ export const tr = {
     category_empty_transactions_title: "Alışveriş yok",
     category_empty_transactions_desc:
       "Mağaza ve hizmetlerden gelen siparişler, ödemeler ve makbuzlar burada görünür.",
+    filter_empty_title: "Bu filtreyle eşleşen ileti yok",
+    filter_empty_clear: "Filtreyi temizle",
     category_empty_custom_desc:
       "Bu kategorinin kurallarıyla eşleşen e-postalar burada görünecek.",
     block_sender_on_alias: "Göndereni rumuzda engelle",
@@ -8854,6 +8865,10 @@ export const tr = {
     from_date: "Başlangıç tarihi",
     to_date: "Bitiş tarihi",
     no_results_found: "Sonuç bulunamadı",
+    search_filters_active:
+      "Filtreler etkin. Daha fazla sonuç görmek için filtreleri temizleyin.",
+    clear_filters: "Filtreleri temizle",
+    chip_date_range: "{{ from }} - {{ to }}",
     view_all_results: "“{{query}}” için tüm sonuçları görüntüle",
     folders: "Klasörler",
     showing_results: "{{total}} sonuçtan {{shown}} tanesi gösteriliyor",

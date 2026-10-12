@@ -1679,7 +1679,15 @@ export const ru = {
     no_custom_fields_yet: "Пользовательские поля ещё не определены",
     not_now: "Не сейчас",
     on_separator: "в",
-    onboarding_checklist_dismiss: "Скрыть",
+    onboarding_checklist_domain_heading: "Используйте свой домен",
+    onboarding_checklist_domain_badge: "Необязательно",
+    onboarding_checklist_domain_get: "Купить свой домен",
+    onboarding_checklist_domain_existing: "Использовать уже имеющийся домен",
+    onboarding_checklist_hide_forever: "Скрыть список обучения навсегда",
+    onboarding_checklist_shortcuts: "Сочетания клавиш",
+    onboarding_checklist_open: "Показать список обучения",
+    onboarding_checklist_close: "Закрыть список обучения",
+    onboarding_checklist_task_done: "Выполнено",
     onboarding_checklist_first_email: "Отправьте первое письмо",
     recovery_reminder_title: "Добавьте способ вернуться в аккаунт",
     recovery_reminder_body:
@@ -8728,6 +8736,8 @@ export const ru = {
     category_empty_transactions_title: "Нет чеков",
     category_empty_transactions_desc:
       "Здесь появляются заказы, платежи и чеки от магазинов и сервисов.",
+    filter_empty_title: "Нет сообщений, соответствующих этому фильтру",
+    filter_empty_clear: "Сбросить фильтр",
     category_empty_custom_desc:
       "Здесь будут появляться письма, соответствующие правилам этой категории.",
     block_sender_on_alias: "Заблокировать отправителя на псевдониме",
@@ -9142,6 +9152,10 @@ export const ru = {
     from_date: "С даты",
     to_date: "По дату",
     no_results_found: "Результаты не найдены",
+    search_filters_active:
+      "Фильтры активны. Сбросьте их, чтобы увидеть больше результатов.",
+    clear_filters: "Сбросить фильтры",
+    chip_date_range: "С {{ from }} по {{ to }}",
     view_all_results: "Просмотреть все результаты для “{{query}}”",
     folders: "Папки",
     showing_results: "Показано {{shown}} из {{total}} результатов",

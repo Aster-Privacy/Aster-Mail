@@ -135,6 +135,25 @@ const SECTION_TAB_ALIASES: Record<
   developer: { section: "feedback", tab: "developer" },
 };
 
+export interface SettingsTabAvailability {
+  show_developer: boolean;
+  show_updates: boolean;
+  is_family_plan: boolean;
+  has_devices: boolean;
+}
+
+export function is_settings_tab_available(
+  tab: string | undefined,
+  availability: SettingsTabAvailability,
+): boolean {
+  if (tab === "developer") return availability.show_developer;
+  if (tab === "updates") return availability.show_updates;
+  if (tab === "family") return availability.is_family_plan;
+  if (tab === "trusted_devices") return availability.has_devices;
+
+  return true;
+}
+
 export const SETTINGS_TAB_EVENT = "astermail:settings-tab";
 
 let pending_settings_tab: string | null = null;

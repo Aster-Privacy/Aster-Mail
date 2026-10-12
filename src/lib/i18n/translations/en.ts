@@ -1715,10 +1715,18 @@ export const en: Translations = {
     label_system_spam: "Spam",
     label_system_archive: "Archive",
     onboarding_checklist_title: "Get started",
-    onboarding_checklist_dismiss: "Hide",
     onboarding_checklist_install_app: "Install the app",
     onboarding_checklist_import_mail: "Import your old mail",
     onboarding_checklist_recovery_method: "Add a recovery method",
+    onboarding_checklist_domain_heading: "Use a custom domain",
+    onboarding_checklist_domain_badge: "Optional",
+    onboarding_checklist_domain_get: "Get a custom domain",
+    onboarding_checklist_domain_existing: "Use a domain you own",
+    onboarding_checklist_hide_forever: "Permanently hide tutorial list",
+    onboarding_checklist_shortcuts: "Keyboard shortcuts",
+    onboarding_checklist_open: "Show tutorial list",
+    onboarding_checklist_close: "Close tutorial list",
+    onboarding_checklist_task_done: "Completed",
     onboarding_checklist_first_email: "Send your first email",
     recovery_reminder_title: "Add a way back into your account",
     recovery_reminder_body:
@@ -8693,6 +8701,8 @@ export const en: Translations = {
     category_empty_transactions_title: "No purchases",
     category_empty_transactions_desc:
       "Orders, payments, and receipts from stores and services appear here.",
+    filter_empty_title: "No messages match this filter",
+    filter_empty_clear: "Clear filter",
     category_empty_custom_desc:
       "Emails matching this category's rules will appear here.",
     report_spam: "Report spam",
@@ -8821,6 +8831,10 @@ export const en: Translations = {
     create_filter: "Create filter",
     search_placeholder_hint: "Search mail, contacts, and folders",
     no_results_found: "No results found",
+    search_filters_active:
+      "Filters are active. Clear them to see more results.",
+    clear_filters: "Clear filters",
+    chip_date_range: "{{ from }} to {{ to }}",
     try_adjusting_filters:
       "Try adjusting your filters or search for something else",
     no_emails_match_query: "No emails match \u201c{{query}}\u201d",

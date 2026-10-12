@@ -45,12 +45,14 @@ import {
   flatten_nav_items,
   get_nav_items,
   resolve_nav_target,
+  is_settings_tab_available,
   get_persisted_section,
   resolve_settings_section,
   set_persisted_section,
 } from "./settings_content_helpers";
 
 import { safe_local_set } from "@/lib/safe_storage";
+import { fold_search_text } from "@/utils/search_fold";
 import {
   consume_pending_settings_anchor,
   scroll_to_settings_anchor,
@@ -85,6 +87,7 @@ import {
 } from "@/services/api/family";
 import { ignore_error } from "@/lib/ignore_error";
 import { is_onion_host } from "@/lib/onion_host";
+import { is_desktop_runtime } from "@/services/updates/updater";
 
 export type { SettingsSection } from "./settings_content_helpers";
 
@@ -479,13 +482,13 @@ export function use_settings_content(props: SettingsContentProps) {
   const is_searching = search_query.trim().length > 0;
 
   const search_results = useMemo(() => {
-    const q = search_query.trim().toLowerCase();
+    const q = fold_search_text(search_query.trim());
 
     if (!q) return [] as NavItem[];
     const match = (item: NavItem) =>
-      item.label.toLowerCase().includes(q) ||
-      item.description.toLowerCase().includes(q) ||
-      item.keywords.some((kw) => kw.includes(q));
+      fold_search_text(item.label).includes(q) ||
+      fold_search_text(item.description).includes(q) ||
+      item.keywords.some((kw) => fold_search_text(kw).includes(q));
 
     return flatten_nav_items(nav_items).filter(match);
   }, [search_query, nav_items]);
@@ -493,7 +496,7 @@ export function use_settings_content(props: SettingsContentProps) {
   const { dynamic_entries } = use_search_registry();
 
   const registry_results = useMemo(() => {
-    const q = search_query.trim().toLowerCase();
+    const q = fold_search_text(search_query.trim());
 
     if (q.length < 2) return [];
     const flat_items = flatten_nav_items(nav_items);
@@ -521,16 +524,25 @@ export function use_settings_content(props: SettingsContentProps) {
       },
     );
     const seen = new Set<string>();
+    const tab_availability = {
+      show_developer: dev_mode_enabled,
+      show_updates: is_desktop_runtime(),
+      is_family_plan,
+      has_devices,
+    };
 
     return all
       .filter((entry) => {
         if (!visible_sections.has(entry.section)) return false;
+        if (!is_settings_tab_available(entry.tab, tab_availability)) {
+          return false;
+        }
         const matches =
-          entry.label.toLowerCase().includes(q) ||
-          entry.english_label.toLowerCase().includes(q) ||
-          entry.breadcrumb.toLowerCase().includes(q) ||
-          entry.english_breadcrumb.toLowerCase().includes(q) ||
-          entry.keywords?.some((kw) => kw.includes(q));
+          fold_search_text(entry.label).includes(q) ||
+          fold_search_text(entry.english_label).includes(q) ||
+          fold_search_text(entry.breadcrumb).includes(q) ||
+          fold_search_text(entry.english_breadcrumb).includes(q) ||
+          entry.keywords?.some((kw) => fold_search_text(kw).includes(q));
 
         if (!matches) return false;
         const key = `${entry.section}::${entry.label}`;
@@ -541,7 +553,15 @@ export function use_settings_content(props: SettingsContentProps) {
         return true;
       })
       .slice(0, 12);
-  }, [search_query, nav_items, dynamic_entries, t]);
+  }, [
+    search_query,
+    nav_items,
+    dynamic_entries,
+    t,
+    dev_mode_enabled,
+    is_family_plan,
+    has_devices,
+  ]);
 
   useEffect(() => {
     if (!scroll_target) return;

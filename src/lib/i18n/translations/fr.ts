@@ -1693,7 +1693,17 @@ export const fr = {
     no_matching_labels: "Aucune étiquette correspondante",
     not_now: "Pas maintenant",
     on_separator: "le",
-    onboarding_checklist_dismiss: "Ignorer",
+    onboarding_checklist_domain_heading: "Utiliser un domaine personnalisé",
+    onboarding_checklist_domain_badge: "Facultatif",
+    onboarding_checklist_domain_get: "Obtenir un domaine personnalisé",
+    onboarding_checklist_domain_existing:
+      "Utiliser un domaine que vous possédez",
+    onboarding_checklist_hide_forever:
+      "Masquer définitivement la liste des tutoriels",
+    onboarding_checklist_shortcuts: "Raccourcis clavier",
+    onboarding_checklist_open: "Afficher la liste des tutoriels",
+    onboarding_checklist_close: "Fermer la liste des tutoriels",
+    onboarding_checklist_task_done: "Terminé",
     onboarding_checklist_first_email: "Envoyer votre premier e-mail",
     recovery_reminder_title: "Ajoutez un moyen de récupérer votre compte",
     recovery_reminder_body:
@@ -8639,6 +8649,8 @@ export const fr = {
     category_empty_transactions_title: "Aucun reçu",
     category_empty_transactions_desc:
       "Les commandes, paiements et reçus des boutiques et des services apparaissent ici.",
+    filter_empty_title: "Aucun message ne correspond à ce filtre",
+    filter_empty_clear: "Effacer le filtre",
     category_empty_custom_desc:
       "Les e-mails correspondant aux règles de cette catégorie apparaîtront ici.",
     block_sender_on_alias: "Bloquer l'expéditeur sur l'alias",
@@ -9061,6 +9073,10 @@ export const fr = {
     from_date: "À partir de la date",
     to_date: "Jusqu'à la date",
     no_results_found: "Aucun résultat trouvé",
+    search_filters_active:
+      "Des filtres sont actifs. Effacez-les pour afficher plus de résultats.",
+    clear_filters: "Effacer les filtres",
+    chip_date_range: "Du {{ from }} au {{ to }}",
     view_all_results: "Voir tous les résultats pour “{{query}}”",
     folders: "Dossiers",
     showing_results: "Affichage de {{shown}} sur {{total}} résultats",

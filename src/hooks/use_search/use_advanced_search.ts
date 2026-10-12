@@ -30,8 +30,13 @@ import {
 import { use_search } from "./use_search_hook";
 
 import {
+  create_active_filters,
+  ends_with_bare_operator,
   parse_search_query,
   get_quick_filters,
+  remove_operator_at,
+  toggle_operator,
+  type SearchOperatorType,
 } from "@/utils/search_operators";
 import { app_locale } from "@/utils/date_format";
 import { use_i18n } from "@/lib/i18n/context";
@@ -89,11 +94,9 @@ export function use_advanced_search() {
     total_results: underlying.total_results,
     search_time_ms: underlying.search_time_ms,
     error: underlying.error,
-    active_filters: parsed.operators.map((op) => ({
-      id: `${op.type}-${op.value}`,
-      label: `${op.negated ? "-" : ""}${op.type}:${op.value}`,
-      removable: true,
-    })),
+    active_filters: create_active_filters(parsed.operators, t).map(
+      (filter, index) => ({ ...filter, id: String(index) }),
+    ),
     sort_option,
     search_scope,
     result_folders: new Map(),
@@ -103,6 +106,7 @@ export function use_advanced_search() {
 
   const search = useCallback(
     (query: string) => {
+      if (ends_with_bare_operator(query)) return;
       underlying_search(query, { fields: ["all"] });
     },
     [underlying_search],
@@ -111,38 +115,41 @@ export function use_advanced_search() {
   const apply_query = useCallback(
     (next: string) => {
       set_raw_query_state(next);
-      underlying_search(next, { fields: ["all"] });
-    },
-    [underlying_search],
-  );
+      if (next.trim().length === 0) {
+        underlying_clear();
 
-  const remove_token = (query: string, token: string): string =>
-    query
-      .split(/\s+/)
-      .filter((part) => part && part !== token)
-      .join(" ");
+        return;
+      }
+      search(next);
+    },
+    [search, underlying_clear],
+  );
 
   const remove_filter = useCallback(
     (id: string) => {
-      const target = state.active_filters.find((filter) => filter.id === id);
+      const index = Number(id);
 
-      if (!target) return;
+      if (!Number.isInteger(index) || index < 0) return;
+      if (index >= state.active_filters.length) return;
 
-      apply_query(remove_token(raw_query, target.label));
+      apply_query(remove_operator_at(raw_query, index));
     },
-    [state.active_filters, raw_query, apply_query],
+    [state.active_filters.length, raw_query, apply_query],
   );
 
   const add_quick_filter = useCallback(
     (operator: string) => {
-      const tokens = raw_query.split(/\s+/).filter(Boolean);
+      const separator = operator.indexOf(":");
 
-      if (tokens.includes(operator)) {
-        apply_query(remove_token(raw_query, operator));
+      if (separator <= 0) return;
 
-        return;
-      }
-      apply_query(raw_query ? `${raw_query} ${operator}` : operator);
+      apply_query(
+        toggle_operator(
+          raw_query,
+          operator.slice(0, separator) as SearchOperatorType,
+          operator.slice(separator + 1),
+        ),
+      );
     },
     [raw_query, apply_query],
   );

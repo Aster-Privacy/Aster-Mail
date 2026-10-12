@@ -89,6 +89,9 @@ const variant_classes = build_variant_classes();
 const MARKS_CLASS = `[${code_escape(MARK_FIRST)}-${code_escape(MARK_LAST)}]`;
 const MARKS_SOURCE = `${MARKS_CLASS}*`;
 const HAS_MARK = new RegExp(MARKS_CLASS);
+const HAS_FOLDABLE = new RegExp(
+  `[${code_escape(FOLD_START)}-${code_escape(FOLD_END - 1)}]`,
+);
 
 export function fold_search_text(value: string): string {
   const lower = value.toLowerCase();
@@ -149,6 +152,7 @@ export function includes_folded(text: string, folded_term: string): boolean {
   if (folded_term.length > MAX_PATTERN_TERM || text.length > MAX_PATTERN_TEXT) {
     return fold_search_text(text).includes(folded_term);
   }
+  if (!HAS_FOLDABLE.test(text)) return false;
 
   return folded_pattern(folded_term).test(text);
 }

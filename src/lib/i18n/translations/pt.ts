@@ -1643,7 +1643,16 @@ export const pt = {
     not_phishing: "Não é phishing",
     notes_section: "Notas",
     on_separator: "em",
-    onboarding_checklist_dismiss: "Ocultar",
+    onboarding_checklist_domain_heading: "Utilize um domínio personalizado",
+    onboarding_checklist_domain_badge: "Opcional",
+    onboarding_checklist_domain_get: "Obtenha um domínio personalizado",
+    onboarding_checklist_domain_existing: "Utilize um domínio que já tem",
+    onboarding_checklist_hide_forever:
+      "Ocultar a lista de tutoriais permanentemente",
+    onboarding_checklist_shortcuts: "Atalhos de teclado",
+    onboarding_checklist_open: "Mostrar a lista de tutoriais",
+    onboarding_checklist_close: "Fechar a lista de tutoriais",
+    onboarding_checklist_task_done: "Concluído",
     onboarding_checklist_first_email: "Envie o seu primeiro e-mail",
     recovery_reminder_title: "Adicione uma forma de voltar à sua conta",
     recovery_reminder_body:
@@ -8629,6 +8638,8 @@ export const pt = {
     category_empty_transactions_title: "Nenhuma compra",
     category_empty_transactions_desc:
       "Pedidos, pagamentos e recibos de lojas e serviços aparecem aqui.",
+    filter_empty_title: "Nenhuma mensagem corresponde a este filtro",
+    filter_empty_clear: "Limpar filtro",
     category_empty_custom_desc:
       "E-mails que correspondem às regras desta categoria aparecerão aqui.",
     block_sender_on_alias: "Bloquear remetente no alias",
@@ -9039,6 +9050,10 @@ export const pt = {
     from_date: "Da data",
     to_date: "Até à data",
     no_results_found: "Nenhum resultado encontrado",
+    search_filters_active:
+      "Existem filtros ativos. Limpe-os para ver mais resultados.",
+    clear_filters: "Limpar filtros",
+    chip_date_range: "{{ from }} a {{ to }}",
     view_all_results: "Ver todos os resultados para “{{query}}”",
     folders: "Pastas",
     showing_results: "A mostrar {{shown}} de {{total}} resultados",

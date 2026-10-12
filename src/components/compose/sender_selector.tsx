@@ -51,6 +51,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
 import { is_composing } from "@/utils/ime";
 import { format_number } from "@/lib/utils";
+import { fold_search_text } from "@/utils/search_fold";
 import { ButtonSpinner } from "@/components/ui/spinner";
 
 function SenderAliasIcon({
@@ -193,9 +194,11 @@ const GHOST_EXPIRY_OPTIONS = [7, 30, 90];
 const SEARCH_VISIBLE_THRESHOLD = 8;
 
 function option_matches_query(option: SenderOption, query: string): boolean {
-  if (option.email.toLowerCase().includes(query)) return true;
+  if (fold_search_text(option.email).includes(query)) return true;
 
-  return option.display_name?.toLowerCase().includes(query) ?? false;
+  return option.display_name
+    ? fold_search_text(option.display_name).includes(query)
+    : false;
 }
 
 function render_option(
@@ -467,7 +470,7 @@ export function SenderSelector({
     );
   }
 
-  const normalized_query = search_query.trim().toLowerCase();
+  const normalized_query = fold_search_text(search_query.trim());
   const filter_group = (group: SenderOption[]) =>
     normalized_query
       ? group.filter((o) => option_matches_query(o, normalized_query))

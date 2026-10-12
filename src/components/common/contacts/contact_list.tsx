@@ -878,7 +878,7 @@ export function ContactList({
                 )}
               </span>
               <p className="contact_empty_state_title">
-                {search_query.trim()
+                {search_query.trim() || filter_by !== "all"
                   ? t("common.no_results")
                   : tab === "frequent"
                     ? t("common.no_frequent_contacts")
@@ -889,12 +889,24 @@ export function ContactList({
               <p className="contact_empty_state_text">
                 {search_query.trim()
                   ? t("settings.try_different_search")
-                  : tab === "frequent"
+                  : filter_by !== "all"
+                    ? t("mail.search_filters_active")
+                    : tab === "frequent"
                     ? t("common.frequent_contacts_hint")
                     : tab === "other"
                       ? t("common.other_contacts_hint")
                       : t("settings.try_different_search")}
               </p>
+              {filter_by !== "all" && (
+                <PillButton
+                  className="contact_empty_state_action"
+                  size="sm"
+                  variant="filled"
+                  onClick={() => set_filter_by("all")}
+                >
+                  {t("mail.filter_empty_clear")}
+                </PillButton>
+              )}
             </div>
           ) : (
             visible_contacts.map((contact) => {

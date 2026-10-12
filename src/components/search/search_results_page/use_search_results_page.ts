@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { InboxEmail } from "@/types/email";
+import type { InboxEmail, InboxFilterType } from "@/types/email";
 import type { MailItem } from "@/services/api/mail";
 
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
@@ -29,8 +29,9 @@ import {
   SearchResultsPageProps,
 } from "./helpers";
 import { group_search_results, expand_thread_ids } from "./thread_grouping";
+import { apply_header_filter, header_filter_for_query } from "./header_filter";
 
-import { zoned_start_of_day } from "@/utils/date_format";
+import { count_filter_operators } from "@/utils/search_operators";
 import { list_mail_items } from "@/services/api/mail";
 import { decrypt_mail_metadata } from "@/services/crypto/mail_metadata";
 import { use_email_actions } from "@/hooks/use_email_actions";
@@ -48,7 +49,13 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { on_user_opened_mail } from "@/services/user_opened_mail";
 
 export function use_search_results_page(props: SearchResultsPageProps) {
-  const { query, on_result_click, split_email_id, on_split_close } = props;
+  const {
+    query,
+    on_result_click,
+    on_search_submit,
+    split_email_id,
+    on_split_close,
+  } = props;
 
   const { t } = use_i18n();
   const { preferences, update_preference } = use_preferences();
@@ -73,10 +80,6 @@ export function use_search_results_page(props: SearchResultsPageProps) {
   const conversation_grouping = preferences.conversation_grouping !== false;
 
   const [filters, set_filters] = useState<SearchFiltersState>({
-    date_range: "any",
-    has_attachment: null,
-    exclude_social: false,
-    read_status: "any",
     sort_by: "relevant",
   });
 
@@ -100,62 +103,19 @@ export function use_search_results_page(props: SearchResultsPageProps) {
 
   const perform_search = useCallback(
     (search_query: string) => {
-      const search_filters: Record<string, unknown> = {};
-
-      if (filters.date_range !== "any") {
-        const now = new Date();
-
-        if (filters.date_range === "today") {
-          search_filters.date_from = zoned_start_of_day(now).toISOString();
-        } else if (filters.date_range === "week") {
-          const week_ago = new Date(now);
-
-          week_ago.setDate(week_ago.getDate() - 7);
-          search_filters.date_from = week_ago.toISOString();
-        } else if (filters.date_range === "month") {
-          const month_ago = new Date(now);
-          const target_day = month_ago.getDate();
-
-          month_ago.setDate(1);
-          month_ago.setMonth(month_ago.getMonth() - 1);
-          month_ago.setDate(
-            Math.min(
-              target_day,
-              new Date(
-                month_ago.getFullYear(),
-                month_ago.getMonth() + 1,
-                0,
-              ).getDate(),
-            ),
-          );
-          search_filters.date_from = month_ago.toISOString();
-        }
-      }
-
-      if (filters.has_attachment !== null) {
-        search_filters.has_attachments = filters.has_attachment;
-      }
-
       search(search_query, {
         fields: ["all"],
         search_body: content_search_enabled,
-        filters:
-          Object.keys(search_filters).length > 0
-            ? (search_filters as {
-                has_attachments?: boolean;
-                date_from?: string;
-              })
-            : undefined,
       });
     },
-    [search, filters, content_search_enabled],
+    [search, content_search_enabled],
   );
 
   useEffect(() => {
     if (query) {
       perform_search(query);
     }
-  }, [filters.date_range, filters.has_attachment, content_search_enabled]);
+  }, [content_search_enabled]);
 
   const handle_enable_content_search = useCallback(() => {
     update_preference("search_encrypted_content", true, true);
@@ -183,40 +143,7 @@ export function use_search_results_page(props: SearchResultsPageProps) {
   const search_terms = useMemo(() => extract_query_terms(query), [query]);
 
   const filtered_results = useMemo(() => {
-    let results = filter_locked_folder_emails([...state.results]);
-
-    if (filters.read_status === "read") {
-      results = results.filter((r) => r.is_read);
-    } else if (filters.read_status === "unread") {
-      results = results.filter((r) => !r.is_read);
-    }
-
-    if (filters.exclude_social) {
-      const social_patterns = [
-        "facebook",
-        "twitter",
-        "linkedin",
-        "instagram",
-        "tiktok",
-        "youtube",
-        "pinterest",
-        "snapchat",
-        "reddit",
-        "discord",
-        "slack",
-        "teams",
-        "zoom",
-        "notification",
-        "noreply",
-        "no-reply",
-      ];
-
-      results = results.filter((r) => {
-        const sender_lower = r.sender_email.toLowerCase();
-
-        return !social_patterns.some((p) => sender_lower.includes(p));
-      });
-    }
+    const results = filter_locked_folder_emails([...state.results]);
 
     if (filters.sort_by === "recent") {
       results.sort((a, b) => {
@@ -265,8 +192,6 @@ export function use_search_results_page(props: SearchResultsPageProps) {
     }));
   }, [
     state.results,
-    filters.read_status,
-    filters.exclude_social,
     filters.sort_by,
     selected_ids,
     search_terms,
@@ -646,16 +571,10 @@ export function use_search_results_page(props: SearchResultsPageProps) {
     [],
   );
 
-  const active_filter_count = useMemo(() => {
-    let count = 0;
-
-    if (filters.date_range !== "any") count++;
-    if (filters.has_attachment !== null) count++;
-    if (filters.exclude_social) count++;
-    if (filters.read_status !== "any") count++;
-
-    return count;
-  }, [filters]);
+  const active_filter_count = useMemo(
+    () => count_filter_operators(query),
+    [query],
+  );
 
   const is_loading =
     state.is_loading || state.is_searching || !has_searched.current;
@@ -683,24 +602,16 @@ export function use_search_results_page(props: SearchResultsPageProps) {
   const selection_some_selected =
     selected_ids.size > 0 && !selection_all_selected;
 
-  const active_inbox_filter: import("@/types/email").InboxFilterType =
-    filters.has_attachment
-      ? "attachments"
-      : filters.read_status === "read"
-        ? "read"
-        : filters.read_status === "unread"
-          ? "unread"
-          : "all";
+  const active_inbox_filter = useMemo(
+    () => header_filter_for_query(query),
+    [query],
+  );
 
   const handle_inbox_filter_change = useCallback(
-    (f: import("@/types/email").InboxFilterType) => {
-      set_filters((prev) => ({
-        ...prev,
-        read_status: f === "read" ? "read" : f === "unread" ? "unread" : "any",
-        has_attachment: f === "attachments" ? true : null,
-      }));
+    (f: InboxFilterType) => {
+      on_search_submit?.(apply_header_filter(query, f));
     },
-    [],
+    [on_search_submit, query],
   );
 
   const search_nav_index = useMemo(() => {

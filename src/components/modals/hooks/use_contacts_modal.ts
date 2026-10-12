@@ -40,6 +40,7 @@ import { emit_contacts_changed } from "@/hooks/mail_events";
 import { is_typing } from "@/hooks/use_keyboard_shortcuts";
 import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
+import { contact_matches_query } from "@/utils/contact_search";
 import { use_shift_key_ref } from "@/lib/use_shift_range_select";
 import { is_contact_trashed } from "@/lib/contact_trash";
 import { reconcile_entry_fields } from "@/components/common/hooks/contacts_state_helpers";
@@ -102,20 +103,9 @@ export function use_contacts_modal({
     }
 
     if (search_query.trim()) {
-      const query = search_query.toLowerCase();
-
-      result = result.filter((contact) => {
-        const full_name =
-          `${contact.first_name} ${contact.last_name}`.toLowerCase();
-        const emails = contact.emails.join(" ").toLowerCase();
-        const company = (contact.company || "").toLowerCase();
-
-        return (
-          full_name.includes(query) ||
-          emails.includes(query) ||
-          company.includes(query)
-        );
-      });
+      result = result.filter((contact) =>
+        contact_matches_query(contact, search_query),
+      );
     }
 
     result.sort((a, b) => {

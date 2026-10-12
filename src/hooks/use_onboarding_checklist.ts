@@ -44,6 +44,7 @@ const POLL_INTERVAL_MS = 20_000;
 interface UseOnboardingChecklistReturn {
   state: ChecklistState | null;
   is_loading: boolean;
+  account_id: string | null;
   dismiss: () => Promise<void>;
   refresh: () => Promise<void>;
   mark_install_app_done: () => void;
@@ -68,18 +69,20 @@ function apply_local_overrides(raw: ChecklistState): ChecklistState {
 }
 
 export function use_onboarding_checklist(): UseOnboardingChecklistReturn {
-  const { vault } = use_auth();
+  const { vault, user } = use_auth();
+  const account_id = user?.id ?? null;
   const [state, set_state] = useState<ChecklistState | null>(null);
   const [is_loading, set_is_loading] = useState(true);
-  const cancelled_ref = useRef(false);
+  const generation_ref = useRef(0);
   const disabled_ref = useRef(false);
   const dismissed_ref = useRef(false);
 
   const load = useCallback(async (): Promise<boolean> => {
     if (disabled_ref.current) return false;
+    const generation = generation_ref.current;
     const result = await fetch_onboarding_checklist();
 
-    if (cancelled_ref.current) return false;
+    if (generation !== generation_ref.current) return false;
     if (result.kind === "not_available") {
       disabled_ref.current = true;
       set_state(null);
@@ -99,17 +102,23 @@ export function use_onboarding_checklist(): UseOnboardingChecklistReturn {
   }, []);
 
   useEffect(() => {
-    cancelled_ref.current = false;
+    generation_ref.current += 1;
     disabled_ref.current = false;
     dismissed_ref.current = false;
+
+    const generation = generation_ref.current;
+
+    set_state(null);
 
     if (!vault) {
       set_is_loading(false);
 
       return () => {
-        cancelled_ref.current = true;
+        generation_ref.current += 1;
       };
     }
+
+    set_is_loading(true);
 
     let interval: number | undefined;
     let on_focus: (() => void) | undefined;
@@ -117,7 +126,7 @@ export function use_onboarding_checklist(): UseOnboardingChecklistReturn {
     (async () => {
       const ok = await load();
 
-      if (cancelled_ref.current) return;
+      if (generation !== generation_ref.current) return;
       set_is_loading(false);
       if (!ok) return;
 
@@ -136,14 +145,15 @@ export function use_onboarding_checklist(): UseOnboardingChecklistReturn {
     })();
 
     return () => {
-      cancelled_ref.current = true;
+      generation_ref.current += 1;
       if (on_focus) window.removeEventListener("focus", on_focus);
       if (interval !== undefined) window.clearInterval(interval);
     };
-  }, [vault, load]);
+  }, [vault, account_id, load]);
 
   const dismiss = useCallback(async () => {
     const was_dismissed = dismissed_ref.current;
+    const generation = generation_ref.current;
 
     dismissed_ref.current = true;
     set_state((prev) =>
@@ -152,7 +162,7 @@ export function use_onboarding_checklist(): UseOnboardingChecklistReturn {
 
     const ok = await dismiss_onboarding_checklist();
 
-    if (ok || cancelled_ref.current) return;
+    if (ok || generation !== generation_ref.current) return;
     dismissed_ref.current = was_dismissed;
     set_state((prev) => (prev ? { ...prev, dismissed_at: null } : prev));
   }, []);
@@ -172,5 +182,12 @@ export function use_onboarding_checklist(): UseOnboardingChecklistReturn {
     );
   }, []);
 
-  return { state, is_loading, dismiss, refresh, mark_install_app_done };
+  return {
+    state,
+    is_loading,
+    account_id,
+    dismiss,
+    refresh,
+    mark_install_app_done,
+  };
 }

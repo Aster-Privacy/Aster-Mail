@@ -21,7 +21,9 @@
 
 import { TextHighlight } from "./types";
 
-import { meets_min_search_length } from "@/utils/search_query";
+import { parse_search_query } from "@/utils/search_operators";
+import { split_search_terms } from "@/utils/search_query";
+
 export function compute_highlight_ranges(
   text: string,
   terms: string[],
@@ -83,9 +85,5 @@ export function apply_highlights(
 }
 
 export function extract_query_terms(query: string): string[] {
-  return query
-    .replace(/\S+:\S*/g, "")
-    .trim()
-    .split(/\s+/)
-    .filter(meets_min_search_length);
+  return split_search_terms(parse_search_query(query).text_query);
 }

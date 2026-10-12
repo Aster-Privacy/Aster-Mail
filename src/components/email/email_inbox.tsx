@@ -35,6 +35,7 @@ import {
   is_alias_view,
 } from "@/hooks/email_list_helpers/alias_view";
 import { CategoryEmptyState } from "@/components/email/inbox/category_empty_state";
+import { FilterEmptyState } from "@/components/email/inbox/filter_empty_state";
 import { ErrorBoundary } from "@/components/ui/error_boundary";
 import { SplitEmailViewer } from "@/components/email/split_email_viewer";
 import { SplitScheduledViewer } from "@/components/scheduled/split_scheduled_viewer";
@@ -233,7 +234,11 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
       ) : empty_state_visible ? (
         <div className="flex flex-col h-full">
           <div className="flex-1 min-h-0">
-            {categories.enabled && !email_state.has_load_error ? (
+            {active_filter !== "all" && !email_state.has_load_error ? (
+              <FilterEmptyState
+                on_clear={() => handle_filter_change("all")}
+              />
+            ) : categories.enabled && !email_state.has_load_error ? (
               <CategoryEmptyState category={categories.active_category} />
             ) : (
               <EmptyState

@@ -158,13 +158,6 @@ export function operators_to_filters(
         if (range) {
           filters.size_min = range.min;
           filters.size_max = range.max;
-        } else {
-          const size = parse_size_value(op.value);
-
-          if (size !== null) {
-            filters.size_min = size;
-            filters.size_max = size;
-          }
         }
         break;
       }
@@ -213,7 +206,7 @@ export function create_active_filters(
 ): ActiveFilter[] {
   return operators.map((op, index) => {
     let label = "";
-    const negation_prefix = op.negated
+    const not_prefix = op.negated
       ? t
         ? t("mail.filter_not_prefix")
         : "Not "
@@ -221,30 +214,24 @@ export function create_active_filters(
 
     switch (op.type) {
       case "from":
-        label =
-          negation_prefix +
-          (t
-            ? t("mail.filter_from", { value: op.value })
-            : `From: ${op.value}`);
+        label = t
+          ? t("mail.filter_from", { value: op.value })
+          : `From: ${op.value}`;
         break;
       case "to":
-        label =
-          negation_prefix +
-          (t ? t("mail.filter_to", { value: op.value }) : `To: ${op.value}`);
+        label = t
+          ? t("mail.filter_to", { value: op.value })
+          : `To: ${op.value}`;
         break;
       case "contact":
-        label =
-          negation_prefix +
-          (t
-            ? t("mail.filter_contact", { value: op.value })
-            : `Contact: ${op.value}`);
+        label = t
+          ? t("mail.filter_contact", { value: op.value })
+          : `Contact: ${op.value}`;
         break;
       case "subject":
-        label =
-          negation_prefix +
-          (t
-            ? t("mail.filter_subject", { value: op.value })
-            : `Subject: ${op.value}`);
+        label = t
+          ? t("mail.filter_subject", { value: op.value })
+          : `Subject: ${op.value}`;
         break;
       case "has": {
         const has_value = op.value.toLowerCase();
@@ -367,9 +354,14 @@ export function create_active_filters(
           ? t("mail.filter_size", { value: op.value })
           : `Size: ${op.value}`;
         break;
+      case "text":
+        label = `“${op.value}”`;
+        break;
       default:
         label = `${op.type}: ${op.value}`;
     }
+
+    if (op.type !== "has") label = not_prefix + label;
 
     return {
       id: `${op.type}-${index}-${op.value}${op.negated ? "-neg" : ""}`,

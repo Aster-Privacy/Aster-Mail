@@ -1603,7 +1603,15 @@ export const de = {
     no_custom_fields_yet: "Noch keine benutzerdefinierten Felder definiert",
     not_now: "Nicht jetzt",
     on_separator: "am",
-    onboarding_checklist_dismiss: "Ausblenden",
+    onboarding_checklist_domain_heading: "Eigene Domain verwenden",
+    onboarding_checklist_domain_badge: "Optional",
+    onboarding_checklist_domain_get: "Eigene Domain kaufen",
+    onboarding_checklist_domain_existing: "Vorhandene Domain verwenden",
+    onboarding_checklist_hide_forever: "Anleitungsliste dauerhaft ausblenden",
+    onboarding_checklist_shortcuts: "Tastaturkurzbefehle",
+    onboarding_checklist_open: "Anleitungsliste anzeigen",
+    onboarding_checklist_close: "Anleitungsliste schließen",
+    onboarding_checklist_task_done: "Erledigt",
     onboarding_checklist_first_email: "Erste E-Mail senden",
     recovery_reminder_title: "Richten Sie einen Weg zurück in Ihr Konto ein",
     recovery_reminder_body:
@@ -8625,6 +8633,8 @@ export const de = {
     category_empty_transactions_title: "Keine Einkäufe",
     category_empty_transactions_desc:
       "Bestellungen, Zahlungen und Belege von Shops und Diensten erscheinen hier.",
+    filter_empty_title: "Keine Nachrichten entsprechen diesem Filter",
+    filter_empty_clear: "Filter löschen",
     category_empty_custom_desc:
       "E-Mails, die den Regeln dieser Kategorie entsprechen, erscheinen hier.",
     block_sender_on_alias: "Absender für Alias blockieren",
@@ -9040,6 +9050,10 @@ export const de = {
     from_date: "Ab Datum",
     to_date: "Bis Datum",
     no_results_found: "Keine Ergebnisse gefunden",
+    search_filters_active:
+      "Filter sind aktiv. Entfernen Sie sie, um mehr Ergebnisse zu sehen.",
+    clear_filters: "Filter entfernen",
+    chip_date_range: "{{ from }} bis {{ to }}",
     view_all_results: "Alle Ergebnisse für “{{query}}” anzeigen",
     folders: "Ordner",
     showing_results: "{{shown}} von {{total}} Ergebnissen angezeigt",
