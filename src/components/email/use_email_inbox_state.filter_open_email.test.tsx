@@ -83,7 +83,16 @@ const harness: {
   email_state: EmailState | null;
   set_emails: Dispatch<SetStateAction<InboxEmail[]>> | null;
   state: InboxState | null;
-} = { initial_emails: [], email_state: null, set_emails: null, state: null };
+  server_total: number | null;
+  has_more: boolean;
+} = {
+  initial_emails: [],
+  email_state: null,
+  set_emails: null,
+  state: null,
+  server_total: null,
+  has_more: false,
+};
 
 const on_navigate_to = vi.fn<(id: string) => void>();
 const on_email_list_change = vi.fn<(ids: string[]) => void>();
@@ -172,9 +181,9 @@ function Probe({ open_id }: { open_id: string | null }): null {
       is_loading: false,
       is_loading_more: false,
       has_initial_load: true,
-      has_more: false,
+      has_more: harness.has_more,
       has_load_error: false,
-      total_messages: emails.length,
+      total_messages: harness.server_total ?? emails.length,
     }),
     [emails],
   );
@@ -255,6 +264,8 @@ describe("use_email_inbox_state keeps the open email under a list filter", () =>
     harness.state = null;
     harness.email_state = null;
     harness.set_emails = null;
+    harness.server_total = null;
+    harness.has_more = false;
     vi.useRealTimers();
   });
 
@@ -371,6 +382,38 @@ describe("use_email_inbox_state keeps the open email under a list filter", () =>
     });
 
     expect(state().selection.page_selected_count).toBe(2);
+  });
+
+  it("keeps later pages reachable while a filter is on", async () => {
+    harness.server_total = 120;
+    harness.has_more = true;
+    await mount([email("a"), email("b", true), email("c", true)], "unread");
+
+    expect(listed_ids()).toEqual(["a"]);
+    expect(state().effective_total_for_pages).toBe(1);
+    expect(state().total_pages).toBe(3);
+  });
+
+  it("keeps later pages reachable when a filter matches nothing on the page", async () => {
+    harness.server_total = 120;
+    harness.has_more = true;
+    await mount([email("a", true), email("b", true)], "unread");
+
+    expect(listed_ids()).toEqual([]);
+    expect(state().total_pages).toBe(3);
+  });
+
+  it("counts pages the same way with and without a filter", async () => {
+    harness.server_total = 120;
+    await mount([email("a"), email("b", true)], "all");
+    const unfiltered_pages = state().total_pages;
+
+    await act(async () => {
+      state().handle_filter_change("read");
+    });
+
+    expect(unfiltered_pages).toBe(3);
+    expect(state().total_pages).toBe(unfiltered_pages);
   });
 
   it("does not rebuild the list when an email is opened with no filter on", async () => {
