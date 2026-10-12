@@ -71,6 +71,13 @@ import { emit_aliases_changed } from "@/hooks/mail_events";
 import { app_pathname } from "@/lib/account_index_url";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 import { INSTANT_ALIAS_DELETE_KEY } from "@/components/settings/hooks/use_aliases";
+import {
+  type AliasSortMode,
+  is_alias_sort_mode,
+  read_alias_sort_mode,
+  sort_alias_entries,
+  store_alias_sort_mode,
+} from "@/components/settings/aliases/alias_sort";
 
 type FilterMode = "all" | "enabled" | "disabled";
 
@@ -230,7 +237,9 @@ function UndecryptableAliasCard({
               </Button>
             </div>
             {restore_error && (
-              <p className="text-xs text-[var(--color-danger)]">{restore_error}</p>
+              <p className="text-xs text-[var(--color-danger)]">
+                {restore_error}
+              </p>
             )}
           </div>
         )}
@@ -280,6 +289,8 @@ export function AliasList({
   const is_avatar_locked = is_feature_locked("has_alias_avatars");
   const [search_query, set_search_query] = useState("");
   const [filter_mode, set_filter_mode] = useState<FilterMode>("all");
+  const [sort_mode, set_sort_mode] =
+    useState<AliasSortMode>(read_alias_sort_mode);
   const [bulk_mode, set_bulk_mode] = useState(false);
   const [selected_ids, set_selected_ids] = useState<Set<string>>(new Set());
 
@@ -344,19 +355,28 @@ export function AliasList({
   }, [domain_addresses, search_query, filter_mode]);
 
   const filtered_entries = useMemo(
-    () => [
-      ...filtered_aliases.map((alias) => ({
-        kind: "alias" as const,
-        key: alias.id,
-        alias,
-      })),
-      ...filtered_domain_addresses.map((address) => ({
-        kind: "domain_address" as const,
-        key: `da-${address.id}`,
-        address,
-      })),
-    ],
-    [filtered_aliases, filtered_domain_addresses],
+    () =>
+      sort_alias_entries(
+        [
+          ...filtered_aliases.map((alias) => ({
+            kind: "alias" as const,
+            key: alias.id,
+            alias,
+            sort_address: alias.full_address,
+            created_at: alias.created_at,
+          })),
+          ...filtered_domain_addresses.map((address) => ({
+            kind: "domain_address" as const,
+            key: `da-${address.id}`,
+            address,
+            sort_address: `${address.local_part}@${address.domain_name}`,
+            created_at: address.created_at,
+          })),
+        ],
+        sort_mode,
+        app_locale(),
+      ),
+    [filtered_aliases, filtered_domain_addresses, sort_mode],
   );
 
   const [current_page, set_current_page] = useState(0);
@@ -369,7 +389,7 @@ export function AliasList({
 
   useEffect(() => {
     set_current_page(0);
-  }, [search_query, filter_mode]);
+  }, [search_query, filter_mode, sort_mode]);
 
   useEffect(() => {
     set_selected_ids((prev) => {
@@ -676,6 +696,31 @@ export function AliasList({
             <SelectItem value="disabled">
               {t("settings.alias_filter_disabled")}
             </SelectItem>
+          </SelectContent>
+        </Select>
+        <Select
+          value={sort_mode}
+          onValueChange={(v) => {
+            if (!is_alias_sort_mode(v)) return;
+            set_sort_mode(v);
+            store_alias_sort_mode(v);
+          }}
+        >
+          <SelectTrigger
+            aria-label={t("settings.alias_sort_label")}
+            className="h-9 w-auto min-w-36"
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="newest">
+              {t("settings.alias_sort_newest")}
+            </SelectItem>
+            <SelectItem value="oldest">
+              {t("settings.alias_sort_oldest")}
+            </SelectItem>
+            <SelectItem value="az">{t("settings.alias_sort_az")}</SelectItem>
+            <SelectItem value="za">{t("settings.alias_sort_za")}</SelectItem>
           </SelectContent>
         </Select>
         <Button
