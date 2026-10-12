@@ -1010,7 +1010,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
       try {
         await save_promise;
       } finally {
-        if (pending_save_ref.current === save_promise) {
+        if (Object.is(pending_save_ref.current, save_promise)) {
           pending_save_ref.current = null;
         }
       }

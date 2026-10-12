@@ -250,7 +250,7 @@ async function shared_identity_republish(
   try {
     return await run;
   } finally {
-    if (uid_update_in_flight?.run === run) uid_update_in_flight = null;
+    if (Object.is(uid_update_in_flight?.run, run)) uid_update_in_flight = null;
   }
 }
 
