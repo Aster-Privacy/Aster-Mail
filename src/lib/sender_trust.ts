@@ -1643,13 +1643,15 @@ function embedded_reply_to(
   entry: string,
   is_parsed: boolean,
 ): string | null {
-  const cleaned = clean_text(entry, false);
+  const cleaned = clean_text(entry, false).replace(/[\uff20\ufe6b]/g, "@");
   const first = cleaned.indexOf("@");
 
   if (first < 0) return null;
   if (is_parsed && cleaned.indexOf("@", first + 1) < 0) return null;
 
-  for (const piece of cleaned.split(REPLY_TO_DELIMITERS)) {
+  for (const token of cleaned.split(REPLY_TO_DELIMITERS)) {
+    const piece = token.replace(/^['.]+|['.]+$/g, "");
+
     if (!piece.includes("@")) continue;
 
     const parts = piece.split("@");
@@ -1658,7 +1660,20 @@ function embedded_reply_to(
       const local = parts[index - 1];
       const reply = parse_address(`${local || "a"}@${parts[index]}`);
 
-      if (!reply) return cap_code_points(piece, MAX_ADDRESS_LENGTH);
+      if (!reply) {
+        const host = parts[index].toLowerCase();
+
+        if (!host && !local) continue;
+        if (host && !host.includes(".")) continue;
+        if (
+          host === parsed.registrable ||
+          host.endsWith(`.${parsed.registrable}`)
+        ) {
+          continue;
+        }
+
+        return cap_code_points(piece, MAX_ADDRESS_LENGTH);
+      }
       if (reply.registrable !== parsed.registrable) {
         return local ? reply.address : reply.domain;
       }
@@ -1675,8 +1690,12 @@ function reply_to_notice(
   if (typeof reply_to !== "string" || !reply_to.trim()) return null;
 
   const entries = split_address_list(reply_to);
+  const seen = new Set<string>();
 
   for (const entry of entries) {
+    if (seen.has(entry)) continue;
+    seen.add(entry);
+
     const reply = parse_address(entry);
 
     if (reply && reply.registrable !== parsed.registrable) return reply.address;

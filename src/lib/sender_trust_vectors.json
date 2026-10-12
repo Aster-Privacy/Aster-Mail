@@ -1210,6 +1210,56 @@
       "id": "reply_to_name_with_comma",
       "input": { "name": "Jane Doe", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "\"Doe, Jane\" <jane@company.example>" },
       "expect": { "reply_to": null }
+    },
+    {
+      "id": "reply_to_name_with_partial_address",
+      "input": { "name": "Jane Doe", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "\"a@b\" <jane@company.example>" },
+      "expect": { "reply_to": null }
+    },
+    {
+      "id": "reply_to_repeated_then_foreign",
+      "input": { "name": "Jane Doe", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "jane@company.example, jane@company.example, x@evil.example, jane@company.example" },
+      "expect": { "reply_to": "x@evil.example" }
+    },
+    {
+      "id": "reply_to_underscore_host_decoy",
+      "input": { "name": "Jane Doe", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "x@a_b.evil.example (<jane@company.example>)" },
+      "expect": { "reply_to": "x@a_b.evil.example" }
+    },
+    {
+      "id": "reply_to_address_literal_decoy",
+      "input": { "name": "Jane Doe", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "x@[192.0.2.1] (<jane@company.example>)" },
+      "expect": { "reply_to": "x@" }
+    },
+    {
+      "id": "reply_to_long_address_decoy",
+      "input": { "name": "Jane Doe", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee@evil.example (<jane@company.example>)" },
+      "expect": { "reply_to": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee" }
+    },
+    {
+      "id": "reply_to_wide_at_sign_decoy",
+      "input": { "name": "Jane Doe", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "x\uff20evil.example (<jane@company.example>)" },
+      "expect": { "reply_to": "x@evil.example" }
+    },
+    {
+      "id": "reply_to_single_quoted",
+      "input": { "name": "Jane Doe", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "'jane@company.example'" },
+      "expect": { "reply_to": null }
+    },
+    {
+      "id": "reply_to_underscore_host_same_org",
+      "input": { "name": "Jane Doe", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "replies@em_1.company.example" },
+      "expect": { "reply_to": null }
+    },
+    {
+      "id": "reply_to_comment_with_at_sign",
+      "input": { "name": "Jane Doe", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "jane@company.example (Jane @ HQ)" },
+      "expect": { "reply_to": null }
+    },
+    {
+      "id": "reply_to_handle_in_name",
+      "input": { "name": "Jane Doe", "email": "jane@company.example", "spf_result": "pass", "dkim_result": "pass", "dmarc_result": "pass", "sender_aligned": true, "reply_to": "Jane @jane <jane@company.example>" },
+      "expect": { "reply_to": null }
     }
   ]
 }
