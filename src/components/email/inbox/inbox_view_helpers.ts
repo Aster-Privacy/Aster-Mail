@@ -85,6 +85,19 @@ export function compute_total_pages(params: {
   return Math.max(1, Math.ceil(total / params.page_size));
 }
 
+export function resolve_filtered_pager_total(
+  matching_total: number,
+  total_pages: number,
+  page_size: number,
+): number {
+  if (page_size <= 0) return matching_total;
+  if (Math.max(1, Math.ceil(matching_total / page_size)) >= total_pages) {
+    return matching_total;
+  }
+
+  return (total_pages - 1) * page_size + 1;
+}
+
 export function get_view_title(
   current_view: string,
   folders: DecryptedFolder[],

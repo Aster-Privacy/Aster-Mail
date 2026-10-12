@@ -27,10 +27,20 @@ import { createRoot, type Root } from "react-dom/client";
 import { MemoryRouter } from "react-router-dom";
 
 vi.mock("@/components/email/use_inbox_view_state", () => ({
-  use_inbox_view_state: () => ({
-    ...view_state,
-    email_state: harness.email_state,
-  }),
+  use_inbox_view_state: () => {
+    const [active_filter, set_active_filter] = useState<InboxFilterType>("all");
+
+    return {
+      ...view_state,
+      email_state: harness.email_state,
+      active_filter,
+      set_active_filter,
+      read_filter:
+        active_filter === "unread" || active_filter === "read"
+          ? active_filter
+          : "all",
+    };
+  },
 }));
 
 vi.mock("@/services/category_index", () => ({
@@ -384,14 +394,37 @@ describe("use_email_inbox_state keeps the open email under a list filter", () =>
     expect(state().selection.page_selected_count).toBe(2);
   });
 
-  it("keeps later pages reachable while a filter is on", async () => {
+  it("pages over every matching email while a filter is on", async () => {
     harness.server_total = 120;
     harness.has_more = true;
-    await mount([email("a"), email("b", true), email("c", true)], "unread");
+    await mount([email("a"), email("b"), email("c")], "unread");
 
-    expect(listed_ids()).toEqual(["a"]);
-    expect(state().effective_total_for_pages).toBe(1);
+    expect(listed_ids()).toEqual(["a", "b", "c"]);
+    expect(state().effective_total_for_pages).toBe(120);
     expect(state().total_pages).toBe(3);
+  });
+
+  it("lowers the matching total as rows leave the filter", async () => {
+    harness.server_total = 120;
+    harness.has_more = true;
+    await mount([email("a"), email("b"), email("c")], "unread");
+    await act(async () => {
+      update_email("b", { is_read: true });
+    });
+
+    expect(listed_ids()).toEqual(["a", "c"]);
+    expect(state().effective_total_for_pages).toBe(119);
+    expect(state().pager_total).toBe(119);
+    expect(state().total_pages).toBe(3);
+  });
+
+  it("shows one page when the filtered total fits on it", async () => {
+    harness.server_total = 23;
+    await mount([email("a"), email("b")], "unread");
+
+    expect(state().effective_total_for_pages).toBe(23);
+    expect(state().pager_total).toBe(23);
+    expect(state().total_pages).toBe(1);
   });
 
   it("keeps later pages reachable when a filter matches nothing on the page", async () => {
@@ -450,10 +483,10 @@ describe("use_email_inbox_state keeps the open email under a list filter", () =>
     expect(state().selection.selected_count).toBe(2);
   });
 
-  it("pages the header over the whole folder while a filter is on", async () => {
+  it("pages the header over the matching mail while a filter is on", async () => {
     harness.server_total = 120;
     harness.has_more = true;
-    await mount([email("a"), email("b", true), email("c", true)], "unread");
+    await mount([email("a"), email("b"), email("c")], "unread");
 
     expect(state().pager_total).toBe(120);
 

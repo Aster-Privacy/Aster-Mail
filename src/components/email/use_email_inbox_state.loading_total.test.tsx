@@ -82,6 +82,9 @@ const harness: { email_state: EmailState; state: InboxState | null } = {
 };
 
 const view_state = {
+  active_filter: "all",
+  set_active_filter: noop,
+  read_filter: "all",
   t: (key: string): string => key,
   user: { id: "user-1", email: "me@example.com" },
   preferences: { conversation_grouping: true, custom_categories: [] },

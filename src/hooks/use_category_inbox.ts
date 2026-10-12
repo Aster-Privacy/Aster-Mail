@@ -24,6 +24,7 @@ import type {
   BulkDeleteOptions,
   UseEmailListReturn,
   FetchPageOptions,
+  ListReadFilter,
 } from "./email_list_types";
 import type { BulkActionResult } from "./bulk_action_result";
 
@@ -292,6 +293,7 @@ export function use_category_inbox(
   active_category: EmailCategory,
   page: number,
   enabled: boolean,
+  read_filter: ListReadFilter = "all",
 ): UseEmailListReturn {
   const { has_keys, user } = use_auth();
   const { preferences } = use_preferences();
@@ -332,10 +334,13 @@ export function use_category_inbox(
   );
 
   const [state, set_state] = useState<EmailListState>(EMPTY_STATE);
-  const prev_category_ref = useRef(active_category);
-  const committed_category_ref = useRef(active_category);
+  const scope_key =
+    read_filter === "all" ? active_category : `${active_category}#${read_filter}`;
+  const kept_ids_ref = useRef<Set<string>>(new Set());
+  const prev_category_ref = useRef(scope_key);
+  const committed_category_ref = useRef(scope_key);
 
-  committed_category_ref.current = active_category;
+  committed_category_ref.current = scope_key;
 
   const visible_rows_ref = useRef(state.emails);
 
@@ -468,12 +473,18 @@ export function use_category_inbox(
     | null
   >(null);
 
-  if (prev_category_ref.current !== active_category) {
-    prev_category_ref.current = active_category;
+  if (prev_category_ref.current !== scope_key) {
+    prev_category_ref.current = scope_key;
+    kept_ids_ref.current = new Set();
     abort_ref.current?.abort();
     abort_ref.current = null;
 
-    const switch_ids = get_page_ids(active_category, page, page_size);
+    const switch_ids = get_page_ids(
+      active_category,
+      page,
+      page_size,
+      read_filter,
+    );
     const switch_cached =
       switch_ids.length > 0
         ? page_cache.current.get(
@@ -487,7 +498,7 @@ export function use_category_inbox(
         : undefined;
 
     if (switch_cached) {
-      const switch_total = get_category_total(active_category);
+      const switch_total = get_category_total(active_category, read_filter);
 
       set_state((prev) =>
         build_list_state(
@@ -574,13 +585,19 @@ export function use_category_inbox(
 
   const is_page_cached = useCallback(
     (target_page: number, limit: number): boolean => {
-      const ids = get_page_ids(active_category, target_page, limit);
+      const ids = get_page_ids(
+        active_category,
+        target_page,
+        limit,
+        read_filter,
+        kept_ids_ref.current,
+      );
 
       if (ids.length === 0) return true;
 
       return page_cache.current.has(page_cache_key(target_page, ids));
     },
-    [active_category, page_cache_key],
+    [active_category, page_cache_key, read_filter],
   );
 
   const fetch_page = useCallback(
@@ -625,9 +642,24 @@ export function use_category_inbox(
         return true;
       };
 
-      const fetch_category = active_category;
-      const ids = get_page_ids(active_category, target_page, limit);
-      const total = get_category_total(active_category);
+      const fetch_category = scope_key;
+      const ids = get_page_ids(
+        active_category,
+        target_page,
+        limit,
+        read_filter,
+        kept_ids_ref.current,
+      );
+
+      if (read_filter !== "all") {
+        for (const id of ids) kept_ids_ref.current.add(id);
+      }
+
+      const total = get_category_total(
+        active_category,
+        read_filter,
+        kept_ids_ref.current,
+      );
       const has_more = (target_page + 1) * limit < total;
 
       abort_ref.current?.abort();
@@ -677,9 +709,15 @@ export function use_category_inbox(
 
       const owner = user?.email || "";
 
-      if (!silent && !force && target_page === 0 && owner) {
+      if (
+        !silent &&
+        !force &&
+        target_page === 0 &&
+        owner &&
+        read_filter === "all"
+      ) {
         void read_list_snapshot(
-          `category:${fetch_category}`,
+          `category:${active_category}`,
           owner,
           cache_key,
           format_options,
@@ -778,9 +816,9 @@ export function use_category_inbox(
 
         touch_cache_entry(page_cache.current, cache_key, grouped);
 
-        if (target_page === 0 && owner) {
+        if (target_page === 0 && owner && read_filter === "all") {
           schedule_list_snapshot(
-            `category:${fetch_category}`,
+            `category:${active_category}`,
             owner,
             cache_key,
             grouped,
@@ -792,7 +830,11 @@ export function use_category_inbox(
           stale_fetched.length > 0 ||
           unrenderable_ids.length > 0;
         const effective_total = pruned
-          ? get_category_total(active_category)
+          ? get_category_total(
+              active_category,
+              read_filter,
+              kept_ids_ref.current,
+            )
           : total;
         const effective_has_more = (target_page + 1) * limit < effective_total;
 
@@ -816,6 +858,8 @@ export function use_category_inbox(
     [
       enabled,
       active_category,
+      scope_key,
+      read_filter,
       format_options,
       user?.email,
       preferences.conversation_grouping,
@@ -836,6 +880,7 @@ export function use_category_inbox(
   useEffect(() => {
     if (!enabled) return;
     if (page !== 0) return;
+    if (read_filter !== "all") return;
     if (!state.has_initial_load || state.is_loading) return;
     if (!is_index_settled()) return;
     if (!has_passphrase_in_memory()) return;
@@ -891,6 +936,7 @@ export function use_category_inbox(
   }, [
     enabled,
     active_category,
+    read_filter,
     page,
     page_size,
     page_variant,
@@ -910,12 +956,18 @@ export function use_category_inbox(
   useEffect(() => {
     if (!enabled) return;
 
-    const ids = get_page_ids(active_category, page, page_size);
+    const ids = get_page_ids(
+      active_category,
+      page,
+      page_size,
+      read_filter,
+      kept_ids_ref.current,
+    );
     const built = is_index_settled() ? "b1" : "b0";
     const unread_bits = ids
       .map((id) => (is_representative_unread(id) ? "u" : "r"))
       .join("");
-    const scope = `${active_category}|${page}|${page_variant}|`;
+    const scope = `${scope_key}|${page}|${page_variant}|`;
     const signature = `${scope}${built}|${unread_bits}|${ids.join(",")}`;
 
     if (signature === last_signature_ref.current) return;
@@ -946,6 +998,8 @@ export function use_category_inbox(
   }, [
     enabled,
     active_category,
+    scope_key,
+    read_filter,
     page,
     page_size,
     index_version,

@@ -147,6 +147,7 @@ export interface ListMailItemsParams {
   is_trashed?: boolean;
   is_archived?: boolean;
   is_spam?: boolean;
+  is_read?: boolean;
   include_spam?: boolean;
   include_trash?: boolean;
   ids?: string[];
@@ -317,6 +318,8 @@ export async function list_mail_items(
     query_params.set("is_archived", String(params.is_archived));
   if (params.is_spam !== undefined)
     query_params.set("is_spam", String(params.is_spam));
+  if (params.is_read !== undefined)
+    query_params.set("is_read", String(params.is_read));
   if (params.include_spam !== undefined)
     query_params.set("include_spam", String(params.include_spam));
   if (params.include_trash !== undefined)
