@@ -23,6 +23,7 @@ import type { ComponentType, ReactNode, SVGProps } from "react";
 
 import { useEffect, useRef, useState } from "react";
 import { PauseIcon, PlayIcon } from "@heroicons/react/20/solid";
+import { InformationCircleIcon } from "@heroicons/react/24/outline";
 
 import {
   Popover,
@@ -285,7 +286,7 @@ export function SearchIndexBadge({
       <PopoverTrigger asChild>
         <button
           aria-label={has_total ? `${title}, ${rounded}%` : title}
-          className="flex h-8 flex-shrink-0 items-center gap-1.5 rounded-full px-2.5 text-[12px] font-medium tabular-nums transition-colors hover:bg-[var(--aster-hover)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-blue)]"
+          className="flex h-8 flex-shrink-0 items-center gap-1.5 rounded-full px-2.5 text-[12px] font-medium tabular-nums transition-opacity hover:opacity-75 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-blue)]"
           data-testid={testid}
           style={{ color: "var(--text-muted)" }}
           type="button"
@@ -375,39 +376,134 @@ export function SearchIndexBadge({
   );
 }
 
-interface SearchIndexStatusBadgeProps {
-  status: SearchIndexStatus;
-  search_content: boolean;
-  show_percent?: boolean;
+const DIAL_PATH = "M20 3a17 17 0 1 1 0 34a17 17 0 1 1 0-34";
+
+interface IndexDialProps {
+  percent: number;
+  indeterminate: boolean;
+  paused: boolean;
 }
 
-export function SearchIndexStatusBadge({
-  status,
-  search_content,
-  show_percent,
-}: SearchIndexStatusBadgeProps) {
+function IndexDial({ percent, indeterminate, paused }: IndexDialProps) {
+  const filled = indeterminate ? 25 : Math.min(Math.max(percent, 0), 100);
+  const spinning = indeterminate && !paused;
+
+  return (
+    <div
+      className="relative flex h-11 w-11 items-center justify-center"
+      data-dial-percent={indeterminate ? undefined : Math.floor(filled)}
+    >
+      <svg
+        aria-hidden="true"
+        className={`absolute inset-0 h-11 w-11 ${spinning ? "animate-spin" : ""}`}
+        viewBox="0 0 40 40"
+      >
+        <path
+          d={DIAL_PATH}
+          fill="none"
+          stroke="var(--border-secondary)"
+          strokeWidth="3"
+        />
+        <path
+          d={DIAL_PATH}
+          fill="none"
+          pathLength={100}
+          stroke="var(--accent-color)"
+          strokeDasharray="100"
+          strokeDashoffset={100 - filled}
+          strokeLinecap="round"
+          strokeWidth="3"
+          style={{
+            opacity: paused ? 0.45 : 1,
+            transition: "stroke-dashoffset 400ms ease-out",
+          }}
+        />
+      </svg>
+      {paused ? (
+        <PauseIcon
+          aria-hidden="true"
+          className="h-4 w-4"
+          style={{ color: "var(--text-muted)" }}
+        />
+      ) : (
+        !indeterminate && (
+          <span
+            className="text-[11px] font-semibold tabular-nums"
+            style={{ color: "var(--text-primary)" }}
+          >
+            {Math.floor(filled)}%
+          </span>
+        )
+      )}
+    </div>
+  );
+}
+
+function IndexWhyButton({ testid }: { testid: string }) {
+  const { t } = use_i18n();
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          aria-label={t("mail.search_index_why_label")}
+          className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full transition-opacity hover:opacity-70 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-blue)]"
+          data-testid={testid}
+          style={{ color: "var(--text-muted)" }}
+          type="button"
+        >
+          <InformationCircleIcon aria-hidden="true" className="h-4 w-4" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        className="w-[260px] p-3"
+        collisionPadding={12}
+        data-testid={`${testid}-popover`}
+        sideOffset={6}
+      >
+        <p
+          className="text-[12px] leading-[18px]"
+          style={{ color: "var(--text-secondary)" }}
+        >
+          {t("mail.search_index_why")}
+        </p>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function use_index_controls(
+  status: SearchIndexStatus,
+  search_content: boolean,
+) {
   const { user } = use_auth();
+  const { t, language } = use_i18n();
   const running = status.is_active && !status.is_paused;
   const eta_seconds = use_download_eta(
     status.done,
     status.total,
     running && status.total > 0 && status.done < status.total,
   );
+  const count =
+    status.total > 0
+      ? t("mail.search_index_progress", {
+          done: status.done.toLocaleString(language),
+          total: status.total.toLocaleString(language),
+        })
+      : t("mail.search_index_progress_unknown", {
+          done: status.done.toLocaleString(language),
+        });
+  const eta =
+    eta_seconds !== null && running
+      ? t("mail.estimated_time_remaining", {
+          duration: format_remaining_duration(eta_seconds, language),
+        })
+      : null;
 
-  if (!status.is_active) return null;
-
-  return (
-    <SearchIndexBadge
-      done={status.done}
-      eta_seconds={eta_seconds}
-      is_paused={status.is_paused}
-      on_pause={pause_index_download}
-      on_resume={() => resume_index_download(user?.email || "", search_content)}
-      percent={status.percent}
-      show_percent={show_percent}
-      total={status.total}
-    />
-  );
+  return {
+    detail: eta ? `${count} · ${eta}` : count,
+    resume: () => resume_index_download(user?.email || "", search_content),
+  };
 }
 
 export interface SearchEmptyAction {
@@ -415,6 +511,152 @@ export interface SearchEmptyAction {
   on_click: () => void;
   primary?: boolean;
   testid?: string;
+}
+
+function ActionPills({ actions }: { actions: SearchEmptyAction[] }) {
+  if (actions.length === 0) return null;
+
+  return (
+    <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+      {actions.map((action) => (
+        <button
+          key={action.label}
+          className="flex h-8 items-center rounded-full px-3.5 text-[13px] font-medium transition-opacity hover:opacity-85"
+          data-testid={action.testid}
+          style={
+            action.primary
+              ? {
+                  backgroundColor: "var(--accent-blue)",
+                  color: "var(--accent-fg, #ffffff)",
+                }
+              : {
+                  backgroundColor: "var(--aster-hover)",
+                  color: "var(--text-secondary)",
+                }
+          }
+          type="button"
+          onClick={action.on_click}
+        >
+          {action.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+interface SearchIndexingStateProps {
+  status: SearchIndexStatus;
+  search_content: boolean;
+  actions?: SearchEmptyAction[];
+  testid?: string;
+}
+
+export function SearchIndexingState({
+  status,
+  search_content,
+  actions = [],
+  testid = "search-indexing-state",
+}: SearchIndexingStateProps) {
+  const { t } = use_i18n();
+  const { detail, resume } = use_index_controls(status, search_content);
+  const control: SearchEmptyAction = status.is_paused
+    ? {
+        label: t("mail.search_index_resume"),
+        on_click: resume,
+        primary: true,
+        testid: `${testid}-resume`,
+      }
+    : {
+        label: t("mail.pause_download_action"),
+        on_click: pause_index_download,
+        testid: `${testid}-pause`,
+      };
+
+  return (
+    <div
+      className="flex flex-col items-center px-6 pb-12 pt-16 text-center"
+      data-testid={testid}
+    >
+      <IndexDial
+        indeterminate={status.total === 0}
+        paused={status.is_paused}
+        percent={status.percent}
+      />
+      <div className="mt-4 flex items-center gap-1 ps-6">
+        <p
+          className="text-[15px] font-semibold"
+          role="status"
+          style={{ color: "var(--text-primary)" }}
+        >
+          {status.is_paused
+            ? t("mail.search_index_paused_title")
+            : t("mail.search_searching_title")}
+        </p>
+        <IndexWhyButton testid={`${testid}-why`} />
+      </div>
+      <p
+        className="mt-0.5 text-[13px] tabular-nums"
+        style={{ color: "var(--text-muted)" }}
+      >
+        {detail}
+      </p>
+      <ActionPills actions={[control, ...actions]} />
+    </div>
+  );
+}
+
+interface SearchIndexingRowProps {
+  status: SearchIndexStatus;
+  search_content: boolean;
+  className?: string;
+  testid?: string;
+}
+
+export function SearchIndexingRow({
+  status,
+  search_content,
+  className = "",
+  testid = "search-indexing-row",
+}: SearchIndexingRowProps) {
+  const { t } = use_i18n();
+  const { resume } = use_index_controls(status, search_content);
+  const has_total = status.total > 0;
+
+  return (
+    <div
+      className={`flex h-10 items-center justify-center gap-2 px-4 text-[12px] tabular-nums ${className}`}
+      data-testid={testid}
+      style={{ color: "var(--text-muted)" }}
+    >
+      {status.is_paused ? (
+        <PauseIcon aria-hidden="true" className="h-3.5 w-3.5 flex-shrink-0" />
+      ) : (
+        <IndexRing
+          indeterminate={!has_total}
+          paused={false}
+          percent={status.percent}
+        />
+      )}
+      <span role="status">
+        {status.is_paused
+          ? t("mail.search_index_paused_title")
+          : t("mail.search_searching_more")}
+        {has_total ? ` · ${Math.floor(status.percent)}%` : ""}
+      </span>
+      <IndexWhyButton testid={`${testid}-why`} />
+      {status.is_paused && (
+        <button
+          className="font-medium transition-opacity hover:opacity-80"
+          data-testid={`${testid}-resume`}
+          style={{ color: "var(--accent-blue)" }}
+          type="button"
+          onClick={resume}
+        >
+          {t("mail.search_index_resume")}
+        </button>
+      )}
+    </div>
+  );
 }
 
 interface SearchEmptyStateProps {
@@ -441,15 +683,11 @@ export function SearchEmptyState({
       data-testid={testid}
       role="status"
     >
-      <div
-        className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl"
-        style={{
-          backgroundColor: "var(--aster-hover)",
-          color: "var(--text-muted)",
-        }}
-      >
-        <Icon aria-hidden="true" className="h-5 w-5" />
-      </div>
+      <Icon
+        aria-hidden="true"
+        className="mb-3 h-7 w-7"
+        style={{ color: "var(--text-muted)" }}
+      />
       <p
         className="max-w-[360px] break-words text-[15px] font-semibold"
         style={{ color: "var(--text-primary)" }}
@@ -464,32 +702,7 @@ export function SearchEmptyState({
           {body}
         </p>
       )}
-      {actions.length > 0 && (
-        <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
-          {actions.map((action) => (
-            <button
-              key={action.label}
-              className="flex h-8 items-center rounded-full px-3.5 text-[13px] font-medium transition-opacity hover:opacity-85"
-              data-testid={action.testid}
-              style={
-                action.primary
-                  ? {
-                      backgroundColor: "var(--accent-blue)",
-                      color: "var(--accent-fg, #ffffff)",
-                    }
-                  : {
-                      backgroundColor: "var(--aster-hover)",
-                      color: "var(--text-secondary)",
-                    }
-              }
-              type="button"
-              onClick={action.on_click}
-            >
-              {action.label}
-            </button>
-          ))}
-        </div>
-      )}
+      <ActionPills actions={actions} />
       {footer}
     </div>
   );

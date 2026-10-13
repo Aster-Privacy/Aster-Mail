@@ -7944,8 +7944,9 @@ export interface MailTranslations {
   search_index_progress_unknown: string;
   search_index_why: string;
   search_index_resume: string;
-  search_index_more_coming: string;
-  search_no_matches_yet: string;
+  search_searching_title: string;
+  search_searching_more: string;
+  search_index_why_label: string;
   searching_message_content: string;
   search_taking_too_long: string;
   search_refine_terms: string;

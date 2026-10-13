@@ -254,7 +254,7 @@ describe("MobileSearchPage filter chips", () => {
     ).toBeNull();
   });
 
-  it("shows a short indexing state and a badge while the index builds", () => {
+  it("shows a centered searching state while the index builds", () => {
     index_state.index_pending = true;
     index_state.indexed_count = 120;
     index_state.building = true;
@@ -267,19 +267,17 @@ describe("MobileSearchPage filter chips", () => {
       '[data-testid="mobile-search-indexing"]',
     );
 
-    expect(state?.textContent).toBe(
-      "mail.search_no_matches_yetmail.search_index_more_coming",
+    expect(state?.querySelector('[role="status"]')?.textContent).toBe(
+      "mail.search_searching_title",
     );
-    expect(
-      document.querySelector('[data-testid="search-index-badge"]'),
-    ).not.toBeNull();
+    expect(state?.querySelector("[data-dial-percent]")).not.toBeNull();
     expect(document.body.textContent).not.toContain("mail.search_index_why");
     expect(document.body.textContent).not.toContain(
       "mail.no_emails_match_query",
     );
   });
 
-  it("marks the badge as paused when indexing is paused", () => {
+  it("says indexing is paused and offers Resume", () => {
     index_state.index_pending = true;
     index_state.indexed_count = 120;
     index_state.paused = true;
@@ -288,11 +286,16 @@ describe("MobileSearchPage filter chips", () => {
 
     submit(input, "report");
 
+    const state = document.querySelector(
+      '[data-testid="mobile-search-indexing"]',
+    );
+
+    expect(state?.querySelector('[role="status"]')?.textContent).toBe(
+      "mail.search_index_paused_title",
+    );
     expect(
-      document
-        .querySelector('[data-testid="search-index-badge"]')
-        ?.getAttribute("aria-label"),
-    ).toBe("mail.search_index_paused_title, 30%");
+      document.querySelector('[data-testid="mobile-search-indexing-resume"]'),
+    ).not.toBeNull();
     expect(document.body.textContent).not.toContain(
       "mail.no_emails_match_query",
     );

@@ -39,7 +39,8 @@ import { MobileEmailRow } from "@/components/mobile/mobile_email_row";
 import { Spinner } from "@/components/ui/spinner";
 import {
   SearchEmptyState,
-  SearchIndexStatusBadge,
+  SearchIndexingRow,
+  SearchIndexingState,
   use_search_index_status,
 } from "@/components/search/search_indexing_notice";
 import { Input } from "@/components/ui/input";
@@ -293,11 +294,6 @@ function MobileSearchPage() {
           value={query}
           onChange={(e) => set_query(e.target.value)}
         />
-        <SearchIndexStatusBadge
-          search_content={preferences.search_encrypted_content}
-          show_percent={false}
-          status={index_status}
-        />
         <button
           aria-label={t("common.clear")}
           className={`flex h-7 w-7 items-center justify-center rounded-full text-[var(--text-muted)] active:bg-[var(--bg-tertiary)] transition-opacity ${query ? "opacity-100" : "opacity-0 pointer-events-none"}`}
@@ -381,11 +377,18 @@ function MobileSearchPage() {
         )}
 
         {is_index_pending && (
-          <SearchEmptyState
-            body={t("mail.search_index_more_coming")}
-            icon={MagnifyingGlassIcon}
+          <SearchIndexingState
+            search_content={preferences.search_encrypted_content}
+            status={index_status}
             testid="mobile-search-indexing"
-            title={t("mail.search_no_matches_yet")}
+          />
+        )}
+
+        {index_status.is_active && has_results && (
+          <SearchIndexingRow
+            className="border-b border-[var(--border-primary)]"
+            search_content={preferences.search_encrypted_content}
+            status={index_status}
           />
         )}
 

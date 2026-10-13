@@ -46,7 +46,8 @@ import { search_row_key } from "./thread_grouping";
 
 import {
   SearchEmptyState,
-  SearchIndexStatusBadge,
+  SearchIndexingRow,
+  SearchIndexingState,
   use_search_index_status,
   type SearchEmptyAction,
 } from "@/components/search/search_indexing_notice";
@@ -527,12 +528,11 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
   const email_list_body = (
     <>
       {filtered_results.length === 0 && index_status.is_active ? (
-        <SearchEmptyState
+        <SearchIndexingState
           actions={empty_actions}
-          body={t("mail.search_index_more_coming")}
-          icon={MagnifyingGlassIcon}
+          search_content={content_search_enabled}
+          status={index_status}
           testid="search-indexing-empty"
-          title={t("mail.search_no_matches_yet")}
         />
       ) : is_loading && filtered_results.length === 0 ? (
         <div>
@@ -586,6 +586,13 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
         />
       ) : (
         <>
+          {index_status.is_active && (
+            <SearchIndexingRow
+              className="border-b border-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]"
+              search_content={content_search_enabled}
+              status={index_status}
+            />
+          )}
           <CorrectionNotice
             className="border-b border-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]"
             correction={state.correction}
@@ -818,32 +825,13 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
             total_email_count={filtered_results.length}
             view_title={t("common.search")}
           />
-          {on_search_submit ? (
-            <div className="flex min-w-0 items-center">
-              <div className="min-w-0 flex-1">
-                <SearchChipRow
-                  on_advanced_click={() => set_advanced_open(true)}
-                  on_query_change={on_search_submit}
-                  query={query}
-                  scope_view={scope_view}
-                />
-              </div>
-              <div className="flex-shrink-0 pe-3">
-                <SearchIndexStatusBadge
-                  search_content={content_search_enabled}
-                  status={index_status}
-                />
-              </div>
-            </div>
-          ) : (
-            index_status.is_active && (
-              <div className="flex justify-end px-3 py-1.5">
-                <SearchIndexStatusBadge
-                  search_content={content_search_enabled}
-                  status={index_status}
-                />
-              </div>
-            )
+          {on_search_submit && (
+            <SearchChipRow
+              on_advanced_click={() => set_advanced_open(true)}
+              on_query_change={on_search_submit}
+              query={query}
+              scope_view={scope_view}
+            />
           )}
           {state.index_incomplete && !index_status.is_active && (
             <div
