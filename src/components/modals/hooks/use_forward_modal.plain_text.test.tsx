@@ -31,6 +31,7 @@ const mocks = vi.hoisted(() => ({
   store_payload: vi.fn(),
   schedule: vi.fn(),
   save_failed: vi.fn(),
+  discard_failed: vi.fn(),
   sender_state: {
     options: [] as unknown[],
     resolved: null as unknown,
@@ -258,6 +259,7 @@ vi.mock("@/services/api/attachments", () => ({
 }));
 vi.mock("@/components/compose/compose_failed_send_draft", () => ({
   save_failed_send_as_draft: mocks.save_failed,
+  discard_failed_send_draft: mocks.discard_failed,
 }));
 vi.mock("@/services/forward_store", () => ({
   get_forward_mail_id: () => null,
@@ -493,7 +495,10 @@ describe("forward that fails after the undo window", () => {
     vi.clearAllMocks();
     mocks.sender_state.options = [];
     mocks.sender_state.resolved = null;
-    mocks.save_failed.mockResolvedValue(true);
+    mocks.save_failed.mockResolvedValue({
+      saved: true,
+      draft: { id: "draft_1", version: 2 },
+    });
     mocks.send_forward.mockImplementation(
       async (
         _params,
@@ -564,7 +569,7 @@ describe("forward that fails after the undo window", () => {
   it("says so when the failed forward cannot be saved", async () => {
     const { show_toast } = await import("@/components/toast/simple_toast");
 
-    mocks.save_failed.mockResolvedValue(false);
+    mocks.save_failed.mockResolvedValue({ saved: false, draft: null });
     await forward_then(() => fail(""));
 
     expect(show_toast).toHaveBeenCalledWith(
@@ -579,5 +584,164 @@ describe("forward that fails after the undo window", () => {
     await forward_then(() => complete("sent_1"));
 
     expect(mocks.save_failed).not.toHaveBeenCalled();
+  });
+});
+
+describe("forward refused before it is handed off", () => {
+  const refused = "errors.sender_address_refused";
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.clearAllMocks();
+    mocks.sender_state.options = [];
+    mocks.sender_state.resolved = null;
+    mocks.save_failed.mockResolvedValue({
+      saved: true,
+      draft: { id: "draft_1", version: 2 },
+    });
+    mocks.discard_failed.mockResolvedValue(true);
+    mocks.send_forward.mockResolvedValue({ success: false, error: refused });
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+  });
+  afterEach(async () => {
+    await act(async () => root.unmount());
+    container.remove();
+    vi.useRealTimers();
+  });
+
+  async function forward_once() {
+    await act(async () => {
+      await latest.handle_forward();
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+  }
+
+  it("saves the forward as a draft and keeps the error", async () => {
+    const { show_toast } = await import("@/components/toast/simple_toast");
+
+    await setup("<b>Meet at 10</b>", false);
+    await forward_once();
+
+    expect(latest.error_message).toBe(refused);
+    expect(mocks.save_failed).toHaveBeenCalledTimes(1);
+    const [, vault, failed, kept, edit] = mocks.save_failed.mock.calls[0];
+
+    expect(vault).toBe(stable.auth.vault);
+    expect(failed.to).toEqual(["reader@example.com"]);
+    expect(failed.body).toContain("<b>Meet at 10</b><br><br>");
+    expect(kept).toBeNull();
+    expect(edit).toEqual(expect.objectContaining({ draft_type: "forward" }));
+    expect(show_toast).not.toHaveBeenCalledWith(
+      "common.failed_to_save",
+      "error",
+    );
+  });
+
+  it("updates the same draft when the forward is refused again", async () => {
+    await setup("<b>Meet at 10</b>", false);
+    await forward_once();
+    await forward_once();
+
+    expect(mocks.save_failed).toHaveBeenCalledTimes(2);
+    expect(mocks.save_failed.mock.calls[1][3]).toEqual({
+      id: "draft_1",
+      version: 2,
+    });
+  });
+
+  it("removes the saved draft once the forward sends", async () => {
+    let complete: (sent_id?: string) => void = () => undefined;
+
+    await setup("<b>Meet at 10</b>", false);
+    await forward_once();
+    mocks.send_forward.mockImplementation(
+      async (_params, callbacks: { on_complete: (id?: string) => void }) => {
+        complete = callbacks.on_complete;
+
+        return { success: true, queued_id: "queue_1", is_server_queued: true };
+      },
+    );
+    await forward_once();
+    expect(mocks.discard_failed).not.toHaveBeenCalled();
+    await act(async () => complete("sent_1"));
+
+    expect(mocks.discard_failed).toHaveBeenCalledTimes(1);
+    expect(mocks.discard_failed.mock.calls[0][1]).toEqual({
+      id: "draft_1",
+      version: 2,
+    });
+  });
+
+  it("says so when the refused forward cannot be saved", async () => {
+    const { show_toast } = await import("@/components/toast/simple_toast");
+
+    mocks.save_failed.mockResolvedValue({ saved: false, draft: null });
+    await setup("<b>Meet at 10</b>", false);
+    await forward_once();
+
+    expect(show_toast).toHaveBeenCalledWith("common.failed_to_save", "error");
+  });
+
+  it("does not save a draft when the forward is canceled", async () => {
+    mocks.send_forward.mockResolvedValue({ success: false });
+    await setup("<b>Meet at 10</b>", false);
+    await forward_once();
+
+    expect(mocks.save_failed).not.toHaveBeenCalled();
+  });
+
+  it("starts a new draft for the next forward", async () => {
+    await setup("<b>Meet at 10</b>", false);
+    await forward_once();
+    await act(async () => {
+      root.render(<div />);
+    });
+    await setup("<b>Second</b>", false);
+    await forward_once();
+
+    expect(mocks.save_failed).toHaveBeenCalledTimes(2);
+    expect(mocks.save_failed.mock.calls[1][3]).toBeNull();
+  });
+
+  it("saves a refused scheduled forward and removes it once scheduled", async () => {
+    await setup("<b>Meet at 10</b>", false);
+    await act(async () =>
+      latest.set_scheduled_time(new Date("2027-01-01T10:00:00Z")),
+    );
+    mocks.schedule.mockResolvedValueOnce({ error: refused });
+    await act(async () => {
+      await latest.handle_scheduled_send();
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+
+    expect(latest.error_message).toBe(refused);
+    expect(mocks.save_failed).toHaveBeenCalledTimes(1);
+    const [, , failed, kept, edit] = mocks.save_failed.mock.calls[0];
+
+    expect(failed.subject).toBe("mail.forward_subject_prefix Plans");
+    expect(failed.body).toContain("<b>Meet at 10</b><br><br>");
+    expect(
+      mocks.schedule.mock.calls[0][1].body.startsWith(failed.body),
+    ).toBe(true);
+    expect(kept).toBeNull();
+    expect(edit).toEqual(expect.objectContaining({ draft_type: "forward" }));
+
+    mocks.schedule.mockResolvedValueOnce({ data: {} });
+    await act(async () => {
+      await latest.handle_scheduled_send();
+    });
+
+    expect(mocks.save_failed).toHaveBeenCalledTimes(1);
+    expect(mocks.discard_failed).toHaveBeenCalledTimes(1);
+    expect(mocks.discard_failed.mock.calls[0][1]).toEqual({
+      id: "draft_1",
+      version: 2,
+    });
   });
 });

@@ -47,17 +47,48 @@ export interface FailedSendDraftStore {
   clear_context(context_id: string): void;
 }
 
+export interface KeptFailedDraft {
+  id: string;
+  version: number;
+}
+
+export interface FailedSendDraftResult {
+  saved: boolean;
+  draft: KeptFailedDraft | null;
+}
+
+export interface FailedSendDraftDiscarder {
+  load_context(draft_id: string, version: number): string;
+  delete_draft(context_id: string): Promise<boolean>;
+  clear_context(context_id: string): void;
+}
+
+export async function discard_failed_send_draft(
+  store: FailedSendDraftDiscarder,
+  kept_draft: KeptFailedDraft,
+): Promise<boolean> {
+  const context_id = store.load_context(kept_draft.id, kept_draft.version);
+
+  try {
+    return await store.delete_draft(context_id);
+  } catch {
+    return false;
+  } finally {
+    store.clear_context(context_id);
+  }
+}
+
 export async function save_failed_send_as_draft(
   store: FailedSendDraftStore,
   vault: EncryptedVault,
   failed: FailedSendData,
-  kept_draft: { id: string; version: number } | null,
+  kept_draft: KeptFailedDraft | null,
   edit_draft?: Pick<
     EditDraftData,
     "draft_type" | "reply_to_id" | "forward_from_id"
   > | null,
   is_plain_text = false,
-): Promise<boolean> {
+): Promise<FailedSendDraftResult> {
   const draft_type = edit_draft?.draft_type ?? "new";
   const data: DraftData = {
     to_recipients: failed.to,
@@ -70,13 +101,21 @@ export async function save_failed_send_as_draft(
     is_plain_text: is_plain_text || undefined,
   };
 
-  const save_into = async (context_id: string): Promise<boolean> => {
+  const save_into = async (
+    context_id: string,
+  ): Promise<FailedSendDraftResult> => {
     try {
       const result = await store.save_draft(context_id, data, vault);
 
-      return result.success;
+      return {
+        saved: result.success,
+        draft:
+          result.success && result.id
+            ? { id: result.id, version: result.version ?? 1 }
+            : null,
+      };
     } catch {
-      return false;
+      return { saved: false, draft: null };
     } finally {
       store.clear_context(context_id);
     }
@@ -93,7 +132,7 @@ export async function save_failed_send_as_draft(
       ),
     );
 
-    if (updated) return true;
+    if (updated.saved) return updated;
   }
 
   return save_into(

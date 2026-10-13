@@ -20,7 +20,10 @@
 //
 import { describe, it, expect, vi } from "vitest";
 
-import { save_failed_send_as_draft } from "@/components/compose/compose_failed_send_draft";
+import {
+  discard_failed_send_draft,
+  save_failed_send_as_draft,
+} from "@/components/compose/compose_failed_send_draft";
 
 const vault = {} as never;
 
@@ -47,9 +50,11 @@ function make_store(results: boolean[]) {
     create_context: vi.fn(() => "created"),
     load_context: vi.fn(() => "loaded"),
     save_draft: vi.fn(
-      async (_context_id: string, _data: unknown, _vault: unknown) => ({
-        success: outcomes.shift() ?? false,
-      }),
+      async (_context_id: string, _data: unknown, _vault: unknown) => {
+        const success = outcomes.shift() ?? false;
+
+        return success ? { success, id: "saved_1", version: 4 } : { success };
+      },
     ),
     clear_context: vi.fn(),
   };
@@ -61,7 +66,7 @@ describe("a failed send is saved back to Drafts with its attachments", () => {
 
     await expect(
       save_failed_send_as_draft(store, vault, failed, null),
-    ).resolves.toBe(true);
+    ).resolves.toEqual({ saved: true, draft: { id: "saved_1", version: 4 } });
 
     expect(store.create_context).toHaveBeenCalledWith(
       "new",
@@ -107,7 +112,7 @@ describe("a failed send is saved back to Drafts with its attachments", () => {
         id: "gone",
         version: 1,
       }),
-    ).resolves.toBe(true);
+    ).resolves.toEqual({ saved: true, draft: { id: "saved_1", version: 4 } });
 
     expect(store.create_context).toHaveBeenCalledTimes(1);
     expect(store.clear_context).toHaveBeenCalledWith("loaded");
@@ -119,7 +124,7 @@ describe("a failed send is saved back to Drafts with its attachments", () => {
 
     await expect(
       save_failed_send_as_draft(store, vault, failed, null),
-    ).resolves.toBe(false);
+    ).resolves.toEqual({ saved: false, draft: null });
   });
 
   it("keeps the reply context of the original message", async () => {
@@ -150,5 +155,39 @@ describe("a failed send is saved back to Drafts with its attachments", () => {
       (store.save_draft.mock.calls[1][1] as { is_plain_text?: boolean })
         .is_plain_text,
     ).toBeUndefined();
+  });
+});
+
+describe("a failed send draft is removed once the message sends", () => {
+  function make_discarder(result: () => Promise<boolean>) {
+    return {
+      load_context: vi.fn(() => "loaded"),
+      delete_draft: vi.fn(result),
+      clear_context: vi.fn(),
+    };
+  }
+
+  it("deletes the kept draft and frees its context", async () => {
+    const store = make_discarder(async () => true);
+
+    await expect(
+      discard_failed_send_draft(store, { id: "draft_1", version: 2 }),
+    ).resolves.toBe(true);
+
+    expect(store.load_context).toHaveBeenCalledWith("draft_1", 2);
+    expect(store.delete_draft).toHaveBeenCalledWith("loaded");
+    expect(store.clear_context).toHaveBeenCalledWith("loaded");
+  });
+
+  it("frees the context when the delete throws", async () => {
+    const store = make_discarder(async () => {
+      throw new Error("offline");
+    });
+
+    await expect(
+      discard_failed_send_draft(store, { id: "draft_1", version: 2 }),
+    ).resolves.toBe(false);
+
+    expect(store.clear_context).toHaveBeenCalledWith("loaded");
   });
 });

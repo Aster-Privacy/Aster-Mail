@@ -201,7 +201,7 @@ export function use_compose_send({
     ) => {
       if (!vault) return;
 
-      const saved = await save_failed_send_as_draft(
+      const { saved } = await save_failed_send_as_draft(
         draft_manager,
         vault,
         failed,
