@@ -1194,6 +1194,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     pending_thread_token_ref,
     optimistic_id_ref,
     save_draft_timeout,
+    save_thread_draft,
     last_saved_text,
     is_sending_ref,
     has_sent_ref,

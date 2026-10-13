@@ -200,6 +200,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
     pending_thread_token_ref,
     optimistic_id_ref,
     save_draft_timeout,
+    save_thread_draft,
     last_saved_text,
     is_sending_ref,
     has_sent_ref,
@@ -769,8 +770,10 @@ export function use_reply_modal(props: UseReplyModalProps) {
       set_is_sending(false);
       last_send_time_ref.current = 0;
       forget_send(send_fingerprint);
+      void save_thread_draft(reply_message);
     }
   }, [
+    save_thread_draft,
     t,
     reply_message,
     is_sending,
@@ -956,6 +959,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
         set_is_scheduling(false);
         is_sending_ref.current = false;
         send_lock_started_at_ref.current = 0;
+        void save_thread_draft(reply_message);
 
         return;
       }
@@ -971,12 +975,15 @@ export function use_reply_modal(props: UseReplyModalProps) {
       set_error_message(
         user_facing_error(error, t("common.failed_to_schedule")),
       );
+      is_sending_ref.current = false;
+      void save_thread_draft(reply_message);
     } finally {
       set_is_scheduling(false);
       is_sending_ref.current = false;
       send_lock_started_at_ref.current = 0;
     }
   }, [
+    save_thread_draft,
     t,
     reply_message,
     user,
