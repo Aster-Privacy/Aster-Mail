@@ -413,7 +413,7 @@ function SearchLens({ percent, indeterminate, paused }: SearchLensProps) {
           cx="40"
           cy="40"
           fill={ink}
-          opacity={paused ? 0.06 : 0.1}
+          fillOpacity={paused ? 0.06 : 0.1}
           r="28"
         />
         <path
@@ -474,12 +474,12 @@ function SearchLens({ percent, indeterminate, paused }: SearchLensProps) {
               cy="0"
               fill={ink}
               fillOpacity="0.12"
-              r="9"
+              r="10.5"
               stroke={ink}
               strokeWidth="2.5"
             />
             <path
-              d="M6.6 6.6l6 6"
+              d="M7.7 7.7l6 6"
               stroke={ink}
               strokeLinecap="round"
               strokeWidth="3.5"
@@ -675,12 +675,14 @@ export function SearchIndexingState({
         </p>
         <IndexWhyButton testid={`${testid}-why`} />
       </div>
-      <p
-        className="mt-0.5 min-h-5 text-[13px] leading-5 tabular-nums"
-        style={{ color: "var(--text-muted)" }}
-      >
-        {detail}
-      </p>
+      {detail && (
+        <p
+          className="mt-0.5 text-[13px] leading-5 tabular-nums"
+          style={{ color: "var(--text-muted)" }}
+        >
+          {detail}
+        </p>
+      )}
       <ActionPills actions={[control, ...actions]} />
     </div>
   );
