@@ -3760,6 +3760,7 @@ export const nl = {
     custom_theme_role_accent_hover: "Accentkleur (bij aanwijzen)",
     custom_theme_role_background: "Achtergrond",
     custom_theme_role_background_secondary: "Achtergrond (secundair)",
+    custom_theme_role_sidebar: "Zijbalk",
     custom_theme_role_text: "Tekst",
     custom_theme_role_text_secondary: "Tekst (secundair)",
     custom_theme_role_border: "Rand",

@@ -3425,6 +3425,7 @@ export const zh_CN = {
     custom_theme_role_accent_hover: "强调色(悬停)",
     custom_theme_role_background: "背景色",
     custom_theme_role_background_secondary: "背景色(次要)",
+    custom_theme_role_sidebar: "侧边栏",
     custom_theme_role_text: "文字",
     custom_theme_role_text_secondary: "文字(次要)",
     custom_theme_role_border: "边框",

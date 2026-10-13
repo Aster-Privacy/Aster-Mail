@@ -2459,6 +2459,7 @@ export const hi = {
     custom_theme_role_accent_hover: "उभार रंग (होवर)",
     custom_theme_role_background: "पृष्ठभूमि",
     custom_theme_role_background_secondary: "पृष्ठभूमि (द्वितीयक)",
+    custom_theme_role_sidebar: "साइडबार",
     custom_theme_role_text: "पाठ",
     custom_theme_role_text_secondary: "पाठ (द्वितीयक)",
     custom_theme_role_border: "किनारा",

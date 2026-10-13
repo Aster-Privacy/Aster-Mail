@@ -3914,6 +3914,7 @@ export const ar = {
     custom_theme_role_accent_hover: "اللون المميز (عند التحويم)",
     custom_theme_role_background: "الخلفية",
     custom_theme_role_background_secondary: "الخلفية (ثانوية)",
+    custom_theme_role_sidebar: "الشريط الجانبي",
     custom_theme_role_text: "النص",
     custom_theme_role_text_secondary: "النص (ثانوي)",
     custom_theme_role_border: "الحدود",

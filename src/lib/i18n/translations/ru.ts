@@ -3899,6 +3899,7 @@ export const ru = {
     custom_theme_role_accent_hover: "Акцент (при наведении)",
     custom_theme_role_background: "Фон",
     custom_theme_role_background_secondary: "Фон (вторичный)",
+    custom_theme_role_sidebar: "Боковая панель",
     custom_theme_role_text: "Текст",
     custom_theme_role_text_secondary: "Текст (вторичный)",
     custom_theme_role_border: "Граница",

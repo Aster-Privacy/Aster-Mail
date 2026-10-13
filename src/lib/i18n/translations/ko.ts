@@ -3796,6 +3796,7 @@ export const ko = {
     custom_theme_role_accent_hover: "강조색(호버)",
     custom_theme_role_background: "배경",
     custom_theme_role_background_secondary: "배경(보조)",
+    custom_theme_role_sidebar: "사이드바",
     custom_theme_role_text: "텍스트",
     custom_theme_role_text_secondary: "텍스트(보조)",
     custom_theme_role_border: "테두리",

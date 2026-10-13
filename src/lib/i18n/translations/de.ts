@@ -3791,6 +3791,7 @@ export const de = {
     custom_theme_role_accent_hover: "Akzent (Hover)",
     custom_theme_role_background: "Hintergrund",
     custom_theme_role_background_secondary: "Hintergrund (sekundär)",
+    custom_theme_role_sidebar: "Seitenleiste",
     custom_theme_role_text: "Text",
     custom_theme_role_text_secondary: "Text (sekundär)",
     custom_theme_role_border: "Rahmen",

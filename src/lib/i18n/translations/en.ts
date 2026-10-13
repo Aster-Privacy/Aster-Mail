@@ -2369,6 +2369,7 @@ export const en: Translations = {
     custom_theme_role_accent_hover: "Accent (hover)",
     custom_theme_role_background: "Background",
     custom_theme_role_background_secondary: "Background (secondary)",
+    custom_theme_role_sidebar: "Sidebar",
     custom_theme_role_text: "Text",
     custom_theme_role_text_secondary: "Text (secondary)",
     custom_theme_role_border: "Border",

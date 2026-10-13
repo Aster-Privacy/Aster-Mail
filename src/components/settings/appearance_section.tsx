@@ -74,7 +74,7 @@ import {
 } from "@/lib/font_options";
 import {
   is_valid_hex_color,
-  generate_material_theme,
+  compute_custom_theme_vars,
   CUSTOM_THEME_ROLE_KEYS,
   type MaterialThemeVars,
 } from "@/lib/material_theme";
@@ -91,6 +91,7 @@ const CUSTOM_THEME_ROLE_LABEL_KEYS: Record<string, keyof SettingsTranslations> =
     "--accent-color-hover": "custom_theme_role_accent_hover",
     "--bg-primary": "custom_theme_role_background",
     "--bg-secondary": "custom_theme_role_background_secondary",
+    "--sidebar-bg": "custom_theme_role_sidebar",
     "--text-primary": "custom_theme_role_text",
     "--text-secondary": "custom_theme_role_text_secondary",
     "--border-primary": "custom_theme_role_border",
@@ -210,11 +211,12 @@ export function AppearanceSection() {
     update_preference("email_font_choice", value, true);
   };
 
-  const custom_theme_base = generate_material_theme(
+  const custom_theme_base = compute_custom_theme_vars(
     is_valid_hex_color(effective_theme_fields.custom_theme_seed)
       ? effective_theme_fields.custom_theme_seed
       : "#3b82f6",
     theme === "dark",
+    preferences.custom_theme_overrides,
   );
 
   const handle_role_override_change = (

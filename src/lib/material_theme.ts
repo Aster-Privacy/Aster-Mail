@@ -247,6 +247,32 @@ export interface MaterialThemeVars {
   "--avatar-bg": string;
   "--avatar-text": string;
   "--indicator-bg": string;
+  "--sidebar-bg": string;
+  "--sidebar-hover": string;
+  "--modal-bg": string;
+  "--dropdown-bg": string;
+  "--dropdown-hover": string;
+  "--input-bg": string;
+  "--thread-card-bg": string;
+  "--thread-card-bg-hover": string;
+  "--thread-header-bg": string;
+  "--thread-content-bg": string;
+  "--background": string;
+  "--foreground": string;
+  "--card": string;
+  "--card-foreground": string;
+  "--popover": string;
+  "--popover-foreground": string;
+  "--secondary": string;
+  "--secondary-foreground": string;
+  "--muted": string;
+  "--muted-foreground": string;
+  "--accent": string;
+  "--accent-foreground": string;
+  "--sidebar": string;
+  "--sidebar-foreground": string;
+  "--sidebar-accent": string;
+  "--sidebar-accent-foreground": string;
 }
 
 export const CUSTOM_THEME_ROLE_KEYS: (keyof MaterialThemeVars)[] = [
@@ -254,6 +280,7 @@ export const CUSTOM_THEME_ROLE_KEYS: (keyof MaterialThemeVars)[] = [
   "--accent-color-hover",
   "--bg-primary",
   "--bg-secondary",
+  "--sidebar-bg",
   "--text-primary",
   "--text-secondary",
   "--border-primary",
@@ -290,6 +317,32 @@ const DARK_BASE_VARS: MaterialThemeVars = {
   "--avatar-bg": "#2a2a2a",
   "--avatar-text": "#9ca3af",
   "--indicator-bg": "#121212",
+  "--sidebar-bg": "#0a0a0a",
+  "--sidebar-hover": "#0f0f0f",
+  "--modal-bg": "#121212",
+  "--dropdown-bg": "#121212",
+  "--dropdown-hover": "#252525",
+  "--input-bg": "#1a1a1a",
+  "--thread-card-bg": "#181818",
+  "--thread-card-bg-hover": "#222222",
+  "--thread-header-bg": "#1a1a1a",
+  "--thread-content-bg": "#121212",
+  "--background": "#09090b",
+  "--foreground": "#fafafa",
+  "--card": "#18181b",
+  "--card-foreground": "#fafafa",
+  "--popover": "#18181b",
+  "--popover-foreground": "#fafafa",
+  "--secondary": "#27272a",
+  "--secondary-foreground": "#fafafa",
+  "--muted": "#27272a",
+  "--muted-foreground": "#a1a1aa",
+  "--accent": "#27272a",
+  "--accent-foreground": "#fafafa",
+  "--sidebar": "#18181b",
+  "--sidebar-foreground": "#fafafa",
+  "--sidebar-accent": "#27272a",
+  "--sidebar-accent-foreground": "#fafafa",
 };
 
 const LIGHT_BASE_VARS: MaterialThemeVars = {
@@ -313,6 +366,32 @@ const LIGHT_BASE_VARS: MaterialThemeVars = {
   "--avatar-bg": "#e5e7eb",
   "--avatar-text": "#6b7280",
   "--indicator-bg": "#ffffff",
+  "--sidebar-bg": "#f5f5f5",
+  "--sidebar-hover": "#e0e0e0",
+  "--modal-bg": "#ffffff",
+  "--dropdown-bg": "#ffffff",
+  "--dropdown-hover": "#f3f4f6",
+  "--input-bg": "#ffffff",
+  "--thread-card-bg": "#f8f8f8",
+  "--thread-card-bg-hover": "#f0f0f0",
+  "--thread-header-bg": "#f3f3f3",
+  "--thread-content-bg": "#ffffff",
+  "--background": "#ffffff",
+  "--foreground": "#09090b",
+  "--card": "#ffffff",
+  "--card-foreground": "#09090b",
+  "--popover": "#ffffff",
+  "--popover-foreground": "#09090b",
+  "--secondary": "#f4f4f5",
+  "--secondary-foreground": "#18181b",
+  "--muted": "#f4f4f5",
+  "--muted-foreground": "#6b6b74",
+  "--accent": "#f4f4f5",
+  "--accent-foreground": "#18181b",
+  "--sidebar": "#fafafa",
+  "--sidebar-foreground": "#09090b",
+  "--sidebar-accent": "#f4f4f5",
+  "--sidebar-accent-foreground": "#18181b",
 };
 
 export function generate_material_theme(
@@ -334,6 +413,14 @@ export function generate_material_theme(
   };
 }
 
+const CUSTOM_TERTIARY_MIX = 0.05;
+const CUSTOM_HOVER_MIX = 0.09;
+const CUSTOM_AVATAR_MIX = 0.14;
+const CUSTOM_SELECTED_MIX = 0.2;
+const CUSTOM_SIDEBAR_HOVER_MIX = 0.06;
+const CUSTOM_TEXT_TERTIARY_MIX = 0.68;
+const CUSTOM_TEXT_MUTED_MIX = 0.6;
+
 export function compute_custom_theme_vars(
   seed_hex: string,
   is_dark: boolean,
@@ -343,17 +430,83 @@ export function compute_custom_theme_vars(
 
   if (!overrides) return base;
 
-  const merged = { ...base };
+  const valid: CustomThemeOverrides = {};
 
   for (const key of Object.keys(overrides) as (keyof MaterialThemeVars)[]) {
     const value = overrides[key];
 
-    if (value && is_valid_hex_color(value)) {
-      merged[key] = value;
+    if (key in base && value && is_valid_hex_color(value)) {
+      valid[key] = value;
     }
   }
 
-  return merged;
+  const merged = { ...base, ...valid };
+  const has = (key: keyof MaterialThemeVars) => valid[key] !== undefined;
+  const bg = merged["--bg-primary"];
+  const text = merged["--text-primary"];
+
+  if (has("--bg-primary") || has("--text-primary")) {
+    const tertiary = mix_hex_srgb(text, bg, CUSTOM_TERTIARY_MIX);
+    const hover = mix_hex_srgb(text, bg, CUSTOM_HOVER_MIX);
+    const muted = mix_hex_srgb(text, bg, CUSTOM_TEXT_MUTED_MIX);
+
+    Object.assign(merged, {
+      "--bg-tertiary": tertiary,
+      "--bg-hover": hover,
+      "--bg-selected": mix_hex_srgb(
+        merged["--accent-color"],
+        bg,
+        CUSTOM_SELECTED_MIX,
+      ),
+      "--bg-card": bg,
+      "--avatar-bg": mix_hex_srgb(text, bg, CUSTOM_AVATAR_MIX),
+      "--avatar-text": muted,
+      "--indicator-bg": bg,
+      "--text-tertiary": mix_hex_srgb(text, bg, CUSTOM_TEXT_TERTIARY_MIX),
+      "--text-muted": muted,
+      "--modal-bg": bg,
+      "--dropdown-bg": bg,
+      "--dropdown-hover": hover,
+      "--input-bg": tertiary,
+      "--thread-card-bg": tertiary,
+      "--thread-card-bg-hover": hover,
+      "--thread-header-bg": tertiary,
+      "--thread-content-bg": bg,
+      "--foreground": text,
+      "--card": bg,
+      "--card-foreground": text,
+      "--popover": bg,
+      "--popover-foreground": text,
+      "--secondary": tertiary,
+      "--secondary-foreground": text,
+      "--muted": tertiary,
+      "--muted-foreground": muted,
+      "--accent": hover,
+      "--accent-foreground": text,
+      "--sidebar-foreground": text,
+      "--sidebar-accent": hover,
+      "--sidebar-accent-foreground": text,
+    } satisfies CustomThemeOverrides);
+  }
+
+  if (has("--bg-secondary")) {
+    merged["--background"] = merged["--bg-secondary"];
+    merged["--sidebar-bg"] = merged["--bg-secondary"];
+  }
+
+  if (has("--bg-secondary") || has("--sidebar-bg") || has("--text-primary")) {
+    merged["--sidebar-hover"] = mix_hex_srgb(
+      text,
+      merged["--sidebar-bg"],
+      CUSTOM_SIDEBAR_HOVER_MIX,
+    );
+  }
+
+  if (has("--bg-secondary") || has("--sidebar-bg")) {
+    merged["--sidebar"] = valid["--sidebar-bg"] ?? merged["--sidebar-bg"];
+  }
+
+  return Object.assign(merged, valid);
 }
 
 function apply_vars_with_derived(vars: MaterialThemeVars): void {
@@ -392,28 +545,9 @@ export function apply_custom_theme(
   }
 }
 
-const MATERIAL_THEME_KEYS: (keyof MaterialThemeVars)[] = [
-  "--bg-primary",
-  "--bg-secondary",
-  "--bg-tertiary",
-  "--bg-hover",
-  "--bg-selected",
-  "--bg-card",
-  "--border-primary",
-  "--border-secondary",
-  "--border-thread-divider",
-  "--text-primary",
-  "--text-secondary",
-  "--text-tertiary",
-  "--text-muted",
-  "--accent-color",
-  "--accent-color-hover",
-  "--accent-blue",
-  "--accent-blue-hover",
-  "--avatar-bg",
-  "--avatar-text",
-  "--indicator-bg",
-];
+const MATERIAL_THEME_KEYS = Object.keys(
+  DARK_BASE_VARS,
+) as (keyof MaterialThemeVars)[];
 
 export function clear_material_theme(): void {
   if (typeof document === "undefined") return;

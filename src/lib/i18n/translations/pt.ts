@@ -3822,6 +3822,7 @@ export const pt = {
     custom_theme_role_accent_hover: "Destaque (ao passar o rato)",
     custom_theme_role_background: "Fundo",
     custom_theme_role_background_secondary: "Fundo (secundário)",
+    custom_theme_role_sidebar: "Barra lateral",
     custom_theme_role_text: "Texto",
     custom_theme_role_text_secondary: "Texto (secundário)",
     custom_theme_role_border: "Limite",

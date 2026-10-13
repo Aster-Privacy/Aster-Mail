@@ -3717,6 +3717,7 @@ export const tr = {
     custom_theme_role_accent_hover: "Vurgu (üzerine gelme)",
     custom_theme_role_background: "Arka plan",
     custom_theme_role_background_secondary: "Arka plan (ikincil)",
+    custom_theme_role_sidebar: "Kenar çubuğu",
     custom_theme_role_text: "Metin",
     custom_theme_role_text_secondary: "Metin (ikincil)",
     custom_theme_role_border: "Kenarlık",

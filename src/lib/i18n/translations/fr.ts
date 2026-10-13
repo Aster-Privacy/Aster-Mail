@@ -3807,6 +3807,7 @@ export const fr = {
     custom_theme_role_accent_hover: "Accent (survol)",
     custom_theme_role_background: "Arrière-plan",
     custom_theme_role_background_secondary: "Arrière-plan (secondaire)",
+    custom_theme_role_sidebar: "Barre latérale",
     custom_theme_role_text: "Texte",
     custom_theme_role_text_secondary: "Texte (secondaire)",
     custom_theme_role_border: "Bordure",

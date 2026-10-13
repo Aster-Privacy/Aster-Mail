@@ -2665,6 +2665,7 @@ export interface SettingsTranslations {
   custom_theme_role_accent_hover: string;
   custom_theme_role_background: string;
   custom_theme_role_background_secondary: string;
+  custom_theme_role_sidebar: string;
   custom_theme_role_text: string;
   custom_theme_role_text_secondary: string;
   custom_theme_role_border: string;
