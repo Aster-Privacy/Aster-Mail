@@ -20,19 +20,30 @@
 //
 import type { ChecklistTasksState } from "@/services/api/onboarding";
 import type { SettingsSection } from "@/components/settings/settings_content";
+import type {
+  TutorialListLabels,
+  TutorialListLink,
+  TutorialListTask,
+} from "@/components/onboarding/tutorial_list";
 
-import { useEffect, useMemo, useRef } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { CheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { TutorialList } from "@/components/onboarding/tutorial_list";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_should_reduce_motion } from "@/provider";
 import { use_onboarding_checklist } from "@/hooks/use_onboarding_checklist";
+import {
+  safe_local_get,
+  safe_local_remove,
+  safe_local_set,
+  safe_session_set,
+} from "@/lib/safe_storage";
 import { open_external } from "@/utils/open_link";
 
 interface OnboardingChecklistProps {
   on_compose: () => void;
   on_open_settings: (section: SettingsSection) => void;
+  on_open_shortcuts?: () => void;
   on_all_tasks_done?: () => void;
   on_visibility_change?: (visible: boolean) => void;
   hidden?: boolean;
@@ -49,19 +60,42 @@ interface ChecklistRow {
 }
 
 const DOWNLOAD_URL = "https://astermail.org/download";
+const COLLAPSED_STORAGE_KEY = "aster_tutorial_list_collapsed";
+const DOMAIN_PURCHASE_SESSION_KEY = "alias_domains_purchase_open";
+const DOMAIN_PURCHASE_EVENT = "aster:open-domain-purchase";
 
 export function OnboardingChecklist({
   on_compose,
   on_open_settings,
+  on_open_shortcuts,
   on_all_tasks_done,
   on_visibility_change,
   hidden = false,
 }: OnboardingChecklistProps): JSX.Element | null {
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
-  const { state, is_loading, dismiss, refresh, mark_install_app_done } =
-    use_onboarding_checklist();
+  const {
+    state,
+    is_loading,
+    account_id,
+    dismiss,
+    refresh,
+    mark_install_app_done,
+  } = use_onboarding_checklist();
+  const storage_suffix = account_id ? `_${account_id}` : "";
+  const collapsed_key = `${COLLAPSED_STORAGE_KEY}${storage_suffix}`;
+  const loaded_suffix_ref = useRef(storage_suffix);
   const reported_done_ref = useRef(false);
+  const [is_collapsed, set_is_collapsed] = useState(
+    () => safe_local_get(collapsed_key) === "1",
+  );
+
+  useEffect(() => {
+    if (loaded_suffix_ref.current === storage_suffix) return;
+    loaded_suffix_ref.current = storage_suffix;
+    reported_done_ref.current = false;
+    set_is_collapsed(safe_local_get(collapsed_key) === "1");
+  }, [storage_suffix, collapsed_key]);
 
   const rows: ChecklistRow[] = useMemo(
     () => [
@@ -101,11 +135,9 @@ export function OnboardingChecklist({
     [on_compose, on_open_settings, mark_install_app_done, refresh],
   );
 
-  const total = rows.length;
-  const completed = state
-    ? rows.reduce((acc, row) => (state.tasks[row.key] ? acc + 1 : acc), 0)
-    : 0;
-  const all_tasks_done = !!state && completed === total;
+  const all_tasks_done =
+    !!state && rows.every((row) => state.tasks[row.key] === true);
+  const is_active = !is_loading && !!state && !state.dismissed_at;
 
   useEffect(() => {
     if (!all_tasks_done || reported_done_ref.current) return;
@@ -113,99 +145,93 @@ export function OnboardingChecklist({
     on_all_tasks_done?.();
   }, [all_tasks_done, on_all_tasks_done]);
 
-  const visible =
-    !is_loading && !!state && !state.dismissed_at && !all_tasks_done;
+  const visible = is_active && !all_tasks_done;
 
   useEffect(() => {
     if (is_loading) return;
     on_visibility_change?.(visible);
   }, [is_loading, visible, on_visibility_change]);
 
-  if (hidden) return null;
-  if (is_loading || !state) return null;
-  if (state.dismissed_at) return null;
-  if (all_tasks_done) return null;
+  const handle_toggle = useCallback(() => {
+    const next_collapsed = !is_collapsed;
 
-  const transition = reduce_motion ? { duration: 0 } : { duration: 0.2 };
+    if (next_collapsed) {
+      safe_local_set(collapsed_key, "1");
+    } else {
+      safe_local_remove(collapsed_key);
+    }
+    set_is_collapsed(next_collapsed);
+  }, [is_collapsed, collapsed_key]);
+
+  const handle_hide_forever = useCallback(() => {
+    void dismiss();
+  }, [dismiss]);
+
+  const tasks: TutorialListTask[] = useMemo(
+    () =>
+      rows.map((row) => ({
+        key: row.key,
+        label: t(row.label_key),
+        done: state?.tasks[row.key] === true,
+        on_click: row.on_click,
+      })),
+    [rows, state, t],
+  );
+
+  const domain_links: TutorialListLink[] = useMemo(
+    () => [
+      {
+        key: "domain_get",
+        label: t("common.onboarding_checklist_domain_get"),
+        on_click: () => {
+          safe_session_set(DOMAIN_PURCHASE_SESSION_KEY, "1");
+          on_open_settings("domains");
+          window.dispatchEvent(new CustomEvent(DOMAIN_PURCHASE_EVENT));
+        },
+      },
+      {
+        key: "domain_existing",
+        label: t("common.onboarding_checklist_domain_existing"),
+        on_click: () => {
+          on_open_settings("domains");
+        },
+      },
+    ],
+    [on_open_settings, t],
+  );
+
+  const done_count = tasks.filter((task) => task.done).length;
+
+  const labels: TutorialListLabels = useMemo(
+    () => ({
+      heading: t("common.onboarding_checklist_title"),
+      progress: t("common.x_of_y", {
+        current: done_count,
+        total: rows.length,
+      }),
+      task_done: t("common.onboarding_checklist_task_done"),
+      domain_heading: t("common.onboarding_checklist_domain_heading"),
+      domain_badge: t("common.onboarding_checklist_domain_badge"),
+      hide_forever: t("common.onboarding_checklist_hide_forever"),
+      shortcuts: t("common.onboarding_checklist_shortcuts"),
+      open: t("common.onboarding_checklist_open"),
+      close: t("common.onboarding_checklist_close"),
+    }),
+    [done_count, rows.length, t],
+  );
+
+  if (hidden || !visible) return null;
 
   return (
-    <AnimatePresence>
-      <motion.div
-        animate={{ opacity: 1, y: 0 }}
-        className="fixed bottom-24 start-4 end-4 z-30 flex flex-col overflow-hidden rounded-[var(--aster-radius-floating,16px)] md:bottom-5 md:start-auto md:end-5 md:w-[320px]"
-        exit={{ opacity: 0, y: 8 }}
-        initial={{ opacity: 0, y: 8 }}
-        style={{
-          backgroundColor: "var(--aster-floating-bg, var(--bg-card))",
-          boxShadow: "var(--aster-floating-shadow)",
-        }}
-        transition={transition}
-      >
-        <div className="flex items-start justify-between gap-3 px-4 pt-4 pb-3">
-          <div className="min-w-0">
-            <div className="text-sm font-semibold text-txt-primary">
-              {t("common.onboarding_checklist_title")}
-            </div>
-            <div className="mt-0.5 text-xs text-txt-muted tabular-nums">
-              {completed}/{total}
-            </div>
-          </div>
-          <button
-            aria-label={t("common.onboarding_checklist_dismiss")}
-            className="-me-1 -mt-1 p-1 rounded-md hover:bg-[var(--aster-hover)] text-txt-muted transition-colors"
-            type="button"
-            onClick={() => {
-              void dismiss();
-            }}
-          >
-            <XMarkIcon className="w-4 h-4" />
-          </button>
-        </div>
-
-        <ul className="flex flex-col px-1.5 pb-2">
-          {rows.map((row) => {
-            const done = state.tasks[row.key];
-
-            return (
-              <li key={row.key}>
-                <button
-                  className="w-full flex items-center gap-3 px-2.5 py-2 rounded-[var(--aster-radius-item,8px)] text-start hover:bg-[var(--aster-floating-hover,var(--bg-hover))] transition-colors"
-                  type="button"
-                  onClick={row.on_click}
-                >
-                  <span
-                    className="flex h-[18px] w-[18px] flex-shrink-0 items-center justify-center rounded-full border-[1.5px] transition-colors"
-                    style={{
-                      borderColor: done
-                        ? "var(--accent-blue)"
-                        : "var(--text-muted)",
-                      backgroundColor: done
-                        ? "var(--accent-blue)"
-                        : "transparent",
-                    }}
-                  >
-                    {done && (
-                      <CheckIcon
-                        className="w-3 h-3 text-white"
-                        strokeWidth={3}
-                      />
-                    )}
-                  </span>
-                  <span
-                    className={
-                      done
-                        ? "flex-1 text-[13px] text-txt-muted line-through"
-                        : "flex-1 text-[13px] text-txt-primary"
-                    }
-                  >
-                    {t(row.label_key)}
-                  </span>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      </motion.div>
-    </AnimatePresence>
+    <TutorialList
+      domain_links={domain_links}
+      is_open={!is_collapsed}
+      labels={labels}
+      on_hide_forever={handle_hide_forever}
+      on_shortcuts={on_open_shortcuts}
+      on_toggle={handle_toggle}
+      reduce_motion={reduce_motion}
+      tasks={tasks}
+    />
   );
 }

@@ -92,6 +92,12 @@ export function store_pending_send_payload(
   pending_send_payloads.set(id, payload);
 }
 
+export function peek_pending_send_payload(
+  id: string,
+): PendingSendPayload | undefined {
+  return pending_send_payloads.get(id);
+}
+
 export function take_pending_send_payload(
   id: string,
 ): PendingSendPayload | undefined {

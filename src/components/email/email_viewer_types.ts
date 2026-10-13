@@ -20,6 +20,7 @@
 //
 import type { UnsubscribeInfo, SenderVerificationStatus } from "@/types/email";
 import type { DraftWithContent } from "@/services/api/multi_drafts";
+import type { Attachment } from "@/components/compose/compose_shared_core";
 
 export const UNDO_SEND_PREVIEW_ID = "undo-send-preview";
 
@@ -107,6 +108,7 @@ export interface LocalEmailData {
   bcc?: string[];
   sender_email?: string;
   sender_name?: string;
+  attachments?: Attachment[];
 }
 
 export interface UseEmailViewerOptions {

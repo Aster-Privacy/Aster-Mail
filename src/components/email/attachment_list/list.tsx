@@ -19,12 +19,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { TranslationKey } from "@/lib/i18n/types";
+import type { PendingSendAttachment } from "@/services/pending_send_attachments";
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { AnimatePresence } from "framer-motion";
 
 import { AttachmentCard } from "./card";
 import { AttachmentCardSkeleton } from "./icons";
+import { PendingAttachmentList } from "./pending_list";
 import { ImagePreviewModal } from "./preview_modal";
 import {
   AttachmentListProps,
@@ -69,6 +71,8 @@ import { PdfPreviewModal } from "@/components/email/pdf_preview_modal";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { ignore_error } from "@/lib/ignore_error";
 import { format_bytes } from "@/lib/utils";
+import { UNDO_SEND_PREVIEW_ID } from "@/components/email/email_viewer_types";
+import { get_pending_send_attachments } from "@/services/pending_send_attachments";
 
 function attachment_error_key(error: unknown): TranslationKey {
   return error instanceof AttachmentKeyUnavailableError
@@ -76,7 +80,35 @@ function attachment_error_key(error: unknown): TranslationKey {
     : "common.download_failed";
 }
 
-export function AttachmentList({
+export function AttachmentList(
+  props: AttachmentListProps,
+): React.ReactElement | null {
+  const { mail_item_id } = props;
+  const kept_ref = useRef<{
+    mail_item_id: string;
+    files: PendingSendAttachment[];
+  } | null>(null);
+  const stored = get_pending_send_attachments(mail_item_id);
+
+  if (stored && stored.length > 0) {
+    kept_ref.current = { mail_item_id, files: stored };
+  } else if (
+    mail_item_id === UNDO_SEND_PREVIEW_ID ||
+    kept_ref.current?.mail_item_id !== mail_item_id
+  ) {
+    kept_ref.current = null;
+  }
+
+  const files = kept_ref.current?.files;
+
+  if (files && files.length > 0) {
+    return <PendingAttachmentList files={files} mail_item_id={mail_item_id} />;
+  }
+
+  return <ServerAttachmentList {...props} />;
+}
+
+function ServerAttachmentList({
   mail_item_id,
   is_external = false,
   has_recipient_key = false,

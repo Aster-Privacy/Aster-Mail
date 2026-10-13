@@ -1603,7 +1603,15 @@ export const de = {
     no_custom_fields_yet: "Noch keine benutzerdefinierten Felder definiert",
     not_now: "Nicht jetzt",
     on_separator: "am",
-    onboarding_checklist_dismiss: "Ausblenden",
+    onboarding_checklist_domain_heading: "Eigene Domain verwenden",
+    onboarding_checklist_domain_badge: "Optional",
+    onboarding_checklist_domain_get: "Eigene Domain kaufen",
+    onboarding_checklist_domain_existing: "Vorhandene Domain verwenden",
+    onboarding_checklist_hide_forever: "Anleitungsliste dauerhaft ausblenden",
+    onboarding_checklist_shortcuts: "Tastaturkurzbefehle",
+    onboarding_checklist_open: "Anleitungsliste anzeigen",
+    onboarding_checklist_close: "Anleitungsliste schließen",
+    onboarding_checklist_task_done: "Erledigt",
     onboarding_checklist_first_email: "Erste E-Mail senden",
     recovery_reminder_title: "Richten Sie einen Weg zurück in Ihr Konto ein",
     recovery_reminder_body:
@@ -10352,6 +10360,8 @@ export const de = {
       "Die Anmeldung mit dem Sicherheitsschlüssel wurde nicht abgeschlossen oder abgebrochen. Versuchen Sie es erneut.",
     cannot_send_no_keys:
       "Sie haben die erforderliche Verschlüsselung aktiviert und wir haben keinen Schlüssel für {{recipients}}. Bitten Sie sie, einen Schlüssel zu teilen, oder deaktivieren Sie die erforderliche Verschlüsselung in Einstellungen. Ihr Entwurf ist gespeichert.",
+    sender_address_refused:
+      "Aster konnte diese Nachricht nicht von der Adresse im Feld „Von“ senden. Wähle eine andere Adresse, um sie zu senden. Dein Entwurf ist gespeichert.",
     cannot_send_no_recipient_keys:
       "Sie haben die erforderliche Verschlüsselung aktiviert und keiner Ihrer Empfänger hat einen hinterlegten Schlüssel. Bitten Sie sie, einen zu teilen, oder deaktivieren Sie die erforderliche Verschlüsselung in Einstellungen. Ihr Entwurf ist gespeichert.",
     cannot_send_no_recovery_key:

@@ -1665,7 +1665,15 @@ export const nl = {
     no_custom_fields_yet: "Nog geen aangepaste velden",
     not_now: "Niet nu",
     on_separator: "op",
-    onboarding_checklist_dismiss: "Verberg",
+    onboarding_checklist_domain_heading: "Gebruik een eigen domein",
+    onboarding_checklist_domain_badge: "Optioneel",
+    onboarding_checklist_domain_get: "Koop een eigen domein",
+    onboarding_checklist_domain_existing: "Gebruik een domein dat je al hebt",
+    onboarding_checklist_hide_forever: "Verberg de tutoriallijst permanent",
+    onboarding_checklist_shortcuts: "Toetscombinaties",
+    onboarding_checklist_open: "Toon de tutoriallijst",
+    onboarding_checklist_close: "Sluit de tutoriallijst",
+    onboarding_checklist_task_done: "Voltooid",
     onboarding_checklist_first_email: "Stuur je eerste e-mail",
     recovery_reminder_title:
       "Voeg een manier toe om terug in je account te komen",
@@ -10235,6 +10243,8 @@ export const nl = {
       "Deze e-mail is niet verzonden. Probeer het opnieuw. Je concept is opgeslagen.",
     cannot_send_no_keys:
       "Je hebt vereiste versleuteling ingeschakeld, en we hebben geen sleutel voor {{recipients}}. Hen vragen een sleutel te delen, of vereiste versleuteling uitschakelen in Instellingen, laat dit verzenden. Je concept is opgeslagen.",
+    sender_address_refused:
+      "Aster kon dit bericht niet verzenden vanaf het adres in het veld Van. Kies een ander adres om het te verzenden. Je concept is opgeslagen.",
     cannot_send_no_recipient_keys:
       "Je hebt vereiste versleuteling ingeschakeld, en geen van je ontvangers heeft een sleutel in het archief. Hen vragen er een te delen, of vereiste versleuteling uitschakelen in Instellingen, laat dit verzenden. Je concept is opgeslagen.",
     cannot_send_no_recovery_key:

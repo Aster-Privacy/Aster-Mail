@@ -1776,10 +1776,19 @@ export const tr = {
     label_system_spam: "Önemsiz",
     label_system_archive: "Arşiv",
     onboarding_checklist_title: "Başlayın",
-    onboarding_checklist_dismiss: "Gizle",
     onboarding_checklist_install_app: "Uygulamayı yükleyin",
     onboarding_checklist_import_mail: "Eski postanızı içe aktarın",
     onboarding_checklist_recovery_method: "Kurtarma yöntemi ekleyin",
+    onboarding_checklist_domain_heading: "Özel alan adı kullanın",
+    onboarding_checklist_domain_badge: "İsteğe bağlı",
+    onboarding_checklist_domain_get: "Özel alan adı alın",
+    onboarding_checklist_domain_existing:
+      "Sahip olduğunuz alan adını kullanın",
+    onboarding_checklist_hide_forever: "Eğitim listesini kalıcı olarak gizle",
+    onboarding_checklist_shortcuts: "Klavye kısayolları",
+    onboarding_checklist_open: "Eğitim listesini göster",
+    onboarding_checklist_close: "Eğitim listesini kapat",
+    onboarding_checklist_task_done: "Tamamlandı",
     onboarding_checklist_first_email: "İlk e-postanızı gönderin",
     recovery_reminder_title: "Hesabınıza geri dönmenin bir yolunu ekleyin",
     recovery_reminder_body:
@@ -10130,6 +10139,8 @@ export const tr = {
       "Bu e-posta gönderilmedi. Tekrar deneyin. Taslağınız kaydedildi.",
     cannot_send_no_keys:
       "Zorunlu şifreleme açık ve {{recipients}} için bir anahtarımız yok. Onlardan anahtar paylaşmalarını isteyin veya Ayarlar'dan zorunlu şifrelemeyi kapatın. Taslağınız kaydedildi.",
+    sender_address_refused:
+      "Aster bu iletiyi Kimden alanındaki adresten gönderemedi. Göndermek için başka bir adres seçin. Taslağınız kaydedildi.",
     cannot_send_no_recipient_keys:
       "Zorunlu şifreleme açık ve hiçbir alıcınızın kayıtlı anahtarı yok. Onlardan anahtar paylaşmalarını isteyin veya Ayarlar'dan zorunlu şifrelemeyi kapatın. Taslağınız kaydedildi.",
     cannot_send_no_recovery_key:

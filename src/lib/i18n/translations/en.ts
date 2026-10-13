@@ -1715,10 +1715,18 @@ export const en: Translations = {
     label_system_spam: "Spam",
     label_system_archive: "Archive",
     onboarding_checklist_title: "Get started",
-    onboarding_checklist_dismiss: "Hide",
     onboarding_checklist_install_app: "Install the app",
     onboarding_checklist_import_mail: "Import your old mail",
     onboarding_checklist_recovery_method: "Add a recovery method",
+    onboarding_checklist_domain_heading: "Use a custom domain",
+    onboarding_checklist_domain_badge: "Optional",
+    onboarding_checklist_domain_get: "Get a custom domain",
+    onboarding_checklist_domain_existing: "Use a domain you own",
+    onboarding_checklist_hide_forever: "Permanently hide tutorial list",
+    onboarding_checklist_shortcuts: "Keyboard shortcuts",
+    onboarding_checklist_open: "Show tutorial list",
+    onboarding_checklist_close: "Close tutorial list",
+    onboarding_checklist_task_done: "Completed",
     onboarding_checklist_first_email: "Send your first email",
     recovery_reminder_title: "Add a way back into your account",
     recovery_reminder_body:
@@ -9956,6 +9964,8 @@ export const en: Translations = {
       "This email did not send. Try again. Your draft is saved.",
     cannot_send_no_keys:
       "You have required encryption turned on, and we do not have a key for {{recipients}}. Asking them to share a key, or turning off required encryption in Settings, will let this send. Your draft is saved.",
+    sender_address_refused:
+      "Aster couldn't send this message from the address in the From field. To send it, choose a different address. Your draft is saved.",
     cannot_send_no_recipient_keys:
       "You have required encryption turned on, and none of your recipients have a key on file. Asking them to share one, or turning off required encryption in Settings, will let this send. Your draft is saved.",
     post_quantum_unavailable:

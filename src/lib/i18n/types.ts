@@ -2294,10 +2294,18 @@ export interface CommonTranslations {
   label_system_spam: string;
   label_system_archive: string;
   onboarding_checklist_title: string;
-  onboarding_checklist_dismiss: string;
   onboarding_checklist_install_app: string;
   onboarding_checklist_import_mail: string;
   onboarding_checklist_recovery_method: string;
+  onboarding_checklist_domain_heading: string;
+  onboarding_checklist_domain_badge: string;
+  onboarding_checklist_domain_get: string;
+  onboarding_checklist_domain_existing: string;
+  onboarding_checklist_hide_forever: string;
+  onboarding_checklist_shortcuts: string;
+  onboarding_checklist_open: string;
+  onboarding_checklist_close: string;
+  onboarding_checklist_task_done: string;
   onboarding_checklist_first_email: string;
   recovery_reminder_title: string;
   recovery_reminder_body: string;
@@ -8729,6 +8737,7 @@ export interface ErrorTranslations {
   too_many_attachments: string;
   failed_send_email: string;
   cannot_send_no_keys: string;
+  sender_address_refused: string;
   cannot_send_no_recipient_keys: string;
   cannot_send_no_recovery_key: string;
   message_password_too_weak: string;

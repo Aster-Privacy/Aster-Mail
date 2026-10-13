@@ -33,6 +33,8 @@ import type { OpenedMailRow } from "@/services/user_opened_mail";
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
+import { UNDO_SEND_PREVIEW_ID } from "@/components/email/email_viewer_types";
+import { clear_pending_send_attachments } from "@/services/pending_send_attachments";
 import { attachments_to_draft_data } from "@/components/compose/compose_draft_helpers";
 import { use_compose_manager } from "@/components/compose/compose_manager";
 import { use_i18n } from "@/lib/i18n/context";
@@ -375,6 +377,20 @@ export function use_index_page_state() {
     useState<ScheduledClickData | null>(null);
   const [preview_local_email, set_preview_local_email] =
     useState<LocalEmailData | null>(null);
+  const had_preview_local_email_ref = useRef(false);
+
+  useEffect(() => {
+    if (preview_local_email) {
+      had_preview_local_email_ref.current = true;
+
+      return;
+    }
+    if (!had_preview_local_email_ref.current) return;
+
+    had_preview_local_email_ref.current = false;
+    clear_pending_send_attachments(UNDO_SEND_PREVIEW_ID);
+  }, [preview_local_email]);
+
   const [visible_email_ids, set_visible_email_ids] = useState<string[]>([]);
   const [email_snooze_map, set_email_snooze_map] = useState<
     Record<string, string | undefined>

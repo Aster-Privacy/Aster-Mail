@@ -72,6 +72,7 @@ const ENVELOPE_BATCH_SIZE = 100;
 
 export interface FetchMailOptions {
   reuse_known_envelopes?: boolean;
+  is_read?: boolean;
 }
 
 async function list_reusing_known_envelopes(
@@ -181,6 +182,7 @@ export async function fetch_mail_from_api(
     ...((offset !== undefined && offset > 0) || cursor
       ? { skip_total: true }
       : {}),
+    ...(options.is_read !== undefined ? { is_read: options.is_read } : {}),
   };
 
   const reused = new Map<string, ReusedListItem>();

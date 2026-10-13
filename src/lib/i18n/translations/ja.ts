@@ -1716,7 +1716,15 @@ export const ja = {
     n_more_recipients: "+{{count}}件",
     no_custom_fields_yet: "カスタムフィールドはまだ定義されていません",
     on_separator: "で",
-    onboarding_checklist_dismiss: "非表示",
+    onboarding_checklist_domain_heading: "カスタムドメインを使う",
+    onboarding_checklist_domain_badge: "任意",
+    onboarding_checklist_domain_get: "カスタムドメインを取得",
+    onboarding_checklist_domain_existing: "お持ちのドメインを使う",
+    onboarding_checklist_hide_forever: "チュートリアルリストを今後表示しない",
+    onboarding_checklist_shortcuts: "キーボードショートカット",
+    onboarding_checklist_open: "チュートリアルリストを表示",
+    onboarding_checklist_close: "チュートリアルリストを閉じる",
+    onboarding_checklist_task_done: "完了",
     onboarding_checklist_first_email: "最初のメールを送信",
     recovery_reminder_title: "アカウントに戻る手段を追加",
     recovery_reminder_body:
@@ -10041,6 +10049,8 @@ export const ja = {
       "このメールを送信できませんでした。もう一度お試しください。下書きは保存されています。",
     cannot_send_no_keys:
       "必須の暗号化が有効になっていますが、{{recipients}} の鍵が見つかりません。鍵を共有してもらうか、設定で必須暗号化をオフにすると送信できます。下書きは保存されています。",
+    sender_address_refused:
+      "Asterは「差出人」欄のアドレスからこのメッセージを送信できませんでした。送信するには、別のアドレスを選択してください。下書きは保存されています。",
     cannot_send_no_recipient_keys:
       "必須の暗号化が有効になっていますが、受信者の鍵がありません。鍵を共有してもらうか、設定で必須暗号化をオフにすると送信できます。下書きは保存されています。",
     cannot_send_no_recovery_key:

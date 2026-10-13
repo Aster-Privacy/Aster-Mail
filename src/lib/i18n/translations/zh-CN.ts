@@ -1646,10 +1646,18 @@ export const zh_CN = {
     label_system_spam: "垃圾邮件",
     label_system_archive: "归档",
     onboarding_checklist_title: "开始使用",
-    onboarding_checklist_dismiss: "隐藏",
     onboarding_checklist_install_app: "安装应用",
     onboarding_checklist_import_mail: "导入旧邮件",
     onboarding_checklist_recovery_method: "添加恢复方式",
+    onboarding_checklist_domain_heading: "使用自定义域名",
+    onboarding_checklist_domain_badge: "可选",
+    onboarding_checklist_domain_get: "获取自定义域名",
+    onboarding_checklist_domain_existing: "使用您已有的域名",
+    onboarding_checklist_hide_forever: "永久隐藏教程列表",
+    onboarding_checklist_shortcuts: "键盘快捷键",
+    onboarding_checklist_open: "显示教程列表",
+    onboarding_checklist_close: "关闭教程列表",
+    onboarding_checklist_task_done: "已完成",
     onboarding_checklist_first_email: "发送第一封邮件",
     recovery_reminder_title: "添加找回账户的方式",
     recovery_reminder_body:
@@ -9110,6 +9118,8 @@ export const zh_CN = {
     failed_send_email: "此邮件未能发送。请重试。您的草稿已保存。",
     cannot_send_no_keys:
       "您已开启强制加密，但我们没有 {{recipients}} 的密钥。请对方分享密钥，或在设置中关闭强制加密，即可发送。您的草稿已保存。",
+    sender_address_refused:
+      "Aster 无法从“发件人”栏中的地址发送这封邮件。要发送邮件，请选择其他地址。你的草稿已保存。",
     cannot_send_no_recipient_keys:
       "您已开启强制加密，但所有收件人均没有密钥记录。请他们分享密钥，或在设置中关闭强制加密，即可发送。您的草稿已保存。",
     cannot_send_no_recovery_key:

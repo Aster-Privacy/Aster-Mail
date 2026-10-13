@@ -1682,10 +1682,18 @@ export const ko = {
     label_system_spam: "스팸",
     label_system_archive: "보관함",
     onboarding_checklist_title: "시작하기",
-    onboarding_checklist_dismiss: "숨기기",
     onboarding_checklist_install_app: "앱 설치",
     onboarding_checklist_import_mail: "이전 메일 가져오기",
     onboarding_checklist_recovery_method: "복구 방법 추가",
+    onboarding_checklist_domain_heading: "맞춤 도메인 사용",
+    onboarding_checklist_domain_badge: "선택 사항",
+    onboarding_checklist_domain_get: "맞춤 도메인 구입",
+    onboarding_checklist_domain_existing: "보유한 도메인 사용",
+    onboarding_checklist_hide_forever: "튜토리얼 목록 영구적으로 숨기기",
+    onboarding_checklist_shortcuts: "키보드 단축키",
+    onboarding_checklist_open: "튜토리얼 목록 표시",
+    onboarding_checklist_close: "튜토리얼 목록 닫기",
+    onboarding_checklist_task_done: "완료됨",
     onboarding_checklist_first_email: "첫 번째 이메일 보내기",
     recovery_reminder_title: "계정으로 돌아올 방법 추가",
     recovery_reminder_body:
@@ -9839,6 +9847,8 @@ export const ko = {
       "이 이메일을 보내지 못했습니다. 다시 시도하세요. 임시 보관함에 저장되었습니다.",
     cannot_send_no_keys:
       "필수 암호화가 켜져 있지만 {{recipients}}의 키가 없습니다. 보내려면 키 공유를 요청하거나 설정에서 필수 암호화를 끄세요. 임시 보관함에 저장되었습니다.",
+    sender_address_refused:
+      "Aster가 보낸 사람 필드의 주소로 이 메시지를 보낼 수 없습니다. 메시지를 보내려면 다른 주소를 선택하세요. 초안은 저장되어 있습니다.",
     cannot_send_no_recipient_keys:
       "필수 암호화가 켜져 있지만 수신자 중 누구도 등록된 키가 없습니다. 보내려면 수신자에게 키 공유를 요청하거나 설정에서 필수 암호화를 끄세요. 임시 보관함에 저장되었습니다.",
     cannot_send_no_recovery_key:

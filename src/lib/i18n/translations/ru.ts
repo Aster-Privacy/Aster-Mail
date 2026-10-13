@@ -1679,7 +1679,15 @@ export const ru = {
     no_custom_fields_yet: "Пользовательские поля ещё не определены",
     not_now: "Не сейчас",
     on_separator: "в",
-    onboarding_checklist_dismiss: "Скрыть",
+    onboarding_checklist_domain_heading: "Используйте свой домен",
+    onboarding_checklist_domain_badge: "Необязательно",
+    onboarding_checklist_domain_get: "Купить свой домен",
+    onboarding_checklist_domain_existing: "Использовать уже имеющийся домен",
+    onboarding_checklist_hide_forever: "Скрыть список обучения навсегда",
+    onboarding_checklist_shortcuts: "Сочетания клавиш",
+    onboarding_checklist_open: "Показать список обучения",
+    onboarding_checklist_close: "Закрыть список обучения",
+    onboarding_checklist_task_done: "Выполнено",
     onboarding_checklist_first_email: "Отправьте первое письмо",
     recovery_reminder_title: "Добавьте способ вернуться в аккаунт",
     recovery_reminder_body:
@@ -10417,6 +10425,8 @@ export const ru = {
       "Вход с ключом безопасности не завершился или был отменён. Попробуйте снова.",
     cannot_send_no_keys:
       "У вас включено обязательное шифрование, но у нас нет ключа для {{recipients}}. Попросите их поделиться ключом или отключите обязательное шифрование в Настройках. Черновик сохранён.",
+    sender_address_refused:
+      "Aster не удалось отправить это сообщение с адреса в поле «От». Чтобы отправить его, выберите другой адрес. Черновик сохранён.",
     cannot_send_no_recipient_keys:
       "У вас включено обязательное шифрование, но ни у кого из получателей нет ключа в базе. Попросите их поделиться ключом или отключите обязательное шифрование в Настройках. Черновик сохранён.",
     cannot_send_no_recovery_key:

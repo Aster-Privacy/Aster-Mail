@@ -1625,7 +1625,16 @@ export const pt_br = {
     not_phishing: "Não é phishing",
     notes_section: "Notas",
     on_separator: "em",
-    onboarding_checklist_dismiss: "Ocultar",
+    onboarding_checklist_domain_heading: "Use um domínio personalizado",
+    onboarding_checklist_domain_badge: "Opcional",
+    onboarding_checklist_domain_get: "Obtenha um domínio personalizado",
+    onboarding_checklist_domain_existing: "Use um domínio que você já tem",
+    onboarding_checklist_hide_forever:
+      "Ocultar a lista de tutoriais permanentemente",
+    onboarding_checklist_shortcuts: "Atalhos de teclado",
+    onboarding_checklist_open: "Mostrar a lista de tutoriais",
+    onboarding_checklist_close: "Fechar a lista de tutoriais",
+    onboarding_checklist_task_done: "Concluído",
     onboarding_checklist_first_email: "Envie seu primeiro e-mail",
     recovery_reminder_title: "Adicione uma forma de voltar à sua conta",
     recovery_reminder_body:
@@ -10274,6 +10283,8 @@ export const pt_br = {
       "O login com chave de segurança não foi concluído ou foi cancelado. Tente novamente.",
     cannot_send_no_keys:
       "Você tem criptografia obrigatória ativada, e não temos uma chave para {{recipients}}. Pedir que compartilhem uma chave, ou desativar a criptografia obrigatória em Configurações, vai permitir o envio. Seu rascunho está salvo.",
+    sender_address_refused:
+      "Não foi possível enviar esta mensagem a partir do endereço no campo De. Para enviá-la, escolha outro endereço. Seu rascunho está salvo.",
     cannot_send_no_recipient_keys:
       "Você tem criptografia obrigatória ativada, e nenhum dos seus destinatários tem uma chave registrada. Pedir que compartilhem uma, ou desativar a criptografia obrigatória em Configurações, vai permitir o envio. Seu rascunho está salvo.",
     cannot_send_no_recovery_key:

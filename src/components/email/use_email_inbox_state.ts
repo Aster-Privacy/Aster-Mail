@@ -49,8 +49,10 @@ import {
   apply_active_filter,
   kept_open_email_id,
   compute_total_pages,
+  resolve_filtered_pager_total,
   should_recover_empty_view,
 } from "@/components/email/inbox/inbox_view_helpers";
+import { count_left_read_filter } from "@/hooks/use_email_list";
 import { use_split_email_view } from "@/components/email/inbox/use_split_email_view";
 import { use_split_pane } from "@/components/email/inbox/use_split_pane";
 import { use_inbox_list_scroll } from "@/components/email/inbox/use_inbox_list_scroll";
@@ -112,6 +114,9 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     tag_not_found,
     locked_folder,
     page_category_ref,
+    active_filter,
+    set_active_filter,
+    read_filter,
     fetch_page,
     is_page_cached,
     update_email,
@@ -132,7 +137,6 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     context_menu_actions: list_context_menu_actions,
   } = use_inbox_view_state(props);
 
-  const [active_filter, set_active_filter] = useState<InboxFilterType>("all");
   const [is_paginating, set_is_paginating] = useState(false);
   const paginate_seq_ref = useRef(0);
   const prev_view_ref_page = useRef(current_view);
@@ -376,11 +380,45 @@ export function use_email_inbox_state(props: EmailInboxProps) {
               ? email_state.total_messages
               : stats_total_for_view || 0,
           );
-  const effective_total_for_pages = is_client_filtered
-    ? all_primary_emails.filter((e) => e.id !== kept_open_id).length
+  const is_server_filtered =
+    read_filter !== "all" && (!is_alias_view || alias_scoped_by_server);
+  const left_filter_count = is_server_filtered
+    ? count_left_read_filter(view_filtered_emails, read_filter)
+    : 0;
+  const loaded_matching_total = Math.max(
+    0,
+    (email_state.has_initial_load ? email_state.total_messages : 0) -
+      left_filter_count,
+  );
+  const active_category_counts = categories.counts[categories.active_category];
+  const server_filtered_total = !is_server_filtered
+    ? 0
+    : categories.enabled && is_category_index_built()
+      ? read_filter === "unread"
+        ? (active_category_counts?.unread ?? 0)
+        : Math.max(
+            0,
+            (active_category_counts?.total ?? 0) -
+              (active_category_counts?.unread ?? 0),
+          )
+      : loaded_matching_total;
+  const server_filtered_slots = !is_server_filtered
+    ? 0
+    : categories.enabled
+      ? Math.max(server_filtered_total, email_state.total_messages)
+      : email_state.has_initial_load
+        ? Math.max(0, email_state.total_messages)
+        : 0;
+  const total_for_pages = is_server_filtered
+    ? server_filtered_slots
     : unfiltered_total_for_pages;
+  const effective_total_for_pages = is_server_filtered
+    ? server_filtered_total
+    : is_client_filtered
+      ? all_primary_emails.filter((e) => e.id !== kept_open_id).length
+      : unfiltered_total_for_pages;
   const total_pages = compute_total_pages({
-    effective_total: unfiltered_total_for_pages,
+    effective_total: total_for_pages,
     page_size,
     current_page,
     has_more: email_state.has_more,
@@ -464,7 +502,7 @@ export function use_email_inbox_state(props: EmailInboxProps) {
 
   useEffect(() => {
     if (!totals_authoritative) return;
-    if (unfiltered_total_for_pages <= 0) return;
+    if (total_for_pages <= 0 && !is_server_filtered) return;
     if (current_page >= total_pages && total_pages > 0) {
       set_current_page(total_pages - 1);
     }
@@ -473,7 +511,8 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     total_pages,
     set_current_page,
     totals_authoritative,
-    unfiltered_total_for_pages,
+    total_for_pages,
+    is_server_filtered,
   ]);
 
   const empty_recovery_ref = useRef<{ view: string; attempts: number }>({
@@ -932,9 +971,15 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     empty_state_visible,
     skeleton_visible,
     effective_total_for_pages,
-    pager_total: is_client_filtered
-      ? unfiltered_total_for_pages
-      : effective_total_for_pages,
+    pager_total: is_server_filtered
+      ? resolve_filtered_pager_total(
+          server_filtered_total,
+          total_pages,
+          page_size,
+        )
+      : is_client_filtered
+        ? unfiltered_total_for_pages
+        : effective_total_for_pages,
     header_display_count,
     total_pages,
     selection,

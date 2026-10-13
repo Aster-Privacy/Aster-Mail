@@ -1803,10 +1803,19 @@ export const it = {
     label_system_spam: "Spam",
     label_system_archive: "Archivio",
     onboarding_checklist_title: "Inizia",
-    onboarding_checklist_dismiss: "Nascondi",
     onboarding_checklist_install_app: "Installa l'app",
     onboarding_checklist_import_mail: "Importa la tua vecchia posta",
     onboarding_checklist_recovery_method: "Aggiungi un metodo di recupero",
+    onboarding_checklist_domain_heading: "Usa un dominio personalizzato",
+    onboarding_checklist_domain_badge: "Facoltativo",
+    onboarding_checklist_domain_get: "Ottieni un dominio personalizzato",
+    onboarding_checklist_domain_existing: "Usa un dominio che possiedi",
+    onboarding_checklist_hide_forever:
+      "Nascondi definitivamente l'elenco dei tutorial",
+    onboarding_checklist_shortcuts: "Abbreviazioni da tastiera",
+    onboarding_checklist_open: "Mostra l'elenco dei tutorial",
+    onboarding_checklist_close: "Chiudi l'elenco dei tutorial",
+    onboarding_checklist_task_done: "Completato",
     onboarding_checklist_first_email: "Invia la tua prima email",
     recovery_reminder_title: "Aggiungi un modo per rientrare nel tuo account",
     recovery_reminder_body:
@@ -10279,6 +10288,8 @@ export const it = {
       "L'accesso con chiave di sicurezza non è stato completato o è stato annullato. Riprova.",
     cannot_send_no_keys:
       "Ha la crittografia obbligatoria attivata e non abbiamo una chiave per {{recipients}}. Chiedere loro di condividere una chiave, o disattivare la crittografia obbligatoria in Impostazioni, permetterà l'invio. La sua bozza è salvata.",
+    sender_address_refused:
+      "Aster non ha potuto inviare questo messaggio dall'indirizzo nel campo Da. Per inviarlo, scegli un altro indirizzo. La bozza è salvata.",
     cannot_send_no_recipient_keys:
       "Ha la crittografia obbligatoria attivata e nessuno dei suoi destinatari ha una chiave registrata. Chiedere loro di condividerne una, o disattivare la crittografia obbligatoria in Impostazioni, permetterà l'invio. La sua bozza è salvata.",
     cannot_send_no_recovery_key:

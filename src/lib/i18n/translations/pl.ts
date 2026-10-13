@@ -1817,10 +1817,18 @@ export const pl = {
     label_system_spam: "Spam",
     label_system_archive: "Archiwum",
     onboarding_checklist_title: "Pierwsze kroki",
-    onboarding_checklist_dismiss: "Ukryj",
     onboarding_checklist_install_app: "Zainstaluj aplikację",
     onboarding_checklist_import_mail: "Zaimportuj starą pocztę",
     onboarding_checklist_recovery_method: "Dodaj metodę odzyskiwania",
+    onboarding_checklist_domain_heading: "Użyj własnej domeny",
+    onboarding_checklist_domain_badge: "Opcjonalne",
+    onboarding_checklist_domain_get: "Kup własną domenę",
+    onboarding_checklist_domain_existing: "Użyj domeny, którą już masz",
+    onboarding_checklist_hide_forever: "Ukryj listę samouczków na stałe",
+    onboarding_checklist_shortcuts: "Skróty klawiszowe",
+    onboarding_checklist_open: "Pokaż listę samouczków",
+    onboarding_checklist_close: "Zamknij listę samouczków",
+    onboarding_checklist_task_done: "Ukończono",
     onboarding_checklist_first_email: "Wyślij pierwszą wiadomość",
     recovery_reminder_title: "Dodaj sposób na powrót do konta",
     recovery_reminder_body:
@@ -10475,6 +10483,8 @@ export const pl = {
       "Ta wiadomość nie została wysłana. Spróbuj ponownie. Szkic jest zapisany.",
     cannot_send_no_keys:
       "Masz włączone obowiązkowe szyfrowanie i nie mamy klucza dla {{recipients}}. Poproś ich o udostępnienie klucza lub wyłącz obowiązkowe szyfrowanie w Ustawieniach. Wersja robocza jest zapisana.",
+    sender_address_refused:
+      "Aster nie mógł wysłać tej wiadomości z adresu w polu Od. Aby ją wysłać, wybierz inny adres. Wersja robocza jest zapisana.",
     cannot_send_no_recipient_keys:
       "Masz włączone obowiązkowe szyfrowanie i żaden z odbiorców nie ma klucza na pliku. Poproś ich o udostępnienie klucza lub wyłącz obowiązkowe szyfrowanie w Ustawieniach. Wersja robocza jest zapisana.",
     cannot_send_no_recovery_key:

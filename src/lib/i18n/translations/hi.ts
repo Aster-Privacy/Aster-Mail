@@ -1706,10 +1706,18 @@ export const hi = {
     label_system_spam: "स्पैम",
     label_system_archive: "आर्काइव",
     onboarding_checklist_title: "शुरू करें",
-    onboarding_checklist_dismiss: "छिपाएं",
     onboarding_checklist_install_app: "ऐप इंस्टॉल करें",
     onboarding_checklist_import_mail: "अपना पुराना मेल इंपोर्ट करें",
     onboarding_checklist_recovery_method: "रिकवरी का तरीका जोड़ें",
+    onboarding_checklist_domain_heading: "कस्टम डोमेन का उपयोग करें",
+    onboarding_checklist_domain_badge: "वैकल्पिक",
+    onboarding_checklist_domain_get: "कस्टम डोमेन पाएँ",
+    onboarding_checklist_domain_existing: "अपना मौजूदा डोमेन उपयोग करें",
+    onboarding_checklist_hide_forever: "ट्यूटोरियल सूची हमेशा के लिए छिपाएँ",
+    onboarding_checklist_shortcuts: "कीबोर्ड शॉर्टकट",
+    onboarding_checklist_open: "ट्यूटोरियल सूची दिखाएँ",
+    onboarding_checklist_close: "ट्यूटोरियल सूची बंद करें",
+    onboarding_checklist_task_done: "पूरा हुआ",
     onboarding_checklist_first_email: "अपना पहला ईमेल भेजें",
     recovery_reminder_title: "अपने खाते में वापस आने का रास्ता जोड़ें",
     recovery_reminder_body:
@@ -10005,6 +10013,8 @@ export const hi = {
       "यह ईमेल नहीं भेजा गया। फिर से कोशिश करें। आपका ड्राफ़्ट सहेजा गया है।",
     cannot_send_no_keys:
       "आपने अनिवार्य एन्क्रिप्शन चालू कर रखा है, और हमारे पास {{recipients}} के लिए कोई कुंजी नहीं है। उनसे कुंजी साझा करने को कहने, या सेटिंग में अनिवार्य एन्क्रिप्शन बंद करने पर यह भेजा जा सकेगा। आपका ड्राफ़्ट सहेज लिया गया है।",
+    sender_address_refused:
+      "Aster इस संदेश को “प्रेषक” फ़ील्ड के पते से नहीं भेज सका। इसे भेजने के लिए, कोई दूसरा पता चुनें। आपका ड्राफ़्ट सहेजा गया है।",
     cannot_send_no_recipient_keys:
       "आपने अनिवार्य एन्क्रिप्शन चालू कर रखा है, और आपके किसी भी प्राप्तकर्ता की कुंजी हमारे पास नहीं है। उनसे कुंजी साझा करने को कहने, या सेटिंग में अनिवार्य एन्क्रिप्शन बंद करने पर यह भेजा जा सकेगा। आपका ड्राफ़्ट सहेज लिया गया है।",
     post_quantum_unavailable:

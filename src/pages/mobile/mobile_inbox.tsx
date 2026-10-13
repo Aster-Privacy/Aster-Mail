@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { InboxEmail, InboxFilterType } from "@/types/email";
+import type { ListReadFilter } from "@/hooks/email_list_types";
 
 import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
@@ -163,19 +164,42 @@ function MobileInbox({
   const is_scheduled_view = current_view === "scheduled";
 
   const categories = use_inbox_categories(current_view);
+  const [filter_selection, set_filter_selection] = useState<{
+    view: string;
+    filter: InboxFilterType;
+  }>({ view: current_view, filter: "all" });
+  const active_filter: InboxFilterType =
+    filter_selection.view === current_view ? filter_selection.filter : "all";
+  const set_active_filter = useCallback(
+    (filter: InboxFilterType) =>
+      set_filter_selection({ view: current_view, filter }),
+    [current_view],
+  );
+  const read_filter: ListReadFilter =
+    !is_drafts_view &&
+    !is_scheduled_view &&
+    (active_filter === "unread" || active_filter === "read")
+      ? active_filter
+      : "all";
+  const category_scope = `${categories.active_category}|${read_filter}`;
   const [category_pagination, set_category_pagination] = useState({
-    category: categories.active_category,
+    category: category_scope,
     page: 0,
   });
   const category_page =
-    category_pagination.category === categories.active_category
+    category_pagination.category === category_scope
       ? category_pagination.page
       : 0;
-  const default_list = use_email_list(current_view, !categories.enabled);
+  const default_list = use_email_list(
+    current_view,
+    !categories.enabled,
+    read_filter,
+  );
   const category_list = use_category_inbox(
     categories.active_category,
     category_page,
     categories.enabled && categories.restored,
+    read_filter,
   );
   const {
     state: mail_state,
@@ -202,7 +226,6 @@ function MobileInbox({
   const { request_spam, spam_confirm_dialog } = use_spam_confirm();
   const { get_tag_by_token, state: tags_state } = use_tags();
   const { get_folder_by_token, state: folders_state } = use_folders();
-  const [active_filter, set_active_filter] = useState<InboxFilterType>("all");
   const [selection_mode, set_selection_mode] = useState(false);
   const [selected_ids, set_selected_ids] = useState<Set<string>>(new Set());
   const [is_refreshing, set_is_refreshing] = useState(false);
@@ -229,10 +252,6 @@ function MobileInbox({
   const [is_emptying_trash, set_is_emptying_trash] = useState(false);
 
   useEffect(() => {
-    set_active_filter("all");
-  }, [current_view]);
-
-  useEffect(() => {
     set_selection_mode(false);
     set_selected_ids(new Set());
     set_snooze_email_target(null);
@@ -246,8 +265,8 @@ function MobileInbox({
   ]);
 
   useEffect(() => {
-    set_category_pagination({ category: categories.active_category, page: 0 });
-  }, [current_view, categories.active_category, categories.enabled]);
+    set_category_pagination({ category: category_scope, page: 0 });
+  }, [current_view, category_scope, categories.enabled]);
 
   const is_trash_view = current_view === "trash";
   const is_spam_view = current_view === "spam";
@@ -1200,7 +1219,7 @@ function MobileInbox({
               type="button"
               onClick={() =>
                 set_category_pagination({
-                  category: categories.active_category,
+                  category: category_scope,
                   page: category_page - 1,
                 })
               }
@@ -1218,7 +1237,7 @@ function MobileInbox({
               type="button"
               onClick={() =>
                 set_category_pagination({
-                  category: categories.active_category,
+                  category: category_scope,
                   page: category_page + 1,
                 })
               }
