@@ -68,6 +68,7 @@ export async function try_decrypt_with_identity_key(
 }
 
 const ENVELOPE_CACHE_MAX = 2000;
+const ENVELOPE_CACHE_MAX_CHARS = 16_000_000;
 const ENVELOPE_CACHE_TAIL = 64;
 const FAILED_ENVELOPE_MAX = 2000;
 const FAILED_ENVELOPE_TTL_MS = 5 * 60 * 1000;
@@ -88,6 +89,8 @@ function opened_attempt(envelope: DecryptedEnvelope): EnvelopeAttempt {
 }
 
 const envelope_cache = new Map<string, Promise<EnvelopeAttempt>>();
+const envelope_cache_sizes = new Map<string, number>();
+let envelope_cache_chars = 0;
 const failed_envelopes = new Map<string, number>();
 const pending_generations = new WeakMap<Promise<EnvelopeAttempt>, number>();
 let key_generation = 0;
@@ -103,11 +106,43 @@ function envelope_cache_key(
   return `${mail_item_id}|${nonce}|${encrypted.length}|${encrypted.slice(-ENVELOPE_CACHE_TAIL)}`;
 }
 
+function drop_cached_envelope(key: string): void {
+  envelope_cache.delete(key);
+  envelope_cache_chars -= envelope_cache_sizes.get(key) ?? 0;
+  envelope_cache_sizes.delete(key);
+}
+
+function drop_all_cached_envelopes(): void {
+  envelope_cache.clear();
+  envelope_cache_sizes.clear();
+  envelope_cache_chars = 0;
+}
+
+function store_cached_envelope(
+  key: string,
+  pending: Promise<EnvelopeAttempt>,
+  size: number,
+): void {
+  envelope_cache.set(key, pending);
+  envelope_cache_sizes.set(key, size);
+  envelope_cache_chars += size;
+  while (
+    envelope_cache.size > 1 &&
+    (envelope_cache.size > ENVELOPE_CACHE_MAX ||
+      envelope_cache_chars > ENVELOPE_CACHE_MAX_CHARS)
+  ) {
+    const oldest = envelope_cache.keys().next().value;
+
+    if (oldest === undefined || oldest === key) break;
+    drop_cached_envelope(oldest);
+  }
+}
+
 function arm_envelope_cache(): void {
   if (envelope_cache_armed) return;
   envelope_cache_armed = true;
   on_vault_cleared(() => {
-    envelope_cache.clear();
+    drop_all_cached_envelopes();
     forget_failed_envelopes();
   });
   on_keys_ready(() => {
@@ -145,7 +180,7 @@ function remember_failure(key: string): void {
 }
 
 export function clear_envelope_cache(): void {
-  envelope_cache.clear();
+  drop_all_cached_envelopes();
   forget_failed_envelopes();
 }
 
@@ -175,13 +210,7 @@ export async function decrypt_envelope(
   } else {
     pending = open_envelope(encrypted, nonce, mail_item_id);
     pending_generations.set(pending, key_generation);
-    envelope_cache.set(key, pending);
-    while (envelope_cache.size > ENVELOPE_CACHE_MAX) {
-      const oldest = envelope_cache.keys().next().value;
-
-      if (oldest === undefined) break;
-      envelope_cache.delete(oldest);
-    }
+    store_cached_envelope(key, pending, encrypted.length);
   }
 
   let attempt: EnvelopeAttempt;
@@ -189,14 +218,14 @@ export async function decrypt_envelope(
   try {
     attempt = await pending;
   } catch (caught) {
-    if (envelope_cache.get(key) === pending) envelope_cache.delete(key);
+    if (envelope_cache.get(key) === pending) drop_cached_envelope(key);
     throw caught;
   }
 
   const { envelope } = attempt;
 
   if (!envelope) {
-    if (envelope_cache.get(key) === pending) envelope_cache.delete(key);
+    if (envelope_cache.get(key) === pending) drop_cached_envelope(key);
     if (
       attempt.exhausted &&
       pending_generations.get(pending) === key_generation

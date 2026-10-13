@@ -734,7 +734,7 @@ export async function open_snapshot_writer(
     }
 
     const chunk_id = next_chunk_id++;
-    const chunk_items = buffer_items.map(trim_item_for_index);
+    const chunk_items = buffer_items;
     const chunk_entries = buffer_items.map((item, i) =>
       to_persisted_entry(item.id, buffer_sources[i]),
     );
@@ -857,7 +857,7 @@ export async function open_snapshot_writer(
 
         if (!entry) continue;
 
-        buffer_items.push(item);
+        buffer_items.push(trim_item_for_index(item));
         buffer_sources.push(entry);
 
         if (buffer_items.length >= SNAPSHOT_CHUNK_SIZE) {
