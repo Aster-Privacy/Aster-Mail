@@ -55,6 +55,7 @@ export const MAIL_EVENTS = {
   REACTIONS_CHANGED: "astermail:reactions-changed",
   REACTION_RECEIVED: "astermail:reaction-received",
   INBOX_UNREAD_INDEXED: "astermail:inbox-unread-indexed",
+  INBOX_UNREAD_DRIFT: "astermail:inbox-unread-drift",
 } as const;
 
 export type MailEventType = (typeof MAIL_EVENTS)[keyof typeof MAIL_EVENTS];
@@ -174,6 +175,10 @@ export interface InboxUnreadIndexedEventDetail {
   total: number | null;
 }
 
+export interface InboxUnreadDriftEventDetail {
+  server_unread: number;
+}
+
 type EventDetailMap = {
   [MAIL_EVENTS.MAIL_CHANGED]: undefined;
   [MAIL_EVENTS.MAIL_ITEM_UPDATED]: MailItemUpdatedEventDetail;
@@ -205,6 +210,7 @@ type EventDetailMap = {
   [MAIL_EVENTS.REACTIONS_CHANGED]: ReactionsChangedEventDetail;
   [MAIL_EVENTS.REACTION_RECEIVED]: ReactionReceivedEventDetail;
   [MAIL_EVENTS.INBOX_UNREAD_INDEXED]: InboxUnreadIndexedEventDetail;
+  [MAIL_EVENTS.INBOX_UNREAD_DRIFT]: InboxUnreadDriftEventDetail;
 };
 
 type EventSubscription = () => void;

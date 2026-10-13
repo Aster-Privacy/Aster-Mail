@@ -32,6 +32,7 @@ import {
 import { get_current_account_id } from "@/services/account_manager";
 import { clear_strikes, record_absences } from "@/services/absent_strikes";
 import {
+  get_mail_stats,
   list_mail_items,
   sync_mail_items,
   type MailItem,
@@ -2769,6 +2770,202 @@ export function reindex_ids(ids: string[]): void {
   void reclassify_many(ids);
 }
 
+const UNREAD_VERIFY_DELAY_MS = 2500;
+const UNREAD_VERIFY_MIN_INTERVAL_MS = 15000;
+const UNREAD_VERIFY_SETTLED_MS = 10 * 60 * 1000;
+const UNREAD_VERIFY_ID_CAP = 1000;
+const UNREAD_VERIFY_PAGE_SIZE = 50;
+const UNREAD_VERIFY_MAX_PAGES = 20;
+
+let unread_verify_timer: ReturnType<typeof setTimeout> | null = null;
+let unread_verify_running = false;
+let last_unread_verify_ms = 0;
+let settled_unread_drift: { drift: number; at: number } | null = null;
+
+function reset_unread_verify(): void {
+  if (unread_verify_timer) {
+    clearTimeout(unread_verify_timer);
+    unread_verify_timer = null;
+  }
+  last_unread_verify_ms = 0;
+  settled_unread_drift = null;
+}
+
+async function fetch_server_unread(): Promise<number | null> {
+  try {
+    const response = await get_mail_stats(true);
+
+    if (response.error || !response.data) return null;
+
+    return response.data.unread;
+  } catch {
+    return null;
+  }
+}
+
+async function recheck_unread_entries(
+  ids: string[],
+  generation: number,
+): Promise<void> {
+  for (let i = 0; i < ids.length; i += REINDEX_CHUNK_SIZE) {
+    const chunk = ids.slice(i, i + REINDEX_CHUNK_SIZE);
+    const fetched_at = now_ms();
+    const response = await list_mail_items({ ids: chunk });
+
+    if (generation !== index_generation) return;
+    if (response.error || !response.data) continue;
+
+    const items = response.data.items ?? [];
+    const returned = new Set(items.map((item) => item.id));
+    const upserts: CategoryIndexEntry[] = [];
+    const removals: string[] = [];
+
+    for (const item of items) {
+      const existing = entries_map.get(item.id);
+
+      if (!existing) continue;
+      if (item.item_type !== "received" || is_item_moved_out(item)) {
+        removals.push(item.id);
+        continue;
+      }
+      upserts.push(refresh_item_fields(existing, item));
+    }
+
+    upsert_entries(upserts, generation, fetched_at);
+    clear_absent_strikes([...returned]);
+    remove_ids_absent_from_server(
+      chunk.filter((id) => !returned.has(id) && entries_map.has(id)),
+    );
+    remove_ids(removals);
+  }
+}
+
+async function pull_server_unread_items(generation: number): Promise<void> {
+  let cursor: string | undefined;
+
+  for (let page = 0; page < UNREAD_VERIFY_MAX_PAGES; page += 1) {
+    const fetched_at = now_ms();
+    const response = await list_mail_items({
+      item_type: "received",
+      is_trashed: false,
+      is_spam: false,
+      is_archived: false,
+      is_snoozed: false,
+      is_read: false,
+      limit: UNREAD_VERIFY_PAGE_SIZE,
+      skip_total: true,
+      cursor,
+    });
+
+    if (generation !== index_generation) return;
+    if (response.error || !response.data) return;
+
+    const unread_items = (response.data.items ?? []).filter(
+      (item) => item.is_read === false,
+    );
+    const { upserts } = await entries_from_items(unread_items, "indexed");
+
+    if (generation !== index_generation) return;
+
+    upsert_entries(upserts, generation, fetched_at);
+    cursor = response.data.next_cursor;
+    if (!response.data.has_more || !cursor) return;
+  }
+}
+
+export async function verify_unread_against_server(): Promise<void> {
+  if (unread_verify_running) return;
+  if (!has_vault_in_memory()) return;
+  if (get_inbox_unread_total() === null) return;
+
+  unread_verify_running = true;
+  last_unread_verify_ms = now_ms();
+
+  const generation = index_generation;
+
+  try {
+    const server_unread = await fetch_server_unread();
+
+    if (generation !== index_generation || server_unread === null) return;
+
+    const indexed = get_inbox_unread_total();
+
+    if (indexed === null) return;
+    if (indexed === server_unread) {
+      settled_unread_drift = null;
+
+      return;
+    }
+
+    const unread_ids: string[] = [];
+
+    for (const entry of entries_map.values()) {
+      if (!entry.is_read) unread_ids.push(entry.id);
+    }
+
+    if (unread_ids.length > UNREAD_VERIFY_ID_CAP) {
+      if (now_ms() - last_gap_rebuild_ms > GAP_REBUILD_MIN_INTERVAL_MS) {
+        last_gap_rebuild_ms = now_ms();
+        request_full_rebuild();
+      }
+
+      return;
+    }
+
+    await recheck_unread_entries(unread_ids, generation);
+    if (generation !== index_generation) return;
+    flush_pending_notify();
+
+    const rechecked = get_inbox_unread_total();
+
+    if (rechecked !== null && rechecked < server_unread) {
+      await pull_server_unread_items(generation);
+      if (generation !== index_generation) return;
+      flush_pending_notify();
+    }
+
+    const settled = get_inbox_unread_total();
+
+    settled_unread_drift =
+      settled === null || settled === server_unread
+        ? null
+        : { drift: server_unread - settled, at: now_ms() };
+  } catch {
+    return;
+  } finally {
+    unread_verify_running = false;
+  }
+}
+
+function note_server_unread(server_unread: number): void {
+  const indexed = get_inbox_unread_total();
+
+  if (indexed === null) return;
+  if (indexed === server_unread) {
+    settled_unread_drift = null;
+
+    return;
+  }
+  if (
+    settled_unread_drift &&
+    settled_unread_drift.drift === server_unread - indexed &&
+    now_ms() - settled_unread_drift.at < UNREAD_VERIFY_SETTLED_MS
+  ) {
+    return;
+  }
+  if (unread_verify_timer) return;
+
+  const since_last = now_ms() - last_unread_verify_ms;
+
+  unread_verify_timer = setTimeout(
+    () => {
+      unread_verify_timer = null;
+      void verify_unread_against_server();
+    },
+    Math.max(UNREAD_VERIFY_DELAY_MS, UNREAD_VERIFY_MIN_INTERVAL_MS - since_last),
+  );
+}
+
 const TERMINAL_ACTIONS = new Set([
   "delete",
   "trash",
@@ -2819,6 +3016,7 @@ export function clear_category_index_memory(): void {
   built_custom_categories_key = null;
   last_build_ms = 0;
   last_gap_rebuild_ms = 0;
+  reset_unread_verify();
   drift_rebuilds = 0;
   suppressed_ids.clear();
   loaded_for_account = null;
@@ -2889,6 +3087,10 @@ export function start_event_listeners(): void {
   on_mail_event(MAIL_EVENTS.MAIL_SOFT_REFRESH, () => {
     resync_failures = 0;
     schedule_resync();
+  });
+
+  on_mail_event(MAIL_EVENTS.INBOX_UNREAD_DRIFT, (detail) => {
+    note_server_unread(detail.server_unread);
   });
 
   document.addEventListener("visibilitychange", () => {
@@ -3093,6 +3295,7 @@ export async function clear_category_index(): Promise<void> {
   resync_failures = 0;
   last_build_ms = 0;
   last_gap_rebuild_ms = 0;
+  reset_unread_verify();
   drift_rebuilds = 0;
   seen_ts = {};
   suppressed_ids.clear();
