@@ -376,66 +376,145 @@ export function SearchIndexBadge({
   );
 }
 
-const DIAL_PATH = "M20 3a17 17 0 1 1 0 34a17 17 0 1 1 0-34";
+const LENS_RING_PATH = "M40 3a37 37 0 1 1 0 74a37 37 0 1 1 0-74";
 
-interface IndexDialProps {
+const LENS_LINES = [
+  { y: 31, x: 23, width: 34, delay: "0s" },
+  { y: 39, x: 23, width: 26, delay: "1.4s" },
+  { y: 47, x: 23, width: 30, delay: "2.4s" },
+];
+
+interface SearchLensProps {
   percent: number;
   indeterminate: boolean;
   paused: boolean;
 }
 
-function IndexDial({ percent, indeterminate, paused }: IndexDialProps) {
-  const filled = indeterminate ? 25 : Math.min(Math.max(percent, 0), 100);
-  const spinning = indeterminate && !paused;
+function SearchLens({ percent, indeterminate, paused }: SearchLensProps) {
+  const filled = indeterminate ? 22 : Math.min(Math.max(percent, 0), 100);
+  const moving = !paused;
+  const ink = paused ? "var(--text-muted)" : "var(--accent-color)";
 
   return (
     <div
-      className="relative flex h-11 w-11 items-center justify-center"
+      className="relative h-20 w-20 flex-shrink-0"
       data-dial-percent={indeterminate ? undefined : Math.floor(filled)}
+      data-lens-state={paused ? "paused" : "searching"}
     >
       <svg
         aria-hidden="true"
-        className={`absolute inset-0 h-11 w-11 ${spinning ? "animate-spin" : ""}`}
-        viewBox="0 0 40 40"
+        className="absolute inset-0 h-20 w-20 overflow-visible"
+        height="80"
+        viewBox="0 0 80 80"
+        width="80"
       >
+        <circle
+          className={moving ? "aster_search_lens_halo" : undefined}
+          cx="40"
+          cy="40"
+          fill={ink}
+          opacity={paused ? 0.06 : 0.1}
+          r="28"
+        />
         <path
-          d={DIAL_PATH}
+          d={LENS_RING_PATH}
           fill="none"
           stroke="var(--border-secondary)"
-          strokeWidth="3"
+          strokeWidth="2.5"
+        />
+        <g
+          className={
+            indeterminate && moving ? "aster_search_lens_orbit" : undefined
+          }
+        >
+          <path
+            d={LENS_RING_PATH}
+            fill="none"
+            pathLength={100}
+            stroke={ink}
+            strokeDasharray="100"
+            strokeDashoffset={100 - filled}
+            strokeLinecap="round"
+            strokeWidth="2.5"
+            style={{
+              opacity: paused ? 0.5 : 1,
+              transition: "stroke-dashoffset 500ms ease-out",
+            }}
+          />
+        </g>
+        {LENS_LINES.map((line) => (
+          <g key={line.y}>
+            <rect
+              fill="var(--text-muted)"
+              height="3"
+              opacity={paused ? 0.25 : 0.35}
+              rx="1.5"
+              width={line.width}
+              x={line.x}
+              y={line.y}
+            />
+            {moving && (
+              <rect
+                className="aster_search_lens_glint"
+                fill="var(--accent-color)"
+                height="3"
+                rx="1.5"
+                style={{ animationDelay: line.delay }}
+                width={line.width}
+                x={line.x}
+                y={line.y}
+              />
+            )}
+          </g>
+        ))}
+        <g transform="translate(40 40)">
+          <g className={moving ? "aster_search_lens_sweep" : undefined}>
+            <circle
+              cx="0"
+              cy="0"
+              fill={ink}
+              fillOpacity="0.12"
+              r="9"
+              stroke={ink}
+              strokeWidth="2.5"
+            />
+            <path
+              d="M6.6 6.6l6 6"
+              stroke={ink}
+              strokeLinecap="round"
+              strokeWidth="3.5"
+            />
+          </g>
+        </g>
+      </svg>
+    </div>
+  );
+}
+
+function LensGlyph() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="h-4 w-4 flex-shrink-0 overflow-visible"
+      viewBox="0 0 16 16"
+    >
+      <g className="aster_search_lens_nudge">
+        <circle
+          cx="7"
+          cy="7"
+          fill="none"
+          r="4.5"
+          stroke="currentColor"
+          strokeWidth="1.75"
         />
         <path
-          d={DIAL_PATH}
-          fill="none"
-          pathLength={100}
-          stroke="var(--accent-color)"
-          strokeDasharray="100"
-          strokeDashoffset={100 - filled}
+          d="M10.4 10.4l3 3"
+          stroke="currentColor"
           strokeLinecap="round"
-          strokeWidth="3"
-          style={{
-            opacity: paused ? 0.45 : 1,
-            transition: "stroke-dashoffset 400ms ease-out",
-          }}
+          strokeWidth="2"
         />
-      </svg>
-      {paused ? (
-        <PauseIcon
-          aria-hidden="true"
-          className="h-4 w-4"
-          style={{ color: "var(--text-muted)" }}
-        />
-      ) : (
-        !indeterminate && (
-          <span
-            className="text-[11px] font-semibold tabular-nums"
-            style={{ color: "var(--text-primary)" }}
-          >
-            {Math.floor(filled)}%
-          </span>
-        )
-      )}
-    </div>
+      </g>
+    </svg>
   );
 }
 
@@ -490,9 +569,11 @@ function use_index_controls(
           done: status.done.toLocaleString(language),
           total: status.total.toLocaleString(language),
         })
-      : t("mail.search_index_progress_unknown", {
-          done: status.done.toLocaleString(language),
-        });
+      : status.done > 0
+        ? t("mail.search_index_progress_unknown", {
+            done: status.done.toLocaleString(language),
+          })
+        : "";
   const eta =
     eta_seconds !== null && running
       ? t("mail.estimated_time_remaining", {
@@ -501,7 +582,7 @@ function use_index_controls(
       : null;
 
   return {
-    detail: eta ? `${count} · ${eta}` : count,
+    detail: [count, eta].filter(Boolean).join(" · "),
     resume: () => resume_index_download(user?.email || "", search_content),
   };
 }
@@ -574,15 +655,15 @@ export function SearchIndexingState({
 
   return (
     <div
-      className="flex flex-col items-center px-6 pb-12 pt-16 text-center"
+      className="aster_search_state_in flex min-h-full flex-col items-center justify-center px-6 pb-24 pt-12 text-center"
       data-testid={testid}
     >
-      <IndexDial
+      <SearchLens
         indeterminate={status.total === 0}
         paused={status.is_paused}
         percent={status.percent}
       />
-      <div className="mt-4 flex items-center gap-1 ps-6">
+      <div className="mt-5 flex items-center gap-1 ps-6">
         <p
           className="text-[15px] font-semibold"
           role="status"
@@ -595,7 +676,7 @@ export function SearchIndexingState({
         <IndexWhyButton testid={`${testid}-why`} />
       </div>
       <p
-        className="mt-0.5 text-[13px] tabular-nums"
+        className="mt-0.5 min-h-5 text-[13px] leading-5 tabular-nums"
         style={{ color: "var(--text-muted)" }}
       >
         {detail}
@@ -631,11 +712,7 @@ export function SearchIndexingRow({
       {status.is_paused ? (
         <PauseIcon aria-hidden="true" className="h-3.5 w-3.5 flex-shrink-0" />
       ) : (
-        <IndexRing
-          indeterminate={!has_total}
-          paused={false}
-          percent={status.percent}
-        />
+        <LensGlyph />
       )}
       <span role="status">
         {status.is_paused

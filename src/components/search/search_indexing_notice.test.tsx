@@ -245,7 +245,12 @@ describe("search indexing state", () => {
 
     const state = by_testid("search-indexing-state")!;
 
-    expect(state.querySelector("[data-dial-percent]")?.textContent).toBe("34%");
+    expect(
+      state
+        .querySelector("[data-dial-percent]")
+        ?.getAttribute("data-dial-percent"),
+    ).toBe("34");
+    expect(state.querySelector(".aster_search_lens_sweep")).not.toBeNull();
     expect(state.querySelector('[role="status"]')?.textContent).toBe(
       "mail.search_searching_title",
     );
@@ -260,14 +265,42 @@ describe("search indexing state", () => {
     expect(pause_mock).toHaveBeenCalled();
   });
 
-  it("spins the dial while the mailbox size is unknown", () => {
+  it("orbits the ring while the mailbox size is unknown", () => {
     Object.assign(progress_state, { building: true, current: 120, total: 0 });
     render(true);
 
     const state = by_testid("search-indexing-state")!;
 
     expect(state.querySelector("[data-dial-percent]")).toBeNull();
-    expect(state.querySelector("svg.animate-spin")).not.toBeNull();
+    expect(state.querySelector(".aster_search_lens_orbit")).not.toBeNull();
+    expect(state.textContent).toContain(
+      'mail.search_index_progress_unknown {"done":"120"}',
+    );
+  });
+
+  it("leaves out the count before any mail is indexed", () => {
+    Object.assign(progress_state, { building: true, current: 0, total: 0 });
+    render(true);
+
+    const state = by_testid("search-indexing-state")!;
+
+    expect(state.textContent).not.toContain("search_index_progress");
+  });
+
+  it("rests the lens when indexing is paused", () => {
+    Object.assign(progress_state, {
+      paused: true,
+      done: 4800,
+      download_total: 13922,
+    });
+    render(true);
+
+    const state = by_testid("search-indexing-state")!;
+
+    expect(
+      state.querySelector("[data-lens-state]")?.getAttribute("data-lens-state"),
+    ).toBe("paused");
+    expect(state.querySelector(".aster_search_lens_sweep")).toBeNull();
   });
 
   it("explains indexing from the information button", () => {
