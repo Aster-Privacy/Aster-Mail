@@ -24,7 +24,6 @@ import { useState, useMemo, useCallback, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import {
   ArrowLeftIcon,
-  ArrowPathIcon,
   CheckCircleIcon,
   EllipsisVerticalIcon,
   EnvelopeOpenIcon,
@@ -46,9 +45,10 @@ import { use_search_results_page } from "./use_search_results_page";
 import { search_row_key } from "./thread_grouping";
 
 import {
-  SearchIndexingNotice,
-  SearchIndexingStrip,
+  SearchEmptyState,
+  SearchIndexStatusBadge,
   use_search_index_status,
+  type SearchEmptyAction,
 } from "@/components/search/search_indexing_notice";
 import { emit_mail_items_removed } from "@/hooks/mail_events";
 import { build_sender_mail_query } from "@/utils/contact_mail_search";
@@ -495,18 +495,45 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
     </div>
   );
 
-  const indexing_notice = (
-    <SearchIndexingNotice
-      query={query}
-      search_content={content_search_enabled}
-      status={index_status}
-    />
-  );
+  const include_spam_trash = () =>
+    on_search_submit?.(
+      query.includes("in:anywhere")
+        ? query
+        : `${query.trim()} in:anywhere`.trim(),
+    );
+
+  const empty_actions: SearchEmptyAction[] = [
+    ...(active_filter_count > 0 && on_search_submit
+      ? [
+          {
+            label: t("mail.clear_filters"),
+            on_click: () => on_search_submit(clear_filter_operators(query)),
+            testid: "search-clear-filters",
+          },
+        ]
+      : []),
+    ...(!content_search_enabled
+      ? [
+          {
+            label: t("mail.search_message_content"),
+            on_click: handle_enable_content_search,
+            testid: "search-enable-content",
+          },
+        ]
+      : []),
+  ];
+  const has_hidden_matches = state.hidden_spam_trash > 0 && !!on_search_submit;
 
   const email_list_body = (
     <>
       {filtered_results.length === 0 && index_status.is_active ? (
-        indexing_notice
+        <SearchEmptyState
+          actions={empty_actions}
+          body={t("mail.search_index_more_coming")}
+          icon={MagnifyingGlassIcon}
+          testid="search-indexing-empty"
+          title={t("mail.search_no_matches_yet")}
+        />
       ) : is_loading && filtered_results.length === 0 ? (
         <div>
           {is_slow && slow_notice}
@@ -515,100 +542,54 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
           ))}
         </div>
       ) : state.error && filtered_results.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 px-4">
-          <ExclamationTriangleIcon
-            className="w-10 h-10 mb-4"
-            style={{ color: "var(--text-muted)" }}
-          />
-          <p
-            className="text-sm font-medium mb-1"
-            style={{ color: "var(--text-primary)" }}
-          >
-            {state.error}
-          </p>
-          <button
-            className="mt-3 flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--aster-radius-control)] text-xs font-medium transition-colors bg-[var(--accent-blue)] text-[var(--accent-fg,#ffffff)] hover:opacity-90"
-            type="button"
-            onClick={() => perform_search(query)}
-          >
-            <ArrowPathIcon className="w-3.5 h-3.5" />
-            {t("common.retry")}
-          </button>
-        </div>
+        <SearchEmptyState
+          actions={[
+            {
+              label: t("common.retry"),
+              on_click: () => perform_search(query),
+              primary: true,
+            },
+          ]}
+          icon={ExclamationTriangleIcon}
+          testid="search-error-state"
+          title={state.error}
+        />
       ) : filtered_results.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 px-4">
-          <MagnifyingGlassIcon
-            className="w-10 h-10 mb-4"
-            style={{ color: "var(--text-muted)" }}
-          />
-          <p
-            className="text-sm font-medium mb-1"
-            style={{ color: "var(--text-primary)" }}
-          >
-            {t("mail.no_results_found")}
-          </p>
-          <p
-            className="text-xs text-center max-w-[280px]"
-            style={{ color: "var(--text-muted)" }}
-          >
-            {active_filter_count > 0
-              ? t("mail.search_filters_active")
-              : t("mail.no_emails_match_query", { query })}
-          </p>
-          {active_filter_count > 0 && on_search_submit && (
-            <button
-              className="mt-3 text-xs font-medium text-brand rounded px-1.5 py-0.5 hover:bg-brand/10 transition-colors"
-              data-testid="search-clear-filters"
-              type="button"
-              onClick={() => on_search_submit(clear_filter_operators(query))}
-            >
-              {t("mail.clear_filters")}
-            </button>
-          )}
-          {!content_search_enabled && (
-            <button
-              className="mt-3 text-xs font-medium text-brand rounded px-1.5 py-0.5 hover:bg-brand/10 transition-colors"
-              type="button"
-              onClick={handle_enable_content_search}
-            >
-              {t("mail.search_message_content")}
-            </button>
-          )}
-          {state.hidden_spam_trash > 0 && (
-            <div
-              className="mt-4 flex flex-col items-center gap-1 text-xs text-center max-w-[280px]"
-              style={{ color: "var(--text-secondary)" }}
-            >
-              <span>{t("mail.spam_trash_hidden_notice")}</span>
-              {on_search_submit && (
-                <button
-                  className="font-medium text-brand hover:underline"
-                  type="button"
-                  onClick={() =>
-                    on_search_submit(
-                      query.includes("in:anywhere")
-                        ? query
-                        : `${query.trim()} in:anywhere`.trim(),
-                    )
-                  }
-                >
-                  {t("mail.view_spam_trash_messages")}
-                </button>
-              )}
-            </div>
-          )}
-        </div>
+        <SearchEmptyState
+          actions={[
+            ...(has_hidden_matches
+              ? [
+                  {
+                    label: t("mail.view_spam_trash_messages"),
+                    on_click: include_spam_trash,
+                    primary: true,
+                    testid: "search-include-spam-trash",
+                  },
+                ]
+              : []),
+            ...empty_actions,
+          ]}
+          body={
+            has_hidden_matches
+              ? t("mail.spam_trash_hidden_notice")
+              : active_filter_count > 0
+                ? t("mail.search_filters_active")
+                : undefined
+          }
+          icon={MagnifyingGlassIcon}
+          testid="search-no-results"
+          title={
+            query.trim()
+              ? t("mail.no_emails_match_query", { query: query.trim() })
+              : t("mail.no_results_found")
+          }
+        />
       ) : (
         <>
           <CorrectionNotice
             className="border-b border-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]"
             correction={state.correction}
             on_dismiss={dismiss_correction}
-          />
-          <SearchIndexingStrip
-            className="border-b border-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]"
-            search_content={content_search_enabled}
-            status={index_status}
           />
           {paged_results.map((email) => {
             const snippet = extract_snippet(email.preview, search_terms);
@@ -837,15 +818,34 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
             total_email_count={filtered_results.length}
             view_title={t("common.search")}
           />
-          {on_search_submit && (
-            <SearchChipRow
-              on_advanced_click={() => set_advanced_open(true)}
-              on_query_change={on_search_submit}
-              query={query}
-              scope_view={scope_view}
-            />
+          {on_search_submit ? (
+            <div className="flex min-w-0 items-center">
+              <div className="min-w-0 flex-1">
+                <SearchChipRow
+                  on_advanced_click={() => set_advanced_open(true)}
+                  on_query_change={on_search_submit}
+                  query={query}
+                  scope_view={scope_view}
+                />
+              </div>
+              <div className="flex-shrink-0 pe-3">
+                <SearchIndexStatusBadge
+                  search_content={content_search_enabled}
+                  status={index_status}
+                />
+              </div>
+            </div>
+          ) : (
+            index_status.is_active && (
+              <div className="flex justify-end px-3 py-1.5">
+                <SearchIndexStatusBadge
+                  search_content={content_search_enabled}
+                  status={index_status}
+                />
+              </div>
+            )
           )}
-          {state.index_incomplete && (
+          {state.index_incomplete && !index_status.is_active && (
             <div
               className="flex items-center gap-2 px-4 py-2 text-xs border-b"
               style={{
@@ -859,7 +859,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
               </span>
             </div>
           )}
-          {state.hidden_spam_trash > 0 && (
+          {state.hidden_spam_trash > 0 && filtered_results.length > 0 && (
             <div
               className="flex items-center gap-2 px-4 py-2 text-xs border-b"
               style={{

@@ -52,6 +52,26 @@ vi.mock("@aster/ui", async (import_original) => ({
   Switch: () => null,
 }));
 
+vi.mock("@/components/search/search_indexing_notice", () => ({
+  use_download_eta: () => null,
+  SearchIndexBadge: (props: {
+    is_paused: boolean;
+    done: number;
+    total: number;
+    percent: number;
+    on_pause?: () => void;
+  }) => (
+    <div
+      data-can-pause={props.on_pause ? "true" : "false"}
+      data-done={props.done}
+      data-paused={props.is_paused ? "true" : "false"}
+      data-percent={props.percent}
+      data-testid="index-badge"
+      data-total={props.total}
+    />
+  ),
+}));
+
 vi.mock("@/hooks/use_search", () => ({
   pause_index_download: vi.fn(),
   resume_index_download: vi.fn(),
@@ -69,25 +89,35 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 let root: Root | null = null;
 let container: HTMLDivElement | null = null;
 
+function banner() {
+  return (
+    <SearchContentBanner enabled on_disable={() => {}} on_enable={() => {}} />
+  );
+}
+
 function render(): HTMLDivElement {
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
   act(() => {
-    root!.render(
-      <SearchContentBanner
-        enabled
-        on_disable={() => {}}
-        on_enable={() => {}}
-      />,
-    );
+    root!.render(banner());
   });
 
   return container;
 }
 
-function progress_bar(el: HTMLDivElement): HTMLElement | null {
-  return el.querySelector<HTMLElement>(".rounded-full.bg-surf-secondary");
+function rerender() {
+  act(() => {
+    root!.render(banner());
+  });
+}
+
+function badge(el: HTMLDivElement): HTMLElement | null {
+  return el.querySelector<HTMLElement>('[data-testid="index-badge"]');
+}
+
+function attr(el: HTMLDivElement, name: string): string | undefined {
+  return badge(el)?.getAttribute(`data-${name}`) ?? undefined;
 }
 
 beforeEach(() => {
@@ -109,138 +139,84 @@ afterEach(() => {
   container = null;
 });
 
-describe("SearchContentBanner progress row", () => {
-  it("shows no reserved row when nothing is downloading", () => {
+describe("SearchContentBanner index badge", () => {
+  it("keeps the row to one line with no badge when nothing is downloading", () => {
     const el = render();
 
-    expect(progress_bar(el)).toBeNull();
-    expect(el.textContent).not.toContain("mail.indexing_messages");
+    expect(badge(el)).toBeNull();
+    expect(el.querySelectorAll(".search_divider_b")).toHaveLength(1);
+    expect(el.textContent).toBe("mail.searching_message_content");
   });
 
-  it("shows the bar once a total is known", () => {
+  it("shows the counts once a total is known", () => {
     progress_state.building = true;
     progress_state.current = 40;
     progress_state.total = 200;
 
     const el = render();
 
-    expect(progress_bar(el)).not.toBeNull();
-    expect(el.textContent).toContain("mail.message_download_status");
+    expect(attr(el, "done")).toBe("40");
+    expect(attr(el, "total")).toBe("200");
   });
 
-  it("leaves no empty row while the total is still unknown", () => {
+  it("shows an indeterminate badge while the total is still unknown", () => {
     progress_state.building = true;
 
     const el = render();
 
-    expect(el.querySelector(".h-\\[38px\\]")).toBeNull();
-    expect(progress_bar(el)).toBeNull();
+    expect(badge(el)).not.toBeNull();
+    expect(attr(el, "total")).toBe("0");
   });
 
-  it("adds the progress row only once the total is known", () => {
-    progress_state.building = true;
-
-    const unknown_total = render();
-
-    expect(unknown_total.querySelector(".h-\\[38px\\]")).toBeNull();
-
-    act(() => root?.unmount());
-    container?.remove();
-
-    progress_state.current = 10;
-    progress_state.total = 100;
-
-    const known_total = render();
-
-    expect(known_total.querySelector(".h-\\[38px\\]")).not.toBeNull();
-  });
-
-  it("hides the bar when the index has finished but counters are latched", () => {
+  it("hides the badge when the index has finished but counters are latched", () => {
     progress_state.building = false;
     progress_state.current = 200;
     progress_state.total = 200;
 
     const el = render();
 
-    expect(progress_bar(el)).toBeNull();
+    expect(badge(el)).toBeNull();
   });
 
-  it("keeps the row mounted when the reported total briefly drops out", () => {
+  it("keeps the counts when the reported total briefly drops out", () => {
     progress_state.building = true;
     progress_state.current = 40;
     progress_state.total = 200;
 
     const el = render();
 
-    expect(el.querySelector(".h-\\[38px\\]")).not.toBeNull();
+    progress_state.current = 0;
+    progress_state.total = 0;
+    rerender();
 
-    act(() => {
-      progress_state.current = 0;
-      progress_state.total = 0;
-      root!.render(
-        <SearchContentBanner
-          enabled
-          on_disable={() => {}}
-          on_enable={() => {}}
-        />,
-      );
-    });
-
-    expect(el.querySelector(".h-\\[38px\\]")).not.toBeNull();
-    expect(el.textContent).toContain("mail.message_download_status");
+    expect(attr(el, "done")).toBe("40");
+    expect(attr(el, "total")).toBe("200");
   });
 
-  it("never walks the progress fill backwards within a session", () => {
+  it("never walks the progress backwards within a session", () => {
     progress_state.building = true;
     progress_state.current = 120;
     progress_state.total = 200;
 
     const el = render();
 
-    expect(progress_bar(el)?.firstElementChild).toHaveProperty(
-      "style.width",
-      "60%",
-    );
+    expect(attr(el, "percent")).toBe("60");
 
-    act(() => {
-      progress_state.current = 20;
-      root!.render(
-        <SearchContentBanner
-          enabled
-          on_disable={() => {}}
-          on_enable={() => {}}
-        />,
-      );
-    });
+    progress_state.current = 20;
+    rerender();
 
-    expect(progress_bar(el)?.firstElementChild).toHaveProperty(
-      "style.width",
-      "60%",
-    );
+    expect(attr(el, "percent")).toBe("60");
   });
 
-  it("never fills the bar while the download is still running", () => {
+  it("never reaches 100% while the download is still running", () => {
     progress_state.building = true;
     progress_state.current = 200;
     progress_state.total = 200;
 
     const el = render();
 
-    expect(progress_bar(el)?.firstElementChild).toHaveProperty(
-      "style.width",
-      "99%",
-    );
-    expect(el.textContent).toContain("mail.indexing_messages");
-  });
-
-  it("keeps the pause action when the count reaches the total", () => {
-    progress_state.building = true;
-    progress_state.current = 200;
-    progress_state.total = 200;
-
-    const el = render();
-
-    expect(el.textContent).toContain("mail.pause_download_action");
+    expect(attr(el, "percent")).toBe("99");
+    expect(attr(el, "can-pause")).toBe("true");
   });
 
   it("shows only the running count while the total is unknown", () => {
@@ -250,13 +226,8 @@ describe("SearchContentBanner progress row", () => {
 
     const el = render();
 
-    expect(el.querySelector(".h-\\[38px\\]")).not.toBeNull();
-    expect(el.textContent).toContain("mail.message_download_count");
-    expect(el.textContent).not.toContain("mail.message_download_status");
-    expect(progress_bar(el)?.firstElementChild).toHaveProperty(
-      "style.width",
-      "40%",
-    );
+    expect(attr(el, "done")).toBe("400");
+    expect(attr(el, "total")).toBe("0");
   });
 
   it("starts from the new counts when a new session begins", () => {
@@ -267,26 +238,15 @@ describe("SearchContentBanner progress row", () => {
 
     const el = render();
 
-    act(() => {
-      progress_state.current = 20;
-      progress_state.total = 400;
-      progress_state.session = 2;
-      root!.render(
-        <SearchContentBanner
-          enabled
-          on_disable={() => {}}
-          on_enable={() => {}}
-        />,
-      );
-    });
+    progress_state.current = 20;
+    progress_state.total = 400;
+    progress_state.session = 2;
+    rerender();
 
-    expect(progress_bar(el)?.firstElementChild).toHaveProperty(
-      "style.width",
-      "5%",
-    );
+    expect(attr(el, "percent")).toBe("5");
   });
 
-  it("fills the bar only after the download has finished", () => {
+  it("reaches 100% only after the download has finished", () => {
     progress_state.building = true;
     progress_state.current = 120;
     progress_state.total = 200;
@@ -294,24 +254,13 @@ describe("SearchContentBanner progress row", () => {
 
     const el = render();
 
-    act(() => {
-      progress_state.building = false;
-      progress_state.current = 180;
-      progress_state.total = 180;
-      root!.render(
-        <SearchContentBanner
-          enabled
-          on_disable={() => {}}
-          on_enable={() => {}}
-        />,
-      );
-    });
+    progress_state.building = false;
+    progress_state.current = 180;
+    progress_state.total = 180;
+    rerender();
 
-    expect(progress_bar(el)?.firstElementChild).toHaveProperty(
-      "style.width",
-      "100%",
-    );
-    expect(el.textContent).not.toContain("mail.pause_download_action");
+    expect(attr(el, "percent")).toBe("100");
+    expect(attr(el, "can-pause")).toBe("false");
   });
 
   it("keeps the last counts when the download stops before the end", () => {
@@ -322,24 +271,13 @@ describe("SearchContentBanner progress row", () => {
 
     const el = render();
 
-    act(() => {
-      progress_state.building = false;
-      root!.render(
-        <SearchContentBanner
-          enabled
-          on_disable={() => {}}
-          on_enable={() => {}}
-        />,
-      );
-    });
+    progress_state.building = false;
+    rerender();
 
-    expect(progress_bar(el)?.firstElementChild).toHaveProperty(
-      "style.width",
-      "60%",
-    );
+    expect(attr(el, "percent")).toBe("60");
   });
 
-  it("shows the bar while paused with a known total", () => {
+  it("shows a paused badge with the saved counts", () => {
     progress_state.building = false;
     download_state.paused = true;
     download_state.done = 120;
@@ -347,7 +285,8 @@ describe("SearchContentBanner progress row", () => {
 
     const el = render();
 
-    expect(progress_bar(el)).not.toBeNull();
-    expect(el.textContent).toContain("mail.resume_download_action");
+    expect(attr(el, "paused")).toBe("true");
+    expect(attr(el, "done")).toBe("120");
+    expect(attr(el, "total")).toBe("400");
   });
 });

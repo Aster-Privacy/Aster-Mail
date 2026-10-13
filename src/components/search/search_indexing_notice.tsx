@@ -19,11 +19,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
-import { useEffect, useState } from "react";
+import type { ComponentType, ReactNode, SVGProps } from "react";
 
+import { useEffect, useRef, useState } from "react";
+import { PauseIcon, PlayIcon } from "@heroicons/react/20/solid";
+
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
 import {
+  pause_index_download,
   resume_index_download,
   use_index_download_state,
   use_indexing_progress,
@@ -100,142 +109,388 @@ export function use_search_index_status(
   );
 }
 
-interface SearchIndexingNoticeProps {
-  status: SearchIndexStatus;
-  query: string;
-  search_content: boolean;
-}
+const ETA_SAMPLE_WINDOW_MS = 60000;
+const ETA_MIN_ELAPSED_S = 2;
 
-function progress_text(
-  t: ReturnType<typeof use_i18n>["t"],
-  status: SearchIndexStatus,
+export function format_remaining_duration(
+  seconds: number,
+  locale: string,
 ): string {
-  return status.total > 0
-    ? t("mail.search_index_progress", {
-        done: status.done,
-        total: status.total,
-      })
-    : t("mail.search_index_progress_unknown", { done: status.done });
+  const unit_text = (value: number, unit: string): string => {
+    try {
+      return new Intl.NumberFormat(locale, {
+        style: "unit",
+        unit,
+        unitDisplay: "narrow",
+      }).format(value);
+    } catch {
+      return `${value}${unit.charAt(0)}`;
+    }
+  };
+
+  if (seconds < 60) return unit_text(Math.max(1, seconds), "second");
+
+  if (seconds < 3600) {
+    const minutes = Math.floor(seconds / 60);
+    const rest = seconds % 60;
+
+    return rest > 0
+      ? `${unit_text(minutes, "minute")} ${unit_text(rest, "second")}`
+      : unit_text(minutes, "minute");
+  }
+
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.round((seconds % 3600) / 60);
+
+  return minutes > 0
+    ? `${unit_text(hours, "hour")} ${unit_text(minutes, "minute")}`
+    : unit_text(hours, "hour");
 }
 
-export function SearchIndexingNotice({
-  status,
-  query,
-  search_content,
-}: SearchIndexingNoticeProps) {
-  const { t } = use_i18n();
-  const { user } = use_auth();
+export function use_download_eta(
+  done: number,
+  total: number,
+  active: boolean,
+): number | null {
+  const samples_ref = useRef<{ at: number; done: number }[]>([]);
+  const [eta_seconds, set_eta_seconds] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!active || total <= 0) {
+      samples_ref.current = [];
+      set_eta_seconds(null);
+
+      return;
+    }
+
+    const now = Date.now();
+    const samples = samples_ref.current;
+
+    if (samples.length > 0 && done < samples[samples.length - 1].done) {
+      samples.length = 0;
+    }
+
+    samples.push({ at: now, done });
+
+    while (samples.length > 1 && now - samples[0].at > ETA_SAMPLE_WINDOW_MS) {
+      samples.shift();
+    }
+
+    if (samples.length < 2) return;
+
+    const first = samples[0];
+    const elapsed_s = (now - first.at) / 1000;
+    const downloaded = done - first.done;
+
+    if (elapsed_s < ETA_MIN_ELAPSED_S || downloaded <= 0) return;
+
+    const rate = downloaded / elapsed_s;
+    const remaining = Math.max(total - done, 0);
+
+    set_eta_seconds(Math.max(1, Math.round(remaining / rate)));
+  }, [done, total, active]);
+
+  return active ? eta_seconds : null;
+}
+
+interface IndexRingProps {
+  percent: number;
+  indeterminate: boolean;
+  paused: boolean;
+}
+
+const RING_PATH = "M8 2a6 6 0 1 1 0 12a6 6 0 1 1 0-12";
+
+function IndexRing({ percent, indeterminate, paused }: IndexRingProps) {
+  const filled = indeterminate ? 28 : Math.min(Math.max(percent, 0), 100);
 
   return (
-    <div
-      aria-live="polite"
-      className="flex flex-col items-center justify-center px-6 py-14 text-center"
-      data-testid="search-indexing-notice"
-      role="status"
+    <svg
+      aria-hidden="true"
+      className={`h-4 w-4 flex-shrink-0 ${indeterminate ? "animate-spin" : ""}`}
+      data-ring-percent={indeterminate ? undefined : Math.floor(filled)}
+      viewBox="0 0 16 16"
     >
-      <p
-        className="mb-2 text-sm font-medium"
-        style={{ color: "var(--text-primary)" }}
-      >
-        {status.is_paused
-          ? t("mail.search_index_paused_title")
-          : t("mail.search_index_title")}
-      </p>
-      <p
-        className="max-w-[420px] text-xs leading-5"
-        style={{ color: "var(--text-secondary)" }}
-      >
-        {t("mail.search_index_no_matches_yet", { query })}
-      </p>
-      <div className="mt-4 w-full max-w-[320px]">
-        <div
-          aria-hidden="true"
-          className="h-1 w-full overflow-hidden rounded-full bg-surf-secondary"
-        >
-          <div
-            className="h-full rounded-full transition-all duration-300"
-            style={{
-              width: `${status.total > 0 ? status.percent : 0}%`,
-              backgroundColor: "var(--accent-color)",
-              opacity: status.is_paused ? 0.4 : 1,
-            }}
-          />
-        </div>
-        <p
-          className="mt-2 text-xs tabular-nums"
-          style={{ color: "var(--text-muted)" }}
-        >
-          {progress_text(t, status)}
-        </p>
-      </div>
-      {status.is_paused && (
-        <button
-          className="mt-4 rounded-[var(--aster-radius-control)] bg-[var(--accent-blue)] px-3 py-1.5 text-xs font-medium text-[var(--accent-fg,#ffffff)] transition-opacity hover:opacity-90"
-          data-testid="search-indexing-resume"
-          type="button"
-          onClick={() =>
-            resume_index_download(user?.email || "", search_content)
-          }
-        >
-          {t("mail.search_index_resume")}
-        </button>
-      )}
-      <p
-        className="mt-5 max-w-[420px] text-xs leading-5"
-        style={{ color: "var(--text-muted)" }}
-      >
-        {status.is_paused
-          ? t("mail.search_index_paused_body")
-          : search_content
-            ? t("mail.search_index_why_content")
-            : t("mail.search_index_why")}
-      </p>
-    </div>
+      <path
+        d={RING_PATH}
+        fill="none"
+        stroke="var(--border-secondary)"
+        strokeWidth="2"
+      />
+      <path
+        d={RING_PATH}
+        fill="none"
+        pathLength={100}
+        stroke="var(--accent-color)"
+        strokeDasharray="100"
+        strokeDashoffset={100 - filled}
+        strokeLinecap="round"
+        strokeWidth="2"
+        style={{
+          opacity: paused ? 0.45 : 1,
+          transition: "stroke-dashoffset 300ms ease-out",
+        }}
+      />
+    </svg>
   );
 }
 
-interface SearchIndexingStripProps {
-  status: SearchIndexStatus;
-  search_content: boolean;
-  className?: string;
+export interface SearchIndexBadgeProps {
+  is_paused: boolean;
+  done: number;
+  total: number;
+  percent: number;
+  eta_seconds?: number | null;
+  on_pause?: () => void;
+  on_resume?: () => void;
+  show_percent?: boolean;
+  testid?: string;
 }
 
-export function SearchIndexingStrip({
+export function SearchIndexBadge({
+  is_paused,
+  done,
+  total,
+  percent,
+  eta_seconds = null,
+  on_pause,
+  on_resume,
+  show_percent = true,
+  testid = "search-index-badge",
+}: SearchIndexBadgeProps) {
+  const { t, language } = use_i18n();
+  const has_total = total > 0;
+  const title = is_paused
+    ? t("mail.search_index_paused_title")
+    : t("mail.search_index_title");
+  const rounded = Math.floor(percent);
+  const count = has_total
+    ? t("mail.search_index_progress", {
+        done: done.toLocaleString(language),
+        total: total.toLocaleString(language),
+      })
+    : t("mail.search_index_progress_unknown", {
+        done: done.toLocaleString(language),
+      });
+  const eta =
+    eta_seconds !== null && !is_paused
+      ? t("mail.estimated_time_remaining", {
+          duration: format_remaining_duration(eta_seconds, language),
+        })
+      : null;
+  const action = is_paused ? on_resume : on_pause;
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          aria-label={has_total ? `${title}, ${rounded}%` : title}
+          className="flex h-8 flex-shrink-0 items-center gap-1.5 rounded-full px-2.5 text-[12px] font-medium tabular-nums transition-colors hover:bg-[var(--aster-hover)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-blue)]"
+          data-testid={testid}
+          style={{ color: "var(--text-muted)" }}
+          type="button"
+        >
+          {is_paused ? (
+            <PauseIcon className="h-3.5 w-3.5 flex-shrink-0" />
+          ) : (
+            <IndexRing
+              indeterminate={!has_total}
+              paused={false}
+              percent={percent}
+            />
+          )}
+          {show_percent && has_total && <span>{rounded}%</span>}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        align="end"
+        className="w-[272px] p-3.5"
+        collisionPadding={12}
+        data-testid={`${testid}-popover`}
+        sideOffset={6}
+      >
+        <div className="flex items-center gap-2">
+          <IndexRing
+            indeterminate={!has_total && !is_paused}
+            paused={is_paused}
+            percent={percent}
+          />
+          <p
+            className="min-w-0 flex-1 truncate text-[13px] font-medium"
+            style={{ color: "var(--text-primary)" }}
+          >
+            {title}
+          </p>
+          {has_total && (
+            <span
+              className="text-[12px] tabular-nums"
+              style={{ color: "var(--text-muted)" }}
+            >
+              {rounded}%
+            </span>
+          )}
+        </div>
+        <p
+          className="mt-1 ps-6 text-[12px] tabular-nums"
+          style={{ color: "var(--text-muted)" }}
+        >
+          {eta ? `${count} · ${eta}` : count}
+        </p>
+        <p
+          className="mt-3 text-[12px] leading-[18px]"
+          style={{ color: "var(--text-secondary)" }}
+        >
+          {t("mail.search_index_why")}
+        </p>
+        {action && (
+          <button
+            className="mt-3 flex h-7 items-center gap-1.5 rounded-full px-3 text-[12px] font-medium transition-opacity hover:opacity-90"
+            data-testid={is_paused ? `${testid}-resume` : `${testid}-pause`}
+            style={
+              is_paused
+                ? {
+                    backgroundColor: "var(--accent-blue)",
+                    color: "var(--accent-fg, #ffffff)",
+                  }
+                : {
+                    backgroundColor: "var(--aster-hover)",
+                    color: "var(--text-secondary)",
+                  }
+            }
+            type="button"
+            onClick={action}
+          >
+            {is_paused ? (
+              <PlayIcon className="h-3.5 w-3.5" />
+            ) : (
+              <PauseIcon className="h-3.5 w-3.5" />
+            )}
+            {is_paused
+              ? t("mail.search_index_resume")
+              : t("mail.pause_download_action")}
+          </button>
+        )}
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+interface SearchIndexStatusBadgeProps {
+  status: SearchIndexStatus;
+  search_content: boolean;
+  show_percent?: boolean;
+}
+
+export function SearchIndexStatusBadge({
   status,
   search_content,
-  className,
-}: SearchIndexingStripProps) {
-  const { t } = use_i18n();
+  show_percent,
+}: SearchIndexStatusBadgeProps) {
   const { user } = use_auth();
+  const running = status.is_active && !status.is_paused;
+  const eta_seconds = use_download_eta(
+    status.done,
+    status.total,
+    running && status.total > 0 && status.done < status.total,
+  );
 
   if (!status.is_active) return null;
 
   return (
+    <SearchIndexBadge
+      done={status.done}
+      eta_seconds={eta_seconds}
+      is_paused={status.is_paused}
+      on_pause={pause_index_download}
+      on_resume={() => resume_index_download(user?.email || "", search_content)}
+      percent={status.percent}
+      show_percent={show_percent}
+      total={status.total}
+    />
+  );
+}
+
+export interface SearchEmptyAction {
+  label: string;
+  on_click: () => void;
+  primary?: boolean;
+  testid?: string;
+}
+
+interface SearchEmptyStateProps {
+  icon: ComponentType<SVGProps<SVGSVGElement>>;
+  title: string;
+  body?: ReactNode;
+  actions?: SearchEmptyAction[];
+  footer?: ReactNode;
+  testid?: string;
+}
+
+export function SearchEmptyState({
+  icon: Icon,
+  title,
+  body,
+  actions = [],
+  footer,
+  testid = "search-empty-state",
+}: SearchEmptyStateProps) {
+  return (
     <div
       aria-live="polite"
-      className={`flex flex-wrap items-baseline gap-x-2 gap-y-0.5 px-3.5 py-2 text-xs ${className ?? ""}`}
-      data-testid="search-indexing-strip"
+      className="flex flex-col items-center px-6 pb-12 pt-16 text-center"
+      data-testid={testid}
       role="status"
     >
-      <span style={{ color: "var(--text-secondary)" }}>
-        {status.is_paused
-          ? t("mail.search_index_partial_paused")
-          : t("mail.search_index_partial")}
-      </span>
-      <span className="tabular-nums" style={{ color: "var(--text-muted)" }}>
-        {progress_text(t, status)}
-      </span>
-      {status.is_paused && (
-        <button
-          className="rounded px-1 py-0.5 font-medium text-[var(--accent-blue)] transition-colors hover:bg-[var(--accent-blue)]/10"
-          type="button"
-          onClick={() =>
-            resume_index_download(user?.email || "", search_content)
-          }
+      <div
+        className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl"
+        style={{
+          backgroundColor: "var(--aster-hover)",
+          color: "var(--text-muted)",
+        }}
+      >
+        <Icon aria-hidden="true" className="h-5 w-5" />
+      </div>
+      <p
+        className="max-w-[360px] break-words text-[15px] font-semibold"
+        style={{ color: "var(--text-primary)" }}
+      >
+        {title}
+      </p>
+      {body && (
+        <p
+          className="mt-1 max-w-[340px] text-[13px] leading-5"
+          style={{ color: "var(--text-muted)" }}
         >
-          {t("mail.search_index_resume")}
-        </button>
+          {body}
+        </p>
       )}
+      {actions.length > 0 && (
+        <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+          {actions.map((action) => (
+            <button
+              key={action.label}
+              className="flex h-8 items-center rounded-full px-3.5 text-[13px] font-medium transition-opacity hover:opacity-85"
+              data-testid={action.testid}
+              style={
+                action.primary
+                  ? {
+                      backgroundColor: "var(--accent-blue)",
+                      color: "var(--accent-fg, #ffffff)",
+                    }
+                  : {
+                      backgroundColor: "var(--aster-hover)",
+                      color: "var(--text-secondary)",
+                    }
+              }
+              type="button"
+              onClick={action.on_click}
+            >
+              {action.label}
+            </button>
+          ))}
+        </div>
+      )}
+      {footer}
     </div>
   );
 }

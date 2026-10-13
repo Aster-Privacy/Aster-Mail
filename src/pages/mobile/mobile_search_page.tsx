@@ -24,7 +24,11 @@ import type { InboxEmail } from "@/types/email";
 import { useState, useCallback, useRef, useMemo, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import {
+  ExclamationTriangleIcon,
+  MagnifyingGlassIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
 
 import { use_search } from "@/hooks/use_search";
 import { use_email_actions } from "@/hooks/use_email_actions";
@@ -34,8 +38,8 @@ import { MobileHeader } from "@/components/mobile/mobile_header";
 import { MobileEmailRow } from "@/components/mobile/mobile_email_row";
 import { Spinner } from "@/components/ui/spinner";
 import {
-  SearchIndexingNotice,
-  SearchIndexingStrip,
+  SearchEmptyState,
+  SearchIndexStatusBadge,
   use_search_index_status,
 } from "@/components/search/search_indexing_notice";
 import { Input } from "@/components/ui/input";
@@ -289,6 +293,11 @@ function MobileSearchPage() {
           value={query}
           onChange={(e) => set_query(e.target.value)}
         />
+        <SearchIndexStatusBadge
+          search_content={preferences.search_encrypted_content}
+          show_percent={false}
+          status={index_status}
+        />
         <button
           aria-label={t("common.clear")}
           className={`flex h-7 w-7 items-center justify-center rounded-full text-[var(--text-muted)] active:bg-[var(--bg-tertiary)] transition-opacity ${query ? "opacity-100" : "opacity-0 pointer-events-none"}`}
@@ -364,51 +373,49 @@ function MobileSearchPage() {
         )}
 
         {!is_loading && search.state.error && !has_results && (
-          <div className="flex flex-col items-center justify-center gap-3 px-8 pt-20">
-            <p className="text-center text-[15px] text-[var(--text-muted)]">
-              {t("common.something_went_wrong_try_again")}
-            </p>
-          </div>
+          <SearchEmptyState
+            icon={ExclamationTriangleIcon}
+            testid="mobile-search-error"
+            title={t("common.something_went_wrong_try_again")}
+          />
         )}
 
         {is_index_pending && (
-          <div data-testid="mobile-search-indexing">
-            <SearchIndexingNotice
-              query={submitted_query}
-              search_content={preferences.search_encrypted_content}
-              status={index_status}
-            />
-          </div>
+          <SearchEmptyState
+            body={t("mail.search_index_more_coming")}
+            icon={MagnifyingGlassIcon}
+            testid="mobile-search-indexing"
+            title={t("mail.search_no_matches_yet")}
+          />
         )}
 
         {is_no_results && (
-          <div className="flex flex-col items-center justify-center gap-3 px-8 pt-20">
-            <p className="text-center text-[15px] font-medium text-[var(--text-primary)]">
-              {t("mail.no_results_found")}
-            </p>
-            {active_filter_count > 0 && (
-              <p className="text-center text-[14px] text-[var(--text-muted)]">
-                {t("mail.search_filters_active")}
-              </p>
-            )}
-            {active_filter_count > 0 && (
-              <button
-                className="text-[14px] font-medium text-[var(--accent-color,#3b82f6)]"
-                data-testid="mobile-search-clear-filters"
-                type="button"
-                onClick={handle_clear_filters}
-              >
-                {t("mail.clear_filters")}
-              </button>
-            )}
-          </div>
-        )}
-
-        {has_results && (
-          <SearchIndexingStrip
-            className="border-b border-[var(--border-primary)]"
-            search_content={preferences.search_encrypted_content}
-            status={index_status}
+          <SearchEmptyState
+            actions={
+              active_filter_count > 0
+                ? [
+                    {
+                      label: t("mail.clear_filters"),
+                      on_click: handle_clear_filters,
+                      testid: "mobile-search-clear-filters",
+                    },
+                  ]
+                : []
+            }
+            body={
+              active_filter_count > 0
+                ? t("mail.search_filters_active")
+                : undefined
+            }
+            icon={MagnifyingGlassIcon}
+            testid="mobile-search-no-results"
+            title={
+              submitted_query.trim()
+                ? t("mail.no_emails_match_query", {
+                    query: submitted_query.trim(),
+                  })
+                : t("mail.no_results_found")
+            }
           />
         )}
 

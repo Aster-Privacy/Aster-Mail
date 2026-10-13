@@ -31,6 +31,7 @@ const progress_state = vi.hoisted(() => ({
   download_total: 0,
 }));
 const resume_mock = vi.hoisted(() => vi.fn());
+const pause_mock = vi.hoisted(() => vi.fn());
 
 vi.mock("@/contexts/auth_context", () => ({
   use_auth: () => ({ user: { email: "reader@example.org" } }),
@@ -56,12 +57,13 @@ vi.mock("@/hooks/use_search/progress", () => ({
     done: progress_state.done,
     total: progress_state.download_total,
   }),
+  pause_index_download: pause_mock,
   resume_index_download: resume_mock,
 }));
 
 const {
-  SearchIndexingNotice,
-  SearchIndexingStrip,
+  SearchEmptyState,
+  SearchIndexStatusBadge,
   resolve_index_status,
   use_search_index_status,
 } = await import("./search_indexing_notice");
@@ -77,18 +79,7 @@ let container: HTMLDivElement | null = null;
 function Harness({ pending }: { pending: boolean }) {
   const status = use_search_index_status(pending, 0);
 
-  return (
-    <>
-      <SearchIndexingStrip search_content={false} status={status} />
-      {status.is_active && (
-        <SearchIndexingNotice
-          query="invoice"
-          search_content={false}
-          status={status}
-        />
-      )}
-    </>
-  );
+  return <SearchIndexStatusBadge search_content={false} status={status} />;
 }
 
 function render(pending: boolean) {
@@ -107,6 +98,7 @@ beforeEach(() => {
     download_total: 0,
   });
   resume_mock.mockReset();
+  pause_mock.mockReset();
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
@@ -206,8 +198,33 @@ describe("resolve_index_status", () => {
   });
 });
 
-describe("search indexing notice", () => {
-  it("explains why the mail is being indexed while the index builds", () => {
+function badge(): HTMLButtonElement | null {
+  return document.querySelector<HTMLButtonElement>(
+    '[data-testid="search-index-badge"]',
+  );
+}
+
+function open_badge(): HTMLElement | null {
+  act(() => {
+    badge()!.dispatchEvent(
+      new PointerEvent("pointerdown", { bubbles: true, button: 0 }),
+    );
+    badge()!.click();
+  });
+
+  return document.querySelector<HTMLElement>(
+    '[data-testid="search-index-badge-popover"]',
+  );
+}
+
+describe("search index badge", () => {
+  it("renders nothing once the index is complete", () => {
+    render(false);
+
+    expect(container!.childElementCount).toBe(0);
+  });
+
+  it("shows only a ring and a percent while the index builds", () => {
     Object.assign(progress_state, {
       building: true,
       current: 4800,
@@ -215,25 +232,41 @@ describe("search indexing notice", () => {
     });
     render(true);
 
-    const notice = document.querySelector(
-      '[data-testid="search-indexing-notice"]',
+    expect(badge()?.textContent).toBe("34%");
+    expect(badge()?.getAttribute("aria-label")).toBe(
+      "mail.search_index_title, 34%",
     );
-
-    expect(notice?.getAttribute("role")).toBe("status");
-    expect(notice?.textContent).toContain("mail.search_index_title");
-    expect(notice?.textContent).toContain(
-      'mail.search_index_no_matches_yet {"query":"invoice"}',
-    );
-    expect(notice?.textContent).toContain(
-      'mail.search_index_progress {"done":4800,"total":13922}',
-    );
-    expect(notice?.textContent).toContain("mail.search_index_why");
-    expect(
-      document.querySelector('[data-testid="search-indexing-resume"]'),
-    ).toBeNull();
+    expect(document.body.textContent).not.toContain("mail.search_index_why");
   });
 
-  it("offers to resume when indexing is paused", () => {
+  it("explains indexing in a short popover", () => {
+    Object.assign(progress_state, {
+      building: true,
+      current: 4800,
+      total: 13922,
+    });
+    render(true);
+
+    const popover = open_badge();
+
+    expect(popover?.textContent).toContain("mail.search_index_title");
+    expect(popover?.textContent).toContain(
+      'mail.search_index_progress {"done":"4,800","total":"13,922"}',
+    );
+    expect(popover?.textContent).toContain("mail.search_index_why");
+
+    act(() => {
+      document
+        .querySelector<HTMLButtonElement>(
+          '[data-testid="search-index-badge-pause"]',
+        )!
+        .click();
+    });
+
+    expect(pause_mock).toHaveBeenCalled();
+  });
+
+  it("offers to resume from the popover when indexing is paused", () => {
     Object.assign(progress_state, {
       paused: true,
       done: 4800,
@@ -241,41 +274,50 @@ describe("search indexing notice", () => {
     });
     render(true);
 
-    const notice = document.querySelector(
-      '[data-testid="search-indexing-notice"]',
-    );
+    const popover = open_badge();
 
-    expect(notice?.textContent).toContain("mail.search_index_paused_title");
-    expect(notice?.textContent).toContain("mail.search_index_paused_body");
-
-    const resume = document.querySelector<HTMLButtonElement>(
-      '[data-testid="search-indexing-resume"]',
-    );
+    expect(popover?.textContent).toContain("mail.search_index_paused_title");
 
     act(() => {
-      resume!.click();
+      document
+        .querySelector<HTMLButtonElement>(
+          '[data-testid="search-index-badge-resume"]',
+        )!
+        .click();
     });
 
     expect(resume_mock).toHaveBeenCalledWith("reader@example.org", false);
   });
+});
 
-  it("shows the strip above results only while the index is incomplete", () => {
-    Object.assign(progress_state, {
-      building: true,
-      current: 10,
-      total: 20,
+describe("search empty state", () => {
+  it("renders a title, one line, and action chips", () => {
+    const on_click = vi.fn();
+
+    act(() => {
+      root!.render(
+        <SearchEmptyState
+          actions={[{ label: "Clear filters", on_click, testid: "clear" }]}
+          body="Filters are active."
+          icon={() => <svg />}
+          title="No matches yet"
+        />,
+      );
     });
-    render(true);
 
-    expect(
-      document.querySelector('[data-testid="search-indexing-strip"]')
-        ?.textContent,
-    ).toContain("mail.search_index_partial");
+    const state = document.querySelector('[data-testid="search-empty-state"]');
 
-    render(false);
+    expect(state?.getAttribute("role")).toBe("status");
+    expect(state?.textContent).toBe(
+      "No matches yetFilters are active.Clear filters",
+    );
 
-    expect(
-      document.querySelector('[data-testid="search-indexing-strip"]'),
-    ).toBeNull();
+    act(() => {
+      document
+        .querySelector<HTMLButtonElement>('[data-testid="clear"]')!
+        .click();
+    });
+
+    expect(on_click).toHaveBeenCalled();
   });
 });

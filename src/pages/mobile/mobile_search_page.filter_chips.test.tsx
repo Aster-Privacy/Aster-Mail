@@ -48,6 +48,7 @@ vi.mock("@/hooks/use_search/progress", () => ({
     done: index_state.indexed_count,
     total: 400,
   }),
+  pause_index_download: vi.fn(),
   resume_index_download: vi.fn(),
 }));
 
@@ -247,13 +248,13 @@ describe("MobileSearchPage filter chips", () => {
 
     expect(search_mock).toHaveBeenLastCalledWith("report in:trash");
     expect(input.value).toBe("report in:trash");
-    expect(document.body.textContent).toContain("mail.no_results_found");
+    expect(document.body.textContent).toContain("mail.no_emails_match_query");
     expect(
       document.querySelector('[data-testid="mobile-search-clear-filters"]'),
     ).toBeNull();
   });
 
-  it("shows indexing progress, not an empty result, while the index builds", () => {
+  it("shows a short indexing state and a badge while the index builds", () => {
     index_state.index_pending = true;
     index_state.indexed_count = 120;
     index_state.building = true;
@@ -262,15 +263,23 @@ describe("MobileSearchPage filter chips", () => {
 
     submit(input, "report");
 
+    const state = document.querySelector(
+      '[data-testid="mobile-search-indexing"]',
+    );
+
+    expect(state?.textContent).toBe(
+      "mail.search_no_matches_yetmail.search_index_more_coming",
+    );
     expect(
-      document.querySelector('[data-testid="mobile-search-indexing"]'),
+      document.querySelector('[data-testid="search-index-badge"]'),
     ).not.toBeNull();
-    expect(document.body.textContent).toContain("mail.search_index_title");
-    expect(document.body.textContent).toContain("mail.search_index_why");
-    expect(document.body.textContent).not.toContain("mail.no_results_found");
+    expect(document.body.textContent).not.toContain("mail.search_index_why");
+    expect(document.body.textContent).not.toContain(
+      "mail.no_emails_match_query",
+    );
   });
 
-  it("offers to resume indexing when it is paused", () => {
+  it("marks the badge as paused when indexing is paused", () => {
     index_state.index_pending = true;
     index_state.indexed_count = 120;
     index_state.paused = true;
@@ -280,12 +289,13 @@ describe("MobileSearchPage filter chips", () => {
     submit(input, "report");
 
     expect(
-      document.querySelector('[data-testid="search-indexing-resume"]'),
-    ).not.toBeNull();
-    expect(document.body.textContent).toContain(
-      "mail.search_index_paused_title",
+      document
+        .querySelector('[data-testid="search-index-badge"]')
+        ?.getAttribute("aria-label"),
+    ).toBe("mail.search_index_paused_title, 30%");
+    expect(document.body.textContent).not.toContain(
+      "mail.no_emails_match_query",
     );
-    expect(document.body.textContent).not.toContain("mail.no_results_found");
   });
 
   it("shows the empty result when the index is short but nothing is indexing", () => {
@@ -299,7 +309,7 @@ describe("MobileSearchPage filter chips", () => {
     expect(
       document.querySelector('[data-testid="mobile-search-indexing"]'),
     ).toBeNull();
-    expect(document.body.textContent).toContain("mail.no_results_found");
+    expect(document.body.textContent).toContain("mail.no_emails_match_query");
   });
 
   it("shows the empty result once the index is complete", () => {
@@ -310,6 +320,6 @@ describe("MobileSearchPage filter chips", () => {
     expect(
       document.querySelector('[data-testid="mobile-search-indexing"]'),
     ).toBeNull();
-    expect(document.body.textContent).toContain("mail.no_results_found");
+    expect(document.body.textContent).toContain("mail.no_emails_match_query");
   });
 });

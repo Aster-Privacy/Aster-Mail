@@ -7940,15 +7940,12 @@ export interface MailTranslations {
   resume_download_action: string;
   search_index_title: string;
   search_index_paused_title: string;
-  search_index_no_matches_yet: string;
   search_index_progress: string;
   search_index_progress_unknown: string;
   search_index_why: string;
-  search_index_why_content: string;
-  search_index_paused_body: string;
   search_index_resume: string;
-  search_index_partial: string;
-  search_index_partial_paused: string;
+  search_index_more_coming: string;
+  search_no_matches_yet: string;
   searching_message_content: string;
   search_taking_too_long: string;
   search_refine_terms: string;
