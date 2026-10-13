@@ -62,6 +62,12 @@ const {
   restore_undone_send_draft,
 } = await import("./toast_action_router");
 const { show_email_sent_toast } = await import("./email_sent_toast");
+const { get_pending_send_attachments } = await import(
+  "@/services/pending_send_attachments"
+);
+const { UNDO_SEND_PREVIEW_ID } = await import(
+  "@/components/email/email_viewer_types"
+);
 const { hide_action_toast, subscribe_action_toast } = await import(
   "./action_toast"
 );
@@ -389,6 +395,38 @@ describe("open_pending_send_preview", () => {
     expect(can_preview_pending_send()).toBe(false);
     expect(open_pending_send_preview(sample_preview())).toBe(false);
     expect(current_href).toBe("/u/2/contacts");
+  });
+
+  it("hands the attached files to the preview", () => {
+    mount("/archive");
+
+    act(() => {
+      open_pending_send_preview({
+        ...sample_preview(),
+        attachments: [
+          {
+            id: "a1",
+            name: "scope.pdf",
+            size: "2 KB",
+            size_bytes: 2048,
+            mime_type: "application/pdf",
+            data: new Uint8Array(2048).buffer,
+          },
+        ],
+      });
+    });
+
+    expect(
+      get_pending_send_attachments(UNDO_SEND_PREVIEW_ID)?.map(
+        (file) => file.filename,
+      ),
+    ).toEqual(["scope.pdf"]);
+
+    act(() => {
+      open_pending_send_preview(sample_preview());
+    });
+
+    expect(get_pending_send_attachments(UNDO_SEND_PREVIEW_ID)).toBeUndefined();
   });
 });
 

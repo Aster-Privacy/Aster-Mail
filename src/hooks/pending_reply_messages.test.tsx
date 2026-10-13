@@ -36,6 +36,8 @@ import {
   use_pending_reply_messages,
 } from "./pending_reply_messages";
 
+import { get_pending_send_attachments } from "@/services/pending_send_attachments";
+
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
@@ -136,6 +138,33 @@ function optimistic(
       display_body: "reply",
       to_recipients: [],
       cc_recipients: [],
+    });
+  });
+}
+
+function optimistic_with_file(thread_token: string, optimistic_id: string) {
+  act(() => {
+    emit_thread_reply_optimistic({
+      thread_token,
+      original_email_id: "orig",
+      optimistic_id,
+      sender_name: "Me",
+      sender_email: "me@astermail.org",
+      subject: "Re: hi",
+      body: "<p>reply</p>",
+      display_body: "reply",
+      to_recipients: [],
+      cc_recipients: [],
+      attachments: [
+        {
+          id: "a1",
+          name: "scope.pdf",
+          size: "2 KB",
+          size_bytes: 2048,
+          mime_type: "application/pdf",
+          data: new Uint8Array(2048).buffer,
+        },
+      ],
     });
   });
 }
@@ -269,6 +298,71 @@ describe("pending reply stays in the thread", () => {
     });
 
     expect(shown()).toBe("orig");
+  });
+
+  it("keeps the attached files of a queued reply", () => {
+    mount({ thread_token: "t1", email_id: "orig", initial: [ORIGINAL] });
+    optimistic_with_file("t1", "opt-1");
+
+    const files = get_pending_send_attachments("opt-1");
+
+    expect(files).toHaveLength(1);
+    expect(files?.[0].filename).toBe("scope.pdf");
+    expect(files?.[0].content_type).toBe("application/pdf");
+    expect(files?.[0].size_bytes).toBe(2048);
+    expect(files?.[0].data.byteLength).toBe(2048);
+  });
+
+  it("keeps the files until the sent reply is dropped", () => {
+    mount({ thread_token: "t1", email_id: "orig", initial: [ORIGINAL] });
+    optimistic_with_file("t1", "opt-1");
+    sent("t1", "opt-1");
+
+    expect(get_pending_send_attachments("opt-1")).toHaveLength(1);
+
+    act(() => {
+      vi.advanceTimersByTime(SETTLED_REPLY_MESSAGE_TTL_MS + 1);
+    });
+
+    expect(get_pending_send_attachments("opt-1")).toBeUndefined();
+  });
+
+  it("drops the files when the send is canceled", () => {
+    mount({ thread_token: "t1", email_id: "orig", initial: [ORIGINAL] });
+    optimistic_with_file("t1", "opt-1");
+
+    act(() => {
+      emit_thread_reply_cancelled({
+        optimistic_id: "opt-1",
+        thread_token: "t1",
+      });
+    });
+
+    expect(get_pending_send_attachments("opt-1")).toBeUndefined();
+  });
+
+  it("drops the files when the send is undone", () => {
+    mount({ thread_token: "t1", email_id: "orig", initial: [ORIGINAL] });
+    optimistic_with_file("t1", "opt-1");
+
+    act(() => {
+      window.dispatchEvent(
+        new CustomEvent(MAIL_EVENTS.UNDO_SEND, {
+          detail: { pending: { optimistic_id: "opt-1", thread_token: "t1" } },
+        }),
+      );
+    });
+
+    expect(get_pending_send_attachments("opt-1")).toBeUndefined();
+  });
+
+  it("drops the files when the store is reset", () => {
+    mount({ thread_token: "t1", email_id: "orig", initial: [ORIGINAL] });
+    optimistic_with_file("t1", "opt-1");
+
+    act(() => reset_pending_reply_messages());
+
+    expect(get_pending_send_attachments("opt-1")).toBeUndefined();
   });
 
   it("does not duplicate the reply once the sent copy has loaded", () => {

@@ -25,6 +25,7 @@ import {
   settle_restored_sends_missing_from_server,
   take_interrupted_tab_sends,
   next_interrupted_tab_send_check_ms,
+  peek_pending_send_payload,
   use_undo_send,
 } from "@/hooks/use_undo_send";
 import { is_typing } from "@/hooks/use_keyboard_shortcuts";
@@ -162,6 +163,8 @@ export function UndoSendContainer({
                   cc: pending_data.cc,
                   bcc: pending_data.bcc,
                   sender_email: pending_data.sender_email,
+                  attachments: peek_pending_send_payload(pending_data.id)
+                    ?.attachments,
                 });
               }
             : undefined,
