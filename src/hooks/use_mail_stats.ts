@@ -480,6 +480,7 @@ class MailStatsStore {
       this.needs_revalidate = false;
       this.save_to_storage();
       this.sync_external_surfaces();
+      this.report_unread_drift(server_stats.unread);
 
       if (needs_confirm_retry) {
         this.schedule_confirm_retry();
@@ -505,6 +506,18 @@ class MailStatsStore {
         }
       }
     }
+  }
+
+  private report_unread_drift(server_unread: number): void {
+    if (this.authoritative_unread === null) return;
+    if (this.authoritative_unread === server_unread) return;
+    if (typeof window === "undefined") return;
+
+    window.dispatchEvent(
+      new CustomEvent(MAIL_EVENTS.INBOX_UNREAD_DRIFT, {
+        detail: { server_unread },
+      }),
+    );
   }
 
   invalidate(): void {
