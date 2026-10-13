@@ -45,7 +45,13 @@ vi.mock("@/components/email/shared/build_email_from_envelope", () => ({
     unsubscribe_info: undefined,
   }),
   build_preview_text: () => "body",
-  build_single_thread_message: () => null,
+  build_single_thread_message: () => ({
+    id: "m1",
+    item_type: "received",
+    timestamp: "2026-09-30T00:00:00Z",
+    is_read: true,
+    reactions: [],
+  }),
 }));
 
 vi.mock("@/services/crypto/memory_key_store", () => ({

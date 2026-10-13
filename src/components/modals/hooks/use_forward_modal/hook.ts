@@ -54,7 +54,11 @@ import { use_preferences } from "@/contexts/preferences_context";
 import { auto_save_recipients_to_contacts } from "@/services/contacts_auto_save";
 import { use_auth } from "@/contexts/auth_context";
 import { show_toast } from "@/components/toast/simple_toast";
-import { save_failed_send_as_draft } from "@/components/compose/compose_failed_send_draft";
+import {
+  discard_failed_send_draft,
+  save_failed_send_as_draft,
+  type KeptFailedDraft,
+} from "@/components/compose/compose_failed_send_draft";
 import { draft_manager } from "@/services/crypto/encrypted_drafts";
 import { show_email_sent_toast } from "@/components/toast/email_sent_toast";
 import { play_iconic_sound } from "@/services/iconic_sounds";
@@ -293,6 +297,9 @@ export function use_forward_modal({
   attachments_ref.current = attachments;
 
   const original_has_attachments_ref = useRef(false);
+  const failed_draft_ref = useRef<{ draft: KeptFailedDraft | null }>({
+    draft: null,
+  });
   const files_drop_ref = useRef<((files: File[]) => void) | null>(null);
 
   const editor = use_editor({
@@ -460,6 +467,7 @@ export function use_forward_modal({
       set_error_message(null);
       set_attachments([]);
       original_has_attachments_ref.current = false;
+      failed_draft_ref.current = { draft: null };
       attachments_touched_ref.current = false;
       set_is_loading_attachments(false);
       set_attachment_error(null);
@@ -915,10 +923,11 @@ export function use_forward_modal({
 
     const forward_subject = `${t("mail.forward_subject_prefix")} ${email_subject}`;
     let handed_off = false;
+    const failed_draft = failed_draft_ref.current;
     const keep_failed_forward = async (): Promise<boolean> => {
       if (!vault) return false;
 
-      return save_failed_send_as_draft(
+      const kept = await save_failed_send_as_draft(
         draft_manager,
         vault,
         {
@@ -933,9 +942,13 @@ export function use_forward_modal({
           sender_email: selected_sender?.email,
           attachments: fwd_attachments,
         },
-        null,
+        failed_draft.draft,
         { draft_type: "forward", forward_from_id: fwd_mail_id || undefined },
-      ).catch(() => false);
+      ).catch(() => ({ saved: false, draft: null }));
+
+      if (kept.draft) failed_draft.draft = kept.draft;
+
+      return kept.saved;
     };
 
     const result = await send_forward(
@@ -960,6 +973,10 @@ export function use_forward_modal({
           is_sending_ref.current = false;
           send_lock_started_at_ref.current = 0;
           set_is_sending(false);
+          if (failed_draft.draft) {
+            void discard_failed_send_draft(draft_manager, failed_draft.draft);
+            failed_draft.draft = null;
+          }
           setTimeout(() => {
             emit_email_sent();
           }, 100);
@@ -1053,6 +1070,11 @@ export function use_forward_modal({
       send_lock_started_at_ref.current = 0;
       set_error_message(result.error || t("common.failed_to_forward"));
       set_is_sending(false);
+      if (result.error) {
+        void keep_failed_forward().then((kept) => {
+          if (!kept) show_toast(t("common.failed_to_save"), "error");
+        });
+      }
     }
   }, [
     t,
@@ -1156,10 +1178,35 @@ export function use_forward_modal({
       get_forward_content(),
       attachments_ref.current,
     );
-    const scheduled_body =
+    const scheduled_message =
       (outgoing_forward_message ? outgoing_forward_message + "<br><br>" : "") +
-      sanitize_outgoing_html(scheduled_content) +
-      get_aster_footer(t, preferences.show_aster_branding);
+      sanitize_outgoing_html(scheduled_content);
+    const scheduled_body =
+      scheduled_message + get_aster_footer(t, preferences.show_aster_branding);
+    const failed_draft = failed_draft_ref.current;
+    const keep_failed_schedule = async (): Promise<void> => {
+      const kept = await save_failed_send_as_draft(
+        draft_manager,
+        vault,
+        {
+          to: send_recipients.to,
+          cc: send_recipients.cc,
+          bcc: send_recipients.bcc,
+          subject: content.subject,
+          body: scheduled_message,
+          sender_email: scheduled_alias?.email,
+        },
+        failed_draft.draft,
+        {
+          draft_type: "forward",
+          forward_from_id:
+            original_mail_id_ref.current || original_mail_id || undefined,
+        },
+      ).catch(() => ({ saved: false, draft: null }));
+
+      if (kept.draft) failed_draft.draft = kept.draft;
+      if (!kept.saved) show_toast(t("common.failed_to_save"), "error");
+    };
     const content: ScheduledEmailContent = {
       to_recipients: send_recipients.to,
       cc_recipients: send_recipients.cc,
@@ -1192,8 +1239,14 @@ export function use_forward_modal({
         set_is_scheduling(false);
         is_sending_ref.current = false;
         send_lock_started_at_ref.current = 0;
+        void keep_failed_schedule();
 
         return;
+      }
+
+      if (failed_draft.draft) {
+        void discard_failed_send_draft(draft_manager, failed_draft.draft);
+        failed_draft.draft = null;
       }
 
       on_close();
@@ -1205,6 +1258,7 @@ export function use_forward_modal({
       set_error_message(
         user_facing_error(error, t("common.failed_to_schedule")),
       );
+      void keep_failed_schedule();
     } finally {
       set_is_scheduling(false);
       is_sending_ref.current = false;
@@ -1225,6 +1279,7 @@ export function use_forward_modal({
     preferences.require_encryption,
     selected_sender,
     expires_at,
+    original_mail_id,
   ]);
 
   const get_total_attachments_size = useCallback(() => {
