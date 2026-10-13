@@ -1,4 +1,4 @@
-﻿//
+//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -8316,6 +8316,8 @@ export const zh_CN = {
     search_index_why: "你的邮件已加密，因此搜索使用存储在此设备上的私有索引。",
     search_index_resume: "继续",
     search_searching_title: "正在搜索你的邮件",
+    search_index_preparing: "正在准备你的私有索引",
+    search_index_live_hint: "找到匹配项后会立即显示。",
     search_searching_more: "正在搜索更多邮件",
     search_index_why_label: "为什么搜索需要索引",
     searching_message_content: "搜索邮件内容",

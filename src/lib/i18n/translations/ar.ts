@@ -1,4 +1,4 @@
-﻿//
+//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -9098,6 +9098,8 @@ export const ar = {
     search_index_why: "بريدك مشفّر، لذا يعمل البحث على فهرس خاص مخزّن على هذا الجهاز.",
     search_index_resume: "استئناف",
     search_searching_title: "جارٍ البحث في بريدك",
+    search_index_preparing: "جارٍ تجهيز فهرسك الخاص",
+    search_index_live_hint: "تظهر النتائج المطابقة فور العثور عليها.",
     search_searching_more: "جارٍ البحث في المزيد من البريد",
     search_index_why_label: "لماذا يحتاج البحث إلى فهرس",
     searching_message_content: "البحث في محتوى الرسائل",

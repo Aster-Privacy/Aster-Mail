@@ -1,4 +1,4 @@
-﻿//
+//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -9469,6 +9469,8 @@ export const ru = {
     search_index_why: "Ваша почта зашифрована, поэтому поиск использует частный индекс на этом устройстве.",
     search_index_resume: "Продолжить",
     search_searching_title: "Поиск в вашей почте",
+    search_index_preparing: "Подготовка вашего приватного индекса",
+    search_index_live_hint: "Совпадения появляются сразу после обнаружения.",
     search_searching_more: "Поиск в остальной почте",
     search_index_why_label: "Зачем поиску нужен индекс",
     insert_link_title: "Вставить ссылку",

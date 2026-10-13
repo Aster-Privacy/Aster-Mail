@@ -1,4 +1,4 @@
-﻿//
+//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -9524,6 +9524,8 @@ export const pl = {
     search_index_why: "Twoja poczta jest zaszyfrowana, więc wyszukiwanie korzysta z prywatnego indeksu zapisanego na tym urządzeniu.",
     search_index_resume: "Wznów",
     search_searching_title: "Przeszukiwanie poczty",
+    search_index_preparing: "Przygotowywanie prywatnego indeksu",
+    search_index_live_hint: "Dopasowania pojawiają się od razu po znalezieniu.",
     search_searching_more: "Przeszukiwanie kolejnych wiadomości",
     search_index_why_label: "Dlaczego wyszukiwanie wymaga indeksu",
     searching_message_content: "Szukaj w treści wiadomości",

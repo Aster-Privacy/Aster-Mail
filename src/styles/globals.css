@@ -1792,7 +1792,7 @@
 }
 
 .aster_search_lens_sweep {
-  animation: aster_search_lens_sweep 3.6s cubic-bezier(0.45, 0, 0.55, 1)
+  animation: aster_search_lens_sweep 3.6s cubic-bezier(0.65, 0, 0.35, 1)
     infinite;
 }
 
@@ -1801,20 +1801,14 @@
   animation: aster_search_lens_nudge 1.8s ease-in-out infinite;
 }
 
-.aster_search_lens_halo {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: aster_search_lens_halo 3.6s ease-in-out infinite;
-}
-
 .aster_search_lens_glint {
   opacity: 0;
   animation: aster_search_lens_glint 3.6s ease-in-out infinite;
 }
 
-.aster_search_lens_orbit {
-  transform-origin: 40px 40px;
-  animation: aster_spin 1.8s linear infinite;
+.aster_search_bar_slide {
+  animation: aster_search_bar_slide 1.6s cubic-bezier(0.65, 0, 0.35, 1)
+    infinite;
 }
 
 @keyframes aster_search_state_in {
@@ -1830,17 +1824,28 @@
 
 @keyframes aster_search_lens_sweep {
   0%,
+  25% {
+    transform: translate(0, 0);
+  }
+  33%,
+  58% {
+    transform: translate(-12px, 22px);
+  }
+  66%,
+  91% {
+    transform: translate(-6px, 44px);
+  }
   100% {
-    transform: translate(-11px, -8px);
+    transform: translate(0, 0);
   }
-  30% {
-    transform: translate(9px, -3px);
+}
+
+@keyframes aster_search_bar_slide {
+  from {
+    transform: translateX(-100%);
   }
-  55% {
-    transform: translate(-7px, 3px);
-  }
-  80% {
-    transform: translate(8px, 8px);
+  to {
+    transform: translateX(280%);
   }
 }
 
@@ -1854,27 +1859,16 @@
   }
 }
 
-@keyframes aster_search_lens_halo {
-  0%,
-  100% {
-    opacity: 0.55;
-    transform: scale(0.9);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.06);
-  }
-}
-
 @keyframes aster_search_lens_glint {
   0%,
   100% {
     opacity: 0;
   }
-  12% {
+  5%,
+  24% {
     opacity: 0.9;
   }
-  26% {
+  34% {
     opacity: 0;
   }
 }
@@ -1883,9 +1877,8 @@
   .aster_search_state_in,
   .aster_search_lens_sweep,
   .aster_search_lens_nudge,
-  .aster_search_lens_halo,
   .aster_search_lens_glint,
-  .aster_search_lens_orbit {
+  .aster_search_bar_slide {
     animation: none;
   }
 }

@@ -376,12 +376,10 @@ export function SearchIndexBadge({
   );
 }
 
-const LENS_RING_PATH = "M40 3a37 37 0 1 1 0 74a37 37 0 1 1 0-74";
-
-const LENS_LINES = [
-  { y: 31, x: 23, width: 34, delay: "0s" },
-  { y: 39, x: 23, width: 26, delay: "1.4s" },
-  { y: 47, x: 23, width: 30, delay: "2.4s" },
+const LENS_ROWS = [
+  { y: 14, width: 46, delay: "0s" },
+  { y: 36, width: 34, delay: "1.2s" },
+  { y: 58, width: 40, delay: "2.4s" },
 ];
 
 interface SearchLensProps {
@@ -391,102 +389,102 @@ interface SearchLensProps {
 }
 
 function SearchLens({ percent, indeterminate, paused }: SearchLensProps) {
-  const filled = indeterminate ? 22 : Math.min(Math.max(percent, 0), 100);
+  const filled = Math.min(Math.max(percent, 0), 100);
   const moving = !paused;
   const ink = paused ? "var(--text-muted)" : "var(--accent-color)";
 
   return (
     <div
-      className="relative h-20 w-20 flex-shrink-0"
+      className="flex flex-shrink-0 flex-col items-center"
       data-dial-percent={indeterminate ? undefined : Math.floor(filled)}
       data-lens-state={paused ? "paused" : "searching"}
     >
       <svg
         aria-hidden="true"
-        className="absolute inset-0 h-20 w-20 overflow-visible"
-        height="80"
-        viewBox="0 0 80 80"
-        width="80"
+        className="h-[72px] w-24 overflow-visible"
+        height="72"
+        viewBox="0 0 96 72"
+        width="96"
       >
-        <circle
-          className={moving ? "aster_search_lens_halo" : undefined}
-          cx="40"
-          cy="40"
-          fill={ink}
-          fillOpacity={paused ? 0.06 : 0.1}
-          r="28"
-        />
-        <path
-          d={LENS_RING_PATH}
-          fill="none"
-          stroke="var(--border-secondary)"
-          strokeWidth="2.5"
-        />
-        <g
-          className={
-            indeterminate && moving ? "aster_search_lens_orbit" : undefined
-          }
-        >
-          <path
-            d={LENS_RING_PATH}
-            fill="none"
-            pathLength={100}
-            stroke={ink}
-            strokeDasharray="100"
-            strokeDashoffset={100 - filled}
-            strokeLinecap="round"
-            strokeWidth="2.5"
-            style={{
-              opacity: paused ? 0.5 : 1,
-              transition: "stroke-dashoffset 500ms ease-out",
-            }}
-          />
-        </g>
-        {LENS_LINES.map((line) => (
-          <g key={line.y}>
+        {LENS_ROWS.map((row) => (
+          <g key={row.y}>
+            <circle
+              cx="10"
+              cy={row.y}
+              fill="var(--text-muted)"
+              opacity={paused ? 0.2 : 0.3}
+              r="4.5"
+            />
             <rect
               fill="var(--text-muted)"
-              height="3"
-              opacity={paused ? 0.25 : 0.35}
-              rx="1.5"
-              width={line.width}
-              x={line.x}
-              y={line.y}
+              height="4"
+              opacity={paused ? 0.2 : 0.3}
+              rx="2"
+              width={row.width}
+              x="21"
+              y={row.y - 2}
             />
             {moving && (
-              <rect
+              <g
                 className="aster_search_lens_glint"
-                fill="var(--accent-color)"
-                height="3"
-                rx="1.5"
-                style={{ animationDelay: line.delay }}
-                width={line.width}
-                x={line.x}
-                y={line.y}
-              />
+                style={{ animationDelay: row.delay }}
+              >
+                <circle cx="10" cy={row.y} fill={ink} r="4.5" />
+                <rect
+                  fill={ink}
+                  height="4"
+                  rx="2"
+                  width={row.width}
+                  x="21"
+                  y={row.y - 2}
+                />
+              </g>
             )}
           </g>
         ))}
-        <g transform="translate(40 40)">
+        <g transform="translate(61 14)">
           <g className={moving ? "aster_search_lens_sweep" : undefined}>
             <circle
               cx="0"
               cy="0"
-              fill={ink}
-              fillOpacity="0.12"
-              r="10.5"
+              fill="var(--bg-primary)"
+              r="9"
               stroke={ink}
               strokeWidth="2.5"
             />
+            <rect
+              fill={ink}
+              height="6"
+              rx="3"
+              width="12"
+              x="-6"
+              y="-3"
+            />
             <path
-              d="M7.7 7.7l6 6"
+              d="M6.6 6.6l6 6"
               stroke={ink}
               strokeLinecap="round"
-              strokeWidth="3.5"
+              strokeWidth="3"
             />
           </g>
         </g>
       </svg>
+      <div
+        className="relative mt-4 h-[3px] w-24 overflow-hidden rounded-full"
+        style={{ background: "var(--border-secondary)" }}
+      >
+        <div
+          className={`absolute inset-y-0 start-0 rounded-full ${
+            indeterminate && moving ? "aster_search_bar_slide" : ""
+          }`}
+          style={{
+            background: ink,
+            opacity: paused ? 0.5 : 1,
+            transition: "width 500ms ease-out",
+            width: indeterminate ? "36%" : `${filled}%`,
+          }}
+        />
+      </div>
     </div>
   );
 }
@@ -580,9 +578,11 @@ function use_index_controls(
           duration: format_remaining_duration(eta_seconds, language),
         })
       : null;
+  const progress = [count, eta].filter(Boolean).join(" · ");
 
   return {
-    detail: [count, eta].filter(Boolean).join(" · "),
+    detail: running && !progress ? t("mail.search_index_preparing") : progress,
+    hint: running ? t("mail.search_index_live_hint") : "",
     resume: () => resume_index_download(user?.email || "", search_content),
   };
 }
@@ -639,7 +639,7 @@ export function SearchIndexingState({
   testid = "search-indexing-state",
 }: SearchIndexingStateProps) {
   const { t } = use_i18n();
-  const { detail, resume } = use_index_controls(status, search_content);
+  const { detail, hint, resume } = use_index_controls(status, search_content);
   const control: SearchEmptyAction = status.is_paused
     ? {
         label: t("mail.search_index_resume"),
@@ -663,7 +663,7 @@ export function SearchIndexingState({
         paused={status.is_paused}
         percent={status.percent}
       />
-      <div className="mt-5 flex items-center gap-1 ps-6">
+      <div className="mt-6 flex items-center gap-1 ps-6">
         <p
           className="text-[15px] font-semibold"
           role="status"
@@ -681,6 +681,15 @@ export function SearchIndexingState({
           style={{ color: "var(--text-muted)" }}
         >
           {detail}
+        </p>
+      )}
+      {hint && (
+        <p
+          className="mt-0.5 text-[13px] leading-5"
+          data-testid={`${testid}-hint`}
+          style={{ color: "var(--text-muted)" }}
+        >
+          {hint}
         </p>
       )}
       <ActionPills actions={[control, ...actions]} />

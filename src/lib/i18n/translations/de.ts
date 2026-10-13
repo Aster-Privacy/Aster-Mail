@@ -1,4 +1,4 @@
-﻿//
+//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -9371,6 +9371,8 @@ export const de = {
     search_index_why: "Ihre E-Mails sind verschlüsselt. Die Suche nutzt daher einen privaten Index auf diesem Gerät.",
     search_index_resume: "Fortsetzen",
     search_searching_title: "Ihre E-Mails werden durchsucht",
+    search_index_preparing: "Ihr privater Index wird vorbereitet",
+    search_index_live_hint: "Treffer erscheinen, sobald sie gefunden werden.",
     search_searching_more: "Weitere E-Mails werden durchsucht",
     search_index_why_label: "Warum die Suche einen Index benötigt",
     insert_link_title: "Link einfügen",

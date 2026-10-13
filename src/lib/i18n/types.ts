@@ -7945,6 +7945,8 @@ export interface MailTranslations {
   search_index_why: string;
   search_index_resume: string;
   search_searching_title: string;
+  search_index_preparing: string;
+  search_index_live_hint: string;
   search_searching_more: string;
   search_index_why_label: string;
   searching_message_content: string;

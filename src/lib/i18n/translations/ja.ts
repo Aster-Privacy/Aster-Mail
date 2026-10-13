@@ -1,4 +1,4 @@
-﻿//
+//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -9157,6 +9157,8 @@ export const ja = {
     search_index_why: "メールは暗号化されているため、検索はこのデバイスに保存された非公開のインデックスで行われます。",
     search_index_resume: "再開",
     search_searching_title: "メールを検索中",
+    search_index_preparing: "プライベートインデックスを準備しています",
+    search_index_live_hint: "一致するメールは見つかり次第表示されます。",
     search_searching_more: "ほかのメールを検索中",
     search_index_why_label: "検索にインデックスが必要な理由",
     searching_message_content: "メッセージ内容を検索",
