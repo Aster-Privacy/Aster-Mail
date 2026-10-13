@@ -265,14 +265,14 @@ describe("search indexing state", () => {
     expect(pause_mock).toHaveBeenCalled();
   });
 
-  it("orbits the ring while the mailbox size is unknown", () => {
+  it("slides the progress line while the mailbox size is unknown", () => {
     Object.assign(progress_state, { building: true, current: 120, total: 0 });
     render(true);
 
     const state = by_testid("search-indexing-state")!;
 
     expect(state.querySelector("[data-dial-percent]")).toBeNull();
-    expect(state.querySelector(".aster_search_lens_orbit")).not.toBeNull();
+    expect(state.querySelector(".aster_search_bar_slide")).not.toBeNull();
     expect(state.textContent).toContain(
       'mail.search_index_progress_unknown {"done":"120"}',
     );
