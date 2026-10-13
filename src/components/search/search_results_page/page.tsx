@@ -45,7 +45,11 @@ import {
 import { use_search_results_page } from "./use_search_results_page";
 import { search_row_key } from "./thread_grouping";
 
-import { use_indexing_progress } from "@/hooks/use_search/progress";
+import {
+  SearchIndexingNotice,
+  SearchIndexingStrip,
+  use_search_index_status,
+} from "@/components/search/search_indexing_notice";
 import { emit_mail_items_removed } from "@/hooks/mail_events";
 import { build_sender_mail_query } from "@/utils/contact_mail_search";
 import { InboxHeader } from "@/components/inbox/inbox_header";
@@ -116,7 +120,6 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
     search_page_size,
     state,
     dismiss_correction,
-    clear_index,
     email_actions,
     is_slow,
     content_search_enabled,
@@ -166,7 +169,11 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
     handle_search_auto_advance,
     show_full_email_viewer,
   } = use_search_results_page(props);
-  const indexing = use_indexing_progress();
+  const index_status = use_search_index_status(
+    state.index_pending,
+    state.indexed_count,
+    is_loading && filtered_results.length === 0,
+  );
   const is_split_view = !!split_email_id;
 
   const sort_dropdown = (
@@ -489,42 +496,16 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
   );
 
   const indexing_notice = (
-    <div className="flex flex-col items-center justify-center py-16 px-4">
-      <ArrowPathIcon
-        className="w-10 h-10 mb-4 animate-spin"
-        style={{ color: "var(--text-muted)" }}
-      />
-      <p
-        className="text-sm font-medium mb-1"
-        style={{ color: "var(--text-primary)" }}
-      >
-        {t("mail.indexing_messages")}
-      </p>
-      <p
-        className="text-xs text-center max-w-[280px]"
-        style={{ color: "var(--text-muted)" }}
-      >
-        {indexing.total > 0
-          ? t("mail.message_download_status", {
-              done: Math.min(
-                Math.max(state.indexed_count, indexing.current),
-                indexing.total,
-              ),
-              total: indexing.total,
-            })
-          : t("mail.message_download_count", {
-              done: Math.max(state.indexed_count, indexing.current),
-            })}
-      </p>
-    </div>
+    <SearchIndexingNotice
+      query={query}
+      search_content={content_search_enabled}
+      status={index_status}
+    />
   );
 
   const email_list_body = (
     <>
-      {is_loading &&
-      filtered_results.length === 0 &&
-      is_slow &&
-      (state.index_pending || indexing.building) ? (
+      {filtered_results.length === 0 && index_status.is_active ? (
         indexing_notice
       ) : is_loading && filtered_results.length === 0 ? (
         <div>
@@ -533,7 +514,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
             <SearchResultSkeleton key={i} />
           ))}
         </div>
-      ) : state.error ? (
+      ) : state.error && filtered_results.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 px-4">
           <ExclamationTriangleIcon
             className="w-10 h-10 mb-4"
@@ -547,17 +528,13 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
           </p>
           <button
             className="mt-3 flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--aster-radius-control)] text-xs font-medium transition-colors bg-[var(--accent-blue)] text-[var(--accent-fg,#ffffff)] hover:opacity-90"
-            onClick={() => {
-              clear_index();
-              perform_search(query);
-            }}
+            type="button"
+            onClick={() => perform_search(query)}
           >
             <ArrowPathIcon className="w-3.5 h-3.5" />
             {t("common.retry")}
           </button>
         </div>
-      ) : filtered_results.length === 0 && state.index_pending ? (
-        indexing_notice
       ) : filtered_results.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 px-4">
           <MagnifyingGlassIcon
@@ -627,6 +604,11 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
             className="border-b border-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]"
             correction={state.correction}
             on_dismiss={dismiss_correction}
+          />
+          <SearchIndexingStrip
+            className="border-b border-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]"
+            search_content={content_search_enabled}
+            status={index_status}
           />
           {paged_results.map((email) => {
             const snippet = extract_snippet(email.preview, search_terms);

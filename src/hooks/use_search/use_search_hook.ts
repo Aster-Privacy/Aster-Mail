@@ -38,7 +38,6 @@ import {
   to_search_result,
 } from "./matching";
 import {
-  indexing_progress,
   reset_indexing_progress,
   subscribe_index_refresh,
 } from "./progress";
@@ -272,9 +271,8 @@ export function use_search() {
         );
 
         const index_pending =
-          !index.complete ||
-          indexing_progress.building ||
-          (search_body && !index.include_body);
+          !index.complete || (search_body && !index.include_body);
+        const index_settled = index.built_at !== 0;
 
         if (controller.signal.aborted) return;
 
@@ -452,7 +450,7 @@ export function use_search() {
 
           if (controller.signal.aborted) return;
 
-          empty_chunks_ref.current = empty_chunks;
+          empty_chunks_ref.current = index_settled ? empty_chunks : null;
         }
 
         if (controller.signal.aborted) return;
@@ -491,7 +489,7 @@ export function use_search() {
             : null;
 
         last_scan_ref.current =
-          stopped || !candidates_are_cacheable(candidates)
+          stopped || !index_settled || !candidates_are_cacheable(candidates)
             ? null
             : {
                 terms,
@@ -592,7 +590,12 @@ export function use_search() {
     return subscribe_index_refresh(() => {
       const last = last_search_ref.current;
 
-      if (last) void search(last.query, last.options);
+      if (!last) return;
+
+      last_scan_ref.current = null;
+      empty_chunks_ref.current = null;
+      preserve_limit_ref.current = true;
+      void search(last.query, last.options);
     });
   }, [search]);
 

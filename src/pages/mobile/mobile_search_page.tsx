@@ -33,6 +33,11 @@ import { use_should_reduce_motion } from "@/provider";
 import { MobileHeader } from "@/components/mobile/mobile_header";
 import { MobileEmailRow } from "@/components/mobile/mobile_email_row";
 import { Spinner } from "@/components/ui/spinner";
+import {
+  SearchIndexingNotice,
+  SearchIndexingStrip,
+  use_search_index_status,
+} from "@/components/search/search_indexing_notice";
 import { Input } from "@/components/ui/input";
 import { use_preferences } from "@/contexts/preferences_context";
 import { resolve_effective_page_size } from "@/lib/inbox_page_size";
@@ -222,7 +227,7 @@ function MobileSearchPage() {
 
   useEffect(() => {
     set_visible_count(page_size);
-  }, [search.state.results, page_size]);
+  }, [search.state.results_query, page_size]);
 
   const paged_results = useMemo(
     () => filtered_results.slice(0, visible_count),
@@ -244,8 +249,17 @@ function MobileSearchPage() {
     search.state.index_building;
   const is_empty_after_search =
     !is_loading && !search.state.error && has_searched && !has_results;
-  const is_index_pending = is_empty_after_search && search.state.index_pending;
-  const is_no_results = is_empty_after_search && !search.state.index_pending;
+  const index_status = use_search_index_status(
+    search.state.index_pending,
+    search.state.indexed_count,
+    is_loading && !has_results,
+  );
+  const is_index_pending =
+    !search.state.error &&
+    has_searched &&
+    !has_results &&
+    index_status.is_active;
+  const is_no_results = is_empty_after_search && !index_status.is_active;
 
   return (
     <motion.div
@@ -331,7 +345,7 @@ function MobileSearchPage() {
       )}
 
       <div className="flex-1 overflow-y-auto">
-        {is_loading && (
+        {is_loading && !has_results && !is_index_pending && (
           <div className="flex flex-col items-center justify-center gap-3 pt-20">
             <Spinner size="lg" />
             <p className="text-[14px] text-[var(--text-muted)]">
@@ -358,19 +372,12 @@ function MobileSearchPage() {
         )}
 
         {is_index_pending && (
-          <div
-            className="flex flex-col items-center justify-center gap-3 px-8 pt-20"
-            data-testid="mobile-search-indexing"
-          >
-            <Spinner size="lg" />
-            <p className="text-center text-[15px] font-medium text-[var(--text-primary)]">
-              {t("mail.indexing_messages")}
-            </p>
-            <p className="text-center text-[14px] text-[var(--text-muted)]">
-              {t("mail.message_download_count", {
-                done: search.state.indexed_count,
-              })}
-            </p>
+          <div data-testid="mobile-search-indexing">
+            <SearchIndexingNotice
+              query={submitted_query}
+              search_content={preferences.search_encrypted_content}
+              status={index_status}
+            />
           </div>
         )}
 
@@ -397,17 +404,24 @@ function MobileSearchPage() {
           </div>
         )}
 
-        {!is_loading &&
-          paged_results.map((email) => (
-            <MobileEmailRow
-              key={email.id}
-              email={email}
-              on_press={handle_email_press}
-              on_toggle_star={handle_toggle_star}
-            />
-          ))}
+        {has_results && (
+          <SearchIndexingStrip
+            className="border-b border-[var(--border-primary)]"
+            search_content={preferences.search_encrypted_content}
+            status={index_status}
+          />
+        )}
 
-        {!is_loading && paged_results.length < filtered_results.length && (
+        {paged_results.map((email) => (
+          <MobileEmailRow
+            key={email.id}
+            email={email}
+            on_press={handle_email_press}
+            on_toggle_star={handle_toggle_star}
+          />
+        ))}
+
+        {paged_results.length < filtered_results.length && (
           <button
             className="w-full py-4 text-center text-[14px] font-medium text-[var(--accent-color,#3b82f6)]"
             type="button"

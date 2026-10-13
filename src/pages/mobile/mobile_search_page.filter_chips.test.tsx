@@ -28,6 +28,27 @@ const clear_results_mock = vi.fn();
 const index_state = vi.hoisted(() => ({
   index_pending: false,
   indexed_count: 0,
+  building: false,
+  paused: false,
+}));
+
+vi.mock("@/contexts/auth_context", () => ({
+  use_auth: () => ({ user: { email: "reader@example.org" } }),
+}));
+
+vi.mock("@/hooks/use_search/progress", () => ({
+  use_indexing_progress: () => ({
+    building: index_state.building,
+    current: index_state.indexed_count,
+    total: 400,
+    session: 1,
+  }),
+  use_index_download_state: () => ({
+    paused: index_state.paused,
+    done: index_state.indexed_count,
+    total: 400,
+  }),
+  resume_index_download: vi.fn(),
 }));
 
 vi.mock("@/lib/i18n/context", () => ({
@@ -84,6 +105,8 @@ beforeEach(() => {
   clear_results_mock.mockReset();
   index_state.index_pending = false;
   index_state.indexed_count = 0;
+  index_state.building = false;
+  index_state.paused = false;
 });
 
 afterEach(() => {
@@ -233,6 +256,7 @@ describe("MobileSearchPage filter chips", () => {
   it("shows indexing progress, not an empty result, while the index builds", () => {
     index_state.index_pending = true;
     index_state.indexed_count = 120;
+    index_state.building = true;
 
     const input = render_page("inbox");
 
@@ -241,8 +265,41 @@ describe("MobileSearchPage filter chips", () => {
     expect(
       document.querySelector('[data-testid="mobile-search-indexing"]'),
     ).not.toBeNull();
-    expect(document.body.textContent).toContain("mail.indexing_messages");
+    expect(document.body.textContent).toContain("mail.search_index_title");
+    expect(document.body.textContent).toContain("mail.search_index_why");
     expect(document.body.textContent).not.toContain("mail.no_results_found");
+  });
+
+  it("offers to resume indexing when it is paused", () => {
+    index_state.index_pending = true;
+    index_state.indexed_count = 120;
+    index_state.paused = true;
+
+    const input = render_page("inbox");
+
+    submit(input, "report");
+
+    expect(
+      document.querySelector('[data-testid="search-indexing-resume"]'),
+    ).not.toBeNull();
+    expect(document.body.textContent).toContain(
+      "mail.search_index_paused_title",
+    );
+    expect(document.body.textContent).not.toContain("mail.no_results_found");
+  });
+
+  it("shows the empty result when the index is short but nothing is indexing", () => {
+    index_state.index_pending = true;
+    index_state.indexed_count = 120;
+
+    const input = render_page("inbox");
+
+    submit(input, "report");
+
+    expect(
+      document.querySelector('[data-testid="mobile-search-indexing"]'),
+    ).toBeNull();
+    expect(document.body.textContent).toContain("mail.no_results_found");
   });
 
   it("shows the empty result once the index is complete", () => {
