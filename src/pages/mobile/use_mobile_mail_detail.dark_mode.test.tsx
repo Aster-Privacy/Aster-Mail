@@ -123,7 +123,7 @@ vi.mock("@/components/email/build_reply_recipient", () => ({
   build_reply_recipient_for_message: vi.fn(),
 }));
 vi.mock("@/components/email/build_reply_from_address", () => ({
-  resolve_own_recipient_address: vi.fn(),
+  build_received_from_address: vi.fn(),
 }));
 vi.mock("@/utils/delivered_to", () => ({
   resolve_received_on_address: vi.fn(),

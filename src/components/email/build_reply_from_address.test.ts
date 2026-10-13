@@ -23,6 +23,7 @@ import type { CustomDomain } from "@/services/api/domains";
 import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 
 import {
+  build_received_from_address,
   build_reply_from_address,
   resolve_received_on_alias,
   collect_recipient_emails,
@@ -212,6 +213,101 @@ describe("build_reply_from_address", () => {
     ).toBeUndefined();
     expect(
       build_reply_from_address({ sender_email: "   " }, true),
+    ).toBeUndefined();
+  });
+});
+
+describe("build_received_from_address", () => {
+  const own = ["me@astermail.org", "support@example.com"];
+
+  beforeEach(() => {
+    plan_state.catch_all_unlocked = true;
+    set_catch_all_context([catch_all_domain], own);
+  });
+
+  afterEach(() => {
+    plan_state.catch_all_unlocked = false;
+    set_catch_all_context([], []);
+  });
+
+  it("picks a catch-all address that is also a visible recipient", () => {
+    expect(
+      build_received_from_address(
+        {
+          raw_headers: delivered_to("anything@example.com"),
+          to_emails: ["anything@example.com"],
+        },
+        own,
+      ),
+    ).toBe("anything@example.com");
+  });
+
+  it("picks a catch-all address that received a blind copy", () => {
+    expect(
+      build_received_from_address(
+        {
+          raw_headers: delivered_to("hidden@example.com"),
+          to_emails: ["list@other.example"],
+        },
+        own,
+      ),
+    ).toBe("hidden@example.com");
+  });
+
+  it("prefers a registered address over the catch-all address", () => {
+    expect(
+      build_received_from_address(
+        {
+          raw_headers: delivered_to("anything@example.com"),
+          to_emails: ["anything@example.com"],
+          cc_emails: ["Support@Example.com"],
+        },
+        own,
+      ),
+    ).toBe("Support@Example.com");
+  });
+
+  it("picks a registered address that received a blind copy", () => {
+    expect(
+      build_received_from_address(
+        {
+          raw_headers: delivered_to("support@example.com"),
+          to_emails: ["list@other.example"],
+        },
+        own,
+      ),
+    ).toBe("support@example.com");
+  });
+
+  it("falls back to a registered recipient when Delivered-To is unusable", () => {
+    expect(
+      build_received_from_address(
+        {
+          raw_headers: delivered_to("someone@foreign.example"),
+          to_emails: ["stranger@x.example", "me@astermail.org"],
+        },
+        own,
+      ),
+    ).toBe("me@astermail.org");
+  });
+
+  it("offers no catch-all address without the plan feature", () => {
+    plan_state.catch_all_unlocked = false;
+
+    expect(
+      build_received_from_address(
+        {
+          raw_headers: delivered_to("anything@example.com"),
+          to_emails: ["anything@example.com"],
+        },
+        own,
+      ),
+    ).toBeUndefined();
+  });
+
+  it("returns undefined when nothing identifies an owned address", () => {
+    expect(
+      build_received_from_address({ to_emails: ["stranger@x.example"] }, own),
     ).toBeUndefined();
   });
 });

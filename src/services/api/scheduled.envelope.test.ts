@@ -20,6 +20,8 @@
 //
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { en } from "@/lib/i18n/translations/en";
+
 const post = vi.fn();
 const private_bcc = vi.fn();
 let internal = true;
@@ -235,6 +237,42 @@ describe("scheduled envelope", () => {
     expect(typeof request.ephemeral_key).toBe("string");
     expect(request).not.toHaveProperty("delivery");
     expect(private_bcc).not.toHaveBeenCalled();
+  });
+
+  it("names the sending address when the server refuses it", async () => {
+    post.mockResolvedValue({
+      error: "Forbidden",
+      code: "FORBIDDEN",
+      status: 403,
+      server_code: "SENDER_NOT_AUTHORIZED",
+    });
+
+    const response = await create_scheduled_email(
+      {} as never,
+      content(),
+      OPTIONS,
+    );
+
+    expect(response.data).toBeUndefined();
+    expect(response.server_code).toBe("SENDER_NOT_AUTHORIZED");
+    expect(response.error).toBe(en.errors.sender_address_refused);
+  });
+
+  it("keeps the server message for any other refusal", async () => {
+    post.mockResolvedValue({
+      error: "Forbidden",
+      code: "FORBIDDEN",
+      status: 403,
+      server_code: "FORBIDDEN",
+    });
+
+    const response = await create_scheduled_email(
+      {} as never,
+      content(),
+      OPTIONS,
+    );
+
+    expect(response.error).toBe("Forbidden");
   });
 
   it("rejects times more than 28 days ahead", async () => {
