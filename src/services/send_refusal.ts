@@ -37,6 +37,14 @@ export interface SendRefusal {
   message: string;
 }
 
+export function describe_sender_refusal(
+  result: SendRefusalSource,
+): string | null {
+  return result.server_code === SENDER_NOT_AUTHORIZED_CODE
+    ? get_active_translations().errors.sender_address_refused
+    : null;
+}
+
 export function describe_send_refusal(
   result: SendRefusalSource,
 ): SendRefusal | null {
@@ -99,11 +107,10 @@ export function describe_send_refusal(
     };
   }
 
-  if (result.server_code === SENDER_NOT_AUTHORIZED_CODE) {
-    return {
-      kind: "send_failed",
-      message: get_active_translations().errors.sender_address_refused,
-    };
+  const sender_refusal = describe_sender_refusal(result);
+
+  if (sender_refusal) {
+    return { kind: "send_failed", message: sender_refusal };
   }
 
   if (result.code === "RATE_LIMIT_EXCEEDED" && result.resets_at) {

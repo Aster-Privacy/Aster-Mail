@@ -47,6 +47,7 @@ import {
   create_scheduled_email,
   type ScheduledEmailContent,
 } from "@/services/api/scheduled";
+import { describe_sender_refusal } from "@/services/send_refusal";
 import { emit_scheduled_changed } from "@/hooks/mail_events";
 import { check_scheduled_send } from "@/services/scheduled_send_gate";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -999,7 +1000,11 @@ export function use_compose_send({
       });
 
       if (response.error) {
-        show_toast(t("common.failed_to_schedule_email"), "error");
+        show_toast(
+          describe_sender_refusal(response) ??
+            t("common.failed_to_schedule_email"),
+          "error",
+        );
         set_is_scheduling(false);
         is_sending_ref.current = false;
         send_lock_started_at_ref.current = 0;

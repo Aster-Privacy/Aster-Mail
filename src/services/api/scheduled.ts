@@ -29,6 +29,7 @@ import {
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { account_data_write_key } from "@/services/crypto/account_data_writer";
 import { encrypt_with_private_bcc } from "@/services/send_private_bcc";
+import { describe_sender_refusal } from "@/services/send_refusal";
 import { is_internal_email } from "@/services/api/keys";
 import { build_subject_bundle } from "@/utils/email_crypto";
 import { exceeds_sealed_schedule_window } from "@/lib/schedule_window";
@@ -673,7 +674,11 @@ export async function create_scheduled_email(
   );
 
   if (response.error || !response.data) {
-    return create_error_response(response.error, response.code);
+    return {
+      error: describe_sender_refusal(response) ?? response.error,
+      code: response.code,
+      server_code: response.server_code,
+    };
   }
 
   invalidate_mail_stats();
