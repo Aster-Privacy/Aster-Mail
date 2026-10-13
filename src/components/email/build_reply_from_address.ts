@@ -77,6 +77,22 @@ export function resolve_own_recipient_address(
   return undefined;
 }
 
+export function build_received_from_address(
+  source: Pick<ReplyFromSource, "raw_headers" | "to_emails" | "cc_emails">,
+  own_addresses: string[],
+): string | undefined {
+  const visible = collect_recipient_emails(source.to_emails, source.cc_emails);
+  const delivered = extract_delivered_to(source.raw_headers);
+
+  return (
+    catch_all_reply_address(source.raw_headers, visible) ??
+    resolve_own_recipient_address(
+      delivered ? [delivered, ...visible] : visible,
+      own_addresses,
+    )
+  );
+}
+
 export function is_reply_from_mismatch(
   received_on_alias: string | undefined,
   selected_sender_email: string | undefined,
@@ -117,3 +133,4 @@ export function collect_recipient_emails(
 
 import { normalize_address_ignoring_dots } from "@/utils/address_dots";
 import { catch_all_reply_address } from "@/services/catch_all_sender";
+import { extract_delivered_to } from "@/utils/delivered_to";
