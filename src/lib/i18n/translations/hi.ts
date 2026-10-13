@@ -1884,6 +1884,7 @@ export const hi = {
     tray_compat_off: "हार्डवेयर एक्सेलेरेशन के साथ फिर से चालू करें",
     tray_display_reset: "डिस्प्ले कैश रीसेट करके फिर से चालू करें",
     push_new_message: "आपके पास एक नया संदेश है",
+    new_reaction_body: "आपके पास एक नई प्रतिक्रिया है",
     too_many_recipients_in_field:
       "To, Cc और Bcc में से हर फ़ील्ड में अधिकतम {{max}} पते आते हैं। यह संदेश भेजने के लिए कुछ पते दूसरे संदेश में ले जाएं।",
     too_many_recipients_in_message:
@@ -8484,6 +8485,7 @@ export const hi = {
     to_recipients_prefix: "{{ recipients }} को",
     received_on_prefix: "{{ address }} पर मिला",
     received_via_alias: "आपके एलियास {{ address }} पर पहुंचाया गया",
+    new_reaction: "नई प्रतिक्रिया",
     move_to_folder: "फ़ोल्डर में ले जाएं",
     apply_label: "लेबल लगाएं",
     select: "चुनें",

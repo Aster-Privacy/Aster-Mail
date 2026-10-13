@@ -22,7 +22,10 @@
 const PUSH_STRINGS_CACHE = "aster_push_strings";
 const PUSH_STRINGS_URL = "/__aster_push_strings";
 
-export async function publish_push_strings(new_message: string): Promise<void> {
+export async function publish_push_strings(
+  new_message: string,
+  new_reaction?: string,
+): Promise<void> {
   if (typeof caches === "undefined" || !new_message) return;
 
   try {
@@ -30,7 +33,7 @@ export async function publish_push_strings(new_message: string): Promise<void> {
 
     await cache.put(
       PUSH_STRINGS_URL,
-      new Response(JSON.stringify({ new_message }), {
+      new Response(JSON.stringify({ new_message, new_reaction }), {
         headers: { "content-type": "application/json" },
       }),
     );

@@ -1983,6 +1983,7 @@ export const tr = {
     tray_compat_off: "Donanım hızlandırmayla yeniden başlat",
     tray_display_reset: "Ekran önbelleğini sıfırla ve yeniden başlat",
     push_new_message: "Yeni bir mesajınız var",
+    new_reaction_body: "Yeni bir tepkiniz var",
     too_many_recipients_in_field:
       "Kime, Bilgi ve Gizli alanlarının her biri en fazla {{max}} adres alır. Bir kısmını ikinci bir iletiye taşıdığınızda bu ileti gönderilir.",
     too_many_recipients_in_message:
@@ -9114,6 +9115,7 @@ export const tr = {
     to_recipients_prefix: "{{ recipients }} kişisine",
     received_on_prefix: "{{ address }} adresinde alındı",
     received_via_alias: "{{ address }} takma adresine teslim edildi",
+    new_reaction: "Yeni tepki",
     load_external_content: "Harici içerik yükle",
     image: "görsel",
     images: "görseller",

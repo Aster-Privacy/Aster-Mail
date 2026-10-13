@@ -42,6 +42,7 @@ import {
 } from "@heroicons/react/24/outline";
 import {
   CheckIcon,
+  FaceSmileIcon,
   StarIcon as StarIconSolid,
 } from "@heroicons/react/24/solid";
 import { Checkbox, Tooltip } from "@aster/ui";
@@ -114,6 +115,7 @@ import {
 } from "@/components/email/inbox/category_drag";
 import mail_logo_url from "@/assets/mail_logo.webp";
 import { use_shown_thread_count } from "@/hooks/pending_thread_replies";
+import { use_has_unseen_reaction } from "@/services/unseen_reactions";
 
 export const InboxEmailListItem = memo(
   forwardRef<HTMLDivElement, InboxEmailListItemProps>(
@@ -152,6 +154,7 @@ export const InboxEmailListItem = memo(
         email.thread_token,
         email.thread_message_count,
       );
+      const has_new_reaction = use_has_unseen_reaction(email);
       const is_trash_view = current_view === "trash";
       const is_spam_view = current_view === "spam";
       const is_archive_view = current_view === "archive";
@@ -859,6 +862,22 @@ export const InboxEmailListItem = memo(
           )}
 
           <div className="hidden sm:flex items-center gap-2 flex-shrink-0 ms-auto">
+            {has_new_reaction && (
+              <Tooltip tip={t("mail.new_reaction")}>
+                <span
+                  aria-label={t("mail.new_reaction")}
+                  className={cn(
+                    "flex-shrink-0 inline-flex items-center text-[var(--accent-color,#3b82f6)]",
+                    show_hover_actions && "group-hover:opacity-0",
+                  )}
+                  data-testid="new-reaction-badge"
+                  role="img"
+                >
+                  <FaceSmileIcon className="h-4 w-4" />
+                </span>
+              </Tooltip>
+            )}
+
             {alias_delivery && (
               <Tooltip
                 tip={t("mail.received_via_alias", {

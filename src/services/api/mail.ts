@@ -39,6 +39,7 @@ import {
   pick_flag_intents,
   type FlagIntents,
 } from "@/services/read_intent";
+import { ingest_unseen_reaction_flags } from "@/services/unseen_reactions";
 import {
   note_own_mail_mutation,
   settle_own_mail_mutation,
@@ -74,6 +75,7 @@ export interface ReactionSummary {
   emoji?: string;
   reactor_email?: string;
   is_own?: boolean;
+  is_unseen?: boolean;
   created_at: string;
 }
 
@@ -125,6 +127,7 @@ export interface MailItem {
   sender_aligned?: boolean;
   is_reaction?: boolean;
   reactions?: ReactionSummary[];
+  has_unseen_reaction?: boolean;
   spf_result?: string;
   dkim_result?: string;
   dmarc_result?: string;
@@ -292,6 +295,7 @@ export async function list_mail_items(
 
     if (response.data?.items) {
       remember_items_folder_context(response.data.items, params.label_token);
+      ingest_unseen_reaction_flags(response.data.items);
     }
 
     return response;
@@ -356,6 +360,7 @@ export async function list_mail_items(
 
   if (response.data?.items) {
     remember_items_folder_context(response.data.items, params.label_token);
+    ingest_unseen_reaction_flags(response.data.items);
   }
 
   return response;

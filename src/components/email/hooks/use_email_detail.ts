@@ -26,7 +26,7 @@ import { use_email_detail_load } from "./use_email_detail_load";
 import { use_thread_draft_removal } from "./use_thread_draft_removal";
 
 import { use_pending_reply_messages } from "@/hooks/pending_reply_messages";
-
+import { use_reactions_seen } from "@/hooks/use_reactions_seen";
 import { is_system_email } from "@/lib/utils";
 import { fetch_and_decrypt_thread_messages } from "@/services/thread_service";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -132,6 +132,12 @@ export function use_email_detail() {
     reload_drops_pending: true,
     thread_messages,
     set_thread_messages,
+  });
+  use_reactions_seen({
+    email_id: mail_item?.id === email_id ? email_id : undefined,
+    thread_token:
+      mail_item?.id === email_id ? mail_item?.thread_token : undefined,
+    thread_messages,
   });
 
   useEffect(() => {

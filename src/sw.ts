@@ -21,7 +21,10 @@
 /// <reference lib="webworker" />
 import { kept_across_updates } from "@/lib/app_update_caches";
 import { ignore_error } from "@/lib/ignore_error";
-import { push_fallback_body } from "@/lib/push_fallback_strings";
+import {
+  push_fallback_body,
+  push_fallback_reaction_body,
+} from "@/lib/push_fallback_strings";
 
 export {};
 
@@ -129,18 +132,24 @@ function sanitize_notification_path(input: unknown): string {
   return "/";
 }
 
-async function push_notification_body(): Promise<string> {
-  const fallback = push_fallback_body(self.navigator.language);
+async function push_notification_body(is_reaction: boolean): Promise<string> {
+  const fallback = is_reaction
+    ? push_fallback_reaction_body(self.navigator.language)
+    : push_fallback_body(self.navigator.language);
 
   try {
     const cache = await caches.open(PUSH_STRINGS_CACHE);
     const stored = await cache.match(PUSH_STRINGS_URL);
 
     if (!stored) return fallback;
-    const parsed = (await stored.json()) as { new_message?: unknown };
+    const parsed = (await stored.json()) as {
+      new_message?: unknown;
+      new_reaction?: unknown;
+    };
+    const stored_body = is_reaction ? parsed.new_reaction : parsed.new_message;
 
-    return typeof parsed.new_message === "string" && parsed.new_message
-      ? parsed.new_message
+    return typeof stored_body === "string" && stored_body
+      ? stored_body
       : fallback;
   } catch {
     return fallback;
@@ -178,7 +187,7 @@ self.addEventListener("push", (event: PushEvent) => {
 
       const safe_url = sanitize_notification_path(data.url);
       const options: NotificationOptions = {
-        body: await push_notification_body(),
+        body: await push_notification_body(data.type === "reaction"),
         icon: "/pwa-192x192.png",
         badge: "/favicon-32x32.png",
         tag: data.type || "default",

@@ -54,6 +54,16 @@ export interface UnreactResponse {
   message: string;
 }
 
+export interface MarkReactionsSeenRequest {
+  thread_token?: string;
+  target_message_ids?: string[];
+}
+
+export interface MarkReactionsSeenResponse {
+  success: boolean;
+  updated: number;
+}
+
 export function react_to_message(
   request: ReactRequest,
 ): Promise<ApiResponse<ReactResponse>> {
@@ -64,4 +74,13 @@ export function unreact_to_message(
   request: UnreactRequest,
 ): Promise<ApiResponse<UnreactResponse>> {
   return api_client.post<UnreactResponse>("/mail/v1/react/remove", request);
+}
+
+export function mark_reactions_seen(
+  request: MarkReactionsSeenRequest,
+): Promise<ApiResponse<MarkReactionsSeenResponse>> {
+  return api_client.post<MarkReactionsSeenResponse>(
+    "/mail/v1/react/seen",
+    request,
+  );
 }

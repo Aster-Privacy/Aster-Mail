@@ -27,7 +27,7 @@ import { ignore_error } from "@/lib/ignore_error";
 import { play_iconic_sound } from "@/services/iconic_sounds";
 import { open_message_in_view_mode } from "@/components/toast/toast_action_router";
 
-export type NotificationType = "new_email" | "reply";
+export type NotificationType = "new_email" | "reply" | "reaction";
 
 interface NotificationOptions {
   title: string;
@@ -175,6 +175,11 @@ function should_notify(
       return preferences.notify_new_email;
     case "reply":
       return preferences.notify_replies;
+    case "reaction":
+      return (
+        preferences.reactions_enabled !== false &&
+        (preferences.notify_new_email || preferences.notify_replies)
+      );
     default:
       return false;
   }

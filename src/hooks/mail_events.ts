@@ -53,6 +53,7 @@ export const MAIL_EVENTS = {
   MAIL_STATS_STALE: "astermail:mail-stats-stale",
   MAIL_REMOTE_MUTATION: "astermail:mail-remote-mutation",
   REACTIONS_CHANGED: "astermail:reactions-changed",
+  REACTION_RECEIVED: "astermail:reaction-received",
   INBOX_UNREAD_INDEXED: "astermail:inbox-unread-indexed",
 } as const;
 
@@ -160,6 +161,11 @@ export interface ReactionsChangedEventDetail {
   mail_item_id: string;
 }
 
+export interface ReactionReceivedEventDetail {
+  reaction_id: string;
+  target_id: string;
+}
+
 export interface MailItemsRemovedEventDetail {
   ids: string[];
 }
@@ -197,6 +203,7 @@ type EventDetailMap = {
   [MAIL_EVENTS.MAIL_STATS_STALE]: undefined;
   [MAIL_EVENTS.MAIL_REMOTE_MUTATION]: undefined;
   [MAIL_EVENTS.REACTIONS_CHANGED]: ReactionsChangedEventDetail;
+  [MAIL_EVENTS.REACTION_RECEIVED]: ReactionReceivedEventDetail;
   [MAIL_EVENTS.INBOX_UNREAD_INDEXED]: InboxUnreadIndexedEventDetail;
 };
 
@@ -395,6 +402,12 @@ export function emit_reactions_changed(
   detail: ReactionsChangedEventDetail,
 ): void {
   mail_event_bus.emit(MAIL_EVENTS.REACTIONS_CHANGED, detail);
+}
+
+export function emit_reaction_received(
+  detail: ReactionReceivedEventDetail,
+): void {
+  mail_event_bus.emit(MAIL_EVENTS.REACTION_RECEIVED, detail);
 }
 
 export function emit_thread_reply_optimistic(

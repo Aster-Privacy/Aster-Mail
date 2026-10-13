@@ -37,16 +37,48 @@ const PUSH_FALLBACK_STRINGS: Record<string, string> = {
   "zh-CN": "您有一封新邮件",
 };
 
+const PUSH_FALLBACK_REACTION_STRINGS: Record<string, string> = {
+  en: "You have a new reaction",
+  ar: "لديك تفاعل جديد",
+  de: "Sie haben eine neue Reaktion",
+  es: "Tienes una reacción nueva",
+  fr: "Vous avez une nouvelle réaction",
+  hi: "आपके पास एक नई प्रतिक्रिया है",
+  it: "Hai una nuova reazione",
+  ja: "新しいリアクションがあります",
+  ko: "새 반응이 있습니다",
+  nl: "Je hebt een nieuwe reactie",
+  pl: "Masz nową reakcję",
+  "pt-BR": "Você tem uma nova reação",
+  pt: "Tem uma nova reação",
+  ru: "У вас новая реакция",
+  tr: "Yeni bir tepkiniz var",
+  "zh-CN": "您有一个新回应",
+};
+
 export function push_fallback_languages(): string[] {
   return Object.keys(PUSH_FALLBACK_STRINGS);
 }
 
-export function push_fallback_body(language: string | undefined): string {
+function resolve_fallback(
+  strings: Record<string, string>,
+  language: string | undefined,
+): string {
   const full = (language || "en").replace("_", "-").toLowerCase();
   const primary = full.split("-")[0];
 
-  if (full === "pt-br") return PUSH_FALLBACK_STRINGS["pt-BR"];
-  if (primary === "zh") return PUSH_FALLBACK_STRINGS["zh-CN"];
+  if (full === "pt-br") return strings["pt-BR"];
+  if (primary === "zh") return strings["zh-CN"];
 
-  return PUSH_FALLBACK_STRINGS[primary] ?? PUSH_FALLBACK_STRINGS.en;
+  return strings[primary] ?? strings.en;
+}
+
+export function push_fallback_body(language: string | undefined): string {
+  return resolve_fallback(PUSH_FALLBACK_STRINGS, language);
+}
+
+export function push_fallback_reaction_body(
+  language: string | undefined,
+): string {
+  return resolve_fallback(PUSH_FALLBACK_REACTION_STRINGS, language);
 }

@@ -2032,6 +2032,7 @@ export const pt = {
     tray_compat_off: "Reiniciar com aceleração de hardware",
     tray_display_reset: "Repor a cache de apresentação e reiniciar",
     push_new_message: "Tem uma nova mensagem",
+    new_reaction_body: "Tem uma nova reação",
     too_many_recipients_in_field:
       "Cada um dos campos Para, Cc e Bcc comporta no máximo {{max}} endereços. Mova alguns para uma segunda mensagem para enviar esta.",
     too_many_recipients_in_message:
@@ -9294,6 +9295,7 @@ export const pt = {
     to_recipients_prefix: "para {{ recipients }}",
     received_on_prefix: "recebido em {{ address }}",
     received_via_alias: "entregue no seu alias {{ address }}",
+    new_reaction: "Nova reação",
     load_external_content: "Carregar conteúdo externo",
     image: "imagem",
     images: "imagens",

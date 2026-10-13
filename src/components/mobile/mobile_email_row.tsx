@@ -29,7 +29,10 @@ import {
   CheckIcon,
   InboxIcon,
 } from "@heroicons/react/24/outline";
-import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
+import {
+  FaceSmileIcon,
+  StarIcon as StarSolidIcon,
+} from "@heroicons/react/24/solid";
 import { Tooltip } from "@aster/ui";
 
 import {
@@ -66,6 +69,7 @@ import {
 } from "@/hooks/email_list_helpers";
 import { haptic_long_press, haptic_impact } from "@/native/haptic_feedback";
 import { use_shown_thread_count } from "@/hooks/pending_thread_replies";
+import { use_has_unseen_reaction } from "@/services/unseen_reactions";
 
 interface MobileEmailRowProps {
   email: InboxEmail;
@@ -228,6 +232,7 @@ export const MobileEmailRow = memo(function MobileEmailRow(
     email.thread_token,
     email.thread_message_count,
   );
+  const has_new_reaction = use_has_unseen_reaction(email);
 
   const handler_map: Record<string, (() => void) | undefined> = useMemo(
     () => ({
@@ -472,6 +477,17 @@ export const MobileEmailRow = memo(function MobileEmailRow(
 
             {email.snoozed_until && (
               <SnoozeBadge size="xs" snoozed_until={email.snoozed_until} />
+            )}
+
+            {has_new_reaction && (
+              <span
+                aria-label={t("mail.new_reaction")}
+                className="inline-flex items-center text-[var(--accent-color,#3b82f6)]"
+                data-testid="new-reaction-badge"
+                role="img"
+              >
+                <FaceSmileIcon className="h-3.5 w-3.5" />
+              </span>
             )}
 
             {email.has_attachment && (
