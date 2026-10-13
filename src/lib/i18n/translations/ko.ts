@@ -1,4 +1,4 @@
-﻿//
+//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -8922,6 +8922,8 @@ export const ko = {
     search_index_why: "메일이 암호화되어 있으므로 검색은 이 기기에 저장된 비공개 색인을 사용합니다.",
     search_index_resume: "재개",
     search_searching_title: "메일 검색 중",
+    search_index_preparing: "비공개 색인을 준비하는 중",
+    search_index_live_hint: "일치하는 메일은 찾는 즉시 표시됩니다.",
     search_searching_more: "더 많은 메일 검색 중",
     search_index_why_label: "검색에 색인이 필요한 이유",
     searching_message_content: "메시지 내용 검색",

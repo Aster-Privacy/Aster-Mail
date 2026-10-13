@@ -1,4 +1,4 @@
-﻿//
+//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -9187,6 +9187,8 @@ export const tr = {
     search_index_why: "E-postalarınız şifreli olduğundan arama, bu cihazda saklanan özel bir dizin kullanır.",
     search_index_resume: "Devam et",
     search_searching_title: "E-postalarınızda aranıyor",
+    search_index_preparing: "Özel dizininiz hazırlanıyor",
+    search_index_live_hint: "Eşleşmeler bulunur bulunmaz görünür.",
     search_searching_more: "Daha fazla e-postada aranıyor",
     search_index_why_label: "Aramanın neden bir dizine ihtiyacı var",
     searching_message_content: "Mesaj içeriğinde ara",

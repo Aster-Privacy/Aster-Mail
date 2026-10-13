@@ -442,15 +442,23 @@ function SearchLens({ percent, indeterminate, paused }: SearchLensProps) {
             )}
           </g>
         ))}
-        <g transform="translate(74 14)">
+        <g transform="translate(61 14)">
           <g className={moving ? "aster_search_lens_sweep" : undefined}>
             <circle
               cx="0"
               cy="0"
-              fill="none"
+              fill="var(--bg-primary)"
               r="9"
               stroke={ink}
               strokeWidth="2.5"
+            />
+            <rect
+              fill={ink}
+              height="6"
+              rx="3"
+              width="12"
+              x="-6"
+              y="-3"
             />
             <path
               d="M6.6 6.6l6 6"
@@ -570,9 +578,11 @@ function use_index_controls(
           duration: format_remaining_duration(eta_seconds, language),
         })
       : null;
+  const progress = [count, eta].filter(Boolean).join(" · ");
 
   return {
-    detail: [count, eta].filter(Boolean).join(" · "),
+    detail: running && !progress ? t("mail.search_index_preparing") : progress,
+    hint: running ? t("mail.search_index_live_hint") : "",
     resume: () => resume_index_download(user?.email || "", search_content),
   };
 }
@@ -629,7 +639,7 @@ export function SearchIndexingState({
   testid = "search-indexing-state",
 }: SearchIndexingStateProps) {
   const { t } = use_i18n();
-  const { detail, resume } = use_index_controls(status, search_content);
+  const { detail, hint, resume } = use_index_controls(status, search_content);
   const control: SearchEmptyAction = status.is_paused
     ? {
         label: t("mail.search_index_resume"),
@@ -671,6 +681,15 @@ export function SearchIndexingState({
           style={{ color: "var(--text-muted)" }}
         >
           {detail}
+        </p>
+      )}
+      {hint && (
+        <p
+          className="mt-0.5 text-[13px] leading-5"
+          data-testid={`${testid}-hint`}
+          style={{ color: "var(--text-muted)" }}
+        >
+          {hint}
         </p>
       )}
       <ActionPills actions={[control, ...actions]} />

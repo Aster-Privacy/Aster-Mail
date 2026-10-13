@@ -1,4 +1,4 @@
-﻿//
+//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -8865,6 +8865,8 @@ export const en: Translations = {
     search_index_why: "Your mail is encrypted, so search runs on a private index stored on this device.",
     search_index_resume: "Resume",
     search_searching_title: "Searching your mail",
+    search_index_preparing: "Getting your private index ready",
+    search_index_live_hint: "Matches appear as soon as they are found.",
     search_searching_more: "Searching more mail",
     search_index_why_label: "Why search needs an index",
     searching_message_content: "Search message content",

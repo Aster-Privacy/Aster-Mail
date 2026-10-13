@@ -1,4 +1,4 @@
-﻿//
+//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -8913,6 +8913,8 @@ export const hi = {
     search_index_why: "आपका मेल एन्क्रिप्टेड है, इसलिए खोज इस डिवाइस पर रखे एक निजी इंडेक्स से होती है।",
     search_index_resume: "फिर से शुरू करें",
     search_searching_title: "आपके मेल में खोज रहे हैं",
+    search_index_preparing: "आपका निजी इंडेक्स तैयार हो रहा है",
+    search_index_live_hint: "मिलान मिलते ही दिखाई देते हैं।",
     search_searching_more: "और मेल में खोज रहे हैं",
     search_index_why_label: "खोज को इंडेक्स की ज़रूरत क्यों है",
     searching_message_content: "संदेश की सामग्री खोजें",

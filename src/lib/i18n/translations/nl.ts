@@ -1,4 +1,4 @@
-﻿//
+//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -9339,6 +9339,8 @@ export const nl = {
     search_index_why: "Je e-mail is versleuteld, dus zoeken gebruikt een privé-index op dit apparaat.",
     search_index_resume: "Hervatten",
     search_searching_title: "Je e-mail wordt doorzocht",
+    search_index_preparing: "Je privé-index wordt voorbereid",
+    search_index_live_hint: "Overeenkomsten verschijnen zodra ze gevonden zijn.",
     search_searching_more: "Meer e-mail wordt doorzocht",
     search_index_why_label: "Waarom zoeken een index nodig heeft",
     searching_message_content: "Berichtinhoud doorzoeken",

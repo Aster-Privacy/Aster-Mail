@@ -285,6 +285,10 @@ describe("search indexing state", () => {
     const state = by_testid("search-indexing-state")!;
 
     expect(state.textContent).not.toContain("search_index_progress");
+    expect(state.textContent).toContain("mail.search_index_preparing");
+    expect(by_testid("search-indexing-state-hint")?.textContent).toBe(
+      "mail.search_index_live_hint",
+    );
   });
 
   it("rests the lens when indexing is paused", () => {
@@ -301,6 +305,8 @@ describe("search indexing state", () => {
       state.querySelector("[data-lens-state]")?.getAttribute("data-lens-state"),
     ).toBe("paused");
     expect(state.querySelector(".aster_search_lens_sweep")).toBeNull();
+    expect(by_testid("search-indexing-state-hint")).toBeNull();
+    expect(state.textContent).not.toContain("mail.search_index_preparing");
   });
 
   it("explains indexing from the information button", () => {

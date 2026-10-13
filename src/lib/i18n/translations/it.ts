@@ -1,4 +1,4 @@
-﻿//
+//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -9347,6 +9347,8 @@ export const it = {
     search_index_why: "La tua posta è crittografata, quindi la ricerca usa un indice privato salvato su questo dispositivo.",
     search_index_resume: "Riprendi",
     search_searching_title: "Ricerca nella tua posta",
+    search_index_preparing: "Preparazione dell'indice privato",
+    search_index_live_hint: "Le corrispondenze compaiono non appena vengono trovate.",
     search_searching_more: "Ricerca in altra posta",
     search_index_why_label: "Perché la ricerca richiede un indice",
     searching_message_content: "Cerca nel contenuto dei messaggi",
