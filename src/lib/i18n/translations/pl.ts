@@ -3937,6 +3937,7 @@ export const pl = {
     custom_theme_role_accent_hover: "Akcent (najechanie)",
     custom_theme_role_background: "Tło",
     custom_theme_role_background_secondary: "Tło (drugorzędne)",
+    custom_theme_role_sidebar: "Pasek boczny",
     custom_theme_role_text: "Tekst",
     custom_theme_role_text_secondary: "Tekst (drugorzędny)",
     custom_theme_role_border: "Obramowanie",

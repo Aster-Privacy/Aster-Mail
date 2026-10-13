@@ -3799,6 +3799,7 @@ export const it = {
     custom_theme_role_accent_hover: "Accento (hover)",
     custom_theme_role_background: "Sfondo",
     custom_theme_role_background_secondary: "Sfondo (secondario)",
+    custom_theme_role_sidebar: "Barra laterale",
     custom_theme_role_text: "Testo",
     custom_theme_role_text_secondary: "Testo (secondario)",
     custom_theme_role_border: "Bordo",

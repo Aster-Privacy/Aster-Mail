@@ -3733,6 +3733,7 @@ export const ja = {
     custom_theme_role_accent_hover: "アクセント(ホバー)",
     custom_theme_role_background: "背景",
     custom_theme_role_background_secondary: "背景(セカンダリ)",
+    custom_theme_role_sidebar: "サイドバー",
     custom_theme_role_text: "テキスト",
     custom_theme_role_text_secondary: "テキスト(セカンダリ)",
     custom_theme_role_border: "枠線",
