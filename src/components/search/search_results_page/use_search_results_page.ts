@@ -71,7 +71,6 @@ export function use_search_results_page(props: SearchResultsPageProps) {
     load_more,
     set_query,
     clear_results,
-    clear_index,
   } = use_search();
   const email_actions = use_email_actions();
   const [bulk_busy, set_bulk_busy] = useState(false);
@@ -94,12 +93,16 @@ export function use_search_results_page(props: SearchResultsPageProps) {
       set_query(query);
       perform_search(query);
       has_searched.current = true;
+    } else {
+      clear_results();
     }
+  }, [query]);
 
+  useEffect(() => {
     return () => {
       clear_results();
     };
-  }, [query]);
+  }, []);
 
   const perform_search = useCallback(
     (search_query: string) => {
@@ -111,7 +114,13 @@ export function use_search_results_page(props: SearchResultsPageProps) {
     [search, content_search_enabled],
   );
 
+  const content_search_ref = useRef(content_search_enabled);
+
   useEffect(() => {
+    if (content_search_ref.current === content_search_enabled) return;
+
+    content_search_ref.current = content_search_enabled;
+
     if (query) {
       perform_search(query);
     }
@@ -123,9 +132,7 @@ export function use_search_results_page(props: SearchResultsPageProps) {
 
   const handle_disable_content_search = useCallback(() => {
     update_preference("search_encrypted_content", false, true);
-    clear_index();
-    perform_search(query);
-  }, [update_preference, clear_index, perform_search, query]);
+  }, [update_preference]);
 
   const searching_now = state.is_searching || state.index_building;
 
@@ -659,7 +666,6 @@ export function use_search_results_page(props: SearchResultsPageProps) {
     state,
     search,
     dismiss_correction,
-    clear_index,
     email_actions,
     is_slow,
     content_search_enabled,

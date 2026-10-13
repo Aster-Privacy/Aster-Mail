@@ -7938,6 +7938,15 @@ export interface MailTranslations {
   download_paused: string;
   pause_download_action: string;
   resume_download_action: string;
+  search_index_title: string;
+  search_index_paused_title: string;
+  search_index_progress: string;
+  search_index_progress_unknown: string;
+  search_index_why: string;
+  search_index_resume: string;
+  search_searching_title: string;
+  search_searching_more: string;
+  search_index_why_label: string;
   searching_message_content: string;
   search_taking_too_long: string;
   search_refine_terms: string;
