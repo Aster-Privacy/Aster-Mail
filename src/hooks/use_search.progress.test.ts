@@ -115,13 +115,13 @@ describe("advance_counts", () => {
     expect(has_known_total(next)).toBe(false);
   });
 
-  it("raises a known total that the downloaded count has passed", () => {
+  it("holds the downloaded count at a known total it has passed", () => {
     const next = advance_counts(
       { done: 6400, total: 6500 },
       { done: 6600, total: 0 },
     );
 
-    expect(next).toEqual({ done: 6600, total: 6600 });
+    expect(next).toEqual({ done: 6500, total: 6500 });
   });
 
   it("returns the same counts when nothing changed", () => {

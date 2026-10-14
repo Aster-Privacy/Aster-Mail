@@ -9285,7 +9285,10 @@ export const es = {
     search_index_paused_title: "Indexación en pausa",
     search_index_progress: "{{done}} de {{total}} indexados",
     search_index_progress_unknown: "{{done}} indexados",
-    search_index_why: "Tu correo está cifrado, así que la búsqueda usa un índice privado guardado en este dispositivo.",
+    search_index_why:
+      "Tu correo está cifrado de extremo a extremo, así que solo tu dispositivo puede buscar en él. Aster descarga tu lista de mensajes y descifra el remitente, el asunto y la fecha en un índice privado que se guarda en este navegador. El índice se crea una vez por cada navegador o dispositivo en el que inicias sesión y después se actualiza en segundo plano cuando llega, cambia o se elimina correo. Los resultados aparecen mientras se ejecuta y puedes pausarlo en cualquier momento.",
+    search_index_why_content:
+      "La búsqueda de contenido está activada, así que el texto de los mensajes también se indexa. Esto tarda más y usa más almacenamiento en este dispositivo.",
     search_index_resume: "Reanudar",
     search_searching_title: "Buscando en tu correo",
     search_index_preparing: "Preparando tu índice privado",

@@ -100,6 +100,9 @@ import { open_email_in_new_window } from "@/utils/open_email_window";
 import { search_view_for_path } from "@/utils/search_query";
 import { clear_filter_operators } from "@/utils/search_operators";
 
+export const SEARCH_NOTICE_DIVIDER =
+  "border-b border-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]";
+
 export function SearchResultsPage(props: SearchResultsPageProps) {
   const {
     query,
@@ -835,12 +838,9 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
           )}
           {state.index_incomplete && !index_status.is_active && (
             <div
-              className="flex items-center gap-2 px-4 py-2 text-xs border-b"
-              style={{
-                backgroundColor: "var(--bg-secondary)",
-                borderColor: "var(--border-secondary)",
-                color: "var(--text-secondary)",
-              }}
+              className={`flex items-center gap-2 px-4 py-2 text-xs ${SEARCH_NOTICE_DIVIDER}`}
+              data-testid="search-index-incomplete-notice"
+              style={{ color: "var(--text-secondary)" }}
             >
               <span className="min-w-0">
                 {t("mail.search_index_incomplete")}
@@ -849,12 +849,9 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
           )}
           {state.hidden_spam_trash > 0 && filtered_results.length > 0 && (
             <div
-              className="flex items-center gap-2 px-4 py-2 text-xs border-b"
-              style={{
-                backgroundColor: "var(--bg-secondary)",
-                borderColor: "var(--border-secondary)",
-                color: "var(--text-secondary)",
-              }}
+              className={`flex items-center gap-2 px-4 py-2 text-xs ${SEARCH_NOTICE_DIVIDER}`}
+              data-testid="search-spam-trash-notice"
+              style={{ color: "var(--text-secondary)" }}
             >
               <span className="min-w-0">
                 {t("mail.spam_trash_hidden_notice")}

@@ -9521,7 +9521,10 @@ export const pl = {
     search_index_paused_title: "Indeksowanie wstrzymane",
     search_index_progress: "Zaindeksowano {{done}} z {{total}}",
     search_index_progress_unknown: "Zaindeksowano: {{done}}",
-    search_index_why: "Twoja poczta jest zaszyfrowana, więc wyszukiwanie korzysta z prywatnego indeksu zapisanego na tym urządzeniu.",
+    search_index_why:
+      "Twoja poczta jest szyfrowana end-to-end, więc tylko Twoje urządzenie może ją przeszukiwać. Aster pobiera listę wiadomości i odszyfrowuje nadawcę, temat i datę do prywatnego indeksu przechowywanego w tej przeglądarce. Indeks jest tworzony raz dla każdej przeglądarki lub urządzenia, na którym się logujesz, a potem aktualizowany w tle, gdy poczta przychodzi, zmienia się lub jest usuwana. Wyniki pojawiają się w trakcie, a indeksowanie możesz wstrzymać w dowolnej chwili.",
+    search_index_why_content:
+      "Wyszukiwanie w treści jest włączone, więc indeksowany jest też tekst wiadomości. Trwa to dłużej i zajmuje więcej miejsca na tym urządzeniu.",
     search_index_resume: "Wznów",
     search_searching_title: "Przeszukiwanie poczty",
     search_index_preparing: "Przygotowywanie prywatnego indeksu",

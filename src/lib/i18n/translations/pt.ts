@@ -9364,7 +9364,10 @@ export const pt = {
     search_index_paused_title: "Indexação em pausa",
     search_index_progress: "{{done}} de {{total}} indexados",
     search_index_progress_unknown: "{{done}} indexados",
-    search_index_why: "O seu correio está encriptado, por isso a pesquisa usa um índice privado guardado neste dispositivo.",
+    search_index_why:
+      "O seu correio está encriptado de ponta a ponta, por isso só o seu dispositivo pode pesquisá-lo. O Aster transfere a lista de mensagens e desencripta o remetente, o assunto e a data para um índice privado guardado neste navegador. O índice é criado uma vez por cada navegador ou dispositivo em que inicia sessão e depois atualizado discretamente quando chega, muda ou é eliminado correio. Os resultados aparecem durante o processo e pode pausá-lo a qualquer momento.",
+    search_index_why_content:
+      "A pesquisa no conteúdo está ativada, por isso o texto das mensagens também é indexado. Demora mais e ocupa mais espaço neste dispositivo.",
     search_index_resume: "Retomar",
     search_searching_title: "A pesquisar o seu correio",
     search_index_preparing: "A preparar o seu índice privado",

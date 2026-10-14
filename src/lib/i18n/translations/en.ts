@@ -8862,7 +8862,10 @@ export const en: Translations = {
     search_index_paused_title: "Indexing paused",
     search_index_progress: "{{done}} of {{total}} indexed",
     search_index_progress_unknown: "{{done}} indexed",
-    search_index_why: "Your mail is encrypted, so search runs on a private index stored on this device.",
+    search_index_why:
+      "Your mail is end-to-end encrypted, so only your device can search it. Aster downloads your message list and decrypts the sender, subject, and date into a private index kept in this browser. The index is built once for each browser or device you sign in on, then updated quietly as mail arrives, changes, or is deleted. Matches appear while it runs, and you can pause it at any time.",
+    search_index_why_content:
+      "Content search is on, so message text is indexed too. This takes longer and uses more storage on this device.",
     search_index_resume: "Resume",
     search_searching_title: "Searching your mail",
     search_index_preparing: "Getting your private index ready",

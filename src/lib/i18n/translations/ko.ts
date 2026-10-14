@@ -8919,7 +8919,10 @@ export const ko = {
     search_index_paused_title: "색인 일시정지됨",
     search_index_progress: "{{total}}개 중 {{done}}개 색인됨",
     search_index_progress_unknown: "{{done}}개 색인됨",
-    search_index_why: "메일이 암호화되어 있으므로 검색은 이 기기에 저장된 비공개 색인을 사용합니다.",
+    search_index_why:
+      "메일이 종단 간 암호화되어 있으므로 사용자의 기기에서만 검색할 수 있습니다. Aster는 메시지 목록을 다운로드하고 보낸 사람, 제목, 날짜를 해독하여 이 브라우저에만 보관되는 비공개 색인을 만듭니다. 색인은 로그인하는 브라우저나 기기마다 한 번 만들어지며, 이후 메일이 도착하거나 바뀌거나 삭제될 때 조용히 업데이트됩니다. 진행 중에도 일치하는 결과가 표시되며 언제든지 일시 중지할 수 있습니다.",
+    search_index_why_content:
+      "내용 검색이 켜져 있어 메시지 본문도 색인됩니다. 시간이 더 걸리고 이 기기의 저장 공간을 더 사용합니다.",
     search_index_resume: "재개",
     search_searching_title: "메일 검색 중",
     search_index_preparing: "비공개 색인을 준비하는 중",

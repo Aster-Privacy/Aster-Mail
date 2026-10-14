@@ -89,6 +89,14 @@ function Harness({ pending, row }: { pending: boolean; row: boolean }) {
   );
 }
 
+function ContentHarness() {
+  const status = use_search_index_status(true, 0);
+
+  if (!status.is_active) return null;
+
+  return <SearchIndexingState search_content={true} status={status} />;
+}
+
 function render(pending: boolean, row = false) {
   act(() => {
     root!.render(<Harness pending={pending} row={row} />);
@@ -189,8 +197,21 @@ describe("resolve_index_status", () => {
       not_paused,
     );
 
-    expect(status.done).toBe(120);
-    expect(status.total).toBe(120);
+    expect(status.done).toBe(100);
+    expect(status.total).toBe(100);
+  });
+
+  it("never grows the total past the mailbox size once indexing finishes", () => {
+    const status = resolve_index_status(
+      true,
+      15130,
+      { building: true, current: 14921, total: 14921 },
+      not_paused,
+    );
+
+    expect(status.done).toBe(14921);
+    expect(status.total).toBe(14921);
+    expect(status.percent).toBe(99);
   });
 
   it("keeps the total unknown until the mailbox size is reported", () => {
@@ -320,6 +341,24 @@ describe("search indexing state", () => {
     const popover = open_why("search-indexing-state-why");
 
     expect(popover?.textContent).toBe("mail.search_index_why");
+    expect(by_testid("search-indexing-state-why-popover-content")).toBeNull();
+  });
+
+  it("adds the content search note when message text is indexed", () => {
+    Object.assign(progress_state, {
+      building: true,
+      current: 4800,
+      total: 13922,
+    });
+    act(() => {
+      root!.render(<ContentHarness />);
+    });
+
+    const popover = open_why("search-indexing-state-why");
+
+    expect(popover?.textContent).toBe(
+      "mail.search_index_whymail.search_index_why_content",
+    );
   });
 
   it("offers Resume when indexing is paused", () => {

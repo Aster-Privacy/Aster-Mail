@@ -9344,7 +9344,10 @@ export const it = {
     search_index_paused_title: "Indicizzazione in pausa",
     search_index_progress: "{{done}} di {{total}} indicizzati",
     search_index_progress_unknown: "{{done}} indicizzati",
-    search_index_why: "La tua posta è crittografata, quindi la ricerca usa un indice privato salvato su questo dispositivo.",
+    search_index_why:
+      "La tua posta è crittografata end-to-end, quindi solo il tuo dispositivo può cercarla. Aster scarica l'elenco dei messaggi e decifra mittente, oggetto e data in un indice privato conservato in questo browser. L'indice viene creato una volta per ogni browser o dispositivo in cui accedi e poi aggiornato in silenzio quando la posta arriva, cambia o viene eliminata. I risultati compaiono mentre è in corso e puoi metterlo in pausa in qualsiasi momento.",
+    search_index_why_content:
+      "La ricerca nel contenuto è attiva, quindi viene indicizzato anche il testo dei messaggi. Richiede più tempo e più spazio su questo dispositivo.",
     search_index_resume: "Riprendi",
     search_searching_title: "Ricerca nella tua posta",
     search_index_preparing: "Preparazione dell'indice privato",

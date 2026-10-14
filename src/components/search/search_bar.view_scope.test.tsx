@@ -182,7 +182,9 @@ describe("SearchBar folder scope", () => {
       vi.advanceTimersByTime(500);
     });
 
-    expect(search_mock).toHaveBeenLastCalledWith("janedoe in:trash");
+    expect(search_mock).toHaveBeenLastCalledWith("janedoe in:trash", {
+      search_body: false,
+    });
   });
 
   it("names Trash in the placeholder", () => {

@@ -9184,7 +9184,10 @@ export const tr = {
     search_index_paused_title: "Dizinleme duraklatıldı",
     search_index_progress: "{{done}} / {{total}} dizinlendi",
     search_index_progress_unknown: "{{done}} dizinlendi",
-    search_index_why: "E-postalarınız şifreli olduğundan arama, bu cihazda saklanan özel bir dizin kullanır.",
+    search_index_why:
+      "E-postalarınız uçtan uca şifreli olduğundan yalnızca cihazınız içinde arama yapabilir. Aster ileti listenizi indirir ve göndereni, konuyu ve tarihi bu tarayıcıda saklanan özel bir dizine çözer. Dizin, oturum açtığınız her tarayıcı veya cihaz için bir kez oluşturulur, sonra e-posta geldiğinde, değiştiğinde veya silindiğinde sessizce güncellenir. Sonuçlar işlem sürerken görünür ve işlemi istediğiniz zaman duraklatabilirsiniz.",
+    search_index_why_content:
+      "İçerik araması açık olduğundan ileti metni de dizine eklenir. Bu daha uzun sürer ve bu cihazda daha fazla depolama alanı kullanır.",
     search_index_resume: "Devam et",
     search_searching_title: "E-postalarınızda aranıyor",
     search_index_preparing: "Özel dizininiz hazırlanıyor",
