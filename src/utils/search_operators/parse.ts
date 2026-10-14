@@ -53,6 +53,14 @@ function is_calendar_date(value: string): boolean {
 
 export function locate_operators(query: string): LocatedOperator[] {
   const located: LocatedOperator[] = [];
+  const quoted_ranges = Array.from(query.matchAll(/"[^"]*"/g), (match) => ({
+    start: match.index!,
+    end: match.index! + match[0].length,
+  }));
+  const inside_quotes = (position: number) =>
+    quoted_ranges.some(
+      (range) => position > range.start && position < range.end,
+    );
   const regex = new RegExp(OPERATOR_REGEX.source, "gi");
   let match: RegExpExecArray | null;
 
@@ -66,6 +74,7 @@ export function locate_operators(query: string): LocatedOperator[] {
       ? match.index + lead.length + dash.length + keyword.length
       : match.index + lead.length;
     const end = match.index + match[0].length;
+    if (inside_quotes(start)) continue;
     const operator: ParsedOperator = {
       type: match[4].toLowerCase() as SearchOperatorType,
       value: (match[6] || match[7]).trim(),
@@ -82,6 +91,7 @@ export function locate_operators(query: string): LocatedOperator[] {
 
   while ((match = not_regex.exec(query)) !== null) {
     const start = match.index + (match[1] ?? "").length;
+    if (inside_quotes(start)) continue;
     const end = match.index + match[0].length;
     const value = (match[3] || match[4]).replace(/"/g, "").trim();
 
