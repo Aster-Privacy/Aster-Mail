@@ -157,28 +157,22 @@ export function use_search() {
       mark_search_index_stale();
     };
 
-    window.addEventListener(MAIL_EVENTS.EMAIL_RECEIVED, handle_mail_changed);
-    window.addEventListener(MAIL_EVENTS.EMAIL_SENT, handle_mail_changed);
-    window.addEventListener(MAIL_EVENTS.MAIL_ITEM_UPDATED, handle_mail_changed);
-    window.addEventListener(
+    const stale_events = [
+      MAIL_EVENTS.EMAIL_RECEIVED,
+      MAIL_EVENTS.EMAIL_SENT,
+      MAIL_EVENTS.MAIL_ITEM_UPDATED,
       MAIL_EVENTS.MAIL_ITEMS_REMOVED,
-      handle_mail_changed,
-    );
+      MAIL_EVENTS.MAIL_CHANGED,
+    ];
+
+    for (const event of stale_events) {
+      window.addEventListener(event, handle_mail_changed);
+    }
 
     return () => {
-      window.removeEventListener(
-        MAIL_EVENTS.EMAIL_RECEIVED,
-        handle_mail_changed,
-      );
-      window.removeEventListener(MAIL_EVENTS.EMAIL_SENT, handle_mail_changed);
-      window.removeEventListener(
-        MAIL_EVENTS.MAIL_ITEM_UPDATED,
-        handle_mail_changed,
-      );
-      window.removeEventListener(
-        MAIL_EVENTS.MAIL_ITEMS_REMOVED,
-        handle_mail_changed,
-      );
+      for (const event of stale_events) {
+        window.removeEventListener(event, handle_mail_changed);
+      }
     };
   }, []);
 
@@ -261,9 +255,9 @@ export function use_search() {
           return;
         }
 
+        const body_allowed = options?.search_body !== false;
         const search_body =
-          options?.search_body !== false &&
-          query_requires_body(terms, operators);
+          body_allowed && query_requires_body(terms, operators);
         const index = await acquire_search_index(
           user?.email || "",
           search_body,
@@ -322,7 +316,7 @@ export function use_search() {
               item,
               options?.label_name_to_tokens,
               options?.fields,
-              options?.search_body !== false,
+              body_allowed,
               search_body_text,
               hay,
               attachment_details,
@@ -371,13 +365,21 @@ export function use_search() {
           set_state((prev) => {
             if (my_seq !== search_seq_ref.current) return prev;
 
+            const keep_previous =
+              prev.results_query === query &&
+              partial.length < prev.results.length;
+
             return {
               ...prev,
-              results: partial,
+              results: keep_previous ? prev.results : partial,
               results_query: query,
-              total_results: partial.length,
+              total_results: keep_previous
+                ? prev.total_results
+                : partial.length,
               search_time_ms: now - start,
-              hidden_spam_trash: counts.hidden,
+              hidden_spam_trash: keep_previous
+                ? Math.max(prev.hidden_spam_trash, counts.hidden)
+                : counts.hidden,
               index_incomplete: index_incomplete_ref.current,
               index_pending,
               indexed_count: index.total_indexed,
@@ -521,16 +523,25 @@ export function use_search() {
             };
           }
 
+          const keep_previous =
+            !index.complete &&
+            prev.results_query === query &&
+            total_results < prev.results.length;
+
           return {
             ...prev,
-            results,
+            results: keep_previous ? prev.results : results,
             results_query: query,
             correction: correction_held,
             is_searching: false,
-            total_results,
+            total_results: keep_previous ? prev.total_results : total_results,
             search_time_ms: Date.now() - start,
-            has_more: stopped && total_results >= result_limit_ref.current,
-            hidden_spam_trash: counts.hidden,
+            has_more: keep_previous
+              ? prev.has_more
+              : stopped && total_results >= result_limit_ref.current,
+            hidden_spam_trash: keep_previous
+              ? Math.max(prev.hidden_spam_trash, counts.hidden)
+              : counts.hidden,
             index_incomplete: index_incomplete_ref.current,
             index_pending,
             indexed_count: index.total_indexed,

@@ -9154,7 +9154,10 @@ export const ja = {
     search_index_paused_title: "インデックス作成を一時停止中",
     search_index_progress: "{{total}} 件中 {{done}} 件をインデックス済み",
     search_index_progress_unknown: "{{done}} 件をインデックス済み",
-    search_index_why: "メールは暗号化されているため、検索はこのデバイスに保存された非公開のインデックスで行われます。",
+    search_index_why:
+      "メールはエンドツーエンドで暗号化されているため、検索できるのはお使いのデバイスだけです。Aster はメッセージ一覧をダウンロードし、送信者、件名、日付を復号して、このブラウザに保存される非公開のインデックスを作ります。インデックスはサインインするブラウザやデバイスごとに一度作成され、その後はメールの受信、変更、削除に合わせて静かに更新されます。処理中でも一致したメールは表示され、いつでも一時停止できます。",
+    search_index_why_content:
+      "本文検索がオンのため、メッセージの本文もインデックスに含まれます。そのぶん時間がかかり、このデバイスの保存領域を多く使います。",
     search_index_resume: "再開",
     search_searching_title: "メールを検索中",
     search_index_preparing: "プライベートインデックスを準備しています",

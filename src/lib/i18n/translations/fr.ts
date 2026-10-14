@@ -9390,7 +9390,10 @@ export const fr = {
     search_index_paused_title: "Indexation en pause",
     search_index_progress: "{{done}} sur {{total}} indexés",
     search_index_progress_unknown: "{{done}} indexés",
-    search_index_why: "Vos e-mails sont chiffrés : la recherche utilise donc un index privé stocké sur cet appareil.",
+    search_index_why:
+      "Vos e-mails sont chiffrés de bout en bout, donc seul votre appareil peut les parcourir. Aster télécharge la liste de vos messages et déchiffre l'expéditeur, l'objet et la date dans un index privé conservé dans ce navigateur. L'index est créé une fois pour chaque navigateur ou appareil sur lequel vous vous connectez, puis mis à jour discrètement lorsque des e-mails arrivent, changent ou sont supprimés. Les résultats apparaissent pendant l'indexation, que vous pouvez mettre en pause à tout moment.",
+    search_index_why_content:
+      "La recherche dans le contenu est activée, donc le texte des messages est aussi indexé. Cela prend plus de temps et utilise plus d'espace sur cet appareil.",
     search_index_resume: "Reprendre",
     search_searching_title: "Recherche dans vos e-mails",
     search_index_preparing: "Préparation de votre index privé",

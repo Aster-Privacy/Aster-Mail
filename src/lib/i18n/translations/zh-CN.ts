@@ -8313,7 +8313,10 @@ export const zh_CN = {
     search_index_paused_title: "索引已暂停",
     search_index_progress: "已索引 {{done}} / {{total}} 封",
     search_index_progress_unknown: "已索引 {{done}} 封",
-    search_index_why: "你的邮件已加密，因此搜索使用存储在此设备上的私有索引。",
+    search_index_why:
+      "你的邮件采用端到端加密，因此只有你的设备才能搜索。Aster 会下载你的邮件列表，并将发件人、主题和日期解密到仅保存在此浏览器中的私有索引。索引在你登录的每个浏览器或设备上只建立一次，之后会在邮件到达、更改或删除时在后台静默更新。匹配结果在索引过程中即可显示，你可以随时暂停。",
+    search_index_why_content:
+      "已开启内容搜索，因此邮件正文也会被索引。这需要更长时间，并占用此设备更多存储空间。",
     search_index_resume: "继续",
     search_searching_title: "正在搜索你的邮件",
     search_index_preparing: "正在准备你的私有索引",

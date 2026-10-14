@@ -127,6 +127,11 @@ import {
 import * as index_cache from "./index_cache";
 import { INDEX_TTL_MS } from "./constants";
 import { matches_query } from "./matching";
+import {
+  get_indexing_snapshot,
+  subscribe_index_refresh,
+  subscribe_indexing,
+} from "./progress";
 
 import {
   open_snapshot_reader,
@@ -272,6 +277,34 @@ describe("search index refresh writes", () => {
     expect(await search(await reload(), ["msg-4321"])).toEqual(["msg-4321"]);
   });
 
+  it("refreshes a complete index without showing indexing progress", async () => {
+    const building_seen: boolean[] = [];
+    const sizes_at_refresh: number[] = [];
+    const stop_progress = subscribe_indexing(() => {
+      building_seen.push(get_indexing_snapshot().building);
+    });
+    const stop_refresh = subscribe_index_refresh(() => {
+      sizes_at_refresh.push(index_cache.cached_index?.items.length ?? 0);
+    });
+
+    try {
+      server.mailbox.unshift(make_item(MAILBOX_SIZE));
+
+      const index = await refresh();
+
+      expect(index.items).toHaveLength(MAILBOX_SIZE + 1);
+      expect(building_seen).not.toContain(true);
+      expect(get_indexing_snapshot().building).toBe(false);
+      expect(sizes_at_refresh.length).toBeGreaterThan(0);
+      expect(Math.min(...sizes_at_refresh)).toBeGreaterThanOrEqual(
+        MAILBOX_SIZE,
+      );
+    } finally {
+      stop_progress();
+      stop_refresh();
+    }
+  });
+
   it("writes nothing when an index loaded from disk is refreshed unchanged", async () => {
     reset_index_cache();
     await settle();
@@ -361,6 +394,21 @@ describe("search index refresh writes", () => {
     expect(writes.total).toBe(1);
     expect((await disk_snapshot()).saved_at).toBe(later);
     expect((await reload()).built_at).toBe(later);
+  });
+
+  it("picks up a change made before a reload from a young snapshot", async () => {
+    const changed = 7;
+
+    server.mailbox[changed] = { ...server.mailbox[changed], is_read: false };
+    reset_index_cache();
+    writes.chunk = 0;
+
+    const index = await settle();
+
+    expect(writes.chunk).toBe(1);
+    expect(
+      index.items.find((item) => item.id === `msg-${changed}`)?.is_read,
+    ).toBe(false);
   });
 
   it("restamps an old snapshot loaded from disk when nothing changed", async () => {

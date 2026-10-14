@@ -26,7 +26,11 @@ import {
   cached_index,
   schedule_deep_index,
 } from "./index_cache";
-import { PROGRESS_PUBLISH_INTERVAL_MS, advance_counts } from "./progress_math";
+import {
+  PROGRESS_PUBLISH_INTERVAL_MS,
+  advance_counts,
+  clamp_final_count,
+} from "./progress_math";
 import { IndexingProgress } from "./types";
 
 import {
@@ -126,12 +130,14 @@ export function end_indexing_run(run_id: number, final_count?: number): void {
   if (!active_runs.delete(run_id)) return;
 
   if (final_count !== undefined && final_count >= 0) {
+    const final = clamp_final_count(final_count, latest_progress.total);
+
     latest_progress = {
       ...latest_progress,
-      current: final_count,
-      total: final_count,
+      current: final,
+      total: final,
     };
-    record_index_download_checkpoint(final_count, final_count);
+    record_index_download_checkpoint(final, final);
   }
 
   flush_index_download_checkpoint();

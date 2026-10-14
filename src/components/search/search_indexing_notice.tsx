@@ -60,8 +60,9 @@ export function resolve_index_status(
   const is_active = pending && (is_paused || progress.building);
   const reported_done = is_paused ? download.done : progress.current;
   const reported_total = is_paused ? download.total : progress.total;
-  const done = Math.max(reported_done, indexed_count, 0);
-  const total = reported_total > 0 ? Math.max(reported_total, done) : 0;
+  const known = Math.max(reported_done, indexed_count, 0);
+  const total = Math.max(reported_total, 0);
+  const done = total > 0 ? Math.min(known, total) : known;
 
   return {
     is_active,
@@ -516,7 +517,13 @@ function LensGlyph() {
   );
 }
 
-function IndexWhyButton({ testid }: { testid: string }) {
+function IndexWhyButton({
+  testid,
+  search_content,
+}: {
+  testid: string;
+  search_content: boolean;
+}) {
   const { t } = use_i18n();
 
   return (
@@ -533,7 +540,7 @@ function IndexWhyButton({ testid }: { testid: string }) {
         </button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-[260px] p-3"
+        className="w-[300px] p-3"
         collisionPadding={12}
         data-testid={`${testid}-popover`}
         sideOffset={6}
@@ -544,6 +551,15 @@ function IndexWhyButton({ testid }: { testid: string }) {
         >
           {t("mail.search_index_why")}
         </p>
+        {search_content && (
+          <p
+            className="mt-2 text-[12px] leading-[18px]"
+            data-testid={`${testid}-popover-content`}
+            style={{ color: "var(--text-secondary)" }}
+          >
+            {t("mail.search_index_why_content")}
+          </p>
+        )}
       </PopoverContent>
     </Popover>
   );
@@ -673,7 +689,10 @@ export function SearchIndexingState({
             ? t("mail.search_index_paused_title")
             : t("mail.search_searching_title")}
         </p>
-        <IndexWhyButton testid={`${testid}-why`} />
+        <IndexWhyButton
+          search_content={search_content}
+          testid={`${testid}-why`}
+        />
       </div>
       {detail && (
         <p
@@ -731,7 +750,10 @@ export function SearchIndexingRow({
           : t("mail.search_searching_more")}
         {has_total ? ` · ${Math.floor(status.percent)}%` : ""}
       </span>
-      <IndexWhyButton testid={`${testid}-why`} />
+      <IndexWhyButton
+        search_content={search_content}
+        testid={`${testid}-why`}
+      />
       {status.is_paused && (
         <button
           className="font-medium transition-opacity hover:opacity-80"

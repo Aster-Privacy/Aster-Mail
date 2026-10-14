@@ -7943,6 +7943,7 @@ export interface MailTranslations {
   search_index_progress: string;
   search_index_progress_unknown: string;
   search_index_why: string;
+  search_index_why_content: string;
   search_index_resume: string;
   search_searching_title: string;
   search_index_preparing: string;

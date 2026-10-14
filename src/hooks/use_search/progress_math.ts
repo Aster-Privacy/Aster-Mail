@@ -55,16 +55,23 @@ export function advance_counts(
   prev: ProgressCounts,
   reported: ProgressCounts,
 ): ProgressCounts {
-  const done = Math.max(whole_count(prev.done), whole_count(reported.done));
-  const known_total = Math.max(
-    whole_count(prev.total),
-    whole_count(reported.total),
-  );
-  const total = known_total > 0 ? Math.max(known_total, done) : 0;
+  const advanced = Math.max(whole_count(prev.done), whole_count(reported.done));
+  const total = Math.max(whole_count(prev.total), whole_count(reported.total));
+  const done = total > 0 ? Math.min(advanced, total) : advanced;
 
   if (done === prev.done && total === prev.total) return prev;
 
   return { done, total };
+}
+
+export function clamp_final_count(
+  final_count: number,
+  known_total: number,
+): number {
+  const done = whole_count(final_count);
+  const total = whole_count(known_total);
+
+  return total > 0 ? Math.min(done, total) : done;
 }
 
 export function progress_percent(

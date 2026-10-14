@@ -410,7 +410,9 @@ export function SearchBar({
       return;
     }
     const timer = setTimeout(() => {
-      void search(preview_search_query);
+      void search(preview_search_query, {
+        search_body: content_search_enabled,
+      });
     }, PREVIEW_DEBOUNCE_MS);
 
     return () => clearTimeout(timer);
@@ -419,6 +421,7 @@ export function SearchBar({
     preview_enabled,
     is_open,
     is_page_filter,
+    content_search_enabled,
     search,
     clear_results,
   ]);

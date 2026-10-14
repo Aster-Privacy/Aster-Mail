@@ -9368,7 +9368,10 @@ export const de = {
     search_index_paused_title: "Indexierung pausiert",
     search_index_progress: "{{done}} von {{total}} indexiert",
     search_index_progress_unknown: "{{done}} indexiert",
-    search_index_why: "Ihre E-Mails sind verschlüsselt. Die Suche nutzt daher einen privaten Index auf diesem Gerät.",
+    search_index_why:
+      "Ihre E-Mails sind Ende-zu-Ende-verschlüsselt, daher kann nur Ihr Gerät sie durchsuchen. Aster lädt Ihre Nachrichtenliste herunter und entschlüsselt Absender, Betreff und Datum in einen privaten Index, der in diesem Browser bleibt. Der Index wird für jeden Browser und jedes Gerät, auf dem Sie sich anmelden, einmal erstellt und danach im Hintergrund aktualisiert, wenn E-Mails eintreffen, sich ändern oder gelöscht werden. Treffer erscheinen bereits während des Vorgangs, und Sie können ihn jederzeit pausieren.",
+    search_index_why_content:
+      "Die Inhaltssuche ist aktiviert, daher wird auch der Nachrichtentext indexiert. Das dauert länger und belegt mehr Speicher auf diesem Gerät.",
     search_index_resume: "Fortsetzen",
     search_searching_title: "Ihre E-Mails werden durchsucht",
     search_index_preparing: "Ihr privater Index wird vorbereitet",

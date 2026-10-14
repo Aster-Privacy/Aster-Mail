@@ -9336,7 +9336,10 @@ export const nl = {
     search_index_paused_title: "Indexeren gepauzeerd",
     search_index_progress: "{{done}} van {{total}} geïndexeerd",
     search_index_progress_unknown: "{{done}} geïndexeerd",
-    search_index_why: "Je e-mail is versleuteld, dus zoeken gebruikt een privé-index op dit apparaat.",
+    search_index_why:
+      "Je e-mail is end-to-end versleuteld, dus alleen je apparaat kan erin zoeken. Aster downloadt je berichtenlijst en ontsleutelt afzender, onderwerp en datum naar een privé-index die in deze browser blijft. De index wordt één keer gemaakt voor elke browser of elk apparaat waarop je inlogt en daarna stil bijgewerkt wanneer e-mail binnenkomt, verandert of wordt verwijderd. Resultaten verschijnen terwijl het bezig is en je kunt het op elk moment pauzeren.",
+    search_index_why_content:
+      "Zoeken in inhoud staat aan, dus de tekst van berichten wordt ook geïndexeerd. Dit duurt langer en gebruikt meer opslag op dit apparaat.",
     search_index_resume: "Hervatten",
     search_searching_title: "Je e-mail wordt doorzocht",
     search_index_preparing: "Je privé-index wordt voorbereid",

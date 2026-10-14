@@ -204,14 +204,16 @@ export async function build_index_full(
     counted && reusable
       ? Math.min(prior_index?.total_indexed ?? 0, MAX_RAM_INDEX_ITEMS)
       : 0;
-  const run_id = begin_indexing_run();
+  const run_id = counted ? begin_indexing_run() : undefined;
   const total_request = counted
     ? fetch_mailbox_index_total(MAX_INDEX_ITEMS)
     : Promise.resolve(0);
 
-  void total_request.then((total) => {
-    report_indexing_counts(run_id, floor, total);
-  });
+  if (run_id !== undefined) {
+    void total_request.then((total) => {
+      report_indexing_counts(run_id, floor, total);
+    });
+  }
   reset_vocabulary();
 
   let last_publish_ms = 0;
@@ -225,13 +227,12 @@ export async function build_index_full(
     if (now - last_publish_ms < PARTIAL_PUBLISH_MS) return;
 
     last_publish_ms = now;
-    if (cached_index && cached_index !== index) {
-      const better =
-        cached_index.user_email === user_email &&
-        (cached_index.include_body || !include_body) &&
-        cached_index.items.length >= index.items.length;
-
-      if (better) return;
+    if (
+      cached_index &&
+      cached_index !== index &&
+      serves_better_than_partial(cached_index, index)
+    ) {
+      return;
     }
 
     index.total_indexed = reusable
@@ -266,7 +267,7 @@ export async function build_index_full(
       max_items: MAX_RAM_INDEX_ITEMS,
       hot: index,
       writer,
-      progress_run: counted ? run_id : undefined,
+      progress_run: run_id,
       pausable: true,
       on_page: publish_partial,
     });
@@ -306,19 +307,34 @@ export async function build_index_full(
       schedule_deep_index(user_email, include_body, index.meta);
     }
 
-    end_indexing_run(
-      run_id,
-      counted && index.complete ? index.total_indexed : undefined,
-    );
+    if (run_id !== undefined) {
+      end_indexing_run(
+        run_id,
+        index.complete ? index.total_indexed : undefined,
+      );
+    }
 
     return index;
   } catch (error) {
     if (cached_index === index) cached_index = null;
     index.items.length = 0;
     index.decrypted.clear();
-    end_indexing_run(run_id);
+    if (run_id !== undefined) end_indexing_run(run_id);
     throw error;
   }
+}
+
+export function serves_better_than_partial(
+  current: CachedIndex,
+  partial: CachedIndex,
+): boolean {
+  if (current.user_email !== partial.user_email) return false;
+  if (current.complete) return true;
+
+  return (
+    (current.include_body || !partial.include_body) &&
+    current.items.length >= partial.items.length
+  );
 }
 
 export async function build_index_front_refresh(
@@ -333,7 +349,6 @@ export async function build_index_front_refresh(
   const prior = stale.decrypted;
   const base = stale.meta as SnapshotMeta;
   const index = empty_index(user_email, include_body);
-  const run_id = begin_indexing_run();
 
   try {
     const reader = await open_snapshot_reader(user_email);
@@ -452,8 +467,6 @@ export async function build_index_front_refresh(
     index.items.length = 0;
     index.decrypted.clear();
     throw error;
-  } finally {
-    end_indexing_run(run_id);
   }
 }
 
@@ -804,12 +817,7 @@ export async function acquire_search_index(
 
   cached_index = hydrated;
 
-  const stale =
-    !hydrated.complete ||
-    (include_body && !hydrated.include_body) ||
-    Date.now() - hydrated.built_at >= ttl_ms;
-
-  if (stale) void start_background_rebuild(user_email, include_body, hydrated);
+  void start_background_rebuild(user_email, include_body, hydrated);
 
   return hydrated;
 }
@@ -858,9 +866,7 @@ export async function build_search_index(
 
   cached_index = hydrated;
 
-  if (!hydrated.complete || Date.now() - hydrated.built_at >= ttl_ms) {
-    void start_background_rebuild(user_email, include_body, hydrated);
-  }
+  void start_background_rebuild(user_email, include_body, hydrated);
 
   return hydrated;
 }
