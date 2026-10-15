@@ -732,6 +732,18 @@ export const fr = {
       "Ne publiez qu'un seul enregistrement SPF. Si d'autres services envoient du courrier pour ce domaine, fusionnez leurs termes include: dans cet unique enregistrement.",
     dns_caveat_dmarc_add_after_spf_dkim:
       "Ajoutez cet enregistrement en dernier, une fois SPF et DKIM vérifiés. Le publier trop tôt peut envoyer vos propres messages dans les indésirables.",
+    dns_caveat_dkim_long_value:
+      "Cette valeur dépasse 255 caractères. Certains hébergeurs DNS, comme Shopify, refusent les valeurs aussi longues. Si le vôtre la refuse, utilisez une clé plus courte.",
+    dkim_short_key_button: "Utiliser une clé plus courte",
+    dkim_short_key_confirm:
+      "Aster remplace la clé DKIM de ce domaine par une clé de 1024 bits qui tient en 255 caractères. Le nom et la valeur de l’enregistrement changent : ajoutez le nouvel enregistrement chez votre hébergeur DNS et supprimez l’ancien.",
+    dkim_short_key_confirm_button: "Remplacer la clé",
+    dkim_short_key_working: "Remplacement de la clé",
+    dkim_short_key_done:
+      "Nouvelle clé DKIM créée. Ajoutez le nouvel enregistrement chez votre hébergeur DNS.",
+    dkim_short_key_done_auto:
+      "Nouvelle clé DKIM créée et publiée dans votre DNS.",
+    dkim_short_key_wait: "Patientez quelques secondes, puis réessayez.",
     dns_propagation_note:
       "Les modifications DNS peuvent prendre jusqu'à 48 heures pour se propager",
     post: "Publier",
@@ -8324,6 +8336,12 @@ export const fr = {
       "Vous avez plusieurs enregistrements SPF. Les fournisseurs les ignorent tous : fusionnez-les en un seul enregistrement.",
     domain_reason_dkim_missing_or_stale:
       "Vos e-mails sortants ne sont pas signés et semblent donc falsifiés. Ajoutez l’enregistrement de signature pour qu’ils soient approuvés.",
+    domain_hint_dkim_truncated:
+      "Votre enregistrement DKIM est tronqué, ce qui arrive quand un hébergeur DNS limite les valeurs à 255 caractères. Collez la valeur complète ou utilisez une clé plus courte.",
+    domain_hint_dkim_quoted:
+      "Votre enregistrement DKIM contient des guillemets. Supprimez-les et collez la valeur sur une seule ligne.",
+    domain_hint_dkim_other_key:
+      "Votre enregistrement DKIM contient une autre clé. Remplacez sa valeur par celle affichée ici.",
     domain_reason_dmarc_missing:
       "N’importe qui peut envoyer des e-mails en se faisant passer pour votre domaine. Ajoutez cet enregistrement une fois les deux précédents en place.",
     domain_fix_show_record: "Afficher l’enregistrement à ajouter",
@@ -9397,7 +9415,8 @@ export const fr = {
     search_index_resume: "Reprendre",
     search_searching_title: "Recherche dans vos e-mails",
     search_index_preparing: "Préparation de votre index privé",
-    search_index_live_hint: "Les résultats apparaissent dès qu'ils sont trouvés.",
+    search_index_live_hint:
+      "Les résultats apparaissent dès qu'ils sont trouvés.",
     search_searching_more: "Recherche dans d'autres e-mails",
     search_index_why_label: "Pourquoi la recherche nécessite un index",
     insert_link_title: "Insérer un lien",

@@ -88,11 +88,17 @@ function CheckRow({
   record,
   domain_name,
   provider,
+  domain_id,
+  offer_shorter_key,
+  on_record_replaced,
 }: {
   check: DomainCheck;
   record: DnsRecord | undefined;
   domain_name: string;
   provider: DnsProvider | null;
+  domain_id: string;
+  offer_shorter_key: boolean;
+  on_record_replaced: (record: DnsRecord) => void;
 }) {
   const { t } = use_i18n();
   const [showing_record, set_showing_record] = useState(false);
@@ -134,8 +140,11 @@ function CheckRow({
         <div className="mt-2 ms-8">
           <DnsRecordCard
             domain={domain_name}
+            domain_id={domain_id}
+            offer_shorter_key={offer_shorter_key}
             provider={provider}
             record={record}
+            on_record_replaced={on_record_replaced}
           />
         </div>
       )}
@@ -235,6 +244,14 @@ export function DomainHealthPanel({
   const dashboard_url = provider_dashboard_url(provider, domain_name);
   const record_for = (check: DomainCheck) =>
     records.find((r) => r.purpose === check.key);
+  const offer_shorter_key = health?.dkim_can_shorten === true;
+  const handle_record_replaced = (replacement: DnsRecord) => {
+    set_records((current) => [
+      ...current.filter((r) => r.purpose !== replacement.purpose),
+      replacement,
+    ]);
+    load_health(false);
+  };
 
   return (
     <div>
@@ -261,9 +278,14 @@ export function DomainHealthPanel({
             <CheckRow
               key={check.key}
               check={check}
+              domain_id={domain_id}
               domain_name={domain_name}
+              offer_shorter_key={
+                check.key === "dkim" ? offer_shorter_key : false
+              }
               provider={provider}
               record={record_for(check)}
+              on_record_replaced={handle_record_replaced}
             />
           ))}
         </div>

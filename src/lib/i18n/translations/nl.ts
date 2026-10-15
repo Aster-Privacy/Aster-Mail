@@ -708,6 +708,18 @@ export const nl = {
       "Publiceer slechts een SPF-record. Als andere diensten mail versturen namens dit domein, voeg hun include:-termen samen in dit ene record.",
     dns_caveat_dmarc_add_after_spf_dkim:
       "Voeg dit als laatste toe, zodra SPF en DKIM geverifieerd zijn. Te vroeg publiceren kan je eigen mail naar spam sturen.",
+    dns_caveat_dkim_long_value:
+      "Deze waarde is langer dan 255 tekens. Sommige DNS-hosts, zoals Shopify, accepteren zulke lange waarden niet. Als de jouwe hem weigert, gebruik dan een kortere sleutel.",
+    dkim_short_key_button: "Kortere sleutel gebruiken",
+    dkim_short_key_confirm:
+      "Aster vervangt de DKIM-sleutel van dit domein door een 1024-bits sleutel die in 255 tekens past. De naam en de waarde van het record veranderen, dus voeg het nieuwe record toe bij je DNS-host en verwijder het oude.",
+    dkim_short_key_confirm_button: "Sleutel vervangen",
+    dkim_short_key_working: "Sleutel wordt vervangen",
+    dkim_short_key_done:
+      "Nieuwe DKIM-sleutel gemaakt. Voeg het nieuwe record toe bij je DNS-host.",
+    dkim_short_key_done_auto:
+      "Nieuwe DKIM-sleutel gemaakt en gepubliceerd in je DNS.",
+    dkim_short_key_wait: "Wacht een paar seconden en probeer het opnieuw.",
     post: "Plaatsen",
     link_copied: "Link naar klembord gekopieerd",
     invite_sent: "Uitnodiging verzonden!",
@@ -8194,6 +8206,12 @@ export const nl = {
       "Je hebt meer dan één SPF-record. Providers negeren ze allemaal, dus voeg ze samen tot één record.",
     domain_reason_dkim_missing_or_stale:
       "Je uitgaande mail is niet ondertekend en lijkt daardoor vervalst. Voeg het ondertekeningsrecord toe zodat je mail wordt vertrouwd.",
+    domain_hint_dkim_truncated:
+      "Je DKIM-record is afgekapt. Dat gebeurt als een DNS-host waarden beperkt tot 255 tekens. Plak de volledige waarde of gebruik een kortere sleutel.",
+    domain_hint_dkim_quoted:
+      "Je DKIM-record bevat aanhalingstekens. Verwijder ze en plak de waarde op één regel.",
+    domain_hint_dkim_other_key:
+      "Je DKIM-record bevat een andere sleutel. Vervang de waarde door de waarde die hier staat.",
     domain_reason_dmarc_missing:
       "Iedereen kan mail versturen alsof die van jouw domein komt. Voeg dit record toe zodra de twee punten hierboven werken.",
     domain_fix_show_record: "Toon het record dat je moet toevoegen",
@@ -9343,7 +9361,8 @@ export const nl = {
     search_index_resume: "Hervatten",
     search_searching_title: "Je e-mail wordt doorzocht",
     search_index_preparing: "Je privé-index wordt voorbereid",
-    search_index_live_hint: "Overeenkomsten verschijnen zodra ze gevonden zijn.",
+    search_index_live_hint:
+      "Overeenkomsten verschijnen zodra ze gevonden zijn.",
     search_searching_more: "Meer e-mail wordt doorzocht",
     search_index_why_label: "Waarom zoeken een index nodig heeft",
     searching_message_content: "Berichtinhoud doorzoeken",

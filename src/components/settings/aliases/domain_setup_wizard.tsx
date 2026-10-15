@@ -203,6 +203,9 @@ export function DomainSetupWizard({
   const [captcha_token, set_captcha_token] = useState<string | null>(null);
   const turnstile_ref = useRef<TurnstileWidgetRef>(null);
   const turnstile_required = !!TURNSTILE_SITE_KEY;
+  const [replaced_records, set_replaced_records] = useState<
+    Record<string, DnsRecord>
+  >({});
 
   useEffect(() => {
     if (is_open && mode === "input") {
@@ -213,12 +216,13 @@ export function DomainSetupWizard({
       turnstile_ref.current?.reset();
     }
     if (is_open) {
+      set_replaced_records({});
       set_current_step(0);
       set_step_statuses(wizard_steps.map(() => "pending"));
       set_verification_message(null);
       verified_manually_this_session.current = false;
     }
-  }, [is_open, mode, wizard_steps]);
+  }, [is_open, mode, wizard_steps, domain_id]);
 
   useEffect(() => {
     let cancelled = false;
@@ -276,9 +280,26 @@ export function DomainSetupWizard({
 
   const get_records_for_step = useCallback(
     (step_id: string): DnsRecord[] => {
+      const replaced = replaced_records[step_id];
+
+      if (replaced) return [replaced];
+
       return dns_records.filter((r) => r.purpose === step_id);
     },
-    [dns_records],
+    [dns_records, replaced_records],
+  );
+
+  const handle_record_replaced = useCallback(
+    (record: DnsRecord) => {
+      set_replaced_records((prev) => ({ ...prev, [record.purpose]: record }));
+      set_step_statuses((prev) =>
+        wizard_steps.map((step, index) =>
+          step.id === record.purpose ? "pending" : prev[index],
+        ),
+      );
+      on_domains_changed();
+    },
+    [wizard_steps, on_domains_changed],
   );
 
   useEffect(() => {
@@ -556,7 +577,9 @@ export function DomainSetupWizard({
               transition={{ duration: 0.15, ease: "easeOut" }}
             >
               <DnsStepContent
+                domain_id={domain_id}
                 domain_name={domain_name}
+                on_record_replaced={handle_record_replaced}
                 provider={detected_provider}
                 records={step_records}
                 status={step_statuses[current_step]}

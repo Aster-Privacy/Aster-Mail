@@ -636,6 +636,17 @@ export const pt = {
       "Publique apenas um registo SPF. Se outros serviços enviarem correio em nome deste domínio, junte os termos include: deles neste único registo.",
     dns_caveat_dmarc_add_after_spf_dkim:
       "Adicione este registo por último, depois de o SPF e o DKIM estarem verificados. Publicá-lo antes do tempo pode enviar o seu próprio correio para o spam.",
+    dns_caveat_dkim_long_value:
+      "Este valor tem mais de 255 caracteres. Alguns fornecedores de DNS, como a Shopify, não aceitam valores tão longos. Se o seu o recusar, utilize uma chave mais curta.",
+    dkim_short_key_button: "Utilizar uma chave mais curta",
+    dkim_short_key_confirm:
+      "O Aster substitui a chave DKIM deste domínio por uma chave de 1024 bits que cabe em 255 caracteres. O nome e o valor do registo mudam, por isso adicione o novo registo no seu fornecedor de DNS e elimine o antigo.",
+    dkim_short_key_confirm_button: "Substituir chave",
+    dkim_short_key_working: "A substituir a chave",
+    dkim_short_key_done:
+      "Nova chave DKIM criada. Adicione o novo registo no seu fornecedor de DNS.",
+    dkim_short_key_done_auto: "Nova chave DKIM criada e publicada no seu DNS.",
+    dkim_short_key_wait: "Aguarde alguns segundos e tente novamente.",
     dns_propagation_note:
       "As alterações de DNS podem demorar até 48 horas a propagar-se",
     post: "Publicar",
@@ -8317,6 +8328,12 @@ export const pt = {
       "Tem mais de um registo SPF. Os fornecedores ignoram todos, por isso junte-os num único registo.",
     domain_reason_dkim_missing_or_stale:
       "Os seus e-mails enviados não são assinados, o que os faz parecer falsos. Adicione o registo de assinatura para que sejam confiáveis.",
+    domain_hint_dkim_truncated:
+      "O seu registo DKIM está cortado, o que acontece quando um fornecedor de DNS limita os valores a 255 caracteres. Cole o valor completo ou utilize uma chave mais curta.",
+    domain_hint_dkim_quoted:
+      "O seu registo DKIM contém aspas. Remova-as e cole o valor numa só linha.",
+    domain_hint_dkim_other_key:
+      "O seu registo DKIM contém outra chave. Substitua o valor pelo que é apresentado aqui.",
     domain_reason_dmarc_missing:
       "Qualquer pessoa pode enviar e-mails a fazer-se passar pelo seu domínio. Adicione este registo quando os dois acima estiverem a funcionar.",
     domain_fix_show_record: "Mostrar o registo a adicionar",
@@ -9371,7 +9388,8 @@ export const pt = {
     search_index_resume: "Retomar",
     search_searching_title: "A pesquisar o seu correio",
     search_index_preparing: "A preparar o seu índice privado",
-    search_index_live_hint: "As correspondências aparecem assim que são encontradas.",
+    search_index_live_hint:
+      "As correspondências aparecem assim que são encontradas.",
     search_searching_more: "A pesquisar mais correio",
     search_index_why_label: "Porque é que a pesquisa precisa de um índice",
     searching_message_content: "Pesquisar conteúdo das mensagens",

@@ -726,6 +726,18 @@ export const it = {
       "Pubblica un solo record SPF. Se altri servizi inviano posta per questo dominio, unisci i loro termini include: in questo unico record.",
     dns_caveat_dmarc_add_after_spf_dkim:
       "Aggiungi questo per ultimo, dopo che SPF e DKIM risultano verificati. Pubblicarlo troppo presto puo far finire la tua posta nello spam.",
+    dns_caveat_dkim_long_value:
+      "Questo valore supera i 255 caratteri. Alcuni provider DNS, come Shopify, non accettano valori così lunghi. Se il tuo lo rifiuta, usa una chiave più corta.",
+    dkim_short_key_button: "Usa una chiave più corta",
+    dkim_short_key_confirm:
+      "Aster sostituisce la chiave DKIM di questo dominio con una chiave a 1024 bit che rientra in 255 caratteri. Cambiano sia il nome sia il valore del record, quindi aggiungi il nuovo record presso il tuo provider DNS ed elimina quello vecchio.",
+    dkim_short_key_confirm_button: "Sostituisci chiave",
+    dkim_short_key_working: "Sostituzione della chiave",
+    dkim_short_key_done:
+      "Nuova chiave DKIM creata. Aggiungi il nuovo record presso il tuo provider DNS.",
+    dkim_short_key_done_auto:
+      "Nuova chiave DKIM creata e pubblicata nel tuo DNS.",
+    dkim_short_key_wait: "Attendi qualche secondo, poi riprova.",
     dns_propagation_note:
       "Le modifiche DNS possono richiedere fino a 48 ore per propagarsi",
     post: "Pubblica",
@@ -8268,6 +8280,12 @@ export const it = {
       "Hai più di un record SPF. I provider li ignorano tutti, quindi uniscili in un unico record.",
     domain_reason_dkim_missing_or_stale:
       "La tua posta in uscita non è firmata e sembra falsificata. Aggiungi il record di firma perché venga ritenuta affidabile.",
+    domain_hint_dkim_truncated:
+      "Il tuo record DKIM è troncato, cosa che succede quando un provider DNS limita i valori a 255 caratteri. Incolla il valore completo oppure usa una chiave più corta.",
+    domain_hint_dkim_quoted:
+      "Il tuo record DKIM contiene virgolette. Rimuovile e incolla il valore su una sola riga.",
+    domain_hint_dkim_other_key:
+      "Il tuo record DKIM contiene una chiave diversa. Sostituisci il suo valore con quello mostrato qui.",
     domain_reason_dmarc_missing:
       "Chiunque può inviare posta fingendosi il tuo dominio. Aggiungi questo record quando i due sopra funzionano.",
     domain_fix_show_record: "Mostra il record da aggiungere",
@@ -9351,7 +9369,8 @@ export const it = {
     search_index_resume: "Riprendi",
     search_searching_title: "Ricerca nella tua posta",
     search_index_preparing: "Preparazione dell'indice privato",
-    search_index_live_hint: "Le corrispondenze compaiono non appena vengono trovate.",
+    search_index_live_hint:
+      "Le corrispondenze compaiono non appena vengono trovate.",
     search_searching_more: "Ricerca in altra posta",
     search_index_why_label: "Perché la ricerca richiede un indice",
     searching_message_content: "Cerca nel contenuto dei messaggi",

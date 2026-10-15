@@ -123,6 +123,7 @@ export interface DomainCheck {
   outcome: DomainCheckOutcome;
   reason?: string;
   detail?: string;
+  hint?: string;
 }
 
 export interface DomainHealth {
@@ -136,6 +137,7 @@ export interface DomainHealth {
   checks: DomainCheck[];
   reasons: string[];
   dmarc_policy?: string;
+  dkim_can_shorten?: boolean;
   checked_at: string;
   cached: boolean;
 }
@@ -192,7 +194,10 @@ export interface DkimRotationResponse {
   public_key: string;
   dns_record: DnsRecord;
   dns_auto_published?: boolean;
+  key_bits?: number;
 }
+
+export type DkimKeySize = "standard" | "compact";
 
 export interface DomainAddress {
   id: string;
@@ -500,10 +505,11 @@ export async function get_domain_health(
 
 export async function rotate_dkim(
   domain_id: string,
+  key_size?: DkimKeySize,
 ): Promise<ApiResponse<DkimRotationResponse>> {
   return api_client.post<DkimRotationResponse>(
     `/addresses/v1/domains/${domain_id}/dkim/rotate`,
-    {},
+    key_size ? { key_size } : {},
   );
 }
 

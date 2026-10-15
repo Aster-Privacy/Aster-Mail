@@ -708,6 +708,17 @@ export const en: Translations = {
       "Publish only one SPF record. If other services send mail as this domain, merge their include: terms into this single record.",
     dns_caveat_dmarc_add_after_spf_dkim:
       "Add this last, after SPF and DKIM both verify. Publishing it early can send your own mail to spam.",
+    dns_caveat_dkim_long_value:
+      "This value is longer than 255 characters. Some DNS hosts, such as Shopify, don't accept values this long. If yours rejects it, use a shorter key.",
+    dkim_short_key_button: "Use a shorter key",
+    dkim_short_key_confirm:
+      "Aster replaces this domain's DKIM key with a 1024-bit key that fits in 255 characters. The record name and value both change, so add the new record at your DNS host and delete the old one.",
+    dkim_short_key_confirm_button: "Replace key",
+    dkim_short_key_working: "Replacing key",
+    dkim_short_key_done:
+      "New DKIM key created. Add the new record at your DNS host.",
+    dkim_short_key_done_auto: "New DKIM key created and published to your DNS.",
+    dkim_short_key_wait: "Wait a few seconds, then try again.",
     dns_host_leave_blank: "Leave blank",
     dns_host_provider_hint:
       "{{provider}} uses this format for the host field. Copy it exactly as shown.",
@@ -6474,6 +6485,12 @@ export const en: Translations = {
       "You have more than one SPF record. Providers ignore all of them, so merge them into a single record.",
     domain_reason_dkim_missing_or_stale:
       "Your outgoing mail is unsigned, which makes it look forged. Add the signing record so your mail is trusted.",
+    domain_hint_dkim_truncated:
+      "Your DKIM record is cut off, which can happen when a DNS host limits values to 255 characters. Paste the whole value, or use a shorter key.",
+    domain_hint_dkim_quoted:
+      "Your DKIM record contains quotation marks. Remove them and paste the value on one line.",
+    domain_hint_dkim_other_key:
+      "Your DKIM record holds a different key. Replace its value with the one shown here.",
     domain_reason_dmarc_missing:
       "Anyone can send email pretending to be your domain. Add this record once the two above are working.",
     domain_fix_show_record: "Show me the record to add",

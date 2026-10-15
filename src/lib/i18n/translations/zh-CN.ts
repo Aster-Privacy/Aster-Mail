@@ -651,6 +651,16 @@ export const zh_CN = {
       "只发布一条 SPF 记录。如果还有其他服务以此域名发信，请将它们的 include: 合并到这一条记录中。",
     dns_caveat_dmarc_add_after_spf_dkim:
       "请最后再添加此记录，等 SPF 和 DKIM 都验证通过之后。过早发布可能会让您自己的邮件进入垃圾箱。",
+    dns_caveat_dkim_long_value:
+      "此值超过 255 个字符。部分 DNS 服务商（例如 Shopify）不接受这么长的值。如果你的服务商拒绝，请使用较短的密钥。",
+    dkim_short_key_button: "使用较短的密钥",
+    dkim_short_key_confirm:
+      "Aster 会将此域名的 DKIM 密钥替换为可容纳在 255 个字符内的 1024 位密钥。记录的名称和值都会改变，因此请在 DNS 服务商处添加新记录并删除旧记录。",
+    dkim_short_key_confirm_button: "替换密钥",
+    dkim_short_key_working: "正在替换密钥",
+    dkim_short_key_done: "已创建新的 DKIM 密钥。请在 DNS 服务商处添加新记录。",
+    dkim_short_key_done_auto: "已创建新的 DKIM 密钥并发布到你的 DNS。",
+    dkim_short_key_wait: "请等待几秒后重试。",
     dns_propagation_note: "DNS 更改可能需要最多48小时才能生效",
     post: "发布",
     link_copied: "链接已复制到剪贴板",
@@ -7324,6 +7334,12 @@ export const zh_CN = {
       "您有多条 SPF 记录。服务商会全部忽略，请将它们合并为一条。",
     domain_reason_dkim_missing_or_stale:
       "您发出的邮件未签名，看起来像伪造邮件。添加签名记录后，邮件才会被信任。",
+    domain_hint_dkim_truncated:
+      "你的 DKIM 记录被截断了。DNS 服务商将值限制为 255 个字符时会出现这种情况。请粘贴完整的值，或使用较短的密钥。",
+    domain_hint_dkim_quoted:
+      "你的 DKIM 记录包含引号。请删除引号，并将值粘贴在一行中。",
+    domain_hint_dkim_other_key:
+      "你的 DKIM 记录中是另一个密钥。请将其值替换为此处显示的值。",
     domain_reason_dmarc_missing:
       "任何人都能冒用您的域名发送邮件。等上面两项生效后，再添加这条记录。",
     domain_fix_show_record: "显示需要添加的记录",

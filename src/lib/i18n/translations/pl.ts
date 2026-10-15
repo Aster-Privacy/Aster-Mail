@@ -728,6 +728,18 @@ export const pl = {
       "Opublikuj tylko jeden rekord SPF. Jesli inne uslugi wysylaja poczte z tej domeny, polacz ich wpisy include: w tym jednym rekordzie.",
     dns_caveat_dmarc_add_after_spf_dkim:
       "Dodaj to na koncu, gdy SPF i DKIM sa juz zweryfikowane. Zbyt wczesna publikacja moze wyslac twoja wlasna poczte do spamu.",
+    dns_caveat_dkim_long_value:
+      "Ta wartość ma ponad 255 znaków. Niektórzy dostawcy DNS, na przykład Shopify, nie przyjmują tak długich wartości. Jeśli Twój ją odrzuci, użyj krótszego klucza.",
+    dkim_short_key_button: "Użyj krótszego klucza",
+    dkim_short_key_confirm:
+      "Aster zastąpi klucz DKIM tej domeny kluczem 1024-bitowym, który mieści się w 255 znakach. Zmieni się nazwa i wartość rekordu, więc dodaj nowy rekord u dostawcy DNS i usuń stary.",
+    dkim_short_key_confirm_button: "Zastąp klucz",
+    dkim_short_key_working: "Zastępowanie klucza",
+    dkim_short_key_done:
+      "Utworzono nowy klucz DKIM. Dodaj nowy rekord u dostawcy DNS.",
+    dkim_short_key_done_auto:
+      "Utworzono nowy klucz DKIM i opublikowano go w Twoim DNS.",
+    dkim_short_key_wait: "Odczekaj kilka sekund i spróbuj ponownie.",
     dns_propagation_note: "Propagacja zmian DNS może potrwać do 48 godzin",
     post: "Opublikuj",
     link_copied: "Link skopiowany do schowka",
@@ -8395,6 +8407,12 @@ export const pl = {
       "Masz więcej niż jeden rekord SPF. Dostawcy ignorują je wszystkie, więc scal je w jeden rekord.",
     domain_reason_dkim_missing_or_stale:
       "Wysyłana poczta nie jest podpisana, więc wygląda na sfałszowaną. Dodaj rekord podpisu, aby była zaufana.",
+    domain_hint_dkim_truncated:
+      "Twój rekord DKIM jest ucięty, co zdarza się, gdy dostawca DNS ogranicza wartości do 255 znaków. Wklej całą wartość lub użyj krótszego klucza.",
+    domain_hint_dkim_quoted:
+      "Twój rekord DKIM zawiera cudzysłowy. Usuń je i wklej wartość w jednym wierszu.",
+    domain_hint_dkim_other_key:
+      "Twój rekord DKIM zawiera inny klucz. Zastąp jego wartość tą widoczną tutaj.",
     domain_reason_dmarc_missing:
       "Każdy może wysyłać pocztę, podszywając się pod Twoją domenę. Dodaj ten rekord, gdy dwa powyższe będą działać.",
     domain_fix_show_record: "Pokaż rekord do dodania",

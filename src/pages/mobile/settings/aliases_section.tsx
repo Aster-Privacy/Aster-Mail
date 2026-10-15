@@ -38,6 +38,7 @@ import { Switch } from "@aster/ui";
 
 import { SettingsHeader } from "./shared";
 
+import { DkimShortKeyAction } from "@/components/settings/aliases/dkim_short_key_action";
 import { copy_text_or_throw } from "@/utils/copy_text";
 import { use_i18n } from "@/lib/i18n/context";
 import { format_number } from "@/lib/utils";
@@ -885,6 +886,36 @@ export function AliasesSection({
                                         </button>
                                       </div>
                                     </div>
+                                    {record.purpose === "dkim" &&
+                                      record.caveat_key === "dkim_long_value" &&
+                                      !record.is_verified &&
+                                      domain.is_shared !== true && (
+                                        <div className="mt-2">
+                                          <p className="text-[11px] text-[var(--text-muted)]">
+                                            {t(
+                                              "common.dns_caveat_dkim_long_value",
+                                            )}
+                                          </p>
+                                          <DkimShortKeyAction
+                                            domain_id={domain.id}
+                                            on_record_replaced={(replacement) =>
+                                              set_domain_dns_records(
+                                                (prev) => ({
+                                                  ...prev,
+                                                  [domain.id]: (
+                                                    prev[domain.id] ?? []
+                                                  ).map((r) =>
+                                                    r.purpose ===
+                                                    replacement.purpose
+                                                      ? replacement
+                                                      : r,
+                                                  ),
+                                                }),
+                                              )
+                                            }
+                                          />
+                                        </div>
+                                      )}
                                   </div>
                                 ),
                               )}

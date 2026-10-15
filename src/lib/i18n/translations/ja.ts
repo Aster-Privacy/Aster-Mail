@@ -771,6 +771,17 @@ export const ja = {
       "SPF レコードは 1 つだけ公開してください。他のサービスもこのドメインでメールを送る場合は、その include: をこの 1 つのレコードにまとめてください。",
     dns_caveat_dmarc_add_after_spf_dkim:
       "これは最後に追加し、SPF と DKIM の検証が済んでから公開してください。早すぎると自分のメールが迷惑メールに入る場合があります。",
+    dns_caveat_dkim_long_value:
+      "この値は 255 文字を超えています。Shopify など一部の DNS ホストは、これほど長い値を受け付けません。拒否された場合は、短いキーを使用してください。",
+    dkim_short_key_button: "短いキーを使用",
+    dkim_short_key_confirm:
+      "Aster はこのドメインの DKIM キーを、255 文字に収まる 1024 ビットのキーに置き換えます。レコードの名前と値の両方が変わるため、DNS ホストで新しいレコードを追加し、古いレコードを削除してください。",
+    dkim_short_key_confirm_button: "キーを置き換える",
+    dkim_short_key_working: "キーを置き換えています",
+    dkim_short_key_done:
+      "新しい DKIM キーを作成しました。DNS ホストで新しいレコードを追加してください。",
+    dkim_short_key_done_auto: "新しい DKIM キーを作成し、DNS に公開しました。",
+    dkim_short_key_wait: "数秒待ってから、もう一度お試しください。",
     dns_propagation_note:
       "DNSの変更が反映されるまで最大48時間かかる場合があります",
     post: "投稿",
@@ -8084,6 +8095,12 @@ export const ja = {
       "SPF レコードが複数あります。プロバイダはすべて無視するため、1 つのレコードにまとめてください。",
     domain_reason_dkim_missing_or_stale:
       "送信メールが署名されていないため、偽造のように見えます。署名レコードを追加すると信頼されます。",
+    domain_hint_dkim_truncated:
+      "DKIM レコードが途中で切れています。DNS ホストが値を 255 文字に制限している場合に起こります。値全体を貼り付けるか、短いキーを使用してください。",
+    domain_hint_dkim_quoted:
+      "DKIM レコードに引用符が含まれています。引用符を削除し、値を 1 行で貼り付けてください。",
+    domain_hint_dkim_other_key:
+      "DKIM レコードに別のキーが入っています。値をここに表示されているものに置き換えてください。",
     domain_reason_dmarc_missing:
       "誰でもあなたのドメインを装ってメールを送れます。上の 2 つが動作したら、このレコードを追加してください。",
     domain_fix_show_record: "追加するレコードを表示",

@@ -142,6 +142,46 @@ describe("check_status_key", () => {
       "settings.domain_check_unknown",
     );
   });
+
+  it("explains a broken DKIM record more precisely when a hint is sent", () => {
+    const hints = ["dkim_truncated", "dkim_quoted", "dkim_other_key"];
+
+    for (const hint of hints) {
+      const key = check_status_key(
+        check({ key: "dkim", reason: "dkim_missing_or_stale", hint }),
+      );
+
+      expect(key, hint).not.toBe(
+        "settings.domain_reason_dkim_missing_or_stale",
+      );
+      expect(lookup(key), hint).toBeTypeOf("string");
+    }
+  });
+
+  it("keeps the reason copy for a hint it does not recognise", () => {
+    expect(
+      check_status_key(
+        check({
+          key: "dkim",
+          reason: "dkim_missing_or_stale",
+          hint: "some_future_hint",
+        }),
+      ),
+    ).toBe("settings.domain_reason_dkim_missing_or_stale");
+  });
+
+  it("ignores a hint on a passing or unknown check", () => {
+    expect(
+      check_status_key(
+        check({ key: "dkim", outcome: "pass", hint: "dkim_truncated" }),
+      ),
+    ).toBe("settings.domain_check_dkim_pass");
+    expect(
+      check_status_key(
+        check({ key: "dkim", outcome: "unknown", hint: "dkim_truncated" }),
+      ),
+    ).toBe("settings.domain_check_unknown");
+  });
 });
 
 describe("check_label_key", () => {

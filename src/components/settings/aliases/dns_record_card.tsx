@@ -29,24 +29,34 @@ import { copy_text_or_throw } from "@/utils/copy_text";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { format_record_host, type DnsProvider } from "@/data/dns_providers";
+import { DkimShortKeyAction } from "@/components/settings/aliases/dkim_short_key_action";
 
 const CAVEAT_KEYS: Record<string, TranslationKey> = {
   mx_replaces_existing: "common.dns_caveat_mx_replaces_existing",
   spf_single_record_other_senders:
     "common.dns_caveat_spf_single_record_other_senders",
   dmarc_add_after_spf_dkim: "common.dns_caveat_dmarc_add_after_spf_dkim",
+  dkim_long_value: "common.dns_caveat_dkim_long_value",
 };
+
+const DNS_TXT_STRING_LIMIT = 255;
 
 interface DnsRecordCardProps {
   record: DnsRecord;
   domain?: string;
   provider?: DnsProvider | null;
+  domain_id?: string;
+  on_record_replaced?: (record: DnsRecord) => void;
+  offer_shorter_key?: boolean;
 }
 
 export function DnsRecordCard({
   record,
   domain,
   provider,
+  domain_id,
+  on_record_replaced,
+  offer_shorter_key = false,
 }: DnsRecordCardProps) {
   const { t } = use_i18n();
   const caveat = record.caveat_key ? CAVEAT_KEYS[record.caveat_key] : undefined;
@@ -54,6 +64,13 @@ export function DnsRecordCard({
     ? format_record_host(record.host, domain, provider ?? null)
     : record.host;
   const host_is_blank = display_host === "";
+  const can_shorten =
+    record.purpose === "dkim" &&
+    record.value.length > DNS_TXT_STRING_LIMIT &&
+    (offer_shorter_key ||
+      (record.caveat_key === "dkim_long_value" && !record.is_verified)) &&
+    !!domain_id &&
+    !!on_record_replaced;
 
   const copy_to_clipboard = useCallback(
     async (text: string) => {
@@ -94,6 +111,14 @@ export function DnsRecordCard({
       </div>
 
       {caveat && <p className="text-xs mb-2 text-txt-muted">{t(caveat)}</p>}
+      {can_shorten && domain_id && on_record_replaced && (
+        <div className="mb-2">
+          <DkimShortKeyAction
+            domain_id={domain_id}
+            on_record_replaced={on_record_replaced}
+          />
+        </div>
+      )}
 
       <div className="mb-2">
         <label className="text-xs block mb-1 text-txt-muted">
