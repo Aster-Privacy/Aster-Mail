@@ -58,6 +58,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           NO_STRIP: 'true'
           APPIMAGE_EXTRACT_AND_RUN: '1'
+          VITE_SPECIAL_OFFER_ENABLED: "true"
         run: npm run tauri build -- --bundles appimage --verbose
 
       - name: Unbundle host graphics libraries from the AppImage
