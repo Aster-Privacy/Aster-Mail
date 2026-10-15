@@ -63,6 +63,10 @@ import {
 import { draft_manager } from "@/services/crypto/encrypted_drafts";
 import { show_email_sent_toast } from "@/components/toast/email_sent_toast";
 import { play_iconic_sound } from "@/services/iconic_sounds";
+import {
+  apply_metadata_strip,
+  unique_attachment_name,
+} from "@/components/compose/use_compose_attachments";
 import { format_bytes } from "@/lib/utils";
 import { safe_sender_name } from "@/lib/sender_trust_store";
 import {
@@ -301,6 +305,7 @@ export function use_forward_modal({
     draft: null,
   });
   const files_drop_ref = useRef<((files: File[]) => void) | null>(null);
+  const original_attachment_ids_ref = useRef<Set<string>>(new Set());
 
   const editor = use_editor({
     editor_ref: message_editor_ref as React.RefObject<HTMLDivElement | null>,
@@ -312,6 +317,7 @@ export function use_forward_modal({
     enable_keyboard_shortcuts: true,
     is_plain_text_mode,
     on_files_drop: (files: File[]) => files_drop_ref.current?.(files),
+    strip_exif_on_compose: preferences.strip_exif_on_compose,
   });
 
   const active_formats = editor.format_state.active_formats;
@@ -467,6 +473,7 @@ export function use_forward_modal({
       set_error_message(null);
       set_attachments([]);
       original_has_attachments_ref.current = false;
+      original_attachment_ids_ref.current = new Set();
       failed_draft_ref.current = { draft: null };
       attachments_touched_ref.current = false;
       set_is_loading_attachments(false);
@@ -648,7 +655,31 @@ export function use_forward_modal({
         if (!cancelled) {
           if (loaded.length > 0) {
             original_has_attachments_ref.current = true;
-            set_attachments(loaded);
+            const previous_original_ids = original_attachment_ids_ref.current;
+
+            original_attachment_ids_ref.current = new Set(
+              loaded.map((attachment) => attachment.id),
+            );
+            set_attachments((prev) => {
+              const added = prev.filter(
+                (attachment) => !previous_original_ids.has(attachment.id),
+              );
+              const taken_names = new Set(loaded.map((a) => a.name));
+              const renamed = added.map((attachment) => {
+                const name = unique_attachment_name(
+                  attachment.name,
+                  taken_names,
+                );
+
+                taken_names.add(name);
+
+                return name === attachment.name
+                  ? attachment
+                  : { ...attachment, name };
+              });
+
+              return [...loaded, ...renamed];
+            });
           }
 
           if (dropped > 0) {
@@ -1304,6 +1335,8 @@ export function use_forward_modal({
       const new_attachments: Attachment[] = [];
       const current_total = get_total_attachments_size();
       let running_total = current_total;
+      const taken_names = new Set(attachments.map((a) => a.name));
+      const unstripped: string[] = [];
 
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
@@ -1336,27 +1369,28 @@ export function use_forward_modal({
 
         const mime_type = file.type || "application/octet-stream";
 
-        const exists = attachments.some((a) => a.name === file.name);
-
-        if (exists) {
-          set_attachment_error(
-            t("common.file_already_attached", { name: file.name }),
-          );
-          continue;
-        }
+        const name = unique_attachment_name(file.name, taken_names);
 
         try {
-          const data = await file.arrayBuffer();
+          const raw = await file.arrayBuffer();
+          const data = await apply_metadata_strip(
+            raw,
+            mime_type,
+            preferences.strip_exif_on_compose,
+            file.name,
+            unstripped,
+          );
 
           new_attachments.push({
             id: generate_attachment_id(),
-            name: file.name,
-            size: format_bytes(file.size),
-            size_bytes: file.size,
+            name,
+            size: format_bytes(data.byteLength),
+            size_bytes: data.byteLength,
             mime_type,
             data,
           });
-          running_total += file.size;
+          taken_names.add(name);
+          running_total += data.byteLength;
         } catch (error) {
           if (import.meta.env.DEV) console.error(error);
           set_attachment_error(
@@ -1371,11 +1405,24 @@ export function use_forward_modal({
         play_iconic_sound("upload");
       }
 
+      if (unstripped.length > 0) {
+        show_toast(
+          t("common.metadata_not_removed", { names: unstripped.join(", ") }),
+          "warning",
+          5000,
+        );
+      }
+
       if (file_input_ref.current) {
         file_input_ref.current.value = "";
       }
     },
-    [attachments, get_total_attachments_size, t],
+    [
+      attachments,
+      get_total_attachments_size,
+      preferences.strip_exif_on_compose,
+      t,
+    ],
   );
 
   const handle_files_drop = useCallback(
@@ -1388,6 +1435,8 @@ export function use_forward_modal({
       const new_attachments: Attachment[] = [];
       const current_total = get_total_attachments_size();
       let running_total = current_total;
+      const taken_names = new Set(attachments.map((a) => a.name));
+      const unstripped: string[] = [];
 
       for (const file of files) {
         if (
@@ -1418,27 +1467,28 @@ export function use_forward_modal({
 
         const mime_type = file.type || "application/octet-stream";
 
-        const exists = attachments.some((a) => a.name === file.name);
-
-        if (exists) {
-          set_attachment_error(
-            t("common.file_already_attached", { name: file.name }),
-          );
-          continue;
-        }
+        const name = unique_attachment_name(file.name, taken_names);
 
         try {
-          const data = await file.arrayBuffer();
+          const raw = await file.arrayBuffer();
+          const data = await apply_metadata_strip(
+            raw,
+            mime_type,
+            preferences.strip_exif_on_compose,
+            file.name,
+            unstripped,
+          );
 
           new_attachments.push({
             id: generate_attachment_id(),
-            name: file.name,
-            size: format_bytes(file.size),
-            size_bytes: file.size,
+            name,
+            size: format_bytes(data.byteLength),
+            size_bytes: data.byteLength,
             mime_type,
             data,
           });
-          running_total += file.size;
+          taken_names.add(name);
+          running_total += data.byteLength;
         } catch (error) {
           if (import.meta.env.DEV) console.error(error);
           set_attachment_error(
@@ -1452,8 +1502,21 @@ export function use_forward_modal({
         set_attachments((prev) => [...prev, ...new_attachments]);
         play_iconic_sound("upload");
       }
+
+      if (unstripped.length > 0) {
+        show_toast(
+          t("common.metadata_not_removed", { names: unstripped.join(", ") }),
+          "warning",
+          5000,
+        );
+      }
     },
-    [attachments, get_total_attachments_size, t],
+    [
+      attachments,
+      get_total_attachments_size,
+      preferences.strip_exif_on_compose,
+      t,
+    ],
   );
 
   files_drop_ref.current = handle_files_drop;

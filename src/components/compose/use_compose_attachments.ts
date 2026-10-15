@@ -44,7 +44,10 @@ import {
   prompt_attachment_upgrade,
 } from "@/services/attachment_rejection";
 
-const unique_attachment_name = (name: string, taken: Set<string>): string => {
+export const unique_attachment_name = (
+  name: string,
+  taken: Set<string>,
+): string => {
   if (!taken.has(name)) return name;
 
   const dot = name.lastIndexOf(".");
@@ -107,7 +110,7 @@ const EXTENSION_MIME_MAP: Record<string, string> = {
 
 const METADATA_BEARING_TYPE = /^image\//;
 
-async function apply_metadata_strip(
+export async function apply_metadata_strip(
   raw: ArrayBuffer,
   mime_type: string,
   enabled: boolean,

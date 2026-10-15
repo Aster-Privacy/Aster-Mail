@@ -324,6 +324,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     enable_keyboard_shortcuts: true,
     is_plain_text_mode,
     on_files_drop: (files: File[]) => files_drop_ref.current?.(files),
+    strip_exif_on_compose: preferences.strip_exif_on_compose,
   });
 
   const active_formats = editor.format_state.active_formats;

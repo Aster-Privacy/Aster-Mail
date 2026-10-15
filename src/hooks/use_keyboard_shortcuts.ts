@@ -74,6 +74,14 @@ function get_active_element(
   return active;
 }
 
+function is_in_menu(): boolean {
+  return Boolean(
+    get_active_element()?.closest(
+      '[role="menu"], [role="menubar"], [data-radix-menu-content]',
+    ),
+  );
+}
+
 function is_typing(): boolean {
   const active = get_active_element();
 
@@ -232,6 +240,7 @@ export function use_keyboard_shortcuts(
     const has_cmd = e.metaKey || e.ctrlKey;
     const has_shift = e.shiftKey;
     const has_alt = e.altKey;
+    const is_layout_unknown = e.key === "Unidentified" || e.key === "Dead";
 
     if (has_alt) return;
 
@@ -276,6 +285,8 @@ export function use_keyboard_shortcuts(
       return;
     }
 
+    if (is_in_menu()) return;
+
     if (has_cmd && key === "a" && !has_shift) {
       if (is_typing()) return;
 
@@ -314,9 +325,7 @@ export function use_keyboard_shortcuts(
     }
 
     const is_question_mark =
-      key === "?" ||
-      (key === "/" && has_shift) ||
-      (code === "Slash" && has_shift);
+      key === "?" || (is_layout_unknown && code === "Slash" && has_shift);
 
     if (is_question_mark && !has_cmd) {
       handle(h.on_show_shortcuts);
@@ -377,7 +386,10 @@ export function use_keyboard_shortcuts(
       return;
     }
 
-    if ((key === "/" || code === "Slash") && !has_cmd && !has_shift) {
+    const is_slash =
+      key === "/" || (is_layout_unknown && code === "Slash" && !has_shift);
+
+    if (is_slash && !has_cmd) {
       handle(h.on_search);
 
       return;
@@ -394,9 +406,7 @@ export function use_keyboard_shortcuts(
     }
 
     const is_hash =
-      key === "#" ||
-      (key === "3" && has_shift) ||
-      (code === "Digit3" && has_shift);
+      key === "#" || (is_layout_unknown && code === "Digit3" && has_shift);
 
     if (is_hash) {
       handle(h.on_delete);
@@ -405,9 +415,7 @@ export function use_keyboard_shortcuts(
     }
 
     const is_exclamation =
-      key === "!" ||
-      (key === "1" && has_shift) ||
-      (code === "Digit1" && has_shift);
+      key === "!" || (is_layout_unknown && code === "Digit1" && has_shift);
 
     if (is_exclamation) {
       handle(h.on_spam);
