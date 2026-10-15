@@ -45,6 +45,8 @@ interface DnsStepContentProps {
   status: StepStatus;
   provider: DnsProvider | null;
   domain_name: string;
+  domain_id?: string | null;
+  on_record_replaced?: (record: DnsRecord) => void;
 }
 
 const PROVIDER_INSTRUCTIONS: Record<
@@ -172,6 +174,8 @@ export function DnsStepContent({
   status,
   provider,
   domain_name,
+  domain_id,
+  on_record_replaced,
 }: DnsStepContentProps) {
   const { t } = use_i18n();
 
@@ -256,8 +260,10 @@ export function DnsStepContent({
           <DnsRecordCard
             key={index}
             domain={domain_name}
+            domain_id={domain_id ?? undefined}
             provider={provider}
             record={record}
+            on_record_replaced={on_record_replaced}
           />
         ))}
       </div>

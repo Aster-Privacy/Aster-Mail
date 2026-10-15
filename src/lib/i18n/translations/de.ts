@@ -635,6 +635,19 @@ export const de = {
       "Veroffentlichen Sie nur einen SPF-Eintrag. Wenn andere Dienste Mail fur diese Domain senden, fuhren Sie deren include:-Werte in diesem einen Eintrag zusammen.",
     dns_caveat_dmarc_add_after_spf_dkim:
       "Fugen Sie dies zuletzt hinzu, wenn SPF und DKIM verifiziert sind. Zu fruh veroffentlicht landet Ihre eigene Post im Spam.",
+    dns_caveat_dkim_long_value:
+      "Dieser Wert ist länger als 255 Zeichen. Manche DNS-Anbieter, etwa Shopify, akzeptieren so lange Werte nicht. Wenn Ihrer ihn ablehnt, verwenden Sie einen kürzeren Schlüssel.",
+    dkim_short_key_button: "Kürzeren Schlüssel verwenden",
+    dkim_short_key_confirm:
+      "Aster ersetzt den DKIM-Schlüssel dieser Domain durch einen 1024-Bit-Schlüssel, der in 255 Zeichen passt. Name und Wert des Eintrags ändern sich. Fügen Sie den neuen Eintrag bei Ihrem DNS-Anbieter hinzu und löschen Sie den alten.",
+    dkim_short_key_confirm_button: "Schlüssel ersetzen",
+    dkim_short_key_working: "Schlüssel wird ersetzt",
+    dkim_short_key_done:
+      "Neuer DKIM-Schlüssel erstellt. Fügen Sie den neuen Eintrag bei Ihrem DNS-Anbieter hinzu.",
+    dkim_short_key_done_auto:
+      "Neuer DKIM-Schlüssel erstellt und in Ihrem DNS veröffentlicht.",
+    dkim_short_key_wait:
+      "Warten Sie einige Sekunden und versuchen Sie es dann erneut.",
     post: "Posten",
     link_copied: "Link in die Zwischenablage kopiert",
     invite_sent: "Einladung gesendet!",
@@ -8178,6 +8191,12 @@ export const de = {
       "Sie haben mehr als einen SPF-Eintrag. Anbieter ignorieren dann alle, fassen Sie sie also zu einem Eintrag zusammen.",
     domain_reason_dkim_missing_or_stale:
       "Ihre ausgehende Mail ist unsigniert und wirkt dadurch gefälscht. Fügen Sie den Signatureintrag hinzu, damit Ihrer Mail vertraut wird.",
+    domain_hint_dkim_truncated:
+      "Ihr DKIM-Eintrag ist abgeschnitten. Das passiert, wenn ein DNS-Anbieter Werte auf 255 Zeichen begrenzt. Fügen Sie den vollständigen Wert ein oder verwenden Sie einen kürzeren Schlüssel.",
+    domain_hint_dkim_quoted:
+      "Ihr DKIM-Eintrag enthält Anführungszeichen. Entfernen Sie sie und fügen Sie den Wert in einer Zeile ein.",
+    domain_hint_dkim_other_key:
+      "Ihr DKIM-Eintrag enthält einen anderen Schlüssel. Ersetzen Sie seinen Wert durch den hier angezeigten.",
     domain_reason_dmarc_missing:
       "Jeder kann E-Mails im Namen Ihrer Domain senden. Fügen Sie diesen Eintrag hinzu, sobald die beiden oben funktionieren.",
     domain_fix_show_record: "Hinzuzufügenden Eintrag anzeigen",

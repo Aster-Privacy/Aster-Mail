@@ -61,10 +61,12 @@ vi.mock("@/components/toast/simple_toast", () => ({
 
 const get_domain_health = vi.fn();
 const get_dns_records = vi.fn();
+const rotate_dkim = vi.fn();
 
 vi.mock("@/services/api/domains", () => ({
   get_domain_health: (...args: unknown[]) => get_domain_health(...args),
   get_dns_records: (...args: unknown[]) => get_dns_records(...args),
+  rotate_dkim: (...args: unknown[]) => rotate_dkim(...args),
 }));
 
 const detect_dns_provider = vi.fn();
@@ -143,6 +145,7 @@ beforeEach(() => {
   vi.useFakeTimers({ shouldAdvanceTime: true });
   get_domain_health.mockReset();
   get_dns_records.mockReset();
+  rotate_dkim.mockReset();
   detect_dns_provider.mockReset();
   get_dns_records.mockResolvedValue({ data: { records: [] } });
   detect_dns_provider.mockResolvedValue(null);
@@ -156,6 +159,153 @@ afterEach(() => {
   root = null;
   container = null;
   vi.useRealTimers();
+});
+
+const LONG_DKIM_VALUE = `v=DKIM1; k=rsa; p=${"A".repeat(392)}`;
+const SHORT_DKIM_VALUE = `v=DKIM1; k=rsa; p=${"B".repeat(216)}`;
+
+const TRUNCATED_DKIM: DomainCheck[] = [
+  { key: "mx", outcome: "pass" },
+  { key: "spf", outcome: "pass" },
+  {
+    key: "dkim",
+    outcome: "fail",
+    reason: "dkim_missing_or_stale",
+    hint: "dkim_truncated",
+  },
+  { key: "dmarc", outcome: "pass" },
+];
+
+function long_dkim_record(overrides: Record<string, unknown> = {}) {
+  return {
+    record_type: "TXT",
+    host: "aster._domainkey",
+    value: LONG_DKIM_VALUE,
+    purpose: "dkim",
+    is_verified: true,
+    ...overrides,
+  };
+}
+
+function find_button(el: HTMLElement, text: string) {
+  return Array.from(el.querySelectorAll("button")).find((b) =>
+    b.textContent?.includes(text),
+  );
+}
+
+async function reveal_dkim_record(el: HTMLElement) {
+  const reveal = find_button(el, "Show me the record");
+
+  expect(reveal).toBeTruthy();
+  await act(async () => {
+    reveal!.click();
+  });
+}
+
+describe("DomainHealthPanel shorter DKIM key", () => {
+  it("explains a cut-off DKIM record and offers a shorter key", async () => {
+    get_domain_health.mockResolvedValue({
+      data: health("warning", TRUNCATED_DKIM, { dkim_can_shorten: true }),
+    });
+    get_dns_records.mockResolvedValue({
+      data: { records: [long_dkim_record()] },
+    });
+
+    const el = await render();
+
+    expect(el.textContent).toContain("Your DKIM record is cut off");
+    await reveal_dkim_record(el);
+    expect(find_button(el, "Use a shorter key")).toBeTruthy();
+  });
+
+  it("does not offer a shorter key unless the server says it helps", async () => {
+    get_domain_health.mockResolvedValue({
+      data: health("warning", TRUNCATED_DKIM),
+    });
+    get_dns_records.mockResolvedValue({
+      data: { records: [long_dkim_record()] },
+    });
+
+    const el = await render();
+
+    await reveal_dkim_record(el);
+    expect(find_button(el, "Use a shorter key")).toBeUndefined();
+  });
+
+  it("swaps in the shorter record after the user confirms", async () => {
+    get_domain_health.mockResolvedValue({
+      data: health("warning", TRUNCATED_DKIM, { dkim_can_shorten: true }),
+    });
+    get_dns_records.mockResolvedValue({
+      data: {
+        records: [
+          long_dkim_record({
+            is_verified: false,
+            caveat_key: "dkim_long_value",
+          }),
+        ],
+      },
+    });
+    rotate_dkim.mockResolvedValue({
+      data: {
+        success: true,
+        selector: "aster2",
+        public_key: "B".repeat(216),
+        key_bits: 1024,
+        dns_record: {
+          record_type: "TXT",
+          host: "aster2._domainkey",
+          value: SHORT_DKIM_VALUE,
+          purpose: "dkim",
+          is_verified: false,
+        },
+      },
+    });
+
+    const el = await render();
+
+    await reveal_dkim_record(el);
+    await act(async () => {
+      find_button(el, "Use a shorter key")!.click();
+    });
+    expect(rotate_dkim).not.toHaveBeenCalled();
+
+    await act(async () => {
+      find_button(el, "Replace key")!.click();
+    });
+
+    expect(rotate_dkim).toHaveBeenCalledTimes(1);
+    expect(rotate_dkim).toHaveBeenCalledWith("d1", "compact");
+    expect(el.textContent).toContain("aster2._domainkey");
+    expect(el.textContent).toContain(SHORT_DKIM_VALUE);
+    expect(el.textContent).not.toContain(LONG_DKIM_VALUE);
+    expect(find_button(el, "Use a shorter key")).toBeUndefined();
+    expect(get_domain_health).toHaveBeenCalledTimes(2);
+  });
+
+  it("keeps the old record when the server refuses to replace the key", async () => {
+    get_domain_health.mockResolvedValue({
+      data: health("warning", TRUNCATED_DKIM, { dkim_can_shorten: true }),
+    });
+    get_dns_records.mockResolvedValue({
+      data: { records: [long_dkim_record({ is_verified: false })] },
+    });
+    rotate_dkim.mockResolvedValue({ error: "slow down", status: 429 });
+
+    const el = await render();
+
+    await reveal_dkim_record(el);
+    await act(async () => {
+      find_button(el, "Use a shorter key")!.click();
+    });
+    await act(async () => {
+      find_button(el, "Replace key")!.click();
+    });
+
+    expect(rotate_dkim).toHaveBeenCalledTimes(1);
+    expect(el.textContent).toContain(LONG_DKIM_VALUE);
+    expect(find_button(el, "Replace key")).toBeTruthy();
+  });
 });
 
 describe("DomainHealthPanel", () => {

@@ -178,6 +178,16 @@ export function DomainCardV2({
     }
   };
 
+  const handle_short_key_record = (record: DnsRecord) => {
+    set_rotated_dkim_record(null);
+    set_dns_records((current) =>
+      current
+        ? current.map((r) => (r.purpose === record.purpose ? record : r))
+        : current,
+    );
+    on_domains_changed();
+  };
+
   const handle_verify = async () => {
     set_verifying(true);
     try {
@@ -410,7 +420,12 @@ export function DomainCardV2({
             {show_dns && dns_records && (
               <div className="space-y-2 mb-4 ps-6">
                 {dns_records.map((record, index) => (
-                  <DnsRecordCard key={index} record={record} />
+                  <DnsRecordCard
+                    key={index}
+                    domain_id={is_shared ? undefined : domain.id}
+                    record={record}
+                    on_record_replaced={handle_short_key_record}
+                  />
                 ))}
               </div>
             )}

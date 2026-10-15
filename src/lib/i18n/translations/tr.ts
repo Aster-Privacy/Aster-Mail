@@ -719,6 +719,18 @@ export const tr = {
       "Yalnizca tek bir SPF kaydi yayinlayin. Bu alan adiyla baska servisler de posta gonderiyorsa include: degerlerini bu tek kayitta birlestirin.",
     dns_caveat_dmarc_add_after_spf_dkim:
       "Bunu en son ekleyin, SPF ve DKIM dogrulandiktan sonra. Erken yayinlamak kendi postanizi spam'e dusurebilir.",
+    dns_caveat_dkim_long_value:
+      "Bu değer 255 karakterden uzun. Shopify gibi bazı DNS sağlayıcıları bu kadar uzun değerleri kabul etmez. Sağlayıcınız reddederse daha kısa bir anahtar kullanın.",
+    dkim_short_key_button: "Daha kısa bir anahtar kullan",
+    dkim_short_key_confirm:
+      "Aster bu alan adının DKIM anahtarını 255 karaktere sığan 1024 bit bir anahtarla değiştirir. Kaydın adı ve değeri değişir; bu yüzden yeni kaydı DNS sağlayıcınıza ekleyin ve eskisini silin.",
+    dkim_short_key_confirm_button: "Anahtarı değiştir",
+    dkim_short_key_working: "Anahtar değiştiriliyor",
+    dkim_short_key_done:
+      "Yeni DKIM anahtarı oluşturuldu. Yeni kaydı DNS sağlayıcınıza ekleyin.",
+    dkim_short_key_done_auto:
+      "Yeni DKIM anahtarı oluşturuldu ve DNS'inizde yayımlandı.",
+    dkim_short_key_wait: "Birkaç saniye bekleyip tekrar deneyin.",
     dns_propagation_note: "DNS değişikliklerinin yayılması 48 saati bulabilir",
     post: "Gönder",
     link_copied: "Bağlantı panoya kopyalandı",
@@ -1782,8 +1794,7 @@ export const tr = {
     onboarding_checklist_domain_heading: "Özel alan adı kullanın",
     onboarding_checklist_domain_badge: "İsteğe bağlı",
     onboarding_checklist_domain_get: "Özel alan adı alın",
-    onboarding_checklist_domain_existing:
-      "Sahip olduğunuz alan adını kullanın",
+    onboarding_checklist_domain_existing: "Sahip olduğunuz alan adını kullanın",
     onboarding_checklist_hide_forever: "Eğitim listesini kalıcı olarak gizle",
     onboarding_checklist_shortcuts: "Klavye kısayolları",
     onboarding_checklist_open: "Eğitim listesini göster",
@@ -8141,6 +8152,12 @@ export const tr = {
       "Birden fazla SPF kaydınız var. Sağlayıcılar hepsini yok sayar, bu yüzden tek bir kayıtta birleştirin.",
     domain_reason_dkim_missing_or_stale:
       "Giden postanız imzasız olduğu için sahte görünüyor. İmzalama kaydını ekleyin ki postanız güvenilir olsun.",
+    domain_hint_dkim_truncated:
+      "DKIM kaydınız kesilmiş. Bu, bir DNS sağlayıcısı değerleri 255 karakterle sınırladığında olur. Değerin tamamını yapıştırın veya daha kısa bir anahtar kullanın.",
+    domain_hint_dkim_quoted:
+      "DKIM kaydınız tırnak işaretleri içeriyor. Bunları kaldırıp değeri tek satıra yapıştırın.",
+    domain_hint_dkim_other_key:
+      "DKIM kaydınızda farklı bir anahtar var. Değerini burada gösterilenle değiştirin.",
     domain_reason_dmarc_missing:
       "Herkes alan adınızmış gibi e-posta gönderebilir. Yukarıdaki iki madde çalıştığında bu kaydı ekleyin.",
     domain_fix_show_record: "Eklenecek kaydı göster",

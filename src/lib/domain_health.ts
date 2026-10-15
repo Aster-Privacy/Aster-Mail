@@ -58,6 +58,12 @@ const REASON_KEYS: Record<string, TranslationKey> = {
   dmarc_missing: "settings.domain_reason_dmarc_missing",
 };
 
+const HINT_KEYS: Record<string, TranslationKey> = {
+  dkim_truncated: "settings.domain_hint_dkim_truncated",
+  dkim_quoted: "settings.domain_hint_dkim_quoted",
+  dkim_other_key: "settings.domain_hint_dkim_other_key",
+};
+
 const CHECK_ORDER: DomainCheckKey[] = ["mx", "spf", "dkim", "dmarc"];
 
 export function check_label_key(key: DomainCheckKey): TranslationKey {
@@ -67,6 +73,10 @@ export function check_label_key(key: DomainCheckKey): TranslationKey {
 export function check_status_key(check: DomainCheck): TranslationKey {
   if (check.outcome === "pass") return CHECK_PASS_KEYS[check.key];
   if (check.outcome === "unknown") return "settings.domain_check_unknown";
+
+  const hinted = check.hint ? HINT_KEYS[check.hint] : undefined;
+
+  if (hinted) return hinted;
 
   const mapped = check.reason ? REASON_KEYS[check.reason] : undefined;
 

@@ -775,6 +775,17 @@ export const ko = {
       "SPF 레코드는 하나만 게시하세요. 다른 서비스도 이 도메인으로 메일을 보낸다면 해당 include: 값을 이 하나의 레코드에 합치세요.",
     dns_caveat_dmarc_add_after_spf_dkim:
       "이 항목은 마지막에, SPF와 DKIM이 모두 확인된 뒤에 추가하세요. 너무 일찍 게시하면 본인 메일이 스팸으로 갈 수 있습니다.",
+    dns_caveat_dkim_long_value:
+      "이 값은 255자를 넘습니다. Shopify 같은 일부 DNS 호스트는 이렇게 긴 값을 받지 않습니다. 사용하는 호스트에서 거부되면 더 짧은 키를 사용하세요.",
+    dkim_short_key_button: "더 짧은 키 사용",
+    dkim_short_key_confirm:
+      "Aster가 이 도메인의 DKIM 키를 255자 안에 들어가는 1024비트 키로 바꿉니다. 레코드 이름과 값이 모두 바뀌므로 DNS 호스트에 새 레코드를 추가하고 이전 레코드를 삭제하세요.",
+    dkim_short_key_confirm_button: "키 바꾸기",
+    dkim_short_key_working: "키를 바꾸는 중",
+    dkim_short_key_done:
+      "새 DKIM 키를 만들었습니다. DNS 호스트에 새 레코드를 추가하세요.",
+    dkim_short_key_done_auto: "새 DKIM 키를 만들어 DNS에 게시했습니다.",
+    dkim_short_key_wait: "몇 초 기다린 후 다시 시도하세요.",
     dns_propagation_note:
       "DNS 변경 사항이 전파되는 데 최대 48시간이 걸릴 수 있습니다",
     post: "게시",
@@ -7935,6 +7946,12 @@ export const ko = {
       "SPF 레코드가 두 개 이상입니다. 제공업체는 모두 무시하므로 하나의 레코드로 합치세요.",
     domain_reason_dkim_missing_or_stale:
       "보내는 메일에 서명이 없어 위조처럼 보입니다. 서명 레코드를 추가하면 신뢰받습니다.",
+    domain_hint_dkim_truncated:
+      "DKIM 레코드가 잘려 있습니다. DNS 호스트가 값을 255자로 제한하면 이런 일이 생깁니다. 전체 값을 붙여 넣거나 더 짧은 키를 사용하세요.",
+    domain_hint_dkim_quoted:
+      "DKIM 레코드에 따옴표가 들어 있습니다. 따옴표를 지우고 값을 한 줄로 붙여 넣으세요.",
+    domain_hint_dkim_other_key:
+      "DKIM 레코드에 다른 키가 들어 있습니다. 값을 여기에 표시된 값으로 바꾸세요.",
     domain_reason_dmarc_missing:
       "누구나 내 도메인인 척 메일을 보낼 수 있습니다. 위 두 항목이 작동하면 이 레코드를 추가하세요.",
     domain_fix_show_record: "추가할 레코드 보기",

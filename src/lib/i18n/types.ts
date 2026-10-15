@@ -1318,6 +1318,14 @@ export interface CommonTranslations {
   dns_caveat_mx_replaces_existing: string;
   dns_caveat_spf_single_record_other_senders: string;
   dns_caveat_dmarc_add_after_spf_dkim: string;
+  dns_caveat_dkim_long_value: string;
+  dkim_short_key_button: string;
+  dkim_short_key_confirm: string;
+  dkim_short_key_confirm_button: string;
+  dkim_short_key_working: string;
+  dkim_short_key_done: string;
+  dkim_short_key_done_auto: string;
+  dkim_short_key_wait: string;
   dns_host_leave_blank: string;
   dns_host_provider_hint: string;
   dns_propagation_note: string;
@@ -5533,6 +5541,9 @@ export interface SettingsTranslations {
   domain_reason_spf_missing_include: string;
   domain_reason_spf_duplicate_records: string;
   domain_reason_dkim_missing_or_stale: string;
+  domain_hint_dkim_truncated: string;
+  domain_hint_dkim_quoted: string;
+  domain_hint_dkim_other_key: string;
   domain_reason_dmarc_missing: string;
   domain_fix_show_record: string;
   domain_fix_hide_record: string;
