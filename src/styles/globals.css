@@ -3116,11 +3116,6 @@ button.press_scale:active {
     var(--bg-primary, #ffffff)
   );
   background-color: var(--mail_row_selected_bg);
-  border-bottom-color: color-mix(
-    in srgb,
-    var(--text-primary) 7%,
-    var(--mail_row_selected_bg)
-  );
   --border-primary: color-mix(
     in srgb,
     var(--text-primary) 26%,
@@ -3150,6 +3145,24 @@ button.press_scale:active {
   --text-tertiary: color-mix(in srgb, #ffffff 88%, var(--mail_row_selected_bg));
   --text-muted: color-mix(in srgb, #ffffff 82%, var(--mail_row_selected_bg));
   --icon-muted: var(--text-muted);
+}
+
+.mail_row_selected,
+[data-row-email-id]:has(+ [data-row-email-id] > .mail_row_selected) > * {
+  border-bottom-color: color-mix(
+    in srgb,
+    var(--accent-color, #3b82f6) 48%,
+    var(--bg-primary, #ffffff)
+  );
+}
+
+.dark .mail_row_selected,
+.dark [data-row-email-id]:has(+ [data-row-email-id] > .mail_row_selected) > * {
+  border-bottom-color: color-mix(
+    in srgb,
+    var(--accent-color, #3b82f6) 68%,
+    var(--bg-primary, #121212)
+  );
 }
 
 .mail_row_selected:hover {
