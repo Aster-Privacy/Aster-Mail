@@ -544,18 +544,16 @@ export default function IndexPage() {
                                       result === "success" ||
                                       result === "manual"
                                     ) {
-                                      state.set_sender_subscription(
-                                        (prev) =>
-                                          prev &&
-                                          prev.sender_email ===
-                                            sub.sender_email
-                                            ? {
-                                                ...prev,
-                                                status: "unsubscribed",
-                                                unsubscribed_at:
-                                                  new Date().toISOString(),
-                                              }
-                                            : prev,
+                                      state.set_sender_subscription((prev) =>
+                                        prev &&
+                                        prev.sender_email === sub.sender_email
+                                          ? {
+                                              ...prev,
+                                              status: "unsubscribed",
+                                              unsubscribed_at:
+                                                new Date().toISOString(),
+                                            }
+                                          : prev,
                                       );
                                     }
 
@@ -583,6 +581,7 @@ export default function IndexPage() {
                               }}
                               on_split_close={state.handle_search_split_close}
                               query={state.active_search_query}
+                              search_nonce={state.search_nonce}
                               split_email_id={
                                 state.preferences.email_view_mode === "split" ||
                                 state.preferences.email_view_mode === "fullpage"

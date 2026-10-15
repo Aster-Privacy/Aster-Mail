@@ -68,6 +68,7 @@ export interface SearchFiltersState {
 
 export interface SearchResultsPageProps {
   query: string;
+  search_nonce?: number;
   on_close: () => void;
   on_result_click: (id: string) => void;
   on_search_click?: () => void;

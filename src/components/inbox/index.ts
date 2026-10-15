@@ -19,4 +19,3 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 export { InboxHeader } from "./inbox_header";
-export { InboxHeader as InboxHeaderClean } from "./inbox_header_clean";

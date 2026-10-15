@@ -29,7 +29,11 @@ import {
   bulk_succeeded_ids,
   show_bulk_result_toast,
 } from "@/hooks/bulk_action_result";
-import { expand_email_ids } from "@/hooks/email_list_helpers";
+import {
+  collect_restore_entries,
+  expand_email_ids,
+} from "@/hooks/email_list_helpers";
+import type { RestoredEmailEntry } from "@/hooks/email_list_helpers";
 import {
   MAIL_EVENTS,
   emit_mail_item_updated,
@@ -73,6 +77,7 @@ interface UseFolderTagActionsOptions {
   };
   update_email: (id: string, updates: Partial<InboxEmail>) => void;
   remove_email: (id: string) => void;
+  restore_emails?: (entries: RestoredEmailEntry[]) => void;
   conversation_grouping: boolean | undefined;
   folders_lookup: Map<string, { name: string; color?: string }>;
   tags_lookup: Map<string, { name: string; color?: string; icon?: string }>;
@@ -86,6 +91,7 @@ export function use_folder_tag_actions({
   email_state,
   update_email,
   remove_email,
+  restore_emails,
   conversation_grouping,
   folders_lookup,
   tags_lookup,
@@ -254,6 +260,13 @@ export function use_folder_tag_actions({
         );
       };
 
+      const restore_entries = leaves_view
+        ? collect_restore_entries(
+            email_state.emails,
+            selected.map((e) => e.id),
+          )
+        : [];
+
       if (leaves_view) {
         emit_mail_items_removed({ ids: all_ids });
       } else {
@@ -281,6 +294,13 @@ export function use_folder_tag_actions({
           });
         }
         if (leaves_view) {
+          const failed_id_set = new Set(failed_emails.map((e) => e.id));
+
+          restore_emails?.(
+            restore_entries.filter((entry) =>
+              failed_id_set.has(entry.email.id),
+            ),
+          );
           reindex_ids(failed_emails.flatMap(expand_email_ids));
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         }
@@ -336,6 +356,7 @@ export function use_folder_tag_actions({
       email_state.emails,
       folders_lookup,
       update_email,
+      restore_emails,
       current_view,
       is_drafts_view,
       is_scheduled_view,

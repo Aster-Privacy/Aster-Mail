@@ -43,6 +43,7 @@ import {
 } from "@/hooks/use_stat_helpers";
 import { emit_mail_changed } from "@/hooks/email_action_types";
 import {
+  collect_restore_entries,
   expand_email_ids,
   trashes_whole_thread,
 } from "@/hooks/email_list_helpers";
@@ -51,6 +52,7 @@ import {
   move_out_of_bin,
 } from "@/hooks/email_actions/move_out_of_bin";
 import { leaves_view_on_folder_move } from "@/hooks/view_membership";
+import { reindex_ids } from "@/services/category_index";
 import {
   bulk_add_folder,
   bulk_remove_folder,
@@ -78,6 +80,7 @@ export function build_context_menu_actions(
     update_email,
     remove_email,
     remove_emails,
+    restore_emails,
     handle_open_compose,
     folders_lookup,
     tags_lookup,
@@ -283,6 +286,9 @@ export function build_context_menu_actions(
     };
     const next_folders = [new_folder];
     const leaves_view = leaves_view_on_folder_move(current_view, folder_token);
+    const restore_entries = leaves_view
+      ? collect_restore_entries(get_emails(), [email.id])
+      : [];
 
     if (leaves_view) {
       emit_mail_items_removed({ ids: [email.id] });
@@ -308,6 +314,8 @@ export function build_context_menu_actions(
       });
     } else {
       if (leaves_view) {
+        restore_emails(restore_entries);
+        reindex_ids(all_ids);
         window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
       } else {
         update_email(email.id, { folders: previous_folders });
@@ -331,6 +339,10 @@ export function build_context_menu_actions(
     const is_tag_view = current_view === `tag-${tag_token}`;
 
     if (is_already_assigned) {
+      const restore_entries = is_tag_view
+        ? collect_restore_entries(get_emails(), [email.id])
+        : [];
+
       if (is_tag_view) {
         remove_email(email.id);
       } else {
@@ -358,6 +370,7 @@ export function build_context_menu_actions(
         });
       } else {
         if (is_tag_view) {
+          restore_emails(restore_entries);
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         } else {
           update_email(email.id, { tags: previous_tags });

@@ -467,11 +467,18 @@ export function use_compose({
     draft_context_id_ref,
   });
 
+  const has_user_content =
+    message.trim().length > 0 ||
+    subject.trim().length > 0 ||
+    recipients.to.length + recipients.cc.length + recipients.bcc.length > 0;
+  const sender_resolved_ref = useRef(false);
+
   useEffect(() => {
     if (sender_options.length === 0) return;
     if (sender_manually_selected_ref.current) return;
     if (ghost_mode.is_ghost_enabled) return;
     if (!preferred_sender_ready && !preferred_sender_id) return;
+    if (sender_resolved_ref.current && has_user_content) return;
 
     const resolved = resolve_from_sender({
       options: sender_options,
@@ -480,6 +487,7 @@ export function use_compose({
     });
 
     if (!resolved) return;
+    sender_resolved_ref.current = true;
     if (resolved.option.id === selected_sender?.id) return;
 
     set_selected_sender_state(resolved.option);
@@ -490,6 +498,7 @@ export function use_compose({
     preferred_sender_ready,
     edit_draft,
     ghost_mode.is_ghost_enabled,
+    has_user_content,
   ]);
 
   const select_sender = use_ghost_sender_binding(

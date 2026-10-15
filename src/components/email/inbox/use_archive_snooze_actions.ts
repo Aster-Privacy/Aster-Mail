@@ -37,7 +37,11 @@ import {
   emit_mail_item_updated,
 } from "@/hooks/mail_events";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
-import { trashes_whole_thread } from "@/hooks/email_list_helpers";
+import {
+  collect_restore_entries,
+  trashes_whole_thread,
+} from "@/hooks/email_list_helpers";
+import type { RestoredEmailEntry } from "@/hooks/email_list_helpers";
 import {
   compute_archive_deltas,
   apply_stat_deltas,
@@ -63,6 +67,7 @@ interface UseArchiveSnoozeActionsOptions {
   get_selected_ids: (emails: InboxEmail[]) => string[];
   update_email: (id: string, updates: Partial<InboxEmail>) => void;
   remove_email: (id: string) => void;
+  restore_emails?: (entries: RestoredEmailEntry[]) => void;
   bulk_archive: (ids: string[]) => Promise<BulkActionResult>;
   bulk_unarchive: (ids: string[]) => Promise<BulkActionResult>;
   bulk_snooze_action: (
@@ -102,6 +107,7 @@ export function use_archive_snooze_actions({
   get_selected_ids,
   update_email,
   remove_email,
+  restore_emails,
   bulk_archive,
   bulk_unarchive,
   bulk_snooze_action,
@@ -302,6 +308,10 @@ export function use_archive_snooze_actions({
       if (selected.length === 0) return true;
       const snooze_iso = snooze_until.toISOString();
       const ids = selected.map((e) => e.id);
+      const leaves_view = current_view !== "snoozed";
+      const restore_entries = leaves_view
+        ? collect_restore_entries(email_state.emails, ids)
+        : [];
 
       note_flag_intents(ids, { snoozed_until: snooze_iso });
       for (const email of selected) {
@@ -310,7 +320,7 @@ export function use_archive_snooze_actions({
           is_selected: false,
         });
       }
-      if (current_view !== "snoozed") {
+      if (leaves_view) {
         for (const id of ids) {
           remove_email(id);
         }
@@ -349,6 +359,9 @@ export function use_archive_snooze_actions({
       } catch (error) {
         if (import.meta.env.DEV) console.error(error);
         clear_flag_intents(ids, { snoozed_until: snooze_iso });
+        if (leaves_view && restore_emails) {
+          restore_emails(restore_entries);
+        }
         for (const email of selected) {
           update_email(email.id, {
             snoozed_until: email.snoozed_until,
@@ -369,6 +382,7 @@ export function use_archive_snooze_actions({
       bulk_snooze_action,
       update_email,
       remove_email,
+      restore_emails,
       t,
     ],
   );

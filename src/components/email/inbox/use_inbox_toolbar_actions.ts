@@ -285,6 +285,7 @@ export function use_inbox_toolbar_actions({
     email_state,
     update_email,
     remove_email,
+    restore_emails,
     conversation_grouping: preferences.conversation_grouping,
     folders_lookup,
     tags_lookup,
@@ -299,6 +300,7 @@ export function use_inbox_toolbar_actions({
     get_selected_ids,
     update_email,
     remove_email,
+    restore_emails,
     bulk_archive,
     bulk_unarchive,
     bulk_snooze_action,
@@ -842,8 +844,13 @@ export function use_inbox_toolbar_actions({
         ),
       );
     }
+    const succeeded_deltas = succeeded_emails.map(compute_removal_deltas);
+
     for (const email of succeeded_emails) {
       remove_email(email.id);
+    }
+    for (const d of succeeded_deltas) {
+      apply_stat_deltas(d);
     }
 
     const succeeded_message_ids = Array.from(
@@ -863,6 +870,9 @@ export function use_inbox_toolbar_actions({
       action_type: "spam",
       email_ids: succeeded_message_ids,
       on_undo: async () => {
+        for (const d of succeeded_deltas) {
+          revert_stat_deltas(d);
+        }
         await bulk_update_metadata_by_ids(succeeded_message_ids, {
           is_spam: false,
         });

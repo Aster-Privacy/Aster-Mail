@@ -37,6 +37,7 @@ export type SplitEmailViewParams = {
     snooze_until: Date,
   ) => Promise<boolean | void>;
   handle_unsnooze: (email_id: string) => Promise<void>;
+  mark_split_leaving?: (email_id: string) => void;
   tags_state: ReturnType<typeof use_tags>["state"];
   folders_state: ReturnType<typeof use_folders>["state"];
   context_menu_actions: ReturnType<typeof use_context_menu_actions>;
@@ -48,6 +49,7 @@ export function use_split_email_view({
   filtered_emails,
   handle_snooze,
   handle_unsnooze,
+  mark_split_leaving,
   tags_state,
   folders_state,
   context_menu_actions,
@@ -111,9 +113,12 @@ export function use_split_email_view({
     return hints.length > 0 ? hints : undefined;
   }, [split_email_id, filtered_emails, email_state.emails]);
   const handle_list_snooze = useCallback(
-    (email: InboxEmail, snooze_until: Date) =>
-      handle_snooze(email.id, snooze_until),
-    [handle_snooze],
+    (email: InboxEmail, snooze_until: Date) => {
+      mark_split_leaving?.(email.id);
+
+      return handle_snooze(email.id, snooze_until);
+    },
+    [handle_snooze, mark_split_leaving],
   );
   const handle_list_unsnooze = useCallback(
     (email: InboxEmail) => handle_unsnooze(email.id),
