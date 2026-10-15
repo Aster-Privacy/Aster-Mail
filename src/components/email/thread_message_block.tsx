@@ -569,9 +569,7 @@ export function ThreadMessageBlock(
             )}
           </div>
           {received_on_address && (
-            <span
-              className="block w-fit max-w-full truncate text-xs text-txt-muted mt-0.5"
-            >
+            <span className="block w-fit max-w-full truncate text-xs text-txt-muted mt-0.5">
               {t("mail.received_on_prefix", { address: received_on_address })}
             </span>
           )}
@@ -584,7 +582,6 @@ export function ThreadMessageBlock(
           <IslandIconButton
             active={is_starred}
             label={is_starred ? t("mail.unstar") : t("mail.star")}
-            title={is_starred ? t("mail.unstar") : t("mail.star")}
             onClick={(e) => {
               e.stopPropagation();
               on_star_toggle?.();
@@ -599,7 +596,6 @@ export function ThreadMessageBlock(
           {on_reply && !is_system && (
             <IslandIconButton
               label={t("mail.reply")}
-              title={t("mail.reply")}
               onClick={(e) => {
                 e.stopPropagation();
                 on_reply(message);
@@ -612,7 +608,6 @@ export function ThreadMessageBlock(
             <DropdownMenuTrigger asChild>
               <IslandIconButton
                 label={t("common.more")}
-                title={t("common.more")}
                 onClick={(e) => e.stopPropagation()}
               >
                 <EllipsisVerticalIcon />

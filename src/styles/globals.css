@@ -4754,6 +4754,11 @@ html[data-input-modality="keyboard"]
   border-radius: 16px;
 }
 
+.profile_picture_cell {
+  content-visibility: auto;
+  contain-intrinsic-block-size: auto 120px;
+}
+
 :root {
   --aster-skeleton-fill: color-mix(
     in srgb,

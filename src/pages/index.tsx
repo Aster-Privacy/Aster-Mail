@@ -39,7 +39,6 @@ import { UpgradeGate } from "@/components/common/upgrade_gate";
 import { use_i18n } from "@/lib/i18n/context";
 import { set_pending_settings_anchor } from "@/lib/settings_anchor";
 import { read_settings_navigation } from "@/lib/settings_links";
-import { FullPageLoader } from "@/components/common/full_page_loader";
 import { QuickSettingsPanel } from "@/components/settings/quick_settings_panel";
 import { Spinner } from "@/components/ui/spinner";
 import {
@@ -514,7 +513,7 @@ export default function IndexPage() {
                         is_locked={false}
                         min_plan="Star"
                       >
-                        <Suspense fallback={<FullPageLoader />}>
+                        <Suspense fallback={<SettingsFallback />}>
                           <SubscriptionsContent
                             on_mobile_menu_toggle={state.toggle_mobile_sidebar}
                             on_sender_search={state.handle_sender_search}
@@ -522,7 +521,7 @@ export default function IndexPage() {
                         </Suspense>
                       </UpgradeGate>
                     ) : state.location.pathname === "/contacts" ? (
-                      <Suspense fallback={<FullPageLoader />}>
+                      <Suspense fallback={<SettingsFallback />}>
                         <ContactsContent
                           on_mobile_menu_toggle={state.toggle_mobile_sidebar}
                         />
@@ -544,18 +543,16 @@ export default function IndexPage() {
                                       result === "success" ||
                                       result === "manual"
                                     ) {
-                                      state.set_sender_subscription(
-                                        (prev) =>
-                                          prev &&
-                                          prev.sender_email ===
-                                            sub.sender_email
-                                            ? {
-                                                ...prev,
-                                                status: "unsubscribed",
-                                                unsubscribed_at:
-                                                  new Date().toISOString(),
-                                              }
-                                            : prev,
+                                      state.set_sender_subscription((prev) =>
+                                        prev &&
+                                        prev.sender_email === sub.sender_email
+                                          ? {
+                                              ...prev,
+                                              status: "unsubscribed",
+                                              unsubscribed_at:
+                                                new Date().toISOString(),
+                                            }
+                                          : prev,
                                       );
                                     }
 
@@ -567,7 +564,7 @@ export default function IndexPage() {
                           />
                         )}
                         <div className="flex-1 min-h-0">
-                          <Suspense fallback={<FullPageLoader />}>
+                          <Suspense fallback={<SettingsFallback />}>
                             <SearchResultsPage
                               on_close={state.handle_close_search_results}
                               on_forward={state.handle_forward}
@@ -680,7 +677,7 @@ export default function IndexPage() {
             className="relative w-full h-full md:w-[92vw] md:max-w-[1440px] md:h-[88vh] md:max-h-[960px] md:rounded-2xl overflow-hidden bg-surf-primary"
             style={{ border: "1px solid var(--border-secondary)" }}
           >
-            <Suspense fallback={<FullPageLoader />}>
+            <Suspense fallback={<SettingsFallback />}>
               <SettingsContent
                 on_close={state.close_settings}
                 on_section_change={(next_section, replace) => {

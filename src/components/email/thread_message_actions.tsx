@@ -291,8 +291,10 @@ export function ThreadMessageActions({
                         ? "cursor-default bg-[#eceef1] dark:bg-[#282a2c]"
                         : "bg-[#eceef1] dark:bg-[#282a2c] hover:bg-[#e1e4e8] dark:hover:bg-[#333537]"
                   }`}
-                  exit={{ opacity: 0, scale: 0.6 }}
-                  initial={{ opacity: 0, scale: 0.6 }}
+                  exit={
+                    reduce_motion ? { opacity: 0 } : { opacity: 0, scale: 0.6 }
+                  }
+                  initial={reduce_motion ? false : { opacity: 0, scale: 0.6 }}
                   layout={!reduce_motion}
                   transition={chip_transition}
                   type="button"

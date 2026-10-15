@@ -195,12 +195,14 @@ export function InsertTools({ compose }: { compose: ComposeToolbarState }) {
             show_emoji && (
               <div
                 ref={emoji_picker_ref}
-                className="fixed"
+                className="aster_floating_anim fixed"
+                data-state="open"
                 id={emoji_panel_id}
                 style={{
                   zIndex: 9999,
                   right: emoji_pos.right,
                   bottom: emoji_pos.bottom,
+                  transformOrigin: "center bottom",
                 }}
               >
                 <LazyEmojiPicker

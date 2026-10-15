@@ -20,7 +20,13 @@
 //
 import type { TranslationKey } from "@/lib/i18n/types";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useState,
+  useCallback,
+  useMemo,
+} from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { XMarkIcon } from "@heroicons/react/24/solid";
 import { Button } from "@aster/ui";
@@ -180,7 +186,7 @@ export function OnboardingTour() {
     set_target_rect(element ? element.getBoundingClientRect() : null);
   }, [current_step, onboarding_steps]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!should_show_onboarding) return;
 
     const selector = onboarding_steps[current_step].target_selector;
@@ -202,6 +208,7 @@ export function OnboardingTour() {
 
     const attach = (element: Element) => {
       scroll_to_element(element);
+      update_target_rect();
       reposition();
       resize_observer = new ResizeObserver(reposition);
       resize_observer.observe(element);
