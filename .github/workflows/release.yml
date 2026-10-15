@@ -116,6 +116,7 @@ jobs:
           APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
           APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          VITE_SPECIAL_OFFER_ENABLED: "true"
         with:
           tagName: v__VERSION__
           releaseName: Aster Mail __VERSION__
