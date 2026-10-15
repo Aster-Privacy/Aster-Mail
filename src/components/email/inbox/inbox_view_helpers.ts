@@ -203,6 +203,19 @@ function matches_active_filter(
   }
 }
 
+let remembered_filter: { key: string; filter: InboxFilterType } | null = null;
+
+export function remembered_inbox_filter(key: string): InboxFilterType {
+  return remembered_filter?.key === key ? remembered_filter.filter : "all";
+}
+
+export function remember_inbox_filter(
+  key: string,
+  filter: InboxFilterType,
+): void {
+  remembered_filter = { key, filter };
+}
+
 export function kept_open_email_id(
   emails: InboxEmail[],
   filter: InboxFilterType,

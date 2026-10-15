@@ -20,6 +20,7 @@
 //
 
 import type { InboxEmail } from "@/types/email";
+import type { ListReadFilter } from "@/hooks/email_list_types";
 
 import { drop_removed_after } from "@/services/removed_items";
 import { apply_flag_intents } from "@/services/read_intent";
@@ -89,4 +90,51 @@ export function merge_silent_refresh_emails(
     merged.every((e, index) => e === previous[index]);
 
   return unchanged ? previous : merged;
+}
+
+export interface RetainedLeftRows {
+  emails: InboxEmail[];
+  retained: number;
+}
+
+export function retain_left_filter_rows(
+  previous: InboxEmail[],
+  refreshed: InboxEmail[],
+  read_filter: ListReadFilter,
+): RetainedLeftRows {
+  if (read_filter === "all") return { emails: refreshed, retained: 0 };
+
+  const wants_read = read_filter === "read";
+  const refreshed_ids = new Set(refreshed.map((e) => e.id));
+  const left_rows = previous.filter(
+    (e) => e.is_read !== wants_read && !refreshed_ids.has(e.id),
+  );
+
+  if (left_rows.length === 0) return { emails: refreshed, retained: 0 };
+
+  const left_ids = new Set(left_rows.map((e) => e.id));
+  const following = new Map<string | null, InboxEmail[]>();
+  let anchor: string | null = null;
+
+  for (const email of previous) {
+    if (left_ids.has(email.id)) {
+      const rows = following.get(anchor) ?? [];
+
+      rows.push(email);
+      following.set(anchor, rows);
+    } else if (refreshed_ids.has(email.id)) {
+      anchor = email.id;
+    }
+  }
+
+  const emails: InboxEmail[] = [...(following.get(null) ?? [])];
+
+  for (const email of refreshed) {
+    emails.push(email);
+    const rows = following.get(email.id);
+
+    if (rows) emails.push(...rows);
+  }
+
+  return { emails, retained: left_rows.length };
 }

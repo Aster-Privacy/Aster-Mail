@@ -601,8 +601,12 @@ export function use_index_page_state() {
       set_popup_scheduled(null);
       set_split_scheduled_data(null);
       set_preview_local_email(null);
+      const reopened =
+        (id === split_email_id || id === popup_email_id) &&
+        preferences.mark_as_read_delay !== "never";
+
       on_user_opened_mail(id, {
-        delay: preferences.mark_as_read_delay,
+        delay: reopened ? "immediate" : preferences.mark_as_read_delay,
         conversation_grouping: preferences.conversation_grouping,
       });
       const index = visible_email_ids.indexOf(id);
@@ -630,6 +634,8 @@ export function use_index_page_state() {
       is_mobile,
       use_popup_mode,
       visible_email_ids,
+      split_email_id,
+      popup_email_id,
       navigate,
       location,
       preferences.mark_as_read_delay,
@@ -1233,8 +1239,13 @@ export function use_index_page_state() {
 
   const handle_search_submit = useCallback((query: string) => {
     set_is_search_open(false);
-    set_active_search_query(query);
     set_sender_subscription(null);
+    if (query.trim().length === 0) {
+      set_active_search_query(null);
+
+      return;
+    }
+    set_active_search_query(query);
     set_popup_email_id(null);
     set_split_email_id(null);
     set_popup_scheduled(null);
@@ -1532,6 +1543,17 @@ export function use_index_page_state() {
       on_show_shortcuts: () => set_is_shortcuts_open(true),
     },
   });
+
+  const previous_pathname = useRef(location.pathname);
+
+  useEffect(() => {
+    if (previous_pathname.current === location.pathname) return;
+    previous_pathname.current = location.pathname;
+    set_popup_email_id(null);
+    set_split_email_id(null);
+    set_popup_scheduled(null);
+    set_split_scheduled_data(null);
+  }, [location.pathname]);
 
   const previous_view = useRef(current_view);
 

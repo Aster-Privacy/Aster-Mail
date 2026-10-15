@@ -23,7 +23,10 @@ import type { InboxEmail } from "@/types/email";
 
 import { describe, it, expect, beforeEach } from "vitest";
 
-import { merge_silent_refresh_emails } from "./silent_refresh";
+import {
+  merge_silent_refresh_emails,
+  retain_left_filter_rows,
+} from "./silent_refresh";
 
 import {
   note_removed_ids,
@@ -115,5 +118,80 @@ describe("merge_silent_refresh_emails", () => {
     );
 
     expect(merged).toBe(previous);
+  });
+});
+
+describe("retain_left_filter_rows", () => {
+  const row = (id: string, is_read: boolean): InboxEmail =>
+    ({ id, is_read }) as InboxEmail;
+
+  it("keeps a row read locally in its place when the unread refresh omits it", () => {
+    const previous = [row("a", false), row("b", true), row("c", false)];
+    const refreshed = [row("a", false), row("c", false)];
+
+    const { emails, retained } = retain_left_filter_rows(
+      previous,
+      refreshed,
+      "unread",
+    );
+
+    expect(emails.map((e) => e.id)).toEqual(["a", "b", "c"]);
+    expect(retained).toBe(1);
+  });
+
+  it("keeps a leading row that left the filter at the top", () => {
+    const { emails } = retain_left_filter_rows(
+      [row("a", true), row("b", false)],
+      [row("b", false)],
+      "unread",
+    );
+
+    expect(emails.map((e) => e.id)).toEqual(["a", "b"]);
+  });
+
+  it("drops a row that still matches the filter but the server no longer lists", () => {
+    const { emails, retained } = retain_left_filter_rows(
+      [row("a", false), row("b", false)],
+      [row("a", false)],
+      "unread",
+    );
+
+    expect(emails.map((e) => e.id)).toEqual(["a"]);
+    expect(retained).toBe(0);
+  });
+
+  it("does not duplicate a row the refresh still returns", () => {
+    const refreshed = [row("a", true), row("b", false)];
+    const { emails, retained } = retain_left_filter_rows(
+      [row("a", true), row("b", false)],
+      refreshed,
+      "unread",
+    );
+
+    expect(emails).toBe(refreshed);
+    expect(retained).toBe(0);
+  });
+
+  it("keeps a row marked unread while the read filter is on", () => {
+    const { emails, retained } = retain_left_filter_rows(
+      [row("a", true), row("b", false), row("c", true)],
+      [row("a", true), row("c", true)],
+      "read",
+    );
+
+    expect(emails.map((e) => e.id)).toEqual(["a", "b", "c"]);
+    expect(retained).toBe(1);
+  });
+
+  it("returns the refreshed list unchanged without a read filter", () => {
+    const refreshed = [row("a", false)];
+    const { emails, retained } = retain_left_filter_rows(
+      [row("a", false), row("b", true)],
+      refreshed,
+      "all",
+    );
+
+    expect(emails).toBe(refreshed);
+    expect(retained).toBe(0);
   });
 });

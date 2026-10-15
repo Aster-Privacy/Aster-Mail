@@ -31,7 +31,10 @@ import { Capacitor } from "@capacitor/core";
 
 import { drop_removed_after } from "@/services/removed_items";
 import { apply_flag_intents } from "@/services/read_intent";
-import { merge_silent_refresh_emails } from "./email_list_helpers/silent_refresh";
+import {
+  merge_silent_refresh_emails,
+  retain_left_filter_rows,
+} from "./email_list_helpers/silent_refresh";
 
 import {
   fetch_mail_from_api,
@@ -518,6 +521,14 @@ export function use_email_list(
 
         if (signal.aborted || committed_view_ref.current !== fetch_view) return;
 
+        const keeps_left_rows =
+          silent === true &&
+          page_ref.current === page &&
+          state_view_ref.current === list_key;
+        const kept_filter: ListReadFilter = keeps_left_rows
+          ? read_filter
+          : "all";
+
         last_fetch_ref.current = { view: list_key, page, time: now };
         page_ref.current = page;
         windowed_page_ref.current = true;
@@ -525,7 +536,11 @@ export function use_email_list(
         state_view_ref.current = list_key;
         unverified_snapshot_view_ref.current = null;
         page_offset_ref.current.set(page + 1, offset + result.raw_consumed);
-        drift_accounted_ref.current = 0;
+        drift_accounted_ref.current = retain_left_filter_rows(
+          loaded_emails_ref.current,
+          result.emails,
+          kept_filter,
+        ).retained;
 
         set_state((prev) => {
           unverified_snapshot_view_ref.current = null;
@@ -534,12 +549,17 @@ export function use_email_list(
             prev.emails.filter((e) => e.is_selected).map((e) => e.id),
           );
           const surviving = settle_fetched_rows(result.emails, start);
+          const { emails: kept, retained } = retain_left_filter_rows(
+            prev.emails,
+            surviving,
+            kept_filter,
+          );
           const emails =
             selected_ids.size > 0
-              ? surviving.map((e) =>
+              ? kept.map((e) =>
                   selected_ids.has(e.id) ? { ...e, is_selected: true } : e,
                 )
-              : surviving;
+              : kept;
 
           const next_state: EmailListState = {
             emails,
@@ -547,7 +567,7 @@ export function use_email_list(
             is_loading_more: false,
             total_messages:
               typeof result.total === "number" && result.total >= 0
-                ? result.total
+                ? result.total + retained
                 : Math.max(
                     0,
                     prev.total_messages -
@@ -678,16 +698,25 @@ export function use_email_list(
           active_page + 1,
           refresh_offset + result.raw_consumed,
         );
-        drift_accounted_ref.current = 0;
+        drift_accounted_ref.current = retain_left_filter_rows(
+          loaded_emails_ref.current,
+          result.emails,
+          read_filter,
+        ).retained;
       }
 
       set_state((prev) => {
         unverified_snapshot_view_ref.current = null;
 
-        const emails = merge_silent_refresh_emails(
+        const merged = merge_silent_refresh_emails(
           prev.emails,
           result.emails,
           start,
+        );
+        const { emails, retained } = retain_left_filter_rows(
+          prev.emails,
+          merged,
+          read_filter,
         );
 
         const dropped_left = Math.max(
@@ -702,7 +731,7 @@ export function use_email_list(
           is_loading_more: false,
           total_messages:
             typeof result.total === "number" && result.total >= 0
-              ? result.total
+              ? result.total + retained
               : Math.max(0, prev.total_messages - dropped_left),
           has_more: result.has_more,
           has_initial_load: true,
