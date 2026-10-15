@@ -19,9 +19,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { forwardRef } from "react";
-import { RadixContextMenuContent } from "@aster/ui";
+import {
+  RadixContextMenuContent,
+  RadixContextMenuSubContent,
+} from "@aster/ui";
 
 import { cn } from "@/lib/utils";
+
+const MENU_MAX_HEIGHT =
+  "max-h-[var(--radix-context-menu-content-available-height,calc(100dvh_-_16px))]";
 
 export const ContextMenuContent = forwardRef<
   React.ElementRef<typeof RadixContextMenuContent>,
@@ -29,15 +35,25 @@ export const ContextMenuContent = forwardRef<
 >(({ className, ...props }, ref) => (
   <RadixContextMenuContent
     ref={ref}
-    className={cn(
-      "max-h-[var(--radix-context-menu-content-available-height,calc(100dvh_-_16px))]",
-      className,
-    )}
+    className={cn(MENU_MAX_HEIGHT, className)}
     {...props}
   />
 ));
 
 ContextMenuContent.displayName = "ContextMenuContent";
+
+export const ContextMenuSubContent = forwardRef<
+  React.ElementRef<typeof RadixContextMenuSubContent>,
+  React.ComponentPropsWithoutRef<typeof RadixContextMenuSubContent>
+>(({ className, ...props }, ref) => (
+  <RadixContextMenuSubContent
+    ref={ref}
+    className={cn(MENU_MAX_HEIGHT, className)}
+    {...props}
+  />
+));
+
+ContextMenuSubContent.displayName = "ContextMenuSubContent";
 
 export {
   RadixContextMenu as ContextMenu,
@@ -50,7 +66,6 @@ export {
   RadixContextMenuGroup as ContextMenuGroup,
   RadixContextMenuPortal as ContextMenuPortal,
   RadixContextMenuSub as ContextMenuSub,
-  RadixContextMenuSubContent as ContextMenuSubContent,
   RadixContextMenuSubTrigger as ContextMenuSubTrigger,
   RadixContextMenuRadioGroup as ContextMenuRadioGroup,
 } from "@aster/ui";

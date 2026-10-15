@@ -20,14 +20,19 @@
 //
 import * as React from "react";
 import {
+  DropdownMenuContent as BaseDropdownMenuContent,
   DropdownMenuPortal,
   DropdownMenuSubContent as BaseDropdownMenuSubContent,
 } from "@aster/ui";
 
+import { cn } from "@/lib/utils";
+
+const MENU_MAX_HEIGHT =
+  "max-h-[var(--radix-dropdown-menu-content-available-height,calc(100dvh_-_16px))]";
+
 export {
   DropdownMenu,
   DropdownMenuTrigger,
-  DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuCheckboxItem,
   DropdownMenuRadioItem,
@@ -48,7 +53,11 @@ export const DropdownMenuSubContent = React.forwardRef<
   <DropdownMenuPortal>
     <BaseDropdownMenuSubContent
       ref={ref}
-      className={`max-h-[var(--radix-dropdown-menu-content-available-height)] overflow-y-auto overflow-x-hidden${className ? ` ${className}` : ""}`}
+      className={cn(
+        MENU_MAX_HEIGHT,
+        "overflow-y-auto overflow-x-hidden",
+        className,
+      )}
       collisionPadding={collisionPadding}
       {...props}
     />
@@ -56,3 +65,16 @@ export const DropdownMenuSubContent = React.forwardRef<
 ));
 
 DropdownMenuSubContent.displayName = "DropdownMenuSubContent";
+
+export const DropdownMenuContent = React.forwardRef<
+  React.ElementRef<typeof BaseDropdownMenuContent>,
+  React.ComponentPropsWithoutRef<typeof BaseDropdownMenuContent>
+>(({ className, ...props }, ref) => (
+  <BaseDropdownMenuContent
+    ref={ref}
+    className={cn(MENU_MAX_HEIGHT, className)}
+    {...props}
+  />
+));
+
+DropdownMenuContent.displayName = "DropdownMenuContent";
