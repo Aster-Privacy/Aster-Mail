@@ -53,7 +53,7 @@ vi.mock("@/services/notification_service", () => ({
 
 vi.mock("@/services/category_index", () => ({
   get_arrival_reply_state: () => false,
-  get_arrival_category: () => null,
+  get_arrival_category_state: () => null,
   fold_to_active_tab: (category: string) => category,
 }));
 

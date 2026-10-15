@@ -31,10 +31,11 @@ import {
 } from "@/services/notification_service";
 import {
   fold_to_active_tab,
-  get_arrival_category,
+  get_arrival_category_state,
   get_arrival_reply_state,
 } from "@/services/category_index";
 import { subscribe_to_push } from "@/services/push_subscription";
+import { publish_push_mute_state } from "@/lib/push_strings";
 import { use_i18n } from "@/lib/i18n/context";
 import { is_lockdown_enabled } from "@/services/lockdown_store";
 import { get_mail_item_folders } from "@/services/api/mail";
@@ -50,6 +51,7 @@ const ARRIVAL_BURST_MAX_WAIT_MS = 5000;
 interface PendingArrival {
   email_id: string;
   arrival_type: NotificationType;
+  silent: boolean;
 }
 const REPLY_STATE_POLL_MS = 150;
 const CATEGORY_TIMEOUT_MS = 1500;
@@ -73,24 +75,43 @@ async function resolve_arrival_type(
   return notify_new_email ? "new_email" : "reply";
 }
 
+export type CategoryMuteResult = "muted" | "allowed" | "unknown";
+
+export function category_mute_result(
+  category: string,
+  folded: string,
+  muted_categories: readonly string[],
+): CategoryMuteResult {
+  const muted = new Set(muted_categories);
+
+  return muted.has(category) || muted.has(folded) ? "muted" : "allowed";
+}
+
 async function is_category_muted(
   email_id: string,
   muted_categories: string[],
-): Promise<boolean> {
-  if (!email_id || muted_categories.length === 0) {
-    return false;
+): Promise<CategoryMuteResult> {
+  if (muted_categories.length === 0) {
+    return "allowed";
   }
 
-  const muted = new Set(muted_categories);
+  if (!email_id) {
+    return "muted";
+  }
+
   const deadline = Date.now() + CATEGORY_TIMEOUT_MS;
 
   for (;;) {
-    const category = get_arrival_category(email_id);
+    const state = get_arrival_category_state(email_id);
 
-    if (category !== null) {
-      return muted.has(fold_to_active_tab(category));
+    if (state !== null && !state.provisional) {
+      return category_mute_result(
+        state.category,
+        fold_to_active_tab(state.category),
+        muted_categories,
+      );
     }
-    if (Date.now() >= deadline) return false;
+    if (Date.now() >= deadline) return "unknown";
 
     await new Promise((resolve) => setTimeout(resolve, CATEGORY_POLL_MS));
   }
@@ -179,6 +200,15 @@ export function EmailNotificationManager() {
     preferences_ref.current = preferences;
   }, [preferences]);
 
+  const has_muted_categories =
+    (preferences.muted_notification_categories ?? []).length > 0;
+
+  useEffect(() => {
+    if (!is_authenticated) return;
+
+    void publish_push_mute_state(has_muted_categories);
+  }, [is_authenticated, has_muted_categories]);
+
   useEffect(() => {
     if (!is_authenticated || !preferences.desktop_notifications) {
       return;
@@ -235,6 +265,7 @@ export function EmailNotificationManager() {
           : t("common.new_emails_body", { count: batch.length });
       const tag =
         batch.length === 1 ? `email-${newest.email_id}` : "email-burst";
+      const silent = batch.every((item) => item.silent);
 
       void show_notification(
         arrival_type,
@@ -246,6 +277,7 @@ export function EmailNotificationManager() {
         },
         preferences_ref.current,
         is_lockdown_enabled(current_account_id ?? ""),
+        silent,
       );
     };
 
@@ -286,12 +318,12 @@ export function EmailNotificationManager() {
           return;
         }
 
-        const category_muted = await is_category_muted(
+        const category_mute = await is_category_muted(
           email_id,
           preferences_ref.current.muted_notification_categories ?? [],
         );
 
-        if (category_muted) {
+        if (category_mute === "muted") {
           return;
         }
 
@@ -300,7 +332,11 @@ export function EmailNotificationManager() {
           preferences_ref.current.notify_new_email,
         );
 
-        enqueue({ email_id, arrival_type });
+        enqueue({
+          email_id,
+          arrival_type,
+          silent: category_mute === "unknown",
+        });
       })();
     };
 
