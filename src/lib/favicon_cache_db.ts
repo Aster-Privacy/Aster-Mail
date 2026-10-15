@@ -28,7 +28,39 @@ const TTL_MS = 30 * 24 * 60 * 60 * 1000;
 const IDB_OPEN_TIMEOUT_MS = 5000;
 const IDB_TX_TIMEOUT_MS = 8000;
 
+const MAX_LIVE_URLS = 600;
 const live_urls: Map<string, string> = new Map();
+
+function touch_live_url(domain: string): string | undefined {
+  const url = live_urls.get(domain);
+
+  if (url === undefined) return undefined;
+
+  live_urls.delete(domain);
+  live_urls.set(domain, url);
+
+  return url;
+}
+
+function remember_live_url(domain: string, url: string): void {
+  live_urls.delete(domain);
+  live_urls.set(domain, url);
+
+  while (live_urls.size > MAX_LIVE_URLS) {
+    const oldest = live_urls.entries().next();
+
+    if (oldest.done) break;
+
+    const [stale_domain, stale_url] = oldest.value;
+
+    live_urls.delete(stale_domain);
+    try {
+      URL.revokeObjectURL(stale_url);
+    } catch (caught) {
+      ignore_error("lib/favicon_cache_db:remember_live_url", caught);
+    }
+  }
+}
 const in_flight: Map<string, Promise<string | null>> = new Map();
 const tones: Map<string, LogoTone | null> = new Map();
 const tone_listeners = new Set<() => void>();
@@ -142,12 +174,12 @@ async function read_entry(domain: string): Promise<FaviconEntry | null> {
 }
 
 export function adopt_favicon_blob(domain: string, blob: Blob): string {
-  const existing = live_urls.get(domain);
+  const existing = touch_live_url(domain);
 
   if (existing) return existing;
   const url = URL.createObjectURL(blob);
 
-  live_urls.set(domain, url);
+  remember_live_url(domain, url);
 
   return url;
 }
@@ -192,11 +224,11 @@ function analyze_stored_entry(entry: FaviconEntry): void {
 }
 
 export function peek_favicon_object_url(domain: string): string | null {
-  return live_urls.get(domain) ?? null;
+  return touch_live_url(domain) ?? null;
 }
 
 export function get_favicon_object_url(domain: string): Promise<string | null> {
-  const cached = live_urls.get(domain);
+  const cached = touch_live_url(domain);
 
   if (cached !== undefined) {
     return Promise.resolve(cached);
@@ -216,7 +248,7 @@ export function get_favicon_object_url(domain: string): Promise<string | null> {
 
       const url = URL.createObjectURL(entry.blob);
 
-      live_urls.set(domain, url);
+      remember_live_url(domain, url);
 
       if (entry.tone !== undefined) {
         set_tone(domain, entry.tone);

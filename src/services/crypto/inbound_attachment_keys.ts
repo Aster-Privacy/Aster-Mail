@@ -30,6 +30,10 @@ export interface InboundAttachmentEntry {
 
 const registry = new Map<string, InboundAttachmentEntry>();
 
+const MAX_REGISTERED_ITEMS = 10000;
+
+const item_seqs = new Map<string, Set<number>>();
+
 const listed_items = new Set<string>();
 
 const registry_key = (mail_item_id: string, seq: number): string =>
@@ -38,6 +42,50 @@ const registry_key = (mail_item_id: string, seq: number): string =>
 let version = 0;
 
 const item_versions = new Map<string, number>();
+
+const touch_item = (mail_item_id: string): void => {
+  const seqs = item_seqs.get(mail_item_id);
+
+  if (seqs === undefined) return;
+
+  item_seqs.delete(mail_item_id);
+  item_seqs.set(mail_item_id, seqs);
+};
+
+const evict_item = (mail_item_id: string): void => {
+  const seqs = item_seqs.get(mail_item_id);
+
+  if (seqs === undefined) return;
+
+  for (const seq of seqs) {
+    registry.delete(registry_key(mail_item_id, seq));
+  }
+
+  item_seqs.delete(mail_item_id);
+  listed_items.delete(mail_item_id);
+  item_versions.delete(mail_item_id);
+};
+
+const evict_oldest_items = (): void => {
+  while (item_seqs.size > MAX_REGISTERED_ITEMS) {
+    const oldest = item_seqs.keys().next();
+
+    if (oldest.done) return;
+
+    evict_item(oldest.value);
+  }
+};
+
+const touch_entry = (
+  mail_item_id: string,
+  seq: number,
+): InboundAttachmentEntry | undefined => {
+  const entry = registry.get(registry_key(mail_item_id, seq));
+
+  if (entry !== undefined) touch_item(mail_item_id);
+
+  return entry;
+};
 
 const listeners = new Set<() => void>();
 
@@ -91,6 +139,13 @@ export const register_attachment_entry = (
 
   registry.set(key, entry);
 
+  const seqs = item_seqs.get(mail_item_id) ?? new Set<number>();
+
+  seqs.add(seq);
+  item_seqs.delete(mail_item_id);
+  item_seqs.set(mail_item_id, seqs);
+  evict_oldest_items();
+
   if (existing?.key === entry.key) return;
 
   version += 1;
@@ -132,10 +187,10 @@ export const get_attachment_entry = (
   mail_item_id: string,
   seq: number,
 ): InboundAttachmentEntry | null =>
-  registry.get(registry_key(mail_item_id, seq)) ?? null;
+  touch_entry(mail_item_id, seq) ?? null;
 
 export const get_attachment_key = (mail_item_id: string, seq: number): string =>
-  registry.get(registry_key(mail_item_id, seq))?.key ?? "";
+  touch_entry(mail_item_id, seq)?.key ?? "";
 
 export const has_envelope_attachment_keys = (mail_item_id: string): boolean =>
   listed_items.has(mail_item_id);
@@ -156,6 +211,7 @@ export const listed_attachment_rows = <
 
 export const clear_attachment_keys = (): void => {
   registry.clear();
+  item_seqs.clear();
   listed_items.clear();
   item_versions.clear();
   version += 1;

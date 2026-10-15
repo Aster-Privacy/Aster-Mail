@@ -81,7 +81,16 @@ export function MobileBillingReturnHandler() {
   const { is_authenticated } = use_auth();
   const navigate = useNavigate();
   const handled = useRef(false);
+  const disposed = useRef(false);
   const [offer_welcome, set_offer_welcome] = useState(false);
+
+  useEffect(() => {
+    disposed.current = false;
+
+    return () => {
+      disposed.current = true;
+    };
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -181,6 +190,7 @@ export function MobileBillingReturnHandler() {
         await new Promise((resolve) =>
           setTimeout(resolve, attempt === 0 ? 800 : 1500),
         );
+        if (disposed.current) return;
         request_cache.invalidate("/payments/v1");
         const response = await get_subscription();
         const live = response.data?.plan.code;

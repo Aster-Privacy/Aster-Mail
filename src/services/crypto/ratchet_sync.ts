@@ -44,6 +44,7 @@ import {
   decrypt_with_legacy_derived_keys,
 } from "@/services/crypto/legacy_keks";
 import { HASH_ALG } from "@/services/crypto/constants";
+import { trim_map_to_size } from "@/lib/bounded_map";
 
 const API_BASE = "/crypto/v1/ratchet";
 
@@ -55,6 +56,7 @@ export class RatchetStateUnreadableError extends Error {
     this.name = "RatchetStateUnreadableError";
   }
 }
+const MAX_CONVERSATION_CACHE = 5000;
 const not_found_cache = new Map<string, number>();
 
 interface RatchetStateResponse {
@@ -453,6 +455,7 @@ export async function load_ratchet_from_server(
 
   if (response.code === "NOT_FOUND") {
     not_found_cache.set(conversation_id, now + NOT_FOUND_TTL_MS);
+    trim_map_to_size(not_found_cache, MAX_CONVERSATION_CACHE);
 
     return null;
   }

@@ -118,6 +118,7 @@ export function ImportSection() {
   const oauth_cancelled_ref = useRef(false);
   const oauth_poll_interval_ref = useRef<number | null>(null);
   const oauth_poll_timeout_ref = useRef<number | null>(null);
+  const oauth_poll_generation_ref = useRef(0);
   const [oauth_setup_token, set_oauth_setup_token] = useState<string | null>(
     null,
   );
@@ -561,6 +562,7 @@ export function ImportSection() {
   }, [load_connected_accounts]);
 
   const stop_oauth_polling = useCallback(() => {
+    oauth_poll_generation_ref.current += 1;
     if (oauth_poll_interval_ref.current !== null) {
       window.clearInterval(oauth_poll_interval_ref.current);
       oauth_poll_interval_ref.current = null;
@@ -588,6 +590,7 @@ export function ImportSection() {
     );
 
     let stopped = false;
+    const generation = oauth_poll_generation_ref.current;
 
     const poll_for_new_account = async () => {
       const response = await list_external_accounts();
@@ -635,7 +638,7 @@ export function ImportSection() {
     };
 
     poll_for_new_account().then((found) => {
-      if (found) {
+      if (found || oauth_poll_generation_ref.current !== generation) {
         stopped = true;
 
         return;

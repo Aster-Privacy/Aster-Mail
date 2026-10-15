@@ -45,16 +45,20 @@ export async function run_serialized_for_conversation<T>(
   const previous =
     conversation_queues.get(conversation_id) ?? Promise.resolve();
   const current = previous.then(task, task);
-
-  conversation_queues.set(
-    conversation_id,
-    current.catch((caught) =>
+  const settled: Promise<void> = current
+    .catch((caught) =>
       ignore_error(
         "services/crypto/ratchet_conversation:run_serialized_for_conversation",
         caught,
       ),
-    ),
-  );
+    )
+    .then(() => {
+      if (conversation_queues.get(conversation_id) === settled) {
+        conversation_queues.delete(conversation_id);
+      }
+    });
+
+  conversation_queues.set(conversation_id, settled);
 
   return current;
 }

@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { trim_map_to_size } from "@/lib/bounded_map";
 import { array_to_base64, base64_to_array } from "./base64";
 import {
   encrypted_get,
@@ -151,6 +152,7 @@ function mark_pq_secret_missing(rk: string, uid: string | null): void {
 const pq_inflight = new Map<string, Promise<Uint8Array | null>>();
 
 const PQ_TRANSIENT_ERROR_TTL_MS = 60_000;
+const MAX_PQ_TRANSIENT_ERRORS = 1000;
 const pq_transient_errors = new Map<string, number>();
 
 const PQ_UPLOAD_RATE_LIMIT_COOLDOWN_MS = 60000;
@@ -563,6 +565,7 @@ export async function load_pq_secret(
       mark_pq_secret_missing(rk, uid);
     } else {
       pq_transient_errors.set(rk, Date.now() + PQ_TRANSIENT_ERROR_TTL_MS);
+      trim_map_to_size(pq_transient_errors, MAX_PQ_TRANSIENT_ERRORS);
     }
 
     return remote;

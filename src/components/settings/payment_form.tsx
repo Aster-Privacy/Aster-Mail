@@ -180,6 +180,17 @@ export function PaymentForm({
   const [can_make_wallet_payment, set_can_make_wallet_payment] =
     useState(false);
   const payment_request_ref = useRef<PaymentRequest | null>(null);
+  const payment_form_disposed_ref = useRef(false);
+
+  useEffect(() => {
+    payment_form_disposed_ref.current = false;
+
+    return () => {
+      payment_form_disposed_ref.current = true;
+      payment_request_ref.current?.off("paymentmethod");
+      payment_request_ref.current = null;
+    };
+  }, []);
 
   const stripe_tokens = use_stripe_theme_tokens();
   const element_style = useMemo(
@@ -330,6 +341,7 @@ export function PaymentForm({
     if (!stripe || is_free) {
       set_payment_request(null);
       set_can_make_wallet_payment(false);
+      payment_request_ref.current?.off("paymentmethod");
       payment_request_ref.current = null;
 
       return;
@@ -358,6 +370,12 @@ export function PaymentForm({
     });
 
     pr.canMakePayment().then((result) => {
+      if (payment_form_disposed_ref.current) {
+        pr.off("paymentmethod");
+
+        return;
+      }
+
       if (result && (result.applePay || result.googlePay)) {
         payment_request_ref.current = pr;
         set_payment_request(pr);

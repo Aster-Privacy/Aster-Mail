@@ -20,6 +20,8 @@
 import type { EmailCategory, InboxEmail } from "@/types/email";
 import type { TranslationKey } from "@/lib/i18n/types";
 
+import { trim_map_to_size, trim_set_to_size } from "@/lib/bounded_map";
+
 import { is_custom_category_id } from "@/data/category_catalog";
 import { create_rule } from "@/services/api/mail_rules";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -36,6 +38,7 @@ type Translate = (
 // shown intent. The tally is per session and in memory: it never leaves the
 // device and never becomes another thing to clean up.
 const REPEAT_THRESHOLD = 2;
+const MAX_TRACKED_SENDERS = 500;
 const move_tally = new Map<string, number>();
 const offered = new Set<string>();
 
@@ -111,9 +114,11 @@ export function maybe_offer_sender_rule(
   const seen = (move_tally.get(key) ?? 0) + 1;
 
   move_tally.set(key, seen);
+  trim_map_to_size(move_tally, MAX_TRACKED_SENDERS);
   if (seen < REPEAT_THRESHOLD) return;
 
   offered.add(key);
+  trim_set_to_size(offered, MAX_TRACKED_SENDERS);
   show_toast(
     t("mail.sender_rule_offer", {
       sender: sender_email,
