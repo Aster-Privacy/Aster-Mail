@@ -148,3 +148,24 @@ describe("parse_search_query operators it cannot evaluate", () => {
     expect(parse_search_query("report -from:").operators).toEqual([]);
   });
 });
+
+describe("literal operators inside quoted phrases", () => {
+  it.each([
+    '"notes from:alice@example.com"',
+    '"invoice NOT draft"',
+    '"invoice NOT subject:paid"',
+  ])("keeps %s as literal text", (query) => {
+    expect(parse_search_query(query).operators).toEqual([]);
+    expect(terms_of(query)).toEqual([query.slice(1, -1).toLowerCase()]);
+  });
+
+  it("still parses real operators beside a literal phrase", () => {
+    const query =
+      'from:bob@example.com "notes from:alice@example.com" is:unread';
+    expect(parse_search_query(query).operators.map((op) => op.type)).toEqual([
+      "from",
+      "is",
+    ]);
+    expect(terms_of(query)).toEqual(["notes from:alice@example.com"]);
+  });
+});

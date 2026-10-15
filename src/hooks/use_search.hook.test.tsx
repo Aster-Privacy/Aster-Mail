@@ -251,6 +251,35 @@ describe("use_search progressive scan and refinement", () => {
     invalidate_snapshot_caches();
   });
 
+  it("clears pagination after empty, short, and whitespace searches", async () => {
+    const { MAX_SEARCH_RESULTS } = await import("./use_search/constants");
+    mail_api.list_encrypted_mail_items.mockResolvedValue({
+      data: {
+        items: Array.from({ length: MAX_SEARCH_RESULTS + 1 }, (_, index) =>
+          make_item({ ...fixtures[0], id: `many-${index}` }),
+        ),
+        total: MAX_SEARCH_RESULTS + 1,
+      },
+    });
+    const { build_search_index } = await import("./use_search/index_cache");
+    await act(async () => {
+      await build_search_index("user@example.com", true);
+    });
+    for (const query of ["", "a", "   "]) {
+      await act(async () => {
+        await hook.search("quarterly");
+      });
+      expect(hook.state.has_more).toBe(true);
+      await act(async () => {
+        await hook.search(query);
+      });
+      expect(hook.state.results).toEqual([]);
+      expect(hook.state.has_more).toBe(false);
+      expect(hook.state.index_pending).toBe(false);
+      expect(hook.state.indexed_count).toBe(0);
+    }
+  });
+
   it("returns header and body matches sorted newest first", async () => {
     await act(async () => {
       await hook.search("quarterly");

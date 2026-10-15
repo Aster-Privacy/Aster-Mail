@@ -37,10 +37,7 @@ import {
   query_requires_body,
   to_search_result,
 } from "./matching";
-import {
-  reset_indexing_progress,
-  subscribe_index_refresh,
-} from "./progress";
+import { reset_indexing_progress, subscribe_index_refresh } from "./progress";
 import { entry_haystack } from "./haystack";
 import { load_attachment_details } from "./attachment_details";
 import { scan_search_index } from "./scan";
@@ -213,8 +210,11 @@ export function use_search() {
           is_searching: false,
           total_results: 0,
           search_time_ms: 0,
+          has_more: false,
           hidden_spam_trash: 0,
           index_incomplete: false,
+          index_pending: false,
+          indexed_count: 0,
         }));
 
         return;
@@ -237,6 +237,7 @@ export function use_search() {
         const operators = parsed.operators;
 
         if (terms.length === 0 && operators.length === 0) {
+          last_search_ref.current = null;
           last_scan_ref.current = null;
           empty_chunks_ref.current = null;
           controller.abort();
@@ -248,8 +249,11 @@ export function use_search() {
             is_searching: false,
             total_results: 0,
             search_time_ms: Date.now() - start,
+            has_more: false,
             hidden_spam_trash: 0,
             index_incomplete: false,
+            index_pending: false,
+            indexed_count: 0,
           }));
 
           return;
