@@ -484,6 +484,7 @@ export function build_core_context_menu_actions(
 
     set_ids_read([email.id], new_state);
     update_email(email.id, { is_read: new_state });
+    emit_mail_item_updated({ id: email.id, is_read: new_state });
     if (should_adjust_unread) {
       adjust_stats_unread(new_state ? -1 : 1);
     }
@@ -553,6 +554,7 @@ export function build_core_context_menu_actions(
       clear_read_intent(conversation_intent_ids, true);
       set_ids_read([email.id], email.is_read);
       update_email(email.id, { is_read: email.is_read });
+      emit_mail_item_updated({ id: email.id, is_read: email.is_read });
       if (should_adjust_unread) {
         adjust_stats_unread(new_state ? 1 : -1);
       }

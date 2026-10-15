@@ -520,6 +520,7 @@ export function use_inbox_toolbar_actions({
 
     for (const email of selected) {
       update_email(email.id, { is_read: new_state });
+      emit_mail_item_updated({ id: email.id, is_read: new_state });
     }
     if (unread_count_delta !== 0) {
       adjust_stats_unread(unread_count_delta);
@@ -572,6 +573,7 @@ export function use_inbox_toolbar_actions({
     if (live_failed.length > 0) {
       for (const email of live_failed) {
         update_email(email.id, { is_read: email.is_read });
+        emit_mail_item_updated({ id: email.id, is_read: email.is_read });
       }
       const failed_delta = conversation_read_delta(
         live_failed,
@@ -640,6 +642,7 @@ export function use_inbox_toolbar_actions({
 
     for (const email of selected) {
       update_email(email.id, { is_read: false });
+      emit_mail_item_updated({ id: email.id, is_read: false });
     }
     if (unread_count_delta !== 0) {
       adjust_stats_unread(unread_count_delta);
@@ -674,6 +677,7 @@ export function use_inbox_toolbar_actions({
     if (live_failed.length > 0) {
       for (const email of live_failed) {
         update_email(email.id, { is_read: email.is_read });
+        emit_mail_item_updated({ id: email.id, is_read: email.is_read });
       }
       const failed_delta = conversation_read_delta(
         live_failed,
