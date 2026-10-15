@@ -65,6 +65,16 @@ function repair_node_name_getter(): void {
 
 repair_node_name_getter();
 
+function disable_web_animations(): void {
+  if (typeof Element === "undefined") return;
+  const prototype = Element.prototype as { animate?: unknown };
+  if (typeof prototype.animate !== "function") return;
+
+  delete prototype.animate;
+}
+
+disable_web_animations();
+
 const subtle_crypto_mock = {
   generateKey: vi.fn(),
   importKey: vi.fn(),
