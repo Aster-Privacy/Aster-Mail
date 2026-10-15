@@ -3148,6 +3148,7 @@ button.press_scale:active {
 }
 
 .mail_row_selected,
+:has(+ .mail_row_selected),
 [data-row-email-id]:has(+ [data-row-email-id] > .mail_row_selected) > * {
   border-bottom-color: color-mix(
     in srgb,
@@ -3157,6 +3158,7 @@ button.press_scale:active {
 }
 
 .dark .mail_row_selected,
+.dark :has(+ .mail_row_selected),
 .dark [data-row-email-id]:has(+ [data-row-email-id] > .mail_row_selected) > * {
   border-bottom-color: color-mix(
     in srgb,
