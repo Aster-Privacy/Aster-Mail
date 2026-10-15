@@ -39,6 +39,7 @@ import { prepare_image_attachments } from "@/services/image_size_reduction";
 import { use_draggable_modal } from "@/hooks/use_draggable_modal";
 import { use_editor } from "@/hooks/use_editor";
 import { escape_html as escape_plain_text } from "@/hooks/editor_utils";
+import { as_quotable_html } from "@/lib/html_text";
 import {
   store_pending_send_payload,
   undo_send_manager,
@@ -356,7 +357,7 @@ export function use_forward_modal({
 
     const header = `---------- ${t("common.forwarded_message")} ---------<br>${t("common.from_label")} ${safe_name ? `${safe_name} &lt;${safe_email}&gt;` : safe_email}<br>${t("common.date_label")} ${formatted_date}<br>${t("common.subject_label")} ${email_subject.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}<br><br>`;
 
-    return header + inline_email_css(email_body);
+    return header + inline_email_css(as_quotable_html(email_body));
   }, [
     t,
     email_body,

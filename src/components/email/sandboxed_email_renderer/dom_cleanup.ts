@@ -40,8 +40,18 @@ import { connection_store } from "@/services/routing/connection_store";
 import { clear_blocked_image } from "@/lib/blocked_image_placeholder";
 import { ignore_error } from "@/lib/ignore_error";
 import { remove_aster_footers } from "@/lib/aster_footer_strip";
+import { LITERAL_TEXT_SELECTOR } from "@/lib/literal_text";
 
 type translate_fn = ReturnType<typeof use_i18n>["t"];
+
+function in_literal_text(node: Node): boolean {
+  const el =
+    node.nodeType === Node.ELEMENT_NODE
+      ? (node as Element)
+      : node.parentElement;
+
+  return !!el?.closest(LITERAL_TEXT_SELECTOR);
+}
 
 const HIDDEN_QUOTE_SELECTOR =
   ".aster_quote, .gmail_quote, .protonmail_quote, .yahoo_quoted, .moz-cite-prefix";
@@ -259,6 +269,7 @@ export function collapse_forwarded_content(
   while (walker.nextNode()) {
     const text = (walker.currentNode.textContent || "").trim();
 
+    if (in_literal_text(walker.currentNode)) continue;
     if (text && fw_patterns.some((p) => p.test(text))) {
       marker_text = walker.currentNode as Text;
       break;
@@ -693,6 +704,7 @@ function break_preformatted_lines(doc: Document, body: Element): void {
 
     if (!node.data.includes("\n")) continue;
     if (!node.parentElement?.closest("pre")) continue;
+    if (in_literal_text(node)) continue;
     targets.push(node);
   }
 
@@ -718,7 +730,9 @@ export function collapse_quoted_replies(doc: Document, t: translate_fn): void {
 
   break_preformatted_lines(doc, body);
 
-  const lines = collect_lines(body);
+  const lines = collect_lines(body).filter(
+    (line) => !in_literal_text(line.first),
+  );
   const found = find_quote_start(lines) ?? find_trailing_quote(lines);
 
   if (!found) return;

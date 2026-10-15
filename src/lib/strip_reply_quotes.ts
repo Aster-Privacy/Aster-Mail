@@ -18,10 +18,11 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { is_html_content } from "./html_text";
+
 const QUOTE_ATTRIBUTION_RE =
   /(^|\n|>)[ \t]*On[ \t][^\n<]{1,300}?wrote:[ \t]*(?=\n|<|$)/;
 
-const HTML_MARKUP_RE = /<[a-z!/]/i;
 const QUOTED_LINE_RE = /^[ \t]*>/;
 
 function strip_plain_text_quotes(body: string): string {
@@ -43,7 +44,7 @@ function strip_plain_text_quotes(body: string): string {
 }
 
 export function strip_reply_quotes(body: string): string {
-  if (!HTML_MARKUP_RE.test(body)) return strip_plain_text_quotes(body);
+  if (!is_html_content(body)) return strip_plain_text_quotes(body);
 
   const match = QUOTE_ATTRIBUTION_RE.exec(body);
   let processed = body;

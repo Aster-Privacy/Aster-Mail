@@ -21,6 +21,7 @@
 import { describe, expect, it } from "vitest";
 
 import { strip_reply_quotes } from "./strip_reply_quotes";
+import { SEND_EMAIL_PATCH_BODY } from "./literal_text_fixtures";
 
 describe("strip_reply_quotes", () => {
   it("keeps a reply whose own text mentions on and wrote on one line", () => {
@@ -103,5 +104,18 @@ describe("strip_reply_quotes", () => {
       "Sounds good.\n\nOn Tue, Alex wrote:\n> First line\n>\n> Second line";
 
     expect(strip_reply_quotes(body)).toBe("Sounds good.");
+  });
+
+  it("keeps quoted lines in plain text that mentions a header include", () => {
+    const body =
+      "Quoting the spec:\n\n> MUST reject\n\n#include <stdio.h> is required.";
+
+    expect(strip_reply_quotes(body)).toBe(body);
+  });
+
+  it("keeps every line of a patch body", () => {
+    expect(strip_reply_quotes(SEND_EMAIL_PATCH_BODY)).toBe(
+      SEND_EMAIL_PATCH_BODY.trim(),
+    );
   });
 });

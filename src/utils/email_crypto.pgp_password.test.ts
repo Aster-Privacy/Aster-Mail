@@ -120,14 +120,16 @@ describe("password protected pgp mail", () => {
     const resolved = await resolve_inbound_pgp_body(body);
 
     expect(resolved.body).toContain("Your bank statement is attached.");
+    expect(resolved.body).toContain(armored.trim());
     expect(resolved.body).not.toBe(PGP_UNDECRYPTABLE_SENTINEL);
   });
 
-  it("still returns the sentinel when there is nothing else to show", async () => {
+  it("keeps the armored block visible when it is the whole body", async () => {
     const armored = await key_encrypted("payload");
     const resolved = await resolve_inbound_pgp_body(armored);
 
-    expect(resolved.body).toBe(PGP_UNDECRYPTABLE_SENTINEL);
+    expect(resolved.decrypted).toBe(false);
+    expect(resolved.body).toBe(armored);
   });
 
   it("gives list and search text the readable part, never the payload", async () => {

@@ -13,10 +13,7 @@ vi.mock("@/services/crypto/memory_key_store", () => ({
   wait_for_keys_ready: async () => false,
 }));
 
-import {
-  try_decrypt_pgp_body,
-  PGP_UNDECRYPTABLE_SENTINEL,
-} from "./email_crypto";
+import { try_decrypt_pgp_body } from "./email_crypto";
 
 async function make_key(email: string, passphrase: string) {
   return openpgp.generateKey({
@@ -76,7 +73,7 @@ describe("try_decrypt_pgp_body multi-key fallback", () => {
     expect(result).toBe("hello published");
   });
 
-  it("returns the sentinel when no held key matches", async () => {
+  it("keeps the armored text when no held key matches", async () => {
     const identity = await make_key("identity@example.com", passphrase);
     const stranger = await make_key("stranger@example.com", passphrase);
     const ciphertext = await encrypt_to(stranger.publicKey, "secret");
@@ -88,6 +85,6 @@ describe("try_decrypt_pgp_body multi-key fallback", () => {
 
     const result = await try_decrypt_pgp_body(ciphertext);
 
-    expect(result).toBe(PGP_UNDECRYPTABLE_SENTINEL);
+    expect(result).toBe(ciphertext);
   });
 });

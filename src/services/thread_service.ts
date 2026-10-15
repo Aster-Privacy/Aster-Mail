@@ -63,6 +63,7 @@ import {
   is_ratchet_envelope,
   is_password_protected_body,
   resolve_inbound_pgp_body,
+  has_inbound_pgp_block,
 } from "@/utils/email_crypto";
 import { filter_locked_mail_items } from "@/services/locked_folders";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
@@ -294,12 +295,12 @@ async function decode_thread_envelope(
 
   let pgp_unresolved = false;
 
-  if (body_content.includes("-----BEGIN PGP MESSAGE-----")) {
+  if (has_inbound_pgp_block(body_content)) {
     const resolved = await resolve_inbound_pgp_body(body_content);
 
     body_content = resolved.body;
-    body_decrypted = resolved.decrypted;
-    pgp_unresolved = !resolved.decrypted;
+    pgp_unresolved = !resolved.decrypted && !body_decrypted;
+    body_decrypted = body_decrypted || resolved.decrypted;
   }
 
   const password_protected = is_password_protected_body(body_content);
@@ -628,11 +629,11 @@ export async function fetch_and_decrypt_virtual_group(
       }
     }
 
-    if (body_content.includes("-----BEGIN PGP MESSAGE-----")) {
+    if (has_inbound_pgp_block(body_content)) {
       const resolved = await resolve_inbound_pgp_body(body_content);
 
       body_content = resolved.body;
-      body_decrypted = resolved.decrypted;
+      body_decrypted = body_decrypted || resolved.decrypted;
     }
 
     const password_protected = is_password_protected_body(body_content);
