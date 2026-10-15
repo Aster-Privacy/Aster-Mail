@@ -126,7 +126,7 @@ describe("receipt-style HTML message through the envelope pipeline", () => {
     expect(result.e2e_verified).toBe(false);
   });
 
-  it("never falls back to an undecrypted body", async () => {
+  it("keeps undecryptable armor visible in the fallback body", async () => {
     failures.bundle = true;
 
     const envelope = build_receipt_style_envelope();
@@ -138,6 +138,6 @@ describe("receipt-style HTML message through the envelope pipeline", () => {
     const result = await process_envelope_body(envelope);
 
     expect(result.safe_html).toBeUndefined();
-    expect(result.body_text).toBe("");
+    expect(result.body_text).toBe(envelope.body_text);
   });
 });

@@ -36,6 +36,7 @@ import { use_editor } from "@/hooks/use_editor";
 import { MODAL_SIZES } from "@/constants/modal";
 import { build_reply_recipients } from "@/services/mail_actions";
 import { strip_aster_footers_html } from "@/lib/aster_footer_strip";
+import { as_quotable_html } from "@/lib/html_text";
 import { build_reply_subject } from "@/lib/reply_subject";
 import { safe_sender_name } from "@/lib/sender_trust_store";
 import {
@@ -543,6 +544,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
   const build_quoted_content = useCallback(
     (for_display: boolean | "plain" = false): string => {
       const formatted_date = format_date(original_timestamp);
+      const quotable_body = as_quotable_html(original_body);
       const attribution_name = quote_sender_name || recipient_name;
       const attribution_email = quote_sender_email || recipient_email;
       const safe_name = safe_sender_name(attribution_name, attribution_email)
@@ -560,7 +562,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
 
       if (for_display === "plain") {
         const quoted_text = outgoing_html_to_plain_text(
-          strip_aster_footers_html(original_body),
+          strip_aster_footers_html(quotable_body),
         )
           .split("\n")
           .map((line) => (line.length > 0 ? `> ${line}` : ">"))
@@ -572,7 +574,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
       if (for_display) {
         const plain_body = (() => {
           const doc = new DOMParser().parseFromString(
-            repair_comment_markup(original_body),
+            repair_comment_markup(quotable_body),
             "text/html",
           );
 
@@ -610,7 +612,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
         return `<div>${header}<br><br>${quoted_body}</div>`;
       }
 
-      return `<br><br><div class="aster_quote"><div class="aster_quote_attr">${header}</div><blockquote class="aster_quote_body" style="margin:0 0 0 0.8ex;border-left:1px solid #ccc;padding-left:1ex">${sanitize_outgoing_html(inline_email_css(strip_aster_footers_html(original_body)))}</blockquote></div>`;
+      return `<br><br><div class="aster_quote"><div class="aster_quote_attr">${header}</div><blockquote class="aster_quote_body" style="margin:0 0 0 0.8ex;border-left:1px solid #ccc;padding-left:1ex">${sanitize_outgoing_html(inline_email_css(strip_aster_footers_html(quotable_body)))}</blockquote></div>`;
     },
     [
       t,

@@ -149,7 +149,8 @@ describe("inbound pgp mail on a runtime without usable aes-kw", () => {
     const resolved = await resolve_inbound_pgp_body(ciphertext_for_stranger);
 
     expect(resolved.decrypted).toBe(false);
-    expect(resolved.body).toBe(PGP_UNDECRYPTABLE_SENTINEL);
+    expect(resolved.body).toBe(ciphertext_for_stranger);
+    expect(resolved.body).not.toBe(PGP_UNDECRYPTABLE_SENTINEL);
   });
 
   it("decrypts concurrent messages while aes-kw is broken", async () => {

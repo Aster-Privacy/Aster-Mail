@@ -27,6 +27,7 @@ import { get_active_translations } from "@/lib/i18n/translations";
 import {
   try_decrypt_ratchet_body,
   try_decrypt_pgp_body,
+  has_inbound_pgp_block,
   try_extract_mime_body,
   extract_subject_bundle,
   unwrap_bundle_html,
@@ -49,7 +50,6 @@ export interface ProcessedEnvelope {
 function as_displayable(value: unknown): string | undefined {
   if (typeof value !== "string" || !value) return undefined;
   if (is_ratchet_envelope(value)) return undefined;
-  if (value.includes("-----BEGIN PGP MESSAGE-----")) return undefined;
 
   return value;
 }
@@ -149,9 +149,9 @@ async function resolve_envelope_body(
 
   const pgp_was_decrypted = body_text !== pre_pgp_text;
   const html_has_pgp =
-    resolved_html?.includes("-----BEGIN PGP MESSAGE-----") ?? false;
+    has_inbound_pgp_block(resolved_html ?? "") && pgp_was_decrypted;
   const text_had_pgp =
-    pre_pgp_text.includes("-----BEGIN PGP MESSAGE-----") && pgp_was_decrypted;
+    has_inbound_pgp_block(pre_pgp_text) && pgp_was_decrypted;
   const content_is_html = is_html_content(body_text);
   const decrypted_is_html =
     (html_has_pgp || text_had_pgp) && pgp_was_decrypted && content_is_html;

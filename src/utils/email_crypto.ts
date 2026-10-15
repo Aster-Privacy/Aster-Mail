@@ -103,8 +103,6 @@ export function is_ratchet_verified_body(
   );
 }
 
-const PGP_MESSAGE_BEGIN = "-----BEGIN PGP MESSAGE-----";
-
 function find_header_body_split(
   text: string,
 ): { headers: string; body: string } | null {
@@ -386,7 +384,11 @@ export const PGP_PASSWORD_PROTECTED_SENTINEL =
   "\x00ASTER_PGP_PASSWORD_PROTECTED\x00";
 
 const PGP_BLOCK_PATTERN =
-  /-----BEGIN PGP MESSAGE-----[\s\S]*?-----END PGP MESSAGE-----/;
+  /(^[ \t]*|>)(-----BEGIN PGP MESSAGE-----[\s\S]*?-----END PGP MESSAGE-----)/m;
+
+export function has_inbound_pgp_block(text: string): boolean {
+  return PGP_BLOCK_PATTERN.test(text);
+}
 
 export interface PgpBlockSplit {
   block: string;
@@ -398,8 +400,10 @@ export function split_pgp_block(text: string): PgpBlockSplit | null {
 
   if (!match) return null;
 
-  const before = text.slice(0, match.index);
-  const after = text.slice(match.index + match[0].length);
+  const block = match[2];
+  const start = match.index + match[1].length;
+  const before = text.slice(0, start);
+  const after = text.slice(start + block.length);
   const remainder = `${before}\n${after}`;
   const visible = remainder
     .replace(/<[^>]*>/g, " ")
@@ -407,7 +411,7 @@ export function split_pgp_block(text: string): PgpBlockSplit | null {
     .replace(/\s+/g, " ")
     .trim();
 
-  return { block: match[0], rest: visible.length > 0 ? remainder.trim() : "" };
+  return { block, rest: visible.length > 0 ? remainder.trim() : "" };
 }
 
 export async function is_password_encrypted_pgp(
@@ -472,13 +476,13 @@ export interface ResolvedPgpBody {
 export async function resolve_inbound_pgp_body(
   body_text: string,
 ): Promise<ResolvedPgpBody> {
-  if (!body_text.includes(PGP_MESSAGE_BEGIN)) {
+  const split = split_pgp_block(body_text);
+
+  if (!split) {
     return { body: body_text, decrypted: false };
   }
 
-  const split = split_pgp_block(body_text);
-  const block = split?.block ?? body_text;
-  const rest = split?.rest ?? "";
+  const { block, rest } = split;
 
   if (await is_password_encrypted_pgp(block)) {
     return {
@@ -487,7 +491,7 @@ export async function resolve_inbound_pgp_body(
     };
   }
 
-  const unavailable = rest || PGP_UNDECRYPTABLE_SENTINEL;
+  const unavailable = body_text;
 
   let vault = get_vault_from_memory();
   let passphrase = get_passphrase_from_memory();
@@ -748,7 +752,7 @@ async function resolve_body_text(
     message_id,
   );
 
-  const had_pgp_block = result.includes(PGP_MESSAGE_BEGIN);
+  const had_pgp_block = has_inbound_pgp_block(result);
   const pgp = await resolve_inbound_pgp_body(result);
 
   result = pgp.body;

@@ -22,6 +22,11 @@ import { split_autolinks } from "./autolink";
 import { is_transparent_color_value } from "./html_sanitizer_css";
 import { looks_format_flowed, unflow_format_flowed } from "./format_flowed";
 import { repair_comment_markup } from "./html_sanitizer_utils";
+import {
+  LITERAL_TEXT_CLASS,
+  looks_like_patch,
+  split_literal_segments,
+} from "./literal_text";
 
 const HTML_TAG_NAMES =
   "a|abbr|address|area|article|aside|audio|b|base|bdi|bdo|big|blockquote|body|br|button|caption|center|cite|code|col|colgroup|dd|del|details|dfn|div|dl|dt|em|figcaption|figure|font|footer|form|h[1-6]|head|header|hr|html|i|img|input|ins|kbd|label|li|link|main|map|mark|meta|nav|o:p|ol|p|picture|pre|q|s|samp|section|small|source|span|strike|strong|style|sub|summary|sup|svg|table|tbody|td|tfoot|th|thead|title|tr|tt|u|ul|v:[a-z]+|video|wbr|xml";
@@ -39,7 +44,15 @@ export function is_html_content(content: string): boolean {
     return false;
   }
 
+  if (looks_like_patch(content)) return false;
+
   return HTML_PATTERNS.some((pattern) => pattern.test(content));
+}
+
+export function as_quotable_html(content: string): string {
+  if (!content) return "";
+
+  return is_html_content(content) ? content : plain_text_to_html(content);
 }
 
 const QUOTE_CONTAINER_START_RE =
@@ -101,29 +114,53 @@ function escape_text(value: string): string {
     .replace(/"/g, "&quot;");
 }
 
-export function plain_text_to_html(text: string): string {
-  if (!text) return "";
+function linkify_text(text: string): string {
+  return split_autolinks(text)
+    .map((segment) => {
+      if (!segment.href) return escape_text(segment.text);
+      const href = escape_text(segment.href).replace(/'/g, "&#39;");
 
-  const normalized = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
-  const reflowed = looks_format_flowed(normalized)
-    ? unflow_format_flowed(normalized)
-    : normalized;
+      return `<a href="${href}" target="_blank" rel="noopener noreferrer">${escape_text(segment.text)}</a>`;
+    })
+    .join("");
+}
+
+function prose_to_html(text: string): string {
+  const reflowed = looks_format_flowed(text) ? unflow_format_flowed(text) : text;
   const paragraphs = reflowed.split(/\n\n+/);
 
   return paragraphs
     .map((para) => {
-      const escaped = split_autolinks(para)
-        .map((segment) => {
-          if (!segment.href) return escape_text(segment.text);
-          const href = escape_text(segment.href).replace(/'/g, "&#39;");
-
-          return `<a href="${href}" target="_blank" rel="noopener noreferrer">${escape_text(segment.text)}</a>`;
-        })
-        .join("")
-        .replace(/\n/g, "<br>");
+      const escaped = linkify_text(para).replace(/\n/g, "<br>");
 
       return `<p dir="auto">${escaped}</p>`;
     })
+    .join("\n");
+}
+
+function literal_to_html(text: string): string {
+  return `<pre dir="auto" class="${LITERAL_TEXT_CLASS}" style="white-space:pre-wrap;overflow-wrap:anywhere;margin:0 0 1em">${linkify_text(text)}</pre>`;
+}
+
+export function plain_text_to_html(text: string): string {
+  if (!text) return "";
+
+  const normalized = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+  const segments = split_literal_segments(normalized);
+
+  if (segments.length === 1 && !segments[0].literal) {
+    return prose_to_html(normalized);
+  }
+
+  return segments
+    .map((segment) => {
+      if (segment.literal) return literal_to_html(segment.text);
+
+      const prose = segment.text.replace(/^\n+|\n+$/g, "");
+
+      return prose.trim() ? prose_to_html(prose) : "";
+    })
+    .filter(Boolean)
     .join("\n");
 }
 
