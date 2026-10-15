@@ -876,6 +876,7 @@ export const tr = {
     history: "Geçmiş",
     all_mail: "Tüm postalar",
     import_contacts: "Kişileri İçe Aktar",
+    import_contacts_short: "İçe aktar",
     import_choose_file_desc:
       "Kişileri içe aktarmak için bir dosya seçin. Desteklenen formatlar: vCard (.vcf) ve CSV.",
     click_to_select_file: "Dosya seçmek için tıklayın",

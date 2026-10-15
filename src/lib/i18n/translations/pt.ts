@@ -782,6 +782,7 @@ export const pt = {
     history: "Histórico",
     all_mail: "Todo o correio",
     import_contacts: "Importar contactos",
+    import_contacts_short: "Importar",
     import_choose_file_desc:
       "Escolha um ficheiro a partir do qual importar contactos. Formatos suportados: vCard (.vcf) e CSV.",
     click_to_select_file: "Clique para selecionar um ficheiro",

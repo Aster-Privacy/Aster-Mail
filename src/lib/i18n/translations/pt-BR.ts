@@ -774,6 +774,7 @@ export const pt_br = {
     history: "Histórico",
     all_mail: "Todo o correio",
     import_contacts: "Importar contatos",
+    import_contacts_short: "Importar",
     import_choose_file_desc:
       "Escolha um arquivo para importar contatos. Formatos suportados: vCard (.vcf) e CSV.",
     click_to_select_file: "Clique para selecionar arquivo",

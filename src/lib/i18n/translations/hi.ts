@@ -897,6 +897,7 @@ export const hi = {
     history: "इतिहास",
     all_mail: "सभी मेल",
     import_contacts: "संपर्क इंपोर्ट करें",
+    import_contacts_short: "इंपोर्ट करें",
     import_choose_file_desc:
       "संपर्क इंपोर्ट करने के लिए फ़ाइल चुनें। समर्थित फ़ॉर्मैट: vCard (.vcf) और CSV।",
     click_to_select_file: "फ़ाइल चुनने के लिए क्लिक करें",

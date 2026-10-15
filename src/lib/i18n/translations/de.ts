@@ -791,6 +791,7 @@ export const de = {
     history: "Verlauf",
     all_mail: "Alle Nachrichten",
     import_contacts: "Kontakte importieren",
+    import_contacts_short: "Importieren",
     import_choose_file_desc:
       "Wählen Sie eine Datei zum Importieren von Kontakten. Unterstützte Formate: vCard (.vcf) und CSV.",
     click_to_select_file: "Klicken Sie, um eine Datei auszuwählen",
