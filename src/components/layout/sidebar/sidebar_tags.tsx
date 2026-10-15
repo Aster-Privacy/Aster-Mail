@@ -59,9 +59,14 @@ import {
   set_expanded_tags,
   subscribe_expanded_tags,
 } from "@/services/expanded_tags_store";
+import { new_tab_handlers } from "@/components/layout/sidebar/new_tab_target";
 
 export type TagModalAction =
-  "rename" | "recolor" | "reicon" | "move" | "delete";
+  | "rename"
+  | "recolor"
+  | "reicon"
+  | "move"
+  | "delete";
 
 export interface TagModalData {
   tag_id: string;
@@ -234,6 +239,9 @@ export const SidebarTags = memo(function SidebarTags({
               >
                 <div
                   className="relative"
+                  {...new_tab_handlers(
+                    `/tag/${encodeURIComponent(tag.tag_token)}`,
+                  )}
                   style={
                     row_inset > 0
                       ? { paddingInlineStart: `${row_inset}px` }

@@ -65,6 +65,7 @@ import {
   subscribe_expanded_folders,
 } from "@/services/expanded_folders_store";
 import { app_locale } from "@/utils/date_format";
+import { new_tab_handlers } from "@/components/layout/sidebar/new_tab_target";
 
 export interface FolderModalData {
   folder_id: string;
@@ -391,7 +392,14 @@ export const SidebarFolders = memo(function SidebarFolders({
                 on_rename={() => handle_folder_modal(folder_data, "rename")}
                 password_set={folder.password_set}
               >
-                <div className="relative">
+                <div
+                  className="relative"
+                  {...new_tab_handlers(
+                    folder.is_password_protected
+                      ? null
+                      : `/folder/${encodeURIComponent(folder.folder_token)}`,
+                  )}
+                >
                   <SidebarFolderRowView
                     button_ref={(el: HTMLButtonElement | null) => {
                       folder_refs.current[folder.folder_token] = el;
@@ -444,7 +452,9 @@ export const SidebarFolders = memo(function SidebarFolders({
                         );
                       })
                     }
-                    on_toggle_expanded={() => toggle_expanded(folder.folder_token)}
+                    on_toggle_expanded={() =>
+                      toggle_expanded(folder.folder_token)
+                    }
                     on_drag_enter={(e) => {
                       if (!e.dataTransfer.types.includes(EMAIL_DRAG_MIME))
                         return;

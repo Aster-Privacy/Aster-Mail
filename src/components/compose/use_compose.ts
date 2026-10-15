@@ -582,6 +582,12 @@ export function use_compose({
         return true;
       }
 
+      if (!has_sendable_recipients) {
+        show_toast(t("errors.no_recipients"), "error");
+
+        return true;
+      }
+
       if (pending_recipient_inputs.length === 0) return false;
 
       pending_recipient_inputs.forEach((entry) =>
@@ -591,7 +597,13 @@ export function use_compose({
 
       return true;
     },
-    [invalid_recipient_inputs, pending_recipient_inputs, add_recipient, t],
+    [
+      invalid_recipient_inputs,
+      pending_recipient_inputs,
+      has_sendable_recipients,
+      add_recipient,
+      t,
+    ],
   );
 
   const handle_send = useCallback(async () => {
@@ -1076,8 +1088,6 @@ export function use_compose({
       ) {
         e.preventDefault();
 
-        if (!has_sendable_recipients) return;
-
         if (scheduled_time) {
           void handle_scheduled_send();
 
@@ -1093,7 +1103,6 @@ export function use_compose({
     return () => editor_el.removeEventListener("keydown", handle_keydown);
   }, [
     enable_ctrl_enter_send,
-    has_sendable_recipients,
     scheduled_time,
     handle_send,
     handle_scheduled_send,

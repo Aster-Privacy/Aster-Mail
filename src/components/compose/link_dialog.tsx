@@ -49,7 +49,7 @@ export function LinkDialog({
   selected_text,
 }: LinkDialogProps) {
   const { t } = use_i18n();
-  const [url, set_url] = useState("https://");
+  const [url, set_url] = useState("");
   const [text, set_text] = useState(selected_text || "");
   const [error, set_error] = useState("");
   const [internal_open, set_internal_open] = useState(false);
@@ -61,7 +61,7 @@ export function LinkDialog({
   useEffect(() => {
     if (open) {
       closing_ref.current = false;
-      set_url("https://");
+      set_url("");
       set_text(selected_text || "");
       set_error("");
       frames_ref.current.push(

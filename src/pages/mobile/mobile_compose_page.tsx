@@ -166,6 +166,12 @@ function MobileComposePage({
   }, [compose.contacts]);
 
   const handle_send = useCallback(async () => {
+    if (!has_recipients) {
+      haptic_error();
+      show_toast(t("errors.no_recipients"), "error");
+
+      return;
+    }
     haptic_impact("medium");
     if (preferences.biometric_send_enabled) {
       const authenticated = await authenticate_biometric(
@@ -189,7 +195,7 @@ function MobileComposePage({
     } catch {
       haptic_error();
     }
-  }, [compose, preferences.biometric_send_enabled, t]);
+  }, [compose, has_recipients, preferences.biometric_send_enabled, t]);
 
   const handle_trash_press = useCallback(() => {
     haptic_impact("light");
@@ -360,8 +366,7 @@ function MobileComposePage({
             disabled={
               is_sending ||
               compose.is_scheduling ||
-              compose.is_loading_attachments ||
-              !has_recipients
+              compose.is_loading_attachments
             }
             size="md"
             variant="depth"

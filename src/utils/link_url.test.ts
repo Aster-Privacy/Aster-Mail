@@ -43,6 +43,19 @@ describe("normalize_link_url", () => {
     );
   });
 
+  it("drops a doubled scheme left over from a pasted link", () => {
+    expect(normalize_link_url("https://https://astermail.org/help")).toBe(
+      "https://astermail.org/help",
+    );
+    expect(normalize_link_url("https://http://example.com")).toBe(
+      "http://example.com",
+    );
+  });
+
+  it("rejects a bare scheme with no address", () => {
+    expect(normalize_link_url("https://")).toBeNull();
+  });
+
   it("turns a bare address into a mailto link", () => {
     expect(normalize_link_url("hello@astermail.org")).toBe(
       "mailto:hello@astermail.org",
