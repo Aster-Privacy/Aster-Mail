@@ -1340,11 +1340,18 @@ export function use_email_list(
       removed_rows.length - absorbed,
     );
 
-    set_state((prev) => ({
-      ...prev,
-      emails: prev.emails.filter((e) => !id_set.has(e.id)),
-      total_messages: Math.max(0, prev.total_messages - ids.length),
-    }));
+    set_state((prev) => {
+      const emails = prev.emails.filter((e) => !id_set.has(e.id));
+
+      return {
+        ...prev,
+        emails,
+        total_messages: Math.max(
+          0,
+          prev.total_messages - (prev.emails.length - emails.length),
+        ),
+      };
+    });
   }, []);
 
   const restore_emails = useCallback((entries: RestoredEmailEntry[]): void => {
@@ -1397,6 +1404,8 @@ export function use_email_list(
     state,
     set_state,
     fetch_page_ref,
+    page_ref,
+    windowed_page_ref,
     page_size,
   });
 

@@ -67,6 +67,8 @@ interface UseEmailListBulkParams {
       ) => Promise<void>)
     | null
   >;
+  page_ref?: MutableRefObject<number>;
+  windowed_page_ref?: MutableRefObject<boolean>;
   page_size?: number;
 }
 
@@ -120,6 +122,8 @@ export function use_email_list_bulk({
   state,
   set_state,
   fetch_page_ref,
+  page_ref,
+  windowed_page_ref,
   page_size = DEFAULT_PAGE_SIZE,
 }: UseEmailListBulkParams) {
   const restore_emails = useCallback(
@@ -144,12 +148,16 @@ export function use_email_list_bulk({
   const refill_if_empty = useCallback(() => {
     set_state((prev) => {
       if (prev.emails.length === 0 && prev.has_more) {
-        fetch_page_ref.current?.(0, page_size);
+        const page = windowed_page_ref?.current
+          ? Math.max(0, page_ref?.current ?? 0)
+          : 0;
+
+        fetch_page_ref.current?.(page, page_size);
       }
 
       return prev;
     });
-  }, [set_state, fetch_page_ref, page_size]);
+  }, [set_state, fetch_page_ref, page_ref, windowed_page_ref, page_size]);
 
   const bulk_delete = useCallback(
     async (

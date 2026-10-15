@@ -1083,6 +1083,22 @@ export function use_email_viewer({
       if (detail.is_pinned !== undefined) {
         set_is_pinned(detail.is_pinned);
       }
+      if (
+        detail.is_starred !== undefined ||
+        detail.is_archived !== undefined ||
+        detail.is_trashed !== undefined
+      ) {
+        set_email((prev) =>
+          prev && prev.id === email_id
+            ? {
+                ...prev,
+                is_starred: detail.is_starred ?? prev.is_starred,
+                is_archived: detail.is_archived ?? prev.is_archived,
+                is_trashed: detail.is_trashed ?? prev.is_trashed,
+              }
+            : prev,
+        );
+      }
     };
 
     window.addEventListener(

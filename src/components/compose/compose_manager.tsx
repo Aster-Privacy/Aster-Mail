@@ -163,8 +163,9 @@ export function use_compose_manager() {
       initial_ghost_mode?: boolean,
     ) => {
       const current = instances_ref.current;
-      const existing =
-        !edit_draft && initial_to
+      const existing = edit_draft
+        ? current.find((instance) => instance.edit_draft?.id === edit_draft.id)
+        : initial_to
           ? current.find(
               (instance) =>
                 !instance.edit_draft && instance.initial_to === initial_to,

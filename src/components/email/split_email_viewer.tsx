@@ -433,9 +433,12 @@ export function SplitEmailViewer({
   useEffect(() => {
     const handle_keyboard_forward = () => {
       if (!on_forward || !viewer.email) return;
+      const delivered_messages = viewer.thread_messages.filter(
+        (message) => !message.is_sending,
+      );
       const last_msg =
-        viewer.thread_messages.length > 0
-          ? viewer.thread_messages[viewer.thread_messages.length - 1]
+        delivered_messages.length > 0
+          ? delivered_messages[delivered_messages.length - 1]
           : null;
 
       if (last_msg) {

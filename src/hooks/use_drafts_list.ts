@@ -332,6 +332,9 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
   const refresh = useCallback(() => {
     fetch_drafts();
   }, [fetch_drafts]);
+  const refresh_ref = useRef(refresh);
+
+  refresh_ref.current = refresh;
 
   const update_draft = useCallback(
     (id: string, updates: Partial<DraftListItem>) => {
@@ -589,6 +592,7 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
         return next;
       });
       adjust_stats_drafts(all_live_ids.length);
+      refresh_ref.current();
     };
 
     const count = all_live_ids.length;

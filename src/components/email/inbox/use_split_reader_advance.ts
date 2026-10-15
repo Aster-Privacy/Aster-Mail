@@ -21,7 +21,7 @@
 import type { InboxEmail } from "@/types/email";
 import type { ContextMenuActions } from "./inbox_context_menu_types";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 
 interface UseSplitReaderAdvanceOptions {
   context_menu_actions: ContextMenuActions;
@@ -41,21 +41,28 @@ export function use_split_reader_advance({
   is_confirm_open,
   on_auto_advance,
   on_split_close,
-}: UseSplitReaderAdvanceOptions): ContextMenuActions {
+}: UseSplitReaderAdvanceOptions): {
+  actions: ContextMenuActions;
+  mark_leaving: (email_id: string) => void;
+} {
   const leaving_id_ref = useRef<string | null>(null);
   const split_email_id_ref = useRef(split_email_id);
 
   split_email_id_ref.current = split_email_id;
 
+  const mark_leaving = useCallback((email_id: string) => {
+    if (email_id === split_email_id_ref.current) {
+      leaving_id_ref.current = email_id;
+    }
+  }, []);
+
   const actions = useMemo(() => {
     const watch =
-      <R>(action: (email: InboxEmail) => R) =>
-      (email: InboxEmail): R => {
-        if (email.id === split_email_id_ref.current) {
-          leaving_id_ref.current = email.id;
-        }
+      <A extends unknown[], R>(action: (email: InboxEmail, ...rest: A) => R) =>
+      (email: InboxEmail, ...rest: A): R => {
+        mark_leaving(email.id);
 
-        return action(email);
+        return action(email, ...rest);
       };
 
     return {
@@ -66,8 +73,10 @@ export function use_split_reader_advance({
       handle_move_to_inbox: watch(context_menu_actions.handle_move_to_inbox),
       handle_mark_not_spam: watch(context_menu_actions.handle_mark_not_spam),
       handle_restore: watch(context_menu_actions.handle_restore),
+      handle_folder_toggle: watch(context_menu_actions.handle_folder_toggle),
+      handle_tag_toggle: watch(context_menu_actions.handle_tag_toggle),
     };
-  }, [context_menu_actions]);
+  }, [context_menu_actions, mark_leaving]);
 
   useEffect(() => {
     const leaving_id = leaving_id_ref.current;
@@ -100,5 +109,5 @@ export function use_split_reader_advance({
     on_split_close,
   ]);
 
-  return actions;
+  return { actions, mark_leaving };
 }

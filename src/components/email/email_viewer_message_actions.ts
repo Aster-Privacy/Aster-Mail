@@ -103,6 +103,7 @@ export function use_message_actions(
         await bulk_update_metadata_by_ids([msg.id], { is_archived: true });
         emit_mail_items_removed({ ids: [msg.id] });
         emit_mail_changed();
+        if (msg.id === deps.email_id) deps.on_dismiss();
         show_action_toast({
           message: deps.t("common.message_archived"),
           action_type: "archive",
@@ -126,7 +127,7 @@ export function use_message_actions(
         show_toast(deps.t("common.failed_to_archive_emails"), "error");
       }
     },
-    [deps.t],
+    [deps.t, deps.email_id, deps.on_dismiss],
   );
 
   const handle_per_message_trash = useCallback(
@@ -143,6 +144,7 @@ export function use_message_actions(
       if (result.success) {
         emit_mail_items_removed({ ids: [msg.id] });
         emit_mail_changed();
+        if (msg.id === deps.email_id) deps.on_dismiss();
         show_action_toast({
           message: deps.t("common.message_moved_to_trash"),
           action_type: "trash",
@@ -167,7 +169,7 @@ export function use_message_actions(
         show_toast(deps.t("common.failed_to_move_email"), "error");
       }
     },
-    [deps.t],
+    [deps.t, deps.email_id, deps.on_dismiss],
   );
 
   const handle_per_message_print = useCallback(
@@ -220,12 +222,12 @@ export function use_message_actions(
         }
         emit_mail_changed();
         show_toast(deps.t("common.reported_as_phishing"), "success");
-        deps.on_dismiss();
+        if (msg.id === deps.email_id) deps.on_dismiss();
       } else {
         show_toast(deps.t("common.failed_to_mark_as_spam"), "error");
       }
     },
-    [deps.on_dismiss, deps.t],
+    [deps.on_dismiss, deps.email_id, deps.t],
   );
 
   const handle_per_message_not_spam = useCallback(
@@ -250,12 +252,12 @@ export function use_message_actions(
         }
         emit_mail_changed();
         show_toast(deps.t("common.marked_as_not_spam"), "success");
-        deps.on_dismiss();
+        if (msg.id === deps.email_id) deps.on_dismiss();
       } else {
         show_toast(deps.t("common.failed_to_update_emails"), "error");
       }
     },
-    [deps.on_dismiss, deps.t],
+    [deps.on_dismiss, deps.email_id, deps.t],
   );
 
   const handle_toggle_message_read = useCallback(

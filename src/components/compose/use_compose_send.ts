@@ -500,6 +500,7 @@ export function use_compose_send({
             bcc_recipients: recipients.bcc,
             subject,
             message,
+            is_plain_text: is_plain_text || undefined,
             from_email: selected_sender?.email,
             attachments:
               attachments.length > 0

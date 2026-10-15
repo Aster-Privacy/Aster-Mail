@@ -727,18 +727,19 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     on_email_list_change,
   });
 
-  const context_menu_actions = use_split_reader_advance({
-    context_menu_actions: list_context_menu_actions,
-    split_email_id,
-    emails: email_state.emails,
-    visible_ids: nav.visible_ids,
-    is_confirm_open:
-      toolbar.show_single_archive_confirm ||
-      toolbar.show_single_delete_confirm ||
-      toolbar.show_single_spam_confirm,
-    on_auto_advance: props.on_auto_advance,
-    on_split_close,
-  });
+  const { actions: context_menu_actions, mark_leaving: mark_split_leaving } =
+    use_split_reader_advance({
+      context_menu_actions: list_context_menu_actions,
+      split_email_id,
+      emails: email_state.emails,
+      visible_ids: nav.visible_ids,
+      is_confirm_open:
+        toolbar.show_single_archive_confirm ||
+        toolbar.show_single_delete_confirm ||
+        toolbar.show_single_spam_confirm,
+      on_auto_advance: props.on_auto_advance,
+      on_split_close,
+    });
 
   const extra_keyboard_actions = useMemo(
     () => ({
@@ -891,6 +892,7 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     filtered_emails,
     handle_snooze,
     handle_unsnooze,
+    mark_split_leaving,
     tags_state,
     folders_state,
     context_menu_actions,

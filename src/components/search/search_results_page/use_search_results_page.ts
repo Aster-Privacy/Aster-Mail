@@ -51,6 +51,7 @@ import { on_user_opened_mail } from "@/services/user_opened_mail";
 export function use_search_results_page(props: SearchResultsPageProps) {
   const {
     query,
+    search_nonce,
     on_result_click,
     on_search_submit,
     split_email_id,
@@ -96,7 +97,7 @@ export function use_search_results_page(props: SearchResultsPageProps) {
     } else {
       clear_results();
     }
-  }, [query]);
+  }, [query, search_nonce]);
 
   useEffect(() => {
     return () => {

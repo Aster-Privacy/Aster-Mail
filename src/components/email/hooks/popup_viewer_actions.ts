@@ -846,6 +846,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         }
         emit_mail_items_removed({ ids: [msg.id] });
+        if (msg.id === deps.email_id) close_or_advance(deps.email_id);
         show_action_toast({
           message: deps.t("common.message_archived"),
           action_type: "archive",
@@ -864,7 +865,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
         show_toast(deps.t("common.failed_to_archive_emails"), "error");
       }
     },
-    [deps.t],
+    [deps.t, deps.email_id, close_or_advance],
   );
 
   const handle_per_message_trash = useCallback(
@@ -880,6 +881,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
 
       if (result.success) {
         emit_mail_items_removed({ ids: [msg.id] });
+        if (msg.id === deps.email_id) close_or_advance(deps.email_id);
         show_action_toast({
           message: deps.t("common.message_moved_to_trash"),
           action_type: "trash",
@@ -902,7 +904,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
         show_toast(deps.t("common.failed_to_delete_emails"), "error");
       }
     },
-    [deps.t],
+    [deps.t, deps.email_id, close_or_advance],
   );
 
   const handle_per_message_print = useCallback(
@@ -947,12 +949,12 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
           );
         }
         show_toast(deps.t("common.reported_as_phishing"), "success");
-        close_or_advance(deps.email_id);
+        if (msg.id === deps.email_id) close_or_advance(deps.email_id);
       } else {
         show_toast(deps.t("common.failed_to_mark_as_spam"), "error");
       }
     },
-    [close_or_advance, deps.t],
+    [close_or_advance, deps.email_id, deps.t],
   );
 
   const handle_per_message_not_spam = useCallback(
@@ -977,12 +979,12 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
           );
         }
         show_toast(deps.t("common.marked_as_not_spam"), "success");
-        close_or_advance(deps.email_id);
+        if (msg.id === deps.email_id) close_or_advance(deps.email_id);
       } else {
         show_toast(deps.t("common.failed_to_update"), "error");
       }
     },
-    [close_or_advance, deps.t],
+    [close_or_advance, deps.email_id, deps.t],
   );
 
   const handle_toggle_message_read = useCallback(
@@ -1043,28 +1045,31 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
           if (should_adjust) {
             adjust_stats_unread(new_read ? 1 : -1);
           }
-        } else if (result.encrypted) {
-          deps.set_thread_messages((prev) =>
-            prev.map((m) =>
-              m.id === message_id
-                ? {
-                    ...m,
-                    encrypted_metadata: result.encrypted!.encrypted_metadata,
-                    metadata_nonce: result.encrypted!.metadata_nonce,
-                  }
-                : m,
-            ),
-          );
+          show_toast(deps.t("common.failed_to_update"), "error");
+        } else {
+          if (result.encrypted) {
+            deps.set_thread_messages((prev) =>
+              prev.map((m) =>
+                m.id === message_id
+                  ? {
+                      ...m,
+                      encrypted_metadata: result.encrypted!.encrypted_metadata,
+                      metadata_nonce: result.encrypted!.metadata_nonce,
+                    }
+                  : m,
+              ),
+            );
+          }
           emit_mail_item_updated({
             id: message_id,
             is_read: new_read,
-            encrypted_metadata: result.encrypted!.encrypted_metadata,
-            metadata_nonce: result.encrypted!.metadata_nonce,
+            encrypted_metadata: result.encrypted?.encrypted_metadata,
+            metadata_nonce: result.encrypted?.metadata_nonce,
           });
         }
       });
     },
-    [deps.thread_messages, deps.on_close, deps.mail_item, deps.is_read],
+    [deps.thread_messages, deps.on_close, deps.mail_item, deps.is_read, deps.t],
   );
 
   return {
