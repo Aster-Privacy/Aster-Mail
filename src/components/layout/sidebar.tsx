@@ -21,6 +21,7 @@
 import type { EditDraftData } from "@/components/compose/compose_manager";
 import type { SettingsSection } from "@/components/settings/settings_content";
 import type { FolderModalData } from "@/components/layout/sidebar/sidebar_folders";
+import type { InboxEmailFolder } from "@/types/email";
 import type {
   TagModalAction,
   TagModalData,
@@ -134,6 +135,7 @@ interface SidebarProps {
     email_ids: string[],
     folder_token: string,
     folder_name: string,
+    previous_folders?: InboxEmailFolder[],
   ) => void;
   on_drop_to_tag?: (
     email_ids: string[],

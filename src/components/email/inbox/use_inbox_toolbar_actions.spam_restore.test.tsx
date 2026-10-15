@@ -75,6 +75,8 @@ vi.mock("@/services/category_index", () => ({
 }));
 
 import { use_inbox_toolbar_actions } from "@/components/email/inbox/use_inbox_toolbar_actions";
+import { reindex_ids } from "@/services/category_index";
+import { MAIL_EVENTS } from "@/hooks/mail_events";
 
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean;
@@ -187,6 +189,48 @@ describe("use_inbox_toolbar_actions bulk restore out of spam", () => {
     expect(removed.ids).toEqual(["a1"]);
     expect(toast_mock.errors).toEqual([]);
     expect(toast_mock.action?.email_ids).toEqual(["a1"]);
+  });
+
+  it("puts restored messages back in the inbox right away", async () => {
+    const spam_flags: Array<[string, boolean | undefined]> = [];
+    const on_update = (event: Event) => {
+      const detail = (event as CustomEvent<{ id: string; is_spam?: boolean }>)
+        .detail;
+
+      spam_flags.push([detail.id, detail.is_spam]);
+    };
+
+    window.addEventListener(MAIL_EVENTS.MAIL_ITEM_UPDATED, on_update);
+    render(emails);
+
+    await act(async () => {
+      await hook.handle_toolbar_restore();
+    });
+    window.removeEventListener(MAIL_EVENTS.MAIL_ITEM_UPDATED, on_update);
+
+    expect(reindex_ids).toHaveBeenCalledWith(["a1", "a2", "b"]);
+    expect(spam_flags).toEqual([
+      ["a1", false],
+      ["a2", false],
+      ["b", false],
+    ]);
+  });
+
+  it("reports a failed undo instead of hiding it", async () => {
+    render(emails);
+
+    await act(async () => {
+      await hook.handle_toolbar_restore();
+    });
+    metadata_mock.bulk_update_metadata_by_ids.mockResolvedValueOnce({
+      success: false,
+      updated_count: 0,
+      failed_ids: ["a1", "a2", "b"],
+    });
+    const undo = (toast_mock.action as { on_undo?: () => Promise<void> })
+      .on_undo!;
+
+    await expect(undo()).rejects.toThrow();
   });
 
   it("reports an error only when nothing could be restored", async () => {

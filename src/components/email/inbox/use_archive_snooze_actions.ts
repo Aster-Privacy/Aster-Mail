@@ -340,7 +340,7 @@ export function use_archive_snooze_actions({
             "warning",
           );
           clear_flag_intents(ids, { snoozed_until: snooze_iso });
-          remove_index_ids(ids);
+          reindex_ids(ids);
           emit_mail_changed();
 
           return true;
