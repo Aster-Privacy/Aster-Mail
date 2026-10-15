@@ -294,7 +294,7 @@ export function ComposeModal({
                 show_expiration
                 compose={{
                   ...compose,
-                  has_recipients: compose.has_sendable_recipients,
+                  has_recipients: true,
                   schedule_picker_element: (
                     <SchedulePicker
                       disabled={

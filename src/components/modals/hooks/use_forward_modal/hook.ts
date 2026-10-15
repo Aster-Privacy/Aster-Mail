@@ -92,7 +92,6 @@ import {
   type InputsState,
   type VisibilityState,
   recipients_reducer,
-  is_valid_email,
   generate_attachment_id,
   get_aster_footer,
   EVENT_DISPATCH_DELAY_MS,
@@ -1468,10 +1467,7 @@ export function use_forward_modal({
     file_input_ref.current?.click();
   }, []);
 
-  const can_send =
-    (recipients.to.length > 0 || is_valid_email(inputs.to.trim())) &&
-    !is_sending &&
-    !is_loading_attachments;
+  const can_send = !is_sending && !is_loading_attachments;
 
   return {
     t,

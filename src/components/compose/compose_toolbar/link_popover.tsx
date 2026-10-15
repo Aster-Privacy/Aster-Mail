@@ -49,7 +49,7 @@ export function LinkPopover({
   on_insert: (url: string, text?: string) => void;
 }) {
   const { t } = use_i18n();
-  const [url, set_url] = useState("https://");
+  const [url, set_url] = useState("");
   const [text, set_text] = useState("");
   const [error, set_error] = useState("");
   const [pos, set_pos] = useState({ top: 0, left: 0 });
@@ -71,7 +71,7 @@ export function LinkPopover({
 
   useEffect(() => {
     if (!open) return;
-    set_url(initial_url || "https://");
+    set_url(initial_url);
     set_text(selected_text);
     set_error("");
     requestAnimationFrame(() => url_input_ref.current?.focus());

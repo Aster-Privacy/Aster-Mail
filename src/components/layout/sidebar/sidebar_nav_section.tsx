@@ -43,6 +43,7 @@ import {
 import { AllMailIcon } from "@/components/common/icons";
 import { CountBadge } from "@/components/common/count_badge";
 import { RailUnreadDot } from "@/components/common/rail_unread_dot";
+import { NewTabTarget } from "@/components/layout/sidebar/new_tab_target";
 import { use_i18n } from "@/lib/i18n/context";
 import { EmptyFolderContextMenu } from "@/components/layout/sidebar/empty_folder_context_menu";
 import {
@@ -262,20 +263,22 @@ export const SidebarNavSection = memo(function SidebarNavSection({
 
     return (
       <Fragment key={item.id}>
-        {empty_action ? (
-          <EmptyFolderContextMenu
-            is_empty={(item.count ?? 0) === 0}
-            label={empty_action.label}
-            on_empty={() => {
-              go_to_item();
-              request_empty_folder(empty_action.folder);
-            }}
-          >
-            {row}
-          </EmptyFolderContextMenu>
-        ) : (
-          row
-        )}
+        <NewTabTarget path={item.path}>
+          {empty_action ? (
+            <EmptyFolderContextMenu
+              is_empty={(item.count ?? 0) === 0}
+              label={empty_action.label}
+              on_empty={() => {
+                go_to_item();
+                request_empty_folder(empty_action.folder);
+              }}
+            >
+              {row}
+            </EmptyFolderContextMenu>
+          ) : (
+            row
+          )}
+        </NewTabTarget>
         {item.after}
       </Fragment>
     );
@@ -299,7 +302,9 @@ export const SidebarNavSection = memo(function SidebarNavSection({
 
       {is_collapsed && <div className="mt-3" />}
 
-      {(!section_collapsed || is_collapsed) && <>{more_items.map(render_item)}</>}
+      {(!section_collapsed || is_collapsed) && (
+        <>{more_items.map(render_item)}</>
+      )}
     </>
   );
 });

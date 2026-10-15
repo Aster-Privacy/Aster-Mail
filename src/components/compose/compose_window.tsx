@@ -263,7 +263,7 @@ export function ComposeWindow({
 
   const compose_with_pickers = {
     ...compose,
-    has_recipients: compose.has_sendable_recipients,
+    has_recipients: true,
     schedule_picker_element: schedule_picker,
     expiration_picker_element: expiration_picker,
     template_picker_element: template_picker,

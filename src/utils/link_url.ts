@@ -20,6 +20,7 @@
 //
 const SCHEME_PREFIX = /^[a-z][a-z0-9+.-]*:/i;
 const ALLOWED_PROTOCOLS = ["http:", "https:", "mailto:"];
+const REPEATED_WEB_SCHEME = /^(?:https?:\/\/)+(?=https?:\/\/)/i;
 
 function parse_allowed(candidate: string): URL | null {
   try {
@@ -32,9 +33,9 @@ function parse_allowed(candidate: string): URL | null {
 }
 
 export function normalize_link_url(raw: string): string | null {
-  const value = raw.trim();
+  const value = raw.trim().replace(REPEATED_WEB_SCHEME, "");
 
-  if (!value) return null;
+  if (!value || /^https?:\/\/$/i.test(value)) return null;
 
   if (SCHEME_PREFIX.test(value)) {
     return parse_allowed(value) ? value : null;
