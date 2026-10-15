@@ -38,6 +38,8 @@ import { IslandDivider, IslandIconButton, Tooltip } from "@aster/ui";
 import { ExtractionCard, ExtractionCardAction } from "./extraction_card";
 
 import { show_toast } from "@/components/toast/simple_toast";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { use_i18n } from "@/lib/i18n/context";
 import { cn } from "@/lib/utils";
 import {
@@ -131,9 +133,6 @@ function ReviewForm({
   const [merchant_value, set_merchant_value] = useState(merchant_name);
   const [order_value, set_order_value] = useState(order_id);
 
-  const input_class =
-    "aster_input aster_input_tonal w-full h-7 px-3 text-[12px]";
-
   return (
     <form
       className="px-4 py-3"
@@ -147,58 +146,65 @@ function ReviewForm({
         {t("mail.receipt_review_title")}
       </p>
       <div className="mt-3 grid gap-3 @md:grid-cols-2">
-        <label className="flex flex-col gap-1" htmlFor={`${field_id}_merchant`}>
-          <span className="text-xs text-txt-muted">{t("mail.merchant")}</span>
-          <input
+        <div>
+          <label
+            className="block text-[11px] font-medium mb-1.5 text-txt-secondary"
+            htmlFor={`${field_id}_merchant`}
+          >
+            {t("mail.merchant")}
+          </label>
+          <Input
             autoComplete="off"
-            className={input_class}
+            className="aster_input_tonal"
             data-testid="purchase_review_merchant"
             id={`${field_id}_merchant`}
             maxLength={MAX_FIELD_LENGTH}
-            type="text"
+            size="md"
             value={merchant_value}
             onChange={(event) => set_merchant_value(event.target.value)}
           />
-        </label>
-        <label className="flex flex-col gap-1" htmlFor={`${field_id}_order`}>
-          <span className="text-xs text-txt-muted">
+        </div>
+        <div>
+          <label
+            className="block text-[11px] font-medium mb-1.5 text-txt-secondary"
+            htmlFor={`${field_id}_order`}
+          >
             {t("mail.order_number_label")}
-          </span>
-          <input
+          </label>
+          <Input
             autoComplete="off"
-            className={input_class}
+            className="aster_input_tonal"
             data-testid="purchase_review_order_id"
             id={`${field_id}_order`}
             maxLength={MAX_FIELD_LENGTH}
-            type="text"
+            size="md"
             value={order_value}
             onChange={(event) => set_order_value(event.target.value)}
           />
-        </label>
+        </div>
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        <button
-          className="aster_btn aster_btn_primary aster_btn_sm"
+        <Button
           data-testid="purchase_review_save"
+          size="md"
           type="submit"
+          variant="depth"
         >
           {t("common.save")}
-        </button>
-        <button
-          className="aster_btn aster_btn_ghost aster_btn_sm"
-          type="button"
-          onClick={on_cancel}
-        >
+        </Button>
+        <Button size="md" type="button" variant="ghost" onClick={on_cancel}>
           {t("common.cancel")}
-        </button>
-        <button
-          className="aster_btn aster_btn_ghost aster_btn_sm ms-auto text-txt-muted"
+        </Button>
+        <Button
+          className="ms-auto text-txt-muted"
           data-testid="purchase_review_hide"
+          size="md"
           type="button"
+          variant="ghost"
           onClick={on_hide}
         >
           {t("mail.receipt_review_hide")}
-        </button>
+        </Button>
       </div>
     </form>
   );
