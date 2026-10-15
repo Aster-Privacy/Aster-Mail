@@ -317,6 +317,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     const read_ticket = begin_read_change([acted_id]);
 
     deps.set_is_read(new_state);
+    emit_mail_item_updated({ id: acted_id, is_read: new_state });
     deps.set_mail_item((prev) =>
       prev
         ? {
@@ -378,6 +379,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       if (should_adjust_unread) {
         adjust_stats_unread(new_state ? 1 : -1);
       }
+      emit_mail_item_updated({ id: acted_id, is_read: !new_state });
       show_toast(deps.t("common.failed_to_update_emails"), "error");
     } else {
       if (still_open) {
@@ -670,6 +672,12 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
             }
             throw new Error("undo spam failed");
           }
+          reindex_ids([deps.email_id]);
+          emit_mail_item_updated({
+            id: deps.email_id,
+            is_spam: false,
+            is_trashed: prev_is_trashed,
+          });
           if (sender) {
             remove_spam_sender(sender).catch((caught) =>
               ignore_error(
@@ -830,6 +838,12 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
             await bulk_update_metadata_by_ids(other_thread_ids, {
               is_trashed: false,
             });
+          }
+          const restored_ids = [deps.email_id, ...other_thread_ids];
+
+          reindex_ids(restored_ids);
+          for (const id of restored_ids) {
+            emit_mail_item_updated({ id, is_trashed: false });
           }
           emit_mail_soft_refresh();
         },

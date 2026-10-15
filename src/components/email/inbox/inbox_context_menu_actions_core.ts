@@ -573,6 +573,7 @@ export function build_core_context_menu_actions(
     const new_state = !email.is_pinned;
 
     update_email(email.id, { is_pinned: new_state });
+    emit_mail_item_updated({ id: email.id, is_pinned: new_state });
     const result = await update_item_metadata(
       email.id,
       {
@@ -618,6 +619,7 @@ export function build_core_context_menu_actions(
       });
     } else {
       update_email(email.id, { is_pinned: !new_state });
+      emit_mail_item_updated({ id: email.id, is_pinned: !new_state });
       show_toast(t("common.failed_to_update"), "error");
     }
   };
@@ -628,6 +630,7 @@ export function build_core_context_menu_actions(
     const new_state = !email.is_starred;
 
     update_email(email.id, { is_starred: new_state });
+    emit_mail_item_updated({ id: email.id, is_starred: new_state });
     adjust_stats_starred(new_state ? 1 : -1);
 
     const result = await update_item_metadata(
@@ -679,6 +682,7 @@ export function build_core_context_menu_actions(
       });
     } else {
       update_email(email.id, { is_starred: !new_state });
+      emit_mail_item_updated({ id: email.id, is_starred: !new_state });
       adjust_stats_starred(new_state ? -1 : 1);
       show_toast(t("common.failed_to_update"), "error");
     }

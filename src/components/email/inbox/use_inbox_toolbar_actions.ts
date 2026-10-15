@@ -735,6 +735,7 @@ export function use_inbox_toolbar_actions({
 
     for (const email of changed) {
       update_email(email.id, { is_starred: new_state });
+      emit_mail_item_updated({ id: email.id, is_starred: new_state });
     }
     adjust_stats_starred(new_state ? changed.length : -changed.length);
 
@@ -759,6 +760,7 @@ export function use_inbox_toolbar_actions({
     if (failed.length > 0) {
       for (const email of failed) {
         update_email(email.id, { is_starred: email.is_starred });
+        emit_mail_item_updated({ id: email.id, is_starred: email.is_starred });
       }
       adjust_stats_starred(new_state ? -failed.length : failed.length);
     }

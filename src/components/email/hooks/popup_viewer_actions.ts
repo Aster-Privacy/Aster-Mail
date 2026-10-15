@@ -138,6 +138,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
     const is_received = deps.mail_item.item_type === "received";
 
     deps.set_is_read(new_state);
+    emit_mail_item_updated({ id: deps.email_id, is_read: new_state });
 
     const thread_has_other_unread = deps.thread_messages.some(
       (m) => m.id !== deps.email_id && !m.is_read && m.item_type === "received",
@@ -176,6 +177,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
       if (should_adjust_unread) {
         adjust_stats_unread(new_state ? 1 : -1);
       }
+      emit_mail_item_updated({ id: acted_id, is_read: !new_state });
       show_toast(deps.t("common.failed_to_update_emails"), "error");
     } else {
       if (still_open) {
@@ -226,6 +228,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
         window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
       }
       emit_mail_items_removed({ ids: [deps.email_id] });
+      emit_mail_item_updated({ id: deps.email_id, is_archived: true });
       show_action_toast({
         message: deps.t("common.message_archived"),
         action_type: "archive",
@@ -240,6 +243,8 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
           await bulk_update_metadata_by_ids([deps.email_id!], {
             is_archived: false,
           });
+          reindex_ids([deps.email_id!]);
+          emit_mail_item_updated({ id: deps.email_id!, is_archived: false });
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         },
       });
@@ -304,8 +309,9 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
           ),
         );
       }
-      reindex_ids([deps.email_id]);
       emit_mail_items_removed({ ids: [deps.email_id] });
+      reindex_ids([deps.email_id]);
+      emit_mail_item_updated({ id: deps.email_id, is_spam: false });
       show_toast(deps.t("common.marked_as_not_spam"), "success");
       close_or_advance(deps.email_id);
     } else {
@@ -350,12 +356,13 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
         );
       }
       emit_mail_items_removed({ ids: [deps.email_id] });
+      emit_mail_item_updated({ id: deps.email_id, is_spam: true });
       show_action_toast({
         message: deps.t("common.message_marked_as_spam"),
         action_type: "spam",
         email_ids: [deps.email_id],
         on_undo: async () => {
-          await update_item_metadata(
+          const undo_result = await update_item_metadata(
             deps.email_id!,
             {
               encrypted_metadata: result.encrypted?.encrypted_metadata,
@@ -363,6 +370,14 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
             },
             { is_spam: false, is_trashed: prev_is_trashed },
           );
+
+          if (!undo_result.success) throw new Error("undo spam failed");
+          reindex_ids([deps.email_id!]);
+          emit_mail_item_updated({
+            id: deps.email_id!,
+            is_spam: false,
+            is_trashed: prev_is_trashed,
+          });
           if (sender) {
             remove_spam_sender(sender).catch((caught) =>
               ignore_error(
@@ -425,12 +440,13 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
 
     if (result.success) {
       emit_mail_items_removed({ ids: [deps.email_id] });
+      emit_mail_item_updated({ id: deps.email_id, is_trashed: true });
       show_action_toast({
         message: deps.t("common.message_moved_to_trash"),
         action_type: "trash",
         email_ids: [deps.email_id],
         on_undo: async () => {
-          await update_item_metadata(
+          const undo_result = await update_item_metadata(
             deps.email_id!,
             {
               encrypted_metadata: result.encrypted?.encrypted_metadata,
@@ -438,6 +454,10 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
             },
             { is_trashed: false },
           );
+
+          if (!undo_result.success) throw new Error("undo trash failed");
+          reindex_ids([deps.email_id!]);
+          emit_mail_item_updated({ id: deps.email_id!, is_trashed: false });
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         },
       });
@@ -846,16 +866,23 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         }
         emit_mail_items_removed({ ids: [msg.id] });
+        emit_mail_item_updated({ id: msg.id, is_archived: true });
         if (msg.id === deps.email_id) close_or_advance(deps.email_id);
         show_action_toast({
           message: deps.t("common.message_archived"),
           action_type: "archive",
           email_ids: [msg.id],
           on_undo: async () => {
-            await batch_unarchive({ ids: [msg.id] });
+            const undo_result = await batch_unarchive({ ids: [msg.id] });
+
+            if (undo_result.error || !undo_result.data?.success) {
+              throw new Error("undo unarchive failed");
+            }
             await bulk_update_metadata_by_ids([msg.id], {
               is_archived: false,
             });
+            reindex_ids([msg.id]);
+            emit_mail_item_updated({ id: msg.id, is_archived: false });
             window.dispatchEvent(
               new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
             );
@@ -881,13 +908,14 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
 
       if (result.success) {
         emit_mail_items_removed({ ids: [msg.id] });
+        emit_mail_item_updated({ id: msg.id, is_trashed: true });
         if (msg.id === deps.email_id) close_or_advance(deps.email_id);
         show_action_toast({
           message: deps.t("common.message_moved_to_trash"),
           action_type: "trash",
           email_ids: [msg.id],
           on_undo: async () => {
-            await update_item_metadata(
+            const undo_result = await update_item_metadata(
               msg.id,
               {
                 encrypted_metadata: result.encrypted?.encrypted_metadata,
@@ -895,6 +923,10 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
               },
               { is_trashed: false },
             );
+
+            if (!undo_result.success) throw new Error("undo trash failed");
+            reindex_ids([msg.id]);
+            emit_mail_item_updated({ id: msg.id, is_trashed: false });
             window.dispatchEvent(
               new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
             );
