@@ -570,8 +570,7 @@ export function ThreadMessageBlock(
           </div>
           {received_on_address && (
             <span
-              className="block truncate max-w-full text-xs text-txt-muted mt-0.5"
-              title={received_on_address}
+              className="block w-fit max-w-full truncate text-xs text-txt-muted mt-0.5"
             >
               {t("mail.received_on_prefix", { address: received_on_address })}
             </span>
