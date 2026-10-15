@@ -26,7 +26,7 @@ describe("marketplace order mail", () => {
   it("reads a marketplace order with a long order number", () => {
     const subject = "Your Amazon.com order #112-3456789-0123456";
     const body = [
-      "Hello Adam,",
+      "Hello Alex,",
       "Thank you for your order. We will send a confirmation when your item ships.",
       "Order #112-3456789-0123456",
       "Arriving: Friday, October 17",
@@ -82,7 +82,7 @@ describe("hosted shop order mail", () => {
   const body = [
     "Northwind Goods",
     "Thank you for your purchase!",
-    "Hi Adam, we are getting your order ready to be shipped.",
+    "Hi Alex, we are getting your order ready to be shipped.",
     "Order #1042",
     "Linen Apron × 2 $60.00",
     "Subtotal $60.00",
@@ -226,7 +226,7 @@ describe("platform receipt mail", () => {
     const subject = "Your receipt from Apple.";
     const body = [
       "Receipt",
-      "APPLE ID adam@example.com",
+      "APPLE ID alex@example.com",
       "ORDER ID MXYZ123456",
       "DOCUMENT NO. 123456789012",
       "DATE Oct 14, 2026",
@@ -277,7 +277,7 @@ describe("platform receipt mail", () => {
     const subject = "Thank you for your Steam purchase!";
     const body = [
       "Thank you for your recent purchase on Steam.",
-      "Account name: adam_plays",
+      "Account name: alex_plays",
       "Hollow Knight: Silksong $19.99",
       "Total: $19.99",
       "Payment method: Visa",
@@ -299,7 +299,7 @@ describe("service receipt mail", () => {
   it("reads a ride receipt from the sender name", () => {
     const subject = "Your Thursday morning trip with Uber";
     const body = [
-      "Here is your receipt for your ride, Adam.",
+      "Here is your receipt for your ride, Alex.",
       "Total $18.42",
       "Trip fare $15.20",
       "Booking fee $2.10",
@@ -321,7 +321,7 @@ describe("service receipt mail", () => {
   });
 
   it("names the restaurant on a delivery order", () => {
-    const subject = "Order Confirmation for Adam from Chipotle Mexican Grill";
+    const subject = "Order Confirmation for Alex from Chipotle Mexican Grill";
     const body = [
       "Your order from Chipotle Mexican Grill is confirmed.",
       "Order #A1B2C3D4",
@@ -351,7 +351,7 @@ describe("service receipt mail", () => {
     const subject = "eTicket Itinerary and Receipt for Confirmation ABC123";
     const body = [
       "Confirmation Number: ABC123",
-      "Passenger: Adam Example",
+      "Passenger: Alex Example",
       "Flight 1 of 2 UA 455 SFO to EWR",
       "Ticket Number: 0162345678901",
       "Base fare $362.79",
@@ -425,7 +425,7 @@ describe("receipts that name the payee in the body", () => {
   it("reads a wallet payment sent to a named payee", () => {
     const subject = "You sent a payment of $23.50 USD to Riverbend Bakery";
     const body = [
-      "Hello Adam,",
+      "Hello Alex,",
       "You sent a payment of $23.50 USD to Riverbend Bakery.",
       "Transaction ID: 7HK22941WE3315802",
       "Paid with Visa ending with 4242",
