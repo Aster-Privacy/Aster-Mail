@@ -458,6 +458,13 @@ jobs:
           gh release edit "$TAG" --notes-file release_body.md
           echo "Release body updated for $TAG."
 
+      - name: Verify the APK signature and publish its fingerprint
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          V=$(node -p "require('./package.json').version")
+          bash scripts/ensure_apk_verification.sh "v${V}" "${GITHUB_REPOSITORY}"
+
       - name: Promote to Latest only when every download asset is present
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
