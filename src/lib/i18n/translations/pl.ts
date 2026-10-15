@@ -893,6 +893,7 @@ export const pl = {
     history: "Historia",
     all_mail: "Cała poczta",
     import_contacts: "Importuj kontakty",
+    import_contacts_short: "Importuj",
     import_choose_file_desc:
       "Wybierz plik do importu kontaktów. Obsługiwane formaty: vCard (.vcf) i CSV.",
     click_to_select_file: "Kliknij, aby wybrać plik",

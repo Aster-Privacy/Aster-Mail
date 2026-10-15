@@ -766,6 +766,7 @@ export const zh_CN = {
     history: "历史记录",
     all_mail: "全部邮件",
     import_contacts: "导入联系人",
+    import_contacts_short: "导入",
     import_choose_file_desc:
       "选择要导入联系人的文件。支持的格式：vCard (.vcf) 和 CSV。",
     click_to_select_file: "点击选择文件",

@@ -869,6 +869,7 @@ export const nl = {
     history: "Geschiedenis",
     all_mail: "Alle e-mail",
     import_contacts: "Contacten importeren",
+    import_contacts_short: "Importeren",
     import_choose_file_desc:
       "Kies een bestand om contacten uit te importeren. Ondersteunde formaten: vCard (.vcf) en CSV.",
     click_to_select_file: "Klik om bestand te selecteren",

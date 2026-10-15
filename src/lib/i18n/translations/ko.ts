@@ -933,6 +933,7 @@ export const ko = {
     history: "기록",
     all_mail: "전체 메일",
     import_contacts: "연락처 가져오기",
+    import_contacts_short: "가져오기",
     import_choose_file_desc:
       "가져올 연락처 파일을 선택하세요. 지원 형식: vCard (.vcf) 및 CSV.",
     click_to_select_file: "파일을 선택하려면 클릭하세요",

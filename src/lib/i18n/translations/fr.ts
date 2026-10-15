@@ -900,6 +900,7 @@ export const fr = {
     history: "Historique",
     all_mail: "Tous les messages",
     import_contacts: "Importer des contacts",
+    import_contacts_short: "Importer",
     import_choose_file_desc:
       "Choisissez un fichier pour importer des contacts. Formats pris en charge : vCard (.vcf) et CSV.",
     click_to_select_file: "Cliquez pour sélectionner un fichier",
