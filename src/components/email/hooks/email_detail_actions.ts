@@ -73,6 +73,7 @@ import {
   revert_stat_deltas,
 } from "@/hooks/use_stat_helpers";
 import { remove_email_from_view_cache } from "@/hooks/email_list_cache";
+import { reindex_ids } from "@/services/category_index";
 import { set_forward_mail_id } from "@/services/forward_store";
 import { ignore_error } from "@/lib/ignore_error";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
@@ -236,11 +237,17 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
         action_type: "archive",
         email_ids: [deps.email_id],
         on_undo: async () => {
+          const undo_result = await batch_unarchive({ ids: [deps.email_id!] });
+
+          if (undo_result.error || !undo_result.data?.success) {
+            throw new Error("undo unarchive failed");
+          }
           if (deltas) revert_stat_deltas(deltas);
-          await batch_unarchive({ ids: [deps.email_id!] });
           await bulk_update_metadata_by_ids([deps.email_id!], {
             is_archived: false,
           });
+          reindex_ids([deps.email_id!]);
+          emit_mail_item_updated({ id: deps.email_id!, is_archived: false });
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         },
       });
@@ -334,8 +341,7 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
           action_type: "trash",
           email_ids: [deps.email_id],
           on_undo: async () => {
-            revert_stat_deltas(deltas);
-            await update_item_metadata(
+            const undo_result = await update_item_metadata(
               deps.email_id!,
               {
                 encrypted_metadata: result.encrypted?.encrypted_metadata,
@@ -343,6 +349,11 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
               },
               { is_trashed: false },
             );
+
+            if (!undo_result.success) throw new Error("undo trash failed");
+            revert_stat_deltas(deltas);
+            reindex_ids([deps.email_id!]);
+            emit_mail_item_updated({ id: deps.email_id!, is_trashed: false });
             window.dispatchEvent(
               new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
             );
@@ -400,15 +411,22 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
       if (result.data?.success) {
         await bulk_update_metadata_by_ids([msg.id], { is_archived: true });
         emit_mail_items_removed({ ids: [msg.id] });
+        emit_mail_item_updated({ id: msg.id, is_archived: true });
         show_action_toast({
           message: deps.t("common.message_archived"),
           action_type: "archive",
           email_ids: [msg.id],
           on_undo: async () => {
-            await batch_unarchive({ ids: [msg.id] });
+            const undo_result = await batch_unarchive({ ids: [msg.id] });
+
+            if (undo_result.error || !undo_result.data?.success) {
+              throw new Error("undo unarchive failed");
+            }
             await bulk_update_metadata_by_ids([msg.id], {
               is_archived: false,
             });
+            reindex_ids([msg.id]);
+            emit_mail_item_updated({ id: msg.id, is_archived: false });
             window.dispatchEvent(
               new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
             );
@@ -437,12 +455,13 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
 
         if (result.success) {
           emit_mail_items_removed({ ids: [msg.id] });
+          emit_mail_item_updated({ id: msg.id, is_trashed: true });
           show_action_toast({
             message: deps.t("common.message_moved_to_trash"),
             action_type: "trash",
             email_ids: [msg.id],
             on_undo: async () => {
-              await update_item_metadata(
+              const undo_result = await update_item_metadata(
                 msg.id,
                 {
                   encrypted_metadata: result.encrypted?.encrypted_metadata,
@@ -450,6 +469,10 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
                 },
                 { is_trashed: false },
               );
+
+              if (!undo_result.success) throw new Error("undo trash failed");
+              reindex_ids([msg.id]);
+              emit_mail_item_updated({ id: msg.id, is_trashed: false });
               window.dispatchEvent(
                 new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
               );
