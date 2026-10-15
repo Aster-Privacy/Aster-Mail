@@ -33,6 +33,8 @@ import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { use_special_offer_checkout } from "@/hooks/use_special_offer_checkout";
 import { use_i18n } from "@/lib/i18n/context";
 import { format_price, start_hosted_checkout } from "@/services/api/billing";
+import { is_tauri_env } from "@/services/api/client/helpers";
+import { request_cache } from "@/services/api/request_cache";
 import {
   PLAN_TIERS,
   convert_cents,
@@ -102,6 +104,7 @@ export function SpecialOfferModal() {
   const checkout_opened_ref = useRef(false);
   const handled_checkout_seq_ref = useRef(0);
   const opened_from_popup_ref = useRef(false);
+  const pending_desktop_checkout_ref = useRef(false);
   const user_id = is_authenticated ? (user?.id ?? null) : null;
   const is_offer_active =
     is_loaded &&
@@ -120,7 +123,22 @@ export function SpecialOfferModal() {
 
   useEffect(() => {
     set_step(null);
+    pending_desktop_checkout_ref.current = false;
   }, [user_id]);
+
+  useEffect(() => {
+    const handle_focus = () => {
+      if (!pending_desktop_checkout_ref.current) return;
+      pending_desktop_checkout_ref.current = false;
+      request_cache.invalidate("/payments/v1");
+      void refresh_plan_limits(true);
+      void refresh_special_offer_status();
+    };
+
+    window.addEventListener("focus", handle_focus);
+
+    return () => window.removeEventListener("focus", handle_focus);
+  }, [refresh_plan_limits]);
 
   useEffect(() => {
     if (is_offer_active) return;
@@ -263,6 +281,7 @@ export function SpecialOfferModal() {
         return;
       }
 
+      if (is_tauri_env()) pending_desktop_checkout_ref.current = true;
       set_step(null);
     } finally {
       starting_checkout_ref.current = false;
@@ -286,6 +305,7 @@ export function SpecialOfferModal() {
 
   const handle_crypto_checkout_opened = () => {
     checkout_opened_ref.current = true;
+    if (is_tauri_env()) pending_desktop_checkout_ref.current = true;
     set_step(null);
   };
 
