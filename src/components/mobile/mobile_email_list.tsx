@@ -556,7 +556,7 @@ export const MobileEmailList = memo(function MobileEmailList({
       el.removeEventListener("touchmove", on_touch_move);
       el.removeEventListener("touchend", on_touch_end);
     };
-  }, [selection_mode]);
+  }, [selection_mode, is_loading, skeleton_visible, empty_state_visible]);
 
   if (skeleton_visible) {
     return (

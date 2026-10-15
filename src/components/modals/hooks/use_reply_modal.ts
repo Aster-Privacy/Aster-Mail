@@ -65,6 +65,10 @@ import {
   show_email_sent_toast,
 } from "@/components/toast/email_sent_toast";
 import { play_iconic_sound } from "@/services/iconic_sounds";
+import {
+  apply_metadata_strip,
+  unique_attachment_name,
+} from "@/components/compose/use_compose_attachments";
 import { format_bytes } from "@/lib/utils";
 import {
   emit_email_sent,
@@ -1158,6 +1162,8 @@ export function use_reply_modal(props: UseReplyModalProps) {
       const new_attachments: Attachment[] = [];
       const current_total = get_total_attachments_size();
       let running_total = current_total;
+      const taken_names = new Set(attachments.map((a) => a.name));
+      const unstripped: string[] = [];
 
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
@@ -1190,27 +1196,28 @@ export function use_reply_modal(props: UseReplyModalProps) {
 
         const mime_type = file.type || "application/octet-stream";
 
-        const exists = attachments.some((a) => a.name === file.name);
-
-        if (exists) {
-          set_attachment_error(
-            t("common.file_already_attached", { name: file.name }),
-          );
-          continue;
-        }
+        const name = unique_attachment_name(file.name, taken_names);
 
         try {
-          const data = await file.arrayBuffer();
+          const raw = await file.arrayBuffer();
+          const data = await apply_metadata_strip(
+            raw,
+            mime_type,
+            preferences.strip_exif_on_compose,
+            file.name,
+            unstripped,
+          );
 
           new_attachments.push({
             id: generate_attachment_id(),
-            name: file.name,
-            size: format_bytes(file.size),
-            size_bytes: file.size,
+            name,
+            size: format_bytes(data.byteLength),
+            size_bytes: data.byteLength,
             mime_type,
             data,
           });
-          running_total += file.size;
+          taken_names.add(name);
+          running_total += data.byteLength;
         } catch (error) {
           if (import.meta.env.DEV) console.error(error);
           set_attachment_error(
@@ -1224,11 +1231,24 @@ export function use_reply_modal(props: UseReplyModalProps) {
         play_iconic_sound("upload");
       }
 
+      if (unstripped.length > 0) {
+        show_toast(
+          t("common.metadata_not_removed", { names: unstripped.join(", ") }),
+          "warning",
+          5000,
+        );
+      }
+
       if (file_input_ref.current) {
         file_input_ref.current.value = "";
       }
     },
-    [attachments, get_total_attachments_size, t],
+    [
+      attachments,
+      get_total_attachments_size,
+      preferences.strip_exif_on_compose,
+      t,
+    ],
   );
 
   const handle_files_drop = useCallback(
@@ -1241,6 +1261,8 @@ export function use_reply_modal(props: UseReplyModalProps) {
       const new_attachments: Attachment[] = [];
       const current_total = get_total_attachments_size();
       let running_total = current_total;
+      const taken_names = new Set(attachments.map((a) => a.name));
+      const unstripped: string[] = [];
 
       for (const file of files) {
         if (
@@ -1271,27 +1293,28 @@ export function use_reply_modal(props: UseReplyModalProps) {
 
         const mime_type = file.type || "application/octet-stream";
 
-        const exists = attachments.some((a) => a.name === file.name);
-
-        if (exists) {
-          set_attachment_error(
-            t("common.file_already_attached", { name: file.name }),
-          );
-          continue;
-        }
+        const name = unique_attachment_name(file.name, taken_names);
 
         try {
-          const data = await file.arrayBuffer();
+          const raw = await file.arrayBuffer();
+          const data = await apply_metadata_strip(
+            raw,
+            mime_type,
+            preferences.strip_exif_on_compose,
+            file.name,
+            unstripped,
+          );
 
           new_attachments.push({
             id: generate_attachment_id(),
-            name: file.name,
-            size: format_bytes(file.size),
-            size_bytes: file.size,
+            name,
+            size: format_bytes(data.byteLength),
+            size_bytes: data.byteLength,
             mime_type,
             data,
           });
-          running_total += file.size;
+          taken_names.add(name);
+          running_total += data.byteLength;
         } catch (error) {
           if (import.meta.env.DEV) console.error(error);
           set_attachment_error(
@@ -1304,8 +1327,21 @@ export function use_reply_modal(props: UseReplyModalProps) {
         set_attachments((prev) => [...prev, ...new_attachments]);
         play_iconic_sound("upload");
       }
+
+      if (unstripped.length > 0) {
+        show_toast(
+          t("common.metadata_not_removed", { names: unstripped.join(", ") }),
+          "warning",
+          5000,
+        );
+      }
     },
-    [attachments, get_total_attachments_size, t],
+    [
+      attachments,
+      get_total_attachments_size,
+      preferences.strip_exif_on_compose,
+      t,
+    ],
   );
 
   files_drop_ref.current = handle_files_drop;
