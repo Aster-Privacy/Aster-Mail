@@ -55,6 +55,10 @@ vi.mock("@/hooks/email_list_helpers", () => ({
 
 vi.mock("@/hooks/email_list_helpers/silent_refresh", () => ({
   merge_silent_refresh_emails: (_prev: unknown[], next: unknown[]) => next,
+  retain_left_filter_rows: (_prev: unknown[], next: unknown[]) => ({
+    emails: next,
+    retained: 0,
+  }),
 }));
 
 vi.mock("@/hooks/email_list_cache", () => ({

@@ -50,7 +50,11 @@ import {
   reindex_ids as reindex_category_ids,
 } from "@/services/category_index";
 import { use_settled_not_found } from "@/components/email/inbox/use_settled_not_found";
-import { slice_client_page } from "@/components/email/inbox/inbox_view_helpers";
+import {
+  remember_inbox_filter,
+  remembered_inbox_filter,
+  slice_client_page,
+} from "@/components/email/inbox/inbox_view_helpers";
 import { effective_category } from "@/services/effective_category";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
 import { use_snooze } from "@/hooks/use_snooze";
@@ -276,7 +280,17 @@ export function use_inbox_view_state(props: EmailInboxProps) {
   const category_page =
     page_category_ref.current === categories.active_category ? current_page : 0;
 
-  const [active_filter, set_active_filter] = useState<InboxFilterType>("all");
+  const filter_memory_key = `${user?.id ?? ""}:${current_view}`;
+  const filter_memory_key_ref = useRef(filter_memory_key);
+
+  filter_memory_key_ref.current = filter_memory_key;
+  const [active_filter, set_active_filter_state] = useState<InboxFilterType>(
+    () => remembered_inbox_filter(filter_memory_key),
+  );
+  const set_active_filter = useCallback((filter: InboxFilterType) => {
+    remember_inbox_filter(filter_memory_key_ref.current, filter);
+    set_active_filter_state(filter);
+  }, []);
   const read_filter: ListReadFilter =
     is_drafts_view || is_scheduled_view || is_snoozed_view
       ? "all"
