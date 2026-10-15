@@ -23,6 +23,7 @@ import type { ReactNode } from "react";
 
 import { useId, useState } from "react";
 import {
+  ArrowTopRightOnSquareIcon,
   HandThumbDownIcon,
   HandThumbUpIcon,
   InformationCircleIcon,
@@ -36,6 +37,7 @@ import { IslandDivider, IslandIconButton, Tooltip } from "@aster/ui";
 
 import { ExtractionCard } from "./extraction_card";
 
+import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { cn } from "@/lib/utils";
 import {
@@ -45,6 +47,7 @@ import {
   save_receipt_correction,
   type ReceiptReview,
 } from "@/services/extraction/review_store";
+import { open_external } from "@/utils/open_link";
 
 const COLLAPSED_PREF_KEY = "receipt_banner_collapsed";
 const MAX_VISIBLE_ITEMS = 6;
@@ -128,8 +131,7 @@ function ReviewForm({
   const [merchant_value, set_merchant_value] = useState(merchant_name);
   const [order_value, set_order_value] = useState(order_id);
 
-  const input_class =
-    "h-9 w-full rounded-[var(--aster-radius-item)] border-0 bg-[var(--aster-field-bg)] px-3 text-sm text-txt-primary outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]";
+  const input_class = "aster_input aster_input_sm w-full";
 
   return (
     <form
@@ -297,11 +299,16 @@ export function PurchaseDetailsBanner({
     : details.payment_method;
 
   const handle_confirm = () => {
+    const already_confirmed = review_state.review?.confirmed === true;
+
     set_review_state({
       email_id,
       review: confirm_receipt(email_id),
       editing: false,
     });
+
+    if (!already_confirmed)
+      show_toast(t("mail.receipt_review_thanks"), "success");
   };
 
   const handle_hide = () => {
@@ -328,6 +335,8 @@ export function PurchaseDetailsBanner({
   const info_text = is_corrected
     ? t("mail.receipt_review_saved")
     : t("mail.purchase_extraction_privacy");
+  const receipt_url = details.receipt_url;
+  const view_label = t(is_receipt ? "mail.view_receipt" : "mail.view_order");
   const sections: ReactNode[] = [];
 
   if (clean_items.length > 0)
@@ -429,6 +438,21 @@ export function PurchaseDetailsBanner({
             <InformationCircleIcon strokeWidth={1.75} />
           </IslandIconButton>
         </Tooltip>
+        {receipt_url && (
+          <button
+            className="aster_btn aster_btn_ghost aster_btn_sm text-[var(--accent-color)]"
+            data-testid="purchase_view_receipt"
+            type="button"
+            onClick={() => open_external(receipt_url)}
+          >
+            <ArrowTopRightOnSquareIcon
+              aria-hidden="true"
+              className="w-4 h-4"
+              strokeWidth={2}
+            />
+            {view_label}
+          </button>
+        )}
         <span className="flex-1" />
         <Tooltip tip={t("mail.receipt_review_looks_right")}>
           <IslandIconButton

@@ -34,6 +34,12 @@ vi.mock("@/lib/i18n/context", () => ({
   }),
 }));
 
+const open_external = vi.fn();
+
+vi.mock("@/utils/open_link", () => ({
+  open_external: (url: string) => open_external(url),
+}));
+
 const { PurchaseDetailsBanner } = await import("./purchase_details_banner");
 
 declare global {
@@ -96,6 +102,7 @@ const amount = (value: number, formatted: string) => ({
 const base: ExtractedPurchaseDetails = {
   document_kind: "order",
   merchant_source: "billing@astermail.org",
+  receipt_url: null,
   order_id: "AS-4471",
   order_date: "March 5, 2026",
   merchant_name: "Aster Privacy",
@@ -234,6 +241,28 @@ describe("PurchaseDetailsBanner", () => {
     );
 
     expect(query(again, "purchase_details_card")).toBeNull();
+  });
+
+  it("opens the receipt link locally when one is present", async () => {
+    const el = await render(
+      <PurchaseDetailsBanner
+        details={{
+          ...base,
+          document_kind: "receipt",
+          receipt_url: "https://pay.stripe.com/receipts/payment/abc",
+        }}
+        email_id="m9"
+      />,
+    );
+
+    expect(query(el, "purchase_view_receipt")!.textContent).toContain(
+      "mail.view_receipt",
+    );
+    await click(query(el, "purchase_view_receipt"));
+    expect(open_external).toHaveBeenCalledWith(
+      "https://pay.stripe.com/receipts/payment/abc",
+    );
+    expect(query(el, "purchase_view_receipt")).not.toBeNull();
   });
 
   it("renders nothing without meaningful data", async () => {

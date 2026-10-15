@@ -35,6 +35,7 @@ import {
 const details: ExtractedPurchaseDetails = {
   document_kind: "receipt",
   merchant_source: "receipts@stripe.com",
+  receipt_url: null,
   order_id: "1856-2392",
   order_date: "October 15, 2026",
   merchant_name: "JKatt",

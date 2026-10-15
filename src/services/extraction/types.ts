@@ -23,6 +23,7 @@ export type PurchaseDocumentKind = "receipt" | "order";
 export interface ExtractedPurchaseDetails {
   document_kind: PurchaseDocumentKind;
   merchant_source: string;
+  receipt_url: string | null;
   order_id: string | null;
   order_date: string | null;
   merchant_name: string | null;

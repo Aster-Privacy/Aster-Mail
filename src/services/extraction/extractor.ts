@@ -745,6 +745,92 @@ function is_payment_processor(address: string): boolean {
   );
 }
 
+const RECEIPT_LINK_HOSTS: { host: string; path: RegExp }[] = [
+  { host: "pay.stripe.com", path: /^\/receipts\// },
+  { host: "invoice.stripe.com", path: /^\/i\// },
+  { host: "squareup.com", path: /^\/receipt\// },
+  { host: "paypal.com", path: /^\/(?:activity|myaccount\/transactions)\// },
+];
+const RECEIPT_LINK_TEXT =
+  /^(?:view|download|see|open|print)\s+(?:your\s+|the\s+|my\s+)?(?:receipt|invoice|order)\b/i;
+const ANCHOR_PATTERN =
+  /<a\b[^>]*?href\s*=\s*["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
+const BARE_HTTPS_URL = /https:\/\/[^\s<>"']+/g;
+const MAX_RECEIPT_URL_LENGTH = 2048;
+
+function host_matches(host: string, allowed: string): boolean {
+  return host === allowed || host.endsWith(`.${allowed}`);
+}
+
+function registrable_domain(host: string): string {
+  return host.split(".").slice(-2).join(".");
+}
+
+function safe_https_url(raw: string): URL | null {
+  const candidate = decode_basic_entities(raw.trim());
+
+  if (candidate.length > MAX_RECEIPT_URL_LENGTH) return null;
+
+  let url: URL;
+
+  try {
+    url = new URL(candidate);
+  } catch {
+    return null;
+  }
+
+  if (url.protocol !== "https:" || url.username || url.password) return null;
+
+  return url;
+}
+
+function is_trusted_receipt_url(
+  url: URL,
+  sender_domains: string[],
+  anchor_text: string | null,
+): boolean {
+  const host = url.hostname.toLowerCase();
+  const known_host = RECEIPT_LINK_HOSTS.some(
+    (entry) => host_matches(host, entry.host) && entry.path.test(url.pathname),
+  );
+
+  if (known_host) return true;
+  if (!anchor_text || !RECEIPT_LINK_TEXT.test(anchor_text)) return false;
+
+  return sender_domains.some(
+    (domain) => registrable_domain(host) === registrable_domain(domain),
+  );
+}
+
+function extract_receipt_url(
+  body: string,
+  html: string | undefined,
+  senders: (string | undefined)[],
+): string | null {
+  const sender_domains = senders
+    .map((sender) => (sender ? email_domain(sender) : null))
+    .filter((domain): domain is string => Boolean(domain));
+
+  if (html) {
+    for (const match of html.matchAll(ANCHOR_PATTERN)) {
+      const url = safe_https_url(match[1]);
+      const text = clean_text_field(match[2].replace(/<[^>]+>/g, " "));
+
+      if (url && is_trusted_receipt_url(url, sender_domains, text))
+        return url.href;
+    }
+  }
+
+  for (const match of body.matchAll(BARE_HTTPS_URL)) {
+    const url = safe_https_url(match[0].replace(/[),.;'"\]]+$/, ""));
+
+    if (url && is_trusted_receipt_url(url, sender_domains, null))
+      return url.href;
+  }
+
+  return null;
+}
+
 function detect_forwarded_origin(body: string): ForwardedOrigin | null {
   const from_match = body.match(FORWARDED_FROM_PATTERN);
 
@@ -903,6 +989,7 @@ export function extract_purchase_details(
   body: string,
   from_email: string,
   from_name: string,
+  body_html?: string,
 ): ExtractedPurchaseDetails {
   const signals: string[] = [];
   const clean_subject = decode_basic_entities(subject);
@@ -1030,9 +1117,15 @@ export function extract_purchase_details(
     combined.match(TRANSACTION_ID_PATTERN)?.[1],
   );
 
+  const receipt_url = extract_receipt_url(clean_body, body_html, [
+    from_email,
+    forwarded?.from_email,
+  ]);
+
   return {
     document_kind,
     merchant_source: merchant.source_address,
+    receipt_url,
     order_id,
     order_date,
     merchant_name,
@@ -1297,6 +1390,7 @@ export function extract_email_details(
           clean_text,
           from_email,
           from_name,
+          body_html,
         )
       : null,
     shipping: is_shipping

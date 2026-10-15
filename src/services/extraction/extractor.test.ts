@@ -175,6 +175,51 @@ describe("purchase amount accuracy", () => {
   });
 });
 
+describe("purchase receipt link", () => {
+  it("keeps a processor receipt link from the forwarded body", () => {
+    const result = extract_purchase_details(
+      "Fwd: Your receipt from Acme Co",
+      "Receipt from Acme Co\nReceipt #42-0001\nAmount paid $5.00\nhttps://pay.stripe.com/receipts/payment/CAcaFwoVYWNjdF8xdGdqeGpkcTZ0a3J2d2N3\n",
+      "receipts@stripe.com",
+      "Stripe",
+    );
+
+    expect(result.receipt_url).toBe(
+      "https://pay.stripe.com/receipts/payment/CAcaFwoVYWNjdF8xdGdqeGpkcTZ0a3J2d2N3",
+    );
+  });
+
+  it("accepts a view receipt link only on the sender domain", () => {
+    const html =
+      '<p>Thanks</p><a href="https://track.example-ads.net/r?u=1">View receipt</a><a href="https://shop.acme.com/orders/88/receipt?token=abc">View your receipt</a>';
+    const result = extract_purchase_details(
+      "Your receipt from Acme Co",
+      "Receipt from Acme Co\nReceipt #42-0001\nAmount paid $5.00",
+      "orders@acme.com",
+      "Acme Co",
+      html,
+    );
+
+    expect(result.receipt_url).toBe(
+      "https://shop.acme.com/orders/88/receipt?token=abc",
+    );
+  });
+
+  it("rejects links that are not https or carry credentials", () => {
+    const html =
+      '<a href="http://acme.com/receipt/1">View receipt</a><a href="https://user:pw@acme.com/receipt/2">View receipt</a><a href="javascript:alert(1)">View receipt</a>';
+    const result = extract_purchase_details(
+      "Your receipt from Acme Co",
+      "Receipt from Acme Co\nReceipt #42-0001\nAmount paid $5.00",
+      "orders@acme.com",
+      "Acme Co",
+      html,
+    );
+
+    expect(result.receipt_url).toBeNull();
+  });
+});
+
 describe("is_purchase_email precision", () => {
   it("ignores prose that merely mentions an order", () => {
     expect(
