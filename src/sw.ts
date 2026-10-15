@@ -32,6 +32,7 @@ declare let self: ServiceWorkerGlobalScope;
 
 const PUSH_STRINGS_CACHE = "aster_push_strings";
 const PUSH_STRINGS_URL = "/__aster_push_strings";
+const PUSH_MUTES_URL = "/__aster_push_mutes";
 
 self.addEventListener("install", (event: ExtendableEvent) => {
   void event;
@@ -156,6 +157,20 @@ async function push_notification_body(is_reaction: boolean): Promise<string> {
   }
 }
 
+async function push_has_muted_categories(): Promise<boolean> {
+  try {
+    const cache = await caches.open(PUSH_STRINGS_CACHE);
+    const stored = await cache.match(PUSH_MUTES_URL);
+
+    if (!stored) return false;
+    const parsed = (await stored.json()) as { has_muted_categories?: unknown };
+
+    return parsed.has_muted_categories === true;
+  } catch {
+    return false;
+  }
+}
+
 self.addEventListener("push", (event: PushEvent) => {
   if (!event.data) return;
 
@@ -186,12 +201,17 @@ self.addEventListener("push", (event: PushEvent) => {
       }
 
       const safe_url = sanitize_notification_path(data.url);
+      const silent =
+        !is_test &&
+        data.type !== "reaction" &&
+        (await push_has_muted_categories());
       const options: NotificationOptions = {
         body: await push_notification_body(data.type === "reaction"),
         icon: "/pwa-192x192.png",
         badge: "/favicon-32x32.png",
         tag: data.type || "default",
         data: { url: safe_url },
+        ...(silent ? { silent: true } : {}),
       };
 
       await self.registration.showNotification("Aster Mail", options);

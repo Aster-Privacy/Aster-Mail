@@ -75,6 +75,7 @@ async function show_tauri_notification(
   title: string,
   body: string,
   email_id?: string,
+  silent: boolean = false,
 ): Promise<void> {
   try {
     const notification_module = await import("@tauri-apps/plugin-notification");
@@ -97,6 +98,7 @@ async function show_tauri_notification(
       title,
       body,
       extra: email_id ? { email_id } : undefined,
+      ...(silent ? { silent: true } : {}),
     });
   } catch {
     return;
@@ -190,6 +192,7 @@ export async function show_notification(
   options: NotificationOptions,
   preferences: UserPreferences,
   lockdown_active: boolean = false,
+  silent: boolean = false,
 ): Promise<Notification | null> {
   if (!should_notify(type, preferences)) {
     return null;
@@ -200,7 +203,7 @@ export async function show_notification(
     : options.title;
   const display_body = lockdown_active ? "" : options.body;
 
-  if (preferences.sound) {
+  if (preferences.sound && !silent) {
     play_notification_sound();
   }
 
@@ -211,6 +214,7 @@ export async function show_notification(
       typeof options.data?.email_id === "string"
         ? options.data.email_id
         : undefined,
+      silent,
     );
 
     return null;
@@ -229,6 +233,7 @@ export async function show_notification(
     icon: options.icon || "/icons/icon-192x192.png",
     tag: options.tag,
     data: options.data,
+    ...(silent ? { silent: true } : {}),
   });
 
   notification.onclick = () => {

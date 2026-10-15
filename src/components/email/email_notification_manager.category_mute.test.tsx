@@ -24,6 +24,8 @@ import { createRoot, type Root } from "react-dom/client";
 
 const show_notification = vi.fn();
 let arrival_category: string | null = "promotions";
+let arrival_provisional = false;
+let folded_category: string | null = null;
 let muted_notification_categories: string[] = [];
 
 vi.mock("@/contexts/auth_context", () => ({
@@ -53,8 +55,11 @@ vi.mock("@/services/notification_service", () => ({
 
 vi.mock("@/services/category_index", () => ({
   get_arrival_reply_state: () => false,
-  get_arrival_category: () => arrival_category,
-  fold_to_active_tab: (category: string) => category,
+  get_arrival_category_state: () =>
+    arrival_category === null
+      ? null
+      : { category: arrival_category, provisional: arrival_provisional },
+  fold_to_active_tab: (category: string) => folded_category ?? category,
 }));
 
 vi.mock("@/services/push_subscription", () => ({
@@ -110,6 +115,8 @@ describe("email notification manager category mute", () => {
   beforeEach(() => {
     show_notification.mockClear();
     arrival_category = "promotions";
+    arrival_provisional = false;
+    folded_category = null;
     muted_notification_categories = [];
   });
 
@@ -165,7 +172,7 @@ describe("email notification manager category mute", () => {
     expect(show_notification).toHaveBeenCalledTimes(1);
   });
 
-  it("notifies when the category never resolves", async () => {
+  it("notifies silently when the category never resolves", async () => {
     muted_notification_categories = ["promotions"];
     arrival_category = null;
     mount();
@@ -177,5 +184,54 @@ describe("email notification manager category mute", () => {
     await wait_for_burst_window();
 
     expect(show_notification).toHaveBeenCalledTimes(1);
+    expect(show_notification.mock.calls[0][4]).toBe(true);
+  });
+
+  it("notifies silently while the category is provisional", async () => {
+    muted_notification_categories = ["promotions"];
+    arrival_category = "primary";
+    arrival_provisional = true;
+    mount();
+
+    await receive_email("m-provisional");
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 1700));
+    });
+    await wait_for_burst_window();
+
+    expect(show_notification).toHaveBeenCalledTimes(1);
+    expect(show_notification.mock.calls[0][4]).toBe(true);
+  });
+
+  it("plays sound when no category is muted", async () => {
+    mount();
+
+    await receive_email("m-audible");
+    await wait_for_burst_window();
+
+    expect(show_notification).toHaveBeenCalledTimes(1);
+    expect(show_notification.mock.calls[0][4]).toBe(false);
+  });
+
+  it("stays silent when the raw category is muted but folds elsewhere", async () => {
+    muted_notification_categories = ["custom-deals"];
+    arrival_category = "custom-deals";
+    folded_category = "primary";
+    mount();
+
+    await receive_email("m-folded");
+    await wait_for_burst_window();
+
+    expect(show_notification).not.toHaveBeenCalled();
+  });
+
+  it("ignores an arrival without an id while categories are muted", async () => {
+    muted_notification_categories = ["promotions"];
+    mount();
+
+    await receive_email("");
+    await wait_for_burst_window();
+
+    expect(show_notification).not.toHaveBeenCalled();
   });
 });

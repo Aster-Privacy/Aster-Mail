@@ -21,6 +21,7 @@
 
 const PUSH_STRINGS_CACHE = "aster_push_strings";
 const PUSH_STRINGS_URL = "/__aster_push_strings";
+const PUSH_MUTES_URL = "/__aster_push_mutes";
 
 export async function publish_push_strings(
   new_message: string,
@@ -34,6 +35,25 @@ export async function publish_push_strings(
     await cache.put(
       PUSH_STRINGS_URL,
       new Response(JSON.stringify({ new_message, new_reaction }), {
+        headers: { "content-type": "application/json" },
+      }),
+    );
+  } catch {
+    return;
+  }
+}
+
+export async function publish_push_mute_state(
+  has_muted_categories: boolean,
+): Promise<void> {
+  if (typeof caches === "undefined") return;
+
+  try {
+    const cache = await caches.open(PUSH_STRINGS_CACHE);
+
+    await cache.put(
+      PUSH_MUTES_URL,
+      new Response(JSON.stringify({ has_muted_categories }), {
         headers: { "content-type": "application/json" },
       }),
     );

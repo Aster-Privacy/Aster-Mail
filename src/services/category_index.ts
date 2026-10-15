@@ -1701,6 +1701,26 @@ export function get_arrival_category(id: string): EmailCategory | null {
   return entries_map.get(id)?.category ?? null;
 }
 
+export interface ArrivalCategoryState {
+  category: EmailCategory;
+  provisional: boolean;
+}
+
+export function get_arrival_category_state(
+  id: string,
+): ArrivalCategoryState | null {
+  if (!id) return null;
+
+  const entry = entries_map.get(id);
+
+  if (!entry || !entry.category) return null;
+
+  return {
+    category: entry.category,
+    provisional: entry.needs_reclassify === true,
+  };
+}
+
 export function thread_has_unread_entries(
   thread_token: string,
   exclude?: string | ReadonlySet<string>,
