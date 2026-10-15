@@ -9257,7 +9257,6 @@ export const ru = {
     receipt_review_title: "Исправить данные",
     receipt_review_hide: "Скрыть эту карточку",
     receipt_review_saved: "Сохранено на этом устройстве. Следующие чеки от этого отправителя будут использовать исправленное название.",
-    receipt_review_confirmed: "Отмечено как верное",
     receipt_payment: "Оплата",
     order_from: "Заказ от {{merchant}}",
     package_from: "Посылка от {{carrier}}",

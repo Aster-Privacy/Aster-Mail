@@ -9049,7 +9049,6 @@ export const nl = {
     receipt_review_title: "Gegevens corrigeren",
     receipt_review_hide: "Deze kaart verbergen",
     receipt_review_saved: "Opgeslagen op dit apparaat. Toekomstige bonnen van deze afzender gebruiken de gecorrigeerde naam.",
-    receipt_review_confirmed: "Gemarkeerd als correct",
     receipt_payment: "Betaling",
     order_from: "Bestelling van {{merchant}}",
     package_from: "Pakket van {{carrier}}",

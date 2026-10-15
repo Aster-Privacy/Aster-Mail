@@ -8089,7 +8089,6 @@ export interface MailTranslations {
   receipt_review_title: string;
   receipt_review_hide: string;
   receipt_review_saved: string;
-  receipt_review_confirmed: string;
   receipt_payment: string;
   order_from: string;
   package_from: string;

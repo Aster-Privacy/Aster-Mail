@@ -21,6 +21,7 @@
 import type { ComponentType, ReactNode, SVGProps } from "react";
 
 import { ChevronDownIcon } from "@heroicons/react/24/outline";
+import { IslandDivider } from "@aster/ui";
 
 import { cn } from "@/lib/utils";
 
@@ -53,16 +54,13 @@ export function ExtractionCard({
 }: ExtractionCardProps) {
   return (
     <section
-      className={cn(
-        "rounded-xl border border-edge-primary bg-surf-primary overflow-hidden",
-        className,
-      )}
+      className={cn("aster_island overflow-hidden", className)}
       data-testid={test_id}
     >
       <button
         aria-expanded={!is_collapsed}
         aria-label={toggle_label}
-        className="w-full flex items-center gap-3 px-4 py-3 text-start hover:bg-surf-hover transition-colors"
+        className="w-full min-h-14 flex items-center gap-3 px-4 py-3 text-start transition-colors hover:bg-[var(--aster-island-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent-color)]"
         type="button"
         onClick={on_toggle}
       >
@@ -91,7 +89,10 @@ export function ExtractionCard({
         />
       </button>
       {!is_collapsed && (
-        <div className="border-t border-edge-secondary">{children}</div>
+        <>
+          <IslandDivider />
+          {children}
+        </>
       )}
     </section>
   );
@@ -141,11 +142,16 @@ interface ExtractionCardActionsProps {
   children: ReactNode;
 }
 
-export function ExtractionCardActions({ children }: ExtractionCardActionsProps) {
+export function ExtractionCardActions({
+  children,
+}: ExtractionCardActionsProps) {
   return (
-    <div className="mt-1 px-2 py-1.5 border-t border-edge-secondary flex flex-wrap items-center gap-1">
-      {children}
-    </div>
+    <>
+      <IslandDivider />
+      <div className="px-2 py-1.5 flex flex-wrap items-center gap-1">
+        {children}
+      </div>
+    </>
   );
 }
 
@@ -164,7 +170,7 @@ export function ExtractionCardAction({
 }: ExtractionCardActionProps) {
   return (
     <button
-      className="inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 text-sm font-medium text-[var(--accent-color)] hover:bg-[color-mix(in_srgb,var(--accent-color)_10%,transparent)] transition-colors"
+      className="inline-flex items-center gap-1.5 rounded-[var(--aster-radius-item)] px-2 py-1.5 text-sm font-medium text-[var(--accent-color)] hover:bg-[var(--aster-island-hover)] transition-colors"
       data-testid={test_id}
       type="button"
       onClick={on_click}

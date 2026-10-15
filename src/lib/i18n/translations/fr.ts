@@ -9177,7 +9177,6 @@ export const fr = {
     receipt_review_title: "Corriger les informations",
     receipt_review_hide: "Masquer cette carte",
     receipt_review_saved: "Enregistré sur cet appareil. Les prochains reçus de cet expéditeur utiliseront le nom corrigé.",
-    receipt_review_confirmed: "Marqué comme correct",
     receipt_payment: "Paiement",
     order_from: "Commande de {{merchant}}",
     package_from: "Colis de {{carrier}}",

@@ -22,10 +22,22 @@ import type { ExtractedPurchaseDetails } from "@/services/extraction/types";
 import type { ReactNode } from "react";
 
 import { useId, useState } from "react";
-import { ReceiptPercentIcon, ShieldCheckIcon } from "@heroicons/react/24/outline";
+import {
+  HandThumbDownIcon,
+  HandThumbUpIcon,
+  InformationCircleIcon,
+  ReceiptPercentIcon,
+} from "@heroicons/react/24/outline";
+import {
+  HandThumbDownIcon as HandThumbDownIconSolid,
+  HandThumbUpIcon as HandThumbUpIconSolid,
+} from "@heroicons/react/24/solid";
+import { IslandDivider, IslandIconButton, Tooltip } from "@aster/ui";
 
-import { cn } from "@/lib/utils";
+import { ExtractionCard } from "./extraction_card";
+
 import { use_i18n } from "@/lib/i18n/context";
+import { cn } from "@/lib/utils";
 import {
   apply_receipt_review,
   confirm_receipt,
@@ -33,8 +45,6 @@ import {
   save_receipt_correction,
   type ReceiptReview,
 } from "@/services/extraction/review_store";
-
-import { ExtractionCard } from "./extraction_card";
 
 const COLLAPSED_PREF_KEY = "receipt_banner_collapsed";
 const MAX_VISIBLE_ITEMS = 6;
@@ -119,11 +129,11 @@ function ReviewForm({
   const [order_value, set_order_value] = useState(order_id);
 
   const input_class =
-    "h-9 w-full rounded-lg border border-input-border bg-input-bg px-3 text-sm text-txt-primary outline-none focus:border-brand";
+    "h-9 w-full rounded-[var(--aster-radius-item)] border-0 bg-[var(--aster-field-bg)] px-3 text-sm text-txt-primary outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]";
 
   return (
     <form
-      className="px-4 py-3 border-t border-edge-secondary"
+      className="px-4 py-3"
       data-testid="purchase_review_form"
       onSubmit={(event) => {
         event.preventDefault();
@@ -260,8 +270,7 @@ export function PurchaseDetailsBanner({
       })
     : null;
   const subtitle =
-    [number_label, details.order_date].filter(Boolean).join(" · ") ||
-    undefined;
+    [number_label, details.order_date].filter(Boolean).join(" · ") || undefined;
 
   const amount_rows: { label: string; amount: string }[] = [];
 
@@ -288,11 +297,19 @@ export function PurchaseDetailsBanner({
     : details.payment_method;
 
   const handle_confirm = () => {
-    set_review_state({ email_id, review: confirm_receipt(email_id), editing: false });
+    set_review_state({
+      email_id,
+      review: confirm_receipt(email_id),
+      editing: false,
+    });
   };
 
   const handle_hide = () => {
-    set_review_state({ email_id, review: hide_receipt(email_id), editing: false });
+    set_review_state({
+      email_id,
+      review: hide_receipt(email_id),
+      editing: false,
+    });
   };
 
   const handle_save = (merchant_name: string, order_id: string) => {
@@ -306,11 +323,150 @@ export function PurchaseDetailsBanner({
     });
   };
 
-  const review_status = review?.confirmed
-    ? t("mail.receipt_review_confirmed")
-    : review?.merchant_name || review?.order_id
-      ? t("mail.receipt_review_saved")
-      : null;
+  const is_confirmed = review?.confirmed === true;
+  const is_corrected = Boolean(review?.merchant_name || review?.order_id);
+  const info_text = is_corrected
+    ? t("mail.receipt_review_saved")
+    : t("mail.purchase_extraction_privacy");
+  const sections: ReactNode[] = [];
+
+  if (clean_items.length > 0)
+    sections.push(
+      <div
+        key="items"
+        className="px-4 py-3 space-y-1.5"
+        data-testid="purchase_items_row"
+      >
+        {clean_items.slice(0, MAX_VISIBLE_ITEMS).map((item, index) => (
+          <LedgerRow
+            key={index}
+            label={
+              <>
+                <span className="text-txt-primary">{item.name}</span>
+                {item.quantity && item.quantity > 1 && (
+                  <span className="ms-2 text-txt-muted">× {item.quantity}</span>
+                )}
+              </>
+            }
+            value={item.total_price?.formatted ?? ""}
+          />
+        ))}
+        {clean_items.length > MAX_VISIBLE_ITEMS && (
+          <p className="text-xs text-txt-muted">
+            {t("mail.more_items_count", {
+              count: clean_items.length - MAX_VISIBLE_ITEMS,
+            })}
+          </p>
+        )}
+      </div>,
+    );
+
+  if (amount_rows.length > 0 || details.total)
+    sections.push(
+      <div
+        key="amounts"
+        className="px-4 py-3 space-y-1.5"
+        data-testid="purchase_total_row"
+      >
+        {amount_rows.map((row) => (
+          <LedgerRow key={row.label} label={row.label} value={row.amount} />
+        ))}
+        {details.total && (
+          <LedgerRow
+            emphasis
+            label={t("common.total")}
+            value={details.total.formatted}
+          />
+        )}
+      </div>,
+    );
+
+  sections.push(
+    <div key="details" className="px-4 py-3 space-y-1.5">
+      {details.merchant_name && (
+        <DetailRow
+          label={t("mail.merchant")}
+          test_id="purchase_merchant_row"
+          value={details.merchant_name}
+        />
+      )}
+      {details.order_id && (
+        <DetailRow
+          label={t("mail.order_number_label")}
+          test_id="purchase_order_id_row"
+          value={details.order_id}
+        />
+      )}
+      {details.order_date && (
+        <DetailRow label={t("mail.date")} value={details.order_date} />
+      )}
+      {payment && (
+        <DetailRow label={t("mail.receipt_payment")} value={payment} />
+      )}
+    </div>,
+  );
+
+  sections.push(
+    review_state.editing ? (
+      <ReviewForm
+        key="form"
+        merchant_name={details.merchant_name ?? ""}
+        on_cancel={() =>
+          set_review_state((prev) => ({ ...prev, editing: false }))
+        }
+        on_hide={handle_hide}
+        on_save={handle_save}
+        order_id={details.order_id ?? ""}
+      />
+    ) : (
+      <div
+        key="footer"
+        className="px-2 py-1 flex items-center gap-0.5"
+        data-testid="purchase_review_footer"
+      >
+        <Tooltip tip={info_text}>
+          <IslandIconButton label={info_text} size="sm" type="button">
+            <InformationCircleIcon strokeWidth={1.75} />
+          </IslandIconButton>
+        </Tooltip>
+        <span className="flex-1" />
+        <Tooltip tip={t("mail.receipt_review_looks_right")}>
+          <IslandIconButton
+            active={is_confirmed}
+            data-testid="purchase_review_confirm"
+            label={t("mail.receipt_review_looks_right")}
+            size="sm"
+            type="button"
+            onClick={handle_confirm}
+          >
+            {is_confirmed ? (
+              <HandThumbUpIconSolid />
+            ) : (
+              <HandThumbUpIcon strokeWidth={1.75} />
+            )}
+          </IslandIconButton>
+        </Tooltip>
+        <Tooltip tip={t("mail.receipt_review_not_right")}>
+          <IslandIconButton
+            active={is_corrected}
+            data-testid="purchase_review_edit"
+            label={t("mail.receipt_review_not_right")}
+            size="sm"
+            type="button"
+            onClick={() =>
+              set_review_state((prev) => ({ ...prev, editing: true }))
+            }
+          >
+            {is_corrected ? (
+              <HandThumbDownIconSolid />
+            ) : (
+              <HandThumbDownIcon strokeWidth={1.75} />
+            )}
+          </IslandIconButton>
+        </Tooltip>
+      </div>
+    ),
+  );
 
   return (
     <ExtractionCard
@@ -323,6 +479,7 @@ export function PurchaseDetailsBanner({
           strokeWidth={1.75}
         />
       }
+      on_toggle={toggle_collapsed}
       subtitle={subtitle}
       test_id="purchase_details_card"
       title={title}
@@ -330,123 +487,13 @@ export function PurchaseDetailsBanner({
         is_collapsed ? t("mail.show_details") : t("mail.hide_details")
       }
       trailing={details.total?.formatted}
-      on_toggle={toggle_collapsed}
     >
-      {clean_items.length > 0 && (
-        <div
-          className="px-4 py-3 space-y-1.5 border-b border-edge-secondary"
-          data-testid="purchase_items_row"
-        >
-          {clean_items.slice(0, MAX_VISIBLE_ITEMS).map((item, index) => (
-            <LedgerRow
-              key={index}
-              label={
-                <>
-                  <span className="text-txt-primary">{item.name}</span>
-                  {item.quantity && item.quantity > 1 && (
-                    <span className="ms-2 text-txt-muted">× {item.quantity}</span>
-                  )}
-                </>
-              }
-              value={item.total_price?.formatted ?? ""}
-            />
-          ))}
-          {clean_items.length > MAX_VISIBLE_ITEMS && (
-            <p className="text-xs text-txt-muted">
-              {t("mail.more_items_count", {
-                count: clean_items.length - MAX_VISIBLE_ITEMS,
-              })}
-            </p>
-          )}
+      {sections.map((section, index) => (
+        <div key={index}>
+          {index > 0 && <IslandDivider />}
+          {section}
         </div>
-      )}
-
-      {(amount_rows.length > 0 || details.total) && (
-        <div
-          className="px-4 py-3 space-y-1.5 border-b border-edge-secondary"
-          data-testid="purchase_total_row"
-        >
-          {amount_rows.map((row) => (
-            <LedgerRow key={row.label} label={row.label} value={row.amount} />
-          ))}
-          {details.total && (
-            <LedgerRow
-              emphasis
-              label={t("common.total")}
-              value={details.total.formatted}
-            />
-          )}
-        </div>
-      )}
-
-      <div className="px-4 py-3 space-y-1.5">
-        {details.merchant_name && (
-          <DetailRow
-            label={t("mail.merchant")}
-            test_id="purchase_merchant_row"
-            value={details.merchant_name}
-          />
-        )}
-        {details.order_id && (
-          <DetailRow
-            label={t("mail.order_number_label")}
-            test_id="purchase_order_id_row"
-            value={details.order_id}
-          />
-        )}
-        {details.order_date && (
-          <DetailRow label={t("mail.date")} value={details.order_date} />
-        )}
-        {payment && (
-          <DetailRow label={t("mail.receipt_payment")} value={payment} />
-        )}
-      </div>
-
-      {review_state.editing ? (
-        <ReviewForm
-          merchant_name={details.merchant_name ?? ""}
-          order_id={details.order_id ?? ""}
-          on_cancel={() =>
-            set_review_state((prev) => ({ ...prev, editing: false }))
-          }
-          on_hide={handle_hide}
-          on_save={handle_save}
-        />
-      ) : (
-        <div className="px-4 py-2 border-t border-edge-secondary flex items-center justify-between gap-3">
-          <div className="flex items-center gap-1.5 min-w-0">
-            <ShieldCheckIcon
-              aria-hidden="true"
-              className="w-3.5 h-3.5 shrink-0 text-txt-muted"
-            />
-            <span className="text-xs text-txt-muted truncate">
-              {review_status ?? t("mail.purchase_extraction_privacy")}
-            </span>
-          </div>
-          {!review?.confirmed && (
-            <div className="flex items-center gap-1 shrink-0">
-              <button
-                className="aster_btn aster_btn_ghost aster_btn_sm"
-                data-testid="purchase_review_confirm"
-                type="button"
-                onClick={handle_confirm}
-              >
-                {t("mail.receipt_review_looks_right")}
-              </button>
-              <button
-                className="aster_btn aster_btn_ghost aster_btn_sm"
-                data-testid="purchase_review_edit"
-                type="button"
-                onClick={() =>
-                  set_review_state((prev) => ({ ...prev, editing: true }))
-                }
-              >
-                {t("mail.receipt_review_not_right")}
-              </button>
-            </div>
-          )}
-        </div>
-      )}
+      ))}
     </ExtractionCard>
   );
 }

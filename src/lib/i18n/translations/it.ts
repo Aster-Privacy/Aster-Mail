@@ -9128,7 +9128,6 @@ export const it = {
     receipt_review_title: "Correggi i dettagli",
     receipt_review_hide: "Nascondi questa scheda",
     receipt_review_saved: "Salvato su questo dispositivo. Le prossime ricevute di questo mittente useranno il nome corretto.",
-    receipt_review_confirmed: "Contrassegnato come corretto",
     receipt_payment: "Pagamento",
     order_from: "Ordine da {{merchant}}",
     package_from: "Pacco da {{carrier}}",

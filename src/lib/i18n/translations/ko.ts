@@ -8711,7 +8711,6 @@ export const ko = {
     receipt_review_title: "세부 정보 수정",
     receipt_review_hide: "이 카드 숨기기",
     receipt_review_saved: "이 기기에 저장했습니다. 이 발신자의 다음 영수증부터 수정한 이름을 사용합니다.",
-    receipt_review_confirmed: "정확한 것으로 표시함",
     receipt_payment: "결제",
     order_from: "{{merchant}} 주문",
     package_from: "{{carrier}} 배송",

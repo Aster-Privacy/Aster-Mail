@@ -9130,7 +9130,6 @@ export const pt = {
     receipt_review_title: "Corrigir os detalhes",
     receipt_review_hide: "Ocultar este cartão",
     receipt_review_saved: "Guardado neste dispositivo. Os próximos recibos deste remetente usam o nome corrigido.",
-    receipt_review_confirmed: "Marcado como correto",
     receipt_payment: "Pagamento",
     order_from: "Encomenda de {{merchant}}",
     package_from: "Encomenda de {{carrier}}",

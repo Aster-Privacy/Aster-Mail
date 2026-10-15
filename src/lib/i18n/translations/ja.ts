@@ -8879,7 +8879,6 @@ export const ja = {
     receipt_review_title: "内容を修正",
     receipt_review_hide: "このカードを非表示",
     receipt_review_saved: "この端末に保存しました。この送信者からの今後の領収書には修正した名前を使います。",
-    receipt_review_confirmed: "正しいとマークしました",
     receipt_payment: "支払い",
     order_from: "{{merchant}}からの注文",
     package_from: "{{carrier}}からの荷物",

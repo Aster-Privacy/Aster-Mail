@@ -9075,7 +9075,6 @@ export const es = {
     receipt_review_title: "Corregir los datos",
     receipt_review_hide: "Ocultar esta tarjeta",
     receipt_review_saved: "Guardado en este dispositivo. Los próximos recibos de este remitente usarán el nombre corregido.",
-    receipt_review_confirmed: "Marcado como correcto",
     receipt_payment: "Pago",
     order_from: "Pedido de {{merchant}}",
     package_from: "Paquete de {{carrier}}",

@@ -9150,7 +9150,6 @@ export const de = {
     receipt_review_title: "Angaben korrigieren",
     receipt_review_hide: "Diese Karte ausblenden",
     receipt_review_saved: "Auf diesem Gerät gespeichert. Künftige Belege dieses Absenders verwenden den korrigierten Namen.",
-    receipt_review_confirmed: "Als korrekt markiert",
     receipt_payment: "Zahlung",
     order_from: "Bestellung von {{merchant}}",
     package_from: "Paket von {{carrier}}",

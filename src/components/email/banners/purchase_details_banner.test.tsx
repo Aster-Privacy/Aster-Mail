@@ -136,9 +136,7 @@ describe("PurchaseDetailsBanner", () => {
     expect(card!.textContent).toContain("mail.order_number:AS-4471");
     expect(query(el, "purchase_merchant_row")).not.toBeNull();
     expect(query(el, "purchase_order_id_row")).not.toBeNull();
-    expect(query(el, "purchase_items_row")!.textContent).toContain(
-      "Star plan",
-    );
+    expect(query(el, "purchase_items_row")!.textContent).toContain("Star plan");
     expect(query(el, "purchase_total_row")!.textContent).toContain("$85.99");
     expect(query(el, "purchase_total_row")!.textContent).toContain("−$1.00");
     expect(card!.textContent).toContain("mail.card_ending_in:4242");
@@ -180,8 +178,10 @@ describe("PurchaseDetailsBanner", () => {
     await click(query(el, "purchase_review_confirm"));
 
     expect(fetch_spy).not.toHaveBeenCalled();
-    expect(el.textContent).toContain("mail.receipt_review_confirmed");
-    expect(query(el, "purchase_review_confirm")).toBeNull();
+    expect(
+      query(el, "purchase_review_confirm")!.getAttribute("aria-pressed"),
+    ).toBe("true");
+    expect(el.textContent).not.toContain("mail.receipt_review_looks_right");
     expect(localStorage.getItem(REVIEW_STORE_KEY)).toContain('"m1"');
     fetch_spy.mockRestore();
   });
@@ -200,7 +200,14 @@ describe("PurchaseDetailsBanner", () => {
 
     expect(query(el, "purchase_review_form")).toBeNull();
     expect(el.textContent).toContain("mail.order_from:Aster Privacy");
-    expect(el.textContent).toContain("mail.receipt_review_saved");
+    expect(
+      query(el, "purchase_review_edit")!.getAttribute("aria-pressed"),
+    ).toBe("true");
+    expect(
+      query(el, "purchase_review_footer")!
+        .querySelector("button")!
+        .getAttribute("aria-label"),
+    ).toBe("mail.receipt_review_saved");
 
     const second = await render(
       <PurchaseDetailsBanner

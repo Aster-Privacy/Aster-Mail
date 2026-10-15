@@ -8968,7 +8968,6 @@ export const tr = {
     receipt_review_title: "Bilgileri düzelt",
     receipt_review_hide: "Bu kartı gizle",
     receipt_review_saved: "Bu cihaza kaydedildi. Bu göndericiden gelecek makbuzlarda düzeltilmiş ad kullanılır.",
-    receipt_review_confirmed: "Doğru olarak işaretlendi",
     receipt_payment: "Ödeme",
     order_from: "{{merchant}} siparişi",
     package_from: "{{carrier}} paketi",

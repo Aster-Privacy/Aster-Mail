@@ -9030,7 +9030,6 @@ export const en: Translations = {
     receipt_review_title: "Correct the details",
     receipt_review_hide: "Hide this card",
     receipt_review_saved: "Saved on this device. Future receipts from this sender use the corrected name.",
-    receipt_review_confirmed: "Marked as correct",
     receipt_payment: "Payment",
     order_from: "Order from {{merchant}}",
     package_from: "Package from {{carrier}}",

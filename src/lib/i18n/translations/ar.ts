@@ -8892,7 +8892,6 @@ export const ar = {
     receipt_review_title: "تصحيح التفاصيل",
     receipt_review_hide: "إخفاء هذه البطاقة",
     receipt_review_saved: "تم الحفظ على هذا الجهاز. ستستخدم الإيصالات القادمة من هذا المرسل الاسم المصحح.",
-    receipt_review_confirmed: "تم وضع علامة صحيح",
     receipt_payment: "الدفع",
     order_from: "طلب من {{merchant}}",
     package_from: "طرد من {{carrier}}",

@@ -9308,7 +9308,6 @@ export const pl = {
     receipt_review_title: "Popraw dane",
     receipt_review_hide: "Ukryj tę kartę",
     receipt_review_saved: "Zapisano na tym urządzeniu. Przyszłe paragony od tego nadawcy będą używać poprawionej nazwy.",
-    receipt_review_confirmed: "Oznaczono jako poprawne",
     receipt_payment: "Płatność",
     order_from: "Zamówienie od {{merchant}}",
     package_from: "Paczka od {{carrier}}",

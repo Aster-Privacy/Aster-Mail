@@ -9081,7 +9081,6 @@ export const hi = {
     receipt_review_title: "विवरण सुधारें",
     receipt_review_hide: "यह कार्ड छिपाएँ",
     receipt_review_saved: "इस डिवाइस पर सहेजा गया। इस भेजने वाले की आगे की रसीदों में सुधारा गया नाम इस्तेमाल होगा।",
-    receipt_review_confirmed: "सही के रूप में चिह्नित",
     receipt_payment: "भुगतान",
     order_from: "{{merchant}} से ऑर्डर",
     package_from: "{{carrier}} से पैकेज",

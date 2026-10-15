@@ -8049,7 +8049,6 @@ export const zh_CN = {
     receipt_review_title: "更正信息",
     receipt_review_hide: "隐藏此卡片",
     receipt_review_saved: "已保存在此设备上。此发件人以后的收据将使用更正后的名称。",
-    receipt_review_confirmed: "已标记为正确",
     receipt_payment: "付款",
     order_from: "来自{{merchant}}的订单",
     package_from: "来自{{carrier}}的包裹",
