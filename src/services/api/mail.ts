@@ -1067,5 +1067,4 @@ export {
   rethread_items,
   report_spam_sender,
   remove_spam_sender,
-  submit_receipt_feedback,
 } from "./mail_threads";
