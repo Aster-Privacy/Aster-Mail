@@ -35,7 +35,7 @@ import {
 } from "@heroicons/react/24/solid";
 import { IslandDivider, IslandIconButton, Tooltip } from "@aster/ui";
 
-import { ExtractionCard } from "./extraction_card";
+import { ExtractionCard, ExtractionCardAction } from "./extraction_card";
 
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
@@ -131,7 +131,8 @@ function ReviewForm({
   const [merchant_value, set_merchant_value] = useState(merchant_name);
   const [order_value, set_order_value] = useState(order_id);
 
-  const input_class = "aster_input aster_input_sm w-full";
+  const input_class =
+    "aster_input aster_input_tonal w-full h-7 px-3 text-[12px]";
 
   return (
     <form
@@ -328,6 +329,7 @@ export function PurchaseDetailsBanner({
       }),
       editing: false,
     });
+    show_toast(t("mail.receipt_review_saved"), "success");
   };
 
   const is_confirmed = review?.confirmed === true;
@@ -439,19 +441,12 @@ export function PurchaseDetailsBanner({
           </IslandIconButton>
         </Tooltip>
         {receipt_url && (
-          <button
-            className="aster_btn aster_btn_ghost aster_btn_sm text-[var(--accent-color)]"
-            data-testid="purchase_view_receipt"
-            type="button"
-            onClick={() => open_external(receipt_url)}
-          >
-            <ArrowTopRightOnSquareIcon
-              aria-hidden="true"
-              className="w-4 h-4"
-              strokeWidth={2}
-            />
-            {view_label}
-          </button>
+          <ExtractionCardAction
+            icon={ArrowTopRightOnSquareIcon}
+            label={view_label}
+            test_id="purchase_view_receipt"
+            on_click={() => open_external(receipt_url)}
+          />
         )}
         <span className="flex-1" />
         <Tooltip tip={t("mail.receipt_review_looks_right")}>

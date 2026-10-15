@@ -143,7 +143,7 @@ function escape_regex(value: string): string {
 }
 
 const ID_MARKER = "(?:#|no\\.?|num(?:ber)?|id)";
-const ID_VALUE = "([A-Za-z0-9][\\w-]{4,29})";
+const ID_VALUE = "([A-Za-z0-9](?:[\\w-]|\\.(?=[\\w-])){3,29})";
 
 function labelled_id(label: string, marker = ID_MARKER): RegExp {
   return new RegExp(`\\b${label}\\s*${marker}\\s*[:#]?\\s*${ID_VALUE}`, "i");
@@ -175,6 +175,8 @@ const MONEY_TOKEN = `(?:(?:${CURRENCY_TOKEN})\\s*)?(?:${NUMBER_TOKEN})(?:\\s*(?:
 const AMOUNT_PATTERN = new RegExp(
   `(${CURRENCY_TOKEN})?\\s*(${NUMBER_TOKEN})\\s*(${CURRENCY_TOKEN})?`,
 );
+
+const TAX_RATE = "(?:\\s*\\(?\\d{1,2}(?:[.,]\\d+)?\\s*%\\)?)?";
 
 function money_after(label: string): RegExp {
   return new RegExp(`${label}\\s*[:=-]?\\s*-?\\s*(${MONEY_TOKEN})`, "i");
@@ -674,7 +676,28 @@ const GENERIC_MERCHANT_WORDS = new Set([
   "shop",
   "the",
   "your",
+  "flight",
+  "trip",
+  "booking",
+  "reservation",
+  "ticket",
+  "tickets",
+  "account",
+  "membership",
+  "renewal",
+  "plan",
+  "weekly",
+  "yearly",
+  "daily",
+  "first",
+  "next",
+  "last",
+  "this",
+  "pending",
 ]);
+
+const DATE_LIKE_CANDIDATE =
+  /^(?:(?:mon|tue|wed|thu|fri|sat|sun)[a-z]*,?\s+)?(?:(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?\s+\d{1,2}(?:st|nd|rd|th)?|\d{1,2}(?:st|nd|rd|th)?\s+(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?)(?:,?\s+\d{2,4})?$|^\d{1,4}[./-]\d{1,2}[./-]\d{1,4}$|^(?:today|yesterday|tomorrow)$/i;
 
 const MERCHANT_TAIL = "([^\\n#\\[\\(<>@:]{2,60}?)";
 const MERCHANT_STOP =
@@ -683,11 +706,11 @@ const MERCHANT_STOP =
 const SUBJECT_MERCHANT_PATTERNS = [
   new RegExp(`\\breceipt\\s+from\\s+${MERCHANT_TAIL}${MERCHANT_STOP}`, "i"),
   new RegExp(
-    `\\byour\\s+${MERCHANT_TAIL}\\s+(?:receipt|invoice|order\\s+confirmation|order|purchase)\\b`,
+    `\\b(?:order|purchase|invoice|payment)\\s+(?:confirmation\\s+|receipt\\s+)?(?:#?(?=[\\w.-]*\\d)[\\w.-]{3,}\\s+)?(?:from|with|at|to)\\s+${MERCHANT_TAIL}${MERCHANT_STOP}`,
     "i",
   ),
   new RegExp(
-    `\\b(?:order|purchase|invoice|payment)\\s+(?:confirmation\\s+|receipt\\s+)?(?:from|with|at|to)\\s+${MERCHANT_TAIL}${MERCHANT_STOP}`,
+    `\\byour\\s+${MERCHANT_TAIL}\\s+(?:receipt|invoice|order\\s+confirmation|order|purchase)\\b`,
     "i",
   ),
   new RegExp(
@@ -703,10 +726,14 @@ const BODY_MERCHANT_PATTERNS = [
     "i",
   ),
   new RegExp(
-    `\\b(?:order|purchase|invoice|payment)\\s+(?:confirmation\\s+|receipt\\s+)?(?:from|with|at|to)\\s+${MERCHANT_TAIL}${MERCHANT_STOP}`,
+    `\\b(?:order|purchase|invoice|payment)\\s+(?:confirmation\\s+|receipt\\s+)?(?:#?(?=[\\w.-]*\\d)[\\w.-]{3,}\\s+)?(?:from|with|at|to)\\s+${MERCHANT_TAIL}${MERCHANT_STOP}`,
     "i",
   ),
   new RegExp(`\\bsold\\s+by\\s+${MERCHANT_TAIL}${MERCHANT_STOP}`, "i"),
+  new RegExp(
+    `\\b(?:payment|paid|sent)\\s+(?:of\\s+)?${MONEY_TOKEN}\\s+to\\s+${MERCHANT_TAIL}${MERCHANT_STOP}`,
+    "i",
+  ),
 ];
 
 const FORWARDED_FROM_PATTERN =
@@ -795,6 +822,8 @@ function is_trusted_receipt_url(
   );
 
   if (known_host) return true;
+  if (PAYMENT_PROCESSOR_DOMAINS.some((domain) => host_matches(host, domain)))
+    return false;
   if (!anchor_text || !RECEIPT_LINK_TEXT.test(anchor_text)) return false;
 
   return sender_domains.some(
@@ -869,6 +898,8 @@ function tidy_merchant_candidate(raw: string | undefined): string | null {
     )
   )
     return null;
+
+  if (DATE_LIKE_CANDIDATE.test(tidy)) return null;
 
   const words = tidy.toLowerCase().split(" ");
 
@@ -1024,7 +1055,7 @@ export function extract_purchase_details(
       money_after("purchase\\s+total"),
       money_after("total\\s+charged"),
       money_after("amount\\s+(?:paid|charged|due)"),
-      money_after("\\btotals?\\b"),
+      money_after("(?<!\\bnet\\s)(?<!\\bsub\\s)(?<!\\bitems?\\s)\\btotals?\\b"),
     ],
     currency,
   );
@@ -1033,16 +1064,20 @@ export function extract_purchase_details(
 
   const subtotal = extract_amount_from_line(
     combined,
-    [money_after("\\bsub\\s?total\\b"), money_after("\\bitems?\\s+total\\b")],
+    [
+      money_after("\\bsub\\s?total\\b"),
+      money_after("\\bitems?\\s+total\\b"),
+      money_after("\\bnet\\s+total\\b"),
+    ],
     currency,
   );
 
   const tax = extract_amount_from_line(
     combined,
     [
-      money_after("\\b(?:sales\\s+)?tax\\b"),
-      money_after("\\bvat\\b"),
-      money_after("\\bgst\\b"),
+      money_after(`\\b(?:sales\\s+)?tax(?:es)?\\b${TAX_RATE}`),
+      money_after(`\\bvat\\b${TAX_RATE}`),
+      money_after(`\\bgst\\b${TAX_RATE}`),
     ],
     currency,
   );
@@ -1075,9 +1110,11 @@ export function extract_purchase_details(
     total,
   });
 
-  const card_match = combined.match(
-    /(?:card\s+)?ending\s+(?:in\s+)?[\*x]?(\d{4})/i,
-  );
+  const card_match =
+    combined.match(/(?:card\s+)?ending\s+(?:in\s+|with\s+)?[\*x]?(\d{4})/i) ??
+    combined.match(
+      /\b(?:visa|mastercard|master\s*card|amex|american\s+express|discover|maestro|jcb|unionpay|card)\b[^\n\d]{0,12}?(?:[•*x·.\-–]\s*){2,}(\d{4})\b/i,
+    );
   const card_last_four = card_match ? card_match[1] : null;
 
   if (card_last_four) signals.push(`card:****${card_last_four}`);
@@ -1246,11 +1283,13 @@ export function is_purchase_email(subject: string, body: string): boolean {
   const purchase_indicators = [
     /\border\s*(?:#|no\.?|num(?:ber)?|id)\s*[:#]?\s*[A-Za-z0-9]*[0-9]/i,
     /purchase\s+(?:confirmation|complete|receipt)/i,
-    /thank\s+you\s+for\s+(?:your\s+)?(?:order|purchase)/i,
+    /thanks?\s+(?:you\s+)?for\s+(?:your\s+)?(?:[a-z]+\s+){0,2}(?:order|purchase|booking)/i,
+    /\b(?:receipt|transaction|confirmation)\s*(?:#|no\.?|num(?:ber)?|id)\s*[:#]?\s*[A-Za-z0-9.-]*[0-9]/i,
     /receipt\s+(?:for|from)/i,
     /payment\s+(?:receipt|confirmation|successful)/i,
     /transaction\s+(?:receipt|complete)/i,
     /you\s+(?:bought|purchased|paid)/i,
+    /\b(?:paid\s+with|charged\s+to)\b/i,
     /order\s+(?:placed|confirmed)/i,
     money_after("\\btotals?\\b"),
     money_after("\\bamount\\s+(?:paid|charged|due)\\b"),
