@@ -1022,7 +1022,16 @@ export function use_inbox_toolbar_actions({
           apply_stat_deltas(deltas);
         }
       }
-      if (restored.length < total) emit_mail_changed();
+      const restored_ids = Array.from(
+        new Set(restored.flatMap((e) => expand_email_ids(e))),
+      );
+      const restore_flag = is_spam_restore ? "is_spam" : "is_trashed";
+
+      reindex_ids(restored_ids);
+      for (const id of restored_ids) {
+        emit_mail_item_updated({ id, [restore_flag]: false });
+      }
+      emit_mail_changed();
       show_action_toast({
         message: t("common.conversations_restored_bulk", {
           count: restored.length,
@@ -1048,15 +1057,36 @@ export function use_inbox_toolbar_actions({
             ? { is_spam: true }
             : { is_trashed: true };
 
-          await Promise.all([
-            ...undo_threads.map((tok) =>
-              set_thread_trashed(tok, thread_ids_of(tok), true),
+          const [thread_undo_results, bulk_undo_result] = await Promise.all([
+            Promise.all(
+              undo_threads.map((tok) =>
+                set_thread_trashed(tok, thread_ids_of(tok), true),
+              ),
             ),
             undo_ids.length > 0
-              ? bulk_update_metadata_by_ids(undo_ids, undo_update)
-              : Promise.resolve(),
+              ? bulk_update_metadata_by_ids(undo_ids, undo_update).catch(
+                  () => null,
+                )
+              : Promise.resolve({ success: true, failed_ids: [] as string[] }),
           ]);
+          const failed_undo = new Set<string>(
+            bulk_undo_result ? bulk_undo_result.failed_ids : undo_ids,
+          );
+
+          undo_threads.forEach((tok, index) => {
+            if (!thread_undo_results[index]?.data) {
+              for (const id of thread_ids_of(tok)) failed_undo.add(id);
+            }
+          });
+          const undone_ids = restored_ids.filter((id) => !failed_undo.has(id));
+
+          for (const id of undone_ids) {
+            emit_mail_item_updated({ id, [restore_flag]: true });
+          }
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
+          if (undone_ids.length < restored_ids.length) {
+            throw new Error("undo restore failed");
+          }
         },
       });
     },

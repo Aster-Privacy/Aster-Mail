@@ -118,6 +118,8 @@ export function use_message_actions(
             await bulk_update_metadata_by_ids([msg.id], {
               is_archived: false,
             });
+            reindex_ids([msg.id]);
+            emit_mail_item_updated({ id: msg.id, is_archived: false });
             window.dispatchEvent(
               new CustomEvent("astermail:mail-soft-refresh"),
             );
@@ -160,6 +162,8 @@ export function use_message_actions(
             );
 
             if (!undo_result.success) throw new Error("undo trash failed");
+            reindex_ids([msg.id]);
+            emit_mail_item_updated({ id: msg.id, is_trashed: false });
             window.dispatchEvent(
               new CustomEvent("astermail:mail-soft-refresh"),
             );
@@ -250,6 +254,8 @@ export function use_message_actions(
             ),
           );
         }
+        reindex_ids([msg.id]);
+        emit_mail_item_updated({ id: msg.id, is_spam: false });
         emit_mail_changed();
         show_toast(deps.t("common.marked_as_not_spam"), "success");
         if (msg.id === deps.email_id) deps.on_dismiss();

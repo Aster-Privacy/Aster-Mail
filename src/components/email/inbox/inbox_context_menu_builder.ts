@@ -265,7 +265,12 @@ export function build_context_menu_actions(
           action_type: "folder",
           email_ids: all_ids,
           on_undo: async () => {
-            await bulk_add_folder(all_ids, folder_token);
+            const undo_result = await bulk_add_folder(all_ids, folder_token);
+
+            if (undo_result.error) throw new Error("undo folder failed");
+            for (const id of all_ids) {
+              emit_mail_item_updated({ id, folders: previous_folders });
+            }
             window.dispatchEvent(
               new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
             );
@@ -304,11 +309,16 @@ export function build_context_menu_actions(
         action_type: "folder",
         email_ids: all_ids,
         on_undo: async () => {
-          await bulk_remove_folder(all_ids, folder_token);
+          const undo_result = await bulk_remove_folder(all_ids, folder_token);
+
+          if (undo_result.error) throw new Error("undo folder failed");
           for (const previous of previous_folders) {
             await bulk_add_folder(all_ids, previous.folder_token);
           }
-          emit_mail_item_updated({ id: email.id, folders: previous_folders });
+          reindex_ids(all_ids);
+          for (const id of all_ids) {
+            emit_mail_item_updated({ id, folders: previous_folders });
+          }
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         },
       });

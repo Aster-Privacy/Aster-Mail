@@ -24,6 +24,7 @@ import type {
   ScheduledClickData,
 } from "@/components/email/email_inbox";
 import type { TranslationKey } from "@/lib/i18n";
+import type { InboxEmailFolder } from "@/types/email";
 import type { LocalEmailData } from "@/components/email/email_viewer_types";
 import type { CachedSubscription } from "@/services/subscription_cache";
 import type { SettingsSection } from "@/components/settings/settings_content";
@@ -898,7 +899,12 @@ export function use_index_page_state() {
   const current_view = get_current_view();
 
   const handle_drop_to_folder = useCallback(
-    async (email_ids: string[], folder_token: string, folder_name: string) => {
+    async (
+      email_ids: string[],
+      folder_token: string,
+      folder_name: string,
+      previous_folders: InboxEmailFolder[] = [],
+    ) => {
       if (email_ids.length === 0) {
         show_toast(t("common.already_in_folder", { folder: folder_name }));
 
@@ -979,7 +985,24 @@ export function use_index_page_state() {
         action_type: "folder",
         email_ids: moved_ids,
         on_undo: async () => {
-          await batched_bulk_remove_folder(moved_ids, folder_token);
+          const undo_result = await batched_bulk_remove_folder(
+            moved_ids,
+            folder_token,
+          );
+
+          if (undo_result.failed_ids.length === moved_ids.length) {
+            throw new Error("undo folder move failed");
+          }
+          const restored_folders = previous_folders.filter(
+            (f) => f.folder_token !== folder_token,
+          );
+
+          for (const previous of restored_folders) {
+            await batched_bulk_add_folder(moved_ids, previous.folder_token);
+          }
+          for (const id of moved_ids) {
+            emit_mail_item_updated({ id, folders: restored_folders });
+          }
           if (is_inbox_like_view) {
             if (left_inbox) {
               adjust_stats_inbox(moved_ids.length);

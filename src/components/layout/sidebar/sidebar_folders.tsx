@@ -20,6 +20,7 @@
 //
 import type { MutableRefObject } from "react";
 import type { DecryptedFolder, FolderTreeNode } from "@/hooks/use_folders";
+import type { InboxEmailFolder } from "@/types/email";
 
 import {
   memo,
@@ -108,6 +109,7 @@ interface SidebarFoldersProps {
     email_ids: string[],
     folder_token: string,
     folder_name: string,
+    previous_folders?: InboxEmailFolder[],
   ) => void;
   section_collapsed?: boolean;
   on_toggle_section?: () => void;
@@ -505,7 +507,22 @@ export const SidebarFolders = memo(function SidebarFolders({
 
                           return;
                         }
-                        on_drop_emails(ids, folder.folder_token, folder.name);
+                        const previous_folders = folders
+                          .filter((f) =>
+                            existing_folders.includes(f.folder_token),
+                          )
+                          .map((f) => ({
+                            folder_token: f.folder_token,
+                            name: f.name,
+                            color: f.color,
+                          }));
+
+                        on_drop_emails(
+                          ids,
+                          folder.folder_token,
+                          folder.name,
+                          previous_folders,
+                        );
                       } catch {
                         return;
                       }
