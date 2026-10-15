@@ -24,26 +24,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
+import { REVIEW_STORE_KEY } from "@/services/extraction/review_store";
+
 vi.mock("@/lib/i18n/context", () => ({
   use_i18n: () => ({
     t: (key: string, values?: Record<string, string | number>) =>
       values ? `${key}:${Object.values(values).join("|")}` : key,
     language: "en",
   }),
-}));
-
-vi.mock("@aster/ui", async (import_original) => ({
-  ...(await import_original<typeof import("@aster/ui")>()),
-  Tooltip: ({ children }: { children: React.ReactNode }) => children,
-}));
-
-const submit_receipt_feedback = vi.fn((_is_correct: boolean) =>
-  Promise.resolve(),
-);
-
-vi.mock("@/services/api/mail", () => ({
-  submit_receipt_feedback: (is_correct: boolean) =>
-    submit_receipt_feedback(is_correct),
 }));
 
 const { PurchaseDetailsBanner } = await import("./purchase_details_banner");
@@ -73,9 +61,21 @@ async function click(element: Element | null) {
   });
 }
 
+async function type_into(element: Element | null, value: string) {
+  await act(async () => {
+    const input = element as HTMLInputElement;
+    const setter = Object.getOwnPropertyDescriptor(
+      HTMLInputElement.prototype,
+      "value",
+    )!.set!;
+
+    setter.call(input, value);
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+}
+
 beforeEach(() => {
   localStorage.clear();
-  submit_receipt_feedback.mockClear();
 });
 
 afterEach(() => {
@@ -94,6 +94,8 @@ const amount = (value: number, formatted: string) => ({
 });
 
 const base: ExtractedPurchaseDetails = {
+  document_kind: "order",
+  merchant_source: "billing@astermail.org",
   order_id: "AS-4471",
   order_date: "March 5, 2026",
   merchant_name: "Aster Privacy",
@@ -138,8 +140,20 @@ describe("PurchaseDetailsBanner", () => {
       "Star plan",
     );
     expect(query(el, "purchase_total_row")!.textContent).toContain("$85.99");
-    expect(query(el, "purchase_total_row")!.textContent).toContain("-$1.00");
+    expect(query(el, "purchase_total_row")!.textContent).toContain("−$1.00");
     expect(card!.textContent).toContain("mail.card_ending_in:4242");
+  });
+
+  it("titles a receipt differently from an order", async () => {
+    const el = await render(
+      <PurchaseDetailsBanner
+        details={{ ...base, document_kind: "receipt" }}
+        email_id="m1"
+      />,
+    );
+
+    expect(el.textContent).toContain("mail.receipt_from:Aster Privacy");
+    expect(el.textContent).toContain("mail.receipt_number:AS-4471");
   });
 
   it("collapses on header click and remembers the choice", async () => {
@@ -157,20 +171,62 @@ describe("PurchaseDetailsBanner", () => {
     expect(localStorage.getItem("receipt_banner_collapsed")).toBe("1");
   });
 
-  it("records feedback once and stores it per email", async () => {
+  it("confirms locally without any network call", async () => {
+    const fetch_spy = vi.spyOn(globalThis, "fetch");
     const el = await render(
       <PurchaseDetailsBanner details={base} email_id="m1" />,
     );
 
-    await click(
-      el.querySelector('[aria-label="mail.receipt_feedback_incorrect"]'),
+    await click(query(el, "purchase_review_confirm"));
+
+    expect(fetch_spy).not.toHaveBeenCalled();
+    expect(el.textContent).toContain("mail.receipt_review_confirmed");
+    expect(query(el, "purchase_review_confirm")).toBeNull();
+    expect(localStorage.getItem(REVIEW_STORE_KEY)).toContain('"m1"');
+    fetch_spy.mockRestore();
+  });
+
+  it("saves a correction and reuses it for the same sender", async () => {
+    const el = await render(
+      <PurchaseDetailsBanner
+        details={{ ...base, merchant_name: "JKatt" }}
+        email_id="m1"
+      />,
     );
-    expect(submit_receipt_feedback).toHaveBeenCalledWith(false);
-    expect(localStorage.getItem("receipt_feedback_m1")).toBe("down");
-    expect(el.textContent).toContain("mail.receipt_feedback_thanks");
-    expect(
-      el.querySelector('[aria-label="mail.receipt_feedback_correct"]'),
-    ).toBeNull();
+
+    await click(query(el, "purchase_review_edit"));
+    await type_into(query(el, "purchase_review_merchant"), "Aster Privacy ");
+    await click(query(el, "purchase_review_save"));
+
+    expect(query(el, "purchase_review_form")).toBeNull();
+    expect(el.textContent).toContain("mail.order_from:Aster Privacy");
+    expect(el.textContent).toContain("mail.receipt_review_saved");
+
+    const second = await render(
+      <PurchaseDetailsBanner
+        details={{ ...base, merchant_name: "JKatt" }}
+        email_id="m2"
+      />,
+    );
+
+    expect(second.textContent).toContain("mail.order_from:Aster Privacy");
+  });
+
+  it("hides the card when asked and stays hidden", async () => {
+    const el = await render(
+      <PurchaseDetailsBanner details={base} email_id="m1" />,
+    );
+
+    await click(query(el, "purchase_review_edit"));
+    await click(query(el, "purchase_review_hide"));
+
+    expect(query(el, "purchase_details_card")).toBeNull();
+
+    const again = await render(
+      <PurchaseDetailsBanner details={base} email_id="m1" />,
+    );
+
+    expect(query(again, "purchase_details_card")).toBeNull();
   });
 
   it("renders nothing without meaningful data", async () => {

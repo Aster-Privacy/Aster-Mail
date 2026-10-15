@@ -18,7 +18,11 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+export type PurchaseDocumentKind = "receipt" | "order";
+
 export interface ExtractedPurchaseDetails {
+  document_kind: PurchaseDocumentKind;
+  merchant_source: string;
   order_id: string | null;
   order_date: string | null;
   merchant_name: string | null;

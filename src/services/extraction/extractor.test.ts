@@ -364,6 +364,84 @@ describe("purchase item parsing", () => {
 
     expect(result.merchant_name).toBe("Shipping Supplies Inc");
   });
+
+  it("reads the merchant from a forwarded processor receipt", () => {
+    const body = [
+      "Great thanks",
+      "",
+      "From: receipts+acct_1TGjxJDQ6TkRvWcw@stripe.com",
+      "Date: Oct 15, 2026, 3:49 AM",
+      "Subject: Your Aster Privacy receipt [#1856-2392]",
+      "To: hello@astermail.org",
+      "",
+      "Receipt from Aster Privacy",
+      "Receipt #1856-2392",
+      "Amount paid $11.62",
+      "Date paid October 15, 2026 at 4:48:27 AM EDT",
+      "Summary",
+      "Domain getstellar.org (1 year) × 1 $11.62",
+      "Amount paid $11.62",
+    ].join("\n");
+    const result = extract_purchase_details(
+      "Fwd: Your Aster Privacy receipt [#1856-2392]",
+      body,
+      "jkatt747gmail.com@astermail.org",
+      "JKatt",
+    );
+
+    expect(result.merchant_name).toBe("Aster Privacy");
+    expect(result.order_id).toBe("1856-2392");
+    expect(result.total?.formatted).toBe("$11.62");
+    expect(result.items.map((item) => item.name)).toEqual([
+      "Domain getstellar.org (1 year)",
+    ]);
+    expect(result.document_kind).toBe("receipt");
+    expect(result.merchant_source).toBe(
+      "receipts+acct_1tgjxjdq6tkrvwcw@stripe.com",
+    );
+    expect(result.order_date).toBe("October 15, 2026");
+    expect(result.raw_signals).toContain(
+      "forwarded_from:receipts+acct_1tgjxjdq6tkrvwcw@stripe.com",
+    );
+  });
+
+  it("never names a payment processor as the merchant", () => {
+    const result = extract_purchase_details(
+      "Your receipt from Acme Co",
+      "Receipt from Acme Co\nReceipt #42-0001\nAmount paid $5.00",
+      "receipts@stripe.com",
+      "Stripe",
+    );
+
+    expect(result.merchant_name).toBe("Acme Co");
+    expect(result.document_kind).toBe("receipt");
+    expect(result.merchant_source).toBe("receipts@stripe.com");
+  });
+
+  it("uses the sender domain when a processor mail names no merchant", () => {
+    const result = extract_purchase_details(
+      "Payment received",
+      "Order #77-1234. Total: $9.00.",
+      "noreply@paddle.com",
+      "Paddle",
+    );
+
+    expect(result.merchant_name).toBe("Paddle");
+    expect(result.order_id).toBe("77-1234");
+  });
+
+  it("keeps the direct sender as merchant for an ordinary order mail", () => {
+    const result = extract_purchase_details(
+      "Order confirmation",
+      "Thanks for your order. Order #ORD-555. Total: $12.00.",
+      "orders@northwindtraders.com",
+      "Northwind Traders",
+    );
+
+    expect(result.merchant_name).toBe("Northwind Traders");
+    expect(result.document_kind).toBe("order");
+    expect(result.merchant_source).toBe("orders@northwindtraders.com");
+  });
 });
 
 describe("is_shipping_email precision", () => {

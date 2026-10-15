@@ -54,7 +54,7 @@ export function ExtractionCard({
   return (
     <section
       className={cn(
-        "rounded-xl border border-edge-primary bg-surf-secondary overflow-hidden",
+        "rounded-xl border border-edge-primary bg-surf-primary overflow-hidden",
         className,
       )}
       data-testid={test_id}
@@ -94,22 +94,6 @@ export function ExtractionCard({
         <div className="border-t border-edge-secondary">{children}</div>
       )}
     </section>
-  );
-}
-
-interface ExtractionCardIconProps {
-  icon: IconComponent;
-}
-
-export function ExtractionCardIcon({ icon: Icon }: ExtractionCardIconProps) {
-  return (
-    <span className="w-9 h-9 rounded-full bg-surf-tertiary flex items-center justify-center">
-      <Icon
-        aria-hidden="true"
-        className="w-5 h-5 text-txt-secondary"
-        strokeWidth={1.75}
-      />
-    </span>
   );
 }
 

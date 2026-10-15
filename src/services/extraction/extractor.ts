@@ -67,13 +67,19 @@ export function extraction_needs_markup_parse(
   return source !== "" && is_html_content(source);
 }
 
+const MAX_EXTRACTION_CHARS = 60_000;
+
 function normalize_email_text(text: string, html?: string): string {
   const source = extraction_source(text, html);
 
   if (!source) return "";
-  if (is_html_content(source)) return html_to_readable_plain_text(source);
 
-  return decode_basic_entities(source);
+  const bounded = source.slice(0, MAX_EXTRACTION_CHARS * 4);
+  const readable = is_html_content(bounded)
+    ? html_to_readable_plain_text(bounded)
+    : decode_basic_entities(bounded);
+
+  return readable.slice(0, MAX_EXTRACTION_CHARS);
 }
 
 function clean_text_field(value: string | null | undefined): string | null {
@@ -574,10 +580,14 @@ function extract_items_from_body(
   const items: ExtractedItem[] = [];
 
   const item_patterns = [
-    /(\d+)\s*x\s+(.+?)\s*[-–]\s*([\$€£¥₹]?\s*[\d,.]+)/gi,
-    /(.+?)\s*\(Qty:\s*(\d+)\)\s*([\$€£¥₹]?\s*[\d,.]+)/gi,
-    /Item:\s*(.+?)(?:\s*Qty:\s*(\d+))?\s*Price:\s*([\$€£¥₹]?\s*[\d,.]+)/gi,
+    /(\d+)\s*x\s+([^\n]{1,160}?)\s*[-–]\s*([\$€£¥₹]?\s*[\d,.]+)/gi,
+    /([^\n]{1,160}?)\s*\(Qty:\s*(\d+)\)\s*([\$€£¥₹]?\s*[\d,.]+)/gi,
+    /Item:\s*([^\n]{1,160}?)(?:\s*Qty:\s*(\d+))?\s*Price:\s*([\$€£¥₹]?\s*[\d,.]+)/gi,
+    /(?:^|\n)[ \t]*([^\n$€£¥₹]{2,160}?)\s+[×x]\s*(\d{1,3})\s+([\$€£¥₹]\s*[\d,.]+)[ \t]*(?=\n|$)/gi,
   ];
+
+  const summary_word =
+    /\b(?:sub\s?total|total|amount|tax|vat|shipping|discount)\b/i;
 
   for (const pattern of item_patterns) {
     let match;
@@ -594,7 +604,12 @@ function extract_items_from_body(
         : parseInt(name_or_qty ?? "", 10) || 1;
       const unit_price = parse_amount(price_str, fallback_currency);
 
-      if (item_name && item_name.length > 2 && item_name.length < 200) {
+      if (
+        item_name &&
+        item_name.length > 2 &&
+        item_name.length < 200 &&
+        !summary_word.test(item_name)
+      ) {
         items.push({
           name: item_name,
           quantity,
@@ -617,29 +632,270 @@ function extract_items_from_body(
   return items;
 }
 
-function extract_merchant_name(from_email: string, from_name: string): string {
-  if (from_name && !from_name.toLowerCase().includes("noreply")) {
+const PAYMENT_PROCESSOR_DOMAINS = [
+  "stripe.com",
+  "paypal.com",
+  "paypal.de",
+  "squareup.com",
+  "square.com",
+  "shopify.com",
+  "shopifyemail.com",
+  "gumroad.com",
+  "paddle.com",
+  "paddle.net",
+  "lemonsqueezy.com",
+  "fastspring.com",
+  "braintreegateway.com",
+  "adyen.com",
+  "mollie.com",
+  "klarna.com",
+  "chargebee.com",
+  "recurly.com",
+  "2checkout.com",
+  "checkout.com",
+];
+
+const GENERIC_MERCHANT_WORDS = new Set([
+  "order",
+  "orders",
+  "payment",
+  "purchase",
+  "receipt",
+  "invoice",
+  "subscription",
+  "online",
+  "recent",
+  "latest",
+  "new",
+  "monthly",
+  "annual",
+  "us",
+  "store",
+  "shop",
+  "the",
+  "your",
+]);
+
+const MERCHANT_TAIL = "([^\\n#\\[\\(<>@:]{2,60}?)";
+const MERCHANT_STOP =
+  "(?=\\s*(?:[\\[\\(#:,.!|\\-]|\\bis\\b|\\bhas\\b|\\bfor\\b|\\bon\\b|\\bwas\\b|\\n|$))";
+
+const SUBJECT_MERCHANT_PATTERNS = [
+  new RegExp(`\\breceipt\\s+from\\s+${MERCHANT_TAIL}${MERCHANT_STOP}`, "i"),
+  new RegExp(
+    `\\byour\\s+${MERCHANT_TAIL}\\s+(?:receipt|invoice|order\\s+confirmation|order|purchase)\\b`,
+    "i",
+  ),
+  new RegExp(
+    `\\b(?:order|purchase|invoice|payment)\\s+(?:confirmation\\s+|receipt\\s+)?(?:from|with|at|to)\\s+${MERCHANT_TAIL}${MERCHANT_STOP}`,
+    "i",
+  ),
+  new RegExp(
+    `\\bthanks?\\s+(?:you\\s+)?for\\s+(?:your\\s+)?(?:order|purchase|shopping|payment)\\s+(?:from|with|at|to)\\s+${MERCHANT_TAIL}${MERCHANT_STOP}`,
+    "i",
+  ),
+];
+
+const BODY_MERCHANT_PATTERNS = [
+  new RegExp(`\\breceipt\\s+from\\s+${MERCHANT_TAIL}${MERCHANT_STOP}`, "i"),
+  new RegExp(
+    `\\bthanks?\\s+(?:you\\s+)?for\\s+(?:your\\s+)?(?:order|purchase|shopping|payment)\\s+(?:from|with|at|to)\\s+${MERCHANT_TAIL}${MERCHANT_STOP}`,
+    "i",
+  ),
+  new RegExp(
+    `\\b(?:order|purchase|invoice|payment)\\s+(?:confirmation\\s+|receipt\\s+)?(?:from|with|at|to)\\s+${MERCHANT_TAIL}${MERCHANT_STOP}`,
+    "i",
+  ),
+  new RegExp(`\\bsold\\s+by\\s+${MERCHANT_TAIL}${MERCHANT_STOP}`, "i"),
+];
+
+const FORWARDED_FROM_PATTERN =
+  /(?:^|\n)[ \t>*]*(?:from|von|de|da|van)\s*:\s*\*{0,2}\s*([^\n<]{0,80}?)\s*<?([\w.+-]+@[\w-]+(?:\.[\w-]+)+)>?/i;
+const FORWARDED_SUBJECT_PATTERN =
+  /(?:^|\n)[ \t>*]*(?:subject|betreff|objet|asunto|assunto|onderwerp)\s*:\s*\*{0,2}\s*([^\n]{1,200})/i;
+const FORWARDED_MARKER_PATTERN =
+  /(?:^|\n)[ \t>*]*(?:sent|date|datum|envoyé|enviado|to|an|à|para|subject|betreff|objet|asunto|assunto)\s*:/i;
+const REPLY_PREFIX_PATTERN = /^(?:\s*(?:re|fw|fwd|aw|wg|tr|rv|enc)\s*:\s*)+/i;
+
+interface ForwardedOrigin {
+  from_email: string;
+  from_name: string;
+  subject: string | null;
+}
+
+function strip_reply_prefixes(subject: string): string {
+  return subject.replace(REPLY_PREFIX_PATTERN, "").trim();
+}
+
+function email_domain(address: string): string | null {
+  const at = address.lastIndexOf("@");
+
+  if (at < 0) return null;
+
+  return address.slice(at + 1).toLowerCase().replace(/[>\s]+$/, "") || null;
+}
+
+function is_payment_processor(address: string): boolean {
+  const domain = email_domain(address);
+
+  if (!domain) return false;
+
+  return PAYMENT_PROCESSOR_DOMAINS.some(
+    (processor) => domain === processor || domain.endsWith(`.${processor}`),
+  );
+}
+
+function detect_forwarded_origin(body: string): ForwardedOrigin | null {
+  const from_match = body.match(FORWARDED_FROM_PATTERN);
+
+  if (!from_match || from_match.index === undefined) return null;
+
+  const block = body.slice(from_match.index, from_match.index + 600);
+
+  if (!FORWARDED_MARKER_PATTERN.test(block.slice(from_match[0].length)))
+    return null;
+
+  const subject_match = block.match(FORWARDED_SUBJECT_PATTERN);
+  const from_name = from_match[1]
+    .replace(/^["'“”]+|["'“”]+$/g, "")
+    .trim();
+
+  return {
+    from_email: from_match[2].toLowerCase(),
+    from_name,
+    subject: subject_match ? strip_reply_prefixes(subject_match[1]) : null,
+  };
+}
+
+function tidy_merchant_candidate(raw: string | undefined): string | null {
+  if (!raw) return null;
+
+  const tidy = raw
+    .replace(/\s+/g, " ")
+    .replace(/^[\s"'“”*_-]+|[\s"'“”*_.,;:!-]+$/g, "")
+    .trim();
+
+  if (tidy.length < 2 || tidy.length > 60) return null;
+  if (/https?:|www\.|@|[<>]/i.test(tidy)) return null;
+  if (
+    !/[A-Za-zÀ-ɏͰ-ϿЀ-ӿ぀-ヿ一-鿿]/.test(
+      tidy,
+    )
+  )
+    return null;
+
+  const words = tidy.toLowerCase().split(" ");
+
+  if (words.every((word) => GENERIC_MERCHANT_WORDS.has(word))) return null;
+
+  return tidy;
+}
+
+function merchant_from_text(text: string, patterns: RegExp[]): string | null {
+  for (const pattern of patterns) {
+    const candidate = tidy_merchant_candidate(text.match(pattern)?.[1]);
+
+    if (candidate) return candidate;
+  }
+
+  return null;
+}
+
+function merchant_from_sender(
+  from_email: string,
+  from_name: string,
+): string | null {
+  const lowered_name = from_name.toLowerCase();
+
+  if (
+    from_name &&
+    !lowered_name.includes("noreply") &&
+    !lowered_name.includes("no-reply") &&
+    !from_name.includes("@")
+  ) {
     const stripped = from_name
-      .replace(/(?:\s+(?:order|shipping|notification|update)s?)+\s*$/i, "")
+      .replace(
+        /(?:\s+(?:order|shipping|notification|update|receipt|billing|payment|team|support)s?)+\s*$/i,
+        "",
+      )
       .trim();
 
     return stripped || from_name.trim();
   }
 
-  const domain = from_email.split("@")[1];
+  const domain = email_domain(from_email);
 
   if (domain) {
     const parts = domain.split(".");
 
     if (parts.length >= 2) {
-      return (
-        parts[parts.length - 2].charAt(0).toUpperCase() +
-        parts[parts.length - 2].slice(1)
-      );
+      const label = parts[parts.length - 2];
+
+      return label.charAt(0).toUpperCase() + label.slice(1);
     }
   }
 
-  return from_name || get_active_translations().common.unknown_merchant;
+  return from_name.trim() || null;
+}
+
+interface MerchantResolution {
+  name: string;
+  source_address: string;
+}
+
+function resolve_merchant(
+  subject: string,
+  body: string,
+  from_email: string,
+  from_name: string,
+  forwarded: ForwardedOrigin | null,
+): MerchantResolution {
+  const origin_email = forwarded?.from_email ?? from_email.toLowerCase();
+  const origin_name = forwarded ? forwarded.from_name : from_name;
+  const subjects = [strip_reply_prefixes(subject), forwarded?.subject ?? ""];
+
+  for (const candidate_subject of subjects) {
+    const from_subject = merchant_from_text(
+      candidate_subject,
+      SUBJECT_MERCHANT_PATTERNS,
+    );
+
+    if (from_subject) return { name: from_subject, source_address: origin_email };
+  }
+
+  const from_body = merchant_from_text(
+    body.slice(0, 6000),
+    BODY_MERCHANT_PATTERNS,
+  );
+
+  if (from_body) return { name: from_body, source_address: origin_email };
+
+  const processor = is_payment_processor(origin_email);
+  const sender_name = merchant_from_sender(
+    origin_email,
+    processor ? "" : origin_name,
+  );
+
+  return {
+    name: sender_name ?? get_active_translations().common.unknown_merchant,
+    source_address: origin_email,
+  };
+}
+
+function detect_document_kind(
+  subject: string,
+  body: string,
+): "receipt" | "order" {
+  const head = `${subject}\n${body.slice(0, 1500)}`;
+
+  if (/\border\s*(?:#|no\.?|num(?:ber)?|id)\b/i.test(subject)) return "order";
+  if (/\b(?:receipt|invoice|payment|amount\s+paid)\b/i.test(subject))
+    return "receipt";
+  if (/\border\s*(?:#|no\.?|num(?:ber)?|id|confirm)/i.test(head)) return "order";
+  if (/\b(?:receipt|invoice|amount\s+paid|date\s+paid)\b/i.test(head))
+    return "receipt";
+
+  return "order";
 }
 
 export function extract_purchase_details(
@@ -651,7 +907,12 @@ export function extract_purchase_details(
   const signals: string[] = [];
   const clean_subject = decode_basic_entities(subject);
   const clean_body = normalize_email_text(body);
-  const combined = `${clean_subject}\n${clean_body}`;
+  const forwarded = detect_forwarded_origin(clean_body);
+  const effective_subject =
+    forwarded?.subject ?? strip_reply_prefixes(clean_subject);
+  const combined = `${effective_subject}\n${clean_body}`;
+
+  if (forwarded) signals.push(`forwarded_from:${forwarded.from_email}`);
 
   let order_id: string | null = null;
 
@@ -740,7 +1001,8 @@ export function extract_purchase_details(
   const payment_method = clean_text_field(payment_match?.[1]);
 
   const date_patterns = [
-    /(?:order|purchase)\s+date[:\s]*([A-Za-z]+\s+\d{1,2},?\s+\d{4})/i,
+    /(?:order|purchase|payment)\s+date[:\s]*([A-Za-z]+\s+\d{1,2},?\s+\d{4})/i,
+    /(?:date\s+paid|paid\s+on)[:\s]*([A-Za-z]+\s+\d{1,2},?\s+\d{4})/i,
     /(?:ordered|purchased)\s+on[:\s]*([A-Za-z]+\s+\d{1,2},?\s+\d{4})/i,
     /date[:\s]*(\d{1,2}\/\d{1,2}\/\d{2,4})/i,
   ];
@@ -750,9 +1012,15 @@ export function extract_purchase_details(
 
   if (items.length > 0) signals.push(`items:${items.length}`);
 
-  const merchant_name = clean_text_field(
-    extract_merchant_name(from_email, from_name),
+  const merchant = resolve_merchant(
+    clean_subject,
+    clean_body,
+    from_email,
+    from_name,
+    forwarded,
   );
+  const merchant_name = clean_text_field(merchant.name);
+  const document_kind = detect_document_kind(effective_subject, clean_body);
 
   const confirmation_number = clean_identifier(
     combined.match(CONFIRMATION_NUMBER_PATTERN)?.[1],
@@ -763,6 +1031,8 @@ export function extract_purchase_details(
   );
 
   return {
+    document_kind,
+    merchant_source: merchant.source_address,
     order_id,
     order_date,
     merchant_name,
