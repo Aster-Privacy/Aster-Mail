@@ -55,6 +55,7 @@ vi.mock("@/hooks/use_contact_photo", () => ({
 }));
 
 const { ProfileAvatar } = await import("./profile_avatar");
+const { SenderLogoBoundary } = await import("@/contexts/sender_logo_context");
 const { ContactAvatar } =
   await import("@/components/common/contacts/contact_avatar");
 
@@ -144,5 +145,58 @@ describe("sender pictures setting", () => {
 
     expect(favicon_requests(container)).toHaveLength(1);
     expect(api_requests(container)).toEqual([]);
+  });
+});
+
+describe("sender logos inside spam", () => {
+  it("requests no domain logo inside a blocked boundary", () => {
+    const container = render(
+      <SenderLogoBoundary allowed={false}>
+        <ProfileAvatar use_domain_logo email="news@shop.example" name="Shop" />
+      </SenderLogoBoundary>,
+    );
+
+    expect(favicon_requests(container)).toEqual([]);
+    expect(favicon_calls.every(([, enabled]) => !enabled)).toBe(true);
+  });
+
+  it("keeps blocking when a nested boundary allows logos", () => {
+    const container = render(
+      <SenderLogoBoundary allowed={false}>
+        <SenderLogoBoundary allowed>
+          <ProfileAvatar
+            use_domain_logo
+            email="news@shop.example"
+            name="Shop"
+          />
+        </SenderLogoBoundary>
+      </SenderLogoBoundary>,
+    );
+
+    expect(favicon_requests(container)).toEqual([]);
+    expect(favicon_calls.every(([, enabled]) => !enabled)).toBe(true);
+  });
+
+  it("loads the domain logo inside an allowed boundary", () => {
+    const container = render(
+      <SenderLogoBoundary allowed>
+        <ProfileAvatar use_domain_logo email="news@shop.example" name="Shop" />
+      </SenderLogoBoundary>,
+    );
+
+    expect(favicon_requests(container)).toHaveLength(1);
+  });
+});
+
+describe("contact favicons inside spam", () => {
+  it("requests no contact favicon inside a blocked boundary", () => {
+    const container = render(
+      <SenderLogoBoundary allowed={false}>
+        <ContactAvatar email="news@shop.example" name="Shop" size_px={32} />
+      </SenderLogoBoundary>,
+    );
+
+    expect(favicon_requests(container)).toEqual([]);
+    expect(favicon_calls.every(([, enabled]) => !enabled)).toBe(true);
   });
 });

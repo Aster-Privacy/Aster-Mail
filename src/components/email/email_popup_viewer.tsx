@@ -42,6 +42,7 @@ import {
 import { PopupEmailActions } from "@/components/email/popup/popup_email_actions";
 import { PopupEmailBody } from "@/components/email/popup/popup_email_body";
 import { use_spam_confirm } from "@/components/email/use_spam_confirm";
+import { SenderLogoBoundary } from "@/contexts/sender_logo_context";
 
 export function EmailPopupViewer({
   email_id,
@@ -416,9 +417,11 @@ export function EmailPopupViewer({
     </motion.div>
   );
 
+  const sender_logos_allowed = viewer.mail_item?.is_spam !== true;
+
   if (viewer.is_fullscreen) {
     return (
-      <>
+      <SenderLogoBoundary allowed={sender_logos_allowed}>
         <motion.div
           animate={{ opacity: viewer.is_exiting_fullscreen ? 0 : 1 }}
           className="fixed inset-0 z-[60] flex items-center justify-center"
@@ -439,9 +442,13 @@ export function EmailPopupViewer({
           />
           {popup_content}
         </motion.div>
-      </>
+      </SenderLogoBoundary>
     );
   }
 
-  return popup_content;
+  return (
+    <SenderLogoBoundary allowed={sender_logos_allowed}>
+      {popup_content}
+    </SenderLogoBoundary>
+  );
 }

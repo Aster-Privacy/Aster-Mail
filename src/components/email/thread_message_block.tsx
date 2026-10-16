@@ -94,6 +94,7 @@ import { SenderProfileTrigger } from "@/components/profile/sender_profile_trigge
 import { PgpPasswordProtectedMessage } from "@/components/email/pgp_password_prompt";
 import { open_external } from "@/utils/open_link";
 import { folder_option_indent } from "@/hooks/use_folders/tree";
+import { SenderLogoBoundary } from "@/contexts/sender_logo_context";
 
 export function ThreadMessageBlock(
   props: ThreadMessageBlockProps,
@@ -192,10 +193,12 @@ export function ThreadMessageBlock(
     content: React.ReactNode,
     reply: React.ReactNode = null,
   ) => (
-    <div ref={island_ref} className="overflow-hidden">
-      {content}
-      {reply}
-    </div>
+    <SenderLogoBoundary allowed={message.is_spam !== true}>
+      <div ref={island_ref} className="overflow-hidden">
+        {content}
+        {reply}
+      </div>
+    </SenderLogoBoundary>
   );
 
   const render_inline_reply_island = (on_close: () => void) => {

@@ -347,7 +347,6 @@ export const MobileEmailRow = memo(function MobileEmailRow(
       {show_avatar ? (
         <div className="relative mt-0.5 shrink-0">
           <ProfileAvatar
-            use_domain_logo
             email={show_sender_email}
             name={list_sender_name}
             plain={marks_hidden}
@@ -358,6 +357,7 @@ export const MobileEmailRow = memo(function MobileEmailRow(
               )
             }
             size="md"
+            use_domain_logo={!email.is_spam}
           />
           {selection_mode && is_selected && (
             <motion.div

@@ -43,6 +43,7 @@ import { resolve_settings_section } from "@/components/settings/settings_content
 import { set_pending_settings_anchor } from "@/lib/settings_anchor";
 import { read_settings_navigation } from "@/lib/settings_links";
 import { use_compose_host } from "@/components/toast/use_toast_action_hosts";
+import { SenderLogoBoundary } from "@/contexts/sender_logo_context";
 
 export default function EmailDetailPage() {
   const reduce_motion = use_should_reduce_motion();
@@ -98,7 +99,7 @@ export default function EmailDetailPage() {
   }, [navigate]);
 
   return (
-    <>
+    <SenderLogoBoundary allowed={detail.mail_item?.is_spam !== true}>
       <div
         className="h-screen w-full flex transition-colors duration-200 overflow-hidden bg-[var(--bg-secondary)]"
         style={{ height: "100dvh" }}
@@ -404,6 +405,6 @@ export default function EmailDetailPage() {
         on_close={detail.close_compose}
         on_toggle_minimize={detail.toggle_minimize}
       />
-    </>
+    </SenderLogoBoundary>
   );
 }

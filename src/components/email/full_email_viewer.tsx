@@ -66,6 +66,7 @@ import {
 } from "@/hooks/use_unsubscribed_senders";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { open_external } from "@/utils/open_link";
+import { SenderLogoBoundary } from "@/contexts/sender_logo_context";
 
 export type FullReplyData = ReplyData;
 export type FullForwardData = ForwardData;
@@ -463,7 +464,7 @@ export function FullEmailViewer({
       !viewer.is_content_current) &&
     !viewer.error;
 
-  return (
+  const viewer_content = (
     <div className="flex flex-col h-full bg-surf-primary">
       <div className="flex items-center gap-1 px-2 sm:px-3 py-2 border-b border-edge-primary flex-shrink-0">
         <button
@@ -640,5 +641,11 @@ export function FullEmailViewer({
       </div>
       {spam_confirm_dialog}
     </div>
+  );
+
+  return (
+    <SenderLogoBoundary allowed={viewer.mail_item?.is_spam !== true}>
+      {viewer_content}
+    </SenderLogoBoundary>
   );
 }

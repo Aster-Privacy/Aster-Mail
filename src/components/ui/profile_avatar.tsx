@@ -41,6 +41,7 @@ import {
 import { get_root_domain, is_official_address } from "@/lib/utils";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
+import { use_sender_logos_allowed } from "@/contexts/sender_logo_context";
 import { use_peer_profile } from "@/hooks/use_peer_profile";
 import { use_contact_photo } from "@/hooks/use_contact_photo";
 import { is_aster_email } from "@/services/api/profiles";
@@ -138,8 +139,11 @@ export const ProfileAvatar = memo(function ProfileAvatar({
   const { user } = use_auth();
   const { preferences } = use_preferences();
   const low_network = preferences.low_network_mode || plain;
+  const sender_logos_allowed = use_sender_logos_allowed();
   const domain_logos_allowed =
-    use_domain_logo && preferences.show_profile_pictures !== false;
+    use_domain_logo &&
+    sender_logos_allowed &&
+    preferences.show_profile_pictures !== false;
   const is_current_user =
     !!email && !!user?.email && same_address_ignoring_dots(email, user.email);
   const peer_profile = use_peer_profile(

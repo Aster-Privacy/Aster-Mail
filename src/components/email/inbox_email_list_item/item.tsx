@@ -493,7 +493,9 @@ export const InboxEmailListItem = memo(
                           )
                         }
                         size={compact_rows ? "sm_compact" : "sm"}
-                        use_domain_logo={show_profile_pictures}
+                        use_domain_logo={
+                          show_profile_pictures && !email.is_spam
+                        }
                       />
                     )}
                   </div>
