@@ -101,6 +101,13 @@ function arm_progress_stall_timeout() {
   }, PROGRESS_STALL_MS);
 }
 
+export function hold_action_toast(): void {
+  if (toast_timeout) {
+    clearTimeout(toast_timeout);
+    toast_timeout = null;
+  }
+}
+
 export function settle_undo_toast(
   toast: ActionToastState,
   message: string,
@@ -266,6 +273,7 @@ export function ActionToast({ position }: ActionToastProps) {
     if (!toast?.on_undo || is_undoing) return;
 
     set_is_undoing(true);
+    hold_action_toast();
     try {
       await toast.on_undo();
       settle_undo_toast(toast, t("common.action_undone"), 2000);

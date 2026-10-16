@@ -523,7 +523,11 @@ export function FullEmailViewer({
               on_print={viewer.handle_print}
               on_read_toggle={viewer.handle_read_toggle}
               on_snooze={on_snooze}
-              on_spam={() => request_spam(viewer.handle_spam)}
+              on_spam={
+                viewer.mail_item?.item_type === "sent"
+                  ? undefined
+                  : () => request_spam(viewer.handle_spam)
+              }
               on_trash={viewer.handle_trash}
               on_unarchive={viewer.handle_unarchive}
               on_unsubscribe={viewer.handle_unsubscribe}

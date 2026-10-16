@@ -274,6 +274,7 @@ export function use_forward_modal({
   const file_input_ref = useRef<HTMLInputElement>(null);
   const attachments_scroll_ref = useRef<HTMLDivElement>(null);
   const is_sending_ref = useRef(false);
+  const pending_reads_ref = useRef(0);
   const send_lock_started_at_ref = useRef(0);
   const forward_content_ref = useRef("");
   const edited_forward_content_ref = useRef<string | null>(null);
@@ -842,6 +843,12 @@ export function use_forward_modal({
       return;
     }
 
+    if (pending_reads_ref.current > 0) {
+      show_toast(t("common.loading"), "info");
+
+      return;
+    }
+
     const locked_expiry_feature = find_locked_expiry_feature({
       expires_at,
       limits_loaded: plan_limits !== null,
@@ -1178,6 +1185,12 @@ export function use_forward_modal({
       return;
     }
 
+    if (pending_reads_ref.current > 0) {
+      show_toast(t("common.loading"), "info");
+
+      return;
+    }
+
     if (attachments.length > 0) {
       set_error_message(t("common.scheduled_no_attachments"));
 
@@ -1366,102 +1379,107 @@ export function use_forward_modal({
 
   const handle_file_select = useCallback(
     async (event: React.ChangeEvent<HTMLInputElement>) => {
-      const selected = event.target.files;
+      pending_reads_ref.current += 1;
+      try {
+        const selected = event.target.files;
 
-      if (!selected || selected.length === 0) return;
+        if (!selected || selected.length === 0) return;
 
-      const files = await prepare_image_attachments(Array.from(selected));
+        const files = await prepare_image_attachments(Array.from(selected));
 
-      if (!files) {
-        if (file_input_ref.current) file_input_ref.current.value = "";
+        if (!files) {
+          if (file_input_ref.current) file_input_ref.current.value = "";
 
-        return;
-      }
-      set_attachment_error(null);
-      await ensure_attachment_limits();
-      const new_attachments: Attachment[] = [];
-      const current_total = get_total_attachments_size();
-      let running_total = current_total;
-      const taken_names = new Set(attachments.map((a) => a.name));
-      const unstripped: string[] = [];
-
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-
-        if (
-          attachments.length + new_attachments.length >=
-          MAX_ATTACHMENTS_PER_SEND
-        ) {
-          set_attachment_error(describe_too_many_attachments(t));
-          break;
+          return;
         }
+        set_attachment_error(null);
+        await ensure_attachment_limits();
+        const new_attachments: Attachment[] = [];
+        const current_total = get_total_attachments_size();
+        let running_total = current_total;
+        const taken_names = new Set(attachments.map((a) => a.name));
+        const unstripped: string[] = [];
 
-        if (file.size > get_max_attachment_size()) {
-          const rejection = describe_oversized_file(t, file.name, file.size);
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
 
-          set_attachment_error(rejection.message);
+          if (
+            attachments.length + new_attachments.length >=
+            MAX_ATTACHMENTS_PER_SEND
+          ) {
+            set_attachment_error(describe_too_many_attachments(t));
+            break;
+          }
 
-          if (rejection.can_upgrade)
-            prompt_attachment_upgrade(
-              rejection.message,
-              rejection.upgrade_plan_code,
+          if (file.size > get_max_attachment_size()) {
+            const rejection = describe_oversized_file(t, file.name, file.size);
+
+            set_attachment_error(rejection.message);
+
+            if (rejection.can_upgrade)
+              prompt_attachment_upgrade(
+                rejection.message,
+                rejection.upgrade_plan_code,
+              );
+            continue;
+          }
+
+          if (running_total + file.size > get_max_total_attachments_size()) {
+            set_attachment_error(describe_would_exceed_total(t, file.name));
+            continue;
+          }
+
+          const mime_type = file.type || "application/octet-stream";
+
+          const name = unique_attachment_name(file.name, taken_names);
+
+          try {
+            const raw = await file.arrayBuffer();
+            const data = await apply_metadata_strip(
+              raw,
+              mime_type,
+              preferences.strip_exif_on_compose,
+              file.name,
+              unstripped,
             );
-          continue;
+
+            new_attachments.push({
+              id: generate_attachment_id(),
+              name,
+              size: format_bytes(data.byteLength),
+              size_bytes: data.byteLength,
+              mime_type,
+              data,
+            });
+            taken_names.add(name);
+            running_total += data.byteLength;
+          } catch (error) {
+            if (import.meta.env.DEV) console.error(error);
+            set_attachment_error(
+              t("common.failed_to_read_named_file", { name: file.name }),
+            );
+          }
         }
 
-        if (running_total + file.size > get_max_total_attachments_size()) {
-          set_attachment_error(describe_would_exceed_total(t, file.name));
-          continue;
+        if (new_attachments.length > 0) {
+          attachments_touched_ref.current = true;
+          set_attachments((prev) => [...prev, ...new_attachments]);
+          play_iconic_sound("upload");
         }
 
-        const mime_type = file.type || "application/octet-stream";
-
-        const name = unique_attachment_name(file.name, taken_names);
-
-        try {
-          const raw = await file.arrayBuffer();
-          const data = await apply_metadata_strip(
-            raw,
-            mime_type,
-            preferences.strip_exif_on_compose,
-            file.name,
-            unstripped,
-          );
-
-          new_attachments.push({
-            id: generate_attachment_id(),
-            name,
-            size: format_bytes(data.byteLength),
-            size_bytes: data.byteLength,
-            mime_type,
-            data,
-          });
-          taken_names.add(name);
-          running_total += data.byteLength;
-        } catch (error) {
-          if (import.meta.env.DEV) console.error(error);
-          set_attachment_error(
-            t("common.failed_to_read_named_file", { name: file.name }),
+        if (unstripped.length > 0) {
+          show_toast(
+            t("common.metadata_not_removed", { names: unstripped.join(", ") }),
+            "warning",
+            5000,
           );
         }
-      }
 
-      if (new_attachments.length > 0) {
-        attachments_touched_ref.current = true;
-        set_attachments((prev) => [...prev, ...new_attachments]);
-        play_iconic_sound("upload");
-      }
-
-      if (unstripped.length > 0) {
-        show_toast(
-          t("common.metadata_not_removed", { names: unstripped.join(", ") }),
-          "warning",
-          5000,
-        );
-      }
-
-      if (file_input_ref.current) {
-        file_input_ref.current.value = "";
+        if (file_input_ref.current) {
+          file_input_ref.current.value = "";
+        }
+      } finally {
+        pending_reads_ref.current -= 1;
       }
     },
     [
@@ -1474,88 +1492,93 @@ export function use_forward_modal({
 
   const handle_files_drop = useCallback(
     async (dropped: File[]) => {
-      const files = await prepare_image_attachments(dropped);
+      pending_reads_ref.current += 1;
+      try {
+        const files = await prepare_image_attachments(dropped);
 
-      if (!files) return;
-      set_attachment_error(null);
-      await ensure_attachment_limits();
-      const new_attachments: Attachment[] = [];
-      const current_total = get_total_attachments_size();
-      let running_total = current_total;
-      const taken_names = new Set(attachments.map((a) => a.name));
-      const unstripped: string[] = [];
+        if (!files) return;
+        set_attachment_error(null);
+        await ensure_attachment_limits();
+        const new_attachments: Attachment[] = [];
+        const current_total = get_total_attachments_size();
+        let running_total = current_total;
+        const taken_names = new Set(attachments.map((a) => a.name));
+        const unstripped: string[] = [];
 
-      for (const file of files) {
-        if (
-          attachments.length + new_attachments.length >=
-          MAX_ATTACHMENTS_PER_SEND
-        ) {
-          set_attachment_error(describe_too_many_attachments(t));
-          break;
-        }
+        for (const file of files) {
+          if (
+            attachments.length + new_attachments.length >=
+            MAX_ATTACHMENTS_PER_SEND
+          ) {
+            set_attachment_error(describe_too_many_attachments(t));
+            break;
+          }
 
-        if (file.size > get_max_attachment_size()) {
-          const rejection = describe_oversized_file(t, file.name, file.size);
+          if (file.size > get_max_attachment_size()) {
+            const rejection = describe_oversized_file(t, file.name, file.size);
 
-          set_attachment_error(rejection.message);
+            set_attachment_error(rejection.message);
 
-          if (rejection.can_upgrade)
-            prompt_attachment_upgrade(
-              rejection.message,
-              rejection.upgrade_plan_code,
+            if (rejection.can_upgrade)
+              prompt_attachment_upgrade(
+                rejection.message,
+                rejection.upgrade_plan_code,
+              );
+            continue;
+          }
+
+          if (running_total + file.size > get_max_total_attachments_size()) {
+            set_attachment_error(describe_would_exceed_total(t, file.name));
+            continue;
+          }
+
+          const mime_type = file.type || "application/octet-stream";
+
+          const name = unique_attachment_name(file.name, taken_names);
+
+          try {
+            const raw = await file.arrayBuffer();
+            const data = await apply_metadata_strip(
+              raw,
+              mime_type,
+              preferences.strip_exif_on_compose,
+              file.name,
+              unstripped,
             );
-          continue;
+
+            new_attachments.push({
+              id: generate_attachment_id(),
+              name,
+              size: format_bytes(data.byteLength),
+              size_bytes: data.byteLength,
+              mime_type,
+              data,
+            });
+            taken_names.add(name);
+            running_total += data.byteLength;
+          } catch (error) {
+            if (import.meta.env.DEV) console.error(error);
+            set_attachment_error(
+              t("common.failed_to_read_named_file", { name: file.name }),
+            );
+          }
         }
 
-        if (running_total + file.size > get_max_total_attachments_size()) {
-          set_attachment_error(describe_would_exceed_total(t, file.name));
-          continue;
+        if (new_attachments.length > 0) {
+          attachments_touched_ref.current = true;
+          set_attachments((prev) => [...prev, ...new_attachments]);
+          play_iconic_sound("upload");
         }
 
-        const mime_type = file.type || "application/octet-stream";
-
-        const name = unique_attachment_name(file.name, taken_names);
-
-        try {
-          const raw = await file.arrayBuffer();
-          const data = await apply_metadata_strip(
-            raw,
-            mime_type,
-            preferences.strip_exif_on_compose,
-            file.name,
-            unstripped,
-          );
-
-          new_attachments.push({
-            id: generate_attachment_id(),
-            name,
-            size: format_bytes(data.byteLength),
-            size_bytes: data.byteLength,
-            mime_type,
-            data,
-          });
-          taken_names.add(name);
-          running_total += data.byteLength;
-        } catch (error) {
-          if (import.meta.env.DEV) console.error(error);
-          set_attachment_error(
-            t("common.failed_to_read_named_file", { name: file.name }),
+        if (unstripped.length > 0) {
+          show_toast(
+            t("common.metadata_not_removed", { names: unstripped.join(", ") }),
+            "warning",
+            5000,
           );
         }
-      }
-
-      if (new_attachments.length > 0) {
-        attachments_touched_ref.current = true;
-        set_attachments((prev) => [...prev, ...new_attachments]);
-        play_iconic_sound("upload");
-      }
-
-      if (unstripped.length > 0) {
-        show_toast(
-          t("common.metadata_not_removed", { names: unstripped.join(", ") }),
-          "warning",
-          5000,
-        );
+      } finally {
+        pending_reads_ref.current -= 1;
       }
     },
     [

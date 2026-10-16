@@ -100,6 +100,7 @@ import {
   create_contact_encrypted,
   decrypt_contacts,
   list_contacts,
+  is_contact_in_trash,
   update_contact_encrypted,
 } from "@/services/api/contacts";
 import { is_contact_trashed } from "@/lib/contact_trash";
@@ -540,6 +541,14 @@ export function QuickContactsPanel({
 
       set_is_saving(true);
       try {
+        if (editor_contact && (await is_contact_in_trash(editor_contact.id))) {
+          set_is_editor_open(false);
+          set_editor_contact(null);
+          set_error(t("common.failed_to_save_contact"));
+          await load(true);
+
+          return;
+        }
         const response = editor_contact
           ? await update_contact_encrypted(editor_contact.id, data)
           : await create_contact_encrypted(data);
@@ -720,6 +729,9 @@ export function QuickContactsPanel({
             (result) => result.status === "rejected" || result.value?.error,
           ).length;
         }
+        loaded_at_ref.current = 0;
+        void load(true);
+        void fetch_groups();
         if (failed_count > 0) {
           show_toast(t("common.failed_to_add_to_group"), "error");
 
@@ -733,14 +745,13 @@ export function QuickContactsPanel({
           "success",
         );
         clear_selection();
-        void fetch_groups();
       } catch {
         show_toast(t("common.failed_to_add_to_group"), "error");
       } finally {
         set_is_bulk_busy(false);
       }
     },
-    [clear_selection, fetch_groups, is_bulk_busy, selected_contacts, t],
+    [clear_selection, fetch_groups, is_bulk_busy, load, selected_contacts, t],
   );
 
   const handle_group_created = useCallback(() => {

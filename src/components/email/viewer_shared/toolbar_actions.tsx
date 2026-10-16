@@ -93,7 +93,7 @@ export interface ViewerToolbarActionsProps {
   on_unarchive?: () => void;
   on_trash: () => void;
   on_read_toggle: () => void;
-  on_spam: () => void;
+  on_spam?: () => void;
   on_not_spam?: () => void;
   is_spam?: boolean;
   on_print: () => void;
@@ -390,7 +390,7 @@ export function ViewerToolbarActions({
               <NotSpamIcon className={icon_size} />
             </Button>
           </Tooltip>
-        ) : (
+        ) : on_spam ? (
           <Tooltip tip={t("mail.report_spam")}>
             <Button
               aria-label={t("mail.report_spam")}
@@ -404,7 +404,7 @@ export function ViewerToolbarActions({
               <ReportSpamIcon className={icon_size} />
             </Button>
           </Tooltip>
-        ))}
+        ) : null)}
 
       <Tooltip tip={trash_label}>
         <Button
@@ -585,12 +585,12 @@ export function ViewerToolbarActions({
               <NotSpamIcon className="w-4 h-4 me-2" />
               {t("mail.not_spam")}
             </DropdownMenuItem>
-          ) : (
+          ) : on_spam ? (
             <DropdownMenuItem disabled={is_spam_loading} onClick={on_spam}>
               <ReportSpamIcon className="w-4 h-4 me-2" />
               {t("mail.report_spam")}
             </DropdownMenuItem>
-          )}
+          ) : null}
           <DropdownMenuItem disabled={is_trash_loading} onClick={on_trash}>
             <TrashIcon className="w-4 h-4 me-2" />
             {mail_item?.is_trashed || email?.is_trashed

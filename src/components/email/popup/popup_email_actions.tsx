@@ -84,7 +84,7 @@ interface PopupEmailActionsProps {
   on_fullscreen: () => void;
   on_pin_toggle: () => void;
   on_archive: () => void;
-  on_spam: () => void;
+  on_spam?: () => void;
   on_trash: () => void;
   on_read_toggle: () => void;
   on_print: () => void;
@@ -230,26 +230,28 @@ export function PopupEmailActions({
         </Button>
       </Tooltip>
 
-      <Tooltip
-        tip={
-          is_spam && on_not_spam ? t("mail.not_spam") : t("mail.report_spam")
-        }
-      >
-        <Button
-          data-no-drag
-          className="h-9 w-9 rounded-full hover:bg-[color-mix(in_srgb,var(--text-primary)_8%,transparent)] text-txt-muted hover:text-txt-primary"
-          disabled={is_spam_loading}
-          size="icon"
-          variant="ghost"
-          onClick={is_spam && on_not_spam ? on_not_spam : on_spam}
+      {(on_spam || (is_spam && on_not_spam)) && (
+        <Tooltip
+          tip={
+            is_spam && on_not_spam ? t("mail.not_spam") : t("mail.report_spam")
+          }
         >
-          {is_spam && on_not_spam ? (
-            <NotSpamIcon className="w-[18px] h-[18px]" />
-          ) : (
-            <ReportSpamIcon className="w-[18px] h-[18px]" />
-          )}
-        </Button>
-      </Tooltip>
+          <Button
+            data-no-drag
+            className="h-9 w-9 rounded-full hover:bg-[color-mix(in_srgb,var(--text-primary)_8%,transparent)] text-txt-muted hover:text-txt-primary"
+            disabled={is_spam_loading}
+            size="icon"
+            variant="ghost"
+            onClick={is_spam && on_not_spam ? on_not_spam : on_spam}
+          >
+            {is_spam && on_not_spam ? (
+              <NotSpamIcon className="w-[18px] h-[18px]" />
+            ) : (
+              <ReportSpamIcon className="w-[18px] h-[18px]" />
+            )}
+          </Button>
+        </Tooltip>
+      )}
 
       <Tooltip tip={t("mail.move_to_trash")}>
         <Button
@@ -320,12 +322,12 @@ export function PopupEmailActions({
               <NotSpamIcon className="w-4 h-4 me-2" />
               {t("mail.not_spam")}
             </DropdownMenuItem>
-          ) : (
+          ) : on_spam ? (
             <DropdownMenuItem disabled={is_spam_loading} onClick={on_spam}>
               <ReportSpamIcon className="w-4 h-4 me-2" />
               {t("mail.report_spam")}
             </DropdownMenuItem>
-          )}
+          ) : null}
           <DropdownMenuItem disabled={is_trash_loading} onClick={on_trash}>
             <TrashIcon className="w-4 h-4 me-2" />
             {mail_item?.is_trashed

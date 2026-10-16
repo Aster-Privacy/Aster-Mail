@@ -54,6 +54,7 @@ import {
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { get_key, store_key } from "@/services/crypto/crypto_key_cache";
 import { get_active_translations } from "@/lib/i18n/translations";
+import { is_contact_trashed } from "@/lib/contact_trash";
 
 function array_to_base64(array: Uint8Array): string {
   let binary = "";
@@ -584,6 +585,20 @@ export async function get_contact(
   contact_id: string,
 ): Promise<ApiResponse<Contact>> {
   return api_client.get<Contact>(`/contacts/v1/${contact_id}`);
+}
+
+export async function is_contact_in_trash(
+  contact_id: string,
+): Promise<boolean> {
+  const response = await get_contact(contact_id);
+
+  if (!response.data) return false;
+
+  try {
+    return is_contact_trashed(await decrypt_contact(response.data));
+  } catch {
+    return false;
+  }
 }
 
 export async function create_contact(

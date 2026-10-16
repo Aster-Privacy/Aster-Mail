@@ -80,6 +80,7 @@ export interface UseComposeDraftsOptions {
   is_sending_ref: React.MutableRefObject<boolean>;
   save_timer_ref: React.MutableRefObject<ReturnType<typeof setTimeout> | null>;
   draft_context_id_ref: React.MutableRefObject<string | null>;
+  has_pending_attachment_reads?: () => boolean;
 }
 
 export interface UseComposeDraftsReturn {
@@ -113,6 +114,7 @@ export function use_compose_drafts({
   is_sending_ref,
   save_timer_ref,
   draft_context_id_ref,
+  has_pending_attachment_reads,
 }: UseComposeDraftsOptions): UseComposeDraftsReturn {
   const { vault } = use_auth();
   const { preferences } = use_preferences();
@@ -445,6 +447,11 @@ export function use_compose_drafts({
   const [show_discard_confirm, set_show_discard_confirm] = useState(false);
 
   const handle_close = useCallback(() => {
+    if (has_pending_attachment_reads?.()) {
+      show_toast(t("common.loading"), "info");
+
+      return;
+    }
     const data = draft_data_ref.current;
     const has_content =
       data.recipients.to.length > 0 ||
@@ -461,7 +468,13 @@ export function use_compose_drafts({
     }
 
     perform_close();
-  }, [auto_save_drafts, perform_close, attachments_ref]);
+  }, [
+    auto_save_drafts,
+    perform_close,
+    attachments_ref,
+    has_pending_attachment_reads,
+    t,
+  ]);
 
   const confirm_discard_close = useCallback(() => {
     set_show_discard_confirm(false);

@@ -34,67 +34,55 @@ export interface StatDeltas {
   archived: number;
 }
 
+interface StatSubject {
+  item_type: string;
+  is_read: boolean;
+  is_archived?: boolean;
+}
+
 export function compute_stat_deltas(
-  email: { item_type: string; is_read: boolean },
+  email: StatSubject,
   direction: 1 | -1,
 ): StatDeltas {
-  const is_unread_received = email.item_type === "received" && !email.is_read;
+  const in_inbox = email.item_type === "received" && !email.is_archived;
 
   return {
-    unread: is_unread_received ? direction : 0,
-    inbox: email.item_type === "received" ? direction : 0,
+    unread: in_inbox && !email.is_read ? direction : 0,
+    inbox: in_inbox ? direction : 0,
     sent: email.item_type === "sent" ? direction : 0,
     trash: 0,
-    archived: 0,
+    archived: email.is_archived ? direction : 0,
   };
 }
 
-export function compute_removal_deltas(email: {
-  item_type: string;
-  is_read: boolean;
-}): StatDeltas {
+export function compute_removal_deltas(email: StatSubject): StatDeltas {
   return compute_stat_deltas(email, -1);
 }
 
-export function compute_restore_deltas(email: {
-  item_type: string;
-  is_read: boolean;
-}): StatDeltas {
+export function compute_restore_deltas(email: StatSubject): StatDeltas {
   return compute_stat_deltas(email, 1);
 }
 
-export function compute_trash_deltas(email: {
-  item_type: string;
-  is_read: boolean;
-}): StatDeltas {
+export function compute_trash_deltas(email: StatSubject): StatDeltas {
   const base = compute_removal_deltas(email);
 
   return { ...base, trash: 1 };
 }
 
-export function compute_untrash_deltas(email: {
-  item_type: string;
-  is_read: boolean;
-}): StatDeltas {
+export function compute_untrash_deltas(email: StatSubject): StatDeltas {
   const base = compute_restore_deltas(email);
 
   return { ...base, trash: -1 };
 }
 
-export function compute_archive_deltas(email: {
-  item_type: string;
-  is_read: boolean;
-}): StatDeltas {
-  const base = compute_removal_deltas(email);
+export function compute_archive_deltas(email: StatSubject): StatDeltas {
+  const base = compute_removal_deltas({ ...email, is_archived: false });
 
   return { ...base, archived: 1 };
 }
 
-export function compute_unarchive_deltas(email: {
-  item_type: string;
-  is_read: boolean;
-}): StatDeltas {
-  const base = compute_restore_deltas(email);
+export function compute_unarchive_deltas(email: StatSubject): StatDeltas {
+  const base = compute_restore_deltas({ ...email, is_archived: false });
 
   return { ...base, archived: -1 };
 }

@@ -48,7 +48,11 @@ import {
   type ScheduledEmailContent,
 } from "@/services/api/scheduled";
 import { describe_sender_refusal } from "@/services/send_refusal";
-import { emit_scheduled_changed } from "@/hooks/mail_events";
+import {
+  emit_drafts_changed,
+  emit_scheduled_changed,
+} from "@/hooks/mail_events";
+import { delete_draft } from "@/services/api/multi_drafts";
 import { check_scheduled_send } from "@/services/scheduled_send_gate";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
@@ -537,9 +541,15 @@ export function use_compose_send({
 
       const confirm_draft_deleted = async () => {
         draft_deleted = true;
-        if (pending_draft_id) {
+        if (!pending_draft_id) return;
+        if (draft_manager.get_context(pending_draft_id)) {
           await draft_manager.delete_draft(pending_draft_id);
           draft_manager.clear_context(pending_draft_id);
+        } else if (kept_draft) {
+          await delete_draft(kept_draft.id).catch(() => undefined);
+          emit_drafts_changed();
+        }
+        if (draft_context_id_ref.current === pending_draft_id) {
           draft_context_id_ref.current = null;
         }
       };
@@ -632,6 +642,7 @@ export function use_compose_send({
             failed,
             draft_deleted ? null : kept_draft,
           ),
+        get_kept_draft: () => (draft_deleted ? null : kept_draft),
       };
 
       if (selected_sender?.type === "external") {

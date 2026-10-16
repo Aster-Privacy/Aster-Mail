@@ -47,7 +47,10 @@ import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { Input } from "@/components/ui/input";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
-import { rule_folder_name } from "@/components/mail_rules/rule_folders";
+import {
+  is_missing_rule_folder,
+  rule_folder_name,
+} from "@/components/mail_rules/rule_folders";
 import { use_folders } from "@/hooks/use_folders";
 import { use_tags } from "@/hooks/use_tags";
 import { decrypt_aliases, list_all_aliases } from "@/services/api/aliases";
@@ -251,7 +254,9 @@ export function RuleEditorModal({
   }, [is_open, rule, seed]);
 
   const incomplete_move_to = actions.some(
-    (a) => a.type === "move_to" && !a.folder_token,
+    (a) =>
+      a.type === "move_to" &&
+      is_missing_rule_folder(folders_state.folders, a.folder_token),
   );
   const incomplete_apply_labels = actions.some(
     (a) => a.type === "apply_labels" && a.label_tokens.length === 0,

@@ -419,6 +419,7 @@ export function use_compose({
     is_sending_ref,
     save_timer_ref,
     draft_context_id_ref,
+    has_pending_attachment_reads: attachment_hook.has_pending_attachment_reads,
   });
 
   const classified_recipients = useMemo(
@@ -501,6 +502,16 @@ export function use_compose({
     ghost_mode.is_ghost_enabled,
     has_user_content,
   ]);
+
+  useEffect(() => {
+    if (aliases_loading || !selected_sender) return;
+    if (selected_sender.type === "ghost") return;
+    if (sender_options.some((o) => o.id === selected_sender.id)) return;
+
+    sender_manually_selected_ref.current = false;
+    sender_resolved_ref.current = false;
+    set_selected_sender_state(null);
+  }, [aliases_loading, sender_options, selected_sender]);
 
   const select_sender = use_ghost_sender_binding(
     ghost_mode,

@@ -470,11 +470,13 @@ export function use_preferences_core() {
         key === "quiet_hours_start" ||
         key === "quiet_hours_end"
       ) {
-        sync_quiet_hours_to_server(
+        void sync_quiet_hours_to_server(
           updated.quiet_hours_enabled,
           updated.quiet_hours_start,
           updated.quiet_hours_end,
-        );
+        ).then((synced) => {
+          if (!synced) set_save_status("error");
+        });
       }
 
       preferences_ref.current = updated;

@@ -42,6 +42,8 @@ const cached_groups: { data: ContactGroup[]; loaded: boolean } = {
 };
 
 let inflight_fetch: Promise<string | null> | null = null;
+let fetch_sequence = 0;
+let last_change_event: Event | null = null;
 let cache_generation = 0;
 
 export function clear_contact_groups_cache(): void {
@@ -90,11 +92,13 @@ export function use_contact_groups() {
 
     if (!inflight_fetch) {
       const generation = cache_generation;
+      const sequence = ++fetch_sequence;
       const pending = (async (): Promise<string | null> => {
         const response = await list_contact_groups();
 
         if (response.error || !response.data) return response.error || "";
         if (generation !== cache_generation) return null;
+        if (sequence !== fetch_sequence) return null;
 
         const sorted = sort_groups(response.data.groups);
 
@@ -133,7 +137,11 @@ export function use_contact_groups() {
   }, [fetch_groups]);
 
   useEffect(() => {
-    const handle_changed = () => {
+    const handle_changed = (event: Event) => {
+      if (last_change_event !== event) {
+        last_change_event = event;
+        inflight_fetch = null;
+      }
       fetch_groups();
     };
 

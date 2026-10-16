@@ -377,15 +377,10 @@ export function use_single_actions_folders(params: SingleActionsFolderParams) {
       email: InboxEmail,
       restore_to: "inbox" | "archive" = "inbox",
     ): Promise<boolean> => {
-      const base_deltas = compute_untrash_deltas(email);
-      const deltas =
-        restore_to === "archive"
-          ? {
-              ...base_deltas,
-              inbox: 0,
-              archived: email.item_type === "received" ? 1 : 0,
-            }
-          : base_deltas;
+      const deltas = compute_untrash_deltas({
+        ...email,
+        is_archived: restore_to === "archive",
+      });
 
       apply_stat_deltas(deltas);
 
