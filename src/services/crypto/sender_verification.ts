@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { drop_expired_entries, trim_map_to_size } from "@/lib/bounded_map";
 import {
   get_recipient_public_key,
   extract_username_from_email,
@@ -25,6 +26,7 @@ import {
 } from "@/services/api/keys";
 
 const RESOLVER_CACHE_TTL_MS = 5 * 60 * 1000;
+const MAX_RESOLVER_CACHE = 1000;
 const resolver_cache = new Map<string, { keys: string[]; timestamp: number }>();
 
 function read_cache(email: string): string[] | null {
@@ -46,6 +48,11 @@ function write_cache(email: string, keys: string[]): void {
     keys,
     timestamp: Date.now(),
   });
+
+  if (resolver_cache.size > MAX_RESOLVER_CACHE) {
+    drop_expired_entries(resolver_cache, RESOLVER_CACHE_TTL_MS);
+    trim_map_to_size(resolver_cache, MAX_RESOLVER_CACHE);
+  }
 }
 
 export async function resolve_sender_verification_keys(

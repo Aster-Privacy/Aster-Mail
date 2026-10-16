@@ -122,21 +122,24 @@ export async function render_pdf_thumbnail(
   height: number,
 ): Promise<string> {
   const doc = await open_document_promise(data);
-  const page = await doc.getPage(1);
-  const viewport = page.getViewport({ scale: 1 });
-  const scale = Math.min(width / viewport.width, height / viewport.height);
-  const scaled_viewport = page.getViewport({ scale });
-  const canvas = document.createElement("canvas");
 
-  await render_to_canvas(page, canvas, scaled_viewport);
+  try {
+    const page = await doc.getPage(1);
+    const viewport = page.getViewport({ scale: 1 });
+    const scale = Math.min(width / viewport.width, height / viewport.height);
+    const scaled_viewport = page.getViewport({ scale });
+    const canvas = document.createElement("canvas");
 
-  const blob = await new Promise<Blob>((resolve) =>
-    canvas.toBlob((b) => resolve(b!), "image/png"),
-  );
+    await render_to_canvas(page, canvas, scaled_viewport);
 
-  doc.destroy();
+    const blob = await new Promise<Blob>((resolve) =>
+      canvas.toBlob((b) => resolve(b!), "image/png"),
+    );
 
-  return URL.createObjectURL(blob);
+    return URL.createObjectURL(blob);
+  } finally {
+    void doc.destroy();
+  }
 }
 
 export async function load_pdf_document(

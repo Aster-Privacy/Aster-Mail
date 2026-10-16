@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { drop_expired_entries, trim_map_to_size } from "@/lib/bounded_map";
 import type { TranslationKey } from "@/lib/i18n/types";
 
 import { api_client, type ApiResponse } from "./client";
@@ -69,6 +70,7 @@ const external_key_cache = new Map<
   { key: ExternalKeyInfo; timestamp: number }
 >();
 const CACHE_TTL_MS = 5 * 60 * 1000;
+const MAX_CACHED_KEYS = 1000;
 
 function get_cached_key(email: string): ExternalKeyInfo | null {
   const cached = external_key_cache.get(email.toLowerCase());
@@ -89,6 +91,11 @@ function set_cached_key(email: string, key: ExternalKeyInfo): void {
     key,
     timestamp: Date.now(),
   });
+
+  if (external_key_cache.size > MAX_CACHED_KEYS) {
+    drop_expired_entries(external_key_cache, CACHE_TTL_MS);
+    trim_map_to_size(external_key_cache, MAX_CACHED_KEYS);
+  }
 }
 
 export async function get_recipient_public_key(

@@ -43,6 +43,7 @@ const loaded_version =
   typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "";
 
 let check_interval: ReturnType<typeof setInterval> | null = null;
+let remove_wake_listeners: (() => void) | null = null;
 let is_flushing = false;
 let last_checked_at = 0;
 const session_start_ts = Date.now();
@@ -286,30 +287,42 @@ export function start_version_check(): void {
     ts: Date.now(),
   };
 
+  stop_version_check();
+
   void check_once(true);
 
   check_interval = setInterval(() => {
     void check_once();
   }, CHECK_INTERVAL_MS);
 
-  document.addEventListener("visibilitychange", () => {
+  const on_visibility_change = () => {
     if (document.visibilityState === "visible") {
       void check_once();
     }
-  });
-
-  window.addEventListener("focus", () => {
+  };
+  const on_wake = () => {
     void check_once();
-  });
+  };
 
-  window.addEventListener("online", () => {
-    void check_once();
-  });
+  document.addEventListener("visibilitychange", on_visibility_change);
+  window.addEventListener("focus", on_wake);
+  window.addEventListener("online", on_wake);
+
+  remove_wake_listeners = () => {
+    document.removeEventListener("visibilitychange", on_visibility_change);
+    window.removeEventListener("focus", on_wake);
+    window.removeEventListener("online", on_wake);
+  };
 }
 
 export function stop_version_check(): void {
   if (check_interval !== null) {
     clearInterval(check_interval);
     check_interval = null;
+  }
+
+  if (remove_wake_listeners) {
+    remove_wake_listeners();
+    remove_wake_listeners = null;
   }
 }

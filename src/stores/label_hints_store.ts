@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { trim_map_to_size } from "@/lib/bounded_map";
+
 export interface LabelHint {
   token: string;
   name: string;
@@ -26,11 +28,14 @@ export interface LabelHint {
   show_icon?: boolean;
 }
 
+const MAX_HINTS = 2000;
 const hint_map = new Map<string, LabelHint[]>();
 
 export function set_label_hints(email_id: string, hints: LabelHint[]): void {
   if (hints.length > 0) {
+    hint_map.delete(email_id);
     hint_map.set(email_id, hints);
+    trim_map_to_size(hint_map, MAX_HINTS);
 
     return;
   }

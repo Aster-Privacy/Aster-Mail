@@ -600,7 +600,9 @@ export function use_settings_content(props: SettingsContentProps) {
       return;
     }
 
-    requestAnimationFrame(update_indicator);
+    const frame = requestAnimationFrame(update_indicator);
+
+    return () => cancelAnimationFrame(frame);
   }, [section, nav_items]);
 
   useEffect(() => {

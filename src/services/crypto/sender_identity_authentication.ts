@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { drop_expired_entries, trim_map_to_size } from "@/lib/bounded_map";
 import {
   SENDER_HISTORY_PREFIX,
   scoped_get,
@@ -51,11 +52,26 @@ interface PublishedHistoryCacheEntry {
   timestamp: number;
 }
 
+const MAX_PEER_CACHE = 2000;
 const published_cache = new Map<string, PublishedCacheEntry>();
 const published_history_cache = new Map<string, PublishedHistoryCacheEntry>();
 const status_cache = new Map<string, SenderIdentityStatus>();
 const refresh_cache = new Map<string, number>();
 const history_cache = new Map<string, string[]>();
+
+function bound_peer_caches(): void {
+  if (published_cache.size > MAX_PEER_CACHE) {
+    drop_expired_entries(published_cache, PUBLISHED_CACHE_TTL_MS);
+    trim_map_to_size(published_cache, MAX_PEER_CACHE);
+  }
+  if (published_history_cache.size > MAX_PEER_CACHE) {
+    drop_expired_entries(published_history_cache, PUBLISHED_CACHE_TTL_MS);
+    trim_map_to_size(published_history_cache, MAX_PEER_CACHE);
+  }
+  trim_map_to_size(status_cache, MAX_PEER_CACHE);
+  trim_map_to_size(refresh_cache, MAX_PEER_CACHE);
+  trim_map_to_size(history_cache, MAX_PEER_CACHE);
+}
 
 export class SenderIdentityUnverifiedError extends Error {
   readonly sender_email: string;
@@ -192,6 +208,7 @@ async function resolve_published_identity(
   }
 
   published_cache.set(peer, { identity_key, timestamp: Date.now() });
+  bound_peer_caches();
 
   return identity_key;
 }
@@ -218,6 +235,7 @@ async function resolve_published_history(
   }
 
   published_history_cache.set(peer, { history, timestamp: Date.now() });
+  bound_peer_caches();
 
   return history;
 }
@@ -285,6 +303,7 @@ export async function authenticate_sender_identity(
   }
 
   status_cache.set(peer, status);
+  bound_peer_caches();
 
   return status;
 }

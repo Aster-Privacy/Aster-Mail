@@ -192,6 +192,16 @@ function BillingSuccessHandler() {
   const { t } = use_i18n();
   const { is_authenticated, current_account_id } = use_auth();
   const handled = useRef(false);
+  const disposed = useRef(false);
+
+  useEffect(() => {
+    disposed.current = false;
+
+    return () => {
+      disposed.current = true;
+    };
+  }, []);
+
   const [family_welcome, set_family_welcome] =
     useState<FamilyWelcomeState | null>(null);
   const [individual_welcome, set_individual_welcome] = useState<{
@@ -306,6 +316,7 @@ function BillingSuccessHandler() {
 
       for (let i = 0; i < 8; i++) {
         await new Promise((r) => setTimeout(r, i === 0 ? 800 : 1500));
+        if (disposed.current) return;
         request_cache.invalidate("/payments/v1");
         const res = await get_subscription();
         const live = res.data?.plan.code;
