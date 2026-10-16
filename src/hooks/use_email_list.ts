@@ -1402,6 +1402,7 @@ export function use_email_list(
     remove_email,
     refresh,
     conversation_grouping: preferences.conversation_grouping,
+    current_view,
   });
 
   const { bulk_delete, bulk_archive, bulk_unarchive } = use_email_list_bulk({

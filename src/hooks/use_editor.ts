@@ -24,6 +24,7 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { sanitize_compose_paste, sanitize_html } from "@/lib/html_sanitizer";
 import {
+  find_own_signature,
   append_signature_node,
   remove_signature_node,
 } from "@/lib/signature_html";
@@ -120,9 +121,7 @@ export function use_editor({
 
       if (!editor) return;
 
-      const existing = editor.querySelector<HTMLElement>(
-        "[data-aster-signature='1']",
-      );
+      const existing = find_own_signature(editor);
 
       if (!html) {
         if (!existing) return;

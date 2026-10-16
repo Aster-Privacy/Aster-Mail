@@ -69,7 +69,9 @@ import {
 import { set_thread_trashed } from "@/services/trash_state";
 import { emit_mail_soft_refresh } from "@/hooks/email_action_types";
 import {
+  collect_restore_entries,
   expand_email_ids,
+  is_outgoing_view,
   trashes_whole_thread,
 } from "@/hooks/email_list_helpers";
 import { ignore_error } from "@/lib/ignore_error";
@@ -324,11 +326,14 @@ export function use_inbox_toolbar_actions({
     }
     const email = pending_spam_email;
     const sender = email.sender_email;
-    const same_sender_emails = sender
-      ? email_state.emails.filter(
-          (e) => e.sender_email === sender && e.id !== email.id && !e.is_spam,
-        )
-      : [];
+    const is_outgoing =
+      is_outgoing_view(current_view) || email.item_type === "sent";
+    const same_sender_emails =
+      sender && !is_outgoing
+        ? email_state.emails.filter(
+            (e) => e.sender_email === sender && e.id !== email.id && !e.is_spam,
+          )
+        : [];
 
     const deltas = compute_removal_deltas(email);
     const same_sender_deltas = same_sender_emails.map(compute_removal_deltas);
@@ -344,6 +349,10 @@ export function use_inbox_toolbar_actions({
     );
 
     const combined_ids = [...all_ids, ...same_sender_ids];
+    const spam_restore_entries = collect_restore_entries(email_state.emails, [
+      email.id,
+      ...same_sender_emails.map((e) => e.id),
+    ]);
 
     remove_email(email.id);
     for (const e of same_sender_emails) {
@@ -383,7 +392,7 @@ export function use_inbox_toolbar_actions({
           reindex_ids(uncovered_thread_ids);
         }
       }
-      if (sender) {
+      if (sender && !is_outgoing) {
         report_spam_sender(sender).catch((caught) =>
           ignore_error(
             "components/email/inbox/use_inbox_toolbar_actions:use_inbox_toolbar_actions",
@@ -431,6 +440,7 @@ export function use_inbox_toolbar_actions({
       reindex_ids(
         Array.from(new Set([...combined_ids, ...removed_thread_ids])),
       );
+      restore_emails(spam_restore_entries);
       emit_mail_changed();
       show_toast(t("common.failed_to_mark_as_spam"), "error");
     }
@@ -441,6 +451,8 @@ export function use_inbox_toolbar_actions({
     pending_spam_email,
     dont_ask_single_spam,
     remove_email,
+    restore_emails,
+    current_view,
     update_preference,
     save_now,
     email_state.emails,

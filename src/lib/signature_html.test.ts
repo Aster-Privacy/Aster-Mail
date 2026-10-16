@@ -25,6 +25,7 @@ import {
   SIGNATURE_GAP_BLOCK,
   append_signature_node,
   append_template_after_typed_text,
+  find_own_signature,
   format_signature_html,
   has_typed_content,
   insert_signature_node,
@@ -369,5 +370,23 @@ describe("signature_from_editor_html", () => {
       content: expected,
       is_html: false,
     });
+  });
+});
+
+describe("find_own_signature", () => {
+  it("skips a signature inside quoted text", () => {
+    const editor = document.createElement("div");
+
+    editor.innerHTML =
+      '<div class="aster_quote"><blockquote><div data-aster-signature="1">them</div></blockquote></div>';
+
+    expect(find_own_signature(editor)).toBeNull();
+
+    editor.insertAdjacentHTML(
+      "afterbegin",
+      '<div data-aster-signature="1">mine</div>',
+    );
+
+    expect(find_own_signature(editor)?.textContent).toBe("mine");
   });
 });

@@ -43,6 +43,7 @@ import { MAIL_EVENTS, emit_mail_items_removed } from "@/hooks/mail_events";
 import {
   invalidate_mail_stats,
   adjust_stats_trash,
+  clear_stats_trash,
 } from "@/hooks/use_mail_stats";
 import { request_cache } from "@/services/api/request_cache";
 import {
@@ -548,7 +549,6 @@ export function use_delete_actions({
 
       if (result.data?.success) {
         const removed_ids = email_state.emails.map((e) => e.id);
-        const trash_count = email_state.emails.length;
 
         for (const email of email_state.emails) {
           remove_email(email.id);
@@ -557,7 +557,7 @@ export function use_delete_actions({
         invalidate_mail_cache("trash");
         invalidate_mail_cache("all");
         invalidate_mail_cache("starred");
-        adjust_stats_trash(-trash_count);
+        clear_stats_trash();
         emit_mail_items_removed({ ids: removed_ids });
         invalidate_mail_stats();
         show_action_toast({

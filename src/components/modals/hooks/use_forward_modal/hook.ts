@@ -836,7 +836,11 @@ export function use_forward_modal({
       return;
     }
 
-    if (is_loading_attachments) return;
+    if (is_loading_attachments) {
+      set_error_message(t("mail.attaching_original_files"));
+
+      return;
+    }
 
     const locked_expiry_feature = find_locked_expiry_feature({
       expires_at,
@@ -1168,6 +1172,12 @@ export function use_forward_modal({
 
     if (send_recipients.to.length === 0) return;
 
+    if (is_loading_attachments) {
+      set_error_message(t("mail.attaching_original_files"));
+
+      return;
+    }
+
     if (attachments.length > 0) {
       set_error_message(t("common.scheduled_no_attachments"));
 
@@ -1341,6 +1351,7 @@ export function use_forward_modal({
     outgoing_forward_message,
     on_close,
     attachments,
+    is_loading_attachments,
     get_forward_content,
     preferences.show_aster_branding,
     preferences.require_encryption,

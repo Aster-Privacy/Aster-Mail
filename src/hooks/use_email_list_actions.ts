@@ -74,6 +74,7 @@ import {
 } from "@/services/read_intent";
 import { ignore_error } from "@/lib/ignore_error";
 import { compare_timestamps_desc } from "@/utils/email_timestamp";
+import { unarchive_keeps_row } from "./view_membership";
 
 interface UseEmailListActionsParams {
   state: EmailListState;
@@ -82,6 +83,7 @@ interface UseEmailListActionsParams {
   remove_email: (id: string) => void;
   refresh: () => void;
   conversation_grouping?: boolean;
+  current_view?: string;
 }
 
 export function use_email_list_actions({
@@ -91,6 +93,7 @@ export function use_email_list_actions({
   remove_email,
   refresh,
   conversation_grouping,
+  current_view,
 }: UseEmailListActionsParams) {
   const api_update = useCallback(
     async (
@@ -414,8 +417,11 @@ export function use_email_list_actions({
       const email = state.emails.find((e) => e.id === id);
       const is_received = email?.item_type === "received";
       const should_adjust_unread = is_received && !email?.is_read;
+      const keeps_row =
+        current_view !== undefined && unarchive_keeps_row(current_view);
 
-      remove_email(id);
+      if (keeps_row) update_email(id, { is_archived: false });
+      else remove_email(id);
       if (should_adjust_unread) {
         adjust_stats_unread(1);
       }
@@ -452,7 +458,7 @@ export function use_email_list_actions({
         refresh();
       }
     },
-    [state.emails, remove_email, refresh],
+    [state.emails, current_view, update_email, remove_email, refresh],
   );
 
   const mark_spam = useCallback(

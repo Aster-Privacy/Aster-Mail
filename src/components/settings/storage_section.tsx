@@ -68,6 +68,7 @@ import {
 import { is_onion_host } from "@/lib/onion_host";
 import { request_cache } from "@/services/api/request_cache";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
+import { emit_mail_changed } from "@/hooks/mail_events";
 import { get_cached_plan_code } from "@/hooks/use_plan_limits";
 import { empty_spam, empty_trash } from "@/services/api/mail";
 import {
@@ -429,6 +430,7 @@ export function StorageSection() {
         set_cleanup_target(null);
         request_cache.invalidate("/sync/v1");
         invalidate_mail_stats();
+        emit_mail_changed();
         load_data();
 
         return;

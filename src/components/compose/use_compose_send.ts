@@ -863,6 +863,12 @@ export function use_compose_send({
       return;
     }
 
+    if (is_attachment_set_incomplete(is_loading_forward_attachments)) {
+      show_toast(t("mail.attaching_original_files"), "info");
+
+      return;
+    }
+
     if (attachments.length > 0) {
       show_toast(t("common.scheduled_no_attachments"), "error");
 
@@ -1084,6 +1090,7 @@ export function use_compose_send({
     user,
     attachments,
     has_pending_attachment_reads,
+    is_loading_forward_attachments,
     clear_all_errors,
     reset_form,
     on_close,

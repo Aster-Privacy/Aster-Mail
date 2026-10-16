@@ -736,6 +736,8 @@ function reopen_failed_send(
       expires_at: email_data.expires_at,
       expiry_password: email_data.expiry_password,
       attachments: email_data.attachments,
+      restore_verbatim: true,
+      is_plain_text: ctx.is_plain_text || undefined,
     },
   );
 }

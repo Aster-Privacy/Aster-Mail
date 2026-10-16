@@ -22,7 +22,9 @@ import { describe, expect, it } from "vitest";
 
 import {
   FOLDER_OPTION_INDENT_PX,
+  build_folder_tree,
   folder_option_indent,
+  has_sibling_named,
   order_folders_as_tree,
   type DecryptedFolder,
 } from "@/hooks/use_folders/tree";
@@ -101,5 +103,24 @@ describe("folder_option_indent", () => {
   it("indents one step for each level of nesting", () => {
     expect(folder_option_indent(1)).toBe(FOLDER_OPTION_INDENT_PX);
     expect(folder_option_indent(3)).toBe(FOLDER_OPTION_INDENT_PX * 3);
+  });
+});
+
+describe("build_folder_tree", () => {
+  it("keeps folders caught in a parent loop visible as top level", () => {
+    const roots = build_folder_tree([
+      folder("a", 0, "b"),
+      folder("b", 1, "a"),
+    ]).map((node) => node.folder.folder_token);
+
+    expect(roots.sort()).toEqual(["a", "b"]);
+  });
+});
+
+describe("has_sibling_named", () => {
+  it("treats a folder whose parent was deleted as top level", () => {
+    expect(
+      has_sibling_named([folder("work", 0, "gone")], "Work", undefined),
+    ).toBe(true);
   });
 });

@@ -408,7 +408,7 @@ export function use_keyboard_shortcuts(
     const is_hash =
       key === "#" || (is_layout_unknown && code === "Digit3" && has_shift);
 
-    if (is_hash) {
+    if (is_hash && !has_cmd) {
       handle(h.on_delete);
 
       return;
@@ -417,7 +417,7 @@ export function use_keyboard_shortcuts(
     const is_exclamation =
       key === "!" || (is_layout_unknown && code === "Digit1" && has_shift);
 
-    if (is_exclamation) {
+    if (is_exclamation && !has_cmd) {
       handle(h.on_spam);
 
       return;
