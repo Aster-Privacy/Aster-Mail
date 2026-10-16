@@ -101,7 +101,7 @@ export function ModalContactDetail({
     >
       <div className="flex items-center justify-between px-5 py-3.5 border-b border-edge-secondary">
         <motion.button
-          className="flex items-center gap-1 text-[14px] font-medium py-1.5 px-2 -ms-2 rounded-lg transition-colors text-txt-secondary"
+          className="flex items-center gap-1 text-[14px] font-medium py-1.5 px-2 -ms-2 rounded-lg text-txt-secondary"
           whileHover={{
             x: -2,
             backgroundColor: "rgba(0,0,0,0.03)",

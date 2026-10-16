@@ -29,6 +29,7 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
+import { flushSync } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowLeftIcon,
@@ -78,6 +79,7 @@ function subscribe_connection(listener: () => void): () => void {
 const VIEW_EASE: [number, number, number, number] = [0.2, 0, 0, 1];
 const VIEW_SHIFT = 32;
 const VIEW_DURATION = 0.24;
+const GRID_SETTLE_FALLBACK_MS = VIEW_DURATION * 1000 + 120;
 
 const VIEW_VARIANTS = {
   enter: (direction: number) => ({ opacity: 0, x: direction * VIEW_SHIFT }),
@@ -166,12 +168,15 @@ export function ProfilePictureDialogView({
   const [filter, set_filter] = useState<GalleryFilter>("all");
   const [pending_slug, set_pending_slug] = useState<string | null>(null);
   const [gallery_error, set_gallery_error] = useState(false);
+  const [grid_settled, set_grid_settled] = useState(false);
   const gallery_available = useSyncExternalStore(
     subscribe_connection,
     is_gallery_available,
   );
 
   const shown_view: DialogView = gallery_available ? view : "main";
+  const grid_visible =
+    shown_view === "gallery" && (reduce_motion || grid_settled);
   const main_content_ref = useRef<HTMLDivElement>(null);
   const [main_height, set_main_height] = useState<number | null>(null);
 
@@ -198,7 +203,19 @@ export function ProfilePictureDialogView({
     set_filter("all");
     set_pending_slug(null);
     set_gallery_error(false);
+    set_grid_settled(false);
   }, [is_open]);
+
+  useEffect(() => {
+    if (shown_view !== "gallery" || grid_settled) return;
+
+    const timer = window.setTimeout(
+      () => set_grid_settled(true),
+      GRID_SETTLE_FALLBACK_MS,
+    );
+
+    return () => window.clearTimeout(timer);
+  }, [grid_settled, shown_view]);
 
   const load_gallery = useCallback(() => {
     set_status("loading");
@@ -211,6 +228,9 @@ export function ProfilePictureDialogView({
   }, []);
 
   const show_view = useCallback((next: DialogView) => {
+    if (next === "main") {
+      flushSync(() => set_grid_settled(false));
+    }
     set_direction(next === "gallery" ? 1 : -1);
     set_view(next);
   }, []);
@@ -407,6 +427,9 @@ export function ProfilePictureDialogView({
                 key="gallery"
                 className="absolute inset-0 flex flex-col"
                 {...view_motion}
+                onAnimationComplete={(definition) => {
+                  if (definition === "center") set_grid_settled(true);
+                }}
               >
                 {status === "loading" && (
                   <div className="flex flex-1 items-center justify-center">
@@ -452,55 +475,67 @@ export function ProfilePictureDialogView({
                       )}
                     </div>
                     <div className="profile_picture_grid min-h-0 flex-1 overflow-y-auto overscroll-contain">
-                      <div className="grid grid-cols-3 gap-x-2 gap-y-3 sm:grid-cols-4">
-                        {visible_items.map((item) => {
-                          const credit = item.credit
-                            ? t("common.profile_picture_credit", {
-                                credit: `\u2068${item.credit}\u2069`,
-                              })
-                            : null;
+                      {grid_visible && (
+                        <motion.div
+                          animate={{ opacity: 1 }}
+                          className="grid grid-cols-3 gap-x-2 gap-y-3 sm:grid-cols-4"
+                          initial={reduce_motion ? false : { opacity: 0 }}
+                          transition={{ duration: 0.14, ease: VIEW_EASE }}
+                        >
+                          {visible_items.map((item) => {
+                            const credit = item.credit
+                              ? t("common.profile_picture_credit", {
+                                  credit: `\u2068${item.credit}\u2069`,
+                                })
+                              : null;
 
-                          return (
-                            <div
-                              key={item.slug}
-                              className="flex min-w-0 flex-col gap-1"
-                            >
-                              <button
-                                aria-label={credit ?? undefined}
-                                className="profile_picture_tile relative aspect-square w-full overflow-hidden rounded-full"
-                                disabled={!!pending_slug || busy}
-                                title={credit ?? undefined}
-                                type="button"
-                                onClick={() => choose_gallery_image(item.slug)}
+                            return (
+                              <div
+                                key={item.slug}
+                                className="profile_picture_cell flex min-w-0 flex-col gap-1"
                               >
-                                <img
-                                  alt=""
-                                  className="h-full w-full object-cover"
-                                  decoding="async"
-                                  draggable={false}
-                                  loading="lazy"
-                                  referrerPolicy="no-referrer"
-                                  src={gallery_thumb_url(item.slug)}
-                                />
-                                {pending_slug === item.slug && (
-                                  <span className="aster_scrim absolute inset-0 flex items-center justify-center">
-                                    <Spinner className="text-white" size="sm" />
-                                  </span>
-                                )}
-                              </button>
-                              {credit && (
-                                <p
-                                  aria-hidden="true"
-                                  className="profile_picture_credit break-words text-center text-[10px] leading-snug text-txt-muted"
-                                  dir="auto"
+                                <button
+                                  aria-label={credit ?? undefined}
+                                  className="profile_picture_tile relative aspect-square w-full overflow-hidden rounded-full"
+                                  disabled={!!pending_slug || busy}
+                                  title={credit ?? undefined}
+                                  type="button"
+                                  onClick={() =>
+                                    choose_gallery_image(item.slug)
+                                  }
                                 >
-                                  {credit}
-                                </p>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
+                                  <img
+                                    alt=""
+                                    className="h-full w-full object-cover"
+                                    decoding="async"
+                                    draggable={false}
+                                    loading="lazy"
+                                    referrerPolicy="no-referrer"
+                                    src={gallery_thumb_url(item.slug)}
+                                  />
+                                  {pending_slug === item.slug && (
+                                    <span className="aster_scrim absolute inset-0 flex items-center justify-center">
+                                      <Spinner
+                                        className="text-white"
+                                        size="sm"
+                                      />
+                                    </span>
+                                  )}
+                                </button>
+                                {credit && (
+                                  <p
+                                    aria-hidden="true"
+                                    className="profile_picture_credit break-words text-center text-[10px] leading-snug text-txt-muted"
+                                    dir="auto"
+                                  >
+                                    {credit}
+                                  </p>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </motion.div>
+                      )}
                     </div>
                     {(gallery_error || error) && (
                       <p

@@ -863,6 +863,7 @@ export const ar = {
     history: "السجل",
     all_mail: "كل الرسائل",
     import_contacts: "استيراد جهات الاتصال",
+    import_contacts_short: "استيراد",
     import_choose_file_desc:
       "اختر ملفًا لاستيراد جهات الاتصال منه. الصيغ المدعومة: vCard (.vcf) وCSV.",
     click_to_select_file: "انقر لاختيار ملف",
@@ -9177,6 +9178,8 @@ export const ar = {
     chip_advanced_search: "بحث متقدم",
     spam_trash_hidden_notice:
       "بعض الرسائل في البريد العشوائي والمهملات تطابق بحثك.",
+    search_index_partial:
+      "لم تتم فهرسة بريدك بالكامل على هذا الجهاز بعد، لذا قد تكون بعض الرسائل مفقودة من هذه النتائج.",
     search_index_incomplete:
       "تعذّر قراءة جزء من فهرس البحث على هذا الجهاز، لذا قد تكون بعض الرسائل غائبة عن هذه النتائج.",
     view_spam_trash_messages: "عرض الرسائل",

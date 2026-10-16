@@ -768,6 +768,7 @@ export const zh_CN = {
     history: "历史记录",
     all_mail: "全部邮件",
     import_contacts: "导入联系人",
+    import_contacts_short: "导入",
     import_choose_file_desc:
       "选择要导入联系人的文件。支持的格式：vCard (.vcf) 和 CSV。",
     click_to_select_file: "点击选择文件",
@@ -8391,6 +8392,8 @@ export const zh_CN = {
     chip_no_people: "没有匹配的联系人",
     chip_advanced_search: "高级搜索",
     spam_trash_hidden_notice: "垃圾邮件和回收站中有符合搜索条件的邮件。",
+    search_index_partial:
+      "此设备上的邮件尚未完成索引，因此这些结果中可能缺少部分邮件。",
     search_index_incomplete:
       "无法在此设备上读取部分搜索索引，因此这些结果中可能缺少一些邮件。",
     view_spam_trash_messages: "查看邮件",

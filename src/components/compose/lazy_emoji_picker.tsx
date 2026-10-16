@@ -29,7 +29,10 @@ import { use_i18n } from "@/lib/i18n/context";
 import { ignore_error } from "@/lib/ignore_error";
 import { lazy_with_retry } from "@/utils/lazy_with_retry";
 
-type EmojiPickerProps = ComponentProps<typeof EmojiPickerComponent>;
+type EmojiPickerProps = Omit<
+  ComponentProps<typeof EmojiPickerComponent>,
+  "floating"
+>;
 
 const load_emoji_picker = () => import("@/components/compose/emoji_picker");
 
@@ -48,7 +51,7 @@ function EmojiPickerFallback(): ReactElement {
     <div
       aria-busy="true"
       aria-label={t("common.loading")}
-      className="aster_floating flex h-[calc(98px+min(300px,42vh))] w-[360px] sm:h-[390px] max-w-[calc(100vw-16px)] items-center justify-center text-txt-muted"
+      className="flex h-[calc(98px+min(300px,42vh))] w-[360px] sm:h-[390px] max-w-[calc(100vw-16px)] items-center justify-center text-txt-muted"
       role="status"
     >
       <Spinner size="md" />
@@ -59,9 +62,11 @@ function EmojiPickerFallback(): ReactElement {
 export function LazyEmojiPicker(props: EmojiPickerProps): ReactElement {
   return (
     <ErrorBoundary fallback={null} on_error={() => props.on_dismiss?.()}>
-      <Suspense fallback={<EmojiPickerFallback />}>
-        <EmojiPicker {...props} />
-      </Suspense>
+      <div className="aster_floating flex w-[360px] max-w-[calc(100vw-16px)] flex-col overflow-hidden">
+        <Suspense fallback={<EmojiPickerFallback />}>
+          <EmojiPicker {...props} floating={false} />
+        </Suspense>
+      </div>
     </ErrorBoundary>
   );
 }

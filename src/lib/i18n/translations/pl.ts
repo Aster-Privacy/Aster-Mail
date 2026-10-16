@@ -897,6 +897,7 @@ export const pl = {
     history: "Historia",
     all_mail: "Cała poczta",
     import_contacts: "Importuj kontakty",
+    import_contacts_short: "Importuj",
     import_choose_file_desc:
       "Wybierz plik do importu kontaktów. Obsługiwane formaty: vCard (.vcf) i CSV.",
     click_to_select_file: "Kliknij, aby wybrać plik",
@@ -9605,6 +9606,8 @@ export const pl = {
     chip_advanced_search: "Wyszukiwanie zaawansowane",
     spam_trash_hidden_notice:
       "Niektóre wiadomości w Spamie i Koszu odpowiadają Twojemu zapytaniu.",
+    search_index_partial:
+      "Twoja poczta nie jest jeszcze w pełni zindeksowana na tym urządzeniu, więc w tych wynikach może brakować niektórych wiadomości.",
     search_index_incomplete:
       "Nie udało się odczytać części indeksu wyszukiwania na tym urządzeniu, więc w tych wynikach może brakować niektórych wiadomości.",
     view_spam_trash_messages: "Zobacz wiadomości",

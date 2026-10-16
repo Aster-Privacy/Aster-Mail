@@ -930,6 +930,7 @@ export const ja = {
     history: "履歴",
     all_mail: "すべてのメール",
     import_contacts: "連絡先をインポート",
+    import_contacts_short: "インポート",
     import_choose_file_desc:
       "連絡先をインポートするファイルを選択してください。対応形式：vCard (.vcf) およびCSV。",
     click_to_select_file: "クリックしてファイルを選択",
@@ -9236,6 +9237,8 @@ export const ja = {
     chip_advanced_search: "詳細検索",
     spam_trash_hidden_notice:
       "迷惑メールとゴミ箱に検索条件に一致するメールがあります。",
+    search_index_partial:
+      "このデバイスではメールのインデックス作成がまだ完了していないため、一部のメッセージが検索結果に表示されない場合があります。",
     search_index_incomplete:
       "このデバイスで検索インデックスの一部を読み取れなかったため、この結果に含まれていないメールがある可能性があります。",
     view_spam_trash_messages: "メールを表示",

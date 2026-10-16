@@ -78,7 +78,7 @@ async function ensure_pq_prekeys_available(): Promise<void> {
       const ok = await generate_and_upload_prekeys(true);
       const verified = await fetch_pq_prekey_count();
 
-      if (ok && verified !== null && verified >= PQ_MIN_THRESHOLD) {
+      if (ok && (verified === null || verified >= PQ_MIN_THRESHOLD)) {
         return;
       }
 

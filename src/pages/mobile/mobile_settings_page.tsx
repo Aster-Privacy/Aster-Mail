@@ -92,9 +92,9 @@ import { FamilySection } from "./settings/family_section";
 import { ConnectionSection } from "./settings/connection_section";
 import { AliasDirectoriesSection } from "./settings/alias_directories_section";
 import { SettingsSaveIndicatorInline } from "@/components/settings/settings_save_indicator";
-import { FullPageLoader } from "@/components/common/full_page_loader";
 import { format_bytes } from "@/lib/utils";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
+import { Spinner } from "@/components/ui/spinner";
 import { use_should_reduce_motion } from "@/provider";
 import { use_mail_stats } from "@/hooks/use_mail_stats";
 import { read_settings_navigation } from "@/lib/settings_links";
@@ -135,6 +135,14 @@ const BillingSection = lazy_with_retry(() =>
     default: m.BillingSection,
   })),
 );
+
+function SectionFallback() {
+  return (
+    <div className="flex h-full min-h-0 w-full flex-1 items-center justify-center">
+      <Spinner className="h-6 w-6 text-txt-tertiary" size="lg" />
+    </div>
+  );
+}
 
 function MobileSettingsPage() {
   const navigate = useNavigate();
@@ -359,7 +367,7 @@ function MobileSettingsPage() {
       <DeveloperSection on_back={close_section} on_close={handle_back} />
     ),
     billing: (
-      <Suspense fallback={<FullPageLoader />}>
+      <Suspense fallback={<SectionFallback />}>
         <BillingSection on_back={close_section} on_close={handle_back} />
       </Suspense>
     ),
@@ -387,17 +395,17 @@ function MobileSettingsPage() {
       <ConnectionSection on_back={close_section} on_close={handle_back} />
     ),
     bridge: (
-      <Suspense fallback={<FullPageLoader />}>
+      <Suspense fallback={<SectionFallback />}>
         <BridgeSection on_back={close_section} on_close={handle_back} />
       </Suspense>
     ),
     storage: (
-      <Suspense fallback={<FullPageLoader />}>
+      <Suspense fallback={<SectionFallback />}>
         <StorageSection on_back={close_section} on_close={handle_back} />
       </Suspense>
     ),
     domains: (
-      <Suspense fallback={<FullPageLoader />}>
+      <Suspense fallback={<SectionFallback />}>
         <DomainsSection on_back={close_section} on_close={handle_back} />
       </Suspense>
     ),

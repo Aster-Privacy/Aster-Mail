@@ -382,9 +382,15 @@ interface EmojiPickerProps {
   on_select: (emoji: string) => void;
   on_dismiss?: () => void;
   anchor_ref?: RefObject<HTMLElement | null>;
+  floating?: boolean;
 }
 
-function EmojiPicker({ on_select, on_dismiss, anchor_ref }: EmojiPickerProps) {
+function EmojiPicker({
+  on_select,
+  on_dismiss,
+  anchor_ref,
+  floating = true,
+}: EmojiPickerProps) {
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
   const indicator_id = useId();
@@ -785,8 +791,8 @@ function EmojiPicker({ on_select, on_dismiss, anchor_ref }: EmojiPickerProps) {
   return (
     <div
       ref={root_ref}
-      className="aster_floating aster_floating_anim flex w-[360px] max-w-[calc(100vw-16px)] flex-col overflow-hidden"
-      data-state="open"
+      className={`flex w-[360px] max-w-[calc(100vw-16px)] flex-col overflow-hidden ${floating ? "aster_floating aster_floating_anim" : ""}`}
+      data-state={floating ? "open" : undefined}
       onMouseDown={(e) => e.preventDefault()}
     >
       <div className="flex px-2 pt-1" role="tablist">

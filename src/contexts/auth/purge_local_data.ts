@@ -117,6 +117,7 @@ export async function purge_all_local_data(): Promise<boolean> {
       key.startsWith("aster:lockdown:") ||
       key === "pq_prekey_missing" ||
       key.startsWith("astermail_pq_self_heal_at_") ||
+      key.startsWith("astermail_pq_self_heal_keys_") ||
       key.startsWith("astermail_pq_reconciler_at_")
     ) {
       safe_local_remove(key);

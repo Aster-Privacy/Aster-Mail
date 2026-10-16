@@ -789,7 +789,7 @@ export function SearchEmptyState({
   return (
     <div
       aria-live="polite"
-      className="flex flex-col items-center px-6 pb-12 pt-16 text-center"
+      className="flex min-h-full flex-col items-center justify-center px-6 pb-24 pt-12 text-center"
       data-testid={testid}
       role="status"
     >

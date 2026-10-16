@@ -22,6 +22,8 @@ import type { TranslationKey } from "@/lib/i18n/types";
 import type { DnsProvider } from "@/data/dns_providers";
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+
+import { use_should_reduce_motion } from "@/provider";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRightIcon,
@@ -184,6 +186,7 @@ export function DomainSetupWizard({
   on_domain_added,
   on_domains_changed,
 }: DomainSetupWizardProps) {
+  const reduce_motion = use_should_reduce_motion();
   const { t } = use_i18n();
   const wizard_steps = useMemo(() => get_wizard_steps(t), [t]);
   const [domain_input, set_domain_input] = useState("");
@@ -572,9 +575,12 @@ export function DomainSetupWizard({
             <motion.div
               key={current_step}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -8 }}
-              initial={{ opacity: 0, x: 8 }}
-              transition={{ duration: 0.15, ease: "easeOut" }}
+              exit={reduce_motion ? { opacity: 0 } : { opacity: 0, x: -8 }}
+              initial={reduce_motion ? false : { opacity: 0, x: 8 }}
+              transition={{
+                duration: reduce_motion ? 0 : 0.15,
+                ease: "easeOut",
+              }}
             >
               <DnsStepContent
                 domain_id={domain_id}

@@ -901,6 +901,7 @@ export const hi = {
     history: "इतिहास",
     all_mail: "सभी मेल",
     import_contacts: "संपर्क इंपोर्ट करें",
+    import_contacts_short: "इंपोर्ट करें",
     import_choose_file_desc:
       "संपर्क इंपोर्ट करने के लिए फ़ाइल चुनें। समर्थित फ़ॉर्मैट: vCard (.vcf) और CSV।",
     click_to_select_file: "फ़ाइल चुनने के लिए क्लिक करें",
@@ -8989,6 +8990,8 @@ export const hi = {
     chip_advanced_search: "उन्नत खोज",
     spam_trash_hidden_notice:
       "स्पैम और ट्रैश के कुछ संदेश आपकी खोज से मेल खाते हैं।",
+    search_index_partial:
+      "आपका मेल इस डिवाइस पर अभी पूरी तरह से इंडेक्स नहीं हुआ है, इसलिए इन परिणामों में कुछ संदेश छूट सकते हैं।",
     search_index_incomplete:
       "इस डिवाइस पर आपके खोज इंडेक्स का कुछ हिस्सा पढ़ा नहीं जा सका, इसलिए इन नतीजों में कुछ संदेश छूट सकते हैं।",
     view_spam_trash_messages: "संदेश देखें",

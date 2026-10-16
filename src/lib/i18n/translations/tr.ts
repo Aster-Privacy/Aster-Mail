@@ -880,6 +880,7 @@ export const tr = {
     history: "Geçmiş",
     all_mail: "Tüm postalar",
     import_contacts: "Kişileri İçe Aktar",
+    import_contacts_short: "İçe aktar",
     import_choose_file_desc:
       "Kişileri içe aktarmak için bir dosya seçin. Desteklenen formatlar: vCard (.vcf) ve CSV.",
     click_to_select_file: "Dosya seçmek için tıklayın",
@@ -9267,6 +9268,8 @@ export const tr = {
     chip_advanced_search: "Gelişmiş arama",
     spam_trash_hidden_notice:
       "Spam ve Çöp Kutusundaki bazı mesajlar aramanızla eşleşiyor.",
+    search_index_partial:
+      "E-postalarınız bu cihazda henüz tamamen dizine eklenmedi, bu nedenle bazı iletiler bu sonuçlarda eksik olabilir.",
     search_index_incomplete:
       "Arama dizininizin bir bölümü bu cihazda okunamadı, bu nedenle bu sonuçlarda bazı mesajlar eksik olabilir.",
     view_spam_trash_messages: "Mesajları görüntüle",

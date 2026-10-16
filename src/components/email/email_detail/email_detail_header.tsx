@@ -212,11 +212,7 @@ export function EmailDetailHeader({
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <IslandIconButton
-            className="lg:hidden"
-            label={t("common.more")}
-            title={t("common.more")}
-          >
+          <IslandIconButton className="lg:hidden" label={t("common.more")}>
             <EllipsisVerticalIcon />
           </IslandIconButton>
         </DropdownMenuTrigger>

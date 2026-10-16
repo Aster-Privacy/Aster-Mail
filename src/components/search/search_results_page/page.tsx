@@ -849,14 +849,17 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
               scope_view={scope_view}
             />
           )}
-          {state.index_incomplete && !index_status.is_active && (
+          {(state.index_incomplete || state.index_pending) &&
+            !index_status.is_active && (
             <div
               className={`flex items-center gap-2 px-4 py-2 text-xs ${SEARCH_NOTICE_DIVIDER}`}
               data-testid="search-index-incomplete-notice"
               style={{ color: "var(--text-secondary)" }}
             >
               <span className="min-w-0">
-                {t("mail.search_index_incomplete")}
+                {state.index_incomplete
+                  ? t("mail.search_index_incomplete")
+                  : t("mail.search_index_partial")}
               </span>
             </div>
           )}

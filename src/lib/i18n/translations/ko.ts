@@ -937,6 +937,7 @@ export const ko = {
     history: "기록",
     all_mail: "전체 메일",
     import_contacts: "연락처 가져오기",
+    import_contacts_short: "가져오기",
     import_choose_file_desc:
       "가져올 연락처 파일을 선택하세요. 지원 형식: vCard (.vcf) 및 CSV.",
     click_to_select_file: "파일을 선택하려면 클릭하세요",
@@ -9001,6 +9002,8 @@ export const ko = {
     chip_advanced_search: "고급 검색",
     spam_trash_hidden_notice:
       "스팸과 휴지통에 검색과 일치하는 메일이 있습니다.",
+    search_index_partial:
+      "이 기기에서 메일 색인이 아직 완료되지 않아 일부 메시지가 검색 결과에서 누락될 수 있습니다.",
     search_index_incomplete:
       "이 기기에서 검색 색인의 일부를 읽지 못했으므로 이 결과에서 일부 메일이 빠졌을 수 있습니다.",
     view_spam_trash_messages: "메일 보기",
