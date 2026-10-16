@@ -52,6 +52,7 @@ export const MAIL_EVENTS = {
   MAIL_SOFT_REFRESH: "astermail:mail-soft-refresh",
   MAIL_STATS_STALE: "astermail:mail-stats-stale",
   MAIL_REMOTE_MUTATION: "astermail:mail-remote-mutation",
+  MAIL_REMOTE_ITEMS_REMOVED: "astermail:mail-remote-items-removed",
   REACTIONS_CHANGED: "astermail:reactions-changed",
   REACTION_RECEIVED: "astermail:reaction-received",
   INBOX_UNREAD_INDEXED: "astermail:inbox-unread-indexed",
@@ -171,6 +172,11 @@ export interface MailItemsRemovedEventDetail {
   ids: string[];
 }
 
+export interface MailRemoteItemsRemovedEventDetail {
+  ids: string[];
+  action: string;
+}
+
 export interface InboxUnreadIndexedEventDetail {
   total: number | null;
 }
@@ -207,6 +213,7 @@ type EventDetailMap = {
   [MAIL_EVENTS.MAIL_SOFT_REFRESH]: undefined;
   [MAIL_EVENTS.MAIL_STATS_STALE]: undefined;
   [MAIL_EVENTS.MAIL_REMOTE_MUTATION]: undefined;
+  [MAIL_EVENTS.MAIL_REMOTE_ITEMS_REMOVED]: MailRemoteItemsRemovedEventDetail;
   [MAIL_EVENTS.REACTIONS_CHANGED]: ReactionsChangedEventDetail;
   [MAIL_EVENTS.REACTION_RECEIVED]: ReactionReceivedEventDetail;
   [MAIL_EVENTS.INBOX_UNREAD_INDEXED]: InboxUnreadIndexedEventDetail;
@@ -381,6 +388,12 @@ export function emit_mail_items_removed(
 ): void {
   note_removed_ids(detail.ids);
   mail_event_bus.emit(MAIL_EVENTS.MAIL_ITEMS_REMOVED, detail);
+}
+
+export function emit_mail_remote_items_removed(
+  detail: MailRemoteItemsRemovedEventDetail,
+): void {
+  mail_event_bus.emit(MAIL_EVENTS.MAIL_REMOTE_ITEMS_REMOVED, detail);
 }
 
 export function emit_auth_ready(): void {

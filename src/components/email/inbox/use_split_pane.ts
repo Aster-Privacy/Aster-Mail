@@ -59,59 +59,11 @@ export function use_split_pane({
     max_width: number;
     max_height: number;
   } | null>(null);
-  const has_initialized_width = useRef(false);
-  const has_initialized_height = useRef(false);
   const list_panel_ref = useRef<HTMLDivElement>(null);
   const detail_panel_ref = useRef<HTMLDivElement>(null);
   const raf_ref = useRef(0);
   const drag_width_ref = useRef<number | null>(null);
   const drag_height_ref = useRef<number | null>(null);
-
-  useEffect(() => {
-    if (has_initialized_width.current) return;
-    const content_width = window.innerWidth - SIDEBAR_WIDTH;
-    const max_width = Math.max(
-      MIN_LIST_WIDTH,
-      content_width - MIN_EMAIL_VIEWER_WIDTH,
-    );
-    const ideal_width = Math.floor(content_width * 0.5);
-    const safe_width = Math.max(
-      MIN_LIST_WIDTH,
-      Math.min(max_width, ideal_width),
-    );
-
-    if (
-      split_pane_width <= 0 ||
-      split_pane_width > max_width ||
-      split_pane_width < MIN_LIST_WIDTH
-    ) {
-      update_preference("split_pane_width", safe_width);
-    }
-    has_initialized_width.current = true;
-  }, [split_pane_width, update_preference]);
-
-  useEffect(() => {
-    if (has_initialized_height.current) return;
-    const content_height = window.innerHeight - 120;
-    const max_height = Math.max(
-      MIN_LIST_HEIGHT,
-      content_height - MIN_EMAIL_VIEWER_HEIGHT,
-    );
-    const ideal_height = Math.floor(content_height * 0.5);
-    const safe_height = Math.max(
-      MIN_LIST_HEIGHT,
-      Math.min(max_height, ideal_height),
-    );
-
-    if (
-      split_pane_height <= 0 ||
-      split_pane_height > max_height ||
-      split_pane_height < MIN_LIST_HEIGHT
-    ) {
-      update_preference("split_pane_height", safe_height);
-    }
-    has_initialized_height.current = true;
-  }, [split_pane_height, update_preference]);
 
   const default_width = Math.floor((window.innerWidth - SIDEBAR_WIDTH) * 0.5);
   const default_height = Math.floor((window.innerHeight - 120) * 0.5);

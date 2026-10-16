@@ -142,13 +142,15 @@ export function PopupEmailHeader({
         });
       }
     }
-    const store_hints = get_label_hints(mail_item?.id ?? email.id);
     const resolved =
-      from_item.length > 0
-        ? from_item
-        : label_hints?.length
+      from_item.length === 0
+        ? label_hints?.length
           ? label_hints
-          : store_hints;
+          : get_label_hints(mail_item?.id ?? email.id)
+        : [
+            ...from_item,
+            ...(label_hints ?? []).filter((hint) => !seen.has(hint.token)),
+          ];
 
     if (is_system_email(email)) {
       return [

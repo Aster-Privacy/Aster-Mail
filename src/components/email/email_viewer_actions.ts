@@ -58,7 +58,12 @@ import {
   emit_mail_items_removed,
   emit_mail_soft_refresh,
 } from "@/hooks/mail_events";
-import { preload_print_email, print_email } from "@/utils/print_email_loader";
+import {
+  preload_print_email,
+  print_email,
+  print_thread,
+} from "@/utils/print_email_loader";
+import { build_thread_print_data } from "@/utils/thread_print_data";
 import { preload_when_idle } from "@/utils/lazy_with_retry";
 import {
   begin_read_change,
@@ -873,6 +878,18 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
 
   const handle_print = useCallback(() => {
     if (!deps.email) return;
+    if (deps.thread_messages.length > 1) {
+      const thread_data = build_thread_print_data(
+        deps.email.subject,
+        deps.thread_messages,
+      );
+
+      if (thread_data) {
+        print_thread(thread_data, deps.t);
+
+        return;
+      }
+    }
     print_email(
       {
         subject: deps.email.subject,
@@ -890,7 +907,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       },
       deps.t,
     );
-  }, [deps.email, deps.t]);
+  }, [deps.email, deps.thread_messages, deps.t]);
 
   const handle_unsubscribe = useCallback(async () => {
     if (!deps.email?.unsubscribe_info) return;

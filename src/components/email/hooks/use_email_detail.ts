@@ -40,7 +40,7 @@ import {
   setup_thread_print_intercept,
 } from "@/utils/print_email_loader";
 import { set_forward_mail_id } from "@/services/forward_store";
-import { app_locale, get_display_time_zone } from "@/utils/date_format";
+import { build_thread_print_data as build_thread_print_data_for } from "@/utils/thread_print_data";
 
 export type {
   DecryptedEmail,
@@ -247,24 +247,13 @@ export function use_email_detail() {
     actions.build_reply_modal_data,
   ]);
 
-  const build_thread_print_data = useCallback((): PrintThreadData | null => {
-    if (!email || thread_messages.length === 0) return null;
-
-    return {
-      subject: email.subject,
-      messages: thread_messages.map((msg) => ({
-        sender: msg.display_sender_name || msg.sender_name,
-        sender_email: msg.display_sender_email || msg.sender_email,
-        timestamp: new Date(msg.timestamp).toLocaleString(app_locale(), {
-          timeZone: get_display_time_zone(),
-        }),
-        body: msg.html_content || msg.body,
-        to_recipients: msg.to_recipients,
-        cc_recipients: msg.cc_recipients,
-        bcc_recipients: msg.bcc_recipients,
-      })),
-    };
-  }, [email, thread_messages]);
+  const build_thread_print_data = useCallback(
+    (): PrintThreadData | null =>
+      email
+        ? build_thread_print_data_for(email.subject, thread_messages)
+        : null,
+    [email, thread_messages],
+  );
 
   const thread_data_ref = useRef(build_thread_print_data);
 

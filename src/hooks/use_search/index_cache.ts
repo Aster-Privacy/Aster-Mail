@@ -605,6 +605,52 @@ export function mark_search_index_stale(): void {
   }
 }
 
+export interface IndexedFlagPatch {
+  is_read?: boolean;
+  is_starred?: boolean;
+  is_trashed?: boolean;
+  is_spam?: boolean;
+  is_archived?: boolean;
+}
+
+export function patch_indexed_flags(
+  ids: string[],
+  patch: IndexedFlagPatch,
+): void {
+  if (!cached_index || ids.length === 0) return;
+
+  const wanted = new Set(ids);
+
+  for (const item of cached_index.items) {
+    if (!wanted.has(item.id)) continue;
+
+    if (patch.is_trashed !== undefined) item.is_trashed = patch.is_trashed;
+    if (patch.is_spam !== undefined) item.is_spam = patch.is_spam;
+    if (patch.is_archived !== undefined) item.is_archived = patch.is_archived;
+    if (patch.is_read !== undefined) item.is_read = patch.is_read;
+    if (patch.is_starred !== undefined) item.is_starred = patch.is_starred;
+
+    const entry = cached_index.decrypted.get(item.id);
+
+    if (entry?.metadata) {
+      entry.metadata = {
+        ...entry.metadata,
+        ...(patch.is_read !== undefined ? { is_read: patch.is_read } : {}),
+        ...(patch.is_starred !== undefined
+          ? { is_starred: patch.is_starred }
+          : {}),
+        ...(patch.is_trashed !== undefined
+          ? { is_trashed: patch.is_trashed }
+          : {}),
+        ...(patch.is_spam !== undefined ? { is_spam: patch.is_spam } : {}),
+        ...(patch.is_archived !== undefined
+          ? { is_archived: patch.is_archived }
+          : {}),
+      };
+    }
+  }
+}
+
 export async function prewarm_search_index(
   user_email: string,
   include_body: boolean,

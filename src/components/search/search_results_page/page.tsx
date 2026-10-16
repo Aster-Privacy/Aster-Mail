@@ -136,6 +136,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
     search_page,
     set_search_page,
     perform_search,
+    apply_flag_patch,
     handle_disable_content_search,
     handle_enable_content_search,
     search_terms,
@@ -682,18 +683,26 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
           on_archive={() =>
             menu_selection
               ? void handle_bulk_archive()
-              : void run_single(
-                  (emails) => email_actions.bulk_archive(emails),
-                  true,
-                )
+              : void run_single(async (emails) => {
+                  if (await email_actions.bulk_archive(emails)) {
+                    apply_flag_patch(
+                      emails.map((e) => e.id),
+                      { is_archived: true, is_trashed: false, is_spam: false },
+                    );
+                  }
+                }, true)
           }
           on_delete={() =>
             menu_selection
               ? void handle_bulk_delete()
-              : void run_single(
-                  (emails) => email_actions.bulk_delete(emails),
-                  true,
-                )
+              : void run_single(async (emails) => {
+                  if (await email_actions.bulk_delete(emails)) {
+                    apply_flag_patch(
+                      emails.map((e) => e.id),
+                      { is_trashed: true },
+                    );
+                  }
+                }, true)
           }
           on_find_from_sender={() => handle_find_from_sender(menu_email)}
           on_folder_toggle={
@@ -737,10 +746,14 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
           on_spam={() =>
             menu_selection
               ? void handle_bulk_spam()
-              : void run_single(
-                  (emails) => email_actions.bulk_mark_spam(emails),
-                  true,
-                )
+              : void run_single(async (emails) => {
+                  if (await email_actions.bulk_mark_spam(emails)) {
+                    apply_flag_patch(
+                      emails.map((e) => e.id),
+                      { is_spam: true, is_trashed: false },
+                    );
+                  }
+                }, true)
           }
           on_tag_toggle={menu_selection ? undefined : handle_menu_tag_toggle}
           on_toggle_pin={() =>

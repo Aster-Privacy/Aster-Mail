@@ -27,6 +27,9 @@ import { use_folders } from "@/hooks/use_folders";
 import { order_folders_as_tree } from "@/hooks/use_folders/tree";
 import { order_tags_as_tree } from "@/hooks/tag_tree";
 import { use_tags } from "@/hooks/use_tags";
+import { use_i18n } from "@/lib/i18n/context";
+import { show_toast } from "@/components/toast/simple_toast";
+import { fetch_minimal_emails } from "@/services/fetch_minimal_emails";
 
 export type SplitEmailViewParams = {
   split_email_id: string | null | undefined;
@@ -54,6 +57,7 @@ export function use_split_email_view({
   folders_state,
   context_menu_actions,
 }: SplitEmailViewParams) {
+  const { t } = use_i18n();
   const split_email_snoozed_until = useMemo(() => {
     if (!split_email_id) return undefined;
 
@@ -146,25 +150,37 @@ export function use_split_email_view({
       ),
     [folders_state.folders],
   );
+  const resolve_viewer_email =
+    useCallback(async (): Promise<InboxEmail | null> => {
+      if (!split_email_id) return null;
+      const listed = email_state.emails.find((e) => e.id === split_email_id);
+
+      if (listed) return listed;
+      const { emails } = await fetch_minimal_emails([split_email_id]);
+
+      return emails[0] ?? null;
+    }, [split_email_id, email_state.emails]);
   const handle_viewer_folder_toggle = useCallback(
     (folder_id: string) => {
-      if (!split_email_id) return;
-      const email = email_state.emails.find((e) => e.id === split_email_id);
-
-      if (email) {
-        context_menu_actions.handle_folder_toggle(email, folder_id);
-      }
+      void resolve_viewer_email().then((email) => {
+        if (email) {
+          context_menu_actions.handle_folder_toggle(email, folder_id);
+        } else {
+          show_toast(t("common.failed_to_move_email"), "error");
+        }
+      });
     },
-    [split_email_id, email_state.emails, context_menu_actions],
+    [resolve_viewer_email, context_menu_actions, t],
   );
   const handle_viewer_move_out_of_bin = useCallback(() => {
-    if (!split_email_id) return;
-    const email = email_state.emails.find((e) => e.id === split_email_id);
-
-    if (email) {
-      void context_menu_actions.handle_move_to_inbox(email);
-    }
-  }, [split_email_id, email_state.emails, context_menu_actions]);
+    void resolve_viewer_email().then((email) => {
+      if (email) {
+        void context_menu_actions.handle_move_to_inbox(email);
+      } else {
+        show_toast(t("common.failed_to_move_email"), "error");
+      }
+    });
+  }, [resolve_viewer_email, context_menu_actions, t]);
 
   return {
     split_email_snoozed_until,

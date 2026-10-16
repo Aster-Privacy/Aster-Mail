@@ -52,11 +52,13 @@ import { use_keyboard_shortcuts } from "@/hooks/use_keyboard_shortcuts";
 import { use_key_rotation } from "@/hooks/use_key_rotation";
 import { lock_all_folders } from "@/hooks/use_protected_folder";
 import {
+  MAIL_EVENTS,
   emit_folders_changed,
   emit_mail_items_removed,
   emit_mail_item_updated,
   emit_mail_soft_refresh,
   emit_mail_stats_stale,
+  type MailRemoteItemsRemovedEventDetail,
 } from "@/hooks/mail_events";
 import { use_show_mobile_ui } from "@/hooks/use_platform";
 import { adjust_stats_inbox } from "@/hooks/use_mail_stats";
@@ -846,7 +848,10 @@ export function use_index_page_state() {
 
   useEffect(() => {
     if (use_popup_mode) {
-      set_split_scheduled_data(null);
+      if (split_scheduled_data) {
+        set_popup_scheduled(split_scheduled_data);
+        set_split_scheduled_data(null);
+      }
       if (split_email_id) {
         set_popup_email_id(split_email_id);
         set_split_email_id(null);
@@ -854,11 +859,21 @@ export function use_index_page_state() {
 
       return;
     }
+    if (popup_scheduled) {
+      set_split_scheduled_data(popup_scheduled);
+      set_popup_scheduled(null);
+    }
     if (popup_email_id) {
       set_split_email_id(popup_email_id);
       set_popup_email_id(null);
     }
-  }, [use_popup_mode, popup_email_id, split_email_id]);
+  }, [
+    use_popup_mode,
+    popup_email_id,
+    split_email_id,
+    popup_scheduled,
+    split_scheduled_data,
+  ]);
 
   const get_current_view = () => {
     const path = location.pathname;
@@ -897,6 +912,41 @@ export function use_index_page_state() {
   };
 
   const current_view = get_current_view();
+
+  useEffect(() => {
+    const handle_remote_removed = (event: Event) => {
+      const detail = (event as CustomEvent<MailRemoteItemsRemovedEventDetail>)
+        .detail;
+
+      if (!detail?.ids?.length) return;
+
+      const open_id = split_email_id ?? popup_email_id;
+
+      if (!open_id || !detail.ids.includes(open_id)) return;
+
+      const still_listed =
+        (detail.action === "trash" && current_view === "trash") ||
+        ((detail.action === "spam" || detail.action === "mark_spam") &&
+          current_view === "spam") ||
+        (detail.action === "archive" && current_view !== "inbox");
+
+      if (still_listed) return;
+
+      close_desktop_email_view();
+    };
+
+    window.addEventListener(
+      MAIL_EVENTS.MAIL_REMOTE_ITEMS_REMOVED,
+      handle_remote_removed,
+    );
+
+    return () => {
+      window.removeEventListener(
+        MAIL_EVENTS.MAIL_REMOTE_ITEMS_REMOVED,
+        handle_remote_removed,
+      );
+    };
+  }, [split_email_id, popup_email_id, current_view, close_desktop_email_view]);
 
   const handle_drop_to_folder = useCallback(
     async (

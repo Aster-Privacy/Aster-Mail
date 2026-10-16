@@ -122,6 +122,7 @@ import {
   clear_search_index,
   hydrate_snapshot_index,
   mark_search_index_stale,
+  patch_indexed_flags,
   reset_index_cache,
 } from "./index_cache";
 import * as index_cache from "./index_cache";
@@ -740,5 +741,56 @@ describe("windowed search index shared between tabs", () => {
     writes.chunk = 0;
     await refresh_tab(first);
     expect(writes.chunk).toBe(0);
+  });
+});
+
+describe("patch_indexed_flags", () => {
+  beforeEach(async () => {
+    clear_search_index();
+    store.clear();
+    server.mailbox = Array.from({ length: 3 }, (_, n) => make_item(n));
+    await settle();
+  });
+
+  it("marks a trashed message and clears it again on undo", () => {
+    const index = index_cache.cached_index as CachedIndex;
+    const item = index.items.find((entry) => entry.id === "msg-1");
+
+    patch_indexed_flags(["msg-1"], { is_trashed: true });
+
+    expect(item?.is_trashed).toBe(true);
+    expect(index.decrypted.get("msg-1")?.metadata?.is_trashed ?? true).toBe(
+      true,
+    );
+
+    patch_indexed_flags(["msg-1"], { is_trashed: false });
+
+    expect(item?.is_trashed).toBe(false);
+    expect(index.decrypted.get("msg-1")?.metadata?.is_trashed ?? false).toBe(
+      false,
+    );
+  });
+
+  it("updates read and starred state without touching other messages", () => {
+    const index = index_cache.cached_index as CachedIndex;
+
+    patch_indexed_flags(["msg-0"], { is_read: false, is_starred: true });
+
+    const patched = index.items.find((entry) => entry.id === "msg-0");
+    const untouched = index.items.find((entry) => entry.id === "msg-2");
+
+    expect(patched?.is_read).toBe(false);
+    expect(patched?.is_starred).toBe(true);
+    expect(untouched?.is_read).toBe(true);
+    expect(untouched?.is_starred).toBeFalsy();
+  });
+
+  it("ignores ids that are not indexed", () => {
+    const index = index_cache.cached_index as CachedIndex;
+    const before = JSON.stringify(index.items);
+
+    patch_indexed_flags(["missing"], { is_spam: true });
+
+    expect(JSON.stringify(index.items)).toBe(before);
   });
 });
