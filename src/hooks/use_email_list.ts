@@ -54,6 +54,7 @@ import { MIN_SKELETON_MS } from "./email_list_types";
 import { use_email_list_actions } from "./use_email_list_actions";
 import { use_email_list_bulk } from "./use_email_list_bulk";
 import { use_email_list_events } from "./use_email_list_events";
+import { get_open_reader_ids } from "./open_reader_registry";
 
 import { resolve_effective_page_size } from "@/lib/inbox_page_size";
 import {
@@ -525,9 +526,14 @@ export function use_email_list(
           silent === true &&
           page_ref.current === page &&
           state_view_ref.current === list_key;
-        const kept_filter: ListReadFilter = keeps_left_rows
-          ? read_filter
-          : "all";
+        const kept_only_ids =
+          keeps_left_rows ||
+          page_ref.current !== page ||
+          state_view_ref.current !== list_key
+            ? undefined
+            : get_open_reader_ids();
+        const kept_filter: ListReadFilter =
+          keeps_left_rows || kept_only_ids ? read_filter : "all";
 
         last_fetch_ref.current = { view: list_key, page, time: now };
         page_ref.current = page;
@@ -540,6 +546,7 @@ export function use_email_list(
           loaded_emails_ref.current,
           result.emails,
           kept_filter,
+          kept_only_ids,
         ).retained;
 
         set_state((prev) => {
@@ -553,6 +560,7 @@ export function use_email_list(
             prev.emails,
             surviving,
             kept_filter,
+            kept_only_ids,
           );
           const emails =
             selected_ids.size > 0
@@ -676,11 +684,7 @@ export function use_email_list(
         { reuse_known_envelopes: true, is_read: is_read_param },
       );
 
-      if (
-        signal.aborted ||
-        !result ||
-        committed_view_ref.current !== list_key
-      )
+      if (signal.aborted || !result || committed_view_ref.current !== list_key)
         return;
       if (page_ref.current !== active_page) return;
       if (silent_seq_ref.current !== my_silent_seq) return;
@@ -769,8 +773,7 @@ export function use_email_list(
       left_filter - Math.min(drift_accounted_ref.current, left_filter);
     const offset = Math.max(
       0,
-      (page_offset_ref.current.get(next_page) ?? next_page * page_size) -
-        drift,
+      (page_offset_ref.current.get(next_page) ?? next_page * page_size) - drift,
     );
 
     set_state((prev) => ({ ...prev, is_loading_more: true }));
@@ -1053,8 +1056,7 @@ export function use_email_list(
 
     const nothing_changed = !auth_changed && !view_changed && !user_changed;
     const already_has_data =
-      has_data_ref.current &&
-      unverified_snapshot_view_ref.current !== list_key;
+      has_data_ref.current && unverified_snapshot_view_ref.current !== list_key;
 
     if (has_keys && has_passphrase_in_memory()) {
       if (!is_online && Capacitor.isNativePlatform()) {
@@ -1381,6 +1383,7 @@ export function use_email_list(
     set_state,
     fetch_page_ref,
     silent_fetch_ref,
+    read_filter_ref,
     last_fetch_ref,
   });
 
@@ -1398,6 +1401,7 @@ export function use_email_list(
     update_email,
     remove_email,
     refresh,
+    conversation_grouping: preferences.conversation_grouping,
   });
 
   const { bulk_delete, bulk_archive, bulk_unarchive } = use_email_list_bulk({

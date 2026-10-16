@@ -101,13 +101,19 @@ export function retain_left_filter_rows(
   previous: InboxEmail[],
   refreshed: InboxEmail[],
   read_filter: ListReadFilter,
+  only_ids?: Set<string>,
 ): RetainedLeftRows {
   if (read_filter === "all") return { emails: refreshed, retained: 0 };
+  if (only_ids && only_ids.size === 0)
+    return { emails: refreshed, retained: 0 };
 
   const wants_read = read_filter === "read";
   const refreshed_ids = new Set(refreshed.map((e) => e.id));
   const left_rows = previous.filter(
-    (e) => e.is_read !== wants_read && !refreshed_ids.has(e.id),
+    (e) =>
+      e.is_read !== wants_read &&
+      !refreshed_ids.has(e.id) &&
+      (!only_ids || only_ids.has(e.id)),
   );
 
   if (left_rows.length === 0) return { emails: refreshed, retained: 0 };

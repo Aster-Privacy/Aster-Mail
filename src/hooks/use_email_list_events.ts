@@ -19,7 +19,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { EmailListState, InboxEmail } from "@/types/email";
-import type { FetchPageOptions } from "@/hooks/email_list_types";
+import type {
+  FetchPageOptions,
+  ListReadFilter,
+} from "@/hooks/email_list_types";
 
 import { useEffect, type MutableRefObject } from "react";
 
@@ -64,6 +67,7 @@ interface UseEmailListEventsParams {
     | null
   >;
   silent_fetch_ref: MutableRefObject<(() => Promise<void>) | null>;
+  read_filter_ref?: MutableRefObject<ListReadFilter>;
   last_fetch_ref: MutableRefObject<{
     view: string;
     page: number;
@@ -106,6 +110,7 @@ export function apply_item_update_to_rows(
 }
 
 export const ENTERED_VIEW_REFETCH_DELAY_MS = 60;
+export const ENTERED_READ_FILTER_REFETCH_DELAY_MS = 1500;
 
 const POLL_INTERVAL_MS = 60_000;
 const LIVE_POLL_MS = CATCH_UP_WHILE_LIVE_MS - POLL_INTERVAL_MS / 2;
@@ -140,6 +145,7 @@ export function use_email_list_events({
   set_state,
   fetch_page_ref,
   silent_fetch_ref,
+  read_filter_ref,
   last_fetch_ref,
 }: UseEmailListEventsParams): void {
   useEffect(() => {
@@ -360,14 +366,17 @@ export function use_email_list_events({
   useEffect(() => {
     let refetch_timer: ReturnType<typeof setTimeout> | null = null;
 
-    const schedule_silent_refetch = () => {
+    const schedule_silent_refetch = (
+      delay_ms: number = ENTERED_VIEW_REFETCH_DELAY_MS,
+    ) => {
       request_cache.invalidate("GET:/mail/v1/messages");
       mark_view_stale();
       if (refetch_timer) clearTimeout(refetch_timer);
       refetch_timer = setTimeout(() => {
         refetch_timer = null;
+        request_cache.invalidate("GET:/mail/v1/messages");
         silent_fetch_ref.current?.();
-      }, ENTERED_VIEW_REFETCH_DELAY_MS);
+      }, delay_ms);
     };
 
     const handle_item_update = (event: Event) => {
@@ -403,11 +412,19 @@ export function use_email_list_events({
           detail,
         );
 
+        const read_filter = read_filter_ref?.current ?? "all";
+        const entered_read_filter =
+          read_filter !== "all" &&
+          detail.is_read === (read_filter === "read") &&
+          !prev.emails.some((e) => e.id === detail.id);
+
         if (
           needs_refetch ||
           entered_current_view(prev.emails, detail, current_view)
         ) {
           schedule_silent_refetch();
+        } else if (entered_read_filter) {
+          schedule_silent_refetch(ENTERED_READ_FILTER_REFETCH_DELAY_MS);
         }
 
         return { ...prev, emails };
@@ -452,5 +469,5 @@ export function use_email_list_events({
         handle_items_removed,
       );
     };
-  }, [current_view, set_state, silent_fetch_ref]);
+  }, [current_view, set_state, silent_fetch_ref, read_filter_ref]);
 }

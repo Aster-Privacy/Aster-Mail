@@ -81,6 +81,7 @@ interface UseEmailListActionsParams {
   update_email: (id: string, updates: Partial<InboxEmail>) => void;
   remove_email: (id: string) => void;
   refresh: () => void;
+  conversation_grouping?: boolean;
 }
 
 export function use_email_list_actions({
@@ -89,6 +90,7 @@ export function use_email_list_actions({
   update_email,
   remove_email,
   refresh,
+  conversation_grouping,
 }: UseEmailListActionsParams) {
   const api_update = useCallback(
     async (
@@ -210,6 +212,7 @@ export function use_email_list_actions({
         const conversation_options = {
           thread_token: email.thread_token,
           grouped_count: email.grouped_email_ids?.length,
+          conversation_grouping,
           acted_id: id,
         };
         const should_adjust_unread =
@@ -224,7 +227,8 @@ export function use_email_list_actions({
 
         const read_ticket = begin_read_change([id]);
         let success = false;
-        let encrypted: { encrypted_metadata: string; metadata_nonce: string } | undefined;
+        let encrypted:
+          { encrypted_metadata: string; metadata_nonce: string } | undefined;
 
         try {
           const result = await update_item_metadata(
@@ -270,7 +274,7 @@ export function use_email_list_actions({
         }
       }
     },
-    [state.emails, update_email],
+    [state.emails, update_email, conversation_grouping],
   );
 
   const delete_email = useCallback(

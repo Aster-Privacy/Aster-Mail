@@ -97,6 +97,8 @@ import {
 import { sync_client } from "@/services/sync_client";
 import { CATCH_UP_WHILE_LIVE_MS } from "@/services/sync_timing";
 import { use_thread_decrypt_hold } from "@/hooks/use_thread_decrypt_hold";
+import { register_open_reader } from "@/hooks/open_reader_registry";
+import { use_conversation_catch_up_read } from "@/hooks/use_conversation_catch_up_read";
 import {
   claim_auto_read,
   is_read_ticket_current,
@@ -288,6 +290,12 @@ export function use_email_viewer({
   const mark_as_read_timeout = useRef<number | null>(null);
 
   useEffect(() => {
+    if (!email_id) return;
+
+    return register_open_reader(email_id);
+  }, [email_id]);
+
+  useEffect(() => {
     return () => {
       if (mark_as_read_timeout.current !== null) {
         window.clearTimeout(mark_as_read_timeout.current);
@@ -305,6 +313,19 @@ export function use_email_viewer({
 
   grouped_email_ids_ref.current = grouped_email_ids;
   const thread_list_ref = useRef<ThreadMessagesListRef>(null);
+
+  use_conversation_catch_up_read({
+    email_id,
+    is_read,
+    is_loading: is_loading,
+    item_id: mail_item?.id,
+    thread_token: mail_item?.thread_token,
+    thread_message_count: mail_item?.thread_message_count,
+    thread_messages,
+    grouped_count_ref: grouped_email_ids_ref,
+    mark_as_read_delay: preferences.mark_as_read_delay,
+    conversation_grouping: preferences.conversation_grouping,
+  });
 
   useEffect(() => {
     if (thread_messages.length === 0 || !current_user_email) {

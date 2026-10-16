@@ -1388,12 +1388,21 @@ export function use_index_page_state() {
 
     set_active_search_query(null);
     set_sender_subscription(null);
-    set_search_params({});
 
     if (was_from_subscriptions) {
+      set_search_params({});
       navigate("/subscriptions");
+
+      return;
     }
-  }, [set_search_params, sender_subscription, navigate]);
+    if (location.search) {
+      navigate({
+        pathname: location.pathname,
+        search: "",
+        hash: location.hash,
+      });
+    }
+  }, [set_search_params, sender_subscription, navigate, location]);
 
   const handle_search_result_click = useCallback(
     (id: string, row?: OpenedMailRow) => {

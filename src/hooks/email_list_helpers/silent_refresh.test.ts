@@ -139,6 +139,33 @@ describe("retain_left_filter_rows", () => {
     expect(retained).toBe(1);
   });
 
+  it("keeps only the listed ids when a full refresh limits retention", () => {
+    const previous = [row("a", true), row("b", true), row("c", false)];
+    const refreshed = [row("c", false)];
+
+    const { emails, retained } = retain_left_filter_rows(
+      previous,
+      refreshed,
+      "unread",
+      new Set(["b"]),
+    );
+
+    expect(emails.map((e) => e.id)).toEqual(["b", "c"]);
+    expect(retained).toBe(1);
+  });
+
+  it("keeps nothing when the limiting id set is empty", () => {
+    const { emails, retained } = retain_left_filter_rows(
+      [row("a", true), row("b", false)],
+      [row("b", false)],
+      "unread",
+      new Set(),
+    );
+
+    expect(emails.map((e) => e.id)).toEqual(["b"]);
+    expect(retained).toBe(0);
+  });
+
   it("keeps a leading row that left the filter at the top", () => {
     const { emails } = retain_left_filter_rows(
       [row("a", true), row("b", false)],
