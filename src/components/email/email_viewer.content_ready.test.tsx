@@ -154,6 +154,10 @@ vi.mock("@/services/lockdown_store", () => ({
   is_any_lockdown_active: () => false,
 }));
 
+vi.mock("@/components/email/hooks/toggle_viewer_star", () => ({
+  toggle_viewer_star: vi.fn(),
+}));
+
 vi.mock("@/utils/open_link", () => ({
   open_external: () => {},
 }));

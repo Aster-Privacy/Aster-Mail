@@ -51,7 +51,10 @@ import {
   bin_source_of,
   move_out_of_bin,
 } from "@/hooks/email_actions/move_out_of_bin";
-import { leaves_view_on_folder_move } from "@/hooks/view_membership";
+import {
+  leaves_view_on_folder_move,
+  unarchive_keeps_row,
+} from "@/hooks/view_membership";
 import { reindex_ids } from "@/services/category_index";
 import {
   bulk_add_folder,
@@ -600,7 +603,10 @@ export function build_context_menu_actions(
         ? email.grouped_email_ids
         : [email.id];
 
-    remove_email(email.id);
+    const keeps_row = unarchive_keeps_row(current_view);
+
+    if (keeps_row) update_email(email.id, { is_archived: false });
+    else remove_email(email.id);
     apply_stat_deltas(deltas);
     const result = await batch_unarchive({ ids: all_ids });
 
@@ -639,6 +645,7 @@ export function build_context_menu_actions(
       });
     } else {
       revert_stat_deltas(deltas);
+      if (keeps_row) update_email(email.id, { is_archived: true });
       window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
       show_toast(t("common.failed_to_update_emails"), "error");
     }

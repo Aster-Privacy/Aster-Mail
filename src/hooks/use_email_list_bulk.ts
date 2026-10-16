@@ -27,6 +27,7 @@ import type {
 
 import { useCallback, type MutableRefObject } from "react";
 
+import { archive_keeps_row, unarchive_keeps_row } from "./view_membership";
 import {
   DEFAULT_PAGE_SIZE,
   expand_email_ids,
@@ -70,6 +71,7 @@ interface UseEmailListBulkParams {
   page_ref?: MutableRefObject<number>;
   windowed_page_ref?: MutableRefObject<boolean>;
   page_size?: number;
+  current_view?: string;
 }
 
 interface CountDeltas {
@@ -125,7 +127,20 @@ export function use_email_list_bulk({
   page_ref,
   windowed_page_ref,
   page_size = DEFAULT_PAGE_SIZE,
+  current_view = "",
 }: UseEmailListBulkParams) {
+  const set_archived_flag = useCallback(
+    (ids: Set<string>, is_archived: boolean) => {
+      set_state((prev) => ({
+        ...prev,
+        emails: prev.emails.map((e) =>
+          ids.has(e.id) ? { ...e, is_archived } : e,
+        ),
+      }));
+    },
+    [set_state],
+  );
+
   const restore_emails = useCallback(
     (emails: InboxEmail[]) => {
       if (emails.length === 0) return;
@@ -321,12 +336,17 @@ export function use_email_list_bulk({
         new Set(selected_emails.flatMap(expand_email_ids)),
       );
       const deltas = count_deltas(selected_emails);
+      const keeps_row = archive_keeps_row(current_view);
 
-      set_state((prev) => ({
-        ...prev,
-        emails: prev.emails.filter((e) => !id_set.has(e.id)),
-        total_messages: Math.max(0, prev.total_messages - ids.length),
-      }));
+      if (keeps_row) {
+        set_archived_flag(id_set, true);
+      } else {
+        set_state((prev) => ({
+          ...prev,
+          emails: prev.emails.filter((e) => !id_set.has(e.id)),
+          total_messages: Math.max(0, prev.total_messages - ids.length),
+        }));
+      }
       remove_index_ids(expanded_ids);
       if (deltas.unread_received > 0) {
         adjust_unread_count(-deltas.unread_received);
@@ -366,7 +386,11 @@ export function use_email_list_bulk({
           adjust_inbox_count(restored.received);
         }
         adjust_stats_archived(-restored_ids.length);
-        restore_emails(failed_emails);
+        if (keeps_row) {
+          set_archived_flag(new Set(failed_emails.map((e) => e.id)), false);
+        } else {
+          restore_emails(failed_emails);
+        }
       }
 
       const archived_ids = expanded_ids.filter(
@@ -396,7 +420,14 @@ export function use_email_list_bulk({
         failed_emails.map((e) => e.id),
       );
     },
-    [state.emails, set_state, restore_emails, refill_if_empty],
+    [
+      state.emails,
+      set_state,
+      restore_emails,
+      refill_if_empty,
+      current_view,
+      set_archived_flag,
+    ],
   );
 
   const bulk_unarchive = useCallback(
@@ -409,12 +440,17 @@ export function use_email_list_bulk({
         new Set(selected_emails.flatMap(expand_email_ids)),
       );
       const deltas = count_deltas(selected_emails);
+      const keeps_row = unarchive_keeps_row(current_view);
 
-      set_state((prev) => ({
-        ...prev,
-        emails: prev.emails.filter((e) => !id_set.has(e.id)),
-        total_messages: Math.max(0, prev.total_messages - ids.length),
-      }));
+      if (keeps_row) {
+        set_archived_flag(id_set, false);
+      } else {
+        set_state((prev) => ({
+          ...prev,
+          emails: prev.emails.filter((e) => !id_set.has(e.id)),
+          total_messages: Math.max(0, prev.total_messages - ids.length),
+        }));
+      }
       if (deltas.unread_received > 0) {
         adjust_unread_count(deltas.unread_received);
       }
@@ -452,7 +488,11 @@ export function use_email_list_bulk({
           adjust_inbox_count(-restored.received);
         }
         adjust_stats_archived(restored_ids.length);
-        restore_emails(failed_emails);
+        if (keeps_row) {
+          set_archived_flag(new Set(failed_emails.map((e) => e.id)), true);
+        } else {
+          restore_emails(failed_emails);
+        }
       }
 
       const unarchived_ids = expanded_ids.filter(
@@ -480,7 +520,14 @@ export function use_email_list_bulk({
         failed_emails.map((e) => e.id),
       );
     },
-    [state.emails, set_state, restore_emails, refill_if_empty],
+    [
+      state.emails,
+      set_state,
+      restore_emails,
+      refill_if_empty,
+      current_view,
+      set_archived_flag,
+    ],
   );
 
   return {

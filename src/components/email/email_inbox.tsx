@@ -210,6 +210,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
     );
 
     if (target) set_custom_snooze_email(target);
+    else if (split_email_id) set_custom_snooze_email({ id: split_email_id });
   };
 
   const alias_view_active = is_alias_view(current_view);

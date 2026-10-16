@@ -94,13 +94,13 @@ export function use_inbox_keyboard(
     };
     const handle_star = (e: Event) => {
       const detail = (e as CustomEvent<{ id: string }>).detail;
-      const email = find_email(detail.id);
+      const email = find_unowned_email(detail.id, "star");
 
       if (email) void context_menu_actions.handle_toggle_star(email);
     };
     const handle_snooze = (e: Event) => {
       const detail = (e as CustomEvent<{ id: string }>).detail;
-      const email = find_email(detail.id);
+      const email = find_unowned_email(detail.id, "snooze");
 
       if (email) extra_actions.handle_open_snooze?.(email);
     };
