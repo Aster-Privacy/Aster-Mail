@@ -51,6 +51,7 @@ import {
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
 import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
 import { ignore_error } from "@/lib/ignore_error";
+import { archive_keeps_row } from "@/hooks/view_membership";
 import { clear_flag_intents, note_flag_intents } from "@/services/read_intent";
 import {
   remove_ids as remove_index_ids,
@@ -207,8 +208,13 @@ export function use_archive_snooze_actions({
       email.grouped_email_ids && email.grouped_email_ids.length > 1
         ? email.grouped_email_ids
         : [email.id];
+    const keeps_row = archive_keeps_row(current_view);
+    const restore_entries = keeps_row
+      ? []
+      : collect_restore_entries(email_state.emails, [email.id]);
 
-    remove_email(email.id);
+    if (keeps_row) update_email(email.id, { is_archived: true });
+    else remove_email(email.id);
     remove_index_ids(all_ids);
     note_flag_intents(all_ids, { is_archived: true });
 
@@ -273,6 +279,8 @@ export function use_archive_snooze_actions({
       revert_stat_deltas(deltas);
       clear_flag_intents(archive_ids, { is_archived: true });
       reindex_ids(Array.from(new Set([...archive_ids, ...removed_thread_ids])));
+      if (keeps_row) update_email(email.id, { is_archived: false });
+      else restore_emails?.(restore_entries);
       window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
       show_toast(t("common.failed_to_archive_emails"), "error");
     }
@@ -283,7 +291,11 @@ export function use_archive_snooze_actions({
     pending_archive_email,
     dont_ask_single_archive,
     preferences.conversation_grouping,
+    current_view,
+    email_state.emails,
+    update_email,
     remove_email,
+    restore_emails,
     update_preference,
     save_now,
     set_show_single_archive_confirm,

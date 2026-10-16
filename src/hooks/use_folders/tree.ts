@@ -110,7 +110,25 @@ export function build_folder_tree(
       depth,
     }));
 
-  return build(roots, 0);
+  const tree = build(roots, 0);
+  const placed = new Set<string>();
+  const mark = (nodes: FolderTreeNode[]) => {
+    for (const node of nodes) {
+      placed.add(node.folder.folder_token);
+      mark(node.children);
+    }
+  };
+
+  mark(tree);
+
+  for (const folder of non_system) {
+    if (!placed.has(folder.folder_token)) {
+      placed.add(folder.folder_token);
+      tree.push({ folder, children: [], depth: 0 });
+    }
+  }
+
+  return tree;
 }
 
 export function get_sibling_folders(
@@ -141,13 +159,20 @@ export function has_sibling_named(
   exclude_id?: string,
 ): boolean {
   const target_name = name.toLowerCase();
+  const token_set = new Set(
+    folders.filter((f) => !f.is_system).map((f) => f.folder_token),
+  );
   const target_parent = parent_token || undefined;
+  const shares_parent = (f: DecryptedFolder) =>
+    target_parent
+      ? f.parent_token === target_parent
+      : !f.parent_token || !token_set.has(f.parent_token);
 
   return folders.some(
     (f) =>
       f.id !== exclude_id &&
       f.name.toLowerCase() === target_name &&
-      (f.parent_token || undefined) === target_parent,
+      shares_parent(f),
   );
 }
 

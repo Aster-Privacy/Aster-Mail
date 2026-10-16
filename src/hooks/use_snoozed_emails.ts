@@ -357,7 +357,12 @@ export function use_snoozed_emails(): UseSnoozedEmailsReturn {
         return date_a - date_b;
       });
 
-      const visible_emails = filter_protected_folder_emails(decrypted_emails);
+      const now = Date.now();
+      const visible_emails = filter_protected_folder_emails(
+        decrypted_emails,
+      ).filter(
+        (e) => !e.snoozed_until || new Date(e.snoozed_until).getTime() > now,
+      );
 
       if (is_current()) {
         set_state({
@@ -462,6 +467,28 @@ export function use_snoozed_emails(): UseSnoozedEmailsReturn {
       window.removeEventListener("astermail:folder-locked", handle_change);
     };
   }, [fetch_snoozed]);
+
+  useEffect(() => {
+    const now = Date.now();
+    const next_wake = state.emails.reduce((earliest, e) => {
+      const wake_ms = e.snoozed_until
+        ? new Date(e.snoozed_until).getTime()
+        : NaN;
+
+      return Number.isFinite(wake_ms) && wake_ms > now && wake_ms < earliest
+        ? wake_ms
+        : earliest;
+    }, Infinity);
+
+    if (!Number.isFinite(next_wake)) return;
+
+    const timer = window.setTimeout(
+      fetch_snoozed,
+      Math.min(next_wake - now + 1000, 2_147_483_647),
+    );
+
+    return () => window.clearTimeout(timer);
+  }, [state.emails, fetch_snoozed]);
 
   return {
     state,

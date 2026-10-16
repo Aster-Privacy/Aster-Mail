@@ -24,6 +24,18 @@ export const SIGNATURE_GAP_BLOCK = "<div><br></div>";
 
 const SIGNATURE_MARKER = '<div data-aster-signature="1"';
 
+export function find_own_signature(root: ParentNode): HTMLElement | null {
+  const nodes = root.querySelectorAll<HTMLElement>(
+    "[data-aster-signature='1']",
+  );
+
+  for (const node of nodes) {
+    if (!node.closest("blockquote, .aster_quote")) return node;
+  }
+
+  return null;
+}
+
 export interface SignatureHtmlSource {
   id: string;
   content: string;

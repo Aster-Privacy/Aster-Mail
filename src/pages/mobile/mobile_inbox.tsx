@@ -80,7 +80,7 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { invalidate_mail_cache } from "@/hooks/email_list_cache";
 import {
   invalidate_mail_stats,
-  adjust_stats_trash,
+  clear_stats_trash,
 } from "@/hooks/use_mail_stats";
 import { emit_mail_items_removed } from "@/hooks/mail_events";
 import { request_cache } from "@/services/api/request_cache";
@@ -1028,7 +1028,6 @@ function MobileInbox({
 
       if (result.data?.success) {
         const removed_ids = mail_state.emails.map((e) => e.id);
-        const trash_count = mail_state.emails.length;
 
         for (const email of mail_state.emails) {
           remove_email(email.id);
@@ -1037,7 +1036,7 @@ function MobileInbox({
         invalidate_mail_cache("trash");
         invalidate_mail_cache("all");
         invalidate_mail_cache("starred");
-        adjust_stats_trash(-trash_count);
+        clear_stats_trash();
         emit_mail_items_removed({ ids: removed_ids });
         invalidate_mail_stats();
         show_action_toast({

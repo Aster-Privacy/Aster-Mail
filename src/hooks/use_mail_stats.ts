@@ -970,6 +970,10 @@ export function adjust_stats_trash(delta: number): void {
   stats_store.adjust("trash", delta);
 }
 
+export function clear_stats_trash(): void {
+  stats_store.adjust("trash", -get_mail_stats_snapshot().trash);
+}
+
 export function adjust_stats_unread(delta: number): void {
   stats_store.adjust("unread", delta);
 }

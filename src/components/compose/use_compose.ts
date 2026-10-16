@@ -75,6 +75,7 @@ import { escape_html, escaped_html_to_plain_text } from "@/hooks/editor_utils";
 import { get_max_total_attachments_size } from "@/services/attachment_limits";
 import { build_compose_default_block } from "@/lib/compose_defaults";
 import {
+  find_own_signature,
   COMPOSE_CARET_BLOCK,
   SIGNATURE_GAP_BLOCK,
   insert_signature_node,
@@ -1058,9 +1059,13 @@ export function use_compose({
     if (!target) return;
     if (last_signature_id_ref.current === target.id) return;
 
-    const existing = editor.querySelector<HTMLElement>(
-      "[data-aster-signature='1']",
-    );
+    const existing = find_own_signature(editor);
+
+    if (!existing && last_signature_id_ref.current !== null) {
+      last_signature_id_ref.current = target.id;
+
+      return;
+    }
     const raw_html = get_formatted_signature(target);
     const sanitized = sanitize_html(raw_html, get_compose_sanitize_options());
     const wrapper = document.createElement("div");

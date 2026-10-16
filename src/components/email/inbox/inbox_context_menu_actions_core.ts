@@ -359,11 +359,12 @@ export function build_core_context_menu_actions(
 
   const handle_spam = async (email: InboxEmail) => {
     const sender = email.sender_email;
-    const same_sender_emails = sender
-      ? get_emails().filter(
-          (e) => e.sender_email === sender && e.id !== email.id && !e.is_spam,
-        )
-      : [];
+    const same_sender_emails =
+      sender && !is_outgoing && email.item_type !== "sent"
+        ? get_emails().filter(
+            (e) => e.sender_email === sender && e.id !== email.id && !e.is_spam,
+          )
+        : [];
 
     const deltas = compute_removal_deltas(email);
     const same_sender_deltas = same_sender_emails.map(compute_removal_deltas);
@@ -379,6 +380,10 @@ export function build_core_context_menu_actions(
     );
 
     const combined_ids = [...all_ids, ...same_sender_ids];
+    const spam_restore_entries = collect_restore_entries(get_emails(), [
+      email.id,
+      ...same_sender_emails.map((e) => e.id),
+    ]);
 
     remove_email(email.id);
     for (const e of same_sender_emails) {
@@ -456,6 +461,7 @@ export function build_core_context_menu_actions(
         revert_stat_deltas(d);
       }
       reindex_ids(spam_index_ids);
+      restore_emails(spam_restore_entries);
       emit_mail_changed();
       show_toast(t("common.failed_to_mark_as_spam"), "error");
     }

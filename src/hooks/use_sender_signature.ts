@@ -29,7 +29,10 @@ import {
 } from "@/hooks/use_sender_aliases";
 import { sanitize_html } from "@/lib/html_sanitizer";
 import { get_compose_sanitize_options } from "@/lib/compose_image_sources";
-import { insert_signature_node } from "@/lib/signature_html";
+import {
+  find_own_signature,
+  insert_signature_node,
+} from "@/lib/signature_html";
 
 interface UseSenderSignatureOptions {
   editor_ref: React.RefObject<HTMLElement | null>;
@@ -86,9 +89,7 @@ export function use_sender_signature({
 
     if (!editor) return;
 
-    const existing = editor.querySelector<HTMLElement>(
-      "[data-aster-signature='1']",
-    );
+    const existing = find_own_signature(editor);
     const had_signature = applied_id_ref.current !== null;
 
     applied_id_ref.current = signature.id;
