@@ -729,6 +729,9 @@ export function QuickContactsPanel({
             (result) => result.status === "rejected" || result.value?.error,
           ).length;
         }
+        loaded_at_ref.current = 0;
+        void load(true);
+        void fetch_groups();
         if (failed_count > 0) {
           show_toast(t("common.failed_to_add_to_group"), "error");
 
@@ -742,14 +745,13 @@ export function QuickContactsPanel({
           "success",
         );
         clear_selection();
-        void fetch_groups();
       } catch {
         show_toast(t("common.failed_to_add_to_group"), "error");
       } finally {
         set_is_bulk_busy(false);
       }
     },
-    [clear_selection, fetch_groups, is_bulk_busy, selected_contacts, t],
+    [clear_selection, fetch_groups, is_bulk_busy, load, selected_contacts, t],
   );
 
   const handle_group_created = useCallback(() => {
