@@ -9417,6 +9417,8 @@ export const nl = {
     chip_advanced_search: "Geavanceerd zoeken",
     spam_trash_hidden_notice:
       "Sommige berichten in Spam en Prullenbak komen overeen met je zoekopdracht.",
+    search_index_partial:
+      "Je e-mail is op dit apparaat nog niet volledig geïndexeerd, dus er kunnen berichten ontbreken in deze resultaten.",
     search_index_incomplete:
       "Een deel van je zoekindex kon op dit apparaat niet worden gelezen, dus sommige berichten ontbreken mogelijk in deze resultaten.",
     view_spam_trash_messages: "Berichten bekijken",

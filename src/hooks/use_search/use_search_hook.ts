@@ -175,6 +175,7 @@ export function use_search() {
 
       set_state((prev) => {
         let changed = false;
+        let newly_hidden = 0;
         const next: SearchResultItem[] = [];
 
         for (const result of prev.results) {
@@ -190,6 +191,7 @@ export function use_search() {
 
           if (leaves_scope && hits.length === members.length) {
             for (const id of hits) hidden_ids_ref.current.add(id);
+            newly_hidden += hits.length;
             changed = true;
             continue;
           }
@@ -223,6 +225,7 @@ export function use_search() {
           ...prev,
           results: next,
           total_results: Math.max(prev.total_results - removed, next.length),
+          hidden_spam_trash: prev.hidden_spam_trash + newly_hidden,
         };
       });
     },
@@ -708,6 +711,7 @@ export function use_search() {
             ...prev,
             is_searching: false,
             index_building: false,
+            index_pending: true,
           }));
 
           return;

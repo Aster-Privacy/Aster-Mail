@@ -9481,6 +9481,8 @@ export const fr = {
     chip_advanced_search: "Recherche avancée",
     spam_trash_hidden_notice:
       "Certains messages dans Spam et Corbeille correspondent à votre recherche.",
+    search_index_partial:
+      "Vos e-mails ne sont pas encore entièrement indexés sur cet appareil, certains messages peuvent donc manquer dans ces résultats.",
     search_index_incomplete:
       "Une partie de votre index de recherche n’a pas pu être lue sur cet appareil, donc certains messages peuvent manquer dans ces résultats.",
     view_spam_trash_messages: "Voir les messages",

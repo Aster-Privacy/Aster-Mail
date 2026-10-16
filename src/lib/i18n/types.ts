@@ -8006,6 +8006,7 @@ export interface MailTranslations {
   chip_no_people: string;
   chip_advanced_search: string;
   spam_trash_hidden_notice: string;
+  search_index_partial: string;
   search_index_incomplete: string;
   view_spam_trash_messages: string;
   search_scope_anywhere: string;

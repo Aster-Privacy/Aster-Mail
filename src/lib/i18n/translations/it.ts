@@ -9425,6 +9425,8 @@ export const it = {
     chip_advanced_search: "Ricerca avanzata",
     spam_trash_hidden_notice:
       "Alcuni messaggi in Spam e Cestino corrispondono alla tua ricerca.",
+    search_index_partial:
+      "La tua posta non è ancora indicizzata completamente su questo dispositivo, quindi alcuni messaggi potrebbero mancare da questi risultati.",
     search_index_incomplete:
       "Non è stato possibile leggere parte del tuo indice di ricerca su questo dispositivo, quindi alcuni messaggi potrebbero mancare da questi risultati.",
     view_spam_trash_messages: "Visualizza messaggi",

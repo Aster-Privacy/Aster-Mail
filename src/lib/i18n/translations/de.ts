@@ -9459,6 +9459,8 @@ export const de = {
     chip_advanced_search: "Erweiterte Suche",
     spam_trash_hidden_notice:
       "Einige Nachrichten in Spam und Papierkorb entsprechen Ihrer Suche.",
+    search_index_partial:
+      "Deine E-Mails sind auf diesem Gerät noch nicht vollständig indexiert, daher fehlen in diesen Ergebnissen möglicherweise einige Nachrichten.",
     search_index_incomplete:
       "Ein Teil Ihres Suchindex konnte auf diesem Gerät nicht gelesen werden, daher fehlen in diesen Ergebnissen möglicherweise einige Nachrichten.",
     view_spam_trash_messages: "Nachrichten ansehen",

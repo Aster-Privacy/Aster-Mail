@@ -71,6 +71,8 @@ const TOTAL_WAIT_MS = 1500;
 let partial_ready_resolve: (() => void) | null = null;
 let partial_ready_promise: Promise<void> | null = null;
 
+let announced_index: CachedIndex | null = null;
+
 function partial_ready(): Promise<void> {
   if (!partial_ready_promise) {
     partial_ready_promise = new Promise<void>((resolve) => {
@@ -308,6 +310,8 @@ export async function build_index_full(
     }
 
     if (run_id !== undefined) {
+      announced_index = index;
+      emit_index_refreshed();
       end_indexing_run(
         run_id,
         index.complete ? index.total_indexed : undefined,
@@ -687,7 +691,8 @@ export function start_background_rebuild(
       : build_index_full(user_email, include_body, stale)
   )
     .then((index) => {
-      emit_index_refreshed();
+      if (announced_index !== index) emit_index_refreshed();
+      announced_index = null;
 
       return index;
     })

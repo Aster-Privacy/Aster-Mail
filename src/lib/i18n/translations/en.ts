@@ -8936,6 +8936,8 @@ export const en: Translations = {
     chip_advanced_search: "Advanced search",
     spam_trash_hidden_notice:
       "Some messages in Spam and Trash match your search.",
+    search_index_partial:
+      "Your mail isn't fully indexed on this device yet, so some messages might be missing from these results.",
     search_index_incomplete:
       "Part of your search index couldn't be read on this device, so some messages might be missing from these results.",
     view_spam_trash_messages: "View messages",

@@ -9263,6 +9263,8 @@ export const tr = {
     chip_advanced_search: "Gelişmiş arama",
     spam_trash_hidden_notice:
       "Spam ve Çöp Kutusundaki bazı mesajlar aramanızla eşleşiyor.",
+    search_index_partial:
+      "E-postalarınız bu cihazda henüz tamamen dizine eklenmedi, bu nedenle bazı iletiler bu sonuçlarda eksik olabilir.",
     search_index_incomplete:
       "Arama dizininizin bir bölümü bu cihazda okunamadı, bu nedenle bu sonuçlarda bazı mesajlar eksik olabilir.",
     view_spam_trash_messages: "Mesajları görüntüle",

@@ -9232,6 +9232,8 @@ export const ja = {
     chip_advanced_search: "詳細検索",
     spam_trash_hidden_notice:
       "迷惑メールとゴミ箱に検索条件に一致するメールがあります。",
+    search_index_partial:
+      "このデバイスではメールのインデックス作成がまだ完了していないため、一部のメッセージが検索結果に表示されない場合があります。",
     search_index_incomplete:
       "このデバイスで検索インデックスの一部を読み取れなかったため、この結果に含まれていないメールがある可能性があります。",
     view_spam_trash_messages: "メールを表示",

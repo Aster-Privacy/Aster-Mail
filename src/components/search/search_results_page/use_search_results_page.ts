@@ -594,7 +594,11 @@ export function use_search_results_page(props: SearchResultsPageProps) {
   const search_nav_index = useMemo(() => {
     if (!split_email_id) return -1;
 
-    return filtered_results.findIndex((r) => r.id === split_email_id);
+    return filtered_results.findIndex(
+      (r) =>
+        r.id === split_email_id ||
+        (r.grouped_email_ids?.includes(split_email_id) ?? false),
+    );
   }, [split_email_id, filtered_results]);
 
   const synced_nav_id_ref = useRef<string | null>(null);

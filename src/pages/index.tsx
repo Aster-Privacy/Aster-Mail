@@ -57,7 +57,7 @@ const SettingsContent = lazy_with_retry(() =>
 
 function SettingsFallback() {
   return (
-    <div className="flex-1 flex items-center justify-center">
+    <div className="flex h-full min-h-0 w-full flex-1 items-center justify-center">
       <Spinner className="h-6 w-6 text-txt-tertiary" size="lg" />
     </div>
   );
