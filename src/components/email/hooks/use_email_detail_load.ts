@@ -73,7 +73,11 @@ import { mark_conversation_read } from "@/hooks/mark_conversation_read";
 import { use_document_title } from "@/hooks/use_document_title";
 import { use_date_format } from "@/hooks/use_date_format";
 import { use_preferences } from "@/contexts/preferences_context";
-import { emit_mail_item_updated } from "@/hooks/mail_events";
+import {
+  emit_mail_item_updated,
+  MAIL_EVENTS,
+  on_mail_event,
+} from "@/hooks/mail_events";
 import { decrypt_mail_metadata } from "@/services/crypto/mail_metadata";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_compose_manager } from "@/components/compose/compose_manager";
@@ -153,7 +157,7 @@ export function use_email_detail_load() {
     toggle_minimize,
   } = use_compose_manager();
   const auto_advance = preferences.auto_advance;
-  const [email_list] = useState<string[]>(() => {
+  const [email_list, set_email_list] = useState<string[]>(() => {
     try {
       const stored = sessionStorage.getItem("astermail_email_nav");
 
@@ -238,6 +242,71 @@ export function use_email_detail_load() {
 
   use_document_title({ email_subject: email?.subject });
 
+  useEffect(() => {
+    const prune = (detail: { ids: string[] }) => {
+      const removed = new Set(detail.ids);
+
+      set_email_list((prev) => {
+        const next = prev.filter((id) => !removed.has(id));
+
+        if (next.length === prev.length) return prev;
+        try {
+          const stored = sessionStorage.getItem("astermail_email_nav");
+          const parsed = stored ? JSON.parse(stored) : {};
+
+          sessionStorage.setItem(
+            "astermail_email_nav",
+            JSON.stringify({ ...parsed, email_ids: next }),
+          );
+        } catch (caught) {
+          ignore_error(
+            "components/email/hooks/use_email_detail_load:use_email_detail_load",
+            caught,
+          );
+        }
+
+        return next;
+      });
+    };
+    const off_local = on_mail_event(MAIL_EVENTS.MAIL_ITEMS_REMOVED, prune);
+    const off_remote = on_mail_event(
+      MAIL_EVENTS.MAIL_REMOTE_ITEMS_REMOVED,
+      prune,
+    );
+
+    return () => {
+      off_local();
+      off_remote();
+    };
+  }, []);
+
+  const is_popup_window =
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("popup") === "1";
+  const email_path = useCallback(
+    (id: string) =>
+      is_popup_window
+        ? `/email/${encodeURIComponent(id)}?popup=1`
+        : `/email/${id}`,
+    [is_popup_window],
+  );
+  const navigate_from_detail = useCallback(
+    (destination: string | number) => {
+      if (typeof destination === "number") {
+        navigate(destination);
+
+        return;
+      }
+      if (is_popup_window && destination === "/") {
+        window.close();
+
+        return;
+      }
+      navigate(destination);
+    },
+    [navigate, is_popup_window],
+  );
+
   const current_email_index = useMemo(() => {
     if (!email_id || email_list.length === 0) return -1;
 
@@ -250,32 +319,32 @@ export function use_email_detail_load() {
 
   const handle_go_newer = useCallback(() => {
     if (can_go_newer) {
-      navigate(`/email/${email_list[current_email_index - 1]}`, {
+      navigate(email_path(email_list[current_email_index - 1]), {
         replace: true,
       });
     }
-  }, [can_go_newer, current_email_index, email_list, navigate]);
+  }, [can_go_newer, current_email_index, email_list, navigate, email_path]);
 
   const handle_go_older = useCallback(() => {
     if (can_go_older) {
-      navigate(`/email/${email_list[current_email_index + 1]}`, {
+      navigate(email_path(email_list[current_email_index + 1]), {
         replace: true,
       });
     }
-  }, [can_go_older, current_email_index, email_list, navigate]);
+  }, [can_go_older, current_email_index, email_list, navigate, email_path]);
 
   const get_next_email_destination = useCallback(() => {
     if (!email_id || current_email_index === -1) return "/";
 
     if (auto_advance === "Go to next message") {
       if (can_go_older) {
-        return `/email/${email_list[current_email_index + 1]}`;
+        return email_path(email_list[current_email_index + 1]);
       }
 
       return "/";
     } else if (auto_advance === "Go to previous message") {
       if (can_go_newer) {
-        return `/email/${email_list[current_email_index - 1]}`;
+        return email_path(email_list[current_email_index - 1]);
       }
 
       return "/";
@@ -289,6 +358,7 @@ export function use_email_detail_load() {
     auto_advance,
     can_go_newer,
     can_go_older,
+    email_path,
   ]);
 
   useEffect(() => {
@@ -359,7 +429,7 @@ export function use_email_detail_load() {
     set_forward_target,
     set_view_source_message,
     get_next_email_destination,
-    navigate,
+    navigate: navigate_from_detail,
     t,
     preferences_default_reply_behavior: preferences.default_reply_behavior,
   });

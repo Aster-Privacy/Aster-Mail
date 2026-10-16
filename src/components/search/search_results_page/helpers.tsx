@@ -79,6 +79,11 @@ export interface SearchResultsPageProps {
   on_quick_settings_click?: () => void;
   on_reply?: (data: ReplyData) => void;
   on_forward?: (data: ForwardData) => void;
+  on_email_list_change?: (
+    ids: string[],
+    snooze_info?: Record<string, string | undefined>,
+    grouped_ids_map?: Record<string, string[] | undefined>,
+  ) => void;
 }
 
 export function SearchResultSkeleton() {

@@ -1456,7 +1456,46 @@ export function use_index_page_state() {
   const has_focused_email =
     focused_email_index >= 0 && focused_email_index < visible_email_ids.length;
 
+  const focus_anchor_ref = useRef<string | null>(null);
+  const visible_email_ids_ref = useRef(visible_email_ids);
+
+  visible_email_ids_ref.current = visible_email_ids;
+  const focused_index_ref = useRef(focused_email_index);
+
+  focused_index_ref.current = focused_email_index;
+
+  useEffect(() => {
+    focus_anchor_ref.current =
+      focused_email_index >= 0
+        ? (visible_email_ids_ref.current[focused_email_index] ?? null)
+        : null;
+  }, [focused_email_index]);
+
+  useEffect(() => {
+    const anchor = focus_anchor_ref.current;
+
+    if (!anchor) return;
+    const anchored_index = visible_email_ids.indexOf(anchor);
+
+    if (anchored_index !== -1) {
+      set_focused_email_index(anchored_index);
+    } else {
+      const fallback_index = Math.min(
+        focused_index_ref.current,
+        visible_email_ids.length - 1,
+      );
+
+      focus_anchor_ref.current =
+        fallback_index >= 0 ? visible_email_ids[fallback_index] : null;
+    }
+  }, [visible_email_ids]);
+
   const focused_email_id = useMemo(() => {
+    const anchor = focus_anchor_ref.current;
+
+    if (anchor && visible_email_ids.includes(anchor)) {
+      return anchor;
+    }
     if (has_focused_email) {
       return visible_email_ids[focused_email_index];
     }

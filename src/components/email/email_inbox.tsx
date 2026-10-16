@@ -235,9 +235,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
         <div className="flex flex-col h-full">
           <div className="flex-1 min-h-0">
             {active_filter !== "all" && !email_state.has_load_error ? (
-              <FilterEmptyState
-                on_clear={() => handle_filter_change("all")}
-              />
+              <FilterEmptyState on_clear={() => handle_filter_change("all")} />
             ) : categories.enabled && !email_state.has_load_error ? (
               <CategoryEmptyState category={categories.active_category} />
             ) : (
@@ -523,6 +521,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
               current_index={
                 nav.local_email_index >= 0 ? nav.local_email_index : undefined
               }
+              handles_unlisted_keyboard_actions
               email_id={split_email_id}
               folders={viewer_folders}
               grouped_email_ids={split_email_grouped_ids}
@@ -608,6 +607,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
                     />
                   ) : split_email_id ? (
                     <SplitEmailViewer
+                      handles_unlisted_keyboard_actions
                       email_id={split_email_id}
                       folders={viewer_folders}
                       grouped_email_ids={split_email_grouped_ids}
