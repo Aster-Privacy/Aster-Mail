@@ -367,7 +367,7 @@ export function use_index_page_state() {
       set_popup_email_id(null);
       set_popup_scheduled(null);
       set_split_scheduled_data(null);
-      set_edit_draft(data);
+      set_edit_draft({ ...data });
     },
     [is_mobile, location.hash, close_hash_entry],
   );

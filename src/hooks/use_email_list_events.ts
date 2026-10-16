@@ -35,6 +35,7 @@ import { mark_view_stale } from "./email_list_cache";
 import {
   compute_should_remove_from_view,
   destination_views_for_update,
+  view_includes_archived,
 } from "./view_membership";
 import { DEFAULT_PAGE_SIZE } from "./email_list_helpers";
 
@@ -43,6 +44,7 @@ export { compute_should_remove_from_view } from "./view_membership";
 import { add_app_state_listener } from "@/native/capacitor_bridge";
 import { has_passphrase_in_memory } from "@/services/crypto/memory_key_store";
 import { request_cache } from "@/services/api/request_cache";
+import { forget_removed_ids } from "@/services/removed_items";
 import { sync_client } from "@/services/sync_client";
 import { CATCH_UP_WHILE_LIVE_MS } from "@/services/sync_timing";
 import {
@@ -114,6 +116,13 @@ export const ENTERED_READ_FILTER_REFETCH_DELAY_MS = 1500;
 
 const POLL_INTERVAL_MS = 60_000;
 const LIVE_POLL_MS = CATCH_UP_WHILE_LIVE_MS - POLL_INTERVAL_MS / 2;
+
+export function removal_keeps_rows_in_view(
+  action: string | undefined,
+  current_view: string,
+): boolean {
+  return action === "archive" && view_includes_archived(current_view);
+}
 
 export function entered_current_view(
   emails: InboxEmail[],
@@ -433,6 +442,12 @@ export function use_email_list_events({
 
     const handle_items_removed = (event: Event) => {
       const detail = (event as CustomEvent<MailItemsRemovedEventDetail>).detail;
+
+      if (removal_keeps_rows_in_view(detail.action, current_view)) {
+        forget_removed_ids(detail.ids);
+
+        return;
+      }
 
       for (const id of detail.ids) {
         delete_preloaded_email(id);

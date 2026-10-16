@@ -596,7 +596,7 @@ const sidebar_base = ({
     if (edit_draft?.id && on_draft_click_compose) {
       on_draft_click_compose(edit_draft);
     }
-  }, [edit_draft?.id]);
+  }, [edit_draft]);
 
   const handle_nav_click = useCallback(
     (callback: () => void) => {
