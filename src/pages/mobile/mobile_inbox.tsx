@@ -809,9 +809,15 @@ function MobileInbox({
 
       if (!success) {
         update_email(email.id, { is_read: email.is_read });
+        show_toast(
+          email.is_read
+            ? t("common.failed_to_mark_as_unread")
+            : t("common.failed_to_mark_as_read"),
+          "error",
+        );
       }
     },
-    [actions, update_email],
+    [actions, update_email, t],
   );
 
   const handle_snooze = useCallback(
