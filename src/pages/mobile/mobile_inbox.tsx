@@ -859,10 +859,22 @@ function MobileInbox({
     async (snoozed_until: Date) => {
       if (!snooze_email_target) return;
       const target_id = snooze_email_target.id;
+      const grouped_ids = snooze_email_target.grouped_email_ids;
 
       set_snooze_email_target(null);
       try {
-        await snooze_actions.snooze(target_id, snoozed_until);
+        if (grouped_ids && grouped_ids.length > 1) {
+          const result = await snooze_actions.bulk_snooze(
+            grouped_ids,
+            snoozed_until,
+          );
+
+          if (result.snoozed_count === 0) {
+            throw new Error("bulk snooze reported failures");
+          }
+        } else {
+          await snooze_actions.snooze(target_id, snoozed_until);
+        }
         remove_email(target_id);
         show_toast(t("common.email_snoozed"), "success");
       } catch (err) {

@@ -18,11 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type {
-  InboxEmail,
-  EmailCategory,
-  InboxFilterType,
-} from "@/types/email";
+import type { InboxEmail, EmailCategory, InboxFilterType } from "@/types/email";
 import type { ListReadFilter } from "@/hooks/email_list_types";
 import type { DraftWithContent } from "@/services/api/multi_drafts";
 import type { EmailInboxProps } from "@/components/email/inbox/inbox_types";
@@ -57,6 +53,7 @@ import {
 } from "@/components/email/inbox/inbox_view_helpers";
 import { effective_category } from "@/services/effective_category";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
+import { undo_snooze } from "@/components/email/inbox/undo_snooze";
 import { use_snooze } from "@/hooks/use_snooze";
 import { use_mail_stats } from "@/hooks/use_mail_stats";
 import {
@@ -456,8 +453,22 @@ export function use_inbox_view_state(props: EmailInboxProps) {
 
   const handle_snooze = useCallback(
     async (email_id: string, snooze_until: Date): Promise<boolean> => {
+      const grouped_ids = mail_state.emails.find(
+        (email) => email.id === email_id,
+      )?.grouped_email_ids;
+      const all_ids =
+        grouped_ids && grouped_ids.length > 1 ? grouped_ids : [email_id];
+
       try {
-        await snooze_email_action(email_id, snooze_until);
+        if (all_ids.length > 1) {
+          const result = await bulk_snooze_action(all_ids, snooze_until);
+
+          if (result.snoozed_count === 0) {
+            throw new Error("bulk snooze reported failures");
+          }
+        } else {
+          await snooze_email_action(email_id, snooze_until);
+        }
         const snoozed_until_iso = snooze_until.toISOString();
 
         if (is_snoozed_view) {
@@ -465,17 +476,20 @@ export function use_inbox_view_state(props: EmailInboxProps) {
         } else {
           remove_email(email_id);
         }
-        emit_mail_item_updated({
-          id: email_id,
-          snoozed_until: snoozed_until_iso,
-        });
+        for (const id of all_ids) {
+          emit_mail_item_updated({
+            id,
+            snoozed_until: snoozed_until_iso,
+          });
+        }
         if (categories.enabled) {
-          remove_category_index_ids([email_id]);
+          remove_category_index_ids(all_ids);
         }
         show_action_toast({
           message: t("common.email_snoozed"),
           action_type: "snooze",
-          email_ids: [email_id],
+          email_ids: all_ids,
+          on_undo: is_snoozed_view ? undefined : () => undo_snooze(all_ids),
         });
       } catch (error) {
         if (import.meta.env.DEV) console.error(error);
@@ -488,6 +502,8 @@ export function use_inbox_view_state(props: EmailInboxProps) {
     },
     [
       snooze_email_action,
+      bulk_snooze_action,
+      mail_state.emails,
       is_snoozed_view,
       update_email,
       remove_email,
