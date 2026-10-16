@@ -218,6 +218,17 @@ export function use_contacts_data() {
     return { selected_count, all_selected, some_selected };
   }, [filtered_contacts, selected_ids]);
 
+  useEffect(() => {
+    if (is_loading) return;
+    const visible_ids = new Set(filtered_contacts.map((c) => c.id));
+
+    set_selected_ids((prev) => {
+      if ([...prev].every((id) => visible_ids.has(id))) return prev;
+
+      return new Set([...prev].filter((id) => visible_ids.has(id)));
+    });
+  }, [filtered_contacts, is_loading]);
+
   const has_selection =
     selection_state.all_selected || selection_state.some_selected;
 

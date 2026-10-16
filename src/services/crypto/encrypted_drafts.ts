@@ -325,7 +325,8 @@ class DraftManager {
 
           if (!new_response.data) {
             throw new DraftServiceError(
-              new_response.error ?? get_active_translations().common.save_failed,
+              new_response.error ??
+                get_active_translations().common.save_failed,
             );
           }
 
@@ -425,18 +426,30 @@ class DraftManager {
     }
 
     const draft_id = context.id;
+    const previous_version = context.version;
+    const previous_hash = context.last_content_hash;
 
     context.id = null;
     context.version = DEFAULT_VERSION;
     context.last_content_hash = null;
 
+    const restore = () => {
+      context.is_deleted = false;
+      context.id = draft_id;
+      context.version = previous_version;
+      context.last_content_hash = previous_hash;
+    };
+
     try {
       const response = await delete_draft(draft_id);
+      const deleted = response.data?.success ?? false;
 
+      if (!deleted) restore();
       emit_drafts_changed();
 
-      return response.data?.success ?? false;
+      return deleted;
     } catch {
+      restore();
       emit_drafts_changed();
 
       return false;

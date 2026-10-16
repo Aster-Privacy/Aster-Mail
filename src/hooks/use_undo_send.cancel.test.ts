@@ -196,6 +196,45 @@ describe("sends that wait on a timer in this tab", () => {
     expect(undo_send_manager.get("tab-1")).toBeUndefined();
   });
 
+  it("runs the undo cleanup only when the undo succeeds", async () => {
+    const on_undo = vi.fn();
+
+    undo_send_manager.add({
+      id: "tab-10",
+      to: ["a@example.com"],
+      subject: "s",
+      body: "b",
+      scheduled_time: Date.now() + 5_000,
+      total_seconds: 5,
+      timeout_id: window.setTimeout(vi.fn(), 5_000),
+      is_external: true,
+      on_undo,
+    });
+    undo_send_manager.add({
+      id: "tab-11",
+      to: ["a@example.com"],
+      subject: "s",
+      body: "b",
+      scheduled_time: Date.now() + 5_000,
+      total_seconds: 5,
+      timeout_id: window.setTimeout(vi.fn(), 5_000),
+      is_external: true,
+      on_undo,
+    });
+    undo_send_manager.begin_tab_timer_send("tab-11");
+    const result = await mount_hook();
+
+    await act(async () => {
+      await result.current.cancel_send("tab-11");
+    });
+    expect(on_undo).not.toHaveBeenCalled();
+
+    await act(async () => {
+      await result.current.cancel_send("tab-10");
+    });
+    expect(on_undo).toHaveBeenCalledTimes(1);
+  });
+
   it("keeps the undo window when the page is hidden or cached", () => {
     const on_timer = vi.fn();
     const on_send_immediately = vi.fn();
