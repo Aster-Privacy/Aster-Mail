@@ -30,6 +30,7 @@ mod default_mail_linux;
 mod default_mail_store;
 mod device;
 mod http_client;
+mod mail_notification;
 mod translation_assets;
 
 use std::sync::Mutex;
@@ -465,11 +466,15 @@ fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, argv, _cwd| {
             let mailto = default_mail::mailto_from_args(&argv);
+            let notification_open = mail_notification::open_from_args(&argv);
 
             if let Some(window) = app.get_webview_window("main") {
                 let was_visible = window.is_visible().unwrap_or(true);
                 if let Some(url) = mailto {
                     default_mail::queue_mailto(app, url, was_visible);
+                }
+                if let Some(open) = notification_open {
+                    mail_notification::queue_open(app, open, was_visible);
                 }
                 if !was_visible {
                     let _ = window.eval("window.location.reload()");
@@ -498,6 +503,9 @@ fn main() {
         .manage(default_mail::PendingMailto::new(
             default_mail::mailto_from_args(std::env::args()),
         ))
+        .manage(mail_notification::PendingNotificationOpen::new(
+            mail_notification::open_from_args(std::env::args()),
+        ))
         .invoke_handler(tauri::generate_handler![
             frontend_ready,
             frontend_painted,
@@ -510,6 +518,8 @@ fn main() {
             set_content_protection,
             open_external_url,
             default_mail::take_pending_mailto,
+            mail_notification::show_mail_notification,
+            mail_notification::take_pending_notification_open,
             default_mail::default_mail_app_status,
             default_mail::set_default_mail_app,
             default_mail::clear_default_mail_app,
