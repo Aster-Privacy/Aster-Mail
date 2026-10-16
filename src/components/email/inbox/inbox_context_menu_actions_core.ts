@@ -51,6 +51,7 @@ import {
   note_conversation_read_intent,
 } from "@/hooks/mark_conversation_read";
 import { remove_email_from_view_cache } from "@/hooks/email_list_cache";
+import { archive_keeps_row } from "@/hooks/view_membership";
 import {
   collect_restore_entries,
   is_outgoing_view,
@@ -290,7 +291,10 @@ export function build_core_context_menu_actions(
         ? email.grouped_email_ids
         : [email.id];
 
-    remove_email(email.id);
+    const keeps_row = archive_keeps_row(current_view);
+
+    if (keeps_row) update_email(email.id, { is_archived: true });
+    else remove_email(email.id);
     apply_stat_deltas(deltas);
 
     const archived_thread_ids =
@@ -347,6 +351,7 @@ export function build_core_context_menu_actions(
     } else {
       revert_stat_deltas(deltas);
       reindex_ids(archived_index_ids);
+      if (keeps_row) update_email(email.id, { is_archived: false });
       window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
       show_toast(t("common.failed_to_archive_emails"), "error");
     }

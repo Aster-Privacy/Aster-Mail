@@ -20,8 +20,12 @@
 //
 import { useEffect, useRef } from "react";
 
+import { toggle_viewer_star } from "@/components/email/hooks/toggle_viewer_star";
+import { use_i18n } from "@/lib/i18n";
+
 interface KeyboardViewer {
   is_read: boolean;
+  email: { is_starred?: boolean } | null;
   handle_archive: () => unknown;
   handle_trash: () => unknown;
   handle_spam: () => void | Promise<void>;
@@ -36,6 +40,7 @@ interface UseViewerKeyboardActionsOptions {
   email_id: string;
   viewer: KeyboardViewer;
   request_spam: (perform: () => void | Promise<void>) => void;
+  on_snooze?: () => void;
 }
 
 export function use_viewer_keyboard_actions({
@@ -44,10 +49,12 @@ export function use_viewer_keyboard_actions({
   email_id,
   viewer,
   request_spam,
+  on_snooze,
 }: UseViewerKeyboardActionsOptions): void {
-  const keyboard_actions_ref = useRef({ viewer, request_spam });
+  const { t } = use_i18n();
+  const keyboard_actions_ref = useRef({ viewer, request_spam, on_snooze, t });
 
-  keyboard_actions_ref.current = { viewer, request_spam };
+  keyboard_actions_ref.current = { viewer, request_spam, on_snooze, t };
 
   useEffect(() => {
     if (!handles_unlisted || enabled) return;
@@ -65,6 +72,14 @@ export function use_viewer_keyboard_actions({
         void current.handle_read_toggle();
       else if (detail.action === "mark-unread" && current.is_read)
         void current.handle_read_toggle();
+      else if (detail.action === "star" && current.email)
+        void toggle_viewer_star(
+          email_id,
+          !!current.email.is_starred,
+          keyboard_actions_ref.current.t,
+        );
+      else if (detail.action === "snooze")
+        keyboard_actions_ref.current.on_snooze?.();
     };
 
     window.addEventListener(UNLISTED_KEYBOARD_ACTION_EVENT, handle_unlisted);
@@ -112,6 +127,26 @@ export function use_viewer_keyboard_actions({
         const current = keyboard_actions_ref.current.viewer;
 
         if (current.is_read) void current.handle_read_toggle();
+      },
+      "astermail:keyboard-star": (e) => {
+        if (!owns(e)) return;
+        const current = keyboard_actions_ref.current.viewer.email;
+
+        if (!current) return;
+        e.stopImmediatePropagation();
+        void toggle_viewer_star(
+          email_id,
+          !!current.is_starred,
+          keyboard_actions_ref.current.t,
+        );
+      },
+      "astermail:keyboard-snooze": (e) => {
+        if (!owns(e)) return;
+        const open_snooze = keyboard_actions_ref.current.on_snooze;
+
+        if (!open_snooze) return;
+        e.stopImmediatePropagation();
+        open_snooze();
       },
     };
 

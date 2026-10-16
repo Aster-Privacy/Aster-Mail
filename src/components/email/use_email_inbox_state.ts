@@ -218,8 +218,10 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     set_current_page,
   ]);
 
-  const [custom_snooze_email, set_custom_snooze_email] =
-    useState<InboxEmail | null>(null);
+  const [custom_snooze_email, set_custom_snooze_email] = useState<Pick<
+    InboxEmail,
+    "id"
+  > | null>(null);
   const [show_toolbar_custom_snooze, set_show_toolbar_custom_snooze] =
     useState(false);
 

@@ -27,6 +27,7 @@ import {
   PaperClipIcon,
   StarIcon as StarOutlineIcon,
   CheckIcon,
+  EnvelopeIcon,
   InboxIcon,
 } from "@heroicons/react/24/outline";
 import {
@@ -238,7 +239,10 @@ export const MobileEmailRow = memo(function MobileEmailRow(
     () => ({
       archive: on_archive ? () => on_archive(email) : undefined,
       delete: on_delete ? () => on_delete(email) : undefined,
-      toggle_read: on_toggle_read ? () => on_toggle_read(email) : undefined,
+      toggle_read:
+        on_toggle_read && email.item_type !== "sent"
+          ? () => on_toggle_read(email)
+          : undefined,
       snooze: on_snooze ? () => on_snooze(email) : undefined,
       star: on_toggle_star ? () => on_toggle_star(email) : undefined,
       spam: on_mark_spam ? () => on_mark_spam(email) : undefined,
@@ -265,7 +269,9 @@ export const MobileEmailRow = memo(function MobileEmailRow(
       const Icon =
         definition.id === "archive" && email.is_archived
           ? InboxIcon
-          : definition.icon;
+          : definition.id === "toggle_read" && email.is_read
+            ? EnvelopeIcon
+            : definition.icon;
 
       return {
         icon: <Icon className="h-6 w-6 text-white" />,
@@ -273,7 +279,7 @@ export const MobileEmailRow = memo(function MobileEmailRow(
         on_trigger: handler,
       };
     },
-    [handler_map, email.is_archived],
+    [handler_map, email.is_archived, email.is_read],
   );
 
   const left_action = build_swipe_action(swipe_left_action);

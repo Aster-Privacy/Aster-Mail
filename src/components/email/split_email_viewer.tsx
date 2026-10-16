@@ -149,6 +149,7 @@ export function SplitEmailViewer({
     email_id,
     viewer,
     request_spam,
+    on_snooze,
   });
 
   const label_chips = useMemo(() => {

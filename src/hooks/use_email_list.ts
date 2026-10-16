@@ -1411,6 +1411,7 @@ export function use_email_list(
     page_ref,
     windowed_page_ref,
     page_size,
+    current_view,
   });
 
   return {

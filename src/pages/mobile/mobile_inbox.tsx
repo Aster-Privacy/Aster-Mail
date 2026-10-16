@@ -42,6 +42,10 @@ import {
   ChevronRightIcon,
 } from "@heroicons/react/24/outline";
 
+import {
+  archive_keeps_row,
+  unarchive_keeps_row,
+} from "@/hooks/view_membership";
 import { NotSpamIcon } from "@/components/email/spam_action_icons";
 import { use_email_list } from "@/hooks/use_email_list";
 import { use_inbox_categories } from "@/hooks/use_inbox_categories";
@@ -719,7 +723,15 @@ function MobileInbox({
         : await actions.archive_email(email);
 
       if (success) {
-        remove_email(email.id);
+        const keeps_row = email.is_archived
+          ? unarchive_keeps_row(current_view)
+          : archive_keeps_row(current_view);
+
+        if (keeps_row) {
+          update_email(email.id, { is_archived: !email.is_archived });
+        } else {
+          remove_email(email.id);
+        }
 
         return;
       }
@@ -731,7 +743,7 @@ function MobileInbox({
         "error",
       );
     },
-    [actions, remove_email, t],
+    [actions, remove_email, update_email, current_view, t],
   );
 
   const handle_delete = useCallback(
@@ -1347,9 +1359,7 @@ function MobileInbox({
             current_view={current_view}
             emails={enriched_unpinned}
             fill_reset_key={active_filter}
-            list_filtered={active_filter !== "all" && !is_drafts_view}
             filter_active={active_filter !== "all"}
-            on_clear_filter={() => set_active_filter("all")}
             has_initial_load={
               is_drafts_view
                 ? !drafts_state.is_loading
@@ -1384,9 +1394,11 @@ function MobileInbox({
                 : mail_state.is_loading_more
             }
             is_refreshing={is_refreshing}
+            list_filtered={active_filter !== "all" && !is_drafts_view}
             on_archive={
               is_drafts_view || is_scheduled_view ? undefined : handle_archive
             }
+            on_clear_filter={() => set_active_filter("all")}
             on_delete={handle_delete}
             on_drag_select={selection_mode ? handle_drag_select : undefined}
             on_email_press={handle_email_press}

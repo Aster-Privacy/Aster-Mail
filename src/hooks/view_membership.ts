@@ -45,6 +45,14 @@ export function view_includes_archived(view: string): boolean {
   );
 }
 
+export function archive_keeps_row(view: string): boolean {
+  return view !== "archive" && view_includes_archived(view);
+}
+
+export function unarchive_keeps_row(view: string): boolean {
+  return view !== "archive" && view !== "trash" && view !== "spam";
+}
+
 export function compute_should_remove_from_view(
   detail: MailItemUpdatedEventDetail,
   current_view: string,
