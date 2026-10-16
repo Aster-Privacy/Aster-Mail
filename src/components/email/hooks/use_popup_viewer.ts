@@ -59,6 +59,7 @@ import {
   revert_user_opened_mail,
 } from "@/services/user_opened_mail";
 import { read_clears_conversation } from "@/hooks/unread_read_delta";
+import { use_conversation_catch_up_read } from "@/hooks/use_conversation_catch_up_read";
 import { mark_conversation_read } from "@/hooks/mark_conversation_read";
 import { use_date_format } from "@/hooks/use_date_format";
 import { detect_unsubscribe_info } from "@/utils/unsubscribe_detector";
@@ -205,6 +206,19 @@ export function use_popup_viewer({
   useEffect(() => {
     grouped_email_ids_ref.current = grouped_email_ids;
   }, [grouped_email_ids]);
+
+  use_conversation_catch_up_read({
+    email_id,
+    is_read,
+    is_loading: !email,
+    item_id: mail_item?.id,
+    thread_token: mail_item?.thread_token,
+    thread_message_count: mail_item?.thread_message_count,
+    thread_messages,
+    grouped_count_ref: grouped_email_ids_ref,
+    mark_as_read_delay: preferences.mark_as_read_delay,
+    conversation_grouping: preferences.conversation_grouping,
+  });
 
   useEffect(() => {
     open_thread_token_ref.current = current_thread_token ?? null;

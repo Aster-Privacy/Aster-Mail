@@ -464,6 +464,7 @@ export function build_core_context_menu_actions(
     const conversation_options = {
       thread_token: email.thread_token,
       grouped_count: email.grouped_email_ids?.length,
+      conversation_grouping: preferences.conversation_grouping,
       acted_id: email.id,
     };
     const should_adjust_unread =
