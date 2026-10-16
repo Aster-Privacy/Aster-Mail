@@ -57,9 +57,16 @@ interface ProbeProps {
   category: string;
   emails: InboxEmail[];
   update_email: (id: string, updates: Partial<InboxEmail>) => void;
+  prune_hidden?: boolean;
 }
 
-function Probe({ view, category, emails, update_email }: ProbeProps) {
+function Probe({
+  view,
+  category,
+  emails,
+  update_email,
+  prune_hidden,
+}: ProbeProps) {
   hook = use_inbox_selection({
     current_view: view,
     active_category: category,
@@ -68,6 +75,7 @@ function Probe({ view, category, emails, update_email }: ProbeProps) {
     emails,
     pinned_emails: [],
     primary_emails: emails,
+    prune_hidden,
     update_email,
     update_draft: () => {},
     update_scheduled: () => {},
@@ -156,5 +164,23 @@ describe("use_inbox_selection scope reset", () => {
     render({ view: "inbox", category: "primary", emails, update_email });
     expect(hook.select_all_mode).toBe(true);
     expect(update_email).not.toHaveBeenCalled();
+  });
+
+  it("leaves select_all_mode when a read filter hides rows", () => {
+    const update_email = vi.fn();
+    const emails = [make_email("a", false)];
+
+    render({ view: "inbox", category: "primary", emails, update_email });
+    act(() => hook.activate_select_all_mode());
+    expect(hook.select_all_mode).toBe(true);
+
+    render({
+      view: "inbox",
+      category: "primary",
+      emails,
+      update_email,
+      prune_hidden: true,
+    });
+    expect(hook.select_all_mode).toBe(false);
   });
 });
