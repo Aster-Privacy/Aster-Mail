@@ -593,6 +593,9 @@ export async function execute_external_email_send(
       total_seconds: delay_seconds,
       timeout_id,
       is_external: true,
+      on_undo: () => {
+        void ctx.confirm_draft_deleted?.();
+      },
       on_send_immediately: async () => {
         window.clearTimeout(timeout_id);
         try {
@@ -826,6 +829,9 @@ export async function execute_external_account_email_send(
       total_seconds: delay_seconds,
       timeout_id,
       is_external: true,
+      on_undo: () => {
+        void ctx.confirm_draft_deleted?.();
+      },
       on_send_immediately: async () => {
         window.clearTimeout(timeout_id);
         try {

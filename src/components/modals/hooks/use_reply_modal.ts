@@ -812,7 +812,11 @@ export function use_reply_modal(props: UseReplyModalProps) {
     reply_from_mismatch,
   ]);
 
+  const schedule_gate_pending_ref = useRef(false);
+
   const handle_scheduled_send = useCallback(async () => {
+    if (schedule_gate_pending_ref.current) return;
+
     if (!reply_message.trim() || !user || !vault || !scheduled_time) return;
 
     if (attachments.length > 0) {
@@ -874,12 +878,19 @@ export function use_reply_modal(props: UseReplyModalProps) {
         ? selected_sender
         : null;
     const scheduled_sender_email = scheduled_alias?.email ?? user.email;
-    const scheduled_gate = await check_scheduled_send(
-      [...send_recipients.to, ...send_recipients.cc, ...send_recipients.bcc],
-      scheduled_sender_email,
-      scheduled_time,
-      preferences.require_encryption === true,
-    );
+    schedule_gate_pending_ref.current = true;
+    let scheduled_gate: Awaited<ReturnType<typeof check_scheduled_send>>;
+
+    try {
+      scheduled_gate = await check_scheduled_send(
+        [...send_recipients.to, ...send_recipients.cc, ...send_recipients.bcc],
+        scheduled_sender_email,
+        scheduled_time,
+        preferences.require_encryption === true,
+      );
+    } finally {
+      schedule_gate_pending_ref.current = false;
+    }
 
     if (!scheduled_gate.proceed) {
       if (scheduled_gate.blocked_by) {

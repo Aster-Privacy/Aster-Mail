@@ -168,3 +168,43 @@ describe("draft_manager.delete_draft during a save", () => {
     expect(delete_draft).toHaveBeenCalledWith("late_draft");
   });
 });
+
+describe("draft_manager.delete_draft failure", () => {
+  it("keeps the draft live when the server rejects the delete", async () => {
+    create_draft.mockResolvedValue({ data: { id: "d1", version: 1 } });
+    update_draft.mockResolvedValue({ data: { id: "d1", version: 2 } });
+    delete_draft.mockResolvedValue({ data: { success: false } });
+    const context_id = draft_manager.create_context();
+
+    await draft_manager.save_draft(context_id, draft("one"), vault);
+    const deleted = await draft_manager.delete_draft(context_id);
+
+    expect(deleted).toBe(false);
+    expect(draft_manager.get_context(context_id)?.is_deleted).toBe(false);
+    expect(draft_manager.get_context(context_id)?.id).toBe("d1");
+
+    const result = await draft_manager.save_draft(
+      context_id,
+      draft("two"),
+      vault,
+    );
+
+    expect(result.success).toBe(true);
+    expect(create_draft).toHaveBeenCalledTimes(1);
+    expect(update_draft.mock.calls[0][0]).toBe("d1");
+    expect(update_draft.mock.calls[0][2]).toBe(1);
+  });
+
+  it("keeps the draft live when the delete request throws", async () => {
+    create_draft.mockResolvedValue({ data: { id: "d1", version: 1 } });
+    delete_draft.mockRejectedValue(new Error("offline"));
+    const context_id = draft_manager.create_context();
+
+    await draft_manager.save_draft(context_id, draft("one"), vault);
+    const deleted = await draft_manager.delete_draft(context_id);
+
+    expect(deleted).toBe(false);
+    expect(draft_manager.get_context(context_id)?.is_deleted).toBe(false);
+    expect(draft_manager.get_context(context_id)?.id).toBe("d1");
+  });
+});

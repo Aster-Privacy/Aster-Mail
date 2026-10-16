@@ -828,7 +828,11 @@ export function use_compose_send({
     t,
   ]);
 
+  const schedule_gate_pending_ref = useRef(false);
+
   const handle_scheduled_send = useCallback(async () => {
+    if (schedule_gate_pending_ref.current) return;
+
     if (
       !can_acquire_send_lock(
         {
@@ -919,12 +923,19 @@ export function use_compose_send({
       selected_sender && selected_sender.type !== "primary"
         ? selected_sender.email
         : user.email;
-    const scheduled_gate = await check_scheduled_send(
-      [...recipients.to, ...recipients.cc, ...recipients.bcc],
-      scheduled_sender_email,
-      scheduled_time,
-      preferences.require_encryption === true,
-    );
+    schedule_gate_pending_ref.current = true;
+    let scheduled_gate: Awaited<ReturnType<typeof check_scheduled_send>>;
+
+    try {
+      scheduled_gate = await check_scheduled_send(
+        [...recipients.to, ...recipients.cc, ...recipients.bcc],
+        scheduled_sender_email,
+        scheduled_time,
+        preferences.require_encryption === true,
+      );
+    } finally {
+      schedule_gate_pending_ref.current = false;
+    }
 
     if (!scheduled_gate.proceed) {
       if (scheduled_gate.blocked_by) {

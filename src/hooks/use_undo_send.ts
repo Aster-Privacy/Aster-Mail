@@ -58,6 +58,7 @@ export interface PendingSend {
   is_server_queued?: boolean;
   server_queue_id?: string;
   on_send_immediately?: () => void;
+  on_undo?: () => void;
   optimistic_id?: string;
   thread_token?: string;
   is_restored?: boolean;
@@ -118,6 +119,7 @@ function persist_to_storage(sends: PendingSend[]): void {
       ({
         timeout_id,
         on_send_immediately,
+        on_undo,
         subject,
         body,
         to,
@@ -523,6 +525,7 @@ export function use_undo_send(): UseUndoSendReturn {
 
       payload = take_pending_send_payload(id);
       undo_send_manager.remove(id);
+      pending.on_undo?.();
     } else {
       const cancelled = cancel_queue_send(id);
 
