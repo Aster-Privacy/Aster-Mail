@@ -1529,18 +1529,9 @@ export function use_index_page_state() {
     }
   }, [visible_email_ids]);
 
-  const focused_email_id = useMemo(() => {
-    const anchor = focus_anchor_ref.current;
-
-    if (anchor && visible_email_ids.includes(anchor)) {
-      return anchor;
-    }
-    if (has_focused_email) {
-      return visible_email_ids[focused_email_index];
-    }
-
-    return null;
-  }, [has_focused_email, focused_email_index, visible_email_ids]);
+  const focused_email_id = has_focused_email
+    ? visible_email_ids[focused_email_index]
+    : null;
 
   const handle_keyboard_next = useCallback(() => {
     if (has_viewed_email) {
