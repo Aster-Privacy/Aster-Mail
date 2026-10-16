@@ -88,6 +88,8 @@ import {
   parse_mailto_link,
 } from "@/lib/mailto_link";
 import { subscribe_mailto_drafts } from "@/native/desktop_mailto_bridge";
+import { subscribe_notification_opens } from "@/native/desktop_notification_bridge";
+import { open_message_in_view_mode } from "@/components/toast/toast_action_router";
 import { on_user_opened_mail } from "@/services/user_opened_mail";
 import {
   build_alias_view,
@@ -1194,6 +1196,15 @@ export function use_index_page_state() {
         open_mailto_draft(draft);
       }),
     [close_settings, open_mailto_draft],
+  );
+
+  useEffect(
+    () =>
+      subscribe_notification_opens((email_id) => {
+        close_settings();
+        open_message_in_view_mode(email_id, "inbox");
+      }),
+    [close_settings],
   );
 
   useEffect(() => {

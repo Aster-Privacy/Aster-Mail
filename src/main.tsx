@@ -51,6 +51,7 @@ import { apply_desktop_content_protection } from "@/native/desktop_content_prote
 import { start_desktop_link_bridge } from "@/native/desktop_link_bridge";
 import { start_desktop_oauth_bridge } from "@/native/desktop_oauth_bridge";
 import { start_desktop_mailto_bridge } from "@/native/desktop_mailto_bridge";
+import { start_desktop_notification_bridge } from "@/native/desktop_notification_bridge";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import {
   compute_is_mobile_experience,
@@ -174,6 +175,7 @@ if (is_tauri_runtime) {
   void start_desktop_link_bridge();
   void start_desktop_oauth_bridge();
   void start_desktop_mailto_bridge();
+  void start_desktop_notification_bridge();
   void import("@/native/tauri_tray")
     .then(({ sync_close_to_tray }) => sync_close_to_tray())
     .catch((caught) => ignore_error("main", caught));

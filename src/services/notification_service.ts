@@ -46,41 +46,14 @@ function is_tauri(): boolean {
   return "__TAURI_INTERNALS__" in window;
 }
 
-let tauri_actions_bound = false;
-
-async function bind_tauri_notification_actions(notification_module: {
-  onAction: (
-    callback: (notification: { extra?: Record<string, unknown> }) => void,
-  ) => Promise<unknown>;
-}): Promise<void> {
-  if (tauri_actions_bound) return;
-  tauri_actions_bound = true;
-
-  try {
-    await notification_module.onAction((notification) => {
-      const email_id = notification.extra?.email_id;
-
-      window.focus();
-
-      if (typeof email_id === "string" && email_id !== "") {
-        open_message_in_view_mode(email_id, "inbox");
-      }
-    });
-  } catch {
-    tauri_actions_bound = false;
-  }
-}
-
 async function show_tauri_notification(
   title: string,
   body: string,
   email_id?: string,
-  silent: boolean = false,
 ): Promise<void> {
   try {
-    const notification_module = await import("@tauri-apps/plugin-notification");
-    const { sendNotification, isPermissionGranted, requestPermission } =
-      notification_module;
+    const { isPermissionGranted, requestPermission } =
+      await import("@tauri-apps/plugin-notification");
 
     let permitted = await isPermissionGranted();
 
@@ -92,13 +65,12 @@ async function show_tauri_notification(
 
     if (!permitted) return;
 
-    await bind_tauri_notification_actions(notification_module);
+    const { invoke } = await import("@tauri-apps/api/core");
 
-    sendNotification({
+    await invoke("show_mail_notification", {
       title,
       body,
-      extra: email_id ? { email_id } : undefined,
-      ...(silent ? { silent: true } : {}),
+      emailId: email_id ?? null,
     });
   } catch {
     return;
@@ -214,7 +186,6 @@ export async function show_notification(
       typeof options.data?.email_id === "string"
         ? options.data.email_id
         : undefined,
-      silent,
     );
 
     return null;
