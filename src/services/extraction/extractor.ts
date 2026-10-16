@@ -473,27 +473,32 @@ function extract_tracking_number(
   return null;
 }
 
+const ANCHOR_HREF_PATTERN = /<a\b[^>]*?\bhref\s*=\s*["']([^"']+)["']/gi;
+
 function extract_tracking_url(
   body: string,
   html: string | undefined,
 ): string | null {
   const url_patterns = [
-    /https?:\/\/[^\s<>"]+track[^\s<>"]*/gi,
-    /https?:\/\/[^\s<>"]+shipment[^\s<>"]*/gi,
-    /https?:\/\/[^\s<>"]+delivery[^\s<>"]*/gi,
+    /^https?:\/\/[^\s<>"]+track/i,
+    /^https?:\/\/[^\s<>"]+shipment/i,
+    /^https?:\/\/[^\s<>"]+delivery/i,
   ];
 
-  const content = html || body;
+  const link_urls = html
+    ? Array.from(html.matchAll(ANCHOR_HREF_PATTERN), (match) =>
+        decode_basic_entities(match[1].trim()),
+      )
+    : [];
+  const text_urls = (body.match(/https?:\/\/[^\s<>"]+/gi) ?? []).map((url) =>
+    url.replace(/['">\]]+$/, ""),
+  );
 
-  for (const pattern of url_patterns) {
-    const matches = content.match(pattern);
+  for (const candidates of [link_urls, text_urls]) {
+    for (const pattern of url_patterns) {
+      const url = candidates.find((candidate) => pattern.test(candidate));
 
-    if (matches && matches.length > 0) {
-      let url = matches[0];
-
-      url = url.replace(/['">\]]+$/, "");
-
-      return url;
+      if (url) return url;
     }
   }
 

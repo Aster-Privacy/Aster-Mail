@@ -301,6 +301,50 @@ describe("extract_shipping_details tracking accuracy", () => {
   });
 });
 
+describe("extract_shipping_details tracking link", () => {
+  const step_tracker_image =
+    '<img src="https://images.example.com/outbound/steptracker-checkmark.png" alt="Completed">';
+
+  it("takes the tracking link instead of an image whose address mentions tracking", () => {
+    const html = `<div>${step_tracker_image}</div><p>Your package was dispatched!</p><a href="https://www.example.com/progress-tracker/package?orderId=1&amp;packageIndex=0">Track package</a>`;
+    const result = extract_shipping_details(
+      "Dispatched: your order",
+      "Your package was dispatched! Track package",
+      html,
+      "shipment-tracking@amazon.com",
+    );
+
+    expect(result.tracking_url).toBe(
+      "https://www.example.com/progress-tracker/package?orderId=1&packageIndex=0",
+    );
+  });
+
+  it("never offers an image address as the tracking link", () => {
+    const html = `<div>${step_tracker_image}</div><p>Your package was dispatched!</p><a href="https://www.example.com/your-orders">Your Orders</a>`;
+    const result = extract_shipping_details(
+      "Dispatched: your order",
+      "Your package was dispatched! Your Orders",
+      html,
+      "shipment-tracking@amazon.com",
+    );
+
+    expect(result.tracking_url).toBeNull();
+  });
+
+  it("still finds a tracking address written in plain text", () => {
+    const result = extract_shipping_details(
+      "Your order has shipped",
+      "Follow it at https://carrier.example.com/track?id=ABC12345 until it arrives.",
+      undefined,
+      "orders@shop.example.com",
+    );
+
+    expect(result.tracking_url).toBe(
+      "https://carrier.example.com/track?id=ABC12345",
+    );
+  });
+});
+
 describe("detect_shipping_status via extract_shipping_details", () => {
   it("does not report delivered for a future delivery", () => {
     const result = extract_shipping_details(
