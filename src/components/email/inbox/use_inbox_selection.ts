@@ -171,6 +171,10 @@ export function use_inbox_selection({
   }, [current_view, active_category, get_update_fn]);
 
   useEffect(() => {
+    if (prune_hidden) exit_select_all_mode();
+  }, [prune_hidden, exit_select_all_mode]);
+
+  useEffect(() => {
     if (!prune_hidden) return;
 
     const visible_ids = new Set(page_emails.map((e) => e.id));
