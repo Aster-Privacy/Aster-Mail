@@ -47,6 +47,8 @@ import { play_iconic_sound } from "@/services/iconic_sounds";
 import { LazyLoadBoundary } from "@/components/ui/lazy_load_boundary";
 import { Spinner } from "@/components/ui/spinner";
 import { ignore_error } from "@/lib/ignore_error";
+import { draft_manager } from "@/services/crypto/encrypted_drafts";
+import { compose_instance_storage_key } from "@/components/compose/compose_instance_key";
 import { lazy_on_demand, preload_when_idle } from "@/utils/lazy_with_retry";
 
 export const load_compose_window = () =>
@@ -163,8 +165,15 @@ export function use_compose_manager() {
       initial_ghost_mode?: boolean,
     ) => {
       const current = instances_ref.current;
+      const draft_owner = edit_draft
+        ? draft_manager.find_draft_owner(edit_draft.id)
+        : undefined;
       const existing = edit_draft
-        ? current.find((instance) => instance.edit_draft?.id === edit_draft.id)
+        ? current.find(
+            (instance) =>
+              instance.edit_draft?.id === edit_draft.id ||
+              compose_instance_storage_key(instance.id) === draft_owner,
+          )
         : initial_to
           ? current.find(
               (instance) =>

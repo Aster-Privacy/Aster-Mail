@@ -199,10 +199,20 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
   );
 
   const menu_email_ref = useRef<InboxEmail | null>(null);
-  const [menu_email, set_menu_email] = useState<InboxEmail | null>(null);
+  const [menu_snapshot, set_menu_snapshot] = useState<InboxEmail | null>(null);
+  const menu_email = useMemo(
+    () =>
+      menu_snapshot
+        ? ((filtered_results.find((r) => r.id === menu_snapshot.id) as
+            InboxEmail | undefined) ?? menu_snapshot)
+        : null,
+    [filtered_results, menu_snapshot],
+  );
+
+  menu_email_ref.current = menu_email;
 
   const handle_row_context_menu = useCallback((email: InboxEmail) => {
-    set_menu_email(email);
+    set_menu_snapshot(email);
     menu_email_ref.current = email;
   }, []);
 
@@ -851,18 +861,18 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
           )}
           {(state.index_incomplete || state.index_pending) &&
             !index_status.is_active && (
-            <div
-              className={`flex items-center gap-2 px-4 py-2 text-xs ${SEARCH_NOTICE_DIVIDER}`}
-              data-testid="search-index-incomplete-notice"
-              style={{ color: "var(--text-secondary)" }}
-            >
-              <span className="min-w-0">
-                {state.index_incomplete
-                  ? t("mail.search_index_incomplete")
-                  : t("mail.search_index_partial")}
-              </span>
-            </div>
-          )}
+              <div
+                className={`flex items-center gap-2 px-4 py-2 text-xs ${SEARCH_NOTICE_DIVIDER}`}
+                data-testid="search-index-incomplete-notice"
+                style={{ color: "var(--text-secondary)" }}
+              >
+                <span className="min-w-0">
+                  {state.index_incomplete
+                    ? t("mail.search_index_incomplete")
+                    : t("mail.search_index_partial")}
+                </span>
+              </div>
+            )}
           {state.hidden_spam_trash > 0 && filtered_results.length > 0 && (
             <div
               className={`flex items-center gap-2 px-4 py-2 text-xs ${SEARCH_NOTICE_DIVIDER}`}

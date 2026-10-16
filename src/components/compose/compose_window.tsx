@@ -44,6 +44,7 @@ import {
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_compose } from "@/components/compose/use_compose";
+import { compose_instance_storage_key } from "@/components/compose/compose_instance_key";
 import {
   ComposeFormFields,
   ComposeEditor,
@@ -190,7 +191,7 @@ export function ComposeWindow({
     edit_draft,
     on_draft_cleared,
     initial_to,
-    session_storage_key: `astermail_pending_send_${instance_id}`,
+    session_storage_key: compose_instance_storage_key(instance_id),
     enable_offline_queue: true,
     enable_ctrl_enter_send: true,
   });

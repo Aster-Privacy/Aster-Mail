@@ -21,14 +21,7 @@
 import type { DecryptedFolder } from "@/hooks/use_folders";
 import type { DecryptedTag } from "@/hooks/use_tags";
 
-import {
-  memo,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-  useRef,
-} from "react";
+import { memo, useCallback, useEffect, useMemo, useState, useRef } from "react";
 import {
   MobileDrawerHeaderView,
   MobileDrawerScrollArea,
@@ -542,9 +535,19 @@ export const MobileDrawer = memo(function MobileDrawer({
     set_confirm_delete_tag(editing_tag);
   }, [editing_tag]);
 
+  const leave_deleted_view = useCallback(
+    (deleted_path: string) => {
+      if (active_path === deleted_path) {
+        on_navigate("/");
+      }
+    },
+    [active_path, on_navigate],
+  );
+
   const handle_confirm_delete_tag = useCallback(async () => {
     if (!confirm_delete_tag) return;
-    const success = await delete_existing_tag(confirm_delete_tag.id);
+    const deleted_tag = confirm_delete_tag;
+    const success = await delete_existing_tag(deleted_tag.id);
 
     set_confirm_delete_tag(null);
     if (!success) {
@@ -553,7 +556,8 @@ export const MobileDrawer = memo(function MobileDrawer({
       return;
     }
     set_editing_tag(null);
-  }, [confirm_delete_tag, delete_existing_tag, t]);
+    leave_deleted_view(`/tag/${encodeURIComponent(deleted_tag.tag_token)}`);
+  }, [confirm_delete_tag, delete_existing_tag, leave_deleted_view, t]);
 
   const handle_toggle_lock = useCallback(
     async (folder_id: string, is_currently_locked: boolean) => {
@@ -720,6 +724,13 @@ export const MobileDrawer = memo(function MobileDrawer({
         }
         is_open={!!deleting_folder}
         on_close={() => set_deleting_folder(null)}
+        on_deleted={() => {
+          if (deleting_folder) {
+            leave_deleted_view(
+              `/folder/${encodeURIComponent(deleting_folder.folder_token)}`,
+            );
+          }
+        }}
         variant="sheet"
       />
 

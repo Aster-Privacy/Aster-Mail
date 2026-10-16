@@ -52,6 +52,8 @@ export interface ScheduledEmailContent {
   from?: ScheduledEnvelopeSender;
   in_reply_to?: string;
   thread_id?: string;
+  reply_to_id?: string;
+  is_plain_text?: boolean;
 }
 
 export interface ScheduledEmail {
@@ -213,6 +215,8 @@ function scheduled_envelope_data(content: ScheduledEmailContent) {
     ...(content.from ? { from: content.from } : {}),
     ...(content.in_reply_to ? { in_reply_to: content.in_reply_to } : {}),
     ...(content.thread_id ? { thread_id: content.thread_id } : {}),
+    ...(content.reply_to_id ? { reply_to_id: content.reply_to_id } : {}),
+    ...(content.is_plain_text ? { is_plain_text: true } : {}),
   };
 }
 

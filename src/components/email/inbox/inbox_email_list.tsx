@@ -55,6 +55,7 @@ import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_attachment_previews } from "@/hooks/use_attachment_previews";
 import { ignore_error } from "@/lib/ignore_error";
+import { MAIL_EVENTS, on_mail_event } from "@/hooks/mail_events";
 import { cn } from "@/lib/utils";
 import {
   is_compact_density,
@@ -225,13 +226,42 @@ export function EmailList({
     [pinned_emails, primary_emails],
   );
 
-  const live_menu_email = useMemo(
+  const menu_email_id = menu_email?.id ?? null;
+  const listed_menu_email = useMemo(
     () =>
-      menu_email
-        ? (all_emails.find((e) => e.id === menu_email.id) ?? menu_email)
+      menu_email_id
+        ? (all_emails.find((e) => e.id === menu_email_id) ?? null)
         : null,
-    [all_emails, menu_email],
+    [all_emails, menu_email_id],
   );
+
+  useEffect(() => {
+    if (listed_menu_email) set_menu_email(listed_menu_email);
+  }, [listed_menu_email]);
+
+  useEffect(() => {
+    if (!menu_email_id) return;
+
+    return on_mail_event(MAIL_EVENTS.MAIL_ITEM_UPDATED, (detail) => {
+      if (detail.id !== menu_email_id) return;
+      set_menu_email((prev) =>
+        prev && prev.id === detail.id
+          ? {
+              ...prev,
+              ...(detail.is_read !== undefined && { is_read: detail.is_read }),
+              ...(detail.is_starred !== undefined && {
+                is_starred: detail.is_starred,
+              }),
+              ...(detail.is_pinned !== undefined && {
+                is_pinned: detail.is_pinned,
+              }),
+            }
+          : prev,
+      );
+    });
+  }, [menu_email_id]);
+
+  const live_menu_email = listed_menu_email ?? menu_email;
 
   menu_email_ref.current = live_menu_email;
 

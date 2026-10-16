@@ -5227,3 +5227,11 @@ html[data-input-modality="keyboard"]
   background-color: color-mix(in srgb, var(--text-primary) 10%, transparent);
   color: var(--text-primary);
 }
+
+@layer utilities {
+  [data-onboarding="compose-button"][data-rail-tip] {
+    width: 3rem !important;
+    min-width: 3rem !important;
+    height: 3rem !important;
+  }
+}

@@ -730,6 +730,12 @@ export function use_compose({
         edit_draft.reply_to_id,
         edit_draft.forward_from_id,
       );
+      if (session_storage_key) {
+        draft_manager.set_context_owner(
+          draft_context_id_ref.current,
+          session_storage_key,
+        );
+      }
       draft_hook.just_loaded_draft_ref.current = true;
       dispatch_recipients({
         type: "SET",
@@ -887,6 +893,12 @@ export function use_compose({
       }, INITIAL_CONTENT_DELAY_MS);
     } else {
       draft_context_id_ref.current = draft_manager.create_context("new");
+      if (session_storage_key) {
+        draft_manager.set_context_owner(
+          draft_context_id_ref.current,
+          session_storage_key,
+        );
+      }
       content_initialized_ref.current = false;
       set_is_loading_forward_attachments(false);
 
