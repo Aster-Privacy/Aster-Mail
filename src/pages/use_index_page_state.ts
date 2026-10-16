@@ -77,6 +77,8 @@ import {
 } from "@/services/category_index";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { show_toast } from "@/components/toast/simple_toast";
+import { scheduled_to_draft } from "@/components/scheduled/scheduled_to_draft";
+import type { ScheduledEmailWithContent } from "@/services/api/scheduled";
 import { set_forward_mail_id } from "@/services/forward_store";
 import { read_last_settings_section } from "@/lib/settings_section_store";
 import { ignore_error } from "@/lib/ignore_error";
@@ -370,6 +372,23 @@ export function use_index_page_state() {
       set_edit_draft({ ...data });
     },
     [is_mobile, location.hash, close_hash_entry],
+  );
+
+  const handle_scheduled_edit = useCallback(
+    async (email: ScheduledEmailWithContent) => {
+      if (!vault) return;
+
+      const result = await scheduled_to_draft(email, vault);
+
+      if ("error" in result) {
+        show_toast(result.error || t("common.something_went_wrong"), "error");
+
+        return;
+      }
+
+      handle_draft_click(result.data);
+    },
+    [vault, handle_draft_click, t],
   );
 
   const handle_draft_cleared = useCallback(() => {
@@ -1794,6 +1813,7 @@ export function use_index_page_state() {
     open_compose,
     handle_reply,
     handle_draft_click,
+    handle_scheduled_edit,
     handle_draft_cleared,
     split_email_id,
     set_split_email_id,

@@ -555,6 +555,11 @@ export function use_compose_send({
         if (resolved_token) {
           thread_id = resolved_token;
         }
+      } else if (
+        edit_draft?.draft_type === "reply" &&
+        edit_draft.thread_token
+      ) {
+        thread_id = edit_draft.thread_token;
       }
 
       const email_data = {
@@ -967,6 +972,8 @@ export function use_compose_send({
       if (resolved_token) {
         scheduled_thread_id = resolved_token;
       }
+    } else if (edit_draft?.draft_type === "reply" && edit_draft.thread_token) {
+      scheduled_thread_id = edit_draft.thread_token;
     }
 
     const content: ScheduledEmailContent = {
