@@ -159,6 +159,24 @@ describe("scheduled_to_draft", () => {
     });
   });
 
+  it("reopens plain text mail with the text the user typed", async () => {
+    const result = await scheduled_to_draft(
+      make_email({
+        is_plain_text: true,
+        body: "line one<br>line two",
+        plain_body: "line one\nline two",
+      }),
+      vault,
+    );
+
+    expect(create_draft.mock.calls[0][0]).toEqual(
+      expect.objectContaining({ message: "line one\nline two" }),
+    );
+    expect(result).toEqual({
+      data: expect.objectContaining({ message: "line one\nline two" }),
+    });
+  });
+
   it("leaves the scheduled send alone when the draft cannot be saved", async () => {
     create_draft.mockResolvedValue({ error: "nope" });
 

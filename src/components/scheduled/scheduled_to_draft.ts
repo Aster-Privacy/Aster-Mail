@@ -49,7 +49,10 @@ export async function scheduled_to_draft(
     cc_recipients: content.cc_recipients,
     bcc_recipients: content.bcc_recipients,
     subject: content.subject,
-    message: content.body,
+    message:
+      content.is_plain_text && content.plain_body !== undefined
+        ? content.plain_body
+        : content.body,
     from_email: content.from?.email,
     ...(content.is_plain_text ? { is_plain_text: true } : {}),
   };
