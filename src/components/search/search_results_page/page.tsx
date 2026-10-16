@@ -895,6 +895,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
             can_go_next={search_can_go_next}
             can_go_prev={search_can_go_prev}
             current_index={search_nav_index >= 0 ? search_nav_index : undefined}
+            handles_keyboard_actions
             email_id={split_email_id}
             on_advance={handle_search_auto_advance}
             on_back={on_split_close || (() => {})}
@@ -951,6 +952,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
               current_index={
                 search_nav_index >= 0 ? search_nav_index : undefined
               }
+              handles_keyboard_actions
               email_id={split_email_id}
               on_advance={handle_search_auto_advance}
               on_close={on_split_close || (() => {})}

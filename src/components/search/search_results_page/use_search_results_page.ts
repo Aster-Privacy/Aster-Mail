@@ -634,6 +634,18 @@ export function use_search_results_page(props: SearchResultsPageProps) {
     [filtered_results],
   );
 
+  const on_email_list_change = props.on_email_list_change;
+
+  useEffect(() => {
+    if (!on_email_list_change) return;
+    const grouped_ids_map: Record<string, string[] | undefined> = {};
+
+    for (const result of filtered_results) {
+      grouped_ids_map[result.id] = result.grouped_email_ids;
+    }
+    on_email_list_change(search_result_ids, undefined, grouped_ids_map);
+  }, [on_email_list_change, search_result_ids, filtered_results]);
+
   const handle_search_auto_advance = use_auto_advance({
     email_ids: search_result_ids,
     current_index: search_nav_index,

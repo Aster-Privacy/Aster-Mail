@@ -568,6 +568,9 @@ export default function IndexPage() {
                           <Suspense fallback={<FullPageLoader />}>
                             <SearchResultsPage
                               on_close={state.handle_close_search_results}
+                              on_email_list_change={
+                                state.handle_email_list_change
+                              }
                               on_forward={state.handle_forward}
                               on_quick_settings_click={toggle_quick_settings}
                               on_reply={state.handle_reply}

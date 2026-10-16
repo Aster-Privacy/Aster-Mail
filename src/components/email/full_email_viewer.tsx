@@ -46,6 +46,7 @@ import {
   type ReplyData,
   type ForwardData,
 } from "@/components/email/use_email_viewer";
+import { use_viewer_keyboard_actions } from "@/components/email/hooks/use_viewer_keyboard_actions";
 import {
   ViewerToolbarActions,
   ViewerThreadContent,
@@ -92,6 +93,8 @@ interface FullEmailViewerProps {
   on_folder_toggle?: (folder_id: string) => void;
   on_move_out_of_bin?: () => void;
   on_snooze?: () => void;
+  handles_keyboard_actions?: boolean;
+  handles_unlisted_keyboard_actions?: boolean;
   label_hints?: {
     token: string;
     name: string;
@@ -121,6 +124,8 @@ export function FullEmailViewer({
   on_folder_toggle,
   on_move_out_of_bin,
   on_snooze,
+  handles_keyboard_actions = false,
+  handles_unlisted_keyboard_actions = false,
   label_hints,
 }: FullEmailViewerProps): React.ReactElement {
   const { t } = use_i18n();
@@ -137,6 +142,13 @@ export function FullEmailViewer({
     on_edit_draft,
     use_refresh_listener: !local_email,
     grouped_email_ids,
+  });
+  use_viewer_keyboard_actions({
+    enabled: handles_keyboard_actions,
+    handles_unlisted: handles_unlisted_keyboard_actions,
+    email_id,
+    viewer,
+    request_spam,
   });
 
   const label_chips = useMemo(() => {

@@ -521,19 +521,44 @@ export function use_inbox_view_state(props: EmailInboxProps) {
           await unsnooze_mail(email_id);
           update_email(email_id, { snoozed_until: undefined });
         }
-        emit_mail_item_updated({ id: email_id, snoozed_until: null });
-        reindex_category_ids([email_id]);
+        const sibling_ids = is_snoozed_view
+          ? []
+          : (
+              mail_state.emails.find((email) => email.id === email_id)
+                ?.grouped_email_ids ?? []
+            ).filter((id) => id !== email_id);
+        const sibling_results = await Promise.allSettled(
+          sibling_ids.map((id) => unsnooze_mail(id)),
+        );
+        const unsnoozed_ids = [
+          email_id,
+          ...sibling_ids.filter(
+            (_, index) => sibling_results[index].status === "fulfilled",
+          ),
+        ];
+
+        for (const id of unsnoozed_ids) {
+          emit_mail_item_updated({ id, snoozed_until: null });
+        }
+        reindex_category_ids(unsnoozed_ids);
         show_action_toast({
           message: t("common.email_unsnoozed"),
           action_type: "snooze",
-          email_ids: [email_id],
+          email_ids: unsnoozed_ids,
         });
       } catch (error) {
         if (import.meta.env.DEV) console.error(error);
         show_toast(t("common.failed_to_unsnooze"), "error");
       }
     },
-    [is_snoozed_view, unsnooze_snoozed, unsnooze_mail, update_email, t],
+    [
+      is_snoozed_view,
+      unsnooze_snoozed,
+      unsnooze_mail,
+      update_email,
+      mail_state.emails,
+      t,
+    ],
   );
 
   const handle_category_change = useCallback(
