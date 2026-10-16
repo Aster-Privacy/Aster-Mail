@@ -64,12 +64,44 @@ export function use_split_pane({
   const raf_ref = useRef(0);
   const drag_width_ref = useRef<number | null>(null);
   const drag_height_ref = useRef<number | null>(null);
+  const [container_size, set_container_size] = useState<{
+    width: number;
+    height: number;
+  } | null>(null);
 
-  const default_width = Math.floor((window.innerWidth - SIDEBAR_WIDTH) * 0.5);
+  useEffect(() => {
+    if (!is_split_view) return;
+    const container = list_panel_ref.current?.parentElement;
+
+    if (!container || typeof ResizeObserver === "undefined") return;
+
+    const measure = () => {
+      const rect = container.getBoundingClientRect();
+
+      if (rect.width <= 0 || rect.height <= 0) return;
+      set_container_size((prev) =>
+        prev && prev.width === rect.width && prev.height === rect.height
+          ? prev
+          : { width: rect.width, height: rect.height },
+      );
+    };
+
+    measure();
+    const observer = new ResizeObserver(measure);
+
+    observer.observe(container);
+
+    return () => observer.disconnect();
+  }, [is_split_view, is_bottom_pane]);
+
+  const default_width = Math.floor(
+    (container_size?.width ?? window.innerWidth - SIDEBAR_WIDTH) * 0.5,
+  );
   const default_height = Math.floor((window.innerHeight - 120) * 0.5);
   const raw_pane_width = split_pane_width || default_width;
   const raw_pane_height = split_pane_height || default_height;
-  const content_area_width = window.innerWidth - SIDEBAR_WIDTH;
+  const content_area_width =
+    container_size?.width ?? window.innerWidth - SIDEBAR_WIDTH;
   const max_allowed_width = Math.max(
     MIN_LIST_WIDTH,
     content_area_width - MIN_EMAIL_VIEWER_WIDTH,
@@ -78,7 +110,8 @@ export function use_split_pane({
     MIN_LIST_WIDTH,
     Math.min(raw_pane_width, max_allowed_width),
   );
-  const content_area_height = window.innerHeight - 120;
+  const content_area_height =
+    container_size?.height ?? window.innerHeight - 120;
   const max_allowed_height = Math.max(
     MIN_LIST_HEIGHT,
     content_area_height - MIN_EMAIL_VIEWER_HEIGHT,

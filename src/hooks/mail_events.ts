@@ -170,6 +170,7 @@ export interface ReactionReceivedEventDetail {
 
 export interface MailItemsRemovedEventDetail {
   ids: string[];
+  action?: string;
 }
 
 export interface MailRemoteItemsRemovedEventDetail {

@@ -490,7 +490,7 @@ class SyncClient {
     mark_view_stale();
 
     if (ids.length > 0 && REMOVAL_ACTIONS.has(action)) {
-      emit_mail_items_removed({ ids });
+      emit_mail_items_removed({ ids, action });
     }
 
     const echo = claim_own_mail_mutation_echo(action, ids);
