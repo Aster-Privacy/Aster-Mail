@@ -395,8 +395,8 @@ export function use_search_results_page(props: SearchResultsPageProps) {
             emails.map((e) => e.id),
             { is_archived: true, is_trashed: false, is_spam: false },
           );
+          emit_mail_items_removed({ ids: emails.map((e) => e.id) });
         }
-        emit_mail_items_removed({ ids: emails.map((e) => e.id) });
       }
       handle_clear_selection();
     } finally {
@@ -434,8 +434,8 @@ export function use_search_results_page(props: SearchResultsPageProps) {
             emails.map((e) => e.id),
             { is_trashed: true },
           );
+          emit_mail_items_removed({ ids: emails.map((e) => e.id) });
         }
-        emit_mail_items_removed({ ids: emails.map((e) => e.id) });
       }
       handle_clear_selection();
     } finally {
@@ -519,8 +519,8 @@ export function use_search_results_page(props: SearchResultsPageProps) {
             emails.map((e) => e.id),
             { is_spam: true, is_trashed: false },
           );
+          emit_mail_items_removed({ ids: emails.map((e) => e.id) });
         }
-        emit_mail_items_removed({ ids: emails.map((e) => e.id) });
       }),
     [run_bulk, email_actions, apply_flag_patch],
   );

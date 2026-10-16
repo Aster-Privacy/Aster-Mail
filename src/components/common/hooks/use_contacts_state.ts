@@ -41,6 +41,7 @@ import {
 } from "@/utils/contact_export";
 import {
   create_contact_encrypted,
+  is_contact_in_trash,
   update_contact_encrypted,
   delete_contact as api_delete_contact,
   add_contact_to_group,
@@ -411,6 +412,15 @@ export function use_contacts_state() {
 
       try {
         if (editing_contact) {
+          if (await is_contact_in_trash(editing_contact.id)) {
+            show_toast(t("common.failed_to_save_contact"), "error");
+            set_is_submitting(false);
+            set_is_form_open(false);
+            set_editing_contact(null);
+            await fetch_contacts();
+
+            return;
+          }
           const data_with_history = with_contact_revision(
             data,
             contact_to_form_data(editing_contact),
@@ -478,7 +488,7 @@ export function use_contacts_state() {
         set_is_submitting(false);
       }
     },
-    [editing_contact, selected_contact, t],
+    [editing_contact, selected_contact, fetch_contacts, t],
   );
 
   const handle_inline_save = useCallback(

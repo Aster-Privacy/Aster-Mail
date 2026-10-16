@@ -121,3 +121,12 @@ export function rule_folder_name(
     ? t(RULE_SYSTEM_FOLDER_LABEL_KEYS[system_type])
     : folder.name;
 }
+
+export function is_missing_rule_folder(
+  folders: DecryptedFolder[],
+  token: string | null | undefined,
+): boolean {
+  if (!token) return true;
+
+  return folders.length > 0 && !folders.some((f) => f.folder_token === token);
+}

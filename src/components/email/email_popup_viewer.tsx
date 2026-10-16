@@ -359,7 +359,11 @@ export function EmailPopupViewer({
         on_pin_toggle={viewer.handle_pin_toggle}
         on_print={viewer.handle_print}
         on_read_toggle={viewer.handle_read_toggle}
-        on_spam={() => request_spam(viewer.handle_spam)}
+        on_spam={
+          viewer.mail_item?.item_type === "sent"
+            ? undefined
+            : () => request_spam(viewer.handle_spam)
+        }
         on_toggle_size={viewer.toggle_size}
         on_trash={viewer.handle_trash}
         on_unarchive={viewer.handle_unarchive}

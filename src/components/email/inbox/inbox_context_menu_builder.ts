@@ -375,7 +375,10 @@ export function build_context_menu_actions(
           action_type: "folder",
           email_ids: all_ids,
           on_undo: async () => {
-            await bulk_add_tag(all_ids, tag_token);
+            const undo_result = await bulk_add_tag(all_ids, tag_token);
+
+            if (undo_result.error) throw new Error(undo_result.error);
+            emit_mail_item_updated({ id: email.id, tags: previous_tags });
             window.dispatchEvent(
               new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
             );
@@ -411,7 +414,10 @@ export function build_context_menu_actions(
           action_type: "folder",
           email_ids: all_ids,
           on_undo: async () => {
-            await bulk_remove_tag(all_ids, tag_token);
+            const undo_result = await bulk_remove_tag(all_ids, tag_token);
+
+            if (undo_result.error) throw new Error(undo_result.error);
+            emit_mail_item_updated({ id: email.id, tags: previous_tags });
             window.dispatchEvent(
               new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
             );
@@ -453,6 +459,7 @@ export function build_context_menu_actions(
           emit_mail_item_updated({ id, is_trashed: false });
         }
         emit_mail_changed();
+        invalidate_mail_stats();
 
         show_action_toast({
           message: t("common.restored_from_trash"),
@@ -498,6 +505,7 @@ export function build_context_menu_actions(
         metadata_nonce: result.encrypted?.metadata_nonce,
       });
       emit_mail_changed();
+      invalidate_mail_stats();
 
       show_action_toast({
         message: t("common.restored_from_trash"),

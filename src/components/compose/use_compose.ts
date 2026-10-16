@@ -419,6 +419,7 @@ export function use_compose({
     is_sending_ref,
     save_timer_ref,
     draft_context_id_ref,
+    has_pending_attachment_reads: attachment_hook.has_pending_attachment_reads,
   });
 
   const classified_recipients = useMemo(

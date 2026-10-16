@@ -82,6 +82,8 @@ export interface PendingSendPayload {
   attachments?: Attachment[];
   restore_verbatim?: boolean;
   is_plain_text?: boolean;
+  draft_id?: string;
+  draft_version?: number;
 }
 
 const pending_send_payloads = new Map<string, PendingSendPayload>();

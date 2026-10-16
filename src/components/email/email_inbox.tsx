@@ -60,6 +60,7 @@ import { reveal_list_row } from "@/components/email/inbox/use_inbox_list_scroll"
 import { use_empty_folder_request } from "@/components/email/inbox/empty_folder_request";
 import { StorageBanner } from "@/components/email/inbox/inbox_storage_banner";
 import { TrashBanner } from "@/components/email/inbox/inbox_trash_banner";
+import { is_outgoing_view } from "@/hooks/email_list_helpers";
 import { order_folders_as_tree } from "@/hooks/use_folders/tree";
 import { order_tags_as_tree } from "@/hooks/tag_tree";
 
@@ -400,7 +401,9 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
             on_select_by_filter={selection.handle_select_by_filter}
             on_settings_click={on_settings_click}
             on_snooze={handle_snooze_wrapped}
-            on_spam={handle_spam_wrapped}
+            on_spam={
+              is_outgoing_view(current_view) ? undefined : handle_spam_wrapped
+            }
             on_tag_toggle={(tag_token) => {
               handle_tag_toggle_wrapped(
                 tag_token,

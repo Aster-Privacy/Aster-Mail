@@ -100,6 +100,7 @@ import {
   create_contact_encrypted,
   decrypt_contacts,
   list_contacts,
+  is_contact_in_trash,
   update_contact_encrypted,
 } from "@/services/api/contacts";
 import { is_contact_trashed } from "@/lib/contact_trash";
@@ -540,6 +541,14 @@ export function QuickContactsPanel({
 
       set_is_saving(true);
       try {
+        if (editor_contact && (await is_contact_in_trash(editor_contact.id))) {
+          set_is_editor_open(false);
+          set_editor_contact(null);
+          set_error(t("common.failed_to_save_contact"));
+          await load(true);
+
+          return;
+        }
         const response = editor_contact
           ? await update_contact_encrypted(editor_contact.id, data)
           : await create_contact_encrypted(data);

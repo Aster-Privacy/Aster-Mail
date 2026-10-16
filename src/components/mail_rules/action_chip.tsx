@@ -39,7 +39,10 @@ import { ChipPill, ChipSegment, use_chip_layout } from "./chip_pill";
 import { ActionTargetDropdown } from "./dropdowns/action_target_dropdown";
 
 import { PinIcon } from "@/components/common/icons";
-import { rule_folder_name } from "@/components/mail_rules/rule_folders";
+import {
+  is_missing_rule_folder,
+  rule_folder_name,
+} from "@/components/mail_rules/rule_folders";
 import { rule_category_label_key } from "@/data/category_catalog";
 import { use_folders } from "@/hooks/use_folders";
 import { use_tags } from "@/hooks/use_tags";
@@ -181,7 +184,10 @@ export function ActionChip({
   const is_target_placeholder = (() => {
     switch (action.type) {
       case "move_to":
-        return !action.folder_token;
+        return is_missing_rule_folder(
+          folders_state.folders,
+          action.folder_token,
+        );
       case "apply_labels":
         return action.label_tokens.length === 0;
       case "forward":

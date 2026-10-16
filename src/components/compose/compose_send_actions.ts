@@ -80,6 +80,7 @@ export interface SendActionContext {
   limits_loaded?: boolean;
   is_feature_locked?: (feature_key: string) => boolean;
   on_send_failed?: (email_data: FailedSendData) => void | Promise<void>;
+  get_kept_draft?: () => { id: string; version: number } | null;
 }
 
 function blocked_by_plan(
@@ -738,6 +739,8 @@ function reopen_failed_send(
       attachments: email_data.attachments,
       restore_verbatim: true,
       is_plain_text: ctx.is_plain_text || undefined,
+      draft_id: ctx.get_kept_draft?.()?.id,
+      draft_version: ctx.get_kept_draft?.()?.version,
     },
   );
 }

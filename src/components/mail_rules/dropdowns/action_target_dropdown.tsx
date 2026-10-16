@@ -335,11 +335,12 @@ export function ActionTargetDropdown(props: ActionTargetDropdownProps) {
                 className="justify-between text-[12.5px]"
                 onSelect={(e) => {
                   e.preventDefault();
+                  const live = labels_props.value.filter((tok) =>
+                    tags_state.tags.some((tag) => tag.tag_token === tok),
+                  );
                   const next = is_selected
-                    ? labels_props.value.filter(
-                        (tok) => tok !== label.tag_token,
-                      )
-                    : [...labels_props.value, label.tag_token];
+                    ? live.filter((tok) => tok !== label.tag_token)
+                    : [...live, label.tag_token];
 
                   labels_props.on_commit({
                     type: "apply_labels",

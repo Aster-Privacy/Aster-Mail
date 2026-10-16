@@ -664,15 +664,21 @@ function EmailContextMenuContentInner({
           </ContextMenuItem>
         )}
 
-      {!is_trash && !is_spam && !is_drafts && !is_scheduled && on_spam && (
-        <ContextMenuItem
-          disabled={loading_action === "spam"}
-          onClick={() => handle_action("spam", on_spam)}
-        >
-          <ReportSpamIcon className="me-2 h-4 w-4" />
-          {t("mail.report_spam")}
-        </ContextMenuItem>
-      )}
+      {!is_trash &&
+        !is_spam &&
+        !is_drafts &&
+        !is_scheduled &&
+        !is_sent &&
+        email.item_type !== "sent" &&
+        on_spam && (
+          <ContextMenuItem
+            disabled={loading_action === "spam"}
+            onClick={() => handle_action("spam", on_spam)}
+          >
+            <ReportSpamIcon className="me-2 h-4 w-4" />
+            {t("mail.report_spam")}
+          </ContextMenuItem>
+        )}
 
       {on_delete && (
         <ContextMenuItem
