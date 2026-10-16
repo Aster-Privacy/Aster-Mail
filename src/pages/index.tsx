@@ -617,6 +617,7 @@ export default function IndexPage() {
                         on_quick_settings_click={toggle_quick_settings}
                         on_reply={state.handle_reply}
                         on_scheduled_click={state.handle_scheduled_click}
+                        on_scheduled_edit={state.handle_scheduled_edit}
                         on_search_click={() => state.set_is_search_open(true)}
                         on_search_result_click={
                           state.handle_search_result_click
@@ -791,6 +792,7 @@ export default function IndexPage() {
         {state.popup_scheduled && (
           <ScheduledPopupViewer
             on_close={state.handle_scheduled_popup_close}
+            on_edit={state.handle_scheduled_edit}
             scheduled_data={state.popup_scheduled}
           />
         )}

@@ -56,6 +56,7 @@ export interface DraftClickData {
   version: number;
   draft_type: DraftType;
   reply_to_id?: string;
+  rfc_message_id?: string;
   forward_from_id?: string;
   thread_token?: string;
   to_recipients: string[];
