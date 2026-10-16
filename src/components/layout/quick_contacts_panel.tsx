@@ -1519,7 +1519,7 @@ export function QuickContactsPanel({
           >
             <ArrowUpTrayIcon className="flex-shrink-0" />
             <span className="truncate leading-5">
-              {t("common.import_contacts")}
+              {t("common.import_contacts_short")}
             </span>
           </button>
           <button

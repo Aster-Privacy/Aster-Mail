@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useEffect, useRef, type RefObject } from "react";
+import { useLayoutEffect, useRef, type RefObject } from "react";
 
 const PANEL_INSET_VAR = "--quick_panel_inset";
 
@@ -32,7 +32,7 @@ export function use_panel_inset(
 
   if (!owner_ref.current) owner_ref.current = Symbol("quick_panel_inset");
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const owner = owner_ref.current;
     const panel = panel_ref.current;
     const root = document.documentElement;

@@ -1530,6 +1530,7 @@ export interface CommonTranslations {
   history: string;
   all_mail: string;
   import_contacts: string;
+  import_contacts_short: string;
   import_choose_file_desc: string;
   click_to_select_file: string;
   or_drag_and_drop: string;

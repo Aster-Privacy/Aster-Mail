@@ -92,6 +92,14 @@ export function TitleTipLayer() {
       }
     };
 
+    const hide = () => {
+      clear_timer();
+      if (target && target.getAttribute("aria-describedby") === TIP_ID) {
+        target.removeAttribute("aria-describedby");
+      }
+      set_tip(null);
+    };
+
     const release = () => {
       clear_timer();
       observer?.disconnect();
@@ -172,7 +180,12 @@ export function TitleTipLayer() {
     };
 
     const handle_focus_out = (e: FocusEvent) => {
-      if (target && e.target === target) release();
+      if (!target || e.target !== target) return;
+      if (target.matches(":hover")) {
+        hide();
+      } else {
+        release();
+      }
     };
 
     const handle_leave_window = (e: PointerEvent) => {
@@ -194,15 +207,15 @@ export function TitleTipLayer() {
     document.addEventListener("pointerout", handle_leave_window, true);
     document.addEventListener("focusin", handle_focus_in, true);
     document.addEventListener("focusout", handle_focus_out, true);
-    document.addEventListener("pointerdown", release, true);
-    document.addEventListener("keydown", release, true);
+    document.addEventListener("pointerdown", hide, true);
+    document.addEventListener("keydown", hide, true);
     window.addEventListener("blur", release);
-    window.addEventListener("scroll", release, {
+    window.addEventListener("scroll", hide, {
       capture: true,
       passive: true,
     });
-    window.addEventListener("wheel", release, { passive: true });
-    window.addEventListener("resize", release);
+    window.addEventListener("wheel", hide, { passive: true });
+    window.addEventListener("resize", hide);
     window.addEventListener(FRAME_TIP_EVENT, handle_frame_tip);
 
     return () => {
@@ -212,12 +225,12 @@ export function TitleTipLayer() {
       document.removeEventListener("pointerout", handle_leave_window, true);
       document.removeEventListener("focusin", handle_focus_in, true);
       document.removeEventListener("focusout", handle_focus_out, true);
-      document.removeEventListener("pointerdown", release, true);
-      document.removeEventListener("keydown", release, true);
+      document.removeEventListener("pointerdown", hide, true);
+      document.removeEventListener("keydown", hide, true);
       window.removeEventListener("blur", release);
-      window.removeEventListener("scroll", release, { capture: true });
-      window.removeEventListener("wheel", release);
-      window.removeEventListener("resize", release);
+      window.removeEventListener("scroll", hide, { capture: true });
+      window.removeEventListener("wheel", hide);
+      window.removeEventListener("resize", hide);
     };
   }, []);
 

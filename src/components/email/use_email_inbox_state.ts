@@ -301,7 +301,9 @@ export function use_email_inbox_state(props: EmailInboxProps) {
 
   const skeleton_pending =
     is_paginating ||
-    (categories.enabled && email_state.is_loading) ||
+    (categories.enabled &&
+      email_state.is_loading &&
+      filtered_emails.length === 0) ||
     (filtered_emails.length === 0 &&
       (folders_loading_for_view ||
         !email_state.has_initial_load ||

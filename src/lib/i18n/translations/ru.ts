@@ -880,6 +880,7 @@ export const ru = {
     history: "История",
     all_mail: "Все письма",
     import_contacts: "Импорт контактов",
+    import_contacts_short: "Импорт",
     import_choose_file_desc:
       "Выберите файл для импорта контактов. Поддерживаемые форматы: vCard (.vcf) и CSV.",
     click_to_select_file: "Нажмите для выбора файла",

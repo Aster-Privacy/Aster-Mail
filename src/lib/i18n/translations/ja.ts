@@ -926,6 +926,7 @@ export const ja = {
     history: "履歴",
     all_mail: "すべてのメール",
     import_contacts: "連絡先をインポート",
+    import_contacts_short: "インポート",
     import_choose_file_desc:
       "連絡先をインポートするファイルを選択してください。対応形式：vCard (.vcf) およびCSV。",
     click_to_select_file: "クリックしてファイルを選択",

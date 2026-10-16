@@ -859,6 +859,7 @@ export const ar = {
     history: "السجل",
     all_mail: "كل الرسائل",
     import_contacts: "استيراد جهات الاتصال",
+    import_contacts_short: "استيراد",
     import_choose_file_desc:
       "اختر ملفًا لاستيراد جهات الاتصال منه. الصيغ المدعومة: vCard (.vcf) وCSV.",
     click_to_select_file: "انقر لاختيار ملف",

@@ -895,6 +895,7 @@ export const en: Translations = {
     history: "History",
     all_mail: "All mail",
     import_contacts: "Import Contacts",
+    import_contacts_short: "Import",
     import_choose_file_desc:
       "Choose a file to import contacts from. Supported formats: vCard (.vcf) and CSV.",
     click_to_select_file: "Click to select file",
