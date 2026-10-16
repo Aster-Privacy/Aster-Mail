@@ -475,6 +475,11 @@ function MobileInbox({
         const draft = drafts_state.drafts.find((d) => d.id === id);
 
         if (draft) {
+          if (draft.is_undecryptable) {
+            show_toast(t("common.unable_to_decrypt"), "error");
+
+            return;
+          }
           on_draft_click(draft);
 
           return;
@@ -504,6 +509,7 @@ function MobileInbox({
       active_emails,
       selection_mode,
       handle_toggle_select,
+      t,
     ],
   );
 

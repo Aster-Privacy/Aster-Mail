@@ -134,6 +134,31 @@ describe("scheduled_to_draft", () => {
     });
   });
 
+  it("keeps the original message link and plain text mode", async () => {
+    const result = await scheduled_to_draft(
+      make_email({
+        reply_to_id: "mail-42",
+        is_plain_text: true,
+        body: "Plain body",
+      }),
+      vault,
+    );
+
+    expect(create_draft.mock.calls[0][0]).toEqual(
+      expect.objectContaining({ is_plain_text: true }),
+    );
+    expect(create_draft.mock.calls[0][2]).toBe("reply");
+    expect(create_draft.mock.calls[0][3]).toBe("mail-42");
+    expect(result).toEqual({
+      data: expect.objectContaining({
+        draft_type: "reply",
+        reply_to_id: "mail-42",
+        is_plain_text: true,
+        message: "Plain body",
+      }),
+    });
+  });
+
   it("leaves the scheduled send alone when the draft cannot be saved", async () => {
     create_draft.mockResolvedValue({ error: "nope" });
 

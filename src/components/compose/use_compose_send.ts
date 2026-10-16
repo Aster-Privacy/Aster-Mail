@@ -964,10 +964,21 @@ export function use_compose_send({
     let scheduled_thread_id: string | undefined;
 
     if (edit_draft?.draft_type === "reply" && edit_draft.reply_to_id) {
-      const resolved_token = await get_or_create_thread_token(
-        edit_draft.reply_to_id,
-        edit_draft.thread_token,
-      );
+      let resolved_token: string | null;
+
+      try {
+        resolved_token = await get_or_create_thread_token(
+          edit_draft.reply_to_id,
+          edit_draft.thread_token,
+        );
+      } catch {
+        show_toast(t("common.failed_to_schedule_email"), "error");
+        set_is_scheduling(false);
+        is_sending_ref.current = false;
+        send_lock_started_at_ref.current = 0;
+
+        return;
+      }
 
       if (resolved_token) {
         scheduled_thread_id = resolved_token;
@@ -987,6 +998,10 @@ export function use_compose_send({
         ? { in_reply_to: edit_draft.rfc_message_id }
         : {}),
       ...(scheduled_thread_id ? { thread_id: scheduled_thread_id } : {}),
+      ...(edit_draft?.draft_type === "reply" && edit_draft.reply_to_id
+        ? { reply_to_id: edit_draft.reply_to_id }
+        : {}),
+      ...(is_plain_text ? { is_plain_text: true } : {}),
       ...(selected_sender && selected_sender.type !== "primary"
         ? {
             from: {
@@ -1079,6 +1094,7 @@ export function use_compose_send({
     selected_sender,
     expires_at,
     expiry_password,
+    is_plain_text,
     t,
   ]);
 

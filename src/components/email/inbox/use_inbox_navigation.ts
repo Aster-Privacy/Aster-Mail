@@ -28,6 +28,8 @@ import { useMemo, useCallback, useEffect, useRef } from "react";
 
 import { set_recipient_hint } from "@/stores/recipient_hint_store";
 import { set_label_hints } from "@/stores/label_hints_store";
+import { show_toast } from "@/components/toast/simple_toast";
+import { use_i18n } from "@/lib/i18n/context";
 
 interface ScheduledEmail {
   id: string;
@@ -86,6 +88,7 @@ export function use_inbox_navigation({
   on_email_list_change,
 }: UseInboxNavigationOptions) {
   const navigate = useNavigate();
+  const { t } = use_i18n();
 
   const visible_ids = useMemo(
     () => [...pinned_emails, ...primary_emails].map((e) => e.id),
@@ -231,6 +234,12 @@ export function use_inbox_navigation({
       if (email?.item_type === "draft" && on_draft_click) {
         const draft = email as DraftListItem;
 
+        if (draft.is_undecryptable) {
+          show_toast(t("common.unable_to_decrypt"), "error");
+
+          return;
+        }
+
         on_draft_click({
           id: email.id,
           version: draft.version || 1,
@@ -240,7 +249,7 @@ export function use_inbox_navigation({
           to_recipients: draft.to_recipients || [],
           cc_recipients: draft.cc_recipients || [],
           bcc_recipients: draft.bcc_recipients || [],
-          subject: draft.subject || "",
+          subject: draft.draft_subject ?? "",
           message: draft.full_message || "",
           from_email: draft.from_email,
           updated_at: draft.updated_at || new Date().toISOString(),
@@ -295,7 +304,7 @@ export function use_inbox_navigation({
         });
       }
     },
-    [navigate, on_draft_click, on_scheduled_click, on_email_click],
+    [navigate, on_draft_click, on_scheduled_click, on_email_click, t],
   );
 
   return {

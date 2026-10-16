@@ -120,6 +120,8 @@ export interface DraftListItem extends InboxEmail {
   updated_at: string;
   draft_attachments?: DraftAttachmentData[];
   is_plain_text?: boolean;
+  draft_subject: string;
+  is_undecryptable?: boolean;
 }
 
 export interface DraftsListState {
@@ -193,6 +195,8 @@ function transform_draft(
     updated_at: draft.updated_at,
     draft_attachments: draft.content.attachments,
     is_plain_text: draft.content.is_plain_text,
+    draft_subject: draft.is_undecryptable ? "" : draft.content.subject || "",
+    is_undecryptable: draft.is_undecryptable,
   };
 }
 
@@ -683,6 +687,8 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
             sender_name: display_name,
             sender_email: detail.to_recipients[0] || "",
             subject: detail.subject || t("mail.no_subject"),
+            draft_subject: detail.subject || "",
+            is_undecryptable: false,
             preview: build_list_preview(strip_html_tags(detail.message)),
             timestamp: format_email_list_timestamp(new Date(), format_options),
             to_recipients: detail.to_recipients,

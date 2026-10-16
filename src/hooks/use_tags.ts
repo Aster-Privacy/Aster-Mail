@@ -588,6 +588,19 @@ export function use_tags(): UseTagsReturn {
           request.parent_token = parent_token;
         }
 
+        const sibling_orders = (cached_tags.data ?? [])
+          .filter(
+            (tag) =>
+              (tag.parent_token || undefined) === (parent_token || undefined),
+          )
+          .map((tag) => tag.sort_order);
+        const next_sort_order =
+          sibling_orders.length > 0
+            ? Math.min(Math.max(...sibling_orders) + 1, 32767)
+            : 0;
+
+        request.sort_order = next_sort_order;
+
         const response = await create_tag(request);
 
         if (response.error || !response.data) {
@@ -605,7 +618,7 @@ export function use_tags(): UseTagsReturn {
           name: trimmed_name,
           color,
           icon,
-          sort_order: 0,
+          sort_order: next_sort_order,
           parent_token: parent_token || undefined,
           item_count: 0,
           created_at: new Date().toISOString(),
@@ -755,7 +768,7 @@ export function use_tags(): UseTagsReturn {
       try {
         const response = await delete_tag(tag_id);
 
-        if (response.error) {
+        if (response.error && response.code !== "NOT_FOUND") {
           return false;
         }
 

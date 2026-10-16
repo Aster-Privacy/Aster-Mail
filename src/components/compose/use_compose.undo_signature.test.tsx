@@ -87,6 +87,7 @@ vi.mock("@/services/crypto/encrypted_drafts", () => ({
   draft_manager: {
     load_context: () => "context-1",
     create_context: () => "context-1",
+    set_context_owner: () => undefined,
     clear_context: vi.fn(),
     get_context: () => null,
     await_pending_save: async () => {},

@@ -278,6 +278,7 @@ function MobileApp() {
       reply_to_id?: string;
       forward_from_id?: string;
       subject: string;
+      draft_subject?: string;
       full_message: string;
       to_recipients: string[];
       cc_recipients: string[];
@@ -292,7 +293,7 @@ function MobileApp() {
         draft_type: draft.draft_type as "new" | "reply" | "forward",
         reply_to_id: draft.reply_to_id,
         forward_from_id: draft.forward_from_id,
-        subject: draft.subject,
+        subject: draft.draft_subject ?? draft.subject,
         message: draft.full_message,
         to_recipients: draft.to_recipients,
         cc_recipients: draft.cc_recipients,

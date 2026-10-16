@@ -71,6 +71,7 @@ interface DraftContext {
   save_seq: number;
   last_content_hash: string | null;
   is_deleted: boolean;
+  owner?: string;
 }
 
 export interface SaveResult {
@@ -163,6 +164,24 @@ class DraftManager {
 
   get_context(context_id: string): DraftContext | undefined {
     return this.contexts.get(context_id);
+  }
+
+  set_context_owner(context_id: string, owner: string): void {
+    const context = this.contexts.get(context_id);
+
+    if (context) {
+      context.owner = owner;
+    }
+  }
+
+  find_draft_owner(draft_id: string): string | undefined {
+    for (const context of this.contexts.values()) {
+      if (context.id === draft_id && !context.is_deleted && context.owner) {
+        return context.owner;
+      }
+    }
+
+    return undefined;
   }
 
   async await_pending_save(context_id: string): Promise<void> {

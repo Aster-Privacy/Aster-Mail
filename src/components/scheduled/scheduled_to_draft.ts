@@ -40,7 +40,9 @@ export async function scheduled_to_draft(
   vault: EncryptedVault,
 ): Promise<ScheduledToDraftResult> {
   const { content } = email;
-  const is_reply = Boolean(content.in_reply_to || content.thread_id);
+  const is_reply = Boolean(
+    content.in_reply_to || content.thread_id || content.reply_to_id,
+  );
   const draft_type = is_reply ? "reply" : "new";
   const draft_content = {
     to_recipients: content.to_recipients,
@@ -49,13 +51,14 @@ export async function scheduled_to_draft(
     subject: content.subject,
     message: content.body,
     from_email: content.from?.email,
+    ...(content.is_plain_text ? { is_plain_text: true } : {}),
   };
 
   const created = await create_draft(
     draft_content,
     vault,
     draft_type,
-    undefined,
+    content.reply_to_id,
     undefined,
     content.thread_id,
   );
@@ -82,6 +85,7 @@ export async function scheduled_to_draft(
       version: created.data.version,
       draft_type,
       thread_token: content.thread_id,
+      reply_to_id: content.reply_to_id,
       rfc_message_id: content.in_reply_to,
       updated_at: created.data.updated_at,
       ...draft_content,
