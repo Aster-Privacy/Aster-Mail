@@ -669,6 +669,8 @@ export const zh_CN = {
     undo_send_too_late: "此邮件已发送，无法撤回。",
     email_sent_successfully: "邮件发送成功",
     scheduled_email_cancelled: "定时邮件已取消",
+    scheduled_cancel_failed: "此定时邮件未取消。请重试。",
+    scheduled_cancel_partial: "部分定时邮件未取消。请重试。",
     email_snoozed: "邮件已暂停提醒",
     email_unsnoozed: "邮件已恢复提醒",
     failed_to_snooze: "未能暂停提醒此邮件。请重试。邮件仍在收件箱中。",
@@ -8048,7 +8050,8 @@ export const zh_CN = {
     receipt_review_not_right: "有误？",
     receipt_review_title: "更正信息",
     receipt_review_hide: "隐藏此卡片",
-    receipt_review_saved: "收据详情已更新。此发件人今后的收据将使用更正后的名称。",
+    receipt_review_saved:
+      "收据详情已更新。此发件人今后的收据将使用更正后的名称。",
     receipt_review_thanks: "感谢您的反馈",
     view_receipt: "查看收据",
     view_order: "查看订单",

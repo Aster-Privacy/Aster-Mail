@@ -20,6 +20,8 @@
 //
 import { api_client } from "@/services/api/client";
 import { ignore_error } from "@/lib/ignore_error";
+import { get_active_translations } from "@/lib/i18n/translations";
+import { show_toast } from "@/components/toast/simple_toast";
 
 const STORAGE_KEY = "aster_preferred_sender_id";
 
@@ -79,17 +81,22 @@ export function set_preferred_sender_id(id: string | null): void {
 
   write_local(id);
   if (current !== id) notify(id);
+  const revert = () => {
+    if (read_local() !== id) return;
+
+    write_local(current);
+    if (current !== id) notify(current);
+    show_toast(get_active_translations().common.failed_to_save, "error");
+  };
+
   sync_preferred_sender_to_server(id)
     .then((saved) => {
-      if (saved) return;
-      if (read_local() !== id) return;
-
-      write_local(current);
-      if (current !== id) notify(current);
+      if (!saved) revert();
     })
-    .catch((caught) =>
-      ignore_error("lib/preferred_sender:set_preferred_sender_id", caught),
-    );
+    .catch((caught) => {
+      ignore_error("lib/preferred_sender:set_preferred_sender_id", caught);
+      revert();
+    });
 }
 
 export function clear_preferred_sender_local(): void {

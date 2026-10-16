@@ -749,6 +749,10 @@ export const pl = {
       "Ta wiadomość została już wysłana i nie można jej wycofać.",
     email_sent_successfully: "E-mail wysłany pomyślnie",
     scheduled_email_cancelled: "Zaplanowany e-mail anulowany",
+    scheduled_cancel_failed:
+      "Nie anulowano tej zaplanowanej wiadomości. Spróbuj ponownie.",
+    scheduled_cancel_partial:
+      "Nie anulowano niektórych zaplanowanych wiadomości. Spróbuj ponownie.",
     email_snoozed: "E-mail odłożony",
     email_unsnoozed: "E-mail przywrócony z odłożenia",
     failed_to_snooze:
@@ -9307,7 +9311,8 @@ export const pl = {
     receipt_review_not_right: "Coś się nie zgadza?",
     receipt_review_title: "Popraw dane",
     receipt_review_hide: "Ukryj tę kartę",
-    receipt_review_saved: "Zaktualizowano szczegóły paragonu. Kolejne paragony od tego nadawcy będą używać poprawionej nazwy.",
+    receipt_review_saved:
+      "Zaktualizowano szczegóły paragonu. Kolejne paragony od tego nadawcy będą używać poprawionej nazwy.",
     receipt_review_thanks: "Dziękujemy za opinię",
     view_receipt: "Zobacz paragon",
     view_order: "Zobacz zamówienie",

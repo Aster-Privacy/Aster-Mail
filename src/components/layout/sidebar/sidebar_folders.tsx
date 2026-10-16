@@ -82,6 +82,7 @@ interface SidebarFoldersProps {
   is_collapsed: boolean;
   effective_selected: string | null;
   folders: DecryptedFolder[];
+  all_folders?: DecryptedFolder[];
   folder_unread_counts?: Record<string, number>;
   folders_expanded: boolean;
   set_folders_expanded: (expanded: boolean) => void;
@@ -127,6 +128,7 @@ export const SidebarFolders = memo(function SidebarFolders({
   is_collapsed,
   effective_selected,
   folders,
+  all_folders,
   folder_unread_counts,
   folders_expanded,
   set_folders_expanded,
@@ -507,7 +509,7 @@ export const SidebarFolders = memo(function SidebarFolders({
 
                           return;
                         }
-                        const previous_folders = folders
+                        const previous_folders = (all_folders ?? folders)
                           .filter((f) =>
                             existing_folders.includes(f.folder_token),
                           )

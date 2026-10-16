@@ -730,6 +730,9 @@ export const en: Translations = {
     undo_send_too_late: "This message was already sent and can’t be recalled.",
     email_sent_successfully: "Email sent successfully",
     scheduled_email_cancelled: "Scheduled email cancelled",
+    scheduled_cancel_failed: "This scheduled email wasn't canceled. Try again.",
+    scheduled_cancel_partial:
+      "Some scheduled emails weren't canceled. Try again.",
     email_snoozed: "Email snoozed",
     email_unsnoozed: "Email unsnoozed",
     failed_to_snooze:
@@ -9029,7 +9032,8 @@ export const en: Translations = {
     receipt_review_not_right: "Not right?",
     receipt_review_title: "Correct the details",
     receipt_review_hide: "Hide this card",
-    receipt_review_saved: "Receipt details updated. Future receipts from this sender use the corrected name.",
+    receipt_review_saved:
+      "Receipt details updated. Future receipts from this sender use the corrected name.",
     receipt_review_thanks: "Thanks for your feedback",
     view_receipt: "View receipt",
     view_order: "View order",

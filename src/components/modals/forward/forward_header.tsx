@@ -233,6 +233,11 @@ export function ForwardHeader({
                 set_visibility((prev) => ({ ...prev, cc: true }))
               }
               recipients={recipients.to}
+              all_recipients={[
+                ...recipients.to,
+                ...recipients.cc,
+                ...recipients.bcc,
+              ]}
               show_bcc={visibility.bcc}
               show_cc={visibility.cc}
             />
@@ -271,6 +276,11 @@ export function ForwardHeader({
                   });
                 }}
                 recipients={recipients.cc}
+                all_recipients={[
+                  ...recipients.to,
+                  ...recipients.cc,
+                  ...recipients.bcc,
+                ]}
               />
             </div>
           )}
@@ -308,6 +318,11 @@ export function ForwardHeader({
                   });
                 }}
                 recipients={recipients.bcc}
+                all_recipients={[
+                  ...recipients.to,
+                  ...recipients.cc,
+                  ...recipients.bcc,
+                ]}
               />
             </div>
           )}

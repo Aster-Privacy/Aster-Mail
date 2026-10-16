@@ -795,6 +795,10 @@ export const ko = {
     undo_send_too_late: "이 메시지는 이미 전송되어 취소할 수 없습니다.",
     email_sent_successfully: "이메일이 성공적으로 전송되었습니다",
     scheduled_email_cancelled: "예약된 이메일이 취소되었습니다",
+    scheduled_cancel_failed:
+      "이 예약 이메일이 취소되지 않았습니다. 다시 시도하세요.",
+    scheduled_cancel_partial:
+      "일부 예약 이메일이 취소되지 않았습니다. 다시 시도하세요.",
     email_snoozed: "이메일 다시 알림 설정됨",
     email_unsnoozed: "이메일 다시 알림 해제됨",
     failed_to_snooze:
@@ -8710,7 +8714,8 @@ export const ko = {
     receipt_review_not_right: "틀린가요?",
     receipt_review_title: "세부 정보 수정",
     receipt_review_hide: "이 카드 숨기기",
-    receipt_review_saved: "영수증 세부정보가 업데이트되었습니다. 이 발신자의 다음 영수증부터 수정된 이름이 사용됩니다.",
+    receipt_review_saved:
+      "영수증 세부정보가 업데이트되었습니다. 이 발신자의 다음 영수증부터 수정된 이름이 사용됩니다.",
     receipt_review_thanks: "의견을 보내 주셔서 감사합니다",
     view_receipt: "영수증 보기",
     view_order: "주문 보기",

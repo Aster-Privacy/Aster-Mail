@@ -1336,6 +1336,8 @@ export interface CommonTranslations {
   undo_send_too_late: string;
   email_sent_successfully: string;
   scheduled_email_cancelled: string;
+  scheduled_cancel_failed: string;
+  scheduled_cancel_partial: string;
   email_snoozed: string;
   email_unsnoozed: string;
   failed_to_snooze: string;

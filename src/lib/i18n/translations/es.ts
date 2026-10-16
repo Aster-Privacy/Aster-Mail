@@ -753,6 +753,10 @@ export const es = {
     undo_send_too_late: "Este mensaje ya se envió y no se puede recuperar.",
     email_sent_successfully: "Correo enviado exitosamente",
     scheduled_email_cancelled: "Correo programado cancelado",
+    scheduled_cancel_failed:
+      "No se canceló este correo programado. Inténtalo de nuevo.",
+    scheduled_cancel_partial:
+      "No se cancelaron algunos correos programados. Inténtalo de nuevo.",
     email_snoozed: "Correo pospuesto",
     email_unsnoozed: "Correo despospuesto",
     failed_to_snooze:
@@ -9074,7 +9078,8 @@ export const es = {
     receipt_review_not_right: "¿No es correcto?",
     receipt_review_title: "Corregir los datos",
     receipt_review_hide: "Ocultar esta tarjeta",
-    receipt_review_saved: "Detalles del recibo actualizados. Los próximos recibos de este remitente usarán el nombre corregido.",
+    receipt_review_saved:
+      "Detalles del recibo actualizados. Los próximos recibos de este remitente usarán el nombre corregido.",
     receipt_review_thanks: "Gracias por tus comentarios",
     view_receipt: "Ver recibo",
     view_order: "Ver pedido",

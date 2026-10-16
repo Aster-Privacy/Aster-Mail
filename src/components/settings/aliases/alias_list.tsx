@@ -653,7 +653,10 @@ export function AliasList({
           title={t("settings.no_aliases_yet")}
         />
         <RecentlyDeletedAliasesSection
-          on_restored={() => on_aliases_changed?.()}
+          on_restored={() => {
+            on_aliases_changed?.();
+            emit_aliases_changed();
+          }}
           refresh_signal={deleted_refresh_signal}
         />
       </div>
@@ -817,7 +820,10 @@ export function AliasList({
               alias={entry.alias}
               deleting={alias_deleting_id === entry.alias.id}
               on_delete={on_alias_delete}
-              on_restored={on_aliases_changed}
+              on_restored={() => {
+                on_aliases_changed?.();
+                emit_aliases_changed();
+              }}
             />
           ) : (
             <AliasItem
@@ -844,7 +850,10 @@ export function AliasList({
         total_pages={total_pages}
       />
       <RecentlyDeletedAliasesSection
-        on_restored={() => on_aliases_changed?.()}
+        on_restored={() => {
+          on_aliases_changed?.();
+          emit_aliases_changed();
+        }}
         refresh_signal={deleted_refresh_signal}
       />
 

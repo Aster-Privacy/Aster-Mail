@@ -33,6 +33,8 @@ import {
   UseForwardModalProps,
   apply_inline_image_substitutions,
   merge_pending_recipients,
+  has_invalid_pending_recipient,
+  forward_subject_for,
 } from "./helpers";
 
 import { prepare_image_attachments } from "@/services/image_size_reduction";
@@ -800,6 +802,12 @@ export function use_forward_modal({
     )
       return;
 
+    if (has_invalid_pending_recipient(inputs)) {
+      set_error_message(t("common.please_enter_valid_email"));
+
+      return;
+    }
+
     const send_recipients = commit_pending_recipient_inputs();
 
     if (send_recipients.to.length === 0) {
@@ -864,7 +872,10 @@ export function use_forward_modal({
       );
 
     if (selected_sender?.type === "external" && selected_sender.address_hash) {
-      const subject = `${t("mail.forward_subject_prefix")} ${email_subject}`;
+      const subject = forward_subject_for(
+        email_subject,
+        t("mail.forward_subject_prefix"),
+      );
       const ext_body =
         (outgoing_forward_message
           ? outgoing_forward_message + "<br><br>"
@@ -952,7 +963,10 @@ export function use_forward_modal({
       ? undefined
       : fwd_mail_id;
 
-    const forward_subject = `${t("mail.forward_subject_prefix")} ${email_subject}`;
+    const forward_subject = forward_subject_for(
+      email_subject,
+      t("mail.forward_subject_prefix"),
+    );
     let handed_off = false;
     const failed_draft = failed_draft_ref.current;
     const keep_failed_forward = async (): Promise<boolean> => {
@@ -1099,7 +1113,7 @@ export function use_forward_modal({
     } else if (!result.success) {
       is_sending_ref.current = false;
       send_lock_started_at_ref.current = 0;
-      set_error_message(result.error || t("common.failed_to_forward"));
+      set_error_message(result.error ?? null);
       set_is_sending(false);
       if (result.error) {
         void keep_failed_forward().then((kept) => {
@@ -1110,6 +1124,7 @@ export function use_forward_modal({
   }, [
     t,
     commit_pending_recipient_inputs,
+    inputs,
     is_sending,
     sender_email,
     sender_name,
@@ -1139,9 +1154,15 @@ export function use_forward_modal({
   const schedule_gate_pending_ref = useRef(false);
 
   const handle_scheduled_send = useCallback(async () => {
-    if (schedule_gate_pending_ref.current) return;
+    if (schedule_gate_pending_ref.current || is_sending_ref.current) return;
 
     if (!user || !vault || !scheduled_time) return;
+
+    if (has_invalid_pending_recipient(inputs)) {
+      set_error_message(t("common.please_enter_valid_email"));
+
+      return;
+    }
 
     const send_recipients = commit_pending_recipient_inputs();
 
@@ -1253,7 +1274,10 @@ export function use_forward_modal({
       to_recipients: send_recipients.to,
       cc_recipients: send_recipients.cc,
       bcc_recipients: send_recipients.bcc,
-      subject: `${t("mail.forward_subject_prefix")} ${email_subject}`,
+      subject: forward_subject_for(
+        email_subject,
+        t("mail.forward_subject_prefix"),
+      ),
       body: scheduled_body,
       scheduled_at: scheduled_time.toISOString(),
       ...(scheduled_alias
@@ -1309,6 +1333,7 @@ export function use_forward_modal({
   }, [
     t,
     commit_pending_recipient_inputs,
+    inputs,
     user,
     vault,
     scheduled_time,

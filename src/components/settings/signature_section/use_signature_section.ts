@@ -369,9 +369,30 @@ export function use_signature_section() {
             : sig,
         ),
       );
+      const edited = signatures.find((sig) => sig.id === editor.editing_id);
+      const replacement = signatures.find(
+        (sig) => sig.id !== editor.editing_id && !sig.alias_id,
+      );
+
+      if (edited?.is_default && form_data.alias_id && replacement) {
+        const promote_response = await set_default_signature(replacement.id);
+
+        if (promote_response.error) {
+          set_error(promote_response.error);
+          load_signatures();
+        } else {
+          set_signatures((prev) =>
+            prev.map((sig) => ({
+              ...sig,
+              is_default: sig.id === replacement.id,
+            })),
+          );
+        }
+      }
       reload_context_signatures();
     } else {
-      const is_first = signatures.length === 0;
+      const is_first =
+        !form_data.alias_id && !signatures.some((sig) => sig.is_default);
       const response = await create_signature(form_data, is_first);
 
       if (response.error) {
@@ -414,11 +435,11 @@ export function use_signature_section() {
     }
 
     const remaining = signatures.filter((sig) => sig.id !== id);
+    const promoted = remaining.find((sig) => !sig.alias_id);
     const needs_promotion =
-      remaining.length > 0 && !remaining.some((sig) => sig.is_default);
+      promoted !== undefined && !remaining.some((sig) => sig.is_default);
 
-    if (needs_promotion) {
-      const promoted = remaining[0];
+    if (needs_promotion && promoted) {
       const promote_response = await set_default_signature(promoted.id);
 
       if (promote_response.error) {

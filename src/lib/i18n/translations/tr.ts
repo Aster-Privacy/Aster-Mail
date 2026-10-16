@@ -739,6 +739,10 @@ export const tr = {
     undo_send_too_late: "Bu ileti zaten gönderildi ve geri alınamaz.",
     email_sent_successfully: "E-posta başarıyla gönderildi",
     scheduled_email_cancelled: "Zamanlanmış e-posta iptal edildi",
+    scheduled_cancel_failed:
+      "Bu zamanlanmış e-posta iptal edilmedi. Yeniden deneyin.",
+    scheduled_cancel_partial:
+      "Bazı zamanlanmış e-postalar iptal edilmedi. Yeniden deneyin.",
     email_snoozed: "E-posta ertelendi",
     email_unsnoozed: "E-posta ertelemesi kaldırıldı",
     failed_to_snooze:
@@ -8967,7 +8971,8 @@ export const tr = {
     receipt_review_not_right: "Doğru değil mi?",
     receipt_review_title: "Bilgileri düzelt",
     receipt_review_hide: "Bu kartı gizle",
-    receipt_review_saved: "Fiş ayrıntıları güncellendi. Bu gönderenden gelecek fişlerde düzeltilen ad kullanılır.",
+    receipt_review_saved:
+      "Fiş ayrıntıları güncellendi. Bu gönderenden gelecek fişlerde düzeltilen ad kullanılır.",
     receipt_review_thanks: "Geri bildiriminiz için teşekkürler",
     view_receipt: "Makbuzu görüntüle",
     view_order: "Siparişi görüntüle",

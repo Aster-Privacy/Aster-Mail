@@ -728,6 +728,10 @@ export const nl = {
       "Dit bericht is al verzonden en kan niet worden teruggehaald.",
     email_sent_successfully: "E-mail succesvol verzonden",
     scheduled_email_cancelled: "Geplande e-mail geannuleerd",
+    scheduled_cancel_failed:
+      "Deze ingeplande e-mail is niet geannuleerd. Probeer het opnieuw.",
+    scheduled_cancel_partial:
+      "Sommige ingeplande e-mails zijn niet geannuleerd. Probeer het opnieuw.",
     email_snoozed: "E-mail uitgesteld",
     email_unsnoozed: "E-mail uitstel opgeheven",
     failed_to_snooze:
@@ -9048,7 +9052,8 @@ export const nl = {
     receipt_review_not_right: "Klopt niet?",
     receipt_review_title: "Gegevens corrigeren",
     receipt_review_hide: "Deze kaart verbergen",
-    receipt_review_saved: "Bongegevens bijgewerkt. Toekomstige bonnen van deze afzender gebruiken de gecorrigeerde naam.",
+    receipt_review_saved:
+      "Bongegevens bijgewerkt. Toekomstige bonnen van deze afzender gebruiken de gecorrigeerde naam.",
     receipt_review_thanks: "Bedankt voor je feedback",
     view_receipt: "Bon bekijken",
     view_order: "Bestelling bekijken",

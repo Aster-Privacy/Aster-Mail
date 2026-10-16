@@ -737,6 +737,10 @@ export const ru = {
     undo_send_too_late: "Это письмо уже отправлено, его нельзя отозвать.",
     email_sent_successfully: "Письмо успешно отправлено",
     scheduled_email_cancelled: "Запланированное письмо отменено",
+    scheduled_cancel_failed:
+      "Это запланированное письмо не отменено. Повторите попытку.",
+    scheduled_cancel_partial:
+      "Некоторые запланированные письма не отменены. Повторите попытку.",
     email_snoozed: "Письмо отложено",
     email_unsnoozed: "Откладывание письма отменено",
     failed_to_snooze:
@@ -9256,7 +9260,8 @@ export const ru = {
     receipt_review_not_right: "Что-то не так?",
     receipt_review_title: "Исправить данные",
     receipt_review_hide: "Скрыть эту карточку",
-    receipt_review_saved: "Данные чека обновлены. Следующие чеки от этого отправителя будут использовать исправленное название.",
+    receipt_review_saved:
+      "Данные чека обновлены. Следующие чеки от этого отправителя будут использовать исправленное название.",
     receipt_review_thanks: "Спасибо за отзыв",
     view_receipt: "Открыть чек",
     view_order: "Открыть заказ",

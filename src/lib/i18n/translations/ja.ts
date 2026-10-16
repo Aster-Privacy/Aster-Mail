@@ -791,6 +791,10 @@ export const ja = {
     undo_send_too_late: "このメッセージは送信済みのため、取り消せません。",
     email_sent_successfully: "メールの送信に成功しました",
     scheduled_email_cancelled: "予約メールをキャンセルしました",
+    scheduled_cancel_failed:
+      "この予約メールはキャンセルされませんでした。もう一度お試しください。",
+    scheduled_cancel_partial:
+      "一部の予約メールはキャンセルされませんでした。もう一度お試しください。",
     email_snoozed: "メールをスヌーズしました",
     email_unsnoozed: "メールのスヌーズを解除しました",
     failed_to_snooze:
@@ -8878,7 +8882,8 @@ export const ja = {
     receipt_review_not_right: "間違っていますか？",
     receipt_review_title: "内容を修正",
     receipt_review_hide: "このカードを非表示",
-    receipt_review_saved: "領収書の詳細を更新しました。この送信者からの今後の領収書には修正後の名前が使われます。",
+    receipt_review_saved:
+      "領収書の詳細を更新しました。この送信者からの今後の領収書には修正後の名前が使われます。",
     receipt_review_thanks: "フィードバックをありがとうございます",
     view_receipt: "領収書を表示",
     view_order: "注文を表示",

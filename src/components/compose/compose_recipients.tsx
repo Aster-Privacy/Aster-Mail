@@ -760,7 +760,7 @@ export function RecipientField({
             <EmailAutocomplete
               auto_focus={auto_focus}
               contacts={contacts}
-              existing_emails={recipients}
+              existing_emails={all_recipients ?? recipients}
               on_change={on_input_change}
               on_select={handle_select}
               placeholder={

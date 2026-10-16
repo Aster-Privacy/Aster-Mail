@@ -37,6 +37,7 @@ import {
 import { Switch } from "@aster/ui";
 
 import { SettingsHeader } from "./shared";
+import { emit_aliases_changed } from "@/hooks/mail_events";
 
 import { DkimShortKeyAction } from "@/components/settings/aliases/dkim_short_key_action";
 import { copy_text_or_throw } from "@/utils/copy_text";
@@ -643,6 +644,7 @@ export function AliasesSection({
             on_restored={() => {
               hook.load_aliases();
               hook.load_alias_counts();
+              emit_aliases_changed();
             }}
           />
         </div>
