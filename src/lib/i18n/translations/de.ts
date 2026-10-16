@@ -656,6 +656,10 @@ export const de = {
       "Diese Nachricht wurde bereits gesendet und kann nicht zurückgerufen werden.",
     email_sent_successfully: "E-Mail erfolgreich gesendet",
     scheduled_email_cancelled: "Geplante E-Mail abgebrochen",
+    scheduled_cancel_failed:
+      "Diese geplante E-Mail wurde nicht abgebrochen. Versuchen Sie es erneut.",
+    scheduled_cancel_partial:
+      "Einige geplante E-Mails wurden nicht abgebrochen. Versuchen Sie es erneut.",
     email_snoozed: "E-Mail zurückgestellt",
     email_unsnoozed: "E-Mail-Zurückstellung aufgehoben",
     failed_to_snooze:
@@ -9149,7 +9153,8 @@ export const de = {
     receipt_review_not_right: "Stimmt nicht?",
     receipt_review_title: "Angaben korrigieren",
     receipt_review_hide: "Diese Karte ausblenden",
-    receipt_review_saved: "Belegdetails aktualisiert. Künftige Belege dieses Absenders verwenden den korrigierten Namen.",
+    receipt_review_saved:
+      "Belegdetails aktualisiert. Künftige Belege dieses Absenders verwenden den korrigierten Namen.",
     receipt_review_thanks: "Danke für Ihr Feedback",
     view_receipt: "Beleg anzeigen",
     view_order: "Bestellung anzeigen",

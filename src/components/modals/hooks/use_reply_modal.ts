@@ -27,6 +27,8 @@ import {
 } from "./reply_modal_types";
 import { use_reply_modal_state } from "./use_reply_modal_state";
 
+import { has_invalid_pending_recipient } from "@/components/modals/hooks/use_forward_modal/helpers";
+
 import { prepare_image_attachments } from "@/services/image_size_reduction";
 import {
   store_pending_send_payload,
@@ -374,6 +376,12 @@ export function use_reply_modal(props: UseReplyModalProps) {
     if (save_draft_timeout.current) {
       clearTimeout(save_draft_timeout.current);
       save_draft_timeout.current = null;
+    }
+
+    if (has_invalid_pending_recipient(inputs)) {
+      set_error_message(t("common.please_enter_valid_email"));
+
+      return;
     }
 
     const send_recipients = commit_pending_recipient_inputs();
@@ -770,7 +778,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
     } else if (!result.success) {
       is_sending_ref.current = false;
       send_lock_started_at_ref.current = 0;
-      set_error_message(result.error || t("common.failed_to_send_reply"));
+      set_error_message(result.error ?? null);
       set_is_sending(false);
       last_send_time_ref.current = 0;
       forget_send(send_fingerprint);
@@ -791,6 +799,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
     reply_all,
     own_addresses,
     commit_pending_recipient_inputs,
+    inputs,
     thread_token,
     original_email_id,
     selected_sender,
@@ -815,7 +824,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
   const schedule_gate_pending_ref = useRef(false);
 
   const handle_scheduled_send = useCallback(async () => {
-    if (schedule_gate_pending_ref.current) return;
+    if (schedule_gate_pending_ref.current || is_sending_ref.current) return;
 
     if (!reply_message.trim() || !user || !vault || !scheduled_time) return;
 
@@ -844,6 +853,12 @@ export function use_reply_modal(props: UseReplyModalProps) {
       return;
     }
     from_mismatch_ack_ref.current = false;
+
+    if (has_invalid_pending_recipient(inputs)) {
+      set_error_message(t("common.please_enter_valid_email"));
+
+      return;
+    }
 
     const send_recipients = commit_pending_recipient_inputs();
 
@@ -1006,6 +1021,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
     scheduled_time,
     selected_sender,
     commit_pending_recipient_inputs,
+    inputs,
     original_subject,
 
     build_quoted_content,

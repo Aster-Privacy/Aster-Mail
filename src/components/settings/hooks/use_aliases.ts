@@ -135,7 +135,7 @@ export async function ensure_aliases_and_domains_loaded(): Promise<void> {
         aliases_cache.max_aliases = max_aliases;
         aliases_cache.loaded = true;
         const counted = decrypted.filter(
-          (alias) => !alias.is_retained_primary,
+          (alias) => !alias.is_retained_primary && !alias.is_random,
         ).length;
 
         aliases_cache.alias_counts = {
@@ -333,7 +333,7 @@ export function use_aliases() {
         aliases_cache.loaded = true;
 
         const counted = decrypted.filter(
-          (alias) => !alias.is_retained_primary,
+          (alias) => !alias.is_retained_primary && !alias.is_random,
         ).length;
         const derived_counts: AliasCountsResponse = {
           count: counted,
@@ -528,6 +528,7 @@ export function use_aliases() {
           "error",
         );
       } else {
+        emit_aliases_changed();
         show_toast(
           enabled
             ? t("settings.alias_enabled_toast")
@@ -797,6 +798,7 @@ export function use_aliases() {
 
       return updated;
     });
+    emit_aliases_changed();
   };
 
   const handle_note_saved = (alias_id: string, note: string) => {
@@ -895,6 +897,7 @@ export function use_aliases() {
 
       return updated;
     });
+    emit_aliases_changed();
   };
 
   const handle_domain_delete = (id: string) => {

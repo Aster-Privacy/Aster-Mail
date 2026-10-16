@@ -732,6 +732,10 @@ export const hi = {
       "यह संदेश पहले ही भेजा जा चुका है और वापस नहीं लिया जा सकता।",
     email_sent_successfully: "ईमेल सफलतापूर्वक भेज दिया गया",
     scheduled_email_cancelled: "शेड्यूल किया गया ईमेल रद्द हो गया",
+    scheduled_cancel_failed:
+      "यह शेड्यूल किया गया ईमेल रद्द नहीं हुआ। फिर से कोशिश करें।",
+    scheduled_cancel_partial:
+      "कुछ शेड्यूल किए गए ईमेल रद्द नहीं हुए। फिर से कोशिश करें।",
     email_snoozed: "ईमेल स्नूज़ हो गया",
     email_unsnoozed: "ईमेल का स्नूज़ हटा दिया गया",
     failed_to_snooze:
@@ -9080,7 +9084,8 @@ export const hi = {
     receipt_review_not_right: "सही नहीं है?",
     receipt_review_title: "विवरण सुधारें",
     receipt_review_hide: "यह कार्ड छिपाएँ",
-    receipt_review_saved: "रसीद का विवरण अपडेट किया गया. इस भेजने वाले की आगे की रसीदों में सही किया गया नाम इस्तेमाल होगा.",
+    receipt_review_saved:
+      "रसीद का विवरण अपडेट किया गया. इस भेजने वाले की आगे की रसीदों में सही किया गया नाम इस्तेमाल होगा.",
     receipt_review_thanks: "आपकी प्रतिक्रिया के लिए धन्यवाद",
     view_receipt: "रसीद देखें",
     view_order: "ऑर्डर देखें",

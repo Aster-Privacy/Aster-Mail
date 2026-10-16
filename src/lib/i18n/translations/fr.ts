@@ -754,6 +754,10 @@ export const fr = {
       "Ce message a déjà été envoyé et ne peut pas être rappelé.",
     email_sent_successfully: "E-mail envoyé avec succès",
     scheduled_email_cancelled: "E-mail programmé annulé",
+    scheduled_cancel_failed:
+      "Cet e-mail programmé n'a pas été annulé. Réessayez.",
+    scheduled_cancel_partial:
+      "Certains e-mails programmés n'ont pas été annulés. Réessayez.",
     email_snoozed: "E-mail mis en veille",
     email_unsnoozed: "E-mail sorti de la veille",
     failed_to_snooze:
@@ -9176,7 +9180,8 @@ export const fr = {
     receipt_review_not_right: "Incorrect ?",
     receipt_review_title: "Corriger les informations",
     receipt_review_hide: "Masquer cette carte",
-    receipt_review_saved: "Détails du reçu mis à jour. Les prochains reçus de cet expéditeur utiliseront le nom corrigé.",
+    receipt_review_saved:
+      "Détails du reçu mis à jour. Les prochains reçus de cet expéditeur utiliseront le nom corrigé.",
     receipt_review_thanks: "Merci pour votre retour",
     view_receipt: "Afficher le reçu",
     view_order: "Afficher la commande",

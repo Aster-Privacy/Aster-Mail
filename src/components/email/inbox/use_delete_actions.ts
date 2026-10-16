@@ -282,7 +282,14 @@ export function use_delete_actions({
           email_ids: ids,
         });
       } else {
-        show_toast(t("common.failed_to_delete_emails"), "error");
+        show_toast(
+          t(
+            ids.length === 1
+              ? "common.scheduled_cancel_failed"
+              : "common.scheduled_cancel_partial",
+          ),
+          "error",
+        );
       }
     },
     [cancel_scheduled, bulk_cancel_scheduled, t],

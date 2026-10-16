@@ -965,8 +965,7 @@ export function use_index_page_state() {
         current_view === "drafts" ||
         current_view === "scheduled" ||
         current_view === "trash" ||
-        current_view === "spam" ||
-        current_view === "archive";
+        current_view === "spam";
 
       if (is_protected_view) {
         show_toast(t("common.cannot_move_from_view"), "error");
@@ -981,8 +980,9 @@ export function use_index_page_state() {
         current_view === "starred" ||
         current_view === "snoozed";
       const is_source_folder_view =
-        current_view.startsWith("folder-") &&
-        current_view.replace("folder-", "") !== folder_token;
+        current_view === "archive" ||
+        (current_view.startsWith("folder-") &&
+          current_view.replace("folder-", "") !== folder_token);
 
       if (is_inbox_like_view || is_source_folder_view) {
         emit_mail_items_removed({ ids: email_ids });
@@ -1047,8 +1047,15 @@ export function use_index_page_state() {
             (f) => f.folder_token !== folder_token,
           );
 
+          let undo_incomplete = undo_result.failed_ids.length > 0;
+
           for (const previous of restored_folders) {
-            await batched_bulk_add_folder(moved_ids, previous.folder_token);
+            const restore_result = await batched_bulk_add_folder(
+              moved_ids,
+              previous.folder_token,
+            );
+
+            if (restore_result.failed_ids.length > 0) undo_incomplete = true;
           }
           for (const id of moved_ids) {
             emit_mail_item_updated({ id, folders: restored_folders });
@@ -1062,6 +1069,9 @@ export function use_index_page_state() {
           reindex_category_ids(moved_ids);
           emit_mail_stats_stale();
           emit_mail_soft_refresh();
+          if (undo_incomplete) {
+            throw new Error("undo folder move incomplete");
+          }
         },
       });
     },
@@ -1094,8 +1104,15 @@ export function use_index_page_state() {
         action_type: "tag",
         email_ids: tagged_ids,
         on_undo: async () => {
-          await batched_bulk_remove_tag(tagged_ids, tag_token);
+          const undo_result = await batched_bulk_remove_tag(
+            tagged_ids,
+            tag_token,
+          );
+
           emit_mail_soft_refresh();
+          if (undo_result.failed_ids.length > 0) {
+            throw new Error("undo label failed");
+          }
         },
       });
     },

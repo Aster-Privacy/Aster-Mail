@@ -106,7 +106,11 @@ export function SignaturesProvider({ children }: SignaturesProviderProps) {
 
         if (default_response && !default_response.error) {
           default_loaded = true;
-          set_default_signature(default_response.data ?? null);
+          const loaded_default = default_response.data ?? null;
+
+          set_default_signature(
+            loaded_default && !loaded_default.alias_id ? loaded_default : null,
+          );
         }
       } catch {
         if (this_generation !== load_generation_ref.current) return;

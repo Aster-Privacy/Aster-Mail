@@ -225,6 +225,11 @@ export function ReplyHeader({
               on_show_cc={() => set_show_cc(true)}
               on_show_bcc={() => set_show_bcc(true)}
               recipients={recipients.to}
+              all_recipients={[
+                ...recipients.to,
+                ...recipients.cc,
+                ...recipients.bcc,
+              ]}
               show_cc={show_cc}
             />
           </div>
@@ -253,6 +258,11 @@ export function ReplyHeader({
                   dispatch_recipients({ type: "REMOVE", field: "cc", email })
                 }
                 recipients={recipients.cc}
+                all_recipients={[
+                  ...recipients.to,
+                  ...recipients.cc,
+                  ...recipients.bcc,
+                ]}
               />
             </div>
           )}
@@ -285,6 +295,11 @@ export function ReplyHeader({
                   dispatch_recipients({ type: "REMOVE", field: "bcc", email })
                 }
                 recipients={recipients.bcc}
+                all_recipients={[
+                  ...recipients.to,
+                  ...recipients.cc,
+                  ...recipients.bcc,
+                ]}
               />
             </div>
           )}

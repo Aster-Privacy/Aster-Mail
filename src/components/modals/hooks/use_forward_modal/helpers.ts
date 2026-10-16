@@ -28,6 +28,7 @@ import {
   MAX_INLINE_IMAGES,
   MAX_INLINE_IMAGE_SIZE,
   MAX_TOTAL_INLINE_SIZE,
+  is_valid_email,
 } from "@/components/compose/compose_shared";
 import { array_to_base64 } from "@/services/crypto/envelope";
 
@@ -136,6 +137,18 @@ export function apply_inline_image_substitutions(
   }
 
   return { content, embedded_attachment_ids };
+}
+
+export function forward_subject_for(subject: string, prefix: string): string {
+  return subject.trim().startsWith(prefix) ? subject : `${prefix} ${subject}`;
+}
+
+export function has_invalid_pending_recipient(inputs: InputsState): boolean {
+  return (["to", "cc", "bcc"] as const).some((field) => {
+    const value = inputs[field].trim();
+
+    return value.length > 0 && !is_valid_email(value);
+  });
 }
 
 export function merge_pending_recipients(

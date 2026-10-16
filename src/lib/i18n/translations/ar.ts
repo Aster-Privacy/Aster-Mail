@@ -730,6 +730,10 @@ export const ar = {
     undo_send_too_late: "تم إرسال هذه الرسالة بالفعل ولا يمكن استرجاعها.",
     email_sent_successfully: "تم إرسال البريد بنجاح",
     scheduled_email_cancelled: "تم إلغاء البريد المجدول",
+    scheduled_cancel_failed:
+      "لم يتم إلغاء هذه الرسالة المجدولة. حاول مرة أخرى.",
+    scheduled_cancel_partial:
+      "لم يتم إلغاء بعض الرسائل المجدولة. حاول مرة أخرى.",
     email_snoozed: "تم تأجيل البريد",
     email_unsnoozed: "تم إلغاء تأجيل البريد",
     failed_to_snooze:
@@ -8891,7 +8895,8 @@ export const ar = {
     receipt_review_not_right: "غير صحيح؟",
     receipt_review_title: "تصحيح التفاصيل",
     receipt_review_hide: "إخفاء هذه البطاقة",
-    receipt_review_saved: "تم تحديث تفاصيل الإيصال. ستستخدم الإيصالات القادمة من هذا المرسل الاسم المصحح.",
+    receipt_review_saved:
+      "تم تحديث تفاصيل الإيصال. ستستخدم الإيصالات القادمة من هذا المرسل الاسم المصحح.",
     receipt_review_thanks: "شكرًا على ملاحظاتك",
     view_receipt: "عرض الإيصال",
     view_order: "عرض الطلب",

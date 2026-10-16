@@ -748,6 +748,10 @@ export const it = {
       "Questo messaggio è già stato inviato e non può essere richiamato.",
     email_sent_successfully: "Email inviata con successo",
     scheduled_email_cancelled: "Email programmata annullata",
+    scheduled_cancel_failed:
+      "Questa email programmata non è stata annullata. Riprova.",
+    scheduled_cancel_partial:
+      "Alcune email programmate non sono state annullate. Riprova.",
     email_snoozed: "Email posticipata",
     email_unsnoozed: "Posticipazione email annullata",
     failed_to_snooze:
@@ -9127,7 +9131,8 @@ export const it = {
     receipt_review_not_right: "Non è corretto?",
     receipt_review_title: "Correggi i dettagli",
     receipt_review_hide: "Nascondi questa scheda",
-    receipt_review_saved: "Dettagli della ricevuta aggiornati. Le prossime ricevute di questo mittente useranno il nome corretto.",
+    receipt_review_saved:
+      "Dettagli della ricevuta aggiornati. Le prossime ricevute di questo mittente useranno il nome corretto.",
     receipt_review_thanks: "Grazie per il tuo feedback",
     view_receipt: "Visualizza ricevuta",
     view_order: "Visualizza ordine",

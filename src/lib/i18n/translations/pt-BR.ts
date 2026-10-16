@@ -653,6 +653,10 @@ export const pt_br = {
       "Esta mensagem já foi enviada e não pode ser recuperada.",
     email_sent_successfully: "E-mail enviado com sucesso",
     scheduled_email_cancelled: "E-mail agendado cancelado",
+    scheduled_cancel_failed:
+      "Este e-mail agendado não foi cancelado. Tente novamente.",
+    scheduled_cancel_partial:
+      "Alguns e-mails agendados não foram cancelados. Tente novamente.",
     email_snoozed: "E-mail adiado",
     email_unsnoozed: "E-mail reativado",
     failed_to_snooze:
@@ -9077,7 +9081,8 @@ export const pt_br = {
     receipt_review_not_right: "Não está correto?",
     receipt_review_title: "Corrigir os detalhes",
     receipt_review_hide: "Ocultar este cartão",
-    receipt_review_saved: "Detalhes do recibo atualizados. Os próximos recibos deste remetente usam o nome corrigido.",
+    receipt_review_saved:
+      "Detalhes do recibo atualizados. Os próximos recibos deste remetente usam o nome corrigido.",
     receipt_review_thanks: "Obrigado pelo feedback",
     view_receipt: "Ver recibo",
     view_order: "Ver pedido",
