@@ -48,6 +48,7 @@ export const LINK_VISITED_VAR = "--aster-link-visited";
 export const LINK_INK_ATTRIBUTE = "data-aster-ink";
 export const LINK_INK_LAYER_ATTRIBUTE = "data-aster-ink-layer";
 export const MEASURING_ATTRIBUTE = "data-aster-measuring";
+export const LINK_BUTTON_ATTRIBUTE = "data-aster-link-button";
 
 const LINK_INK_SUFFIX = Array.from(
   crypto.getRandomValues(new Uint8Array(8)),
@@ -634,6 +635,30 @@ function is_button_link(style: CSSStyleDeclaration): boolean {
   );
 
   return !!background && background.a > 0;
+}
+
+export function mark_link_buttons(doc: Document, view?: Window | null): number {
+  const window_view = view ?? doc.defaultView;
+
+  if (!window_view) return 0;
+
+  const links = doc.querySelectorAll<HTMLElement>("a");
+
+  if (links.length > MAX_REPAIR_ELEMENTS) return 0;
+
+  let marked = 0;
+
+  for (let index = 0; index < links.length; index += 1) {
+    const link = links[index];
+
+    if (link.hasAttribute(LINK_BUTTON_ATTRIBUTE)) continue;
+    if (!is_button_link(window_view.getComputedStyle(link))) continue;
+
+    link.setAttribute(LINK_BUTTON_ATTRIBUTE, "");
+    marked += 1;
+  }
+
+  return marked;
 }
 
 const LINK_INK_LINK = `a[${LINK_INK_ATTRIBUTE}]`;

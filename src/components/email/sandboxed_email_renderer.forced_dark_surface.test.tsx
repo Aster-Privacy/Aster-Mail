@@ -171,7 +171,7 @@ describe("SandboxedEmailRenderer hover rule", () => {
       container.querySelector("iframe")!.getAttribute("srcdoc") ?? "";
 
     expect(srcdoc).toContain(
-      `\na:not([style*="background" i]):where(:not([${MEASURING_ATTRIBUTE}])):hover, a:not([style*="background" i]):where(:not([${MEASURING_ATTRIBUTE}])):hover *`,
+      `\na:not([style*="background" i]):not([data-aster-link-button]):where(:not([${MEASURING_ATTRIBUTE}])):hover, a:not([style*="background" i]):not([data-aster-link-button]):where(:not([${MEASURING_ATTRIBUTE}])):hover *`,
     );
     expect(srcdoc).not.toContain('\na:not([style*="background" i]):hover');
 
@@ -202,7 +202,7 @@ describe("SandboxedEmailRenderer forced dark in the light theme", () => {
     const iframe = container.querySelector("iframe")!;
     const srcdoc = iframe.getAttribute("srcdoc") ?? "";
     const link_rule = srcdoc.match(
-      /a:not\(\[style\*="background" i\]\):not\(\[data-aster-keep-bg\]\), [^{]*\{ color: (#[0-9a-f]{6}); \}/,
+      /a:not\(\[style\*="background" i\]\):not\(\[data-aster-link-button\]\):not\(\[data-aster-keep-bg\]\), [^{]*\{ color: (#[0-9a-f]{6}); \}/,
     );
 
     expect(link_rule).not.toBeNull();

@@ -56,6 +56,7 @@ import {
   LINK_INK_LAYER_ATTRIBUTE,
   LINK_INK_LAYER_CSS,
   MEASURING_ATTRIBUTE,
+  mark_link_buttons,
   repair_email_contrast,
 } from "@/lib/email_contrast_repair";
 import { hex_to_rgba } from "@/lib/material_theme";
@@ -682,6 +683,15 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
       if (is_plain_text || !has_rich_layout) {
         trim_trailing_empty_blocks(iframe.contentDocument);
       }
+    }
+
+    try {
+      mark_link_buttons(iframe.contentDocument, iframe.contentWindow);
+    } catch (caught) {
+      ignore_error(
+        "components/email/sandboxed_email_renderer/renderer:mark_link_buttons",
+        caught,
+      );
     }
 
     if (contrast_repair_ref.current.enabled) {

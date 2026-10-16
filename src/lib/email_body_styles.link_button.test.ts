@@ -21,8 +21,10 @@
 import { describe, it, expect } from "vitest";
 
 import { BRAND_BACKGROUND_MARK } from "./email_brand_backgrounds";
+import { LINK_BUTTON_ATTRIBUTE } from "./email_contrast_repair";
 
 import {
+  build_auto_dark_mode_css,
   build_forced_dark_mode_css,
   LINK_BUTTON_EXCLUDE,
   LINK_BUTTON_HOVER_SELECTOR,
@@ -30,6 +32,8 @@ import {
 
 const BUTTON_LINK =
   '<a href="https://example.test" style="display:inline-block;background:linear-gradient(to bottom,#6b8aff,#3b5ae8);color:#ffffff;">Review Security Settings</a>';
+const CLASS_BUTTON_LINK =
+  '<a href="https://example.test" class="btn" data-aster-link-button>Read the full rundown</a>';
 const PLAIN_LINK = '<a href="https://example.test">Manage in Settings</a>';
 const BULLETPROOF_BUTTON =
   '<table><tr><td bgcolor="#3b5ae8"><a href="https://example.test" style="color:#ffffff;">Open</a></td></tr></table>';
@@ -67,7 +71,29 @@ describe("link button selectors", () => {
     );
     expect(css).not.toMatch(/\na, a \* \{/);
     expect(css).toContain(
-      'a[style*="background" i] *, [bgcolor] > a * { color: inherit !important; }',
+      'a[style*="background" i] *, a[data-aster-link-button] *, [bgcolor] > a * { color: inherit !important; }',
     );
+  });
+});
+
+describe("stylesheet button links", () => {
+  it("keeps a marked button out of the link, visited and hover colors", () => {
+    expect(matches(CLASS_BUTTON_LINK, `a${LINK_BUTTON_EXCLUDE}`)).toBe(false);
+    expect(
+      matches(CLASS_BUTTON_LINK, `a${LINK_BUTTON_EXCLUDE}${BRAND_EXCLUDE}`),
+    ).toBe(false);
+  });
+
+  it("gives a marked button the hover affordance", () => {
+    const hover_selector = LINK_BUTTON_HOVER_SELECTOR.split(":hover").join("");
+
+    expect(matches(CLASS_BUTTON_LINK, hover_selector)).toBe(true);
+  });
+
+  it("lets text inside a marked button inherit its color in both dark modes", () => {
+    const rule = `a[${LINK_BUTTON_ATTRIBUTE}] *`;
+
+    expect(build_forced_dark_mode_css("#3b82f6", "#60a5fa")).toContain(rule);
+    expect(build_auto_dark_mode_css("#e5e7eb", "#60a5fa")).toContain(rule);
   });
 });
