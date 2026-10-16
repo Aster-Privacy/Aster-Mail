@@ -29,6 +29,7 @@ import {
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { account_data_write_key } from "@/services/crypto/account_data_writer";
 import { encrypt_with_private_bcc } from "@/services/send_private_bcc";
+import { plain_text_to_html } from "@/services/send_queue_recipients";
 import { describe_sender_refusal } from "@/services/send_refusal";
 import { is_internal_email } from "@/services/api/keys";
 import { build_subject_bundle } from "@/utils/email_crypto";
@@ -54,6 +55,7 @@ export interface ScheduledEmailContent {
   thread_id?: string;
   reply_to_id?: string;
   is_plain_text?: boolean;
+  plain_body?: string;
 }
 
 export interface ScheduledEmail {
@@ -217,6 +219,9 @@ function scheduled_envelope_data(content: ScheduledEmailContent) {
     ...(content.thread_id ? { thread_id: content.thread_id } : {}),
     ...(content.reply_to_id ? { reply_to_id: content.reply_to_id } : {}),
     ...(content.is_plain_text ? { is_plain_text: true } : {}),
+    ...(content.plain_body !== undefined
+      ? { plain_body: content.plain_body }
+      : {}),
   };
 }
 
@@ -613,6 +618,18 @@ export async function reschedule_email(
   return { data: { success: true } };
 }
 
+export function server_readable_content(
+  content: ScheduledEmailContent,
+): ScheduledEmailContent {
+  if (!content.is_plain_text) return content;
+
+  return {
+    ...content,
+    body: plain_text_to_html(content.body),
+    plain_body: content.body,
+  };
+}
+
 export interface CreateScheduledResponse {
   success: boolean;
   scheduled_email_id: string;
@@ -651,7 +668,7 @@ export async function create_scheduled_email(
     ephemeral_key?: string;
     base_nonce?: string;
   } = has_external
-    ? await encrypt_with_ephemeral_key(content)
+    ? await encrypt_with_ephemeral_key(server_readable_content(content))
     : await encrypt_with_local_key(content, vault);
 
   const request: CreateScheduledRequest = {

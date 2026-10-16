@@ -62,7 +62,12 @@ vi.mock("@/services/api/domains", () => ({
   }),
 }));
 
-const { create_scheduled_email } = await import("./scheduled");
+vi.mock("@/services/send_queue_recipients", () => ({
+  plain_text_to_html: (text: string) => text.replace(/\n/g, "<br>"),
+}));
+
+const { create_scheduled_email, server_readable_content } =
+  await import("./scheduled");
 
 const SOON = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString();
 const TOO_FAR = new Date(Date.now() + 29 * 24 * 60 * 60 * 1000).toISOString();
@@ -284,5 +289,29 @@ describe("scheduled envelope", () => {
       ),
     ).rejects.toThrow();
     expect(post).not.toHaveBeenCalled();
+  });
+});
+
+describe("server_readable_content", () => {
+  const base = {
+    to_recipients: ["friend@example.com"],
+    cc_recipients: [],
+    bcc_recipients: [],
+    subject: "Hi",
+    body: "line one\nline two",
+    scheduled_at: SOON,
+  };
+
+  it("sends plain text as html and keeps the typed text", () => {
+    expect(server_readable_content({ ...base, is_plain_text: true })).toEqual(
+      expect.objectContaining({
+        body: "line one<br>line two",
+        plain_body: "line one\nline two",
+      }),
+    );
+  });
+
+  it("leaves rich text untouched", () => {
+    expect(server_readable_content(base)).toBe(base);
   });
 });
