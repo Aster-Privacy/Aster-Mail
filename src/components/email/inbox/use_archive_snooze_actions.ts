@@ -36,6 +36,7 @@ import {
   emit_mail_changed,
   emit_mail_item_updated,
 } from "@/hooks/mail_events";
+import { undo_snooze } from "@/components/email/inbox/undo_snooze";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import {
   collect_restore_entries,
@@ -307,10 +308,15 @@ export function use_archive_snooze_actions({
 
       if (selected.length === 0) return true;
       const snooze_iso = snooze_until.toISOString();
-      const ids = selected.map((e) => e.id);
+      const row_ids = selected.map((e) => e.id);
+      const ids = selected.flatMap((e) =>
+        e.grouped_email_ids && e.grouped_email_ids.length > 1
+          ? e.grouped_email_ids
+          : [e.id],
+      );
       const leaves_view = current_view !== "snoozed";
       const restore_entries = leaves_view
-        ? collect_restore_entries(email_state.emails, ids)
+        ? collect_restore_entries(email_state.emails, row_ids)
         : [];
 
       note_flag_intents(ids, { snoozed_until: snooze_iso });
@@ -321,7 +327,7 @@ export function use_archive_snooze_actions({
         });
       }
       if (leaves_view) {
-        for (const id of ids) {
+        for (const id of row_ids) {
           remove_email(id);
         }
       }
@@ -355,6 +361,7 @@ export function use_archive_snooze_actions({
           }),
           action_type: "snooze",
           email_ids: ids,
+          on_undo: leaves_view ? () => undo_snooze(ids) : undefined,
         });
       } catch (error) {
         if (import.meta.env.DEV) console.error(error);
