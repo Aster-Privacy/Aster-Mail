@@ -30,7 +30,9 @@ import {
   acquire_search_index,
   build_search_index,
   mark_search_index_stale,
+  patch_indexed_flags,
   reset_index_cache,
+  type IndexedFlagPatch,
 } from "./index_cache";
 import {
   matches_query,
@@ -65,6 +67,7 @@ import {
 
 import { user_facing_error } from "@/utils/user_facing_error";
 import { type MailItem } from "@/services/api/mail";
+import { fetch_minimal_emails } from "@/services/fetch_minimal_emails";
 import {
   meets_min_search_length,
   split_search_terms,
@@ -83,7 +86,10 @@ import {
   remember_never_correct_term,
   suggest_query_correction,
 } from "@/services/search/spelling";
-import { MAIL_EVENTS } from "@/hooks/mail_events";
+import {
+  MAIL_EVENTS,
+  type MailItemUpdatedEventDetail,
+} from "@/hooks/mail_events";
 
 export function use_search() {
   const { user } = use_auth();
@@ -149,15 +155,145 @@ export function use_search() {
     empty_chunks_ref.current = null;
   }, [user?.email]);
 
+  const hidden_ids_ref = useRef<Set<string>>(new Set());
+
+  const apply_flag_patch = useCallback(
+    (ids: string[], patch: IndexedFlagPatch) => {
+      if (ids.length === 0) return;
+
+      patch_indexed_flags(ids, patch);
+      last_scan_ref.current = null;
+
+      const last = last_search_ref.current;
+      const scope = last
+        ? resolve_mailbox_scope(parse_search_query(last.query).operators)
+        : { include_spam: false, include_trash: false };
+      const leaves_scope =
+        (patch.is_trashed === true && !scope.include_trash) ||
+        (patch.is_spam === true && !scope.include_spam);
+      const touched = new Set(ids);
+
+      set_state((prev) => {
+        let changed = false;
+        const next: SearchResultItem[] = [];
+
+        for (const result of prev.results) {
+          const members = result.grouped_email_ids?.length
+            ? result.grouped_email_ids
+            : [result.id];
+          const hits = members.filter((id) => touched.has(id));
+
+          if (hits.length === 0) {
+            next.push(result);
+            continue;
+          }
+
+          if (leaves_scope && hits.length === members.length) {
+            for (const id of hits) hidden_ids_ref.current.add(id);
+            changed = true;
+            continue;
+          }
+
+          const single = members.length === 1;
+          let updated = result;
+
+          if (
+            patch.is_starred !== undefined &&
+            (single || patch.is_starred) &&
+            result.is_starred !== patch.is_starred
+          ) {
+            updated = { ...updated, is_starred: patch.is_starred };
+          }
+          if (
+            patch.is_read !== undefined &&
+            (single || !patch.is_read || hits.length === members.length) &&
+            result.is_read !== patch.is_read
+          ) {
+            updated = { ...updated, is_read: patch.is_read };
+          }
+          if (updated !== result) changed = true;
+          next.push(updated);
+        }
+
+        if (!changed) return prev;
+
+        const removed = prev.results.length - next.length;
+
+        return {
+          ...prev,
+          results: next,
+          total_results: Math.max(prev.total_results - removed, next.length),
+        };
+      });
+    },
+    [],
+  );
+
+  const restore_hidden_results = useCallback(async () => {
+    const ids = Array.from(hidden_ids_ref.current);
+
+    if (ids.length === 0) return;
+
+    const { emails, failed } = await fetch_minimal_emails(ids);
+
+    if (failed) return;
+
+    const back = emails.filter((email) => !email.is_trashed && !email.is_spam);
+    const returned = new Set(emails.map((email) => email.id));
+
+    for (const id of ids) {
+      if (!returned.has(id)) hidden_ids_ref.current.delete(id);
+    }
+    for (const email of back) hidden_ids_ref.current.delete(email.id);
+
+    if (back.length === 0) return;
+
+    for (const item of back) {
+      patch_indexed_flags([item.id], {
+        is_trashed: false,
+        is_spam: false,
+        is_archived: item.is_archived,
+      });
+    }
+
+    const last = last_search_ref.current;
+
+    if (!last) return;
+
+    last_scan_ref.current = null;
+    preserve_limit_ref.current = true;
+    void search_ref.current(last.query, last.options);
+  }, []);
+
   useEffect(() => {
     const handle_mail_changed = () => {
       mark_search_index_stale();
     };
 
+    const handle_item_updated = (event: Event) => {
+      mark_search_index_stale();
+
+      const detail = (event as CustomEvent<MailItemUpdatedEventDetail>).detail;
+
+      if (!detail?.id) return;
+
+      apply_flag_patch([detail.id], {
+        is_read: detail.is_read,
+        is_starred: detail.is_starred,
+        is_trashed: detail.is_trashed,
+        is_spam: detail.is_spam,
+        is_archived: detail.is_archived,
+      });
+    };
+
+    const handle_soft_refresh = () => {
+      mark_search_index_stale();
+      void restore_hidden_results();
+    };
+
     const stale_events = [
       MAIL_EVENTS.EMAIL_RECEIVED,
       MAIL_EVENTS.EMAIL_SENT,
-      MAIL_EVENTS.MAIL_ITEM_UPDATED,
       MAIL_EVENTS.MAIL_ITEMS_REMOVED,
       MAIL_EVENTS.MAIL_CHANGED,
     ];
@@ -165,13 +301,23 @@ export function use_search() {
     for (const event of stale_events) {
       window.addEventListener(event, handle_mail_changed);
     }
+    window.addEventListener(MAIL_EVENTS.MAIL_ITEM_UPDATED, handle_item_updated);
+    window.addEventListener(MAIL_EVENTS.MAIL_SOFT_REFRESH, handle_soft_refresh);
 
     return () => {
       for (const event of stale_events) {
         window.removeEventListener(event, handle_mail_changed);
       }
+      window.removeEventListener(
+        MAIL_EVENTS.MAIL_ITEM_UPDATED,
+        handle_item_updated,
+      );
+      window.removeEventListener(
+        MAIL_EVENTS.MAIL_SOFT_REFRESH,
+        handle_soft_refresh,
+      );
     };
-  }, []);
+  }, [apply_flag_patch, restore_hidden_results]);
 
   const search = useCallback(
     async (
@@ -693,6 +839,7 @@ export function use_search() {
     dismiss_correction,
     clear_results,
     clear_index,
+    apply_flag_patch,
     start_index_build,
     load_more,
     set_query,

@@ -46,7 +46,12 @@ import {
   emit_mail_item_updated,
   emit_mail_items_removed,
 } from "@/hooks/mail_events";
-import { preload_print_email, print_email } from "@/utils/print_email_loader";
+import {
+  preload_print_email,
+  print_email,
+  print_thread,
+} from "@/utils/print_email_loader";
+import { build_thread_print_data } from "@/utils/thread_print_data";
 import { preload_when_idle } from "@/utils/lazy_with_retry";
 import {
   execute_unsubscribe,
@@ -648,6 +653,18 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
 
   const handle_print = useCallback(() => {
     if (!deps.email) return;
+    if (deps.thread_messages.length > 1) {
+      const thread_data = build_thread_print_data(
+        deps.email.subject,
+        deps.thread_messages,
+      );
+
+      if (thread_data) {
+        print_thread(thread_data, deps.t);
+
+        return;
+      }
+    }
 
     print_email(
       {
@@ -666,7 +683,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
       },
       deps.t,
     );
-  }, [deps.email, deps.timestamp_date, deps.t]);
+  }, [deps.email, deps.thread_messages, deps.timestamp_date, deps.t]);
 
   const handle_unsubscribe = useCallback(
     async (

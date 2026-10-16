@@ -19,7 +19,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { InboxEmail, InboxFilterType } from "@/types/email";
-import type { MailItem } from "@/services/api/mail";
 
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 
@@ -32,8 +31,7 @@ import { group_search_results, expand_thread_ids } from "./thread_grouping";
 import { apply_header_filter, header_filter_for_query } from "./header_filter";
 
 import { count_filter_operators } from "@/utils/search_operators";
-import { list_mail_items } from "@/services/api/mail";
-import { decrypt_mail_metadata } from "@/services/crypto/mail_metadata";
+import { fetch_minimal_emails } from "@/services/fetch_minimal_emails";
 import { use_email_actions } from "@/hooks/use_email_actions";
 import { emit_mail_items_removed } from "@/hooks/mail_events";
 import { use_auto_advance } from "@/components/email/hooks/use_auto_advance";
@@ -72,6 +70,7 @@ export function use_search_results_page(props: SearchResultsPageProps) {
     load_more,
     set_query,
     clear_results,
+    apply_flag_patch,
   } = use_search();
   const email_actions = use_email_actions();
   const [bulk_busy, set_bulk_busy] = useState(false);
@@ -257,6 +256,10 @@ export function use_search_results_page(props: SearchResultsPageProps) {
     last_selected_id_ref.current = null;
   }, [query]);
 
+  useEffect(() => {
+    set_search_page(0);
+  }, [filters.sort_by]);
+
   const paged_results_ref = useRef(paged_results);
 
   paged_results_ref.current = paged_results;
@@ -331,64 +334,7 @@ export function use_search_results_page(props: SearchResultsPageProps) {
   );
 
   const fetch_as_minimal_emails = useCallback(
-    async (
-      ids: string[],
-    ): Promise<{ emails: InboxEmail[]; failed: boolean }> => {
-      const FETCH_CHUNK_SIZE = 100;
-      const items: MailItem[] = [];
-      let failed = false;
-
-      for (let i = 0; i < ids.length; i += FETCH_CHUNK_SIZE) {
-        const slice = ids.slice(i, i + FETCH_CHUNK_SIZE);
-        const res = await list_mail_items({ ids: slice });
-
-        if (res.data) {
-          items.push(...res.data.items);
-        } else {
-          failed = true;
-        }
-      }
-
-      const loaded = await Promise.all(
-        items.map(async (m) => {
-          let metadata = m.metadata ?? null;
-
-          if (!metadata && m.encrypted_metadata && m.metadata_nonce) {
-            try {
-              metadata = await decrypt_mail_metadata(
-                m.encrypted_metadata,
-                m.metadata_nonce,
-                m.metadata_version,
-              );
-            } catch {
-              metadata = null;
-            }
-          }
-
-          return {
-            id: m.id,
-            item_type: m.item_type,
-            thread_token: m.thread_token,
-            thread_message_count: m.thread_message_count,
-            encrypted_metadata: m.encrypted_metadata,
-            metadata_nonce: m.metadata_nonce,
-            metadata_version: m.metadata_version,
-            is_read: m.is_read ?? metadata?.is_read ?? false,
-            is_starred: metadata?.is_starred ?? false,
-            is_trashed:
-              m.is_trashed === true || (metadata?.is_trashed ?? false),
-            is_archived:
-              m.is_archived === true || (metadata?.is_archived ?? false),
-            is_spam: m.is_spam === true || (metadata?.is_spam ?? false),
-          } as unknown as InboxEmail;
-        }),
-      );
-
-      return {
-        emails: loaded.filter((x): x is InboxEmail => x !== null),
-        failed,
-      };
-    },
+    (ids: string[]) => fetch_minimal_emails(ids),
     [],
   );
 
@@ -442,7 +388,14 @@ export function use_search_results_page(props: SearchResultsPageProps) {
         return;
       }
       if (emails.length > 0) {
-        await email_actions.bulk_archive(emails);
+        const archived = await email_actions.bulk_archive(emails);
+
+        if (archived) {
+          apply_flag_patch(
+            emails.map((e) => e.id),
+            { is_archived: true, is_trashed: false, is_spam: false },
+          );
+        }
         emit_mail_items_removed({ ids: emails.map((e) => e.id) });
       }
       handle_clear_selection();
@@ -450,6 +403,7 @@ export function use_search_results_page(props: SearchResultsPageProps) {
       set_bulk_busy(false);
     }
   }, [
+    apply_flag_patch,
     selected_ids,
     bulk_busy,
     fetch_as_minimal_emails,
@@ -473,7 +427,14 @@ export function use_search_results_page(props: SearchResultsPageProps) {
         return;
       }
       if (emails.length > 0) {
-        await email_actions.bulk_delete(emails);
+        const deleted = await email_actions.bulk_delete(emails);
+
+        if (deleted) {
+          apply_flag_patch(
+            emails.map((e) => e.id),
+            { is_trashed: true },
+          );
+        }
         emit_mail_items_removed({ ids: emails.map((e) => e.id) });
       }
       handle_clear_selection();
@@ -481,6 +442,7 @@ export function use_search_results_page(props: SearchResultsPageProps) {
       set_bulk_busy(false);
     }
   }, [
+    apply_flag_patch,
     selected_ids,
     bulk_busy,
     fetch_as_minimal_emails,
@@ -550,10 +512,17 @@ export function use_search_results_page(props: SearchResultsPageProps) {
   const handle_bulk_spam = useCallback(
     () =>
       run_bulk(async (emails) => {
-        await email_actions.bulk_mark_spam(emails);
+        const marked = await email_actions.bulk_mark_spam(emails);
+
+        if (marked) {
+          apply_flag_patch(
+            emails.map((e) => e.id),
+            { is_spam: true, is_trashed: false },
+          );
+        }
         emit_mail_items_removed({ ids: emails.map((e) => e.id) });
       }),
-    [run_bulk, email_actions],
+    [run_bulk, email_actions, apply_flag_patch],
   );
 
   const handle_select_by_filter = useCallback(
@@ -628,6 +597,19 @@ export function use_search_results_page(props: SearchResultsPageProps) {
     return filtered_results.findIndex((r) => r.id === split_email_id);
   }, [split_email_id, filtered_results]);
 
+  const synced_nav_id_ref = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!split_email_id || search_nav_index < 0) return;
+    if (synced_nav_id_ref.current === split_email_id) return;
+    synced_nav_id_ref.current = split_email_id;
+    const target_page = Math.floor(search_nav_index / search_page_size);
+
+    set_search_page((current) =>
+      current === target_page ? current : target_page,
+    );
+  }, [split_email_id, search_nav_index, search_page_size]);
+
   const search_can_go_prev = search_nav_index > 0;
   const search_can_go_next =
     search_nav_index >= 0 && search_nav_index < filtered_results.length - 1;
@@ -679,6 +661,7 @@ export function use_search_results_page(props: SearchResultsPageProps) {
     search_page,
     set_search_page,
     perform_search,
+    apply_flag_patch,
     handle_disable_content_search,
     handle_enable_content_search,
     search_terms,

@@ -38,6 +38,7 @@ import {
   emit_reactions_changed,
   emit_reaction_received,
   emit_mail_items_removed,
+  emit_mail_remote_items_removed,
   emit_contacts_changed,
   emit_folders_changed,
   emit_tags_changed,
@@ -498,6 +499,10 @@ class SyncClient {
       this.schedule_echo_reconcile(echo.settled_at);
 
       return;
+    }
+
+    if (ids.length > 0 && REMOVAL_ACTIONS.has(action)) {
+      emit_mail_remote_items_removed({ ids, action });
     }
 
     if (this.mutation_refresh_timer) {
