@@ -503,6 +503,16 @@ export function use_compose({
     has_user_content,
   ]);
 
+  useEffect(() => {
+    if (aliases_loading || !selected_sender) return;
+    if (selected_sender.type === "ghost") return;
+    if (sender_options.some((o) => o.id === selected_sender.id)) return;
+
+    sender_manually_selected_ref.current = false;
+    sender_resolved_ref.current = false;
+    set_selected_sender_state(null);
+  }, [aliases_loading, sender_options, selected_sender]);
+
   const select_sender = use_ghost_sender_binding(
     ghost_mode,
     selected_sender,

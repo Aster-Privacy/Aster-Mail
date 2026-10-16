@@ -407,6 +407,7 @@ export function use_sender_aliases(
         MAIL_EVENTS.REFRESH_REQUESTED,
         MAIL_EVENTS.MAIL_CHANGED,
         MAIL_EVENTS.AUTH_READY,
+        MAIL_EVENTS.ALIASES_CHANGED,
       ],
       load_aliases,
     );

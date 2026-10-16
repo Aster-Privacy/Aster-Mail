@@ -82,8 +82,8 @@ export function use_sender_signature({
   }, []);
 
   useEffect(() => {
-    if (!enabled || !is_applied || !signature) return;
-    if (applied_id_ref.current === signature.id) return;
+    if (!enabled || !is_applied) return;
+    if (applied_id_ref.current === (signature?.id ?? null)) return;
 
     const editor = editor_ref.current;
 
@@ -92,7 +92,16 @@ export function use_sender_signature({
     const existing = find_own_signature(editor);
     const had_signature = applied_id_ref.current !== null;
 
-    applied_id_ref.current = signature.id;
+    applied_id_ref.current = signature?.id ?? null;
+
+    if (!signature) {
+      if (existing) {
+        existing.remove();
+        on_swapped_ref.current(editor);
+      }
+
+      return;
+    }
 
     if (!existing && had_signature) return;
 
