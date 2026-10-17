@@ -37,7 +37,7 @@ trap 'rm -rf "$tmp"' EXIT
 gh release download "$tag" --repo "$repo" --pattern Aster-Mail.apk --dir "$tmp" --clobber \
   || die "Aster-Mail.apk is not on $tag"
 verify_out="$("$apksigner" verify --print-certs "$tmp/Aster-Mail.apk" 2>&1 | tr -d '\r' || true)"
-digests="$(printf '%s\n' "$verify_out" | grep -E '^Signer #[0-9]+ certificate SHA-256 digest:' \
+digests="$(printf '%s\n' "$verify_out" | grep -E '^(Signer #[0-9]+|V[0-9.]+ Signer):? certificate SHA-256 digest:' \
   | awk '{print $NF}' | sort -u || true)"
 if [ "$digests" != "$cert_sha" ]; then
   echo "$apksigner verify --print-certs:"
