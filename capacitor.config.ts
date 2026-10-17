@@ -26,7 +26,6 @@ const config: CapacitorConfig = {
   webDir: "dist-native",
   server: {
     androidScheme: "https",
-    iosScheme: "astermail",
   },
   plugins: {
     PushNotifications: {
@@ -55,12 +54,6 @@ const config: CapacitorConfig = {
   android: {
     allowMixedContent: false,
     webContentsDebuggingEnabled: false,
-    backgroundColor: "#121212",
-  },
-  ios: {
-    contentInset: "automatic",
-    preferredContentMode: "mobile",
-    allowsLinkPreview: false,
     backgroundColor: "#121212",
   },
 };
