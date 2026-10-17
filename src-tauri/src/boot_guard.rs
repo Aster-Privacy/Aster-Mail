@@ -26,6 +26,10 @@ use tauri::Manager;
 
 const COMPAT_MODE_MARKER: &str = "compat_mode";
 const WEBVIEW_RESET_MARKER: &str = "webview_reset_pending";
+#[cfg(all(unix, not(target_os = "macos")))]
+const SOFTWARE_RENDERING_MARKER: &str = "software_rendering";
+#[cfg(all(unix, not(target_os = "macos")))]
+const UNSTARTED_LAUNCHES_FILE: &str = "unstarted_launches";
 const BOOT_LOG_FILE: &str = "boot.log";
 const BOOT_LOG_MAX_BYTES: u64 = 65_536;
 const BOOT_TIMEOUT: Duration = Duration::from_secs(25);
@@ -77,7 +81,7 @@ impl BootState {
     }
 }
 
-fn app_local_dir() -> Option<PathBuf> {
+pub fn app_local_dir() -> Option<PathBuf> {
     dirs::data_local_dir().map(|d| d.join("com.astermail.mail"))
 }
 
@@ -102,7 +106,7 @@ fn remove_marker(name: &str) {
     }
 }
 
-fn log_line(message: &str) {
+pub fn log_line(message: &str) {
     let Some(dir) = app_local_dir() else { return };
     let _ = std::fs::create_dir_all(&dir);
     let path = dir.join(BOOT_LOG_FILE);
@@ -119,6 +123,40 @@ fn log_line(message: &str) {
     if let Ok(mut file) = std::fs::OpenOptions::new().create(true).append(true).open(&path) {
         let _ = writeln!(file, "{stamp} {message}");
     }
+}
+
+#[cfg(all(unix, not(target_os = "macos")))]
+pub fn software_rendering_marked() -> bool {
+    marker_exists(SOFTWARE_RENDERING_MARKER)
+}
+
+#[cfg(all(unix, not(target_os = "macos")))]
+pub fn mark_software_rendering() {
+    if !marker_exists(SOFTWARE_RENDERING_MARKER) {
+        write_marker(SOFTWARE_RENDERING_MARKER);
+    }
+}
+
+#[cfg(all(unix, not(target_os = "macos")))]
+pub fn unstarted_launches() -> u32 {
+    marker_path(UNSTARTED_LAUNCHES_FILE)
+        .and_then(|path| std::fs::read_to_string(path).ok())
+        .and_then(|text| text.trim().parse::<u32>().ok())
+        .unwrap_or(0)
+}
+
+#[cfg(all(unix, not(target_os = "macos")))]
+pub fn record_launch_attempt() {
+    let next = unstarted_launches().saturating_add(1).min(100);
+    if let Some(dir) = app_local_dir() {
+        let _ = std::fs::create_dir_all(&dir);
+        let _ = std::fs::write(dir.join(UNSTARTED_LAUNCHES_FILE), next.to_string());
+    }
+}
+
+#[cfg(all(unix, not(target_os = "macos")))]
+pub fn clear_launch_attempts() {
+    remove_marker(UNSTARTED_LAUNCHES_FILE);
 }
 
 pub fn compat_mode_active() -> bool {

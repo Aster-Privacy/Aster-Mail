@@ -48,6 +48,7 @@ import { start_input_modality_tracking } from "@/lib/input_modality";
 import { install_global_error_reporting } from "@/services/error_reporter";
 import { connection_store } from "@/services/routing/connection_store";
 import { apply_desktop_content_protection } from "@/native/desktop_content_protection";
+import { start_desktop_interface_zoom } from "@/native/desktop_interface_zoom";
 import { start_desktop_link_bridge } from "@/native/desktop_link_bridge";
 import { start_desktop_oauth_bridge } from "@/native/desktop_oauth_bridge";
 import { start_desktop_mailto_bridge } from "@/native/desktop_mailto_bridge";
@@ -176,6 +177,7 @@ if (is_tauri_runtime) {
   void start_desktop_oauth_bridge();
   void start_desktop_mailto_bridge();
   void start_desktop_notification_bridge();
+  void start_desktop_interface_zoom();
   void import("@/native/tauri_tray")
     .then(({ sync_close_to_tray }) => sync_close_to_tray())
     .catch((caught) => ignore_error("main", caught));

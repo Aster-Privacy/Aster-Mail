@@ -4731,7 +4731,7 @@ export const ja = {
       "同じ件名のメールを1つのスレッドにまとめます。個別のメッセージをスクロールせずに会話を追いやすくなります。",
     one_click_unsubscribe_supported: "ワンクリック購読解除に対応",
     open_unsubscribe_page: "購読解除ページを開く",
-    font_size: "フォントサイズ",
+    font_size: "文字サイズ",
     vision: "視覚",
     color_vision: "色覚",
     reading: "読みやすさ",
@@ -5153,8 +5153,16 @@ export const ja = {
     macos: "macOS",
     windows_linux: "Windows/Linux",
     font_size_description:
-      "インターフェース全体の基本テキストサイズを調整します",
+      "メールの文字と、アプリ内の一部の文字のサイズを変更します。すべてを大きくするには、ブラウザのズーム機能を使用してください。",
     font_size_reset: "リセット",
+    font_size_description_desktop:
+      "メールの文字と、アプリ内の一部の文字のサイズを変更します。すべてを大きくするには、「外観」の「インターフェイスのサイズ」を変更してください。",
+    interface_zoom: "インターフェイスのサイズ",
+    interface_zoom_description: "アプリ全体の文字、アイコン、余白を拡大または縮小します。",
+    interface_zoom_shortcut:
+      "キーボードでサイズを変更するには、Ctrl+プラスまたはCtrl+マイナスを押します。元のサイズに戻すには、Ctrl+0を押します。",
+    interface_zoom_shortcut_mac:
+      "キーボードでサイズを変更するには、command+プラスまたはcommand+マイナスを押します。元のサイズに戻すには、command+0を押します。",
     vision_description: "視認性とコントラストを改善するための設定",
     color_vision_description:
       "色覚の違いに対応するためにカラーフィルターを適用します",

@@ -4883,7 +4883,7 @@ export const ar = {
       "يجمع الرسائل ذات الموضوع نفسه في خيط واحد. يسهّل متابعة المحادثة دون التمرير عبر رسائل فردية.",
     one_click_unsubscribe_supported: "إلغاء الاشتراك بنقرة واحدة مدعوم",
     open_unsubscribe_page: "فتح صفحة إلغاء الاشتراك",
-    font_size: "حجم الخط",
+    font_size: "حجم النص",
     vision: "الرؤية",
     color_vision: "رؤية الألوان",
     reading: "القراءة",
@@ -5284,8 +5284,18 @@ export const ar = {
     enter_your_password_placeholder: "أدخل كلمة المرور",
     macos: "macOS",
     windows_linux: "Windows/Linux",
-    font_size_description: "ضبط حجم النص الأساسي عبر الواجهة",
+    font_size_description:
+      "يغيّر حجم نص الرسائل وبعض النصوص في التطبيق. لتكبير كل شيء، استخدم ميزة التكبير في المتصفح.",
     font_size_reset: "إعادة تعيين",
+    font_size_description_desktop:
+      "يغيّر حجم نص الرسائل وبعض النصوص في التطبيق. لتكبير كل شيء، غيّر حجم الواجهة من قسم المظهر.",
+    interface_zoom: "حجم الواجهة",
+    interface_zoom_description:
+      "يكبّر النصوص والأيقونات والمسافات في التطبيق كله أو يصغّرها.",
+    interface_zoom_shortcut:
+      "لتغيير الحجم باستخدام لوحة المفاتيح، اضغط على Ctrl+زائد أو Ctrl+ناقص. لإعادة تعيين الحجم، اضغط على Ctrl+0.",
+    interface_zoom_shortcut_mac:
+      "لتغيير الحجم باستخدام لوحة المفاتيح، اضغط على Command+زائد أو Command+ناقص. لإعادة تعيين الحجم، اضغط على Command+0.",
     vision_description: "إعدادات لتحسين الرؤية والتباين",
     color_vision_description:
       "تطبيق مرشحات الألوان لتكييف الواجهة مع قصور رؤية الألوان",

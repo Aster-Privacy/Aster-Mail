@@ -61,6 +61,7 @@ import { ThemeCard } from "@/components/settings/appearance/theme_card";
 import { ViewModeCard } from "@/components/settings/appearance/view_mode_card";
 import { ComposeModeCard } from "@/components/settings/appearance/compose_mode_card";
 import { SettingRow } from "@/components/settings/appearance/setting_row";
+import { InterfaceZoomRow } from "@/components/settings/appearance/interface_zoom_row";
 import { ColorSwatchPicker } from "@/components/settings/appearance/color_swatch_picker";
 import { TimeZonePicker } from "@/components/settings/appearance/time_zone_picker";
 import { get_supported_time_zones } from "@/lib/time_zones";
@@ -479,6 +480,8 @@ export function AppearanceSection() {
         title={t("settings.custom_theme_title")}
       >
         <Island>
+          <InterfaceZoomRow />
+
           <SettingRow
             description={t("settings.font_choice_description")}
             label={t("settings.font_choice_title")}

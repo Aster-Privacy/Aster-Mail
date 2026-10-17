@@ -4724,7 +4724,7 @@ export const de = {
       "Gruppiert E-Mails mit demselben Betreff in einem Thread. Erleichtert das Verfolgen einer Konversation.",
     one_click_unsubscribe_supported: "Ein-Klick-Abmeldung unterstützt",
     open_unsubscribe_page: "Abmeldeseite öffnen",
-    font_size: "Schriftgröße",
+    font_size: "Textgröße",
     vision: "Sehen",
     color_vision: "Farbsehen",
     reading: "Lesen",
@@ -6651,8 +6651,18 @@ export const de = {
     type_delete_to_confirm: "Geben Sie {word} zur Bestätigung ein",
     deleting_label: "Wird gelöscht...",
     delete_account_button: "Konto löschen",
-    font_size_description: "Basis-Textgröße in der Oberfläche anpassen",
+    font_size_description:
+      "Ändert die Größe von E-Mail-Text und einem Teil des Texts in der App. Um alles zu vergrößern, verwenden Sie den Zoom Ihres Browsers.",
     font_size_reset: "Zurücksetzen",
+    font_size_description_desktop:
+      "Ändert die Größe von E-Mail-Text und einem Teil des Texts in der App. Um alles zu vergrößern, ändern Sie unter „Erscheinungsbild“ die Option „Größe der Oberfläche“.",
+    interface_zoom: "Größe der Oberfläche",
+    interface_zoom_description:
+      "Vergrößert oder verkleinert Text, Symbole und Abstände in der gesamten App.",
+    interface_zoom_shortcut:
+      "Um die Größe mit der Tastatur zu ändern, drücken Sie Strg+Plus oder Strg+Minus. Zum Zurücksetzen drücken Sie Strg+0.",
+    interface_zoom_shortcut_mac:
+      "Um die Größe mit der Tastatur zu ändern, drücken Sie Befehlstaste+Plus oder Befehlstaste+Minus. Zum Zurücksetzen drücken Sie Befehlstaste+0.",
     vision_description:
       "Einstellungen für verbesserte Sichtbarkeit und Kontrast",
     keyboard_shortcuts_description:

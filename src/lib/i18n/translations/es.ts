@@ -4814,7 +4814,7 @@ export const es = {
     one_click_unsubscribe_supported:
       "Cancelación de suscripción con un clic compatible",
     open_unsubscribe_page: "Abrir página de cancelación de suscripción",
-    font_size: "Tamaño de fuente",
+    font_size: "Tamaño del texto",
     vision: "Visión",
     color_vision: "Visión del color",
     reading: "Lectura",
@@ -5244,8 +5244,17 @@ export const es = {
     macos: "macOS",
     windows_linux: "Windows/Linux",
     font_size_description:
-      "Ajustar el tamaño base del texto en toda la interfaz",
+      "Cambia el tamaño del texto de los correos y de parte del texto de la app. Para agrandarlo todo, usa el zoom de tu navegador.",
     font_size_reset: "Restablecer",
+    font_size_description_desktop:
+      "Cambia el tamaño del texto de los correos y de parte del texto de la app. Para agrandarlo todo, cambia Tamaño de la interfaz en Apariencia.",
+    interface_zoom: "Tamaño de la interfaz",
+    interface_zoom_description:
+      "Agranda o reduce el texto, los iconos y el espaciado en toda la app.",
+    interface_zoom_shortcut:
+      "Para cambiar el tamaño con el teclado, pulsa Ctrl+Más o Ctrl+Menos. Para restablecerlo, pulsa Ctrl+0.",
+    interface_zoom_shortcut_mac:
+      "Para cambiar el tamaño con el teclado, pulsa Comando+Más o Comando+Menos. Para restablecerlo, pulsa Comando+0.",
     vision_description:
       "Configuración para mejorar la visibilidad y el contraste",
     color_vision_description:

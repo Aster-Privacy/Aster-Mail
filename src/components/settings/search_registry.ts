@@ -238,12 +238,12 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
 
   // ── Accessibility ─────────────────────────────────────────────────────────
   {
-    label: "Font size",
-    label_key: "common.font_size_label",
+    label: "Text size",
+    label_key: "settings.font_size",
     section: "accessibility",
     breadcrumb: "Accessibility > Text",
     crumb_key: "settings_search.text",
-    keywords: ["text size", "larger text"],
+    keywords: ["font size", "larger text", "zoom"],
   },
   {
     label: "Reduce Motion",

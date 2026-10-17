@@ -4962,7 +4962,7 @@ export const pl = {
       "Grupuje e-maile z tym samym tematem w jeden wątek. Ułatwia śledzenie rozmowy.",
     one_click_unsubscribe_supported: "Obsługiwane wypisanie jednym kliknięciem",
     open_unsubscribe_page: "Otwórz stronę wypisania",
-    font_size: "Rozmiar czcionki",
+    font_size: "Rozmiar tekstu",
     vision: "Wzrok",
     color_vision: "Widzenie kolorów",
     reading: "Czytanie",
@@ -5382,8 +5382,18 @@ export const pl = {
     enter_your_password_placeholder: "Wprowadź hasło",
     macos: "macOS",
     windows_linux: "Windows / Linux",
-    font_size_description: "Dostosuj podstawowy rozmiar tekstu w interfejsie",
+    font_size_description:
+      "Zmienia rozmiar tekstu wiadomości e-mail i części tekstu w aplikacji. Aby powiększyć wszystko, użyj powiększenia w przeglądarce.",
     font_size_reset: "Resetuj",
+    font_size_description_desktop:
+      "Zmienia rozmiar tekstu wiadomości e-mail i części tekstu w aplikacji. Aby powiększyć wszystko, zmień Rozmiar interfejsu w sekcji Wygląd.",
+    interface_zoom: "Rozmiar interfejsu",
+    interface_zoom_description:
+      "Powiększa lub zmniejsza tekst, ikony i odstępy w całej aplikacji.",
+    interface_zoom_shortcut:
+      "Aby zmienić rozmiar za pomocą klawiatury, naciśnij Ctrl+Plus lub Ctrl+Minus. Aby przywrócić domyślny rozmiar, naciśnij Ctrl+0.",
+    interface_zoom_shortcut_mac:
+      "Aby zmienić rozmiar za pomocą klawiatury, naciśnij Command+Plus lub Command+Minus. Aby przywrócić domyślny rozmiar, naciśnij Command+0.",
     vision_description: "Ustawienia poprawy widoczności i kontrastu",
     color_vision_description:
       "Zastosuj filtry kolorów, aby dostosować interfejs do zaburzeń widzenia kolorów",

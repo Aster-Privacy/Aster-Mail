@@ -50,6 +50,7 @@ import {
 import { get_cached_preferences } from "@/services/api/preferences";
 import { use_i18n } from "@/lib/i18n/context";
 import { is_composing } from "@/utils/ime";
+import { is_interface_zoom_supported } from "@/native/desktop_interface_zoom";
 
 export function AccessibilitySection() {
   const { t } = use_i18n();
@@ -85,7 +86,11 @@ export function AccessibilitySection() {
   return (
     <IslandSections>
       <IslandSection
-        description={t("settings.font_size_description")}
+        description={
+          is_interface_zoom_supported()
+            ? t("settings.font_size_description_desktop")
+            : t("settings.font_size_description")
+        }
         icon={<AdjustmentsHorizontalIcon />}
         padding="md"
         title={t("settings.font_size")}

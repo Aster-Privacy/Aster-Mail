@@ -30,6 +30,9 @@ mod default_mail_linux;
 mod default_mail_store;
 mod device;
 mod http_client;
+mod interface_zoom;
+#[cfg(all(unix, not(target_os = "macos")))]
+mod linux_rendering;
 mod mail_notification;
 mod translation_assets;
 
@@ -263,6 +266,8 @@ fn set_tray_tooltip(state: State<TrayState>, tooltip: String) {
 #[tauri::command]
 fn frontend_ready(state: State<boot_guard::BootState>) {
     state.mark_script_ran();
+    #[cfg(all(unix, not(target_os = "macos")))]
+    boot_guard::clear_launch_attempts();
 }
 
 #[tauri::command]
@@ -443,6 +448,33 @@ fn reset_webkit_crypto_keychain() -> bool {
 #[cfg(all(unix, not(target_os = "macos")))]
 mod webkit_sandbox;
 
+#[cfg(all(unix, not(target_os = "macos")))]
+fn choose_linux_rendering() {
+    let unstarted = boot_guard::unstarted_launches();
+    let probe = linux_rendering::probe(unstarted, boot_guard::software_rendering_marked());
+    let Some(reason) = linux_rendering::software_reason(&probe) else {
+        return;
+    };
+    if unstarted >= 2 {
+        boot_guard::mark_software_rendering();
+    }
+    let applied = linux_rendering::apply_software_env();
+    boot_guard::log_line(&format!(
+        "software rendering: {reason}; set {}",
+        if applied.is_empty() {
+            "nothing, already set by the environment".to_string()
+        } else {
+            applied.join(", ")
+        }
+    ));
+}
+
+fn tray_available(app: &tauri::AppHandle) -> bool {
+    let state: State<TrayState> = app.state();
+    let available = state.0.lock().map(|guard| guard.is_some()).unwrap_or(true);
+    available
+}
+
 fn main() {
     boot_guard::prepare();
 
@@ -452,6 +484,7 @@ fn main() {
     #[cfg(all(unix, not(target_os = "macos")))]
     {
         std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
+        choose_linux_rendering();
         if boot_guard::compat_mode_active() {
             std::env::set_var("WEBKIT_DISABLE_COMPOSITING_MODE", "1");
             std::env::set_var("WEBKIT_DISABLE_THREADED_COMPOSITOR", "1");
@@ -541,8 +574,13 @@ fn main() {
             device::crypto::crypto_aes_gcm_encrypt,
             device::crypto::crypto_aes_gcm_decrypt,
             device::crypto::crypto_hmac_sign,
+            interface_zoom::get_interface_zoom,
+            interface_zoom::set_interface_zoom,
         ])
         .setup(|app| {
+            #[cfg(all(unix, not(target_os = "macos")))]
+            boot_guard::record_launch_attempt();
+
             #[cfg(any(windows, target_os = "linux"))]
             {
                 use tauri_plugin_deep_link::DeepLinkExt;
@@ -570,7 +608,7 @@ fn main() {
                 std::sync::Mutex<std::collections::HashMap<String, std::path::PathBuf>>,
             > = Default::default();
 
-            tauri::WebviewWindowBuilder::from_config(app, &window_config)?
+            let main_window = tauri::WebviewWindowBuilder::from_config(app, &window_config)?
                 .on_navigation(move |url| {
                     if is_app_navigation(url) {
                         return true;
@@ -615,8 +653,14 @@ fn main() {
                 })
                 .build()?;
 
-            let tray_icon = tauri::image::Image::from_bytes(TRAY_ICON)
-                .expect("failed to load tray icon");
+            let startup_zoom = interface_zoom::saved_zoom();
+            if (startup_zoom - interface_zoom::ZOOM_DEFAULT).abs() > f64::EPSILON {
+                if let Err(error) = main_window.set_zoom(startup_zoom) {
+                    tracing::warn!(%error, "could not apply the saved interface size");
+                }
+            }
+
+            let tray_icon = tauri::image::Image::from_bytes(TRAY_ICON)?;
 
             let show =
                 MenuItem::with_id(app, "show", "Show Aster Mail", true, None::<&str>)?;
@@ -657,7 +701,7 @@ fn main() {
             #[cfg(not(windows))]
             let menu = Menu::with_items(app, &[&show, &quit])?;
 
-            let tray = TrayIconBuilder::with_id("aster-mail")
+            let tray_result = TrayIconBuilder::with_id("aster-mail")
                 .icon(tray_icon)
                 .icon_as_template(true)
                 .menu(&menu)
@@ -702,11 +746,19 @@ fn main() {
                         }
                     }
                 })
-                .build(app)?;
+                .build(app);
 
-            let state: State<TrayState> = app.state();
-            if let Ok(mut guard) = state.0.lock() {
-                *guard = Some(tray);
+            match tray_result {
+                Ok(tray) => {
+                    let state: State<TrayState> = app.state();
+                    if let Ok(mut guard) = state.0.lock() {
+                        *guard = Some(tray);
+                    };
+                }
+                Err(error) => {
+                    tracing::warn!(%error, "tray icon is unavailable");
+                    boot_guard::log_line(&format!("tray icon is unavailable: {error}"));
+                }
             }
 
             let menu_state: State<TrayMenuState> = app.state();
@@ -744,7 +796,7 @@ fn main() {
                     .lock()
                     .map(|guard| *guard)
                     .unwrap_or(true);
-                if !hide_instead_of_quit {
+                if !hide_instead_of_quit || !tray_available(window.app_handle()) {
                     return;
                 }
                 api.prevent_close();
