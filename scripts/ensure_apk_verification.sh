@@ -22,11 +22,12 @@ has_fp "$play_colon" "$section" || die "$section does not carry the Play fingerp
 [ -z "$(unknown_fps "$section")" ] || die "$section carries an unknown fingerprint"
 
 apksigner=""
-if command -v apksigner >/dev/null 2>&1; then
-  apksigner="apksigner"
-elif [ -n "${ANDROID_HOME:-}" ] && [ -d "$ANDROID_HOME/build-tools" ]; then
+if [ -n "${ANDROID_HOME:-}" ] && [ -d "$ANDROID_HOME/build-tools" ]; then
   bt="$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)"
-  apksigner="$ANDROID_HOME/build-tools/$bt/apksigner"
+  [ -x "$ANDROID_HOME/build-tools/$bt/apksigner" ] && apksigner="$ANDROID_HOME/build-tools/$bt/apksigner"
+fi
+if [ -z "$apksigner" ] && command -v apksigner >/dev/null 2>&1; then
+  apksigner="apksigner"
 fi
 [ -n "$apksigner" ] || die "apksigner not found, set ANDROID_HOME"
 
@@ -35,9 +36,14 @@ trap 'rm -rf "$tmp"' EXIT
 
 gh release download "$tag" --repo "$repo" --pattern Aster-Mail.apk --dir "$tmp" --clobber \
   || die "Aster-Mail.apk is not on $tag"
-digests="$("$apksigner" verify --print-certs "$tmp/Aster-Mail.apk" | tr -d '\r' \
-  | grep -E '^Signer #[0-9]+ certificate SHA-256 digest:' | awk '{print $NF}' | sort -u || true)"
-[ "$digests" = "$cert_sha" ] || die "Aster-Mail.apk on $tag is signed by ${digests:-nothing}, expected $cert_sha"
+verify_out="$("$apksigner" verify --print-certs "$tmp/Aster-Mail.apk" 2>&1 | tr -d '\r' || true)"
+digests="$(printf '%s\n' "$verify_out" | grep -E '^Signer #[0-9]+ certificate SHA-256 digest:' \
+  | awk '{print $NF}' | sort -u || true)"
+if [ "$digests" != "$cert_sha" ]; then
+  echo "$apksigner verify --print-certs:"
+  printf '%s\n' "$verify_out" | head -20
+  die "Aster-Mail.apk on $tag is signed by ${digests:-nothing}, expected $cert_sha"
+fi
 echo "Aster-Mail.apk on $tag is signed with the release certificate."
 
 gh release view "$tag" --repo "$repo" --json body --jq .body > "$tmp/body.md"
