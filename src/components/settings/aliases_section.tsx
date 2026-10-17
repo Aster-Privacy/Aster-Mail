@@ -55,20 +55,21 @@ import {
 
 export { DomainSetupWizard } from "@/components/settings/aliases/domain_setup_wizard";
 
-type AliasTab = "aliases" | "directories" | "ghost" | "preferences";
+const ALIAS_TABS = ["aliases", "directories", "ghost", "preferences"] as const;
+
+type AliasTab = (typeof ALIAS_TABS)[number];
+
+function to_alias_tab(value: string | null): AliasTab | undefined {
+  return ALIAS_TABS.find((known_tab) => known_tab === value);
+}
 
 const SESSION_TAB_KEY = "alias_tab";
 
 function read_initial_tab(): AliasTab {
   try {
-    const stored = sessionStorage.getItem(SESSION_TAB_KEY);
+    const stored = to_alias_tab(sessionStorage.getItem(SESSION_TAB_KEY));
 
-    if (
-      stored === "aliases" ||
-      stored === "directories" ||
-      stored === "ghost" ||
-      stored === "preferences"
-    ) {
+    if (stored) {
       return stored;
     }
   } catch (caught) {
@@ -130,8 +131,12 @@ export function AliasesSection() {
 
   const handle_tab = (tab: AliasTab) => {
     set_active_tab(tab);
+    const stored_tab = to_alias_tab(tab);
+
+    if (!stored_tab) return;
+
     try {
-      sessionStorage.setItem(SESSION_TAB_KEY, tab);
+      sessionStorage.setItem(SESSION_TAB_KEY, stored_tab);
     } catch (caught) {
       ignore_error("components/settings/aliases_section:handle_tab", caught);
     }
