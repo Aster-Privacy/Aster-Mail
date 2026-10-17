@@ -1103,15 +1103,19 @@ pub fn crypto_aes_gcm_encrypt(
     key: Vec<u8>,
     iv: Vec<u8>,
     data: Vec<u8>,
+    aad: Option<Vec<u8>>,
 ) -> Result<Vec<u8>, String> {
-    use aes_gcm::{Aes256Gcm, KeyInit, Nonce, aead::Aead};
+    use aes_gcm::{Aes256Gcm, KeyInit, Nonce, aead::{Aead, Payload}};
     if iv.len() != 12 {
         return Err("aes-gcm iv must be 12 bytes".to_string());
     }
     let cipher = Aes256Gcm::new_from_slice(&key).map_err(|e| e.to_string())?;
     let nonce = &Nonce::try_from(iv.as_slice())
         .map_err(|_| "aes-gcm iv must be 12 bytes".to_string())?;
-    cipher.encrypt(nonce, data.as_ref()).map_err(|e| e.to_string())
+    let aad = aad.unwrap_or_default();
+    cipher
+        .encrypt(nonce, Payload { msg: &data, aad: &aad })
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -1119,15 +1123,19 @@ pub fn crypto_aes_gcm_decrypt(
     key: Vec<u8>,
     iv: Vec<u8>,
     data: Vec<u8>,
+    aad: Option<Vec<u8>>,
 ) -> Result<Vec<u8>, String> {
-    use aes_gcm::{Aes256Gcm, KeyInit, Nonce, aead::Aead};
+    use aes_gcm::{Aes256Gcm, KeyInit, Nonce, aead::{Aead, Payload}};
     if iv.len() != 12 {
         return Err("aes-gcm iv must be 12 bytes".to_string());
     }
     let cipher = Aes256Gcm::new_from_slice(&key).map_err(|e| e.to_string())?;
     let nonce = &Nonce::try_from(iv.as_slice())
         .map_err(|_| "aes-gcm iv must be 12 bytes".to_string())?;
-    cipher.decrypt(nonce, data.as_ref()).map_err(|e| e.to_string())
+    let aad = aad.unwrap_or_default();
+    cipher
+        .decrypt(nonce, Payload { msg: &data, aad: &aad })
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -1359,5 +1367,36 @@ mod tests {
         );
         assert!(aead_open(&key, MAGIC_ID, &sealed).is_err());
         assert!(aead_open(&key, MAGIC_PP, &sealed).is_err());
+    }
+
+    #[test]
+    fn aes_gcm_commands_bind_the_additional_data() {
+        let key = test_key(3).to_vec();
+        let iv = vec![5u8; 12];
+        let aad = b"ratchet header".to_vec();
+        let sealed =
+            crypto_aes_gcm_encrypt(key.clone(), iv.clone(), b"hello".to_vec(), Some(aad.clone()))
+                .unwrap();
+
+        assert_eq!(
+            crypto_aes_gcm_decrypt(key.clone(), iv.clone(), sealed.clone(), Some(aad)).unwrap(),
+            b"hello"
+        );
+        assert!(crypto_aes_gcm_decrypt(key.clone(), iv.clone(), sealed.clone(), None).is_err());
+        assert!(
+            crypto_aes_gcm_decrypt(key, iv, sealed, Some(b"other header".to_vec())).is_err()
+        );
+    }
+
+    #[test]
+    fn aes_gcm_commands_treat_absent_and_empty_additional_data_alike() {
+        let key = test_key(4).to_vec();
+        let iv = vec![6u8; 12];
+        let sealed = crypto_aes_gcm_encrypt(key.clone(), iv.clone(), b"hi".to_vec(), None).unwrap();
+
+        assert_eq!(
+            crypto_aes_gcm_decrypt(key, iv, sealed, Some(Vec::new())).unwrap(),
+            b"hi"
+        );
     }
 }
