@@ -211,7 +211,6 @@ describe("native packages ship a slim copy of the web build", () => {
       ...list_text_files("public"),
       ...list_text_files("src-tauri"),
       ...list_text_files("android"),
-      ...list_text_files("ios"),
     ];
     const sources = names.map((name) => ({ name, text: read(name) }));
 

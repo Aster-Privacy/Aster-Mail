@@ -7,7 +7,6 @@ paths-ignore:
   - src-tauri/gen/**
   - src-tauri/target/**
   - android/**
-  - ios/**
   - dist/**
   - dist-native/**
   - node_modules/**

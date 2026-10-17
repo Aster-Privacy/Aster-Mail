@@ -17,7 +17,6 @@ dev-dist/
 *.sw?
 src-tauri/
 android/
-ios/
 backend/
 backend.old/
 portal/
