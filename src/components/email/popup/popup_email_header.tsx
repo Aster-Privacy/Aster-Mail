@@ -27,14 +27,16 @@ import type { ExternalContentReport } from "@/lib/html_sanitizer";
 import { useState, useMemo } from "react";
 import { ChevronDownIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
-import { copy_text_or_throw } from "@/utils/copy_text";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
+import {
+  CopyableAddress,
+  RecipientAddress,
+} from "@/components/email/copyable_address";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { show_toast } from "@/components/toast/simple_toast";
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
 import { TrackingProtectionShield } from "@/components/email/tracking_protection_shield";
 import { ExpirationCountdown } from "@/components/email/expiration_countdown";
@@ -339,20 +341,12 @@ export function PopupEmailHeader({
                     </span>
                     <span className="min-w-0 text-txt-secondary break-words">
                       {show_sender_name ? `${show_sender_name} ` : ""}
-                      <button
-                        className="hover:underline text-txt-muted"
-                        onClick={() => {
-                          copy_text_or_throw(show_sender_email)
-                            .then(() => {
-                              show_toast(t("common.email_copied"), "success");
-                            })
-                            .catch(() =>
-                              show_toast(t("common.failed_to_copy"), "error"),
-                            );
-                        }}
+                      <CopyableAddress
+                        address={show_sender_email}
+                        className="text-txt-muted [overflow-wrap:anywhere]"
                       >
                         &lt;{show_sender_email}&gt;
-                      </button>
+                      </CopyableAddress>
                     </span>
                   </div>
                   <div className="grid grid-cols-[3.5rem_1fr] gap-x-2 items-start">
@@ -372,27 +366,7 @@ export function PopupEmailHeader({
                                 name={r.name || ""}
                                 size="xs"
                               />
-                              <button
-                                className="hover:underline"
-                                onClick={() => {
-                                  if (!r.email) return;
-                                  copy_text_or_throw(r.email)
-                                    .then(() =>
-                                      show_toast(
-                                        t("common.email_copied"),
-                                        "success",
-                                      ),
-                                    )
-                                    .catch(() =>
-                                      show_toast(
-                                        t("common.failed_to_copy"),
-                                        "error",
-                                      ),
-                                    );
-                                }}
-                              >
-                                {r.name || r.email || t("common.unknown")}
-                              </button>
+                              <RecipientAddress email={r.email} name={r.name} />
                               {i < email.to.length - 1 && <span>,</span>}
                             </span>
                           ))
@@ -416,27 +390,7 @@ export function PopupEmailHeader({
                               name={r.name || ""}
                               size="xs"
                             />
-                            <button
-                              className="hover:underline"
-                              onClick={() => {
-                                if (!r.email) return;
-                                copy_text_or_throw(r.email)
-                                  .then(() =>
-                                    show_toast(
-                                      t("common.email_copied"),
-                                      "success",
-                                    ),
-                                  )
-                                  .catch(() =>
-                                    show_toast(
-                                      t("common.failed_to_copy"),
-                                      "error",
-                                    ),
-                                  );
-                              }}
-                            >
-                              {r.name || r.email || t("common.unknown")}
-                            </button>
+                            <RecipientAddress email={r.email} name={r.name} />
                             {i < email.cc.length - 1 && <span>,</span>}
                           </span>
                         ))}
@@ -460,27 +414,7 @@ export function PopupEmailHeader({
                               name={r.name || ""}
                               size="xs"
                             />
-                            <button
-                              className="hover:underline"
-                              onClick={() => {
-                                if (!r.email) return;
-                                copy_text_or_throw(r.email)
-                                  .then(() =>
-                                    show_toast(
-                                      t("common.email_copied"),
-                                      "success",
-                                    ),
-                                  )
-                                  .catch(() =>
-                                    show_toast(
-                                      t("common.failed_to_copy"),
-                                      "error",
-                                    ),
-                                  );
-                              }}
-                            >
-                              {r.name || r.email || t("common.unknown")}
-                            </button>
+                            <RecipientAddress email={r.email} name={r.name} />
                             {i < email.bcc.length - 1 && <span>,</span>}
                           </span>
                         ))}
