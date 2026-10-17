@@ -28,6 +28,7 @@ import {
 import {
   BORDER_MIN_CONTRAST,
   HIDDEN_LINK_ALPHA,
+  LINK_BUTTON_ATTRIBUTE,
   LINK_HOVER_VAR,
   LINK_INK_ATTRIBUTE,
   LINK_INK_HOVER_VAR,
@@ -41,6 +42,7 @@ import {
   composite_over,
   contrast_threshold_for,
   is_neutral_ink,
+  mark_link_buttons,
   parse_css_color,
   repair_email_contrast,
   rgba_to_hex,
@@ -1226,5 +1228,43 @@ describe("repair_email_contrast in dark mode newsletters", () => {
     expect(is_grey(repaired)).toBe(true);
     expect(ratio).toBeGreaterThanOrEqual(4.5);
     expect(ratio).toBeLessThan(5);
+  });
+});
+
+describe("mark_link_buttons", () => {
+  it("marks links whose background comes from a stylesheet", () => {
+    const doc = build_document();
+
+    doc.body.innerHTML =
+      '<a class="btn" data-bg="rgb(29, 78, 216)" href="https://example.test" id="button">Read more</a>' +
+      '<a data-bgimage="linear-gradient(red, blue)" href="https://example.test" id="gradient">Open</a>' +
+      '<a href="https://example.test" id="plain">Manage</a>' +
+      '<a data-bg="rgba(0, 0, 0, 0)" href="https://example.test" id="clear">Help</a>';
+
+    const marked = mark_link_buttons(doc, fake_view());
+
+    expect(marked).toBe(2);
+    expect(
+      doc.getElementById("button")!.hasAttribute(LINK_BUTTON_ATTRIBUTE),
+    ).toBe(true);
+    expect(
+      doc.getElementById("gradient")!.hasAttribute(LINK_BUTTON_ATTRIBUTE),
+    ).toBe(true);
+    expect(
+      doc.getElementById("plain")!.hasAttribute(LINK_BUTTON_ATTRIBUTE),
+    ).toBe(false);
+    expect(
+      doc.getElementById("clear")!.hasAttribute(LINK_BUTTON_ATTRIBUTE),
+    ).toBe(false);
+  });
+
+  it("does not count a link twice", () => {
+    const doc = build_document();
+
+    doc.body.innerHTML =
+      '<a data-bg="rgb(29, 78, 216)" href="https://example.test">Read more</a>';
+
+    expect(mark_link_buttons(doc, fake_view())).toBe(1);
+    expect(mark_link_buttons(doc, fake_view())).toBe(0);
   });
 });

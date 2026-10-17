@@ -61,7 +61,7 @@ describe("build_auto_dark_mode_css", () => {
 
   it("keeps button links inheriting their own painted ink", () => {
     expect(css).toContain(
-      'a[style*="background" i] *, [bgcolor] > a * { color: inherit !important; }',
+      'a[style*="background" i] *, a[data-aster-link-button] *, [bgcolor] > a * { color: inherit !important; }',
     );
   });
 

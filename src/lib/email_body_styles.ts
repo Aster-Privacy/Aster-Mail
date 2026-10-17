@@ -22,7 +22,10 @@ import type { PlaceholderPaint } from "@/lib/blocked_image_placeholder";
 
 import { accent_foreground_for } from "@/lib/resolved_accent";
 import { derive_link_ink, derive_visited_ink } from "@/lib/email_ink";
-import { LINK_VISITED_VAR } from "@/lib/email_contrast_repair";
+import {
+  LINK_BUTTON_ATTRIBUTE,
+  LINK_VISITED_VAR,
+} from "@/lib/email_contrast_repair";
 import {
   BRAND_BACKGROUND_MARK,
   LIGHT_SPAN_BACKGROUND_MARK,
@@ -352,10 +355,11 @@ a:visited {
 export const EMAIL_BODY_CSS =
   build_email_font_face_css() + build_email_body_css();
 
-export const LINK_BUTTON_HOVER_SELECTOR =
-  'a[style*="background" i]:hover, [bgcolor] > a:hover';
+export const LINK_BUTTON_HOVER_SELECTOR = `a[style*="background" i]:hover, a[${LINK_BUTTON_ATTRIBUTE}]:hover, [bgcolor] > a:hover`;
 
-export const LINK_BUTTON_EXCLUDE = ':not([style*="background" i])';
+export const LINK_BUTTON_EXCLUDE = `:not([style*="background" i]):not([${LINK_BUTTON_ATTRIBUTE}])`;
+
+const LINK_BUTTON_CHILDREN = `a[style*="background" i] *, a[${LINK_BUTTON_ATTRIBUTE}] *, [bgcolor] > a *`;
 
 const QUOTE_SCOPE_EXCLUDE =
   ':not([class*="quote" i]):not([class*="quote" i] *):not([class*="cite" i]):not([class*="cite" i] *):not(blockquote[type="cite"]):not(blockquote[type="cite"] *)';
@@ -378,7 +382,7 @@ body span[style*="background"]${QUOTE_SCOPE_EXCLUDE}${IMAGE_BACKGROUND_EXCLUDE},
 body span[style*="background"]${QUOTE_SCOPE_EXCLUDE}[style*="url(" i], blockquote [style*="background"]${QUOTE_SCOPE_EXCLUDE}[style*="url(" i] { background-color: transparent !important; }
 a${LINK_BUTTON_EXCLUDE}, a${LINK_BUTTON_EXCLUDE} * { color: ${link_color}; }
 a:visited${LINK_BUTTON_EXCLUDE}, a:visited${LINK_BUTTON_EXCLUDE} * { color: var(${LINK_VISITED_VAR}, ${link_visited_color}) !important; }
-a[style*="background" i] *, [bgcolor] > a * { color: inherit !important; }`;
+${LINK_BUTTON_CHILDREN} { color: inherit !important; }`;
 }
 
 export function build_forced_dark_mode_css(
@@ -410,7 +414,7 @@ hgroup${FORCED_NEUTRALIZE_EXCLUDE}, span[${LIGHT_SPAN_BACKGROUND_MARK}]${FORCED_
 a${LINK_BUTTON_EXCLUDE}${BRAND_BACKGROUND_EXCLUDE}, a${LINK_BUTTON_EXCLUDE}${BRAND_BACKGROUND_EXCLUDE} * { color: ${link_color}; }
 a:visited${LINK_BUTTON_EXCLUDE}${BRAND_BACKGROUND_EXCLUDE}, a:visited${LINK_BUTTON_EXCLUDE}${BRAND_BACKGROUND_EXCLUDE} * { color: var(${LINK_VISITED_VAR}, ${link_visited_color}) !important; }
 
-a[style*="background" i] *, [bgcolor] > a * { color: inherit !important; }
+${LINK_BUTTON_CHILDREN} { color: inherit !important; }
 
 img { opacity: 0.87; }
 
