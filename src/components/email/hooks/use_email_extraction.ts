@@ -20,14 +20,24 @@
 //
 import type { EmailExtractionResult } from "@/services/extraction/types";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 
 import {
   extract_email_details,
   extraction_needs_markup_parse,
 } from "@/services/extraction/extractor";
 import { run_after_next_paint } from "@/lib/run_after_next_paint";
-import { safe_sender_name } from "@/lib/sender_trust_store";
+import {
+  get_sender_trust_context,
+  safe_sender_name,
+  subscribe_sender_trust_context,
+} from "@/lib/sender_trust_store";
 import { guard_body_step } from "@/components/email/message_body_fallback";
 
 function no_extracted_details(): EmailExtractionResult {
@@ -54,6 +64,10 @@ export interface EmailExtractionSource {
   from_name: string;
 }
 
+function read_own_addresses(): string[] {
+  return get_sender_trust_context().own_addresses;
+}
+
 export function use_email_extraction(
   source: EmailExtractionSource | null,
 ): EmailExtractionResult | null {
@@ -68,8 +82,18 @@ export function use_email_extraction(
     [claimed_name, from_email],
   );
 
+  const own_addresses = useSyncExternalStore(
+    subscribe_sender_trust_context,
+    read_own_addresses,
+    read_own_addresses,
+  );
+  const is_own_message = useMemo(
+    () => own_addresses.includes(from_email.trim().toLowerCase()),
+    [own_addresses, from_email],
+  );
+
   const job = useMemo((): ExtractionJob | null => {
-    if (email_id === null) return null;
+    if (email_id === null || is_own_message) return null;
 
     const run = () =>
       guard_body_step(
@@ -90,7 +114,15 @@ export function use_email_extraction(
     }
 
     return { run };
-  }, [email_id, subject, body_text, body_html, from_email, from_name]);
+  }, [
+    email_id,
+    is_own_message,
+    subject,
+    body_text,
+    body_html,
+    from_email,
+    from_name,
+  ]);
 
   const [deferred, set_deferred] = useState<{
     job: ExtractionJob;
