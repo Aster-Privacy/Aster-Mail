@@ -265,6 +265,20 @@ describe("PurchaseDetailsBanner", () => {
     expect(query(el, "purchase_view_receipt")).not.toBeNull();
   });
 
+  it("shows the privacy note when the info button is clicked", async () => {
+    const el = await render(
+      <PurchaseDetailsBanner details={base} email_id="m_info" />,
+    );
+
+    expect(document.body.textContent).not.toContain(
+      "mail.purchase_extraction_privacy",
+    );
+    await click(query(el, "purchase_review_info"));
+    expect(document.body.textContent).toContain(
+      "mail.purchase_extraction_privacy",
+    );
+  });
+
   it("renders nothing without meaningful data", async () => {
     const el = await render(
       <PurchaseDetailsBanner
