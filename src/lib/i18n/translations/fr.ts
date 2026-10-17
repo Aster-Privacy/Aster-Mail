@@ -4850,7 +4850,7 @@ export const fr = {
       "Regroupe les e-mails avec le même sujet en un fil. Facilite le suivi d'une conversation sans faire défiler des messages individuels.",
     one_click_unsubscribe_supported: "Désabonnement en un clic pris en charge",
     open_unsubscribe_page: "Ouvrir la page de désabonnement",
-    font_size: "Taille de la police",
+    font_size: "Taille du texte",
     vision: "Vision",
     color_vision: "Vision des couleurs",
     reading: "Lecture",
@@ -5295,8 +5295,17 @@ export const fr = {
     macos: "macOS",
     windows_linux: "Windows/Linux",
     font_size_description:
-      "Ajuster la taille de base du texte dans l'interface",
+      "Modifie la taille du texte des e-mails et d'une partie du texte de l'app. Pour tout agrandir, utilisez le zoom de votre navigateur.",
     font_size_reset: "Réinitialiser",
+    font_size_description_desktop:
+      "Modifie la taille du texte des e-mails et d'une partie du texte de l'app. Pour tout agrandir, modifiez Taille de l'interface dans Apparence.",
+    interface_zoom: "Taille de l'interface",
+    interface_zoom_description:
+      "Agrandit ou réduit le texte, les icônes et les espacements dans toute l'app.",
+    interface_zoom_shortcut:
+      "Pour modifier la taille au clavier, appuyez sur Ctrl+Plus ou Ctrl+Moins. Pour la réinitialiser, appuyez sur Ctrl+0.",
+    interface_zoom_shortcut_mac:
+      "Pour modifier la taille au clavier, appuyez sur Commande+Plus ou Commande+Moins. Pour la réinitialiser, appuyez sur Commande+0.",
     vision_description:
       "Paramètres pour une meilleure visibilité et un meilleur contraste",
     color_vision_description:

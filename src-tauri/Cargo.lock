@@ -185,6 +185,7 @@ dependencies = [
  "windows 0.61.3",
  "windows-core 0.62.2",
  "windows-registry 0.100.0",
+ "x11-dl",
  "x25519-dalek",
  "zeroize",
 ]

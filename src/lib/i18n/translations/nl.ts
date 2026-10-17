@@ -4716,7 +4716,7 @@ export const nl = {
       "Groepeert e-mails met hetzelfde onderwerp in één thread. Maakt het gemakkelijker een gesprek te volgen.",
     one_click_unsubscribe_supported: "Uitschrijven met één klik ondersteund",
     open_unsubscribe_page: "Uitschrijfpagina openen",
-    font_size: "Lettergrootte",
+    font_size: "Tekstgrootte",
     vision: "Zicht",
     color_vision: "Kleurenzicht",
     reading: "Lezen",
@@ -6710,8 +6710,18 @@ export const nl = {
     type_delete_to_confirm: "Typ {word} om te bevestigen",
     deleting_label: "Verwijderen...",
     delete_account_button: "Account verwijderen",
-    font_size_description: "Pas de basistekstgrootte aan in de interface",
+    font_size_description:
+      "Wijzigt de grootte van e-mailtekst en een deel van de tekst in de app. Als je alles groter wilt maken, gebruik je de zoomfunctie van je browser.",
     font_size_reset: "Resetten",
+    font_size_description_desktop:
+      "Wijzigt de grootte van e-mailtekst en een deel van de tekst in de app. Als je alles groter wilt maken, wijzig je Interfacegrootte bij Uiterlijk.",
+    interface_zoom: "Interfacegrootte",
+    interface_zoom_description:
+      "Maakt tekst, pictogrammen en witruimte in de hele app groter of kleiner.",
+    interface_zoom_shortcut:
+      "Als je de grootte met het toetsenbord wilt wijzigen, druk je op Ctrl+Plus of Ctrl+Min. Als je de grootte wilt herstellen, druk je op Ctrl+0.",
+    interface_zoom_shortcut_mac:
+      "Als je de grootte met het toetsenbord wilt wijzigen, druk je op Command+Plus of Command+Min. Als je de grootte wilt herstellen, druk je op Command+0.",
     vision_description:
       "Instellingen voor verbeterde zichtbaarheid en contrast",
     reading_description: "Pas lettertype en afstand aan voor makkelijker lezen",

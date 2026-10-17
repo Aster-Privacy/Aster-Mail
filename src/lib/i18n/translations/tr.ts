@@ -4728,7 +4728,7 @@ export const tr = {
       "Aynı konuya sahip e-postaları tek bir konuşmaya gruplar. Tek tek mesajlar arasında kaydırmadan konuşmayı takip etmeyi kolaylaştırır.",
     one_click_unsubscribe_supported: "Tek tıkla abonelik iptali destekleniyor",
     open_unsubscribe_page: "Abonelik iptal sayfasını aç",
-    font_size: "Yazı Tipi Boyutu",
+    font_size: "Metin boyutu",
     vision: "Görüş",
     color_vision: "Renk Görüşü",
     reading: "Okuma",
@@ -5153,8 +5153,18 @@ export const tr = {
     enter_your_password_placeholder: "Parolanızı girin",
     macos: "macOS",
     windows_linux: "Windows/Linux",
-    font_size_description: "Arayüz genelinde temel metin boyutunu ayarlayın",
+    font_size_description:
+      "E-posta metninin ve uygulamadaki bazı metinlerin boyutunu değiştirir. Her şeyi büyütmek için tarayıcınızın yakınlaştırma özelliğini kullanın.",
     font_size_reset: "Sıfırla",
+    font_size_description_desktop:
+      "E-posta metninin ve uygulamadaki bazı metinlerin boyutunu değiştirir. Her şeyi büyütmek için Görünüm bölümünde Arayüz boyutu ayarını değiştirin.",
+    interface_zoom: "Arayüz boyutu",
+    interface_zoom_description:
+      "Uygulama genelinde metinleri, simgeleri ve boşlukları büyütür veya küçültür.",
+    interface_zoom_shortcut:
+      "Boyutu klavyeyle değiştirmek için Ctrl+Artı veya Ctrl+Eksi tuşlarına basın. Sıfırlamak için Ctrl+0 tuşlarına basın.",
+    interface_zoom_shortcut_mac:
+      "Boyutu klavyeyle değiştirmek için Command+Artı veya Command+Eksi tuşlarına basın. Sıfırlamak için Command+0 tuşlarına basın.",
     vision_description: "Gelişmiş görünürlük ve kontrast ayarları",
     color_vision_description:
       "Renk görüşü eksiklikleri için arayüzü uyarlamak üzere renk filtreleri uygulayın",

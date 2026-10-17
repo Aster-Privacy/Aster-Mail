@@ -63,6 +63,9 @@ rfd = "0.15"
 windows-registry = "0.100"
 windows = { version = "0.61", features = ["Data_Xml_Dom", "UI_Notifications"] }
 
+[target.'cfg(all(unix, not(target_os = "macos")))'.dependencies]
+x11-dl = "2.21"
+
 [patch.crates-io]
 glib = { path = "patches/glib-0.18.5" }
 atty = { path = "patches/atty-0.2.14" }

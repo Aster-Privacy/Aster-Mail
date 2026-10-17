@@ -5660,7 +5660,7 @@ export const en: Translations = {
       "Groups emails with the same subject into a single thread. Makes it easier to follow a conversation without scrolling through individual messages.",
     one_click_unsubscribe_supported: "One-click unsubscribe supported",
     open_unsubscribe_page: "Open unsubscribe page",
-    font_size: "Font Size",
+    font_size: "Text size",
     vision: "Vision",
     color_vision: "Color Vision",
     reading: "Reading",
@@ -6113,8 +6113,18 @@ export const en: Translations = {
     delete_account_button: "Delete account",
     macos: "macOS",
     windows_linux: "Windows/Linux",
-    font_size_description: "Adjust the base text size across the interface",
+    font_size_description:
+      "Changes the size of email text and some text in the app. To make everything larger, use your browser's zoom.",
     font_size_reset: "Reset",
+    font_size_description_desktop:
+      "Changes the size of email text and some text in the app. To make everything larger, change Interface size in Appearance.",
+    interface_zoom: "Interface size",
+    interface_zoom_description:
+      "Makes text, icons, and spacing larger or smaller across the app.",
+    interface_zoom_shortcut:
+      "To change the size with your keyboard, press Control+Plus or Control+Minus. To reset it, press Control+0.",
+    interface_zoom_shortcut_mac:
+      "To change the size with your keyboard, press Command+Plus or Command+Minus. To reset it, press Command+0.",
     vision_description: "Settings for improved visibility and contrast",
     color_vision_description:
       "Apply color filters to adapt the interface for color vision deficiencies",

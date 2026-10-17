@@ -5739,7 +5739,7 @@ export const hi = {
     one_click_unsubscribe_supported:
       "एक क्लिक में सदस्यता रद्द करना समर्थित है",
     open_unsubscribe_page: "सदस्यता छोड़ने का पेज खोलें",
-    font_size: "फ़ॉन्ट का आकार",
+    font_size: "टेक्स्ट का आकार",
     vision: "दृष्टि",
     color_vision: "रंग दृष्टि",
     reading: "पढ़ना",
@@ -6186,8 +6186,18 @@ export const hi = {
     delete_account_button: "खाता हटाएं",
     macos: "macOS",
     windows_linux: "Windows/Linux",
-    font_size_description: "पूरे इंटरफ़ेस में टेक्स्ट का मूल आकार बदलें",
+    font_size_description:
+      "ईमेल के टेक्स्ट और ऐप के कुछ टेक्स्ट का आकार बदलता है। सब कुछ बड़ा करने के लिए, अपने ब्राउज़र का ज़ूम इस्तेमाल करें।",
     font_size_reset: "रीसेट करें",
+    font_size_description_desktop:
+      "ईमेल के टेक्स्ट और ऐप के कुछ टेक्स्ट का आकार बदलता है। सब कुछ बड़ा करने के लिए, दिखावट में इंटरफ़ेस का आकार बदलें।",
+    interface_zoom: "इंटरफ़ेस का आकार",
+    interface_zoom_description:
+      "पूरे ऐप में टेक्स्ट, आइकॉन और स्पेसिंग को बड़ा या छोटा करता है।",
+    interface_zoom_shortcut:
+      "कीबोर्ड से आकार बदलने के लिए, Ctrl+प्लस या Ctrl+माइनस दबाएं। आकार रीसेट करने के लिए, Ctrl+0 दबाएं।",
+    interface_zoom_shortcut_mac:
+      "कीबोर्ड से आकार बदलने के लिए, Command+प्लस या Command+माइनस दबाएं। आकार रीसेट करने के लिए, Command+0 दबाएं।",
     vision_description: "बेहतर दृश्यता और कंट्रास्ट के लिए सेटिंग",
     color_vision_description:
       "रंग दृष्टि की कमियों के हिसाब से इंटरफ़ेस ढालने के लिए रंग फ़िल्टर लगाएं",

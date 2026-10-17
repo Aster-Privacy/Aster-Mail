@@ -5401,6 +5401,11 @@ export interface SettingsTranslations {
   windows_linux: string;
   font_size_description: string;
   font_size_reset: string;
+  font_size_description_desktop: string;
+  interface_zoom: string;
+  interface_zoom_description: string;
+  interface_zoom_shortcut: string;
+  interface_zoom_shortcut_mac: string;
   vision_description: string;
   color_vision_description: string;
   reading_description: string;

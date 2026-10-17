@@ -4764,7 +4764,7 @@ export const ko = {
       "같은 제목의 이메일을 하나의 스레드로 묶습니다. 개별 메시지를 스크롤하지 않고도 대화를 쉽게 따라갈 수 있습니다.",
     one_click_unsubscribe_supported: "원클릭 구독 취소 지원",
     open_unsubscribe_page: "구독 취소 페이지 열기",
-    font_size: "글꼴 크기",
+    font_size: "텍스트 크기",
     vision: "시각",
     color_vision: "색각",
     reading: "읽기",
@@ -5176,8 +5176,17 @@ export const ko = {
     enter_your_password_placeholder: "비밀번호를 입력하세요",
     macos: "macOS",
     windows_linux: "Windows/Linux",
-    font_size_description: "인터페이스 전체의 기본 텍스트 크기를 조정합니다",
+    font_size_description:
+      "이메일 텍스트와 앱의 일부 텍스트 크기를 변경합니다. 모든 항목을 크게 보려면 브라우저의 확대/축소 기능을 사용하세요.",
     font_size_reset: "재설정",
+    font_size_description_desktop:
+      "이메일 텍스트와 앱의 일부 텍스트 크기를 변경합니다. 모든 항목을 크게 보려면 외관에서 인터페이스 크기를 변경하세요.",
+    interface_zoom: "인터페이스 크기",
+    interface_zoom_description: "앱 전체의 텍스트, 아이콘, 간격을 크게 또는 작게 표시합니다.",
+    interface_zoom_shortcut:
+      "키보드로 크기를 변경하려면 Ctrl+더하기 또는 Ctrl+빼기를 누르세요. 원래 크기로 되돌리려면 Ctrl+0을 누르세요.",
+    interface_zoom_shortcut_mac:
+      "키보드로 크기를 변경하려면 Command+더하기 또는 Command+빼기를 누르세요. 원래 크기로 되돌리려면 Command+0을 누르세요.",
     vision_description: "가시성과 대비 개선을 위한 설정",
     color_vision_description:
       "색각 결함에 맞게 인터페이스를 조정하기 위한 색상 필터를 적용합니다",
