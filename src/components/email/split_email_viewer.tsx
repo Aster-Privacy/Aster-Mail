@@ -39,6 +39,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmailOpenSkeleton } from "@/components/email/viewer_shared/email_open_skeleton";
 import { use_preferences } from "@/contexts/preferences_context";
+import { SenderLogoBoundary } from "@/contexts/sender_logo_context";
 import { is_system_email } from "@/lib/utils";
 import {
   use_email_viewer,
@@ -525,7 +526,7 @@ export function SplitEmailViewer({
       !viewer.is_content_current) &&
     !viewer.error;
 
-  return (
+  const viewer_content = (
     <div className="flex flex-col h-full bg-surf-primary">
       <div className="flex items-center gap-1 px-2 @md:px-3 py-2 border-b border-edge-primary flex-shrink-0">
         {email ? (
@@ -712,5 +713,11 @@ export function SplitEmailViewer({
       </div>
       {spam_confirm_dialog}
     </div>
+  );
+
+  return (
+    <SenderLogoBoundary allowed={viewer.mail_item?.is_spam !== true}>
+      {viewer_content}
+    </SenderLogoBoundary>
   );
 }

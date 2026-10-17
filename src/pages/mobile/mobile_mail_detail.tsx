@@ -45,6 +45,7 @@ import { MobileHeader } from "@/components/mobile/mobile_header";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { safe_sender_name } from "@/lib/sender_trust_store";
+import { SenderLogoBoundary } from "@/contexts/sender_logo_context";
 
 function MobilePendingMessageRow({ with_divider }: { with_divider: boolean }) {
   return (
@@ -219,7 +220,7 @@ function MobileMailDetail() {
 
   if (swipe_nav_state.direction) swipe_nav_state.direction = null;
 
-  return (
+  const detail_content = (
     <motion.div
       key={detail.email_id}
       animate={{ opacity: 1, x: 0 }}
@@ -514,6 +515,12 @@ function MobileMailDetail() {
       />
       {spam_confirm_dialog}
     </motion.div>
+  );
+
+  return (
+    <SenderLogoBoundary allowed={!detail.mail_item?.is_spam}>
+      {detail_content}
+    </SenderLogoBoundary>
   );
 }
 

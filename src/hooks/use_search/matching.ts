@@ -565,6 +565,7 @@ export function to_search_result(
     timestamp: item.message_ts || item.created_at,
     is_read: metadata?.is_read ?? false,
     is_starred: metadata?.is_starred ?? false,
+    is_spam: metadata?.is_spam ?? item.is_spam ?? false,
     has_attachment: metadata?.has_attachments ?? false,
     item_type: item.item_type,
     is_outgoing: !!first_recipient,

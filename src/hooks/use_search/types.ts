@@ -67,6 +67,7 @@ export interface SearchResultItem {
   timestamp: string;
   is_read: boolean;
   is_starred: boolean;
+  is_spam?: boolean;
   has_attachment: boolean;
   avatar_url?: string;
   item_type?: string;

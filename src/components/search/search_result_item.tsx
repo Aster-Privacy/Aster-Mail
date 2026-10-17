@@ -163,7 +163,9 @@ const SearchResultRowBase = forwardRef<
         name={shown_sender_name}
         plain={marks_hidden}
         size="sm"
-        use_domain_logo={preferences.show_profile_pictures !== false}
+        use_domain_logo={
+          preferences.show_profile_pictures !== false && !result.is_spam
+        }
       />
       <div className="flex-1 min-w-0 flex items-center gap-1.5">
         <span className="text-[13px] font-medium truncate text-txt-primary flex-shrink-0 max-w-[30%]">

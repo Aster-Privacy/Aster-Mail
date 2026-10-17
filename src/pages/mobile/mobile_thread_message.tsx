@@ -86,6 +86,7 @@ import {
   LOCKDOWN_CHANGED_EVENT,
 } from "@/services/lockdown_store";
 import { use_auth_safe } from "@/contexts/auth_context";
+import { SenderLogoBoundary } from "@/contexts/sender_logo_context";
 import { resolve_received_on_address } from "@/utils/delivered_to";
 import { EmailTag } from "@/components/ui/email_tag";
 import {
@@ -133,7 +134,17 @@ export function format_safe_date(
   return formatter(date);
 }
 
-export function MobileThreadMessage({
+export function MobileThreadMessage(
+  props: Parameters<typeof MobileThreadMessageContent>[0],
+) {
+  return (
+    <SenderLogoBoundary allowed={props.message.is_spam !== true}>
+      <MobileThreadMessageContent {...props} />
+    </SenderLogoBoundary>
+  );
+}
+
+function MobileThreadMessageContent({
   message,
   is_expanded,
   is_own_message,

@@ -40,6 +40,7 @@ import {
 import { get_root_domain } from "@/lib/utils";
 import { use_peer_profile } from "@/hooks/use_peer_profile";
 import { use_preferences } from "@/contexts/preferences_context";
+import { use_sender_logos_allowed } from "@/contexts/sender_logo_context";
 
 const ASTER_DOMAINS = new Set([
   "astermail.org",
@@ -82,6 +83,7 @@ export function ContactAvatar({
 
   const { preferences } = use_preferences();
   const low_network = preferences.low_network_mode;
+  const sender_logos_allowed = use_sender_logos_allowed();
 
   const peer_profile = use_peer_profile(
     is_aster && !low_network ? email : null,
@@ -94,6 +96,7 @@ export function ContactAvatar({
   const favicon_enabled =
     !low_network &&
     favicon_eligible &&
+    sender_logos_allowed &&
     preferences.show_profile_pictures !== false;
   const cached_favicon_src = use_favicon_src(domain, favicon_enabled);
   const favicon_src =
