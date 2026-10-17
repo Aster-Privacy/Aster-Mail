@@ -31,9 +31,11 @@ import {
   CHECK_NAME,
   EmailAuthCheckStatus,
 } from "@/components/email/email_auth_indicator";
-import { copy_text_or_throw } from "@/utils/copy_text";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
-import { show_toast } from "@/components/toast/simple_toast";
+import {
+  CopyableAddress,
+  RecipientAddress,
+} from "@/components/email/copyable_address";
 
 interface DetailRecipient {
   email: string;
@@ -91,12 +93,6 @@ export function MessageDetailCard({
     ? summarize_email_authentication(auth_results)
     : null;
 
-  const copy_address = (address: string) => {
-    copy_text_or_throw(address)
-      .then(() => show_toast(t("common.email_copied"), "success"))
-      .catch(() => show_toast(t("common.failed_to_copy"), "error"));
-  };
-
   const render_recipients = (list: DetailRecipient[]) => (
     <span className="flex flex-col gap-1.5">
       {list.map((r) => (
@@ -107,22 +103,7 @@ export function MessageDetailCard({
             name={r.name || ""}
             size="xs"
           />
-          <button
-            className="min-w-0 truncate text-start hover:underline"
-            dir="auto"
-            title={r.email}
-            type="button"
-            onClick={() => copy_address(r.email)}
-          >
-            {r.name ? (
-              <>
-                {r.name}{" "}
-                <span className="text-txt-muted">&lt;{r.email}&gt;</span>
-              </>
-            ) : (
-              r.email
-            )}
-          </button>
+          <RecipientAddress email={r.email} name={r.name} />
         </span>
       ))}
     </span>
@@ -146,12 +127,9 @@ export function MessageDetailCard({
             sender_authenticated={sender_authenticated}
             size="xs"
           />
-          <button
-            className="min-w-0 truncate text-start hover:underline"
-            dir="auto"
-            title={sender_email}
-            type="button"
-            onClick={() => copy_address(sender_email)}
+          <CopyableAddress
+            address={sender_email}
+            className="[overflow-wrap:anywhere]"
           >
             {sender_name && sender_name !== sender_email ? (
               <>
@@ -163,7 +141,7 @@ export function MessageDetailCard({
             ) : (
               <bdi>{sender_email}</bdi>
             )}
-          </button>
+          </CopyableAddress>
         </span>
       </DetailRow>
       {delivered_to_address && (
