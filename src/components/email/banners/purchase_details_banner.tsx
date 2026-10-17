@@ -40,6 +40,11 @@ import { ExtractionCard, ExtractionCardAction } from "./extraction_card";
 import { show_toast } from "@/components/toast/simple_toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { use_i18n } from "@/lib/i18n/context";
 import { cn } from "@/lib/utils";
 import {
@@ -145,60 +150,60 @@ function ReviewForm({
       <p className="text-sm font-medium text-txt-primary">
         {t("mail.receipt_review_title")}
       </p>
-      <div className="mt-3 grid gap-3 @md:grid-cols-2">
+      <div className="mt-2 grid max-w-lg gap-2 sm:grid-cols-2">
         <div>
           <label
-            className="block text-[11px] font-medium mb-1.5 text-txt-secondary"
+            className="block text-[11px] font-medium mb-1 text-txt-secondary"
             htmlFor={`${field_id}_merchant`}
           >
             {t("mail.merchant")}
           </label>
           <Input
             autoComplete="off"
-            className="aster_input_tonal"
+            className="aster_input_tonal aster_input_quiet"
             data-testid="purchase_review_merchant"
             id={`${field_id}_merchant`}
             maxLength={MAX_FIELD_LENGTH}
-            size="md"
+            size="sm"
             value={merchant_value}
             onChange={(event) => set_merchant_value(event.target.value)}
           />
         </div>
         <div>
           <label
-            className="block text-[11px] font-medium mb-1.5 text-txt-secondary"
+            className="block text-[11px] font-medium mb-1 text-txt-secondary"
             htmlFor={`${field_id}_order`}
           >
             {t("mail.order_number_label")}
           </label>
           <Input
             autoComplete="off"
-            className="aster_input_tonal"
+            className="aster_input_tonal aster_input_quiet"
             data-testid="purchase_review_order_id"
             id={`${field_id}_order`}
             maxLength={MAX_FIELD_LENGTH}
-            size="md"
+            size="sm"
             value={order_value}
             onChange={(event) => set_order_value(event.target.value)}
           />
         </div>
       </div>
-      <div className="mt-3 flex flex-wrap items-center gap-2">
+      <div className="mt-3 flex flex-wrap items-center gap-1.5">
         <Button
           data-testid="purchase_review_save"
-          size="md"
+          size="sm"
           type="submit"
           variant="depth"
         >
           {t("common.save")}
         </Button>
-        <Button size="md" type="button" variant="ghost" onClick={on_cancel}>
+        <Button size="sm" type="button" variant="ghost" onClick={on_cancel}>
           {t("common.cancel")}
         </Button>
         <Button
           className="ms-auto text-txt-muted"
           data-testid="purchase_review_hide"
-          size="md"
+          size="sm"
           type="button"
           variant="ghost"
           onClick={on_hide}
@@ -441,11 +446,26 @@ export function PurchaseDetailsBanner({
         className="px-2 py-1 flex items-center gap-0.5"
         data-testid="purchase_review_footer"
       >
-        <Tooltip tip={info_text}>
-          <IslandIconButton label={info_text} size="sm" type="button">
-            <InformationCircleIcon strokeWidth={1.75} />
-          </IslandIconButton>
-        </Tooltip>
+        <Popover>
+          <PopoverTrigger asChild>
+            <IslandIconButton
+              data-testid="purchase_review_info"
+              label={info_text}
+              size="sm"
+              type="button"
+            >
+              <InformationCircleIcon strokeWidth={1.75} />
+            </IslandIconButton>
+          </PopoverTrigger>
+          <PopoverContent
+            align="start"
+            className="aster_info_popover z-[200]"
+            collisionPadding={12}
+            sideOffset={6}
+          >
+            <p className="aster_info_popover_body">{info_text}</p>
+          </PopoverContent>
+        </Popover>
         {receipt_url && (
           <ExtractionCardAction
             icon={ArrowTopRightOnSquareIcon}
@@ -458,6 +478,7 @@ export function PurchaseDetailsBanner({
         <Tooltip tip={t("mail.receipt_review_looks_right")}>
           <IslandIconButton
             active={is_confirmed}
+            className={cn(is_confirmed && "text-txt-primary")}
             data-testid="purchase_review_confirm"
             label={t("mail.receipt_review_looks_right")}
             size="sm"
@@ -474,6 +495,7 @@ export function PurchaseDetailsBanner({
         <Tooltip tip={t("mail.receipt_review_not_right")}>
           <IslandIconButton
             active={is_corrected}
+            className={cn(is_corrected && "text-txt-primary")}
             data-testid="purchase_review_edit"
             label={t("mail.receipt_review_not_right")}
             size="sm"

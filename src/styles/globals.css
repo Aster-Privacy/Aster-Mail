@@ -2147,6 +2147,16 @@ textarea.aster_input {
   box-shadow: none;
 }
 
+.aster_input.aster_input_tonal.aster_input_quiet:hover:not(:disabled):not(
+    :focus
+  ) {
+  background-color: color-mix(
+    in srgb,
+    var(--text-primary) 3%,
+    var(--aster-field-bg)
+  );
+}
+
 .aster_input.aster_input_tonal.aster_input_error {
   border-color: transparent;
   box-shadow: inset 0 0 0 2px var(--color-danger, #ef4444);
