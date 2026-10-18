@@ -151,6 +151,7 @@ export function SandboxedEmailRenderer({
     cached_height ? `${cached_height}px` : "0px",
   );
   const [height_ready, set_height_ready] = useState(!!cached_height);
+  const [content_revealed, set_content_revealed] = useState(false);
   const contrast_repair_ref = useRef({
     enabled: false,
     surface: "#121212",
@@ -433,6 +434,7 @@ export function SandboxedEmailRenderer({
     set_iframe_height(new_cached ? `${new_cached}px` : "0px");
     set_height_ready(!!new_cached);
     set_contrast_ready(!contrast_repair_active);
+    set_content_revealed(false);
     has_fired_ready_ref.current = false;
   }
 
@@ -735,12 +737,13 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
       set_iframe_height,
     });
 
-    reveal_content();
+    void doc_body.offsetHeight;
     reveal_cleanup_ref.current?.();
     reveal_cleanup_ref.current = reveal_on_fonts_ready(
       iframe.contentDocument.fonts,
       () => {
         reveal_content();
+        set_content_revealed(true);
         attach_observer();
         notify_document_ready();
       },
@@ -902,6 +905,7 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
         height === "0px" ? UNMEASURED_PLACEHOLDER_HEIGHT : height,
       );
       set_height_ready(true);
+      set_content_revealed(true);
     };
 
     poll();
@@ -922,7 +926,22 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
     return () => clearTimeout(timer);
   }, [contrast_ready, srcdoc_html]);
 
-  const is_settling = !height_ready || !contrast_ready;
+  const is_settling = !height_ready || !contrast_ready || !content_revealed;
+
+  useEffect(() => {
+    if (content_revealed) return;
+
+    const timer = setTimeout(() => {
+      set_iframe_height((height) =>
+        height === "0px" ? UNMEASURED_PLACEHOLDER_HEIGHT : height,
+      );
+      set_height_ready(true);
+      set_content_revealed(true);
+      remeasure_ref.current?.();
+    }, CONTENT_READY_FALLBACK_MS);
+
+    return () => clearTimeout(timer);
+  }, [content_revealed, srcdoc_html]);
   const [show_skeleton, set_show_skeleton] = useState(false);
 
   useEffect(() => {
@@ -1074,7 +1093,7 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
             maxHeight: "12000px",
             overflow: "hidden",
             display: "block",
-            opacity: height_ready && contrast_ready ? 1 : 0,
+            opacity: is_settling ? 0 : 1,
             backgroundColor: frame_bg,
             touchAction: "pan-y",
           }}

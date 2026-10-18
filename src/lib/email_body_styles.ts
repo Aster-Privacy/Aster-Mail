@@ -75,15 +75,18 @@ export function email_font_file(weight: EmailFontWeight): string {
 export function build_email_font_face_css(
   font_src: (weight: EmailFontWeight) => string = email_font_file,
 ): string {
-  return EMAIL_FONT_WEIGHTS.map(
-    (weight) => `@font-face {
+  return EMAIL_FONT_WEIGHTS.map((weight) => {
+    const src = font_src(weight);
+    const display = src.startsWith("data:") ? "block" : "swap";
+
+    return `@font-face {
   font-family: 'Google Sans Flex';
   font-style: normal;
   font-weight: ${weight};
-  font-display: swap;
-  src: url('${font_src(weight)}') format('woff2');
-}`,
-  ).join("\n\n");
+  font-display: ${display};
+  src: url('${src}') format('woff2');
+}`;
+  }).join("\n\n");
 }
 
 export function build_email_body_css(

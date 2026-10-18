@@ -65,6 +65,7 @@ import {
 import { read_clears_conversation } from "@/hooks/unread_read_delta";
 import { mark_conversation_read } from "@/hooks/mark_conversation_read";
 import { ThreadMessageBlock } from "@/components/email/thread_message_block";
+import { preload_email_fonts } from "@/lib/email_font_sources";
 import {
   VISIBLE_TAIL_COUNT,
   opened_message_is_collapsed,
@@ -263,6 +264,10 @@ export const ThreadMessagesList = forwardRef<
     Map<string, string[]>
   >(new Map());
   const moving_to_folder_ref = useRef(false);
+
+  useEffect(() => {
+    void preload_email_fonts();
+  }, []);
 
   useEffect(() => {
     const sync_folders = () => {
