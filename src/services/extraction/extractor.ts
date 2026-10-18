@@ -473,7 +473,132 @@ function extract_tracking_number(
   return null;
 }
 
-const ANCHOR_HREF_PATTERN = /<a\b[^>]*?\bhref\s*=\s*["']([^"']+)["']/gi;
+const MAX_ANCHOR_SCAN_CHARS = MAX_EXTRACTION_CHARS * 4;
+const ANCHOR_OPEN_PATTERN = /<a(?![A-Za-z0-9_])/gi;
+const ANCHOR_HREF_HEAD_PATTERN = /href\s*=\s*["']([^"']+)["']/iy;
+const WORD_CHAR_PATTERN = /[A-Za-z0-9_]/;
+
+interface AnchorMatch {
+  href: string;
+  text: string;
+}
+
+interface AnchorScanOptions {
+  href_word_boundary: boolean;
+  with_text: boolean;
+}
+
+function create_position_finder(
+  text: string,
+  pattern: RegExp,
+): (position: number) => number {
+  let cached_from = -1;
+  let cached_at = -1;
+
+  return (position) => {
+    if (
+      cached_from >= 0 &&
+      position >= cached_from &&
+      (cached_at < 0 || position <= cached_at)
+    ) {
+      return cached_at;
+    }
+
+    pattern.lastIndex = position;
+    const match = pattern.exec(text);
+
+    cached_from = position;
+    cached_at = match ? match.index : -1;
+
+    return cached_at;
+  };
+}
+
+function scan_anchors(html: string, options: AnchorScanOptions): AnchorMatch[] {
+  const text = html.slice(0, MAX_ANCHOR_SCAN_CHARS);
+  const next_tag_end = create_position_finder(text, />/g);
+  const next_href = create_position_finder(text, /href/gi);
+  const next_close = create_position_finder(text, /<\/a>/gi);
+  const opener = new RegExp(ANCHOR_OPEN_PATTERN.source, "gi");
+  const head = new RegExp(ANCHOR_HREF_HEAD_PATTERN.source, "iy");
+  const anchors: AnchorMatch[] = [];
+  let failed_window_end = -2;
+  let opening: RegExpExecArray | null;
+
+  while ((opening = opener.exec(text)) !== null) {
+    const attributes_start = opening.index + 2;
+    const found_tag_end = next_tag_end(attributes_start);
+    const window_end = found_tag_end < 0 ? text.length : found_tag_end;
+
+    if (window_end === failed_window_end) continue;
+
+    let href_at = next_href(attributes_start);
+    let head_match: RegExpExecArray | null = null;
+
+    while (href_at >= 0 && href_at < window_end) {
+      if (
+        !options.href_word_boundary ||
+        !WORD_CHAR_PATTERN.test(text[href_at - 1] ?? "")
+      ) {
+        head.lastIndex = href_at;
+        head_match = head.exec(text);
+        if (head_match) break;
+      }
+      href_at = next_href(href_at + 1);
+    }
+
+    if (!head_match) {
+      failed_window_end = window_end;
+      continue;
+    }
+
+    const head_end = head.lastIndex;
+
+    if (!options.with_text) {
+      anchors.push({ href: head_match[1], text: "" });
+      opener.lastIndex = head_end;
+      continue;
+    }
+
+    const tag_end = next_tag_end(head_end);
+
+    if (tag_end < 0) break;
+
+    const close_at = next_close(tag_end + 1);
+
+    if (close_at < 0) break;
+
+    anchors.push({
+      href: head_match[1],
+      text: text.slice(tag_end + 1, close_at),
+    });
+    opener.lastIndex = close_at + 4;
+  }
+
+  return anchors;
+}
+
+function strip_anchor_markup(value: string): string {
+  let output = "";
+  let cursor = 0;
+  let open_at = value.indexOf("<");
+
+  while (open_at >= 0) {
+    const close_at = value.indexOf(">", open_at + 1);
+
+    if (close_at < 0) break;
+    if (close_at === open_at + 1) {
+      open_at = value.indexOf("<", open_at + 1);
+      continue;
+    }
+
+    output += `${value.slice(cursor, open_at)} `;
+    cursor = close_at + 1;
+    open_at = value.indexOf("<", cursor);
+  }
+
+  return output + value.slice(cursor);
+}
 
 function extract_tracking_url(
   body: string,
@@ -486,8 +611,8 @@ function extract_tracking_url(
   ];
 
   const link_urls = html
-    ? Array.from(html.matchAll(ANCHOR_HREF_PATTERN), (match) =>
-        decode_basic_entities(match[1].trim()),
+    ? scan_anchors(html, { href_word_boundary: true, with_text: false }).map(
+        (anchor) => decode_basic_entities(anchor.href.trim()),
       )
     : [];
   const text_urls = (body.match(/https?:\/\/[^\s<>"]+/gi) ?? []).map((url) =>
@@ -764,7 +889,12 @@ function email_domain(address: string): string | null {
 
   if (at < 0) return null;
 
-  return address.slice(at + 1).toLowerCase().replace(/[>\s]+$/, "") || null;
+  return (
+    address
+      .slice(at + 1)
+      .toLowerCase()
+      .replace(/[>\s]+$/, "") || null
+  );
 }
 
 function is_payment_processor(address: string): boolean {
@@ -785,8 +915,6 @@ const RECEIPT_LINK_HOSTS: { host: string; path: RegExp }[] = [
 ];
 const RECEIPT_LINK_TEXT =
   /^(?:view|download|see|open|print)\s+(?:your\s+|the\s+|my\s+)?(?:receipt|invoice|order)\b/i;
-const ANCHOR_PATTERN =
-  /<a\b[^>]*?href\s*=\s*["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
 const BARE_HTTPS_URL = /https:\/\/[^\s<>"']+/g;
 const MAX_RECEIPT_URL_LENGTH = 2048;
 
@@ -846,9 +974,12 @@ function extract_receipt_url(
     .filter((domain): domain is string => Boolean(domain));
 
   if (html) {
-    for (const match of html.matchAll(ANCHOR_PATTERN)) {
-      const url = safe_https_url(match[1]);
-      const text = clean_text_field(match[2].replace(/<[^>]+>/g, " "));
+    for (const anchor of scan_anchors(html, {
+      href_word_boundary: false,
+      with_text: true,
+    })) {
+      const url = safe_https_url(anchor.href);
+      const text = clean_text_field(strip_anchor_markup(anchor.text));
 
       if (url && is_trusted_receipt_url(url, sender_domains, text))
         return url.href;
@@ -876,9 +1007,7 @@ function detect_forwarded_origin(body: string): ForwardedOrigin | null {
     return null;
 
   const subject_match = block.match(FORWARDED_SUBJECT_PATTERN);
-  const from_name = from_match[1]
-    .replace(/^["'“”]+|["'“”]+$/g, "")
-    .trim();
+  const from_name = from_match[1].replace(/^["'“”]+|["'“”]+$/g, "").trim();
 
   return {
     from_email: from_match[2].toLowerCase(),
@@ -897,12 +1026,7 @@ function tidy_merchant_candidate(raw: string | undefined): string | null {
 
   if (tidy.length < 2 || tidy.length > 60) return null;
   if (/https?:|www\.|@|[<>]/i.test(tidy)) return null;
-  if (
-    !/[A-Za-zÀ-ɏͰ-ϿЀ-ӿ぀-ヿ一-鿿]/.test(
-      tidy,
-    )
-  )
-    return null;
+  if (!/[A-Za-zÀ-ɏͰ-ϿЀ-ӿ぀-ヿ一-鿿]/.test(tidy)) return null;
 
   if (DATE_LIKE_CANDIDATE.test(tidy)) return null;
 
@@ -982,7 +1106,8 @@ function resolve_merchant(
       SUBJECT_MERCHANT_PATTERNS,
     );
 
-    if (from_subject) return { name: from_subject, source_address: origin_email };
+    if (from_subject)
+      return { name: from_subject, source_address: origin_email };
   }
 
   const from_body = merchant_from_text(
@@ -1013,7 +1138,8 @@ function detect_document_kind(
   if (/\border\s*(?:#|no\.?|num(?:ber)?|id)\b/i.test(subject)) return "order";
   if (/\b(?:receipt|invoice|payment|amount\s+paid)\b/i.test(subject))
     return "receipt";
-  if (/\border\s*(?:#|no\.?|num(?:ber)?|id|confirm)/i.test(head)) return "order";
+  if (/\border\s*(?:#|no\.?|num(?:ber)?|id|confirm)/i.test(head))
+    return "order";
   if (/\b(?:receipt|invoice|amount\s+paid|date\s+paid)\b/i.test(head))
     return "receipt";
 

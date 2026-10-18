@@ -55,11 +55,199 @@ export function as_quotable_html(content: string): string {
   return is_html_content(content) ? content : plain_text_to_html(content);
 }
 
-const QUOTE_CONTAINER_START_RE =
-  /<(?:div|blockquote)[^>]*(?:class=["'][^"']*(?:aster_quote|gmail_quote|yahoo_quoted|protonmail_quote|moz-cite-prefix)[^"']*["']|type=["']cite["'])/i;
+const QUOTE_CONTAINER_OPEN_SOURCE = "<(?:div|blockquote)";
+const QUOTE_ATTRIBUTE_HEAD_SOURCE = `class=["']|type=["']cite["']`;
+const QUOTE_CLASS_NAME_SOURCE =
+  "aster_quote|gmail_quote|yahoo_quoted|protonmail_quote|moz-cite-prefix";
+const QUOTE_CLASS_VALUE_OFFSET = "class='".length;
+const IMAGE_OPEN_SOURCE = "<img\\b";
+const IMAGE_SOURCE_ATTRIBUTE_SOURCE = "src\\s*=";
+const SECURED_BY_OPEN_SOURCE = "<span";
+const SECURED_BY_TAIL_SOURCE =
+  "Secured by\\s*<a[^>]*>Aster Mail<\\/a><\\/span>";
+const ASTER_LINK_OPEN_SOURCE = "<a";
+const ASTER_LINK_HREF_SOURCE = `href=["']https?:\\/\\/astermail\\.org["']`;
+const ASTER_LINK_TAIL_SOURCE = "Aster Mail<\\/a>";
+
+function memoize_forward(
+  find: (position: number) => number,
+): (position: number) => number {
+  let cached_from = -1;
+  let cached_at = -1;
+
+  return (position) => {
+    if (
+      cached_from >= 0 &&
+      position >= cached_from &&
+      (cached_at < 0 || position <= cached_at)
+    ) {
+      return cached_at;
+    }
+
+    cached_from = position;
+    cached_at = find(position);
+
+    return cached_at;
+  };
+}
+
+function create_position_finder(
+  text: string,
+  source: string,
+): (position: number) => number {
+  const pattern = new RegExp(source, "gi");
+
+  return memoize_forward((position) => {
+    pattern.lastIndex = position;
+    const match = pattern.exec(text);
+
+    return match ? match.index : -1;
+  });
+}
+
+function create_sticky_end(
+  text: string,
+  source: string,
+): (position: number) => number {
+  const pattern = new RegExp(source, "iy");
+  let cached_position = -1;
+  let cached_end = -1;
+
+  return (position) => {
+    if (position !== cached_position) {
+      pattern.lastIndex = position;
+      cached_position = position;
+      cached_end = pattern.exec(text) ? pattern.lastIndex : -1;
+    }
+
+    return cached_end;
+  };
+}
+
+function find_tag_with_attribute(
+  content: string,
+  opener_source: string,
+  next_attribute: (position: number) => number,
+): number {
+  const opener = new RegExp(opener_source, "gi");
+  const next_tag_end = create_position_finder(content, ">");
+  let found: RegExpExecArray | null;
+
+  while ((found = opener.exec(content)) !== null) {
+    const attributes_start = opener.lastIndex;
+    const attribute = next_attribute(attributes_start);
+
+    if (attribute < 0) return -1;
+
+    const tag_end = next_tag_end(attributes_start);
+
+    if (tag_end < 0 || attribute < tag_end) return found.index;
+    opener.lastIndex = found.index + 1;
+  }
+
+  return -1;
+}
+
+function find_quote_container_start(content: string): number {
+  const next_head = create_position_finder(
+    content,
+    QUOTE_ATTRIBUTE_HEAD_SOURCE,
+  );
+  const next_quote = create_position_finder(content, `["']`);
+  const next_name = create_position_finder(content, QUOTE_CLASS_NAME_SOURCE);
+  const next_attribute = memoize_forward((position) => {
+    let head = next_head(position);
+
+    while (head >= 0) {
+      if (content[head] === "t" || content[head] === "T") return head;
+
+      const value_start = head + QUOTE_CLASS_VALUE_OFFSET;
+      const value_end = next_quote(value_start);
+      const name = next_name(value_start);
+
+      if (value_end >= 0 && name >= 0 && name < value_end) return head;
+      head = next_head(head + 1);
+    }
+
+    return -1;
+  });
+
+  return find_tag_with_attribute(
+    content,
+    QUOTE_CONTAINER_OPEN_SOURCE,
+    next_attribute,
+  );
+}
+
+function remove_footer_links(
+  content: string,
+  opener_source: string,
+  tail_source: string,
+  href_source: string | null,
+): string {
+  const opener = new RegExp(opener_source, "gi");
+  const next_tag_end = create_position_finder(content, ">");
+  const next_href = href_source
+    ? create_position_finder(content, href_source)
+    : null;
+  const tail_end = create_sticky_end(content, tail_source);
+  let output = "";
+  let cursor = 0;
+  let found: RegExpExecArray | null;
+
+  while ((found = opener.exec(content)) !== null) {
+    const attributes_start = opener.lastIndex;
+    const tag_end = next_tag_end(attributes_start);
+
+    if (tag_end < 0) break;
+
+    const href = next_href ? next_href(attributes_start) : attributes_start;
+    const end = href >= 0 && href <= tag_end ? tail_end(tag_end + 1) : -1;
+
+    if (end < 0) {
+      opener.lastIndex = found.index + 1;
+      continue;
+    }
+
+    output += content.slice(cursor, found.index);
+    cursor = end;
+    opener.lastIndex = end;
+  }
+
+  return output + content.slice(cursor);
+}
+
+function unwrap_markdown_links(text: string): string {
+  const next_bracket_close = create_position_finder(text, "\\]");
+  const next_paren_close = create_position_finder(text, "\\)");
+  let output = "";
+  let cursor = 0;
+  let open = text.indexOf("[");
+
+  while (open >= 0) {
+    const label_end = next_bracket_close(open + 1);
+
+    if (label_end < 0) break;
+
+    const target_end =
+      label_end > open + 1 && text[label_end + 1] === "("
+        ? next_paren_close(label_end + 2)
+        : -1;
+
+    if (target_end > label_end + 2) {
+      output += text.slice(cursor, open) + text.slice(open + 1, label_end);
+      cursor = target_end + 1;
+      open = text.indexOf("[", cursor);
+    } else {
+      open = text.indexOf("[", open + 1);
+    }
+  }
+
+  return output + text.slice(cursor);
+}
 
 export function strip_quoted_sections(content: string): string {
-  const idx = content.search(QUOTE_CONTAINER_START_RE);
+  const idx = find_quote_container_start(content);
 
   if (idx < 0) return content;
   const own_content = content.slice(0, idx);
@@ -88,19 +276,32 @@ export function has_rich_html(content: string): boolean {
   if (!content || typeof content !== "string") return false;
 
   const stripped = strip_quoted_sections(
-    content
-      .replace(/<span[^>]*>Secured by\s*<a[^>]*>Aster Mail<\/a><\/span>/gi, "")
-      .replace(
-        /<a[^>]*href=["']https?:\/\/astermail\.org["'][^>]*>Aster Mail<\/a>/gi,
-        "",
+    remove_footer_links(
+      remove_footer_links(
+        content,
+        SECURED_BY_OPEN_SOURCE,
+        SECURED_BY_TAIL_SOURCE,
+        null,
       ),
+      ASTER_LINK_OPEN_SOURCE,
+      ASTER_LINK_TAIL_SOURCE,
+      ASTER_LINK_HREF_SOURCE,
+    ),
   );
 
   if (/<(table|td|th|tr)\b/i.test(stripped)) return true;
   if (/<style[\s>]/i.test(stripped)) return true;
   if (has_designed_background_style(stripped)) return true;
   if (/style\s*=\s*["'][^"']*\bwidth\s*:/i.test(stripped)) return true;
-  if (/<img\b[^>]*src\s*=/i.test(stripped)) return true;
+  if (
+    find_tag_with_attribute(
+      stripped,
+      IMAGE_OPEN_SOURCE,
+      create_position_finder(stripped, IMAGE_SOURCE_ATTRIBUTE_SOURCE),
+    ) >= 0
+  ) {
+    return true;
+  }
   if (/<(center|font)\b/i.test(stripped)) return true;
 
   return false;
@@ -126,7 +327,9 @@ function linkify_text(text: string): string {
 }
 
 function prose_to_html(text: string): string {
-  const reflowed = looks_format_flowed(text) ? unflow_format_flowed(text) : text;
+  const reflowed = looks_format_flowed(text)
+    ? unflow_format_flowed(text)
+    : text;
   const paragraphs = reflowed.split(/\n\n+/);
 
   return paragraphs
@@ -140,6 +343,16 @@ function prose_to_html(text: string): string {
 
 function literal_to_html(text: string): string {
   return `<pre dir="auto" class="${LITERAL_TEXT_CLASS}" style="white-space:pre-wrap;overflow-wrap:anywhere;margin:0 0 1em">${linkify_text(text)}</pre>`;
+}
+
+function trim_newlines(text: string): string {
+  let start = 0;
+  let end = text.length;
+
+  while (start < end && text[start] === "\n") start += 1;
+  while (end > start && text[end - 1] === "\n") end -= 1;
+
+  return text.slice(start, end);
 }
 
 export function plain_text_to_html(text: string): string {
@@ -156,7 +369,7 @@ export function plain_text_to_html(text: string): string {
     .map((segment) => {
       if (segment.literal) return literal_to_html(segment.text);
 
-      const prose = segment.text.replace(/^\n+|\n+$/g, "");
+      const prose = trim_newlines(segment.text);
 
       return prose.trim() ? prose_to_html(prose) : "";
     })
@@ -370,8 +583,5 @@ export function strip_html_tags(html: string): string {
 
   const text = doc.body?.textContent || "";
 
-  return text
-    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
-    .replace(/\s+/g, " ")
-    .trim();
+  return unwrap_markdown_links(text).replace(/\s+/g, " ").trim();
 }

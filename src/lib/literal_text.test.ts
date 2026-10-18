@@ -28,6 +28,7 @@ import {
   TEXT_WITH_PUBLIC_KEY_BODY,
 } from "./literal_text_fixtures";
 import {
+  find_armor_ranges,
   LITERAL_TEXT_SELECTOR,
   looks_like_patch,
   split_literal_segments,
@@ -104,7 +105,7 @@ describe("plain_text_to_html with patches and armor", () => {
     expect(literal[0]).toContain("\n #include <stdio.h>\n");
     expect(literal[0]).toContain("\n \n int main(void)\n");
     expect(literal[0]).toContain("\n-    return 0;\n");
-    expect(literal[0]).toContain("\n+\tputs(\"ready\");\n");
+    expect(literal[0]).toContain('\n+\tputs("ready");\n');
     expect(literal[0]).toContain("\n-- \n2.43.0\n");
   });
 
@@ -155,5 +156,104 @@ describe("as_quotable_html", () => {
 
   it("returns html bodies unchanged", () => {
     expect(as_quotable_html("<p>Hello</p>")).toBe("<p>Hello</p>");
+  });
+});
+
+const REFERENCE_ARMOR_RE =
+  /^-----BEGIN PGP (?:SIGNED MESSAGE-----[ \t]*\n[\s\S]*?^-----END PGP SIGNATURE|(MESSAGE|SIGNATURE|PUBLIC KEY BLOCK|PRIVATE KEY BLOCK)-----[ \t]*\n[\s\S]*?^-----END PGP \1)-----[ \t]*$/gm;
+
+const ARMOR_PIECES = [
+  "-----BEGIN PGP MESSAGE-----",
+  "-----BEGIN PGP SIGNATURE-----",
+  "-----BEGIN PGP SIGNED MESSAGE-----",
+  "-----BEGIN PGP PUBLIC KEY BLOCK-----",
+  "-----END PGP MESSAGE-----",
+  "-----END PGP SIGNATURE-----",
+  "-----END PGP PUBLIC KEY BLOCK-----",
+  "-----END PGP PRIVATE KEY BLOCK-----",
+  "-----BEGIN PGP ",
+  "-----END PGP ",
+  "\n",
+  "\n",
+  "\r",
+  " ",
+  " ",
+  "\t",
+  "data",
+  "Hash: SHA256",
+  "-----",
+];
+
+function reference_armor_ranges(text: string) {
+  return Array.from(text.matchAll(REFERENCE_ARMOR_RE), (match) => ({
+    start: match.index,
+    end: match.index + match[0].length,
+  }));
+}
+
+function random_armor_text(next: () => number): string {
+  const length = 1 + (next() % 24);
+  let text = "";
+
+  for (let i = 0; i < length; i += 1) {
+    text += ARMOR_PIECES[next() % ARMOR_PIECES.length];
+  }
+
+  return text;
+}
+
+describe("armor block detection", () => {
+  it("matches the original pattern on every generated input", () => {
+    let seed = 20261017;
+    const next = () => {
+      seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+
+      return seed;
+    };
+
+    for (let i = 0; i < 20000; i += 1) {
+      const text = random_armor_text(next);
+
+      expect(find_armor_ranges(text)).toEqual(reference_armor_ranges(text));
+    }
+  });
+
+  it("matches the original pattern on the shaped cases", () => {
+    const cases = [
+      "-----BEGIN PGP MESSAGE-----\nabc\n-----END PGP MESSAGE-----",
+      "-----BEGIN PGP MESSAGE-----  \nabc\n-----END PGP MESSAGE-----\t ",
+      "x\n-----BEGIN PGP MESSAGE-----\na\n-----END PGP MESSAGE-----\ny\n-----BEGIN PGP SIGNATURE-----\nb\n-----END PGP SIGNATURE-----\n",
+      "-----BEGIN PGP SIGNED MESSAGE-----\nHash: SHA256\n\nhi\n-----BEGIN PGP SIGNATURE-----\nsig\n-----END PGP SIGNATURE-----",
+      "-----BEGIN PGP MESSAGE-----\n-----BEGIN PGP MESSAGE-----\na\n-----END PGP MESSAGE-----",
+      "-----BEGIN PGP MESSAGE-----\nabc\n-----END PGP SIGNATURE-----",
+      "-----BEGIN PGP MESSAGE-----\nabc",
+      "-----BEGIN PGP MESSAGE-----\nabc -----END PGP MESSAGE-----",
+      "-----BEGIN PGP MESSAGE-----\nabc\n-----END PGP MESSAGE----- tail",
+      "-----BEGIN PGP MESSAGE-----\r\nabc\n-----END PGP MESSAGE-----",
+    ];
+
+    for (const text of cases) {
+      expect(find_armor_ranges(text)).toEqual(reference_armor_ranges(text));
+    }
+  });
+
+  it("renders many unclosed armor headers quickly", () => {
+    const text = "-----BEGIN PGP MESSAGE-----\n".repeat(20000);
+    const started = performance.now();
+    const html = plain_text_to_html(text);
+
+    expect(performance.now() - started).toBeLessThan(500);
+    expect(html).toContain("BEGIN PGP MESSAGE");
+  });
+
+  it("renders many unmatched end lines quickly", () => {
+    const text =
+      "-----BEGIN PGP MESSAGE-----\n" +
+      "-----END PGP SIGNATURE-----\n".repeat(20000);
+    const started = performance.now();
+
+    split_literal_segments(text);
+
+    expect(performance.now() - started).toBeLessThan(500);
   });
 });

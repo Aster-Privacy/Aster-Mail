@@ -143,3 +143,63 @@ describe("strip_transparent_backgrounds", () => {
     expect(el.getAttribute("style")).toContain("background-color: #fef08a");
   });
 });
+
+describe("rich detection on hostile markup", () => {
+  const cases: Array<[string, string]> = [
+    ["unclosed spans", "<span".repeat(40000)],
+    ["unclosed anchors", "<a".repeat(100000)],
+    ["unclosed images", "<img ".repeat(40000)],
+    ["unclosed quote containers", "<div".repeat(50000)],
+    [
+      "quote classes with no closing quote",
+      `<div class="${"gmail_quote".repeat(20000)}`,
+    ],
+    ["footer heads", "<span>Secured by <a".repeat(10000)],
+    ["astermail anchors", '<a href="https://astermail.org"'.repeat(6000)],
+  ];
+
+  it.each(cases)("checks %s quickly", (_label, html) => {
+    const started = performance.now();
+
+    has_rich_html(html);
+    strip_quoted_sections(html);
+
+    expect(performance.now() - started).toBeLessThan(500);
+  });
+
+  it("still ignores the Aster footer link", () => {
+    expect(
+      has_rich_html(
+        '<p>Hi</p><span style="x">Secured by <a href="https://astermail.org">Aster Mail</a></span>',
+      ),
+    ).toBe(false);
+    expect(
+      has_rich_html(
+        '<p>Hi</p><a class="f" href="https://astermail.org" target="_blank">Aster Mail</a>',
+      ),
+    ).toBe(false);
+  });
+
+  it("still detects an image source in a tag", () => {
+    expect(has_rich_html('<p>x</p><img alt="a" src="cid:1">')).toBe(true);
+    expect(has_rich_html('<p>x</p><img alt="a"> src=')).toBe(false);
+  });
+
+  it("still finds a quote container written in either attribute form", () => {
+    const own = "<p>Mine</p>";
+
+    expect(
+      strip_quoted_sections(
+        `${own}<div dir="ltr" class="x gmail_quote y">old</div>`,
+      ),
+    ).toBe(own);
+    expect(
+      strip_quoted_sections(`${own}<blockquote type="cite">old</blockquote>`),
+    ).toBe(own);
+    expect(
+      strip_quoted_sections(
+        `${own}<div title=">" class="gmail_quote">old</div>`,
+      ),
+    ).toBe(`${own}<div title=">" class="gmail_quote">old</div>`);
+  });
+});
