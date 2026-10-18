@@ -50,6 +50,7 @@ import {
   type I18nTranslate,
   get_sync_frequency_options,
   get_tls_method_options,
+  resolve_sync_since_date,
   sanitize_display_text,
 } from "@/components/settings/hooks/external_accounts_utils";
 import { use_external_accounts_form } from "@/components/settings/hooks/use_external_accounts_form";
@@ -208,7 +209,12 @@ export function use_external_accounts() {
           sync_frequency: form.form_sync_frequency,
           sync_folders: form.selected_folders,
           max_messages_per_sync: 500,
-          sync_since_date: null,
+          sync_since_date: resolve_sync_since_date({
+            is_editing: form.editing_account !== null,
+            import_existing: form.form_import_existing,
+            current_since_date: form.form_sync_since_date,
+            now: new Date(),
+          }),
         }),
         update_advanced_settings(account_token, {
           tls_method: form.form_tls_method,
@@ -227,6 +233,9 @@ export function use_external_accounts() {
     [
       form.form_sync_frequency,
       form.selected_folders,
+      form.editing_account,
+      form.form_sync_since_date,
+      form.form_import_existing,
       form.form_tls_method,
       form.form_connection_timeout,
       form.form_archive_sent,
@@ -673,6 +682,8 @@ export function use_external_accounts() {
     smtp_test_result: form.smtp_test_result,
     form_sync_frequency: form.form_sync_frequency,
     set_form_sync_frequency: form.set_form_sync_frequency,
+    form_import_existing: form.form_import_existing,
+    set_form_import_existing: form.set_form_import_existing,
     available_folders: form.available_folders,
     selected_folders: form.selected_folders,
     is_fetching_folders: form.is_fetching_folders,

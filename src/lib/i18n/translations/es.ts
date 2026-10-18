@@ -5639,6 +5639,11 @@ export const es = {
     advanced_settings: "Configuración avanzada",
     tls_method: "Método TLS",
     connection_timeout: "Tiempo de espera de conexión (segundos)",
+    import_existing_mail: "Importar correos existentes",
+    import_existing_mail_off:
+      "Solo se traen los correos que lleguen después de añadir la cuenta.",
+    import_existing_mail_on:
+      "También se importan los correos que ya están en la cuenta.",
     archive_sent_label:
       "Copiar correos enviados a la carpeta Enviados del servidor remoto",
     delete_after_fetch_label:

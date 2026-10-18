@@ -6907,6 +6907,11 @@ export const nl = {
     domain_promo_cta: "Koppel je domein",
     catch_all_description:
       "Ontvang e-mails die naar elk adres op dit domein worden gestuurd",
+    import_existing_mail: "Bestaande e-mail importeren",
+    import_existing_mail_off:
+      "Alleen e-mail die binnenkomt nadat je het account hebt toegevoegd, wordt opgehaald.",
+    import_existing_mail_on:
+      "E-mail die al in het account staat, wordt ook geïmporteerd.",
     archive_sent_label:
       "Kopieer verzonden e-mails naar de Verzonden-map van de externe server",
     allow_sender: "Afzender toestaan",

@@ -5768,6 +5768,11 @@ export const pl = {
     advanced_settings: "Ustawienia zaawansowane",
     tls_method: "Metoda TLS",
     connection_timeout: "Limit czasu połączenia (sekundy)",
+    import_existing_mail: "Importuj istniejące wiadomości",
+    import_existing_mail_off:
+      "Pobierane są tylko wiadomości, które dotrą po dodaniu konta.",
+    import_existing_mail_on:
+      "Wiadomości, które już są na koncie, również zostaną zaimportowane.",
     archive_sent_label:
       "Kopiuj wysłane e-maile do folderu Wysłane na serwerze zdalnym",
     delete_after_fetch_label:

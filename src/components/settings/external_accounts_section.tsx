@@ -65,7 +65,7 @@ export function ExternalAccountsSection() {
     if (at_account_limit) return;
 
     has_auto_opened.current = true;
-    open_add_form();
+    open_add_form({ import_existing: true });
     set_gmail_wizard_open(true);
     navigate(location.pathname, { replace: true, state: null });
   }, [
@@ -150,6 +150,7 @@ export function ExternalAccountsSection() {
               form_display_name={state.form_display_name}
               form_email={state.form_email}
               form_host={state.form_host}
+              form_import_existing={state.form_import_existing}
               form_label_color={state.form_label_color}
               form_label_name={state.form_label_name}
               form_password={state.form_password}
@@ -201,6 +202,7 @@ export function ExternalAccountsSection() {
               set_form_archive_sent={state.set_form_archive_sent}
               set_form_delete_after_fetch={state.set_form_delete_after_fetch}
               set_form_display_name={state.set_form_display_name}
+              set_form_import_existing={state.set_form_import_existing}
               set_form_label_color={state.set_form_label_color}
               set_form_label_name={state.set_form_label_name}
               set_form_smtp_use_tls={state.set_form_smtp_use_tls}

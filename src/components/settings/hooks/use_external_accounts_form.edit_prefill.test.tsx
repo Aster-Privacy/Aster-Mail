@@ -172,6 +172,40 @@ describe("use_external_accounts_form edit prefill", () => {
     expect(hook.form_delete_after_fetch).toBe(false);
   });
 
+  it("keeps the account's sync start date when editing", async () => {
+    get_sync_settings.mockResolvedValue({
+      data: {
+        sync_frequency: "1h",
+        sync_folders: ["INBOX"],
+        max_messages_per_sync: 100,
+        sync_since_date: "2026-09-01T08:30:00.000Z",
+      },
+    });
+
+    await act(async () => {
+      hook.handle_edit(account);
+    });
+    await flush();
+
+    expect(hook.form_sync_since_date).toBe("2026-09-01T08:30:00.000Z");
+  });
+
+  it("starts a new account without importing existing mail", async () => {
+    await act(async () => {
+      hook.handle_edit(account);
+    });
+    await flush();
+    await act(async () => {
+      hook.set_form_import_existing(true);
+    });
+    await act(async () => {
+      hook.open_add_form();
+    });
+
+    expect(hook.form_import_existing).toBe(false);
+    expect(hook.form_sync_since_date).toBeNull();
+  });
+
   it("never receives a password from the server", async () => {
     await act(async () => {
       hook.handle_edit(account);

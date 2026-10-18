@@ -77,6 +77,10 @@ export function use_external_accounts_form(t: I18nTranslate) {
 
   const [form_sync_frequency, set_form_sync_frequency] =
     useState<SyncFrequency>("15m");
+  const [form_import_existing, set_form_import_existing] = useState(false);
+  const [form_sync_since_date, set_form_sync_since_date] = useState<
+    string | null
+  >(null);
 
   const [show_advanced, set_show_advanced] = useState(false);
   const [form_tls_method, set_form_tls_method] = useState<TlsMethod>("auto");
@@ -258,6 +262,8 @@ export function use_external_accounts_form(t: I18nTranslate) {
     set_form_smtp_use_tls(true);
     set_smtp_same_as_incoming(true);
     set_form_sync_frequency("15m");
+    set_form_import_existing(false);
+    set_form_sync_since_date(null);
     set_show_advanced(false);
     set_form_tls_method("auto");
     set_form_connection_timeout(30);
@@ -267,12 +273,16 @@ export function use_external_accounts_form(t: I18nTranslate) {
     test_hook.reset_test_state();
   }, [clear_sensitive_form_fields, test_hook.reset_test_state]);
 
-  const open_add_form = useCallback(() => {
-    reset_form();
-    set_editing_account(null);
-    set_show_add_form(true);
-    set_form_visible(true);
-  }, [reset_form]);
+  const open_add_form = useCallback(
+    (options?: { import_existing?: boolean }) => {
+      reset_form();
+      set_form_import_existing(options?.import_existing === true);
+      set_editing_account(null);
+      set_show_add_form(true);
+      set_form_visible(true);
+    },
+    [reset_form],
+  );
 
   const close_form = useCallback(() => {
     test_hook.set_is_testing(false);
@@ -513,6 +523,7 @@ export function use_external_accounts_form(t: I18nTranslate) {
 
         if (sync.data) {
           set_form_sync_frequency(sync.data.sync_frequency);
+          set_form_sync_since_date(sync.data.sync_since_date ?? null);
           test_hook.set_selected_folders(
             sync.data.sync_folders.length > 0
               ? sync.data.sync_folders
@@ -567,6 +578,8 @@ export function use_external_accounts_form(t: I18nTranslate) {
       set_form_smtp_use_tls(true);
       set_smtp_same_as_incoming(true);
       set_form_sync_frequency("15m");
+      set_form_import_existing(false);
+      set_form_sync_since_date(null);
       set_show_advanced(false);
       set_form_tls_method("auto");
       set_form_connection_timeout(30);
@@ -651,6 +664,9 @@ export function use_external_accounts_form(t: I18nTranslate) {
     smtp_test_result: test_hook.smtp_test_result,
     form_sync_frequency,
     set_form_sync_frequency,
+    form_import_existing,
+    set_form_import_existing,
+    form_sync_since_date,
     available_folders: test_hook.available_folders,
     selected_folders: test_hook.selected_folders,
     is_fetching_folders: test_hook.is_fetching_folders,

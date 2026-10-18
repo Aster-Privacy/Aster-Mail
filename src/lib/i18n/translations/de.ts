@@ -6857,6 +6857,11 @@ export const de = {
       "Überprüfung fehlgeschlagen. Bitte versuchen Sie es erneut.",
     set_host_root:
       "Setzen Sie den Host auf @ (geben Sie nicht Ihre Domain ein; Ihr Anbieter fügt sie automatisch hinzu)",
+    import_existing_mail: "Vorhandene E-Mails importieren",
+    import_existing_mail_off:
+      "Nur E-Mails, die nach dem Hinzufügen des Kontos eintreffen, werden übernommen.",
+    import_existing_mail_on:
+      "E-Mails, die bereits im Konto sind, werden ebenfalls importiert.",
     archive_sent_label:
       "Gesendete E-Mails in den Gesendet-Ordner des Remote-Servers kopieren",
     delete_after_fetch_label:

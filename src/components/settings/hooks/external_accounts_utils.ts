@@ -94,6 +94,17 @@ export const SYSTEM_FOLDER_NAMES = new Set([
   "flagged",
 ]);
 
+export function resolve_sync_since_date(options: {
+  is_editing: boolean;
+  import_existing: boolean;
+  current_since_date: string | null;
+  now: Date;
+}): string | null {
+  if (options.is_editing) return options.current_since_date;
+
+  return options.import_existing ? null : options.now.toISOString();
+}
+
 export function clamp_port(value: number): number {
   if (Number.isNaN(value) || value < 1) return 1;
   if (value > 65535) return 65535;
