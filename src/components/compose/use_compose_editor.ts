@@ -112,7 +112,7 @@ export function use_compose_editor({
   );
 
   const handle_editor_input = useCallback(() => {
-    editor.handle_input();
+    editor.schedule_input();
   }, [editor]);
 
   const handle_editor_paste = useCallback(
