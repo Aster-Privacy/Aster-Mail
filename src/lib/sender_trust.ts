@@ -423,7 +423,37 @@ function map_confusables(text: string): string {
   return mapped;
 }
 
+const SKELETON_CACHE_LIMIT = 4096;
+const SKELETON_CACHE_MAX_INPUT = 256;
+const skeleton_cache = new Map<string, string>();
+
+export function skeleton_cache_size(): number {
+  return skeleton_cache.size;
+}
+
+export function clear_sender_trust_caches(): void {
+  skeleton_cache.clear();
+  cached_own = null;
+  cached_contacts = null;
+  cached_context = null;
+}
+
 export function skeleton(text: string): string {
+  if (text.length > SKELETON_CACHE_MAX_INPUT) return compute_skeleton(text);
+
+  const hit = skeleton_cache.get(text);
+
+  if (hit !== undefined) return hit;
+
+  const result = compute_skeleton(text);
+
+  if (skeleton_cache.size >= SKELETON_CACHE_LIMIT) skeleton_cache.clear();
+  skeleton_cache.set(text, result);
+
+  return result;
+}
+
+function compute_skeleton(text: string): string {
   const mapped = map_confusables(
     map_confusables(clean_text(text, false)).normalize("NFKD"),
   );
