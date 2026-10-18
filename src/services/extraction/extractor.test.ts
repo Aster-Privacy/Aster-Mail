@@ -654,3 +654,75 @@ describe("is_shipping_email on carrier and shop notices", () => {
     expect(is_shipping_email(subject, body)).toBe(true);
   });
 });
+
+describe("anchor scanning on hostile markup", () => {
+  const body = "Receipt from Acme Co\nReceipt #42-0001\nAmount paid $5.00";
+  const receipt_link =
+    '<a href="https://shop.acme.com/orders/88/receipt">View your <b>receipt</b></a>';
+  const hostile: Array<[string, string]> = [
+    ["unclosed anchors", "<a ".repeat(330000)],
+    ["anchors with no tag end", '<a x="'.repeat(160000)],
+    [
+      "anchors with no closing tag",
+      '<a href="https://x.example/">'.repeat(30000),
+    ],
+    ["href with no tag end", '<a href="https://x.example/"'.repeat(30000)],
+    ["unquoted hrefs", "<a href=x ".repeat(100000)],
+  ];
+
+  it.each(hostile)("extracts from %s quickly", (_label, html) => {
+    const started = performance.now();
+
+    extract_purchase_details(
+      "Your receipt from Acme Co",
+      body,
+      "orders@acme.com",
+      "Acme Co",
+      html,
+    );
+    extract_shipping_details(
+      "Your order has shipped",
+      "Shipped",
+      html,
+      "orders@acme.com",
+    );
+
+    expect(performance.now() - started).toBeLessThan(1000);
+  });
+
+  it("still reads a receipt link whose text holds markup", () => {
+    const result = extract_purchase_details(
+      "Your receipt from Acme Co",
+      body,
+      "orders@acme.com",
+      "Acme Co",
+      `<a ${receipt_link}`,
+    );
+
+    expect(result.receipt_url).toBe("https://shop.acme.com/orders/88/receipt");
+  });
+
+  it("does not treat other tags that start with a as links", () => {
+    const result = extract_shipping_details(
+      "Your order has shipped",
+      "Shipped",
+      '<abbr href="https://carrier.example.com/track?id=1">x</abbr>',
+      "orders@shop.example.com",
+    );
+
+    expect(result.tracking_url).toBeNull();
+  });
+
+  it("reads a tracking link from a quoted href after other attributes", () => {
+    const result = extract_shipping_details(
+      "Your order has shipped",
+      "Shipped",
+      '<a class="btn" data-x="1" href="https://carrier.example.com/track?id=1&amp;b=2">Track</a>',
+      "orders@shop.example.com",
+    );
+
+    expect(result.tracking_url).toBe(
+      "https://carrier.example.com/track?id=1&b=2",
+    );
+  });
+});

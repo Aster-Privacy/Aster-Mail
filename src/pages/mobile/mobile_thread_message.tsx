@@ -295,7 +295,7 @@ function MobileThreadMessageContent({
     raw_sender_name,
     t("common.unknown_sender"),
   );
-  const shown_address = sender_trust?.address || show_sender_email;
+  const shown_address = sender_trust ? sender_trust.address : show_sender_email;
   const received_on_address = useMemo(
     () =>
       message.item_type === "received"

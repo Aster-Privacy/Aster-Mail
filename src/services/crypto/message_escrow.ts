@@ -21,7 +21,11 @@
 import { array_to_base64, base64_to_array } from "./base64";
 import { get_derived_encryption_key } from "./memory_key_store";
 import { decrypt_with_legacy_derived_keys } from "./legacy_keks";
-import { set_cached_ratchet_plaintext } from "./ratchet_plaintext_cache";
+import {
+  is_cached_plaintext_foreign,
+  set_cached_ratchet_plaintext,
+  type PlaintextBinding,
+} from "./ratchet_plaintext_cache";
 
 import { ignore_error } from "@/lib/ignore_error";
 import { api_client } from "@/services/api/client";
@@ -234,9 +238,108 @@ async function decrypt_escrow_payload(
   return recovered;
 }
 
+const ESCROW_AAD_V3_PREFIX = "aster.escrow.v3\0";
+const BOUND_ESCROW_KEY_PREFIX = "v3:";
+
+export function escrow_aad_v3(dedupe_key: string): Uint8Array {
+  return new TextEncoder().encode(ESCROW_AAD_V3_PREFIX + dedupe_key);
+}
+
+export function bound_escrow_key(dedupe_key: string): string {
+  return BOUND_ESCROW_KEY_PREFIX + dedupe_key;
+}
+
+interface BoundEscrowPayload {
+  sender: string;
+  conversation_id: string;
+  plaintext: string;
+}
+
+export interface EscrowedPlaintext {
+  plaintext: string;
+  verified: boolean;
+}
+
+function normalize_sender(sender: string): string {
+  return sender.trim().toLowerCase();
+}
+
+function encode_bound_payload(
+  binding: PlaintextBinding,
+  plaintext: string,
+): Uint8Array {
+  const header = JSON.stringify({
+    s: normalize_sender(binding.sender),
+    c: binding.conversation_id,
+  });
+
+  return new TextEncoder().encode(`${header}\n${plaintext}`);
+}
+
+function decode_bound_payload(bytes: ArrayBuffer): BoundEscrowPayload | null {
+  const text = new TextDecoder().decode(bytes);
+  const split = text.indexOf("\n");
+
+  if (split < 0) return null;
+
+  try {
+    const header = JSON.parse(text.slice(0, split)) as {
+      s?: unknown;
+      c?: unknown;
+    };
+
+    if (typeof header.s !== "string" || typeof header.c !== "string") {
+      return null;
+    }
+
+    return {
+      sender: header.s,
+      conversation_id: header.c,
+      plaintext: text.slice(split + 1),
+    };
+  } catch {
+    return null;
+  }
+}
+
+function payload_matches_binding(
+  payload: BoundEscrowPayload,
+  binding: PlaintextBinding,
+): boolean {
+  return (
+    payload.sender === normalize_sender(binding.sender) &&
+    payload.conversation_id === binding.conversation_id
+  );
+}
+
+async function post_escrow_entry(
+  escrow_key: CryptoKey,
+  row_key: string,
+  payload: Uint8Array,
+  additional_data: Uint8Array,
+): Promise<void> {
+  const nonce = crypto.getRandomValues(new Uint8Array(12));
+
+  const ciphertext = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv: nonce, additionalData: additional_data },
+    escrow_key,
+    payload,
+  );
+
+  await api_client.post(`${API_BASE}/plaintext`, {
+    message_id: row_key,
+    encrypted_plaintext: array_to_base64(new Uint8Array(ciphertext)),
+    plaintext_nonce: array_to_base64(nonce),
+  });
+
+  escrow_misses.delete(row_key);
+  flush_escrow_misses();
+}
+
 export async function upload_to_escrow(
   dedupe_key: string,
   plaintext: string,
+  binding: PlaintextBinding,
 ): Promise<void> {
   if (!dedupe_key || !plaintext) return;
 
@@ -248,66 +351,149 @@ export async function upload_to_escrow(
 
   if (!escrow_key) return;
 
-  const nonce = crypto.getRandomValues(new Uint8Array(12));
-
-  const ciphertext = await crypto.subtle.encrypt(
-    { name: "AES-GCM", iv: nonce, additionalData: escrow_aad_v2(dedupe_key) },
+  await post_escrow_entry(
     escrow_key,
-    plaintext_bytes,
+    bound_escrow_key(dedupe_key),
+    encode_bound_payload(binding, plaintext),
+    escrow_aad_v3(dedupe_key),
   );
 
-  await api_client.post(`${API_BASE}/plaintext`, {
-    message_id: dedupe_key,
-    encrypted_plaintext: array_to_base64(new Uint8Array(ciphertext)),
-    plaintext_nonce: array_to_base64(nonce),
-  });
-
-  escrow_misses.delete(dedupe_key);
-  flush_escrow_misses();
+  await post_escrow_entry(
+    escrow_key,
+    dedupe_key,
+    plaintext_bytes,
+    escrow_aad_v2(dedupe_key),
+  );
 }
 
-export async function fetch_from_escrow(
-  dedupe_key: string,
-): Promise<string | null> {
-  if (!dedupe_key) return null;
-
-  if (has_recent_escrow_miss(dedupe_key)) return null;
-
-  const escrow_key = await get_escrow_key();
-
-  if (!escrow_key) return null;
+async function get_escrow_row(row_key: string): Promise<EscrowEntry | null> {
+  if (has_recent_escrow_miss(row_key)) return null;
 
   const response = await api_client.get<EscrowEntry>(
-    `${API_BASE}/plaintext/${encodeURIComponent(dedupe_key)}`,
+    `${API_BASE}/plaintext/${encodeURIComponent(row_key)}`,
   );
 
   if (response.code === "NOT_FOUND") {
-    record_escrow_miss(dedupe_key);
+    record_escrow_miss(row_key);
 
     return null;
   }
 
   if (response.error || !response.data) return null;
 
-  escrow_misses.delete(dedupe_key);
+  escrow_misses.delete(row_key);
   flush_escrow_misses();
 
-  try {
-    const ciphertext = base64_to_array(response.data.encrypted_plaintext);
-    const nonce = base64_to_array(response.data.plaintext_nonce);
+  return response.data;
+}
 
+async function open_bound_row(
+  escrow_key: CryptoKey,
+  row: EscrowEntry,
+  dedupe_key: string,
+): Promise<BoundEscrowPayload | null> {
+  try {
+    const opened = await open_escrow(
+      escrow_key,
+      base64_to_array(row.encrypted_plaintext),
+      base64_to_array(row.plaintext_nonce),
+      escrow_aad_v3(dedupe_key),
+    );
+
+    return opened ? decode_bound_payload(opened) : null;
+  } catch {
+    return null;
+  }
+}
+
+async function lookup_bound_escrow(
+  escrow_key: CryptoKey,
+  dedupe_key: string,
+): Promise<BoundEscrowPayload | null> {
+  const row = await get_escrow_row(bound_escrow_key(dedupe_key));
+
+  if (!row) return null;
+
+  return open_bound_row(escrow_key, row, dedupe_key);
+}
+
+async function claimed_by_other_sender(
+  dedupe_key: string,
+  binding: PlaintextBinding,
+): Promise<boolean> {
+  return is_cached_plaintext_foreign(dedupe_key, binding).catch(() => true);
+}
+
+export async function fetch_verified_from_escrow(
+  dedupe_key: string,
+  binding: PlaintextBinding,
+): Promise<string | null> {
+  if (!dedupe_key) return null;
+
+  if (await claimed_by_other_sender(dedupe_key, binding)) return null;
+
+  const escrow_key = await get_escrow_key();
+
+  if (!escrow_key) return null;
+
+  const bound = await lookup_bound_escrow(escrow_key, dedupe_key);
+
+  if (!bound || !payload_matches_binding(bound, binding)) return null;
+
+  await set_cached_ratchet_plaintext(
+    dedupe_key,
+    bound.plaintext,
+    false,
+    binding,
+  );
+
+  return bound.plaintext;
+}
+
+export async function fetch_from_escrow(
+  dedupe_key: string,
+  binding: PlaintextBinding,
+): Promise<EscrowedPlaintext | null> {
+  if (!dedupe_key) return null;
+
+  if (await claimed_by_other_sender(dedupe_key, binding)) return null;
+
+  const escrow_key = await get_escrow_key();
+
+  if (!escrow_key) return null;
+
+  const bound = await lookup_bound_escrow(escrow_key, dedupe_key);
+
+  if (bound) {
+    if (!payload_matches_binding(bound, binding)) return null;
+
+    await set_cached_ratchet_plaintext(
+      dedupe_key,
+      bound.plaintext,
+      false,
+      binding,
+    );
+
+    return { plaintext: bound.plaintext, verified: true };
+  }
+
+  const row = await get_escrow_row(dedupe_key);
+
+  if (!row) return null;
+
+  try {
     const plaintext_bytes = await decrypt_escrow_payload(
       escrow_key,
-      ciphertext,
-      nonce,
+      base64_to_array(row.encrypted_plaintext),
+      base64_to_array(row.plaintext_nonce),
       dedupe_key,
     );
 
     const plaintext = new TextDecoder().decode(plaintext_bytes);
 
-    await set_cached_ratchet_plaintext(dedupe_key, plaintext);
+    await set_cached_ratchet_plaintext(dedupe_key, plaintext, true, binding);
 
-    return plaintext;
+    return { plaintext, verified: false };
   } catch {
     return null;
   }
@@ -325,22 +511,19 @@ export async function sync_escrow_to_cache(): Promise<void> {
   if (response.error || !response.data) return;
 
   for (const entry of response.data) {
-    try {
-      const ciphertext = base64_to_array(entry.encrypted_plaintext);
-      const nonce = base64_to_array(entry.plaintext_nonce);
+    if (!entry.message_id.startsWith(BOUND_ESCROW_KEY_PREFIX)) continue;
 
-      const plaintext_bytes = await decrypt_escrow_payload(
-        escrow_key,
-        ciphertext,
-        nonce,
-        entry.message_id,
-      );
+    const dedupe_key = entry.message_id.slice(BOUND_ESCROW_KEY_PREFIX.length);
 
-      const plaintext = new TextDecoder().decode(plaintext_bytes);
+    if (!dedupe_key) continue;
 
-      await set_cached_ratchet_plaintext(entry.message_id, plaintext);
-    } catch {
-      /* skip entries that fail to decrypt */
-    }
+    const payload = await open_bound_row(escrow_key, entry, dedupe_key);
+
+    if (!payload) continue;
+
+    await set_cached_ratchet_plaintext(dedupe_key, payload.plaintext, false, {
+      sender: payload.sender,
+      conversation_id: payload.conversation_id,
+    });
   }
 }

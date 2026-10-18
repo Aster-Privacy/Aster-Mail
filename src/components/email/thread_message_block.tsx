@@ -267,7 +267,7 @@ export function ThreadMessageBlock(
   };
 
   const marks_hidden = sender_trust?.show_identity_marks === false;
-  const shown_address = sender_trust?.address || show_sender_email;
+  const shown_address = sender_trust ? sender_trust.address : show_sender_email;
   const auth_summary = summarize_email_authentication(message);
   const auth_failed_checks =
     auth_summary?.verdict === "failed"
@@ -385,7 +385,7 @@ export function ThreadMessageBlock(
                 unverified={sender_trust?.auth_state === "unverified"}
               />
             )}
-            {shown_address !== name && (
+            {shown_address && shown_address !== name && (
               <span
                 className={`text-xs text-txt-muted truncate max-w-full ${sender_trust ? "" : "hidden sm:inline"}`}
               >

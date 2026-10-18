@@ -26,7 +26,11 @@ import {
 } from "./double_ratchet";
 import { type EncryptedVault } from "./key_manager";
 import { type RatchetKeySet } from "./key_manager_core";
-import { fetch_from_escrow, upload_to_escrow } from "./message_escrow";
+import {
+  fetch_from_escrow,
+  fetch_verified_from_escrow,
+  upload_to_escrow,
+} from "./message_escrow";
 import {
   derive_conversation_id,
   get_sync_encryption_key,
@@ -39,6 +43,7 @@ import {
 import {
   get_cached_ratchet_plaintext,
   set_cached_ratchet_plaintext,
+  type PlaintextBinding,
 } from "./ratchet_plaintext_cache";
 import { detect_identity_pin_drift } from "./ratchet_prekey_bundle";
 import { has_peer_advertised_pq } from "./ratchet_identity_pin";
@@ -161,11 +166,14 @@ async function prefer_escrowed_plaintext(
   dedupe_key: string,
   message_id: string | undefined,
   sender_email: string,
+  binding: PlaintextBinding,
 ): Promise<string> {
   if (!is_unauthenticated_plaintext(plaintext)) return plaintext;
   if (escrow_upgrade_misses.has(dedupe_key)) return plaintext;
 
-  const escrowed = await fetch_from_escrow(dedupe_key).catch(() => null);
+  const escrowed = await fetch_verified_from_escrow(dedupe_key, binding).catch(
+    () => null,
+  );
 
   if (escrowed === null) {
     note_escrow_upgrade_miss(dedupe_key);
@@ -173,14 +181,8 @@ async function prefer_escrowed_plaintext(
     return plaintext;
   }
 
-  clear_unauthenticated_plaintext(escrowed);
+  clear_unauthenticated_plaintext(escrowed, dedupe_key);
   note_message_sender_identity(message_id ?? dedupe_key, sender_email);
-  await set_cached_ratchet_plaintext(dedupe_key, escrowed).catch((caught) =>
-    ignore_error(
-      "services/crypto/ratchet_decrypt:prefer_escrowed_plaintext",
-      caught,
-    ),
-  );
 
   return escrowed;
 }
@@ -196,9 +198,11 @@ async function attempt_ratchet_decrypt(
   const dedupe_key = message_id
     ? build_dedupe_key(message_id, data)
     : undefined;
+  const conversation_id = await derive_conversation_id(our_email, sender_email);
+  const binding: PlaintextBinding = { sender: sender_email, conversation_id };
 
   if (dedupe_key) {
-    const cached = await get_cached_ratchet_plaintext(dedupe_key);
+    const cached = await get_cached_ratchet_plaintext(dedupe_key, binding);
 
     if (cached !== null) {
       return {
@@ -207,17 +211,16 @@ async function attempt_ratchet_decrypt(
           dedupe_key,
           message_id,
           sender_email,
+          binding,
         ),
         error: null,
       };
     }
   }
 
-  const conversation_id = await derive_conversation_id(our_email, sender_email);
-
   return run_serialized_for_conversation(conversation_id, async () => {
     if (dedupe_key) {
-      const cached = await get_cached_ratchet_plaintext(dedupe_key);
+      const cached = await get_cached_ratchet_plaintext(dedupe_key, binding);
 
       if (cached !== null) {
         return {
@@ -226,6 +229,7 @@ async function attempt_ratchet_decrypt(
             dedupe_key,
             message_id,
             sender_email,
+            binding,
           ),
           error: null,
         };
@@ -248,6 +252,7 @@ async function attempt_ratchet_decrypt(
           data,
           envelope.sender_identity_key,
           vault,
+          dedupe_key ?? "",
         );
       } catch (err) {
         decrypt_error = err;
@@ -266,6 +271,7 @@ async function attempt_ratchet_decrypt(
           dedupe_key,
           message_id,
           sender_email,
+          binding,
         );
       }
 
@@ -284,10 +290,20 @@ async function attempt_ratchet_decrypt(
       }
 
       if (dedupe_key && unauthenticated) {
-        await set_cached_ratchet_plaintext(dedupe_key, plaintext, true);
+        await set_cached_ratchet_plaintext(
+          dedupe_key,
+          plaintext,
+          true,
+          binding,
+        );
       } else if (dedupe_key) {
-        await set_cached_ratchet_plaintext(dedupe_key, plaintext);
-        void upload_to_escrow(dedupe_key, plaintext).catch((caught) =>
+        await set_cached_ratchet_plaintext(
+          dedupe_key,
+          plaintext,
+          false,
+          binding,
+        );
+        void upload_to_escrow(dedupe_key, plaintext, binding).catch((caught) =>
           ignore_error(
             "services/crypto/ratchet_decrypt:attempt_ratchet_decrypt",
             caught,
@@ -299,9 +315,24 @@ async function attempt_ratchet_decrypt(
     }
 
     if (dedupe_key) {
-      const escrowed = await fetch_from_escrow(dedupe_key).catch(() => null);
+      const escrowed = await fetch_from_escrow(dedupe_key, binding).catch(
+        () => null,
+      );
 
-      if (escrowed !== null) return { plaintext: escrowed, error: null };
+      if (escrowed !== null) {
+        if (escrowed.verified) {
+          clear_unauthenticated_plaintext(escrowed.plaintext, dedupe_key);
+          note_message_sender_identity(message_id ?? dedupe_key, sender_email);
+        } else {
+          mark_unauthenticated_plaintext(escrowed.plaintext, dedupe_key);
+          record_message_sender_identity(
+            message_id ?? dedupe_key,
+            "unverified",
+          );
+        }
+
+        return { plaintext: escrowed.plaintext, error: null };
+      }
     }
 
     return { plaintext: null, error: decrypt_error };
@@ -636,6 +667,7 @@ async function decrypt_ratchet_for_recipient(
   data: RatchetRecipientData,
   sender_identity_key: string,
   vault: EncryptedVault,
+  message_key = "",
 ): Promise<string | null> {
   const key_sets = receiver_key_sets(vault);
 
@@ -654,6 +686,7 @@ async function decrypt_ratchet_for_recipient(
       data,
       sender_identity_key,
       refreshed.vault,
+      message_key,
     );
   }
 
@@ -874,7 +907,7 @@ async function decrypt_ratchet_for_recipient(
       );
 
       if (recovered !== null) {
-        mark_unauthenticated_plaintext(recovered);
+        mark_unauthenticated_plaintext(recovered, message_key);
 
         return recovered;
       }
@@ -891,7 +924,7 @@ async function decrypt_ratchet_for_recipient(
           );
 
           if (recovered_refreshed !== null) {
-            mark_unauthenticated_plaintext(recovered_refreshed);
+            mark_unauthenticated_plaintext(recovered_refreshed, message_key);
             await adopt_refreshed_vault(refreshed);
 
             return recovered_refreshed;

@@ -61,6 +61,8 @@ export function decode_ratchet_state_container(
   conversation_id: string,
   floor: number,
   opened_bound: boolean,
+  established = floor > 0,
+  allow_unversioned = false,
 ): RatchetStateContainerResult {
   let parsed: Record<string, unknown> | null;
 
@@ -97,6 +99,14 @@ export function decode_ratchet_state_container(
 
   if (sync_version !== null && sync_version < floor) {
     return { kind: "rolled_back" };
+  }
+
+  if (
+    (established || floor > 0) &&
+    (typeof bound_id !== "string" ||
+      (sync_version === null && !allow_unversioned))
+  ) {
+    return { kind: "unbound" };
   }
 
   const inner_state = { ...state };
