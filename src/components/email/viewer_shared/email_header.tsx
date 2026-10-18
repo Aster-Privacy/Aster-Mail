@@ -219,7 +219,8 @@ export function ViewerEmailHeader({
               </PopoverTrigger>
               <PopoverContent
                 align="start"
-                className="w-80 p-3 text-xs space-y-2"
+                className="w-80 max-h-[min(var(--radix-popover-content-available-height,80dvh),40rem)] overflow-y-auto overscroll-contain p-3 text-xs space-y-2"
+                collisionPadding={12}
                 side="bottom"
               >
                 <div className="flex">

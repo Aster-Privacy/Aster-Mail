@@ -527,7 +527,8 @@ export function ThreadMessageBlock(
               </PopoverTrigger>
               <PopoverContent
                 align="start"
-                className="w-[28rem] max-w-[calc(100vw-2rem)] p-4"
+                className="w-[28rem] max-w-[calc(100vw-2rem)] max-h-[min(var(--radix-popover-content-available-height,80dvh),40rem)] overflow-y-auto overscroll-contain p-4"
+                collisionPadding={12}
                 side="bottom"
                 sideOffset={6}
                 onClick={(e: React.MouseEvent) => e.stopPropagation()}
