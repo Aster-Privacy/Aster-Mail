@@ -20,7 +20,11 @@
 //
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { resolve_is_family_plan, refresh_family_plan_flag } from "./family";
+import {
+  prefetch_family_group,
+  resolve_is_family_plan,
+  refresh_family_plan_flag,
+} from "./family";
 import { api_client } from "./client";
 
 vi.mock("./client", () => ({
@@ -128,5 +132,27 @@ describe("refresh_family_plan_flag", () => {
 
     expect(on_resolved).not.toHaveBeenCalled();
     expect(localStorage.getItem("aster_is_family_plan")).toBe("1");
+  });
+});
+
+describe("prefetch_family_group", () => {
+  it.each(["duo", "family", "family_duo", "family_full"])(
+    "prefetches for the %s plan",
+    (plan_code) => {
+      localStorage.setItem("astermail_plan_hint_v1", plan_code);
+      mocked_get.mockResolvedValue({ data: family_group_payload });
+
+      prefetch_family_group();
+
+      expect(mocked_get).toHaveBeenCalledWith("/payments/v1/family");
+    },
+  );
+
+  it("skips plans without a family group", () => {
+    localStorage.setItem("astermail_plan_hint_v1", "supernova");
+
+    prefetch_family_group();
+
+    expect(mocked_get).not.toHaveBeenCalled();
   });
 });
