@@ -58,6 +58,11 @@ import {
 import { is_resumable_checkout_plan } from "@/components/settings/billing/billing_constants";
 import { ProfilePictureDialog } from "@/components/profile/profile_picture_dialog";
 import { request_special_offer_checkout } from "@/stores/special_offer_store";
+import {
+  AliasCapUpsellModalHost,
+  SpecialOfferModalHost,
+  UpgradeModalHost,
+} from "@/components/upgrade/upgrade_modal_hosts";
 import { UndoSendContainer } from "@/components/toast/undo_send_container";
 import { UndoSendPreviewModal } from "@/components/toast/undo_send_preview_modal";
 import { EmailNotificationManager } from "@/components/email/email_notification_manager";
@@ -100,21 +105,6 @@ const JoinFamilyPage = lazy_with_retry(() => import("@/pages/join_family"));
 const FamilyClaimPage = lazy_with_retry(() => import("@/pages/family_claim"));
 const CryptoInvoicePage = lazy_with_retry(
   () => import("@/pages/crypto_invoice"),
-);
-const UpgradeModal = lazy_with_retry(() =>
-  import("@/components/upgrade/upgrade_modal").then((m) => ({
-    default: m.UpgradeModal,
-  })),
-);
-const AliasCapUpsellModal = lazy_with_retry(() =>
-  import("@/components/upgrade/alias_cap_upsell_modal").then((m) => ({
-    default: m.AliasCapUpsellModal,
-  })),
-);
-const SpecialOfferModal = lazy_with_retry(() =>
-  import("@/components/upgrade/special_offer_modal").then((m) => ({
-    default: m.SpecialOfferModal,
-  })),
 );
 const SpecialOfferSuccessModal = lazy_with_retry(() =>
   import("@/components/upgrade/special_offer_success_modal").then((m) => ({
@@ -635,16 +625,12 @@ function App() {
       <KeyTrustChangePrompt />
       <PostQuantumSendPrompt />
       <ErrorBoundary fallback={null}>
-        <Suspense fallback={null}>
-          <UpgradeModal />
-          <AliasCapUpsellModal />
-        </Suspense>
+        <UpgradeModalHost />
+        <AliasCapUpsellModalHost />
       </ErrorBoundary>
       <ProfilePictureDialog />
       <ErrorBoundary fallback={null}>
-        <Suspense fallback={null}>
-          <SpecialOfferModal />
-        </Suspense>
+        <SpecialOfferModalHost />
       </ErrorBoundary>
       <UndoSendContainer max_visible={3} position="bottom-center" />
       <UndoSendPreviewModal />

@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { SpecialOfferStatus } from "@/services/api/offers";
+
 import { is_onion_host } from "@/lib/onion_host";
 import { PLAN_TIERS } from "@/components/settings/billing/billing_constants";
 
@@ -206,4 +208,34 @@ export function is_special_offer_available({
   if (is_onion ?? is_onion_host()) return false;
 
   return special_offer_pricing() !== null;
+}
+
+export interface SpecialOfferStatusSnapshot {
+  status: Pick<
+    SpecialOfferStatus,
+    "available" | "auto_show" | "dismissed"
+  > | null;
+  is_loaded: boolean;
+  plan_code: string | null;
+}
+
+export function is_special_offer_active({
+  status,
+  is_loaded,
+  plan_code,
+}: SpecialOfferStatusSnapshot): boolean {
+  return (
+    is_loaded &&
+    !!status?.available &&
+    is_special_offer_available({
+      plan_code,
+      is_dismissed: status?.dismissed ?? false,
+    })
+  );
+}
+
+export function special_offer_can_auto_show(
+  snapshot: SpecialOfferStatusSnapshot,
+): boolean {
+  return is_special_offer_active(snapshot) && !!snapshot.status?.auto_show;
 }
