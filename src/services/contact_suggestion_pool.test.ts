@@ -130,6 +130,103 @@ describe("load_suggestion_pool", () => {
     expect(refreshed.map((item) => item.id)).toEqual(["one", "two"]);
   });
 
+  it("keeps the pool past the TTL while the sync socket stays live", async () => {
+    vi.useFakeTimers();
+    list_contacts.mockResolvedValue(page([contact("one")]));
+
+    const mod = await load();
+    const live = await import("./sync_live_session");
+    const { emit_contacts_changed } = await import("@/hooks/mail_events");
+
+    live.set_sync_live_probe(() => true);
+    live.begin_live_sync_session();
+
+    await mod.load_suggestion_pool();
+    vi.advanceTimersByTime(live.LIVE_SESSION_CACHE_MAX_AGE_MS - 1000);
+    await mod.load_suggestion_pool();
+    expect(list_contacts).toHaveBeenCalledTimes(1);
+
+    list_contacts.mockResolvedValue(page([contact("one"), contact("two")]));
+    emit_contacts_changed();
+
+    const refreshed = await mod.load_suggestion_pool();
+
+    expect(list_contacts).toHaveBeenCalledTimes(2);
+    expect(refreshed.map((item) => item.id)).toEqual(["one", "two"]);
+  });
+
+  it("refetches a live pool once it reaches the live age cap", async () => {
+    vi.useFakeTimers();
+    list_contacts.mockResolvedValue(page([contact("one")]));
+
+    const mod = await load();
+    const live = await import("./sync_live_session");
+
+    live.set_sync_live_probe(() => true);
+    live.begin_live_sync_session();
+
+    await mod.load_suggestion_pool();
+    vi.advanceTimersByTime(live.LIVE_SESSION_CACHE_MAX_AGE_MS - 1000);
+    await mod.load_suggestion_pool();
+    expect(list_contacts).toHaveBeenCalledTimes(1);
+
+    vi.advanceTimersByTime(2000);
+    await mod.load_suggestion_pool();
+    expect(list_contacts).toHaveBeenCalledTimes(2);
+  });
+
+  it("reloads after a successful local contact write", async () => {
+    list_contacts.mockResolvedValue(page([contact("one")]));
+
+    const mod = await load();
+    const live = await import("./sync_live_session");
+    const writes = await import("./contact_local_writes");
+
+    live.set_sync_live_probe(() => true);
+    live.begin_live_sync_session();
+    await mod.load_suggestion_pool();
+
+    writes.note_local_contact_write({ error: "offline" });
+    await mod.load_suggestion_pool();
+    expect(list_contacts).toHaveBeenCalledTimes(1);
+
+    list_contacts.mockResolvedValue(page([contact("one"), contact("two")]));
+    writes.note_local_contact_write({});
+
+    const refreshed = await mod.load_suggestion_pool();
+
+    expect(list_contacts).toHaveBeenCalledTimes(2);
+    expect(refreshed.map((item) => item.id)).toEqual(["one", "two"]);
+  });
+
+  it("falls back to the TTL once the sync socket drops or reconnects", async () => {
+    vi.useFakeTimers();
+    list_contacts.mockResolvedValue(page([contact("one")]));
+
+    const mod = await load();
+    const live = await import("./sync_live_session");
+    let connected = true;
+
+    live.set_sync_live_probe(() => connected);
+    live.begin_live_sync_session();
+
+    await mod.load_suggestion_pool();
+    connected = false;
+    vi.advanceTimersByTime(mod.SUGGESTION_POOL_TTL_MS + 1);
+    await mod.load_suggestion_pool();
+    expect(list_contacts).toHaveBeenCalledTimes(2);
+
+    connected = true;
+    live.begin_live_sync_session();
+    vi.advanceTimersByTime(mod.SUGGESTION_POOL_TTL_MS + 1);
+    await mod.load_suggestion_pool();
+    expect(list_contacts).toHaveBeenCalledTimes(3);
+
+    vi.advanceTimersByTime(mod.SUGGESTION_POOL_TTL_MS + 1);
+    await mod.load_suggestion_pool();
+    expect(list_contacts).toHaveBeenCalledTimes(3);
+  });
+
   it("drops the cached pool when the vault is cleared", async () => {
     list_contacts.mockResolvedValue(page([contact("one")]));
 

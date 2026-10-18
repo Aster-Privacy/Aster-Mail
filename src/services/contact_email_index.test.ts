@@ -209,6 +209,104 @@ describe("ensure_contact_email_index", () => {
     expect(list_contacts).toHaveBeenCalledTimes(2);
   });
 
+  it("keeps the index past the TTL while the sync socket stays live", async () => {
+    vi.useFakeTimers();
+    const mod = await load();
+    const live = await import("./sync_live_session");
+    const { emit_contacts_changed } = await import("@/hooks/mail_events");
+
+    live.set_sync_live_probe(() => true);
+    live.begin_live_sync_session();
+    list_contacts.mockResolvedValue(page([contact("c1", ["a@example.com"])]));
+
+    await mod.ensure_contact_email_index();
+    vi.advanceTimersByTime(live.LIVE_SESSION_CACHE_MAX_AGE_MS - 1000);
+    await mod.ensure_contact_email_index();
+    expect(mod.is_contact_index_fresh()).toBe(true);
+    expect(list_contacts).toHaveBeenCalledTimes(1);
+
+    list_contacts.mockResolvedValue(page([contact("c2", ["a@example.com"])]));
+    emit_contacts_changed();
+    vi.advanceTimersByTime(mod.CONTACT_INDEX_STALE_DEBOUNCE_MS);
+    await mod.ensure_contact_email_index();
+    expect(list_contacts).toHaveBeenCalledTimes(2);
+    expect(mod.get_cached_contact_id("a@example.com")).toBe("c2");
+  });
+
+  it("refetches a live index once it reaches the live age cap", async () => {
+    vi.useFakeTimers();
+    const mod = await load();
+    const live = await import("./sync_live_session");
+
+    live.set_sync_live_probe(() => true);
+    live.begin_live_sync_session();
+    list_contacts.mockResolvedValue(page([contact("c1", ["a@example.com"])]));
+
+    await mod.ensure_contact_email_index();
+    vi.advanceTimersByTime(live.LIVE_SESSION_CACHE_MAX_AGE_MS - 1000);
+    await mod.ensure_contact_email_index();
+    expect(list_contacts).toHaveBeenCalledTimes(1);
+
+    vi.advanceTimersByTime(2000);
+    expect(mod.is_contact_index_fresh()).toBe(false);
+    await mod.ensure_contact_email_index();
+    expect(list_contacts).toHaveBeenCalledTimes(2);
+  });
+
+  it("rebuilds after a successful local contact write", async () => {
+    const mod = await load();
+    const live = await import("./sync_live_session");
+    const writes = await import("./contact_local_writes");
+
+    live.set_sync_live_probe(() => true);
+    live.begin_live_sync_session();
+    list_contacts.mockResolvedValue(page([contact("c1", ["a@example.com"])]));
+    await mod.ensure_contact_email_index();
+
+    writes.note_local_contact_write({ error: "offline" });
+    await mod.ensure_contact_email_index();
+    expect(list_contacts).toHaveBeenCalledTimes(1);
+
+    list_contacts.mockResolvedValue(
+      page([
+        contact("c1", ["a@example.com"]),
+        contact("c2", ["new@example.com"]),
+      ]),
+    );
+    writes.note_local_contact_write({});
+    await mod.ensure_contact_email_index();
+    expect(list_contacts).toHaveBeenCalledTimes(2);
+    expect(mod.get_cached_contact_id("new@example.com")).toBe("c2");
+  });
+
+  it("falls back to the TTL once the sync socket drops or reconnects", async () => {
+    vi.useFakeTimers();
+    const mod = await load();
+    const live = await import("./sync_live_session");
+    let connected = true;
+
+    live.set_sync_live_probe(() => connected);
+    live.begin_live_sync_session();
+    list_contacts.mockResolvedValue(page([contact("c1", ["a@example.com"])]));
+
+    await mod.ensure_contact_email_index();
+    connected = false;
+    vi.advanceTimersByTime(mod.CONTACT_INDEX_TTL_MS + 1);
+    expect(mod.is_contact_index_fresh()).toBe(false);
+    await mod.ensure_contact_email_index();
+    expect(list_contacts).toHaveBeenCalledTimes(2);
+
+    connected = true;
+    live.begin_live_sync_session();
+    vi.advanceTimersByTime(mod.CONTACT_INDEX_TTL_MS + 1);
+    await mod.ensure_contact_email_index();
+    expect(list_contacts).toHaveBeenCalledTimes(3);
+
+    vi.advanceTimersByTime(mod.CONTACT_INDEX_TTL_MS + 1);
+    await mod.ensure_contact_email_index();
+    expect(list_contacts).toHaveBeenCalledTimes(3);
+  });
+
   it("does not cache a failed build and backs off before retrying", async () => {
     vi.useFakeTimers();
     const mod = await load();

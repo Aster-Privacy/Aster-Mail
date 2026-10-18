@@ -50,6 +50,10 @@ import { sync_recent } from "@/services/category_index";
 import { ignore_error } from "@/lib/ignore_error";
 import { CATCH_UP_WHILE_LIVE_MS } from "@/services/sync_timing";
 import {
+  begin_live_sync_session,
+  set_sync_live_probe,
+} from "@/services/sync_live_session";
+import {
   claim_own_mail_mutation_echo,
   clear_own_mail_mutations,
 } from "@/services/own_mail_mutations";
@@ -269,6 +273,7 @@ class SyncClient {
           this.auth_error_count = 0;
           this.last_auth_error = false;
           this.reconnect_attempt = 0;
+          begin_live_sync_session();
           this.start_heartbeat();
           this.start_catch_up_timer();
           void check_and_replenish_prekeys();
@@ -861,6 +866,8 @@ class SyncClient {
 }
 
 export const sync_client = new SyncClient();
+
+set_sync_live_probe(() => sync_client.is_connected());
 
 if (typeof window !== "undefined") {
   window.addEventListener("beforeunload", () => {

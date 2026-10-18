@@ -31,6 +31,11 @@ import {
   on_keys_ready,
   on_vault_cleared,
 } from "@/services/crypto/memory_key_store";
+import {
+  get_live_sync_session,
+  LIVE_SESSION_CACHE_MAX_AGE_MS,
+} from "@/services/sync_live_session";
+import { on_local_contact_write } from "@/services/contact_local_writes";
 
 const PAGE_SIZE = 100;
 const MAX_PAGES = 100;
@@ -41,6 +46,7 @@ export const SUGGESTION_POOL_TTL_MS = 5 * 60 * 1000;
 
 let pool: DecryptedContact[] | null = null;
 let built_at = 0;
+let built_session = 0;
 let pending: Promise<DecryptedContact[]> | null = null;
 let generation = 0;
 let listeners_registered = false;
@@ -99,6 +105,10 @@ function register_listeners(): void {
     mark_suggestion_pool_stale();
   });
 
+  on_local_contact_write(() => {
+    mark_suggestion_pool_stale();
+  });
+
   on_vault_cleared(() => {
     invalidate_suggestion_pool();
   });
@@ -129,20 +139,31 @@ export function get_cached_suggestion_pool(): DecryptedContact[] | null {
   return pool;
 }
 
+function is_pool_fresh(now: number): boolean {
+  if (built_at <= 0) return false;
+  if (now - built_at < SUGGESTION_POOL_TTL_MS) return true;
+
+  return (
+    now - built_at < LIVE_SESSION_CACHE_MAX_AGE_MS &&
+    built_session !== 0 &&
+    built_session === get_live_sync_session()
+  );
+}
+
 export function load_suggestion_pool(): Promise<DecryptedContact[]> {
   register_listeners();
 
-  if (pool && built_at > 0 && Date.now() - built_at < SUGGESTION_POOL_TTL_MS) {
-    return Promise.resolve(pool);
-  }
+  if (pool && is_pool_fresh(Date.now())) return Promise.resolve(pool);
   if (pending) return pending;
 
   const started_generation = generation;
+  const started_session = get_live_sync_session();
   const request = fetch_pool(started_generation)
     .then((next) => {
       if (started_generation !== generation) return pool ?? [];
       pool = next;
       built_at = Date.now();
+      built_session = started_session;
 
       return next;
     })

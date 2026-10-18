@@ -70,6 +70,7 @@ import {
   vcard_group_of,
 } from "@/utils/vcard_labels";
 import { get_active_translations } from "@/lib/i18n/translations";
+import { note_local_contact_write } from "@/services/contact_local_writes";
 
 function array_to_base64(array: Uint8Array): string {
   let binary = "";
@@ -291,10 +292,12 @@ export async function import_csv(
     }),
   );
 
-  return api_client.post<ImportResult>(
-    "/contacts/v1/import/csv",
-    { contacts },
-    { timeout: IMPORT_TIMEOUT_MS },
+  return note_local_contact_write(
+    await api_client.post<ImportResult>(
+      "/contacts/v1/import/csv",
+      { contacts },
+      { timeout: IMPORT_TIMEOUT_MS },
+    ),
   );
 }
 
