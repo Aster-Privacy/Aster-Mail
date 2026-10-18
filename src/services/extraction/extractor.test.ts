@@ -175,6 +175,114 @@ describe("purchase amount accuracy", () => {
   });
 });
 
+describe("decimal comma amounts", () => {
+  const invoice_text = [
+    "Dear Customer,",
+    "",
+    "This is a notice that an invoice has been generated on 01/10/2026.",
+    "",
+    "Invoice #20261001",
+    "Amount Due: 12,30€",
+    "Due Date: 08/10/2026",
+    "",
+    "Invoice Items",
+    "",
+    "Web Hosting - Starter (example.pt) (01/10/2026 - 31/10/2026) 10,00€ *",
+    "----------------------------------------------------------",
+    "Sub Total: 10,00€",
+    "23.00% Portugal: 2,30€",
+    "Credit: 0,00€",
+    "Total: 12,30€",
+    "----------------------------------------------------------",
+    "",
+    "* Indicates a taxed item.",
+    "",
+    "You can login to our client area to view and pay the invoice.",
+  ].join("\n");
+
+  const invoice_html = [
+    "<html><body>",
+    "<p>Dear Customer,</p>",
+    "<p>This is a notice that an invoice has been generated on 01/10/2026.</p>",
+    "<p>Invoice #20261001<br>Amount Due: 12,30&euro;<br>Due Date: 08/10/2026</p>",
+    "<p><strong>Invoice Items</strong></p>",
+    "<p>Web Hosting - Starter (example.pt) (01/10/2026 - 31/10/2026) 10,00&euro; *<br>",
+    "----------------------------------------------------------<br>",
+    "Sub Total: 10,00&euro;<br>",
+    "23.00% Portugal: 2,30&euro;<br>",
+    "Credit: 0,00&euro;<br>",
+    "Total: 12,30&euro;<br>",
+    "----------------------------------------------------------</p>",
+    "<p>* Indicates a taxed item.</p>",
+    "</body></html>",
+  ].join("\n");
+
+  it.each([
+    ["plain text", invoice_text, undefined],
+    ["html", "", invoice_html],
+  ])("reads a hosting invoice written in %s", (_label, text, html) => {
+    const result = extract_email_details(
+      "Customer Invoice",
+      text,
+      html,
+      "billing@hosting.example.pt",
+      "Hosting",
+    );
+    const purchase = result.purchase;
+
+    expect(purchase?.subtotal?.value).toBe(10);
+    expect(purchase?.total?.value).toBe(12.3);
+    expect(purchase?.total?.currency).toBe("EUR");
+    expect(purchase?.total?.formatted).toBe("€12.30");
+  });
+
+  it.each([
+    ["Total: 12,30€", 12.3],
+    ["Total: €0,5", 0.5],
+    ["Total: 12,30 EUR.", 12.3],
+    ["Total: 1.234,56 €", 1234.56],
+    ["Total: €12.345.678,90", 12345678.9],
+    ["Total: 1\u00a0234,56 €", 1234.56],
+    ["Total: $1,234.56", 1234.56],
+    ["Total: $1,234", 1234],
+    ["Total: $1,234,567", 1234567],
+    ["Total: $12.30", 12.3],
+    ["Total: ₹1,00,000.00", 100000],
+    ["Total: $1.234", 1],
+  ])("reads %s as %d", (body, expected) => {
+    const result = extract_purchase_details(
+      "Your receipt",
+      `Order #AS-4471\n${body}`,
+      "receipts@store.com",
+      "Store",
+    );
+
+    expect(result.total?.value).toBe(expected);
+  });
+
+  it.each([
+    ["digits and commas", "1,".repeat(100000)],
+    ["digits and dots", "1.".repeat(100000)],
+    ["dotted groups", "1.234".repeat(40000)],
+    ["mixed separators", "12,3.4".repeat(40000)],
+    ["dotted groups before a comma", `${"1.234".repeat(40000)},`],
+    ["thousands groups", `1${".234".repeat(40000)}`],
+    ["spaced thousands groups", `1${"\u00a0234".repeat(40000)}`],
+    ["repeated labels", "1.234.567\nTotal: ".repeat(20000)],
+  ])("reads an amount among %s quickly", (_label, noise) => {
+    const started = performance.now();
+
+    extract_purchase_details(
+      "Your receipt",
+      `Total: ${noise}\nSubtotal: €${noise}\n${noise}\n23% VAT: ${noise}`,
+      "receipts@store.com",
+      "Store",
+    );
+
+    expect(performance.now() - started).toBeLessThan(1000);
+  });
+});
+
 describe("purchase receipt link", () => {
   it("keeps a processor receipt link from the forwarded body", () => {
     const result = extract_purchase_details(

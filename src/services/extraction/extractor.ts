@@ -171,7 +171,8 @@ const TRANSACTION_ID_PATTERN = labelled_id("transaction");
 
 const CURRENCY_TOKEN = "C\\$|A\\$|R\\$|[$€£¥₹]|USD|EUR|GBP|JPY|INR|CAD|AUD|CHF";
 
-const NUMBER_TOKEN = "[0-9][0-9,]*(?:\\.[0-9]{1,2})?(?![0-9])";
+const NUMBER_TOKEN =
+  "(?<![0-9][.\\u00a0\\u202f]?)[0-9]{1,3}(?:[.\\u00a0\\u202f][0-9]{3})+,[0-9]{1,2}(?![0-9])|[0-9][0-9,]*(?:\\.[0-9]{1,2})?(?![0-9])";
 
 const MONEY_TOKEN = `(?:(?:${CURRENCY_TOKEN})\\s*)?(?:${NUMBER_TOKEN})(?:\\s*(?:${CURRENCY_TOKEN}))?`;
 
@@ -241,6 +242,19 @@ const CARRIER_NAME_MAP: Record<string, ShippingCarrier> = {
   lasership: "lasership",
 };
 
+function parse_number(value_str: string): number {
+  const digits = value_str.replace(/[\u00a0\u202f]/g, "").replace(/,+$/, "");
+  const decimal_comma = digits.match(/^([0-9.,]*),([0-9]{1,2})$/);
+
+  if (decimal_comma) {
+    return parseFloat(
+      `${decimal_comma[1].replace(/[.,]/g, "")}.${decimal_comma[2]}`,
+    );
+  }
+
+  return parseFloat(digits.replace(/,/g, ""));
+}
+
 function parse_amount(
   text: string,
   fallback_currency = "USD",
@@ -254,7 +268,7 @@ function parse_amount(
   const currency = symbol
     ? (CURRENCY_SYMBOLS[symbol] ?? symbol)
     : fallback_currency;
-  const value = parseFloat(value_str.replace(/,/g, ""));
+  const value = parse_number(value_str);
 
   if (isNaN(value)) return null;
 
