@@ -50,6 +50,7 @@ import { SearchResultSkeleton } from "@/components/search/search_results_list";
 import { CorrectionNotice } from "@/components/search/correction_notice";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { use_search_sender_trust } from "@/hooks/use_sender_trust";
+import { is_system_email } from "@/lib/utils";
 import {
   format_date,
   format_date_short,
@@ -812,6 +813,7 @@ const PreviewRow = memo(function PreviewRow({
         image_url={marks_hidden ? undefined : result.avatar_url}
         name={participants}
         plain={marks_hidden}
+        sender_authenticated={!marks_hidden && is_system_email(result)}
         size="sm"
         use_domain_logo={
           preferences.show_profile_pictures !== false && !result.is_spam
