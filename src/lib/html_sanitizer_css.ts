@@ -193,6 +193,15 @@ const CSS_WHITESPACE = /\s/;
 const CSS_STRING_QUOTE = /["']/;
 
 const REMOTE_CSS_URL = /^https?:\/\//i;
+const PLAIN_HTTP_URL = /^\s*http:\/\//i;
+
+export function build_proxy_url(proxy_url: string, target: string): string {
+  const source = PLAIN_HTTP_URL.test(target)
+    ? "https://" + target.trim().slice(7)
+    : target;
+
+  return `${proxy_url}?url=${encodeURIComponent(source)}`;
+}
 
 function skip_css_string(css: string, start: number): number {
   const quote = css[start];
@@ -464,7 +473,7 @@ export function strip_css_urls(
       }
 
       if (options.image_proxy_url && REMOTE_CSS_URL.test(trimmed)) {
-        const proxied = `${options.image_proxy_url}?url=${encodeURIComponent(inner)}`;
+        const proxied = build_proxy_url(options.image_proxy_url, inner);
 
         return `url("${proxied}")`;
       }
@@ -599,7 +608,7 @@ function proxy_font_face_urls(css: string, image_proxy_url: string): string {
       if (lowered.startsWith("data:") || lowered.startsWith("#")) return whole;
 
       if (font_proxy && REMOTE_CSS_URL.test(lowered)) {
-        return `url("${font_proxy}?url=${encodeURIComponent(inner)}&content_type=font")`;
+        return `url("${build_proxy_url(font_proxy, inner)}&content_type=font")`;
       }
 
       return "none";
