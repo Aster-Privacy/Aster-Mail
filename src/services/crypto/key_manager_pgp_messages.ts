@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { Key, PrivateKey } from "openpgp";
+import type { AnyPacket, Key, PrivateKey } from "openpgp";
 
 import { type EncryptedKeyHandle } from "./key_manager_core";
 import { unlock_private_key } from "./key_manager_pgp_unlocked_cache";
@@ -375,6 +375,109 @@ export async function decrypt_message_verified_with_any_key(
         passphrase,
         verification_keys,
       );
+    } catch (error) {
+      last_error = error;
+    }
+  }
+
+  throw last_error ?? new Error("no decryption key matched the message");
+}
+
+export interface verifiable_decrypted_message extends decrypted_message_result {
+  verify: (verification_keys: string[]) => Promise<decrypted_message_result>;
+}
+
+async function decrypt_message_verifiable(
+  ciphertext: string,
+  secret_key: string,
+  passphrase: string,
+): Promise<verifiable_decrypted_message> {
+  const secret_key_obj = await unlock_private_key(secret_key, passphrase);
+  const openpgp = await load_openpgp();
+
+  const { signed_message, unverified, plaintext } = await with_aes_kw_fallback(
+    async () => {
+      const message = await openpgp.readMessage({
+        armoredMessage: ciphertext,
+      });
+      const decrypted = await message.decrypt([secret_key_obj]);
+      const result = await openpgp.verify({
+        message: decrypted,
+        verificationKeys: [],
+        format: "binary",
+      });
+      const text_message = await openpgp.createMessage({
+        binary: result.data,
+      });
+      const packets = new openpgp.PacketList<AnyPacket>();
+
+      packets.push(
+        ...decrypted
+          .unwrapCompressed()
+          .packets.filterByTag(openpgp.enums.packet.literalData),
+      );
+
+      for (const signature of result.signatures) {
+        packets.push(...(await signature.signature).packets);
+      }
+
+      return {
+        signed_message: new openpgp.Message(packets),
+        unverified: result,
+        plaintext: text_message.getText() ?? "",
+      };
+    },
+  );
+
+  const evaluated = await evaluate_signatures(
+    unverified.signatures as { verified: Promise<boolean> }[] | undefined,
+    false,
+  );
+
+  return {
+    plaintext,
+    verification: evaluated.status,
+    has_signature: evaluated.has_signature,
+    verify: async (verification_keys) => {
+      const parsed_verification_keys =
+        await parse_verification_keys(verification_keys);
+      const result = await openpgp.verify({
+        message: signed_message,
+        verificationKeys: parsed_verification_keys,
+        format: "binary",
+      });
+      const verified = await evaluate_signatures(
+        result.signatures as { verified: Promise<boolean> }[] | undefined,
+        parsed_verification_keys.length > 0,
+      );
+
+      return {
+        plaintext,
+        verification: verified.status,
+        has_signature: verified.has_signature,
+      };
+    },
+  };
+}
+
+export async function decrypt_message_verifiable_with_any_key(
+  ciphertext: string,
+  secret_keys: (string | null | undefined)[],
+  passphrase: string,
+): Promise<verifiable_decrypted_message> {
+  const available = secret_keys.filter((k): k is string => !!k);
+
+  if (available.length === 0) {
+    throw new Error("no decryption key available");
+  }
+
+  const keys = await order_keys_for_message(ciphertext, available);
+
+  let last_error: unknown;
+
+  for (const key of keys) {
+    try {
+      return await decrypt_message_verifiable(ciphertext, key, passphrase);
     } catch (error) {
       last_error = error;
     }
