@@ -73,6 +73,7 @@ import { ignore_error } from "@/lib/ignore_error";
 import { user_facing_error } from "@/utils/user_facing_error";
 
 const ARCHIVE_BATCH_CHUNK_SIZE = 100;
+const SIBLING_LOOKUP_CONCURRENCY = 4;
 
 async function run_archive_batch(
   ids: string[],
@@ -506,22 +507,44 @@ export function use_bulk_actions(
               email.thread_token && (email.thread_message_count ?? 1) > 1,
           );
 
-          for (const email of threaded) {
-            try {
-              const thread = await get_thread_messages(email.thread_token!);
-              const extra = (thread.data?.messages ?? [])
-                .filter(
-                  (message) =>
-                    message.item_type === "received" &&
-                    !base_ids.has(message.id),
-                )
-                .map((message) => message.id);
+          const extra_by_thread: string[][] = threaded.map(() => []);
+          let cursor = 0;
 
-              sibling_ids.push(...extra);
-            } catch (caught) {
-              ignore_error("use_bulk_actions:sync_grouped_siblings", caught);
+          const worker = async (): Promise<void> => {
+            for (;;) {
+              const index = cursor;
+
+              cursor += 1;
+              if (index >= threaded.length) return;
+
+              try {
+                const thread = await get_thread_messages(
+                  threaded[index].thread_token!,
+                );
+
+                extra_by_thread[index] = (thread.data?.messages ?? [])
+                  .filter(
+                    (message) =>
+                      message.item_type === "received" &&
+                      !base_ids.has(message.id),
+                  )
+                  .map((message) => message.id);
+              } catch (caught) {
+                ignore_error("use_bulk_actions:sync_grouped_siblings", caught);
+              }
             }
-          }
+          };
+
+          await Promise.all(
+            Array.from(
+              {
+                length: Math.min(SIBLING_LOOKUP_CONCURRENCY, threaded.length),
+              },
+              worker,
+            ),
+          );
+
+          for (const extra of extra_by_thread) sibling_ids.push(...extra);
 
           const unique_ids = Array.from(new Set(sibling_ids));
 
