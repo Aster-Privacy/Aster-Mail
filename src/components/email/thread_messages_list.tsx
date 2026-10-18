@@ -176,6 +176,13 @@ interface ThreadMessagesListProps {
   loaded_content_types?: Set<string>;
   on_load_external_content?: (types?: string[]) => void;
   footer?: React.ReactNode;
+  on_expand_state_change?: (state: ThreadExpandState) => void;
+}
+
+export interface ThreadExpandState {
+  all_expanded: boolean;
+  all_collapsed: boolean;
+  has_unread: boolean;
 }
 
 export interface ThreadMessagesListRef {
@@ -236,6 +243,7 @@ export const ThreadMessagesList = forwardRef<
     loaded_content_types,
     on_load_external_content,
     footer,
+    on_expand_state_change,
   },
   ref,
 ): React.ReactElement {
@@ -999,6 +1007,12 @@ export const ThreadMessagesList = forwardRef<
       next_value,
     );
   }, [all_dark_mode, regular_messages, set_all_dark_mode]);
+
+  const has_unread = unread_count > 0;
+
+  useEffect(() => {
+    on_expand_state_change?.({ all_expanded, all_collapsed, has_unread });
+  }, [on_expand_state_change, all_expanded, all_collapsed, has_unread]);
 
   useImperativeHandle(
     ref,

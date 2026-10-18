@@ -57,7 +57,10 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_date_format } from "@/hooks/use_date_format";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_auth } from "@/contexts/auth_context";
-import { type ThreadMessagesListRef } from "@/components/email/thread_message_block";
+import {
+  type ThreadMessagesListRef,
+  type ThreadExpandState,
+} from "@/components/email/thread_message_block";
 import {
   fetch_and_decrypt_thread_messages,
   fetch_and_decrypt_virtual_group,
@@ -1517,57 +1520,22 @@ export function use_email_viewer({
     };
   }, [email?.thread_token, email_id, email, preferences.conversation_grouping]);
 
-  useEffect(() => {
-    const update_state = () => {
-      if (!thread_list_ref.current) return;
-      const { all_expanded, all_collapsed, has_unread } =
-        thread_list_ref.current;
-
+  const handle_thread_expand_state_change = useCallback(
+    (next: ThreadExpandState) => {
       set_thread_expand_state((prev) => {
         if (
-          prev.all_expanded === all_expanded &&
-          prev.all_collapsed === all_collapsed &&
-          prev.has_unread === has_unread
+          prev.all_expanded === next.all_expanded &&
+          prev.all_collapsed === next.all_collapsed &&
+          prev.has_unread === next.has_unread
         ) {
           return prev;
         }
 
-        return { all_expanded, all_collapsed, has_unread };
+        return next;
       });
-    };
-
-    let interval: number | null = null;
-
-    const stop_polling = () => {
-      if (interval === null) return;
-      window.clearInterval(interval);
-      interval = null;
-    };
-
-    const start_polling = () => {
-      if (interval !== null) return;
-      interval = window.setInterval(update_state, 100);
-    };
-
-    const handle_visibility = () => {
-      if (document.hidden) {
-        stop_polling();
-
-        return;
-      }
-      update_state();
-      start_polling();
-    };
-
-    update_state();
-    if (!document.hidden) start_polling();
-    document.addEventListener("visibilitychange", handle_visibility);
-
-    return () => {
-      document.removeEventListener("visibilitychange", handle_visibility);
-      stop_polling();
-    };
-  }, [thread_messages]);
+    },
+    [],
+  );
 
   const handle_draft_saved = useCallback(
     (draft: { id: string; version: number; content: DraftContent }) => {
@@ -1627,6 +1595,7 @@ export function use_email_viewer({
     set_view_source_message,
     thread_expand_state,
     thread_list_ref,
+    handle_thread_expand_state_change,
     format_email_detail,
     copy_to_clipboard: actions.copy_to_clipboard,
     handle_reply: actions.handle_reply,
