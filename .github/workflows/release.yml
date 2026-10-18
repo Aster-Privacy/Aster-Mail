@@ -7,7 +7,12 @@ on:
       - 'v[0-9]+.[0-9]+.[0-9]+'
 
 permissions:
-  contents: write
+  contents: read
+
+env:
+  SIGNER_VERSION: 2.11.2
+  SIGNER_CLI_INTEGRITY: sha512-bk3HemqvGRoy+5D/dVMUQHKMYLglD0jVnMm/0iGMH6ufZ+p8r14m6BpIixwij3PBvZdvORUp1YifTD8QxVZ1Nw==
+  SIGNER_NATIVE_INTEGRITY: sha512-Ru4gwJKPG0ctVGchRGpRup4Y4lW2SSfFnrbQcyHhCliKy4g8Qz97TrUgCur4CbWyAgKxvGh3SjrkA0LDYzDGiw==
 
 jobs:
   build:
@@ -45,6 +50,10 @@ jobs:
         with:
           toolchain: stable
           targets: ${{ matrix.leg == 'mac' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - name: Setup MSVC environment (Windows)
+        if: matrix.leg == 'win'
+        uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1
 
       - name: Install Linux system dependencies
         if: startsWith(matrix.leg, 'linux')
@@ -107,24 +116,29 @@ jobs:
           echo "$APPLE_API_KEY_CONTENT" | base64 --decode > ~/private_keys/AuthKey_${APPLE_API_KEY}.p8
           echo "APPLE_API_KEY_PATH=$HOME/private_keys/AuthKey_${APPLE_API_KEY}.p8" >> "$GITHUB_ENV"
 
-      - name: Build and publish release
-        uses: tauri-apps/tauri-action@84b9d35b5fc46c1e45415bdb6144030364f7ebc5 # v0.6.2
+      - name: Create a throwaway updater key for the bundler
+        shell: bash
+        run: npm run tauri -- signer generate --ci -w "$RUNNER_TEMP/throwaway_updater.key"
+
+      - name: Build the app
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ''
           APPLE_SIGNING_IDENTITY: ${{ env.APPLE_SIGNING_IDENTITY }}
           APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
           APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           VITE_SPECIAL_OFFER_ENABLED: "true"
-        with:
-          tagName: v__VERSION__
-          releaseName: Aster Mail __VERSION__
-          releaseDraft: false
-          prerelease: true
-          updaterJsonPreferNsis: true
-          args: ${{ matrix.args }}
-          tauriScript: npm run tauri
+          ARGS: ${{ matrix.args }}
+          LEG: ${{ matrix.leg }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "$LEG" = "win" ]; then
+            source scripts/use_msvc_toolchain.sh
+          fi
+          TAURI_SIGNING_PRIVATE_KEY="$(cat "$RUNNER_TEMP/throwaway_updater.key")"
+          export TAURI_SIGNING_PRIVATE_KEY
+          npm run tauri build -- $ARGS
 
       - name: Unbundle host graphics libraries from the AppImage
         # linuxdeploy copies libwayland-client.so.0 and friends into the AppDir.
@@ -132,15 +146,10 @@ jobs:
         # resolve wl_fixes_interface on any distribution newer than the runner,
         # and WebKitGTK aborts with EGL_BAD_PARAMETER before the window paints.
         if: startsWith(matrix.leg, 'linux')
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
         shell: bash
         run: |
           set -uo pipefail
           sudo apt-get install -y squashfs-tools
-          V=$(node -p "require('./package.json').version")
-          TAG="v${V}"
           shopt -s nullglob
           for img in src-tauri/target/release/bundle/appimage/*.AppImage; do
             cp "$img" "$img.orig"
@@ -149,15 +158,30 @@ jobs:
               mv "$img.orig" "$img"
               continue
             fi
-            rm -f "$img.sig"
-            if npm run tauri -- signer sign --password "" "$img"; then
-              rm -f "$img.orig"
-              gh release upload "$TAG" "$img" "$img.sig" --clobber
-            else
-              echo "::warning::could not re-sign $img, keeping the originally signed build"
-              mv "$img.orig" "$img"
-            fi
+            rm -f "$img.orig"
           done
+
+      - name: Collect the unsigned bundles
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/bundle"
+          mkdir -p "$OUT"
+          shopt -s nullglob
+          for b in src-tauri/target/release/bundle src-tauri/target/*/release/bundle; do
+            for f in "$b"/nsis/*-setup.exe "$b"/msi/*.msi "$b"/appimage/*.AppImage "$b"/deb/*.deb "$b"/rpm/*.rpm "$b"/dmg/*.dmg "$b"/macos/*.app.tar.gz; do
+              cp "$f" "$OUT/"
+            done
+          done
+          ls -l "$OUT"
+
+      - name: Upload the unsigned bundles
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: bundle-${{ matrix.leg }}
+          path: ${{ runner.temp }}/bundle/
+          if-no-files-found: error
+          retention-days: 1
 
       - name: Collect the installers built in this run
         shell: bash
@@ -189,57 +213,159 @@ jobs:
           if-no-files-found: warn
           retention-days: 1
 
-      - name: Rename assets to canonical names
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  sign:
+    needs: build
+    if: always()
+    runs-on: ubuntu-22.04
+    permissions: {}
+    steps:
+      - name: Download the unsigned bundles
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: bundle-*
+          path: bundles
+
+      - name: Install the pinned updater signer
         shell: bash
         run: |
-          V=$(node -p "require('./package.json').version")
-          TAG="v${V}"
-          TMP=$(mktemp -d)
-
-          rename_asset() {
-            local src="$1" dst="$2"
-            if gh release download "$TAG" --pattern "$src" --dir "$TMP" --clobber 2>/dev/null; then
-              mv "$TMP/$src" "$TMP/$dst"
-              gh release upload "$TAG" "$TMP/$dst" --clobber
+          set -euo pipefail
+          SIGNER="$RUNNER_TEMP/signer/node_modules/@tauri-apps"
+          fetch() {
+            local pkg="$1" integrity="$2"
+            local tgz="$RUNNER_TEMP/$pkg.tgz"
+            curl -fsSL --retry 3 -o "$tgz" "https://registry.npmjs.org/@tauri-apps/$pkg/-/$pkg-${SIGNER_VERSION}.tgz"
+            local got="sha512-$(openssl dgst -sha512 -binary "$tgz" | base64 -w0)"
+            if [ "$got" != "$integrity" ]; then
+              echo "::error::@tauri-apps/$pkg $SIGNER_VERSION does not match the pinned integrity"
+              exit 1
             fi
+            mkdir -p "$SIGNER/$pkg"
+            tar -xzf "$tgz" -C "$SIGNER/$pkg" --strip-components=1
           }
+          fetch cli "$SIGNER_CLI_INTEGRITY"
+          fetch cli-linux-x64-gnu "$SIGNER_NATIVE_INTEGRITY"
 
-          if [[ "${{ matrix.leg }}" == "linux-x64" ]]; then
-            rename_asset "Aster.Mail_${V}_amd64.AppImage"     "Aster-Mail-x64.AppImage"
-            rename_asset "Aster.Mail_${V}_amd64.AppImage.sig" "Aster-Mail-x64.AppImage.sig"
-            rename_asset "Aster.Mail_${V}_amd64.deb"          "Aster-Mail-amd64.deb"
-            rename_asset "Aster.Mail_${V}_amd64.deb.sig"      "Aster-Mail-amd64.deb.sig"
-            rename_asset "Aster.Mail-${V}-1.x86_64.rpm"       "Aster-Mail-x86_64.rpm"
-            rename_asset "Aster.Mail-${V}-1.x86_64.rpm.sig"   "Aster-Mail-x86_64.rpm.sig"
-          elif [[ "${{ matrix.leg }}" == "linux-arm64" ]]; then
-            rename_asset "Aster.Mail_${V}_aarch64.AppImage"     "Aster-Mail-aarch64.AppImage"
-            rename_asset "Aster.Mail_${V}_aarch64.AppImage.sig" "Aster-Mail-aarch64.AppImage.sig"
-            rename_asset "Aster.Mail_${V}_arm64.deb"            "Aster-Mail-arm64.deb"
-            rename_asset "Aster.Mail_${V}_arm64.deb.sig"        "Aster-Mail-arm64.deb.sig"
-            rename_asset "Aster.Mail-${V}-1.aarch64.rpm"        "Aster-Mail-aarch64.rpm"
-            rename_asset "Aster.Mail-${V}-1.aarch64.rpm.sig"    "Aster-Mail-aarch64.rpm.sig"
-          elif [[ "${{ matrix.leg }}" == "win" ]]; then
-            rename_asset "Aster.Mail_${V}_x64-setup.exe"     "Aster-Mail-x64-setup.exe"
-            rename_asset "Aster.Mail_${V}_x64-setup.exe.sig" "Aster-Mail-x64-setup.exe.sig"
-            rename_asset "Aster.Mail_${V}_x64_en-US.msi"     "Aster-Mail-x64.msi"
-            rename_asset "Aster.Mail_${V}_x64_en-US.msi.sig" "Aster-Mail-x64.msi.sig"
-          elif [[ "${{ matrix.leg }}" == "mac" ]]; then
-            rename_asset "Aster.Mail_${V}_universal.dmg"             "Aster-Mail-universal.dmg"
-            rename_asset "Aster.Mail_${V}_universal.dmg.sig"         "Aster-Mail-universal.dmg.sig"
-            rename_asset "Aster.Mail_${V}_universal.app.tar.gz"      "Aster-Mail-universal.app.tar.gz"
-            rename_asset "Aster.Mail_${V}_universal.app.tar.gz.sig"  "Aster-Mail-universal.app.tar.gz.sig"
+      - name: Sign every updater bundle with the current and the next updater key
+        env:
+          UPDATER_KEY_V1: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          UPDATER_KEY_V1_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          UPDATER_KEY_V2: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_V2 }}
+          UPDATER_KEY_V2_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD_V2 }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "$UPDATER_KEY_V1" ] || [ -z "$UPDATER_KEY_V2" ]; then
+            echo "::error::both updater keys must be set; installs on either key would stop updating"
+            exit 1
           fi
+          BUNDLES="$PWD/bundles"
+          SIGS="$RUNNER_TEMP/signatures"
+          TAURI="$RUNNER_TEMP/signer/node_modules/@tauri-apps/cli/tauri.js"
+          WORK="$(mktemp -d)"
+          cd "$WORK"
+          sign_with() {
+            local key="$1" password="$2" file="$3" dest="$4"
+            rm -f "$file.sig"
+            TAURI_SIGNING_PRIVATE_KEY="$key" TAURI_SIGNING_PRIVATE_KEY_PASSWORD="$password" node "$TAURI" signer sign "$file" </dev/null
+            mv "$file.sig" "$dest"
+          }
+          COUNT=0
+          while IFS= read -r -d '' f; do
+            rel="${f#"$BUNDLES"/}"
+            mkdir -p "$SIGS/$(dirname "$rel")"
+            sign_with "$UPDATER_KEY_V1" "$UPDATER_KEY_V1_PASSWORD" "$f" "$SIGS/$rel.sig"
+            sign_with "$UPDATER_KEY_V2" "$UPDATER_KEY_V2_PASSWORD" "$f" "$SIGS/$rel.v2.sig"
+            COUNT=$((COUNT + 1))
+          done < <(find "$BUNDLES" -mindepth 2 -maxdepth 2 -type f \( -name '*-setup.exe' -o -name '*.msi' -o -name '*.AppImage' -o -name '*.deb' -o -name '*.rpm' -o -name '*.app.tar.gz' \) -print0)
+          if [ "$COUNT" -eq 0 ]; then
+            echo "::error::no updater bundles to sign; every build leg failed"
+            exit 1
+          fi
+          find "$SIGS" -type f -name '*.sig' | sort
 
-  update_latest_json:
-    needs: build
+      - name: Upload the updater signatures
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: updater-signatures
+          path: ${{ runner.temp }}/signatures/
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    needs: [build, sign]
+    if: ${{ always() && needs.sign.result == 'success' }}
     runs-on: ubuntu-22.04
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Rewrite latest.json with canonical asset URLs
+          sparse-checkout: package.json
+          sparse-checkout-cone-mode: false
+
+      - name: Download the unsigned bundles
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: bundle-*
+          path: bundles
+
+      - name: Download the updater signatures
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: updater-signatures
+          path: bundles
+
+      - name: Publish the installers and their fixed-name copies
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          V=$(node -p "require('./package.json').version")
+          TAG="v${V}"
+          OUT="$RUNNER_TEMP/upload"
+          mkdir -p "$OUT"
+          shopt -s nullglob
+
+          for f in bundles/*/*; do
+            name="$(basename "$f")"
+            case "$name" in
+              *.app.tar.gz) name="Aster Mail_${V}_universal.app.tar.gz" ;;
+              *.app.tar.gz.sig) name="Aster Mail_${V}_universal.app.tar.gz.sig" ;;
+              *.app.tar.gz.v2.sig) name="Aster Mail_${V}_universal.app.tar.gz.v2.sig" ;;
+            esac
+            cp "$f" "$OUT/${name// /.}"
+          done
+
+          declare -A FIXED=(
+            ["Aster.Mail_${V}_x64-setup.exe"]="Aster-Mail-x64-setup.exe"
+            ["Aster.Mail_${V}_x64_en-US.msi"]="Aster-Mail-x64.msi"
+            ["Aster.Mail_${V}_amd64.AppImage"]="Aster-Mail-x64.AppImage"
+            ["Aster.Mail_${V}_amd64.deb"]="Aster-Mail-amd64.deb"
+            ["Aster.Mail-${V}-1.x86_64.rpm"]="Aster-Mail-x86_64.rpm"
+            ["Aster.Mail_${V}_aarch64.AppImage"]="Aster-Mail-aarch64.AppImage"
+            ["Aster.Mail_${V}_arm64.deb"]="Aster-Mail-arm64.deb"
+            ["Aster.Mail-${V}-1.aarch64.rpm"]="Aster-Mail-aarch64.rpm"
+            ["Aster.Mail_${V}_universal.dmg"]="Aster-Mail-universal.dmg"
+            ["Aster.Mail_${V}_universal.app.tar.gz"]="Aster-Mail-universal.app.tar.gz"
+          )
+          for src in "${!FIXED[@]}"; do
+            for ext in "" ".sig" ".v2.sig"; do
+              if [ -f "$OUT/$src$ext" ]; then
+                cp "$OUT/$src$ext" "$OUT/${FIXED[$src]}$ext"
+              fi
+            done
+          done
+          ls -l "$OUT"
+
+          if ! gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release create "$TAG" --repo "$GITHUB_REPOSITORY" \
+              --title "Aster Mail ${V}" --notes "" --prerelease --target "$GITHUB_SHA"
+          fi
+          gh release upload "$TAG" "$OUT"/* --repo "$GITHUB_REPOSITORY" --clobber
+
+      - name: Rebuild latest.json and latest_v2.json from every leg's signatures
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -248,66 +374,90 @@ jobs:
           TAG="v${V}"
           TMP=$(mktemp -d)
           BASE="https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}"
-          gh release download "$TAG" --pattern latest.json --dir "$TMP" --clobber
-          sed -i \
-            -e "s|Aster\.Mail_${V}_amd64\.AppImage|Aster-Mail-x64.AppImage|g" \
-            -e "s|Aster\.Mail_${V}_amd64\.deb|Aster-Mail-amd64.deb|g" \
-            -e "s|Aster\.Mail-${V}-1\.x86_64\.rpm|Aster-Mail-x86_64.rpm|g" \
-            -e "s|Aster\.Mail_${V}_aarch64\.AppImage|Aster-Mail-aarch64.AppImage|g" \
-            -e "s|Aster\.Mail_${V}_arm64\.deb|Aster-Mail-arm64.deb|g" \
-            -e "s|Aster\.Mail-${V}-1\.aarch64\.rpm|Aster-Mail-aarch64.rpm|g" \
-            -e "s|Aster\.Mail_${V}_x64-setup\.exe|Aster-Mail-x64-setup.exe|g" \
-            -e "s|Aster\.Mail_${V}_x64_en-US\.msi|Aster-Mail-x64.msi|g" \
-            -e "s|Aster\.Mail_${V}_universal\.dmg|Aster-Mail-universal.dmg|g" \
-            -e "s|Aster\.Mail_${V}_universal\.app\.tar\.gz|Aster-Mail-universal.app.tar.gz|g" \
-            "$TMP/latest.json"
 
-          for f in Aster-Mail-x64.AppImage.sig Aster-Mail-aarch64.AppImage.sig; do
-            gh release download "$TAG" --pattern "$f" --dir "$TMP" --clobber 2>/dev/null || true
+          if ! gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "::error::no release $TAG to build a manifest for; the installers were not published"
+            exit 1
+          fi
+
+          for manifest in latest.json latest_v2.json; do
+            gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern "$manifest" --dir "$TMP" --clobber 2>/dev/null || echo '{}' > "$TMP/$manifest"
           done
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern '*.sig' --dir "$TMP" --clobber || true
 
-          SIGDIR="$TMP" BASE="$BASE" node -e '
+          build_manifest() {
+            SIGDIR="$TMP" SIGEXT="$2" BASE="$BASE" V="$V" node -e '
             const fs = require("fs");
             const path = process.argv[1];
-            const manifest = JSON.parse(fs.readFileSync(path, "utf8"));
-            manifest.platforms = manifest.platforms || {};
+            const dir = process.env.SIGDIR;
+            const base = process.env.BASE;
+            const v = process.env.V;
+            const ext = process.env.SIGEXT;
+            const label = path.split("/").pop();
+            const prior = JSON.parse(fs.readFileSync(path, "utf8"));
+
             const legs = {
-              "linux-x86_64": "Aster-Mail-x64.AppImage",
-              "linux-aarch64": "Aster-Mail-aarch64.AppImage",
+              "windows-x86_64":         ["Aster-Mail-x64-setup.exe", `Aster.Mail_${v}_x64-setup.exe`],
+              "windows-x86_64-nsis":    ["Aster-Mail-x64-setup.exe", `Aster.Mail_${v}_x64-setup.exe`],
+              "windows-x86_64-msi":     ["Aster-Mail-x64.msi", `Aster.Mail_${v}_x64_en-US.msi`],
+              "linux-x86_64":           ["Aster-Mail-x64.AppImage", `Aster.Mail_${v}_amd64.AppImage`],
+              "linux-x86_64-appimage":  ["Aster-Mail-x64.AppImage", `Aster.Mail_${v}_amd64.AppImage`],
+              "linux-x86_64-deb":       ["Aster-Mail-amd64.deb", `Aster.Mail_${v}_amd64.deb`],
+              "linux-x86_64-rpm":       ["Aster-Mail-x86_64.rpm", `Aster.Mail-${v}-1.x86_64.rpm`],
+              "linux-aarch64":          ["Aster-Mail-aarch64.AppImage", `Aster.Mail_${v}_aarch64.AppImage`],
+              "linux-aarch64-appimage": ["Aster-Mail-aarch64.AppImage", `Aster.Mail_${v}_aarch64.AppImage`],
+              "linux-aarch64-deb":      ["Aster-Mail-arm64.deb", `Aster.Mail_${v}_arm64.deb`],
+              "linux-aarch64-rpm":      ["Aster-Mail-aarch64.rpm", `Aster.Mail-${v}-1.aarch64.rpm`],
+              "darwin-aarch64":         ["Aster-Mail-universal.app.tar.gz", `Aster.Mail_${v}_universal.app.tar.gz`],
+              "darwin-x86_64":          ["Aster-Mail-universal.app.tar.gz", `Aster.Mail_${v}_universal.app.tar.gz`],
+              "darwin-aarch64-app":     ["Aster-Mail-universal.app.tar.gz", `Aster.Mail_${v}_universal.app.tar.gz`],
+              "darwin-x86_64-app":      ["Aster-Mail-universal.app.tar.gz", `Aster.Mail_${v}_universal.app.tar.gz`],
             };
-            for (const [key, file] of Object.entries(legs)) {
-              const sig = `${process.env.SIGDIR}/${file}.sig`;
-              if (!fs.existsSync(sig)) {
-                console.log(`::warning::${file}.sig absent; leaving ${key} untouched`);
+
+            const manifest = {
+              version: prior.version || v,
+              notes: prior.notes || "",
+              pub_date: new Date().toISOString(),
+              platforms: {},
+            };
+
+            for (const [key, candidates] of Object.entries(legs)) {
+              const hit = candidates.find((f) => fs.existsSync(`${dir}/${f}${ext}`));
+              if (!hit) {
+                console.log(`::warning::${label} has no signature for ${key} on this release; installs on that platform will not self-update`);
                 continue;
               }
               manifest.platforms[key] = {
-                signature: fs.readFileSync(sig, "utf8").trim(),
-                url: `${process.env.BASE}/${file}`,
+                signature: fs.readFileSync(`${dir}/${hit}${ext}`, "utf8").trim(),
+                url: `${base}/${hit}`,
               };
             }
-            fs.writeFileSync(path, JSON.stringify(manifest, null, 2));
-          ' "$TMP/latest.json"
 
-          node -e '
-            const manifest = require(process.argv[1]);
-            const platforms = Object.keys(manifest.platforms || {});
-            console.log("latest.json platforms:", platforms.join(", "));
+            const platforms = Object.keys(manifest.platforms);
+            console.log(`${label} platforms:`, platforms.join(", "));
+
             if (!platforms.includes("linux-x86_64")) {
-              console.log("::error::latest.json is missing linux-x86_64");
+              console.log(`::error::${label} is missing linux-x86_64`);
               process.exit(1);
             }
             if (!platforms.includes("linux-aarch64")) {
-              console.log("::warning::latest.json is missing linux-aarch64; ARM installs will not self-update");
+              console.log(`::warning::${label} is missing linux-aarch64; ARM installs will not self-update`);
             }
-          ' "$TMP/latest.json"
 
-          gh release upload "$TAG" "$TMP/latest.json" --clobber
+            fs.writeFileSync(path, JSON.stringify(manifest, null, 2));
+          ' "$1"
+          }
+
+          build_manifest "$TMP/latest.json" .sig
+          build_manifest "$TMP/latest_v2.json" .v2.sig
+          gh release upload "$TAG" "$TMP/latest.json" "$TMP/latest_v2.json" --repo "$GITHUB_REPOSITORY" --clobber
 
   ensure_canonical_assets:
-    needs: build
+    needs: [build, publish]
     if: always()
     runs-on: ubuntu-22.04
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -407,9 +557,11 @@ jobs:
           subject-path: "attest/*"
 
   promote_to_latest:
-    needs: [build, update_latest_json, ensure_canonical_assets]
+    needs: [build, publish, ensure_canonical_assets]
     if: always()
     runs-on: ubuntu-22.04
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -473,10 +625,11 @@ jobs:
           # The release is published as a prerelease while it builds, so
           # releases/latest keeps resolving to the last COMPLETE release and the
           # marketing-site download links never 404 mid-build. Only flip it to
-          # Latest once every canonical download asset and latest.json exist.
+          # Latest once every canonical download asset and both updater
+          # manifests exist.
           V=$(node -p "require('./package.json').version")
           TAG="v${V}"
-          REQUIRED="Aster-Mail-x64-setup.exe Aster-Mail-x64.msi Aster-Mail-x64.AppImage Aster-Mail-amd64.deb Aster-Mail-x86_64.rpm Aster-Mail-universal.dmg Aster-Mail.apk latest.json"
+          REQUIRED="Aster-Mail-x64-setup.exe Aster-Mail-x64.msi Aster-Mail-x64.AppImage Aster-Mail-amd64.deb Aster-Mail-x86_64.rpm Aster-Mail-universal.dmg Aster-Mail.apk latest.json latest_v2.json"
           have=$(gh release view "$TAG" --json assets --jq '.assets[].name' 2>/dev/null)
           missing=""
           for a in $REQUIRED; do
@@ -488,21 +641,25 @@ jobs:
             exit 1
           fi
           MANIFEST_DIR=$(mktemp -d)
-          gh release download "$TAG" --pattern latest.json --dir "$MANIFEST_DIR" --clobber
-          V="$V" node -e '
-            const manifest = require(process.argv[1]);
-            const platforms = Object.keys(manifest.platforms || {});
-            const required = ["windows-x86_64", "darwin-aarch64", "darwin-x86_64", "linux-x86_64"];
-            const absent = required.filter((key) => !platforms.includes(key));
-            if (manifest.version !== process.env.V) {
-              console.log(`::error::latest.json reports ${manifest.version}, expected ${process.env.V}`);
-              process.exit(1);
-            }
-            if (absent.length > 0) {
-              console.log(`::error::Refusing to promote: latest.json has no ${absent.join(", ")} build, so those installs cannot update and their download would be a carried-forward older version`);
-              process.exit(1);
-            }
-          ' "$MANIFEST_DIR/latest.json"
+          for manifest in latest.json latest_v2.json; do
+            gh release download "$TAG" --pattern "$manifest" --dir "$MANIFEST_DIR" --clobber
+            V="$V" node -e '
+              const path = process.argv[1];
+              const label = path.split("/").pop();
+              const manifest = require(path);
+              const platforms = Object.keys(manifest.platforms || {});
+              const required = ["windows-x86_64", "darwin-aarch64", "darwin-x86_64", "linux-x86_64"];
+              const absent = required.filter((key) => !platforms.includes(key));
+              if (manifest.version !== process.env.V) {
+                console.log(`::error::${label} reports ${manifest.version}, expected ${process.env.V}`);
+                process.exit(1);
+              }
+              if (absent.length > 0) {
+                console.log(`::error::Refusing to promote: ${label} has no ${absent.join(", ")} build, so those installs cannot update and their download would be a carried-forward older version`);
+                process.exit(1);
+              }
+            ' "$MANIFEST_DIR/$manifest" || exit 1
+          done
           echo "All required assets present. Promoting $TAG to Latest."
           gh release edit "$TAG" --draft=false --prerelease=false --latest
 
@@ -510,6 +667,8 @@ jobs:
     needs: [build, ensure_canonical_assets, promote_to_latest]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-22.04
+    permissions:
+      contents: read
     steps:
       - name: Skip prereleases and drafts
         id: gate
