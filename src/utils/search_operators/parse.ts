@@ -24,6 +24,7 @@ import { is_valid_date_shortcut } from "./dates";
 import { parse_size_range, parse_size_value } from "./size";
 import {
   DATE_REGEX,
+  RELATIVE_DAYS_REGEX,
   NOT_TERM_REGEX,
   OPERATOR_REGEX,
   ParsedOperator,
@@ -74,6 +75,7 @@ export function locate_operators(query: string): LocatedOperator[] {
       ? match.index + lead.length + dash.length + keyword.length
       : match.index + lead.length;
     const end = match.index + match[0].length;
+
     if (inside_quotes(start)) continue;
     const operator: ParsedOperator = {
       type: match[4].toLowerCase() as SearchOperatorType,
@@ -91,11 +93,12 @@ export function locate_operators(query: string): LocatedOperator[] {
 
   while ((match = not_regex.exec(query)) !== null) {
     const start = match.index + (match[1] ?? "").length;
+
     if (inside_quotes(start)) continue;
     const end = match.index + match[0].length;
     const value = (match[3] || match[4]).replace(/"/g, "").trim();
 
-    if (!value) continue;
+    if (!value || /^[a-z]+:$/i.test(value)) continue;
     if (located.some((entry) => start < entry.end && entry.start < end)) {
       continue;
     }
@@ -167,7 +170,10 @@ export function validate_operator(operator: ParsedOperator): boolean {
 
     case "before":
     case "after":
-      return is_calendar_date(operator.value);
+      return (
+        is_calendar_date(operator.value) ||
+        RELATIVE_DAYS_REGEX.test(operator.value)
+      );
 
     case "date":
       return (

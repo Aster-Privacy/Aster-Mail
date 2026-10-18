@@ -84,7 +84,7 @@ import { compute_highlight_ranges, apply_highlights } from "@/hooks/use_search";
 import { HighlightedText } from "@/components/search/search_result_item";
 import { SearchChipRow } from "@/components/search/search_chip_row";
 import { CorrectionNotice } from "@/components/search/correction_notice";
-import { AdvancedSearchModal } from "@/components/search/advanced_search_modal";
+import { AdvancedFilterModal } from "@/components/search/advanced_filter_modal";
 import { resolve_list_density } from "@/lib/list_density";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_open_reply_compose } from "@/components/email/inbox/use_open_reply_compose";
@@ -97,7 +97,7 @@ import { bulk_add_folder, bulk_remove_folder } from "@/services/api/mail";
 import { use_tags } from "@/hooks/use_tags";
 import { bulk_add_tag, bulk_remove_tag } from "@/services/api/tags";
 import { open_email_in_new_window } from "@/utils/open_email_window";
-import { search_view_for_path } from "@/utils/search_query";
+import { search_view_for_path, set_search_scope } from "@/utils/search_query";
 import { clear_filter_operators } from "@/utils/search_operators";
 
 export const SEARCH_NOTICE_DIVIDER =
@@ -164,8 +164,6 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
     is_fullpage_mode,
     selection_all_selected,
     selection_some_selected,
-    active_inbox_filter,
-    handle_inbox_filter_change,
     search_nav_index,
     search_can_go_prev,
     search_can_go_next,
@@ -511,11 +509,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
   );
 
   const include_spam_trash = () =>
-    on_search_submit?.(
-      query.includes("in:anywhere")
-        ? query
-        : `${query.trim()} in:anywhere`.trim(),
-    );
+    on_search_submit?.(set_search_scope(query, scope_view, "anywhere"));
 
   const empty_actions: SearchEmptyAction[] = [
     ...(active_filter_count > 0 && on_search_submit
@@ -718,17 +712,17 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
           on_folder_toggle={
             menu_selection ? undefined : handle_menu_folder_toggle
           }
-          on_move_to_inbox={
-            !menu_selection && bin_source_of(menu_email, "search")
-              ? () => handle_menu_move_out_of_bin(null)
-              : undefined
-          }
           on_forward={() => open_reply_compose("forward", menu_email)}
           on_mark_read={
             menu_selection ? () => void handle_bulk_mark_read() : undefined
           }
           on_mark_unread={
             menu_selection ? () => void handle_bulk_mark_unread() : undefined
+          }
+          on_move_to_inbox={
+            !menu_selection && bin_source_of(menu_email, "search")
+              ? () => handle_menu_move_out_of_bin(null)
+              : undefined
           }
           on_open_in_new_window={() => {
             if (!open_email_in_new_window(menu_email.id)) {
@@ -797,13 +791,13 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
       {!show_full_email_viewer && (
         <div className="flex-shrink-0 min-w-0">
           <InboxHeader
-            active_filter={active_inbox_filter}
             all_selected={selection_all_selected}
             can_go_next={is_split_view ? search_can_go_next : false}
             can_go_prev={is_split_view ? search_can_go_prev : false}
             current_email_index={is_split_view ? search_nav_index : undefined}
             current_page={search_page}
             filtered_count={filtered_results.length}
+            hide_filter={true}
             hide_quick_actions={true}
             hide_view_switcher={true}
             leading_left_slot={
@@ -821,7 +815,6 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
             leading_toolbar_slot={sort_dropdown}
             on_archive={handle_bulk_archive}
             on_delete={handle_bulk_delete}
-            on_filter_change={handle_inbox_filter_change}
             on_mark_read={handle_bulk_mark_read}
             on_mark_unread={handle_bulk_mark_unread}
             on_navigate_next={
@@ -886,13 +879,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
                 <button
                   className="flex-shrink-0 font-medium text-brand hover:underline"
                   type="button"
-                  onClick={() =>
-                    on_search_submit(
-                      query.includes("in:anywhere")
-                        ? query
-                        : `${query.trim()} in:anywhere`.trim(),
-                    )
-                  }
+                  onClick={include_spam_trash}
                 >
                   {t("mail.view_spam_trash_messages")}
                 </button>
@@ -905,10 +892,10 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
       {show_full_email_viewer && split_email_id ? (
         <div className="flex-1 overflow-hidden">
           <FullEmailViewer
+            handles_keyboard_actions
             can_go_next={search_can_go_next}
             can_go_prev={search_can_go_prev}
             current_index={search_nav_index >= 0 ? search_nav_index : undefined}
-            handles_keyboard_actions
             email_id={split_email_id}
             on_advance={handle_search_auto_advance}
             on_back={on_split_close || (() => {})}
@@ -960,12 +947,12 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
             }}
           >
             <SplitEmailViewer
+              handles_keyboard_actions
               can_go_next={search_can_go_next}
               can_go_prev={search_can_go_prev}
               current_index={
                 search_nav_index >= 0 ? search_nav_index : undefined
               }
-              handles_keyboard_actions
               email_id={split_email_id}
               on_advance={handle_search_auto_advance}
               on_close={on_split_close || (() => {})}
@@ -985,12 +972,15 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
         <div className="flex-1 overflow-y-auto">{email_list_content}</div>
       )}
 
-      <AdvancedSearchModal
-        is_open={advanced_open}
-        on_close={() => set_advanced_open(false)}
-        on_result_click={on_result_click}
-        on_search_submit={on_search_submit}
-      />
+      {on_search_submit && (
+        <AdvancedFilterModal
+          is_open={advanced_open}
+          on_close={() => set_advanced_open(false)}
+          on_search_submit={on_search_submit}
+          query={query}
+          scope_view={scope_view}
+        />
+      )}
     </div>
   );
 }

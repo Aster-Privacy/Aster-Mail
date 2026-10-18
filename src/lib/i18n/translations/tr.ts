@@ -9262,9 +9262,10 @@ export const tr = {
     op_in_trash: "Çöp kutusunda",
     op_in_drafts: "Taslaklar klasöründe",
     chip_any_time: "Herhangi bir zaman",
-    chip_older_than_week: "Bir haftadan eski",
-    chip_older_than_month: "Bir aydan eski",
-    chip_older_than_six_months: "6 aydan eski",
+    chip_last_7_days: "Son 7 gün",
+    chip_last_30_days: "Son 30 gün",
+    chip_last_6_months: "Son 6 ay",
+    chip_last_year: "Son yıl",
     chip_older_than_year: "Bir yıldan eski",
     chip_custom_range: "Özel aralık",
     chip_has_attachment: "Eki var",
@@ -9276,6 +9277,8 @@ export const tr = {
     chip_name_or_email: "Ad veya e-posta",
     chip_no_people: "Eşleşen kişi yok",
     chip_advanced_search: "Gelişmiş arama",
+    chip_everywhere: "Her yerde",
+    chip_everywhere_hint: "Spam ve Çöp dahil",
     spam_trash_hidden_notice:
       "Spam ve Çöp Kutusundaki bazı mesajlar aramanızla eşleşiyor.",
     search_index_partial:

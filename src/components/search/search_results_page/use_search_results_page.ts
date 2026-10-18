@@ -159,7 +159,7 @@ export function use_search_results_page(props: SearchResultsPageProps) {
 
         return date_b - date_a;
       });
-    } else if (filters.sort_by === "relevant" && search_terms.length > 0) {
+    } else {
       results.sort((a, b) => {
         let score_a = 0;
         let score_b = 0;

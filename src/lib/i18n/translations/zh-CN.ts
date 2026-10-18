@@ -4703,12 +4703,15 @@ export const zh_CN = {
     enter_your_password_placeholder: "输入您的密码",
     macos: "macOS",
     windows_linux: "Windows / Linux",
-    font_size_description: "更改邮件文字和应用中部分文字的大小。要放大所有内容，请使用浏览器的缩放功能。",
+    font_size_description:
+      "更改邮件文字和应用中部分文字的大小。要放大所有内容，请使用浏览器的缩放功能。",
     font_size_reset: "重置",
-    font_size_description_desktop: "更改邮件文字和应用中部分文字的大小。要放大所有内容，请在“外观”中更改“界面大小”。",
+    font_size_description_desktop:
+      "更改邮件文字和应用中部分文字的大小。要放大所有内容，请在“外观”中更改“界面大小”。",
     interface_zoom: "界面大小",
     interface_zoom_description: "放大或缩小整个应用中的文字、图标和间距。",
-    interface_zoom_shortcut: "要使用键盘更改大小，请按 Ctrl+加号或 Ctrl+减号。要恢复默认大小，请按 Ctrl+0。",
+    interface_zoom_shortcut:
+      "要使用键盘更改大小，请按 Ctrl+加号或 Ctrl+减号。要恢复默认大小，请按 Ctrl+0。",
     interface_zoom_shortcut_mac:
       "要使用键盘更改大小，请按 Command+加号或 Command+减号。要恢复默认大小，请按 Command+0。",
     vision_description: "改善可见性和对比度的设置",
@@ -8383,9 +8386,10 @@ export const zh_CN = {
     op_in_trash: "在回收站中",
     op_in_drafts: "在草稿中",
     chip_any_time: "任何时间",
-    chip_older_than_week: "一周以前",
-    chip_older_than_month: "一个月以前",
-    chip_older_than_six_months: "6 个月以前",
+    chip_last_7_days: "最近 7 天",
+    chip_last_30_days: "最近 30 天",
+    chip_last_6_months: "最近 6 个月",
+    chip_last_year: "最近一年",
     chip_older_than_year: "一年以前",
     chip_custom_range: "自定义时间范围",
     chip_has_attachment: "有附件",
@@ -8397,6 +8401,8 @@ export const zh_CN = {
     chip_name_or_email: "姓名或邮箱",
     chip_no_people: "没有匹配的联系人",
     chip_advanced_search: "高级搜索",
+    chip_everywhere: "所有位置",
+    chip_everywhere_hint: "包括垃圾邮件和已删除邮件",
     spam_trash_hidden_notice: "垃圾邮件和回收站中有符合搜索条件的邮件。",
     search_index_partial:
       "此设备上的邮件尚未完成索引，因此这些结果中可能缺少部分邮件。",

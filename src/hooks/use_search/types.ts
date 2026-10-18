@@ -68,6 +68,9 @@ export interface SearchResultItem {
   is_read: boolean;
   is_starred: boolean;
   is_spam?: boolean;
+  is_trashed?: boolean;
+  is_archived?: boolean;
+  snoozed_until?: string;
   has_attachment: boolean;
   avatar_url?: string;
   item_type?: string;

@@ -27,13 +27,12 @@ import {
   AdjustmentsHorizontalIcon,
   CheckIcon,
   ChevronDownIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
 
 import {
   create_active_filters,
-  date_range_operators,
   parse_search_query,
-  format_date_for_operator,
   remove_operator_at,
   strip_operators,
 } from "@/utils/search_operators";
@@ -51,28 +50,25 @@ import {
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { use_i18n } from "@/lib/i18n/context";
 import { is_composing } from "@/utils/ime";
-import { rescope_search_query, search_scope_chips } from "@/utils/search_query";
-
-type DatePreset = "any" | "week" | "month" | "six_months" | "year" | "custom";
+import {
+  SEARCH_SCOPES,
+  clear_search_filters,
+  query_search_scope,
+  search_scope_label_key,
+  set_search_scope,
+} from "@/utils/search_query";
+import {
+  DATE_PRESET_LABEL_KEYS,
+  SEARCH_DATE_PRESETS,
+  apply_custom_date_range,
+  apply_date_preset,
+  detect_date_preset,
+  type SearchDatePreset,
+} from "@/utils/search_date_presets";
 
 const ATTACHMENT_TYPES = ["image", "document", "pdf", "video"] as const;
 
 type AttachmentType = (typeof ATTACHMENT_TYPES)[number];
-
-const PRESET_DAYS: Record<Exclude<DatePreset, "any" | "custom">, number> = {
-  week: 7,
-  month: 30,
-  six_months: 183,
-  year: 365,
-};
-
-function days_ago(days: number): string {
-  const date = new Date();
-
-  date.setDate(date.getDate() - days);
-
-  return format_date_for_operator(date);
-}
 
 function append_token(query: string, token: string): string {
   const trimmed = query.trim();
@@ -88,26 +84,6 @@ function active_values(operators: ParsedOperator[], type: string): string[] {
   return operators
     .filter((operator) => operator.type === type && !operator.negated)
     .map((operator) => operator.value);
-}
-
-function detect_date_preset(operators: ParsedOperator[]): DatePreset {
-  const before = active_values(operators, "before");
-  const after = active_values(operators, "after");
-  const date = active_values(operators, "date");
-
-  if (before.length === 0 && after.length === 0 && date.length === 0) {
-    return "any";
-  }
-
-  if (before.length === 1 && after.length === 0 && date.length === 0) {
-    for (const key of Object.keys(PRESET_DAYS) as Array<
-      keyof typeof PRESET_DAYS
-    >) {
-      if (before[0] === days_ago(PRESET_DAYS[key])) return key;
-    }
-  }
-
-  return "custom";
 }
 
 const CHIP_CLASS =
@@ -136,7 +112,9 @@ function Chip({ label, is_active, has_caret, on_click }: ChipProps) {
       type="button"
       onClick={on_click}
     >
-      {is_active && <CheckIcon className="w-4 h-4 flex-shrink-0" />}
+      {is_active && !has_caret && (
+        <CheckIcon className="w-4 h-4 flex-shrink-0" />
+      )}
       {label}
       {has_caret && <ChevronDownIcon className="w-3.5 h-3.5 flex-shrink-0" />}
     </button>
@@ -301,6 +279,92 @@ function PersonChip({
   );
 }
 
+const MENU_ITEM_CLASS =
+  "w-full flex items-center gap-2 px-2.5 py-2 rounded-[var(--aster-radius-item,8px)] text-[13px] text-start hover:bg-[var(--aster-floating-hover,var(--bg-hover))]";
+
+const FLOATING_STYLE: CSSProperties = {
+  backgroundColor: "var(--aster-floating-bg)",
+  boxShadow: "var(--aster-floating-shadow)",
+  border: "none",
+};
+
+interface ScopeChipProps {
+  query: string;
+  scope_view: string | undefined;
+  on_query_change: (query: string) => void;
+}
+
+function ScopeChip({ query, scope_view, on_query_change }: ScopeChipProps) {
+  const { t } = use_i18n();
+  const [is_open, set_is_open] = useState(false);
+  const current = query_search_scope(query, scope_view);
+  const label_key = current ? search_scope_label_key(current.scope) : null;
+  const label = label_key
+    ? t(label_key)
+    : current
+      ? current.scope
+      : t("mail.search_in");
+  const is_active = current ? !current.is_default : true;
+
+  return (
+    <Popover open={is_open} onOpenChange={set_is_open}>
+      <PopoverTrigger asChild>
+        <button
+          aria-label={t("mail.search_in")}
+          className={CHIP_CLASS}
+          data-testid="search-scope-chip"
+          style={chip_style(is_active)}
+          type="button"
+        >
+          {label}
+          <ChevronDownIcon className="w-3.5 h-3.5 flex-shrink-0" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        align="start"
+        className="w-[248px] p-1.5"
+        style={FLOATING_STYLE}
+      >
+        {SEARCH_SCOPES.map((scope) => {
+          const key = search_scope_label_key(scope);
+          const selected = current?.scope === scope;
+
+          return (
+            <button
+              key={scope}
+              aria-pressed={selected}
+              className={MENU_ITEM_CLASS}
+              style={{
+                color: selected ? "var(--accent-blue)" : "var(--text-primary)",
+              }}
+              type="button"
+              onClick={() => {
+                set_is_open(false);
+                if (!selected) {
+                  on_query_change(set_search_scope(query, scope_view, scope));
+                }
+              }}
+            >
+              <span className="flex-1 min-w-0">
+                <span className="block">{key ? t(key) : scope}</span>
+                {scope === "anywhere" && (
+                  <span
+                    className="block text-[11px]"
+                    style={{ color: "var(--text-muted)" }}
+                  >
+                    {t("mail.chip_everywhere_hint")}
+                  </span>
+                )}
+              </span>
+              {selected && <CheckIcon className="w-4 h-4 flex-shrink-0" />}
+            </button>
+          );
+        })}
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 export interface SearchChipRowProps {
   query: string;
   on_query_change: (query: string) => void;
@@ -342,6 +406,8 @@ export function SearchChipRow({
     ATTACHMENT_TYPES.some((type) => has_values.includes(type));
   const unread_active = is_values.includes("unread");
   const date_preset = useMemo(() => detect_date_preset(operators), [operators]);
+  const scope_state = query_search_scope(query, scope_view);
+  const scope_active = scope_state ? !scope_state.is_default : true;
 
   const set_person = useCallback(
     (type: "from" | "to", email: string) => {
@@ -439,24 +505,7 @@ export function SearchChipRow({
   }, [query, unread_active, on_query_change]);
 
   const apply_date = useCallback(
-    (preset: DatePreset) => {
-      const stripped = strip_operators(
-        query,
-        (operator) =>
-          (operator.type === "before" ||
-            operator.type === "after" ||
-            operator.type === "date") &&
-          !operator.negated,
-      );
-
-      if (preset === "any") {
-        set_date_open(false);
-        set_show_custom_range(false);
-        on_query_change(stripped);
-
-        return;
-      }
-
+    (preset: SearchDatePreset) => {
       if (preset === "custom") {
         set_show_custom_range(true);
 
@@ -465,9 +514,7 @@ export function SearchChipRow({
 
       set_date_open(false);
       set_show_custom_range(false);
-      on_query_change(
-        append_token(stripped, `before:${days_ago(PRESET_DAYS[preset])}`),
-      );
+      on_query_change(apply_date_preset(query, preset));
     },
     [query, on_query_change],
   );
@@ -475,39 +522,20 @@ export function SearchChipRow({
   const apply_custom_range = useCallback(() => {
     if (!custom_after && !custom_before) return;
 
-    let next = strip_operators(
-      query,
-      (operator) =>
-        (operator.type === "before" ||
-          operator.type === "after" ||
-          operator.type === "date") &&
-        !operator.negated,
-    );
-
-    for (const operator of date_range_operators(custom_after, custom_before)) {
-      next = append_token(next, operator);
-    }
-
     set_date_open(false);
     set_show_custom_range(false);
-    on_query_change(next);
+    on_query_change(
+      apply_custom_date_range(query, custom_after, custom_before),
+    );
   }, [query, custom_after, custom_before, on_query_change]);
 
+  const clear_all = useCallback(() => {
+    set_show_custom_range(false);
+    on_query_change(clear_search_filters(query, scope_view));
+  }, [query, scope_view, on_query_change]);
+
   const date_label = useMemo(() => {
-    switch (date_preset) {
-      case "week":
-        return t("mail.chip_older_than_week");
-      case "month":
-        return t("mail.chip_older_than_month");
-      case "six_months":
-        return t("mail.chip_older_than_six_months");
-      case "year":
-        return t("mail.chip_older_than_year");
-      case "custom":
-        break;
-      default:
-        return t("mail.chip_any_time");
-    }
+    if (date_preset !== "custom") return t(DATE_PRESET_LABEL_KEYS[date_preset]);
 
     const state = describe_date_filter(operators);
 
@@ -543,184 +571,6 @@ export function SearchChipRow({
     [t],
   );
 
-  const from_chip = (
-    <PersonChip
-      key="from"
-      clear_label={t("common.clear")}
-      empty_label={t("mail.chip_no_people")}
-      is_active={from_values.length > 0}
-      label={person_chip_label(from_values) ?? t("mail.from")}
-      on_clear={() => clear_person("from")}
-      on_select={(email) => set_person("from", email)}
-      people={() => list_index_people("from")}
-      placeholder={t("mail.chip_name_or_email")}
-    />
-  );
-
-  const to_chip = (
-    <PersonChip
-      key="to"
-      clear_label={t("common.clear")}
-      empty_label={t("mail.chip_no_people")}
-      is_active={to_values.length > 0}
-      label={person_chip_label(to_values) ?? t("mail.to")}
-      on_clear={() => clear_person("to")}
-      on_select={(email) => set_person("to", email)}
-      people={() => list_index_people("to")}
-      placeholder={t("mail.chip_name_or_email")}
-    />
-  );
-
-  const date_chip = (
-    <Popover
-      key="date"
-      open={date_open}
-      onOpenChange={(open) => {
-        set_date_open(open);
-        if (!open) set_show_custom_range(false);
-      }}
-    >
-      <PopoverTrigger asChild>
-        <button
-          className={CHIP_CLASS}
-          style={chip_style(date_preset !== "any")}
-          type="button"
-        >
-          {date_preset !== "any" && (
-            <CheckIcon className="w-4 h-4 flex-shrink-0" />
-          )}
-          {date_label}
-          <ChevronDownIcon className="w-3.5 h-3.5 flex-shrink-0" />
-        </button>
-      </PopoverTrigger>
-      <PopoverContent
-        align="start"
-        className="w-[248px] p-1.5"
-        style={{
-          backgroundColor: "var(--aster-floating-bg)",
-          boxShadow: "var(--aster-floating-shadow)",
-          border: "none",
-        }}
-      >
-        {(
-          [
-            ["any", t("mail.chip_any_time")],
-            ["week", t("mail.chip_older_than_week")],
-            ["month", t("mail.chip_older_than_month")],
-            ["six_months", t("mail.chip_older_than_six_months")],
-            ["year", t("mail.chip_older_than_year")],
-            ["custom", `${t("mail.chip_custom_range")}…`],
-          ] as Array<[DatePreset, string]>
-        ).map(([preset, label]) => (
-          <button
-            key={preset}
-            className="w-full flex items-center gap-2 px-2.5 py-2 rounded-[var(--aster-radius-item,8px)] text-[13px] text-start hover:bg-[var(--aster-floating-hover,var(--bg-hover))]"
-            style={{
-              color:
-                date_preset === preset
-                  ? "var(--accent-blue)"
-                  : "var(--text-primary)",
-            }}
-            type="button"
-            onClick={() => apply_date(preset)}
-          >
-            {label}
-          </button>
-        ))}
-        {show_custom_range && (
-          <div className="mt-1 pt-1 px-1 flex flex-col gap-2">
-            <input
-              className="w-full h-8 px-2 rounded-[var(--aster-radius-item)] text-xs outline-none"
-              max={custom_before || undefined}
-              style={{
-                backgroundColor: "var(--aster-hover)",
-                color: "var(--text-primary)",
-              }}
-              type="date"
-              value={custom_after}
-              onChange={(event) => set_custom_after(event.target.value)}
-            />
-            <input
-              className="w-full h-8 px-2 rounded-[var(--aster-radius-item)] text-xs outline-none"
-              min={custom_after || undefined}
-              style={{
-                backgroundColor: "var(--aster-hover)",
-                color: "var(--text-primary)",
-              }}
-              type="date"
-              value={custom_before}
-              onChange={(event) => set_custom_before(event.target.value)}
-            />
-            <button
-              className="h-8 rounded-[10px] text-xs font-medium bg-[var(--accent-blue)] text-[var(--accent-fg,#ffffff)] hover:opacity-90 transition-opacity"
-              type="button"
-              onClick={apply_custom_range}
-            >
-              {t("common.apply")}
-            </button>
-          </div>
-        )}
-      </PopoverContent>
-    </Popover>
-  );
-
-  const attachment_chip = (
-    <Chip
-      key="attachment"
-      is_active={attachment_active}
-      label={t("mail.chip_has_attachment")}
-      on_click={toggle_attachment}
-    />
-  );
-
-  const unread_chip = (
-    <Chip
-      key="unread"
-      is_active={unread_active}
-      label={t("mail.chip_is_unread")}
-      on_click={toggle_unread}
-    />
-  );
-
-  const attachment_type_chips: ReactNode[] = attachment_active
-    ? [...ATTACHMENT_TYPES]
-        .sort((a, b) => {
-          const a_on = has_values.includes(a) ? 0 : 1;
-          const b_on = has_values.includes(b) ? 0 : 1;
-
-          return a_on - b_on;
-        })
-        .map((type) => (
-          <Chip
-            key={`type_${type}`}
-            is_active={has_values.includes(type)}
-            label={attachment_type_label(type)}
-            on_click={() => toggle_attachment_type(type)}
-          />
-        ))
-    : [];
-
-  const entries: Array<{ node: ReactNode; active: boolean }> = [
-    { node: from_chip, active: from_values.length > 0 },
-    { node: date_chip, active: date_preset !== "any" },
-    { node: attachment_chip, active: attachment_active },
-    { node: to_chip, active: to_values.length > 0 },
-    { node: unread_chip, active: unread_active },
-  ];
-
-  const ordered: ReactNode[] = [];
-
-  for (const entry of entries) {
-    if (!entry.active) continue;
-    ordered.push(entry.node);
-    if (entry.node === attachment_chip) ordered.push(...attachment_type_chips);
-  }
-
-  for (const entry of entries) {
-    if (entry.active) continue;
-    ordered.push(entry.node);
-  }
-
   const extra_chips: ReactNode[] = operators.flatMap((operator, index) =>
     is_chip_covered_operator(operator)
       ? []
@@ -734,33 +584,146 @@ export function SearchChipRow({
         ],
   );
 
-  const scope_chips: ReactNode[] = scope_view
-    ? search_scope_chips(query, scope_view).map((chip) => (
-        <Chip
-          key={`scope_${chip.scope}`}
-          is_active={chip.is_active}
-          label={
-            chip.folder_label_key
-              ? t(chip.label_key, { value: t(chip.folder_label_key) })
-              : t(chip.label_key)
-          }
-          on_click={
-            chip.is_active
-              ? undefined
-              : () =>
-                  on_query_change(
-                    rescope_search_query(query, scope_view, chip.scope),
-                  )
-          }
-        />
-      ))
-    : [];
+  const any_active =
+    scope_active ||
+    from_values.length > 0 ||
+    to_values.length > 0 ||
+    date_preset !== "any" ||
+    attachment_active ||
+    unread_active ||
+    extra_chips.length > 0;
 
   return (
     <div className="flex items-center gap-2.5 px-4 py-2.5 overflow-x-auto scrollbar-none">
-      {scope_chips}
+      <ScopeChip
+        on_query_change={on_query_change}
+        query={query}
+        scope_view={scope_view}
+      />
+      <PersonChip
+        clear_label={t("common.clear")}
+        empty_label={t("mail.chip_no_people")}
+        is_active={from_values.length > 0}
+        label={person_chip_label(from_values) ?? t("mail.from")}
+        on_clear={() => clear_person("from")}
+        on_select={(email) => set_person("from", email)}
+        people={() => list_index_people("from")}
+        placeholder={t("mail.chip_name_or_email")}
+      />
+      <PersonChip
+        clear_label={t("common.clear")}
+        empty_label={t("mail.chip_no_people")}
+        is_active={to_values.length > 0}
+        label={person_chip_label(to_values) ?? t("mail.to")}
+        on_clear={() => clear_person("to")}
+        on_select={(email) => set_person("to", email)}
+        people={() => list_index_people("to")}
+        placeholder={t("mail.chip_name_or_email")}
+      />
+      <Popover
+        open={date_open}
+        onOpenChange={(open: boolean) => {
+          set_date_open(open);
+          if (!open) set_show_custom_range(false);
+        }}
+      >
+        <PopoverTrigger asChild>
+          <button
+            aria-pressed={date_preset !== "any"}
+            className={CHIP_CLASS}
+            data-testid="search-date-chip"
+            style={chip_style(date_preset !== "any")}
+            type="button"
+          >
+            {date_label}
+            <ChevronDownIcon className="w-3.5 h-3.5 flex-shrink-0" />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent
+          align="start"
+          className="w-[248px] p-1.5"
+          style={FLOATING_STYLE}
+        >
+          {SEARCH_DATE_PRESETS.map((preset) => (
+            <button
+              key={preset}
+              aria-pressed={date_preset === preset}
+              className={MENU_ITEM_CLASS}
+              style={{
+                color:
+                  date_preset === preset
+                    ? "var(--accent-blue)"
+                    : "var(--text-primary)",
+              }}
+              type="button"
+              onClick={() => apply_date(preset)}
+            >
+              <span className="flex-1">
+                {t(DATE_PRESET_LABEL_KEYS[preset])}
+              </span>
+              {date_preset === preset && (
+                <CheckIcon className="w-4 h-4 flex-shrink-0" />
+              )}
+            </button>
+          ))}
+          {show_custom_range && (
+            <div className="mt-1 pt-1 px-1 flex flex-col gap-2">
+              <input
+                aria-label={t("mail.from_date")}
+                className="w-full h-8 px-2 rounded-[var(--aster-radius-item)] text-xs outline-none"
+                max={custom_before || undefined}
+                style={{
+                  backgroundColor: "var(--aster-hover)",
+                  color: "var(--text-primary)",
+                }}
+                type="date"
+                value={custom_after}
+                onChange={(event) => set_custom_after(event.target.value)}
+              />
+              <input
+                aria-label={t("mail.to_date")}
+                className="w-full h-8 px-2 rounded-[var(--aster-radius-item)] text-xs outline-none"
+                min={custom_after || undefined}
+                style={{
+                  backgroundColor: "var(--aster-hover)",
+                  color: "var(--text-primary)",
+                }}
+                type="date"
+                value={custom_before}
+                onChange={(event) => set_custom_before(event.target.value)}
+              />
+              <button
+                className="h-8 rounded-[10px] text-xs font-medium bg-[var(--accent-blue)] text-[var(--accent-fg,#ffffff)] hover:opacity-90 transition-opacity disabled:opacity-50"
+                disabled={!custom_after && !custom_before}
+                type="button"
+                onClick={apply_custom_range}
+              >
+                {t("common.apply")}
+              </button>
+            </div>
+          )}
+        </PopoverContent>
+      </Popover>
+      <Chip
+        is_active={attachment_active}
+        label={t("mail.chip_has_attachment")}
+        on_click={toggle_attachment}
+      />
+      {attachment_active &&
+        ATTACHMENT_TYPES.map((type) => (
+          <Chip
+            key={`type_${type}`}
+            is_active={has_values.includes(type)}
+            label={attachment_type_label(type)}
+            on_click={() => toggle_attachment_type(type)}
+          />
+        ))}
+      <Chip
+        is_active={unread_active}
+        label={t("mail.chip_is_unread")}
+        on_click={toggle_unread}
+      />
       {extra_chips}
-      {ordered}
       <button
         className={CHIP_CLASS}
         style={{
@@ -773,6 +736,20 @@ export function SearchChipRow({
         <AdjustmentsHorizontalIcon className="w-4 h-4 flex-shrink-0" />
         {t("mail.chip_advanced_search")}
       </button>
+      {any_active && (
+        <button
+          className={CHIP_CLASS}
+          style={{
+            backgroundColor: "transparent",
+            color: "var(--text-secondary)",
+          }}
+          type="button"
+          onClick={clear_all}
+        >
+          <XMarkIcon className="w-4 h-4 flex-shrink-0" />
+          {t("mail.clear_filters")}
+        </button>
+      )}
     </div>
   );
 }

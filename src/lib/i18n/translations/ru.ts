@@ -9555,9 +9555,10 @@ export const ru = {
     op_has_video: "Есть видео",
     op_in_drafts: "В черновиках",
     chip_any_time: "Любое время",
-    chip_older_than_week: "Старше недели",
-    chip_older_than_month: "Старше месяца",
-    chip_older_than_six_months: "Старше 6 месяцев",
+    chip_last_7_days: "Последние 7 дней",
+    chip_last_30_days: "Последние 30 дней",
+    chip_last_6_months: "Последние 6 месяцев",
+    chip_last_year: "Последний год",
     chip_older_than_year: "Старше года",
     chip_custom_range: "Свой диапазон",
     chip_has_attachment: "С вложением",
@@ -9569,6 +9570,8 @@ export const ru = {
     chip_name_or_email: "Имя или адрес",
     chip_no_people: "Нет подходящих контактов",
     chip_advanced_search: "Расширенный поиск",
+    chip_everywhere: "Везде",
+    chip_everywhere_hint: "Включая Спам и Корзину",
     spam_trash_hidden_notice:
       "Некоторые письма в спаме и корзине соответствуют запросу.",
     search_index_partial:

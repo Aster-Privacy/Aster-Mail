@@ -5182,7 +5182,8 @@ export const ko = {
     font_size_description_desktop:
       "이메일 텍스트와 앱의 일부 텍스트 크기를 변경합니다. 모든 항목을 크게 보려면 외관에서 인터페이스 크기를 변경하세요.",
     interface_zoom: "인터페이스 크기",
-    interface_zoom_description: "앱 전체의 텍스트, 아이콘, 간격을 크게 또는 작게 표시합니다.",
+    interface_zoom_description:
+      "앱 전체의 텍스트, 아이콘, 간격을 크게 또는 작게 표시합니다.",
     interface_zoom_shortcut:
       "키보드로 크기를 변경하려면 Ctrl+더하기 또는 Ctrl+빼기를 누르세요. 원래 크기로 되돌리려면 Ctrl+0을 누르세요.",
     interface_zoom_shortcut_mac:
@@ -8995,9 +8996,10 @@ export const ko = {
     op_in_trash: "휴지통",
     op_in_drafts: "임시 보관함",
     chip_any_time: "모든 기간",
-    chip_older_than_week: "1주일 이전",
-    chip_older_than_month: "1개월 이전",
-    chip_older_than_six_months: "6개월 이전",
+    chip_last_7_days: "최근 7일",
+    chip_last_30_days: "최근 30일",
+    chip_last_6_months: "최근 6개월",
+    chip_last_year: "최근 1년",
     chip_older_than_year: "1년 이전",
     chip_custom_range: "기간 지정",
     chip_has_attachment: "첨부파일 있음",
@@ -9009,6 +9011,8 @@ export const ko = {
     chip_name_or_email: "이름 또는 이메일",
     chip_no_people: "일치하는 사람이 없습니다",
     chip_advanced_search: "고급 검색",
+    chip_everywhere: "모든 위치",
+    chip_everywhere_hint: "스팸 및 휴지통 포함",
     spam_trash_hidden_notice:
       "스팸과 휴지통에 검색과 일치하는 메일이 있습니다.",
     search_index_partial:

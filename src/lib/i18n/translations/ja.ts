@@ -5158,7 +5158,8 @@ export const ja = {
     font_size_description_desktop:
       "メールの文字と、アプリ内の一部の文字のサイズを変更します。すべてを大きくするには、「外観」の「インターフェイスのサイズ」を変更してください。",
     interface_zoom: "インターフェイスのサイズ",
-    interface_zoom_description: "アプリ全体の文字、アイコン、余白を拡大または縮小します。",
+    interface_zoom_description:
+      "アプリ全体の文字、アイコン、余白を拡大または縮小します。",
     interface_zoom_shortcut:
       "キーボードでサイズを変更するには、Ctrl+プラスまたはCtrl+マイナスを押します。元のサイズに戻すには、Ctrl+0を押します。",
     interface_zoom_shortcut_mac:
@@ -9229,9 +9230,10 @@ export const ja = {
     op_in_trash: "ゴミ箱内",
     op_in_drafts: "下書き内",
     chip_any_time: "すべての期間",
-    chip_older_than_week: "1週間以上前",
-    chip_older_than_month: "1か月以上前",
-    chip_older_than_six_months: "6か月以上前",
+    chip_last_7_days: "過去7日間",
+    chip_last_30_days: "過去30日間",
+    chip_last_6_months: "過去6か月",
+    chip_last_year: "過去1年",
     chip_older_than_year: "1年以上前",
     chip_custom_range: "期間を指定",
     chip_has_attachment: "添付ファイルあり",
@@ -9243,6 +9245,8 @@ export const ja = {
     chip_name_or_email: "名前またはメールアドレス",
     chip_no_people: "一致する連絡先がありません",
     chip_advanced_search: "詳細検索",
+    chip_everywhere: "すべての場所",
+    chip_everywhere_hint: "スパムとゴミ箱を含む",
     spam_trash_hidden_notice:
       "迷惑メールとゴミ箱に検索条件に一致するメールがあります。",
     search_index_partial:

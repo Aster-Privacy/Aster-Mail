@@ -44,18 +44,18 @@ import {
   ArrowPathIcon,
 } from "@heroicons/react/24/outline";
 
-import { AdvancedSearchModal } from "@/components/search/advanced_search_modal";
+import { AdvancedFilterModal } from "@/components/search/advanced_filter_modal";
 import { SearchContentBanner } from "@/components/search/search_content_banner";
 import { SearchResultSkeleton } from "@/components/search/search_results_list";
 import { CorrectionNotice } from "@/components/search/correction_notice";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { use_search_sender_trust } from "@/hooks/use_sender_trust";
+import { is_system_email } from "@/lib/utils";
 import {
   format_date,
   format_date_short,
   format_time,
   get_zoned_parts,
-  local_date_key,
 } from "@/utils/date_format";
 import {
   apply_highlights,
@@ -75,10 +75,12 @@ import {
 } from "@/utils/search_query";
 import { is_composing } from "@/utils/ime";
 import {
-  add_operator_to_query,
+  apply_date_preset,
+  date_preset_of_query,
+} from "@/utils/search_date_presets";
+import {
   ends_with_bare_operator,
   has_operator,
-  strip_operators,
   toggle_operator,
 } from "@/utils/search_operators";
 
@@ -202,15 +204,6 @@ export function SearchBar({
     [on_search_submit, scope_query],
   );
 
-  const handle_advanced_result_click = useCallback(
-    (id: string) => {
-      close();
-      input_ref.current?.blur();
-      on_result_click?.(id);
-    },
-    [close, on_result_click],
-  );
-
   const handle_change = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
 
@@ -244,28 +237,16 @@ export function SearchBar({
     input_ref.current?.focus();
   };
 
-  const week_boundary = week_ago_key();
   const is_attachment_chip_active = has_operator(query, "has", "attachment");
-  const is_week_chip_active = has_operator(query, "after", week_boundary);
+  const is_week_chip_active = date_preset_of_query(query) === "last_7_days";
 
   const handle_attachment_chip = () => {
     apply_chip_query(toggle_operator(query, "has", "attachment"));
   };
 
   const handle_week_chip = () => {
-    const without_dates = strip_operators(
-      query,
-      (operator) =>
-        !operator.negated &&
-        (operator.type === "after" ||
-          operator.type === "before" ||
-          operator.type === "date"),
-    );
-
     apply_chip_query(
-      is_week_chip_active
-        ? without_dates
-        : add_operator_to_query(without_dates, "after", week_boundary),
+      apply_date_preset(query, is_week_chip_active ? "any" : "last_7_days"),
     );
   };
 
@@ -630,7 +611,7 @@ export function SearchBar({
               <Chip
                 icon={<CalendarIcon className="w-3.5 h-3.5" />}
                 is_active={is_week_chip_active}
-                label={t("mail.search_within_1_week")}
+                label={t("mail.chip_last_7_days")}
                 on_click={handle_week_chip}
               />
               <Chip
@@ -747,12 +728,12 @@ export function SearchBar({
           </div>,
           document.body,
         )}
-      <AdvancedSearchModal
+      <AdvancedFilterModal
         is_open={is_advanced_open}
         on_close={() => set_is_advanced_open(false)}
-        on_query_change={set_query}
-        on_result_click={handle_advanced_result_click}
         on_search_submit={handle_advanced_submit}
+        query={query}
+        scope_view={scope_view}
       />
     </>
   );
@@ -832,6 +813,7 @@ const PreviewRow = memo(function PreviewRow({
         image_url={marks_hidden ? undefined : result.avatar_url}
         name={participants}
         plain={marks_hidden}
+        sender_authenticated={!marks_hidden && is_system_email(result)}
         size="sm"
         use_domain_logo={
           preferences.show_profile_pictures !== false && !result.is_spam
@@ -862,14 +844,6 @@ const PreviewRow = memo(function PreviewRow({
     </button>
   );
 });
-
-function week_ago_key(): string {
-  const boundary = new Date();
-
-  boundary.setDate(boundary.getDate() - 7);
-
-  return local_date_key(boundary);
-}
 
 function Chip({
   icon,

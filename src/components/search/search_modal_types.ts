@@ -34,11 +34,7 @@ export interface SearchModalProps {
 }
 
 export type SearchFieldType =
-  | "subject"
-  | "body"
-  | "sender"
-  | "recipient"
-  | "all";
+  "subject" | "body" | "sender" | "recipient" | "all";
 
 export type SearchScope =
   | "all"
@@ -47,6 +43,7 @@ export type SearchScope =
   | "starred"
   | "sent"
   | "drafts"
+  | "archive"
   | "spam"
   | "trash";
 
