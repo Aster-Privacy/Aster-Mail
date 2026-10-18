@@ -146,20 +146,81 @@ describe("sync_all_ratchet_states with listed states", () => {
     expect(result.errors).toEqual([]);
   });
 
-  it("adopts a newer server state from the listing", async () => {
-    const restored = fake_ratchet("conv-a", 5);
+  it("merges a newer server state from the listing into local", async () => {
+    const ratchet_state = {
+      dh_keypair: { public_key: "pub", secret_key: "sec" },
+      dh_remote_public: "remote",
+      root_key: "root",
+      chain_key_send: "send",
+      chain_key_recv: "recv",
+      send_message_number: 1,
+      recv_message_number: 1,
+      previous_chain_length: 0,
+      skipped_message_keys: [],
+      version: 1,
+      dirty_since_sync: false,
+      created_at: 1,
+      updated_at: 1,
+    };
+    const local = {
+      ...fake_ratchet("conv-a", 2),
+      serialize: vi.fn().mockResolvedValue({
+        state: ratchet_state,
+        conversation_id: "conv-a",
+      }),
+      adopt_state: vi.fn(),
+    };
 
+    mock_decrypt.mockImplementation(async () =>
+      new TextEncoder().encode(
+        JSON.stringify({
+          state: {
+            ...ratchet_state,
+            send_message_number: 6,
+            chain_key_send: "send-ahead",
+            conversation_id: "conv-a",
+          },
+          conversation_id: "conv-a",
+          sync_version: 5,
+        }),
+      ),
+    );
     mock_get.mockResolvedValue({ data: [listed("conv-a", 5)] });
     mock_list_local.mockResolvedValue(["conv-a"]);
-    mock_load_local.mockResolvedValue(fake_ratchet("conv-a", 2));
-    mock_deserialize.mockReturnValue(restored);
+    mock_load_local.mockResolvedValue(local);
 
     const result = await sync_all_ratchet_states(await make_key());
 
     expect(state_fetches()).toHaveLength(0);
-    expect(restored.mark_synced).toHaveBeenCalledTimes(1);
-    expect(mock_save).toHaveBeenCalledWith(restored);
+    expect(mock_deserialize).not.toHaveBeenCalled();
+    expect(local.adopt_state.mock.calls[0][0].state.chain_key_send).toBe(
+      "send-ahead",
+    );
+    expect(local.mark_synced).toHaveBeenCalledTimes(1);
+    expect(mock_save).toHaveBeenCalledWith(local);
     expect(result.synced).toEqual(["conv-a"]);
+  });
+
+  it("refuses a newer listed state without a version over local state", async () => {
+    const local = {
+      ...fake_ratchet("conv-a", 2),
+      serialize: vi.fn().mockResolvedValue({
+        state: { root_key: "local" },
+        conversation_id: "conv-a",
+      }),
+      adopt_state: vi.fn(),
+    };
+
+    mock_get.mockResolvedValue({ data: [listed("conv-a", 5)] });
+    mock_list_local.mockResolvedValue(["conv-a"]);
+    mock_load_local.mockResolvedValue(local);
+
+    const result = await sync_all_ratchet_states(await make_key());
+
+    expect(result.synced).toEqual([]);
+    expect(result.errors.map((e) => e.conversation_id)).toEqual(["conv-a"]);
+    expect(local.adopt_state).not.toHaveBeenCalled();
+    expect(mock_save).not.toHaveBeenCalled();
   });
 
   it("leaves an up-to-date local state untouched", async () => {

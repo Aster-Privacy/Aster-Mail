@@ -276,7 +276,7 @@ describe("absorbing a conflicting server state", () => {
     const remote = make_state(conversation_id, 2, "root-remote");
 
     mock_decrypt.mockResolvedValue(
-      new TextEncoder().encode(JSON.stringify(remote)),
+      new TextEncoder().encode(JSON.stringify({ ...remote, sync_version: 5 })),
     );
 
     const ratchet = {
@@ -306,7 +306,7 @@ describe("absorbing a conflicting server state", () => {
     const remote = make_state(conversation_id, 1, "root-shared");
 
     mock_decrypt.mockResolvedValue(
-      new TextEncoder().encode(JSON.stringify(remote)),
+      new TextEncoder().encode(JSON.stringify({ ...remote, sync_version: 5 })),
     );
 
     const ratchet = {

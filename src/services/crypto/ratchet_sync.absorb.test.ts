@@ -174,6 +174,7 @@ describe("ratchet sync never overwrites a server state it has not absorbed", () 
     const remote = await seal(key, {
       state: { root_key: "remote", remote_only: true },
       conversation_id: "conv-merge",
+      sync_version: 5,
     });
     const ratchet = adoptable_ratchet("conv-merge");
 

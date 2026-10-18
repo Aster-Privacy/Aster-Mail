@@ -83,38 +83,71 @@ function pick_newer_epoch(
   return local.root_key > remote.root_key ? local : remote;
 }
 
+function pick_winner(
+  local: RatchetState,
+  remote: RatchetState,
+  remote_versioned: boolean,
+): RatchetState {
+  if (remote_versioned) return pick_newer_epoch(local, remote);
+
+  if (
+    typeof remote.created_at !== "number" ||
+    typeof local.created_at !== "number" ||
+    remote.created_at < local.created_at
+  ) {
+    return local;
+  }
+
+  const local_epoch = local.epoch ?? 0;
+  const remote_epoch = remote.epoch ?? 0;
+
+  if (remote_epoch !== local_epoch) {
+    return remote_epoch > local_epoch ? remote : local;
+  }
+
+  return remote.updated_at > local.updated_at ? remote : local;
+}
+
 export function merge_discards_local_epoch(
   local: SerializedState,
   remote: SerializedState,
+  remote_versioned = true,
 ): boolean {
   if (local.conversation_id !== remote.conversation_id) return false;
 
   if (same_epoch(local.state, remote.state)) return false;
 
-  return pick_newer_epoch(local.state, remote.state) !== local.state;
+  return (
+    pick_winner(local.state, remote.state, remote_versioned) !== local.state
+  );
 }
 
 export function merge_ratchet_states(
   local: SerializedState,
   remote: SerializedState,
+  remote_versioned = true,
 ): SerializedState {
   if (local.conversation_id !== remote.conversation_id) {
     throw new Error("Ratchet state conversation mismatch");
   }
 
-  const skipped_message_keys = merge_skipped_keys(
-    local.state.skipped_message_keys ?? [],
+  const local_skipped = local.state.skipped_message_keys ?? [];
+  const merged_skipped = merge_skipped_keys(
+    local_skipped,
     remote.state.skipped_message_keys ?? [],
   );
 
   if (!same_epoch(local.state, remote.state)) {
-    const winner = pick_newer_epoch(local.state, remote.state);
+    const winner = pick_winner(local.state, remote.state, remote_versioned);
+    const keep_local_skipped = !remote_versioned && winner === local.state;
 
     return {
       conversation_id: local.conversation_id,
       state: {
         ...winner,
-        skipped_message_keys,
+        skipped_message_keys: keep_local_skipped
+          ? merge_skipped_keys(local_skipped, [])
+          : merged_skipped,
         dirty_since_sync: true,
         updated_at: Math.max(local.state.updated_at, remote.state.updated_at),
       },
@@ -129,11 +162,15 @@ export function merge_ratchet_states(
   const recv_behind =
     local.state.chain_key_recv === null
       ? remote.state
-      : remote.state.chain_key_recv === null
+      : remote.state.chain_key_recv === null || !remote_versioned
         ? local.state
         : local.state.recv_message_number <= remote.state.recv_message_number
           ? local.state
           : remote.state;
+  const skipped_message_keys =
+    remote_versioned || local.state.chain_key_recv === null
+      ? merged_skipped
+      : merge_skipped_keys(local_skipped, []);
 
   return {
     conversation_id: local.conversation_id,

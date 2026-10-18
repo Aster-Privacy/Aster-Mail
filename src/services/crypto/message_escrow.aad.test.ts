@@ -24,6 +24,9 @@ const MASTER = new Uint8Array(32).map((_, i) => i + 1);
 const posted: Array<Record<string, string>> = [];
 const served = new Map<string, Record<string, string>>();
 const cached = new Map<string, string>();
+const cached_flags = new Map<string, boolean>();
+const cached_bindings = new Map<string, unknown>();
+const foreign_keys = new Set<string>();
 
 vi.mock("./memory_key_store", () => ({
   get_derived_encryption_key: () => new Uint8Array(MASTER),
@@ -34,9 +37,17 @@ vi.mock("./legacy_keks", () => ({
 }));
 
 vi.mock("./ratchet_plaintext_cache", () => ({
-  set_cached_ratchet_plaintext: async (key: string, value: string) => {
+  set_cached_ratchet_plaintext: async (
+    key: string,
+    value: string,
+    unauthenticated?: boolean,
+    binding?: unknown,
+  ) => {
     cached.set(key, value);
+    cached_flags.set(key, !!unauthenticated);
+    cached_bindings.set(key, binding);
   },
+  is_cached_plaintext_foreign: async (key: string) => foreign_keys.has(key),
 }));
 
 vi.mock("@/services/api/client", () => ({
@@ -59,9 +70,12 @@ vi.mock("@/services/api/client", () => ({
 }));
 
 import {
+  bound_escrow_key,
   clear_escrow_miss_cache,
   escrow_aad_v2,
+  escrow_aad_v3,
   fetch_from_escrow,
+  fetch_verified_from_escrow,
   sync_escrow_to_cache,
   upload_to_escrow,
 } from "./message_escrow";
@@ -108,25 +122,178 @@ async function seal(
   };
 }
 
+const ALICE = { sender: "alice@astermail.org", conversation_id: "conv-a" };
+const MALLORY = {
+  sender: "mallory@astermail.org",
+  conversation_id: "conv-m",
+};
+const KEY = "mail-1:BA==:3";
+
+function serve_posted(): void {
+  for (const entry of posted) served.set(entry.message_id, entry);
+}
+
+function bound_body(
+  sender: string,
+  conversation_id: string,
+  plaintext: string,
+): string {
+  return `${JSON.stringify({ s: sender, c: conversation_id })}\n${plaintext}`;
+}
+
 describe("escrow entries are bound to their message", () => {
   beforeEach(() => {
     posted.length = 0;
     served.clear();
     cached.clear();
+    cached_flags.clear();
+    cached_bindings.clear();
+    foreign_keys.clear();
     clear_escrow_miss_cache();
+  });
+
+  it("refuses an entry already bound to another sender", async () => {
+    await upload_to_escrow(KEY, "real body", ALICE);
+    serve_posted();
+    foreign_keys.add(KEY);
+
+    expect(await fetch_from_escrow(KEY, MALLORY)).toBeNull();
+    expect(await fetch_verified_from_escrow(KEY, MALLORY)).toBeNull();
+    expect(cached.has(KEY)).toBe(false);
+  });
+
+  it("writes a sender-bound entry and a v2 entry for the mobile apps", async () => {
+    await upload_to_escrow(KEY, "real body", ALICE);
+
+    expect(posted.map((entry) => entry.message_id)).toEqual([
+      bound_escrow_key(KEY),
+      KEY,
+    ]);
+  });
+
+  it("verifies a bound entry for the sender it was written for", async () => {
+    await upload_to_escrow(KEY, "real body", ALICE);
+    serve_posted();
+
+    expect(await fetch_from_escrow(KEY, ALICE)).toEqual({
+      plaintext: "real body",
+      verified: true,
+    });
+    expect(cached_bindings.get(KEY)).toEqual(ALICE);
+    expect(cached_flags.get(KEY)).toBe(false);
+  });
+
+  it("matches the sender regardless of case and whitespace", async () => {
+    await upload_to_escrow(KEY, "real body", {
+      sender: " Alice@AsterMail.org ",
+      conversation_id: "conv-a",
+    });
+    serve_posted();
+
+    expect(await fetch_verified_from_escrow(KEY, ALICE)).toBe("real body");
+  });
+
+  it("refuses a bound entry when another sender reuses the message key", async () => {
+    await upload_to_escrow(KEY, "real body", ALICE);
+    serve_posted();
+
+    expect(await fetch_from_escrow(KEY, MALLORY)).toBeNull();
+    expect(await fetch_verified_from_escrow(KEY, MALLORY)).toBeNull();
+    expect(cached.has(KEY)).toBe(false);
+  });
+
+  it("refuses a bound entry from the same sender in another conversation", async () => {
+    await upload_to_escrow(KEY, "real body", ALICE);
+    serve_posted();
+
+    expect(
+      await fetch_verified_from_escrow(KEY, {
+        sender: ALICE.sender,
+        conversation_id: "conv-other",
+      }),
+    ).toBeNull();
+  });
+
+  it("treats a v2-only entry as unverified", async () => {
+    served.set(KEY, await seal(KEY, "mobile body", escrow_aad_v2(KEY)));
+
+    expect(await fetch_from_escrow(KEY, MALLORY)).toEqual({
+      plaintext: "mobile body",
+      verified: false,
+    });
+    expect(cached_flags.get(KEY)).toBe(true);
+    expect(cached_bindings.get(KEY)).toEqual(MALLORY);
+  });
+
+  it("never verifies from a v2-only entry", async () => {
+    served.set(KEY, await seal(KEY, "mobile body", escrow_aad_v2(KEY)));
+
+    expect(await fetch_verified_from_escrow(KEY, ALICE)).toBeNull();
+    expect(cached.has(KEY)).toBe(false);
+  });
+
+  it("does not verify a v2 entry relabeled as a bound entry", async () => {
+    const v2 = await seal(KEY, "mobile body", escrow_aad_v2(KEY));
+
+    served.set(bound_escrow_key(KEY), {
+      ...v2,
+      message_id: bound_escrow_key(KEY),
+    });
+    served.set(KEY, v2);
+
+    expect(await fetch_from_escrow(KEY, ALICE)).toEqual({
+      plaintext: "mobile body",
+      verified: false,
+    });
+  });
+
+  it("does not verify a bound entry moved to another message", async () => {
+    await upload_to_escrow("mail-a:BA==:1", "body of a", ALICE);
+    const moved = posted[0];
+
+    served.set(bound_escrow_key(KEY), {
+      ...moved,
+      message_id: bound_escrow_key(KEY),
+    });
+
+    expect(await fetch_verified_from_escrow(KEY, ALICE)).toBeNull();
+    expect(await fetch_from_escrow(KEY, ALICE)).toBeNull();
+  });
+
+  it("rejects a bound entry without a sender header", async () => {
+    served.set(
+      bound_escrow_key(KEY),
+      await seal(bound_escrow_key(KEY), "no header", escrow_aad_v3(KEY)),
+    );
+
+    expect(await fetch_verified_from_escrow(KEY, ALICE)).toBeNull();
+  });
+
+  it("keeps newlines and JSON in the escrowed body", async () => {
+    const body = 'line one\n{"s":"mallory@astermail.org"}\nline three';
+
+    await upload_to_escrow(KEY, body, ALICE);
+    serve_posted();
+
+    expect(await fetch_verified_from_escrow(KEY, ALICE)).toBe(body);
   });
 
   it("uses the same authenticated data as Aster Bridge", () => {
     expect(new TextDecoder().decode(escrow_aad_v2("k"))).toBe(
       "aster.escrow.v2\u0000k",
     );
+    expect(new TextDecoder().decode(escrow_aad_v3("k"))).toBe(
+      "aster.escrow.v3\u0000k",
+    );
   });
 
   it("uploads entries that open only with their own key bound", async () => {
-    await upload_to_escrow("mail-1:BA==:3", "secret body");
-    const entry = posted[0];
+    await upload_to_escrow(KEY, "secret body", ALICE);
     const key = await escrow_key();
-    const open = (additional_data?: Uint8Array) =>
+    const open = (
+      entry: Record<string, string>,
+      additional_data?: Uint8Array,
+    ) =>
       crypto.subtle.decrypt(
         additional_data
           ? {
@@ -138,28 +305,30 @@ describe("escrow entries are bound to their message", () => {
         key,
         base64_to_array(entry.encrypted_plaintext),
       );
+    const [v3, v2] = posted;
 
-    const bound = await open(escrow_aad_v2("mail-1:BA==:3"));
-
-    expect(new TextDecoder().decode(bound)).toBe("secret body");
-    await expect(open()).rejects.toThrow();
-    await expect(open(escrow_aad_v2("mail-2:BA==:3"))).rejects.toThrow();
+    expect(new TextDecoder().decode(await open(v2, escrow_aad_v2(KEY)))).toBe(
+      "secret body",
+    );
+    expect(new TextDecoder().decode(await open(v3, escrow_aad_v3(KEY)))).toBe(
+      bound_body("alice@astermail.org", "conv-a", "secret body"),
+    );
+    await expect(open(v2)).rejects.toThrow();
+    await expect(open(v2, escrow_aad_v2("mail-2:BA==:3"))).rejects.toThrow();
+    await expect(open(v3, escrow_aad_v2(KEY))).rejects.toThrow();
+    await expect(open(v3, escrow_aad_v3("mail-2:BA==:3"))).rejects.toThrow();
   });
 
-  it("reads back what it uploaded", async () => {
-    await upload_to_escrow("mail-1:BA==:3", "round trip");
-    served.set("mail-1:BA==:3", posted[0]);
-
-    expect(await fetch_from_escrow("mail-1:BA==:3")).toBe("round trip");
-  });
-
-  it("still reads entries written before binding existed", async () => {
+  it("still reads entries written before binding existed as unverified", async () => {
     served.set("mail-old:BA==:1", await seal("mail-old:BA==:1", "old body"));
 
-    expect(await fetch_from_escrow("mail-old:BA==:1")).toBe("old body");
+    expect(await fetch_from_escrow("mail-old:BA==:1", ALICE)).toEqual({
+      plaintext: "old body",
+      verified: false,
+    });
   });
 
-  it("rejects a bound entry served for a different message", async () => {
+  it("rejects a v2 entry served for a different message", async () => {
     const for_a = await seal(
       "mail-a:BA==:1",
       "body of a",
@@ -168,7 +337,7 @@ describe("escrow entries are bound to their message", () => {
 
     served.set("mail-b:BA==:1", { ...for_a, message_id: "mail-b:BA==:1" });
 
-    expect(await fetch_from_escrow("mail-b:BA==:1")).toBeNull();
+    expect(await fetch_from_escrow("mail-b:BA==:1", ALICE)).toBeNull();
     expect(cached.has("mail-b:BA==:1")).toBe(false);
   });
 
@@ -183,20 +352,38 @@ describe("escrow entries are bound to their message", () => {
       plaintext_nonce: "oKGio6Slpqeoqaqr",
     });
 
-    expect(await fetch_from_escrow(dedupe_key)).toBe(
-      "Hello from the escrow vector. Ünïcödé ✓",
-    );
+    expect(await fetch_from_escrow(dedupe_key, ALICE)).toEqual({
+      plaintext: "Hello from the escrow vector. Ünïcödé ✓",
+      verified: false,
+    });
   });
 
-  it("skips swapped entries during a full sync", async () => {
-    const for_a = await seal(
-      "mail-a:BA==:1",
-      "body of a",
-      escrow_aad_v2("mail-a:BA==:1"),
+  it("caches only bound entries during a full sync, bound to their sender", async () => {
+    await upload_to_escrow("mail-a:BA==:1", "body of a", ALICE);
+    serve_posted();
+    served.set(
+      "mail-v2:BA==:1",
+      await seal("mail-v2:BA==:1", "v2 body", escrow_aad_v2("mail-v2:BA==:1")),
     );
 
-    served.set("mail-a:BA==:1", for_a);
-    served.set("mail-b:BA==:1", { ...for_a, message_id: "mail-b:BA==:1" });
+    await sync_escrow_to_cache();
+
+    expect(cached.get("mail-a:BA==:1")).toBe("body of a");
+    expect(cached_bindings.get("mail-a:BA==:1")).toEqual(ALICE);
+    expect(cached_flags.get("mail-a:BA==:1")).toBe(false);
+    expect(cached.has("mail-v2:BA==:1")).toBe(false);
+    expect(cached.has(bound_escrow_key("mail-a:BA==:1"))).toBe(false);
+  });
+
+  it("skips swapped bound entries during a full sync", async () => {
+    await upload_to_escrow("mail-a:BA==:1", "body of a", ALICE);
+    const [v3] = posted;
+
+    served.set(v3.message_id, v3);
+    served.set(bound_escrow_key("mail-b:BA==:1"), {
+      ...v3,
+      message_id: bound_escrow_key("mail-b:BA==:1"),
+    });
 
     await sync_escrow_to_cache();
 

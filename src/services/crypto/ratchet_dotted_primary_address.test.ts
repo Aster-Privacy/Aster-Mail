@@ -85,6 +85,7 @@ vi.mock("@/services/crypto/ratchet_plaintext_cache", () => ({
 vi.mock("@/services/crypto/message_escrow", () => ({
   upload_to_escrow: vi.fn(async () => {}),
   fetch_from_escrow: vi.fn(async () => null),
+  fetch_verified_from_escrow: vi.fn(async () => null),
 }));
 
 vi.mock("@/services/api/client", () => ({
