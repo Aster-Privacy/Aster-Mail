@@ -9172,9 +9172,10 @@ export const ar = {
     op_in_trash: "في سلة المهملات",
     op_in_drafts: "في المسودات",
     chip_any_time: "أي وقت",
-    chip_older_than_week: "أقدم من أسبوع",
-    chip_older_than_month: "أقدم من شهر",
-    chip_older_than_six_months: "أقدم من 6 أشهر",
+    chip_last_7_days: "آخر 7 أيام",
+    chip_last_30_days: "آخر 30 يوماً",
+    chip_last_6_months: "آخر 6 أشهر",
+    chip_last_year: "السنة الأخيرة",
     chip_older_than_year: "أقدم من سنة",
     chip_custom_range: "نطاق مخصص",
     chip_has_attachment: "يحتوي مرفقًا",
@@ -9186,6 +9187,8 @@ export const ar = {
     chip_name_or_email: "الاسم أو البريد الإلكتروني",
     chip_no_people: "لا يوجد أشخاص مطابقون",
     chip_advanced_search: "بحث متقدم",
+    chip_everywhere: "في كل مكان",
+    chip_everywhere_hint: "يشمل البريد غير المرغوب فيه والمهملات",
     spam_trash_hidden_notice:
       "بعض الرسائل في البريد العشوائي والمهملات تطابق بحثك.",
     search_index_partial:

@@ -149,6 +149,7 @@ interface InboxHeaderProps {
   hide_view_switcher?: boolean;
   hide_refresh?: boolean;
   hide_quick_actions?: boolean;
+  hide_filter?: boolean;
   leading_toolbar_slot?: React.ReactNode;
   leading_left_slot?: React.ReactNode;
   overflow_menu_slot?: React.ReactNode;
@@ -215,6 +216,7 @@ export function InboxHeader({
   hide_view_switcher = false,
   hide_refresh = false,
   hide_quick_actions = false,
+  hide_filter = false,
   leading_toolbar_slot,
   leading_left_slot,
   overflow_menu_slot,
@@ -950,11 +952,13 @@ export function InboxHeader({
         <div className="flex items-center gap-0.5 flex-shrink-0">
           <HeaderToolbar
             filter_slot={
-              <FilterDropdown
-                active_filter={active_filter}
-                alias_direction={alias_direction}
-                on_filter_change={on_filter_change}
-              />
+              hide_filter ? undefined : (
+                <FilterDropdown
+                  active_filter={active_filter}
+                  alias_direction={alias_direction}
+                  on_filter_change={on_filter_change}
+                />
+              )
             }
             handle_batch_action={handle_batch_action}
             handle_refresh={handle_refresh}

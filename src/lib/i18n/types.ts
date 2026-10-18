@@ -7998,9 +7998,10 @@ export interface MailTranslations {
   op_in_trash: string;
   op_in_drafts: string;
   chip_any_time: string;
-  chip_older_than_week: string;
-  chip_older_than_month: string;
-  chip_older_than_six_months: string;
+  chip_last_7_days: string;
+  chip_last_30_days: string;
+  chip_last_6_months: string;
+  chip_last_year: string;
   chip_older_than_year: string;
   chip_custom_range: string;
   chip_has_attachment: string;
@@ -8012,6 +8013,8 @@ export interface MailTranslations {
   chip_name_or_email: string;
   chip_no_people: string;
   chip_advanced_search: string;
+  chip_everywhere: string;
+  chip_everywhere_hint: string;
   spam_trash_hidden_notice: string;
   search_index_partial: string;
   search_index_incomplete: string;

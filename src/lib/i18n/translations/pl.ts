@@ -9600,9 +9600,10 @@ export const pl = {
     op_in_trash: "W koszu",
     op_in_drafts: "W wersjach roboczych",
     chip_any_time: "Dowolny czas",
-    chip_older_than_week: "Starsze niż tydzień",
-    chip_older_than_month: "Starsze niż miesiąc",
-    chip_older_than_six_months: "Starsze niż 6 miesięcy",
+    chip_last_7_days: "Ostatnie 7 dni",
+    chip_last_30_days: "Ostatnie 30 dni",
+    chip_last_6_months: "Ostatnie 6 miesięcy",
+    chip_last_year: "Ostatni rok",
     chip_older_than_year: "Starsze niż rok",
     chip_custom_range: "Własny zakres",
     chip_has_attachment: "Ma załącznik",
@@ -9614,6 +9615,8 @@ export const pl = {
     chip_name_or_email: "Nazwa lub e-mail",
     chip_no_people: "Brak pasujących osób",
     chip_advanced_search: "Wyszukiwanie zaawansowane",
+    chip_everywhere: "Wszędzie",
+    chip_everywhere_hint: "Łącznie ze Spamem i Koszem",
     spam_trash_hidden_notice:
       "Niektóre wiadomości w Spamie i Koszu odpowiadają Twojemu zapytaniu.",
     search_index_partial:

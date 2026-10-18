@@ -390,7 +390,7 @@ export function matches_operator(
 
 export const BODY_CONTENT_OPERATOR_TYPES = new Set(["filename", "attachment"]);
 
-export const ANY_OF_OPERATOR_TYPES = new Set(["from", "to", "contact"]);
+export const ANY_OF_OPERATOR_TYPES = new Set(["from", "to", "contact", "in"]);
 
 function any_of_group_key(op: ParsedOperator): string | null {
   if (op.negated) return null;

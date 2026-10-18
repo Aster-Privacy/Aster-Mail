@@ -29,7 +29,7 @@ import {
 } from "@/utils/search_operators";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
 import { fold_search_text } from "@/utils/search_fold";
-import { date_from_zoned_parts } from "@/utils/date_format";
+import { date_from_zoned_parts, get_zoned_parts } from "@/utils/date_format";
 import {
   normalize_envelope_from,
   normalize_envelope_recipients,
@@ -113,6 +113,21 @@ export function date_boundary_local(
   value: string,
   end_of_day: boolean,
 ): number {
+  const relative = /^(\d{1,4})d$/i.exec(value.trim());
+
+  if (relative) {
+    const now = get_zoned_parts(new Date());
+    const start = date_from_zoned_parts({
+      year: now.year,
+      month: now.month,
+      day: now.day - +relative[1] + (end_of_day ? 1 : 0),
+      hours: 0,
+      minutes: 0,
+    }).getTime();
+
+    return end_of_day ? start - 1 : start;
+  }
+
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
 
   if (m && +m[2] >= 1 && +m[2] <= 12) {
@@ -555,7 +570,7 @@ function operator_summary_test(
 
       return null;
     case "in":
-      return in_operator_test(val);
+      return null;
     case "before": {
       const target = date_boundary_local(op.value, false);
 
@@ -649,6 +664,7 @@ const ANY_OF_GRAM_OPERATOR_TYPES = new Set(["from", "to", "contact"]);
 
 export function build_chunk_skip_plan(input: ChunkSkipInput): ChunkSkipPlan {
   const tests: SummaryTest[] = [];
+  const in_tests: SummaryTest[] = [];
   const required = new Set<string>();
   const alternatives = new Map<string, string[][]>();
 
@@ -678,9 +694,18 @@ export function build_chunk_skip_plan(input: ChunkSkipInput): ChunkSkipPlan {
       continue;
     }
 
+    if (op.type === "in") {
+      in_tests.push(in_operator_test(op.value.toLowerCase()));
+      continue;
+    }
+
     const test = operator_summary_test(op, input.label_name_to_tokens);
 
     if (test) tests.push(test);
+  }
+
+  if (in_tests.length > 0) {
+    tests.push((summary) => in_tests.every((test) => test(summary)));
   }
 
   if (input.filters) {

@@ -36,8 +36,8 @@ vi.mock("@/contexts/preferences_context", () => ({
   }),
 }));
 
-vi.mock("@/components/search/advanced_search_modal", () => ({
-  AdvancedSearchModal: () => null,
+vi.mock("@/components/search/advanced_filter_modal", () => ({
+  AdvancedFilterModal: () => null,
 }));
 
 vi.mock("@/components/search/search_content_banner", () => ({
@@ -175,15 +175,15 @@ describe("SearchBar dropdown chips", () => {
       "report before:2020-01-01 date:today",
     );
 
-    press("mail.search_within_1_week");
+    press("mail.chip_last_7_days");
 
-    expect(input.value).toMatch(/^report after:\d{4}-\d{2}-\d{2}$/);
+    expect(input.value).toBe("report after:7d");
     expect(on_search_submit).toHaveBeenLastCalledWith(input.value);
-    expect(chip("mail.search_within_1_week").getAttribute("aria-pressed")).toBe(
+    expect(chip("mail.chip_last_7_days").getAttribute("aria-pressed")).toBe(
       "true",
     );
 
-    press("mail.search_within_1_week");
+    press("mail.chip_last_7_days");
 
     expect(input.value).toBe("report");
   });
