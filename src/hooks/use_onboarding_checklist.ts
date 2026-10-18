@@ -22,9 +22,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { use_auth } from "@/contexts/auth_context";
 import {
+  DEFAULT_CHECKLIST_TASKS,
   dismiss_onboarding_checklist,
   fetch_onboarding_checklist,
   type ChecklistState,
+  type ChecklistTasksState,
 } from "@/services/api/onboarding";
 
 function with_dismissal_guard(
@@ -36,6 +38,15 @@ function with_dismissal_guard(
   }
 
   return raw;
+}
+
+function is_checklist_settled(state: ChecklistState | null): boolean {
+  if (!state) return false;
+  if (state.dismissed_at) return true;
+
+  return (
+    Object.keys(DEFAULT_CHECKLIST_TASKS) as (keyof ChecklistTasksState)[]
+  ).every((key) => state.tasks[key] === true);
 }
 
 const INSTALL_APP_STORAGE_KEY = "aster_onboarding_install_app_done";
@@ -76,6 +87,11 @@ export function use_onboarding_checklist(): UseOnboardingChecklistReturn {
   const generation_ref = useRef(0);
   const disabled_ref = useRef(false);
   const dismissed_ref = useRef(false);
+  const settled_ref = useRef(false);
+
+  useEffect(() => {
+    settled_ref.current = is_checklist_settled(state);
+  }, [state]);
 
   const load = useCallback(async (): Promise<boolean> => {
     if (disabled_ref.current) return false;
@@ -131,7 +147,14 @@ export function use_onboarding_checklist(): UseOnboardingChecklistReturn {
       if (!ok) return;
 
       on_focus = () => {
-        if (!disabled_ref.current) void load();
+        if (
+          disabled_ref.current ||
+          settled_ref.current ||
+          dismissed_ref.current
+        ) {
+          return;
+        }
+        void load();
       };
       interval = window.setInterval(() => {
         if (disabled_ref.current) {
@@ -139,6 +162,8 @@ export function use_onboarding_checklist(): UseOnboardingChecklistReturn {
 
           return;
         }
+        if (settled_ref.current || dismissed_ref.current) return;
+        if (document.visibilityState === "hidden") return;
         void load();
       }, POLL_INTERVAL_MS);
       window.addEventListener("focus", on_focus);
