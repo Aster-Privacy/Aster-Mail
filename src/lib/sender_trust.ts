@@ -19,13 +19,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import trust_data from "@/lib/sender_trust_data.json";
+import { UTS39_CONFUSABLES } from "@/lib/sender_trust_confusables";
 
 export type SenderAuthState =
-  | "internal"
-  | "authenticated"
-  | "unknown"
-  | "unverified"
-  | "failed";
+  "internal" | "authenticated" | "unknown" | "unverified" | "failed";
 
 export type SenderWarningKind =
   | "address_in_name"
@@ -90,9 +87,17 @@ interface ParsedAddress {
   address: string;
 }
 
-const CONFUSABLES = new Map<string, string>(
-  Object.entries(trust_data.confusables as Record<string, string>),
-);
+const CONFUSABLES = new Map<string, string>([
+  ...Object.entries(UTS39_CONFUSABLES),
+  ...Object.entries(trust_data.confusables as Record<string, string>).filter(
+    ([from, to]) =>
+      !(
+        from !== from.toLowerCase() &&
+        UTS39_CONFUSABLES[from] !== undefined &&
+        UTS39_CONFUSABLES[from] !== to
+      ),
+  ),
+]);
 const DIGRAPHS = trust_data.digraphs as string[][];
 const SECOND_LEVEL = new Set<string>(trust_data.second_level_suffixes);
 const GENERIC_WORDS = new Set<string>(trust_data.generic_words);
@@ -133,11 +138,15 @@ const INVISIBLE_RANGES: [number, number][] = [
   [0x3164, 0x3164],
   [0xfeff, 0xfeff],
   [0xffa0, 0xffa0],
-  [0xfff9, 0xfffb],
+  [0xfff0, 0xfffb],
   [0x1bca0, 0x1bca3],
   [0x1d173, 0x1d17a],
   [0xe0000, 0xe0fff],
 ];
+
+const IGNORABLE_PATTERN = /^[\p{Default_Ignorable_Code_Point}\p{Cf}]$/u;
+
+const COMBINING_PATTERN = /^[\p{Mn}\p{Me}]$/u;
 
 const JOINER_RANGES: [number, number][] = [
   [0x200c, 0x200d],
@@ -202,6 +211,31 @@ const NAME_SEPARATOR_RANGES: [number, number][] = [
   [0xa700, 0xa71f],
 ];
 
+const DISPLAY_SCRIPTS = new Set<string>([
+  "latin",
+  "greek",
+  "cyrillic",
+  "armenian",
+  "hebrew",
+  "arabic",
+  "devanagari",
+  "thai",
+  "georgian",
+  "east_asian",
+]);
+
+const DISTINCT_LATIN_LETTERS = new Set<string>([
+  "ß",
+  "æ",
+  "ð",
+  "ø",
+  "þ",
+  "đ",
+  "ħ",
+  "ł",
+  "œ",
+]);
+
 const ENCLOSED_LETTER_STARTS = [0x1f150, 0x1f170];
 
 const MARK_SYMBOLS = /[\u2120\u2122]/g;
@@ -251,10 +285,31 @@ function is_lone_surrogate(code: number): boolean {
   return code >= 0xd800 && code <= 0xdfff;
 }
 
+function is_ignorable(code: number): boolean {
+  return code >= 0xad && IGNORABLE_PATTERN.test(String.fromCodePoint(code));
+}
+
+function is_combining(code: number): boolean {
+  return (
+    in_ranges(code, MARK_RANGES) ||
+    (code >= 0x300 && COMBINING_PATTERN.test(String.fromCodePoint(code)))
+  );
+}
+
+function joins_previous(code: number, previous: number): boolean {
+  if (previous >= 0x80) return true;
+
+  return (
+    (code === 0xfe0e || code === 0xfe0f) &&
+    /[0-9#*]/.test(String.fromCodePoint(previous))
+  );
+}
+
 function clean_text(text: string, keep_joiners: boolean): string {
   let result = "";
   let after_joiner = false;
   let pending_space = false;
+  let previous = 0;
 
   for (const code of code_points(text)) {
     if (is_lone_surrogate(code)) continue;
@@ -265,16 +320,19 @@ function clean_text(text: string, keep_joiners: boolean): string {
     if (in_ranges(code, INVISIBLE_RANGES)) continue;
     if (in_ranges(code, JOINER_RANGES)) {
       if (!keep_joiners || pending_space || after_joiner || !result) continue;
+      if (!joins_previous(code, previous)) continue;
       result += String.fromCodePoint(code);
       after_joiner = true;
       continue;
     }
+    if (is_ignorable(code)) continue;
     if (pending_space) {
       result += " ";
       pending_space = false;
     }
     result += String.fromCodePoint(code);
     after_joiner = false;
+    previous = code;
   }
 
   return result;
@@ -342,23 +400,39 @@ function fold(text: string): string {
   return clean_text(text.normalize("NFKC"), false).toLowerCase();
 }
 
-export function skeleton(text: string): string {
+function is_cherokee_small(code: number): boolean {
+  return code >= 0xab70 && code <= 0xabbf;
+}
+
+function map_confusables(text: string): string {
   let mapped = "";
 
-  for (const code of code_points(text.normalize("NFKD"))) {
-    if (in_ranges(code, MARK_RANGES)) continue;
+  for (const code of code_points(text)) {
+    if (is_combining(code)) continue;
 
     const char = String.fromCodePoint(code);
+    const mapped_char =
+      CONFUSABLES.get(char) ??
+      (is_cherokee_small(code)
+        ? CONFUSABLES.get(char.toUpperCase())
+        : undefined);
 
-    mapped += CONFUSABLES.get(char) ?? char;
+    mapped += mapped_char ?? char;
   }
 
+  return mapped;
+}
+
+export function skeleton(text: string): string {
+  const mapped = map_confusables(
+    map_confusables(clean_text(text, false)).normalize("NFKD"),
+  );
   let result = "";
 
   for (const code of code_points(
     clean_text(mapped, false).toLowerCase().normalize("NFKD"),
   )) {
-    if (in_ranges(code, MARK_RANGES)) continue;
+    if (is_combining(code)) continue;
     result += String.fromCodePoint(code);
   }
   for (const [from, to] of DIGRAPHS) {
@@ -619,6 +693,21 @@ function script_of(code: number): string {
   return "other";
 }
 
+function is_accented_latin(char: string): boolean {
+  if (DISTINCT_LATIN_LETTERS.has(char)) return true;
+
+  const base = code_points(char.normalize("NFD"))
+    .filter((code) => !is_combining(code))
+    .map((code) => String.fromCodePoint(code))
+    .join("");
+
+  return base !== char && /^[a-z]$/.test(base);
+}
+
+function is_ascii_lookalike(char: string): boolean {
+  return domain_skeletons(char).some((key) => /^[a-z0-9]+$/.test(key));
+}
+
 function is_safe_unicode_label(text: string): boolean {
   const scripts = new Set<string>();
   let has_distinct = false;
@@ -626,18 +715,23 @@ function is_safe_unicode_label(text: string): boolean {
   for (const code of code_points(text)) {
     const script = script_of(code);
 
-    if (script === "other") return false;
     if (script === "common") continue;
+    if (!DISPLAY_SCRIPTS.has(script)) return false;
     scripts.add(script);
     if (code < 0x80) continue;
-    if (!CONFUSABLES.has(String.fromCodePoint(code))) {
+
+    const char = String.fromCodePoint(code);
+
+    if (script === "latin") {
+      if (!is_accented_latin(char)) return false;
       has_distinct = true;
-    } else if (script === "latin") {
-      return false;
+    } else if (!is_ascii_lookalike(char)) {
+      has_distinct = true;
     }
   }
+  if (scripts.size !== 1 || !has_distinct) return false;
 
-  return scripts.size === 1 && has_distinct;
+  return !domain_skeletons(text).some((key) => BRAND_LABEL_SKELETONS.has(key));
 }
 
 export function domain_for_display(ascii_domain: string): string {
@@ -741,6 +835,14 @@ function is_shared_domain(parsed: ParsedAddress): boolean {
   );
 }
 
+function is_letter_lookalike(code: number): boolean {
+  if (code < 0x80) return false;
+
+  const mapped = CONFUSABLES.get(String.fromCodePoint(code));
+
+  return mapped !== undefined && /^[a-z0-9]+$/.test(mapped);
+}
+
 function tokenize(text: string): string[] {
   const tokens: string[] = [];
   let current = "";
@@ -749,7 +851,7 @@ function tokenize(text: string): string[] {
 
   for (const code of code_points(clean_text(spaced.normalize("NFKC"), false))) {
     if (
-      in_ranges(code, SEPARATOR_RANGES) ||
+      (in_ranges(code, SEPARATOR_RANGES) && !is_letter_lookalike(code)) ||
       in_ranges(code, NAME_SEPARATOR_RANGES) ||
       in_ranges(code, SPACE_RANGES)
     ) {
@@ -802,7 +904,11 @@ function name_claim(text: string, capitals_aware: boolean): NameClaim {
   let has_company = false;
 
   for (const token of tokenize(text)) {
-    const word = token.toLowerCase();
+    const lowered = token.toLowerCase();
+    const word =
+      COMPANY_WORDS.has(lowered) || GENERIC_WORDS.has(lowered)
+        ? lowered
+        : skeleton(token);
 
     if (COMPANY_WORDS.has(word)) {
       has_company = true;
@@ -1262,6 +1368,26 @@ function build_domain_index(
   return index;
 }
 
+function upper_non_ascii(text: string): string {
+  let result = "";
+
+  for (const code of code_points(text)) {
+    const char = String.fromCodePoint(code);
+    const upper = code > 0x7f ? char.toUpperCase() : char;
+
+    result += Array.from(upper).length === 1 ? upper : char;
+  }
+
+  return result;
+}
+
+function domain_skeletons(text: string): string[] {
+  const plain = skeleton(text);
+  const cased = skeleton(upper_non_ascii(text));
+
+  return cased === plain ? [plain] : [plain, cased];
+}
+
 function lookalike_of(
   parsed: ParsedAddress,
   index: DomainIndex,
@@ -1269,17 +1395,19 @@ function lookalike_of(
   if (index.registrables.has(parsed.registrable)) return null;
 
   const unicode = domain_unicode(parsed.registrable);
-  const full = index.by_skeleton.get(skeleton(unicode));
 
-  if (full) return full;
+  for (const key of domain_skeletons(unicode)) {
+    const full = index.by_skeleton.get(key);
+
+    if (full) return full;
+  }
 
   const label = registrable_label(parsed.registrable);
-  const bucket = index.by_label_skeleton.get(
-    skeleton(registrable_label(unicode)),
-  );
 
-  for (const target of bucket ?? []) {
-    if (registrable_label(target) !== label) return target;
+  for (const key of domain_skeletons(registrable_label(unicode))) {
+    for (const target of index.by_label_skeleton.get(key) ?? []) {
+      if (registrable_label(target) !== label) return target;
+    }
   }
 
   const labels = parsed.ascii_domain.split(".");
@@ -1293,9 +1421,12 @@ function lookalike_of(
       if (start + size > depth) break;
 
       const inner = labels.slice(start, start + size).join(".");
-      const known = index.by_skeleton.get(skeleton(domain_unicode(inner)));
 
-      if (known) return known;
+      for (const key of domain_skeletons(domain_unicode(inner))) {
+        const known = index.by_skeleton.get(key);
+
+        if (known) return known;
+      }
     }
   }
 
@@ -1313,6 +1444,11 @@ const BRAND_DOMAIN_INDEX = build_domain_index(
     ...trust_data.lookalike_only_domains,
   ],
   true,
+);
+const BRAND_LABEL_SKELETONS = new Set<string>(
+  [...BRAND_DOMAIN_INDEX.registrables].map((domain) =>
+    skeleton(domain_unicode(registrable_label(domain))),
+  ),
 );
 
 interface PersonalContext {
@@ -1438,6 +1574,34 @@ function claims_identity(name: string): boolean {
   return BRAND_NAMES.some((names) => match_brand_name(claim, names) !== null);
 }
 
+function is_protected_claim(
+  candidate: ParsedAddress,
+  personal: PersonalContext,
+): boolean {
+  const key = address_key(candidate);
+
+  if (personal.own_keys.has(key) || personal.contact_keys.has(key)) {
+    return true;
+  }
+  if (is_shared_domain(candidate)) {
+    return (
+      RESERVED_LOCAL_PARTS.has(fold(candidate.local)) ||
+      is_official_home_address(candidate)
+    );
+  }
+  if (
+    BRAND_DOMAIN_INDEX.registrables.has(candidate.registrable) ||
+    personal.domains.registrables.has(candidate.registrable)
+  ) {
+    return true;
+  }
+
+  return (
+    lookalike_of(candidate, BRAND_DOMAIN_INDEX) !== null ||
+    lookalike_of(candidate, personal.domains) !== null
+  );
+}
+
 function find_warning(
   name: string,
   parsed: ParsedAddress,
@@ -1471,19 +1635,18 @@ function find_warning(
     within_domain(parsed.ascii_domain, domain),
   );
   const shared_domain = is_shared_domain(parsed);
-  const in_name = relayed
-    ? undefined
-    : find_addresses_in_name(name).find(
-        (candidate) =>
-          candidate.registrable !== parsed.registrable ||
-          (shared_domain && mailbox_key(candidate) !== mailbox_key(parsed)),
-      );
+  const in_name = find_addresses_in_name(name).find(
+    (candidate) =>
+      (candidate.registrable !== parsed.registrable ||
+        (shared_domain && mailbox_key(candidate) !== mailbox_key(parsed))) &&
+      (!relayed || is_protected_claim(candidate, personal)),
+  );
 
   if (in_name) {
     return { kind: "address_in_name", claimed: in_name.address };
   }
 
-  const named_targets = relayed ? [] : domains_in_name(name);
+  const named_targets = domains_in_name(name);
 
   for (const target of named_targets) {
     const named_domain = BRAND_DOMAIN_INDEX.by_skeleton.get(target);
@@ -1720,7 +1883,7 @@ export function evaluate_sender_trust(input: SenderTrustInput): SenderTrust {
     );
     const has_address = cleaned !== "";
     const fallback =
-      cleaned.includes("@") && !cleaned.includes(" ") ? cleaned : "";
+      /^[!-~]+$/.test(cleaned) && cleaned.includes("@") ? cleaned : "";
 
     return {
       name: has_address || claims_identity(sanitized) ? "" : sanitized,
