@@ -1011,4 +1011,7 @@ export function ThreadMessageBlock(
 }
 
 export { ThreadMessagesList } from "./thread_messages_list";
-export type { ThreadMessagesListRef } from "./thread_messages_list";
+export type {
+  ThreadMessagesListRef,
+  ThreadExpandState,
+} from "./thread_messages_list";

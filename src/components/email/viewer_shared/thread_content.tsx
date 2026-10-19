@@ -33,6 +33,7 @@ import { is_system_email } from "@/lib/utils";
 import {
   ThreadMessagesList,
   type ThreadMessagesListRef,
+  type ThreadExpandState,
 } from "@/components/email/thread_message_block";
 import { SendingMessageBlock } from "@/components/email/sending_message_block";
 import { ThreadDraftBadge } from "@/components/email/thread_draft_badge";
@@ -46,6 +47,7 @@ export interface ViewerThreadContentProps {
   email: DecryptedEmail;
   thread_messages: DecryptedThreadMessage[];
   thread_list_ref: React.RefObject<ThreadMessagesListRef | null>;
+  on_thread_expand_state_change?: (state: ThreadExpandState) => void;
   current_user_email: string;
   current_user_name?: string;
   thread_draft?: DraftWithContent | null;
@@ -83,6 +85,7 @@ export function ViewerThreadContent({
   email,
   thread_messages,
   thread_list_ref,
+  on_thread_expand_state_change,
   current_user_email,
   current_user_name,
   thread_draft,
@@ -242,6 +245,7 @@ export function ViewerThreadContent({
           on_archive={on_archive}
           on_close_inline_reply={handle_close_inline_reply}
           on_draft_saved={on_draft_saved}
+          on_expand_state_change={on_thread_expand_state_change}
           on_external_content_detected={on_external_content_detected}
           on_forward={handle_inline_forward}
           on_load_external_content={on_load_external_content}
