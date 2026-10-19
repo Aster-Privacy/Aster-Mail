@@ -59,7 +59,7 @@ core-foundation = "0.10"
 [target.'cfg(windows)'.dependencies]
 webview2-com = "0.39"
 windows-core = "0.62"
-rfd = "0.15"
+rfd = "0.16"
 windows-registry = "0.100"
 windows = { version = "0.61", features = ["Data_Xml_Dom", "UI_Notifications"] }
 
