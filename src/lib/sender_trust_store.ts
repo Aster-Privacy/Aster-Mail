@@ -58,6 +58,30 @@ function same_list(left: string[], right: string[]): boolean {
   return left.every((value, position) => value === right[position]);
 }
 
+function same_emails(left: unknown, right: unknown): boolean {
+  if (!Array.isArray(left) || !Array.isArray(right)) return left === right;
+
+  return same_list(left, right);
+}
+
+function same_contacts(
+  left: SenderTrustContact[],
+  right: SenderTrustContact[],
+): boolean {
+  if (left.length !== right.length) return false;
+
+  return left.every((contact, position) => {
+    const other = right[position];
+
+    if (contact === other) return true;
+    if (!contact || !other) return false;
+
+    return (
+      contact.name === other.name && same_emails(contact.emails, other.emails)
+    );
+  });
+}
+
 function publish(next: SenderTrustContext): void {
   snapshot = next;
   listeners.forEach((listener) => {
@@ -91,10 +115,12 @@ export function set_trust_own_addresses(
 }
 
 export function set_trust_contacts(contacts: SenderTrustContact[]): void {
-  if (contacts.length === 0 && snapshot.contacts.length === 0) return;
+  const next = contacts.slice(0, MAX_CONTACTS);
+
+  if (same_contacts(next, snapshot.contacts)) return;
   publish({
     own_addresses: snapshot.own_addresses,
-    contacts: contacts.slice(0, MAX_CONTACTS),
+    contacts: next,
   });
 }
 
