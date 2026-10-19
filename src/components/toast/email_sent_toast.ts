@@ -19,62 +19,23 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { show_action_toast } from "@/components/toast/action_toast";
-import {
-  open_message_in_view_mode,
-  open_sent_folder,
-} from "@/components/toast/toast_action_router";
-import { list_mail_items } from "@/services/api/mail";
-import { ignore_error } from "@/lib/ignore_error";
 import { play_send_settled_sound } from "@/services/iconic_sounds";
-
-async function resolve_newest_sent_id(): Promise<string | undefined> {
-  try {
-    const response = await list_mail_items({
-      item_type: "sent",
-      is_trashed: false,
-      is_spam: false,
-      limit: 1,
-      order: "desc",
-      skip_total: true,
-    });
-
-    return response.data?.items[0]?.id;
-  } catch (caught) {
-    ignore_error(
-      "components/toast/email_sent_toast:resolve_newest_sent_id",
-      caught,
-    );
-
-    return undefined;
-  }
-}
-
-export async function open_sent_message(email_id?: string): Promise<void> {
-  const target = email_id ?? (await resolve_newest_sent_id());
-
-  if (target) {
-    open_message_in_view_mode(target);
-
-    return;
-  }
-
-  open_sent_folder();
-}
 
 export function play_email_sent_sound(): void {
   play_send_settled_sound();
 }
 
-export function show_email_sent_toast(message: string, sent_id?: string): void {
+export function show_email_sent_toast(
+  message: string,
+  undo_toast_shown = false,
+): void {
   play_send_settled_sound();
+  if (undo_toast_shown) return;
   show_action_toast({
     message,
     action_type: "read",
     sound: "none",
     email_ids: [],
     duration_ms: 5000,
-    on_view_message: () => {
-      void open_sent_message(sent_id);
-    },
   });
 }

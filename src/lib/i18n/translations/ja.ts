@@ -8444,6 +8444,7 @@ export const ja = {
     reply_all: "全員に返信",
     react: "リアクション",
     you_reacted_with: "{{emoji}} でリアクションしました",
+    reaction_sent: "リアクションを送信しました",
     reacted_with: "{{name}} が {{emoji}} でリアクションしました",
     forward: "転送",
     to: "宛先",

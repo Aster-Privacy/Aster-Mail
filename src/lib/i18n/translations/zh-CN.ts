@@ -7644,6 +7644,7 @@ export const zh_CN = {
     reply_all: "回复所有人",
     react: "回应",
     you_reacted_with: "您使用 {{emoji}} 回应了",
+    reaction_sent: "已发送回应",
     reacted_with: "{{name}} 使用 {{emoji}} 回应了",
     forward: "转发",
     to: "收件人",

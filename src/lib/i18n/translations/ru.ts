@@ -8818,6 +8818,7 @@ export const ru = {
     reply_all: "Ответить всем",
     react: "Отреагировать",
     you_reacted_with: "Вы отреагировали {{emoji}}",
+    reaction_sent: "Реакция отправлена",
     reacted_with: "{{name}} отреагировал(а) {{emoji}}",
     forward: "Переслать",
     to: "Кому",

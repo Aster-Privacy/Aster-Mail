@@ -7445,6 +7445,7 @@ export interface MailTranslations {
   forward: string;
   react: string;
   you_reacted_with: string;
+  reaction_sent: string;
   reacted_with: string;
   reply_subject_prefix: string;
   reply_from_mismatch_title: string;

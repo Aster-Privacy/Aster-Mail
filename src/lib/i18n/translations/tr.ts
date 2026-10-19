@@ -8534,6 +8534,7 @@ export const tr = {
     reply_all: "Tümünü Yanıtla",
     react: "Tepki Ver",
     you_reacted_with: "{{emoji}} ile tepki verdiniz",
+    reaction_sent: "Tepki gönderildi",
     reacted_with: "{{name}} {{emoji}} ile tepki verdi",
     forward: "İlet",
     to: "Kime",

@@ -8730,6 +8730,7 @@ export const fr = {
     reply_all: "Répondre à tous",
     react: "Réagir",
     you_reacted_with: "Vous avez réagi avec {{emoji}}",
+    reaction_sent: "Réaction envoyée",
     reacted_with: "{{name}} a réagi avec {{emoji}}",
     forward: "Transférer",
     to: "À",

@@ -8666,6 +8666,7 @@ export const pt_br = {
     reply_all: "Responder a todos",
     react: "Reagir",
     you_reacted_with: "Você reagiu com {{emoji}}",
+    reaction_sent: "Reação enviada",
     reacted_with: "{{name}} reagiu com {{emoji}}",
     forward: "Encaminhar",
     to: "Para",

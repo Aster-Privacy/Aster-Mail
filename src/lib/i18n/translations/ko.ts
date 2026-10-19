@@ -8288,6 +8288,7 @@ export const ko = {
     reply_all: "전체 답장",
     react: "반응하기",
     you_reacted_with: "{{emoji}} 반응을 남겼습니다",
+    reaction_sent: "반응을 보냈습니다",
     reacted_with: "{{name}}님이 {{emoji}} 반응을 남겼습니다",
     forward: "전달",
     to: "받는 사람",
