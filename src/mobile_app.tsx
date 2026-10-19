@@ -43,10 +43,12 @@ import { KeyTrustChangePrompt } from "@/components/compose/key_trust_change_prom
 import { PostQuantumSendPrompt } from "@/components/compose/post_quantum_send_prompt";
 import { ActionToast } from "@/components/toast/action_toast";
 import { UndoSendContainer } from "@/components/toast/undo_send_container";
-import { UpgradeModal } from "@/components/upgrade/upgrade_modal";
-import { AliasCapUpsellModal } from "@/components/upgrade/alias_cap_upsell_modal";
 import { ProfilePictureDialog } from "@/components/profile/profile_picture_dialog";
-import { SpecialOfferModal } from "@/components/upgrade/special_offer_modal";
+import {
+  AliasCapUpsellModalHost,
+  SpecialOfferModalHost,
+  UpgradeModalHost,
+} from "@/components/upgrade/upgrade_modal_hosts";
 import { EmailNotificationManager } from "@/components/email/email_notification_manager";
 import { UndoSendPreviewModal } from "@/components/toast/undo_send_preview_modal";
 import { Family2faDialog } from "@/components/common/family_2fa_dialog";
@@ -883,10 +885,14 @@ function MobileApp() {
         <UnsubscribeConfirmationModal />
         <KeyTrustChangePrompt />
         <PostQuantumSendPrompt />
-        <UpgradeModal />
-        <AliasCapUpsellModal />
+        <ErrorBoundary fallback={null}>
+          <UpgradeModalHost />
+          <AliasCapUpsellModalHost />
+        </ErrorBoundary>
         <ProfilePictureDialog />
-        <SpecialOfferModal />
+        <ErrorBoundary fallback={null}>
+          <SpecialOfferModalHost />
+        </ErrorBoundary>
         <EmailNotificationManager />
       </div>
     </AppLock>

@@ -50,10 +50,11 @@ import {
   SPECIAL_OFFER_PERCENT_OFF,
   SPECIAL_OFFER_PLAN_CODE,
   type SpecialOfferInterval,
-  is_special_offer_available,
+  is_special_offer_active,
   special_offer_discounted_cents,
   special_offer_interval_months,
   special_offer_pricing,
+  special_offer_can_auto_show,
   special_offer_promo_code,
 } from "@/lib/special_offer";
 import special_offer_hero_url from "@/assets/special_offer_hero.webp";
@@ -106,14 +107,18 @@ export function SpecialOfferModal() {
   const opened_from_popup_ref = useRef(false);
   const pending_desktop_checkout_ref = useRef(false);
   const user_id = is_authenticated ? (user?.id ?? null) : null;
-  const is_offer_active =
-    is_loaded &&
-    !!status?.available &&
-    is_special_offer_available({
-      plan_code,
-      is_dismissed: status?.dismissed ?? false,
-    });
-  const can_auto_show = is_offer_active && !!status?.auto_show;
+  const is_offer_active = is_special_offer_active({
+    status,
+    is_loaded,
+    plan_code,
+  });
+  const can_auto_show = special_offer_can_auto_show({
+    status,
+    is_loaded,
+    plan_code,
+  });
+  const was_offer_active_ref = useRef(is_offer_active);
+  const previous_user_id_ref = useRef(user_id);
 
   use_currency_rates();
 
@@ -141,13 +146,19 @@ export function SpecialOfferModal() {
   }, [refresh_plan_limits]);
 
   useEffect(() => {
-    if (is_offer_active) return;
+    const was_offer_active = was_offer_active_ref.current;
+
+    was_offer_active_ref.current = is_offer_active;
+    if (is_offer_active || !was_offer_active) return;
 
     set_step(null);
     close_special_offer();
   }, [is_offer_active]);
 
   useEffect(() => {
+    if (previous_user_id_ref.current === user_id) return;
+
+    previous_user_id_ref.current = user_id;
     close_special_offer();
   }, [user_id]);
 
