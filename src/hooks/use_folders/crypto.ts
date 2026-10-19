@@ -22,6 +22,10 @@ import { DecryptedFolder, is_system_folder_type } from "./tree";
 
 import { HASH_ALG } from "@/services/crypto/constants";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import {
+  get_or_create_key,
+  get_secret_cache_id,
+} from "@/services/crypto/crypto_key_cache";
 import { type FolderDefinition } from "@/services/api/folders";
 
 export function array_to_base64(array: Uint8Array): string {
@@ -72,11 +76,21 @@ export async function derive_folder_key(
   );
 }
 
+const FOLDER_KEY_CACHE_LABEL = "folder_field_key";
+
+function get_folder_key(identity_key: string): Promise<CryptoKey> {
+  const cache_id = get_secret_cache_id(FOLDER_KEY_CACHE_LABEL, identity_key);
+
+  return get_or_create_key(cache_id, "aes", () =>
+    derive_folder_key(identity_key),
+  );
+}
+
 export async function encrypt_folder_field(
   field: string,
   identity_key: string,
 ): Promise<{ encrypted: string; nonce: string }> {
-  const key = await derive_folder_key(identity_key);
+  const key = await get_folder_key(identity_key);
   const nonce = generate_random_bytes(12);
   const data = new TextEncoder().encode(field);
 
@@ -97,7 +111,7 @@ export async function decrypt_folder_field(
   nonce: string,
   identity_key: string,
 ): Promise<string> {
-  const key = await derive_folder_key(identity_key);
+  const key = await get_folder_key(identity_key);
   const encrypted_data = base64_to_array(encrypted);
   const nonce_data = base64_to_array(nonce);
 
