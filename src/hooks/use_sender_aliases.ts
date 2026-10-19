@@ -62,6 +62,7 @@ import {
   clear_sender_trust_context,
   set_trust_own_addresses,
 } from "@/lib/sender_trust_store";
+import { clear_sender_trust_caches } from "@/lib/sender_trust";
 
 export type SenderOptionType =
   "primary" | "alias" | "domain" | "external" | "ghost";
@@ -169,6 +170,7 @@ export function clear_sender_aliases_cache(): void {
   cached_user = null;
   cache_populated = false;
   clear_sender_trust_context();
+  clear_sender_trust_caches();
   set_catch_all_context([], []);
   clear_local_address_avatars();
 }
