@@ -5545,6 +5545,7 @@ export interface SettingsTranslations {
   domain_check_generic_failure: string;
   domain_reason_mx_missing: string;
   domain_reason_mx_points_elsewhere: string;
+  domain_reason_mx_shared: string;
   domain_reason_spf_missing: string;
   domain_reason_spf_missing_include: string;
   domain_reason_spf_duplicate_records: string;

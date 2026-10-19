@@ -23,6 +23,7 @@ import type { DomainCheck, DomainHealth } from "@/services/api/domains";
 import { describe, expect, it } from "vitest";
 
 import {
+  check_has_warning,
   check_label_key,
   check_status_key,
   hero_copy,
@@ -137,6 +138,34 @@ describe("check_status_key", () => {
     ).toBe("settings.domain_check_dkim_pass");
   });
 
+  it("warns about a shared mail route while the check still passes", () => {
+    const shared = check({
+      outcome: "pass",
+      reason: "mx_shared",
+      detail: "route3.mx.cloudflare.net",
+    });
+
+    expect(check_has_warning(shared)).toBe(true);
+    expect(check_status_key(shared)).toBe("settings.domain_reason_mx_shared");
+    expect(lookup("settings.domain_reason_mx_shared")).toContain("{{detail}}");
+  });
+
+  it("ignores a warning reason on a check that did not pass", () => {
+    const failing = check({ outcome: "fail", reason: "mx_shared" });
+
+    expect(check_has_warning(failing)).toBe(false);
+    expect(check_status_key(failing)).toBe(
+      "settings.domain_check_generic_failure",
+    );
+  });
+
+  it("keeps pass copy for a passing check with an unknown reason", () => {
+    const passing = check({ outcome: "pass", reason: "some_future_reason" });
+
+    expect(check_has_warning(passing)).toBe(false);
+    expect(check_status_key(passing)).toBe("settings.domain_check_mx_pass");
+  });
+
   it("does not claim failure when the outcome is unknown", () => {
     expect(check_status_key(check({ outcome: "unknown" }))).toBe(
       "settings.domain_check_unknown",
@@ -202,6 +231,22 @@ describe("sort_checks", () => {
       { key: "spf", outcome: "pass" },
       { key: "dkim", outcome: "fail", reason: "dkim_missing_or_stale" },
       { key: "dmarc", outcome: "unknown" },
+    ];
+
+    expect(sort_checks(checks).map((c) => c.key)).toEqual([
+      "dkim",
+      "mx",
+      "spf",
+      "dmarc",
+    ]);
+  });
+
+  it("places a warning after failures and before passing checks", () => {
+    const checks: DomainCheck[] = [
+      { key: "mx", outcome: "pass", reason: "mx_shared" },
+      { key: "spf", outcome: "pass" },
+      { key: "dkim", outcome: "fail", reason: "dkim_missing_or_stale" },
+      { key: "dmarc", outcome: "pass" },
     ];
 
     expect(sort_checks(checks).map((c) => c.key)).toEqual([

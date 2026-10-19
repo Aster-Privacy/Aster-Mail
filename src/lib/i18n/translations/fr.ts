@@ -8342,6 +8342,8 @@ export const fr = {
       "Personne ne peut encore vous écrire. Votre domaine n’a aucune route de messagerie, les messages reviennent donc à l’expéditeur.",
     domain_reason_mx_points_elsewhere:
       "Les e-mails partent vers votre ancien fournisseur, pas vers Aster. Supprimez les anciens enregistrements MX pour que les messages arrivent dans cette boîte.",
+    domain_reason_mx_shared:
+      "Une partie de vos e-mails peut arriver sur {{detail}} au lieu d'Aster, car cet enregistrement MX a une priorité égale ou supérieure. Supprimez-le pour que tous vos e-mails arrivent dans cette boîte.",
     domain_reason_spf_missing:
       "Vos e-mails risquent d’être rejetés ou marqués comme indésirables, car rien n’indique aux autres fournisseurs qu’Aster peut envoyer pour vous.",
     domain_reason_spf_missing_include:

@@ -8414,6 +8414,8 @@ export const pl = {
       "Nikt nie może jeszcze do Ciebie napisać. Twoja domena nie ma trasy poczty, więc wiadomości wracają do nadawcy.",
     domain_reason_mx_points_elsewhere:
       "Poczta trafia do poprzedniego dostawcy, a nie do Aster. Usuń stare rekordy MX, aby wiadomości docierały do tej skrzynki.",
+    domain_reason_mx_shared:
+      "Część Twojej poczty może trafiać do {{detail}} zamiast do Aster, ponieważ ten rekord MX ma taki sam lub wyższy priorytet. Usuń go, aby cała poczta docierała do tej skrzynki.",
     domain_reason_spf_missing:
       "Wysyłana poczta może być odrzucana lub oznaczana jako spam, bo nic nie informuje innych dostawców, że Aster może wysyłać w Twoim imieniu.",
     domain_reason_spf_missing_include:

@@ -8286,6 +8286,8 @@ export const it = {
       "Nessuno può ancora scriverti. Il tuo dominio non ha un percorso per la posta, quindi i messaggi tornano al mittente.",
     domain_reason_mx_points_elsewhere:
       "La posta va al tuo vecchio provider, non ad Aster. Rimuovi i vecchi record MX perché i messaggi arrivino in questa casella.",
+    domain_reason_mx_shared:
+      "Parte della tua posta può arrivare a {{detail}} invece che ad Aster, perché quel record MX ha la stessa priorità o una più alta. Rimuovilo perché tutta la posta arrivi in questa casella.",
     domain_reason_spf_missing:
       "La posta che invii può essere rifiutata o segnata come spam, perché nulla dice agli altri provider che Aster può inviare per te.",
     domain_reason_spf_missing_include:

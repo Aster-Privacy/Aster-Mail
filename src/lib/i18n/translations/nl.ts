@@ -8213,6 +8213,8 @@ export const nl = {
       "Niemand kan je nog mailen. Je domein heeft geen mailroute, dus berichten komen terug bij de afzender.",
     domain_reason_mx_points_elsewhere:
       "Mail gaat naar je oude provider in plaats van naar Aster. Verwijder de oude MX-records zodat berichten in deze inbox aankomen.",
+    domain_reason_mx_shared:
+      "Een deel van je e-mail kan bij {{detail}} terechtkomen in plaats van bij Aster, omdat dat MX-record dezelfde of een hogere prioriteit heeft. Verwijder het zodat al je e-mail in deze inbox aankomt.",
     domain_reason_spf_missing:
       "Je verzonden mail kan worden geweigerd of als spam worden gemarkeerd, omdat niets andere providers vertelt dat Aster namens jou mag verzenden.",
     domain_reason_spf_missing_include:

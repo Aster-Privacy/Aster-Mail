@@ -7338,6 +7338,8 @@ export const zh_CN = {
       "目前还没人能给您发邮件。您的域名没有邮件路由，邮件会被退回给发件人。",
     domain_reason_mx_points_elsewhere:
       "邮件正被投递到您的旧服务商，而不是 Aster。删除旧的 MX 记录，邮件才会到达此邮箱。",
+    domain_reason_mx_shared:
+      "由于该 MX 记录的优先级与 Aster 相同或更高，你的部分邮件可能会发送到 {{detail}} 而不是 Aster。请删除该记录，让所有邮件都送达此收件箱。",
     domain_reason_spf_missing:
       "您发出的邮件可能被拒收或标为垃圾邮件，因为没有任何记录告诉其他服务商 Aster 可以代表您发送。",
     domain_reason_spf_missing_include:

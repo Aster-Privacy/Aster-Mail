@@ -8159,6 +8159,8 @@ export const tr = {
       "Henüz kimse size yazamıyor. Alan adınızın posta yolu yok, bu yüzden iletiler göndericiye geri döner.",
     domain_reason_mx_points_elsewhere:
       "Postalar Aster’a değil eski sağlayıcınıza gidiyor. Eski MX kayıtlarını kaldırın ki iletiler bu kutuya ulaşsın.",
+    domain_reason_mx_shared:
+      "Bu MX kaydının önceliği Aster ile aynı veya daha yüksek olduğu için postalarınızın bir kısmı Aster yerine {{detail}} adresine gidebilir. Tüm postalarınızın bu gelen kutusuna ulaşması için kaydı kaldırın.",
     domain_reason_spf_missing:
       "Gönderdiğiniz postalar reddedilebilir veya önemsiz olarak işaretlenebilir, çünkü diğer sağlayıcılara Aster’ın sizin adınıza gönderebileceğini bildiren bir kayıt yok.",
     domain_reason_spf_missing_include:
