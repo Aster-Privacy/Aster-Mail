@@ -8259,6 +8259,8 @@ export const es = {
       "Todavía nadie puede escribirte. Tu dominio no tiene ruta de correo, así que los mensajes rebotan al remitente.",
     domain_reason_mx_points_elsewhere:
       "El correo va a tu proveedor anterior, no a Aster. Elimina los registros MX antiguos para que los mensajes lleguen a esta bandeja.",
+    domain_reason_mx_shared:
+      "Parte de tu correo puede llegar a {{detail}} en lugar de a Aster, porque ese registro MX tiene la misma prioridad o una mayor. Elimínalo para que todo tu correo llegue a esta bandeja.",
     domain_reason_spf_missing:
       "El correo que envías puede rechazarse o marcarse como spam, porque nada indica a los demás proveedores que Aster puede enviar por ti.",
     domain_reason_spf_missing_include:

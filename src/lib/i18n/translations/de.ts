@@ -8198,6 +8198,8 @@ export const de = {
       "Noch kann Ihnen niemand schreiben. Ihre Domain hat keine Mailroute, daher kommen Nachrichten an den Absender zurück.",
     domain_reason_mx_points_elsewhere:
       "Mail geht an Ihren alten Anbieter, nicht an Aster. Entfernen Sie die alten MX-Einträge, damit Nachrichten in diesem Postfach ankommen.",
+    domain_reason_mx_shared:
+      "Ein Teil Ihrer E-Mails geht möglicherweise an {{detail}} statt an Aster, weil dieser MX-Eintrag die gleiche oder eine höhere Priorität hat. Entfernen Sie ihn, damit alle E-Mails in diesem Postfach ankommen.",
     domain_reason_spf_missing:
       "Ihre gesendete Mail kann abgelehnt oder als Spam markiert werden, weil anderen Anbietern nichts sagt, dass Aster für Sie senden darf.",
     domain_reason_spf_missing_include:

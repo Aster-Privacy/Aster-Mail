@@ -33,6 +33,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { Spinner } from "@/components/ui/spinner";
 import {
   check_label_key,
+  check_has_warning,
   check_status_key,
   format_checked_at,
   hero_copy,
@@ -107,7 +108,9 @@ function CheckRow({
   return (
     <div className="py-3 border-b border-edge-secondary last:border-b-0">
       <div className="flex items-start gap-3">
-        {check.outcome === "pass" ? (
+        {check_has_warning(check) ? (
+          <ExclamationTriangleIcon className="w-5 h-5 flex-shrink-0 mt-0.5 text-yellow-600 dark:text-yellow-400" />
+        ) : check.outcome === "pass" ? (
           <CheckCircleIcon className="w-5 h-5 flex-shrink-0 mt-0.5 text-green-600 dark:text-green-400" />
         ) : failed ? (
           <XCircleIcon className="w-5 h-5 flex-shrink-0 mt-0.5 text-red-600 dark:text-red-400" />

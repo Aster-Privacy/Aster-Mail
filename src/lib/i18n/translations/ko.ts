@@ -7953,6 +7953,8 @@ export const ko = {
       "아직 아무도 메일을 보낼 수 없습니다. 도메인에 메일 경로가 없어 메시지가 보낸 사람에게 반송됩니다.",
     domain_reason_mx_points_elsewhere:
       "메일이 Aster가 아니라 이전 제공업체로 갑니다. 기존 MX 레코드를 삭제하면 이 편지함으로 도착합니다.",
+    domain_reason_mx_shared:
+      "이 MX 레코드의 우선순위가 Aster와 같거나 더 높아서 일부 메일이 Aster 대신 {{detail}}(으)로 전달될 수 있습니다. 모든 메일이 이 받은편지함에 도착하도록 해당 레코드를 삭제하세요.",
     domain_reason_spf_missing:
       "Aster가 대신 보낼 수 있다는 표시가 없어, 보내는 메일이 거부되거나 스팸으로 표시될 수 있습니다.",
     domain_reason_spf_missing_include:

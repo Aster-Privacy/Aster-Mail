@@ -8101,6 +8101,8 @@ export const ja = {
       "まだ誰もあなたにメールを送れません。ドメインにメールの経路がないため、メッセージは送信者に返送されます。",
     domain_reason_mx_points_elsewhere:
       "メールは Aster ではなく以前のプロバイダに届いています。古い MX レコードを削除すると、この受信トレイに届きます。",
+    domain_reason_mx_shared:
+      "この MX レコードの優先度が Aster と同じかそれより高いため、一部のメールが Aster ではなく {{detail}} に届く可能性があります。すべてのメールがこの受信トレイに届くように、このレコードを削除してください。",
     domain_reason_spf_missing:
       "Aster があなたの代わりに送信できることを他社に伝える設定がないため、送信メールが拒否されたり迷惑メール扱いになったりします。",
     domain_reason_spf_missing_include:

@@ -6491,6 +6491,8 @@ export const en: Translations = {
       "Nobody can email you yet. Your domain has no mail route, so messages bounce back to the sender.",
     domain_reason_mx_points_elsewhere:
       "Mail is going to your old provider, not Aster. Remove the old MX records so messages reach this inbox.",
+    domain_reason_mx_shared:
+      "Some of your mail may go to {{detail}} instead of Aster, because that MX record has the same or higher priority. Remove it so all your mail reaches this inbox.",
     domain_reason_spf_missing:
       "Mail you send may be rejected or marked as spam, because nothing tells other providers that Aster can send for you.",
     domain_reason_spf_missing_include:

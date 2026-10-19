@@ -8188,6 +8188,8 @@ export const pt_br = {
       "Ninguém consegue escrever para você ainda. Seu domínio não tem rota de e-mail, então as mensagens voltam para quem enviou.",
     domain_reason_mx_points_elsewhere:
       "Os e-mails estão indo para seu provedor antigo, não para a Aster. Remova os registros MX antigos para as mensagens chegarem a esta caixa.",
+    domain_reason_mx_shared:
+      "Parte dos seus e-mails pode ir para {{detail}} em vez da Aster, porque esse registro MX tem prioridade igual ou maior. Remova-o para que todos os seus e-mails cheguem a esta caixa de entrada.",
     domain_reason_spf_missing:
       "Os e-mails que você envia podem ser rejeitados ou marcados como spam, porque nada avisa aos outros provedores que a Aster pode enviar por você.",
     domain_reason_spf_missing_include:
