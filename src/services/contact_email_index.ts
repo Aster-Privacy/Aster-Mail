@@ -33,6 +33,11 @@ import {
   on_keys_ready,
   on_vault_cleared,
 } from "@/services/crypto/memory_key_store";
+import {
+  get_live_sync_session,
+  LIVE_SESSION_CACHE_MAX_AGE_MS,
+} from "@/services/sync_live_session";
+import { on_local_contact_write } from "@/services/contact_local_writes";
 
 export interface ContactIndexEntry {
   contact_id: string;
@@ -62,6 +67,7 @@ const INLINE_PHOTO_PATTERN = /^data:image\/(png|jpe?g|gif|webp|avif|bmp);/i;
 let index: Map<string, ContactIndexEntry> | null = null;
 let versions: Map<string, string> | null = null;
 let built_at = 0;
+let built_session = 0;
 let pending: Promise<Map<string, ContactIndexEntry>> | null = null;
 let generation = 0;
 let last_failure_at = 0;
@@ -227,6 +233,10 @@ function register_listeners(): void {
     schedule_stale_mark();
   });
 
+  on_local_contact_write(() => {
+    schedule_stale_mark();
+  });
+
   on_vault_cleared(() => {
     invalidate_contact_email_index();
   });
@@ -280,7 +290,14 @@ export function on_contact_index_invalidated(
 }
 
 export function is_contact_index_fresh(now: number = Date.now()): boolean {
-  return index !== null && built_at > 0 && now - built_at < CONTACT_INDEX_TTL_MS;
+  if (index === null || built_at <= 0) return false;
+  if (now - built_at < CONTACT_INDEX_TTL_MS) return true;
+
+  return (
+    now - built_at < LIVE_SESSION_CACHE_MAX_AGE_MS &&
+    built_session !== 0 &&
+    built_session === get_live_sync_session()
+  );
 }
 
 export function get_cached_contact_entry(
@@ -315,6 +332,7 @@ export function ensure_contact_email_index(): Promise<
   }
 
   const started_generation = generation;
+  const started_session = get_live_sync_session();
   const request = fetch_index(started_generation)
     .then((next) => {
       if (started_generation !== generation) return index ?? new Map();
@@ -325,6 +343,7 @@ export function ensure_contact_email_index(): Promise<
       index = next.entries;
       versions = next.versions;
       built_at = Date.now();
+      built_session = started_session;
       last_failure_at = 0;
       set_trust_contacts(next.trust_contacts);
       if (changed && changed.size > 0) run_invalidation_handlers(changed);
