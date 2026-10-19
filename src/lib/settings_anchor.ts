@@ -23,6 +23,7 @@ const ANCHOR_WAIT_MS = 3000;
 const ANCHOR_SETTLE_MS = 2500;
 const ANCHOR_OFFSET_PX = 24;
 const DRIFT_TOLERANCE_PX = 4;
+const SETTLED_FRAMES = 3;
 const USER_SCROLL_EVENTS = [
   "wheel",
   "touchstart",
@@ -78,6 +79,10 @@ function container_target_top(el: HTMLElement, container: HTMLElement) {
   return Math.max(0, Math.min(target, max_top));
 }
 
+function current_scroll_top(container: HTMLElement | null) {
+  return container ? container.scrollTop : window.scrollY;
+}
+
 function window_target_top(el: HTMLElement) {
   return Math.max(
     0,
@@ -117,6 +122,9 @@ function hold_position(el: HTMLElement, seek: number, first_top: number) {
     window.addEventListener(name, stop, { capture: true, passive: true });
   }
 
+  let last_scroll_top = Number.NaN;
+  let still_frames = 0;
+
   const check = () => {
     if (stopped) return;
     if (seek !== active_seek || !el.isConnected || Date.now() > deadline) {
@@ -126,12 +134,20 @@ function hold_position(el: HTMLElement, seek: number, first_top: number) {
     }
 
     const container = find_scroll_container(el);
-    const top = container
-      ? container_target_top(el, container)
-      : window_target_top(el);
+    const scroll_top = current_scroll_top(container);
 
-    if (Math.abs(top - last_top) > DRIFT_TOLERANCE_PX) {
-      last_top = scroll_to_element(el);
+    still_frames = scroll_top === last_scroll_top ? still_frames + 1 : 0;
+    last_scroll_top = scroll_top;
+
+    if (still_frames >= SETTLED_FRAMES) {
+      const top = container
+        ? container_target_top(el, container)
+        : window_target_top(el);
+
+      if (Math.abs(top - last_top) > DRIFT_TOLERANCE_PX) {
+        last_top = scroll_to_element(el);
+        still_frames = 0;
+      }
     }
 
     requestAnimationFrame(check);
