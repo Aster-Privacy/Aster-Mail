@@ -726,3 +726,171 @@ describe("anchor scanning on hostile markup", () => {
     );
   });
 });
+
+describe("item parsing on hostile bodies", () => {
+  const order_head = "Thank you for your order\nOrder #12345\nTotal: $10.00\n";
+  const hostile: Array<[string, string]> = [
+    ["a long digit run", "1".repeat(60000)],
+    ["a quantity before a long run of spaces", "1 x " + " ".repeat(60000)],
+    ["a long run of spaces", " ".repeat(60000)],
+    ["an item label before a long run of spaces", "Item: " + " ".repeat(60000)],
+    ["a long run of blank lines", "1 x a" + " \n".repeat(30000)],
+    ["repeated quantity fragments", "1 x a - $".repeat(6000)],
+    ["repeated qty labels", "a (Qty: 1) :".repeat(5000)],
+  ];
+
+  it.each(hostile)("extracts from %s quickly", (_label, filler) => {
+    const started = performance.now();
+
+    extract_email_details(
+      "Your order",
+      order_head + filler,
+      undefined,
+      "orders@shop.example.com",
+      "Shop",
+    );
+
+    expect(performance.now() - started).toBeLessThan(1000);
+  });
+
+  it("reads a quantity that follows other text", () => {
+    const result = extract_purchase_details(
+      "Your receipt",
+      "Order #ABC-12345.\nRef 2 x Kaffeebecher - €8.50\nGesamt: €17.00.",
+      "receipts@store.com",
+      "Store Receipts",
+    );
+
+    expect(result.items.map((item) => [item.name, item.quantity])).toEqual([
+      ["Kaffeebecher", 2],
+    ]);
+  });
+
+  it("reads items spread across lines with extra spacing", () => {
+    const result = extract_purchase_details(
+      "Your receipt",
+      "Order #ABC-12345.\r\n3M  Command\tStrips\r\n\r\n   (Qty: 2)\r\n  $12.00\r\nWalnut board × 1  $64.00\r\n",
+      "receipts@store.com",
+      "Store Receipts",
+    );
+
+    expect(
+      result.items.map((item) => [
+        item.name,
+        item.quantity,
+        item.unit_price?.value,
+      ]),
+    ).toEqual([
+      ["3M Command Strips", 2, 12],
+      ["Walnut board", 1, 64],
+    ]);
+  });
+});
+
+describe("tracking parsing on hostile bodies", () => {
+  it("reads a shipping body with a long run of spaces quickly", () => {
+    const started = performance.now();
+
+    extract_shipping_details(
+      "Your order has shipped",
+      "Your order has shipped.\ntracking #" + " ".repeat(60000),
+      undefined,
+      "ship@shop.example.com",
+    );
+
+    expect(performance.now() - started).toBeLessThan(1000);
+  });
+
+  it("reads a tracking number after a colon and extra spacing", () => {
+    const result = extract_shipping_details(
+      "Your order has shipped",
+      "Your order has shipped.\nTracking number  :  ZX81234567QA\n",
+      undefined,
+      "ship@shop.example.com",
+    );
+
+    expect(result.tracking_number).toBe("ZX81234567QA");
+  });
+});
+
+describe("field parsing on hostile bodies", () => {
+  const order_head = "Thank you for your order\nOrder #12345\nTotal: $10.00\n";
+  const spaces = " ".repeat(60000);
+  const hostile: Array<[string, string, string, string]> = [
+    ["a promo label", "Your order", order_head + "promo" + spaces, "Shop"],
+    ["a total label", "Your order", order_head + "total" + spaces, "Shop"],
+    [
+      "an order number label",
+      "Your order",
+      order_head + "order #" + spaces,
+      "Shop",
+    ],
+    [
+      "a receipt number label",
+      "Your order",
+      order_head + "receipt #" + spaces,
+      "Shop",
+    ],
+    [
+      "a delivery date",
+      "Your order has shipped",
+      "Your order has shipped.\narriving " + "a".repeat(60000),
+      "Shop",
+    ],
+    ["a reply prefix", "re:" + spaces, order_head, "Shop"],
+    [
+      "a sender name",
+      "Your order",
+      order_head,
+      "Shop" + " order".repeat(10000),
+    ],
+    [
+      "a forwarded header",
+      "Fwd: receipt",
+      order_head + "From: " + spaces,
+      "Shop",
+    ],
+  ];
+
+  it.each(hostile)(
+    "extracts after %s quickly",
+    (_label, subject, body, name) => {
+      const started = performance.now();
+
+      extract_email_details(
+        subject,
+        body,
+        undefined,
+        "orders@shop.example.com",
+        name,
+      );
+
+      expect(performance.now() - started).toBeLessThan(1000);
+    },
+  );
+
+  it("strips notification words from the sender name", () => {
+    const result = extract_purchase_details(
+      "Your receipt",
+      "Thank you for your order\nOrder #12345\nTotal: $26.00",
+      "orders@acme.example.com",
+      "Acme Shipping Notifications",
+    );
+
+    expect(result.merchant_name).toBe("Acme");
+  });
+
+  it("reads the original sender of a forwarded receipt", () => {
+    const result = extract_purchase_details(
+      "Fwd: Your receipt",
+      "---------- Forwarded message ---------\nFrom: Walnut  Goods <orders@walnut.example.com>\nDate: Mon, 6 Oct 2026\nSubject: Your Walnut order #A1B2C3\nTo: me\n\nThank you for your order\nOrder #A1B2C3\nPromo code applied: -$5.00\nTotal: $45.00",
+      "me@aster.example",
+      "Me",
+    );
+
+    expect(result.merchant_source).toBe("orders@walnut.example.com");
+    expect(result.order_id).toBe("A1B2C3");
+    expect(result.discount?.value).toBe(5);
+    expect(result.total?.value).toBe(45);
+  });
+});
