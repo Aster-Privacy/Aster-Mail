@@ -8465,6 +8465,7 @@ export const ar = {
     reply_all: "رد على الكل",
     react: "تفاعل",
     you_reacted_with: "لقد تفاعلت بـ {{emoji}}",
+    reaction_sent: "تم إرسال التفاعل",
     reacted_with: "تفاعل {{name}} بـ {{emoji}}",
     forward: "تحويل",
     to: "إلى",

@@ -63,7 +63,6 @@ export interface ActionToastState {
   action_label?: string;
   progress?: { completed: number; total: number };
   on_cancel?: () => void;
-  on_view_message?: () => void;
   sound?: IconicSound | "none";
 }
 
@@ -336,14 +335,6 @@ export function ActionToast({ position }: ActionToastProps) {
                 >
                   {toast.action_label || t("common.undo")}
                   {is_undoing && <ButtonSpinner size="xs" />}
-                </button>
-              )}
-              {toast.on_view_message && (
-                <button
-                  className="text-[13px] font-medium ms-1 underline text-brand"
-                  onClick={toast.on_view_message}
-                >
-                  {t("mail.view_message")}
                 </button>
               )}
               <button

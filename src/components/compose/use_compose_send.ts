@@ -643,6 +643,17 @@ export function use_compose_send({
             draft_deleted ? null : kept_draft,
           ),
         get_kept_draft: () => (draft_deleted ? null : kept_draft),
+        echo_sender: {
+          name:
+            selected_sender?.display_name ||
+            user?.display_name ||
+            user?.username ||
+            "",
+          email:
+            selected_sender && selected_sender.type !== "primary"
+              ? selected_sender.email
+              : user?.email || "",
+        },
       };
 
       if (selected_sender?.type === "external") {

@@ -8634,6 +8634,7 @@ export const es = {
     reply_all: "Responder a todos",
     react: "Reaccionar",
     you_reacted_with: "Has reaccionado con {{emoji}}",
+    reaction_sent: "Reacción enviada",
     reacted_with: "{{name}} ha reaccionado con {{emoji}}",
     forward: "Reenviar",
     to: "Para",

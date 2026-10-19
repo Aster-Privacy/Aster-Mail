@@ -8860,6 +8860,7 @@ export const pl = {
     reply_all: "Odpowiedz wszystkim",
     react: "Zareaguj",
     you_reacted_with: "Zareagowałeś {{emoji}}",
+    reaction_sent: "Reakcja wysłana",
     reacted_with: "{{name}} zareagował(a) {{emoji}}",
     forward: "Przekaż dalej",
     to: "Do",

@@ -8414,6 +8414,7 @@ export const hi = {
     forward: "फ़ॉरवर्ड करें",
     react: "प्रतिक्रिया दें",
     you_reacted_with: "आपने {{emoji}} से प्रतिक्रिया दी",
+    reaction_sent: "प्रतिक्रिया भेजी गई",
     reacted_with: "{{name}} ने {{emoji}} से प्रतिक्रिया दी",
     reply_subject_prefix: "Re:",
     reply_from_mismatch_title: "किसी दूसरे पते से जवाब दें?",

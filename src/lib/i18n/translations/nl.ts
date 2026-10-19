@@ -8606,6 +8606,7 @@ export const nl = {
     reply_all: "Allen antwoorden",
     react: "Reageren",
     you_reacted_with: "Je hebt gereageerd met {{emoji}}",
+    reaction_sent: "Reactie verzonden",
     reacted_with: "{{name}} heeft gereageerd met {{emoji}}",
     forward: "Doorsturen",
     to: "Aan",

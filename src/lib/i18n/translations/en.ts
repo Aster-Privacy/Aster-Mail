@@ -8354,6 +8354,7 @@ export const en: Translations = {
     forward: "Forward",
     react: "React",
     you_reacted_with: "You reacted with {{emoji}}",
+    reaction_sent: "Reaction sent",
     reacted_with: "{{name}} reacted with {{emoji}}",
     reply_subject_prefix: "Re:",
     reply_from_mismatch_title: "Reply from a different address?",

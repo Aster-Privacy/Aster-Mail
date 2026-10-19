@@ -608,12 +608,12 @@ export function use_reply_modal(props: UseReplyModalProps) {
         is_plain_text: is_plain_text_mode,
       },
       {
-        on_complete: (sent_id?: string) => {
+        on_complete: () => {
           is_sending_ref.current = false;
           send_lock_started_at_ref.current = 0;
           set_is_sending(false);
           emit_email_sent();
-          show_email_sent_toast(t("common.email_sent"), sent_id);
+          show_email_sent_toast(t("common.email_sent"), delay_seconds > 0);
 
           if (pending_thread_token_ref.current) {
             emit_thread_reply_sent({
