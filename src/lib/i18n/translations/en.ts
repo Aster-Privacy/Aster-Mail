@@ -3087,6 +3087,8 @@ export const en: Translations = {
     security_center_recommended: "Recommended actions",
     security_center_protected: "Protected",
     security_center_all_clear: "Every protection is turned on.",
+    security_center_met_of_total: "{{met}} of {{total}} protections on",
+    security_center_account: "Your account",
     security_center_protection_score: "Protection score",
     security_center_encryption_title: "End-to-end encryption",
     security_center_encryption_detail:

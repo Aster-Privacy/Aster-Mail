@@ -7043,6 +7043,9 @@ export const de = {
     security_center_recommended: "Empfohlene Aktionen",
     security_center_protected: "Geschützt",
     security_center_all_clear: "Alle Schutzfunktionen sind aktiviert.",
+    security_center_met_of_total:
+      "{{met}} von {{total}} Schutzfunktionen aktiv",
+    security_center_account: "Ihr Konto",
     security_center_protection_score: "Schutzbewertung",
     security_center_encryption_title: "Ende-zu-Ende-Verschlüsselung",
     security_center_encryption_detail:

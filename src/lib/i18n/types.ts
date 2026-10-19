@@ -3258,6 +3258,8 @@ export interface SettingsTranslations {
   security_center_recommended: string;
   security_center_protected: string;
   security_center_all_clear: string;
+  security_center_met_of_total: string;
+  security_center_account: string;
   security_center_protection_score: string;
   security_center_encryption_title: string;
   security_center_encryption_detail: string;

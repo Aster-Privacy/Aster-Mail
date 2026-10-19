@@ -7278,6 +7278,8 @@ export const pt_br = {
     security_center_recommended: "Ações recomendadas",
     security_center_protected: "Protegido",
     security_center_all_clear: "Todas as proteções estão ativadas.",
+    security_center_met_of_total: "{{met}} de {{total}} proteções ativadas",
+    security_center_account: "A sua conta",
     security_center_protection_score: "Pontuação de proteção",
     security_center_encryption_title: "Criptografia de ponta a ponta",
     security_center_encryption_detail:

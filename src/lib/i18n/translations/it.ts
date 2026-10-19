@@ -7361,6 +7361,8 @@ export const it = {
     security_center_recommended: "Azioni consigliate",
     security_center_protected: "Protetto",
     security_center_all_clear: "Tutte le protezioni sono attive.",
+    security_center_met_of_total: "{{met}} protezioni su {{total}} attive",
+    security_center_account: "Il tuo account",
     security_center_protection_score: "Punteggio di protezione",
     security_center_encryption_title: "Crittografia end-to-end",
     security_center_encryption_detail:

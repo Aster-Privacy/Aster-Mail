@@ -6985,6 +6985,8 @@ export const ja = {
     security_center_recommended: "推奨される操作",
     security_center_protected: "保護済み",
     security_center_all_clear: "すべての保護が有効です。",
+    security_center_met_of_total: "{{total}}件中{{met}}件の保護が有効",
+    security_center_account: "アカウント",
     security_center_protection_score: "保護スコア",
     security_center_encryption_title: "エンドツーエンド暗号化",
     security_center_encryption_detail:

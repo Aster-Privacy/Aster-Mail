@@ -7097,6 +7097,9 @@ export const nl = {
     security_center_recommended: "Aanbevolen acties",
     security_center_protected: "Beveiligd",
     security_center_all_clear: "Alle beveiligingen zijn ingeschakeld.",
+    security_center_met_of_total:
+      "{{met}} van {{total}} beveiligingen ingeschakeld",
+    security_center_account: "Uw account",
     security_center_protection_score: "Beschermingsscore",
     security_center_encryption_title: "End-to-endversleuteling",
     security_center_encryption_detail:

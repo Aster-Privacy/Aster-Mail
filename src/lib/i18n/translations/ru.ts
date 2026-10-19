@@ -7242,6 +7242,8 @@ export const ru = {
     security_center_recommended: "Рекомендуемые действия",
     security_center_protected: "Защищено",
     security_center_all_clear: "Все средства защиты включены.",
+    security_center_met_of_total: "Включено защит: {{met}} из {{total}}",
+    security_center_account: "Ваш аккаунт",
     security_center_protection_score: "Оценка защиты",
     security_center_encryption_title: "Сквозное шифрование",
     security_center_encryption_detail:

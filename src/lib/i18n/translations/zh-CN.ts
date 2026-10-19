@@ -6541,6 +6541,8 @@ export const zh_CN = {
     security_center_recommended: "建议的操作",
     security_center_protected: "已保护",
     security_center_all_clear: "所有保护均已开启。",
+    security_center_met_of_total: "已开启 {{met}}/{{total}} 项保护",
+    security_center_account: "你的账户",
     security_center_protection_score: "保护评分",
     security_center_encryption_title: "端到端加密",
     security_center_encryption_detail:

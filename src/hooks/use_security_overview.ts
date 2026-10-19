@@ -126,7 +126,11 @@ export function use_security_overview(enabled: boolean): SecurityOverview {
 
       const [totp, passkeys, alerts, recovery] = core;
       const [sessions, devices, vanguard, lockdown, identity, aliases] = extras;
-      const failed = core.some((result) => result.status === "rejected");
+      const failed = core.some(
+        (result) =>
+          result.status === "rejected" ||
+          (result.value !== null && result.value.data === undefined),
+      );
 
       set_values({
         totp_enabled: settled_value(totp)?.data?.enabled ?? false,
