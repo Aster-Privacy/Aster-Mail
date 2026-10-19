@@ -32,6 +32,7 @@ const login_alerts = vi.fn();
 const recovery_email = vi.fn();
 const recovery_methods = vi.fn();
 const codes_status = vi.fn();
+const identity_key_status = vi.fn();
 
 let preferences = {
   block_tracking_pixels: false,
@@ -89,8 +90,7 @@ vi.mock("@/services/api/lockdown", () => ({
 }));
 
 vi.mock("@/services/api/key_rotation", () => ({
-  get_identity_key_status: () =>
-    Promise.resolve({ data: { key_fingerprint: "ab:cd:ef:12:34:56:78:9a" } }),
+  get_identity_key_status: () => identity_key_status(),
 }));
 
 vi.mock("@/services/api/aliases", () => ({
@@ -154,6 +154,9 @@ describe("quick security panel", () => {
       },
     });
     codes_status.mockResolvedValue({ data: null });
+    identity_key_status.mockResolvedValue({
+      data: { key_fingerprint: "ab:cd:ef:12:34:56:78:9a" },
+    });
     alias_cache = [];
     container = document.createElement("div");
     document.body.appendChild(container);
@@ -336,6 +339,19 @@ describe("quick security panel", () => {
       "settings.security_center_encryption_title",
     );
     expect(container.textContent).toContain("3456 789A");
+  });
+
+  it("hides the encryption section without an identity key fingerprint", async () => {
+    identity_key_status.mockResolvedValue({ data: { key_fingerprint: null } });
+    await render_panel();
+
+    expect(container.textContent).toContain("settings.vanguard_title");
+    expect(container.textContent).not.toContain(
+      "settings.security_center_encryption_title",
+    );
+    expect(container.textContent).not.toContain(
+      "settings.security_center_identity_key",
+    );
   });
 
   it("carries no refresh control in the header", async () => {
