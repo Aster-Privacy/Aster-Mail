@@ -528,29 +528,36 @@ export function QuickSecurityPanel({
               {state_label(overview.vanguard_enabled)}
             </Badge>
           </button>
-          <SectionHeading
-            label={t("settings.security_center_encryption_title")}
-          />
           {overview.key_fingerprint && (
-            <button
-              className={ROW_CLASS}
-              type="button"
-              onClick={() => go_to_settings(SECURITY_CENTER_TARGETS.encryption)}
-            >
-              <FingerPrintIcon aria-hidden="true" className={DONE_ICON_CLASS} />
-              <span className="min-w-0 flex-1">
-                <span
-                  className={ROW_TITLE_CLASS}
-                  title={t("settings.security_center_identity_key")}
-                >
-                  {t("settings.security_center_identity_key")}
+            <>
+              <SectionHeading
+                label={t("settings.security_center_encryption_title")}
+              />
+              <button
+                className={ROW_CLASS}
+                type="button"
+                onClick={() =>
+                  go_to_settings(SECURITY_CENTER_TARGETS.encryption)
+                }
+              >
+                <FingerPrintIcon
+                  aria-hidden="true"
+                  className={DONE_ICON_CLASS}
+                />
+                <span className="min-w-0 flex-1">
+                  <span
+                    className={ROW_TITLE_CLASS}
+                    title={t("settings.security_center_identity_key")}
+                  >
+                    {t("settings.security_center_identity_key")}
+                  </span>
                 </span>
-              </span>
-              <span className="flex-shrink-0 font-mono text-[12px] tracking-wider text-txt-secondary">
-                {format_key_fingerprint(overview.key_fingerprint)}
-              </span>
-              <ChevronRightIcon className={CHEVRON_CLASS} />
-            </button>
+                <span className="flex-shrink-0 font-mono text-[12px] tracking-wider text-txt-secondary">
+                  {format_key_fingerprint(overview.key_fingerprint)}
+                </span>
+                <ChevronRightIcon className={CHEVRON_CLASS} />
+              </button>
+            </>
           )}
           {done.length > 0 && (
             <>
