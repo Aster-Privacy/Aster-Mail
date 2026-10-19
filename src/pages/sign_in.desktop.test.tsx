@@ -215,6 +215,19 @@ describe("SignInPage on the desktop app", () => {
     expect(container!.querySelector("input")).not.toBeNull();
   });
 
+  it("draws the sign-in logo from the sized webp set the loader already fetched", async () => {
+    tauri_state.enabled = false;
+    await render_page();
+
+    const logo = container!.querySelector('img[alt="Aster"]');
+
+    expect(logo).not.toBeNull();
+    expect(logo!.getAttribute("src")).toBe("/text_logo_84.webp");
+    expect(logo!.getAttribute("srcset")).toBe(
+      "/text_logo_28.webp 1x, /text_logo_56.webp 2x, /text_logo_84.webp 3x",
+    );
+  });
+
   it("signs a fresh desktop session in and remembers the device id", async () => {
     await render_page();
     await act(async () => {

@@ -762,7 +762,8 @@ export default function SignInPage() {
               className="h-7"
               decoding="async"
               draggable={false}
-              src="/text_logo.png"
+              src="/text_logo_84.webp"
+              srcSet="/text_logo_28.webp 1x, /text_logo_56.webp 2x, /text_logo_84.webp 3x"
             />
 
             <h1 className="mt-5 text-base font-semibold text-txt-primary">
