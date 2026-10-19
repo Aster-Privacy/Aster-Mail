@@ -32,6 +32,7 @@ import {
   useReducer,
   useMemo,
 } from "react";
+import { flushSync } from "react-dom";
 
 import { use_suggestion_contacts } from "@/hooks/use_suggestion_contacts";
 import {
@@ -400,6 +401,25 @@ export function use_compose({
     attachment_hook.set_attachment_error(null);
   }, [attachment_hook.set_attachment_error]);
 
+  const flush_editor_input = editor_hook.editor.flush_input;
+  const take_editor_input = editor_hook.editor.take_input;
+
+  const flush_editor_input_now = useCallback(() => {
+    flushSync(() => {
+      flush_editor_input();
+    });
+  }, [flush_editor_input]);
+
+  const take_pending_message = useCallback((): string | null => {
+    const pending = take_editor_input();
+
+    if (pending === null) return null;
+
+    return is_plain_text_ref.current
+      ? escape_html(pending).replace(/\n/g, "<br>")
+      : pending;
+  }, [take_editor_input]);
+
   const outgoing_message = editor_hook.is_plain_text_mode
     ? escape_html(message).replace(/\n/g, "<br>")
     : message;
@@ -420,6 +440,8 @@ export function use_compose({
     save_timer_ref,
     draft_context_id_ref,
     has_pending_attachment_reads: attachment_hook.has_pending_attachment_reads,
+    flush_input: flush_editor_input_now,
+    take_pending_message,
   });
 
   const classified_recipients = useMemo(
@@ -627,17 +649,25 @@ export function use_compose({
     ],
   );
 
+  const send_hook_ref = useRef(send_hook);
+
+  send_hook_ref.current = send_hook;
+
   const handle_send = useCallback(async () => {
+    flush_editor_input_now();
+
     if (flush_pending_recipients("send")) return;
 
-    await send_hook.handle_send();
-  }, [flush_pending_recipients, send_hook.handle_send]);
+    await send_hook_ref.current.handle_send();
+  }, [flush_editor_input_now, flush_pending_recipients]);
 
   const handle_scheduled_send = useCallback(async () => {
+    flush_editor_input_now();
+
     if (flush_pending_recipients("schedule")) return;
 
-    await send_hook.handle_scheduled_send();
-  }, [flush_pending_recipients, send_hook.handle_scheduled_send]);
+    await send_hook_ref.current.handle_scheduled_send();
+  }, [flush_editor_input_now, flush_pending_recipients]);
 
   useEffect(() => {
     if (!pending_send_mode) return;

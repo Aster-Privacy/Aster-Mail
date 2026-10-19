@@ -679,11 +679,20 @@ export function ComposeEditor({ compose, placeholder }: ComposeEditorProps) {
   const { t } = use_i18n();
   const resolved_placeholder = placeholder || t("common.write_your_message");
   const scroll_container_ref = useRef<HTMLDivElement>(null);
+  const flush_editor_input = compose.editor.flush_input;
+
+  useEffect(() => {
+    return () => {
+      flush_editor_input();
+    };
+  }, [flush_editor_input]);
 
   useEffect(() => {
     const el = compose.message_textarea_ref.current;
 
     if (el && compose.message && !el.innerHTML) {
+      if (compose.editor.flush_input(el)) return;
+
       if (compose.is_plain_text_mode) {
         el.innerHTML = plain_text_to_editor_html(compose.message);
 
@@ -736,7 +745,7 @@ export function ComposeEditor({ compose, placeholder }: ComposeEditorProps) {
             whiteSpace: "pre-wrap",
             wordBreak: "break-word",
           }}
-          onBlur={compose.handle_editor_input}
+          onBlur={compose.editor.handle_input}
           onDragOver={compose.editor.handle_drag_over}
           onDrop={compose.editor.handle_drop}
           onInput={compose.handle_editor_input}

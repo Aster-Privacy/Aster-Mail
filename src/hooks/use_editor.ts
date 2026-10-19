@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
@@ -67,6 +67,8 @@ export type {
   UseEditorReturn,
 };
 
+const INPUT_SERIALIZE_DELAY_MS = 150;
+
 export function use_editor({
   editor_ref,
   on_change,
@@ -101,10 +103,8 @@ export function use_editor({
     [get_inline_image_budget, editor_ref],
   );
 
-  const handle_input = useCallback(() => {
-    const editor = editor_ref.current;
-
-    if (editor) {
+  const serialize_editor = useCallback(
+    (editor: HTMLDivElement) => {
       on_change?.(
         is_plain_text_mode
           ? editor.innerText
@@ -112,8 +112,92 @@ export function use_editor({
               restore_compose_image_sources(editor.innerHTML),
             ),
       );
-    }
-  }, [editor_ref, on_change, is_plain_text_mode]);
+    },
+    [on_change, is_plain_text_mode],
+  );
+
+  const serialize_editor_ref = useRef(serialize_editor);
+  const is_plain_text_mode_ref = useRef(is_plain_text_mode);
+
+  is_plain_text_mode_ref.current = is_plain_text_mode;
+
+  serialize_editor_ref.current = serialize_editor;
+
+  const pending_input_ref = useRef<{
+    editor: HTMLDivElement;
+    timer: ReturnType<typeof setTimeout>;
+  } | null>(null);
+
+  const take_pending_input = useCallback(() => {
+    const pending = pending_input_ref.current;
+
+    if (!pending) return null;
+
+    clearTimeout(pending.timer);
+    pending_input_ref.current = null;
+
+    return pending;
+  }, []);
+
+  const flush_input = useCallback(
+    (only_editor?: HTMLElement): boolean => {
+      const current = pending_input_ref.current;
+
+      if (!current || (only_editor && current.editor !== only_editor)) {
+        return false;
+      }
+
+      const pending = take_pending_input();
+
+      if (!pending) return false;
+
+      serialize_editor_ref.current(pending.editor);
+
+      return true;
+    },
+    [take_pending_input],
+  );
+
+  const take_input = useCallback((): string | null => {
+    const pending = take_pending_input();
+
+    if (!pending) return null;
+
+    return is_plain_text_mode_ref.current
+      ? pending.editor.innerText
+      : strip_editor_fillers(
+          restore_compose_image_sources(pending.editor.innerHTML),
+        );
+  }, [take_pending_input]);
+
+  const schedule_input = useCallback(() => {
+    if (pending_input_ref.current) return;
+
+    const editor = editor_ref.current;
+
+    if (!editor) return;
+
+    pending_input_ref.current = {
+      editor,
+      timer: setTimeout(() => flush_input(), INPUT_SERIALIZE_DELAY_MS),
+    };
+  }, [editor_ref, flush_input]);
+
+  useEffect(() => {
+    return () => {
+      const pending = pending_input_ref.current;
+
+      if (pending) clearTimeout(pending.timer);
+    };
+  }, []);
+
+  const handle_input = useCallback(() => {
+    take_pending_input();
+
+    const editor = editor_ref.current;
+
+    if (editor) serialize_editor(editor);
+  }, [editor_ref, serialize_editor, take_pending_input]);
 
   const apply_signature = useCallback(
     (html: string | null) => {
@@ -689,6 +773,9 @@ export function use_editor({
     handle_drop,
     handle_drag_over,
     handle_input,
+    schedule_input,
+    flush_input,
+    take_input,
     save_selection: fmt.save_selection,
     restore_selection: fmt.restore_selection,
     get_html,

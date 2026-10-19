@@ -173,6 +173,7 @@ function MobileComposePage({
       return;
     }
     haptic_impact("medium");
+    compose.editor.flush_input();
     if (preferences.biometric_send_enabled) {
       const authenticated = await authenticate_biometric(
         t("common.authenticate_to_send"),
