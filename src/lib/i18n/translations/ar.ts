@@ -7157,6 +7157,8 @@ export const ar = {
     security_center_recommended: "الإجراءات الموصى بها",
     security_center_protected: "محمي",
     security_center_all_clear: "جميع وسائل الحماية مفعّلة.",
+    security_center_met_of_total: "{{met}} من {{total}} وسائل حماية مفعّلة",
+    security_center_account: "حسابك",
     security_center_protection_score: "درجة الحماية",
     security_center_encryption_title: "التشفير التام",
     security_center_encryption_detail:

@@ -329,7 +329,7 @@ describe("quick security panel", () => {
 
     expect(container.textContent).toContain("settings.vanguard_title");
     expect(container.textContent).toContain("settings.lockdown_title");
-    expect(container.textContent).toContain("settings_search.sessions");
+    expect(container.textContent).toContain("settings_search.active_sessions");
     expect(container.textContent).toContain("settings.trusted_devices");
     expect(container.textContent).toContain("3/10");
     expect(container.textContent).toContain(
@@ -355,6 +355,15 @@ describe("quick security panel", () => {
     expect(
       document.documentElement.style.getPropertyValue("--quick_panel_inset"),
     ).toBe("0px");
+  });
+
+  it("offers a retry when a status request returns an error", async () => {
+    totp_status.mockResolvedValue({ error: "Internal server error" });
+    await render_panel();
+
+    expect(container.textContent).toContain(
+      "settings.failed_load_security_status",
+    );
   });
 
   it("offers a retry when a status request fails", async () => {

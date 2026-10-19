@@ -7492,6 +7492,9 @@ export const pl = {
     security_center_recommended: "Zalecane działania",
     security_center_protected: "Chronione",
     security_center_all_clear: "Wszystkie zabezpieczenia są włączone.",
+    security_center_met_of_total:
+      "Włączone zabezpieczenia: {{met}} z {{total}}",
+    security_center_account: "Twoje konto",
     security_center_protection_score: "Wynik ochrony",
     security_center_encryption_title: "Szyfrowanie end-to-end",
     security_center_encryption_detail:

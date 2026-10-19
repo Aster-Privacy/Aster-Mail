@@ -3166,6 +3166,8 @@ export const hi = {
     security_center_recommended: "अनुशंसित कार्रवाई",
     security_center_protected: "सुरक्षित",
     security_center_all_clear: "सभी सुरक्षाएँ चालू हैं।",
+    security_center_met_of_total: "{{total}} में से {{met}} सुरक्षाएँ चालू",
+    security_center_account: "आपका खाता",
     security_center_protection_score: "सुरक्षा स्कोर",
     security_center_encryption_title: "एंड-टू-एंड एन्क्रिप्शन",
     security_center_encryption_detail:

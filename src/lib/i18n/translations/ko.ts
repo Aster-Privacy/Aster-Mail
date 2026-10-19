@@ -7082,6 +7082,8 @@ export const ko = {
     security_center_recommended: "권장 작업",
     security_center_protected: "보호됨",
     security_center_all_clear: "모든 보호 기능이 켜져 있습니다.",
+    security_center_met_of_total: "보호 기능 {{total}}개 중 {{met}}개 켜짐",
+    security_center_account: "내 계정",
     security_center_protection_score: "보호 점수",
     security_center_encryption_title: "종단 간 암호화",
     security_center_encryption_detail:

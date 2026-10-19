@@ -7210,6 +7210,8 @@ export const fr = {
     security_center_recommended: "Actions recommandées",
     security_center_protected: "Protégé",
     security_center_all_clear: "Toutes les protections sont activées.",
+    security_center_met_of_total: "{{met}} protections sur {{total}} activées",
+    security_center_account: "Votre compte",
     security_center_protection_score: "Score de protection",
     security_center_encryption_title: "Chiffrement de bout en bout",
     security_center_encryption_detail:

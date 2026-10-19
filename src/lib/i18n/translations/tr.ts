@@ -7254,6 +7254,8 @@ export const tr = {
     security_center_recommended: "Önerilen işlemler",
     security_center_protected: "Korunuyor",
     security_center_all_clear: "Tüm korumalar açık.",
+    security_center_met_of_total: "{{total}} korumadan {{met}} tanesi açık",
+    security_center_account: "Hesabınız",
     security_center_protection_score: "Koruma puanı",
     security_center_encryption_title: "Uçtan uca şifreleme",
     security_center_encryption_detail:
