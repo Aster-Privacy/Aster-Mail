@@ -4456,6 +4456,9 @@ export const ru = {
     billing_history: "История оплат",
     billing_status_active: "Активна",
     billing_status_renews: "Продлевается {{date}}",
+    billing_status_lifetime: "Пожизненный",
+    billing_lifetime_note:
+      "Этот тариф никогда не продлевается, и вы больше не платите за него. Чтобы изменить его, обратитесь в поддержку Aster.",
     billing_status_ending: "Заканчивается {{date}}",
     billing_status_attention: "Платёж требует внимания",
     billing_member_since: "Участник с {{date}}",

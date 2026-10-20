@@ -3457,6 +3457,8 @@ export interface SettingsTranslations {
   billing_plan_heading: string;
   billing_status_active: string;
   billing_status_renews: string;
+  billing_status_lifetime: string;
+  billing_lifetime_note: string;
   billing_status_ending: string;
   billing_status_attention: string;
   billing_member_since: string;

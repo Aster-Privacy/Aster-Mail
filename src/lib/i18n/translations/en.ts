@@ -3318,6 +3318,9 @@ export const en: Translations = {
     billing_plan_heading: "Plan",
     billing_status_active: "Active",
     billing_status_renews: "Renews {{date}}",
+    billing_status_lifetime: "Lifetime",
+    billing_lifetime_note:
+      "This plan never renews, and you never pay for it again. To change it, contact Aster support.",
     billing_status_ending: "Ends {{date}}",
     billing_status_attention: "Payment needs attention",
     billing_member_since: "Member since {{date}}",

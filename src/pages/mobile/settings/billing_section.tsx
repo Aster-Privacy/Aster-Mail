@@ -132,6 +132,7 @@ export function BillingSection({
     is_crypto_sub,
   } = state;
   const [show_plans, set_show_plans] = useState(false);
+  const is_lifetime = !!is_paid_plan && !!subscription?.is_lifetime;
   const open_plans = () => {
     set_show_plans(true);
     requestAnimationFrame(() => {
@@ -170,10 +171,12 @@ export function BillingSection({
                   on_renew_with_crypto={handle_crypto_renew}
                   subscription={subscription}
                 />
-                <CryptoResumeBanner />
-                <ResumeCheckoutCard
-                  current_plan_code={subscription?.plan.code ?? null}
-                />
+                {!is_lifetime && <CryptoResumeBanner />}
+                {!is_lifetime && (
+                  <ResumeCheckoutCard
+                    current_plan_code={subscription?.plan.code ?? null}
+                  />
+                )}
                 <WinBackOfferCard
                   offer={subscription?.pending_offer}
                   on_choose_plan={open_plans}
@@ -207,7 +210,7 @@ export function BillingSection({
                 />
               )}
 
-              {show_plans && (
+              {show_plans && !is_lifetime && (
                 <div ref={plans_ref} className="-mx-4 -my-4">
                   <SettingsGroup title={t("settings.available_plans")}>
                     <div className="px-4 py-3">
@@ -657,9 +660,9 @@ export function BillingSection({
                         {t("settings.payment")}
                       </p>
                       <p className="truncate text-xs text-txt-muted">
-                        {is_crypto_sub
+                        {is_crypto_sub && !is_lifetime
                           ? t("settings.checkout_method_crypto")
-                          : is_paid_plan
+                          : is_paid_plan && !is_lifetime
                             ? t("settings.checkout_method_card")
                             : t("settings.payment_methods_description")}
                       </p>

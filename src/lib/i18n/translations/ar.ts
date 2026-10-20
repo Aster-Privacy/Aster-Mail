@@ -4437,6 +4437,9 @@ export const ar = {
     billing_history: "سجل الفوترة",
     billing_status_active: "نشط",
     billing_status_renews: "يتجدد في {{date}}",
+    billing_status_lifetime: "مدى الحياة",
+    billing_lifetime_note:
+      "لا تتجدد هذه الخطة أبدًا، ولا تدفع مقابلها مرة أخرى. لتغييرها، تواصل مع دعم Aster.",
     billing_status_ending: "ينتهي في {{date}}",
     billing_status_attention: "الدفع يحتاج إلى انتباهك",
     billing_member_since: "عضو منذ {{date}}",

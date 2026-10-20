@@ -4272,6 +4272,9 @@ export const de = {
     billing_history: "Abrechnungsverlauf",
     billing_status_active: "Aktiv",
     billing_status_renews: "Verlängert sich am {{date}}",
+    billing_status_lifetime: "Lebenslang",
+    billing_lifetime_note:
+      "Dieser Tarif verlängert sich nie, und Sie zahlen nie wieder dafür. Um ihn zu ändern, wenden Sie sich an den Aster-Support.",
     billing_status_ending: "Endet am {{date}}",
     billing_status_attention: "Zahlung erfordert Aufmerksamkeit",
     billing_member_since: "Mitglied seit {{date}}",

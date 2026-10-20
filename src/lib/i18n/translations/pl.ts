@@ -4493,6 +4493,9 @@ export const pl = {
     billing_history: "Historia rozliczeń",
     billing_status_active: "Aktywny",
     billing_status_renews: "Odnawia się {{date}}",
+    billing_status_lifetime: "Dożywotni",
+    billing_lifetime_note:
+      "Ten plan nigdy się nie odnawia i nie płacisz za niego ponownie. Aby go zmienić, skontaktuj się z pomocą Aster.",
     billing_status_ending: "Kończy się {{date}}",
     billing_status_attention: "Płatność wymaga uwagi",
     billing_member_since: "Członek od {{date}}",
