@@ -146,7 +146,10 @@ const ID_MARKER = "(?:#|no\\.?|num(?:ber)?|id)";
 const ID_VALUE = "([A-Za-z0-9](?:[\\w-]|\\.(?=[\\w-])){3,29})";
 
 function labelled_id(label: string, marker = ID_MARKER): RegExp {
-  return new RegExp(`\\b${label}\\s*${marker}\\s*[:#]?\\s*${ID_VALUE}`, "i");
+  return new RegExp(
+    `\\b${label}\\s*${marker}(?:\\s*[:#])?\\s*${ID_VALUE}`,
+    "i",
+  );
 }
 
 const ORDER_ID_PATTERNS = [
@@ -179,7 +182,10 @@ const AMOUNT_PATTERN = new RegExp(
 const TAX_RATE = "(?:\\s*\\(?\\d{1,2}(?:[.,]\\d+)?\\s*%\\)?)?";
 
 function money_after(label: string): RegExp {
-  return new RegExp(`${label}\\s*[:=-]?\\s*-?\\s*(${MONEY_TOKEN})`, "i");
+  return new RegExp(
+    `${label}(?:\\s*[:=-])?(?:\\s*-)?\\s*(${MONEY_TOKEN})`,
+    "i",
+  );
 }
 
 const STRONG_TRACKING_PATTERNS: {
@@ -463,7 +469,7 @@ function extract_tracking_number(
   }
 
   const generic_pattern =
-    /(?:tracking|sendungsnummer|suivi|seguimiento)\s*(?:#|number|no\.?|nummer)?\s*[:\s]\s*([A-Z0-9]{8,35})/i;
+    /(?:tracking|sendungsnummer|suivi|seguimiento)(?:\s*(?:#|number|no\.?|nummer))?(?:\s*:\s*|\s+)([A-Z0-9]{8,35})/i;
   const generic = body.match(generic_pattern);
 
   if (generic) {
@@ -705,14 +711,19 @@ function extract_date(text: string, patterns: RegExp[]): string | null {
   return null;
 }
 
+function collapse_whitespace_runs(text: string): string {
+  return text.replace(/\s+/g, (run) => (run.includes("\n") ? "\n" : " "));
+}
+
 function extract_items_from_body(
-  body: string,
+  raw_body: string,
   fallback_currency = "USD",
 ): ExtractedItem[] {
   const items: ExtractedItem[] = [];
+  const body = collapse_whitespace_runs(raw_body);
 
   const item_patterns = [
-    /(\d+)\s*x\s+([^\n]{1,160}?)\s*[-–]\s*([\$€£¥₹]?\s*[\d,.]+)/gi,
+    /(?:^|\D)(\d+)\s*x\s+([^\n]{1,160}?)\s*[-–]\s*([\$€£¥₹]?\s*[\d,.]+)/gi,
     /([^\n]{1,160}?)\s*\(Qty:\s*(\d+)\)\s*([\$€£¥₹]?\s*[\d,.]+)/gi,
     /Item:\s*([^\n]{1,160}?)(?:\s*Qty:\s*(\d+))?\s*Price:\s*([\$€£¥₹]?\s*[\d,.]+)/gi,
     /(?:^|\n)[ \t]*([^\n$€£¥₹]{2,160}?)\s+[×x]\s*(\d{1,3})\s+([\$€£¥₹]\s*[\d,.]+)[ \t]*(?=\n|$)/gi,
@@ -872,7 +883,7 @@ const FORWARDED_SUBJECT_PATTERN =
   /(?:^|\n)[ \t>*]*(?:subject|betreff|objet|asunto|assunto|onderwerp)\s*:\s*\*{0,2}\s*([^\n]{1,200})/i;
 const FORWARDED_MARKER_PATTERN =
   /(?:^|\n)[ \t>*]*(?:sent|date|datum|envoyé|enviado|to|an|à|para|subject|betreff|objet|asunto|assunto)\s*:/i;
-const REPLY_PREFIX_PATTERN = /^(?:\s*(?:re|fw|fwd|aw|wg|tr|rv|enc)\s*:\s*)+/i;
+const REPLY_PREFIX_PATTERN = /^(?:\s*(?:re|fw|fwd|aw|wg|tr|rv|enc)\s*:)+\s*/i;
 
 interface ForwardedOrigin {
   from_email: string;
@@ -996,7 +1007,8 @@ function extract_receipt_url(
   return null;
 }
 
-function detect_forwarded_origin(body: string): ForwardedOrigin | null {
+function detect_forwarded_origin(raw_body: string): ForwardedOrigin | null {
+  const body = collapse_whitespace_runs(raw_body);
   const from_match = body.match(FORWARDED_FROM_PATTERN);
 
   if (!from_match || from_match.index === undefined) return null;
@@ -1047,6 +1059,44 @@ function merchant_from_text(text: string, patterns: RegExp[]): string | null {
   return null;
 }
 
+const SENDER_SUFFIX_WORDS = new Set(
+  [
+    "order",
+    "shipping",
+    "notification",
+    "update",
+    "receipt",
+    "billing",
+    "payment",
+    "team",
+    "support",
+  ].flatMap((word) => [word, `${word}s`]),
+);
+
+function strip_sender_suffixes(name: string): string {
+  let end = name.length;
+
+  for (;;) {
+    let word_end = end;
+
+    while (word_end > 0 && /\s/.test(name[word_end - 1])) word_end--;
+
+    let word_start = word_end;
+
+    while (word_start > 0 && !/\s/.test(name[word_start - 1])) word_start--;
+
+    if (
+      word_start === 0 ||
+      word_start === word_end ||
+      !SENDER_SUFFIX_WORDS.has(name.slice(word_start, word_end).toLowerCase())
+    ) {
+      return name.slice(0, end);
+    }
+
+    end = word_start;
+  }
+}
+
 function merchant_from_sender(
   from_email: string,
   from_name: string,
@@ -1059,12 +1109,7 @@ function merchant_from_sender(
     !lowered_name.includes("no-reply") &&
     !from_name.includes("@")
   ) {
-    const stripped = from_name
-      .replace(
-        /(?:\s+(?:order|shipping|notification|update|receipt|billing|payment|team|support)s?)+\s*$/i,
-        "",
-      )
-      .trim();
+    const stripped = strip_sender_suffixes(from_name).trim();
 
     return stripped || from_name.trim();
   }
@@ -1228,7 +1273,7 @@ export function extract_purchase_details(
       money_after("\\bdiscounts?\\b"),
       money_after("\\bsavings?\\b"),
       money_after("\\bcoupon\\b"),
-      money_after("\\bpromo(?:tion)?\\s*(?:code)?\\s*(?:applied)?"),
+      money_after("\\bpromo(?:tion)?(?:\\s*code)?(?:\\s*applied)?"),
     ],
     currency,
   );
@@ -1356,16 +1401,16 @@ export function extract_shipping_details(
   signals.push(`status:${status}`);
 
   const delivery_patterns = [
-    /(?:estimated|expected)\s+delivery[:\s]*([A-Za-z]+,?\s*[A-Za-z]+\s+\d{1,2}(?:,?\s+\d{4})?)/i,
-    /arriving\s+(?:by\s+)?([A-Za-z]+,?\s*[A-Za-z]+\s+\d{1,2})/i,
-    /deliver(?:ed|y)\s+(?:by\s+)?([A-Za-z]+,?\s*[A-Za-z]+\s+\d{1,2})/i,
+    /(?:estimated|expected)\s+delivery[:\s]*([A-Za-z](?:[A-Za-z]*(?:,\s*|\s+))?[A-Za-z]+\s+\d{1,2}(?:,?\s+\d{4})?)/i,
+    /arriving\s+(?:by\s+)?([A-Za-z](?:[A-Za-z]*(?:,\s*|\s+))?[A-Za-z]+\s+\d{1,2})/i,
+    /deliver(?:ed|y)\s+(?:by\s+)?([A-Za-z](?:[A-Za-z]*(?:,\s*|\s+))?[A-Za-z]+\s+\d{1,2})/i,
   ];
   const estimated_delivery = clean_text_field(
     extract_date(clean_body, delivery_patterns),
   );
 
   const shipped_patterns = [
-    /shipped\s+(?:on\s+)?([A-Za-z]+,?\s*[A-Za-z]+\s+\d{1,2}(?:,?\s+\d{4})?)/i,
+    /shipped\s+(?:on\s+)?([A-Za-z](?:[A-Za-z]*(?:,\s*|\s+))?[A-Za-z]+\s+\d{1,2}(?:,?\s+\d{4})?)/i,
     /ship\s+date[:\s]*([A-Za-z]+\s+\d{1,2},?\s+\d{4})/i,
   ];
   const shipped_date = clean_text_field(
@@ -1373,7 +1418,7 @@ export function extract_shipping_details(
   );
 
   const delivered_patterns = [
-    /delivered\s+(?:on\s+)?([A-Za-z]+,?\s*[A-Za-z]+\s+\d{1,2}(?:,?\s+\d{4})?)/i,
+    /delivered\s+(?:on\s+)?([A-Za-z](?:[A-Za-z]*(?:,\s*|\s+))?[A-Za-z]+\s+\d{1,2}(?:,?\s+\d{4})?)/i,
     /delivery\s+date[:\s]*([A-Za-z]+\s+\d{1,2},?\s+\d{4})/i,
   ];
   const delivery_date =
@@ -1412,10 +1457,10 @@ export function is_purchase_email(subject: string, body: string): boolean {
   const combined = `${subject} ${body}`.toLowerCase();
 
   const purchase_indicators = [
-    /\border\s*(?:#|no\.?|num(?:ber)?|id)\s*[:#]?\s*[A-Za-z0-9]*[0-9]/i,
+    /\border\s*(?:#|no\.?|num(?:ber)?|id)(?:\s*[:#])?\s*[A-Za-z0-9]*[0-9]/i,
     /purchase\s+(?:confirmation|complete|receipt)/i,
     /thanks?\s+(?:you\s+)?for\s+(?:your\s+)?(?:[a-z]+\s+){0,2}(?:order|purchase|booking)/i,
-    /\b(?:receipt|transaction|confirmation)\s*(?:#|no\.?|num(?:ber)?|id)\s*[:#]?\s*[A-Za-z0-9.-]*[0-9]/i,
+    /\b(?:receipt|transaction|confirmation)\s*(?:#|no\.?|num(?:ber)?|id)(?:\s*[:#])?\s*[A-Za-z0-9.-]*[0-9]/i,
     /receipt\s+(?:for|from)/i,
     /payment\s+(?:receipt|confirmation|successful)/i,
     /transaction\s+(?:receipt|complete)/i,
