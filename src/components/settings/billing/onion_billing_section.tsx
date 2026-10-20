@@ -208,7 +208,7 @@ export function OnionBillingSection() {
 
   return (
     <IslandSections>
-      <CryptoResumeBanner />
+      {!subscription?.is_lifetime && <CryptoResumeBanner />}
 
       <p className="text-sm leading-relaxed text-txt-muted">
         {t("settings.billing_onion_card_notice")}
@@ -233,22 +233,24 @@ export function OnionBillingSection() {
         upgrade_features={plan_features[DEFAULT_RECOMMENDED_PLAN]}
       />
 
-      <AvailablePlansSection
-        billing_period={billing_period}
-        current_billing_interval={current_billing_interval}
-        handle_currency_change={handle_currency_change}
-        is_action_loading={is_action_loading}
-        on_reload_plans={() => {
-          void load_data();
-        }}
-        on_upgrade={open_crypto_checkout}
-        plan_features={plan_features}
-        plans={plans}
-        plans_load_failed={plans_load_failed}
-        preferred_currency={preferred_currency}
-        set_billing_period={set_billing_period}
-        subscription={subscription}
-      />
+      {!subscription?.is_lifetime && (
+        <AvailablePlansSection
+          billing_period={billing_period}
+          current_billing_interval={current_billing_interval}
+          handle_currency_change={handle_currency_change}
+          is_action_loading={is_action_loading}
+          on_reload_plans={() => {
+            void load_data();
+          }}
+          on_upgrade={open_crypto_checkout}
+          plan_features={plan_features}
+          plans={plans}
+          plans_load_failed={plans_load_failed}
+          preferred_currency={preferred_currency}
+          set_billing_period={set_billing_period}
+          subscription={subscription}
+        />
+      )}
 
       {crypto_plan && crypto_tier && (
         <CryptoTermModal

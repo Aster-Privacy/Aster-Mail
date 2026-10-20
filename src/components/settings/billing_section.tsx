@@ -1227,10 +1227,12 @@ export function BillingSection() {
 
   const has_payment_failed = Boolean(subscription?.payment_failed_at);
   const is_paid_plan = !!subscription && subscription.plan.code !== "free";
+  const is_lifetime = is_paid_plan && !!subscription.is_lifetime;
   const current_tier_index = PLAN_TIERS.findIndex(
     (entry) => entry.id === subscription?.plan.code,
   );
   const next_tier =
+    is_lifetime ||
     has_payment_failed ||
     subscription?.cancel_at_period_end ||
     (is_paid_plan && current_tier_index === -1)
@@ -1348,47 +1350,49 @@ export function BillingSection() {
         plan_name={advantages_plan_name}
       />
 
-      <IslandSection bare title={t("settings.available_plans")}>
-        <Island padding="none">
-          <BillingMoreRow
-            description={t("settings.billing_compare_all_plans_subtitle")}
-            icon={billing_row_icon(Squares2X2Icon)}
-            label={t("settings.compare_plans")}
-            on_toggle={() => set_show_plans((value) => !value)}
-            open={show_plans}
-          >
-            <IslandSections>
-              <AvailablePlansSection
-                embedded
-                billing_period={billing_period}
-                current_billing_interval={current_billing_interval}
-                handle_currency_change={handle_currency_change}
-                is_action_loading={is_action_loading}
-                on_family_plan_change={handle_family_plan_change}
-                on_reload_plans={() => {
-                  void load_data();
-                }}
-                on_tauri_checkout_opened={() => {
-                  plan_before_checkout_ref.current =
-                    subscription?.plan.code ?? null;
-                  pending_tauri_checkout_ref.current = true;
-                }}
-                on_upgrade={handle_select_plan}
-                plan_features={plan_features}
-                plans={plans}
-                plans_load_failed={plans_load_failed}
-                preferred_currency={preferred_currency}
-                set_billing_period={set_billing_period}
-                subscription={subscription}
-              />
+      {!is_lifetime && (
+        <IslandSection bare title={t("settings.available_plans")}>
+          <Island padding="none">
+            <BillingMoreRow
+              description={t("settings.billing_compare_all_plans_subtitle")}
+              icon={billing_row_icon(Squares2X2Icon)}
+              label={t("settings.compare_plans")}
+              on_toggle={() => set_show_plans((value) => !value)}
+              open={show_plans}
+            >
+              <IslandSections>
+                <AvailablePlansSection
+                  embedded
+                  billing_period={billing_period}
+                  current_billing_interval={current_billing_interval}
+                  handle_currency_change={handle_currency_change}
+                  is_action_loading={is_action_loading}
+                  on_family_plan_change={handle_family_plan_change}
+                  on_reload_plans={() => {
+                    void load_data();
+                  }}
+                  on_tauri_checkout_opened={() => {
+                    plan_before_checkout_ref.current =
+                      subscription?.plan.code ?? null;
+                    pending_tauri_checkout_ref.current = true;
+                  }}
+                  on_upgrade={handle_select_plan}
+                  plan_features={plan_features}
+                  plans={plans}
+                  plans_load_failed={plans_load_failed}
+                  preferred_currency={preferred_currency}
+                  set_billing_period={set_billing_period}
+                  subscription={subscription}
+                />
 
-              <PlanComparisonSection
-                current_plan_code={subscription?.plan.code}
-              />
-            </IslandSections>
-          </BillingMoreRow>
-        </Island>
-      </IslandSection>
+                <PlanComparisonSection
+                  current_plan_code={subscription?.plan.code}
+                />
+              </IslandSections>
+            </BillingMoreRow>
+          </Island>
+        </IslandSection>
+      )}
 
       <IslandSection bare title={t("common.more")}>
         <Island padding="none">

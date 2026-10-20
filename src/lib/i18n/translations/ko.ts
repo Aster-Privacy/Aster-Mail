@@ -4325,6 +4325,9 @@ export const ko = {
       "요금제가 {{date}}에 종료됩니다. 이후 계정은 무료 요금제로 전환됩니다.",
     billing_status_active: "활성",
     billing_status_renews: "{{date}}에 갱신",
+    billing_status_lifetime: "평생",
+    billing_lifetime_note:
+      "이 요금제는 갱신되지 않으며 다시 결제할 필요가 없습니다. 변경하려면 Aster 지원팀에 문의하세요.",
     billing_status_ending: "{{date}}에 종료",
     billing_status_attention: "결제 확인이 필요합니다",
     billing_member_since: "{{date}}부터 회원",

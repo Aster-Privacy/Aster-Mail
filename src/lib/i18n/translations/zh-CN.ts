@@ -3921,6 +3921,9 @@ export const zh_CN = {
     billing_history: "账单历史",
     billing_status_active: "生效中",
     billing_status_renews: "{{date}} 续订",
+    billing_status_lifetime: "终身",
+    billing_lifetime_note:
+      "此套餐永不续订，您无需再为其付费。如需更改，请联系 Aster 支持团队。",
     billing_status_ending: "{{date}} 到期",
     billing_status_attention: "付款需要处理",
     billing_member_since: "{{date}} 加入",

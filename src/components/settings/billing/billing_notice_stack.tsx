@@ -56,6 +56,8 @@ export function BillingNoticeStack({
   on_choose_plan,
   on_switch_to_yearly,
 }: BillingNoticeStackProps) {
+  const is_lifetime = !!subscription?.is_lifetime;
+
   return (
     <div className="flex flex-col gap-2 empty:hidden">
       <CurrentPlanNotices
@@ -74,9 +76,13 @@ export function BillingNoticeStack({
         <CardDeclineNotice decline={subscription?.last_card_decline} />
       )}
 
-      <CryptoResumeBanner />
+      {!is_lifetime && <CryptoResumeBanner />}
 
-      <ResumeCheckoutCard current_plan_code={subscription?.plan.code ?? null} />
+      {!is_lifetime && (
+        <ResumeCheckoutCard
+          current_plan_code={subscription?.plan.code ?? null}
+        />
+      )}
 
       <WinBackOfferCard
         offer={subscription?.pending_offer}

@@ -4385,6 +4385,9 @@ export const pt = {
       "O seu plano termina a {{date}}. Depois disso, a sua conta passa para o plano gratuito.",
     billing_status_active: "Ativo",
     billing_status_renews: "Renova em {{date}}",
+    billing_status_lifetime: "Vitalício",
+    billing_lifetime_note:
+      "Este plano nunca é renovado e não volta a pagar por ele. Para o alterar, contacte o suporte da Aster.",
     billing_status_ending: "Termina em {{date}}",
     billing_status_attention: "O pagamento precisa de atenção",
     billing_member_since: "Membro desde {{date}}",
