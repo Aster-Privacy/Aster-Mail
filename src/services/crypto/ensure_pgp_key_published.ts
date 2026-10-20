@@ -78,7 +78,15 @@ export async function ensure_pgp_key_published(options?: {
     .catch(() => null);
 
   if (!existing) return "skipped";
-  if (existing.data) return "already_published";
+  if (existing.data) {
+    await heal_published_key_addresses(
+      existing.data,
+      account?.user?.email ?? null,
+      account?.user?.display_name ?? null,
+    );
+
+    return "already_published";
+  }
   if (existing.code !== "NOT_FOUND") return "skipped";
 
   const healed = (await identity_key_is_publishable(vault.identity_key))
@@ -95,6 +103,30 @@ export async function ensure_pgp_key_published(options?: {
   }
 
   return "failed";
+}
+
+async function heal_published_key_addresses(
+  published: unknown,
+  user_email: string | null,
+  user_name: string | null,
+): Promise<void> {
+  const armored = (published as { public_key_armored?: unknown })
+    .public_key_armored;
+
+  if (!user_email || typeof armored !== "string" || !armored) return;
+
+  try {
+    const { ensure_published_key_has_account_addresses } =
+      await import("@/services/pgp_uid_service");
+
+    await ensure_published_key_has_account_addresses(
+      armored,
+      user_email,
+      user_name ?? "",
+    );
+  } catch {
+    return;
+  }
 }
 
 async function install_identity_key_when_unpublished(
