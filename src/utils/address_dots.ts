@@ -36,3 +36,25 @@ export function same_address_ignoring_dots(
     normalize_address_ignoring_dots(right)
   );
 }
+
+const DOT_INSENSITIVE_DOMAINS = new Set(["astermail.org", "aster.cx"]);
+
+export function identity_addresses_for(address: string): string[] {
+  const trimmed = address.trim();
+  const at = trimmed.lastIndexOf("@");
+
+  if (at <= 0) return trimmed ? [trimmed] : [];
+
+  const local_part = trimmed.slice(0, at);
+  const domain = trimmed.slice(at + 1).toLowerCase();
+
+  if (!local_part.includes(".") || !DOT_INSENSITIVE_DOMAINS.has(domain)) {
+    return [trimmed];
+  }
+
+  const dotless = local_part.replace(/\./g, "");
+
+  if (!dotless) return [trimmed];
+
+  return [trimmed, `${dotless}@${trimmed.slice(at + 1)}`];
+}

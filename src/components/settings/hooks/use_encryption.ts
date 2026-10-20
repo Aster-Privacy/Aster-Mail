@@ -57,6 +57,7 @@ import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 import { use_sender_aliases } from "@/hooks/use_sender_aliases";
 import { ensure_identity_key_addresses } from "@/services/pgp_uid_service";
+import { identity_addresses_for } from "@/utils/address_dots";
 
 const KEYSERVER_MAX_ADDRESSES = 10;
 const KEYSERVER_POLL_INTERVAL_MS = 60_000;
@@ -739,7 +740,13 @@ export function use_encryption() {
         selected.includes(candidate.email),
       );
 
-      if (chosen.some((candidate) => !candidate.is_primary)) {
+      if (
+        chosen.some(
+          (candidate) =>
+            !candidate.is_primary ||
+            identity_addresses_for(candidate.email).length > 1,
+        )
+      ) {
         const key_result = await ensure_identity_key_addresses(
           chosen.map((candidate) => ({
             email: candidate.email,

@@ -37,6 +37,7 @@ import { with_vault_write_lock } from "@/services/crypto/vault_write_lock";
 import { MAX_LEGACY_IDENTITY_KEYS } from "@/services/crypto/identity_key_materials";
 import { get_current_account } from "@/services/account_manager";
 import { ignore_error } from "@/lib/ignore_error";
+import { identity_addresses_for } from "@/utils/address_dots";
 
 interface UserId {
   name?: string;
@@ -220,6 +221,77 @@ export async function republish_identity_with_new_address(
   );
 
   return result !== "failed";
+}
+
+const attempted_address_heals = new Set<string>();
+
+export function identity_addresses_missing_from_key(
+  key: Key,
+  email: string,
+  display_name: string,
+): IdentityAddress[] {
+  const name = display_name.trim() || email.split("@")[0] || email;
+
+  return missing_addresses(
+    existing_user_ids(key),
+    identity_addresses_for(email).map((address) => ({ email: address, name })),
+  );
+}
+
+export async function ensure_published_key_has_account_addresses(
+  published_armored: string,
+  email: string,
+  display_name: string,
+): Promise<IdentityAddressResult> {
+  if (identity_addresses_for(email).length < 2) return "unchanged";
+
+  const openpgp = await load_openpgp();
+  const published_key = await openpgp.readKey({
+    armoredKey: published_armored,
+  });
+  const missing = identity_addresses_missing_from_key(
+    published_key,
+    email,
+    display_name,
+  );
+
+  if (missing.length === 0) return "unchanged";
+
+  const vault = get_vault_from_memory();
+
+  if (
+    !vault?.identity_key?.trimStart().startsWith("-----BEGIN PGP PRIVATE KEY")
+  ) {
+    return "unchanged";
+  }
+
+  const vault_key = await openpgp.readPrivateKey({
+    armoredKey: vault.identity_key,
+  });
+  const fingerprint = published_key.getFingerprint().toLowerCase();
+
+  if (vault_key.getFingerprint().toLowerCase() !== fingerprint) {
+    return "unchanged";
+  }
+
+  const account = await get_current_account();
+  const marker = `${account?.user?.id ?? ""}|${fingerprint}|${email.toLowerCase()}`;
+
+  if (attempted_address_heals.has(marker)) return "unchanged";
+
+  attempted_address_heals.add(marker);
+
+  const wanted = identity_addresses_for(email);
+  const name = display_name.trim() || email.split("@")[0] || email;
+  const display_missing = missing.some(
+    (entry) => entry.email.toLowerCase() === wanted[0].toLowerCase(),
+  );
+
+  return shared_identity_republish(
+    wanted.map((address) => ({ email: address, name })),
+    display_missing ? "first" : "last",
+    true,
+  );
 }
 
 export async function ensure_identity_key_addresses(

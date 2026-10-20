@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  identity_addresses_for,
   normalize_address_ignoring_dots,
   same_address_ignoring_dots,
 } from "./address_dots";
@@ -75,5 +76,32 @@ describe("registration username input", () => {
 
   it("collapses to the same canonical username", () => {
     expect("john.smith".replace(/\./g, "")).toBe("johnsmith");
+  });
+});
+
+describe("identity_addresses_for", () => {
+  it("adds the dot-free form of a dotted Aster address", () => {
+    expect(identity_addresses_for("murati.balazs@astermail.org")).toEqual([
+      "murati.balazs@astermail.org",
+      "muratibalazs@astermail.org",
+    ]);
+    expect(identity_addresses_for("a.b.c@Aster.CX")).toEqual([
+      "a.b.c@Aster.CX",
+      "abc@Aster.CX",
+    ]);
+  });
+
+  it("keeps a single address when dots do not matter or are absent", () => {
+    expect(identity_addresses_for("muratibalazs@astermail.org")).toEqual([
+      "muratibalazs@astermail.org",
+    ]);
+    expect(identity_addresses_for("first.last@example.com")).toEqual([
+      "first.last@example.com",
+    ]);
+    expect(identity_addresses_for("no-at-sign")).toEqual(["no-at-sign"]);
+    expect(identity_addresses_for("...@astermail.org")).toEqual([
+      "...@astermail.org",
+    ]);
+    expect(identity_addresses_for("  ")).toEqual([]);
   });
 });
