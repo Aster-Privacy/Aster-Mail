@@ -138,7 +138,9 @@ export function ComposeToolbar({
         </div>
       )}
 
-      <div className="px-4 pt-1 pb-2.5 flex items-center gap-2">
+      <div
+        className={`px-4 ${show_format_bar && !compose.is_plain_text_mode ? "pt-1" : "pt-2.5"} pb-2.5 flex items-center gap-2`}
+      >
         {compose.scheduled_time ? (
           <Button
             className="px-5 rounded-[var(--aster-radius-control)]"
