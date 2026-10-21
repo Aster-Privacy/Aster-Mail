@@ -395,15 +395,80 @@ export interface PgpBlockSplit {
   rest: string;
 }
 
+const HTML_ARMOR_ENTITIES: Record<string, string> = {
+  "&lt;": "<",
+  "&gt;": ">",
+  "&quot;": '"',
+  "&#39;": "'",
+  "&#x27;": "'",
+  "&#43;": "+",
+  "&#x2b;": "+",
+  "&#47;": "/",
+  "&#x2f;": "/",
+  "&#61;": "=",
+  "&#x3d;": "=",
+  "&nbsp;": " ",
+  "&amp;": "&",
+};
+
+const HTML_ARMOR_ENTITY_PATTERN =
+  /&(?:lt|gt|quot|nbsp|amp|#39|#x27|#43|#x2b|#47|#x2f|#61|#x3d);/gi;
+
+const ARMOR_BEGIN_LINE = "-----BEGIN PGP MESSAGE-----";
+const ARMOR_END_LINE = "-----END PGP MESSAGE-----";
+const ARMOR_HEADER_LINE = /^[A-Za-z][A-Za-z0-9-]*: /;
+const ARMOR_DATA_LINE = /^=?[A-Za-z0-9+/]+=*$/;
+const HTML_LINE_BREAK_TAG = /^<(?:br\b|\/(?:p|div|pre|li|tr|blockquote)\s*>)/i;
+
+export function unwrap_html_armor(block: string): string {
+  if (!/<[a-z/!]|&[#a-z0-9]+;/i.test(block)) return block;
+
+  const lines = block
+    .split(/(<[^>]*>)/)
+    .map((part) =>
+      part.startsWith("<")
+        ? HTML_LINE_BREAK_TAG.test(part)
+          ? "\n"
+          : ""
+        : part,
+    )
+    .join("")
+    .replace(
+      HTML_ARMOR_ENTITY_PATTERN,
+      (entity) => HTML_ARMOR_ENTITIES[entity.toLowerCase()] ?? entity,
+    )
+    .split(/\r?\n/)
+    .map((line) => line.replace(/ /g, " ").trim())
+    .filter((line) => line.length > 0);
+
+  if (
+    lines[0] !== ARMOR_BEGIN_LINE ||
+    lines[lines.length - 1] !== ARMOR_END_LINE
+  ) {
+    return block;
+  }
+
+  const data = lines
+    .slice(1, -1)
+    .filter((line) => !ARMOR_HEADER_LINE.test(line));
+
+  if (data.length === 0 || !data.every((line) => ARMOR_DATA_LINE.test(line))) {
+    return block;
+  }
+
+  return [ARMOR_BEGIN_LINE, "", ...data, ARMOR_END_LINE].join("\n");
+}
+
 export function split_pgp_block(text: string): PgpBlockSplit | null {
   const match = PGP_BLOCK_PATTERN.exec(text);
 
   if (!match) return null;
 
-  const block = match[2];
+  const raw_block = match[2];
+  const block = unwrap_html_armor(raw_block);
   const start = match.index + match[1].length;
   const before = text.slice(0, start);
-  const after = text.slice(start + block.length);
+  const after = text.slice(start + raw_block.length);
   const remainder = `${before}\n${after}`;
   const visible = remainder
     .replace(/<[^>]*>/g, " ")

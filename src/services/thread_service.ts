@@ -251,7 +251,10 @@ async function decode_thread_envelope(
     resolved_html = undefined;
   }
   const resolved_text = envelope.body_text ?? envelope.text_body ?? "";
-  let body_content = resolved_html || resolved_text;
+  let body_content =
+    has_inbound_pgp_block(resolved_text) || !resolved_html
+      ? resolved_text
+      : resolved_html;
   let body_decrypted = false;
   let e2e_verified = false;
 
@@ -587,7 +590,10 @@ export async function fetch_and_decrypt_virtual_group(
       resolved_html = undefined;
     }
     const resolved_text = envelope.body_text ?? envelope.text_body ?? "";
-    let body_content = resolved_html || resolved_text;
+    let body_content =
+      has_inbound_pgp_block(resolved_text) || !resolved_html
+        ? resolved_text
+        : resolved_html;
     let body_decrypted = false;
     let e2e_verified = false;
 
