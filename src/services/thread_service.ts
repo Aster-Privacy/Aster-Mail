@@ -64,6 +64,7 @@ import {
   is_password_protected_body,
   resolve_inbound_pgp_body,
   has_inbound_pgp_block,
+  is_quoted_inbound_pgp,
 } from "@/utils/email_crypto";
 import { filter_locked_mail_items } from "@/services/locked_folders";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
@@ -255,6 +256,9 @@ async function decode_thread_envelope(
     has_inbound_pgp_block(resolved_text) || !resolved_html
       ? resolved_text
       : resolved_html;
+  const quoted_html_pgp =
+    body_content !== resolved_text &&
+    is_quoted_inbound_pgp(resolved_text, body_content);
   let body_decrypted = false;
   let e2e_verified = false;
 
@@ -298,7 +302,7 @@ async function decode_thread_envelope(
 
   let pgp_unresolved = false;
 
-  if (has_inbound_pgp_block(body_content)) {
+  if (!quoted_html_pgp && has_inbound_pgp_block(body_content)) {
     const resolved = await resolve_inbound_pgp_body(body_content);
 
     body_content = resolved.body;
@@ -594,6 +598,9 @@ export async function fetch_and_decrypt_virtual_group(
       has_inbound_pgp_block(resolved_text) || !resolved_html
         ? resolved_text
         : resolved_html;
+    const quoted_html_pgp =
+      body_content !== resolved_text &&
+      is_quoted_inbound_pgp(resolved_text, body_content);
     let body_decrypted = false;
     let e2e_verified = false;
 
@@ -635,7 +642,7 @@ export async function fetch_and_decrypt_virtual_group(
       }
     }
 
-    if (has_inbound_pgp_block(body_content)) {
+    if (!quoted_html_pgp && has_inbound_pgp_block(body_content)) {
       const resolved = await resolve_inbound_pgp_body(body_content);
 
       body_content = resolved.body;
