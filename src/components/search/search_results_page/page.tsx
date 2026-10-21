@@ -57,6 +57,10 @@ import { InboxHeader } from "@/components/inbox/inbox_header";
 import { InboxEmailListItem } from "@/components/email/inbox_email_list_item";
 import { EmailContextMenuContent } from "@/components/email/email_context_menu";
 import {
+  can_move_to_category,
+  move_items_to_category,
+} from "@/components/email/inbox/category_move";
+import {
   bin_source_of,
   move_out_of_bin,
 } from "@/hooks/email_actions/move_out_of_bin";
@@ -681,8 +685,21 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
       {menu_email && (
         <EmailContextMenuContent
           key={menu_email.id}
+          categories_enabled={preferences.inbox_categories_enabled !== false}
           current_view="search"
           email={menu_email}
+          on_category_change={
+            !menu_selection &&
+            menu_email.item_type === "received" &&
+            can_move_to_category(menu_email)
+              ? (category) => {
+                  void move_items_to_category([menu_email], category, {
+                    t,
+                    custom_categories: preferences.custom_categories,
+                  });
+                }
+              : undefined
+          }
           folders={menu_folders}
           on_archive={() =>
             menu_selection

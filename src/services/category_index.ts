@@ -18,8 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { EmailCategory, InboxEmail } from "@/types/email";
+import type { EmailCategory } from "@/types/email";
 import type { TranslationKey } from "@/lib/i18n/types";
+import type { PreviousCategoryState } from "@/services/crypto/mail_metadata_core";
 
 import {
   secure_encrypt,
@@ -58,7 +59,11 @@ import {
   type CustomCategoryRule,
 } from "@/data/category_catalog";
 import { decrypt_envelope } from "@/hooks/email_list_helpers";
-import { on_mail_event, MAIL_EVENTS } from "@/hooks/mail_events";
+import {
+  emit_mail_item_updated,
+  on_mail_event,
+  MAIL_EVENTS,
+} from "@/hooks/mail_events";
 import {
   build_category_preview,
   MAX_PREVIEW_SENDER_CHARS,
@@ -1639,9 +1644,7 @@ export function get_category_action_ids(
   const page_ids = ensure_derived().pages.get(category) ?? [];
   const excluded = new Set(excluded_ids);
   const rep_ids =
-    excluded.size === 0
-      ? page_ids
-      : page_ids.filter((id) => !excluded.has(id));
+    excluded.size === 0 ? page_ids : page_ids.filter((id) => !excluded.has(id));
   const rep_set = new Set(rep_ids);
   const thread_tokens = new Set<string>();
 
@@ -2982,7 +2985,10 @@ function note_server_unread(server_unread: number): void {
       unread_verify_timer = null;
       void verify_unread_against_server();
     },
-    Math.max(UNREAD_VERIFY_DELAY_MS, UNREAD_VERIFY_MIN_INTERVAL_MS - since_last),
+    Math.max(
+      UNREAD_VERIFY_DELAY_MS,
+      UNREAD_VERIFY_MIN_INTERVAL_MS - since_last,
+    ),
   );
 }
 
@@ -3239,45 +3245,193 @@ export async function init_category_index(): Promise<void> {
   void build_index({ force: fully_built && entries_map.size === 0 });
 }
 
+export interface CategoryMoveTarget {
+  id: string;
+  thread_token?: string;
+  encrypted_metadata?: string;
+  metadata_nonce?: string;
+  metadata_version?: number;
+  is_read?: boolean;
+  raw_timestamp?: string;
+  timestamp?: string;
+}
+
 export interface CategoryWriteResult {
   applied: boolean;
   undecryptable: boolean;
+  previous?: PreviousCategoryState;
+  encrypted_metadata?: string;
+  metadata_nonce?: string;
+  metadata_version?: number;
 }
 
-export async function set_message_category(
-  email: InboxEmail,
-  category: EmailCategory,
+const MAX_RECENT_RECLASSIFY_META = 200;
+
+function remember_own_metadata_write(id: string, encrypted_metadata: string) {
+  recent_reclassify_meta.delete(id);
+  recent_reclassify_meta.set(id, encrypted_metadata);
+  while (recent_reclassify_meta.size > MAX_RECENT_RECLASSIFY_META) {
+    const oldest = recent_reclassify_meta.keys().next().value;
+
+    if (oldest === undefined) break;
+    recent_reclassify_meta.delete(oldest);
+  }
+}
+
+async function write_category_state(
+  target: CategoryMoveTarget,
+  state: PreviousCategoryState,
 ): Promise<CategoryWriteResult> {
   const result = await update_item_metadata(
-    email.id,
+    target.id,
     {
-      encrypted_metadata: email.encrypted_metadata,
-      metadata_nonce: email.metadata_nonce,
-      metadata_version: email.metadata_version,
+      encrypted_metadata: target.encrypted_metadata,
+      metadata_nonce: target.metadata_nonce,
+      metadata_version: target.metadata_version,
     },
-    { category, category_pinned: true },
+    {
+      category: state.category,
+      category_pinned: state.category_pinned ? true : undefined,
+    },
   );
 
   if (!result.success) {
     return { applied: false, undecryptable: result.undecryptable === true };
   }
 
-  const existing = entries_map.get(email.id);
+  if (result.encrypted) {
+    remember_own_metadata_write(target.id, result.encrypted.encrypted_metadata);
+    emit_mail_item_updated({
+      id: target.id,
+      encrypted_metadata: result.encrypted.encrypted_metadata,
+      metadata_nonce: result.encrypted.metadata_nonce,
+    });
+  }
 
-  note_recent_pin(email.id, category);
-  upsert_entries([
-    {
-      id: email.id,
-      thread_token: email.thread_token,
-      message_ts:
-        existing?.message_ts || email.raw_timestamp || email.timestamp,
-      is_read: email.is_read,
-      category,
-      category_pinned: true,
-    },
-  ]);
+  return {
+    applied: true,
+    undecryptable: false,
+    previous: result.previous,
+    encrypted_metadata: result.encrypted?.encrypted_metadata,
+    metadata_nonce: result.encrypted?.metadata_nonce,
+    metadata_version: result.written_version,
+  };
+}
 
-  return { applied: true, undecryptable: false };
+export function pinned_category_entry(
+  target: CategoryMoveTarget,
+  category: EmailCategory,
+): CategoryIndexEntry {
+  const existing = entries_map.get(target.id);
+
+  return {
+    ...(existing ?? {}),
+    id: target.id,
+    thread_token: existing?.thread_token ?? target.thread_token,
+    message_ts:
+      existing?.message_ts || target.raw_timestamp || target.timestamp || "",
+    is_read: existing?.is_read ?? target.is_read ?? true,
+    category,
+    category_pinned: true,
+    needs_reclassify: undefined,
+    source: undefined,
+  };
+}
+
+export function apply_category_pin_locally(
+  target: CategoryMoveTarget,
+  category: EmailCategory,
+): void {
+  note_recent_pin(target.id, category);
+  upsert_entries([pinned_category_entry(target, category)]);
+}
+
+export function restore_category_entry_locally(
+  id: string,
+  snapshot?: CategoryIndexEntry,
+): void {
+  clear_recent_pin(id);
+  if (snapshot) {
+    if (snapshot.category_pinned) note_recent_pin(id, snapshot.category);
+    const current = entries_map.get(id);
+
+    upsert_entries([
+      {
+        ...snapshot,
+        is_read: current?.is_read ?? snapshot.is_read,
+        is_pinned: current?.is_pinned ?? snapshot.is_pinned,
+        snoozed_until: current ? current.snoozed_until : snapshot.snoozed_until,
+      },
+    ]);
+
+    return;
+  }
+  if (entries_map.has(id)) {
+    entries_map.delete(id);
+    mark_dirty(id);
+    schedule_persist();
+    notify();
+  }
+  if (fully_built) void reclassify_id(id);
+}
+
+export async function set_message_category(
+  target: CategoryMoveTarget,
+  category: EmailCategory,
+): Promise<CategoryWriteResult> {
+  const outcome = await write_category_state(target, {
+    category,
+    category_pinned: true,
+  });
+
+  if (outcome.applied) apply_category_pin_locally(target, category);
+
+  return outcome;
+}
+
+export async function restore_message_category(
+  target: CategoryMoveTarget,
+  previous: PreviousCategoryState,
+): Promise<CategoryWriteResult> {
+  return write_category_state(target, {
+    category: previous.category,
+    category_pinned: previous.category_pinned,
+  });
+}
+
+export function is_thread_grouping(): boolean {
+  return thread_grouping;
+}
+
+export function get_thread_category(
+  thread_token: string | undefined,
+): EmailCategory | null {
+  if (!thread_token || !thread_grouping) return null;
+
+  const wall = now_ms();
+  let newest: CategoryIndexEntry | null = null;
+  let newest_ts = -1;
+  let pinned: EmailCategory | undefined;
+  let pinned_ts = -1;
+
+  for (const entry of entries_map.values()) {
+    if (entry.thread_token !== thread_token) continue;
+    if (entry.snoozed_until && safe_ts(entry.snoozed_until) > wall) continue;
+    const ts = safe_ts(entry.message_ts);
+
+    if (ts > newest_ts) {
+      newest = entry;
+      newest_ts = ts;
+    }
+    if (entry.category_pinned && ts >= pinned_ts) {
+      pinned = entry.category;
+      pinned_ts = ts;
+    }
+  }
+
+  if (!newest) return null;
+
+  return fold_category(pinned ?? newest.category);
 }
 
 export async function clear_category_index(): Promise<void> {

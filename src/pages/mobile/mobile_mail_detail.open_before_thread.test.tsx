@@ -101,6 +101,20 @@ vi.mock("./mobile_detail_sheets", () => ({
 vi.mock("@/components/mobile/mobile_header", () => ({
   MobileHeader: () => null,
 }));
+vi.mock("@/components/mobile/mobile_category_sheet", () => ({
+  MobileCategorySheet: () => null,
+}));
+vi.mock("@/components/email/inbox/category_move", () => ({
+  can_move_to_category: () => false,
+  mail_item_move_item: vi.fn(),
+  move_items_to_category: vi.fn(),
+}));
+vi.mock("@/components/email/inbox/category_move_menu", () => ({
+  use_category_tab_options: () => [],
+}));
+vi.mock("@/services/effective_category", () => ({
+  displayed_category: () => "primary",
+}));
 vi.mock("@/components/modals/confirmation_modal", () => ({
   ConfirmationModal: () => null,
 }));

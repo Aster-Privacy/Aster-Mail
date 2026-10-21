@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { InboxEmail, InboxFilterType } from "@/types/email";
+import type { EmailCategory, InboxEmail, InboxFilterType } from "@/types/email";
 import type { ListReadFilter } from "@/hooks/email_list_types";
 
 import { useState, useCallback, useMemo, useEffect, useRef } from "react";
@@ -40,6 +40,7 @@ import {
   ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  Squares2X2Icon,
 } from "@heroicons/react/24/outline";
 
 import {
@@ -51,6 +52,12 @@ import { use_email_list } from "@/hooks/use_email_list";
 import { use_inbox_categories } from "@/hooks/use_inbox_categories";
 import { use_category_inbox } from "@/hooks/use_category_inbox";
 import { CategoryTabs } from "@/components/email/inbox/category_tabs";
+import {
+  can_move_to_category,
+  move_items_to_category,
+} from "@/components/email/inbox/category_move";
+import { use_category_tab_options } from "@/components/email/inbox/category_move_menu";
+import { MobileCategorySheet } from "@/components/mobile/mobile_category_sheet";
 import { use_drafts_list, type DraftListItem } from "@/hooks/use_drafts_list";
 import { use_scheduled_emails } from "@/hooks/use_scheduled_emails";
 import { reschedule_email, send_scheduled_now } from "@/services/api/scheduled";
@@ -698,6 +705,30 @@ function MobileInbox({
     exit_selection_mode();
   }, [permanent_delete_target, run_permanent_delete, exit_selection_mode]);
 
+  const [category_sheet_open, set_category_sheet_open] = useState(false);
+  const category_options = use_category_tab_options();
+
+  const handle_bulk_category_move = useCallback(
+    (category: EmailCategory) => {
+      const emails = get_selected_emails().filter(can_move_to_category);
+
+      if (emails.length === 0) return;
+      exit_selection_mode();
+      void move_items_to_category(emails, category, {
+        t,
+        update_email,
+        custom_categories: preferences.custom_categories,
+      });
+    },
+    [
+      get_selected_emails,
+      exit_selection_mode,
+      t,
+      update_email,
+      preferences.custom_categories,
+    ],
+  );
+
   const handle_bulk_toggle_star = useCallback(async () => {
     await run_bulk_action(async () => {
       const emails = get_selected_emails();
@@ -1101,6 +1132,17 @@ function MobileInbox({
           <span className="min-w-0 flex-1 text-lg font-semibold text-[var(--text-primary)]">
             {t("common.selected_count", { count: selected_ids.size })}
           </span>
+          {categories.enabled && category_options.length > 1 && (
+            <button
+              aria-label={t("mail.move_to_category")}
+              className="flex h-11 w-11 items-center justify-center rounded-full text-[var(--text-secondary)] active:bg-[var(--bg-tertiary)] disabled:opacity-50"
+              disabled={selected_ids.size === 0 || bulk_action_busy}
+              type="button"
+              onClick={() => set_category_sheet_open(true)}
+            >
+              <Squares2X2Icon className="h-5 w-5" />
+            </button>
+          )}
           <button
             className="rounded-[var(--aster-radius-control)] px-3 py-1.5 text-[13px] font-medium text-[var(--accent-color,#3b82f6)]"
             type="button"
@@ -1651,6 +1693,12 @@ function MobileInbox({
           </div>
         </div>
       </MobileBottomSheet>
+
+      <MobileCategorySheet
+        is_open={category_sheet_open && selection_mode}
+        on_close={() => set_category_sheet_open(false)}
+        on_select={handle_bulk_category_move}
+      />
 
       {spam_confirm_dialog}
     </div>

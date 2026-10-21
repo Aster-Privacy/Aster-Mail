@@ -70,6 +70,12 @@ import {
 import { type ThreadMessagesListRef } from "@/components/email/thread_message_block";
 import { app_locale } from "@/utils/date_format";
 import { folder_option_indent } from "@/hooks/use_folders/tree";
+import { CategoryMoveDropdownSub } from "@/components/email/inbox/category_move_menu";
+import {
+  can_move_to_category,
+  mail_item_move_item,
+  move_items_to_category,
+} from "@/components/email/inbox/category_move";
 
 export interface ViewerToolbarActionsProps {
   is_pinned: boolean;
@@ -173,6 +179,9 @@ export function ViewerToolbarActions({
   const { t } = use_i18n();
   const { preferences, update_preference } = use_preferences();
   const is_advanced = preferences.viewer_toolbar_mode === "advanced";
+  const show_category_move =
+    preferences.inbox_categories_enabled !== false &&
+    can_move_to_category(mail_item);
   const btn_style = button_px
     ? {
         width: button_px,
@@ -663,6 +672,18 @@ export function ViewerToolbarActions({
               <FolderIcon className="w-4 h-4 me-2" />
               {t("mail.move_to_folder")}
             </DropdownMenuItem>
+          )}
+          {show_category_move && mail_item && (
+            <CategoryMoveDropdownSub
+              on_select={(category) => {
+                void move_items_to_category(
+                  [mail_item_move_item(mail_item, email?.sender_email)],
+                  category,
+                  { t, custom_categories: preferences.custom_categories },
+                );
+              }}
+              source={mail_item}
+            />
           )}
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={on_print}>

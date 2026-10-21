@@ -24,11 +24,13 @@ import type { EmailCategory } from "@/types/email";
 import {
   fold_to_active_tab,
   get_index_entries,
+  get_thread_category,
 } from "@/services/category_index";
 
 interface CategorySource {
   id?: string;
   mail_category?: EmailCategory;
+  thread_token?: string;
 }
 
 export function effective_category(email: CategorySource): EmailCategory {
@@ -41,4 +43,8 @@ export function effective_category(email: CategorySource): EmailCategory {
   }
 
   return fold_to_active_tab(email.mail_category);
+}
+
+export function displayed_category(email: CategorySource): EmailCategory {
+  return get_thread_category(email.thread_token) ?? effective_category(email);
 }

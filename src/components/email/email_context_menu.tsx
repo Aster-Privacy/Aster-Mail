@@ -59,7 +59,8 @@ import {
   get_version as get_category_index_version,
   subscribe as subscribe_category_index,
 } from "@/services/category_index";
-import { effective_category } from "@/services/effective_category";
+import { displayed_category } from "@/services/effective_category";
+import { can_move_to_category } from "@/components/email/inbox/category_move";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -227,6 +228,17 @@ function EmailContextMenuContentInner({
       ? [current_folder_id]
       : [];
   const is_bin = is_trash || is_spam;
+  const show_category_menu =
+    categories_enabled &&
+    !!on_category_change &&
+    !is_trash &&
+    !is_spam &&
+    !is_sent &&
+    !is_archive &&
+    !is_drafts &&
+    !is_scheduled &&
+    (is_selection || can_move_to_category(email)) &&
+    get_active_tab_options().length > 1;
   const can_move_out_of_bin =
     is_bin && !!on_move_to_inbox && !is_drafts && !is_scheduled;
   const can_move_to_inbox =
@@ -464,15 +476,7 @@ function EmailContextMenuContentInner({
           on_tag_toggle &&
           !is_drafts &&
           !is_scheduled) ||
-        (supports_id_scope &&
-          categories_enabled &&
-          on_category_change &&
-          !is_trash &&
-          !is_spam &&
-          !is_sent &&
-          !is_archive &&
-          !is_drafts &&
-          !is_scheduled) ||
+        show_category_menu ||
         ((is_archive || is_trash) && on_move_to_inbox)) && (
         <ContextMenuSeparator />
       )}
@@ -576,42 +580,34 @@ function EmailContextMenuContentInner({
           </ContextMenuSub>
         )}
 
-      {supports_id_scope &&
-        categories_enabled &&
-        on_category_change &&
-        !is_trash &&
-        !is_spam &&
-        !is_sent &&
-        !is_archive &&
-        !is_drafts &&
-        !is_scheduled && (
-          <ContextMenuSub>
-            <ContextMenuSubTrigger>
-              <Squares2X2Icon className="me-2 h-4 w-4" />
-              {t("mail.move_to_category")}
-            </ContextMenuSubTrigger>
-            <ContextMenuSubContent className="w-48">
-              {get_active_tab_options().map(({ id, icon, label_key, name }) => {
-                const Icon = category_icon(icon);
+      {show_category_menu && on_category_change && (
+        <ContextMenuSub>
+          <ContextMenuSubTrigger>
+            <Squares2X2Icon className="me-2 h-4 w-4" />
+            {t("mail.move_to_category")}
+          </ContextMenuSubTrigger>
+          <ContextMenuSubContent className="w-48">
+            {get_active_tab_options().map(({ id, icon, label_key, name }) => {
+              const Icon = category_icon(icon);
 
-                return (
-                  <ContextMenuItem
-                    key={id}
-                    onSelect={() => on_category_change(id as EmailCategory)}
-                  >
-                    {!selection && effective_category(email) === id && (
-                      <CheckIcon className="me-0.5 h-3 w-3 flex-shrink-0" />
-                    )}
-                    <Icon className="me-2 h-4 w-4" />
-                    <span className="truncate">
-                      {label_key ? t(label_key) : (name ?? id)}
-                    </span>
-                  </ContextMenuItem>
-                );
-              })}
-            </ContextMenuSubContent>
-          </ContextMenuSub>
-        )}
+              return (
+                <ContextMenuItem
+                  key={id}
+                  onSelect={() => on_category_change(id as EmailCategory)}
+                >
+                  {!selection && displayed_category(email) === id && (
+                    <CheckIcon className="me-0.5 h-3 w-3 flex-shrink-0" />
+                  )}
+                  <Icon className="me-2 h-4 w-4" />
+                  <span className="truncate">
+                    {label_key ? t(label_key) : (name ?? id)}
+                  </span>
+                </ContextMenuItem>
+              );
+            })}
+          </ContextMenuSubContent>
+        </ContextMenuSub>
+      )}
 
       {(is_archive || is_trash) && on_move_to_inbox && (
         <ContextMenuItem
