@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { EditDraftData } from "@/components/compose/compose_shared";
+import type { UndoSendEvent } from "@/hooks/use_undo_send";
 
 import { Suspense, useState, useCallback, useRef, useEffect } from "react";
 import {
@@ -69,6 +70,7 @@ import { escape_mailto_body } from "@/lib/mailto_link";
 import { read_settings_navigation } from "@/lib/settings_links";
 import { use_upgrade_prompt_events } from "@/stores/upgrade_store";
 import { safe_local_get } from "@/lib/safe_storage";
+import { draft_from_undone_send } from "@/components/toast/undone_send_draft";
 
 const MobileInbox = lazy_with_retry(
   () => import("@/pages/mobile/mobile_inbox"),
@@ -487,8 +489,19 @@ function MobileApp() {
   );
 
   useEffect(() => {
-    const handle_undo_send = () => {
+    const handle_undo_send = (event: Event) => {
       if (is_compose_open) return;
+
+      const { pending, payload } = (event as CustomEvent<UndoSendEvent>)
+        .detail;
+
+      if (pending && payload) {
+        sessionStorage.removeItem("astermail_mobile_compose");
+        edit_draft_ref.current = draft_from_undone_send(pending, payload);
+        set_is_compose_open(true);
+
+        return;
+      }
 
       const saved = sessionStorage.getItem("astermail_mobile_compose");
 
