@@ -11,7 +11,7 @@ You can sign up at [astermail.org](https://astermail.org). A phone number and re
 
 ## How it works
 
-All Aster-to-Aster messages are end-to-end encrypted using the standard OpenPGP (Ed25519 and Curve25519). Subject lines are also encrypted. This means that we cannot read your subject lines, unlike other providers. Aster-to-Aster messages also use ML-KEM-768 inside an X3DH and Double Ratchet protocol, which protects against store-now-decrypt-later attacks.
+All Aster-to-Aster messages are end-to-end encrypted with post-quantum encryption (ML-KEM-768 and P-256 ECDH) inside an X3DH and Double Ratchet protocol, which protects against store-now-decrypt-later attacks. Subject lines are also encrypted. This means that we cannot read your subject lines, unlike other providers. Mail you send outside Aster uses standard OpenPGP (Ed25519 and Curve25519).
 
 Your keys are yours, and they are fully portable. You can export them and use them with GPG or any OpenPGP client. Public keys are published through WKD and key servers automatically, so encrypting to other Aster users happens without any setup.
 
