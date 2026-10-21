@@ -55,6 +55,7 @@ import {
 import { delete_draft } from "@/services/api/multi_drafts";
 import { check_scheduled_send } from "@/services/scheduled_send_gate";
 import { show_toast } from "@/components/toast/simple_toast";
+import { MAX_SUBJECT_LENGTH, subject_length } from "@/lib/reply_subject";
 import {
   MAX_RECIPIENTS_PER_FIELD,
   MAX_RECIPIENTS_PER_SEND,
@@ -311,7 +312,7 @@ export function use_compose_send({
       return;
     }
 
-    if (subject.length > 998) {
+    if (subject_length(subject) > MAX_SUBJECT_LENGTH) {
       show_toast(t("common.subject_too_long"), "error");
 
       return;
@@ -925,7 +926,7 @@ export function use_compose_send({
       return;
     }
 
-    if (subject.length > 998) {
+    if (subject_length(subject) > MAX_SUBJECT_LENGTH) {
       show_toast(t("common.subject_too_long"), "error");
 
       return;
