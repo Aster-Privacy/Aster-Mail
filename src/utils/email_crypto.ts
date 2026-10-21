@@ -414,45 +414,49 @@ const HTML_ARMOR_ENTITIES: Record<string, string> = {
 const HTML_ARMOR_ENTITY_PATTERN =
   /&(?:lt|gt|quot|nbsp|amp|#39|#x27|#43|#x2b|#47|#x2f|#61|#x3d);/gi;
 
+const ARMOR_BEGIN_LINE = "-----BEGIN PGP MESSAGE-----";
+const ARMOR_END_LINE = "-----END PGP MESSAGE-----";
 const ARMOR_HEADER_LINE = /^[A-Za-z][A-Za-z0-9-]*: /;
+const ARMOR_DATA_LINE = /^=?[A-Za-z0-9+/]+=*$/;
+const HTML_LINE_BREAK_TAG = /^<(?:br\b|\/(?:p|div|pre|li|tr|blockquote)\s*>)/i;
 
 export function unwrap_html_armor(block: string): string {
   if (!/<[a-z/!]|&[#a-z0-9]+;/i.test(block)) return block;
 
   const lines = block
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/(?:p|div|pre|li|tr|blockquote)\s*>/gi, "\n")
-    .replace(/<[^>]*>/g, "")
+    .split(/(<[^>]*>)/)
+    .map((part) =>
+      part.startsWith("<")
+        ? HTML_LINE_BREAK_TAG.test(part)
+          ? "\n"
+          : ""
+        : part,
+    )
+    .join("")
     .replace(
       HTML_ARMOR_ENTITY_PATTERN,
       (entity) => HTML_ARMOR_ENTITIES[entity.toLowerCase()] ?? entity,
     )
-    .replace(/ /g, " ")
     .split(/\r?\n/)
-    .map((line) => line.trim())
+    .map((line) => line.replace(/ /g, " ").trim())
     .filter((line) => line.length > 0);
 
-  if (lines.length < 3) return block;
-
-  const begin = lines[0];
-  const end = lines[lines.length - 1];
-  const inner = lines.slice(1, -1);
-  let header_count = 0;
-
-  while (
-    header_count < inner.length &&
-    ARMOR_HEADER_LINE.test(inner[header_count])
+  if (
+    lines[0] !== ARMOR_BEGIN_LINE ||
+    lines[lines.length - 1] !== ARMOR_END_LINE
   ) {
-    header_count += 1;
+    return block;
   }
 
-  return [
-    begin,
-    ...inner.slice(0, header_count),
-    "",
-    ...inner.slice(header_count),
-    end,
-  ].join("\n");
+  const data = lines
+    .slice(1, -1)
+    .filter((line) => !ARMOR_HEADER_LINE.test(line));
+
+  if (data.length === 0 || !data.every((line) => ARMOR_DATA_LINE.test(line))) {
+    return block;
+  }
+
+  return [ARMOR_BEGIN_LINE, "", ...data, ARMOR_END_LINE].join("\n");
 }
 
 export function split_pgp_block(text: string): PgpBlockSplit | null {

@@ -257,4 +257,18 @@ describe("inline PGP mail from another provider", () => {
 
     expect(unwrap_html_armor(armor)).toBe(armor);
   });
+
+  it("keeps only armor data when unwrapping an HTML copy", () => {
+    const html =
+      "<p>-----BEGIN PGP MESSAGE-----</p><p>Comment: &lt;script&gt;alert(1)&lt;/script&gt;</p><p></p><p>wcBMA&#43;abc/def=</p><p>=ab12</p><p>-----END PGP MESSAGE-----</p>";
+
+    expect(unwrap_html_armor(html)).toBe(
+      "-----BEGIN PGP MESSAGE-----\n\nwcBMA+abc/def=\n=ab12\n-----END PGP MESSAGE-----",
+    );
+    expect(
+      unwrap_html_armor(
+        "-----BEGIN PGP MESSAGE-----<br/><img src=x onerror=alert(1)>abc<br/>-----END PGP MESSAGE-----",
+      ),
+    ).toBe("-----BEGIN PGP MESSAGE-----\n\nabc\n-----END PGP MESSAGE-----");
+  });
 });
