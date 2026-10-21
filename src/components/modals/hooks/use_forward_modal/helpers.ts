@@ -31,6 +31,7 @@ import {
   is_valid_email,
 } from "@/components/compose/compose_shared";
 import { array_to_base64 } from "@/services/crypto/envelope";
+import { clamp_subject } from "@/lib/reply_subject";
 
 export const escape_regexp = (value: string): string =>
   value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -140,7 +141,9 @@ export function apply_inline_image_substitutions(
 }
 
 export function forward_subject_for(subject: string, prefix: string): string {
-  return subject.trim().startsWith(prefix) ? subject : `${prefix} ${subject}`;
+  return clamp_subject(
+    subject.trim().startsWith(prefix) ? subject : `${prefix} ${subject}`,
+  );
 }
 
 export function has_invalid_pending_recipient(inputs: InputsState): boolean {
