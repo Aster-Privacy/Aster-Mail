@@ -41,7 +41,6 @@ import { use_tags } from "@/hooks/use_tags";
 import { use_inbox_categories } from "@/hooks/use_inbox_categories";
 import { use_category_inbox } from "@/hooks/use_category_inbox";
 import {
-  set_message_category,
   remove_ids as remove_category_index_ids,
   reindex_ids as reindex_category_ids,
 } from "@/services/category_index";
@@ -51,7 +50,7 @@ import {
   remembered_inbox_filter,
   slice_client_page,
 } from "@/components/email/inbox/inbox_view_helpers";
-import { effective_category } from "@/services/effective_category";
+import { move_items_to_category } from "@/components/email/inbox/category_move";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
 import { undo_snooze } from "@/components/email/inbox/undo_snooze";
 import { use_snooze } from "@/hooks/use_snooze";
@@ -562,23 +561,13 @@ export function use_inbox_view_state(props: EmailInboxProps) {
   );
 
   const handle_category_change = useCallback(
-    async (email: InboxEmail, category: EmailCategory) => {
-      if (effective_category(email) === category) return;
-      const outcome = await set_message_category(email, category);
-
-      if (outcome.applied) {
-        update_email(email.id, { mail_category: category });
-        show_toast(t("mail.moved_to_category"), "success");
-      } else {
-        show_toast(
-          outcome.undecryptable
-            ? t("errors.metadata_undecryptable_change")
-            : t("common.something_went_wrong"),
-          "error",
-        );
-      }
-    },
-    [update_email, t],
+    (email: InboxEmail, category: EmailCategory) =>
+      move_items_to_category([email], category, {
+        t,
+        update_email,
+        custom_categories: preferences.custom_categories,
+      }),
+    [update_email, t, preferences.custom_categories],
   );
 
   const raw_email_state = useMemo(() => {

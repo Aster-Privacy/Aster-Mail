@@ -235,6 +235,10 @@ export async function update_item_metadata(
       current_metadata = create_default_metadata();
     }
 
+    const previous = {
+      category: current_metadata.category,
+      category_pinned: current_metadata.category_pinned === true,
+    };
     const updated_metadata: MailItemMetadata = {
       ...current_metadata,
       ...updates,
@@ -286,6 +290,7 @@ export async function update_item_metadata(
       written_version: encrypted
         ? (base.metadata_version ?? 0) + 1
         : base.metadata_version,
+      previous,
     };
   };
 

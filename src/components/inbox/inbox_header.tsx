@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { InboxFilterType } from "@/types/email";
+import type { EmailCategory, InboxFilterType } from "@/types/email";
 import type { AliasDirection } from "@/hooks/email_list_helpers/alias_view";
 
 import { useState, useEffect } from "react";
@@ -74,6 +74,7 @@ import { app_locale } from "@/utils/date_format";
 import { compute_snooze_target } from "@/utils/snooze_targets";
 import { folder_option_indent } from "@/hooks/use_folders/tree";
 import { tag_option_indent } from "@/hooks/tag_tree";
+import { CategoryMoveDropdownSub } from "@/components/email/inbox/category_move_menu";
 
 interface FolderOption {
   folder_token: string;
@@ -137,6 +138,7 @@ interface InboxHeaderProps {
     mode: "all" | "none" | "read" | "unread" | "starred" | "unstarred",
   ) => void;
   on_spam?: () => void;
+  on_category_change?: (category: EmailCategory) => void;
   on_restore?: () => void;
   is_archive_view?: boolean;
   on_snooze?: (snooze_until: Date) => void;
@@ -204,6 +206,7 @@ export function InboxHeader({
   on_toggle_star,
   on_select_by_filter,
   on_spam,
+  on_category_change,
   on_restore,
   is_archive_view = false,
   on_snooze,
@@ -797,6 +800,16 @@ export function InboxHeader({
                           <ReportSpamIcon className="w-4 h-4 me-2" />
                           {t("mail.report_spam")}
                         </DropdownMenuItem>
+                      )}
+                    {!is_trash_view &&
+                      !is_spam_view &&
+                      !is_archive_view &&
+                      !is_drafts_view &&
+                      !is_scheduled_view &&
+                      on_category_change && (
+                        <CategoryMoveDropdownSub
+                          on_select={on_category_change}
+                        />
                       )}
                     {!hide_mail_actions && on_snooze && (
                       <>

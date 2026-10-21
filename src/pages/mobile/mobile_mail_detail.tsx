@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { StarIcon } from "@heroicons/react/24/outline";
 import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
@@ -46,6 +47,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { safe_sender_name } from "@/lib/sender_trust_store";
 import { SenderLogoBoundary } from "@/contexts/sender_logo_context";
+import {
+  can_move_to_category,
+  mail_item_move_item,
+  move_items_to_category,
+} from "@/components/email/inbox/category_move";
+import { use_category_tab_options } from "@/components/email/inbox/category_move_menu";
+import { MobileCategorySheet } from "@/components/mobile/mobile_category_sheet";
+import { displayed_category } from "@/services/effective_category";
 
 function MobilePendingMessageRow({ with_divider }: { with_divider: boolean }) {
   return (
@@ -150,6 +159,15 @@ function MobileMailDetail() {
     handle_touch_end,
     get_last_message,
   } = use_mobile_mail_detail();
+  const [show_category_sheet, set_show_category_sheet] = useState(false);
+  const category_options = use_category_tab_options();
+  const category_item =
+    preferences.inbox_categories_enabled !== false &&
+    category_options.length > 1 &&
+    detail.mail_item &&
+    can_move_to_category(detail.mail_item)
+      ? detail.mail_item
+      : null;
 
   if (detail.error) {
     return (
@@ -424,6 +442,14 @@ function MobileMailDetail() {
           set_menu_message(null);
           setTimeout(() => set_details_message(msg), 100);
         }}
+        on_move_to_category={
+          category_item
+            ? () => {
+                set_menu_message(null);
+                set_show_category_sheet(true);
+              }
+            : undefined
+        }
         on_not_spam={() => {
           handle_not_spam();
           set_menu_message(null);
@@ -470,6 +496,20 @@ function MobileMailDetail() {
         on_close={() => set_details_message(null)}
         size_bytes={detail.mail_item?.metadata?.size_bytes}
         t={detail.t}
+      />
+
+      <MobileCategorySheet
+        current={category_item ? displayed_category(category_item) : null}
+        is_open={show_category_sheet && !!category_item}
+        on_close={() => set_show_category_sheet(false)}
+        on_select={(category) => {
+          if (!category_item) return;
+          void move_items_to_category(
+            [mail_item_move_item(category_item, detail.email?.sender_email)],
+            category,
+            { t: detail.t, custom_categories: preferences.custom_categories },
+          );
+        }}
       />
 
       <MobileSnoozeSheet

@@ -157,6 +157,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
     handle_folder_toggle_wrapped,
     handle_tag_toggle_wrapped,
     handle_snooze_wrapped,
+    handle_category_change_wrapped,
     selection_menu,
     nav,
     is_split_view,
@@ -365,6 +366,19 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
                 : undefined
             }
             on_archive={handle_archive_wrapped}
+            on_category_change={
+              categories.enabled
+                ? (category) => {
+                    if (handle_category_change_wrapped(category)) return;
+                    void handle_category_drop(
+                      category,
+                      email_state.emails
+                        .filter((e) => e.is_selected)
+                        .map((e) => e.id),
+                    );
+                  }
+                : undefined
+            }
             on_clear_selection={selection.handle_clear_selection}
             on_compose={on_compose}
             on_delete={handle_delete_wrapped}

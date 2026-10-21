@@ -675,6 +675,7 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     handle_folder_toggle_wrapped,
     handle_tag_toggle_wrapped,
     handle_snooze_wrapped,
+    handle_category_change_wrapped,
   } = bulk_actions;
 
   const scope_drag_count_ref = useRef(0);
@@ -1004,6 +1005,7 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     handle_folder_toggle_wrapped,
     handle_tag_toggle_wrapped,
     handle_snooze_wrapped,
+    handle_category_change_wrapped,
     selection_menu,
     nav,
     is_split_view,
