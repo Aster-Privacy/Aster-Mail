@@ -22,6 +22,7 @@ import type { EditDraftData } from "@/components/compose/compose_manager";
 import type { PendingSend, PendingSendPayload } from "@/hooks/use_undo_send";
 
 import { attachments_to_draft_data } from "@/components/compose/compose_draft_helpers";
+import { ignore_error } from "@/lib/ignore_error";
 
 export function undone_send_has_content(
   pending: PendingSend,
@@ -59,4 +60,39 @@ export function draft_from_undone_send(
     is_restored_send: payload?.restore_verbatim,
     is_plain_text: payload?.is_plain_text,
   };
+}
+
+export function draft_from_mobile_undo(
+  pending: PendingSend | undefined,
+  payload: PendingSendPayload | undefined,
+  saved_stash: string | null,
+): EditDraftData | null {
+  if (pending && payload) return draft_from_undone_send(pending, payload);
+  if (!saved_stash) return null;
+
+  try {
+    const data = JSON.parse(saved_stash) as {
+      to_recipients?: string[];
+      cc_recipients?: string[];
+      bcc_recipients?: string[];
+      subject?: string;
+      message?: string;
+    };
+
+    return {
+      id: "",
+      version: 0,
+      draft_type: "new",
+      to_recipients: data.to_recipients ?? [],
+      cc_recipients: data.cc_recipients ?? [],
+      bcc_recipients: data.bcc_recipients ?? [],
+      subject: data.subject ?? "",
+      message: data.message ?? "",
+      updated_at: new Date().toISOString(),
+    };
+  } catch (caught) {
+    ignore_error("undone_send_draft:draft_from_mobile_undo", caught);
+
+    return null;
+  }
 }

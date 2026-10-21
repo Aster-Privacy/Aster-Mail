@@ -23,6 +23,7 @@ import type { PendingSend, PendingSendPayload } from "@/hooks/use_undo_send";
 import { describe, it, expect } from "vitest";
 
 import {
+  draft_from_mobile_undo,
   draft_from_undone_send,
   undone_send_has_content,
 } from "./undone_send_draft";
@@ -83,5 +84,46 @@ describe("draft_from_undone_send", () => {
       false,
     );
     expect(undone_send_has_content(pending)).toBe(true);
+  });
+});
+
+describe("draft_from_mobile_undo", () => {
+  const payload: PendingSendPayload = {
+    to: ["friend@example.com"],
+    subject: "Re: Plans",
+    body: "<p>Hi</p><blockquote>quoted</blockquote>",
+    draft_type: "reply",
+    thread_token: "thread-1",
+  };
+
+  it("restores a reply into its thread when the payload exists", () => {
+    const draft = draft_from_mobile_undo(pending, payload, "{}");
+
+    expect(draft?.draft_type).toBe("reply");
+    expect(draft?.thread_token).toBe("thread-1");
+    expect(draft?.message).toContain("quoted");
+  });
+
+  it("falls back to the saved compose stash", () => {
+    const draft = draft_from_mobile_undo(
+      undefined,
+      undefined,
+      JSON.stringify({ to_recipients: ["a@example.com"], subject: "Hello" }),
+    );
+
+    expect(draft?.draft_type).toBe("new");
+    expect(draft?.to_recipients).toEqual(["a@example.com"]);
+    expect(draft?.subject).toBe("Hello");
+    expect(draft?.message).toBe("");
+  });
+
+  it("returns null without a payload or stash", () => {
+    expect(draft_from_mobile_undo(pending, undefined, null)).toBeNull();
+  });
+
+  it("returns null for a corrupt stash", () => {
+    expect(
+      draft_from_mobile_undo(undefined, undefined, "{not json"),
+    ).toBeNull();
   });
 });
