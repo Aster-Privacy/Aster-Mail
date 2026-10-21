@@ -65,7 +65,8 @@ const { fetch_and_decrypt_thread_messages } = await import("./thread_service");
 const { clear_thread_decrypt_cache } = await import("./thread_decrypt_cache");
 const { process_envelope_body } =
   await import("@/components/email/shared/build_email_from_envelope");
-const { unwrap_html_armor } = await import("@/utils/email_crypto");
+const { unwrap_html_armor, is_quoted_inbound_pgp } =
+  await import("@/utils/email_crypto");
 
 const PASSPHRASE = "recipient-vault-passphrase";
 const PLAINTEXT =
@@ -249,6 +250,52 @@ describe("inline PGP mail from another provider", () => {
     expect(`${message.body}${message.html_content ?? ""}`).toContain(
       "BEGIN PGP MESSAGE",
     );
+  });
+
+  it("keeps a reply that quotes an inline message in a blockquote", async () => {
+    const armored = (await inline_pgp_body()).replace(/\r\n/g, "\n");
+    const lines = armored.split("\n");
+    const text = `I cannot read this.\n\nOn Tue, David wrote:\n${lines
+      .map((line) => `> ${line}`)
+      .join("\n")}`;
+    const html = `<div>I cannot read this.</div><div>On Tue, David wrote:</div><blockquote>${lines.join("<br>\n")}</blockquote>`;
+
+    envelope_mocks.decrypt_mail_envelope.mockResolvedValue(
+      envelope(text, html),
+    );
+
+    const message = await open_thread("inline-6");
+    const shown = `${message.body}${message.html_content ?? ""}`;
+
+    expect(shown).toContain("I cannot read this.");
+    expect(shown).not.toContain("inline PGP test from another provider");
+  });
+
+  it("detects armor that only appears inside a quote", () => {
+    const armor =
+      "-----BEGIN PGP MESSAGE-----\n\nwcBMA+abc/def=\n=ab12\n-----END PGP MESSAGE-----";
+
+    expect(
+      is_quoted_inbound_pgp(
+        armor
+          .split("\n")
+          .map((line) => `> ${line}`)
+          .join("\n"),
+        "",
+      ),
+    ).toBe(true);
+    expect(
+      is_quoted_inbound_pgp("Reply", `<p>Reply</p><blockquote>${armor}`),
+    ).toBe(true);
+    expect(is_quoted_inbound_pgp(armor, mail_parser_text_to_html(armor))).toBe(
+      false,
+    );
+    expect(
+      is_quoted_inbound_pgp(
+        "",
+        `<blockquote>Earlier</blockquote><p>${armor}</p>`,
+      ),
+    ).toBe(false);
   });
 
   it("leaves plain armor untouched", () => {

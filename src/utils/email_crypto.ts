@@ -390,6 +390,23 @@ export function has_inbound_pgp_block(text: string): boolean {
   return PGP_BLOCK_PATTERN.test(text);
 }
 
+const QUOTED_PGP_BEGIN_LINE = /^[ \t]*>[ \t>]*-----BEGIN PGP MESSAGE-----/m;
+const UNQUOTED_PGP_BEGIN_LINE = /^[ \t]*-----BEGIN PGP MESSAGE-----/m;
+
+export function is_quoted_inbound_pgp(text: string, html: string): boolean {
+  if (QUOTED_PGP_BEGIN_LINE.test(text) && !UNQUOTED_PGP_BEGIN_LINE.test(text)) {
+    return true;
+  }
+  const begin = html.indexOf("-----BEGIN PGP MESSAGE-----");
+
+  if (begin < 0) return false;
+  const before = html.slice(0, begin).toLowerCase();
+  const opened = before.match(/<blockquote\b/g)?.length ?? 0;
+  const closed = before.match(/<\/blockquote\s*>/g)?.length ?? 0;
+
+  return opened > closed;
+}
+
 export interface PgpBlockSplit {
   block: string;
   rest: string;
