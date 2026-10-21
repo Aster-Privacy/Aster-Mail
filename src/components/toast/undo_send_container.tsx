@@ -141,6 +141,7 @@ export function UndoSendContainer({
         sound: "none",
         email_ids: [],
         duration_ms: remaining * 1000,
+        hide_dismiss: true,
         on_undo: async () => {
           const cancelled = await cancel_send(pending_data.id);
 
