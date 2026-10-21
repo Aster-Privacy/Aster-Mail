@@ -778,7 +778,10 @@ export function use_compose({
           session_storage_key,
         );
       }
-      draft_hook.just_loaded_draft_ref.current = true;
+      const is_unsaved_restore =
+        !!edit_draft.is_restored_send && edit_draft.id === "";
+
+      draft_hook.just_loaded_draft_ref.current = !is_unsaved_restore;
       dispatch_recipients({
         type: "SET",
         field: "to",
@@ -832,8 +835,10 @@ export function use_compose({
         cc: edit_draft.cc_recipients.length > 0,
         bcc: edit_draft.bcc_recipients.length > 0,
       });
-      draft_hook.set_draft_status("saved");
-      draft_hook.set_last_saved_time(new Date(edit_draft.updated_at));
+      if (!is_unsaved_restore) {
+        draft_hook.set_draft_status("saved");
+        draft_hook.set_last_saved_time(new Date(edit_draft.updated_at));
+      }
 
       const has_saved_attachments =
         !!edit_draft.attachments && edit_draft.attachments.length > 0;
@@ -907,7 +912,7 @@ export function use_compose({
           return;
         }
         if (message_textarea_ref.current && edit_draft.message) {
-          draft_hook.just_loaded_draft_ref.current = true;
+          draft_hook.just_loaded_draft_ref.current = !is_unsaved_restore;
           const sanitized_result = sanitize_html(
             edit_draft.message,
             get_compose_sanitize_options(),
