@@ -271,6 +271,7 @@ export function ThreadMessageActions({
       sound: "none",
       email_ids: [],
       duration_ms: delay_ms,
+      hide_dismiss: true,
       on_undo: async () => {
         drop_pending();
 
