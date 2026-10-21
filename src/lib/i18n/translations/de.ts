@@ -8846,6 +8846,7 @@ export const de = {
     show_quoted_text: "Zitierten Text anzeigen",
     hide_quoted_text: "Zitierten Text ausblenden",
     remove_quoted_text: "Zitierten Text entfernen",
+    edit_quoted_text: "Zitierten Text bearbeiten",
     quoted_text_removed: "Zitierter Text entfernt",
     restore_quoted_text: "Wiederherstellen",
     show_forwarded: "Weitergeleitetes anzeigen",

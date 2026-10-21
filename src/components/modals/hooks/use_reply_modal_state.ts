@@ -229,6 +229,8 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
   const [include_quoted, set_include_quoted] = useState(
     reply_includes_quoted_by_default,
   );
+  const [quote_inlined, set_quote_inlined] = useState(false);
+  const quote_header_text_ref = useRef("");
   const [draft_id, set_draft_id_state] = useState<string | null>(null);
   const draft_id_ref = useRef<string | null>(null);
   const draft_version_ref = useRef(1);
@@ -561,6 +563,10 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
         name: safe_name ? `${safe_name} &lt;${safe_email}&gt;` : safe_email,
       });
 
+      quote_header_text_ref.current =
+        new DOMParser().parseFromString(header, "text/html").body
+          .textContent ?? "";
+
       if (for_display === "plain") {
         const quoted_text = outgoing_html_to_plain_text(
           strip_aster_footers_html(quotable_body),
@@ -627,6 +633,41 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     ],
   );
 
+  const build_quoted_content_ref = useRef(build_quoted_content);
+
+  build_quoted_content_ref.current = build_quoted_content;
+
+  const mark_inlined_quote_in_draft = useCallback((editor_el: HTMLElement) => {
+    build_quoted_content_ref.current("plain");
+    const header = quote_header_text_ref.current.trim();
+
+    if (header && editor_el.innerText.includes(header)) {
+      set_include_quoted(false);
+      set_quote_inlined(true);
+    }
+  }, []);
+
+  const inline_quoted_text = useCallback(() => {
+    const editor_el = message_editor_ref.current;
+
+    if (!editor_el) return;
+
+    const quoted = build_quoted_content(
+      is_plain_text_ref.current ? "plain" : false,
+    );
+
+    editor_el.insertAdjacentHTML(
+      "beforeend",
+      sanitize_html(quoted, get_compose_sanitize_options()).html,
+    );
+    body_edited_ref.current = true;
+    set_reply_message(read_editor_message(editor_el));
+    set_include_quoted(false);
+    set_show_quoted(false);
+    set_quote_inlined(true);
+    editor_el.focus();
+  }, [build_quoted_content, read_editor_message]);
+
   use_escape_layer(is_open, on_close, "reply_modal");
 
   const { signature_ref, mark_signature_applied, reset_signature } =
@@ -671,6 +712,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     set_attachment_error(null);
     set_show_quoted(false);
     set_include_quoted(reply_includes_quoted_by_default());
+    set_quote_inlined(false);
     set_draft_id(matching_draft?.id ?? null);
     set_draft_version(matching_draft?.version ?? 1);
     set_scheduled_time(null);
@@ -736,6 +778,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
         if (plain_text !== null) {
           message_editor_ref.current.innerText = plain_text;
           set_reply_message(plain_text);
+          mark_inlined_quote_in_draft(message_editor_ref.current);
           message_editor_ref.current.focus();
 
           return;
@@ -748,6 +791,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
 
         message_editor_ref.current.innerHTML = sanitized_result.html;
         set_reply_message(read_editor_message(message_editor_ref.current));
+        mark_inlined_quote_in_draft(message_editor_ref.current);
         message_editor_ref.current.focus();
       }, 0);
 
@@ -828,6 +872,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     badges_loaded,
     get_formatted_signature,
     read_editor_message,
+    mark_inlined_quote_in_draft,
     t,
   ]);
 
@@ -1166,6 +1211,8 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     set_show_quoted,
     include_quoted,
     set_include_quoted,
+    quote_inlined,
+    inline_quoted_text,
     draft_id,
     set_draft_id,
     set_draft_version,

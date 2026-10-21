@@ -8400,6 +8400,7 @@ export const ko = {
     show_quoted_text: "인용문 표시",
     hide_quoted_text: "인용문 숨기기",
     remove_quoted_text: "인용문 제거",
+    edit_quoted_text: "인용문 편집",
     quoted_text_removed: "인용문이 제거됨",
     restore_quoted_text: "복원",
     show_forwarded: "전달 내용 표시",

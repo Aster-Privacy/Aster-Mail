@@ -8578,6 +8578,7 @@ export const ar = {
     show_quoted_text: "إظهار النص المقتبس",
     hide_quoted_text: "إخفاء النص المقتبس",
     remove_quoted_text: "إزالة النص المقتبس",
+    edit_quoted_text: "تعديل النص المقتبس",
     quoted_text_removed: "تمت إزالة النص المقتبس",
     restore_quoted_text: "استعادة",
     show_forwarded: "إظهار المحوّل",

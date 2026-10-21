@@ -8531,6 +8531,7 @@ export const en: Translations = {
     show_quoted_text: "Show quoted text",
     hide_quoted_text: "Hide quoted text",
     remove_quoted_text: "Remove quoted text",
+    edit_quoted_text: "Edit quoted text",
     quoted_text_removed: "Quoted text removed",
     restore_quoted_text: "Restore",
     show_forwarded: "Show forwarded",

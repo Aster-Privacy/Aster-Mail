@@ -247,6 +247,7 @@ export function ReplyModal({
               handle_send={modal.handle_send}
               handle_template_select={modal.handle_template_select}
               include_quoted={modal.include_quoted}
+              inline_quoted_text={modal.inline_quoted_text}
               is_mac={modal.is_mac}
               is_minimized={modal.is_minimized}
               is_plain_text_mode={modal.is_plain_text_mode}
@@ -257,6 +258,7 @@ export function ReplyModal({
               message_content={modal.reply_message}
               message_editor_ref={modal.message_editor_ref}
               original_body={modal.original_body}
+              quote_inlined={modal.quote_inlined}
               reduce_motion={modal.reduce_motion}
               remove_attachment={modal.remove_attachment}
               scheduled_time={modal.scheduled_time}

@@ -8649,6 +8649,7 @@ export const tr = {
     show_quoted_text: "Alıntılanan metni göster",
     hide_quoted_text: "Alıntılanan metni gizle",
     remove_quoted_text: "Alıntılanan metni kaldır",
+    edit_quoted_text: "Alıntılanan metni düzenle",
     quoted_text_removed: "Alıntılanan metin kaldırıldı",
     restore_quoted_text: "Geri yükle",
     show_forwarded: "Yönlendirileni göster",

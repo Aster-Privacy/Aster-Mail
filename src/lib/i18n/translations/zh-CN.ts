@@ -7752,6 +7752,7 @@ export const zh_CN = {
     show_quoted_text: "显示引用文本",
     hide_quoted_text: "隐藏引用文本",
     remove_quoted_text: "删除引用文本",
+    edit_quoted_text: "编辑引用文本",
     quoted_text_removed: "已删除引用文本",
     restore_quoted_text: "恢复",
     show_forwarded: "显示转发内容",

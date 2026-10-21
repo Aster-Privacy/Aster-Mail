@@ -8850,6 +8850,7 @@ export const fr = {
     show_quoted_text: "Afficher le texte cité",
     hide_quoted_text: "Masquer le texte cité",
     remove_quoted_text: "Supprimer le texte cité",
+    edit_quoted_text: "Modifier le texte cité",
     quoted_text_removed: "Texte cité supprimé",
     restore_quoted_text: "Restaurer",
     show_forwarded: "Afficher le transfert",

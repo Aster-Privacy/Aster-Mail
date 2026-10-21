@@ -64,6 +64,7 @@ interface SimpleSendRequest {
   attachments?: SendAttachmentPayload[];
   forward_original_mail_id?: string;
   in_reply_to?: string;
+  plain_text?: boolean;
 }
 
 interface SimpleSendResponse {
@@ -136,6 +137,7 @@ interface ExternalSendRequest {
   signed_mime_signature?: string;
   signed_mime_micalg?: string;
   in_reply_to?: string;
+  plain_text?: boolean;
 }
 
 const SEND_TIMEOUT_MS = 15 * 60_000;
