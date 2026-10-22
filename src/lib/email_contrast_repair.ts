@@ -534,6 +534,13 @@ function has_own_text(element: Element): boolean {
   return false;
 }
 
+function paints_list_marker(style: CSSStyleDeclaration): boolean {
+  return (
+    style.getPropertyValue("display").includes("list-item") &&
+    style.getPropertyValue("list-style-type") !== "none"
+  );
+}
+
 interface BackgroundState {
   hex: string;
   rgba: Rgba;
@@ -775,7 +782,8 @@ export function repair_email_contrast(
 
       if (tag === "A" && !is_link) continue;
 
-      const paints_text = is_link || has_own_text(element);
+      const paints_text =
+        is_link || has_own_text(element) || paints_list_marker(style);
       const border = repair_borders
         ? repaired_border_color(style, state)
         : null;

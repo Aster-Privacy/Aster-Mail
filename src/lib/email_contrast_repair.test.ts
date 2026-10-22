@@ -59,6 +59,8 @@ interface fake_style_input {
   border_style?: string;
   border_width?: string;
   border_color?: string;
+  display?: string;
+  list_style_type?: string;
 }
 
 function build_document(): Document {
@@ -107,6 +109,10 @@ function fake_view(defaults: fake_style_input = {}): Window {
       border_style: own.borderstyle ?? "none",
       border_width: own.borderwidth ?? "0px",
       border_color: own.bordercolor ?? "rgba(0, 0, 0, 0)",
+      display:
+        own.display ?? (element.tagName === "LI" ? "list-item" : "block"),
+      list_style_type:
+        own.liststyle ?? (element.tagName === "LI" ? "disc" : "none"),
     };
   };
 
@@ -118,6 +124,8 @@ function fake_view(defaults: fake_style_input = {}): Window {
       "background-image": resolved.background_image ?? "none",
       "font-size": resolved.font_size ?? "16px",
       "font-weight": resolved.font_weight ?? "400",
+      display: resolved.display ?? "block",
+      "list-style-type": resolved.list_style_type ?? "none",
     };
 
     for (const side of ["top", "right", "bottom", "left"]) {
@@ -323,6 +331,88 @@ describe("repair_email_contrast", () => {
 
     expect(repaired).not.toBe("");
     expect(contrast_ratio(repaired, "#121212")).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it("repairs the marker ink of a list item whose text sits in a child", () => {
+    const doc = build_document();
+
+    doc.body.innerHTML =
+      '<ul><li data-color="rgb(22, 24, 25)" id="item">' +
+      "<p>first point</p></li></ul>";
+
+    const item = doc.getElementById("item")!;
+
+    repair_email_contrast(doc, { surface: "#121212", view: fake_view() });
+
+    const repaired = item.style.getPropertyValue("color");
+
+    expect(repaired).not.toBe("");
+    expect(item.style.getPropertyPriority("color")).toBe("important");
+    expect(contrast_ratio(repaired, "#121212")).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it("repairs any element displayed as a list item", () => {
+    const doc = build_document();
+
+    doc.body.innerHTML =
+      '<div data-display="list-item" data-liststyle="decimal" ' +
+      'data-color="rgb(22, 24, 25)" id="item"><span>step</span></div>';
+
+    const item = doc.getElementById("item")!;
+
+    repair_email_contrast(doc, { surface: "#121212", view: fake_view() });
+
+    expect(
+      contrast_ratio(item.style.getPropertyValue("color"), "#121212"),
+    ).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it("leaves list items without a failing marker untouched", () => {
+    const doc = build_document();
+
+    doc.body.innerHTML =
+      '<ul><li data-liststyle="none" data-color="rgb(22, 24, 25)" id="bare">' +
+      '<p data-color="rgb(229, 229, 229)">no marker</p></li>' +
+      '<li data-color="rgb(229, 229, 229)" id="bright">' +
+      "<p>bright marker</p></li></ul>" +
+      '<div data-bg="rgb(255, 255, 255)"><ul>' +
+      '<li data-color="rgb(22, 24, 25)" id="card"><p>on a light card</p></li>' +
+      "</ul></div>";
+
+    repair_email_contrast(doc, { surface: "#121212", view: fake_view() });
+
+    for (const id of ["bare", "bright", "card"]) {
+      expect(doc.getElementById(id)!.getAttribute("style")).toBeNull();
+    }
+  });
+
+  it("keeps inheriting children on a light box readable after a marker repair", () => {
+    const doc = build_document();
+
+    doc.body.innerHTML =
+      '<ul><li data-color="rgb(22, 24, 25)" id="item">' +
+      '<div data-bg="rgb(255, 255, 255)"><p id="boxed">boxed note</p></div>' +
+      "</li></ul>";
+
+    const view = fake_view();
+
+    repair_email_contrast(doc, { surface: "#121212", view });
+
+    const boxed = rgba_to_hex(
+      parse_css_color(
+        view
+          .getComputedStyle(doc.getElementById("boxed")!)
+          .getPropertyValue("color"),
+      )!,
+    );
+
+    expect(
+      contrast_ratio(
+        doc.getElementById("item")!.style.getPropertyValue("color"),
+        "#121212",
+      ),
+    ).toBeGreaterThanOrEqual(4.5);
+    expect(contrast_ratio(boxed, "#ffffff")).toBeGreaterThanOrEqual(4.5);
   });
 
   it("keeps text readable on a highlight inside repaired text", () => {
