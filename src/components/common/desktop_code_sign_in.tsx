@@ -108,11 +108,7 @@ export async function resolve_device_login_session(
 }
 
 type FlowState =
-  | "requesting_code"
-  | "showing_code"
-  | "completing"
-  | "error"
-  | "expired";
+  "requesting_code" | "showing_code" | "completing" | "error" | "expired";
 
 const page_variants = {
   initial: { opacity: 0, y: 8 },
