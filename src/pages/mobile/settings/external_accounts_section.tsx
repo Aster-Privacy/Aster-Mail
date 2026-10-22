@@ -474,6 +474,27 @@ export function ExternalAccountsSection({
                 </button>
               ))}
             </div>
+            {!state.editing_account && (
+              <div className="px-4 pb-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[14px] text-[var(--text-primary)]">
+                    {state.t("settings.import_existing_mail")}
+                  </span>
+                  <Switch
+                    aria-label={state.t("settings.import_existing_mail")}
+                    checked={state.form_import_existing}
+                    onCheckedChange={(checked) =>
+                      state.set_form_import_existing(checked === true)
+                    }
+                  />
+                </div>
+                <p className="mt-1 text-[12px] text-[var(--text-muted)]">
+                  {state.form_import_existing
+                    ? state.t("settings.import_existing_mail_on")
+                    : state.t("settings.import_existing_mail_off")}
+                </p>
+              </div>
+            )}
           </SettingsGroup>
 
           {state.form_protocol === "imap" && (

@@ -5738,6 +5738,11 @@ export const ru = {
     advanced_settings: "Расширенные настройки",
     tls_method: "Метод TLS",
     connection_timeout: "Тайм-аут подключения (секунды)",
+    import_existing_mail: "Импортировать существующие письма",
+    import_existing_mail_off:
+      "Будут получены только письма, пришедшие после добавления аккаунта.",
+    import_existing_mail_on:
+      "Письма, которые уже есть в аккаунте, тоже будут импортированы.",
     archive_sent_label:
       "Копировать отправленные письма в папку «Отправленные» на удалённом сервере",
     delete_after_fetch_label:

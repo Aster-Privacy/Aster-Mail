@@ -6742,6 +6742,11 @@ export const en: Translations = {
     advanced_settings: "Advanced Settings",
     tls_method: "TLS Method",
     connection_timeout: "Connection Timeout (seconds)",
+    import_existing_mail: "Import existing mail",
+    import_existing_mail_off:
+      "Aster Mail imports only the mail that arrives after you add the account.",
+    import_existing_mail_on:
+      "Aster Mail also imports the mail that's already in the account.",
     archive_sent_label: "Copy sent emails to remote server\u2019s Sent folder",
     delete_after_fetch_label: "Delete emails from remote after importing",
     test_connection: "Test Connection",

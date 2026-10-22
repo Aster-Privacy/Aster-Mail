@@ -22,6 +22,7 @@ import type { SyncFrequency } from "@/services/api/external_accounts";
 import type { TranslationFn } from "@/components/settings/external_accounts/form_types";
 
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
+import { Checkbox } from "@aster/ui";
 
 import {
   Select,
@@ -35,6 +36,9 @@ interface SyncSettingsSectionProps {
   form_sync_frequency: SyncFrequency;
   set_form_sync_frequency: (value: SyncFrequency) => void;
   sync_frequency_options: { value: SyncFrequency; label: string }[];
+  is_editing: boolean;
+  form_import_existing: boolean;
+  set_form_import_existing: (value: boolean) => void;
   t: TranslationFn;
 }
 
@@ -42,6 +46,9 @@ export function SyncSettingsSection({
   form_sync_frequency,
   set_form_sync_frequency,
   sync_frequency_options,
+  is_editing,
+  form_import_existing,
+  set_form_import_existing,
   t,
 }: SyncSettingsSectionProps) {
   return (
@@ -76,6 +83,30 @@ export function SyncSettingsSection({
           </SelectContent>
         </Select>
       </div>
+      {!is_editing && (
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <Checkbox
+              checked={form_import_existing}
+              id="ext-account-import-existing"
+              onCheckedChange={(checked) =>
+                set_form_import_existing(checked === true)
+              }
+            />
+            <label
+              className="text-sm text-txt-primary"
+              htmlFor="ext-account-import-existing"
+            >
+              {t("settings.import_existing_mail")}
+            </label>
+          </div>
+          <p className="text-xs text-txt-muted">
+            {form_import_existing
+              ? t("settings.import_existing_mail_on")
+              : t("settings.import_existing_mail_off")}
+          </p>
+        </div>
+      )}
     </div>
   );
 }

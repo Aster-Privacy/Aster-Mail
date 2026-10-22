@@ -6813,6 +6813,11 @@ export const hi = {
     advanced_settings: "उन्नत सेटिंग",
     tls_method: "TLS तरीका",
     connection_timeout: "कनेक्शन टाइमआउट (सेकंड)",
+    import_existing_mail: "मौजूदा ईमेल आयात करें",
+    import_existing_mail_off:
+      "सिर्फ़ वे ईमेल लाए जाते हैं जो खाता जोड़ने के बाद आते हैं।",
+    import_existing_mail_on:
+      "खाते में पहले से मौजूद ईमेल भी आयात किए जाते हैं।",
     archive_sent_label:
       "भेजे गए ईमेल की प्रति दूरस्थ सर्वर के भेजे गए फ़ोल्डर में रखें",
     delete_after_fetch_label: "इंपोर्ट के बाद दूरस्थ सर्वर से ईमेल हटाएं",

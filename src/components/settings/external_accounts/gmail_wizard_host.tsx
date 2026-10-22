@@ -56,7 +56,7 @@ export function GmailWizardHost({ on_close }: GmailWizardHostProps) {
       return;
     }
 
-    open_add_form();
+    open_add_form({ import_existing: true });
   }, [state.is_loading, limits, at_account_limit, open_add_form, on_close]);
 
   useEffect(() => {

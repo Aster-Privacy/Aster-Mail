@@ -6756,6 +6756,11 @@ export const it = {
     advanced_settings: "Impostazioni avanzate",
     tls_method: "Metodo TLS",
     connection_timeout: "Timeout connessione (secondi)",
+    import_existing_mail: "Importa le email esistenti",
+    import_existing_mail_off:
+      "Vengono recuperate solo le email che arrivano dopo l’aggiunta dell’account.",
+    import_existing_mail_on:
+      "Vengono importate anche le email già presenti nell’account.",
     archive_sent_label:
       "Copia le email inviate nella cartella Inviati del server remoto",
     delete_after_fetch_label:

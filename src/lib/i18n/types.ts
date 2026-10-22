@@ -5732,6 +5732,9 @@ export interface SettingsTranslations {
   advanced_settings: string;
   tls_method: string;
   connection_timeout: string;
+  import_existing_mail: string;
+  import_existing_mail_off: string;
+  import_existing_mail_on: string;
   archive_sent_label: string;
   delete_after_fetch_label: string;
   test_connection: string;

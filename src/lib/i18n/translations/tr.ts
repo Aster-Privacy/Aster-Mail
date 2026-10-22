@@ -5544,6 +5544,11 @@ export const tr = {
     advanced_settings: "Gelişmiş Ayarlar",
     tls_method: "TLS Yöntemi",
     connection_timeout: "Bağlantı Zaman Aşımı (saniye)",
+    import_existing_mail: "Mevcut e-postaları içe aktar",
+    import_existing_mail_off:
+      "Yalnızca hesabı ekledikten sonra gelen e-postalar alınır.",
+    import_existing_mail_on:
+      "Hesapta zaten bulunan e-postalar da içe aktarılır.",
     archive_sent_label:
       "Gönderilen e-postaları uzak sunucunun Gönderilmiş klasörüne kopyala",
     delete_after_fetch_label:

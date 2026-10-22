@@ -50,6 +50,7 @@ import {
   type I18nTranslate,
   get_sync_frequency_options,
   get_tls_method_options,
+  resolve_sync_since_date,
   sanitize_display_text,
 } from "@/components/settings/hooks/external_accounts_utils";
 import { use_external_accounts_form } from "@/components/settings/hooks/use_external_accounts_form";
@@ -202,13 +203,16 @@ export function use_external_accounts() {
   }, [accounts]);
 
   const save_account_settings = useCallback(
-    async (account_token: string): Promise<boolean> => {
+    async (
+      account_token: string,
+      sync_since_date: string | null,
+    ): Promise<boolean> => {
       const results = await Promise.allSettled([
         update_sync_settings(account_token, {
           sync_frequency: form.form_sync_frequency,
           sync_folders: form.selected_folders,
           max_messages_per_sync: 500,
-          sync_since_date: null,
+          sync_since_date,
         }),
         update_advanced_settings(account_token, {
           tls_method: form.form_tls_method,
@@ -244,6 +248,12 @@ export function use_external_accounts() {
       const credentials = form.build_credentials();
       const label_name = form.form_label_name.trim() || form.form_email.trim();
       const display_name = form.form_display_name.trim();
+      const sync_since_date = resolve_sync_since_date({
+        is_editing: form.editing_account !== null,
+        import_existing: form.form_import_existing,
+        current_since_date: form.form_sync_since_date,
+        now: new Date(),
+      });
 
       if (form.editing_account) {
         const result = await update_external_account(
@@ -277,6 +287,7 @@ export function use_external_accounts() {
 
           const settings_saved = await save_account_settings(
             form.editing_account.account_token,
+            sync_since_date,
           );
 
           if (!form.is_mounted_ref.current) return;
@@ -324,6 +335,7 @@ export function use_external_accounts() {
           credentials,
           form.form_protocol,
           tag_token,
+          sync_since_date,
         );
 
         if (!form.is_mounted_ref.current) return;
@@ -331,7 +343,10 @@ export function use_external_accounts() {
         if (result.data) {
           const account_token = result.data.account_token;
 
-          const settings_saved = await save_account_settings(account_token);
+          const settings_saved = await save_account_settings(
+            account_token,
+            sync_since_date,
+          );
 
           if (!form.is_mounted_ref.current) return;
 
@@ -384,6 +399,8 @@ export function use_external_accounts() {
     form.form_label_color,
     form.form_protocol,
     form.editing_account,
+    form.form_import_existing,
+    form.form_sync_since_date,
     form.close_form,
     form.set_is_submitting,
     form.is_mounted_ref,
@@ -673,6 +690,8 @@ export function use_external_accounts() {
     smtp_test_result: form.smtp_test_result,
     form_sync_frequency: form.form_sync_frequency,
     set_form_sync_frequency: form.set_form_sync_frequency,
+    form_import_existing: form.form_import_existing,
+    set_form_import_existing: form.set_form_import_existing,
     available_folders: form.available_folders,
     selected_folders: form.selected_folders,
     is_fetching_folders: form.is_fetching_folders,

@@ -5544,6 +5544,9 @@ export const ja = {
     advanced_settings: "詳細設定",
     tls_method: "TLS方式",
     connection_timeout: "接続タイムアウト（秒）",
+    import_existing_mail: "既存のメールをインポート",
+    import_existing_mail_off: "アカウントを追加した後に届いたメールだけを取り込みます。",
+    import_existing_mail_on: "アカウントにすでにあるメールもインポートします。",
     archive_sent_label:
       "送信メールをリモートサーバーの送信済みフォルダにコピー",
     delete_after_fetch_label: "インポート後にリモートからメールを削除",

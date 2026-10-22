@@ -190,6 +190,7 @@ export async function create_external_account(
   credentials: ExternalAccountCredentials,
   protocol: string,
   tag_token?: string,
+  sync_since_date?: string | null,
 ): Promise<ApiResponse<ExternalAccountResponse>> {
   try {
     const normalized_email = email.toLowerCase().trim();
@@ -215,6 +216,7 @@ export async function create_external_account(
         protocol,
         is_enabled: true,
         tag_token,
+        sync_since_date: sync_since_date ?? undefined,
       },
     );
 

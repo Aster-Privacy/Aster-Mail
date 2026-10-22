@@ -88,6 +88,8 @@ export function AddAccountForm({
   form_connection_timeout,
   form_archive_sent,
   set_form_archive_sent,
+  form_import_existing,
+  set_form_import_existing,
   form_delete_after_fetch,
   set_form_delete_after_fetch,
   is_form_busy,
@@ -212,7 +214,10 @@ export function AddAccountForm({
         />
 
         <SyncSettingsSection
+          form_import_existing={form_import_existing}
           form_sync_frequency={form_sync_frequency}
+          is_editing={editing_account !== null}
+          set_form_import_existing={set_form_import_existing}
           set_form_sync_frequency={set_form_sync_frequency}
           sync_frequency_options={sync_frequency_options}
           t={t}

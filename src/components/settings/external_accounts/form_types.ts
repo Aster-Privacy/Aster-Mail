@@ -82,6 +82,8 @@ export interface AddAccountFormProps {
   form_connection_timeout: number;
   form_archive_sent: boolean;
   set_form_archive_sent: (value: boolean) => void;
+  form_import_existing: boolean;
+  set_form_import_existing: (value: boolean) => void;
   form_delete_after_fetch: boolean;
   set_form_delete_after_fetch: (value: boolean) => void;
   is_form_busy: boolean;
