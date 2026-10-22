@@ -325,6 +325,7 @@ export function EncryptionSettingsForm({
             {keyserver_address_rows.map((row) => (
               <IslandRow
                 key={row.email}
+                className="settings_row_wrap_narrow"
                 label={
                   <Checkbox
                     checked={row.selected}

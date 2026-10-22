@@ -138,6 +138,12 @@ function top_bar_base({
   const is_mounted = useRef(true);
   const [is_accounts_open, set_is_accounts_open] = useState(false);
   const [is_mobile, set_is_mobile] = useState(false);
+  const [is_tablet, set_is_tablet] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      window.innerWidth >= 768 &&
+      window.innerWidth < 1024,
+  );
   const [show_account_tip, set_show_account_tip] = useState(false);
   const account_tip_timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const account_tip_blocked = useRef(false);
@@ -207,7 +213,12 @@ function top_bar_base({
   }, []);
 
   useEffect(() => {
-    const check_breakpoint = () => set_is_mobile(window.innerWidth < 768);
+    const check_breakpoint = () => {
+      const width = window.innerWidth;
+
+      set_is_mobile(width < 768);
+      set_is_tablet(width >= 768 && width < 1024);
+    };
 
     check_breakpoint();
     window.addEventListener("resize", check_breakpoint);
@@ -226,7 +237,11 @@ function top_bar_base({
     360,
     Math.max(200, preferences.sidebar_width ?? 256),
   );
-  const left_cluster_width = sidebar_expanded_width;
+  const is_rail_header =
+    !is_mobile &&
+    !is_settings_view &&
+    (is_tablet || (preferences.sidebar_minimized ?? false));
+  const left_cluster_width = is_rail_header ? 64 : sidebar_expanded_width;
 
   const handle_menu_click = useCallback(() => {
     if (is_mobile) {
@@ -252,7 +267,11 @@ function top_bar_base({
       style={{ backgroundColor: "var(--bg-secondary)" }}
     >
       <div
-        className="flex items-center gap-2 flex-shrink-0 px-2 sm:ps-[22px] sm:pe-3"
+        className={
+          is_rail_header
+            ? "flex items-center justify-center flex-shrink-0"
+            : "flex items-center gap-2 flex-shrink-0 px-2 sm:ps-[22px] sm:pe-3"
+        }
         style={is_mobile ? undefined : { width: left_cluster_width }}
       >
         {is_mobile && (
@@ -273,29 +292,44 @@ function top_bar_base({
               window.dispatchEvent(new CustomEvent("astermail:inbox-home"));
             }}
           >
-            <img
-              alt={t("common.aster_mail")}
-              className="h-6 w-auto max-w-full object-contain object-left dark:hidden"
-              decoding="async"
-              draggable={false}
-              src="/aster_mail_logo_light.png"
-            />
-            <img
-              alt={t("common.aster_mail")}
-              className="h-6 w-auto max-w-full object-contain object-left hidden dark:block"
-              decoding="async"
-              draggable={false}
-              src="/aster_mail_logo_dark.png"
-            />
+            {is_rail_header ? (
+              <img
+                alt={t("common.aster_mail")}
+                className="h-9 w-9 object-contain"
+                decoding="async"
+                draggable={false}
+                src="/mail_logo.png"
+              />
+            ) : (
+              <>
+                <img
+                  alt={t("common.aster_mail")}
+                  className="h-6 w-auto max-w-full object-contain object-left dark:hidden"
+                  decoding="async"
+                  draggable={false}
+                  src="/aster_mail_logo_light.png"
+                />
+                <img
+                  alt={t("common.aster_mail")}
+                  className="h-6 w-auto max-w-full object-contain object-left hidden dark:block"
+                  decoding="async"
+                  draggable={false}
+                  src="/aster_mail_logo_dark.png"
+                />
+              </>
+            )}
           </button>
         </Tooltip>
       </div>
 
-      <div className="flex-1 min-w-0 flex items-center ps-1 md:ps-2">
+      <div
+        className={`flex-1 min-w-0 flex items-center ${is_rail_header ? "ps-2" : "ps-1 md:ps-2"}`}
+      >
         {is_settings_view ? (
           <div className="w-full" id="settings_search_slot" />
         ) : (
           <SearchBar
+            is_full_width={is_mobile || is_rail_header}
             is_pill
             on_result_click={on_search_result_click}
             on_search_submit={on_search_submit}

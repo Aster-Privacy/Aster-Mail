@@ -800,7 +800,7 @@ export function AccountSection() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
-                  className="flex min-w-0 items-center gap-1.5 rounded-full px-2.5 py-1 -me-2.5 transition-colors hover:bg-[color-mix(in_srgb,var(--text-primary)_6%,transparent)]"
+                  className="flex min-w-0 max-w-full shrink items-center gap-1.5 rounded-full px-2.5 py-1 -me-2.5 transition-colors hover:bg-[color-mix(in_srgb,var(--text-primary)_6%,transparent)]"
                   type="button"
                 >
                   <span className="block text-sm font-medium text-txt-secondary truncate max-w-[16rem]">
@@ -1039,6 +1039,7 @@ export function AccountSection() {
         />
 
         <IslandRow
+          className="settings_row_wrap_narrow"
           description={t("common.inactivity_window_description")}
           label={
             <span className="inline-flex items-center gap-1.5">

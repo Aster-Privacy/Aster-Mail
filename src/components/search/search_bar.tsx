@@ -90,6 +90,7 @@ const PREVIEW_DEBOUNCE_MS = 90;
 
 interface SearchBarProps {
   is_pill?: boolean;
+  is_full_width?: boolean;
   on_result_click?: (id: string) => void;
   on_search_submit?: (query: string) => void;
   search_context?: string;
@@ -104,6 +105,7 @@ interface AnchorRect {
 
 export function SearchBar({
   is_pill,
+  is_full_width = false,
   on_result_click,
   on_search_submit,
   search_context,
@@ -487,7 +489,7 @@ export function SearchBar({
     <>
       <div
         ref={wrapper_ref}
-        className={`flex-1 relative ${is_pill ? "min-w-0 max-w-[620px]" : "min-w-[200px] max-w-[640px]"}`}
+        className={`flex-1 relative ${is_pill ? (is_full_width ? "min-w-0" : "min-w-0 max-w-[620px]") : "min-w-[200px] max-w-[640px]"}`}
         data-onboarding="search-bar"
       >
         <div
