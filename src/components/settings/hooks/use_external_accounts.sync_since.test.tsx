@@ -160,11 +160,15 @@ describe("use_external_accounts sync start date", () => {
       expect.anything(),
     );
     expect(saved_since_date()).toBe("2026-10-18T12:00:00.000Z");
+    expect(create_external_account.mock.calls[0][7]).toBe(
+      "2026-10-18T12:00:00.000Z",
+    );
   });
 
   it("saves no start date when existing mail is imported", async () => {
     await add_account({ import_existing: true });
 
     expect(saved_since_date()).toBeNull();
+    expect(create_external_account.mock.calls[0][7]).toBeNull();
   });
 });
