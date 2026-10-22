@@ -822,23 +822,32 @@ const PreviewRow = memo(function PreviewRow({
         }
       />
       <div className="flex-1 min-w-0">
-        <div
-          className={`text-[13px] truncate ${
-            result.is_read
-              ? "text-[var(--text-primary)]"
-              : "font-semibold text-[var(--text-primary)]"
-          }`}
-        >
-          <PreviewText terms={terms} text={result.subject} />
+        <div className="flex items-center gap-1.5 min-w-0">
+          {result.has_attachment && (
+            <span
+              aria-label={t("mail.has_attachments")}
+              className="inline-flex flex-shrink-0 items-center text-[var(--icon-secondary)]"
+              data-testid="attachment-indicator"
+              role="img"
+            >
+              <PaperClipIcon className="w-3.5 h-3.5" />
+            </span>
+          )}
+          <div
+            className={`text-[13px] truncate min-w-0 ${
+              result.is_read
+                ? "text-[var(--text-primary)]"
+                : "font-semibold text-[var(--text-primary)]"
+            }`}
+          >
+            <PreviewText terms={terms} text={result.subject} />
+          </div>
         </div>
         <div className="text-[12px] truncate text-[var(--text-muted)]">
           <PreviewText terms={terms} text={participants} />
         </div>
       </div>
       <div className="flex items-center gap-1.5 flex-shrink-0">
-        {result.has_attachment && (
-          <PaperClipIcon className="w-3.5 h-3.5 text-[var(--icon-secondary)]" />
-        )}
         <span className="text-[12px] text-[var(--text-muted)] tabular-nums">
           {format_preview_date(result.timestamp, date_options)}
         </span>
