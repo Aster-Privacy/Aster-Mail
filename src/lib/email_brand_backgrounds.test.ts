@@ -23,6 +23,7 @@ import { describe, it, expect } from "vitest";
 import { build_forced_dark_mode_css } from "./email_body_styles";
 import {
   BRAND_BACKGROUND_MARK,
+  LIGHT_SPAN_BACKGROUND_MARK,
   is_page_surface,
   mark_brand_backgrounds,
 } from "./email_brand_backgrounds";
@@ -123,5 +124,23 @@ describe("brand colored backgrounds under forced dark mode", () => {
 
     expect(css).toContain(`td:not([style*="url(" i])`);
     expect(css).toContain(`:not([${BRAND_BACKGROUND_MARK}])`);
+  });
+
+  it("lets forced dark clear a white span marked important", () => {
+    const marked = mark(
+      '<p>Status: <span style="background-color:#ffffff !important;color:#333333">open</span></p>',
+    );
+
+    expect(marked).toContain(`${LIGHT_SPAN_BACKGROUND_MARK}="1"`);
+    expect(marked).toContain("background-color:#ffffff;");
+    expect(marked).not.toContain("!important");
+  });
+
+  it("keeps the priority of an important highlight colour", () => {
+    const marked = mark(
+      '<p><span style="background-color:#fde047 !important">new</span></p>',
+    );
+
+    expect(marked).toContain("background-color:#fde047 !important");
   });
 });
