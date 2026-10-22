@@ -8365,6 +8365,7 @@ export interface AuthTranslations {
   link_device_cancel: string;
   link_device_desktop: string;
   device_fingerprint: string;
+  device_code_verify_toggle: string;
   link_device_fingerprint_hint: string;
   device_code_fingerprint_hint: string;
   link_device_change_account: string;

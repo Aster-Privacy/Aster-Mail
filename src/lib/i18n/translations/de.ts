@@ -10106,11 +10106,12 @@ export const de = {
       "Möchten Sie dieses Gerät mit Ihrem Konto verknüpfen?",
     link_device_confirming: "Gerät wird verknüpft...",
     link_device_desktop: "Desktop-App",
-    device_fingerprint: "Geräte-Fingerabdruck",
+    device_fingerprint: "Prüfcode",
+    device_code_verify_toggle: "Dieses Gerät überprüfen",
     link_device_fingerprint_hint:
-      "Wenn das Gerät, das du verknüpfst, einen Geräte-Fingerabdruck anzeigt, vergewissere dich vor dem Verknüpfen, dass er mit diesem übereinstimmt.",
+      "Wenn deine Desktop-App einen Prüfcode anzeigt, vergewissere dich, dass er mit diesem übereinstimmt, bevor du das Gerät verknüpfst.",
     device_code_fingerprint_hint:
-      "Vergewissere dich bei der Eingabe des Codes, dass der in deinem Browser angezeigte Geräte-Fingerabdruck mit diesem übereinstimmt, bevor du das Gerät verknüpfst.",
+      "Dein Browser zeigt vor dem Verknüpfen denselben Prüfcode an. Wenn die beiden Codes nicht übereinstimmen, verknüpfe das Gerät nicht.",
     link_device_change_account: "Konto wechseln",
     link_device_choose_account: "Konto auswählen",
     link_device_choose_account_description: "Um Ihre Desktop-App zu verknüpfen",

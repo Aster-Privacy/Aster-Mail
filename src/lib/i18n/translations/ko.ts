@@ -9584,11 +9584,12 @@ export const ko = {
     link_device_confirming: "연결 중...",
     link_device_cancel: "취소",
     link_device_desktop: "데스크톱 앱",
-    device_fingerprint: "기기 지문",
+    device_fingerprint: "확인 코드",
+    device_code_verify_toggle: "이 기기 확인",
     link_device_fingerprint_hint:
-      "연결하려는 기기에 기기 지문이 표시되면 기기를 연결하기 전에 이 지문과 일치하는지 확인하세요.",
+      "데스크톱 앱에 확인 코드가 표시되면 기기를 연결하기 전에 이 코드와 일치하는지 확인하세요.",
     device_code_fingerprint_hint:
-      "코드를 입력할 때 기기를 연결하기 전에 브라우저에 표시된 기기 지문이 이 지문과 일치하는지 확인하세요.",
+      "기기를 연결하기 전에 브라우저에 같은 확인 코드가 표시됩니다. 두 코드가 일치하지 않으면 기기를 연결하지 마세요.",
     link_device_change_account: "계정 변경",
     link_device_choose_account: "계정 선택",
     link_device_choose_account_description: "데스크톱 앱을 연결합니다",

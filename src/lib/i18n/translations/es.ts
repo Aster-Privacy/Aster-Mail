@@ -9989,11 +9989,12 @@ export const es = {
     link_device_confirm_prompt: "¿Confirmar la vinculación del dispositivo?",
     link_device_confirming: "Confirmando...",
     link_device_desktop: "Vincular dispositivo de escritorio",
-    device_fingerprint: "Huella del dispositivo",
+    device_fingerprint: "Código de verificación",
+    device_code_verify_toggle: "Verificar este dispositivo",
     link_device_fingerprint_hint:
-      "Si el dispositivo que vas a vincular muestra una huella del dispositivo, comprueba que coincide con esta antes de vincularlo.",
+      "Si tu aplicación de escritorio muestra un código de verificación, comprueba que coincide con este antes de vincular el dispositivo.",
     device_code_fingerprint_hint:
-      "Al introducir el código, comprueba que la huella del dispositivo que aparece en tu navegador coincide con esta antes de vincular el dispositivo.",
+      "Tu navegador muestra el mismo código de verificación antes de vincular el dispositivo. Si los dos códigos no coinciden, no vincules el dispositivo.",
     link_device_change_account: "Cambiar de cuenta",
     link_device_choose_account: "Elige una cuenta",
     link_device_choose_account_description:

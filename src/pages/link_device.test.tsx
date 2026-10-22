@@ -150,7 +150,7 @@ describe("link device approval", () => {
     container.remove();
   });
 
-  it("shows the fingerprint of the returned keys before anything is sealed", async () => {
+  it("shows the verification code of the returned keys on request before anything is sealed", async () => {
     h.verify.mockResolvedValue({
       data: {
         ed25519_pk: encode(32, 1),
@@ -162,6 +162,12 @@ describe("link device approval", () => {
 
     await enter_code();
 
+    expect(
+      container.querySelector('[data-testid="device_fingerprint"]'),
+    ).toBeNull();
+    await act(async () => {
+      button("auth.device_code_verify_toggle")!.click();
+    });
     expect(
       container.querySelector('[data-testid="device_fingerprint"]')
         ?.textContent,

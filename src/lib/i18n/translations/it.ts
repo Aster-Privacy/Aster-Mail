@@ -10033,11 +10033,12 @@ export const it = {
       "Vuoi collegare questo dispositivo al tuo account?",
     link_device_confirming: "Collegamento dispositivo...",
     link_device_desktop: "App desktop",
-    device_fingerprint: "Impronta del dispositivo",
+    device_fingerprint: "Codice di verifica",
+    device_code_verify_toggle: "Verifica questo dispositivo",
     link_device_fingerprint_hint:
-      "Se il dispositivo che stai collegando mostra un'impronta del dispositivo, verifica che corrisponda a questa prima di collegarlo.",
+      "Se la tua app desktop mostra un codice di verifica, verifica che corrisponda a questo prima di collegare il dispositivo.",
     device_code_fingerprint_hint:
-      "Quando inserisci il codice, verifica che l'impronta del dispositivo mostrata nel browser corrisponda a questa prima di collegare il dispositivo.",
+      "Il browser mostra lo stesso codice di verifica prima di collegare il dispositivo. Se i due codici non corrispondono, non collegare il dispositivo.",
     link_device_change_account: "Cambia account",
     link_device_choose_account: "Scegli un account",
     link_device_choose_account_description: "Per collegare la tua app desktop",

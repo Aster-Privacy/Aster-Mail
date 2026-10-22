@@ -447,6 +447,7 @@ export default function LinkDevice() {
   const [device_info, set_device_info] = useState<DeviceInfo | null>(null);
   const [error, set_error] = useState<string | null>(null);
   const [is_verifying, set_is_verifying] = useState(false);
+  const [show_verification, set_show_verification] = useState(false);
   const device_fingerprint = useMemo(
     () =>
       device_info ? fingerprint_of_encoded_device_keys(device_info) : null,
@@ -739,27 +740,39 @@ export default function LinkDevice() {
             </div>
             <div
               className="mt-3.5 border-t pt-3.5"
-              data-testid="device_fingerprint"
               style={{ borderColor: "var(--border-secondary)" }}
             >
-              <span
-                className="block text-[11px] font-medium leading-tight"
+              <button
+                aria-expanded={show_verification}
+                className="block text-[11px] font-medium leading-tight underline-offset-2 hover:underline"
                 style={{ color: "var(--text-muted)" }}
+                type="button"
+                onClick={() => set_show_verification((open) => !open)}
               >
-                {t("auth.device_fingerprint")}
-              </span>
-              <span
-                className="mt-1 block select-text font-mono text-[15px] font-semibold tracking-wide"
-                style={{ color: "var(--text-primary)" }}
-              >
-                {device_fingerprint}
-              </span>
-              <span
-                className="mt-1.5 block text-[11px] leading-relaxed"
-                style={{ color: "var(--text-muted)" }}
-              >
-                {t("auth.link_device_fingerprint_hint")}
-              </span>
+                {t("auth.device_code_verify_toggle")}
+              </button>
+              {show_verification && (
+                <div className="mt-2" data-testid="device_fingerprint">
+                  <span
+                    className="block text-[11px] font-medium leading-tight"
+                    style={{ color: "var(--text-muted)" }}
+                  >
+                    {t("auth.device_fingerprint")}
+                  </span>
+                  <span
+                    className="mt-1 block select-text font-mono text-[15px] font-semibold tracking-wide"
+                    style={{ color: "var(--text-primary)" }}
+                  >
+                    {device_fingerprint}
+                  </span>
+                  <span
+                    className="mt-1.5 block text-[11px] leading-relaxed"
+                    style={{ color: "var(--text-muted)" }}
+                  >
+                    {t("auth.link_device_fingerprint_hint")}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </Panel>

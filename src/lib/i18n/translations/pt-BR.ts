@@ -9969,11 +9969,12 @@ export const pt_br = {
     link_device_confirm_prompt: "Deseja vincular este dispositivo à sua conta?",
     link_device_confirming: "Vinculando dispositivo...",
     link_device_desktop: "Aplicativo desktop",
-    device_fingerprint: "Impressão digital do dispositivo",
+    device_fingerprint: "Código de verificação",
+    device_code_verify_toggle: "Verificar este dispositivo",
     link_device_fingerprint_hint:
-      "Se o dispositivo que você está vinculando mostrar uma impressão digital do dispositivo, confira se ela corresponde a esta antes de vincular o dispositivo.",
+      "Se o app para computador mostrar um código de verificação, confira se ele corresponde a este antes de vincular o dispositivo.",
     device_code_fingerprint_hint:
-      "Ao inserir o código, confira se a impressão digital do dispositivo exibida no navegador corresponde a esta antes de vincular o dispositivo.",
+      "O navegador mostra o mesmo código de verificação antes de vincular o dispositivo. Se os dois códigos não corresponderem, não vincule o dispositivo.",
     link_device_change_account: "Mudar de conta",
     link_device_choose_account: "Escolha uma conta",
     link_device_choose_account_description:

@@ -8884,11 +8884,12 @@ export const zh_CN = {
     link_device_confirming: "正在关联设备...",
     link_device_cancel: "取消",
     link_device_desktop: "桌面应用",
-    device_fingerprint: "设备指纹",
+    device_fingerprint: "验证码",
+    device_code_verify_toggle: "验证此设备",
     link_device_fingerprint_hint:
-      "如果您要关联的设备显示了设备指纹，请在关联设备之前确认它与此指纹一致。",
+      "如果桌面应用显示了验证码，请在关联设备之前确认它与此验证码一致。",
     device_code_fingerprint_hint:
-      "输入代码时，请在关联设备之前确认浏览器中显示的设备指纹与此指纹一致。",
+      "关联设备之前，浏览器会显示相同的验证码。如果两个验证码不一致，请不要关联设备。",
     link_device_change_account: "切换账号",
     link_device_choose_account: "选择账号",
     link_device_choose_account_description: "以关联桌面应用",

@@ -10109,11 +10109,12 @@ export const fr = {
     link_device_confirm_prompt: "Confirmer l'association de l'appareil ?",
     link_device_confirming: "Confirmation en cours...",
     link_device_desktop: "Associer un appareil de bureau",
-    device_fingerprint: "Empreinte de l'appareil",
+    device_fingerprint: "Code de vérification",
+    device_code_verify_toggle: "Vérifier cet appareil",
     link_device_fingerprint_hint:
-      "Si l'appareil que vous associez affiche une empreinte, vérifiez qu'elle correspond à celle-ci avant d'associer l'appareil.",
+      "Si votre application de bureau affiche un code de vérification, vérifiez qu'il correspond à celui-ci avant d'associer l'appareil.",
     device_code_fingerprint_hint:
-      "Lorsque vous saisissez le code, vérifiez que l'empreinte de l'appareil affichée dans votre navigateur correspond à celle-ci avant d'associer l'appareil.",
+      "Votre navigateur affiche le même code de vérification avant d'associer l'appareil. Si les deux codes ne correspondent pas, n'associez pas l'appareil.",
     link_device_change_account: "Changer de compte",
     link_device_choose_account: "Choisissez un compte",
     link_device_choose_account_description:

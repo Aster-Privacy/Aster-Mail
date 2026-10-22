@@ -9769,11 +9769,12 @@ export const ja = {
     link_device_confirming: "デバイスをリンク中...",
     link_device_cancel: "キャンセル",
     link_device_desktop: "デスクトップアプリ",
-    device_fingerprint: "デバイスのフィンガープリント",
+    device_fingerprint: "確認コード",
+    device_code_verify_toggle: "このデバイスを確認",
     link_device_fingerprint_hint:
-      "リンクするデバイスにフィンガープリントが表示されている場合は、デバイスをリンクする前に、この値と一致することを確認してください。",
+      "デスクトップアプリに確認コードが表示されている場合は、デバイスをリンクする前に、このコードと一致することを確認してください。",
     device_code_fingerprint_hint:
-      "コードを入力するときは、デバイスをリンクする前に、ブラウザに表示されるデバイスのフィンガープリントがこの値と一致することを確認してください。",
+      "デバイスをリンクする前に、ブラウザにも同じ確認コードが表示されます。2つのコードが一致しない場合は、デバイスをリンクしないでください。",
     link_device_change_account: "アカウントを切り替える",
     link_device_choose_account: "アカウントを選択",
     link_device_choose_account_description: "デスクトップアプリを連携します",

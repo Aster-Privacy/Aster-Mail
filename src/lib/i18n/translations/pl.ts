@@ -10204,11 +10204,12 @@ export const pl = {
     link_device_confirming: "Łączenie urządzenia...",
     link_device_cancel: "Anuluj",
     link_device_desktop: "Aplikacja desktopowa",
-    device_fingerprint: "Odcisk urządzenia",
+    device_fingerprint: "Kod weryfikacyjny",
+    device_code_verify_toggle: "Zweryfikuj to urządzenie",
     link_device_fingerprint_hint:
-      "Jeśli łączone urządzenie pokazuje odcisk urządzenia, przed połączeniem upewnij się, że jest zgodny z tym odciskiem.",
+      "Jeśli aplikacja na komputer pokazuje kod weryfikacyjny, przed połączeniem urządzenia upewnij się, że jest zgodny z tym kodem.",
     device_code_fingerprint_hint:
-      "Podczas wpisywania kodu upewnij się, że odcisk urządzenia widoczny w przeglądarce jest zgodny z tym odciskiem, zanim połączysz urządzenie.",
+      "Przeglądarka pokazuje ten sam kod weryfikacyjny przed połączeniem urządzenia. Jeśli oba kody się różnią, nie łącz urządzenia.",
     link_device_change_account: "Zmień konto",
     link_device_choose_account: "Wybierz konto",
     link_device_choose_account_description:

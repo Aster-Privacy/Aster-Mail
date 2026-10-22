@@ -9360,11 +9360,12 @@ export const en: Translations = {
     link_device_confirming: "Linking device...",
     link_device_cancel: "Cancel",
     link_device_desktop: "Desktop app",
-    device_fingerprint: "Device fingerprint",
+    device_fingerprint: "Verification code",
+    device_code_verify_toggle: "Verify this device",
     link_device_fingerprint_hint:
-      "If the device you're linking shows a device fingerprint, make sure that it matches this one before you link the device.",
+      "If your desktop app shows a verification code, make sure that it matches this one before you link the device.",
     device_code_fingerprint_hint:
-      "When you enter the code, make sure that the device fingerprint shown in your browser matches this one before you link the device.",
+      "Your browser shows the same verification code before you link the device. If the two codes don't match, don't link the device.",
     link_device_change_account: "Change account",
     link_device_choose_account: "Choose an account",
     link_device_choose_account_description: "To link your desktop app",

@@ -9786,11 +9786,12 @@ export const ar = {
     link_device_confirming: "جارٍ ربط الجهاز...",
     link_device_cancel: "إلغاء",
     link_device_desktop: "تطبيق سطح المكتب",
-    device_fingerprint: "بصمة الجهاز",
+    device_fingerprint: "رمز التحقق",
+    device_code_verify_toggle: "التحقق من هذا الجهاز",
     link_device_fingerprint_hint:
-      "إذا عرض الجهاز الذي تربطه بصمة جهاز، فتأكد من أنها تطابق هذه البصمة قبل ربط الجهاز.",
+      "إذا عرض تطبيق سطح المكتب رمز تحقق، فتأكد من أنه يطابق هذا الرمز قبل ربط الجهاز.",
     device_code_fingerprint_hint:
-      "عند إدخال الرمز، تأكد من أن بصمة الجهاز المعروضة في متصفحك تطابق هذه البصمة قبل ربط الجهاز.",
+      "يعرض متصفحك رمز التحقق نفسه قبل ربط الجهاز. إذا لم يتطابق الرمزان، فلا تربط الجهاز.",
     link_device_change_account: "تغيير الحساب",
     link_device_choose_account: "اختر حسابًا",
     link_device_choose_account_description: "لربط تطبيق سطح المكتب",
