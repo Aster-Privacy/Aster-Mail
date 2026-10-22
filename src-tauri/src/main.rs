@@ -37,7 +37,7 @@ mod mail_notification;
 mod translation_assets;
 
 use std::sync::Mutex;
-#[cfg(windows)]
+#[cfg(not(target_os = "macos"))]
 use tauri::menu::Submenu;
 use tauri::{
     menu::{Menu, MenuItem},
@@ -194,13 +194,13 @@ struct TrayState(Mutex<Option<tauri::tray::TrayIcon>>);
 struct TrayMenuItems {
     show: MenuItem<tauri::Wry>,
     quit: MenuItem<tauri::Wry>,
-    #[cfg(windows)]
+    #[cfg(not(target_os = "macos"))]
     troubleshooting: Submenu<tauri::Wry>,
-    #[cfg(windows)]
+    #[cfg(not(target_os = "macos"))]
     compat_on: MenuItem<tauri::Wry>,
-    #[cfg(windows)]
+    #[cfg(not(target_os = "macos"))]
     compat_off: MenuItem<tauri::Wry>,
-    #[cfg(windows)]
+    #[cfg(not(target_os = "macos"))]
     display_reset: MenuItem<tauri::Wry>,
 }
 
@@ -224,14 +224,14 @@ fn set_tray_labels(state: State<TrayMenuState>, labels: TrayLabels) {
     let Some(items) = guard.as_ref() else { return };
     let _ = items.show.set_text(&labels.show);
     let _ = items.quit.set_text(&labels.quit);
-    #[cfg(windows)]
+    #[cfg(not(target_os = "macos"))]
     {
         let _ = items.troubleshooting.set_text(&labels.troubleshooting);
         let _ = items.compat_on.set_text(&labels.compat_on);
         let _ = items.compat_off.set_text(&labels.compat_off);
         let _ = items.display_reset.set_text(&labels.display_reset);
     }
-    #[cfg(not(windows))]
+    #[cfg(target_os = "macos")]
     {
         let _ = &labels.troubleshooting;
         let _ = &labels.compat_on;
@@ -665,7 +665,7 @@ fn main() {
             let show =
                 MenuItem::with_id(app, "show", "Show Aster Mail", true, None::<&str>)?;
             let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
-            #[cfg(windows)]
+            #[cfg(not(target_os = "macos"))]
             let compat_on = MenuItem::with_id(
                 app,
                 "compat_on",
@@ -673,7 +673,7 @@ fn main() {
                 !boot_guard::compat_mode_active(),
                 None::<&str>,
             )?;
-            #[cfg(windows)]
+            #[cfg(not(target_os = "macos"))]
             let compat_off = MenuItem::with_id(
                 app,
                 "compat_off",
@@ -681,7 +681,7 @@ fn main() {
                 boot_guard::compat_mode_active(),
                 None::<&str>,
             )?;
-            #[cfg(windows)]
+            #[cfg(not(target_os = "macos"))]
             let display_reset = MenuItem::with_id(
                 app,
                 "display_reset",
@@ -689,16 +689,16 @@ fn main() {
                 true,
                 None::<&str>,
             )?;
-            #[cfg(windows)]
+            #[cfg(not(target_os = "macos"))]
             let troubleshooting = Submenu::with_items(
                 app,
                 "If the window is blank",
                 true,
                 &[&compat_on, &compat_off, &display_reset],
             )?;
-            #[cfg(windows)]
+            #[cfg(not(target_os = "macos"))]
             let menu = Menu::with_items(app, &[&show, &troubleshooting, &quit])?;
-            #[cfg(not(windows))]
+            #[cfg(target_os = "macos")]
             let menu = Menu::with_items(app, &[&show, &quit])?;
 
             let tray_result = TrayIconBuilder::with_id("aster-mail")
@@ -766,13 +766,13 @@ fn main() {
                 *guard = Some(TrayMenuItems {
                     show,
                     quit,
-                    #[cfg(windows)]
+                    #[cfg(not(target_os = "macos"))]
                     troubleshooting,
-                    #[cfg(windows)]
+                    #[cfg(not(target_os = "macos"))]
                     compat_on,
-                    #[cfg(windows)]
+                    #[cfg(not(target_os = "macos"))]
                     compat_off,
-                    #[cfg(windows)]
+                    #[cfg(not(target_os = "macos"))]
                     display_reset,
                 });
             }
@@ -826,9 +826,18 @@ fn main() {
             }
             #[cfg(target_os = "macos")]
             if let tauri::RunEvent::Opened { urls } = &event {
+                let mut queued = false;
                 for url in urls {
                     if let Some(mailto) = default_mail::accept_mailto(url.as_str()) {
                         default_mail::queue_mailto(app, mailto, true);
+                        queued = true;
+                    }
+                }
+                if queued {
+                    if let Some(window) = app.get_webview_window("main") {
+                        let _ = window.show();
+                        let _ = window.unminimize();
+                        let _ = window.set_focus();
                     }
                 }
             }
