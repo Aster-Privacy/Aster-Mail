@@ -22,9 +22,8 @@ import type { ReactNode } from "react";
 import type { DecryptedContact } from "@/types/contacts";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Checkbox, Island } from "@aster/ui";
+import { Badge, Button, Checkbox, Island, PillButton } from "@aster/ui";
 
-import { Button } from "@/components/ui/button";
 import {
   Modal,
   ModalBody,
@@ -305,22 +304,23 @@ export function ContactMergeModal({
                         </div>
                       </div>
                       {is_primary ? (
-                        <span className="flex-shrink-0 rounded-full bg-[color-mix(in_srgb,var(--text-primary)_7%,transparent)] px-2 py-0.5 text-[11px] font-medium text-txt-secondary">
+                        <Badge className="flex-shrink-0" color="gray">
                           {t("common.merge_primary_label")}
-                        </span>
+                        </Badge>
                       ) : (
                         is_included && (
-                          <button
-                            className="flex-shrink-0 rounded-[var(--aster-radius-item)] px-2 py-1 text-[12px] font-medium text-txt-muted transition-colors hover:bg-[var(--aster-island-press)] hover:text-txt-primary disabled:pointer-events-none disabled:opacity-40"
+                          <PillButton
+                            className="flex-shrink-0"
                             disabled={is_merging}
-                            type="button"
+                            size="sm"
+                            variant="neutral"
                             onClick={(event) => {
                               event.stopPropagation();
                               make_primary(contact.id);
                             }}
                           >
                             {t("common.merge_make_primary")}
-                          </button>
+                          </PillButton>
                         )
                       )}
                     </div>
