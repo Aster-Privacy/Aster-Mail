@@ -21,6 +21,10 @@
 
 export const it = {
   common: {
+    merge_primary_label: "Principale",
+    merge_make_primary: "Rendi principale",
+    merge_primary_description:
+      "Il contatto principale mantiene i suoi dati e riceve tutti gli indirizzi email. Gli altri contatti finiscono nel cestino.",
     add_group: "Aggiungi gruppo",
     add_new_group: "Nuovo gruppo",
     add_to_group: "Aggiungi al gruppo",

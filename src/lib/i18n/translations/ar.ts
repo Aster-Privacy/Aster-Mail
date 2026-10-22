@@ -20,6 +20,10 @@
 //
 export const ar = {
   common: {
+    merge_primary_label: "أساسية",
+    merge_make_primary: "تعيين كأساسية",
+    merge_primary_description:
+      "تحتفظ جهة الاتصال الأساسية بتفاصيلها وتحصل على جميع عناوين البريد الإلكتروني. تنتقل جهات الاتصال الأخرى إلى المهملات.",
     add_group: "إضافة مجموعة",
     add_new_group: "مجموعة جديدة",
     added_to_group: "تمت الإضافة إلى المجموعة",

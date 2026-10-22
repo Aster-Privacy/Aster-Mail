@@ -20,6 +20,10 @@
 //
 export const pl = {
   common: {
+    merge_primary_label: "Główny",
+    merge_make_primary: "Ustaw jako główny",
+    merge_primary_description:
+      "Główny kontakt zachowuje swoje dane i otrzymuje wszystkie adresy e-mail. Pozostałe kontakty trafiają do kosza.",
     add_group: "Dodaj grupę",
     add_new_group: "Nowa grupa",
     add_to_group: "Dodaj do grupy",

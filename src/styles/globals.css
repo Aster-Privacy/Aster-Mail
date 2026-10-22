@@ -2856,37 +2856,6 @@ button.press_scale:active {
   text-decoration: underline;
 }
 
-.contact_merge_row {
-  transition: background-color 0.15s ease;
-}
-
-.contact_merge_row:hover {
-  background-color: var(--sidebar-hover);
-}
-
-.contact_merge_action {
-  color: var(--icon-muted);
-}
-
-.contact_merge_action:hover:not(:disabled) {
-  background-color: var(--indicator-bg);
-  color: var(--text-primary);
-}
-
-.contact_merge_badge {
-  color: var(--accent-color);
-  background-color: color-mix(
-    in srgb,
-    var(--accent-color) 16%,
-    var(--modal-bg)
-  );
-}
-
-.contact_merge_preview {
-  background-color: color-mix(in srgb, var(--text-primary) 5%, var(--modal-bg));
-  border: 1px solid var(--border-primary);
-}
-
 .contact_import_stat {
   background-color: color-mix(in srgb, var(--text-primary) 8%, var(--modal-bg));
   border: 1px solid var(--border-primary);
