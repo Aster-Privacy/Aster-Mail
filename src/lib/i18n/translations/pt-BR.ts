@@ -8784,6 +8784,7 @@ export const pt_br = {
     show_quoted_text: "Mostrar texto citado",
     hide_quoted_text: "Ocultar texto citado",
     remove_quoted_text: "Remover texto citado",
+    edit_quoted_text: "Editar texto citado",
     quoted_text_removed: "Texto citado removido",
     restore_quoted_text: "Restaurar",
     show_forwarded: "Mostrar encaminhado",

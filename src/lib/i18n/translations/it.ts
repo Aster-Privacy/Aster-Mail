@@ -8803,6 +8803,7 @@ export const it = {
     show_quoted_text: "Mostra testo citato",
     hide_quoted_text: "Nascondi testo citato",
     remove_quoted_text: "Rimuovi testo citato",
+    edit_quoted_text: "Modifica testo citato",
     quoted_text_removed: "Testo citato rimosso",
     restore_quoted_text: "Ripristina",
     show_forwarded: "Mostra inoltrato",

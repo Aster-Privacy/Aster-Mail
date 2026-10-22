@@ -70,6 +70,7 @@ export interface QueueEmailRequest {
   signed_mime_signature?: string;
   signed_mime_micalg?: string;
   client_send_id?: string;
+  plain_text?: boolean;
 }
 
 export interface QueueEmailResponse {

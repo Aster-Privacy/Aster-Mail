@@ -616,6 +616,7 @@ async function prepare_email_for_server_queue(
     expires_at: email.expires_at,
     force_pgp: email.force_pgp,
     client_send_id: resolve_client_send_id(email.client_send_id),
+    ...(email.is_plain_text ? { plain_text: true } : {}),
   };
 
   if (

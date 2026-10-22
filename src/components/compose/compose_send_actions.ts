@@ -885,6 +885,7 @@ export async function execute_external_account_email_send(
           email_data.body,
           external_attachments,
           email_data.in_reply_to,
+          ctx.is_plain_text,
         );
 
         undo_send_manager.remove(email_id);
@@ -945,6 +946,7 @@ export async function execute_external_account_email_send(
             email_data.body,
             external_attachments,
             email_data.in_reply_to,
+            ctx.is_plain_text,
           );
 
           ctx.set_queued_email_id(null);
@@ -992,6 +994,7 @@ export async function execute_external_account_email_send(
       email_data.body,
       external_attachments,
       email_data.in_reply_to,
+      ctx.is_plain_text,
     );
 
     if (!result.data?.success) {

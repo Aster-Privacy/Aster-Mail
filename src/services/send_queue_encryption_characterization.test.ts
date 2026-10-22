@@ -626,6 +626,22 @@ describe("execute_send", () => {
     expect(request.thread_token).toBeTruthy();
   });
 
+  it("asks the server for a text-only message when the draft is plain text", async () => {
+    await execute_send(queued({ body: "Plain body", is_plain_text: true }));
+
+    expect(vi.mocked(send_simple_email).mock.calls[0][0].plain_text).toBe(
+      true,
+    );
+  });
+
+  it("leaves the plain text flag off for a rich draft", async () => {
+    await execute_send(queued({ body: "<p>Rich body</p>" }));
+
+    expect(
+      vi.mocked(send_simple_email).mock.calls[0][0],
+    ).not.toHaveProperty("plain_text");
+  });
+
   it("tags the send with the queue id so a retry is not delivered twice", async () => {
     await execute_send(queued({ id: "7d4f2c1a-9b3e-4f6a-8c2d-1e5b7a9c3f80" }));
 

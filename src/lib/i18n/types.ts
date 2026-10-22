@@ -7602,6 +7602,7 @@ export interface MailTranslations {
   show_quoted_text: string;
   hide_quoted_text: string;
   remove_quoted_text: string;
+  edit_quoted_text: string;
   quoted_text_removed: string;
   restore_quoted_text: string;
   show_forwarded: string;

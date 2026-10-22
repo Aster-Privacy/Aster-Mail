@@ -541,6 +541,7 @@ export async function send_via_external_account(
     size_bytes: number;
   }[],
   in_reply_to?: string,
+  plain_text?: boolean,
 ): Promise<ApiResponse<{ success: boolean; message: string }>> {
   const token_error = validate_account_token(account_token);
 
@@ -568,6 +569,10 @@ export async function send_via_external_account(
 
     if (in_reply_to) {
       payload.in_reply_to = in_reply_to;
+    }
+
+    if (plain_text) {
+      payload.plain_text = true;
     }
 
     const response = await api_client.post<{

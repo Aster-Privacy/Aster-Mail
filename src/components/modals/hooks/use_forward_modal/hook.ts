@@ -905,6 +905,8 @@ export function use_forward_modal({
         subject,
         ext_body,
         external_attachments,
+        undefined,
+        is_plain_text_ref.current,
       ).catch((error: unknown) => ({
         error:
           error instanceof Error

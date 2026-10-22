@@ -8933,6 +8933,7 @@ export const ru = {
     show_quoted_text: "Показать цитируемый текст",
     hide_quoted_text: "Скрыть цитируемый текст",
     remove_quoted_text: "Удалить цитируемый текст",
+    edit_quoted_text: "Изменить цитируемый текст",
     quoted_text_removed: "Цитируемый текст удалён",
     restore_quoted_text: "Восстановить",
     show_forwarded: "Показать пересланное",

@@ -8587,6 +8587,7 @@ export const hi = {
     show_quoted_text: "उद्धृत पाठ दिखाएं",
     hide_quoted_text: "उद्धृत पाठ छिपाएं",
     remove_quoted_text: "उद्धृत पाठ हटाएं",
+    edit_quoted_text: "उद्धृत पाठ संपादित करें",
     quoted_text_removed: "उद्धृत पाठ हटा दिया गया",
     restore_quoted_text: "वापस लाएं",
     show_forwarded: "फ़ॉरवर्ड किया हिस्सा दिखाएं",

@@ -8733,6 +8733,7 @@ export const nl = {
     show_quoted_text: "Geciteerde tekst tonen",
     hide_quoted_text: "Geciteerde tekst verbergen",
     remove_quoted_text: "Geciteerde tekst verwijderen",
+    edit_quoted_text: "Geciteerde tekst bewerken",
     quoted_text_removed: "Geciteerde tekst verwijderd",
     restore_quoted_text: "Herstellen",
     show_forwarded: "Doorgestuurd tonen",

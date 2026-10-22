@@ -8564,6 +8564,7 @@ export const ja = {
     show_quoted_text: "引用テキストを表示",
     hide_quoted_text: "引用テキストを非表示",
     remove_quoted_text: "引用テキストを削除",
+    edit_quoted_text: "引用テキストを編集",
     quoted_text_removed: "引用テキストを削除しました",
     restore_quoted_text: "元に戻す",
     show_forwarded: "転送メッセージを表示",

@@ -175,6 +175,8 @@ export function use_reply_modal(props: UseReplyModalProps) {
     set_show_quoted,
     include_quoted,
     set_include_quoted,
+    quote_inlined,
+    inline_quoted_text,
     draft_id,
     set_draft_id,
     set_draft_version,
@@ -501,6 +503,8 @@ export function use_reply_modal(props: UseReplyModalProps) {
         subject,
         message_with_signature,
         external_attachments,
+        undefined,
+        is_plain_text_mode,
       ).catch((error: unknown) => ({
         error:
           error instanceof Error
@@ -1440,6 +1444,8 @@ export function use_reply_modal(props: UseReplyModalProps) {
     set_show_quoted,
     include_quoted,
     set_include_quoted,
+    quote_inlined,
+    inline_quoted_text,
     draft_id,
     expires_at,
     set_expires_at,

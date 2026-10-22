@@ -8984,6 +8984,7 @@ export const pl = {
     show_quoted_text: "Pokaż cytowany tekst",
     hide_quoted_text: "Ukryj cytowany tekst",
     remove_quoted_text: "Usuń cytowany tekst",
+    edit_quoted_text: "Edytuj cytowany tekst",
     quoted_text_removed: "Cytowany tekst usunięty",
     restore_quoted_text: "Przywróć",
     show_forwarded: "Pokaż przekazane",
