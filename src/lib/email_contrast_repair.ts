@@ -40,6 +40,7 @@ export const MAX_REPAIR_ELEMENTS = 20000;
 
 export const NEUTRAL_CHROMA = 0.04;
 export const NEAR_BLACK_CHROMA = 0.12;
+export const MUTED_INK_CHROMA = 0.08;
 export const NEAR_BLACK_LIGHTNESS = 0.22;
 export const CAST_VISIBLE_LIGHTNESS = 0.4;
 
@@ -405,6 +406,10 @@ export function is_neutral_ink(color: string): boolean {
   );
 }
 
+function is_muted_ink(color: string): boolean {
+  return oklch_lightness_chroma(color).chroma < MUTED_INK_CHROMA;
+}
+
 function grey_hex(channel: number): string {
   const part = Math.round(clamp_channel(channel)).toString(16).padStart(2, "0");
 
@@ -475,8 +480,11 @@ function repair_text_ink_uncached(
   const backdrop = parse_css_color(background) ?? BLACK_RGBA;
   const color = rgba_to_hex(composite_over(source, backdrop));
 
-  if (!is_neutral_ink(color))
+  const neutral = is_neutral_ink(color);
+
+  if (!neutral && !(on_canvas && is_muted_ink(color))) {
     return repair_lightness(color, background, target);
+  }
 
   const lighten =
     contrast_ratio(WHITE, background) >= contrast_ratio(BLACK, background);
@@ -496,7 +504,9 @@ function repair_text_ink_uncached(
     ),
   );
 
-  return grey_for_contrast(background, wanted, lighten);
+  return neutral
+    ? grey_for_contrast(background, wanted, lighten)
+    : repair_lightness(color, background, wanted);
 }
 
 export function contrast_threshold_for(
