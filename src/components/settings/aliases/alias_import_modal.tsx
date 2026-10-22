@@ -55,6 +55,7 @@ import {
   update_alias,
   validate_local_part,
   compute_alias_hash,
+  compute_legacy_routing_hash,
   compute_routing_hash,
   encrypt_alias_field,
   type BulkCreateAliasItem,
@@ -653,11 +654,13 @@ export function AliasImportModal({
         for (let ei = 0; ei < system_rows.length; ei++) {
           const row = system_rows[ei];
           const normalized = row.local_part.toLowerCase().trim();
-          const [alias_hash, routing_hash, enc] = await Promise.all([
-            compute_alias_hash(normalized, row.domain),
-            compute_routing_hash(normalized, row.domain),
-            encrypt_alias_field(normalized),
-          ]);
+          const [alias_hash, routing_hash, legacy_routing_hash, enc] =
+            await Promise.all([
+              compute_alias_hash(normalized, row.domain),
+              compute_routing_hash(normalized, row.domain),
+              compute_legacy_routing_hash(normalized, row.domain),
+              encrypt_alias_field(normalized),
+            ]);
           const item: BulkCreateAliasItem = {
             encrypted_local_part: enc.encrypted,
             local_part_nonce: enc.nonce,
@@ -665,6 +668,10 @@ export function AliasImportModal({
             routing_address_hash: routing_hash,
             domain: row.domain,
           };
+
+          if (legacy_routing_hash) {
+            item.legacy_routing_address_hash = legacy_routing_hash;
+          }
 
           if (row.enabled !== undefined) item.is_enabled = row.enabled;
           if (row.display_name) {

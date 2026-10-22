@@ -30,8 +30,9 @@ import {
   encrypt_alias_field,
 } from "./crypto";
 import { list_all_aliases } from "./list";
-import { EmailAlias } from "./types";
+import { EmailAlias, NormalizeAliasResponse } from "./types";
 export let routing_hash_backfill_done = false;
+let legacy_routing_heal_done = false;
 
 // Heals legacy aliases that were stored without a routing_address_hash and so silently
 // drop all inbound mail. We recompute the hash locally (we can decrypt the address) and
@@ -84,6 +85,46 @@ export async function backfill_missing_routing_hashes(
   } catch {
     routing_hash_backfill_done = false;
   }
+}
+
+export async function heal_legacy_routing_hashes(
+  aliases: EmailAlias[],
+): Promise<boolean> {
+  if (legacy_routing_heal_done) return false;
+  legacy_routing_heal_done = true;
+
+  let changed = false;
+
+  for (const alias of aliases) {
+    if (!alias.routing_address_hash) continue;
+    if (alias.orphaned_by_key_rotation || alias.is_retained_primary) continue;
+
+    try {
+      const decrypted = await decrypt_alias(alias);
+
+      if (decrypted.decryption_failed || !decrypted.local_part) continue;
+
+      const local_part = decrypted.local_part.toLowerCase().trim();
+
+      if (!local_part.includes(".")) continue;
+
+      const expected = await compute_routing_hash(local_part, alias.domain);
+
+      if (expected === alias.routing_address_hash) continue;
+
+      const response = await api_client.post<NormalizeAliasResponse>(
+        `/addresses/v1/aliases/${alias.id}/normalize`,
+        { local_part },
+      );
+      const status = response.data?.status;
+
+      if (status === "normalized" || status === "merged") changed = true;
+    } catch {
+      continue;
+    }
+  }
+
+  return changed;
 }
 
 export async function reencrypt_all_aliases(): Promise<void> {
