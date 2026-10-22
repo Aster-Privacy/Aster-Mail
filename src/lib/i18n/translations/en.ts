@@ -22,6 +22,10 @@ import type { Translations } from "../types";
 
 export const en: Translations = {
   common: {
+    merge_primary_label: "Primary",
+    merge_make_primary: "Make primary",
+    merge_primary_description:
+      "The primary contact keeps its details and gains every email address. The other contacts move to Trash.",
     delete_folder_account_password: "Account password",
     delete_folder_step_up_hint:
       "This folder is password protected. Enter your account password to delete it.",

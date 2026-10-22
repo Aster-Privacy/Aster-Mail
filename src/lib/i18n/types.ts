@@ -2108,6 +2108,9 @@ export interface CommonTranslations {
   no_contacts_match: string;
   merge_contacts_hint: string;
   merge_keeps_this: string;
+  merge_primary_label: string;
+  merge_make_primary: string;
+  merge_primary_description: string;
   merged_contact_preview: string;
   preview_contact: string;
   merge: string;

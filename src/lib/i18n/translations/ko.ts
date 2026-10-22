@@ -20,6 +20,10 @@
 //
 export const ko = {
   common: {
+    merge_primary_label: "기본",
+    merge_make_primary: "기본으로 설정",
+    merge_primary_description:
+      "기본 연락처의 정보가 유지되고 모든 이메일 주소가 합쳐집니다. 나머지 연락처는 휴지통으로 이동합니다.",
     add_group: "그룹 추가",
     add_new_group: "새 그룹",
     add_to_group: "그룹에 추가",

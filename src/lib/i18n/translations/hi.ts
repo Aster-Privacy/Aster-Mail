@@ -20,6 +20,10 @@
 //
 export const hi = {
   common: {
+    merge_primary_label: "प्राथमिक",
+    merge_make_primary: "प्राथमिक बनाएं",
+    merge_primary_description:
+      "प्राथमिक संपर्क अपना विवरण रखता है और सभी ईमेल पते पाता है। बाकी संपर्क ट्रैश में चले जाते हैं।",
     delete_folder_account_password: "खाता पासवर्ड",
     delete_folder_step_up_hint:
       "यह फ़ोल्डर पासवर्ड से सुरक्षित है। इसे हटाने के लिए अपना खाता पासवर्ड डालें।",

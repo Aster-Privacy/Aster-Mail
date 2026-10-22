@@ -20,6 +20,10 @@
 //
 export const pt = {
   common: {
+    merge_primary_label: "Principal",
+    merge_make_primary: "Tornar principal",
+    merge_primary_description:
+      "O contacto principal mantém os seus dados e recebe todos os endereços de email. Os outros contactos vão para o Lixo.",
     add_group: "Adicionar grupo",
     add_new_group: "Novo grupo",
     add_to_group: "Adicionar ao grupo",

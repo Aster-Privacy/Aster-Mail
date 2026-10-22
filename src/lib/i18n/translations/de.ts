@@ -20,6 +20,10 @@
 //
 export const de = {
   common: {
+    merge_primary_label: "Hauptkontakt",
+    merge_make_primary: "Als Hauptkontakt",
+    merge_primary_description:
+      "Der Hauptkontakt behält seine Angaben und erhält alle E-Mail-Adressen. Die anderen Kontakte wandern in den Papierkorb.",
     delete_folder_account_password: "Kontopasswort",
     delete_folder_step_up_hint:
       "Dieser Ordner ist passwortgeschützt. Geben Sie Ihr Kontopasswort ein, um ihn zu löschen.",

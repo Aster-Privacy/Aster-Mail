@@ -18,24 +18,21 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { ReactNode } from "react";
 import type { DecryptedContact } from "@/types/contacts";
 
-import {
-  useCallback,
-  useEffect,
-  useId,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import {
-  ArrowDownIcon,
-  ArrowUpIcon,
-  Bars2Icon,
-  XMarkIcon,
-} from "@heroicons/react/24/outline";
-import { Button, Checkbox } from "@aster/ui";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Checkbox, Island } from "@aster/ui";
 
+import { Button } from "@/components/ui/button";
+import {
+  Modal,
+  ModalBody,
+  ModalDescription,
+  ModalFooter,
+  ModalHeader,
+  ModalTitle,
+} from "@/components/ui/modal";
 import { ContactAvatar } from "@/components/common/contacts/contact_avatar";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
@@ -45,12 +42,64 @@ import {
   update_contact_encrypted,
 } from "@/services/api/contacts";
 import { user_facing_error } from "@/utils/user_facing_error";
-import { ButtonSpinner } from "@/components/ui/spinner";
 
 interface ContactMergeModalProps {
   contacts: DecryptedContact[];
   on_close: () => void;
   on_merged: () => void;
+}
+
+const ROW_DIVIDER =
+  "1px solid color-mix(in srgb, var(--text-primary) 8%, transparent)";
+
+function MergeSectionLabel({
+  children,
+  trailing,
+}: {
+  children: ReactNode;
+  trailing?: ReactNode;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3 px-1">
+      <span className="text-[12.5px] font-medium text-txt-secondary">
+        {children}
+      </span>
+      {trailing && (
+        <span className="text-[12px] text-txt-muted tabular-nums">
+          {trailing}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function MergeDetailRow({
+  label,
+  values,
+  is_first,
+}: {
+  label: string;
+  values: string[];
+  is_first: boolean;
+}) {
+  return (
+    <div
+      className="flex items-start justify-between gap-4 px-4 py-3"
+      style={{ borderTop: is_first ? "none" : ROW_DIVIDER }}
+    >
+      <span className="flex-shrink-0 text-[13px] text-txt-muted">{label}</span>
+      <div className="min-w-0 text-end">
+        {values.map((value) => (
+          <p
+            key={value}
+            className="break-words text-[13px] font-medium text-txt-primary"
+          >
+            <bdi>{value}</bdi>
+          </p>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 export function ContactMergeModal({
@@ -59,39 +108,15 @@ export function ContactMergeModal({
   on_merged,
 }: ContactMergeModalProps) {
   const { t } = use_i18n();
-  const title_id = useId();
-  const dialog_ref = useRef<HTMLDivElement>(null);
   const [order, set_order] = useState<DecryptedContact[]>(contacts);
   const [excluded, set_excluded] = useState<Set<string>>(new Set());
-  const [is_preview_open, set_is_preview_open] = useState(false);
   const [is_merging, set_is_merging] = useState(false);
   const [error, set_error] = useState<string | null>(null);
-  const drag_id = useRef<string | null>(null);
 
   useEffect(() => {
     set_order(contacts);
     set_excluded(new Set());
   }, [contacts]);
-
-  useEffect(() => {
-    const previously_focused = document.activeElement as HTMLElement | null;
-    const frame = requestAnimationFrame(() => dialog_ref.current?.focus());
-
-    return () => {
-      cancelAnimationFrame(frame);
-      previously_focused?.focus?.();
-    };
-  }, []);
-
-  useEffect(() => {
-    const on_key = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !is_merging) on_close();
-    };
-
-    document.addEventListener("keydown", on_key);
-
-    return () => document.removeEventListener("keydown", on_key);
-  }, [is_merging, on_close]);
 
   const selected = useMemo(
     () => order.filter((contact) => !excluded.has(contact.id)),
@@ -102,6 +127,8 @@ export function ContactMergeModal({
     () => (selected.length > 0 ? merge_contacts(selected) : null),
     [selected],
   );
+
+  const primary_id = selected[0]?.id;
 
   const toggle = useCallback((id: string) => {
     set_excluded((prev) => {
@@ -114,42 +141,24 @@ export function ContactMergeModal({
     });
   }, []);
 
-  const move = useCallback((id: string, delta: number) => {
+  const make_primary = useCallback((id: string) => {
     set_order((prev) => {
       const index = prev.findIndex((contact) => contact.id === id);
-      const target = index + delta;
 
-      if (index < 0 || target < 0 || target >= prev.length) return prev;
+      if (index <= 0) return prev;
 
       const next = [...prev];
       const [item] = next.splice(index, 1);
 
-      next.splice(target, 0, item);
+      next.unshift(item);
 
       return next;
     });
   }, []);
 
-  const drop_on = useCallback((id: string) => {
-    const source = drag_id.current;
-
-    drag_id.current = null;
-    if (!source || source === id) return;
-
-    set_order((prev) => {
-      const from = prev.findIndex((contact) => contact.id === source);
-      const to = prev.findIndex((contact) => contact.id === id);
-
-      if (from < 0 || to < 0) return prev;
-
-      const next = [...prev];
-      const [item] = next.splice(from, 1);
-
-      next.splice(to, 0, item);
-
-      return next;
-    });
-  }, []);
+  const handle_close = useCallback(() => {
+    if (!is_merging) on_close();
+  }, [is_merging, on_close]);
 
   const run_merge = useCallback(async () => {
     if (selected.length < 2 || !preview) return;
@@ -188,176 +197,182 @@ export function ContactMergeModal({
     }
   }, [on_merged, preview, selected, t]);
 
+  const detail_rows = useMemo(() => {
+    if (!preview) return [];
+
+    const name =
+      `${preview.first_name} ${preview.last_name}`.trim() ||
+      preview.emails[0] ||
+      "";
+
+    return [
+      { key: "name", label: t("common.name"), values: name ? [name] : [] },
+      { key: "email", label: t("common.email"), values: preview.emails },
+      {
+        key: "phone",
+        label: t("common.phone"),
+        values: preview.phone ? [preview.phone] : [],
+      },
+      {
+        key: "company",
+        label: t("common.company"),
+        values: preview.company ? [preview.company] : [],
+      },
+      {
+        key: "job_title",
+        label: t("common.job_title"),
+        values: preview.job_title ? [preview.job_title] : [],
+      },
+    ].filter((row) => row.values.length > 0);
+  }, [preview, t]);
+
   return (
-    <div
-      className="fixed inset-0 z-[70] flex items-center justify-center"
-      role="presentation"
-      onClick={(e) => e.target === e.currentTarget && !is_merging && on_close()}
+    <Modal
+      is_open
+      close_on_escape={!is_merging}
+      close_on_overlay={!is_merging}
+      on_close={handle_close}
+      size="lg"
+      z_index={70}
     >
-      <div
-        aria-hidden="true"
-        className="absolute inset-0"
-        style={{ backgroundColor: "var(--modal-overlay)" }}
-      />
+      <ModalHeader>
+        <ModalTitle>{t("common.merge_contacts")}</ModalTitle>
+        <ModalDescription>
+          {t("common.merge_primary_description")}
+        </ModalDescription>
+      </ModalHeader>
 
-      <div
-        ref={dialog_ref}
-        aria-labelledby={title_id}
-        aria-modal="true"
-        className="relative mx-4 flex max-h-[86vh] w-full max-w-2xl flex-col overflow-hidden rounded-[var(--aster-radius-floating,16px)] bg-[var(--aster-floating-bg,var(--modal-bg))] shadow-[var(--aster-floating-shadow)] outline-none"
-        role="dialog"
-        tabIndex={-1}
-      >
-        <div className="flex flex-shrink-0 items-start justify-between gap-4 px-6 pb-4 pt-5">
-          <div className="min-w-0">
-            <h2
-              className="text-[17px] font-semibold text-txt-primary"
-              id={title_id}
+      <ModalBody>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <MergeSectionLabel
+              trailing={t("common.import_selected_count", {
+                selected: selected.length,
+                total: order.length,
+              })}
             >
-              {t("common.merge_contacts")}
-            </h2>
-            <p className="mt-1 text-[12.5px] leading-relaxed text-txt-muted">
-              {t("common.merge_contacts_hint")}
-            </p>
-          </div>
-          <button
-            aria-label={t("common.close")}
-            className="rounded-[14px] p-1 transition-colors hover:bg-[var(--aster-floating-hover)] disabled:cursor-not-allowed disabled:opacity-40"
-            disabled={is_merging}
-            type="button"
-            onClick={on_close}
-          >
-            <XMarkIcon className="h-5 w-5 text-txt-muted" />
-          </button>
-        </div>
+              {t("common.contacts")}
+            </MergeSectionLabel>
+            <Island className="overflow-hidden">
+              <div className="max-h-[288px] overflow-y-auto overscroll-contain">
+                {order.map((contact, index) => {
+                  const is_included = !excluded.has(contact.id);
+                  const is_primary = contact.id === primary_id;
+                  const name = contact_display_name(contact);
 
-        <div
-          className="h-px flex-shrink-0"
-          style={{ backgroundColor: "var(--aster-floating-divider)" }}
-        />
-
-        <div className="min-h-0 flex-1 overflow-y-auto px-3 py-2">
-          {order.map((contact, index) => {
-            const is_included = !excluded.has(contact.id);
-            const is_keeper = is_included && selected[0]?.id === contact.id;
-
-            return (
-              <div
-                key={contact.id}
-                draggable
-                className="contact_merge_row flex items-center gap-2 rounded-xl px-2 py-2"
-                onDragOver={(event) => event.preventDefault()}
-                onDragStart={() => {
-                  drag_id.current = contact.id;
-                }}
-                onDrop={() => drop_on(contact.id)}
-              >
-                <Bars2Icon className="h-4 w-4 flex-shrink-0 cursor-grab text-txt-muted" />
-                <Checkbox
-                  aria-label={contact_display_name(contact)}
-                  checked={is_included}
-                  className="flex-shrink-0"
-                  onChange={() => toggle(contact.id)}
-                />
-                <ContactAvatar
-                  avatar_url={contact.avatar_url}
-                  email={contact.emails[0]}
-                  name={contact_display_name(contact)}
-                  profile_color={contact.profile_color}
-                  size_px={32}
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="flex items-center gap-1.5 truncate text-[13.5px] font-medium text-txt-primary">
-                    {contact_display_name(contact)}
-                    {is_keeper && (
-                      <span className="contact_merge_badge rounded-full px-1.5 py-0.5 text-[10.5px] font-medium">
-                        {t("common.merge_keeps_this")}
+                  return (
+                    <div
+                      key={contact.id}
+                      className="flex cursor-pointer items-center gap-3 px-4 py-3 transition-colors hover:bg-[var(--aster-island-hover)]"
+                      role="presentation"
+                      style={{ borderTop: index > 0 ? ROW_DIVIDER : "none" }}
+                      onClick={() => !is_merging && toggle(contact.id)}
+                    >
+                      <span
+                        className="flex flex-shrink-0"
+                        role="presentation"
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        <Checkbox
+                          aria-label={name}
+                          checked={is_included}
+                          className="-m-2 p-2"
+                          disabled={is_merging}
+                          onCheckedChange={() => toggle(contact.id)}
+                        />
                       </span>
-                    )}
-                  </p>
-                  <p className="truncate text-[12px] text-txt-muted">
-                    {contact.emails.join(", ") || t("common.no_email")}
-                  </p>
-                </div>
-                <div className="flex flex-shrink-0 items-center">
-                  <button
-                    aria-label={t("common.move_up")}
-                    className="contact_merge_action flex h-7 w-7 items-center justify-center rounded-full disabled:opacity-30"
-                    disabled={index === 0}
-                    type="button"
-                    onClick={() => move(contact.id, -1)}
-                  >
-                    <ArrowUpIcon className="h-3.5 w-3.5" />
-                  </button>
-                  <button
-                    aria-label={t("common.move_down")}
-                    className="contact_merge_action flex h-7 w-7 items-center justify-center rounded-full disabled:opacity-30"
-                    disabled={index === order.length - 1}
-                    type="button"
-                    onClick={() => move(contact.id, 1)}
-                  >
-                    <ArrowDownIcon className="h-3.5 w-3.5" />
-                  </button>
-                </div>
+                      <div
+                        className="flex min-w-0 flex-1 items-center gap-3 transition-opacity"
+                        style={{ opacity: is_included ? 1 : 0.5 }}
+                      >
+                        <ContactAvatar
+                          avatar_url={contact.avatar_url}
+                          email={contact.emails[0]}
+                          name={name}
+                          profile_color={contact.profile_color}
+                          size_px={32}
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-[13px] font-medium text-txt-primary">
+                            {name}
+                          </p>
+                          <p className="truncate text-[12px] text-txt-muted">
+                            <bdi>
+                              {contact.emails.join(", ") ||
+                                t("common.no_email")}
+                            </bdi>
+                          </p>
+                        </div>
+                      </div>
+                      {is_primary ? (
+                        <span className="flex-shrink-0 rounded-full bg-[color-mix(in_srgb,var(--text-primary)_7%,transparent)] px-2 py-0.5 text-[11px] font-medium text-txt-secondary">
+                          {t("common.merge_primary_label")}
+                        </span>
+                      ) : (
+                        is_included && (
+                          <button
+                            className="flex-shrink-0 rounded-[var(--aster-radius-item)] px-2 py-1 text-[12px] font-medium text-txt-muted transition-colors hover:bg-[var(--aster-island-press)] hover:text-txt-primary disabled:pointer-events-none disabled:opacity-40"
+                            disabled={is_merging}
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              make_primary(contact.id);
+                            }}
+                          >
+                            {t("common.merge_make_primary")}
+                          </button>
+                        )
+                      )}
+                    </div>
+                  );
+                })}
               </div>
-            );
-          })}
+            </Island>
+          </div>
 
-          {is_preview_open && preview && (
-            <div className="contact_merge_preview mt-2 rounded-xl px-3 py-3">
-              <p className="text-[11px] font-medium uppercase tracking-wide text-txt-muted">
+          {detail_rows.length > 0 && (
+            <div className="space-y-2">
+              <MergeSectionLabel>
                 {t("common.merged_contact_preview")}
-              </p>
-              <p className="mt-1.5 text-[13.5px] font-medium text-txt-primary">
-                {`${preview.first_name} ${preview.last_name}`.trim() ||
-                  preview.emails[0]}
-              </p>
-              <p className="mt-0.5 break-words text-[12.5px] text-txt-muted">
-                {preview.emails.join(", ")}
-              </p>
+              </MergeSectionLabel>
+              <Island className="overflow-hidden">
+                {detail_rows.map((row, index) => (
+                  <MergeDetailRow
+                    key={row.key}
+                    is_first={index === 0}
+                    label={row.label}
+                    values={row.values}
+                  />
+                ))}
+              </Island>
             </div>
           )}
 
           {error && (
-            <p className="mt-2 px-2 text-[12.5px] text-[var(--color-danger)]">{error}</p>
+            <p
+              className="px-1 text-[12.5px]"
+              role="alert"
+              style={{ color: "var(--color-danger)" }}
+            >
+              {error}
+            </p>
           )}
         </div>
+      </ModalBody>
 
-        <div
-          className="h-px flex-shrink-0"
-          style={{ backgroundColor: "var(--aster-floating-divider)" }}
-        />
-
-        <div className="flex flex-shrink-0 items-center justify-between gap-2 px-6 py-4">
-          <Button
-            disabled={is_merging}
-            size="sm"
-            variant="ghost"
-            onClick={on_close}
-          >
-            {t("common.cancel")}
-          </Button>
-          <div className="flex items-center gap-2">
-            <Button
-              disabled={selected.length < 2}
-              size="sm"
-              variant="secondary"
-              onClick={() => set_is_preview_open((open) => !open)}
-            >
-              {t("common.preview_contact")}
-            </Button>
-            <Button
-              disabled={selected.length < 2 || is_merging}
-              size="sm"
-              variant="primary"
-              onClick={run_merge}
-            >
-              {t("common.merge")}
-              {is_merging && <ButtonSpinner />}
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
+      <ModalFooter>
+        <Button disabled={is_merging} variant="ghost" onClick={handle_close}>
+          {t("common.cancel")}
+        </Button>
+        <Button
+          disabled={selected.length < 2}
+          is_loading={is_merging}
+          variant="depth"
+          onClick={run_merge}
+        >
+          {t("common.merge")}
+        </Button>
+      </ModalFooter>
+    </Modal>
   );
 }

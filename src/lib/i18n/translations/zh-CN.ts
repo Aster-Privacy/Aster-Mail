@@ -20,6 +20,10 @@
 //
 export const zh_CN = {
   common: {
+    merge_primary_label: "主要",
+    merge_make_primary: "设为主要",
+    merge_primary_description:
+      "主要联系人保留其信息并获得所有电子邮件地址。其他联系人将移至废纸篓。",
     add_group: "添加群组",
     add_new_group: "新建群组",
     add_to_group: "添加到群组",

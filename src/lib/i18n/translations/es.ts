@@ -20,6 +20,10 @@
 //
 export const es = {
   common: {
+    merge_primary_label: "Principal",
+    merge_make_primary: "Hacer principal",
+    merge_primary_description:
+      "El contacto principal conserva sus datos y recibe todas las direcciones de correo. Los demás contactos pasan a la papelera.",
     add_group: "Añadir grupo",
     add_new_group: "Nuevo grupo",
     add_to_group: "Añadir al grupo",

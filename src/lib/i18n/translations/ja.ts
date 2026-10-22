@@ -20,6 +20,10 @@
 //
 export const ja = {
   common: {
+    merge_primary_label: "メイン",
+    merge_make_primary: "メインにする",
+    merge_primary_description:
+      "メインの連絡先の情報が残り、すべてのメールアドレスがまとめられます。ほかの連絡先はゴミ箱に移動します。",
     add_group: "グループを追加",
     add_to_group: "グループに追加",
     added_to_group: "グループに追加しました",

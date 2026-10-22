@@ -20,6 +20,10 @@
 //
 export const ru = {
   common: {
+    merge_primary_label: "Основной",
+    merge_make_primary: "Сделать основным",
+    merge_primary_description:
+      "Основной контакт сохраняет свои данные и получает все адреса эл. почты. Остальные контакты попадут в корзину.",
     add_group: "Добавить группу",
     add_new_group: "Новая группа",
     add_to_group: "Добавить в группу",
