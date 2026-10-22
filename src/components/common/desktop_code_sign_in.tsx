@@ -206,6 +206,7 @@ export function DesktopCodeSignIn({
           sealed_envelope,
         );
 
+        clear_link_codes();
         if (result.error) {
           fail(`pair:${result.error}`);
 
@@ -220,6 +221,7 @@ export function DesktopCodeSignIn({
 
         await on_signed_in_ref.current(session);
       } catch (err) {
+        clear_link_codes();
         if (import.meta.env.DEV) console.error(err);
         fail(`complete:${err instanceof Error ? err.message : String(err)}`);
       }
@@ -260,7 +262,6 @@ export function DesktopCodeSignIn({
             status.device_id &&
             status.sealed_envelope
           ) {
-            clear_link_codes();
             await finish(status.device_id, status.sealed_envelope);
 
             return;
