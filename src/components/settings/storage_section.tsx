@@ -707,6 +707,7 @@ export function StorageSection() {
                 return (
                   <IslandRow
                     key={entry.name}
+                    className="flex-wrap [&>.aster_island_row_text]:min-w-[5.5rem] [&>.aster_island_row_trailing]:ms-auto [&>.aster_island_row_trailing]:max-w-full [&_.aster_island_row_value]:shrink-0"
                     description={
                       entry.item_count > 0
                         ? t("settings.storage_items_count", {

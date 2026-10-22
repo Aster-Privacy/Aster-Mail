@@ -60,6 +60,7 @@ export function ExportSection() {
         title={t("settings.export_title")}
       >
         <IslandRow
+          className="settings_row_wrap_narrow"
           description={t("settings.export_description")}
           label={t("settings.export_title")}
           trailing={

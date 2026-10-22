@@ -63,6 +63,11 @@ export function SettingsTabBar<T extends string>({
   const [active_rect, set_active_rect] = useState<Rect>(EMPTY_RECT);
   const [hover_rect, set_hover_rect] = useState<Rect>(EMPTY_RECT);
   const [hover_visible, set_hover_visible] = useState(false);
+  const [overflow, set_overflow] = useState({
+    start: false,
+    end: false,
+    rtl: false,
+  });
 
   const active_index = Math.max(
     0,
@@ -93,17 +98,70 @@ export function SettingsTabBar<T extends string>({
     measure_active();
   }, [measure_active, tabs]);
 
+  const measure_overflow = useCallback(() => {
+    const scroller = scroller_ref.current;
+
+    if (!scroller) return;
+
+    const max_scroll = scroller.scrollWidth - scroller.clientWidth;
+    const position = Math.abs(scroller.scrollLeft);
+    const start = max_scroll > 1 && position > 1;
+    const end = max_scroll > 1 && position < max_scroll - 1;
+    const rtl = getComputedStyle(scroller).direction === "rtl";
+
+    set_overflow((current) =>
+      current.start === start && current.end === end && current.rtl === rtl
+        ? current
+        : { start, end, rtl },
+    );
+  }, []);
+
   useEffect(() => {
     const row = row_ref.current;
+    const scroller = scroller_ref.current;
 
-    if (!row || typeof ResizeObserver === "undefined") return;
+    if (!row || !scroller || typeof ResizeObserver === "undefined") return;
 
-    const observer = new ResizeObserver(() => measure_active());
+    const observer = new ResizeObserver(() => {
+      measure_active();
+      measure_overflow();
+    });
 
     observer.observe(row);
+    observer.observe(scroller);
 
     return () => observer.disconnect();
-  }, [measure_active]);
+  }, [measure_active, measure_overflow]);
+
+  useEffect(() => {
+    const scroller = scroller_ref.current;
+
+    if (!scroller) return;
+
+    const handle_wheel = (event: WheelEvent) => {
+      if (scroller.scrollWidth <= scroller.clientWidth) return;
+      if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+
+      const max_scroll = scroller.scrollWidth - scroller.clientWidth;
+      const position = Math.abs(scroller.scrollLeft);
+
+      if (
+        (event.deltaY < 0 && position <= 0) ||
+        (event.deltaY > 0 && position >= max_scroll - 1)
+      )
+        return;
+
+      event.preventDefault();
+      scroller.scrollLeft +=
+        getComputedStyle(scroller).direction === "rtl"
+          ? -event.deltaY
+          : event.deltaY;
+    };
+
+    scroller.addEventListener("wheel", handle_wheel, { passive: false });
+
+    return () => scroller.removeEventListener("wheel", handle_wheel);
+  }, []);
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
@@ -203,6 +261,10 @@ export function SettingsTabBar<T extends string>({
       <div
         ref={scroller_ref}
         className="max-w-full overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        style={{
+          maskImage: `linear-gradient(to ${overflow.rtl ? "left" : "right"}, ${overflow.start ? "transparent" : "#000"}, #000 32px, #000 calc(100% - 32px), ${overflow.end ? "transparent" : "#000"})`,
+        }}
+        onScroll={measure_overflow}
       >
         <div
           ref={row_ref}

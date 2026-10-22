@@ -4904,6 +4904,36 @@ html[data-input-modality="keyboard"]
   border-top: 1px solid var(--aster-island-divider);
 }
 
+@layer components {
+  .aster_island_row_text {
+    flex: 1 1 0%;
+  }
+
+  .aster_island_row_stacked > .aster_island_row_trailing {
+    flex-basis: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    max-width: 100%;
+  }
+
+  .aster_island_row_stacked > .aster_island_row_trailing > * {
+    max-width: 100%;
+  }
+
+  @media (max-width: 639px) {
+    .aster_island_row.settings_row_wrap_narrow {
+      flex-wrap: wrap;
+      row-gap: 8px;
+    }
+
+    .settings_row_wrap_narrow > .aster_island_row_trailing {
+      flex-basis: 100%;
+      justify-content: flex-start;
+      max-width: 100%;
+    }
+  }
+}
+
 .quick_contacts_row.aster_island_row {
   border-radius: 0;
 }
