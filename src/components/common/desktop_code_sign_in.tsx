@@ -49,7 +49,6 @@ import { Logo } from "@/components/auth/auth_styles";
 import { Spinner } from "@/components/ui/spinner";
 
 const WEB_LINK_DEVICE_URL = "https://app.astermail.org/link-device";
-const WEB_SIGN_UP_URL = "https://app.astermail.org/register";
 
 export interface DeviceSignInSession {
   user: User;
@@ -153,6 +152,7 @@ export function DesktopCodeSignIn({
   const [device_fingerprint, set_device_fingerprint] = useState<string | null>(
     null,
   );
+  const [show_verification, set_show_verification] = useState(false);
   const [time_left, set_time_left] = useState(0);
   const [error_detail, set_error_detail] = useState<string | null>(null);
   const [flow_key, set_flow_key] = useState(0);
@@ -576,19 +576,28 @@ export function DesktopCodeSignIn({
               </div>
 
               {device_fingerprint && (
-                <div
-                  className="w-full mt-5 text-center"
-                  data-testid="device_fingerprint"
-                >
-                  <span className="block text-xs font-medium text-txt-muted">
-                    {t("auth.device_fingerprint")}
-                  </span>
-                  <span className="mt-1 block select-text font-mono text-sm font-semibold tracking-wide text-txt-primary">
-                    {device_fingerprint}
-                  </span>
-                  <span className="mt-1.5 block text-xs leading-relaxed text-txt-muted">
-                    {t("auth.device_code_fingerprint_hint")}
-                  </span>
+                <div className="w-full mt-4 text-center">
+                  <button
+                    aria-expanded={show_verification}
+                    className="text-xs font-medium text-txt-muted underline-offset-2 hover:text-txt-primary hover:underline"
+                    type="button"
+                    onClick={() => set_show_verification((open) => !open)}
+                  >
+                    {t("auth.device_code_verify_toggle")}
+                  </button>
+                  {show_verification && (
+                    <div className="mt-2" data-testid="device_fingerprint">
+                      <span className="block text-xs font-medium text-txt-muted">
+                        {t("auth.device_fingerprint")}
+                      </span>
+                      <span className="mt-1 block select-text font-mono text-sm font-semibold tracking-wide text-txt-primary">
+                        {device_fingerprint}
+                      </span>
+                      <span className="mt-1.5 block text-xs leading-relaxed text-txt-muted">
+                        {t("auth.device_code_fingerprint_hint")}
+                      </span>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -615,14 +624,6 @@ export function DesktopCodeSignIn({
                   {t("auth.device_code_waiting")}
                 </span>
               </div>
-
-              <button
-                className="aster_btn aster_btn_secondary aster_btn_xl w-full mt-8"
-                type="button"
-                onClick={() => open_external(WEB_SIGN_UP_URL)}
-              >
-                {t("auth.create_account")}
-              </button>
             </motion.div>
           )}
         </AnimatePresence>

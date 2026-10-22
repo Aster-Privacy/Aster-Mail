@@ -350,7 +350,10 @@ fn auth_store_write(slot: &str, value: &str) -> Result<(), String> {
     let blob = aead_seal(&wrap_key, MAGIC_AUTH, value.as_bytes())?;
     let path = auth_file_path(file_name)?;
 
-    atomic_write(&path, &blob)
+    atomic_write(&path, &blob)?;
+    let _ = keyring_delete(keyring_user);
+
+    Ok(())
 }
 
 fn auth_store_read(slot: &str) -> Result<Option<String>, String> {
@@ -440,8 +443,27 @@ fn atomic_write(path: &std::path::Path, data: &[u8]) -> Result<(), String> {
         f.write_all(data).map_err(|e| e.to_string())?;
         f.sync_all().map_err(|e| e.to_string())?;
     }
-    secure_overwrite_file(path);
-    std::fs::rename(&tmp, path).map_err(|e| e.to_string())?;
+    let previous = path.with_extension("old");
+
+    if previous.exists() {
+        let _ = std::fs::remove_file(&previous);
+    }
+
+    let kept_previous = path.exists() && std::fs::hard_link(path, &previous).is_ok();
+
+    if let Err(e) = std::fs::rename(&tmp, path) {
+        if kept_previous {
+            let _ = std::fs::remove_file(&previous);
+        }
+        let _ = std::fs::remove_file(&tmp);
+
+        return Err(e.to_string());
+    }
+
+    if kept_previous {
+        secure_delete_file(&previous);
+    }
+
     Ok(())
 }
 
@@ -454,8 +476,14 @@ fn load_stored() -> Result<Option<StoredIdentity>, String> {
             if let Ok(s) = entry.get_password() {
                 if let Ok(bytes) = URL_SAFE_NO_PAD.decode(s.as_bytes()).map(Zeroizing::new) {
                     if let Ok(stored) = serde_json::from_slice::<StoredIdentity>(&bytes) {
-                        let _ = save_stored(&stored);
-                        let _ = entry.delete_credential();
+                        match save_stored(&stored) {
+                            Ok(()) => {
+                                let _ = entry.delete_credential();
+                            }
+                            Err(e) => {
+                                tracing::warn!("identity keychain-to-file migration deferred: {}", e);
+                            }
+                        }
                         return Ok(Some(stored));
                     }
                 }
@@ -1257,6 +1285,42 @@ mod tests {
         assert!(!path.with_extension("tmp").exists());
 
         let _ = std::fs::remove_file(&path);
+    }
+
+    #[test]
+    fn atomic_write_leaves_the_live_file_intact_when_a_stale_link_exists() {
+        let path = scratch_path("stale_link");
+        let live = vec![0x11u8; 256];
+        let next = vec![0x22u8; 256];
+
+        atomic_write(&path, &live).unwrap();
+        std::fs::hard_link(&path, path.with_extension("old")).unwrap();
+
+        atomic_write(&path, &next).unwrap();
+
+        assert_eq!(std::fs::read(&path).unwrap(), next);
+        assert!(!path.with_extension("old").exists());
+        assert!(!path.with_extension("tmp").exists());
+
+        let _ = std::fs::remove_file(&path);
+    }
+
+    #[test]
+    fn atomic_write_cleans_up_when_the_replace_fails() {
+        let path = scratch_path("replace_fails");
+        let live = vec![0x33u8; 256];
+
+        atomic_write(&path, &live).unwrap();
+        std::fs::remove_file(&path).unwrap();
+        std::fs::create_dir_all(&path).unwrap();
+        std::fs::write(path.join("child"), b"x").unwrap();
+
+        assert!(atomic_write(&path, &[0x44u8; 256]).is_err());
+        assert!(path.is_dir());
+        assert!(!path.with_extension("tmp").exists());
+        assert!(!path.with_extension("old").exists());
+
+        let _ = std::fs::remove_dir_all(&path);
     }
 
     #[test]

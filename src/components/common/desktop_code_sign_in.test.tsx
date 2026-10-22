@@ -171,7 +171,14 @@ describe("desktop code sign-in", () => {
     expect(poll_device_code_status_mock.mock.calls.length).toBeGreaterThan(60);
   });
 
-  it("shows the fingerprint of its own keys beside the code", async () => {
+  it("never offers to create an account", async () => {
+    await render_sign_in();
+
+    expect(container!.textContent).toContain("auth.device_code_title");
+    expect(container!.textContent).not.toContain("auth.create_account");
+  });
+
+  it("shows the verification code of its own keys only on request", async () => {
     const encode = (length: number, value: number) =>
       btoa(String.fromCharCode(...new Uint8Array(length).fill(value)))
         .replace(/\+/g, "-")
@@ -188,6 +195,21 @@ describe("desktop code sign-in", () => {
 
     await render_sign_in();
 
+    expect(
+      container!.querySelector('[data-testid="device_fingerprint"]'),
+    ).toBeNull();
+    expect(container!.textContent).not.toContain("9B16");
+
+    const toggle = Array.from(container!.querySelectorAll("button")).find(
+      (button) => button.textContent === "auth.device_code_verify_toggle",
+    );
+
+    expect(toggle?.getAttribute("aria-expanded")).toBe("false");
+    await act(async () => {
+      toggle!.click();
+    });
+
+    expect(toggle?.getAttribute("aria-expanded")).toBe("true");
     expect(
       container!.querySelector('[data-testid="device_fingerprint"]')
         ?.textContent,

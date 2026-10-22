@@ -67,9 +67,8 @@ vi.mock("@/services/api/auth", () => ({
 }));
 
 const { DesktopSignUpHandoff } = await import("./desktop_sign_up_handoff");
-const { DesktopCodeSignIn } = await import(
-  "@/components/common/desktop_code_sign_in"
-);
+const { DesktopCodeSignIn } =
+  await import("@/components/common/desktop_code_sign_in");
 
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean;
@@ -159,7 +158,7 @@ describe("desktop sign-up handoff", () => {
     ).not.toBeNull();
   });
 
-  it("requests a code on the desktop sign-in screen and sends sign-up to the browser", async () => {
+  it("requests a code on the desktop sign-in screen and offers no sign-up", async () => {
     await render_tree(<DesktopCodeSignIn on_signed_in={async () => {}} />);
     for (let i = 0; i < 50 && !container!.textContent?.includes("A"); i++) {
       await act(async () => {
@@ -173,20 +172,7 @@ describe("desktop sign-up handoff", () => {
     expect(container!.textContent).toContain("H");
     expect(container!.querySelector('input[type="password"]')).toBeNull();
     expect(container!.querySelector('a[href="/register"]')).toBeNull();
-
-    const buttons = Array.from(container!.querySelectorAll("button"));
-    const create_account = buttons.find(
-      (button) => button.textContent === "auth.create_account",
-    );
-
-    expect(create_account).toBeDefined();
-
-    await act(async () => {
-      create_account!.click();
-    });
-
-    expect(open_external_mock).toHaveBeenCalledWith(
-      "https://app.astermail.org/register",
-    );
+    expect(container!.textContent).not.toContain("auth.create_account");
+    expect(open_external_mock).not.toHaveBeenCalled();
   });
 });
