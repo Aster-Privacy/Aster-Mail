@@ -4342,6 +4342,9 @@ export const es = {
     billing_history: "Historial de facturación",
     billing_status_active: "Activo",
     billing_status_renews: "Se renueva el {{date}}",
+    billing_status_lifetime: "De por vida",
+    billing_lifetime_note:
+      "Este plan nunca se renueva y no vuelves a pagar por él. Para cambiarlo, contacta con el soporte de Aster.",
     billing_status_ending: "Termina el {{date}}",
     billing_status_attention: "El pago necesita tu atención",
     billing_member_since: "Miembro desde el {{date}}",
@@ -7145,6 +7148,8 @@ export const es = {
     security_center_recommended: "Acciones recomendadas",
     security_center_protected: "Protegido",
     security_center_all_clear: "Todas las protecciones están activadas.",
+    security_center_met_of_total: "{{met}} de {{total}} protecciones activadas",
+    security_center_account: "Tu cuenta",
     security_center_protection_score: "Puntuación de protección",
     security_center_encryption_title: "Cifrado de extremo a extremo",
     security_center_encryption_detail:
@@ -8264,6 +8269,8 @@ export const es = {
       "Todavía nadie puede escribirte. Tu dominio no tiene ruta de correo, así que los mensajes rebotan al remitente.",
     domain_reason_mx_points_elsewhere:
       "El correo va a tu proveedor anterior, no a Aster. Elimina los registros MX antiguos para que los mensajes lleguen a esta bandeja.",
+    domain_reason_mx_shared:
+      "Parte de tu correo puede llegar a {{detail}} en lugar de a Aster, porque ese registro MX tiene la misma prioridad o una mayor. Elimínalo para que todo tu correo llegue a esta bandeja.",
     domain_reason_spf_missing:
       "El correo que envías puede rechazarse o marcarse como spam, porque nada indica a los demás proveedores que Aster puede enviar por ti.",
     domain_reason_spf_missing_include:
@@ -8635,6 +8642,7 @@ export const es = {
     reply_all: "Responder a todos",
     react: "Reaccionar",
     you_reacted_with: "Has reaccionado con {{emoji}}",
+    reaction_sent: "Reacción enviada",
     reacted_with: "{{name}} ha reaccionado con {{emoji}}",
     forward: "Reenviar",
     to: "Para",
@@ -8748,6 +8756,7 @@ export const es = {
     show_quoted_text: "Mostrar texto citado",
     hide_quoted_text: "Ocultar texto citado",
     remove_quoted_text: "Eliminar texto citado",
+    edit_quoted_text: "Editar texto citado",
     quoted_text_removed: "Texto citado eliminado",
     restore_quoted_text: "Restaurar",
     show_forwarded: "Mostrar reenviado",
@@ -9379,9 +9388,10 @@ export const es = {
     op_has_video: "Tiene video",
     op_in_drafts: "En borradores",
     chip_any_time: "Cualquier fecha",
-    chip_older_than_week: "Más de una semana",
-    chip_older_than_month: "Más de un mes",
-    chip_older_than_six_months: "Más de 6 meses",
+    chip_last_7_days: "Últimos 7 días",
+    chip_last_30_days: "Últimos 30 días",
+    chip_last_6_months: "Últimos 6 meses",
+    chip_last_year: "Último año",
     chip_older_than_year: "Más de un año",
     chip_custom_range: "Intervalo personalizado",
     chip_has_attachment: "Con adjunto",
@@ -9389,10 +9399,12 @@ export const es = {
     chip_attachment_document: "Documento",
     chip_attachment_pdf: "PDF",
     chip_attachment_video: "Vídeo",
-    chip_is_unread: "Sin leer",
+    chip_is_unread: "No leídos",
     chip_name_or_email: "Nombre o correo",
     chip_no_people: "No hay personas coincidentes",
     chip_advanced_search: "Búsqueda avanzada",
+    chip_everywhere: "En todas partes",
+    chip_everywhere_hint: "Incluye Spam y Papelera",
     spam_trash_hidden_notice:
       "Algunos mensajes en Spam y Papelera coinciden con tu búsqueda.",
     search_index_partial:

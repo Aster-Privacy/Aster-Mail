@@ -332,7 +332,8 @@ export function PopupEmailHeader({
                 </PopoverTrigger>
                 <PopoverContent
                   align="start"
-                  className="w-max min-w-[20rem] max-w-[90vw] p-3 text-xs space-y-2"
+                  className="w-max min-w-[20rem] max-w-[90vw] max-h-[min(var(--radix-popover-content-available-height,80dvh),40rem)] overflow-y-auto overscroll-contain p-3 text-xs space-y-2"
+                  collisionPadding={12}
                   side="bottom"
                 >
                   <div className="grid grid-cols-[3.5rem_1fr] gap-x-2 items-start">

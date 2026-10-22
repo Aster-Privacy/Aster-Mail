@@ -70,7 +70,19 @@ vi.mock("@/components/toast/action_toast", () => ({
 
 vi.mock("@/hooks/use_mail_stats", () => ({ invalidate_mail_stats: vi.fn() }));
 
-vi.mock("@/hooks/mail_events", () => ({ emit_email_sent: vi.fn() }));
+const emit_thread_reply_optimistic = vi.fn();
+const emit_thread_reply_sent = vi.fn();
+const emit_thread_reply_cancelled = vi.fn();
+
+vi.mock("@/hooks/mail_events", () => ({
+  emit_email_sent: vi.fn(),
+  emit_thread_reply_optimistic: (...args: unknown[]) =>
+    emit_thread_reply_optimistic(...args),
+  emit_thread_reply_sent: (...args: unknown[]) =>
+    emit_thread_reply_sent(...args),
+  emit_thread_reply_cancelled: (...args: unknown[]) =>
+    emit_thread_reply_cancelled(...args),
+}));
 
 const { execute_internal_send, execute_external_email_send } =
   await import("@/components/compose/compose_send_actions");
@@ -524,5 +536,122 @@ describe("a queued send that fails after compose closes returns to Drafts", () =
 
     expect(on_send_failed).not.toHaveBeenCalled();
     expect(on_close).not.toHaveBeenCalled();
+  });
+});
+
+describe("a sent reply appears in its thread right away", () => {
+  const reply_draft = {
+    id: "",
+    version: 0,
+    draft_type: "reply",
+    reply_to_id: "original-1",
+    thread_token: "thread-7",
+    to_recipients: [],
+    cc_recipients: [],
+    bcc_recipients: [],
+    subject: "",
+    message: "",
+    updated_at: "",
+  };
+  const echo_sender = { name: "Me", email: "me@example.com" };
+  const reply_data = { ...email_data, thread_id: "thread-7" };
+
+  function server_queue_callbacks(): {
+    on_sent: () => void;
+    on_cancelled: () => void;
+    on_error: (error: string) => void;
+  } {
+    return queue_email_to_server.mock.calls[0][2];
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    undo_send_delay_ms = 10_000;
+    queue_email_to_server.mockResolvedValue({ queue_id: "queue_echo" });
+  });
+
+  function reply_ctx(overrides: Record<string, unknown> = {}) {
+    return make_ctx({
+      undo_send_enabled: true,
+      undo_send_seconds: 10,
+      undo_send_period: "seconds",
+      edit_draft: reply_draft,
+      echo_sender,
+      ...overrides,
+    });
+  }
+
+  it("adds the reply to the thread as soon as it is queued", async () => {
+    await execute_internal_send(reply_ctx(), reply_data);
+
+    expect(emit_thread_reply_optimistic).toHaveBeenCalledTimes(1);
+    expect(emit_thread_reply_optimistic).toHaveBeenCalledWith(
+      expect.objectContaining({
+        thread_token: "thread-7",
+        original_email_id: "original-1",
+        optimistic_id: "queue_echo",
+        sender_email: "me@example.com",
+        subject: "hello",
+        body: "body",
+      }),
+    );
+    expect(undo_send_add).toHaveBeenCalledWith(
+      expect.objectContaining({ optimistic_id: "queue_echo" }),
+    );
+  });
+
+  it("removes the reply from the thread when the send is undone", async () => {
+    await execute_internal_send(reply_ctx(), reply_data);
+    server_queue_callbacks().on_cancelled();
+
+    expect(emit_thread_reply_cancelled).toHaveBeenCalledWith({
+      optimistic_id: "queue_echo",
+      thread_token: "thread-7",
+    });
+    expect(emit_thread_reply_sent).not.toHaveBeenCalled();
+  });
+
+  it("removes the reply from the thread when the send fails", async () => {
+    await execute_internal_send(reply_ctx(), reply_data);
+    server_queue_callbacks().on_error("failed");
+
+    expect(emit_thread_reply_cancelled).toHaveBeenCalledTimes(1);
+  });
+
+  it("confirms the reply once it is delivered", async () => {
+    await execute_internal_send(reply_ctx(), reply_data);
+    server_queue_callbacks().on_sent();
+
+    expect(emit_thread_reply_sent).toHaveBeenCalledWith({
+      thread_token: "thread-7",
+      original_email_id: "original-1",
+      optimistic_id: "queue_echo",
+    });
+    server_queue_callbacks().on_cancelled();
+    expect(emit_thread_reply_cancelled).not.toHaveBeenCalled();
+  });
+
+  it("converts a plain text reply to markup for the thread", async () => {
+    await execute_internal_send(reply_ctx({ is_plain_text: true }), {
+      ...reply_data,
+      body: "<b>hi</b>",
+    });
+
+    const echoed = emit_thread_reply_optimistic.mock.calls[0][0];
+
+    expect(echoed.body).not.toContain("<b>");
+  });
+
+  it("does not add a new message or forward to a thread", async () => {
+    await execute_internal_send(
+      reply_ctx({ edit_draft: { ...reply_draft, draft_type: "forward" } }),
+      reply_data,
+    );
+    await execute_internal_send(
+      reply_ctx({ edit_draft: undefined }),
+      email_data,
+    );
+
+    expect(emit_thread_reply_optimistic).not.toHaveBeenCalled();
   });
 });

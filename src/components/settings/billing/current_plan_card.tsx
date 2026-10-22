@@ -88,7 +88,9 @@ export function CurrentPlanNotices({
 }: CurrentPlanNoticesProps) {
   const { t } = use_i18n();
   const is_paid_plan = !!subscription && subscription.plan.code !== "free";
-  const is_crypto = is_crypto_provider(subscription?.payment_provider);
+  const is_lifetime = is_paid_plan && !!subscription.is_lifetime;
+  const is_crypto =
+    !is_lifetime && is_crypto_provider(subscription?.payment_provider);
   const decline = subscription?.last_card_decline;
   const paid_until =
     subscription?.paid_until || subscription?.current_period_end || null;
@@ -148,6 +150,7 @@ export function CurrentPlanNotices({
       )}
 
       {is_paid_plan &&
+        !is_lifetime &&
         !is_crypto &&
         subscription.cancel_at_period_end &&
         subscription.current_period_end && (
@@ -212,19 +215,23 @@ export function CurrentPlanCard({
 }: CurrentPlanCardProps) {
   const { t } = use_i18n();
   const is_paid_plan = !!subscription && subscription.plan.code !== "free";
-  const is_crypto = is_crypto_provider(subscription?.payment_provider);
+  const is_lifetime = is_paid_plan && !!subscription.is_lifetime;
+  const is_crypto =
+    !is_lifetime && is_crypto_provider(subscription?.payment_provider);
   const interval_suffix =
     current_billing_interval === "biennial"
       ? t("settings.per_two_years")
       : current_billing_interval === "year"
         ? t("settings.per_year_short")
         : t("settings.per_month_short");
-  const price_label = is_paid_plan
-    ? `${format_price(
-        convert_cents(subscription.plan.price_cents, preferred_currency),
-        preferred_currency,
-      )}${interval_suffix}`
-    : `${format_price(0, preferred_currency)}${t("settings.per_month_short")}`;
+  const price_label = is_lifetime
+    ? t("settings.billing_status_lifetime")
+    : is_paid_plan
+      ? `${format_price(
+          convert_cents(subscription.plan.price_cents, preferred_currency),
+          preferred_currency,
+        )}${interval_suffix}`
+      : `${format_price(0, preferred_currency)}${t("settings.per_month_short")}`;
   const entry_price_label = format_price(
     convert_cents(
       Math.min(...PLAN_TIERS.map((tier) => tier.monthly_cents)),
@@ -236,7 +243,9 @@ export function CurrentPlanCard({
   const paid_until = subscription?.paid_until || period_end;
   let date_label: string | null = null;
 
-  if (is_paid_plan && is_crypto && paid_until) {
+  if (is_lifetime) {
+    date_label = t("settings.billing_lifetime_note");
+  } else if (is_paid_plan && is_crypto && paid_until) {
     date_label = t("settings.crypto_paid_until", {
       date: format_date(paid_until),
     });
@@ -300,7 +309,7 @@ export function CurrentPlanCard({
           </div>
 
           <div className="flex flex-shrink-0 flex-col items-start gap-2 sm:items-end">
-            {is_paid_plan ? (
+            {is_lifetime ? null : is_paid_plan ? (
               <PillButton
                 disabled={is_action_loading}
                 size="sm"
@@ -320,7 +329,7 @@ export function CurrentPlanCard({
                 {t("common.upgrade")}
               </PillButton>
             )}
-            {is_paid_plan && on_toggle_plans ? (
+            {is_lifetime ? null : is_paid_plan && on_toggle_plans ? (
               <PillButton
                 aria-expanded={plans_open}
                 size="sm"

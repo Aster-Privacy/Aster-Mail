@@ -34,16 +34,16 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from "@/components/ui/popover";
-import {
-  is_own_reaction_address,
-  send_reaction,
-} from "@/services/reaction_actions";
+import { is_own_reaction_address } from "@/services/reaction_actions";
+import { hold_reaction } from "@/services/held_reactions";
+import { get_undo_send_delay_ms } from "@/services/send_queue";
 import {
   max_own_reactions,
   reaction_restriction,
   reaction_restriction_keys,
 } from "@/services/reaction_restrictions";
 import { show_toast } from "@/components/toast/simple_toast";
+import { show_action_toast } from "@/components/toast/action_toast";
 import { is_system_email } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -216,28 +216,71 @@ export function ThreadMessageActions({
 
     set_pending_reactions((prev) => [...prev, { emoji }]);
 
-    void send_reaction(message, emoji, thread_token).then((result) => {
-      if (!result.success) {
-        set_pending_reactions((prev) =>
-          prev.filter((pending) => pending.emoji !== emoji),
-        );
-        show_toast(result.error ?? t("errors.failed_send_reaction"), "error");
-
-        return;
-      }
-
+    const delay_ms = get_undo_send_delay_ms(
+      preferences.undo_send_enabled ?? true,
+      preferences.undo_send_seconds,
+      preferences.undo_send_period,
+    );
+    const drop_pending = () =>
       set_pending_reactions((prev) =>
-        prev.map((pending) =>
-          pending.emoji === emoji
-            ? {
-                ...pending,
-                reaction_mail_item_id: result.own_reaction_mail_item_id,
-              }
-            : pending,
-        ),
+        prev.filter((pending) => pending.emoji !== emoji),
       );
 
-      emit_mail_soft_refresh();
+    const held = hold_reaction({
+      message,
+      emoji,
+      thread_token,
+      delay_ms,
+      on_result: (result) => {
+        if (!result.success) {
+          drop_pending();
+          show_toast(result.error ?? t("errors.failed_send_reaction"), "error");
+
+          return;
+        }
+
+        set_pending_reactions((prev) =>
+          prev.map((pending) =>
+            pending.emoji === emoji
+              ? {
+                  ...pending,
+                  reaction_mail_item_id: result.own_reaction_mail_item_id,
+                }
+              : pending,
+          ),
+        );
+
+        emit_mail_soft_refresh();
+
+        if (delay_ms <= 0) {
+          show_action_toast({
+            message: t("mail.reaction_sent"),
+            action_type: "read",
+            sound: "none",
+            email_ids: [],
+          });
+        }
+      },
+    });
+
+    if (delay_ms <= 0) return;
+
+    show_action_toast({
+      message: t("mail.reaction_sent"),
+      action_type: "read",
+      sound: "none",
+      email_ids: [],
+      duration_ms: delay_ms,
+      hide_dismiss: true,
+      on_undo: async () => {
+        drop_pending();
+
+        const undone = await held.undo();
+
+        emit_mail_soft_refresh();
+
+        if (!undone) throw new Error("reaction_undo_failed");
+      },
     });
   }
 

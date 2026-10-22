@@ -89,8 +89,11 @@ vi.mock("@/services/crypto/message_escrow", () => ({
   fetch_from_escrow: vi.fn(async (dedupe_key: string) => {
     h.escrow_fetches++;
 
-    return h.escrow.get(dedupe_key) ?? null;
+    const plaintext = h.escrow.get(dedupe_key);
+
+    return plaintext === undefined ? null : { plaintext, verified: true };
   }),
+  fetch_verified_from_escrow: vi.fn(async () => null),
 }));
 
 vi.mock("@/services/api/client", () => ({

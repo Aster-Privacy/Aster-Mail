@@ -21,14 +21,17 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  clear_sender_trust_caches,
   domain_for_display,
   domain_to_ascii,
   evaluate_sender_trust,
   registrable_domain,
   sanitize_display_name,
   skeleton,
+  skeleton_cache_size,
   type SenderTrustInput,
 } from "@/lib/sender_trust";
+import { UTS39_CONFUSABLES } from "@/lib/sender_trust_confusables";
 import trust_data from "@/lib/sender_trust_data.json";
 import vector_file from "@/lib/sender_trust_vectors.json";
 
@@ -303,5 +306,121 @@ describe("sender trust helpers", () => {
         expect(first.address.length).toBeLessThanOrEqual(640);
       }
     }
+  });
+});
+
+function seeded_random(seed: number): () => number {
+  let state = seed >>> 0;
+
+  return () => {
+    state = (state + 0x6d2b79f5) >>> 0;
+    let value = state;
+
+    value = Math.imul(value ^ (value >>> 15), value | 1);
+    value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
+
+    return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function skeleton_samples(): string[] {
+  const confusables = Object.entries(UTS39_CONFUSABLES);
+  const pieces = [
+    ..."abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .-_@'",
+    ...confusables.flatMap(([from, to]) => [from, to]),
+    "\u0301",
+    "\u0308",
+    "\u200b",
+    "\u200d",
+    "\u00a0",
+    "\u00ad",
+    "\u2122",
+    "\u3000",
+    "\ufe0f",
+    "\ud800",
+    "\u{1f170}",
+    "rn",
+    "vv",
+  ];
+  const random = seeded_random(0x5eed);
+  const samples = [
+    ...confusables.flatMap(([from, to]) => [from, to, `pay${from}al`]),
+    "PayPaI",
+    "paypa1",
+    "rnicrosoft",
+    "vvise",
+    "gооgle",
+    "Páypal",
+    "pay\u200bpal",
+  ];
+
+  for (let index = 0; index < 3000; index++) {
+    const length = Math.floor(random() * 24);
+    let text = "";
+
+    for (let step = 0; step < length; step++) {
+      text += pieces[Math.floor(random() * pieces.length)];
+    }
+    samples.push(text);
+  }
+
+  return samples;
+}
+
+describe("skeleton cache", () => {
+  it("returns the uncached skeleton for every input", () => {
+    const samples = skeleton_samples();
+    const expected = samples.map((text) => {
+      clear_sender_trust_caches();
+
+      return skeleton(text);
+    });
+
+    clear_sender_trust_caches();
+    for (let round = 0; round < 3; round++) {
+      samples.forEach((text, index) => {
+        expect(skeleton(text), JSON.stringify(text)).toBe(expected[index]);
+      });
+      for (let index = samples.length - 1; index >= 0; index--) {
+        expect(skeleton(samples[index])).toBe(expected[index]);
+      }
+    }
+  });
+
+  it("stays within its bound", () => {
+    clear_sender_trust_caches();
+    let largest = 0;
+
+    for (let index = 0; index < 10000; index++) {
+      skeleton(`sender${index}`);
+      largest = Math.max(largest, skeleton_cache_size());
+    }
+
+    expect(largest).toBe(4096);
+    expect(skeleton_cache_size()).toBeLessThanOrEqual(4096);
+  });
+
+  it("does not keep long inputs", () => {
+    const long_text = `${"\ufdfa".repeat(300)}p\u0430ypal`;
+
+    clear_sender_trust_caches();
+    skeleton("PayPal");
+    const before = skeleton_cache_size();
+    const first = skeleton(long_text);
+
+    expect(skeleton_cache_size()).toBe(before);
+    expect(skeleton(long_text)).toBe(first);
+    expect(skeleton_cache_size()).toBe(before);
+    expect(skeleton(`${"A".repeat(300)}p\u0430ypal`)).toBe(
+      `${"a".repeat(300)}paypal`,
+    );
+    expect(skeleton_cache_size()).toBe(before);
+  });
+
+  it("empties on clear", () => {
+    skeleton("PayPal");
+    expect(skeleton_cache_size()).toBeGreaterThan(0);
+    clear_sender_trust_caches();
+    expect(skeleton_cache_size()).toBe(0);
   });
 });

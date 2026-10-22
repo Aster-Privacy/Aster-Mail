@@ -4254,6 +4254,9 @@ export const nl = {
     billing_history: "Factureringsgeschiedenis",
     billing_status_active: "Actief",
     billing_status_renews: "Verlengt op {{date}}",
+    billing_status_lifetime: "Levenslang",
+    billing_lifetime_note:
+      "Dit abonnement wordt nooit verlengd en je betaalt er nooit meer voor. Neem contact op met Aster-support om het te wijzigen.",
     billing_status_ending: "Eindigt op {{date}}",
     billing_status_attention: "Betaling vereist aandacht",
     billing_member_since: "Lid sinds {{date}}",
@@ -7102,6 +7105,9 @@ export const nl = {
     security_center_recommended: "Aanbevolen acties",
     security_center_protected: "Beveiligd",
     security_center_all_clear: "Alle beveiligingen zijn ingeschakeld.",
+    security_center_met_of_total:
+      "{{met}} van {{total}} beveiligingen ingeschakeld",
+    security_center_account: "Uw account",
     security_center_protection_score: "Beschermingsscore",
     security_center_encryption_title: "End-to-endversleuteling",
     security_center_encryption_detail:
@@ -8218,6 +8224,8 @@ export const nl = {
       "Niemand kan je nog mailen. Je domein heeft geen mailroute, dus berichten komen terug bij de afzender.",
     domain_reason_mx_points_elsewhere:
       "Mail gaat naar je oude provider in plaats van naar Aster. Verwijder de oude MX-records zodat berichten in deze inbox aankomen.",
+    domain_reason_mx_shared:
+      "Een deel van je e-mail kan bij {{detail}} terechtkomen in plaats van bij Aster, omdat dat MX-record dezelfde of een hogere prioriteit heeft. Verwijder het zodat al je e-mail in deze inbox aankomt.",
     domain_reason_spf_missing:
       "Je verzonden mail kan worden geweigerd of als spam worden gemarkeerd, omdat niets andere providers vertelt dat Aster namens jou mag verzenden.",
     domain_reason_spf_missing_include:
@@ -8606,6 +8614,7 @@ export const nl = {
     reply_all: "Allen antwoorden",
     react: "Reageren",
     you_reacted_with: "Je hebt gereageerd met {{emoji}}",
+    reaction_sent: "Reactie verzonden",
     reacted_with: "{{name}} heeft gereageerd met {{emoji}}",
     forward: "Doorsturen",
     to: "Aan",
@@ -8729,6 +8738,7 @@ export const nl = {
     show_quoted_text: "Geciteerde tekst tonen",
     hide_quoted_text: "Geciteerde tekst verbergen",
     remove_quoted_text: "Geciteerde tekst verwijderen",
+    edit_quoted_text: "Geciteerde tekst bewerken",
     quoted_text_removed: "Geciteerde tekst verwijderd",
     restore_quoted_text: "Herstellen",
     show_forwarded: "Doorgestuurd tonen",
@@ -9421,9 +9431,10 @@ export const nl = {
     op_in_trash: "In prullenbak",
     op_in_drafts: "In concepten",
     chip_any_time: "Elk moment",
-    chip_older_than_week: "Ouder dan een week",
-    chip_older_than_month: "Ouder dan een maand",
-    chip_older_than_six_months: "Ouder dan 6 maanden",
+    chip_last_7_days: "Laatste 7 dagen",
+    chip_last_30_days: "Laatste 30 dagen",
+    chip_last_6_months: "Laatste 6 maanden",
+    chip_last_year: "Afgelopen jaar",
     chip_older_than_year: "Ouder dan een jaar",
     chip_custom_range: "Aangepast bereik",
     chip_has_attachment: "Heeft bijlage",
@@ -9431,10 +9442,12 @@ export const nl = {
     chip_attachment_document: "Document",
     chip_attachment_pdf: "PDF",
     chip_attachment_video: "Video",
-    chip_is_unread: "Is ongelezen",
+    chip_is_unread: "Ongelezen",
     chip_name_or_email: "Naam of e-mail",
     chip_no_people: "Geen overeenkomende personen",
     chip_advanced_search: "Geavanceerd zoeken",
+    chip_everywhere: "Overal",
+    chip_everywhere_hint: "Inclusief Spam en Prullenbak",
     spam_trash_hidden_notice:
       "Sommige berichten in Spam en Prullenbak komen overeen met je zoekopdracht.",
     search_index_partial:

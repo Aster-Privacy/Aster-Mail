@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { EditDraftData } from "@/components/compose/compose_shared";
+import type { UndoSendEvent } from "@/hooks/use_undo_send";
 
 import { Suspense, useState, useCallback, useRef, useEffect } from "react";
 import {
@@ -43,10 +44,12 @@ import { KeyTrustChangePrompt } from "@/components/compose/key_trust_change_prom
 import { PostQuantumSendPrompt } from "@/components/compose/post_quantum_send_prompt";
 import { ActionToast } from "@/components/toast/action_toast";
 import { UndoSendContainer } from "@/components/toast/undo_send_container";
-import { UpgradeModal } from "@/components/upgrade/upgrade_modal";
-import { AliasCapUpsellModal } from "@/components/upgrade/alias_cap_upsell_modal";
 import { ProfilePictureDialog } from "@/components/profile/profile_picture_dialog";
-import { SpecialOfferModal } from "@/components/upgrade/special_offer_modal";
+import {
+  AliasCapUpsellModalHost,
+  SpecialOfferModalHost,
+  UpgradeModalHost,
+} from "@/components/upgrade/upgrade_modal_hosts";
 import { EmailNotificationManager } from "@/components/email/email_notification_manager";
 import { UndoSendPreviewModal } from "@/components/toast/undo_send_preview_modal";
 import { Family2faDialog } from "@/components/common/family_2fa_dialog";
@@ -67,6 +70,7 @@ import { escape_mailto_body } from "@/lib/mailto_link";
 import { read_settings_navigation } from "@/lib/settings_links";
 import { use_upgrade_prompt_events } from "@/stores/upgrade_store";
 import { safe_local_get } from "@/lib/safe_storage";
+import { draft_from_mobile_undo } from "@/components/toast/undone_send_draft";
 
 const MobileInbox = lazy_with_retry(
   () => import("@/pages/mobile/mobile_inbox"),
@@ -485,40 +489,21 @@ function MobileApp() {
   );
 
   useEffect(() => {
-    const handle_undo_send = () => {
+    const handle_undo_send = (event: Event) => {
       if (is_compose_open) return;
 
-      const saved = sessionStorage.getItem("astermail_mobile_compose");
+      const { pending, payload } = (event as CustomEvent<UndoSendEvent>).detail;
+      const draft = draft_from_mobile_undo(
+        pending,
+        payload,
+        sessionStorage.getItem("astermail_mobile_compose"),
+      );
 
-      if (!saved) return;
+      if (!draft) return;
 
-      try {
-        const data = JSON.parse(saved) as {
-          to_recipients?: string[];
-          cc_recipients?: string[];
-          bcc_recipients?: string[];
-          subject?: string;
-          message?: string;
-        };
-
-        edit_draft_ref.current = {
-          id: "",
-          version: 0,
-          draft_type: "new",
-          to_recipients: data.to_recipients ?? [],
-          cc_recipients: data.cc_recipients ?? [],
-          bcc_recipients: data.bcc_recipients ?? [],
-          subject: data.subject ?? "",
-          message: data.message ?? "",
-          updated_at: new Date().toISOString(),
-        };
-        set_is_compose_open(true);
-      } catch (caught) {
-        ignore_error("mobile_app:handle_undo_send", caught);
-
-        return;
-      }
       sessionStorage.removeItem("astermail_mobile_compose");
+      edit_draft_ref.current = draft;
+      set_is_compose_open(true);
     };
 
     window.addEventListener("astermail:undo-send", handle_undo_send);
@@ -883,10 +868,14 @@ function MobileApp() {
         <UnsubscribeConfirmationModal />
         <KeyTrustChangePrompt />
         <PostQuantumSendPrompt />
-        <UpgradeModal />
-        <AliasCapUpsellModal />
+        <ErrorBoundary fallback={null}>
+          <UpgradeModalHost />
+          <AliasCapUpsellModalHost />
+        </ErrorBoundary>
         <ProfilePictureDialog />
-        <SpecialOfferModal />
+        <ErrorBoundary fallback={null}>
+          <SpecialOfferModalHost />
+        </ErrorBoundary>
         <EmailNotificationManager />
       </div>
     </AppLock>

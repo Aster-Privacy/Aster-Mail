@@ -689,6 +689,9 @@ export function SplitEmailViewer({
                   )
                 }
                 on_thread_draft_deleted={viewer.handle_thread_draft_deleted}
+                on_thread_expand_state_change={
+                  viewer.handle_thread_expand_state_change
+                }
                 on_toggle_message_read={viewer.handle_toggle_message_read}
                 on_trash={viewer.handle_per_message_trash}
                 on_unsubscribe={

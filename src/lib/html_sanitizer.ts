@@ -36,6 +36,7 @@ import {
   ALLOWED_DATA_URL_TYPES,
 } from "./html_sanitizer_constants";
 import {
+  build_proxy_url,
   sanitize_css_block,
   block_remote_fonts,
   strip_css_urls,
@@ -931,7 +932,7 @@ function sanitize_html_impl(
             kept.push(
               effective_proxy
                 ? {
-                    url: `${effective_proxy}?url=${encodeURIComponent(candidate.url)}`,
+                    url: build_proxy_url(effective_proxy, candidate.url),
                     descriptor: candidate.descriptor,
                   }
                 : original_candidate,
@@ -969,7 +970,10 @@ function sanitize_html_impl(
               continue;
             }
             if (effective_proxy) {
-              sanitized_value = `${effective_proxy}?url=${encodeURIComponent(sanitized_value)}`;
+              sanitized_value = build_proxy_url(
+                effective_proxy,
+                sanitized_value,
+              );
             } else {
               sanitized_value = original_background;
             }
@@ -1040,14 +1044,11 @@ function sanitize_html_impl(
       const is_pixel = is_tracking_pixel(new_element as HTMLImageElement);
       const is_first_party = local_image.kind === "static";
 
-      let proxy_source = src;
-
       if (is_remote && !is_first_party && lower_src.startsWith("http://")) {
-        src = "https://" + src.slice(7);
+        src = "https://" + src.trim().slice(7);
         new_element.setAttribute("src", src);
       } else if (is_remote && !is_first_party && lower_src.startsWith("//")) {
-        proxy_source = "https:" + src.trim();
-        src = proxy_source;
+        src = "https:" + src.trim();
         new_element.setAttribute("src", src);
       }
 
@@ -1092,7 +1093,7 @@ function sanitize_html_impl(
           if (effective_proxy) {
             new_element.setAttribute(
               "data-proxy-src",
-              `${effective_proxy}?url=${encodeURIComponent(proxy_source)}`,
+              build_proxy_url(effective_proxy, src),
             );
           }
           prepare_blocked_image(
@@ -1103,7 +1104,7 @@ function sanitize_html_impl(
         } else if (effective_proxy) {
           new_element.setAttribute(
             "src",
-            `${effective_proxy}?url=${encodeURIComponent(proxy_source)}`,
+            build_proxy_url(effective_proxy, src),
           );
         } else if (original_local_src) {
           new_element.setAttribute("src", original_local_src);

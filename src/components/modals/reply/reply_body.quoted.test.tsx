@@ -229,4 +229,36 @@ describe("ReplyBody quoted text controls", () => {
     expect(find_button("mail.remove_quoted_text")).toBeFalsy();
     expect(container.textContent).not.toContain("mail.quoted_text_removed");
   });
+
+  it("moves the quote into the editor when edit is clicked", () => {
+    const inline_quoted_text = vi.fn();
+
+    act(() => {
+      root.render(<ReplyBody {...build_props({ inline_quoted_text })} />);
+    });
+
+    const edit = find_button("mail.edit_quoted_text");
+
+    expect(edit).toBeTruthy();
+
+    act(() => {
+      edit!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    expect(inline_quoted_text).toHaveBeenCalledTimes(1);
+  });
+
+  it("hides the removed notice once the quote lives in the editor", () => {
+    act(() => {
+      root.render(
+        <ReplyBody
+          {...build_props({ include_quoted: false, quote_inlined: true })}
+        />,
+      );
+    });
+
+    expect(container.textContent).not.toContain("mail.quoted_text_removed");
+    expect(find_button("mail.restore_quoted_text")).toBeFalsy();
+    expect(find_button("mail.edit_quoted_text")).toBeFalsy();
+  });
 });

@@ -43,6 +43,7 @@ import {
   on_badge_count_change,
 } from "@/native/badge_preference";
 import { ignore_error } from "@/lib/ignore_error";
+import { sync_client } from "@/services/sync_client";
 
 export interface MailStats {
   total_items: number;
@@ -688,6 +689,7 @@ on_badge_count_change(() => {
 });
 
 const BACKGROUND_RECONCILE_MS = NORMAL_TTL_MS;
+const LIVE_RECONCILE_MS = 15 * 60 * 1000;
 
 export function set_indexed_inbox_unread(value: number | null): void {
   stats_store.set_authoritative_unread(value);
@@ -704,6 +706,12 @@ if (typeof window !== "undefined") {
 
   setInterval(() => {
     if (document.visibilityState !== "visible") return;
+    if (
+      sync_client.is_connected() &&
+      Date.now() - stats_store.get_cache().timestamp < LIVE_RECONCILE_MS
+    ) {
+      return;
+    }
     if (has_passphrase_in_memory() && stats_store.is_stale()) {
       void stats_store.fetch(false);
     }

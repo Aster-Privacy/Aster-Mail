@@ -4272,6 +4272,9 @@ export const de = {
     billing_history: "Abrechnungsverlauf",
     billing_status_active: "Aktiv",
     billing_status_renews: "Verlängert sich am {{date}}",
+    billing_status_lifetime: "Lebenslang",
+    billing_lifetime_note:
+      "Dieser Tarif verlängert sich nie, und Sie zahlen nie wieder dafür. Um ihn zu ändern, wenden Sie sich an den Aster-Support.",
     billing_status_ending: "Endet am {{date}}",
     billing_status_attention: "Zahlung erfordert Aufmerksamkeit",
     billing_member_since: "Mitglied seit {{date}}",
@@ -7048,6 +7051,9 @@ export const de = {
     security_center_recommended: "Empfohlene Aktionen",
     security_center_protected: "Geschützt",
     security_center_all_clear: "Alle Schutzfunktionen sind aktiviert.",
+    security_center_met_of_total:
+      "{{met}} von {{total}} Schutzfunktionen aktiv",
+    security_center_account: "Ihr Konto",
     security_center_protection_score: "Schutzbewertung",
     security_center_encryption_title: "Ende-zu-Ende-Verschlüsselung",
     security_center_encryption_detail:
@@ -8203,6 +8209,8 @@ export const de = {
       "Noch kann Ihnen niemand schreiben. Ihre Domain hat keine Mailroute, daher kommen Nachrichten an den Absender zurück.",
     domain_reason_mx_points_elsewhere:
       "Mail geht an Ihren alten Anbieter, nicht an Aster. Entfernen Sie die alten MX-Einträge, damit Nachrichten in diesem Postfach ankommen.",
+    domain_reason_mx_shared:
+      "Ein Teil Ihrer E-Mails geht möglicherweise an {{detail}} statt an Aster, weil dieser MX-Eintrag die gleiche oder eine höhere Priorität hat. Entfernen Sie ihn, damit alle E-Mails in diesem Postfach ankommen.",
     domain_reason_spf_missing:
       "Ihre gesendete Mail kann abgelehnt oder als Spam markiert werden, weil anderen Anbietern nichts sagt, dass Aster für Sie senden darf.",
     domain_reason_spf_missing_include:
@@ -8717,6 +8725,7 @@ export const de = {
     reply_all: "Allen antworten",
     react: "Reagieren",
     you_reacted_with: "Sie haben mit {{emoji}} reagiert",
+    reaction_sent: "Reaktion gesendet",
     reacted_with: "{{name}} hat mit {{emoji}} reagiert",
     forward: "Weiterleiten",
     to: "An",
@@ -8842,6 +8851,7 @@ export const de = {
     show_quoted_text: "Zitierten Text anzeigen",
     hide_quoted_text: "Zitierten Text ausblenden",
     remove_quoted_text: "Zitierten Text entfernen",
+    edit_quoted_text: "Zitierten Text bearbeiten",
     quoted_text_removed: "Zitierter Text entfernt",
     restore_quoted_text: "Wiederherstellen",
     show_forwarded: "Weitergeleitetes anzeigen",
@@ -9463,9 +9473,10 @@ export const de = {
     op_has_video: "Hat Video-Anhänge",
     op_in_drafts: "In Entwürfen",
     chip_any_time: "Jederzeit",
-    chip_older_than_week: "Älter als eine Woche",
-    chip_older_than_month: "Älter als ein Monat",
-    chip_older_than_six_months: "Älter als 6 Monate",
+    chip_last_7_days: "Letzte 7 Tage",
+    chip_last_30_days: "Letzte 30 Tage",
+    chip_last_6_months: "Letzte 6 Monate",
+    chip_last_year: "Letztes Jahr",
     chip_older_than_year: "Älter als ein Jahr",
     chip_custom_range: "Eigener Zeitraum",
     chip_has_attachment: "Hat Anhang",
@@ -9473,10 +9484,12 @@ export const de = {
     chip_attachment_document: "Dokument",
     chip_attachment_pdf: "PDF",
     chip_attachment_video: "Video",
-    chip_is_unread: "Ist ungelesen",
+    chip_is_unread: "Ungelesen",
     chip_name_or_email: "Name oder E-Mail",
     chip_no_people: "Keine passenden Personen",
     chip_advanced_search: "Erweiterte Suche",
+    chip_everywhere: "Überall",
+    chip_everywhere_hint: "Einschließlich Spam und Papierkorb",
     spam_trash_hidden_notice:
       "Einige Nachrichten in Spam und Papierkorb entsprechen Ihrer Suche.",
     search_index_partial:

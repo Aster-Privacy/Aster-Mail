@@ -34,7 +34,7 @@ import {
   wait_for_keys_ready,
 } from "@/services/crypto/memory_key_store";
 import {
-  decrypt_message_verified_with_any_key,
+  decrypt_message_verifiable_with_any_key,
   import_ke_public_key,
   import_ke_private_key,
   compute_agreement_bits,
@@ -433,7 +433,7 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
         const decrypt_pgp_envelope = async (
           envelope_keys: string[],
         ): Promise<T> => {
-          const first_pass = await decrypt_message_verified_with_any_key(
+          const first_pass = await decrypt_message_verifiable_with_any_key(
             text,
             envelope_keys,
             passphrase,
@@ -448,12 +448,7 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
             );
 
             if (sender_keys.length > 0) {
-              const verified_pass = await decrypt_message_verified_with_any_key(
-                text,
-                envelope_keys,
-                passphrase,
-                sender_keys,
-              );
+              const verified_pass = await first_pass.verify(sender_keys);
 
               parsed.sender_verification = verified_pass.verification;
             } else {

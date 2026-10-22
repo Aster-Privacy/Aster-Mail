@@ -19,6 +19,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
+export const MAX_SUBJECT_LENGTH = 998;
+
+export function subject_length(subject: string): number {
+  return Array.from(subject).length;
+}
+
+export function clamp_subject(subject: string): string {
+  const characters = Array.from(subject);
+
+  if (characters.length <= MAX_SUBJECT_LENGTH) return subject;
+
+  return characters.slice(0, MAX_SUBJECT_LENGTH).join("").trimEnd();
+}
+
 function escape_regex(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -48,7 +62,7 @@ export function build_reply_subject(
 
   const localized = reply_prefix.trim();
 
-  if (!localized) return base;
+  if (!localized) return clamp_subject(base);
 
-  return `${localized} ${base}`;
+  return clamp_subject(`${localized} ${base}`);
 }

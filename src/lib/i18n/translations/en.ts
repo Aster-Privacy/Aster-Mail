@@ -3087,6 +3087,8 @@ export const en: Translations = {
     security_center_recommended: "Recommended actions",
     security_center_protected: "Protected",
     security_center_all_clear: "Every protection is turned on.",
+    security_center_met_of_total: "{{met}} of {{total}} protections on",
+    security_center_account: "Your account",
     security_center_protection_score: "Protection score",
     security_center_encryption_title: "End-to-end encryption",
     security_center_encryption_detail:
@@ -3316,6 +3318,9 @@ export const en: Translations = {
     billing_plan_heading: "Plan",
     billing_status_active: "Active",
     billing_status_renews: "Renews {{date}}",
+    billing_status_lifetime: "Lifetime",
+    billing_lifetime_note:
+      "This plan never renews, and you never pay for it again. To change it, contact Aster support.",
     billing_status_ending: "Ends {{date}}",
     billing_status_attention: "Payment needs attention",
     billing_member_since: "Member since {{date}}",
@@ -6491,6 +6496,8 @@ export const en: Translations = {
       "Nobody can email you yet. Your domain has no mail route, so messages bounce back to the sender.",
     domain_reason_mx_points_elsewhere:
       "Mail is going to your old provider, not Aster. Remove the old MX records so messages reach this inbox.",
+    domain_reason_mx_shared:
+      "Some of your mail may go to {{detail}} instead of Aster, because that MX record has the same or higher priority. Remove it so all your mail reaches this inbox.",
     domain_reason_spf_missing:
       "Mail you send may be rejected or marked as spam, because nothing tells other providers that Aster can send for you.",
     domain_reason_spf_missing_include:
@@ -8354,6 +8361,7 @@ export const en: Translations = {
     forward: "Forward",
     react: "React",
     you_reacted_with: "You reacted with {{emoji}}",
+    reaction_sent: "Reaction sent",
     reacted_with: "{{name}} reacted with {{emoji}}",
     reply_subject_prefix: "Re:",
     reply_from_mismatch_title: "Reply from a different address?",
@@ -8527,6 +8535,7 @@ export const en: Translations = {
     show_quoted_text: "Show quoted text",
     hide_quoted_text: "Hide quoted text",
     remove_quoted_text: "Remove quoted text",
+    edit_quoted_text: "Edit quoted text",
     quoted_text_removed: "Quoted text removed",
     restore_quoted_text: "Restore",
     show_forwarded: "Show forwarded",
@@ -8937,9 +8946,10 @@ export const en: Translations = {
     op_in_trash: "In trash",
     op_in_drafts: "In drafts",
     chip_any_time: "Any time",
-    chip_older_than_week: "Older than a week",
-    chip_older_than_month: "Older than a month",
-    chip_older_than_six_months: "Older than 6 months",
+    chip_last_7_days: "Last 7 days",
+    chip_last_30_days: "Last 30 days",
+    chip_last_6_months: "Last 6 months",
+    chip_last_year: "Last year",
     chip_older_than_year: "Older than a year",
     chip_custom_range: "Custom range",
     chip_has_attachment: "Has attachment",
@@ -8947,10 +8957,12 @@ export const en: Translations = {
     chip_attachment_document: "Document",
     chip_attachment_pdf: "PDF",
     chip_attachment_video: "Video",
-    chip_is_unread: "Is unread",
+    chip_is_unread: "Unread",
     chip_name_or_email: "Name or email",
     chip_no_people: "No matching people",
     chip_advanced_search: "Advanced search",
+    chip_everywhere: "Everywhere",
+    chip_everywhere_hint: "Includes Spam and Trash",
     spam_trash_hidden_notice:
       "Some messages in Spam and Trash match your search.",
     search_index_partial:

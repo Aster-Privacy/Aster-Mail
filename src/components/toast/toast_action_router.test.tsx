@@ -21,6 +21,7 @@
 import type { LocalEmailData } from "@/components/email/email_viewer_types";
 import type { EditDraftData } from "@/components/compose/compose_manager";
 import type { PendingSend } from "@/hooks/use_undo_send";
+import type { ActionToastState } from "./action_toast";
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { act, useEffect } from "react";
@@ -37,12 +38,7 @@ declare global {
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
-const list_mail_items = vi.fn();
 let active_account_index: number | null = 2;
-
-vi.mock("@/services/api/mail", () => ({
-  list_mail_items: (...args: unknown[]) => list_mail_items(...args),
-}));
 
 vi.mock("@/lib/account_index_url", async (import_original) => ({
   ...(await import_original<typeof import("@/lib/account_index_url")>()),
@@ -62,18 +58,14 @@ const {
   restore_undone_send_draft,
 } = await import("./toast_action_router");
 const { show_email_sent_toast } = await import("./email_sent_toast");
-const { get_pending_send_attachments } = await import(
-  "@/services/pending_send_attachments"
-);
-const { UNDO_SEND_PREVIEW_ID } = await import(
-  "@/components/email/email_viewer_types"
-);
-const { hide_action_toast, subscribe_action_toast } = await import(
-  "./action_toast"
-);
-const { draft_from_undone_send, undone_send_has_content } = await import(
-  "./undone_send_draft"
-);
+const { get_pending_send_attachments } =
+  await import("@/services/pending_send_attachments");
+const { UNDO_SEND_PREVIEW_ID } =
+  await import("@/components/email/email_viewer_types");
+const { hide_action_toast, subscribe_action_toast } =
+  await import("./action_toast");
+const { draft_from_undone_send, undone_send_has_content } =
+  await import("./undone_send_draft");
 
 const ACCOUNT_BASENAME = "/u/2";
 const ACCOUNT_ROOT_PATTERN = /^\/u\/2\/?$/;
@@ -85,7 +77,7 @@ let current_href = "";
 let current_state: unknown = null;
 let shown_messages: string[] = [];
 let shown_previews: LocalEmailData[] = [];
-let latest_view_action: (() => void) | undefined;
+let latest_toast: ActionToastState | null = null;
 let unsubscribe_toast: () => void = () => {};
 
 interface HarnessProps {
@@ -191,29 +183,16 @@ function sample_draft(): EditDraftData {
   };
 }
 
-function shown_view_action(): () => void {
-  if (!latest_view_action) throw new Error("view message action missing");
-
-  return latest_view_action;
-}
-
-async function settle() {
-  for (let turn = 0; turn < 5; turn += 1) {
-    await Promise.resolve();
-  }
-}
-
 beforeEach(() => {
   reset_toast_action_router();
-  list_mail_items.mockReset();
   active_account_index = 2;
   current_href = "";
   current_state = null;
   shown_messages = [];
   shown_previews = [];
-  latest_view_action = undefined;
+  latest_toast = null;
   unsubscribe_toast = subscribe_action_toast((toast) => {
-    latest_view_action = toast?.on_view_message;
+    latest_toast = toast;
   });
 });
 
@@ -317,52 +296,21 @@ describe("hard_navigation_target", () => {
   });
 });
 
-describe("sent toast view message action", () => {
-  it("opens the sent message by id from the contacts route", async () => {
-    mount("/contacts");
-    act(() => show_email_sent_toast("sent", "msg_7"));
-
-    const action = shown_view_action();
-
-    await act(async () => {
-      action();
-      await settle();
-    });
-
-    expect(list_mail_items).not.toHaveBeenCalled();
-    expect(current_href).toBe("/u/2/sent");
-    expect(shown_messages).toEqual(["msg_7"]);
-  });
-
-  it("resolves the newest sent message when the id is unknown", async () => {
-    list_mail_items.mockResolvedValue({ data: { items: [{ id: "msg_8" }] } });
-    mount("/settings/appearance", { use_popup_mode: true });
-    act(() => show_email_sent_toast("sent"));
-
-    const action = shown_view_action();
-
-    await act(async () => {
-      action();
-      await settle();
-    });
-
-    expect(shown_messages).toEqual(["msg_8"]);
-  });
-
-  it("falls back to the sent list when no message can be resolved", async () => {
-    list_mail_items.mockRejectedValue(new Error("offline"));
+describe("sent toast", () => {
+  it("shows the sent message with no extra action", () => {
     mount("/contacts");
     act(() => show_email_sent_toast("sent"));
 
-    const action = shown_view_action();
+    expect(latest_toast?.message).toBe("sent");
+    expect(latest_toast?.on_undo).toBeUndefined();
+    expect(Object.keys(latest_toast ?? {})).not.toContain("on_view_message");
+  });
 
-    await act(async () => {
-      action();
-      await settle();
-    });
+  it("stays quiet when the undo toast already covered the send", () => {
+    mount("/contacts");
+    act(() => show_email_sent_toast("sent", true));
 
-    expect(current_href).toBe("/u/2/sent");
-    expect(shown_messages).toEqual([]);
+    expect(latest_toast).toBeNull();
   });
 });
 

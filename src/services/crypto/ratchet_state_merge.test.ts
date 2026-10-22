@@ -301,6 +301,133 @@ describe("detecting a merge that discards the local epoch", () => {
     expect(merge_discards_local_epoch(local, remote)).toBe(false);
   });
 
+  it("takes only the send chain from a state without a version", () => {
+    const local = make_state({
+      chain_key_send: "send-chain-3",
+      send_message_number: 3,
+      chain_key_recv: "recv-chain-6",
+      recv_message_number: 6,
+      skipped_message_keys: [skipped("remote-dh-pub", 2, 10)],
+    });
+    const remote = make_state({
+      chain_key_send: "send-chain-8",
+      send_message_number: 8,
+      chain_key_recv: "recv-chain-1",
+      recv_message_number: 1,
+      skipped_message_keys: [skipped("remote-dh-pub", 0, 5)],
+      updated_at: 9_000,
+    });
+
+    const merged = merge_ratchet_states(local, remote, false).state;
+
+    expect(merged).toMatchObject({
+      chain_key_send: "send-chain-8",
+      send_message_number: 8,
+      chain_key_recv: "recv-chain-6",
+      recv_message_number: 6,
+    });
+    expect(merged.skipped_message_keys).toEqual([
+      skipped("remote-dh-pub", 2, 10),
+    ]);
+  });
+
+  it("fills a missing receive chain from a state without a version", () => {
+    const local = make_state({ chain_key_recv: null, recv_message_number: 0 });
+    const remote = make_state({
+      chain_key_recv: "recv-chain-2",
+      recv_message_number: 2,
+    });
+
+    expect(merge_ratchet_states(local, remote, false).state).toMatchObject({
+      chain_key_recv: "recv-chain-2",
+      recv_message_number: 2,
+    });
+  });
+
+  it("keeps local skipped keys when a state without a version loses", () => {
+    const local = make_state({
+      root_key: "root-key-epoch-3",
+      epoch: 3,
+      skipped_message_keys: [skipped("a", 1, 10)],
+    });
+    const remote = make_state({
+      root_key: "root-key-epoch-1",
+      epoch: 1,
+      updated_at: 99_000,
+      skipped_message_keys: [skipped("b", 1, 20)],
+    });
+
+    const merged = merge_ratchet_states(local, remote, false).state;
+
+    expect(merged.root_key).toBe("root-key-epoch-3");
+    expect(merged.skipped_message_keys).toEqual([skipped("a", 1, 10)]);
+    expect(merge_discards_local_epoch(local, remote, false)).toBe(false);
+  });
+
+  it("adopts a newer epoch from a state without a version", () => {
+    const local = make_state({ root_key: "root-key-epoch-1", epoch: 1 });
+    const remote = make_state({
+      root_key: "root-key-epoch-2",
+      epoch: 2,
+      updated_at: 5_000,
+    });
+
+    expect(merge_ratchet_states(local, remote, false).state.root_key).toBe(
+      "root-key-epoch-2",
+    );
+    expect(merge_discards_local_epoch(local, remote, false)).toBe(true);
+  });
+
+  it("never lets a state without a version from an older session win", () => {
+    const local = make_state({
+      root_key: "root-key-new-session",
+      epoch: 0,
+      created_at: 9_000,
+      updated_at: 9_000,
+    });
+    const remote = make_state({
+      root_key: "root-key-old-session",
+      chain_key_send: "send-chain-old",
+      send_message_number: 40,
+      epoch: 7,
+      created_at: 1_000,
+      updated_at: 8_000,
+    });
+    const merged = merge_ratchet_states(local, remote, false).state;
+
+    expect(merged.root_key).toBe("root-key-new-session");
+    expect(merged.chain_key_send).toBe("send-chain-0");
+    expect(merge_discards_local_epoch(local, remote, false)).toBe(false);
+  });
+
+  it("never lets a state without a version or a session time win", () => {
+    const local = make_state({ root_key: "root-key-epoch-1", epoch: 1 });
+    const remote = make_state({
+      root_key: "root-key-epoch-2",
+      epoch: 2,
+      created_at: undefined,
+      updated_at: 5_000,
+    });
+
+    expect(merge_ratchet_states(local, remote, false).state.root_key).toBe(
+      "root-key-epoch-1",
+    );
+    expect(merge_discards_local_epoch(local, remote, false)).toBe(false);
+  });
+
+  it("still lets a versioned state from a newer epoch win", () => {
+    const local = make_state({ root_key: "root-key-epoch-1", epoch: 1 });
+    const remote = make_state({
+      root_key: "root-key-epoch-2",
+      epoch: 2,
+      created_at: undefined,
+    });
+
+    expect(merge_ratchet_states(local, remote).state.root_key).toBe(
+      "root-key-epoch-2",
+    );
+  });
+
   it("reports no discard for a mismatched conversation", () => {
     const local = make_state({ epoch: 1 });
     const remote = {

@@ -86,7 +86,12 @@ export interface JoinFamilyResponse {
 // on api_client's request_cache (deduped + auto-invalidated on any mutation to
 // /payments/v1/family) rather than a bespoke cache, so post-mutation reads are
 // never stale.
-const FAMILY_CAPABLE_PLANS = new Set(["duo", "family"]);
+const FAMILY_CAPABLE_PLANS = new Set([
+  "duo",
+  "family",
+  "family_duo",
+  "family_full",
+]);
 
 export function prefetch_family_group(): void {
   const plan_code = get_cached_plan_code();

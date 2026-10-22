@@ -58,6 +58,7 @@ export {
   decrypt_message,
   decrypt_message_verified,
   decrypt_message_verified_with_any_key,
+  decrypt_message_verifiable_with_any_key,
   decrypt_message_with_any_key,
   decrypt_message_with_handle,
   decrypt_message_with_handle_verified,
@@ -73,6 +74,7 @@ export type {
   detached_signature_result,
   sender_signing_key,
   sender_verification_status,
+  verifiable_decrypted_message,
 } from "./key_manager_pgp_messages";
 export {
   clear_key_handle,

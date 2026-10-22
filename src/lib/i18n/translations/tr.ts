@@ -4262,6 +4262,9 @@ export const tr = {
     billing_history: "Faturalandırma Geçmişi",
     billing_status_active: "Etkin",
     billing_status_renews: "{{date}} tarihinde yenilenir",
+    billing_status_lifetime: "Ömür boyu",
+    billing_lifetime_note:
+      "Bu plan hiçbir zaman yenilenmez ve bunun için bir daha ödeme yapmazsınız. Planı değiştirmek için Aster destek ekibiyle iletişime geçin.",
     billing_status_ending: "{{date}} tarihinde sona erer",
     billing_status_attention: "Ödeme dikkat gerektiriyor",
     billing_member_since: "{{date}} tarihinden beri üye",
@@ -7259,6 +7262,8 @@ export const tr = {
     security_center_recommended: "Önerilen işlemler",
     security_center_protected: "Korunuyor",
     security_center_all_clear: "Tüm korumalar açık.",
+    security_center_met_of_total: "{{total}} korumadan {{met}} tanesi açık",
+    security_center_account: "Hesabınız",
     security_center_protection_score: "Koruma puanı",
     security_center_encryption_title: "Uçtan uca şifreleme",
     security_center_encryption_detail:
@@ -8164,6 +8169,8 @@ export const tr = {
       "Henüz kimse size yazamıyor. Alan adınızın posta yolu yok, bu yüzden iletiler göndericiye geri döner.",
     domain_reason_mx_points_elsewhere:
       "Postalar Aster’a değil eski sağlayıcınıza gidiyor. Eski MX kayıtlarını kaldırın ki iletiler bu kutuya ulaşsın.",
+    domain_reason_mx_shared:
+      "Bu MX kaydının önceliği Aster ile aynı veya daha yüksek olduğu için postalarınızın bir kısmı Aster yerine {{detail}} adresine gidebilir. Tüm postalarınızın bu gelen kutusuna ulaşması için kaydı kaldırın.",
     domain_reason_spf_missing:
       "Gönderdiğiniz postalar reddedilebilir veya önemsiz olarak işaretlenebilir, çünkü diğer sağlayıcılara Aster’ın sizin adınıza gönderebileceğini bildiren bir kayıt yok.",
     domain_reason_spf_missing_include:
@@ -8535,6 +8542,7 @@ export const tr = {
     reply_all: "Tümünü Yanıtla",
     react: "Tepki Ver",
     you_reacted_with: "{{emoji}} ile tepki verdiniz",
+    reaction_sent: "Tepki gönderildi",
     reacted_with: "{{name}} {{emoji}} ile tepki verdi",
     forward: "İlet",
     to: "Kime",
@@ -8646,6 +8654,7 @@ export const tr = {
     show_quoted_text: "Alıntılanan metni göster",
     hide_quoted_text: "Alıntılanan metni gizle",
     remove_quoted_text: "Alıntılanan metni kaldır",
+    edit_quoted_text: "Alıntılanan metni düzenle",
     quoted_text_removed: "Alıntılanan metin kaldırıldı",
     restore_quoted_text: "Geri yükle",
     show_forwarded: "Yönlendirileni göster",
@@ -9267,9 +9276,10 @@ export const tr = {
     op_in_trash: "Çöp kutusunda",
     op_in_drafts: "Taslaklar klasöründe",
     chip_any_time: "Herhangi bir zaman",
-    chip_older_than_week: "Bir haftadan eski",
-    chip_older_than_month: "Bir aydan eski",
-    chip_older_than_six_months: "6 aydan eski",
+    chip_last_7_days: "Son 7 gün",
+    chip_last_30_days: "Son 30 gün",
+    chip_last_6_months: "Son 6 ay",
+    chip_last_year: "Son yıl",
     chip_older_than_year: "Bir yıldan eski",
     chip_custom_range: "Özel aralık",
     chip_has_attachment: "Eki var",
@@ -9281,6 +9291,8 @@ export const tr = {
     chip_name_or_email: "Ad veya e-posta",
     chip_no_people: "Eşleşen kişi yok",
     chip_advanced_search: "Gelişmiş arama",
+    chip_everywhere: "Her yerde",
+    chip_everywhere_hint: "Spam ve Çöp dahil",
     spam_trash_hidden_notice:
       "Spam ve Çöp Kutusundaki bazı mesajlar aramanızla eşleşiyor.",
     search_index_partial:

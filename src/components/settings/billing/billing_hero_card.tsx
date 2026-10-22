@@ -118,8 +118,10 @@ export function BillingHeroCard({
 }: BillingHeroCardProps) {
   const { t } = use_i18n();
   const is_paid_plan = !!subscription && subscription.plan.code !== "free";
-  const is_crypto = is_crypto_provider(subscription?.payment_provider);
-  const cancels = !!subscription?.cancel_at_period_end;
+  const is_lifetime = is_paid_plan && !!subscription.is_lifetime;
+  const is_crypto =
+    !is_lifetime && is_crypto_provider(subscription?.payment_provider);
+  const cancels = !is_lifetime && !!subscription?.cancel_at_period_end;
   const period_end = subscription?.current_period_end ?? null;
   const period_start = subscription?.current_period_start ?? null;
   const paid_until = subscription?.paid_until || period_end;
@@ -155,6 +157,9 @@ export function BillingHeroCard({
       ),
     });
     status_color = "var(--text-muted)";
+  } else if (is_lifetime) {
+    status_text = t("settings.billing_status_lifetime");
+    status_color = "var(--color-success)";
   } else if (has_payment_failed) {
     status_text = t("settings.billing_status_attention");
     status_color = "var(--color-danger)";
@@ -179,7 +184,7 @@ export function BillingHeroCard({
   }
 
   const yearly_save_label =
-    tier && !is_crypto && current_billing_interval === "month"
+    tier && !is_lifetime && !is_crypto && current_billing_interval === "month"
       ? format_price(
           convert_cents(tier.savings_cents, preferred_currency),
           preferred_currency,
@@ -251,8 +256,13 @@ export function BillingHeroCard({
                 })}
               </p>
             )}
+            {is_lifetime && (
+              <p className="text-[13px] text-txt-muted">
+                {t("settings.billing_lifetime_note")}
+              </p>
+            )}
           </div>
-          {is_paid_plan && (
+          {is_paid_plan && !is_lifetime && (
             <div className="flex flex-col items-end gap-0.5">
               <p className="flex items-baseline gap-x-1">
                 <span className="text-[21px] font-semibold tabular-nums leading-7 text-txt-primary">
@@ -308,7 +318,7 @@ export function BillingHeroCard({
           />
         </div>
 
-        {next_tier && next_tier_from_label && (
+        {!is_lifetime && next_tier && next_tier_from_label && (
           <div
             className="flex flex-col gap-3 rounded-[var(--aster-radius-field)] p-4 sm:flex-row sm:items-center"
             style={{
@@ -348,7 +358,7 @@ export function BillingHeroCard({
       <IslandDivider />
 
       <div>
-        {is_paid_plan && (
+        {is_paid_plan && !is_lifetime && (
           <IslandRow
             aria-expanded={plans_open}
             description={t("settings.change_plan_description")}
@@ -362,7 +372,7 @@ export function BillingHeroCard({
           description={
             is_crypto
               ? t("settings.checkout_method_crypto")
-              : is_paid_plan
+              : is_paid_plan && !is_lifetime
                 ? t("settings.checkout_method_card")
                 : t("settings.payment_methods_description")
           }
@@ -402,6 +412,7 @@ export function BillingHeroCard({
           )}
 
         {is_paid_plan &&
+          !is_lifetime &&
           !is_crypto &&
           !cancels &&
           tier &&
@@ -427,7 +438,7 @@ export function BillingHeroCard({
           />
         )}
 
-        {is_paid_plan && !is_crypto && !cancels && (
+        {is_paid_plan && !is_lifetime && !is_crypto && !cancels && (
           <IslandRow
             destructive
             description={t("settings.cancel_plan_warning")}

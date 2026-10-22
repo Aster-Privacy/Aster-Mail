@@ -9,7 +9,12 @@ on:
         default: ''
 
 permissions:
-  contents: write
+  contents: read
+
+env:
+  SIGNER_VERSION: 2.11.2
+  SIGNER_CLI_INTEGRITY: sha512-bk3HemqvGRoy+5D/dVMUQHKMYLglD0jVnMm/0iGMH6ufZ+p8r14m6BpIixwij3PBvZdvORUp1YifTD8QxVZ1Nw==
+  SIGNER_NATIVE_INTEGRITY: sha512-Ru4gwJKPG0ctVGchRGpRup4Y4lW2SSfFnrbQcyHhCliKy4g8Qz97TrUgCur4CbWyAgKxvGh3SjrkA0LDYzDGiw==
 
 jobs:
   build:
@@ -53,21 +58,28 @@ jobs:
           npm ci --no-audit --no-fund --ignore-scripts
           npx --no-install patch-package
 
+      - name: Create a throwaway updater key for the bundler
+        shell: bash
+        run: npm run tauri -- signer generate --ci -w "$RUNNER_TEMP/throwaway_updater.key"
+
       - name: Build ARM AppImage
         env:
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ''
           NO_STRIP: 'true'
           APPIMAGE_EXTRACT_AND_RUN: '1'
           VITE_SPECIAL_OFFER_ENABLED: "true"
-        run: npm run tauri build -- --bundles appimage --verbose
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAURI_SIGNING_PRIVATE_KEY="$(cat "$RUNNER_TEMP/throwaway_updater.key")"
+          export TAURI_SIGNING_PRIVATE_KEY
+          npm run tauri build -- --bundles appimage --verbose
 
       - name: Unbundle host graphics libraries from the AppImage
         # linuxdeploy copies libwayland-client.so.0 and friends into the AppDir.
         # They shadow the host copies, Mesa's libEGL_mesa.so.0 then fails to
         # resolve wl_fixes_interface on any distribution newer than the runner,
         # and WebKitGTK aborts with EGL_BAD_PARAMETER before the window paints.
-        env:
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
         shell: bash
         run: |
           set -euo pipefail
@@ -75,51 +87,114 @@ jobs:
           shopt -s nullglob
           for img in src-tauri/target/release/bundle/appimage/*.AppImage; do
             bash scripts/fix_appimage_libs.sh "$img"
-            rm -f "$img.sig"
-            npm run tauri -- signer sign "$img"
           done
 
-      - name: Collect canonical names
-        id: collect
+      - name: Collect the unsigned AppImage
         shell: bash
         run: |
           set -euo pipefail
-          OUT=$(mktemp -d)
+          OUT="$RUNNER_TEMP/bundle"
+          mkdir -p "$OUT"
           SRC=$(find src-tauri/target/release/bundle/appimage -maxdepth 1 -name '*aarch64.AppImage' | head -1)
           if [ -z "$SRC" ]; then
             echo "::error::no aarch64 AppImage produced"
             exit 1
           fi
           cp "$SRC" "$OUT/Aster-Mail-aarch64.AppImage"
-          if [ -f "${SRC}.sig" ]; then
-            cp "${SRC}.sig" "$OUT/Aster-Mail-aarch64.AppImage.sig"
-          else
-            echo "::warning::AppImage signature absent; the updater cannot use this build"
-          fi
-          echo "outdir=$OUT" >> "$GITHUB_OUTPUT"
           ls -la "$OUT"
+
+      - name: Upload the unsigned AppImage
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: bundle-linux-arm64
+          path: ${{ runner.temp }}/bundle/
+          if-no-files-found: error
+          retention-days: 1
+
+  sign:
+    needs: build
+    runs-on: ubuntu-22.04
+    permissions: {}
+    steps:
+      - name: Download the unsigned AppImage
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: bundle-linux-arm64
+          path: bundle
+
+      - name: Install the pinned updater signer
+        shell: bash
+        run: |
+          set -euo pipefail
+          SIGNER="$RUNNER_TEMP/signer/node_modules/@tauri-apps"
+          fetch() {
+            local pkg="$1" integrity="$2"
+            local tgz="$RUNNER_TEMP/$pkg.tgz"
+            curl -fsSL --retry 3 -o "$tgz" "https://registry.npmjs.org/@tauri-apps/$pkg/-/$pkg-${SIGNER_VERSION}.tgz"
+            local got="sha512-$(openssl dgst -sha512 -binary "$tgz" | base64 -w0)"
+            if [ "$got" != "$integrity" ]; then
+              echo "::error::@tauri-apps/$pkg $SIGNER_VERSION does not match the pinned integrity"
+              exit 1
+            fi
+            mkdir -p "$SIGNER/$pkg"
+            tar -xzf "$tgz" -C "$SIGNER/$pkg" --strip-components=1
+          }
+          fetch cli "$SIGNER_CLI_INTEGRITY"
+          fetch cli-linux-x64-gnu "$SIGNER_NATIVE_INTEGRITY"
+
+      - name: Sign the AppImage with the current and the next updater key
+        env:
+          UPDATER_KEY_V1: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          UPDATER_KEY_V1_PASSWORD: ''
+          UPDATER_KEY_V2: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_V2 }}
+          UPDATER_KEY_V2_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD_V2 }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "$UPDATER_KEY_V1" ] || [ -z "$UPDATER_KEY_V2" ]; then
+            echo "::error::both updater keys must be set; installs on either key would stop updating"
+            exit 1
+          fi
+          IMG="$PWD/bundle/Aster-Mail-aarch64.AppImage"
+          TAURI="$RUNNER_TEMP/signer/node_modules/@tauri-apps/cli/tauri.js"
+          WORK="$(mktemp -d)"
+          cd "$WORK"
+          sign_with() {
+            local key="$1" password="$2" dest="$3"
+            rm -f "$IMG.sig"
+            TAURI_SIGNING_PRIVATE_KEY="$key" TAURI_SIGNING_PRIVATE_KEY_PASSWORD="$password" node "$TAURI" signer sign "$IMG" </dev/null
+            mv "$IMG.sig" "$dest"
+          }
+          sign_with "$UPDATER_KEY_V1" "$UPDATER_KEY_V1_PASSWORD" "$IMG.sig.v1"
+          sign_with "$UPDATER_KEY_V2" "$UPDATER_KEY_V2_PASSWORD" "$IMG.v2.sig"
+          mv "$IMG.sig.v1" "$IMG.sig"
+          ls -la "$(dirname "$IMG")"
 
       - name: Upload build artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: aster-mail-linux-arm64-appimage
-          path: ${{ steps.collect.outputs.outdir }}
+          path: bundle/
           if-no-files-found: error
 
+  attach:
+    needs: sign
+    if: inputs.tag != ''
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - name: Download the signed AppImage
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: aster-mail-linux-arm64-appimage
+          path: out
+
       - name: Attach to release
-        if: inputs.tag != ''
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          OUTDIR: ${{ steps.collect.outputs.outdir }}
           TAG: ${{ inputs.tag }}
         shell: bash
         run: |
           set -euo pipefail
-          gh release upload "$TAG" \
-            "$OUTDIR/Aster-Mail-aarch64.AppImage" \
-            --repo "$GITHUB_REPOSITORY" --clobber
-          if [ -f "$OUTDIR/Aster-Mail-aarch64.AppImage.sig" ]; then
-            gh release upload "$TAG" \
-              "$OUTDIR/Aster-Mail-aarch64.AppImage.sig" \
-              --repo "$GITHUB_REPOSITORY" --clobber
-          fi
+          gh release upload "$TAG" out/Aster-Mail-aarch64.AppImage out/Aster-Mail-aarch64.AppImage.sig out/Aster-Mail-aarch64.AppImage.v2.sig --repo "$GITHUB_REPOSITORY" --clobber

@@ -5151,6 +5151,9 @@ export const it = {
     billing_history: "Cronologia fatturazione",
     billing_status_active: "Attivo",
     billing_status_renews: "Si rinnova il {{date}}",
+    billing_status_lifetime: "A vita",
+    billing_lifetime_note:
+      "Questo piano non si rinnova mai e non lo paghi mai più. Per modificarlo, contatta l'assistenza Aster.",
     billing_status_ending: "Termina il {{date}}",
     billing_status_attention: "Il pagamento richiede attenzione",
     billing_member_since: "Membro dal {{date}}",
@@ -7366,6 +7369,8 @@ export const it = {
     security_center_recommended: "Azioni consigliate",
     security_center_protected: "Protetto",
     security_center_all_clear: "Tutte le protezioni sono attive.",
+    security_center_met_of_total: "{{met}} protezioni su {{total}} attive",
+    security_center_account: "Il tuo account",
     security_center_protection_score: "Punteggio di protezione",
     security_center_encryption_title: "Crittografia end-to-end",
     security_center_encryption_detail:
@@ -8291,6 +8296,8 @@ export const it = {
       "Nessuno può ancora scriverti. Il tuo dominio non ha un percorso per la posta, quindi i messaggi tornano al mittente.",
     domain_reason_mx_points_elsewhere:
       "La posta va al tuo vecchio provider, non ad Aster. Rimuovi i vecchi record MX perché i messaggi arrivino in questa casella.",
+    domain_reason_mx_shared:
+      "Parte della tua posta può arrivare a {{detail}} invece che ad Aster, perché quel record MX ha la stessa priorità o una più alta. Rimuovilo perché tutta la posta arrivi in questa casella.",
     domain_reason_spf_missing:
       "La posta che invii può essere rifiutata o segnata come spam, perché nulla dice agli altri provider che Aster può inviare per te.",
     domain_reason_spf_missing_include:
@@ -8676,6 +8683,7 @@ export const it = {
     reply_all: "Rispondi a tutti",
     react: "Reagisci",
     you_reacted_with: "Hai reagito con {{emoji}}",
+    reaction_sent: "Reazione inviata",
     reacted_with: "{{name}} ha reagito con {{emoji}}",
     forward: "Inoltra",
     to: "A",
@@ -8800,6 +8808,7 @@ export const it = {
     show_quoted_text: "Mostra testo citato",
     hide_quoted_text: "Nascondi testo citato",
     remove_quoted_text: "Rimuovi testo citato",
+    edit_quoted_text: "Modifica testo citato",
     quoted_text_removed: "Testo citato rimosso",
     restore_quoted_text: "Ripristina",
     show_forwarded: "Mostra inoltrato",
@@ -9428,9 +9437,10 @@ export const it = {
     op_in_trash: "Nel cestino",
     op_in_drafts: "Nelle bozze",
     chip_any_time: "Qualsiasi data",
-    chip_older_than_week: "Più di una settimana",
-    chip_older_than_month: "Più di un mese",
-    chip_older_than_six_months: "Più di 6 mesi",
+    chip_last_7_days: "Ultimi 7 giorni",
+    chip_last_30_days: "Ultimi 30 giorni",
+    chip_last_6_months: "Ultimi 6 mesi",
+    chip_last_year: "Ultimo anno",
     chip_older_than_year: "Più di un anno",
     chip_custom_range: "Intervallo personalizzato",
     chip_has_attachment: "Con allegato",
@@ -9438,10 +9448,12 @@ export const it = {
     chip_attachment_document: "Documento",
     chip_attachment_pdf: "PDF",
     chip_attachment_video: "Video",
-    chip_is_unread: "Non letto",
+    chip_is_unread: "Non letti",
     chip_name_or_email: "Nome o email",
     chip_no_people: "Nessuna persona corrispondente",
     chip_advanced_search: "Ricerca avanzata",
+    chip_everywhere: "Ovunque",
+    chip_everywhere_hint: "Include Spam e Cestino",
     spam_trash_hidden_notice:
       "Alcuni messaggi in Spam e Cestino corrispondono alla tua ricerca.",
     search_index_partial:

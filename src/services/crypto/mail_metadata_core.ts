@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { MailItemMetadata } from "@/types/email";
+import type { EmailCategory, MailItemMetadata } from "@/types/email";
 
 import {
   encrypt_metadata,
@@ -253,4 +253,10 @@ export interface MetadataWriteResult {
   written_version?: number;
   undecryptable?: boolean;
   unapplied_fields?: string[];
+  previous?: PreviousCategoryState;
+}
+
+export interface PreviousCategoryState {
+  category?: EmailCategory;
+  category_pinned: boolean;
 }

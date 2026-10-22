@@ -385,10 +385,10 @@ export const InboxEmailListItem = memo(
           className={cn(
             "group relative flex items-center gap-2 sm:gap-3 px-3 sm:px-4 cursor-pointer w-full border-t border-edge-secondary",
             get_density_classes(density, preferences.compact_mode ?? false),
-            is_active
-              ? "bg-surf-hover"
-              : email.is_selected === true
-                ? "mail_row_selected"
+            email.is_selected === true
+              ? "mail_row_selected"
+              : is_active
+                ? "bg-surf-hover"
                 : email.is_read
                   ? "mail_row_read"
                   : "mail_row_unread",
@@ -850,10 +850,10 @@ export const InboxEmailListItem = memo(
             <div
               className={cn(
                 "absolute end-0 top-0 bottom-0 w-64 pointer-events-none opacity-0 group-hover:opacity-100 hidden sm:block",
-                is_active
-                  ? "bg-gradient-to-r from-transparent via-surf-hover to-surf-hover"
-                  : email.is_selected === true
-                    ? "mail_row_selected_fade"
+                email.is_selected === true
+                  ? "mail_row_selected_fade"
+                  : is_active
+                    ? "bg-gradient-to-r from-transparent via-surf-hover to-surf-hover"
                     : "bg-gradient-to-r from-transparent via-surf-primary to-surf-primary group-hover:via-surf-hover group-hover:to-surf-hover",
               )}
               style={{
@@ -943,10 +943,10 @@ export const InboxEmailListItem = memo(
               <div
                 className={cn(
                   "absolute end-3 sm:end-4 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 ps-10",
-                  is_active
-                    ? "bg-gradient-to-r from-transparent to-surf-hover"
-                    : email.is_selected === true
-                      ? "mail_row_selected_fade_end"
+                  email.is_selected === true
+                    ? "mail_row_selected_fade_end"
+                    : is_active
+                      ? "bg-gradient-to-r from-transparent to-surf-hover"
                       : "bg-gradient-to-r from-transparent to-surf-primary group-hover:to-surf-hover",
                 )}
                 role="button"

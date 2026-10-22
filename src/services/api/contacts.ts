@@ -55,6 +55,7 @@ import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { get_key, store_key } from "@/services/crypto/crypto_key_cache";
 import { get_active_translations } from "@/lib/i18n/translations";
 import { is_contact_trashed } from "@/lib/contact_trash";
+import { note_local_contact_write } from "@/services/contact_local_writes";
 
 function array_to_base64(array: Uint8Array): string {
   let binary = "";
@@ -604,7 +605,9 @@ export async function is_contact_in_trash(
 export async function create_contact(
   data: CreateContactRequest,
 ): Promise<ApiResponse<CreateContactResponse>> {
-  return api_client.post<CreateContactResponse>("/contacts/v1", data);
+  return note_local_contact_write(
+    await api_client.post<CreateContactResponse>("/contacts/v1", data),
+  );
 }
 
 export async function create_contact_encrypted(
@@ -640,9 +643,11 @@ export async function update_contact(
   contact_id: string,
   data: UpdateContactRequest,
 ): Promise<ApiResponse<UpdateContactResponse>> {
-  return api_client.put<UpdateContactResponse>(
-    `/contacts/v1/${contact_id}`,
-    data,
+  return note_local_contact_write(
+    await api_client.put<UpdateContactResponse>(
+      `/contacts/v1/${contact_id}`,
+      data,
+    ),
   );
 }
 
@@ -677,15 +682,21 @@ export async function update_contact_encrypted(
 export async function delete_contact(
   contact_id: string,
 ): Promise<ApiResponse<DeleteContactResponse>> {
-  return api_client.delete<DeleteContactResponse>(`/contacts/v1/${contact_id}`);
+  return note_local_contact_write(
+    await api_client.delete<DeleteContactResponse>(
+      `/contacts/v1/${contact_id}`,
+    ),
+  );
 }
 
 export async function bulk_delete_contacts(
   data: BulkDeleteContactsRequest,
 ): Promise<ApiResponse<BulkDeleteContactsResponse>> {
-  return api_client.delete<BulkDeleteContactsResponse>("/contacts/v1", {
-    body: JSON.stringify(data),
-  });
+  return note_local_contact_write(
+    await api_client.delete<BulkDeleteContactsResponse>("/contacts/v1", {
+      body: JSON.stringify(data),
+    }),
+  );
 }
 
 export async function search_contacts(

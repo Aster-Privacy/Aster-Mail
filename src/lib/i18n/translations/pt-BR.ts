@@ -7283,6 +7283,8 @@ export const pt_br = {
     security_center_recommended: "Ações recomendadas",
     security_center_protected: "Protegido",
     security_center_all_clear: "Todas as proteções estão ativadas.",
+    security_center_met_of_total: "{{met}} de {{total}} proteções ativadas",
+    security_center_account: "A sua conta",
     security_center_protection_score: "Pontuação de proteção",
     security_center_encryption_title: "Criptografia de ponta a ponta",
     security_center_encryption_detail:
@@ -8193,6 +8195,8 @@ export const pt_br = {
       "Ninguém consegue escrever para você ainda. Seu domínio não tem rota de e-mail, então as mensagens voltam para quem enviou.",
     domain_reason_mx_points_elsewhere:
       "Os e-mails estão indo para seu provedor antigo, não para a Aster. Remova os registros MX antigos para as mensagens chegarem a esta caixa.",
+    domain_reason_mx_shared:
+      "Parte dos seus e-mails pode ir para {{detail}} em vez da Aster, porque esse registro MX tem prioridade igual ou maior. Remova-o para que todos os seus e-mails cheguem a esta caixa de entrada.",
     domain_reason_spf_missing:
       "Os e-mails que você envia podem ser rejeitados ou marcados como spam, porque nada avisa aos outros provedores que a Aster pode enviar por você.",
     domain_reason_spf_missing_include:
@@ -8492,6 +8496,9 @@ export const pt_br = {
     academic_status_verified: "Verificado",
     billing_status_active: "Ativo",
     billing_status_renews: "Renova em {{date}}",
+    billing_status_lifetime: "Vitalício",
+    billing_lifetime_note:
+      "Este plano nunca é renovado e você não paga mais por ele. Para alterá-lo, entre em contato com o suporte da Aster.",
     billing_status_ending: "Termina em {{date}}",
     billing_status_attention: "O pagamento precisa de atenção",
     billing_member_since: "Membro desde {{date}}",
@@ -8667,6 +8674,7 @@ export const pt_br = {
     reply_all: "Responder a todos",
     react: "Reagir",
     you_reacted_with: "Você reagiu com {{emoji}}",
+    reaction_sent: "Reação enviada",
     reacted_with: "{{name}} reagiu com {{emoji}}",
     forward: "Encaminhar",
     to: "Para",
@@ -8781,6 +8789,7 @@ export const pt_br = {
     show_quoted_text: "Mostrar texto citado",
     hide_quoted_text: "Ocultar texto citado",
     remove_quoted_text: "Remover texto citado",
+    edit_quoted_text: "Editar texto citado",
     quoted_text_removed: "Texto citado removido",
     restore_quoted_text: "Restaurar",
     show_forwarded: "Mostrar encaminhado",
@@ -9385,9 +9394,10 @@ export const pt_br = {
     op_in_trash: "Na lixeira",
     op_in_drafts: "Nos rascunhos",
     chip_any_time: "Qualquer data",
-    chip_older_than_week: "Mais de uma semana",
-    chip_older_than_month: "Mais de um mês",
-    chip_older_than_six_months: "Mais de 6 meses",
+    chip_last_7_days: "Últimos 7 dias",
+    chip_last_30_days: "Últimos 30 dias",
+    chip_last_6_months: "Últimos 6 meses",
+    chip_last_year: "Último ano",
     chip_older_than_year: "Mais de um ano",
     chip_custom_range: "Intervalo personalizado",
     chip_has_attachment: "Com anexo",
@@ -9395,10 +9405,12 @@ export const pt_br = {
     chip_attachment_document: "Documento",
     chip_attachment_pdf: "PDF",
     chip_attachment_video: "Vídeo",
-    chip_is_unread: "Não lido",
+    chip_is_unread: "Não lidos",
     chip_name_or_email: "Nome ou e-mail",
     chip_no_people: "Nenhuma pessoa correspondente",
     chip_advanced_search: "Pesquisa avançada",
+    chip_everywhere: "Em todo lugar",
+    chip_everywhere_hint: "Inclui Spam e Lixeira",
     spam_trash_hidden_notice:
       "Algumas mensagens no Spam e na Lixeira correspondem à sua pesquisa.",
     search_index_partial:

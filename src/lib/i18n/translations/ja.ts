@@ -4268,6 +4268,9 @@ export const ja = {
     billing_history: "請求履歴",
     billing_status_active: "有効",
     billing_status_renews: "{{date}} に更新",
+    billing_status_lifetime: "永久",
+    billing_lifetime_note:
+      "このプランは更新されず、今後お支払いは発生しません。変更するには、Aster サポートにお問い合わせください。",
     billing_status_ending: "{{date}} に終了",
     billing_status_attention: "お支払いに確認が必要です",
     billing_member_since: "{{date}} からのメンバー",
@@ -5158,7 +5161,8 @@ export const ja = {
     font_size_description_desktop:
       "メールの文字と、アプリ内の一部の文字のサイズを変更します。すべてを大きくするには、「外観」の「インターフェイスのサイズ」を変更してください。",
     interface_zoom: "インターフェイスのサイズ",
-    interface_zoom_description: "アプリ全体の文字、アイコン、余白を拡大または縮小します。",
+    interface_zoom_description:
+      "アプリ全体の文字、アイコン、余白を拡大または縮小します。",
     interface_zoom_shortcut:
       "キーボードでサイズを変更するには、Ctrl+プラスまたはCtrl+マイナスを押します。元のサイズに戻すには、Ctrl+0を押します。",
     interface_zoom_shortcut_mac:
@@ -6987,6 +6991,8 @@ export const ja = {
     security_center_recommended: "推奨される操作",
     security_center_protected: "保護済み",
     security_center_all_clear: "すべての保護が有効です。",
+    security_center_met_of_total: "{{total}}件中{{met}}件の保護が有効",
+    security_center_account: "アカウント",
     security_center_protection_score: "保護スコア",
     security_center_encryption_title: "エンドツーエンド暗号化",
     security_center_encryption_detail:
@@ -8103,6 +8109,8 @@ export const ja = {
       "まだ誰もあなたにメールを送れません。ドメインにメールの経路がないため、メッセージは送信者に返送されます。",
     domain_reason_mx_points_elsewhere:
       "メールは Aster ではなく以前のプロバイダに届いています。古い MX レコードを削除すると、この受信トレイに届きます。",
+    domain_reason_mx_shared:
+      "この MX レコードの優先度が Aster と同じかそれより高いため、一部のメールが Aster ではなく {{detail}} に届く可能性があります。すべてのメールがこの受信トレイに届くように、このレコードを削除してください。",
     domain_reason_spf_missing:
       "Aster があなたの代わりに送信できることを他社に伝える設定がないため、送信メールが拒否されたり迷惑メール扱いになったりします。",
     domain_reason_spf_missing_include:
@@ -8442,6 +8450,7 @@ export const ja = {
     reply_all: "全員に返信",
     react: "リアクション",
     you_reacted_with: "{{emoji}} でリアクションしました",
+    reaction_sent: "リアクションを送信しました",
     reacted_with: "{{name}} が {{emoji}} でリアクションしました",
     forward: "転送",
     to: "宛先",
@@ -8558,6 +8567,7 @@ export const ja = {
     show_quoted_text: "引用テキストを表示",
     hide_quoted_text: "引用テキストを非表示",
     remove_quoted_text: "引用テキストを削除",
+    edit_quoted_text: "引用テキストを編集",
     quoted_text_removed: "引用テキストを削除しました",
     restore_quoted_text: "元に戻す",
     show_forwarded: "転送メッセージを表示",
@@ -9232,9 +9242,10 @@ export const ja = {
     op_in_trash: "ゴミ箱内",
     op_in_drafts: "下書き内",
     chip_any_time: "すべての期間",
-    chip_older_than_week: "1週間以上前",
-    chip_older_than_month: "1か月以上前",
-    chip_older_than_six_months: "6か月以上前",
+    chip_last_7_days: "過去7日間",
+    chip_last_30_days: "過去30日間",
+    chip_last_6_months: "過去6か月",
+    chip_last_year: "過去1年",
     chip_older_than_year: "1年以上前",
     chip_custom_range: "期間を指定",
     chip_has_attachment: "添付ファイルあり",
@@ -9246,6 +9257,8 @@ export const ja = {
     chip_name_or_email: "名前またはメールアドレス",
     chip_no_people: "一致する連絡先がありません",
     chip_advanced_search: "詳細検索",
+    chip_everywhere: "すべての場所",
+    chip_everywhere_hint: "スパムとゴミ箱を含む",
     spam_trash_hidden_notice:
       "迷惑メールとゴミ箱に検索条件に一致するメールがあります。",
     search_index_partial:

@@ -63,8 +63,8 @@ export interface ActionToastState {
   action_label?: string;
   progress?: { completed: number; total: number };
   on_cancel?: () => void;
-  on_view_message?: () => void;
   sound?: IconicSound | "none";
+  hide_dismiss?: boolean;
 }
 
 const DONE_SOUND_ACTIONS: ReadonlySet<ActionToastState["action_type"]> =
@@ -338,21 +338,15 @@ export function ActionToast({ position }: ActionToastProps) {
                   {is_undoing && <ButtonSpinner size="xs" />}
                 </button>
               )}
-              {toast.on_view_message && (
+              {!toast.hide_dismiss && (
                 <button
-                  className="text-[13px] font-medium ms-1 underline text-brand"
-                  onClick={toast.on_view_message}
+                  aria-label={t("common.dismiss")}
+                  className="flex-shrink-0 text-txt-muted hover:text-txt-primary hover:bg-edge-primary/60 rounded-full p-1 transition-colors ms-1"
+                  onClick={handle_cancel}
                 >
-                  {t("mail.view_message")}
+                  <XMarkIcon className="w-3.5 h-3.5" />
                 </button>
               )}
-              <button
-                aria-label={t("common.dismiss")}
-                className="flex-shrink-0 text-txt-muted hover:text-txt-primary hover:bg-edge-primary/60 rounded-full p-1 transition-colors ms-1"
-                onClick={handle_cancel}
-              >
-                <XMarkIcon className="w-3.5 h-3.5" />
-              </button>
             </div>
             {toast.progress && (
               <div className="flex items-center gap-3 pt-0.5">

@@ -26,8 +26,94 @@ export interface AutolinkMatch {
   href: string;
 }
 
-const CANDIDATE_PATTERN =
-  /(?:(https?:\/\/|www\.)[^\s<>"'`]+|([A-Za-z0-9._%+-]+@[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?)*\.[A-Za-z]{2,}))/g;
+const URL_PREFIXES = ["https://", "http://", "www."];
+
+const URL_STOP_PATTERN = /[\s<>"'`]/g;
+
+const LOCAL_PART_STOP_PATTERN = /[^A-Za-z0-9._%+-]/g;
+
+const EMAIL_DOMAIN_PATTERN =
+  /[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?)*\.[A-Za-z]{2,}/y;
+
+interface AutolinkCandidate {
+  index: number;
+  end: number;
+  prefix: string | null;
+}
+
+function create_stop_finder(
+  text: string,
+  pattern: RegExp,
+): (position: number) => number {
+  const stop = new RegExp(pattern.source, "g");
+  let cached_from = -1;
+  let cached_at = -1;
+
+  return (position) => {
+    if (cached_from >= 0 && position >= cached_from && position <= cached_at) {
+      return cached_at;
+    }
+
+    stop.lastIndex = position;
+    const match = stop.exec(text);
+
+    cached_from = position;
+    cached_at = match ? match.index : text.length;
+
+    return cached_at;
+  };
+}
+
+function url_prefix_at(text: string, index: number): string | null {
+  for (const prefix of URL_PREFIXES) {
+    if (text.startsWith(prefix, index)) return prefix;
+  }
+
+  return null;
+}
+
+function create_candidate_finder(
+  text: string,
+): (from: number) => AutolinkCandidate | null {
+  const url_end = create_stop_finder(text, URL_STOP_PATTERN);
+  const local_part_end = create_stop_finder(text, LOCAL_PART_STOP_PATTERN);
+  const domain = new RegExp(EMAIL_DOMAIN_PATTERN.source, "y");
+  let cached_domain_start = -1;
+  let cached_domain_end = -1;
+
+  const domain_end = (start: number): number => {
+    if (start !== cached_domain_start) {
+      domain.lastIndex = start;
+      cached_domain_start = start;
+      cached_domain_end = domain.exec(text) ? domain.lastIndex : -1;
+    }
+
+    return cached_domain_end;
+  };
+
+  return (from) => {
+    for (let index = from; index < text.length; index += 1) {
+      const prefix = url_prefix_at(text, index);
+
+      if (prefix) {
+        const start = index + prefix.length;
+        const end = url_end(start);
+
+        if (end > start) return { index, end, prefix };
+      }
+
+      const at = local_part_end(index);
+
+      if (at > index && text[at] === "@") {
+        const end = domain_end(at + 1);
+
+        if (end >= 0) return { index, end, prefix: null };
+      }
+    }
+
+    return null;
+  };
+}
 
 const BLOCKED_LEADING_CHAR = /[\w@/.-]/;
 
@@ -57,42 +143,69 @@ const BRACKET_PAIRS: Record<string, string> = {
 
 const MAX_TLD_LENGTH = 24;
 
-function count_char(text: string, needle: string): number {
-  let count = 0;
+const ENTITY_NAME_CHAR = /[A-Za-z0-9]/;
 
-  for (let i = 0; i < text.length; i += 1) {
-    if (text[i] === needle) count += 1;
+function count_brackets(text: string): Map<string, number> {
+  const counts = new Map<string, number>();
+
+  for (const [closer, opener] of Object.entries(BRACKET_PAIRS)) {
+    counts.set(closer, 0);
+    counts.set(opener, 0);
   }
 
-  return count;
+  for (let i = 0; i < text.length; i += 1) {
+    const count = counts.get(text[i]);
+
+    if (count !== undefined) counts.set(text[i], count + 1);
+  }
+
+  return counts;
+}
+
+function entity_start_before(text: string, end: number): number {
+  let name_start = end - 1;
+
+  while (name_start > 0 && ENTITY_NAME_CHAR.test(text[name_start - 1])) {
+    name_start -= 1;
+  }
+
+  if (name_start === end - 1) return -1;
+  if (text[name_start - 1] === "&") return name_start - 1;
+  if (text[name_start - 1] === "#" && text[name_start - 2] === "&") {
+    return name_start - 2;
+  }
+
+  return -1;
 }
 
 export function trim_url_tail(candidate: string): string {
-  let url = candidate;
+  const counts = count_brackets(candidate);
+  let end = candidate.length;
 
-  while (url.length > 0) {
-    const last = url[url.length - 1];
+  while (end > 0) {
+    const last = candidate[end - 1];
 
     if (last === ";") {
-      const entity = /&#?[A-Za-z0-9]+;$/.exec(url);
+      const entity = entity_start_before(candidate, end);
 
-      url = entity ? url.slice(0, entity.index) : url.slice(0, -1);
+      end = entity >= 0 ? entity : end - 1;
       continue;
     }
     if (TRAILING_PUNCTUATION.has(last)) {
-      url = url.slice(0, -1);
+      end -= 1;
       continue;
     }
     const opener = BRACKET_PAIRS[last];
 
-    if (opener && count_char(url, last) > count_char(url, opener)) {
-      url = url.slice(0, -1);
+    if (opener && counts.get(last)! > counts.get(opener)!) {
+      counts.set(last, counts.get(last)! - 1);
+      end -= 1;
       continue;
     }
     break;
   }
 
-  return url;
+  return candidate.slice(0, end);
 }
 
 function has_host(url: string, scheme_length: number): boolean {
@@ -124,16 +237,17 @@ export function find_autolinks(text: string): AutolinkMatch[] {
 
   if (!text || !/:\/\/|www\.|@/i.test(text)) return matches;
 
-  CANDIDATE_PATTERN.lastIndex = 0;
-  let match: RegExpExecArray | null;
+  const next_candidate = create_candidate_finder(text);
+  let cursor = 0;
+  let match: AutolinkCandidate | null;
 
-  while ((match = CANDIDATE_PATTERN.exec(text)) !== null) {
+  while ((match = next_candidate(cursor)) !== null) {
     if (is_blocked_start(text, match.index)) {
-      CANDIDATE_PATTERN.lastIndex = match.index + 1;
+      cursor = match.index + 1;
       continue;
     }
-    const raw = match[0];
-    const prefix = match[1];
+    const raw = text.slice(match.index, match.end);
+    const prefix = match.prefix;
 
     if (prefix) {
       const url = trim_url_tail(raw);
@@ -151,11 +265,11 @@ export function find_autolinks(text: string): AutolinkMatch[] {
           href: is_www ? `http://${url}` : url,
         });
       }
-      CANDIDATE_PATTERN.lastIndex = match.index + Math.max(url.length, 1);
+      cursor = match.index + Math.max(url.length, 1);
       continue;
     }
 
-    const address = trim_email_tail(match[2] || raw);
+    const address = trim_email_tail(raw);
 
     matches.push({
       start: match.index,
@@ -163,7 +277,7 @@ export function find_autolinks(text: string): AutolinkMatch[] {
       text: address,
       href: `mailto:${address}`,
     });
-    CANDIDATE_PATTERN.lastIndex = match.index + address.length;
+    cursor = match.index + address.length;
   }
 
   return matches;

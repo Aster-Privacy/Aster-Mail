@@ -3258,6 +3258,8 @@ export interface SettingsTranslations {
   security_center_recommended: string;
   security_center_protected: string;
   security_center_all_clear: string;
+  security_center_met_of_total: string;
+  security_center_account: string;
   security_center_protection_score: string;
   security_center_encryption_title: string;
   security_center_encryption_detail: string;
@@ -3455,6 +3457,8 @@ export interface SettingsTranslations {
   billing_plan_heading: string;
   billing_status_active: string;
   billing_status_renews: string;
+  billing_status_lifetime: string;
+  billing_lifetime_note: string;
   billing_status_ending: string;
   billing_status_attention: string;
   billing_member_since: string;
@@ -5545,6 +5549,7 @@ export interface SettingsTranslations {
   domain_check_generic_failure: string;
   domain_reason_mx_missing: string;
   domain_reason_mx_points_elsewhere: string;
+  domain_reason_mx_shared: string;
   domain_reason_spf_missing: string;
   domain_reason_spf_missing_include: string;
   domain_reason_spf_duplicate_records: string;
@@ -7445,6 +7450,7 @@ export interface MailTranslations {
   forward: string;
   react: string;
   you_reacted_with: string;
+  reaction_sent: string;
   reacted_with: string;
   reply_subject_prefix: string;
   reply_from_mismatch_title: string;
@@ -7599,6 +7605,7 @@ export interface MailTranslations {
   show_quoted_text: string;
   hide_quoted_text: string;
   remove_quoted_text: string;
+  edit_quoted_text: string;
   quoted_text_removed: string;
   restore_quoted_text: string;
   show_forwarded: string;
@@ -8001,9 +8008,10 @@ export interface MailTranslations {
   op_in_trash: string;
   op_in_drafts: string;
   chip_any_time: string;
-  chip_older_than_week: string;
-  chip_older_than_month: string;
-  chip_older_than_six_months: string;
+  chip_last_7_days: string;
+  chip_last_30_days: string;
+  chip_last_6_months: string;
+  chip_last_year: string;
   chip_older_than_year: string;
   chip_custom_range: string;
   chip_has_attachment: string;
@@ -8015,6 +8023,8 @@ export interface MailTranslations {
   chip_name_or_email: string;
   chip_no_people: string;
   chip_advanced_search: string;
+  chip_everywhere: string;
+  chip_everywhere_hint: string;
   spam_trash_hidden_notice: string;
   search_index_partial: string;
   search_index_incomplete: string;

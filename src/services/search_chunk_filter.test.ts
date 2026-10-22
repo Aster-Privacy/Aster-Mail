@@ -515,6 +515,25 @@ describe("structural chunk skipping", () => {
     expect(skip_query("after:2026-01-01", summary)).toBe(false);
   });
 
+  it("skips chunks outside a relative day window", () => {
+    const day = 86_400_000;
+    const summary = summarize([
+      { item: { message_ts: new Date(Date.now() - 3 * day).toISOString() } },
+    ]);
+
+    expect(skip_query("after:7d", summary)).toBe(false);
+    expect(skip_query("after:1d", summary)).toBe(true);
+    expect(skip_query("before:1d", summary)).toBe(false);
+    expect(skip_query("before:7d", summary)).toBe(true);
+  });
+
+  it("keeps a chunk that matches any of several in: folders", () => {
+    const sent = summarize([{ item: { item_type: "sent" } }]);
+
+    expect(skip_query("in:sent in:trash", sent)).toBe(false);
+    expect(skip_query("in:inbox in:trash", sent)).toBe(true);
+  });
+
   it("skips by size operators", () => {
     const summary = summarize([
       { entry: { size_bytes: 1000 } },

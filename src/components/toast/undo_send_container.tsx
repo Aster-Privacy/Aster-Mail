@@ -25,7 +25,6 @@ import {
   settle_restored_sends_missing_from_server,
   take_interrupted_tab_sends,
   next_interrupted_tab_send_check_ms,
-  peek_pending_send_payload,
   use_undo_send,
 } from "@/hooks/use_undo_send";
 import { is_typing } from "@/hooks/use_keyboard_shortcuts";
@@ -34,10 +33,6 @@ import { is_mac_platform } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth_context";
 import { show_action_toast } from "@/components/toast/action_toast";
-import {
-  can_preview_pending_send,
-  open_pending_send_preview,
-} from "@/components/toast/toast_action_router";
 import { use_toast_action_bridge } from "@/components/toast/use_toast_action_hosts";
 import { ignore_error } from "@/lib/ignore_error";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -146,6 +141,7 @@ export function UndoSendContainer({
         sound: "none",
         email_ids: [],
         duration_ms: remaining * 1000,
+        hide_dismiss: true,
         on_undo: async () => {
           const cancelled = await cancel_send(pending_data.id);
 
@@ -153,21 +149,6 @@ export function UndoSendContainer({
             throw new Error("undo_send_cancel_rejected");
           }
         },
-        on_view_message:
-          pending_data.body && !is_mobile && can_preview_pending_send()
-            ? () => {
-                open_pending_send_preview({
-                  subject: pending_data.subject,
-                  body: pending_data.body,
-                  to: pending_data.to,
-                  cc: pending_data.cc,
-                  bcc: pending_data.bcc,
-                  sender_email: pending_data.sender_email,
-                  attachments: peek_pending_send_payload(pending_data.id)
-                    ?.attachments,
-                });
-              }
-            : undefined,
       });
     }
 
@@ -178,7 +159,7 @@ export function UndoSendContainer({
         shown_ids_ref.current.delete(id);
       }
     }
-  }, [pending_sends, cancel_send, get_time_remaining, t, is_mobile]);
+  }, [pending_sends, cancel_send, get_time_remaining, t]);
 
   return null;
 }

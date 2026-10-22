@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { InboxFilterType } from "@/types/email";
+import type { EmailCategory, InboxFilterType } from "@/types/email";
 import type { AliasDirection } from "@/hooks/email_list_helpers/alias_view";
 
 import { useState, useEffect } from "react";
@@ -74,6 +74,7 @@ import { app_locale } from "@/utils/date_format";
 import { compute_snooze_target } from "@/utils/snooze_targets";
 import { folder_option_indent } from "@/hooks/use_folders/tree";
 import { tag_option_indent } from "@/hooks/tag_tree";
+import { CategoryMoveDropdownSub } from "@/components/email/inbox/category_move_menu";
 
 interface FolderOption {
   folder_token: string;
@@ -137,6 +138,7 @@ interface InboxHeaderProps {
     mode: "all" | "none" | "read" | "unread" | "starred" | "unstarred",
   ) => void;
   on_spam?: () => void;
+  on_category_change?: (category: EmailCategory) => void;
   on_restore?: () => void;
   is_archive_view?: boolean;
   on_snooze?: (snooze_until: Date) => void;
@@ -149,6 +151,7 @@ interface InboxHeaderProps {
   hide_view_switcher?: boolean;
   hide_refresh?: boolean;
   hide_quick_actions?: boolean;
+  hide_filter?: boolean;
   leading_toolbar_slot?: React.ReactNode;
   leading_left_slot?: React.ReactNode;
   overflow_menu_slot?: React.ReactNode;
@@ -203,6 +206,7 @@ export function InboxHeader({
   on_toggle_star,
   on_select_by_filter,
   on_spam,
+  on_category_change,
   on_restore,
   is_archive_view = false,
   on_snooze,
@@ -215,6 +219,7 @@ export function InboxHeader({
   hide_view_switcher = false,
   hide_refresh = false,
   hide_quick_actions = false,
+  hide_filter = false,
   leading_toolbar_slot,
   leading_left_slot,
   overflow_menu_slot,
@@ -796,6 +801,16 @@ export function InboxHeader({
                           {t("mail.report_spam")}
                         </DropdownMenuItem>
                       )}
+                    {!is_trash_view &&
+                      !is_spam_view &&
+                      !is_archive_view &&
+                      !is_drafts_view &&
+                      !is_scheduled_view &&
+                      on_category_change && (
+                        <CategoryMoveDropdownSub
+                          on_select={on_category_change}
+                        />
+                      )}
                     {!hide_mail_actions && on_snooze && (
                       <>
                         <DropdownMenuSeparator />
@@ -950,11 +965,13 @@ export function InboxHeader({
         <div className="flex items-center gap-0.5 flex-shrink-0">
           <HeaderToolbar
             filter_slot={
-              <FilterDropdown
-                active_filter={active_filter}
-                alias_direction={alias_direction}
-                on_filter_change={on_filter_change}
-              />
+              hide_filter ? undefined : (
+                <FilterDropdown
+                  active_filter={active_filter}
+                  alias_direction={alias_direction}
+                  on_filter_change={on_filter_change}
+                />
+              )
             }
             handle_batch_action={handle_batch_action}
             handle_refresh={handle_refresh}

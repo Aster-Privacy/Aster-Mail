@@ -17,7 +17,7 @@
 //
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-import type { EmailCategory, InboxEmail } from "@/types/email";
+import type { EmailCategory } from "@/types/email";
 import type { TranslationKey } from "@/lib/i18n/types";
 
 import { trim_map_to_size, trim_set_to_size } from "@/lib/bounded_map";
@@ -51,7 +51,9 @@ export function reset_sender_rule_state(): void {
   offered.clear();
 }
 
-function sole_sender(emails: readonly InboxEmail[]): string | null {
+function sole_sender(
+  emails: readonly { sender_email?: string }[],
+): string | null {
   let found: string | null = null;
 
   for (const email of emails) {
@@ -96,7 +98,7 @@ async function create_sender_rule(
 
 // Called after a category move has been confirmed by the server.
 export function maybe_offer_sender_rule(
-  moved: readonly InboxEmail[],
+  moved: readonly { sender_email?: string }[],
   category: EmailCategory,
   category_label: string,
   t: Translate,

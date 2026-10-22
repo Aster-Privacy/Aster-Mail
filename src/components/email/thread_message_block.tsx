@@ -267,7 +267,7 @@ export function ThreadMessageBlock(
   };
 
   const marks_hidden = sender_trust?.show_identity_marks === false;
-  const shown_address = sender_trust?.address || show_sender_email;
+  const shown_address = sender_trust ? sender_trust.address : show_sender_email;
   const auth_summary = summarize_email_authentication(message);
   const auth_failed_checks =
     auth_summary?.verdict === "failed"
@@ -385,7 +385,7 @@ export function ThreadMessageBlock(
                 unverified={sender_trust?.auth_state === "unverified"}
               />
             )}
-            {shown_address !== name && (
+            {shown_address && shown_address !== name && (
               <span
                 className={`text-xs text-txt-muted truncate max-w-full ${sender_trust ? "" : "hidden sm:inline"}`}
               >
@@ -527,7 +527,8 @@ export function ThreadMessageBlock(
               </PopoverTrigger>
               <PopoverContent
                 align="start"
-                className="w-[28rem] max-w-[calc(100vw-2rem)] p-4"
+                className="w-[28rem] max-w-[calc(100vw-2rem)] max-h-[min(var(--radix-popover-content-available-height,80dvh),40rem)] overflow-y-auto overscroll-contain p-4"
+                collisionPadding={12}
                 side="bottom"
                 sideOffset={6}
                 onClick={(e: React.MouseEvent) => e.stopPropagation()}
@@ -1010,4 +1011,7 @@ export function ThreadMessageBlock(
 }
 
 export { ThreadMessagesList } from "./thread_messages_list";
-export type { ThreadMessagesListRef } from "./thread_messages_list";
+export type {
+  ThreadMessagesListRef,
+  ThreadExpandState,
+} from "./thread_messages_list";

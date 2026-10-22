@@ -81,6 +81,8 @@ export interface UseComposeDraftsOptions {
   save_timer_ref: React.MutableRefObject<ReturnType<typeof setTimeout> | null>;
   draft_context_id_ref: React.MutableRefObject<string | null>;
   has_pending_attachment_reads?: () => boolean;
+  flush_input?: () => void;
+  take_pending_message?: () => string | null;
 }
 
 export interface UseComposeDraftsReturn {
@@ -115,6 +117,8 @@ export function use_compose_drafts({
   save_timer_ref,
   draft_context_id_ref,
   has_pending_attachment_reads,
+  flush_input,
+  take_pending_message,
 }: UseComposeDraftsOptions): UseComposeDraftsReturn {
   const { vault } = use_auth();
   const { preferences } = use_preferences();
@@ -447,6 +451,7 @@ export function use_compose_drafts({
   const [show_discard_confirm, set_show_discard_confirm] = useState(false);
 
   const handle_close = useCallback(() => {
+    flush_input?.();
     if (has_pending_attachment_reads?.()) {
       show_toast(t("common.loading"), "info");
 
@@ -473,6 +478,7 @@ export function use_compose_drafts({
     perform_close,
     attachments_ref,
     has_pending_attachment_reads,
+    flush_input,
     t,
   ]);
 
@@ -486,16 +492,21 @@ export function use_compose_drafts({
     [],
   );
 
-  const flush_pending_draft_ref = useRef<() => void>(() => {});
+  const flush_pending_draft_ref = useRef<(force?: boolean) => void>(() => {});
+  const flush_input_ref = useRef(flush_input);
+  const take_pending_message_ref = useRef(take_pending_message);
 
-  flush_pending_draft_ref.current = () => {
-    if (!save_timer_ref.current) return;
+  flush_input_ref.current = flush_input;
+  take_pending_message_ref.current = take_pending_message;
+
+  flush_pending_draft_ref.current = (force = false) => {
+    if (!save_timer_ref.current && !force) return;
 
     const context_id = draft_context_id_ref.current;
 
     if (!context_id || !vault || !auto_save_drafts) return;
 
-    clearTimeout(save_timer_ref.current);
+    if (save_timer_ref.current) clearTimeout(save_timer_ref.current);
     save_timer_ref.current = null;
 
     if (is_sending_ref.current) return;
@@ -541,11 +552,13 @@ export function use_compose_drafts({
 
   useEffect(() => {
     const handle_pagehide = () => {
+      flush_input_ref.current?.();
       flush_pending_draft_ref.current();
     };
 
     const handle_visibilitychange = () => {
       if (document.visibilityState === "hidden") {
+        flush_input_ref.current?.();
         flush_pending_draft_ref.current();
       }
     };
@@ -556,6 +569,23 @@ export function use_compose_drafts({
     return () => {
       window.removeEventListener("pagehide", handle_pagehide);
       document.removeEventListener("visibilitychange", handle_visibilitychange);
+
+      const pending_message = take_pending_message_ref.current?.() ?? null;
+
+      if (
+        pending_message !== null &&
+        pending_message !== draft_data_ref.current.message
+      ) {
+        draft_data_ref.current = {
+          ...draft_data_ref.current,
+          message: pending_message,
+        };
+        user_modified_ref.current = true;
+        flush_pending_draft_ref.current(true);
+
+        return;
+      }
+
       flush_pending_draft_ref.current();
     };
   }, []);

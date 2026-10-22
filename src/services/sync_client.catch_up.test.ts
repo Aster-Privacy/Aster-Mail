@@ -66,6 +66,7 @@ vi.mock("@/services/lockdown_store", () => ({
 }));
 
 import { sync_client } from "./sync_client";
+import { get_live_sync_session } from "./sync_live_session";
 
 import { MAIL_EVENTS } from "@/hooks/mail_events";
 
@@ -207,5 +208,27 @@ describe("sync_client catch-up after a reconnect", () => {
     sync_client.catch_up_now();
 
     expect(hoisted.sync_recent).toHaveBeenCalledTimes(1);
+  });
+
+  it("starts a new live session on every authenticated connection", async () => {
+    const first = await connect_first_time();
+    const first_session = get_live_sync_session();
+
+    expect(first_session).not.toBe(0);
+
+    first.close();
+    expect(get_live_sync_session()).toBe(0);
+
+    sync_client.on_wake();
+    await Promise.resolve();
+    FakeSocket.instances.at(-1)!.open_and_authenticate();
+
+    const second_session = get_live_sync_session();
+
+    expect(second_session).not.toBe(0);
+    expect(second_session).not.toBe(first_session);
+
+    sync_client.disconnect();
+    expect(get_live_sync_session()).toBe(0);
   });
 });

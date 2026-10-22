@@ -20,7 +20,43 @@
 //
 import { describe, it, expect } from "vitest";
 
-import { build_reply_subject, strip_reply_prefix } from "./reply_subject";
+import {
+  MAX_SUBJECT_LENGTH,
+  build_reply_subject,
+  clamp_subject,
+  strip_reply_prefix,
+} from "./reply_subject";
+
+describe("clamp_subject", () => {
+  it("keeps a subject within the limit", () => {
+    expect(clamp_subject("Hello")).toBe("Hello");
+  });
+
+  it("cuts a long subject to the limit", () => {
+    const long = "word ".repeat(400);
+
+    expect(Array.from(clamp_subject(long)).length).toBeLessThanOrEqual(
+      MAX_SUBJECT_LENGTH,
+    );
+  });
+
+  it("never splits an emoji", () => {
+    const clamped = clamp_subject("\u{1F600}".repeat(MAX_SUBJECT_LENGTH + 5));
+
+    expect(Array.from(clamped).length).toBe(MAX_SUBJECT_LENGTH);
+    expect(clamped.endsWith("\u{1F600}")).toBe(true);
+  });
+});
+
+describe("build_reply_subject on a long subject", () => {
+  it("keeps the reply prefix and stays within the limit", () => {
+    const original = "a".repeat(MAX_SUBJECT_LENGTH);
+    const reply = build_reply_subject(original, "Re:");
+
+    expect(reply.startsWith("Re: aaa")).toBe(true);
+    expect(Array.from(reply).length).toBe(MAX_SUBJECT_LENGTH);
+  });
+});
 
 describe("build_reply_subject", () => {
   it("prefixes a plain subject", () => {

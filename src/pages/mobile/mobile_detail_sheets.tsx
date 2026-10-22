@@ -43,6 +43,7 @@ import {
   SunIcon,
   InformationCircleIcon,
   ArrowDownTrayIcon,
+  Squares2X2Icon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
 
@@ -126,6 +127,7 @@ export function MobileActionMenuSheet({
   on_toggle_pin,
   on_toggle_read,
   on_snooze,
+  on_move_to_category,
   on_archive,
   is_archived = false,
   on_spam,
@@ -160,6 +162,7 @@ export function MobileActionMenuSheet({
   on_toggle_pin: () => void;
   on_toggle_read: () => void;
   on_snooze: () => void;
+  on_move_to_category?: () => void;
   on_archive: () => void;
   is_archived?: boolean;
   on_spam: () => void;
@@ -315,6 +318,18 @@ export function MobileActionMenuSheet({
               {t("common.snooze_label")}
             </span>
           </button>
+          {on_move_to_category && (
+            <button
+              className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-start active:bg-[var(--bg-tertiary)]"
+              type="button"
+              onClick={on_move_to_category}
+            >
+              <Squares2X2Icon className="h-5 w-5 text-[var(--text-muted)]" />
+              <span className="text-[14px] text-[var(--text-primary)]">
+                {t("mail.move_to_category")}
+              </span>
+            </button>
+          )}
           <button
             className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-start active:bg-[var(--bg-tertiary)]"
             type="button"

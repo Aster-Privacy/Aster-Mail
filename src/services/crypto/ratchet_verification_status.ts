@@ -46,7 +46,7 @@ const MAX_TRACKED_MESSAGES = 512;
 
 const bundle_records = new Map<string, BundleVerificationRecord>();
 const message_records = new Map<string, SenderIdentityStatus>();
-const unauthenticated_plaintexts = new Set<string>();
+const unauthenticated_plaintexts = new Map<string, Set<string>>();
 const peer_identity_events = new Map<string, PeerIdentityEventRecord>();
 const peer_identity_listeners = new Set<() => void>();
 
@@ -164,14 +164,20 @@ export function get_message_sender_identity(
   return message_records.get(message_key) ?? null;
 }
 
-export function mark_unauthenticated_plaintext(plaintext: string): void {
+export function mark_unauthenticated_plaintext(
+  plaintext: string,
+  message_key = "",
+): void {
   if (!plaintext) return;
 
+  const keys = unauthenticated_plaintexts.get(plaintext) ?? new Set<string>();
+
+  keys.add(message_key);
   unauthenticated_plaintexts.delete(plaintext);
-  unauthenticated_plaintexts.add(plaintext);
+  unauthenticated_plaintexts.set(plaintext, keys);
 
   while (unauthenticated_plaintexts.size > MAX_TRACKED_MESSAGES) {
-    const oldest = unauthenticated_plaintexts.values().next();
+    const oldest = unauthenticated_plaintexts.keys().next();
 
     if (oldest.done) return;
 
@@ -179,8 +185,17 @@ export function mark_unauthenticated_plaintext(plaintext: string): void {
   }
 }
 
-export function clear_unauthenticated_plaintext(plaintext: string): void {
-  unauthenticated_plaintexts.delete(plaintext);
+export function clear_unauthenticated_plaintext(
+  plaintext: string,
+  message_key = "",
+): void {
+  const keys = unauthenticated_plaintexts.get(plaintext);
+
+  if (!keys) return;
+
+  keys.delete(message_key);
+
+  if (keys.size === 0) unauthenticated_plaintexts.delete(plaintext);
 }
 
 export function is_unauthenticated_plaintext(

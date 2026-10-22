@@ -48,9 +48,11 @@ import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_email_actions } from "@/hooks/use_email_actions";
 import { search_result_to_inbox_email } from "@/components/search/search_modal_types";
-import { date_range_operators } from "@/utils/search_operators";
 import { meets_min_search_length } from "@/utils/search_query";
-import { local_date_key } from "@/utils/date_format";
+import {
+  build_query_from_filter_state,
+  default_filter_state,
+} from "@/utils/search_filter_state";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 
@@ -61,27 +63,6 @@ interface UseSearchModalOptions {
   on_initial_query_consumed?: () => void;
   on_search_submit?: (query: string) => void;
   on_result_click?: (id: string) => void;
-}
-
-function build_default_filters(): FilterState {
-  return {
-    fields: ["all"],
-    has_attachments: undefined,
-    is_starred: undefined,
-    date_from: "",
-    date_to: "",
-    scope: "all",
-    search_content: true,
-    from: "",
-    to: "",
-    subject: "",
-    has_words: "",
-    does_not_have: "",
-    size_op: "greater",
-    size_value: "",
-    size_unit: "mb",
-    within_days: "",
-  };
 }
 
 export function use_search_modal({
@@ -141,7 +122,7 @@ export function use_search_modal({
   const [show_filters, set_show_filters] = useState(false);
   const [show_autocomplete, set_show_autocomplete] = useState(false);
   const [filters, set_filters] = useState<FilterState>(() =>
-    build_default_filters(),
+    default_filter_state(),
   );
   const [search_history, set_search_history] = useState<SearchHistoryEntry[]>(
     [],
@@ -458,7 +439,7 @@ export function use_search_modal({
     set_show_autocomplete(false);
     set_show_clear_menu(false);
     set_local_updates(new Map());
-    set_filters(build_default_filters());
+    set_filters(default_filter_state());
     on_close();
   }, [
     clear_results,
@@ -554,59 +535,10 @@ export function use_search_modal({
     ],
   );
 
-  const build_advanced_query = useCallback((): string => {
-    const parts: string[] = [];
-    const quote = (v: string) => (/\s/.test(v) ? `"${v}"` : v);
-
-    if (filters.from.trim()) parts.push(`from:${quote(filters.from.trim())}`);
-    if (filters.to.trim()) parts.push(`to:${quote(filters.to.trim())}`);
-    if (filters.subject.trim())
-      parts.push(`subject:${quote(filters.subject.trim())}`);
-    if (filters.has_words.trim()) parts.push(filters.has_words.trim());
-    if (filters.does_not_have.trim()) {
-      const neg = filters.does_not_have
-        .trim()
-        .split(/\s+/)
-        .map((w) => `-${w}`)
-        .join(" ");
-
-      parts.push(neg);
-    }
-    if (filters.has_attachments) parts.push("has:attachment");
-    if (filters.scope && filters.scope !== "all")
-      parts.push(`in:${filters.scope}`);
-
-    if (filters.size_value) {
-      const n = parseInt(filters.size_value, 10);
-
-      if (!isNaN(n) && n > 0) {
-        const unit_bytes =
-          filters.size_unit === "mb"
-            ? n * 1024 * 1024
-            : filters.size_unit === "kb"
-              ? n * 1024
-              : n;
-
-        parts.push(
-          `${filters.size_op === "greater" ? "larger" : "smaller"}:${unit_bytes}`,
-        );
-      }
-    }
-
-    if (filters.within_days) {
-      const days = parseInt(filters.within_days, 10);
-
-      if (!isNaN(days) && days > 0) {
-        const d = new Date();
-
-        d.setDate(d.getDate() - days);
-        parts.push(`after:${local_date_key(d)}`);
-      }
-    }
-    parts.push(...date_range_operators(filters.date_from, filters.date_to));
-
-    return parts.join(" ").trim();
-  }, [filters]);
+  const build_advanced_query = useCallback(
+    (): string => build_query_from_filter_state(filters),
+    [filters],
+  );
 
   const handle_autocomplete_select = useCallback(
     (suggestion: AutocompleteSuggestion) => {

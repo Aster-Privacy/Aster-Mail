@@ -22,6 +22,7 @@ import type {
   FilterState,
   SearchScope,
 } from "@/components/search/search_modal_types";
+import type { TranslationKey } from "@/lib/i18n/types";
 
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -32,6 +33,8 @@ import { Checkbox } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { use_should_reduce_motion } from "@/provider";
+import { SEARCH_SCOPES, search_scope_label_key } from "@/utils/search_query";
+import { SEARCH_WITHIN_DAYS } from "@/utils/search_filter_state";
 
 interface SearchModalFilterPanelProps {
   show_filters: boolean;
@@ -42,6 +45,17 @@ interface SearchModalFilterPanelProps {
 }
 
 const MAX_FIELD_LEN = 200;
+
+const WITHIN_LABEL_KEYS: Record<
+  (typeof SEARCH_WITHIN_DAYS)[number],
+  TranslationKey
+> = {
+  "": "mail.chip_any_time",
+  "7": "mail.chip_last_7_days",
+  "30": "mail.chip_last_30_days",
+  "183": "mail.chip_last_6_months",
+  "365": "mail.chip_last_year",
+};
 
 const FIELD_CLASS =
   "h-9 bg-transparent text-[13px] text-txt-primary placeholder:text-txt-muted outline-none";
@@ -66,28 +80,15 @@ export function SearchModalFilterPanel({
   const update = <K extends keyof FilterState>(key: K, value: FilterState[K]) =>
     set_filters((prev) => ({ ...prev, [key]: value }));
 
-  const scope_options: { value: SearchScope; label: string }[] = [
-    { value: "all", label: t("mail.search_scope_all") },
-    { value: "anywhere", label: t("mail.search_scope_anywhere") },
-    { value: "inbox", label: t("mail.inbox") },
-    { value: "starred", label: t("mail.starred") },
-    { value: "sent", label: t("mail.sent") },
-    { value: "drafts", label: t("mail.drafts") },
-    { value: "spam", label: t("mail.spam") },
-    { value: "trash", label: t("mail.trash") },
-  ];
+  const scope_options = SEARCH_SCOPES.map((value) => ({
+    value: value as SearchScope,
+    label: t(search_scope_label_key(value) ?? "mail.all_mail"),
+  }));
 
-  const within_options = [
-    { value: "", label: t("mail.search_within_any") },
-    { value: "1", label: t("mail.search_within_1_day") },
-    { value: "3", label: t("mail.search_within_3_days") },
-    { value: "7", label: t("mail.search_within_1_week") },
-    { value: "14", label: t("mail.search_within_2_weeks") },
-    { value: "30", label: t("mail.search_within_1_month") },
-    { value: "90", label: t("mail.search_within_3_months") },
-    { value: "180", label: t("mail.search_within_6_months") },
-    { value: "365", label: t("mail.search_within_1_year") },
-  ];
+  const within_options = SEARCH_WITHIN_DAYS.map((value) => ({
+    value,
+    label: t(WITHIN_LABEL_KEYS[value]),
+  }));
 
   return (
     <AnimatePresence>

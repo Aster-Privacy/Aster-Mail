@@ -23,8 +23,8 @@ import type { DecryptedEnvelope } from "@/types/email";
 
 import { describe, it, expect } from "vitest";
 
-import { build_chip_query } from "@/components/email/inbox/mail_filter_chips";
 import { matches_operator } from "@/hooks/use_search/matching";
+import { apply_custom_date_range } from "@/utils/search_date_presets";
 import {
   build_chunk_skip_plan,
   summarize_chunk,
@@ -131,15 +131,7 @@ describe("date_range_operators", () => {
 
 describe("inbox filter chips custom range", () => {
   it("includes the day picked as the end of the range", () => {
-    const query = build_chip_query({
-      from: "",
-      to: "",
-      date_window: "custom",
-      custom_after: "2026-09-29",
-      custom_before: "2026-09-29",
-      has_attachment: false,
-      is_unread: false,
-    });
+    const query = apply_custom_date_range("", "2026-09-29", "2026-09-29");
 
     expect(in_range(query, new Date(2026, 8, 29, 12, 0))).toBe(true);
     expect(in_range(query, new Date(2026, 8, 30, 12, 0))).toBe(false);

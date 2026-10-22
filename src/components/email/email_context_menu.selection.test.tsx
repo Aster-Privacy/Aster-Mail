@@ -210,9 +210,39 @@ describe("EmailContextMenuContent selection scope", () => {
     expect(text()).not.toContain("mail.snooze");
     expect(text()).not.toContain("mail.folder");
     expect(text()).not.toContain("common.labels");
-    expect(text()).not.toContain("mail.move_to_category");
+    expect(text()).toContain("mail.move_to_category");
     expect(text()).toContain("mail.archive_action");
     expect(text()).toContain("mail.mark_as_read");
+  });
+
+  it("offers a category move for a single inbox row", () => {
+    render({ selection: undefined, email: { ...email, is_selected: false } });
+
+    expect(text()).toContain("mail.move_to_category");
+  });
+
+  it("hides the category move for mail outside the inbox", () => {
+    render({
+      selection: undefined,
+      email: { ...email, is_selected: false, folders: [{ folder_token: "x" }] },
+    });
+    expect(text()).not.toContain("mail.move_to_category");
+
+    render({
+      selection: undefined,
+      email: { ...email, is_selected: false, item_type: "sent" },
+    });
+    expect(text()).not.toContain("mail.move_to_category");
+
+    render({
+      selection: undefined,
+      email: {
+        ...email,
+        is_selected: false,
+        snoozed_until: new Date(Date.now() + 3_600_000).toISOString(),
+      },
+    });
+    expect(text()).not.toContain("mail.move_to_category");
   });
 
   it("checks folders that every selected message already has", () => {

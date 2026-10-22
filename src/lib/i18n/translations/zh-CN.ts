@@ -3921,6 +3921,9 @@ export const zh_CN = {
     billing_history: "账单历史",
     billing_status_active: "生效中",
     billing_status_renews: "{{date}} 续订",
+    billing_status_lifetime: "终身",
+    billing_lifetime_note:
+      "此套餐永不续订，您无需再为其付费。如需更改，请联系 Aster 支持团队。",
     billing_status_ending: "{{date}} 到期",
     billing_status_attention: "付款需要处理",
     billing_member_since: "{{date}} 加入",
@@ -4703,12 +4706,15 @@ export const zh_CN = {
     enter_your_password_placeholder: "输入您的密码",
     macos: "macOS",
     windows_linux: "Windows / Linux",
-    font_size_description: "更改邮件文字和应用中部分文字的大小。要放大所有内容，请使用浏览器的缩放功能。",
+    font_size_description:
+      "更改邮件文字和应用中部分文字的大小。要放大所有内容，请使用浏览器的缩放功能。",
     font_size_reset: "重置",
-    font_size_description_desktop: "更改邮件文字和应用中部分文字的大小。要放大所有内容，请在“外观”中更改“界面大小”。",
+    font_size_description_desktop:
+      "更改邮件文字和应用中部分文字的大小。要放大所有内容，请在“外观”中更改“界面大小”。",
     interface_zoom: "界面大小",
     interface_zoom_description: "放大或缩小整个应用中的文字、图标和间距。",
-    interface_zoom_shortcut: "要使用键盘更改大小，请按 Ctrl+加号或 Ctrl+减号。要恢复默认大小，请按 Ctrl+0。",
+    interface_zoom_shortcut:
+      "要使用键盘更改大小，请按 Ctrl+加号或 Ctrl+减号。要恢复默认大小，请按 Ctrl+0。",
     interface_zoom_shortcut_mac:
       "要使用键盘更改大小，请按 Command+加号或 Command+减号。要恢复默认大小，请按 Command+0。",
     vision_description: "改善可见性和对比度的设置",
@@ -6541,6 +6547,8 @@ export const zh_CN = {
     security_center_recommended: "建议的操作",
     security_center_protected: "已保护",
     security_center_all_clear: "所有保护均已开启。",
+    security_center_met_of_total: "已开启 {{met}}/{{total}} 项保护",
+    security_center_account: "你的账户",
     security_center_protection_score: "保护评分",
     security_center_encryption_title: "端到端加密",
     security_center_encryption_detail:
@@ -7338,6 +7346,8 @@ export const zh_CN = {
       "目前还没人能给您发邮件。您的域名没有邮件路由，邮件会被退回给发件人。",
     domain_reason_mx_points_elsewhere:
       "邮件正被投递到您的旧服务商，而不是 Aster。删除旧的 MX 记录，邮件才会到达此邮箱。",
+    domain_reason_mx_shared:
+      "由于该 MX 记录的优先级与 Aster 相同或更高，你的部分邮件可能会发送到 {{detail}} 而不是 Aster。请删除该记录，让所有邮件都送达此收件箱。",
     domain_reason_spf_missing:
       "您发出的邮件可能被拒收或标为垃圾邮件，因为没有任何记录告诉其他服务商 Aster 可以代表您发送。",
     domain_reason_spf_missing_include:
@@ -7640,6 +7650,7 @@ export const zh_CN = {
     reply_all: "回复所有人",
     react: "回应",
     you_reacted_with: "您使用 {{emoji}} 回应了",
+    reaction_sent: "已发送回应",
     reacted_with: "{{name}} 使用 {{emoji}} 回应了",
     forward: "转发",
     to: "收件人",
@@ -7744,6 +7755,7 @@ export const zh_CN = {
     show_quoted_text: "显示引用文本",
     hide_quoted_text: "隐藏引用文本",
     remove_quoted_text: "删除引用文本",
+    edit_quoted_text: "编辑引用文本",
     quoted_text_removed: "已删除引用文本",
     restore_quoted_text: "恢复",
     show_forwarded: "显示转发内容",
@@ -8386,9 +8398,10 @@ export const zh_CN = {
     op_in_trash: "在回收站中",
     op_in_drafts: "在草稿中",
     chip_any_time: "任何时间",
-    chip_older_than_week: "一周以前",
-    chip_older_than_month: "一个月以前",
-    chip_older_than_six_months: "6 个月以前",
+    chip_last_7_days: "最近 7 天",
+    chip_last_30_days: "最近 30 天",
+    chip_last_6_months: "最近 6 个月",
+    chip_last_year: "最近一年",
     chip_older_than_year: "一年以前",
     chip_custom_range: "自定义时间范围",
     chip_has_attachment: "有附件",
@@ -8400,6 +8413,8 @@ export const zh_CN = {
     chip_name_or_email: "姓名或邮箱",
     chip_no_people: "没有匹配的联系人",
     chip_advanced_search: "高级搜索",
+    chip_everywhere: "所有位置",
+    chip_everywhere_hint: "包括垃圾邮件和已删除邮件",
     spam_trash_hidden_notice: "垃圾邮件和回收站中有符合搜索条件的邮件。",
     search_index_partial:
       "此设备上的邮件尚未完成索引，因此这些结果中可能缺少部分邮件。",

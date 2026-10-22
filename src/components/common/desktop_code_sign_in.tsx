@@ -31,6 +31,14 @@ import {
   poll_device_code_status,
   complete_device_pairing,
 } from "@/native/desktop_device_auth";
+import {
+  type DeviceLinkCode,
+  clear_link_codes,
+  forget_link_code,
+  load_link_codes,
+  pick_reusable_code,
+  remember_link_code,
+} from "@/native/device_link_codes";
 import { fingerprint_of_encoded_device_keys } from "@/lib/crypto/device_fingerprint";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -175,6 +183,7 @@ export function DesktopCodeSignIn({
     stop_polling();
 
     let cancelled = false;
+    const is_first_flow = flow_key === 0;
 
     const fail = (detail: string) => {
       if (cancelled) return;
@@ -193,6 +202,7 @@ export function DesktopCodeSignIn({
           sealed_envelope,
         );
 
+        clear_link_codes();
         if (result.error) {
           fail(`pair:${result.error}`);
 
@@ -207,15 +217,20 @@ export function DesktopCodeSignIn({
 
         await on_signed_in_ref.current(session);
       } catch (err) {
+        clear_link_codes();
         if (import.meta.env.DEV) console.error(err);
         fail(`complete:${err instanceof Error ? err.message : String(err)}`);
       }
     };
 
-    const schedule_poll = (code_value: string, expires_at: number) => {
+    const schedule_poll = (
+      current: DeviceLinkCode,
+      watched: DeviceLinkCode[],
+    ) => {
       if (cancelled) return;
-      if (Date.now() >= expires_at) {
+      if (Date.now() >= current.expires_at) {
         stop_polling();
+        forget_link_code(current.code);
         set_flow_state("expired");
 
         return;
@@ -224,8 +239,18 @@ export function DesktopCodeSignIn({
       poll_count_ref.current += 1;
       poll_ref.current = setTimeout(async () => {
         if (cancelled || !active_ref.current) return;
-        try {
-          const status = await poll_device_code_status(code_value);
+        const now = Date.now();
+        let remaining = watched.filter((entry) => entry.expires_at > now);
+
+        for (const entry of [...remaining]) {
+          let status: Awaited<ReturnType<typeof poll_device_code_status>>;
+
+          try {
+            status = await poll_device_code_status(entry.code);
+          } catch (poll_err) {
+            if (import.meta.env.DEV) console.error(poll_err);
+            continue;
+          }
 
           if (cancelled) return;
           if (
@@ -234,16 +259,22 @@ export function DesktopCodeSignIn({
             status.sealed_envelope
           ) {
             await finish(status.device_id, status.sealed_envelope);
-          } else if (status.status === "expired") {
-            stop_polling();
-            set_flow_state("expired");
-          } else {
-            schedule_poll(code_value, expires_at);
+
+            return;
           }
-        } catch (poll_err) {
-          if (import.meta.env.DEV) console.error(poll_err);
-          schedule_poll(code_value, expires_at);
+          if (status.status === "expired") {
+            forget_link_code(entry.code);
+            remaining = remaining.filter((other) => other.code !== entry.code);
+            if (entry.code === current.code) {
+              stop_polling();
+              set_flow_state("expired");
+
+              return;
+            }
+          }
         }
+
+        schedule_poll(current, remaining);
       }, poll_delay(poll_count_ref.current));
     };
 
@@ -251,31 +282,57 @@ export function DesktopCodeSignIn({
       try {
         const core = await import("@tauri-apps/api/core");
         const pubkeys = await core.invoke<DevicePubkeys>("device_get_pubkeys");
-        const result = await request_device_code(pubkeys);
+        const device_key = pubkeys.ed25519_pk;
+        let watched = load_link_codes(device_key);
+        let current = is_first_flow ? pick_reusable_code(watched) : null;
+
+        if (!current) {
+          const result = await request_device_code(pubkeys);
+
+          if (cancelled) return;
+
+          const issued: DeviceLinkCode = {
+            code: result.code,
+            device_key,
+            expires_at: Date.now() + result.expires_in * 1000,
+          };
+
+          remember_link_code(issued);
+          watched = [
+            issued,
+            ...load_link_codes(device_key).filter(
+              (entry) => entry.code !== issued.code,
+            ),
+          ];
+          current = issued;
+        }
 
         if (cancelled) return;
 
-        set_device_fingerprint(fingerprint_of_encoded_device_keys(pubkeys));
-        set_code(result.code);
-        set_time_left(result.expires_in);
-        set_flow_state("showing_code");
+        const active = current;
 
-        const expires_at = Date.now() + result.expires_in * 1000;
+        set_device_fingerprint(fingerprint_of_encoded_device_keys(pubkeys));
+        set_code(active.code);
+        set_time_left(
+          Math.max(0, Math.round((active.expires_at - Date.now()) / 1000)),
+        );
+        set_flow_state("showing_code");
 
         countdown_ref.current = setInterval(() => {
           const remaining = Math.max(
             0,
-            Math.round((expires_at - Date.now()) / 1000),
+            Math.round((active.expires_at - Date.now()) / 1000),
           );
 
           set_time_left(remaining);
           if (remaining <= 0) {
             stop_polling();
+            forget_link_code(active.code);
             set_flow_state("expired");
           }
         }, 1000);
 
-        schedule_poll(result.code, expires_at);
+        schedule_poll(active, watched);
       } catch (request_err) {
         if (import.meta.env.DEV) console.error(request_err);
         fail(

@@ -106,9 +106,10 @@ export interface SearchScope {
 export const OPERATOR_REGEX =
   /(^|\s)(-)?(NOT\s+)?(from|to|contact|subject|has|is|in|before|after|label|folder|date|filename|attachment|larger|smaller|size|id):("([^"]+)"|(\S+))/gi;
 
-export const NOT_TERM_REGEX = /(^|\s)NOT\s+("([^"]+)"|(\S+))/g;
+export const NOT_TERM_REGEX = /(^|\s)(?:NOT\s+|-(?=[^\s-]))("([^"]+)"|(\S+))/g;
 
 export const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+export const RELATIVE_DAYS_REGEX = /^(\d{1,4})d$/i;
 
 export const SIZE_REGEX = /^(\d+(?:\.\d+)?)(b|kb|mb|gb)?$/i;
 

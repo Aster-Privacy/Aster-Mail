@@ -4437,6 +4437,9 @@ export const ar = {
     billing_history: "سجل الفوترة",
     billing_status_active: "نشط",
     billing_status_renews: "يتجدد في {{date}}",
+    billing_status_lifetime: "مدى الحياة",
+    billing_lifetime_note:
+      "لا تتجدد هذه الخطة أبدًا، ولا تدفع مقابلها مرة أخرى. لتغييرها، تواصل مع دعم Aster.",
     billing_status_ending: "ينتهي في {{date}}",
     billing_status_attention: "الدفع يحتاج إلى انتباهك",
     billing_member_since: "عضو منذ {{date}}",
@@ -7160,6 +7163,8 @@ export const ar = {
     security_center_recommended: "الإجراءات الموصى بها",
     security_center_protected: "محمي",
     security_center_all_clear: "جميع وسائل الحماية مفعّلة.",
+    security_center_met_of_total: "{{met}} من {{total}} وسائل حماية مفعّلة",
+    security_center_account: "حسابك",
     security_center_protection_score: "درجة الحماية",
     security_center_encryption_title: "التشفير التام",
     security_center_encryption_detail:
@@ -8037,6 +8042,8 @@ export const ar = {
       "لا يستطيع أحد مراسلتك بعد. لا يملك نطاقك مسار بريد، لذا تُعاد الرسائل إلى المرسل.",
     domain_reason_mx_points_elsewhere:
       "يذهب البريد إلى مزوّدك السابق بدل Aster. احذف سجلات MX القديمة ليصل البريد إلى هذه العلبة.",
+    domain_reason_mx_shared:
+      "قد يصل جزء من بريدك إلى {{detail}} بدلًا من Aster، لأن سجل MX هذا له الأولوية نفسها أو أولوية أعلى. احذفه حتى يصل كل بريدك إلى هذا الصندوق.",
     domain_reason_spf_missing:
       "قد تُرفض رسائلك أو تُصنَّف كبريد عشوائي، لأن لا شيء يخبر المزوّدات الأخرى بأن Aster يمكنه الإرسال نيابةً عنك.",
     domain_reason_spf_missing_include:
@@ -8464,6 +8471,7 @@ export const ar = {
     reply_all: "رد على الكل",
     react: "تفاعل",
     you_reacted_with: "لقد تفاعلت بـ {{emoji}}",
+    reaction_sent: "تم إرسال التفاعل",
     reacted_with: "تفاعل {{name}} بـ {{emoji}}",
     forward: "تحويل",
     to: "إلى",
@@ -8573,6 +8581,7 @@ export const ar = {
     show_quoted_text: "إظهار النص المقتبس",
     hide_quoted_text: "إخفاء النص المقتبس",
     remove_quoted_text: "إزالة النص المقتبس",
+    edit_quoted_text: "تعديل النص المقتبس",
     quoted_text_removed: "تمت إزالة النص المقتبس",
     restore_quoted_text: "استعادة",
     show_forwarded: "إظهار المحوّل",
@@ -9175,9 +9184,10 @@ export const ar = {
     op_in_trash: "في سلة المهملات",
     op_in_drafts: "في المسودات",
     chip_any_time: "أي وقت",
-    chip_older_than_week: "أقدم من أسبوع",
-    chip_older_than_month: "أقدم من شهر",
-    chip_older_than_six_months: "أقدم من 6 أشهر",
+    chip_last_7_days: "آخر 7 أيام",
+    chip_last_30_days: "آخر 30 يوماً",
+    chip_last_6_months: "آخر 6 أشهر",
+    chip_last_year: "السنة الأخيرة",
     chip_older_than_year: "أقدم من سنة",
     chip_custom_range: "نطاق مخصص",
     chip_has_attachment: "يحتوي مرفقًا",
@@ -9189,6 +9199,8 @@ export const ar = {
     chip_name_or_email: "الاسم أو البريد الإلكتروني",
     chip_no_people: "لا يوجد أشخاص مطابقون",
     chip_advanced_search: "بحث متقدم",
+    chip_everywhere: "في كل مكان",
+    chip_everywhere_hint: "يشمل البريد غير المرغوب فيه والمهملات",
     spam_trash_hidden_notice:
       "بعض الرسائل في البريد العشوائي والمهملات تطابق بحثك.",
     search_index_partial:

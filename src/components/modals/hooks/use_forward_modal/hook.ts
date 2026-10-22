@@ -905,6 +905,8 @@ export function use_forward_modal({
         subject,
         ext_body,
         external_attachments,
+        undefined,
+        is_plain_text_ref.current,
       ).catch((error: unknown) => ({
         error:
           error instanceof Error
@@ -1025,7 +1027,7 @@ export function use_forward_modal({
         is_plain_text: is_plain_text_mode,
       },
       {
-        on_complete: (sent_id?: string) => {
+        on_complete: () => {
           is_sending_ref.current = false;
           send_lock_started_at_ref.current = 0;
           set_is_sending(false);
@@ -1037,7 +1039,7 @@ export function use_forward_modal({
             emit_email_sent();
           }, 100);
           record_review_prompt_action();
-          show_email_sent_toast(t("common.email_sent"), sent_id);
+          show_email_sent_toast(t("common.email_sent"), delay_seconds > 0);
         },
         on_cancel: () => {
           is_sending_ref.current = false;

@@ -423,6 +423,9 @@ export interface UseEditorReturn {
   handle_drop: (e: React.DragEvent) => void;
   handle_drag_over: (e: React.DragEvent) => void;
   handle_input: () => void;
+  schedule_input: () => void;
+  flush_input: (only_editor?: HTMLElement) => boolean;
+  take_input: () => string | null;
 
   save_selection: () => void;
   restore_selection: () => void;

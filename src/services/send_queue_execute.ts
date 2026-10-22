@@ -201,6 +201,7 @@ export async function execute_send(
     attachments: encrypted_attachments,
     forward_original_mail_id: email.forward_original_mail_id,
     in_reply_to: email.in_reply_to,
+    ...(email.is_plain_text ? { plain_text: true } : {}),
   };
 
   const result = await send_simple_email(request);
@@ -556,6 +557,7 @@ export async function execute_external_send(
     secure_message,
     force_pgp: is_secure_external ? undefined : email.force_pgp,
     in_reply_to: email.in_reply_to,
+    ...(email.is_plain_text && !is_secure_external ? { plain_text: true } : {}),
   };
 
   if (signed_mime_attached) {

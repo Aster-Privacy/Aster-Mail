@@ -39,6 +39,7 @@ import {
   type CachedSenderIdentity,
 } from "@/hooks/use_sender_aliases";
 import { get_active_translations } from "@/lib/i18n/translations";
+import { clamp_subject } from "@/lib/reply_subject";
 
 export interface ReactionResult {
   success: boolean;
@@ -208,7 +209,9 @@ export async function send_reaction(
       encrypted_envelope: envelope_data.encrypted_envelope,
       envelope_nonce: envelope_data.envelope_nonce,
       folder_token: envelope_data.folder_token,
-      reply_subject: is_internal_email(recipient) ? undefined : message.subject,
+      reply_subject: is_internal_email(recipient)
+        ? undefined
+        : clamp_subject(message.subject),
       sender_email,
       sender_alias_hash: alias_identity?.address_hash,
       sender_display_name: alias_identity?.display_name,

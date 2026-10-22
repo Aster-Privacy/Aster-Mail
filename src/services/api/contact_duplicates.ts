@@ -30,6 +30,7 @@ import { decrypt_contact, get_contact, encrypt_contact_data } from "./contacts";
 
 import { user_facing_error } from "@/utils/user_facing_error";
 import { get_active_translations } from "@/lib/i18n/translations";
+import { note_local_contact_write } from "@/services/contact_local_writes";
 
 interface ListDuplicatesResponse {
   items: DuplicateCandidate[];
@@ -101,14 +102,16 @@ export async function merge_contacts(
   const { encrypted_data, data_nonce } =
     await encrypt_contact_data(merged_data);
 
-  return api_client.post<{ success: boolean; merged_contact_id: string }>(
-    "/contacts/v1/merge",
-    {
-      primary_contact_id,
-      secondary_contact_id,
-      merged_encrypted_data: encrypted_data,
-      merged_data_nonce: data_nonce,
-    },
+  return note_local_contact_write(
+    await api_client.post<{ success: boolean; merged_contact_id: string }>(
+      "/contacts/v1/merge",
+      {
+        primary_contact_id,
+        secondary_contact_id,
+        merged_encrypted_data: encrypted_data,
+        merged_data_nonce: data_nonce,
+      },
+    ),
   );
 }
 

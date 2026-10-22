@@ -87,6 +87,7 @@ export interface SubscriptionResponse {
   yearly_switch_offer?: YearlySwitchOffer | null;
   prepaid_term_months?: number | null;
   prepaid_term_price_cents?: number | null;
+  is_lifetime?: boolean;
 }
 
 export function with_prepaid_term(

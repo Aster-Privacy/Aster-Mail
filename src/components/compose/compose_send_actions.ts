@@ -43,7 +43,13 @@ import {
   show_email_sent_toast,
 } from "@/components/toast/email_sent_toast";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
-import { emit_email_sent } from "@/hooks/mail_events";
+import {
+  emit_email_sent,
+  emit_thread_reply_cancelled,
+  emit_thread_reply_optimistic,
+  emit_thread_reply_sent,
+} from "@/hooks/mail_events";
+import { plain_text_to_html } from "@/lib/html_text";
 import {
   add_pending_thread_reply,
   remove_pending_thread_reply,
@@ -81,6 +87,21 @@ export interface SendActionContext {
   is_feature_locked?: (feature_key: string) => boolean;
   on_send_failed?: (email_data: FailedSendData) => void | Promise<void>;
   get_kept_draft?: () => { id: string; version: number } | null;
+  echo_sender?: { name: string; email: string };
+}
+
+interface ReplyEchoData {
+  to: string[];
+  cc?: string[];
+  subject: string;
+  body: string;
+  thread_id?: string;
+  attachments?: Attachment[];
+}
+
+interface ReplyEcho {
+  thread_token: string;
+  original_email_id?: string;
 }
 
 function blocked_by_plan(
@@ -186,10 +207,77 @@ function save_and_close(
   }
 }
 
-function track_queued_reply(ctx: SendActionContext, reply_id: string) {
-  const thread_token = ctx.edit_draft?.thread_token;
+const reply_echoes = new Map<string, ReplyEcho>();
+
+function echo_reply_in_thread(
+  ctx: SendActionContext,
+  reply_id: string,
+  email_data: ReplyEchoData,
+) {
+  const thread_token = email_data.thread_id;
+
+  if (!thread_token || !ctx.echo_sender) return;
+  if (ctx.edit_draft?.draft_type !== "reply") return;
+
+  const original_email_id = ctx.edit_draft.reply_to_id || undefined;
+  const body = ctx.is_plain_text
+    ? plain_text_to_html(email_data.body)
+    : email_data.body;
+
+  reply_echoes.set(reply_id, { thread_token, original_email_id });
+  emit_thread_reply_optimistic({
+    thread_token,
+    original_email_id,
+    optimistic_id: reply_id,
+    sender_name: ctx.echo_sender.name,
+    sender_email: ctx.echo_sender.email,
+    subject: email_data.subject,
+    body,
+    to_recipients: email_data.to.map((email) => ({ name: "", email })),
+    cc_recipients: (email_data.cc ?? []).map((email) => ({ name: "", email })),
+    attachments:
+      email_data.attachments && email_data.attachments.length > 0
+        ? email_data.attachments
+        : undefined,
+  });
+}
+
+function track_queued_reply(
+  ctx: SendActionContext,
+  reply_id: string,
+  email_data: ReplyEchoData,
+) {
+  const thread_token = email_data.thread_id || ctx.edit_draft?.thread_token;
 
   if (thread_token) add_pending_thread_reply(thread_token, reply_id);
+  echo_reply_in_thread(ctx, reply_id, email_data);
+}
+
+function settle_queued_reply(reply_id: string) {
+  settle_pending_thread_reply(reply_id);
+
+  const echo = reply_echoes.get(reply_id);
+
+  if (!echo) return;
+  reply_echoes.delete(reply_id);
+  emit_thread_reply_sent({
+    thread_token: echo.thread_token,
+    original_email_id: echo.original_email_id,
+    optimistic_id: reply_id,
+  });
+}
+
+function drop_queued_reply(reply_id: string) {
+  remove_pending_thread_reply(reply_id);
+
+  const echo = reply_echoes.get(reply_id);
+
+  if (!echo) return;
+  reply_echoes.delete(reply_id);
+  emit_thread_reply_cancelled({
+    optimistic_id: reply_id,
+    thread_token: echo.thread_token,
+  });
 }
 
 function clear_stash(ctx: SendActionContext) {
@@ -230,6 +318,7 @@ export async function execute_internal_send(
     attachments?: Attachment[];
     allow_non_post_quantum?: boolean;
     is_plain_text?: boolean;
+    thread_id?: string;
   },
 ): Promise<boolean> {
   if (blocked_by_plan(ctx, email_data)) return false;
@@ -238,10 +327,10 @@ export async function execute_internal_send(
   let handed_off = false;
   let reply_id: string | null = null;
   const settle_reply = () => {
-    if (reply_id) settle_pending_thread_reply(reply_id);
+    if (reply_id) settle_queued_reply(reply_id);
   };
   const drop_reply = () => {
-    if (reply_id) remove_pending_thread_reply(reply_id);
+    if (reply_id) drop_queued_reply(reply_id);
   };
 
   if (delay_seconds > 0) {
@@ -251,7 +340,7 @@ export async function execute_internal_send(
       },
       delay_seconds,
       {
-        on_sent: (sent_id?: string) => {
+        on_sent: () => {
           settle_reply();
           ctx.set_queued_email_id(null);
           clear_stash(ctx);
@@ -260,7 +349,7 @@ export async function execute_internal_send(
           log_activities_for_sent(ctx, email_data);
           ctx.on_close();
           record_review_prompt_action();
-          show_email_sent_toast(ctx.t("common.email_sent"), sent_id);
+          show_email_sent_toast(ctx.t("common.email_sent"), delay_seconds > 0);
         },
         on_cancelled: () => {
           drop_reply();
@@ -292,10 +381,11 @@ export async function execute_internal_send(
       total_seconds: delay_seconds,
       is_server_queued: true,
       server_queue_id: result.queue_id,
+      optimistic_id: result.queue_id,
     });
 
     reply_id = result.queue_id;
-    track_queued_reply(ctx, reply_id);
+    track_queued_reply(ctx, reply_id, email_data);
     handed_off = true;
     save_and_close(ctx, result.queue_id, email_data);
 
@@ -304,14 +394,14 @@ export async function execute_internal_send(
     const email_id = queue_email(
       {
         ...email_data,
-        on_complete: (sent_id?: string) => {
+        on_complete: () => {
           settle_reply();
           ctx.set_queued_email_id(null);
           clear_stash(ctx);
           dispatch_email_sent();
           log_activities_for_sent(ctx, email_data);
           record_review_prompt_action();
-          show_email_sent_toast(ctx.t("common.email_sent"), sent_id);
+          show_email_sent_toast(ctx.t("common.email_sent"), false);
         },
         on_cancel: () => {
           drop_reply();
@@ -332,7 +422,7 @@ export async function execute_internal_send(
     }
 
     reply_id = email_id;
-    track_queued_reply(ctx, reply_id);
+    track_queued_reply(ctx, reply_id, email_data);
     handed_off = true;
     save_and_close(ctx, email_id, email_data);
 
@@ -354,6 +444,7 @@ export async function execute_mixed_send(
     expires_at?: string;
     attachments?: Attachment[];
     allow_non_post_quantum?: boolean;
+    thread_id?: string;
   },
   pgp_enabled = false,
   pgp_override: boolean | null = null,
@@ -370,10 +461,10 @@ export async function execute_mixed_send(
   let handed_off = false;
   let reply_id: string | null = null;
   const settle_reply = () => {
-    if (reply_id) settle_pending_thread_reply(reply_id);
+    if (reply_id) settle_queued_reply(reply_id);
   };
   const drop_reply = () => {
-    if (reply_id) remove_pending_thread_reply(reply_id);
+    if (reply_id) drop_queued_reply(reply_id);
   };
 
   const result = await queue_email_to_server(
@@ -390,7 +481,7 @@ export async function execute_mixed_send(
     },
     queue_delay_seconds,
     {
-      on_sent: (sent_id?: string) => {
+      on_sent: () => {
         settle_reply();
         ctx.set_queued_email_id(null);
         clear_stash(ctx);
@@ -399,7 +490,7 @@ export async function execute_mixed_send(
         log_activities_for_sent(ctx, email_data);
         ctx.on_close();
         record_review_prompt_action();
-        show_email_sent_toast(ctx.t("common.email_sent"), sent_id);
+        show_email_sent_toast(ctx.t("common.email_sent"), delay_seconds > 0);
       },
       on_cancelled: () => {
         drop_reply();
@@ -432,11 +523,12 @@ export async function execute_mixed_send(
       total_seconds: delay_seconds,
       is_server_queued: true,
       server_queue_id: result.queue_id,
+      optimistic_id: result.queue_id,
     });
   }
 
   reply_id = result.queue_id;
-  track_queued_reply(ctx, reply_id);
+  track_queued_reply(ctx, reply_id, email_data);
   handed_off = true;
   save_and_close(ctx, result.queue_id, email_data);
 
@@ -457,6 +549,7 @@ export async function execute_external_email_send(
     secure_external?: boolean;
     attachments?: Attachment[];
     is_plain_text?: boolean;
+    thread_id?: string;
   },
   pgp_enabled = false,
   pgp_override: boolean | null = null,
@@ -471,10 +564,10 @@ export async function execute_external_email_send(
   let handed_off = false;
   let reply_id: string | null = null;
   const settle_reply = () => {
-    if (reply_id) settle_pending_thread_reply(reply_id);
+    if (reply_id) settle_queued_reply(reply_id);
   };
   const drop_reply = () => {
-    if (reply_id) remove_pending_thread_reply(reply_id);
+    if (reply_id) drop_queued_reply(reply_id);
   };
   const needs_encryption = require_encryption && !email_data.secure_external;
 
@@ -540,10 +633,11 @@ export async function execute_external_email_send(
       is_external: true,
       is_server_queued: true,
       server_queue_id: result.queue_id,
+      optimistic_id: result.queue_id,
     });
 
     reply_id = result.queue_id;
-    track_queued_reply(ctx, reply_id);
+    track_queued_reply(ctx, reply_id, email_data);
     handed_off = true;
     save_and_close(ctx, result.queue_id, email_data);
 
@@ -556,7 +650,7 @@ export async function execute_external_email_send(
     const timeout_id = window.setTimeout(async () => {
       if (!undo_send_manager.begin_tab_timer_send(email_id)) return;
       try {
-        const sent_id = await execute_external_send(external_email_data, true);
+        await execute_external_send(external_email_data, true);
 
         settle_reply();
         await ctx.confirm_draft_deleted?.();
@@ -567,7 +661,7 @@ export async function execute_external_email_send(
         log_activities_for_sent(ctx, email_data);
         ctx.on_close();
         record_review_prompt_action();
-        show_email_sent_toast(ctx.t("common.email_sent"), sent_id);
+        show_email_sent_toast(ctx.t("common.email_sent"), true);
       } catch (err) {
         drop_reply();
         undo_send_manager.remove(email_id);
@@ -594,7 +688,9 @@ export async function execute_external_email_send(
       total_seconds: delay_seconds,
       timeout_id,
       is_external: true,
+      optimistic_id: email_id,
       on_undo: () => {
+        drop_reply();
         void ctx.confirm_draft_deleted?.();
       },
       on_send_immediately: async () => {
@@ -621,7 +717,7 @@ export async function execute_external_email_send(
       },
     });
 
-    track_queued_reply(ctx, email_id);
+    track_queued_reply(ctx, email_id, email_data);
     save_and_close(ctx, email_id, email_data);
 
     return false;
@@ -635,7 +731,7 @@ export async function execute_external_email_send(
     const restore_message = ctx.message;
 
     reply_id = crypto.randomUUID();
-    track_queued_reply(ctx, reply_id);
+    track_queued_reply(ctx, reply_id, email_data);
     ctx.reset_form();
     ctx.on_close();
     if (ctx.edit_draft && ctx.on_draft_cleared) {
@@ -643,7 +739,7 @@ export async function execute_external_email_send(
     }
 
     try {
-      const sent_id = await execute_external_send(external_email_data, true);
+      await execute_external_send(external_email_data, true);
 
       dismiss_toast(sending_toast_id);
       settle_reply();
@@ -651,7 +747,7 @@ export async function execute_external_email_send(
       dispatch_email_sent();
       log_activities_for_sent(ctx, email_data);
       record_review_prompt_action();
-      show_email_sent_toast(ctx.t("common.email_sent"), sent_id);
+      show_email_sent_toast(ctx.t("common.email_sent"), false);
     } catch (err) {
       drop_reply();
       dismiss_toast(sending_toast_id);
@@ -789,6 +885,7 @@ export async function execute_external_account_email_send(
           email_data.body,
           external_attachments,
           email_data.in_reply_to,
+          ctx.is_plain_text,
         );
 
         undo_send_manager.remove(email_id);
@@ -849,6 +946,7 @@ export async function execute_external_account_email_send(
             email_data.body,
             external_attachments,
             email_data.in_reply_to,
+            ctx.is_plain_text,
           );
 
           ctx.set_queued_email_id(null);
@@ -896,6 +994,7 @@ export async function execute_external_account_email_send(
       email_data.body,
       external_attachments,
       email_data.in_reply_to,
+      ctx.is_plain_text,
     );
 
     if (!result.data?.success) {

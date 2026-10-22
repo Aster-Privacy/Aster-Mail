@@ -63,10 +63,7 @@ import {
   load_ratchet_state,
   save_ratchet_state,
 } from "./ratchet_state_store";
-import {
-  load_ratchet_from_server,
-  sync_ratchet_to_server,
-} from "./ratchet_sync";
+import { load_ratchet_for_merge, sync_ratchet_to_server } from "./ratchet_sync";
 import {
   KeyPinUnavailableError,
   RecipientKeyUntrustedError,
@@ -96,20 +93,21 @@ async function adopt_server_state_before_send(
       return;
     }
 
-    const server = await load_ratchet_from_server(conversation_id, sync_key);
+    const server = await load_ratchet_for_merge(conversation_id, sync_key);
 
     if (!server) {
       return;
     }
 
     const local = await ratchet.serialize();
-    const remote = await server.ratchet.serialize();
 
-    if (merge_discards_local_epoch(local, remote)) {
+    if (merge_discards_local_epoch(local, server.state, server.versioned)) {
       await archive_ratchet_state(local);
     }
 
-    ratchet.adopt_state(merge_ratchet_states(local, remote));
+    ratchet.adopt_state(
+      merge_ratchet_states(local, server.state, server.versioned),
+    );
   } catch {
     return;
   }

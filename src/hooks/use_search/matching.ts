@@ -390,7 +390,7 @@ export function matches_operator(
 
 export const BODY_CONTENT_OPERATOR_TYPES = new Set(["filename", "attachment"]);
 
-export const ANY_OF_OPERATOR_TYPES = new Set(["from", "to", "contact"]);
+export const ANY_OF_OPERATOR_TYPES = new Set(["from", "to", "contact", "in"]);
 
 function any_of_group_key(op: ParsedOperator): string | null {
   if (op.negated) return null;
@@ -566,6 +566,9 @@ export function to_search_result(
     is_read: metadata?.is_read ?? false,
     is_starred: metadata?.is_starred ?? false,
     is_spam: metadata?.is_spam ?? item.is_spam ?? false,
+    is_trashed: item.is_trashed ?? false,
+    is_archived: item.is_archived ?? false,
+    snoozed_until: item.snoozed_until ?? metadata?.snoozed_until,
     has_attachment: metadata?.has_attachments ?? false,
     item_type: item.item_type,
     is_outgoing: !!first_recipient,

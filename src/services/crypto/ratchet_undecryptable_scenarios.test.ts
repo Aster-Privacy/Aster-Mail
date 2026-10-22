@@ -73,7 +73,23 @@ vi.mock("@/services/crypto/ratchet_plaintext_cache", () => ({
 vi.mock("@/services/crypto/message_escrow", () => ({
   upload_to_escrow: vi.fn(async () => {}),
   fetch_from_escrow: vi.fn(async () => null),
+  fetch_verified_from_escrow: vi.fn(async () => null),
 }));
+
+vi.mock(
+  "@/services/crypto/sender_identity_authentication",
+  async (import_original) => {
+    const actual =
+      await import_original<
+        typeof import("@/services/crypto/sender_identity_authentication")
+      >();
+
+    return {
+      ...actual,
+      note_message_sender_identity: vi.fn(actual.note_message_sender_identity),
+    };
+  },
+);
 
 vi.mock("@/services/api/client", () => ({
   api_client: {
@@ -104,6 +120,7 @@ import {
 
 import {
   fetch_from_escrow,
+  fetch_verified_from_escrow,
   upload_to_escrow,
 } from "@/services/crypto/message_escrow";
 import {
@@ -115,11 +132,13 @@ import {
   is_unauthenticated_plaintext,
   mark_unauthenticated_plaintext,
 } from "@/services/crypto/ratchet_verification_status";
+import { note_message_sender_identity } from "@/services/crypto/sender_identity_authentication";
 import { is_ratchet_verified_body } from "@/utils/email_crypto";
 
 const SENDER = "sender@astermail.org";
 const RECIPIENT = "recipient@astermail.org";
 const ALIAS = "support@astermail.org";
+const MALLORY = "mallory@astermail.org";
 
 type Keys = NonNullable<Awaited<ReturnType<typeof generate_ratchet_keys>>>;
 
@@ -678,24 +697,35 @@ describe("recovery lane trust", () => {
     vi.mocked(set_cached_ratchet_plaintext).mockClear();
     vi.mocked(fetch_from_escrow).mockReset();
     vi.mocked(fetch_from_escrow).mockImplementation(async () => null);
+    vi.mocked(fetch_verified_from_escrow).mockReset();
+    vi.mocked(fetch_verified_from_escrow).mockImplementation(async () => null);
     vi.mocked(get_cached_ratchet_plaintext).mockReset();
     vi.mocked(get_cached_ratchet_plaintext).mockImplementation(
       async () => null,
     );
+    vi.mocked(note_message_sender_identity).mockClear();
   });
 
-  it("never marks lane-recovered mail as verified or escrows it", async () => {
+  async function lane_message(body: string) {
     const sender_vault = make_vault((await generate_ratchet_keys())!);
     const receiver_vault = make_vault((await generate_ratchet_keys())!);
 
     h.bundle = bundle_for(receiver_vault);
 
-    const envelope = await send("opened through the lane", sender_vault);
+    const envelope = await send(body, sender_vault);
     const parsed = parse_ratchet_envelope(envelope)!;
 
     Reflect.deleteProperty(parsed.recipients[RECIPIENT], "ephemeral_key");
     h.store.clear();
     h.vault = receiver_vault;
+
+    return { envelope, parsed, receiver_vault };
+  }
+
+  it("never marks lane-recovered mail as verified or escrows it", async () => {
+    const { envelope, parsed, receiver_vault } = await lane_message(
+      "opened through the lane",
+    );
 
     const plaintext = await decrypt_ratchet_message(
       RECIPIENT,
@@ -714,27 +744,18 @@ describe("recovery lane trust", () => {
       expect.stringContaining("lane-1"),
       "opened through the lane",
       true,
+      expect.objectContaining({ sender: SENDER }),
     );
   });
 
-  it("trusts the escrowed copy over the lane when another device already decrypted the message", async () => {
-    const sender_vault = make_vault((await generate_ratchet_keys())!);
-    const receiver_vault = make_vault((await generate_ratchet_keys())!);
+  it("verifies lane mail when the escrow holds a copy bound to the same sender", async () => {
+    const { envelope, parsed, receiver_vault } = await lane_message(
+      "decrypted on another device",
+    );
 
-    h.bundle = bundle_for(receiver_vault);
-
-    const envelope = await send("decrypted on another device", sender_vault);
-    const parsed = parse_ratchet_envelope(envelope)!;
-    const header = parsed.recipients[RECIPIENT].header;
-
-    Reflect.deleteProperty(parsed.recipients[RECIPIENT], "ephemeral_key");
-    h.store.clear();
-    h.vault = receiver_vault;
-
-    vi.mocked(fetch_from_escrow).mockImplementation(async (dedupe_key) =>
-      dedupe_key === `lane-2:${header.dh_public}:${header.message_number}`
-        ? "decrypted on another device"
-        : null,
+    vi.mocked(fetch_verified_from_escrow).mockImplementation(
+      async (_key, binding) =>
+        binding.sender === SENDER ? "decrypted on another device" : null,
     );
 
     const plaintext = await decrypt_ratchet_message(
@@ -748,14 +769,42 @@ describe("recovery lane trust", () => {
     expect(plaintext).toBe("decrypted on another device");
     expect(is_unauthenticated_plaintext(plaintext)).toBe(false);
     expect(is_ratchet_verified_body(envelope, plaintext)).toBe(true);
-    expect(set_cached_ratchet_plaintext).not.toHaveBeenCalledWith(
-      expect.anything(),
-      expect.anything(),
-      true,
+    expect(note_message_sender_identity).toHaveBeenCalledWith("lane-2", SENDER);
+    expect(fetch_verified_from_escrow).toHaveBeenCalledWith(
+      expect.stringContaining("lane-2"),
+      expect.objectContaining({ sender: SENDER }),
     );
+    expect(fetch_from_escrow).not.toHaveBeenCalled();
   });
 
-  it("clears the warning on a cached lane message once the escrow has it", async () => {
+  it("keeps lane mail unverified when the escrow has only an unbound copy", async () => {
+    const { envelope, parsed, receiver_vault } = await lane_message(
+      "unbound escrow copy",
+    );
+
+    vi.mocked(fetch_from_escrow).mockImplementation(async () => ({
+      plaintext: "unbound escrow copy",
+      verified: false,
+    }));
+
+    const plaintext = await decrypt_ratchet_message(
+      RECIPIENT,
+      SENDER,
+      parsed,
+      receiver_vault,
+      "lane-2b",
+    );
+
+    expect(plaintext).toBe("unbound escrow copy");
+    expect(is_unauthenticated_plaintext(plaintext)).toBe(true);
+    expect(is_ratchet_verified_body(envelope, plaintext)).toBe(false);
+    expect(get_message_sender_identity("lane-2b")).toBe("unverified");
+    expect(note_message_sender_identity).not.toHaveBeenCalled();
+    expect(fetch_from_escrow).not.toHaveBeenCalled();
+    expect(upload_to_escrow).not.toHaveBeenCalled();
+  });
+
+  it("keeps the warning on a cached lane message without a bound escrow copy", async () => {
     const sender_vault = make_vault((await generate_ratchet_keys())!);
 
     h.bundle = bundle_for(make_vault((await generate_ratchet_keys())!));
@@ -767,9 +816,10 @@ describe("recovery lane trust", () => {
     vi.mocked(get_cached_ratchet_plaintext).mockImplementation(
       async () => "cached through the lane",
     );
-    vi.mocked(fetch_from_escrow).mockImplementation(
-      async () => "cached through the lane",
-    );
+    vi.mocked(fetch_from_escrow).mockImplementation(async () => ({
+      plaintext: "cached through the lane",
+      verified: false,
+    }));
 
     const plaintext = await decrypt_ratchet_message(
       RECIPIENT,
@@ -780,28 +830,29 @@ describe("recovery lane trust", () => {
     );
 
     expect(plaintext).toBe("cached through the lane");
-    expect(is_unauthenticated_plaintext(plaintext)).toBe(false);
-    expect(is_ratchet_verified_body(envelope, plaintext)).toBe(true);
-    expect(set_cached_ratchet_plaintext).toHaveBeenCalledWith(
-      expect.any(String),
-      "cached through the lane",
-    );
+    expect(is_unauthenticated_plaintext(plaintext)).toBe(true);
+    expect(is_ratchet_verified_body(envelope, plaintext)).toBe(false);
+    expect(fetch_verified_from_escrow).toHaveBeenCalledTimes(1);
+    expect(fetch_from_escrow).not.toHaveBeenCalled();
+    expect(note_message_sender_identity).not.toHaveBeenCalled();
+    expect(set_cached_ratchet_plaintext).not.toHaveBeenCalled();
   });
 
-  it("keeps the warning on a cached lane message the escrow does not have", async () => {
+  it("upgrades a cached lane message once a bound escrow copy appears", async () => {
     const sender_vault = make_vault((await generate_ratchet_keys())!);
 
     h.bundle = bundle_for(make_vault((await generate_ratchet_keys())!));
 
-    const envelope = await send(
-      "only ever seen through the lane",
-      sender_vault,
-    );
+    const envelope = await send("cached then verified", sender_vault);
     const parsed = parse_ratchet_envelope(envelope)!;
 
-    mark_unauthenticated_plaintext("only ever seen through the lane");
-    vi.mocked(get_cached_ratchet_plaintext).mockImplementation(
-      async () => "only ever seen through the lane",
+    vi.mocked(get_cached_ratchet_plaintext).mockImplementation(async (key) => {
+      mark_unauthenticated_plaintext("cached then verified", key);
+
+      return "cached then verified";
+    });
+    vi.mocked(fetch_verified_from_escrow).mockImplementation(
+      async () => "cached then verified",
     );
 
     const plaintext = await decrypt_ratchet_message(
@@ -809,12 +860,55 @@ describe("recovery lane trust", () => {
       SENDER,
       parsed,
       sender_vault,
-      "lane-4",
+      "lane-3b",
     );
 
-    expect(plaintext).toBe("only ever seen through the lane");
-    expect(is_unauthenticated_plaintext(plaintext)).toBe(true);
-    expect(fetch_from_escrow).toHaveBeenCalledTimes(1);
+    expect(plaintext).toBe("cached then verified");
+    expect(is_unauthenticated_plaintext(plaintext)).toBe(false);
+    expect(is_ratchet_verified_body(envelope, plaintext)).toBe(true);
+    expect(note_message_sender_identity).toHaveBeenCalledWith(
+      "lane-3b",
+      SENDER,
+    );
+  });
+
+  it("does not ask the escrow again after a bound copy was missing", async () => {
+    const sender_vault = make_vault((await generate_ratchet_keys())!);
+
+    h.bundle = bundle_for(make_vault((await generate_ratchet_keys())!));
+
+    const envelope = await send("asked once", sender_vault);
+    const parsed = parse_ratchet_envelope(envelope)!;
+
+    mark_unauthenticated_plaintext("asked once");
+    vi.mocked(get_cached_ratchet_plaintext).mockImplementation(
+      async () => "asked once",
+    );
+
+    for (let i = 0; i < 3; i++) {
+      await decrypt_ratchet_message(
+        RECIPIENT,
+        SENDER,
+        parsed,
+        sender_vault,
+        "lane-3c",
+      );
+    }
+
+    expect(fetch_verified_from_escrow).toHaveBeenCalledTimes(1);
+  });
+
+  it("reads the cache with the sender and conversation of the message", async () => {
+    const sender_vault = make_vault((await generate_ratchet_keys())!);
+
+    h.bundle = bundle_for(make_vault((await generate_ratchet_keys())!));
+
+    const envelope = await send("bound lookup", sender_vault);
+    const parsed = parse_ratchet_envelope(envelope)!;
+
+    vi.mocked(get_cached_ratchet_plaintext).mockImplementation(
+      async () => "bound lookup",
+    );
 
     await decrypt_ratchet_message(
       RECIPIENT,
@@ -824,10 +918,130 @@ describe("recovery lane trust", () => {
       "lane-4",
     );
 
-    expect(fetch_from_escrow).toHaveBeenCalledTimes(1);
+    expect(get_cached_ratchet_plaintext).toHaveBeenCalledWith(
+      expect.stringContaining("lane-4"),
+      {
+        sender: SENDER,
+        conversation_id: expect.any(String),
+      },
+    );
   });
 
-  it("keeps ratchet-decrypted mail verified and escrowed", async () => {
+  it("never verifies a forged message that reuses a real header under another sender", async () => {
+    const { envelope, parsed, receiver_vault } =
+      await lane_message("the real message");
+
+    vi.mocked(fetch_verified_from_escrow).mockImplementation(
+      async (_key, binding) =>
+        binding.sender === SENDER ? "the real message" : null,
+    );
+    vi.mocked(fetch_from_escrow).mockImplementation(async (_key, binding) =>
+      binding.sender === SENDER
+        ? { plaintext: "the real message", verified: true }
+        : null,
+    );
+
+    const plaintext = await decrypt_ratchet_message(
+      RECIPIENT,
+      MALLORY,
+      parsed,
+      receiver_vault,
+      "forged-1",
+    );
+
+    if (plaintext !== null) {
+      expect(is_unauthenticated_plaintext(plaintext)).toBe(true);
+      expect(is_ratchet_verified_body(envelope, plaintext)).toBe(false);
+    }
+    expect(get_message_sender_identity("forged-1")).not.toBe("verified");
+    expect(note_message_sender_identity).not.toHaveBeenCalledWith(
+      expect.anything(),
+      MALLORY,
+    );
+    for (const call of vi.mocked(fetch_verified_from_escrow).mock.calls) {
+      expect(call[1]).toMatchObject({ sender: MALLORY });
+    }
+    for (const call of vi.mocked(fetch_from_escrow).mock.calls) {
+      expect(call[1]).toMatchObject({ sender: MALLORY });
+    }
+    for (const call of vi.mocked(set_cached_ratchet_plaintext).mock.calls) {
+      expect(call[2]).toBe(true);
+      expect(call[3]).toMatchObject({ sender: MALLORY });
+    }
+  });
+
+  it("recovers a message from a bound escrow copy as verified when nothing else can open it", async () => {
+    const sender_vault = make_vault((await generate_ratchet_keys())!);
+    const receiver_vault = make_vault((await generate_ratchet_keys())!);
+    const stranger_vault = make_vault((await generate_ratchet_keys())!);
+
+    h.bundle = bundle_for(receiver_vault);
+
+    const envelope = await send("recovered from escrow", sender_vault);
+    const parsed = parse_ratchet_envelope(envelope)!;
+
+    h.store.clear();
+    h.vault = stranger_vault;
+
+    vi.mocked(fetch_from_escrow).mockImplementation(async () => ({
+      plaintext: "recovered from escrow",
+      verified: true,
+    }));
+
+    const plaintext = await decrypt_ratchet_message(
+      RECIPIENT,
+      SENDER,
+      parsed,
+      stranger_vault,
+      "escrow-1",
+    );
+
+    expect(plaintext).toBe("recovered from escrow");
+    expect(is_unauthenticated_plaintext(plaintext)).toBe(false);
+    expect(is_ratchet_verified_body(envelope, plaintext)).toBe(true);
+    expect(fetch_from_escrow).toHaveBeenCalledWith(
+      expect.stringContaining("escrow-1"),
+      expect.objectContaining({ sender: SENDER }),
+    );
+  });
+
+  it("recovers a message from an unbound escrow copy as unverified", async () => {
+    const sender_vault = make_vault((await generate_ratchet_keys())!);
+    const receiver_vault = make_vault((await generate_ratchet_keys())!);
+    const stranger_vault = make_vault((await generate_ratchet_keys())!);
+
+    h.bundle = bundle_for(receiver_vault);
+
+    const envelope = await send("recovered from v2 escrow", sender_vault);
+    const parsed = parse_ratchet_envelope(envelope)!;
+
+    h.store.clear();
+    h.vault = stranger_vault;
+
+    vi.mocked(fetch_from_escrow).mockImplementation(async () => ({
+      plaintext: "recovered from v2 escrow",
+      verified: false,
+    }));
+
+    const plaintext = await decrypt_ratchet_message(
+      RECIPIENT,
+      MALLORY,
+      parsed,
+      stranger_vault,
+      "escrow-2",
+    );
+
+    expect(plaintext).toBe("recovered from v2 escrow");
+    expect(is_unauthenticated_plaintext(plaintext)).toBe(true);
+    expect(is_ratchet_verified_body(envelope, plaintext)).toBe(false);
+    expect(get_message_sender_identity("escrow-2")).toBe("unverified");
+    expect(note_message_sender_identity).not.toHaveBeenCalledWith(
+      expect.anything(),
+      MALLORY,
+    );
+  });
+
+  it("keeps ratchet-decrypted mail verified and escrows it bound to the sender", async () => {
     const sender_vault = make_vault((await generate_ratchet_keys())!);
     const receiver_vault = make_vault((await generate_ratchet_keys())!);
 
@@ -843,5 +1057,14 @@ describe("recovery lane trust", () => {
     expect(is_unauthenticated_plaintext(plaintext)).toBe(false);
     expect(is_ratchet_verified_body(envelope, plaintext)).toBe(true);
     expect(upload_to_escrow).toHaveBeenCalledTimes(1);
+    expect(upload_to_escrow).toHaveBeenCalledWith(
+      expect.stringContaining("ratchet-1"),
+      "opened through the ratchet",
+      expect.objectContaining({
+        sender: SENDER,
+        conversation_id: expect.any(String),
+      }),
+    );
+    expect(fetch_verified_from_escrow).not.toHaveBeenCalled();
   });
 });

@@ -36,8 +36,8 @@ vi.mock("@/contexts/preferences_context", () => ({
   }),
 }));
 
-vi.mock("@/components/search/advanced_search_modal", () => ({
-  AdvancedSearchModal: () => null,
+vi.mock("@/components/search/advanced_filter_modal", () => ({
+  AdvancedFilterModal: () => null,
 }));
 
 vi.mock("@/components/search/search_content_banner", () => ({

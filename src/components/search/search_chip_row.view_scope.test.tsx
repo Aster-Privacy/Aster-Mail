@@ -76,13 +76,22 @@ function render_row(query: string, scope_view?: string) {
   return on_query_change;
 }
 
-describe("SearchChipRow folder scope chips", () => {
+function pick_scope(label: string) {
+  act(() => {
+    document
+      .querySelector<HTMLButtonElement>('[data-testid="search-scope-chip"]')!
+      .click();
+  });
+  act(() => {
+    button_with_text(label).click();
+  });
+}
+
+describe("SearchChipRow scope chip", () => {
   it("widens a Trash search to everywhere", () => {
     const on_query_change = render_row("janedoe in:trash", "trash");
 
-    act(() => {
-      button_with_text("mail.search_scope_anywhere").click();
-    });
+    pick_scope("mail.chip_everywhere");
 
     expect(on_query_change).toHaveBeenCalledWith("janedoe in:anywhere");
   });
@@ -90,9 +99,7 @@ describe("SearchChipRow folder scope chips", () => {
   it("returns an everywhere search to Trash", () => {
     const on_query_change = render_row("janedoe in:anywhere", "trash");
 
-    act(() => {
-      button_with_text("mail.filter_in").click();
-    });
+    pick_scope("mail.trash");
 
     expect(on_query_change).toHaveBeenCalledWith("janedoe in:trash");
   });
@@ -100,9 +107,7 @@ describe("SearchChipRow folder scope chips", () => {
   it("narrows an all mail search started from Inbox to Inbox", () => {
     const on_query_change = render_row("janedoe", "inbox");
 
-    act(() => {
-      button_with_text("mail.filter_in").click();
-    });
+    pick_scope("mail.inbox");
 
     expect(on_query_change).toHaveBeenCalledWith("janedoe in:inbox");
   });
@@ -110,20 +115,36 @@ describe("SearchChipRow folder scope chips", () => {
   it("widens an Inbox search back to all mail", () => {
     const on_query_change = render_row("janedoe in:inbox", "inbox");
 
-    act(() => {
-      button_with_text("mail.all_mail").click();
-    });
+    pick_scope("mail.all_mail");
 
     expect(on_query_change).toHaveBeenCalledWith("janedoe");
   });
 
-  it("hides the scope chips for All Mail", () => {
-    render_row("janedoe", "all");
-    expect(document.body.textContent).not.toContain("mail.filter_in");
+  it("offers everywhere from All Mail", () => {
+    const on_query_change = render_row("janedoe", "all");
+
+    pick_scope("mail.chip_everywhere");
+
+    expect(on_query_change).toHaveBeenCalledWith("janedoe in:anywhere");
   });
 
-  it("hides the scope chips when the query names another folder", () => {
+  it("shows the folder named by the query", () => {
     render_row("janedoe in:sent", "trash");
-    expect(document.body.textContent).not.toContain("mail.filter_in");
+    expect(
+      document.querySelector('[data-testid="search-scope-chip"]')?.textContent,
+    ).toContain("mail.sent");
+  });
+
+  it("clears every filter but keeps the words", () => {
+    const on_query_change = render_row(
+      "janedoe from:a@b.c has:attachment in:trash",
+      "trash",
+    );
+
+    act(() => {
+      button_with_text("mail.clear_filters").click();
+    });
+
+    expect(on_query_change).toHaveBeenCalledWith("janedoe in:trash");
   });
 });

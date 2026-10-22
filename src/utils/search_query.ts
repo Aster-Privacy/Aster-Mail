@@ -20,7 +20,10 @@
 //
 import type { TranslationKey } from "@/lib/i18n/types";
 
-import { parse_search_query } from "@/utils/search_operators";
+import {
+  clear_filter_operators,
+  parse_search_query,
+} from "@/utils/search_operators";
 
 const SINGLE_CHARACTER_SCRIPT = /[぀-ヿ㐀-䶿一-鿿豈-﫿가-힯]/;
 
@@ -195,4 +198,77 @@ export function rescope_search_query(
           : "in:all";
 
   return [stripped, token].filter(Boolean).join(" ");
+}
+
+export const SEARCH_SCOPES = [
+  "all",
+  "inbox",
+  "starred",
+  "sent",
+  "drafts",
+  "archive",
+  "spam",
+  "trash",
+  "anywhere",
+] as const;
+
+export type SearchScopeValue = (typeof SEARCH_SCOPES)[number];
+
+export function search_scope_label_key(scope: string): TranslationKey | null {
+  if (scope === "anywhere") return "mail.chip_everywhere";
+
+  return SEARCH_VIEW_LABELS.get(scope) ?? null;
+}
+
+export function default_search_scope(view: string | undefined): string {
+  return view && DEFAULT_SCOPED_VIEWS.has(view) ? view : "all";
+}
+
+export interface QuerySearchScope {
+  scope: string;
+  is_default: boolean;
+}
+
+export function query_search_scope(
+  query: string,
+  view: string | undefined,
+): QuerySearchScope | null {
+  const value = single_in_value(query);
+
+  if (value === undefined) return null;
+
+  const fallback = default_search_scope(view);
+  const scope = value ?? fallback;
+
+  return { scope, is_default: scope === fallback };
+}
+
+export function set_search_scope(
+  query: string,
+  view: string | undefined,
+  scope: string,
+): string {
+  let stripped = query;
+
+  for (const operator of in_operators(query)) {
+    stripped = stripped.replace(operator.raw, " ");
+  }
+  stripped = stripped.replace(/\s+/g, " ").trim();
+
+  const needs_token =
+    scope !== "all" || (view !== undefined && DEFAULT_SCOPED_VIEWS.has(view));
+  const token = needs_token || !stripped ? `in:${scope}` : "";
+
+  return [stripped, token].filter(Boolean).join(" ");
+}
+
+export function clear_search_filters(
+  query: string,
+  view: string | undefined,
+): string {
+  return set_search_scope(
+    clear_filter_operators(query),
+    view,
+    default_search_scope(view),
+  );
 }

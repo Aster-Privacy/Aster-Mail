@@ -4377,6 +4377,9 @@ export const fr = {
     billing_history: "Historique de facturation",
     billing_status_active: "Actif",
     billing_status_renews: "Renouvellement le {{date}}",
+    billing_status_lifetime: "À vie",
+    billing_lifetime_note:
+      "Ce forfait ne se renouvelle jamais et vous ne le payez plus jamais. Pour le modifier, contactez l'assistance Aster.",
     billing_status_ending: "Se termine le {{date}}",
     billing_status_attention: "Le paiement nécessite votre attention",
     billing_member_since: "Membre depuis le {{date}}",
@@ -7215,6 +7218,8 @@ export const fr = {
     security_center_recommended: "Actions recommandées",
     security_center_protected: "Protégé",
     security_center_all_clear: "Toutes les protections sont activées.",
+    security_center_met_of_total: "{{met}} protections sur {{total}} activées",
+    security_center_account: "Votre compte",
     security_center_protection_score: "Score de protection",
     security_center_encryption_title: "Chiffrement de bout en bout",
     security_center_encryption_detail:
@@ -8347,6 +8352,8 @@ export const fr = {
       "Personne ne peut encore vous écrire. Votre domaine n’a aucune route de messagerie, les messages reviennent donc à l’expéditeur.",
     domain_reason_mx_points_elsewhere:
       "Les e-mails partent vers votre ancien fournisseur, pas vers Aster. Supprimez les anciens enregistrements MX pour que les messages arrivent dans cette boîte.",
+    domain_reason_mx_shared:
+      "Une partie de vos e-mails peut arriver sur {{detail}} au lieu d'Aster, car cet enregistrement MX a une priorité égale ou supérieure. Supprimez-le pour que tous vos e-mails arrivent dans cette boîte.",
     domain_reason_spf_missing:
       "Vos e-mails risquent d’être rejetés ou marqués comme indésirables, car rien n’indique aux autres fournisseurs qu’Aster peut envoyer pour vous.",
     domain_reason_spf_missing_include:
@@ -8731,6 +8738,7 @@ export const fr = {
     reply_all: "Répondre à tous",
     react: "Réagir",
     you_reacted_with: "Vous avez réagi avec {{emoji}}",
+    reaction_sent: "Réaction envoyée",
     reacted_with: "{{name}} a réagi avec {{emoji}}",
     forward: "Transférer",
     to: "À",
@@ -8847,6 +8855,7 @@ export const fr = {
     show_quoted_text: "Afficher le texte cité",
     hide_quoted_text: "Masquer le texte cité",
     remove_quoted_text: "Supprimer le texte cité",
+    edit_quoted_text: "Modifier le texte cité",
     quoted_text_removed: "Texte cité supprimé",
     restore_quoted_text: "Restaurer",
     show_forwarded: "Afficher le transfert",
@@ -9484,9 +9493,10 @@ export const fr = {
     op_has_video: "A une vidéo",
     op_in_drafts: "Dans les brouillons",
     chip_any_time: "Toute date",
-    chip_older_than_week: "Plus d'une semaine",
-    chip_older_than_month: "Plus d'un mois",
-    chip_older_than_six_months: "Plus de 6 mois",
+    chip_last_7_days: "7 derniers jours",
+    chip_last_30_days: "30 derniers jours",
+    chip_last_6_months: "6 derniers mois",
+    chip_last_year: "Dernière année",
     chip_older_than_year: "Plus d'un an",
     chip_custom_range: "Période personnalisée",
     chip_has_attachment: "Avec pièce jointe",
@@ -9494,10 +9504,12 @@ export const fr = {
     chip_attachment_document: "Document",
     chip_attachment_pdf: "PDF",
     chip_attachment_video: "Vidéo",
-    chip_is_unread: "Non lu",
+    chip_is_unread: "Non lus",
     chip_name_or_email: "Nom ou e-mail",
     chip_no_people: "Aucune personne correspondante",
     chip_advanced_search: "Recherche avancée",
+    chip_everywhere: "Partout",
+    chip_everywhere_hint: "Inclut Spam et Corbeille",
     spam_trash_hidden_notice:
       "Certains messages dans Spam et Corbeille correspondent à votre recherche.",
     search_index_partial:

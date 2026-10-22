@@ -68,6 +68,27 @@ describe("parse_search_query negation", () => {
     expect(terms_of("not urgent")).toEqual(["not", "urgent"]);
   });
 
+  it("turns a dash-prefixed word into a negated text term", () => {
+    const parsed = parse_search_query('invoice -draft -"weekly report"');
+
+    expect(parsed.operators).toEqual([
+      { type: "text", value: "draft", raw: "-draft", negated: true },
+      {
+        type: "text",
+        value: "weekly report",
+        raw: '-"weekly report"',
+        negated: true,
+      },
+    ]);
+    expect(parsed.text_query).toBe("invoice");
+  });
+
+  it("keeps dashes that do not start a word", () => {
+    expect(parse_search_query("555-1234 - --x").text_query).toBe(
+      "555-1234 - --x",
+    );
+  });
+
   it("does not negate an operator after lowercase not", () => {
     const parsed = parse_search_query("not from:alice");
 
@@ -162,6 +183,7 @@ describe("literal operators inside quoted phrases", () => {
   it("still parses real operators beside a literal phrase", () => {
     const query =
       'from:bob@example.com "notes from:alice@example.com" is:unread';
+
     expect(parse_search_query(query).operators.map((op) => op.type)).toEqual([
       "from",
       "is",

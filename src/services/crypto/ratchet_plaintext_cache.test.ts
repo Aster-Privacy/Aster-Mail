@@ -53,11 +53,14 @@ vi.mock("@/services/account_manager", () => ({
 
 import {
   get_cached_ratchet_plaintext,
+  is_cached_plaintext_foreign,
   set_cached_ratchet_plaintext,
 } from "./ratchet_plaintext_cache";
 import {
   clear_ratchet_verification_status,
+  clear_unauthenticated_plaintext,
   is_unauthenticated_plaintext,
+  mark_unauthenticated_plaintext,
 } from "./ratchet_verification_status";
 import { scoped_storage_name } from "@/services/crypto/storage_key_names";
 
@@ -116,21 +119,158 @@ describe("ratchet plaintext cache durability", () => {
   });
 
   it("restores the unauthenticated mark after a reload", async () => {
-    await set_cached_ratchet_plaintext("lane", "from the lane", true);
-    await set_cached_ratchet_plaintext("plain", "from the ratchet");
+    const alice = { sender: "alice@astermail.org", conversation_id: "conv-a" };
+
+    await set_cached_ratchet_plaintext("lane", "from the lane", true, alice);
+    await set_cached_ratchet_plaintext(
+      "plain",
+      "from the ratchet",
+      false,
+      alice,
+    );
     clear_ratchet_verification_status();
 
     vi.spyOn(Date, "now").mockReturnValue(Date.now() + 2 * DAY);
 
-    expect(await get_cached_ratchet_plaintext("lane")).toBe("from the lane");
+    expect(await get_cached_ratchet_plaintext("lane", alice)).toBe(
+      "from the lane",
+    );
     expect(is_unauthenticated_plaintext("from the lane")).toBe(true);
     expect(
       (h.store.get(await cache_id("lane")) as { unauthenticated?: boolean })
         .unauthenticated,
     ).toBe(true);
-    expect(await get_cached_ratchet_plaintext("plain")).toBe(
+    expect(await get_cached_ratchet_plaintext("plain", alice)).toBe(
       "from the ratchet",
     );
     expect(is_unauthenticated_plaintext("from the ratchet")).toBe(false);
+  });
+});
+
+describe("ratchet plaintext cache sender binding", () => {
+  const ALICE = { sender: "alice@astermail.org", conversation_id: "conv-a" };
+  const MALLORY = {
+    sender: "mallory@astermail.org",
+    conversation_id: "conv-m",
+  };
+
+  beforeEach(() => {
+    h.store.clear();
+    h.state.uid = "acct-a";
+    clear_ratchet_verification_status();
+  });
+
+  it("stores the sender and conversation with the entry", async () => {
+    await set_cached_ratchet_plaintext("k1", "hi", false, {
+      sender: " Alice@AsterMail.org ",
+      conversation_id: "conv-a",
+    });
+
+    expect(h.store.get(await cache_id("k1"))).toMatchObject({
+      plaintext: "hi",
+      sender: "alice@astermail.org",
+      conversation_id: "conv-a",
+    });
+  });
+
+  it("returns a bound entry only to the sender it was bound to", async () => {
+    await set_cached_ratchet_plaintext("k1", "real body", false, ALICE);
+
+    expect(await get_cached_ratchet_plaintext("k1", ALICE)).toBe("real body");
+    expect(await get_cached_ratchet_plaintext("k1", MALLORY)).toBeNull();
+    expect(await get_cached_ratchet_plaintext("k1")).toBeNull();
+    expect(await is_cached_plaintext_foreign("k1", MALLORY)).toBe(true);
+    expect(await is_cached_plaintext_foreign("k1", ALICE)).toBe(false);
+  });
+
+  it("never lets another sender overwrite a bound entry", async () => {
+    await set_cached_ratchet_plaintext("k1", "real body", false, ALICE);
+    await set_cached_ratchet_plaintext("k1", "forged", true, MALLORY);
+    await set_cached_ratchet_plaintext("k1", "forged", false, MALLORY);
+    await set_cached_ratchet_plaintext("k1", "unbound");
+
+    expect(h.store.get(await cache_id("k1"))).toMatchObject({
+      plaintext: "real body",
+      sender: "alice@astermail.org",
+    });
+  });
+
+  it("lets an authenticated decrypt replace another sender's unverified entry", async () => {
+    await set_cached_ratchet_plaintext("k1", "forged first", true, MALLORY);
+    await set_cached_ratchet_plaintext("k1", "real body", false, ALICE);
+
+    expect(await get_cached_ratchet_plaintext("k1", ALICE)).toBe("real body");
+    expect(await get_cached_ratchet_plaintext("k1", MALLORY)).toBeNull();
+  });
+
+  it("treats an older entry without a sender as unverified and never binds it", async () => {
+    await set_cached_ratchet_plaintext("k1", "legacy body");
+
+    expect(await get_cached_ratchet_plaintext("k1", MALLORY)).toBe(
+      "legacy body",
+    );
+    expect(is_unauthenticated_plaintext("legacy body")).toBe(true);
+    expect(h.store.get(await cache_id("k1"))).not.toHaveProperty("sender");
+    expect(await get_cached_ratchet_plaintext("k1", ALICE)).toBe("legacy body");
+    expect(is_unauthenticated_plaintext("legacy body")).toBe(true);
+  });
+
+  it("lets an authenticated decrypt bind an older entry", async () => {
+    await set_cached_ratchet_plaintext("k1", "legacy body");
+    await get_cached_ratchet_plaintext("k1", MALLORY);
+    await set_cached_ratchet_plaintext("k1", "real body", false, ALICE);
+    clear_ratchet_verification_status();
+
+    expect(await get_cached_ratchet_plaintext("k1", ALICE)).toBe("real body");
+    expect(is_unauthenticated_plaintext("real body")).toBe(false);
+    expect(await get_cached_ratchet_plaintext("k1", MALLORY)).toBeNull();
+  });
+
+  it("keeps the unauthenticated mark on an older entry", async () => {
+    await set_cached_ratchet_plaintext("k1", "lane body", true);
+
+    expect(await get_cached_ratchet_plaintext("k1", ALICE)).toBe("lane body");
+    expect(is_unauthenticated_plaintext("lane body")).toBe(true);
+    expect(
+      (h.store.get(await cache_id("k1")) as { unauthenticated?: boolean })
+        .unauthenticated,
+    ).toBe(true);
+  });
+
+  it("refuses an entry from the same sender in another conversation", async () => {
+    await set_cached_ratchet_plaintext("k1", "real body", false, ALICE);
+
+    expect(
+      await get_cached_ratchet_plaintext("k1", {
+        sender: ALICE.sender,
+        conversation_id: "conv-other",
+      }),
+    ).toBeNull();
+    expect(
+      await is_cached_plaintext_foreign("k1", {
+        sender: ALICE.sender,
+        conversation_id: "conv-other",
+      }),
+    ).toBe(true);
+  });
+
+  it("keeps identical text unverified while another message still marks it", () => {
+    mark_unauthenticated_plaintext("same text", "forged-b");
+    mark_unauthenticated_plaintext("same text", "real-a");
+    clear_unauthenticated_plaintext("same text", "real-a");
+
+    expect(is_unauthenticated_plaintext("same text")).toBe(true);
+
+    clear_unauthenticated_plaintext("same text", "forged-b");
+
+    expect(is_unauthenticated_plaintext("same text")).toBe(false);
+  });
+
+  it("does not mark a refused entry as unauthenticated content", async () => {
+    await set_cached_ratchet_plaintext("k1", "real lane body", true, ALICE);
+    clear_ratchet_verification_status();
+
+    expect(await get_cached_ratchet_plaintext("k1", MALLORY)).toBeNull();
+    expect(is_unauthenticated_plaintext("real lane body")).toBe(false);
   });
 });

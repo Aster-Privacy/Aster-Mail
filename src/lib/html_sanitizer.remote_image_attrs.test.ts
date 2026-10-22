@@ -240,13 +240,85 @@ describe("presentational image attributes", () => {
 describe("plain http image sources", () => {
   const HTTP_IMAGE = "http://legacy.example.com/logo.png";
 
-  it("asks the proxy for the address the sender wrote", () => {
+  const HTTPS_IMAGE = "https://legacy.example.com/logo.png";
+  const PROXIED_HTTPS = `${PROXY}?url=${encodeURIComponent(HTTPS_IMAGE)}`;
+
+  function proxied_sources(html: string): string[] {
+    return Array.from(html.matchAll(/\?url=([^"&)\s]+)/g), (match) =>
+      decodeURIComponent(match[1]),
+    );
+  }
+
+  it("asks the proxy for the https address", () => {
     const result = sanitize_html(
       `${LEAD}<img src="${HTTP_IMAGE}" alt="logo" width="200">`,
       { external_content_mode: "always", image_proxy_url: PROXY },
     );
 
-    expect(result.html).toContain(encodeURIComponent(HTTP_IMAGE));
+    expect(result.html).toContain(PROXIED_HTTPS);
+    expect(proxied_sources(result.html)).not.toContain(HTTP_IMAGE);
+  });
+
+  it("keeps the https address for a blocked image loaded later", () => {
+    const result = sanitize_html(
+      `${LEAD}<img src="${HTTP_IMAGE}" alt="logo" width="200">`,
+      { external_content_mode: "never", image_proxy_url: PROXY },
+    );
+    const img = new DOMParser()
+      .parseFromString(result.html, "text/html")
+      .querySelector("img");
+
+    expect(img?.getAttribute("data-proxy-src")).toBe(PROXIED_HTTPS);
+    expect(img?.getAttribute("data-original-src")).toBe(HTTPS_IMAGE);
+  });
+
+  it("asks the proxy for https srcset candidates", () => {
+    const result = sanitize_html(
+      `${LEAD}<img src="${HTTPS_IMAGE}" srcset="${HTTP_IMAGE} 2x" alt="logo" width="200">`,
+      { external_content_mode: "always", image_proxy_url: PROXY },
+    );
+
+    expect(proxied_sources(result.html)).toEqual([HTTPS_IMAGE, HTTPS_IMAGE]);
+  });
+
+  it("asks the proxy for an https background attribute", () => {
+    const result = sanitize_html(
+      `${LEAD}<table><tr><td background="${HTTP_IMAGE}">cell</td></tr></table>`,
+      { external_content_mode: "always", image_proxy_url: PROXY },
+    );
+
+    expect(proxied_sources(result.html)).toEqual([HTTPS_IMAGE]);
+  });
+
+  it("asks the proxy for https css backgrounds", () => {
+    const result = sanitize_html(
+      `<style>.hero { background-image: url("${HTTP_IMAGE}"); }</style>${LEAD}<div class="hero">cell</div>`,
+      {
+        external_content_mode: "always",
+        image_proxy_url: PROXY,
+        sandbox_mode: true,
+      },
+    );
+
+    expect(proxied_sources(result.html)).toEqual([HTTPS_IMAGE]);
+  });
+
+  it("asks the proxy for the https address when the source has leading spaces", () => {
+    const result = sanitize_html(
+      `${LEAD}<img src="  ${HTTP_IMAGE}" alt="logo" width="200">`,
+      { external_content_mode: "always", image_proxy_url: PROXY },
+    );
+
+    expect(proxied_sources(result.html)).toEqual([HTTPS_IMAGE]);
+  });
+
+  it("asks the proxy for an https upper-case http address", () => {
+    const result = sanitize_html(
+      `${LEAD}<img src="HTTP://legacy.example.com/logo.png" alt="logo" width="200">`,
+      { external_content_mode: "always", image_proxy_url: PROXY },
+    );
+
+    expect(result.html).toContain(PROXIED_HTTPS);
   });
 
   it("never leaves a direct http fetch in the document", () => {

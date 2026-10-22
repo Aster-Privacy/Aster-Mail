@@ -108,3 +108,43 @@ describe("action toast position", () => {
     expect(element.style.bottom).toBe("24px");
   });
 });
+
+describe("action toast dismiss control", () => {
+  function render_with(hide_dismiss: boolean) {
+    host = document.createElement("div");
+    document.body.appendChild(host);
+    root = createRoot(host);
+    act(() => {
+      root?.render(<ActionToast />);
+    });
+    act(() => {
+      show_action_toast({
+        message: "common.email_sent",
+        action_type: "archive",
+        email_ids: [],
+        duration_ms: 60000,
+        hide_dismiss,
+        on_undo: async () => {},
+      });
+    });
+
+    return host;
+  }
+
+  it("shows only Undo when the dismiss control is hidden", () => {
+    const element = render_with(true);
+    const buttons = Array.from(element.querySelectorAll("button"));
+
+    expect(buttons).toHaveLength(1);
+    expect(buttons[0].textContent).toBe("common.undo");
+    expect(element.querySelector('[aria-label="common.dismiss"]')).toBeNull();
+  });
+
+  it("keeps the dismiss control by default", () => {
+    const element = render_with(false);
+
+    expect(
+      element.querySelector('[aria-label="common.dismiss"]'),
+    ).not.toBeNull();
+  });
+});

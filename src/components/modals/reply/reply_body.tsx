@@ -23,6 +23,7 @@ import type { UseEditorReturn } from "@/hooks/use_editor";
 
 import { useEffect } from "react";
 import { Tooltip } from "@aster/ui";
+import { PencilIcon } from "@heroicons/react/24/outline";
 
 import { sanitize_compose_paste } from "@/lib/html_sanitizer";
 import { proxy_compose_image_sources } from "@/lib/compose_image_sources";
@@ -61,6 +62,8 @@ interface ReplyBodyProps {
   set_show_quoted: (val: boolean) => void;
   include_quoted: boolean;
   set_include_quoted: (val: boolean) => void;
+  quote_inlined?: boolean;
+  inline_quoted_text?: () => void;
   build_quoted_content: (for_display?: boolean) => string;
   attachments: Attachment[];
   attachments_scroll_ref: React.RefObject<HTMLDivElement>;
@@ -111,6 +114,8 @@ export function ReplyBody({
   set_show_quoted,
   include_quoted,
   set_include_quoted,
+  quote_inlined,
+  inline_quoted_text,
   build_quoted_content,
   attachments,
   attachments_scroll_ref,
@@ -203,7 +208,7 @@ export function ReplyBody({
         </div>
       )}
 
-      {!is_minimized && original_body && !include_quoted && (
+      {!is_minimized && original_body && !include_quoted && !quote_inlined && (
         <div className="px-4 pb-2 flex items-center gap-2">
           <span className="text-xs" style={{ color: "var(--text-tertiary)" }}>
             {t("mail.quoted_text_removed")}
@@ -256,6 +261,18 @@ export function ReplyBody({
                 </span>
               </button>
             </Tooltip>
+            {inline_quoted_text && (
+              <Tooltip tip={t("mail.edit_quoted_text")}>
+                <button
+                  aria-label={t("mail.edit_quoted_text")}
+                  className="inline-flex h-6 w-6 items-center justify-center rounded-full text-txt-muted hover:bg-[var(--aster-hover)] hover:text-txt-primary"
+                  type="button"
+                  onClick={inline_quoted_text}
+                >
+                  <PencilIcon className="h-3 w-3" />
+                </button>
+              </Tooltip>
+            )}
             <Tooltip tip={t("mail.remove_quoted_text")}>
               <button
                 aria-label={t("mail.remove_quoted_text")}

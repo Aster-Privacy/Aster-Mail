@@ -3166,6 +3166,8 @@ export const hi = {
     security_center_recommended: "अनुशंसित कार्रवाई",
     security_center_protected: "सुरक्षित",
     security_center_all_clear: "सभी सुरक्षाएँ चालू हैं।",
+    security_center_met_of_total: "{{total}} में से {{met}} सुरक्षाएँ चालू",
+    security_center_account: "आपका खाता",
     security_center_protection_score: "सुरक्षा स्कोर",
     security_center_encryption_title: "एंड-टू-एंड एन्क्रिप्शन",
     security_center_encryption_detail:
@@ -3372,6 +3374,9 @@ export const hi = {
     billing_history: "बिलिंग इतिहास",
     billing_status_active: "सक्रिय",
     billing_status_renews: "{{date}} को नवीनीकृत होगा",
+    billing_status_lifetime: "आजीवन",
+    billing_lifetime_note:
+      "यह प्लान कभी रिन्यू नहीं होता और आपको इसके लिए दोबारा भुगतान नहीं करना पड़ता। इसे बदलने के लिए Aster सहायता से संपर्क करें।",
     billing_status_ending: "{{date}} को समाप्त होगा",
     billing_status_attention: "भुगतान पर ध्यान देने की ज़रूरत है",
     billing_member_since: "{{date}} से सदस्य",
@@ -6561,6 +6566,8 @@ export const hi = {
       "अभी कोई आपको ईमेल नहीं कर सकता। आपके डोमेन का कोई मेल रास्ता नहीं है, इसलिए संदेश प्रेषक के पास लौट जाते हैं।",
     domain_reason_mx_points_elsewhere:
       "मेल Aster के बजाय आपके पुराने प्रदाता के पास जा रहा है। पुराने MX रिकॉर्ड हटाएं ताकि संदेश इस इनबॉक्स में पहुंचें।",
+    domain_reason_mx_shared:
+      "आपके कुछ ईमेल Aster के बजाय {{detail}} पर जा सकते हैं, क्योंकि उस MX रिकॉर्ड की प्राथमिकता बराबर या ज़्यादा है। उसे हटाएँ ताकि आपके सभी ईमेल इसी इनबॉक्स में आएँ।",
     domain_reason_spf_missing:
       "आपका भेजा मेल अस्वीकार हो सकता है या स्पैम बन सकता है, क्योंकि दूसरे प्रदाताओं को कुछ नहीं बताता कि Aster आपकी ओर से भेज सकता है।",
     domain_reason_spf_missing_include:
@@ -8415,6 +8422,7 @@ export const hi = {
     forward: "फ़ॉरवर्ड करें",
     react: "प्रतिक्रिया दें",
     you_reacted_with: "आपने {{emoji}} से प्रतिक्रिया दी",
+    reaction_sent: "प्रतिक्रिया भेजी गई",
     reacted_with: "{{name}} ने {{emoji}} से प्रतिक्रिया दी",
     reply_subject_prefix: "Re:",
     reply_from_mismatch_title: "किसी दूसरे पते से जवाब दें?",
@@ -8584,6 +8592,7 @@ export const hi = {
     show_quoted_text: "उद्धृत पाठ दिखाएं",
     hide_quoted_text: "उद्धृत पाठ छिपाएं",
     remove_quoted_text: "उद्धृत पाठ हटाएं",
+    edit_quoted_text: "उद्धृत पाठ संपादित करें",
     quoted_text_removed: "उद्धृत पाठ हटा दिया गया",
     restore_quoted_text: "वापस लाएं",
     show_forwarded: "फ़ॉरवर्ड किया हिस्सा दिखाएं",
@@ -8989,9 +8998,10 @@ export const hi = {
     op_in_trash: "ट्रैश में",
     op_in_drafts: "ड्राफ़्ट में",
     chip_any_time: "कभी भी",
-    chip_older_than_week: "एक हफ़्ते से पुराने",
-    chip_older_than_month: "एक महीने से पुराने",
-    chip_older_than_six_months: "6 महीने से पुराने",
+    chip_last_7_days: "पिछले 7 दिन",
+    chip_last_30_days: "पिछले 30 दिन",
+    chip_last_6_months: "पिछले 6 महीने",
+    chip_last_year: "पिछला वर्ष",
     chip_older_than_year: "एक साल से पुराने",
     chip_custom_range: "मनचाही अवधि",
     chip_has_attachment: "अटैचमेंट है",
@@ -8999,10 +9009,12 @@ export const hi = {
     chip_attachment_document: "दस्तावेज़",
     chip_attachment_pdf: "PDF",
     chip_attachment_video: "वीडियो",
-    chip_is_unread: "बिना पढ़ा है",
+    chip_is_unread: "अपठित",
     chip_name_or_email: "नाम या ईमेल",
     chip_no_people: "कोई मेल खाता व्यक्ति नहीं",
     chip_advanced_search: "उन्नत खोज",
+    chip_everywhere: "हर जगह",
+    chip_everywhere_hint: "स्पैम और ट्रैश शामिल हैं",
     spam_trash_hidden_notice:
       "स्पैम और ट्रैश के कुछ संदेश आपकी खोज से मेल खाते हैं।",
     search_index_partial:

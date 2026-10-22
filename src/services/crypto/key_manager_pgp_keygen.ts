@@ -36,7 +36,10 @@ import {
 import { load_openpgp } from "@/services/crypto/openpgp_loader";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { clamp_password } from "@/services/sanitize";
-import { normalize_address_ignoring_dots } from "@/utils/address_dots";
+import {
+  identity_addresses_for,
+  normalize_address_ignoring_dots,
+} from "@/utils/address_dots";
 
 export async function hash_email(email: string): Promise<string> {
   const encoder = new TextEncoder();
@@ -111,7 +114,10 @@ export async function generate_identity_keypair(
   const { privateKey, publicKey } = await openpgp.generateKey({
     type: "ecc",
     curve: "ed25519Legacy",
-    userIDs: [{ name, email }],
+    userIDs: identity_addresses_for(email).map((address) => ({
+      name,
+      email: address,
+    })),
     passphrase,
     format: "armored",
   });

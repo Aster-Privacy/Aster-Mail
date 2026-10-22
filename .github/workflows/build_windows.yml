@@ -20,6 +20,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.inputs.branch }}
+          persist-credentials: false
 
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -37,6 +38,9 @@ jobs:
         with:
           workspaces: src-tauri -> target
 
+      - name: Setup MSVC environment
+        uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1
+
       - name: Install frontend dependencies
         shell: bash
         run: |
@@ -44,13 +48,21 @@ jobs:
           npm ci --no-audit --no-fund --ignore-scripts
           npx --no-install patch-package
 
+      - name: Create a throwaway updater key for the bundler
+        shell: bash
+        run: npm run tauri -- signer generate --ci -w "$RUNNER_TEMP/throwaway_updater.key"
+
       - name: Build Tauri app
-        uses: tauri-apps/tauri-action@84b9d35b5fc46c1e45415bdb6144030364f7ebc5 # v0.6.2
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ''
           VITE_SPECIAL_OFFER_ENABLED: "true"
-        with:
-          tauriScript: npm run tauri
+        shell: bash
+        run: |
+          set -euo pipefail
+          source scripts/use_msvc_toolchain.sh
+          TAURI_SIGNING_PRIVATE_KEY="$(cat "$RUNNER_TEMP/throwaway_updater.key")"
+          export TAURI_SIGNING_PRIVATE_KEY
+          npm run tauri build
 
       - name: Upload EXE
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

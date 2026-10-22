@@ -4456,6 +4456,9 @@ export const ru = {
     billing_history: "История оплат",
     billing_status_active: "Активна",
     billing_status_renews: "Продлевается {{date}}",
+    billing_status_lifetime: "Пожизненный",
+    billing_lifetime_note:
+      "Этот тариф никогда не продлевается, и вы больше не платите за него. Чтобы изменить его, обратитесь в поддержку Aster.",
     billing_status_ending: "Заканчивается {{date}}",
     billing_status_attention: "Платёж требует внимания",
     billing_member_since: "Участник с {{date}}",
@@ -7247,6 +7250,8 @@ export const ru = {
     security_center_recommended: "Рекомендуемые действия",
     security_center_protected: "Защищено",
     security_center_all_clear: "Все средства защиты включены.",
+    security_center_met_of_total: "Включено защит: {{met}} из {{total}}",
+    security_center_account: "Ваш аккаунт",
     security_center_protection_score: "Оценка защиты",
     security_center_encryption_title: "Сквозное шифрование",
     security_center_encryption_detail:
@@ -8386,6 +8391,8 @@ export const ru = {
       "Вам пока никто не может написать. У домена нет маршрута почты, поэтому письма возвращаются отправителю.",
     domain_reason_mx_points_elsewhere:
       "Почта уходит к прежнему провайдеру, а не в Aster. Удалите старые MX-записи, чтобы письма приходили в этот ящик.",
+    domain_reason_mx_shared:
+      "Часть вашей почты может уходить на {{detail}}, а не в Aster, потому что у этой MX-записи такой же или более высокий приоритет. Удалите её, чтобы вся почта приходила в этот ящик.",
     domain_reason_spf_missing:
       "Ваши письма могут отклоняться или попадать в спам: другим провайдерам ничто не сообщает, что Aster вправе отправлять от вашего имени.",
     domain_reason_spf_missing_include:
@@ -8819,6 +8826,7 @@ export const ru = {
     reply_all: "Ответить всем",
     react: "Отреагировать",
     you_reacted_with: "Вы отреагировали {{emoji}}",
+    reaction_sent: "Реакция отправлена",
     reacted_with: "{{name}} отреагировал(а) {{emoji}}",
     forward: "Переслать",
     to: "Кому",
@@ -8930,6 +8938,7 @@ export const ru = {
     show_quoted_text: "Показать цитируемый текст",
     hide_quoted_text: "Скрыть цитируемый текст",
     remove_quoted_text: "Удалить цитируемый текст",
+    edit_quoted_text: "Изменить цитируемый текст",
     quoted_text_removed: "Цитируемый текст удалён",
     restore_quoted_text: "Восстановить",
     show_forwarded: "Показать пересланное",
@@ -9560,9 +9569,10 @@ export const ru = {
     op_has_video: "Есть видео",
     op_in_drafts: "В черновиках",
     chip_any_time: "Любое время",
-    chip_older_than_week: "Старше недели",
-    chip_older_than_month: "Старше месяца",
-    chip_older_than_six_months: "Старше 6 месяцев",
+    chip_last_7_days: "Последние 7 дней",
+    chip_last_30_days: "Последние 30 дней",
+    chip_last_6_months: "Последние 6 месяцев",
+    chip_last_year: "Последний год",
     chip_older_than_year: "Старше года",
     chip_custom_range: "Свой диапазон",
     chip_has_attachment: "С вложением",
@@ -9574,6 +9584,8 @@ export const ru = {
     chip_name_or_email: "Имя или адрес",
     chip_no_people: "Нет подходящих контактов",
     chip_advanced_search: "Расширенный поиск",
+    chip_everywhere: "Везде",
+    chip_everywhere_hint: "Включая Спам и Корзину",
     spam_trash_hidden_notice:
       "Некоторые письма в спаме и корзине соответствуют запросу.",
     search_index_partial:

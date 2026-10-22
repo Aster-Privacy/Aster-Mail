@@ -25,6 +25,10 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { HASH_ALG } from "@/services/crypto/constants";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import {
+  get_or_create_key,
+  get_secret_cache_id,
+} from "@/services/crypto/crypto_key_cache";
+import {
   list_tags,
   create_tag,
   update_tag,
@@ -202,11 +206,19 @@ async function derive_tag_key(identity_key: string): Promise<CryptoKey> {
   );
 }
 
+const TAG_KEY_CACHE_LABEL = "tag_field_key";
+
+function get_tag_key(identity_key: string): Promise<CryptoKey> {
+  const cache_id = get_secret_cache_id(TAG_KEY_CACHE_LABEL, identity_key);
+
+  return get_or_create_key(cache_id, "aes", () => derive_tag_key(identity_key));
+}
+
 async function encrypt_tag_field(
   field: string,
   identity_key: string,
 ): Promise<{ encrypted: string; nonce: string }> {
-  const key = await derive_tag_key(identity_key);
+  const key = await get_tag_key(identity_key);
   const nonce = crypto.getRandomValues(new Uint8Array(12));
   const data = new TextEncoder().encode(field);
 
@@ -227,7 +239,7 @@ async function decrypt_tag_field(
   nonce: string,
   identity_key: string,
 ): Promise<string> {
-  const key = await derive_tag_key(identity_key);
+  const key = await get_tag_key(identity_key);
   const encrypted_data = base64_to_array(encrypted);
   const nonce_data = base64_to_array(nonce);
 

@@ -89,11 +89,12 @@ describe("ratchet state container", () => {
     });
   });
 
-  it("accepts a legacy container without a version", () => {
+  it("accepts a legacy container without a version on first upgrade", () => {
     const result = decode_ratchet_state_container(
       container({ state: STATE, conversation_id: "conv-a" }),
       "conv-a",
-      40,
+      0,
+      false,
       false,
     );
 
@@ -102,6 +103,81 @@ describe("ratchet state container", () => {
       state: { state: STATE, conversation_id: "conv-a" },
       sync_version: null,
     });
+  });
+
+  it("refuses a container without a version once a floor exists", () => {
+    for (const floor of [40, 9_000_000_000_000]) {
+      expect(
+        decode_ratchet_state_container(
+          container({ state: STATE, conversation_id: "conv-a" }),
+          "conv-a",
+          floor,
+          false,
+        ).kind,
+      ).toBe("unbound");
+    }
+  });
+
+  it("accepts a container without a version for a merge only when it names its conversation", () => {
+    expect(
+      decode_ratchet_state_container(
+        container({ state: STATE, conversation_id: "conv-a" }),
+        "conv-a",
+        40,
+        false,
+        true,
+        true,
+      ),
+    ).toEqual({
+      kind: "accepted",
+      state: { state: STATE, conversation_id: "conv-a" },
+      sync_version: null,
+    });
+    expect(
+      decode_ratchet_state_container(
+        container({ state: STATE }),
+        "conv-a",
+        40,
+        false,
+        true,
+        true,
+      ).kind,
+    ).toBe("unbound");
+  });
+
+  it("refuses a container without a version over a local state", () => {
+    expect(
+      decode_ratchet_state_container(
+        container({ state: STATE, conversation_id: "conv-a" }),
+        "conv-a",
+        0,
+        false,
+        true,
+      ).kind,
+    ).toBe("unbound");
+  });
+
+  it("refuses a versioned container without its id once established", () => {
+    expect(
+      decode_ratchet_state_container(
+        container({ state: STATE, sync_version: 60 }),
+        "conv-a",
+        50,
+        false,
+      ).kind,
+    ).toBe("unbound");
+  });
+
+  it("accepts a versioned container with its id over a local state", () => {
+    const result = decode_ratchet_state_container(
+      container({ state: STATE, conversation_id: "conv-a", sync_version: 60 }),
+      "conv-a",
+      50,
+      false,
+      true,
+    );
+
+    expect(result.kind).toBe("accepted");
   });
 
   it("accepts a versioned container at or above the floor", () => {

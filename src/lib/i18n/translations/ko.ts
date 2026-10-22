@@ -4325,6 +4325,9 @@ export const ko = {
       "요금제가 {{date}}에 종료됩니다. 이후 계정은 무료 요금제로 전환됩니다.",
     billing_status_active: "활성",
     billing_status_renews: "{{date}}에 갱신",
+    billing_status_lifetime: "평생",
+    billing_lifetime_note:
+      "이 요금제는 갱신되지 않으며 다시 결제할 필요가 없습니다. 변경하려면 Aster 지원팀에 문의하세요.",
     billing_status_ending: "{{date}}에 종료",
     billing_status_attention: "결제 확인이 필요합니다",
     billing_member_since: "{{date}}부터 회원",
@@ -5182,7 +5185,8 @@ export const ko = {
     font_size_description_desktop:
       "이메일 텍스트와 앱의 일부 텍스트 크기를 변경합니다. 모든 항목을 크게 보려면 외관에서 인터페이스 크기를 변경하세요.",
     interface_zoom: "인터페이스 크기",
-    interface_zoom_description: "앱 전체의 텍스트, 아이콘, 간격을 크게 또는 작게 표시합니다.",
+    interface_zoom_description:
+      "앱 전체의 텍스트, 아이콘, 간격을 크게 또는 작게 표시합니다.",
     interface_zoom_shortcut:
       "키보드로 크기를 변경하려면 Ctrl+더하기 또는 Ctrl+빼기를 누르세요. 원래 크기로 되돌리려면 Ctrl+0을 누르세요.",
     interface_zoom_shortcut_mac:
@@ -7084,6 +7088,8 @@ export const ko = {
     security_center_recommended: "권장 작업",
     security_center_protected: "보호됨",
     security_center_all_clear: "모든 보호 기능이 켜져 있습니다.",
+    security_center_met_of_total: "보호 기능 {{total}}개 중 {{met}}개 켜짐",
+    security_center_account: "내 계정",
     security_center_protection_score: "보호 점수",
     security_center_encryption_title: "종단 간 암호화",
     security_center_encryption_detail:
@@ -7955,6 +7961,8 @@ export const ko = {
       "아직 아무도 메일을 보낼 수 없습니다. 도메인에 메일 경로가 없어 메시지가 보낸 사람에게 반송됩니다.",
     domain_reason_mx_points_elsewhere:
       "메일이 Aster가 아니라 이전 제공업체로 갑니다. 기존 MX 레코드를 삭제하면 이 편지함으로 도착합니다.",
+    domain_reason_mx_shared:
+      "이 MX 레코드의 우선순위가 Aster와 같거나 더 높아서 일부 메일이 Aster 대신 {{detail}}(으)로 전달될 수 있습니다. 모든 메일이 이 받은편지함에 도착하도록 해당 레코드를 삭제하세요.",
     domain_reason_spf_missing:
       "Aster가 대신 보낼 수 있다는 표시가 없어, 보내는 메일이 거부되거나 스팸으로 표시될 수 있습니다.",
     domain_reason_spf_missing_include:
@@ -8286,6 +8294,7 @@ export const ko = {
     reply_all: "전체 답장",
     react: "반응하기",
     you_reacted_with: "{{emoji}} 반응을 남겼습니다",
+    reaction_sent: "반응을 보냈습니다",
     reacted_with: "{{name}}님이 {{emoji}} 반응을 남겼습니다",
     forward: "전달",
     to: "받는 사람",
@@ -8394,6 +8403,7 @@ export const ko = {
     show_quoted_text: "인용문 표시",
     hide_quoted_text: "인용문 숨기기",
     remove_quoted_text: "인용문 제거",
+    edit_quoted_text: "인용문 편집",
     quoted_text_removed: "인용문이 제거됨",
     restore_quoted_text: "복원",
     show_forwarded: "전달 내용 표시",
@@ -8998,9 +9008,10 @@ export const ko = {
     op_in_trash: "휴지통",
     op_in_drafts: "임시 보관함",
     chip_any_time: "모든 기간",
-    chip_older_than_week: "1주일 이전",
-    chip_older_than_month: "1개월 이전",
-    chip_older_than_six_months: "6개월 이전",
+    chip_last_7_days: "최근 7일",
+    chip_last_30_days: "최근 30일",
+    chip_last_6_months: "최근 6개월",
+    chip_last_year: "최근 1년",
     chip_older_than_year: "1년 이전",
     chip_custom_range: "기간 지정",
     chip_has_attachment: "첨부파일 있음",
@@ -9012,6 +9023,8 @@ export const ko = {
     chip_name_or_email: "이름 또는 이메일",
     chip_no_people: "일치하는 사람이 없습니다",
     chip_advanced_search: "고급 검색",
+    chip_everywhere: "모든 위치",
+    chip_everywhere_hint: "스팸 및 휴지통 포함",
     spam_trash_hidden_notice:
       "스팸과 휴지통에 검색과 일치하는 메일이 있습니다.",
     search_index_partial:

@@ -709,8 +709,9 @@ export function use_registration(options?: RegistrationClaimOptions) {
     const typed_username = sanitize_username_input(parse_local_part(username));
     const clean_username = typed_username.replace(/\./g, "");
     const email = `${clean_username}@${email_domain}`;
+    const display_email = `${typed_username}@${email_domain}`;
 
-    set_generated_email(`${typed_username}@${email_domain}`);
+    set_generated_email(display_email);
 
     try {
       set_generation_status(t("auth.generating_encryption_keys"));
@@ -723,8 +724,8 @@ export function use_registration(options?: RegistrationClaimOptions) {
       set_generation_status(t("auth.creating_identity_keypair"));
       await yield_to_ui();
       const identity_keypair = await generate_identity_keypair(
-        clean_username,
-        email,
+        typed_username,
+        display_email,
         password,
       );
 

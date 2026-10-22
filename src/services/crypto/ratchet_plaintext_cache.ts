@@ -42,6 +42,55 @@ interface CachedPlaintext {
   plaintext: string;
   stored_at: number;
   unauthenticated?: boolean;
+  sender?: string;
+  conversation_id?: string;
+}
+
+export interface PlaintextBinding {
+  sender: string;
+  conversation_id: string;
+}
+
+function normalize_binding(binding: PlaintextBinding): PlaintextBinding {
+  return {
+    sender: binding.sender.trim().toLowerCase(),
+    conversation_id: binding.conversation_id,
+  };
+}
+
+function is_foreign_entry(
+  entry: CachedPlaintext,
+  binding: PlaintextBinding | undefined,
+): boolean {
+  if (typeof entry.sender !== "string") return false;
+  if (!binding) return true;
+
+  const bound = normalize_binding(binding);
+
+  if (entry.sender !== bound.sender) return true;
+
+  return (
+    typeof entry.conversation_id === "string" &&
+    !!bound.conversation_id &&
+    entry.conversation_id !== bound.conversation_id
+  );
+}
+
+function build_entry(
+  plaintext: string,
+  unauthenticated: boolean,
+  binding: PlaintextBinding | undefined,
+): CachedPlaintext {
+  const bound = binding ? normalize_binding(binding) : null;
+
+  return {
+    plaintext,
+    stored_at: Date.now(),
+    ...(unauthenticated ? { unauthenticated: true } : {}),
+    ...(bound
+      ? { sender: bound.sender, conversation_id: bound.conversation_id }
+      : {}),
+  };
 }
 
 interface CacheScope {
@@ -82,29 +131,59 @@ async function get_cache_key(): Promise<CryptoKey | null> {
   return key;
 }
 
+interface FoundEntry {
+  entry: CachedPlaintext;
+  key: CryptoKey;
+  scope: CacheScope;
+}
+
+async function read_entry(message_id: string): Promise<FoundEntry | null> {
+  const key = await get_cache_key();
+
+  if (!key) return null;
+
+  const scope = await current_cache_scope();
+
+  if (!scope) return null;
+
+  const entry = await scoped_get<CachedPlaintext>(
+    RATCHET_PLAINTEXT_PREFIX,
+    scope.uid,
+    message_id,
+    key,
+    { include_unscoped: false },
+  );
+
+  return entry ? { entry, key, scope } : null;
+}
+
+export async function is_cached_plaintext_foreign(
+  message_id: string,
+  binding: PlaintextBinding,
+): Promise<boolean> {
+  if (!message_id) return false;
+  try {
+    const found = await read_entry(message_id);
+
+    return found
+      ? is_foreign_entry(found.entry, binding) && !found.entry.unauthenticated
+      : false;
+  } catch {
+    return true;
+  }
+}
+
 export async function get_cached_ratchet_plaintext(
   message_id: string,
+  binding?: PlaintextBinding,
 ): Promise<string | null> {
   if (!message_id) return null;
   try {
-    const key = await get_cache_key();
+    const found = await read_entry(message_id);
 
-    if (!key) return null;
+    if (!found) return null;
 
-    const scope = await current_cache_scope();
-
-    if (!scope) return null;
-
-    const entry = await scoped_get<CachedPlaintext>(
-      RATCHET_PLAINTEXT_PREFIX,
-      scope.uid,
-      message_id,
-      key,
-      { include_unscoped: false },
-    );
-
-    if (!entry) return null;
-
+    const { entry, key, scope } = found;
     const age = Date.now() - entry.stored_at;
 
     if (age > RETENTION_MS) {
@@ -113,12 +192,12 @@ export async function get_cached_ratchet_plaintext(
       return null;
     }
 
+    if (is_foreign_entry(entry, binding)) return null;
+
+    const unbound = typeof entry.sender !== "string";
+
     if (age > REFRESH_AFTER_MS) {
-      const refreshed: CachedPlaintext = {
-        plaintext: entry.plaintext,
-        stored_at: Date.now(),
-        ...(entry.unauthenticated ? { unauthenticated: true } : {}),
-      };
+      const refreshed: CachedPlaintext = { ...entry, stored_at: Date.now() };
 
       await scoped_set(
         RATCHET_PLAINTEXT_PREFIX,
@@ -129,8 +208,8 @@ export async function get_cached_ratchet_plaintext(
       );
     }
 
-    if (entry.unauthenticated) {
-      mark_unauthenticated_plaintext(entry.plaintext);
+    if (entry.unauthenticated || unbound) {
+      mark_unauthenticated_plaintext(entry.plaintext, message_id);
     }
 
     return entry.plaintext;
@@ -143,6 +222,7 @@ export async function set_cached_ratchet_plaintext(
   message_id: string,
   plaintext: string,
   unauthenticated = false,
+  binding?: PlaintextBinding,
 ): Promise<void> {
   if (!message_id) return;
   try {
@@ -150,21 +230,31 @@ export async function set_cached_ratchet_plaintext(
 
     if (!key) return;
 
-    const entry: CachedPlaintext = {
-      plaintext,
-      stored_at: Date.now(),
-      ...(unauthenticated ? { unauthenticated: true } : {}),
-    };
-
     const scope = await current_cache_scope();
 
     if (!scope) return;
+
+    const existing = await scoped_get<CachedPlaintext>(
+      RATCHET_PLAINTEXT_PREFIX,
+      scope.uid,
+      message_id,
+      key,
+      { include_unscoped: false },
+    );
+
+    if (
+      existing &&
+      is_foreign_entry(existing, binding) &&
+      (unauthenticated || !existing.unauthenticated || !binding)
+    ) {
+      return;
+    }
 
     await scoped_set(
       RATCHET_PLAINTEXT_PREFIX,
       scope.uid,
       message_id,
-      entry,
+      build_entry(plaintext, unauthenticated, binding),
       key,
     );
   } catch {

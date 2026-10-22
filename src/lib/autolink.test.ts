@@ -196,3 +196,37 @@ describe("sanitize_html autolinks", () => {
     expect(html).toContain(">hello@astermail.org</a>.");
   });
 });
+
+describe("autolink scanning on hostile text", () => {
+  const cases: Array<[string, string]> = [
+    ["long local part", "a".repeat(200000)],
+    ["many failed addresses", "a@".repeat(100000)],
+    ["long domain", `a@${"b".repeat(200000)}`],
+    ["dotted domain", `a@${"b.".repeat(100000)}`],
+    ["dashed domain", `a@${"b-".repeat(100000)}`],
+    ["closing parens", `http://x${")".repeat(200000)}`],
+    ["semicolons", `http://x${";".repeat(200000)}`],
+    ["entities", `http://x${"&a;".repeat(60000)}`],
+    ["bare www", "www. ".repeat(40000)],
+  ];
+
+  it.each(cases)("finds links in %s quickly", (_label, text) => {
+    const started = performance.now();
+
+    find_autolinks(text);
+
+    expect(performance.now() - started).toBeLessThan(500);
+  });
+
+  it("still trims balanced brackets, entities and punctuation", () => {
+    expect(links("see (https://x.com/a_(b)))")).toEqual([
+      "https://x.com/a_(b)",
+    ]);
+    expect(links("go https://x.com/a&amp;;")).toEqual(["https://x.com/a"]);
+    expect(links("go https://x.com/a&#39;.")).toEqual(["https://x.com/a"]);
+    expect(links("mail a.b+c@sub.example.com.")).toEqual([
+      "a.b+c@sub.example.com",
+    ]);
+    expect(links("x/user@example.com")).toEqual([]);
+  });
+});

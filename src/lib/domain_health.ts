@@ -58,6 +58,10 @@ const REASON_KEYS: Record<string, TranslationKey> = {
   dmarc_missing: "settings.domain_reason_dmarc_missing",
 };
 
+const WARNING_REASON_KEYS: Record<string, TranslationKey> = {
+  mx_shared: "settings.domain_reason_mx_shared",
+};
+
 const HINT_KEYS: Record<string, TranslationKey> = {
   dkim_truncated: "settings.domain_hint_dkim_truncated",
   dkim_quoted: "settings.domain_hint_dkim_quoted",
@@ -70,7 +74,20 @@ export function check_label_key(key: DomainCheckKey): TranslationKey {
   return CHECK_LABEL_KEYS[key];
 }
 
+function warning_key(check: DomainCheck): TranslationKey | undefined {
+  if (check.outcome !== "pass" || !check.reason) return undefined;
+
+  return WARNING_REASON_KEYS[check.reason];
+}
+
+export function check_has_warning(check: DomainCheck): boolean {
+  return warning_key(check) !== undefined;
+}
+
 export function check_status_key(check: DomainCheck): TranslationKey {
+  const warning = warning_key(check);
+
+  if (warning) return warning;
   if (check.outcome === "pass") return CHECK_PASS_KEYS[check.key];
   if (check.outcome === "unknown") return "settings.domain_check_unknown";
 
@@ -116,7 +133,8 @@ export function hero_copy(health: DomainHealth | null): HeroCopy {
 }
 
 export function sort_checks(checks: DomainCheck[]): DomainCheck[] {
-  const failing = (c: DomainCheck) => (c.outcome === "fail" ? 0 : 1);
+  const failing = (c: DomainCheck) =>
+    c.outcome === "fail" ? 0 : check_has_warning(c) ? 1 : 2;
 
   return [...checks].sort((a, b) => {
     const by_state = failing(a) - failing(b);

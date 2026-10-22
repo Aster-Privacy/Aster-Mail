@@ -417,6 +417,7 @@ export function use_settings_content(props: SettingsContentProps) {
       set_show_mobile_nav(false);
 
       if (value === section_ref.current) {
+        consume_pending_settings_anchor();
         if (anchor) scroll_to_settings_anchor(anchor, true);
 
         return;
