@@ -103,6 +103,28 @@ async function render_sign_in() {
   await advance(100);
 }
 
+async function unmount_sign_in() {
+  if (root) await act(async () => root!.unmount());
+  container?.remove();
+  root = null;
+  container = null;
+}
+
+function seed_codes(
+  entries: { code: string; device_key: string; expires_in_ms: number }[],
+) {
+  localStorage.setItem(
+    "aster_device_link_codes",
+    JSON.stringify(
+      entries.map((entry) => ({
+        code: entry.code,
+        device_key: entry.device_key,
+        expires_at: Date.now() + entry.expires_in_ms,
+      })),
+    ),
+  );
+}
+
 async function advance(ms: number) {
   await act(async () => {
     await vi.advanceTimersByTimeAsync(ms);
@@ -112,6 +134,7 @@ async function advance(ms: number) {
 describe("desktop code sign-in", () => {
   beforeEach(() => {
     vi.useFakeTimers();
+    localStorage.clear();
     invoke_mock.mockReset();
     request_device_code_mock.mockReset();
     poll_device_code_status_mock.mockReset();
@@ -247,5 +270,81 @@ describe("desktop code sign-in", () => {
       "success",
     );
     expect(copy!.textContent).toBe("auth.device_code_copy");
+  });
+
+  it("shows the same code again after the window reloads", async () => {
+    await render_sign_in();
+    await advance(30_000);
+    await unmount_sign_in();
+
+    request_device_code_mock.mockResolvedValue({
+      code: "WXYZ-2345",
+      expires_in: 600,
+    });
+    await render_sign_in();
+    await advance(4_000);
+
+    expect(request_device_code_mock).toHaveBeenCalledTimes(1);
+    expect(container!.textContent).toContain("ABCDEFGH");
+    expect(poll_device_code_status_mock).toHaveBeenLastCalledWith("ABCD-EFGH");
+  });
+
+  it("links when an older code that is still valid gets confirmed", async () => {
+    seed_codes([
+      { code: "OLDC-ODE1", device_key: "pk", expires_in_ms: 60_000 },
+    ]);
+    complete_device_pairing_mock.mockResolvedValue({
+      error: "stop_here",
+      login_response: null,
+      passphrase: null,
+      device_id: "dev-1",
+    });
+    poll_device_code_status_mock.mockImplementation(async (code: string) =>
+      code === "OLDC-ODE1"
+        ? { status: "confirmed", device_id: "dev-1", sealed_envelope: "env" }
+        : { status: "pending" },
+    );
+
+    await render_sign_in();
+    await advance(4_000);
+
+    expect(request_device_code_mock).toHaveBeenCalledTimes(1);
+    expect(poll_device_code_status_mock).toHaveBeenCalledWith("OLDC-ODE1");
+    expect(complete_device_pairing_mock).toHaveBeenCalledWith("dev-1", "env");
+    expect(localStorage.getItem("aster_device_link_codes")).toBeNull();
+  });
+
+  it("ignores codes that belong to other device keys", async () => {
+    seed_codes([
+      { code: "OTHE-RKEY", device_key: "other", expires_in_ms: 500_000 },
+    ]);
+
+    await render_sign_in();
+    await advance(4_000);
+
+    expect(request_device_code_mock).toHaveBeenCalledTimes(1);
+    expect(poll_device_code_status_mock).not.toHaveBeenCalledWith("OTHE-RKEY");
+  });
+
+  it("drops a code that the server reports as expired", async () => {
+    seed_codes([
+      { code: "GONE-CODE", device_key: "pk", expires_in_ms: 60_000 },
+    ]);
+    poll_device_code_status_mock.mockImplementation(async (code: string) =>
+      code === "GONE-CODE" ? { status: "expired" } : { status: "pending" },
+    );
+
+    await render_sign_in();
+    await advance(10_000);
+
+    expect(container!.textContent).toContain("auth.device_code_title");
+    expect(
+      poll_device_code_status_mock.mock.calls.filter(
+        ([code]) => code === "GONE-CODE",
+      ),
+    ).toHaveLength(1);
+    expect(localStorage.getItem("aster_device_link_codes")).not.toContain(
+      "GONE-CODE",
+    );
   });
 });
