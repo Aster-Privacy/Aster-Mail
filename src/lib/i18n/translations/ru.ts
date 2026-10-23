@@ -2313,6 +2313,10 @@ export const ru = {
     quick_more_appearance: "Другие темы",
     quick_preview_text: "Текст предпросмотра",
     quick_sender_pictures: "Аватары отправителей",
+    quick_inbox_categories: "Категории входящих",
+    quick_manage_categories: "Управление категориями",
+    quick_categories_turned_on: "Категории входящих включены",
+    quick_categories_turned_off: "Категории входящих выключены",
     sender_pictures: "Аватары отправителей",
     sender_pictures_description:
       "Показывает фото или инициалы отправителя рядом с каждым письмом во входящих.",
