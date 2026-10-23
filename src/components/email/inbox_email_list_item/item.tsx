@@ -242,10 +242,6 @@ export const InboxEmailListItem = memo(
         [email.tags, current_tag_token],
       );
 
-      const show_attachment_chips =
-        attachment_previews?.state === "loaded" &&
-        attachment_previews.attachments.length > 0;
-
       const [is_dragging, set_is_dragging] = useState(false);
       const [row_engaged, set_row_engaged] = useState(false);
 
@@ -782,7 +778,6 @@ export const InboxEmailListItem = memo(
                     className={cn(
                       "flex-shrink-0 inline-flex items-center",
                       email.is_read ? "text-txt-muted" : "text-txt-secondary",
-                      show_attachment_chips && "md:hidden",
                     )}
                     data-testid="attachment-indicator"
                     role="img"
