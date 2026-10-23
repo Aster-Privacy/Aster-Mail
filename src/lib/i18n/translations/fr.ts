@@ -2190,6 +2190,10 @@ export const fr = {
     quick_more_appearance: "Plus de thèmes",
     quick_preview_text: "Texte d'aperçu",
     quick_sender_pictures: "Photos des expéditeurs",
+    quick_inbox_categories: "Catégories de la boîte de réception",
+    quick_manage_categories: "Gérer les catégories",
+    quick_categories_turned_on: "Catégories de la boîte de réception activées",
+    quick_categories_turned_off: "Catégories de la boîte de réception désactivées",
     sender_pictures: "Photos des expéditeurs",
     sender_pictures_description:
       "Affiche la photo ou les initiales de l'expéditeur à côté de chaque message de votre boîte de réception.",

@@ -163,6 +163,7 @@ fix_one() {
     *) comp="gzip" ;;
   esac
 
+  chmod -R u+rwX,go+rX,go-w "$appdir"
   mksquashfs "$appdir" "$work/payload.squashfs" \
     -root-owned -noappend -no-progress -quiet -mkfs-time 0 -comp "$comp" -b 128K
   cat "$work/runtime.bin" "$work/payload.squashfs" > "$work/repacked.AppImage"

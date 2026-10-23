@@ -2172,6 +2172,10 @@ export const nl = {
     quick_more_appearance: "Meer thema's",
     quick_preview_text: "Voorbeeldtekst",
     quick_sender_pictures: "Afzenderafbeeldingen",
+    quick_inbox_categories: "Inboxcategorieën",
+    quick_manage_categories: "Categorieën beheren",
+    quick_categories_turned_on: "Inboxcategorieën ingeschakeld",
+    quick_categories_turned_off: "Inboxcategorieën uitgeschakeld",
     sender_pictures: "Afzenderafbeeldingen",
     sender_pictures_description:
       "Toont de foto of initialen van de afzender naast elk bericht in je Postvak IN.",

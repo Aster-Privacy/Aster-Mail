@@ -2160,6 +2160,10 @@ export const tr = {
     quick_more_appearance: "Daha fazla tema",
     quick_preview_text: "Önizleme metni",
     quick_sender_pictures: "Gönderen resimleri",
+    quick_inbox_categories: "Gelen kutusu kategorileri",
+    quick_manage_categories: "Kategorileri yönet",
+    quick_categories_turned_on: "Gelen kutusu kategorileri açıldı",
+    quick_categories_turned_off: "Gelen kutusu kategorileri kapatıldı",
     sender_pictures: "Gönderen resimleri",
     sender_pictures_description:
       "Gelen kutunuzdaki her iletinin yanında gönderenin fotoğrafını veya baş harflerini gösterir.",

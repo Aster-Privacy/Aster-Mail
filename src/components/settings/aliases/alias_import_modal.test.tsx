@@ -58,6 +58,9 @@ vi.mock("@/services/api/aliases", async () => {
     update_alias: vi.fn(),
     compute_alias_hash: vi.fn(async () => "alias-hash"),
     compute_routing_hash: vi.fn(async () => "routing-hash"),
+    compute_legacy_routing_hash: vi.fn(async (local_part: string) =>
+      local_part.includes(".") ? "legacy-routing-hash" : null,
+    ),
     encrypt_alias_field: vi.fn(async (value: string) => ({
       encrypted: `enc:${value}`,
       nonce: "nonce",
@@ -509,6 +512,22 @@ describe("notes", () => {
     expect(item.display_name_nonce).toBeUndefined();
     expect(item.encrypted_note).toBe("enc:Booking sites");
     expect(item.note_nonce).toBe("nonce");
+  });
+
+  it("sends the legacy routing hash only for dotted addresses", async () => {
+    await render_modal();
+    await load_csv(
+      ["alias", "jesper.floymo@astermail.org", "plain@astermail.org", ""].join(
+        "\n",
+      ),
+    );
+    await confirm_import();
+
+    const items = vi.mocked(bulk_create_aliases).mock.calls[0][0];
+
+    expect(items).toHaveLength(2);
+    expect(items[0].legacy_routing_address_hash).toBe("legacy-routing-hash");
+    expect(items[1].legacy_routing_address_hash).toBeUndefined();
   });
 
   it("still uses the note as the display name when there is no display_name column", async () => {

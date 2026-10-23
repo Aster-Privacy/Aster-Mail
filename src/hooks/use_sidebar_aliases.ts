@@ -28,6 +28,7 @@ import {
   reencrypt_alias_local_part,
   compute_routing_hash,
   backfill_missing_routing_hashes,
+  heal_legacy_routing_hashes,
   type DecryptedEmailAlias,
   type EmailAlias,
   type AliasCountsResponse,
@@ -49,7 +50,7 @@ import {
   get_derived_encryption_key,
   on_keys_ready,
 } from "@/services/crypto/memory_key_store";
-import { MAIL_EVENTS } from "@/hooks/mail_events";
+import { emit_aliases_changed, MAIL_EVENTS } from "@/hooks/mail_events";
 import { use_auth_safe } from "@/contexts/auth_context";
 import { ignore_error } from "@/lib/ignore_error";
 
@@ -493,6 +494,16 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
 
         void fetch_unread_ref.current?.();
         void backfill_missing_routing_hashes(raw_alias_list ?? undefined);
+        void heal_legacy_routing_hashes(raw_alias_list ?? [])
+          .then((changed) => {
+            if (changed) emit_aliases_changed();
+          })
+          .catch((caught) =>
+            ignore_error(
+              "hooks/use_sidebar_aliases:heal_legacy_routing_hashes",
+              caught,
+            ),
+          );
         void refresh_ghost_alias_index();
 
         if (counts_response.data) {

@@ -2181,6 +2181,10 @@ export const es = {
     quick_more_appearance: "Más temas",
     quick_preview_text: "Texto de vista previa",
     quick_sender_pictures: "Fotos del remitente",
+    quick_inbox_categories: "Categorías de la bandeja de entrada",
+    quick_manage_categories: "Gestionar categorías",
+    quick_categories_turned_on: "Categorías de la bandeja de entrada activadas",
+    quick_categories_turned_off: "Categorías de la bandeja de entrada desactivadas",
     sender_pictures: "Fotos del remitente",
     sender_pictures_description:
       "Muestra la foto o las iniciales del remitente junto a cada mensaje de tu bandeja de entrada.",

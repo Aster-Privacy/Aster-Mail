@@ -1319,6 +1319,85 @@ describe("repair_email_contrast in dark mode newsletters", () => {
     expect(ratio).toBeGreaterThanOrEqual(4.5);
     expect(ratio).toBeLessThan(5);
   });
+
+  it("gives text in a light cell the dark mode cleared the canvas ink over a dark author wrapper", () => {
+    const doc = build_document();
+
+    doc.body.innerHTML =
+      '<div data-bg="rgb(22, 24, 25)">' +
+      '<table bgcolor="#ffffff"><tbody><tr>' +
+      '<td style="background-color: #ffffff">' +
+      '<h1 data-color="rgb(22, 24, 25)" data-size="28px" data-weight="700" id="headline">Release notes</h1>' +
+      '<p data-color="rgb(22, 24, 25)" id="body">Version two is out</p>' +
+      "</td></tr></tbody></table>" +
+      '<p data-color="rgb(153, 153, 153)" id="footer">Footer address</p>' +
+      "</div>";
+
+    repair_email_contrast(doc, {
+      surface: CARD,
+      ink: THEME_INK,
+      view: fake_view(),
+    });
+
+    for (const id of ["headline", "body"]) {
+      const repaired = doc.getElementById(id)!.style.getPropertyValue("color");
+
+      expect(repaired).toBe(THEME_INK);
+      expect(contrast_ratio(repaired, "#161819")).toBeGreaterThan(15);
+    }
+    expect(doc.getElementById("footer")!.style.getPropertyValue("color")).toBe(
+      "",
+    );
+  });
+
+  it("keeps the plain threshold when the cell never painted its bgcolor", () => {
+    const doc = build_document();
+
+    doc.body.innerHTML =
+      '<div data-bg="rgb(34, 32, 0)">' +
+      '<table bgcolor="#ffffff" style="background-color: transparent"><tbody><tr><td>' +
+      '<p data-color="rgb(102, 102, 102)" id="band">Most read</p>' +
+      "</td></tr></tbody></table>" +
+      "</div>";
+
+    repair_email_contrast(doc, {
+      surface: CARD,
+      ink: THEME_INK,
+      view: fake_view(),
+    });
+
+    const repaired = doc
+      .getElementById("band")!
+      .style.getPropertyValue("color");
+    const ratio = contrast_ratio(repaired, "#222000");
+
+    expect(ratio).toBeGreaterThanOrEqual(4.5);
+    expect(ratio).toBeLessThan(5);
+  });
+
+  it("leaves text over an author background image at the plain threshold", () => {
+    const doc = build_document();
+
+    doc.body.innerHTML =
+      '<div data-bgimage="url(https://cdn.example/hero.png)">' +
+      '<div style="background-color: #ffffff">' +
+      '<p data-color="rgb(102, 102, 102)" id="over_image">Caption</p>' +
+      "</div></div>";
+
+    repair_email_contrast(doc, {
+      surface: CARD,
+      ink: THEME_INK,
+      view: fake_view(),
+    });
+
+    const repaired = doc
+      .getElementById("over_image")!
+      .style.getPropertyValue("color");
+    const ratio = contrast_ratio(repaired, CARD);
+
+    expect(ratio).toBeGreaterThanOrEqual(4.5);
+    expect(ratio).toBeLessThan(5);
+  });
 });
 
 describe("mark_link_buttons", () => {

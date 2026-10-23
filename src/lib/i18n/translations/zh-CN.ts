@@ -2017,6 +2017,10 @@ export const zh_CN = {
     quick_more_appearance: "更多主题",
     quick_preview_text: "预览文字",
     quick_sender_pictures: "发件人头像",
+    quick_inbox_categories: "收件箱分类",
+    quick_manage_categories: "管理分类",
+    quick_categories_turned_on: "已开启收件箱分类",
+    quick_categories_turned_off: "已关闭收件箱分类",
     sender_pictures: "发件人头像",
     sender_pictures_description:
       "在收件箱中每封邮件旁显示发件人的头像或姓名首字母。",

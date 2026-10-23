@@ -2198,6 +2198,10 @@ export const hi = {
     quick_more_appearance: "और थीम",
     quick_preview_text: "झलक टेक्स्ट",
     quick_sender_pictures: "प्रेषक की तस्वीरें",
+    quick_inbox_categories: "इनबॉक्स श्रेणियाँ",
+    quick_manage_categories: "श्रेणियाँ प्रबंधित करें",
+    quick_categories_turned_on: "इनबॉक्स श्रेणियाँ चालू की गईं",
+    quick_categories_turned_off: "इनबॉक्स श्रेणियाँ बंद की गईं",
     sender_pictures: "प्रेषक की तस्वीरें",
     sender_pictures_description:
       "अपने इनबॉक्स में हर संदेश के आगे प्रेषक की तस्वीर या नाम के पहले अक्षर दिखाएं।",

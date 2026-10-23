@@ -2170,6 +2170,10 @@ export const ko = {
     quick_more_appearance: "테마 더보기",
     quick_preview_text: "미리보기 텍스트",
     quick_sender_pictures: "보낸사람 사진",
+    quick_inbox_categories: "받은편지함 카테고리",
+    quick_manage_categories: "카테고리 관리",
+    quick_categories_turned_on: "받은편지함 카테고리를 켰습니다",
+    quick_categories_turned_off: "받은편지함 카테고리를 껐습니다",
     sender_pictures: "보낸사람 사진",
     sender_pictures_description:
       "받은편지함의 각 메시지 옆에 보낸사람의 사진 또는 이니셜을 표시합니다.",

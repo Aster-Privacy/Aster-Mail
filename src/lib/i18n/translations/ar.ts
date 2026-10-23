@@ -2299,6 +2299,10 @@ export const ar = {
     quick_more_appearance: "المزيد من السمات",
     quick_preview_text: "نص المعاينة",
     quick_sender_pictures: "صور المرسلين",
+    quick_inbox_categories: "فئات البريد الوارد",
+    quick_manage_categories: "إدارة الفئات",
+    quick_categories_turned_on: "تم تشغيل فئات البريد الوارد",
+    quick_categories_turned_off: "تم إيقاف فئات البريد الوارد",
     sender_pictures: "صور المرسلين",
     sender_pictures_description:
       "يعرض صورة المرسل أو الأحرف الأولى من اسمه بجوار كل رسالة في البريد الوارد.",

@@ -547,6 +547,20 @@ interface BackgroundState {
   authored: boolean;
 }
 
+function clears_declared_background(
+  element: HTMLElement,
+  computed: Rgba | null,
+): boolean {
+  if (computed && computed.a > 0) return false;
+
+  const declared =
+    element.style?.getPropertyValue("background-color") ||
+    element.getAttribute("bgcolor");
+  const parsed = parse_css_color(declared);
+
+  return !!parsed && parsed.a > 0;
+}
+
 function make_state(hex: string, authored = false): BackgroundState {
   const rgba = parse_css_color(hex) ?? { r: 18, g: 18, b: 18, a: 1 };
 
@@ -757,6 +771,12 @@ export function repair_email_contrast(
           rgba_to_hex(composite_over(own_background, parent_state.rgba)),
           own_background.a >= 1 || parent_state.authored,
         );
+      } else if (
+        parent_state.authored &&
+        parent_state !== image_state &&
+        clears_declared_background(element, own_background)
+      ) {
+        state = make_state(parent_state.hex);
       }
 
       backgrounds.set(element, state);
