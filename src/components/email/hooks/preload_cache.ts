@@ -73,6 +73,7 @@ import {
   plain_text_to_html,
 } from "@/lib/html_sanitizer";
 import { get_image_proxy_url } from "@/lib/image_proxy";
+import { contain_untrusted_html } from "@/lib/untrusted_sources";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { get_current_account } from "@/services/account_manager";
 import {
@@ -440,7 +441,7 @@ function premeasure_height(
 
   shadow.innerHTML =
     `<style>${EMAIL_BODY_CSS}</style>` +
-    `<div style="${body_style}">${strip_remote_css_fetches(sanitize_preview_html(sanitized_html))}</div>`;
+    `<div style="${body_style}">${strip_remote_css_fetches(contain_untrusted_html(sanitize_preview_html(sanitized_html)))}</div>`;
 
   measure_container.appendChild(wrapper);
 

@@ -25,6 +25,11 @@ import {
   COMPOSE_ALLOWED_DISPLAY_VALUES,
   COMPOSE_ALLOWED_VERTICAL_ALIGN_VALUES,
 } from "./html_sanitizer_constants";
+import {
+  is_remote_url_value,
+  normalize_url_value,
+  to_absolute_remote_url,
+} from "./url_value";
 
 const TRANSPARENT_COLOR_VALUE_RE =
   /^(?:transparent|inherit|initial|unset|revert|none|rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*0(?:\.0+)?\s*\)|rgba\(\s*\d+\s+\d+\s+\d+\s*\/\s*0(?:\.0+)?\s*\)|hsla?\(\s*[\d.]+(?:deg)?\s*,\s*[\d.]+%\s*,\s*[\d.]+%\s*,\s*0(?:\.0+)?\s*\))$/i;
@@ -192,7 +197,6 @@ const CSS_WHITESPACE = /\s/;
 
 const CSS_STRING_QUOTE = /["']/;
 
-const REMOTE_CSS_URL = /^https?:\/\//i;
 const PLAIN_HTTP_URL = /^\s*http:\/\//i;
 
 export function build_proxy_url(proxy_url: string, target: string): string {
@@ -329,7 +333,7 @@ export function list_remote_css_urls(css: string): string[] {
 
   walk_css_urls(strip_css_comments(decode_css_escapes(css)), {
     url: (whole, inner) => {
-      if (REMOTE_CSS_URL.test(inner)) urls.push(inner);
+      if (is_remote_url_value(inner)) urls.push(normalize_url_value(inner));
 
       return whole;
     },
@@ -416,7 +420,9 @@ export function keep_embedded_image_sets(css: string): string {
 
     if (sources.length === 0) return "none";
 
-    return sources.every((source) => SAFE_CSS_IMAGE_SOURCE.test(source))
+    return sources.every((source) =>
+      SAFE_CSS_IMAGE_SOURCE.test(normalize_url_value(source)),
+    )
       ? whole
       : "none";
   });
@@ -428,7 +434,12 @@ function drop_unsafe_call(whole: string, inner: string): string {
   const sources = css_image_sources(inner);
 
   for (const value of sources.bare) {
-    if (value.length > 0 && !SAFE_CSS_IMAGE_SOURCE.test(value)) return "none";
+    if (
+      value.length > 0 &&
+      !SAFE_CSS_IMAGE_SOURCE.test(normalize_url_value(value))
+    ) {
+      return "none";
+    }
   }
 
   return sources.urls.length + sources.bare.length === 0 ? "none" : whole;
@@ -456,7 +467,7 @@ export function strip_css_urls(
   const decoded = strip_css_comments(decode_css_escapes(css));
   const url_stripped = walk_css_urls(decoded, {
     url: (whole, inner) => {
-      const trimmed = inner.toLowerCase();
+      const trimmed = normalize_url_value(inner).toLowerCase();
 
       if (
         trimmed.startsWith("cid:") ||
@@ -472,8 +483,11 @@ export function strip_css_urls(
           : "none";
       }
 
-      if (options.image_proxy_url && REMOTE_CSS_URL.test(trimmed)) {
-        const proxied = build_proxy_url(options.image_proxy_url, inner);
+      if (options.image_proxy_url && is_remote_url_value(trimmed)) {
+        const proxied = build_proxy_url(
+          options.image_proxy_url,
+          to_absolute_remote_url(inner),
+        );
 
         return `url("${proxied}")`;
       }
@@ -493,6 +507,48 @@ export function strip_css_urls(
     CROSS_FADE_HEAD,
     drop_unsafe_call,
   );
+}
+
+export interface RestrictedCss {
+  css: string;
+  blocked: boolean;
+}
+
+export function restrict_css_urls(
+  css: string,
+  is_allowed: (url: string) => boolean,
+): RestrictedCss {
+  let blocked = false;
+  const allow = (url: string): boolean => {
+    if (is_allowed(url)) return true;
+    blocked = true;
+
+    return false;
+  };
+  const restrict_call = (whole: string, inner: string): string => {
+    const sources = css_image_sources(inner);
+    const all_allowed = [...sources.urls, ...sources.bare]
+      .filter((source) => source.length > 0)
+      .every(allow);
+
+    return all_allowed ? whole : "none";
+  };
+  const decoded = strip_css_comments(decode_css_escapes(css));
+  const without_imports = decoded.replace(/@import[^;]*;?/gi, () => {
+    blocked = true;
+
+    return "";
+  });
+  const walked = walk_css_urls(without_imports, {
+    url: (whole, inner) => (allow(inner) ? whole : "none"),
+  });
+  const restricted = replace_balanced_calls(
+    replace_balanced_calls(walked, IMAGE_SET_HEAD, restrict_call),
+    CROSS_FADE_HEAD,
+    restrict_call,
+  );
+
+  return { css: restricted, blocked: blocked || restricted !== decoded };
 }
 
 const FONT_FACE_HEAD = /^@font-face\s*\{/i;
@@ -603,12 +659,12 @@ function proxy_font_face_urls(css: string, image_proxy_url: string): string {
 
   return walk_css_urls(decoded, {
     url: (whole, inner) => {
-      const lowered = inner.toLowerCase();
+      const lowered = normalize_url_value(inner).toLowerCase();
 
       if (lowered.startsWith("data:") || lowered.startsWith("#")) return whole;
 
-      if (font_proxy && REMOTE_CSS_URL.test(lowered)) {
-        return `url("${build_proxy_url(font_proxy, inner)}&content_type=font")`;
+      if (font_proxy && is_remote_url_value(lowered)) {
+        return `url("${build_proxy_url(font_proxy, to_absolute_remote_url(inner))}&content_type=font")`;
       }
 
       return "none";

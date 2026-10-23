@@ -54,6 +54,14 @@ import {
   repair_comment_markup,
   sanitize_attribute,
 } from "./html_sanitizer_utils";
+import {
+  get_page_origin,
+  is_remote_url_value,
+  normalize_url_value,
+  parse_srcset_candidates,
+  to_absolute_remote_url,
+  type SrcsetCandidate,
+} from "./url_value";
 export { repair_comment_markup } from "./html_sanitizer_utils";
 export {
   is_html_content,
@@ -71,22 +79,13 @@ export {
   sanitize_outgoing_html,
 } from "./html_sanitizer_compose";
 
-const REMOTE_URL_SCHEME = /^\s*https?:/i;
-
-function is_remote_url_value(value: string): boolean {
-  const normalized = value
-    .replace(/[\t\n\r]/g, "")
-    .toLowerCase()
-    .trim();
-
-  return (
-    REMOTE_URL_SCHEME.test(normalized) ||
-    normalized.startsWith("//") ||
-    normalized.startsWith("\\\\") ||
-    normalized.startsWith("/\\") ||
-    normalized.startsWith("\\/")
-  );
-}
+const URL_BEARING_ATTRIBUTES = new Set([
+  "src",
+  "href",
+  "background",
+  "cite",
+  "poster",
+]);
 
 const IMAGE_PROXY_PATH = "/api/images/v1/proxy";
 
@@ -103,16 +102,8 @@ type LocalImageUrl =
   | { kind: "proxied"; inner: string }
   | { kind: "local" };
 
-function get_page_origin(): string | null {
-  if (typeof window === "undefined") return null;
-
-  const origin = window.location.origin;
-
-  return origin && origin !== "null" ? origin : null;
-}
-
 function classify_local_image_url(value: string): LocalImageUrl {
-  const trimmed = value.replace(/[\t\n\r]/g, "").trim();
+  const trimmed = normalize_url_value(value);
 
   if (!trimmed) return { kind: "external" };
 
@@ -170,61 +161,7 @@ function has_alternate_image_source(img: Element): boolean {
 
 const MAX_RESERVED_PIXEL_HEIGHT = 40;
 
-const SRCSET_WHITESPACE_CODES = new Set([32, 9, 10, 13, 12]);
-
-interface SrcsetCandidateValue {
-  url: string;
-  descriptor: string;
-}
-
-function is_srcset_whitespace(character: string): boolean {
-  return SRCSET_WHITESPACE_CODES.has(character.charCodeAt(0));
-}
-
-function parse_srcset_value(value: string): SrcsetCandidateValue[] {
-  const candidates: SrcsetCandidateValue[] = [];
-  let position = 0;
-
-  while (position < value.length) {
-    while (
-      position < value.length &&
-      (is_srcset_whitespace(value[position]) || value[position] === ",")
-    ) {
-      position += 1;
-    }
-
-    if (position >= value.length) break;
-
-    const url_start = position;
-
-    while (position < value.length && !is_srcset_whitespace(value[position])) {
-      position += 1;
-    }
-
-    let url = value.slice(url_start, position);
-    let descriptor = "";
-
-    if (url.endsWith(",")) {
-      url = url.replace(/,+$/, "");
-    } else {
-      const descriptor_start = position;
-
-      while (position < value.length && value[position] !== ",") {
-        position += 1;
-      }
-
-      descriptor = value.slice(descriptor_start, position).trim();
-
-      if (position < value.length) position += 1;
-    }
-
-    if (url) candidates.push({ url, descriptor });
-  }
-
-  return candidates;
-}
-
-function serialize_srcset_value(candidates: SrcsetCandidateValue[]): string {
+function serialize_srcset_value(candidates: SrcsetCandidate[]): string {
   return candidates
     .map((candidate) =>
       candidate.descriptor
@@ -868,6 +805,10 @@ function sanitize_html_impl(
       if (sanitized_value !== null) {
         const attr_lower = attr.name.toLowerCase();
 
+        if (URL_BEARING_ATTRIBUTES.has(attr_lower)) {
+          sanitized_value = normalize_url_value(sanitized_value);
+        }
+
         if (
           attr_lower === "style" &&
           (lockdown_mode || block_css || block_images)
@@ -887,11 +828,18 @@ function sanitize_html_impl(
             image_proxy_url: allowed_css_image_proxy,
           });
         } else if (attr_lower === "srcset") {
-          const kept: SrcsetCandidateValue[] = [];
+          const kept: SrcsetCandidate[] = [];
 
-          for (const original_candidate of parse_srcset_value(
+          for (const raw_candidate of parse_srcset_candidates(
             sanitized_value,
           )) {
+            const original_candidate: SrcsetCandidate = {
+              url: normalize_url_value(raw_candidate.url),
+              descriptor: raw_candidate.descriptor,
+            };
+
+            if (!original_candidate.url) continue;
+
             const local_candidate = classify_local_image_url(
               original_candidate.url,
             );
@@ -932,7 +880,10 @@ function sanitize_html_impl(
             kept.push(
               effective_proxy
                 ? {
-                    url: build_proxy_url(effective_proxy, candidate.url),
+                    url: build_proxy_url(
+                      effective_proxy,
+                      to_absolute_remote_url(candidate.url),
+                    ),
                     descriptor: candidate.descriptor,
                   }
                 : original_candidate,
@@ -972,7 +923,7 @@ function sanitize_html_impl(
             if (effective_proxy) {
               sanitized_value = build_proxy_url(
                 effective_proxy,
-                sanitized_value,
+                to_absolute_remote_url(sanitized_value),
               );
             } else {
               sanitized_value = original_background;
@@ -1019,7 +970,7 @@ function sanitize_html_impl(
     if (tag_name === "img") {
       let src = new_element.getAttribute("src") || "";
 
-      if (!src.trim() && !has_alternate_image_source(element)) {
+      if (!normalize_url_value(src) && !has_alternate_image_source(element)) {
         return null;
       }
       const local_image = classify_local_image_url(src);
@@ -1038,17 +989,20 @@ function sanitize_html_impl(
         new_element.setAttribute("src", src);
       }
 
-      const lower_src = src.toLowerCase().trim();
+      src = normalize_url_value(src);
+
+      const lower_src = src.toLowerCase();
       const is_remote = is_remote_url_value(src);
       const is_data_url = lower_src.startsWith("data:");
       const is_pixel = is_tracking_pixel(new_element as HTMLImageElement);
       const is_first_party = local_image.kind === "static";
 
-      if (is_remote && !is_first_party && lower_src.startsWith("http://")) {
-        src = "https://" + src.trim().slice(7);
-        new_element.setAttribute("src", src);
-      } else if (is_remote && !is_first_party && lower_src.startsWith("//")) {
-        src = "https:" + src.trim();
+      if (is_remote && !is_first_party) {
+        const absolute_src = to_absolute_remote_url(src);
+
+        src = /^http:\/\//i.test(absolute_src)
+          ? "https://" + absolute_src.slice(7)
+          : absolute_src;
         new_element.setAttribute("src", src);
       }
 

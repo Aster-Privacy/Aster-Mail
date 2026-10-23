@@ -22,6 +22,11 @@ import type { SanitizeOptions } from "@/lib/html_sanitizer";
 
 import { get_image_proxy_url } from "@/lib/image_proxy";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
+import {
+  is_remote_url_value,
+  normalize_url_value,
+  to_absolute_remote_url,
+} from "@/lib/url_value";
 
 const PROXY_PATH_SUFFIX = "/api/images/v1/proxy";
 const IMG_SRC_PATTERN = /(<img\b[^>]*?\ssrc=")([^"]*)(")/gi;
@@ -54,16 +59,16 @@ export function get_original_image_source(src: string): string | null {
   let parsed: URL;
 
   try {
-    parsed = new URL(src, PARSE_BASE);
+    parsed = new URL(normalize_url_value(src), PARSE_BASE);
   } catch {
     return null;
   }
 
   if (!parsed.pathname.endsWith(PROXY_PATH_SUFFIX)) return null;
 
-  const original = parsed.searchParams.get("url");
+  const original = normalize_url_value(parsed.searchParams.get("url") ?? "");
 
-  if (!original || !/^https?:\/\//i.test(original)) return null;
+  if (!/^https?:\/\//i.test(original)) return null;
 
   return original;
 }
@@ -76,12 +81,12 @@ export function proxy_compose_image_sources(html: string): string {
   return html.replace(
     IMG_SRC_PATTERN,
     (match: string, prefix: string, raw_src: string, suffix: string) => {
-      const src = decode_attribute(raw_src).trim();
+      const src = normalize_url_value(decode_attribute(raw_src));
 
-      if (!/^https?:\/\//i.test(src)) return match;
+      if (!is_remote_url_value(src)) return match;
       if (get_original_image_source(src) !== null) return match;
 
-      const proxied = `${proxy_url}?url=${encodeURIComponent(src)}`;
+      const proxied = `${proxy_url}?url=${encodeURIComponent(to_absolute_remote_url(src))}`;
 
       return `${prefix}${encode_attribute(proxied)}${suffix}`;
     },

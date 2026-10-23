@@ -28,11 +28,16 @@ import {
   escape_style_terminator,
   strip_css_urls,
 } from "@/lib/html_sanitizer_css";
+import {
+  contain_untrusted_sources,
+  get_trusted_image_origins,
+  type UntrustedSourceHandlers,
+} from "@/lib/untrusted_sources";
+import { get_url_scheme } from "@/lib/url_value";
 
 const PARKED_PREFIX = "data-aster-parked-";
 const PARKED_CSS_ATTRIBUTE = `${PARKED_PREFIX}css`;
 const INLINE_REFERENCE_PATTERN = /^cid:/i;
-const DATA_URL_PATTERN = /^\s*data:/i;
 const LOADING_ATTRIBUTES = ["src", "srcset", "background", "poster"];
 
 export interface EditableQuotedHtmlOptions {
@@ -52,7 +57,7 @@ function park_loading_attributes(element: Element): void {
   for (const name of LOADING_ATTRIBUTES) {
     const value = element.getAttribute(name);
 
-    if (value === null || DATA_URL_PATTERN.test(value)) continue;
+    if (value === null || get_url_scheme(value) === "data") continue;
 
     park_attribute(element, name);
   }
@@ -79,6 +84,22 @@ function park_loading_attributes(element: Element): void {
   }
 }
 
+const PARK_UNTRUSTED_SOURCES: UntrustedSourceHandlers = {
+  on_attribute: park_attribute,
+  on_style_attribute: (element, original, contained) => {
+    if (!element.hasAttribute(`${PARKED_PREFIX}style`)) {
+      element.setAttribute(`${PARKED_PREFIX}style`, original);
+    }
+    element.setAttribute("style", contained);
+  },
+  on_style_element: (element, original, contained) => {
+    if (!element.hasAttribute(PARKED_CSS_ATTRIBUTE)) {
+      element.setAttribute(PARKED_CSS_ATTRIBUTE, original);
+    }
+    element.textContent = escape_style_terminator(contained);
+  },
+};
+
 export function build_editable_quoted_fragment(
   html: string,
   options: EditableQuotedHtmlOptions,
@@ -100,6 +121,12 @@ export function build_editable_quoted_fragment(
   if (options.block_remote_images) {
     template.content.querySelectorAll("*").forEach(park_loading_attributes);
   }
+
+  contain_untrusted_sources(
+    template.content,
+    get_trusted_image_origins(),
+    PARK_UNTRUSTED_SOURCES,
+  );
 
   return template.content;
 }

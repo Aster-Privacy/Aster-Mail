@@ -23,6 +23,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { sanitize_html } from "@/lib/html_sanitizer";
 import { strip_unresolved_cid_references } from "@/lib/cid_resolver";
 import { get_image_proxy_url } from "@/lib/image_proxy";
+import { contain_untrusted_html } from "@/lib/untrusted_sources";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { use_external_link } from "@/contexts/external_link_context";
 import { use_preferences_optional } from "@/contexts/preferences_context";
@@ -54,13 +55,15 @@ export function QuotedHtmlPreview({ html }: { html: string }) {
         })
       : undefined;
 
-    return strip_unresolved_cid_references(
-      sanitize_html(strip_style_blocks(html), {
-        external_content_mode: lockdown_mode ? "never" : "always",
-        lockdown_mode,
-        image_proxy_url: get_image_proxy_url(),
-        content_blocking,
-      }).html,
+    return contain_untrusted_html(
+      strip_unresolved_cid_references(
+        sanitize_html(strip_style_blocks(html), {
+          external_content_mode: lockdown_mode ? "never" : "always",
+          lockdown_mode,
+          image_proxy_url: get_image_proxy_url(),
+          content_blocking,
+        }).html,
+      ),
     );
   }, [
     html,
