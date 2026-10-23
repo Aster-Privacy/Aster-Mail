@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 
 import {
   extract_email_details,
@@ -280,6 +280,43 @@ describe("decimal comma amounts", () => {
     );
 
     expect(performance.now() - started).toBeLessThan(1000);
+  });
+});
+
+describe("decimal comma amounts without lookbehind support", () => {
+  it("loads and keeps reading amounts", async () => {
+    const native = globalThis.RegExp;
+    const without_lookbehind = new Proxy(native, {
+      construct(target, args: [string | RegExp, string?]) {
+        if (String(args[0]).includes("(?<")) {
+          throw new SyntaxError("Invalid regular expression: invalid group");
+        }
+
+        return Reflect.construct(target, args);
+      },
+    });
+
+    vi.stubGlobal("RegExp", without_lookbehind);
+    vi.resetModules();
+
+    try {
+      const legacy = await import("./extractor");
+      const read_total = (body: string) =>
+        legacy.extract_purchase_details(
+          "Your receipt",
+          `Order #AS-4471
+${body}`,
+          "receipts@store.com",
+          "Store",
+        ).total?.value;
+
+      expect(read_total("Total: 12,30€")).toBe(12.3);
+      expect(read_total("Total: $1,234.56")).toBe(1234.56);
+      expect(read_total("Total: $12.30")).toBe(12.3);
+    } finally {
+      vi.unstubAllGlobals();
+      vi.resetModules();
+    }
   });
 });
 

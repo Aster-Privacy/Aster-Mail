@@ -171,8 +171,24 @@ const TRANSACTION_ID_PATTERN = labelled_id("transaction");
 
 const CURRENCY_TOKEN = "C\\$|A\\$|R\\$|[$€£¥₹]|USD|EUR|GBP|JPY|INR|CAD|AUD|CHF";
 
-const NUMBER_TOKEN =
-  "(?<![0-9][.\\u00a0\\u202f]?)[0-9]{1,3}(?:[.\\u00a0\\u202f][0-9]{3})+,[0-9]{1,2}(?![0-9])|[0-9][0-9,]*(?:\\.[0-9]{1,2})?(?![0-9])";
+const PLAIN_NUMBER_TOKEN = "[0-9][0-9,]*(?:\\.[0-9]{1,2})?(?![0-9])";
+
+const GROUPED_DECIMAL_COMMA_TOKEN =
+  "(?<![0-9][.\\u00a0\\u202f]?)[0-9]{1,3}(?:[.\\u00a0\\u202f][0-9]{3})+,[0-9]{1,2}(?![0-9])";
+
+function supports_regex(source: string): boolean {
+  try {
+    new RegExp(source);
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+const NUMBER_TOKEN = supports_regex(GROUPED_DECIMAL_COMMA_TOKEN)
+  ? `${GROUPED_DECIMAL_COMMA_TOKEN}|${PLAIN_NUMBER_TOKEN}`
+  : PLAIN_NUMBER_TOKEN;
 
 const MONEY_TOKEN = `(?:(?:${CURRENCY_TOKEN})\\s*)?(?:${NUMBER_TOKEN})(?:\\s*(?:${CURRENCY_TOKEN}))?`;
 
