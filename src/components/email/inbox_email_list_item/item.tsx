@@ -771,6 +771,22 @@ export const InboxEmailListItem = memo(
                 </div>
               )}
 
+              {email.has_attachment && (
+                <Tooltip tip={t("mail.has_attachments")}>
+                  <span
+                    aria-label={t("mail.has_attachments")}
+                    className={cn(
+                      "flex-shrink-0 inline-flex items-center",
+                      email.is_read ? "text-txt-muted" : "text-txt-secondary",
+                    )}
+                    data-testid="attachment-indicator"
+                    role="img"
+                  >
+                    <PaperClipIcon className="w-3.5 h-3.5" />
+                  </span>
+                </Tooltip>
+              )}
+
               <div
                 className={cn(
                   "text-sm min-w-0 flex-1 whitespace-nowrap truncate",
@@ -898,19 +914,6 @@ export const InboxEmailListItem = memo(
                   <AtSymbolIcon className="h-3.5 w-3.5" />
                 </span>
               </Tooltip>
-            )}
-
-            {email.has_attachment && (
-              <PaperClipIcon
-                className={cn(
-                  "w-4 h-4 text-txt-muted",
-                  show_hover_actions && "group-hover:opacity-0",
-                  attachment_previews?.state === "loaded" &&
-                    attachment_previews.attachments.length > 0
-                    ? "hidden"
-                    : "hidden md:block",
-                )}
-              />
             )}
 
             {email.is_starred && (

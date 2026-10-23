@@ -457,6 +457,20 @@ export const MobileEmailRow = memo(function MobileEmailRow(
         </div>
 
         <div className="mt-0.5 flex items-center gap-1.5">
+          {email.has_attachment && (
+            <span
+              aria-label={t("mail.has_attachments")}
+              className={`inline-flex shrink-0 items-center ${
+                !email.is_read
+                  ? "text-[var(--text-secondary)]"
+                  : "text-[var(--text-muted)]"
+              }`}
+              data-testid="attachment-indicator"
+              role="img"
+            >
+              <PaperClipIcon className="h-3.5 w-3.5" />
+            </span>
+          )}
           <span
             className={`min-w-0 flex-1 truncate text-[14px] leading-tight ${
               !email.is_read
@@ -494,10 +508,6 @@ export const MobileEmailRow = memo(function MobileEmailRow(
               >
                 <FaceSmileIcon className="h-3.5 w-3.5" />
               </span>
-            )}
-
-            {email.has_attachment && (
-              <PaperClipIcon className="h-3.5 w-3.5 text-[var(--text-muted)]" />
             )}
 
             {email.is_pinned && (
