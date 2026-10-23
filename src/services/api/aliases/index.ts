@@ -28,6 +28,7 @@ export {
 } from "./activity";
 export {
   backfill_missing_routing_hashes,
+  heal_legacy_routing_hashes,
   reencrypt_all_aliases,
 } from "./backfill";
 export {
@@ -46,6 +47,7 @@ export {
 } from "./crud";
 export {
   compute_alias_hash,
+  compute_legacy_routing_hash,
   compute_routing_hash,
   decrypt_alias,
   decrypt_alias_field,

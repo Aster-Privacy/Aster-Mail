@@ -126,6 +126,20 @@ export async function compute_routing_hash(
   return array_to_base64(new Uint8Array(hash));
 }
 
+export async function compute_legacy_routing_hash(
+  local_part: string,
+  domain: string,
+): Promise<string | undefined> {
+  const lowered = local_part.toLowerCase().trim();
+
+  if (!lowered.includes(".")) return undefined;
+
+  const data = new TextEncoder().encode(`${lowered}@${domain.toLowerCase()}`);
+  const hash = await crypto.subtle.digest(HASH_ALG, data);
+
+  return array_to_base64(new Uint8Array(hash));
+}
+
 export async function encrypt_alias_field(value: string): Promise<{
   encrypted: string;
   nonce: string;

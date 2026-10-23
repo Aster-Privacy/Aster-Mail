@@ -32,6 +32,7 @@ vi.mock("@/services/api/aliases", () => ({
   reencrypt_alias_local_part: vi.fn(),
   compute_routing_hash: vi.fn(),
   backfill_missing_routing_hashes: vi.fn(),
+  heal_legacy_routing_hashes: vi.fn(async () => false),
 }));
 
 vi.mock("@/services/api/domains", () => ({
