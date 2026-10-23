@@ -139,4 +139,49 @@ describe("forced dark mode on newsletter layouts", () => {
     expect(is_flattened(root.querySelector("table.card"))).toBe(true);
     expect(is_flattened(root.querySelector("table.header"))).toBe(false);
   });
+
+  it("flattens a white heading inside a cleared card", () => {
+    const root = render(
+      '<div class="card" style="background-color:#ffffff"><h1 class="title" style="background-color:#ffffff;color:#0e1628">Monthly report</h1><p class="note" style="background:#f5f8ff">All systems normal</p></div>',
+    );
+
+    expect(is_flattened(root.querySelector("div.card"))).toBe(true);
+    expect(is_flattened(root.querySelector("h1.title"))).toBe(true);
+    expect(is_flattened(root.querySelector("p.note"))).toBe(true);
+  });
+
+  it("flattens a light band whose inline background is marked important", () => {
+    const root = render(
+      '<div class="band" style="padding:20px 4% !important;background-color:#f5f8ff!important;text-align:center!important">Report period</div>',
+    );
+    const band = root.querySelector("div.band")!;
+    const style = band.getAttribute("style") ?? "";
+
+    expect(is_flattened(band)).toBe(true);
+    expect(style).toContain("background-color:#f5f8ff");
+    expect(style).not.toMatch(/background-color:#f5f8ff\s*!/i);
+    expect(style).toContain("padding:20px 4% !important");
+    expect(style).toContain("text-align:center!important");
+  });
+
+  it("keeps an important brand background and its priority", () => {
+    const root = render(
+      '<table><tr><td class="cta" bgcolor="#ffffff" style="background-color:#0b5cff !important"><a href="https://example.com">Open</a></td></tr></table>',
+    );
+    const cell = root.querySelector("td.cta")!;
+
+    expect(cell.getAttribute("style")).toContain(
+      "background-color:#0b5cff !important",
+    );
+  });
+
+  it("keeps an important background that paints an image", () => {
+    const root = render(
+      '<div class="hero" style="background:#ffffff url(cid:hero@example.com) !important">Autumn sale</div>',
+    );
+    const hero = root.querySelector("div.hero")!;
+
+    expect(hero.getAttribute("style")).toContain("!important");
+    expect(is_flattened(hero)).toBe(false);
+  });
 });

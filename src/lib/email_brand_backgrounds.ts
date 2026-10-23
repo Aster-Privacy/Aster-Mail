@@ -37,6 +37,57 @@ const BACKGROUND_COLOR_DECLARATION = /background(?:-color)?\s*:\s*([^;]+)/i;
 
 const BACKGROUND_IMAGE_DECLARATION = /background(?:-image)?\s*:[^;]*url\s*\(/i;
 
+const BACKGROUND_PROPERTY = /^\s*background(?:-color)?\s*:/i;
+
+const IMPORTANT_FLAG = /\s*!\s*important\s*$/i;
+
+export const NEUTRALIZED_BACKGROUND_TAGS = [
+  "div",
+  "td",
+  "th",
+  "table",
+  "tr",
+  "tbody",
+  "thead",
+  "tfoot",
+  "section",
+  "header",
+  "footer",
+  "main",
+  "article",
+  "aside",
+  "nav",
+  "center",
+  "form",
+  "fieldset",
+  "legend",
+  "figure",
+  "figcaption",
+  "details",
+  "summary",
+  "address",
+  "hgroup",
+  "h1",
+  "h2",
+  "h3",
+  "h4",
+  "h5",
+  "h6",
+  "p",
+  "blockquote",
+  "pre",
+  "ul",
+  "ol",
+  "li",
+  "dl",
+  "dt",
+  "dd",
+] as const;
+
+const NEUTRALIZED_TAG_NAMES = new Set<string>(
+  NEUTRALIZED_BACKGROUND_TAGS.map((tag) => tag.toUpperCase()),
+);
+
 export function is_page_surface(color: string): boolean {
   const parsed = parse_css_color(color);
 
@@ -79,6 +130,38 @@ function declared_background(element: Element): string | null {
   return match[1].replace(/!important/i, "").trim();
 }
 
+function release_background_priority(element: Element): void {
+  const style = element.getAttribute("style");
+
+  if (!style || !style.toLowerCase().includes("important")) return;
+
+  const declarations = style.split(";");
+  let released = false;
+
+  for (let index = 0; index < declarations.length; index += 1) {
+    const declaration = declarations[index];
+
+    if (
+      !BACKGROUND_PROPERTY.test(declaration) ||
+      !IMPORTANT_FLAG.test(declaration)
+    ) {
+      continue;
+    }
+
+    const value = declaration
+      .replace(BACKGROUND_PROPERTY, "")
+      .replace(IMPORTANT_FLAG, "")
+      .trim();
+
+    if (!parse_css_color(value) || !is_page_surface(value)) continue;
+
+    declarations[index] = declaration.replace(IMPORTANT_FLAG, "");
+    released = true;
+  }
+
+  if (released) element.setAttribute("style", declarations.join(";"));
+}
+
 export function mark_brand_backgrounds(root: Element): void {
   const candidates = Array.from(
     root.querySelectorAll("[bgcolor],[style*='background']"),
@@ -89,8 +172,14 @@ export function mark_brand_backgrounds(root: Element): void {
 
     if (!background || !parse_css_color(background)) continue;
     if (is_page_surface(background)) {
-      if (element.tagName === "SPAN" && is_light_neutral_surface(background)) {
+      if (NEUTRALIZED_TAG_NAMES.has(element.tagName)) {
+        release_background_priority(element);
+      } else if (
+        element.tagName === "SPAN" &&
+        is_light_neutral_surface(background)
+      ) {
         element.setAttribute(LIGHT_SPAN_BACKGROUND_MARK, "1");
+        release_background_priority(element);
       }
       continue;
     }
