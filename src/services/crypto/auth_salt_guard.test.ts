@@ -34,6 +34,7 @@ vi.mock("@/services/crypto/secure_storage", () => ({
 
 import {
   AUTH_SALT_BYTES,
+  MIN_AUTH_SALT_BYTES,
   AuthSaltCollisionError,
   VAULT_SALT_BYTES,
   assert_vault_salt_not_auth_salt,
@@ -150,6 +151,18 @@ describe("auth salt guard flow", () => {
     ).resolves.toBeUndefined();
     await expect(
       require_usable_auth_salt(bytes(1, 32)),
+    ).resolves.toBeUndefined();
+  });
+
+  it("refuses a server salt shorter than the minimum length", async () => {
+    await expect(
+      require_usable_auth_salt(new Uint8Array(0)),
+    ).rejects.toBeInstanceOf(AuthSaltCollisionError);
+    await expect(
+      require_usable_auth_salt(bytes(1, MIN_AUTH_SALT_BYTES - 1)),
+    ).rejects.toBeInstanceOf(AuthSaltCollisionError);
+    await expect(
+      require_usable_auth_salt(bytes(1, MIN_AUTH_SALT_BYTES)),
     ).resolves.toBeUndefined();
   });
 

@@ -22,6 +22,7 @@ import { array_to_base64, base64_to_array } from "./base64";
 
 export const VAULT_SALT_BYTES = 16;
 export const AUTH_SALT_BYTES = 32;
+export const MIN_AUTH_SALT_BYTES = 16;
 export const MAX_REMEMBERED_VAULT_SALTS = 32;
 export const AUTH_SALT_COLLISION_TRANSLATION_KEY = "errors.auth_salt_collision";
 
@@ -188,6 +189,10 @@ export function clear_auth_salt_session_state(): void {
 export async function require_usable_auth_salt(
   auth_salt: Uint8Array,
 ): Promise<void> {
+  if (auth_salt.length < MIN_AUTH_SALT_BYTES) {
+    throw new AuthSaltCollisionError();
+  }
+
   const remembered = await load_remembered_vault_salts();
 
   if (collides_with_remembered_salts(auth_salt, remembered)) {

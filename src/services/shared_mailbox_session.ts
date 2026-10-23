@@ -20,10 +20,7 @@
 //
 import type { EncryptedVault } from "@/services/crypto/key_manager_core";
 
-import {
-  hash_email,
-  derive_password_hash,
-} from "@/services/crypto/key_manager";
+import { hash_email } from "@/services/crypto/key_manager";
 import { decrypt_vault } from "@/services/crypto/key_manager_pgp";
 import {
   get_vault_from_memory,
@@ -63,6 +60,10 @@ import {
   reload_accounts_from_storage,
   type User,
 } from "@/services/account_manager";
+import {
+  clear_pending_login_enrollment,
+  derive_sign_in_proof,
+} from "@/services/crypto/login_proof";
 
 const GRANT_EPOCH_KEY_PREFIX = "astermail_shared_grant_epoch_";
 
@@ -320,9 +321,11 @@ export async function perform_shared_mailbox_login(
   }
 
   const salt = base64_to_array(salt_response.data.salt);
-  const { hash: password_hash } = await derive_password_hash(
+  const password_hash = await derive_sign_in_proof(
     login_secret,
     salt,
+    salt_response.data.kdf_version,
+    user_hash,
   );
 
   const response = await login_user({
@@ -333,6 +336,7 @@ export async function perform_shared_mailbox_login(
   });
 
   if (response.error || !response.data) {
+    clear_pending_login_enrollment();
     throw new Error(response.error || "shared mailbox sign-in failed");
   }
 

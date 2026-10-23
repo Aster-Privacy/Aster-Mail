@@ -78,8 +78,11 @@ export async function generate_shared_mailbox_material(
 
   const user_hash = await hash_email(email);
   const salt = crypto.getRandomValues(new Uint8Array(32));
-  const { hash: password_hash, salt: password_salt } =
-    await derive_password_hash(login_secret, salt);
+  const {
+    hash: password_hash,
+    salt: password_salt,
+    hash_v2: password_hash_v2,
+  } = await derive_password_hash(login_secret, salt);
 
   const identity_keypair = await generate_identity_keypair(
     username,
@@ -118,6 +121,7 @@ export async function generate_shared_mailbox_material(
       email_domain,
       user_hash,
       password_hash,
+      password_hash_v2,
       password_salt,
       argon2_params: { memory: 65536, iterations: 3, parallelism: 4 },
       identity_key: btoa(identity_keypair.public_key),
@@ -243,14 +247,18 @@ export async function generate_rotated_credential(
 ): Promise<{
   login_secret: string;
   password_hash: string;
+  password_hash_v2: string;
   password_salt: string;
   encrypted_vault: string;
   vault_nonce: string;
 }> {
   const login_secret = generate_login_secret();
   const salt = crypto.getRandomValues(new Uint8Array(32));
-  const { hash: password_hash, salt: password_salt } =
-    await derive_password_hash(login_secret, salt);
+  const {
+    hash: password_hash,
+    salt: password_salt,
+    hash_v2: password_hash_v2,
+  } = await derive_password_hash(login_secret, salt);
 
   const rotated_vault: EncryptedVault = {
     ...vault_data,
@@ -274,6 +282,7 @@ export async function generate_rotated_credential(
   return {
     login_secret,
     password_hash,
+    password_hash_v2,
     password_salt,
     encrypted_vault,
     vault_nonce,

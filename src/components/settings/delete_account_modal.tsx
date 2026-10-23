@@ -37,13 +37,14 @@ import {
 import { use_auth } from "@/contexts/auth_context";
 import { api_client } from "@/services/api/client";
 import { get_user_salt } from "@/services/api/auth";
-import {
-  hash_email,
-  derive_password_hash,
-  base64_to_array,
-} from "@/services/crypto/key_manager";
+import { hash_email, base64_to_array } from "@/services/crypto/key_manager";
 import { use_i18n } from "@/lib/i18n/context";
 import { clamp_password } from "@/services/sanitize";
+import {
+  derive_current_account_proof,
+  read_kdf_version,
+  user_hash_pin_key,
+} from "@/services/crypto/login_proof";
 
 interface DeleteAccountModalProps {
   is_open: boolean;
@@ -89,9 +90,11 @@ export function DeleteAccountModal({
       }
 
       const salt = base64_to_array(salt_response.data.salt);
-      const { hash: password_hash } = await derive_password_hash(
+      const password_hash = await derive_current_account_proof(
         password,
         salt,
+        read_kdf_version(salt_response.data.kdf_version),
+        [user_hash_pin_key(user_hash)],
       );
 
       set_status(t("settings.deleting_account"));

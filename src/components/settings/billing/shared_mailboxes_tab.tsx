@@ -428,6 +428,7 @@ export function SharedMailboxesTab({
 
         const response = await rotate_shared_mailbox(mailbox.id, {
           password_hash: rotated.password_hash,
+          password_hash_v2: rotated.password_hash_v2,
           password_salt: rotated.password_salt,
           argon2_params: { memory: 65536, iterations: 3, parallelism: 4 },
           encrypted_vault: rotated.encrypted_vault,

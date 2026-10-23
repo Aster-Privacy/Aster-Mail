@@ -19,20 +19,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { api_client } from "@/services/api/client";
+import { base64_to_array } from "@/services/crypto/key_manager";
 import {
-  base64_to_array,
-  derive_password_hash,
-} from "@/services/crypto/key_manager";
+  derive_current_account_proof,
+  read_kdf_version,
+} from "@/services/crypto/login_proof";
 
 export type CancelPasswordOutcome =
-  | "verified"
-  | "invalid"
-  | "totp_required"
-  | "error";
+  "verified" | "invalid" | "totp_required" | "error";
 
 interface SaltResponse {
   salt: string;
   totp_required?: boolean;
+  kdf_version?: number;
 }
 
 interface VerifyPasswordResponse {
@@ -61,7 +60,11 @@ export async function get_cancel_password_hash(
   if (salt_response.error || !salt_response.data?.salt) return null;
 
   const salt = base64_to_array(salt_response.data.salt);
-  const { hash } = await derive_password_hash(password, salt);
+  const hash = await derive_current_account_proof(
+    password,
+    salt,
+    read_kdf_version(salt_response.data.kdf_version),
+  );
 
   cached_password = password;
   cached_hash = hash;

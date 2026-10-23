@@ -35,7 +35,6 @@ import { use_i18n } from "@/lib/i18n/context";
 import { useTheme } from "@/contexts/theme_context";
 import {
   hash_email,
-  derive_password_hash,
   decrypt_vault,
   base64_to_array,
 } from "@/services/crypto/key_manager";
@@ -70,6 +69,10 @@ import {
   preload_openpgp,
 } from "@/services/crypto/openpgp_loader";
 import { preload_when_idle } from "@/utils/lazy_with_retry";
+import {
+  clear_pending_login_enrollment,
+  derive_sign_in_proof,
+} from "@/services/crypto/login_proof";
 
 const HUB_AUTO_SIGN_IN_KEY = "aster_hub_auto_sign_in_attempted";
 
@@ -479,9 +482,11 @@ export function use_sign_in_page() {
         }
 
         const salt = base64_to_array(salt_response.data.salt);
-        const { hash: password_hash } = await derive_password_hash(
+        const password_hash = await derive_sign_in_proof(
           raw_password,
           salt,
+          salt_response.data.kdf_version,
+          user_hash,
         );
 
         set_checkout_status(translate("auth.verifying_credentials"));
@@ -493,6 +498,7 @@ export function use_sign_in_page() {
         });
 
         if (response.error || !response.data) {
+          clear_pending_login_enrollment();
           throw new Error(response.error || translate("errors.login_failed"));
         }
 

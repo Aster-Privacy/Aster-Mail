@@ -60,8 +60,8 @@ import {
 } from "@/services/api/vanguard";
 import { enable_lockdown, disable_lockdown } from "@/services/api/lockdown";
 import { fetch_step_up_requirements } from "@/services/api/step_up";
-import { derive_password_hash } from "@/services/crypto/key_manager_pgp";
 import { ignore_error } from "@/lib/ignore_error";
+import { derive_current_account_proof } from "@/services/crypto/login_proof";
 
 const TRANSPORT_FAILURE_CODES = new Set([
   "NETWORK_ERROR",
@@ -159,9 +159,10 @@ function LockdownSection({ account_id }: { account_id: string }) {
     }
 
     try {
-      const { hash: password_hash } = await derive_password_hash(
+      const password_hash = await derive_current_account_proof(
         password,
         requirements.salt,
+        requirements.kdf_version,
       );
       const res = await disable_lockdown({
         password_hash,

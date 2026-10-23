@@ -123,6 +123,7 @@ export async function complete_recovery(
   new_account_key_token?: string,
   new_account_key_fingerprint?: string,
   new_recovery_email?: RecoveryEmailReencryption,
+  new_password_hash_v2?: string,
 ): Promise<ApiResponse<CompleteRecoveryResponse>> {
   return api_client.post<CompleteRecoveryResponse>(
     "/core/v1/recovery/complete",
@@ -144,6 +145,7 @@ export async function complete_recovery(
       new_account_key_token,
       new_account_key_fingerprint,
       new_recovery_email,
+      new_password_hash_v2,
     },
   );
 }
@@ -179,6 +181,7 @@ export async function reset_password_with_token(
   acknowledged_data_loss?: boolean,
   new_recovery_email?: RecoveryEmailReencryption,
   previous_vault_carried?: boolean,
+  new_password_hash_v2?: string,
 ): Promise<ApiResponse<ResetPasswordResponse>> {
   return api_client.post<ResetPasswordResponse>(
     "/core/v1/recovery/reset-password",
@@ -200,6 +203,7 @@ export async function reset_password_with_token(
       acknowledged_data_loss,
       new_recovery_email,
       previous_vault_carried,
+      new_password_hash_v2,
     },
   );
 }

@@ -42,7 +42,6 @@ import { use_auth_safe } from "@/contexts/auth_context";
 import { cn } from "@/lib/utils";
 import { fetch_step_up_requirements } from "@/services/api/step_up";
 import { verify_vanguard_credentials } from "@/services/api/vanguard";
-import { derive_password_hash } from "@/services/crypto/key_manager_pgp";
 import { ignore_error } from "@/lib/ignore_error";
 import {
   get_app_lock_config,
@@ -58,6 +57,7 @@ import {
 } from "@/services/app_lock_store";
 import { is_composing } from "@/utils/ime";
 import { ButtonSpinner } from "@/components/ui/spinner";
+import { derive_current_account_proof } from "@/services/crypto/login_proof";
 
 const TRANSPORT_FAILURE_CODES = new Set([
   "NETWORK_ERROR",
@@ -307,9 +307,10 @@ function SetupDuressPinModal({
     }
 
     try {
-      const { hash: password_hash } = await derive_password_hash(
+      const password_hash = await derive_current_account_proof(
         password,
         requirements.salt,
+        requirements.kdf_version,
       );
       const res = await verify_vanguard_credentials({
         password_hash,

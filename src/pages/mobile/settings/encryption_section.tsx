@@ -48,9 +48,12 @@ import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { UpgradeGate } from "@/components/common/upgrade_gate";
 import { api_client } from "@/services/api/client";
-import { derive_password_hash } from "@/services/crypto/key_manager";
 import { use_encryption } from "@/components/settings/hooks/use_encryption";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
+import {
+  derive_current_account_proof,
+  read_kdf_version,
+} from "@/services/crypto/login_proof";
 
 function base64_to_array(base64: string): Uint8Array {
   const binary = atob(base64);
@@ -92,6 +95,7 @@ export function EncryptionSection({
       const salt_res = await api_client.get<{
         salt: string;
         totp_required: boolean;
+        kdf_version?: number;
       }>("/crypto/v1/encryption/salt", { skip_cache: true });
 
       if (salt_res.error || !salt_res.data?.salt) {
@@ -108,7 +112,11 @@ export function EncryptionSection({
         return;
       }
       const salt = base64_to_array(salt_res.data.salt);
-      const { hash } = await derive_password_hash(password, salt);
+      const hash = await derive_current_account_proof(
+        password,
+        salt,
+        read_kdf_version(salt_res.data.kdf_version),
+      );
       const body: { password_hash: string; totp_code?: string } = {
         password_hash: hash,
       };

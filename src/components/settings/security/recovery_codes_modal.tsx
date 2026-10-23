@@ -46,7 +46,6 @@ import { use_auth } from "@/contexts/auth_context";
 import { api_client } from "@/services/api/client";
 import { base64_to_array } from "@/services/crypto/base64";
 import {
-  derive_password_hash,
   generate_recovery_codes,
   RECOVERY_CODE_SET_SIZE,
 } from "@/services/crypto/key_manager_pgp";
@@ -75,10 +74,15 @@ import {
   download_recovery_text,
   print_recovery_codes,
 } from "@/services/crypto/recovery_pdf";
+import {
+  derive_current_account_proof,
+  read_kdf_version,
+} from "@/services/crypto/login_proof";
 
 interface SaltResponse {
   salt: string;
   totp_required: boolean;
+  kdf_version?: number;
 }
 
 interface DisplayCode {
@@ -171,7 +175,11 @@ export function RecoveryCodesModal({
     }
 
     const salt = base64_to_array(salt_response.data.salt);
-    const { hash } = await derive_password_hash(password, salt);
+    const hash = await derive_current_account_proof(
+      password,
+      salt,
+      read_kdf_version(salt_response.data.kdf_version),
+    );
     const step_up = await verify_codes_step_up(
       hash,
       totp_required && totp_code.trim() ? totp_code.trim() : undefined,

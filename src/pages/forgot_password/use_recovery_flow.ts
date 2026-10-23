@@ -479,8 +479,11 @@ export function use_recovery_flow() {
 
     set_processing_status(t("auth.generating_new_encryption_keys"));
     const salt = crypto.getRandomValues(new Uint8Array(32));
-    const { hash: password_hash, salt: password_salt } =
-      await derive_password_hash(password, salt);
+    const {
+      hash: password_hash,
+      salt: password_salt,
+      hash_v2: password_hash_v2,
+    } = await derive_password_hash(password, salt);
 
     const {
       new_identity_keypair,
@@ -559,6 +562,7 @@ export function use_recovery_flow() {
       rescued_account_key?.token,
       rescued_account_key?.fingerprint,
       new_recovery_email,
+      password_hash_v2,
     );
 
     if (complete_response.error || !complete_response.data?.success) {

@@ -108,6 +108,11 @@ import {
 import { show_toast } from "@/components/toast/simple_toast";
 import { ignore_error } from "@/lib/ignore_error";
 import { write_locked_sent_mail } from "@/services/locked_sent_mail_store";
+import {
+  derive_current_account_proof,
+  read_kdf_version,
+  user_hash_pin_key,
+} from "@/services/crypto/login_proof";
 
 export function use_security() {
   const { t } = use_i18n();
@@ -347,9 +352,11 @@ export function use_security() {
       }
 
       const salt = base64_to_array(salt_response.data.salt);
-      const { hash: current_password_hash } = await derive_password_hash(
+      const current_password_hash = await derive_current_account_proof(
         current_password,
         salt,
+        read_kdf_version(salt_response.data.kdf_version),
+        [user_hash_pin_key(user_hash)],
       );
 
       let vault;
@@ -489,8 +496,11 @@ export function use_security() {
       );
 
       const new_salt = generate_auth_salt();
-      const { hash: new_password_hash, salt: new_password_salt } =
-        await derive_password_hash(new_password, new_salt);
+      const {
+        hash: new_password_hash,
+        salt: new_password_salt,
+        hash_v2: new_password_hash_v2,
+      } = await derive_password_hash(new_password, new_salt);
 
       if (!master_key_mode) {
         const old_kek_raw = await derive_kek_from_password(current_password);
@@ -548,6 +558,7 @@ export function use_security() {
         response = await change_password({
           current_password_hash,
           new_password_hash,
+          new_password_hash_v2,
           new_password_salt,
           new_encrypted_vault,
           new_vault_nonce,
@@ -579,6 +590,7 @@ export function use_security() {
         response = await change_password({
           current_password_hash,
           new_password_hash,
+          new_password_hash_v2,
           new_password_salt,
           new_encrypted_vault,
           new_vault_nonce,

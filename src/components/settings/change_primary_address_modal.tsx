@@ -61,11 +61,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import type { TranslationKey } from "@/lib/i18n/types";
 import { use_auth } from "@/contexts/auth_context";
 import { get_user_salt } from "@/services/api/auth";
-import {
-  hash_email,
-  derive_password_hash,
-  base64_to_array,
-} from "@/services/crypto/key_manager";
+import { hash_email, base64_to_array } from "@/services/crypto/key_manager";
 import {
   clear_aliases_cache,
   ensure_aliases_and_domains_loaded,
@@ -86,6 +82,11 @@ import { is_composing } from "@/utils/ime";
 import { apply_input_transform } from "@/utils/input_transform";
 import { ignore_error } from "@/lib/ignore_error";
 import { format_date } from "@/utils/date_format";
+import {
+  derive_current_account_proof,
+  read_kdf_version,
+  user_hash_pin_key,
+} from "@/services/crypto/login_proof";
 
 const PRIMARY_DOMAINS = ["astermail.org", "aster.cx"];
 const CODE_LENGTH = 6;
@@ -536,9 +537,11 @@ export function ChangePrimaryAddressModal({
         return;
       }
 
-      const { hash: password_hash } = await derive_password_hash(
+      const password_hash = await derive_current_account_proof(
         clamp_password(password),
         base64_to_array(salt_response.data.salt),
+        read_kdf_version(salt_response.data.kdf_version),
+        [user_hash_pin_key(user_hash)],
       );
 
       const response = await start_primary_address_change({

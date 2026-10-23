@@ -35,7 +35,6 @@ import { use_sign_in_page } from "./use_sign_in_page";
 
 import {
   hash_email,
-  derive_password_hash,
   decrypt_vault,
   base64_to_array,
 } from "@/services/crypto/key_manager";
@@ -83,6 +82,10 @@ import { is_crypto_module_load_error } from "@/services/crypto/openpgp_loader";
 import { is_auth_salt_collision } from "@/services/crypto/auth_salt_guard";
 import { api_client } from "@/services/api/client";
 import { same_address_ignoring_dots } from "@/utils/address_dots";
+import {
+  clear_pending_login_enrollment,
+  derive_sign_in_proof,
+} from "@/services/crypto/login_proof";
 
 const SIGN_IN_DOMAINS: SignInDomain[] = ["astermail.org", "aster.cx"];
 
@@ -428,9 +431,11 @@ export default function SignInPage() {
         }
 
         const salt = base64_to_array(salt_response.data.salt);
-        const { hash: password_hash } = await derive_password_hash(
+        const password_hash = await derive_sign_in_proof(
           password,
           salt,
+          salt_response.data.kdf_version,
+          user_hash,
         );
 
         set_status(t("auth.verifying_credentials"));
@@ -442,6 +447,7 @@ export default function SignInPage() {
           client_platform: import.meta.env.DEV ? "desktop" : undefined,
           is_adding_account,
         });
+        if (response.error) clear_pending_login_enrollment();
 
         const remaining_candidates = index < candidates.length - 1;
         const has_more = remaining_candidates && !is_native_client;

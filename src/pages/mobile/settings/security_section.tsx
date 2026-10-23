@@ -99,6 +99,11 @@ import { check_password_breach } from "@/services/breach_check";
 import { UpgradeGate } from "@/components/common/upgrade_gate";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { ignore_error } from "@/lib/ignore_error";
+import {
+  derive_current_account_proof,
+  read_kdf_version,
+  user_hash_pin_key,
+} from "@/services/crypto/login_proof";
 
 function base64_to_array(base64: string): Uint8Array {
   const binary = atob(base64);
@@ -293,9 +298,11 @@ export function SecuritySection({
         return;
       }
       const salt = base64_to_array(salt_res.data.salt);
-      const { hash: current_pw_hash } = await derive_password_hash(
+      const current_pw_hash = await derive_current_account_proof(
         current_password,
         salt,
+        read_kdf_version(salt_res.data.kdf_version),
+        [user_hash_pin_key(user_hash)],
       );
       let vault;
 
@@ -451,8 +458,11 @@ export function SecuritySection({
       );
 
       const new_salt = generate_auth_salt();
-      const { hash: new_pw_hash, salt: new_pw_salt } =
-        await derive_password_hash(new_password, new_salt);
+      const {
+        hash: new_pw_hash,
+        salt: new_pw_salt,
+        hash_v2: new_pw_hash_v2,
+      } = await derive_password_hash(new_password, new_salt);
       const { encrypted_vault: new_enc_vault, vault_nonce: new_v_nonce } =
         await encrypt_vault(vault, new_password);
 
@@ -462,6 +472,7 @@ export function SecuritySection({
         res = await change_password({
           current_password_hash: current_pw_hash,
           new_password_hash: new_pw_hash,
+          new_password_hash_v2: new_pw_hash_v2,
           new_password_salt: new_pw_salt,
           new_encrypted_vault: new_enc_vault,
           new_vault_nonce: new_v_nonce,
@@ -492,6 +503,7 @@ export function SecuritySection({
         res = await change_password({
           current_password_hash: current_pw_hash,
           new_password_hash: new_pw_hash,
+          new_password_hash_v2: new_pw_hash_v2,
           new_password_salt: new_pw_salt,
           new_encrypted_vault: new_enc_vault,
           new_vault_nonce: new_v_nonce,

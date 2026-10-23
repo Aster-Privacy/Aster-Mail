@@ -47,6 +47,7 @@ interface RegisterRequest {
   email_domain?: string;
   user_hash: string;
   password_hash: string;
+  password_hash_v2?: string;
   password_salt: string;
   argon2_params: {
     memory: number;
@@ -93,6 +94,7 @@ interface GetSaltRequest {
 
 interface GetSaltResponse {
   salt: string;
+  kdf_version?: number;
 }
 
 interface LoginRequest {
@@ -200,6 +202,7 @@ interface RekeyResponse {
 interface ChangePasswordRequest {
   current_password_hash: string;
   new_password_hash: string;
+  new_password_hash_v2?: string;
   new_password_salt: string;
   new_encrypted_vault: string;
   new_vault_nonce: string;
