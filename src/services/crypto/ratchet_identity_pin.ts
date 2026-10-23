@@ -70,6 +70,12 @@ interface StoredIdentityPin {
   verified: boolean;
   pinned_at: number;
   pq_seen?: boolean;
+  rotated?: boolean;
+}
+
+export interface IdentityPinRecord {
+  fingerprint: string;
+  rotated: boolean;
 }
 
 export interface IdentityChangeRecord {
@@ -170,6 +176,7 @@ export async function check_and_pin_identity(
           verified,
           pinned_at: Date.now(),
           pq_seen,
+          rotated: true,
         } satisfies StoredIdentityPin,
         storage_key,
       );
@@ -453,6 +460,25 @@ export async function get_pinned_identity_fingerprint(
     const existing = await load_pin(storage_key, uid, pin_id);
 
     return existing?.fingerprint ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function get_identity_pin_record(
+  pin_id: string,
+): Promise<IdentityPinRecord | null> {
+  try {
+    const storage_key = await get_pin_storage_key();
+    const uid = await current_account_uid();
+    const existing = await load_pin(storage_key, uid, pin_id);
+
+    if (!existing) return null;
+
+    return {
+      fingerprint: existing.fingerprint,
+      rotated: existing.rotated === true,
+    };
   } catch {
     return null;
   }

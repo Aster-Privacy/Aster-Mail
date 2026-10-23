@@ -71,6 +71,7 @@ import { resolve_forwarding_display } from "@/utils/forwarding_alias";
 import { is_reaction_payload_body } from "@/lib/reaction_payload";
 import { compare_timestamps_asc } from "@/utils/email_timestamp";
 import { has_readable_body } from "@/components/email/thread_message_merge";
+import { is_trusted_ratchet_plaintext } from "@/services/crypto/ratchet_verification_status";
 import { sender_text_alternative } from "@/components/email/plain_view";
 
 interface DecryptedEnvelope {
@@ -286,7 +287,7 @@ async function decode_thread_envelope(
           if (decrypted) {
             body_content = decrypted;
             body_decrypted = true;
-            e2e_verified = true;
+            e2e_verified = is_trusted_ratchet_plaintext(decrypted);
           } else {
             body_content = RATCHET_UNDECRYPTABLE_SENTINEL;
           }
@@ -628,7 +629,7 @@ export async function fetch_and_decrypt_virtual_group(
             if (decrypted) {
               body_content = decrypted;
               body_decrypted = true;
-              e2e_verified = true;
+              e2e_verified = is_trusted_ratchet_plaintext(decrypted);
             } else {
               body_content = RATCHET_UNDECRYPTABLE_SENTINEL;
             }

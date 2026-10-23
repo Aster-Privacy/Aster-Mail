@@ -30,7 +30,7 @@ import {
   decrypt_ratchet_message,
 } from "@/services/crypto/ratchet_manager";
 import { decrypt_message } from "@/services/crypto/key_manager";
-import { is_unauthenticated_plaintext } from "@/services/crypto/ratchet_verification_status";
+import { is_trusted_ratchet_plaintext } from "@/services/crypto/ratchet_verification_status";
 import {
   discover_external_keys_batch,
   type ExternalKeyInfo,
@@ -99,7 +99,7 @@ export function is_ratchet_verified_body(
     !!decrypted_body &&
     decrypted_body !== RATCHET_UNDECRYPTABLE_SENTINEL &&
     !is_ratchet_envelope(decrypted_body) &&
-    !is_unauthenticated_plaintext(decrypted_body)
+    is_trusted_ratchet_plaintext(decrypted_body)
   );
 }
 

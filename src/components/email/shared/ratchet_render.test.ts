@@ -38,7 +38,18 @@ const h = vi.hoisted(() => ({
   vault: null as unknown,
   bundle: null as unknown,
   names: new Map<string, unknown>(),
+  continuity: "known" as "known" | "new" | "changed",
 }));
+
+vi.mock(
+  "@/services/crypto/sender_identity_authentication",
+  async (import_original) => ({
+    ...(await import_original<
+      typeof import("@/services/crypto/sender_identity_authentication")
+    >()),
+    check_sender_identity_continuity: vi.fn(async () => h.continuity),
+  }),
+);
 
 vi.mock("@/services/crypto/memory_key_store", () => ({
   get_vault_from_memory: () => h.vault,
@@ -169,6 +180,25 @@ describe("internal ratchet mail rendering", () => {
   beforeEach(() => {
     h.vault = null;
     h.bundle = null;
+    h.continuity = "known";
+  });
+
+  it("shows a first message from an unseen sender key without the verified mark", async () => {
+    const secret = "A first message from a key this device has not seen.";
+    const { envelope_json, receiver_vault } =
+      await build_real_internal_envelope(secret);
+
+    h.vault = receiver_vault;
+    h.continuity = "new";
+
+    const result = await process_envelope_body(
+      envelope_with(envelope_json),
+      RECIPIENT,
+      "msg-first",
+    );
+
+    expect(result.body_text).toBe(secret);
+    expect(result.e2e_verified).toBe(false);
   });
 
   it("renders the decrypted plaintext, never the raw double_ratchet_v2 envelope (success path)", async () => {

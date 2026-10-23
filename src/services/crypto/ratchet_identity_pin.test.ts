@@ -73,6 +73,7 @@ import {
   is_recipient_flagged_untrusted,
   trust_recipient_keys,
   get_identity_change,
+  get_identity_pin_record,
   get_pinned_identity_fingerprint,
   reset_identity_pin,
 } from "@/services/crypto/ratchet_identity_pin";
@@ -184,7 +185,9 @@ describe("ratchet identity pin", () => {
     const previous = await get_pinned_identity_fingerprint("alice");
 
     expect(await get_identity_change("alice")).toBeNull();
+    expect((await get_identity_pin_record("alice"))?.rotated).toBe(false);
     expect(await check_and_pin_identity("alice", KEY_B, true)).toBe("rotated");
+    expect((await get_identity_pin_record("alice"))?.rotated).toBe(true);
 
     const change = await get_identity_change("alice");
 

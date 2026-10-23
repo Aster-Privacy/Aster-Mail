@@ -129,10 +129,15 @@ import {
 } from "@/services/crypto/ratchet_plaintext_cache";
 import {
   get_message_sender_identity,
+  get_peer_identity_event,
   is_unauthenticated_plaintext,
   mark_unauthenticated_plaintext,
+  mark_unconfirmed_sender_plaintext,
 } from "@/services/crypto/ratchet_verification_status";
-import { note_message_sender_identity } from "@/services/crypto/sender_identity_authentication";
+import {
+  clear_sender_identity_authentication_cache,
+  note_message_sender_identity,
+} from "@/services/crypto/sender_identity_authentication";
 import { is_ratchet_verified_body } from "@/utils/email_crypto";
 
 const SENDER = "sender@astermail.org";
@@ -775,6 +780,34 @@ describe("recovery lane trust", () => {
       expect.objectContaining({ sender: SENDER }),
     );
     expect(fetch_from_escrow).not.toHaveBeenCalled();
+    expect(upload_to_escrow).not.toHaveBeenCalled();
+  });
+
+  it("keeps the other device's unconfirmed mark on lane mail upgraded from the escrow", async () => {
+    const { envelope, parsed, receiver_vault } = await lane_message(
+      "first contact on another device",
+    );
+
+    vi.mocked(fetch_verified_from_escrow).mockImplementation(
+      async (_key, binding) => {
+        if (binding.sender !== SENDER) return null;
+        mark_unconfirmed_sender_plaintext("first contact on another device");
+
+        return "first contact on another device";
+      },
+    );
+
+    const plaintext = await decrypt_ratchet_message(
+      RECIPIENT,
+      SENDER,
+      parsed,
+      receiver_vault,
+      "lane-3",
+    );
+
+    expect(plaintext).toBe("first contact on another device");
+    expect(is_ratchet_verified_body(envelope, plaintext)).toBe(false);
+    expect(upload_to_escrow).not.toHaveBeenCalled();
   });
 
   it("keeps lane mail unverified when the escrow has only an unbound copy", async () => {
@@ -785,6 +818,7 @@ describe("recovery lane trust", () => {
     vi.mocked(fetch_from_escrow).mockImplementation(async () => ({
       plaintext: "unbound escrow copy",
       verified: false,
+      unconfirmed_sender: false,
     }));
 
     const plaintext = await decrypt_ratchet_message(
@@ -819,6 +853,7 @@ describe("recovery lane trust", () => {
     vi.mocked(fetch_from_escrow).mockImplementation(async () => ({
       plaintext: "cached through the lane",
       verified: false,
+      unconfirmed_sender: false,
     }));
 
     const plaintext = await decrypt_ratchet_message(
@@ -937,7 +972,11 @@ describe("recovery lane trust", () => {
     );
     vi.mocked(fetch_from_escrow).mockImplementation(async (_key, binding) =>
       binding.sender === SENDER
-        ? { plaintext: "the real message", verified: true }
+        ? {
+            plaintext: "the real message",
+            verified: true,
+            unconfirmed_sender: false,
+          }
         : null,
     );
 
@@ -986,6 +1025,7 @@ describe("recovery lane trust", () => {
     vi.mocked(fetch_from_escrow).mockImplementation(async () => ({
       plaintext: "recovered from escrow",
       verified: true,
+      unconfirmed_sender: false,
     }));
 
     const plaintext = await decrypt_ratchet_message(
@@ -1021,6 +1061,7 @@ describe("recovery lane trust", () => {
     vi.mocked(fetch_from_escrow).mockImplementation(async () => ({
       plaintext: "recovered from v2 escrow",
       verified: false,
+      unconfirmed_sender: false,
     }));
 
     const plaintext = await decrypt_ratchet_message(
@@ -1041,30 +1082,116 @@ describe("recovery lane trust", () => {
     );
   });
 
-  it("keeps ratchet-decrypted mail verified and escrows it bound to the sender", async () => {
+  it("keeps ratchet-decrypted mail verified once the sender key is known and escrows it bound to the sender", async () => {
     const sender_vault = make_vault((await generate_ratchet_keys())!);
     const receiver_vault = make_vault((await generate_ratchet_keys())!);
 
     h.bundle = bundle_for(receiver_vault);
 
-    const envelope = await send("opened through the ratchet", sender_vault);
+    const first = await send("first contact", sender_vault);
+    const second = await send("opened through the ratchet", sender_vault);
 
     h.store.clear();
+    h.bundle = bundle_for(sender_vault);
+    clear_sender_identity_authentication_cache();
 
-    const plaintext = await receive(envelope, receiver_vault, "ratchet-1");
+    const first_plaintext = await receive(first, receiver_vault, "ratchet-0");
+
+    expect(first_plaintext).toBe("first contact");
+    expect(is_unauthenticated_plaintext(first_plaintext)).toBe(false);
+    expect(is_ratchet_verified_body(first, first_plaintext)).toBe(false);
+    expect(upload_to_escrow).toHaveBeenLastCalledWith(
+      expect.stringContaining("ratchet-0"),
+      "first contact",
+      expect.objectContaining({ sender: SENDER }),
+      true,
+    );
+
+    const plaintext = await receive(second, receiver_vault, "ratchet-1");
 
     expect(plaintext).toBe("opened through the ratchet");
     expect(is_unauthenticated_plaintext(plaintext)).toBe(false);
-    expect(is_ratchet_verified_body(envelope, plaintext)).toBe(true);
-    expect(upload_to_escrow).toHaveBeenCalledTimes(1);
-    expect(upload_to_escrow).toHaveBeenCalledWith(
+    expect(is_ratchet_verified_body(second, plaintext)).toBe(true);
+    expect(upload_to_escrow).toHaveBeenCalledTimes(2);
+    expect(upload_to_escrow).toHaveBeenLastCalledWith(
       expect.stringContaining("ratchet-1"),
       "opened through the ratchet",
       expect.objectContaining({
         sender: SENDER,
         conversation_id: expect.any(String),
       }),
+      false,
     );
     expect(fetch_verified_from_escrow).not.toHaveBeenCalled();
+  });
+
+  it("drops the verified mark and shows a notice when a known sender's key changes", async () => {
+    const old_vault = make_vault((await generate_ratchet_keys())!);
+    const new_vault = make_vault((await generate_ratchet_keys())!);
+    const receiver_vault = make_vault((await generate_ratchet_keys())!);
+
+    h.bundle = bundle_for(receiver_vault);
+
+    const before = await send("from the old key", old_vault);
+    const after = await send("from a replaced key", new_vault);
+
+    h.store.clear();
+    h.bundle = bundle_for(old_vault);
+    clear_sender_identity_authentication_cache();
+
+    expect(await receive(before, receiver_vault, "rotate-0")).toBe(
+      "from the old key",
+    );
+
+    h.bundle = bundle_for(new_vault);
+    clear_sender_identity_authentication_cache();
+
+    const plaintext = await receive(after, receiver_vault, "rotate-2");
+
+    expect(plaintext).toBe("from a replaced key");
+    expect(is_ratchet_verified_body(after, plaintext)).toBe(false);
+    expect(get_peer_identity_event(SENDER)?.event).toBe("rotated");
+  });
+
+  it("verifies mail sealed with one of this account's own identity keys", async () => {
+    const own_vault = make_vault((await generate_ratchet_keys())!);
+
+    h.bundle = bundle_for(own_vault);
+
+    const envelope = await send("note to self", own_vault);
+
+    h.store.clear();
+    h.bundle = null;
+    clear_sender_identity_authentication_cache();
+
+    const plaintext = await receive(envelope, own_vault, "self-1");
+
+    expect(plaintext).toBe("note to self");
+    expect(is_ratchet_verified_body(envelope, plaintext)).toBe(true);
+  });
+
+  it("never verifies a first message whose sender key the directory alone vouches for", async () => {
+    const sender_vault = make_vault((await generate_ratchet_keys())!);
+    const receiver_vault = make_vault((await generate_ratchet_keys())!);
+
+    h.bundle = bundle_for(receiver_vault);
+
+    const envelope = await send("served by the directory", sender_vault);
+
+    h.store.clear();
+    h.bundle = bundle_for(sender_vault);
+    clear_sender_identity_authentication_cache();
+
+    const plaintext = await receive(envelope, receiver_vault, "ratchet-2");
+
+    expect(plaintext).toBe("served by the directory");
+    expect(is_ratchet_verified_body(envelope, plaintext)).toBe(false);
+    expect(set_cached_ratchet_plaintext).toHaveBeenCalledWith(
+      expect.stringContaining("ratchet-2"),
+      "served by the directory",
+      false,
+      expect.objectContaining({ sender: SENDER }),
+      true,
+    );
   });
 });

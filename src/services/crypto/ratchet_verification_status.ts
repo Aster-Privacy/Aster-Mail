@@ -47,6 +47,8 @@ const MAX_TRACKED_MESSAGES = 512;
 const bundle_records = new Map<string, BundleVerificationRecord>();
 const message_records = new Map<string, SenderIdentityStatus>();
 const unauthenticated_plaintexts = new Map<string, Set<string>>();
+const unconfirmed_sender_plaintexts = new Map<string, Set<string>>();
+const evicted_untrusted_plaintexts = new Set<string>();
 const peer_identity_events = new Map<string, PeerIdentityEventRecord>();
 const peer_identity_listeners = new Set<() => void>();
 
@@ -164,38 +166,84 @@ export function get_message_sender_identity(
   return message_records.get(message_key) ?? null;
 }
 
+function plaintext_digest(plaintext: string): string {
+  let first = 0x811c9dc5;
+  let second = 0x01000193;
+
+  for (let i = 0; i < plaintext.length; i++) {
+    const code = plaintext.charCodeAt(i);
+
+    first = Math.imul(first ^ code, 0x01000193);
+    second = Math.imul(second ^ code, 0x5bd1e995);
+    second ^= second >>> 15;
+  }
+
+  return `${plaintext.length}:${(first >>> 0).toString(36)}:${(second >>> 0).toString(36)}`;
+}
+
+function mark_plaintext(
+  store: Map<string, Set<string>>,
+  plaintext: string,
+  message_key: string,
+): void {
+  if (!plaintext) return;
+
+  const keys = store.get(plaintext) ?? new Set<string>();
+
+  keys.add(message_key);
+  store.delete(plaintext);
+  store.set(plaintext, keys);
+
+  while (store.size > MAX_TRACKED_MESSAGES) {
+    const oldest = store.keys().next();
+
+    if (oldest.done) return;
+
+    evicted_untrusted_plaintexts.add(plaintext_digest(oldest.value));
+    store.delete(oldest.value);
+  }
+}
+
+function was_evicted_untrusted(plaintext: string): boolean {
+  return (
+    evicted_untrusted_plaintexts.size > 0 &&
+    evicted_untrusted_plaintexts.has(plaintext_digest(plaintext))
+  );
+}
+
 export function mark_unauthenticated_plaintext(
   plaintext: string,
   message_key = "",
 ): void {
-  if (!plaintext) return;
+  mark_plaintext(unauthenticated_plaintexts, plaintext, message_key);
+}
 
-  const keys = unauthenticated_plaintexts.get(plaintext) ?? new Set<string>();
+function clear_plaintext(
+  store: Map<string, Set<string>>,
+  plaintext: string,
+  message_key: string,
+): void {
+  const keys = store.get(plaintext);
 
-  keys.add(message_key);
-  unauthenticated_plaintexts.delete(plaintext);
-  unauthenticated_plaintexts.set(plaintext, keys);
+  if (!keys) return;
 
-  while (unauthenticated_plaintexts.size > MAX_TRACKED_MESSAGES) {
-    const oldest = unauthenticated_plaintexts.keys().next();
+  keys.delete(message_key);
 
-    if (oldest.done) return;
-
-    unauthenticated_plaintexts.delete(oldest.value);
-  }
+  if (keys.size === 0) store.delete(plaintext);
 }
 
 export function clear_unauthenticated_plaintext(
   plaintext: string,
   message_key = "",
 ): void {
-  const keys = unauthenticated_plaintexts.get(plaintext);
+  clear_plaintext(unauthenticated_plaintexts, plaintext, message_key);
+}
 
-  if (!keys) return;
-
-  keys.delete(message_key);
-
-  if (keys.size === 0) unauthenticated_plaintexts.delete(plaintext);
+export function clear_unconfirmed_sender_plaintext(
+  plaintext: string,
+  message_key = "",
+): void {
+  clear_plaintext(unconfirmed_sender_plaintexts, plaintext, message_key);
 }
 
 export function is_unauthenticated_plaintext(
@@ -204,10 +252,36 @@ export function is_unauthenticated_plaintext(
   return !!plaintext && unauthenticated_plaintexts.has(plaintext);
 }
 
+export function mark_unconfirmed_sender_plaintext(
+  plaintext: string,
+  message_key = "",
+): void {
+  mark_plaintext(unconfirmed_sender_plaintexts, plaintext, message_key);
+}
+
+export function is_unconfirmed_sender_plaintext(
+  plaintext: string | null | undefined,
+): boolean {
+  return !!plaintext && unconfirmed_sender_plaintexts.has(plaintext);
+}
+
+export function is_trusted_ratchet_plaintext(
+  plaintext: string | null | undefined,
+): boolean {
+  return (
+    !!plaintext &&
+    !is_unauthenticated_plaintext(plaintext) &&
+    !is_unconfirmed_sender_plaintext(plaintext) &&
+    !was_evicted_untrusted(plaintext)
+  );
+}
+
 export function clear_ratchet_verification_status(): void {
   bundle_records.clear();
   message_records.clear();
   unauthenticated_plaintexts.clear();
+  unconfirmed_sender_plaintexts.clear();
+  evicted_untrusted_plaintexts.clear();
   peer_identity_events.clear();
   notify_peer_identity_listeners();
 }

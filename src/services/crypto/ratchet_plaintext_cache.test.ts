@@ -60,7 +60,10 @@ import {
   clear_ratchet_verification_status,
   clear_unauthenticated_plaintext,
   is_unauthenticated_plaintext,
+  is_trusted_ratchet_plaintext,
+  is_unconfirmed_sender_plaintext,
   mark_unauthenticated_plaintext,
+  mark_unconfirmed_sender_plaintext,
 } from "./ratchet_verification_status";
 import { scoped_storage_name } from "@/services/crypto/storage_key_names";
 
@@ -266,11 +269,55 @@ describe("ratchet plaintext cache sender binding", () => {
     expect(is_unauthenticated_plaintext("same text")).toBe(false);
   });
 
+  it("keeps a plaintext untrusted after newer marks push it out", () => {
+    clear_ratchet_verification_status();
+    mark_unconfirmed_sender_plaintext("first unconfirmed", "m-first");
+    mark_unauthenticated_plaintext("first lane", "m-lane");
+
+    for (let i = 0; i < 1200; i++) {
+      mark_unconfirmed_sender_plaintext(`filler ${i}`, `m-${i}`);
+      mark_unauthenticated_plaintext(`lane filler ${i}`, `l-${i}`);
+    }
+
+    expect(is_unconfirmed_sender_plaintext("first unconfirmed")).toBe(false);
+    expect(is_trusted_ratchet_plaintext("first unconfirmed")).toBe(false);
+    expect(is_trusted_ratchet_plaintext("first lane")).toBe(false);
+    expect(is_trusted_ratchet_plaintext("never marked")).toBe(true);
+
+    clear_ratchet_verification_status();
+
+    expect(is_trusted_ratchet_plaintext("first unconfirmed")).toBe(true);
+  });
+
   it("does not mark a refused entry as unauthenticated content", async () => {
     await set_cached_ratchet_plaintext("k1", "real lane body", true, ALICE);
     clear_ratchet_verification_status();
 
     expect(await get_cached_ratchet_plaintext("k1", MALLORY)).toBeNull();
     expect(is_unauthenticated_plaintext("real lane body")).toBe(false);
+  });
+
+  it("keeps a checked bound entry confirmed", async () => {
+    await set_cached_ratchet_plaintext("k1", "checked body", false, ALICE);
+    clear_ratchet_verification_status();
+
+    expect(await get_cached_ratchet_plaintext("k1", ALICE)).toBe("checked body");
+    expect(is_unconfirmed_sender_plaintext("checked body")).toBe(false);
+  });
+
+  it("keeps a bound entry without a flag confirmed", async () => {
+    h.store.set(await cache_id("k1"), {
+      plaintext: "older bound body",
+      stored_at: Date.now(),
+      sender: ALICE.sender,
+      conversation_id: ALICE.conversation_id,
+    });
+    clear_ratchet_verification_status();
+
+    expect(await get_cached_ratchet_plaintext("k1", ALICE)).toBe(
+      "older bound body",
+    );
+    expect(is_unconfirmed_sender_plaintext("older bound body")).toBe(false);
+    expect(is_unauthenticated_plaintext("older bound body")).toBe(false);
   });
 });
