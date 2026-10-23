@@ -160,11 +160,46 @@ export async function encrypt_attachments_with_private_bcc(
   attachments: Attachment[],
   recipients: PrivateBccRecipients,
   internal_copy_is_encrypted: boolean,
+  seal_shared_meta: boolean = false,
 ): Promise<EncryptedAttachmentForSend[]> {
   const hidden = hidden_internal_bcc(recipients);
   const targets = shared_targets(recipients);
   const has_external = targets.some((r) => !is_internal_recipient(r));
   const shared_internal = unique_lower(targets.filter(is_internal_recipient));
+
+  if (seal_shared_meta) {
+    let sealing_keys = await fetch_internal_public_keys(shared_internal);
+
+    if (sealing_keys.length === 0) {
+      const own_key = await derive_own_public_key();
+
+      sealing_keys = own_key ? [own_key] : [];
+    }
+
+    if (sealing_keys.length === 0) {
+      throw create_error(
+        "encryption_failed",
+        get_active_translations().errors.cannot_send_no_recipient_keys,
+      );
+    }
+
+    const sealed_private_keys: Record<string, string[]> = {};
+
+    for (const recipient of hidden) {
+      sealed_private_keys[recipient] = await fetch_internal_public_keys([
+        recipient,
+      ]);
+    }
+
+    return encrypt_attachments_for_send(
+      attachments,
+      sealing_keys,
+      true,
+      sealed_private_keys,
+      null,
+    );
+  }
+
   const split_outside_copy = internal_copy_is_encrypted && has_external;
   let shared_keys = await fetch_internal_public_keys(
     split_outside_copy ? shared_internal : targets,
