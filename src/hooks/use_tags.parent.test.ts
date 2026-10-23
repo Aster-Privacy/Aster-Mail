@@ -110,6 +110,14 @@ async function flush(): Promise<void> {
   });
 }
 
+async function flush_until(is_done: () => boolean): Promise<void> {
+  for (let attempt = 0; attempt < 50; attempt++) {
+    await flush();
+
+    if (is_done()) return;
+  }
+}
+
 describe("use_tags parent label mapping", () => {
   let container: HTMLDivElement;
   let root: Root;
@@ -126,7 +134,7 @@ describe("use_tags parent label mapping", () => {
     await act(async () => {
       await hook.fetch_tags();
     });
-    await flush();
+    await flush_until(() => tags.length === seeds.length);
   }
 
   beforeEach(async () => {
@@ -380,7 +388,7 @@ describe("use_tags parent label mapping", () => {
         "token-work",
       );
     });
-    await flush();
+    await flush_until(() => tags.length === 1);
 
     expect(moved).toBe(false);
     expect(mocks.list_tags.mock.calls.length).toBe(calls + 1);
@@ -406,7 +414,7 @@ describe("use_tags parent label mapping", () => {
         "token-work",
       );
     });
-    await flush();
+    await flush_until(() => tags.length === 0);
 
     expect(created).toBeNull();
     expect(mocks.list_tags.mock.calls.length).toBe(calls + 1);
@@ -467,6 +475,7 @@ describe("use_tags parent label mapping", () => {
 
     mocks.server_seeds = [{ name: "work" }, { name: "travel" }];
     await wait_for_refetch();
+    await flush_until(() => tags.length === 2);
 
     expect(mocks.list_tags.mock.calls.length).toBe(calls + 1);
     expect(tags.map((tag) => tag.name)).toEqual(["work", "travel"]);

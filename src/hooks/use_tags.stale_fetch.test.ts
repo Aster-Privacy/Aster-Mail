@@ -207,6 +207,7 @@ describe("use_tags stale fetch", () => {
     });
 
     await settle(["private_label"]);
+    await flush_until(() => names.length > 0);
 
     expect(names).toEqual(["private_label"]);
 
