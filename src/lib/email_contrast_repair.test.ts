@@ -849,6 +849,81 @@ describe("repair_email_contrast in dark mode newsletters", () => {
     ).toBeLessThan(0.02);
   });
 
+  it("gives slate grey labels the contrast they had on the light page", () => {
+    const doc = build_document();
+
+    doc.body.innerHTML =
+      '<p data-color="rgb(14, 22, 40)" id="title">Weekly summary</p>' +
+      '<p data-color="rgb(58, 74, 107)" id="body">Nothing needs your attention</p>' +
+      '<p data-color="rgb(86, 102, 126)" id="label">Messages received</p>';
+
+    repair_email_contrast(doc, {
+      surface: CARD,
+      ink: THEME_INK,
+      view: fake_view(),
+    });
+
+    const [title, body, label] = ["title", "body", "label"].map((id) =>
+      doc.getElementById(id)!.style.getPropertyValue("color"),
+    );
+
+    expect(contrast_ratio(label, CARD)).toBeGreaterThanOrEqual(
+      contrast_ratio("#56667e", "#ffffff") - 0.1,
+    );
+    expect(contrast_ratio(body, CARD)).toBeGreaterThanOrEqual(
+      contrast_ratio("#3a4a6b", "#ffffff") - 0.1,
+    );
+    expect(relative_luminance(title)).toBeGreaterThan(relative_luminance(body));
+    expect(relative_luminance(body)).toBeGreaterThan(relative_luminance(label));
+    expect(is_grey(label)).toBe(false);
+    expect(
+      Math.abs(hex_to_hsl(label).h - hex_to_hsl("#56667e").h),
+    ).toBeLessThan(6);
+  });
+
+  it("keeps a saturated brand colour at the plain threshold", () => {
+    const doc = build_document();
+
+    doc.body.innerHTML =
+      '<p data-color="rgb(15, 118, 110)" id="kicker">Updates</p>';
+
+    repair_email_contrast(doc, {
+      surface: CARD,
+      ink: THEME_INK,
+      view: fake_view(),
+    });
+
+    const repaired = doc
+      .getElementById("kicker")!
+      .style.getPropertyValue("color");
+
+    expect(contrast_ratio(repaired, CARD)).toBeGreaterThanOrEqual(4.5);
+    expect(contrast_ratio(repaired, CARD)).toBeLessThan(5);
+  });
+
+  it("keeps a slate grey on an author background at the plain threshold", () => {
+    const doc = build_document();
+
+    doc.body.innerHTML =
+      '<div data-bg="rgb(34, 32, 0)">' +
+      '<p data-color="rgb(86, 102, 126)" id="band">Most read</p>' +
+      "</div>";
+
+    repair_email_contrast(doc, {
+      surface: CARD,
+      ink: THEME_INK,
+      view: fake_view(),
+    });
+
+    const repaired = doc
+      .getElementById("band")!
+      .style.getPropertyValue("color");
+    const ratio = contrast_ratio(repaired, "#222000");
+
+    expect(ratio).toBeGreaterThanOrEqual(4.5);
+    expect(ratio).toBeLessThan(5);
+  });
+
   it("lands a headline link repair that an important author rule overrides", () => {
     const doc = build_document();
 
