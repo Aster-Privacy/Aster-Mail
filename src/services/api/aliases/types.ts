@@ -88,6 +88,7 @@ export interface CreateAliasRequest {
   display_name_nonce?: string;
   alias_address_hash: string;
   routing_address_hash: string;
+  legacy_routing_address_hash?: string;
   domain: string;
   encrypted_note?: string;
   note_nonce?: string;
@@ -238,6 +239,7 @@ export interface BulkCreateAliasItem {
   display_name_nonce?: string;
   alias_address_hash: string;
   routing_address_hash?: string;
+  legacy_routing_address_hash?: string;
   domain: string;
   encrypted_note?: string;
   note_nonce?: string;
@@ -270,4 +272,17 @@ export interface DeliveryEvent {
 export interface AliasDeliveryLogResponse {
   events: DeliveryEvent[];
   total: number;
+}
+
+export type AliasNormalizeStatus =
+  | "unchanged"
+  | "normalized"
+  | "merged"
+  | "conflict"
+  | "mismatch"
+  | "not_found";
+
+export interface NormalizeAliasResponse {
+  status: AliasNormalizeStatus;
+  alias_id: string;
 }

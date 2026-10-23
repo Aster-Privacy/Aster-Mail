@@ -94,6 +94,18 @@ function clean_text_field(value: string | null | undefined): string | null {
   return trimmed;
 }
 
+function trim_trailing_punctuation(
+  value: string | null | undefined,
+): string | null | undefined {
+  if (!value) return value;
+
+  let end = value.trimEnd().length;
+
+  while (end > 0 && ".,;:".includes(value[end - 1])) end--;
+
+  return value.slice(0, end);
+}
+
 const CURRENCY_SYMBOLS: Record<string, string> = {
   $: "USD",
   "€": "EUR",
@@ -1333,9 +1345,11 @@ export function extract_purchase_details(
   if (card_last_four) signals.push(`card:****${card_last_four}`);
 
   const payment_match = combined.match(
-    /(?:payment\s+method|paid\s+with|charged\s+to)[:\s]*([^\n]+)/i,
+    /(?:payment\s+method|paid\s+with|charged\s+to)(?:\s+(?:is|was|used)\b)?[:\s]*(?!(?:is|was|used)\b)([^\s:][^\n]*)/i,
   );
-  const payment_method = clean_text_field(payment_match?.[1]);
+  const payment_method = clean_text_field(
+    trim_trailing_punctuation(payment_match?.[1]),
+  );
 
   const date_patterns = [
     /(?:order|purchase|payment)\s+date[:\s]*([A-Za-z]+\s+\d{1,2},?\s+\d{4})/i,

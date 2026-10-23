@@ -2343,6 +2343,10 @@ export const pl = {
     quick_more_appearance: "Więcej motywów",
     quick_preview_text: "Tekst podglądu",
     quick_sender_pictures: "Zdjęcia nadawców",
+    quick_inbox_categories: "Kategorie skrzynki odbiorczej",
+    quick_manage_categories: "Zarządzaj kategoriami",
+    quick_categories_turned_on: "Włączono kategorie skrzynki odbiorczej",
+    quick_categories_turned_off: "Wyłączono kategorie skrzynki odbiorczej",
     sender_pictures: "Zdjęcia nadawców",
     sender_pictures_description:
       "Pokazuje zdjęcie lub inicjały nadawcy obok każdej wiadomości w skrzynce odbiorczej.",

@@ -24,6 +24,7 @@ import { api_client, type ApiResponse } from "../client";
 
 import {
   compute_alias_hash,
+  compute_legacy_routing_hash,
   compute_routing_hash,
   encrypt_alias_field,
 } from "./crypto";
@@ -59,6 +60,10 @@ export async function create_alias(
     normalized_local_part,
     domain,
   );
+  const legacy_routing_hash = await compute_legacy_routing_hash(
+    normalized_local_part,
+    domain,
+  );
   const { encrypted: encrypted_local_part, nonce: local_part_nonce } =
     await encrypt_alias_field(normalized_local_part);
 
@@ -70,6 +75,10 @@ export async function create_alias(
     domain,
     captcha_token,
   };
+
+  if (legacy_routing_hash) {
+    request.legacy_routing_address_hash = legacy_routing_hash;
+  }
 
   if (display_name) {
     const { encrypted: encrypted_display_name, nonce: display_name_nonce } =
@@ -214,11 +223,19 @@ export async function check_alias_availability(
     domain,
   );
 
+  const legacy_routing_hash = await compute_legacy_routing_hash(
+    normalized_local_part,
+    domain,
+  );
+
   return api_client.post<CheckAvailabilityResponse>(
     "/addresses/v1/aliases/check",
     {
       alias_address_hash: alias_hash,
       routing_address_hash: routing_hash,
+      ...(legacy_routing_hash
+        ? { legacy_routing_address_hash: legacy_routing_hash }
+        : {}),
     },
   );
 }

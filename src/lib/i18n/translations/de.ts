@@ -2166,6 +2166,10 @@ export const de = {
     quick_more_appearance: "Weitere Designs",
     quick_preview_text: "Vorschautext",
     quick_sender_pictures: "Absenderbilder",
+    quick_inbox_categories: "Posteingangskategorien",
+    quick_manage_categories: "Kategorien verwalten",
+    quick_categories_turned_on: "Posteingangskategorien aktiviert",
+    quick_categories_turned_off: "Posteingangskategorien deaktiviert",
     sender_pictures: "Absenderbilder",
     sender_pictures_description:
       "Zeigt das Foto oder die Initialen des Absenders neben jeder Nachricht im Posteingang an.",

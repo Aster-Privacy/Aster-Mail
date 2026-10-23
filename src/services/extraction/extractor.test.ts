@@ -365,6 +365,62 @@ describe("purchase receipt link", () => {
   });
 });
 
+describe("purchase payment method", () => {
+  const cases: Array<[string, string]> = [
+    ["Your payment method is: PayPal", "PayPal"],
+    ["Payment method: Visa", "Visa"],
+    ["Payment method was Visa ending 1234", "Visa ending 1234"],
+    ["Payment method used: Amex", "Amex"],
+    ["Paid with Apple Pay", "Apple Pay"],
+    ["Paid with Visa.", "Visa"],
+    ["Charged to Mastercard •••• 4242", "Mastercard •••• 4242"],
+    ["Payment method\nVisa ending 1234", "Visa ending 1234"],
+    ["Paid with Isracard", "Isracard"],
+    ["Your payment method is:\nPayPal", "PayPal"],
+  ];
+
+  it.each(cases)("reads %j as %j", (line, expected) => {
+    const result = extract_purchase_details(
+      "Your receipt",
+      `${line}\nTotal: $12.00`,
+      "receipts@store.com",
+      "Store",
+    );
+
+    expect(result.payment_method).toBe(expected);
+  });
+
+  it("reads nothing when the label has no value", () => {
+    const result = extract_purchase_details(
+      "Your receipt",
+      "Total: $12.00\nPayment method is:",
+      "receipts@store.com",
+      "Store",
+    );
+
+    expect(result.payment_method).toBeNull();
+  });
+
+  const long_inputs: Array<[string, string]> = [
+    ["colons after the label", `Paid with${" :".repeat(75000)}`],
+    ["repeated labels", "payment method is ".repeat(10000)],
+    ["trailing punctuation", `Paid with Visa${". ".repeat(75000)}`],
+  ];
+
+  it.each(long_inputs)("reads %s quickly", (_label, text) => {
+    const started = performance.now();
+
+    extract_purchase_details(
+      "Your receipt",
+      `Total: $12.00\n${text}`,
+      "receipts@store.com",
+      "Store",
+    );
+
+    expect(performance.now() - started).toBeLessThan(1000);
+  });
+});
+
 describe("is_purchase_email precision", () => {
   it("ignores prose that merely mentions an order", () => {
     expect(
