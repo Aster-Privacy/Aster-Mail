@@ -190,6 +190,13 @@ const NUMBER_TOKEN = supports_regex(GROUPED_DECIMAL_COMMA_TOKEN)
   ? `${GROUPED_DECIMAL_COMMA_TOKEN}|${PLAIN_NUMBER_TOKEN}`
   : PLAIN_NUMBER_TOKEN;
 
+const LOOKBEHIND_TOTAL_LABEL =
+  "(?<!\\bnet\\s)(?<!\\bsub\\s)(?<!\\bitems?\\s)\\btotals?\\b";
+
+const TOTAL_LABEL = supports_regex(LOOKBEHIND_TOTAL_LABEL)
+  ? LOOKBEHIND_TOTAL_LABEL
+  : "\\btotals?\\b";
+
 const MONEY_TOKEN = `(?:(?:${CURRENCY_TOKEN})\\s*)?(?:${NUMBER_TOKEN})(?:\\s*(?:${CURRENCY_TOKEN}))?`;
 
 const AMOUNT_PATTERN = new RegExp(
@@ -1261,7 +1268,7 @@ export function extract_purchase_details(
       money_after("purchase\\s+total"),
       money_after("total\\s+charged"),
       money_after("amount\\s+(?:paid|charged|due)"),
-      money_after("(?<!\\bnet\\s)(?<!\\bsub\\s)(?<!\\bitems?\\s)\\btotals?\\b"),
+      money_after(TOTAL_LABEL),
     ],
     currency,
   );
