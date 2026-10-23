@@ -2215,6 +2215,10 @@ export const pt = {
     quick_more_appearance: "Mais temas",
     quick_preview_text: "Texto de pré-visualização",
     quick_sender_pictures: "Fotos do remetente",
+    quick_inbox_categories: "Categorias da caixa de entrada",
+    quick_manage_categories: "Gerir categorias",
+    quick_categories_turned_on: "Categorias da caixa de entrada ativadas",
+    quick_categories_turned_off: "Categorias da caixa de entrada desativadas",
     sender_pictures: "Fotos do remetente",
     sender_pictures_description:
       "Mostra a foto ou as iniciais do remetente junto a cada mensagem na sua caixa de entrada.",

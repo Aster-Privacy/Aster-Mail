@@ -2452,6 +2452,10 @@ export interface SettingsTranslations {
   settings_view_mode_description: string;
   see_all_settings: string;
   quick_sender_pictures: string;
+  quick_inbox_categories: string;
+  quick_manage_categories: string;
+  quick_categories_turned_on: string;
+  quick_categories_turned_off: string;
   sender_pictures: string;
   sender_pictures_description: string;
   quick_preview_text: string;

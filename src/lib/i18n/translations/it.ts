@@ -2197,6 +2197,10 @@ export const it = {
     quick_more_appearance: "Altri temi",
     quick_preview_text: "Testo di anteprima",
     quick_sender_pictures: "Immagini mittente",
+    quick_inbox_categories: "Categorie della posta in arrivo",
+    quick_manage_categories: "Gestisci categorie",
+    quick_categories_turned_on: "Categorie della posta in arrivo attivate",
+    quick_categories_turned_off: "Categorie della posta in arrivo disattivate",
     sender_pictures: "Immagini mittente",
     sender_pictures_description:
       "Mostra la foto o le iniziali del mittente accanto a ogni messaggio nella posta in arrivo.",

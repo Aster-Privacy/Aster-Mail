@@ -24,6 +24,8 @@ import { useRef } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { Button, Switch } from "@aster/ui";
 
+import { InfoPopover } from "@/components/ui/info_popover";
+import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { next_radio_index } from "@/lib/radiogroup_navigation";
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
@@ -317,6 +319,63 @@ function QuickToggle({
   );
 }
 
+function QuickCategoriesToggle() {
+  const { t } = use_i18n();
+  const { preferences, update_preference } = use_preferences();
+  const is_enabled = preferences.inbox_categories_enabled !== false;
+  const label = t("settings.quick_inbox_categories");
+
+  const set_enabled = (next: boolean, with_undo: boolean) => {
+    update_preference("inbox_categories_enabled", next, true);
+    show_toast(
+      next
+        ? t("settings.quick_categories_turned_on")
+        : t("settings.quick_categories_turned_off"),
+      "success",
+      undefined,
+      with_undo
+        ? {
+            label: t("common.undo"),
+            on_click: () => set_enabled(!next, false),
+          }
+        : undefined,
+    );
+  };
+
+  return (
+    <div className="quick_settings_row flex min-h-[38px] items-center rounded-[8px] px-1">
+      <div className="aster_switch_labeled">
+        <span className="flex min-w-0 flex-1 items-center gap-1.5 self-stretch">
+          <label
+            className="aster_switch_labeled_title cursor-pointer truncate"
+            htmlFor="quick_categories_switch"
+            id="quick_categories_label"
+          >
+            {label}
+          </label>
+          <InfoPopover
+            description={t("settings.inbox_categories_description")}
+            icon_class="h-[15px] w-[15px]"
+            title={label}
+          />
+          <label
+            aria-hidden="true"
+            className="flex-1 cursor-pointer self-stretch"
+            htmlFor="quick_categories_switch"
+          />
+        </span>
+        <Switch
+          aria-labelledby="quick_categories_label"
+          checked={is_enabled}
+          id="quick_categories_switch"
+          size="sm"
+          onCheckedChange={(next) => set_enabled(next, true)}
+        />
+      </div>
+    </div>
+  );
+}
+
 export function QuickSettingsPanel({
   is_open,
   on_close,
@@ -419,13 +478,6 @@ export function QuickSettingsPanel({
             }
           />
           <QuickToggle
-            checked={preferences.inbox_categories_enabled !== false}
-            label={t("settings.inbox_categories")}
-            on_change={(next) =>
-              update_preference("inbox_categories_enabled", next, true)
-            }
-          />
-          <QuickToggle
             checked={preferences.show_profile_pictures ?? true}
             label={t("settings.quick_sender_pictures")}
             on_change={(next) =>
@@ -439,6 +491,22 @@ export function QuickSettingsPanel({
               update_preference("show_email_preview", next, true)
             }
           />
+        </QuickSection>
+
+        <QuickSection
+          action={
+            <button
+              className="quick_settings_link flex-shrink-0 text-[13px]"
+              style={{ color: "var(--quick-link, #3b82f6)" }}
+              type="button"
+              onClick={() => on_open_full_settings("categories")}
+            >
+              {t("settings.quick_manage_categories")}
+            </button>
+          }
+          title={t("settings.categories_title")}
+        >
+          <QuickCategoriesToggle />
         </QuickSection>
 
         <QuickSection

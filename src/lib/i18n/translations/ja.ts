@@ -2177,6 +2177,10 @@ export const ja = {
     quick_more_appearance: "その他のテーマ",
     quick_preview_text: "プレビューテキスト",
     quick_sender_pictures: "送信者の画像",
+    quick_inbox_categories: "受信トレイのカテゴリ",
+    quick_manage_categories: "カテゴリを管理",
+    quick_categories_turned_on: "受信トレイのカテゴリをオンにしました",
+    quick_categories_turned_off: "受信トレイのカテゴリをオフにしました",
     sender_pictures: "送信者の画像",
     sender_pictures_description:
       "受信トレイの各メッセージの横に送信者の写真またはイニシャルを表示します。",
