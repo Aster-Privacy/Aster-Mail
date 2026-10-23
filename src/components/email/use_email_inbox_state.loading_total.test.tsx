@@ -219,7 +219,7 @@ describe("use_email_inbox_state list total before the first page arrives", () =>
     });
 
     expect(state().effective_total_for_pages).toBe(2500);
-    expect(state().header_display_count).toBe(2500);
+    expect(state().header_display_count).toBeUndefined();
   });
 
   it("does not show the restored snapshot row count as the list total", async () => {

@@ -224,30 +224,58 @@ describe("use_email_inbox_state header count after switching folders", () => {
     };
   }
 
-  it("does not carry the previous folder's total into Sent while it loads", async () => {
-    await render("archive", loaded(26, 26));
-    expect(state().header_display_count).toBe(26);
+  function alias_loaded(unread: number, read: number): EmailState {
+    const alias_rows = Array.from({ length: unread + read }, (_, i) => ({
+      ...sent_email(`a${i}`),
+      item_type: "received",
+      recipient_addresses: ["alias@example.com"],
+      is_read: i >= unread,
+    })) as unknown as InboxEmail[];
+
+    return {
+      ...loaded(0, alias_rows.length),
+      emails: alias_rows,
+    };
+  }
+
+  it("does not carry the previous folder's count into Sent while it loads", async () => {
+    await render("alias-alias@example.com", alias_loaded(3, 2));
+    expect(state().header_display_count).toBe(3);
 
     await render("sent", loading_state());
     expect(state().header_display_count).toBeUndefined();
 
     await render("sent", loaded(50, 2508));
-    expect(state().header_display_count).toBe(2508);
+    expect(state().header_display_count).toBeUndefined();
   });
 
-  it("keeps a folder's own last total while it revalidates", async () => {
+  it("does not carry Sent's list into an alias view while it loads", async () => {
     await render("sent", loaded(50, 2508));
-    expect(state().header_display_count).toBe(2508);
+    expect(state().header_display_count).toBeUndefined();
 
-    await render("sent", { ...loaded(50, 2508), is_loading: true });
-    expect(state().header_display_count).toBe(2508);
+    await render("alias-alias@example.com", loading_state());
+    expect(state().header_display_count).toBeUndefined();
+
+    await render("alias-alias@example.com", alias_loaded(3, 2));
+    expect(state().header_display_count).toBe(3);
   });
 
-  it("shows the cached total right away when returning to a loaded folder", async () => {
+  it("keeps a view's own last count while it revalidates", async () => {
+    await render("alias-alias@example.com", alias_loaded(3, 2));
+    expect(state().header_display_count).toBe(3);
+
+    await render("alias-alias@example.com", {
+      ...alias_loaded(3, 2),
+      is_loading: true,
+    });
+    expect(state().header_display_count).toBe(3);
+  });
+
+  it("shows the cached count right away when returning to a loaded view", async () => {
     await render("archive", loaded(26, 26));
-    harness.email_state = loaded(50, 2508);
-    await render("sent", loaded(50, 2508));
+    harness.email_state = alias_loaded(3, 2);
+    await render("alias-alias@example.com", alias_loaded(3, 2));
 
-    expect(state().header_display_count).toBe(2508);
+    expect(state().header_display_count).toBe(3);
   });
 });
