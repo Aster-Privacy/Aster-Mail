@@ -93,6 +93,7 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     update_preference,
     mail_stats,
     folders_state,
+    folder_unread_counts,
     tags_state,
     current_page,
     set_current_page,
@@ -447,11 +448,15 @@ export function use_email_inbox_state(props: EmailInboxProps) {
           ? mail_stats.scheduled
           : current_view === "snoozed"
             ? mail_stats.snoozed
-            : null;
+            : is_folder_view && folder_view_token && !locked_folder
+              ? folder_unread_counts[folder_view_token]
+              : is_alias_view
+                ? null
+                : undefined;
 
   const list_header_count = is_alias_view
     ? filtered_emails.filter((e) => !e.is_read && e.id !== kept_open_id).length
-    : effective_total_for_pages;
+    : undefined;
 
   const header_count_key = `${current_view}|${
     categories.enabled ? categories.active_category : ""

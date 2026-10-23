@@ -93,6 +93,7 @@ export function use_inbox_view_state(props: EmailInboxProps) {
   const { stats: mail_stats } = use_mail_stats();
   const {
     state: folders_state,
+    unread_counts: folder_unread_counts,
     add_folder_to_email,
     remove_folder_from_email,
   } = use_folders();
@@ -767,6 +768,7 @@ export function use_inbox_view_state(props: EmailInboxProps) {
     update_preference,
     mail_stats,
     folders_state,
+    folder_unread_counts,
     tags_state,
     current_page,
     set_current_page,
