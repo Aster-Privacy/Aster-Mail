@@ -166,6 +166,14 @@ async function seal_entry(
   const encoder = new TextEncoder();
   const plaintext = encoder.encode(JSON.stringify(value));
 
+  return seal_with_storage_key(storage_key, plaintext, timestamp);
+}
+
+async function seal_with_storage_key(
+  storage_key: CryptoKey,
+  plaintext: Uint8Array,
+  timestamp: number,
+): Promise<EncryptedEntry> {
   const iv = crypto.getRandomValues(new Uint8Array(12));
 
   const encrypted_buffer = await crypto.subtle.encrypt(
@@ -261,6 +269,37 @@ export async function encrypted_set(
   const db = await open_database();
   const entry = await seal_entry(key, value, encryption_key);
 
+  return put_entry(db, key, entry);
+}
+
+export async function encrypted_set_plaintext(
+  key: string,
+  plaintext: Uint8Array,
+  encryption_key: CryptoKey,
+): Promise<void> {
+  try {
+    const db = await open_database();
+    const storage_key = await derive_storage_key_from_crypto_key(
+      encryption_key,
+      key,
+    );
+    const entry = await seal_with_storage_key(
+      storage_key,
+      plaintext,
+      Date.now(),
+    );
+
+    return put_entry(db, key, entry);
+  } finally {
+    zero_uint8_array(plaintext);
+  }
+}
+
+function put_entry(
+  db: IDBDatabase,
+  key: string,
+  entry: EncryptedEntry,
+): Promise<void> {
   return new Promise((resolve, reject) => {
     const transaction = db.transaction(STORE_NAME, "readwrite");
     const store = transaction.objectStore(STORE_NAME);

@@ -315,10 +315,12 @@ function capped_list(values: Set<string>): {
   return { list: [...values], complete: true };
 }
 
-export function summarize_chunk(
-  items: MailItem[],
-  entries: SummarizableEntry[],
-): { summary: ChunkSummary; grams: StoredGramFilter } {
+export interface ChunkSummarizer {
+  add(item: MailItem, entry: SummarizableEntry | null): void;
+  finish(): { summary: ChunkSummary; grams: StoredGramFilter };
+}
+
+export function create_chunk_summarizer(): ChunkSummarizer {
   let min_ts = 0;
   let max_ts = 0;
   let has_dated = false;
@@ -332,99 +334,113 @@ export function summarize_chunk(
   const names = new Set<string>();
   const grams = new Set<string>();
 
-  for (let i = 0; i < items.length; i++) {
-    const item = items[i];
-    const entry = entries[i] ?? null;
-    const metadata = entry?.metadata ?? null;
-    const envelope = entry?.envelope ?? null;
-    const ts = new Date(item.message_ts || item.created_at).getTime();
+  return {
+    add(item, entry) {
+      const metadata = entry?.metadata ?? null;
+      const envelope = entry?.envelope ?? null;
+      const ts = new Date(item.message_ts || item.created_at).getTime();
 
-    if (Number.isFinite(ts)) {
-      if (!has_dated) {
-        min_ts = ts;
-        max_ts = ts;
-        has_dated = true;
+      if (Number.isFinite(ts)) {
+        if (!has_dated) {
+          min_ts = ts;
+          max_ts = ts;
+          has_dated = true;
+        } else {
+          if (ts < min_ts) min_ts = ts;
+          if (ts > max_ts) max_ts = ts;
+        }
       } else {
-        if (ts < min_ts) min_ts = ts;
-        if (ts > max_ts) max_ts = ts;
+        has_undated = true;
       }
-    } else {
-      has_undated = true;
-    }
 
-    const size = metadata?.size_bytes ?? 0;
+      const size = metadata?.size_bytes ?? 0;
 
-    if (size < min_size) min_size = size;
-    if (size > max_size) max_size = size;
+      if (size < min_size) min_size = size;
+      if (size > max_size) max_size = size;
 
-    flags |= metadata?.is_read ? FLAG_READ : FLAG_UNREAD;
-    flags |= metadata?.is_starred ? FLAG_STARRED : FLAG_UNSTARRED;
-    flags |= metadata?.has_attachments ? FLAG_ATTACHMENT : FLAG_NO_ATTACHMENT;
-    flags |= item.is_trashed ? FLAG_TRASHED : FLAG_NOT_TRASHED;
-    flags |= item.is_spam ? FLAG_SPAM : FLAG_NOT_SPAM;
+      flags |= metadata?.is_read ? FLAG_READ : FLAG_UNREAD;
+      flags |= metadata?.is_starred ? FLAG_STARRED : FLAG_UNSTARRED;
+      flags |= metadata?.has_attachments ? FLAG_ATTACHMENT : FLAG_NO_ATTACHMENT;
+      flags |= item.is_trashed ? FLAG_TRASHED : FLAG_NOT_TRASHED;
+      flags |= item.is_spam ? FLAG_SPAM : FLAG_NOT_SPAM;
 
-    if (item.item_type) item_types.add(item.item_type);
+      if (item.item_type) item_types.add(item.item_type);
 
-    for (const label of item.labels ?? []) {
-      tokens.add(label.token);
-      names.add((label.name || "").toLowerCase());
-    }
-    for (const folder of item.folders ?? []) {
-      tokens.add(folder.token);
-      names.add((folder.name || "").toLowerCase());
-    }
-    for (const tag of item.tag_tokens ?? []) {
-      tokens.add(tag);
-    }
+      for (const label of item.labels ?? []) {
+        tokens.add(label.token);
+        names.add((label.name || "").toLowerCase());
+      }
+      for (const folder of item.folders ?? []) {
+        tokens.add(folder.token);
+        names.add((folder.name || "").toLowerCase());
+      }
+      for (const tag of item.tag_tokens ?? []) {
+        tokens.add(tag);
+      }
 
-    if (!envelope) continue;
+      if (!envelope) return;
 
-    const from = normalize_envelope_from(envelope.from);
+      const from = normalize_envelope_from(envelope.from);
 
-    collect_index_grams(envelope.subject || "", grams);
-    collect_index_grams(from?.name || "", grams);
-    collect_index_grams(from?.email || "", grams);
+      collect_index_grams(envelope.subject || "", grams);
+      collect_index_grams(from?.name || "", grams);
+      collect_index_grams(from?.email || "", grams);
 
-    const forwarding = resolve_forwarding_display(
-      envelope.from,
-      envelope.raw_headers,
-    );
+      const forwarding = resolve_forwarding_display(
+        envelope.from,
+        envelope.raw_headers,
+      );
 
-    if (forwarding) {
-      collect_index_grams(forwarding.display_sender_name, grams);
-      collect_index_grams(forwarding.display_sender_email, grams);
-    }
+      if (forwarding) {
+        collect_index_grams(forwarding.display_sender_name, grams);
+        collect_index_grams(forwarding.display_sender_email, grams);
+      }
 
-    for (const recipient of [
-      ...normalize_envelope_recipients(envelope.to),
-      ...normalize_envelope_recipients(envelope.cc),
-      ...normalize_envelope_recipients(envelope.bcc),
-    ]) {
-      collect_index_grams(recipient.name || "", grams);
-      collect_index_grams(recipient.email, grams);
-    }
+      for (const recipient of [
+        ...normalize_envelope_recipients(envelope.to),
+        ...normalize_envelope_recipients(envelope.cc),
+        ...normalize_envelope_recipients(envelope.bcc),
+      ]) {
+        collect_index_grams(recipient.name || "", grams);
+        collect_index_grams(recipient.email, grams);
+      }
+    },
+    finish() {
+      const token_list = capped_list(tokens);
+      const name_list = capped_list(names);
+
+      return {
+        summary: {
+          min_ts,
+          max_ts,
+          has_dated,
+          has_undated,
+          min_size: min_size === Number.MAX_SAFE_INTEGER ? 0 : min_size,
+          max_size,
+          flags,
+          item_types: [...item_types],
+          tokens: token_list.list,
+          names: name_list.list,
+          tokens_complete: token_list.complete,
+          names_complete: name_list.complete,
+        },
+        grams: build_gram_filter(grams),
+      };
+    },
+  };
+}
+
+export function summarize_chunk(
+  items: MailItem[],
+  entries: SummarizableEntry[],
+): { summary: ChunkSummary; grams: StoredGramFilter } {
+  const summarizer = create_chunk_summarizer();
+
+  for (let i = 0; i < items.length; i++) {
+    summarizer.add(items[i], entries[i] ?? null);
   }
 
-  const token_list = capped_list(tokens);
-  const name_list = capped_list(names);
-
-  return {
-    summary: {
-      min_ts,
-      max_ts,
-      has_dated,
-      has_undated,
-      min_size: min_size === Number.MAX_SAFE_INTEGER ? 0 : min_size,
-      max_size,
-      flags,
-      item_types: [...item_types],
-      tokens: token_list.list,
-      names: name_list.list,
-      tokens_complete: token_list.complete,
-      names_complete: name_list.complete,
-    },
-    grams: build_gram_filter(grams),
-  };
+  return summarizer.finish();
 }
 
 export function normalize_chunk_summary(raw: unknown): ChunkSummary | null {
