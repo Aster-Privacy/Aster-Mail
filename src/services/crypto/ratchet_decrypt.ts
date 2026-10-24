@@ -207,7 +207,27 @@ async function sender_continuity(
   return check_sender_identity_continuity(
     sender_email,
     sender_identity_key,
-  ).catch(() => "new" as const);
+  ).catch(() => "changed" as const);
+}
+
+async function session_sender_identity_key(
+  conversation_id: string,
+): Promise<string | null> {
+  const ratchet = await load_ratchet_state(conversation_id).catch(() => null);
+
+  return ratchet?.get_remote_identity_key() ?? null;
+}
+
+async function bind_session_sender_identity_key(
+  conversation_id: string,
+  sender_identity_key: string,
+): Promise<void> {
+  const ratchet = await load_ratchet_state(conversation_id).catch(() => null);
+
+  if (!ratchet || ratchet.get_remote_identity_key()) return;
+
+  ratchet.set_remote_identity_key(sender_identity_key);
+  await save_ratchet_state(ratchet);
 }
 
 async function settle_cached_plaintext(
@@ -233,7 +253,8 @@ async function settle_cached_plaintext(
   ) {
     const continuity = await sender_continuity(
       sender_email,
-      sender_identity_key,
+      (await session_sender_identity_key(binding.conversation_id)) ??
+        sender_identity_key,
       vault,
     );
 
@@ -297,17 +318,6 @@ async function attempt_ratchet_decrypt(
     let plaintext: string | null = null;
     let decrypt_error: unknown = null;
 
-    const continuity = await sender_continuity(
-      sender_email,
-      envelope.sender_identity_key,
-      vault,
-    );
-
-    await authenticate_sender_identity(
-      sender_email,
-      envelope.sender_identity_key,
-    ).catch(() => "unverified" as const);
-
     if (data) {
       try {
         plaintext = await decrypt_ratchet_for_recipient(
@@ -324,16 +334,31 @@ async function attempt_ratchet_decrypt(
     }
 
     if (plaintext !== null) {
-      void detect_identity_pin_drift(
-        sender_email.toLowerCase(),
-        envelope.sender_identity_key,
+      const lane_plaintext = is_unauthenticated_plaintext(plaintext);
+      const bound_identity_key = lane_plaintext
+        ? null
+        : await session_sender_identity_key(conversation_id);
+      const identity_key =
+        bound_identity_key ?? envelope.sender_identity_key;
+      const continuity = await sender_continuity(
+        sender_email,
+        identity_key,
+        vault,
       );
+
+      await authenticate_sender_identity(sender_email, identity_key).catch(
+        () => "unverified" as const,
+      );
+
+      if (!lane_plaintext && !bound_identity_key && continuity === "known") {
+        await bind_session_sender_identity_key(conversation_id, identity_key);
+      }
+
+      void detect_identity_pin_drift(sender_email.toLowerCase(), identity_key);
 
       if (continuity === "changed") {
         record_peer_identity_event(sender_email, "rotated");
       }
-
-      const lane_plaintext = is_unauthenticated_plaintext(plaintext);
 
       if (dedupe_key && lane_plaintext) {
         plaintext = await prefer_escrowed_plaintext(
@@ -740,6 +765,7 @@ async function init_receiver_from_bootstrap(
     shared_secret,
     own_keypair,
     conversation_id,
+    sender_identity_key,
   );
 
   shared_secret.fill(0);
