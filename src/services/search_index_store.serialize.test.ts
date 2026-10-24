@@ -120,6 +120,34 @@ describe("serialize_chunk", () => {
     );
     expect(digest).toEqual(summarize_chunk(items, entries));
   });
+
+  it("matches JSON.stringify bytes for an empty chunk", async () => {
+    const { plaintext, digest } = await serialize_chunk([], []);
+
+    expect(new TextDecoder().decode(plaintext)).toBe(
+      '{"items":[],"entries":[]}',
+    );
+    expect(digest).toEqual(summarize_chunk([], []));
+  });
+
+  it("matches JSON.stringify bytes for lone surrogates and non-finite numbers", async () => {
+    const items = [make_item(0), make_item(1)];
+    const entries = items.map((item, i) =>
+      to_persisted_entry(item.id, make_entry(i)),
+    );
+
+    entries[0].envelope!.subject =
+      "broken \ud800 pair \udfff and emoji \ud83d\ude00";
+    entries[1].search_body_text = "tail \ud83d";
+    (entries[1].metadata as unknown as { size_bytes: number }).size_bytes = NaN;
+    (items[1] as unknown as { size_bytes: number }).size_bytes = Infinity;
+
+    const { plaintext } = await serialize_chunk(items, entries);
+
+    expect(Array.from(plaintext)).toEqual(
+      Array.from(new TextEncoder().encode(JSON.stringify({ items, entries }))),
+    );
+  });
 });
 
 describe("snapshot writer flush", () => {
