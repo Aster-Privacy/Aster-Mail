@@ -25,6 +25,7 @@ import {
   is_transparent_color_value,
 } from "./html_sanitizer_css";
 import { repair_comment_markup } from "./html_sanitizer_utils";
+import { normalize_url_value } from "./url_value";
 
 const BACKGROUND_DECLARATION_RE = /background(?:-color)?\s*:\s*[^;]+;?/gi;
 
@@ -333,7 +334,7 @@ export function apply_compose_paste_dom_rules(
 
     if (el.tagName === "A") {
       const href = el.getAttribute("href") || "";
-      const lower = href.trim().toLowerCase();
+      const lower = normalize_url_value(href).toLowerCase();
 
       if (
         lower.startsWith("javascript:") ||
@@ -354,14 +355,17 @@ export function apply_compose_paste_dom_rules(
     }
 
     if (el.tagName === "IMG") {
-      const src = el.getAttribute("src") || "";
+      const raw_src = el.getAttribute("src");
+      const src = normalize_url_value(raw_src ?? "");
 
-      if (src.startsWith("data:image/svg")) {
+      if (raw_src !== null && raw_src !== src) el.setAttribute("src", src);
+
+      if (src.toLowerCase().startsWith("data:image/svg")) {
         el.parentNode?.removeChild(el);
         continue;
       }
 
-      if (src.startsWith("data:")) {
+      if (src.toLowerCase().startsWith("data:")) {
         const size_estimate = Math.ceil((src.length * 3) / 4);
 
         if (size_estimate > 2 * 1024 * 1024) {

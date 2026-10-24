@@ -49,7 +49,7 @@ vi.mock("@/services/lockdown_store", async (import_original) => ({
 
 vi.mock("@/lib/image_proxy", async (import_original) => ({
   ...(await import_original<typeof import("@/lib/image_proxy")>()),
-  get_image_proxy_url: () => "",
+  get_image_proxy_url: () => "https://app.example/api/images/v1/proxy",
 }));
 
 import { QuotedHtmlPreview } from "@/components/compose/quoted_html_preview";
