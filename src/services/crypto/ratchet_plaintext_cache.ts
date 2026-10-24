@@ -24,7 +24,10 @@ import {
   has_vault_in_memory,
 } from "./memory_key_store";
 
-import { mark_unauthenticated_plaintext } from "./ratchet_verification_status";
+import {
+  mark_unauthenticated_plaintext,
+  mark_unconfirmed_sender_plaintext,
+} from "./ratchet_verification_status";
 import {
   RATCHET_PLAINTEXT_PREFIX,
   delete_scoped_entries,
@@ -42,6 +45,7 @@ interface CachedPlaintext {
   plaintext: string;
   stored_at: number;
   unauthenticated?: boolean;
+  unconfirmed_sender?: boolean;
   sender?: string;
   conversation_id?: string;
 }
@@ -80,6 +84,7 @@ function build_entry(
   plaintext: string,
   unauthenticated: boolean,
   binding: PlaintextBinding | undefined,
+  unconfirmed_sender: boolean,
 ): CachedPlaintext {
   const bound = binding ? normalize_binding(binding) : null;
 
@@ -87,8 +92,12 @@ function build_entry(
     plaintext,
     stored_at: Date.now(),
     ...(unauthenticated ? { unauthenticated: true } : {}),
+    ...(unconfirmed_sender ? { unconfirmed_sender: true } : {}),
     ...(bound
-      ? { sender: bound.sender, conversation_id: bound.conversation_id }
+      ? {
+          sender: bound.sender,
+          conversation_id: bound.conversation_id,
+        }
       : {}),
   };
 }
@@ -212,6 +221,10 @@ export async function get_cached_ratchet_plaintext(
       mark_unauthenticated_plaintext(entry.plaintext, message_id);
     }
 
+    if (entry.unconfirmed_sender) {
+      mark_unconfirmed_sender_plaintext(entry.plaintext, message_id);
+    }
+
     return entry.plaintext;
   } catch {
     return null;
@@ -223,6 +236,7 @@ export async function set_cached_ratchet_plaintext(
   plaintext: string,
   unauthenticated = false,
   binding?: PlaintextBinding,
+  unconfirmed_sender = false,
 ): Promise<void> {
   if (!message_id) return;
   try {
@@ -254,7 +268,7 @@ export async function set_cached_ratchet_plaintext(
       RATCHET_PLAINTEXT_PREFIX,
       scope.uid,
       message_id,
-      build_entry(plaintext, unauthenticated, binding),
+      build_entry(plaintext, unauthenticated, binding, unconfirmed_sender),
       key,
     );
   } catch {

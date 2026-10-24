@@ -26,6 +26,7 @@ const served = new Map<string, Record<string, string>>();
 const cached = new Map<string, string>();
 const cached_flags = new Map<string, boolean>();
 const cached_bindings = new Map<string, unknown>();
+const cached_unconfirmed = new Map<string, boolean>();
 const foreign_keys = new Set<string>();
 
 vi.mock("./memory_key_store", () => ({
@@ -42,10 +43,12 @@ vi.mock("./ratchet_plaintext_cache", () => ({
     value: string,
     unauthenticated?: boolean,
     binding?: unknown,
+    unconfirmed_sender?: boolean,
   ) => {
     cached.set(key, value);
     cached_flags.set(key, !!unauthenticated);
     cached_bindings.set(key, binding);
+    cached_unconfirmed.set(key, !!unconfirmed_sender);
   },
   is_cached_plaintext_foreign: async (key: string) => foreign_keys.has(key),
 }));
@@ -80,6 +83,10 @@ import {
   upload_to_escrow,
 } from "./message_escrow";
 import { array_to_base64, base64_to_array } from "./base64";
+import {
+  clear_ratchet_verification_status,
+  is_unconfirmed_sender_plaintext,
+} from "./ratchet_verification_status";
 
 async function escrow_key(): Promise<CryptoKey> {
   const base = await crypto.subtle.importKey("raw", MASTER, "HKDF", false, [
@@ -148,8 +155,72 @@ describe("escrow entries are bound to their message", () => {
     cached.clear();
     cached_flags.clear();
     cached_bindings.clear();
+    cached_unconfirmed.clear();
     foreign_keys.clear();
     clear_escrow_miss_cache();
+    clear_ratchet_verification_status();
+  });
+
+  it("carries an unconfirmed sender key to the other devices", async () => {
+    await upload_to_escrow(KEY, "first contact body", ALICE, true);
+    serve_posted();
+
+    expect(await fetch_from_escrow(KEY, ALICE)).toEqual({
+      plaintext: "first contact body",
+      verified: true,
+      unconfirmed_sender: true,
+    });
+    expect(cached_unconfirmed.get(KEY)).toBe(true);
+    expect(is_unconfirmed_sender_plaintext("first contact body")).toBe(true);
+  });
+
+  it("keeps the unconfirmed mark when upgrading from the escrow", async () => {
+    await upload_to_escrow(KEY, "upgraded body", ALICE, true);
+    serve_posted();
+
+    expect(await fetch_verified_from_escrow(KEY, ALICE)).toBe("upgraded body");
+    expect(is_unconfirmed_sender_plaintext("upgraded body")).toBe(true);
+  });
+
+  it("keeps the unconfirmed mark during a full sync", async () => {
+    await upload_to_escrow("mail-u:BA==:1", "synced body", ALICE, true);
+    serve_posted();
+
+    await sync_escrow_to_cache();
+
+    expect(cached_unconfirmed.get("mail-u:BA==:1")).toBe(true);
+  });
+
+  it("writes the same bound header as before for a confirmed sender key", async () => {
+    await upload_to_escrow(KEY, "known body", ALICE, false);
+    serve_posted();
+
+    expect(await fetch_from_escrow(KEY, ALICE)).toEqual({
+      plaintext: "known body",
+      verified: true,
+      unconfirmed_sender: false,
+    });
+    expect(is_unconfirmed_sender_plaintext("known body")).toBe(false);
+  });
+
+  it("keeps a bound entry without a flag confirmed", async () => {
+    const sealed = await seal(
+      KEY,
+      `${JSON.stringify({ s: "alice@astermail.org", c: "conv-a" })}\nlegacy body`,
+      escrow_aad_v3(KEY),
+    );
+
+    served.set(bound_escrow_key(KEY), {
+      ...sealed,
+      message_id: bound_escrow_key(KEY),
+    });
+
+    expect(await fetch_from_escrow(KEY, ALICE)).toEqual({
+      plaintext: "legacy body",
+      verified: true,
+      unconfirmed_sender: false,
+    });
+    expect(is_unconfirmed_sender_plaintext("legacy body")).toBe(false);
   });
 
   it("refuses an entry already bound to another sender", async () => {
@@ -178,6 +249,7 @@ describe("escrow entries are bound to their message", () => {
     expect(await fetch_from_escrow(KEY, ALICE)).toEqual({
       plaintext: "real body",
       verified: true,
+      unconfirmed_sender: false,
     });
     expect(cached_bindings.get(KEY)).toEqual(ALICE);
     expect(cached_flags.get(KEY)).toBe(false);
@@ -220,6 +292,7 @@ describe("escrow entries are bound to their message", () => {
     expect(await fetch_from_escrow(KEY, MALLORY)).toEqual({
       plaintext: "mobile body",
       verified: false,
+      unconfirmed_sender: false,
     });
     expect(cached_flags.get(KEY)).toBe(true);
     expect(cached_bindings.get(KEY)).toEqual(MALLORY);
@@ -244,6 +317,7 @@ describe("escrow entries are bound to their message", () => {
     expect(await fetch_from_escrow(KEY, ALICE)).toEqual({
       plaintext: "mobile body",
       verified: false,
+      unconfirmed_sender: false,
     });
   });
 
@@ -325,6 +399,7 @@ describe("escrow entries are bound to their message", () => {
     expect(await fetch_from_escrow("mail-old:BA==:1", ALICE)).toEqual({
       plaintext: "old body",
       verified: false,
+      unconfirmed_sender: false,
     });
   });
 
@@ -355,6 +430,7 @@ describe("escrow entries are bound to their message", () => {
     expect(await fetch_from_escrow(dedupe_key, ALICE)).toEqual({
       plaintext: "Hello from the escrow vector. Ünïcödé ✓",
       verified: false,
+      unconfirmed_sender: false,
     });
   });
 

@@ -35,6 +35,8 @@ import {
   record_message_sender_identity,
   type SenderIdentityStatus,
 } from "./ratchet_verification_status";
+import { get_identity_pin_record } from "./ratchet_identity_pin";
+import { base64_to_array, compute_hash } from "./key_manager_core";
 
 import { extract_username_from_email } from "@/services/api/keys";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
@@ -122,7 +124,7 @@ async function history_storage_key(): Promise<CryptoKey | null> {
   }
 }
 
-async function load_identity_history(peer: string): Promise<string[]> {
+async function read_identity_history(peer: string): Promise<string[] | null> {
   const uid = await current_account_uid();
   const cache_key = history_key_for(uid, peer);
   const cached = history_cache.get(cache_key);
@@ -132,7 +134,7 @@ async function load_identity_history(peer: string): Promise<string[]> {
   try {
     const storage_key = await history_storage_key();
 
-    if (!storage_key) return [];
+    if (!storage_key) return null;
 
     const stored = await scoped_get<string[]>(
       SENDER_HISTORY_PREFIX,
@@ -147,8 +149,12 @@ async function load_identity_history(peer: string): Promise<string[]> {
 
     return history;
   } catch {
-    return [];
+    return null;
   }
+}
+
+async function load_identity_history(peer: string): Promise<string[]> {
+  return (await read_identity_history(peer)) ?? [];
 }
 
 async function remember_identity(
@@ -158,21 +164,20 @@ async function remember_identity(
   if (!identity_key) return;
 
   try {
-    const history = await load_identity_history(peer);
+    const history = await read_identity_history(peer);
 
-    if (history.includes(identity_key)) return;
+    if (!history || history.includes(identity_key)) return;
 
     const next = [identity_key, ...history].slice(0, MAX_REMEMBERED_IDENTITIES);
     const uid = await current_account_uid();
     const cache_key = history_key_for(uid, peer);
-
-    history_cache.set(cache_key, next);
 
     const storage_key = await history_storage_key();
 
     if (!storage_key) return;
 
     await scoped_set(SENDER_HISTORY_PREFIX, uid, peer, next, storage_key);
+    history_cache.set(cache_key, next);
   } catch {
     return;
   }
@@ -272,12 +277,59 @@ async function resolve_directory_status(
   );
 
   if (published_confirms || history_confirms) {
-    await remember_identity(peer, sender_identity_key);
+    const continuity = await check_sender_identity_continuity(
+      peer,
+      sender_identity_key,
+    );
+
+    if (continuity !== "changed") {
+      await remember_identity(peer, sender_identity_key);
+    }
 
     return "verified";
   }
 
   return published_history?.history_complete ? "mismatch" : "unverified";
+}
+
+export type SenderIdentityContinuity = "known" | "new" | "changed";
+
+async function matches_pinned_identity(
+  peer: string,
+  sender_identity_key: string,
+): Promise<boolean | null> {
+  try {
+    const pinned = await get_identity_pin_record(peer);
+
+    if (!pinned) return null;
+    if (pinned.rotated) return false;
+
+    const fingerprint = await compute_hash(
+      base64_to_array(sender_identity_key),
+    );
+
+    return pinned.fingerprint === fingerprint;
+  } catch {
+    return null;
+  }
+}
+
+export async function check_sender_identity_continuity(
+  sender_email: string,
+  sender_identity_key: string,
+): Promise<SenderIdentityContinuity> {
+  if (!sender_email || !sender_identity_key) return "new";
+
+  const peer = sender_email.toLowerCase();
+  const remembered = await load_identity_history(peer);
+
+  if (remembered.includes(sender_identity_key)) return "known";
+
+  const pinned = await matches_pinned_identity(peer, sender_identity_key);
+
+  if (pinned === true) return "known";
+
+  return remembered.length > 0 || pinned === false ? "changed" : "new";
 }
 
 export async function authenticate_sender_identity(

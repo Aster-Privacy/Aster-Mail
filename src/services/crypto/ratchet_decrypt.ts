@@ -49,8 +49,11 @@ import { detect_identity_pin_drift } from "./ratchet_prekey_bundle";
 import { has_peer_advertised_pq } from "./ratchet_identity_pin";
 import {
   clear_unauthenticated_plaintext,
+  clear_unconfirmed_sender_plaintext,
   is_unauthenticated_plaintext,
   mark_unauthenticated_plaintext,
+  is_unconfirmed_sender_plaintext,
+  mark_unconfirmed_sender_plaintext,
   record_message_sender_identity,
   record_peer_identity_event,
 } from "./ratchet_verification_status";
@@ -75,7 +78,9 @@ import { recover_ratchet_keys_from_history } from "./vault_key_recovery";
 import { is_authenticated_ratchet_enforced } from "./crypto_enforcement_policy";
 import {
   authenticate_sender_identity,
+  check_sender_identity_continuity,
   note_message_sender_identity,
+  type SenderIdentityContinuity,
   SenderIdentityUnverifiedError,
 } from "./sender_identity_authentication";
 import { perform_x3dh_receiver } from "./x3dh";
@@ -182,9 +187,64 @@ async function prefer_escrowed_plaintext(
   }
 
   clear_unauthenticated_plaintext(escrowed, dedupe_key);
-  note_message_sender_identity(message_id ?? dedupe_key, sender_email);
+
+  if (is_unconfirmed_sender_plaintext(escrowed)) {
+    record_message_sender_identity(message_id ?? dedupe_key, "unverified");
+  } else {
+    note_message_sender_identity(message_id ?? dedupe_key, sender_email);
+  }
 
   return escrowed;
+}
+
+async function sender_continuity(
+  sender_email: string,
+  sender_identity_key: string,
+  vault: EncryptedVault,
+): Promise<SenderIdentityContinuity> {
+  if (is_own_identity_key(vault, sender_identity_key)) return "known";
+
+  return check_sender_identity_continuity(
+    sender_email,
+    sender_identity_key,
+  ).catch(() => "new" as const);
+}
+
+async function settle_cached_plaintext(
+  cached: string,
+  dedupe_key: string,
+  message_id: string | undefined,
+  sender_email: string,
+  sender_identity_key: string,
+  vault: EncryptedVault,
+  binding: PlaintextBinding,
+): Promise<RatchetDecryptAttempt> {
+  const plaintext = await prefer_escrowed_plaintext(
+    cached,
+    dedupe_key,
+    message_id,
+    sender_email,
+    binding,
+  );
+
+  if (
+    is_unconfirmed_sender_plaintext(plaintext) &&
+    !is_unauthenticated_plaintext(plaintext)
+  ) {
+    const continuity = await sender_continuity(
+      sender_email,
+      sender_identity_key,
+      vault,
+    );
+
+    if (continuity === "known") {
+      clear_unconfirmed_sender_plaintext(plaintext, dedupe_key);
+      note_message_sender_identity(message_id ?? dedupe_key, sender_email);
+      await set_cached_ratchet_plaintext(dedupe_key, plaintext, false, binding);
+    }
+  }
+
+  return { plaintext, error: null };
 }
 
 async function attempt_ratchet_decrypt(
@@ -205,16 +265,15 @@ async function attempt_ratchet_decrypt(
     const cached = await get_cached_ratchet_plaintext(dedupe_key, binding);
 
     if (cached !== null) {
-      return {
-        plaintext: await prefer_escrowed_plaintext(
-          cached,
-          dedupe_key,
-          message_id,
-          sender_email,
-          binding,
-        ),
-        error: null,
-      };
+      return settle_cached_plaintext(
+        cached,
+        dedupe_key,
+        message_id,
+        sender_email,
+        envelope.sender_identity_key,
+        vault,
+        binding,
+      );
     }
   }
 
@@ -223,21 +282,26 @@ async function attempt_ratchet_decrypt(
       const cached = await get_cached_ratchet_plaintext(dedupe_key, binding);
 
       if (cached !== null) {
-        return {
-          plaintext: await prefer_escrowed_plaintext(
-            cached,
-            dedupe_key,
-            message_id,
-            sender_email,
-            binding,
-          ),
-          error: null,
-        };
+        return settle_cached_plaintext(
+          cached,
+          dedupe_key,
+          message_id,
+          sender_email,
+          envelope.sender_identity_key,
+          vault,
+          binding,
+        );
       }
     }
 
     let plaintext: string | null = null;
     let decrypt_error: unknown = null;
+
+    const continuity = await sender_continuity(
+      sender_email,
+      envelope.sender_identity_key,
+      vault,
+    );
 
     await authenticate_sender_identity(
       sender_email,
@@ -265,7 +329,13 @@ async function attempt_ratchet_decrypt(
         envelope.sender_identity_key,
       );
 
-      if (dedupe_key && is_unauthenticated_plaintext(plaintext)) {
+      if (continuity === "changed") {
+        record_peer_identity_event(sender_email, "rotated");
+      }
+
+      const lane_plaintext = is_unauthenticated_plaintext(plaintext);
+
+      if (dedupe_key && lane_plaintext) {
         plaintext = await prefer_escrowed_plaintext(
           plaintext,
           dedupe_key,
@@ -276,8 +346,19 @@ async function attempt_ratchet_decrypt(
       }
 
       const unauthenticated = is_unauthenticated_plaintext(plaintext);
+      const from_escrow = lane_plaintext && !unauthenticated;
+      const unconfirmed_sender = from_escrow
+        ? is_unconfirmed_sender_plaintext(plaintext)
+        : continuity !== "known";
 
-      if (unauthenticated) {
+      if (unconfirmed_sender) {
+        mark_unconfirmed_sender_plaintext(
+          plaintext,
+          dedupe_key ?? message_id ?? "",
+        );
+      }
+
+      if (unauthenticated || unconfirmed_sender) {
         record_message_sender_identity(
           message_id ?? dedupe_key ?? "",
           "unverified",
@@ -296,14 +377,28 @@ async function attempt_ratchet_decrypt(
           true,
           binding,
         );
+      } else if (dedupe_key && from_escrow) {
+        await set_cached_ratchet_plaintext(
+          dedupe_key,
+          plaintext,
+          false,
+          binding,
+          unconfirmed_sender,
+        );
       } else if (dedupe_key) {
         await set_cached_ratchet_plaintext(
           dedupe_key,
           plaintext,
           false,
           binding,
+          unconfirmed_sender,
         );
-        void upload_to_escrow(dedupe_key, plaintext, binding).catch((caught) =>
+        void upload_to_escrow(
+          dedupe_key,
+          plaintext,
+          binding,
+          unconfirmed_sender,
+        ).catch((caught) =>
           ignore_error(
             "services/crypto/ratchet_decrypt:attempt_ratchet_decrypt",
             caught,
@@ -320,9 +415,15 @@ async function attempt_ratchet_decrypt(
       );
 
       if (escrowed !== null) {
-        if (escrowed.verified) {
+        if (escrowed.verified && !escrowed.unconfirmed_sender) {
           clear_unauthenticated_plaintext(escrowed.plaintext, dedupe_key);
           note_message_sender_identity(message_id ?? dedupe_key, sender_email);
+        } else if (escrowed.verified) {
+          clear_unauthenticated_plaintext(escrowed.plaintext, dedupe_key);
+          record_message_sender_identity(
+            message_id ?? dedupe_key,
+            "unverified",
+          );
         } else {
           mark_unauthenticated_plaintext(escrowed.plaintext, dedupe_key);
           record_message_sender_identity(
@@ -416,6 +517,18 @@ export async function decrypt_ratchet_message(
 
 function key_set_fingerprint(keys: RatchetKeySet): string {
   return `${keys.ratchet_identity_public}:${keys.ratchet_pq_identity_public ?? ""}`;
+}
+
+function is_own_identity_key(
+  vault: EncryptedVault,
+  identity_key: string | undefined,
+): boolean {
+  if (!identity_key) return false;
+  if (vault.ratchet_identity_public === identity_key) return true;
+
+  return (vault.ratchet_previous_keys ?? []).some(
+    (previous) => previous.ratchet_identity_public === identity_key,
+  );
 }
 
 function receiver_key_sets(vault: EncryptedVault): RatchetKeySet[] {

@@ -28,6 +28,14 @@ const h = vi.hoisted(() => ({
     history_complete: boolean;
   } | null,
   history_calls: 0,
+  pinned: null as string | null,
+  pin_rotated: false,
+}));
+
+vi.mock("@/services/crypto/ratchet_identity_pin", () => ({
+  get_identity_pin_record: vi.fn(async () =>
+    h.pinned ? { fingerprint: h.pinned, rotated: h.pin_rotated } : null,
+  ),
 }));
 
 vi.mock("@/services/crypto/memory_key_store", () => ({
@@ -68,12 +76,17 @@ vi.mock("@/services/crypto/ratchet_prekey_bundle", () => ({
 
 import {
   authenticate_sender_identity,
+  check_sender_identity_continuity,
   clear_sender_identity_authentication_cache,
 } from "@/services/crypto/sender_identity_authentication";
+import {
+  base64_to_array,
+  compute_hash,
+} from "@/services/crypto/key_manager_core";
 
 const CURRENT_KEY = btoa("current-identity-key-aaaaaaaaaaaa");
 const ROTATED_KEY = btoa("rotated-identity-key-bbbbbbbbbbb");
-const FORGED_KEY = btoa("forged-identity-key-cccccccccccc");
+const OTHER_KEY = btoa("other-identity-key-cccccccccccc");
 
 describe("sender identity authentication", () => {
   beforeEach(() => {
@@ -81,7 +94,25 @@ describe("sender identity authentication", () => {
     h.current_identity = CURRENT_KEY;
     h.history = null;
     h.history_calls = 0;
+    h.pinned = null;
+    h.pin_rotated = false;
     clear_sender_identity_authentication_cache();
+  });
+
+  it("does not treat a pin moved by a later send as a known key", async () => {
+    h.pinned = await compute_hash(base64_to_array(OTHER_KEY));
+    h.pin_rotated = true;
+    h.current_identity = OTHER_KEY;
+
+    expect(
+      await check_sender_identity_continuity("someone@astermail.org", OTHER_KEY),
+    ).toBe("changed");
+
+    await authenticate_sender_identity("someone@astermail.org", OTHER_KEY);
+
+    expect(
+      await check_sender_identity_continuity("someone@astermail.org", OTHER_KEY),
+    ).toBe("changed");
   });
 
   it("verifies the currently published identity key", async () => {
@@ -108,7 +139,7 @@ describe("sender identity authentication", () => {
     };
 
     expect(
-      await authenticate_sender_identity("someone@astermail.org", FORGED_KEY),
+      await authenticate_sender_identity("someone@astermail.org", OTHER_KEY),
     ).toBe("mismatch");
   });
 
@@ -119,7 +150,7 @@ describe("sender identity authentication", () => {
     };
 
     expect(
-      await authenticate_sender_identity("someone@astermail.org", FORGED_KEY),
+      await authenticate_sender_identity("someone@astermail.org", OTHER_KEY),
     ).toBe("unverified");
   });
 
@@ -130,7 +161,7 @@ describe("sender identity authentication", () => {
     };
 
     expect(
-      await authenticate_sender_identity("someone@astermail.org", FORGED_KEY),
+      await authenticate_sender_identity("someone@astermail.org", OTHER_KEY),
     ).toBe("mismatch");
 
     h.current_identity = null;
@@ -138,7 +169,7 @@ describe("sender identity authentication", () => {
     clear_sender_identity_authentication_cache();
 
     expect(
-      await authenticate_sender_identity("someone@astermail.org", FORGED_KEY),
+      await authenticate_sender_identity("someone@astermail.org", OTHER_KEY),
     ).toBe("unverified");
   });
 
@@ -146,7 +177,7 @@ describe("sender identity authentication", () => {
     h.history = { identity_keys: [CURRENT_KEY], history_complete: true };
 
     expect(
-      await authenticate_sender_identity("someone@astermail.org", FORGED_KEY),
+      await authenticate_sender_identity("someone@astermail.org", OTHER_KEY),
     ).toBe("mismatch");
 
     h.current_identity = null;
@@ -168,7 +199,7 @@ describe("sender identity authentication", () => {
     clear_sender_identity_authentication_cache();
 
     expect(
-      await authenticate_sender_identity("someone@astermail.org", FORGED_KEY),
+      await authenticate_sender_identity("someone@astermail.org", OTHER_KEY),
     ).toBe("unverified");
 
     expect(
@@ -180,7 +211,7 @@ describe("sender identity authentication", () => {
     h.history = null;
 
     expect(
-      await authenticate_sender_identity("someone@astermail.org", FORGED_KEY),
+      await authenticate_sender_identity("someone@astermail.org", OTHER_KEY),
     ).toBe("unverified");
   });
 
@@ -190,8 +221,8 @@ describe("sender identity authentication", () => {
       history_complete: true,
     };
 
-    await authenticate_sender_identity("someone@astermail.org", FORGED_KEY);
-    await authenticate_sender_identity("someone@astermail.org", FORGED_KEY);
+    await authenticate_sender_identity("someone@astermail.org", OTHER_KEY);
+    await authenticate_sender_identity("someone@astermail.org", OTHER_KEY);
 
     expect(h.history_calls).toBe(2);
   });
@@ -213,5 +244,96 @@ describe("sender identity authentication", () => {
     expect(
       await authenticate_sender_identity("someone@astermail.org", ROTATED_KEY),
     ).toBe("verified");
+  });
+});
+
+describe("sender identity continuity", () => {
+  beforeEach(() => {
+    h.store.clear();
+    h.current_identity = null;
+    h.history = null;
+    h.history_calls = 0;
+    h.pinned = null;
+    h.pin_rotated = false;
+    clear_sender_identity_authentication_cache();
+  });
+
+  it("treats a first contact as new even when the directory confirms the key", async () => {
+    h.current_identity = OTHER_KEY;
+
+    expect(
+      await check_sender_identity_continuity("someone@astermail.org", OTHER_KEY),
+    ).toBe("new");
+    expect(
+      await authenticate_sender_identity("someone@astermail.org", OTHER_KEY),
+    ).toBe("verified");
+  });
+
+  it("treats a key seen in an earlier message as known", async () => {
+    h.current_identity = CURRENT_KEY;
+    await authenticate_sender_identity("someone@astermail.org", CURRENT_KEY);
+
+    expect(
+      await check_sender_identity_continuity(
+        "Someone@astermail.org",
+        CURRENT_KEY,
+      ),
+    ).toBe("known");
+  });
+
+  it("reports a change when a remembered sender presents a different key", async () => {
+    h.current_identity = CURRENT_KEY;
+    await authenticate_sender_identity("someone@astermail.org", CURRENT_KEY);
+
+    expect(
+      await check_sender_identity_continuity("someone@astermail.org", OTHER_KEY),
+    ).toBe("changed");
+  });
+
+  it("keeps a changed key changed when the directory confirms it", async () => {
+    h.current_identity = CURRENT_KEY;
+    await authenticate_sender_identity("someone@astermail.org", CURRENT_KEY);
+
+    h.current_identity = OTHER_KEY;
+    clear_sender_identity_authentication_cache();
+    await authenticate_sender_identity("someone@astermail.org", OTHER_KEY);
+    await authenticate_sender_identity("someone@astermail.org", OTHER_KEY);
+
+    expect(
+      await check_sender_identity_continuity("someone@astermail.org", OTHER_KEY),
+    ).toBe("changed");
+    expect(
+      await check_sender_identity_continuity("someone@astermail.org", CURRENT_KEY),
+    ).toBe("known");
+  });
+
+  it("keeps a key that differs from the pin changed when the directory confirms it", async () => {
+    h.pinned = await compute_hash(base64_to_array(CURRENT_KEY));
+    h.current_identity = OTHER_KEY;
+    await authenticate_sender_identity("someone@astermail.org", OTHER_KEY);
+
+    expect(
+      await check_sender_identity_continuity("someone@astermail.org", OTHER_KEY),
+    ).toBe("changed");
+  });
+
+  it("uses the recipient pin from an earlier send", async () => {
+    h.pinned = await compute_hash(base64_to_array(CURRENT_KEY));
+
+    expect(
+      await check_sender_identity_continuity(
+        "someone@astermail.org",
+        CURRENT_KEY,
+      ),
+    ).toBe("known");
+    expect(
+      await check_sender_identity_continuity("someone@astermail.org", OTHER_KEY),
+    ).toBe("changed");
+  });
+
+  it("treats a missing key as new", async () => {
+    expect(
+      await check_sender_identity_continuity("someone@astermail.org", ""),
+    ).toBe("new");
   });
 });

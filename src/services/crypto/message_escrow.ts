@@ -26,6 +26,7 @@ import {
   set_cached_ratchet_plaintext,
   type PlaintextBinding,
 } from "./ratchet_plaintext_cache";
+import { mark_unconfirmed_sender_plaintext } from "./ratchet_verification_status";
 
 import { ignore_error } from "@/lib/ignore_error";
 import { api_client } from "@/services/api/client";
@@ -253,11 +254,13 @@ interface BoundEscrowPayload {
   sender: string;
   conversation_id: string;
   plaintext: string;
+  unconfirmed_sender: boolean;
 }
 
 export interface EscrowedPlaintext {
   plaintext: string;
   verified: boolean;
+  unconfirmed_sender: boolean;
 }
 
 function normalize_sender(sender: string): string {
@@ -267,10 +270,12 @@ function normalize_sender(sender: string): string {
 function encode_bound_payload(
   binding: PlaintextBinding,
   plaintext: string,
+  unconfirmed_sender: boolean,
 ): Uint8Array {
   const header = JSON.stringify({
     s: normalize_sender(binding.sender),
     c: binding.conversation_id,
+    ...(unconfirmed_sender ? { u: 1 } : {}),
   });
 
   return new TextEncoder().encode(`${header}\n${plaintext}`);
@@ -286,6 +291,7 @@ function decode_bound_payload(bytes: ArrayBuffer): BoundEscrowPayload | null {
     const header = JSON.parse(text.slice(0, split)) as {
       s?: unknown;
       c?: unknown;
+      u?: unknown;
     };
 
     if (typeof header.s !== "string" || typeof header.c !== "string") {
@@ -296,6 +302,7 @@ function decode_bound_payload(bytes: ArrayBuffer): BoundEscrowPayload | null {
       sender: header.s,
       conversation_id: header.c,
       plaintext: text.slice(split + 1),
+      unconfirmed_sender: header.u === 1,
     };
   } catch {
     return null;
@@ -340,6 +347,7 @@ export async function upload_to_escrow(
   dedupe_key: string,
   plaintext: string,
   binding: PlaintextBinding,
+  unconfirmed_sender = false,
 ): Promise<void> {
   if (!dedupe_key || !plaintext) return;
 
@@ -354,7 +362,7 @@ export async function upload_to_escrow(
   await post_escrow_entry(
     escrow_key,
     bound_escrow_key(dedupe_key),
-    encode_bound_payload(binding, plaintext),
+    encode_bound_payload(binding, plaintext, unconfirmed_sender),
     escrow_aad_v3(dedupe_key),
   );
 
@@ -424,6 +432,24 @@ async function claimed_by_other_sender(
   return is_cached_plaintext_foreign(dedupe_key, binding).catch(() => true);
 }
 
+async function adopt_bound_payload(
+  dedupe_key: string,
+  bound: BoundEscrowPayload,
+  binding: PlaintextBinding,
+): Promise<void> {
+  if (bound.unconfirmed_sender) {
+    mark_unconfirmed_sender_plaintext(bound.plaintext, dedupe_key);
+  }
+
+  await set_cached_ratchet_plaintext(
+    dedupe_key,
+    bound.plaintext,
+    false,
+    binding,
+    bound.unconfirmed_sender,
+  );
+}
+
 export async function fetch_verified_from_escrow(
   dedupe_key: string,
   binding: PlaintextBinding,
@@ -440,12 +466,7 @@ export async function fetch_verified_from_escrow(
 
   if (!bound || !payload_matches_binding(bound, binding)) return null;
 
-  await set_cached_ratchet_plaintext(
-    dedupe_key,
-    bound.plaintext,
-    false,
-    binding,
-  );
+  await adopt_bound_payload(dedupe_key, bound, binding);
 
   return bound.plaintext;
 }
@@ -467,14 +488,13 @@ export async function fetch_from_escrow(
   if (bound) {
     if (!payload_matches_binding(bound, binding)) return null;
 
-    await set_cached_ratchet_plaintext(
-      dedupe_key,
-      bound.plaintext,
-      false,
-      binding,
-    );
+    await adopt_bound_payload(dedupe_key, bound, binding);
 
-    return { plaintext: bound.plaintext, verified: true };
+    return {
+      plaintext: bound.plaintext,
+      verified: true,
+      unconfirmed_sender: bound.unconfirmed_sender,
+    };
   }
 
   const row = await get_escrow_row(dedupe_key);
@@ -493,7 +513,7 @@ export async function fetch_from_escrow(
 
     await set_cached_ratchet_plaintext(dedupe_key, plaintext, true, binding);
 
-    return { plaintext, verified: false };
+    return { plaintext, verified: false, unconfirmed_sender: false };
   } catch {
     return null;
   }
@@ -521,9 +541,12 @@ export async function sync_escrow_to_cache(): Promise<void> {
 
     if (!payload) continue;
 
-    await set_cached_ratchet_plaintext(dedupe_key, payload.plaintext, false, {
-      sender: payload.sender,
-      conversation_id: payload.conversation_id,
-    });
+    await set_cached_ratchet_plaintext(
+      dedupe_key,
+      payload.plaintext,
+      false,
+      { sender: payload.sender, conversation_id: payload.conversation_id },
+      payload.unconfirmed_sender,
+    );
   }
 }

@@ -67,6 +67,7 @@ vi.mock("@/services/crypto/double_ratchet", () => ({
 }));
 vi.mock("@/services/crypto/ratchet_verification_status", () => ({
   mark_unauthenticated_plaintext: () => undefined,
+  mark_unconfirmed_sender_plaintext: () => undefined,
 }));
 
 interface Tab {
