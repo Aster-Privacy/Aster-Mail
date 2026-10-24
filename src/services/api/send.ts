@@ -65,6 +65,7 @@ interface SimpleSendRequest {
   forward_original_mail_id?: string;
   in_reply_to?: string;
   plain_text?: boolean;
+  external_pgp_bodies?: Record<string, string>;
 }
 
 interface SimpleSendResponse {
@@ -136,6 +137,7 @@ interface ExternalSendRequest {
   signed_mime?: string;
   signed_mime_signature?: string;
   signed_mime_micalg?: string;
+  external_pgp_bodies?: Record<string, string>;
   in_reply_to?: string;
   plain_text?: boolean;
 }

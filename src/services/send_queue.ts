@@ -52,6 +52,10 @@ import {
   build_signed_mime_payload,
   should_attach_signed_mime,
 } from "./send_queue_signed_mime";
+import {
+  build_client_pgp_copies,
+  CLIENT_COPY_PLACEHOLDER_BODY,
+} from "./client_pgp_copies";
 import { resolve_current_user } from "./current_identity";
 import {
   classify_recipients,
@@ -544,6 +548,31 @@ async function prepare_email_for_server_queue(
 
   const internal_copy_is_encrypted = is_encrypted || !!internal_encrypted_body;
 
+  const outside_recipients = all_recipients.filter(
+    (recipient) => !is_internal_recipient(recipient),
+  );
+  const client_copies =
+    is_encrypted ||
+    email.secure_external ||
+    email.expires_at ||
+    email.expiry_password ||
+    outside_recipients.length === 0
+      ? undefined
+      : await build_client_pgp_copies({
+          outside_recipients,
+          force_pgp: email.force_pgp,
+          require_encryption: email.encryption_options?.require_encryption,
+          obscure_subject: email.encryption_options?.obscure_subject === true,
+          subject: email.subject || "",
+          body: body_for_encryption,
+          from: sender_email,
+          to: email.to,
+          cc: email.cc ?? [],
+          bcc: email.bcc ?? [],
+          attachments: all_attachments,
+          is_plain_text: email.is_plain_text,
+        });
+
   const internal_email: QueuedEmailInternal = {
     id: crypto.randomUUID(),
     to: email.to,
@@ -584,6 +613,7 @@ async function prepare_email_for_server_queue(
       all_attachments,
       { to: email.to, cc: email.cc, bcc: email.bcc },
       internal_copy_is_encrypted,
+      client_copies !== undefined,
     );
   }
 
@@ -591,8 +621,12 @@ async function prepare_email_for_server_queue(
     to: email.to,
     cc: email.cc,
     bcc: email.bcc,
-    subject: is_encrypted ? "" : email.subject,
-    body: is_encrypted ? encrypted_body : body_for_encryption,
+    subject: is_encrypted || client_copies ? "" : email.subject,
+    body: is_encrypted
+      ? encrypted_body
+      : client_copies
+        ? CLIENT_COPY_PLACEHOLDER_BODY
+        : body_for_encryption,
     is_e2e_encrypted: is_encrypted,
     internal_encrypted_body,
     ...(internal_copy_is_encrypted && hosted_recipients.length > 0
@@ -617,9 +651,11 @@ async function prepare_email_for_server_queue(
     force_pgp: email.force_pgp,
     client_send_id: resolve_client_send_id(email.client_send_id),
     ...(email.is_plain_text ? { plain_text: true } : {}),
+    ...(client_copies ? { external_pgp_bodies: client_copies } : {}),
   };
 
   if (
+    !client_copies &&
     should_attach_signed_mime({
       recipients: all_recipients,
       encrypt_emails: email.encryption_options?.encrypt_emails,

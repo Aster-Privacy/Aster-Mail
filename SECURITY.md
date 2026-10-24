@@ -39,7 +39,7 @@ We will never pursue legal action against researchers who:
 ## Encryption Architecture
 
 
-All encryption and decryption is performed client-side. We will never have access to your plaintext data.
+All encryption and decryption is performed client-side. Mail to an outside address whose recipient has no OpenPGP key is handed to the mail server for delivery, as with any provider. Everything else is sealed on your device and we will never have access to it.
 
 
 | Channel | Protocol |

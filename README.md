@@ -5,7 +5,7 @@
   </picture>
 </p>
 
-Aster Mail is a free, open-source, end-to-end encrypted mail service. Every message subject line and attachment is encrypted locally on your device. This means we have no way to read your email and we never will.
+Aster Mail is a free, open-source, end-to-end encrypted mail service. Every message, subject line, and attachment between Aster users is encrypted locally on your device, and mail to an outside address is encrypted on your device whenever the recipient publishes an OpenPGP key. This means we have no way to read that email and we never will.
 
 You can sign up at [astermail.org](https://astermail.org). A phone number and recovery email are not required.
 
