@@ -213,6 +213,8 @@ describe("ratchet identity pin", () => {
     expect(await get_identity_change("alice")).toBeNull();
     expect(get_peer_identity_event("alice")).toBeNull();
     expect(await get_pinned_identity_fingerprint("alice")).not.toBeNull();
+    expect((await get_identity_pin_record("alice"))?.rotated).toBe(false);
+    expect(await check_and_pin_identity("alice", KEY_B, true)).toBe("ok");
   });
 
   it("does not record a change for drift or first contact", async () => {
