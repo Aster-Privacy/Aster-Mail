@@ -125,7 +125,12 @@ import {
   upload_to_escrow,
 } from "@/services/crypto/message_escrow";
 import {
+  acknowledge_identity_change,
+  check_and_pin_identity,
+} from "@/services/crypto/ratchet_identity_pin";
+import {
   get_cached_ratchet_plaintext,
+  get_cached_ratchet_sender_key,
   set_cached_ratchet_plaintext,
 } from "@/services/crypto/ratchet_plaintext_cache";
 import {
@@ -710,6 +715,10 @@ describe("recovery lane trust", () => {
     vi.mocked(get_cached_ratchet_plaintext).mockImplementation(
       async () => null,
     );
+    vi.mocked(get_cached_ratchet_sender_key).mockReset();
+    vi.mocked(get_cached_ratchet_sender_key).mockImplementation(
+      async () => null,
+    );
     vi.mocked(note_message_sender_identity).mockClear();
   });
 
@@ -1237,6 +1246,85 @@ describe("recovery lane trust", () => {
     expect(is_ratchet_verified_body(after, settled)).toBe(false);
   });
 
+  it("settles a cached message on the key it was opened with, not the envelope label", async () => {
+    const old_vault = make_vault((await generate_ratchet_keys())!);
+    const new_vault = make_vault((await generate_ratchet_keys())!);
+    const receiver_vault = make_vault((await generate_ratchet_keys())!);
+
+    h.bundle = bundle_for(receiver_vault);
+
+    const before = await send("judged by the opening key", old_vault);
+    const after = await send("judged after a replaced key", new_vault);
+
+    h.store.clear();
+    h.bundle = bundle_for(old_vault);
+    clear_sender_identity_authentication_cache();
+
+    expect(await receive(before, receiver_vault, "judged-0")).toBe(
+      "judged by the opening key",
+    );
+
+    h.bundle = bundle_for(new_vault);
+    clear_sender_identity_authentication_cache();
+
+    const plaintext = await receive(after, receiver_vault, "judged-1");
+
+    expect(is_ratchet_verified_body(after, plaintext)).toBe(false);
+
+    vi.mocked(get_cached_ratchet_plaintext).mockImplementation(
+      async () => "judged after a replaced key",
+    );
+
+    const relabeled = parse_ratchet_envelope(after)!;
+
+    relabeled.sender_identity_key = new_vault.ratchet_identity_public!;
+    h.store.clear();
+    await check_and_pin_identity(
+      SENDER,
+      old_vault.ratchet_identity_public!,
+      true,
+    );
+    await check_and_pin_identity(
+      SENDER,
+      new_vault.ratchet_identity_public!,
+      true,
+    );
+    await acknowledge_identity_change(SENDER);
+
+    const unjudged = await decrypt_ratchet_message(
+      RECIPIENT,
+      SENDER,
+      relabeled,
+      receiver_vault,
+      "judged-1",
+    );
+
+    expect(is_ratchet_verified_body(after, unjudged)).toBe(false);
+
+    vi.mocked(get_cached_ratchet_sender_key).mockImplementation(
+      async () => new_vault.ratchet_identity_public!,
+    );
+
+    const settled = await decrypt_ratchet_message(
+      RECIPIENT,
+      SENDER,
+      relabeled,
+      receiver_vault,
+      "judged-1",
+    );
+
+    expect(settled).toBe("judged after a replaced key");
+    expect(is_ratchet_verified_body(after, settled)).toBe(true);
+    expect(set_cached_ratchet_plaintext).toHaveBeenLastCalledWith(
+      expect.stringContaining("judged-1"),
+      "judged after a replaced key",
+      false,
+      expect.objectContaining({ sender: SENDER }),
+      false,
+      new_vault.ratchet_identity_public!,
+    );
+  });
+
   it("verifies mail sealed with one of this account's own identity keys", async () => {
     const own_vault = make_vault((await generate_ratchet_keys())!);
 
@@ -1276,6 +1364,7 @@ describe("recovery lane trust", () => {
       false,
       expect.objectContaining({ sender: SENDER }),
       false,
+      sender_vault.ratchet_identity_public!,
     );
   });
 });

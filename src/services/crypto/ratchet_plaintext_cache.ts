@@ -95,9 +95,7 @@ function build_entry(
     stored_at: Date.now(),
     ...(unauthenticated ? { unauthenticated: true } : {}),
     ...(unconfirmed_sender ? { unconfirmed_sender: true } : {}),
-    ...(sender_identity_key && !unauthenticated
-      ? { sender_identity_key }
-      : {}),
+    ...(sender_identity_key && !unauthenticated ? { sender_identity_key } : {}),
     ...(bound
       ? {
           sender: bound.sender,

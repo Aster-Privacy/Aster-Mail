@@ -353,8 +353,7 @@ async function attempt_ratchet_decrypt(
       const bound_identity_key = lane_plaintext
         ? null
         : decrypted.sender_identity_key;
-      const identity_key =
-        bound_identity_key ?? envelope.sender_identity_key;
+      const identity_key = bound_identity_key ?? envelope.sender_identity_key;
       const continuity = await sender_continuity(
         sender_email,
         identity_key,
