@@ -72,6 +72,7 @@ vi.mock("@/services/crypto/encrypted_storage", async () => ({
 
 vi.mock("@/services/crypto/ratchet_plaintext_cache", () => ({
   get_cached_ratchet_plaintext: vi.fn(async () => null),
+  get_cached_ratchet_sender_key: vi.fn(async () => null),
   set_cached_ratchet_plaintext: vi.fn(async () => {}),
 }));
 

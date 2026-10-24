@@ -42,6 +42,7 @@ import {
 } from "./ratchet_keys";
 import {
   get_cached_ratchet_plaintext,
+  get_cached_ratchet_sender_key,
   set_cached_ratchet_plaintext,
   type PlaintextBinding,
 } from "./ratchet_plaintext_cache";
@@ -197,12 +198,21 @@ async function prefer_escrowed_plaintext(
   return escrowed;
 }
 
+interface RatchetSessionPlaintext {
+  plaintext: string;
+  sender_identity_key: string | null;
+  archived: boolean;
+}
+
 async function sender_continuity(
   sender_email: string,
   sender_identity_key: string,
   vault: EncryptedVault,
+  session_bound: boolean,
 ): Promise<SenderIdentityContinuity> {
-  if (is_own_identity_key(vault, sender_identity_key)) return "known";
+  if (session_bound && is_own_identity_key(vault, sender_identity_key)) {
+    return "known";
+  }
 
   return check_sender_identity_continuity(
     sender_email,
@@ -235,7 +245,6 @@ async function settle_cached_plaintext(
   dedupe_key: string,
   message_id: string | undefined,
   sender_email: string,
-  sender_identity_key: string,
   vault: EncryptedVault,
   binding: PlaintextBinding,
 ): Promise<RatchetDecryptAttempt> {
@@ -251,17 +260,24 @@ async function settle_cached_plaintext(
     is_unconfirmed_sender_plaintext(plaintext) &&
     !is_unauthenticated_plaintext(plaintext)
   ) {
-    const continuity = await sender_continuity(
-      sender_email,
-      (await session_sender_identity_key(binding.conversation_id)) ??
-        sender_identity_key,
-      vault,
-    );
+    const judged_key =
+      (await get_cached_ratchet_sender_key(dedupe_key, binding)) ??
+      (await session_sender_identity_key(binding.conversation_id));
+    const continuity = judged_key
+      ? await sender_continuity(sender_email, judged_key, vault, true)
+      : "changed";
 
     if (continuity === "known") {
       clear_unconfirmed_sender_plaintext(plaintext, dedupe_key);
       note_message_sender_identity(message_id ?? dedupe_key, sender_email);
-      await set_cached_ratchet_plaintext(dedupe_key, plaintext, false, binding);
+      await set_cached_ratchet_plaintext(
+        dedupe_key,
+        plaintext,
+        false,
+        binding,
+        false,
+        judged_key ?? undefined,
+      );
     }
   }
 
@@ -291,7 +307,6 @@ async function attempt_ratchet_decrypt(
         dedupe_key,
         message_id,
         sender_email,
-        envelope.sender_identity_key,
         vault,
         binding,
       );
@@ -308,19 +323,18 @@ async function attempt_ratchet_decrypt(
           dedupe_key,
           message_id,
           sender_email,
-          envelope.sender_identity_key,
           vault,
           binding,
         );
       }
     }
 
-    let plaintext: string | null = null;
+    let decrypted: RatchetSessionPlaintext | null = null;
     let decrypt_error: unknown = null;
 
     if (data) {
       try {
-        plaintext = await decrypt_ratchet_for_recipient(
+        decrypted = await decrypt_ratchet_for_recipient(
           our_email,
           sender_email,
           data,
@@ -333,24 +347,31 @@ async function attempt_ratchet_decrypt(
       }
     }
 
-    if (plaintext !== null) {
+    if (decrypted !== null) {
+      let plaintext = decrypted.plaintext;
       const lane_plaintext = is_unauthenticated_plaintext(plaintext);
       const bound_identity_key = lane_plaintext
         ? null
-        : await session_sender_identity_key(conversation_id);
+        : decrypted.sender_identity_key;
       const identity_key =
         bound_identity_key ?? envelope.sender_identity_key;
       const continuity = await sender_continuity(
         sender_email,
         identity_key,
         vault,
+        bound_identity_key !== null,
       );
 
       await authenticate_sender_identity(sender_email, identity_key).catch(
         () => "unverified" as const,
       );
 
-      if (!lane_plaintext && !bound_identity_key && continuity === "known") {
+      if (
+        !lane_plaintext &&
+        !bound_identity_key &&
+        !decrypted.archived &&
+        continuity === "known"
+      ) {
         await bind_session_sender_identity_key(conversation_id, identity_key);
       }
 
@@ -417,6 +438,7 @@ async function attempt_ratchet_decrypt(
           false,
           binding,
           unconfirmed_sender,
+          identity_key,
         );
         void upload_to_escrow(
           dedupe_key,
@@ -807,7 +829,7 @@ async function decrypt_ratchet_for_recipient(
   sender_identity_key: string,
   vault: EncryptedVault,
   message_key = "",
-): Promise<string | null> {
+): Promise<RatchetSessionPlaintext | null> {
   const key_sets = receiver_key_sets(vault);
 
   if (key_sets.length === 0) {
@@ -902,7 +924,11 @@ async function decrypt_ratchet_for_recipient(
         await archive_ratchet_state(archived_snapshot);
       }
 
-      return plaintext;
+      return {
+        plaintext,
+        sender_identity_key: ratchet!.get_remote_identity_key(),
+        archived: true,
+      };
     }
 
     for (const keys of key_sets) {
@@ -1048,7 +1074,7 @@ async function decrypt_ratchet_for_recipient(
       if (recovered !== null) {
         mark_unauthenticated_plaintext(recovered, message_key);
 
-        return recovered;
+        return lane_plaintext(recovered);
       }
 
       if (data.recovery) {
@@ -1066,7 +1092,7 @@ async function decrypt_ratchet_for_recipient(
             mark_unauthenticated_plaintext(recovered_refreshed, message_key);
             await adopt_refreshed_vault(refreshed);
 
-            return recovered_refreshed;
+            return lane_plaintext(recovered_refreshed);
           }
         }
       }
@@ -1104,5 +1130,13 @@ async function decrypt_ratchet_for_recipient(
     }
   }
 
-  return plaintext;
+  return {
+    plaintext,
+    sender_identity_key: ratchet.get_remote_identity_key(),
+    archived: false,
+  };
+}
+
+function lane_plaintext(plaintext: string): RatchetSessionPlaintext {
+  return { plaintext, sender_identity_key: null, archived: false };
 }
