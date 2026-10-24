@@ -513,6 +513,29 @@ export async function acknowledge_identity_change(
 
   await scoped_delete(IDENTITY_CHANGE_PREFIX, uid, pin_id);
   dismiss_peer_identity_event(pin_id);
+  await accept_rotated_pin(uid, pin_id);
+}
+
+async function accept_rotated_pin(uid: string | null, pin_id: string): Promise<void> {
+  try {
+    const storage_key = await get_pin_storage_key();
+    const pin = await load_pin(storage_key, uid, pin_id);
+    if (!pin?.rotated) return;
+    await scoped_set(
+      IDENTITY_PIN_PREFIX,
+      uid,
+      pin_id,
+      {
+        fingerprint: pin.fingerprint,
+        verified: pin.verified,
+        pinned_at: pin.pinned_at,
+        pq_seen: pin.pq_seen,
+      } satisfies StoredIdentityPin,
+      storage_key,
+    );
+  } catch {
+    return;
+  }
 }
 
 export async function reset_identity_pin(pin_id: string): Promise<void> {
