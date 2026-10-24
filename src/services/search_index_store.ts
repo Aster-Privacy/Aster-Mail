@@ -48,7 +48,7 @@ import {
   type GramFilter,
   type StoredGramFilter,
 } from "@/services/search_chunk_filter";
-import { yield_to_main } from "@/lib/work_slicer";
+import { yield_to_visible_page } from "@/lib/scheduling";
 
 const KEY_PREFIX = "search_index_";
 const SNAPSHOT_VERSION = 1;
@@ -494,7 +494,7 @@ export async function serialize_chunk(
   const pace = async (): Promise<void> => {
     if (performance.now() - slice_started_at < SERIALIZE_YIELD_MS) return;
 
-    await yield_to_main();
+    await yield_to_visible_page();
     slice_started_at = performance.now();
   };
 

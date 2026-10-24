@@ -19,21 +19,36 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
+import { ignore_error } from "@/lib/ignore_error";
+import { yield_to_visible_page } from "@/lib/scheduling";
+
 export interface WorkSlicer {
   run<T>(task: () => T): Promise<T>;
 }
 
-export function yield_to_main(): Promise<void> {
-  return new Promise<void>((r) => setTimeout(r, 0));
-}
-
 export function create_work_slicer(
   budget_ms: number,
-  pause: () => Promise<void> = yield_to_main,
+  pause: () => Promise<void> = yield_to_visible_page,
 ): WorkSlicer {
   const queue: Array<() => void> = [];
   let slice_started_at = performance.now();
   let draining = false;
+  let later_task_seen = false;
+  let idle_timer: ReturnType<typeof setTimeout> | null = null;
+
+  const start_slice = (): void => {
+    slice_started_at = performance.now();
+    later_task_seen = false;
+  };
+
+  const watch_for_later_task = (): void => {
+    if (idle_timer !== null) return;
+
+    idle_timer = setTimeout(() => {
+      idle_timer = null;
+      later_task_seen = true;
+    }, 0);
+  };
 
   const drain = async (): Promise<void> => {
     draining = true;
@@ -41,8 +56,12 @@ export function create_work_slicer(
     try {
       while (queue.length > 0) {
         if (performance.now() - slice_started_at >= budget_ms) {
-          await pause();
-          slice_started_at = performance.now();
+          try {
+            await pause();
+          } catch (caught) {
+            ignore_error("lib/work_slicer:pause", caught);
+          }
+          start_slice();
           continue;
         }
 
@@ -50,6 +69,7 @@ export function create_work_slicer(
       }
     } finally {
       draining = false;
+      watch_for_later_task();
     }
   };
 
@@ -64,7 +84,10 @@ export function create_work_slicer(
           }
         });
 
-        if (!draining) void drain();
+        if (draining) return;
+        if (later_task_seen) start_slice();
+
+        void drain();
       });
     },
   };
