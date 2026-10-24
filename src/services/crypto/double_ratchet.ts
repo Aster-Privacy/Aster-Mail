@@ -73,6 +73,7 @@ export interface RatchetState {
   created_at: number;
   updated_at: number;
   bootstrap?: BootstrapData;
+  remote_identity_key?: string;
 }
 
 export interface SerializedState {
@@ -137,6 +138,7 @@ function clone_state(state: RatchetState): RatchetState {
     created_at: state.created_at,
     updated_at: state.updated_at,
     bootstrap: state.bootstrap ? { ...state.bootstrap } : undefined,
+    remote_identity_key: state.remote_identity_key,
   };
 }
 
@@ -386,6 +388,7 @@ export class DoubleRatchet {
     shared_secret: Uint8Array,
     own_keypair: RatchetKeyPair,
     conversation_id: string,
+    remote_identity_key?: string,
   ): Promise<DoubleRatchet> {
     const state: RatchetState = {
       dh_keypair: {
@@ -405,6 +408,7 @@ export class DoubleRatchet {
       dirty_since_sync: false,
       created_at: Date.now(),
       updated_at: Date.now(),
+      remote_identity_key,
     };
 
     return new DoubleRatchet(state, conversation_id);
@@ -727,6 +731,15 @@ export class DoubleRatchet {
 
   set_bootstrap(bootstrap: BootstrapData): void {
     this.state.bootstrap = bootstrap;
+  }
+
+  get_remote_identity_key(): string | null {
+    return this.state.remote_identity_key ?? null;
+  }
+
+  set_remote_identity_key(remote_identity_key: string): void {
+    this.state.remote_identity_key = remote_identity_key;
+    this.state.dirty_since_sync = true;
   }
 
   async serialize(): Promise<SerializedState> {

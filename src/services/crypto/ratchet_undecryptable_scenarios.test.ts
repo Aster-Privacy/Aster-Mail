@@ -128,6 +128,7 @@ import {
   set_cached_ratchet_plaintext,
 } from "@/services/crypto/ratchet_plaintext_cache";
 import {
+  dismiss_peer_identity_event,
   get_message_sender_identity,
   get_peer_identity_event,
   is_unauthenticated_plaintext,
@@ -1151,6 +1152,88 @@ describe("recovery lane trust", () => {
     expect(plaintext).toBe("from a replaced key");
     expect(is_ratchet_verified_body(after, plaintext)).toBe(false);
     expect(get_peer_identity_event(SENDER)?.event).toBe("rotated");
+  });
+
+  it("judges a chained message by the key bound at the handshake, not the envelope label", async () => {
+    const sender_vault = make_vault((await generate_ratchet_keys())!);
+    const other_vault = make_vault((await generate_ratchet_keys())!);
+    const receiver_vault = make_vault((await generate_ratchet_keys())!);
+
+    dismiss_peer_identity_event(SENDER);
+    h.bundle = bundle_for(receiver_vault);
+
+    const first = await send("first contact", sender_vault);
+    const second = await send("chained follow-up", sender_vault);
+
+    h.store.clear();
+    h.bundle = bundle_for(sender_vault);
+    clear_sender_identity_authentication_cache();
+
+    expect(await receive(first, receiver_vault, "label-0")).toBe(
+      "first contact",
+    );
+
+    h.vault = receiver_vault;
+    const relabeled = parse_ratchet_envelope(second)!;
+
+    relabeled.sender_identity_key = other_vault.ratchet_identity_public!;
+
+    const plaintext = await decrypt_ratchet_message(
+      RECIPIENT,
+      SENDER,
+      relabeled,
+      receiver_vault,
+      "label-1",
+    );
+
+    expect(plaintext).toBe("chained follow-up");
+    expect(is_ratchet_verified_body(second, plaintext)).toBe(true);
+    expect(get_peer_identity_event(SENDER)).toBeNull();
+  });
+
+  it("keeps a cached message unconfirmed when only the envelope label names the remembered key", async () => {
+    const old_vault = make_vault((await generate_ratchet_keys())!);
+    const new_vault = make_vault((await generate_ratchet_keys())!);
+    const receiver_vault = make_vault((await generate_ratchet_keys())!);
+
+    h.bundle = bundle_for(receiver_vault);
+
+    const before = await send("from the old key", old_vault);
+    const after = await send("from a replaced key", new_vault);
+
+    h.store.clear();
+    h.bundle = bundle_for(old_vault);
+    clear_sender_identity_authentication_cache();
+
+    expect(await receive(before, receiver_vault, "settle-0")).toBe(
+      "from the old key",
+    );
+
+    h.bundle = bundle_for(new_vault);
+    clear_sender_identity_authentication_cache();
+
+    const plaintext = await receive(after, receiver_vault, "settle-1");
+
+    expect(is_ratchet_verified_body(after, plaintext)).toBe(false);
+
+    vi.mocked(get_cached_ratchet_plaintext).mockImplementation(
+      async () => "from a replaced key",
+    );
+
+    const relabeled = parse_ratchet_envelope(after)!;
+
+    relabeled.sender_identity_key = old_vault.ratchet_identity_public!;
+
+    const settled = await decrypt_ratchet_message(
+      RECIPIENT,
+      SENDER,
+      relabeled,
+      receiver_vault,
+      "settle-1",
+    );
+
+    expect(settled).toBe("from a replaced key");
+    expect(is_ratchet_verified_body(after, settled)).toBe(false);
   });
 
   it("verifies mail sealed with one of this account's own identity keys", async () => {

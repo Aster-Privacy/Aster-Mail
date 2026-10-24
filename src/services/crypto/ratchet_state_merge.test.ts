@@ -252,6 +252,18 @@ describe("ratchet state merge", () => {
     });
   });
 
+  it("keeps the session sender key known to only one device", () => {
+    const local = make_state();
+    const remote = make_state({ remote_identity_key: "peer-identity" });
+
+    expect(merge_ratchet_states(local, remote).state.remote_identity_key).toBe(
+      "peer-identity",
+    );
+    expect(merge_ratchet_states(remote, local).state.remote_identity_key).toBe(
+      "peer-identity",
+    );
+  });
+
   it("marks the merged state as needing another push", () => {
     const merged = merge_ratchet_states(make_state(), make_state());
 

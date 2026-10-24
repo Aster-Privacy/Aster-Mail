@@ -230,6 +230,32 @@ describe("DoubleRatchet sync-safety (dirty tracking)", () => {
     expect(restored.is_dirty_since_sync()).toBe(true);
   });
 
+  it("keeps the sender identity key bound at the handshake across serialization", async () => {
+    const { shared_secret, receiver_keypair, conversation_id } = await setup();
+    const receiver = await DoubleRatchet.init_receiver(
+      shared_secret,
+      receiver_keypair,
+      conversation_id,
+      "sender-identity",
+    );
+
+    expect(receiver.get_remote_identity_key()).toBe("sender-identity");
+
+    const restored = DoubleRatchet.deserialize(await receiver.serialize());
+
+    expect(restored.get_remote_identity_key()).toBe("sender-identity");
+
+    const legacy = await DoubleRatchet.init_receiver(
+      shared_secret,
+      receiver_keypair,
+      conversation_id,
+    );
+
+    expect(legacy.get_remote_identity_key()).toBeNull();
+    legacy.set_remote_identity_key("sender-identity");
+    expect(legacy.get_remote_identity_key()).toBe("sender-identity");
+  });
+
   it("a legacy state without the flag deserializes as dirty so it is never clobbered", async () => {
     const { shared_secret, receiver_keypair, conversation_id } = await setup();
     const sender = await DoubleRatchet.init_sender(
