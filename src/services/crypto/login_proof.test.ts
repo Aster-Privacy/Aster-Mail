@@ -49,6 +49,7 @@ import {
   is_account_pinned,
   pin_accounts,
   read_kdf_version,
+  unpin_accounts,
   user_hash_pin_key,
   user_id_pin_key,
   v1_proofs_allowed,
@@ -247,25 +248,34 @@ describe("enrollment", () => {
     expect(h.post).toHaveBeenCalledTimes(1);
   });
 
-  it("step-up on a v1 account enrolls and returns the v2 proof", async () => {
+  it("step-up on a v1 account sends the v1 proof without enrolling", async () => {
     h.account_id = "user-1";
     h.post.mockResolvedValue({ data: { kdf_version: 2 } });
-
-    const sent = await derive_current_account_proof(PASSWORD, salt(5), 1);
-    const { hash_v2 } = await derive_password_hash(PASSWORD, salt(5));
-
-    expect(sent).toBe(hash_v2);
-    expect(is_account_pinned([user_id_pin_key("user-1")])).toBe(true);
-  });
-
-  it("step-up falls back to the v1 proof when enrollment fails", async () => {
-    h.account_id = "user-1";
-    h.post.mockResolvedValue({ data: { kdf_version: 1 } });
 
     const sent = await derive_current_account_proof(PASSWORD, salt(5), 1);
     const { hash } = await derive_password_hash(PASSWORD, salt(5));
 
     expect(sent).toBe(hash);
+    expect(h.post).not.toHaveBeenCalled();
     expect(is_account_pinned([user_id_pin_key("user-1")])).toBe(false);
+  });
+
+  it("step-up on a v2 account sends the v2 proof and pins", async () => {
+    h.account_id = "user-1";
+
+    const sent = await derive_current_account_proof(PASSWORD, salt(5), 2);
+    const { hash_v2 } = await derive_password_hash(PASSWORD, salt(5));
+
+    expect(sent).toBe(hash_v2);
+    expect(h.post).not.toHaveBeenCalled();
+    expect(is_account_pinned([user_id_pin_key("user-1")])).toBe(true);
+  });
+
+  it("unpinning lets a v1 proof through again", async () => {
+    pin_accounts([user_hash_pin_key("h1")]);
+    unpin_accounts([user_hash_pin_key("h1")]);
+
+    expect(is_account_pinned([user_hash_pin_key("h1")])).toBe(false);
+    expect(v1_proofs_allowed([user_hash_pin_key("h1")])).toBe(true);
   });
 });

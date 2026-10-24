@@ -40,7 +40,9 @@ import { hash_email, base64_to_array } from "@/services/crypto/key_manager";
 import {
   derive_current_account_proof,
   read_kdf_version,
+  unpin_accounts,
   user_hash_pin_key,
+  user_id_pin_key,
 } from "@/services/crypto/login_proof";
 
 interface DeleteAccountModalProps {
@@ -141,6 +143,10 @@ export function DeleteAccountModal({
       });
 
       if (response.data?.success || response.data?.message) {
+        unpin_accounts([
+          user_hash_pin_key(user_hash),
+          user_id_pin_key(user.id),
+        ]);
         await logout();
         on_deleted();
       } else if (response.server_code === "INVALID_CREDENTIALS") {

@@ -61,6 +61,7 @@ import {
   clear_unauthenticated_plaintext,
   is_unauthenticated_plaintext,
   is_trusted_ratchet_plaintext,
+  clear_unconfirmed_sender_plaintext,
   is_unconfirmed_sender_plaintext,
   mark_unauthenticated_plaintext,
   mark_unconfirmed_sender_plaintext,
@@ -284,9 +285,14 @@ describe("ratchet plaintext cache sender binding", () => {
     expect(is_trusted_ratchet_plaintext("first lane")).toBe(false);
     expect(is_trusted_ratchet_plaintext("never marked")).toBe(true);
 
-    clear_ratchet_verification_status();
+    clear_unconfirmed_sender_plaintext("first unconfirmed", "m-first");
 
     expect(is_trusted_ratchet_plaintext("first unconfirmed")).toBe(true);
+    expect(is_trusted_ratchet_plaintext("first lane")).toBe(false);
+
+    clear_ratchet_verification_status();
+
+    expect(is_trusted_ratchet_plaintext("first lane")).toBe(true);
   });
 
   it("does not mark a refused entry as unauthenticated content", async () => {

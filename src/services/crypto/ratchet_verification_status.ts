@@ -225,11 +225,18 @@ function clear_plaintext(
 ): void {
   const keys = store.get(plaintext);
 
-  if (!keys) return;
+  if (keys) {
+    keys.delete(message_key);
 
-  keys.delete(message_key);
+    if (keys.size === 0) store.delete(plaintext);
+  }
 
-  if (keys.size === 0) store.delete(plaintext);
+  if (
+    !unauthenticated_plaintexts.has(plaintext) &&
+    !unconfirmed_sender_plaintexts.has(plaintext)
+  ) {
+    evicted_untrusted_plaintexts.delete(plaintext_digest(plaintext));
+  }
 }
 
 export function clear_unauthenticated_plaintext(

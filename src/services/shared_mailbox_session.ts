@@ -335,8 +335,9 @@ export async function perform_shared_mailbox_login(
     is_adding_account: true,
   });
 
+  clear_pending_login_enrollment();
+
   if (response.error || !response.data) {
-    clear_pending_login_enrollment();
     throw new Error(response.error || "shared mailbox sign-in failed");
   }
 
