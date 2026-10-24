@@ -451,6 +451,28 @@ describe("search index refresh writes", () => {
     expect(await hydrate_snapshot_index(user_email)).toBeNull();
   });
 
+  it("removes chunks a cancelled build wrote before it was superseded", async () => {
+    server.mailbox[100] = { ...server.mailbox[100], is_read: false };
+    writes.on_chunk = () => {
+      writes.on_chunk = null;
+      reset_index_cache();
+    };
+
+    await refresh();
+    await new Promise((resolve) => setTimeout(resolve, 20));
+
+    const reader = await open_snapshot_reader(user_email);
+    const live = new Set(
+      (reader?.meta.chunk_ids ?? []).map(
+        (id) => `search_index_account-1_chunk_${id}`,
+      ),
+    );
+    const chunk_keys = [...store.keys()].filter((k) => k.includes("_chunk_"));
+
+    expect(chunk_keys.length).toBeGreaterThan(0);
+    expect(chunk_keys.filter((k) => !live.has(k))).toEqual([]);
+  });
+
   it("rebuilds from scratch after the index is cleared", async () => {
     clear_search_index();
     store.clear();

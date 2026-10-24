@@ -165,4 +165,34 @@ describe("snapshot writer flush", () => {
       to_persisted_entry("msg-5", make_entry(5)),
     );
   });
+
+  it("drops a chunk whose build was superseded while it was being serialised", async () => {
+    let clock = 0;
+    let current = true;
+
+    vi.spyOn(performance, "now").mockImplementation(() => (clock += 1));
+
+    const writer = await open_snapshot_writer(
+      user_email,
+      undefined,
+      undefined,
+      () => current,
+    );
+    const items = Array.from({ length: SNAPSHOT_CHUNK_SIZE + 10 }, (_, i) =>
+      make_item(i),
+    );
+    const entries = new Map(items.map((item, i) => [item.id, make_entry(i)]));
+
+    setTimeout(() => {
+      current = false;
+    }, 0);
+    await writer!.add_page(items, entries);
+
+    expect([...store.keys()].filter((k) => k.includes("_chunk_"))).toEqual([]);
+    expect(writer!.layout()).toEqual([]);
+    expect(
+      await writer!.finish({ complete: true, include_body: true }),
+    ).toBeNull();
+    expect([...store.keys()]).toEqual([]);
+  });
 });

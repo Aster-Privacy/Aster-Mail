@@ -733,6 +733,7 @@ export async function open_snapshot_writer(
   user_email: string,
   base?: SnapshotMeta | null,
   reusable?: ReusableChunk[],
+  is_current?: () => boolean,
 ): Promise<SnapshotWriter | null> {
   const encryption_key = await get_snapshot_encryption_key();
 
@@ -761,6 +762,7 @@ export async function open_snapshot_writer(
   let buffer_sources: PersistableEntry[] = [];
   let written = 0;
   let storage_exhausted = false;
+  let superseded = false;
   let lost_kept = false;
 
   const drop_buffer = (): void => {
@@ -771,7 +773,7 @@ export async function open_snapshot_writer(
   const flush = async (): Promise<void> => {
     if (buffer_items.length === 0) return;
 
-    if (storage_exhausted) {
+    if (storage_exhausted || superseded) {
       drop_buffer();
 
       return;
@@ -806,6 +808,13 @@ export async function open_snapshot_writer(
         chunk_items,
         chunk_entries,
       );
+
+      if (is_current && !is_current()) {
+        zero_uint8_array(plaintext);
+        superseded = true;
+
+        return;
+      }
 
       await encrypted_set_plaintext(
         chunk_record_key(key, chunk_id),
@@ -912,7 +921,7 @@ export async function open_snapshot_writer(
     layout: () => [...layout],
     lost_kept_chunks: () => lost_kept,
     add_page: async (items, entries) => {
-      if (storage_exhausted) return;
+      if (storage_exhausted || superseded) return;
 
       for (const item of items) {
         const entry = entries.get(item.id);
@@ -963,6 +972,8 @@ export async function open_snapshot_writer(
 
       try {
         await flush();
+
+        if (superseded) return await abandon();
 
         const kept = keep_chunk_ids ?? [];
         const chunk_ids = keep_first
