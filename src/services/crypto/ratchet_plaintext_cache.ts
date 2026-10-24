@@ -46,6 +46,7 @@ interface CachedPlaintext {
   stored_at: number;
   unauthenticated?: boolean;
   unconfirmed_sender?: boolean;
+  sender_identity_key?: string;
   sender?: string;
   conversation_id?: string;
 }
@@ -85,6 +86,7 @@ function build_entry(
   unauthenticated: boolean,
   binding: PlaintextBinding | undefined,
   unconfirmed_sender: boolean,
+  sender_identity_key: string | undefined,
 ): CachedPlaintext {
   const bound = binding ? normalize_binding(binding) : null;
 
@@ -93,6 +95,7 @@ function build_entry(
     stored_at: Date.now(),
     ...(unauthenticated ? { unauthenticated: true } : {}),
     ...(unconfirmed_sender ? { unconfirmed_sender: true } : {}),
+    ...(sender_identity_key && !unauthenticated ? { sender_identity_key } : {}),
     ...(bound
       ? {
           sender: bound.sender,
@@ -231,12 +234,30 @@ export async function get_cached_ratchet_plaintext(
   }
 }
 
+export async function get_cached_ratchet_sender_key(
+  message_id: string,
+  binding?: PlaintextBinding,
+): Promise<string | null> {
+  if (!message_id) return null;
+  try {
+    const found = await read_entry(message_id);
+
+    if (!found || is_foreign_entry(found.entry, binding)) return null;
+    if (Date.now() - found.entry.stored_at > RETENTION_MS) return null;
+
+    return found.entry.sender_identity_key ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export async function set_cached_ratchet_plaintext(
   message_id: string,
   plaintext: string,
   unauthenticated = false,
   binding?: PlaintextBinding,
   unconfirmed_sender = false,
+  sender_identity_key?: string,
 ): Promise<void> {
   if (!message_id) return;
   try {
@@ -268,7 +289,13 @@ export async function set_cached_ratchet_plaintext(
       RATCHET_PLAINTEXT_PREFIX,
       scope.uid,
       message_id,
-      build_entry(plaintext, unauthenticated, binding, unconfirmed_sender),
+      build_entry(
+        plaintext,
+        unauthenticated,
+        binding,
+        unconfirmed_sender,
+        sender_identity_key,
+      ),
       key,
     );
   } catch {
