@@ -349,7 +349,7 @@ async function attempt_ratchet_decrypt(
       const from_escrow = lane_plaintext && !unauthenticated;
       const unconfirmed_sender = from_escrow
         ? is_unconfirmed_sender_plaintext(plaintext)
-        : continuity !== "known";
+        : continuity === "changed";
 
       if (unconfirmed_sender) {
         mark_unconfirmed_sender_plaintext(

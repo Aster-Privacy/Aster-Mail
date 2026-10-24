@@ -90,6 +90,22 @@ export function pin_accounts(pin_keys: readonly string[]): void {
   }
 }
 
+export function unpin_accounts(pin_keys: readonly string[]): void {
+  if (pin_keys.length === 0) {
+    return;
+  }
+
+  const remaining = read_pinned_accounts().filter(
+    (entry) => !pin_keys.includes(entry),
+  );
+
+  try {
+    localStorage.setItem(PINNED_ACCOUNTS_KEY, JSON.stringify(remaining));
+  } catch {
+    return;
+  }
+}
+
 export function v1_proofs_allowed(pin_keys: readonly string[]): boolean {
   return !is_account_pinned(pin_keys);
 }
@@ -180,12 +196,6 @@ export async function derive_current_account_proof(
 
   if (proof.kdf_version === 2) {
     pin_accounts(pin_keys);
-
-    return proof.password_hash;
-  }
-
-  if (await enroll_login_v2(proof, pin_keys)) {
-    return proof.hash_v2;
   }
 
   return proof.password_hash;

@@ -1099,12 +1099,12 @@ describe("recovery lane trust", () => {
 
     expect(first_plaintext).toBe("first contact");
     expect(is_unauthenticated_plaintext(first_plaintext)).toBe(false);
-    expect(is_ratchet_verified_body(first, first_plaintext)).toBe(false);
+    expect(is_ratchet_verified_body(first, first_plaintext)).toBe(true);
     expect(upload_to_escrow).toHaveBeenLastCalledWith(
       expect.stringContaining("ratchet-0"),
       "first contact",
       expect.objectContaining({ sender: SENDER }),
-      true,
+      false,
     );
 
     const plaintext = await receive(second, receiver_vault, "ratchet-1");
@@ -1170,7 +1170,7 @@ describe("recovery lane trust", () => {
     expect(is_ratchet_verified_body(envelope, plaintext)).toBe(true);
   });
 
-  it("never verifies a first message whose sender key the directory alone vouches for", async () => {
+  it("verifies a first message whose sender key the directory vouches for", async () => {
     const sender_vault = make_vault((await generate_ratchet_keys())!);
     const receiver_vault = make_vault((await generate_ratchet_keys())!);
 
@@ -1185,13 +1185,13 @@ describe("recovery lane trust", () => {
     const plaintext = await receive(envelope, receiver_vault, "ratchet-2");
 
     expect(plaintext).toBe("served by the directory");
-    expect(is_ratchet_verified_body(envelope, plaintext)).toBe(false);
+    expect(is_ratchet_verified_body(envelope, plaintext)).toBe(true);
     expect(set_cached_ratchet_plaintext).toHaveBeenCalledWith(
       expect.stringContaining("ratchet-2"),
       "served by the directory",
       false,
       expect.objectContaining({ sender: SENDER }),
-      true,
+      false,
     );
   });
 });

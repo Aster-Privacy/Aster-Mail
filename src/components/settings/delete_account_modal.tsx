@@ -43,7 +43,9 @@ import { clamp_password } from "@/services/sanitize";
 import {
   derive_current_account_proof,
   read_kdf_version,
+  unpin_accounts,
   user_hash_pin_key,
+  user_id_pin_key,
 } from "@/services/crypto/login_proof";
 
 interface DeleteAccountModalProps {
@@ -105,6 +107,10 @@ export function DeleteAccountModal({
       }>("/core/v1/auth/me", { data: { password_hash } });
 
       if (response.data?.success || response.data?.message) {
+        unpin_accounts([
+          user_hash_pin_key(user_hash),
+          user_id_pin_key(user.id),
+        ]);
         await logout();
         on_deleted();
       } else {

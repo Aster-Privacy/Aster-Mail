@@ -46,7 +46,6 @@ export interface ClientPgpCopyParams {
   outside_recipients: string[];
   force_pgp?: boolean;
   require_encryption?: boolean;
-  auto_discover_keys?: boolean;
   obscure_subject?: boolean;
   subject: string;
   body: string;

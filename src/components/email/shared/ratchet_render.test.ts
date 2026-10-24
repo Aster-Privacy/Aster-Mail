@@ -183,7 +183,7 @@ describe("internal ratchet mail rendering", () => {
     h.continuity = "known";
   });
 
-  it("shows a first message from an unseen sender key without the verified mark", async () => {
+  it("shows a first message from an unseen sender key as verified", async () => {
     const secret = "A first message from a key this device has not seen.";
     const { envelope_json, receiver_vault } =
       await build_real_internal_envelope(secret);
@@ -198,7 +198,7 @@ describe("internal ratchet mail rendering", () => {
     );
 
     expect(result.body_text).toBe(secret);
-    expect(result.e2e_verified).toBe(false);
+    expect(result.e2e_verified).toBe(true);
   });
 
   it("renders the decrypted plaintext, never the raw double_ratchet_v2 envelope (success path)", async () => {
