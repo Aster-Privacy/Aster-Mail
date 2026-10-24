@@ -25,6 +25,7 @@ import {
   ENVELOPE_FETCH_CHUNK,
   ENVELOPE_PAGE_LIMIT,
   INDEX_PAGE_LIMIT,
+  INDEX_YIELD_MS,
   MAX_RAM_INDEX_ITEMS,
 } from "./constants";
 import {
@@ -47,6 +48,7 @@ import {
 } from "@/services/crypto/mail_metadata";
 import { filter_locked_mail_items } from "@/services/locked_folders";
 import { strip_html_tags_bounded } from "@/lib/html_sanitizer";
+import { create_work_slicer } from "@/lib/work_slicer";
 import { decrypt_body_text_with_bundle } from "@/utils/email_crypto";
 import {
   bound_index_body,
@@ -94,6 +96,7 @@ export async function run_index_pipeline(
   let processed = 0;
   let fresh_count = 0;
   let reached_boundary = false;
+  const slicer = create_work_slicer(INDEX_YIELD_MS);
 
   if (!incremental) reset_legacy_migration_state();
 
@@ -258,31 +261,33 @@ export async function run_index_pipeline(
 
     const metadata = await index_metadata(item);
 
-    const bounded_body = bound_index_body(
-      envelope
-        ? strip_html_tags_bounded(
-            searchable_body_source(envelope),
-            MAX_INDEX_BODY_CHARS,
-          )
-        : "",
-    );
+    return slicer.run(() => {
+      const bounded_body = bound_index_body(
+        envelope
+          ? strip_html_tags_bounded(
+              searchable_body_source(envelope),
+              MAX_INDEX_BODY_CHARS,
+            )
+          : "",
+      );
 
-    if (envelope) {
-      envelope.body_text = bounded_body.preview_text;
-    }
+      if (envelope) {
+        envelope.body_text = bounded_body.preview_text;
+      }
 
-    return {
-      id: item.id,
-      entry: {
-        envelope: envelope ? slim_envelope_for_index(envelope) : null,
-        metadata,
-        search_body_text: bounded_body.search_text,
-        meta_fp,
-        has_body: include_body,
-        haystack: envelope ? build_search_haystack(envelope) : undefined,
-      },
-      fresh: envelope !== null,
-    };
+      return {
+        id: item.id,
+        entry: {
+          envelope: envelope ? slim_envelope_for_index(envelope) : null,
+          metadata,
+          search_body_text: bounded_body.search_text,
+          meta_fp,
+          has_body: include_body,
+          haystack: envelope ? build_search_haystack(envelope) : undefined,
+        },
+        fresh: envelope !== null,
+      };
+    });
   };
 
   const decrypt_page = async (
