@@ -39,6 +39,8 @@ import {
   LINK_INK_VISITED_VAR,
   LINK_VISITED_VAR,
   MEASURING_ATTRIBUTE,
+  PAPER_ATTRIBUTE,
+  PAPER_SURFACE,
   composite_over,
   contrast_threshold_for,
   is_neutral_ink,
@@ -1450,11 +1452,11 @@ describe("repair_email_contrast in dark mode newsletters", () => {
     expect(ratio).toBeLessThan(5);
   });
 
-  it("leaves text over an author background image at the plain threshold", () => {
+  it("measures text over an author background image against the paper fill", () => {
     const doc = build_document();
 
     doc.body.innerHTML =
-      '<div data-bgimage="url(https://cdn.example/hero.png)">' +
+      '<div data-bgimage="url(https://cdn.example/hero.png)" id="hero">' +
       '<div style="background-color: #ffffff">' +
       '<p data-color="rgb(102, 102, 102)" id="over_image">Caption</p>' +
       "</div></div>";
@@ -1468,10 +1470,80 @@ describe("repair_email_contrast in dark mode newsletters", () => {
     const repaired = doc
       .getElementById("over_image")!
       .style.getPropertyValue("color");
-    const ratio = contrast_ratio(repaired, CARD);
 
-    expect(ratio).toBeGreaterThanOrEqual(4.5);
-    expect(ratio).toBeLessThan(5);
+    expect(repaired).toBe("");
+    expect(
+      doc.getElementById("hero")!.style.getPropertyValue("background-color"),
+    ).toBe(PAPER_SURFACE);
+    expect(
+      contrast_ratio("rgb(102, 102, 102)", PAPER_SURFACE),
+    ).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it("gives inherited light ink dark text and a light fill on image stationery", () => {
+    const doc = build_document();
+
+    doc.body.innerHTML =
+      '<table><tr><td data-bgimage="url(https://cdn.example/paper.jpg)" id="paper">' +
+      '<div id="letter">Dear user,</div>' +
+      '<div data-color="rgb(102, 102, 102)" id="grey">quoted</div>' +
+      '<div data-bg="rgb(18, 18, 18)" data-color="rgb(248, 113, 113)" id="error">500</div>' +
+      "</td></tr></table>";
+
+    repair_email_contrast(doc, {
+      surface: CARD,
+      ink: THEME_INK,
+      view: fake_view({ color: "rgb(229, 229, 229)" }),
+    });
+
+    const paper = doc.getElementById("paper")!;
+    const letter = doc.getElementById("letter")!;
+    const paper_ink =
+      paper.style.getPropertyValue("color") ||
+      letter.style.getPropertyValue("color");
+
+    expect(paper.hasAttribute(PAPER_ATTRIBUTE)).toBe(true);
+    expect(paper.style.getPropertyValue("background-color")).toBe(
+      PAPER_SURFACE,
+    );
+    expect(paper.style.getPropertyPriority("background-color")).toBe(
+      "important",
+    );
+    expect(contrast_ratio(paper_ink, PAPER_SURFACE)).toBeGreaterThanOrEqual(
+      4.5,
+    );
+    expect(doc.getElementById("grey")!.style.getPropertyValue("color")).toBe(
+      "",
+    );
+    expect(doc.getElementById("error")!.style.getPropertyValue("color")).toBe(
+      "",
+    );
+    expect(
+      doc.getElementById("error")!.style.getPropertyValue("background-color"),
+    ).toBe("");
+  });
+
+  it("does not treat a hero with its own ink or a solid background as paper", () => {
+    const doc = build_document();
+
+    doc.body.innerHTML =
+      '<div data-bgimage="url(https://cdn.example/hero.jpg)" data-color="rgb(255, 255, 255)" id="inked">Hello</div>' +
+      '<div data-bgimage="url(https://cdn.example/hero.jpg)" data-bg="rgb(17, 24, 39)" id="solid">Hello</div>' +
+      '<div data-bgimage="linear-gradient(red, blue)" id="gradient">Hello</div>';
+
+    repair_email_contrast(doc, {
+      surface: CARD,
+      ink: THEME_INK,
+      view: fake_view({ color: "rgb(229, 229, 229)" }),
+    });
+
+    for (const id of ["inked", "solid", "gradient"]) {
+      const element = doc.getElementById(id)!;
+
+      expect(element.hasAttribute(PAPER_ATTRIBUTE)).toBe(false);
+      expect(element.style.getPropertyValue("background-color")).toBe("");
+      expect(element.style.getPropertyValue("color")).toBe("");
+    }
   });
 });
 

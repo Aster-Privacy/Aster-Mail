@@ -64,6 +64,8 @@ export const LINK_INK_VISITED_VAR = `--aster-link-visited-${LINK_INK_SUFFIX}`;
 export const HIDDEN_LINK_ALPHA = 0.1;
 
 const FALLBACK_SURFACE = "#121212";
+export const PAPER_SURFACE = "#f3f4f6";
+export const PAPER_ATTRIBUTE = "data-aster-paper";
 const WHITE = "#ffffff";
 const BLACK = "#000000";
 const WHITE_RGBA: Rgba = { r: 255, g: 255, b: 255, a: 1 };
@@ -577,6 +579,15 @@ function make_state(hex: string, authored = false): BackgroundState {
   return { hex, rgba, authored };
 }
 
+interface PaperScope {
+  state: BackgroundState;
+  inherited_color: string;
+}
+
+function is_image_url_background(background_image: string): boolean {
+  return /url\(/i.test(background_image);
+}
+
 interface InheritedRepair {
   from: string;
   to: string;
@@ -750,8 +761,11 @@ export function repair_email_contrast(
   }
 
   const backgrounds = new Map<Element, BackgroundState>();
+  const papers = new Map<Element, PaperScope>();
+  const paper_state = make_state(PAPER_SURFACE, true);
   const inherited_repairs = new Map<Element, InheritedRepair>();
   const plans: TextPlan[] = [];
+  const paper_fills: HTMLElement[] = [];
   const repair_borders = options.repair_borders !== false;
 
   const hovered = Array.from(doc.querySelectorAll<HTMLElement>("a:hover"));
@@ -772,10 +786,28 @@ export function repair_email_contrast(
         style.getPropertyValue("background-color"),
       );
 
+      const computed_color = style.getPropertyValue("color");
+      const parent_paper = parent ? papers.get(parent) : undefined;
+      let paper = parent_paper;
       let state = parent_state;
 
       if (background_image && background_image !== "none") {
         state = image_state;
+
+        const parent_color = parent
+          ? view.getComputedStyle(parent).getPropertyValue("color")
+          : computed_color;
+        const opaque_own = !!own_background && own_background.a >= 1;
+
+        if (
+          !parent_paper &&
+          !opaque_own &&
+          is_image_url_background(background_image) &&
+          computed_color === parent_color
+        ) {
+          paper = { state: paper_state, inherited_color: computed_color };
+          paper_fills.push(element);
+        }
       } else if (own_background && own_background.a > 0) {
         state = make_state(
           rgba_to_hex(composite_over(own_background, parent_state.rgba)),
@@ -791,7 +823,13 @@ export function repair_email_contrast(
 
       backgrounds.set(element, state);
 
-      const computed_color = style.getPropertyValue("color");
+      if (paper) {
+        papers.set(element, paper);
+        if (state === image_state || state === parent_state) {
+          state = paper.state;
+        }
+      }
+
       const parent_repair = parent ? inherited_repairs.get(parent) : undefined;
       const inherited_repair =
         parent_repair && parent_repair.from === computed_color
@@ -898,6 +936,13 @@ export function repair_email_contrast(
   }
 
   if (plans.some((plan) => plan.use_layer)) add_link_ink_layer(doc);
+
+  for (let index = 0; index < paper_fills.length; index += 1) {
+    const element = paper_fills[index];
+
+    element.setAttribute(PAPER_ATTRIBUTE, "");
+    element.style.setProperty("background-color", PAPER_SURFACE, "important");
+  }
 
   for (let index = 0; index < plans.length; index += 1) {
     const plan = plans[index];
