@@ -718,8 +718,11 @@ export function use_registration(options?: RegistrationClaimOptions) {
       await yield_to_ui();
       const user_hash = await hash_email(email);
       const salt = crypto.getRandomValues(new Uint8Array(32));
-      const { hash: password_hash, salt: password_salt } =
-        await derive_password_hash(password, salt);
+      const {
+        hash: password_hash,
+        salt: password_salt,
+        hash_v2: password_hash_v2,
+      } = await derive_password_hash(password, salt);
 
       set_generation_status(t("auth.creating_identity_keypair"));
       await yield_to_ui();
@@ -797,6 +800,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
         email_domain,
         user_hash,
         password_hash,
+        password_hash_v2,
         password_salt,
         argon2_params: { memory: 65536, iterations: 3, parallelism: 4 },
         identity_key: btoa(identity_keypair.public_key),

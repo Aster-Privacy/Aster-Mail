@@ -106,6 +106,7 @@ import { delete_category_index_for_account } from "@/services/category_index";
 import { use_i18n } from "@/lib/i18n/context";
 import { ignore_error } from "@/lib/ignore_error";
 import { remember_current_user } from "@/services/current_identity";
+import { flush_pending_login_enrollment } from "@/services/crypto/login_proof";
 
 export function use_auth_account_state() {
   const { t } = use_i18n();
@@ -786,6 +787,9 @@ export function use_auth_account_state() {
 
       api_client.set_authenticated(true);
       remember_current_user(user);
+      flush_pending_login_enrollment(user.id).catch((caught) =>
+        ignore_error("contexts/auth/use_auth_account_state:init", caught),
+      );
 
       const add_result = await with_timeout(storage_add_account(user), 5000);
       const persisted = add_result?.success === true;
@@ -937,6 +941,9 @@ export function use_auth_account_state() {
           );
         }
         api_client.set_authenticated(true);
+        flush_pending_login_enrollment(user.id).catch((caught) =>
+          ignore_error("contexts/auth/use_auth_account_state:accounts", caught),
+        );
         check_and_run_recovery_reencryption(vault, passphrase).catch((caught) =>
           ignore_error("contexts/auth/use_auth_account_state:accounts", caught),
         );

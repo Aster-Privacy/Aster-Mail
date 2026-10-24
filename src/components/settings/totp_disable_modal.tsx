@@ -41,11 +41,12 @@ import { get_user_salt } from "@/services/api/auth";
 import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { clamp_password } from "@/services/sanitize";
+import { hash_email, base64_to_array } from "@/services/crypto/key_manager";
 import {
-  hash_email,
-  derive_password_hash,
-  base64_to_array,
-} from "@/services/crypto/key_manager";
+  derive_current_account_proof,
+  read_kdf_version,
+  user_hash_pin_key,
+} from "@/services/crypto/login_proof";
 
 interface TotpDisableModalProps {
   is_open: boolean;
@@ -119,9 +120,11 @@ export function TotpDisableModal({
       }
 
       const salt = base64_to_array(salt_response.data.salt);
-      const { hash: password_hash } = await derive_password_hash(
+      const password_hash = await derive_current_account_proof(
         password,
         salt,
+        read_kdf_version(salt_response.data.kdf_version),
+        [user_hash_pin_key(user_hash)],
       );
 
       const response = await disable_totp({

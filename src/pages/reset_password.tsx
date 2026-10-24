@@ -563,8 +563,11 @@ export default function ResetPasswordPage() {
 
       set_processing_status(t("auth.generating_new_encryption_keys"));
       const salt = crypto.getRandomValues(new Uint8Array(32));
-      const { hash: password_hash, salt: password_salt } =
-        await derive_password_hash(password, salt);
+      const {
+        hash: password_hash,
+        salt: password_salt,
+        hash_v2: password_hash_v2,
+      } = await derive_password_hash(password, salt);
 
       const placeholder_email = reset_address;
       const display_name = placeholder_email.split("@")[0] || "User";
@@ -655,6 +658,7 @@ export default function ResetPasswordPage() {
         true,
         undefined,
         old_vault !== null,
+        password_hash_v2,
       );
 
       if (response.error || !response.data?.success) {

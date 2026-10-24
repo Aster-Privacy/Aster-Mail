@@ -62,7 +62,7 @@ export async function hash_recovery_email(email: string): Promise<string> {
 export async function derive_password_hash(
   password: string,
   salt: Uint8Array,
-): Promise<{ hash: string; salt: string }> {
+): Promise<{ hash: string; salt: string; hash_v2: string }> {
   await require_usable_auth_salt(salt);
 
   const encoder = new TextEncoder();
@@ -87,10 +87,39 @@ export async function derive_password_hash(
     256,
   );
 
-  return {
-    hash: array_to_base64(new Uint8Array(derived_bits)),
+  const v1_bytes = new Uint8Array(derived_bits);
+  const v2_bytes = await derive_login_v2_bytes(v1_bytes);
+  const result = {
+    hash: array_to_base64(v1_bytes),
     salt: array_to_base64(salt),
+    hash_v2: array_to_base64(v2_bytes),
   };
+
+  zero_uint8_array(v2_bytes);
+
+  return result;
+}
+
+export const LOGIN_V2_INFO = "aster-login-v2";
+
+export async function derive_login_v2_bytes(
+  v1_bytes: Uint8Array,
+): Promise<Uint8Array> {
+  const ikm = await crypto.subtle.importKey("raw", v1_bytes, "HKDF", false, [
+    "deriveBits",
+  ]);
+  const bits = await crypto.subtle.deriveBits(
+    {
+      name: "HKDF",
+      hash: "SHA-256",
+      salt: new Uint8Array(0),
+      info: new TextEncoder().encode(LOGIN_V2_INFO),
+    },
+    ikm,
+    256,
+  );
+
+  return new Uint8Array(bits);
 }
 
 export async function generate_identity_keypair(

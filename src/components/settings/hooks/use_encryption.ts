@@ -35,10 +35,7 @@ import {
   ensure_pgp_key_published,
   type PgpPublishHealResult,
 } from "@/services/crypto/ensure_pgp_key_published";
-import {
-  derive_password_hash,
-  base64_to_array,
-} from "@/services/crypto/key_manager";
+import { base64_to_array } from "@/services/crypto/key_manager";
 import { DEFAULT_KEYSERVERS } from "@/components/settings/encryption/encryption_settings_form";
 import { trigger_download } from "@/utils/download_blob";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -58,6 +55,10 @@ import { app_locale, get_display_time_zone } from "@/utils/date_format";
 import { use_sender_aliases } from "@/hooks/use_sender_aliases";
 import { ensure_identity_key_addresses } from "@/services/pgp_uid_service";
 import { identity_addresses_for } from "@/utils/address_dots";
+import {
+  derive_current_account_proof,
+  read_kdf_version,
+} from "@/services/crypto/login_proof";
 
 const KEYSERVER_MAX_ADDRESSES = 10;
 const KEYSERVER_POLL_INTERVAL_MS = 60_000;
@@ -91,6 +92,7 @@ export interface PgpKeyInfo {
 interface SaltResponse {
   salt: string;
   totp_required: boolean;
+  kdf_version?: number;
 }
 
 export function use_encryption() {
@@ -462,7 +464,11 @@ export function use_encryption() {
       }
 
       const salt = base64_to_array(salt_response.data.salt);
-      const { hash } = await derive_password_hash(export_password, salt);
+      const hash = await derive_current_account_proof(
+        export_password,
+        salt,
+        read_kdf_version(salt_response.data.kdf_version),
+      );
 
       const body: {
         include_private: boolean;

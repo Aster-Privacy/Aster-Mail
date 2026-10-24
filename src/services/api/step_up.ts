@@ -22,10 +22,12 @@ import type { StepUpHardwareKeyAssertion } from "./webauthn";
 
 import { api_client } from "./client";
 
+import { base64_to_array } from "@/services/crypto/key_manager";
 import {
-  derive_password_hash,
-  base64_to_array,
-} from "@/services/crypto/key_manager";
+  derive_current_account_proof,
+  read_kdf_version,
+  type KdfVersion,
+} from "@/services/crypto/login_proof";
 import { get_active_translations } from "@/lib/i18n/translations";
 
 export interface StepUpCredentials {
@@ -37,11 +39,13 @@ export interface StepUpCredentials {
 export interface StepUpRequirements {
   salt: Uint8Array;
   totp_required: boolean;
+  kdf_version: KdfVersion;
 }
 
 interface AccountSaltResponse {
   salt: string;
   totp_required: boolean;
+  kdf_version?: number;
 }
 
 export async function fetch_step_up_requirements(): Promise<StepUpRequirements> {
@@ -59,6 +63,7 @@ export async function fetch_step_up_requirements(): Promise<StepUpRequirements> 
   return {
     salt: base64_to_array(salt_response.data.salt),
     totp_required: salt_response.data.totp_required === true,
+    kdf_version: read_kdf_version(salt_response.data.kdf_version),
   };
 }
 
@@ -66,8 +71,12 @@ export async function derive_step_up_credentials(
   password: string,
   totp_code?: string,
 ): Promise<StepUpCredentials> {
-  const { salt } = await fetch_step_up_requirements();
-  const { hash: password_hash } = await derive_password_hash(password, salt);
+  const { salt, kdf_version } = await fetch_step_up_requirements();
+  const password_hash = await derive_current_account_proof(
+    password,
+    salt,
+    kdf_version,
+  );
 
   const trimmed_code = totp_code?.trim();
 

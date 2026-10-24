@@ -69,6 +69,7 @@ export interface CreateSharedMailboxParams {
   display_name_nonce?: string;
   user_hash: string;
   password_hash: string;
+  password_hash_v2?: string;
   password_salt: string;
   argon2_params: { memory: number; iterations: number; parallelism: number };
   identity_key: string;
@@ -83,6 +84,7 @@ export interface CreateSharedMailboxParams {
 
 export interface RotateSharedMailboxParams {
   password_hash: string;
+  password_hash_v2?: string;
   password_salt: string;
   argon2_params: { memory: number; iterations: number; parallelism: number };
   encrypted_vault: string;
