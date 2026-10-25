@@ -48,6 +48,9 @@ const KEYRING_IDENTITY_USER: &str = "device_identity";
 const MAGIC_ID: &[u8; 8] = b"ASTERID\x01";
 const MAGIC_PP: &[u8; 8] = b"ASTERPP\x01";
 const MAGIC_AUTH: &[u8; 8] = b"ASTERAU\x01";
+const MAGIC_REFRESH: &[u8; 8] = b"ASTERRT\x01";
+const REFRESH_FILE_NAME: &str = "auth_refresh.bin";
+const REFRESH_ACCOUNT_ID_MAX_LEN: usize = 128;
 const KEYRING_AUTH_ACCESS_USER: &str = "auth-access-token-v1";
 const KEYRING_AUTH_CSRF_USER: &str = "auth-csrf-v1";
 const AUTH_SLOT_ACCESS: &str = "access_token";
@@ -397,6 +400,61 @@ fn auth_store_clear_all() {
             }
         }
     }
+}
+
+static REFRESH_STORE_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
+fn valid_refresh_account_id(account_id: &str) -> bool {
+    !account_id.is_empty()
+        && account_id.len() <= REFRESH_ACCOUNT_ID_MAX_LEN
+        && account_id
+            .bytes()
+            .all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'_')
+}
+
+fn refresh_map_seal(
+    wrap_key: &[u8; 32],
+    map: &HashMap<String, String>,
+) -> Result<Vec<u8>, String> {
+    let serialized = Zeroizing::new(serde_json::to_vec(map).map_err(|e| e.to_string())?);
+
+    aead_seal(wrap_key, MAGIC_REFRESH, &serialized)
+}
+
+fn refresh_map_open(wrap_key: &[u8; 32], blob: &[u8]) -> Result<HashMap<String, String>, String> {
+    let plaintext = Zeroizing::new(aead_open(wrap_key, MAGIC_REFRESH, blob)?);
+
+    serde_json::from_slice(&plaintext).map_err(|e| e.to_string())
+}
+
+fn zeroize_refresh_map(map: &mut HashMap<String, String>) {
+    for (_, mut value) in map.drain() {
+        value.zeroize();
+    }
+}
+
+fn refresh_store_load(wrap_key: &[u8; 32]) -> Result<HashMap<String, String>, String> {
+    let path = auth_file_path(REFRESH_FILE_NAME)?;
+
+    if !path.exists() {
+        return Ok(HashMap::new());
+    }
+    let blob = std::fs::read(&path).map_err(|e| e.to_string())?;
+
+    refresh_map_open(wrap_key, &blob)
+}
+
+fn refresh_store_save(wrap_key: &[u8; 32], map: &HashMap<String, String>) -> Result<(), String> {
+    let path = auth_file_path(REFRESH_FILE_NAME)?;
+
+    if map.is_empty() {
+        secure_delete_file(&path);
+
+        return Ok(());
+    }
+    let blob = refresh_map_seal(wrap_key, map)?;
+
+    atomic_write(&path, &blob)
 }
 
 const MAX_SECURE_OVERWRITE_BYTES: u64 = 1024 * 1024;
@@ -862,6 +920,112 @@ pub fn device_auth_store_get(
 pub fn device_auth_store_clear(window: tauri::WebviewWindow) -> Result<(), String> {
     require_primary_webview(&window)?;
     auth_store_clear_all();
+    Ok(())
+}
+
+#[tauri::command]
+pub fn device_refresh_token_set(
+    window: tauri::WebviewWindow,
+    account_id: String,
+    value: String,
+) -> Result<(), String> {
+    require_primary_webview(&window)?;
+
+    if !valid_refresh_account_id(&account_id) {
+        return Err("invalid account".to_string());
+    }
+    if value.is_empty() || value.len() > AUTH_VALUE_MAX_BYTES {
+        return Err("invalid auth value".to_string());
+    }
+
+    let _guard = REFRESH_STORE_LOCK.lock().map_err(|e| e.to_string())?;
+    let wrap_key = Zeroizing::new(wrap_key_load_or_create()?);
+    let mut map = refresh_store_load(&wrap_key).unwrap_or_default();
+
+    if let Some(mut previous) = map.insert(account_id, value) {
+        previous.zeroize();
+    }
+    let result = refresh_store_save(&wrap_key, &map);
+
+    zeroize_refresh_map(&mut map);
+    result
+}
+
+#[tauri::command]
+pub fn device_refresh_token_get(
+    window: tauri::WebviewWindow,
+    account_id: String,
+) -> Result<Option<String>, String> {
+    require_primary_webview(&window)?;
+
+    if !valid_refresh_account_id(&account_id) {
+        return Err("invalid account".to_string());
+    }
+
+    let _guard = REFRESH_STORE_LOCK.lock().map_err(|e| e.to_string())?;
+
+    if !auth_file_path(REFRESH_FILE_NAME)?.exists() {
+        return Ok(None);
+    }
+    let wrap_key = match wrap_key_load()? {
+        Some(key) => Zeroizing::new(key),
+        None => return Ok(None),
+    };
+    let mut map = refresh_store_load(&wrap_key)?;
+    let value = map.remove(&account_id);
+
+    zeroize_refresh_map(&mut map);
+    Ok(value)
+}
+
+#[tauri::command]
+pub fn device_refresh_token_remove(
+    window: tauri::WebviewWindow,
+    account_id: String,
+) -> Result<(), String> {
+    require_primary_webview(&window)?;
+
+    if !valid_refresh_account_id(&account_id) {
+        return Err("invalid account".to_string());
+    }
+
+    let _guard = REFRESH_STORE_LOCK.lock().map_err(|e| e.to_string())?;
+    let path = auth_file_path(REFRESH_FILE_NAME)?;
+
+    if !path.exists() {
+        return Ok(());
+    }
+    let wrap_key = match wrap_key_load()? {
+        Some(key) => Zeroizing::new(key),
+        None => return Ok(()),
+    };
+    let mut map = match refresh_store_load(&wrap_key) {
+        Ok(map) => map,
+        Err(_) => {
+            secure_delete_file(&path);
+
+            return Ok(());
+        }
+    };
+    let result = match map.remove(&account_id) {
+        Some(mut removed) => {
+            removed.zeroize();
+            refresh_store_save(&wrap_key, &map)
+        }
+        None => Ok(()),
+    };
+
+    zeroize_refresh_map(&mut map);
+    result
+}
+
+#[tauri::command]
+pub fn device_refresh_token_clear(window: tauri::WebviewWindow) -> Result<(), String> {
+    require_primary_webview(&window)?;
+
+    let _guard = REFRESH_STORE_LOCK.lock().map_err(|e| e.to_string())?;
+
+    secure_delete_file(&auth_file_path(REFRESH_FILE_NAME)?);
     Ok(())
 }
 
@@ -1422,6 +1586,45 @@ mod tests {
         assert_ne!(access, passphrase_file_path().unwrap());
         assert_ne!(access, wrap_key_file_path().unwrap());
         assert_ne!(csrf, wrap_key_file_path().unwrap());
+    }
+
+    #[test]
+    fn refresh_account_ids_are_validated() {
+        assert!(valid_refresh_account_id("3f2b0c1e-9d8a-4b7c-a6e5-0123456789ab"));
+        assert!(valid_refresh_account_id("account_1"));
+        assert!(!valid_refresh_account_id(""));
+        assert!(!valid_refresh_account_id("../auth_access"));
+        assert!(!valid_refresh_account_id("a b"));
+        assert!(!valid_refresh_account_id(&"a".repeat(REFRESH_ACCOUNT_ID_MAX_LEN + 1)));
+    }
+
+    #[test]
+    fn refresh_map_round_trips_and_is_domain_separated() {
+        let key = test_key(11);
+        let mut map = HashMap::new();
+
+        map.insert("account-a".to_string(), "refresh-a".to_string());
+        map.insert("account-b".to_string(), "refresh-b".to_string());
+        let sealed = refresh_map_seal(&key, &map).unwrap();
+
+        assert_eq!(refresh_map_open(&key, &sealed).unwrap(), map);
+        assert!(aead_open(&key, MAGIC_AUTH, &sealed).is_err());
+        assert!(refresh_map_open(&test_key(12), &sealed).is_err());
+        assert!(refresh_map_open(&key, &aead_seal(&key, MAGIC_AUTH, b"{}").unwrap()).is_err());
+    }
+
+    #[test]
+    fn refresh_file_is_distinct_from_the_other_device_files() {
+        let refresh = auth_file_path(REFRESH_FILE_NAME).unwrap();
+        let access = auth_file_path(auth_slot_ids(AUTH_SLOT_ACCESS).unwrap().1).unwrap();
+        let csrf = auth_file_path(auth_slot_ids(AUTH_SLOT_CSRF).unwrap().1).unwrap();
+
+        assert_ne!(refresh, access);
+        assert_ne!(refresh, csrf);
+        assert_ne!(refresh, identity_file_path().unwrap());
+        assert_ne!(refresh, passphrase_file_path().unwrap());
+        assert_ne!(refresh, wrap_key_file_path().unwrap());
+        assert!(!is_passphrase_file_name(REFRESH_FILE_NAME));
     }
 
     #[test]

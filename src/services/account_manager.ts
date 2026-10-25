@@ -23,6 +23,7 @@ import {
   device_retrieve_strict,
 } from "@/services/crypto/secure_storage";
 import { api_client } from "@/services/api/client";
+import { is_tauri_env } from "@/services/api/client/helpers";
 import { write_account_index_hint } from "@/lib/account_index_url";
 import { get_active_translations } from "@/lib/i18n/translations";
 import { ignore_error } from "@/lib/ignore_error";
@@ -114,6 +115,7 @@ export interface StoredAccount {
   kind?: "personal" | "shared";
   access_token?: string;
   refresh_token?: string;
+  refresh_in_device_store?: boolean;
   device_id?: string;
 }
 
@@ -123,6 +125,86 @@ export interface AccountsData {
 }
 
 let cached_data: AccountsData | null = null;
+let desktop_refresh_store_unavailable = false;
+
+async function invoke_desktop<T>(
+  command: string,
+  args?: Record<string, unknown>,
+): Promise<T> {
+  const { invoke } = await import("@tauri-apps/api/core");
+
+  return invoke<T>(command, args);
+}
+
+async function desktop_refresh_set(
+  account_id: string,
+  value: string,
+): Promise<boolean> {
+  if (desktop_refresh_store_unavailable) return false;
+  try {
+    await invoke_desktop("device_refresh_token_set", {
+      accountId: account_id,
+      value,
+    });
+
+    return true;
+  } catch (caught) {
+    desktop_refresh_store_unavailable = true;
+    ignore_error("services/account_manager:desktop_refresh_set", caught);
+
+    return false;
+  }
+}
+
+async function desktop_refresh_get(account_id: string): Promise<string | null> {
+  try {
+    const value = await invoke_desktop<string | null>(
+      "device_refresh_token_get",
+      { accountId: account_id },
+    );
+
+    return value ?? null;
+  } catch (caught) {
+    ignore_error("services/account_manager:desktop_refresh_get", caught);
+
+    return null;
+  }
+}
+
+async function desktop_refresh_remove(account_id: string): Promise<void> {
+  if (!is_tauri_env()) return;
+  try {
+    await invoke_desktop("device_refresh_token_remove", {
+      accountId: account_id,
+    });
+  } catch (caught) {
+    ignore_error("services/account_manager:desktop_refresh_remove", caught);
+  }
+}
+
+async function desktop_refresh_clear(): Promise<void> {
+  if (!is_tauri_env()) return;
+  try {
+    await invoke_desktop("device_refresh_token_clear");
+  } catch (caught) {
+    ignore_error("services/account_manager:desktop_refresh_clear", caught);
+  }
+}
+
+function without_roster_refresh_tokens(data: AccountsData): AccountsData {
+  return {
+    ...data,
+    accounts: data.accounts.map((account) => {
+      if (!account.refresh_token) return account;
+
+      const persisted = { ...account };
+
+      delete persisted.refresh_token;
+
+      return persisted;
+    }),
+  };
+}
 let storage_initialized = false;
 
 export const ACCOUNTS_CHANGED_EVENT = "astermail:accounts-changed";
@@ -307,6 +389,7 @@ export function accounts_storage_failure(): RosterLoadFailure {
 
 export async function reset_accounts_storage(): Promise<void> {
   safe_local_remove(ACCOUNTS_KEY);
+  await desktop_refresh_clear();
 
   cached_data = null;
   session_roster = null;
@@ -345,7 +428,7 @@ async function save_accounts_data(data: AccountsData): Promise<void> {
 
   cached_data = data;
 
-  await device_store(ACCOUNTS_KEY, data);
+  await device_store(ACCOUNTS_KEY, data, without_roster_refresh_tokens);
 
   session_roster = null;
   last_load_failed = false;
@@ -722,6 +805,7 @@ export async function remove_account(
   }
 
   await save_accounts_data(data);
+  await desktop_refresh_remove(account_id);
   await clear_account_session_material(account_id);
   await clear_account_key_storage(account_id);
   clear_expanded_folders(account_id);
@@ -776,14 +860,54 @@ export async function update_account_tokens(
 
     if (refresh_token === null) {
       delete account.refresh_token;
+      if (account.refresh_in_device_store) {
+        delete account.refresh_in_device_store;
+        await desktop_refresh_remove(account_id);
+      }
     } else if (refresh_token !== undefined) {
-      account.refresh_token = refresh_token;
+      await place_refresh_token(account, refresh_token);
     }
 
     await save_accounts_data(data);
 
     return true;
   });
+}
+
+async function place_refresh_token(
+  account: StoredAccount,
+  refresh_token: string,
+): Promise<void> {
+  if (is_tauri_env() && (await desktop_refresh_set(account.id, refresh_token))) {
+    delete account.refresh_token;
+    account.refresh_in_device_store = true;
+
+    return;
+  }
+
+  account.refresh_token = refresh_token;
+  if (account.refresh_in_device_store) {
+    delete account.refresh_in_device_store;
+    await desktop_refresh_remove(account.id);
+  }
+}
+
+async function adopt_roster_refresh_token(account_id: string): Promise<void> {
+  await serialize_account_write(async () => {
+    const data = await get_accounts_data_async();
+    const account = data.accounts.find((a) => a.id === account_id);
+
+    if (!account?.refresh_token) return;
+
+    await place_refresh_token(account, account.refresh_token);
+    if (account.refresh_in_device_store) {
+      await save_accounts_data(data);
+    }
+  });
+}
+
+export function account_has_refresh_token(account: StoredAccount): boolean {
+  return Boolean(account.refresh_token || account.refresh_in_device_store);
 }
 
 export async function get_account_tokens(
@@ -794,9 +918,17 @@ export async function get_account_tokens(
 
   if (!account) return { access_token: null, refresh_token: null };
 
+  let refresh_token = account.refresh_token ?? null;
+
+  if (account.refresh_in_device_store && !refresh_token) {
+    refresh_token = await desktop_refresh_get(account_id);
+  } else if (refresh_token && is_tauri_env()) {
+    void adopt_roster_refresh_token(account_id);
+  }
+
   return {
     access_token: account.access_token ?? null,
-    refresh_token: account.refresh_token ?? null,
+    refresh_token,
   };
 }
 
@@ -833,6 +965,7 @@ export async function logout_all(): Promise<void> {
   cached_data = null;
   storage_initialized = false;
   safe_local_remove(ACCOUNTS_KEY);
+  await desktop_refresh_clear();
   safe_local_remove(LEGACY_ACCOUNTS_KEY);
   safe_local_remove("user");
   safe_local_remove("vault");

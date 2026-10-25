@@ -350,7 +350,7 @@ function AccountChooser({
                   acc.user.username ||
                   acc.user.email.split("@")[0];
                 const needs_sign_in = token_backed_sessions
-                  ? !acc.refresh_token
+                  ? !(acc.refresh_token || acc.refresh_in_device_store)
                   : !has_stored_session_passphrase(acc.id);
 
                 return (

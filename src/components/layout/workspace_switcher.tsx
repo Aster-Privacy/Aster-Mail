@@ -33,7 +33,10 @@ import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { use_resubscribe } from "@/hooks/use_resubscribe";
 import { PlanBadge } from "@/components/common/plan_badge";
 import { use_preferences } from "@/contexts/preferences_context";
-import { get_all_accounts } from "@/services/account_manager";
+import {
+  account_has_refresh_token,
+  get_all_accounts,
+} from "@/services/account_manager";
 import {
   type hub_account,
   read_hub_accounts,
@@ -310,7 +313,7 @@ export function WorkspaceSwitcher({
       acc.user.username ||
       acc.user.email.split("@")[0];
     const needs_sign_in = token_backed_sessions
-      ? !acc.refresh_token
+      ? !account_has_refresh_token(acc)
       : !has_stored_session_passphrase(acc.id);
 
     return {

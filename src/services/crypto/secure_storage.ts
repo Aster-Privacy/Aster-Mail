@@ -649,7 +649,13 @@ async function get_device_read_key(version: number): Promise<CryptoKey> {
 }
 
 export async function device_encrypt(data: string): Promise<string> {
-  const { key, version } = await get_device_write_key();
+  return encrypt_device_payload(data, await get_device_write_key());
+}
+
+async function encrypt_device_payload(
+  data: string,
+  { key, version }: { key: CryptoKey; version: number },
+): Promise<string> {
   const encoder = new TextEncoder();
   const plaintext = encoder.encode(data);
   const nonce = generate_random_bytes(12);
@@ -717,9 +723,20 @@ export async function device_decrypt(encrypted_data: string): Promise<string> {
   return decoder.decode(plaintext_buffer);
 }
 
-export async function device_store(key: string, value: unknown): Promise<void> {
-  const serialized = JSON.stringify(value);
-  const encrypted = await device_encrypt(serialized);
+export async function device_store<T>(
+  key: string,
+  value: T,
+  redact_without_device_key?: (value: T) => unknown,
+): Promise<void> {
+  const write_key = await get_device_write_key();
+  const stored =
+    write_key.version < DEVICE_WRAPPED_VERSION && redact_without_device_key
+      ? redact_without_device_key(value)
+      : value;
+  const encrypted = await encrypt_device_payload(
+    JSON.stringify(stored),
+    write_key,
+  );
 
   localStorage.setItem(key, encrypted);
 }
