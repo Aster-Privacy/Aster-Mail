@@ -905,6 +905,10 @@ export function use_auth_account_state() {
         store_encrypted_vault(user.id, encrypted_vault, vault_nonce);
       }
 
+      const already_on_device = await get_all_accounts()
+        .then((existing) => existing.some((account) => account.id === user.id))
+        .catch(() => false);
+
       const result = await storage_add_account(user);
 
       if (!result.success) {
@@ -916,7 +920,10 @@ export function use_auth_account_state() {
 
       const link_result = await link_account_device().catch(() => null);
 
-      if (link_result?.server_code === "PLAN_LIMIT_EXCEEDED") {
+      if (
+        link_result?.server_code === "PLAN_LIMIT_EXCEEDED" &&
+        !already_on_device
+      ) {
         const limit_result = await get_account_limit().catch(() => null);
         const device_max = limit_result?.data?.max_accounts;
 
