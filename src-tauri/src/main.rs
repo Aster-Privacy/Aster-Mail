@@ -659,6 +659,7 @@ fn main() {
             downloads::reveal_download,
             default_mail::take_pending_mailto,
             mail_notification::show_mail_notification,
+            mail_notification::clear_mail_notifications,
             mail_notification::take_pending_notification_open,
             default_mail::default_mail_app_status,
             default_mail::set_default_mail_app,

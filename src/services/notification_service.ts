@@ -22,7 +22,10 @@ import type { UserPreferences } from "@/services/api/preferences";
 
 import { DEFAULT_PREFERENCES } from "@/services/api/preferences";
 import { get_active_translations } from "@/lib/i18n/translations";
-import { is_any_lockdown_active } from "@/services/lockdown_store";
+import {
+  is_any_lockdown_active,
+  LOCKDOWN_CHANGED_EVENT,
+} from "@/services/lockdown_store";
 import { ignore_error } from "@/lib/ignore_error";
 import { play_iconic_sound } from "@/services/iconic_sounds";
 import { open_message_in_view_mode } from "@/components/toast/toast_action_router";
@@ -282,12 +285,36 @@ export function get_notification_permission(): NotificationPermission {
   return Notification.permission;
 }
 
+export async function clear_desktop_notifications(): Promise<void> {
+  if (!is_tauri()) return;
+
+  try {
+    const { invoke } = await import("@tauri-apps/api/core");
+
+    await invoke("clear_mail_notifications");
+  } catch (caught) {
+    ignore_error("services/notification_service:clear_desktop", caught);
+  }
+}
+
 export function clear_notification_state(): void {
   if (notification_sound) {
     notification_sound.pause();
     notification_sound.src = "";
     notification_sound = null;
   }
+  void clear_desktop_notifications();
+}
+
+if (typeof window !== "undefined") {
+  window.addEventListener("astermail:session-timeout", () => {
+    void clear_desktop_notifications();
+  });
+  window.addEventListener(LOCKDOWN_CHANGED_EVENT, (event) => {
+    if ((event as CustomEvent).detail?.enabled) {
+      void clear_desktop_notifications();
+    }
+  });
 }
 
 export async function load_notification_preferences(

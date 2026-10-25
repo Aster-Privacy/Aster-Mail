@@ -33,6 +33,12 @@ vi.mock("@/lib/icon_cache", () => ({
   },
 }));
 
+vi.mock("@/services/notification_service", () => ({
+  clear_desktop_notifications: async () => {
+    hoisted.calls.push("clear_desktop_notifications");
+  },
+}));
+
 vi.mock("@/lib/favicon_cache_db", () => ({
   purge_favicon_cache: async () => {
     hoisted.calls.push("purge_favicon_cache");
@@ -112,6 +118,7 @@ describe("signing out one account clears its decrypted caches", () => {
     expect([...hoisted.calls].sort()).toEqual([
       "clear_account_scoped_caches",
       "clear_billing_cache",
+      "clear_desktop_notifications",
       "clear_detection_cache",
       "clear_escrow_miss_cache",
       "clear_family_cache",

@@ -176,6 +176,13 @@ pub async fn show_mail_notification(
         .map_err(|e| e.to_string())?
 }
 
+#[tauri::command]
+pub async fn clear_mail_notifications(app: tauri::AppHandle) -> std::result::Result<(), String> {
+    tauri::async_runtime::spawn_blocking(move || platform::clear(&app))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
 #[cfg(windows)]
 mod platform {
     use windows::{
@@ -236,6 +243,12 @@ mod platform {
 
         notifier.Show(&toast).map_err(|e| e.to_string())
     }
+
+    pub fn clear(app: &tauri::AppHandle) -> std::result::Result<(), String> {
+        ToastNotificationManager::History()
+            .and_then(|history| history.ClearWithId(&HSTRING::from(app_user_model_id(app))))
+            .map_err(|e| e.to_string())
+    }
 }
 
 #[cfg(not(windows))]
@@ -254,6 +267,10 @@ mod platform {
             .body(body)
             .show()
             .map_err(|e| e.to_string())
+    }
+
+    pub fn clear(_app: &tauri::AppHandle) -> std::result::Result<(), String> {
+        Ok(())
     }
 }
 
