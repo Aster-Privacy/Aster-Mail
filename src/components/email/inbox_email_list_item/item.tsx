@@ -960,8 +960,8 @@ export const InboxEmailListItem = memo(
                   email.is_selected === true
                     ? "mail_row_selected_fade_end"
                     : is_active
-                      ? "bg-gradient-to-r from-transparent to-surf-hover"
-                      : "bg-gradient-to-r from-transparent to-surf-primary group-hover:to-surf-hover",
+                      ? "bg-[linear-gradient(to_right,transparent,var(--color-surf-hover)_2.5rem)]"
+                      : "bg-[linear-gradient(to_right,transparent,var(--color-surf-primary)_2.5rem)] group-hover:bg-[linear-gradient(to_right,transparent,var(--color-surf-hover)_2.5rem)]",
                 )}
                 role="button"
                 tabIndex={0}
