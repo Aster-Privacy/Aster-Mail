@@ -59,5 +59,4 @@ We follow coordinated disclosure. Please give us adequate time to patch the vuln
 
 We thank the researchers who help keep Aster secure.
 
-- [diogovbs](https://github.com/diogovbs) (October 2026): remote images in the web client were fetched directly from the reader's IP address even when shown as blocked.
-- [diogovbs](https://github.com/diogovbs) (October 2026): a CSS string that contained `url(` let a remote stylesheet image through the web client's blocked content filter.
+- [diogovbs](https://github.com/diogovbs) (September to October 2026): a series of private reports covering the web and desktop clients, remote content handling, and inbound mail processing. We fixed every finding in coordination with the reporter.
