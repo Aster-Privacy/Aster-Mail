@@ -5429,7 +5429,6 @@ export const it = {
     domain_purchase_n_years: "{{count}} anni",
     domain_purchase_pay_with: "Paga con",
     domain_purchase_pay_card: "Carta",
-    domain_purchase_pay_crypto: "Cripto",
     domain_purchase_buy: "Acquista per {{price}}",
     domain_purchase_error: "Acquisto non riuscito. Riprova.",
     domain_purchase_error_taken:
@@ -5517,6 +5516,14 @@ export const it = {
     domain_purchase_manage_paid: "Pagato",
     domain_purchase_manage_auto_renew_note:
       "Questo dominio non si rinnova automaticamente. Per conservarlo, rinnovalo prima della data di scadenza.",
+    domain_purchase_auto_renew_label:
+      "Rinnova automaticamente",
+    domain_purchase_auto_renew_hint:
+      "Aster addebita la tua carta una volta l'anno e ti invia il prezzo via email 15 giorni prima di ogni addebito. Puoi disattivarlo nelle Impostazioni.",
+    domain_purchase_manage_auto_renew_on_note:
+      "Aster addebita la carta salvata 30 giorni prima della scadenza e ti invia il prezzo via email 15 giorni prima.",
+    domain_purchase_manage_auto_renew_error:
+      "Impossibile aggiornare il rinnovo automatico. Riprova.",
     domain_purchase_manage_dns: "Apri configurazione dominio",
     domain_purchase_manage_support_note:
       "Per trasferire questo dominio a un altro registrar o chiedere un rimborso, contatta l'assistenza.",

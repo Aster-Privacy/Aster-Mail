@@ -6065,7 +6065,6 @@ export const zh_CN = {
     domain_purchase_n_years: "{{count}} 年",
     domain_purchase_pay_with: "支付方式",
     domain_purchase_pay_card: "银行卡",
-    domain_purchase_pay_crypto: "加密货币",
     domain_purchase_buy: "以 {{price}} 购买",
     domain_purchase_error: "购买失败,请重试。",
     domain_purchase_error_taken: "该域名刚刚被注册,请选择其他域名。",
@@ -6146,6 +6145,14 @@ export const zh_CN = {
     domain_purchase_manage_paid: "已付金额",
     domain_purchase_manage_auto_renew_note:
       "此域名不会自动续费。若要继续持有，请在到期日之前续费。",
+    domain_purchase_auto_renew_label:
+      "自动续订",
+    domain_purchase_auto_renew_hint:
+      "Aster 每年从你的银行卡扣款一次，并在每次扣款前 15 天通过电子邮件告知价格。你可以在“设置”中关闭此功能。",
+    domain_purchase_manage_auto_renew_on_note:
+      "Aster 会在到期日前 30 天从你保存的银行卡扣款，并提前 15 天通过电子邮件告知价格。",
+    domain_purchase_manage_auto_renew_error:
+      "无法更新自动续订。请重试。",
     domain_purchase_manage_dns: "打开域名设置",
     domain_purchase_manage_support_note:
       "如需将此域名转移到其他注册商或咨询退款，请联系支持团队。",

@@ -304,7 +304,11 @@ export function DomainsSection() {
     }
   };
 
-  const handle_renew = async (order_id: string, captcha_token?: string) => {
+  const handle_renew = async (
+    order_id: string,
+    auto_renew: boolean,
+    captcha_token?: string,
+  ) => {
     set_renewing_order_id(order_id);
     set_renew_errors((prev) => {
       const next = { ...prev };
@@ -317,8 +321,8 @@ export function DomainsSection() {
       const response = await renew_domain_order(
         order_id,
         1,
-        "stripe",
         captcha_token,
+        auto_renew,
       );
 
       if (
@@ -694,7 +698,7 @@ export function DomainsSection() {
           set_renew_captcha_order_id(null);
         }}
         on_open_setup={hook.handle_open_setup}
-        on_renew={(captcha_token) => {
+        on_renew={(auto_renew, captcha_token) => {
           if (!manage_order) return;
           if (TURNSTILE_SITE_KEY && !captcha_token) {
             set_renew_errors((prev) => {
@@ -708,7 +712,7 @@ export function DomainsSection() {
 
             return;
           }
-          void handle_renew(manage_order.id, captcha_token);
+          void handle_renew(manage_order.id, auto_renew, captcha_token);
         }}
         order={manage_order}
         renew_error={manage_order ? renew_errors[manage_order.id] : undefined}
