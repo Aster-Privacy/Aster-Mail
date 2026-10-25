@@ -20,28 +20,19 @@
 //
 import type { UnsubscribeInfo } from "@/types/email";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { EnvelopeIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
-import { show_action_toast } from "@/components/toast/action_toast";
-import { is_any_lockdown_active } from "@/services/lockdown_store";
 import {
   get_unsubscribe_display_text,
   get_sender_domain,
-  execute_unsubscribe,
-  get_manual_unsubscribe_url,
 } from "@/utils/unsubscribe_detector";
-import { open_external } from "@/utils/open_link";
-import {
-  persist_unsubscribe,
-  use_unsubscribed_senders,
-} from "@/hooks/use_unsubscribed_senders";
+import { use_unsubscribed_senders } from "@/hooks/use_unsubscribed_senders";
+import { use_unsubscribe_action } from "@/hooks/use_unsubscribe_action";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import { safe_sender_name } from "@/lib/sender_trust_store";
-import { use_preferences } from "@/contexts/preferences_context";
-import { get_undo_send_delay_ms } from "@/services/send_queue";
 
 interface UnsubscribeBannerProps {
   unsubscribe_info: UnsubscribeInfo;
@@ -58,121 +49,21 @@ export function UnsubscribeBanner({
 }: UnsubscribeBannerProps) {
   const { t } = use_i18n();
   const sender_name = safe_sender_name(claimed_name, sender_email);
-  const { preferences } = use_preferences();
   const reduce_motion = use_should_reduce_motion();
   const { is_unsubscribed } = use_unsubscribed_senders();
   const [is_dismissed, set_is_dismissed] = useState(false);
-  const pending_timeout_ref = useRef<NodeJS.Timeout | null>(null);
-  const cancelled_ref = useRef(false);
-  const mounted_ref = useRef(true);
-
-  useEffect(() => {
-    mounted_ref.current = true;
-
-    return () => {
-      mounted_ref.current = false;
-    };
-  }, []);
-
-  const handle_unsubscribe = useCallback(async () => {
-    const record_unsubscribed = () =>
-      persist_unsubscribe(
-        sender_email,
-        sender_name,
-        {
-          unsubscribe_link: unsubscribe_info.unsubscribe_link,
-          list_unsubscribe_header: unsubscribe_info.list_unsubscribe_header,
-        },
-        "manual",
-      );
-
-    cancelled_ref.current = false;
-    set_is_dismissed(true);
-
-    const delay_ms = get_undo_send_delay_ms(
-      preferences.undo_send_enabled,
-      preferences.undo_send_seconds,
-      preferences.undo_send_period,
-    );
-
-    if (delay_ms > 0) {
-      show_action_toast({
-        message: t("settings.unsubscribing"),
-        action_type: "not_spam",
-        email_ids: [],
-        duration_ms: delay_ms,
-        on_undo: async () => {
-          cancelled_ref.current = true;
-          if (pending_timeout_ref.current) {
-            clearTimeout(pending_timeout_ref.current);
-            pending_timeout_ref.current = null;
-          }
-          if (mounted_ref.current) set_is_dismissed(false);
-        },
-      });
-    }
-
-    pending_timeout_ref.current = setTimeout(async () => {
-      pending_timeout_ref.current = null;
-      if (cancelled_ref.current) return;
-
-      try {
-        const result = await execute_unsubscribe(unsubscribe_info);
-
-        if (result === "api") {
-          record_unsubscribed();
-          on_unsubscribed?.();
-          show_action_toast({
-            message: t("mail.successfully_unsubscribed"),
-            action_type: "not_spam",
-            email_ids: [],
-          });
-        } else {
-          const url = get_manual_unsubscribe_url(unsubscribe_info);
-          const lockdown = is_any_lockdown_active();
-
-          show_action_toast({
-            message: t("mail.unsubscribe_manual_required"),
-            action_type: "not_spam",
-            email_ids: [],
-            duration_ms: 15000,
-            ...(!lockdown &&
-              url && {
-                action_label: t("mail.open_unsubscribe_page"),
-                on_undo: async () => {
-                  open_external(url);
-                  record_unsubscribed();
-                  on_unsubscribed?.();
-                },
-              }),
-          });
-          if (mounted_ref.current && (lockdown || !url)) {
-            set_is_dismissed(false);
-          }
-        }
-      } catch {
-        if (mounted_ref.current) set_is_dismissed(false);
-        show_action_toast({
-          message: t("mail.unsubscribe_failed"),
-          action_type: "not_spam",
-          email_ids: [],
-        });
-      }
-    }, delay_ms);
-  }, [
-    unsubscribe_info,
-    sender_email,
-    sender_name,
-    preferences.undo_send_enabled,
-    preferences.undo_send_seconds,
-    preferences.undo_send_period,
-    on_unsubscribed,
-    t,
-  ]);
+  const { unsubscribe: handle_unsubscribe, is_pending } =
+    use_unsubscribe_action({
+      unsubscribe_info,
+      sender_email,
+      sender_name,
+      on_unsubscribed,
+    });
 
   if (
     !unsubscribe_info.has_unsubscribe ||
     is_dismissed ||
+    is_pending ||
     is_unsubscribed(sender_email)
   ) {
     return null;
