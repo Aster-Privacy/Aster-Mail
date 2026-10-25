@@ -195,7 +195,11 @@ export interface SettingsSearchTranslations {
 
 export interface CalendarTranslations {
   beta_waitlist_title: string;
-  beta_waitlist_badge: string;
+  beta_waitlist_tag: string;
+  beta_waitlist_start: string;
+  beta_waitlist_features_title: string;
+  beta_waitlist_info_title: string;
+  beta_waitlist_info_body: string;
   beta_waitlist_privacy: string;
   beta_waitlist_heading: string;
   beta_waitlist_body: string;

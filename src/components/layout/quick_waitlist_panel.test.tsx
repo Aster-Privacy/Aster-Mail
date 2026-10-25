@@ -55,6 +55,29 @@ vi.mock("@/components/layout/use_panel_transition", () => ({
   }),
 }));
 
+vi.mock("@/components/common/encryption_info_dropdown", () => ({
+  EncryptionInfoDropdown: ({
+    description_key,
+  }: {
+    description_key: string;
+  }) => <span data-testid="lock">{description_key}</span>,
+}));
+
+vi.mock("@/components/ui/info_popover", () => ({
+  InfoPopover: ({
+    title,
+    description,
+  }: {
+    title: string;
+    description: string;
+  }) => (
+    <span data-testid="info">
+      {title}
+      {description}
+    </span>
+  ),
+}));
+
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
@@ -191,13 +214,57 @@ describe("quick waitlist panel", () => {
     expect(container.textContent).toContain("calendar.beta_waitlist_joined");
   });
 
-  it("shows the privacy note and the temporary icon note", async () => {
+  it("flips the hero to the check only after joining", async () => {
+    api.get.mockResolvedValue({ joined: false, joined_at: null });
+    api.join.mockResolvedValue({
+      joined: true,
+      joined_at: "2026-10-25T00:00:00Z",
+    });
+    await render_panel();
+
+    const hero = () => container.querySelector('[data-testid="waitlist_hero"]');
+
+    expect(hero()?.className).toBe("waitlist_hero_card");
+    await act(async () => {
+      button_with("calendar.beta_waitlist_apply")?.click();
+    });
+
+    expect(hero()?.classList.contains("waitlist_hero_card_joined")).toBe(true);
+    expect(hero()?.classList.contains("waitlist_hero_card_flip")).toBe(true);
+  });
+
+  it("shows the check without the flip when already joined", async () => {
+    api.get.mockResolvedValue({
+      joined: true,
+      joined_at: "2026-10-25T00:00:00Z",
+    });
+    api.leave.mockResolvedValue({ joined: false, joined_at: null });
+    await render_panel();
+
+    const hero = () => container.querySelector('[data-testid="waitlist_hero"]');
+
+    expect(hero()?.classList.contains("waitlist_hero_card_joined")).toBe(true);
+    expect(hero()?.classList.contains("waitlist_hero_card_flip")).toBe(false);
+
+    await act(async () => {
+      button_with("calendar.beta_waitlist_leave")?.click();
+    });
+
+    expect(hero()?.className).toBe("waitlist_hero_card");
+  });
+
+  it("shows the lock, the info popover, and the start date", async () => {
     api.get.mockResolvedValue({ joined: false, joined_at: null });
     await render_panel();
 
-    expect(container.textContent).toContain("calendar.beta_waitlist_badge");
-    expect(container.textContent).toContain("calendar.beta_waitlist_privacy");
+    const lock = container.querySelector('[data-testid="lock"]');
+    const info = container.querySelector('[data-testid="info"]');
+
+    expect(lock?.textContent).toBe("calendar.beta_waitlist_privacy");
+    expect(info?.textContent).toContain("calendar.beta_waitlist_info_body");
+    expect(container.textContent).toContain("calendar.beta_waitlist_start");
     expect(container.textContent).toContain("calendar.beta_waitlist_icon_note");
+    expect(container.textContent).toContain("calendar.beta_waitlist_tag");
     expect(container.querySelectorAll("li")).toHaveLength(3);
   });
 });
