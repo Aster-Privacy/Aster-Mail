@@ -33,6 +33,18 @@ export function yield_to_browser(): Promise<void> {
   return new Promise<void>((resolve) => setTimeout(resolve, 0));
 }
 
+export function is_page_hidden(): boolean {
+  return (
+    typeof document !== "undefined" && document.visibilityState === "hidden"
+  );
+}
+
+export function yield_to_visible_page(): Promise<void> {
+  if (is_page_hidden()) return Promise.resolve();
+
+  return new Promise<void>((resolve) => setTimeout(resolve, 0));
+}
+
 export const DEFAULT_MAP_CHUNK = 32;
 
 export async function map_sync_in_chunks<T, R>(

@@ -29,6 +29,9 @@ vi.mock("@/services/crypto/encrypted_storage", () => ({
   encrypted_set: async (key: string, value: unknown) => {
     store.set(key, JSON.parse(JSON.stringify(value)));
   },
+  encrypted_set_plaintext: async (key: string, plaintext: Uint8Array) => {
+    store.set(key, JSON.parse(new TextDecoder().decode(plaintext)));
+  },
   encrypted_get: async (key: string) => store.get(key) ?? null,
   encrypted_list_keys: async () => [...store.keys()],
   secure_overwrite_and_delete: async (key: string) => {

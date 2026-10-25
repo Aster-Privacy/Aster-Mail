@@ -53,6 +53,7 @@ import {
   type PersistedSearchEntry,
   type ReusableChunk,
   type SnapshotMeta,
+  type SnapshotWriter,
   type WrittenChunk,
 } from "@/services/search_index_store";
 import {
@@ -246,6 +247,8 @@ export async function build_index_full(
   };
 
   const stored_chunks = reusable ? stored_hot_chunks(prior_index) : undefined;
+  const is_current = () => my_gen === build_generation;
+  let unfinished_writer: SnapshotWriter | null = null;
 
   try {
     const [writer] = await Promise.all([
@@ -253,9 +256,12 @@ export async function build_index_full(
         user_email,
         stored_chunks ? prior_index?.meta : undefined,
         stored_chunks,
+        is_current,
       ),
       settle_within(total_request, TOTAL_WAIT_MS),
     ]);
+
+    unfinished_writer = writer;
 
     if (my_gen !== build_generation) {
       throw new Error("search_index_cancelled");
@@ -280,17 +286,19 @@ export async function build_index_full(
 
     if (writer) {
       if (my_gen !== build_generation) {
-        await writer.discard();
         throw new Error("search_index_cancelled");
       }
 
       const exhausted = writer.storage_exhausted();
+
+      unfinished_writer = null;
+
       const meta = await writer.finish({
         next_cursor: exhausted ? undefined : result.next_cursor,
         complete: exhausted || result.paused ? false : !result.next_cursor,
         include_body,
         restamp_after_ms: SNAPSHOT_RESTAMP_MS,
-        is_current: () => my_gen === build_generation,
+        is_current,
       });
 
       if (meta) {
@@ -324,6 +332,11 @@ export async function build_index_full(
     index.items.length = 0;
     index.decrypted.clear();
     if (run_id !== undefined) end_indexing_run(run_id);
+    await unfinished_writer
+      ?.discard()
+      .catch((caught) =>
+        ignore_error("hooks/use_search/index_cache:build_index_full", caught),
+      );
     throw error;
   }
 }
@@ -426,7 +439,12 @@ export async function build_index_front_refresh(
       index.items.length === prior.size;
     const writer = unchanged
       ? null
-      : await open_snapshot_writer(user_email, base, stored_chunks);
+      : await open_snapshot_writer(
+          user_email,
+          base,
+          stored_chunks,
+          () => my_gen === build_generation,
+        );
 
     if (writer) {
       await writer.add_page(index.items, index.decrypted);
@@ -504,6 +522,7 @@ export async function run_deep_index(
 ): Promise<void> {
   const my_gen = build_generation;
   let meta = base;
+  let unfinished_writer: SnapshotWriter | null = null;
 
   try {
     while (
@@ -529,9 +548,16 @@ export async function run_deep_index(
       if (is_index_download_paused()) return;
       if (!(await has_index_storage_headroom())) return;
 
-      const writer = await open_snapshot_writer(user_email, meta);
+      const writer = await open_snapshot_writer(
+        user_email,
+        meta,
+        undefined,
+        () => my_gen === build_generation,
+      );
 
       if (!writer) return;
+
+      unfinished_writer = writer;
 
       const result = await run_index_pipeline({
         user_email,
@@ -547,6 +573,9 @@ export async function run_deep_index(
       });
 
       const exhausted = writer.storage_exhausted();
+
+      unfinished_writer = null;
+
       const next = await writer.finish({
         next_cursor: exhausted ? undefined : result.next_cursor,
         complete: exhausted || result.paused ? false : !result.next_cursor,
@@ -576,6 +605,14 @@ export async function run_deep_index(
     }
   } catch (caught) {
     ignore_error("hooks/use_search/index_cache:run_deep_index", caught);
+    await unfinished_writer
+      ?.discard()
+      .catch((discard_error) =>
+        ignore_error(
+          "hooks/use_search/index_cache:run_deep_index",
+          discard_error,
+        ),
+      );
   } finally {
     end_indexing_run(
       run_id,
