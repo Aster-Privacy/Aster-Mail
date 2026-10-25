@@ -25,8 +25,9 @@ import {
   Cog6ToothIcon,
   LifebuoyIcon,
 } from "@heroicons/react/24/outline";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@aster/ui";
+import { Button, Checkbox, Island, Switch } from "@aster/ui";
 
 import { TurnstileWidget } from "@/components/auth/turnstile_widget";
 import {
@@ -39,11 +40,14 @@ import {
 } from "@/components/ui/modal";
 import { ButtonSpinner } from "@/components/ui/spinner";
 import { format_price } from "@/services/api/billing";
+import { set_domain_auto_renew } from "@/services/api/domains";
 import { use_i18n } from "@/lib/i18n/context";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
 const SUPPORT_ADDRESS = "hello@astermail.org";
 const EXPIRING_SOON_DAYS = 30;
+const ROW_DIVIDER =
+  "1px solid color-mix(in srgb, var(--text-primary) 8%, transparent)";
 
 interface PurchasedDomainManageModalProps {
   is_open: boolean;
@@ -53,7 +57,7 @@ interface PurchasedDomainManageModalProps {
   captcha_pending: boolean;
   renewing: boolean;
   renew_error?: string;
-  on_renew: (captcha_token?: string) => void;
+  on_renew: (auto_renew: boolean, captcha_token?: string) => void;
   on_open_setup: (domain: CustomDomain) => void;
 }
 
@@ -85,8 +89,44 @@ export function PurchasedDomainManageModal({
 }: PurchasedDomainManageModalProps) {
   const { t } = use_i18n();
   const navigate = useNavigate();
+  const [auto_renew, set_auto_renew] = useState(order?.auto_renew ?? false);
+  const [auto_renew_saving, set_auto_renew_saving] = useState(false);
+  const [auto_renew_error, set_auto_renew_error] = useState<string | null>(
+    null,
+  );
+  const [renew_opt_in, set_renew_opt_in] = useState(false);
+
+  useEffect(() => {
+    set_auto_renew(order?.auto_renew ?? false);
+    set_auto_renew_error(null);
+  }, [order?.id, order?.auto_renew]);
+
+  useEffect(() => {
+    set_renew_opt_in(false);
+  }, [order?.id]);
 
   if (!order) return null;
+
+  const can_auto_renew = order.auto_renew_available || auto_renew;
+  const renew_with_opt_in = !can_auto_renew && renew_opt_in;
+
+  const toggle_auto_renew = async (enabled: boolean) => {
+    set_auto_renew(enabled);
+    set_auto_renew_saving(true);
+    set_auto_renew_error(null);
+    const response = await set_domain_auto_renew(order.id, enabled);
+
+    set_auto_renew_saving(false);
+    if (response.data) {
+      set_auto_renew(response.data.auto_renew);
+    } else {
+      set_auto_renew(!enabled);
+      set_auto_renew_error(
+        response.error ??
+          t("settings.domain_purchase_manage_auto_renew_error"),
+      );
+    }
+  };
 
   const remaining_days = order.expires_at ? days_until(order.expires_at) : null;
   const is_lapsed =
@@ -163,17 +203,16 @@ export function PurchasedDomainManageModal({
         </ModalDescription>
       </ModalHeader>
       <ModalBody className="px-6 space-y-4">
-        <div className="overflow-hidden rounded-xl border border-edge-secondary bg-surf-primary divide-y divide-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]">
-          {rows.map((row) => (
+        <Island className="overflow-hidden">
+          {rows.map((row, index) => (
             <div
               key={row.label}
-              className="flex items-center justify-between gap-3 px-4 py-3"
+              className="flex items-center justify-between gap-4 px-4 py-3"
+              style={{ borderTop: index > 0 ? ROW_DIVIDER : "none" }}
             >
-              <span className="text-xs font-medium text-txt-muted">
-                {row.label}
-              </span>
+              <span className="text-[13px] text-txt-muted">{row.label}</span>
               <span
-                className={`text-sm text-end ${
+                className={`text-[13px] font-medium text-end ${
                   row.danger ? "text-[var(--color-danger)]" : "text-txt-primary"
                 }`}
               >
@@ -181,16 +220,64 @@ export function PurchasedDomainManageModal({
               </span>
             </div>
           ))}
-        </div>
+        </Island>
 
-        <p className="text-xs text-txt-muted leading-relaxed">
-          {t("settings.domain_purchase_manage_auto_renew_note")}
-        </p>
+        {can_auto_renew ? (
+          <Island className="flex items-center justify-between gap-4 px-4 py-3">
+            <div className="min-w-0">
+              <p className="text-[13px] font-medium text-txt-primary">
+                {t("settings.domain_purchase_auto_renew_label")}
+              </p>
+              <p className="mt-0.5 text-[12px] leading-snug text-txt-muted">
+                {auto_renew
+                  ? t("settings.domain_purchase_manage_auto_renew_on_note")
+                  : t("settings.domain_purchase_manage_auto_renew_note")}
+              </p>
+            </div>
+            <Switch
+              aria-label={t("settings.domain_purchase_auto_renew_label")}
+              checked={auto_renew}
+              disabled={auto_renew_saving}
+              size="lg"
+              onCheckedChange={toggle_auto_renew}
+            />
+          </Island>
+        ) : (
+          <>
+            <p className="text-xs text-txt-muted leading-relaxed">
+              {t("settings.domain_purchase_manage_auto_renew_note")}
+            </p>
+            <label className="flex cursor-pointer select-none items-start gap-3 rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] px-4 py-3.5 transition-colors hover:bg-[var(--aster-field-hover)]">
+              <Checkbox
+                checked={renew_opt_in}
+                className="mt-0.5"
+                disabled={renewing || captcha_pending}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  set_renew_opt_in(e.target.checked)
+                }
+              />
+              <span className="min-w-0">
+                <span className="block text-[13px] font-semibold text-txt-primary">
+                  {t("settings.domain_purchase_auto_renew_label")}
+                </span>
+                <span className="mt-0.5 block text-[11px] leading-snug text-txt-muted">
+                  {t("settings.domain_purchase_auto_renew_hint")}
+                </span>
+              </span>
+            </label>
+          </>
+        )}
+
+        {auto_renew_error && (
+          <p className="text-xs text-[var(--color-danger)]">
+            {auto_renew_error}
+          </p>
+        )}
 
         {captcha_pending && !renewing && (
           <TurnstileWidget
             class_name="flex justify-center"
-            on_verify={(token) => on_renew(token)}
+            on_verify={(token) => on_renew(renew_with_opt_in, token)}
           />
         )}
 
@@ -231,7 +318,7 @@ export function PurchasedDomainManageModal({
             className="w-full sm:w-auto"
             disabled={renewing || captcha_pending}
             variant="depth"
-            onClick={() => on_renew()}
+            onClick={() => on_renew(renew_with_opt_in)}
           >
             <ArrowPathIcon className="w-4 h-4 me-2" />
             {(renewing || captcha_pending) && <ButtonSpinner size="xs" />}

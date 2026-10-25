@@ -6768,7 +6768,6 @@ export const ar = {
     domain_purchase_n_years: "{{count}} سنوات",
     domain_purchase_pay_with: "الدفع بواسطة",
     domain_purchase_pay_card: "بطاقة",
-    domain_purchase_pay_crypto: "عملات رقمية",
     domain_purchase_buy: "اشترِ مقابل {{price}}",
     domain_purchase_error: "فشل الشراء. حاول مرة أخرى.",
     domain_purchase_error_taken: "تم حجز هذا النطاق للتو. اختر نطاقًا آخر.",
@@ -6852,6 +6851,14 @@ export const ar = {
     domain_purchase_manage_paid: "المبلغ المدفوع",
     domain_purchase_manage_auto_renew_note:
       "لا يتجدد هذا النطاق تلقائيًا. للاحتفاظ به، جدّده قبل تاريخ الانتهاء.",
+    domain_purchase_auto_renew_label:
+      "التجديد تلقائيًا",
+    domain_purchase_auto_renew_hint:
+      "تخصم Aster المبلغ من بطاقتك مرة واحدة في السنة وترسل إليك السعر بالبريد الإلكتروني قبل 15 يومًا من كل خصم. يمكنك إيقاف ذلك من الإعدادات.",
+    domain_purchase_manage_auto_renew_on_note:
+      "تخصم Aster المبلغ من بطاقتك المحفوظة قبل 30 يومًا من تاريخ الانتهاء وترسل إليك السعر بالبريد الإلكتروني قبل ذلك بـ 15 يومًا.",
+    domain_purchase_manage_auto_renew_error:
+      "تعذّر تحديث التجديد التلقائي. حاول مرة أخرى.",
     domain_purchase_manage_dns: "فتح إعداد النطاق",
     domain_purchase_manage_support_note:
       "لنقل هذا النطاق إلى مسجّل آخر أو للسؤال عن استرداد المبلغ، تواصل مع الدعم.",

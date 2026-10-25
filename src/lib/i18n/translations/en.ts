@@ -6293,7 +6293,6 @@ export const en: Translations = {
     domain_purchase_n_years: "{{count}} years",
     domain_purchase_pay_with: "Pay with",
     domain_purchase_pay_card: "Card",
-    domain_purchase_pay_crypto: "Crypto",
     domain_purchase_buy: "Buy for {{price}}",
     domain_purchase_error: "Purchase failed. Please try again.",
     domain_purchase_error_taken:
@@ -6391,6 +6390,14 @@ export const en: Translations = {
     domain_purchase_manage_paid: "Paid",
     domain_purchase_manage_auto_renew_note:
       "This domain doesn't renew automatically. To keep it, renew it before the expiration date.",
+    domain_purchase_auto_renew_label:
+      "Renew automatically",
+    domain_purchase_auto_renew_hint:
+      "Aster charges your card once a year and emails you the price 15 days before each charge. You can turn this off in Settings.",
+    domain_purchase_manage_auto_renew_on_note:
+      "Aster charges your saved card 30 days before the expiration date and emails you the price 15 days before that.",
+    domain_purchase_manage_auto_renew_error:
+      "Couldn't update automatic renewal. Try again.",
     domain_purchase_manage_dns: "Open domain setup",
     domain_purchase_manage_support_note:
       "To transfer this domain to another registrar or ask about a refund, contact support.",

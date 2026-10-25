@@ -4962,7 +4962,6 @@ export interface SettingsTranslations {
   domain_purchase_n_years: string;
   domain_purchase_pay_with: string;
   domain_purchase_pay_card: string;
-  domain_purchase_pay_crypto: string;
   domain_purchase_buy: string;
   domain_purchase_error: string;
   domain_purchase_error_taken: string;
@@ -5030,6 +5029,10 @@ export interface SettingsTranslations {
   domain_purchase_manage_term: string;
   domain_purchase_manage_paid: string;
   domain_purchase_manage_auto_renew_note: string;
+  domain_purchase_auto_renew_label: string;
+  domain_purchase_auto_renew_hint: string;
+  domain_purchase_manage_auto_renew_on_note: string;
+  domain_purchase_manage_auto_renew_error: string;
   domain_purchase_manage_dns: string;
   domain_purchase_manage_support_note: string;
   domain_purchase_manage_support_subject: string;

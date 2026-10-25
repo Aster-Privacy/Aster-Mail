@@ -6708,7 +6708,6 @@ export const de = {
     domain_purchase_n_years: "{{count}} Jahre",
     domain_purchase_pay_with: "Bezahlen mit",
     domain_purchase_pay_card: "Karte",
-    domain_purchase_pay_crypto: "Krypto",
     domain_purchase_buy: "Für {{price}} kaufen",
     domain_purchase_error:
       "Kauf fehlgeschlagen. Bitte versuchen Sie es erneut.",
@@ -6800,6 +6799,14 @@ export const de = {
     domain_purchase_manage_paid: "Bezahlt",
     domain_purchase_manage_auto_renew_note:
       "Diese Domain wird nicht automatisch verlängert. Um sie zu behalten, verlängern Sie sie vor dem Ablaufdatum.",
+    domain_purchase_auto_renew_label:
+      "Automatisch verlängern",
+    domain_purchase_auto_renew_hint:
+      "Aster belastet Ihre Karte einmal im Jahr und schickt Ihnen den Preis 15 Tage vor jeder Abbuchung per E-Mail. Sie können das in den Einstellungen deaktivieren.",
+    domain_purchase_manage_auto_renew_on_note:
+      "Aster belastet Ihre gespeicherte Karte 30 Tage vor dem Ablaufdatum und schickt Ihnen den Preis 15 Tage vorher per E-Mail.",
+    domain_purchase_manage_auto_renew_error:
+      "Die automatische Verlängerung konnte nicht geändert werden. Versuchen Sie es erneut.",
     domain_purchase_manage_dns: "Domain-Einrichtung öffnen",
     domain_purchase_manage_support_note:
       "Um diese Domain zu einem anderen Registrar zu übertragen oder nach einer Rückerstattung zu fragen, kontaktiere den Support.",
