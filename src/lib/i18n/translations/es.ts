@@ -6193,6 +6193,18 @@ export const es = {
       "Para comprar más almacenamiento, selecciona primero una opción.",
     storage_promo_cta: "Ver complementos",
     storage_used_of_total: "{{used}} de {{total}} en uso",
+    storage_nudge_almost_title: "El almacenamiento está casi lleno",
+    storage_nudge_critical_title: "Te queda muy poco almacenamiento",
+    storage_nudge_full_title: "Tu almacenamiento está lleno",
+    storage_nudge_offer: "Consigue {{size}} más por {{price}} al mes",
+    storage_nudge_offer_generic:
+      "Mejora tu plan para conseguir más almacenamiento",
+    storage_nudge_body:
+      "Cuando tu almacenamiento se llene, no podrás enviar ni importar correo.",
+    storage_nudge_full_body:
+      "No puedes enviar ni importar correo hasta que liberes espacio. Tu correo actual está a salvo.",
+    storage_nudge_free_up: "Liberar espacio",
+    storage_nudge_get_storage: "Conseguir almacenamiento",
     storage_free_space:
       "{{size}} libres, {{percent}} de tu almacenamiento en uso",
     storage_breakdown_title: "Qué ocupa tu almacenamiento",

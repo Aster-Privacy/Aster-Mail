@@ -6189,6 +6189,17 @@ export const nl = {
       "Selecteer eerst een optie om meer opslag te kopen.",
     storage_promo_cta: "Add-ons bekijken",
     storage_used_of_total: "{{used}} van {{total}} gebruikt",
+    storage_nudge_almost_title: "Opslag is bijna vol",
+    storage_nudge_critical_title: "Je opslag is bijna op",
+    storage_nudge_full_title: "Je opslag is vol",
+    storage_nudge_offer: "Krijg {{size}} extra voor {{price}} per maand",
+    storage_nudge_offer_generic: "Upgrade je abonnement voor meer opslag",
+    storage_nudge_body:
+      "Als je opslag vol is, kun je geen e-mail meer versturen of importeren.",
+    storage_nudge_full_body:
+      "Je kunt geen e-mail versturen of importeren tot je ruimte vrijmaakt. Je bestaande e-mail is veilig.",
+    storage_nudge_free_up: "Ruimte vrijmaken",
+    storage_nudge_get_storage: "Opslag kopen",
     storage_free_space: "{{size}} vrij, {{percent}} van je opslag gebruikt",
     storage_breakdown_title: "Wat je opslag gebruikt",
     storage_breakdown_empty: "Je opslag is nog leeg.",

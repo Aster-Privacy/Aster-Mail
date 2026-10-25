@@ -4621,6 +4621,15 @@ export interface SettingsTranslations {
   storage_promo_cta: string;
   storage_select_option_first: string;
   storage_used_of_total: string;
+  storage_nudge_almost_title: string;
+  storage_nudge_critical_title: string;
+  storage_nudge_full_title: string;
+  storage_nudge_offer: string;
+  storage_nudge_offer_generic: string;
+  storage_nudge_body: string;
+  storage_nudge_full_body: string;
+  storage_nudge_free_up: string;
+  storage_nudge_get_storage: string;
   storage_free_space: string;
   storage_breakdown_title: string;
   storage_breakdown_empty: string;
