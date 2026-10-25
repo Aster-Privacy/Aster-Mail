@@ -25,6 +25,7 @@ import { AppRailView } from "@aster/ui";
 import { AppRailIcon } from "@/components/icons/app_rail_icon";
 import { QuickContactsPanel } from "@/components/layout/quick_contacts_panel";
 import { QuickSecurityPanel } from "@/components/layout/quick_security_panel";
+import { QuickWaitlistPanel } from "@/components/layout/quick_waitlist_panel";
 import { use_panel_transition } from "@/components/layout/use_panel_transition";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -68,6 +69,7 @@ function AppRailComponent({
   const is_settings_view = location.pathname.startsWith("/settings");
   const [is_hidden, set_is_hidden] = useState(read_hidden);
   const [is_swapping, set_is_swapping] = useState(false);
+  const [is_waitlist_open, set_is_waitlist_open] = useState(false);
 
   const close_contacts = useCallback(() => {
     write_rail_contacts_open(false);
@@ -82,16 +84,18 @@ function AppRailComponent({
   const toggle_contacts = useCallback(() => {
     const next = !is_contacts_open;
 
-    set_is_swapping(next && is_security_open);
+    set_is_swapping(next && (is_security_open || is_waitlist_open));
     write_rail_contacts_open(next);
     on_contacts_open_change(next);
     if (next) {
       write_rail_security_open(false);
       on_security_open_change(false);
+      set_is_waitlist_open(false);
     }
   }, [
     is_contacts_open,
     is_security_open,
+    is_waitlist_open,
     on_contacts_open_change,
     on_security_open_change,
   ]);
@@ -99,16 +103,41 @@ function AppRailComponent({
   const toggle_security = useCallback(() => {
     const next = !is_security_open;
 
-    set_is_swapping(next && is_contacts_open);
+    set_is_swapping(next && (is_contacts_open || is_waitlist_open));
     write_rail_security_open(next);
     on_security_open_change(next);
     if (next) {
       write_rail_contacts_open(false);
       on_contacts_open_change(false);
+      set_is_waitlist_open(false);
     }
   }, [
     is_contacts_open,
     is_security_open,
+    is_waitlist_open,
+    on_contacts_open_change,
+    on_security_open_change,
+  ]);
+
+  const close_waitlist = useCallback(() => {
+    set_is_waitlist_open(false);
+  }, []);
+
+  const toggle_waitlist = useCallback(() => {
+    const next = !is_waitlist_open;
+
+    set_is_swapping(next && (is_contacts_open || is_security_open));
+    set_is_waitlist_open(next);
+    if (next) {
+      write_rail_contacts_open(false);
+      on_contacts_open_change(false);
+      write_rail_security_open(false);
+      on_security_open_change(false);
+    }
+  }, [
+    is_contacts_open,
+    is_security_open,
+    is_waitlist_open,
     on_contacts_open_change,
     on_security_open_change,
   ]);
@@ -120,7 +149,7 @@ function AppRailComponent({
   }, [is_swapping]);
 
   const { is_visible: is_slot_visible } = use_panel_transition(
-    is_contacts_open || is_security_open,
+    is_contacts_open || is_security_open || is_waitlist_open,
   );
 
   const toggle_hidden = useCallback(() => {
@@ -139,6 +168,7 @@ function AppRailComponent({
     if (!is_hidden) return;
     on_contacts_open_change(false);
     on_security_open_change(false);
+    set_is_waitlist_open(false);
   }, [is_hidden, on_contacts_open_change, on_security_open_change]);
 
   useEffect(() => {
@@ -164,6 +194,13 @@ function AppRailComponent({
       is_panel_visible={is_slot_visible}
       is_settings_view={is_settings_view}
       items={[
+        {
+          key: "calendar_beta",
+          label: t("calendar.beta_waitlist_title"),
+          selected: is_waitlist_open,
+          fallback_icon: <AppRailIcon name="calendar" />,
+          on_click: toggle_waitlist,
+        },
         {
           key: "contacts",
           label: t("common.contacts"),
@@ -195,6 +232,11 @@ function AppRailComponent({
             is_open={is_security_open}
             is_swapping={is_swapping}
             on_close={close_security}
+          />
+          <QuickWaitlistPanel
+            is_open={is_waitlist_open}
+            is_swapping={is_swapping}
+            on_close={close_waitlist}
           />
         </>
       }

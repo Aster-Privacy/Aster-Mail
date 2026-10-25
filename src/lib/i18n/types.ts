@@ -194,6 +194,36 @@ export interface SettingsSearchTranslations {
 }
 
 export interface CalendarTranslations {
+  beta_waitlist_title: string;
+  beta_waitlist_tag: string;
+  beta_waitlist_start: string;
+  beta_waitlist_features_title: string;
+  beta_waitlist_info_title: string;
+  beta_waitlist_info_body: string;
+  beta_waitlist_privacy: string;
+  beta_waitlist_heading: string;
+  beta_waitlist_body: string;
+  beta_waitlist_icon_note: string;
+  beta_waitlist_feature_encrypted: string;
+  beta_waitlist_feature_encrypted_body: string;
+  beta_waitlist_feature_devices: string;
+  beta_waitlist_feature_devices_body: string;
+  beta_waitlist_feature_booking: string;
+  beta_waitlist_feature_booking_body: string;
+  beta_waitlist_feature_invites: string;
+  beta_waitlist_feature_invites_body: string;
+  beta_waitlist_feature_reminders: string;
+  beta_waitlist_feature_reminders_body: string;
+  beta_waitlist_feature_recurring: string;
+  beta_waitlist_feature_recurring_body: string;
+  beta_waitlist_feature_import: string;
+  beta_waitlist_feature_import_body: string;
+  beta_waitlist_apply: string;
+  beta_waitlist_joined: string;
+  beta_waitlist_joined_body: string;
+  beta_waitlist_leave: string;
+  beta_waitlist_failed: string;
+  beta_waitlist_retry: string;
   invite_yes: string;
   invite_maybe: string;
   invite_no: string;
