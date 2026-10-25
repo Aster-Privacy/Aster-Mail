@@ -73,7 +73,7 @@ export function RowUnsubscribeChip({ email }: RowUnsubscribeChipProps) {
 
   return (
     <button
-      className="me-1 inline-flex h-6 items-center rounded-md border border-edge-secondary bg-transparent px-2 text-[12px] font-medium leading-none text-txt-secondary transition-colors hover:border-edge-primary hover:text-txt-primary"
+      className="inline-flex h-7 items-center rounded-[14px] px-2 text-[12.5px] font-medium leading-none text-txt-muted transition-colors hover:bg-black/10 hover:text-txt-primary dark:hover:bg-white/10"
       data-testid="row-unsubscribe"
       type="button"
       onClick={(e) => {

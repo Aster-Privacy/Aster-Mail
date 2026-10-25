@@ -955,10 +955,10 @@ export const InboxEmailListItem = memo(
                 className={cn(
                   "absolute end-3 sm:end-4 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 ps-10",
                   is_active
-                    ? "bg-gradient-to-r from-transparent to-surf-hover"
+                    ? "bg-[linear-gradient(to_right,transparent,var(--color-surf-hover)_2.5rem)]"
                     : email.is_selected === true
                       ? "mail_row_selected_fade_end"
-                      : "bg-gradient-to-r from-transparent to-surf-primary group-hover:to-surf-hover",
+                      : "bg-[linear-gradient(to_right,transparent,var(--color-surf-primary)_2.5rem)] group-hover:bg-[linear-gradient(to_right,transparent,var(--color-surf-hover)_2.5rem)]",
                 )}
                 role="button"
                 tabIndex={0}
