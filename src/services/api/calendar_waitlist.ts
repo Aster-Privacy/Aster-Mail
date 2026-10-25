@@ -20,7 +20,7 @@
 //
 import { api_client } from "@/services/api/client";
 
-export const CALENDAR_WAITLIST_ENDPOINT = "/calendar/v1/waitlist";
+export const CALENDAR_WAITLIST_ENDPOINT = "/core/v1/waitlist/calendar";
 
 export interface CalendarWaitlistStatus {
   joined: boolean;

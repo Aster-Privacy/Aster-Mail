@@ -23,12 +23,13 @@ import type { ComponentType, CSSProperties, SVGProps } from "react";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  CheckIcon,
+  ClockIcon,
   DevicePhoneMobileIcon,
   LinkIcon,
   LockClosedIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
+import { CheckIcon } from "@heroicons/react/24/solid";
 import { Button, Spinner, Tooltip } from "@aster/ui";
 
 import {
@@ -40,6 +41,8 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
 import { use_panel_inset } from "@/hooks/use_panel_inset";
 import { use_panel_transition } from "@/components/layout/use_panel_transition";
+import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
+import { InfoPopover } from "@/components/ui/info_popover";
 
 interface QuickWaitlistPanelProps {
   is_open: boolean;
@@ -63,23 +66,6 @@ const HERO_ICON_STYLE = {
   "--app-rail-icon-tint": 'url("/icons/calendar/calendar_tint_192.png")',
 } as CSSProperties;
 
-const ACCENT_SOFT =
-  "bg-[color-mix(in_srgb,var(--accent-color)_12%,transparent)] text-[var(--accent-color)]";
-
-function WaitlistBadge({ label, tip }: { label: string; tip: string }) {
-  return (
-    <Tooltip position="bottom" tip={tip}>
-      <span
-        className={`inline-flex h-6 items-center gap-1.5 rounded-full px-2.5 text-[12px] font-medium ${ACCENT_SOFT}`}
-      >
-        <LockClosedIcon aria-hidden="true" className="h-3.5 w-3.5" />
-        <span>{label}</span>
-        <span className="sr-only">{tip}</span>
-      </span>
-    </Tooltip>
-  );
-}
-
 export function QuickWaitlistPanel({
   is_open,
   is_swapping,
@@ -93,6 +79,7 @@ export function QuickWaitlistPanel({
   const [is_busy, set_is_busy] = useState(false);
   const [has_action_failed, set_has_action_failed] = useState(false);
   const [reload_count, set_reload_count] = useState(0);
+  const [celebration, set_celebration] = useState(0);
 
   const { is_visible, is_closing } = use_panel_transition(is_open, is_swapping);
 
@@ -105,6 +92,7 @@ export function QuickWaitlistPanel({
 
     set_load({ kind: "loading" });
     set_has_action_failed(false);
+    set_celebration(0);
     get_calendar_waitlist_status()
       .then((status) => {
         if (request === request_ref.current)
@@ -130,8 +118,10 @@ export function QuickWaitlistPanel({
       try {
         const status = await action();
 
-        if (request === request_ref.current)
+        if (request === request_ref.current) {
           set_load({ kind: "ready", status });
+          set_celebration((count) => (status.joined ? count + 1 : 0));
+        }
       } catch {
         if (request === request_ref.current) set_has_action_failed(true);
       } finally {
@@ -185,14 +175,32 @@ export function QuickWaitlistPanel({
         is_visible ? "flex" : "hidden"
       } ${is_closing ? "quick_panel_closing" : "z-10"}`}
     >
-      <div className="flex h-12 flex-shrink-0 items-center gap-2 ps-4 pe-2">
-        <h2 className="flex-1 truncate text-[15px] font-medium text-txt-primary">
-          {t("calendar.beta_waitlist_title")}
-        </h2>
+      <div className="flex h-12 flex-shrink-0 items-center gap-1 ps-4 pe-2">
+        <span className="flex min-w-0 flex-1 items-center gap-1.5">
+          <h2 className="truncate text-[15px] font-medium text-txt-primary">
+            {t("calendar.beta_waitlist_title")}
+          </h2>
+          <span className="flex-shrink-0 rounded-[5px] border border-edge-secondary px-1.5 text-[11px] leading-[18px] font-medium text-txt-secondary">
+            {t("calendar.beta_waitlist_tag")}
+          </span>
+          <InfoPopover
+            description={t("calendar.beta_waitlist_info_body")}
+            title={t("calendar.beta_waitlist_info_title")}
+          />
+        </span>
+        <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center">
+          <EncryptionInfoDropdown
+            e2e_verified
+            description_key="calendar.beta_waitlist_privacy"
+            has_pq_protection={false}
+            is_external={false}
+            size={15}
+          />
+        </span>
         <Tooltip position="bottom" tip={t("common.close")}>
           <Button
             aria-label={t("common.close")}
-            className="h-8 w-8 flex-shrink-0 text-[var(--icon-muted)]"
+            className="h-8 w-8 flex-shrink-0 text-txt-secondary"
             size="icon"
             variant="ghost"
             onClick={on_close}
@@ -206,31 +214,33 @@ export function QuickWaitlistPanel({
           <Spinner size="md" />
         </div>
       ) : (
-        <div className="flex-1 overflow-y-auto px-5 pt-3 pb-6">
+        <div className="flex-1 overflow-y-auto px-5 pt-6 pb-6">
           <div className="mx-auto flex max-w-[320px] flex-col items-center text-center">
-            <WaitlistBadge
-              label={t("calendar.beta_waitlist_badge")}
-              tip={t("calendar.beta_waitlist_privacy")}
-            />
-            <div className="relative mt-6">
+            <span aria-hidden="true" className="waitlist_hero">
               <span
-                aria-hidden="true"
-                className="app_rail_icon app_rail_icon_hero"
-                style={HERO_ICON_STYLE}
-              />
-              {is_joined && (
+                key={celebration}
+                className={`waitlist_hero_card${
+                  is_joined ? " waitlist_hero_card_joined" : ""
+                }${is_joined && celebration > 0 ? " waitlist_hero_card_flip" : ""}`}
+                data-testid="waitlist_hero"
+              >
                 <span
-                  aria-hidden="true"
-                  className="absolute -end-1.5 -bottom-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-[var(--accent-color)] text-white ring-[3px] ring-[var(--bg-primary)]"
-                >
-                  <CheckIcon className="h-3.5 w-3.5" strokeWidth={2.5} />
+                  className="waitlist_hero_face app_rail_icon app_rail_icon_hero"
+                  style={HERO_ICON_STYLE}
+                />
+                <span className="waitlist_hero_face waitlist_hero_face_back">
+                  <CheckIcon className="h-7 w-7" />
                 </span>
-              )}
-            </div>
-            <p className="mt-2 text-[11px] text-txt-muted">
+              </span>
+            </span>
+            <p
+              className={`mt-2 text-[11px] text-txt-muted ${
+                is_joined ? "invisible" : ""
+              }`}
+            >
               {t("calendar.beta_waitlist_icon_note")}
             </p>
-            <h3 className="mt-4 text-[17px] leading-6 font-semibold text-txt-primary">
+            <h3 className="mt-5 text-[17px] leading-6 font-semibold text-txt-primary">
               {is_joined
                 ? t("calendar.beta_waitlist_joined")
                 : t("calendar.beta_waitlist_heading")}
@@ -239,6 +249,10 @@ export function QuickWaitlistPanel({
               {is_joined
                 ? t("calendar.beta_waitlist_joined_body")
                 : t("calendar.beta_waitlist_body")}
+            </p>
+            <p className="mt-3 flex items-center gap-1.5 text-[12.5px] text-txt-muted">
+              <ClockIcon aria-hidden="true" className="h-4 w-4 flex-shrink-0" />
+              {t("calendar.beta_waitlist_start")}
             </p>
             {(load.kind === "failed" || has_action_failed) && (
               <p className="mt-3 text-[12.5px] text-red-500" role="alert">
@@ -278,29 +292,28 @@ export function QuickWaitlistPanel({
               )}
             </div>
           </div>
-          <ul className="mx-auto mt-6 flex max-w-[320px] flex-col gap-0.5 rounded-[14px] bg-[color-mix(in_srgb,var(--text-primary)_4%,transparent)] p-1.5">
-            {features.map((feature) => (
-              <li
-                key={feature.key}
-                className="flex items-start gap-3 px-2 py-2"
-              >
-                <span
-                  aria-hidden="true"
-                  className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full ${ACCENT_SOFT}`}
-                >
-                  <feature.icon className="h-4 w-4" />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block text-[13px] leading-5 font-medium text-txt-primary">
-                    {feature.title}
+          <section className="mx-auto mt-8 max-w-[320px]">
+            <h4 className="aster_island_section_title px-3 pb-1">
+              {t("calendar.beta_waitlist_features_title")}
+            </h4>
+            <ul className="flex flex-col">
+              {features.map((feature) => (
+                <li key={feature.key} className="aster_island_row items-start">
+                  <span aria-hidden="true" className="aster_island_row_icon">
+                    <feature.icon />
                   </span>
-                  <span className="block text-[12px] leading-[1.4] text-txt-muted">
-                    {feature.body}
+                  <span className="aster_island_row_text">
+                    <span className="aster_island_row_label">
+                      {feature.title}
+                    </span>
+                    <span className="aster_island_row_description">
+                      {feature.body}
+                    </span>
                   </span>
-                </span>
-              </li>
-            ))}
-          </ul>
+                </li>
+              ))}
+            </ul>
+          </section>
         </div>
       )}
     </aside>

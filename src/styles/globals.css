@@ -2530,6 +2530,71 @@ button.press_scale:active {
   height: 56px;
 }
 
+.waitlist_hero {
+  display: inline-flex;
+  perspective: 480px;
+}
+
+.waitlist_hero_card {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  transform-style: preserve-3d;
+}
+
+.waitlist_hero_card_joined {
+  transform: rotateY(180deg);
+}
+
+.waitlist_hero_card_flip {
+  animation: waitlist_hero_flip 700ms cubic-bezier(0.3, 0.7, 0.4, 1) both;
+}
+
+.waitlist_hero_face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.waitlist_hero_face_back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  background-color: var(--accent-color, #3b82f6);
+  color: #fff;
+  transform: rotateY(180deg);
+}
+
+@keyframes waitlist_hero_flip {
+  0% {
+    transform: rotateY(0deg);
+  }
+  60% {
+    transform: rotateY(194deg);
+  }
+  80% {
+    transform: rotateY(175deg);
+  }
+  100% {
+    transform: rotateY(180deg);
+  }
+}
+
+@media (forced-colors: active) {
+  .waitlist_hero_face_back {
+    background-color: ButtonText;
+    color: ButtonFace;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .waitlist_hero_card_flip {
+    animation: none;
+  }
+}
+
 .app_rail_icon::before {
   content: "";
   position: absolute;
