@@ -778,14 +778,12 @@ async function init_receiver_from_bootstrap(
         }
       : null;
 
-  if (!pq_input && keys.ratchet_pq_identity_public) {
-    console.warn(
-      "ratchet receiver: PQ-capable identity received a non-PQ bootstrap, proceeding classically",
-    );
-
-    if (await has_peer_advertised_pq(sender_email.toLowerCase())) {
-      record_peer_identity_event(sender_email, "downgraded");
-    }
+  if (
+    !pq_input &&
+    keys.ratchet_pq_identity_public &&
+    (await has_peer_advertised_pq(sender_email.toLowerCase()))
+  ) {
+    record_peer_identity_event(sender_email, "downgraded");
   }
 
   const shared_secret = await perform_x3dh_receiver(
