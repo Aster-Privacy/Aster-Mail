@@ -32,6 +32,7 @@ import {
 import { Button, Tooltip } from "@aster/ui";
 
 import { is_future_instant } from "@/utils/schedule_targets";
+import { use_is_future_instant } from "@/hooks/use_is_future_instant";
 import {
   exceeds_sealed_schedule_window,
   latest_schedule_instant,
@@ -218,8 +219,14 @@ export function SchedulePicker({
   const is_custom_too_far_ahead =
     custom_instant !== null && exceeds_sealed_schedule_window(custom_instant);
 
-  const is_valid_custom_time =
-    is_future_instant(custom_instant) && !is_custom_too_far_ahead;
+  const is_custom_future = use_is_future_instant(
+    custom_instant,
+    is_open && show_custom,
+  );
+
+  const is_valid_custom_time = is_custom_future && !is_custom_too_far_ahead;
+
+  const is_custom_in_past = custom_instant !== null && !is_custom_future;
 
   const is_beyond_window = (hour: number, minute: number) =>
     !!selected_date &&
@@ -398,6 +405,14 @@ export function SchedulePicker({
                 role="status"
               >
                 {t("common.scheduled_too_far_ahead")}
+              </p>
+            )}
+            {is_custom_in_past && (
+              <p
+                className="mt-2 max-w-[252px] text-xs text-txt-muted"
+                role="status"
+              >
+                {t("mail_rules.snooze_needs_future")}
               </p>
             )}
             <div className="flex mt-4 gap-2">

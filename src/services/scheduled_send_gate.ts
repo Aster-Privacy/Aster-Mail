@@ -28,10 +28,12 @@ import {
 } from "./recipient_classification";
 
 import { exceeds_sealed_schedule_window } from "@/lib/schedule_window";
+import { is_future_instant } from "@/utils/schedule_targets";
 
 export type ScheduledGateBlock =
   | "common.scheduled_requires_encryption"
   | "common.scheduled_too_far_ahead"
+  | "mail_rules.snooze_needs_future"
   | PostQuantumConsentBlock;
 
 export type ScheduledGateResult =
@@ -44,6 +46,10 @@ export async function check_scheduled_send(
   scheduled_at: Date,
   require_encryption: boolean,
 ): Promise<ScheduledGateResult> {
+  if (!is_future_instant(scheduled_at)) {
+    return { proceed: false, blocked_by: "mail_rules.snooze_needs_future" };
+  }
+
   if (exceeds_sealed_schedule_window(scheduled_at)) {
     return { proceed: false, blocked_by: "common.scheduled_too_far_ahead" };
   }
@@ -60,6 +66,10 @@ export async function check_scheduled_send(
     };
   }
 
+  if (!is_future_instant(scheduled_at)) {
+    return { proceed: false, blocked_by: "mail_rules.snooze_needs_future" };
+  }
+
   if (internal.length === 0) {
     return { proceed: true, allow_non_post_quantum: false };
   }
@@ -68,6 +78,10 @@ export async function check_scheduled_send(
 
   if (!consent.proceed)
     return { proceed: false, blocked_by: consent.blocked_by };
+
+  if (!is_future_instant(scheduled_at)) {
+    return { proceed: false, blocked_by: "mail_rules.snooze_needs_future" };
+  }
 
   return {
     proceed: true,

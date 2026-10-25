@@ -80,6 +80,48 @@ describe("check_scheduled_send", () => {
     });
   });
 
+  it("blocks a scheduled time that has already passed", async () => {
+    const result = await check_scheduled_send(
+      ["friend@astermail.org"],
+      "me@astermail.org",
+      new Date(Date.now() - 60 * 1000),
+      false,
+    );
+
+    expect(result).toEqual({
+      proceed: false,
+      blocked_by: "mail_rules.snooze_needs_future",
+    });
+    expect(consent).not.toHaveBeenCalled();
+  });
+
+  it("blocks when the scheduled time passes while consent is pending", async () => {
+    const scheduled_at = new Date(Date.now() + 60 * 1000);
+
+    consent.mockImplementation(async () => {
+      vi.setSystemTime(scheduled_at.getTime() + 1000);
+
+      return { proceed: true, allow_non_post_quantum: false };
+    });
+    vi.useFakeTimers({ toFake: ["Date"] });
+
+    try {
+      const result = await check_scheduled_send(
+        ["friend@astermail.org"],
+        "me@astermail.org",
+        scheduled_at,
+        false,
+      );
+
+      expect(result).toEqual({
+        proceed: false,
+        blocked_by: "mail_rules.snooze_needs_future",
+      });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("allows mixed Aster and outside recipients with consent for Aster recipients only", async () => {
     const result = await check_scheduled_send(
       ["friend@astermail.org", "bob@example.com"],
