@@ -6412,6 +6412,17 @@ export const pl = {
       "Aby kupić więcej miejsca, najpierw wybierz opcję.",
     storage_promo_cta: "Zobacz dodatki",
     storage_used_of_total: "Wykorzystano {{used}} z {{total}}",
+    storage_nudge_almost_title: "Miejsce na dane jest prawie pełne",
+    storage_nudge_critical_title: "Prawie skończyło Ci się miejsce",
+    storage_nudge_full_title: "Miejsce na dane jest pełne",
+    storage_nudge_offer: "Dodaj {{size}} za {{price}} miesięcznie",
+    storage_nudge_offer_generic: "Ulepsz plan, aby zyskać więcej miejsca",
+    storage_nudge_body:
+      "Gdy miejsce się zapełni, nie wyślesz ani nie zaimportujesz poczty.",
+    storage_nudge_full_body:
+      "Nie możesz wysyłać ani importować poczty, dopóki nie zwolnisz miejsca. Istniejąca poczta jest bezpieczna.",
+    storage_nudge_free_up: "Zwolnij miejsce",
+    storage_nudge_get_storage: "Dodaj miejsce",
     storage_free_space: "Wolne: {{size}}, wykorzystano {{percent}} miejsca",
     storage_breakdown_title: "Co zajmuje miejsce",
     storage_breakdown_empty: "Nic jeszcze nie zajmuje miejsca.",

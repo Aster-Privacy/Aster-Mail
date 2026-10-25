@@ -4872,6 +4872,18 @@ export const hi = {
       "और स्टोरेज खरीदने के लिए पहले कोई विकल्प चुनें।",
     storage_promo_cta: "ऐड-ऑन देखें",
     storage_used_of_total: "{{total}} में से {{used}} इस्तेमाल हुआ",
+    storage_nudge_almost_title: "स्टोरेज लगभग भर गया है",
+    storage_nudge_critical_title: "आपका स्टोरेज लगभग खत्म हो गया है",
+    storage_nudge_full_title: "आपका स्टोरेज भर गया है",
+    storage_nudge_offer: "{{price}} प्रति माह में {{size}} और पाएं",
+    storage_nudge_offer_generic:
+      "ज़्यादा स्टोरेज के लिए अपना प्लान अपग्रेड करें",
+    storage_nudge_body:
+      "स्टोरेज भर जाने पर आप ईमेल भेज या इंपोर्ट नहीं कर पाएंगे।",
+    storage_nudge_full_body:
+      "जब तक आप जगह खाली नहीं करते, आप ईमेल भेज या इंपोर्ट नहीं कर सकते। आपके मौजूदा ईमेल सुरक्षित हैं।",
+    storage_nudge_free_up: "जगह खाली करें",
+    storage_nudge_get_storage: "स्टोरेज पाएं",
     storage_free_space:
       "{{size}} खाली, आपके स्टोरेज का {{percent}} इस्तेमाल हुआ",
     storage_breakdown_title: "आपका स्टोरेज क्या इस्तेमाल कर रहा है",

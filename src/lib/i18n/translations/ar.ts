@@ -6238,6 +6238,17 @@ export const ar = {
     storage_select_option_first: "لشراء مساحة إضافية، حدد خيارًا أولاً.",
     storage_promo_cta: "عرض الإضافات",
     storage_used_of_total: "{{used}} من {{total}} مستخدمة",
+    storage_nudge_almost_title: "مساحة التخزين ممتلئة تقريبًا",
+    storage_nudge_critical_title: "مساحة التخزين على وشك النفاد",
+    storage_nudge_full_title: "مساحة التخزين ممتلئة",
+    storage_nudge_offer: "احصل على {{size}} إضافية مقابل {{price}} شهريًا",
+    storage_nudge_offer_generic: "رقِّ خطتك للحصول على مساحة تخزين أكبر",
+    storage_nudge_body:
+      "عندما تمتلئ مساحة التخزين، لن تتمكن من إرسال البريد أو استيراده.",
+    storage_nudge_full_body:
+      "لا يمكنك إرسال البريد أو استيراده حتى تُفرغ بعض المساحة. بريدك الحالي آمن.",
+    storage_nudge_free_up: "إفراغ مساحة",
+    storage_nudge_get_storage: "الحصول على مساحة",
     storage_free_space: "{{size}} متاحة، و{{percent}} من مساحتك مستخدمة",
     storage_breakdown_title: "ما يشغل مساحة التخزين",
     storage_breakdown_empty: "لا شيء يشغل مساحتك حتى الآن.",

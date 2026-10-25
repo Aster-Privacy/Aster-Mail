@@ -56,6 +56,10 @@ import {
   sweep_drag_images,
   truncate_preview,
 } from "./helpers";
+import {
+  RowUnsubscribeChip,
+  row_has_unsubscribe_header,
+} from "./row_unsubscribe_chip";
 
 import {
   NotSpamIcon,
@@ -220,6 +224,12 @@ export const InboxEmailListItem = memo(
         on_restore ||
         on_move_to_inbox ||
         on_mark_not_spam;
+
+      const show_unsubscribe_chip =
+        !is_trash_view &&
+        !is_spam_view &&
+        !is_outgoing &&
+        row_has_unsubscribe_header(email);
 
       const current_folder_token = (current_view ?? "").startsWith("folder-")
         ? (current_view ?? "").slice("folder-".length)
@@ -849,7 +859,8 @@ export const InboxEmailListItem = memo(
           {show_hover_actions && (
             <div
               className={cn(
-                "absolute end-0 top-0 bottom-0 w-64 pointer-events-none opacity-0 group-hover:opacity-100 hidden sm:block",
+                "absolute end-0 top-0 bottom-0 pointer-events-none opacity-0 group-hover:opacity-100 hidden sm:block",
+                show_unsubscribe_chip ? "w-96" : "w-64",
                 is_active
                   ? "bg-gradient-to-r from-transparent via-surf-hover to-surf-hover"
                   : email.is_selected === true
@@ -958,6 +969,8 @@ export const InboxEmailListItem = memo(
                   }
                 }}
               >
+                {show_unsubscribe_chip && <RowUnsubscribeChip email={email} />}
+
                 {on_toggle_read && (
                   <Tooltip
                     tip={

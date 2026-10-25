@@ -81,6 +81,7 @@ import { invalidate_mail_cache } from "@/hooks/email_list_cache";
 import {
   invalidate_mail_stats,
   clear_stats_trash,
+  use_mail_stats,
 } from "@/hooks/use_mail_stats";
 import { emit_mail_items_removed } from "@/hooks/mail_events";
 import { request_cache } from "@/services/api/request_cache";
@@ -99,6 +100,7 @@ import {
 } from "@/hooks/email_list_helpers/alias_view";
 import { AliasDirectionMenuItems } from "@/components/email/inbox/alias_direction_menu_items";
 import { AliasIndexingNotice } from "@/components/email/inbox/alias_indexing_notice";
+import { StorageBanner } from "@/components/email/inbox/inbox_storage_banner";
 import { use_sender_alias_backfill } from "@/hooks/use_sender_alias_backfill";
 import { use_auth } from "@/contexts/auth/use_auth_hook";
 
@@ -231,6 +233,7 @@ function MobileInbox({
   const { get_tag_by_token, state: tags_state } = use_tags();
   const { get_folder_by_token, state: folders_state } = use_folders();
   const [selection_mode, set_selection_mode] = useState(false);
+  const { stats: mail_stats } = use_mail_stats();
   const [selected_ids, set_selected_ids] = useState<Set<string>>(new Set());
   const [is_refreshing, set_is_refreshing] = useState(false);
   const refresh_timer_ref = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -1297,6 +1300,13 @@ function MobileInbox({
         !selection_mode &&
         alias_direction !== "received" &&
         backfill_status === "running" && <AliasIndexingNotice />}
+
+      {!selection_mode && (
+        <StorageBanner
+          storage_total_bytes={mail_stats.storage_total_bytes}
+          storage_used_bytes={mail_stats.storage_used_bytes}
+        />
+      )}
 
       {folder_not_found ? (
         <div className="flex flex-col items-center justify-center flex-1 px-4 py-20">

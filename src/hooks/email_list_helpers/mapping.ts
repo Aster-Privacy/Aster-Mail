@@ -253,6 +253,9 @@ export function mail_to_email(
           0.75,
       ),
     phishing_level: item.phishing_level,
+    list_unsubscribe: envelope.list_unsubscribe,
+    list_unsubscribe_post: envelope.list_unsubscribe_post,
+    dkim_result: item.dkim_result,
   };
 }
 

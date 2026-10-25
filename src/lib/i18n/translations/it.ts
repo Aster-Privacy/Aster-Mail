@@ -4638,6 +4638,19 @@ export const it = {
       "Per acquistare più spazio, seleziona prima un’opzione.",
     storage_promo_cta: "Vedi componenti aggiuntivi",
     storage_used_of_total: "{{used}} di {{total}} in uso",
+    storage_nudge_almost_title: "Spazio di archiviazione quasi pieno",
+    storage_nudge_critical_title:
+      "Lo spazio di archiviazione sta per esaurirsi",
+    storage_nudge_full_title: "Lo spazio di archiviazione è pieno",
+    storage_nudge_offer: "Ottieni altri {{size}} a {{price}} al mese",
+    storage_nudge_offer_generic:
+      "Passa a un piano superiore per avere più spazio",
+    storage_nudge_body:
+      "Quando lo spazio di archiviazione è pieno, non puoi inviare né importare posta.",
+    storage_nudge_full_body:
+      "Non puoi inviare né importare posta finché non liberi spazio. La posta esistente è al sicuro.",
+    storage_nudge_free_up: "Libera spazio",
+    storage_nudge_get_storage: "Ottieni spazio",
     storage_free_space: "{{size}} liberi, {{percent}} dello spazio in uso",
     storage_breakdown_title: "Cosa occupa il tuo spazio",
     storage_breakdown_empty: "Non c'è ancora nulla nel tuo spazio.",
