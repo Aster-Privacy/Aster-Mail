@@ -47,6 +47,7 @@ import {
 import mail_logo_url from "@/assets/mail_logo.webp";
 import { show_upgrade_plans } from "@/stores/upgrade_store";
 import { use_resubscribe } from "@/hooks/use_resubscribe";
+import { MobileAccountList } from "@/components/mobile/mobile_account_list";
 
 interface AccountMenuSheetProps {
   is_open: boolean;
@@ -101,6 +102,7 @@ export function AccountMenuSheet({
           else show_upgrade_plans();
         }}
       />
+      <MobileAccountList handle_nav={handle_nav} on_close={on_close} />
     </MobileBottomSheet>
   );
 }

@@ -113,6 +113,34 @@ import {
 import { delete_category_index_for_account } from "@/services/category_index";
 import { ignore_error } from "@/lib/ignore_error";
 
+async function resume_surviving_account(
+  survivor: StoredAccount,
+): Promise<boolean> {
+  if (survivor.kind === "shared") return false;
+  if (!get_stored_encrypted_vault(survivor.id)) return false;
+
+  const passphrase = await get_session_passphrase(survivor.id).catch(
+    () => null,
+  );
+
+  if (!passphrase) return false;
+
+  api_client.end_intentional_logout();
+  api_client.set_expected_user_id(survivor.user.id);
+
+  const result = await with_timeout(
+    api_client.reestablish_session_for_account(survivor.id),
+    5000,
+  ).catch((): SessionReestablishResult => "unavailable");
+
+  if (result === "ok") return true;
+
+  api_client.begin_intentional_logout();
+  api_client.set_expected_user_id(null);
+
+  return false;
+}
+
 export function use_auth_provider_state() {
   const {
     t,
@@ -371,6 +399,7 @@ export function use_auth_provider_state() {
     const current_id = state.current_account_id;
     const other = state.accounts.find((a) => a.id !== current_id);
     let nav_target = other ? "/" : "/sign-in";
+    let reload_into_survivor = false;
     const fallback_timer = window.setTimeout(() => {
       try {
         if ("__TAURI_INTERNALS__" in window) return;
@@ -443,6 +472,13 @@ export function use_auth_provider_state() {
         await with_timeout(storage_switch_account(other.id), 2000);
         api_client.clear_in_memory_token();
 
+        if (await resume_surviving_account(other)) {
+          reload_into_survivor = true;
+          nav_target = "/";
+
+          return;
+        }
+
         const survivor_local = other.user.email.split("@")[0] ?? "";
 
         set_state((prev) => ({
@@ -466,7 +502,9 @@ export function use_auth_provider_state() {
       clearTimeout(fallback_timer);
       logout_in_flight.current = false;
       try {
-        if (!("__TAURI_INTERNALS__" in window)) {
+        if (reload_into_survivor) {
+          hard_redirect(nav_target);
+        } else if (!("__TAURI_INTERNALS__" in window)) {
           navigate(nav_target);
         }
       } catch (caught) {
