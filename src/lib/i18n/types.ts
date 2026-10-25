@@ -195,13 +195,23 @@ export interface SettingsSearchTranslations {
 
 export interface CalendarTranslations {
   beta_waitlist_title: string;
+  beta_waitlist_badge: string;
+  beta_waitlist_privacy: string;
+  beta_waitlist_heading: string;
   beta_waitlist_body: string;
+  beta_waitlist_icon_note: string;
+  beta_waitlist_feature_encrypted: string;
+  beta_waitlist_feature_encrypted_body: string;
+  beta_waitlist_feature_devices: string;
+  beta_waitlist_feature_devices_body: string;
+  beta_waitlist_feature_booking: string;
+  beta_waitlist_feature_booking_body: string;
   beta_waitlist_apply: string;
   beta_waitlist_joined: string;
   beta_waitlist_joined_body: string;
-  beta_waitlist_privacy: string;
   beta_waitlist_leave: string;
   beta_waitlist_failed: string;
+  beta_waitlist_retry: string;
   invite_yes: string;
   invite_maybe: string;
   invite_no: string;
