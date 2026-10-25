@@ -24,7 +24,6 @@ import type { TranslationKey } from "@/lib/i18n/types";
 import { useEffect, useMemo, useState } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { ExclamationCircleIcon } from "@heroicons/react/24/solid";
-
 import { IslandIconButton, IslandSection, PillButton } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
@@ -167,13 +166,13 @@ export function StorageBanner({
       role={tier === "full" ? "alert" : "status"}
     >
       <IslandSection aria-label={t(TITLE_KEY[tier])} padding="md">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-          <div className="flex min-w-0 flex-1 items-start gap-3">
-            <ExclamationCircleIcon
-              aria-hidden
-              className="mt-0.5 h-5 w-5 flex-shrink-0"
-              style={{ color: accent }}
-            />
+        <div className="flex items-start gap-3">
+          <ExclamationCircleIcon
+            aria-hidden
+            className="mt-0.5 h-5 w-5 flex-shrink-0"
+            style={{ color: accent }}
+          />
+          <div className="flex min-w-0 flex-1 flex-col gap-4 sm:flex-row sm:items-center">
             <div className="min-w-0 flex-1">
               <p
                 className="text-[12.5px] font-semibold leading-4"
@@ -200,7 +199,10 @@ export function StorageBanner({
                 >
                   <div
                     className="h-full rounded-full transition-[width] duration-500"
-                    style={{ width: `${bar_percent}%`, backgroundColor: accent }}
+                    style={{
+                      width: `${bar_percent}%`,
+                      backgroundColor: accent,
+                    }}
                   />
                 </div>
                 <p className="flex-shrink-0 text-[12.5px] tabular-nums text-txt-muted">
@@ -208,35 +210,36 @@ export function StorageBanner({
                 </p>
               </div>
             </div>
-          </div>
-          <div className="flex flex-shrink-0 items-center gap-2 ps-8 sm:ps-0">
-            <PillButton
-              size="sm"
-              type="button"
-              variant="outline"
-              onClick={handle_free_up}
-            >
-              {t("settings.storage_nudge_free_up")}
-            </PillButton>
-            <PillButton
-              size="sm"
-              type="button"
-              variant="filled"
-              onClick={handle_get_storage}
-            >
-              {t("settings.storage_nudge_get_storage")}
-            </PillButton>
-            {tier !== "full" && (
-              <IslandIconButton
-                label={t("common.dismiss")}
+            <div className="flex flex-shrink-0 items-center gap-2">
+              <PillButton
                 size="sm"
                 type="button"
-                onClick={handle_dismiss}
+                variant="outline"
+                onClick={handle_free_up}
               >
-                <XMarkIcon className="h-4 w-4" />
-              </IslandIconButton>
-            )}
+                {t("settings.storage_nudge_free_up")}
+              </PillButton>
+              <PillButton
+                size="sm"
+                type="button"
+                variant="filled"
+                onClick={handle_get_storage}
+              >
+                {t("settings.storage_nudge_get_storage")}
+              </PillButton>
+            </div>
           </div>
+          {tier !== "full" && (
+            <IslandIconButton
+              className="-me-1 -mt-1 flex-shrink-0"
+              label={t("common.dismiss")}
+              size="sm"
+              type="button"
+              onClick={handle_dismiss}
+            >
+              <XMarkIcon className="h-4 w-4" />
+            </IslandIconButton>
+          )}
         </div>
       </IslandSection>
     </div>
