@@ -18,11 +18,19 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { ComponentType, SVGProps } from "react";
 import type { DecryptedExternalAccount } from "@/services/api/external_accounts";
 import type { UseExternalAccountsReturn } from "@/components/settings/hooks/use_external_accounts";
 import type { TranslationKey } from "@/lib/i18n/types";
 
-import { ChevronDownIcon } from "@heroicons/react/24/outline";
+import {
+  CheckCircleIcon,
+  ChevronDownIcon,
+  ClockIcon,
+  ExclamationTriangleIcon,
+  PauseCircleIcon,
+  XCircleIcon,
+} from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
 import {
@@ -43,42 +51,42 @@ const BUCKETS: {
   bucket: SummaryBucket;
   label: TranslationKey;
   color: string;
+  Icon: ComponentType<SVGProps<SVGSVGElement>>;
 }[] = [
   {
     bucket: "needs_reauth",
     label: "settings.external_account_health_reauth",
     color: "rgb(245, 158, 11)",
+    Icon: ExclamationTriangleIcon,
   },
   {
     bucket: "failing",
     label: "settings.external_account_health_failing",
     color: "rgb(239, 68, 68)",
+    Icon: XCircleIcon,
   },
   {
     bucket: "never_synced",
     label: "common.never_synced",
     color: "var(--text-muted)",
+    Icon: ClockIcon,
   },
-  { bucket: "paused", label: "common.paused", color: "var(--text-muted)" },
+  {
+    bucket: "paused",
+    label: "common.paused",
+    color: "var(--text-muted)",
+    Icon: PauseCircleIcon,
+  },
   {
     bucket: "healthy",
     label: "settings.external_account_health_ok",
     color: "rgb(34, 197, 94)",
+    Icon: CheckCircleIcon,
   },
 ];
 
 function to_bucket(state: ExternalAccountHealthState): SummaryBucket {
   return state === "syncing" ? "healthy" : state;
-}
-
-function StatusDot({ color }: { color: string }) {
-  return (
-    <span
-      aria-hidden="true"
-      className="inline-block w-2 h-2 rounded-full flex-shrink-0"
-      style={{ backgroundColor: color }}
-    />
-  );
 }
 
 interface AccountHealthSummaryProps {
@@ -114,7 +122,11 @@ export function AccountHealthSummary({
           size="sm"
           variant="ghost"
         >
-          <StatusDot color={worst.color} />
+          <worst.Icon
+            aria-hidden="true"
+            className="w-4 h-4 flex-shrink-0"
+            style={{ color: worst.color }}
+          />
           {t("settings.external_account_health_summary")}
           <ChevronDownIcon
             aria-hidden="true"
@@ -123,7 +135,7 @@ export function AccountHealthSummary({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-[14rem] max-w-80">
-        {present.map(({ bucket, label, color }) => {
+        {present.map(({ bucket, label, color, Icon }) => {
           const emails = grouped.get(bucket) ?? [];
 
           return (
@@ -132,7 +144,11 @@ export function AccountHealthSummary({
               className="flex-col items-stretch gap-0.5"
             >
               <span className="flex items-center gap-2">
-                <StatusDot color={color} />
+                <Icon
+                  aria-hidden="true"
+                  className="w-4 h-4 flex-shrink-0"
+                  style={{ color }}
+                />
                 <span className="flex-1">{t(label)}</span>
                 <span className="tabular-nums text-txt-muted">
                   {emails.length}
@@ -141,7 +157,7 @@ export function AccountHealthSummary({
               {emails.map((email) => (
                 <span
                   key={email}
-                  className="pl-4 text-xs text-txt-muted truncate"
+                  className="ps-6 text-xs text-txt-muted truncate"
                 >
                   {email}
                 </span>

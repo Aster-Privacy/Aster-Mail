@@ -54,6 +54,7 @@ import { EmailNotificationManager } from "@/components/email/email_notification_
 import { UndoSendPreviewModal } from "@/components/toast/undo_send_preview_modal";
 import { Family2faDialog } from "@/components/common/family_2fa_dialog";
 import { BillingAlertBanner } from "@/components/common/billing_alert_banner";
+import { ExternalAccountHealthBanner } from "@/components/common/external_account_health_banner";
 import { LockedDataBanner } from "@/components/common/locked_data_banner";
 import { MobileStorageBanner } from "@/components/common/mobile_storage_banner";
 import { CheckoutReturnHandler } from "@/components/common/checkout_return_handler";
@@ -551,6 +552,11 @@ function MobileApp() {
         <MobileDomainOrderReturn />
         {!is_auth_route && <LockedDataBanner />}
         {!is_auth_route && is_authenticated && <BillingAlertBanner />}
+        {!is_auth_route &&
+          is_authenticated &&
+          !location.pathname.startsWith("/settings") && (
+            <ExternalAccountHealthBanner />
+          )}
         {!is_auth_route && <MobileStorageBanner />}
         <ErrorBoundary>
           <Suspense fallback={<MobileLoader />}>

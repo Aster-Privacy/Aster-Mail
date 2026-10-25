@@ -41,6 +41,7 @@ import { Button } from "@aster/ui";
 
 import { SettingsGroup, SettingsHeader, chip_selected_style } from "./shared";
 
+import { AccountHealthSummary } from "@/components/settings/external_accounts/account_health_summary";
 import { FaviconImg } from "@/components/ui/favicon_or_initial";
 import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
@@ -815,6 +816,9 @@ export function ExternalAccountsSection({
           </div>
         ) : (
           <div className="space-y-3 px-4 pt-4">
+            <div className="flex justify-end">
+              <AccountHealthSummary accounts={state.accounts} t={state.t} />
+            </div>
             {state.accounts.map((account) => {
               const domain = account.email.split("@")[1];
               const icon_ok = domain && !state.failed_icons.has(domain);

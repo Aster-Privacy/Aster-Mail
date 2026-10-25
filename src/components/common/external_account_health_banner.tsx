@@ -29,7 +29,9 @@ import {
   build_alert_signature,
   get_external_account_alerts,
 } from "@/lib/external_account_health";
+import { list_external_accounts } from "@/services/api/external_accounts";
 import {
+  get_external_account_health_generation,
   has_published_external_account_health,
   use_external_account_health,
 } from "@/stores/external_account_health_store";
@@ -40,9 +42,16 @@ export function ExternalAccountHealthBanner() {
   const { preferences, update_preference, is_loading, has_loaded_from_server } =
     use_preferences();
   const records = use_external_account_health();
+  const health_generation = get_external_account_health_generation();
   const [dismissed_signature, set_dismissed_signature] = useState<
     string | null
   >(null);
+
+  useEffect(() => {
+    if (is_loading || !has_loaded_from_server) return;
+    if (has_published_external_account_health()) return;
+    void list_external_accounts();
+  }, [is_loading, has_loaded_from_server, health_generation]);
 
   const alerts = useMemo(
     () => get_external_account_alerts(records, Date.now()),
