@@ -387,7 +387,7 @@ export function use_compose({
     set_visibility(INITIAL_VISIBILITY);
     set_subject("");
     set_message("");
-    attachment_hook.set_attachments([]);
+    attachment_hook.reset_attachment_session();
     set_scheduled_time(null);
     set_is_scheduling(false);
     set_expires_at(null);
@@ -395,7 +395,7 @@ export function use_compose({
     if (message_textarea_ref.current) {
       message_textarea_ref.current.innerHTML = "";
     }
-  }, [attachment_hook.set_attachments]);
+  }, [attachment_hook.reset_attachment_session]);
 
   const clear_all_errors = useCallback(() => {
     attachment_hook.set_attachment_error(null);
