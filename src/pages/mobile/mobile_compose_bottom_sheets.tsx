@@ -41,6 +41,7 @@ import {
 } from "./mobile_compose_helpers";
 
 import { is_future_instant } from "@/utils/schedule_targets";
+import { use_is_future_instant } from "@/hooks/use_is_future_instant";
 import {
   exceeds_sealed_schedule_window,
   latest_schedule_instant,
@@ -224,6 +225,8 @@ export function MobileScheduleSheet({
   const [schedule_time, set_schedule_time] = useState("09:00");
 
   const quick_options = useMemo(() => {
+    void is_open;
+
     const one_hour = get_in_one_hour();
     const tonight = get_tonight();
     const tomorrow_morning = get_tomorrow_morning();
@@ -266,7 +269,7 @@ export function MobileScheduleSheet({
         icon: <CalendarIcon className="h-5 w-5" />,
       },
     ];
-  }, [t]);
+  }, [t, is_open]);
 
   const custom_schedule_date = useMemo(
     () => build_zoned_datetime(schedule_date, schedule_time),
@@ -277,9 +280,16 @@ export function MobileScheduleSheet({
     custom_schedule_date !== null &&
     exceeds_sealed_schedule_window(custom_schedule_date);
 
+  const is_custom_schedule_future = use_is_future_instant(
+    custom_schedule_date,
+    is_open && show_custom,
+  );
+
   const is_valid_custom_schedule =
-    is_future_instant(custom_schedule_date) &&
-    !is_custom_schedule_too_far_ahead;
+    is_custom_schedule_future && !is_custom_schedule_too_far_ahead;
+
+  const is_custom_schedule_in_past =
+    custom_schedule_date !== null && !is_custom_schedule_future;
 
   const handle_custom_confirm = useCallback(() => {
     if (!custom_schedule_date) return;
@@ -383,6 +393,11 @@ export function MobileScheduleSheet({
             {is_custom_schedule_too_far_ahead && (
               <p className="text-[12px] text-[var(--text-muted)]" role="status">
                 {t("common.scheduled_too_far_ahead")}
+              </p>
+            )}
+            {is_custom_schedule_in_past && (
+              <p className="text-[12px] text-[var(--text-muted)]" role="status">
+                {t("mail_rules.snooze_needs_future")}
               </p>
             )}
             <div className="flex gap-2 pt-1">

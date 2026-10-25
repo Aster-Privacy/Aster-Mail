@@ -24,6 +24,7 @@ import { CalendarIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
 import { is_future_instant } from "@/utils/schedule_targets";
+import { use_is_future_instant } from "@/hooks/use_is_future_instant";
 import { use_i18n } from "@/lib/i18n/context";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -62,6 +63,9 @@ export function CustomSnoozeModal({
   const [selected_hour, set_selected_hour] = useState(9);
   const [selected_minute, set_selected_minute] = useState(0);
   const [is_loading, set_is_loading] = useState(false);
+  const [blocked_instant_ms, set_blocked_instant_ms] = useState<
+    number | null
+  >(null);
 
   const hours = useMemo(() => Array.from({ length: 24 }, (_, i) => i), []);
   const minutes = useMemo(() => [0, 15, 30, 45], []);
@@ -69,29 +73,38 @@ export function CustomSnoozeModal({
   const format_hour = (hour: number) =>
     format_hour_choice(hour, t("common.am"), t("common.pm"));
 
-  const is_valid_custom_time = useMemo(() => {
-    if (!selected_date) return false;
-    const scheduled = zoned_instant_from_calendar_day(
+  const selected_instant = useMemo(() => {
+    if (!selected_date) return null;
+
+    return zoned_instant_from_calendar_day(
       selected_date,
       selected_hour,
       selected_minute,
     );
-
-    return is_future_instant(scheduled);
   }, [selected_date, selected_hour, selected_minute]);
 
-  const handle_confirm = useCallback(async () => {
-    if (!selected_date || !is_valid_custom_time) return;
+  const is_selected_future = use_is_future_instant(selected_instant, is_open);
 
-    const snooze_date = zoned_instant_from_calendar_day(
-      selected_date,
-      selected_hour,
-      selected_minute,
-    );
+  const is_blocked =
+    selected_instant !== null &&
+    blocked_instant_ms === selected_instant.getTime();
+
+  const is_valid_custom_time = is_selected_future && !is_blocked;
+
+  const show_past_error = selected_instant !== null && !is_valid_custom_time;
+
+  const handle_confirm = useCallback(async () => {
+    if (!selected_instant || !is_valid_custom_time) return;
+
+    if (!is_future_instant(selected_instant)) {
+      set_blocked_instant_ms(selected_instant.getTime());
+
+      return;
+    }
 
     set_is_loading(true);
     try {
-      const result = await on_snooze(snooze_date);
+      const result = await on_snooze(selected_instant);
 
       if (result === false) return;
 
@@ -102,14 +115,7 @@ export function CustomSnoozeModal({
     } finally {
       set_is_loading(false);
     }
-  }, [
-    selected_date,
-    selected_hour,
-    selected_minute,
-    is_valid_custom_time,
-    on_snooze,
-    on_close,
-  ]);
+  }, [selected_instant, is_valid_custom_time, on_snooze, on_close]);
 
   const handle_close = useCallback(() => {
     on_close();
@@ -177,6 +183,11 @@ export function CustomSnoozeModal({
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
+        {show_past_error && (
+          <p className="mt-2 text-xs text-txt-muted" role="status">
+            {t("mail_rules.snooze_needs_future")}
+          </p>
+        )}
         <div className="flex mt-4 gap-2">
           <Button
             className="flex-1"
