@@ -99,7 +99,10 @@ describe("quick waitlist panel", () => {
 
   it("joins the waitlist and shows the confirmation", async () => {
     api.get.mockResolvedValue({ joined: false, joined_at: null });
-    api.join.mockResolvedValue({ joined: true, joined_at: "2026-10-25T00:00:00Z" });
+    api.join.mockResolvedValue({
+      joined: true,
+      joined_at: "2026-10-25T00:00:00Z",
+    });
     await render_panel();
 
     expect(container.textContent).toContain("calendar.beta_waitlist_body");
@@ -113,7 +116,10 @@ describe("quick waitlist panel", () => {
   });
 
   it("leaves the waitlist", async () => {
-    api.get.mockResolvedValue({ joined: true, joined_at: "2026-10-25T00:00:00Z" });
+    api.get.mockResolvedValue({
+      joined: true,
+      joined_at: "2026-10-25T00:00:00Z",
+    });
     api.leave.mockResolvedValue({ joined: false, joined_at: null });
     await render_panel();
 
@@ -138,5 +144,60 @@ describe("quick waitlist panel", () => {
       "calendar.beta_waitlist_failed",
     );
     expect(button_with("calendar.beta_waitlist_apply")).toBeDefined();
+  });
+
+  it("offers a retry when the status cannot load", async () => {
+    api.get.mockRejectedValueOnce(new Error("calendar_waitlist_unavailable"));
+    api.get.mockResolvedValueOnce({ joined: false, joined_at: null });
+    await render_panel();
+
+    expect(container.querySelector("[role=alert]")?.textContent).toBe(
+      "calendar.beta_waitlist_failed",
+    );
+    expect(button_with("calendar.beta_waitlist_apply")).toBeUndefined();
+    expect(button_with("calendar.beta_waitlist_leave")).toBeUndefined();
+
+    await act(async () => {
+      button_with("calendar.beta_waitlist_retry")?.click();
+    });
+
+    expect(api.get).toHaveBeenCalledTimes(2);
+    expect(container.querySelector("[role=alert]")).toBeNull();
+    expect(button_with("calendar.beta_waitlist_apply")).toBeDefined();
+  });
+
+  it("sends one request when apply is pressed twice", async () => {
+    let resolve_join: (value: unknown) => void = () => {};
+
+    api.get.mockResolvedValue({ joined: false, joined_at: null });
+    api.join.mockReturnValue(
+      new Promise((resolve) => {
+        resolve_join = resolve;
+      }),
+    );
+    await render_panel();
+
+    const apply = button_with("calendar.beta_waitlist_apply");
+
+    await act(async () => {
+      apply?.click();
+      apply?.click();
+    });
+    await act(async () => {
+      resolve_join({ joined: true, joined_at: "2026-10-25T00:00:00Z" });
+    });
+
+    expect(api.join).toHaveBeenCalledTimes(1);
+    expect(container.textContent).toContain("calendar.beta_waitlist_joined");
+  });
+
+  it("shows the privacy note and the temporary icon note", async () => {
+    api.get.mockResolvedValue({ joined: false, joined_at: null });
+    await render_panel();
+
+    expect(container.textContent).toContain("calendar.beta_waitlist_badge");
+    expect(container.textContent).toContain("calendar.beta_waitlist_privacy");
+    expect(container.textContent).toContain("calendar.beta_waitlist_icon_note");
+    expect(container.querySelectorAll("li")).toHaveLength(3);
   });
 });

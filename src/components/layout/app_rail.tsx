@@ -21,7 +21,6 @@
 import { memo, useCallback, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { AppRailView } from "@aster/ui";
-import { CalendarDaysIcon } from "@heroicons/react/24/outline";
 
 import { AppRailIcon } from "@/components/icons/app_rail_icon";
 import { QuickContactsPanel } from "@/components/layout/quick_contacts_panel";
@@ -196,6 +195,13 @@ function AppRailComponent({
       is_settings_view={is_settings_view}
       items={[
         {
+          key: "calendar_beta",
+          label: t("calendar.beta_waitlist_title"),
+          selected: is_waitlist_open,
+          fallback_icon: <AppRailIcon name="calendar" />,
+          on_click: toggle_waitlist,
+        },
+        {
           key: "contacts",
           label: t("common.contacts"),
           selected: is_contacts_open,
@@ -208,13 +214,6 @@ function AppRailComponent({
           selected: is_security_open,
           fallback_icon: <AppRailIcon name="security" />,
           on_click: toggle_security,
-        },
-        {
-          key: "calendar_beta",
-          label: t("calendar.beta_waitlist_title"),
-          selected: is_waitlist_open,
-          fallback_icon: <CalendarDaysIcon className="h-5 w-5 shrink-0" />,
-          on_click: toggle_waitlist,
         },
       ]}
       labels={{

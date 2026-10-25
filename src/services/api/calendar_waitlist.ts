@@ -38,7 +38,10 @@ async function settle(
 
   return {
     joined: response.data.joined === true,
-    joined_at: response.data.joined_at ?? null,
+    joined_at:
+      typeof response.data.joined_at === "string"
+        ? response.data.joined_at
+        : null,
   };
 }
 

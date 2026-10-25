@@ -2525,6 +2525,11 @@ button.press_scale:active {
   isolation: isolate;
 }
 
+.app_rail_icon.app_rail_icon_hero {
+  width: 56px;
+  height: 56px;
+}
+
 .app_rail_icon::before {
   content: "";
   position: absolute;

@@ -19,12 +19,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useCallback, useState, type CSSProperties } from "react";
-import { UsersIcon } from "@heroicons/react/24/outline";
+import { CalendarDaysIcon, UsersIcon } from "@heroicons/react/24/outline";
 
 import { AsterSecurityMark } from "@/components/icons/aster_security_mark";
 
 interface AppRailIconProps {
-  name: "contacts" | "security";
+  name: "calendar" | "contacts" | "security";
 }
 
 export function AppRailIcon({ name }: AppRailIconProps) {
@@ -35,6 +35,10 @@ export function AppRailIcon({ name }: AppRailIconProps) {
   }, []);
 
   if (has_failed) {
+    if (name === "calendar") {
+      return <CalendarDaysIcon className="h-5 w-5 shrink-0" />;
+    }
+
     return name === "contacts" ? (
       <UsersIcon className="h-5 w-5 shrink-0" />
     ) : (
