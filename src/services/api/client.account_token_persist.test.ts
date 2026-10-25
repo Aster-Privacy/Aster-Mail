@@ -85,6 +85,24 @@ function json_response(status: number, body: unknown): Response {
   } as unknown as Response;
 }
 
+function fake_jwt(sub: string): string {
+  const encode = (value: unknown) =>
+    btoa(JSON.stringify(value))
+      .replace(/=+$/, "")
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_");
+
+  return `${encode({ alg: "HS256", typ: "JWT" })}.${encode({ sub, iat: Date.now() })}.sig`;
+}
+
+let clock_offset_ms = 0;
+
+function use_fresh_clock(): void {
+  clock_offset_ms += 60_000;
+  vi.useFakeTimers();
+  vi.setSystemTime(Date.now() + clock_offset_ms);
+}
+
 function unauthorized(): Response {
   return json_response(401, { error: "unauthorized" });
 }
@@ -103,6 +121,7 @@ describe("per account token persistence", () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     api_client.end_account_add();
     api_client.resume_account_persist();
     api_client.set_authenticated(false);
@@ -111,17 +130,22 @@ describe("per account token persistence", () => {
   });
 
   it("writes a rotated token to the account that owned the refresh, not the account that is active when it lands", async () => {
-    vi.useFakeTimers();
+    use_fresh_clock();
     api_client.set_expected_user_id(OWNER);
     current_account_id = OWNER;
     api_client.set_authenticated(true);
     await vi.advanceTimersByTimeAsync(6000);
 
+    let switched = false;
+
     vi.mocked(routed_fetch).mockImplementation(async () => {
-      api_client.suspend_account_persist();
-      api_client.begin_account_add();
-      api_client.set_expected_user_id(OTHER);
-      current_account_id = OTHER;
+      if (!switched) {
+        switched = true;
+        api_client.suspend_account_persist();
+        api_client.begin_account_add();
+        api_client.set_expected_user_id(OTHER);
+        current_account_id = OTHER;
+      }
 
       return json_response(200, {
         csrf_token: "csrf_new",
@@ -136,8 +160,7 @@ describe("per account token persistence", () => {
 
     api_client.end_account_add();
     api_client.resume_account_persist();
-    await vi.advanceTimersByTimeAsync(1);
-    vi.useRealTimers();
+    await vi.advanceTimersByTimeAsync(7000);
 
     expect(update_account_tokens).toHaveBeenCalledWith(
       OWNER,
@@ -145,6 +168,64 @@ describe("per account token persistence", () => {
       "refresh_rotated",
     );
     expect(account_tokens.get(OTHER)).toBeUndefined();
+  });
+
+  it("writes rotated tokens to the account named in the token subject", async () => {
+    use_fresh_clock();
+    api_client.set_expected_user_id(OWNER);
+    current_account_id = OWNER;
+    api_client.set_authenticated(true);
+
+    const access = fake_jwt(OTHER);
+    const refresh = fake_jwt(OTHER);
+
+    vi.mocked(routed_fetch).mockImplementation(async () =>
+      json_response(200, {
+        csrf_token: "csrf_new",
+        access_token: access,
+        refresh_token: refresh,
+      }),
+    );
+
+    await api_client.refresh_session();
+
+    expect(update_account_tokens).toHaveBeenCalledWith(OTHER, access, refresh);
+    expect(update_account_tokens).not.toHaveBeenCalledWith(
+      OWNER,
+      expect.anything(),
+      expect.anything(),
+    );
+  });
+
+  it("refreshes the session before signing out when the csrf token has expired", async () => {
+    use_fresh_clock();
+    api_client.set_expected_user_id(OWNER);
+    current_account_id = OWNER;
+    api_client.set_authenticated(true);
+
+    const called: string[] = [];
+
+    vi.mocked(routed_fetch).mockImplementation(async (url: string) => {
+      called.push(url);
+
+      if (url.includes("/auth/refresh")) {
+        return json_response(200, {
+          csrf_token: "csrf_new",
+          access_token: fake_jwt(OWNER),
+          refresh_token: fake_jwt(OWNER),
+        });
+      }
+
+      return json_response(200, {});
+    });
+
+    await api_client.post("/core/v1/auth/logout", {});
+
+    const refresh_index = called.findIndex((u) => u.includes("/auth/refresh"));
+    const logout_index = called.findIndex((u) => u.includes("/auth/logout"));
+
+    expect(refresh_index).toBeGreaterThanOrEqual(0);
+    expect(logout_index).toBeGreaterThan(refresh_index);
   });
 
   it("recovers a session whose stored access token is stale by refreshing before giving up", async () => {
