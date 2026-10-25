@@ -23,14 +23,18 @@ import type { ComponentType, CSSProperties, SVGProps } from "react";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  ArrowDownTrayIcon,
+  ArrowPathIcon,
+  BellIcon,
   ClockIcon,
   DevicePhoneMobileIcon,
+  EnvelopeIcon,
   LinkIcon,
   LockClosedIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { CheckIcon } from "@heroicons/react/24/solid";
-import { Button, Spinner, Tooltip } from "@aster/ui";
+import { Badge, Button, Spinner, Tooltip } from "@aster/ui";
 
 import {
   get_calendar_waitlist_status,
@@ -165,6 +169,30 @@ export function QuickWaitlistPanel({
       title: t("calendar.beta_waitlist_feature_booking"),
       body: t("calendar.beta_waitlist_feature_booking_body"),
     },
+    {
+      key: "invites",
+      icon: EnvelopeIcon,
+      title: t("calendar.beta_waitlist_feature_invites"),
+      body: t("calendar.beta_waitlist_feature_invites_body"),
+    },
+    {
+      key: "reminders",
+      icon: BellIcon,
+      title: t("calendar.beta_waitlist_feature_reminders"),
+      body: t("calendar.beta_waitlist_feature_reminders_body"),
+    },
+    {
+      key: "recurring",
+      icon: ArrowPathIcon,
+      title: t("calendar.beta_waitlist_feature_recurring"),
+      body: t("calendar.beta_waitlist_feature_recurring_body"),
+    },
+    {
+      key: "import",
+      icon: ArrowDownTrayIcon,
+      title: t("calendar.beta_waitlist_feature_import"),
+      body: t("calendar.beta_waitlist_feature_import_body"),
+    },
   ];
 
   return (
@@ -180,9 +208,9 @@ export function QuickWaitlistPanel({
           <h2 className="truncate text-[15px] font-medium text-txt-primary">
             {t("calendar.beta_waitlist_title")}
           </h2>
-          <span className="flex-shrink-0 rounded-[5px] border border-edge-secondary px-1.5 text-[11px] leading-[18px] font-medium text-txt-secondary">
+          <Badge className="flex-shrink-0" color="blue">
             {t("calendar.beta_waitlist_tag")}
-          </span>
+          </Badge>
           <InfoPopover
             description={t("calendar.beta_waitlist_info_body")}
             title={t("calendar.beta_waitlist_info_title")}

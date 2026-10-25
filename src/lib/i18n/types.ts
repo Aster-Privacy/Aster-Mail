@@ -210,6 +210,14 @@ export interface CalendarTranslations {
   beta_waitlist_feature_devices_body: string;
   beta_waitlist_feature_booking: string;
   beta_waitlist_feature_booking_body: string;
+  beta_waitlist_feature_invites: string;
+  beta_waitlist_feature_invites_body: string;
+  beta_waitlist_feature_reminders: string;
+  beta_waitlist_feature_reminders_body: string;
+  beta_waitlist_feature_recurring: string;
+  beta_waitlist_feature_recurring_body: string;
+  beta_waitlist_feature_import: string;
+  beta_waitlist_feature_import_body: string;
   beta_waitlist_apply: string;
   beta_waitlist_joined: string;
   beta_waitlist_joined_body: string;
