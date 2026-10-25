@@ -5816,6 +5816,8 @@ export const it = {
     "connection.status_error":
       "Abbiamo perso la connessione, e stiamo riprovando da soli.",
     "connection.status_disconnected": "Disconnesso",
+    "connection.tor_unavailable_fallback":
+      "Tor non è disponibile in Aster Mail, quindi ora ti connetti direttamente. Per usare Tor, apri Aster Mail in Tor Browser.",
     "connection.tor_blocked":
       "Tor è disattivato, e abbiamo bloccato questa richiesta per evitare che il suo traffico esca allo scoperto. Attivare Tor la farà passare.",
     "connection.tor_blocked_connecting":
@@ -7468,6 +7470,10 @@ export const it = {
     strip_exif_on_compose_label: "Rimuovi metadati immagini",
     strip_exif_on_compose_description:
       "Rimuovi i metadati EXIF e altri dalle immagini prima dell'invio per proteggere la tua posizione e le informazioni del dispositivo",
+    error_reports_title: "Segnalazioni di errore",
+    send_error_reports_label: "Invia segnalazioni di errore",
+    send_error_reports_description:
+      "Quando qualcosa non funziona, Aster Mail invia una breve segnalazione con un codice di errore, il nome della funzione, la sezione dell'app in cui ti trovavi, la versione dell'app e la tua piattaforma. Le segnalazioni non includono mai i tuoi messaggi, contatti, indirizzi email o password.",
     account_protection_title: "Protezione account",
     account_protection_weak: "Debole",
     account_protection_fair: "Sufficiente",
@@ -10452,11 +10458,11 @@ export const it = {
     invalid_unsubscribe_address:
       "L'indirizzo di annullamento iscrizione di questo mittente sembra malformato. Il link nell'email stessa le permetterà di annullare l'iscrizione sul sito del mittente.",
     tor_unsupported_platform:
-      "Tor non è disponibile su questa piattaforma. L'app desktop o mobile può instradare la sua connessione attraverso Tor.",
+      "Tor non è disponibile in Aster Mail. Per usare Tor, apri Aster Mail in Tor Browser.",
     tor_native_only:
-      "Tor è disponibile solo nell'app nativa. L'app desktop o mobile le consentirà di usarlo.",
+      "Tor non è disponibile in Aster Mail. Per usare Tor, apri Aster Mail in Tor Browser.",
     tor_plugin_missing:
-      "Il modulo Tor non è installato su questo dispositivo. Reinstalla l'app o passa a una connessione diretta in Impostazioni.",
+      "Tor non è disponibile in Aster Mail. Per usare Tor, apri Aster Mail in Tor Browser.",
     cdn_relay_misconfigured:
       "Il relay CDN non è configurato per questa build. Passa a una connessione diretta in Impostazioni. Se hai bisogno di aiuto, contatta hello@astermail.org.",
     device_repair_required:
@@ -10508,6 +10514,8 @@ export const it = {
       "La chiave di crittografia di un destinatario è cambiata, quindi il messaggio non è stato inviato. Per inviarlo, conferma la modifica con questa persona in un altro modo, poi scegli Considera attendibile la nuova chiave.",
     key_trust_check_failed:
       "Impossibile verificare le chiavi di crittografia dei destinatari, quindi il messaggio non è stato inviato. Controlla la connessione e riprova.",
+    recipient_classification_unavailable:
+      "Impossibile confermare come recapitare il messaggio a {{recipients}}. Controlla la connessione e riprova.",
     conflict:
       "Qualcuno o qualcos'altro ha apportato modifiche prima. Un aggiornamento mostrerà la versione più recente.",
     connection_failed:

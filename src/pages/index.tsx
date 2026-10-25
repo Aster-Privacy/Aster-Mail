@@ -140,6 +140,7 @@ function preload_reply_and_forward(): void {
 
 import { EmailPopupViewer } from "@/components/email/email_popup_viewer";
 import { ScheduledPopupViewer } from "@/components/scheduled/scheduled_popup_viewer";
+import { ConnectionFallbackNotice } from "@/components/common/connection_fallback_notice";
 import { LockedDataBanner } from "@/components/common/locked_data_banner";
 import { NotificationBanner } from "@/components/common/notification_banner";
 import { ExternalAccountHealthBanner } from "@/components/common/external_account_health_banner";
@@ -437,6 +438,7 @@ export default function IndexPage() {
         className="h-screen w-full flex flex-col overflow-clip"
         style={{ height: "100dvh", backgroundColor: "var(--bg-secondary)" }}
       >
+        <ConnectionFallbackNotice />
         <LockedDataBanner />
         {payment_past_due.is_past_due ? (
           <PaymentPastDueBanner state={payment_past_due} />

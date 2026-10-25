@@ -19,6 +19,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { act, createElement } from "react";
+import { createRoot } from "react-dom/client";
 
 const DEFAULT_PROXY_URL = "https://app.example/api/images/v1/proxy";
 
@@ -39,8 +41,27 @@ vi.mock("@/lib/image_proxy", async (import_original) => ({
 
 import {
   build_editable_quoted_fragment,
+  build_quoted_editor_html,
+  contain_draft_quotes,
+  read_compose_editor_html,
   read_editable_quoted_html,
+  resolve_quoted_image_blocking,
 } from "@/lib/editable_quoted_html";
+import {
+  clear_displayed_image_blocking,
+  displayed_image_blocking_from_options,
+  get_displayed_image_blocking,
+  loaded_content_email_id,
+  record_displayed_image_blocking,
+  set_external_content_mode,
+  use_record_displayed_image_blocking,
+  type DisplayedContentSettings,
+} from "@/components/email/viewer_shared/external_content";
+import {
+  get_compose_sanitize_options,
+  restore_compose_image_sources,
+} from "@/lib/compose_image_sources";
+import { sanitize_html } from "@/lib/html_sanitizer";
 
 function mount(html: string, block_remote_images = false): HTMLDivElement {
   const container = document.createElement("div");
@@ -104,12 +125,16 @@ describe("editable forwarded message", () => {
     const container = mount('<img src="https://cdn.example/logo.png">', true);
     const image = container.querySelector("img")!;
 
-    expect(image.hasAttribute("src")).toBe(false);
+    expect(image.getAttribute("src")).toMatch(/^data:image\/svg\+xml,/);
+    expect(image.classList.contains("blocked-remote-image")).toBe(true);
 
     const result = read_editable_quoted_html(container);
 
     expect(result).toContain('src="https://cdn.example/logo.png"');
     expect(result).not.toContain("data-aster-parked-src");
+    expect(result).not.toContain("blocked-remote-image");
+    expect(result).not.toContain("data-placeholder-");
+    expect(result).not.toContain("data:image/svg+xml");
   });
 
   it("keeps an inline image reference for the send", () => {
@@ -346,5 +371,412 @@ describe("parked source restoration", () => {
     const loaded = read_editable_quoted_html(mount(html, false));
 
     expect(normalize_html(blocked)).toBe(normalize_html(loaded));
+  });
+});
+
+const PIXEL =
+  '<img src="https://tracker.example/open.gif" width="1" height="1">';
+const PICTURE = '<img src="https://cdn.example/photo.png" alt="Photo">';
+
+const BLOCKING_PREFERENCES = {
+  block_external_content: true,
+  block_remote_images: true,
+  block_tracking_pixels: true,
+  load_remote_images: "ask",
+};
+
+const VIEWER_SETTINGS: DisplayedContentSettings = {
+  lockdown_active: false,
+  ...BLOCKING_PREFERENCES,
+};
+
+function remote_sources(container: HTMLElement): string[] {
+  return Array.from(container.querySelectorAll("img"))
+    .map((image) => image.getAttribute("src") ?? "")
+    .filter((src) => /^(?:https?:)?\/\//i.test(src) || src.includes("/api/"));
+}
+
+describe("quoted reply content", () => {
+  afterEach(() => {
+    h.lockdown = false;
+  });
+
+  it("follows the viewer when remote content is not blocked", () => {
+    expect(
+      resolve_quoted_image_blocking({
+        ...BLOCKING_PREFERENCES,
+        block_external_content: false,
+      }),
+    ).toEqual({ block_remote_images: false, block_tracking_pixels: false });
+  });
+
+  it("blocks images and pixels when the viewer blocks them", () => {
+    expect(
+      resolve_quoted_image_blocking({
+        ...BLOCKING_PREFERENCES,
+        source_email_id: "never-loaded",
+      }),
+    ).toEqual({ block_remote_images: true, block_tracking_pixels: true });
+  });
+
+  it("keeps pixels when the viewer allows images and pixels", () => {
+    expect(
+      resolve_quoted_image_blocking({
+        ...BLOCKING_PREFERENCES,
+        block_remote_images: false,
+        block_tracking_pixels: false,
+        source_email_id: "never-loaded",
+      }),
+    ).toEqual({ block_remote_images: false, block_tracking_pixels: false });
+  });
+
+  it("blocks pixels with images even when pixels are allowed", () => {
+    expect(
+      resolve_quoted_image_blocking({
+        ...BLOCKING_PREFERENCES,
+        block_tracking_pixels: false,
+        source_email_id: "never-loaded",
+      }),
+    ).toEqual({ block_remote_images: true, block_tracking_pixels: true });
+  });
+
+  it("allows images once they were loaded for that message", () => {
+    const previous = loaded_content_email_id;
+
+    set_external_content_mode("loaded-message");
+
+    try {
+      expect(
+        resolve_quoted_image_blocking({
+          ...BLOCKING_PREFERENCES,
+          source_email_id: "loaded-message",
+        }),
+      ).toEqual({ block_remote_images: false, block_tracking_pixels: false });
+    } finally {
+      set_external_content_mode(previous ?? "");
+    }
+  });
+
+  it("blocks images in lockdown even when loaded for that message", () => {
+    const previous = loaded_content_email_id;
+
+    h.lockdown = true;
+    set_external_content_mode("loaded-message");
+    record_displayed_image_blocking("loaded-message", VIEWER_SETTINGS, {
+      block_remote_images: false,
+      block_tracking_pixels: false,
+    });
+
+    try {
+      expect(
+        resolve_quoted_image_blocking({
+          ...BLOCKING_PREFERENCES,
+          block_external_content: false,
+          block_remote_images: false,
+          block_tracking_pixels: false,
+          source_email_id: "loaded-message",
+        }),
+      ).toEqual({ block_remote_images: true, block_tracking_pixels: true });
+    } finally {
+      set_external_content_mode(previous ?? "");
+      clear_displayed_image_blocking("loaded-message");
+    }
+  });
+
+  it("keeps no remote image source when images are blocked", () => {
+    const container = document.createElement("div");
+
+    container.innerHTML = build_quoted_editor_html(
+      `<blockquote class="aster_quote_body">${PICTURE}<div style="background:url(https://cdn.example/bg.png)">x</div></blockquote>`,
+      { block_remote_images: true },
+    );
+
+    expect(remote_sources(container)).toEqual([]);
+    expect(container.querySelector("div")!.getAttribute("style")).not.toContain(
+      "cdn.example",
+    );
+    expect(container.querySelector("img")!.getAttribute("src")).toMatch(
+      /^data:image\/svg\+xml,/,
+    );
+
+    const sent = read_compose_editor_html(container.innerHTML);
+
+    expect(sent).toContain('src="https://cdn.example/photo.png"');
+    expect(sent).toContain("https://cdn.example/bg.png");
+    expect(sent).not.toContain("data-aster-parked-");
+  });
+
+  it("strips tracking pixels when the viewer blocks them", () => {
+    const html = build_quoted_editor_html(`<p>Hi</p>${PIXEL}${PICTURE}`, {
+      block_remote_images: false,
+      block_tracking_pixels: true,
+    });
+
+    expect(html).not.toContain("tracker.example");
+    expect(html).toContain('src="https://cdn.example/photo.png"');
+  });
+
+  it("strips tracking pixels when no pixel decision is given", () => {
+    const html = build_quoted_editor_html(`<p>Hi</p>${PIXEL}${PICTURE}`, {
+      block_remote_images: false,
+    });
+
+    expect(html).not.toContain("tracker.example");
+  });
+
+  it("keeps tracking pixels when the viewer allows them", () => {
+    const html = build_quoted_editor_html(`<p>Hi</p>${PIXEL}${PICTURE}`, {
+      block_remote_images: false,
+      block_tracking_pixels: false,
+    });
+
+    expect(html).toContain("tracker.example");
+    expect(html).toContain("cdn.example/photo.png");
+  });
+
+  it("strips tracking pixels when images are blocked", () => {
+    const html = build_quoted_editor_html(`<p>Hi</p>${PIXEL}${PICTURE}`, {
+      block_remote_images: true,
+      block_tracking_pixels: false,
+    });
+
+    expect(html).not.toContain("tracker.example");
+  });
+
+  it("strips a tracking pixel that was already routed through the proxy", () => {
+    const proxied = `<img src="${DEFAULT_PROXY_URL}?url=${encodeURIComponent("https://tracker.example/open.gif")}" width="1" height="1">`;
+
+    expect(
+      build_quoted_editor_html(proxied, { block_remote_images: false }),
+    ).not.toContain("<img");
+  });
+
+  it("sends the same reply as before when images and pixels are allowed", () => {
+    const quoted = `<div class="aster_quote"><blockquote class="aster_quote_body"><p>Hi</p>${PIXEL}${PICTURE}<div style="background:url(https://cdn.example/bg.png)">x</div><img src="cid:logo@example"></blockquote></div>`;
+    const sanitized = sanitize_html(quoted, get_compose_sanitize_options()).html;
+    const allowed = { block_remote_images: false, block_tracking_pixels: false };
+    const before = restore_compose_image_sources(sanitized);
+    const after = read_compose_editor_html(
+      build_quoted_editor_html(sanitized, allowed),
+    );
+
+    expect(after).toBe(before);
+    expect(after).toContain("tracker.example");
+    expect(contain_draft_quotes(sanitized, allowed)).toBe(sanitized);
+  });
+
+  it("keeps inline and attached images visible when remote images are blocked", () => {
+    const html = build_quoted_editor_html(
+      '<img src="cid:logo@example"><img src="blob:https://app.example/1"><img src="data:image/png;base64,iVBORw0KGgo=">',
+      { block_remote_images: true },
+    );
+
+    expect(html).toContain('src="cid:logo@example"');
+    expect(html).toContain('src="blob:https://app.example/1"');
+    expect(html).toContain('src="data:image/png;base64,iVBORw0KGgo="');
+    expect(html).not.toContain("data-aster-parked-");
+  });
+
+  it("only contains the quoted part of a reopened draft", () => {
+    const html = contain_draft_quotes(
+      `<p>My reply</p><img src="https://mine.example/sig.png"><div class="aster_quote"><blockquote class="aster_quote_body">${PICTURE}${PIXEL}</blockquote></div>`,
+      { block_remote_images: true },
+    );
+
+    expect(html).toContain('src="https://mine.example/sig.png"');
+    expect(html).not.toContain("tracker.example");
+    expect(html).toContain('data-aster-parked-src="https://cdn.example/photo.png"');
+  });
+
+  it("leaves a draft without a quote untouched", () => {
+    const html = '<p>Only my text</p><img src="https://mine.example/a.png">';
+
+    expect(contain_draft_quotes(html, { block_remote_images: true })).toBe(
+      html,
+    );
+  });
+});
+
+describe("quote follows the message the viewer displayed", () => {
+  const ids = ["message-a", "message-b", "system-message", "partial-message"];
+
+  afterEach(() => {
+    h.lockdown = false;
+    ids.forEach(clear_displayed_image_blocking);
+  });
+
+  function quote_for(id: string) {
+    return resolve_quoted_image_blocking({
+      ...BLOCKING_PREFERENCES,
+      source_email_id: id,
+    });
+  }
+
+  it("keeps the decision for a message after another one loads", () => {
+    const previous = loaded_content_email_id;
+
+    set_external_content_mode("message-a");
+    record_displayed_image_blocking(
+      "message-a",
+      VIEWER_SETTINGS,
+      displayed_image_blocking_from_options({
+        external_content_mode: "always",
+        content_blocking: {
+          block_remote_images: false,
+          block_remote_fonts: false,
+          block_remote_css: false,
+          block_tracking_pixels: false,
+        },
+      }),
+    );
+    set_external_content_mode("message-b");
+    record_displayed_image_blocking("message-b", VIEWER_SETTINGS, {
+      block_remote_images: false,
+      block_tracking_pixels: false,
+    });
+
+    try {
+      expect(quote_for("message-a")).toEqual({
+        block_remote_images: false,
+        block_tracking_pixels: false,
+      });
+      expect(quote_for("message-b")).toEqual({
+        block_remote_images: false,
+        block_tracking_pixels: false,
+      });
+    } finally {
+      set_external_content_mode(previous ?? "");
+    }
+  });
+
+  it("does not loosen a message the viewer showed blocked", () => {
+    const previous = loaded_content_email_id;
+
+    set_external_content_mode("message-a");
+    record_displayed_image_blocking("message-a", VIEWER_SETTINGS, {
+      block_remote_images: true,
+      block_tracking_pixels: true,
+    });
+
+    try {
+      expect(quote_for("message-a")).toEqual({
+        block_remote_images: true,
+        block_tracking_pixels: true,
+      });
+    } finally {
+      set_external_content_mode(previous ?? "");
+    }
+  });
+
+  it("shows images for a sender the viewer loads automatically", () => {
+    record_displayed_image_blocking(
+      "system-message",
+      VIEWER_SETTINGS,
+      displayed_image_blocking_from_options({
+        external_content_mode: "always",
+      }),
+    );
+
+    expect(quote_for("system-message")).toEqual({
+      block_remote_images: false,
+      block_tracking_pixels: false,
+    });
+  });
+
+  it("follows a partial load of images only", () => {
+    record_displayed_image_blocking(
+      "partial-message",
+      VIEWER_SETTINGS,
+      displayed_image_blocking_from_options({
+        external_content_mode: "ask",
+        content_blocking: {
+          block_remote_images: false,
+          block_remote_fonts: true,
+          block_remote_css: true,
+          block_tracking_pixels: true,
+        },
+      }),
+    );
+
+    expect(quote_for("partial-message")).toEqual({
+      block_remote_images: false,
+      block_tracking_pixels: true,
+    });
+  });
+
+  it("blocks everything the preloaded viewer content blocks", () => {
+    expect(
+      displayed_image_blocking_from_options({
+        external_content_mode: "ask",
+      }),
+    ).toEqual({ block_remote_images: true, block_tracking_pixels: true });
+  });
+
+  it("ignores a decision made under other settings", () => {
+    record_displayed_image_blocking(
+      "message-a",
+      { ...VIEWER_SETTINGS, block_remote_images: false },
+      { block_remote_images: false, block_tracking_pixels: false },
+    );
+
+    expect(quote_for("message-a")).toEqual({
+      block_remote_images: true,
+      block_tracking_pixels: true,
+    });
+  });
+
+  it("forgets the oldest decisions past the limit", () => {
+    const many = Array.from({ length: 51 }, (_, index) => `bulk-${index}`);
+
+    many.forEach((id) =>
+      record_displayed_image_blocking(id, VIEWER_SETTINGS, {
+        block_remote_images: false,
+        block_tracking_pixels: false,
+      }),
+    );
+
+    expect(get_displayed_image_blocking("bulk-0", VIEWER_SETTINGS)).toBe(
+      undefined,
+    );
+    expect(get_displayed_image_blocking("bulk-50", VIEWER_SETTINGS)).toEqual({
+      block_remote_images: false,
+      block_tracking_pixels: false,
+    });
+    many.forEach(clear_displayed_image_blocking);
+  });
+
+  it("records while the viewer is mounted and clears on unmount", () => {
+    (
+      globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
+    ).IS_REACT_ACT_ENVIRONMENT = true;
+
+    function viewer_probe() {
+      use_record_displayed_image_blocking("message-a", VIEWER_SETTINGS, {
+        block_remote_images: false,
+        block_tracking_pixels: true,
+      });
+
+      return null;
+    }
+
+    const container = document.createElement("div");
+    const root = createRoot(container);
+
+    act(() => {
+      root.render(createElement(viewer_probe));
+    });
+
+    expect(quote_for("message-a")).toEqual({
+      block_remote_images: false,
+      block_tracking_pixels: true,
+    });
+
+    act(() => {
+      root.unmount();
+    });
+
+    expect(get_displayed_image_blocking("message-a", VIEWER_SETTINGS)).toBe(
+      undefined,
+    );
   });
 });

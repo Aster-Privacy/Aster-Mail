@@ -49,6 +49,7 @@ class ConnectionStore {
   private state: ConnectionState = { ...DEFAULT_CONNECTION_STATE };
   private listeners: Set<ConnectionListener> = new Set();
   private sync_in_progress_count: number = 0;
+  private unsupported_method_fallback: ConnectionMethod | null = null;
 
   async initialize(): Promise<void> {
     const raw_method = await this.load_persisted_value(STORAGE_KEY);
@@ -68,6 +69,7 @@ class ConnectionStore {
       (method === "cdn_relay" && is_cdn_relay_supported());
 
     if (!supported) {
+      this.unsupported_method_fallback = method;
       method = "direct";
       await this.persist_value(STORAGE_KEY, "direct");
     }
@@ -164,6 +166,14 @@ class ConnectionStore {
     } finally {
       this.sync_in_progress_count--;
     }
+  }
+
+  take_unsupported_method_fallback(): ConnectionMethod | null {
+    const fallback = this.unsupported_method_fallback;
+
+    this.unsupported_method_fallback = null;
+
+    return fallback;
   }
 
   get_state(): ConnectionState {

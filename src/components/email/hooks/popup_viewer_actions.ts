@@ -73,7 +73,7 @@ import { sync_thread_spam } from "@/services/trash_state";
 import { set_forward_mail_id } from "@/services/forward_store";
 import mail_logo_url from "@/assets/mail_logo.webp";
 import { ignore_error } from "@/lib/ignore_error";
-import { open_external } from "@/utils/open_link";
+import { request_external_link } from "@/utils/external_link_request";
 import {
   app_locale,
   format_print_timestamp,
@@ -741,7 +741,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
               url && {
                 action_label: deps.t("mail.open_unsubscribe_page"),
                 on_undo: async () => {
-                  open_external(url);
+                  if (!(await request_external_link(url))) return;
                   if (!deps.email) return;
                   persist_unsubscribe(
                     deps.email.sender_email,

@@ -105,7 +105,7 @@ import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
 import { same_address_ignoring_dots } from "@/utils/address_dots";
 import mail_logo_url from "@/assets/mail_logo.webp";
 import { ignore_error } from "@/lib/ignore_error";
-import { open_external } from "@/utils/open_link";
+import { request_external_link } from "@/utils/external_link_request";
 import { copy_text, copy_text_or_throw } from "@/utils/copy_text";
 import {
   app_locale,
@@ -953,7 +953,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
             url && {
               action_label: deps.t("mail.open_unsubscribe_page"),
               on_undo: async () => {
-                open_external(url);
+                if (!(await request_external_link(url))) return;
                 if (!deps.email) return;
                 persist_unsubscribe(
                   deps.email.sender_email,

@@ -54,7 +54,7 @@ import {
   save_receipt_correction,
   type ReceiptReview,
 } from "@/services/extraction/review_store";
-import { open_external } from "@/utils/open_link";
+import { request_external_link } from "@/utils/external_link_request";
 
 const COLLAPSED_PREF_KEY = "receipt_banner_collapsed";
 const MAX_VISIBLE_ITEMS = 6;
@@ -471,7 +471,7 @@ export function PurchaseDetailsBanner({
             icon={ArrowTopRightOnSquareIcon}
             label={view_label}
             test_id="purchase_view_receipt"
-            on_click={() => open_external(receipt_url)}
+            on_click={() => request_external_link(receipt_url)}
           />
         )}
         <span className="flex-1" />

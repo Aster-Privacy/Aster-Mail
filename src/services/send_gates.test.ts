@@ -317,6 +317,32 @@ describe("check_scheduled_send", () => {
     });
     expect(consent).not.toHaveBeenCalled();
   });
+
+  it("blocks with the classification message when a recipient stays unresolved", async () => {
+    const { classify_recipients } = await import("./recipient_classification");
+    const { RecipientClassificationUnavailableError } =
+      await import("./send_queue_types");
+
+    vi.mocked(classify_recipients).mockRejectedValueOnce(
+      new RecipientClassificationUnavailableError("unresolved tracy@scofz.com", [
+        "tracy@scofz.com",
+      ]),
+    );
+
+    const result = await check_scheduled_send(
+      ["tracy@scofz.com"],
+      "me@astermail.org",
+      soon(),
+      false,
+    );
+
+    expect(result).toEqual({
+      proceed: false,
+      blocked_by: "errors.recipient_classification_unavailable",
+      message: "unresolved tracy@scofz.com",
+    });
+    expect(consent).not.toHaveBeenCalled();
+  });
 });
 
 describe("check_reply_send", () => {
@@ -413,6 +439,34 @@ describe("check_reply_send", () => {
     expect(await check_reply_send(["friend@astermail.org"], false)).toBe(
       strings().errors.key_trust_check_failed,
     );
+  });
+
+  it("blocks with the classification message when a recipient stays unresolved", async () => {
+    const { classify_recipients } = await import("./recipient_classification");
+    const { RecipientClassificationUnavailableError } =
+      await import("./send_queue_types");
+
+    vi.mocked(classify_recipients).mockRejectedValueOnce(
+      new RecipientClassificationUnavailableError("unresolved tracy@scofz.com", [
+        "tracy@scofz.com",
+      ]),
+    );
+
+    expect(await check_reply_send(["tracy@scofz.com"], false)).toBe(
+      "unresolved tracy@scofz.com",
+    );
+    expect(discover).not.toHaveBeenCalled();
+  });
+
+  it("requires every recipient to resolve before a reply sends", async () => {
+    const { classify_recipients } = await import("./recipient_classification");
+
+    vi.mocked(classify_recipients).mockClear();
+    await check_reply_send(["bob@example.com"], false);
+
+    expect(classify_recipients).toHaveBeenCalledWith(["bob@example.com"], {
+      require_resolved: true,
+    });
   });
 
   it("allows outside recipients when encryption is optional", async () => {

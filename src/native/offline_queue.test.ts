@@ -37,6 +37,9 @@ const hoisted = vi.hoisted(() => ({
     ): Promise<unknown> => ({ queue_id: "q1", pending_send: {} }),
   ),
   key_changes: { value: [] as unknown[] },
+  classify_recipients: vi.fn(
+    async (_emails: string[], _options?: unknown): Promise<void> => {},
+  ),
   preferences: {
     value: {
       encrypt_emails: false,
@@ -101,7 +104,7 @@ vi.mock("@/services/send_queue", () => ({
 }));
 
 vi.mock("@/services/recipient_classification", () => ({
-  classify_recipients: async () => {},
+  classify_recipients: hoisted.classify_recipients,
   is_internal_recipient: (email: string) => email.endsWith("@astermail.org"),
 }));
 
@@ -123,6 +126,7 @@ import {
 } from "./offline_queue";
 
 import { MAIL_EVENTS } from "@/hooks/mail_events";
+import { RecipientClassificationUnavailableError } from "@/services/send_queue_types";
 
 const LEGACY_KEY = "aster_offline_queue";
 const SCOPED_KEY_A = "aster_offline_queue:acct_a";
@@ -482,6 +486,8 @@ describe("offline queue replay gates", () => {
     hoisted.execute_external_send.mockReset();
     hoisted.execute_external_send.mockResolvedValue(undefined);
     hoisted.queue_email_to_server.mockClear();
+    hoisted.classify_recipients.mockReset();
+    hoisted.classify_recipients.mockResolvedValue(undefined);
     hoisted.key_changes.value = [];
     hoisted.preferences.value = {
       encrypt_emails: false,
@@ -610,6 +616,59 @@ describe("offline queue replay gates", () => {
 
     expect(hoisted.queue_email_to_server).not.toHaveBeenCalled();
     expect(await get_queue()).toHaveLength(1);
+  });
+
+  it("keeps a send queued when recipients cannot be classified", async () => {
+    hoisted.classify_recipients.mockRejectedValue(
+      new RecipientClassificationUnavailableError("unresolved", [
+        "friend@example.com",
+      ]),
+    );
+    localStorage.setItem(
+      SCOPED_KEY_A,
+      JSON.stringify([send_payload({ to: ["friend@example.com"] })]),
+    );
+
+    await process_offline_queue();
+
+    expect(hoisted.classify_recipients).toHaveBeenCalledWith(
+      ["friend@example.com"],
+      { require_resolved: true },
+    );
+    expect(hoisted.execute_send).not.toHaveBeenCalled();
+    expect(hoisted.execute_external_send).not.toHaveBeenCalled();
+    expect(hoisted.queue_email_to_server).not.toHaveBeenCalled();
+
+    const queue = await get_queue();
+
+    expect(queue).toHaveLength(1);
+    expect(queue[0].retry_count).toBe(1);
+    expect(queue[0].payload).toMatchObject({ subject: "Hello" });
+    expect(await get_failed_actions()).toHaveLength(0);
+  });
+
+  it("parks an unclassifiable send in the failed store instead of dropping it", async () => {
+    hoisted.classify_recipients.mockRejectedValue(
+      new RecipientClassificationUnavailableError("unresolved", [
+        "friend@example.com",
+      ]),
+    );
+    localStorage.setItem(
+      SCOPED_KEY_A,
+      JSON.stringify([
+        { ...send_payload({ to: ["friend@example.com"] }), retry_count: 2 },
+      ]),
+    );
+
+    await process_offline_queue();
+
+    expect(hoisted.execute_send).not.toHaveBeenCalled();
+    expect(await get_queue()).toHaveLength(0);
+
+    const failed = await get_failed_actions();
+
+    expect(failed).toHaveLength(1);
+    expect(failed[0].payload).toMatchObject({ subject: "Hello" });
   });
 
   it("never sends a password-protected mixed message", async () => {

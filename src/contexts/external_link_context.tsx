@@ -37,23 +37,31 @@ import {
   LOCKDOWN_CHANGED_EVENT,
 } from "@/services/lockdown_store";
 import { is_trusted_link } from "@/lib/trusted_link_domains";
+import {
+  EXTERNAL_LINK_EVENT,
+  type ExternalLinkRequestDetail,
+} from "@/utils/external_link_request";
 
 interface ExternalLinkContextType {
-  handle_external_link: (url: string) => void;
+  handle_external_link: (
+    url: string,
+    on_result?: (opened: boolean) => void,
+  ) => void;
 }
 
 const ExternalLinkContext = createContext<ExternalLinkContextType | undefined>(
   undefined,
 );
 
-interface ExternalLinkClickEvent extends CustomEvent {
-  detail: { url: string };
-}
+type ExternalLinkClickEvent = CustomEvent<
+  Partial<ExternalLinkRequestDetail> | undefined
+>;
 
 export function ExternalLinkProvider({ children }: { children: ReactNode }) {
   const { preferences, update_preference } = use_preferences();
   const [is_modal_open, set_is_modal_open] = useState(false);
   const [pending_url, set_pending_url] = useState<string>("");
+  const pending_result_ref = useRef<((opened: boolean) => void) | null>(null);
   const [lockdown_active, set_lockdown_active] = useState(() =>
     is_any_lockdown_active(),
   );
@@ -97,8 +105,17 @@ export function ExternalLinkProvider({ children }: { children: ReactNode }) {
     open_external(url);
   }, []);
 
+  const settle_pending_result = useCallback((opened: boolean) => {
+    const on_result = pending_result_ref.current;
+
+    pending_result_ref.current = null;
+    on_result?.(opened);
+  }, []);
+
+  useEffect(() => () => settle_pending_result(false), [settle_pending_result]);
+
   const handle_external_link = useCallback(
-    (url: string) => {
+    (url: string, on_result?: (opened: boolean) => void) => {
       const currently_locked = lockdown_active || is_any_lockdown_active();
 
       if (
@@ -106,28 +123,41 @@ export function ExternalLinkProvider({ children }: { children: ReactNode }) {
         (preferences.external_link_warning_dismissed || is_trusted_link(url))
       ) {
         open_url(url);
+        on_result?.(true);
 
         return;
       }
 
+      settle_pending_result(false);
+      pending_result_ref.current = on_result ?? null;
       set_pending_url(url);
       set_is_modal_open(true);
     },
-    [lockdown_active, preferences.external_link_warning_dismissed, open_url],
+    [
+      lockdown_active,
+      preferences.external_link_warning_dismissed,
+      open_url,
+      settle_pending_result,
+    ],
   );
 
   const handle_confirm = useCallback(() => {
-    if (pending_url && !lockdown_active && !is_any_lockdown_active()) {
+    const can_open =
+      Boolean(pending_url) && !lockdown_active && !is_any_lockdown_active();
+
+    if (can_open) {
       open_url(pending_url);
     }
+    settle_pending_result(can_open);
     set_is_modal_open(false);
     set_pending_url("");
-  }, [pending_url, lockdown_active, open_url]);
+  }, [pending_url, lockdown_active, open_url, settle_pending_result]);
 
   const handle_cancel = useCallback(() => {
+    settle_pending_result(false);
     set_is_modal_open(false);
     set_pending_url("");
-  }, []);
+  }, [settle_pending_result]);
 
   const handle_dismiss_permanently = useCallback(() => {
     update_preference("external_link_warning_dismissed", true, true);
@@ -136,16 +166,18 @@ export function ExternalLinkProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const handle_event = (e: Event) => {
       const custom_event = e as ExternalLinkClickEvent;
+      const url = custom_event.detail?.url;
 
-      if (custom_event.detail?.url) {
-        handle_external_link(custom_event.detail.url);
+      if (url) {
+        custom_event.preventDefault();
+        handle_external_link(url, custom_event.detail?.on_result);
       }
     };
 
-    window.addEventListener("aster-external-link", handle_event);
+    window.addEventListener(EXTERNAL_LINK_EVENT, handle_event);
 
     return () => {
-      window.removeEventListener("aster-external-link", handle_event);
+      window.removeEventListener(EXTERNAL_LINK_EVENT, handle_event);
     };
   }, [handle_external_link]);
 

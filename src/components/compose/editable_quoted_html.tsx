@@ -23,16 +23,18 @@ import { useEffect, useRef } from "react";
 import {
   build_editable_quoted_fragment,
   read_editable_quoted_html,
+  resolve_quoted_image_blocking,
+  type QuotedImageBlocking,
 } from "@/lib/editable_quoted_html";
-import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { use_preferences_optional } from "@/contexts/preferences_context";
-import { resolve_content_blocking } from "@/components/email/resolve_content_blocking";
+import { use_i18n } from "@/lib/i18n/context";
 
 interface EditableQuotedHtmlProps {
   html: string;
   is_hidden: boolean;
   label: string;
   on_change: (html: string) => void;
+  source_email_id?: string;
 }
 
 export function EditableQuotedHtml({
@@ -40,25 +42,29 @@ export function EditableQuotedHtml({
   is_hidden,
   label,
   on_change,
+  source_email_id,
 }: EditableQuotedHtmlProps) {
+  const { t } = use_i18n();
   const preferences = use_preferences_optional()?.preferences;
   const container_ref = useRef<HTMLDivElement>(null);
   const block_external_content = preferences?.block_external_content ?? false;
   const block_remote_images = preferences?.block_remote_images ?? true;
-  const should_block_images_ref = useRef(false);
+  const block_tracking_pixels = preferences?.block_tracking_pixels ?? true;
+  const load_remote_images = preferences?.load_remote_images ?? "never";
+  const quoted_blocking_ref = useRef<QuotedImageBlocking>({
+    block_remote_images: false,
+    block_tracking_pixels: true,
+  });
+  const t_ref = useRef(t);
 
-  should_block_images_ref.current =
-    block_external_content &&
-    resolve_content_blocking({
-      lockdown_active: is_any_lockdown_active(),
-      load_remote_content: false,
-      preferences: {
-        block_remote_images,
-        block_remote_fonts: true,
-        block_remote_css: true,
-        block_tracking_pixels: true,
-      },
-    }).block_remote_images;
+  t_ref.current = t;
+  quoted_blocking_ref.current = resolve_quoted_image_blocking({
+    block_external_content,
+    block_remote_images,
+    block_tracking_pixels,
+    load_remote_images,
+    source_email_id,
+  });
 
   useEffect(() => {
     const container = container_ref.current;
@@ -67,7 +73,11 @@ export function EditableQuotedHtml({
 
     container.replaceChildren(
       build_editable_quoted_fragment(html, {
-        block_remote_images: should_block_images_ref.current,
+        ...quoted_blocking_ref.current,
+        blocked_image_labels: {
+          image: t_ref.current("common.image_blocked"),
+          tracking_pixel: t_ref.current("common.tracking_pixel_blocked"),
+        },
       }),
     );
   }, [html]);

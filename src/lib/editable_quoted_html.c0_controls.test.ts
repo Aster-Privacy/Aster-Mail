@@ -123,7 +123,9 @@ describe("forward editor with the reported C0 payload", () => {
   it("loads nothing when images are blocked", () => {
     const container = mount(REPORTED, true);
 
-    expect(container.querySelector("img")?.getAttribute("src")).toBeNull();
+    expect(container.querySelector("img")?.getAttribute("src")).toMatch(
+      /^data:image\/svg\+xml,/,
+    );
     expect_no_direct_fetch(container);
   });
 

@@ -698,6 +698,7 @@ export const InlineReplyComposer = forwardRef<
       set_expiry_password={forward_modal.set_expiry_password}
       set_is_forward_visible={forward_modal.set_is_forward_visible}
       set_scheduled_time={forward_modal.set_scheduled_time}
+      source_email_id={original_email_id}
       t={forward_modal.t}
       toggle_plain_text_mode={forward_modal.toggle_plain_text_mode}
       trigger_file_select={forward_modal.trigger_file_select}

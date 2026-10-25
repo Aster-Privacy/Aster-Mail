@@ -4624,6 +4624,8 @@ export const ko = {
     "connection.status_error":
       "연결이 끊겼습니다. 자동으로 다시 연결하는 중입니다.",
     "connection.status_disconnected": "연결 끊김",
+    "connection.tor_unavailable_fallback":
+      "Aster Mail에서는 Tor를 사용할 수 없어 현재 직접 연결되어 있습니다. Tor를 사용하려면 Tor Browser에서 Aster Mail을 여세요.",
     "connection.tor_blocked":
       "Tor가 활성화되지 않았습니다. 익명성 보호를 위해 요청이 차단되었습니다.",
     "connection.tor_blocked_connecting":
@@ -7187,6 +7189,10 @@ export const ko = {
     strip_exif_on_compose_label: "이미지 메타데이터 제거",
     strip_exif_on_compose_description:
       "위치 및 기기 정보 보호를 위해 이미지 전송 전 EXIF 등 메타데이터를 제거합니다",
+    error_reports_title: "오류 보고서",
+    send_error_reports_label: "오류 보고서 보내기",
+    send_error_reports_description:
+      "문제가 발생하면 Aster Mail이 오류 코드, 기능 이름, 사용 중이던 앱 영역, 앱 버전, 플랫폼이 담긴 짧은 보고서를 보냅니다. 보고서에는 메시지, 연락처, 이메일 주소, 비밀번호가 절대 포함되지 않습니다.",
     account_protection_title: "계정 보호",
     account_protection_weak: "약함",
     account_protection_fair: "보통",
@@ -9983,11 +9989,11 @@ export const ko = {
     invalid_unsubscribe_address:
       "발신자의 수신거부 주소가 잘못된 형식으로 보입니다. 이메일 본문의 링크로 발신자 사이트에서 수신거부할 수 있습니다.",
     tor_unsupported_platform:
-      "이 플랫폼에서는 Tor를 사용할 수 없습니다. 데스크톱이나 모바일 앱에서 연결을 Tor로 라우팅할 수 있습니다.",
+      "Aster Mail에서는 Tor를 사용할 수 없습니다. Tor를 사용하려면 Tor Browser에서 Aster Mail을 여세요.",
     tor_native_only:
-      "Tor는 네이티브 앱에서만 사용할 수 있습니다. 데스크톱이나 모바일 앱에서 이용할 수 있습니다.",
+      "Aster Mail에서는 Tor를 사용할 수 없습니다. Tor를 사용하려면 Tor Browser에서 Aster Mail을 여세요.",
     tor_plugin_missing:
-      "이 기기에 Tor 모듈이 설치되어 있지 않습니다. 앱을 다시 설치하거나 설정에서 직접 연결로 전환하세요.",
+      "Aster Mail에서는 Tor를 사용할 수 없습니다. Tor를 사용하려면 Tor Browser에서 Aster Mail을 여세요.",
     cdn_relay_misconfigured:
       "이 빌드에는 CDN 릴레이가 구성되어 있지 않습니다. 설정에서 직접 연결로 전환하세요. 도움이 필요하면 hello@astermail.org로 문의하세요.",
     device_repair_required:
@@ -10064,6 +10070,8 @@ export const ko = {
       "수신자의 암호화 키가 변경되어 메시지를 보내지 않았습니다. 보내려면 다른 방법으로 상대방에게 변경 사항을 확인한 다음 새 키 신뢰를 선택하세요.",
     key_trust_check_failed:
       "수신자의 암호화 키를 확인할 수 없어 메시지를 보내지 않았습니다. 연결을 확인하고 다시 시도하세요.",
+    recipient_classification_unavailable:
+      "{{recipients}}에게 전달할 방법을 확인할 수 없습니다. 연결을 확인하고 다시 시도하세요.",
     failed_send_external:
       "연결된 외부 계정으로 이 이메일을 보내지 못했습니다. 다시 시도하세요. 임시 보관함에 저장되었습니다.",
     failed_queue_email:

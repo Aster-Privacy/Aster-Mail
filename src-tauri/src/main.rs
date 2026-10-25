@@ -547,7 +547,6 @@ fn reset_webkit_crypto_keychain() -> bool {
     false
 }
 
-#[cfg(all(unix, not(target_os = "macos")))]
 mod webkit_sandbox;
 
 #[cfg(all(unix, not(target_os = "macos")))]
@@ -591,11 +590,7 @@ fn main() {
             std::env::set_var("WEBKIT_DISABLE_COMPOSITING_MODE", "1");
             std::env::set_var("WEBKIT_DISABLE_THREADED_COMPOSITOR", "1");
         }
-        if std::env::var("WEBKIT_DISABLE_SANDBOX_THIS_IS_DANGEROUS").is_err()
-            && (boot_guard::compat_mode_active() || !webkit_sandbox::can_start())
-        {
-            std::env::set_var("WEBKIT_DISABLE_SANDBOX_THIS_IS_DANGEROUS", "1");
-        }
+        webkit_sandbox::apply_policy();
     }
 
     let builder = tauri::Builder::default()
@@ -649,6 +644,7 @@ fn main() {
             frontend_ready,
             frontend_painted,
             reset_webkit_crypto_keychain,
+            webkit_sandbox::webkit_sandbox_status,
             badge::set_unread_badge,
             set_tray_visible,
             set_close_to_tray,

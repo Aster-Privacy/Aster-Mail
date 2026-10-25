@@ -115,7 +115,7 @@ export async function execute_send(
     ...(email.bcc || []),
   ];
 
-  await classify_recipients(all_recipients);
+  await classify_recipients(all_recipients, { require_resolved: true });
 
   const hosted_recipients = all_recipients.filter(
     (recipient) =>

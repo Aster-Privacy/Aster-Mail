@@ -4578,6 +4578,8 @@ export const nl = {
     "connection.status_error":
       "We zijn de verbinding kwijtgeraakt, en we proberen het zelf opnieuw.",
     "connection.status_disconnected": "Niet verbonden",
+    "connection.tor_unavailable_fallback":
+      "Tor is niet beschikbaar in Aster Mail, dus je maakt nu rechtstreeks verbinding. Open Aster Mail in Tor Browser om Tor te gebruiken.",
     "connection.tor_blocked":
       "Tor staat uit, en we hebben dit verzoek geblokkeerd om je verkeer niet te laten weglekken. Tor inschakelen laat het door.",
     "connection.tor_blocked_connecting":
@@ -7208,6 +7210,10 @@ export const nl = {
     strip_exif_on_compose_label: "Afbeeldingsmetadata verwijderen",
     strip_exif_on_compose_description:
       "Verwijder EXIF- en andere metadata uit afbeeldingen voor het verzenden om je locatie en apparaatinformatie te beschermen",
+    error_reports_title: "Foutrapporten",
+    send_error_reports_label: "Foutrapporten versturen",
+    send_error_reports_description:
+      "Als er iets misgaat, verstuurt Aster Mail een kort rapport met een foutcode, de naam van de functie, het deel van de app waarin je was, de appversie en je platform. Rapporten bevatten nooit je berichten, contacten, e-mailadressen of wachtwoorden.",
     account_protection_title: "Accountbeveiliging",
     account_protection_weak: "Zwak",
     account_protection_fair: "Matig",
@@ -10381,11 +10387,11 @@ export const nl = {
     invalid_unsubscribe_address:
       "Het afmeldadres van deze afzender lijkt onjuist opgemaakt. De link in de e-mail zelf laat je je afmelden op de site van de afzender.",
     tor_unsupported_platform:
-      "Tor is niet beschikbaar op dit platform. De desktop- of mobiele app kan je verbinding via Tor leiden.",
+      "Tor is niet beschikbaar in Aster Mail. Open Aster Mail in Tor Browser om Tor te gebruiken.",
     tor_native_only:
-      "Tor is alleen beschikbaar in de native app. De desktop- of mobiele app stelt je in staat om het te gebruiken.",
+      "Tor is niet beschikbaar in Aster Mail. Open Aster Mail in Tor Browser om Tor te gebruiken.",
     tor_plugin_missing:
-      "De Tor-module is niet geïnstalleerd op dit apparaat. Installeer de app opnieuw of schakel over naar een directe verbinding in Instellingen.",
+      "Tor is niet beschikbaar in Aster Mail. Open Aster Mail in Tor Browser om Tor te gebruiken.",
     cdn_relay_misconfigured:
       "De CDN-relay is niet geconfigureerd voor deze build. Schakel over naar een directe verbinding in Instellingen. Als je hulp nodig hebt, neem dan contact op met hello@astermail.org.",
     device_repair_required:
@@ -10469,6 +10475,8 @@ export const nl = {
       "De versleutelingssleutel van een ontvanger is gewijzigd, dus het bericht is niet verstuurd. Bevestig de wijziging op een andere manier en kies daarna Nieuwe sleutel vertrouwen.",
     key_trust_check_failed:
       "De versleutelingssleutels van de ontvangers konden niet worden gecontroleerd, dus het bericht is niet verstuurd. Controleer je verbinding en probeer het opnieuw.",
+    recipient_classification_unavailable:
+      "Kan niet bevestigen hoe het bericht bij {{recipients}} moet worden bezorgd. Controleer je verbinding en probeer het opnieuw.",
     failed_send_external:
       "Deze e-mail is niet verzonden via je gekoppelde externe account. Probeer het opnieuw. Je concept is opgeslagen.",
     failed_queue_email:

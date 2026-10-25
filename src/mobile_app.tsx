@@ -55,6 +55,7 @@ import { UndoSendPreviewModal } from "@/components/toast/undo_send_preview_modal
 import { Family2faDialog } from "@/components/common/family_2fa_dialog";
 import { BillingAlertBanner } from "@/components/common/billing_alert_banner";
 import { ExternalAccountHealthBanner } from "@/components/common/external_account_health_banner";
+import { ConnectionFallbackNotice } from "@/components/common/connection_fallback_notice";
 import { LockedDataBanner } from "@/components/common/locked_data_banner";
 import { CheckoutReturnHandler } from "@/components/common/checkout_return_handler";
 import { MobileBillingReturnHandler } from "@/pages/mobile/mobile_billing_return_handler";
@@ -549,6 +550,7 @@ function MobileApp() {
         <MobileBillingReturnHandler />
         <CheckoutReturnHandler />
         <MobileDomainOrderReturn />
+        {!is_auth_route && <ConnectionFallbackNotice />}
         {!is_auth_route && <LockedDataBanner />}
         {!is_auth_route && is_authenticated && <BillingAlertBanner />}
         {!is_auth_route &&

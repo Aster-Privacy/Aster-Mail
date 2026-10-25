@@ -151,3 +151,42 @@ describe("QuotedHtmlPreview", () => {
     ).not.toBeNull();
   });
 });
+
+describe("QuotedHtmlPreview named properties", () => {
+  it("keeps quoted ids and names from shadowing window globals", () => {
+    h.block_external_content = true;
+
+    const { container } = render(
+      <QuotedHtmlPreview
+        html={
+          '<div id="__TAURI_INTERNALS__">a</div>' +
+          '<img name="__TAURI_INTERNALS__" src="data:image/png;base64,iVBORw0KGgo=">' +
+          '<form name="__TAURI_INTERNALS__"><input name="invoke"></form>' +
+          '<embed name="__TAURI_INTERNALS__"><object name="__TAURI_INTERNALS__"></object>' +
+          '<iframe name="__TAURI_INTERNALS__"></iframe>'
+        }
+      />,
+    );
+
+    expect(container.querySelector("[id]")).toBeNull();
+    expect(container.querySelector("[name]")).toBeNull();
+    expect(
+      (window as unknown as Record<string, unknown>).__TAURI_INTERNALS__,
+    ).toBeUndefined();
+    expect(
+      (document as unknown as Record<string, unknown>).__TAURI_INTERNALS__,
+    ).toBeUndefined();
+  });
+
+  it("keeps anchor names so in-message links still jump", () => {
+    h.block_external_content = true;
+
+    const { container } = render(
+      <QuotedHtmlPreview
+        html={'<a href="#section-1">Jump</a><a name="section-1">Anchor</a>'}
+      />,
+    );
+
+    expect(container.querySelector('a[name="section-1"]')).not.toBeNull();
+  });
+});

@@ -229,6 +229,7 @@ export interface UserPreferences {
   low_network_mode_user_set: boolean;
   show_side_panel: boolean;
   strip_exif_on_compose: boolean;
+  send_error_reports: boolean;
   thread_count_position: "left" | "right";
   compose_window_mode: "default" | "fullscreen" | "minimized";
   reactions_enabled: boolean;
@@ -817,6 +818,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   low_network_mode_user_set: false,
   show_side_panel: true,
   strip_exif_on_compose: true,
+  send_error_reports: true,
   thread_count_position: "left",
   compose_window_mode: "default",
   reactions_enabled: true,

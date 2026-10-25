@@ -807,6 +807,21 @@ export function SecuritySection({
           />
         </SettingsGroup>
 
+        <SettingsGroup title={t("settings.error_reports_title")}>
+          <SettingsRow
+            description={t("settings.send_error_reports_description")}
+            label={t("settings.send_error_reports_label")}
+            trailing={
+              <Switch
+                checked={preferences.send_error_reports}
+                onCheckedChange={(v) =>
+                  update_preference("send_error_reports", v, true)
+                }
+              />
+            }
+          />
+        </SettingsGroup>
+
         <SettingsGroup title={t("settings.forward_secrecy")}>
           <SettingsRow
             label={t("settings.forward_secrecy")}

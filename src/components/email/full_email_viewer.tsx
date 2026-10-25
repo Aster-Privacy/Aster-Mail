@@ -66,7 +66,7 @@ import {
   use_unsubscribed_senders,
 } from "@/hooks/use_unsubscribed_senders";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
-import { open_external } from "@/utils/open_link";
+import { request_external_link } from "@/utils/external_link_request";
 import { SenderLogoBoundary } from "@/contexts/sender_logo_context";
 
 export type FullReplyData = ReplyData;
@@ -396,7 +396,7 @@ export function FullEmailViewer({
             const url = get_manual_unsubscribe_url(info);
 
             if (!url) return;
-            open_external(url);
+            if (!(await request_external_link(url))) return;
             persist_unsubscribe(email.sender_email, email.sender || "", {
               unsubscribe_link: info.unsubscribe_link,
               list_unsubscribe_header: info.list_unsubscribe_header,

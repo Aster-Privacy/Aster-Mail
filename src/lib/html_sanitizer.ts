@@ -361,6 +361,43 @@ export function sanitize_preview_html(html: string): string {
   }
 }
 
+export interface SanitizeBlocking {
+  block_images: boolean;
+  block_fonts: boolean;
+  block_css: boolean;
+  block_pixels: boolean;
+}
+
+export function resolve_sanitize_blocking(
+  options: Pick<
+    SanitizeOptions,
+    "external_content_mode" | "content_blocking" | "lockdown_mode"
+  >,
+): SanitizeBlocking {
+  const {
+    external_content_mode = "always",
+    content_blocking,
+    lockdown_mode = false,
+  } = options;
+  const blocked_by_mode = external_content_mode !== "always";
+
+  if (lockdown_mode) {
+    return {
+      block_images: true,
+      block_fonts: true,
+      block_css: true,
+      block_pixels: true,
+    };
+  }
+
+  return {
+    block_images: content_blocking?.block_remote_images ?? blocked_by_mode,
+    block_fonts: content_blocking?.block_remote_fonts ?? blocked_by_mode,
+    block_css: content_blocking?.block_remote_css ?? blocked_by_mode,
+    block_pixels: content_blocking?.block_tracking_pixels ?? blocked_by_mode,
+  };
+}
+
 function sanitize_html_impl(
   html: string,
   options: SanitizeOptions = {},
@@ -390,22 +427,12 @@ function sanitize_html_impl(
 
   const effective_proxy = lockdown_mode ? undefined : image_proxy_url;
 
-  const block_images = lockdown_mode
-    ? true
-    : (content_blocking?.block_remote_images ??
-      external_content_mode !== "always");
-  const block_fonts = lockdown_mode
-    ? true
-    : (content_blocking?.block_remote_fonts ??
-      external_content_mode !== "always");
-  const block_css = lockdown_mode
-    ? true
-    : (content_blocking?.block_remote_css ??
-      external_content_mode !== "always");
-  const block_pixels = lockdown_mode
-    ? true
-    : (content_blocking?.block_tracking_pixels ??
-      external_content_mode !== "always");
+  const { block_images, block_fonts, block_css, block_pixels } =
+    resolve_sanitize_blocking({
+      external_content_mode,
+      content_blocking,
+      lockdown_mode,
+    });
 
   const allowed_css_image_proxy =
     lockdown_mode || block_images || block_css || !effective_proxy

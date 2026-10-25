@@ -4583,6 +4583,8 @@ export const tr = {
     "connection.status_error":
       "Bağlantıyı kaybettik ve kendi başımıza yeniden deniyoruz.",
     "connection.status_disconnected": "Bağlantı kesildi",
+    "connection.tor_unavailable_fallback":
+      "Tor, Aster Mail'de kullanılamıyor, bu nedenle artık doğrudan bağlanıyorsunuz. Tor'u kullanmak için Aster Mail'i Tor Browser'da açın.",
     "connection.tor_blocked":
       "Tor kapalı ve trafiğinizin sızmaması için bu isteği engelledik. Tor'u açmak onun geçmesine olanak verir.",
     "connection.tor_blocked_connecting":
@@ -7362,6 +7364,10 @@ export const tr = {
     strip_exif_on_compose_label: "Görüntü meta verilerini kaldır",
     strip_exif_on_compose_description:
       "Konum ve cihaz bilgilerinizi korumak için görsellerdeki EXIF ve diğer meta verileri göndermeden önce kaldırın",
+    error_reports_title: "Hata raporları",
+    send_error_reports_label: "Hata raporları gönder",
+    send_error_reports_description:
+      "Bir şey başarısız olduğunda Aster Mail; hata kodunu, özelliğin adını, bulunduğunuz uygulama bölümünü, uygulama sürümünü ve platformunuzu içeren kısa bir rapor gönderir. Raporlar hiçbir zaman iletilerinizi, kişilerinizi, e-posta adreslerinizi veya parolalarınızı içermez.",
     account_protection_title: "Hesap koruması",
     account_protection_weak: "Zayıf",
     account_protection_fair: "Orta",
@@ -10272,11 +10278,11 @@ export const tr = {
     invalid_unsubscribe_address:
       "Bu göndericinin abonelikten çıkma adresi hatalı görünüyor. E-postanın içindeki bağlantı, göndericinin sitesinde abonelikten çıkmanıza olanak tanır.",
     tor_unsupported_platform:
-      "Tor bu platformda kullanılamıyor. Masaüstü veya mobil uygulama, bağlantınızı Tor üzerinden yönlendirebilir.",
+      "Tor, Aster Mail'de kullanılamıyor. Tor'u kullanmak için Aster Mail'i Tor Browser'da açın.",
     tor_native_only:
-      "Tor yalnızca yerel uygulamada kullanılabilir. Masaüstü veya mobil uygulama kullanmanıza olanak tanır.",
+      "Tor, Aster Mail'de kullanılamıyor. Tor'u kullanmak için Aster Mail'i Tor Browser'da açın.",
     tor_plugin_missing:
-      "Tor modülü bu cihazda yüklü değil. Uygulamayı yeniden yükleyin veya Ayarlar'dan doğrudan bağlantıya geçin.",
+      "Tor, Aster Mail'de kullanılamıyor. Tor'u kullanmak için Aster Mail'i Tor Browser'da açın.",
     cdn_relay_misconfigured:
       "CDN aktarıcısı bu derleme için yapılandırılmamış. Ayarlar'dan doğrudan bağlantıya geçin. Yardıma ihtiyacınız olursa hello@astermail.org ile iletişime geçin.",
     device_repair_required:
@@ -10360,6 +10366,8 @@ export const tr = {
       "Bir alıcının şifreleme anahtarı değişti, bu yüzden ileti gönderilmedi. Göndermek için değişikliği bu kişiyle başka bir yoldan doğrulayın, ardından Yeni anahtara güven seçeneğini belirleyin.",
     key_trust_check_failed:
       "Alıcıların şifreleme anahtarları denetlenemedi, bu yüzden ileti gönderilmedi. Bağlantınızı denetleyip yeniden deneyin.",
+    recipient_classification_unavailable:
+      "{{recipients}} için teslim yöntemi doğrulanamadı. Bağlantınızı denetleyip yeniden deneyin.",
     failed_send_external:
       "Bu e-posta bağlı harici hesabınız üzerinden gönderilmedi. Tekrar deneyin. Taslağınız kaydedildi.",
     failed_queue_email:

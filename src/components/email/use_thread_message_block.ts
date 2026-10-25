@@ -40,6 +40,10 @@ import {
 } from "./message_body_fallback";
 
 import { pop_preloaded_thread_cid } from "@/components/email/hooks/preload_cache";
+import {
+  displayed_image_blocking_from_options,
+  use_record_displayed_image_blocking,
+} from "@/components/email/viewer_shared/external_content";
 import { dispatch_iframe_ready } from "@/components/email/sandboxed_email_renderer";
 import { is_ghost_email } from "@/stores/ghost_alias_store";
 import {
@@ -476,6 +480,88 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
   const has_loaded_types =
     loaded_content_types && loaded_content_types.size > 0;
 
+  const preloaded_check = useMemo((): {
+    renderable: boolean;
+    failure?: unknown;
+  } => {
+    if (!preloaded_sanitized) return { renderable: false };
+
+    try {
+      return {
+        renderable: html_has_renderable_content(preloaded_sanitized.html),
+      };
+    } catch (failure) {
+      return { renderable: false, failure: failure ?? new Error() };
+    }
+  }, [preloaded_sanitized]);
+
+  const uses_preloaded_content =
+    preloaded_check.renderable &&
+    base_image_mode !== "always" &&
+    !load_remote_content &&
+    !has_loaded_types;
+
+  const content_sanitize_options = useMemo(() => {
+    const resolved_blocking = resolve_content_blocking({
+      lockdown_active,
+      load_remote_content,
+      loaded_content_types,
+      preferences: {
+        block_remote_images: preferences.block_remote_images,
+        block_remote_fonts: preferences.block_remote_fonts,
+        block_remote_css: preferences.block_remote_css,
+        block_tracking_pixels: preferences.block_tracking_pixels,
+      },
+    });
+
+    return {
+      external_content_mode: lockdown_active
+        ? ("never" as ImageLoadMode)
+        : load_remote_content
+          ? ("always" as ImageLoadMode)
+          : base_image_mode,
+      lockdown_mode: lockdown_active,
+      content_blocking:
+        !is_system && (lockdown_active || preferences.block_external_content)
+          ? {
+              ...resolved_blocking,
+            }
+          : undefined,
+    };
+  }, [
+    is_system,
+    base_image_mode,
+    load_remote_content,
+    loaded_content_types,
+    lockdown_active,
+    preferences.block_external_content,
+    preferences.block_remote_images,
+    preferences.block_remote_fonts,
+    preferences.block_remote_css,
+    preferences.block_tracking_pixels,
+  ]);
+
+  use_record_displayed_image_blocking(
+    message.id,
+    {
+      lockdown_active,
+      block_external_content: preferences.block_external_content,
+      block_remote_images: preferences.block_remote_images,
+      block_tracking_pixels: preferences.block_tracking_pixels,
+      load_remote_images: preferences.load_remote_images,
+    },
+    "failure" in preloaded_check
+      ? null
+      : displayed_image_blocking_from_options(
+          uses_preloaded_content
+            ? {
+                external_content_mode: is_system ? "always" : "ask",
+                lockdown_mode: lockdown_active,
+              }
+            : content_sanitize_options,
+        ),
+  );
+
   const sanitize_job = useMemo((): SanitizeJob => {
     if (!is_body_visible || plain_view) {
       return {
@@ -490,13 +576,9 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
     });
 
     const build_sanitize_job = (): SanitizeJob => {
-      if (
-        preloaded_sanitized &&
-        html_has_renderable_content(preloaded_sanitized.html) &&
-        base_image_mode !== "always" &&
-        !load_remote_content &&
-        !has_loaded_types
-      ) {
+      if ("failure" in preloaded_check) throw preloaded_check.failure;
+
+      if (preloaded_sanitized && uses_preloaded_content) {
         const report: ExternalContentReport | null =
           preloaded_sanitized.external_content.blocked_count > 0
             ? preloaded_sanitized.external_content
@@ -521,35 +603,13 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
         };
       }
 
-      const resolved_blocking = resolve_content_blocking({
-        lockdown_active,
-        load_remote_content,
-        loaded_content_types,
-        preferences: {
-          block_remote_images: preferences.block_remote_images,
-          block_remote_fonts: preferences.block_remote_fonts,
-          block_remote_css: preferences.block_remote_css,
-          block_tracking_pixels: preferences.block_tracking_pixels,
-        },
-      });
-
       const sanitize = (): SanitizedContent => {
         const result = sanitize_html(clean_body, {
-          external_content_mode: lockdown_active
-            ? "never"
-            : load_remote_content
-              ? "always"
-              : base_image_mode,
+          external_content_mode: content_sanitize_options.external_content_mode,
           image_proxy_url: get_image_proxy_url(),
           sandbox_mode: true,
-          lockdown_mode: lockdown_active,
-          content_blocking:
-            !is_system &&
-            (lockdown_active || preferences.block_external_content)
-              ? {
-                  ...resolved_blocking,
-                }
-              : undefined,
+          lockdown_mode: content_sanitize_options.lockdown_mode,
+          content_blocking: content_sanitize_options.content_blocking,
         });
 
         const report: ExternalContentReport | null =
@@ -586,16 +646,9 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
     clean_body,
     message.id,
     message.body,
-    base_image_mode,
-    load_remote_content,
-    has_loaded_types,
-    loaded_content_types,
-    lockdown_active,
-    preferences.block_external_content,
-    preferences.block_remote_images,
-    preferences.block_remote_fonts,
-    preferences.block_remote_css,
-    preferences.block_tracking_pixels,
+    preloaded_check,
+    uses_preloaded_content,
+    content_sanitize_options,
   ]);
 
   const [deferred_content, set_deferred_content] = useState<{

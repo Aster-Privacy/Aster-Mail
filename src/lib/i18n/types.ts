@@ -3367,6 +3367,9 @@ export interface SettingsTranslations {
   block_remote_css_description: string;
   strip_exif_on_compose_label: string;
   strip_exif_on_compose_description: string;
+  error_reports_title: string;
+  send_error_reports_label: string;
+  send_error_reports_description: string;
   account_protection_title: string;
   account_protection_weak: string;
   account_protection_fair: string;
@@ -4864,6 +4867,7 @@ export interface SettingsTranslations {
   "connection.status_connecting": string;
   "connection.status_error": string;
   "connection.status_disconnected": string;
+  "connection.tor_unavailable_fallback": string;
   "connection.tor_blocked": string;
   "connection.tor_blocked_connecting": string;
   "connection.requires_native_app": string;
@@ -8971,6 +8975,7 @@ export interface ErrorTranslations {
   message_password_too_weak: string;
   recipient_key_untrusted: string;
   key_trust_check_failed: string;
+  recipient_classification_unavailable: string;
   failed_send_external: string;
   failed_queue_email: string;
   no_active_account: string;

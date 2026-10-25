@@ -687,7 +687,7 @@ export async function create_scheduled_email(
     ...content.bcc_recipients,
   ];
 
-  await classify_recipients(all_recipients);
+  await classify_recipients(all_recipients, { require_resolved: true });
 
   const has_external = all_recipients.some((r) => !is_internal_recipient(r));
   const has_internal = all_recipients.some((r) => is_internal_recipient(r));

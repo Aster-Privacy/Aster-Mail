@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const h = vi.hoisted(() => ({
   lookup: vi.fn(),
@@ -34,6 +34,7 @@ import {
   begin_recipient_classification_session,
   classify_recipient,
   classify_recipients,
+  classify_unresolved_recipient,
   clear_recipient_classification_cache,
   get_cached_recipient_classification,
   get_recipient_classification_version,
@@ -41,6 +42,10 @@ import {
   RecipientLookupError,
   subscribe_recipient_classification,
 } from "./recipient_classification";
+import {
+  RecipientClassificationUnavailableError,
+  SendError,
+} from "./send_queue_types";
 
 const HOSTED = "tracy@scofz.com";
 
@@ -112,7 +117,42 @@ describe("hosted domain lookup", () => {
     );
   });
 
-  it("treats a server error as external without caching it", async () => {
+  it("does not retry a not found answer", async () => {
+    h.lookup.mockResolvedValue({
+      error: "User not found",
+      code: "NOT_FOUND",
+      status: 404,
+    });
+
+    expect(await classify_recipient("nobody@example.com")).toBe("external");
+    expect(h.lookup).toHaveBeenCalledTimes(1);
+  });
+
+  it("looks up an internal address once when the first answer succeeds", async () => {
+    h.lookup.mockResolvedValue(hosted_key());
+
+    expect(await classify_recipient(HOSTED)).toBe("internal");
+    expect(h.lookup).toHaveBeenCalledTimes(1);
+    expect(get_cached_recipient_classification(HOSTED)).toBe("internal");
+  });
+});
+
+describe("lookup failures", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  async function settle<T>(promise: Promise<T>): Promise<T> {
+    await vi.runAllTimersAsync();
+
+    return promise;
+  }
+
+  it("retries a server error and keeps an internal answer from the retry", async () => {
     h.lookup.mockResolvedValueOnce({
       error: "boom",
       code: "SERVER_ERROR",
@@ -120,29 +160,101 @@ describe("hosted domain lookup", () => {
     });
     h.lookup.mockResolvedValueOnce(hosted_key());
 
-    expect(await classify_recipient(HOSTED)).toBe("external");
-    expect(is_internal_recipient(HOSTED)).toBe(false);
-    expect(get_cached_recipient_classification(HOSTED)).toBeUndefined();
-    expect(await classify_recipient(HOSTED)).toBe("internal");
+    expect(await settle(classify_recipient(HOSTED))).toBe("internal");
+    expect(is_internal_recipient(HOSTED)).toBe(true);
+    expect(get_cached_recipient_classification(HOSTED)).toBe("internal");
     expect(h.lookup).toHaveBeenCalledTimes(2);
   });
 
-  it("treats a thrown lookup as external", async () => {
-    h.lookup.mockRejectedValue(new Error("offline"));
+  it("retries a network error and keeps an internal answer from the retry", async () => {
+    h.lookup.mockRejectedValueOnce(new Error("offline"));
+    h.lookup.mockRejectedValueOnce(new Error("offline"));
+    h.lookup.mockResolvedValueOnce(hosted_key());
 
-    expect(await classify_recipient(HOSTED)).toBe("external");
-    expect(is_internal_recipient(HOSTED)).toBe(false);
+    expect(await settle(classify_recipient(HOSTED))).toBe("internal");
+    expect(is_internal_recipient(HOSTED)).toBe(true);
+    expect(h.lookup).toHaveBeenCalledTimes(3);
   });
 
-  it("treats a rate limited lookup as external", async () => {
+  it("stops retrying at a definitive not found answer", async () => {
+    h.lookup.mockResolvedValueOnce({
+      error: "boom",
+      code: "SERVER_ERROR",
+      status: 500,
+    });
+    h.lookup.mockResolvedValueOnce({
+      error: "User not found",
+      code: "NOT_FOUND",
+      status: 404,
+    });
+
+    expect(await settle(classify_recipient(HOSTED))).toBe("external");
+    expect(get_cached_recipient_classification(HOSTED)).toBe("external");
+    expect(h.lookup).toHaveBeenCalledTimes(2);
+  });
+
+  it("falls back to the unresolved classification without caching after a persistent server error", async () => {
+    h.lookup.mockResolvedValue({
+      error: "boom",
+      code: "SERVER_ERROR",
+      status: 500,
+    });
+
+    expect(await settle(classify_recipient(HOSTED))).toBe(
+      classify_unresolved_recipient(HOSTED),
+    );
+    expect(is_internal_recipient(HOSTED)).toBe(false);
+    expect(get_cached_recipient_classification(HOSTED)).toBeUndefined();
+    expect(h.lookup).toHaveBeenCalledTimes(3);
+
+    h.lookup.mockReset();
+    h.lookup.mockResolvedValue(hosted_key());
+
+    expect(await settle(classify_recipient(HOSTED))).toBe("internal");
+  });
+
+  it("falls back to the unresolved classification after a persistent network error", async () => {
+    h.lookup.mockRejectedValue(new Error("offline"));
+
+    expect(await settle(classify_recipient(HOSTED))).toBe("external");
+    expect(is_internal_recipient(HOSTED)).toBe(false);
+    expect(h.lookup).toHaveBeenCalledTimes(3);
+  });
+
+  it("retries a rate limited lookup without caching a failure", async () => {
     h.lookup.mockResolvedValue({
       error: "slow down",
       code: "RATE_LIMIT_EXCEEDED",
       status: 429,
     });
 
-    expect(await classify_recipient(HOSTED)).toBe("external");
+    expect(await settle(classify_recipient(HOSTED))).toBe("external");
     expect(get_cached_recipient_classification(HOSTED)).toBeUndefined();
+    expect(h.lookup).toHaveBeenCalledTimes(3);
+  });
+
+  it("shares the retrying lookup between concurrent callers", async () => {
+    h.lookup.mockResolvedValueOnce({
+      error: "boom",
+      code: "SERVER_ERROR",
+      status: 500,
+    });
+    h.lookup.mockResolvedValueOnce(hosted_key());
+
+    const first = classify_recipient(HOSTED);
+    const second = classify_recipient(HOSTED);
+
+    await vi.runAllTimersAsync();
+
+    expect(await first).toBe("internal");
+    expect(await second).toBe("internal");
+    expect(h.lookup).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("unresolved classification", () => {
+  it("keeps today's external fallback", () => {
+    expect(classify_unresolved_recipient(HOSTED)).toBe("external");
   });
 });
 
@@ -321,5 +433,99 @@ describe("failed lookups in a send", () => {
 
     expect(results.get(HOSTED)).toBe("internal");
     expect(is_internal_recipient(HOSTED)).toBe(true);
+  });
+});
+
+describe("required resolution for sends", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  async function settle<T>(promise: Promise<T>): Promise<T> {
+    const outcome = promise.then(
+      (value) => ({ ok: true as const, value }),
+      (error: unknown) => ({ ok: false as const, error }),
+    );
+
+    await vi.runAllTimersAsync();
+    const result = await outcome;
+
+    if (!result.ok) throw result.error;
+
+    return result.value;
+  }
+
+  it("resolves internal and external recipients when every lookup answers", async () => {
+    h.lookup.mockImplementation(async (_username: string, email: string) =>
+      email === HOSTED ? hosted_key() : external_key(),
+    );
+
+    const results = await settle(
+      classify_recipients([HOSTED, "someone@example.com", "friend@aster.cx"], {
+        require_resolved: true,
+      }),
+    );
+
+    expect(results.get(HOSTED)).toBe("internal");
+    expect(results.get("someone@example.com")).toBe("external");
+    expect(results.get("friend@aster.cx")).toBe("internal");
+  });
+
+  it("treats a not found answer as external without blocking", async () => {
+    h.lookup.mockResolvedValue({
+      error: "User not found",
+      code: "NOT_FOUND",
+      status: 404,
+    });
+
+    const results = await settle(
+      classify_recipients(["nobody@example.com"], { require_resolved: true }),
+    );
+
+    expect(results.get("nobody@example.com")).toBe("external");
+  });
+
+  it("throws a typed error naming the unresolved recipients", async () => {
+    h.lookup.mockImplementation(async (_username: string, email: string) => {
+      if (email === HOSTED) throw new Error("offline");
+
+      return external_key();
+    });
+
+    const error = await settle(
+      classify_recipients(
+        ["Tracy@scofz.com", "someone@example.com", "friend@astermail.org"],
+        { require_resolved: true },
+      ),
+    ).catch((caught: unknown) => caught);
+
+    expect(error).toBeInstanceOf(RecipientClassificationUnavailableError);
+    expect(error).toBeInstanceOf(SendError);
+
+    const typed = error as RecipientClassificationUnavailableError;
+
+    expect(typed.type).toBe("recipient_classification_unavailable");
+    expect(typed.recipients).toEqual([HOSTED]);
+    expect(typed.message).toContain(HOSTED);
+    expect(typed.message).not.toContain("{{recipients}}");
+    expect(typed.message).not.toContain("someone@example.com");
+    expect(get_cached_recipient_classification(HOSTED)).toBeUndefined();
+  });
+
+  it("blocks on a persistent server error", async () => {
+    h.lookup.mockResolvedValue({
+      error: "boom",
+      code: "SERVER_ERROR",
+      status: 500,
+    });
+
+    await expect(
+      settle(classify_recipients([HOSTED], { require_resolved: true })),
+    ).rejects.toBeInstanceOf(RecipientClassificationUnavailableError);
+    expect(h.lookup).toHaveBeenCalledTimes(3);
   });
 });

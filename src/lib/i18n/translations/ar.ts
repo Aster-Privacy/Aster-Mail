@@ -4740,6 +4740,8 @@ export const ar = {
     "connection.status_error":
       "فقدنا الاتصال، ونحن نعيد المحاولة من تلقاء أنفسنا.",
     "connection.status_disconnected": "غير متصل",
+    "connection.tor_unavailable_fallback":
+      "Tor غير متاحة في Aster Mail، لذا أصبح اتصالك الآن مباشرًا. لاستخدام Tor، افتح Aster Mail في Tor Browser.",
     "connection.tor_blocked":
       "Tor متوقف، وقد حُجب هذا الطلب لمنع تسرّب تنقّلك. تفعيل Tor يتيح مروره.",
     "connection.tor_blocked_connecting":
@@ -7259,6 +7261,10 @@ export const ar = {
     strip_exif_on_compose_label: "إزالة بيانات الصورة",
     strip_exif_on_compose_description:
       "إزالة بيانات EXIF وغيرها من الصور قبل الإرسال لحماية موقعك ومعلومات جهازك",
+    error_reports_title: "تقارير الأخطاء",
+    send_error_reports_label: "إرسال تقارير الأخطاء",
+    send_error_reports_description:
+      "عند حدوث خطأ، يرسل Aster Mail تقريرًا قصيرًا يتضمن رمز الخطأ واسم الميزة وقسم التطبيق الذي كنت فيه وإصدار التطبيق ونظامك الأساسي. لا تتضمن التقارير أبدًا رسائلك أو جهات اتصالك أو عناوين بريدك الإلكتروني أو كلمات المرور.",
     account_protection_title: "حماية الحساب",
     account_protection_weak: "ضعيفة",
     account_protection_fair: "مقبولة",
@@ -10178,11 +10184,11 @@ export const ar = {
     invalid_unsubscribe_address:
       "عنوان إلغاء الاشتراك من هذا المرسل يبدو غير سليم. يتيح الرابط داخل البريد نفسه إلغاء الاشتراك على موقع المرسل.",
     tor_unsupported_platform:
-      "Tor غير متاحة على هذه المنصة. يتيح تطبيق سطح المكتب أو الجوال توجيه اتصالك عبر Tor.",
+      "Tor غير متاحة في Aster Mail. لاستخدام Tor، افتح Aster Mail في Tor Browser.",
     tor_native_only:
-      "Tor متاحة فقط في التطبيق الأصلي. يتيح تطبيق سطح المكتب أو الجوال استخدامها.",
+      "Tor غير متاحة في Aster Mail. لاستخدام Tor، افتح Aster Mail في Tor Browser.",
     tor_plugin_missing:
-      "وحدة Tor غير مثبتة على هذا الجهاز. أعد تثبيت التطبيق أو انتقل إلى الاتصال المباشر من الإعدادات.",
+      "Tor غير متاحة في Aster Mail. لاستخدام Tor، افتح Aster Mail في Tor Browser.",
     cdn_relay_misconfigured:
       "مرحّل CDN غير مهيأ في هذا الإصدار. انتقل إلى الاتصال المباشر من الإعدادات. إذا احتجت إلى مساعدة، تواصل مع hello@astermail.org.",
     device_repair_required:
@@ -10257,6 +10263,8 @@ export const ar = {
       "تغير مفتاح تشفير أحد المستلمين، لذلك لم تُرسل الرسالة. لإرسالها، أكّد التغيير مع هذا الشخص بطريقة أخرى، ثم اختر الوثوق بالمفتاح الجديد.",
     key_trust_check_failed:
       "تعذر التحقق من مفاتيح تشفير المستلمين، لذلك لم تُرسل الرسالة. تحقق من اتصالك وحاول مرة أخرى.",
+    recipient_classification_unavailable:
+      "تعذر التأكد من طريقة التسليم إلى {{recipients}}. تحقق من اتصالك وحاول مرة أخرى.",
     failed_send_external:
       "لم تُرسل هذه الرسالة عبر حسابك الخارجي المرتبط. حاول مجددًا. مسوّدتك محفوظة.",
     failed_queue_email:

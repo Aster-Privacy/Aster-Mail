@@ -365,6 +365,13 @@ pub fn spawn_watchdog(app: tauri::AppHandle) {
             return;
         }
 
+        #[cfg(all(unix, not(target_os = "macos")))]
+        if crate::webkit_sandbox::fall_back_after_failed_boot() {
+            write_marker(WEBVIEW_RESET_MARKER);
+            warn_and_restart(&app);
+            return;
+        }
+
         write_marker(WEBVIEW_RESET_MARKER);
         report_persistent_failure(&app);
     });

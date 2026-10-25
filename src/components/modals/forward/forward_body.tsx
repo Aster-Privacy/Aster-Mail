@@ -81,6 +81,7 @@ interface ForwardBodyProps {
   toggle_plain_text_mode: () => void;
   handle_template_select: (content: string) => void;
   on_discard?: () => void;
+  source_email_id?: string;
 }
 
 export function ForwardBody({
@@ -124,6 +125,7 @@ export function ForwardBody({
   toggle_plain_text_mode,
   handle_template_select,
   on_discard,
+  source_email_id,
 }: ForwardBodyProps) {
   use_compose_readable_color(message_editor_ref);
   const [has_shown_forward, set_has_shown_forward] = useState(false);
@@ -212,6 +214,7 @@ export function ForwardBody({
                     is_hidden={!is_forward_visible}
                     label={t("common.forwarded_message")}
                     on_change={on_forward_content_change}
+                    source_email_id={source_email_id}
                   />
                 )}
               </div>

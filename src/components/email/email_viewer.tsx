@@ -23,7 +23,7 @@ import type { Email } from "@/types/email";
 import { useState, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 
-import { open_external } from "@/utils/open_link";
+import { request_external_link } from "@/utils/external_link_request";
 import { normalize_untrusted_url } from "@/lib/utils";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { EmailViewerHeader } from "@/components/email/email_viewer_header";
@@ -90,7 +90,7 @@ export function EmailViewer({
           return;
         }
         if (!is_any_lockdown_active()) {
-          open_external(raw_link);
+          request_external_link(raw_link);
         }
       } catch (error) {
         if (import.meta.env.DEV) console.error(error);

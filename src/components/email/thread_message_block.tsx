@@ -92,7 +92,7 @@ import { MessageDetailsModal } from "@/components/email/message_details_modal";
 import { MessageDetailCard } from "@/components/email/message_detail_card";
 import { SenderProfileTrigger } from "@/components/profile/sender_profile_trigger";
 import { PgpPasswordProtectedMessage } from "@/components/email/pgp_password_prompt";
-import { open_external } from "@/utils/open_link";
+import { request_external_link } from "@/utils/external_link_request";
 import { folder_option_indent } from "@/hooks/use_folders/tree";
 import { SenderLogoBoundary } from "@/contexts/sender_logo_context";
 
@@ -423,9 +423,9 @@ export function ThreadMessageBlock(
               !lockdown_active && (
                 <button
                   className="flex-shrink-0 text-xs font-medium text-brand rounded px-1.5 py-0.5 hover:bg-brand/10 transition-colors"
-                  onClick={(e) => {
+                  onClick={async (e) => {
                     e.stopPropagation();
-                    open_external(unsubscribe_url);
+                    if (!(await request_external_link(unsubscribe_url))) return;
                     set_unsub_state("done");
                     on_manual_unsubscribed?.();
                   }}

@@ -494,7 +494,7 @@ async function prepare_email_for_server_queue(
     ...(email.bcc || []),
   ];
 
-  await classify_recipients(all_recipients);
+  await classify_recipients(all_recipients, { require_resolved: true });
 
   const hosted_recipients = all_recipients.filter(
     (recipient) =>

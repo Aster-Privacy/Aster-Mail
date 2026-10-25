@@ -21,6 +21,9 @@
 import { Capacitor } from "@capacitor/core";
 
 import { get_api_base_url } from "@/services/api/base_url";
+import { is_any_lockdown_active } from "@/services/lockdown_store";
+import { is_onion_host } from "@/lib/onion_host";
+import { safe_local_get } from "@/lib/safe_storage";
 import {
   get_effective_base_url,
   routed_fetch,
@@ -31,6 +34,7 @@ const MAX_REPORTS_PER_SESSION = 40;
 const DEDUPE_WINDOW_MS = 60_000;
 const SLUG_PATTERN = /^[a-z0-9_.-]{1,64}$/;
 const ID_SEGMENT = /^[0-9]+$|^[0-9a-f]{8,}$|-/i;
+const PREFS_CACHE_KEY = "aster_preferences_cache";
 
 const ROUTE_ROOTS: readonly string[] = [
   "inbox",
@@ -246,6 +250,26 @@ export function http_error_code(prefix: string, status: number): string {
   return `${safe_prefix}_http_${status}`.slice(0, 64);
 }
 
+function is_reporting_enabled(): boolean {
+  try {
+    const raw = safe_local_get(PREFS_CACHE_KEY);
+
+    if (!raw) return true;
+    const parsed = JSON.parse(raw) as Record<string, unknown> | null;
+
+    return parsed?.send_error_reports !== false;
+  } catch {
+    return true;
+  }
+}
+
+export function is_error_reporting_allowed(): boolean {
+  if (is_onion_host()) return false;
+  if (is_any_lockdown_active()) return false;
+
+  return is_reporting_enabled();
+}
+
 function should_send(key: string): boolean {
   if (reports_sent >= MAX_REPORTS_PER_SESSION) {
     return false;
@@ -265,6 +289,9 @@ function should_send(key: string): boolean {
 export function report_client_error(input: ClientErrorInput): void {
   try {
     if (typeof window === "undefined" || typeof fetch !== "function") {
+      return;
+    }
+    if (!is_error_reporting_allowed()) {
       return;
     }
     if (

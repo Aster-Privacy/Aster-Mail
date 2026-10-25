@@ -21,6 +21,7 @@
 import { useEffect, useSyncExternalStore } from "react";
 
 import { get_recipient_public_key, is_internal_email } from "./api/keys";
+import { RecipientClassificationUnavailableError } from "./send_queue_types";
 
 import { get_active_translations } from "@/lib/i18n/translations";
 
@@ -41,6 +42,7 @@ interface ClassificationEntry {
 const ADDRESS_SHAPE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const LOOKUP_USERNAME_SHAPE = /^[A-Za-z0-9_.-]{1,64}$/;
 const MAX_ADDRESS_LENGTH = 254;
+const LOOKUP_RETRY_DELAYS_MS = [200, 600];
 
 const entries = new Map<string, ClassificationEntry>();
 const in_flight = new Map<
@@ -98,6 +100,16 @@ export function get_cached_recipient_classification(
   return entries.get(normalize_recipient_address(email))?.classification;
 }
 
+export function classify_unresolved_recipient(
+  _address: string,
+): RecipientClassification {
+  return "external";
+}
+
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function lookup_classification(
   address: string,
 ): Promise<RecipientClassification | null> {
@@ -105,6 +117,21 @@ async function lookup_classification(
 
   if (!username) return "external";
 
+  for (let attempt = 0; ; attempt++) {
+    const result = await lookup_classification_once(username, address);
+
+    if (result !== null || attempt >= LOOKUP_RETRY_DELAYS_MS.length) {
+      return result;
+    }
+
+    await wait(LOOKUP_RETRY_DELAYS_MS[attempt]);
+  }
+}
+
+async function lookup_classification_once(
+  username: string,
+  address: string,
+): Promise<RecipientClassification | null> {
   try {
     const response = await get_recipient_public_key(username, address);
 
@@ -122,25 +149,19 @@ async function lookup_classification(
   }
 }
 
-export async function classify_recipient(
-  email: string,
-): Promise<RecipientClassification> {
-  return (await resolve_recipient(email)) ?? "external";
-}
-
-async function resolve_recipient(
+function resolve_recipient(
   email: string,
 ): Promise<RecipientClassification | null> {
-  if (is_internal_email(email)) return "internal";
+  if (is_internal_email(email)) return Promise.resolve("internal");
 
   const address = normalize_recipient_address(email);
 
-  if (!is_lookup_candidate(address)) return "external";
+  if (!is_lookup_candidate(address)) return Promise.resolve("external");
 
   const cached = entries.get(address);
 
   if (cached && cached.session === current_session) {
-    return cached.classification;
+    return Promise.resolve(cached.classification);
   }
 
   const pending = in_flight.get(address);
@@ -175,8 +196,23 @@ async function resolve_recipient(
   return promise;
 }
 
+export async function classify_recipient(
+  email: string,
+): Promise<RecipientClassification> {
+  const result = await resolve_recipient(email);
+
+  return (
+    result ?? classify_unresolved_recipient(normalize_recipient_address(email))
+  );
+}
+
+export interface ClassifyRecipientsOptions {
+  require_resolved?: boolean;
+}
+
 export async function classify_recipients(
   emails: readonly string[],
+  options: ClassifyRecipientsOptions = {},
 ): Promise<Map<string, RecipientClassification>> {
   const unique = [
     ...new Set(
@@ -186,16 +222,32 @@ export async function classify_recipients(
     ),
   ];
   const results = await Promise.all(
-    unique.map(async (email) => [email, await resolve_recipient(email)] as const),
+    unique.map(
+      async (email) => [email, await resolve_recipient(email)] as const,
+    ),
   );
-  const classified = new Map<string, RecipientClassification>();
+  const unresolved = results
+    .filter(([, result]) => result === null)
+    .map(([email]) => email);
 
-  for (const [email, classification] of results) {
-    if (classification === null) throw new RecipientLookupError();
-    classified.set(email, classification);
+  if (unresolved.length > 0) {
+    if (!options.require_resolved) throw new RecipientLookupError();
+
+    const template =
+      get_active_translations().errors.recipient_classification_unavailable;
+
+    throw new RecipientClassificationUnavailableError(
+      template.replace("{{recipients}}", unresolved.join(", ")),
+      unresolved,
+    );
   }
 
-  return classified;
+  return new Map(
+    results.map(
+      ([email, result]) =>
+        [email, result ?? classify_unresolved_recipient(email)] as const,
+    ),
+  );
 }
 
 export function begin_recipient_classification_session(): void {

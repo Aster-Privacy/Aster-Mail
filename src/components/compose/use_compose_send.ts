@@ -43,6 +43,7 @@ import {
   is_internal_recipient,
   RecipientLookupError,
 } from "@/services/recipient_classification";
+import { RecipientClassificationUnavailableError } from "@/services/send_queue_types";
 import { draft_manager } from "@/services/crypto/encrypted_drafts";
 import {
   create_scheduled_email,
@@ -783,7 +784,7 @@ export function use_compose_send({
         return;
       }
 
-      await classify_recipients(all_recipients);
+      await classify_recipients(all_recipients, { require_resolved: true });
 
       const has_external = all_recipients.some(
         (r) => !is_internal_recipient(r),
@@ -936,7 +937,10 @@ export function use_compose_send({
         void keep_unsent_message();
       }
     } catch (error) {
-      if (error instanceof RecipientLookupError) {
+      if (
+        error instanceof RecipientLookupError ||
+        error instanceof RecipientClassificationUnavailableError
+      ) {
         show_toast(error.message, "error", TOAST_DURATION_DEFAULT_MS, {
           label: t("common.retry"),
           on_click: () => {
@@ -1113,7 +1117,10 @@ export function use_compose_send({
 
     if (!scheduled_gate.proceed) {
       if (scheduled_gate.blocked_by) {
-        show_toast(t(scheduled_gate.blocked_by), "error");
+        show_toast(
+          scheduled_gate.message ?? t(scheduled_gate.blocked_by),
+          "error",
+        );
       }
 
       return;

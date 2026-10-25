@@ -555,7 +555,7 @@ async function process_send_email(
     ...(payload.bcc || []),
   ];
 
-  await classify_recipients(recipients);
+  await classify_recipients(recipients, { require_resolved: true });
 
   const has_external = recipients.some((r) => !is_internal_recipient(r));
   const has_internal = recipients.some((r) => is_internal_recipient(r));

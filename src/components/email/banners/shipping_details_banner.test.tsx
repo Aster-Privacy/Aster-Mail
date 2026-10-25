@@ -32,11 +32,11 @@ vi.mock("@/lib/i18n/context", () => ({
   }),
 }));
 
-const open_external = vi.fn();
+const request_external_link = vi.fn();
 let lockdown_active = false;
 
-vi.mock("@/utils/open_link", () => ({
-  open_external: (url: string) => open_external(url),
+vi.mock("@/utils/external_link_request", () => ({
+  request_external_link: (url: string) => request_external_link(url),
 }));
 
 vi.mock("@/services/lockdown_store", () => ({
@@ -78,7 +78,7 @@ async function click(element: Element | null) {
 
 beforeEach(() => {
   localStorage.clear();
-  open_external.mockClear();
+  request_external_link.mockClear();
   lockdown_active = false;
 });
 
@@ -138,12 +138,12 @@ describe("ShippingDetailsBanner", () => {
 
     expect(track!.textContent).toContain("mail.track_package");
     await click(track);
-    expect(open_external).toHaveBeenCalledWith(base.tracking_url);
+    expect(request_external_link).toHaveBeenCalledWith(base.tracking_url);
 
     lockdown_active = true;
-    open_external.mockClear();
+    request_external_link.mockClear();
     await click(track);
-    expect(open_external).not.toHaveBeenCalled();
+    expect(request_external_link).not.toHaveBeenCalled();
   });
 
   it("hides the action row without a tracking url and shows the delivered date", async () => {

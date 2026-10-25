@@ -39,6 +39,10 @@ import {
 import { should_retry_cid, cid_retry_delay_ms } from "@/lib/cid_retry";
 import { resolve_content_blocking } from "@/components/email/resolve_content_blocking";
 import { pop_preloaded_cid } from "@/components/email/hooks/preload_cache";
+import {
+  displayed_image_blocking_from_options,
+  use_record_displayed_image_blocking,
+} from "@/components/email/viewer_shared/external_content";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { Separator } from "@/components/ui/separator";
 import { UnsubscribeBanner } from "@/components/email/unsubscribe_banner";
@@ -212,6 +216,77 @@ export function EmailViewerContent({
         ? ("always" as const)
         : (external_content_mode_override ?? preferences.load_remote_images);
 
+  const preloaded_is_renderable = useMemo(
+    () =>
+      !html_blocked &&
+      !!preloaded_sanitized &&
+      html_has_renderable_content(preloaded_sanitized.html),
+    [html_blocked, preloaded_sanitized],
+  );
+
+  const uses_preloaded_content =
+    preloaded_is_renderable &&
+    effective_content_mode !== "always" &&
+    !lockdown_active &&
+    !force_load_content;
+
+  const content_sanitize_options = useMemo(() => {
+    const resolved_blocking = resolve_content_blocking({
+      lockdown_active,
+      load_remote_content: force_load_content,
+      preferences: {
+        block_remote_images: preferences.block_remote_images,
+        block_remote_fonts: preferences.block_remote_fonts,
+        block_remote_css: preferences.block_remote_css,
+        block_tracking_pixels: preferences.block_tracking_pixels,
+      },
+    });
+
+    return {
+      external_content_mode: lockdown_active
+        ? ("never" as const)
+        : force_load_content
+          ? ("always" as const)
+          : effective_content_mode,
+      lockdown_mode: lockdown_active,
+      content_blocking:
+        !is_system && preferences.block_external_content
+          ? resolved_blocking
+          : undefined,
+    };
+  }, [
+    effective_content_mode,
+    lockdown_active,
+    force_load_content,
+    is_system,
+    preferences.block_external_content,
+    preferences.block_remote_images,
+    preferences.block_remote_fonts,
+    preferences.block_remote_css,
+    preferences.block_tracking_pixels,
+  ]);
+
+  use_record_displayed_image_blocking(
+    email.id,
+    {
+      lockdown_active,
+      block_external_content: preferences.block_external_content,
+      block_remote_images: preferences.block_remote_images,
+      block_tracking_pixels: preferences.block_tracking_pixels,
+      load_remote_images: preferences.load_remote_images,
+    },
+    html_blocked
+      ? null
+      : displayed_image_blocking_from_options(
+          uses_preloaded_content
+            ? {
+                external_content_mode: is_system ? "always" : "ask",
+                lockdown_mode: lockdown_active,
+              }
+            : content_sanitize_options,
+        ),
+  );
+
   const sanitize_result = useMemo(() => {
     if (html_blocked) {
       return {
@@ -229,13 +304,7 @@ export function EmailViewerContent({
       };
     }
 
-    if (
-      preloaded_sanitized &&
-      html_has_renderable_content(preloaded_sanitized.html) &&
-      effective_content_mode !== "always" &&
-      !lockdown_active &&
-      !force_load_content
-    ) {
+    if (preloaded_sanitized && uses_preloaded_content) {
       return {
         html: preloaded_sanitized.html,
         external_content: preloaded_sanitized.external_content,
@@ -259,44 +328,19 @@ export function EmailViewerContent({
       };
     }
 
-    const resolved_blocking = resolve_content_blocking({
-      lockdown_active,
-      load_remote_content: force_load_content,
-      preferences: {
-        block_remote_images: preferences.block_remote_images,
-        block_remote_fonts: preferences.block_remote_fonts,
-        block_remote_css: preferences.block_remote_css,
-        block_tracking_pixels: preferences.block_tracking_pixels,
-      },
-    });
-
     return sanitize_html(raw_content, {
-      external_content_mode: lockdown_active
-        ? "never"
-        : force_load_content
-          ? "always"
-          : effective_content_mode,
+      external_content_mode: content_sanitize_options.external_content_mode,
       image_proxy_url: get_image_proxy_url(),
       sandbox_mode: true,
-      lockdown_mode: lockdown_active,
-      content_blocking:
-        !is_system && preferences.block_external_content
-          ? resolved_blocking
-          : undefined,
+      lockdown_mode: content_sanitize_options.lockdown_mode,
+      content_blocking: content_sanitize_options.content_blocking,
     });
   }, [
     html_blocked,
     preloaded_sanitized,
     raw_content,
-    effective_content_mode,
-    lockdown_active,
-    force_load_content,
-    is_system,
-    preferences.block_external_content,
-    preferences.block_remote_images,
-    preferences.block_remote_fonts,
-    preferences.block_remote_css,
-    preferences.block_tracking_pixels,
+    uses_preloaded_content,
+    content_sanitize_options,
   ]);
 
   const show_banner = useMemo(() => {

@@ -91,10 +91,14 @@ import {
   sanitize_outgoing_html,
   repair_comment_markup,
 } from "@/lib/html_sanitizer";
+import { get_compose_sanitize_options } from "@/lib/compose_image_sources";
 import {
-  get_compose_sanitize_options,
-  restore_compose_image_sources,
-} from "@/lib/compose_image_sources";
+  build_quoted_editor_html,
+  contain_draft_quotes,
+  read_compose_editor_html,
+  resolve_quoted_image_blocking,
+  type EditableQuotedHtmlOptions,
+} from "@/lib/editable_quoted_html";
 import { inline_email_css } from "@/lib/forward_css_inliner";
 import { outgoing_html_to_plain_text } from "@/lib/outgoing_plain_text";
 import {
@@ -259,7 +263,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
 
   const read_editor_message = useCallback((editor: HTMLElement): string => {
     if (!is_plain_text_ref.current) {
-      return restore_compose_image_sources(editor.innerHTML);
+      return read_compose_editor_html(editor.innerHTML);
     }
 
     const text = editor.innerText;
@@ -647,6 +651,24 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     }
   }, []);
 
+  const quote_options_ref = useRef<() => EditableQuotedHtmlOptions>(() => ({
+    block_remote_images: false,
+  }));
+
+  quote_options_ref.current = () => ({
+    ...resolve_quoted_image_blocking({
+      block_external_content: preferences.block_external_content,
+      block_remote_images: preferences.block_remote_images,
+      block_tracking_pixels: preferences.block_tracking_pixels,
+      load_remote_images: preferences.load_remote_images,
+      source_email_id: original_email_id,
+    }),
+    blocked_image_labels: {
+      image: t("common.image_blocked"),
+      tracking_pixel: t("common.tracking_pixel_blocked"),
+    },
+  });
+
   const inline_quoted_text = useCallback(() => {
     const editor_el = message_editor_ref.current;
 
@@ -658,7 +680,10 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
 
     editor_el.insertAdjacentHTML(
       "beforeend",
-      sanitize_html(quoted, get_compose_sanitize_options()).html,
+      build_quoted_editor_html(
+        sanitize_html(quoted, get_compose_sanitize_options()).html,
+        quote_options_ref.current(),
+      ),
     );
     body_edited_ref.current = true;
     set_reply_message(read_editor_message(editor_el));
@@ -677,7 +702,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
       enabled:
         is_open && preferences.signature_mode === "auto" && !is_plain_text_mode,
       on_swapped: (editor) =>
-        set_reply_message(restore_compose_image_sources(editor.innerHTML)),
+        set_reply_message(read_compose_editor_html(editor.innerHTML)),
     });
 
   const existing_draft_ref = useRef(existing_draft);
@@ -789,7 +814,10 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
           get_compose_sanitize_options(),
         );
 
-        message_editor_ref.current.innerHTML = sanitized_result.html;
+        message_editor_ref.current.innerHTML = contain_draft_quotes(
+          sanitized_result.html,
+          quote_options_ref.current(),
+        );
         set_reply_message(read_editor_message(message_editor_ref.current));
         mark_inlined_quote_in_draft(message_editor_ref.current);
         message_editor_ref.current.focus();

@@ -214,6 +214,7 @@ export function ForwardModal({
               set_expiry_password={modal.set_expiry_password}
               set_is_forward_visible={modal.set_is_forward_visible}
               set_scheduled_time={modal.set_scheduled_time}
+              source_email_id={original_mail_id}
               t={modal.t}
               toggle_plain_text_mode={modal.toggle_plain_text_mode}
               trigger_file_select={modal.trigger_file_select}

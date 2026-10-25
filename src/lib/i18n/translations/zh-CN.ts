@@ -4202,6 +4202,8 @@ export const zh_CN = {
     "connection.status_connecting": "连接中...",
     "connection.status_error": "连接已断开，我们正在自动重试。",
     "connection.status_disconnected": "已断开",
+    "connection.tor_unavailable_fallback":
+      "Aster Mail 不支持 Tor，因此您现在使用的是直连。如需使用 Tor，请在 Tor Browser 中打开 Aster Mail。",
     "connection.tor_blocked":
       "Tor 已关闭，为防止流量泄露，我们已拦截此请求。请启用 Tor 后再继续。",
     "connection.tor_blocked_connecting":
@@ -6643,6 +6645,10 @@ export const zh_CN = {
     strip_exif_on_compose_label: "清除图片元数据",
     strip_exif_on_compose_description:
       "发送前自动清除图片的 EXIF 及其他元数据，保护您的位置和设备信息",
+    error_reports_title: "错误报告",
+    send_error_reports_label: "发送错误报告",
+    send_error_reports_description:
+      "出现问题时，Aster Mail 会发送一份简短报告，其中包含错误代码、功能名称、您所在的应用页面、应用版本和您的平台。报告绝不会包含您的邮件、联系人、电子邮件地址或密码。",
     account_protection_title: "账户保护",
     account_protection_weak: "较弱",
     account_protection_fair: "一般",
@@ -9245,10 +9251,11 @@ export const zh_CN = {
     invalid_unsubscribe_address:
       "此发件人提供的退订地址格式异常。可使用邮件正文中的链接，在发件人网站上完成退订。",
     tor_unsupported_platform:
-      "此平台不支持 Tor。桌面或移动应用可以通过 Tor 路由您的连接。",
-    tor_native_only: "Tor 仅在原生应用中可用。桌面或移动应用可以让您使用它。",
+      "Aster Mail 不支持 Tor。如需使用 Tor，请在 Tor Browser 中打开 Aster Mail。",
+    tor_native_only:
+      "Aster Mail 不支持 Tor。如需使用 Tor，请在 Tor Browser 中打开 Aster Mail。",
     tor_plugin_missing:
-      "此设备上未安装 Tor 模块。请重新安装应用，或在“设置”中切换为直连。",
+      "Aster Mail 不支持 Tor。如需使用 Tor，请在 Tor Browser 中打开 Aster Mail。",
     cdn_relay_misconfigured:
       "此构建版本未配置 CDN 中继。请在“设置”中切换为直连。如需帮助，请联系 hello@astermail.org。",
     device_repair_required:
@@ -9323,6 +9330,8 @@ export const zh_CN = {
       "某位收件人的加密密钥已更改，因此未发送邮件。要发送，请通过其他方式与对方确认此更改，然后选择“信任新密钥”。",
     key_trust_check_failed:
       "无法检查收件人的加密密钥，因此未发送邮件。请检查网络连接后重试。",
+    recipient_classification_unavailable:
+      "无法确认如何将邮件投递给 {{recipients}}。请检查网络连接后重试。",
     failed_send_external:
       "此邮件未能通过您关联的外部账户发送。请重试。您的草稿已保存。",
     failed_queue_email:

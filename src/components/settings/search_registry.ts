@@ -1513,6 +1513,14 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
     keywords: ["exif", "metadata removal", "image privacy"],
   },
   {
+    label: "Send Error Reports",
+    label_key: "settings.send_error_reports_label",
+    section: "security",
+    breadcrumb: "Security > Error Reports",
+    crumb_key: "settings.error_reports_title",
+    keywords: ["telemetry", "diagnostics", "crash reports"],
+  },
+  {
     label: "Prefer Plain Text",
     label_key: "settings.prefer_plain_text_label",
     section: "security",

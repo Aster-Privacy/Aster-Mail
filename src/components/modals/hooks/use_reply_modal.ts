@@ -935,7 +935,9 @@ export function use_reply_modal(props: UseReplyModalProps) {
 
     if (!scheduled_gate.proceed) {
       if (scheduled_gate.blocked_by) {
-        set_error_message(t(scheduled_gate.blocked_by));
+        set_error_message(
+          scheduled_gate.message ?? t(scheduled_gate.blocked_by),
+        );
       }
 
       return;

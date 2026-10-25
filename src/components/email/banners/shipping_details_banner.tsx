@@ -33,7 +33,7 @@ import {
   TruckIcon,
 } from "@heroicons/react/24/outline";
 
-import { open_external } from "@/utils/open_link";
+import { request_external_link } from "@/utils/external_link_request";
 import { use_i18n } from "@/lib/i18n/context";
 import { safe_sender_name } from "@/lib/sender_trust_store";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
@@ -142,7 +142,7 @@ export function ShippingDetailsBanner({
   const handle_track_click = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (details.tracking_url && !is_any_lockdown_active()) {
-      open_external(details.tracking_url);
+      request_external_link(details.tracking_url);
     }
   };
 

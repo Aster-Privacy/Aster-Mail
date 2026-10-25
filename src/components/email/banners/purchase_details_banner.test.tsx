@@ -34,10 +34,10 @@ vi.mock("@/lib/i18n/context", () => ({
   }),
 }));
 
-const open_external = vi.fn();
+const request_external_link = vi.fn();
 
-vi.mock("@/utils/open_link", () => ({
-  open_external: (url: string) => open_external(url),
+vi.mock("@/utils/external_link_request", () => ({
+  request_external_link: (url: string) => request_external_link(url),
 }));
 
 const { PurchaseDetailsBanner } = await import("./purchase_details_banner");
@@ -259,7 +259,7 @@ describe("PurchaseDetailsBanner", () => {
       "mail.view_receipt",
     );
     await click(query(el, "purchase_view_receipt"));
-    expect(open_external).toHaveBeenCalledWith(
+    expect(request_external_link).toHaveBeenCalledWith(
       "https://pay.stripe.com/receipts/payment/abc",
     );
     expect(query(el, "purchase_view_receipt")).not.toBeNull();

@@ -28,7 +28,8 @@ export type SendErrorType =
   | "send_failed"
   | "rate_limited"
   | "recipient_error"
-  | "post_quantum_unavailable";
+  | "post_quantum_unavailable"
+  | "recipient_classification_unavailable";
 
 export class SendError extends Error {
   type: SendErrorType;
@@ -53,6 +54,16 @@ export class PostQuantumUnavailableError extends SendError {
     super(message, "post_quantum_unavailable");
     this.recipients = recipients;
     this.name = "PostQuantumUnavailableError";
+  }
+}
+
+export class RecipientClassificationUnavailableError extends SendError {
+  recipients: string[];
+
+  constructor(message: string, recipients: string[]) {
+    super(message, "recipient_classification_unavailable");
+    this.recipients = recipients;
+    this.name = "RecipientClassificationUnavailableError";
   }
 }
 

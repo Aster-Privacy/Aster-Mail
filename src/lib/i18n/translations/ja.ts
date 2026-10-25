@@ -4588,6 +4588,8 @@ export const ja = {
     "connection.status_connecting": "接続中...",
     "connection.status_error": "接続が切れたため、自動的に再試行しています。",
     "connection.status_disconnected": "切断済み",
+    "connection.tor_unavailable_fallback":
+      "Aster Mail では Tor を利用できないため、現在は直接接続しています。Tor を使うには、Tor Browser で Aster Mail を開いてください。",
     "connection.tor_blocked":
       "Tor が無効になっており、トラフィックの漏洩を防ぐためこのリクエストをブロックしました。Tor を有効にすると通ります。",
     "connection.tor_blocked_connecting":
@@ -7091,6 +7093,10 @@ export const ja = {
     strip_exif_on_compose_label: "画像メタデータを削除",
     strip_exif_on_compose_description:
       "送信前に画像から EXIF などのメタデータを削除し、位置情報やデバイス情報を保護します",
+    error_reports_title: "エラーレポート",
+    send_error_reports_label: "エラーレポートを送信",
+    send_error_reports_description:
+      "問題が発生すると、Aster Mail はエラーコード、機能名、使用していたアプリの画面、アプリのバージョン、プラットフォームを含む短いレポートを送信します。レポートにメッセージ、連絡先、メールアドレス、パスワードが含まれることはありません。",
     account_protection_title: "アカウント保護",
     account_protection_weak: "弱い",
     account_protection_fair: "普通",
@@ -10179,11 +10185,11 @@ export const ja = {
     invalid_unsubscribe_address:
       "この送信者の配信停止アドレスは形式に問題があるようです。メール本文内のリンクから、送信者のサイト上で配信停止することができます。",
     tor_unsupported_platform:
-      "Tor はこのプラットフォームでは利用できません。デスクトップ版またはモバイル版のアプリで接続を Tor 経由にすることができます。",
+      "Aster Mail では Tor を利用できません。Tor を使うには、Tor Browser で Aster Mail を開いてください。",
     tor_native_only:
-      "Tor はネイティブアプリでのみ利用できます。デスクトップ版またはモバイル版のアプリで利用することができます。",
+      "Aster Mail では Tor を利用できません。Tor を使うには、Tor Browser で Aster Mail を開いてください。",
     tor_plugin_missing:
-      "このデバイスには Tor モジュールがインストールされていません。アプリを再インストールするか、設定で直接接続に切り替えてください。",
+      "Aster Mail では Tor を利用できません。Tor を使うには、Tor Browser で Aster Mail を開いてください。",
     cdn_relay_misconfigured:
       "このビルドでは CDN リレーが設定されていません。設定で直接接続に切り替えてください。サポートが必要な場合は、hello@astermail.org までご連絡ください。",
     device_repair_required:
@@ -10266,6 +10272,8 @@ export const ja = {
       "受信者の暗号鍵が変更されたため、メッセージは送信されませんでした。送信するには、別の方法で相手に変更を確認してから、「新しい鍵を信頼」を選択してください。",
     key_trust_check_failed:
       "受信者の暗号鍵を確認できなかったため、メッセージは送信されませんでした。接続を確認して、もう一度お試しください。",
+    recipient_classification_unavailable:
+      "{{recipients}} への配信方法を確認できませんでした。接続を確認して、もう一度お試しください。",
     failed_send_external:
       "リンクした外部アカウントからこのメールを送信できませんでした。もう一度お試しください。下書きは保存されています。",
     failed_queue_email:

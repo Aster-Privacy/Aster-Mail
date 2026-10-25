@@ -3134,6 +3134,10 @@ export const en: Translations = {
     strip_exif_on_compose_label: "Strip Image Metadata",
     strip_exif_on_compose_description:
       "Remove EXIF and other metadata from images before sending to protect your location and device information",
+    error_reports_title: "Error Reports",
+    send_error_reports_label: "Send Error Reports",
+    send_error_reports_description:
+      "When something fails, Aster Mail sends a short report with an error code, the feature name, the area of the app you were in, the app version, and your platform. Reports never include your messages, contacts, email addresses, or passwords.",
     account_protection_title: "Account protection",
     account_protection_weak: "Weak",
     account_protection_fair: "Fair",
@@ -5513,6 +5517,8 @@ export const en: Translations = {
     "connection.status_error":
       "We lost the connection, and we are retrying on our own.",
     "connection.status_disconnected": "Disconnected",
+    "connection.tor_unavailable_fallback":
+      "Tor isn't available in Aster Mail, so your connection is now direct. To use Tor, open Aster Mail in Tor Browser.",
     "connection.tor_blocked":
       "Tor is turned off, and we blocked this request to keep your traffic from leaking. Turning Tor on will let it through.",
     "connection.tor_blocked_connecting":
@@ -10183,6 +10189,8 @@ export const en: Translations = {
       "A recipient's encryption key changed, so the message wasn't sent. To send it, confirm the change with them another way, then choose Trust new key.",
     key_trust_check_failed:
       "Couldn't check the recipients' encryption keys, so the message wasn't sent. Check your connection and try again.",
+    recipient_classification_unavailable:
+      "Couldn't confirm how to deliver to {{recipients}}. Check your connection and try again.",
     failed_send_external:
       "This email did not send through your linked outside account. Try again. Your draft is saved.",
     failed_queue_email:
@@ -10312,11 +10320,11 @@ export const en: Translations = {
     invalid_unsubscribe_address:
       "The unsubscribe address from this sender looks malformed. The link in the email itself will let you unsubscribe on the sender's site.",
     tor_unsupported_platform:
-      "Tor is not available on this platform. The desktop or mobile app can route your connection through Tor.",
+      "Tor isn't available in Aster Mail. To use Tor, open Aster Mail in Tor Browser.",
     tor_native_only:
-      "Tor is only available in the native app. The desktop or mobile app will let you use it.",
+      "Tor isn't available in Aster Mail. To use Tor, open Aster Mail in Tor Browser.",
     tor_plugin_missing:
-      "The Tor module is not installed on this device. Reinstall the app or switch to a direct connection in Settings.",
+      "Tor isn't available in Aster Mail. To use Tor, open Aster Mail in Tor Browser.",
     cdn_relay_misconfigured:
       "The CDN relay is not configured for this build. Switch to a direct connection in Settings. If you need help, contact hello@astermail.org.",
     device_repair_required:

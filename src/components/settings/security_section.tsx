@@ -36,6 +36,7 @@ import {
   PhotoIcon,
   CodeBracketIcon,
   CpuChipIcon,
+  BugAntIcon,
 } from "@heroicons/react/24/outline";
 
 import { TotpDisableModal } from "./totp_disable_modal";
@@ -538,6 +539,24 @@ export function SecuritySection({
               preferences.html_rendering_mode === "plain_text"
                 ? "html"
                 : "plain_text",
+              true,
+            )
+          }
+        />
+      </IslandSection>
+
+      <IslandSection
+        icon={<BugAntIcon />}
+        title={t("settings.error_reports_title")}
+      >
+        <SettingToggleRow
+          checked={preferences.send_error_reports}
+          description={t("settings.send_error_reports_description")}
+          label={t("settings.send_error_reports_label")}
+          on_change={() =>
+            update_preference(
+              "send_error_reports",
+              !preferences.send_error_reports,
               true,
             )
           }

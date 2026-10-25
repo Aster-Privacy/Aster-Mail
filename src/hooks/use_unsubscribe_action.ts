@@ -28,7 +28,7 @@ import {
   execute_unsubscribe,
   get_manual_unsubscribe_url,
 } from "@/utils/unsubscribe_detector";
-import { open_external } from "@/utils/open_link";
+import { request_external_link } from "@/utils/external_link_request";
 import { persist_unsubscribe } from "@/hooks/use_unsubscribed_senders";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -132,7 +132,7 @@ export function use_unsubscribe_action({
               url && {
                 action_label: t("mail.open_unsubscribe_page"),
                 on_undo: async () => {
-                  open_external(url);
+                  if (!(await request_external_link(url))) return;
                   record_unsubscribed();
                   on_unsubscribed?.();
                 },

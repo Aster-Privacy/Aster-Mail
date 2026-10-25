@@ -23,6 +23,7 @@ import {
   is_internal_recipient,
 } from "./recipient_classification";
 import { assert_required_encryption_keys } from "./send_queue_execute";
+import { RecipientClassificationUnavailableError } from "./send_queue_types";
 
 import { get_active_translations } from "@/lib/i18n/translations";
 
@@ -33,9 +34,11 @@ export async function check_reply_send(
   const strings = get_active_translations();
 
   try {
-    await classify_recipients(recipients);
-  } catch {
-    return strings.errors.key_trust_check_failed;
+    await classify_recipients(recipients, { require_resolved: true });
+  } catch (error) {
+    return error instanceof RecipientClassificationUnavailableError
+      ? error.message
+      : strings.errors.key_trust_check_failed;
   }
 
   const external = recipients.filter((r) => !is_internal_recipient(r));

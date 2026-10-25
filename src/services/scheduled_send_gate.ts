@@ -30,6 +30,7 @@ import {
   collect_pgp_recipients,
   type RecipientLockScope,
 } from "./recipient_lock_state";
+import { RecipientClassificationUnavailableError } from "./send_queue_types";
 
 import { exceeds_sealed_schedule_window } from "@/lib/schedule_window";
 import { is_future_instant } from "@/utils/schedule_targets";
@@ -39,11 +40,12 @@ export type ScheduledGateBlock =
   | "common.scheduled_no_pgp"
   | "common.scheduled_too_far_ahead"
   | "mail_rules.snooze_needs_future"
+  | "errors.recipient_classification_unavailable"
   | PostQuantumConsentBlock;
 
 export type ScheduledGateResult =
   | { proceed: true; allow_non_post_quantum: boolean }
-  | { proceed: false; blocked_by?: ScheduledGateBlock };
+  | { proceed: false; blocked_by?: ScheduledGateBlock; message?: string };
 
 export async function check_scheduled_send(
   recipients: string[],
@@ -62,9 +64,17 @@ export async function check_scheduled_send(
   }
 
   try {
-    await classify_recipients(recipients);
-  } catch {
-    return { proceed: false, blocked_by: "errors.key_trust_check_failed" };
+    await classify_recipients(recipients, { require_resolved: true });
+  } catch (error) {
+    if (!(error instanceof RecipientClassificationUnavailableError)) {
+      return { proceed: false, blocked_by: "errors.key_trust_check_failed" };
+    }
+
+    return {
+      proceed: false,
+      blocked_by: "errors.recipient_classification_unavailable",
+      message: error.message,
+    };
   }
 
   const has_external = recipients.some((r) => !is_internal_recipient(r));

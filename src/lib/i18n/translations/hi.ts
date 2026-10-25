@@ -3215,6 +3215,10 @@ export const hi = {
     strip_exif_on_compose_label: "तस्वीर का मेटाडेटा हटाएं",
     strip_exif_on_compose_description:
       "अपनी जगह और डिवाइस की जानकारी बचाने के लिए भेजने से पहले तस्वीरों से EXIF और दूसरा मेटाडेटा हटाएं",
+    error_reports_title: "गड़बड़ी की रिपोर्ट",
+    send_error_reports_label: "गड़बड़ी की रिपोर्ट भेजें",
+    send_error_reports_description:
+      "कुछ गलत होने पर Aster Mail एक छोटी रिपोर्ट भेजता है जिसमें गड़बड़ी का कोड, फ़ीचर का नाम, ऐप का वह हिस्सा जहाँ आप थे, ऐप का वर्शन और आपका प्लेटफ़ॉर्म होता है। रिपोर्ट में कभी आपके संदेश, संपर्क, ईमेल पते या पासवर्ड शामिल नहीं होते।",
     account_protection_title: "खाते की सुरक्षा",
     account_protection_weak: "कमज़ोर",
     account_protection_fair: "ठीक-ठाक",
@@ -5598,6 +5602,8 @@ export const hi = {
     "connection.status_error":
       "कनेक्शन टूट गया, और हम अपने आप फिर से कोशिश कर रहे हैं।",
     "connection.status_disconnected": "अलग हो गया",
+    "connection.tor_unavailable_fallback":
+      "Aster Mail में Tor उपलब्ध नहीं है, इसलिए अब आपका कनेक्शन डायरेक्ट है। Tor इस्तेमाल करने के लिए, Aster Mail को Tor Browser में खोलें।",
     "connection.tor_blocked":
       "Tor बंद है, और आपका ट्रैफ़िक लीक होने से बचाने के लिए हमने यह अनुरोध रोक दिया। Tor चालू करने पर यह आगे बढ़ जाएगा।",
     "connection.tor_blocked_connecting":
@@ -10239,6 +10245,8 @@ export const hi = {
       "किसी प्राप्तकर्ता की एन्क्रिप्शन कुंजी बदल गई है, इसलिए संदेश नहीं भेजा गया। इसे भेजने के लिए, उनसे किसी दूसरे तरीके से बदलाव की पुष्टि करें, फिर नई कुंजी पर भरोसा करें चुनें।",
     key_trust_check_failed:
       "प्राप्तकर्ताओं की एन्क्रिप्शन कुंजियां जांची नहीं जा सकीं, इसलिए संदेश नहीं भेजा गया। अपना कनेक्शन जांचें और फिर से कोशिश करें।",
+    recipient_classification_unavailable:
+      "{{recipients}} तक संदेश पहुंचाने का तरीका पक्का नहीं हो सका। अपना कनेक्शन जांचें और फिर से कोशिश करें।",
     failed_send_external:
       "यह ईमेल आपके लिंक किए गए बाहरी खाते से नहीं भेजा गया। फिर से कोशिश करें। आपका ड्राफ़्ट सहेजा गया है।",
     failed_queue_email:
@@ -10369,11 +10377,11 @@ export const hi = {
     invalid_unsubscribe_address:
       "इस प्रेषक का सदस्यता रद्द करने वाला पता गलत बना हुआ लगता है। ईमेल में मौजूद लिंक से आप प्रेषक की साइट पर जाकर सदस्यता रद्द कर सकते हैं।",
     tor_unsupported_platform:
-      "इस प्लेटफ़ॉर्म पर Tor उपलब्ध नहीं है। डेस्कटॉप या मोबाइल ऐप आपका कनेक्शन Tor से भेज सकता है।",
+      "Aster Mail में Tor उपलब्ध नहीं है। Tor इस्तेमाल करने के लिए, Aster Mail को Tor Browser में खोलें।",
     tor_native_only:
-      "Tor सिर्फ़ नेटिव ऐप में उपलब्ध है। डेस्कटॉप या मोबाइल ऐप में आप इसे इस्तेमाल कर सकते हैं।",
+      "Aster Mail में Tor उपलब्ध नहीं है। Tor इस्तेमाल करने के लिए, Aster Mail को Tor Browser में खोलें।",
     tor_plugin_missing:
-      "इस डिवाइस पर Tor मॉड्यूल इंस्टॉल नहीं है। ऐप दोबारा इंस्टॉल करें या सेटिंग में डायरेक्ट कनेक्शन पर स्विच करें।",
+      "Aster Mail में Tor उपलब्ध नहीं है। Tor इस्तेमाल करने के लिए, Aster Mail को Tor Browser में खोलें।",
     cdn_relay_misconfigured:
       "इस बिल्ड के लिए CDN रिले कॉन्फ़िगर नहीं है। सेटिंग में डायरेक्ट कनेक्शन पर स्विच करें। मदद चाहिए तो hello@astermail.org से संपर्क करें।",
     device_repair_required:

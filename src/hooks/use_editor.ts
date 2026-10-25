@@ -31,8 +31,8 @@ import {
 import {
   get_compose_sanitize_options,
   proxy_compose_image_sources,
-  restore_compose_image_sources,
 } from "@/lib/compose_image_sources";
+import { read_compose_editor_html } from "@/lib/editable_quoted_html";
 import {
   type HeadingLevel,
   type TextAlignment,
@@ -110,7 +110,7 @@ export function use_editor({
         is_plain_text_mode
           ? editor.innerText
           : strip_editor_fillers(
-              restore_compose_image_sources(editor.innerHTML),
+              read_compose_editor_html(editor.innerHTML),
             ),
       );
     },
@@ -167,7 +167,7 @@ export function use_editor({
     return is_plain_text_mode_ref.current
       ? pending.editor.innerText
       : strip_editor_fillers(
-          restore_compose_image_sources(pending.editor.innerHTML),
+          read_compose_editor_html(pending.editor.innerHTML),
         );
   }, [take_pending_input]);
 
@@ -607,7 +607,7 @@ export function use_editor({
 
   const get_html = useCallback((): string => {
     return strip_editor_fillers(
-      restore_compose_image_sources(editor_ref.current?.innerHTML || ""),
+      read_compose_editor_html(editor_ref.current?.innerHTML || ""),
     );
   }, [editor_ref]);
 
