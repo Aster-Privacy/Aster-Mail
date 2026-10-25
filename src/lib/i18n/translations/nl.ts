@@ -1319,6 +1319,14 @@ export const nl = {
       "Een deel van je oudere versleutelde gegevens is vergrendeld.",
     locked_data_banner_action: "Gegevens herstellen",
     locked_data_banner_dismiss: "Sluiten",
+    external_account_health_banner_reauth:
+      "{{email}} synchroniseert niet meer. Log opnieuw in om verder te gaan.",
+    external_account_health_banner_failing:
+      "{{email}} is al meer dan een dag niet gesynchroniseerd.",
+    external_account_health_banner_multiple:
+      "Sommige externe accounts synchroniseren niet meer.",
+    external_account_health_banner_action: "Bekijken",
+    external_account_health_banner_dismiss: "Sluiten",
     recover_data_title: "Gegevens herstellen",
     recover_data_description:
       "Voer het wachtwoord in dat je toen gebruikte om gegevens van vóór een wachtwoordwijziging of -reset te ontgrendelen.",
@@ -5540,6 +5548,10 @@ export const nl = {
     no_external_accounts_description:
       "Verbind een extern e-mailaccount om e-mails te importeren en verzenden van andere providers",
     external_account_count: "{{count}} extern(e) account(s)",
+    external_account_health_summary: "Synchronisatiestatus",
+    external_account_health_ok: "In orde",
+    external_account_health_failing: "Mislukt",
+    external_account_health_reauth: "Inloggen vereist",
     email_count: "{{count}} e-mail(s)",
     purge_confirm_message:
       "Dit verwijdert permanent alle {{count}} geïmporteerde e-mail(s) van {{email}}. Deze actie kan niet ongedaan worden gemaakt.",

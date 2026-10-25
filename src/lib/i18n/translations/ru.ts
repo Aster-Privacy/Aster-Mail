@@ -1323,6 +1323,14 @@ export const ru = {
       "Часть ваших старых зашифрованных данных заблокирована.",
     locked_data_banner_action: "Восстановить данные",
     locked_data_banner_dismiss: "Скрыть",
+    external_account_health_banner_reauth:
+      "Аккаунт {{email}} перестал синхронизироваться. Войдите снова, чтобы продолжить.",
+    external_account_health_banner_failing:
+      "Аккаунт {{email}} не синхронизировался больше суток.",
+    external_account_health_banner_multiple:
+      "Некоторые внешние аккаунты перестали синхронизироваться.",
+    external_account_health_banner_action: "Проверить",
+    external_account_health_banner_dismiss: "Скрыть",
     recover_data_title: "Восстановить данные",
     recover_data_description:
       "Чтобы разблокировать данные, созданные до смены или сброса пароля, введите пароль, который вы использовали в то время.",
@@ -5774,6 +5782,10 @@ export const ru = {
     no_external_accounts_description:
       "Подключите внешний почтовый аккаунт для импорта и отправки писем от других провайдеров",
     external_account_count: "{{count}} внешний(-их) аккаунт(ов)",
+    external_account_health_summary: "Состояние синхронизации",
+    external_account_health_ok: "Работают",
+    external_account_health_failing: "Ошибки",
+    external_account_health_reauth: "Нужен вход",
     email_count: "{{count}} письм(о/а)",
     purge_confirm_message:
       "Это навсегда удалит все {{count}} импортированных письм(о/а) из {{email}}. Это действие нельзя отменить.",

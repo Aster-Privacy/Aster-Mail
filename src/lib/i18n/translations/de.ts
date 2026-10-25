@@ -1250,6 +1250,14 @@ export const de = {
       "Einige Ihrer älteren verschlüsselten Daten sind gesperrt.",
     locked_data_banner_action: "Daten wiederherstellen",
     locked_data_banner_dismiss: "Schließen",
+    external_account_health_banner_reauth:
+      "{{email}} wird nicht mehr synchronisiert. Melden Sie sich erneut an, um fortzufahren.",
+    external_account_health_banner_failing:
+      "{{email}} wurde seit über einem Tag nicht synchronisiert.",
+    external_account_health_banner_multiple:
+      "Einige externe Konten werden nicht mehr synchronisiert.",
+    external_account_health_banner_action: "Prüfen",
+    external_account_health_banner_dismiss: "Schließen",
     recover_data_title: "Daten wiederherstellen",
     recover_data_description:
       "Um Daten von vor einer Passwortänderung oder -zurücksetzung zu entsperren, geben Sie das Passwort ein, das Sie damals verwendet haben.",
@@ -5535,6 +5543,10 @@ export const de = {
     no_external_accounts_description:
       "Verbinden Sie ein externes E-Mail-Konto, um E-Mails von anderen Anbietern zu importieren und zu senden",
     external_account_count: "{{count}} externes/externe Konto/Konten",
+    external_account_health_summary: "Synchronisierungsstatus",
+    external_account_health_ok: "In Ordnung",
+    external_account_health_failing: "Fehlerhaft",
+    external_account_health_reauth: "Anmeldung nötig",
     email_count: "{{count}} E-Mail(s)",
     purge_confirm_message:
       "Dies wird alle {{count}} importierten E-Mail(s) von {{email}} dauerhaft löschen. Diese Aktion kann nicht rückgängig gemacht werden.",

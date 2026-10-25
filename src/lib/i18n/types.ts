@@ -1903,6 +1903,11 @@ export interface CommonTranslations {
   locked_data_banner_message: string;
   locked_data_banner_action: string;
   locked_data_banner_dismiss: string;
+  external_account_health_banner_reauth: string;
+  external_account_health_banner_failing: string;
+  external_account_health_banner_multiple: string;
+  external_account_health_banner_action: string;
+  external_account_health_banner_dismiss: string;
   recover_data_title: string;
   recover_data_description: string;
   recover_data_button: string;
@@ -5773,6 +5778,10 @@ export interface SettingsTranslations {
   no_external_accounts: string;
   no_external_accounts_description: string;
   external_account_count: string;
+  external_account_health_summary: string;
+  external_account_health_ok: string;
+  external_account_health_failing: string;
+  external_account_health_reauth: string;
   external_account_count_other: string;
   external_account_count_one: string;
   email_count: string;

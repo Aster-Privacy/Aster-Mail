@@ -1319,6 +1319,14 @@ export const it = {
       "Alcuni dei tuoi dati cifrati meno recenti sono bloccati.",
     locked_data_banner_action: "Recupera dati",
     locked_data_banner_dismiss: "Ignora",
+    external_account_health_banner_reauth:
+      "{{email}} non si sincronizza più. Accedi di nuovo per riprendere.",
+    external_account_health_banner_failing:
+      "{{email}} non si sincronizza da più di un giorno.",
+    external_account_health_banner_multiple:
+      "Alcuni account esterni non si sincronizzano più.",
+    external_account_health_banner_action: "Controlla",
+    external_account_health_banner_dismiss: "Ignora",
     recover_data_title: "Recupera dati",
     recover_data_description:
       "Per sbloccare i dati precedenti a una modifica o reimpostazione della password, inserisci la password che usavi in quel momento.",
@@ -6792,6 +6800,10 @@ export const it = {
     no_external_accounts_description:
       "Collega un account email esterno per importare e inviare email da altri provider",
     external_account_count: "{{count}} account esterno/i",
+    external_account_health_summary: "Stato della sincronizzazione",
+    external_account_health_ok: "Funzionanti",
+    external_account_health_failing: "Con errori",
+    external_account_health_reauth: "Accesso richiesto",
     email_count: "{{count}} email",
     purge_confirm_message:
       "Questo eliminerà definitivamente tutte le {{count}} email importate da {{email}}. Questa azione non può essere annullata.",

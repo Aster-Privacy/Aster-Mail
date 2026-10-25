@@ -34,6 +34,7 @@ import { clear_sender_identity_authentication_cache } from "@/services/crypto/se
 import { clear_recipient_classification_cache } from "@/services/recipient_classification";
 import { reset_account_key_capabilities_cache } from "@/services/api/account_key";
 import { forget_current_user } from "@/services/current_identity";
+import { clear_external_account_health } from "@/stores/external_account_health_store";
 import { ignore_error } from "@/lib/ignore_error";
 
 const ACCOUNT_MEMORY_CLEARERS: ReadonlyArray<() => void> = [
@@ -53,6 +54,7 @@ const ACCOUNT_MEMORY_CLEARERS: ReadonlyArray<() => void> = [
   () => clear_recipient_classification_cache(),
   () => reset_account_key_capabilities_cache(),
   () => forget_current_user(),
+  () => clear_external_account_health(),
 ];
 
 export function clear_account_memory_stores(): void {

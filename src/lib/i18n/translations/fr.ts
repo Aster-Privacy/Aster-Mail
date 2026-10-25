@@ -1347,6 +1347,14 @@ export const fr = {
       "Certaines de vos anciennes données chiffrées sont verrouillées.",
     locked_data_banner_action: "Récupérer les données",
     locked_data_banner_dismiss: "Ignorer",
+    external_account_health_banner_reauth:
+      "{{email}} ne se synchronise plus. Reconnectez-vous pour reprendre.",
+    external_account_health_banner_failing:
+      "{{email}} ne s'est pas synchronisé depuis plus d'un jour.",
+    external_account_health_banner_multiple:
+      "Certains comptes externes ne se synchronisent plus.",
+    external_account_health_banner_action: "Vérifier",
+    external_account_health_banner_dismiss: "Ignorer",
     recover_data_title: "Récupérer les données",
     recover_data_description:
       "Pour déverrouiller les données antérieures à un changement ou à une réinitialisation du mot de passe, saisissez le mot de passe que vous utilisiez à ce moment-là.",
@@ -5732,6 +5740,10 @@ export const fr = {
     no_external_accounts_description:
       "Connectez un compte e-mail externe pour importer et envoyer des e-mails depuis d'autres fournisseurs",
     external_account_count: "{{count}} compte(s) externe(s)",
+    external_account_health_summary: "État de la synchronisation",
+    external_account_health_ok: "Opérationnels",
+    external_account_health_failing: "En échec",
+    external_account_health_reauth: "Connexion requise",
     email_count: "{{count}} e-mail(s)",
     purge_confirm_message:
       "Cela supprimera définitivement tous les {{count}} e-mail(s) importés depuis {{email}}. Cette action est irréversible.",

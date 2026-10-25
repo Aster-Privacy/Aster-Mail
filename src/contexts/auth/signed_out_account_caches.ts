@@ -32,6 +32,7 @@ import { ignore_error } from "@/lib/ignore_error";
 import { clear_icon_cache } from "@/lib/icon_cache";
 import { purge_favicon_cache } from "@/lib/favicon_cache_db";
 import { delete_account_storage } from "@/services/crypto/storage_key_names";
+import { forget_external_account_problems } from "@/stores/external_account_health_store";
 
 function run_clearer(clear: () => void): void {
   try {
@@ -52,6 +53,7 @@ export async function clear_signed_out_account_caches(
   run_clearer(() => clear_detection_cache());
   run_clearer(() => release_engines());
   run_clearer(() => clear_icon_cache());
+  run_clearer(() => forget_external_account_problems());
 
   if (account_id) {
     await delete_account_storage(account_id).catch((caught) =>

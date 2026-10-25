@@ -1355,6 +1355,14 @@ export const hi = {
     locked_data_banner_message: "आपका कुछ पुराना एन्क्रिप्टेड डेटा लॉक है।",
     locked_data_banner_action: "डेटा वापस पाएं",
     locked_data_banner_dismiss: "खारिज करें",
+    external_account_health_banner_reauth:
+      "{{email}} का सिंक रुक गया है। फिर से शुरू करने के लिए दोबारा साइन इन करें।",
+    external_account_health_banner_failing:
+      "{{email}} एक दिन से ज़्यादा समय से सिंक नहीं हुआ है।",
+    external_account_health_banner_multiple:
+      "कुछ बाहरी खातों का सिंक रुक गया है।",
+    external_account_health_banner_action: "देखें",
+    external_account_health_banner_dismiss: "खारिज करें",
     recover_data_title: "डेटा वापस पाएं",
     recover_data_description:
       "पासवर्ड बदलने या रीसेट करने से पहले का डेटा अनलॉक करने के लिए, वह पासवर्ड डालें जो आप उस समय इस्तेमाल करते थे।",
@@ -6848,6 +6856,10 @@ export const hi = {
     no_external_accounts_description:
       "दूसरे प्रदाताओं से ईमेल इंपोर्ट करने और भेजने के लिए कोई बाहरी ईमेल खाता जोड़ें",
     external_account_count: "{{count}} बाहरी खाते",
+    external_account_health_summary: "सिंक स्थिति",
+    external_account_health_ok: "ठीक",
+    external_account_health_failing: "विफल",
+    external_account_health_reauth: "साइन इन ज़रूरी",
     email_count: "{{count}} ईमेल",
     purge_confirm_message:
       "इससे {{email}} से इंपोर्ट की गई सभी {{count}} ईमेल हमेशा के लिए हट जाएंगी। इसे पहले जैसा नहीं किया जा सकता।",

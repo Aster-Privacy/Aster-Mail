@@ -1279,6 +1279,14 @@ export const ar = {
     locked_data_banner_message: "بعض بياناتك المشفّرة الأقدم مقفلة.",
     locked_data_banner_action: "استعادة البيانات",
     locked_data_banner_dismiss: "تجاهل",
+    external_account_health_banner_reauth:
+      "توقفت مزامنة {{email}}. سجّل الدخول مجددًا للاستئناف.",
+    external_account_health_banner_failing:
+      "لم تتم مزامنة {{email}} منذ أكثر من يوم.",
+    external_account_health_banner_multiple:
+      "توقفت مزامنة بعض الحسابات الخارجية.",
+    external_account_health_banner_action: "مراجعة",
+    external_account_health_banner_dismiss: "تجاهل",
     recover_data_title: "استعادة البيانات",
     recover_data_description:
       "لفتح البيانات من قبل تغيير كلمة السر أو إعادة تعيينها، أدخل كلمة السر التي كنت تستخدمها في ذلك الوقت.",
@@ -5676,6 +5684,10 @@ export const ar = {
     no_external_accounts_description:
       "اربط حساب بريد خارجي لاستيراد وإرسال رسائل من مزودين آخرين",
     external_account_count: "{{count}} حساب خارجي",
+    external_account_health_summary: "حالة المزامنة",
+    external_account_health_ok: "سليمة",
+    external_account_health_failing: "متعثرة",
+    external_account_health_reauth: "يلزم تسجيل الدخول",
     email_count: "{{count}} رسالة",
     purge_confirm_message:
       "سيتم حذف جميع الرسائل المستوردة البالغ عددها {{count}} من {{email}} نهائيًا. لا يمكن التراجع عن هذا الإجراء.",

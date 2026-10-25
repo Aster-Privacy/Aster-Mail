@@ -1358,6 +1358,14 @@ export const ko = {
     locked_data_banner_message: "이전에 암호화된 데이터 일부가 잠겨 있습니다.",
     locked_data_banner_action: "데이터 복구",
     locked_data_banner_dismiss: "닫기",
+    external_account_health_banner_reauth:
+      "{{email}} 동기화가 중단되었습니다. 다시 로그인하면 재개됩니다.",
+    external_account_health_banner_failing:
+      "{{email}}이(가) 하루 넘게 동기화되지 않았습니다.",
+    external_account_health_banner_multiple:
+      "일부 외부 계정의 동기화가 중단되었습니다.",
+    external_account_health_banner_action: "확인",
+    external_account_health_banner_dismiss: "닫기",
     recover_data_title: "데이터 복구",
     recover_data_description:
       "비밀번호 변경 또는 재설정 이전의 데이터를 잠금 해제하려면 당시 사용하던 비밀번호를 입력하세요.",
@@ -5588,6 +5596,10 @@ export const ko = {
     no_external_accounts_description:
       "다른 제공업체에서 이메일을 가져오고 보내기 위해 외부 이메일 계정을 연결하세요",
     external_account_count: "{{count}}개의 외부 계정",
+    external_account_health_summary: "동기화 상태",
+    external_account_health_ok: "정상",
+    external_account_health_failing: "오류",
+    external_account_health_reauth: "로그인 필요",
     email_count: "{{count}}개의 이메일",
     purge_confirm_message:
       "{{email}}에서 가져온 {{count}}개의 이메일이 영구적으로 삭제됩니다. 이 작업은 취소할 수 없습니다.",

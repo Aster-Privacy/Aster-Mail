@@ -1353,6 +1353,14 @@ export const ja = {
       "以前の暗号化データの一部がロックされています。",
     locked_data_banner_action: "データを復元",
     locked_data_banner_dismiss: "閉じる",
+    external_account_health_banner_reauth:
+      "{{email}} の同期が停止しました。再開するには再度サインインしてください。",
+    external_account_health_banner_failing:
+      "{{email}} は 1 日以上同期されていません。",
+    external_account_health_banner_multiple:
+      "一部の外部アカウントの同期が停止しています。",
+    external_account_health_banner_action: "確認",
+    external_account_health_banner_dismiss: "閉じる",
     recover_data_title: "データを復元",
     recover_data_description:
       "パスワードの変更またはリセット前のデータのロックを解除するには、その時に使用していたパスワードを入力してください。",
@@ -5577,6 +5585,10 @@ export const ja = {
     no_external_accounts_description:
       "外部のメールアカウントを接続して、他のプロバイダーからメールをインポートして送信しましょう",
     external_account_count: "{{count}}件の外部アカウント",
+    external_account_health_summary: "同期の状態",
+    external_account_health_ok: "正常",
+    external_account_health_failing: "エラー",
+    external_account_health_reauth: "サインインが必要",
     email_count: "{{count}}件のメール",
     purge_confirm_message:
       "{{email}}からインポートした{{count}}件のメールをすべて完全に削除します。この操作は元に戻せません。",
