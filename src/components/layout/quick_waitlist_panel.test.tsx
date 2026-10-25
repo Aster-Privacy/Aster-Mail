@@ -265,6 +265,6 @@ describe("quick waitlist panel", () => {
     expect(container.textContent).toContain("calendar.beta_waitlist_start");
     expect(container.textContent).toContain("calendar.beta_waitlist_icon_note");
     expect(container.textContent).toContain("calendar.beta_waitlist_tag");
-    expect(container.querySelectorAll("li")).toHaveLength(3);
+    expect(container.querySelectorAll("li")).toHaveLength(7);
   });
 });

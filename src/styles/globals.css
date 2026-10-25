@@ -2561,7 +2561,7 @@ button.press_scale:active {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 16px;
+  border-radius: 9999px;
   background-color: var(--accent-color, #3b82f6);
   color: #fff;
   transform: rotateY(180deg);
