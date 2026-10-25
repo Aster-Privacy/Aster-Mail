@@ -193,16 +193,10 @@ describe("account bridge", () => {
     ).toEqual({ failed: 3, linked: 0 });
   });
 
-  it("does not give the support site profile pictures", async () => {
+  it("does not list the device accounts to the support site", async () => {
     const reply = await ask(SUPPORT_ORIGIN, { action: "accounts" });
-    const accounts = reply.accounts as Array<Record<string, unknown>>;
 
-    expect(reply.ok).toBe(true);
-    expect(accounts.map((item) => item.email)).toEqual([
-      "acct_a@astermail.org",
-      "acct_b@astermail.org",
-    ]);
-    expect(accounts.every((item) => item.profile_picture === null)).toBe(true);
+    expect(reply).toMatchObject({ ok: true, accounts: [] });
   });
 
   it("still gives the app its profile pictures", async () => {
@@ -234,15 +228,22 @@ describe("account bridge", () => {
     expect(reply).toMatchObject({ ok: false, error: "unsupported" });
   });
 
-  it("signs out each account instead of wiping the device for the support site", async () => {
+  it("refuses to let the support site sign out every account", async () => {
     const reply = await ask(SUPPORT_ORIGIN, { action: "sign_out", all: true });
 
-    expect(reply).toMatchObject({ ok: true, removed: 2 });
+    expect(reply).toMatchObject({ ok: false, error: "unsupported" });
     expect(state.purge).not.toHaveBeenCalled();
-    expect(state.remove.mock.calls.map((call) => call[0])).toEqual([
-      "acct_a",
-      "acct_b",
-    ]);
+    expect(state.remove).not.toHaveBeenCalled();
+  });
+
+  it("refuses a support site sign-out of more than one account", async () => {
+    const reply = await ask(SUPPORT_ORIGIN, {
+      action: "sign_out",
+      account_ids: ["acct_a", "acct_b"],
+    });
+
+    expect(reply).toMatchObject({ ok: false, error: "unsupported" });
+    expect(state.remove).not.toHaveBeenCalled();
   });
 
   it("keeps the full device sign-out for the app", async () => {

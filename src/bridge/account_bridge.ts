@@ -224,8 +224,10 @@ function personal_accounts(accounts: StoredAccount[]): StoredAccount[] {
 }
 
 async function handle_accounts(
-  include_pictures: boolean,
+  trusted_app: boolean,
 ): Promise<bridge_result> {
+  if (!trusted_app) return { ok: true, accounts: [] };
+
   const accounts = await get_all_accounts();
 
   if (accounts_storage_unreadable()) {
@@ -244,7 +246,7 @@ async function handle_accounts(
         email: account.user.email,
         display_name: account.user.display_name ?? null,
         profile_color: account.user.profile_color ?? null,
-        profile_picture: include_pictures ? profile_picture_of(account) : null,
+        profile_picture: profile_picture_of(account),
         is_current,
         linkable:
           has_unlock_material(account.id) &&
@@ -520,23 +522,21 @@ async function sign_out_one(
 async function handle_sign_out(
   account_ids: unknown,
   all: unknown,
-  may_purge_device: boolean,
+  trusted_app: boolean,
 ): Promise<bridge_result> {
+  if (
+    !trusted_app &&
+    (all !== undefined ||
+      !Array.isArray(account_ids) ||
+      account_ids.length !== 1)
+  ) {
+    return { ok: false, error: "unsupported" };
+  }
+
   const accounts = personal_accounts(await get_all_accounts());
 
   if (accounts_storage_unreadable()) {
     return { ok: false, error: "storage_unreadable" };
-  }
-
-  if (all === true && !may_purge_device) {
-    const current_id = await get_current_account_id();
-    let removed = 0;
-
-    for (const account of accounts) {
-      if (await sign_out_one(account, current_id)) removed += 1;
-    }
-
-    return { ok: true, removed };
   }
 
   if (all === true) {
