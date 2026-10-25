@@ -366,11 +366,20 @@ export function use_editor({
                 .replace(/</g, "&lt;")
                 .replace(/>/g, "&gt;");
 
-              document.execCommand(
-                "insertHTML",
-                false,
-                `<div><img src="${data_url}" data-filename="${escaped_name}" draggable="true" style="max-width: 100%; height: auto; display: block; margin: 8px 0;" /></div><div><br></div>`,
-              );
+              if (!editor.isConnected || editor_ref.current !== editor) return;
+
+              const image_html = `<div><img src="${data_url}" data-filename="${escaped_name}" draggable="true" style="max-width: 100%; height: auto; display: block; margin: 8px 0;" /></div><div><br></div>`;
+              const selection = window.getSelection();
+
+              if (
+                selection &&
+                selection.rangeCount > 0 &&
+                editor.contains(selection.anchorNode)
+              ) {
+                document.execCommand("insertHTML", false, image_html);
+              } else {
+                editor.insertAdjacentHTML("beforeend", image_html);
+              }
               handle_input();
             } catch {
               show_toast(t("common.valid_image_error"), "error");
@@ -546,6 +555,12 @@ export function use_editor({
               .replace(/"/g, "&quot;")
               .replace(/</g, "&lt;")
               .replace(/>/g, "&gt;");
+
+            if (
+              !drop_editor.isConnected ||
+              editor_ref.current !== drop_editor
+            )
+              return;
 
             drop_editor.focus();
             document.execCommand(
