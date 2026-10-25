@@ -6249,6 +6249,18 @@ export const fr = {
       "Pour acheter plus de stockage, sélectionnez d’abord une option.",
     storage_promo_cta: "Voir les modules",
     storage_used_of_total: "{{used}} sur {{total}} utilisés",
+    storage_nudge_almost_title: "Stockage presque plein",
+    storage_nudge_critical_title: "Vous n'avez presque plus de stockage",
+    storage_nudge_full_title: "Votre stockage est plein",
+    storage_nudge_offer: "Obtenez {{size}} de plus pour {{price}} par mois",
+    storage_nudge_offer_generic:
+      "Passez à une offre supérieure pour obtenir plus de stockage",
+    storage_nudge_body:
+      "Lorsque votre stockage est plein, vous ne pouvez plus envoyer ni importer d'e-mails.",
+    storage_nudge_full_body:
+      "Vous ne pouvez plus envoyer ni importer d'e-mails tant que vous n'avez pas libéré d'espace. Vos e-mails existants sont en sécurité.",
+    storage_nudge_free_up: "Libérer de l'espace",
+    storage_nudge_get_storage: "Obtenir du stockage",
     storage_free_space:
       "{{size}} libres, {{percent}} de votre stockage utilisé",
     storage_breakdown_title: "Ce qui occupe votre stockage",

@@ -6296,6 +6296,18 @@ export const ru = {
       "Чтобы купить больше места, сначала выберите вариант.",
     storage_promo_cta: "Посмотреть дополнения",
     storage_used_of_total: "Использовано {{used}} из {{total}}",
+    storage_nudge_almost_title: "Хранилище почти заполнено",
+    storage_nudge_critical_title: "В хранилище почти не осталось места",
+    storage_nudge_full_title: "Хранилище заполнено",
+    storage_nudge_offer: "Ещё {{size}} за {{price}} в месяц",
+    storage_nudge_offer_generic:
+      "Перейдите на другой тариф, чтобы получить больше места",
+    storage_nudge_body:
+      "Когда хранилище заполнится, вы не сможете отправлять и импортировать письма.",
+    storage_nudge_full_body:
+      "Вы не сможете отправлять и импортировать письма, пока не освободите место. Существующие письма в безопасности.",
+    storage_nudge_free_up: "Освободить место",
+    storage_nudge_get_storage: "Получить место",
     storage_free_space: "Свободно {{size}}, использовано {{percent}} хранилища",
     storage_breakdown_title: "Что занимает хранилище",
     storage_breakdown_empty: "В хранилище пока ничего нет.",

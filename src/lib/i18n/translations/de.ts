@@ -6215,6 +6215,18 @@ export const de = {
       "Um mehr Speicher zu kaufen, wähle zuerst eine Option aus.",
     storage_promo_cta: "Add-ons ansehen",
     storage_used_of_total: "{{used}} von {{total}} belegt",
+    storage_nudge_almost_title: "Speicher fast voll",
+    storage_nudge_critical_title: "Ihr Speicher ist fast aufgebraucht",
+    storage_nudge_full_title: "Ihr Speicher ist voll",
+    storage_nudge_offer: "{{size}} mehr für {{price}} pro Monat",
+    storage_nudge_offer_generic:
+      "Wechseln Sie zu einem größeren Tarif, um mehr Speicher zu erhalten",
+    storage_nudge_body:
+      "Wenn Ihr Speicher voll ist, können Sie keine E-Mails mehr senden oder importieren.",
+    storage_nudge_full_body:
+      "Sie können erst wieder E-Mails senden oder importieren, wenn Sie Speicherplatz freigeben. Ihre vorhandenen E-Mails sind sicher.",
+    storage_nudge_free_up: "Speicher freigeben",
+    storage_nudge_get_storage: "Speicher erweitern",
     storage_free_space: "{{size}} frei, {{percent}} Ihres Speichers belegt",
     storage_breakdown_title: "Was Ihren Speicher belegt",
     storage_breakdown_empty: "Ihr Speicher ist noch leer.",

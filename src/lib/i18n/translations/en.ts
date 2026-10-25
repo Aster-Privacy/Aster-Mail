@@ -4793,6 +4793,17 @@ export const en: Translations = {
     storage_select_option_first: "To buy more storage, select an option first.",
     storage_promo_cta: "See add-ons",
     storage_used_of_total: "{{used}} of {{total}} used",
+    storage_nudge_almost_title: "Storage is almost full",
+    storage_nudge_critical_title: "You're almost out of storage",
+    storage_nudge_full_title: "Your storage is full",
+    storage_nudge_offer: "Get {{size}} more for {{price}} a month",
+    storage_nudge_offer_generic: "Upgrade your plan to get more storage",
+    storage_nudge_body:
+      "When your storage fills up, you can't send or import mail.",
+    storage_nudge_full_body:
+      "You can't send or import mail until you free up space. Your existing mail is safe.",
+    storage_nudge_free_up: "Free up space",
+    storage_nudge_get_storage: "Get storage",
     storage_free_space: "{{size}} free, {{percent}} of your storage used",
     storage_breakdown_title: "What's using your storage",
     storage_breakdown_empty: "Nothing is using your storage yet.",

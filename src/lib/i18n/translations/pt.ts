@@ -6239,6 +6239,18 @@ export const pt = {
       "Para comprar mais armazenamento, selecione primeiro uma opção.",
     storage_promo_cta: "Ver complementos",
     storage_used_of_total: "{{used}} de {{total}} em uso",
+    storage_nudge_almost_title: "O armazenamento está quase cheio",
+    storage_nudge_critical_title: "Está quase sem armazenamento",
+    storage_nudge_full_title: "O seu armazenamento está cheio",
+    storage_nudge_offer: "Obtenha mais {{size}} por {{price}} por mês",
+    storage_nudge_offer_generic:
+      "Atualize o seu plano para obter mais armazenamento",
+    storage_nudge_body:
+      "Quando o armazenamento ficar cheio, não consegue enviar nem importar correio.",
+    storage_nudge_full_body:
+      "Não pode enviar nem importar correio até libertar espaço. O seu correio existente está seguro.",
+    storage_nudge_free_up: "Libertar espaço",
+    storage_nudge_get_storage: "Obter armazenamento",
     storage_free_space:
       "{{size}} livres, {{percent}} do seu armazenamento em uso",
     storage_breakdown_title: "O que está a ocupar o seu armazenamento",

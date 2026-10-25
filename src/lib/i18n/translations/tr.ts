@@ -6094,6 +6094,18 @@ export const tr = {
       "Daha fazla depolama satın almak için önce bir seçenek belirleyin.",
     storage_promo_cta: "Eklentileri gör",
     storage_used_of_total: "{{total}} alanın {{used}} kadarı kullanıldı",
+    storage_nudge_almost_title: "Depolama alanı neredeyse dolu",
+    storage_nudge_critical_title: "Depolama alanınız bitmek üzere",
+    storage_nudge_full_title: "Depolama alanınız dolu",
+    storage_nudge_offer: "Ayda {{price}} karşılığında {{size}} daha alın",
+    storage_nudge_offer_generic:
+      "Daha fazla depolama alanı için planınızı yükseltin",
+    storage_nudge_body:
+      "Depolama alanınız dolduğunda e-posta gönderemez veya içe aktaramazsınız.",
+    storage_nudge_full_body:
+      "Yer açana kadar e-posta gönderemez veya içe aktaramazsınız. Mevcut e-postalarınız güvende.",
+    storage_nudge_free_up: "Yer aç",
+    storage_nudge_get_storage: "Depolama al",
     storage_free_space:
       "{{size}} boş, depolamanızın {{percent}} kadarı kullanıldı",
     storage_breakdown_title: "Depolamanızı ne kullanıyor",
