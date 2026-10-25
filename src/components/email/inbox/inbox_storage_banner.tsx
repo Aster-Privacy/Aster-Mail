@@ -166,10 +166,10 @@ export function StorageBanner({
       role={tier === "full" ? "alert" : "status"}
     >
       <IslandSection aria-label={t(TITLE_KEY[tier])} padding="md">
-        <div className="flex items-start gap-3">
+        <div className="flex items-start gap-3 sm:items-center">
           <ExclamationCircleIcon
             aria-hidden
-            className="mt-0.5 h-5 w-5 flex-shrink-0"
+            className="mt-0.5 h-5 w-5 flex-shrink-0 self-start"
             style={{ color: accent }}
           />
           <div className="flex min-w-0 flex-1 flex-col gap-4 sm:flex-row sm:items-center">
@@ -231,13 +231,13 @@ export function StorageBanner({
           </div>
           {tier !== "full" && (
             <IslandIconButton
-              className="-me-1 -mt-1 flex-shrink-0"
+              className="-me-1.5 -mt-1.5 flex-shrink-0 self-start text-txt-secondary hover:text-txt-primary sm:ms-1 sm:mt-0 sm:self-center"
               label={t("common.dismiss")}
-              size="sm"
+              size="md"
               type="button"
               onClick={handle_dismiss}
             >
-              <XMarkIcon className="h-4 w-4" />
+              <XMarkIcon className="h-5 w-5" strokeWidth={2} />
             </IslandIconButton>
           )}
         </div>
