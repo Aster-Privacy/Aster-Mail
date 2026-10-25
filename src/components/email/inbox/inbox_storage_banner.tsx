@@ -25,7 +25,8 @@ import { useEffect, useMemo, useState } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { ExclamationCircleIcon } from "@heroicons/react/24/solid";
 
-import { Button } from "@/components/ui/button";
+import { IslandIconButton, IslandSection, PillButton } from "@aster/ui";
+
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth_context";
 import { format_bytes } from "@/lib/utils";
@@ -159,73 +160,85 @@ export function StorageBanner({
   });
 
   return (
-    <section
-      aria-label={t(TITLE_KEY[tier])}
-      className="mx-3 mt-2 mb-1 rounded-xl border border-edge-secondary bg-surf-secondary py-3 pl-4 pr-3"
+    <div
+      className="mx-3 mt-2 mb-1"
       data-testid="storage-nudge"
       data-tier={tier}
       role={tier === "full" ? "alert" : "status"}
     >
-      <div className="flex items-start gap-3">
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5">
+      <IslandSection aria-label={t(TITLE_KEY[tier])} padding="md">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+          <div className="flex min-w-0 flex-1 items-start gap-3">
             <ExclamationCircleIcon
               aria-hidden
-              className="h-4 w-4 flex-shrink-0"
+              className="mt-0.5 h-5 w-5 flex-shrink-0"
               style={{ color: accent }}
             />
-            <p className="text-xs font-medium text-txt-secondary">
-              {t(TITLE_KEY[tier])}
-            </p>
+            <div className="min-w-0 flex-1">
+              <p
+                className="text-[12.5px] font-semibold leading-4"
+                style={{ color: accent }}
+              >
+                {t(TITLE_KEY[tier])}
+              </p>
+              <p className="mt-1 text-[15px] font-semibold leading-5 text-txt-primary">
+                {offer_text}
+              </p>
+              <p className="mt-1 text-[14px] leading-5 text-txt-secondary">
+                {tier === "full"
+                  ? t("settings.storage_nudge_full_body")
+                  : t("settings.storage_nudge_body")}
+              </p>
+              <div className="mt-3 flex items-center gap-3">
+                <div
+                  aria-label={usage_text}
+                  aria-valuemax={100}
+                  aria-valuemin={0}
+                  aria-valuenow={Math.round(bar_percent)}
+                  className="h-1.5 w-full max-w-[220px] overflow-hidden rounded-full bg-edge-secondary"
+                  role="progressbar"
+                >
+                  <div
+                    className="h-full rounded-full transition-[width] duration-500"
+                    style={{ width: `${bar_percent}%`, backgroundColor: accent }}
+                  />
+                </div>
+                <p className="flex-shrink-0 text-[12.5px] tabular-nums text-txt-muted">
+                  {usage_text}
+                </p>
+              </div>
+            </div>
           </div>
-          <p className="mt-1 text-[15px] font-semibold leading-snug text-txt-primary">
-            {offer_text}
-          </p>
-          <p className="mt-0.5 text-xs text-txt-muted">
-            {tier === "full"
-              ? t("settings.storage_nudge_full_body")
-              : t("settings.storage_nudge_body")}
-          </p>
-        </div>
-        {tier !== "full" && (
-          <button
-            aria-label={t("common.dismiss")}
-            className="-mt-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-txt-muted transition-colors hover:bg-surf-tertiary hover:text-txt-primary"
-            type="button"
-            onClick={handle_dismiss}
-          >
-            <XMarkIcon className="h-5 w-5" />
-          </button>
-        )}
-      </div>
-      <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-6">
-        <div className="min-w-0 flex-1">
-          <div
-            aria-label={usage_text}
-            aria-valuemax={100}
-            aria-valuemin={0}
-            aria-valuenow={Math.round(bar_percent)}
-            className="h-1 w-full overflow-hidden rounded-full bg-edge-secondary"
-            role="progressbar"
-          >
-            <div
-              className="h-full rounded-full transition-[width] duration-500"
-              style={{ width: `${bar_percent}%`, backgroundColor: accent }}
-            />
+          <div className="flex flex-shrink-0 items-center gap-2 ps-8 sm:ps-0">
+            <PillButton
+              size="sm"
+              type="button"
+              variant="outline"
+              onClick={handle_free_up}
+            >
+              {t("settings.storage_nudge_free_up")}
+            </PillButton>
+            <PillButton
+              size="sm"
+              type="button"
+              variant="filled"
+              onClick={handle_get_storage}
+            >
+              {t("settings.storage_nudge_get_storage")}
+            </PillButton>
+            {tier !== "full" && (
+              <IslandIconButton
+                label={t("common.dismiss")}
+                size="sm"
+                type="button"
+                onClick={handle_dismiss}
+              >
+                <XMarkIcon className="h-4 w-4" />
+              </IslandIconButton>
+            )}
           </div>
-          <p className="mt-1.5 text-xs" style={{ color: accent }}>
-            {usage_text}
-          </p>
         </div>
-        <div className="flex flex-shrink-0 items-center gap-2">
-          <Button size="md" variant="outline" onClick={handle_free_up}>
-            {t("settings.storage_nudge_free_up")}
-          </Button>
-          <Button size="md" variant="depth" onClick={handle_get_storage}>
-            {t("settings.storage_nudge_get_storage")}
-          </Button>
-        </div>
-      </div>
-    </section>
+      </IslandSection>
+    </div>
   );
 }
