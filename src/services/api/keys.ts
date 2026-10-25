@@ -86,6 +86,73 @@ function get_cached_key(email: string): ExternalKeyInfo | null {
   return cached.key;
 }
 
+function normalize_fingerprint(fingerprint: string): string {
+  return fingerprint.replace(/[^0-9a-f]/gi, "").toLowerCase();
+}
+
+async function is_key_bound_to_address(
+  email: string,
+  armored_key: string,
+  claimed_fingerprint: string | null,
+): Promise<boolean> {
+  const address = email.trim().toLowerCase();
+
+  try {
+    const openpgp = await load_openpgp();
+    const key = await openpgp.readKey({ armoredKey: armored_key });
+
+    if (
+      claimed_fingerprint &&
+      normalize_fingerprint(claimed_fingerprint) !==
+        normalize_fingerprint(key.getFingerprint())
+    ) {
+      return false;
+    }
+
+    await key.getEncryptionKey();
+
+    for (const user of key.users) {
+      if (user.userID?.email.trim().toLowerCase() !== address) continue;
+
+      try {
+        if (await user.verify()) return true;
+      } catch {
+        continue;
+      }
+    }
+
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+async function vet_discovered_key(
+  key_info: ExternalKeyInfo,
+): Promise<ExternalKeyInfo> {
+  if (!key_info.found || !key_info.public_key) return key_info;
+
+  if (
+    await is_key_bound_to_address(
+      key_info.email,
+      key_info.public_key,
+      key_info.fingerprint,
+    )
+  ) {
+    return key_info;
+  }
+
+  return {
+    ...key_info,
+    found: false,
+    public_key: null,
+    fingerprint: null,
+    expires_at: null,
+    will_encrypt: false,
+    fingerprint_change: null,
+  };
+}
+
 function set_cached_key(email: string, key: ExternalKeyInfo): void {
   external_key_cache.set(email.toLowerCase(), {
     key,
@@ -124,7 +191,7 @@ export async function discover_external_key(
   );
 
   if (response.data) {
-    const key_info: ExternalKeyInfo = {
+    const key_info = await vet_discovered_key({
       email: response.data.email,
       found: response.data.found,
       public_key: response.data.public_key,
@@ -133,7 +200,7 @@ export async function discover_external_key(
       expires_at: response.data.expires_at,
       will_encrypt: response.data.will_encrypt,
       fingerprint_change: response.data.fingerprint_change ?? null,
-    };
+    });
 
     set_cached_key(email, key_info);
 
@@ -174,7 +241,7 @@ export async function discover_external_keys_batch(
 
   if (response.data) {
     for (const key_response of response.data.keys) {
-      const key_info: ExternalKeyInfo = {
+      const key_info = await vet_discovered_key({
         email: key_response.email,
         found: key_response.found,
         public_key: key_response.public_key,
@@ -183,7 +250,7 @@ export async function discover_external_keys_batch(
         expires_at: key_response.expires_at,
         will_encrypt: key_response.will_encrypt,
         fingerprint_change: key_response.fingerprint_change ?? null,
-      };
+      });
 
       set_cached_key(key_response.email, key_info);
 

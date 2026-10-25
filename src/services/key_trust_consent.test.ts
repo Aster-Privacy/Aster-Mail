@@ -33,7 +33,39 @@ const h = vi.hoisted(() => ({
   discover_error: false,
   discover_api_error: false,
   acknowledged: [] as string[][],
+  public_keys: new Map<string, string>(),
+  pins: new Map<string, string>(),
+  pin_storage_unavailable: false,
 }));
+
+vi.mock("@/services/crypto/ratchet_identity_pin", () => {
+  const fingerprint_of = (key: string) => `fp_${key}`;
+  const require_storage = () => {
+    if (h.pin_storage_unavailable) throw new Error("locked");
+  };
+
+  return {
+    owner_key_fingerprint: vi.fn(async (key: string) => fingerprint_of(key)),
+    get_pinned_owner_key_fingerprint: vi.fn(async (email: string) =>
+      h.pin_storage_unavailable ? null : (h.pins.get(email) ?? null),
+    ),
+    check_owner_key_pin: vi.fn(async (email: string, key: string) => {
+      require_storage();
+
+      const pinned = h.pins.get(email);
+
+      if (pinned) return pinned === fingerprint_of(key) ? "ok" : "changed";
+
+      h.pins.set(email, fingerprint_of(key));
+
+      return "first";
+    }),
+    replace_owner_key_pin: vi.fn(async (email: string, key: string) => {
+      require_storage();
+      h.pins.set(email, fingerprint_of(key));
+    }),
+  };
+});
 
 vi.mock("@/services/api/keys", async (import_original) => {
   const actual = await import_original<Record<string, unknown>>();
@@ -49,7 +81,7 @@ vi.mock("@/services/api/keys", async (import_original) => {
         data: emails.map((email) => ({
           email,
           found: true,
-          public_key: "key",
+          public_key: h.public_keys.get(email) ?? "key",
           fingerprint: "ffff",
           source: "wkd",
           expires_at: null,
@@ -92,6 +124,9 @@ describe("external key trust consent", () => {
     h.discover_error = false;
     h.discover_api_error = false;
     h.acknowledged = [];
+    h.public_keys.clear();
+    h.pins.clear();
+    h.pin_storage_unavailable = false;
     vi.mocked(discover_external_keys_batch).mockClear();
     set_key_trust_prompt_handler(null);
   });
@@ -178,6 +213,61 @@ describe("external key trust consent", () => {
     await expect(ensure_external_key_trust([settled])).rejects.toBeInstanceOf(
       KeyTrustCheckError,
     );
+  });
+
+  it("pins each external key on its first trusted send", async () => {
+    await expect(ensure_external_key_trust([settled])).resolves.toBe(true);
+    expect(h.pins.get(settled)).toBe("fp_key");
+  });
+
+  it("asks before using a key that differs from this device's pin", async () => {
+    h.pins.set(settled, "fp_key");
+    h.public_keys.set(settled, "swapped");
+
+    const seen: string[][] = [];
+
+    set_key_trust_prompt_handler(async (pending) => {
+      seen.push(
+        ...pending.map((entry) => [
+          entry.email,
+          entry.prior_fingerprint,
+          entry.new_fingerprint,
+        ]),
+      );
+
+      return false;
+    });
+
+    await expect(ensure_external_key_trust([settled])).resolves.toBe(false);
+    expect(seen).toEqual([[settled, "FP_KEY", "FP_SWAPPED"]]);
+    expect(h.pins.get(settled)).toBe("fp_key");
+  });
+
+  it("repins locally without a server acknowledgement once trusted", async () => {
+    h.pins.set(settled, "fp_key");
+    h.public_keys.set(settled, "swapped");
+
+    set_key_trust_prompt_handler(async () => true);
+
+    await expect(ensure_external_key_trust([settled])).resolves.toBe(true);
+    expect(h.pins.get(settled)).toBe("fp_swapped");
+    expect(h.acknowledged).toEqual([]);
+  });
+
+  it("repins a server-reported change once trusted", async () => {
+    h.changes.set(rotated, change);
+    h.pins.set(rotated, "fp_old");
+
+    set_key_trust_prompt_handler(async () => true);
+
+    await expect(ensure_external_key_trust([rotated])).resolves.toBe(true);
+    expect(h.pins.get(rotated)).toBe("fp_key");
+  });
+
+  it("still sends when the local pin store is unavailable", async () => {
+    h.pin_storage_unavailable = true;
+
+    await expect(ensure_external_key_trust([settled])).resolves.toBe(true);
   });
 
   it("retries a failed key lookup once before blocking the send", async () => {

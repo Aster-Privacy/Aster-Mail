@@ -382,6 +382,25 @@ export async function get_pinned_owner_key_fingerprint(
   }
 }
 
+export async function replace_owner_key_pin(
+  pin_id: string,
+  armored_public_key: string,
+): Promise<void> {
+  const storage_key = await get_pin_storage_key();
+  const uid = await current_account_uid();
+
+  await scoped_set(
+    OWNER_KEY_PIN_PREFIX,
+    uid,
+    pin_id,
+    {
+      fingerprint: await owner_key_fingerprint(armored_public_key),
+      pinned_at: Date.now(),
+    } satisfies StoredOwnerKeyPin,
+    storage_key,
+  );
+}
+
 export async function trust_recipient_keys(
   pin_id: string,
   kem_identity_key: string | null,
@@ -519,7 +538,10 @@ export async function acknowledge_identity_change(
   await accept_rotated_pin(uid, pin_id);
 }
 
-async function accept_rotated_pin(uid: string | null, pin_id: string): Promise<void> {
+async function accept_rotated_pin(
+  uid: string | null,
+  pin_id: string,
+): Promise<void> {
   try {
     const storage_key = await get_pin_storage_key();
     const pin = await load_pin(storage_key, uid, pin_id);
