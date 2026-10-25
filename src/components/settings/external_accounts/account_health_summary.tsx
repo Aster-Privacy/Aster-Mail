@@ -22,8 +22,15 @@ import type { DecryptedExternalAccount } from "@/services/api/external_accounts"
 import type { UseExternalAccountsReturn } from "@/components/settings/hooks/use_external_accounts";
 import type { TranslationKey } from "@/lib/i18n/types";
 
-import { Tooltip } from "@aster/ui";
+import { ChevronDownIcon } from "@heroicons/react/24/outline";
+import { Button } from "@aster/ui";
 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown_menu";
 import {
   get_external_account_state,
   type ExternalAccountHealthState,
@@ -64,6 +71,16 @@ function to_bucket(state: ExternalAccountHealthState): SummaryBucket {
   return state === "syncing" ? "healthy" : state;
 }
 
+function StatusDot({ color }: { color: string }) {
+  return (
+    <span
+      aria-hidden="true"
+      className="inline-block w-2 h-2 rounded-full flex-shrink-0"
+      style={{ backgroundColor: color }}
+    />
+  );
+}
+
 interface AccountHealthSummaryProps {
   accounts: DecryptedExternalAccount[];
   t: UseExternalAccountsReturn["t"];
@@ -83,33 +100,56 @@ export function AccountHealthSummary({
     grouped.set(bucket, emails);
   }
 
+  const present = BUCKETS.filter(({ bucket }) => grouped.has(bucket));
+
+  if (present.length === 0) return null;
+
+  const [worst] = present;
+
   return (
-    <div
-      aria-label={t("settings.external_account_health_summary")}
-      className="flex items-center gap-3 flex-wrap"
-      role="group"
-    >
-      {BUCKETS.map(({ bucket, label, color }) => {
-        const emails = grouped.get(bucket);
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          className="h-7 gap-1.5 px-2 text-xs font-medium text-txt-muted"
+          size="sm"
+          variant="ghost"
+        >
+          <StatusDot color={worst.color} />
+          {t("settings.external_account_health_summary")}
+          <ChevronDownIcon
+            aria-hidden="true"
+            className="w-3.5 h-3.5 flex-shrink-0"
+          />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="min-w-[14rem] max-w-80">
+        {present.map(({ bucket, label, color }) => {
+          const emails = grouped.get(bucket) ?? [];
 
-        if (!emails) return null;
-
-        return (
-          <Tooltip key={bucket} tip={emails.join(", ")}>
-            <span className="flex items-center gap-1.5 text-xs text-txt-muted">
-              <span
-                aria-hidden="true"
-                className="inline-block w-2 h-2 rounded-full flex-shrink-0"
-                style={{ backgroundColor: color }}
-              />
-              {t(label)}
-              <span className="font-medium tabular-nums text-txt-secondary">
-                {emails.length}
+          return (
+            <DropdownMenuItem
+              key={bucket}
+              className="flex-col items-stretch gap-0.5"
+            >
+              <span className="flex items-center gap-2">
+                <StatusDot color={color} />
+                <span className="flex-1">{t(label)}</span>
+                <span className="tabular-nums text-txt-muted">
+                  {emails.length}
+                </span>
               </span>
-            </span>
-          </Tooltip>
-        );
-      })}
-    </div>
+              {emails.map((email) => (
+                <span
+                  key={email}
+                  className="pl-4 text-xs text-txt-muted truncate"
+                >
+                  {email}
+                </span>
+              ))}
+            </DropdownMenuItem>
+          );
+        })}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
