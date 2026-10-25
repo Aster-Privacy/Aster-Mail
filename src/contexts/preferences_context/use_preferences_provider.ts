@@ -49,6 +49,7 @@ import { get_csrf_token_from_cookie } from "@/services/api/csrf";
 import { request_cache } from "@/services/api/request_cache";
 import { get_effective_base_url } from "@/services/routing/routing_provider";
 import { connection_store } from "@/services/routing/connection_store";
+import { is_relay_host_allowed } from "@/services/routing/cdn_relay_transport";
 import { sync_client } from "@/services/sync_client";
 import { sync_haptic_state } from "@/native/haptic_feedback";
 import { write_support_theme_cookie } from "@/lib/support_theme_cookie";
@@ -772,8 +773,11 @@ export function use_preferences_provider() {
       cache_preferences_locally(latest_prefs_ref.current);
 
       const method = connection_store.get_method();
+      const relay_unavailable =
+        method === "cdn_relay" &&
+        !is_relay_host_allowed(connection_store.get_cdn_relay_url() ?? "");
 
-      if (method === "tor" || method === "tor_snowflake") {
+      if (method === "tor" || method === "tor_snowflake" || relay_unavailable) {
         beacon_payload_ref.current = null;
         latest_prefs_ref.current = null;
 

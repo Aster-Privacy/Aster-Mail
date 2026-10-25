@@ -24,6 +24,7 @@ import { api_client } from "./api/client";
 import { request_cache } from "./api/request_cache";
 import { check_and_replenish_prekeys } from "./crypto/prekey_service";
 import { connection_store } from "./routing/connection_store";
+import { resolve_sync_socket_url } from "./routing/sync_socket_url";
 import { TorUnavailableError } from "./routing/tor_unavailable_error";
 
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
@@ -143,12 +144,49 @@ class SyncClient {
   private mutation_refresh_timer: ReturnType<typeof setTimeout> | null = null;
   private echo_reconcile_timer: ReturnType<typeof setTimeout> | null = null;
   private last_soft_refresh_at = 0;
+  private socket_url: string | null = null;
+  private observed_route: string | null | undefined = undefined;
+
+  private close_socket(): void {
+    if (
+      this.socket &&
+      (this.socket.readyState === WebSocket.OPEN ||
+        this.socket.readyState === WebSocket.CONNECTING)
+    ) {
+      this.socket.onclose = null;
+      this.socket.onerror = null;
+      this.socket.onmessage = null;
+      this.socket.close();
+      this.authenticated = false;
+      this.stop_heartbeat();
+      this.clear_pending_requests();
+    }
+    this.socket = null;
+    this.socket_url = null;
+  }
+
+  on_route_change(): void {
+    const route = resolve_sync_socket_url();
+    const previous = this.observed_route;
+
+    this.observed_route = route;
+    if (previous === undefined || previous === route) return;
+    if (!this.should_reconnect && !this.has_authenticated_before) return;
+    if (!api_client.is_authenticated()) return;
+    if (this.socket && this.socket_url === route) return;
+
+    this.reconnect_attempt = 0;
+    this.connect().catch((caught) =>
+      ignore_error("services/sync_client:route_change", caught),
+    );
+  }
 
   async connect(): Promise<void> {
     const method = connection_store.get_method();
 
     if (method === "tor" || method === "tor_snowflake") {
       this.should_reconnect = false;
+      this.close_socket();
       throw new TorUnavailableError(
         "tor_not_running",
         "WebSocket sync is disabled in Tor mode to prevent IP leaks",
@@ -157,6 +195,7 @@ class SyncClient {
 
     if (is_onion_host()) {
       this.should_reconnect = false;
+      this.close_socket();
       throw new TorUnavailableError(
         "tor_not_running",
         "WebSocket sync is disabled on onion sites",
@@ -165,6 +204,7 @@ class SyncClient {
 
     if (is_any_lockdown_active()) {
       this.should_reconnect = false;
+      this.close_socket();
       throw new Error("WebSocket sync is disabled in Lockdown Mode");
     }
 
@@ -175,17 +215,7 @@ class SyncClient {
       this.reconnect_timeout = null;
     }
 
-    if (
-      this.socket &&
-      (this.socket.readyState === WebSocket.OPEN ||
-        this.socket.readyState === WebSocket.CONNECTING)
-    ) {
-      this.socket.onclose = null;
-      this.socket.onerror = null;
-      this.socket.onmessage = null;
-      this.socket.close();
-      this.socket = null;
-    }
+    this.close_socket();
 
     if (this.pending_connect_reject) {
       this.pending_connect_reject(
@@ -193,6 +223,30 @@ class SyncClient {
       );
       this.pending_connect_reject = null;
     }
+
+    let ws_url = resolve_sync_socket_url();
+
+    if (!ws_url) {
+      await connection_store
+        .fetch_connection_info()
+        .catch((caught) =>
+          ignore_error("services/sync_client:connection_info", caught),
+        );
+      ws_url = resolve_sync_socket_url();
+    }
+
+    if (!ws_url) {
+      this.schedule_reconnect();
+      throw new Error(
+        "CDN relay URL is not available; refusing a direct sync connection",
+      );
+    }
+
+    if (!this.should_reconnect || this.socket) {
+      return;
+    }
+
+    const socket_url = ws_url;
 
     return new Promise((resolve, reject) => {
       this.pending_connect_reject = reject;
@@ -209,27 +263,9 @@ class SyncClient {
         }
         reject(err);
       };
-      const is_native =
-        (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) ||
-        false;
-      const api_url = is_native
-        ? "https://app.astermail.org/api"
-        : import.meta.env.VITE_API_URL || "";
 
-      let ws_url: string;
-
-      if (api_url && api_url.startsWith("http")) {
-        ws_url = api_url
-          .replace(/^https:/, "wss:")
-          .replace(/^http:/, "ws:")
-          .replace(/\/api$/, "/ws");
-      } else {
-        const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-
-        ws_url = `${protocol}//${window.location.host}/ws`;
-      }
-
-      this.socket = new WebSocket(ws_url);
+      this.socket_url = socket_url;
+      this.socket = new WebSocket(socket_url);
 
       this.socket.onopen = () => {
         const token = api_client.get_access_token();
@@ -870,6 +906,8 @@ export const sync_client = new SyncClient();
 set_sync_live_probe(() => sync_client.is_connected());
 
 if (typeof window !== "undefined") {
+  sync_client.on_route_change();
+  connection_store.subscribe(() => sync_client.on_route_change());
   window.addEventListener("beforeunload", () => {
     sync_client.disconnect();
   });

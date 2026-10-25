@@ -45,7 +45,7 @@ vi.mock("./crypto/prekey_service", () => ({
 }));
 
 vi.mock("./routing/connection_store", () => ({
-  connection_store: { get_method: () => "direct" },
+  connection_store: { get_method: () => "direct", subscribe: () => () => {} },
 }));
 
 vi.mock("./crypto/legacy_keks", () => ({

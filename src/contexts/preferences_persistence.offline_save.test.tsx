@@ -99,7 +99,7 @@ vi.mock("@/services/routing/routing_provider", () => ({
 }));
 
 vi.mock("@/services/routing/connection_store", () => ({
-  connection_store: { get_method: () => "direct" },
+  connection_store: { get_method: () => "direct", subscribe: () => () => {} },
 }));
 
 vi.mock("@/native/haptic_feedback", () => ({ sync_haptic_state: vi.fn() }));

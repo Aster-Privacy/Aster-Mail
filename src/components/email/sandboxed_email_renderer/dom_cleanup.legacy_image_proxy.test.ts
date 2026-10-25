@@ -25,7 +25,7 @@ import { unblock_remote_content } from "./dom_cleanup";
 import { pre_process_email_html } from "@/components/email/email_pre_process";
 
 vi.mock("@/services/routing/connection_store", () => ({
-  connection_store: { get_method: () => "direct" },
+  connection_store: { get_method: () => "direct", subscribe: () => () => {} },
 }));
 
 vi.mock("./helpers", () => ({

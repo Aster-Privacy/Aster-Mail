@@ -56,7 +56,7 @@ vi.mock("@/services/crypto/prekey_service", () => ({
 }));
 
 vi.mock("@/services/routing/connection_store", () => ({
-  connection_store: { get_method: () => "direct" },
+  connection_store: { get_method: () => "direct", subscribe: () => () => {} },
 }));
 
 vi.mock("@/lib/onion_host", () => ({

@@ -21,7 +21,7 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
 vi.mock("@/services/routing/connection_store", () => ({
-  connection_store: { get_method: () => "direct" },
+  connection_store: { get_method: () => "direct", subscribe: () => () => {} },
 }));
 
 vi.mock("./helpers", () => ({ IMAGE_PROXY_URL: "" }));
