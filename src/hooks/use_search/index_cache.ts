@@ -39,7 +39,7 @@ import { CachedIndex, ChunkSpan } from "./types";
 
 import { ignore_error } from "@/lib/ignore_error";
 import {
-  add_vocabulary_entry,
+  queue_vocabulary_entry,
   reset_vocabulary,
 } from "@/services/search/vocabulary";
 import {
@@ -833,7 +833,7 @@ export async function hydrate_snapshot_index(
           ? build_search_haystack(entry.envelope)
           : undefined,
       });
-      add_vocabulary_entry(entry.envelope, entry.search_body_text);
+      queue_vocabulary_entry(entry.envelope, entry.search_body_text);
     }
 
     const count = index.items.length - start;

@@ -39,8 +39,9 @@ const term_counts = new Map<string, number>();
 let deletion_index: Map<string, string[]> | null = null;
 
 interface PendingVocabularyEntry {
-  envelope: DecryptedEnvelope | null;
-  search_body_text: string;
+  subject: string;
+  sender_name: string;
+  body: string;
 }
 
 const DRAIN_BUDGET_MS = 8;
@@ -92,21 +93,10 @@ export function add_vocabulary_text(text: string, weight: number): void {
   }
 }
 
-function apply_vocabulary_entry(
-  envelope: DecryptedEnvelope | null,
-  search_body_text: string,
-): void {
-  if (envelope) {
-    add_vocabulary_text(envelope.subject || "", SUBJECT_WEIGHT);
-    add_vocabulary_text(envelope.from?.name || "", SENDER_WEIGHT);
-  }
-
-  if (search_body_text) {
-    add_vocabulary_text(
-      search_body_text.slice(0, VOCABULARY_BODY_CHARS),
-      BODY_WEIGHT,
-    );
-  }
+function apply_vocabulary_entry(entry: PendingVocabularyEntry): void {
+  add_vocabulary_text(entry.subject, SUBJECT_WEIGHT);
+  add_vocabulary_text(entry.sender_name, SENDER_WEIGHT);
+  add_vocabulary_text(entry.body, BODY_WEIGHT);
 }
 
 function take_pending_entry(): PendingVocabularyEntry | undefined {
@@ -128,40 +118,55 @@ function flush_pending_vocabulary(): void {
   let entry = take_pending_entry();
 
   while (entry) {
-    apply_vocabulary_entry(entry.envelope, entry.search_body_text);
+    apply_vocabulary_entry(entry);
     entry = take_pending_entry();
   }
 }
 
-function wait_for_idle(): Promise<void> {
+interface IdleDeadlineLike {
+  didTimeout: boolean;
+  timeRemaining(): number;
+}
+
+function wait_for_idle(): Promise<number> {
   const idle = (
     globalThis as {
       requestIdleCallback?: (
-        callback: () => void,
+        callback: (deadline: IdleDeadlineLike) => void,
         options?: { timeout: number },
       ) => number;
     }
   ).requestIdleCallback;
 
   if (typeof idle === "function") {
-    return new Promise<void>((resolve) => {
-      idle(() => resolve(), { timeout: DRAIN_IDLE_TIMEOUT_MS });
+    return new Promise<number>((resolve) => {
+      idle(
+        (deadline) => {
+          resolve(
+            deadline.didTimeout
+              ? DRAIN_BUDGET_MS
+              : Math.min(DRAIN_BUDGET_MS, deadline.timeRemaining()),
+          );
+        },
+        { timeout: DRAIN_IDLE_TIMEOUT_MS },
+      );
     });
   }
 
-  return new Promise<void>((resolve) => setTimeout(resolve, 0));
+  return new Promise<number>((resolve) =>
+    setTimeout(() => resolve(DRAIN_BUDGET_MS), 0),
+  );
 }
 
 async function drain_pending_vocabulary(): Promise<void> {
   try {
     while (pending_start < pending_entries.length) {
-      await wait_for_idle();
-
-      const deadline = performance.now() + DRAIN_BUDGET_MS;
+      const budget = await wait_for_idle();
+      const deadline = performance.now() + budget;
       let entry = take_pending_entry();
 
       while (entry) {
-        apply_vocabulary_entry(entry.envelope, entry.search_body_text);
+        apply_vocabulary_entry(entry);
         if (performance.now() >= deadline) break;
         entry = take_pending_entry();
       }
@@ -171,13 +176,33 @@ async function drain_pending_vocabulary(): Promise<void> {
   }
 }
 
+function vocabulary_entry_of(
+  envelope: DecryptedEnvelope | null,
+  search_body_text: string,
+): PendingVocabularyEntry {
+  return {
+    subject: envelope?.subject || "",
+    sender_name: envelope?.from?.name || "",
+    body: search_body_text
+      ? search_body_text.slice(0, VOCABULARY_BODY_CHARS)
+      : "",
+  };
+}
+
 export function add_vocabulary_entry(
+  envelope: DecryptedEnvelope | null,
+  search_body_text: string,
+): void {
+  apply_vocabulary_entry(vocabulary_entry_of(envelope, search_body_text));
+}
+
+export function queue_vocabulary_entry(
   envelope: DecryptedEnvelope | null,
   search_body_text: string,
 ): void {
   if (!envelope && !search_body_text) return;
 
-  pending_entries.push({ envelope, search_body_text });
+  pending_entries.push(vocabulary_entry_of(envelope, search_body_text));
 
   if (drain_scheduled) return;
 
