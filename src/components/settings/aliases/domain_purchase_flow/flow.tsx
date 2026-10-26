@@ -25,11 +25,13 @@ import {
   ArrowPathIcon,
   CheckIcon,
   CreditCardIcon,
+  CurrencyDollarIcon,
   ExclamationTriangleIcon,
+  LockClosedIcon,
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 import { CheckCircleIcon as CheckCircleSolid } from "@heroicons/react/24/solid";
-import { Button, Checkbox, Input } from "@aster/ui";
+import { Button, Input } from "@aster/ui";
 
 import {
   filter_results,
@@ -64,11 +66,6 @@ import { apply_input_transform } from "@/utils/input_transform";
 import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
-import {
-  CardBrandMarks,
-  SecurityMarks,
-} from "@/components/settings/billing/payment_brand_marks";
-import text_logo_url from "@/assets/text_logo.webp";
 import {
   TurnstileWidget,
   type TurnstileWidgetRef,
@@ -147,7 +144,9 @@ export function DomainPurchaseFlow({
     restored_checkout.current?.selected ?? null,
   );
   const [years, set_years] = useState(restored_checkout.current?.years ?? 1);
-  const [auto_renew, set_auto_renew] = useState(false);
+  const [payment_method, set_payment_method] = useState<"stripe" | "crypto">(
+    restored_checkout.current?.payment_method ?? "stripe",
+  );
   const [buying, set_buying] = useState(false);
   const [order, set_order] = useState<DomainOrder | null>(null);
   const [order_id, set_order_id] = useState<string | null>(
@@ -179,11 +178,11 @@ export function DomainPurchaseFlow({
 
   useEffect(() => {
     if (view === "confirm" && selected) {
-      write_checkout_draft({ selected, years });
+      write_checkout_draft({ selected, years, payment_method });
     } else if (view !== "confirm") {
       write_checkout_draft(null);
     }
-  }, [view, selected, years]);
+  }, [view, selected, years, payment_method]);
 
   const note_throttled = useCallback(
     (response: Parameters<typeof throttle_wait_ms>[0]) => {
@@ -408,8 +407,8 @@ export function DomainPurchaseFlow({
       const response = await create_domain_checkout(
         selected.domain,
         years,
+        payment_method,
         captcha_token ?? undefined,
-        auto_renew,
       );
 
       if (response.data && is_https_payment_url(response.data.checkout_url)) {
@@ -738,47 +737,6 @@ export function DomainPurchaseFlow({
   }
 
   if (view === "confirm" && selected) {
-    const year_total = (count: number) =>
-      selected.price_cents != null
-        ? selected.price_cents +
-          (selected.renewal_price_cents ?? selected.price_cents) *
-            Math.max(0, count - 1)
-        : null;
-    const tile_base =
-      "relative rounded-[var(--aster-radius-control)] border-0 text-start transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:pointer-events-none disabled:opacity-50";
-    const tile_class = (active: boolean) =>
-      `${tile_base} ${
-        active
-          ? ""
-          : "bg-[var(--aster-field-bg)] hover:bg-[var(--aster-field-hover)]"
-      }`;
-    const tile_style = (active: boolean) =>
-      active
-        ? {
-            backgroundColor:
-              "color-mix(in srgb, var(--accent-color) 14%, transparent)",
-          }
-        : undefined;
-    const tile_check = (active: boolean) =>
-      active ? (
-        <span
-          aria-hidden="true"
-          className="absolute end-2 top-2 flex h-4 w-4 items-center justify-center rounded-full"
-          style={{ backgroundColor: "var(--accent-color)" }}
-        >
-          <CheckIcon
-            className="h-2.5 w-2.5"
-            strokeWidth={3}
-            style={{ color: "var(--accent-fg, #ffffff)" }}
-          />
-        </span>
-      ) : null;
-    const section_heading = (text: string) => (
-      <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-txt-muted">
-        {text}
-      </p>
-    );
-
     return (
       <div>
         <button
@@ -792,105 +750,68 @@ export function DomainPurchaseFlow({
           <ArrowLeftIcon className="w-4 h-4 rtl:-scale-x-100" />
           {t("common.back")}
         </button>
-        <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_312px] items-start">
-          <div className="min-w-0 space-y-5">
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_340px] md:grid-rows-[auto_auto_1fr] gap-x-6 gap-y-5 items-start">
+          <div className="md:col-start-1 md:row-start-1">
             <div>
-              {section_heading(t("settings.domain_purchase_years"))}
-              <div className="grid grid-cols-3 gap-2" role="radiogroup">
-                {[1, 2, 3].map((y) => {
-                  const active = years === y;
-                  const total = year_total(y);
-
-                  return (
-                    <button
-                      key={y}
-                      aria-checked={active}
-                      className={`${tile_class(active)} flex flex-col px-3 py-3`}
-                      role="radio"
-                      style={tile_style(active)}
-                      type="button"
-                      onClick={() => set_years(y)}
-                    >
-                      {tile_check(active)}
-                      <span className="block pe-5 text-[13px] font-semibold text-txt-primary">
-                        {y === 1
-                          ? t("settings.domain_purchase_one_year")
-                          : t("settings.domain_purchase_n_years", { count: y })}
-                      </span>
-                      {total !== null && (
-                        <span className="mt-1 block text-[15px] font-bold text-txt-primary">
-                          {format_domain_price(total, selected.currency)}
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
+              <p className="text-sm font-medium mb-2 text-txt-primary">
+                {t("settings.domain_purchase_years")}
+              </p>
+              <div className="flex gap-2">
+                {[1, 2, 3].map((y) => (
+                  <button
+                    key={y}
+                    className={`flex-1 h-10 rounded-full border text-sm font-medium transition-colors ${
+                      years === y
+                        ? "border-transparent text-[var(--accent-fg,#ffffff)] bg-[var(--accent-color)]"
+                        : "border-edge-secondary text-txt-secondary hover:bg-surf-secondary"
+                    }`}
+                    onClick={() => set_years(y)}
+                  >
+                    {y === 1
+                      ? t("settings.domain_purchase_one_year")
+                      : t("settings.domain_purchase_n_years", { count: y })}
+                  </button>
+                ))}
               </div>
             </div>
 
-            <div>
-              {section_heading(t("settings.domain_purchase_pay_with"))}
-              <div
-                className="relative flex w-full items-start gap-3 rounded-[var(--aster-radius-control)] py-3.5 pe-9 ps-4"
-                style={tile_style(true)}
-              >
-                {tile_check(true)}
-                <CreditCardIcon className="mt-px h-5 w-5 flex-shrink-0 text-txt-primary" />
-                <span className="min-w-0 flex-1">
-                  <span className="block text-[13px] font-semibold text-txt-primary">
-                    {t("settings.domain_purchase_pay_card")}
-                  </span>
-                  <CardBrandMarks class_name="mt-2.5" />
-                </span>
-              </div>
-
-              <label className="mt-2 flex cursor-pointer select-none items-start gap-3 rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] px-4 py-3.5 transition-colors hover:bg-[var(--aster-field-hover)]">
-                  <Checkbox
-                    checked={auto_renew}
-                    className="mt-0.5"
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      set_auto_renew(e.target.checked)
-                    }
-                  />
-                  <span className="min-w-0">
-                    <span className="block text-[13px] font-semibold text-txt-primary">
-                      {t("settings.domain_purchase_auto_renew_label")}
-                    </span>
-                    <span className="mt-0.5 block text-[11px] leading-snug text-txt-muted">
-                      {t("settings.domain_purchase_auto_renew_hint")}
-                    </span>
-                  </span>
-              </label>
-
-              <ul className="mt-4 space-y-2.5 px-1">
-                <li>
-                  <SecurityMarks
-                    label={t("settings.domain_purchase_secure_checkout")}
-                  />
-                </li>
-                {[
-                  t("settings.domain_purchase_detail_privacy_title"),
-                  t("settings.domain_purchase_detail_setup_title"),
-                  t("settings.domain_purchase_detail_instant_title"),
-                  t("settings.domain_purchase_detail_ownership_title"),
-                ].map((title) => (
-                  <li
-                    key={title}
-                    className="flex items-center gap-1.5 text-[11px] leading-snug text-txt-muted"
+            <div className="mt-4">
+              <p className="text-sm font-medium mb-2 text-txt-primary">
+                {t("settings.domain_purchase_pay_with")}
+              </p>
+              <div className="flex gap-2">
+                {(
+                  [
+                    [
+                      "stripe",
+                      CreditCardIcon,
+                      t("settings.domain_purchase_pay_card"),
+                    ],
+                    [
+                      "crypto",
+                      CurrencyDollarIcon,
+                      t("settings.domain_purchase_pay_crypto"),
+                    ],
+                  ] as const
+                ).map(([method, Icon, label]) => (
+                  <button
+                    key={method}
+                    className={`flex-1 h-10 rounded-full border text-sm font-medium flex items-center justify-center gap-2 transition-colors ${
+                      payment_method === method
+                        ? "border-transparent text-[var(--accent-fg,#ffffff)] bg-[var(--accent-color)]"
+                        : "border-edge-secondary text-txt-secondary hover:bg-surf-secondary"
+                    }`}
+                    onClick={() => set_payment_method(method)}
                   >
-                    <CheckIcon
-                      aria-hidden="true"
-                      className="text-txt-tertiary h-[13px] w-[13px] flex-shrink-0"
-                      strokeWidth={2.5}
-                    />
-                    <span>{title}</span>
-                  </li>
+                    <Icon className="w-4 h-4" />
+                    {label}
+                  </button>
                 ))}
-              </ul>
+              </div>
             </div>
 
             {turnstile_required && (
-              <div className="flex justify-center origin-top scale-[0.92] sm:scale-100">
+              <div className="flex justify-center mt-4 origin-top scale-[0.92] sm:scale-100">
                 <TurnstileWidget
                   ref={turnstile_ref}
                   on_expire={() => set_captcha_token(null)}
@@ -900,71 +821,98 @@ export function DomainPurchaseFlow({
             )}
 
             {error && (
-              <div className="flex items-start gap-2.5 rounded-[var(--aster-radius-control)] bg-yellow-500/10 p-3">
+              <div className="flex items-start gap-2.5 mt-4 p-3 rounded-xl border border-yellow-500/30 bg-yellow-500/5">
                 <ExclamationTriangleIcon className="w-5 h-5 text-yellow-500 flex-shrink-0 mt-0.5" />
                 <p className="text-sm text-txt-primary">{error}</p>
               </div>
             )}
+          </div>
 
-            <div className="px-1">
-              <TermsSentence on_external={set_leave_url} />
+          <div className="order-3 md:order-none md:col-start-1 md:row-start-2">
+            <div className="mt-2 md:mt-0">
+              <p className="text-[13px] font-medium text-txt-muted mb-3">
+                {t("settings.domain_purchase_included_heading")}
+              </p>
+              <div className="grid grid-cols-2 gap-x-6 gap-y-3">
+                {[
+                  t("settings.domain_purchase_detail_privacy_title"),
+                  t("settings.domain_purchase_detail_setup_title"),
+                  t("settings.domain_purchase_detail_instant_title"),
+                  t("settings.domain_purchase_detail_ownership_title"),
+                ].map((title) => (
+                  <span key={title} className="flex items-center gap-2.5">
+                    <CheckIcon
+                      className="w-4 h-4 flex-shrink-0"
+                      strokeWidth={2.5}
+                      style={{ color: "var(--color-success)" }}
+                    />
+                    <span className="text-[13px] font-medium text-txt-primary">
+                      {title}
+                    </span>
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
 
-          <aside className="min-w-0 md:sticky md:top-4">
-            <div className="plan_galaxy rounded-[var(--aster-radius-control)] p-4">
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-[11px] font-semibold uppercase tracking-wider plan_galaxy_text_muted">
+          <div className="order-2 md:order-none md:col-start-2 md:row-start-1 md:row-span-3 md:sticky md:top-4">
+            <img
+              alt="Aster"
+              className="h-6 w-auto mx-auto block mb-3.5 opacity-90"
+              draggable={false}
+              height={24}
+              src="/text_logo.png"
+              width={97}
+            />
+
+            <div className="rounded-2xl border border-edge-secondary bg-surf-secondary overflow-hidden">
+              <div className="px-6 pt-5 pb-4 border-b border-edge-secondary">
+                <p className="text-[11px] font-semibold tracking-wide uppercase text-txt-muted">
                   {t("settings.domain_purchase_order_summary")}
                 </p>
-                <img
-                  alt="Aster"
-                  className="h-4 w-auto flex-shrink-0 opacity-80"
-                  decoding="async"
-                  draggable={false}
-                  height={16}
-                  src={text_logo_url}
-                />
+                <p className="text-[17px] font-semibold text-txt-primary mt-2 break-all">
+                  {selected.domain}
+                </p>
               </div>
 
-              <p className="mt-3 break-all text-[15px] font-bold plan_galaxy_text_primary">
-                {selected.domain}
-              </p>
-
-              <div className="mt-3 space-y-1.5 text-[12px] plan_galaxy_text_body">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="plan_galaxy_text_muted">
+              <div className="px-6 py-5 space-y-4">
+                <div className="flex items-baseline justify-between gap-3 text-sm">
+                  <span className="text-txt-secondary">
                     {t("settings.domain_purchase_years_line", { count: years })}
                   </span>
-                  <span>
+                  <span className="text-txt-primary font-medium flex-shrink-0">
                     {format_domain_price(selected_total, selected.currency)}
                   </span>
                 </div>
-                <div className="flex items-center justify-between gap-2">
-                  <span className="plan_galaxy_text_muted">
+                <div className="flex items-baseline justify-between gap-3 text-sm">
+                  <span className="text-txt-secondary">
                     {t("settings.domain_purchase_summary_whois")}
                   </span>
-                  <span>{t("settings.domain_purchase_summary_included")}</span>
+                  <span className="text-txt-muted flex-shrink-0">
+                    {t("settings.domain_purchase_summary_included")}
+                  </span>
                 </div>
-                <div className="flex items-center justify-between gap-2">
-                  <span className="plan_galaxy_text_muted">
+                <div className="flex items-baseline justify-between gap-3 text-sm">
+                  <span className="text-txt-secondary">
                     {t("settings.domain_purchase_summary_dns")}
                   </span>
-                  <span>{t("settings.domain_purchase_summary_included")}</span>
+                  <span className="text-txt-muted flex-shrink-0">
+                    {t("settings.domain_purchase_summary_included")}
+                  </span>
                 </div>
               </div>
 
-              <div className="plan_galaxy_divider mt-3 border-t pt-3">
-                <div className="flex items-end justify-between gap-2">
-                  <span className="text-[12px] font-semibold plan_galaxy_text_muted">
+              <div className="px-6 pt-5 pb-6 border-t border-edge-secondary">
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className="text-sm font-medium text-txt-primary">
                     {t("settings.domain_purchase_total_today")}
                   </span>
-                  <span className="text-[22px] font-bold leading-none plan_galaxy_text_primary">
+                  <span className="text-xl font-bold text-txt-primary flex-shrink-0">
                     {format_domain_price(selected_total, selected.currency)}
                   </span>
                 </div>
                 {selected.renewal_price_cents !== null && (
-                  <p className="mt-2 text-[11px] leading-snug plan_galaxy_text_muted">
+                  <p className="text-[12px] text-txt-muted mt-1.5 text-end">
                     {t("settings.domain_purchase_renews_at", {
                       price: format_domain_price(
                         selected.renewal_price_cents,
@@ -973,21 +921,34 @@ export function DomainPurchaseFlow({
                     })}
                   </p>
                 )}
+                <Button
+                  className="w-full mt-5"
+                  disabled={buying || (turnstile_required && !captcha_token)}
+                  variant="depth"
+                  onClick={handle_buy}
+                >
+                  {t("settings.domain_purchase_buy", {
+                    price: format_domain_price(
+                      selected_total,
+                      selected.currency,
+                    ),
+                  })}
+                  {buying && <ButtonSpinner />}
+                </Button>
               </div>
-
-              <Button
-                className="mt-4 w-full"
-                disabled={buying || (turnstile_required && !captcha_token)}
-                variant="primary"
-                onClick={handle_buy}
-              >
-                {t("settings.domain_purchase_buy", {
-                  price: format_domain_price(selected_total, selected.currency),
-                })}
-                {buying && <ButtonSpinner size="xs" />}
-              </Button>
             </div>
-          </aside>
+
+            <div className="flex items-center justify-center gap-1.5 mt-3">
+              <LockClosedIcon className="w-3 h-3 text-txt-muted flex-shrink-0" />
+              <p className="text-[11px] leading-none text-txt-muted">
+                {t("settings.domain_purchase_secure_checkout")}
+              </p>
+            </div>
+          </div>
+
+          <div className="order-4 md:order-none md:col-start-1 md:row-start-3 pt-4 border-t border-edge-secondary">
+            <TermsSentence on_external={set_leave_url} />
+          </div>
         </div>
 
         {leave_modal}

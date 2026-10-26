@@ -6804,6 +6804,7 @@ export const nl = {
     domain_purchase_n_years: "{{count}} jaar",
     domain_purchase_pay_with: "Betalen met",
     domain_purchase_pay_card: "Kaart",
+    domain_purchase_pay_crypto: "Cryptovaluta",
     domain_purchase_buy: "Kopen voor {{price}}",
     domain_purchase_error: "Aankoop mislukt. Probeer het opnieuw.",
     domain_purchase_error_taken:
@@ -6891,13 +6892,6 @@ export const nl = {
     domain_purchase_manage_paid: "Betaald",
     domain_purchase_manage_auto_renew_note:
       "Dit domein wordt niet automatisch verlengd. Verleng het voor de vervaldatum om het te behouden.",
-    domain_purchase_auto_renew_label: "Automatisch verlengen",
-    domain_purchase_auto_renew_hint:
-      "Aster schrijft één keer per jaar af van je kaart en mailt je de prijs 15 dagen voor elke afschrijving. Je kunt dit uitzetten in Instellingen.",
-    domain_purchase_manage_auto_renew_on_note:
-      "Aster schrijft 30 dagen voor de vervaldatum af van je opgeslagen kaart en mailt je de prijs 15 dagen daarvoor.",
-    domain_purchase_manage_auto_renew_error:
-      "Automatisch verlengen kon niet worden bijgewerkt. Probeer het opnieuw.",
     domain_purchase_manage_dns: "Domeininstellingen openen",
     domain_purchase_manage_support_note:
       "Neem contact op met support om dit domein naar een andere registrar te verhuizen of naar een terugbetaling te vragen.",

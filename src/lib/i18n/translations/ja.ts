@@ -6737,6 +6737,7 @@ export const ja = {
     domain_purchase_n_years: "{{count}}年",
     domain_purchase_pay_with: "支払い方法",
     domain_purchase_pay_card: "カード",
+    domain_purchase_pay_crypto: "暗号資産",
     domain_purchase_buy: "{{price}}で購入",
     domain_purchase_error: "購入に失敗しました。もう一度お試しください。",
     domain_purchase_error_taken:
@@ -6825,13 +6826,6 @@ export const ja = {
     domain_purchase_manage_paid: "支払い額",
     domain_purchase_manage_auto_renew_note:
       "このドメインは自動更新されません。使い続けるには、有効期限までに更新してください。",
-    domain_purchase_auto_renew_label: "自動的に更新",
-    domain_purchase_auto_renew_hint:
-      "Aster は年に 1 回カードに請求し、各請求の 15 日前に料金をメールでお知らせします。この設定は「設定」でオフにできます。",
-    domain_purchase_manage_auto_renew_on_note:
-      "Aster は有効期限の 30 日前に保存済みのカードに請求し、その 15 日前に料金をメールでお知らせします。",
-    domain_purchase_manage_auto_renew_error:
-      "自動更新を変更できませんでした。もう一度お試しください。",
     domain_purchase_manage_dns: "ドメイン設定を開く",
     domain_purchase_manage_support_note:
       "このドメインを他のレジストラに移管する場合や返金について確認する場合は、サポートに問い合わせてください。",

@@ -6404,6 +6404,7 @@ export const hi = {
     domain_purchase_n_years: "{{count}} साल",
     domain_purchase_pay_with: "इससे भुगतान करें",
     domain_purchase_pay_card: "कार्ड",
+    domain_purchase_pay_crypto: "क्रिप्टो",
     domain_purchase_buy: "{{price}} में खरीदें",
     domain_purchase_error: "खरीद विफल रही। फिर से कोशिश करें।",
     domain_purchase_error_taken:
@@ -6500,13 +6501,6 @@ export const hi = {
     domain_purchase_manage_paid: "भुगतान हो गया",
     domain_purchase_manage_auto_renew_note:
       "यह डोमेन अपने आप नवीनीकृत नहीं होता। इसे बनाए रखने के लिए समाप्ति तारीख से पहले नवीनीकृत करें।",
-    domain_purchase_auto_renew_label: "अपने आप रिन्यू करें",
-    domain_purchase_auto_renew_hint:
-      "Aster साल में एक बार आपके कार्ड से शुल्क लेता है और हर शुल्क से 15 दिन पहले आपको कीमत ईमेल करता है। आप इसे सेटिंग में बंद कर सकते हैं।",
-    domain_purchase_manage_auto_renew_on_note:
-      "Aster समाप्ति तिथि से 30 दिन पहले आपके सेव किए गए कार्ड से शुल्क लेता है और उससे 15 दिन पहले आपको कीमत ईमेल करता है।",
-    domain_purchase_manage_auto_renew_error:
-      "अपने आप रिन्यू होने की सेटिंग अपडेट नहीं हो सकी। फिर से कोशिश करें।",
     domain_purchase_manage_dns: "डोमेन सेटअप खोलें",
     domain_purchase_manage_support_note:
       "इस डोमेन को दूसरे रजिस्ट्रार पर ले जाने या रिफ़ंड के बारे में पूछने के लिए सहायता टीम से संपर्क करें।",

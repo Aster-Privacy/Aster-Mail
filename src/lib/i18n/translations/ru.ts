@@ -7075,6 +7075,7 @@ export const ru = {
     domain_purchase_n_years: "{{count}} года",
     domain_purchase_pay_with: "Оплатить",
     domain_purchase_pay_card: "Картой",
+    domain_purchase_pay_crypto: "Криптовалютой",
     domain_purchase_buy: "Купить за {{price}}",
     domain_purchase_error: "Покупка не удалась. Попробуйте ещё раз.",
     domain_purchase_error_taken:
@@ -7161,13 +7162,6 @@ export const ru = {
     domain_purchase_manage_paid: "Оплачено",
     domain_purchase_manage_auto_renew_note:
       "Этот домен не продлевается автоматически. Чтобы сохранить его, продлите его до даты окончания срока.",
-    domain_purchase_auto_renew_label: "Продлевать автоматически",
-    domain_purchase_auto_renew_hint:
-      "Aster списывает оплату с вашей карты раз в год и присылает цену по почте за 15 дней до каждого списания. Это можно отключить в настройках.",
-    domain_purchase_manage_auto_renew_on_note:
-      "Aster списывает оплату с сохранённой карты за 30 дней до окончания срока и присылает цену по почте за 15 дней до этого.",
-    domain_purchase_manage_auto_renew_error:
-      "Не удалось изменить автопродление. Повторите попытку.",
     domain_purchase_manage_dns: "Открыть настройку домена",
     domain_purchase_manage_support_note:
       "Чтобы перенести домен к другому регистратору или спросить о возврате средств, свяжитесь с поддержкой.",

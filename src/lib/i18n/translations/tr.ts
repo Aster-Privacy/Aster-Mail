@@ -6785,6 +6785,7 @@ export const tr = {
     domain_purchase_n_years: "{{count}} yıl",
     domain_purchase_pay_with: "Ödeme yöntemi",
     domain_purchase_pay_card: "Kart",
+    domain_purchase_pay_crypto: "Kripto",
     domain_purchase_buy: "{{price}} karşılığında satın al",
     domain_purchase_error: "Satın alma başarısız oldu. Lütfen tekrar deneyin.",
     domain_purchase_error_taken:
@@ -6872,13 +6873,6 @@ export const tr = {
     domain_purchase_manage_paid: "Ödenen",
     domain_purchase_manage_auto_renew_note:
       "Bu alan adı otomatik olarak yenilenmez. Elinizde tutmak için bitiş tarihinden önce yenileyin.",
-    domain_purchase_auto_renew_label: "Otomatik yenile",
-    domain_purchase_auto_renew_hint:
-      "Aster kartınızdan yılda bir kez ödeme alır ve her ödemeden 15 gün önce fiyatı size e-postayla gönderir. Bunu Ayarlar'dan kapatabilirsiniz.",
-    domain_purchase_manage_auto_renew_on_note:
-      "Aster, kayıtlı kartınızdan son kullanma tarihinden 30 gün önce ödeme alır ve fiyatı bundan 15 gün önce e-postayla gönderir.",
-    domain_purchase_manage_auto_renew_error:
-      "Otomatik yenileme güncellenemedi. Tekrar deneyin.",
     domain_purchase_manage_dns: "Alan adı kurulumunu aç",
     domain_purchase_manage_support_note:
       "Bu alan adını başka bir kayıt kuruluşuna taşımak ya da geri ödeme sormak için destek ile iletişime geç.",

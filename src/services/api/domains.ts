@@ -182,9 +182,6 @@ export interface DomainOrder {
   expires_at: string | null;
   last_error: string | null;
   created_at: string;
-  payment_provider: string;
-  auto_renew: boolean;
-  auto_renew_available: boolean;
 }
 
 export interface DomainOrderListResponse {
@@ -722,22 +719,12 @@ export async function search_purchasable_domains(
 export async function create_domain_checkout(
   domain: string,
   years: number,
+  payment_method: "stripe" | "crypto",
   captcha_token?: string,
-  auto_renew: boolean = false,
 ): Promise<ApiResponse<DomainCheckoutResponse>> {
   return api_client.post<DomainCheckoutResponse>(
     "/addresses/v1/domains/purchase/checkout",
-    { domain, years, payment_method: "stripe", captcha_token, auto_renew },
-  );
-}
-
-export async function set_domain_auto_renew(
-  order_id: string,
-  enabled: boolean,
-): Promise<ApiResponse<DomainOrder>> {
-  return api_client.patch<DomainOrder>(
-    `/addresses/v1/domains/purchase/orders/${order_id}/auto_renew`,
-    { enabled },
+    { domain, years, payment_method, captcha_token },
   );
 }
 
@@ -769,12 +756,12 @@ export async function cancel_domain_order(
 export async function renew_domain_order(
   order_id: string,
   years: number,
+  payment_method: "stripe" | "crypto",
   captcha_token?: string,
-  auto_renew: boolean = false,
 ): Promise<ApiResponse<DomainCheckoutResponse>> {
   return api_client.post<DomainCheckoutResponse>(
     `/addresses/v1/domains/purchase/orders/${order_id}/renew`,
-    { years, payment_method: "stripe", captcha_token, auto_renew },
+    { years, payment_method, captcha_token },
   );
 }
 

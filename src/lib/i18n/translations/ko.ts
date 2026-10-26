@@ -6725,6 +6725,7 @@ export const ko = {
     domain_purchase_n_years: "{{count}}년",
     domain_purchase_pay_with: "결제 수단",
     domain_purchase_pay_card: "카드",
+    domain_purchase_pay_crypto: "암호화폐",
     domain_purchase_buy: "{{price}}에 구매",
     domain_purchase_error: "구매에 실패했습니다. 다시 시도해 주세요.",
     domain_purchase_error_taken:
@@ -6811,13 +6812,6 @@ export const ko = {
     domain_purchase_manage_paid: "결제 금액",
     domain_purchase_manage_auto_renew_note:
       "이 도메인은 자동으로 갱신되지 않습니다. 계속 사용하려면 만료일 전에 갱신하세요.",
-    domain_purchase_auto_renew_label: "자동으로 갱신",
-    domain_purchase_auto_renew_hint:
-      "Aster는 1년에 한 번 카드로 결제하며, 결제 15일 전에 가격을 이메일로 알려 드립니다. 설정에서 끌 수 있습니다.",
-    domain_purchase_manage_auto_renew_on_note:
-      "Aster는 만료일 30일 전에 저장된 카드로 결제하며, 그보다 15일 전에 가격을 이메일로 알려 드립니다.",
-    domain_purchase_manage_auto_renew_error:
-      "자동 갱신을 변경하지 못했습니다. 다시 시도하세요.",
     domain_purchase_manage_dns: "도메인 설정 열기",
     domain_purchase_manage_support_note:
       "이 도메인을 다른 등록기관으로 이전하거나 환불을 문의하려면 지원팀에 연락하세요.",
