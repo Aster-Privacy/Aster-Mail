@@ -32,6 +32,7 @@ import {
   MASTER_KEY_VAULT_FORMAT,
 } from "./memory_key_store";
 import { array_to_base64 } from "./key_manager_core";
+import { decrypt_metadata, encrypt_metadata } from "./envelope";
 
 function base64_to_array(b64: string): Uint8Array {
   const binary = atob(b64);
@@ -189,5 +190,29 @@ describe("store_vault_in_memory master key mode", () => {
     );
 
     expect(new TextDecoder().decode(decrypted)).toBe("alias-label-secret");
+  });
+});
+
+describe("store_vault_in_memory with a stored data key on an older vault", () => {
+  it("reads metadata sealed with the stored data key", async () => {
+    const stored_data_key = crypto.getRandomValues(new Uint8Array(32));
+    const vault = make_vault({
+      vault_format: 1,
+      data_kek: array_to_base64(stored_data_key),
+    });
+    const blob = await encrypt_metadata(
+      { inbox_category: "newsletters" },
+      stored_data_key,
+      "mail-item-metadata",
+    );
+
+    await store_vault_in_memory(vault, "older-vault-password");
+
+    const derived = get_derived_encryption_key()!;
+
+    expect(Array.from(derived)).not.toEqual(Array.from(stored_data_key));
+    expect(
+      await decrypt_metadata(blob!, derived, "mail-item-metadata"),
+    ).toEqual({ inbox_category: "newsletters" });
   });
 });

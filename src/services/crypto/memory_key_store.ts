@@ -81,6 +81,27 @@ function arrays_equal(a: Uint8Array, b: Uint8Array): boolean {
   return diff === 0;
 }
 
+async function remember_stored_data_kek(
+  encoded: string,
+  primary_key: Uint8Array,
+): Promise<void> {
+  let stored: Uint8Array;
+
+  try {
+    stored = base64_to_array(encoded);
+  } catch {
+    return;
+  }
+
+  if (
+    stored.length === primary_key.length &&
+    !arrays_equal(stored, primary_key)
+  ) {
+    await append_legacy_key_raw_bytes(stored);
+  }
+  zero_uint8_array(stored);
+}
+
 interface HmrState {
   vault_in_memory: EncryptedVault | null;
   derived_encryption_key: Uint8Array | null;
@@ -508,6 +529,9 @@ export async function store_vault_in_memory(
       zero_uint8_array(legacy_derived);
     }
     zero_uint8_array(passphrase_bytes);
+    if (vault.data_kek && derived_encryption_key) {
+      await remember_stored_data_kek(vault.data_kek, derived_encryption_key);
+    }
     if (vault_in_memory && derived_encryption_key) {
       vault_in_memory.data_kek = array_to_base64(derived_encryption_key);
     }
