@@ -20,12 +20,13 @@
 //
 import type { DecryptedEnvelope } from "@/types/email";
 
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   add_vocabulary_entry,
   add_vocabulary_text,
   is_vocabulary_term,
+  pending_vocabulary_entries,
   reset_vocabulary,
   single_deletions,
   tokenize_for_vocabulary,
@@ -139,5 +140,52 @@ describe("vocabulary terms", () => {
 
     expect(vocabulary_size()).toBe(0);
     expect(vocabulary_candidates("recieve")).toEqual([]);
+  });
+});
+
+describe("deferred vocabulary entries", () => {
+  beforeEach(() => {
+    reset_vocabulary();
+  });
+
+  it("queues entries instead of tokenizing them on the indexing path", () => {
+    add_vocabulary_entry(envelope("Quarterly invoice", "Alice"), "payment");
+
+    expect(pending_vocabulary_entries()).toBe(1);
+    expect(vocabulary_count("invoice")).toBe(3);
+    expect(vocabulary_count("payment")).toBe(1);
+    expect(pending_vocabulary_entries()).toBe(0);
+  });
+
+  it("builds queued entries in the background without a lookup", async () => {
+    for (let i = 0; i < 50; i++) {
+      add_vocabulary_entry(envelope("Quarterly invoice", "Alice"), "payment");
+    }
+
+    await vi.waitFor(() => {
+      expect(pending_vocabulary_entries()).toBe(0);
+    });
+    expect(vocabulary_count("invoice")).toBe(150);
+  });
+
+  it("serves candidates from entries still in the queue", () => {
+    add_vocabulary_entry(envelope("receive", "Alice"), "");
+
+    expect(vocabulary_has_term("receive")).toBe(true);
+    expect(vocabulary_candidates("recieve")).toContain("receive");
+  });
+
+  it("drops queued entries on reset", () => {
+    add_vocabulary_entry(envelope("Quarterly invoice", "Alice"), "payment");
+    reset_vocabulary();
+
+    expect(pending_vocabulary_entries()).toBe(0);
+    expect(vocabulary_size()).toBe(0);
+  });
+
+  it("ignores entries with nothing to learn from", () => {
+    add_vocabulary_entry(null, "");
+
+    expect(pending_vocabulary_entries()).toBe(0);
   });
 });
