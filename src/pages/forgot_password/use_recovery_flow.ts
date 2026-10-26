@@ -91,6 +91,7 @@ import {
 } from "@/services/sanitize";
 import { use_i18n } from "@/lib/i18n/context";
 import { user_facing_error } from "@/utils/user_facing_error";
+import { print_current_page } from "@/utils/print_page";
 
 const TRANSPORT_FAILURE_CODES = new Set([
   "NETWORK_ERROR",
@@ -707,7 +708,7 @@ export function use_recovery_flow() {
   };
 
   const handle_print_codes = () => {
-    window.print();
+    print_current_page();
   };
 
   const handle_codes_continue = () => {

@@ -22,6 +22,7 @@ import type { TranslationKey } from "@/lib/i18n/types";
 
 import { is_native_platform } from "@/native/capacitor_bridge";
 import { trigger_download } from "@/utils/download_blob";
+import { print_page_css } from "@/utils/print_page";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
 type Translator = (
@@ -235,6 +236,7 @@ export function print_recovery_codes(
   const document_html = `<!doctype html><html><head><meta charset="utf-8"><title>${escape_html(
     t("common.recovery_pdf_title"),
   )}</title><style>
+    ${print_page_css("0.5in", "body")}
     body { font-family: system-ui, sans-serif; color: #111; margin: 32px; }
     h1 { font-size: 20px; margin: 0 0 4px; }
     p { font-size: 12px; color: #444; margin: 2px 0; }
