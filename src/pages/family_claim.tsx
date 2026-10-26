@@ -42,6 +42,7 @@ import { use_auth_safe } from "@/contexts/auth_context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { DesktopSignUpHandoff } from "@/pages/desktop_sign_up_handoff";
 import { is_tauri } from "@/native/desktop_device_auth";
+import { public_web_url } from "@/lib/public_origin";
 
 const TRANSIENT_ERROR_CODES = [
   "NETWORK_ERROR",
@@ -103,7 +104,7 @@ function SignedInPanel() {
 
   const handle_copy = async () => {
     try {
-      await copy_text_or_throw(window.location.href);
+      await copy_text_or_throw(public_web_url(window.location.href));
       show_toast(t("settings.fam_kids_link_copied"), "success");
     } catch {
       show_toast(t("common.failed_to_copy"), "error");

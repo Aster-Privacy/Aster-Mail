@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { public_web_url } from "@/lib/public_origin";
+
 const TRUSTED_LINK_DOMAINS = [
   "astermail.org",
   "aster.cx",
@@ -30,9 +32,7 @@ export function is_trusted_link(url: string): boolean {
   let host: string;
 
   try {
-    const base =
-      typeof window !== "undefined" ? window.location.origin : undefined;
-    const parsed = base ? new URL(url, base) : new URL(url);
+    const parsed = new URL(public_web_url(url));
 
     if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
       return false;
