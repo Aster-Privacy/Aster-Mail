@@ -138,7 +138,7 @@ dependencies = [
 
 [[package]]
 name = "aster-mail-desktop"
-version = "1.4.75"
+version = "1.4.77"
 dependencies = [
  "aes-gcm",
  "base64 0.23.1",
