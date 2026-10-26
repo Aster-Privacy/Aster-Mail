@@ -29,6 +29,7 @@ mod default_mail_linux;
 #[cfg(any(unix, test))]
 mod default_mail_store;
 mod device;
+mod downloads;
 mod http_client;
 mod interface_zoom;
 #[cfg(all(unix, not(target_os = "macos")))]
@@ -536,6 +537,7 @@ fn main() {
         .manage(default_mail::PendingMailto::new(
             default_mail::mailto_from_args(std::env::args()),
         ))
+        .manage(downloads::CompletedDownloads::default())
         .manage(mail_notification::PendingNotificationOpen::new(
             mail_notification::open_from_args(std::env::args()),
         ))
@@ -550,6 +552,8 @@ fn main() {
             set_tray_labels,
             set_content_protection,
             open_external_url,
+            downloads::open_download,
+            downloads::reveal_download,
             default_mail::take_pending_mailto,
             mail_notification::show_mail_notification,
             mail_notification::take_pending_notification_open,
@@ -640,9 +644,15 @@ fn main() {
                                 .ok()
                                 .and_then(|mut pending| pending.remove(url.as_str()));
 
-                            if success {
-                                if let Some(saved) = path.or(requested) {
+                            let saved = path.or(requested);
+
+                            match (success, saved) {
+                                (true, Some(saved)) => {
                                     mark_download_quarantined(&saved);
+                                    downloads::record_finished(&download_handle, saved);
+                                }
+                                (_, saved) => {
+                                    downloads::record_failed(&download_handle, saved.as_deref());
                                 }
                             }
                         }

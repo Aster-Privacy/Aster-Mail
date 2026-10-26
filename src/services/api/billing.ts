@@ -29,6 +29,7 @@ import {
 } from "@/lib/referral_bonus";
 import { payment_url_or_throw } from "@/lib/payment_url";
 import { mark_payment_navigation } from "@/lib/payment_navigation";
+import { public_web_origin } from "@/lib/public_origin";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
 export interface PlanInfo {
@@ -265,10 +266,7 @@ export async function get_currency_rates() {
 }
 
 export function billing_return_origin(): string {
-  if (typeof window === "undefined") return "https://app.astermail.org";
-  if ("__TAURI_INTERNALS__" in window) return "https://app.astermail.org";
-
-  return window.location.origin;
+  return public_web_origin();
 }
 
 export function billing_return_path(): string {
@@ -1383,12 +1381,7 @@ export async function get_referral_info() {
 }
 
 export function build_referral_invite_url(referral_code: string): string {
-  const origin =
-    typeof window !== "undefined"
-      ? window.location.origin
-      : "https://app.astermail.org";
-
-  return `${origin}/invite/${referral_code}`;
+  return `${public_web_origin()}/invite/${encodeURIComponent(referral_code)}`;
 }
 
 export async function get_referral_history() {

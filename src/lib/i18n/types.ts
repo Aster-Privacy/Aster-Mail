@@ -1588,6 +1588,13 @@ export interface CommonTranslations {
   file_too_large: string;
   delete_failed: string;
   download_failed: string;
+  download_complete: string;
+  downloaded_file: string;
+  open_file: string;
+  show_in_folder: string;
+  show_in_finder: string;
+  download_open_failed: string;
+  download_reveal_failed: string;
   attachment_locked: string;
   scheduled_no_attachments: string;
   scheduled_connected_account: string;
@@ -4724,6 +4731,14 @@ export interface SettingsTranslations {
   your_feedback: string;
   feedback_placeholder: string;
   feedback_not_encrypted: string;
+  feedback_intro: string;
+  support_intro: string;
+  support_email_label: string;
+  support_help_label: string;
+  support_help_desc: string;
+  support_status_label: string;
+  support_status_desc: string;
+  support_security_label: string;
   sending: string;
   send_feedback_button: string;
   thank_you_feedback: string;

@@ -20,9 +20,15 @@
 //
 import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
-import { CheckIcon } from "@heroicons/react/24/outline";
+import {
+  CheckIcon,
+  EnvelopeIcon,
+  QuestionMarkCircleIcon,
+  ShieldExclamationIcon,
+  SignalIcon,
+} from "@heroicons/react/24/outline";
 
-import { SettingsHeader } from "./shared";
+import { SettingsGroup, SettingsHeader, SettingsRow } from "./shared";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { ButtonSpinner } from "@/components/ui/spinner";
@@ -31,6 +37,20 @@ import { API_ENDPOINTS } from "@/services/api/endpoints";
 import { ignore_error } from "@/lib/ignore_error";
 import { show_toast } from "@/components/toast/simple_toast";
 import { is_desktop } from "@/native/invoke_bridge";
+import { open_external } from "@/utils/open_link";
+
+const SUPPORT_ADDRESS = "hello@astermail.org";
+const SECURITY_ADDRESS = "security@astermail.org";
+const HELP_CENTER_URL = "https://astermail.org/help";
+const STATUS_PAGE_URL = "https://status.astermail.org";
+
+function compose_to(address: string) {
+  window.dispatchEvent(
+    new CustomEvent("aster:open-compose-prefilled", {
+      detail: { to: [address], subject: "", body: "" },
+    }),
+  );
+}
 
 const FEEDBACK_CATEGORIES = [
   { value: "general", label_key: "settings.feedback_category_general" },
@@ -109,7 +129,7 @@ export function FeedbackSection({
         ) : (
           <div className="px-4 pt-4">
             <p className="mb-3 text-[14px] text-[var(--mobile-text-muted)]">
-              {t("settings.feedback_description")}
+              {t("settings.feedback_intro")}
             </p>
             <div className="mb-3 flex flex-wrap gap-2">
               {FEEDBACK_CATEGORIES.map((option) => (
@@ -135,6 +155,7 @@ export function FeedbackSection({
               ))}
             </div>
             <textarea
+              aria-label={t("settings.your_feedback")}
               className="w-full resize-none rounded-xl bg-[var(--mobile-bg-card)] p-4 text-[15px] text-[var(--mobile-text-primary)] placeholder:text-[var(--mobile-text-muted)] outline-none"
               maxLength={2000}
               placeholder={t("settings.feedback_placeholder")}
@@ -160,20 +181,37 @@ export function FeedbackSection({
               {t("settings.send_feedback_button")}
               {is_sending && <ButtonSpinner />}
             </motion.button>
-            <div className="mt-6 rounded-xl bg-[var(--mobile-bg-card)] px-4 py-3.5">
-              <p className="text-[13px] font-medium text-[var(--mobile-text-muted)]">
-                {t("settings.other_ways_to_reach")}
-              </p>
-              <a
-                className="mt-1 block text-[14px] font-medium"
-                href="mailto:hello@astermail.org"
-                style={{ color: "var(--mobile-accent, #3b82f6)" }}
-              >
-                hello@astermail.org
-              </a>
-            </div>
           </div>
         )}
+        <SettingsGroup title={t("settings.other_ways_to_reach")}>
+          <SettingsRow
+            description={SUPPORT_ADDRESS}
+            icon={<EnvelopeIcon className="h-4 w-4" />}
+            label={t("settings.support_email_label")}
+            on_press={() => compose_to(SUPPORT_ADDRESS)}
+          />
+          <SettingsRow
+            description={t("settings.support_help_desc")}
+            icon={<QuestionMarkCircleIcon className="h-4 w-4" />}
+            label={t("settings.support_help_label")}
+            on_press={() => open_external(HELP_CENTER_URL)}
+          />
+          <SettingsRow
+            description={t("settings.support_status_desc")}
+            icon={<SignalIcon className="h-4 w-4" />}
+            label={t("settings.support_status_label")}
+            on_press={() => open_external(STATUS_PAGE_URL)}
+          />
+          <SettingsRow
+            description={SECURITY_ADDRESS}
+            icon={<ShieldExclamationIcon className="h-4 w-4" />}
+            label={t("settings.support_security_label")}
+            on_press={() => compose_to(SECURITY_ADDRESS)}
+          />
+        </SettingsGroup>
+        <p className="px-5 pt-1 text-[13px] text-[var(--mobile-text-muted)]">
+          {t("settings.support_intro")}
+        </p>
       </div>
     </div>
   );

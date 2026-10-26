@@ -903,12 +903,13 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
 
   // ── Feedback ─────────────────────────────────────────────────────────────
   {
-    label: "Your Feedback",
+    label: "Send feedback",
     label_key: "settings.your_feedback",
     section: "feedback",
     breadcrumb: "Feedback > Bug Report",
     crumb_key: "settings_search.bug_report",
     keywords: [
+      "your feedback",
       "report a bug",
       "bug report",
       "submit bug",
@@ -918,12 +919,12 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
     ],
   },
   {
-    label: "Other Ways to Reach Us",
+    label: "Contact support",
     label_key: "settings.other_ways_to_reach",
     section: "feedback",
     breadcrumb: "Feedback > Support",
     crumb_key: "settings_search.support",
-    keywords: ["contact support", "get help", "support ticket"],
+    keywords: ["get help", "support ticket", "reach us"],
   },
 
   // ── Developer ─────────────────────────────────────────────────────────────

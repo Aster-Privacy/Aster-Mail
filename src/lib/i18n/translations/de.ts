@@ -825,6 +825,20 @@ export const de = {
     file_too_large: "Datei muss kleiner als {{size}} sein",
     delete_failed: "Versuchen Sie es erneut.",
     download_failed: "Versuchen Sie es erneut.",
+    download_complete:
+      "Download abgeschlossen",
+    downloaded_file:
+      "{{file_name}} heruntergeladen",
+    open_file:
+      "Öffnen",
+    show_in_folder:
+      "Im Ordner anzeigen",
+    show_in_finder:
+      "Im Finder anzeigen",
+    download_open_failed:
+      "Diese Datei konnte nicht geöffnet werden. Sie wurde möglicherweise verschoben oder gelöscht.",
+    download_reveal_failed:
+      "Diese Datei konnte nicht angezeigt werden. Sie wurde möglicherweise verschoben oder gelöscht.",
     attachment_locked:
       "Dieser Anhang kann nicht geöffnet werden, weil sein Verschlüsselungsschlüssel auf diesem Gerät nicht verfügbar ist.",
     scheduled_no_attachments:
@@ -4464,11 +4478,22 @@ export const de = {
     payment: "Zahlung",
     cancels: "Endet",
     renews: "Verlängert sich",
-    your_feedback: "Ihr Feedback",
+    your_feedback: "Feedback senden",
     feedback_placeholder:
-      "Teilen Sie Ihre Gedanken, Vorschläge oder melden Sie Probleme...",
+      "Beschreiben Sie Ihre Idee oder das Problem, das Sie gefunden haben",
     feedback_not_encrypted:
-      "Feedback ist nicht Ende-zu-Ende-verschlüsselt. Geben Sie keine sensiblen Informationen an.",
+      "Feedback ist nicht Ende-zu-Ende-verschlüsselt. Geben Sie daher keine Passwörter, Wiederherstellungscodes oder andere private Informationen an.",
+    feedback_intro:
+      "Teilen Sie eine Idee, melden Sie einen Fehler oder sagen Sie dem Aster-Team Ihre Meinung. Feedback erstellt keine Supportanfrage. Wenn Sie Hilfe oder eine Antwort benötigen, kontaktieren Sie den Support.",
+    support_intro:
+      "Wenn Sie Hilfe zu Ihrem Konto, zur Abrechnung oder bei einem Problem benötigen, das Sie nicht selbst lösen können, schreiben Sie dem Support-Team eine E-Mail.",
+    support_email_label: "Support per E-Mail",
+    support_help_label: "Hilfecenter",
+    support_help_desc:
+      "Finden Sie Anleitungen und Antworten auf häufige Fragen.",
+    support_status_label: "Dienststatus",
+    support_status_desc: "Prüfen Sie, ob bei Aster Mail eine Störung vorliegt.",
+    support_security_label: "Sicherheitsproblem melden",
     sending: "Senden...",
     send_feedback_button: "Feedback senden",
     thank_you_feedback: "Vielen Dank für Ihr Feedback!",
@@ -4476,7 +4501,7 @@ export const de = {
     feedback_category_idea: "Idee",
     feedback_category_bug: "Fehler",
     please_log_in_feedback: "Eine Anmeldung lässt Sie Feedback senden.",
-    other_ways_to_reach: "Andere Wege, uns zu erreichen",
+    other_ways_to_reach: "Support kontaktieren",
     reset_to_defaults: "Auf Standard zurücksetzen",
     section_reset: "Abschnitt auf Standard zurückgesetzt",
     reset_all_confirm: "Alle Einstellungen auf Standard zurücksetzen?",
@@ -4807,7 +4832,7 @@ export const de = {
       "Verwenden Sie 3 bis 40 Buchstaben, Ziffern oder Punkte. Ein Punkt darf nicht am Anfang oder Ende stehen, und Punkte dürfen sich nicht wiederholen.",
     address_change_name_placeholder: "ihrname",
     primary_address_info:
-      "Mit Ihrem Supernova-Tarif können Sie Ihre Adresse alle 30 Tage einmal ändern. Ihre alte Adresse bleibt Ihre: Sie empfängt weiterhin Nachrichten, und Sie können sich weiterhin damit anmelden.",
+      "Mit den Tarifen Supernova und Family können Sie Ihre Adresse alle 30 Tage einmal ändern. Ihre alte Adresse bleibt Ihre: Sie empfängt weiterhin Nachrichten, und Sie können sich weiterhin damit anmelden.",
     address_change_checking: "Verfügbarkeit wird geprüft",
     address_change_available: "{{email}} ist verfügbar",
     address_change_unavailable: "{{email}} ist nicht verfügbar",
@@ -4849,7 +4874,7 @@ export const de = {
       "Diese Adresse wurde bereits vergeben. Wahle eine andere.",
     address_change_code_invalid: "Dieser Code ist nicht korrekt.",
     address_change_locked_plan:
-      "Das Ändern Ihrer Adresse ist eine Supernova-Funktion.",
+      "Das Ändern Ihrer Adresse ist in Supernova und Family enthalten.",
     address_change_locked_cooldown:
       "Sie können Ihre Adresse am {{date}} wieder ändern.",
     address_change_locked_cooldown_unknown:
@@ -6811,8 +6836,7 @@ export const de = {
     domain_purchase_manage_paid: "Bezahlt",
     domain_purchase_manage_auto_renew_note:
       "Diese Domain wird nicht automatisch verlängert. Um sie zu behalten, verlängern Sie sie vor dem Ablaufdatum.",
-    domain_purchase_auto_renew_label:
-      "Automatisch verlängern",
+    domain_purchase_auto_renew_label: "Automatisch verlängern",
     domain_purchase_auto_renew_hint:
       "Aster belastet Ihre Karte einmal im Jahr und schickt Ihnen den Preis 15 Tage vor jeder Abbuchung per E-Mail. Sie können das in den Einstellungen deaktivieren.",
     domain_purchase_manage_auto_renew_on_note:
@@ -11171,30 +11195,42 @@ export const de = {
     beta_waitlist_start: "Die Beta startet voraussichtlich am 1. November.",
     beta_waitlist_features_title: "Das ist enthalten",
     beta_waitlist_info_title: "Über die Kalender-Beta",
-    beta_waitlist_info_body: "Aster Kalender ist ein verschlüsselter Kalender für dein Aster-Konto. Sobald ein Platz frei wird, wird der Kalender für dein Konto aktiviert und erscheint in der Seitenleiste. Du kannst die Warteliste jederzeit verlassen.",
-    beta_waitlist_privacy: "Deine Termine und Kalender werden auf deinem Gerät verschlüsselt, sodass nur du sie lesen kannst. Die Warteliste speichert nur eine anonyme Kennung, nie deine Adresse, und wird nach dem Start gelöscht.",
+    beta_waitlist_info_body:
+      "Aster Kalender ist ein verschlüsselter Kalender für dein Aster-Konto. Sobald ein Platz frei wird, wird der Kalender für dein Konto aktiviert und erscheint in der Seitenleiste. Du kannst die Warteliste jederzeit verlassen.",
+    beta_waitlist_privacy:
+      "Deine Termine und Kalender werden auf deinem Gerät verschlüsselt, sodass nur du sie lesen kannst. Die Warteliste speichert nur eine anonyme Kennung, nie deine Adresse, und wird nach dem Start gelöscht.",
     beta_waitlist_heading: "Aster Calendar früh testen",
-    beta_waitlist_body: "Trag dich in die Warteliste ein, um früher Zugriff zu bekommen. Sobald du an der Reihe bist, wird Calendar für dein Konto aktiviert.",
+    beta_waitlist_body:
+      "Trag dich in die Warteliste ein, um früher Zugriff zu bekommen. Sobald du an der Reihe bist, wird Calendar für dein Konto aktiviert.",
     beta_waitlist_icon_note: "Dieses Symbol ist vorläufig.",
     beta_waitlist_feature_encrypted: "Ende-zu-Ende-verschlüsselt",
-    beta_waitlist_feature_encrypted_body: "Deine Termine nutzen dieselben Schlüssel wie deine E-Mails.",
+    beta_waitlist_feature_encrypted_body:
+      "Deine Termine nutzen dieselben Schlüssel wie deine E-Mails.",
     beta_waitlist_feature_devices: "Im Web und auf Android",
-    beta_waitlist_feature_devices_body: "Dein Kalender bleibt auf allen Geräten synchron.",
+    beta_waitlist_feature_devices_body:
+      "Dein Kalender bleibt auf allen Geräten synchron.",
     beta_waitlist_feature_booking: "Buchungsseiten",
-    beta_waitlist_feature_booking_body: "Teile einen Link, über den andere Zeit bei dir buchen können.",
+    beta_waitlist_feature_booking_body:
+      "Teile einen Link, über den andere Zeit bei dir buchen können.",
     beta_waitlist_feature_invites: "Termineinladungen",
-    beta_waitlist_feature_invites_body: "Lade Gäste per E-Mail ein und informiere sie, wenn sich Pläne ändern.",
+    beta_waitlist_feature_invites_body:
+      "Lade Gäste per E-Mail ein und informiere sie, wenn sich Pläne ändern.",
     beta_waitlist_feature_reminders: "Erinnerungen",
-    beta_waitlist_feature_reminders_body: "Erhalte vor jedem Termin eine Benachrichtigung.",
+    beta_waitlist_feature_reminders_body:
+      "Erhalte vor jedem Termin eine Benachrichtigung.",
     beta_waitlist_feature_recurring: "Wiederkehrende Termine",
-    beta_waitlist_feature_recurring_body: "Wiederhole Termine täglich, wöchentlich, monatlich, jährlich oder nach eigenem Zeitplan.",
+    beta_waitlist_feature_recurring_body:
+      "Wiederhole Termine täglich, wöchentlich, monatlich, jährlich oder nach eigenem Zeitplan.",
     beta_waitlist_feature_import: "Kalender importieren",
-    beta_waitlist_feature_import_body: "Übernimm deine Termine aus jeder .ics-Datei.",
+    beta_waitlist_feature_import_body:
+      "Übernimm deine Termine aus jeder .ics-Datei.",
     beta_waitlist_apply: "Auf die Warteliste",
     beta_waitlist_joined: "Du stehst auf der Warteliste",
-    beta_waitlist_joined_body: "Danke für deine Anmeldung. Sobald du an der Reihe bist, wird Calendar automatisch für dein Konto aktiviert.",
+    beta_waitlist_joined_body:
+      "Danke für deine Anmeldung. Sobald du an der Reihe bist, wird Calendar automatisch für dein Konto aktiviert.",
     beta_waitlist_leave: "Warteliste verlassen",
-    beta_waitlist_failed: "Die Warteliste konnte nicht aktualisiert werden. Versuche es erneut.",
+    beta_waitlist_failed:
+      "Die Warteliste konnte nicht aktualisiert werden. Versuche es erneut.",
     beta_waitlist_retry: "Erneut versuchen",
     invite_yes: "Ja",
     invite_maybe: "Vielleicht",

@@ -937,6 +937,20 @@ export const fr = {
     file_too_large: "Le fichier doit être inférieur à {{size}}",
     delete_failed: "Réessayez.",
     download_failed: "Ce téléchargement n'a pas abouti. Réessayez.",
+    download_complete:
+      "Téléchargement terminé",
+    downloaded_file:
+      "{{file_name}} téléchargé",
+    open_file:
+      "Ouvrir",
+    show_in_folder:
+      "Afficher dans le dossier",
+    show_in_finder:
+      "Afficher dans le Finder",
+    download_open_failed:
+      "Impossible d'ouvrir ce fichier. Il a peut-être été déplacé ou supprimé.",
+    download_reveal_failed:
+      "Impossible d'afficher ce fichier. Il a peut-être été déplacé ou supprimé.",
     attachment_locked:
       "Cette pièce jointe ne peut pas être ouverte, car sa clé de chiffrement n'est pas disponible sur cet appareil.",
     scheduled_no_attachments:
@@ -2193,7 +2207,8 @@ export const fr = {
     quick_inbox_categories: "Catégories de la boîte de réception",
     quick_manage_categories: "Gérer les catégories",
     quick_categories_turned_on: "Catégories de la boîte de réception activées",
-    quick_categories_turned_off: "Catégories de la boîte de réception désactivées",
+    quick_categories_turned_off:
+      "Catégories de la boîte de réception désactivées",
     sender_pictures: "Photos des expéditeurs",
     sender_pictures_description:
       "Affiche la photo ou les initiales de l'expéditeur à côté de chaque message de votre boîte de réception.",
@@ -4573,11 +4588,22 @@ export const fr = {
     payment: "Paiement",
     cancels: "Annulation le",
     renews: "Renouvellement le",
-    your_feedback: "Votre commentaire",
+    your_feedback: "Envoyer des commentaires",
     feedback_placeholder:
-      "Partagez vos réflexions, suggestions ou signalez des problèmes...",
+      "Décrivez votre idée ou le problème que vous avez rencontré",
     feedback_not_encrypted:
-      "Les commentaires ne sont pas chiffrés de bout en bout. N'incluez pas d'informations sensibles.",
+      "Les commentaires ne sont pas chiffrés de bout en bout. N'y incluez donc pas de mots de passe, de codes de récupération ni d'autres informations privées.",
+    feedback_intro:
+      "Partagez une idée, signalez un bug ou dites à l'équipe Aster ce que vous en pensez. Les commentaires n'ouvrent pas de demande d'assistance. Pour obtenir de l'aide ou une réponse, contactez l'assistance.",
+    support_intro:
+      "Pour obtenir de l'aide concernant votre compte, la facturation ou un problème que vous ne parvenez pas à résoudre, écrivez à l'équipe d'assistance.",
+    support_email_label: "Écrire à l'assistance",
+    support_help_label: "Centre d'aide",
+    support_help_desc:
+      "Consultez des guides et des réponses aux questions fréquentes.",
+    support_status_label: "État du service",
+    support_status_desc: "Vérifiez si Aster Mail subit une panne.",
+    support_security_label: "Signaler un problème de sécurité",
     sending: "Envoi...",
     send_feedback_button: "Envoyer le commentaire",
     thank_you_feedback: "Merci pour votre commentaire !",
@@ -4589,7 +4615,7 @@ export const fr = {
     please_log_in_feedback:
       "Vous connecter vous permettra d'envoyer des commentaires.",
     failed_send_feedback: "Réessayez.",
-    other_ways_to_reach: "Autres moyens de nous contacter",
+    other_ways_to_reach: "Contacter l'assistance",
     reset_to_defaults: "Réinitialiser par défaut",
     section_reset: "Section réinitialisée par défaut",
     reset_all_confirm: "Réinitialiser tous les paramètres par défaut ?",
@@ -4937,7 +4963,7 @@ export const fr = {
       "Utilisez 3 à 40 lettres, chiffres ou points. Un point ne peut ni commencer ni terminer l\\'adresse, et les points ne peuvent pas se répéter.",
     address_change_name_placeholder: "votrenom",
     primary_address_info:
-      "Votre offre Supernova vous permet de changer d'adresse une fois tous les 30 jours. Votre ancienne adresse reste la vôtre : elle continue de recevoir vos messages et vous permet toujours de vous connecter.",
+      "Les offres Supernova et Family vous permettent de changer d'adresse une fois tous les 30 jours. Votre ancienne adresse reste la vôtre : elle continue de recevoir vos messages et vous permet toujours de vous connecter.",
     address_change_checking: "Vérification de la disponibilité",
     address_change_available: "{{email}} est disponible",
     address_change_unavailable: "{{email}} n'est pas disponible",
@@ -4979,7 +5005,7 @@ export const fr = {
       "Cette adresse vient d'etre prise. Choisissez-en une autre.",
     address_change_code_invalid: "Ce code n'est pas correct.",
     address_change_locked_plan:
-      "Changer d'adresse est une fonctionnalité Supernova.",
+      "Changer d'adresse est une fonctionnalité des offres Supernova et Family.",
     address_change_locked_cooldown:
       "Vous pourrez changer d'adresse à nouveau le {{date}}.",
     address_change_locked_cooldown_unknown:
@@ -7102,8 +7128,7 @@ export const fr = {
     domain_purchase_manage_paid: "Payé",
     domain_purchase_manage_auto_renew_note:
       "Ce domaine ne se renouvelle pas automatiquement. Pour le conserver, renouvelez-le avant la date d'expiration.",
-    domain_purchase_auto_renew_label:
-      "Renouveler automatiquement",
+    domain_purchase_auto_renew_label: "Renouveler automatiquement",
     domain_purchase_auto_renew_hint:
       "Aster débite votre carte une fois par an et vous envoie le prix par e-mail 15 jours avant chaque prélèvement. Vous pouvez désactiver cette option dans les Réglages.",
     domain_purchase_manage_auto_renew_on_note:
@@ -11154,30 +11179,42 @@ export const fr = {
     beta_waitlist_start: "La bêta devrait commencer le 1er novembre.",
     beta_waitlist_features_title: "Ce qui est inclus",
     beta_waitlist_info_title: "À propos de la bêta d'Agenda",
-    beta_waitlist_info_body: "Aster Calendar est un agenda chiffré pour votre compte Aster. Dès qu'une place se libère, Agenda est activé sur votre compte et apparaît dans la barre latérale. Vous pouvez quitter la liste d'attente à tout moment.",
-    beta_waitlist_privacy: "Vos événements et agendas sont chiffrés sur votre appareil, vous seul pouvez donc les lire. La liste d'attente ne conserve qu'un identifiant anonyme, jamais votre adresse, et est supprimée après le lancement.",
+    beta_waitlist_info_body:
+      "Aster Calendar est un agenda chiffré pour votre compte Aster. Dès qu'une place se libère, Agenda est activé sur votre compte et apparaît dans la barre latérale. Vous pouvez quitter la liste d'attente à tout moment.",
+    beta_waitlist_privacy:
+      "Vos événements et agendas sont chiffrés sur votre appareil, vous seul pouvez donc les lire. La liste d'attente ne conserve qu'un identifiant anonyme, jamais votre adresse, et est supprimée après le lancement.",
     beta_waitlist_heading: "Essayez Aster Calendar en avance",
-    beta_waitlist_body: "Rejoignez la liste d'attente pour obtenir un accès anticipé. Dès que votre tour arrive, Calendar s'active sur votre compte.",
+    beta_waitlist_body:
+      "Rejoignez la liste d'attente pour obtenir un accès anticipé. Dès que votre tour arrive, Calendar s'active sur votre compte.",
     beta_waitlist_icon_note: "Cette icône est provisoire.",
     beta_waitlist_feature_encrypted: "Chiffré de bout en bout",
-    beta_waitlist_feature_encrypted_body: "Vos événements utilisent les mêmes clés que vos e-mails.",
+    beta_waitlist_feature_encrypted_body:
+      "Vos événements utilisent les mêmes clés que vos e-mails.",
     beta_waitlist_feature_devices: "Sur le Web et Android",
-    beta_waitlist_feature_devices_body: "Votre agenda reste synchronisé sur tous vos appareils.",
+    beta_waitlist_feature_devices_body:
+      "Votre agenda reste synchronisé sur tous vos appareils.",
     beta_waitlist_feature_booking: "Pages de réservation",
-    beta_waitlist_feature_booking_body: "Partagez un lien pour que d'autres réservent un créneau avec vous.",
+    beta_waitlist_feature_booking_body:
+      "Partagez un lien pour que d'autres réservent un créneau avec vous.",
     beta_waitlist_feature_invites: "Invitations aux événements",
-    beta_waitlist_feature_invites_body: "Invitez des participants par e-mail et prévenez-les quand vos plans changent.",
+    beta_waitlist_feature_invites_body:
+      "Invitez des participants par e-mail et prévenez-les quand vos plans changent.",
     beta_waitlist_feature_reminders: "Rappels",
-    beta_waitlist_feature_reminders_body: "Recevez une notification avant le début de chaque événement.",
+    beta_waitlist_feature_reminders_body:
+      "Recevez une notification avant le début de chaque événement.",
     beta_waitlist_feature_recurring: "Événements récurrents",
-    beta_waitlist_feature_recurring_body: "Répétez vos événements chaque jour, semaine, mois, année ou selon un calendrier personnalisé.",
+    beta_waitlist_feature_recurring_body:
+      "Répétez vos événements chaque jour, semaine, mois, année ou selon un calendrier personnalisé.",
     beta_waitlist_feature_import: "Importez votre agenda",
-    beta_waitlist_feature_import_body: "Récupérez vos événements depuis n'importe quel fichier .ics.",
+    beta_waitlist_feature_import_body:
+      "Récupérez vos événements depuis n'importe quel fichier .ics.",
     beta_waitlist_apply: "Rejoindre la liste d'attente",
     beta_waitlist_joined: "Vous êtes sur la liste d'attente",
-    beta_waitlist_joined_body: "Merci de votre inscription. Dès que votre tour arrive, Calendar s'active automatiquement sur votre compte.",
+    beta_waitlist_joined_body:
+      "Merci de votre inscription. Dès que votre tour arrive, Calendar s'active automatiquement sur votre compte.",
     beta_waitlist_leave: "Quitter la liste d'attente",
-    beta_waitlist_failed: "Impossible de mettre à jour la liste d'attente. Réessayez.",
+    beta_waitlist_failed:
+      "Impossible de mettre à jour la liste d'attente. Réessayez.",
     beta_waitlist_retry: "Réessayer",
     invite_yes: "Oui",
     invite_maybe: "Peut-être",

@@ -961,6 +961,20 @@ export const ja = {
     file_too_large: "ファイルは{{size}}未満である必要があります",
     delete_failed: "もう一度お試しください。",
     download_failed: "もう一度お試しください。",
+    download_complete:
+      "ダウンロードが完了しました",
+    downloaded_file:
+      "{{file_name}} をダウンロードしました",
+    open_file:
+      "開く",
+    show_in_folder:
+      "フォルダに表示",
+    show_in_finder:
+      "Finder に表示",
+    download_open_failed:
+      "このファイルを開けませんでした。移動または削除された可能性があります。",
+    download_reveal_failed:
+      "このファイルを表示できませんでした。移動または削除された可能性があります。",
     attachment_locked:
       "この添付ファイルは、暗号化キーがこのデバイスで利用できないため開けません。",
     scheduled_no_attachments:
@@ -4462,10 +4476,20 @@ export const ja = {
     payment: "支払い",
     cancels: "キャンセル日",
     renews: "更新日",
-    your_feedback: "フィードバック",
-    feedback_placeholder: "ご意見、ご提案、または問題を報告してください...",
+    your_feedback: "フィードバックを送信",
+    feedback_placeholder: "アイデアや見つけた問題を説明してください",
     feedback_not_encrypted:
-      "フィードバックはエンドツーエンド暗号化されていません。機密情報を含めないでください。",
+      "フィードバックはエンドツーエンドで暗号化されません。パスワード、復元コード、その他の個人情報は含めないでください。",
+    feedback_intro:
+      "アイデアの共有、バグの報告、Aster チームへのご意見をお送りください。フィードバックではサポートへの問い合わせは作成されません。サポートや返信が必要な場合は、サポートにお問い合わせください。",
+    support_intro:
+      "アカウントや請求、解決できない問題についてサポートが必要な場合は、サポートチームにメールでお問い合わせください。",
+    support_email_label: "サポートにメールする",
+    support_help_label: "ヘルプセンター",
+    support_help_desc: "ガイドやよくある質問への回答を確認できます。",
+    support_status_label: "サービスの状況",
+    support_status_desc: "Aster Mail で障害が発生していないか確認できます。",
+    support_security_label: "セキュリティの問題を報告",
     sending: "送信中...",
     send_feedback_button: "フィードバックを送信",
     thank_you_feedback: "フィードバックありがとうございます！",
@@ -4476,7 +4500,7 @@ export const ja = {
       "操作が速すぎます。少し待ってからもう一度お試しください。",
     please_log_in_feedback: "サインインするとフィードバックを送信できます。",
     failed_send_feedback: "もう一度お試しください。",
-    other_ways_to_reach: "その他のお問い合わせ方法",
+    other_ways_to_reach: "サポートに問い合わせる",
     reset_to_defaults: "デフォルトに戻す",
     section_reset: "セクションをデフォルトにリセットしました",
     reset_all_confirm: "すべての設定をデフォルトにリセットしますか？",
@@ -4813,7 +4837,7 @@ export const ja = {
       "3～40 文字の英数字またはドットを使ってください。ドットは先頭と末尾には置けず、連続もできません。",
     address_change_name_placeholder: "yourname",
     primary_address_info:
-      "Supernova プランでは、アドレスを 30 日に 1 回変更できます。以前のアドレスはあなたのものです。引き続きメールを受信し、サインインにも使えます。",
+      "Supernova プランと Family プランでは、アドレスを 30 日に 1 回変更できます。以前のアドレスはあなたのものです。引き続きメールを受信し、サインインにも使えます。",
     address_change_checking: "利用できるか確認しています",
     address_change_available: "{{email}} は利用できます",
     address_change_unavailable: "{{email}} は利用できません",
@@ -4853,7 +4877,8 @@ export const ja = {
     address_change_taken_now:
       "そのアドレスは既に使われています。別のアドレスを選んでください。",
     address_change_code_invalid: "このコードは正しくありません。",
-    address_change_locked_plan: "アドレスの変更は Supernova の機能です。",
+    address_change_locked_plan:
+      "アドレスの変更は Supernova と Family の機能です。",
     address_change_locked_cooldown: "{{date}} にアドレスを再び変更できます。",
     address_change_locked_cooldown_unknown:
       "過去 30 日以内にアドレスを変更したため、まだ変更できません。",
@@ -5553,7 +5578,8 @@ export const ja = {
     tls_method: "TLS方式",
     connection_timeout: "接続タイムアウト（秒）",
     import_existing_mail: "既存のメールをインポート",
-    import_existing_mail_off: "アカウントを追加した後に届いたメールだけを取り込みます。",
+    import_existing_mail_off:
+      "アカウントを追加した後に届いたメールだけを取り込みます。",
     import_existing_mail_on: "アカウントにすでにあるメールもインポートします。",
     archive_sent_label:
       "送信メールをリモートサーバーの送信済みフォルダにコピー",
@@ -6180,8 +6206,10 @@ export const ja = {
     storage_nudge_full_title: "ストレージがいっぱいです",
     storage_nudge_offer: "月額 {{price}} で {{size}} を追加",
     storage_nudge_offer_generic: "プランをアップグレードしてストレージを増やす",
-    storage_nudge_body: "ストレージがいっぱいになると、メールの送信やインポートができなくなります。",
-    storage_nudge_full_body: "空き容量を確保するまで、メールの送信やインポートはできません。既存のメールは安全です。",
+    storage_nudge_body:
+      "ストレージがいっぱいになると、メールの送信やインポートができなくなります。",
+    storage_nudge_full_body:
+      "空き容量を確保するまで、メールの送信やインポートはできません。既存のメールは安全です。",
     storage_nudge_free_up: "空き容量を増やす",
     storage_nudge_get_storage: "ストレージを追加",
     storage_free_space: "残り {{size}}、ストレージの {{percent}} を使用中",
@@ -6797,8 +6825,7 @@ export const ja = {
     domain_purchase_manage_paid: "支払い額",
     domain_purchase_manage_auto_renew_note:
       "このドメインは自動更新されません。使い続けるには、有効期限までに更新してください。",
-    domain_purchase_auto_renew_label:
-      "自動的に更新",
+    domain_purchase_auto_renew_label: "自動的に更新",
     domain_purchase_auto_renew_hint:
       "Aster は年に 1 回カードに請求し、各請求の 15 日前に料金をメールでお知らせします。この設定は「設定」でオフにできます。",
     domain_purchase_manage_auto_renew_on_note:
@@ -10793,30 +10820,41 @@ export const ja = {
     beta_waitlist_start: "ベータ版は11月1日に開始される予定です。",
     beta_waitlist_features_title: "含まれる機能",
     beta_waitlist_info_title: "カレンダーベータについて",
-    beta_waitlist_info_body: "Aster Calendar は、Aster アカウント用の暗号化されたカレンダーです。枠が空くとアカウントでカレンダーが有効になり、サイドバーに表示されます。ウェイトリストはいつでも解除できます。",
-    beta_waitlist_privacy: "予定とカレンダーはデバイス上で暗号化されるため、読めるのはあなただけです。ウェイトリストに保存されるのは匿名のタグだけで、アドレスは保存されません。リストはリリース後に削除されます。",
+    beta_waitlist_info_body:
+      "Aster Calendar は、Aster アカウント用の暗号化されたカレンダーです。枠が空くとアカウントでカレンダーが有効になり、サイドバーに表示されます。ウェイトリストはいつでも解除できます。",
+    beta_waitlist_privacy:
+      "予定とカレンダーはデバイス上で暗号化されるため、読めるのはあなただけです。ウェイトリストに保存されるのは匿名のタグだけで、アドレスは保存されません。リストはリリース後に削除されます。",
     beta_waitlist_heading: "Aster Calendar をいち早く",
-    beta_waitlist_body: "ウェイトリストに登録すると、早期アクセスを利用できます。順番が来ると、アカウントで Calendar が有効になります。",
+    beta_waitlist_body:
+      "ウェイトリストに登録すると、早期アクセスを利用できます。順番が来ると、アカウントで Calendar が有効になります。",
     beta_waitlist_icon_note: "このアイコンは仮のものです。",
     beta_waitlist_feature_encrypted: "エンドツーエンド暗号化",
-    beta_waitlist_feature_encrypted_body: "予定はメールと同じ鍵で保護されます。",
+    beta_waitlist_feature_encrypted_body:
+      "予定はメールと同じ鍵で保護されます。",
     beta_waitlist_feature_devices: "Web と Android に対応",
-    beta_waitlist_feature_devices_body: "スケジュールはすべてのデバイスで同期されます。",
+    beta_waitlist_feature_devices_body:
+      "スケジュールはすべてのデバイスで同期されます。",
     beta_waitlist_feature_booking: "予約ページ",
-    beta_waitlist_feature_booking_body: "リンクを共有して、相手に時間を予約してもらえます。",
+    beta_waitlist_feature_booking_body:
+      "リンクを共有して、相手に時間を予約してもらえます。",
     beta_waitlist_feature_invites: "予定への招待",
-    beta_waitlist_feature_invites_body: "ゲストをメールで招待し、予定が変わったときは更新を送信できます。",
+    beta_waitlist_feature_invites_body:
+      "ゲストをメールで招待し、予定が変わったときは更新を送信できます。",
     beta_waitlist_feature_reminders: "リマインダー",
-    beta_waitlist_feature_reminders_body: "各予定の開始前に通知を受け取れます。",
+    beta_waitlist_feature_reminders_body:
+      "各予定の開始前に通知を受け取れます。",
     beta_waitlist_feature_recurring: "繰り返しの予定",
-    beta_waitlist_feature_recurring_body: "予定を毎日、毎週、毎月、毎年、またはカスタムの間隔で繰り返せます。",
+    beta_waitlist_feature_recurring_body:
+      "予定を毎日、毎週、毎月、毎年、またはカスタムの間隔で繰り返せます。",
     beta_waitlist_feature_import: "カレンダーを読み込む",
     beta_waitlist_feature_import_body: ".ics ファイルから予定を取り込めます。",
     beta_waitlist_apply: "ウェイトリストに登録",
     beta_waitlist_joined: "ウェイトリストに登録済みです",
-    beta_waitlist_joined_body: "ご登録ありがとうございます。順番が来ると、アカウントで Calendar が自動的に有効になります。",
+    beta_waitlist_joined_body:
+      "ご登録ありがとうございます。順番が来ると、アカウントで Calendar が自動的に有効になります。",
     beta_waitlist_leave: "ウェイトリストから外れる",
-    beta_waitlist_failed: "ウェイトリストを更新できませんでした。もう一度お試しください。",
+    beta_waitlist_failed:
+      "ウェイトリストを更新できませんでした。もう一度お試しください。",
     beta_waitlist_retry: "再試行",
     invite_yes: "参加",
     invite_maybe: "未定",

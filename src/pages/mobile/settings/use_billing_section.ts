@@ -100,6 +100,7 @@ import { checkout_error_text } from "@/components/settings/billing/checkout_erro
 import { is_promo_code_rejection } from "@/components/settings/billing/plan_change_discount_text";
 import { read_billing_interval } from "@/components/settings/billing/cancel_offer";
 import { is_contact_trashed } from "@/lib/contact_trash";
+import { public_web_origin } from "@/lib/public_origin";
 
 export function use_billing_section() {
   const { t } = use_i18n();
@@ -1184,7 +1185,7 @@ export function use_billing_section() {
     set_is_action_loading(true);
 
     try {
-      const origin = window.location.origin;
+      const origin = public_web_origin();
       const res = await create_family_group(
         tier.id,
         card_interval,
