@@ -929,6 +929,20 @@ export const en: Translations = {
     file_too_large: "File must be smaller than {{size}}",
     delete_failed: "This item was not removed. Try again.",
     download_failed: "This download did not finish. Try again.",
+    download_complete:
+      "Download complete",
+    downloaded_file:
+      "Downloaded {{file_name}}",
+    open_file:
+      "Open",
+    show_in_folder:
+      "Show in folder",
+    show_in_finder:
+      "Show in Finder",
+    download_open_failed:
+      "This file couldn't be opened. It may have been moved or deleted.",
+    download_reveal_failed:
+      "This file couldn't be shown. It may have been moved or deleted.",
     attachment_locked:
       "This attachment can't be opened because its encryption key isn't available on this device.",
     scheduled_no_attachments:
@@ -5381,14 +5395,23 @@ export const en: Translations = {
     payment: "Payment",
     cancels: "Cancels",
     renews: "Renews",
-    your_feedback: "Your Feedback",
-    feedback_placeholder:
-      "Share your thoughts, suggestions, or report issues...",
+    your_feedback: "Send feedback",
+    feedback_placeholder: "Describe your idea or the problem you found",
     feedback_not_encrypted:
-      "Feedback is not end-to-end encrypted. Do not include sensitive information.",
+      "Feedback isn't end-to-end encrypted, so don't include passwords, recovery codes, or other private information.",
+    feedback_intro:
+      "Share an idea, report a bug, or tell the Aster team what you think. Feedback doesn't open a support request, so to get help or a reply, contact support.",
+    support_intro:
+      "For help with your account, billing, or a problem you can't solve, email the support team.",
+    support_email_label: "Email support",
+    support_help_label: "Help center",
+    support_help_desc: "Find guides and answers to common questions.",
+    support_status_label: "Service status",
+    support_status_desc: "Check whether Aster Mail is having an outage.",
+    support_security_label: "Report a security issue",
     sending: "Sending...",
-    send_feedback_button: "Send Feedback",
-    thank_you_feedback: "Thank you for your feedback!",
+    send_feedback_button: "Send feedback",
+    thank_you_feedback: "Thanks for your feedback.",
     feedback_category_general: "Feedback",
     feedback_category_idea: "Idea",
     feedback_category_bug: "Bug",
@@ -5396,7 +5419,7 @@ export const en: Translations = {
       "You're doing that too quickly. Please wait a moment and try again.",
     please_log_in_feedback: "Signing in will let you send feedback.",
     failed_send_feedback: "Your feedback did not send. Try again.",
-    other_ways_to_reach: "Other Ways to Reach Us",
+    other_ways_to_reach: "Contact support",
     reset_to_defaults: "Reset to defaults",
     section_reset: "Section reset to defaults",
     reset_all_confirm: "Reset all settings to defaults?",
@@ -5759,7 +5782,7 @@ export const en: Translations = {
       "Use 3 to 40 letters, numbers, or dots. A dot cannot start or end the address, and dots cannot repeat.",
     address_change_name_placeholder: "yourname",
     primary_address_info:
-      "Your Supernova plan lets you change your address once every 30 days. Your old address stays yours: it keeps receiving mail and it still signs you in.",
+      "Supernova and Family plans let you change your address once every 30 days. Your old address stays yours: it keeps receiving mail and it still signs you in.",
     address_change_checking: "Checking availability",
     address_change_available: "{{email}} is available",
     address_change_unavailable: "{{email}} is not available",
@@ -5797,7 +5820,8 @@ export const en: Translations = {
     address_change_taken_now:
       "Someone claimed that address first. Pick another one.",
     address_change_code_invalid: "That code is not correct.",
-    address_change_locked_plan: "Changing your address is a Supernova feature.",
+    address_change_locked_plan:
+      "Changing your address is part of Supernova and Family.",
     address_change_locked_cooldown:
       "You can change your address again on {{date}}.",
     address_change_locked_cooldown_unknown:
@@ -6401,8 +6425,7 @@ export const en: Translations = {
     domain_purchase_manage_paid: "Paid",
     domain_purchase_manage_auto_renew_note:
       "This domain doesn't renew automatically. To keep it, renew it before the expiration date.",
-    domain_purchase_auto_renew_label:
-      "Renew automatically",
+    domain_purchase_auto_renew_label: "Renew automatically",
     domain_purchase_auto_renew_hint:
       "Aster charges your card once a year and emails you the price 15 days before each charge. You can turn this off in Settings.",
     domain_purchase_manage_auto_renew_on_note:
@@ -10737,28 +10760,39 @@ export const en: Translations = {
     beta_waitlist_start: "The beta is expected to start on November 1.",
     beta_waitlist_features_title: "What's included",
     beta_waitlist_info_title: "About the Calendar beta",
-    beta_waitlist_info_body: "Aster Calendar is an encrypted calendar for your Aster account. After you join, Calendar turns on for your account when a spot opens and appears in the sidebar. You can leave the waitlist at any time.",
-    beta_waitlist_privacy: "Your events and calendars are encrypted on your device, so only you can read them. The waitlist keeps only an anonymous tag, never your address, and is deleted after launch.",
+    beta_waitlist_info_body:
+      "Aster Calendar is an encrypted calendar for your Aster account. After you join, Calendar turns on for your account when a spot opens and appears in the sidebar. You can leave the waitlist at any time.",
+    beta_waitlist_privacy:
+      "Your events and calendars are encrypted on your device, so only you can read them. The waitlist keeps only an anonymous tag, never your address, and is deleted after launch.",
     beta_waitlist_heading: "Try Aster Calendar early",
-    beta_waitlist_body: "Join the waitlist to get early access. When your spot opens, Calendar turns on for your account.",
+    beta_waitlist_body:
+      "Join the waitlist to get early access. When your spot opens, Calendar turns on for your account.",
     beta_waitlist_icon_note: "This icon is temporary.",
     beta_waitlist_feature_encrypted: "End-to-end encrypted",
-    beta_waitlist_feature_encrypted_body: "Your events use the same keys as your mail.",
+    beta_waitlist_feature_encrypted_body:
+      "Your events use the same keys as your mail.",
     beta_waitlist_feature_devices: "On the web and Android",
-    beta_waitlist_feature_devices_body: "Your schedule stays in sync on every device.",
+    beta_waitlist_feature_devices_body:
+      "Your schedule stays in sync on every device.",
     beta_waitlist_feature_booking: "Booking pages",
-    beta_waitlist_feature_booking_body: "Share a link so people can book time with you.",
+    beta_waitlist_feature_booking_body:
+      "Share a link so people can book time with you.",
     beta_waitlist_feature_invites: "Event invitations",
-    beta_waitlist_feature_invites_body: "Invite guests by email and send them updates when plans change.",
+    beta_waitlist_feature_invites_body:
+      "Invite guests by email and send them updates when plans change.",
     beta_waitlist_feature_reminders: "Reminders",
-    beta_waitlist_feature_reminders_body: "Get a notification before each event starts.",
+    beta_waitlist_feature_reminders_body:
+      "Get a notification before each event starts.",
     beta_waitlist_feature_recurring: "Repeating events",
-    beta_waitlist_feature_recurring_body: "Repeat events daily, weekly, monthly, yearly, or on a custom schedule.",
+    beta_waitlist_feature_recurring_body:
+      "Repeat events daily, weekly, monthly, yearly, or on a custom schedule.",
     beta_waitlist_feature_import: "Import your calendar",
-    beta_waitlist_feature_import_body: "Bring your events over from any .ics file.",
+    beta_waitlist_feature_import_body:
+      "Bring your events over from any .ics file.",
     beta_waitlist_apply: "Join the waitlist",
     beta_waitlist_joined: "You're on the waitlist",
-    beta_waitlist_joined_body: "Thanks for joining. When your spot opens, Calendar turns on for your account automatically.",
+    beta_waitlist_joined_body:
+      "Thanks for joining. When your spot opens, Calendar turns on for your account automatically.",
     beta_waitlist_leave: "Leave the waitlist",
     beta_waitlist_failed: "Couldn't update the waitlist. Try again.",
     beta_waitlist_retry: "Try again",

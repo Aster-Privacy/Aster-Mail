@@ -903,6 +903,20 @@ export const nl = {
     file_too_large: "Bestand moet kleiner zijn dan {{size}}",
     delete_failed: "Probeer het opnieuw.",
     download_failed: "Probeer het opnieuw.",
+    download_complete:
+      "Download voltooid",
+    downloaded_file:
+      "{{file_name}} gedownload",
+    open_file:
+      "Openen",
+    show_in_folder:
+      "Tonen in map",
+    show_in_finder:
+      "Toon in Finder",
+    download_open_failed:
+      "Dit bestand kan niet worden geopend. Het is mogelijk verplaatst of verwijderd.",
+    download_reveal_failed:
+      "Dit bestand kan niet worden getoond. Het is mogelijk verplaatst of verwijderd.",
     attachment_locked:
       "Deze bijlage kan niet worden geopend omdat de versleutelingssleutel niet beschikbaar is op dit apparaat.",
     scheduled_no_attachments:
@@ -4452,10 +4466,22 @@ export const nl = {
     payment: "Betaling",
     cancels: "Annuleert",
     renews: "Verlengt",
-    your_feedback: "Jouw feedback",
-    feedback_placeholder: "Deel je gedachten, suggesties of meld problemen...",
+    your_feedback: "Feedback versturen",
+    feedback_placeholder:
+      "Beschrijf je idee of het probleem dat je hebt gevonden",
     feedback_not_encrypted:
-      "Feedback is niet end-to-end versleuteld. Deel geen gevoelige informatie.",
+      "Feedback is niet end-to-end versleuteld, dus voeg geen wachtwoorden, herstelcodes of andere privégegevens toe.",
+    feedback_intro:
+      "Deel een idee, meld een bug of laat het Aster-team weten wat je ervan vindt. Feedback opent geen supportverzoek. Neem voor hulp of een antwoord contact op met support.",
+    support_intro:
+      "Stuur het supportteam een e-mail voor hulp met je account, facturering of een probleem dat je niet zelf kunt oplossen.",
+    support_email_label: "Support mailen",
+    support_help_label: "Helpcentrum",
+    support_help_desc:
+      "Vind handleidingen en antwoorden op veelgestelde vragen.",
+    support_status_label: "Servicestatus",
+    support_status_desc: "Controleer of Aster Mail een storing heeft.",
+    support_security_label: "Beveiligingsprobleem melden",
     sending: "Verzenden...",
     send_feedback_button: "Feedback verzenden",
     thank_you_feedback: "Bedankt voor je feedback!",
@@ -4466,7 +4492,7 @@ export const nl = {
       "Je doet dat te snel. Wacht even en probeer het opnieuw.",
     please_log_in_feedback: "Aanmelden laat je feedback verzenden.",
     failed_send_feedback: "Probeer het opnieuw.",
-    other_ways_to_reach: "Andere manieren om ons te bereiken",
+    other_ways_to_reach: "Contact opnemen met support",
     reset_to_defaults: "Standaardinstellingen herstellen",
     section_reset: "Sectie naar standaard hersteld",
     reset_all_confirm: "Alle instellingen naar standaard herstellen?",
@@ -4799,7 +4825,7 @@ export const nl = {
       "Gebruik 3 tot 40 letters, cijfers of punten. Een punt mag niet aan het begin of eind staan en punten mogen zich niet herhalen.",
     address_change_name_placeholder: "jouwnaam",
     primary_address_info:
-      "Met je Supernova-abonnement kun je je adres eens per 30 dagen wijzigen. Je oude adres blijft van jou: het ontvangt nog steeds mail en je logt er nog steeds mee in.",
+      "Met een Supernova- of Family-abonnement kun je je adres eens per 30 dagen wijzigen. Je oude adres blijft van jou: het ontvangt nog steeds mail en je logt er nog steeds mee in.",
     address_change_checking: "Beschikbaarheid controleren",
     address_change_available: "{{email}} is beschikbaar",
     address_change_unavailable: "{{email}} is niet beschikbaar",
@@ -4839,7 +4865,8 @@ export const nl = {
     address_change_taken_now:
       "Iemand anders heeft dat adres al. Kies een ander adres.",
     address_change_code_invalid: "Die code klopt niet.",
-    address_change_locked_plan: "Je adres wijzigen is een Supernova-functie.",
+    address_change_locked_plan:
+      "Je adres wijzigen is een functie van Supernova en Family.",
     address_change_locked_cooldown:
       "Je kunt je adres weer wijzigen op {{date}}.",
     address_change_locked_cooldown_unknown:
@@ -6864,8 +6891,7 @@ export const nl = {
     domain_purchase_manage_paid: "Betaald",
     domain_purchase_manage_auto_renew_note:
       "Dit domein wordt niet automatisch verlengd. Verleng het voor de vervaldatum om het te behouden.",
-    domain_purchase_auto_renew_label:
-      "Automatisch verlengen",
+    domain_purchase_auto_renew_label: "Automatisch verlengen",
     domain_purchase_auto_renew_hint:
       "Aster schrijft één keer per jaar af van je kaart en mailt je de prijs 15 dagen voor elke afschrijving. Je kunt dit uitzetten in Instellingen.",
     domain_purchase_manage_auto_renew_on_note:
@@ -11004,30 +11030,42 @@ export const nl = {
     beta_waitlist_start: "De bèta begint naar verwachting op 1 november.",
     beta_waitlist_features_title: "Wat je krijgt",
     beta_waitlist_info_title: "Over de Agenda-bèta",
-    beta_waitlist_info_body: "Aster Calendar is een versleutelde agenda voor je Aster-account. Zodra er een plek vrijkomt, wordt Agenda voor je account ingeschakeld en verschijnt deze in de zijbalk. Je kunt de wachtlijst op elk moment verlaten.",
-    beta_waitlist_privacy: "Je afspraken en agenda's worden op je apparaat versleuteld, zodat alleen jij ze kunt lezen. De wachtlijst bewaart alleen een anoniem label, nooit je adres, en wordt na de lancering verwijderd.",
+    beta_waitlist_info_body:
+      "Aster Calendar is een versleutelde agenda voor je Aster-account. Zodra er een plek vrijkomt, wordt Agenda voor je account ingeschakeld en verschijnt deze in de zijbalk. Je kunt de wachtlijst op elk moment verlaten.",
+    beta_waitlist_privacy:
+      "Je afspraken en agenda's worden op je apparaat versleuteld, zodat alleen jij ze kunt lezen. De wachtlijst bewaart alleen een anoniem label, nooit je adres, en wordt na de lancering verwijderd.",
     beta_waitlist_heading: "Probeer Aster Calendar als eerste",
-    beta_waitlist_body: "Meld je aan voor de wachtlijst om eerder toegang te krijgen. Zodra je aan de beurt bent, wordt Calendar voor je account ingeschakeld.",
+    beta_waitlist_body:
+      "Meld je aan voor de wachtlijst om eerder toegang te krijgen. Zodra je aan de beurt bent, wordt Calendar voor je account ingeschakeld.",
     beta_waitlist_icon_note: "Dit pictogram is tijdelijk.",
     beta_waitlist_feature_encrypted: "End-to-end versleuteld",
-    beta_waitlist_feature_encrypted_body: "Je afspraken gebruiken dezelfde sleutels als je e-mail.",
+    beta_waitlist_feature_encrypted_body:
+      "Je afspraken gebruiken dezelfde sleutels als je e-mail.",
     beta_waitlist_feature_devices: "Op het web en Android",
-    beta_waitlist_feature_devices_body: "Je agenda blijft op elk apparaat gesynchroniseerd.",
+    beta_waitlist_feature_devices_body:
+      "Je agenda blijft op elk apparaat gesynchroniseerd.",
     beta_waitlist_feature_booking: "Boekingspagina's",
-    beta_waitlist_feature_booking_body: "Deel een link zodat anderen tijd met je kunnen boeken.",
+    beta_waitlist_feature_booking_body:
+      "Deel een link zodat anderen tijd met je kunnen boeken.",
     beta_waitlist_feature_invites: "Uitnodigingen",
-    beta_waitlist_feature_invites_body: "Nodig gasten uit per e-mail en stuur ze updates als plannen veranderen.",
+    beta_waitlist_feature_invites_body:
+      "Nodig gasten uit per e-mail en stuur ze updates als plannen veranderen.",
     beta_waitlist_feature_reminders: "Herinneringen",
-    beta_waitlist_feature_reminders_body: "Krijg een melding voordat een afspraak begint.",
+    beta_waitlist_feature_reminders_body:
+      "Krijg een melding voordat een afspraak begint.",
     beta_waitlist_feature_recurring: "Terugkerende afspraken",
-    beta_waitlist_feature_recurring_body: "Herhaal afspraken dagelijks, wekelijks, maandelijks, jaarlijks of volgens een eigen schema.",
+    beta_waitlist_feature_recurring_body:
+      "Herhaal afspraken dagelijks, wekelijks, maandelijks, jaarlijks of volgens een eigen schema.",
     beta_waitlist_feature_import: "Importeer je agenda",
-    beta_waitlist_feature_import_body: "Haal je afspraken over uit elk .ics-bestand.",
+    beta_waitlist_feature_import_body:
+      "Haal je afspraken over uit elk .ics-bestand.",
     beta_waitlist_apply: "Aanmelden voor de wachtlijst",
     beta_waitlist_joined: "Je staat op de wachtlijst",
-    beta_waitlist_joined_body: "Bedankt voor je aanmelding. Zodra je aan de beurt bent, wordt Calendar automatisch voor je account ingeschakeld.",
+    beta_waitlist_joined_body:
+      "Bedankt voor je aanmelding. Zodra je aan de beurt bent, wordt Calendar automatisch voor je account ingeschakeld.",
     beta_waitlist_leave: "Wachtlijst verlaten",
-    beta_waitlist_failed: "Kan de wachtlijst niet bijwerken. Probeer het opnieuw.",
+    beta_waitlist_failed:
+      "Kan de wachtlijst niet bijwerken. Probeer het opnieuw.",
     beta_waitlist_retry: "Opnieuw proberen",
     invite_yes: "Ja",
     invite_maybe: "Misschien",

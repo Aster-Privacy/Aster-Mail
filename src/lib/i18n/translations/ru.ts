@@ -917,6 +917,20 @@ export const ru = {
       "Этот файл занимает {{size}} МБ, что превышает допустимый размер. Меньший обычно подходит.",
     delete_failed: "Попробуйте снова.",
     download_failed: "Загрузка не завершилась. Попробуйте снова.",
+    download_complete:
+      "Загрузка завершена",
+    downloaded_file:
+      "Файл {{file_name}} загружен",
+    open_file:
+      "Открыть",
+    show_in_folder:
+      "Показать в папке",
+    show_in_finder:
+      "Показать в Finder",
+    download_open_failed:
+      "Не удалось открыть этот файл. Возможно, он был перемещен или удален.",
+    download_reveal_failed:
+      "Не удалось показать этот файл. Возможно, он был перемещен или удален.",
     attachment_locked:
       "Это вложение нельзя открыть, потому что ключ шифрования недоступен на этом устройстве.",
     scheduled_no_attachments:
@@ -4651,11 +4665,20 @@ export const ru = {
     payment: "Оплата",
     cancels: "Отменяется",
     renews: "Продлевается",
-    your_feedback: "Ваш отзыв",
-    feedback_placeholder:
-      "Поделитесь своими мыслями, предложениями или сообщите о проблемах...",
+    your_feedback: "Отправить отзыв",
+    feedback_placeholder: "Опишите свою идею или найденную проблему",
     feedback_not_encrypted:
-      "Отзыв не защищён сквозным шифрованием. Не включайте конфиденциальную информацию.",
+      "Отзывы не защищены сквозным шифрованием, поэтому не указывайте пароли, коды восстановления и другие личные данные.",
+    feedback_intro:
+      "Поделитесь идеей, сообщите об ошибке или расскажите команде Aster, что вы думаете. Отзыв не создает обращение в поддержку, поэтому, чтобы получить помощь или ответ, свяжитесь с поддержкой.",
+    support_intro:
+      "Если вам нужна помощь с аккаунтом, оплатой или проблемой, которую не удается решить самостоятельно, напишите в службу поддержки.",
+    support_email_label: "Написать в поддержку",
+    support_help_label: "Справочный центр",
+    support_help_desc: "Руководства и ответы на частые вопросы.",
+    support_status_label: "Состояние сервиса",
+    support_status_desc: "Проверьте, нет ли сбоя в работе Aster Mail.",
+    support_security_label: "Сообщить о проблеме безопасности",
     sending: "Отправка...",
     send_feedback_button: "Отправить отзыв",
     thank_you_feedback: "Спасибо за ваш отзыв!",
@@ -4665,7 +4688,7 @@ export const ru = {
     too_many_requests: "Слишком часто. Подождите немного и повторите попытку.",
     please_log_in_feedback: "Вход даёт возможность отправить отзыв.",
     failed_send_feedback: "Попробуйте снова.",
-    other_ways_to_reach: "Другие способы связи с нами",
+    other_ways_to_reach: "Связаться с поддержкой",
     reset_to_defaults: "Сбросить до значений по умолчанию",
     section_reset: "Раздел сброшен до значений по умолчанию",
     reset_all_confirm: "Сбросить все настройки до значений по умолчанию?",
@@ -5006,7 +5029,7 @@ export const ru = {
       "Используйте от 3 до 40 букв, цифр или точек. Точка не может быть в начале или конце адреса, и точки не могут повторяться.",
     address_change_name_placeholder: "yourname",
     primary_address_info:
-      "Тариф Supernova позволяет менять адрес раз в 30 дней. Старый адрес остается вашим: он продолжает получать почту и по-прежнему подходит для входа.",
+      "Тарифы Supernova и Family позволяют менять адрес раз в 30 дней. Старый адрес остается вашим: он продолжает получать почту и по-прежнему подходит для входа.",
     address_change_checking: "Проверка доступности",
     address_change_available: "{{email}} доступен",
     address_change_unavailable: "{{email}} недоступен",
@@ -5046,7 +5069,8 @@ export const ru = {
       "Срок действия кода истек. Чтобы получить новый, начните изменение заново.",
     address_change_taken_now: "Этот адрес уже занят. Выберите другой.",
     address_change_code_invalid: "Этот код неверный.",
-    address_change_locked_plan: "Изменение адреса доступно в Supernova.",
+    address_change_locked_plan:
+      "Изменение адреса доступно в Supernova и Family.",
     address_change_locked_cooldown: "Вы сможете снова изменить адрес {{date}}.",
     address_change_locked_cooldown_unknown:
       "Вы меняли адрес в последние 30 дней, поэтому пока не можете сменить его снова.",
@@ -7137,8 +7161,7 @@ export const ru = {
     domain_purchase_manage_paid: "Оплачено",
     domain_purchase_manage_auto_renew_note:
       "Этот домен не продлевается автоматически. Чтобы сохранить его, продлите его до даты окончания срока.",
-    domain_purchase_auto_renew_label:
-      "Продлевать автоматически",
+    domain_purchase_auto_renew_label: "Продлевать автоматически",
     domain_purchase_auto_renew_hint:
       "Aster списывает оплату с вашей карты раз в год и присылает цену по почте за 15 дней до каждого списания. Это можно отключить в настройках.",
     domain_purchase_manage_auto_renew_on_note:
@@ -11216,30 +11239,42 @@ export const ru = {
     beta_waitlist_start: "Бета-версия, как ожидается, начнётся 1 ноября.",
     beta_waitlist_features_title: "Что входит",
     beta_waitlist_info_title: "О бета-версии Календаря",
-    beta_waitlist_info_body: "Aster Calendar является зашифрованным календарём для вашего аккаунта Aster. Когда освободится место, Календарь включится в вашем аккаунте и появится на боковой панели. Вы можете покинуть лист ожидания в любой момент.",
-    beta_waitlist_privacy: "Ваши события и календари шифруются на вашем устройстве, поэтому прочитать их можете только вы. Лист ожидания хранит только анонимную метку, а не ваш адрес, и удаляется после запуска.",
+    beta_waitlist_info_body:
+      "Aster Calendar является зашифрованным календарём для вашего аккаунта Aster. Когда освободится место, Календарь включится в вашем аккаунте и появится на боковой панели. Вы можете покинуть лист ожидания в любой момент.",
+    beta_waitlist_privacy:
+      "Ваши события и календари шифруются на вашем устройстве, поэтому прочитать их можете только вы. Лист ожидания хранит только анонимную метку, а не ваш адрес, и удаляется после запуска.",
     beta_waitlist_heading: "Попробуйте Aster Calendar раньше всех",
-    beta_waitlist_body: "Встаньте в лист ожидания, чтобы получить ранний доступ. Когда подойдет ваша очередь, Calendar включится в вашем аккаунте.",
+    beta_waitlist_body:
+      "Встаньте в лист ожидания, чтобы получить ранний доступ. Когда подойдет ваша очередь, Calendar включится в вашем аккаунте.",
     beta_waitlist_icon_note: "Этот значок временный.",
     beta_waitlist_feature_encrypted: "Сквозное шифрование",
-    beta_waitlist_feature_encrypted_body: "Ваши события защищены теми же ключами, что и почта.",
+    beta_waitlist_feature_encrypted_body:
+      "Ваши события защищены теми же ключами, что и почта.",
     beta_waitlist_feature_devices: "В браузере и на Android",
-    beta_waitlist_feature_devices_body: "Расписание синхронизируется на всех ваших устройствах.",
+    beta_waitlist_feature_devices_body:
+      "Расписание синхронизируется на всех ваших устройствах.",
     beta_waitlist_feature_booking: "Страницы бронирования",
-    beta_waitlist_feature_booking_body: "Поделитесь ссылкой, чтобы другие могли записаться к вам.",
+    beta_waitlist_feature_booking_body:
+      "Поделитесь ссылкой, чтобы другие могли записаться к вам.",
     beta_waitlist_feature_invites: "Приглашения на события",
-    beta_waitlist_feature_invites_body: "Приглашайте гостей по почте и сообщайте им об изменениях планов.",
+    beta_waitlist_feature_invites_body:
+      "Приглашайте гостей по почте и сообщайте им об изменениях планов.",
     beta_waitlist_feature_reminders: "Напоминания",
-    beta_waitlist_feature_reminders_body: "Получайте уведомление перед началом каждого события.",
+    beta_waitlist_feature_reminders_body:
+      "Получайте уведомление перед началом каждого события.",
     beta_waitlist_feature_recurring: "Повторяющиеся события",
-    beta_waitlist_feature_recurring_body: "Повторяйте события ежедневно, еженедельно, ежемесячно, ежегодно или по своему расписанию.",
+    beta_waitlist_feature_recurring_body:
+      "Повторяйте события ежедневно, еженедельно, ежемесячно, ежегодно или по своему расписанию.",
     beta_waitlist_feature_import: "Импорт календаря",
-    beta_waitlist_feature_import_body: "Перенесите события из любого файла .ics.",
+    beta_waitlist_feature_import_body:
+      "Перенесите события из любого файла .ics.",
     beta_waitlist_apply: "Встать в лист ожидания",
     beta_waitlist_joined: "Вы в листе ожидания",
-    beta_waitlist_joined_body: "Спасибо, что присоединились. Когда подойдет ваша очередь, Calendar включится в вашем аккаунте автоматически.",
+    beta_waitlist_joined_body:
+      "Спасибо, что присоединились. Когда подойдет ваша очередь, Calendar включится в вашем аккаунте автоматически.",
     beta_waitlist_leave: "Покинуть лист ожидания",
-    beta_waitlist_failed: "Не удалось обновить лист ожидания. Повторите попытку.",
+    beta_waitlist_failed:
+      "Не удалось обновить лист ожидания. Повторите попытку.",
     beta_waitlist_retry: "Повторить",
     invite_yes: "Да",
     invite_maybe: "Возможно",

@@ -968,6 +968,20 @@ export const ko = {
     file_too_large: "파일은 {{size}}보다 작아야 합니다.",
     delete_failed: "다시 시도하세요.",
     download_failed: "다운로드가 완료되지 않았습니다. 다시 시도하세요.",
+    download_complete:
+      "다운로드 완료",
+    downloaded_file:
+      "{{file_name}} 다운로드됨",
+    open_file:
+      "열기",
+    show_in_folder:
+      "폴더에서 보기",
+    show_in_finder:
+      "Finder에서 보기",
+    download_open_failed:
+      "이 파일을 열 수 없습니다. 이동되었거나 삭제되었을 수 있습니다.",
+    download_reveal_failed:
+      "이 파일을 표시할 수 없습니다. 이동되었거나 삭제되었을 수 있습니다.",
     attachment_locked:
       "이 첨부 파일의 암호화 키를 이 기기에서 사용할 수 없어 열 수 없습니다.",
     scheduled_no_attachments:
@@ -4498,10 +4512,20 @@ export const ko = {
     payment: "결제",
     cancels: "취소",
     renews: "갱신",
-    your_feedback: "피드백",
-    feedback_placeholder: "의견, 제안 또는 문제를 공유해 주세요...",
+    your_feedback: "피드백 보내기",
+    feedback_placeholder: "아이디어나 발견한 문제를 설명해 주세요",
     feedback_not_encrypted:
-      "피드백은 종단간 암호화되지 않습니다. 민감한 정보를 포함하지 마세요.",
+      "피드백은 종단 간 암호화되지 않으므로 비밀번호, 복구 코드 또는 기타 개인 정보를 포함하지 마세요.",
+    feedback_intro:
+      "아이디어를 공유하거나 버그를 신고하거나 Aster 팀에 의견을 알려 주세요. 피드백은 지원 요청을 생성하지 않으므로 도움이나 답변이 필요하면 지원팀에 문의하세요.",
+    support_intro:
+      "계정, 결제 또는 해결할 수 없는 문제에 대한 도움이 필요하면 지원팀에 이메일을 보내세요.",
+    support_email_label: "지원팀에 이메일 보내기",
+    support_help_label: "고객센터",
+    support_help_desc: "가이드와 자주 묻는 질문에 대한 답변을 찾아보세요.",
+    support_status_label: "서비스 상태",
+    support_status_desc: "Aster Mail에 장애가 있는지 확인하세요.",
+    support_security_label: "보안 문제 신고",
     sending: "전송 중...",
     send_feedback_button: "피드백 보내기",
     thank_you_feedback: "피드백 감사합니다!",
@@ -4512,7 +4536,7 @@ export const ko = {
       "너무 빠르게 시도하고 있습니다. 잠시 후 다시 시도하세요.",
     please_log_in_feedback: "로그인하면 피드백을 보낼 수 있습니다.",
     failed_send_feedback: "다시 시도하세요.",
-    other_ways_to_reach: "다른 연락 방법",
+    other_ways_to_reach: "지원팀에 문의",
     reset_to_defaults: "기본값으로 초기화",
     section_reset: "섹션이 기본값으로 초기화되었습니다",
     reset_all_confirm: "모든 설정을 기본값으로 초기화하시겠습니까?",
@@ -4847,7 +4871,7 @@ export const ko = {
       "3자에서 40자의 영문, 숫자, 점을 사용하세요. 점은 맨 앞이나 맨 뒤에 올 수 없고, 점을 연속해서 쓸 수도 없습니다.",
     address_change_name_placeholder: "yourname",
     primary_address_info:
-      "Supernova 요금제에서는 30일에 한 번 주소를 변경할 수 있습니다. 이전 주소는 계속 내 것입니다. 메일을 계속 받고 로그인에도 쓸 수 있습니다.",
+      "Supernova 및 Family 요금제에서는 30일에 한 번 주소를 변경할 수 있습니다. 이전 주소는 계속 내 것입니다. 메일을 계속 받고 로그인에도 쓸 수 있습니다.",
     address_change_checking: "사용 가능 여부 확인 중",
     address_change_available: "{{email}}을 사용할 수 있습니다",
     address_change_unavailable: "{{email}}은 사용할 수 없습니다",
@@ -4885,7 +4909,7 @@ export const ko = {
     address_change_taken_now:
       "다른 사람이 먼저 그 주소를 가져갔습니다. 다른 주소를 선택하세요.",
     address_change_code_invalid: "코드가 올바르지 않습니다.",
-    address_change_locked_plan: "주소 변경은 Supernova 기능입니다.",
+    address_change_locked_plan: "주소 변경은 Supernova 및 Family 기능입니다.",
     address_change_locked_cooldown:
       "{{date}}에 주소를 다시 변경할 수 있습니다.",
     address_change_locked_cooldown_unknown:
@@ -6182,8 +6206,10 @@ export const ko = {
     storage_nudge_full_title: "저장용량이 가득 찼습니다",
     storage_nudge_offer: "월 {{price}}에 {{size}} 추가",
     storage_nudge_offer_generic: "요금제를 업그레이드하여 저장용량 늘리기",
-    storage_nudge_body: "저장용량이 가득 차면 메일을 보내거나 가져올 수 없습니다.",
-    storage_nudge_full_body: "공간을 확보할 때까지 메일을 보내거나 가져올 수 없습니다. 기존 메일은 안전합니다.",
+    storage_nudge_body:
+      "저장용량이 가득 차면 메일을 보내거나 가져올 수 없습니다.",
+    storage_nudge_full_body:
+      "공간을 확보할 때까지 메일을 보내거나 가져올 수 없습니다. 기존 메일은 안전합니다.",
     storage_nudge_free_up: "공간 확보",
     storage_nudge_get_storage: "저장용량 추가",
     storage_free_space: "{{size}} 남음, 저장 공간의 {{percent}} 사용 중",
@@ -6785,8 +6811,7 @@ export const ko = {
     domain_purchase_manage_paid: "결제 금액",
     domain_purchase_manage_auto_renew_note:
       "이 도메인은 자동으로 갱신되지 않습니다. 계속 사용하려면 만료일 전에 갱신하세요.",
-    domain_purchase_auto_renew_label:
-      "자동으로 갱신",
+    domain_purchase_auto_renew_label: "자동으로 갱신",
     domain_purchase_auto_renew_hint:
       "Aster는 1년에 한 번 카드로 결제하며, 결제 15일 전에 가격을 이메일로 알려 드립니다. 설정에서 끌 수 있습니다.",
     domain_purchase_manage_auto_renew_on_note:
@@ -10583,30 +10608,40 @@ export const ko = {
     beta_waitlist_start: "베타는 11월 1일에 시작될 예정입니다.",
     beta_waitlist_features_title: "포함된 기능",
     beta_waitlist_info_title: "캘린더 베타 정보",
-    beta_waitlist_info_body: "Aster Calendar는 Aster 계정용 암호화 캘린더입니다. 자리가 나면 계정에서 캘린더가 켜지고 사이드바에 표시됩니다. 언제든지 대기자 명단에서 나갈 수 있습니다.",
-    beta_waitlist_privacy: "일정과 캘린더는 기기에서 암호화되므로 본인만 읽을 수 있습니다. 대기자 명단에는 주소가 아닌 익명 태그만 저장되며, 출시 후 삭제됩니다.",
+    beta_waitlist_info_body:
+      "Aster Calendar는 Aster 계정용 암호화 캘린더입니다. 자리가 나면 계정에서 캘린더가 켜지고 사이드바에 표시됩니다. 언제든지 대기자 명단에서 나갈 수 있습니다.",
+    beta_waitlist_privacy:
+      "일정과 캘린더는 기기에서 암호화되므로 본인만 읽을 수 있습니다. 대기자 명단에는 주소가 아닌 익명 태그만 저장되며, 출시 후 삭제됩니다.",
     beta_waitlist_heading: "Aster Calendar를 먼저 사용해 보세요",
-    beta_waitlist_body: "대기자 명단에 등록하면 먼저 사용해 볼 수 있습니다. 차례가 되면 계정에서 Calendar가 켜집니다.",
+    beta_waitlist_body:
+      "대기자 명단에 등록하면 먼저 사용해 볼 수 있습니다. 차례가 되면 계정에서 Calendar가 켜집니다.",
     beta_waitlist_icon_note: "이 아이콘은 임시 아이콘입니다.",
     beta_waitlist_feature_encrypted: "종단 간 암호화",
     beta_waitlist_feature_encrypted_body: "일정은 메일과 같은 키를 사용합니다.",
     beta_waitlist_feature_devices: "웹과 Android에서",
     beta_waitlist_feature_devices_body: "일정이 모든 기기에서 동기화됩니다.",
     beta_waitlist_feature_booking: "예약 페이지",
-    beta_waitlist_feature_booking_body: "링크를 공유하면 다른 사람이 나와의 시간을 예약할 수 있습니다.",
+    beta_waitlist_feature_booking_body:
+      "링크를 공유하면 다른 사람이 나와의 시간을 예약할 수 있습니다.",
     beta_waitlist_feature_invites: "일정 초대",
-    beta_waitlist_feature_invites_body: "이메일로 게스트를 초대하고 계획이 바뀌면 업데이트를 보낼 수 있습니다.",
+    beta_waitlist_feature_invites_body:
+      "이메일로 게스트를 초대하고 계획이 바뀌면 업데이트를 보낼 수 있습니다.",
     beta_waitlist_feature_reminders: "알림",
-    beta_waitlist_feature_reminders_body: "일정이 시작되기 전에 알림을 받을 수 있습니다.",
+    beta_waitlist_feature_reminders_body:
+      "일정이 시작되기 전에 알림을 받을 수 있습니다.",
     beta_waitlist_feature_recurring: "반복 일정",
-    beta_waitlist_feature_recurring_body: "일정을 매일, 매주, 매월, 매년 또는 사용자 지정 주기로 반복할 수 있습니다.",
+    beta_waitlist_feature_recurring_body:
+      "일정을 매일, 매주, 매월, 매년 또는 사용자 지정 주기로 반복할 수 있습니다.",
     beta_waitlist_feature_import: "캘린더 가져오기",
-    beta_waitlist_feature_import_body: "모든 .ics 파일에서 일정을 가져올 수 있습니다.",
+    beta_waitlist_feature_import_body:
+      "모든 .ics 파일에서 일정을 가져올 수 있습니다.",
     beta_waitlist_apply: "대기자 명단에 등록",
     beta_waitlist_joined: "대기자 명단에 등록되었습니다",
-    beta_waitlist_joined_body: "등록해 주셔서 감사합니다. 차례가 되면 계정에서 Calendar가 자동으로 켜집니다.",
+    beta_waitlist_joined_body:
+      "등록해 주셔서 감사합니다. 차례가 되면 계정에서 Calendar가 자동으로 켜집니다.",
     beta_waitlist_leave: "대기자 명단에서 나가기",
-    beta_waitlist_failed: "대기자 명단을 업데이트하지 못했습니다. 다시 시도하세요.",
+    beta_waitlist_failed:
+      "대기자 명단을 업데이트하지 못했습니다. 다시 시도하세요.",
     beta_waitlist_retry: "다시 시도",
     invite_yes: "예",
     invite_maybe: "미정",

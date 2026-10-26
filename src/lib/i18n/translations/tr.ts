@@ -913,6 +913,20 @@ export const tr = {
       "Bu dosya {{size}} MB ve boyut sınırının üzerinde. Daha küçük bir dosya seçin.",
     delete_failed: "Tekrar deneyin.",
     download_failed: "Bu indirme tamamlanmadı. Tekrar deneyin.",
+    download_complete:
+      "İndirme tamamlandı",
+    downloaded_file:
+      "{{file_name}} indirildi",
+    open_file:
+      "Aç",
+    show_in_folder:
+      "Klasörde göster",
+    show_in_finder:
+      "Finder'da göster",
+    download_open_failed:
+      "Bu dosya açılamadı. Taşınmış veya silinmiş olabilir.",
+    download_reveal_failed:
+      "Bu dosya gösterilemedi. Taşınmış veya silinmiş olabilir.",
     attachment_locked:
       "Bu ek, şifreleme anahtarı bu cihazda kullanılamadığı için açılamıyor.",
     scheduled_no_attachments:
@@ -4455,11 +4469,21 @@ export const tr = {
     payment: "Ödeme",
     cancels: "İptal tarihi",
     renews: "Yenileme tarihi",
-    your_feedback: "Geri Bildiriminiz",
-    feedback_placeholder:
-      "Düşüncelerinizi, önerilerinizi paylaşın veya sorunları bildirin...",
+    your_feedback: "Geri bildirim gönder",
+    feedback_placeholder: "Fikrinizi veya bulduğunuz sorunu açıklayın",
     feedback_not_encrypted:
-      "Geri bildirim uçtan uca şifreli değildir. Hassas bilgiler eklemeyin.",
+      "Geri bildirim uçtan uca şifrelenmez, bu nedenle parola, kurtarma kodu veya başka özel bilgi eklemeyin.",
+    feedback_intro:
+      "Bir fikir paylaşın, hata bildirin veya Aster ekibine ne düşündüğünüzü söyleyin. Geri bildirim bir destek talebi oluşturmaz. Yardım veya yanıt almak için destekle iletişime geçin.",
+    support_intro:
+      "Hesabınız, faturalandırma veya çözemediğiniz bir sorunla ilgili yardım için destek ekibine e-posta gönderin.",
+    support_email_label: "Desteğe e-posta gönder",
+    support_help_label: "Yardım merkezi",
+    support_help_desc:
+      "Kılavuzları ve sık sorulan soruların yanıtlarını bulun.",
+    support_status_label: "Hizmet durumu",
+    support_status_desc: "Aster Mail'de kesinti olup olmadığını kontrol edin.",
+    support_security_label: "Güvenlik sorunu bildir",
     sending: "Gönderiliyor...",
     send_feedback_button: "Geri Bildirim Gönder",
     thank_you_feedback: "Geri bildiriminiz için teşekkürler!",
@@ -4471,7 +4495,7 @@ export const tr = {
     please_log_in_feedback:
       "Oturum açmak geri bildirim göndermenize olanak verir.",
     failed_send_feedback: "Tekrar deneyin.",
-    other_ways_to_reach: "Bize Ulaşmanın Diğer Yolları",
+    other_ways_to_reach: "Destekle iletişime geç",
     reset_to_defaults: "Varsayılanlara sıfırla",
     section_reset: "Bölüm varsayılanlara sıfırlandı",
     reset_all_confirm: "Tüm ayarlar varsayılanlara sıfırlansın mı?",
@@ -4812,7 +4836,7 @@ export const tr = {
       "3 ile 40 arasında harf, rakam veya nokta kullanın. Nokta adresin başında veya sonunda olamaz ve noktalar tekrarlanamaz.",
     address_change_name_placeholder: "adiniz",
     primary_address_info:
-      "Supernova planın adresini 30 günde bir değiştirmene izin verir. Eski adresin senin kalır: posta almayı sürdürür ve oturum açmanı sağlar.",
+      "Supernova ve Family planları adresini 30 günde bir değiştirmene izin verir. Eski adresin senin kalır: posta almayı sürdürür ve oturum açmanı sağlar.",
     address_change_checking: "Uygunluk kontrol ediliyor",
     address_change_available: "{{email}} kullanılabilir",
     address_change_unavailable: "{{email}} kullanılamaz",
@@ -4851,7 +4875,8 @@ export const tr = {
     address_change_taken_now:
       "Bu adresi başka biri aldı. Başka bir adres seçin.",
     address_change_code_invalid: "Bu kod doğru değil.",
-    address_change_locked_plan: "Adres değiştirmek bir Supernova özelliğidir.",
+    address_change_locked_plan:
+      "Adres değiştirmek Supernova ve Family planlarının bir özelliğidir.",
     address_change_locked_cooldown:
       "Adresinizi {{date}} tarihinde yeniden değiştirebilirsiniz.",
     address_change_locked_cooldown_unknown:
@@ -6847,8 +6872,7 @@ export const tr = {
     domain_purchase_manage_paid: "Ödenen",
     domain_purchase_manage_auto_renew_note:
       "Bu alan adı otomatik olarak yenilenmez. Elinizde tutmak için bitiş tarihinden önce yenileyin.",
-    domain_purchase_auto_renew_label:
-      "Otomatik yenile",
+    domain_purchase_auto_renew_label: "Otomatik yenile",
     domain_purchase_auto_renew_hint:
       "Aster kartınızdan yılda bir kez ödeme alır ve her ödemeden 15 gün önce fiyatı size e-postayla gönderir. Bunu Ayarlar'dan kapatabilirsiniz.",
     domain_purchase_manage_auto_renew_on_note:
@@ -10880,28 +10904,39 @@ export const tr = {
     beta_waitlist_start: "Betanın 1 Kasım'da başlaması bekleniyor.",
     beta_waitlist_features_title: "Neler dahil",
     beta_waitlist_info_title: "Takvim beta sürümü hakkında",
-    beta_waitlist_info_body: "Aster Calendar, Aster hesabınız için şifreli bir takvimdir. Bir yer açıldığında Takvim hesabınızda etkinleşir ve kenar çubuğunda görünür. Bekleme listesinden istediğiniz zaman ayrılabilirsiniz.",
-    beta_waitlist_privacy: "Etkinlikleriniz ve takvimleriniz cihazınızda şifrelenir, böylece onları yalnızca siz okuyabilirsiniz. Bekleme listesi adresinizi değil, yalnızca anonim bir etiketi saklar ve lansmandan sonra silinir.",
+    beta_waitlist_info_body:
+      "Aster Calendar, Aster hesabınız için şifreli bir takvimdir. Bir yer açıldığında Takvim hesabınızda etkinleşir ve kenar çubuğunda görünür. Bekleme listesinden istediğiniz zaman ayrılabilirsiniz.",
+    beta_waitlist_privacy:
+      "Etkinlikleriniz ve takvimleriniz cihazınızda şifrelenir, böylece onları yalnızca siz okuyabilirsiniz. Bekleme listesi adresinizi değil, yalnızca anonim bir etiketi saklar ve lansmandan sonra silinir.",
     beta_waitlist_heading: "Aster Calendar'ı erkenden deneyin",
-    beta_waitlist_body: "Erken erişim için bekleme listesine katılın. Sıranız geldiğinde Calendar hesabınızda açılır.",
+    beta_waitlist_body:
+      "Erken erişim için bekleme listesine katılın. Sıranız geldiğinde Calendar hesabınızda açılır.",
     beta_waitlist_icon_note: "Bu simge geçicidir.",
     beta_waitlist_feature_encrypted: "Uçtan uca şifreli",
-    beta_waitlist_feature_encrypted_body: "Etkinlikleriniz postanızla aynı anahtarları kullanır.",
+    beta_waitlist_feature_encrypted_body:
+      "Etkinlikleriniz postanızla aynı anahtarları kullanır.",
     beta_waitlist_feature_devices: "Web'de ve Android'de",
-    beta_waitlist_feature_devices_body: "Takviminiz her cihazda senkronize kalır.",
+    beta_waitlist_feature_devices_body:
+      "Takviminiz her cihazda senkronize kalır.",
     beta_waitlist_feature_booking: "Randevu sayfaları",
-    beta_waitlist_feature_booking_body: "Başkalarının sizden zaman ayırabilmesi için bir bağlantı paylaşın.",
+    beta_waitlist_feature_booking_body:
+      "Başkalarının sizden zaman ayırabilmesi için bir bağlantı paylaşın.",
     beta_waitlist_feature_invites: "Etkinlik davetleri",
-    beta_waitlist_feature_invites_body: "Konukları e-postayla davet edin ve planlar değiştiğinde onlara güncelleme gönderin.",
+    beta_waitlist_feature_invites_body:
+      "Konukları e-postayla davet edin ve planlar değiştiğinde onlara güncelleme gönderin.",
     beta_waitlist_feature_reminders: "Hatırlatıcılar",
-    beta_waitlist_feature_reminders_body: "Her etkinlik başlamadan önce bildirim alın.",
+    beta_waitlist_feature_reminders_body:
+      "Her etkinlik başlamadan önce bildirim alın.",
     beta_waitlist_feature_recurring: "Yinelenen etkinlikler",
-    beta_waitlist_feature_recurring_body: "Etkinlikleri günlük, haftalık, aylık, yıllık veya özel bir programla yineleyin.",
+    beta_waitlist_feature_recurring_body:
+      "Etkinlikleri günlük, haftalık, aylık, yıllık veya özel bir programla yineleyin.",
     beta_waitlist_feature_import: "Takviminizi içe aktarın",
-    beta_waitlist_feature_import_body: "Etkinliklerinizi herhangi bir .ics dosyasından taşıyın.",
+    beta_waitlist_feature_import_body:
+      "Etkinliklerinizi herhangi bir .ics dosyasından taşıyın.",
     beta_waitlist_apply: "Bekleme listesine katıl",
     beta_waitlist_joined: "Bekleme listesindesiniz",
-    beta_waitlist_joined_body: "Katıldığınız için teşekkürler. Sıranız geldiğinde Calendar hesabınızda otomatik olarak açılır.",
+    beta_waitlist_joined_body:
+      "Katıldığınız için teşekkürler. Sıranız geldiğinde Calendar hesabınızda otomatik olarak açılır.",
     beta_waitlist_leave: "Bekleme listesinden çık",
     beta_waitlist_failed: "Bekleme listesi güncellenemedi. Tekrar deneyin.",
     beta_waitlist_retry: "Tekrar dene",

@@ -47,6 +47,7 @@ import { DesktopPairGate } from "@/components/common/desktop_pair_gate";
 import { UpdateBanner } from "@/components/updates/update_banner";
 import { ActionToast } from "@/components/toast/action_toast";
 import { SimpleToast } from "@/components/toast/simple_toast";
+import { DesktopDownloadNotifier } from "@/native/desktop_download_bridge";
 import { KeyTrustChangePrompt } from "@/components/compose/key_trust_change_prompt";
 import { PostQuantumSendPrompt } from "@/components/compose/post_quantum_send_prompt";
 import { UnsubscribeConfirmationModal } from "@/components/modals/unsubscribe_confirmation_modal";
@@ -621,6 +622,7 @@ function App() {
       </ErrorBoundary>
       <ActionToast />
       <SimpleToast />
+      <DesktopDownloadNotifier />
       <UnsubscribeConfirmationModal />
       <KeyTrustChangePrompt />
       <PostQuantumSendPrompt />
