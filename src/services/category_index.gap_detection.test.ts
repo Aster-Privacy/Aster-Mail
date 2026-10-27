@@ -271,4 +271,26 @@ describe("category index gap detection", () => {
 
     expect(full_rebuild_calls()).toBe(0);
   });
+
+  it("shares one newest-page request between overlapping syncs", async () => {
+    await load_index();
+
+    mocked_list.mockResolvedValue({
+      data: { items: [], has_more: false },
+    } as never);
+
+    const first = sync_recent(false, true);
+    const second = sync_recent(false, true);
+
+    expect(second).toBe(first);
+    await Promise.all([first, second]);
+    await flush();
+
+    expect(mocked_list).toHaveBeenCalledTimes(1);
+
+    await sync_recent(false, true);
+    await flush();
+
+    expect(mocked_list).toHaveBeenCalledTimes(2);
+  });
 });
