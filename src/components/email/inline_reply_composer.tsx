@@ -167,13 +167,21 @@ export const InlineReplyComposer = forwardRef<
   useEffect(() => {
     if (composer_el_ref.current) {
       requestAnimationFrame(() => {
-        composer_el_ref.current?.scrollIntoView({
-          behavior: "smooth",
-          block: "end",
-        });
+        const composer = composer_el_ref.current;
+        const container = get_scroll_container(composer);
+
+        if (!composer || !container) return;
+
+        const overflow =
+          composer.getBoundingClientRect().bottom -
+          container.getBoundingClientRect().bottom;
+
+        if (overflow > 0) {
+          container.scrollBy({ top: overflow, behavior: "smooth" });
+        }
       });
     }
-  }, []);
+  }, [get_scroll_container]);
 
   const is_reply_mode = inline_mode === "reply" || inline_mode === "reply_all";
 

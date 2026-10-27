@@ -324,17 +324,20 @@ export function ActionToast({ position }: ActionToastProps) {
               toast.progress ? "gap-2.5 px-4 py-3" : "gap-2 px-4 py-2.5"
             }`}
             style={{
-              minWidth: toast.progress ? "300px" : undefined,
+              minWidth: toast.progress
+                ? "min(300px, calc(100vw - 32px))"
+                : undefined,
+              maxWidth: "min(560px, calc(100vw - 32px))",
             }}
           >
-            <div className="flex items-center gap-2 whitespace-nowrap">
+            <div className="flex items-center gap-2">
               <span className="flex-shrink-0 text-txt-primary">
                 {get_icon_for_action(toast.action_type)}
               </span>
               <span
-                className={`text-[13px] font-medium text-txt-primary ${
-                  toast.progress ? "flex-1 min-w-0 truncate" : ""
-                } ${toast.actions?.length ? "min-w-0 max-w-[260px] truncate" : ""}`}
+                className={`min-w-0 text-[13px] font-medium text-txt-primary ${
+                  toast.progress ? "flex-1 truncate" : "break-words"
+                } ${toast.actions?.length ? "max-w-[260px] truncate" : ""}`}
                 title={toast.actions?.length ? toast.message : undefined}
               >
                 {toast.message}
@@ -343,7 +346,7 @@ export function ActionToast({ position }: ActionToastProps) {
                 toast.actions?.map((action) => (
                   <button
                     key={action.label}
-                    className="inline-flex flex-shrink-0 items-center text-[13px] font-medium ms-1 underline text-brand"
+                    className="inline-flex flex-shrink-0 items-center whitespace-nowrap text-[13px] font-medium ms-1 underline text-brand"
                     type="button"
                     onClick={() => {
                       hide_action_toast();
@@ -355,7 +358,7 @@ export function ActionToast({ position }: ActionToastProps) {
                 ))}
               {toast.on_undo && !toast.progress && (
                 <button
-                  className="inline-flex items-center text-[13px] font-medium ms-1 underline text-brand"
+                  className="inline-flex flex-shrink-0 items-center whitespace-nowrap text-[13px] font-medium ms-1 underline text-brand"
                   disabled={is_undoing}
                   onClick={handle_undo}
                 >
