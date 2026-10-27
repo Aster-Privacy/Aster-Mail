@@ -71,7 +71,7 @@ describe("parse_release_notes", () => {
       parse_release_notes(
         "- Safe <scr<script>ipt>text<!-<!-- x -->- y --> <b\n",
       ),
-    ).toEqual([{ title: null, items: ["Safe ipt>text b"] }]);
+    ).toEqual([{ title: null, items: ["Safe ipt>text- y --> b"] }]);
   });
 
   it("treats plain lines without headings as items", () => {

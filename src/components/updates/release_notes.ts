@@ -31,6 +31,30 @@ export type ReleaseNoteToken =
 const HIDDEN_SECTION = /^(verify|checksums?|signatures?|install)/i;
 const MAX_ITEMS = 24;
 
+function strip_markup(input: string): string {
+  let output = "";
+  let index = 0;
+
+  while (index < input.length) {
+    if (input.startsWith("<!--", index)) {
+      const end = input.indexOf("-->", index + 4);
+
+      index = end === -1 ? input.length : end + 3;
+      continue;
+    }
+    if (input[index] === "<") {
+      const end = input.indexOf(">", index + 1);
+
+      index = end === -1 ? index + 1 : end + 1;
+      continue;
+    }
+    output += input[index];
+    index += 1;
+  }
+
+  return output;
+}
+
 function clean_inline(text: string): string {
   return text
     .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
@@ -43,11 +67,7 @@ export function parse_release_notes(
   body: string | null | undefined,
 ): ReleaseNoteSection[] {
   if (!body) return [];
-  const text = body
-    .replace(/\r\n?/g, "\n")
-    .replace(/<!--[\s\S]*?-->/g, "")
-    .replace(/<[^>]*>/g, "")
-    .replace(/</g, "");
+  const text = strip_markup(body.replace(/\r\n?/g, "\n"));
   const sections: ReleaseNoteSection[] = [];
   let current: ReleaseNoteSection = { title: null, items: [] };
   let hidden = false;
