@@ -3935,14 +3935,8 @@ export const zh_CN = {
       "此操作会清除本设备上的缓存数据并重新加载 Aster Mail。您可能需要重新登录。",
     iconic_sounds: "Iconic Sounds",
     iconic_sounds_description:
-      "在你发送邮件、撤销发送、写邮件、添加附件和收到邮件时播放 Aster 提示音。",
-    iconic_sounds_info:
-      "Iconic Sounds 为 Aster 添加令人难忘的提示音。这些提示音可能会有变化。",
-    iconic_sounds_beta: "测试版",
-    iconic_sounds_confirm_title: "要开启 Iconic Sounds 吗？",
-    iconic_sounds_confirm_message:
-      "确定要开启此功能吗？Aster Mail 会在发送邮件、撤销发送等操作时播放提示音。此设置会同步到网页版和桌面版应用。",
-    iconic_sounds_turn_on: "开启",
+      "在你发送邮件或撤销发送、开始写邮件、添加附件、归档或移动邮件以及出现错误时播放 Aster 音效。",
+    notification_sound: "通知声音",
     current_plan: "当前套餐",
     free: "免费",
     available_plans: "可用套餐",

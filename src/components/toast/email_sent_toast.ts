@@ -22,14 +22,14 @@ import { show_action_toast } from "@/components/toast/action_toast";
 import { play_send_settled_sound } from "@/services/iconic_sounds";
 
 export function play_email_sent_sound(): void {
-  play_send_settled_sound();
+  play_send_settled_sound(false);
 }
 
 export function show_email_sent_toast(
   message: string,
   undo_toast_shown = false,
 ): void {
-  play_send_settled_sound();
+  play_send_settled_sound(undo_toast_shown);
   if (undo_toast_shown) return;
   show_action_toast({
     message,

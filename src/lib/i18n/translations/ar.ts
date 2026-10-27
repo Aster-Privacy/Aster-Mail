@@ -4451,14 +4451,8 @@ export const ar = {
       "يؤدي هذا إلى مسح البيانات المخزنة مؤقتًا على هذا الجهاز وإعادة تحميل Aster Mail. قد تحتاج إلى تسجيل الدخول مرة أخرى.",
     iconic_sounds: "Iconic Sounds",
     iconic_sounds_description:
-      "يشغّل أصوات Aster عند الإرسال والتراجع عن الإرسال وكتابة رسالة وإرفاق الملفات واستلام البريد.",
-    iconic_sounds_info:
-      "تضيف Iconic Sounds أصواتًا مميزة إلى Aster. قد تتغير هذه الأصوات.",
-    iconic_sounds_beta: "تجريبي",
-    iconic_sounds_confirm_title: "تشغيل Iconic Sounds؟",
-    iconic_sounds_confirm_message:
-      "هل أنت متأكد من أنك تريد تشغيل هذه الميزة؟ يشغّل Aster Mail أصواتًا عند إجراءات مثل إرسال البريد والتراجع عن الإرسال. تتم مزامنة هذا الإعداد مع تطبيق الويب وتطبيق سطح المكتب.",
-    iconic_sounds_turn_on: "تشغيل",
+      "يشغّل أصوات Aster عند إرسال البريد أو التراجع عن إرساله، وبدء رسالة، وإرفاق الملفات، وأرشفة البريد أو نقله، وظهور خطأ.",
+    notification_sound: "صوت الإشعارات",
     current_plan: "الخطة الحالية",
     free: "مجاني",
     available_plans: "الخطط المتاحة",

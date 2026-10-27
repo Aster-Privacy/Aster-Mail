@@ -257,6 +257,7 @@ export function use_settings_content(props: SettingsContentProps) {
     referral: null,
     import: null,
     notifications: null,
+    sound: null,
     compose: null,
     signature: null,
     templates: null,

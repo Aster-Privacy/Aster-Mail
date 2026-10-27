@@ -624,12 +624,6 @@ export function NotificationsSection() {
           title={t("settings.desktop")}
         />
         <ToggleSetting
-          description={t("settings.sound_new_notifications")}
-          enabled={preferences.sound}
-          on_toggle={() => update_preference("sound", !preferences.sound, true)}
-          title={t("settings.sound")}
-        />
-        <ToggleSetting
           description={t("settings.badge_count_setting_description")}
           enabled={preferences.badge_count}
           on_toggle={() =>

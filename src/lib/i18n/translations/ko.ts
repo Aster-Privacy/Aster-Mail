@@ -4334,14 +4334,8 @@ export const ko = {
       "이 기기의 캐시 데이터를 지우고 Aster Mail을 다시 불러옵니다. 다시 로그인해야 할 수 있습니다.",
     iconic_sounds: "Iconic Sounds",
     iconic_sounds_description:
-      "메일을 보내거나, 보내기를 취소하거나, 작성하거나, 파일을 첨부하거나, 메일을 받을 때 Aster 사운드를 재생합니다.",
-    iconic_sounds_info:
-      "Iconic Sounds는 Aster에 기억에 남는 사운드를 추가합니다. 사운드는 변경될 수 있습니다.",
-    iconic_sounds_beta: "베타",
-    iconic_sounds_confirm_title: "Iconic Sounds를 켤까요?",
-    iconic_sounds_confirm_message:
-      "이 기능을 켜시겠습니까? Aster Mail은 메일 보내기, 보내기 취소 같은 동작에 사운드를 재생합니다. 이 설정은 웹 앱 및 데스크톱 앱과 동기화됩니다.",
-    iconic_sounds_turn_on: "켜기",
+      "메일을 보내거나 보내기를 취소할 때, 메시지를 시작할 때, 파일을 첨부할 때, 메일을 보관하거나 이동할 때, 오류가 표시될 때 Aster 사운드를 재생합니다.",
+    notification_sound: "알림음",
     current_plan: "현재 플랜",
     free: "무료",
     available_plans: "사용 가능한 플랜",

@@ -37,11 +37,7 @@ import {
   cancel_server_queued_email_with_reason,
   send_server_queued_immediately,
 } from "@/services/send_queue";
-import {
-  mark_send_queued,
-  play_iconic_sound,
-  release_queued_send,
-} from "@/services/iconic_sounds";
+import { play_iconic_sound } from "@/services/iconic_sounds";
 
 export interface PendingSend {
   id: string;
@@ -282,7 +278,6 @@ class UndoSendManager {
     if (is_tab_timer_send(pending)) {
       remember_waiting_tab_send(pending.id, pending.scheduled_time);
     }
-    mark_send_queued(pending.scheduled_time);
     play_iconic_sound("send");
     this.notify();
   }
@@ -545,7 +540,6 @@ export function use_undo_send(): UseUndoSendReturn {
     }
 
     remove_pending_thread_reply(id);
-    release_queued_send();
     play_iconic_sound("undo_send");
     dispatch_undo_send_event(id, pending, payload);
 

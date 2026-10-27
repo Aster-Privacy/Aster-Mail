@@ -3302,14 +3302,8 @@ export const en: Translations = {
       "This clears cached data on this device and reloads Aster Mail. You might need to sign in again.",
     iconic_sounds: "Iconic Sounds",
     iconic_sounds_description:
-      "Play Aster sounds when you send, undo, compose, attach files, and receive mail.",
-    iconic_sounds_info:
-      "Iconic Sounds adds memorable sounds to Aster. These sounds might change.",
-    iconic_sounds_beta: "Beta",
-    iconic_sounds_confirm_title: "Turn on Iconic Sounds?",
-    iconic_sounds_confirm_message:
-      "Are you sure you want to turn this on? Aster Mail plays sounds for actions such as sending mail and undoing a send. This setting syncs to the web and desktop apps.",
-    iconic_sounds_turn_on: "Turn on",
+      "Play Aster sounds when you send or undo mail, start a message, attach files, archive or move mail, and see an error.",
+    notification_sound: "Notification sound",
     current_plan: "Current Plan",
     free: "Free",
     or_pay_with_card: "Or pay with card",
