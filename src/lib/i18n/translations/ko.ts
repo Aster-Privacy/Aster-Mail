@@ -4320,7 +4320,8 @@ export const ko = {
       "이 기기의 캐시 데이터를 지우고 Aster Mail을 다시 불러옵니다. 다시 로그인해야 할 수 있습니다.",
     iconic_sounds: "Iconic Sounds",
     iconic_sounds_description:
-      "메일을 보내거나 보내기를 취소할 때, 메시지를 시작할 때, 파일을 첨부할 때, 메일을 보관하거나 이동할 때, 오류가 표시될 때 Aster 사운드를 재생합니다. 소리가 켜져 있으면 새 메일에도 Aster 사운드를 재생합니다.",
+      "메일을 보내거나 보내기를 취소할 때, 메시지를 시작할 때, 파일을 첨부할 때, 메일을 보관하거나 이동할 때, 오류가 표시될 때 Aster 사운드를 재생합니다.",
+    notification_sound: "알림음",
     current_plan: "현재 플랜",
     free: "무료",
     available_plans: "사용 가능한 플랜",

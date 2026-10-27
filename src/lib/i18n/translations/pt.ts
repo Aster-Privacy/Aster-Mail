@@ -4380,7 +4380,8 @@ export const pt = {
       "Isto limpa os dados em cache neste dispositivo e recarrega o Aster Mail. Pode ser preciso iniciar sessão novamente.",
     iconic_sounds: "Iconic Sounds",
     iconic_sounds_description:
-      "Reproduz sons do Aster quando envia correio ou anula um envio, começa uma mensagem, anexa ficheiros, arquiva ou move correio e vê um erro. Quando Som está ativado, o novo correio também reproduz um som do Aster.",
+      "Reproduz sons do Aster quando envia correio ou anula um envio, começa uma mensagem, anexa ficheiros, arquiva ou move correio e vê um erro.",
+    notification_sound: "Som das notificações",
     current_plan: "Plano atual",
     free: "Gratuito",
     available_plans: "Planos disponíveis",

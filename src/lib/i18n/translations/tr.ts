@@ -4266,7 +4266,8 @@ export const tr = {
       "Bu işlem bu cihazdaki önbellek verilerini siler ve Aster Mail'i yeniden yükler. Yeniden oturum açman gerekebilir.",
     iconic_sounds: "Iconic Sounds",
     iconic_sounds_description:
-      "Posta gönderdiğinizde veya göndermeyi geri aldığınızda, bir ileti başlattığınızda, dosya eklediğinizde, postayı arşivlediğinizde veya taşıdığınızda ve bir hata gördüğünüzde Aster seslerini çalar. Ses açıkken yeni postalar da bir Aster sesi çalar.",
+      "Posta gönderdiğinizde veya göndermeyi geri aldığınızda, bir ileti başlattığınızda, dosya eklediğinizde, postayı arşivlediğinizde veya taşıdığınızda ve bir hata gördüğünüzde Aster seslerini çalar.",
+    notification_sound: "Bildirim sesi",
     current_plan: "Mevcut Plan",
     free: "Ücretsiz",
     available_plans: "Mevcut Planlar",

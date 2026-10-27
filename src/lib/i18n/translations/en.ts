@@ -3288,7 +3288,8 @@ export const en: Translations = {
       "This clears cached data on this device and reloads Aster Mail. You might need to sign in again.",
     iconic_sounds: "Iconic Sounds",
     iconic_sounds_description:
-      "Play Aster sounds when you send or undo mail, start a message, attach files, archive or move mail, and see an error. When Sound is on, new mail plays an Aster sound too.",
+      "Play Aster sounds when you send or undo mail, start a message, attach files, archive or move mail, and see an error.",
+    notification_sound: "Notification sound",
     current_plan: "Current Plan",
     free: "Free",
     or_pay_with_card: "Or pay with card",

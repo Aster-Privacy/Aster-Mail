@@ -64,6 +64,7 @@ import { prefetch_billing_data } from "@/components/settings/billing_section";
 import { prefetch_family_data } from "@/components/settings/billing/family_section/family_cache";
 import { use_auth } from "@/contexts/auth_context";
 import { NotificationsSection } from "@/components/settings/notifications_section";
+import { SoundSection } from "@/components/settings/sound_section";
 import { ReadingGroupSection } from "@/components/settings/reading_group_section";
 import { ComposeGroupSection } from "@/components/settings/compose_group_section";
 import { RulesGroupSection } from "@/components/settings/rules_group_section";
@@ -165,6 +166,8 @@ function SettingsContentInner(props: SettingsContentProps) {
         return <ReferralTab />;
       case "notifications":
         return <NotificationsSection />;
+      case "sound":
+        return <SoundSection />;
       case "behavior":
         return <ReadingGroupSection />;
       case "compose":

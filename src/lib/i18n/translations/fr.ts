@@ -4378,7 +4378,8 @@ export const fr = {
       "Cette action efface les données en cache sur cet appareil et recharge Aster Mail. Vous devrez peut-être vous reconnecter.",
     iconic_sounds: "Iconic Sounds",
     iconic_sounds_description:
-      "Joue les sons d'Aster lorsque vous envoyez un e-mail ou annulez un envoi, commencez un message, joignez des fichiers, archivez ou déplacez des e-mails et voyez une erreur. Lorsque Son est activé, les nouveaux e-mails jouent aussi un son d'Aster.",
+      "Joue les sons d'Aster lorsque vous envoyez un e-mail ou annulez un envoi, commencez un message, joignez des fichiers, archivez ou déplacez des e-mails et voyez une erreur.",
+    notification_sound: "Son des notifications",
     current_plan: "Forfait actuel",
     free: "Gratuit",
     available_plans: "Forfaits disponibles",

@@ -4268,7 +4268,8 @@ export const ja = {
       "この操作でこのデバイスのキャッシュデータを削除し、Aster Mail を再読み込みします。再度サインインが必要になる場合があります。",
     iconic_sounds: "Iconic Sounds",
     iconic_sounds_description:
-      "メールの送信と送信の取り消し、メッセージの作成開始、ファイルの添付、メールのアーカイブや移動、エラーの発生時に Aster のサウンドを再生します。サウンドがオンのときは、新着メールでも Aster のサウンドを再生します。",
+      "メールの送信と送信の取り消し、メッセージの作成開始、ファイルの添付、メールのアーカイブや移動、エラーの発生時に Aster のサウンドを再生します。",
+    notification_sound: "通知音",
     current_plan: "現在のプラン",
     free: "無料",
     available_plans: "利用可能なプラン",

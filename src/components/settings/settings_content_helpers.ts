@@ -27,6 +27,7 @@ import {
   ShieldCheckIcon,
   ArrowDownTrayIcon,
   BellIcon,
+  SpeakerWaveIcon,
   PaintBrushIcon,
   AdjustmentsHorizontalIcon,
   AtSymbolIcon,
@@ -60,6 +61,7 @@ export type SettingsSection =
   | "referral"
   | "import"
   | "notifications"
+  | "sound"
   | "compose"
   | "signature"
   | "templates"
@@ -85,6 +87,7 @@ export const SETTINGS_SECTION_IDS: SettingsSection[] = [
   "billing",
   "referral",
   "notifications",
+  "sound",
   "behavior",
   "compose",
   "mail_rules",
@@ -520,19 +523,35 @@ export function get_nav_items(
       id: "notifications",
       label: t("settings.notifications"),
       icon: BellIcon,
-      description:
-        "Push alerts, notification sounds, badge counts, and email summaries",
+      description: "Push alerts, badge counts, and email summaries",
       keywords: [
         "notifications",
         "push notifications",
         "desktop notifications",
-        "notification sound",
         "badge count",
         "unread badge",
         "email alerts",
         "new mail notification",
         "notify me",
         "alert",
+      ],
+    },
+    {
+      id: "sound",
+      label: t("settings.sound"),
+      icon: SpeakerWaveIcon,
+      description: "Notification sound and Iconic Sounds",
+      keywords: [
+        "sound",
+        "sounds",
+        "notification sound",
+        "new mail sound",
+        "audio",
+        "chime",
+        "iconic sounds",
+        "sound effects",
+        "aster sounds",
+        "mute",
       ],
     },
     {

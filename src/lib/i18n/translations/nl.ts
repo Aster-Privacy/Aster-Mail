@@ -4254,7 +4254,8 @@ export const nl = {
       "Hiermee wis je de gegevens in de cache op dit apparaat en wordt Aster Mail opnieuw geladen. Mogelijk moet je opnieuw inloggen.",
     iconic_sounds: "Iconic Sounds",
     iconic_sounds_description:
-      "Speelt Aster-geluiden af wanneer je e-mail verzendt of verzenden ongedaan maakt, een bericht begint, bestanden bijvoegt, e-mail archiveert of verplaatst en een fout ziet. Als Geluid aan staat, speelt nieuwe e-mail ook een Aster-geluid af.",
+      "Speelt Aster-geluiden af wanneer je e-mail verzendt of verzenden ongedaan maakt, een bericht begint, bestanden bijvoegt, e-mail archiveert of verplaatst en een fout ziet.",
+    notification_sound: "Meldingsgeluid",
     current_plan: "Huidig abonnement",
     free: "Gratis",
     available_plans: "Beschikbare abonnementen",

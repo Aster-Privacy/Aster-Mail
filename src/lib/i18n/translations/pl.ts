@@ -4493,7 +4493,8 @@ export const pl = {
       "To wyczyści dane w pamięci podręcznej na tym urządzeniu i przeładuje Aster Mail. Możliwe, że trzeba będzie zalogować się ponownie.",
     iconic_sounds: "Iconic Sounds",
     iconic_sounds_description:
-      "Odtwarza dźwięki Aster, gdy wysyłasz pocztę lub cofasz wysłanie, zaczynasz wiadomość, dołączasz pliki, archiwizujesz lub przenosisz pocztę i widzisz błąd. Gdy Dźwięk jest włączony, nowa poczta też odtwarza dźwięk Aster.",
+      "Odtwarza dźwięki Aster, gdy wysyłasz pocztę lub cofasz wysłanie, zaczynasz wiadomość, dołączasz pliki, archiwizujesz lub przenosisz pocztę i widzisz błąd.",
+    notification_sound: "Dźwięk powiadomień",
     current_plan: "Aktualny plan",
     free: "Darmowy",
     available_plans: "Dostępne plany",

@@ -3455,6 +3455,7 @@ export interface SettingsTranslations {
   clear_cache_confirm_message: string;
   iconic_sounds: string;
   iconic_sounds_description: string;
+  notification_sound: string;
   current_plan: string;
   free: string;
   or_pay_with_card: string;

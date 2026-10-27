@@ -4415,7 +4415,8 @@ export const it = {
       "Questa azione cancella i dati memorizzati su questo dispositivo e ricarica Aster Mail. Potresti dover accedere di nuovo.",
     iconic_sounds: "Iconic Sounds",
     iconic_sounds_description:
-      "Riproduce i suoni di Aster quando invii posta o annulli un invio, inizi un messaggio, alleghi file, archivi o sposti posta e quando compare un errore. Quando Suono è attivo, anche la nuova posta riproduce un suono di Aster.",
+      "Riproduce i suoni di Aster quando invii posta o annulli un invio, inizi un messaggio, alleghi file, archivi o sposti posta e quando compare un errore.",
+    notification_sound: "Suono delle notifiche",
     manage_plan: "Gestisci piano",
     manage_plan_description: "Apporta modifiche al tuo abbonamento",
     change_plan: "Cambia piano",
