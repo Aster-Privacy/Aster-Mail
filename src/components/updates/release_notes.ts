@@ -46,7 +46,8 @@ export function parse_release_notes(
   const text = body
     .replace(/\r\n?/g, "\n")
     .replace(/<!--[\s\S]*?-->/g, "")
-    .replace(/<[^>]*>/g, "");
+    .replace(/<[^>]*>/g, "")
+    .replace(/</g, "");
   const sections: ReleaseNoteSection[] = [];
   let current: ReleaseNoteSection = { title: null, items: [] };
   let hidden = false;

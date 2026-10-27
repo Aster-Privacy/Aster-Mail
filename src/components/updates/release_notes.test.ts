@@ -66,6 +66,14 @@ describe("parse_release_notes", () => {
     expect(parse_release_notes("> [!NOTE]\n> Only an alert.")).toEqual([]);
   });
 
+  it("leaves no markup behind from nested or broken tags", () => {
+    expect(
+      parse_release_notes(
+        "- Safe <scr<script>ipt>text<!-<!-- x -->- y --> <b\n",
+      ),
+    ).toEqual([{ title: null, items: ["Safe ipt>text b"] }]);
+  });
+
   it("treats plain lines without headings as items", () => {
     expect(parse_release_notes("First change.\n\nSecond change.")).toEqual([
       { title: null, items: ["First change.", "Second change."] },
