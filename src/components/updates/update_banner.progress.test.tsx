@@ -23,7 +23,10 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 import { FIRST_CHECK_DELAY_MS, UpdateBanner } from "./update_banner";
-import { estimate_seconds_left } from "./use_update_installer";
+import {
+  estimate_seconds_left,
+  PROGRESS_FLUSH_MS,
+} from "./use_update_installer";
 
 import { update_progress_percent } from "@/services/updates/updater";
 
@@ -197,11 +200,13 @@ describe("UpdateBanner download progress", () => {
 
     await act(async () => {
       emit!({ event: "Progress", data: { chunkLength: 250 } });
+      vi.advanceTimersByTime(PROGRESS_FLUSH_MS);
     });
     expect(by_id("update-percent")?.textContent).toBe("25%");
 
     await act(async () => {
       emit!({ event: "Progress", data: { chunkLength: 500 } });
+      vi.advanceTimersByTime(PROGRESS_FLUSH_MS);
     });
     expect(by_id("update-percent")?.textContent).toBe("75%");
     expect(by_id("update-progress-fill")?.style.width).toBe("75%");
@@ -226,6 +231,25 @@ describe("UpdateBanner download progress", () => {
     expect(relaunch).toHaveBeenCalled();
   });
 
+  it("coalesces bursts of progress events into one update", async () => {
+    await mount();
+    await click_install();
+    await act(async () => {
+      emit!({ event: "Started", data: { contentLength: 1000 } });
+    });
+    await act(async () => {
+      for (let i = 0; i < 400; i += 1) {
+        emit!({ event: "Progress", data: { chunkLength: 1 } });
+      }
+    });
+    expect(by_id("update-percent")?.textContent).toBe("0%");
+
+    await act(async () => {
+      vi.advanceTimersByTime(PROGRESS_FLUSH_MS);
+    });
+    expect(by_id("update-percent")?.textContent).toBe("40%");
+  });
+
   it("keeps the spinner when the size is unknown", async () => {
     await mount();
     await click_install();
@@ -235,6 +259,7 @@ describe("UpdateBanner download progress", () => {
     });
     await act(async () => {
       emit!({ event: "Progress", data: { chunkLength: 500 } });
+      vi.advanceTimersByTime(PROGRESS_FLUSH_MS);
     });
 
     expect(phase()).toBe("downloading");

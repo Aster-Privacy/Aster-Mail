@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { ignore_error } from "@/lib/ignore_error";
 
 export interface DesktopUpdateInfo {
   version: string;
@@ -123,7 +124,27 @@ interface TauriUpdate {
       event: "Started" | "Progress" | "Finished";
       data?: { contentLength?: number; chunkLength?: number };
     }) => void,
+    options?: { timeout?: number },
   ) => Promise<void>;
+  close?: () => Promise<void>;
+}
+
+const DOWNLOAD_TIMEOUT_MS = 30 * 60 * 1000;
+
+let pending_update: TauriUpdate | null = null;
+
+function release_update(update: TauriUpdate | null): void {
+  if (!update?.close) return;
+  update.close().catch((caught: unknown) => {
+    ignore_error("services/updates/updater:release_update", caught);
+  });
+}
+
+function remember_update(update: TauriUpdate | null): void {
+  if (pending_update && pending_update !== update) {
+    release_update(pending_update);
+  }
+  pending_update = update;
 }
 
 async function load_updater_api(): Promise<{
@@ -147,6 +168,7 @@ export async function check_for_update(): Promise<DesktopUpdateInfo | null> {
   record_check_now();
   const result = await check();
 
+  remember_update(result);
   if (!result) return null;
 
   return {
@@ -163,31 +185,44 @@ export async function download_and_install_update(
   if (!is_desktop_runtime()) {
     throw new Error("updates_not_supported");
   }
-  const { check } = await load_updater_api();
-  const update = await check();
+  let update = pending_update;
 
+  if (!update) {
+    const { check } = await load_updater_api();
+
+    update = await check();
+    remember_update(update);
+  }
   if (!update) {
     throw new Error("updates_no_longer_available");
   }
   let downloaded = 0;
   let total: number | null = null;
 
-  await update.downloadAndInstall((event) => {
-    if (event.event === "Started") {
-      total = event.data?.contentLength ?? null;
-      downloaded = 0;
-      on_progress?.({ downloaded, total, phase: "downloading" });
-    } else if (event.event === "Progress") {
-      downloaded += event.data?.chunkLength ?? 0;
-      on_progress?.({ downloaded, total, phase: "downloading" });
-    } else if (event.event === "Finished") {
-      on_progress?.({
-        downloaded: total ?? downloaded,
-        total,
-        phase: "installing",
-      });
-    }
-  });
+  try {
+    await update.downloadAndInstall(
+      (event) => {
+        if (event.event === "Started") {
+          total = event.data?.contentLength ?? null;
+          downloaded = 0;
+          on_progress?.({ downloaded, total, phase: "downloading" });
+        } else if (event.event === "Progress") {
+          downloaded += event.data?.chunkLength ?? 0;
+          on_progress?.({ downloaded, total, phase: "downloading" });
+        } else if (event.event === "Finished") {
+          on_progress?.({
+            downloaded: total ?? downloaded,
+            total,
+            phase: "installing",
+          });
+        }
+      },
+      { timeout: DOWNLOAD_TIMEOUT_MS },
+    );
+  } catch (caught) {
+    remember_update(null);
+    throw caught;
+  }
   const { relaunch } = await load_process_api();
 
   await relaunch();

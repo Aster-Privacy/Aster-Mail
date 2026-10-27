@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   download_and_install_update,
@@ -40,6 +40,8 @@ export interface UpdateInstallState {
 
 const ETA_WARMUP_MS = 1500;
 const ETA_SMOOTHING = 0.25;
+
+export const PROGRESS_FLUSH_MS = 100;
 
 const IDLE_STATE: UpdateInstallState = {
   phase: "idle",
@@ -73,19 +75,22 @@ export function use_update_installer(
   const started_at_ref = useRef<number | null>(null);
   const smoothed_ref = useRef<number | null>(null);
 
-  const handle_progress = useCallback((p: UpdateProgress) => {
-    if (p.phase === "installing") {
-      set_state({
-        phase: "installing",
-        percent: 100,
-        downloaded: p.downloaded,
-        total: p.total,
-        seconds_left: null,
-      });
+  const pending_ref = useRef<UpdateProgress | null>(null);
+  const flush_timer_ref = useRef<number | null>(null);
+  const last_flush_ref = useRef(0);
 
-      return;
+  const cancel_flush = useCallback(() => {
+    if (flush_timer_ref.current !== null) {
+      window.clearTimeout(flush_timer_ref.current);
+      flush_timer_ref.current = null;
     }
+    pending_ref.current = null;
+  }, []);
 
+  useEffect(() => cancel_flush, [cancel_flush]);
+
+  const apply_progress = useCallback((p: UpdateProgress) => {
+    last_flush_ref.current = Date.now();
     if (started_at_ref.current === null) {
       started_at_ref.current = Date.now();
     }
@@ -114,9 +119,48 @@ export function use_update_installer(
     });
   }, []);
 
+  const handle_progress = useCallback(
+    (p: UpdateProgress) => {
+      if (p.phase === "installing") {
+        cancel_flush();
+        set_state({
+          phase: "installing",
+          percent: 100,
+          downloaded: p.downloaded,
+          total: p.total,
+          seconds_left: null,
+        });
+
+        return;
+      }
+
+      const since_last = Date.now() - last_flush_ref.current;
+
+      if (started_at_ref.current === null || since_last >= PROGRESS_FLUSH_MS) {
+        cancel_flush();
+        apply_progress(p);
+
+        return;
+      }
+
+      pending_ref.current = p;
+      if (flush_timer_ref.current !== null) return;
+      flush_timer_ref.current = window.setTimeout(() => {
+        flush_timer_ref.current = null;
+        const latest = pending_ref.current;
+
+        pending_ref.current = null;
+        if (latest) apply_progress(latest);
+      }, PROGRESS_FLUSH_MS - since_last);
+    },
+    [apply_progress, cancel_flush],
+  );
+
   const start = useCallback(async () => {
     if (running_ref.current) return;
     running_ref.current = true;
+    cancel_flush();
+    last_flush_ref.current = 0;
     started_at_ref.current = null;
     smoothed_ref.current = null;
     set_state({ ...IDLE_STATE, phase: "preparing" });
@@ -124,11 +168,12 @@ export function use_update_installer(
       await install(handle_progress);
     } catch (caught) {
       ignore_error("components/updates/use_update_installer:start", caught);
+      cancel_flush();
       set_state({ ...IDLE_STATE, phase: "failed" });
     } finally {
       running_ref.current = false;
     }
-  }, [install, handle_progress]);
+  }, [install, handle_progress, cancel_flush]);
 
   const reset = useCallback(() => {
     if (running_ref.current) return;

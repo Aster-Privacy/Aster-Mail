@@ -20,15 +20,24 @@
 //
 import type { UpdateInstallState } from "@/components/updates/use_update_installer";
 
-import { useId, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { XMarkIcon } from "@heroicons/react/24/outline";
-import { CheckIcon, ExclamationTriangleIcon } from "@heroicons/react/20/solid";
+import {
+  CheckIcon,
+  ChevronDownIcon,
+  ExclamationTriangleIcon,
+} from "@heroicons/react/20/solid";
 
 import { Button } from "@/components/ui/button";
 import { use_i18n } from "@/lib/i18n/context";
 import { format_bytes } from "@/lib/utils";
 import { use_should_reduce_motion } from "@/provider";
+import {
+  parse_release_notes,
+  tokenize_release_note,
+  type ReleaseNoteSection,
+} from "@/components/updates/release_notes";
 
 export type UpdateCardVariant = "floating" | "inline";
 
@@ -48,6 +57,54 @@ const RING_LENGTH = 2 * Math.PI * RING_RADIUS;
 const EASE = [0.22, 1, 0.36, 1] as const;
 const TITLE_CLASS =
   "truncate text-[14px] font-semibold leading-5 text-txt-primary";
+
+const SPIN_KEYFRAMES: Keyframe[] = [
+  { transform: "rotate(0deg)" },
+  { transform: "rotate(360deg)" },
+];
+const SPIN_TIMING: KeyframeAnimationOptions = {
+  duration: 900,
+  easing: "linear",
+  iterations: Infinity,
+};
+const SWEEP_KEYFRAMES: Keyframe[] = [
+  { transform: "translateX(-110%)" },
+  { transform: "translateX(320%)" },
+];
+const SWEEP_TIMING: KeyframeAnimationOptions = {
+  duration: 1250,
+  easing: "cubic-bezier(0.65, 0, 0.35, 1)",
+  iterations: Infinity,
+};
+const SHINE_KEYFRAMES: Keyframe[] = [
+  { transform: "translateX(-100%)", offset: 0 },
+  { transform: "translateX(260%)", offset: 0.8 },
+  { transform: "translateX(260%)", offset: 1 },
+];
+const SHINE_TIMING: KeyframeAnimationOptions = {
+  duration: 2000,
+  easing: "ease-in-out",
+  iterations: Infinity,
+};
+
+function use_compositor_animation<T extends Element>(
+  keyframes: Keyframe[],
+  timing: KeyframeAnimationOptions,
+  enabled: boolean,
+) {
+  const ref = useRef<T>(null);
+
+  useEffect(() => {
+    const element = ref.current;
+
+    if (!enabled || !element || typeof element.animate !== "function") return;
+    const animation = element.animate(keyframes, timing);
+
+    return () => animation.cancel();
+  }, [keyframes, timing, enabled]);
+
+  return ref;
+}
 
 export function format_time_left(
   seconds: number | null,
@@ -80,6 +137,12 @@ function ProgressRing({
   const determinate = phase === "downloading" && percent !== null;
   const offset = RING_LENGTH * (1 - (determinate ? percent : 0) / 100);
   const center = RING_SIZE / 2;
+  const spinning = busy && !determinate;
+  const spin_ref = use_compositor_animation<HTMLDivElement>(
+    SPIN_KEYFRAMES,
+    SPIN_TIMING,
+    spinning && !reduce_motion,
+  );
 
   return (
     <div
@@ -121,36 +184,32 @@ function ProgressRing({
           }}
         />
       </svg>
-      <AnimatePresence>
-        {busy && !determinate && (
-          <motion.svg
-            key="spinner"
-            aria-hidden
-            animate={{ opacity: 1 }}
-            className="absolute inset-0"
-            data-testid="update-spinner"
-            exit={{ opacity: 0 }}
-            height={RING_SIZE}
-            initial={{ opacity: 0 }}
-            viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`}
-            width={RING_SIZE}
-          >
-            <motion.circle
-              animate={reduce_motion ? undefined : { rotate: 360 }}
-              className="stroke-brand"
-              cx={center}
-              cy={center}
-              fill="none"
-              r={RING_RADIUS}
-              strokeDasharray={`${RING_LENGTH * 0.28} ${RING_LENGTH}`}
-              strokeLinecap="round"
-              strokeWidth={RING_STROKE}
-              style={{ originX: "50%", originY: "50%" }}
-              transition={{ duration: 1, ease: "linear", repeat: Infinity }}
-            />
-          </motion.svg>
-        )}
-      </AnimatePresence>
+      <motion.div
+        ref={spin_ref}
+        aria-hidden
+        animate={{ opacity: spinning ? 1 : 0 }}
+        className="absolute inset-0"
+        data-testid={spinning ? "update-spinner" : undefined}
+        initial={false}
+        transition={{ duration: reduce_motion ? 0 : 0.2 }}
+      >
+        <svg
+          height={RING_SIZE}
+          viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`}
+          width={RING_SIZE}
+        >
+          <circle
+            className="stroke-brand"
+            cx={center}
+            cy={center}
+            fill="none"
+            r={RING_RADIUS}
+            strokeDasharray={`${RING_LENGTH * 0.28} ${RING_LENGTH}`}
+            strokeLinecap="round"
+            strokeWidth={RING_STROKE}
+          />
+        </svg>
+      </motion.div>
       <motion.div
         animate={{ scale: busy ? 0.74 : 1 }}
         className="relative h-10 w-10 overflow-hidden rounded-[11px]"
@@ -199,6 +258,17 @@ function ProgressBar({
   reduce_motion: boolean;
   label: string;
 }) {
+  const sweep_ref = use_compositor_animation<HTMLDivElement>(
+    SWEEP_KEYFRAMES,
+    SWEEP_TIMING,
+    percent === null && !reduce_motion,
+  );
+  const shine_ref = use_compositor_animation<HTMLDivElement>(
+    SHINE_KEYFRAMES,
+    SHINE_TIMING,
+    percent !== null && !reduce_motion,
+  );
+
   return (
     <div
       aria-label={label}
@@ -209,10 +279,11 @@ function ProgressBar({
       role="progressbar"
     >
       {percent === null ? (
-        <motion.div
-          animate={reduce_motion ? undefined : { x: ["-110%", "320%"] }}
-          className="absolute inset-y-0 left-0 w-1/3 rounded-full bg-brand"
-          transition={{ duration: 1.25, ease: "easeInOut", repeat: Infinity }}
+        <div
+          ref={sweep_ref}
+          className={`absolute inset-y-0 left-0 w-1/3 rounded-full bg-brand ${
+            reduce_motion ? "translate-x-full" : "-translate-x-[110%]"
+          }`}
         />
       ) : (
         <div
@@ -226,19 +297,109 @@ function ProgressBar({
           }}
         >
           {!reduce_motion && (
-            <motion.div
-              animate={{ x: ["-100%", "260%"] }}
-              className="absolute inset-y-0 left-0 w-1/2 bg-gradient-to-r from-transparent via-white/45 to-transparent"
-              transition={{
-                duration: 1.6,
-                ease: "easeInOut",
-                repeat: Infinity,
-                repeatDelay: 0.4,
-              }}
+            <div
+              ref={shine_ref}
+              className="absolute inset-y-0 left-0 w-1/2 -translate-x-full bg-gradient-to-r from-transparent via-white/45 to-transparent"
             />
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+function ReleaseNoteText({ text }: { text: string }) {
+  return (
+    <>
+      {tokenize_release_note(text).map((token, index) =>
+        token.kind === "strong" ? (
+          <strong key={index} className="font-semibold text-txt-primary">
+            {token.text}
+          </strong>
+        ) : token.kind === "code" ? (
+          <code
+            key={index}
+            className="rounded-[5px] bg-surf-hover px-1 py-px font-mono text-[11.5px] text-txt-primary"
+          >
+            {token.text}
+          </code>
+        ) : (
+          <span key={index}>{token.text}</span>
+        ),
+      )}
+    </>
+  );
+}
+
+function ReleaseNotes({
+  sections,
+  reduce_motion,
+}: {
+  sections: ReleaseNoteSection[];
+  reduce_motion: boolean;
+}) {
+  const scroll_ref = useRef<HTMLDivElement>(null);
+  const [fade_top, set_fade_top] = useState(false);
+  const [fade_bottom, set_fade_bottom] = useState(false);
+
+  const measure = () => {
+    const element = scroll_ref.current;
+
+    if (!element) return;
+    set_fade_top(element.scrollTop > 2);
+    set_fade_bottom(
+      element.scrollTop + element.clientHeight < element.scrollHeight - 2,
+    );
+  };
+
+  useEffect(measure, [sections]);
+
+  const mask = `linear-gradient(to bottom, ${
+    fade_top ? "transparent 0, black 16px" : "black 0"
+  }, ${fade_bottom ? "black calc(100% - 24px), transparent 100%" : "black 100%"})`;
+  let item_index = 0;
+
+  return (
+    <div className="mt-3 overflow-hidden rounded-[12px] bg-surf-secondary">
+      <div
+        ref={scroll_ref}
+        className="max-h-[236px] overflow-y-auto overscroll-contain px-3.5 py-3 [scrollbar-width:thin]"
+        style={{ maskImage: mask, WebkitMaskImage: mask }}
+        onScroll={measure}
+      >
+        <div className="flex flex-col gap-3.5">
+          {sections.map((section, section_index) => (
+            <section key={section_index}>
+              {section.title && (
+                <h4 className="mb-2 text-[12px] font-semibold leading-4 text-txt-primary">
+                  {section.title}
+                </h4>
+              )}
+              <ul className="flex flex-col gap-2">
+                {section.items.map((item, index) => {
+                  const delay = Math.min(item_index++ * 0.03, 0.3);
+
+                  return (
+                    <motion.li
+                      key={index}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="relative ps-4 text-[12.5px] leading-[18px] text-txt-secondary"
+                      initial={reduce_motion ? false : { opacity: 0, y: 4 }}
+                      transition={{ duration: 0.22, delay, ease: EASE }}
+                    >
+                      <span
+                        aria-hidden
+                        className="absolute start-1 top-[7px] h-[5px] w-[5px] rounded-full bg-brand"
+                      />
+                      <ReleaseNoteText text={item} />
+                    </motion.li>
+                  );
+                })}
+              </ul>
+            </section>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
@@ -258,7 +419,8 @@ export function UpdateCard({
   const { phase, percent, downloaded, total, seconds_left } = install;
   const show_actions = phase === "idle" || phase === "failed";
   const can_dismiss = show_actions && Boolean(on_dismiss);
-  const has_notes = Boolean(notes?.trim()) && phase === "idle";
+  const note_sections = useMemo(() => parse_release_notes(notes), [notes]);
+  const has_notes = note_sections.length > 0 && phase === "idle";
 
   const title =
     phase === "preparing"
@@ -306,7 +468,6 @@ export function UpdateCard({
           : "w-full"
       }`}
       data-phase={phase}
-      layout={!reduce_motion}
       role={floating ? "status" : undefined}
       style={
         floating
@@ -317,9 +478,8 @@ export function UpdateCard({
             }
           : undefined
       }
-      transition={{ layout: { duration: 0.32, ease: EASE } }}
     >
-      <motion.div className="flex items-center gap-3" layout="position">
+      <div className="flex items-center gap-3">
         <ProgressRing
           percent={percent}
           phase={phase}
@@ -372,7 +532,7 @@ export function UpdateCard({
             <XMarkIcon className="h-4 w-4" />
           </button>
         )}
-      </motion.div>
+      </div>
 
       <AnimatePresence initial={false}>
         {(phase === "preparing" || phase === "downloading") && (
@@ -406,9 +566,10 @@ export function UpdateCard({
             initial={{ opacity: 0, height: 0 }}
             transition={text_transition}
           >
-            <div className="mt-3 max-h-40 overflow-y-auto whitespace-pre-wrap rounded-xl bg-surf-secondary px-3 py-2.5 text-[12.5px] leading-[18px] text-txt-secondary">
-              {notes}
-            </div>
+            <ReleaseNotes
+              reduce_motion={reduce_motion}
+              sections={note_sections}
+            />
           </motion.div>
         )}
       </AnimatePresence>
@@ -428,11 +589,17 @@ export function UpdateCard({
                 <button
                   aria-controls={notes_id}
                   aria-expanded={notes_open}
-                  className="rounded-md text-[12.5px] font-medium text-txt-secondary underline-offset-2 transition-colors hover:text-txt-primary hover:underline"
+                  className="-ms-1.5 flex h-8 items-center gap-1 rounded-lg px-1.5 text-[12.5px] font-medium text-txt-secondary transition-colors hover:bg-surf-hover hover:text-txt-primary"
                   type="button"
                   onClick={() => set_notes_open((open) => !open)}
                 >
                   {t("settings.updates_whats_new")}
+                  <ChevronDownIcon
+                    aria-hidden
+                    className={`h-4 w-4 transition-transform duration-200 ${
+                      notes_open ? "rotate-180" : ""
+                    }`}
+                  />
                 </button>
               )}
               <div className="ms-auto flex items-center gap-2">
