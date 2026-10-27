@@ -4268,14 +4268,7 @@ export const ja = {
       "この操作でこのデバイスのキャッシュデータを削除し、Aster Mail を再読み込みします。再度サインインが必要になる場合があります。",
     iconic_sounds: "Iconic Sounds",
     iconic_sounds_description:
-      "メールの送信、送信の取り消し、作成、ファイルの添付、受信のときに Aster のサウンドを再生します。",
-    iconic_sounds_info:
-      "Iconic Sounds は Aster に印象的なサウンドを追加します。サウンドは変更される場合があります。",
-    iconic_sounds_beta: "ベータ",
-    iconic_sounds_confirm_title: "Iconic Sounds をオンにしますか？",
-    iconic_sounds_confirm_message:
-      "オンにしてもよろしいですか？Aster Mail は、メールの送信や送信の取り消しなどの操作でサウンドを再生します。この設定は Web アプリとデスクトップアプリに同期されます。",
-    iconic_sounds_turn_on: "オンにする",
+      "メールの送信と送信の取り消し、メッセージの作成開始、ファイルの添付、メールのアーカイブや移動、エラーの発生時に Aster のサウンドを再生します。サウンドがオンのときは、新着メールでも Aster のサウンドを再生します。",
     current_plan: "現在のプラン",
     free: "無料",
     available_plans: "利用可能なプラン",

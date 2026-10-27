@@ -704,6 +704,21 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
     keywords: ["notification sound", "audio", "chime", "play sound"],
   },
   {
+    label: "Iconic Sounds",
+    label_key: "settings.iconic_sounds",
+    section: "notifications",
+    breadcrumb: "Notifications > Iconic Sounds",
+    crumb_key: "settings.iconic_sounds",
+    keywords: [
+      "sound effects",
+      "audio",
+      "chime",
+      "send sound",
+      "undo send",
+      "aster sounds",
+    ],
+  },
+  {
     label: "Unread badge",
     label_key: "settings.badge_count_setting",
     section: "notifications",
@@ -1769,13 +1784,5 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
     breadcrumb: "Developer > Performance",
     crumb_key: "settings_search.performance",
     keywords: ["sw", "cache", "pwa", "offline"],
-  },
-  {
-    label: "Iconic Sounds",
-    label_key: "settings.iconic_sounds",
-    section: "developer",
-    breadcrumb: "Developer > Iconic Sounds",
-    crumb_key: "settings.iconic_sounds",
-    keywords: ["sound", "audio", "chime", "beta", "send sound", "undo send"],
   },
 ];

@@ -897,7 +897,6 @@ export async function execute_external_account_email_send(
           dispatch_email_sent();
           log_activities_for_sent(ctx, email_data);
           ctx.on_close();
-          play_email_sent_sound();
           show_toast(ctx.t("common.email_sent"), "success");
           record_review_prompt_action();
         } else {
@@ -957,7 +956,6 @@ export async function execute_external_account_email_send(
             dispatch_email_sent();
             log_activities_for_sent(ctx, email_data);
             ctx.on_close();
-            play_email_sent_sound();
             show_toast(ctx.t("common.email_sent"), "success");
             record_review_prompt_action();
           } else {

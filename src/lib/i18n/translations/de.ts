@@ -4272,14 +4272,7 @@ export const de = {
       "Dadurch werden zwischengespeicherte Daten auf diesem Gerät gelöscht und Aster Mail wird neu geladen. Sie müssen sich möglicherweise erneut anmelden.",
     iconic_sounds: "Iconic Sounds",
     iconic_sounds_description:
-      "Spielt Aster-Töne ab, wenn du sendest, das Senden rückgängig machst, eine Nachricht verfasst, Dateien anhängst oder E-Mails erhältst.",
-    iconic_sounds_info:
-      "Iconic Sounds ergänzt Aster um einprägsame Töne. Diese Töne können sich ändern.",
-    iconic_sounds_beta: "Beta",
-    iconic_sounds_confirm_title: "Iconic Sounds einschalten?",
-    iconic_sounds_confirm_message:
-      "Möchtest du das wirklich einschalten? Aster Mail spielt Töne für Aktionen wie das Senden von E-Mails und das Rückgängigmachen des Sendens ab. Diese Einstellung wird mit der Web-App und der Desktop-App synchronisiert.",
-    iconic_sounds_turn_on: "Einschalten",
+      "Spielt Aster-Töne ab, wenn du E-Mails sendest oder das Senden rückgängig machst, eine Nachricht beginnst, Dateien anhängst, E-Mails archivierst oder verschiebst und wenn ein Fehler auftritt. Wenn Ton aktiviert ist, spielt neue Post ebenfalls einen Aster-Ton ab.",
     current_plan: "Aktueller Tarif",
     free: "Kostenlos",
     available_plans: "Verfügbare Pläne",

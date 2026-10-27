@@ -71,6 +71,7 @@ import { get_undo_send_delay_ms } from "@/services/send_queue";
 import { with_caret_block } from "@/lib/signature_html";
 import { show_toast } from "@/components/toast/simple_toast";
 import { plan_reply_cancel } from "@/components/email/reply_cancel_outcome";
+import { play_iconic_sound } from "@/services/iconic_sounds";
 import { safe_sender_name } from "@/lib/sender_trust_store";
 
 type SendState = "idle" | "queued" | "sending" | "sent" | "error";
@@ -577,6 +578,7 @@ export const InlineReplySection = forwardRef<
 
     if (result.success && result.queued_id) {
       set_queued_id(result.queued_id);
+      if (undo_seconds > 0) play_iconic_sound("send");
 
       if (draft_id) {
         const captured_draft_id = draft_id;
@@ -636,6 +638,7 @@ export const InlineReplySection = forwardRef<
 
     if (plan.toast_key) return;
 
+    play_iconic_sound("undo_send");
     set_send_state("idle");
     set_queued_id(null);
     set_countdown(0);
@@ -664,6 +667,8 @@ export const InlineReplySection = forwardRef<
       if (plan.is_sent) {
         set_send_state("sent");
         set_queued_id(null);
+      } else if (!plan.toast_key) {
+        play_iconic_sound("undo_send");
       }
 
       keeps_text = plan.keeps_text;

@@ -4266,14 +4266,7 @@ export const tr = {
       "Bu işlem bu cihazdaki önbellek verilerini siler ve Aster Mail'i yeniden yükler. Yeniden oturum açman gerekebilir.",
     iconic_sounds: "Iconic Sounds",
     iconic_sounds_description:
-      "Gönderdiğinde, gönderimi geri aldığında, yazdığında, dosya eklediğinde ve posta aldığında Aster seslerini çalar.",
-    iconic_sounds_info:
-      "Iconic Sounds, Aster'e akılda kalıcı sesler ekler. Bu sesler değişebilir.",
-    iconic_sounds_beta: "Beta",
-    iconic_sounds_confirm_title: "Iconic Sounds açılsın mı?",
-    iconic_sounds_confirm_message:
-      "Bunu açmak istediğinden emin misin? Aster Mail, posta gönderme ve gönderimi geri alma gibi işlemlerde ses çalar. Bu ayar web ve masaüstü uygulamalarıyla eşitlenir.",
-    iconic_sounds_turn_on: "Aç",
+      "Posta gönderdiğinizde veya göndermeyi geri aldığınızda, bir ileti başlattığınızda, dosya eklediğinizde, postayı arşivlediğinizde veya taşıdığınızda ve bir hata gördüğünüzde Aster seslerini çalar. Ses açıkken yeni postalar da bir Aster sesi çalar.",
     current_plan: "Mevcut Plan",
     free: "Ücretsiz",
     available_plans: "Mevcut Planlar",

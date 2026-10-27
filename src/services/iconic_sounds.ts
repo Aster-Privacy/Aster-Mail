@@ -38,8 +38,8 @@ const MASTER_GAIN = 0.8;
 const MAX_VOICES_PER_SOUND = 4;
 const VOICE_STEAL_FADE_SECONDS = 0.015;
 const MAX_START_DELAY_MS = 1500;
-const QUEUED_SEND_TTL_MS = 300000;
-const COMPOSE_AFTER_UNDO_MUTE_MS = 600;
+const COMPOSE_MUTE_AFTER_MS = 600;
+const COMPOSE_MUTED_AFTER: readonly IconicSound[] = ["undo_send", "fail"];
 const MIN_INTERVAL_MS: Record<IconicSound, number> = {
   send: 300,
   undo_send: 150,
@@ -65,7 +65,6 @@ let unlock_armed = false;
 const buffers = new Map<IconicSound, AudioBuffer>();
 const active_voices = new Map<IconicSound, ActiveVoice[]>();
 const last_played_at = new Map<IconicSound, number>();
-const queued_send_expiries: number[] = [];
 
 export function is_iconic_sounds_supported(): boolean {
   if (typeof window === "undefined") return false;
@@ -272,7 +271,9 @@ export function play_iconic_sound(name: IconicSound): boolean {
 
   if (
     name === "compose" &&
-    now - (last_played_at.get("undo_send") ?? 0) < COMPOSE_AFTER_UNDO_MUTE_MS
+    COMPOSE_MUTED_AFTER.some(
+      (cue) => now - (last_played_at.get(cue) ?? 0) < COMPOSE_MUTE_AFTER_MS,
+    )
   ) {
     return true;
   }
@@ -283,35 +284,8 @@ export function play_iconic_sound(name: IconicSound): boolean {
   return true;
 }
 
-function prune_queued_sends(): void {
-  const now = Date.now();
-
-  while (queued_send_expiries.length > 0 && queued_send_expiries[0] <= now) {
-    queued_send_expiries.shift();
-  }
-}
-
-export function mark_send_queued(scheduled_time: number): void {
-  prune_queued_sends();
-  queued_send_expiries.push(
-    Math.max(scheduled_time, Date.now()) + QUEUED_SEND_TTL_MS,
-  );
-  queued_send_expiries.sort((left, right) => left - right);
-}
-
-export function release_queued_send(): void {
-  prune_queued_sends();
-  queued_send_expiries.shift();
-}
-
-export function play_send_settled_sound(): boolean {
-  prune_queued_sends();
-
-  if (queued_send_expiries.length > 0) {
-    queued_send_expiries.shift();
-
-    return false;
-  }
+export function play_send_settled_sound(undo_window_shown: boolean): boolean {
+  if (undo_window_shown) return false;
 
   return play_iconic_sound("send");
 }

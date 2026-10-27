@@ -49,6 +49,7 @@ import {
   unsubscribe_from_push,
 } from "@/services/push_subscription";
 import { show_notification } from "@/services/notification_service";
+import { is_iconic_sounds_supported } from "@/services/iconic_sounds";
 import { show_toast } from "@/components/toast/simple_toast";
 import { ignore_error } from "@/lib/ignore_error";
 import { detect_platform } from "@/lib/utils";
@@ -441,6 +442,7 @@ export function NotificationsSection() {
     preferences.desktop_notifications && permission_state === "granted";
 
   const push_supported = !is_tauri && is_push_supported();
+  const iconic_sounds_supported = is_iconic_sounds_supported();
 
   const subscribe_to_push_with_warning = async (): Promise<void> => {
     const subscribed = await subscribe_to_push();
@@ -629,6 +631,20 @@ export function NotificationsSection() {
           on_toggle={() => update_preference("sound", !preferences.sound, true)}
           title={t("settings.sound")}
         />
+        {iconic_sounds_supported && (
+          <ToggleSetting
+            description={t("settings.iconic_sounds_description")}
+            enabled={preferences.iconic_sounds_enabled === true}
+            on_toggle={() =>
+              update_preference(
+                "iconic_sounds_enabled",
+                preferences.iconic_sounds_enabled !== true,
+                true,
+              )
+            }
+            title={t("settings.iconic_sounds")}
+          />
+        )}
         <ToggleSetting
           description={t("settings.badge_count_setting_description")}
           enabled={preferences.badge_count}

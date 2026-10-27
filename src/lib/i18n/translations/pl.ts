@@ -4493,14 +4493,7 @@ export const pl = {
       "To wyczyści dane w pamięci podręcznej na tym urządzeniu i przeładuje Aster Mail. Możliwe, że trzeba będzie zalogować się ponownie.",
     iconic_sounds: "Iconic Sounds",
     iconic_sounds_description:
-      "Odtwarza dźwięki Aster, gdy wysyłasz wiadomość, cofasz wysłanie, piszesz, dodajesz załączniki i odbierasz pocztę.",
-    iconic_sounds_info:
-      "Iconic Sounds dodaje do Aster charakterystyczne dźwięki. Te dźwięki mogą się zmienić.",
-    iconic_sounds_beta: "Beta",
-    iconic_sounds_confirm_title: "Włączyć Iconic Sounds?",
-    iconic_sounds_confirm_message:
-      "Czy na pewno chcesz to włączyć? Aster Mail odtwarza dźwięki przy działaniach takich jak wysłanie wiadomości i cofnięcie wysłania. To ustawienie synchronizuje się z aplikacją internetową i komputerową.",
-    iconic_sounds_turn_on: "Włącz",
+      "Odtwarza dźwięki Aster, gdy wysyłasz pocztę lub cofasz wysłanie, zaczynasz wiadomość, dołączasz pliki, archiwizujesz lub przenosisz pocztę i widzisz błąd. Gdy Dźwięk jest włączony, nowa poczta też odtwarza dźwięk Aster.",
     current_plan: "Aktualny plan",
     free: "Darmowy",
     available_plans: "Dostępne plany",
