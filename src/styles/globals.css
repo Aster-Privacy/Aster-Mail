@@ -1907,7 +1907,15 @@ body,
 #root {
   background-color: var(--bg-secondary);
   min-height: 100%;
+}
+
+html,
+body {
   overflow-x: hidden;
+}
+
+#root {
+  overflow-x: clip;
 }
 
 html,

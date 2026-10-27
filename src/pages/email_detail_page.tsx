@@ -101,7 +101,7 @@ export default function EmailDetailPage() {
   return (
     <SenderLogoBoundary allowed={detail.mail_item?.is_spam !== true}>
       <div
-        className="h-screen w-full flex transition-colors duration-200 overflow-hidden bg-[var(--bg-secondary)]"
+        className="h-screen w-full flex transition-colors duration-200 overflow-clip bg-[var(--bg-secondary)]"
         style={{ height: "100dvh" }}
       >
         {!is_popup && (
@@ -117,10 +117,10 @@ export default function EmailDetailPage() {
           />
         )}
         <div
-          className={`flex-1 min-h-0 min-w-0 flex flex-col overflow-hidden ${is_popup ? "" : "p-1 md:p-2"}`}
+          className={`flex-1 min-h-0 min-w-0 flex flex-col overflow-clip ${is_popup ? "" : "p-1 md:p-2"}`}
         >
           <div
-            className={`flex-1 w-full overflow-hidden flex flex-col transition-colors duration-200 bg-[var(--bg-primary)] ${is_popup ? "" : "rounded-lg md:rounded-xl border border-[var(--border-primary)]"}`}
+            className={`flex-1 w-full overflow-clip flex flex-col transition-colors duration-200 bg-[var(--bg-primary)] ${is_popup ? "" : "rounded-lg md:rounded-xl border border-[var(--border-primary)]"}`}
           >
             <EmailDetailHeader
               can_go_newer={detail.can_go_newer}
