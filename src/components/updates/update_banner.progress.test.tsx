@@ -23,6 +23,7 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 import { FIRST_CHECK_DELAY_MS, UpdateBanner } from "./update_banner";
+import { estimate_seconds_left } from "./use_update_installer";
 
 import { update_progress_percent } from "@/services/updates/updater";
 
@@ -34,6 +35,7 @@ type UpdaterEvent = {
 let emit: ((event: UpdaterEvent) => void) | null = null;
 let finish_download: (() => void) | null = null;
 let content_length: number | undefined = 1000;
+let fail_download = false;
 
 const relaunch = vi.fn(async () => {});
 
@@ -42,6 +44,7 @@ vi.mock("@tauri-apps/plugin-updater", () => ({
     version: "1.5.0",
     currentVersion: "1.4.63",
     downloadAndInstall: (on_event?: (event: UpdaterEvent) => void) => {
+      if (fail_download) return Promise.reject(new Error("network"));
       emit = (event) => on_event?.(event);
 
       return new Promise<void>((resolve) => {
@@ -62,6 +65,10 @@ vi.mock("@/lib/i18n/context", () => ({
     t: (key: string, vars?: Record<string, string>) =>
       vars ? `${key}|${JSON.stringify(vars)}` : key,
   }),
+}));
+
+vi.mock("@/provider", () => ({
+  use_should_reduce_motion: () => true,
 }));
 
 declare global {
@@ -88,12 +95,32 @@ describe("update_progress_percent", () => {
   });
 });
 
+describe("estimate_seconds_left", () => {
+  it("waits for enough samples before estimating", () => {
+    expect(estimate_seconds_left(100, 1000, 500)).toBeNull();
+    expect(estimate_seconds_left(0, 1000, 5000)).toBeNull();
+    expect(estimate_seconds_left(100, null, 5000)).toBeNull();
+  });
+
+  it("projects the remaining time from the average rate", () => {
+    expect(estimate_seconds_left(250, 1000, 2000)).toBe(6);
+  });
+});
+
 describe("UpdateBanner download progress", () => {
   let container: HTMLDivElement;
   let root: Root;
 
-  const button_text = () =>
-    container.querySelectorAll("button")[0]?.textContent ?? "";
+  const by_id = (id: string) =>
+    container.querySelector<HTMLElement>(`[data-testid="${id}"]`);
+
+  const phase = () =>
+    container.querySelector<HTMLElement>("[data-phase]")?.dataset.phase;
+
+  const button_with = (text: string) =>
+    Array.from(container.querySelectorAll("button")).find(
+      (b) => b.textContent === text,
+    );
 
   const bar = () =>
     container.querySelector<HTMLElement>('[role="progressbar"]');
@@ -108,11 +135,19 @@ describe("UpdateBanner download progress", () => {
     await act(async () => {});
   };
 
+  const click_install = async () => {
+    await act(async () => {
+      button_with("settings.updates_install_and_restart")!.click();
+    });
+    await act(async () => {});
+  };
+
   beforeEach(() => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     emit = null;
     finish_download = null;
     content_length = 1000;
+    fail_download = false;
     localStorage.clear();
     (
       window as unknown as { __TAURI_INTERNALS__?: unknown }
@@ -132,40 +167,58 @@ describe("UpdateBanner download progress", () => {
     vi.useRealTimers();
   });
 
-  it("shows a live percentage and a progress bar while downloading", async () => {
+  it("offers install, later, and dismiss before downloading", async () => {
     await mount();
 
-    expect(button_text()).toBe("settings.updates_banner_action");
+    expect(phase()).toBe("idle");
+    expect(by_id("update-title")?.textContent).toBe(
+      'settings.updates_banner_title|{"version":"1.5.0"}',
+    );
+    expect(button_with("settings.updates_install_and_restart")).toBeDefined();
+    expect(button_with("settings.updates_dismiss")).toBeDefined();
     expect(bar()).toBeNull();
+  });
 
-    await act(async () => {
-      container.querySelectorAll("button")[0].click();
-    });
-    await act(async () => {});
+  it("shows a spinner, then live percent, size, and a progress bar", async () => {
+    await mount();
+    await click_install();
 
+    expect(phase()).toBe("preparing");
+    expect(by_id("update-spinner")).not.toBeNull();
+    expect(button_with("settings.updates_dismiss")).toBeUndefined();
     expect(emit).not.toBeNull();
 
     await act(async () => {
       emit!({ event: "Started", data: { contentLength: content_length } });
     });
-    expect(button_text()).toBe('settings.updates_installing|{"percent":0}');
+    expect(phase()).toBe("downloading");
+    expect(by_id("update-percent")?.textContent).toBe("0%");
     expect(bar()?.getAttribute("aria-valuenow")).toBe("0");
 
     await act(async () => {
       emit!({ event: "Progress", data: { chunkLength: 250 } });
     });
-    expect(button_text()).toBe('settings.updates_installing|{"percent":25}');
+    expect(by_id("update-percent")?.textContent).toBe("25%");
 
     await act(async () => {
       emit!({ event: "Progress", data: { chunkLength: 500 } });
     });
-    expect(button_text()).toBe('settings.updates_installing|{"percent":75}');
-    expect((bar()?.firstElementChild as HTMLElement | null)?.style.width).toBe(
-      "75%",
+    expect(by_id("update-percent")?.textContent).toBe("75%");
+    expect(by_id("update-progress-fill")?.style.width).toBe("75%");
+    expect(by_id("update-detail")?.textContent).toContain(
+      "settings.updates_card_size",
     );
 
     await act(async () => {
       emit!({ event: "Finished" });
+    });
+    expect(phase()).toBe("installing");
+    expect(by_id("update-spinner")).not.toBeNull();
+    expect(by_id("update-detail")?.textContent).toBe(
+      "settings.updates_card_installing_detail",
+    );
+
+    await act(async () => {
       finish_download!();
     });
     await act(async () => {});
@@ -173,25 +226,34 @@ describe("UpdateBanner download progress", () => {
     expect(relaunch).toHaveBeenCalled();
   });
 
-  it("falls back to an indeterminate label when the size is unknown", async () => {
+  it("keeps the spinner when the size is unknown", async () => {
     await mount();
-
-    await act(async () => {
-      container.querySelectorAll("button")[0].click();
-    });
-    await act(async () => {});
-
-    expect(button_text()).toBe("settings.updates_downloading");
+    await click_install();
 
     await act(async () => {
       emit!({ event: "Started", data: {} });
     });
-    expect(button_text()).toBe("settings.updates_downloading");
-    expect(bar()?.hasAttribute("aria-valuenow")).toBe(false);
-
     await act(async () => {
       emit!({ event: "Progress", data: { chunkLength: 500 } });
     });
-    expect(button_text()).toBe("settings.updates_downloading");
+
+    expect(phase()).toBe("downloading");
+    expect(by_id("update-percent")).toBeNull();
+    expect(by_id("update-spinner")).not.toBeNull();
+    expect(bar()?.hasAttribute("aria-valuenow")).toBe(false);
+  });
+
+  it("shows the failure inline with a retry", async () => {
+    fail_download = true;
+    await mount();
+    await click_install();
+    await act(async () => {});
+
+    expect(phase()).toBe("failed");
+    expect(by_id("update-title")?.textContent).toBe(
+      "settings.updates_card_failed",
+    );
+    expect(button_with("settings.updates_try_again")).toBeDefined();
+    expect(button_with("settings.updates_dismiss")).toBeDefined();
   });
 });

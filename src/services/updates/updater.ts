@@ -26,9 +26,12 @@ export interface DesktopUpdateInfo {
   date?: string;
 }
 
+export type UpdatePhase = "downloading" | "installing";
+
 export interface UpdateProgress {
   downloaded: number;
   total: number | null;
+  phase?: UpdatePhase;
 }
 
 export function update_progress_percent(
@@ -173,12 +176,16 @@ export async function download_and_install_update(
     if (event.event === "Started") {
       total = event.data?.contentLength ?? null;
       downloaded = 0;
-      on_progress?.({ downloaded, total });
+      on_progress?.({ downloaded, total, phase: "downloading" });
     } else if (event.event === "Progress") {
       downloaded += event.data?.chunkLength ?? 0;
-      on_progress?.({ downloaded, total });
+      on_progress?.({ downloaded, total, phase: "downloading" });
     } else if (event.event === "Finished") {
-      on_progress?.({ downloaded: total ?? downloaded, total });
+      on_progress?.({
+        downloaded: total ?? downloaded,
+        total,
+        phase: "installing",
+      });
     }
   });
   const { relaunch } = await load_process_api();

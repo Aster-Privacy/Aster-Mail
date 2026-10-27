@@ -22,6 +22,7 @@ import type { TranslationKey } from "@/lib/i18n/types";
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { ArrowPathIcon, ArrowDownTrayIcon } from "@heroicons/react/24/outline";
+import { CheckCircleIcon } from "@heroicons/react/20/solid";
 import {
   Button,
   Island,
@@ -30,6 +31,9 @@ import {
   SettingToggleRow,
 } from "@aster/ui";
 
+import { Spinner } from "@/components/ui/spinner";
+import { UpdateCard } from "@/components/updates/update_card";
+import { use_update_installer } from "@/components/updates/use_update_installer";
 import { use_i18n } from "@/lib/i18n/context";
 import {
   is_desktop_runtime,
@@ -37,8 +41,6 @@ import {
   set_auto_update_enabled,
   get_last_check_iso,
   check_for_update,
-  download_and_install_update,
-  update_progress_percent,
   type DesktopUpdateInfo,
 } from "@/services/updates/updater";
 import { format_relative_time_short } from "@/utils/date_utils";
@@ -65,8 +67,9 @@ export function UpdatesSection() {
   );
   const [checking, set_checking] = useState(false);
   const is_checking_ref = useRef(false);
-  const [installing, set_installing] = useState(false);
-  const [progress, set_progress] = useState<number | null>(null);
+  const { state: install_state, start: start_install } = use_update_installer();
+  const installing =
+    install_state.phase !== "idle" && install_state.phase !== "failed";
   const [available, set_available] = useState<DesktopUpdateInfo | null>(null);
   const [status_msg, set_status_msg] = useState<string | null>(null);
   const [error_msg, set_error_msg] = useState<string | null>(null);
@@ -100,22 +103,11 @@ export function UpdatesSection() {
     }
   }, [supported, t]);
 
-  const handle_install = useCallback(async () => {
-    if (!supported || installing) return;
-    set_installing(true);
-    set_progress(0);
+  const handle_install = useCallback(() => {
+    if (!supported) return;
     set_error_msg(null);
-    try {
-      await download_and_install_update((p) => {
-        set_progress(update_progress_percent(p));
-      });
-    } catch {
-      set_error_msg(t("settings.updates_install_failed"));
-    } finally {
-      set_installing(false);
-      set_progress(null);
-    }
-  }, [supported, installing, t]);
+    void start_install();
+  }, [supported, start_install]);
 
   useEffect(() => {
     if (supported && auto) {
@@ -152,9 +144,11 @@ export function UpdatesSection() {
               variant="secondary"
               onClick={handle_check}
             >
-              <ArrowPathIcon
-                className={`w-4 h-4 me-1.5 ${checking ? "animate-spin" : ""}`}
-              />
+              {checking ? (
+                <Spinner className="me-1.5" size="xs" />
+              ) : (
+                <ArrowPathIcon className="w-4 h-4 me-1.5" />
+              )}
               {checking
                 ? t("settings.updates_checking")
                 : t("settings.updates_check_now")}
@@ -168,63 +162,24 @@ export function UpdatesSection() {
           )}
 
           {available && (
-            <Island className="space-y-2" padding="sm" tone="accent">
-              <p className="text-sm font-medium text-txt-primary">
-                {t("settings.updates_available", {
-                  version: available.version,
-                })}
-              </p>
-              {available.notes && (
-                <details className="text-xs text-txt-muted">
-                  <summary className="cursor-pointer">
-                    {t("settings.updates_release_notes")}
-                  </summary>
-                  <pre className="mt-2 whitespace-pre-wrap font-sans">
-                    {available.notes}
-                  </pre>
-                </details>
-              )}
-              <Button
-                disabled={installing}
-                size="sm"
-                variant="primary"
-                onClick={handle_install}
-              >
-                {!installing
-                  ? t("settings.updates_install_and_restart")
-                  : progress === null
-                    ? t("settings.updates_downloading")
-                    : t("settings.updates_installing", {
-                        percent: progress,
-                      })}
-              </Button>
-              {installing && (
-                <div
-                  aria-valuemax={100}
-                  aria-valuemin={0}
-                  aria-valuenow={progress ?? undefined}
-                  className="h-1 w-full overflow-hidden rounded-full bg-surf-tertiary"
-                  role="progressbar"
-                >
-                  <div
-                    className={`h-full rounded-full bg-[var(--accent-color)] ${
-                      progress === null
-                        ? "w-1/3 animate-pulse"
-                        : "transition-[width]"
-                    }`}
-                    style={
-                      progress === null ? undefined : { width: `${progress}%` }
-                    }
-                  />
-                </div>
-              )}
+            <Island padding="md" tone="accent">
+              <UpdateCard
+                install={install_state}
+                notes={available.notes}
+                on_install={handle_install}
+                variant="inline"
+                version={available.version}
+              />
             </Island>
           )}
 
           {error_msg && <p className="text-xs text-red-500">{error_msg}</p>}
 
           {status_msg && !available && (
-            <p className="text-xs text-txt-muted">{status_msg}</p>
+            <p className="flex items-center gap-1.5 text-xs text-txt-muted">
+              <CheckCircleIcon className="h-4 w-4 text-brand" />
+              {status_msg}
+            </p>
           )}
         </Island>
 
