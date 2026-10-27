@@ -335,7 +335,9 @@ export function use_category_inbox(
 
   const [state, set_state] = useState<EmailListState>(EMPTY_STATE);
   const scope_key =
-    read_filter === "all" ? active_category : `${active_category}#${read_filter}`;
+    read_filter === "all"
+      ? active_category
+      : `${active_category}#${read_filter}`;
   const kept_ids_ref = useRef<Set<string>>(new Set());
   const prev_category_ref = useRef(scope_key);
   const committed_category_ref = useRef(scope_key);
@@ -1027,18 +1029,17 @@ export function use_category_inbox(
           ? prev
           : { ...prev, is_loading: true, has_initial_load: false };
       });
+      const synced = sync_recent(false, true).catch(() => undefined);
+
       void (async () => {
-        try {
-          await sync_recent(false, true);
-        } catch {
-          void 0;
-        }
-
-        if (cancelled) return;
-
-        await fetch_page(page, page_size);
+        await fetch_page(page, page_size, { force: true });
         if (cancelled) return;
         invalidate_mail_stats();
+
+        await synced;
+        if (cancelled) return;
+
+        await fetch_page(page, page_size, { silent: true, force: true });
       })();
     };
 

@@ -2349,12 +2349,36 @@ export async function build_index(options?: {
 
 const announced_indexed_ids = new Set<string>();
 
+let recent_sync: {
+  promise: Promise<void>;
+  notify_new: boolean;
+  token: number;
+} | null = null;
+
 // Cheap incremental sync: only the newest page, never the whole mailbox.
 // This is what runs on routine mail changes, so it stays O(page) even with
 // a million messages. Deletions are handled by the event listeners.
-export async function sync_recent(
-  notify_new = false,
-  force = false,
+export function sync_recent(notify_new = false, force = false): Promise<void> {
+  if (
+    recent_sync &&
+    recent_sync.token === build_token &&
+    (recent_sync.notify_new || !notify_new)
+  ) {
+    return recent_sync.promise;
+  }
+
+  const promise = run_sync_recent(notify_new, force).finally(() => {
+    if (recent_sync?.promise === promise) recent_sync = null;
+  });
+
+  recent_sync = { promise, notify_new, token: build_token };
+
+  return promise;
+}
+
+async function run_sync_recent(
+  notify_new: boolean,
+  force: boolean,
 ): Promise<void> {
   if (build_in_progress && !force) return;
   if (!has_vault_in_memory()) return;
