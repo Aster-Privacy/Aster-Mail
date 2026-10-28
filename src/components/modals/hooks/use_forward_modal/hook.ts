@@ -1248,6 +1248,7 @@ export function use_forward_modal({
         scheduled_sender_email,
         scheduled_time,
         preferences.require_encryption === true,
+        preferences.show_encryption_indicators,
       );
     } finally {
       schedule_gate_pending_ref.current = false;
@@ -1373,6 +1374,7 @@ export function use_forward_modal({
     get_forward_content,
     preferences.show_aster_branding,
     preferences.require_encryption,
+    preferences.show_encryption_indicators,
     selected_sender,
     expires_at,
     original_mail_id,

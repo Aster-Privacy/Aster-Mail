@@ -714,6 +714,18 @@ export function use_compose_send({
         return;
       }
 
+      if (
+        email_data.expires_at &&
+        !email_data.expiry_password &&
+        pgp_recipients.length > 0
+      ) {
+        show_toast(t("common.expiry_no_pgp"), "error");
+        last_send_time_ref.current = 0;
+        forget_send(send_fingerprint);
+
+        return;
+      }
+
       if (is_mixed) {
         let key_trusted = false;
 
@@ -992,6 +1004,8 @@ export function use_compose_send({
         scheduled_sender_email,
         scheduled_time,
         preferences.require_encryption === true,
+        preferences.show_encryption_indicators,
+        pgp_override,
       );
     } finally {
       schedule_gate_pending_ref.current = false;
@@ -1147,6 +1161,8 @@ export function use_compose_send({
     on_draft_cleared,
     preferences.auto_save_recent_recipients,
     preferences.require_encryption,
+    preferences.show_encryption_indicators,
+    pgp_override,
     selected_sender,
     expires_at,
     expiry_password,

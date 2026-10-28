@@ -929,6 +929,10 @@ export const nl = {
       "Geplande e-mails kunnen maximaal 28 dagen vooruit worden verstuurd. Kies een eerder tijdstip.",
     scheduled_requires_encryption:
       "Je hebt verplichte versleuteling ingeschakeld, en geplande e-mails naar externe adressen zijn niet end-to-end versleuteld. Verstuur dit bericht nu of schakel verplichte versleuteling uit in Instellingen.",
+    scheduled_no_pgp:
+      "Geplande e-mails naar externe adressen kunnen nog geen PGP-versleuteling gebruiken. Verstuur dit bericht nu om het te versleutelen.",
+    expiry_no_pgp:
+      "Verlopende e-mails naar externe adressen kunnen geen PGP-versleuteling gebruiken. Verwijder de vervaldatum om dit bericht met PGP te versleutelen.",
     offline_password_protected_unavailable:
       "Je kunt met een wachtwoord beveiligde e-mails niet offline in de wachtrij zetten. Verstuur het bericht zodra je weer verbinding hebt.",
     offline_settings_unavailable:

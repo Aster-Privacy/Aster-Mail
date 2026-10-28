@@ -26,12 +26,14 @@ import {
   classify_recipients,
   is_internal_recipient,
 } from "./recipient_classification";
+import { collect_pgp_recipients } from "./recipient_lock_state";
 
 import { exceeds_sealed_schedule_window } from "@/lib/schedule_window";
 import { is_future_instant } from "@/utils/schedule_targets";
 
 export type ScheduledGateBlock =
   | "common.scheduled_requires_encryption"
+  | "common.scheduled_no_pgp"
   | "common.scheduled_too_far_ahead"
   | "mail_rules.snooze_needs_future"
   | PostQuantumConsentBlock;
@@ -45,6 +47,8 @@ export async function check_scheduled_send(
   sender_email: string | undefined,
   scheduled_at: Date,
   require_encryption: boolean,
+  show_locks: boolean = false,
+  pgp_override: boolean | null = null,
 ): Promise<ScheduledGateResult> {
   if (!is_future_instant(scheduled_at)) {
     return { proceed: false, blocked_by: "mail_rules.snooze_needs_future" };
@@ -64,6 +68,16 @@ export async function check_scheduled_send(
       proceed: false,
       blocked_by: "common.scheduled_requires_encryption",
     };
+  }
+
+  if (
+    show_locks &&
+    collect_pgp_recipients(
+      recipients.filter((r) => !is_internal_recipient(r)),
+      pgp_override,
+    ).length > 0
+  ) {
+    return { proceed: false, blocked_by: "common.scheduled_no_pgp" };
   }
 
   if (!is_future_instant(scheduled_at)) {

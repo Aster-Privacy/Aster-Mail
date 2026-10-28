@@ -851,6 +851,10 @@ export const de = {
       "Geplante E-Mails können höchstens 28 Tage im Voraus gesendet werden. Wählen Sie einen früheren Zeitpunkt.",
     scheduled_requires_encryption:
       "Sie haben die erforderliche Verschlüsselung aktiviert, und geplante E-Mails an externe Adressen sind nicht Ende-zu-Ende-verschlüsselt. Senden Sie diese Nachricht jetzt oder deaktivieren Sie die erforderliche Verschlüsselung in den Einstellungen.",
+    scheduled_no_pgp:
+      "Geplante E-Mails an externe Adressen können noch keine PGP-Verschlüsselung verwenden. Senden Sie diese Nachricht jetzt, um sie zu verschlüsseln.",
+    expiry_no_pgp:
+      "Ablaufende E-Mails an externe Adressen können keine PGP-Verschlüsselung verwenden. Um diese Nachricht mit PGP zu verschlüsseln, entfernen Sie das Ablaufdatum.",
     offline_password_protected_unavailable:
       "Sie können passwortgeschützte E-Mails nicht offline in die Warteschlange stellen. Senden Sie die Nachricht, sobald Sie wieder verbunden sind.",
     offline_settings_unavailable:

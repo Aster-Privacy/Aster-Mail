@@ -922,6 +922,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
         scheduled_sender_email,
         scheduled_time,
         preferences.require_encryption === true,
+        preferences.show_encryption_indicators,
       );
     } finally {
       schedule_gate_pending_ref.current = false;
@@ -1053,6 +1054,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
     reply_from_mismatch,
     expires_at,
     preferences.require_encryption,
+    preferences.show_encryption_indicators,
     thread_token,
     original_email_id,
     original_rfc_message_id,

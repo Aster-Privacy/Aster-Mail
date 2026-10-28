@@ -41,6 +41,8 @@ const { check_reply_send } = await import("./reply_send_gate");
 const { assert_required_encryption_keys } =
   await import("./send_queue_execute");
 const { get_active_translations } = await import("@/lib/i18n/translations");
+const { record_recipient_lock_status, forget_recipient_lock_statuses } =
+  await import("./recipient_lock_state");
 
 const DAY = 24 * 60 * 60 * 1000;
 const soon = () => new Date(Date.now() + DAY);
@@ -63,6 +65,7 @@ beforeEach(() => {
   consent.mockReset();
   consent.mockResolvedValue({ proceed: true, allow_non_post_quantum: false });
   discover.mockReset();
+  forget_recipient_lock_statuses();
 });
 
 describe("check_scheduled_send", () => {
@@ -176,6 +179,49 @@ describe("check_scheduled_send", () => {
       proceed: false,
       blocked_by: "common.scheduled_requires_encryption",
     });
+  });
+
+  it("blocks an outside recipient whose chip shows a lock", async () => {
+    record_recipient_lock_status("bob@example.com", "encrypted");
+
+    const result = await check_scheduled_send(
+      ["bob@example.com"],
+      "me@astermail.org",
+      soon(),
+      false,
+      true,
+    );
+
+    expect(result).toEqual({
+      proceed: false,
+      blocked_by: "common.scheduled_no_pgp",
+    });
+  });
+
+  it("schedules when the lock is hidden or not shown", async () => {
+    record_recipient_lock_status("bob@example.com", "available");
+
+    expect(
+      await check_scheduled_send(
+        ["bob@example.com"],
+        "me@astermail.org",
+        soon(),
+        false,
+        true,
+      ),
+    ).toEqual({ proceed: true, allow_non_post_quantum: false });
+
+    record_recipient_lock_status("bob@example.com", "encrypted");
+
+    expect(
+      await check_scheduled_send(
+        ["bob@example.com"],
+        "me@astermail.org",
+        soon(),
+        false,
+        false,
+      ),
+    ).toEqual({ proceed: true, allow_non_post_quantum: false });
   });
 
   it("runs post-quantum consent for Aster recipients", async () => {

@@ -825,6 +825,10 @@ export const zh_CN = {
       "定时邮件最多只能提前 28 天安排。请选择更早的时间。",
     scheduled_requires_encryption:
       "你已开启强制加密，而发往外部地址的定时邮件不是端到端加密的。请立即发送此邮件，或在设置中关闭强制加密。",
+    scheduled_no_pgp:
+      "发往外部地址的定时邮件暂时无法使用 PGP 加密。请立即发送此邮件以进行加密。",
+    expiry_no_pgp:
+      "发往外部地址的限时邮件无法使用 PGP 加密。要使用 PGP 加密此邮件，请移除过期时间。",
     offline_password_protected_unavailable:
       "离线时无法将受密码保护的邮件加入队列。重新联网后，请发送此邮件。",
     offline_settings_unavailable:

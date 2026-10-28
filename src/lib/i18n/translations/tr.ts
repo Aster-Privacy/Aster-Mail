@@ -939,6 +939,10 @@ export const tr = {
       "Zamanlanmış e-postalar en fazla 28 gün sonrasına planlanabilir. Daha erken bir zaman seçin.",
     scheduled_requires_encryption:
       "Zorunlu şifrelemeyi açtınız ve dış adreslere giden zamanlanmış e-postalar uçtan uca şifrelenmez. Bu iletiyi şimdi gönderin veya Ayarlar'da zorunlu şifrelemeyi kapatın.",
+    scheduled_no_pgp:
+      "Dış adreslere giden zamanlanmış e-postalar henüz PGP şifrelemesini kullanamaz. Şifrelemek için bu iletiyi şimdi gönderin.",
+    expiry_no_pgp:
+      "Süresi dolan ve dış adreslere giden e-postalar PGP şifrelemesini kullanamaz. Bu iletiyi PGP ile şifrelemek için süre sınırını kaldırın.",
     offline_password_protected_unavailable:
       "Çevrimdışıyken parola korumalı e-postaları sıraya alamazsınız. Yeniden bağlandığınızda iletiyi gönderin.",
     offline_settings_unavailable:

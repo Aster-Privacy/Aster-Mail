@@ -35,6 +35,7 @@ import {
 } from "./post_quantum_consent";
 import { check_reply_send } from "./reply_send_gate";
 import { is_internal_recipient } from "./recipient_classification";
+import { collect_pgp_recipients } from "./recipient_lock_state";
 import { get_cached_preferences } from "./api/preferences";
 import type { EncryptionOptions } from "./send_queue_types";
 
@@ -202,6 +203,17 @@ function reply_encryption_options(
   };
 }
 
+function locked_outside_recipients(recipients: string[]): string[] {
+  if (get_cached_preferences()?.show_encryption_indicators === false) {
+    return [];
+  }
+
+  return collect_pgp_recipients(
+    recipients.filter((r) => !is_internal_recipient(r)),
+    null,
+  );
+}
+
 async function blocked_by_send_policy(
   recipients: string[],
   require_encryption: boolean | undefined,
@@ -367,6 +379,20 @@ export async function send_reply(
     return { success: false };
   }
 
+  const pgp_recipients = locked_outside_recipients([
+    ...recipients,
+    ...(cc ?? []),
+    ...(bcc ?? []),
+  ]);
+
+  if (params.expires_at && pgp_recipients.length > 0) {
+    const message = get_active_translations().common.expiry_no_pgp;
+
+    callbacks.on_error?.(message);
+
+    return { success: false, error: message };
+  }
+
   const reply_queue_seconds = server_queue_seconds(
     [...recipients, ...(cc ?? []), ...(bcc ?? [])],
     delay_seconds,
@@ -393,6 +419,7 @@ export async function send_reply(
         encryption_options: reply_encryption_options(
           params.require_encryption,
         ),
+        pgp_recipients,
         is_plain_text: params.is_plain_text,
       },
       reply_queue_seconds,
@@ -434,6 +461,7 @@ export async function send_reply(
       sender_display_name: params.sender_display_name,
       attachments: params.attachments,
       encryption_options: reply_encryption_options(params.require_encryption),
+      pgp_recipients,
       is_plain_text: params.is_plain_text,
       on_complete: callbacks.on_complete,
       on_cancel: callbacks.on_cancel,
@@ -552,6 +580,20 @@ export async function send_forward(
     return { success: false };
   }
 
+  const pgp_recipients = locked_outside_recipients([
+    ...params.recipients,
+    ...(params.cc_recipients ?? []),
+    ...(params.bcc_recipients ?? []),
+  ]);
+
+  if (params.expires_at && pgp_recipients.length > 0) {
+    const message = get_active_translations().common.expiry_no_pgp;
+
+    callbacks.on_error?.(message);
+
+    return { success: false, error: message };
+  }
+
   const forward_queue_seconds = server_queue_seconds(
     [
       ...params.recipients,
@@ -581,6 +623,7 @@ export async function send_forward(
         encryption_options: reply_encryption_options(
           params.require_encryption,
         ),
+        pgp_recipients,
         is_plain_text: params.is_plain_text,
       },
       forward_queue_seconds,
@@ -620,6 +663,7 @@ export async function send_forward(
       attachments: params.attachments,
       forward_original_mail_id: params.forward_original_mail_id,
       encryption_options: reply_encryption_options(params.require_encryption),
+      pgp_recipients,
       is_plain_text: params.is_plain_text,
       on_complete: callbacks.on_complete,
       on_cancel: callbacks.on_cancel,

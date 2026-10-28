@@ -959,6 +959,10 @@ export const es = {
       "Los correos programados pueden enviarse como máximo con 28 días de antelación. Elige una hora anterior.",
     scheduled_requires_encryption:
       "Tienes activado el cifrado obligatorio, y los correos programados a direcciones externas no tienen cifrado de extremo a extremo. Envía este mensaje ahora o desactiva el cifrado obligatorio en Ajustes.",
+    scheduled_no_pgp:
+      "Los correos programados a direcciones externas aún no pueden usar el cifrado PGP. Envía este mensaje ahora para cifrarlo.",
+    expiry_no_pgp:
+      "Los correos con caducidad a direcciones externas no pueden usar el cifrado PGP. Para cifrar este mensaje con PGP, quita la caducidad.",
     offline_password_protected_unavailable:
       "No puedes poner en cola correos protegidos con contraseña sin conexión. Cuando vuelvas a estar conectado, envía el mensaje.",
     offline_settings_unavailable:

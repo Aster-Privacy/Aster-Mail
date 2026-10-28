@@ -963,6 +963,10 @@ export const fr = {
       "Les e-mails programmés peuvent partir au maximum 28 jours à l'avance. Choisissez une heure plus proche.",
     scheduled_requires_encryption:
       "Vous avez activé le chiffrement obligatoire, et les e-mails programmés vers des adresses externes ne sont pas chiffrés de bout en bout. Envoyez ce message maintenant ou désactivez le chiffrement obligatoire dans les Réglages.",
+    scheduled_no_pgp:
+      "Les e-mails programmés vers des adresses externes ne peuvent pas encore utiliser le chiffrement PGP. Envoyez ce message maintenant pour le chiffrer.",
+    expiry_no_pgp:
+      "Les e-mails avec expiration vers des adresses externes ne peuvent pas utiliser le chiffrement PGP. Pour chiffrer ce message avec PGP, supprimez l'expiration.",
     offline_password_protected_unavailable:
       "Vous ne pouvez pas mettre en file d'attente des e-mails protégés par mot de passe hors ligne. Une fois reconnecté, envoyez le message.",
     offline_settings_unavailable:
