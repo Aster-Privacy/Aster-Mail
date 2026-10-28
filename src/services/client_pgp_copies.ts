@@ -30,6 +30,7 @@ import {
 } from "./pgp_protected_mime";
 import { build_signed_mime_payload } from "./send_queue_signed_mime";
 import { create_error } from "./send_queue_types";
+import { is_listed_pgp_recipient } from "./recipient_lock_state";
 
 import { outgoing_html_to_plain_text } from "@/lib/outgoing_plain_text";
 import { load_openpgp } from "@/services/crypto/openpgp_loader";
@@ -45,6 +46,7 @@ const MAX_TOTAL_COPY_BYTES = 80 * 1024 * 1024;
 export interface ClientPgpCopyParams {
   outside_recipients: string[];
   force_pgp?: boolean;
+  pgp_recipients?: string[];
   require_encryption?: boolean;
   obscure_subject?: boolean;
   subject: string;
@@ -62,10 +64,11 @@ export type EncryptionDecision = "encrypt" | "server" | "plain";
 export function decide_recipient_encryption(
   info: ExternalKeyInfo | undefined,
   params: Pick<ClientPgpCopyParams, "force_pgp" | "require_encryption">,
+  listed = false,
 ): EncryptionDecision {
   const found = Boolean(info?.found && info.public_key);
   const explicit =
-    params.force_pgp === true || params.require_encryption === true;
+    listed || params.force_pgp === true || params.require_encryption === true;
 
   if (explicit) return found ? "encrypt" : "server";
 
@@ -229,7 +232,11 @@ async function build_copies_for(
   recipients: string[],
   params: ClientPgpCopyParams,
 ): Promise<Record<string, string> | undefined> {
-  if (params.force_pgp === false && params.require_encryption !== true) {
+  if (
+    params.force_pgp === false &&
+    params.require_encryption !== true &&
+    (params.pgp_recipients?.length ?? 0) === 0
+  ) {
     return undefined;
   }
 
@@ -263,7 +270,11 @@ async function build_copies_for(
   for (const recipient of recipients) {
     const info = by_address.get(recipient.toLowerCase());
 
-    const decision = decide_recipient_encryption(info, params);
+    const decision = decide_recipient_encryption(
+      info,
+      params,
+      is_listed_pgp_recipient(params.pgp_recipients, recipient),
+    );
 
     if (decision === "server") {
       throw create_error(

@@ -207,6 +207,7 @@ export interface UseComposeReturn {
   confirm_discard_close: () => void;
   cancel_discard_close: () => void;
   pgp_enabled: boolean;
+  pgp_override: boolean | null;
   toggle_pgp: () => void;
 
   schedule_picker_element: React.ReactNode;
@@ -1325,6 +1326,7 @@ export function use_compose({
     handle_delete_draft: draft_hook.handle_delete_draft,
     handle_show_delete_confirm,
     pgp_enabled: send_hook.pgp_enabled,
+    pgp_override: send_hook.pgp_override,
     toggle_pgp: send_hook.toggle_pgp,
     handle_hide_delete_confirm,
     handle_close: draft_hook.handle_close,

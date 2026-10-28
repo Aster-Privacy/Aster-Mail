@@ -226,6 +226,7 @@ class SendQueue {
       forward_original_mail_id: email.forward_original_mail_id,
       in_reply_to: email.in_reply_to,
       force_pgp: email.force_pgp,
+      pgp_recipients: email.pgp_recipients,
       allow_non_post_quantum: email.allow_non_post_quantum,
       scheduled_time,
       timeout_id,
@@ -561,6 +562,7 @@ async function prepare_email_for_server_queue(
       : await build_client_pgp_copies({
           outside_recipients,
           force_pgp: email.force_pgp,
+          pgp_recipients: email.pgp_recipients,
           require_encryption: email.encryption_options?.require_encryption,
           obscure_subject: email.encryption_options?.obscure_subject === true,
           subject: email.subject || "",
@@ -649,6 +651,9 @@ async function prepare_email_for_server_queue(
     in_reply_to: email.in_reply_to,
     expires_at: email.expires_at,
     force_pgp: email.force_pgp,
+    ...(email.pgp_recipients && email.pgp_recipients.length > 0
+      ? { pgp_recipients: email.pgp_recipients }
+      : {}),
     client_send_id: resolve_client_send_id(email.client_send_id),
     ...(email.is_plain_text ? { plain_text: true } : {}),
     ...(client_copies ? { external_pgp_bodies: client_copies } : {}),
@@ -814,6 +819,8 @@ async function build_fallback_payload(
     expires_at: email.expires_at,
     expiry_password: email.expiry_password,
     secure_external: email.secure_external,
+    force_pgp: email.force_pgp,
+    pgp_recipients: email.pgp_recipients,
     attachments: attachments.length > 0 ? attachments : undefined,
   };
 }

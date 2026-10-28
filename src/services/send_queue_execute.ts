@@ -166,6 +166,7 @@ export async function execute_send(
       : await build_client_pgp_copies({
           outside_recipients,
           force_pgp: email.force_pgp,
+          pgp_recipients: email.pgp_recipients,
           require_encryption: email.encryption_options?.require_encryption,
           obscure_subject: email.encryption_options?.obscure_subject === true,
           subject: email.subject || "",
@@ -529,19 +530,20 @@ export async function execute_external_send(
     is_secure_external || email.expires_at || email.expiry_password
       ? undefined
       : await build_client_pgp_copies({
-        outside_recipients: all_recipients,
-        force_pgp: email.force_pgp,
-        require_encryption: encryption_opts?.require_encryption,
-        obscure_subject: encryption_opts?.obscure_subject === true,
-        subject: email.subject || "",
-        body: body_to_send,
-        from: sender_email,
-        to: email.to,
-        cc: email.cc ?? [],
-        bcc: email.bcc ?? [],
-        attachments: smtp_attachments,
-        is_plain_text: email.is_plain_text,
-      });
+          outside_recipients: all_recipients,
+          force_pgp: email.force_pgp,
+          pgp_recipients: email.pgp_recipients,
+          require_encryption: encryption_opts?.require_encryption,
+          obscure_subject: encryption_opts?.obscure_subject === true,
+          subject: email.subject || "",
+          body: body_to_send,
+          from: sender_email,
+          to: email.to,
+          cc: email.cc ?? [],
+          bcc: email.bcc ?? [],
+          attachments: smtp_attachments,
+          is_plain_text: email.is_plain_text,
+        });
 
   const ephemeral_subject = is_secure_external
     ? "[secure message]"
@@ -614,6 +616,12 @@ export async function execute_external_send(
     attachments: is_secure_external ? undefined : external_attachments,
     secure_message,
     force_pgp: is_secure_external ? undefined : email.force_pgp,
+    ...(!is_secure_external &&
+    !email.expiry_password &&
+    email.pgp_recipients &&
+    email.pgp_recipients.length > 0
+      ? { pgp_recipients: email.pgp_recipients }
+      : {}),
     in_reply_to: email.in_reply_to,
     ...(email.is_plain_text && !is_secure_external ? { plain_text: true } : {}),
     ...(client_copies ? { external_pgp_bodies: client_copies } : {}),

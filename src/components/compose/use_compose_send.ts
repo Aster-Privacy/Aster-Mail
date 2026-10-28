@@ -90,6 +90,7 @@ import {
   find_locked_expiry_feature,
   prompt_expiry_upgrade,
 } from "@/components/compose/expiry_plan_gate";
+import { collect_pgp_recipients } from "@/services/recipient_lock_state";
 
 export interface UseComposeSendOptions {
   recipients: RecipientsState;
@@ -125,6 +126,7 @@ export interface UseComposeSendReturn {
   handle_send: () => Promise<void>;
   handle_scheduled_send: () => Promise<void>;
   pgp_enabled: boolean;
+  pgp_override: boolean | null;
   toggle_pgp: () => void;
 }
 
@@ -164,8 +166,8 @@ export function use_compose_send({
   const [pgp_override, set_pgp_override] = useState<boolean | null>(null);
   const pgp_enabled = pgp_override ?? preferences.encrypt_emails;
   const toggle_pgp = useCallback(
-    () => set_pgp_override((prev) => !(prev ?? preferences.encrypt_emails)),
-    [preferences.encrypt_emails],
+    () => set_pgp_override((prev) => (prev === true ? null : true)),
+    [],
   );
   const last_send_time_ref = useRef<number>(0);
   const send_lock_started_at_ref = useRef(0);
@@ -422,7 +424,23 @@ export function use_compose_send({
                 }))
               : undefined;
 
+          const offline_recipients = [
+            ...recipients.to,
+            ...recipients.cc,
+            ...recipients.bcc,
+          ];
+          const offline_pgp_recipients = preferences.show_encryption_indicators
+            ? collect_pgp_recipients(
+                offline_recipients.filter((r) => !is_internal_recipient(r)),
+                pgp_override,
+              )
+            : [];
+
           await enqueue_action("send_email", {
+            ...(pgp_override !== null ? { force_pgp: pgp_override } : {}),
+            ...(offline_pgp_recipients.length > 0
+              ? { pgp_recipients: offline_pgp_recipients }
+              : {}),
             to: recipients.to,
             cc: recipients.cc.length > 0 ? recipients.cc : undefined,
             bcc: recipients.bcc.length > 0 ? recipients.bcc : undefined,
@@ -681,6 +699,12 @@ export function use_compose_send({
         is_internal_recipient(r),
       );
       const is_mixed = has_external && internal_recipients.length > 0;
+      const pgp_recipients = preferences.show_encryption_indicators
+        ? collect_pgp_recipients(
+            all_recipients.filter((r) => !is_internal_recipient(r)),
+            pgp_override,
+          )
+        : [];
 
       if (is_mixed && email_data.secure_external) {
         show_toast(t("common.password_needs_outside_recipients_only"), "error");
@@ -731,6 +755,7 @@ export function use_compose_send({
           {
             ...email_data,
             allow_non_post_quantum: mixed_consent.allow_non_post_quantum,
+            pgp_recipients,
           },
           pgp_enabled,
           pgp_override,
@@ -770,7 +795,7 @@ export function use_compose_send({
 
         const external_sent = await execute_external_email_send(
           { ...ctx, confirm_draft_deleted },
-          email_data,
+          { ...email_data, pgp_recipients },
           pgp_enabled,
           pgp_override,
           preferences.require_encryption === true,
@@ -849,6 +874,7 @@ export function use_compose_send({
     preferences.auto_save_recent_recipients,
     preferences.require_encryption,
     preferences.obscure_subject_when_encrypted,
+    preferences.show_encryption_indicators,
     pgp_enabled,
     pgp_override,
     limits,
@@ -1135,6 +1161,7 @@ export function use_compose_send({
     handle_send,
     handle_scheduled_send,
     pgp_enabled,
+    pgp_override,
     toggle_pgp,
   };
 }

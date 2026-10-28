@@ -55,6 +55,7 @@ export interface ComposeToolbarState {
   toggle_plain_text_mode?: () => void;
   has_external_recipients?: boolean;
   pgp_enabled?: boolean;
+  pgp_override?: boolean | null;
   toggle_pgp?: () => void;
 }
 

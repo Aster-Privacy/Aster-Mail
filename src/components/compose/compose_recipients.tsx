@@ -39,23 +39,22 @@ import {
   use_recipient_classification,
 } from "@/services/recipient_classification";
 import { is_valid_email } from "@/components/compose/compose_shared";
+import {
+  record_recipient_lock_status,
+  shows_encrypted_lock,
+  type RecipientLockStatus,
+} from "@/services/recipient_lock_state";
 
 export { DdgFavicon } from "@/components/compose/ddg_favicon";
 
-type EncryptionStatus =
-  | "encrypted"
-  | "available"
-  | "transit"
-  | "checking"
-  | "key_invalid"
-  | "unknown";
+type EncryptionStatus = RecipientLockStatus;
 
 interface RecipientBadgeProps {
   email: string;
   image_url?: string;
   on_remove?: () => void;
   encryption_status?: EncryptionStatus;
-  pgp_active?: boolean;
+  pgp_override?: boolean | null;
   on_toggle_encryption?: () => void;
   class_name?: string;
 }
@@ -65,7 +64,7 @@ export function RecipientBadge({
   image_url,
   on_remove,
   encryption_status,
-  pgp_active = false,
+  pgp_override = null,
   on_toggle_encryption,
   class_name,
 }: RecipientBadgeProps) {
@@ -74,9 +73,10 @@ export function RecipientBadge({
 
   const is_toggleable =
     encryption_status === "available" && !!on_toggle_encryption;
+  const pgp_active = pgp_override === true;
   const effective_status: EncryptionStatus | undefined =
-    encryption_status === "available"
-      ? pgp_active
+    encryption_status === "available" || encryption_status === "encrypted"
+      ? shows_encrypted_lock(encryption_status, pgp_override)
         ? "encrypted"
         : is_toggleable
           ? "available"
@@ -226,7 +226,7 @@ interface RecipientFieldProps {
   contacts?: DecryptedContact[];
   recent_recipients?: DecryptedRecentRecipient[];
   auto_focus?: boolean;
-  pgp_enabled?: boolean;
+  pgp_override?: boolean | null;
   on_toggle_pgp?: () => void;
   all_recipients?: string[];
   label_class_name?: string;
@@ -253,7 +253,7 @@ export function RecipientField({
   contacts = [],
   recent_recipients,
   auto_focus = false,
-  pgp_enabled = false,
+  pgp_override = null,
   on_toggle_pgp,
   all_recipients,
   label_class_name,
@@ -318,6 +318,14 @@ export function RecipientField({
 
     return status;
   };
+
+  useEffect(() => {
+    if (!show_locks) return;
+
+    for (const [email, status] of encryption_map) {
+      record_recipient_lock_status(email, status);
+    }
+  }, [encryption_map, show_locks]);
 
   useEffect(() => {
     if (!show_locks) return;
@@ -718,7 +726,7 @@ export function RecipientField({
               image_url={contact_avatar_map.get(email.toLowerCase())}
               on_remove={() => on_remove_recipient(email)}
               on_toggle_encryption={on_toggle_pgp}
-              pgp_active={pgp_enabled}
+              pgp_override={pgp_override}
             />
           ))}
           {hidden_count > 0 && (
@@ -842,7 +850,7 @@ export function ComposeFormFields({
           on_show_bcc={compose.show_bcc_field}
           on_show_cc={compose.show_cc_field}
           on_toggle_pgp={compose.toggle_pgp}
-          pgp_enabled={compose.pgp_enabled}
+          pgp_override={compose.pgp_override}
           recent_recipients={compose.recent_recipients}
           recipients={compose.recipients.to}
           show_bcc={compose.visibility.bcc}
@@ -865,7 +873,7 @@ export function ComposeFormFields({
               compose.remove_recipient("cc", email)
             }
             on_toggle_pgp={compose.toggle_pgp}
-            pgp_enabled={compose.pgp_enabled}
+            pgp_override={compose.pgp_override}
             recent_recipients={compose.recent_recipients}
             recipients={compose.recipients.cc}
           />
@@ -887,7 +895,7 @@ export function ComposeFormFields({
               compose.remove_recipient("bcc", email)
             }
             on_toggle_pgp={compose.toggle_pgp}
-            pgp_enabled={compose.pgp_enabled}
+            pgp_override={compose.pgp_override}
             recent_recipients={compose.recent_recipients}
             recipients={compose.recipients.bcc}
           />
