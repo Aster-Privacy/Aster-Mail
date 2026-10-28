@@ -1333,6 +1333,8 @@ export const it = {
       "Alcuni dei tuoi dati cifrati meno recenti sono bloccati.",
     locked_data_banner_action: "Recupera dati",
     locked_data_banner_dismiss: "Ignora",
+    locked_mail_after_reset:
+      "Questa email è stata crittografata con le chiavi che avevi prima di reimpostare la password. Per leggerla, recupera i tuoi dati precedenti con la vecchia password o un vecchio codice di recupero.",
     recover_data_title: "Recupera dati",
     recover_data_description:
       "Per sbloccare i dati precedenti a una modifica o reimpostazione della password, inserisci la password che usavi in quel momento.",

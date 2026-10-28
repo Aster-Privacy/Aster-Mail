@@ -140,10 +140,18 @@ describe("LockedDataBanner", () => {
     expect(view.textContent).toBe("");
   });
 
-  it("stays hidden until preferences load from the server", async () => {
-    h.preferences.has_loaded_from_server = false;
+  it("stays hidden while preferences are loading", async () => {
+    h.preferences.is_loading = true;
 
     expect((await render()).textContent).toBe("");
+  });
+
+  it("shows when the saved preferences cannot be read after a password reset", async () => {
+    h.preferences.has_loaded_from_server = false;
+
+    const view = await render();
+
+    expect(view.textContent).toContain("common.locked_data_banner_message");
   });
 
   it("stays hidden while the vault is locked", async () => {

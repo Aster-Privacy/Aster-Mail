@@ -1352,6 +1352,8 @@ export const es = {
       "Algunos de tus datos cifrados más antiguos están bloqueados.",
     locked_data_banner_action: "Recuperar datos",
     locked_data_banner_dismiss: "Descartar",
+    locked_mail_after_reset:
+      "Este correo se cifró con las claves que tenías antes de restablecer tu contraseña. Para leerlo, recupera tus datos anteriores con tu contraseña antigua o un código de recuperación antiguo.",
     recover_data_title: "Recuperar datos",
     recover_data_description:
       "Para desbloquear datos de antes de un cambio o restablecimiento de contraseña, introduce la contraseña que usabas entonces.",

@@ -1361,6 +1361,8 @@ export const fr = {
       "Certaines de vos anciennes données chiffrées sont verrouillées.",
     locked_data_banner_action: "Récupérer les données",
     locked_data_banner_dismiss: "Ignorer",
+    locked_mail_after_reset:
+      "Cet e-mail a été chiffré avec les clés que vous aviez avant la réinitialisation de votre mot de passe. Pour le lire, récupérez vos anciennes données avec votre ancien mot de passe ou un ancien code de récupération.",
     recover_data_title: "Récupérer les données",
     recover_data_description:
       "Pour déverrouiller les données antérieures à un changement ou à une réinitialisation du mot de passe, saisissez le mot de passe que vous utilisiez à ce moment-là.",

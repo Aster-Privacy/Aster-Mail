@@ -1359,6 +1359,8 @@ export const pl = {
       "Część Twoich starszych zaszyfrowanych danych jest zablokowana.",
     locked_data_banner_action: "Odzyskaj dane",
     locked_data_banner_dismiss: "Zamknij",
+    locked_mail_after_reset:
+      "Ten e-mail został zaszyfrowany kluczami sprzed zresetowania hasła. Aby go odczytać, odzyskaj starsze dane za pomocą starego hasła lub starego kodu odzyskiwania.",
     recover_data_title: "Odzyskaj dane",
     recover_data_description:
       "Aby odblokować dane sprzed zmiany lub zresetowania hasła, wpisz hasło używane w tamtym czasie.",

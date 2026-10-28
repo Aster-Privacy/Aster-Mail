@@ -1940,6 +1940,7 @@ export interface CommonTranslations {
   locked_data_banner_message: string;
   locked_data_banner_action: string;
   locked_data_banner_dismiss: string;
+  locked_mail_after_reset: string;
   recover_data_title: string;
   recover_data_description: string;
   recover_data_button: string;

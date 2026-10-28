@@ -30,6 +30,7 @@ import { NoSymbolIcon } from "@heroicons/react/24/outline";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { ViewSourceModal } from "@/components/modals/view_source_modal";
+import { LockedMailNotice } from "@/components/email/viewer_shared/locked_mail_notice";
 
 export interface ViewerViewSourceProps {
   view_source_message: DecryptedThreadMessage | null;
@@ -55,6 +56,7 @@ export interface ViewerErrorStateProps {
   on_dismiss: () => void;
   on_retry?: () => void;
   show_back_button?: boolean;
+  decrypt_failed?: boolean;
 }
 
 export function ViewerErrorState({
@@ -62,6 +64,7 @@ export function ViewerErrorState({
   on_dismiss,
   on_retry,
   show_back_button = false,
+  decrypt_failed = false,
 }: ViewerErrorStateProps): React.ReactElement {
   const { t } = use_i18n();
 
@@ -69,9 +72,18 @@ export function ViewerErrorState({
     <div className="flex-1 flex items-center justify-center p-6">
       <div className="text-center">
         <NoSymbolIcon className="w-12 h-12 mx-auto mb-3 text-txt-muted" />
-        <p className="text-sm text-txt-muted">
-          {error || t("common.failed_to_load_email")}
-        </p>
+        {decrypt_failed && error ? (
+          <LockedMailNotice
+            button_class_name="mt-4 mx-1 px-4 py-2 text-sm font-medium rounded-[14px] transition-colors bg-brand text-[var(--accent-fg,#ffffff)]"
+            error={error}
+            on_recovered={on_retry}
+            text_class_name="text-sm text-txt-muted max-w-sm mx-auto"
+          />
+        ) : (
+          <p className="text-sm text-txt-muted">
+            {error || t("common.failed_to_load_email")}
+          </p>
+        )}
         {on_retry && (
           <button
             className="mt-4 mx-1 px-4 py-2 text-sm font-medium rounded-[14px] transition-colors bg-surf-secondary text-txt-primary"

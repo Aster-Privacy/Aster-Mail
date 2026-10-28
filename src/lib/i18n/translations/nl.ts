@@ -1333,6 +1333,8 @@ export const nl = {
       "Een deel van je oudere versleutelde gegevens is vergrendeld.",
     locked_data_banner_action: "Gegevens herstellen",
     locked_data_banner_dismiss: "Sluiten",
+    locked_mail_after_reset:
+      "Deze e-mail is versleuteld met de sleutels die je had voordat je je wachtwoord opnieuw instelde. Herstel je oudere gegevens met je oude wachtwoord of een oude herstelcode om hem te lezen.",
     recover_data_title: "Gegevens herstellen",
     recover_data_description:
       "Voer het wachtwoord in dat je toen gebruikte om gegevens van vóór een wachtwoordwijziging of -reset te ontgrendelen.",

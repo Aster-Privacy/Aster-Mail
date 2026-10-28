@@ -463,6 +463,7 @@ export function FullEmailViewer({
         </div>
         <ViewerErrorState
           show_back_button
+          decrypt_failed={viewer.decrypt_failed}
           error={viewer.error}
           on_dismiss={on_back}
           on_retry={viewer.retry_load}

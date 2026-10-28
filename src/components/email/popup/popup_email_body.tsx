@@ -41,6 +41,7 @@ import { get_latest_expanded_id } from "@/services/thread_service";
 import { use_preferences } from "@/contexts/preferences_context";
 import { PopupEmailHeader } from "@/components/email/popup/popup_email_header";
 import { EmailOpenSkeleton } from "@/components/email/viewer_shared/email_open_skeleton";
+import { LockedMailNotice } from "@/components/email/viewer_shared/locked_mail_notice";
 import { is_system_email } from "@/lib/utils";
 import {
   execute_unsubscribe,
@@ -66,6 +67,7 @@ interface PopupEmailBodyProps {
   email: DecryptedEmail | null;
   mail_item: MailItem | null;
   error: string | null;
+  decrypt_failed?: boolean;
   is_fullscreen: boolean;
   thread_messages: DecryptedThreadMessage[];
   pending_thread_count?: number;
@@ -122,6 +124,7 @@ export function PopupEmailBody({
   email,
   mail_item,
   error,
+  decrypt_failed = false,
   is_fullscreen,
   thread_messages,
   pending_thread_count = 0,
@@ -254,7 +257,16 @@ export function PopupEmailBody({
           <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
             <XMarkIcon className="w-6 h-6 text-red-500" />
           </div>
-          <p className="text-sm text-txt-secondary text-center">{error}</p>
+          {decrypt_failed ? (
+            <LockedMailNotice
+              button_class_name="px-4 py-2 text-sm font-medium rounded-[14px] transition-colors bg-brand text-[var(--accent-fg,#ffffff)]"
+              error={error}
+              on_recovered={on_close}
+              text_class_name="text-sm text-txt-secondary text-center max-w-sm"
+            />
+          ) : (
+            <p className="text-sm text-txt-secondary text-center">{error}</p>
+          )}
           <Button size="md" variant="outline" onClick={on_close}>
             {t("common.close")}
           </Button>

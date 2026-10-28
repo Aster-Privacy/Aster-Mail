@@ -149,6 +149,9 @@ export function use_popup_viewer({
   const [email, set_email] = useState<DecryptedEmail | null>(null);
   const [mail_item, set_mail_item] = useState<MailItem | null>(null);
   const [error, set_error] = useState<string | null>(null);
+  const [decrypt_failed_id, set_decrypt_failed_id] = useState<string | null>(
+    null,
+  );
   const [is_read, set_is_read] = useState(true);
   const [is_pinned, set_is_pinned] = useState(false);
   const [is_archive_loading, set_is_archive_loading] = useState(false);
@@ -647,6 +650,7 @@ export function use_popup_viewer({
       if (!envelope && !is_same_email) {
         requested_email_id_ref.current = null;
         set_error(t("common.failed_to_decrypt_email"));
+        set_decrypt_failed_id(email_id);
 
         return;
       }
@@ -1320,6 +1324,7 @@ export function use_popup_viewer({
     email,
     mail_item,
     error,
+    decrypt_failed: error !== null && decrypt_failed_id === email_id,
     is_read,
     is_pinned,
     is_archive_loading,

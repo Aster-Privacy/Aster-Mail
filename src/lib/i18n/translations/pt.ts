@@ -1244,6 +1244,8 @@ export const pt = {
       "Alguns dos seus dados encriptados mais antigos estão bloqueados.",
     locked_data_banner_action: "Recuperar dados",
     locked_data_banner_dismiss: "Dispensar",
+    locked_mail_after_reset:
+      "Este e-mail foi encriptado com as chaves que tinha antes de repor a palavra-passe. Para o ler, recupere os seus dados antigos com a palavra-passe antiga ou um código de recuperação antigo.",
     recover_data_title: "Recuperar dados",
     recover_data_description:
       "Para desbloquear dados anteriores a uma alteração ou reposição da palavra-passe, introduza a palavra-passe que utilizava nessa altura.",

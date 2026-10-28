@@ -1357,6 +1357,8 @@ export const en: Translations = {
     locked_data_banner_message: "Some of your older encrypted data is locked.",
     locked_data_banner_action: "Recover data",
     locked_data_banner_dismiss: "Dismiss",
+    locked_mail_after_reset:
+      "This email was encrypted with the keys you had before your password reset. To read it, recover your older data with your old password or an old recovery code.",
     recover_data_title: "Recover data",
     recover_data_description:
       "To unlock data from before a password change or reset, enter the password you used at that time.",

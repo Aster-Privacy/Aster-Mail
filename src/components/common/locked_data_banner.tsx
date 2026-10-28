@@ -41,8 +41,7 @@ export function LockedDataBanner() {
   const { t } = use_i18n();
   const { vault, user } = use_auth();
   const account_id = user?.id ?? null;
-  const { preferences, update_preference, is_loading, has_loaded_from_server } =
-    use_preferences();
+  const { preferences, update_preference, is_loading } = use_preferences();
   const [status, set_status] = useState<LockedDataStatus | null>(null);
   const [dismissed_signature, set_dismissed_signature] = useState<
     string | null
@@ -79,11 +78,7 @@ export function LockedDataBanner() {
     preferences.locked_data_banner_dismissed === signature;
 
   const should_hide =
-    is_loading ||
-    !has_loaded_from_server ||
-    !account_id ||
-    !has_locked_data(status) ||
-    is_dismissed;
+    is_loading || !account_id || !has_locked_data(status) || is_dismissed;
 
   const handle_dismiss = useCallback(() => {
     if (!signature) return;

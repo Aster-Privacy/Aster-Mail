@@ -509,6 +509,7 @@ export function SplitEmailViewer({
           </button>
         </div>
         <ViewerErrorState
+          decrypt_failed={viewer.decrypt_failed}
           error={viewer.error}
           on_dismiss={on_close}
           on_retry={viewer.retry_load}
