@@ -121,6 +121,15 @@ describe("reply and forward carry the recipients shown with a lock", () => {
     expect(queued_pgp_recipients()).toEqual(["bob@example.com"]);
   });
 
+  it("queues a locked reply on the server even with no undo delay", async () => {
+    record_recipient_lock_status("bob@example.com", "encrypted");
+
+    await send_reply({ original, message: "my reply" }, make_callbacks(), 0);
+
+    expect(queue_email_to_server).toHaveBeenCalledTimes(1);
+    expect(queued_pgp_recipients()).toEqual(["bob@example.com"]);
+  });
+
   it("leaves out recipients without a lock and Aster recipients", async () => {
     record_recipient_lock_status("carol@example.com", "available");
     record_recipient_lock_status("friend@astermail.org", "encrypted");

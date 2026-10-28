@@ -264,8 +264,10 @@ async function blocked_by_key_trust(
 export function server_queue_seconds(
   recipients: string[],
   delay_seconds: number,
+  pgp_recipients: string[] = [],
 ): number {
   if (delay_seconds > 0) return delay_seconds;
+  if (pgp_recipients.length > 0) return 1;
 
   const has_internal = recipients.some((r) => is_internal_recipient(r));
   const has_external = recipients.some((r) => !is_internal_recipient(r));
@@ -396,6 +398,7 @@ export async function send_reply(
   const reply_queue_seconds = server_queue_seconds(
     [...recipients, ...(cc ?? []), ...(bcc ?? [])],
     delay_seconds,
+    pgp_recipients,
   );
 
   if (reply_queue_seconds > 0) {
@@ -601,6 +604,7 @@ export async function send_forward(
       ...(params.bcc_recipients ?? []),
     ],
     delay_seconds,
+    pgp_recipients,
   );
 
   if (forward_queue_seconds > 0) {

@@ -118,6 +118,12 @@ describe("server_queue_seconds", () => {
     expect(server_queue_seconds(["bob@example.com"], 0)).toBe(0);
   });
 
+  it("queues on the server when a recipient was shown with a lock", () => {
+    expect(
+      server_queue_seconds(["bob@example.com"], 0, ["bob@example.com"]),
+    ).toBe(1);
+  });
+
   it("returns zero for no recipients", () => {
     expect(server_queue_seconds([], 0)).toBe(0);
   });

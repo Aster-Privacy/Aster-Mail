@@ -43,6 +43,7 @@ import {
 } from "./recipient_classification";
 import { is_internal_email } from "./api/keys";
 import { OBSCURED_SUBJECT_PLACEHOLDER } from "./pgp_protected_mime";
+import { is_listed_pgp_recipient } from "./recipient_lock_state";
 import {
   build_client_pgp_copies,
   CLIENT_COPY_PLACEHOLDER_BODY,
@@ -178,6 +179,22 @@ export async function execute_send(
           attachments: all_attachments,
           is_plain_text: email.is_plain_text,
         });
+
+  if (
+    !is_encrypted &&
+    outside_recipients.some(
+      (recipient) =>
+        is_listed_pgp_recipient(email.pgp_recipients, recipient) &&
+        !Object.keys(client_copies ?? {}).some((copied) =>
+          is_listed_pgp_recipient([copied], recipient),
+        ),
+    )
+  ) {
+    throw create_error(
+      "encryption_failed",
+      get_active_translations().errors.failed_pgp_encrypt,
+    );
+  }
 
   const final_recipient_body = is_encrypted
     ? encrypted_body
