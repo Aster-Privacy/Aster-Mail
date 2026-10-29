@@ -30,6 +30,18 @@ export function is_unchecked(r: DomainSearchResult): boolean {
   return r.availability_unknown === true;
 }
 
+const NO_WHOIS_PRIVACY_TLDS = new Set(["us", "cx"]);
+
+export function domain_tld(domain: string): string {
+  return domain.toLowerCase().replace(/\.$/, "").split(".").pop() ?? "";
+}
+
+export function has_whois_privacy(r: DomainSearchResult): boolean {
+  if (typeof r.whois_privacy === "boolean") return r.whois_privacy;
+
+  return !NO_WHOIS_PRIVACY_TLDS.has(domain_tld(r.domain));
+}
+
 export function is_purchasable(r: DomainSearchResult): boolean {
   return r.available && !is_unchecked(r) && r.price_cents !== null;
 }

@@ -5528,7 +5528,7 @@ export const it = {
     domain_purchase_empty_subtitle:
       "Inserisci una parola, un nome o un dominio completo. Controlliamo ogni estensione che vendiamo e ti mostriamo quelle libere.",
     domain_purchase_empty_included:
-      "Ogni dominio include privacy WHOIS, DNS configurato da noi e indirizzi illimitati.",
+      "Ogni dominio include DNS configurato da noi, indirizzi illimitati e privacy WHOIS dove il registro lo consente.",
     domain_purchase_terms_inline:
       "I domini sono registrati tramite NameSilo. Con l'acquisto accetti i {{aster}}, {{registrar}} e {{icann}}. Le registrazioni sono definitive una volta creato il dominio.",
     domain_purchase_empty_title: "Scrivi qualcosa per iniziare",
@@ -5568,6 +5568,7 @@ export const it = {
     domain_purchase_summary_whois: "Privacy WHOIS",
     domain_purchase_summary_dns: "Configurazione DNS automatica",
     domain_purchase_summary_included: "Incluso",
+    domain_purchase_summary_not_available: "Non disponibile",
     domain_purchase_total_today: "Totale oggi",
     domain_purchase_years_line: "Registrazione di {{count}} anno/i",
     domain_purchase_secure_checkout: "Pagamento sicuro con Stripe",
@@ -5616,7 +5617,7 @@ export const it = {
     domain_purchase_discount_tooltip:
       "Prezzo promozionale del primo anno dal nostro registrar. In seguito si rinnova a {{price}} all'anno.",
     domain_purchase_purchased_info:
-      "Questi sono i domini che hai acquistato tramite Aster. Li registriamo per te con la privacy WHOIS, configuriamo automaticamente tutto il DNS della posta e puoi creare subito indirizzi su di essi. Ogni dominio si rinnova solo con la tua approvazione. Se in seguito vuoi spostare un dominio presso un altro registrar, il nostro supporto gestisce il trasferimento. ICANN blocca le nuove registrazioni per i primi 60 giorni.",
+      "Questi sono i domini che hai acquistato tramite Aster. Li registriamo per te con la privacy WHOIS, dove il registro lo consente, configuriamo automaticamente tutto il DNS della posta e puoi creare subito indirizzi su di essi. Ogni dominio si rinnova solo con la tua approvazione. Se in seguito vuoi spostare un dominio presso un altro registrar, il nostro supporto gestisce il trasferimento. ICANN blocca le nuove registrazioni per i primi 60 giorni.",
     domain_purchase_dont_have:
       "Non hai un dominio? Clicca qui per acquistarne uno.",
     domain_purchase_sort_price: "Prezzo più basso",
@@ -5659,6 +5660,9 @@ export const it = {
       "Diritti e responsabilità del registrante ICANN",
     domain_purchase_detail_privacy_title:
       "Privato per impostazione predefinita",
+    domain_purchase_detail_public_whois_title: "Dati WHOIS pubblici",
+    domain_purchase_whois_public_notice:
+      "Il registro di .{{tld}} non consente la privacy WHOIS. Aster registra il dominio con i dati di contatto dell'azienda, quindi le tue informazioni personali non vengono pubblicate.",
     domain_purchase_detail_setup_title: "Zero configurazione",
     domain_purchase_detail_instant_title: "Pronto in pochi secondi",
     domain_purchase_detail_ownership_title: "È tuo",

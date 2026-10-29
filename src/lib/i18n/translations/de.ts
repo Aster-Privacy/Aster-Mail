@@ -6815,7 +6815,7 @@ export const de = {
     domain_purchase_empty_subtitle:
       "Geben Sie ein Wort, einen Namen oder eine vollständige Domain ein. Wir prüfen jede Endung, die wir anbieten, und zeigen Ihnen, was frei ist.",
     domain_purchase_empty_included:
-      "Jede Domain enthält WHOIS-Datenschutz, eingerichtetes DNS und unbegrenzte Adressen.",
+      "Jede Domain enthält eingerichtetes DNS, unbegrenzte Adressen und WHOIS-Datenschutz, sofern die Registry das erlaubt.",
     domain_purchase_terms_inline:
       "Domains werden über NameSilo registriert. Mit dem Kauf akzeptieren Sie die {{aster}}, {{registrar}} und {{icann}}. Registrierungen sind endgültig, sobald die Domain erstellt wurde.",
     domain_purchase_empty_title: "Tippen Sie etwas ein, um zu starten",
@@ -6856,6 +6856,7 @@ export const de = {
     domain_purchase_summary_whois: "WHOIS-Datenschutz",
     domain_purchase_summary_dns: "Automatische DNS-Einrichtung",
     domain_purchase_summary_included: "Inbegriffen",
+    domain_purchase_summary_not_available: "Nicht verfügbar",
     domain_purchase_total_today: "Heute fällig",
     domain_purchase_years_line: "Registrierung für {{count}} Jahr(e)",
     domain_purchase_secure_checkout: "Sichere Zahlung über Stripe",
@@ -6905,7 +6906,7 @@ export const de = {
     domain_purchase_discount_tooltip:
       "Aktionspreis für das erste Jahr von unserem Registrar. Danach Verlängerung für {{price}} pro Jahr.",
     domain_purchase_purchased_info:
-      "Hier finden Sie Domains, die Sie über Aster gekauft haben. Wir registrieren sie für Sie mit WHOIS Datenschutz, richten alle Mail DNS Einträge automatisch ein, und Sie können sofort Adressen darauf erstellen. Jede Domain wird nur mit Ihrer Zustimmung verlängert. Wenn Sie eine Domain später zu einem anderen Registrar umziehen möchten, übernimmt unser Support den Transfer. ICANN sperrt neue Registrierungen für die ersten 60 Tage.",
+      "Hier finden Sie Domains, die Sie über Aster gekauft haben. Wir registrieren sie für Sie mit WHOIS Datenschutz, sofern die Registry das erlaubt, richten alle Mail DNS Einträge automatisch ein, und Sie können sofort Adressen darauf erstellen. Jede Domain wird nur mit Ihrer Zustimmung verlängert. Wenn Sie eine Domain später zu einem anderen Registrar umziehen möchten, übernimmt unser Support den Transfer. ICANN sperrt neue Registrierungen für die ersten 60 Tage.",
     domain_purchase_dont_have:
       "Keine eigene Domain? Hier klicken und eine kaufen.",
     domain_purchase_sort_price: "Niedrigster Preis",
@@ -6947,6 +6948,9 @@ export const de = {
     domain_purchase_terms_icann:
       "ICANN-Rechte und -Pflichten für Domaininhaber",
     domain_purchase_detail_privacy_title: "Standardmäßig privat",
+    domain_purchase_detail_public_whois_title: "Öffentlicher WHOIS-Eintrag",
+    domain_purchase_whois_public_notice:
+      "Die Registry für .{{tld}} erlaubt keinen WHOIS-Datenschutz. Aster registriert die Domain mit den Kontaktdaten des Unternehmens, sodass Ihre persönlichen Daten nicht veröffentlicht werden.",
     domain_purchase_detail_setup_title: "Null Einrichtung",
     domain_purchase_detail_instant_title: "In Sekunden bereit",
     domain_purchase_detail_ownership_title: "Gehört Ihnen",

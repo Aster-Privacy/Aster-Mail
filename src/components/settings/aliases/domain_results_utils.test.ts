@@ -23,7 +23,9 @@ import type { DomainSearchResult } from "@/services/api/domains";
 import { describe, expect, it } from "vitest";
 
 import {
+  domain_tld,
   filter_results,
+  has_whois_privacy,
   is_purchasable,
   is_unchecked,
   sort_results,
@@ -93,5 +95,28 @@ describe("unchecked domain results", () => {
       "unchecked.com",
       "taken.com",
     ]);
+  });
+});
+
+describe("whois privacy by domain ending", () => {
+  it("trusts the flag the server sends", () => {
+    expect(
+      has_whois_privacy(result("a.com", true, { whois_privacy: false })),
+    ).toBe(false);
+    expect(
+      has_whois_privacy(result("a.us", true, { whois_privacy: true })),
+    ).toBe(true);
+  });
+
+  it("falls back to the registry rules when the flag is missing", () => {
+    expect(has_whois_privacy(result("lopezova.us", true))).toBe(false);
+    expect(has_whois_privacy(result("ssin.CX", true))).toBe(false);
+    expect(has_whois_privacy(result("example.com", true))).toBe(true);
+    expect(has_whois_privacy(result("example.us.com", true))).toBe(true);
+  });
+
+  it("reads the last label as the ending", () => {
+    expect(domain_tld("Lopezova.US")).toBe("us");
+    expect(domain_tld("a.b.xyz.")).toBe("xyz");
   });
 });

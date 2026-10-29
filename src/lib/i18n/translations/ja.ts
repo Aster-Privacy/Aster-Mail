@@ -6803,7 +6803,7 @@ export const ja = {
     domain_purchase_empty_subtitle:
       "単語、名前、またはドメイン全体を入力してください。販売しているすべての末尾を調べて、空いているものを表示します。",
     domain_purchase_empty_included:
-      "すべてのドメインに WHOIS 保護、設定済みの DNS、無制限のアドレスが付いています。",
+      "すべてのドメインに設定済みの DNS と無制限のアドレスが付き、レジストリが許可する場合は WHOIS 保護も付きます。",
     domain_purchase_terms_inline:
       "ドメインは NameSilo を通じて登録されます。ご購入により、{{aster}}、{{registrar}}、および{{icann}}に同意したものとみなされます。ドメインの作成後、登録は取り消せません。",
     domain_purchase_empty_title: "何か入力して始めましょう",
@@ -6844,6 +6844,7 @@ export const ja = {
     domain_purchase_summary_whois: "WHOISプライバシー",
     domain_purchase_summary_dns: "DNS自動設定",
     domain_purchase_summary_included: "込み",
+    domain_purchase_summary_not_available: "利用不可",
     domain_purchase_total_today: "本日の合計",
     domain_purchase_years_line: "{{count}}年間の登録",
     domain_purchase_secure_checkout: "Stripeによる安全な決済",
@@ -6892,7 +6893,7 @@ export const ja = {
     domain_purchase_discount_tooltip:
       "レジストラによる初年度セール価格です。以降は年 {{price}} で更新されます。",
     domain_purchase_purchased_info:
-      "ここには、Asterを通じて購入したドメインが表示されます。WHOISプライバシー付きで登録し、メール用DNSをすべて自動設定するので、すぐにアドレスを作成できます。更新はお客様の承認がある場合のみ行われます。後で他のレジストラへ移管したい場合は、サポートチームが移管を承ります。ICANNの規定により、新規登録は最初の60日間は移管できません。",
+      "ここには、Asterを通じて購入したドメインが表示されます。レジストリが許可する場合はWHOISプライバシー付きで登録し、メール用DNSをすべて自動設定するので、すぐにアドレスを作成できます。更新はお客様の承認がある場合のみ行われます。後で他のレジストラへ移管したい場合は、サポートチームが移管を承ります。ICANNの規定により、新規登録は最初の60日間は移管できません。",
     domain_purchase_dont_have:
       "ドメインをお持ちでない場合は、こちらをクリックして購入できます。",
     domain_purchase_sort_price: "価格が安い順",
@@ -6933,6 +6934,9 @@ export const ja = {
     domain_purchase_terms_registrar: "NameSilo利用規約",
     domain_purchase_terms_icann: "ICANN登録者の権利と責任",
     domain_purchase_detail_privacy_title: "標準でプライベート",
+    domain_purchase_detail_public_whois_title: "WHOIS 情報は公開",
+    domain_purchase_whois_public_notice:
+      ".{{tld}} のレジストリは WHOIS プライバシーを許可していません。Aster は会社の連絡先情報でドメインを登録するため、あなたの個人情報は公開されません。",
     domain_purchase_detail_setup_title: "設定不要",
     domain_purchase_detail_instant_title: "数秒で利用可能",
     domain_purchase_detail_ownership_title: "あなたのもの",

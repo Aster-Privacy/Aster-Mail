@@ -7108,7 +7108,7 @@ export const fr = {
     domain_purchase_empty_subtitle:
       "Entrez un mot, un nom ou un domaine complet. Nous vérifions chaque extension que nous vendons et vous montrons ce qui est libre.",
     domain_purchase_empty_included:
-      "Chaque domaine inclut la confidentialité WHOIS, le DNS configuré pour vous et des adresses illimitées.",
+      "Chaque domaine inclut le DNS configuré pour vous, des adresses illimitées et la confidentialité WHOIS lorsque le registre l'autorise.",
     domain_purchase_terms_inline:
       "Les domaines sont enregistrés via NameSilo. En achetant, vous acceptez les {{aster}}, {{registrar}} et {{icann}}. Les enregistrements sont définitifs une fois le domaine créé.",
     domain_purchase_empty_title: "Saisissez quelque chose pour commencer",
@@ -7148,6 +7148,7 @@ export const fr = {
     domain_purchase_summary_whois: "Confidentialité WHOIS",
     domain_purchase_summary_dns: "Configuration DNS automatique",
     domain_purchase_summary_included: "Inclus",
+    domain_purchase_summary_not_available: "Non disponible",
     domain_purchase_total_today: "Total aujourd'hui",
     domain_purchase_years_line: "Enregistrement de {{count}} an(s)",
     domain_purchase_secure_checkout: "Paiement sécurisé par Stripe",
@@ -7197,7 +7198,7 @@ export const fr = {
     domain_purchase_discount_tooltip:
       "Prix promotionnel de première année de notre registrar. Ensuite, renouvellement à {{price}} par an.",
     domain_purchase_purchased_info:
-      "Voici les domaines que vous avez achetés via Aster. Nous les enregistrons pour vous avec la confidentialité WHOIS, configurons automatiquement tout le DNS du courrier, et vous pouvez y créer des adresses immédiatement. Chaque domaine n'est renouvelé qu'avec votre accord. Si vous souhaitez plus tard déplacer un domaine vers un autre registrar, notre support s'occupe du transfert. L'ICANN verrouille les nouvelles inscriptions pendant leurs 60 premiers jours.",
+      "Voici les domaines que vous avez achetés via Aster. Nous les enregistrons pour vous avec la confidentialité WHOIS lorsque le registre l'autorise, configurons automatiquement tout le DNS du courrier, et vous pouvez y créer des adresses immédiatement. Chaque domaine n'est renouvelé qu'avec votre accord. Si vous souhaitez plus tard déplacer un domaine vers un autre registrar, notre support s'occupe du transfert. L'ICANN verrouille les nouvelles inscriptions pendant leurs 60 premiers jours.",
     domain_purchase_dont_have:
       "Pas de domaine ? Cliquez ici pour en acheter un.",
     domain_purchase_sort_price: "Prix le plus bas",
@@ -7239,6 +7240,9 @@ export const fr = {
     domain_purchase_terms_icann:
       "Droits et responsabilités des titulaires ICANN",
     domain_purchase_detail_privacy_title: "Privé par défaut",
+    domain_purchase_detail_public_whois_title: "Fiche WHOIS publique",
+    domain_purchase_whois_public_notice:
+      "Le registre .{{tld}} n'autorise pas la confidentialité WHOIS. Aster enregistre le domaine avec les coordonnées de l'entreprise, vos informations personnelles ne sont donc pas publiées.",
     domain_purchase_detail_setup_title: "Zéro configuration",
     domain_purchase_detail_instant_title: "Prêt en quelques secondes",
     domain_purchase_detail_ownership_title: "Il vous appartient",

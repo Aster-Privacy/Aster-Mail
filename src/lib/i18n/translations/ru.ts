@@ -7141,7 +7141,7 @@ export const ru = {
     domain_purchase_empty_subtitle:
       "Введите слово, имя или полный домен. Мы проверим все продаваемые окончания и покажем, что свободно.",
     domain_purchase_empty_included:
-      "В каждый домен входят приватность WHOIS, настроенный за вас DNS и неограниченные адреса.",
+      "В каждый домен входят настроенный за вас DNS, неограниченные адреса и приватность WHOIS, если реестр это разрешает.",
     domain_purchase_terms_inline:
       "Домены регистрируются через NameSilo. Совершая покупку, вы принимаете {{aster}}, {{registrar}} и {{icann}}. После создания домена регистрация не отменяется.",
     domain_purchase_empty_title: "Введите что-нибудь, чтобы начать",
@@ -7181,6 +7181,7 @@ export const ru = {
     domain_purchase_summary_whois: "Приватность WHOIS",
     domain_purchase_summary_dns: "Автоматическая настройка DNS",
     domain_purchase_summary_included: "Включено",
+    domain_purchase_summary_not_available: "Недоступно",
     domain_purchase_total_today: "Итого сегодня",
     domain_purchase_years_line: "Регистрация на {{count}} г.",
     domain_purchase_secure_checkout: "Безопасная оплата через Stripe",
@@ -7228,7 +7229,7 @@ export const ru = {
     domain_purchase_discount_tooltip:
       "Акционная цена первого года от нашего регистратора. Далее продление по {{price}} в год.",
     domain_purchase_purchased_info:
-      "Здесь показаны домены, купленные через Aster. Мы регистрируем их для вас с конфиденциальностью WHOIS, автоматически настраиваем весь почтовый DNS, и вы сразу можете создавать на них адреса. Каждый домен продлевается только с вашего согласия. Если позже вы захотите перенести домен к другому регистратору, наша поддержка выполнит перенос. ICANN блокирует перенос новых регистраций в первые 60 дней.",
+      "Здесь показаны домены, купленные через Aster. Мы регистрируем их для вас с конфиденциальностью WHOIS, если реестр это разрешает, автоматически настраиваем весь почтовый DNS, и вы сразу можете создавать на них адреса. Каждый домен продлевается только с вашего согласия. Если позже вы захотите перенести домен к другому регистратору, наша поддержка выполнит перенос. ICANN блокирует перенос новых регистраций в первые 60 дней.",
     domain_purchase_dont_have: "Нет домена? Нажмите здесь, чтобы купить.",
     domain_purchase_sort_price: "Сначала дешёвые",
     domain_purchase_leave_title: "Покинуть Aster Mail?",
@@ -7268,6 +7269,9 @@ export const ru = {
     domain_purchase_terms_registrar: "Условия и положения NameSilo",
     domain_purchase_terms_icann: "Права и обязанности владельцев доменов ICANN",
     domain_purchase_detail_privacy_title: "Приватность по умолчанию",
+    domain_purchase_detail_public_whois_title: "Публичные данные WHOIS",
+    domain_purchase_whois_public_notice:
+      "Реестр .{{tld}} не разрешает приватность WHOIS. Aster регистрирует домен на контактные данные компании, поэтому ваши личные данные не публикуются.",
     domain_purchase_detail_setup_title: "Ноль настроек",
     domain_purchase_detail_instant_title: "Готов за секунды",
     domain_purchase_detail_ownership_title: "Полностью ваш",

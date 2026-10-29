@@ -6475,7 +6475,7 @@ export const hi = {
     domain_purchase_empty_subtitle:
       "कोई शब्द, नाम या पूरा डोमेन डालें। हम अपने बेचे जाने वाले हर एक्सटेंशन को जांचते हैं और दिखाते हैं कि कौन सा खाली है।",
     domain_purchase_empty_included:
-      "हर डोमेन के साथ WHOIS निजता, आपके लिए सेट किया गया DNS और असीमित पते मिलते हैं।",
+      "हर डोमेन के साथ आपके लिए सेट किया गया DNS, असीमित पते और रजिस्ट्री की अनुमति होने पर WHOIS निजता मिलती है।",
     domain_purchase_terms_inline:
       "डोमेन NameSilo के ज़रिए पंजीकृत होते हैं। खरीदने पर आप {{aster}}, {{registrar}} और {{icann}} स्वीकार करते हैं। डोमेन बन जाने के बाद पंजीकरण अंतिम होता है।",
     domain_purchase_empty_title: "शुरू करने के लिए कुछ लिखें",
@@ -6517,6 +6517,7 @@ export const hi = {
     domain_purchase_summary_whois: "WHOIS निजता",
     domain_purchase_summary_dns: "अपने आप DNS सेटअप",
     domain_purchase_summary_included: "शामिल है",
+    domain_purchase_summary_not_available: "उपलब्ध नहीं",
     domain_purchase_total_today: "आज का कुल",
     domain_purchase_years_line: "{{count}} साल का पंजीकरण",
     domain_purchase_secure_checkout: "Stripe से सुरक्षित चेकआउट",
@@ -6564,7 +6565,7 @@ export const hi = {
     domain_purchase_discount_tooltip:
       "हमारे रजिस्ट्रार की ओर से पहले साल की छूट वाली कीमत। उसके बाद {{price}} प्रति वर्ष पर नवीनीकृत होता है।",
     domain_purchase_purchased_info:
-      "ये वे डोमेन हैं जो आपने Aster से खरीदे हैं। हम इन्हें WHOIS निजता के साथ आपके लिए पंजीकृत करते हैं, मेल का सारा DNS अपने आप सेट कर देते हैं, और आप इन पर तुरंत पते बना सकते हैं। हर डोमेन तभी नवीनीकृत होता है जब आप मंज़ूरी देते हैं। अगर आप बाद में किसी डोमेन को दूसरे रजिस्ट्रार पर ले जाना चाहें, तो हमारी सहायता टीम हस्तांतरण संभालती है। ICANN नए पंजीकरण को पहले 60 दिन तक लॉक रखता है।",
+      "ये वे डोमेन हैं जो आपने Aster से खरीदे हैं। हम इन्हें रजिस्ट्री की अनुमति होने पर WHOIS निजता के साथ आपके लिए पंजीकृत करते हैं, मेल का सारा DNS अपने आप सेट कर देते हैं, और आप इन पर तुरंत पते बना सकते हैं। हर डोमेन तभी नवीनीकृत होता है जब आप मंज़ूरी देते हैं। अगर आप बाद में किसी डोमेन को दूसरे रजिस्ट्रार पर ले जाना चाहें, तो हमारी सहायता टीम हस्तांतरण संभालती है। ICANN नए पंजीकरण को पहले 60 दिन तक लॉक रखता है।",
     domain_purchase_dont_have: "डोमेन नहीं है? खरीदने के लिए यहां क्लिक करें।",
     domain_purchase_sort_price: "सबसे कम कीमत",
     domain_purchase_leave_title: "Aster Mail छोड़ें?",
@@ -6595,6 +6596,9 @@ export const hi = {
     domain_purchase_terms_registrar: "NameSilo के नियम और शर्तें",
     domain_purchase_terms_icann: "ICANN पंजीकरणकर्ता के लाभ और ज़िम्मेदारियां",
     domain_purchase_detail_privacy_title: "डिफ़ॉल्ट रूप से निजी",
+    domain_purchase_detail_public_whois_title: "सार्वजनिक WHOIS जानकारी",
+    domain_purchase_whois_public_notice:
+      ".{{tld}} रजिस्ट्री WHOIS निजता की अनुमति नहीं देती। Aster यह डोमेन कंपनी के संपर्क विवरण के साथ रजिस्टर करता है, इसलिए आपकी निजी जानकारी प्रकाशित नहीं होती।",
     domain_purchase_detail_setup_title: "कोई सेटअप नहीं",
     domain_purchase_detail_instant_title: "कुछ ही सेकंड में तैयार",
     domain_purchase_detail_ownership_title: "आपका अपना",

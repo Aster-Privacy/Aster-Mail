@@ -6791,7 +6791,7 @@ export const ko = {
     domain_purchase_empty_subtitle:
       "단어, 이름 또는 전체 도메인을 입력하세요. 판매 중인 모든 확장자를 확인해 사용 가능한 것을 보여드립니다.",
     domain_purchase_empty_included:
-      "모든 도메인에 WHOIS 비공개, 자동 설정된 DNS, 무제한 주소가 포함됩니다.",
+      "모든 도메인에 자동 설정된 DNS와 무제한 주소가 포함되며, 레지스트리가 허용하는 경우 WHOIS 비공개도 포함됩니다.",
     domain_purchase_terms_inline:
       "도메인은 NameSilo를 통해 등록됩니다. 구매하면 {{aster}}, {{registrar}} 및 {{icann}}에 동의하게 됩니다. 도메인이 생성되면 등록은 취소할 수 없습니다.",
     domain_purchase_empty_title: "무엇이든 입력해 시작하세요",
@@ -6831,6 +6831,7 @@ export const ko = {
     domain_purchase_summary_whois: "WHOIS 개인정보 보호",
     domain_purchase_summary_dns: "자동 DNS 설정",
     domain_purchase_summary_included: "포함",
+    domain_purchase_summary_not_available: "사용할 수 없음",
     domain_purchase_total_today: "오늘 결제 금액",
     domain_purchase_years_line: "{{count}}년 등록",
     domain_purchase_secure_checkout: "Stripe 보안 결제",
@@ -6878,7 +6879,7 @@ export const ko = {
     domain_purchase_discount_tooltip:
       "등록기관의 첫해 할인 가격입니다. 이후에는 연 {{price}}에 갱신됩니다.",
     domain_purchase_purchased_info:
-      "Aster를 통해 구매한 도메인이 여기에 표시됩니다. WHOIS 개인정보 보호와 함께 등록해 드리고 메일 DNS를 모두 자동으로 설정하므로 바로 주소를 만들 수 있습니다. 각 도메인은 회원님이 승인할 때만 갱신됩니다. 나중에 도메인을 다른 등록기관으로 이전하고 싶다면 지원팀이 이전을 처리해 드립니다. ICANN 규정에 따라 신규 등록은 첫 60일 동안 이전이 잠깁니다.",
+      "Aster를 통해 구매한 도메인이 여기에 표시됩니다. 레지스트리가 허용하는 경우 WHOIS 개인정보 보호와 함께 등록해 드리고 메일 DNS를 모두 자동으로 설정하므로 바로 주소를 만들 수 있습니다. 각 도메인은 회원님이 승인할 때만 갱신됩니다. 나중에 도메인을 다른 등록기관으로 이전하고 싶다면 지원팀이 이전을 처리해 드립니다. ICANN 규정에 따라 신규 등록은 첫 60일 동안 이전이 잠깁니다.",
     domain_purchase_dont_have: "도메인이 없으신가요? 여기를 클릭해 구매하세요.",
     domain_purchase_sort_price: "낮은 가격순",
     domain_purchase_leave_title: "Aster Mail을 떠나시겠어요?",
@@ -6917,6 +6918,9 @@ export const ko = {
     domain_purchase_terms_registrar: "NameSilo 이용약관",
     domain_purchase_terms_icann: "ICANN 등록자의 권리와 책임",
     domain_purchase_detail_privacy_title: "기본적으로 비공개",
+    domain_purchase_detail_public_whois_title: "WHOIS 정보 공개",
+    domain_purchase_whois_public_notice:
+      ".{{tld}} 레지스트리는 WHOIS 비공개를 허용하지 않습니다. Aster는 회사 연락처 정보로 도메인을 등록하므로 개인정보는 공개되지 않습니다.",
     domain_purchase_detail_setup_title: "설정 불필요",
     domain_purchase_detail_instant_title: "몇 초 만에 준비 완료",
     domain_purchase_detail_ownership_title: "온전히 내 것",

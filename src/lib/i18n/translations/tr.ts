@@ -6851,7 +6851,7 @@ export const tr = {
     domain_purchase_empty_subtitle:
       "Bir kelime, bir ad ya da tam bir alan adı girin. Sattığımız tüm uzantıları kontrol edip boş olanları gösteriyoruz.",
     domain_purchase_empty_included:
-      "Her alan adı WHOIS gizliliği, sizin için yapılan DNS kurulumu ve sınırsız adres içerir.",
+      "Her alan adı sizin için yapılan DNS kurulumu, sınırsız adres ve kayıt kuruluşu izin verdiğinde WHOIS gizliliği içerir.",
     domain_purchase_terms_inline:
       "Alan adları NameSilo üzerinden kaydedilir. Satın alarak {{aster}}, {{registrar}} ve {{icann}} belgelerini kabul edersiniz. Alan adı oluşturulduktan sonra kayıt kesinleşir.",
     domain_purchase_empty_title: "Başlamak için bir şeyler yazın",
@@ -6892,6 +6892,7 @@ export const tr = {
     domain_purchase_summary_whois: "WHOIS gizliliği",
     domain_purchase_summary_dns: "Otomatik DNS kurulumu",
     domain_purchase_summary_included: "Dahil",
+    domain_purchase_summary_not_available: "Kullanılamaz",
     domain_purchase_total_today: "Bugünkü toplam",
     domain_purchase_years_line: "{{count}} yıllık kayıt",
     domain_purchase_secure_checkout: "Stripe ile güvenli ödeme",
@@ -6939,7 +6940,7 @@ export const tr = {
     domain_purchase_discount_tooltip:
       "Kayıt şirketimizin ilk yıl indirimli fiyatı. Sonrasında yılda {{price}} ile yenilenir.",
     domain_purchase_purchased_info:
-      "Bunlar Aster üzerinden satın aldığınız alan adlarıdır. Onları sizin için WHOIS gizliliğiyle kaydeder, tüm posta DNS kayıtlarını otomatik olarak kurarız ve üzerlerinde hemen adres oluşturabilirsiniz. Her alan adı yalnızca sizin onayınızla yenilenir. Bir alan adını daha sonra başka bir kayıt şirketine taşımak isterseniz, taşıma işlemini destek ekibimiz yürütür. ICANN yeni kayıtları ilk 60 gün boyunca kilitler.",
+      "Bunlar Aster üzerinden satın aldığınız alan adlarıdır. Onları sizin için kayıt kuruluşu izin verdiğinde WHOIS gizliliğiyle kaydeder, tüm posta DNS kayıtlarını otomatik olarak kurarız ve üzerlerinde hemen adres oluşturabilirsiniz. Her alan adı yalnızca sizin onayınızla yenilenir. Bir alan adını daha sonra başka bir kayıt şirketine taşımak isterseniz, taşıma işlemini destek ekibimiz yürütür. ICANN yeni kayıtları ilk 60 gün boyunca kilitler.",
     domain_purchase_dont_have:
       "Alan adınız yok mu? Satın almak için buraya tıklayın.",
     domain_purchase_sort_price: "En düşük fiyat",
@@ -6981,6 +6982,9 @@ export const tr = {
     domain_purchase_terms_icann:
       "ICANN Alan Adı Sahibi Hakları ve Sorumlulukları",
     domain_purchase_detail_privacy_title: "Varsayılan olarak gizli",
+    domain_purchase_detail_public_whois_title: "Herkese açık WHOIS kaydı",
+    domain_purchase_whois_public_notice:
+      ".{{tld}} kayıt kuruluşu WHOIS gizliliğine izin vermiyor. Aster alan adını şirketin iletişim bilgileriyle kaydeder, bu nedenle kişisel bilgileriniz yayınlanmaz.",
     domain_purchase_detail_setup_title: "Sıfır kurulum",
     domain_purchase_detail_instant_title: "Saniyeler içinde hazır",
     domain_purchase_detail_ownership_title: "Tamamen sizin",
