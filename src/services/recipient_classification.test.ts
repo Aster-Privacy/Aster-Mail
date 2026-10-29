@@ -38,6 +38,7 @@ import {
   get_cached_recipient_classification,
   get_recipient_classification_version,
   is_internal_recipient,
+  RecipientLookupError,
   subscribe_recipient_classification,
 } from "./recipient_classification";
 
@@ -268,5 +269,57 @@ describe("caching", () => {
     unsubscribe();
     clear_recipient_classification_cache();
     expect(listener).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("failed lookups in a send", () => {
+  it("refuses to classify a list when a lookup fails", async () => {
+    h.lookup.mockImplementation(async (_username: string, email: string) =>
+      email === HOSTED
+        ? { error: "boom", code: "SERVER_ERROR", status: 500 }
+        : external_key(),
+    );
+
+    await expect(
+      classify_recipients([HOSTED, "someone@example.com"]),
+    ).rejects.toBeInstanceOf(RecipientLookupError);
+    expect(is_internal_recipient(HOSTED)).toBe(false);
+  });
+
+  it("refuses to classify a list when a lookup throws", async () => {
+    h.lookup.mockRejectedValue(new Error("offline"));
+
+    await expect(classify_recipients([HOSTED])).rejects.toBeInstanceOf(
+      RecipientLookupError,
+    );
+  });
+
+  it("still classifies a list when every lookup answers", async () => {
+    h.lookup.mockResolvedValue({
+      error: "User not found",
+      code: "NOT_FOUND",
+      status: 404,
+    });
+
+    const results = await classify_recipients(["nobody@example.com"]);
+
+    expect(results.get("nobody@example.com")).toBe("external");
+  });
+
+  it("keeps the last known answer when a later lookup fails", async () => {
+    h.lookup.mockResolvedValueOnce(hosted_key());
+    await classify_recipient(HOSTED);
+
+    begin_recipient_classification_session();
+    h.lookup.mockResolvedValueOnce({
+      error: "boom",
+      code: "SERVER_ERROR",
+      status: 500,
+    });
+
+    const results = await classify_recipients([HOSTED]);
+
+    expect(results.get(HOSTED)).toBe("internal");
+    expect(is_internal_recipient(HOSTED)).toBe(true);
   });
 });

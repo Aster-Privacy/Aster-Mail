@@ -61,7 +61,11 @@ export async function check_scheduled_send(
     return { proceed: false, blocked_by: "common.scheduled_too_far_ahead" };
   }
 
-  await classify_recipients(recipients);
+  try {
+    await classify_recipients(recipients);
+  } catch {
+    return { proceed: false, blocked_by: "errors.key_trust_check_failed" };
+  }
 
   const has_external = recipients.some((r) => !is_internal_recipient(r));
   const internal = recipients.filter((r) => is_internal_recipient(r));

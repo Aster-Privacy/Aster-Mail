@@ -21,7 +21,7 @@
 import type { DecryptedContact } from "@/types/contacts";
 import type { SenderOption } from "@/hooks/use_sender_aliases";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 
 import {
   build_send_fingerprint,
@@ -41,6 +41,7 @@ import { get_or_create_thread_token } from "@/services/thread_service";
 import {
   classify_recipients,
   is_internal_recipient,
+  RecipientLookupError,
 } from "@/services/recipient_classification";
 import { draft_manager } from "@/services/crypto/encrypted_drafts";
 import {
@@ -54,7 +55,10 @@ import {
 } from "@/hooks/mail_events";
 import { delete_draft } from "@/services/api/multi_drafts";
 import { check_scheduled_send } from "@/services/scheduled_send_gate";
-import { show_toast } from "@/components/toast/simple_toast";
+import {
+  show_toast,
+  TOAST_DURATION_DEFAULT_MS,
+} from "@/components/toast/simple_toast";
 import { MAX_SUBJECT_LENGTH, subject_length } from "@/lib/reply_subject";
 import {
   MAX_RECIPIENTS_PER_FIELD,
@@ -177,6 +181,16 @@ export function use_compose_send({
   );
   const last_send_time_ref = useRef<number>(0);
   const send_lock_started_at_ref = useRef(0);
+  const handle_send_ref = useRef<() => Promise<void>>(async () => {});
+  const is_mounted_ref = useRef(true);
+
+  useEffect(() => {
+    is_mounted_ref.current = true;
+
+    return () => {
+      is_mounted_ref.current = false;
+    };
+  }, []);
 
   const log_activities = useCallback(
     (recipients: string[], subject: string) => {
@@ -856,12 +870,21 @@ export function use_compose_send({
         void keep_unsent_message();
       }
     } catch (error) {
-      show_toast(
-        error instanceof Error
-          ? error.message
-          : t("common.failed_to_send_email"),
-        "error",
-      );
+      if (error instanceof RecipientLookupError) {
+        show_toast(error.message, "error", TOAST_DURATION_DEFAULT_MS, {
+          label: t("common.retry"),
+          on_click: () => {
+            if (is_mounted_ref.current) void handle_send_ref.current();
+          },
+        });
+      } else {
+        show_toast(
+          error instanceof Error
+            ? error.message
+            : t("common.failed_to_send_email"),
+          "error",
+        );
+      }
       void keep_unsent_message();
     } finally {
       is_sending_ref.current = false;
@@ -902,6 +925,8 @@ export function use_compose_send({
     is_feature_locked,
     t,
   ]);
+
+  handle_send_ref.current = handle_send;
 
   const schedule_gate_pending_ref = useRef(false);
 
