@@ -562,7 +562,7 @@ export async function decrypt_ratchet_message(
 }
 
 function key_set_fingerprint(keys: RatchetKeySet): string {
-  return `${keys.ratchet_identity_public}:${keys.ratchet_pq_identity_public ?? ""}`;
+  return `${keys.ratchet_identity_public}:${keys.ratchet_signed_prekey_public}:${keys.ratchet_pq_identity_public ?? ""}`;
 }
 
 function is_own_identity_key(

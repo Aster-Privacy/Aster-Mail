@@ -216,6 +216,7 @@ interface ChangePasswordRequest {
   re_encrypted_domain_addresses?: ReEncryptedDomainAddress[];
   unreadable_alias_ids?: string[];
   new_password_strength_tier?: number;
+  vault_key_fingerprints?: string[];
 }
 
 interface ChangePasswordResponse {

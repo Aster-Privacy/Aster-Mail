@@ -968,16 +968,11 @@ export const ko = {
     file_too_large: "파일은 {{size}}보다 작아야 합니다.",
     delete_failed: "다시 시도하세요.",
     download_failed: "다운로드가 완료되지 않았습니다. 다시 시도하세요.",
-    download_complete:
-      "다운로드 완료",
-    downloaded_file:
-      "{{file_name}} 다운로드됨",
-    open_file:
-      "열기",
-    show_in_folder:
-      "폴더에서 보기",
-    show_in_finder:
-      "Finder에서 보기",
+    download_complete: "다운로드 완료",
+    downloaded_file: "{{file_name}} 다운로드됨",
+    open_file: "열기",
+    show_in_folder: "폴더에서 보기",
+    show_in_finder: "Finder에서 보기",
     download_open_failed:
       "이 파일을 열 수 없습니다. 이동되었거나 삭제되었을 수 있습니다.",
     download_reveal_failed:
@@ -1395,6 +1390,19 @@ export const ko = {
       "시도 횟수가 너무 많습니다. 30분 후에 다시 시도하세요.",
     recover_data_failed:
       "일부 데이터를 잠금 해제하지 못했습니다. 연결을 확인하고 다시 시도하세요.",
+    recover_data_key_file_label: "키 파일",
+    recover_data_key_file_description:
+      "Aster에서 내보낸 개인 키로 이전 메일의 잠금을 해제하려면 .asc 파일을 선택하세요. PGP로 암호화된 메일의 잠금도 해제하려면 키를 내보낼 때의 계정 비밀번호를 입력하세요.",
+    recover_data_choose_file: "파일 선택",
+    recover_data_key_file_password: "내보낼 때의 비밀번호(선택 사항)",
+    recover_data_key_file_invalid:
+      "이 파일은 내보낸 개인 키가 아닙니다. Aster에서 다운로드한 .asc 파일을 선택하세요.",
+    recover_data_key_file_wrong_password:
+      "이 비밀번호로는 키 파일의 잠금을 해제할 수 없습니다. 키를 내보낼 때의 계정 비밀번호를 입력하세요.",
+    recover_data_key_file_already: "이 키는 이미 계정에 있습니다.",
+    recover_data_key_file_success: "키 파일을 가져왔습니다.",
+    recover_data_key_file_success_locked:
+      "키 파일을 가져왔습니다. PGP로 암호화된 메일의 잠금도 해제하려면 키를 내보낼 때의 계정 비밀번호로 다시 가져오세요.",
     payment_past_due_message:
       "지난 결제가 처리되지 않았습니다. 요금제를 유지하려면 결제 수단을 업데이트하세요.",
     payment_past_due_message_days:
@@ -3940,7 +3948,8 @@ export const ko = {
     updates_card_installing_detail: "Aster Mail이 곧 다시 시작됩니다.",
     updates_card_failed: "업데이트를 설치하지 못했습니다",
     updates_card_failed_detail: "연결을 확인한 후 다시 시도하세요.",
-    updates_card_available_detail: "설치를 완료하기 위해 Aster Mail이 다시 시작됩니다.",
+    updates_card_available_detail:
+      "설치를 완료하기 위해 Aster Mail이 다시 시작됩니다.",
     updates_time_left_moment: "거의 완료됨",
     updates_time_left_seconds: "약 {{seconds}}초 남음",
     updates_time_left_minutes: "약 {{minutes}}분 남음",
@@ -4039,6 +4048,10 @@ export const ko = {
       "일부 별칭의 재암호화가 완료되지 않아 비밀번호가 변경되지 않았습니다. 다시 시도하고, 계속 발생하면 지원팀에 문의해 주세요.",
     password_change_fingerprint_mismatch:
       "이 세션은 다른 네트워크 또는 브라우저에서 시작되었으므로 Aster Mail이 비밀번호를 변경하지 않았습니다. 비밀번호를 변경하려면 로그아웃한 후 다시 로그인하고 시도해 주세요.",
+    password_change_identity_continuity_required:
+      "변경하면 이전 메시지에 필요한 암호화 키가 제거되므로 Aster Mail이 비밀번호를 변경하지 않았습니다. 다시 시도하려면 로그아웃한 후 다시 로그인하고 비밀번호를 변경해 주세요.",
+    password_change_vault_out_of_date:
+      "다른 기기에서 비밀번호가 변경되어 이 세션은 최신 상태가 아닙니다. 비밀번호를 변경하려면 로그아웃한 후 현재 비밀번호로 다시 로그인해 주세요.",
     update_password: "비밀번호 업데이트",
     updating: "업데이트 중...",
     password_change_encrypted_data_warning:

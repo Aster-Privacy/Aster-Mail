@@ -825,16 +825,11 @@ export const de = {
     file_too_large: "Datei muss kleiner als {{size}} sein",
     delete_failed: "Versuchen Sie es erneut.",
     download_failed: "Versuchen Sie es erneut.",
-    download_complete:
-      "Download abgeschlossen",
-    downloaded_file:
-      "{{file_name}} heruntergeladen",
-    open_file:
-      "Öffnen",
-    show_in_folder:
-      "Im Ordner anzeigen",
-    show_in_finder:
-      "Im Finder anzeigen",
+    download_complete: "Download abgeschlossen",
+    downloaded_file: "{{file_name}} heruntergeladen",
+    open_file: "Öffnen",
+    show_in_folder: "Im Ordner anzeigen",
+    show_in_finder: "Im Finder anzeigen",
     download_open_failed:
       "Diese Datei konnte nicht geöffnet werden. Sie wurde möglicherweise verschoben oder gelöscht.",
     download_reveal_failed:
@@ -1287,6 +1282,20 @@ export const de = {
       "Zu viele Versuche. Warten Sie 30 Minuten und versuchen Sie es dann erneut.",
     recover_data_failed:
       "Einige Daten konnten nicht entsperrt werden. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+    recover_data_key_file_label: "Schlüsseldatei",
+    recover_data_key_file_description:
+      "Um ältere E-Mails mit einem aus Aster exportierten privaten Schlüssel zu entsperren, wählen Sie die .asc-Datei aus. Um auch PGP-verschlüsselte E-Mails zu entsperren, geben Sie das Passwort ein, das Ihr Konto beim Export des Schlüssels hatte.",
+    recover_data_choose_file: "Datei auswählen",
+    recover_data_key_file_password: "Passwort beim Export (optional)",
+    recover_data_key_file_invalid:
+      "Diese Datei ist kein exportierter privater Schlüssel. Wählen Sie die .asc-Datei aus, die Sie aus Aster heruntergeladen haben.",
+    recover_data_key_file_wrong_password:
+      "Dieses Passwort entsperrt die Schlüsseldatei nicht. Geben Sie das Passwort ein, das Ihr Konto beim Export des Schlüssels hatte.",
+    recover_data_key_file_already:
+      "Dieser Schlüssel ist bereits in Ihrem Konto.",
+    recover_data_key_file_success: "Ihre Schlüsseldatei wurde importiert.",
+    recover_data_key_file_success_locked:
+      "Ihre Schlüsseldatei wurde importiert. Um auch PGP-verschlüsselte E-Mails zu entsperren, importieren Sie sie erneut mit dem Passwort, das Ihr Konto beim Export des Schlüssels hatte.",
     payment_past_due_message:
       "Ihre letzte Zahlung war nicht erfolgreich. Aktualisieren Sie Ihre Zahlungsmethode, um Ihren Tarif zu behalten.",
     payment_past_due_message_days:
@@ -3938,8 +3947,10 @@ export const de = {
     updates_card_installing: "Update wird installiert",
     updates_card_installing_detail: "Aster Mail startet gleich neu.",
     updates_card_failed: "Das Update wurde nicht installiert",
-    updates_card_failed_detail: "Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
-    updates_card_available_detail: "Aster Mail startet neu, um die Installation abzuschließen.",
+    updates_card_failed_detail:
+      "Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+    updates_card_available_detail:
+      "Aster Mail startet neu, um die Installation abzuschließen.",
     updates_time_left_moment: "Fast fertig",
     updates_time_left_seconds: "Noch etwa {{seconds}} Sek.",
     updates_time_left_minutes: "Noch etwa {{minutes}} Min.",
@@ -4033,6 +4044,10 @@ export const de = {
       "Einige Ihrer Aliase wurden nicht vollständig neu verschlüsselt, daher wurde Ihr Passwort nicht geändert. Versuchen Sie es erneut und wenden Sie sich an den Support, wenn das weiterhin auftritt.",
     password_change_fingerprint_mismatch:
       "Diese Sitzung wurde in einem anderen Netzwerk oder Browser gestartet, daher hat Aster Mail Ihr Passwort nicht geändert. Um es zu ändern, melden Sie sich ab, melden Sie sich wieder an und versuchen Sie es erneut.",
+    password_change_identity_continuity_required:
+      "Aster Mail hat Ihr Passwort nicht geändert, weil die Änderung Verschlüsselungsschlüssel entfernen würde, die Ihre älteren Nachrichten benötigen. Um es erneut zu versuchen, melden Sie sich ab, melden Sie sich wieder an und ändern Sie Ihr Passwort.",
+    password_change_vault_out_of_date:
+      "Ihr Passwort wurde auf einem anderen Gerät geändert, daher ist diese Sitzung nicht mehr aktuell. Um Ihr Passwort zu ändern, melden Sie sich ab und mit Ihrem aktuellen Passwort wieder an.",
     update_password: "Passwort aktualisieren",
     updating: "Aktualisieren...",
     password_change_encrypted_data_warning:

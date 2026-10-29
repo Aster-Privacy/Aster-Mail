@@ -21,6 +21,8 @@
 import { list_inactive_key_sets } from "./api/recovery";
 import { recover_sent_mail_with_password } from "./account_data_conversion";
 import {
+  import_identity_key_file,
+  type KeyFileImportResult,
   RECOVERY_CODE_RATE_LIMITED,
   restore_inactive_key_sets,
   restore_inactive_key_sets_with_code,
@@ -179,6 +181,26 @@ export async function recover_locked_data_with_code(
   }
 
   if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent(LOCKED_DATA_CHANGED_EVENT));
+  }
+
+  return result;
+}
+
+export async function recover_locked_data_with_key_file(
+  key_file_text: string,
+  key_password: string,
+): Promise<KeyFileImportResult> {
+  let result: KeyFileImportResult;
+
+  try {
+    result = await import_identity_key_file(key_file_text, key_password);
+  } catch (caught) {
+    ignore_error("services/locked_data:import_key_file", caught);
+    result = { status: "failed", unlocked: false };
+  }
+
+  if (result.status === "imported" && typeof window !== "undefined") {
     window.dispatchEvent(new CustomEvent(LOCKED_DATA_CHANGED_EVENT));
   }
 
