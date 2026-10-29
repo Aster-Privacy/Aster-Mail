@@ -845,20 +845,16 @@ export function ExternalAccountsSection({
                       <span className="block truncate text-[15px] font-medium text-[var(--text-primary)]">
                         {account.email}
                       </span>
-                      <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
-                        <span className="rounded bg-[var(--bg-tertiary)] px-1.5 py-0.5 text-[10px] font-medium uppercase text-[var(--text-muted)]">
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <span className="account_menu_badge account_menu_badge_muted uppercase tracking-wide">
                           {protocol_label(account.protocol)}
                         </span>
                         <span
-                          className="rounded px-1.5 py-0.5 text-[10px]"
-                          style={{
-                            backgroundColor: account.is_enabled
-                              ? "rgba(34,197,94,0.1)"
-                              : "var(--bg-tertiary)",
-                            color: account.is_enabled
-                              ? "rgb(34,197,94)"
-                              : "var(--text-muted)",
-                          }}
+                          className={
+                            account.is_enabled
+                              ? "account_menu_badge"
+                              : "account_menu_badge account_menu_badge_muted"
+                          }
                         >
                           {account.is_enabled
                             ? state.t("common.active")
