@@ -4199,6 +4199,9 @@ export const ja = {
     close_to_tray: "ウィンドウを閉じても実行を続ける",
     close_to_tray_description:
       "Aster Mail が通知領域に残り、新着メールを受け取り続けます。ウィンドウを閉じたときに終了するには、これをオフにします。",
+    hide_dock_on_close: "ウィンドウを閉じたときに Dock から隠す",
+    hide_dock_on_close_description:
+      "ウィンドウを閉じると、Aster Mail は Dock と App スイッチャーから消え、メニューバーで動作し続けます。再び開くには、メニューバーのアイコンをクリックします。",
     time_format: "時刻形式",
     time_format_description: "時刻の表示方法を選択します",
     twelve_hours: "12時間制",

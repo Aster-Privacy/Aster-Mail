@@ -179,7 +179,9 @@ if (is_tauri_runtime) {
   void start_desktop_notification_bridge();
   void start_desktop_interface_zoom();
   void import("@/native/tauri_tray")
-    .then(({ sync_close_to_tray }) => sync_close_to_tray())
+    .then(({ sync_close_to_tray, sync_hide_dock_on_close }) =>
+      Promise.all([sync_close_to_tray(), sync_hide_dock_on_close()]),
+    )
     .catch((caught) => ignore_error("main", caught));
 }
 

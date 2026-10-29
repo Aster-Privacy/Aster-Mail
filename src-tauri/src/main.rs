@@ -209,6 +209,36 @@ struct TrayMenuState(Mutex<Option<TrayMenuItems>>);
 
 struct CloseToTrayState(Mutex<bool>);
 
+#[cfg(any(target_os = "macos", test))]
+#[derive(Default)]
+struct DockPresenceState {
+    hide_on_close: std::sync::atomic::AtomicBool,
+    hidden: std::sync::atomic::AtomicBool,
+}
+
+#[cfg(any(target_os = "macos", test))]
+impl DockPresenceState {
+    fn set_hide_on_close(&self, enabled: bool) {
+        self.hide_on_close
+            .store(enabled, std::sync::atomic::Ordering::SeqCst);
+    }
+
+    fn begin_leave(&self) -> bool {
+        use std::sync::atomic::Ordering;
+
+        self.hide_on_close.load(Ordering::SeqCst) && !self.hidden.swap(true, Ordering::SeqCst)
+    }
+
+    fn cancel_leave(&self) {
+        self.hidden
+            .store(false, std::sync::atomic::Ordering::SeqCst);
+    }
+
+    fn begin_return(&self) -> bool {
+        self.hidden.swap(false, std::sync::atomic::Ordering::SeqCst)
+    }
+}
+
 #[derive(serde::Deserialize)]
 struct TrayLabels {
     show: String,
@@ -253,6 +283,69 @@ fn set_tray_visible(state: State<TrayState>, visible: bool) {
 fn set_close_to_tray(state: State<CloseToTrayState>, enabled: bool) {
     if let Ok(mut guard) = state.0.lock() {
         *guard = enabled;
+    }
+}
+
+#[tauri::command]
+fn hide_dock_on_close_supported() -> bool {
+    cfg!(target_os = "macos")
+}
+
+#[cfg(target_os = "macos")]
+#[tauri::command]
+fn set_hide_dock_on_close(
+    app: tauri::AppHandle,
+    state: State<DockPresenceState>,
+    enabled: bool,
+) -> std::result::Result<(), String> {
+    state.set_hide_on_close(enabled);
+    if !enabled {
+        restore_dock_presence(&app);
+    }
+    Ok(())
+}
+
+#[cfg(not(target_os = "macos"))]
+#[tauri::command]
+fn set_hide_dock_on_close(enabled: bool) -> std::result::Result<(), String> {
+    let _ = enabled;
+    Err("hiding from the Dock is only available on macOS".into())
+}
+
+#[cfg(target_os = "macos")]
+fn leave_dock_after_close(app: &tauri::AppHandle) {
+    let Some(state) = app.try_state::<DockPresenceState>() else {
+        return;
+    };
+    if !state.begin_leave() {
+        return;
+    }
+    if let Err(error) = app.set_activation_policy(tauri::ActivationPolicy::Accessory) {
+        state.cancel_leave();
+        tracing::warn!(%error, "could not hide the app from the Dock");
+    }
+}
+
+#[cfg(target_os = "macos")]
+fn restore_dock_presence(app: &tauri::AppHandle) {
+    let Some(state) = app.try_state::<DockPresenceState>() else {
+        return;
+    };
+    if !state.begin_return() {
+        return;
+    }
+    if let Err(error) = app.set_activation_policy(tauri::ActivationPolicy::Regular) {
+        tracing::warn!(%error, "could not return the app to the Dock");
+    }
+}
+
+fn show_main_window(app: &tauri::AppHandle) {
+    #[cfg(target_os = "macos")]
+    restore_dock_presence(app);
+    if let Some(window) = app.get_webview_window("main") {
+        let _ = window.show();
+        let _ = window.unminimize();
+        let _ = window.set_focus();
     }
 }
 
@@ -513,9 +606,7 @@ fn main() {
                 if !was_visible {
                     let _ = window.eval("window.location.reload()");
                 }
-                let _ = window.show();
-                let _ = window.unminimize();
-                let _ = window.set_focus();
+                show_main_window(app);
             }
         }))
         .plugin(tauri_plugin_deep_link::init())
@@ -548,6 +639,8 @@ fn main() {
             badge::set_unread_badge,
             set_tray_visible,
             set_close_to_tray,
+            hide_dock_on_close_supported,
+            set_hide_dock_on_close,
             set_tray_tooltip,
             set_tray_labels,
             set_content_protection,
@@ -582,6 +675,9 @@ fn main() {
             interface_zoom::set_interface_zoom,
         ])
         .setup(|app| {
+            #[cfg(target_os = "macos")]
+            app.manage(DockPresenceState::default());
+
             #[cfg(all(unix, not(target_os = "macos")))]
             boot_guard::record_launch_attempt();
 
@@ -717,13 +813,7 @@ fn main() {
                 .menu(&menu)
                 .tooltip("Aster Mail")
                 .on_menu_event(|app, event| match event.id.as_ref() {
-                    "show" => {
-                        if let Some(window) = app.get_webview_window("main") {
-                            let _ = window.show();
-                            let _ = window.unminimize();
-                            let _ = window.set_focus();
-                        }
-                    }
+                    "show" => show_main_window(app),
                     "compat_on" => {
                         boot_guard::enable_compat_mode();
                         app.restart();
@@ -748,12 +838,7 @@ fn main() {
                         ..
                     } = event
                     {
-                        let app = tray.app_handle();
-                        if let Some(window) = app.get_webview_window("main") {
-                            let _ = window.show();
-                            let _ = window.unminimize();
-                            let _ = window.set_focus();
-                        }
+                        show_main_window(tray.app_handle());
                     }
                 })
                 .build(app);
@@ -812,6 +897,8 @@ fn main() {
                 api.prevent_close();
                 let _ = window.app_handle().save_window_state(window_state_flags());
                 let _ = window.hide();
+                #[cfg(target_os = "macos")]
+                leave_dock_after_close(window.app_handle());
             }
         })
         .build({
@@ -828,11 +915,7 @@ fn main() {
         .run(|app, event| {
             #[cfg(target_os = "macos")]
             if let tauri::RunEvent::Reopen { has_visible_windows: false, .. } = &event {
-                if let Some(window) = app.get_webview_window("main") {
-                    let _ = window.show();
-                    let _ = window.unminimize();
-                    let _ = window.set_focus();
-                }
+                show_main_window(app);
             }
             #[cfg(target_os = "macos")]
             if let tauri::RunEvent::Opened { urls } = &event {
@@ -844,16 +927,69 @@ fn main() {
                     }
                 }
                 if queued {
-                    if let Some(window) = app.get_webview_window("main") {
-                        let _ = window.show();
-                        let _ = window.unminimize();
-                        let _ = window.set_focus();
-                    }
+                    show_main_window(app);
                 }
             }
             #[cfg(not(target_os = "macos"))]
             let _ = (app, event);
         });
+}
+
+#[cfg(test)]
+mod dock_presence_tests {
+    use super::DockPresenceState;
+
+    #[test]
+    fn stays_in_the_dock_by_default() {
+        let state = DockPresenceState::default();
+
+        assert!(!state.begin_leave());
+        assert!(!state.begin_return());
+    }
+
+    #[test]
+    fn leaves_once_and_returns_once() {
+        let state = DockPresenceState::default();
+        state.set_hide_on_close(true);
+
+        assert!(state.begin_leave());
+        assert!(!state.begin_leave());
+        assert!(state.begin_return());
+        assert!(!state.begin_return());
+        assert!(state.begin_leave());
+    }
+
+    #[test]
+    fn turning_the_setting_off_still_returns_a_hidden_app() {
+        let state = DockPresenceState::default();
+        state.set_hide_on_close(true);
+        assert!(state.begin_leave());
+
+        state.set_hide_on_close(false);
+
+        assert!(state.begin_return());
+        assert!(!state.begin_leave());
+    }
+
+    #[test]
+    fn a_failed_leave_does_not_block_the_next_close() {
+        let state = DockPresenceState::default();
+        state.set_hide_on_close(true);
+        assert!(state.begin_leave());
+
+        state.cancel_leave();
+
+        assert!(!state.begin_return());
+        assert!(state.begin_leave());
+    }
+
+    #[test]
+    fn only_macos_reports_support() {
+        assert_eq!(
+            super::hide_dock_on_close_supported(),
+            cfg!(target_os = "macos")
+        );
+    }
 }
 
 #[cfg(test)]
