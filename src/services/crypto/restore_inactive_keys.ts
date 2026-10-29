@@ -34,7 +34,6 @@ import {
 } from "./key_manager";
 import {
   dedupe_ratchet_keys,
-  merge_previous_ratchet_keys,
   retain_previous_ratchet_keys,
   type LegacyDerivedKek,
   type RatchetKeySet,
@@ -390,6 +389,7 @@ export interface RecoveredKeyCommitResult {
   written: boolean;
   dropped_keks: number;
   dropped_ratchet_keys: number;
+  roundtrip_failed?: boolean;
 }
 
 const COMMIT_NOT_WRITTEN: RecoveredKeyCommitResult = {
@@ -418,11 +418,10 @@ export async function commit_recovered_keys(
     harvested_entries,
   );
 
-  const all_ratchet_keys = dedupe_ratchet_keys(
+  const ratchet_previous_keys = dedupe_ratchet_keys(
     vault.ratchet_previous_keys,
     ...commit.ratchet_groups,
   );
-  const ratchet_previous_keys = merge_previous_ratchet_keys(all_ratchet_keys);
   const next_vault: EncryptedVault = {
     ...vault,
     previous_keys: identity_keys.previous_keys,
@@ -443,7 +442,7 @@ export async function commit_recovered_keys(
     next_vault.identity_key,
   );
 
-  if (!roundtrip_ok) return COMMIT_NOT_WRITTEN;
+  if (!roundtrip_ok) return { ...COMMIT_NOT_WRITTEN, roundtrip_failed: true };
   if (!(await server_vault_matches_stored(user_id))) return COMMIT_NOT_WRITTEN;
 
   const pushed = await push_vault_to_server(
@@ -466,10 +465,7 @@ export async function commit_recovered_keys(
   return {
     written: true,
     dropped_keks: absorbed_keks.dropped,
-    dropped_ratchet_keys: Math.max(
-      0,
-      all_ratchet_keys.length - ratchet_previous_keys.length,
-    ),
+    dropped_ratchet_keys: 0,
   };
 }
 

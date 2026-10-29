@@ -61,9 +61,9 @@ export function use_device_recovery(): void {
     const start = () => {
       started_for_ref.current = account_id;
       single_flight(account_id, async () => {
-        const consumed = await run_device_recovery(account_id);
+        const recovered = await run_device_recovery(account_id);
 
-        if (consumed > 0) announce_locked_data_changed(true);
+        if (recovered > 0) announce_locked_data_changed(true);
       });
       interval_id = setInterval(() => {
         single_flight(account_id, () => maintain_device_snapshot(account_id));

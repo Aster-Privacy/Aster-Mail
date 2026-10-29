@@ -33,6 +33,7 @@ import {
 
 import { array_to_base64, base64_to_array } from "./base64";
 import {
+  SNAPSHOT_REFRESH_MS,
   SNAPSHOT_TTL_MS,
   delete_device_snapshots,
   list_all_device_snapshots,
@@ -461,9 +462,15 @@ export async function refresh_device_snapshot(
     return false;
   }
 
-  const existing = await list_device_snapshots(user_id);
+  const superseded = (await list_device_snapshots(user_id)).filter(
+    (record) => record.source_hash === source_hash,
+  );
 
-  if (existing.some((record) => record.source_hash === source_hash)) {
+  if (
+    superseded.some(
+      (record) => Date.now() - record.created_at < SNAPSHOT_REFRESH_MS,
+    )
+  ) {
     return false;
   }
   if (put_blocked(user_id)) return false;
@@ -521,6 +528,11 @@ export async function refresh_device_snapshot(
 
       return false;
     }
+
+    const superseded_ids = superseded.map((record) => record.snapshot_id);
+
+    await forget_snapshots(superseded_ids);
+    drop_attempts(user_id, superseded_ids);
 
     return true;
   } finally {
@@ -602,10 +614,7 @@ async function recover_from_snapshots(
 
   if (opened.length === 0) return absorbed_hashes;
 
-  record_attempts(
-    user_id,
-    opened.map(({ record }) => record.snapshot_id),
-  );
+  const opened_ids = opened.map(({ record }) => record.snapshot_id);
 
   return with_vault_write_lock(async () => {
     if (!is_vault_owned_by(user_id)) return absorbed_hashes;
@@ -623,23 +632,32 @@ async function recover_from_snapshots(
       }
     }
 
-    const identity_keys = await merge_identity_keys_with(
-      vault,
-      opened.map(({ payload }) => ({
-        identity_key: payload.identity_key,
-        previous_keys: payload.previous_keys,
-        legacy_identity_keys: payload.legacy_identity_keys,
-      })),
-      async (armored) => {
-        const unlocked_armored = unlocked.get(armored);
+    let identity_keys: Awaited<ReturnType<typeof merge_identity_keys_with>>;
 
-        if (!unlocked_armored) {
-          throw new Error("device_recovery: key not in snapshot");
-        }
+    try {
+      identity_keys = await merge_identity_keys_with(
+        vault,
+        opened.map(({ payload }) => ({
+          identity_key: payload.identity_key,
+          previous_keys: payload.previous_keys,
+          legacy_identity_keys: payload.legacy_identity_keys,
+        })),
+        async (armored) => {
+          const unlocked_armored = unlocked.get(armored);
 
-        return lock_unlocked_pgp_key(unlocked_armored, passphrase);
-      },
-    );
+          if (!unlocked_armored) {
+            throw new Error("device_recovery: key not in snapshot");
+          }
+
+          return lock_unlocked_pgp_key(unlocked_armored, passphrase);
+        },
+      );
+    } catch {
+      unlocked.clear();
+      record_attempts(user_id, opened_ids);
+
+      return absorbed_hashes;
+    }
 
     unlocked.clear();
 
@@ -664,7 +682,15 @@ async function recover_from_snapshots(
       storage_keys,
     });
 
-    if (!committed.written || commit_dropped_keys(committed)) {
+    if (committed.roundtrip_failed) {
+      record_attempts(user_id, opened_ids);
+
+      return absorbed_hashes;
+    }
+    if (!committed.written) return absorbed_hashes;
+    if (commit_dropped_keys(committed)) {
+      record_attempts(user_id, opened_ids);
+
       return absorbed_hashes;
     }
 
@@ -673,6 +699,13 @@ async function recover_from_snapshots(
         absorbed_hashes.add(record.source_hash);
       }
     });
+
+    record_attempts(
+      user_id,
+      opened
+        .filter((_, index) => !identity_keys.absorbed[index])
+        .map(({ record }) => record.snapshot_id),
+    );
 
     return absorbed_hashes;
   });
@@ -781,7 +814,7 @@ export async function maintain_device_snapshot(user_id: string): Promise<void> {
 
 async function run_locked(user_id: string): Promise<number> {
   const inactive = await inactive_key_set_hashes();
-  let consumed = 0;
+  let recovered = 0;
 
   if (inactive && inactive.size > 0) {
     const absorbed = await recover_from_snapshots(
@@ -792,13 +825,13 @@ async function run_locked(user_id: string): Promise<number> {
 
     for (const [id, hash] of inactive) {
       if (!absorbed.has(hash)) continue;
+      recovered += 1;
 
       const response = await consume_inactive_key_set(id);
 
       if (response.error) continue;
       inactive.delete(id);
       used.add(hash);
-      consumed += 1;
     }
 
     if (used.size > 0) {
@@ -821,5 +854,5 @@ async function run_locked(user_id: string): Promise<number> {
     await prune_snapshots(user_id, archived);
   }
 
-  return consumed;
+  return recovered;
 }

@@ -70,6 +70,7 @@ vi.mock("./device_recovery_store", () => ({
     for (const id of ids) snapshots.delete(id);
   },
   SNAPSHOT_TTL_MS: 30 * 24 * 60 * 60 * 1000,
+  SNAPSHOT_REFRESH_MS: 7 * 24 * 60 * 60 * 1000,
 }));
 
 vi.mock("./key_manager", () => ({
@@ -581,6 +582,7 @@ describe("device recovery", () => {
         written: false,
         dropped_keks: 0,
         dropped_ratchet_keys: 0,
+        roundtrip_failed: true,
       });
 
       await run_device_recovery(USER);
@@ -604,6 +606,7 @@ describe("device recovery", () => {
         written: false,
         dropped_keks: 0,
         dropped_ratchet_keys: 0,
+        roundtrip_failed: true,
       });
 
       for (let day = 0; day < 5; day += 1) {
@@ -613,6 +616,64 @@ describe("device recovery", () => {
 
       expect(commit_recovered_keys).toHaveBeenCalledTimes(3);
       expect(consume_inactive_key_set).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("does not spend an attempt when the vault could not be saved", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+
+    try {
+      await reset_with_snapshot();
+      commit_recovered_keys.mockResolvedValue({
+        written: false,
+        dropped_keks: 0,
+        dropped_ratchet_keys: 0,
+      });
+
+      for (let run = 0; run < 5; run += 1) {
+        await run_device_recovery(USER);
+      }
+
+      expect(commit_recovered_keys).toHaveBeenCalledTimes(5);
+      expect(
+        localStorage.getItem(`astermail_device_recovery_attempts_${USER}`),
+      ).toBeNull();
+
+      commit_recovered_keys.mockResolvedValue({
+        written: true,
+        dropped_keks: 0,
+        dropped_ratchet_keys: 0,
+      });
+
+      expect(await run_device_recovery(USER)).toBe(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("renews the snapshot of an unchanged vault every week", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+
+    try {
+      const key = await make_key("pw");
+
+      install_vault("v1", key.armored, "pw");
+      await refresh_device_snapshot(USER);
+
+      const [first] = [...snapshots.keys()];
+
+      vi.setSystemTime(Date.now() + 6 * 24 * 60 * 60 * 1000);
+      expect(await refresh_device_snapshot(USER)).toBe(false);
+
+      vi.setSystemTime(Date.now() + 2 * 24 * 60 * 60 * 1000);
+      expect(await refresh_device_snapshot(USER)).toBe(true);
+
+      expect(snapshots.size).toBe(1);
+      expect(snapshots.has(first)).toBe(false);
+      expect(server_secrets.has(first)).toBe(false);
+      expect(server_secrets.size).toBe(1);
     } finally {
       vi.useRealTimers();
     }

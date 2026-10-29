@@ -250,7 +250,7 @@ describe("restore_inactive_key_sets", () => {
     expect(consume_inactive_key_set).not.toHaveBeenCalled();
   });
 
-  it("keeps the archive when the ratchet key list is already full", async () => {
+  it("keeps every recovered ratchet key when the list is already full", async () => {
     get_vault_from_memory.mockReturnValue({
       ...current_vault(),
       ratchet_previous_keys: Array.from({ length: 32 }, (_, i) =>
@@ -259,10 +259,40 @@ describe("restore_inactive_key_sets", () => {
     });
 
     expect(await restore_inactive_key_sets("old-password")).toMatchObject({
-      incomplete: 1,
+      restored: 1,
     });
-    expect(push_vault_to_server).toHaveBeenCalled();
-    expect(consume_inactive_key_set).not.toHaveBeenCalled();
+
+    const saved = encrypt_vault.mock.calls[0][0] as ReturnType<
+      typeof current_vault
+    > & { ratchet_previous_keys: Array<{ ratchet_identity_public: string }> };
+
+    expect(saved.ratchet_previous_keys.length).toBeGreaterThan(32);
+    expect(
+      saved.ratchet_previous_keys.map((k) => k.ratchet_identity_public),
+    ).toContain("archived-public");
+    expect(consume_inactive_key_set).toHaveBeenCalled();
+  });
+
+  it("keeps post-quantum key entries that carry no identity key", async () => {
+    get_vault_from_memory.mockReturnValue({
+      ...current_vault(),
+      ratchet_previous_keys: [
+        {
+          ratchet_pq_identity_key: "pq-secret",
+          ratchet_pq_identity_public: "pq-public",
+        },
+      ],
+    });
+
+    await restore_inactive_key_sets("old-password");
+
+    const saved = encrypt_vault.mock.calls[0][0] as {
+      ratchet_previous_keys: Array<{ ratchet_pq_identity_public?: string }>;
+    };
+
+    expect(
+      saved.ratchet_previous_keys.map((k) => k.ratchet_pq_identity_public),
+    ).toContain("pq-public");
   });
 
   it("never consumes an archive it could not store", async () => {

@@ -25,6 +25,7 @@ const SNAPSHOT_STORE = "snapshots";
 const DEVICE_KEY_ID = "device_recovery_key_v1";
 
 export const SNAPSHOT_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+export const SNAPSHOT_REFRESH_MS = 7 * 24 * 60 * 60 * 1000;
 
 export interface DeviceSnapshotRecord {
   snapshot_id: string;
