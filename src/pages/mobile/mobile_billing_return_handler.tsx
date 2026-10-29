@@ -29,6 +29,10 @@ import {
   request_checkout_resume,
 } from "@/services/api/billing";
 import { request_cache } from "@/services/api/request_cache";
+import {
+  is_activated_plan,
+  wait_for_slow_activation,
+} from "@/lib/billing_activation_poll";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import {
   show_toast,
@@ -186,6 +190,18 @@ export function MobileBillingReturnHandler() {
 
       clear_checkout_target();
 
+      const welcome = (open_billing: boolean) => {
+        request_cache.invalidate("/sync/v1");
+        invalidate_mail_stats();
+        window.dispatchEvent(new CustomEvent("aster:plan-changed"));
+        if (open_billing) navigate("/settings/billing");
+        if (checkout_target?.special_offer) {
+          set_offer_welcome(true);
+        } else {
+          show_toast(t("settings.checkout_welcome"), "success");
+        }
+      };
+
       for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
         await new Promise((resolve) =>
           setTimeout(resolve, attempt === 0 ? 800 : 1500),
@@ -193,21 +209,12 @@ export function MobileBillingReturnHandler() {
         if (disposed.current) return;
         request_cache.invalidate("/payments/v1");
         const response = await get_subscription();
-        const live = response.data?.plan.code;
-        const activated = target
-          ? live === target
-          : Boolean(live) && live !== "free";
 
-        if (response.data && activated) {
-          request_cache.invalidate("/sync/v1");
-          invalidate_mail_stats();
-          window.dispatchEvent(new CustomEvent("aster:plan-changed"));
-          navigate("/settings/billing");
-          if (checkout_target?.special_offer) {
-            set_offer_welcome(true);
-          } else {
-            show_toast(t("settings.checkout_welcome"), "success");
-          }
+        if (
+          response.data &&
+          is_activated_plan(response.data.plan.code, target)
+        ) {
+          welcome(true);
 
           return;
         }
@@ -222,6 +229,13 @@ export function MobileBillingReturnHandler() {
         "info",
         TOAST_DURATION_BILLING_MS,
       );
+
+      const late = await wait_for_slow_activation(
+        target,
+        () => disposed.current,
+      );
+
+      if (late) welcome(false);
     })();
   }, [is_authenticated, navigate, t]);
 
