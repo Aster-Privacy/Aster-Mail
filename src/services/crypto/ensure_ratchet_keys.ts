@@ -38,11 +38,18 @@ import {
   derive_pq_identity_from_seed,
 } from "./ratchet_manager";
 import { upload_prekey_bundle_result } from "./ratchet_prekey_bundle";
-import { merge_previous_ratchet_keys } from "./key_manager_core";
+import {
+  carry_displaced_ratchet_keys,
+  retain_replaced_ratchet_keys,
+  vault_holds_ratchet_keys,
+} from "./ratchet_key_continuity";
 import { clear_all_ratchet_states } from "./ratchet_state_store";
 import { report_envelope_capability_if_due } from "./envelope_capability";
 import { with_vault_write_lock } from "./vault_write_lock";
-import { complete_p256_private_jwk, is_compact_p256_private_jwk } from "./p256_jwk";
+import {
+  complete_p256_private_jwk,
+  is_compact_p256_private_jwk,
+} from "./p256_jwk";
 import { recover_ratchet_keys_from_history_locked } from "./vault_key_recovery";
 import { collect_vault_key_fingerprints } from "./vault_key_fingerprints";
 import { published_bundle_needs_resigning } from "./published_signing_key";
@@ -149,16 +156,18 @@ async function report_capability(): Promise<void> {
 
     if (!result || result.identity_verified) return;
 
-    const freshness = await sync_vault_with_server();
+    await with_vault_write_lock(async () => {
+      const freshness = await sync_vault_with_server();
 
-    if (freshness.status === "unverified") return;
+      if (freshness.status === "unverified") return;
 
-    const vault =
-      freshness.status === "adopted"
-        ? freshness.vault
-        : get_vault_from_memory();
+      const vault =
+        freshness.status === "adopted"
+          ? freshness.vault
+          : get_vault_from_memory();
 
-    if (vault) await upload_prekey_bundle_with_retry(vault);
+      if (vault) await upload_prekey_bundle_with_retry(vault);
+    });
   } catch {
     return;
   }
@@ -266,37 +275,15 @@ async function keypairs_consistent(
 
 const FORCED_REGEN_KEY = "astermail_ratchet_regen_v4";
 
-const RATCHET_PREVIOUS_KEY_RETENTION = 32;
-
 function retain_replaced_pq_identity(
   vault: EncryptedVault,
+  next_vault: EncryptedVault,
 ): EncryptedVault["ratchet_previous_keys"] {
-  const previous = vault.ratchet_previous_keys
-    ? [...vault.ratchet_previous_keys]
-    : [];
-
-  if (
-    !vault.ratchet_pq_identity_key ||
-    !vault.ratchet_pq_identity_public ||
-    !vault.ratchet_identity_key ||
-    !vault.ratchet_identity_public ||
-    !vault.ratchet_signed_prekey ||
-    !vault.ratchet_signed_prekey_public
-  ) {
+  if (!vault.ratchet_pq_identity_key || !vault.ratchet_pq_identity_public) {
     return vault.ratchet_previous_keys;
   }
 
-  previous.unshift({
-    ratchet_identity_key: vault.ratchet_identity_key,
-    ratchet_identity_public: vault.ratchet_identity_public,
-    ratchet_signed_prekey: vault.ratchet_signed_prekey,
-    ratchet_signed_prekey_public: vault.ratchet_signed_prekey_public,
-    ratchet_pq_identity_key: vault.ratchet_pq_identity_key,
-    ratchet_pq_identity_public: vault.ratchet_pq_identity_public,
-    ratchet_pq_identity_seed: vault.ratchet_pq_identity_seed,
-  });
-
-  return previous.slice(0, RATCHET_PREVIOUS_KEY_RETENTION);
+  return retain_replaced_ratchet_keys(vault, next_vault);
 }
 
 function derive_public_b64_from_jwk(jwk_string: string): string | null {
@@ -416,7 +403,7 @@ async function fetch_server_vault(): Promise<ServerVaultFetch> {
       "/crypto/v1/keys/vault",
     );
 
-    if (response.code === "NOT_FOUND" || response.code === "UNKNOWN_ERROR") {
+    if (response.code === "NOT_FOUND") {
       return { kind: "missing" };
     }
 
@@ -467,10 +454,13 @@ export async function sync_vault_with_server(): Promise<VaultFreshness> {
   let adopted: EncryptedVault;
 
   try {
-    adopted = await decrypt_vault(
-      server_vault.encrypted_vault,
-      server_vault.vault_nonce,
-      passphrase,
+    adopted = carry_displaced_ratchet_keys(
+      await decrypt_vault(
+        server_vault.encrypted_vault,
+        server_vault.vault_nonce,
+        passphrase,
+      ),
+      get_vault_from_memory(),
     );
   } catch {
     return { status: "unverified" };
@@ -528,10 +518,42 @@ async function refresh_vault_write_stamp(): Promise<boolean> {
   );
 }
 
+export async function server_vault_holds_publish_keys(
+  vault: EncryptedVault,
+): Promise<boolean> {
+  const passphrase = get_passphrase_from_memory();
+
+  if (!passphrase) return false;
+
+  const server_vault = await fetch_server_vault();
+
+  if (server_vault.kind !== "ok") return false;
+
+  try {
+    const decrypted = await decrypt_vault(
+      server_vault.encrypted_vault,
+      server_vault.vault_nonce,
+      passphrase,
+    );
+
+    return vault_holds_ratchet_keys(decrypted, vault);
+  } catch {
+    return false;
+  }
+}
+
+export function publish_vaulted_prekey_bundle(
+  vault: EncryptedVault,
+): Promise<boolean> {
+  return with_vault_write_lock(() => upload_prekey_bundle_with_retry(vault));
+}
+
 async function upload_prekey_bundle_with_retry(
   vault: EncryptedVault,
 ): Promise<boolean> {
   try {
+    if (!(await server_vault_holds_publish_keys(vault))) return false;
+
     const first = await upload_prekey_bundle_result(vault);
 
     if (first.ok) return true;
@@ -550,6 +572,8 @@ async function upload_prekey_bundle_with_retry(
       const recovered = await recover_ratchet_keys_from_history_locked();
 
       if (!recovered) return false;
+
+      if (!(await server_vault_holds_publish_keys(recovered))) return false;
 
       return (await upload_prekey_bundle_result(recovered)).ok;
     }
@@ -701,47 +725,34 @@ async function run_locked_with_vault(
       ));
 
     if (has_ecdh && ecdh_consistent && !has_pq) {
-      next_vault.ratchet_previous_keys = retain_replaced_pq_identity(vault);
-
       const pq_keys = await generate_pq_identity_keys();
 
       next_vault.ratchet_pq_identity_key = pq_keys.pq_identity_secret;
       next_vault.ratchet_pq_identity_public = pq_keys.pq_identity_public;
       next_vault.ratchet_pq_identity_seed = pq_keys.pq_identity_seed;
+      next_vault.ratchet_previous_keys = retain_replaced_pq_identity(
+        vault,
+        next_vault,
+      );
     } else if (can_repair) {
       next_vault.ratchet_identity_public = repaired_identity_public!;
       next_vault.ratchet_signed_prekey_public = repaired_spk_public!;
 
       if (!has_pq) {
-        next_vault.ratchet_previous_keys = retain_replaced_pq_identity(vault);
-
         const pq_keys = await generate_pq_identity_keys();
 
         next_vault.ratchet_pq_identity_key = pq_keys.pq_identity_secret;
         next_vault.ratchet_pq_identity_public = pq_keys.pq_identity_public;
         next_vault.ratchet_pq_identity_seed = pq_keys.pq_identity_seed;
+        next_vault.ratchet_previous_keys = retain_replaced_pq_identity(
+          vault,
+          next_vault,
+        );
       }
     } else {
       const ratchet_keys = await generate_ratchet_keys();
 
       if (!ratchet_keys) return false;
-
-      if (has_ecdh) {
-        const old_set = {
-          ratchet_identity_key: vault.ratchet_identity_key!,
-          ratchet_identity_public: vault.ratchet_identity_public!,
-          ratchet_signed_prekey: vault.ratchet_signed_prekey!,
-          ratchet_signed_prekey_public: vault.ratchet_signed_prekey_public!,
-          ratchet_pq_identity_key: vault.ratchet_pq_identity_key,
-          ratchet_pq_identity_public: vault.ratchet_pq_identity_public,
-          ratchet_pq_identity_seed: vault.ratchet_pq_identity_seed,
-        };
-
-        next_vault.ratchet_previous_keys = merge_previous_ratchet_keys(
-          [old_set],
-          vault.ratchet_previous_keys,
-        );
-      }
 
       next_vault.ratchet_identity_key = ratchet_keys.identity_jwk;
       next_vault.ratchet_identity_public = ratchet_keys.identity_public;
@@ -751,6 +762,13 @@ async function run_locked_with_vault(
       next_vault.ratchet_pq_identity_key = ratchet_keys.pq_identity_secret;
       next_vault.ratchet_pq_identity_public = ratchet_keys.pq_identity_public;
       next_vault.ratchet_pq_identity_seed = ratchet_keys.pq_identity_seed;
+
+      if (has_ecdh) {
+        next_vault.ratchet_previous_keys = retain_replaced_ratchet_keys(
+          vault,
+          next_vault,
+        );
+      }
 
       clear_states = true;
     }

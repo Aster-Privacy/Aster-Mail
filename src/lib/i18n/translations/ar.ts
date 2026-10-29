@@ -894,20 +894,13 @@ export const ar = {
     file_too_large: "يجب أن يكون الملف أصغر من {{size}}.",
     delete_failed: "حاول مجددًا.",
     download_failed: "لم يكتمل التنزيل. حاول مجددًا.",
-    download_complete:
-      "اكتمل التنزيل",
-    downloaded_file:
-      "تم تنزيل {{file_name}}",
-    open_file:
-      "فتح",
-    show_in_folder:
-      "إظهار في المجلد",
-    show_in_finder:
-      "إظهار في Finder",
-    download_open_failed:
-      "تعذر فتح هذا الملف. ربما نُقل أو حُذف.",
-    download_reveal_failed:
-      "تعذر إظهار هذا الملف. ربما نُقل أو حُذف.",
+    download_complete: "اكتمل التنزيل",
+    downloaded_file: "تم تنزيل {{file_name}}",
+    open_file: "فتح",
+    show_in_folder: "إظهار في المجلد",
+    show_in_finder: "إظهار في Finder",
+    download_open_failed: "تعذر فتح هذا الملف. ربما نُقل أو حُذف.",
+    download_reveal_failed: "تعذر إظهار هذا الملف. ربما نُقل أو حُذف.",
     attachment_locked:
       "لا يمكن فتح هذا المرفق لأن مفتاح التشفير الخاص به غير متوفر على هذا الجهاز.",
     scheduled_no_attachments:
@@ -1316,6 +1309,19 @@ export const ar = {
       "محاولات كثيرة جدًا. انتظر 30 دقيقة ثم حاول مرة أخرى.",
     recover_data_failed:
       "تعذّر فتح بعض البيانات. تحقق من اتصالك وحاول مرة أخرى.",
+    recover_data_key_file_label: "ملف المفتاح",
+    recover_data_key_file_description:
+      "لفتح الرسائل القديمة باستخدام مفتاح خاص صدّرته من Aster، اختر ملف .asc. لفتح الرسائل المشفرة بـ PGP أيضًا، أدخل كلمة المرور التي كانت لحسابك عند تصدير المفتاح.",
+    recover_data_choose_file: "اختيار ملف",
+    recover_data_key_file_password: "كلمة المرور عند التصدير (اختيارية)",
+    recover_data_key_file_invalid:
+      "هذا الملف ليس مفتاحًا خاصًا مُصدّرًا. اختر ملف .asc الذي نزّلته من Aster.",
+    recover_data_key_file_wrong_password:
+      "كلمة المرور هذه لا تفتح ملف المفتاح. أدخل كلمة المرور التي كانت لحسابك عند تصدير المفتاح.",
+    recover_data_key_file_already: "هذا المفتاح موجود في حسابك بالفعل.",
+    recover_data_key_file_success: "تم استيراد ملف المفتاح.",
+    recover_data_key_file_success_locked:
+      "تم استيراد ملف المفتاح. لفتح الرسائل المشفرة بـ PGP أيضًا، استورده مرة أخرى باستخدام كلمة المرور التي كانت لحسابك عند تصدير المفتاح.",
     payment_past_due_message:
       "لم تتم عملية الدفع الأخيرة. حدّث طريقة الدفع للاحتفاظ بخطتك.",
     payment_past_due_message_days:
@@ -4155,6 +4161,10 @@ export const ar = {
       "لم تكتمل إعادة تشفير بعض الأسماء المستعارة، لذا لم تتغير كلمة المرور. حاول مرة أخرى، وتواصل مع الدعم إذا تكرر ذلك.",
     password_change_fingerprint_mismatch:
       "بدأت هذه الجلسة على شبكة أو متصفح مختلف، لذا لم يغيّر Aster Mail كلمة المرور. لتغييرها، سجّل الخروج ثم سجّل الدخول مرة أخرى وحاول مجددًا.",
+    password_change_identity_continuity_required:
+      "لم يغيّر Aster Mail كلمة المرور لأن التغيير سيزيل مفاتيح تشفير تحتاجها رسائلك الأقدم. للمحاولة مرة أخرى، سجّل الخروج ثم سجّل الدخول مرة أخرى وغيّر كلمة المرور.",
+    password_change_vault_out_of_date:
+      "تم تغيير كلمة المرور على جهاز آخر، لذا هذه الجلسة لم تعد محدّثة. لتغيير كلمة المرور، سجّل الخروج ثم سجّل الدخول مرة أخرى باستخدام كلمة المرور الحالية.",
     update_password: "تحديث كلمة المرور",
     updating: "جارٍ التحديث...",
     password_change_encrypted_data_warning:

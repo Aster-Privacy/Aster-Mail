@@ -932,16 +932,11 @@ export const hi = {
     file_too_large: "फ़ाइल {{size}} से छोटी होनी चाहिए",
     delete_failed: "फिर से कोशिश करें।",
     download_failed: "फिर से कोशिश करें।",
-    download_complete:
-      "डाउनलोड पूरा हुआ",
-    downloaded_file:
-      "{{file_name}} डाउनलोड हो गई",
-    open_file:
-      "खोलें",
-    show_in_folder:
-      "फ़ोल्डर में दिखाएं",
-    show_in_finder:
-      "Finder में दिखाएं",
+    download_complete: "डाउनलोड पूरा हुआ",
+    downloaded_file: "{{file_name}} डाउनलोड हो गई",
+    open_file: "खोलें",
+    show_in_folder: "फ़ोल्डर में दिखाएं",
+    show_in_finder: "Finder में दिखाएं",
     download_open_failed:
       "यह फ़ाइल नहीं खुल सकी। हो सकता है कि इसे हटा दिया गया हो या कहीं और ले जाया गया हो।",
     download_reveal_failed:
@@ -1392,6 +1387,19 @@ export const hi = {
       "बहुत ज़्यादा कोशिशें हुईं। 30 मिनट इंतज़ार करें, फिर दोबारा कोशिश करें।",
     recover_data_failed:
       "कुछ डेटा अनलॉक नहीं हो सका। अपना कनेक्शन जांचें और फिर से कोशिश करें।",
+    recover_data_key_file_label: "कुंजी फ़ाइल",
+    recover_data_key_file_description:
+      "Aster से एक्सपोर्ट की गई निजी कुंजी से पुराने ईमेल अनलॉक करने के लिए .asc फ़ाइल चुनें। PGP से एन्क्रिप्ट किए गए ईमेल भी अनलॉक करने के लिए, कुंजी एक्सपोर्ट करते समय आपके खाते का पासवर्ड डालें।",
+    recover_data_choose_file: "फ़ाइल चुनें",
+    recover_data_key_file_password: "एक्सपोर्ट के समय का पासवर्ड (वैकल्पिक)",
+    recover_data_key_file_invalid:
+      "यह फ़ाइल एक्सपोर्ट की गई निजी कुंजी नहीं है। Aster से डाउनलोड की गई .asc फ़ाइल चुनें।",
+    recover_data_key_file_wrong_password:
+      "यह पासवर्ड इस कुंजी फ़ाइल को अनलॉक नहीं करता। कुंजी एक्सपोर्ट करते समय आपके खाते का पासवर्ड डालें।",
+    recover_data_key_file_already: "यह कुंजी पहले से आपके खाते में है।",
+    recover_data_key_file_success: "आपकी कुंजी फ़ाइल इम्पोर्ट हो गई है।",
+    recover_data_key_file_success_locked:
+      "आपकी कुंजी फ़ाइल इम्पोर्ट हो गई है। PGP से एन्क्रिप्ट किए गए ईमेल भी अनलॉक करने के लिए, कुंजी एक्सपोर्ट करते समय के खाते के पासवर्ड के साथ इसे फिर से इम्पोर्ट करें।",
     payment_past_due_message:
       "आपका पिछला भुगतान नहीं हो सका। अपना प्लान बनाए रखने के लिए भुगतान का तरीका अपडेट करें।",
     payment_past_due_message_days:
@@ -2726,10 +2734,12 @@ export const hi = {
     updates_card_downloading: "Aster Mail {{version}} डाउनलोड हो रहा है",
     updates_card_size: "{{total}} में से {{downloaded}}",
     updates_card_installing: "अपडेट इंस्टॉल हो रहा है",
-    updates_card_installing_detail: "Aster Mail कुछ ही पल में फिर से शुरू होगा।",
+    updates_card_installing_detail:
+      "Aster Mail कुछ ही पल में फिर से शुरू होगा।",
     updates_card_failed: "अपडेट इंस्टॉल नहीं हुआ",
     updates_card_failed_detail: "अपना कनेक्शन जांचें और फिर से कोशिश करें।",
-    updates_card_available_detail: "इंस्टॉल पूरा करने के लिए Aster Mail फिर से शुरू होता है।",
+    updates_card_available_detail:
+      "इंस्टॉल पूरा करने के लिए Aster Mail फिर से शुरू होता है।",
     updates_time_left_moment: "लगभग हो गया",
     updates_time_left_seconds: "लगभग {{seconds}} सेकंड बाकी",
     updates_time_left_minutes: "लगभग {{minutes}} मिनट बाकी",
@@ -2844,6 +2854,10 @@ export const hi = {
       "आपके कुछ एलियास दोबारा एन्क्रिप्ट होना पूरा नहीं कर पाए, इसलिए आपका पासवर्ड नहीं बदला। फिर से कोशिश करें, और अगर यह बार-बार हो तो सहायता से संपर्क करें।",
     password_change_fingerprint_mismatch:
       "यह सत्र किसी दूसरे नेटवर्क या ब्राउज़र पर शुरू हुआ था, इसलिए Aster Mail ने आपका पासवर्ड नहीं बदला। इसे बदलने के लिए साइन आउट करें, फिर साइन इन करके कोशिश करें।",
+    password_change_identity_continuity_required:
+      "Aster Mail ने आपका पासवर्ड नहीं बदला, क्योंकि इस बदलाव से वे एन्क्रिप्शन कुंजियां हट जातीं जिनकी आपके पुराने संदेशों को ज़रूरत है। फिर से कोशिश करने के लिए साइन आउट करें, फिर साइन इन करें और अपना पासवर्ड बदलें।",
+    password_change_vault_out_of_date:
+      "आपका पासवर्ड किसी दूसरे डिवाइस पर बदला गया था, इसलिए यह सत्र अब अद्यतित नहीं है। अपना पासवर्ड बदलने के लिए साइन आउट करें और अपने मौजूदा पासवर्ड से फिर से साइन इन करें।",
     update_password: "पासवर्ड अपडेट करें",
     updating: "अपडेट हो रहा है...",
     password_change_encrypted_data_warning:

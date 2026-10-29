@@ -937,16 +937,11 @@ export const fr = {
     file_too_large: "Le fichier doit être inférieur à {{size}}",
     delete_failed: "Réessayez.",
     download_failed: "Ce téléchargement n'a pas abouti. Réessayez.",
-    download_complete:
-      "Téléchargement terminé",
-    downloaded_file:
-      "{{file_name}} téléchargé",
-    open_file:
-      "Ouvrir",
-    show_in_folder:
-      "Afficher dans le dossier",
-    show_in_finder:
-      "Afficher dans le Finder",
+    download_complete: "Téléchargement terminé",
+    downloaded_file: "{{file_name}} téléchargé",
+    open_file: "Ouvrir",
+    show_in_folder: "Afficher dans le dossier",
+    show_in_finder: "Afficher dans le Finder",
     download_open_failed:
       "Impossible d'ouvrir ce fichier. Il a peut-être été déplacé ou supprimé.",
     download_reveal_failed:
@@ -1384,6 +1379,21 @@ export const fr = {
       "Trop de tentatives. Patientez 30 minutes, puis réessayez.",
     recover_data_failed:
       "Certaines données n'ont pas pu être déverrouillées. Vérifiez votre connexion et réessayez.",
+    recover_data_key_file_label: "Fichier de clé",
+    recover_data_key_file_description:
+      "Pour déverrouiller d'anciens e-mails avec une clé privée exportée depuis Aster, choisissez le fichier .asc. Pour déverrouiller aussi les e-mails chiffrés avec PGP, saisissez le mot de passe de votre compte au moment de l'exportation de la clé.",
+    recover_data_choose_file: "Choisir un fichier",
+    recover_data_key_file_password:
+      "Mot de passe lors de l'exportation (facultatif)",
+    recover_data_key_file_invalid:
+      "Ce fichier n'est pas une clé privée exportée. Choisissez le fichier .asc téléchargé depuis Aster.",
+    recover_data_key_file_wrong_password:
+      "Ce mot de passe ne déverrouille pas ce fichier de clé. Saisissez le mot de passe de votre compte au moment de l'exportation de la clé.",
+    recover_data_key_file_already:
+      "Cette clé est déjà associée à votre compte.",
+    recover_data_key_file_success: "Votre fichier de clé est importé.",
+    recover_data_key_file_success_locked:
+      "Votre fichier de clé est importé. Pour déverrouiller aussi les e-mails chiffrés avec PGP, importez-le de nouveau avec le mot de passe de votre compte au moment de l'exportation de la clé.",
     payment_past_due_message:
       "Votre dernier paiement n'a pas abouti. Mettez à jour votre moyen de paiement pour conserver votre offre.",
     payment_past_due_message_days:
@@ -3961,7 +3971,8 @@ export const fr = {
     updates_card_installing_detail: "Aster Mail va redémarrer dans un instant.",
     updates_card_failed: "La mise à jour n'a pas été installée",
     updates_card_failed_detail: "Vérifiez votre connexion et réessayez.",
-    updates_card_available_detail: "Aster Mail redémarre pour terminer l'installation.",
+    updates_card_available_detail:
+      "Aster Mail redémarre pour terminer l'installation.",
     updates_time_left_moment: "Presque terminé",
     updates_time_left_seconds: "Environ {{seconds}} s restantes",
     updates_time_left_minutes: "Environ {{minutes}} min restantes",
@@ -4067,6 +4078,10 @@ export const fr = {
       "Certains de vos alias n'ont pas fini d'être rechiffrés, votre mot de passe n'a donc pas été modifié. Réessayez et contactez l'assistance si le problème persiste.",
     password_change_fingerprint_mismatch:
       "Cette session a démarré sur un autre réseau ou un autre navigateur, donc Aster Mail n'a pas modifié votre mot de passe. Pour le modifier, déconnectez-vous, reconnectez-vous, puis réessayez.",
+    password_change_identity_continuity_required:
+      "Aster Mail n'a pas modifié votre mot de passe, car la modification supprimerait des clés de chiffrement dont vos anciens messages ont besoin. Pour réessayer, déconnectez-vous, reconnectez-vous, puis modifiez votre mot de passe.",
+    password_change_vault_out_of_date:
+      "Votre mot de passe a été modifié sur un autre appareil, donc cette session n'est plus à jour. Pour modifier votre mot de passe, déconnectez-vous et reconnectez-vous avec votre mot de passe actuel.",
     update_password: "Mettre à jour le mot de passe",
     updating: "Mise à jour...",
     password_change_encrypted_data_warning:

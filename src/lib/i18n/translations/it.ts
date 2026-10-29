@@ -929,16 +929,11 @@ export const it = {
     file_too_large: "Il file deve essere inferiore a {{size}}",
     delete_failed: "Riprova.",
     download_failed: "Questo download non è stato completato. Riprova.",
-    download_complete:
-      "Download completato",
-    downloaded_file:
-      "{{file_name}} scaricato",
-    open_file:
-      "Apri",
-    show_in_folder:
-      "Mostra nella cartella",
-    show_in_finder:
-      "Mostra nel Finder",
+    download_complete: "Download completato",
+    downloaded_file: "{{file_name}} scaricato",
+    open_file: "Apri",
+    show_in_folder: "Mostra nella cartella",
+    show_in_finder: "Mostra nel Finder",
     download_open_failed:
       "Impossibile aprire questo file. Potrebbe essere stato spostato o eliminato.",
     download_reveal_failed:
@@ -1355,6 +1350,19 @@ export const it = {
     recover_data_rate_limited: "Troppi tentativi. Attendi 30 minuti e riprova.",
     recover_data_failed:
       "Non è stato possibile sbloccare alcuni dati. Controlla la connessione e riprova.",
+    recover_data_key_file_label: "File della chiave",
+    recover_data_key_file_description:
+      "Per sbloccare le email meno recenti con una chiave privata esportata da Aster, scegli il file .asc. Per sbloccare anche le email cifrate con PGP, inserisci la password che il tuo account aveva quando hai esportato la chiave.",
+    recover_data_choose_file: "Scegli file",
+    recover_data_key_file_password: "Password all'esportazione (facoltativa)",
+    recover_data_key_file_invalid:
+      "Questo file non è una chiave privata esportata. Scegli il file .asc scaricato da Aster.",
+    recover_data_key_file_wrong_password:
+      "Questa password non sblocca il file della chiave. Inserisci la password che il tuo account aveva quando hai esportato la chiave.",
+    recover_data_key_file_already: "Questa chiave è già nel tuo account.",
+    recover_data_key_file_success: "Il file della chiave è stato importato.",
+    recover_data_key_file_success_locked:
+      "Il file della chiave è stato importato. Per sbloccare anche le email cifrate con PGP, importalo di nuovo con la password che il tuo account aveva quando hai esportato la chiave.",
     payment_past_due_message:
       "Il tuo ultimo pagamento non è andato a buon fine. Aggiorna il metodo di pagamento per mantenere il tuo piano.",
     payment_past_due_message_days:
@@ -3957,7 +3965,8 @@ export const it = {
     updates_card_installing_detail: "Aster Mail si riavvierà tra un momento.",
     updates_card_failed: "L'aggiornamento non è stato installato",
     updates_card_failed_detail: "Controlla la connessione e riprova.",
-    updates_card_available_detail: "Aster Mail si riavvia per completare l'installazione.",
+    updates_card_available_detail:
+      "Aster Mail si riavvia per completare l'installazione.",
     updates_time_left_moment: "Quasi fatto",
     updates_time_left_seconds: "Circa {{seconds}} s rimanenti",
     updates_time_left_minutes: "Circa {{minutes}} min rimanenti",
@@ -4073,6 +4082,10 @@ export const it = {
       "Alcuni dei tuoi alias non hanno completato la ricifratura, quindi la tua password non è stata modificata. Riprova e contatta l'assistenza se il problema persiste.",
     password_change_fingerprint_mismatch:
       "Questa sessione è iniziata su una rete o un browser diverso, quindi Aster Mail non ha modificato la tua password. Per modificarla, esci, accedi di nuovo e riprova.",
+    password_change_identity_continuity_required:
+      "Aster Mail non ha modificato la tua password perché la modifica rimuoverebbe chiavi di crittografia necessarie ai tuoi messaggi meno recenti. Per riprovare, esci, accedi di nuovo e modifica la password.",
+    password_change_vault_out_of_date:
+      "La tua password è stata modificata su un altro dispositivo, quindi questa sessione non è aggiornata. Per modificare la password, esci e accedi di nuovo con la password attuale.",
     update_password: "Aggiorna password",
     updating: "Aggiornamento...",
     password_change_encrypted_data_warning:

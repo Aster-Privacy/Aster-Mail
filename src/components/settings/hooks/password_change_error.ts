@@ -26,12 +26,16 @@ const CLIENT_UPGRADE_REQUIRED_CODE = "CLIENT_UPGRADE_REQUIRED";
 
 const ALIAS_REENCRYPTION_INCOMPLETE_CODE = "ALIAS_REENCRYPTION_INCOMPLETE";
 
+const IDENTITY_CONTINUITY_REQUIRED_CODE = "IDENTITY_CONTINUITY_REQUIRED";
+
 const SERVER_ERROR_TRANSLATION_KEYS: Record<string, TranslationKey> = {
   [FINGERPRINT_MISMATCH_CODE]: "settings.password_change_fingerprint_mismatch",
   [CLIENT_UPGRADE_REQUIRED_CODE]:
     "settings.password_change_client_upgrade_required",
   [ALIAS_REENCRYPTION_INCOMPLETE_CODE]:
     "settings.password_change_reencryption_incomplete",
+  [IDENTITY_CONTINUITY_REQUIRED_CODE]:
+    "settings.password_change_identity_continuity_required",
 };
 
 export function resolve_password_change_error(
@@ -48,5 +52,13 @@ export function resolve_password_change_error(
   const normalized = server_error.trim().toUpperCase();
   const translation_key = SERVER_ERROR_TRANSLATION_KEYS[normalized];
 
-  return translation_key ? translate(translation_key) : server_error;
+  if (translation_key) return translate(translation_key);
+
+  if (normalized.includes(IDENTITY_CONTINUITY_REQUIRED_CODE)) {
+    return translate(
+      SERVER_ERROR_TRANSLATION_KEYS[IDENTITY_CONTINUITY_REQUIRED_CODE],
+    );
+  }
+
+  return server_error;
 }

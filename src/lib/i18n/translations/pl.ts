@@ -929,16 +929,11 @@ export const pl = {
       "Ten plik ma {{size}} MB, co przekracza limit. Warto wybrać mniejszy.",
     delete_failed: "Spróbuj ponownie.",
     download_failed: "Pobieranie nie zostało ukończone. Spróbuj ponownie.",
-    download_complete:
-      "Pobieranie zakończone",
-    downloaded_file:
-      "Pobrano {{file_name}}",
-    open_file:
-      "Otwórz",
-    show_in_folder:
-      "Pokaż w folderze",
-    show_in_finder:
-      "Pokaż w Finderze",
+    download_complete: "Pobieranie zakończone",
+    downloaded_file: "Pobrano {{file_name}}",
+    open_file: "Otwórz",
+    show_in_folder: "Pokaż w folderze",
+    show_in_finder: "Pokaż w Finderze",
     download_open_failed:
       "Nie można otworzyć tego pliku. Mógł zostać przeniesiony lub usunięty.",
     download_reveal_failed:
@@ -1382,6 +1377,19 @@ export const pl = {
       "Zbyt wiele prób. Odczekaj 30 minut i spróbuj ponownie.",
     recover_data_failed:
       "Nie udało się odblokować części danych. Sprawdź połączenie i spróbuj ponownie.",
+    recover_data_key_file_label: "Plik klucza",
+    recover_data_key_file_description:
+      "Aby odblokować starsze wiadomości kluczem prywatnym wyeksportowanym z Aster, wybierz plik .asc. Aby odblokować także wiadomości zaszyfrowane PGP, wpisz hasło, które miało Twoje konto w chwili eksportu klucza.",
+    recover_data_choose_file: "Wybierz plik",
+    recover_data_key_file_password: "Hasło przy eksporcie (opcjonalnie)",
+    recover_data_key_file_invalid:
+      "Ten plik nie jest wyeksportowanym kluczem prywatnym. Wybierz plik .asc pobrany z Aster.",
+    recover_data_key_file_wrong_password:
+      "To hasło nie odblokowuje tego pliku klucza. Wpisz hasło, które miało Twoje konto w chwili eksportu klucza.",
+    recover_data_key_file_already: "Ten klucz jest już na Twoim koncie.",
+    recover_data_key_file_success: "Plik klucza został zaimportowany.",
+    recover_data_key_file_success_locked:
+      "Plik klucza został zaimportowany. Aby odblokować także wiadomości zaszyfrowane PGP, zaimportuj go ponownie z hasłem, które miało Twoje konto w chwili eksportu klucza.",
     payment_past_due_message:
       "Ostatnia płatność nie powiodła się. Zaktualizuj metodę płatności, aby zachować swój plan.",
     payment_past_due_message_days:
@@ -4085,10 +4093,12 @@ export const pl = {
     updates_card_downloading: "Pobieranie Aster Mail {{version}}",
     updates_card_size: "{{downloaded}} z {{total}}",
     updates_card_installing: "Instalowanie aktualizacji",
-    updates_card_installing_detail: "Aster Mail za chwilę uruchomi się ponownie.",
+    updates_card_installing_detail:
+      "Aster Mail za chwilę uruchomi się ponownie.",
     updates_card_failed: "Nie udało się zainstalować aktualizacji",
     updates_card_failed_detail: "Sprawdź połączenie i spróbuj ponownie.",
-    updates_card_available_detail: "Aster Mail uruchomi się ponownie, aby dokończyć instalację.",
+    updates_card_available_detail:
+      "Aster Mail uruchomi się ponownie, aby dokończyć instalację.",
     updates_time_left_moment: "Prawie gotowe",
     updates_time_left_seconds: "Pozostało około {{seconds}} s",
     updates_time_left_minutes: "Pozostało około {{minutes}} min",
@@ -4192,6 +4202,10 @@ export const pl = {
       "Część Twoich aliasów nie została w pełni ponownie zaszyfrowana, więc Twoje hasło nie zostało zmienione. Spróbuj ponownie, a jeśli problem się powtarza, skontaktuj się z pomocą techniczną.",
     password_change_fingerprint_mismatch:
       "Ta sesja rozpoczęła się w innej sieci lub przeglądarce, więc Aster Mail nie zmienił Twojego hasła. Aby je zmienić, wyloguj się, zaloguj ponownie i spróbuj jeszcze raz.",
+    password_change_identity_continuity_required:
+      "Aster Mail nie zmienił Twojego hasła, ponieważ zmiana usunęłaby klucze szyfrowania potrzebne Twoim starszym wiadomościom. Aby spróbować ponownie, wyloguj się, zaloguj ponownie i zmień hasło.",
+    password_change_vault_out_of_date:
+      "Twoje hasło zostało zmienione na innym urządzeniu, więc ta sesja jest nieaktualna. Aby zmienić hasło, wyloguj się i zaloguj ponownie, używając obecnego hasła.",
     update_password: "Zaktualizuj hasło",
     updating: "Aktualizowanie...",
     password_change_encrypted_data_warning:

@@ -913,16 +913,11 @@ export const tr = {
       "Bu dosya {{size}} MB ve boyut sınırının üzerinde. Daha küçük bir dosya seçin.",
     delete_failed: "Tekrar deneyin.",
     download_failed: "Bu indirme tamamlanmadı. Tekrar deneyin.",
-    download_complete:
-      "İndirme tamamlandı",
-    downloaded_file:
-      "{{file_name}} indirildi",
-    open_file:
-      "Aç",
-    show_in_folder:
-      "Klasörde göster",
-    show_in_finder:
-      "Finder'da göster",
+    download_complete: "İndirme tamamlandı",
+    downloaded_file: "{{file_name}} indirildi",
+    open_file: "Aç",
+    show_in_folder: "Klasörde göster",
+    show_in_finder: "Finder'da göster",
     download_open_failed:
       "Bu dosya açılamadı. Taşınmış veya silinmiş olabilir.",
     download_reveal_failed:
@@ -1350,6 +1345,19 @@ export const tr = {
       "Çok fazla deneme yapıldı. 30 dakika bekleyip tekrar deneyin.",
     recover_data_failed:
       "Bazı verilerin kilidi açılamadı. Bağlantınızı kontrol edip tekrar deneyin.",
+    recover_data_key_file_label: "Anahtar dosyası",
+    recover_data_key_file_description:
+      "Aster'dan dışa aktardığınız özel anahtarla eski e-postaların kilidini açmak için .asc dosyasını seçin. PGP ile şifrelenmiş e-postaların da kilidini açmak için anahtarı dışa aktardığınızda hesabınızın şifresini girin.",
+    recover_data_choose_file: "Dosya seç",
+    recover_data_key_file_password: "Dışa aktarma şifresi (isteğe bağlı)",
+    recover_data_key_file_invalid:
+      "Bu dosya dışa aktarılmış bir özel anahtar değil. Aster'dan indirdiğiniz .asc dosyasını seçin.",
+    recover_data_key_file_wrong_password:
+      "Bu şifre anahtar dosyasının kilidini açmıyor. Anahtarı dışa aktardığınızda hesabınızın şifresini girin.",
+    recover_data_key_file_already: "Bu anahtar hesabınızda zaten var.",
+    recover_data_key_file_success: "Anahtar dosyanız içe aktarıldı.",
+    recover_data_key_file_success_locked:
+      "Anahtar dosyanız içe aktarıldı. PGP ile şifrelenmiş e-postaların da kilidini açmak için anahtarı dışa aktardığınızdaki hesap şifresiyle yeniden içe aktarın.",
     payment_past_due_message:
       "Son ödemeniz alınamadı. Planınızı sürdürmek için ödeme yönteminizi güncelleyin.",
     payment_past_due_message_days:
@@ -3864,7 +3872,8 @@ export const tr = {
     updates_card_installing_detail: "Aster Mail birazdan yeniden başlatılacak.",
     updates_card_failed: "Güncelleme yüklenemedi",
     updates_card_failed_detail: "Bağlantınızı kontrol edip tekrar deneyin.",
-    updates_card_available_detail: "Kurulumu tamamlamak için Aster Mail yeniden başlatılır.",
+    updates_card_available_detail:
+      "Kurulumu tamamlamak için Aster Mail yeniden başlatılır.",
     updates_time_left_moment: "Neredeyse bitti",
     updates_time_left_seconds: "Yaklaşık {{seconds}} sn kaldı",
     updates_time_left_minutes: "Yaklaşık {{minutes}} dk kaldı",
@@ -3964,6 +3973,10 @@ export const tr = {
       "Bazı diğer adlarınızın yeniden şifrelenmesi tamamlanmadı, bu nedenle parolanız değişmedi. Tekrar deneyin, sorun devam ederse destek ekibiyle iletişime geçin.",
     password_change_fingerprint_mismatch:
       "Bu oturum farklı bir ağda veya tarayıcıda başlatıldı, bu nedenle Aster Mail parolanızı değiştirmedi. Parolanızı değiştirmek için oturumu kapatın, yeniden oturum açın ve tekrar deneyin.",
+    password_change_identity_continuity_required:
+      "Bu değişiklik eski iletilerinizin ihtiyaç duyduğu şifreleme anahtarlarını kaldıracağı için Aster Mail parolanızı değiştirmedi. Tekrar denemek için oturumu kapatın, yeniden oturum açın ve parolanızı değiştirin.",
+    password_change_vault_out_of_date:
+      "Parolanız başka bir cihazda değiştirildi, bu nedenle bu oturum güncel değil. Parolanızı değiştirmek için oturumu kapatın ve mevcut parolanızla yeniden oturum açın.",
     update_password: "Parolayı Güncelle",
     updating: "Güncelleniyor...",
     password_change_encrypted_data_warning:

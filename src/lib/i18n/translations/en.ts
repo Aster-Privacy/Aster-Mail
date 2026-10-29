@@ -929,16 +929,11 @@ export const en: Translations = {
     file_too_large: "File must be smaller than {{size}}",
     delete_failed: "This item was not removed. Try again.",
     download_failed: "This download did not finish. Try again.",
-    download_complete:
-      "Download complete",
-    downloaded_file:
-      "Downloaded {{file_name}}",
-    open_file:
-      "Open",
-    show_in_folder:
-      "Show in folder",
-    show_in_finder:
-      "Show in Finder",
+    download_complete: "Download complete",
+    downloaded_file: "Downloaded {{file_name}}",
+    open_file: "Open",
+    show_in_folder: "Show in folder",
+    show_in_finder: "Show in Finder",
     download_open_failed:
       "This file couldn't be opened. It may have been moved or deleted.",
     download_reveal_failed:
@@ -1380,6 +1375,19 @@ export const en: Translations = {
       "Too many attempts. Wait 30 minutes, then try again.",
     recover_data_failed:
       "Some data couldn't be unlocked. Check your connection and try again.",
+    recover_data_key_file_label: "Key file",
+    recover_data_key_file_description:
+      "To unlock older mail with a private key you exported from Aster, choose the .asc file. To also unlock PGP-encrypted mail, enter the password your account had when you exported the key.",
+    recover_data_choose_file: "Choose file",
+    recover_data_key_file_password: "Password at export (optional)",
+    recover_data_key_file_invalid:
+      "This file isn't an exported private key. Choose the .asc file you downloaded from Aster.",
+    recover_data_key_file_wrong_password:
+      "That password doesn't unlock this key file. Enter the password your account had when you exported the key.",
+    recover_data_key_file_already: "This key is already on your account.",
+    recover_data_key_file_success: "Your key file is imported.",
+    recover_data_key_file_success_locked:
+      "Your key file is imported. To also unlock PGP-encrypted mail, import it again with the password your account had when you exported the key.",
     payment_past_due_message:
       "Your last payment didn't go through. Update your payment method to keep your plan.",
     payment_past_due_message_days:
@@ -2755,6 +2763,10 @@ export const en: Translations = {
       "Some of your aliases didn't finish re-encrypting, so your password didn't change. Try again, and contact support if this keeps happening.",
     password_change_fingerprint_mismatch:
       "This session started on a different network or browser, so Aster Mail didn't change your password. To change it, sign out, sign back in, and try again.",
+    password_change_identity_continuity_required:
+      "Aster Mail didn't change your password because the change would remove encryption keys your older messages need. To try again, sign out, sign back in, and change your password.",
+    password_change_vault_out_of_date:
+      "Your password was changed on another device, so this session is out of date. To change your password, sign out and sign back in with your current password.",
     update_password: "Update Password",
     updating: "Updating...",
     password_change_encrypted_data_warning:
