@@ -59,7 +59,7 @@ const ComposeWindow = lazy_on_demand(() =>
 );
 
 export function preload_compose_window(): void {
-  void load_compose_window().catch((caught) =>
+  void ComposeWindow.preload().catch((caught) =>
     ignore_error("components/compose/compose_manager:preload", caught),
   );
 }

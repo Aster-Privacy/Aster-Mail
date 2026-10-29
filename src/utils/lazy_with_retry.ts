@@ -25,7 +25,7 @@ import type {
   ReactElement,
 } from "react";
 
-import { createElement, lazy } from "react";
+import { createElement, lazy, useState } from "react";
 
 import {
   error_message_of,
@@ -100,14 +100,27 @@ export function lazy_with_retry<T extends { default: ComponentType<any> }>(
   return lazy(() => import_with_retry(import_fn, retries, delay));
 }
 
+export type OnDemandComponent<P> = ((props: P) => ReactElement) & {
+  preload: () => Promise<void>;
+};
+
 export function lazy_on_demand<T extends { default: ComponentType<any> }>(
   import_fn: () => Promise<T>,
   retries = DEFAULT_RETRIES,
   delay = DEFAULT_DELAY_MS,
-): (props: ComponentProps<T["default"]>) => ReactElement {
+): OnDemandComponent<ComponentProps<T["default"]>> {
+  let loaded: ComponentType<any> | null = null;
+
+  const load = (): Promise<T> =>
+    retry_import(import_fn, retries, delay).then((module) => {
+      loaded = module.default;
+
+      return module;
+    });
+
   const create = (): LazyExoticComponent<ComponentType<any>> =>
     lazy(() =>
-      retry_import(import_fn, retries, delay).catch((error: unknown) => {
+      load().catch((error: unknown) => {
         throw new LazyLoadError(error, () => {
           current = create();
         });
@@ -115,11 +128,15 @@ export function lazy_on_demand<T extends { default: ComponentType<any> }>(
     );
   let current = create();
 
-  return function OnDemandComponent(
-    props: ComponentProps<T["default"]>,
-  ): ReactElement {
-    return createElement(current, props);
-  };
+  function OnDemand(props: ComponentProps<T["default"]>): ReactElement {
+    const [loaded_at_mount] = useState(() => loaded);
+
+    return createElement(loaded_at_mount ?? current, props);
+  }
+
+  return Object.assign(OnDemand, {
+    preload: () => load().then(() => undefined),
+  });
 }
 
 type IdleWindow = Window & {
