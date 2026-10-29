@@ -60,6 +60,7 @@ import { renderable_html_part } from "@/lib/message_markup";
 import { is_system_email } from "@/lib/utils";
 import { get_image_proxy_url } from "@/lib/image_proxy";
 import { MobileAttachmentRow } from "@/components/mobile/mobile_attachment_row";
+import { use_thread_message_attachments } from "@/pages/mobile/use_thread_message_attachments";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
   attachment_error_key,
@@ -471,6 +472,11 @@ function MobileThreadMessageContent({
   const [downloading_attachment_id, set_downloading_attachment_id] = useState<
     string | null
   >(null);
+  const attachments = use_thread_message_attachments(
+    message.id,
+    message.is_sending !== true,
+    t("common.encrypted_attachment"),
+  );
   const [phishing_level, set_phishing_level] = useState<PhishingLevel>("safe");
   const [phishing_checked, set_phishing_checked] = useState(false);
 
@@ -757,9 +763,9 @@ function MobileThreadMessageContent({
         )}
       </div>
 
-      {message.attachments && message.attachments.length > 0 && (
+      {attachments.length > 0 && (
         <div className="space-y-2 px-4 pb-3">
-          {message.attachments.map((att) => (
+          {attachments.map((att) => (
             <MobileAttachmentRow
               key={att.id}
               content_type={att.content_type}
