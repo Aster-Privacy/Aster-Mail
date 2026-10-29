@@ -38,6 +38,19 @@ const term_counts = new Map<string, number>();
 
 let deletion_index: Map<string, string[]> | null = null;
 
+interface PendingVocabularyEntry {
+  subject: string;
+  sender_name: string;
+  body: string;
+}
+
+const DRAIN_BUDGET_MS = 8;
+const DRAIN_IDLE_TIMEOUT_MS = 2000;
+
+let pending_entries: PendingVocabularyEntry[] = [];
+let pending_start = 0;
+let drain_scheduled = false;
+
 export function is_vocabulary_term(term: string): boolean {
   return (
     term.length >= MIN_VOCABULARY_TERM_LENGTH &&
@@ -80,37 +93,149 @@ export function add_vocabulary_text(text: string, weight: number): void {
   }
 }
 
+function apply_vocabulary_entry(entry: PendingVocabularyEntry): void {
+  add_vocabulary_text(entry.subject, SUBJECT_WEIGHT);
+  add_vocabulary_text(entry.sender_name, SENDER_WEIGHT);
+  add_vocabulary_text(entry.body, BODY_WEIGHT);
+}
+
+function take_pending_entry(): PendingVocabularyEntry | undefined {
+  if (pending_start >= pending_entries.length) return undefined;
+
+  const entry = pending_entries[pending_start];
+
+  pending_start++;
+
+  if (pending_start >= pending_entries.length) {
+    pending_entries = [];
+    pending_start = 0;
+  }
+
+  return entry;
+}
+
+function flush_pending_vocabulary(): void {
+  let entry = take_pending_entry();
+
+  while (entry) {
+    apply_vocabulary_entry(entry);
+    entry = take_pending_entry();
+  }
+}
+
+interface IdleDeadlineLike {
+  didTimeout: boolean;
+  timeRemaining(): number;
+}
+
+function wait_for_idle(): Promise<number> {
+  const idle = (
+    globalThis as {
+      requestIdleCallback?: (
+        callback: (deadline: IdleDeadlineLike) => void,
+        options?: { timeout: number },
+      ) => number;
+    }
+  ).requestIdleCallback;
+
+  if (typeof idle === "function") {
+    return new Promise<number>((resolve) => {
+      idle(
+        (deadline) => {
+          resolve(
+            deadline.didTimeout
+              ? DRAIN_BUDGET_MS
+              : Math.min(DRAIN_BUDGET_MS, deadline.timeRemaining()),
+          );
+        },
+        { timeout: DRAIN_IDLE_TIMEOUT_MS },
+      );
+    });
+  }
+
+  return new Promise<number>((resolve) =>
+    setTimeout(() => resolve(DRAIN_BUDGET_MS), 0),
+  );
+}
+
+async function drain_pending_vocabulary(): Promise<void> {
+  try {
+    while (pending_start < pending_entries.length) {
+      const budget = await wait_for_idle();
+      const deadline = performance.now() + budget;
+      let entry = take_pending_entry();
+
+      while (entry) {
+        apply_vocabulary_entry(entry);
+        if (performance.now() >= deadline) break;
+        entry = take_pending_entry();
+      }
+    }
+  } finally {
+    drain_scheduled = false;
+  }
+}
+
+function vocabulary_entry_of(
+  envelope: DecryptedEnvelope | null,
+  search_body_text: string,
+): PendingVocabularyEntry {
+  return {
+    subject: envelope?.subject || "",
+    sender_name: envelope?.from?.name || "",
+    body: search_body_text
+      ? search_body_text.slice(0, VOCABULARY_BODY_CHARS)
+      : "",
+  };
+}
+
 export function add_vocabulary_entry(
   envelope: DecryptedEnvelope | null,
   search_body_text: string,
 ): void {
-  if (envelope) {
-    add_vocabulary_text(envelope.subject || "", SUBJECT_WEIGHT);
-    add_vocabulary_text(envelope.from?.name || "", SENDER_WEIGHT);
-  }
+  apply_vocabulary_entry(vocabulary_entry_of(envelope, search_body_text));
+}
 
-  if (search_body_text) {
-    add_vocabulary_text(
-      search_body_text.slice(0, VOCABULARY_BODY_CHARS),
-      BODY_WEIGHT,
-    );
-  }
+export function queue_vocabulary_entry(
+  envelope: DecryptedEnvelope | null,
+  search_body_text: string,
+): void {
+  if (!envelope && !search_body_text) return;
+
+  pending_entries.push(vocabulary_entry_of(envelope, search_body_text));
+
+  if (drain_scheduled) return;
+
+  drain_scheduled = true;
+  void drain_pending_vocabulary();
+}
+
+export function pending_vocabulary_entries(): number {
+  return pending_entries.length - pending_start;
 }
 
 export function reset_vocabulary(): void {
   term_counts.clear();
   deletion_index = null;
+  pending_entries = [];
+  pending_start = 0;
 }
 
 export function vocabulary_size(): number {
+  flush_pending_vocabulary();
+
   return term_counts.size;
 }
 
 export function vocabulary_count(term: string): number {
+  flush_pending_vocabulary();
+
   return term_counts.get(term) ?? 0;
 }
 
 export function vocabulary_has_term(term: string): boolean {
+  flush_pending_vocabulary();
+
   return term_counts.has(term);
 }
 
@@ -125,6 +250,8 @@ export function single_deletions(term: string): string[] {
 }
 
 function ensure_deletion_index(): Map<string, string[]> {
+  flush_pending_vocabulary();
+
   if (deletion_index) return deletion_index;
 
   const index = new Map<string, string[]>();

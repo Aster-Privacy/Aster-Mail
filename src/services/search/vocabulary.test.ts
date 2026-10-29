@@ -20,12 +20,14 @@
 //
 import type { DecryptedEnvelope } from "@/types/email";
 
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   add_vocabulary_entry,
   add_vocabulary_text,
   is_vocabulary_term,
+  pending_vocabulary_entries,
+  queue_vocabulary_entry,
   reset_vocabulary,
   single_deletions,
   tokenize_for_vocabulary,
@@ -139,5 +141,96 @@ describe("vocabulary terms", () => {
 
     expect(vocabulary_size()).toBe(0);
     expect(vocabulary_candidates("recieve")).toEqual([]);
+  });
+});
+
+describe("deferred vocabulary entries", () => {
+  beforeEach(() => {
+    reset_vocabulary();
+  });
+
+  it("queues entries instead of tokenizing them while loading the index", () => {
+    queue_vocabulary_entry(envelope("Quarterly invoice", "Alice"), "payment");
+
+    expect(pending_vocabulary_entries()).toBe(1);
+    expect(vocabulary_count("invoice")).toBe(3);
+    expect(vocabulary_count("payment")).toBe(1);
+    expect(pending_vocabulary_entries()).toBe(0);
+  });
+
+  it("keeps fresh entries on the immediate path", () => {
+    add_vocabulary_entry(envelope("Quarterly invoice", "Alice"), "payment");
+
+    expect(pending_vocabulary_entries()).toBe(0);
+  });
+
+  it("builds queued entries in the background without a lookup", async () => {
+    for (let i = 0; i < 50; i++) {
+      queue_vocabulary_entry(envelope("Quarterly invoice", "Alice"), "payment");
+    }
+
+    await vi.waitFor(() => {
+      expect(pending_vocabulary_entries()).toBe(0);
+    });
+    expect(vocabulary_count("invoice")).toBe(150);
+  });
+
+  it("serves candidates from entries still in the queue", () => {
+    queue_vocabulary_entry(envelope("receive", "Alice"), "");
+
+    expect(vocabulary_has_term("receive")).toBe(true);
+    expect(vocabulary_candidates("recieve")).toContain("receive");
+  });
+
+  it("drops queued entries on reset and still drains later ones", async () => {
+    queue_vocabulary_entry(envelope("Quarterly invoice", "Alice"), "payment");
+    reset_vocabulary();
+
+    expect(pending_vocabulary_entries()).toBe(0);
+
+    queue_vocabulary_entry(envelope("Shipping notice", "Bob"), "");
+
+    await vi.waitFor(() => {
+      expect(pending_vocabulary_entries()).toBe(0);
+    });
+    expect(vocabulary_has_term("shipping")).toBe(true);
+    expect(vocabulary_has_term("invoice")).toBe(false);
+  });
+
+  it("only keeps the text the vocabulary reads", () => {
+    const long_body = `${"alpha ".repeat(100)}${"omega ".repeat(400)}`;
+
+    queue_vocabulary_entry(envelope("", ""), long_body);
+
+    expect(vocabulary_has_term("alpha")).toBe(true);
+    expect(vocabulary_has_term("omega")).toBe(false);
+  });
+
+  it("prunes queued entries to the same vocabulary as immediate ones", () => {
+    const subjects = Array.from(
+      { length: VOCABULARY_PRUNE_TRIGGER + 50 },
+      (_, i) => `word${letter_suffix(i)}`,
+    );
+
+    for (const subject of subjects) {
+      add_vocabulary_entry(envelope(subject, ""), "");
+    }
+
+    const immediate = subjects.filter(vocabulary_has_term);
+
+    reset_vocabulary();
+
+    for (const subject of subjects) {
+      queue_vocabulary_entry(envelope(subject, ""), "");
+    }
+
+    expect(subjects.filter(vocabulary_has_term)).toEqual(immediate);
+    expect(vocabulary_size()).toBe(immediate.length);
+  });
+
+  it("ignores entries with nothing to learn from", () => {
+    queue_vocabulary_entry(null, "");
+
+    expect(pending_vocabulary_entries()).toBe(0);
   });
 });
