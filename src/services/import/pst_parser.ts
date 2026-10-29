@@ -79,11 +79,14 @@ function convert_pst_message(
   }
 
   const subject = msg.subject || "(No Subject)";
-  const raw_date =
-    msg.clientSubmitTime || msg.messageDeliveryTime || new Date();
-  const candidate_date =
-    raw_date instanceof Date ? raw_date : new Date(raw_date);
-  const date = isNaN(candidate_date.getTime()) ? new Date() : candidate_date;
+  const raw_date = msg.clientSubmitTime || msg.messageDeliveryTime;
+  const candidate_date = raw_date
+    ? raw_date instanceof Date
+      ? raw_date
+      : new Date(raw_date)
+    : null;
+  const date_inferred = !candidate_date || isNaN(candidate_date.getTime());
+  const date = candidate_date && !date_inferred ? candidate_date : new Date();
 
   const html_body = msg.bodyHTML || null;
   const text_body = msg.body || null;
@@ -120,6 +123,7 @@ function convert_pst_message(
     bcc,
     subject,
     date,
+    date_inferred,
     html_body,
     text_body,
     attachments,
