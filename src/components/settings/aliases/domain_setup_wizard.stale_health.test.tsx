@@ -198,6 +198,20 @@ async function click_verify() {
   await flush();
 }
 
+async function click_next(times: number) {
+  for (let i = 0; i < times; i += 1) {
+    const button = Array.from(container.querySelectorAll("button")).find(
+      (candidate) => candidate.textContent?.includes("common.next"),
+    );
+
+    expect(button).toBeDefined();
+    await act(async () => {
+      button!.click();
+    });
+    await flush();
+  }
+}
+
 function status_of(step: string): string | null {
   return (
     container
@@ -221,12 +235,37 @@ afterEach(() => {
 });
 
 describe("DomainSetupWizard automatic checks", () => {
-  it("shows a cached health result before any manual check", async () => {
+  it("hides a failed result until the step is checked", async () => {
     get_domain_health.mockResolvedValue(health("fail", true));
 
     await open_wizard();
 
-    for (const key of CHECKED_KEYS) expect(status_of(key)).toBe("failed");
+    for (const key of CHECKED_KEYS) expect(status_of(key)).toBe("pending");
+  });
+
+  it("shows a failed result for the step left with Next", async () => {
+    get_domain_health.mockResolvedValue(health("fail", true));
+
+    await open_wizard();
+    const calls_before_next = get_domain_health.mock.calls.length;
+
+    await click_next(2);
+
+    expect(get_domain_health.mock.calls.length).toBeGreaterThan(
+      calls_before_next,
+    );
+    expect(status_of("mx")).toBe("failed");
+    expect(status_of("spf")).toBe("pending");
+    expect(status_of("dkim")).toBe("pending");
+    expect(status_of("dmarc")).toBe("pending");
+  });
+
+  it("shows a passing result before the step is checked", async () => {
+    get_domain_health.mockResolvedValue(health("pass", true));
+
+    await open_wizard();
+
+    for (const key of CHECKED_KEYS) expect(status_of(key)).toBe("verified");
   });
 
   it("does not let a cached health result undo a manual check", async () => {
@@ -274,6 +313,10 @@ describe("DomainSetupWizard automatic checks", () => {
       );
     });
     await open_wizard();
+
+    for (const key of CHECKED_KEYS) expect(status_of(key)).toBe("pending");
+
+    await click_next(5);
 
     for (const key of CHECKED_KEYS) expect(status_of(key)).toBe("failed");
   });
