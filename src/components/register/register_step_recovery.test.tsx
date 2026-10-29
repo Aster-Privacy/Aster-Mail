@@ -35,8 +35,12 @@ vi.mock("@/components/modals/confirmation_modal", () => ({
   ConfirmationModal: () => null,
 }));
 vi.mock("@/components/toast/simple_toast", () => ({ show_toast: vi.fn() }));
+vi.mock("@/components/ui/spinner", () => ({ Spinner: () => null }));
 
-import { RegisterStepRecoveryCodes } from "./register_step_recovery";
+import {
+  RegisterStepRecoveryCodes,
+  RegisterStepRecoveryEmailVerification,
+} from "./register_step_recovery";
 
 let container: HTMLDivElement;
 let root: Root;
@@ -60,6 +64,14 @@ function build_reg(overrides: Partial<UseRegistrationReturn>) {
     handle_download_key: vi.fn(),
     handle_download_txt: vi.fn(),
     handle_advance_from_recovery_key: vi.fn(),
+    recovery_email: "me@example.com",
+    is_email_verified: false,
+    recovery_email_required: true,
+    resend_cooldown: 0,
+    is_resending_verification: false,
+    handle_resend_verification: vi.fn(),
+    handle_skip_verification: vi.fn(),
+    handle_change_recovery_email: vi.fn(),
     ...overrides,
   } as unknown as UseRegistrationReturn;
 }
@@ -112,5 +124,23 @@ describe("recovery codes step", () => {
 
     expect(reg.set_show_skip_confirmation).toHaveBeenCalledWith(true);
     expect(reg.handle_advance_from_recovery_key).not.toHaveBeenCalled();
+  });
+});
+
+describe("recovery email verification step", () => {
+  it("offers a way to change the address when verification is required", () => {
+    const reg = build_reg({});
+
+    act(() => {
+      root.render(<RegisterStepRecoveryEmailVerification reg={reg} />);
+    });
+    act(() => find_button("auth.change_account").click());
+
+    expect(reg.handle_change_recovery_email).toHaveBeenCalledTimes(1);
+    expect(
+      Array.from(container.querySelectorAll("button")).some(
+        (el) => el.textContent === "auth.skip_verification",
+      ),
+    ).toBe(false);
   });
 });

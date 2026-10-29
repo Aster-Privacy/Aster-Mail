@@ -1230,6 +1230,10 @@ export function use_registration(options?: RegistrationClaimOptions) {
     recovery_email_required,
   ]);
 
+  const handle_change_recovery_email = useCallback(() => {
+    set_step("recovery_email");
+  }, []);
+
   useEffect(() => {
     if (step !== "recovery_email_verification") {
       stop_verification_polling();
@@ -1500,6 +1504,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
     handle_import_mail_skip,
     handle_resend_verification,
     handle_skip_verification,
+    handle_change_recovery_email,
 
     complete_registration,
     finalize_registration,

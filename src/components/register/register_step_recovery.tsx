@@ -241,6 +241,11 @@ export const RegisterStepRecoveryEmailVerification = ({
                 : reg.t("auth.resend_verification_email")}
           </OnboardingButton>
 
+          <SkipLink
+            label={reg.t("auth.change_account")}
+            on_click={reg.handle_change_recovery_email}
+          />
+
           {!reg.recovery_email_required && (
             <SkipLink
               label={reg.t("auth.skip_verification")}
