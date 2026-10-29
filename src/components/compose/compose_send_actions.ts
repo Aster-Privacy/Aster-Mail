@@ -445,6 +445,7 @@ export async function execute_mixed_send(
     attachments?: Attachment[];
     allow_non_post_quantum?: boolean;
     thread_id?: string;
+    pgp_recipients?: string[];
   },
   pgp_enabled = false,
   pgp_override: boolean | null = null,
@@ -550,6 +551,7 @@ export async function execute_external_email_send(
     attachments?: Attachment[];
     is_plain_text?: boolean;
     thread_id?: string;
+    pgp_recipients?: string[];
   },
   pgp_enabled = false,
   pgp_override: boolean | null = null,
@@ -897,7 +899,6 @@ export async function execute_external_account_email_send(
           dispatch_email_sent();
           log_activities_for_sent(ctx, email_data);
           ctx.on_close();
-          play_email_sent_sound();
           show_toast(ctx.t("common.email_sent"), "success");
           record_review_prompt_action();
         } else {
@@ -957,7 +958,6 @@ export async function execute_external_account_email_send(
             dispatch_email_sent();
             log_activities_for_sent(ctx, email_data);
             ctx.on_close();
-            play_email_sent_sound();
             show_toast(ctx.t("common.email_sent"), "success");
             record_review_prompt_action();
           } else {

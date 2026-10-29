@@ -696,12 +696,27 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
     crumb_key: "settings_search.desktop",
   },
   {
-    label: "Sound",
-    label_key: "settings.sound",
-    section: "notifications",
-    breadcrumb: "Notifications > Sound",
-    crumb_key: "settings_search.sound",
-    keywords: ["notification sound", "audio", "chime", "play sound"],
+    label: "Notification sound",
+    label_key: "settings.notification_sound",
+    section: "sound",
+    breadcrumb: "Sound > Notification sound",
+    crumb_key: "settings_search.notification_sound",
+    keywords: ["new mail sound", "audio", "chime", "play sound", "mute"],
+  },
+  {
+    label: "Iconic Sounds",
+    label_key: "settings.iconic_sounds",
+    section: "sound",
+    breadcrumb: "Sound > Iconic Sounds",
+    crumb_key: "settings.iconic_sounds",
+    keywords: [
+      "sound effects",
+      "audio",
+      "chime",
+      "send sound",
+      "undo send",
+      "aster sounds",
+    ],
   },
   {
     label: "Unread badge",
@@ -903,12 +918,13 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
 
   // ── Feedback ─────────────────────────────────────────────────────────────
   {
-    label: "Your Feedback",
+    label: "Send feedback",
     label_key: "settings.your_feedback",
     section: "feedback",
     breadcrumb: "Feedback > Bug Report",
     crumb_key: "settings_search.bug_report",
     keywords: [
+      "your feedback",
       "report a bug",
       "bug report",
       "submit bug",
@@ -918,12 +934,12 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
     ],
   },
   {
-    label: "Other Ways to Reach Us",
+    label: "Contact support",
     label_key: "settings.other_ways_to_reach",
     section: "feedback",
     breadcrumb: "Feedback > Support",
     crumb_key: "settings_search.support",
-    keywords: ["contact support", "get help", "support ticket"],
+    keywords: ["get help", "support ticket", "reach us"],
   },
 
   // ── Developer ─────────────────────────────────────────────────────────────
@@ -1768,13 +1784,5 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
     breadcrumb: "Developer > Performance",
     crumb_key: "settings_search.performance",
     keywords: ["sw", "cache", "pwa", "offline"],
-  },
-  {
-    label: "Iconic Sounds",
-    label_key: "settings.iconic_sounds",
-    section: "developer",
-    breadcrumb: "Developer > Iconic Sounds",
-    crumb_key: "settings.iconic_sounds",
-    keywords: ["sound", "audio", "chime", "beta", "send sound", "undo send"],
   },
 ];

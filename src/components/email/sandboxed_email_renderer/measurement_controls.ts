@@ -84,6 +84,14 @@ export function build_measurement_controls(ctx: measurement_context) {
 
   let last_height = 0;
   let measure_deferred = false;
+  let pointer_held = false;
+
+  const is_drag_selecting = (doc: Document | null | undefined): boolean => {
+    if (!pointer_held || !doc) return false;
+    const selection = doc.getSelection();
+
+    return !!selection && !selection.isCollapsed;
+  };
 
   const capture_ancestor_scroll = (): { node: Element; top: number }[] => {
     const captured: { node: Element; top: number }[] = [];
@@ -239,9 +247,7 @@ export function build_measurement_controls(ctx: measurement_context) {
 
     if (!body || !doc) return;
 
-    const active_selection = doc.getSelection();
-
-    if (!force && active_selection && !active_selection.isCollapsed) {
+    if (!force && is_drag_selecting(doc)) {
       measure_deferred = true;
 
       return;
@@ -344,6 +350,29 @@ export function build_measurement_controls(ctx: measurement_context) {
     }
   };
 
+  const release_pointer = () => {
+    if (!pointer_held) return;
+    pointer_held = false;
+    if (!measure_deferred) return;
+    measure_deferred = false;
+    update_height();
+  };
+
+  const track_pointer = (doc: Document) => {
+    doc.addEventListener(
+      "pointerdown",
+      (e) => {
+        if (e.button !== 0) return;
+        pointer_held = true;
+        window.addEventListener("pointerup", release_pointer, { once: true });
+      },
+      true,
+    );
+    doc.addEventListener("pointerup", release_pointer, true);
+    doc.addEventListener("pointercancel", release_pointer, true);
+    iframe.contentWindow?.addEventListener("blur", release_pointer);
+  };
+
   const attach_observer = () => {
     if (!iframe.contentDocument?.body) return;
     const resize_observer_ctor =
@@ -352,10 +381,8 @@ export function build_measurement_controls(ctx: measurement_context) {
 
     observer_ref.current = new resize_observer_ctor((entries) => {
       const entry = entries[0];
-      const doc = iframe.contentDocument;
-      const active_selection = doc?.getSelection();
 
-      if (active_selection && !active_selection.isCollapsed) {
+      if (is_drag_selecting(iframe.contentDocument)) {
         measure_deferred = true;
 
         return;
@@ -365,6 +392,7 @@ export function build_measurement_controls(ctx: measurement_context) {
       update_height();
     });
     observer_ref.current.observe(iframe.contentDocument.body);
+    track_pointer(iframe.contentDocument);
     update_height();
 
     listen_to_images(iframe.contentDocument);

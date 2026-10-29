@@ -69,6 +69,7 @@ import {
   apply_metadata_strip,
   unique_attachment_name,
 } from "@/components/compose/use_compose_attachments";
+import { use_attachment_session } from "@/components/compose/use_attachment_session";
 import { format_bytes } from "@/lib/utils";
 import { safe_sender_name } from "@/lib/sender_trust_store";
 import {
@@ -78,6 +79,7 @@ import {
 } from "@/lib/recipient_limits";
 import { use_suggestion_contacts } from "@/hooks/use_suggestion_contacts";
 import { check_scheduled_send } from "@/services/scheduled_send_gate";
+import { use_recipient_lock_scope } from "@/services/recipient_lock_state";
 import {
   create_scheduled_email,
   type ScheduledEmailContent,
@@ -274,7 +276,7 @@ export function use_forward_modal({
   const file_input_ref = useRef<HTMLInputElement>(null);
   const attachments_scroll_ref = useRef<HTMLDivElement>(null);
   const is_sending_ref = useRef(false);
-  const pending_reads_ref = useRef(0);
+  const attachment_session = use_attachment_session();
   const send_lock_started_at_ref = useRef(0);
   const forward_content_ref = useRef("");
   const edited_forward_content_ref = useRef<string | null>(null);
@@ -467,6 +469,7 @@ export function use_forward_modal({
     });
 
   useEffect(() => {
+    attachment_session.reset();
     if (is_open) {
       dispatch_recipients({ type: "RESET" });
       set_inputs({ to: "", cc: "", bcc: "" });
@@ -501,7 +504,7 @@ export function use_forward_modal({
     } else {
       clear_forward_mail_id();
     }
-  }, [is_open, reset_signature]);
+  }, [is_open, reset_signature, attachment_session]);
 
   useEffect(() => {
     if (!is_open || content_initialized_ref.current) return;
@@ -791,6 +794,8 @@ export function use_forward_modal({
     ? escape_plain_text(forward_message).replace(/\n/g, "<br>")
     : forward_message;
 
+  const lock_scope = use_recipient_lock_scope();
+
   const handle_forward = useCallback(async () => {
     if (
       !can_acquire_send_lock(
@@ -843,7 +848,7 @@ export function use_forward_modal({
       return;
     }
 
-    if (pending_reads_ref.current > 0) {
+    if (attachment_session.has_pending_reads()) {
       show_toast(t("common.loading"), "info");
 
       return;
@@ -1025,6 +1030,7 @@ export function use_forward_modal({
         forward_original_mail_id: fwd_server_source_id,
         require_encryption: preferences.require_encryption === true,
         is_plain_text: is_plain_text_mode,
+        lock_scope,
       },
       {
         on_complete: () => {
@@ -1135,6 +1141,7 @@ export function use_forward_modal({
       }
     }
   }, [
+    lock_scope,
     t,
     commit_pending_recipient_inputs,
     inputs,
@@ -1162,6 +1169,7 @@ export function use_forward_modal({
     get_forward_content,
     preferences.show_aster_branding,
     vault,
+    attachment_session,
   ]);
 
   const schedule_gate_pending_ref = useRef(false);
@@ -1187,7 +1195,7 @@ export function use_forward_modal({
       return;
     }
 
-    if (pending_reads_ref.current > 0) {
+    if (attachment_session.has_pending_reads()) {
       show_toast(t("common.loading"), "info");
 
       return;
@@ -1245,6 +1253,7 @@ export function use_forward_modal({
         scheduled_sender_email,
         scheduled_time,
         preferences.require_encryption === true,
+        preferences.show_encryption_indicators ? lock_scope : null,
       );
     } finally {
       schedule_gate_pending_ref.current = false;
@@ -1356,6 +1365,7 @@ export function use_forward_modal({
       send_lock_started_at_ref.current = 0;
     }
   }, [
+    lock_scope,
     t,
     commit_pending_recipient_inputs,
     inputs,
@@ -1370,9 +1380,11 @@ export function use_forward_modal({
     get_forward_content,
     preferences.show_aster_branding,
     preferences.require_encryption,
+    preferences.show_encryption_indicators,
     selected_sender,
     expires_at,
     original_mail_id,
+    attachment_session,
   ]);
 
   const get_total_attachments_size = useCallback(() => {
@@ -1381,7 +1393,8 @@ export function use_forward_modal({
 
   const handle_file_select = useCallback(
     async (event: React.ChangeEvent<HTMLInputElement>) => {
-      pending_reads_ref.current += 1;
+      const token = attachment_session.begin_read();
+
       try {
         const selected = event.target.files;
 
@@ -1394,8 +1407,10 @@ export function use_forward_modal({
 
           return;
         }
+        if (!attachment_session.is_current(token)) return;
         set_attachment_error(null);
         await ensure_attachment_limits();
+        if (!attachment_session.is_current(token)) return;
         const new_attachments: Attachment[] = [];
         const current_total = get_total_attachments_size();
         let running_total = current_total;
@@ -1445,6 +1460,8 @@ export function use_forward_modal({
               unstripped,
             );
 
+            if (!attachment_session.is_current(token)) return;
+
             new_attachments.push({
               id: generate_attachment_id(),
               name,
@@ -1456,6 +1473,7 @@ export function use_forward_modal({
             taken_names.add(name);
             running_total += data.byteLength;
           } catch (error) {
+            if (!attachment_session.is_current(token)) return;
             if (import.meta.env.DEV) console.error(error);
             set_attachment_error(
               t("common.failed_to_read_named_file", { name: file.name }),
@@ -1481,11 +1499,12 @@ export function use_forward_modal({
           file_input_ref.current.value = "";
         }
       } finally {
-        pending_reads_ref.current -= 1;
+        attachment_session.end_read(token);
       }
     },
     [
       attachments,
+      attachment_session,
       get_total_attachments_size,
       preferences.strip_exif_on_compose,
       t,
@@ -1494,13 +1513,16 @@ export function use_forward_modal({
 
   const handle_files_drop = useCallback(
     async (dropped: File[]) => {
-      pending_reads_ref.current += 1;
+      const token = attachment_session.begin_read();
+
       try {
         const files = await prepare_image_attachments(dropped);
 
         if (!files) return;
+        if (!attachment_session.is_current(token)) return;
         set_attachment_error(null);
         await ensure_attachment_limits();
+        if (!attachment_session.is_current(token)) return;
         const new_attachments: Attachment[] = [];
         const current_total = get_total_attachments_size();
         let running_total = current_total;
@@ -1548,6 +1570,8 @@ export function use_forward_modal({
               unstripped,
             );
 
+            if (!attachment_session.is_current(token)) return;
+
             new_attachments.push({
               id: generate_attachment_id(),
               name,
@@ -1559,6 +1583,7 @@ export function use_forward_modal({
             taken_names.add(name);
             running_total += data.byteLength;
           } catch (error) {
+            if (!attachment_session.is_current(token)) return;
             if (import.meta.env.DEV) console.error(error);
             set_attachment_error(
               t("common.failed_to_read_named_file", { name: file.name }),
@@ -1580,11 +1605,12 @@ export function use_forward_modal({
           );
         }
       } finally {
-        pending_reads_ref.current -= 1;
+        attachment_session.end_read(token);
       }
     },
     [
       attachments,
+      attachment_session,
       get_total_attachments_size,
       preferences.strip_exif_on_compose,
       t,
@@ -1606,6 +1632,7 @@ export function use_forward_modal({
   const can_send = !is_sending && !is_loading_attachments;
 
   return {
+    lock_scope,
     t,
     reduce_motion,
     user,

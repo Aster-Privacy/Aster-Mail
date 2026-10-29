@@ -27,6 +27,7 @@ import {
   is_state_changing_method,
 } from "../csrf";
 import { request_cache } from "../request_cache";
+import { token_subject } from "./token_subject";
 import {
   is_app_network_locked,
   is_endpoint_allowed_while_locked,
@@ -105,6 +106,7 @@ const RATE_LIMIT_MAX_HOLD_MS = 15_000;
 const RATE_LIMIT_RETRY_MAX_HOLD_MS = 5000;
 const REFRESH_MIN_GAP_MS = 5000;
 const REFRESH_LOCK_WAIT_MS = 20_000;
+const OUTGOING_CHECKPOINT_TIMEOUT_MS = 6000;
 const REFRESH_LOCK_PREFIX = "aster-session-refresh";
 
 interface TimedResponse {
@@ -126,6 +128,7 @@ export class ApiClient {
   private suspend_account_persist_flag: boolean = false;
   private initial_auth_verified: boolean = false;
   private refresh_promise: Promise<void> | null = null;
+  private outgoing_session_checkpoint: Promise<void> | null = null;
   private _cached_user_info: CachedUserInfo | null = null;
   private last_refresh_timestamp: number = 0;
   private last_refresh_attempt_at: number = 0;
@@ -419,10 +422,16 @@ export class ApiClient {
     }
 
     try {
-      const body: { expected_user_id?: string } = {};
+      const body: { refresh_token?: string; expected_user_id?: string } = {};
 
       if (this.expected_user_id) {
         body.expected_user_id = this.expected_user_id;
+
+        const stored_refresh_token = await this.read_latest_refresh_token(
+          this.expected_user_id,
+        );
+
+        if (stored_refresh_token) body.refresh_token = stored_refresh_token;
       }
 
       const response = await this.post<{
@@ -651,9 +660,13 @@ export class ApiClient {
     owner_account_id?: string | null,
   ): Promise<void> {
     if (this.intentional_logout) return;
-    if (owner_account_id === null) return;
 
-    const owner_id = owner_account_id ?? this.token_owner_account_id();
+    const subject = token_subject(access_token) ?? token_subject(refresh_token);
+
+    if (owner_account_id === null && !subject) return;
+
+    const owner_id =
+      subject ?? owner_account_id ?? this.token_owner_account_id();
 
     if (this.suspend_account_persist_flag) {
       if (owner_id) {
@@ -1082,7 +1095,133 @@ export class ApiClient {
   }
 
   begin_account_add(): void {
+    if (!this.account_add_in_progress) {
+      this.start_outgoing_session_checkpoint();
+    }
     this.account_add_in_progress = true;
+  }
+
+  private start_outgoing_session_checkpoint(): void {
+    if (Capacitor.isNativePlatform() || is_tauri_env()) return;
+    if (this.intentional_logout || !this.is_authenticated_flag) return;
+
+    const account_id = this.expected_user_id;
+
+    if (!account_id) return;
+
+    const checkpoint = this.checkpoint_outgoing_session(account_id).catch(
+      (caught) => {
+        ignore_error(
+          "services/api/client/api_client:checkpoint_outgoing_session",
+          caught,
+        );
+      },
+    );
+
+    this.outgoing_session_checkpoint = checkpoint;
+    void checkpoint.finally(() => {
+      if (this.outgoing_session_checkpoint === checkpoint) {
+        this.outgoing_session_checkpoint = null;
+      }
+    });
+  }
+
+  private async checkpoint_outgoing_session(account_id: string): Promise<void> {
+    try {
+      await this.refresh_promise;
+    } catch (caught) {
+      ignore_error(
+        "services/api/client/api_client:checkpoint_outgoing_session",
+        caught,
+      );
+    }
+
+    const locks =
+      typeof navigator !== "undefined" ? navigator.locks : undefined;
+
+    if (!locks) {
+      return this.rotate_outgoing_session(account_id);
+    }
+
+    const controller = new AbortController();
+    const timer = setTimeout(
+      () => controller.abort(),
+      OUTGOING_CHECKPOINT_TIMEOUT_MS,
+    );
+
+    try {
+      await locks.request(
+        `${REFRESH_LOCK_PREFIX}:${account_id}`,
+        { signal: controller.signal },
+        () => {
+          clearTimeout(timer);
+
+          return this.rotate_outgoing_session(account_id);
+        },
+      );
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  private async rotate_outgoing_session(account_id: string): Promise<void> {
+    const refresh_token = await this.read_latest_refresh_token(account_id);
+
+    if (!refresh_token || this.intentional_logout) return;
+
+    const response = await this.post<{
+      csrf_token: string;
+      access_token?: string;
+      refresh_token?: string;
+    }>(
+      "/core/v1/auth/refresh",
+      { refresh_token, expected_user_id: account_id },
+      { skip_session_refresh: true },
+    );
+
+    if (!response.data?.csrf_token || this.intentional_logout) return;
+
+    const rotated_refresh_token = response.data.refresh_token;
+
+    if (!rotated_refresh_token) return;
+
+    const subject =
+      token_subject(rotated_refresh_token) ??
+      token_subject(response.data.access_token);
+
+    if (subject && subject !== account_id) return;
+
+    clear_csrf_cache();
+    this.set_csrf(response.data.csrf_token);
+
+    if (this.expected_user_id === account_id) {
+      this.active_refresh_token = rotated_refresh_token;
+      if (response.data.access_token) {
+        this.dev_access_token = response.data.access_token;
+      }
+    }
+
+    await this.write_account_tokens(
+      account_id,
+      response.data.access_token ?? this.dev_access_token,
+      rotated_refresh_token,
+    );
+  }
+
+  private async await_outgoing_session_checkpoint(): Promise<void> {
+    const checkpoint = this.outgoing_session_checkpoint;
+
+    if (!checkpoint) return;
+
+    let timer: ReturnType<typeof setTimeout> | undefined;
+
+    await Promise.race([
+      checkpoint,
+      new Promise<void>((resolve) => {
+        timer = setTimeout(resolve, OUTGOING_CHECKPOINT_TIMEOUT_MS);
+      }),
+    ]);
+    clearTimeout(timer);
   }
 
   end_account_add(): void {
@@ -1097,6 +1236,31 @@ export class ApiClient {
     if (this.refresh_timeout) {
       clearTimeout(this.refresh_timeout);
       this.refresh_timeout = null;
+    }
+  }
+
+  end_intentional_logout(): void {
+    this.intentional_logout = false;
+    this.suspend_account_persist_flag = false;
+    this.session_expired_dispatched = false;
+  }
+
+  private async refresh_before_logout(
+    endpoint: string,
+    method: string,
+    skip_session_refresh: boolean,
+  ): Promise<void> {
+    if (skip_session_refresh || !is_state_changing_method(method)) return;
+    if (!endpoint.includes("/auth/logout")) return;
+    if (!this.is_authenticated_flag || get_csrf_token_from_cookie()) return;
+
+    try {
+      await this.refresh_session({ after_unauthorized: true });
+    } catch (caught) {
+      ignore_error(
+        "services/api/client/api_client:refresh_before_logout",
+        caught,
+      );
     }
   }
 
@@ -1186,6 +1350,7 @@ export class ApiClient {
         caught,
       );
     }
+    await this.await_outgoing_session_checkpoint();
   }
 
   async reestablish_session_for_account(
@@ -1495,6 +1660,8 @@ export class ApiClient {
   }
 
   async clear_session_cookies(): Promise<boolean> {
+    await this.await_outgoing_session_checkpoint();
+
     try {
       const response = await this.post("/core/v1/auth/clear-session", {});
 
@@ -1660,6 +1827,12 @@ export class ApiClient {
         code: "APP_LOCKED",
       };
     }
+
+    await this.refresh_before_logout(
+      endpoint,
+      config.method || "GET",
+      config.skip_session_refresh ?? false,
+    );
 
     if (is_identity_establishing_endpoint(endpoint)) {
       this.set_expected_user_id(null);

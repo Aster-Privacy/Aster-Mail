@@ -67,6 +67,28 @@ describe("resolve_is_family_plan", () => {
     await expect(resolve_is_family_plan()).resolves.toBe(false);
   });
 
+  it("returns false when the account has no family group", async () => {
+    mocked_get.mockResolvedValue({ data: null });
+
+    await expect(resolve_is_family_plan()).resolves.toBe(false);
+  });
+
+  it("asks for an empty result instead of a not-found", async () => {
+    mocked_get.mockResolvedValue({ data: null });
+
+    await resolve_is_family_plan();
+
+    expect(mocked_get).toHaveBeenCalledWith(
+      "/payments/v1/family?membership=optional",
+    );
+  });
+
+  it("returns null when the response has no body", async () => {
+    mocked_get.mockResolvedValue({ data: undefined });
+
+    await expect(resolve_is_family_plan()).resolves.toBeNull();
+  });
+
   it("returns null on a fingerprint-mismatch unauthorized error", async () => {
     mocked_get.mockResolvedValue({
       error: "Fingerprint mismatch on sensitive endpoint",
@@ -108,6 +130,17 @@ describe("refresh_family_plan_flag", () => {
     expect(localStorage.getItem("aster_is_family_plan")).toBe("1");
   });
 
+  it("persists and reports false when there is no family group", async () => {
+    localStorage.setItem("aster_is_family_plan", "1");
+    mocked_get.mockResolvedValue({ data: null });
+    const on_resolved = vi.fn();
+
+    refresh_family_plan_flag(on_resolved);
+    await vi.waitFor(() => expect(on_resolved).toHaveBeenCalledWith(false));
+
+    expect(localStorage.getItem("aster_is_family_plan")).toBe("0");
+  });
+
   it("persists and reports false on not-found", async () => {
     localStorage.setItem("aster_is_family_plan", "1");
     mocked_get.mockResolvedValue({ error: "not found", code: "NOT_FOUND" });
@@ -144,7 +177,9 @@ describe("prefetch_family_group", () => {
 
       prefetch_family_group();
 
-      expect(mocked_get).toHaveBeenCalledWith("/payments/v1/family");
+      expect(mocked_get).toHaveBeenCalledWith(
+        "/payments/v1/family?membership=optional",
+      );
     },
   );
 

@@ -1879,6 +1879,7 @@ function embedded_reply_to(
 function reply_to_notice(
   parsed: ParsedAddress,
   reply_to: string | null | undefined,
+  personal: PersonalContext,
 ): string | null {
   if (typeof reply_to !== "string" || !reply_to.trim()) return null;
 
@@ -1891,6 +1892,7 @@ function reply_to_notice(
 
     const reply = parse_address(entry);
 
+    if (reply && personal.own_keys.has(address_key(reply))) continue;
     if (reply && reply.registrable !== parsed.registrable) return reply.address;
 
     const embedded = embedded_reply_to(parsed, entry, reply !== null);
@@ -1968,7 +1970,7 @@ export function evaluate_sender_trust(input: SenderTrustInput): SenderTrust {
       warning === null && !internal
         ? find_contact_notice(base_name, parsed, personal)
         : null,
-    reply_to: reply_to_notice(parsed, input.reply_to),
+    reply_to: reply_to_notice(parsed, input.reply_to, personal),
     show_identity_marks: warning === null && !distrusted,
     show_verified_badge:
       input.sender_verified === true &&

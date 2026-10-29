@@ -968,6 +968,20 @@ export const ko = {
     file_too_large: "파일은 {{size}}보다 작아야 합니다.",
     delete_failed: "다시 시도하세요.",
     download_failed: "다운로드가 완료되지 않았습니다. 다시 시도하세요.",
+    download_complete:
+      "다운로드 완료",
+    downloaded_file:
+      "{{file_name}} 다운로드됨",
+    open_file:
+      "열기",
+    show_in_folder:
+      "폴더에서 보기",
+    show_in_finder:
+      "Finder에서 보기",
+    download_open_failed:
+      "이 파일을 열 수 없습니다. 이동되었거나 삭제되었을 수 있습니다.",
+    download_reveal_failed:
+      "이 파일을 표시할 수 없습니다. 이동되었거나 삭제되었을 수 있습니다.",
     attachment_locked:
       "이 첨부 파일의 암호화 키를 이 기기에서 사용할 수 없어 열 수 없습니다.",
     scheduled_no_attachments:
@@ -980,6 +994,10 @@ export const ko = {
       "예약 이메일은 최대 28일 후까지 보낼 수 있습니다. 더 이른 시간을 선택하세요.",
     scheduled_requires_encryption:
       "필수 암호화가 켜져 있으며, 외부 주소로 보내는 예약 이메일은 종단 간 암호화되지 않습니다. 이 메시지를 지금 보내거나 설정에서 필수 암호화를 끄세요.",
+    scheduled_no_pgp:
+      "외부 주소로 보내는 예약 이메일은 아직 PGP 암호화를 사용할 수 없습니다. 암호화하려면 이 메시지를 지금 보내세요.",
+    expiry_no_pgp:
+      "만료되는 외부 주소 이메일은 PGP 암호화를 사용할 수 없습니다. 이 메시지를 PGP로 암호화하려면 만료를 제거하세요.",
     offline_password_protected_unavailable:
       "오프라인 상태에서는 암호로 보호된 이메일을 대기열에 추가할 수 없습니다. 다시 연결되면 메시지를 보내세요.",
     offline_settings_unavailable:
@@ -1366,6 +1384,8 @@ export const ko = {
       "일부 외부 계정의 동기화가 중단되었습니다.",
     external_account_health_banner_action: "확인",
     external_account_health_banner_dismiss: "닫기",
+    locked_mail_after_reset:
+      "이 이메일은 비밀번호를 재설정하기 전의 키로 암호화되었습니다. 읽으려면 이전 비밀번호나 이전 복구 코드로 이전 데이터를 복구하세요.",
     recover_data_title: "데이터 복구",
     recover_data_description:
       "비밀번호 변경 또는 재설정 이전의 데이터를 잠금 해제하려면 당시 사용하던 비밀번호를 입력하세요.",
@@ -3920,6 +3940,20 @@ export const ko = {
     updates_banner_action: "지금 설치",
     updates_unsupported: "업데이트는 운영 체제 또는 브라우저에서 관리합니다",
     updates_dismiss: "나중에",
+    updates_card_preparing: "업데이트 준비 중",
+    updates_card_preparing_detail: "다운로드 시작 중",
+    updates_card_downloading: "Aster Mail {{version}} 다운로드 중",
+    updates_card_size: "{{downloaded}} / {{total}}",
+    updates_card_installing: "업데이트 설치 중",
+    updates_card_installing_detail: "Aster Mail이 곧 다시 시작됩니다.",
+    updates_card_failed: "업데이트를 설치하지 못했습니다",
+    updates_card_failed_detail: "연결을 확인한 후 다시 시도하세요.",
+    updates_card_available_detail: "설치를 완료하기 위해 Aster Mail이 다시 시작됩니다.",
+    updates_time_left_moment: "거의 완료됨",
+    updates_time_left_seconds: "약 {{seconds}}초 남음",
+    updates_time_left_minutes: "약 {{minutes}}분 남음",
+    updates_try_again: "다시 시도",
+    updates_whats_new: "새로운 기능",
     billing: "결제",
     billing_description: "구독 및 결제 방법을 관리합니다",
     undo_send: "보내기 취소",
@@ -4314,14 +4348,8 @@ export const ko = {
       "이 기기의 캐시 데이터를 지우고 Aster Mail을 다시 불러옵니다. 다시 로그인해야 할 수 있습니다.",
     iconic_sounds: "Iconic Sounds",
     iconic_sounds_description:
-      "메일을 보내거나, 보내기를 취소하거나, 작성하거나, 파일을 첨부하거나, 메일을 받을 때 Aster 사운드를 재생합니다.",
-    iconic_sounds_info:
-      "Iconic Sounds는 Aster에 기억에 남는 사운드를 추가합니다. 사운드는 변경될 수 있습니다.",
-    iconic_sounds_beta: "베타",
-    iconic_sounds_confirm_title: "Iconic Sounds를 켤까요?",
-    iconic_sounds_confirm_message:
-      "이 기능을 켜시겠습니까? Aster Mail은 메일 보내기, 보내기 취소 같은 동작에 사운드를 재생합니다. 이 설정은 웹 앱 및 데스크톱 앱과 동기화됩니다.",
-    iconic_sounds_turn_on: "켜기",
+      "메일을 보내거나 보내기를 취소할 때, 메시지를 시작할 때, 파일을 첨부할 때, 메일을 보관하거나 이동할 때, 오류가 표시될 때 Aster 사운드를 재생합니다.",
+    notification_sound: "알림음",
     current_plan: "현재 플랜",
     free: "무료",
     available_plans: "사용 가능한 플랜",
@@ -4506,10 +4534,20 @@ export const ko = {
     payment: "결제",
     cancels: "취소",
     renews: "갱신",
-    your_feedback: "피드백",
-    feedback_placeholder: "의견, 제안 또는 문제를 공유해 주세요...",
+    your_feedback: "피드백 보내기",
+    feedback_placeholder: "아이디어나 발견한 문제를 설명해 주세요",
     feedback_not_encrypted:
-      "피드백은 종단간 암호화되지 않습니다. 민감한 정보를 포함하지 마세요.",
+      "피드백은 종단 간 암호화되지 않으므로 비밀번호, 복구 코드 또는 기타 개인 정보를 포함하지 마세요.",
+    feedback_intro:
+      "아이디어를 공유하거나 버그를 신고하거나 Aster 팀에 의견을 알려 주세요. 피드백은 지원 요청을 생성하지 않으므로 도움이나 답변이 필요하면 지원팀에 문의하세요.",
+    support_intro:
+      "계정, 결제 또는 해결할 수 없는 문제에 대한 도움이 필요하면 지원팀에 이메일을 보내세요.",
+    support_email_label: "지원팀에 이메일 보내기",
+    support_help_label: "고객센터",
+    support_help_desc: "가이드와 자주 묻는 질문에 대한 답변을 찾아보세요.",
+    support_status_label: "서비스 상태",
+    support_status_desc: "Aster Mail에 장애가 있는지 확인하세요.",
+    support_security_label: "보안 문제 신고",
     sending: "전송 중...",
     send_feedback_button: "피드백 보내기",
     thank_you_feedback: "피드백 감사합니다!",
@@ -4520,7 +4558,7 @@ export const ko = {
       "너무 빠르게 시도하고 있습니다. 잠시 후 다시 시도하세요.",
     please_log_in_feedback: "로그인하면 피드백을 보낼 수 있습니다.",
     failed_send_feedback: "다시 시도하세요.",
-    other_ways_to_reach: "다른 연락 방법",
+    other_ways_to_reach: "지원팀에 문의",
     reset_to_defaults: "기본값으로 초기화",
     section_reset: "섹션이 기본값으로 초기화되었습니다",
     reset_all_confirm: "모든 설정을 기본값으로 초기화하시겠습니까?",
@@ -4855,7 +4893,7 @@ export const ko = {
       "3자에서 40자의 영문, 숫자, 점을 사용하세요. 점은 맨 앞이나 맨 뒤에 올 수 없고, 점을 연속해서 쓸 수도 없습니다.",
     address_change_name_placeholder: "yourname",
     primary_address_info:
-      "Supernova 요금제에서는 30일에 한 번 주소를 변경할 수 있습니다. 이전 주소는 계속 내 것입니다. 메일을 계속 받고 로그인에도 쓸 수 있습니다.",
+      "Supernova 및 Family 요금제에서는 30일에 한 번 주소를 변경할 수 있습니다. 이전 주소는 계속 내 것입니다. 메일을 계속 받고 로그인에도 쓸 수 있습니다.",
     address_change_checking: "사용 가능 여부 확인 중",
     address_change_available: "{{email}}을 사용할 수 있습니다",
     address_change_unavailable: "{{email}}은 사용할 수 없습니다",
@@ -4893,7 +4931,7 @@ export const ko = {
     address_change_taken_now:
       "다른 사람이 먼저 그 주소를 가져갔습니다. 다른 주소를 선택하세요.",
     address_change_code_invalid: "코드가 올바르지 않습니다.",
-    address_change_locked_plan: "주소 변경은 Supernova 기능입니다.",
+    address_change_locked_plan: "주소 변경은 Supernova 및 Family 기능입니다.",
     address_change_locked_cooldown:
       "{{date}}에 주소를 다시 변경할 수 있습니다.",
     address_change_locked_cooldown_unknown:
@@ -6189,6 +6227,17 @@ export const ko = {
       "저장 공간을 더 구입하려면 먼저 옵션을 선택하세요.",
     storage_promo_cta: "추가 상품 보기",
     storage_used_of_total: "{{total}} 중 {{used}} 사용",
+    storage_nudge_almost_title: "저장용량이 거의 찼습니다",
+    storage_nudge_critical_title: "저장용량이 거의 남지 않았습니다",
+    storage_nudge_full_title: "저장용량이 가득 찼습니다",
+    storage_nudge_offer: "월 {{price}}에 {{size}} 추가",
+    storage_nudge_offer_generic: "요금제를 업그레이드하여 저장용량 늘리기",
+    storage_nudge_body:
+      "저장용량이 가득 차면 메일을 보내거나 가져올 수 없습니다.",
+    storage_nudge_full_body:
+      "공간을 확보할 때까지 메일을 보내거나 가져올 수 없습니다. 기존 메일은 안전합니다.",
+    storage_nudge_free_up: "공간 확보",
+    storage_nudge_get_storage: "저장용량 추가",
     storage_free_space: "{{size}} 남음, 저장 공간의 {{percent}} 사용 중",
     storage_breakdown_title: "저장 공간 사용 내역",
     storage_breakdown_empty: "아직 저장 공간을 사용하지 않았습니다.",
@@ -6702,7 +6751,6 @@ export const ko = {
     domain_purchase_n_years: "{{count}}년",
     domain_purchase_pay_with: "결제 수단",
     domain_purchase_pay_card: "카드",
-    domain_purchase_pay_crypto: "암호화폐",
     domain_purchase_buy: "{{price}}에 구매",
     domain_purchase_error: "구매에 실패했습니다. 다시 시도해 주세요.",
     domain_purchase_error_taken:
@@ -6789,6 +6837,13 @@ export const ko = {
     domain_purchase_manage_paid: "결제 금액",
     domain_purchase_manage_auto_renew_note:
       "이 도메인은 자동으로 갱신되지 않습니다. 계속 사용하려면 만료일 전에 갱신하세요.",
+    domain_purchase_auto_renew_label: "자동으로 갱신",
+    domain_purchase_auto_renew_hint:
+      "Aster는 1년에 한 번 카드로 결제하며, 결제 15일 전에 가격을 이메일로 알려 드립니다. 설정에서 끌 수 있습니다.",
+    domain_purchase_manage_auto_renew_on_note:
+      "Aster는 만료일 30일 전에 저장된 카드로 결제하며, 그보다 15일 전에 가격을 이메일로 알려 드립니다.",
+    domain_purchase_manage_auto_renew_error:
+      "자동 갱신을 변경하지 못했습니다. 다시 시도하세요.",
     domain_purchase_manage_dns: "도메인 설정 열기",
     domain_purchase_manage_support_note:
       "이 도메인을 다른 등록기관으로 이전하거나 환불을 문의하려면 지원팀에 연락하세요.",
@@ -10574,6 +10629,46 @@ export const ko = {
       "감사합니다! 보내주신 의견이 모두를 위한 더 나은 Aster Mail을 만듭니다. 모든 답변을 꼼꼼히 읽습니다.",
   },
   calendar: {
+    beta_waitlist_title: "Aster Calendar",
+    beta_waitlist_tag: "베타",
+    beta_waitlist_start: "베타는 11월 1일에 시작될 예정입니다.",
+    beta_waitlist_features_title: "포함된 기능",
+    beta_waitlist_info_title: "캘린더 베타 정보",
+    beta_waitlist_info_body:
+      "Aster Calendar는 Aster 계정용 암호화 캘린더입니다. 자리가 나면 계정에서 캘린더가 켜지고 사이드바에 표시됩니다. 언제든지 대기자 명단에서 나갈 수 있습니다.",
+    beta_waitlist_privacy:
+      "일정과 캘린더는 기기에서 암호화되므로 본인만 읽을 수 있습니다. 대기자 명단에는 주소가 아닌 익명 태그만 저장되며, 출시 후 삭제됩니다.",
+    beta_waitlist_heading: "Aster Calendar를 먼저 사용해 보세요",
+    beta_waitlist_body:
+      "대기자 명단에 등록하면 먼저 사용해 볼 수 있습니다. 차례가 되면 계정에서 Calendar가 켜집니다.",
+    beta_waitlist_icon_note: "이 아이콘은 임시 아이콘입니다.",
+    beta_waitlist_feature_encrypted: "종단 간 암호화",
+    beta_waitlist_feature_encrypted_body: "일정은 메일과 같은 키를 사용합니다.",
+    beta_waitlist_feature_devices: "웹과 Android에서",
+    beta_waitlist_feature_devices_body: "일정이 모든 기기에서 동기화됩니다.",
+    beta_waitlist_feature_booking: "예약 페이지",
+    beta_waitlist_feature_booking_body:
+      "링크를 공유하면 다른 사람이 나와의 시간을 예약할 수 있습니다.",
+    beta_waitlist_feature_invites: "일정 초대",
+    beta_waitlist_feature_invites_body:
+      "이메일로 게스트를 초대하고 계획이 바뀌면 업데이트를 보낼 수 있습니다.",
+    beta_waitlist_feature_reminders: "알림",
+    beta_waitlist_feature_reminders_body:
+      "일정이 시작되기 전에 알림을 받을 수 있습니다.",
+    beta_waitlist_feature_recurring: "반복 일정",
+    beta_waitlist_feature_recurring_body:
+      "일정을 매일, 매주, 매월, 매년 또는 사용자 지정 주기로 반복할 수 있습니다.",
+    beta_waitlist_feature_import: "캘린더 가져오기",
+    beta_waitlist_feature_import_body:
+      "모든 .ics 파일에서 일정을 가져올 수 있습니다.",
+    beta_waitlist_apply: "대기자 명단에 등록",
+    beta_waitlist_joined: "대기자 명단에 등록되었습니다",
+    beta_waitlist_joined_body:
+      "등록해 주셔서 감사합니다. 차례가 되면 계정에서 Calendar가 자동으로 켜집니다.",
+    beta_waitlist_leave: "대기자 명단에서 나가기",
+    beta_waitlist_failed:
+      "대기자 명단을 업데이트하지 못했습니다. 다시 시도하세요.",
+    beta_waitlist_retry: "다시 시도",
     invite_yes: "예",
     invite_maybe: "미정",
     invite_no: "아니요",

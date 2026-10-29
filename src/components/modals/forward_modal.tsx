@@ -147,6 +147,7 @@ export function ForwardModal({
             <ForwardHeader
               contacts={modal.contacts}
               dispatch_recipients={modal.dispatch_recipients}
+              lock_scope={modal.lock_scope}
               email_subject={modal.email_subject}
               ghost_error={modal.ghost_mode.error}
               ghost_expiry_days={modal.ghost_mode.ghost_expiry_days}

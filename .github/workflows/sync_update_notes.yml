@@ -1,0 +1,51 @@
+name: Sync update notes
+
+on:
+  release:
+    types: [published, released, edited]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to sync, for example v1.4.79
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-update-notes-${{ github.event.release.tag_name || inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Copy the release body into the updater manifests
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.event.release.tag_name || inputs.tag }}
+        run: |
+          set -euo pipefail
+          TMP=$(mktemp -d)
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json body --jq .body > "$TMP/notes.md"
+          changed=()
+          for manifest in latest.json latest_v2.json; do
+            if ! gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern "$manifest" --dir "$TMP" --clobber 2>/dev/null; then
+              echo "$TAG has no $manifest yet; release.yml writes the notes when it builds it."
+              continue
+            fi
+            current=$(jq -r '.notes // ""' "$TMP/$manifest")
+            wanted=$(sed -e 's/[[:space:]]*$//' "$TMP/notes.md")
+            if [ "$current" = "$wanted" ]; then
+              echo "$manifest already carries the current notes."
+              continue
+            fi
+            jq --arg notes "$wanted" '.notes = $notes' "$TMP/$manifest" > "$TMP/$manifest.new"
+            mv "$TMP/$manifest.new" "$TMP/$manifest"
+            changed+=("$TMP/$manifest")
+          done
+          if [ ${#changed[@]} -eq 0 ]; then
+            exit 0
+          fi
+          gh release upload "$TAG" "${changed[@]}" --repo "$GITHUB_REPOSITORY" --clobber
+          echo "Updated notes in: ${changed[*]##*/}"

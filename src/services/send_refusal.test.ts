@@ -83,6 +83,16 @@ describe("describe_send_refusal", () => {
     expect(refusal?.message).toBe(en.errors.cannot_send_no_recipient_keys);
   });
 
+  it("explains a send refused because a locked recipient could not be encrypted", () => {
+    const refusal = describe_send_refusal({
+      code: "VALIDATION_ERROR",
+      server_code: "ENCRYPTED_RECIPIENT_UNAVAILABLE",
+    });
+
+    expect(refusal?.kind).toBe("send_failed");
+    expect(refusal?.message).toBe(en.errors.failed_pgp_encrypt);
+  });
+
   it("falls back to a neutral phrase when the server names no domain", () => {
     const refusal = describe_send_refusal({
       server_code: "RECIPIENT_CONCENTRATION",

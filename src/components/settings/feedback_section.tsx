@@ -19,9 +19,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   ChatBubbleBottomCenterTextIcon,
   EnvelopeIcon,
+  LifebuoyIcon,
+  QuestionMarkCircleIcon,
+  ShieldExclamationIcon,
+  SignalIcon,
 } from "@heroicons/react/24/outline";
 import {
   IslandRow,
@@ -37,8 +42,14 @@ import { api_client } from "@/services/api/client";
 import { API_ENDPOINTS } from "@/services/api/endpoints";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
+import { open_external } from "@/utils/open_link";
 
 const MAX_FEEDBACK_LENGTH = 2000;
+
+const SUPPORT_ADDRESS = "hello@astermail.org";
+const SECURITY_ADDRESS = "security@astermail.org";
+const HELP_CENTER_URL = "https://astermail.org/help";
+const STATUS_PAGE_URL = "https://status.astermail.org";
 
 const FEEDBACK_CATEGORIES = [
   { value: "general", label_key: "settings.feedback_category_general" },
@@ -48,11 +59,28 @@ const FEEDBACK_CATEGORIES = [
 
 type FeedbackCategory = (typeof FEEDBACK_CATEGORIES)[number]["value"];
 
+const ROW_ICON_CLASS = "h-[22px] w-[22px]";
+
 export function FeedbackSection() {
   const { t } = use_i18n();
+  const navigate = useNavigate();
   const [feedback_text, set_feedback_text] = useState("");
   const [is_sending, set_is_sending] = useState(false);
   const [category, set_category] = useState<FeedbackCategory>("general");
+
+  const compose_to = useCallback(
+    (address: string) => {
+      if (window.location.pathname.startsWith("/settings")) {
+        navigate("/");
+      }
+      window.dispatchEvent(
+        new CustomEvent("aster:open-compose-prefilled", {
+          detail: { to: [address], subject: "", body: "" },
+        }),
+      );
+    },
+    [navigate],
+  );
 
   const handle_send = useCallback(async () => {
     if (!feedback_text.trim()) return;
@@ -94,6 +122,7 @@ export function FeedbackSection() {
   return (
     <IslandSections>
       <IslandSection
+        description={t("settings.feedback_intro")}
         icon={<ChatBubbleBottomCenterTextIcon />}
         island_class_name="space-y-3"
         padding="md"
@@ -113,6 +142,7 @@ export function FeedbackSection() {
           ))}
         </div>
         <textarea
+          aria-label={t("settings.your_feedback")}
           className="aster_input resize-none"
           id="feedback-textarea"
           maxLength={MAX_FEEDBACK_LENGTH}
@@ -142,13 +172,37 @@ export function FeedbackSection() {
       </IslandSection>
 
       <IslandSection
-        icon={<EnvelopeIcon />}
+        description={t("settings.support_intro")}
+        icon={<LifebuoyIcon />}
         title={t("settings.other_ways_to_reach")}
       >
         <IslandRow
-          description={t("settings.email_label").replace(/[:：]\s*$/, "")}
-          href="mailto:hello@astermail.org"
-          label="hello@astermail.org"
+          chevron
+          description={SUPPORT_ADDRESS}
+          icon={<EnvelopeIcon className={ROW_ICON_CLASS} />}
+          label={t("settings.support_email_label")}
+          on_press={() => compose_to(SUPPORT_ADDRESS)}
+        />
+        <IslandRow
+          chevron
+          description={t("settings.support_help_desc")}
+          icon={<QuestionMarkCircleIcon className={ROW_ICON_CLASS} />}
+          label={t("settings.support_help_label")}
+          on_press={() => open_external(HELP_CENTER_URL)}
+        />
+        <IslandRow
+          chevron
+          description={t("settings.support_status_desc")}
+          icon={<SignalIcon className={ROW_ICON_CLASS} />}
+          label={t("settings.support_status_label")}
+          on_press={() => open_external(STATUS_PAGE_URL)}
+        />
+        <IslandRow
+          chevron
+          description={SECURITY_ADDRESS}
+          icon={<ShieldExclamationIcon className={ROW_ICON_CLASS} />}
+          label={t("settings.support_security_label")}
+          on_press={() => compose_to(SECURITY_ADDRESS)}
         />
       </IslandSection>
     </IslandSections>

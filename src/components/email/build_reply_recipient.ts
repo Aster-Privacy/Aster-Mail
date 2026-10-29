@@ -18,7 +18,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { safe_sender_name } from "@/lib/sender_trust_store";
+import {
+  get_sender_trust_context,
+  safe_sender_name,
+} from "@/lib/sender_trust_store";
 import { get_email_username } from "@/lib/utils";
 import { extract_reply_to } from "@/utils/reply_to";
 import { normalize_address_ignoring_dots } from "@/utils/address_dots";
@@ -48,7 +51,10 @@ export function build_reply_recipient(
   is_own_message: boolean,
 ): ReplyRecipient {
   const own_set = new Set(
-    (source.own_addresses ?? [])
+    [
+      ...(source.own_addresses ?? []),
+      ...get_sender_trust_context().own_addresses,
+    ]
       .filter(Boolean)
       .map((addr) => normalize_address_ignoring_dots(addr)),
   );

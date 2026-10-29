@@ -932,6 +932,20 @@ export const hi = {
     file_too_large: "फ़ाइल {{size}} से छोटी होनी चाहिए",
     delete_failed: "फिर से कोशिश करें।",
     download_failed: "फिर से कोशिश करें।",
+    download_complete:
+      "डाउनलोड पूरा हुआ",
+    downloaded_file:
+      "{{file_name}} डाउनलोड हो गई",
+    open_file:
+      "खोलें",
+    show_in_folder:
+      "फ़ोल्डर में दिखाएं",
+    show_in_finder:
+      "Finder में दिखाएं",
+    download_open_failed:
+      "यह फ़ाइल नहीं खुल सकी। हो सकता है कि इसे हटा दिया गया हो या कहीं और ले जाया गया हो।",
+    download_reveal_failed:
+      "यह फ़ाइल नहीं दिखाई जा सकी। हो सकता है कि इसे हटा दिया गया हो या कहीं और ले जाया गया हो।",
     attachment_locked:
       "यह अटैचमेंट नहीं खुल सकता, क्योंकि इसकी एन्क्रिप्शन कुंजी इस डिवाइस पर उपलब्ध नहीं है।",
     scheduled_no_attachments:
@@ -944,6 +958,10 @@ export const hi = {
       "शेड्यूल किए गए ईमेल अधिकतम 28 दिन आगे के लिए भेजे जा सकते हैं। पहले का समय चुनें।",
     scheduled_requires_encryption:
       "आपने आवश्यक एन्क्रिप्शन चालू किया है, और बाहरी पतों पर शेड्यूल किए गए ईमेल एंड-टू-एंड एन्क्रिप्टेड नहीं होते। यह संदेश अभी भेजें, या सेटिंग्स में आवश्यक एन्क्रिप्शन बंद करें।",
+    scheduled_no_pgp:
+      "बाहरी पतों पर शेड्यूल किए गए ईमेल में अभी PGP एन्क्रिप्शन का उपयोग नहीं हो सकता। इसे एन्क्रिप्ट करने के लिए यह संदेश अभी भेजें।",
+    expiry_no_pgp:
+      "बाहरी पतों पर समाप्त होने वाले ईमेल में PGP एन्क्रिप्शन का उपयोग नहीं हो सकता। इस संदेश को PGP से एन्क्रिप्ट करने के लिए, समाप्ति हटाएं।",
     offline_password_protected_unavailable:
       "ऑफ़लाइन होने पर आप पासवर्ड से सुरक्षित ईमेल कतार में नहीं जोड़ सकते। फिर से कनेक्ट होने पर संदेश भेजें।",
     offline_settings_unavailable:
@@ -1363,6 +1381,8 @@ export const hi = {
       "कुछ बाहरी खातों का सिंक रुक गया है।",
     external_account_health_banner_action: "देखें",
     external_account_health_banner_dismiss: "खारिज करें",
+    locked_mail_after_reset:
+      "यह ईमेल उन कुंजियों से एन्क्रिप्ट किया गया था जो पासवर्ड रीसेट से पहले आपके पास थीं। इसे पढ़ने के लिए, अपने पुराने पासवर्ड या पुराने रिकवरी कोड से अपना पुराना डेटा रिकवर करें।",
     recover_data_title: "डेटा वापस पाएं",
     recover_data_description:
       "पासवर्ड बदलने या रीसेट करने से पहले का डेटा अनलॉक करने के लिए, वह पासवर्ड डालें जो आप उस समय इस्तेमाल करते थे।",
@@ -2709,6 +2729,20 @@ export const hi = {
     updates_banner_action: "अभी इंस्टॉल करें",
     updates_unsupported: "अपडेट आपका ऑपरेटिंग सिस्टम या ब्राउज़र संभालता है",
     updates_dismiss: "बाद में",
+    updates_card_preparing: "अपडेट तैयार हो रहा है",
+    updates_card_preparing_detail: "डाउनलोड शुरू हो रहा है",
+    updates_card_downloading: "Aster Mail {{version}} डाउनलोड हो रहा है",
+    updates_card_size: "{{total}} में से {{downloaded}}",
+    updates_card_installing: "अपडेट इंस्टॉल हो रहा है",
+    updates_card_installing_detail: "Aster Mail कुछ ही पल में फिर से शुरू होगा।",
+    updates_card_failed: "अपडेट इंस्टॉल नहीं हुआ",
+    updates_card_failed_detail: "अपना कनेक्शन जांचें और फिर से कोशिश करें।",
+    updates_card_available_detail: "इंस्टॉल पूरा करने के लिए Aster Mail फिर से शुरू होता है।",
+    updates_time_left_moment: "लगभग हो गया",
+    updates_time_left_seconds: "लगभग {{seconds}} सेकंड बाकी",
+    updates_time_left_minutes: "लगभग {{minutes}} मिनट बाकी",
+    updates_try_again: "फिर से कोशिश करें",
+    updates_whats_new: "नया क्या है",
     billing: "बिलिंग",
     billing_description: "अपनी सदस्यता और भुगतान के तरीके प्रबंधित करें",
     undo_send: "भेजना वापस लें",
@@ -3363,14 +3397,8 @@ export const hi = {
       "इससे इस डिवाइस पर कैश किया गया डेटा साफ़ हो जाता है और Aster Mail फिर से लोड होता है। आपको दोबारा साइन इन करना पड़ सकता है।",
     iconic_sounds: "Iconic Sounds",
     iconic_sounds_description:
-      "जब आप मेल भेजते हैं, भेजना पूर्ववत करते हैं, लिखते हैं, फ़ाइलें अटैच करते हैं और मेल पाते हैं, तब Aster की ध्वनियाँ बजती हैं।",
-    iconic_sounds_info:
-      "Iconic Sounds, Aster में यादगार ध्वनियाँ जोड़ता है। ये ध्वनियाँ बदल सकती हैं।",
-    iconic_sounds_beta: "बीटा",
-    iconic_sounds_confirm_title: "Iconic Sounds चालू करें?",
-    iconic_sounds_confirm_message:
-      "क्या आप वाकई इसे चालू करना चाहते हैं? Aster Mail मेल भेजने और भेजना पूर्ववत करने जैसी कार्रवाइयों पर ध्वनियाँ बजाता है। यह सेटिंग वेब और डेस्कटॉप ऐप के साथ सिंक होती है।",
-    iconic_sounds_turn_on: "चालू करें",
+      "जब आप मेल भेजते हैं या भेजना पूर्ववत करते हैं, नया संदेश शुरू करते हैं, फ़ाइलें अटैच करते हैं, मेल संग्रहित करते हैं या ले जाते हैं, और कोई त्रुटि दिखती है, तब Aster की ध्वनियाँ बजती हैं।",
+    notification_sound: "सूचना की ध्वनि",
     current_plan: "मौजूदा प्लान",
     free: "मुफ़्त",
     or_pay_with_card: "या कार्ड से भुगतान करें",
@@ -4893,6 +4921,18 @@ export const hi = {
       "और स्टोरेज खरीदने के लिए पहले कोई विकल्प चुनें।",
     storage_promo_cta: "ऐड-ऑन देखें",
     storage_used_of_total: "{{total}} में से {{used}} इस्तेमाल हुआ",
+    storage_nudge_almost_title: "स्टोरेज लगभग भर गया है",
+    storage_nudge_critical_title: "आपका स्टोरेज लगभग खत्म हो गया है",
+    storage_nudge_full_title: "आपका स्टोरेज भर गया है",
+    storage_nudge_offer: "{{price}} प्रति माह में {{size}} और पाएं",
+    storage_nudge_offer_generic:
+      "ज़्यादा स्टोरेज के लिए अपना प्लान अपग्रेड करें",
+    storage_nudge_body:
+      "स्टोरेज भर जाने पर आप ईमेल भेज या इंपोर्ट नहीं कर पाएंगे।",
+    storage_nudge_full_body:
+      "जब तक आप जगह खाली नहीं करते, आप ईमेल भेज या इंपोर्ट नहीं कर सकते। आपके मौजूदा ईमेल सुरक्षित हैं।",
+    storage_nudge_free_up: "जगह खाली करें",
+    storage_nudge_get_storage: "स्टोरेज पाएं",
     storage_free_space:
       "{{size}} खाली, आपके स्टोरेज का {{percent}} इस्तेमाल हुआ",
     storage_breakdown_title: "आपका स्टोरेज क्या इस्तेमाल कर रहा है",
@@ -5458,10 +5498,21 @@ export const hi = {
     payment: "भुगतान",
     cancels: "रद्द होता है",
     renews: "नवीनीकरण",
-    your_feedback: "आपकी प्रतिक्रिया",
-    feedback_placeholder: "अपने विचार और सुझाव साझा करें, या समस्याएं बताएं...",
+    your_feedback: "फ़ीडबैक भेजें",
+    feedback_placeholder:
+      "अपना आइडिया या जो समस्या आपको मिली, उसके बारे में बताएं",
     feedback_not_encrypted:
-      "प्रतिक्रिया एंड-टू-एंड एन्क्रिप्टेड नहीं होती। इसमें संवेदनशील जानकारी न डालें।",
+      "फ़ीडबैक एंड-टू-एंड एन्क्रिप्टेड नहीं होता, इसलिए इसमें पासवर्ड, रिकवरी कोड या कोई अन्य निजी जानकारी न डालें।",
+    feedback_intro:
+      "कोई आइडिया शेयर करें, बग की रिपोर्ट करें या Aster टीम को बताएं कि आप क्या सोचते हैं। फ़ीडबैक से सहायता अनुरोध नहीं बनता, इसलिए मदद या जवाब पाने के लिए सहायता टीम से संपर्क करें।",
+    support_intro:
+      "अपने खाते, बिलिंग या किसी ऐसी समस्या में मदद के लिए जिसे आप हल नहीं कर पा रहे, सहायता टीम को ईमेल करें।",
+    support_email_label: "सहायता टीम को ईमेल करें",
+    support_help_label: "सहायता केंद्र",
+    support_help_desc: "गाइड और आम सवालों के जवाब देखें।",
+    support_status_label: "सेवा की स्थिति",
+    support_status_desc: "देखें कि Aster Mail में कोई रुकावट तो नहीं है।",
+    support_security_label: "सुरक्षा समस्या की रिपोर्ट करें",
     sending: "भेजा जा रहा है...",
     send_feedback_button: "प्रतिक्रिया भेजें",
     thank_you_feedback: "आपकी प्रतिक्रिया के लिए धन्यवाद।",
@@ -5472,7 +5523,7 @@ export const hi = {
       "आप यह बहुत तेज़ी से कर रहे हैं। थोड़ा रुककर फिर से कोशिश करें।",
     please_log_in_feedback: "साइन इन करने पर आप प्रतिक्रिया भेज सकेंगे।",
     failed_send_feedback: "फिर से कोशिश करें।",
-    other_ways_to_reach: "हम तक पहुंचने के दूसरे तरीके",
+    other_ways_to_reach: "सहायता टीम से संपर्क करें",
     reset_to_defaults: "डिफ़ॉल्ट पर लौटाएं",
     section_reset: "यह हिस्सा डिफ़ॉल्ट पर लौट आया",
     reset_all_confirm: "सारी सेटिंग डिफ़ॉल्ट पर लौटाएं?",
@@ -5835,7 +5886,7 @@ export const hi = {
       "3 से 40 अक्षर, अंक या बिंदु इस्तेमाल करें। बिंदु न शुरुआत में हो सकता है, न अंत में, और बिंदु दोहराए नहीं जा सकते।",
     address_change_name_placeholder: "yourname",
     primary_address_info:
-      "आपका Supernova प्लान हर 30 दिन में एक बार पता बदलने देता है। आपका पुराना पता आपका ही रहता है: यह मेल पाता रहता है और साइन इन भी कराता है।",
+      "Supernova और Family प्लान हर 30 दिन में एक बार पता बदलने देते हैं। आपका पुराना पता आपका ही रहता है: यह मेल पाता रहता है और साइन इन भी कराता है।",
     address_change_checking: "उपलब्धता जाँची जा रही है",
     address_change_available: "{{email}} उपलब्ध है",
     address_change_unavailable: "{{email}} उपलब्ध नहीं है",
@@ -5872,7 +5923,8 @@ export const hi = {
       "यह कोड समाप्त हो गया। नया कोड पाने के लिए, बदलाव फिर से शुरू करें।",
     address_change_taken_now: "यह पता किसी और ने ले लिया। दूसरा चुनें।",
     address_change_code_invalid: "यह कोड सही नहीं है।",
-    address_change_locked_plan: "अपना पता बदलना Supernova की सुविधा है।",
+    address_change_locked_plan:
+      "अपना पता बदलना Supernova और Family की सुविधा है।",
     address_change_locked_cooldown:
       "आप {{date}} को अपना पता दोबारा बदल सकते हैं।",
     address_change_locked_cooldown_unknown:
@@ -6374,7 +6426,6 @@ export const hi = {
     domain_purchase_n_years: "{{count}} साल",
     domain_purchase_pay_with: "इससे भुगतान करें",
     domain_purchase_pay_card: "कार्ड",
-    domain_purchase_pay_crypto: "क्रिप्टो",
     domain_purchase_buy: "{{price}} में खरीदें",
     domain_purchase_error: "खरीद विफल रही। फिर से कोशिश करें।",
     domain_purchase_error_taken:
@@ -6471,6 +6522,13 @@ export const hi = {
     domain_purchase_manage_paid: "भुगतान हो गया",
     domain_purchase_manage_auto_renew_note:
       "यह डोमेन अपने आप नवीनीकृत नहीं होता। इसे बनाए रखने के लिए समाप्ति तारीख से पहले नवीनीकृत करें।",
+    domain_purchase_auto_renew_label: "अपने आप रिन्यू करें",
+    domain_purchase_auto_renew_hint:
+      "Aster साल में एक बार आपके कार्ड से शुल्क लेता है और हर शुल्क से 15 दिन पहले आपको कीमत ईमेल करता है। आप इसे सेटिंग में बंद कर सकते हैं।",
+    domain_purchase_manage_auto_renew_on_note:
+      "Aster समाप्ति तिथि से 30 दिन पहले आपके सेव किए गए कार्ड से शुल्क लेता है और उससे 15 दिन पहले आपको कीमत ईमेल करता है।",
+    domain_purchase_manage_auto_renew_error:
+      "अपने आप रिन्यू होने की सेटिंग अपडेट नहीं हो सकी। फिर से कोशिश करें।",
     domain_purchase_manage_dns: "डोमेन सेटअप खोलें",
     domain_purchase_manage_support_note:
       "इस डोमेन को दूसरे रजिस्ट्रार पर ले जाने या रिफ़ंड के बारे में पूछने के लिए सहायता टीम से संपर्क करें।",
@@ -10777,6 +10835,47 @@ export const hi = {
       "धन्यवाद। आपकी प्रतिक्रिया से Aster Mail सबके लिए बेहतर बनता है। हम हर जवाब पढ़ते हैं।",
   },
   calendar: {
+    beta_waitlist_title: "Aster Calendar",
+    beta_waitlist_tag: "बीटा",
+    beta_waitlist_start: "बीटा 1 नवंबर को शुरू होने की उम्मीद है।",
+    beta_waitlist_features_title: "इसमें क्या शामिल है",
+    beta_waitlist_info_title: "कैलेंडर बीटा के बारे में",
+    beta_waitlist_info_body:
+      "Aster Calendar आपके Aster खाते के लिए एक एन्क्रिप्टेड कैलेंडर है। जगह खुलते ही आपके खाते में कैलेंडर चालू हो जाता है और साइडबार में दिखता है। आप किसी भी समय प्रतीक्षा सूची छोड़ सकते हैं।",
+    beta_waitlist_privacy:
+      "आपके इवेंट और कैलेंडर आपके डिवाइस पर एन्क्रिप्ट होते हैं, इसलिए केवल आप उन्हें पढ़ सकते हैं। प्रतीक्षा सूची केवल एक अनाम टैग रखती है, आपका पता कभी नहीं, और लॉन्च के बाद हटा दी जाती है।",
+    beta_waitlist_heading: "Aster Calendar पहले आज़माएं",
+    beta_waitlist_body:
+      "जल्दी ऐक्सेस पाने के लिए वेटलिस्ट में शामिल हों। आपकी बारी आने पर आपके खाते पर Calendar चालू हो जाएगा।",
+    beta_waitlist_icon_note: "यह आइकन अस्थायी है।",
+    beta_waitlist_feature_encrypted: "एंड-टू-एंड एन्क्रिप्टेड",
+    beta_waitlist_feature_encrypted_body:
+      "आपके इवेंट उन्हीं कुंजियों का इस्तेमाल करते हैं जो आपका मेल करता है।",
+    beta_waitlist_feature_devices: "वेब और Android पर",
+    beta_waitlist_feature_devices_body:
+      "आपका शेड्यूल हर डिवाइस पर सिंक रहता है।",
+    beta_waitlist_feature_booking: "बुकिंग पेज",
+    beta_waitlist_feature_booking_body:
+      "एक लिंक शेयर करें ताकि लोग आपके साथ समय बुक कर सकें।",
+    beta_waitlist_feature_invites: "इवेंट आमंत्रण",
+    beta_waitlist_feature_invites_body:
+      "मेहमानों को ईमेल से आमंत्रित करें और योजना बदलने पर उन्हें अपडेट भेजें।",
+    beta_waitlist_feature_reminders: "रिमाइंडर",
+    beta_waitlist_feature_reminders_body:
+      "हर इवेंट शुरू होने से पहले सूचना पाएं।",
+    beta_waitlist_feature_recurring: "दोहराए जाने वाले इवेंट",
+    beta_waitlist_feature_recurring_body:
+      "इवेंट को रोज़, हर हफ़्ते, हर महीने, हर साल या अपने शेड्यूल पर दोहराएं।",
+    beta_waitlist_feature_import: "अपना कैलेंडर इंपोर्ट करें",
+    beta_waitlist_feature_import_body:
+      "किसी भी .ics फ़ाइल से अपने इवेंट ले आएं।",
+    beta_waitlist_apply: "वेटलिस्ट में शामिल हों",
+    beta_waitlist_joined: "आप वेटलिस्ट में हैं",
+    beta_waitlist_joined_body:
+      "शामिल होने के लिए धन्यवाद। आपकी बारी आने पर आपके खाते पर Calendar अपने आप चालू हो जाएगा।",
+    beta_waitlist_leave: "वेटलिस्ट छोड़ें",
+    beta_waitlist_failed: "वेटलिस्ट अपडेट नहीं हो सकी। फिर से कोशिश करें।",
+    beta_waitlist_retry: "फिर से कोशिश करें",
     invite_yes: "हां",
     invite_maybe: "शायद",
     invite_no: "नहीं",

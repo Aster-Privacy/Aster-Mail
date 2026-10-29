@@ -27,6 +27,7 @@ import {
   ExclamationTriangleIcon,
   InformationCircleIcon,
   ArrowPathIcon,
+  ArrowDownTrayIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 
@@ -57,7 +58,8 @@ export interface ActionToastState {
     | "not_spam"
     | "snooze"
     | "progress"
-    | "refresh";
+    | "refresh"
+    | "download";
   email_ids: string[];
   on_undo?: () => Promise<void>;
   action_label?: string;
@@ -65,6 +67,12 @@ export interface ActionToastState {
   on_cancel?: () => void;
   sound?: IconicSound | "none";
   hide_dismiss?: boolean;
+  actions?: ActionToastButton[];
+}
+
+export interface ActionToastButton {
+  label: string;
+  on_press: () => void;
 }
 
 const DONE_SOUND_ACTIONS: ReadonlySet<ActionToastState["action_type"]> =
@@ -214,6 +222,8 @@ function get_icon_for_action(action_type: ActionToastState["action_type"]) {
       return <ExclamationTriangleIcon className={icon_class} />;
     case "refresh":
       return <ArrowPathIcon className={`${icon_class} animate-spin`} />;
+    case "download":
+      return <ArrowDownTrayIcon className={icon_class} />;
     case "archive":
     case "trash":
     case "pin":
@@ -314,23 +324,41 @@ export function ActionToast({ position }: ActionToastProps) {
               toast.progress ? "gap-2.5 px-4 py-3" : "gap-2 px-4 py-2.5"
             }`}
             style={{
-              minWidth: toast.progress ? "300px" : undefined,
+              minWidth: toast.progress
+                ? "min(300px, calc(100vw - 32px))"
+                : undefined,
+              maxWidth: "min(560px, calc(100vw - 32px))",
             }}
           >
-            <div className="flex items-center gap-2 whitespace-nowrap">
+            <div className="flex items-center gap-2">
               <span className="flex-shrink-0 text-txt-primary">
                 {get_icon_for_action(toast.action_type)}
               </span>
               <span
-                className={`text-[13px] font-medium text-txt-primary ${
-                  toast.progress ? "flex-1 min-w-0 truncate" : ""
-                }`}
+                className={`min-w-0 text-[13px] font-medium text-txt-primary ${
+                  toast.progress ? "flex-1 truncate" : "break-words"
+                } ${toast.actions?.length ? "max-w-[260px] truncate" : ""}`}
+                title={toast.actions?.length ? toast.message : undefined}
               >
                 {toast.message}
               </span>
+              {!toast.progress &&
+                toast.actions?.map((action) => (
+                  <button
+                    key={action.label}
+                    className="inline-flex flex-shrink-0 items-center whitespace-nowrap text-[13px] font-medium ms-1 underline text-brand"
+                    type="button"
+                    onClick={() => {
+                      hide_action_toast();
+                      action.on_press();
+                    }}
+                  >
+                    {action.label}
+                  </button>
+                ))}
               {toast.on_undo && !toast.progress && (
                 <button
-                  className="inline-flex items-center text-[13px] font-medium ms-1 underline text-brand"
+                  className="inline-flex flex-shrink-0 items-center whitespace-nowrap text-[13px] font-medium ms-1 underline text-brand"
                   disabled={is_undoing}
                   onClick={handle_undo}
                 >

@@ -125,6 +125,7 @@ export function use_preferences_core() {
   });
   const [is_loading, set_is_loading] = useState(true);
   const [has_loaded_from_server, set_has_loaded_from_server] = useState(false);
+  const [preferences_locked, set_preferences_locked] = useState(false);
   const [save_status, set_save_status] = useState<SaveStatus>("idle");
 
   const vault_ref = useRef(vault);
@@ -679,6 +680,8 @@ export function use_preferences_core() {
     set_is_loading,
     has_loaded_from_server,
     set_has_loaded_from_server,
+    preferences_locked,
+    set_preferences_locked,
     save_status,
     vault_ref,
     set_theme_ref,

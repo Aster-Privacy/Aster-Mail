@@ -107,6 +107,13 @@ export function describe_send_refusal(
     };
   }
 
+  if (result.server_code === "ENCRYPTED_RECIPIENT_UNAVAILABLE") {
+    return {
+      kind: "send_failed",
+      message: get_active_translations().errors.failed_pgp_encrypt,
+    };
+  }
+
   const sender_refusal = describe_sender_refusal(result);
 
   if (sender_refusal) {

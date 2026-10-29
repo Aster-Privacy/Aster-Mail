@@ -20,6 +20,8 @@
 //
 import type { DecryptedContact } from "@/types/contacts";
 
+import { print_page_css } from "@/utils/print_page";
+
 export interface ContactPrintLabels {
   title: string;
   email: string;
@@ -90,7 +92,7 @@ const build_document = (
   `<!doctype html><html><head><meta charset="utf-8"><title>${escape_html(
     labels.title,
   )}</title><style>
-@page { margin: 16mm; }
+${print_page_css("16mm", "body")}
 * { box-sizing: border-box; }
 body { margin: 0; color: #111; background: #fff; font: 12px/1.5 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
 h1 { font-size: 18px; margin: 0 0 4px; }

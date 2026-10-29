@@ -66,7 +66,7 @@ import {
   report_spam_sender,
   remove_spam_sender,
 } from "@/services/api/mail";
-import { set_thread_trashed } from "@/services/trash_state";
+import { set_thread_trashed, sync_thread_spam } from "@/services/trash_state";
 import { emit_mail_soft_refresh } from "@/hooks/email_action_types";
 import {
   collect_restore_entries,
@@ -369,12 +369,17 @@ export function use_inbox_toolbar_actions({
       e.thread_token ? remove_thread_entries(e.thread_token) : [],
     );
 
+    const spam_thread_tokens = [email, ...same_sender_emails]
+      .filter((e) => trashes_whole_thread(e, preferences.conversation_grouping))
+      .map((e) => e.thread_token);
+
     const result = await bulk_update_metadata_by_ids(combined_ids, {
       is_spam: true,
       is_trashed: false,
     }).catch(() => null);
 
     if (result?.success) {
+      await sync_thread_spam(spam_thread_tokens, true);
       const uncovered_thread_ids = removed_thread_ids.filter(
         (id) => !combined_ids.includes(id),
       );
@@ -418,6 +423,7 @@ export function use_inbox_toolbar_actions({
             Array.from(new Set([...combined_ids, ...removed_thread_ids])),
             { is_spam: false },
           );
+          await sync_thread_spam(spam_thread_tokens, false);
           reindex_ids(
             Array.from(new Set([...combined_ids, ...removed_thread_ids])),
           );
@@ -457,6 +463,7 @@ export function use_inbox_toolbar_actions({
     save_now,
     email_state.emails,
     t,
+    preferences.conversation_grouping,
   ]);
 
   const cancel_single_spam = useCallback((): void => {
@@ -850,6 +857,11 @@ export function use_inbox_toolbar_actions({
     if (failed_emails.length > 0) {
       reindex_ids(Array.from(new Set(failed_emails.flatMap(message_ids_of))));
     }
+    const succeeded_spam_tokens = succeeded_emails
+      .filter((e) => trashes_whole_thread(e, preferences.conversation_grouping))
+      .map((e) => e.thread_token);
+
+    await sync_thread_spam(succeeded_spam_tokens, true);
     const unique_senders = new Set(
       succeeded_emails.map((e) => e.sender_email).filter(Boolean),
     );
@@ -894,6 +906,7 @@ export function use_inbox_toolbar_actions({
         await bulk_update_metadata_by_ids(succeeded_message_ids, {
           is_spam: false,
         });
+        await sync_thread_spam(succeeded_spam_tokens, false);
         reindex_ids(succeeded_message_ids);
         for (const sender of unique_senders) {
           remove_spam_sender(sender).catch((caught) =>

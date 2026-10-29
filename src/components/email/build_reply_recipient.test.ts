@@ -18,7 +18,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, afterEach } from "vitest";
 
 import {
   build_reply_recipient,
@@ -26,6 +26,11 @@ import {
 } from "./build_reply_recipient";
 
 import { extract_reply_to } from "@/utils/reply_to";
+import {
+  clear_sender_trust_context,
+  set_trust_own_addresses,
+  set_trust_primary_address,
+} from "@/lib/sender_trust_store";
 
 describe("build_reply_recipient", () => {
   it("labels a reply with the real address when the sender name is an address", () => {
@@ -313,5 +318,43 @@ describe("build_reply_recipient_for_message", () => {
     });
 
     expect(result.recipient_email).toBe("reverse_alias_x@simplelogin.co");
+  });
+});
+
+describe("build_reply_recipient with the reader's own addresses", () => {
+  afterEach(() => {
+    set_trust_primary_address("");
+    clear_sender_trust_context();
+  });
+
+  it("replies to the sender when Reply-To is one of the reader's aliases", () => {
+    set_trust_primary_address("me@astermail.example");
+    set_trust_own_addresses(["support@astermail.example"]);
+
+    const result = build_reply_recipient(
+      {
+        sender_name: "Shadow",
+        sender_email: "shadow@atomicmail.example",
+        reply_to: { name: "", email: "support@astermail.example" },
+      },
+      false,
+    );
+
+    expect(result.recipient_email).toBe("shadow@atomicmail.example");
+  });
+
+  it("still honors a Reply-To that is not the reader's", () => {
+    set_trust_primary_address("me@astermail.example");
+
+    const result = build_reply_recipient(
+      {
+        sender_name: "Shadow",
+        sender_email: "shadow@atomicmail.example",
+        reply_to: { name: "", email: "desk@atomicmail.example" },
+      },
+      false,
+    );
+
+    expect(result.recipient_email).toBe("desk@atomicmail.example");
   });
 });

@@ -929,6 +929,20 @@ export const pl = {
       "Ten plik ma {{size}} MB, co przekracza limit. Warto wybrać mniejszy.",
     delete_failed: "Spróbuj ponownie.",
     download_failed: "Pobieranie nie zostało ukończone. Spróbuj ponownie.",
+    download_complete:
+      "Pobieranie zakończone",
+    downloaded_file:
+      "Pobrano {{file_name}}",
+    open_file:
+      "Otwórz",
+    show_in_folder:
+      "Pokaż w folderze",
+    show_in_finder:
+      "Pokaż w Finderze",
+    download_open_failed:
+      "Nie można otworzyć tego pliku. Mógł zostać przeniesiony lub usunięty.",
+    download_reveal_failed:
+      "Nie można pokazać tego pliku. Mógł zostać przeniesiony lub usunięty.",
     attachment_locked:
       "Nie można otworzyć tego załącznika, ponieważ jego klucz szyfrowania nie jest dostępny na tym urządzeniu.",
     scheduled_no_attachments:
@@ -941,6 +955,10 @@ export const pl = {
       "Zaplanowane e-maile można wysłać najwyżej 28 dni naprzód. Wybierz wcześniejszy termin.",
     scheduled_requires_encryption:
       "Masz włączone wymagane szyfrowanie, a zaplanowane e-maile do adresów zewnętrznych nie są szyfrowane end-to-end. Wyślij tę wiadomość teraz lub wyłącz wymagane szyfrowanie w Ustawieniach.",
+    scheduled_no_pgp:
+      "Zaplanowane e-maile do adresów zewnętrznych nie mogą jeszcze używać szyfrowania PGP. Wyślij tę wiadomość teraz, aby ją zaszyfrować.",
+    expiry_no_pgp:
+      "Wygasające e-maile do adresów zewnętrznych nie mogą używać szyfrowania PGP. Aby zaszyfrować tę wiadomość za pomocą PGP, usuń datę wygaśnięcia.",
     offline_password_protected_unavailable:
       "Nie możesz dodać do kolejki e-maili chronionych hasłem, gdy jesteś offline. Gdy znów połączysz się z internetem, wyślij wiadomość.",
     offline_settings_unavailable:
@@ -1353,6 +1371,8 @@ export const pl = {
       "Niektóre konta zewnętrzne przestały się synchronizować.",
     external_account_health_banner_action: "Sprawdź",
     external_account_health_banner_dismiss: "Zamknij",
+    locked_mail_after_reset:
+      "Ten e-mail został zaszyfrowany kluczami sprzed zresetowania hasła. Aby go odczytać, odzyskaj starsze dane za pomocą starego hasła lub starego kodu odzyskiwania.",
     recover_data_title: "Odzyskaj dane",
     recover_data_description:
       "Aby odblokować dane sprzed zmiany lub zresetowania hasła, wpisz hasło używane w tamtym czasie.",
@@ -4068,6 +4088,20 @@ export const pl = {
     updates_unsupported:
       "Aktualizacjami zarządza system operacyjny lub przeglądarka",
     updates_dismiss: "Później",
+    updates_card_preparing: "Przygotowywanie aktualizacji",
+    updates_card_preparing_detail: "Rozpoczynanie pobierania",
+    updates_card_downloading: "Pobieranie Aster Mail {{version}}",
+    updates_card_size: "{{downloaded}} z {{total}}",
+    updates_card_installing: "Instalowanie aktualizacji",
+    updates_card_installing_detail: "Aster Mail za chwilę uruchomi się ponownie.",
+    updates_card_failed: "Nie udało się zainstalować aktualizacji",
+    updates_card_failed_detail: "Sprawdź połączenie i spróbuj ponownie.",
+    updates_card_available_detail: "Aster Mail uruchomi się ponownie, aby dokończyć instalację.",
+    updates_time_left_moment: "Prawie gotowe",
+    updates_time_left_seconds: "Pozostało około {{seconds}} s",
+    updates_time_left_minutes: "Pozostało około {{minutes}} min",
+    updates_try_again: "Spróbuj ponownie",
+    updates_whats_new: "Co nowego",
     billing: "Rozliczenia",
     billing_description: "Zarządzaj subskrypcją i metodami płatności",
     undo_send: "Cofnij wysyłanie",
@@ -4487,14 +4521,8 @@ export const pl = {
       "To wyczyści dane w pamięci podręcznej na tym urządzeniu i przeładuje Aster Mail. Możliwe, że trzeba będzie zalogować się ponownie.",
     iconic_sounds: "Iconic Sounds",
     iconic_sounds_description:
-      "Odtwarza dźwięki Aster, gdy wysyłasz wiadomość, cofasz wysłanie, piszesz, dodajesz załączniki i odbierasz pocztę.",
-    iconic_sounds_info:
-      "Iconic Sounds dodaje do Aster charakterystyczne dźwięki. Te dźwięki mogą się zmienić.",
-    iconic_sounds_beta: "Beta",
-    iconic_sounds_confirm_title: "Włączyć Iconic Sounds?",
-    iconic_sounds_confirm_message:
-      "Czy na pewno chcesz to włączyć? Aster Mail odtwarza dźwięki przy działaniach takich jak wysłanie wiadomości i cofnięcie wysłania. To ustawienie synchronizuje się z aplikacją internetową i komputerową.",
-    iconic_sounds_turn_on: "Włącz",
+      "Odtwarza dźwięki Aster, gdy wysyłasz pocztę lub cofasz wysłanie, zaczynasz wiadomość, dołączasz pliki, archiwizujesz lub przenosisz pocztę i widzisz błąd.",
+    notification_sound: "Dźwięk powiadomień",
     current_plan: "Aktualny plan",
     free: "Darmowy",
     available_plans: "Dostępne plany",
@@ -4698,11 +4726,20 @@ export const pl = {
     payment: "Płatność",
     cancels: "Anuluje się",
     renews: "Odnawia się",
-    your_feedback: "Twoja opinia",
-    feedback_placeholder:
-      "Podziel się swoimi uwagami, sugestiami lub zgłoś problemy...",
+    your_feedback: "Wyślij opinię",
+    feedback_placeholder: "Opisz swój pomysł lub problem, który zauważyłeś",
     feedback_not_encrypted:
-      "Opinia nie jest szyfrowana end-to-end. Nie umieszczaj poufnych informacji.",
+      "Opinie nie są szyfrowane metodą end-to-end, więc nie podawaj haseł, kodów odzyskiwania ani innych prywatnych informacji.",
+    feedback_intro:
+      "Podziel się pomysłem, zgłoś błąd lub powiedz zespołowi Aster, co myślisz. Opinia nie tworzy zgłoszenia do pomocy technicznej, więc aby uzyskać pomoc lub odpowiedź, skontaktuj się z pomocą techniczną.",
+    support_intro:
+      "Jeśli potrzebujesz pomocy z kontem, płatnościami lub problemem, którego nie możesz rozwiązać, napisz do zespołu pomocy technicznej.",
+    support_email_label: "Napisz do pomocy technicznej",
+    support_help_label: "Centrum pomocy",
+    support_help_desc: "Znajdź poradniki i odpowiedzi na częste pytania.",
+    support_status_label: "Stan usługi",
+    support_status_desc: "Sprawdź, czy Aster Mail ma awarię.",
+    support_security_label: "Zgłoś problem z bezpieczeństwem",
     sending: "Wysyłanie...",
     send_feedback_button: "Wyślij opinię",
     thank_you_feedback: "Dziękujemy za Twoją opinię!",
@@ -4713,7 +4750,7 @@ export const pl = {
       "Robisz to zbyt szybko. Odczekaj chwilę i spróbuj ponownie.",
     please_log_in_feedback: "Zalogowanie pozwoli wysłać opinię.",
     failed_send_feedback: "Spróbuj ponownie.",
-    other_ways_to_reach: "Inne sposoby kontaktu z nami",
+    other_ways_to_reach: "Skontaktuj się z pomocą techniczną",
     reset_to_defaults: "Przywróć domyślne",
     section_reset: "Sekcja przywrócona do domyślnych",
     reset_all_confirm: "Zresetować wszystkie ustawienia do domyślnych?",
@@ -5053,7 +5090,7 @@ export const pl = {
       "Użyj od 3 do 40 liter, cyfr lub kropek. Kropka nie może zaczynać ani kończyć adresu, a kropki nie mogą się powtarzać.",
     address_change_name_placeholder: "twojanazwa",
     primary_address_info:
-      "Twój plan Supernova pozwala zmieniać adres raz na 30 dni. Twój stary adres nadal należy do Ciebie: wciąż odbiera pocztę i nadal służy do logowania.",
+      "Plany Supernova i Family pozwalają zmieniać adres raz na 30 dni. Twój stary adres nadal należy do Ciebie: wciąż odbiera pocztę i nadal służy do logowania.",
     address_change_checking: "Sprawdzanie dostępności",
     address_change_available: "{{email}} jest dostępny",
     address_change_unavailable: "{{email}} jest niedostępny",
@@ -5092,7 +5129,8 @@ export const pl = {
       "Ten kod wygasł. Aby otrzymać nowy, rozpocznij zmianę od nowa.",
     address_change_taken_now: "Ten adres zostal wlasnie zajety. Wybierz inny.",
     address_change_code_invalid: "Ten kod jest nieprawidłowy.",
-    address_change_locked_plan: "Zmiana adresu to funkcja Supernova.",
+    address_change_locked_plan:
+      "Zmiana adresu to funkcja planów Supernova i Family.",
     address_change_locked_cooldown: "Adres możesz zmienić ponownie {{date}}.",
     address_change_locked_cooldown_unknown:
       "Adres zmieniono w ciągu ostatnich 30 dni, więc nie możesz go jeszcze zmienić ponownie.",
@@ -6440,6 +6478,17 @@ export const pl = {
       "Aby kupić więcej miejsca, najpierw wybierz opcję.",
     storage_promo_cta: "Zobacz dodatki",
     storage_used_of_total: "Wykorzystano {{used}} z {{total}}",
+    storage_nudge_almost_title: "Miejsce na dane jest prawie pełne",
+    storage_nudge_critical_title: "Prawie skończyło Ci się miejsce",
+    storage_nudge_full_title: "Miejsce na dane jest pełne",
+    storage_nudge_offer: "Dodaj {{size}} za {{price}} miesięcznie",
+    storage_nudge_offer_generic: "Ulepsz plan, aby zyskać więcej miejsca",
+    storage_nudge_body:
+      "Gdy miejsce się zapełni, nie wyślesz ani nie zaimportujesz poczty.",
+    storage_nudge_full_body:
+      "Nie możesz wysyłać ani importować poczty, dopóki nie zwolnisz miejsca. Istniejąca poczta jest bezpieczna.",
+    storage_nudge_free_up: "Zwolnij miejsce",
+    storage_nudge_get_storage: "Dodaj miejsce",
     storage_free_space: "Wolne: {{size}}, wykorzystano {{percent}} miejsca",
     storage_breakdown_title: "Co zajmuje miejsce",
     storage_breakdown_empty: "Nic jeszcze nie zajmuje miejsca.",
@@ -6989,7 +7038,6 @@ export const pl = {
     domain_purchase_n_years: "{{count}} lata",
     domain_purchase_pay_with: "Zapłać przez",
     domain_purchase_pay_card: "Karta",
-    domain_purchase_pay_crypto: "Krypto",
     domain_purchase_buy: "Kup za {{price}}",
     domain_purchase_error: "Zakup nie powiódł się. Spróbuj ponownie.",
     domain_purchase_error_taken:
@@ -7077,6 +7125,13 @@ export const pl = {
     domain_purchase_manage_paid: "Zapłacono",
     domain_purchase_manage_auto_renew_note:
       "Ta domena nie odnawia się automatycznie. Aby ją zachować, odnów ją przed datą wygaśnięcia.",
+    domain_purchase_auto_renew_label: "Odnawiaj automatycznie",
+    domain_purchase_auto_renew_hint:
+      "Aster obciąża Twoją kartę raz w roku i wysyła Ci cenę e-mailem 15 dni przed każdym obciążeniem. Możesz to wyłączyć w Ustawieniach.",
+    domain_purchase_manage_auto_renew_on_note:
+      "Aster obciąża zapisaną kartę 30 dni przed datą wygaśnięcia i wysyła Ci cenę e-mailem 15 dni wcześniej.",
+    domain_purchase_manage_auto_renew_error:
+      "Nie udało się zmienić automatycznego odnawiania. Spróbuj ponownie.",
     domain_purchase_manage_dns: "Otwórz konfigurację domeny",
     domain_purchase_manage_support_note:
       "Aby przenieść tę domenę do innego rejestratora lub zapytać o zwrot pieniędzy, skontaktuj się z pomocą.",
@@ -11235,6 +11290,48 @@ export const pl = {
       "Dziękujemy! Twoja opinia sprawia, że Aster Mail jest lepszy dla wszystkich. Czytamy każdą odpowiedź.",
   },
   calendar: {
+    beta_waitlist_title: "Aster Calendar",
+    beta_waitlist_tag: "Beta",
+    beta_waitlist_start: "Beta ma się rozpocząć 1 listopada.",
+    beta_waitlist_features_title: "Co zawiera",
+    beta_waitlist_info_title: "Informacje o becie Kalendarza",
+    beta_waitlist_info_body:
+      "Aster Calendar to szyfrowany kalendarz dla Twojego konta Aster. Gdy zwolni się miejsce, Kalendarz zostanie włączony na Twoim koncie i pojawi się na pasku bocznym. Możesz opuścić listę oczekujących w dowolnym momencie.",
+    beta_waitlist_privacy:
+      "Twoje wydarzenia i kalendarze są szyfrowane na Twoim urządzeniu, więc tylko Ty możesz je odczytać. Lista oczekujących przechowuje tylko anonimowy znacznik, nigdy Twój adres, i zostanie usunięta po premierze.",
+    beta_waitlist_heading: "Wypróbuj Aster Calendar wcześniej",
+    beta_waitlist_body:
+      "Dołącz do listy oczekujących, aby uzyskać wcześniejszy dostęp. Gdy nadejdzie Twoja kolej, Calendar zostanie włączony na Twoim koncie.",
+    beta_waitlist_icon_note: "Ta ikona jest tymczasowa.",
+    beta_waitlist_feature_encrypted: "Szyfrowanie end-to-end",
+    beta_waitlist_feature_encrypted_body:
+      "Twoje wydarzenia używają tych samych kluczy co poczta.",
+    beta_waitlist_feature_devices: "W przeglądarce i na Androidzie",
+    beta_waitlist_feature_devices_body:
+      "Twój kalendarz pozostaje zsynchronizowany na każdym urządzeniu.",
+    beta_waitlist_feature_booking: "Strony rezerwacji",
+    beta_waitlist_feature_booking_body:
+      "Udostępnij link, aby inni mogli zarezerwować u Ciebie czas.",
+    beta_waitlist_feature_invites: "Zaproszenia na wydarzenia",
+    beta_waitlist_feature_invites_body:
+      "Zapraszaj gości e-mailem i informuj ich o zmianach planów.",
+    beta_waitlist_feature_reminders: "Przypomnienia",
+    beta_waitlist_feature_reminders_body:
+      "Otrzymuj powiadomienie przed rozpoczęciem każdego wydarzenia.",
+    beta_waitlist_feature_recurring: "Wydarzenia cykliczne",
+    beta_waitlist_feature_recurring_body:
+      "Powtarzaj wydarzenia codziennie, co tydzień, co miesiąc, co rok lub według własnego harmonogramu.",
+    beta_waitlist_feature_import: "Importuj kalendarz",
+    beta_waitlist_feature_import_body:
+      "Przenieś swoje wydarzenia z dowolnego pliku .ics.",
+    beta_waitlist_apply: "Dołącz do listy oczekujących",
+    beta_waitlist_joined: "Jesteś na liście oczekujących",
+    beta_waitlist_joined_body:
+      "Dziękujemy za zapis. Gdy nadejdzie Twoja kolej, Calendar zostanie automatycznie włączony na Twoim koncie.",
+    beta_waitlist_leave: "Opuść listę oczekujących",
+    beta_waitlist_failed:
+      "Nie udało się zaktualizować listy oczekujących. Spróbuj ponownie.",
+    beta_waitlist_retry: "Spróbuj ponownie",
     invite_yes: "Tak",
     invite_maybe: "Może",
     invite_no: "Nie",

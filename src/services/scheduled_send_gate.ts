@@ -26,12 +26,19 @@ import {
   classify_recipients,
   is_internal_recipient,
 } from "./recipient_classification";
+import {
+  collect_pgp_recipients,
+  type RecipientLockScope,
+} from "./recipient_lock_state";
 
 import { exceeds_sealed_schedule_window } from "@/lib/schedule_window";
+import { is_future_instant } from "@/utils/schedule_targets";
 
 export type ScheduledGateBlock =
   | "common.scheduled_requires_encryption"
+  | "common.scheduled_no_pgp"
   | "common.scheduled_too_far_ahead"
+  | "mail_rules.snooze_needs_future"
   | PostQuantumConsentBlock;
 
 export type ScheduledGateResult =
@@ -43,7 +50,13 @@ export async function check_scheduled_send(
   sender_email: string | undefined,
   scheduled_at: Date,
   require_encryption: boolean,
+  lock_scope: RecipientLockScope | null = null,
+  pgp_override: boolean | null = null,
 ): Promise<ScheduledGateResult> {
+  if (!is_future_instant(scheduled_at)) {
+    return { proceed: false, blocked_by: "mail_rules.snooze_needs_future" };
+  }
+
   if (exceeds_sealed_schedule_window(scheduled_at)) {
     return { proceed: false, blocked_by: "common.scheduled_too_far_ahead" };
   }
@@ -60,6 +73,20 @@ export async function check_scheduled_send(
     };
   }
 
+  if (
+    collect_pgp_recipients(
+      lock_scope,
+      recipients.filter((r) => !is_internal_recipient(r)),
+      pgp_override,
+    ).length > 0
+  ) {
+    return { proceed: false, blocked_by: "common.scheduled_no_pgp" };
+  }
+
+  if (!is_future_instant(scheduled_at)) {
+    return { proceed: false, blocked_by: "mail_rules.snooze_needs_future" };
+  }
+
   if (internal.length === 0) {
     return { proceed: true, allow_non_post_quantum: false };
   }
@@ -68,6 +95,10 @@ export async function check_scheduled_send(
 
   if (!consent.proceed)
     return { proceed: false, blocked_by: consent.blocked_by };
+
+  if (!is_future_instant(scheduled_at)) {
+    return { proceed: false, blocked_by: "mail_rules.snooze_needs_future" };
+  }
 
   return {
     proceed: true,

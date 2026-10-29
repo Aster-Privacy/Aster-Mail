@@ -263,7 +263,6 @@ export const CHECKOUT_KEY = "alias_domains_purchase_checkout";
 export type checkout_draft = {
   selected: DomainSearchResult;
   years: number;
-  payment_method: "stripe" | "crypto";
 };
 
 export function read_checkout_draft(): checkout_draft | null {
@@ -278,7 +277,6 @@ export function read_checkout_draft(): checkout_draft | null {
     return {
       selected: parsed.selected,
       years: parsed.years >= 1 && parsed.years <= 3 ? parsed.years : 1,
-      payment_method: parsed.payment_method === "crypto" ? "crypto" : "stripe",
     };
   } catch {
     return null;

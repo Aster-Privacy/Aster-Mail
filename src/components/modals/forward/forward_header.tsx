@@ -21,6 +21,7 @@
 import type { DecryptedContact } from "@/types/contacts";
 import type { TranslationKey } from "@/lib/i18n";
 import type { SenderOption } from "@/hooks/use_sender_aliases";
+import type { RecipientLockScope } from "@/services/recipient_lock_state";
 
 import { CloseIcon } from "@/components/common/icons";
 import {
@@ -59,6 +60,7 @@ interface ForwardHeaderProps {
   ghost_error?: string | null;
   preferred_id?: string | null;
   on_set_preferred?: (id: string | null) => void;
+  lock_scope?: RecipientLockScope;
 }
 
 export function ForwardHeader({
@@ -87,6 +89,7 @@ export function ForwardHeader({
   ghost_error,
   preferred_id,
   on_set_preferred,
+  lock_scope,
 }: ForwardHeaderProps) {
   return (
     <>
@@ -198,6 +201,7 @@ export function ForwardHeader({
 
           <div className="px-4 py-2 border-b border-[var(--aster-floating-divider)]">
             <RecipientField
+              lock_scope={lock_scope}
               auto_focus
               show_cc_bcc_buttons
               contacts={contacts}
@@ -246,6 +250,7 @@ export function ForwardHeader({
           {visibility.cc && (
             <div className="px-4 py-2 border-b border-[var(--aster-floating-divider)]">
               <RecipientField
+                lock_scope={lock_scope}
                 contacts={contacts}
                 input_value={inputs.cc}
                 label={t("mail.cc")}
@@ -288,6 +293,7 @@ export function ForwardHeader({
           {visibility.bcc && (
             <div className="px-4 py-2 border-b border-[var(--aster-floating-divider)]">
               <RecipientField
+                lock_scope={lock_scope}
                 contacts={contacts}
                 input_value={inputs.bcc}
                 label={t("mail.bcc")}

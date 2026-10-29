@@ -167,13 +167,21 @@ export const InlineReplyComposer = forwardRef<
   useEffect(() => {
     if (composer_el_ref.current) {
       requestAnimationFrame(() => {
-        composer_el_ref.current?.scrollIntoView({
-          behavior: "smooth",
-          block: "end",
-        });
+        const composer = composer_el_ref.current;
+        const container = get_scroll_container(composer);
+
+        if (!composer || !container) return;
+
+        const overflow =
+          composer.getBoundingClientRect().bottom -
+          container.getBoundingClientRect().bottom;
+
+        if (overflow > 0) {
+          container.scrollBy({ top: overflow, behavior: "smooth" });
+        }
       });
     }
-  }, []);
+  }, [get_scroll_container]);
 
   const is_reply_mode = inline_mode === "reply" || inline_mode === "reply_all";
 
@@ -389,6 +397,7 @@ export const InlineReplyComposer = forwardRef<
       </div>
       <div className="py-0.5">
         <RecipientField
+          lock_scope={reply_modal.lock_scope}
           show_bcc={reply_modal.show_bcc}
           show_cc_bcc_buttons
           all_recipients={reply_all_recipients}
@@ -428,6 +437,7 @@ export const InlineReplyComposer = forwardRef<
       {reply_modal.show_cc && (
         <div className="py-0.5">
           <RecipientField
+            lock_scope={reply_modal.lock_scope}
             all_recipients={reply_all_recipients}
             chip_class_name={field_chip_class}
             class_name="items-start"
@@ -476,6 +486,7 @@ export const InlineReplyComposer = forwardRef<
       {reply_modal.show_bcc && (
         <div className="py-0.5">
           <RecipientField
+            lock_scope={reply_modal.lock_scope}
             all_recipients={reply_all_recipients}
             chip_class_name={field_chip_class}
             class_name="items-start"
@@ -553,6 +564,7 @@ export const InlineReplyComposer = forwardRef<
         </div>
         <div className="py-0.5">
           <RecipientField
+            lock_scope={forward_modal.lock_scope}
             auto_focus
             chip_class_name={field_chip_class}
             class_name="items-start"

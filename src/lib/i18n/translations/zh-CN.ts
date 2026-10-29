@@ -800,6 +800,20 @@ export const zh_CN = {
       "这个文件有 {{size}} MB，超过了大小限制，换一个较小的就可以。",
     delete_failed: "请重试。",
     download_failed: "此下载未能完成。请重试。",
+    download_complete:
+      "下载完成",
+    downloaded_file:
+      "已下载 {{file_name}}",
+    open_file:
+      "打开",
+    show_in_folder:
+      "在文件夹中显示",
+    show_in_finder:
+      "在 Finder 中显示",
+    download_open_failed:
+      "无法打开此文件。它可能已被移动或删除。",
+    download_reveal_failed:
+      "无法显示此文件。它可能已被移动或删除。",
     attachment_locked: "此附件的加密密钥在此设备上不可用，因此无法打开。",
     scheduled_no_attachments:
       "定时邮件暂时无法包含附件。请立即发送，或移除文件后再定时。",
@@ -811,6 +825,10 @@ export const zh_CN = {
       "定时邮件最多只能提前 28 天安排。请选择更早的时间。",
     scheduled_requires_encryption:
       "你已开启强制加密，而发往外部地址的定时邮件不是端到端加密的。请立即发送此邮件，或在设置中关闭强制加密。",
+    scheduled_no_pgp:
+      "发往外部地址的定时邮件暂时无法使用 PGP 加密。请立即发送此邮件以进行加密。",
+    expiry_no_pgp:
+      "发往外部地址的限时邮件无法使用 PGP 加密。要使用 PGP 加密此邮件，请移除过期时间。",
     offline_password_protected_unavailable:
       "离线时无法将受密码保护的邮件加入队列。重新联网后，请发送此邮件。",
     offline_settings_unavailable:
@@ -1139,6 +1157,8 @@ export const zh_CN = {
     external_account_health_banner_multiple: "部分外部账户已停止同步。",
     external_account_health_banner_action: "查看",
     external_account_health_banner_dismiss: "关闭",
+    locked_mail_after_reset:
+      "此邮件使用您重置密码之前的密钥加密。要阅读此邮件，请使用旧密码或旧恢复码恢复您的旧数据。",
     recover_data_title: "恢复数据",
     recover_data_description:
       "要解锁更改或重置密码之前的数据，请输入您当时使用的密码。",
@@ -3540,6 +3560,20 @@ export const zh_CN = {
     updates_banner_action: "立即安装",
     updates_unsupported: "更新由您的操作系统或浏览器管理",
     updates_dismiss: "稍后",
+    updates_card_preparing: "正在准备更新",
+    updates_card_preparing_detail: "正在开始下载",
+    updates_card_downloading: "正在下载 Aster Mail {{version}}",
+    updates_card_size: "{{downloaded}} / {{total}}",
+    updates_card_installing: "正在安装更新",
+    updates_card_installing_detail: "Aster Mail 即将重新启动。",
+    updates_card_failed: "更新未能安装",
+    updates_card_failed_detail: "请检查网络连接后重试。",
+    updates_card_available_detail: "Aster Mail 将重新启动以完成安装。",
+    updates_time_left_moment: "即将完成",
+    updates_time_left_seconds: "大约还剩 {{seconds}} 秒",
+    updates_time_left_minutes: "大约还剩 {{minutes}} 分钟",
+    updates_try_again: "重试",
+    updates_whats_new: "新功能",
     billing: "账单",
     billing_description: "管理订阅和支付方式",
     undo_send: "撤销发送",
@@ -3913,14 +3947,8 @@ export const zh_CN = {
       "此操作会清除本设备上的缓存数据并重新加载 Aster Mail。您可能需要重新登录。",
     iconic_sounds: "Iconic Sounds",
     iconic_sounds_description:
-      "在你发送邮件、撤销发送、写邮件、添加附件和收到邮件时播放 Aster 提示音。",
-    iconic_sounds_info:
-      "Iconic Sounds 为 Aster 添加令人难忘的提示音。这些提示音可能会有变化。",
-    iconic_sounds_beta: "测试版",
-    iconic_sounds_confirm_title: "要开启 Iconic Sounds 吗？",
-    iconic_sounds_confirm_message:
-      "确定要开启此功能吗？Aster Mail 会在发送邮件、撤销发送等操作时播放提示音。此设置会同步到网页版和桌面版应用。",
-    iconic_sounds_turn_on: "开启",
+      "在你发送邮件或撤销发送、开始写邮件、添加附件、归档或移动邮件以及出现错误时播放 Aster 音效。",
+    notification_sound: "通知声音",
     current_plan: "当前套餐",
     free: "免费",
     available_plans: "可用套餐",
@@ -4092,9 +4120,20 @@ export const zh_CN = {
     payment: "支付",
     cancels: "取消时间",
     renews: "续费时间",
-    your_feedback: "您的反馈",
-    feedback_placeholder: "分享您的想法、建议或报告问题...",
-    feedback_not_encrypted: "反馈未进行端到端加密。请勿包含敏感信息。",
+    your_feedback: "发送反馈",
+    feedback_placeholder: "描述你的想法或发现的问题",
+    feedback_not_encrypted:
+      "反馈未经端到端加密，因此请勿包含密码、恢复码或其他私人信息。",
+    feedback_intro:
+      "分享想法、报告错误，或告诉 Aster 团队你的看法。反馈不会创建支持请求，如需帮助或回复，请联系支持团队。",
+    support_intro:
+      "如果你需要账户、账单方面的帮助，或遇到无法解决的问题，请给支持团队发送电子邮件。",
+    support_email_label: "给支持团队发邮件",
+    support_help_label: "帮助中心",
+    support_help_desc: "查找指南和常见问题解答。",
+    support_status_label: "服务状态",
+    support_status_desc: "查看 Aster Mail 是否发生故障。",
+    support_security_label: "报告安全问题",
     sending: "发送中...",
     send_feedback_button: "发送反馈",
     thank_you_feedback: "感谢您的反馈！",
@@ -4104,7 +4143,7 @@ export const zh_CN = {
     too_many_requests: "您的操作过于频繁。请稍候再试。",
     please_log_in_feedback: "登录之后就可以发送反馈。",
     failed_send_feedback: "请重试。",
-    other_ways_to_reach: "其他联系方式",
+    other_ways_to_reach: "联系支持团队",
     reset_to_defaults: "恢复默认值",
     section_reset: "此部分已恢复为默认值",
     reset_all_confirm: "将所有设置恢复为默认值？",
@@ -4414,7 +4453,7 @@ export const zh_CN = {
       "请使用 3 到 40 个字母、数字或点。点不能位于开头或结尾，点也不能连续出现。",
     address_change_name_placeholder: "yourname",
     primary_address_info:
-      "Supernova 方案允许您每 30 天更改一次地址。旧地址仍然属于您：它会继续接收邮件，也仍可用于登录。",
+      "Supernova 和 Family 方案允许您每 30 天更改一次地址。旧地址仍然属于您：它会继续接收邮件，也仍可用于登录。",
     address_change_checking: "正在检查可用性",
     address_change_available: "{{email}} 可以使用",
     address_change_unavailable: "{{email}} 不可使用",
@@ -4448,7 +4487,7 @@ export const zh_CN = {
       "验证码已过期。若要获取新验证码，请重新发起更改。",
     address_change_taken_now: "该地址已被占用。请选择其他地址。",
     address_change_code_invalid: "确认码不正确。",
-    address_change_locked_plan: "更改地址是 Supernova 功能。",
+    address_change_locked_plan: "更改地址是 Supernova 和 Family 的功能。",
     address_change_locked_cooldown: "您可以在 {{date}} 再次更改地址。",
     address_change_locked_cooldown_unknown:
       "您在过去 30 天内更改过地址，因此暂时无法再次更改。",
@@ -5601,6 +5640,16 @@ export const zh_CN = {
     storage_select_option_first: "要购买更多存储空间，请先选择一个选项。",
     storage_promo_cta: "查看扩容",
     storage_used_of_total: "已使用 {{used}}，共 {{total}}",
+    storage_nudge_almost_title: "存储空间即将用完",
+    storage_nudge_critical_title: "存储空间所剩无几",
+    storage_nudge_full_title: "存储空间已满",
+    storage_nudge_offer: "每月 {{price}} 即可增加 {{size}}",
+    storage_nudge_offer_generic: "升级套餐以获取更多存储空间",
+    storage_nudge_body: "存储空间用完后，你将无法发送或导入邮件。",
+    storage_nudge_full_body:
+      "在你释放空间之前，你无法发送或导入邮件。现有邮件不受影响。",
+    storage_nudge_free_up: "释放空间",
+    storage_nudge_get_storage: "获取存储空间",
     storage_free_space: "剩余 {{size}}，已使用 {{percent}}",
     storage_breakdown_title: "存储空间占用情况",
     storage_breakdown_empty: "您的存储空间还没有任何内容。",
@@ -6075,7 +6124,6 @@ export const zh_CN = {
     domain_purchase_n_years: "{{count}} 年",
     domain_purchase_pay_with: "支付方式",
     domain_purchase_pay_card: "银行卡",
-    domain_purchase_pay_crypto: "加密货币",
     domain_purchase_buy: "以 {{price}} 购买",
     domain_purchase_error: "购买失败,请重试。",
     domain_purchase_error_taken: "该域名刚刚被注册,请选择其他域名。",
@@ -6156,6 +6204,12 @@ export const zh_CN = {
     domain_purchase_manage_paid: "已付金额",
     domain_purchase_manage_auto_renew_note:
       "此域名不会自动续费。若要继续持有，请在到期日之前续费。",
+    domain_purchase_auto_renew_label: "自动续订",
+    domain_purchase_auto_renew_hint:
+      "Aster 每年从你的银行卡扣款一次，并在每次扣款前 15 天通过电子邮件告知价格。你可以在“设置”中关闭此功能。",
+    domain_purchase_manage_auto_renew_on_note:
+      "Aster 会在到期日前 30 天从你保存的银行卡扣款，并提前 15 天通过电子邮件告知价格。",
+    domain_purchase_manage_auto_renew_error: "无法更新自动续订。请重试。",
     domain_purchase_manage_dns: "打开域名设置",
     domain_purchase_manage_support_note:
       "如需将此域名转移到其他注册商或咨询退款，请联系支持团队。",
@@ -9784,6 +9838,42 @@ export const zh_CN = {
       "谢谢!您的反馈让 Aster Mail 对每个人都更好。我们会认真阅读每一条回答。",
   },
   calendar: {
+    beta_waitlist_title: "Aster Calendar",
+    beta_waitlist_tag: "测试版",
+    beta_waitlist_start: "测试版预计将于 11 月 1 日开始。",
+    beta_waitlist_features_title: "包含的功能",
+    beta_waitlist_info_title: "关于日历测试版",
+    beta_waitlist_info_body:
+      "Aster Calendar 是适用于你的 Aster 账户的加密日历。名额开放后，日历会在你的账户中启用，并显示在侧边栏中。你可以随时退出候补名单。",
+    beta_waitlist_privacy:
+      "你的活动和日历会在设备上加密，因此只有你能读取。候补名单只保存一个匿名标签，绝不保存你的地址，并会在发布后删除。",
+    beta_waitlist_heading: "抢先试用 Aster Calendar",
+    beta_waitlist_body:
+      "加入候补名单即可抢先体验。轮到你时，你的账户将开启 Calendar。",
+    beta_waitlist_icon_note: "此图标为临时图标。",
+    beta_waitlist_feature_encrypted: "端到端加密",
+    beta_waitlist_feature_encrypted_body: "你的日程使用与邮件相同的密钥。",
+    beta_waitlist_feature_devices: "支持网页版和 Android",
+    beta_waitlist_feature_devices_body: "你的日程会在每台设备上保持同步。",
+    beta_waitlist_feature_booking: "预约页面",
+    beta_waitlist_feature_booking_body: "分享一个链接，让他人与你预约时间。",
+    beta_waitlist_feature_invites: "活动邀请",
+    beta_waitlist_feature_invites_body:
+      "通过电子邮件邀请嘉宾，并在计划变更时向他们发送更新。",
+    beta_waitlist_feature_reminders: "提醒",
+    beta_waitlist_feature_reminders_body: "在每个活动开始前收到通知。",
+    beta_waitlist_feature_recurring: "重复活动",
+    beta_waitlist_feature_recurring_body:
+      "按天、周、月、年或自定义周期重复活动。",
+    beta_waitlist_feature_import: "导入日历",
+    beta_waitlist_feature_import_body: "从任意 .ics 文件导入你的活动。",
+    beta_waitlist_apply: "加入候补名单",
+    beta_waitlist_joined: "你已在候补名单中",
+    beta_waitlist_joined_body:
+      "感谢加入。轮到你时，你的账户将自动开启 Calendar。",
+    beta_waitlist_leave: "退出候补名单",
+    beta_waitlist_failed: "无法更新候补名单，请重试。",
+    beta_waitlist_retry: "重试",
     invite_yes: "是",
     invite_maybe: "可能",
     invite_no: "否",

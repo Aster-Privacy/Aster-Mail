@@ -903,6 +903,20 @@ export const nl = {
     file_too_large: "Bestand moet kleiner zijn dan {{size}}",
     delete_failed: "Probeer het opnieuw.",
     download_failed: "Probeer het opnieuw.",
+    download_complete:
+      "Download voltooid",
+    downloaded_file:
+      "{{file_name}} gedownload",
+    open_file:
+      "Openen",
+    show_in_folder:
+      "Tonen in map",
+    show_in_finder:
+      "Toon in Finder",
+    download_open_failed:
+      "Dit bestand kan niet worden geopend. Het is mogelijk verplaatst of verwijderd.",
+    download_reveal_failed:
+      "Dit bestand kan niet worden getoond. Het is mogelijk verplaatst of verwijderd.",
     attachment_locked:
       "Deze bijlage kan niet worden geopend omdat de versleutelingssleutel niet beschikbaar is op dit apparaat.",
     scheduled_no_attachments:
@@ -915,6 +929,10 @@ export const nl = {
       "Geplande e-mails kunnen maximaal 28 dagen vooruit worden verstuurd. Kies een eerder tijdstip.",
     scheduled_requires_encryption:
       "Je hebt verplichte versleuteling ingeschakeld, en geplande e-mails naar externe adressen zijn niet end-to-end versleuteld. Verstuur dit bericht nu of schakel verplichte versleuteling uit in Instellingen.",
+    scheduled_no_pgp:
+      "Geplande e-mails naar externe adressen kunnen nog geen PGP-versleuteling gebruiken. Verstuur dit bericht nu om het te versleutelen.",
+    expiry_no_pgp:
+      "Verlopende e-mails naar externe adressen kunnen geen PGP-versleuteling gebruiken. Verwijder de vervaldatum om dit bericht met PGP te versleutelen.",
     offline_password_protected_unavailable:
       "Je kunt met een wachtwoord beveiligde e-mails niet offline in de wachtrij zetten. Verstuur het bericht zodra je weer verbinding hebt.",
     offline_settings_unavailable:
@@ -1327,6 +1345,8 @@ export const nl = {
       "Sommige externe accounts synchroniseren niet meer.",
     external_account_health_banner_action: "Bekijken",
     external_account_health_banner_dismiss: "Sluiten",
+    locked_mail_after_reset:
+      "Deze e-mail is versleuteld met de sleutels die je had voordat je je wachtwoord opnieuw instelde. Herstel je oudere gegevens met je oude wachtwoord of een oude herstelcode om hem te lezen.",
     recover_data_title: "Gegevens herstellen",
     recover_data_description:
       "Voer het wachtwoord in dat je toen gebruikte om gegevens van vóór een wachtwoordwijziging of -reset te ontgrendelen.",
@@ -3888,6 +3908,20 @@ export const nl = {
     updates_unsupported:
       "Updates worden beheerd door je besturingssysteem of browser",
     updates_dismiss: "Later",
+    updates_card_preparing: "Update voorbereiden",
+    updates_card_preparing_detail: "Download starten",
+    updates_card_downloading: "Aster Mail {{version}} downloaden",
+    updates_card_size: "{{downloaded}} van {{total}}",
+    updates_card_installing: "Update installeren",
+    updates_card_installing_detail: "Aster Mail start zo opnieuw op.",
+    updates_card_failed: "De update is niet geïnstalleerd",
+    updates_card_failed_detail: "Controleer je verbinding en probeer het opnieuw.",
+    updates_card_available_detail: "Aster Mail start opnieuw op om de installatie te voltooien.",
+    updates_time_left_moment: "Bijna klaar",
+    updates_time_left_seconds: "Nog ongeveer {{seconds}} sec",
+    updates_time_left_minutes: "Nog ongeveer {{minutes}} min",
+    updates_try_again: "Opnieuw proberen",
+    updates_whats_new: "Wat is er nieuw",
     billing: "Facturering",
     billing_description: "Beheer je abonnement en betaalmethoden",
     undo_send: "Verzenden ongedaan maken",
@@ -4248,14 +4282,8 @@ export const nl = {
       "Hiermee wis je de gegevens in de cache op dit apparaat en wordt Aster Mail opnieuw geladen. Mogelijk moet je opnieuw inloggen.",
     iconic_sounds: "Iconic Sounds",
     iconic_sounds_description:
-      "Speelt Aster-geluiden af wanneer je verzendt, verzenden ongedaan maakt, een bericht opstelt, bestanden bijvoegt en e-mail ontvangt.",
-    iconic_sounds_info:
-      "Iconic Sounds voegt herkenbare geluiden toe aan Aster. Deze geluiden kunnen veranderen.",
-    iconic_sounds_beta: "Bèta",
-    iconic_sounds_confirm_title: "Iconic Sounds inschakelen?",
-    iconic_sounds_confirm_message:
-      "Weet je zeker dat je dit wilt inschakelen? Aster Mail speelt geluiden af bij acties zoals e-mail verzenden en verzenden ongedaan maken. Deze instelling wordt gesynchroniseerd met de web-app en de desktop-app.",
-    iconic_sounds_turn_on: "Inschakelen",
+      "Speelt Aster-geluiden af wanneer je e-mail verzendt of verzenden ongedaan maakt, een bericht begint, bestanden bijvoegt, e-mail archiveert of verplaatst en een fout ziet.",
+    notification_sound: "Meldingsgeluid",
     current_plan: "Huidig abonnement",
     free: "Gratis",
     available_plans: "Beschikbare abonnementen",
@@ -4460,10 +4488,22 @@ export const nl = {
     payment: "Betaling",
     cancels: "Annuleert",
     renews: "Verlengt",
-    your_feedback: "Jouw feedback",
-    feedback_placeholder: "Deel je gedachten, suggesties of meld problemen...",
+    your_feedback: "Feedback versturen",
+    feedback_placeholder:
+      "Beschrijf je idee of het probleem dat je hebt gevonden",
     feedback_not_encrypted:
-      "Feedback is niet end-to-end versleuteld. Deel geen gevoelige informatie.",
+      "Feedback is niet end-to-end versleuteld, dus voeg geen wachtwoorden, herstelcodes of andere privégegevens toe.",
+    feedback_intro:
+      "Deel een idee, meld een bug of laat het Aster-team weten wat je ervan vindt. Feedback opent geen supportverzoek. Neem voor hulp of een antwoord contact op met support.",
+    support_intro:
+      "Stuur het supportteam een e-mail voor hulp met je account, facturering of een probleem dat je niet zelf kunt oplossen.",
+    support_email_label: "Support mailen",
+    support_help_label: "Helpcentrum",
+    support_help_desc:
+      "Vind handleidingen en antwoorden op veelgestelde vragen.",
+    support_status_label: "Servicestatus",
+    support_status_desc: "Controleer of Aster Mail een storing heeft.",
+    support_security_label: "Beveiligingsprobleem melden",
     sending: "Verzenden...",
     send_feedback_button: "Feedback verzenden",
     thank_you_feedback: "Bedankt voor je feedback!",
@@ -4474,7 +4514,7 @@ export const nl = {
       "Je doet dat te snel. Wacht even en probeer het opnieuw.",
     please_log_in_feedback: "Aanmelden laat je feedback verzenden.",
     failed_send_feedback: "Probeer het opnieuw.",
-    other_ways_to_reach: "Andere manieren om ons te bereiken",
+    other_ways_to_reach: "Contact opnemen met support",
     reset_to_defaults: "Standaardinstellingen herstellen",
     section_reset: "Sectie naar standaard hersteld",
     reset_all_confirm: "Alle instellingen naar standaard herstellen?",
@@ -4807,7 +4847,7 @@ export const nl = {
       "Gebruik 3 tot 40 letters, cijfers of punten. Een punt mag niet aan het begin of eind staan en punten mogen zich niet herhalen.",
     address_change_name_placeholder: "jouwnaam",
     primary_address_info:
-      "Met je Supernova-abonnement kun je je adres eens per 30 dagen wijzigen. Je oude adres blijft van jou: het ontvangt nog steeds mail en je logt er nog steeds mee in.",
+      "Met een Supernova- of Family-abonnement kun je je adres eens per 30 dagen wijzigen. Je oude adres blijft van jou: het ontvangt nog steeds mail en je logt er nog steeds mee in.",
     address_change_checking: "Beschikbaarheid controleren",
     address_change_available: "{{email}} is beschikbaar",
     address_change_unavailable: "{{email}} is niet beschikbaar",
@@ -4847,7 +4887,8 @@ export const nl = {
     address_change_taken_now:
       "Iemand anders heeft dat adres al. Kies een ander adres.",
     address_change_code_invalid: "Die code klopt niet.",
-    address_change_locked_plan: "Je adres wijzigen is een Supernova-functie.",
+    address_change_locked_plan:
+      "Je adres wijzigen is een functie van Supernova en Family.",
     address_change_locked_cooldown:
       "Je kunt je adres weer wijzigen op {{date}}.",
     address_change_locked_cooldown_unknown:
@@ -6201,6 +6242,17 @@ export const nl = {
       "Selecteer eerst een optie om meer opslag te kopen.",
     storage_promo_cta: "Add-ons bekijken",
     storage_used_of_total: "{{used}} van {{total}} gebruikt",
+    storage_nudge_almost_title: "Opslag is bijna vol",
+    storage_nudge_critical_title: "Je opslag is bijna op",
+    storage_nudge_full_title: "Je opslag is vol",
+    storage_nudge_offer: "Krijg {{size}} extra voor {{price}} per maand",
+    storage_nudge_offer_generic: "Upgrade je abonnement voor meer opslag",
+    storage_nudge_body:
+      "Als je opslag vol is, kun je geen e-mail meer versturen of importeren.",
+    storage_nudge_full_body:
+      "Je kunt geen e-mail versturen of importeren tot je ruimte vrijmaakt. Je bestaande e-mail is veilig.",
+    storage_nudge_free_up: "Ruimte vrijmaken",
+    storage_nudge_get_storage: "Opslag kopen",
     storage_free_space: "{{size}} vrij, {{percent}} van je opslag gebruikt",
     storage_breakdown_title: "Wat je opslag gebruikt",
     storage_breakdown_empty: "Je opslag is nog leeg.",
@@ -6778,7 +6830,6 @@ export const nl = {
     domain_purchase_n_years: "{{count}} jaar",
     domain_purchase_pay_with: "Betalen met",
     domain_purchase_pay_card: "Kaart",
-    domain_purchase_pay_crypto: "Cryptovaluta",
     domain_purchase_buy: "Kopen voor {{price}}",
     domain_purchase_error: "Aankoop mislukt. Probeer het opnieuw.",
     domain_purchase_error_taken:
@@ -6866,6 +6917,13 @@ export const nl = {
     domain_purchase_manage_paid: "Betaald",
     domain_purchase_manage_auto_renew_note:
       "Dit domein wordt niet automatisch verlengd. Verleng het voor de vervaldatum om het te behouden.",
+    domain_purchase_auto_renew_label: "Automatisch verlengen",
+    domain_purchase_auto_renew_hint:
+      "Aster schrijft één keer per jaar af van je kaart en mailt je de prijs 15 dagen voor elke afschrijving. Je kunt dit uitzetten in Instellingen.",
+    domain_purchase_manage_auto_renew_on_note:
+      "Aster schrijft 30 dagen voor de vervaldatum af van je opgeslagen kaart en mailt je de prijs 15 dagen daarvoor.",
+    domain_purchase_manage_auto_renew_error:
+      "Automatisch verlengen kon niet worden bijgewerkt. Probeer het opnieuw.",
     domain_purchase_manage_dns: "Domeininstellingen openen",
     domain_purchase_manage_support_note:
       "Neem contact op met support om dit domein naar een andere registrar te verhuizen of naar een terugbetaling te vragen.",
@@ -10993,6 +11051,48 @@ export const nl = {
       "Bedankt! Jouw feedback maakt Aster Mail beter voor iedereen. We lezen elk antwoord.",
   },
   calendar: {
+    beta_waitlist_title: "Aster Calendar",
+    beta_waitlist_tag: "Bèta",
+    beta_waitlist_start: "De bèta begint naar verwachting op 1 november.",
+    beta_waitlist_features_title: "Wat je krijgt",
+    beta_waitlist_info_title: "Over de Agenda-bèta",
+    beta_waitlist_info_body:
+      "Aster Calendar is een versleutelde agenda voor je Aster-account. Zodra er een plek vrijkomt, wordt Agenda voor je account ingeschakeld en verschijnt deze in de zijbalk. Je kunt de wachtlijst op elk moment verlaten.",
+    beta_waitlist_privacy:
+      "Je afspraken en agenda's worden op je apparaat versleuteld, zodat alleen jij ze kunt lezen. De wachtlijst bewaart alleen een anoniem label, nooit je adres, en wordt na de lancering verwijderd.",
+    beta_waitlist_heading: "Probeer Aster Calendar als eerste",
+    beta_waitlist_body:
+      "Meld je aan voor de wachtlijst om eerder toegang te krijgen. Zodra je aan de beurt bent, wordt Calendar voor je account ingeschakeld.",
+    beta_waitlist_icon_note: "Dit pictogram is tijdelijk.",
+    beta_waitlist_feature_encrypted: "End-to-end versleuteld",
+    beta_waitlist_feature_encrypted_body:
+      "Je afspraken gebruiken dezelfde sleutels als je e-mail.",
+    beta_waitlist_feature_devices: "Op het web en Android",
+    beta_waitlist_feature_devices_body:
+      "Je agenda blijft op elk apparaat gesynchroniseerd.",
+    beta_waitlist_feature_booking: "Boekingspagina's",
+    beta_waitlist_feature_booking_body:
+      "Deel een link zodat anderen tijd met je kunnen boeken.",
+    beta_waitlist_feature_invites: "Uitnodigingen",
+    beta_waitlist_feature_invites_body:
+      "Nodig gasten uit per e-mail en stuur ze updates als plannen veranderen.",
+    beta_waitlist_feature_reminders: "Herinneringen",
+    beta_waitlist_feature_reminders_body:
+      "Krijg een melding voordat een afspraak begint.",
+    beta_waitlist_feature_recurring: "Terugkerende afspraken",
+    beta_waitlist_feature_recurring_body:
+      "Herhaal afspraken dagelijks, wekelijks, maandelijks, jaarlijks of volgens een eigen schema.",
+    beta_waitlist_feature_import: "Importeer je agenda",
+    beta_waitlist_feature_import_body:
+      "Haal je afspraken over uit elk .ics-bestand.",
+    beta_waitlist_apply: "Aanmelden voor de wachtlijst",
+    beta_waitlist_joined: "Je staat op de wachtlijst",
+    beta_waitlist_joined_body:
+      "Bedankt voor je aanmelding. Zodra je aan de beurt bent, wordt Calendar automatisch voor je account ingeschakeld.",
+    beta_waitlist_leave: "Wachtlijst verlaten",
+    beta_waitlist_failed:
+      "Kan de wachtlijst niet bijwerken. Probeer het opnieuw.",
+    beta_waitlist_retry: "Opnieuw proberen",
     invite_yes: "Ja",
     invite_maybe: "Misschien",
     invite_no: "Nee",

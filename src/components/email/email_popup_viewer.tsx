@@ -376,6 +376,8 @@ export function EmailPopupViewer({
 
       <PopupEmailBody
         current_user_email={viewer.user?.email || ""}
+        decrypt_failed={viewer.decrypt_failed}
+        decrypt_failed_created_at={viewer.decrypt_failed_created_at}
         email={viewer.email}
         error={viewer.error}
         existing_draft={memoized_draft}

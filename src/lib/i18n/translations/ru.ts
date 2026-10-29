@@ -917,6 +917,20 @@ export const ru = {
       "Этот файл занимает {{size}} МБ, что превышает допустимый размер. Меньший обычно подходит.",
     delete_failed: "Попробуйте снова.",
     download_failed: "Загрузка не завершилась. Попробуйте снова.",
+    download_complete:
+      "Загрузка завершена",
+    downloaded_file:
+      "Файл {{file_name}} загружен",
+    open_file:
+      "Открыть",
+    show_in_folder:
+      "Показать в папке",
+    show_in_finder:
+      "Показать в Finder",
+    download_open_failed:
+      "Не удалось открыть этот файл. Возможно, он был перемещен или удален.",
+    download_reveal_failed:
+      "Не удалось показать этот файл. Возможно, он был перемещен или удален.",
     attachment_locked:
       "Это вложение нельзя открыть, потому что ключ шифрования недоступен на этом устройстве.",
     scheduled_no_attachments:
@@ -929,6 +943,10 @@ export const ru = {
       "Запланированные письма можно отправить не более чем на 28 дней вперед. Выберите более раннее время.",
     scheduled_requires_encryption:
       "У вас включено обязательное шифрование, а запланированные письма на внешние адреса не защищены сквозным шифрованием. Отправьте это сообщение сейчас или отключите обязательное шифрование в настройках.",
+    scheduled_no_pgp:
+      "Запланированные письма на внешние адреса пока не могут использовать шифрование PGP. Отправьте это сообщение сейчас, чтобы зашифровать его.",
+    expiry_no_pgp:
+      "Письма со сроком действия на внешние адреса не могут использовать шифрование PGP. Чтобы зашифровать это сообщение с помощью PGP, удалите срок действия.",
     offline_password_protected_unavailable:
       "Нельзя поставить в очередь письма, защищенные паролем, когда вы не в сети. Когда подключение восстановится, отправьте сообщение.",
     offline_settings_unavailable:
@@ -1331,6 +1349,8 @@ export const ru = {
       "Некоторые внешние аккаунты перестали синхронизироваться.",
     external_account_health_banner_action: "Проверить",
     external_account_health_banner_dismiss: "Скрыть",
+    locked_mail_after_reset:
+      "Это письмо зашифровано ключами, которые были у вас до сброса пароля. Чтобы прочитать его, восстановите старые данные с помощью старого пароля или старого кода восстановления.",
     recover_data_title: "Восстановить данные",
     recover_data_description:
       "Чтобы разблокировать данные, созданные до смены или сброса пароля, введите пароль, который вы использовали в то время.",
@@ -4028,6 +4048,20 @@ export const ru = {
     updates_unsupported:
       "Обновлениями управляет ваша операционная система или браузер",
     updates_dismiss: "Позже",
+    updates_card_preparing: "Подготовка обновления",
+    updates_card_preparing_detail: "Начинается загрузка",
+    updates_card_downloading: "Загрузка Aster Mail {{version}}",
+    updates_card_size: "{{downloaded}} из {{total}}",
+    updates_card_installing: "Установка обновления",
+    updates_card_installing_detail: "Aster Mail скоро перезапустится.",
+    updates_card_failed: "Не удалось установить обновление",
+    updates_card_failed_detail: "Проверьте подключение и повторите попытку.",
+    updates_card_available_detail: "Aster Mail перезапустится, чтобы завершить установку.",
+    updates_time_left_moment: "Почти готово",
+    updates_time_left_seconds: "Осталось около {{seconds}} с",
+    updates_time_left_minutes: "Осталось около {{minutes}} мин",
+    updates_try_again: "Повторить",
+    updates_whats_new: "Что нового",
     billing: "Оплата",
     billing_description: "Управление подпиской и способами оплаты",
     undo_send: "Отмена отправки",
@@ -4450,14 +4484,8 @@ export const ru = {
       "Это очистит кэш на этом устройстве и перезагрузит Aster Mail. Возможно, потребуется войти снова.",
     iconic_sounds: "Iconic Sounds",
     iconic_sounds_description:
-      "Воспроизводит звуки Aster, когда вы отправляете письмо, отменяете отправку, пишете, прикрепляете файлы и получаете почту.",
-    iconic_sounds_info:
-      "Iconic Sounds добавляет в Aster запоминающиеся звуки. Эти звуки могут измениться.",
-    iconic_sounds_beta: "Бета",
-    iconic_sounds_confirm_title: "Включить Iconic Sounds?",
-    iconic_sounds_confirm_message:
-      "Вы действительно хотите включить эту функцию? Aster Mail воспроизводит звуки при таких действиях, как отправка письма и отмена отправки. Эта настройка синхронизируется с веб-приложением и приложением для компьютера.",
-    iconic_sounds_turn_on: "Включить",
+      "Воспроизводит звуки Aster, когда вы отправляете письмо или отменяете отправку, начинаете сообщение, прикрепляете файлы, архивируете или перемещаете почту и видите ошибку.",
+    notification_sound: "Звук уведомлений",
     current_plan: "Текущий тариф",
     free: "Бесплатный",
     available_plans: "Доступные тарифы",
@@ -4659,11 +4687,20 @@ export const ru = {
     payment: "Оплата",
     cancels: "Отменяется",
     renews: "Продлевается",
-    your_feedback: "Ваш отзыв",
-    feedback_placeholder:
-      "Поделитесь своими мыслями, предложениями или сообщите о проблемах...",
+    your_feedback: "Отправить отзыв",
+    feedback_placeholder: "Опишите свою идею или найденную проблему",
     feedback_not_encrypted:
-      "Отзыв не защищён сквозным шифрованием. Не включайте конфиденциальную информацию.",
+      "Отзывы не защищены сквозным шифрованием, поэтому не указывайте пароли, коды восстановления и другие личные данные.",
+    feedback_intro:
+      "Поделитесь идеей, сообщите об ошибке или расскажите команде Aster, что вы думаете. Отзыв не создает обращение в поддержку, поэтому, чтобы получить помощь или ответ, свяжитесь с поддержкой.",
+    support_intro:
+      "Если вам нужна помощь с аккаунтом, оплатой или проблемой, которую не удается решить самостоятельно, напишите в службу поддержки.",
+    support_email_label: "Написать в поддержку",
+    support_help_label: "Справочный центр",
+    support_help_desc: "Руководства и ответы на частые вопросы.",
+    support_status_label: "Состояние сервиса",
+    support_status_desc: "Проверьте, нет ли сбоя в работе Aster Mail.",
+    support_security_label: "Сообщить о проблеме безопасности",
     sending: "Отправка...",
     send_feedback_button: "Отправить отзыв",
     thank_you_feedback: "Спасибо за ваш отзыв!",
@@ -4673,7 +4710,7 @@ export const ru = {
     too_many_requests: "Слишком часто. Подождите немного и повторите попытку.",
     please_log_in_feedback: "Вход даёт возможность отправить отзыв.",
     failed_send_feedback: "Попробуйте снова.",
-    other_ways_to_reach: "Другие способы связи с нами",
+    other_ways_to_reach: "Связаться с поддержкой",
     reset_to_defaults: "Сбросить до значений по умолчанию",
     section_reset: "Раздел сброшен до значений по умолчанию",
     reset_all_confirm: "Сбросить все настройки до значений по умолчанию?",
@@ -5014,7 +5051,7 @@ export const ru = {
       "Используйте от 3 до 40 букв, цифр или точек. Точка не может быть в начале или конце адреса, и точки не могут повторяться.",
     address_change_name_placeholder: "yourname",
     primary_address_info:
-      "Тариф Supernova позволяет менять адрес раз в 30 дней. Старый адрес остается вашим: он продолжает получать почту и по-прежнему подходит для входа.",
+      "Тарифы Supernova и Family позволяют менять адрес раз в 30 дней. Старый адрес остается вашим: он продолжает получать почту и по-прежнему подходит для входа.",
     address_change_checking: "Проверка доступности",
     address_change_available: "{{email}} доступен",
     address_change_unavailable: "{{email}} недоступен",
@@ -5054,7 +5091,8 @@ export const ru = {
       "Срок действия кода истек. Чтобы получить новый, начните изменение заново.",
     address_change_taken_now: "Этот адрес уже занят. Выберите другой.",
     address_change_code_invalid: "Этот код неверный.",
-    address_change_locked_plan: "Изменение адреса доступно в Supernova.",
+    address_change_locked_plan:
+      "Изменение адреса доступно в Supernova и Family.",
     address_change_locked_cooldown: "Вы сможете снова изменить адрес {{date}}.",
     address_change_locked_cooldown_unknown:
       "Вы меняли адрес в последние 30 дней, поэтому пока не можете сменить его снова.",
@@ -6308,6 +6346,18 @@ export const ru = {
       "Чтобы купить больше места, сначала выберите вариант.",
     storage_promo_cta: "Посмотреть дополнения",
     storage_used_of_total: "Использовано {{used}} из {{total}}",
+    storage_nudge_almost_title: "Хранилище почти заполнено",
+    storage_nudge_critical_title: "В хранилище почти не осталось места",
+    storage_nudge_full_title: "Хранилище заполнено",
+    storage_nudge_offer: "Ещё {{size}} за {{price}} в месяц",
+    storage_nudge_offer_generic:
+      "Перейдите на другой тариф, чтобы получить больше места",
+    storage_nudge_body:
+      "Когда хранилище заполнится, вы не сможете отправлять и импортировать письма.",
+    storage_nudge_full_body:
+      "Вы не сможете отправлять и импортировать письма, пока не освободите место. Существующие письма в безопасности.",
+    storage_nudge_free_up: "Освободить место",
+    storage_nudge_get_storage: "Получить место",
     storage_free_space: "Свободно {{size}}, использовано {{percent}} хранилища",
     storage_breakdown_title: "Что занимает хранилище",
     storage_breakdown_empty: "В хранилище пока ничего нет.",
@@ -7051,7 +7101,6 @@ export const ru = {
     domain_purchase_n_years: "{{count}} года",
     domain_purchase_pay_with: "Оплатить",
     domain_purchase_pay_card: "Картой",
-    domain_purchase_pay_crypto: "Криптовалютой",
     domain_purchase_buy: "Купить за {{price}}",
     domain_purchase_error: "Покупка не удалась. Попробуйте ещё раз.",
     domain_purchase_error_taken:
@@ -7138,6 +7187,13 @@ export const ru = {
     domain_purchase_manage_paid: "Оплачено",
     domain_purchase_manage_auto_renew_note:
       "Этот домен не продлевается автоматически. Чтобы сохранить его, продлите его до даты окончания срока.",
+    domain_purchase_auto_renew_label: "Продлевать автоматически",
+    domain_purchase_auto_renew_hint:
+      "Aster списывает оплату с вашей карты раз в год и присылает цену по почте за 15 дней до каждого списания. Это можно отключить в настройках.",
+    domain_purchase_manage_auto_renew_on_note:
+      "Aster списывает оплату с сохранённой карты за 30 дней до окончания срока и присылает цену по почте за 15 дней до этого.",
+    domain_purchase_manage_auto_renew_error:
+      "Не удалось изменить автопродление. Повторите попытку.",
     domain_purchase_manage_dns: "Открыть настройку домена",
     domain_purchase_manage_support_note:
       "Чтобы перенести домен к другому регистратору или спросить о возврате средств, свяжитесь с поддержкой.",
@@ -11204,6 +11260,48 @@ export const ru = {
       "Спасибо! Ваш отзыв делает Aster Mail лучше для всех. Мы читаем каждый ответ.",
   },
   calendar: {
+    beta_waitlist_title: "Aster Calendar",
+    beta_waitlist_tag: "Бета",
+    beta_waitlist_start: "Бета-версия, как ожидается, начнётся 1 ноября.",
+    beta_waitlist_features_title: "Что входит",
+    beta_waitlist_info_title: "О бета-версии Календаря",
+    beta_waitlist_info_body:
+      "Aster Calendar является зашифрованным календарём для вашего аккаунта Aster. Когда освободится место, Календарь включится в вашем аккаунте и появится на боковой панели. Вы можете покинуть лист ожидания в любой момент.",
+    beta_waitlist_privacy:
+      "Ваши события и календари шифруются на вашем устройстве, поэтому прочитать их можете только вы. Лист ожидания хранит только анонимную метку, а не ваш адрес, и удаляется после запуска.",
+    beta_waitlist_heading: "Попробуйте Aster Calendar раньше всех",
+    beta_waitlist_body:
+      "Встаньте в лист ожидания, чтобы получить ранний доступ. Когда подойдет ваша очередь, Calendar включится в вашем аккаунте.",
+    beta_waitlist_icon_note: "Этот значок временный.",
+    beta_waitlist_feature_encrypted: "Сквозное шифрование",
+    beta_waitlist_feature_encrypted_body:
+      "Ваши события защищены теми же ключами, что и почта.",
+    beta_waitlist_feature_devices: "В браузере и на Android",
+    beta_waitlist_feature_devices_body:
+      "Расписание синхронизируется на всех ваших устройствах.",
+    beta_waitlist_feature_booking: "Страницы бронирования",
+    beta_waitlist_feature_booking_body:
+      "Поделитесь ссылкой, чтобы другие могли записаться к вам.",
+    beta_waitlist_feature_invites: "Приглашения на события",
+    beta_waitlist_feature_invites_body:
+      "Приглашайте гостей по почте и сообщайте им об изменениях планов.",
+    beta_waitlist_feature_reminders: "Напоминания",
+    beta_waitlist_feature_reminders_body:
+      "Получайте уведомление перед началом каждого события.",
+    beta_waitlist_feature_recurring: "Повторяющиеся события",
+    beta_waitlist_feature_recurring_body:
+      "Повторяйте события ежедневно, еженедельно, ежемесячно, ежегодно или по своему расписанию.",
+    beta_waitlist_feature_import: "Импорт календаря",
+    beta_waitlist_feature_import_body:
+      "Перенесите события из любого файла .ics.",
+    beta_waitlist_apply: "Встать в лист ожидания",
+    beta_waitlist_joined: "Вы в листе ожидания",
+    beta_waitlist_joined_body:
+      "Спасибо, что присоединились. Когда подойдет ваша очередь, Calendar включится в вашем аккаунте автоматически.",
+    beta_waitlist_leave: "Покинуть лист ожидания",
+    beta_waitlist_failed:
+      "Не удалось обновить лист ожидания. Повторите попытку.",
+    beta_waitlist_retry: "Повторить",
     invite_yes: "Да",
     invite_maybe: "Возможно",
     invite_no: "Нет",

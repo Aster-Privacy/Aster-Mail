@@ -71,6 +71,7 @@ import {
   apply_metadata_strip,
   unique_attachment_name,
 } from "@/components/compose/use_compose_attachments";
+import { use_attachment_session } from "@/components/compose/use_attachment_session";
 import { format_bytes } from "@/lib/utils";
 import {
   emit_email_sent,
@@ -83,6 +84,7 @@ import {
   type ScheduledEmailContent,
 } from "@/services/api/scheduled";
 import { check_scheduled_send } from "@/services/scheduled_send_gate";
+import { use_recipient_lock_scope } from "@/services/recipient_lock_state";
 import { get_or_create_thread_token } from "@/services/thread_service";
 import { emit_scheduled_changed } from "@/hooks/mail_events";
 import { create_draft, delete_thread_draft } from "@/services/api/multi_drafts";
@@ -345,7 +347,9 @@ export function use_reply_modal(props: UseReplyModalProps) {
     [thread_token, set_draft_id, set_draft_version],
   );
 
-  const pending_reads_ref = useRef(0);
+  const attachment_session = use_attachment_session();
+
+  const lock_scope = use_recipient_lock_scope();
 
   const handle_send = useCallback(async () => {
     const now = Date.now();
@@ -367,7 +371,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
       return;
     }
 
-    if (pending_reads_ref.current > 0) {
+    if (attachment_session.has_pending_reads()) {
       show_toast(t("common.loading"), "info");
 
       return;
@@ -610,6 +614,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
         attachments: attachments.length > 0 ? attachments : undefined,
         require_encryption: preferences.require_encryption === true,
         is_plain_text: is_plain_text_mode,
+        lock_scope,
       },
       {
         on_complete: () => {
@@ -797,6 +802,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
       void save_thread_draft(reply_message);
     }
   }, [
+    lock_scope,
     save_thread_draft,
     t,
     reply_message,
@@ -830,6 +836,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
     user,
     is_plain_text_mode,
     attachments,
+    attachment_session,
     reply_from_mismatch,
   ]);
 
@@ -846,7 +853,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
       return;
     }
 
-    if (pending_reads_ref.current > 0) {
+    if (attachment_session.has_pending_reads()) {
       show_toast(t("common.loading"), "info");
 
       return;
@@ -920,6 +927,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
         scheduled_sender_email,
         scheduled_time,
         preferences.require_encryption === true,
+        preferences.show_encryption_indicators ? lock_scope : null,
       );
     } finally {
       schedule_gate_pending_ref.current = false;
@@ -1031,6 +1039,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
       send_lock_started_at_ref.current = 0;
     }
   }, [
+    lock_scope,
     save_thread_draft,
     t,
     reply_message,
@@ -1051,9 +1060,11 @@ export function use_reply_modal(props: UseReplyModalProps) {
     reply_from_mismatch,
     expires_at,
     preferences.require_encryption,
+    preferences.show_encryption_indicators,
     thread_token,
     original_email_id,
     original_rfc_message_id,
+    attachment_session,
   ]);
 
   handle_send_ref.current = handle_send;
@@ -1129,6 +1140,10 @@ export function use_reply_modal(props: UseReplyModalProps) {
     }
   }, [is_open]);
 
+  useEffect(() => {
+    attachment_session.reset();
+  }, [is_open, original_email_id, attachment_session]);
+
   const handle_close = useCallback(() => {
     on_close();
   }, [on_close]);
@@ -1191,7 +1206,8 @@ export function use_reply_modal(props: UseReplyModalProps) {
 
   const handle_file_select = useCallback(
     async (event: React.ChangeEvent<HTMLInputElement>) => {
-      pending_reads_ref.current += 1;
+      const token = attachment_session.begin_read();
+
       try {
         const selected = event.target.files;
 
@@ -1204,8 +1220,10 @@ export function use_reply_modal(props: UseReplyModalProps) {
 
           return;
         }
+        if (!attachment_session.is_current(token)) return;
         set_attachment_error(null);
         await ensure_attachment_limits();
+        if (!attachment_session.is_current(token)) return;
         const new_attachments: Attachment[] = [];
         const current_total = get_total_attachments_size();
         let running_total = current_total;
@@ -1255,6 +1273,8 @@ export function use_reply_modal(props: UseReplyModalProps) {
               unstripped,
             );
 
+            if (!attachment_session.is_current(token)) return;
+
             new_attachments.push({
               id: generate_attachment_id(),
               name,
@@ -1266,6 +1286,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
             taken_names.add(name);
             running_total += data.byteLength;
           } catch (error) {
+            if (!attachment_session.is_current(token)) return;
             if (import.meta.env.DEV) console.error(error);
             set_attachment_error(
               t("common.failed_to_read_named_file", { name: file.name }),
@@ -1290,11 +1311,12 @@ export function use_reply_modal(props: UseReplyModalProps) {
           file_input_ref.current.value = "";
         }
       } finally {
-        pending_reads_ref.current -= 1;
+        attachment_session.end_read(token);
       }
     },
     [
       attachments,
+      attachment_session,
       get_total_attachments_size,
       preferences.strip_exif_on_compose,
       t,
@@ -1303,13 +1325,16 @@ export function use_reply_modal(props: UseReplyModalProps) {
 
   const handle_files_drop = useCallback(
     async (dropped: File[]) => {
-      pending_reads_ref.current += 1;
+      const token = attachment_session.begin_read();
+
       try {
         const files = await prepare_image_attachments(dropped);
 
         if (!files) return;
+        if (!attachment_session.is_current(token)) return;
         set_attachment_error(null);
         await ensure_attachment_limits();
+        if (!attachment_session.is_current(token)) return;
         const new_attachments: Attachment[] = [];
         const current_total = get_total_attachments_size();
         let running_total = current_total;
@@ -1357,6 +1382,8 @@ export function use_reply_modal(props: UseReplyModalProps) {
               unstripped,
             );
 
+            if (!attachment_session.is_current(token)) return;
+
             new_attachments.push({
               id: generate_attachment_id(),
               name,
@@ -1368,6 +1395,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
             taken_names.add(name);
             running_total += data.byteLength;
           } catch (error) {
+            if (!attachment_session.is_current(token)) return;
             if (import.meta.env.DEV) console.error(error);
             set_attachment_error(
               t("common.failed_to_read_named_file", { name: file.name }),
@@ -1388,11 +1416,12 @@ export function use_reply_modal(props: UseReplyModalProps) {
           );
         }
       } finally {
-        pending_reads_ref.current -= 1;
+        attachment_session.end_read(token);
       }
     },
     [
       attachments,
+      attachment_session,
       get_total_attachments_size,
       preferences.strip_exif_on_compose,
       t,
@@ -1414,6 +1443,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
   const can_send = is_valid && !is_sending;
 
   return {
+    lock_scope,
     t,
     reduce_motion,
     sender_options,

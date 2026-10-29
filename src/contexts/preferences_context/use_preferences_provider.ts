@@ -95,6 +95,8 @@ export function use_preferences_provider() {
     set_is_loading,
     has_loaded_from_server,
     set_has_loaded_from_server,
+    preferences_locked,
+    set_preferences_locked,
     save_status,
     vault_ref,
     set_theme_ref,
@@ -228,6 +230,7 @@ export function use_preferences_provider() {
       }
 
       set_has_loaded_from_server(response.loaded_from_server);
+      set_preferences_locked(response.preferences_locked === true);
     },
     [apply_visual_preferences, push_muted_folders],
   );
@@ -253,6 +256,7 @@ export function use_preferences_provider() {
   useEffect(() => {
     if (!vault_identity || is_completing_registration) {
       set_has_loaded_from_server(false);
+      set_preferences_locked(false);
       set_is_loading(false);
 
       return;
@@ -320,6 +324,8 @@ export function use_preferences_provider() {
         }
 
         if (cancelled) return;
+
+        const is_locked = response.preferences_locked === true;
 
         if (!response.loaded_from_server) {
           apply_cached_fallback();
@@ -410,6 +416,7 @@ export function use_preferences_provider() {
         }
 
         set_has_loaded_from_server(response.loaded_from_server);
+        set_preferences_locked(is_locked);
       } finally {
         set_is_loading(false);
       }
@@ -863,6 +870,7 @@ export function use_preferences_provider() {
     preferences,
     is_loading,
     has_loaded_from_server,
+    preferences_locked,
     save_status,
     update_preference,
     update_preferences,

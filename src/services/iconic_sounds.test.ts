@@ -189,24 +189,26 @@ describe("iconic_sounds", () => {
     const service = await load_service();
 
     service.set_iconic_sounds_enabled(true);
-    service.mark_send_queued(Date.now() + 10000);
-    expect(service.play_send_settled_sound()).toBe(false);
+    expect(service.play_send_settled_sound(true)).toBe(false);
     await settle();
     expect(started).toHaveLength(0);
-    expect(service.play_send_settled_sound()).toBe(true);
-    await settle();
-    expect(started).toHaveLength(1);
   });
 
-  it("plays the next sent sound after a queued send is undone", async () => {
+  it("plays an instant send even after a delayed send failed", async () => {
     const service = await load_service();
 
     service.set_iconic_sounds_enabled(true);
-    service.mark_send_queued(Date.now() + 10000);
-    service.release_queued_send();
-    expect(service.play_send_settled_sound()).toBe(true);
+    expect(play_unthrottled(service, "send")).toBe(true);
+    expect(play_unthrottled(service, "fail")).toBe(true);
+    clock_offset += 5000;
+    const clock = vi
+      .spyOn(Date, "now")
+      .mockReturnValue(Date.now() + clock_offset);
+
+    expect(service.play_send_settled_sound(false)).toBe(true);
+    clock.mockRestore();
     await settle();
-    expect(started).toHaveLength(1);
+    expect(started).toHaveLength(3);
   });
 
   it("keeps the composer that reopens after an undo silent", async () => {
@@ -219,11 +221,21 @@ describe("iconic_sounds", () => {
     expect(started).toHaveLength(1);
   });
 
+  it("keeps the composer that reopens after a failed send silent", async () => {
+    const service = await load_service();
+
+    service.set_iconic_sounds_enabled(true);
+    expect(service.play_iconic_sound("fail")).toBe(true);
+    expect(service.play_iconic_sound("compose")).toBe(true);
+    await settle();
+    expect(started).toHaveLength(1);
+  });
+
   it("plays the sent sound for a send with no undo window", async () => {
     const service = await load_service();
 
     service.set_iconic_sounds_enabled(true);
-    expect(service.play_send_settled_sound()).toBe(true);
+    expect(service.play_send_settled_sound(false)).toBe(true);
     await settle();
     expect(started).toHaveLength(1);
   });

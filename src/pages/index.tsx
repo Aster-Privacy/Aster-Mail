@@ -420,7 +420,7 @@ export default function IndexPage() {
         {t("common.skip_to_content")}
       </a>
       <div
-        className="h-screen w-full flex flex-col overflow-hidden"
+        className="h-screen w-full flex flex-col overflow-clip"
         style={{ height: "100dvh", backgroundColor: "var(--bg-secondary)" }}
       >
         <LockedDataBanner />
@@ -443,7 +443,7 @@ export default function IndexPage() {
           on_shortcuts_click={handle_shortcuts_click}
           search_context={state.active_search_query || undefined}
         />
-        <div className="relative flex-1 flex transition-colors duration-200 overflow-hidden">
+        <div className="relative flex-1 flex transition-colors duration-200 overflow-clip">
           {state.is_settings_route && !settings_popup_mode ? (
             <Suspense fallback={<SettingsFallback />}>
               <SettingsContent
@@ -474,7 +474,7 @@ export default function IndexPage() {
                 on_nav_click={handle_sidebar_nav_click}
                 on_settings_click={handle_sidebar_settings_click}
               />
-              <div className="flex-1 px-1 pb-1 md:px-2 md:pb-2 min-h-0 min-w-0 flex flex-col overflow-hidden">
+              <div className="flex-1 px-1 pb-1 md:px-2 md:pb-2 min-h-0 min-w-0 flex flex-col overflow-clip">
                 {state.preferences.low_network_mode && (
                   <div
                     className="flex items-center gap-2 px-3 py-1.5 mb-1 rounded-lg text-xs font-medium flex-shrink-0"
@@ -498,9 +498,9 @@ export default function IndexPage() {
                     </button>
                   </div>
                 )}
-                <div className="flex-1 flex min-h-0 min-w-0 overflow-hidden relative">
+                <div className="flex-1 flex min-h-0 min-w-0 overflow-clip relative">
                   <div
-                    className="flex-1 min-w-0 rounded-lg md:rounded-xl overflow-hidden"
+                    className="flex-1 min-w-0 rounded-lg md:rounded-xl overflow-clip"
                     id="main-content"
                     role="main"
                     style={{

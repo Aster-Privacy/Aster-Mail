@@ -19,21 +19,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useEffect, useState } from "react";
-import { XMarkIcon, ArrowDownTrayIcon } from "@heroicons/react/24/outline";
+import { AnimatePresence, motion } from "framer-motion";
 
-import { show_toast } from "@/components/toast/simple_toast";
-import { use_i18n } from "@/lib/i18n/context";
+import { UpdateCard } from "@/components/updates/update_card";
+import { use_update_installer } from "@/components/updates/use_update_installer";
 import { ignore_error } from "@/lib/ignore_error";
+import { use_should_reduce_motion } from "@/provider";
 import {
   is_desktop_runtime,
   get_auto_update_enabled,
   get_last_notified_version,
   mark_version_notified,
   check_for_update,
-  download_and_install_update,
-  update_progress_percent,
   type DesktopUpdateInfo,
-  type UpdateProgress,
 } from "@/services/updates/updater";
 
 const CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000;
@@ -41,13 +39,12 @@ const CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000;
 export const FIRST_CHECK_DELAY_MS = 8000;
 
 export function UpdateBanner() {
-  const { t } = use_i18n();
+  const reduce_motion = use_should_reduce_motion();
   const [info, set_info] = useState<DesktopUpdateInfo | null>(null);
   const [dismissed_version, set_dismissed_version] = useState<string | null>(
     null,
   );
-  const [installing, set_installing] = useState(false);
-  const [progress, set_progress] = useState<UpdateProgress | null>(null);
+  const { state, start } = use_update_installer();
 
   useEffect(() => {
     if (!is_desktop_runtime()) return;
@@ -76,93 +73,44 @@ export function UpdateBanner() {
     };
   }, []);
 
-  if (!info || dismissed_version === info.version) return null;
-
-  const percent = update_progress_percent(progress);
-
-  const handle_install = async () => {
-    if (installing) return;
-    set_installing(true);
-    set_progress({ downloaded: 0, total: null });
-    try {
-      await download_and_install_update(set_progress);
-    } catch (caught) {
-      ignore_error("components/updates/update_banner:handle_install", caught);
-      show_toast(t("settings.updates_install_failed"), "error");
-    } finally {
-      set_installing(false);
-      set_progress(null);
-    }
-  };
+  const visible = Boolean(info) && dismissed_version !== info?.version;
 
   const handle_dismiss = () => {
+    if (!info) return;
     mark_version_notified(info.version);
     set_dismissed_version(info.version);
   };
 
   return (
-    <div
-      className="fixed bottom-4 end-4 z-[9999] max-w-sm rounded-[var(--aster-radius-floating,16px)] p-3"
-      style={{
-        backgroundColor: "var(--aster-floating-bg, var(--bg-primary, #111))",
-        boxShadow: "var(--aster-floating-shadow)",
-        color: "var(--text-primary, #fff)",
-      }}
-    >
-      <div className="flex items-start gap-3">
-        <ArrowDownTrayIcon className="w-5 h-5 mt-0.5 text-txt-primary flex-shrink-0" />
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-txt-primary">
-            {t("settings.updates_banner_title", { version: info.version })}
-          </p>
-          <div className="mt-2 flex items-center gap-2">
-            <button
-              className="h-7 px-3 rounded-lg bg-indigo-600 text-xs font-medium text-white transition-colors hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={installing}
-              onClick={handle_install}
-            >
-              {!installing
-                ? t("settings.updates_banner_action")
-                : percent === null
-                  ? t("settings.updates_downloading")
-                  : t("settings.updates_installing", {
-                      percent: percent,
-                    })}
-            </button>
-            <button
-              className="h-7 px-3 rounded-lg bg-[var(--aster-hover)] text-xs font-medium text-txt-primary transition-colors hover:opacity-80"
-              onClick={handle_dismiss}
-            >
-              {t("settings.updates_dismiss")}
-            </button>
-          </div>
-          {installing && (
-            <div
-              aria-valuemax={100}
-              aria-valuemin={0}
-              aria-valuenow={percent ?? undefined}
-              className="mt-2 h-1 w-full overflow-hidden rounded-full bg-surf-tertiary"
-              role="progressbar"
-            >
-              <div
-                className={`h-full rounded-full bg-indigo-600 ${
-                  percent === null
-                    ? "w-1/3 animate-pulse"
-                    : "transition-[width]"
-                }`}
-                style={percent === null ? undefined : { width: `${percent}%` }}
-              />
-            </div>
-          )}
-        </div>
-        <button
-          aria-label={t("common.dismiss")}
-          className="p-1 text-txt-muted hover:text-txt-primary"
-          onClick={handle_dismiss}
-        >
-          <XMarkIcon className="w-4 h-4" />
-        </button>
-      </div>
+    <div className="pointer-events-none fixed bottom-4 end-4 z-[9999]">
+      <AnimatePresence>
+        {visible && info && (
+          <motion.div
+            key={info.version}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            className="pointer-events-auto"
+            exit={{ opacity: 0, y: 12, scale: 0.97 }}
+            initial={
+              reduce_motion
+                ? { opacity: 0 }
+                : { opacity: 0, y: 24, scale: 0.96 }
+            }
+            transition={
+              reduce_motion
+                ? { duration: 0.15 }
+                : { type: "spring", stiffness: 380, damping: 32, mass: 0.9 }
+            }
+          >
+            <UpdateCard
+              install={state}
+              notes={info.notes}
+              on_dismiss={handle_dismiss}
+              on_install={() => void start()}
+              version={info.version}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

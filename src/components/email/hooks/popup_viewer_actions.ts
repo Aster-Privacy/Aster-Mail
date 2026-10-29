@@ -69,6 +69,7 @@ import {
   permanent_delete_mail_item,
 } from "@/services/api/mail";
 import { reindex_ids } from "@/services/category_index";
+import { sync_thread_spam } from "@/services/trash_state";
 import { set_forward_mail_id } from "@/services/forward_store";
 import mail_logo_url from "@/assets/mail_logo.webp";
 import { ignore_error } from "@/lib/ignore_error";
@@ -301,6 +302,9 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
       { is_spam: false },
     );
 
+    if (result.success) {
+      await sync_thread_spam([deps.mail_item.thread_token], false);
+    }
     deps.set_is_spam_loading(false);
 
     if (result.success) {
@@ -337,6 +341,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
     deps.set_is_spam_loading(true);
 
     const prev_is_trashed = deps.mail_item.is_trashed ?? false;
+    const spam_thread_token = deps.mail_item.thread_token;
     const result = await update_item_metadata(
       deps.email_id,
       {
@@ -347,6 +352,9 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
       { is_spam: true, is_trashed: false },
     );
 
+    if (result.success) {
+      await sync_thread_spam([spam_thread_token], true);
+    }
     deps.set_is_spam_loading(false);
 
     if (result.success) {
@@ -377,6 +385,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
           );
 
           if (!undo_result.success) throw new Error("undo spam failed");
+          await sync_thread_spam([spam_thread_token], false);
           reindex_ids([deps.email_id!]);
           emit_mail_item_updated({
             id: deps.email_id!,

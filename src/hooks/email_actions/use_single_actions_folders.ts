@@ -47,8 +47,14 @@ import {
 } from "@/hooks/use_mail_stats";
 import { remove_email_from_view_cache } from "@/hooks/email_list_cache";
 import { ignore_error } from "@/lib/ignore_error";
-import { restore_item_from_trash } from "@/services/trash_state";
-import { expand_email_ids } from "@/hooks/email_list_helpers";
+import {
+  restore_item_from_trash,
+  sync_thread_spam,
+} from "@/services/trash_state";
+import {
+  expand_email_ids,
+  trashes_whole_thread,
+} from "@/hooks/email_list_helpers";
 import {
   compute_untrash_deltas,
   apply_stat_deltas,
@@ -66,6 +72,7 @@ type SingleActionsFolderParams = Pick<
   | "config"
   | "update_with_metadata"
   | "execute_single_action"
+  | "preferences"
 >;
 
 export function use_single_actions_folders(params: SingleActionsFolderParams) {
@@ -77,7 +84,27 @@ export function use_single_actions_folders(params: SingleActionsFolderParams) {
     config,
     update_with_metadata,
     execute_single_action,
+    preferences,
   } = params;
+
+  const update_conversation_spam = useCallback(
+    async (
+      email: InboxEmail,
+      updates: { is_spam: boolean; is_trashed?: boolean },
+    ) => {
+      const result = await update_with_metadata(email, updates);
+
+      if (
+        !result.error &&
+        trashes_whole_thread(email, preferences.conversation_grouping)
+      ) {
+        await sync_thread_spam([email.thread_token], updates.is_spam);
+      }
+
+      return result;
+    },
+    [update_with_metadata, preferences.conversation_grouping],
+  );
 
   const mark_as_spam = useCallback(
     async (email: InboxEmail): Promise<boolean> => {
@@ -99,7 +126,7 @@ export function use_single_actions_folders(params: SingleActionsFolderParams) {
         email,
         "spam",
         spam_update,
-        () => update_with_metadata(email, spam_update),
+        () => update_conversation_spam(email, spam_update),
         true,
         {
           message: t("common.message_marked_as_spam"),
@@ -110,7 +137,7 @@ export function use_single_actions_folders(params: SingleActionsFolderParams) {
               adjust_stats_spam(-1);
               if (is_unread) adjust_stats_unread(1);
             }
-            const undo_result = await update_with_metadata(
+            const undo_result = await update_conversation_spam(
               email,
               original_state,
             );
@@ -141,7 +168,7 @@ export function use_single_actions_folders(params: SingleActionsFolderParams) {
 
       return success;
     },
-    [execute_single_action, update_with_metadata, t],
+    [execute_single_action, update_conversation_spam, t],
   );
 
   const unmark_spam = useCallback(
@@ -152,7 +179,7 @@ export function use_single_actions_folders(params: SingleActionsFolderParams) {
         email,
         "spam",
         { is_spam: false },
-        () => update_with_metadata(email, { is_spam: false }),
+        () => update_conversation_spam(email, { is_spam: false }),
         true,
         {
           message: t("common.marked_as_not_spam"),
@@ -160,7 +187,7 @@ export function use_single_actions_folders(params: SingleActionsFolderParams) {
           email_ids: [email.id],
           on_undo: async () => {
             adjust_stats_spam(1);
-            const undo_result = await update_with_metadata(email, {
+            const undo_result = await update_conversation_spam(email, {
               is_spam: true,
             });
 
@@ -189,7 +216,7 @@ export function use_single_actions_folders(params: SingleActionsFolderParams) {
 
       return success;
     },
-    [execute_single_action, update_with_metadata, t],
+    [execute_single_action, update_conversation_spam, t],
   );
 
   const resolve_folder_name = useCallback(

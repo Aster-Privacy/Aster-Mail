@@ -424,3 +424,26 @@ describe("skeleton cache", () => {
     expect(skeleton_cache_size()).toBe(0);
   });
 });
+
+describe("reply-to notice", () => {
+  it("names a reply-to address on another domain", () => {
+    const result = evaluate_sender_trust({
+      name: "Shadow",
+      email: "shadow@atomicmail.example",
+      reply_to: "help@other-company.example",
+    });
+
+    expect(result.reply_to).toBe("help@other-company.example");
+  });
+
+  it("skips a reply-to address that belongs to the reader", () => {
+    const result = evaluate_sender_trust({
+      name: "Shadow",
+      email: "shadow@atomicmail.example",
+      reply_to: "support@astermail.example",
+      own_addresses: ["me@astermail.example", "support@astermail.example"],
+    });
+
+    expect(result.reply_to).toBeNull();
+  });
+});

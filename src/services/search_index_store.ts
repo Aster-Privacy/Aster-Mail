@@ -23,6 +23,7 @@ import type { MailItem } from "@/services/api/mail";
 
 import {
   encrypted_set,
+  encrypted_set_plaintext,
   encrypted_get,
   encrypted_list_keys,
   secure_overwrite_and_delete,
@@ -39,14 +40,15 @@ import {
 import { get_current_account_id } from "@/services/account_manager";
 import { ignore_error } from "@/lib/ignore_error";
 import {
+  create_chunk_summarizer,
   normalize_chunk_summary,
   parse_gram_filter,
-  summarize_chunk,
   SUMMARY_GROUP_SIZE,
   type ChunkSummary,
   type GramFilter,
   type StoredGramFilter,
 } from "@/services/search_chunk_filter";
+import { yield_to_visible_page } from "@/lib/scheduling";
 
 const KEY_PREFIX = "search_index_";
 const SNAPSHOT_VERSION = 1;
@@ -64,6 +66,7 @@ const STORAGE_MAX_USAGE_RATIO = 0.9;
 const CHUNK_CACHE_SIZE = 2;
 const GRAM_CACHE_SIZE = 48;
 const SUMMARY_CACHE_SIZE = 16;
+const SERIALIZE_YIELD_MS = 8;
 
 interface SearchIndexManifest {
   version: number;
@@ -468,6 +471,65 @@ function chunk_unchanged(
   return true;
 }
 
+export async function serialize_chunk(
+  items: MailItem[],
+  entries: PersistedSearchEntry[],
+): Promise<{
+  plaintext: Uint8Array;
+  digest: { summary: ChunkSummary; grams: StoredGramFilter };
+}> {
+  const encoder = new TextEncoder();
+  const summarizer = create_chunk_summarizer();
+  const parts: Uint8Array[] = [];
+  let length = 0;
+  let slice_started_at = performance.now();
+
+  const append = (text: string): void => {
+    const bytes = encoder.encode(text);
+
+    parts.push(bytes);
+    length += bytes.length;
+  };
+
+  const pace = async (): Promise<void> => {
+    if (performance.now() - slice_started_at < SERIALIZE_YIELD_MS) return;
+
+    await yield_to_visible_page();
+    slice_started_at = performance.now();
+  };
+
+  try {
+    append('{"items":[');
+
+    for (let i = 0; i < items.length; i++) {
+      append((i > 0 ? "," : "") + JSON.stringify(items[i]));
+      summarizer.add(items[i], entries[i] ?? null);
+      await pace();
+    }
+
+    append('],"entries":[');
+
+    for (let i = 0; i < entries.length; i++) {
+      append((i > 0 ? "," : "") + JSON.stringify(entries[i]));
+      await pace();
+    }
+
+    append("]}");
+
+    const plaintext = new Uint8Array(length);
+    let offset = 0;
+
+    for (const part of parts) {
+      plaintext.set(part, offset);
+      offset += part.length;
+    }
+
+    return { plaintext, digest: summarizer.finish() };
+  } finally {
+    for (const part of parts) zero_uint8_array(part);
+  }
+}
+
 export interface SnapshotReader {
   meta: SnapshotMeta;
   read(chunk_id: number): Promise<SearchIndexChunk | null>;
@@ -671,6 +733,7 @@ export async function open_snapshot_writer(
   user_email: string,
   base?: SnapshotMeta | null,
   reusable?: ReusableChunk[],
+  is_current?: () => boolean,
 ): Promise<SnapshotWriter | null> {
   const encryption_key = await get_snapshot_encryption_key();
 
@@ -699,6 +762,7 @@ export async function open_snapshot_writer(
   let buffer_sources: PersistableEntry[] = [];
   let written = 0;
   let storage_exhausted = false;
+  let superseded = false;
   let lost_kept = false;
 
   const drop_buffer = (): void => {
@@ -709,7 +773,7 @@ export async function open_snapshot_writer(
   const flush = async (): Promise<void> => {
     if (buffer_items.length === 0) return;
 
-    if (storage_exhausted) {
+    if (storage_exhausted || superseded) {
       drop_buffer();
 
       return;
@@ -740,16 +804,23 @@ export async function open_snapshot_writer(
     );
 
     try {
-      await encrypted_set(
-        chunk_record_key(key, chunk_id),
-        {
-          items: chunk_items,
-          entries: chunk_entries,
-        } satisfies SearchIndexChunk,
-        encryption_key,
+      const { plaintext, digest } = await serialize_chunk(
+        chunk_items,
+        chunk_entries,
       );
 
-      const digest = summarize_chunk(chunk_items, chunk_entries);
+      if (is_current && !is_current()) {
+        zero_uint8_array(plaintext);
+        superseded = true;
+
+        return;
+      }
+
+      await encrypted_set_plaintext(
+        chunk_record_key(key, chunk_id),
+        plaintext,
+        encryption_key,
+      );
 
       await encrypted_set(
         gram_record_key(key, chunk_id),
@@ -850,7 +921,7 @@ export async function open_snapshot_writer(
     layout: () => [...layout],
     lost_kept_chunks: () => lost_kept,
     add_page: async (items, entries) => {
-      if (storage_exhausted) return;
+      if (storage_exhausted || superseded) return;
 
       for (const item of items) {
         const entry = entries.get(item.id);
@@ -901,6 +972,8 @@ export async function open_snapshot_writer(
 
       try {
         await flush();
+
+        if (superseded) return await abandon();
 
         const kept = keep_chunk_ids ?? [];
         const chunk_ids = keep_first

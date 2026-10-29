@@ -384,9 +384,10 @@ jobs:
             gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern "$manifest" --dir "$TMP" --clobber 2>/dev/null || echo '{}' > "$TMP/$manifest"
           done
           gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern '*.sig' --dir "$TMP" --clobber || true
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json body --jq .body > "$TMP/notes.md" 2>/dev/null || : > "$TMP/notes.md"
 
           build_manifest() {
-            SIGDIR="$TMP" SIGEXT="$2" BASE="$BASE" V="$V" node -e '
+            SIGDIR="$TMP" SIGEXT="$2" BASE="$BASE" V="$V" NOTES_FILE="$TMP/notes.md" node -e '
             const fs = require("fs");
             const path = process.argv[1];
             const dir = process.env.SIGDIR;
@@ -416,7 +417,7 @@ jobs:
 
             const manifest = {
               version: prior.version || v,
-              notes: prior.notes || "",
+              notes: fs.readFileSync(process.env.NOTES_FILE, "utf8").trim() || prior.notes || "",
               pub_date: new Date().toISOString(),
               platforms: {},
             };

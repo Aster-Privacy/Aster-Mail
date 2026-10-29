@@ -27,6 +27,7 @@ import { format_bytes } from "@/lib/utils";
 import { play_iconic_sound } from "@/services/iconic_sounds";
 import { prepare_image_attachments } from "@/services/image_size_reduction";
 import { strip_metadata } from "@/lib/strip_image_metadata";
+import { use_attachment_session } from "@/components/compose/use_attachment_session";
 import {
   type Attachment,
   generate_attachment_id,
@@ -145,6 +146,7 @@ export interface UseComposeAttachmentsReturn {
   is_loading_attachments: boolean;
   has_pending_attachment_reads: () => boolean;
   set_attachments: React.Dispatch<React.SetStateAction<Attachment[]>>;
+  reset_attachment_session: (next?: Attachment[]) => void;
   attachment_error: string | null;
   set_attachment_error: (val: string | null) => void;
   attachments_scroll_ref: React.RefObject<HTMLDivElement>;
@@ -162,22 +164,20 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
   const { preferences } = use_preferences();
   const [attachments, set_attachments] = useState<Attachment[]>([]);
   const [is_loading_attachments, set_is_loading_attachments] = useState(false);
-  const pending_reads_ref = useRef(0);
-  const has_pending_attachment_reads = useCallback(
-    () => pending_reads_ref.current > 0,
-    [],
-  );
-  const with_pending_reads = useCallback(async (read: () => Promise<void>) => {
-    pending_reads_ref.current++;
-    set_is_loading_attachments(true);
+  const session = use_attachment_session(set_is_loading_attachments);
+  const has_pending_attachment_reads = session.has_pending_reads;
+  const with_pending_reads = useCallback(
+    async (read: (token: number) => Promise<void>) => {
+      const token = session.begin_read();
 
-    try {
-      await read();
-    } finally {
-      pending_reads_ref.current--;
-      set_is_loading_attachments(pending_reads_ref.current > 0);
-    }
-  }, []);
+      try {
+        await read(token);
+      } finally {
+        session.end_read(token);
+      }
+    },
+    [session],
+  );
   const [attachment_error, set_attachment_error] = useState<string | null>(
     null,
   );
@@ -196,6 +196,15 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
     set_attachments((prev) => prev.filter((a) => a.id !== id));
     set_attachment_error(null);
   }, []);
+
+  const reset_attachment_session = useCallback(
+    (next: Attachment[] = []) => {
+      session.reset();
+      attachments_ref.current = next;
+      set_attachments(next);
+    },
+    [session],
+  );
 
   const get_total_attachments_size = useCallback(() => {
     return attachments.reduce((total, att) => total + att.size_bytes, 0);
@@ -247,12 +256,13 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
   );
 
   const read_files = useCallback(
-    async (selected: File[]) => {
+    async (selected: File[], token: number) => {
       const files = await prepare_image_attachments(selected);
 
-      if (!files) return;
+      if (!files || !session.is_current(token)) return;
       set_attachment_error(null);
       await ensure_attachment_limits();
+      if (!session.is_current(token)) return;
       const new_attachments: Attachment[] = [];
       const unstripped: string[] = [];
       let running_total = attachments_ref.current.reduce(
@@ -307,6 +317,8 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
             unstripped,
           );
 
+          if (!session.is_current(token)) return;
+
           new_attachments.push({
             id: generate_attachment_id(),
             name: file.name,
@@ -317,6 +329,7 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
           });
           running_total += data.byteLength;
         } catch (error) {
+          if (!session.is_current(token)) return;
           if (import.meta.env.DEV) console.error(error);
           const message = t("common.failed_to_read_named_file", {
             name: file.name,
@@ -339,7 +352,7 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
         );
       }
     },
-    [append_attachments, preferences.strip_exif_on_compose, t],
+    [append_attachments, preferences.strip_exif_on_compose, session, t],
   );
 
   const handle_file_select = useCallback(
@@ -352,12 +365,13 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
 
       if (files.length === 0) return Promise.resolve();
 
-      return with_pending_reads(() => read_files(files));
+      return with_pending_reads((token) => read_files(files, token));
     },
     [with_pending_reads, read_files],
   );
   const handle_files_drop = useCallback(
-    (files: File[]) => with_pending_reads(() => read_files(files)),
+    (files: File[]) =>
+      with_pending_reads((token) => read_files(files, token)),
     [with_pending_reads, read_files],
   );
 
@@ -370,6 +384,7 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
     is_loading_attachments,
     has_pending_attachment_reads,
     set_attachments,
+    reset_attachment_session,
     attachment_error,
     set_attachment_error,
     attachments_scroll_ref,

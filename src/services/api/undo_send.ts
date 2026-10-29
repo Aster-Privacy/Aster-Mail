@@ -66,6 +66,7 @@ export interface QueueEmailRequest {
   in_reply_to?: string;
   expires_at?: string;
   force_pgp?: boolean;
+  pgp_recipients?: string[];
   signed_mime?: string;
   signed_mime_signature?: string;
   signed_mime_micalg?: string;

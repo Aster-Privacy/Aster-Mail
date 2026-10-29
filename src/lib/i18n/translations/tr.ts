@@ -913,6 +913,20 @@ export const tr = {
       "Bu dosya {{size}} MB ve boyut sınırının üzerinde. Daha küçük bir dosya seçin.",
     delete_failed: "Tekrar deneyin.",
     download_failed: "Bu indirme tamamlanmadı. Tekrar deneyin.",
+    download_complete:
+      "İndirme tamamlandı",
+    downloaded_file:
+      "{{file_name}} indirildi",
+    open_file:
+      "Aç",
+    show_in_folder:
+      "Klasörde göster",
+    show_in_finder:
+      "Finder'da göster",
+    download_open_failed:
+      "Bu dosya açılamadı. Taşınmış veya silinmiş olabilir.",
+    download_reveal_failed:
+      "Bu dosya gösterilemedi. Taşınmış veya silinmiş olabilir.",
     attachment_locked:
       "Bu ek, şifreleme anahtarı bu cihazda kullanılamadığı için açılamıyor.",
     scheduled_no_attachments:
@@ -925,6 +939,10 @@ export const tr = {
       "Zamanlanmış e-postalar en fazla 28 gün sonrasına planlanabilir. Daha erken bir zaman seçin.",
     scheduled_requires_encryption:
       "Zorunlu şifrelemeyi açtınız ve dış adreslere giden zamanlanmış e-postalar uçtan uca şifrelenmez. Bu iletiyi şimdi gönderin veya Ayarlar'da zorunlu şifrelemeyi kapatın.",
+    scheduled_no_pgp:
+      "Dış adreslere giden zamanlanmış e-postalar henüz PGP şifrelemesini kullanamaz. Şifrelemek için bu iletiyi şimdi gönderin.",
+    expiry_no_pgp:
+      "Süresi dolan ve dış adreslere giden e-postalar PGP şifrelemesini kullanamaz. Bu iletiyi PGP ile şifrelemek için süre sınırını kaldırın.",
     offline_password_protected_unavailable:
       "Çevrimdışıyken parola korumalı e-postaları sıraya alamazsınız. Yeniden bağlandığınızda iletiyi gönderin.",
     offline_settings_unavailable:
@@ -1321,6 +1339,8 @@ export const tr = {
       "Bazı harici hesapların eşitlenmesi durdu.",
     external_account_health_banner_action: "İncele",
     external_account_health_banner_dismiss: "Kapat",
+    locked_mail_after_reset:
+      "Bu e-posta, parolanızı sıfırlamadan önceki anahtarlarınızla şifrelendi. Okumak için eski verilerinizi eski parolanızla veya eski bir kurtarma koduyla kurtarın.",
     recover_data_title: "Verileri kurtar",
     recover_data_description:
       "Parola değişikliğinden veya sıfırlamadan önceki verilerin kilidini açmak için o sırada kullandığınız parolayı girin.",
@@ -3844,6 +3864,20 @@ export const tr = {
     updates_unsupported:
       "Güncellemeleri işletim sisteminiz veya tarayıcınız yönetir",
     updates_dismiss: "Daha sonra",
+    updates_card_preparing: "Güncelleme hazırlanıyor",
+    updates_card_preparing_detail: "İndirme başlatılıyor",
+    updates_card_downloading: "Aster Mail {{version}} indiriliyor",
+    updates_card_size: "{{downloaded}} / {{total}}",
+    updates_card_installing: "Güncelleme yükleniyor",
+    updates_card_installing_detail: "Aster Mail birazdan yeniden başlatılacak.",
+    updates_card_failed: "Güncelleme yüklenemedi",
+    updates_card_failed_detail: "Bağlantınızı kontrol edip tekrar deneyin.",
+    updates_card_available_detail: "Kurulumu tamamlamak için Aster Mail yeniden başlatılır.",
+    updates_time_left_moment: "Neredeyse bitti",
+    updates_time_left_seconds: "Yaklaşık {{seconds}} sn kaldı",
+    updates_time_left_minutes: "Yaklaşık {{minutes}} dk kaldı",
+    updates_try_again: "Tekrar dene",
+    updates_whats_new: "Yenilikler",
     billing: "Faturalandırma",
     billing_description: "Aboneliğinizi ve ödeme yöntemlerinizi yönetin",
     undo_send: "Göndermeyi Geri Al",
@@ -4260,14 +4294,8 @@ export const tr = {
       "Bu işlem bu cihazdaki önbellek verilerini siler ve Aster Mail'i yeniden yükler. Yeniden oturum açman gerekebilir.",
     iconic_sounds: "Iconic Sounds",
     iconic_sounds_description:
-      "Gönderdiğinde, gönderimi geri aldığında, yazdığında, dosya eklediğinde ve posta aldığında Aster seslerini çalar.",
-    iconic_sounds_info:
-      "Iconic Sounds, Aster'e akılda kalıcı sesler ekler. Bu sesler değişebilir.",
-    iconic_sounds_beta: "Beta",
-    iconic_sounds_confirm_title: "Iconic Sounds açılsın mı?",
-    iconic_sounds_confirm_message:
-      "Bunu açmak istediğinden emin misin? Aster Mail, posta gönderme ve gönderimi geri alma gibi işlemlerde ses çalar. Bu ayar web ve masaüstü uygulamalarıyla eşitlenir.",
-    iconic_sounds_turn_on: "Aç",
+      "Posta gönderdiğinizde veya göndermeyi geri aldığınızda, bir ileti başlattığınızda, dosya eklediğinizde, postayı arşivlediğinizde veya taşıdığınızda ve bir hata gördüğünüzde Aster seslerini çalar.",
+    notification_sound: "Bildirim sesi",
     current_plan: "Mevcut Plan",
     free: "Ücretsiz",
     available_plans: "Mevcut Planlar",
@@ -4463,11 +4491,21 @@ export const tr = {
     payment: "Ödeme",
     cancels: "İptal tarihi",
     renews: "Yenileme tarihi",
-    your_feedback: "Geri Bildiriminiz",
-    feedback_placeholder:
-      "Düşüncelerinizi, önerilerinizi paylaşın veya sorunları bildirin...",
+    your_feedback: "Geri bildirim gönder",
+    feedback_placeholder: "Fikrinizi veya bulduğunuz sorunu açıklayın",
     feedback_not_encrypted:
-      "Geri bildirim uçtan uca şifreli değildir. Hassas bilgiler eklemeyin.",
+      "Geri bildirim uçtan uca şifrelenmez, bu nedenle parola, kurtarma kodu veya başka özel bilgi eklemeyin.",
+    feedback_intro:
+      "Bir fikir paylaşın, hata bildirin veya Aster ekibine ne düşündüğünüzü söyleyin. Geri bildirim bir destek talebi oluşturmaz. Yardım veya yanıt almak için destekle iletişime geçin.",
+    support_intro:
+      "Hesabınız, faturalandırma veya çözemediğiniz bir sorunla ilgili yardım için destek ekibine e-posta gönderin.",
+    support_email_label: "Desteğe e-posta gönder",
+    support_help_label: "Yardım merkezi",
+    support_help_desc:
+      "Kılavuzları ve sık sorulan soruların yanıtlarını bulun.",
+    support_status_label: "Hizmet durumu",
+    support_status_desc: "Aster Mail'de kesinti olup olmadığını kontrol edin.",
+    support_security_label: "Güvenlik sorunu bildir",
     sending: "Gönderiliyor...",
     send_feedback_button: "Geri Bildirim Gönder",
     thank_you_feedback: "Geri bildiriminiz için teşekkürler!",
@@ -4479,7 +4517,7 @@ export const tr = {
     please_log_in_feedback:
       "Oturum açmak geri bildirim göndermenize olanak verir.",
     failed_send_feedback: "Tekrar deneyin.",
-    other_ways_to_reach: "Bize Ulaşmanın Diğer Yolları",
+    other_ways_to_reach: "Destekle iletişime geç",
     reset_to_defaults: "Varsayılanlara sıfırla",
     section_reset: "Bölüm varsayılanlara sıfırlandı",
     reset_all_confirm: "Tüm ayarlar varsayılanlara sıfırlansın mı?",
@@ -4820,7 +4858,7 @@ export const tr = {
       "3 ile 40 arasında harf, rakam veya nokta kullanın. Nokta adresin başında veya sonunda olamaz ve noktalar tekrarlanamaz.",
     address_change_name_placeholder: "adiniz",
     primary_address_info:
-      "Supernova planın adresini 30 günde bir değiştirmene izin verir. Eski adresin senin kalır: posta almayı sürdürür ve oturum açmanı sağlar.",
+      "Supernova ve Family planları adresini 30 günde bir değiştirmene izin verir. Eski adresin senin kalır: posta almayı sürdürür ve oturum açmanı sağlar.",
     address_change_checking: "Uygunluk kontrol ediliyor",
     address_change_available: "{{email}} kullanılabilir",
     address_change_unavailable: "{{email}} kullanılamaz",
@@ -4859,7 +4897,8 @@ export const tr = {
     address_change_taken_now:
       "Bu adresi başka biri aldı. Başka bir adres seçin.",
     address_change_code_invalid: "Bu kod doğru değil.",
-    address_change_locked_plan: "Adres değiştirmek bir Supernova özelliğidir.",
+    address_change_locked_plan:
+      "Adres değiştirmek Supernova ve Family planlarının bir özelliğidir.",
     address_change_locked_cooldown:
       "Adresinizi {{date}} tarihinde yeniden değiştirebilirsiniz.",
     address_change_locked_cooldown_unknown:
@@ -6106,6 +6145,18 @@ export const tr = {
       "Daha fazla depolama satın almak için önce bir seçenek belirleyin.",
     storage_promo_cta: "Eklentileri gör",
     storage_used_of_total: "{{total}} alanın {{used}} kadarı kullanıldı",
+    storage_nudge_almost_title: "Depolama alanı neredeyse dolu",
+    storage_nudge_critical_title: "Depolama alanınız bitmek üzere",
+    storage_nudge_full_title: "Depolama alanınız dolu",
+    storage_nudge_offer: "Ayda {{price}} karşılığında {{size}} daha alın",
+    storage_nudge_offer_generic:
+      "Daha fazla depolama alanı için planınızı yükseltin",
+    storage_nudge_body:
+      "Depolama alanınız dolduğunda e-posta gönderemez veya içe aktaramazsınız.",
+    storage_nudge_full_body:
+      "Yer açana kadar e-posta gönderemez veya içe aktaramazsınız. Mevcut e-postalarınız güvende.",
+    storage_nudge_free_up: "Yer aç",
+    storage_nudge_get_storage: "Depolama al",
     storage_free_space:
       "{{size}} boş, depolamanızın {{percent}} kadarı kullanıldı",
     storage_breakdown_title: "Depolamanızı ne kullanıyor",
@@ -6760,7 +6811,6 @@ export const tr = {
     domain_purchase_n_years: "{{count}} yıl",
     domain_purchase_pay_with: "Ödeme yöntemi",
     domain_purchase_pay_card: "Kart",
-    domain_purchase_pay_crypto: "Kripto",
     domain_purchase_buy: "{{price}} karşılığında satın al",
     domain_purchase_error: "Satın alma başarısız oldu. Lütfen tekrar deneyin.",
     domain_purchase_error_taken:
@@ -6848,6 +6898,13 @@ export const tr = {
     domain_purchase_manage_paid: "Ödenen",
     domain_purchase_manage_auto_renew_note:
       "Bu alan adı otomatik olarak yenilenmez. Elinizde tutmak için bitiş tarihinden önce yenileyin.",
+    domain_purchase_auto_renew_label: "Otomatik yenile",
+    domain_purchase_auto_renew_hint:
+      "Aster kartınızdan yılda bir kez ödeme alır ve her ödemeden 15 gün önce fiyatı size e-postayla gönderir. Bunu Ayarlar'dan kapatabilirsiniz.",
+    domain_purchase_manage_auto_renew_on_note:
+      "Aster, kayıtlı kartınızdan son kullanma tarihinden 30 gün önce ödeme alır ve fiyatı bundan 15 gün önce e-postayla gönderir.",
+    domain_purchase_manage_auto_renew_error:
+      "Otomatik yenileme güncellenemedi. Tekrar deneyin.",
     domain_purchase_manage_dns: "Alan adı kurulumunu aç",
     domain_purchase_manage_support_note:
       "Bu alan adını başka bir kayıt kuruluşuna taşımak ya da geri ödeme sormak için destek ile iletişime geç.",
@@ -10868,6 +10925,47 @@ export const tr = {
       "Teşekkürler! Geri bildiriminiz Aster Mail'i herkes için daha iyi yapıyor. Her yanıtı okuyoruz.",
   },
   calendar: {
+    beta_waitlist_title: "Aster Calendar",
+    beta_waitlist_tag: "Beta",
+    beta_waitlist_start: "Betanın 1 Kasım'da başlaması bekleniyor.",
+    beta_waitlist_features_title: "Neler dahil",
+    beta_waitlist_info_title: "Takvim beta sürümü hakkında",
+    beta_waitlist_info_body:
+      "Aster Calendar, Aster hesabınız için şifreli bir takvimdir. Bir yer açıldığında Takvim hesabınızda etkinleşir ve kenar çubuğunda görünür. Bekleme listesinden istediğiniz zaman ayrılabilirsiniz.",
+    beta_waitlist_privacy:
+      "Etkinlikleriniz ve takvimleriniz cihazınızda şifrelenir, böylece onları yalnızca siz okuyabilirsiniz. Bekleme listesi adresinizi değil, yalnızca anonim bir etiketi saklar ve lansmandan sonra silinir.",
+    beta_waitlist_heading: "Aster Calendar'ı erkenden deneyin",
+    beta_waitlist_body:
+      "Erken erişim için bekleme listesine katılın. Sıranız geldiğinde Calendar hesabınızda açılır.",
+    beta_waitlist_icon_note: "Bu simge geçicidir.",
+    beta_waitlist_feature_encrypted: "Uçtan uca şifreli",
+    beta_waitlist_feature_encrypted_body:
+      "Etkinlikleriniz postanızla aynı anahtarları kullanır.",
+    beta_waitlist_feature_devices: "Web'de ve Android'de",
+    beta_waitlist_feature_devices_body:
+      "Takviminiz her cihazda senkronize kalır.",
+    beta_waitlist_feature_booking: "Randevu sayfaları",
+    beta_waitlist_feature_booking_body:
+      "Başkalarının sizden zaman ayırabilmesi için bir bağlantı paylaşın.",
+    beta_waitlist_feature_invites: "Etkinlik davetleri",
+    beta_waitlist_feature_invites_body:
+      "Konukları e-postayla davet edin ve planlar değiştiğinde onlara güncelleme gönderin.",
+    beta_waitlist_feature_reminders: "Hatırlatıcılar",
+    beta_waitlist_feature_reminders_body:
+      "Her etkinlik başlamadan önce bildirim alın.",
+    beta_waitlist_feature_recurring: "Yinelenen etkinlikler",
+    beta_waitlist_feature_recurring_body:
+      "Etkinlikleri günlük, haftalık, aylık, yıllık veya özel bir programla yineleyin.",
+    beta_waitlist_feature_import: "Takviminizi içe aktarın",
+    beta_waitlist_feature_import_body:
+      "Etkinliklerinizi herhangi bir .ics dosyasından taşıyın.",
+    beta_waitlist_apply: "Bekleme listesine katıl",
+    beta_waitlist_joined: "Bekleme listesindesiniz",
+    beta_waitlist_joined_body:
+      "Katıldığınız için teşekkürler. Sıranız geldiğinde Calendar hesabınızda otomatik olarak açılır.",
+    beta_waitlist_leave: "Bekleme listesinden çık",
+    beta_waitlist_failed: "Bekleme listesi güncellenemedi. Tekrar deneyin.",
+    beta_waitlist_retry: "Tekrar dene",
     invite_yes: "Evet",
     invite_maybe: "Belki",
     invite_no: "Hayır",

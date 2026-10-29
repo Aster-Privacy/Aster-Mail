@@ -21,6 +21,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
+import { MemoryRouter } from "react-router-dom";
 
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean;
@@ -30,6 +31,7 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 const h = vi.hoisted(() => ({
   post: vi.fn(),
   show_toast: vi.fn(),
+  open_external: vi.fn(),
 }));
 
 vi.mock("@/lib/i18n/context", () => ({
@@ -61,6 +63,10 @@ vi.mock("@/components/toast/simple_toast", () => ({
   show_toast: h.show_toast,
 }));
 
+vi.mock("@/utils/open_link", () => ({
+  open_external: h.open_external,
+}));
+
 vi.mock("@/native/invoke_bridge", () => ({
   is_desktop: () => false,
 }));
@@ -76,7 +82,11 @@ async function mount() {
   root = createRoot(container);
 
   await act(async () => {
-    root.render(<FeedbackSection />);
+    root.render(
+      <MemoryRouter>
+        <FeedbackSection />
+      </MemoryRouter>,
+    );
   });
 }
 
@@ -99,11 +109,21 @@ function click_label(label: string) {
   button.click();
 }
 
+function click_row(label: string) {
+  const row = Array.from(
+    container.querySelectorAll<HTMLElement>("button, [role='button'], a"),
+  ).find((el) => el.textContent?.includes(label));
+
+  if (!row) throw new Error(`row not found: ${label}`);
+  row.click();
+}
+
 describe("FeedbackSection", () => {
   beforeEach(() => {
     h.post.mockReset();
     h.post.mockResolvedValue({ data: { success: true } });
     h.show_toast.mockReset();
+    h.open_external.mockReset();
   });
 
   afterEach(async () => {
@@ -165,5 +185,57 @@ describe("FeedbackSection", () => {
     ) as HTMLButtonElement;
 
     expect(general.getAttribute("aria-pressed")).toBe("true");
+  });
+
+  it("opens a message to support from the support row", async () => {
+    await mount();
+    const listener = vi.fn();
+
+    window.addEventListener("aster:open-compose-prefilled", listener);
+    act(() => {
+      click_row("settings.support_email_label");
+    });
+    window.removeEventListener("aster:open-compose-prefilled", listener);
+
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect((listener.mock.calls[0][0] as CustomEvent).detail).toMatchObject({
+      to: ["hello@astermail.org"],
+    });
+  });
+
+  it("opens a message to the security team from the security row", async () => {
+    await mount();
+    const listener = vi.fn();
+
+    window.addEventListener("aster:open-compose-prefilled", listener);
+    act(() => {
+      click_row("settings.support_security_label");
+    });
+    window.removeEventListener("aster:open-compose-prefilled", listener);
+
+    expect((listener.mock.calls[0][0] as CustomEvent).detail).toMatchObject({
+      to: ["security@astermail.org"],
+    });
+  });
+
+  it("opens the help center and the status page in the browser", async () => {
+    await mount();
+
+    act(() => {
+      click_row("settings.support_help_label");
+      click_row("settings.support_status_label");
+    });
+
+    expect(h.open_external.mock.calls.map((c) => c[0])).toEqual([
+      "https://astermail.org/help",
+      "https://status.astermail.org",
+    ]);
+  });
+
+  it("shows both support addresses", async () => {
+    await mount();
+
+    expect(container.textContent).toContain("hello@astermail.org");
+    expect(container.textContent).toContain("security@astermail.org");
   });
 });

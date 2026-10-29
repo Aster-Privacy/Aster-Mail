@@ -33,6 +33,7 @@ import { is_native_platform } from "@/native/capacitor_bridge";
 import { get_cached_preferences } from "@/services/api/preferences";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { strip_style_blocks } from "@/utils/strip_style_blocks";
+import { print_page_css } from "@/utils/print_page";
 
 type Translator = (
   key: TranslationKey,
@@ -313,7 +314,7 @@ const PRINT_CONTENT_STYLES = `
   }
 `;
 
-const PRINT_STYLES_WEB = `
+const print_styles_web = (): string => `
   #aster-print-root { display: none; }
   @media print {
     html, body {
@@ -329,7 +330,7 @@ const PRINT_STYLES_WEB = `
       overflow: visible !important;
       ${PRINT_ROOT_STYLES}
     }
-    @page { margin: 0.5in; }
+    ${print_page_css("0.5in", "#aster-print-root")}
     ${PRINT_CONTENT_STYLES}
   }
 `;
@@ -559,7 +560,7 @@ export function print_thread(
   const style_el = document.createElement("style");
 
   style_el.id = "aster-print-styles";
-  style_el.textContent = native ? PRINT_STYLES_NATIVE : PRINT_STYLES_WEB;
+  style_el.textContent = native ? PRINT_STYLES_NATIVE : print_styles_web();
   document.head.appendChild(style_el);
 
   const container = document.createElement("div");
@@ -612,7 +613,7 @@ export function setup_thread_print_intercept(
     const style_el = document.createElement("style");
 
     style_el.id = "aster-print-styles";
-    style_el.textContent = native ? PRINT_STYLES_NATIVE : PRINT_STYLES_WEB;
+    style_el.textContent = native ? PRINT_STYLES_NATIVE : print_styles_web();
     document.head.appendChild(style_el);
 
     const container = document.createElement("div");
@@ -665,7 +666,7 @@ export function print_email(
   const style_el = document.createElement("style");
 
   style_el.id = "aster-print-styles";
-  style_el.textContent = native ? PRINT_STYLES_NATIVE : PRINT_STYLES_WEB;
+  style_el.textContent = native ? PRINT_STYLES_NATIVE : print_styles_web();
   document.head.appendChild(style_el);
 
   const container = document.createElement("div");

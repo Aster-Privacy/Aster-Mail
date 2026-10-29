@@ -961,6 +961,20 @@ export const ja = {
     file_too_large: "ファイルは{{size}}未満である必要があります",
     delete_failed: "もう一度お試しください。",
     download_failed: "もう一度お試しください。",
+    download_complete:
+      "ダウンロードが完了しました",
+    downloaded_file:
+      "{{file_name}} をダウンロードしました",
+    open_file:
+      "開く",
+    show_in_folder:
+      "フォルダに表示",
+    show_in_finder:
+      "Finder に表示",
+    download_open_failed:
+      "このファイルを開けませんでした。移動または削除された可能性があります。",
+    download_reveal_failed:
+      "このファイルを表示できませんでした。移動または削除された可能性があります。",
     attachment_locked:
       "この添付ファイルは、暗号化キーがこのデバイスで利用できないため開けません。",
     scheduled_no_attachments:
@@ -973,6 +987,10 @@ export const ja = {
       "予約送信は最大 28 日先まで設定できます。もっと早い日時を選択してください。",
     scheduled_requires_encryption:
       "暗号化の必須設定がオンになっており、外部アドレスへの予約送信メールはエンドツーエンドで暗号化されません。このメッセージを今すぐ送信するか、設定で暗号化の必須設定をオフにしてください。",
+    scheduled_no_pgp:
+      "外部アドレスへの予約送信メールでは、まだ PGP 暗号化を使用できません。暗号化するには、このメッセージを今すぐ送信してください。",
+    expiry_no_pgp:
+      "有効期限付きの外部アドレス宛てメールでは PGP 暗号化を使用できません。このメッセージを PGP で暗号化するには、有効期限を削除してください。",
     offline_password_protected_unavailable:
       "オフラインの間はパスワード保護されたメールをキューに追加できません。再接続したら、メッセージを送信してください。",
     offline_settings_unavailable:
@@ -1361,6 +1379,8 @@ export const ja = {
       "一部の外部アカウントの同期が停止しています。",
     external_account_health_banner_action: "確認",
     external_account_health_banner_dismiss: "閉じる",
+    locked_mail_after_reset:
+      "このメールは、パスワードをリセットする前の鍵で暗号化されています。読むには、以前のパスワードまたは以前の復旧コードで古いデータを復元してください。",
     recover_data_title: "データを復元",
     recover_data_description:
       "パスワードの変更またはリセット前のデータのロックを解除するには、その時に使用していたパスワードを入力してください。",
@@ -3858,6 +3878,20 @@ export const ja = {
     updates_banner_action: "今すぐインストール",
     updates_unsupported: "アップデートは OS またはブラウザが管理します",
     updates_dismiss: "あとで",
+    updates_card_preparing: "アップデートを準備中",
+    updates_card_preparing_detail: "ダウンロードを開始しています",
+    updates_card_downloading: "Aster Mail {{version}} をダウンロード中",
+    updates_card_size: "{{downloaded}} / {{total}}",
+    updates_card_installing: "アップデートをインストール中",
+    updates_card_installing_detail: "まもなく Aster Mail が再起動します。",
+    updates_card_failed: "アップデートをインストールできませんでした",
+    updates_card_failed_detail: "接続を確認してもう一度お試しください。",
+    updates_card_available_detail: "インストールを完了するために Aster Mail が再起動します。",
+    updates_time_left_moment: "まもなく完了",
+    updates_time_left_seconds: "残り約 {{seconds}} 秒",
+    updates_time_left_minutes: "残り約 {{minutes}} 分",
+    updates_try_again: "再試行",
+    updates_whats_new: "新機能",
     billing: "請求",
     billing_description: "サブスクリプションと支払い方法の管理",
     undo_send: "送信取り消し",
@@ -4262,14 +4296,8 @@ export const ja = {
       "この操作でこのデバイスのキャッシュデータを削除し、Aster Mail を再読み込みします。再度サインインが必要になる場合があります。",
     iconic_sounds: "Iconic Sounds",
     iconic_sounds_description:
-      "メールの送信、送信の取り消し、作成、ファイルの添付、受信のときに Aster のサウンドを再生します。",
-    iconic_sounds_info:
-      "Iconic Sounds は Aster に印象的なサウンドを追加します。サウンドは変更される場合があります。",
-    iconic_sounds_beta: "ベータ",
-    iconic_sounds_confirm_title: "Iconic Sounds をオンにしますか？",
-    iconic_sounds_confirm_message:
-      "オンにしてもよろしいですか？Aster Mail は、メールの送信や送信の取り消しなどの操作でサウンドを再生します。この設定は Web アプリとデスクトップアプリに同期されます。",
-    iconic_sounds_turn_on: "オンにする",
+      "メールの送信と送信の取り消し、メッセージの作成開始、ファイルの添付、メールのアーカイブや移動、エラーの発生時に Aster のサウンドを再生します。",
+    notification_sound: "通知音",
     current_plan: "現在のプラン",
     free: "無料",
     available_plans: "利用可能なプラン",
@@ -4470,10 +4498,20 @@ export const ja = {
     payment: "支払い",
     cancels: "キャンセル日",
     renews: "更新日",
-    your_feedback: "フィードバック",
-    feedback_placeholder: "ご意見、ご提案、または問題を報告してください...",
+    your_feedback: "フィードバックを送信",
+    feedback_placeholder: "アイデアや見つけた問題を説明してください",
     feedback_not_encrypted:
-      "フィードバックはエンドツーエンド暗号化されていません。機密情報を含めないでください。",
+      "フィードバックはエンドツーエンドで暗号化されません。パスワード、復元コード、その他の個人情報は含めないでください。",
+    feedback_intro:
+      "アイデアの共有、バグの報告、Aster チームへのご意見をお送りください。フィードバックではサポートへの問い合わせは作成されません。サポートや返信が必要な場合は、サポートにお問い合わせください。",
+    support_intro:
+      "アカウントや請求、解決できない問題についてサポートが必要な場合は、サポートチームにメールでお問い合わせください。",
+    support_email_label: "サポートにメールする",
+    support_help_label: "ヘルプセンター",
+    support_help_desc: "ガイドやよくある質問への回答を確認できます。",
+    support_status_label: "サービスの状況",
+    support_status_desc: "Aster Mail で障害が発生していないか確認できます。",
+    support_security_label: "セキュリティの問題を報告",
     sending: "送信中...",
     send_feedback_button: "フィードバックを送信",
     thank_you_feedback: "フィードバックありがとうございます！",
@@ -4484,7 +4522,7 @@ export const ja = {
       "操作が速すぎます。少し待ってからもう一度お試しください。",
     please_log_in_feedback: "サインインするとフィードバックを送信できます。",
     failed_send_feedback: "もう一度お試しください。",
-    other_ways_to_reach: "その他のお問い合わせ方法",
+    other_ways_to_reach: "サポートに問い合わせる",
     reset_to_defaults: "デフォルトに戻す",
     section_reset: "セクションをデフォルトにリセットしました",
     reset_all_confirm: "すべての設定をデフォルトにリセットしますか？",
@@ -4821,7 +4859,7 @@ export const ja = {
       "3～40 文字の英数字またはドットを使ってください。ドットは先頭と末尾には置けず、連続もできません。",
     address_change_name_placeholder: "yourname",
     primary_address_info:
-      "Supernova プランでは、アドレスを 30 日に 1 回変更できます。以前のアドレスはあなたのものです。引き続きメールを受信し、サインインにも使えます。",
+      "Supernova プランと Family プランでは、アドレスを 30 日に 1 回変更できます。以前のアドレスはあなたのものです。引き続きメールを受信し、サインインにも使えます。",
     address_change_checking: "利用できるか確認しています",
     address_change_available: "{{email}} は利用できます",
     address_change_unavailable: "{{email}} は利用できません",
@@ -4861,7 +4899,8 @@ export const ja = {
     address_change_taken_now:
       "そのアドレスは既に使われています。別のアドレスを選んでください。",
     address_change_code_invalid: "このコードは正しくありません。",
-    address_change_locked_plan: "アドレスの変更は Supernova の機能です。",
+    address_change_locked_plan:
+      "アドレスの変更は Supernova と Family の機能です。",
     address_change_locked_cooldown: "{{date}} にアドレスを再び変更できます。",
     address_change_locked_cooldown_unknown:
       "過去 30 日以内にアドレスを変更したため、まだ変更できません。",
@@ -5561,7 +5600,8 @@ export const ja = {
     tls_method: "TLS方式",
     connection_timeout: "接続タイムアウト（秒）",
     import_existing_mail: "既存のメールをインポート",
-    import_existing_mail_off: "アカウントを追加した後に届いたメールだけを取り込みます。",
+    import_existing_mail_off:
+      "アカウントを追加した後に届いたメールだけを取り込みます。",
     import_existing_mail_on: "アカウントにすでにあるメールもインポートします。",
     archive_sent_label:
       "送信メールをリモートサーバーの送信済みフォルダにコピー",
@@ -6187,6 +6227,17 @@ export const ja = {
       "ストレージを追加するには、最初にオプションを選択します。",
     storage_promo_cta: "アドオンを見る",
     storage_used_of_total: "{{total}} 中 {{used}} を使用",
+    storage_nudge_almost_title: "ストレージの空き容量がわずかです",
+    storage_nudge_critical_title: "ストレージがほぼいっぱいです",
+    storage_nudge_full_title: "ストレージがいっぱいです",
+    storage_nudge_offer: "月額 {{price}} で {{size}} を追加",
+    storage_nudge_offer_generic: "プランをアップグレードしてストレージを増やす",
+    storage_nudge_body:
+      "ストレージがいっぱいになると、メールの送信やインポートができなくなります。",
+    storage_nudge_full_body:
+      "空き容量を確保するまで、メールの送信やインポートはできません。既存のメールは安全です。",
+    storage_nudge_free_up: "空き容量を増やす",
+    storage_nudge_get_storage: "ストレージを追加",
     storage_free_space: "残り {{size}}、ストレージの {{percent}} を使用中",
     storage_breakdown_title: "ストレージの使用状況",
     storage_breakdown_empty: "まだストレージを使用していません。",
@@ -6712,7 +6763,6 @@ export const ja = {
     domain_purchase_n_years: "{{count}}年",
     domain_purchase_pay_with: "支払い方法",
     domain_purchase_pay_card: "カード",
-    domain_purchase_pay_crypto: "暗号資産",
     domain_purchase_buy: "{{price}}で購入",
     domain_purchase_error: "購入に失敗しました。もう一度お試しください。",
     domain_purchase_error_taken:
@@ -6801,6 +6851,13 @@ export const ja = {
     domain_purchase_manage_paid: "支払い額",
     domain_purchase_manage_auto_renew_note:
       "このドメインは自動更新されません。使い続けるには、有効期限までに更新してください。",
+    domain_purchase_auto_renew_label: "自動的に更新",
+    domain_purchase_auto_renew_hint:
+      "Aster は年に 1 回カードに請求し、各請求の 15 日前に料金をメールでお知らせします。この設定は「設定」でオフにできます。",
+    domain_purchase_manage_auto_renew_on_note:
+      "Aster は有効期限の 30 日前に保存済みのカードに請求し、その 15 日前に料金をメールでお知らせします。",
+    domain_purchase_manage_auto_renew_error:
+      "自動更新を変更できませんでした。もう一度お試しください。",
     domain_purchase_manage_dns: "ドメイン設定を開く",
     domain_purchase_manage_support_note:
       "このドメインを他のレジストラに移管する場合や返金について確認する場合は、サポートに問い合わせてください。",
@@ -10784,6 +10841,47 @@ export const ja = {
       "ありがとうございます!あなたのフィードバックが Aster Mail をみんなにとってより良いものにします。すべての回答に目を通しています。",
   },
   calendar: {
+    beta_waitlist_title: "Aster Calendar",
+    beta_waitlist_tag: "ベータ",
+    beta_waitlist_start: "ベータ版は11月1日に開始される予定です。",
+    beta_waitlist_features_title: "含まれる機能",
+    beta_waitlist_info_title: "カレンダーベータについて",
+    beta_waitlist_info_body:
+      "Aster Calendar は、Aster アカウント用の暗号化されたカレンダーです。枠が空くとアカウントでカレンダーが有効になり、サイドバーに表示されます。ウェイトリストはいつでも解除できます。",
+    beta_waitlist_privacy:
+      "予定とカレンダーはデバイス上で暗号化されるため、読めるのはあなただけです。ウェイトリストに保存されるのは匿名のタグだけで、アドレスは保存されません。リストはリリース後に削除されます。",
+    beta_waitlist_heading: "Aster Calendar をいち早く",
+    beta_waitlist_body:
+      "ウェイトリストに登録すると、早期アクセスを利用できます。順番が来ると、アカウントで Calendar が有効になります。",
+    beta_waitlist_icon_note: "このアイコンは仮のものです。",
+    beta_waitlist_feature_encrypted: "エンドツーエンド暗号化",
+    beta_waitlist_feature_encrypted_body:
+      "予定はメールと同じ鍵で保護されます。",
+    beta_waitlist_feature_devices: "Web と Android に対応",
+    beta_waitlist_feature_devices_body:
+      "スケジュールはすべてのデバイスで同期されます。",
+    beta_waitlist_feature_booking: "予約ページ",
+    beta_waitlist_feature_booking_body:
+      "リンクを共有して、相手に時間を予約してもらえます。",
+    beta_waitlist_feature_invites: "予定への招待",
+    beta_waitlist_feature_invites_body:
+      "ゲストをメールで招待し、予定が変わったときは更新を送信できます。",
+    beta_waitlist_feature_reminders: "リマインダー",
+    beta_waitlist_feature_reminders_body:
+      "各予定の開始前に通知を受け取れます。",
+    beta_waitlist_feature_recurring: "繰り返しの予定",
+    beta_waitlist_feature_recurring_body:
+      "予定を毎日、毎週、毎月、毎年、またはカスタムの間隔で繰り返せます。",
+    beta_waitlist_feature_import: "カレンダーを読み込む",
+    beta_waitlist_feature_import_body: ".ics ファイルから予定を取り込めます。",
+    beta_waitlist_apply: "ウェイトリストに登録",
+    beta_waitlist_joined: "ウェイトリストに登録済みです",
+    beta_waitlist_joined_body:
+      "ご登録ありがとうございます。順番が来ると、アカウントで Calendar が自動的に有効になります。",
+    beta_waitlist_leave: "ウェイトリストから外れる",
+    beta_waitlist_failed:
+      "ウェイトリストを更新できませんでした。もう一度お試しください。",
+    beta_waitlist_retry: "再試行",
     invite_yes: "参加",
     invite_maybe: "未定",
     invite_no: "不参加",

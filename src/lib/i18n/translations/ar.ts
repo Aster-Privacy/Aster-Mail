@@ -894,6 +894,20 @@ export const ar = {
     file_too_large: "يجب أن يكون الملف أصغر من {{size}}.",
     delete_failed: "حاول مجددًا.",
     download_failed: "لم يكتمل التنزيل. حاول مجددًا.",
+    download_complete:
+      "اكتمل التنزيل",
+    downloaded_file:
+      "تم تنزيل {{file_name}}",
+    open_file:
+      "فتح",
+    show_in_folder:
+      "إظهار في المجلد",
+    show_in_finder:
+      "إظهار في Finder",
+    download_open_failed:
+      "تعذر فتح هذا الملف. ربما نُقل أو حُذف.",
+    download_reveal_failed:
+      "تعذر إظهار هذا الملف. ربما نُقل أو حُذف.",
     attachment_locked:
       "لا يمكن فتح هذا المرفق لأن مفتاح التشفير الخاص به غير متوفر على هذا الجهاز.",
     scheduled_no_attachments:
@@ -906,6 +920,10 @@ export const ar = {
       "يمكن جدولة الرسائل لمدة أقصاها 28 يومًا مقدمًا. اختر وقتًا أقرب.",
     scheduled_requires_encryption:
       "لقد فعّلت التشفير الإلزامي، والرسائل المجدولة إلى عناوين خارجية ليست مشفرة من طرف إلى طرف. أرسل هذه الرسالة الآن، أو أوقف التشفير الإلزامي في الإعدادات.",
+    scheduled_no_pgp:
+      "لا يمكن بعد استخدام تشفير PGP في الرسائل المجدولة إلى عناوين خارجية. أرسل هذه الرسالة الآن لتشفيرها.",
+    expiry_no_pgp:
+      "لا يمكن استخدام تشفير PGP في الرسائل ذات تاريخ الانتهاء إلى عناوين خارجية. لتشفير هذه الرسالة باستخدام PGP، أزل تاريخ الانتهاء.",
     offline_password_protected_unavailable:
       "لا يمكنك وضع رسائل محمية بكلمة مرور في قائمة الانتظار وأنت غير متصل. عندما تتصل مجددًا، أرسل الرسالة.",
     offline_settings_unavailable:
@@ -1287,6 +1305,8 @@ export const ar = {
       "توقفت مزامنة بعض الحسابات الخارجية.",
     external_account_health_banner_action: "مراجعة",
     external_account_health_banner_dismiss: "تجاهل",
+    locked_mail_after_reset:
+      "تم تشفير هذه الرسالة بالمفاتيح التي كانت لديك قبل إعادة تعيين كلمة المرور. لقراءتها، استرد بياناتك القديمة باستخدام كلمة المرور القديمة أو رمز استرداد قديم.",
     recover_data_title: "استعادة البيانات",
     recover_data_description:
       "لفتح البيانات من قبل تغيير كلمة السر أو إعادة تعيينها، أدخل كلمة السر التي كنت تستخدمها في ذلك الوقت.",
@@ -4038,6 +4058,20 @@ export const ar = {
     updates_banner_action: "تثبيت الآن",
     updates_unsupported: "تتم إدارة التحديثات بواسطة نظام التشغيل أو المتصفح",
     updates_dismiss: "لاحقا",
+    updates_card_preparing: "جارٍ تحضير التحديث",
+    updates_card_preparing_detail: "جارٍ بدء التنزيل",
+    updates_card_downloading: "جارٍ تنزيل Aster Mail {{version}}",
+    updates_card_size: "{{downloaded}} من {{total}}",
+    updates_card_installing: "جارٍ تثبيت التحديث",
+    updates_card_installing_detail: "ستتم إعادة تشغيل Aster Mail بعد لحظات.",
+    updates_card_failed: "لم يتم تثبيت التحديث",
+    updates_card_failed_detail: "تحقق من اتصالك وحاول مرة أخرى.",
+    updates_card_available_detail: "تتم إعادة تشغيل Aster Mail لإكمال التثبيت.",
+    updates_time_left_moment: "اكتمل تقريبًا",
+    updates_time_left_seconds: "يتبقى نحو {{seconds}} ث",
+    updates_time_left_minutes: "يتبقى نحو {{minutes}} د",
+    updates_try_again: "إعادة المحاولة",
+    updates_whats_new: "الجديد",
     billing: "الفوترة",
     billing_description: "إدارة اشتراكك وطرق الدفع",
     undo_send: "التراجع عن الإرسال",
@@ -4431,14 +4465,8 @@ export const ar = {
       "يؤدي هذا إلى مسح البيانات المخزنة مؤقتًا على هذا الجهاز وإعادة تحميل Aster Mail. قد تحتاج إلى تسجيل الدخول مرة أخرى.",
     iconic_sounds: "Iconic Sounds",
     iconic_sounds_description:
-      "يشغّل أصوات Aster عند الإرسال والتراجع عن الإرسال وكتابة رسالة وإرفاق الملفات واستلام البريد.",
-    iconic_sounds_info:
-      "تضيف Iconic Sounds أصواتًا مميزة إلى Aster. قد تتغير هذه الأصوات.",
-    iconic_sounds_beta: "تجريبي",
-    iconic_sounds_confirm_title: "تشغيل Iconic Sounds؟",
-    iconic_sounds_confirm_message:
-      "هل أنت متأكد من أنك تريد تشغيل هذه الميزة؟ يشغّل Aster Mail أصواتًا عند إجراءات مثل إرسال البريد والتراجع عن الإرسال. تتم مزامنة هذا الإعداد مع تطبيق الويب وتطبيق سطح المكتب.",
-    iconic_sounds_turn_on: "تشغيل",
+      "يشغّل أصوات Aster عند إرسال البريد أو التراجع عن إرساله، وبدء رسالة، وإرفاق الملفات، وأرشفة البريد أو نقله، وظهور خطأ.",
+    notification_sound: "صوت الإشعارات",
     current_plan: "الخطة الحالية",
     free: "مجاني",
     available_plans: "الخطط المتاحة",
@@ -4626,10 +4654,20 @@ export const ar = {
     payment: "الدفع",
     cancels: "ينتهي",
     renews: "يتجدد",
-    your_feedback: "ملاحظاتك",
-    feedback_placeholder: "شارك أفكارك أو اقتراحاتك أو أبلغ عن مشكلات...",
+    your_feedback: "إرسال ملاحظات",
+    feedback_placeholder: "صِف فكرتك أو المشكلة التي واجهتها",
     feedback_not_encrypted:
-      "الملاحظات ليست مشفرة من طرف إلى طرف. لا تتضمن معلومات حساسة.",
+      "الملاحظات غير مشفرة تشفيرًا تامًا بين الطرفين، لذا لا تضمّنها كلمات مرور أو رموز استرداد أو أي معلومات خاصة أخرى.",
+    feedback_intro:
+      "شارك فكرة أو أبلغ عن خطأ أو أخبر فريق Aster برأيك. لا تُنشئ الملاحظات طلب دعم، لذا للحصول على مساعدة أو رد، تواصل مع الدعم.",
+    support_intro:
+      "للحصول على مساعدة بشأن حسابك أو الفوترة أو مشكلة لا يمكنك حلها، راسل فريق الدعم عبر البريد الإلكتروني.",
+    support_email_label: "مراسلة الدعم",
+    support_help_label: "مركز المساعدة",
+    support_help_desc: "اعثر على أدلة وإجابات عن الأسئلة الشائعة.",
+    support_status_label: "حالة الخدمة",
+    support_status_desc: "تحقق مما إذا كان Aster Mail يواجه انقطاعًا.",
+    support_security_label: "الإبلاغ عن مشكلة أمنية",
     sending: "جارٍ الإرسال...",
     send_feedback_button: "إرسال الملاحظات",
     thank_you_feedback: "شكرًا لملاحظاتك!",
@@ -4639,7 +4677,7 @@ export const ar = {
     too_many_requests: "أنت تفعل ذلك بسرعة كبيرة. انتظر لحظة ثم حاول مرة أخرى.",
     please_log_in_feedback: "تسجيل الدخول يتيح إرسال الملاحظات.",
     failed_send_feedback: "حاول مجددًا.",
-    other_ways_to_reach: "طرق أخرى للتواصل معنا",
+    other_ways_to_reach: "التواصل مع الدعم",
     reset_to_defaults: "إعادة التعيين إلى الإعدادات الافتراضية",
     section_reset: "تمت إعادة تعيين القسم إلى الإعدادات الافتراضية",
     reset_all_confirm: "إعادة تعيين جميع الإعدادات إلى الإعدادات الافتراضية؟",
@@ -4972,7 +5010,7 @@ export const ar = {
       "استخدم من 3 إلى 40 حرفًا أو رقمًا أو نقطة. لا يمكن أن تبدأ النقطة العنوان أو تنهيه، ولا يمكن تكرار النقاط.",
     address_change_name_placeholder: "yourname",
     primary_address_info:
-      "تتيح لك خطة Supernova تغيير عنوانك مرة كل 30 يومًا. عنوانك القديم يبقى لك: يواصل استقبال البريد ويظل يسجّل دخولك.",
+      "تتيح لك خطتا Supernova وFamily تغيير عنوانك مرة كل 30 يومًا. عنوانك القديم يبقى لك: يواصل استقبال البريد ويظل يسجّل دخولك.",
     address_change_checking: "جارٍ التحقق من التوفر",
     address_change_available: "{{email}} متاح",
     address_change_unavailable: "{{email}} غير متاح",
@@ -5008,7 +5046,7 @@ export const ar = {
       "انتهت صلاحية هذا الرمز. للحصول على رمز جديد، ابدأ التغيير من جديد.",
     address_change_taken_now: "هذا العنوان محجوز الآن. اختر عنوانًا آخر.",
     address_change_code_invalid: "هذا الرمز غير صحيح.",
-    address_change_locked_plan: "تغيير عنوانك ميزة في Supernova.",
+    address_change_locked_plan: "تغيير عنوانك ميزة في Supernova وFamily.",
     address_change_locked_cooldown: "يمكنك تغيير عنوانك مرة أخرى في {{date}}.",
     address_change_locked_cooldown_unknown:
       "غيّرت عنوانك خلال آخر 30 يومًا، لذلك لا يمكنك تغييره مرة أخرى بعد.",
@@ -6264,6 +6302,17 @@ export const ar = {
     storage_select_option_first: "لشراء مساحة إضافية، حدد خيارًا أولاً.",
     storage_promo_cta: "عرض الإضافات",
     storage_used_of_total: "{{used}} من {{total}} مستخدمة",
+    storage_nudge_almost_title: "مساحة التخزين ممتلئة تقريبًا",
+    storage_nudge_critical_title: "مساحة التخزين على وشك النفاد",
+    storage_nudge_full_title: "مساحة التخزين ممتلئة",
+    storage_nudge_offer: "احصل على {{size}} إضافية مقابل {{price}} شهريًا",
+    storage_nudge_offer_generic: "رقِّ خطتك للحصول على مساحة تخزين أكبر",
+    storage_nudge_body:
+      "عندما تمتلئ مساحة التخزين، لن تتمكن من إرسال البريد أو استيراده.",
+    storage_nudge_full_body:
+      "لا يمكنك إرسال البريد أو استيراده حتى تُفرغ بعض المساحة. بريدك الحالي آمن.",
+    storage_nudge_free_up: "إفراغ مساحة",
+    storage_nudge_get_storage: "الحصول على مساحة",
     storage_free_space: "{{size}} متاحة، و{{percent}} من مساحتك مستخدمة",
     storage_breakdown_title: "ما يشغل مساحة التخزين",
     storage_breakdown_empty: "لا شيء يشغل مساحتك حتى الآن.",
@@ -6780,7 +6829,6 @@ export const ar = {
     domain_purchase_n_years: "{{count}} سنوات",
     domain_purchase_pay_with: "الدفع بواسطة",
     domain_purchase_pay_card: "بطاقة",
-    domain_purchase_pay_crypto: "عملات رقمية",
     domain_purchase_buy: "اشترِ مقابل {{price}}",
     domain_purchase_error: "فشل الشراء. حاول مرة أخرى.",
     domain_purchase_error_taken: "تم حجز هذا النطاق للتو. اختر نطاقًا آخر.",
@@ -6864,6 +6912,13 @@ export const ar = {
     domain_purchase_manage_paid: "المبلغ المدفوع",
     domain_purchase_manage_auto_renew_note:
       "لا يتجدد هذا النطاق تلقائيًا. للاحتفاظ به، جدّده قبل تاريخ الانتهاء.",
+    domain_purchase_auto_renew_label: "التجديد تلقائيًا",
+    domain_purchase_auto_renew_hint:
+      "تخصم Aster المبلغ من بطاقتك مرة واحدة في السنة وترسل إليك السعر بالبريد الإلكتروني قبل 15 يومًا من كل خصم. يمكنك إيقاف ذلك من الإعدادات.",
+    domain_purchase_manage_auto_renew_on_note:
+      "تخصم Aster المبلغ من بطاقتك المحفوظة قبل 30 يومًا من تاريخ الانتهاء وترسل إليك السعر بالبريد الإلكتروني قبل ذلك بـ 15 يومًا.",
+    domain_purchase_manage_auto_renew_error:
+      "تعذّر تحديث التجديد التلقائي. حاول مرة أخرى.",
     domain_purchase_manage_dns: "فتح إعداد النطاق",
     domain_purchase_manage_support_note:
       "لنقل هذا النطاق إلى مسجّل آخر أو للسؤال عن استرداد المبلغ، تواصل مع الدعم.",
@@ -10768,6 +10823,44 @@ export const ar = {
       "شكرًا لك! ملاحظاتك تجعل Aster Mail أفضل للجميع. نقرأ كل إجابة.",
   },
   calendar: {
+    beta_waitlist_title: "Aster Calendar",
+    beta_waitlist_tag: "تجريبي",
+    beta_waitlist_start: "من المتوقع أن تبدأ النسخة التجريبية في 1 نوفمبر.",
+    beta_waitlist_features_title: "ما الذي يتضمنه",
+    beta_waitlist_info_title: "حول النسخة التجريبية من التقويم",
+    beta_waitlist_info_body:
+      "تقويم Aster هو تقويم مشفّر لحسابك في Aster. عندما يتوفر مكان، يُفعَّل التقويم في حسابك ويظهر في الشريط الجانبي. يمكنك مغادرة قائمة الانتظار في أي وقت.",
+    beta_waitlist_privacy:
+      "تُشفَّر أحداثك وتقويماتك على جهازك، لذا لا يمكن لأحد غيرك قراءتها. لا تحفظ قائمة الانتظار سوى معرّف مجهول، وليس عنوانك أبدًا، وتُحذف بعد الإطلاق.",
+    beta_waitlist_heading: "جرّب Aster Calendar مبكرًا",
+    beta_waitlist_body:
+      "انضم إلى قائمة الانتظار للحصول على وصول مبكر. عندما يحين دورك، يُفعَّل Calendar في حسابك.",
+    beta_waitlist_icon_note: "هذه الأيقونة مؤقتة.",
+    beta_waitlist_feature_encrypted: "تشفير تام بين الطرفين",
+    beta_waitlist_feature_encrypted_body:
+      "تستخدم أحداثك المفاتيح نفسها المستخدمة لبريدك.",
+    beta_waitlist_feature_devices: "على الويب وAndroid",
+    beta_waitlist_feature_devices_body: "يبقى جدولك متزامنًا على كل أجهزتك.",
+    beta_waitlist_feature_booking: "صفحات الحجز",
+    beta_waitlist_feature_booking_body:
+      "شارك رابطًا ليتمكن الآخرون من حجز وقت معك.",
+    beta_waitlist_feature_invites: "دعوات الأحداث",
+    beta_waitlist_feature_invites_body:
+      "ادعُ الضيوف عبر البريد الإلكتروني وأرسل إليهم التحديثات عند تغيّر الخطط.",
+    beta_waitlist_feature_reminders: "التذكيرات",
+    beta_waitlist_feature_reminders_body: "احصل على إشعار قبل بدء كل حدث.",
+    beta_waitlist_feature_recurring: "الأحداث المتكررة",
+    beta_waitlist_feature_recurring_body:
+      "كرّر الأحداث يوميًا أو أسبوعيًا أو شهريًا أو سنويًا أو وفق جدول مخصص.",
+    beta_waitlist_feature_import: "استيراد تقويمك",
+    beta_waitlist_feature_import_body: "انقل أحداثك من أي ملف .ics.",
+    beta_waitlist_apply: "الانضمام إلى قائمة الانتظار",
+    beta_waitlist_joined: "أنت في قائمة الانتظار",
+    beta_waitlist_joined_body:
+      "شكرًا لانضمامك. عندما يحين دورك، يُفعَّل Calendar في حسابك تلقائيًا.",
+    beta_waitlist_leave: "مغادرة قائمة الانتظار",
+    beta_waitlist_failed: "تعذّر تحديث قائمة الانتظار. حاول مرة أخرى.",
+    beta_waitlist_retry: "حاول مرة أخرى",
     invite_yes: "نعم",
     invite_maybe: "ربما",
     invite_no: "لا",

@@ -212,4 +212,30 @@ describe("use_category_inbox refresh", () => {
 
     act(() => root.unmount());
   });
+
+  it("re-fetches the visible page without waiting for a slow sync", async () => {
+    const { states, root } = render_hook();
+
+    await flush();
+
+    const initial_fetches =
+      mocks.fetch_mail_by_ids_reconciled.mock.calls.length;
+
+    mocks.sync_recent.mockImplementationOnce(() => new Promise(() => {}));
+
+    act(() => {
+      window.dispatchEvent(new CustomEvent("astermail:refresh-requested"));
+    });
+
+    await flush();
+    await flush();
+
+    expect(mocks.sync_recent).toHaveBeenCalledTimes(1);
+    expect(mocks.fetch_mail_by_ids_reconciled.mock.calls.length).toBe(
+      initial_fetches + 1,
+    );
+    expect(states.at(-1)!.is_loading).toBe(false);
+
+    act(() => root.unmount());
+  });
 });

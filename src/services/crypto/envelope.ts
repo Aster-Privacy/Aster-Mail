@@ -27,7 +27,10 @@ import {
   normalize_envelope_recipients,
 } from "./envelope_normalize";
 
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import {
+  decrypt_aes_gcm_with_fallback,
+  decrypt_with_legacy_derived_keys,
+} from "@/services/crypto/legacy_keks";
 import { ignore_error } from "@/lib/ignore_error";
 
 export { normalize_envelope_from, normalize_envelope_recipients };
@@ -367,14 +370,56 @@ export interface EncryptedBlob {
 const METADATA_CURRENT_VERSION = 1;
 const METADATA_INFO_PREFIX = "aster-metadata-encryption-v1:";
 
+const METADATA_SALT = "aster-metadata-salt-v1";
+
+const legacy_metadata_keys = new WeakMap<CryptoKey, Map<string, CryptoKey>>();
+
+function derive_metadata_key_from_material(
+  key_material: CryptoKey,
+  context: string,
+): Promise<CryptoKey> {
+  const encoder = new TextEncoder();
+
+  return crypto.subtle.deriveKey(
+    {
+      name: "HKDF",
+      hash: HASH_ALG,
+      salt: encoder.encode(METADATA_SALT),
+      info: encoder.encode(METADATA_INFO_PREFIX + context),
+    },
+    key_material,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["encrypt", "decrypt"],
+  );
+}
+
+async function derive_legacy_metadata_key(
+  base: CryptoKey,
+  context: string,
+): Promise<CryptoKey> {
+  let by_context = legacy_metadata_keys.get(base);
+
+  if (!by_context) {
+    by_context = new Map();
+    legacy_metadata_keys.set(base, by_context);
+  }
+
+  const cached = by_context.get(context);
+
+  if (cached) return cached;
+
+  const derived = await derive_metadata_key_from_material(base, context);
+
+  by_context.set(context, derived);
+
+  return derived;
+}
+
 export async function derive_metadata_key(
   master_key: Uint8Array,
   context: string,
 ): Promise<CryptoKey> {
-  const encoder = new TextEncoder();
-  const info = encoder.encode(METADATA_INFO_PREFIX + context);
-  const salt = encoder.encode("aster-metadata-salt-v1");
-
   const key_material = await crypto.subtle.importKey(
     "raw",
     master_key,
@@ -383,18 +428,28 @@ export async function derive_metadata_key(
     ["deriveKey"],
   );
 
-  return crypto.subtle.deriveKey(
-    {
-      name: "HKDF",
-      hash: HASH_ALG,
-      salt,
-      info,
-    },
-    key_material,
-    { name: "AES-GCM", length: 256 },
-    false,
-    ["encrypt", "decrypt"],
-  );
+  return derive_metadata_key_from_material(key_material, context);
+}
+
+async function decrypt_metadata_bytes(
+  crypto_key: CryptoKey,
+  ciphertext: Uint8Array,
+  nonce: Uint8Array,
+  context: string,
+): Promise<ArrayBuffer> {
+  try {
+    return await decrypt_aes_gcm_with_fallback(crypto_key, ciphertext, nonce);
+  } catch (primary_error) {
+    const recovered = await decrypt_with_legacy_derived_keys(
+      (base) => derive_legacy_metadata_key(base, context),
+      ciphertext,
+      nonce,
+    );
+
+    if (recovered) return recovered;
+
+    throw primary_error;
+  }
 }
 
 export async function encrypt_metadata<T>(
@@ -434,10 +489,11 @@ export async function decrypt_metadata<T>(
     const nonce = base64_to_array(blob.nonce);
     const ciphertext = base64_to_array(blob.encrypted_data);
 
-    const plaintext = await decrypt_aes_gcm_with_fallback(
+    const plaintext = await decrypt_metadata_bytes(
       crypto_key,
       ciphertext,
       nonce,
+      context,
     );
 
     const decoder = new TextDecoder();

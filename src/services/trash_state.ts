@@ -22,10 +22,12 @@ import type { ApiResponse } from "@/services/api/client";
 
 import {
   trash_thread,
+  spam_thread,
   restore_mail_item,
   type RestoreMailItemRequest,
   type RestoreMailItemResponse,
   type TrashThreadResponse,
+  type SpamThreadResponse,
 } from "@/services/api/mail";
 import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
 import { ignore_error } from "@/lib/ignore_error";
@@ -61,6 +63,49 @@ export async function set_thread_trashed(
   }
 
   return result;
+}
+
+export async function set_thread_spam(
+  thread_token: string,
+  known_ids: string[],
+  is_spam: boolean,
+): Promise<ApiResponse<SpamThreadResponse>> {
+  const result = await spam_thread(thread_token, is_spam);
+
+  if (result.data) {
+    const ids = is_spam
+      ? merge_ids(result.data.ids, [])
+      : merge_ids(result.data.ids, known_ids);
+
+    if (ids.length > 0) {
+      await bulk_update_metadata_by_ids(
+        ids,
+        is_spam ? { is_spam: true, is_trashed: false } : { is_spam: false },
+      ).catch((caught) => ignore_error(LOG_SCOPE, caught));
+    }
+  }
+
+  return result;
+}
+
+export async function sync_thread_spam(
+  thread_tokens: Array<string | null | undefined>,
+  is_spam: boolean,
+): Promise<string[]> {
+  const tokens = Array.from(
+    new Set(thread_tokens.filter((token): token is string => !!token)),
+  );
+  const results = await Promise.all(
+    tokens.map((token) =>
+      set_thread_spam(token, [], is_spam).catch((caught) => {
+        ignore_error(LOG_SCOPE, caught);
+
+        return null;
+      }),
+    ),
+  );
+
+  return results.flatMap((result) => result?.data?.ids ?? []);
 }
 
 export async function restore_item_from_trash(

@@ -134,6 +134,7 @@ interface ExternalSendRequest {
   attachments?: ExternalAttachmentPayload[];
   secure_message?: SecureMessagePayload;
   force_pgp?: boolean;
+  pgp_recipients?: string[];
   signed_mime?: string;
   signed_mime_signature?: string;
   signed_mime_micalg?: string;

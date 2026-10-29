@@ -101,8 +101,12 @@ export function prefetch_family_group(): void {
   void get_family_group();
 }
 
-export function get_family_group(): Promise<ApiResponse<FamilyGroupResponse>> {
-  return api_client.get<FamilyGroupResponse>("/payments/v1/family");
+export function get_family_group(): Promise<
+  ApiResponse<FamilyGroupResponse | null>
+> {
+  return api_client.get<FamilyGroupResponse | null>(
+    "/payments/v1/family?membership=optional",
+  );
 }
 
 export async function resolve_is_family_plan(): Promise<boolean | null> {
@@ -110,6 +114,7 @@ export async function resolve_is_family_plan(): Promise<boolean | null> {
     const res = await get_family_group();
 
     if (res.data) return true;
+    if (res.data === null && !res.error) return false;
     if (res.code === "NOT_FOUND") return false;
 
     return null;
