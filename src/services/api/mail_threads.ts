@@ -180,6 +180,21 @@ export async function trash_thread(
   );
 }
 
+export interface SpamThreadResponse {
+  updated: number;
+  ids?: string[];
+}
+
+export async function spam_thread(
+  thread_token: string,
+  is_spam: boolean,
+): Promise<ApiResponse<SpamThreadResponse>> {
+  return api_client.put<SpamThreadResponse>(
+    `/mail/v1/messages/threads/${encodeURIComponent(thread_token)}/spam`,
+    { is_spam },
+  );
+}
+
 export async function create_thread(
   request: CreateThreadRequest,
 ): Promise<ApiResponse<{ thread_token: string; success: boolean }>> {

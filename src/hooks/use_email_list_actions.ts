@@ -66,6 +66,7 @@ import {
   reindex_ids,
   set_ids_read,
 } from "@/services/category_index";
+import { sync_thread_spam } from "@/services/trash_state";
 import { mark_conversation_read } from "@/hooks/mark_conversation_read";
 import { update_item_metadata } from "@/services/crypto/mail_metadata_writer";
 import {
@@ -489,6 +490,7 @@ export function use_email_list_actions({
       });
 
       if (result.success) {
+        await sync_thread_spam([email?.thread_token], true);
         emit_mail_item_updated({
           id,
           is_spam: true,

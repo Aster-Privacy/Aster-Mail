@@ -95,6 +95,7 @@ export function use_single_actions(
     config,
     update_with_metadata,
     execute_single_action,
+    preferences,
   });
 
   return {

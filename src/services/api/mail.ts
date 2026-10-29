@@ -1055,6 +1055,7 @@ export type {
   RethreadItem,
   RethreadResponse,
   TrashThreadResponse,
+  SpamThreadResponse,
 } from "./mail_threads";
 export {
   list_threads,
@@ -1062,6 +1063,7 @@ export {
   get_thread_messages,
   mark_thread_read,
   trash_thread,
+  spam_thread,
   create_thread,
   link_mail_to_thread,
   rethread_items,
