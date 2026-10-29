@@ -6,6 +6,7 @@ const consume_inactive_key_set = vi.fn();
 const decrypt_vault = vi.fn();
 const encrypt_vault = vi.fn();
 const push_vault_to_server = vi.fn();
+const server_vault_matches_stored = vi.fn();
 const verify_vault_roundtrip = vi.fn();
 const store_vault_in_memory = vi.fn();
 const get_vault_from_memory = vi.fn();
@@ -36,6 +37,8 @@ vi.mock("./ensure_ratchet_keys", () => ({
   push_vault_to_server: (...args: unknown[]) => push_vault_to_server(...args),
   verify_vault_roundtrip: (...args: unknown[]) =>
     verify_vault_roundtrip(...args),
+  server_vault_matches_stored: () => server_vault_matches_stored(),
+  sync_vault_with_server: async () => ({ status: "current" }),
 }));
 
 vi.mock("./memory_key_store", () => ({
@@ -124,6 +127,7 @@ describe("restore_inactive_key_sets", () => {
     });
     verify_vault_roundtrip.mockResolvedValue(true);
     push_vault_to_server.mockResolvedValue(true);
+    server_vault_matches_stored.mockResolvedValue(true);
     get_vault_from_memory.mockReturnValue(current_vault());
     get_passphrase_from_memory.mockReturnValue("passphrase");
     get_current_account.mockResolvedValue({ user: { id: "user-1" } });
@@ -233,6 +237,31 @@ describe("restore_inactive_key_sets", () => {
       wrong_password: true,
     });
     expect(encrypt_vault).not.toHaveBeenCalled();
+    expect(consume_inactive_key_set).not.toHaveBeenCalled();
+  });
+
+  it("does not overwrite a vault another device changed meanwhile", async () => {
+    server_vault_matches_stored.mockResolvedValue(false);
+
+    expect(await restore_inactive_key_sets("old-password")).toMatchObject({
+      restored: 0,
+    });
+    expect(push_vault_to_server).not.toHaveBeenCalled();
+    expect(consume_inactive_key_set).not.toHaveBeenCalled();
+  });
+
+  it("keeps the archive when the ratchet key list is already full", async () => {
+    get_vault_from_memory.mockReturnValue({
+      ...current_vault(),
+      ratchet_previous_keys: Array.from({ length: 32 }, (_, i) =>
+        key_set(`full-${i}`),
+      ),
+    });
+
+    expect(await restore_inactive_key_sets("old-password")).toMatchObject({
+      incomplete: 1,
+    });
+    expect(push_vault_to_server).toHaveBeenCalled();
     expect(consume_inactive_key_set).not.toHaveBeenCalled();
   });
 

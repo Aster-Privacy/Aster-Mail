@@ -62,6 +62,8 @@ vi.mock("./ensure_ratchet_keys", async (import_original) => {
   return {
     verify_vault_roundtrip: original.verify_vault_roundtrip,
     push_vault_to_server: (...args: unknown[]) => push_vault_to_server(...args),
+    server_vault_matches_stored: async () => true,
+    sync_vault_with_server: async () => ({ status: "current" }),
   };
 });
 

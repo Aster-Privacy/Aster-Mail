@@ -67,6 +67,12 @@ export const RATCHET_PREVIOUS_KEYS_LIMIT = 32;
 export function merge_previous_ratchet_keys(
   ...groups: Array<RatchetKeySet[] | undefined>
 ): RatchetKeySet[] {
+  return dedupe_ratchet_keys(...groups).slice(0, RATCHET_PREVIOUS_KEYS_LIMIT);
+}
+
+export function dedupe_ratchet_keys(
+  ...groups: Array<RatchetKeySet[] | undefined>
+): RatchetKeySet[] {
   const seen = new Set<string>();
 
   return groups
@@ -84,8 +90,7 @@ export function merge_previous_ratchet_keys(
       seen.add(id);
 
       return true;
-    })
-    .slice(0, RATCHET_PREVIOUS_KEYS_LIMIT);
+    });
 }
 
 export function retain_previous_ratchet_keys(

@@ -51,6 +51,8 @@ vi.mock("./key_manager", () => ({
 vi.mock("./ensure_ratchet_keys", () => ({
   push_vault_to_server: async () => true,
   verify_vault_roundtrip: async () => true,
+  server_vault_matches_stored: async () => true,
+  sync_vault_with_server: async () => ({ status: "current" }),
 }));
 
 const { restore_inactive_key_sets } = await import("./restore_inactive_keys");

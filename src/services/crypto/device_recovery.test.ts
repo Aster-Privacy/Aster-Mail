@@ -62,18 +62,12 @@ vi.mock("./device_recovery_store", () => ({
     [...snapshots.values()]
       .filter((record) => record.user_id === user_id)
       .sort((a, b) => b.created_at - a.created_at),
+  list_all_device_snapshots: async () =>
+    [...snapshots.values()].sort((a, b) => b.created_at - a.created_at),
   save_device_snapshot: (record: DeviceSnapshotRecord) =>
     save_device_snapshot(record),
   delete_device_snapshots: async (ids: string[]) => {
     for (const id of ids) snapshots.delete(id);
-  },
-  delete_user_snapshots: async (user_id: string) => {
-    for (const [id, record] of [...snapshots]) {
-      if (record.user_id === user_id) snapshots.delete(id);
-    }
-  },
-  wipe_device_recovery_store: async () => {
-    snapshots.clear();
   },
   SNAPSHOT_TTL_MS: 30 * 24 * 60 * 60 * 1000,
 }));
@@ -99,6 +93,11 @@ vi.mock("./memory_key_store", () => ({
 vi.mock("./restore_inactive_keys", () => ({
   harvest_storage_keys: async () => [new Uint8Array(32).fill(7)],
   commit_recovered_keys: (commit: unknown) => commit_recovered_keys(commit),
+  commit_dropped_keys: (committed: {
+    dropped_keks: number;
+    dropped_ratchet_keys: number;
+  }) => committed.dropped_keks > 0 || committed.dropped_ratchet_keys > 0,
+  latest_vault_for_commit: async () => memory_vault,
 }));
 
 vi.mock("./vault_write_lock", () => ({
@@ -106,7 +105,7 @@ vi.mock("./vault_write_lock", () => ({
 }));
 
 import {
-  forget_device_recovery,
+  maintain_device_snapshot,
   open_device_snapshot,
   refresh_device_snapshot,
   run_device_recovery,
@@ -196,7 +195,11 @@ describe("device recovery", () => {
       return { data: { success: true } };
     });
     consume_inactive_key_set.mockResolvedValue({ data: { success: true } });
-    commit_recovered_keys.mockResolvedValue({ written: true, dropped_keks: 0 });
+    commit_recovered_keys.mockResolvedValue({
+      written: true,
+      dropped_keks: 0,
+      dropped_ratchet_keys: 0,
+    });
     save_device_snapshot.mockImplementation(
       async (record: DeviceSnapshotRecord) => {
         snapshots.set(record.snapshot_id, record);
@@ -420,6 +423,7 @@ describe("device recovery", () => {
     commit_recovered_keys.mockResolvedValue({
       written: false,
       dropped_keks: 0,
+      dropped_ratchet_keys: 0,
     });
 
     expect(await run_device_recovery(USER)).toBe(0);
@@ -476,6 +480,7 @@ describe("device recovery", () => {
     commit_recovered_keys.mockResolvedValue({
       written: false,
       dropped_keks: 0,
+      dropped_ratchet_keys: 0,
     });
 
     await run_device_recovery(USER);
@@ -541,15 +546,162 @@ describe("device recovery", () => {
     }
   });
 
-  it("forgets every snapshot for the account on sign out", async () => {
+  async function reset_with_snapshot() {
+    const old_key = await make_key("old-pw");
+    const old = install_vault("old", old_key.armored, "old-pw");
+
+    await refresh_device_snapshot(USER);
+
+    const new_key = await make_key("new-pw");
+
+    install_vault("new", new_key.armored, "new-pw");
+    inactive_sets.set("set-1", old.blob);
+
+    return old;
+  }
+
+  it("keeps the archive when recovered ratchet keys would be dropped", async () => {
+    await reset_with_snapshot();
+    commit_recovered_keys.mockResolvedValue({
+      written: true,
+      dropped_keks: 0,
+      dropped_ratchet_keys: 2,
+    });
+
+    expect(await run_device_recovery(USER)).toBe(0);
+    expect(consume_inactive_key_set).not.toHaveBeenCalled();
+  });
+
+  it("retries a snapshot that did not take at most once a day", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+
+    try {
+      await reset_with_snapshot();
+      commit_recovered_keys.mockResolvedValue({
+        written: false,
+        dropped_keks: 0,
+        dropped_ratchet_keys: 0,
+      });
+
+      await run_device_recovery(USER);
+      await run_device_recovery(USER);
+      expect(commit_recovered_keys).toHaveBeenCalledTimes(1);
+
+      vi.setSystemTime(Date.now() + 25 * 60 * 60 * 1000);
+      await run_device_recovery(USER);
+      expect(commit_recovered_keys).toHaveBeenCalledTimes(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("stops retrying a snapshot after three failed attempts", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+
+    try {
+      await reset_with_snapshot();
+      commit_recovered_keys.mockResolvedValue({
+        written: false,
+        dropped_keks: 0,
+        dropped_ratchet_keys: 0,
+      });
+
+      for (let day = 0; day < 5; day += 1) {
+        await run_device_recovery(USER);
+        vi.setSystemTime(Date.now() + 25 * 60 * 60 * 1000);
+      }
+
+      expect(commit_recovered_keys).toHaveBeenCalledTimes(3);
+      expect(consume_inactive_key_set).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("clears the retry record once a snapshot is absorbed", async () => {
+    await reset_with_snapshot();
+
+    expect(await run_device_recovery(USER)).toBe(1);
+    expect(
+      localStorage.getItem(`astermail_device_recovery_attempts_${USER}`),
+    ).toBeNull();
+  });
+
+  it("waits before uploading again after the server refuses a secret", async () => {
+    const key = await make_key("pw");
+
+    install_vault("a", key.armored, "pw");
+    put_device_recovery_secret.mockResolvedValue({
+      error: "slow down",
+      status: 429,
+    });
+
+    expect(await refresh_device_snapshot(USER)).toBe(false);
+    expect(await refresh_device_snapshot(USER)).toBe(false);
+    expect(put_device_recovery_secret).toHaveBeenCalledTimes(1);
+  });
+
+  it("drops expired snapshots of other accounts on this device", async () => {
     const key = await make_key("pw");
 
     install_vault("a", key.armored, "pw");
     await refresh_device_snapshot(USER);
 
-    await forget_device_recovery(USER);
+    const [own] = [...snapshots.values()];
 
-    expect(snapshots.size).toBe(0);
-    expect(server_secrets.size).toBe(0);
+    snapshots.set("other-old", {
+      ...own,
+      snapshot_id: "other-old",
+      user_id: "user-2",
+      created_at: Date.now() - 31 * 24 * 60 * 60 * 1000,
+    });
+    snapshots.set("other-new", {
+      ...own,
+      snapshot_id: "other-new",
+      user_id: "user-2",
+    });
+
+    await maintain_device_snapshot(USER);
+
+    expect(snapshots.has("other-old")).toBe(false);
+    expect(snapshots.has("other-new")).toBe(true);
+    expect(delete_device_recovery_secrets).not.toHaveBeenCalledWith([
+      "other-old",
+    ]);
+  });
+
+  it("prunes on the periodic refresh using the last known archives", async () => {
+    const key = await make_key("pw");
+    const first = install_vault("v1", key.armored, "pw");
+
+    await refresh_device_snapshot(USER);
+    inactive_sets.set("set-1", first.blob);
+    commit_recovered_keys.mockResolvedValue({
+      written: false,
+      dropped_keks: 0,
+      dropped_ratchet_keys: 0,
+    });
+    await run_device_recovery(USER);
+
+    for (const label of ["v2", "v3", "v4"]) {
+      install_vault(label, key.armored, "pw");
+      await maintain_device_snapshot(USER);
+    }
+
+    const hashes = [...snapshots.values()].map((record) => record.source_hash);
+
+    expect(hashes).toContain(await vault_ciphertext_hash(first.blob));
+    expect(snapshots.size).toBe(3);
+    expect(server_secrets.size).toBe(3);
+  });
+
+  it("does not refresh on the periodic tick while the flag is off", async () => {
+    flag_on = false;
+    const key = await make_key("pw");
+
+    install_vault("a", key.armored, "pw");
+    await maintain_device_snapshot(USER);
+
+    expect(put_device_recovery_secret).not.toHaveBeenCalled();
   });
 });

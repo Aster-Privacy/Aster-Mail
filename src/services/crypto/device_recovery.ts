@@ -35,10 +35,10 @@ import { array_to_base64, base64_to_array } from "./base64";
 import {
   SNAPSHOT_TTL_MS,
   delete_device_snapshots,
+  list_all_device_snapshots,
   list_device_snapshots,
   load_device_recovery_key,
   save_device_snapshot,
-  wipe_device_recovery_store,
 } from "./device_recovery_store";
 import { merge_identity_keys_with } from "./identity_key_materials";
 import { decrypt_vault } from "./key_manager";
@@ -47,12 +47,13 @@ import { lock_unlocked_pgp_key } from "./key_manager_pgp_keygen";
 import { unlock_private_key } from "./key_manager_pgp_unlocked_cache";
 import {
   get_passphrase_from_memory,
-  get_vault_from_memory,
   is_vault_owned_by,
 } from "./memory_key_store";
 import {
+  commit_dropped_keys,
   commit_recovered_keys,
   harvest_storage_keys,
+  latest_vault_for_commit,
 } from "./restore_inactive_keys";
 import { zero_uint8_array } from "./secure_memory";
 import { load_openpgp } from "./openpgp_loader";
@@ -65,6 +66,142 @@ const IV_LENGTH = 12;
 const HKDF_INFO = "aster-device-recovery-v1";
 const MAX_SECRETS_PER_REQUEST = 16;
 const RECENT_SNAPSHOTS_KEPT = 2;
+const ATTEMPT_INTERVAL_MS = 24 * 60 * 60 * 1000;
+const MAX_ATTEMPTS = 3;
+const PUT_RETRY_MS = 60 * 60 * 1000;
+const PUT_RATE_LIMITED_RETRY_MS = 6 * 60 * 60 * 1000;
+const ATTEMPTS_PREFIX = "astermail_device_recovery_attempts_";
+const PUT_BLOCKED_PREFIX = "astermail_device_recovery_put_after_";
+const LOCK_PREFIX = "astermail_device_recovery_";
+
+interface SnapshotAttempt {
+  count: number;
+  last_at: number;
+}
+
+const known_archive_hashes = new Map<string, Set<string>>();
+
+function read_attempts(user_id: string): Record<string, SnapshotAttempt> {
+  try {
+    const raw = localStorage.getItem(`${ATTEMPTS_PREFIX}${user_id}`);
+    const parsed: unknown = raw ? JSON.parse(raw) : null;
+
+    if (typeof parsed !== "object" || parsed === null) return {};
+
+    const attempts: Record<string, SnapshotAttempt> = {};
+
+    for (const [id, value] of Object.entries(parsed)) {
+      const entry = value as Partial<SnapshotAttempt> | null;
+
+      if (
+        typeof entry?.count === "number" &&
+        typeof entry.last_at === "number"
+      ) {
+        attempts[id] = { count: entry.count, last_at: entry.last_at };
+      }
+    }
+
+    return attempts;
+  } catch {
+    return {};
+  }
+}
+
+function write_attempts(
+  user_id: string,
+  attempts: Record<string, SnapshotAttempt>,
+): void {
+  try {
+    const key = `${ATTEMPTS_PREFIX}${user_id}`;
+
+    if (Object.keys(attempts).length === 0) {
+      localStorage.removeItem(key);
+    } else {
+      localStorage.setItem(key, JSON.stringify(attempts));
+    }
+  } catch {
+    return;
+  }
+}
+
+function attempt_allowed(attempt: SnapshotAttempt | undefined): boolean {
+  if (!attempt) return true;
+  if (attempt.count >= MAX_ATTEMPTS) return false;
+
+  return Date.now() - attempt.last_at >= ATTEMPT_INTERVAL_MS;
+}
+
+function record_attempts(user_id: string, snapshot_ids: string[]): void {
+  if (snapshot_ids.length === 0) return;
+
+  const attempts = read_attempts(user_id);
+  const now = Date.now();
+
+  for (const id of snapshot_ids) {
+    attempts[id] = { count: (attempts[id]?.count ?? 0) + 1, last_at: now };
+  }
+  write_attempts(user_id, attempts);
+}
+
+function drop_attempts(user_id: string, snapshot_ids: string[]): void {
+  const attempts = read_attempts(user_id);
+  let changed = false;
+
+  for (const id of snapshot_ids) {
+    if (id in attempts) {
+      delete attempts[id];
+      changed = true;
+    }
+  }
+  if (changed) write_attempts(user_id, attempts);
+}
+
+function put_blocked(user_id: string): boolean {
+  try {
+    const raw = localStorage.getItem(`${PUT_BLOCKED_PREFIX}${user_id}`);
+
+    return raw !== null && Date.now() < Number(raw);
+  } catch {
+    return false;
+  }
+}
+
+function block_put(user_id: string, rate_limited: boolean): void {
+  const delay = rate_limited ? PUT_RATE_LIMITED_RETRY_MS : PUT_RETRY_MS;
+
+  try {
+    localStorage.setItem(
+      `${PUT_BLOCKED_PREFIX}${user_id}`,
+      String(Date.now() + delay),
+    );
+  } catch {
+    return;
+  }
+}
+
+function clear_put_block(user_id: string): void {
+  try {
+    localStorage.removeItem(`${PUT_BLOCKED_PREFIX}${user_id}`);
+  } catch {
+    return;
+  }
+}
+
+async function with_recovery_lock<T>(
+  user_id: string,
+  fallback: T,
+  fn: () => Promise<T>,
+): Promise<T> {
+  const locks = typeof navigator !== "undefined" ? navigator.locks : undefined;
+
+  if (!locks?.request) return fn();
+
+  return locks.request(
+    `${LOCK_PREFIX}${user_id}`,
+    { ifAvailable: true },
+    (lock) => (lock ? fn() : fallback),
+  );
+}
 
 export interface DeviceSnapshotPayload {
   v: number;
@@ -329,6 +466,7 @@ export async function refresh_device_snapshot(
   if (existing.some((record) => record.source_hash === source_hash)) {
     return false;
   }
+  if (put_blocked(user_id)) return false;
 
   let vault: EncryptedVault;
 
@@ -356,7 +494,12 @@ export async function refresh_device_snapshot(
       array_to_base64(secret),
     );
 
-    if (put.error) return false;
+    if (put.error) {
+      block_put(user_id, put.status === 429);
+
+      return false;
+    }
+    clear_put_block(user_id);
 
     const { iv, sealed } = await seal_device_snapshot(
       payload,
@@ -448,19 +591,29 @@ async function recover_from_snapshots(
   archived_hashes: Set<string>,
 ): Promise<Set<string>> {
   const absorbed_hashes = new Set<string>();
-  const matching = (await list_device_snapshots(user_id)).filter((record) =>
-    archived_hashes.has(record.source_hash),
+  const attempts = read_attempts(user_id);
+  const matching = (await list_device_snapshots(user_id)).filter(
+    (record) =>
+      archived_hashes.has(record.source_hash) &&
+      attempt_allowed(attempts[record.snapshot_id]),
   );
+
   const opened = await open_snapshots(matching);
 
   if (opened.length === 0) return absorbed_hashes;
 
+  record_attempts(
+    user_id,
+    opened.map(({ record }) => record.snapshot_id),
+  );
+
   return with_vault_write_lock(async () => {
-    const vault = get_vault_from_memory();
+    if (!is_vault_owned_by(user_id)) return absorbed_hashes;
+
+    const vault = await latest_vault_for_commit();
     const passphrase = get_passphrase_from_memory();
 
     if (!vault || !passphrase) return absorbed_hashes;
-    if (!is_vault_owned_by(user_id)) return absorbed_hashes;
 
     const unlocked = new Map<string, string>();
 
@@ -511,7 +664,7 @@ async function recover_from_snapshots(
       storage_keys,
     });
 
-    if (!committed.written || committed.dropped_keks > 0) {
+    if (!committed.written || commit_dropped_keys(committed)) {
       return absorbed_hashes;
     }
 
@@ -577,13 +730,19 @@ async function prune_snapshots(
 
 async function forget_expired_snapshots(user_id: string): Promise<void> {
   const expires_before = Date.now() - SNAPSHOT_TTL_MS;
-  const records = await list_device_snapshots(user_id);
-
-  await forget_snapshots(
-    records
-      .filter((record) => record.created_at <= expires_before)
-      .map((record) => record.snapshot_id),
+  const expired = (await list_all_device_snapshots()).filter(
+    (record) => record.created_at <= expires_before,
   );
+  const own = expired
+    .filter((record) => record.user_id === user_id)
+    .map((record) => record.snapshot_id);
+  const others = expired
+    .filter((record) => record.user_id !== user_id)
+    .map((record) => record.snapshot_id);
+
+  await forget_snapshots(own);
+  await delete_device_snapshots(others);
+  drop_attempts(user_id, own);
 }
 
 async function forget_snapshots(snapshot_ids: string[]): Promise<void> {
@@ -595,18 +754,6 @@ async function forget_snapshots(snapshot_ids: string[]): Promise<void> {
   }
 }
 
-export async function forget_device_recovery(
-  user_id: string | null,
-): Promise<void> {
-  if (user_id) {
-    const records = await list_device_snapshots(user_id);
-
-    await forget_snapshots(records.map((record) => record.snapshot_id));
-  }
-
-  await wipe_device_recovery_store();
-}
-
 export async function device_recovery_enabled(): Promise<boolean> {
   const capabilities = await get_account_key_capabilities();
 
@@ -616,6 +763,23 @@ export async function device_recovery_enabled(): Promise<boolean> {
 export async function run_device_recovery(user_id: string): Promise<number> {
   if (!(await device_recovery_enabled())) return 0;
 
+  return with_recovery_lock(user_id, 0, () => run_locked(user_id));
+}
+
+export async function maintain_device_snapshot(user_id: string): Promise<void> {
+  if (!(await device_recovery_enabled())) return;
+
+  await with_recovery_lock(user_id, undefined, async () => {
+    await forget_expired_snapshots(user_id);
+    await refresh_device_snapshot(user_id);
+
+    const archived = known_archive_hashes.get(user_id);
+
+    if (archived) await prune_snapshots(user_id, archived);
+  });
+}
+
+async function run_locked(user_id: string): Promise<number> {
   const inactive = await inactive_key_set_hashes();
   let consumed = 0;
 
@@ -638,13 +802,12 @@ export async function run_device_recovery(user_id: string): Promise<number> {
     }
 
     if (used.size > 0) {
-      const records = await list_device_snapshots(user_id);
+      const used_ids = (await list_device_snapshots(user_id))
+        .filter((record) => used.has(record.source_hash))
+        .map((record) => record.snapshot_id);
 
-      await forget_snapshots(
-        records
-          .filter((record) => used.has(record.source_hash))
-          .map((record) => record.snapshot_id),
-      );
+      await forget_snapshots(used_ids);
+      drop_attempts(user_id, used_ids);
     }
   }
 
@@ -652,7 +815,10 @@ export async function run_device_recovery(user_id: string): Promise<number> {
   await refresh_device_snapshot(user_id);
 
   if (inactive) {
-    await prune_snapshots(user_id, new Set(inactive.values()));
+    const archived = new Set(inactive.values());
+
+    known_archive_hashes.set(user_id, archived);
+    await prune_snapshots(user_id, archived);
   }
 
   return consumed;
