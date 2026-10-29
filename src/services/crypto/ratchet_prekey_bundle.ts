@@ -217,7 +217,12 @@ function schedule_deferred_publish(): void {
 
     if (!vault) return;
 
-    void upload_prekey_bundle_result(vault).catch(() => undefined);
+    void import("./ensure_ratchet_keys")
+      .then(({ server_vault_holds_publish_keys }) =>
+        server_vault_holds_publish_keys(vault),
+      )
+      .then((held) => (held ? upload_prekey_bundle_result(vault) : undefined))
+      .catch(() => undefined);
   });
 
   deferred_publish_unsubscribe = unsubscribe;
