@@ -92,7 +92,7 @@
     "@tauri-apps/plugin-notification": "2.7.0",
     "@tauri-apps/plugin-process": "^2.4.0",
     "@tauri-apps/plugin-shell": "^2.5.0",
-    "@tauri-apps/plugin-updater": "2.14.0",
+    "@tauri-apps/plugin-updater": "2.14.1",
     "capacitor-native-biometric": "^4.2.2",
     "capacitor-webview-print": "^6.0.1",
     "class-variance-authority": "^0.7.1",
