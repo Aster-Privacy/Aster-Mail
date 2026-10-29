@@ -25,6 +25,7 @@ const SNAPSHOT_STORE = "snapshots";
 const DEVICE_KEY_ID = "device_recovery_key_v1";
 
 export const SNAPSHOT_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+export const SNAPSHOT_REFRESH_MS = 7 * 24 * 60 * 60 * 1000;
 
 export interface DeviceSnapshotRecord {
   snapshot_id: string;
@@ -164,6 +165,14 @@ export async function load_device_recovery_key(
 export async function list_device_snapshots(
   user_id: string,
 ): Promise<DeviceSnapshotRecord[]> {
+  return (await list_all_device_snapshots()).filter(
+    (record) => record.user_id === user_id,
+  );
+}
+
+export async function list_all_device_snapshots(): Promise<
+  DeviceSnapshotRecord[]
+> {
   const records = await with_db(async (db) => {
     const transaction = db.transaction(SNAPSHOT_STORE, "readonly");
 
@@ -177,7 +186,6 @@ export async function list_device_snapshots(
 
   return (records ?? [])
     .filter(is_record)
-    .filter((record) => record.user_id === user_id)
     .sort((a, b) => b.created_at - a.created_at);
 }
 
@@ -194,35 +202,6 @@ export async function save_device_snapshot(
   });
 
   return saved === true;
-}
-
-export async function delete_user_snapshots(user_id: string): Promise<void> {
-  const records = await list_device_snapshots(user_id);
-
-  await delete_device_snapshots(records.map((record) => record.snapshot_id));
-}
-
-export async function wipe_device_recovery_store(): Promise<void> {
-  if (!indexed_db_available()) return;
-
-  await new Promise<void>((resolve) => {
-    let settled = false;
-    const finish = () => {
-      if (settled) return;
-      settled = true;
-      resolve();
-    };
-
-    try {
-      const request = indexedDB.deleteDatabase(DB_NAME);
-
-      request.onsuccess = finish;
-      request.onerror = finish;
-      request.onblocked = finish;
-    } catch {
-      finish();
-    }
-  });
 }
 
 export async function delete_device_snapshots(

@@ -67,25 +67,36 @@ export const RATCHET_PREVIOUS_KEYS_LIMIT = 32;
 export function merge_previous_ratchet_keys(
   ...groups: Array<RatchetKeySet[] | undefined>
 ): RatchetKeySet[] {
+  return dedupe_ratchet_keys(...groups).slice(0, RATCHET_PREVIOUS_KEYS_LIMIT);
+}
+
+export function dedupe_ratchet_keys(
+  ...groups: Array<RatchetKeySet[] | undefined>
+): RatchetKeySet[] {
   const seen = new Set<string>();
 
   return groups
     .flatMap((group) => group ?? [])
     .filter((set) => {
-      if (!set.ratchet_identity_public) return false;
+      const pq_id =
+        set.ratchet_pq_identity_public ||
+        set.ratchet_pq_identity_key ||
+        set.ratchet_pq_identity_seed ||
+        "";
+
+      if (!set.ratchet_identity_public && !pq_id) return false;
 
       const id = [
-        set.ratchet_identity_public,
+        set.ratchet_identity_public ?? "",
         set.ratchet_signed_prekey_public ?? "",
-        set.ratchet_pq_identity_public ?? "",
+        pq_id,
       ].join("|");
 
       if (seen.has(id)) return false;
       seen.add(id);
 
       return true;
-    })
-    .slice(0, RATCHET_PREVIOUS_KEYS_LIMIT);
+    });
 }
 
 export function retain_previous_ratchet_keys(

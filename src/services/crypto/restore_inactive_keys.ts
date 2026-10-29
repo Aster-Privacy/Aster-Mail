@@ -33,7 +33,7 @@ import {
   type EncryptedVault,
 } from "./key_manager";
 import {
-  merge_previous_ratchet_keys,
+  dedupe_ratchet_keys,
   retain_previous_ratchet_keys,
   type LegacyDerivedKek,
   type RatchetKeySet,
@@ -52,6 +52,8 @@ import {
 } from "./memory_key_store";
 import {
   push_vault_to_server,
+  server_vault_matches_stored,
+  sync_vault_with_server,
   verify_vault_roundtrip,
 } from "./ensure_ratchet_keys";
 import { with_vault_write_lock } from "./vault_write_lock";
@@ -75,6 +77,15 @@ import { refresh_recovery_backup } from "./recovery_backup_refresh";
 import { reprotect_pgp_key } from "./key_manager_pgp_keygen";
 
 import { load_openpgp } from "@/services/crypto/openpgp_loader";
+
+export async function latest_vault_for_commit(): Promise<EncryptedVault | null> {
+  const freshness = await sync_vault_with_server();
+
+  if (freshness.status === "unverified") return null;
+  if (freshness.status === "adopted") return freshness.vault;
+
+  return get_vault_from_memory();
+}
 
 export function carries_master_key(vault: EncryptedVault): boolean {
   return (
@@ -155,7 +166,7 @@ export async function restore_inactive_key_sets(
   return with_vault_write_lock(async () => {
     const account = await get_current_account();
     const user_id = account?.user?.id;
-    const vault = get_vault_from_memory();
+    const vault = await latest_vault_for_commit();
     const passphrase = get_passphrase_from_memory();
 
     if (!user_id || !vault || !passphrase) return NO_PASSWORD_RESTORE;
@@ -231,7 +242,7 @@ export async function restore_inactive_key_sets(
       };
     }
 
-    const absorbed = committed.dropped_keks
+    const absorbed = commit_dropped_keys(committed)
       ? []
       : unlocked.filter((_, i) => identity_keys.absorbed[i]);
 
@@ -275,7 +286,7 @@ export async function restore_inactive_key_sets_with_code(
   return with_vault_write_lock(async () => {
     const account = await get_current_account();
     const user_id = account?.user?.id;
-    const vault = get_vault_from_memory();
+    const vault = await latest_vault_for_commit();
     const passphrase = get_passphrase_from_memory();
 
     if (!user_id || !vault || !passphrase) {
@@ -348,7 +359,7 @@ export async function restore_inactive_key_sets_with_code(
 
     if (!committed.written) return { restored: 0, incomplete: opened.length };
 
-    const absorbed = committed.dropped_keks
+    const absorbed = commit_dropped_keys(committed)
       ? []
       : opened.filter(
           (_, i) => identity_keys.absorbed[i] && !password_bound[i],
@@ -377,12 +388,19 @@ export interface RecoveredKeyCommit {
 export interface RecoveredKeyCommitResult {
   written: boolean;
   dropped_keks: number;
+  dropped_ratchet_keys: number;
+  roundtrip_failed?: boolean;
 }
 
 const COMMIT_NOT_WRITTEN: RecoveredKeyCommitResult = {
   written: false,
   dropped_keks: 0,
+  dropped_ratchet_keys: 0,
 };
+
+export function commit_dropped_keys(committed: RecoveredKeyCommitResult): boolean {
+  return committed.dropped_keks > 0 || committed.dropped_ratchet_keys > 0;
+}
 
 export async function commit_recovered_keys(
   commit: RecoveredKeyCommit,
@@ -400,15 +418,16 @@ export async function commit_recovered_keys(
     harvested_entries,
   );
 
+  const ratchet_previous_keys = dedupe_ratchet_keys(
+    vault.ratchet_previous_keys,
+    ...commit.ratchet_groups,
+  );
   const next_vault: EncryptedVault = {
     ...vault,
     previous_keys: identity_keys.previous_keys,
     legacy_identity_keys: identity_keys.legacy_identity_keys,
     legacy_keks: absorbed_keks.list,
-    ratchet_previous_keys: merge_previous_ratchet_keys(
-      vault.ratchet_previous_keys,
-      ...commit.ratchet_groups,
-    ),
+    ratchet_previous_keys,
   };
 
   const { encrypted_vault, vault_nonce } = await encrypt_vault(
@@ -423,7 +442,8 @@ export async function commit_recovered_keys(
     next_vault.identity_key,
   );
 
-  if (!roundtrip_ok) return COMMIT_NOT_WRITTEN;
+  if (!roundtrip_ok) return { ...COMMIT_NOT_WRITTEN, roundtrip_failed: true };
+  if (!(await server_vault_matches_stored(user_id))) return COMMIT_NOT_WRITTEN;
 
   const pushed = await push_vault_to_server(
     encrypted_vault,
@@ -442,7 +462,11 @@ export async function commit_recovered_keys(
 
   await refresh_recovery_backup(next_vault, passphrase);
 
-  return { written: true, dropped_keks: absorbed_keks.dropped };
+  return {
+    written: true,
+    dropped_keks: absorbed_keks.dropped,
+    dropped_ratchet_keys: 0,
+  };
 }
 
 export const KEY_FILE_MAX_BYTES = 256 * 1024;
@@ -537,7 +561,7 @@ export async function import_identity_key_file(
   return with_vault_write_lock(async () => {
     const account = await get_current_account();
     const user_id = account?.user?.id;
-    const vault = get_vault_from_memory();
+    const vault = await latest_vault_for_commit();
     const passphrase = get_passphrase_from_memory();
 
     if (!user_id || !vault || !passphrase) {

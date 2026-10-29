@@ -425,6 +425,22 @@ async function fetch_server_vault(): Promise<ServerVaultFetch> {
   }
 }
 
+export async function server_vault_matches_stored(
+  user_id: string,
+): Promise<boolean> {
+  const stored = get_stored_account_vault(user_id);
+
+  if (!stored) return false;
+
+  const server_vault = await fetch_server_vault();
+
+  return (
+    server_vault.kind === "ok" &&
+    server_vault.encrypted_vault === stored.encrypted_vault &&
+    server_vault.vault_nonce === stored.vault_nonce
+  );
+}
+
 export async function sync_vault_with_server(): Promise<VaultFreshness> {
   const account = await get_current_account();
   const user_id = account?.user?.id;

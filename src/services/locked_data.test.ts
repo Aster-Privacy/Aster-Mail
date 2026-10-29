@@ -34,6 +34,8 @@ const h = vi.hoisted(() => ({
   code_restored: { restored: 0, incomplete: 0 },
   code_error: null as Error | null,
   code_calls: [] as string[],
+  keys_ready_calls: 0,
+  refresh_calls: 0,
 }));
 
 vi.mock("./api/recovery", () => ({
@@ -45,6 +47,15 @@ vi.mock("./api/recovery", () => ({
 
 vi.mock("./crypto/memory_key_store", () => ({
   get_passphrase_from_memory: () => h.current,
+  re_trigger_keys_ready: () => {
+    h.keys_ready_calls += 1;
+  },
+}));
+
+vi.mock("@/hooks/mail_events", () => ({
+  emit_refresh_requested: () => {
+    h.refresh_calls += 1;
+  },
 }));
 
 vi.mock("./crypto/restore_inactive_keys", () => ({
@@ -84,6 +95,7 @@ vi.mock("./sent_mail_reseal", () => ({
 }));
 
 import {
+  announce_locked_data_changed,
   get_locked_data_status,
   has_locked_data,
   recover_locked_data,
@@ -114,6 +126,8 @@ beforeEach(() => {
   h.code_restored = { restored: 0, incomplete: 0 };
   h.code_error = null;
   h.code_calls = [];
+  h.keys_ready_calls = 0;
+  h.refresh_calls = 0;
 });
 
 describe("locked data status", () => {
@@ -368,5 +382,52 @@ describe("recovering locked data with a recovery code", () => {
     window.removeEventListener(LOCKED_DATA_CHANGED_EVENT, listener);
 
     expect(listener).toHaveBeenCalled();
+  });
+});
+
+describe("announcing a locked data change", () => {
+  it("reloads mail when keys were restored", () => {
+    const listener = vi.fn();
+
+    window.addEventListener(LOCKED_DATA_CHANGED_EVENT, listener);
+    announce_locked_data_changed(true);
+    window.removeEventListener(LOCKED_DATA_CHANGED_EVENT, listener);
+
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect(h.keys_ready_calls).toBe(1);
+    expect(h.refresh_calls).toBe(1);
+  });
+
+  it("only refreshes the banner when nothing was restored", () => {
+    const listener = vi.fn();
+
+    window.addEventListener(LOCKED_DATA_CHANGED_EVENT, listener);
+    announce_locked_data_changed(false);
+    window.removeEventListener(LOCKED_DATA_CHANGED_EVENT, listener);
+
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect(h.keys_ready_calls).toBe(0);
+    expect(h.refresh_calls).toBe(0);
+  });
+
+  it("reloads mail after a recovery code restores key sets", async () => {
+    h.code_restored = { restored: 1, incomplete: 0 };
+    await recover_locked_data_with_code("account-1", "ASTER-AAAA-BBBB-CCCC-DDDD");
+
+    expect(h.refresh_calls).toBe(1);
+  });
+
+  it("does not reload mail when a recovery code matches nothing", async () => {
+    await recover_locked_data_with_code("account-1", "ASTER-AAAA-BBBB-CCCC-DDDD");
+
+    expect(h.refresh_calls).toBe(0);
+  });
+
+  it("reloads mail after the old password restores key sets", async () => {
+    h.inactive = [{ id: "set-1" }];
+    h.restored = 1;
+    await recover_locked_data("account-1", "old");
+
+    expect(h.refresh_calls).toBe(1);
   });
 });

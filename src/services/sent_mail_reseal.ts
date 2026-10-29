@@ -88,13 +88,14 @@ async function reseal_attachment_meta(
   item_id: string,
   old_bytes: Uint8Array,
   new_bytes: Uint8Array,
-): Promise<boolean> {
+): Promise<{ ok: boolean; resealed: number }> {
   const response = await list_attachments(item_id);
   const attachments = response.data?.attachments;
 
-  if (!attachments) return false;
+  if (!attachments) return { ok: false, resealed: 0 };
 
   let all_ok = true;
+  let resealed = 0;
 
   for (const attachment of attachments) {
     if (!attachment.encrypted_meta) continue;
@@ -125,12 +126,35 @@ async function reseal_attachment_meta(
       });
 
       if (result.error || !result.data) all_ok = false;
+      else resealed += 1;
     } catch {
       all_ok = false;
     }
   }
 
-  return all_ok;
+  return { ok: all_ok, resealed };
+}
+
+function may_have_attachments(item: ListedSentItem): boolean {
+  return item.has_attachments === true || (item.attachment_count ?? 0) > 0;
+}
+
+async function reseal_converted_item_meta(
+  item: ListedSentItem,
+  old_bytes: Uint8Array,
+  new_bytes: Uint8Array,
+): Promise<"rewritten" | "skipped" | "failed"> {
+  if (!may_have_attachments(item)) return "skipped";
+
+  try {
+    const meta = await reseal_attachment_meta(item.id, old_bytes, new_bytes);
+
+    if (!meta.ok) return "failed";
+
+    return meta.resealed > 0 ? "rewritten" : "skipped";
+  } catch {
+    return "failed";
+  }
 }
 
 async function reseal_item(
@@ -138,8 +162,12 @@ async function reseal_item(
   old_bytes: Uint8Array,
   new_bytes: Uint8Array,
 ): Promise<"rewritten" | "skipped" | "unreadable" | "failed"> {
-  if (!item.encrypted_envelope || !item.envelope_nonce) return "skipped";
-  if (!is_inline_sentinel(item.envelope_nonce)) return "skipped";
+  if (!item.encrypted_envelope || !item.envelope_nonce) {
+    return reseal_converted_item_meta(item, old_bytes, new_bytes);
+  }
+  if (!is_inline_sentinel(item.envelope_nonce)) {
+    return reseal_converted_item_meta(item, old_bytes, new_bytes);
+  }
 
   let decrypted: unknown;
 
@@ -182,18 +210,11 @@ async function reseal_item(
     return "failed";
   }
 
-  const may_have_attachments =
-    item.has_attachments === true || (item.attachment_count ?? 0) > 0;
-
-  if (may_have_attachments) {
+  if (may_have_attachments(item)) {
     try {
-      const meta_ok = await reseal_attachment_meta(
-        item.id,
-        old_bytes,
-        new_bytes,
-      );
+      const meta = await reseal_attachment_meta(item.id, old_bytes, new_bytes);
 
-      if (!meta_ok) return "failed";
+      if (!meta.ok) return "failed";
     } catch {
       return "failed";
     }

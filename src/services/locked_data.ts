@@ -27,7 +27,10 @@ import {
   restore_inactive_key_sets,
   restore_inactive_key_sets_with_code,
 } from "./crypto/restore_inactive_keys";
-import { get_passphrase_from_memory } from "./crypto/memory_key_store";
+import {
+  get_passphrase_from_memory,
+  re_trigger_keys_ready,
+} from "./crypto/memory_key_store";
 import {
   LOCKED_DATA_CHANGED_EVENT,
   read_locked_sent_mail,
@@ -36,6 +39,7 @@ import {
 import { reencrypt_all_sent_mail } from "./sent_mail_reseal";
 
 import { ignore_error } from "@/lib/ignore_error";
+import { emit_refresh_requested } from "@/hooks/mail_events";
 
 export interface LockedDataStatus {
   inactive_key_sets: number;
@@ -57,6 +61,16 @@ export function has_locked_data(status: LockedDataStatus | null): boolean {
   return (
     !!status && (status.inactive_key_sets > 0 || status.locked_sent_mail > 0)
   );
+}
+
+export function announce_locked_data_changed(keys_restored: boolean): void {
+  if (typeof window === "undefined") return;
+
+  window.dispatchEvent(new CustomEvent(LOCKED_DATA_CHANGED_EVENT));
+  if (!keys_restored) return;
+
+  re_trigger_keys_ready();
+  emit_refresh_requested();
 }
 
 export async function get_locked_data_status(
@@ -144,9 +158,9 @@ export async function recover_locked_data(
     ignore_error("services/locked_data:recover_sent_mail", caught);
   }
 
-  if (typeof window !== "undefined") {
-    window.dispatchEvent(new CustomEvent(LOCKED_DATA_CHANGED_EVENT));
-  }
+  announce_locked_data_changed(
+    result.restored_key_sets > 0 || result.recovered_sent_mail > 0,
+  );
 
   return result;
 }
@@ -180,9 +194,7 @@ export async function recover_locked_data_with_code(
     ignore_error("services/locked_data:restore_key_sets_with_code", caught);
   }
 
-  if (typeof window !== "undefined") {
-    window.dispatchEvent(new CustomEvent(LOCKED_DATA_CHANGED_EVENT));
-  }
+  announce_locked_data_changed(result.restored_key_sets > 0);
 
   return result;
 }
@@ -200,9 +212,7 @@ export async function recover_locked_data_with_key_file(
     result = { status: "failed", unlocked: false };
   }
 
-  if (result.status === "imported" && typeof window !== "undefined") {
-    window.dispatchEvent(new CustomEvent(LOCKED_DATA_CHANGED_EVENT));
-  }
+  if (result.status === "imported") announce_locked_data_changed(true);
 
   return result;
 }

@@ -22,10 +22,10 @@ import { useEffect, useRef } from "react";
 
 import { use_auth } from "@/contexts/auth_context";
 import {
-  refresh_device_snapshot,
+  maintain_device_snapshot,
   run_device_recovery,
-  device_recovery_enabled,
 } from "@/services/crypto/device_recovery";
+import { announce_locked_data_changed } from "@/services/locked_data";
 import { ignore_error } from "@/lib/ignore_error";
 
 const START_DELAY_MS = 3000;
@@ -60,13 +60,13 @@ export function use_device_recovery(): void {
 
     const start = () => {
       started_for_ref.current = account_id;
-      single_flight(account_id, () => run_device_recovery(account_id));
+      single_flight(account_id, async () => {
+        const recovered = await run_device_recovery(account_id);
+
+        if (recovered > 0) announce_locked_data_changed(true);
+      });
       interval_id = setInterval(() => {
-        single_flight(account_id, async () => {
-          if (await device_recovery_enabled()) {
-            await refresh_device_snapshot(account_id);
-          }
-        });
+        single_flight(account_id, () => maintain_device_snapshot(account_id));
       }, REFRESH_INTERVAL_MS);
     };
 
