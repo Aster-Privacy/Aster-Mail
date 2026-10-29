@@ -28,7 +28,10 @@ import {
   retain_replaced_ratchet_keys,
   vault_holds_ratchet_keys,
 } from "./ratchet_key_continuity";
-import { RATCHET_PREVIOUS_KEYS_LIMIT } from "./key_manager_core";
+import {
+  RATCHET_PREVIOUS_KEYS_LIMIT,
+  merge_previous_ratchet_keys,
+} from "./key_manager_core";
 
 function key_set(tag: string, spk = tag): RatchetKeySet {
   return {
@@ -72,10 +75,10 @@ describe("merge_ratchet_key_history", () => {
   });
 
   it("keeps every signed prekey of a rotated identity", () => {
-    const merged = merge_ratchet_key_history(
-      key_set("now"),
-      [key_set("a", "one"), key_set("a", "two")],
-    );
+    const merged = merge_ratchet_key_history(key_set("now"), [
+      key_set("a", "one"),
+      key_set("a", "two"),
+    ]);
 
     expect(merged.map((set) => set.ratchet_signed_prekey_public)).toEqual([
       "spkpub-one",
@@ -103,13 +106,33 @@ describe("merge_ratchet_key_history", () => {
   });
 
   it("caps the history", () => {
-    const many = Array.from({ length: RATCHET_PREVIOUS_KEYS_LIMIT + 5 }, (_, i) =>
-      key_set(`k${i}`),
+    const many = Array.from(
+      { length: RATCHET_PREVIOUS_KEYS_LIMIT + 5 },
+      (_, i) => key_set(`k${i}`),
     );
 
     expect(merge_ratchet_key_history(null, many)).toHaveLength(
       RATCHET_PREVIOUS_KEYS_LIMIT,
     );
+  });
+});
+
+describe("merge_previous_ratchet_keys", () => {
+  it("keeps every signed prekey of one identity", () => {
+    const merged = merge_previous_ratchet_keys(
+      [key_set("a", "one")],
+      [key_set("a", "two"), key_set("a", "one")],
+    );
+
+    expect(merged).toEqual([key_set("a", "one"), key_set("a", "two")]);
+  });
+
+  it("keeps a set whose post-quantum key differs", () => {
+    const rotated_pq = { ...key_set("a"), ratchet_pq_identity_public: "pq-b" };
+
+    expect(
+      merge_previous_ratchet_keys([key_set("a")], [rotated_pq]),
+    ).toHaveLength(2);
   });
 });
 
@@ -147,7 +170,20 @@ describe("carry_displaced_ratchet_keys", () => {
     expect(carried.ratchet_identity_public).toBe("ipub-server");
     expect(
       carried.ratchet_previous_keys?.map((set) => set.ratchet_identity_public),
-    ).toEqual(["ipub-memory", "ipub-shared", "ipub-memory-only"]);
+    ).toEqual(["ipub-shared", "ipub-memory", "ipub-memory-only"]);
+  });
+
+  it("keeps the target history ahead of displaced keys when the cap is hit", () => {
+    const target_history = Array.from(
+      { length: RATCHET_PREVIOUS_KEYS_LIMIT },
+      (_, i) => key_set(`target-${i}`),
+    );
+    const server = vault_with(key_set("server"), target_history);
+    const memory = vault_with(key_set("memory"));
+
+    expect(
+      carry_displaced_ratchet_keys(server, memory).ratchet_previous_keys,
+    ).toEqual(target_history);
   });
 
   it("changes nothing when the vaults hold the same keys", () => {

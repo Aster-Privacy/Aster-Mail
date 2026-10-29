@@ -450,7 +450,11 @@ const PRIVATE_KEY_HEADER = "-----BEGIN PGP PRIVATE KEY BLOCK-----";
 
 export interface KeyFileImportResult {
   status:
-    "imported" | "invalid" | "wrong_password" | "already_present" | "failed";
+    | "imported"
+    | "invalid"
+    | "wrong_password"
+    | "already_present"
+    | "failed";
   unlocked: boolean;
 }
 
@@ -583,8 +587,9 @@ export async function import_identity_key_file(
     }
 
     const unlocked =
-      !!relocked &&
-      (await fingerprints_of(identity_keys.previous_keys)).has(fingerprint);
+      held.has(fingerprint) ||
+      (!!relocked &&
+        (await fingerprints_of(identity_keys.previous_keys)).has(fingerprint));
 
     const committed = await commit_recovered_keys({
       user_id,

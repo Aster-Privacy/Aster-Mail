@@ -151,12 +151,15 @@ export function carry_displaced_ratchet_keys(
 ): EncryptedVault {
   if (!displaced || !vaults_share_account(target, displaced)) return target;
 
-  const ratchet_previous_keys = retain_replaced_ratchet_keys(
-    displaced,
-    target,
+  const displaced_set = current_ratchet_key_set(displaced);
+  const ratchet_previous_keys = merge_ratchet_key_history(
+    current_ratchet_key_set(target),
+    target.ratchet_previous_keys,
+    displaced_set ? [displaced_set] : undefined,
+    displaced.ratchet_previous_keys,
   );
 
-  if (!ratchet_previous_keys?.length) return target;
+  if (!ratchet_previous_keys.length) return target;
 
   return { ...target, ratchet_previous_keys };
 }

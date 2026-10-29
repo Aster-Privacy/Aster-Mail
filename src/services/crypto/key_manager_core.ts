@@ -73,8 +73,15 @@ export function merge_previous_ratchet_keys(
     .flatMap((group) => group ?? [])
     .filter((set) => {
       if (!set.ratchet_identity_public) return false;
-      if (seen.has(set.ratchet_identity_public)) return false;
-      seen.add(set.ratchet_identity_public);
+
+      const id = [
+        set.ratchet_identity_public,
+        set.ratchet_signed_prekey_public ?? "",
+        set.ratchet_pq_identity_public ?? "",
+      ].join("|");
+
+      if (seen.has(id)) return false;
+      seen.add(id);
 
       return true;
     })
