@@ -196,6 +196,11 @@ export function DomainSetupWizard({
   const [step_statuses, set_step_statuses] = useState<StepStatus[]>(
     wizard_steps.map(() => "pending"),
   );
+  const [revealed_steps, set_revealed_steps] = useState<boolean[]>(
+    wizard_steps.map(() => false),
+  );
+  const reveal_after_check_ref = useRef<number | null>(null);
+  const [check_nonce, set_check_nonce] = useState(0);
   const [is_verifying, set_is_verifying] = useState(false);
   const verified_manually_this_session = useRef(false);
   const [verification_message, set_verification_message] = useState<
@@ -222,6 +227,8 @@ export function DomainSetupWizard({
       set_replaced_records({});
       set_current_step(0);
       set_step_statuses(wizard_steps.map(() => "pending"));
+      set_revealed_steps(wizard_steps.map(() => false));
+      reveal_after_check_ref.current = null;
       set_verification_message(null);
       verified_manually_this_session.current = false;
     }
@@ -333,6 +340,15 @@ export function DomainSetupWizard({
             return outcome === "pass" ? "verified" : "failed";
           }),
         );
+
+        const reveal_index = reveal_after_check_ref.current;
+
+        if (reveal_index !== null) {
+          reveal_after_check_ref.current = null;
+          set_revealed_steps((prev) =>
+            prev.map((revealed, index) => revealed || index === reveal_index),
+          );
+        }
       } catch (caught) {
         ignore_error(
           "components/settings/aliases/domain_setup_wizard:poll",
@@ -349,7 +365,13 @@ export function DomainSetupWizard({
       cancelled = true;
       clearInterval(timer);
     };
-  }, [mode, is_open, domain_id, is_verifying, wizard_steps]);
+  }, [mode, is_open, domain_id, is_verifying, wizard_steps, check_nonce]);
+
+  const handle_next = () => {
+    reveal_after_check_ref.current = current_step;
+    set_check_nonce((n) => n + 1);
+    set_current_step((s) => s + 1);
+  };
 
   const run_verification = async () => {
     if (!domain_id) return;
@@ -367,6 +389,7 @@ export function DomainSetupWizard({
         const result = response.data;
 
         verified_manually_this_session.current = true;
+        set_revealed_steps(wizard_steps.map(() => true));
 
         const required_statuses: StepStatus[] = [
           result.txt_verified ? "verified" : "failed",
@@ -399,10 +422,13 @@ export function DomainSetupWizard({
   };
 
   const at_limit = max_domains !== -1 && current_count >= max_domains;
+  const visible_statuses: StepStatus[] = step_statuses.map((status, index) =>
+    status === "failed" && !revealed_steps[index] ? "pending" : status,
+  );
   const all_verified = step_statuses.every(
     (s, index) => wizard_steps[index]?.optional || s === "verified",
   );
-  const any_checked = step_statuses.some(
+  const any_checked = visible_statuses.some(
     (s) => s === "verified" || s === "failed",
   );
   const is_last_step = current_step === wizard_steps.length - 1;
@@ -545,7 +571,7 @@ export function DomainSetupWizard({
     id: s.id,
     title: s.title,
     record_type: s.record_type,
-    status: step_statuses[i],
+    status: visible_statuses[i],
   }));
 
   return (
@@ -588,7 +614,7 @@ export function DomainSetupWizard({
                 on_record_replaced={handle_record_replaced}
                 provider={detected_provider}
                 records={step_records}
-                status={step_statuses[current_step]}
+                status={visible_statuses[current_step]}
                 step={step}
                 step_index={current_step}
                 total_steps={wizard_steps.length}
@@ -660,7 +686,7 @@ export function DomainSetupWizard({
           <Button
             disabled={is_last_step || is_verifying}
             variant="outline"
-            onClick={() => set_current_step((s) => s + 1)}
+            onClick={handle_next}
           >
             {t("common.next")}
             <ArrowRightIcon className="w-4 h-4 ms-1 rtl:-scale-x-100" />
