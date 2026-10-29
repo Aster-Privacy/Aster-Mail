@@ -9634,14 +9634,18 @@ export const ko = {
     abuse_flagged_message:
       "보안 시스템이 당분간 이 네트워크에서의 신규 가입을 중단했습니다. 잘못된 표시로 보이면 hello@astermail.org에서 도움을 받을 수 있습니다.",
     abuse_blocked_device:
-      "보안 시스템이 당분간 이 기기에서의 신규 가입을 중단했습니다. 잘못된 표시로 보이면 hello@astermail.org에서 도움을 받을 수 있습니다.",
+      "이 기기에서 만들 수 있는 Aster 계정 수가 이미 최대치에 도달했습니다. 오류라고 생각되면 참조 번호와 함께 hello@astermail.org로 문의하세요.",
     abuse_blocked_network:
-      "보안 시스템이 당분간 이 네트워크에서의 신규 가입을 중단했습니다. 나중에 또는 다른 네트워크에서 다시 시도하면 대개 해결됩니다. 잘못된 표시로 보이면 hello@astermail.org에서 도움을 받을 수 있습니다.",
+      "보안 시스템이 이 네트워크에서의 신규 가입을 일시적으로 중지했습니다. 나중에 다시 시도하거나, 다른 네트워크로 전환하거나, VPN을 끄세요. 오류라고 생각되면 hello@astermail.org에서 도움을 받을 수 있습니다.",
     abuse_blocked_proof:
-      "브라우저가 보안 확인을 완료하지 못했습니다. 페이지를 새로 고친 뒤 다시 시도하세요. 계속 반복되면 hello@astermail.org에서 도움을 받을 수 있습니다.",
+      "브라우저가 보안 확인을 완료하지 못했습니다. 앱을 업데이트하거나 페이지를 새로 고친 뒤 다시 시도하세요. 계속 반복되면 hello@astermail.org에서 도움을 받을 수 있습니다.",
     abuse_blocked_risk:
-      "보안 시스템이 이 가입을 확인하지 못했습니다. 다른 사용자 이름을 선택해 다시 시도하면 대개 해결됩니다. 잘못된 표시로 보이면 hello@astermail.org에서 도움을 받을 수 있습니다.",
+      "보안 시스템이 이 가입을 확인하지 못했습니다. 검토를 요청하려면 참조 번호와 함께 hello@astermail.org로 문의하세요.",
     abuse_block_reference: "참조 번호: {{reference}}",
+    sign_up_temporarily_unavailable:
+      "지금은 가입을 일시적으로 사용할 수 없습니다. 몇 분 후에 다시 시도하세요.",
+    account_created_sign_in_pending:
+      "계정은 준비되었지만 아직 로그인되지 않았습니다. 복구 코드를 저장한 다음 계속해서 로그인하세요.",
     contact_support: "지원팀에 문의하세요",
     recovery_email_verified: "복구 이메일이 인증되었습니다",
     recovery_email_verified_desc:

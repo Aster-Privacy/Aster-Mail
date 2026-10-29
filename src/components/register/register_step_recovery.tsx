@@ -55,6 +55,11 @@ export const RegisterStepRecoveryCodes = ({
       subtitle={reg.t("auth.store_codes_safely")}
       title={reg.t("auth.save_recovery_codes")}
     >
+      {reg.session_issue && (
+        <p className="mb-4 w-full text-sm text-txt-secondary">
+          {reg.t("auth.account_created_sign_in_pending")}
+        </p>
+      )}
       {reg.is_invited && reg.generated_email && (
         <div className="mb-4 flex flex-col gap-0.5">
           <span className="text-xs text-txt-muted">

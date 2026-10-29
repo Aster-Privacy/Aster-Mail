@@ -29,8 +29,11 @@ vi.mock("@/services/crypto/ratchet_manager", () => ({
 }));
 
 import {
+  abuse_block_message,
+  abuse_message_key,
   build_registration_ratchet_fields,
   publish_registration_prekey_bundle,
+  register_error_message,
 } from "./use_registration";
 
 import type { EncryptedVault } from "@/services/crypto/key_manager_core";
@@ -113,8 +116,25 @@ describe("registration prekey bundle", () => {
       ratchet_signed_prekey_public: "signed_prekey_public_value",
     };
 
-    await expect(publish_registration_prekey_bundle(vault)).resolves.toBe(true);
+    await expect(
+      publish_registration_prekey_bundle(vault, [0, 0]),
+    ).resolves.toBe(true);
     expect(upload_prekey_bundle).toHaveBeenCalledTimes(2);
+  });
+
+  it("keeps retrying through every backoff step before giving up", async () => {
+    upload_prekey_bundle.mockResolvedValue(false);
+
+    const vault: EncryptedVault = {
+      ...base_vault(),
+      ratchet_identity_public: "identity_public_value",
+      ratchet_signed_prekey_public: "signed_prekey_public_value",
+    };
+
+    await expect(
+      publish_registration_prekey_bundle(vault, [0, 0]),
+    ).resolves.toBe(false);
+    expect(upload_prekey_bundle).toHaveBeenCalledTimes(3);
   });
 
   it("never throws when the upload rejects", async () => {
@@ -126,9 +146,10 @@ describe("registration prekey bundle", () => {
       ratchet_signed_prekey_public: "signed_prekey_public_value",
     };
 
-    await expect(publish_registration_prekey_bundle(vault)).resolves.toBe(
-      false,
-    );
+    await expect(
+      publish_registration_prekey_bundle(vault, [0, 0]),
+    ).resolves.toBe(false);
+    expect(upload_prekey_bundle).toHaveBeenCalledTimes(3);
   });
 
   it("skips the upload when the vault has no ratchet publics", async () => {
@@ -136,5 +157,56 @@ describe("registration prekey bundle", () => {
       publish_registration_prekey_bundle(base_vault()),
     ).resolves.toBe(false);
     expect(upload_prekey_bundle).not.toHaveBeenCalled();
+  });
+});
+
+const fake_t = (key: string, params?: Record<string, string | number>) =>
+  params ? `${key}:${JSON.stringify(params)}` : key;
+
+describe("registration block messages", () => {
+  it("maps each block kind to its own message", () => {
+    expect(abuse_message_key("device")).toBe("auth.abuse_blocked_device");
+    expect(abuse_message_key("network")).toBe("auth.abuse_blocked_network");
+    expect(abuse_message_key("proof")).toBe("auth.abuse_blocked_proof");
+    expect(abuse_message_key("fan_out")).toBe("auth.abuse_blocked_risk");
+    expect(abuse_message_key("risk")).toBe("auth.abuse_blocked_risk");
+    expect(abuse_message_key(null)).toBe("auth.abuse_flagged_message");
+  });
+
+  it("keeps the reference next to the message", () => {
+    expect(
+      abuse_block_message({ kind: "network", reference: "0a1b2c3d" }, fake_t),
+    ).toBe(
+      'auth.abuse_blocked_network auth.abuse_block_reference:{"reference":"0a1b2c3d"}',
+    );
+    expect(abuse_block_message({ kind: null, reference: null }, fake_t)).toBe(
+      "auth.abuse_flagged_message",
+    );
+  });
+
+  it("translates known register error codes instead of the server text", () => {
+    expect(
+      register_error_message(
+        { error: "raw", code: "SERVER_ERROR", server_code: "SERVICE_UNAVAILABLE" },
+        fake_t,
+      ),
+    ).toBe("auth.sign_up_temporarily_unavailable");
+    expect(
+      register_error_message(
+        { error: "raw", code: "FORBIDDEN", server_code: "CAPTCHA_FAILED" },
+        fake_t,
+      ),
+    ).toBe("auth.complete_captcha_first");
+    expect(
+      register_error_message(
+        { error: "raw", code: "NOT_FOUND", server_code: "GONE" },
+        fake_t,
+      ),
+    ).toBe("settings.fam_kids_claim_invalid_title");
+    expect(
+      register_error_message({ error: "raw", code: "RATE_LIMIT_EXCEEDED" }, fake_t),
+    ).toBe("errors.rate_limited");
+    expect(register_error_message({ error: "kept" }, fake_t)).toBe("kept");
+    expect(register_error_message({}, fake_t)).toBe("auth.registration_failed");
   });
 });

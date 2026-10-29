@@ -18,10 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type {
-  AbuseBlockKind,
-  UseRegistrationReturn,
-} from "@/components/register/hooks/use_registration";
+import type { UseRegistrationReturn } from "@/components/register/hooks/use_registration";
 
 import { useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -34,6 +31,7 @@ import {
 } from "@/components/ui/dropdown_menu";
 import { apply_input_transform } from "@/utils/input_transform";
 import { sanitize_username_input } from "@/services/sanitize";
+import { abuse_message_key } from "@/components/register/hooks/use_registration";
 import {
   OnboardingButton,
   OnboardingInput,
@@ -46,22 +44,6 @@ interface RegisterStepAccountProps {
 
 const TERMS_URL = "https://astermail.org/terms";
 const PRIVACY_URL = "https://astermail.org/privacy";
-
-function abuse_message_key(kind: AbuseBlockKind | null) {
-  switch (kind) {
-    case "device":
-    case "fan_out":
-      return "auth.abuse_blocked_device" as const;
-    case "network":
-      return "auth.abuse_blocked_network" as const;
-    case "proof":
-      return "auth.abuse_blocked_proof" as const;
-    case "risk":
-      return "auth.abuse_blocked_risk" as const;
-    default:
-      return "auth.abuse_flagged_message" as const;
-  }
-}
 
 export const RegisterStepAccount = ({ reg }: RegisterStepAccountProps) => {
   const input_ref = useRef<HTMLInputElement>(null);

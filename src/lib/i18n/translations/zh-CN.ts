@@ -8928,14 +8928,16 @@ export const zh_CN = {
     abuse_flagged_message:
       "我们的安全系统暂时阻止了来自这个网络的新注册。如果这看起来是误判，可以联系 hello@astermail.org。",
     abuse_blocked_device:
-      "我们的安全系统暂时停止了来自此设备的新注册。如果这看起来是误判，可以联系 hello@astermail.org 获取帮助。",
+      "此设备创建的 Aster 账户已达到上限。如果你认为这是误判，请联系 hello@astermail.org 并附上你的参考编号。",
     abuse_blocked_network:
-      "我们的安全系统暂时停止了来自此网络的新注册。稍后再试或换一个网络通常可以解决。如果这看起来是误判，可以联系 hello@astermail.org 获取帮助。",
+      "我们的安全系统已暂停来自此网络的新注册。请稍后再试，或切换到其他网络，或关闭 VPN。如果你认为这是误判，可以联系 hello@astermail.org 获取帮助。",
     abuse_blocked_proof:
-      "浏览器没有完成安全检查。请重新加载页面并再试一次。如果问题持续出现，可以联系 hello@astermail.org 获取帮助。",
+      "浏览器没有完成安全检查。请更新应用或重新加载页面，然后再试一次。如果问题持续出现，可以联系 hello@astermail.org 获取帮助。",
     abuse_blocked_risk:
-      "我们的安全系统无法验证此次注册。换一个用户名再试通常可以解决。如果这看起来是误判，可以联系 hello@astermail.org 获取帮助。",
+      "我们的安全系统无法验证此次注册。如需人工审核，请联系 hello@astermail.org 并附上你的参考编号。",
     abuse_block_reference: "参考编号：{{reference}}",
+    sign_up_temporarily_unavailable: "注册暂时不可用。请几分钟后再试。",
+    account_created_sign_in_pending: "你的账户已创建好，但你还没有登录。请先保存恢复代码，然后继续登录。",
     contact_support: "联系支持",
     recovery_email_verified: "恢复邮箱已验证",
     recovery_email_verified_desc: "您的恢复邮箱已成功验证并关联到您的账户。",

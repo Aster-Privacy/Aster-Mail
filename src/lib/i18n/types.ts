@@ -8620,6 +8620,8 @@ export interface AuthTranslations {
   abuse_blocked_proof: string;
   abuse_blocked_risk: string;
   abuse_block_reference: string;
+  sign_up_temporarily_unavailable: string;
+  account_created_sign_in_pending: string;
   contact_support: string;
   recovery_codes_copied: string;
   recovery_code_copied: string;

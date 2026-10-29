@@ -10255,14 +10255,18 @@ export const pl = {
     abuse_flagged_message:
       "Nasz system bezpieczeństwa wstrzymał nowe rejestracje z tej sieci. Jeśli to wygląda na pomyłkę, hello@astermail.org może pomóc.",
     abuse_blocked_device:
-      "Nasz system bezpieczeństwa wstrzymał na razie nowe rejestracje z tego urządzenia. Jeśli to wygląda na pomyłkę, hello@astermail.org może pomóc.",
+      "Na tym urządzeniu utworzono już maksymalną liczbę kont Aster. Jeśli to pomyłka, napisz na hello@astermail.org i podaj swój numer referencyjny.",
     abuse_blocked_network:
-      "Nasz system bezpieczeństwa wstrzymał na razie nowe rejestracje z tej sieci. Zwykle pomaga ponowna próba później lub z innej sieci. Jeśli to wygląda na pomyłkę, hello@astermail.org może pomóc.",
+      "Nasz system bezpieczeństwa tymczasowo wstrzymał nowe rejestracje z tej sieci. Spróbuj ponownie później, przełącz się na inną sieć lub wyłącz VPN. Jeśli to pomyłka, hello@astermail.org może pomóc.",
     abuse_blocked_proof:
-      "Przeglądarka nie ukończyła kontroli bezpieczeństwa. Odśwież stronę i spróbuj ponownie. Jeśli to się powtarza, hello@astermail.org może pomóc.",
+      "Przeglądarka nie ukończyła kontroli bezpieczeństwa. Zaktualizuj aplikację lub odśwież stronę, a potem spróbuj ponownie. Jeśli to się powtarza, hello@astermail.org może pomóc.",
     abuse_blocked_risk:
-      "Nasz system bezpieczeństwa nie mógł zweryfikować tej rejestracji. Zwykle pomaga wybranie innej nazwy użytkownika i ponowna próba. Jeśli to wygląda na pomyłkę, hello@astermail.org może pomóc.",
+      "Nasz system bezpieczeństwa nie mógł zweryfikować tej rejestracji. Aby zgłosić ją do sprawdzenia, napisz na hello@astermail.org i podaj swój numer referencyjny.",
     abuse_block_reference: "Numer referencyjny: {{reference}}",
+    sign_up_temporarily_unavailable:
+      "Rejestracja jest tymczasowo niedostępna. Spróbuj ponownie za kilka minut.",
+    account_created_sign_in_pending:
+      "Twoje konto jest gotowe, ale nie jesteś jeszcze zalogowany. Zapisz kody odzyskiwania, a potem kontynuuj, aby się zalogować.",
     contact_support: "skontaktować się z pomocą techniczną",
     recovery_email_verified: "Zapasowy e-mail zweryfikowany",
     recovery_email_verified_desc:

@@ -10165,14 +10165,18 @@ export const fr = {
     abuse_flagged_message:
       "Notre système de sécurité a arrêté pour l'instant les nouvelles inscriptions depuis ce réseau. Si cela semble être une erreur, hello@astermail.org peut vous aider.",
     abuse_blocked_device:
-      "Notre système de sécurité a suspendu pour l'instant les nouvelles inscriptions depuis cet appareil. Si cela semble être une erreur, hello@astermail.org peut vous aider.",
+      "Cet appareil a déjà créé le nombre maximal de comptes Aster. Si cela semble être une erreur, contactez hello@astermail.org en indiquant votre numéro de référence.",
     abuse_blocked_network:
-      "Notre système de sécurité a suspendu pour l'instant les nouvelles inscriptions depuis ce réseau. Réessayer plus tard ou depuis un autre réseau fonctionne généralement. Si cela semble être une erreur, hello@astermail.org peut vous aider.",
+      "Notre système de sécurité a suspendu pour l'instant les nouvelles inscriptions depuis ce réseau. Réessayez plus tard, passez à un autre réseau ou désactivez votre VPN. Si cela semble être une erreur, hello@astermail.org peut vous aider.",
     abuse_blocked_proof:
-      "Votre navigateur n'a pas terminé la vérification de sécurité. Rechargez la page et réessayez. Si le problème persiste, hello@astermail.org peut vous aider.",
+      "Votre navigateur n'a pas terminé la vérification de sécurité. Mettez à jour l'application ou rechargez la page, puis réessayez. Si le problème persiste, hello@astermail.org peut vous aider.",
     abuse_blocked_risk:
-      "Notre système de sécurité n'a pas pu vérifier cette inscription. Choisir un autre nom d'utilisateur et réessayer fonctionne généralement. Si cela semble être une erreur, hello@astermail.org peut vous aider.",
+      "Notre système de sécurité n'a pas pu vérifier cette inscription. Pour la faire examiner, contactez hello@astermail.org en indiquant votre numéro de référence.",
     abuse_block_reference: "Référence : {{reference}}",
+    sign_up_temporarily_unavailable:
+      "L'inscription est temporairement indisponible. Réessayez dans quelques minutes.",
+    account_created_sign_in_pending:
+      "Votre compte est prêt, mais vous n'êtes pas encore connecté. Enregistrez vos codes de récupération, puis continuez pour vous connecter.",
     contact_support: "contacter le support",
     recovery_email_verified: "E-mail de récupération vérifié",
     verification_failed: "La vérification ne s'est pas terminée.",
