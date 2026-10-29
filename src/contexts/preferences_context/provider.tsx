@@ -36,6 +36,7 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
     preferences,
     is_loading,
     has_loaded_from_server,
+    preferences_locked,
     save_status,
     update_preference,
     update_preferences,
@@ -57,6 +58,7 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
       reload_preferences,
       is_loading,
       has_loaded_from_server,
+      preferences_locked,
     }),
     [
       preferences,
@@ -68,6 +70,7 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
       reload_preferences,
       is_loading,
       has_loaded_from_server,
+      preferences_locked,
     ],
   );
 

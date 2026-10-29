@@ -21,7 +21,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
 const h = vi.hoisted(() => ({
-  inactive: [] as { id: string }[] | null,
+  inactive: [] as { id: string; retired_at?: string }[] | null,
   current: "current password" as string | null,
   restored: 0,
   wrong_password: false,
@@ -124,8 +124,30 @@ describe("locked data status", () => {
       inactive_key_sets: 0,
       locked_sent_mail: 0,
       signature: "|",
+      latest_retired_at: null,
     });
     expect(has_locked_data(status)).toBe(false);
+  });
+
+  it("reports when the most recent key set was retired", async () => {
+    h.inactive = [
+      { id: "a", retired_at: "2026-01-01T00:00:00Z" },
+      { id: "b", retired_at: "2026-03-01T00:00:00Z" },
+      { id: "c", retired_at: "not a date" },
+    ];
+
+    const status = await get_locked_data_status("account-1");
+
+    expect(status?.latest_retired_at).toBe(Date.parse("2026-03-01T00:00:00Z"));
+  });
+
+  it("reports no reset time when archived key sets carry none", async () => {
+    h.inactive = [{ id: "a" }];
+
+    const status = await get_locked_data_status("account-1");
+
+    expect(status?.inactive_key_sets).toBe(1);
+    expect(status?.latest_retired_at).toBeNull();
   });
 
   it("builds a stable signature from sorted key set ids and locked mail", async () => {

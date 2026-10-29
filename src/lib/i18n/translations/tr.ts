@@ -1331,6 +1331,8 @@ export const tr = {
     locked_data_banner_message: "Eski şifreli verilerinizin bir kısmı kilitli.",
     locked_data_banner_action: "Verileri kurtar",
     locked_data_banner_dismiss: "Kapat",
+    locked_mail_after_reset:
+      "Bu e-posta, parolanızı sıfırlamadan önceki anahtarlarınızla şifrelendi. Okumak için eski verilerinizi eski parolanızla veya eski bir kurtarma koduyla kurtarın.",
     recover_data_title: "Verileri kurtar",
     recover_data_description:
       "Parola değişikliğinden veya sıfırlamadan önceki verilerin kilidini açmak için o sırada kullandığınız parolayı girin.",

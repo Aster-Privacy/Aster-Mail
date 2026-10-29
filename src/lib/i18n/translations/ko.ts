@@ -1376,6 +1376,8 @@ export const ko = {
     locked_data_banner_message: "이전에 암호화된 데이터 일부가 잠겨 있습니다.",
     locked_data_banner_action: "데이터 복구",
     locked_data_banner_dismiss: "닫기",
+    locked_mail_after_reset:
+      "이 이메일은 비밀번호를 재설정하기 전의 키로 암호화되었습니다. 읽으려면 이전 비밀번호나 이전 복구 코드로 이전 데이터를 복구하세요.",
     recover_data_title: "데이터 복구",
     recover_data_description:
       "비밀번호 변경 또는 재설정 이전의 데이터를 잠금 해제하려면 당시 사용하던 비밀번호를 입력하세요.",

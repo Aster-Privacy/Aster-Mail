@@ -100,9 +100,8 @@ vi.mock("@/services/api/request_cache", () => ({
 
 vi.mock("@/hooks/use_mail_stats", () => ({ adjust_stats_unread: vi.fn() }));
 
-const { use_email_viewer } = await import(
-  "@/components/email/use_email_viewer"
-);
+const { use_email_viewer } =
+  await import("@/components/email/use_email_viewer");
 
 function release_keys() {
   keys_ready = true;
@@ -111,16 +110,19 @@ function release_keys() {
 
 function render_hook(): {
   errors: (string | null)[];
+  decrypt_failed: boolean[];
   loading: boolean[];
   root: Root;
 } {
   const errors: (string | null)[] = [];
+  const decrypt_failed: boolean[] = [];
   const loading: boolean[] = [];
 
   function Harness() {
     const view = use_email_viewer({ email_id: "m1", on_dismiss: () => {} });
 
     errors.push(view.error);
+    decrypt_failed.push(view.decrypt_failed);
     loading.push(view.is_loading);
 
     return null;
@@ -134,7 +136,7 @@ function render_hook(): {
     root.render(createElement(Harness));
   });
 
-  return { errors, loading, root };
+  return { errors, decrypt_failed, loading, root };
 }
 
 async function flush(): Promise<void> {
@@ -182,6 +184,18 @@ describe("a message that could not be decrypted retries once the keys arrive", (
     expect(decrypt_mail_envelope.mock.calls.length).toBeGreaterThan(
       attempts_before,
     );
+
+    act(() => root.unmount());
+  });
+
+  it("flags the open message as undecryptable so the viewer can offer recovery", async () => {
+    keys_ready = true;
+
+    const { decrypt_failed, root } = render_hook();
+
+    await flush();
+
+    expect(decrypt_failed.at(-1)).toBe(true);
 
     act(() => root.unmount());
   });

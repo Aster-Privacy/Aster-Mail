@@ -1371,6 +1371,8 @@ export const ja = {
       "以前の暗号化データの一部がロックされています。",
     locked_data_banner_action: "データを復元",
     locked_data_banner_dismiss: "閉じる",
+    locked_mail_after_reset:
+      "このメールは、パスワードをリセットする前の鍵で暗号化されています。読むには、以前のパスワードまたは以前の復旧コードで古いデータを復元してください。",
     recover_data_title: "データを復元",
     recover_data_description:
       "パスワードの変更またはリセット前のデータのロックを解除するには、その時に使用していたパスワードを入力してください。",

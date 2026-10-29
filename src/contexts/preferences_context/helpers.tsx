@@ -188,6 +188,7 @@ export interface PreferencesContextType {
   reload_preferences: () => Promise<void>;
   is_loading: boolean;
   has_loaded_from_server: boolean;
+  preferences_locked: boolean;
 }
 
 export interface PreferencesSaveStatusContextType {

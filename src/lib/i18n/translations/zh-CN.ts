@@ -1151,6 +1151,8 @@ export const zh_CN = {
     locked_data_banner_message: "您的部分较早的加密数据已锁定。",
     locked_data_banner_action: "恢复数据",
     locked_data_banner_dismiss: "关闭",
+    locked_mail_after_reset:
+      "此邮件使用您重置密码之前的密钥加密。要阅读此邮件，请使用旧密码或旧恢复码恢复您的旧数据。",
     recover_data_title: "恢复数据",
     recover_data_description:
       "要解锁更改或重置密码之前的数据，请输入您当时使用的密码。",

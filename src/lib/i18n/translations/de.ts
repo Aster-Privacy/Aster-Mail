@@ -1268,6 +1268,8 @@ export const de = {
       "Einige Ihrer älteren verschlüsselten Daten sind gesperrt.",
     locked_data_banner_action: "Daten wiederherstellen",
     locked_data_banner_dismiss: "Schließen",
+    locked_mail_after_reset:
+      "Diese E-Mail wurde mit den Schlüsseln verschlüsselt, die Sie vor dem Zurücksetzen Ihres Passworts hatten. Um sie zu lesen, stellen Sie Ihre älteren Daten mit Ihrem alten Passwort oder einem alten Wiederherstellungscode wieder her.",
     recover_data_title: "Daten wiederherstellen",
     recover_data_description:
       "Um Daten von vor einer Passwortänderung oder -zurücksetzung zu entsperren, geben Sie das Passwort ein, das Sie damals verwendet haben.",

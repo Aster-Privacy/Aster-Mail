@@ -1238,6 +1238,8 @@ export const pt_br = {
       "Alguns dos seus dados criptografados mais antigos estão bloqueados.",
     locked_data_banner_action: "Recuperar dados",
     locked_data_banner_dismiss: "Dispensar",
+    locked_mail_after_reset:
+      "Este e-mail foi criptografado com as chaves que você tinha antes de redefinir sua senha. Para lê-lo, recupere seus dados antigos com sua senha antiga ou um código de recuperação antigo.",
     recover_data_title: "Recuperar dados",
     recover_data_description:
       "Para desbloquear dados de antes de uma alteração ou redefinição de senha, digite a senha que você usava na época.",

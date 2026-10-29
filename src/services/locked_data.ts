@@ -39,6 +39,7 @@ export interface LockedDataStatus {
   inactive_key_sets: number;
   locked_sent_mail: number;
   signature: string;
+  latest_retired_at: number | null;
 }
 
 export interface LockedDataRecovery {
@@ -65,16 +66,21 @@ export async function get_locked_data_status(
 
   if (!listed?.data) return null;
 
-  const ids = listed.data.inactive_key_sets
-    .map((key_set) => key_set.id)
-    .filter((id) => typeof id === "string" && id.length > 0)
-    .sort();
+  const key_sets = listed.data.inactive_key_sets.filter(
+    (key_set) => typeof key_set.id === "string" && key_set.id.length > 0,
+  );
+  const ids = key_sets.map((key_set) => key_set.id).sort();
+  const retired_times = key_sets
+    .map((key_set) => Date.parse(key_set.retired_at))
+    .filter((time) => Number.isFinite(time));
   const locked_sent_mail = read_locked_sent_mail(account_id);
 
   return {
     inactive_key_sets: ids.length,
     locked_sent_mail,
     signature: `${ids.join(",")}|${locked_sent_mail > 0 ? "sent" : ""}`,
+    latest_retired_at:
+      retired_times.length > 0 ? Math.max(...retired_times) : null,
   };
 }
 
