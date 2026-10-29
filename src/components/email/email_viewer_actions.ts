@@ -97,6 +97,7 @@ import {
   permanent_delete_mail_item,
 } from "@/services/api/mail";
 import { reindex_ids } from "@/services/category_index";
+import { sync_thread_spam } from "@/services/trash_state";
 import { mark_conversation_read } from "@/hooks/mark_conversation_read";
 import { set_forward_mail_id } from "@/services/forward_store";
 import { add_alias_pin } from "@/services/api/alias_pins";
@@ -619,6 +620,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     if (!deps.email_id || deps.is_spam_loading || !deps.mail_item) return;
     deps.set_is_spam_loading(true);
     const prev_is_trashed = deps.mail_item.is_trashed ?? false;
+    const spam_thread_token = deps.mail_item.thread_token;
     const is_received = deps.mail_item.item_type === "received";
     const is_unread = !deps.is_read;
 
@@ -637,6 +639,9 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       { is_spam: true, is_trashed: false },
     );
 
+    if (result.success) {
+      await sync_thread_spam([spam_thread_token], true);
+    }
     deps.set_is_spam_loading(false);
     if (result.success) {
       const sender = deps.email?.sender_email;
@@ -677,6 +682,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
             }
             throw new Error("undo spam failed");
           }
+          await sync_thread_spam([spam_thread_token], false);
           reindex_ids([deps.email_id]);
           emit_mail_item_updated({
             id: deps.email_id,
@@ -725,6 +731,9 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       { is_spam: false },
     );
 
+    if (result.success) {
+      await sync_thread_spam([deps.mail_item.thread_token], false);
+    }
     deps.set_is_spam_loading(false);
     if (result.success) {
       const sender = deps.email?.sender_email;

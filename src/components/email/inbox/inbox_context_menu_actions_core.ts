@@ -69,7 +69,7 @@ import {
   report_spam_sender,
   remove_spam_sender,
 } from "@/services/api/mail";
-import { set_thread_trashed } from "@/services/trash_state";
+import { set_thread_trashed, sync_thread_spam } from "@/services/trash_state";
 import {
   update_item_metadata,
   bulk_update_metadata_by_ids,
@@ -403,12 +403,17 @@ export function build_core_context_menu_actions(
 
     remove_index_ids(combined_ids);
 
+    const spam_thread_tokens = [email, ...same_sender_emails]
+      .filter((e) => trashes_whole_thread(e, preferences.conversation_grouping))
+      .map((e) => e.thread_token);
+
     const result = await bulk_update_metadata_by_ids(combined_ids, {
       is_spam: true,
       is_trashed: false,
     }).catch(() => null);
 
     if (result?.success) {
+      await sync_thread_spam(spam_thread_tokens, true);
       for (const id of combined_ids) {
         emit_mail_item_updated({ id, is_spam: true });
       }
@@ -436,6 +441,7 @@ export function build_core_context_menu_actions(
 
           if (!undo_result.success) throw new Error("undo spam failed");
 
+          await sync_thread_spam(spam_thread_tokens, false);
           revert_stat_deltas(deltas);
           for (const d of same_sender_deltas) {
             revert_stat_deltas(d);

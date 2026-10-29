@@ -68,6 +68,8 @@ import {
   adjust_stats_unread,
 } from "@/hooks/use_mail_stats";
 import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
+import { sync_thread_spam } from "@/services/trash_state";
+import { trashes_whole_thread } from "@/hooks/email_list_helpers";
 import { use_i18n } from "@/lib/i18n/context";
 import { ignore_error } from "@/lib/ignore_error";
 import { user_facing_error } from "@/utils/user_facing_error";
@@ -785,6 +787,16 @@ export function use_bulk_actions(
     [execute_bulk_action, t, preferences.conversation_grouping],
   );
 
+  const conversation_spam_tokens = useCallback(
+    (emails: InboxEmail[]): string[] =>
+      emails
+        .filter((e) =>
+          trashes_whole_thread(e, preferences.conversation_grouping),
+        )
+        .map((e) => e.thread_token!),
+    [preferences.conversation_grouping],
+  );
+
   const bulk_mark_spam = useCallback(
     async (emails: InboxEmail[]): Promise<boolean> => {
       const result = await execute_bulk_action(emails, {
@@ -797,6 +809,18 @@ export function use_bulk_actions(
         metadata_update: { is_spam: true, is_trashed: false },
         remove_from_list: true,
         emit_view_change: true,
+        finalize_failed_ids: async (succeeded_ids) => {
+          const succeeded_set = new Set(succeeded_ids);
+
+          await sync_thread_spam(
+            conversation_spam_tokens(
+              emails.filter((e) => succeeded_set.has(e.id)),
+            ),
+            true,
+          );
+
+          return [];
+        },
         error_message: t("common.failed_to_mark_as_spam"),
         success_toast: {
           message_key: "common.n_conversations_marked_as_spam",
@@ -806,6 +830,13 @@ export function use_bulk_actions(
             is_trashed: email.is_trashed,
           }),
           on_after_undo: (undone) => {
+            sync_thread_spam(conversation_spam_tokens(undone), false).catch(
+              (caught) =>
+                ignore_error(
+                  "hooks/email_actions/use_bulk_actions:use_bulk_actions",
+                  caught,
+                ),
+            );
             const undone_senders = new Set(
               undone.map((e) => e.sender_email).filter(Boolean),
             );
@@ -839,7 +870,7 @@ export function use_bulk_actions(
 
       return result;
     },
-    [execute_bulk_action, t],
+    [execute_bulk_action, t, conversation_spam_tokens],
   );
 
   const bulk_unmark_spam = useCallback(
@@ -851,11 +882,32 @@ export function use_bulk_actions(
         metadata_update: { is_spam: false },
         remove_from_list: true,
         emit_view_change: true,
+        finalize_failed_ids: async (succeeded_ids) => {
+          const succeeded_set = new Set(succeeded_ids);
+
+          await sync_thread_spam(
+            conversation_spam_tokens(
+              emails.filter((e) => succeeded_set.has(e.id)),
+            ),
+            false,
+          );
+
+          return [];
+        },
         error_message: t("common.failed_to_move_email"),
         success_toast: {
           message_key: "common.conversations_marked_as_not_spam_bulk",
           toast_action_type: "not_spam",
           compute_undo_metadata: (email) => ({ is_spam: email.is_spam }),
+          on_after_undo: (undone) => {
+            sync_thread_spam(conversation_spam_tokens(undone), true).catch(
+              (caught) =>
+                ignore_error(
+                  "hooks/email_actions/use_bulk_actions:use_bulk_actions",
+                  caught,
+                ),
+            );
+          },
         },
       });
 
@@ -876,7 +928,7 @@ export function use_bulk_actions(
 
       return result;
     },
-    [execute_bulk_action, t],
+    [execute_bulk_action, t, conversation_spam_tokens],
   );
 
   const bulk_add_folder = useCallback(

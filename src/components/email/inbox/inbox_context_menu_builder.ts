@@ -62,7 +62,7 @@ import {
   report_spam_sender,
   remove_spam_sender,
 } from "@/services/api/mail";
-import { set_thread_trashed } from "@/services/trash_state";
+import { set_thread_trashed, sync_thread_spam } from "@/services/trash_state";
 import { bulk_add_tag, bulk_remove_tag } from "@/services/api/tags";
 import { open_email_in_new_window } from "@/utils/open_email_window";
 import {
@@ -549,6 +549,7 @@ export function build_context_menu_actions(
     );
 
     if (result.success) {
+      await sync_thread_spam([email.thread_token], false);
       emit_mail_item_updated({
         id: email.id,
         is_spam: false,
@@ -577,6 +578,7 @@ export function build_context_menu_actions(
             },
             { is_spam: true },
           );
+          await sync_thread_spam([email.thread_token], true);
           emit_mail_item_updated({ id: email.id, is_spam: true });
           if (email.sender_email) {
             report_spam_sender(email.sender_email).catch((caught) =>
