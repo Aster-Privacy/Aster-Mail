@@ -25,6 +25,7 @@ import {
   maintain_device_snapshot,
   run_device_recovery,
 } from "@/services/crypto/device_recovery";
+import { announce_locked_data_changed } from "@/services/locked_data";
 import { ignore_error } from "@/lib/ignore_error";
 
 const START_DELAY_MS = 3000;
@@ -59,7 +60,11 @@ export function use_device_recovery(): void {
 
     const start = () => {
       started_for_ref.current = account_id;
-      single_flight(account_id, () => run_device_recovery(account_id));
+      single_flight(account_id, async () => {
+        const consumed = await run_device_recovery(account_id);
+
+        if (consumed > 0) announce_locked_data_changed(true);
+      });
       interval_id = setInterval(() => {
         single_flight(account_id, () => maintain_device_snapshot(account_id));
       }, REFRESH_INTERVAL_MS);
