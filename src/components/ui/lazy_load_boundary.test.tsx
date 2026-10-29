@@ -163,6 +163,30 @@ describe("LazyLoadBoundary", () => {
     expect(recovery.trigger).not.toHaveBeenCalled();
   });
 
+  it("renders a preloaded module in the first frame without the fallback", async () => {
+    const OnDemand = lazy_on_demand(
+      () => Promise.resolve({ default: Loaded }),
+      0,
+      0,
+    );
+
+    await OnDemand.preload();
+
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    act(() => {
+      root!.render(
+        <Suspense fallback={<div data-testid="loading" />}>
+          <OnDemand />
+        </Suspense>,
+      );
+    });
+
+    expect(container.querySelector('[data-testid="loading"]')).toBeNull();
+    expect(container.querySelector('[data-testid="loaded"]')).not.toBeNull();
+  });
+
   it("passes a render crash on to the app error handling", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
 

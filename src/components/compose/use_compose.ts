@@ -28,6 +28,7 @@ import type { RecipientLockScope } from "@/services/recipient_lock_state";
 import {
   useState,
   useEffect,
+  useLayoutEffect,
   useRef,
   useCallback,
   useReducer,
@@ -101,7 +102,6 @@ import {
   INITIAL_INPUTS,
   INITIAL_VISIBILITY,
   get_aster_footer,
-  INITIAL_CONTENT_DELAY_MS,
 } from "@/components/compose/compose_shared";
 import {
   draft_data_to_attachments,
@@ -217,6 +217,8 @@ export interface UseComposeReturn {
   template_picker_element: React.ReactNode;
 }
 
+let cached_my_badges: Badge[] | null = null;
+
 function inject_html_with_inline_images(
   html: string,
   source_mail_id: string | undefined,
@@ -276,8 +278,10 @@ export function use_compose({
   const [show_delete_confirm, set_show_delete_confirm] = useState(false);
   const [is_loading_forward_attachments, set_is_loading_forward_attachments] =
     useState(false);
-  const [badges, set_badges] = useState<Badge[]>([]);
-  const [badges_loaded, set_badges_loaded] = useState(false);
+  const [badges, set_badges] = useState<Badge[]>(() => cached_my_badges ?? []);
+  const [badges_loaded, set_badges_loaded] = useState(
+    () => cached_my_badges !== null,
+  );
   const my_badge_prefs = use_my_badge_prefs();
   const include_badge_signature =
     preferences.show_badges_in_signature &&
@@ -292,7 +296,9 @@ export function use_compose({
   useEffect(() => {
     fetch_my_badges()
       .then((r) => {
-        if (r.data) set_badges(r.data);
+        if (!r.data) return;
+        cached_my_badges = r.data;
+        set_badges(r.data);
       })
       .catch((caught) =>
         ignore_error("components/compose/use_compose:fetch_my_badges", caught),
@@ -500,7 +506,7 @@ export function use_compose({
     recipients.to.length + recipients.cc.length + recipients.bcc.length > 0;
   const sender_resolved_ref = useRef(false);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (sender_options.length === 0) return;
     if (sender_manually_selected_ref.current) return;
     if (ghost_mode.is_ghost_enabled) return;
@@ -746,7 +752,7 @@ export function use_compose({
     load_recent_recipients_fn();
   }, [load_contacts_trigger, preferences.auto_save_recent_recipients]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (init_trigger === undefined) {
       if (initialized_ref.current) return;
       initialized_ref.current = true;
@@ -901,46 +907,36 @@ export function use_compose({
         set_is_loading_forward_attachments(false);
       }
 
-      const plain_load_token = inject_token_ref.current;
-
-      setTimeout(() => {
-        if (plain_draft_text !== null) {
-          if (
-            message_textarea_ref.current &&
-            inject_token_ref.current === plain_load_token
-          ) {
-            message_textarea_ref.current.innerText = plain_draft_text;
-          }
-
-          return;
+      if (plain_draft_text !== null) {
+        if (message_textarea_ref.current) {
+          message_textarea_ref.current.innerText = plain_draft_text;
         }
-        if (message_textarea_ref.current && edit_draft.message) {
-          draft_hook.just_loaded_draft_ref.current = !is_unsaved_restore;
-          const sanitized_result = sanitize_html(
-            edit_draft.message,
-            get_compose_sanitize_options(),
-          );
-          const token = inject_token_ref.current;
+      } else if (message_textarea_ref.current && edit_draft.message) {
+        draft_hook.just_loaded_draft_ref.current = !is_unsaved_restore;
+        const sanitized_result = sanitize_html(
+          edit_draft.message,
+          get_compose_sanitize_options(),
+        );
+        const token = inject_token_ref.current;
 
-          inject_html_with_inline_images(
-            sanitized_result.html,
-            edit_draft.reply_to_id ?? edit_draft.forward_from_id,
-            () => inject_token_ref.current === token,
-            (resolved_html) => {
-              if (!message_textarea_ref.current) return;
+        inject_html_with_inline_images(
+          sanitized_result.html,
+          edit_draft.reply_to_id ?? edit_draft.forward_from_id,
+          () => inject_token_ref.current === token,
+          (resolved_html) => {
+            if (!message_textarea_ref.current) return;
 
-              message_textarea_ref.current.innerHTML = resolved_html;
-              set_message(
-                is_plain_text_ref.current
-                  ? message_textarea_ref.current.innerText
-                  : restore_compose_image_sources(
-                      message_textarea_ref.current.innerHTML,
-                    ),
-              );
-            },
-          );
-        }
-      }, INITIAL_CONTENT_DELAY_MS);
+            message_textarea_ref.current.innerHTML = resolved_html;
+            set_message(
+              is_plain_text_ref.current
+                ? message_textarea_ref.current.innerText
+                : restore_compose_image_sources(
+                    message_textarea_ref.current.innerHTML,
+                  ),
+            );
+          },
+        );
+      }
     } else {
       draft_context_id_ref.current = draft_manager.create_context("new");
       if (session_storage_key) {
@@ -985,7 +981,7 @@ export function use_compose({
     if (is_feature_locked(PASSWORD_FEATURE)) set_expiry_password(null);
   }, [plan_limits, is_feature_locked]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (content_initialized_ref.current) return;
 
     const is_fresh_reply_forward =
@@ -1000,78 +996,76 @@ export function use_compose({
 
     content_initialized_ref.current = true;
 
-    setTimeout(() => {
-      if (!message_textarea_ref.current) return;
+    if (!message_textarea_ref.current) return;
 
-      draft_hook.just_loaded_draft_ref.current = true;
+    draft_hook.just_loaded_draft_ref.current = true;
 
-      let content = "";
+    let content = "";
 
-      const badge_html = active_badge ? build_badge_html([active_badge]) : "";
+    const badge_html = active_badge ? build_badge_html([active_badge]) : "";
 
-      const initial_sender_alias_id =
-        selected_sender &&
-        is_signature_bindable_sender_type(selected_sender.type)
-          ? selected_sender.id
-          : null;
-      const initial_signature =
-        resolve_signature(initial_sender_alias_id) ?? default_signature;
-      const signature_block =
-        preferences.signature_mode === "auto" && initial_signature
-          ? SIGNATURE_GAP_BLOCK +
-            get_formatted_signature(initial_signature) +
-            badge_html
-          : badge_html;
+    const initial_sender_alias_id =
+      selected_sender &&
+      is_signature_bindable_sender_type(selected_sender.type)
+        ? selected_sender.id
+        : null;
+    const initial_signature =
+      resolve_signature(initial_sender_alias_id) ?? default_signature;
+    const signature_block =
+      preferences.signature_mode === "auto" && initial_signature
+        ? SIGNATURE_GAP_BLOCK +
+          get_formatted_signature(initial_signature) +
+          badge_html
+        : badge_html;
 
-      const default_block = build_compose_default_block(
-        preferences.compose_font_size,
-        preferences.compose_font_color,
-      );
-      const footer_html = is_fresh_reply_forward
-        ? ""
-        : get_aster_footer(t, preferences.show_aster_branding);
-      const caret_block =
-        default_block ||
-        (signature_block || footer_html ? COMPOSE_CARET_BLOCK : "");
+    const default_block = build_compose_default_block(
+      preferences.compose_font_size,
+      preferences.compose_font_color,
+    );
+    const footer_html = is_fresh_reply_forward
+      ? ""
+      : get_aster_footer(t, preferences.show_aster_branding);
+    const caret_block =
+      default_block ||
+      (signature_block || footer_html ? COMPOSE_CARET_BLOCK : "");
 
-      if (is_fresh_reply_forward && edit_draft) {
-        content = caret_block + signature_block + edit_draft.message;
-      } else {
-        content = caret_block + signature_block + footer_html;
-      }
+    if (is_fresh_reply_forward && edit_draft) {
+      content = caret_block + signature_block + edit_draft.message;
+    } else {
+      content = caret_block + signature_block + footer_html;
+    }
 
-      const sanitized_result = sanitize_html(
-        content,
-        get_compose_sanitize_options(),
-      );
+    const sanitized_result = sanitize_html(
+      content,
+      get_compose_sanitize_options(),
+    );
 
-      const token = inject_token_ref.current;
+    const token = inject_token_ref.current;
 
-      inject_html_with_inline_images(
-        sanitized_result.html,
-        is_fresh_reply_forward
-          ? (edit_draft?.reply_to_id ?? edit_draft?.forward_from_id)
-          : undefined,
-        () => inject_token_ref.current === token,
-        (resolved_html) => {
-          if (!message_textarea_ref.current) return;
+    inject_html_with_inline_images(
+      sanitized_result.html,
+      is_fresh_reply_forward
+        ? (edit_draft?.reply_to_id ?? edit_draft?.forward_from_id)
+        : undefined,
+      () => inject_token_ref.current === token,
+      (resolved_html) => {
+        if (!message_textarea_ref.current) return;
 
-          message_textarea_ref.current.innerHTML = resolved_html;
-          if (is_plain_text_ref.current) {
-            const text = message_textarea_ref.current.innerText;
+        message_textarea_ref.current.innerHTML = resolved_html;
+        if (is_plain_text_ref.current) {
+          const text = message_textarea_ref.current.innerText;
 
-            message_textarea_ref.current.innerText = text;
-            set_message(text);
-          } else {
-            set_message(
-              restore_compose_image_sources(
-                message_textarea_ref.current.innerHTML,
-              ),
-            );
-          }
-        },
-      );
-    }, INITIAL_CONTENT_DELAY_MS);
+          message_textarea_ref.current.innerText = text;
+          set_message(text);
+        } else {
+          set_message(
+            restore_compose_image_sources(
+              message_textarea_ref.current.innerHTML,
+            ),
+          );
+        }
+      },
+    );
   }, [
     init_trigger,
     badges_loaded,
@@ -1092,7 +1086,7 @@ export function use_compose({
 
   const last_signature_id_ref = useRef<string | null>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!content_initialized_ref.current) return;
     if (preferences.signature_mode !== "auto") return;
     const editor = message_textarea_ref.current;
