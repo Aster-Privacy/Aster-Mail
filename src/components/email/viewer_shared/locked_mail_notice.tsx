@@ -23,6 +23,7 @@ import { useCallback, useEffect, useState } from "react";
 import { RecoverDataModal } from "@/components/common/recover_data_modal";
 import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
+import { get_current_identity_cutoff } from "@/services/current_identity_published";
 import { get_locked_data_status } from "@/services/locked_data";
 import { LOCKED_DATA_CHANGED_EVENT } from "@/services/locked_sent_mail_store";
 
@@ -31,37 +32,46 @@ export interface LockedMailNoticeProps {
   message_created_at?: string | null;
   text_class_name: string;
   button_class_name: string;
+  secondary_button_class_name: string;
   on_recovered?: () => void;
+}
+
+interface PreResetCutoff {
+  account_id: string | null;
+  has_archived_keys: boolean;
+  cutoff: number | null;
 }
 
 const RESET_SEAL_GRACE_MS = 10 * 60 * 1000;
 
+const NO_CUTOFF: Omit<PreResetCutoff, "account_id"> = {
+  has_archived_keys: false,
+  cutoff: null,
+};
+
 export function is_sealed_before_reset(
   message_created_at: string | null | undefined,
-  latest_retired_at: number | null,
+  cutoff: number | null,
 ): boolean {
-  if (latest_retired_at === null || !message_created_at) return false;
+  if (cutoff === null || !message_created_at) return false;
 
   const created = Date.parse(message_created_at);
 
   if (!Number.isFinite(created)) return false;
 
-  return created <= latest_retired_at + RESET_SEAL_GRACE_MS;
+  return created <= cutoff + RESET_SEAL_GRACE_MS;
 }
 
-export function use_pre_reset_cutoff(): {
-  account_id: string | null;
-  latest_retired_at: number | null;
-} {
+export function use_pre_reset_cutoff(): PreResetCutoff {
   const { vault, user } = use_auth();
   const account_id = user?.id ?? null;
-  const [latest_retired_at, set_latest_retired_at] = useState<number | null>(
-    null,
-  );
+  const email = user?.email ?? null;
+  const current_identity = vault?.ratchet_identity_public ?? null;
+  const [state, set_state] = useState(NO_CUTOFF);
 
   useEffect(() => {
     if (!vault || !account_id) {
-      set_latest_retired_at(null);
+      set_state(NO_CUTOFF);
 
       return;
     }
@@ -69,14 +79,26 @@ export function use_pre_reset_cutoff(): {
     let cancelled = false;
 
     const refresh = () => {
-      void get_locked_data_status(account_id).then((status) => {
-        if (cancelled) return;
-        set_latest_retired_at(
-          status && status.inactive_key_sets > 0
-            ? status.latest_retired_at
-            : null,
+      void (async () => {
+        const status = await get_locked_data_status(account_id);
+
+        if (!status || status.inactive_key_sets === 0) {
+          if (!cancelled) set_state(NO_CUTOFF);
+
+          return;
+        }
+
+        const identity_cutoff = await get_current_identity_cutoff(
+          email,
+          current_identity,
         );
-      });
+
+        if (cancelled) return;
+        set_state({
+          has_archived_keys: true,
+          cutoff: identity_cutoff ?? status.latest_retired_at,
+        });
+      })();
     };
 
     refresh();
@@ -86,9 +108,9 @@ export function use_pre_reset_cutoff(): {
       cancelled = true;
       window.removeEventListener(LOCKED_DATA_CHANGED_EVENT, refresh);
     };
-  }, [vault, account_id]);
+  }, [vault, account_id, email, current_identity]);
 
-  return { account_id, latest_retired_at };
+  return { account_id, ...state };
 }
 
 export function LockedMailNotice({
@@ -96,10 +118,11 @@ export function LockedMailNotice({
   message_created_at,
   text_class_name,
   button_class_name,
+  secondary_button_class_name,
   on_recovered,
 }: LockedMailNoticeProps): React.ReactElement {
   const { t } = use_i18n();
-  const { account_id, latest_retired_at } = use_pre_reset_cutoff();
+  const { account_id, has_archived_keys, cutoff } = use_pre_reset_cutoff();
   const [is_modal_open, set_is_modal_open] = useState(false);
 
   useEffect(() => {
@@ -114,17 +137,27 @@ export function LockedMailNotice({
   const open_modal = useCallback(() => set_is_modal_open(true), []);
   const close_modal = useCallback(() => set_is_modal_open(false), []);
 
-  if (
-    !account_id ||
-    !is_sealed_before_reset(message_created_at, latest_retired_at)
-  ) {
+  if (!account_id || !has_archived_keys) {
     return <p className={text_class_name}>{error}</p>;
   }
 
+  const sealed_before_reset = is_sealed_before_reset(
+    message_created_at,
+    cutoff,
+  );
+
   return (
     <>
-      <p className={text_class_name}>{t("common.locked_mail_after_reset")}</p>
-      <button className={button_class_name} type="button" onClick={open_modal}>
+      <p className={text_class_name}>
+        {sealed_before_reset ? t("common.locked_mail_after_reset") : error}
+      </p>
+      <button
+        className={
+          sealed_before_reset ? button_class_name : secondary_button_class_name
+        }
+        type="button"
+        onClick={open_modal}
+      >
         {t("common.locked_data_banner_action")}
       </button>
       <RecoverDataModal

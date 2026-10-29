@@ -80,6 +80,7 @@ export function ViewerErrorState({
             error={error}
             message_created_at={message_created_at}
             on_recovered={on_retry}
+            secondary_button_class_name="mt-4 mx-1 px-4 py-2 text-sm font-medium rounded-[14px] transition-colors bg-surf-secondary text-txt-primary"
             text_class_name="text-sm text-txt-muted max-w-sm mx-auto"
           />
         ) : (

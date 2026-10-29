@@ -24,11 +24,19 @@ import { createRoot, type Root } from "react-dom/client";
 
 const h = vi.hoisted(() => ({
   auth: {
-    vault: { identity_key: "key" } as unknown,
-    user: { id: "account-1" } as { id: string } | null,
+    vault: {
+      identity_key: "key",
+      ratchet_identity_public: "current-identity",
+    } as unknown,
+    user: { id: "account-1", email: "user@example.org" } as {
+      id: string;
+      email?: string;
+    } | null,
   },
   inactive_key_sets: 1,
   latest_retired_at: Date.parse("2026-05-01T12:00:00Z") as number | null,
+  identity_cutoff: null as number | null,
+  identity_calls: [] as [string | null, string | null][],
 }));
 
 vi.mock("@/lib/i18n/context", () => ({
@@ -55,6 +63,17 @@ vi.mock("@/services/locked_data", () => ({
     signature: "a|",
     latest_retired_at: h.latest_retired_at,
   }),
+}));
+
+vi.mock("@/services/current_identity_published", () => ({
+  get_current_identity_cutoff: async (
+    email: string | null,
+    identity: string | null,
+  ) => {
+    h.identity_calls.push([email, identity]);
+
+    return h.identity_cutoff;
+  },
 }));
 
 const { ViewerErrorState } = await import("./misc");
@@ -104,9 +123,17 @@ function find_button(view: HTMLElement, label: string) {
 
 describe("ViewerErrorState for mail locked by a password reset", () => {
   beforeEach(() => {
-    h.auth = { vault: { identity_key: "key" }, user: { id: "account-1" } };
+    h.auth = {
+      vault: {
+        identity_key: "key",
+        ratchet_identity_public: "current-identity",
+      },
+      user: { id: "account-1", email: "user@example.org" },
+    };
     h.inactive_key_sets = 1;
     h.latest_retired_at = Date.parse("2026-05-01T12:00:00Z");
+    h.identity_cutoff = null;
+    h.identity_calls = [];
   });
 
   afterEach(async () => {
@@ -129,17 +156,10 @@ describe("ViewerErrorState for mail locked by a password reset", () => {
     expect(view.querySelector("[data-testid='recover-modal']")).not.toBeNull();
   });
 
-  it("keeps the plain error when there are no archived keys", async () => {
+  it("keeps the plain error without recovery when there are no archived keys", async () => {
     h.inactive_key_sets = 0;
 
     const view = await render(true);
-
-    expect(view.textContent).toContain("common.failed_to_decrypt_email");
-    expect(view.textContent).not.toContain("common.locked_mail_after_reset");
-  });
-
-  it("keeps the plain error for mail that arrived after the reset", async () => {
-    const view = await render(true, vi.fn(), AFTER_RESET);
 
     expect(view.textContent).toContain("common.failed_to_decrypt_email");
     expect(view.textContent).not.toContain("common.locked_mail_after_reset");
@@ -148,20 +168,51 @@ describe("ViewerErrorState for mail locked by a password reset", () => {
     ).toBeUndefined();
   });
 
-  it("keeps the plain error when the message date is unknown", async () => {
+  it("uses when the current identity was first published as the cutoff", async () => {
+    h.identity_cutoff = Date.parse("2026-05-05T00:00:00Z");
+
+    const view = await render(true, vi.fn(), AFTER_RESET);
+
+    expect(h.identity_calls).toContainEqual([
+      "user@example.org",
+      "current-identity",
+    ]);
+    expect(view.textContent).toContain("common.locked_mail_after_reset");
+  });
+
+  it("keeps the generic error but still offers recovery for mail after the cutoff", async () => {
+    const view = await render(true, vi.fn(), AFTER_RESET);
+
+    expect(view.textContent).toContain("common.failed_to_decrypt_email");
+    expect(view.textContent).not.toContain("common.locked_mail_after_reset");
+
+    const recover = find_button(view, "common.locked_data_banner_action")!;
+
+    expect(recover.className).toContain("bg-surf-secondary");
+
+    await act(async () => {
+      recover.click();
+    });
+
+    expect(view.querySelector("[data-testid='recover-modal']")).not.toBeNull();
+  });
+
+  it("offers recovery with the generic error when the message date is unknown", async () => {
     const view = await render(true, vi.fn(), null);
 
     expect(view.textContent).toContain("common.failed_to_decrypt_email");
     expect(view.textContent).not.toContain("common.locked_mail_after_reset");
+    expect(find_button(view, "common.locked_data_banner_action")).toBeDefined();
   });
 
-  it("keeps the plain error when the reset time is unknown", async () => {
+  it("offers recovery with the generic error when no cutoff is known", async () => {
     h.latest_retired_at = null;
 
     const view = await render(true);
 
     expect(view.textContent).toContain("common.failed_to_decrypt_email");
     expect(view.textContent).not.toContain("common.locked_mail_after_reset");
+    expect(find_button(view, "common.locked_data_banner_action")).toBeDefined();
   });
 
   it("keeps the plain error for failures that are not decryption failures", async () => {

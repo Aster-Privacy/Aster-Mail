@@ -265,6 +265,7 @@ export function PopupEmailBody({
               error={error}
               message_created_at={decrypt_failed_created_at}
               on_recovered={on_close}
+              secondary_button_class_name="px-4 py-2 text-sm font-medium rounded-[14px] transition-colors bg-surf-secondary text-txt-primary"
               text_class_name="text-sm text-txt-secondary text-center max-w-sm"
             />
           ) : (
