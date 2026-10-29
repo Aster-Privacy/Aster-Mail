@@ -3358,6 +3358,8 @@ export interface SettingsTranslations {
   developer_mode_description: string;
   close_to_tray: string;
   close_to_tray_description: string;
+  hide_dock_on_close: string;
+  hide_dock_on_close_description: string;
   default_email_app: string;
   default_email_app_description: string;
   default_email_app_desktop_description: string;

@@ -102,7 +102,13 @@ import {
 import { UpgradeGate } from "@/components/common/upgrade_gate";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { ignore_error } from "@/lib/ignore_error";
-import { get_close_to_tray, set_close_to_tray } from "@/native/tauri_tray";
+import {
+  get_close_to_tray,
+  get_hide_dock_on_close,
+  is_hide_dock_on_close_supported,
+  set_close_to_tray,
+  set_hide_dock_on_close,
+} from "@/native/tauri_tray";
 import {
   type DefaultMailStatus,
   get_default_mail_status,
@@ -262,6 +268,25 @@ export function BehaviorSection() {
   const [close_to_tray, set_close_to_tray_state] = useState(() =>
     get_close_to_tray(),
   );
+  const [hide_dock_supported, set_hide_dock_supported] = useState(false);
+  const [hide_dock_on_close, set_hide_dock_on_close_state] = useState(() =>
+    get_hide_dock_on_close(),
+  );
+  const hide_dock_busy_ref = useRef(false);
+
+  useEffect(() => {
+    if (!is_desktop_app) return;
+
+    let is_active = true;
+
+    is_hide_dock_on_close_supported().then((supported) => {
+      if (is_active) set_hide_dock_supported(supported);
+    });
+
+    return () => {
+      is_active = false;
+    };
+  }, [is_desktop_app]);
 
   const [default_mail_status, set_default_mail_status] =
     useState<DefaultMailStatus>({ supported: false, is_default: false });
@@ -322,6 +347,25 @@ export function BehaviorSection() {
       set_close_to_tray_state(previous);
       show_toast(t("common.something_went_wrong_try_again"), "error");
     }
+  };
+
+  const handle_hide_dock_on_close_toggle = async () => {
+    if (hide_dock_busy_ref.current) return;
+
+    hide_dock_busy_ref.current = true;
+
+    const previous = hide_dock_on_close;
+    const next = !previous;
+
+    set_hide_dock_on_close_state(next);
+    const applied = await set_hide_dock_on_close(next);
+
+    if (!applied) {
+      set_hide_dock_on_close_state(previous);
+      show_toast(t("common.something_went_wrong_try_again"), "error");
+    }
+
+    hide_dock_busy_ref.current = false;
   };
 
   useEffect(() => {
@@ -1368,6 +1412,14 @@ export function BehaviorSection() {
             }}
             on_toggle={handle_close_to_tray_toggle}
             title={t("settings.close_to_tray")}
+          />
+        )}
+        {is_desktop_app && hide_dock_supported && close_to_tray && (
+          <ToggleSetting
+            description={t("settings.hide_dock_on_close_description")}
+            enabled={hide_dock_on_close}
+            on_toggle={handle_hide_dock_on_close_toggle}
+            title={t("settings.hide_dock_on_close")}
           />
         )}
         <ToggleSetting

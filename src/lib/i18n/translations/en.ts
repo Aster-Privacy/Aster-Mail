@@ -3177,6 +3177,9 @@ export const en: Translations = {
     close_to_tray: "Keep running when you close the window",
     close_to_tray_description:
       "Aster Mail stays in the notification area so new mail still arrives. Turn this off to quit when you close the window.",
+    hide_dock_on_close: "Hide from the Dock when you close the window",
+    hide_dock_on_close_description:
+      "When you close the window, Aster Mail leaves the Dock and the app switcher and keeps running in the menu bar. To open it again, click its icon in the menu bar.",
     default_email_app: "Default Email App",
     default_email_app_description:
       "Open mailto: links in Aster Mail instead of your default email app",

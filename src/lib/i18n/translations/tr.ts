@@ -4161,6 +4161,9 @@ export const tr = {
     close_to_tray: "Pencereyi kapattığında çalışmaya devam et",
     close_to_tray_description:
       "Aster Mail bildirim alanında kalır, böylece yeni postalar gelmeye devam eder. Pencereyi kapattığında çıkmak için bunu kapat.",
+    hide_dock_on_close: "Pencereyi kapattığında Dock’tan gizle",
+    hide_dock_on_close_description:
+      "Pencereyi kapattığında Aster Mail, Dock’tan ve uygulama değiştiriciden çıkar ve menü çubuğunda çalışmaya devam eder. Yeniden açmak için menü çubuğundaki simgesini tıkla.",
     time_format: "Saat formatı",
     time_format_description: "Saatin nasıl görüntüleneceğini seçin",
     twelve_hours: "12 saat",

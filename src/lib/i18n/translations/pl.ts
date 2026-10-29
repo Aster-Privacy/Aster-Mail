@@ -4389,6 +4389,9 @@ export const pl = {
     close_to_tray: "Działaj dalej po zamknięciu okna",
     close_to_tray_description:
       "Aster Mail pozostaje w obszarze powiadomień, więc nowa poczta nadal przychodzi. Wyłącz tę opcję, aby zamykać program razem z oknem.",
+    hide_dock_on_close: "Ukrywaj w Docku po zamknięciu okna",
+    hide_dock_on_close_description:
+      "Po zamknięciu okna Aster Mail znika z Docka i przełącznika aplikacji, ale nadal działa na pasku menu. Aby otworzyć go ponownie, kliknij jego ikonę na pasku menu.",
     time_format: "Format czasu",
     time_format_description: "Wybierz sposób wyświetlania czasu",
     twelve_hours: "12 godzin",

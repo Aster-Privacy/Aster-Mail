@@ -4336,6 +4336,9 @@ export const ar = {
     close_to_tray: "الاستمرار بالعمل عند إغلاق النافذة",
     close_to_tray_description:
       "يبقى Aster Mail في منطقة الإشعارات ليستمر وصول البريد الجديد. أوقف هذا الخيار للإنهاء عند إغلاق النافذة.",
+    hide_dock_on_close: "الإخفاء من Dock عند إغلاق النافذة",
+    hide_dock_on_close_description:
+      "عند إغلاق النافذة، يختفي Aster Mail من Dock ومن مبدّل التطبيقات ويستمر في العمل في شريط القائمة. لفتحه مرة أخرى، انقر على أيقونته في شريط القائمة.",
     time_format: "تنسيق الوقت",
     time_format_description: "اختر كيفية عرض الوقت",
     twelve_hours: "12 ساعة",
