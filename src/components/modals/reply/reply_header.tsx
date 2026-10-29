@@ -24,6 +24,7 @@ import type {
   RecipientsState,
 } from "@/components/compose/compose_shared";
 import type { SenderOption } from "@/hooks/use_sender_aliases";
+import type { RecipientLockScope } from "@/services/recipient_lock_state";
 import type { DecryptedContact } from "@/types/contacts";
 
 import { CloseIcon } from "@/components/common/icons";
@@ -62,6 +63,7 @@ interface ReplyHeaderProps {
   ghost_locked?: boolean;
   preferred_id?: string | null;
   on_set_preferred?: (id: string | null) => void;
+  lock_scope?: RecipientLockScope;
 }
 
 export function ReplyHeader({
@@ -92,6 +94,7 @@ export function ReplyHeader({
   ghost_locked,
   preferred_id,
   on_set_preferred,
+  lock_scope,
 }: ReplyHeaderProps) {
   const { t } = use_i18n();
 
@@ -205,6 +208,7 @@ export function ReplyHeader({
           </div>
           <div className="px-4 py-2 border-b border-[var(--aster-floating-divider)]">
             <RecipientField
+              lock_scope={lock_scope}
               show_bcc={show_bcc}
               show_cc_bcc_buttons
               contacts={contacts}
@@ -237,6 +241,7 @@ export function ReplyHeader({
           {show_cc && (
             <div className="px-4 py-2 border-b border-[var(--aster-floating-divider)]">
               <RecipientField
+                lock_scope={lock_scope}
                 contacts={contacts}
                 input_value={inputs.cc}
                 label={t("mail.cc")}
@@ -270,6 +275,7 @@ export function ReplyHeader({
           {show_bcc && (
             <div className="px-4 py-2 border-b border-[var(--aster-floating-divider)]">
               <RecipientField
+                lock_scope={lock_scope}
                 contacts={contacts}
                 input_value={inputs.bcc}
                 label={t("mail.bcc")}

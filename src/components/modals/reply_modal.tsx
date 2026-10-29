@@ -183,6 +183,7 @@ export function ReplyModal({
             <ReplyHeader
               contacts={modal.contacts}
               dispatch_recipients={modal.dispatch_recipients}
+              lock_scope={modal.lock_scope}
               ghost_error={modal.ghost_mode.error}
               ghost_expiry_days={modal.ghost_mode.ghost_expiry_days}
               ghost_locked={

@@ -26,7 +26,10 @@ import {
   classify_recipients,
   is_internal_recipient,
 } from "./recipient_classification";
-import { collect_pgp_recipients } from "./recipient_lock_state";
+import {
+  collect_pgp_recipients,
+  type RecipientLockScope,
+} from "./recipient_lock_state";
 
 import { exceeds_sealed_schedule_window } from "@/lib/schedule_window";
 import { is_future_instant } from "@/utils/schedule_targets";
@@ -47,7 +50,7 @@ export async function check_scheduled_send(
   sender_email: string | undefined,
   scheduled_at: Date,
   require_encryption: boolean,
-  show_locks: boolean = false,
+  lock_scope: RecipientLockScope | null = null,
   pgp_override: boolean | null = null,
 ): Promise<ScheduledGateResult> {
   if (!is_future_instant(scheduled_at)) {
@@ -71,8 +74,8 @@ export async function check_scheduled_send(
   }
 
   if (
-    show_locks &&
     collect_pgp_recipients(
+      lock_scope,
       recipients.filter((r) => !is_internal_recipient(r)),
       pgp_override,
     ).length > 0

@@ -22,7 +22,14 @@ import type { DecryptedContact } from "@/types/contacts";
 import type { DecryptedRecentRecipient } from "@/types/recent_recipients";
 import type { UseComposeReturn } from "@/components/compose/use_compose";
 
-import { useState, useRef, useEffect, useLayoutEffect, useMemo } from "react";
+import {
+  useState,
+  useRef,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useMemo,
+} from "react";
 
 import { CloseIcon, LockIcon } from "@/components/common/icons";
 import { EmailAutocomplete } from "@/components/common/email_autocomplete";
@@ -40,8 +47,12 @@ import {
 } from "@/services/recipient_classification";
 import { is_valid_email } from "@/components/compose/compose_shared";
 import {
-  record_recipient_lock_status,
+  forget_field_lock_statuses,
+  record_field_lock_statuses,
   shows_encrypted_lock,
+  use_recipient_lock_epoch,
+  type RecipientLockEntry,
+  type RecipientLockScope,
   type RecipientLockStatus,
 } from "@/services/recipient_lock_state";
 
@@ -228,6 +239,7 @@ interface RecipientFieldProps {
   auto_focus?: boolean;
   pgp_override?: boolean | null;
   on_toggle_pgp?: () => void;
+  lock_scope?: RecipientLockScope;
   all_recipients?: string[];
   label_class_name?: string;
   chip_class_name?: string;
@@ -255,6 +267,7 @@ export function RecipientField({
   auto_focus = false,
   pgp_override = null,
   on_toggle_pgp,
+  lock_scope,
   all_recipients,
   label_class_name,
   chip_class_name,
@@ -273,6 +286,11 @@ export function RecipientField({
 
   const resolved_ref = useRef<Set<string>>(new Set());
   const in_flight_ref = useRef<Set<string>>(new Set());
+  const internal_ref = useRef<Set<string>>(new Set());
+  const generation_ref = useRef(0);
+  const field_id = useId();
+  const lock_epoch = use_recipient_lock_epoch();
+  const seen_epoch_ref = useRef(lock_epoch);
   const retry_count_ref = useRef<Map<string, number>>(new Map());
   const retry_timers_ref = useRef<Set<ReturnType<typeof setTimeout>>>(
     new Set(),
@@ -320,12 +338,58 @@ export function RecipientField({
   };
 
   useEffect(() => {
-    if (!show_locks) return;
+    if (seen_epoch_ref.current === lock_epoch) return;
 
-    for (const [email, status] of encryption_map) {
-      record_recipient_lock_status(email, status);
+    seen_epoch_ref.current = lock_epoch;
+    generation_ref.current += 1;
+    resolved_ref.current.clear();
+    in_flight_ref.current.clear();
+    internal_ref.current.clear();
+    retry_count_ref.current.clear();
+    set_encryption_map(new Map());
+    set_discovery_tick((tick) => tick + 1);
+  }, [lock_epoch]);
+
+  useEffect(() => {
+    if (!lock_scope) return;
+
+    if (!show_locks || seen_epoch_ref.current !== lock_epoch) {
+      forget_field_lock_statuses(lock_scope, field_id);
+
+      return;
     }
-  }, [encryption_map, show_locks]);
+
+    const shown: [string, RecipientLockEntry][] = [];
+
+    for (const email of recipients) {
+      const status = encryption_map.get(email);
+
+      if (status === undefined) continue;
+      shown.push([
+        email,
+        {
+          status,
+          internal:
+            internal_ref.current.has(email) || is_internal_recipient(email),
+        },
+      ]);
+    }
+
+    record_field_lock_statuses(lock_scope, field_id, shown);
+  }, [
+    lock_scope,
+    field_id,
+    encryption_map,
+    recipients,
+    show_locks,
+    lock_epoch,
+  ]);
+
+  useEffect(() => {
+    if (!lock_scope) return;
+
+    return () => forget_field_lock_statuses(lock_scope, field_id);
+  }, [lock_scope, field_id]);
 
   useEffect(() => {
     if (!show_locks) return;
@@ -339,6 +403,7 @@ export function RecipientField({
       retry_timers_ref.current.add(timer);
     };
 
+    const generation = generation_ref.current;
     const current_set = new Set(recipients);
     const to_discover: string[] = [];
 
@@ -348,6 +413,7 @@ export function RecipientField({
 
       if (is_internal_recipient(email)) {
         resolved_ref.current.add(email);
+        internal_ref.current.add(email);
         set_encryption_map((prev) => {
           const next = new Map(prev);
 
@@ -375,6 +441,7 @@ export function RecipientField({
     for (const key of [...resolved_ref.current]) {
       if (!current_set.has(key)) {
         resolved_ref.current.delete(key);
+        internal_ref.current.delete(key);
         retry_count_ref.current.delete(key);
         set_encryption_map((prev) => {
           const next = new Map(prev);
@@ -403,6 +470,8 @@ export function RecipientField({
     const run_discovery = (pending: string[]) => {
       discover_external_keys_batch(pending)
         .then((result) => {
+          if (generation !== generation_ref.current) return;
+
           const key_map = new Map<string, EncryptionStatus>();
 
           if (result.data) {
@@ -473,6 +542,8 @@ export function RecipientField({
           }
         })
         .catch(() => {
+          if (generation !== generation_ref.current) return;
+
           let should_retry = false;
 
           for (const email of pending) {
@@ -511,6 +582,8 @@ export function RecipientField({
     if (to_discover.length > 0) {
       classify_recipients(to_discover)
         .then((classified) => {
+          if (generation !== generation_ref.current) return;
+
           const still_pending = to_discover.filter((email) =>
             in_flight_ref.current.has(email),
           );
@@ -525,6 +598,7 @@ export function RecipientField({
           if (hosted.length > 0) {
             for (const email of hosted) {
               resolved_ref.current.add(email);
+              internal_ref.current.add(email);
               in_flight_ref.current.delete(email);
             }
 
@@ -850,6 +924,7 @@ export function ComposeFormFields({
           on_show_bcc={compose.show_bcc_field}
           on_show_cc={compose.show_cc_field}
           on_toggle_pgp={compose.toggle_pgp}
+          lock_scope={compose.lock_scope}
           pgp_override={compose.pgp_override}
           recent_recipients={compose.recent_recipients}
           recipients={compose.recipients.to}
@@ -873,6 +948,7 @@ export function ComposeFormFields({
               compose.remove_recipient("cc", email)
             }
             on_toggle_pgp={compose.toggle_pgp}
+            lock_scope={compose.lock_scope}
             pgp_override={compose.pgp_override}
             recent_recipients={compose.recent_recipients}
             recipients={compose.recipients.cc}
@@ -895,6 +971,7 @@ export function ComposeFormFields({
               compose.remove_recipient("bcc", email)
             }
             on_toggle_pgp={compose.toggle_pgp}
+            lock_scope={compose.lock_scope}
             pgp_override={compose.pgp_override}
             recent_recipients={compose.recent_recipients}
             recipients={compose.recipients.bcc}

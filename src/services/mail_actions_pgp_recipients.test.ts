@@ -81,8 +81,11 @@ vi.mock("@/lib/html_sanitizer", () => ({
 
 import { send_forward, send_reply } from "./mail_actions";
 import {
+  create_recipient_lock_scope,
   forget_recipient_lock_statuses,
-  record_recipient_lock_status,
+  record_field_lock_statuses,
+  type RecipientLockScope,
+  type RecipientLockStatus,
 } from "./recipient_lock_state";
 
 import { get_active_translations } from "@/lib/i18n/translations";
@@ -107,16 +110,36 @@ function queued_pgp_recipients(): unknown {
   return queue_email_to_server.mock.calls[0]?.[0]?.pgp_recipients;
 }
 
+let lock_scope: RecipientLockScope;
+
+function record_recipient_lock_status(
+  email: string,
+  status: RecipientLockStatus,
+  internal = false,
+): void {
+  const field = lock_scope.fields.get("to") ?? new Map();
+
+  record_field_lock_statuses(lock_scope, "to", [
+    ...[...field.entries()].filter(([key]) => key !== email.toLowerCase()),
+    [email, { status, internal }],
+  ]);
+}
+
 describe("reply and forward carry the recipients shown with a lock", () => {
   beforeEach(() => {
     queue_email_to_server.mockClear();
     forget_recipient_lock_statuses();
+    lock_scope = create_recipient_lock_scope();
   });
 
   it("lists a locked outside recipient on a reply", async () => {
     record_recipient_lock_status("Bob@Example.com", "encrypted");
 
-    await send_reply({ original, message: "my reply" }, make_callbacks(), 5000);
+    await send_reply(
+      { original, message: "my reply", lock_scope },
+      make_callbacks(),
+      5000,
+    );
 
     expect(queued_pgp_recipients()).toEqual(["bob@example.com"]);
   });
@@ -124,7 +147,11 @@ describe("reply and forward carry the recipients shown with a lock", () => {
   it("queues a locked reply on the server even with no undo delay", async () => {
     record_recipient_lock_status("bob@example.com", "encrypted");
 
-    await send_reply({ original, message: "my reply" }, make_callbacks(), 0);
+    await send_reply(
+      { original, message: "my reply", lock_scope },
+      make_callbacks(),
+      0,
+    );
 
     expect(queue_email_to_server).toHaveBeenCalledTimes(1);
     expect(queued_pgp_recipients()).toEqual(["bob@example.com"]);
@@ -139,6 +166,7 @@ describe("reply and forward carry the recipients shown with a lock", () => {
         original,
         message: "fyi",
         recipients: ["carol@example.com", "friend@astermail.org"],
+        lock_scope,
       },
       make_callbacks(),
       5000,
@@ -151,7 +179,12 @@ describe("reply and forward carry the recipients shown with a lock", () => {
     record_recipient_lock_status("dave@example.com", "encrypted");
 
     await send_forward(
-      { original, message: "fyi", recipients: ["dave@example.com"] },
+      {
+        original,
+        message: "fyi",
+        recipients: ["dave@example.com"],
+        lock_scope,
+      },
       make_callbacks(),
       5000,
     );
@@ -168,6 +201,7 @@ describe("reply and forward carry the recipients shown with a lock", () => {
         original,
         message: "my reply",
         expires_at: new Date(Date.now() + 60_000).toISOString(),
+        lock_scope,
       },
       callbacks,
       5000,
@@ -178,5 +212,52 @@ describe("reply and forward carry the recipients shown with a lock", () => {
     expect(queue_email_to_server).not.toHaveBeenCalled();
     expect(callbacks.on_error).toHaveBeenCalledWith(message);
     expect(result).toEqual({ success: false, error: message });
+  });
+
+  it("ignores a lock another composer shows for the same recipient", async () => {
+    record_recipient_lock_status("bob@example.com", "encrypted");
+
+    await send_reply(
+      {
+        original,
+        message: "my reply",
+        lock_scope: create_recipient_lock_scope(),
+      },
+      make_callbacks(),
+      5000,
+    );
+
+    expect(queued_pgp_recipients()).toEqual([]);
+
+    queue_email_to_server.mockClear();
+
+    await send_reply({ original, message: "my reply" }, make_callbacks(), 5000);
+
+    expect(queued_pgp_recipients()).toEqual([]);
+  });
+
+  it("never lists an internal custom-domain recipient, so expiry still sends", async () => {
+    record_recipient_lock_status(
+      "team@custom-domain.example",
+      "encrypted",
+      true,
+    );
+    const callbacks = make_callbacks();
+
+    const result = await send_forward(
+      {
+        original,
+        message: "fyi",
+        recipients: ["team@custom-domain.example"],
+        expires_at: new Date(Date.now() + 60_000).toISOString(),
+        lock_scope,
+      },
+      callbacks,
+      5000,
+    );
+
+    expect(callbacks.on_error).not.toHaveBeenCalled();
+    expect(result.success).toBe(true);
+    expect(queued_pgp_recipients()).toEqual([]);
   });
 });

@@ -35,7 +35,10 @@ import {
 } from "./post_quantum_consent";
 import { check_reply_send } from "./reply_send_gate";
 import { is_internal_recipient } from "./recipient_classification";
-import { collect_pgp_recipients } from "./recipient_lock_state";
+import {
+  collect_pgp_recipients,
+  type RecipientLockScope,
+} from "./recipient_lock_state";
 import { get_cached_preferences } from "./api/preferences";
 import type { EncryptionOptions } from "./send_queue_types";
 
@@ -81,6 +84,7 @@ export interface ReplyParams {
   attachments?: import("@/components/compose/compose_shared").Attachment[];
   require_encryption?: boolean;
   is_plain_text?: boolean;
+  lock_scope?: RecipientLockScope | null;
 }
 
 export interface ForwardParams {
@@ -99,6 +103,7 @@ export interface ForwardParams {
   forward_original_mail_id?: string;
   require_encryption?: boolean;
   is_plain_text?: boolean;
+  lock_scope?: RecipientLockScope | null;
 }
 
 export interface MailActionResult {
@@ -203,12 +208,16 @@ function reply_encryption_options(
   };
 }
 
-function locked_outside_recipients(recipients: string[]): string[] {
+function locked_outside_recipients(
+  lock_scope: RecipientLockScope | null | undefined,
+  recipients: string[],
+): string[] {
   if (get_cached_preferences()?.show_encryption_indicators === false) {
     return [];
   }
 
   return collect_pgp_recipients(
+    lock_scope,
     recipients.filter((r) => !is_internal_recipient(r)),
     null,
   );
@@ -381,7 +390,7 @@ export async function send_reply(
     return { success: false };
   }
 
-  const pgp_recipients = locked_outside_recipients([
+  const pgp_recipients = locked_outside_recipients(params.lock_scope, [
     ...recipients,
     ...(cc ?? []),
     ...(bcc ?? []),
@@ -583,7 +592,7 @@ export async function send_forward(
     return { success: false };
   }
 
-  const pgp_recipients = locked_outside_recipients([
+  const pgp_recipients = locked_outside_recipients(params.lock_scope, [
     ...params.recipients,
     ...(params.cc_recipients ?? []),
     ...(params.bcc_recipients ?? []),

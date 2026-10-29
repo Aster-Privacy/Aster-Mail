@@ -90,7 +90,11 @@ import {
   find_locked_expiry_feature,
   prompt_expiry_upgrade,
 } from "@/components/compose/expiry_plan_gate";
-import { collect_pgp_recipients } from "@/services/recipient_lock_state";
+import {
+  collect_pgp_recipients,
+  use_recipient_lock_scope,
+  type RecipientLockScope,
+} from "@/services/recipient_lock_state";
 
 export interface UseComposeSendOptions {
   recipients: RecipientsState;
@@ -128,6 +132,7 @@ export interface UseComposeSendReturn {
   pgp_enabled: boolean;
   pgp_override: boolean | null;
   toggle_pgp: () => void;
+  lock_scope: RecipientLockScope;
 }
 
 export function use_compose_send({
@@ -165,6 +170,7 @@ export function use_compose_send({
   const [is_sending, set_is_sending] = useState(false);
   const [pgp_override, set_pgp_override] = useState<boolean | null>(null);
   const pgp_enabled = pgp_override ?? preferences.encrypt_emails;
+  const lock_scope = use_recipient_lock_scope();
   const toggle_pgp = useCallback(
     () => set_pgp_override((prev) => (prev === true ? null : true)),
     [],
@@ -431,6 +437,7 @@ export function use_compose_send({
           ];
           const offline_pgp_recipients = preferences.show_encryption_indicators
             ? collect_pgp_recipients(
+                lock_scope,
                 offline_recipients.filter((r) => !is_internal_recipient(r)),
                 pgp_override,
               )
@@ -701,6 +708,7 @@ export function use_compose_send({
       const is_mixed = has_external && internal_recipients.length > 0;
       const pgp_recipients = preferences.show_encryption_indicators
         ? collect_pgp_recipients(
+            lock_scope,
             all_recipients.filter((r) => !is_internal_recipient(r)),
             pgp_override,
           )
@@ -889,6 +897,7 @@ export function use_compose_send({
     preferences.show_encryption_indicators,
     pgp_enabled,
     pgp_override,
+    lock_scope,
     limits,
     is_feature_locked,
     t,
@@ -1004,7 +1013,7 @@ export function use_compose_send({
         scheduled_sender_email,
         scheduled_time,
         preferences.require_encryption === true,
-        preferences.show_encryption_indicators,
+        preferences.show_encryption_indicators ? lock_scope : null,
         pgp_override,
       );
     } finally {
@@ -1163,6 +1172,7 @@ export function use_compose_send({
     preferences.require_encryption,
     preferences.show_encryption_indicators,
     pgp_override,
+    lock_scope,
     selected_sender,
     expires_at,
     expiry_password,
@@ -1179,5 +1189,6 @@ export function use_compose_send({
     pgp_enabled,
     pgp_override,
     toggle_pgp,
+    lock_scope,
   };
 }

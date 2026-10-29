@@ -41,8 +41,19 @@ const { check_reply_send } = await import("./reply_send_gate");
 const { assert_required_encryption_keys } =
   await import("./send_queue_execute");
 const { get_active_translations } = await import("@/lib/i18n/translations");
-const { record_recipient_lock_status, forget_recipient_lock_statuses } =
-  await import("./recipient_lock_state");
+const {
+  create_recipient_lock_scope,
+  forget_recipient_lock_statuses,
+  record_field_lock_statuses,
+} = await import("./recipient_lock_state");
+
+const lock_scope = create_recipient_lock_scope();
+
+function show_lock(email: string, status: "encrypted" | "available"): void {
+  record_field_lock_statuses(lock_scope, "to", [
+    [email, { status, internal: false }],
+  ]);
+}
 
 const DAY = 24 * 60 * 60 * 1000;
 const soon = () => new Date(Date.now() + DAY);
@@ -182,14 +193,14 @@ describe("check_scheduled_send", () => {
   });
 
   it("blocks an outside recipient whose chip shows a lock", async () => {
-    record_recipient_lock_status("bob@example.com", "encrypted");
+    show_lock("bob@example.com", "encrypted");
 
     const result = await check_scheduled_send(
       ["bob@example.com"],
       "me@astermail.org",
       soon(),
       false,
-      true,
+      lock_scope,
     );
 
     expect(result).toEqual({
@@ -199,7 +210,7 @@ describe("check_scheduled_send", () => {
   });
 
   it("schedules when the lock is hidden or not shown", async () => {
-    record_recipient_lock_status("bob@example.com", "available");
+    show_lock("bob@example.com", "available");
 
     expect(
       await check_scheduled_send(
@@ -207,11 +218,11 @@ describe("check_scheduled_send", () => {
         "me@astermail.org",
         soon(),
         false,
-        true,
+        lock_scope,
       ),
     ).toEqual({ proceed: true, allow_non_post_quantum: false });
 
-    record_recipient_lock_status("bob@example.com", "encrypted");
+    show_lock("bob@example.com", "encrypted");
 
     expect(
       await check_scheduled_send(
@@ -219,7 +230,21 @@ describe("check_scheduled_send", () => {
         "me@astermail.org",
         soon(),
         false,
+        null,
+      ),
+    ).toEqual({ proceed: true, allow_non_post_quantum: false });
+  });
+
+  it("ignores a lock shown in another composer", async () => {
+    show_lock("bob@example.com", "encrypted");
+
+    expect(
+      await check_scheduled_send(
+        ["bob@example.com"],
+        "me@astermail.org",
+        soon(),
         false,
+        create_recipient_lock_scope(),
       ),
     ).toEqual({ proceed: true, allow_non_post_quantum: false });
   });
@@ -292,10 +317,7 @@ describe("check_reply_send", () => {
     });
 
     expect(
-      await check_reply_send(
-        ["friend@astermail.org", "bob@example.com"],
-        true,
-      ),
+      await check_reply_send(["friend@astermail.org", "bob@example.com"], true),
     ).toBeNull();
     expect(discover).toHaveBeenCalledWith(["bob@example.com"], true);
   });
