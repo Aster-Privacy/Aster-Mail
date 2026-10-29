@@ -37,7 +37,7 @@ vi.mock("@/services/sync_manager", () => ({
   is_syncing: () => false,
 }));
 
-const { SyncHealthDot, SyncStatusIndicator } = await import("./sync_status");
+const { SyncStatusIndicator } = await import("./sync_status");
 
 import type { DecryptedExternalAccount } from "@/services/api/external_accounts";
 
@@ -96,14 +96,6 @@ describe("connected account re-authorization messages", () => {
     return container.textContent ?? "";
   }
 
-  function render_dot(protocol: string) {
-    act(() => {
-      root.render(<SyncHealthDot account={make_account(protocol)} t={t} />);
-    });
-
-    return container.querySelector("[role=status]")?.getAttribute("aria-label");
-  }
-
   it("tells a password account to update its password", () => {
     expect(render_indicator("imap")).toContain(
       "settings.connected_accounts_password_reauth_needed",
@@ -115,15 +107,6 @@ describe("connected account re-authorization messages", () => {
 
   it("keeps the reconnect wording for provider accounts", () => {
     expect(render_indicator("oauth_imap")).toContain(
-      "settings.connected_accounts_reauth_needed",
-    );
-  });
-
-  it("labels the health dot by protocol", () => {
-    expect(render_dot("imap")).toBe(
-      "settings.connected_accounts_password_reauth_needed",
-    );
-    expect(render_dot("oauth_imap")).toBe(
       "settings.connected_accounts_reauth_needed",
     );
   });

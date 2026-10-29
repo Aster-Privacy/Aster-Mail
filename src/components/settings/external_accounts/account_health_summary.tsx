@@ -134,7 +134,11 @@ export function AccountHealthSummary({
           />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="min-w-[14rem] max-w-80">
+      <DropdownMenuContent
+        align="end"
+        className="min-w-[14rem] max-w-[min(20rem,calc(100vw-1rem))]"
+        collisionPadding={8}
+      >
         {present.map(({ bucket, label, color, Icon }) => {
           const emails = grouped.get(bucket) ?? [];
 

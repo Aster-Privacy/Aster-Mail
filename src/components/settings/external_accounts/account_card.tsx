@@ -36,7 +36,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { FaviconImg } from "@/components/ui/favicon_or_initial";
 import { is_syncing as check_is_syncing } from "@/services/sync_manager";
 import {
-  SyncHealthDot,
+  SyncErrorDetail,
   SyncStatusIndicator,
 } from "@/components/settings/external_accounts/sync_status";
 
@@ -54,7 +54,7 @@ const PROTOCOL_TOOLTIP_KEYS: Record<string, TranslationKey> = {
   pop3: "settings.protocol_tooltip_pop3",
 };
 
-function protocol_label(protocol: string) {
+export function protocol_label(protocol: string) {
   return PROTOCOL_LABELS[protocol] ?? protocol.replace(/_/g, " ");
 }
 
@@ -97,11 +97,11 @@ export function AccountCard({
     <div
       className={
         index > 0
-          ? "border-t border-[color-mix(in_srgb,var(--text-primary)_8%,transparent)]"
-          : ""
+          ? "@container border-t border-[color-mix(in_srgb,var(--text-primary)_8%,transparent)]"
+          : "@container"
       }
     >
-      <div className="flex items-center gap-3 px-4 py-3">
+      <div className="flex items-start @lg:items-center gap-3 px-4 py-3">
         {(() => {
           const domain = account.email.split("@")[1];
           const icon_ok = domain && !failed_icons.has(domain);
@@ -109,7 +109,7 @@ export function AccountCard({
           if (icon_ok) {
             return (
               <div
-                className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden"
+                className="w-8 h-8 mt-0.5 @lg:mt-0 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden"
                 style={{
                   backgroundColor: account.is_enabled
                     ? `${account.label_color}20`
@@ -130,7 +130,7 @@ export function AccountCard({
 
           return (
             <div
-              className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+              className="w-8 h-8 mt-0.5 @lg:mt-0 rounded-full flex items-center justify-center flex-shrink-0"
               style={{
                 backgroundColor: account.is_enabled
                   ? `${account.label_color}26`
@@ -149,50 +149,55 @@ export function AccountCard({
           );
         })()}
 
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <SyncHealthDot account={account} t={t} />
-            <span
-              className="text-[13px] font-medium truncate text-txt-primary"
-              title={account.email}
-            >
-              {account.email}
-            </span>
-            <Tooltip tip={protocol_tooltip(account.protocol, t)}>
-              <span className="account_menu_badge account_menu_badge_muted uppercase tracking-wide">
-                {protocol_label(account.protocol)}
-              </span>
-            </Tooltip>
-            <Tooltip
-              tip={
-                account.is_enabled
-                  ? t("settings.account_enabled_tooltip")
-                  : t("settings.account_paused_tooltip")
-              }
-            >
+        <div className="flex-1 min-w-0 flex flex-col @lg:flex-row @lg:items-center gap-2 @lg:gap-3">
+          <div className="flex-1 min-w-0 space-y-1">
+            <div className="flex items-baseline gap-2 min-w-0">
               <span
-                className={
-                  account.is_enabled
-                    ? "account_menu_badge"
-                    : "account_menu_badge account_menu_badge_muted"
-                }
+                className="text-[13px] font-medium truncate text-txt-primary"
+                title={account.email}
               >
-                {account.is_enabled ? t("common.active") : t("common.paused")}
+                {account.email}
               </span>
-            </Tooltip>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            {account.display_name && account.protocol !== "oauth_imap" && (
-              <>
+              {account.display_name && account.protocol !== "oauth_imap" && (
                 <span
-                  className="text-[12px] truncate max-w-[150px] text-txt-muted"
+                  className="text-[12px] truncate text-txt-muted"
                   title={account.display_name}
                 >
                   {account.display_name}
                 </span>
-                <span className="text-[12px] text-txt-muted">&middot;</span>
-              </>
-            )}
+              )}
+            </div>
+            <div className="flex items-center gap-x-2 gap-y-1 flex-wrap">
+              <Tooltip tip={protocol_tooltip(account.protocol, t)}>
+                <span className="account_menu_badge account_menu_badge_muted uppercase tracking-wide">
+                  {protocol_label(account.protocol)}
+                </span>
+              </Tooltip>
+              <Tooltip
+                tip={
+                  account.is_enabled
+                    ? t("settings.account_enabled_tooltip")
+                    : t("settings.account_paused_tooltip")
+                }
+              >
+                <span
+                  className={
+                    account.is_enabled
+                      ? "account_menu_badge"
+                      : "account_menu_badge account_menu_badge_muted"
+                  }
+                >
+                  {account.is_enabled ? t("common.active") : t("common.paused")}
+                </span>
+              </Tooltip>
+              {account.email_count > 0 && (
+                <span className="text-[11px] text-txt-muted">
+                  {t("settings.email_count", {
+                    count: account.email_count,
+                  })}
+                </span>
+              )}
+            </div>
             <SyncStatusIndicator
               account={account}
               expanded_error_ids={expanded_error_ids}
@@ -200,115 +205,92 @@ export function AccountCard({
               t={t}
               toggle_error_expand={toggle_error_expand}
             />
-            {account.email_count > 0 && (
+          </div>
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            {account.needs_reauth && account.protocol === "oauth_imap" ? (
+              <Button
+                aria-label={t("settings.connected_accounts_reconnect")}
+                size="sm"
+                variant="depth"
+                onClick={() => {
+                  window.dispatchEvent(
+                    new CustomEvent("astermail:navigate-settings-section", {
+                      detail: "import",
+                    }),
+                  );
+                }}
+              >
+                {t("settings.connected_accounts_reconnect")}
+              </Button>
+            ) : (
               <>
-                <span className="text-[12px] text-txt-muted">&middot;</span>
-                <span className="text-[11px] text-txt-muted">
-                  {t("settings.email_count", {
-                    count: account.email_count,
-                  })}
-                </span>
+                <Tooltip
+                  tip={
+                    account.is_enabled
+                      ? t("settings.account_pause_tooltip")
+                      : t("settings.account_resume_tooltip")
+                  }
+                >
+                  <Switch
+                    aria-label={`${account.is_enabled ? t("common.disable") : t("common.enable")} ${account.email}`}
+                    checked={account.is_enabled}
+                    size="lg"
+                    onCheckedChange={() => handle_toggle(account)}
+                  />
+                </Tooltip>
+                <Tooltip tip={t("settings.sync_now_tooltip")}>
+                  <Button
+                    aria-label={`${t("common.sync")} ${account.email}`}
+                    className="rounded-full w-10 h-10 p-0"
+                    disabled={
+                      check_is_syncing(account.id) || !account.is_enabled
+                    }
+                    size="md"
+                    variant="ghost"
+                    onClick={() => handle_sync(account)}
+                  >
+                    {check_is_syncing(account.id) ? (
+                      <Spinner size="md" />
+                    ) : (
+                      <ArrowPathIcon className="w-5 h-5" />
+                    )}
+                  </Button>
+                </Tooltip>
               </>
             )}
-          </div>
-        </div>
-
-        <div className="flex items-center gap-1.5 flex-shrink-0">
-          {account.needs_reauth && account.protocol === "oauth_imap" ? (
-            <Button
-              aria-label={t("settings.connected_accounts_reconnect")}
-              size="sm"
-              variant="depth"
-              onClick={() => {
-                window.dispatchEvent(
-                  new CustomEvent("astermail:navigate-settings-section", {
-                    detail: "import",
-                  }),
-                );
-              }}
-            >
-              {t("settings.connected_accounts_reconnect")}
-            </Button>
-          ) : (
-            <>
-              <Tooltip
-                tip={
-                  account.is_enabled
-                    ? t("settings.account_pause_tooltip")
-                    : t("settings.account_resume_tooltip")
-                }
+            <Tooltip tip={t("settings.edit_account_tooltip")}>
+              <Button
+                aria-label={`${t("common.edit")} ${account.email}`}
+                className="rounded-full w-10 h-10 p-0"
+                size="md"
+                variant="ghost"
+                onClick={() => handle_edit(account)}
               >
-                <Switch
-                  aria-label={`${account.is_enabled ? t("common.disable") : t("common.enable")} ${account.email}`}
-                  checked={account.is_enabled}
-                  size="lg"
-                  onCheckedChange={() => handle_toggle(account)}
-                />
-              </Tooltip>
-              <Tooltip tip={t("settings.sync_now_tooltip")}>
-                <Button
-                  aria-label={`${t("common.sync")} ${account.email}`}
-                  className="rounded-full w-10 h-10 p-0"
-                  disabled={check_is_syncing(account.id) || !account.is_enabled}
-                  size="md"
-                  variant="ghost"
-                  onClick={() => handle_sync(account)}
-                >
-                  {check_is_syncing(account.id) ? (
-                    <Spinner size="md" />
-                  ) : (
-                    <ArrowPathIcon className="w-5 h-5" />
-                  )}
-                </Button>
-              </Tooltip>
-            </>
-          )}
-          <Tooltip tip={t("settings.edit_account_tooltip")}>
-            <Button
-              aria-label={`${t("common.edit")} ${account.email}`}
-              className="rounded-full w-10 h-10 p-0"
-              size="md"
-              variant="ghost"
-              onClick={() => handle_edit(account)}
-            >
-              <PencilIcon className="w-5 h-5" />
-            </Button>
-          </Tooltip>
-          <Tooltip tip={t("settings.remove_account_tooltip")}>
-            <Button
-              aria-label={`${t("settings.remove_account")} ${account.email}`}
-              className="rounded-full w-10 h-10 p-0"
-              size="md"
-              variant="ghost"
-              onClick={() => set_purge_target(account)}
-            >
-              <TrashIcon className="w-5 h-5" />
-            </Button>
-          </Tooltip>
+                <PencilIcon className="w-5 h-5" />
+              </Button>
+            </Tooltip>
+            <Tooltip tip={t("settings.remove_account_tooltip")}>
+              <Button
+                aria-label={`${t("settings.remove_account")} ${account.email}`}
+                className="rounded-full w-10 h-10 p-0"
+                size="md"
+                variant="ghost"
+                onClick={() => set_purge_target(account)}
+              >
+                <TrashIcon className="w-5 h-5" />
+              </Button>
+            </Tooltip>
+          </div>
         </div>
       </div>
       {account.last_sync_status === "error" &&
         expanded_error_ids.has(account.id) && (
-          <div
-            className="px-4 pb-3 pt-0"
-            style={{ paddingInlineStart: "3.75rem" }}
-          >
-            <div
-              className="px-3 py-2 rounded-xl text-xs leading-relaxed bg-[color-mix(in_srgb,#dc2626_10%,transparent)] text-red-700 dark:text-red-400"
-              role="alert"
-            >
-              {account.last_sync_error
-                ? account.last_sync_error.replace(
-                    /^IMAP authentication failed:\s*/i,
-                    "",
-                  )
-                : t("settings.sync_failed_detail", {
-                    time:
-                      format_sync_time(account.last_sync_at) ||
-                      t("common.unknown_time"),
-                  })}
-            </div>
-          </div>
+          <SyncErrorDetail
+            account={account}
+            className="px-4 pb-3 pt-0 ps-[3.75rem]"
+            format_sync_time={format_sync_time}
+            t={t}
+          />
         )}
     </div>
   );

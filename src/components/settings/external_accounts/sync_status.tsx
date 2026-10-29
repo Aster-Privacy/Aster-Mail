@@ -23,6 +23,7 @@ import type { UseExternalAccountsReturn } from "@/components/settings/hooks/use_
 
 import {
   CheckCircleIcon,
+  ClockIcon,
   XCircleIcon,
   ChevronDownIcon,
   ExclamationTriangleIcon,
@@ -36,40 +37,37 @@ import {
   is_syncing as check_is_syncing,
 } from "@/services/sync_manager";
 
-interface SyncHealthDotProps {
+interface SyncErrorDetailProps {
   account: DecryptedExternalAccount;
+  format_sync_time: (date_string: string | null) => string | null;
   t: UseExternalAccountsReturn["t"];
+  className?: string;
 }
 
-export function SyncHealthDot({ account, t }: SyncHealthDotProps) {
-  let dot_color = "var(--text-muted)";
-  let dot_label = t("common.never_synced");
-
-  if (account.needs_reauth) {
-    dot_color = "rgb(245, 158, 11)";
-    dot_label =
-      account.protocol === "oauth_imap"
-        ? t("settings.connected_accounts_reauth_needed")
-        : needs_app_password_notice(account)
-          ? t("settings.connected_accounts_app_password_needed")
-          : t("settings.connected_accounts_password_reauth_needed");
-  } else if (account.last_sync_status === "error") {
-    dot_color = "rgb(239, 68, 68)";
-    dot_label = t("common.last_sync_failed");
-  } else if (account.last_sync_at) {
-    dot_color = "rgb(34, 197, 94)";
-    dot_label = t("common.last_sync_successful");
-  }
-
+export function SyncErrorDetail({
+  account,
+  format_sync_time,
+  t,
+  className,
+}: SyncErrorDetailProps) {
   return (
-    <Tooltip tip={dot_label}>
-      <span
-        aria-label={dot_label}
-        className="inline-block w-2 h-2 rounded-full flex-shrink-0"
-        role="status"
-        style={{ backgroundColor: dot_color }}
-      />
-    </Tooltip>
+    <div className={className}>
+      <div
+        className="px-3 py-2 rounded-xl text-xs leading-relaxed break-words bg-[color-mix(in_srgb,#dc2626_10%,transparent)] text-red-700 dark:text-red-400"
+        role="alert"
+      >
+        {account.last_sync_error
+          ? account.last_sync_error.replace(
+              /^IMAP authentication failed:\s*/i,
+              "",
+            )
+          : t("settings.sync_failed_detail", {
+              time:
+                format_sync_time(account.last_sync_at) ||
+                t("common.unknown_time"),
+            })}
+      </div>
+    </div>
   );
 }
 
@@ -118,7 +116,7 @@ export function SyncStatusIndicator({
     return (
       <div
         aria-live="polite"
-        className="flex flex-col gap-1 min-w-0 w-full max-w-[220px]"
+        className="flex flex-col gap-1 min-w-0 w-full max-w-[240px]"
         role="status"
       >
         <span
@@ -159,15 +157,17 @@ export function SyncStatusIndicator({
   if (account.needs_reauth) {
     return (
       <span
-        className="flex items-center gap-1 text-[11px]"
+        className="flex items-start gap-1 text-[11px] leading-4"
         style={{ color: "rgb(245, 158, 11)" }}
       >
-        <ExclamationTriangleIcon className="w-3 h-3" />
-        {account.protocol === "oauth_imap"
-          ? t("settings.connected_accounts_reauth_needed")
-          : needs_app_password_notice(account)
-            ? t("settings.connected_accounts_app_password_needed")
-            : t("settings.connected_accounts_password_reauth_needed")}
+        <ExclamationTriangleIcon className="w-3 h-3 mt-0.5 flex-shrink-0" />
+        <span className="min-w-0">
+          {account.protocol === "oauth_imap"
+            ? t("settings.connected_accounts_reauth_needed")
+            : needs_app_password_notice(account)
+              ? t("settings.connected_accounts_app_password_needed")
+              : t("settings.connected_accounts_password_reauth_needed")}
+        </span>
       </span>
     );
   }
@@ -177,15 +177,15 @@ export function SyncStatusIndicator({
       <button
         aria-expanded={expanded_error_ids.has(account.id)}
         aria-label={t("settings.show_sync_error_details")}
-        className="flex items-center gap-1 text-[11px] cursor-pointer bg-transparent border-none p-0"
+        className="flex items-start gap-1 text-[11px] leading-4 text-start cursor-pointer bg-transparent border-none p-0"
         style={{ color: "rgb(239, 68, 68)" }}
         type="button"
         onClick={() => toggle_error_expand(account.id)}
       >
-        <XCircleIcon className="w-3 h-3" />
-        {t("settings.sync_failed")}
+        <XCircleIcon className="w-3 h-3 mt-0.5 flex-shrink-0" />
+        <span className="min-w-0">{t("settings.sync_failed")}</span>
         <ChevronDownIcon
-          className="w-3 h-3 transition-transform duration-150"
+          className="w-3 h-3 mt-0.5 flex-shrink-0 transition-transform duration-150"
           style={{
             transform: expanded_error_ids.has(account.id)
               ? "rotate(180deg)"
@@ -202,7 +202,7 @@ export function SyncStatusIndicator({
         className="flex items-center gap-1 text-[11px]"
         style={{ color: "rgb(234, 179, 8)" }}
       >
-        <ExclamationTriangleIcon className="w-3 h-3" />
+        <ExclamationTriangleIcon className="w-3 h-3 flex-shrink-0" />
         {format_sync_time(account.last_sync_at)}
       </span>
     );
@@ -215,7 +215,7 @@ export function SyncStatusIndicator({
           className="flex items-center gap-1 text-[11px]"
           style={{ color: "rgb(34, 197, 94)" }}
         >
-          <CheckCircleIcon className="w-3 h-3" />
+          <CheckCircleIcon className="w-3 h-3 flex-shrink-0" />
           {format_sync_time(account.last_sync_at)}
         </span>
       </Tooltip>
@@ -225,6 +225,7 @@ export function SyncStatusIndicator({
   return (
     <Tooltip tip={t("settings.not_synced_tooltip")}>
       <span className="flex items-center gap-1 text-[11px] text-txt-muted">
+        <ClockIcon className="w-3 h-3 flex-shrink-0" />
         {t("settings.not_synced")}
       </span>
     </Tooltip>
