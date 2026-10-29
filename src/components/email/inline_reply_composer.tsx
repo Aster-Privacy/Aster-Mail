@@ -397,6 +397,7 @@ export const InlineReplyComposer = forwardRef<
       </div>
       <div className="py-0.5">
         <RecipientField
+          lock_scope={reply_modal.lock_scope}
           show_bcc={reply_modal.show_bcc}
           show_cc_bcc_buttons
           all_recipients={reply_all_recipients}
@@ -436,6 +437,7 @@ export const InlineReplyComposer = forwardRef<
       {reply_modal.show_cc && (
         <div className="py-0.5">
           <RecipientField
+            lock_scope={reply_modal.lock_scope}
             all_recipients={reply_all_recipients}
             chip_class_name={field_chip_class}
             class_name="items-start"
@@ -484,6 +486,7 @@ export const InlineReplyComposer = forwardRef<
       {reply_modal.show_bcc && (
         <div className="py-0.5">
           <RecipientField
+            lock_scope={reply_modal.lock_scope}
             all_recipients={reply_all_recipients}
             chip_class_name={field_chip_class}
             class_name="items-start"
@@ -561,6 +564,7 @@ export const InlineReplyComposer = forwardRef<
         </div>
         <div className="py-0.5">
           <RecipientField
+            lock_scope={forward_modal.lock_scope}
             auto_focus
             chip_class_name={field_chip_class}
             class_name="items-start"

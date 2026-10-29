@@ -955,6 +955,10 @@ export const it = {
       "Le email programmate possono partire al massimo con 28 giorni di anticipo. Scegli un orario precedente.",
     scheduled_requires_encryption:
       "Hai attivato la crittografia obbligatoria, e le email programmate verso indirizzi esterni non sono crittografate end-to-end. Invia questo messaggio ora o disattiva la crittografia obbligatoria nelle Impostazioni.",
+    scheduled_no_pgp:
+      "Le email programmate verso indirizzi esterni non possono ancora usare la crittografia PGP. Invia questo messaggio ora per crittografarlo.",
+    expiry_no_pgp:
+      "Le email con scadenza verso indirizzi esterni non possono usare la crittografia PGP. Per crittografare questo messaggio con PGP, rimuovi la scadenza.",
     offline_password_protected_unavailable:
       "Non puoi mettere in coda email protette da password quando sei offline. Quando sei di nuovo connesso, invia il messaggio.",
     offline_settings_unavailable:

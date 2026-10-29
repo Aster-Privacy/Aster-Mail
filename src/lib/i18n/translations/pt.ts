@@ -845,6 +845,10 @@ export const pt = {
       "Os emails agendados podem ser enviados com, no máximo, 28 dias de antecedência. Escolha uma hora anterior.",
     scheduled_requires_encryption:
       "Tem a encriptação obrigatória ativada, e os emails agendados para endereços externos não são encriptados ponto a ponto. Envie esta mensagem agora ou desative a encriptação obrigatória nas Definições.",
+    scheduled_no_pgp:
+      "Os emails agendados para endereços externos ainda não podem usar encriptação PGP. Envie esta mensagem agora para a encriptar.",
+    expiry_no_pgp:
+      "Os emails com expiração para endereços externos não podem usar encriptação PGP. Para encriptar esta mensagem com PGP, remova a expiração.",
     offline_password_protected_unavailable:
       "Não pode colocar em fila emails protegidos por palavra-passe enquanto está offline. Quando voltar a estar ligado, envie a mensagem.",
     offline_settings_unavailable:

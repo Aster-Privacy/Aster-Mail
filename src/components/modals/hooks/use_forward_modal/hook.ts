@@ -79,6 +79,7 @@ import {
 } from "@/lib/recipient_limits";
 import { use_suggestion_contacts } from "@/hooks/use_suggestion_contacts";
 import { check_scheduled_send } from "@/services/scheduled_send_gate";
+import { use_recipient_lock_scope } from "@/services/recipient_lock_state";
 import {
   create_scheduled_email,
   type ScheduledEmailContent,
@@ -793,6 +794,8 @@ export function use_forward_modal({
     ? escape_plain_text(forward_message).replace(/\n/g, "<br>")
     : forward_message;
 
+  const lock_scope = use_recipient_lock_scope();
+
   const handle_forward = useCallback(async () => {
     if (
       !can_acquire_send_lock(
@@ -1027,6 +1030,7 @@ export function use_forward_modal({
         forward_original_mail_id: fwd_server_source_id,
         require_encryption: preferences.require_encryption === true,
         is_plain_text: is_plain_text_mode,
+        lock_scope,
       },
       {
         on_complete: () => {
@@ -1137,6 +1141,7 @@ export function use_forward_modal({
       }
     }
   }, [
+    lock_scope,
     t,
     commit_pending_recipient_inputs,
     inputs,
@@ -1248,6 +1253,7 @@ export function use_forward_modal({
         scheduled_sender_email,
         scheduled_time,
         preferences.require_encryption === true,
+        preferences.show_encryption_indicators ? lock_scope : null,
       );
     } finally {
       schedule_gate_pending_ref.current = false;
@@ -1359,6 +1365,7 @@ export function use_forward_modal({
       send_lock_started_at_ref.current = 0;
     }
   }, [
+    lock_scope,
     t,
     commit_pending_recipient_inputs,
     inputs,
@@ -1373,6 +1380,7 @@ export function use_forward_modal({
     get_forward_content,
     preferences.show_aster_branding,
     preferences.require_encryption,
+    preferences.show_encryption_indicators,
     selected_sender,
     expires_at,
     original_mail_id,
@@ -1624,6 +1632,7 @@ export function use_forward_modal({
   const can_send = !is_sending && !is_loading_attachments;
 
   return {
+    lock_scope,
     t,
     reduce_motion,
     user,

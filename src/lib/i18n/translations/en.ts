@@ -955,6 +955,10 @@ export const en: Translations = {
       "Scheduled emails can go out at most 28 days ahead. Choose an earlier time.",
     scheduled_requires_encryption:
       "You have required encryption turned on, and scheduled emails to outside addresses aren't end-to-end encrypted. Send this message now, or turn off required encryption in Settings.",
+    scheduled_no_pgp:
+      "Scheduled emails to outside addresses can't use PGP encryption yet. Send this message now to encrypt it.",
+    expiry_no_pgp:
+      "Expiring emails to outside addresses can't use PGP encryption. To encrypt this message with PGP, remove the expiry.",
     offline_password_protected_unavailable:
       "You can't queue password-protected emails while you're offline. When you're connected again, send the message.",
     offline_settings_unavailable:

@@ -994,6 +994,10 @@ export const ko = {
       "예약 이메일은 최대 28일 후까지 보낼 수 있습니다. 더 이른 시간을 선택하세요.",
     scheduled_requires_encryption:
       "필수 암호화가 켜져 있으며, 외부 주소로 보내는 예약 이메일은 종단 간 암호화되지 않습니다. 이 메시지를 지금 보내거나 설정에서 필수 암호화를 끄세요.",
+    scheduled_no_pgp:
+      "외부 주소로 보내는 예약 이메일은 아직 PGP 암호화를 사용할 수 없습니다. 암호화하려면 이 메시지를 지금 보내세요.",
+    expiry_no_pgp:
+      "만료되는 외부 주소 이메일은 PGP 암호화를 사용할 수 없습니다. 이 메시지를 PGP로 암호화하려면 만료를 제거하세요.",
     offline_password_protected_unavailable:
       "오프라인 상태에서는 암호로 보호된 이메일을 대기열에 추가할 수 없습니다. 다시 연결되면 메시지를 보내세요.",
     offline_settings_unavailable:

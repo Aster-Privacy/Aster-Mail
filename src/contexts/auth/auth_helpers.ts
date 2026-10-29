@@ -62,6 +62,7 @@ import { clear_removed_items } from "@/services/removed_items";
 import { clear_my_badge_prefs } from "@/stores/my_badge_prefs_store";
 import { clear_ghost_entries } from "@/stores/ghost_alias_store";
 import { clear_recipient_hints } from "@/stores/recipient_hint_store";
+import { forget_recipient_lock_statuses } from "@/services/recipient_lock_state";
 import { clear_label_hints } from "@/stores/label_hints_store";
 import { reset_special_offer_status } from "@/stores/special_offer_status";
 
@@ -107,6 +108,7 @@ export async function clear_account_scoped_caches(
   clear_my_badge_prefs();
   clear_ghost_entries();
   clear_recipient_hints();
+  forget_recipient_lock_statuses();
   clear_label_hints();
   clear_account_memory_stores();
   request_cache.clear();

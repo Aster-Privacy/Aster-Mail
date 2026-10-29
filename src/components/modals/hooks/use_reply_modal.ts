@@ -84,6 +84,7 @@ import {
   type ScheduledEmailContent,
 } from "@/services/api/scheduled";
 import { check_scheduled_send } from "@/services/scheduled_send_gate";
+import { use_recipient_lock_scope } from "@/services/recipient_lock_state";
 import { get_or_create_thread_token } from "@/services/thread_service";
 import { emit_scheduled_changed } from "@/hooks/mail_events";
 import { create_draft, delete_thread_draft } from "@/services/api/multi_drafts";
@@ -348,6 +349,8 @@ export function use_reply_modal(props: UseReplyModalProps) {
 
   const attachment_session = use_attachment_session();
 
+  const lock_scope = use_recipient_lock_scope();
+
   const handle_send = useCallback(async () => {
     const now = Date.now();
 
@@ -611,6 +614,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
         attachments: attachments.length > 0 ? attachments : undefined,
         require_encryption: preferences.require_encryption === true,
         is_plain_text: is_plain_text_mode,
+        lock_scope,
       },
       {
         on_complete: () => {
@@ -798,6 +802,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
       void save_thread_draft(reply_message);
     }
   }, [
+    lock_scope,
     save_thread_draft,
     t,
     reply_message,
@@ -922,6 +927,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
         scheduled_sender_email,
         scheduled_time,
         preferences.require_encryption === true,
+        preferences.show_encryption_indicators ? lock_scope : null,
       );
     } finally {
       schedule_gate_pending_ref.current = false;
@@ -1033,6 +1039,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
       send_lock_started_at_ref.current = 0;
     }
   }, [
+    lock_scope,
     save_thread_draft,
     t,
     reply_message,
@@ -1053,6 +1060,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
     reply_from_mismatch,
     expires_at,
     preferences.require_encryption,
+    preferences.show_encryption_indicators,
     thread_token,
     original_email_id,
     original_rfc_message_id,
@@ -1435,6 +1443,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
   const can_send = is_valid && !is_sending;
 
   return {
+    lock_scope,
     t,
     reduce_motion,
     sender_options,

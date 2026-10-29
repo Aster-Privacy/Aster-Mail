@@ -23,6 +23,7 @@ import type { DecryptedRecentRecipient } from "@/types/recent_recipients";
 import type { SenderOption } from "@/hooks/use_sender_aliases";
 import type { Badge } from "@/services/api/user";
 import type { UseEditorReturn } from "@/hooks/use_editor";
+import type { RecipientLockScope } from "@/services/recipient_lock_state";
 
 import {
   useState,
@@ -207,7 +208,9 @@ export interface UseComposeReturn {
   confirm_discard_close: () => void;
   cancel_discard_close: () => void;
   pgp_enabled: boolean;
+  pgp_override: boolean | null;
   toggle_pgp: () => void;
+  lock_scope?: RecipientLockScope;
 
   schedule_picker_element: React.ReactNode;
   expiration_picker_element: React.ReactNode;
@@ -1325,7 +1328,9 @@ export function use_compose({
     handle_delete_draft: draft_hook.handle_delete_draft,
     handle_show_delete_confirm,
     pgp_enabled: send_hook.pgp_enabled,
+    pgp_override: send_hook.pgp_override,
     toggle_pgp: send_hook.toggle_pgp,
+    lock_scope: send_hook.lock_scope,
     handle_hide_delete_confirm,
     handle_close: draft_hook.handle_close,
     show_discard_confirm: draft_hook.show_discard_confirm,

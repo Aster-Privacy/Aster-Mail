@@ -507,6 +507,8 @@ export interface SendEmailPayload {
   expires_at?: string;
   expiry_password?: string;
   secure_external?: boolean;
+  force_pgp?: boolean;
+  pgp_recipients?: string[];
   attachments?: { name: string; data: string; type: string }[];
 }
 
@@ -586,6 +588,8 @@ async function process_send_email(
     sender_alias_hash: payload.sender_alias_hash,
     sender_display_name: payload.sender_display_name,
     expires_at: payload.expires_at,
+    force_pgp: payload.force_pgp,
+    pgp_recipients: payload.pgp_recipients,
     attachments: attachments.length > 0 ? attachments : undefined,
     client_send_id,
   };

@@ -262,6 +262,26 @@ describe("execute_send outside copies", () => {
     expect(h.build_copies).not.toHaveBeenCalled();
     expect(simple_request().external_pgp_bodies).toBeUndefined();
   });
+
+  it("refuses a locked recipient that has no encrypted copy", async () => {
+    h.build_copies.mockResolvedValue(undefined);
+
+    await expect(
+      execute_send(queued({ pgp_recipients: ["Pal@Example.com"] })),
+    ).rejects.toBeTruthy();
+
+    expect(h.send_simple).not.toHaveBeenCalled();
+  });
+
+  it("sends a locked recipient that has an encrypted copy", async () => {
+    h.build_copies.mockResolvedValue({ "pal@example.com": "armored" });
+
+    await execute_send(queued({ pgp_recipients: ["pal@example.com"] }));
+
+    expect(simple_request().external_pgp_bodies).toEqual({
+      "pal@example.com": "armored",
+    });
+  });
 });
 
 describe("queue_email_to_server expiring messages", () => {

@@ -955,6 +955,10 @@ export const pl = {
       "Zaplanowane e-maile można wysłać najwyżej 28 dni naprzód. Wybierz wcześniejszy termin.",
     scheduled_requires_encryption:
       "Masz włączone wymagane szyfrowanie, a zaplanowane e-maile do adresów zewnętrznych nie są szyfrowane end-to-end. Wyślij tę wiadomość teraz lub wyłącz wymagane szyfrowanie w Ustawieniach.",
+    scheduled_no_pgp:
+      "Zaplanowane e-maile do adresów zewnętrznych nie mogą jeszcze używać szyfrowania PGP. Wyślij tę wiadomość teraz, aby ją zaszyfrować.",
+    expiry_no_pgp:
+      "Wygasające e-maile do adresów zewnętrznych nie mogą używać szyfrowania PGP. Aby zaszyfrować tę wiadomość za pomocą PGP, usuń datę wygaśnięcia.",
     offline_password_protected_unavailable:
       "Nie możesz dodać do kolejki e-maili chronionych hasłem, gdy jesteś offline. Gdy znów połączysz się z internetem, wyślij wiadomość.",
     offline_settings_unavailable:

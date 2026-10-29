@@ -101,6 +101,7 @@ vi.mock("@/components/compose/use_compose_send", () => ({
     handle_scheduled_send: vi.fn(),
     is_sending: false,
     pgp_enabled: false,
+    pgp_override: null,
     toggle_pgp: vi.fn(),
     queued_email_id: null,
     set_queued_email_id: vi.fn(),

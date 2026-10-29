@@ -1601,6 +1601,8 @@ export interface CommonTranslations {
   scheduled_no_expiry: string;
   scheduled_too_far_ahead: string;
   scheduled_requires_encryption: string;
+  scheduled_no_pgp: string;
+  expiry_no_pgp: string;
   offline_password_protected_unavailable: string;
   offline_settings_unavailable: string;
   cannot_send_key_changed_offline: string;
