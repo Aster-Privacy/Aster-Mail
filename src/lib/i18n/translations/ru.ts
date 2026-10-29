@@ -917,16 +917,11 @@ export const ru = {
       "Этот файл занимает {{size}} МБ, что превышает допустимый размер. Меньший обычно подходит.",
     delete_failed: "Попробуйте снова.",
     download_failed: "Загрузка не завершилась. Попробуйте снова.",
-    download_complete:
-      "Загрузка завершена",
-    downloaded_file:
-      "Файл {{file_name}} загружен",
-    open_file:
-      "Открыть",
-    show_in_folder:
-      "Показать в папке",
-    show_in_finder:
-      "Показать в Finder",
+    download_complete: "Загрузка завершена",
+    downloaded_file: "Файл {{file_name}} загружен",
+    open_file: "Открыть",
+    show_in_folder: "Показать в папке",
+    show_in_finder: "Показать в Finder",
     download_open_failed:
       "Не удалось открыть этот файл. Возможно, он был перемещен или удален.",
     download_reveal_failed:
@@ -1360,6 +1355,19 @@ export const ru = {
       "Слишком много попыток. Подождите 30 минут и повторите попытку.",
     recover_data_failed:
       "Не удалось разблокировать часть данных. Проверьте подключение и повторите попытку.",
+    recover_data_key_file_label: "Файл ключа",
+    recover_data_key_file_description:
+      "Чтобы разблокировать старые письма закрытым ключом, экспортированным из Aster, выберите файл .asc. Чтобы разблокировать и письма, зашифрованные PGP, введите пароль, который был у аккаунта при экспорте ключа.",
+    recover_data_choose_file: "Выбрать файл",
+    recover_data_key_file_password: "Пароль при экспорте (необязательно)",
+    recover_data_key_file_invalid:
+      "Этот файл не является экспортированным закрытым ключом. Выберите файл .asc, скачанный из Aster.",
+    recover_data_key_file_wrong_password:
+      "Этот пароль не разблокирует файл ключа. Введите пароль, который был у аккаунта при экспорте ключа.",
+    recover_data_key_file_already: "Этот ключ уже есть в вашем аккаунте.",
+    recover_data_key_file_success: "Файл ключа импортирован.",
+    recover_data_key_file_success_locked:
+      "Файл ключа импортирован. Чтобы разблокировать и письма, зашифрованные PGP, импортируйте его снова с паролем, который был у аккаунта при экспорте ключа.",
     payment_past_due_message:
       "Последний платеж не прошел. Обновите способ оплаты, чтобы сохранить тариф.",
     payment_past_due_message_days:
@@ -4048,7 +4056,8 @@ export const ru = {
     updates_card_installing_detail: "Aster Mail скоро перезапустится.",
     updates_card_failed: "Не удалось установить обновление",
     updates_card_failed_detail: "Проверьте подключение и повторите попытку.",
-    updates_card_available_detail: "Aster Mail перезапустится, чтобы завершить установку.",
+    updates_card_available_detail:
+      "Aster Mail перезапустится, чтобы завершить установку.",
     updates_time_left_moment: "Почти готово",
     updates_time_left_seconds: "Осталось около {{seconds}} с",
     updates_time_left_minutes: "Осталось около {{minutes}} мин",

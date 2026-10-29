@@ -933,16 +933,11 @@ export const es = {
     file_too_large: "El archivo debe ser más pequeño que {{size}}",
     delete_failed: "Inténtalo de nuevo.",
     download_failed: "Inténtalo de nuevo.",
-    download_complete:
-      "Descarga completada",
-    downloaded_file:
-      "Se descargó {{file_name}}",
-    open_file:
-      "Abrir",
-    show_in_folder:
-      "Mostrar en la carpeta",
-    show_in_finder:
-      "Mostrar en el Finder",
+    download_complete: "Descarga completada",
+    downloaded_file: "Se descargó {{file_name}}",
+    open_file: "Abrir",
+    show_in_folder: "Mostrar en la carpeta",
+    show_in_finder: "Mostrar en el Finder",
     download_open_failed:
       "No se pudo abrir este archivo. Es posible que se haya movido o eliminado.",
     download_reveal_failed:
@@ -1375,6 +1370,19 @@ export const es = {
       "Demasiados intentos. Espera 30 minutos y vuelve a intentarlo.",
     recover_data_failed:
       "No se pudieron desbloquear algunos datos. Comprueba tu conexión e inténtalo de nuevo.",
+    recover_data_key_file_label: "Archivo de clave",
+    recover_data_key_file_description:
+      "Para desbloquear correos anteriores con una clave privada que exportaste de Aster, elige el archivo .asc. Para desbloquear también los correos cifrados con PGP, introduce la contraseña que tenía tu cuenta cuando exportaste la clave.",
+    recover_data_choose_file: "Elegir archivo",
+    recover_data_key_file_password: "Contraseña al exportar (opcional)",
+    recover_data_key_file_invalid:
+      "Este archivo no es una clave privada exportada. Elige el archivo .asc que descargaste de Aster.",
+    recover_data_key_file_wrong_password:
+      "Esa contraseña no desbloquea este archivo de clave. Introduce la contraseña que tenía tu cuenta cuando exportaste la clave.",
+    recover_data_key_file_already: "Esta clave ya está en tu cuenta.",
+    recover_data_key_file_success: "Se importó tu archivo de clave.",
+    recover_data_key_file_success_locked:
+      "Se importó tu archivo de clave. Para desbloquear también los correos cifrados con PGP, vuelve a importarlo con la contraseña que tenía tu cuenta cuando exportaste la clave.",
     payment_past_due_message:
       "Tu último pago no se procesó. Actualiza tu método de pago para mantener tu plan.",
     payment_past_due_message_days:
@@ -3934,7 +3942,8 @@ export const es = {
     updates_card_installing_detail: "Aster Mail se reiniciará en un momento.",
     updates_card_failed: "No se pudo instalar la actualización",
     updates_card_failed_detail: "Comprueba tu conexión e inténtalo de nuevo.",
-    updates_card_available_detail: "Aster Mail se reinicia para terminar la instalación.",
+    updates_card_available_detail:
+      "Aster Mail se reinicia para terminar la instalación.",
     updates_time_left_moment: "Casi listo",
     updates_time_left_seconds: "Quedan unos {{seconds}} s",
     updates_time_left_minutes: "Quedan unos {{minutes}} min",

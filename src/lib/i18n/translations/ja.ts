@@ -961,16 +961,11 @@ export const ja = {
     file_too_large: "ファイルは{{size}}未満である必要があります",
     delete_failed: "もう一度お試しください。",
     download_failed: "もう一度お試しください。",
-    download_complete:
-      "ダウンロードが完了しました",
-    downloaded_file:
-      "{{file_name}} をダウンロードしました",
-    open_file:
-      "開く",
-    show_in_folder:
-      "フォルダに表示",
-    show_in_finder:
-      "Finder に表示",
+    download_complete: "ダウンロードが完了しました",
+    downloaded_file: "{{file_name}} をダウンロードしました",
+    open_file: "開く",
+    show_in_folder: "フォルダに表示",
+    show_in_finder: "Finder に表示",
     download_open_failed:
       "このファイルを開けませんでした。移動または削除された可能性があります。",
     download_reveal_failed:
@@ -1390,6 +1385,19 @@ export const ja = {
       "試行回数が多すぎます。30分待ってから、もう一度お試しください。",
     recover_data_failed:
       "一部のデータのロックを解除できませんでした。接続を確認して、もう一度お試しください。",
+    recover_data_key_file_label: "鍵ファイル",
+    recover_data_key_file_description:
+      "Aster からエクスポートした秘密鍵で以前のメールのロックを解除するには、.asc ファイルを選択します。PGP で暗号化されたメールのロックも解除するには、鍵をエクスポートしたときのアカウントのパスワードを入力します。",
+    recover_data_choose_file: "ファイルを選択",
+    recover_data_key_file_password: "エクスポート時のパスワード (任意)",
+    recover_data_key_file_invalid:
+      "このファイルはエクスポートされた秘密鍵ではありません。Aster からダウンロードした .asc ファイルを選択してください。",
+    recover_data_key_file_wrong_password:
+      "このパスワードでは鍵ファイルのロックを解除できません。鍵をエクスポートしたときのアカウントのパスワードを入力してください。",
+    recover_data_key_file_already: "この鍵はすでにアカウントにあります。",
+    recover_data_key_file_success: "鍵ファイルをインポートしました。",
+    recover_data_key_file_success_locked:
+      "鍵ファイルをインポートしました。PGP で暗号化されたメールのロックも解除するには、鍵をエクスポートしたときのアカウントのパスワードを入力してもう一度インポートしてください。",
     payment_past_due_message:
       "前回のお支払いを処理できませんでした。プランを継続するには、お支払い方法を更新してください。",
     payment_past_due_message_days:
@@ -3878,7 +3886,8 @@ export const ja = {
     updates_card_installing_detail: "まもなく Aster Mail が再起動します。",
     updates_card_failed: "アップデートをインストールできませんでした",
     updates_card_failed_detail: "接続を確認してもう一度お試しください。",
-    updates_card_available_detail: "インストールを完了するために Aster Mail が再起動します。",
+    updates_card_available_detail:
+      "インストールを完了するために Aster Mail が再起動します。",
     updates_time_left_moment: "まもなく完了",
     updates_time_left_seconds: "残り約 {{seconds}} 秒",
     updates_time_left_minutes: "残り約 {{minutes}} 分",

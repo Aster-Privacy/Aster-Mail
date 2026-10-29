@@ -1953,6 +1953,15 @@ export interface CommonTranslations {
   recover_data_partial: string;
   recover_data_rate_limited: string;
   recover_data_failed: string;
+  recover_data_key_file_label: string;
+  recover_data_key_file_description: string;
+  recover_data_choose_file: string;
+  recover_data_key_file_password: string;
+  recover_data_key_file_invalid: string;
+  recover_data_key_file_wrong_password: string;
+  recover_data_key_file_already: string;
+  recover_data_key_file_success: string;
+  recover_data_key_file_success_locked: string;
   payment_past_due_message: string;
   payment_past_due_message_days: string;
   payment_past_due_action: string;

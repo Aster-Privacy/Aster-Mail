@@ -800,20 +800,13 @@ export const zh_CN = {
       "这个文件有 {{size}} MB，超过了大小限制，换一个较小的就可以。",
     delete_failed: "请重试。",
     download_failed: "此下载未能完成。请重试。",
-    download_complete:
-      "下载完成",
-    downloaded_file:
-      "已下载 {{file_name}}",
-    open_file:
-      "打开",
-    show_in_folder:
-      "在文件夹中显示",
-    show_in_finder:
-      "在 Finder 中显示",
-    download_open_failed:
-      "无法打开此文件。它可能已被移动或删除。",
-    download_reveal_failed:
-      "无法显示此文件。它可能已被移动或删除。",
+    download_complete: "下载完成",
+    downloaded_file: "已下载 {{file_name}}",
+    open_file: "打开",
+    show_in_folder: "在文件夹中显示",
+    show_in_finder: "在 Finder 中显示",
+    download_open_failed: "无法打开此文件。它可能已被移动或删除。",
+    download_reveal_failed: "无法显示此文件。它可能已被移动或删除。",
     attachment_locked: "此附件的加密密钥在此设备上不可用，因此无法打开。",
     scheduled_no_attachments:
       "定时邮件暂时无法包含附件。请立即发送，或移除文件后再定时。",
@@ -1167,6 +1160,19 @@ export const zh_CN = {
       "您之前的部分邮件已解锁。要解锁其余邮件，请输入先前的密码。",
     recover_data_rate_limited: "尝试次数过多。请等待 30 分钟后重试。",
     recover_data_failed: "部分数据无法解锁。请检查网络连接后重试。",
+    recover_data_key_file_label: "密钥文件",
+    recover_data_key_file_description:
+      "要使用从 Aster 导出的私钥解锁较早的邮件，请选择 .asc 文件。要同时解锁 PGP 加密的邮件，请输入导出密钥时账户使用的密码。",
+    recover_data_choose_file: "选择文件",
+    recover_data_key_file_password: "导出时的密码（可选）",
+    recover_data_key_file_invalid:
+      "此文件不是导出的私钥。请选择从 Aster 下载的 .asc 文件。",
+    recover_data_key_file_wrong_password:
+      "该密码无法解锁此密钥文件。请输入导出密钥时账户使用的密码。",
+    recover_data_key_file_already: "此密钥已在你的账户中。",
+    recover_data_key_file_success: "已导入你的密钥文件。",
+    recover_data_key_file_success_locked:
+      "已导入你的密钥文件。要同时解锁 PGP 加密的邮件，请使用导出密钥时账户的密码重新导入。",
     payment_past_due_message: "上次付款未成功。请更新付款方式以保留当前套餐。",
     payment_past_due_message_days:
       "上次付款未成功。请在 {{days}} 天内更新付款方式以保留当前套餐。",

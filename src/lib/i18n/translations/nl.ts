@@ -903,16 +903,11 @@ export const nl = {
     file_too_large: "Bestand moet kleiner zijn dan {{size}}",
     delete_failed: "Probeer het opnieuw.",
     download_failed: "Probeer het opnieuw.",
-    download_complete:
-      "Download voltooid",
-    downloaded_file:
-      "{{file_name}} gedownload",
-    open_file:
-      "Openen",
-    show_in_folder:
-      "Tonen in map",
-    show_in_finder:
-      "Toon in Finder",
+    download_complete: "Download voltooid",
+    downloaded_file: "{{file_name}} gedownload",
+    open_file: "Openen",
+    show_in_folder: "Tonen in map",
+    show_in_finder: "Toon in Finder",
     download_open_failed:
       "Dit bestand kan niet worden geopend. Het is mogelijk verplaatst of verwijderd.",
     download_reveal_failed:
@@ -1356,6 +1351,19 @@ export const nl = {
       "Te veel pogingen. Wacht 30 minuten en probeer het dan opnieuw.",
     recover_data_failed:
       "Sommige gegevens konden niet worden ontgrendeld. Controleer je verbinding en probeer het opnieuw.",
+    recover_data_key_file_label: "Sleutelbestand",
+    recover_data_key_file_description:
+      "Kies het .asc-bestand om oudere e-mail te ontgrendelen met een privésleutel die je uit Aster hebt geëxporteerd. Voer het wachtwoord in dat je account had toen je de sleutel exporteerde om ook met PGP versleutelde e-mail te ontgrendelen.",
+    recover_data_choose_file: "Bestand kiezen",
+    recover_data_key_file_password: "Wachtwoord bij export (optioneel)",
+    recover_data_key_file_invalid:
+      "Dit bestand is geen geëxporteerde privésleutel. Kies het .asc-bestand dat je uit Aster hebt gedownload.",
+    recover_data_key_file_wrong_password:
+      "Dat wachtwoord ontgrendelt dit sleutelbestand niet. Voer het wachtwoord in dat je account had toen je de sleutel exporteerde.",
+    recover_data_key_file_already: "Deze sleutel staat al in je account.",
+    recover_data_key_file_success: "Je sleutelbestand is geïmporteerd.",
+    recover_data_key_file_success_locked:
+      "Je sleutelbestand is geïmporteerd. Importeer het opnieuw met het wachtwoord dat je account had toen je de sleutel exporteerde om ook met PGP versleutelde e-mail te ontgrendelen.",
     payment_past_due_message:
       "Je laatste betaling is niet gelukt. Werk je betaalmethode bij om je abonnement te behouden.",
     payment_past_due_message_days:
@@ -3907,8 +3915,10 @@ export const nl = {
     updates_card_installing: "Update installeren",
     updates_card_installing_detail: "Aster Mail start zo opnieuw op.",
     updates_card_failed: "De update is niet geïnstalleerd",
-    updates_card_failed_detail: "Controleer je verbinding en probeer het opnieuw.",
-    updates_card_available_detail: "Aster Mail start opnieuw op om de installatie te voltooien.",
+    updates_card_failed_detail:
+      "Controleer je verbinding en probeer het opnieuw.",
+    updates_card_available_detail:
+      "Aster Mail start opnieuw op om de installatie te voltooien.",
     updates_time_left_moment: "Bijna klaar",
     updates_time_left_seconds: "Nog ongeveer {{seconds}} sec",
     updates_time_left_minutes: "Nog ongeveer {{minutes}} min",

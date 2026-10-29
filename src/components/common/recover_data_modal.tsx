@@ -36,14 +36,16 @@ import { use_i18n } from "@/lib/i18n/context";
 import { BillingSegmented } from "@/components/settings/billing/billing_segmented";
 import { clamp_password } from "@/services/sanitize";
 import { is_valid_recovery_code } from "@/services/crypto/recovery_key";
+import { KEY_FILE_MAX_BYTES } from "@/services/crypto/restore_inactive_keys";
 import {
   recover_locked_data,
   recover_locked_data_with_code,
+  recover_locked_data_with_key_file,
 } from "@/services/locked_data";
 import { apply_input_transform } from "@/utils/input_transform";
 import { is_composing } from "@/utils/ime";
 
-type RecoverMethod = "code" | "password";
+type RecoverMethod = "code" | "password" | "key_file";
 
 const RECOVERY_CODE_MAX_LENGTH = 32;
 const FIELD_CLASS =
@@ -65,8 +67,10 @@ export function RecoverDataModal({
   const [code, set_code] = useState("");
   const [password, set_password] = useState("");
   const [show_password, set_show_password] = useState(false);
+  const [key_file, set_key_file] = useState<File | null>(null);
   const [recovering, set_recovering] = useState(false);
   const field_ref = useRef<HTMLInputElement>(null);
+  const file_ref = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!is_open) return;
@@ -81,6 +85,7 @@ export function RecoverDataModal({
     set_code("");
     set_password("");
     set_show_password(false);
+    set_key_file(null);
   }, []);
 
   const close = useCallback(() => {
@@ -170,9 +175,122 @@ export function RecoverDataModal({
     );
   }, [recovering, password, account_id, t, reset_fields, on_close]);
 
+  const handle_recover_with_key_file = useCallback(async () => {
+    if (recovering || !key_file) return;
+
+    if (key_file.size > KEY_FILE_MAX_BYTES) {
+      show_toast(t("common.recover_data_key_file_invalid"), "error");
+
+      return;
+    }
+
+    set_recovering(true);
+
+    let key_file_text = "";
+
+    try {
+      key_file_text = await key_file.text();
+    } catch {
+      key_file_text = "";
+    }
+
+    const result = await recover_locked_data_with_key_file(
+      key_file_text,
+      password,
+    );
+
+    set_recovering(false);
+
+    if (result.status === "imported") {
+      show_toast(
+        t(
+          result.unlocked
+            ? "common.recover_data_key_file_success"
+            : "common.recover_data_key_file_success_locked",
+        ),
+        "success",
+      );
+      reset_fields();
+      on_close();
+
+      return;
+    }
+
+    if (result.status === "already_present") {
+      show_toast(t("common.recover_data_key_file_already"), "success");
+
+      return;
+    }
+
+    show_toast(
+      t(
+        result.status === "invalid"
+          ? "common.recover_data_key_file_invalid"
+          : result.status === "wrong_password"
+            ? "common.recover_data_key_file_wrong_password"
+            : "common.recover_data_failed",
+      ),
+      "error",
+    );
+  }, [recovering, key_file, password, t, reset_fields, on_close]);
+
   const handle_recover =
-    method === "code" ? handle_recover_with_code : handle_recover_with_password;
-  const is_ready = method === "code" ? !!code.trim() : !!password;
+    method === "code"
+      ? handle_recover_with_code
+      : method === "password"
+        ? handle_recover_with_password
+        : handle_recover_with_key_file;
+  const is_ready =
+    method === "code"
+      ? !!code.trim()
+      : method === "password"
+        ? !!password
+        : !!key_file;
+
+  const render_password_field = (field_id: string, label: string) => (
+    <div className="mt-4 flex flex-col gap-1.5">
+      <label
+        className="text-xs font-medium text-txt-secondary"
+        htmlFor={field_id}
+      >
+        {label}
+      </label>
+      <div className="relative">
+        <input
+          ref={method === "password" ? field_ref : undefined}
+          autoComplete="off"
+          className={`${FIELD_CLASS} pe-10`}
+          data-form-type="other"
+          disabled={recovering}
+          id={field_id}
+          maxLength={128}
+          type={show_password ? "text" : "password"}
+          value={password}
+          onChange={(e) => set_password(clamp_password(e.target.value))}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !is_composing(e)) handle_recover();
+          }}
+        />
+        <button
+          aria-label={t(
+            show_password
+              ? "settings.hide_password_toggle"
+              : "settings.show_password_toggle",
+          )}
+          className="absolute end-3 top-1/2 -translate-y-1/2 text-txt-muted hover:text-txt-primary transition-colors"
+          tabIndex={-1}
+          type="button"
+          onClick={() => set_show_password((v) => !v)}
+        >
+          {show_password ? (
+            <EyeSlashIcon className="h-4 w-4" />
+          ) : (
+            <EyeIcon className="h-4 w-4" />
+          )}
+        </button>
+      </div>
+    </div>
+  );
 
   return (
     <Modal is_open={is_open} on_close={close} size="sm">
@@ -182,7 +300,9 @@ export function RecoverDataModal({
           {t(
             method === "code"
               ? "common.recover_data_code_description"
-              : "common.recover_data_description",
+              : method === "password"
+                ? "common.recover_data_description"
+                : "common.recover_data_key_file_description",
           )}
         </ModalDescription>
       </ModalHeader>
@@ -190,11 +310,15 @@ export function RecoverDataModal({
         <BillingSegmented
           aria_label={t("common.recover_data_title")}
           on_change={(next) => {
-            if (!recovering) set_method(next);
+            if (recovering) return;
+            set_password("");
+            set_show_password(false);
+            set_method(next);
           }}
           options={[
             { id: "code", label: t("auth.recovery_code_label") },
             { id: "password", label: t("settings.previous_password") },
+            { id: "key_file", label: t("common.recover_data_key_file_label") },
           ]}
           value={method}
         />
@@ -229,49 +353,44 @@ export function RecoverDataModal({
               }}
             />
           </div>
+        ) : method === "password" ? (
+          render_password_field(
+            "recover_data_password",
+            t("settings.previous_password"),
+          )
         ) : (
-          <div className="mt-4 flex flex-col gap-1.5">
-            <label
-              className="text-xs font-medium text-txt-secondary"
-              htmlFor="recover_data_password"
-            >
-              {t("settings.previous_password")}
-            </label>
-            <div className="relative">
+          <>
+            <div className="mt-4 flex items-center gap-3">
               <input
-                ref={field_ref}
-                autoComplete="off"
-                className={`${FIELD_CLASS} pe-10`}
-                data-form-type="other"
+                ref={file_ref}
+                accept=".asc,.txt,.key,.pgp,application/pgp-keys,text/plain"
+                className="hidden"
                 disabled={recovering}
-                id="recover_data_password"
-                maxLength={128}
-                type={show_password ? "text" : "password"}
-                value={password}
-                onChange={(e) => set_password(clamp_password(e.target.value))}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !is_composing(e)) handle_recover();
+                id="recover_data_key_file"
+                type="file"
+                onChange={(e) => {
+                  set_key_file(e.target.files?.[0] ?? null);
+                  e.target.value = "";
                 }}
               />
-              <button
-                aria-label={t(
-                  show_password
-                    ? "settings.hide_password_toggle"
-                    : "settings.show_password_toggle",
-                )}
-                className="absolute end-3 top-1/2 -translate-y-1/2 text-txt-muted hover:text-txt-primary transition-colors"
-                tabIndex={-1}
-                type="button"
-                onClick={() => set_show_password((v) => !v)}
+              <Button
+                disabled={recovering}
+                variant="outline"
+                onClick={() => file_ref.current?.click()}
               >
-                {show_password ? (
-                  <EyeSlashIcon className="h-4 w-4" />
-                ) : (
-                  <EyeIcon className="h-4 w-4" />
-                )}
-              </button>
+                {t("common.recover_data_choose_file")}
+              </Button>
+              {key_file && (
+                <span className="min-w-0 truncate text-sm text-txt-secondary">
+                  {key_file.name}
+                </span>
+              )}
             </div>
-          </div>
+            {render_password_field(
+              "recover_data_key_file_password",
+              t("common.recover_data_key_file_password"),
+            )}
+          </>
         )}
       </ModalBody>
       <ModalFooter>

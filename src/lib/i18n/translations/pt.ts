@@ -819,16 +819,11 @@ export const pt = {
     file_too_large: "O ficheiro tem de ter menos de {{size}}",
     delete_failed: "Este item não foi removido. Tente novamente.",
     download_failed: "Esta transferência não foi concluída. Tente novamente.",
-    download_complete:
-      "Transferência concluída",
-    downloaded_file:
-      "{{file_name}} transferido",
-    open_file:
-      "Abrir",
-    show_in_folder:
-      "Mostrar na pasta",
-    show_in_finder:
-      "Mostrar no Finder",
+    download_complete: "Transferência concluída",
+    downloaded_file: "{{file_name}} transferido",
+    open_file: "Abrir",
+    show_in_folder: "Mostrar na pasta",
+    show_in_finder: "Mostrar no Finder",
     download_open_failed:
       "Não foi possível abrir este ficheiro. Pode ter sido movido ou eliminado.",
     download_reveal_failed:
@@ -1267,6 +1262,19 @@ export const pt = {
       "Demasiadas tentativas. Aguarde 30 minutos e tente novamente.",
     recover_data_failed:
       "Não foi possível desbloquear alguns dados. Verifique a sua ligação e tente novamente.",
+    recover_data_key_file_label: "Ficheiro de chave",
+    recover_data_key_file_description:
+      "Para desbloquear emails antigos com uma chave privada que exportou do Aster, escolha o ficheiro .asc. Para desbloquear também emails cifrados com PGP, introduza a palavra-passe que a sua conta tinha quando exportou a chave.",
+    recover_data_choose_file: "Escolher ficheiro",
+    recover_data_key_file_password: "Palavra-passe na exportação (opcional)",
+    recover_data_key_file_invalid:
+      "Este ficheiro não é uma chave privada exportada. Escolha o ficheiro .asc que transferiu do Aster.",
+    recover_data_key_file_wrong_password:
+      "Essa palavra-passe não desbloqueia este ficheiro de chave. Introduza a palavra-passe que a sua conta tinha quando exportou a chave.",
+    recover_data_key_file_already: "Esta chave já está na sua conta.",
+    recover_data_key_file_success: "O seu ficheiro de chave foi importado.",
+    recover_data_key_file_success_locked:
+      "O seu ficheiro de chave foi importado. Para desbloquear também emails cifrados com PGP, importe-o novamente com a palavra-passe que a sua conta tinha quando exportou a chave.",
     payment_past_due_message:
       "O seu último pagamento não foi processado. Atualize o seu método de pagamento para manter o seu plano.",
     payment_past_due_message_days:
@@ -3969,10 +3977,12 @@ export const pt = {
     updates_card_downloading: "A transferir o Aster Mail {{version}}",
     updates_card_size: "{{downloaded}} de {{total}}",
     updates_card_installing: "A instalar a atualização",
-    updates_card_installing_detail: "O Aster Mail vai reiniciar dentro de instantes.",
+    updates_card_installing_detail:
+      "O Aster Mail vai reiniciar dentro de instantes.",
     updates_card_failed: "Não foi possível instalar a atualização",
     updates_card_failed_detail: "Verifique a sua ligação e tente novamente.",
-    updates_card_available_detail: "O Aster Mail reinicia para concluir a instalação.",
+    updates_card_available_detail:
+      "O Aster Mail reinicia para concluir a instalação.",
     updates_time_left_moment: "Quase concluído",
     updates_time_left_seconds: "Cerca de {{seconds}} s restantes",
     updates_time_left_minutes: "Cerca de {{minutes}} min restantes",
