@@ -265,14 +265,6 @@ export function use_mobile_mail_detail() {
         dkim_result: detail.mail_item?.dkim_result,
         dmarc_result: detail.mail_item?.dmarc_result,
         raw_headers: detail.email.raw_headers,
-        attachments: (detail.email.attachments ?? []).map(
-          (att: { name: string; size: string }, i: number) => ({
-            id: `att-${i}`,
-            filename: att.name,
-            content_type: "",
-            size: parseInt(att.size, 10) || 0,
-          }),
-        ),
       },
     ];
   }, [messages, detail.email, detail.mail_item]);
