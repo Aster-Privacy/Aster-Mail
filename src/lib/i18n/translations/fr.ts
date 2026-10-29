@@ -4067,6 +4067,10 @@ export const fr = {
       "Certains de vos alias n'ont pas fini d'être rechiffrés, votre mot de passe n'a donc pas été modifié. Réessayez et contactez l'assistance si le problème persiste.",
     password_change_fingerprint_mismatch:
       "Cette session a démarré sur un autre réseau ou un autre navigateur, donc Aster Mail n'a pas modifié votre mot de passe. Pour le modifier, déconnectez-vous, reconnectez-vous, puis réessayez.",
+    password_change_identity_continuity_required:
+      "Aster Mail n'a pas modifié votre mot de passe, car la modification supprimerait des clés de chiffrement dont vos anciens messages ont besoin. Pour réessayer, déconnectez-vous, reconnectez-vous, puis modifiez votre mot de passe.",
+    password_change_vault_out_of_date:
+      "Votre mot de passe a été modifié sur un autre appareil, donc cette session n'est plus à jour. Pour modifier votre mot de passe, déconnectez-vous et reconnectez-vous avec votre mot de passe actuel.",
     update_password: "Mettre à jour le mot de passe",
     updating: "Mise à jour...",
     password_change_encrypted_data_warning:

@@ -4033,6 +4033,10 @@ export const de = {
       "Einige Ihrer Aliase wurden nicht vollständig neu verschlüsselt, daher wurde Ihr Passwort nicht geändert. Versuchen Sie es erneut und wenden Sie sich an den Support, wenn das weiterhin auftritt.",
     password_change_fingerprint_mismatch:
       "Diese Sitzung wurde in einem anderen Netzwerk oder Browser gestartet, daher hat Aster Mail Ihr Passwort nicht geändert. Um es zu ändern, melden Sie sich ab, melden Sie sich wieder an und versuchen Sie es erneut.",
+    password_change_identity_continuity_required:
+      "Aster Mail hat Ihr Passwort nicht geändert, weil die Änderung Verschlüsselungsschlüssel entfernen würde, die Ihre älteren Nachrichten benötigen. Um es erneut zu versuchen, melden Sie sich ab, melden Sie sich wieder an und ändern Sie Ihr Passwort.",
+    password_change_vault_out_of_date:
+      "Ihr Passwort wurde auf einem anderen Gerät geändert, daher ist diese Sitzung nicht mehr aktuell. Um Ihr Passwort zu ändern, melden Sie sich ab und mit Ihrem aktuellen Passwort wieder an.",
     update_password: "Passwort aktualisieren",
     updating: "Aktualisieren...",
     password_change_encrypted_data_warning:

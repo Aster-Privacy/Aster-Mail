@@ -4039,6 +4039,10 @@ export const es = {
       "Algunos de tus alias no terminaron de cifrarse de nuevo, por lo que tu contraseña no cambió. Inténtalo de nuevo y ponte en contacto con el equipo de soporte si sigue ocurriendo.",
     password_change_fingerprint_mismatch:
       "Esta sesión se inició en otra red u otro navegador, por lo que Aster Mail no cambió tu contraseña. Para cambiarla, cierra sesión, vuelve a iniciar sesión e inténtalo de nuevo.",
+    password_change_identity_continuity_required:
+      "Aster Mail no cambió tu contraseña porque el cambio eliminaría claves de cifrado que necesitan tus mensajes anteriores. Para volver a intentarlo, cierra sesión, vuelve a iniciar sesión y cambia tu contraseña.",
+    password_change_vault_out_of_date:
+      "Tu contraseña se cambió en otro dispositivo, por lo que esta sesión no está actualizada. Para cambiar tu contraseña, cierra sesión y vuelve a iniciar sesión con tu contraseña actual.",
     update_password: "Actualizar contraseña",
     updating: "Actualizando...",
     password_change_encrypted_data_warning:

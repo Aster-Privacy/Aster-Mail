@@ -3964,6 +3964,10 @@ export const tr = {
       "Bazı diğer adlarınızın yeniden şifrelenmesi tamamlanmadı, bu nedenle parolanız değişmedi. Tekrar deneyin, sorun devam ederse destek ekibiyle iletişime geçin.",
     password_change_fingerprint_mismatch:
       "Bu oturum farklı bir ağda veya tarayıcıda başlatıldı, bu nedenle Aster Mail parolanızı değiştirmedi. Parolanızı değiştirmek için oturumu kapatın, yeniden oturum açın ve tekrar deneyin.",
+    password_change_identity_continuity_required:
+      "Bu değişiklik eski iletilerinizin ihtiyaç duyduğu şifreleme anahtarlarını kaldıracağı için Aster Mail parolanızı değiştirmedi. Tekrar denemek için oturumu kapatın, yeniden oturum açın ve parolanızı değiştirin.",
+    password_change_vault_out_of_date:
+      "Parolanız başka bir cihazda değiştirildi, bu nedenle bu oturum güncel değil. Parolanızı değiştirmek için oturumu kapatın ve mevcut parolanızla yeniden oturum açın.",
     update_password: "Parolayı Güncelle",
     updating: "Güncelleniyor...",
     password_change_encrypted_data_warning:

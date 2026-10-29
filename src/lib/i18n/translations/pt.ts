@@ -4075,6 +4075,10 @@ export const pt = {
       "Alguns dos seus aliases não terminaram de ser reencriptados, pelo que a sua palavra-passe não foi alterada. Tente novamente e contacte o suporte se isto continuar a acontecer.",
     password_change_fingerprint_mismatch:
       "Esta sessão começou noutra rede ou noutro navegador, pelo que o Aster Mail não alterou a sua palavra-passe. Para a alterar, termine sessão, inicie sessão novamente e tente outra vez.",
+    password_change_identity_continuity_required:
+      "O Aster Mail não alterou a sua palavra-passe porque a alteração removeria chaves de encriptação de que as suas mensagens mais antigas precisam. Para tentar novamente, termine sessão, inicie sessão novamente e altere a sua palavra-passe.",
+    password_change_vault_out_of_date:
+      "A sua palavra-passe foi alterada noutro dispositivo, pelo que esta sessão está desatualizada. Para alterar a sua palavra-passe, termine sessão e inicie sessão novamente com a sua palavra-passe atual.",
     update_password: "Atualizar palavra-passe",
     updating: "A atualizar...",
     password_change_encrypted_data_warning:

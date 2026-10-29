@@ -4039,6 +4039,10 @@ export const ko = {
       "일부 별칭의 재암호화가 완료되지 않아 비밀번호가 변경되지 않았습니다. 다시 시도하고, 계속 발생하면 지원팀에 문의해 주세요.",
     password_change_fingerprint_mismatch:
       "이 세션은 다른 네트워크 또는 브라우저에서 시작되었으므로 Aster Mail이 비밀번호를 변경하지 않았습니다. 비밀번호를 변경하려면 로그아웃한 후 다시 로그인하고 시도해 주세요.",
+    password_change_identity_continuity_required:
+      "변경하면 이전 메시지에 필요한 암호화 키가 제거되므로 Aster Mail이 비밀번호를 변경하지 않았습니다. 다시 시도하려면 로그아웃한 후 다시 로그인하고 비밀번호를 변경해 주세요.",
+    password_change_vault_out_of_date:
+      "다른 기기에서 비밀번호가 변경되어 이 세션은 최신 상태가 아닙니다. 비밀번호를 변경하려면 로그아웃한 후 현재 비밀번호로 다시 로그인해 주세요.",
     update_password: "비밀번호 업데이트",
     updating: "업데이트 중...",
     password_change_encrypted_data_warning:

@@ -4192,6 +4192,10 @@ export const pl = {
       "Część Twoich aliasów nie została w pełni ponownie zaszyfrowana, więc Twoje hasło nie zostało zmienione. Spróbuj ponownie, a jeśli problem się powtarza, skontaktuj się z pomocą techniczną.",
     password_change_fingerprint_mismatch:
       "Ta sesja rozpoczęła się w innej sieci lub przeglądarce, więc Aster Mail nie zmienił Twojego hasła. Aby je zmienić, wyloguj się, zaloguj ponownie i spróbuj jeszcze raz.",
+    password_change_identity_continuity_required:
+      "Aster Mail nie zmienił Twojego hasła, ponieważ zmiana usunęłaby klucze szyfrowania potrzebne Twoim starszym wiadomościom. Aby spróbować ponownie, wyloguj się, zaloguj ponownie i zmień hasło.",
+    password_change_vault_out_of_date:
+      "Twoje hasło zostało zmienione na innym urządzeniu, więc ta sesja jest nieaktualna. Aby zmienić hasło, wyloguj się i zaloguj ponownie, używając obecnego hasła.",
     update_password: "Zaktualizuj hasło",
     updating: "Aktualizowanie...",
     password_change_encrypted_data_warning:

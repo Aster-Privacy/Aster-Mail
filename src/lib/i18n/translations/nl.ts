@@ -4004,6 +4004,10 @@ export const nl = {
       "Sommige van je aliassen zijn niet volledig opnieuw versleuteld, dus je wachtwoord is niet gewijzigd. Probeer het opnieuw en neem contact op met de ondersteuning als dit blijft gebeuren.",
     password_change_fingerprint_mismatch:
       "Deze sessie is gestart op een ander netwerk of een andere browser, dus Aster Mail heeft je wachtwoord niet gewijzigd. Om het te wijzigen, meld je je af, meld je je opnieuw aan en probeer je het opnieuw.",
+    password_change_identity_continuity_required:
+      "Aster Mail heeft je wachtwoord niet gewijzigd, omdat de wijziging versleutelingssleutels zou verwijderen die je oudere berichten nodig hebben. Om het opnieuw te proberen, meld je je af, meld je je opnieuw aan en wijzig je je wachtwoord.",
+    password_change_vault_out_of_date:
+      "Je wachtwoord is op een ander apparaat gewijzigd, dus deze sessie is niet meer actueel. Om je wachtwoord te wijzigen, meld je je af en meld je je opnieuw aan met je huidige wachtwoord.",
     update_password: "Wachtwoord bijwerken",
     updating: "Bijwerken...",
     password_change_encrypted_data_warning:

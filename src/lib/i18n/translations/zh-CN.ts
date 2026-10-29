@@ -3655,6 +3655,10 @@ export const zh_CN = {
       "部分别名未完成重新加密，因此您的密码未更改。请再试一次；如果问题仍然存在，请联系支持团队。",
     password_change_fingerprint_mismatch:
       "此会话是在其他网络或浏览器中开始的，因此 Aster Mail 未更改您的密码。若要更改密码，请退出登录后重新登录，然后再试一次。",
+    password_change_identity_continuity_required:
+      "此更改会移除您较早邮件所需的加密密钥，因此 Aster Mail 未更改您的密码。若要重试，请退出登录后重新登录，然后更改密码。",
+    password_change_vault_out_of_date:
+      "您的密码已在其他设备上更改，因此此会话已过期。若要更改密码，请退出登录，然后使用当前密码重新登录。",
     update_password: "更新密码",
     updating: "更新中...",
     password_change_encrypted_data_warning:

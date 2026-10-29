@@ -2755,6 +2755,10 @@ export const en: Translations = {
       "Some of your aliases didn't finish re-encrypting, so your password didn't change. Try again, and contact support if this keeps happening.",
     password_change_fingerprint_mismatch:
       "This session started on a different network or browser, so Aster Mail didn't change your password. To change it, sign out, sign back in, and try again.",
+    password_change_identity_continuity_required:
+      "Aster Mail didn't change your password because the change would remove encryption keys your older messages need. To try again, sign out, sign back in, and change your password.",
+    password_change_vault_out_of_date:
+      "Your password was changed on another device, so this session is out of date. To change your password, sign out and sign back in with your current password.",
     update_password: "Update Password",
     updating: "Updating...",
     password_change_encrypted_data_warning:

@@ -88,6 +88,22 @@ describe("resolve_password_change_error", () => {
     expect(resolved).toBe(en.settings.password_change_reencryption_incomplete);
   });
 
+  it("translates an identity continuity refusal by code or by message", () => {
+    expect(
+      resolve_password_change_error(
+        "identity_continuity_required",
+        translate,
+        "IDENTITY_CONTINUITY_REQUIRED",
+      ),
+    ).toBe(en.settings.password_change_identity_continuity_required);
+    expect(
+      resolve_password_change_error(
+        "Conflict: identity_continuity_required",
+        translate,
+      ),
+    ).toBe(en.settings.password_change_identity_continuity_required);
+  });
+
   it("keeps the server prose when the code is unknown", () => {
     const resolved = resolve_password_change_error(
       "Current password is incorrect",
@@ -146,6 +162,8 @@ describe("resolve_password_change_error", () => {
       for (const key of [
         "password_change_client_upgrade_required",
         "password_change_reencryption_incomplete",
+        "password_change_identity_continuity_required",
+        "password_change_vault_out_of_date",
       ]) {
         expect(bundle.settings[key]).toBeTruthy();
         expect(bundle.settings[key]).not.toMatch(/[A-Z]{4,}_[A-Z]{4,}/);

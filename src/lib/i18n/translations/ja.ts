@@ -3980,6 +3980,10 @@ export const ja = {
       "一部のエイリアスの再暗号化が完了しなかったため、パスワードは変更されませんでした。もう一度お試しいただき、解決しない場合はサポートにご連絡ください。",
     password_change_fingerprint_mismatch:
       "このセッションは別のネットワークまたはブラウザで開始されたため、Aster Mail はパスワードを変更しませんでした。変更するには、サインアウトしてから再度サインインし、もう一度お試しください。",
+    password_change_identity_continuity_required:
+      "変更すると以前のメッセージに必要な暗号鍵が削除されるため、Aster Mail はパスワードを変更しませんでした。もう一度試すには、サインアウトしてから再度サインインし、パスワードを変更してください。",
+    password_change_vault_out_of_date:
+      "パスワードが別のデバイスで変更されたため、このセッションは最新ではありません。パスワードを変更するには、サインアウトしてから現在のパスワードで再度サインインしてください。",
     update_password: "パスワードを更新",
     updating: "更新中...",
     password_change_encrypted_data_warning:

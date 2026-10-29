@@ -50,7 +50,6 @@ import { compute_password_strength_tier } from "@/services/password_strength_sco
 import {
   hash_email,
   derive_password_hash,
-  decrypt_vault,
   encrypt_vault,
   base64_to_array,
 } from "@/services/crypto/key_manager";
@@ -80,7 +79,6 @@ import {
 import {
   get_vault_from_memory,
   store_vault_in_memory,
-  get_passphrase_from_memory,
   is_master_key_vault,
   MASTER_KEY_VAULT_FORMAT,
   get_storage_kdf_version,
@@ -91,20 +89,24 @@ import {
   store_encrypted_vault,
   store_session_passphrase,
 } from "@/contexts/auth/session_passphrase";
-import {
-  generate_ratchet_keys,
-  upload_prekey_bundle,
-} from "@/services/crypto/ratchet_manager";
+
 import { reset_vault_refresh_state } from "@/services/crypto/vault_refresh";
 import { refresh_recovery_backup } from "@/services/crypto/recovery_backup_refresh";
-import { sync_vault_with_server } from "@/services/crypto/ensure_ratchet_keys";
+import {
+  ensure_ratchet_keys,
+  publish_vaulted_prekey_bundle,
+  server_vault_holds_publish_keys,
+  sync_vault_with_server,
+} from "@/services/crypto/ensure_ratchet_keys";
+import { carry_displaced_ratchet_keys } from "@/services/crypto/ratchet_key_continuity";
+import {
+  load_password_change_vault,
+  PASSWORD_CHANGE_VAULT_ERROR_KEYS,
+} from "./password_change_vault";
 import { use_key_rotation } from "@/hooks/use_key_rotation";
 import { check_password_breach } from "@/services/breach_check";
 import { use_i18n } from "@/lib/i18n/context";
-import {
-  generate_auth_salt,
-  is_auth_salt_collision,
-} from "@/services/crypto/auth_salt_guard";
+import { generate_auth_salt } from "@/services/crypto/auth_salt_guard";
 import { show_toast } from "@/components/toast/simple_toast";
 import { ignore_error } from "@/lib/ignore_error";
 import { write_locked_sent_mail } from "@/services/locked_sent_mail_store";
@@ -359,118 +361,59 @@ export function use_security() {
         [user_hash_pin_key(user_hash)],
       );
 
-      let vault;
+      const loaded = await load_password_change_vault(
+        user.id,
+        current_password,
+      );
 
-      try {
-        const stored_vault = localStorage.getItem(
-          `astermail_encrypted_vault_${user.id}`,
-        );
-        const stored_nonce = localStorage.getItem(
-          `astermail_vault_nonce_${user.id}`,
-        );
-
-        if (!stored_vault || !stored_nonce) {
-          set_password_error(t("settings.session_expired_sign_in"));
-          set_password_loading(false);
-
-          return;
-        }
-
-        vault = await decrypt_vault(
-          stored_vault,
-          stored_nonce,
-          current_password,
-        );
-      } catch (error) {
-        if (import.meta.env.DEV) console.error(error);
-        set_password_error(
-          is_auth_salt_collision(error)
-            ? t("errors.auth_salt_collision")
-            : t("settings.current_password_incorrect"),
-        );
+      if (loaded.kind === "error") {
+        set_password_error(t(PASSWORD_CHANGE_VAULT_ERROR_KEYS[loaded.reason]));
         set_password_loading(false);
 
         return;
       }
 
-      const memory_vault = get_vault_from_memory();
+      let vault = loaded.vault;
 
-      if (!is_master_key_vault(vault)) {
-        let healed_from_server = false;
-
+      if (loaded.server_blob) {
         try {
-          const server_vault_response = await api_client.get<{
-            encrypted_vault: string;
-            vault_nonce: string;
-          }>("/core/v1/auth/vault");
-
-          if (
-            !server_vault_response.error &&
-            server_vault_response.data?.encrypted_vault &&
-            server_vault_response.data.vault_nonce
-          ) {
-            const server_vault = await decrypt_vault(
-              server_vault_response.data.encrypted_vault,
-              server_vault_response.data.vault_nonce,
-              current_password,
-            );
-
-            if (is_master_key_vault(server_vault)) {
-              vault = server_vault;
-              healed_from_server = true;
-
-              try {
-                localStorage.setItem(
-                  `astermail_encrypted_vault_${user.id}`,
-                  server_vault_response.data.encrypted_vault,
-                );
-                localStorage.setItem(
-                  `astermail_vault_nonce_${user.id}`,
-                  server_vault_response.data.vault_nonce,
-                );
-              } catch (caught) {
-                ignore_error(
-                  "components/settings/hooks/use_security/hook:handle_change_password",
-                  caught,
-                );
-              }
-            }
-          }
-        } catch (error) {
-          if (import.meta.env.DEV) console.error(error);
-        }
-
-        if (!healed_from_server && is_master_key_vault(memory_vault)) {
-          vault.data_kek = memory_vault?.data_kek;
-          vault.vault_format = memory_vault?.vault_format;
-          vault.mk_created_at = memory_vault?.mk_created_at;
-          vault.legacy_identity_keys = memory_vault?.legacy_identity_keys
-            ? [...memory_vault.legacy_identity_keys]
-            : vault.legacy_identity_keys;
-          vault.legacy_keks = memory_vault?.legacy_keks
-            ? [...memory_vault.legacy_keks]
-            : vault.legacy_keks;
+          localStorage.setItem(
+            `astermail_encrypted_vault_${user.id}`,
+            loaded.server_blob.encrypted_vault,
+          );
+          localStorage.setItem(
+            `astermail_vault_nonce_${user.id}`,
+            loaded.server_blob.vault_nonce,
+          );
+        } catch (caught) {
+          ignore_error(
+            "components/settings/hooks/use_security/hook:handle_change_password",
+            caught,
+          );
         }
       }
 
+      const memory_vault = get_vault_from_memory();
+
+      if (!is_master_key_vault(vault) && is_master_key_vault(memory_vault)) {
+        vault.data_kek = memory_vault?.data_kek;
+        vault.vault_format = memory_vault?.vault_format;
+        vault.mk_created_at = memory_vault?.mk_created_at;
+        vault.legacy_identity_keys = memory_vault?.legacy_identity_keys
+          ? [...memory_vault.legacy_identity_keys]
+          : vault.legacy_identity_keys;
+        vault.legacy_keks = memory_vault?.legacy_keks
+          ? [...memory_vault.legacy_keks]
+          : vault.legacy_keks;
+      }
+
+      vault = carry_displaced_ratchet_keys(vault, memory_vault);
+
       if (
-        memory_vault?.ratchet_identity_key &&
-        memory_vault?.ratchet_identity_public
+        memory_vault?.ratchet_regen_v4_done &&
+        memory_vault.ratchet_identity_public === vault.ratchet_identity_public
       ) {
-        vault.ratchet_identity_key = memory_vault.ratchet_identity_key;
-        vault.ratchet_identity_public = memory_vault.ratchet_identity_public;
-        vault.ratchet_signed_prekey = memory_vault.ratchet_signed_prekey;
-        vault.ratchet_signed_prekey_public =
-          memory_vault.ratchet_signed_prekey_public;
-        vault.ratchet_pq_identity_key = memory_vault.ratchet_pq_identity_key;
-        vault.ratchet_pq_identity_public =
-          memory_vault.ratchet_pq_identity_public;
-        vault.ratchet_pq_identity_seed = memory_vault.ratchet_pq_identity_seed;
-        vault.ratchet_previous_keys = memory_vault.ratchet_previous_keys
-          ? [...memory_vault.ratchet_previous_keys]
-          : vault.ratchet_previous_keys;
-        vault.ratchet_regen_v4_done =
-          memory_vault.ratchet_regen_v4_done ?? vault.ratchet_regen_v4_done;
+        vault.ratchet_regen_v4_done = true;
       }
 
       const sent_mail_conversion = await convert_before_password_change({
@@ -544,6 +487,12 @@ export function use_security() {
         serialize_kek_for_vault(old_tag_hash),
       );
 
+      const vault_key_fingerprints =
+        await collect_vault_key_fingerprints(vault);
+      const fingerprint_field = vault_key_fingerprints.length
+        ? { vault_key_fingerprints }
+        : {};
+
       const {
         encrypted_vault: new_encrypted_vault,
         vault_nonce: new_vault_nonce,
@@ -564,6 +513,7 @@ export function use_security() {
           new_vault_nonce,
           vault_format: MASTER_KEY_VAULT_FORMAT,
           new_password_strength_tier,
+          ...fingerprint_field,
         });
       } else {
         const {
@@ -603,6 +553,7 @@ export function use_security() {
           re_encrypted_domain_addresses,
           unreadable_alias_ids: skipped.alias_ids,
           new_password_strength_tier,
+          ...fingerprint_field,
         });
       }
 
@@ -795,59 +746,30 @@ export function use_security() {
   };
 
   const publish_ratchet_keys = async (): Promise<boolean> => {
-    const memory_vault = get_vault_from_memory();
-
-    if (!memory_vault) return false;
+    if (!get_vault_from_memory()) return false;
 
     const freshness = await sync_vault_with_server();
 
     if (freshness.status === "unverified") return false;
 
     const vault =
-      freshness.status === "adopted" ? freshness.vault : memory_vault;
+      freshness.status === "adopted"
+        ? freshness.vault
+        : get_vault_from_memory();
 
-    if (vault.ratchet_identity_key) return upload_prekey_bundle(vault);
+    if (!vault) return false;
 
-    const ratchet_keys = await generate_ratchet_keys();
+    if (vault.ratchet_identity_key) {
+      return publish_vaulted_prekey_bundle(vault);
+    }
 
-    if (!ratchet_keys) return false;
+    if (!(await ensure_ratchet_keys())) return false;
 
-    vault.ratchet_identity_key = ratchet_keys.identity_jwk;
-    vault.ratchet_identity_public = ratchet_keys.identity_public;
-    vault.ratchet_signed_prekey = ratchet_keys.signed_prekey_jwk;
-    vault.ratchet_signed_prekey_public = ratchet_keys.signed_prekey_public;
+    const ensured = get_vault_from_memory();
 
-    const passphrase = get_passphrase_from_memory();
+    if (!ensured?.ratchet_identity_key) return false;
 
-    if (!passphrase || !user?.id) return false;
-
-    await store_vault_in_memory(vault, passphrase, user.id);
-
-    const { encrypted_vault, vault_nonce } = await encrypt_vault(
-      vault,
-      passphrase,
-    );
-
-    const vault_key_fingerprints = await collect_vault_key_fingerprints(vault);
-
-    const push_response = await api_client.put("/crypto/v1/keys/vault", {
-      encrypted_vault,
-      vault_nonce,
-      expected_user_id: user.id,
-      vault_format: vault.vault_format ?? 1,
-      preserve_pq_prekeys: true,
-      ...(vault_key_fingerprints.length ? { vault_key_fingerprints } : {}),
-    });
-
-    if (push_response.error) return false;
-
-    localStorage.setItem(
-      `astermail_encrypted_vault_${user.id}`,
-      encrypted_vault,
-    );
-    localStorage.setItem(`astermail_vault_nonce_${user.id}`, vault_nonce);
-
-    return upload_prekey_bundle(vault);
+    return server_vault_holds_publish_keys(ensured);
   };
 
   const handle_forward_secrecy_toggle = async () => {

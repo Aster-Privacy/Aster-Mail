@@ -4073,6 +4073,10 @@ export const it = {
       "Alcuni dei tuoi alias non hanno completato la ricifratura, quindi la tua password non è stata modificata. Riprova e contatta l'assistenza se il problema persiste.",
     password_change_fingerprint_mismatch:
       "Questa sessione è iniziata su una rete o un browser diverso, quindi Aster Mail non ha modificato la tua password. Per modificarla, esci, accedi di nuovo e riprova.",
+    password_change_identity_continuity_required:
+      "Aster Mail non ha modificato la tua password perché la modifica rimuoverebbe chiavi di crittografia necessarie ai tuoi messaggi meno recenti. Per riprovare, esci, accedi di nuovo e modifica la password.",
+    password_change_vault_out_of_date:
+      "La tua password è stata modificata su un altro dispositivo, quindi questa sessione non è aggiornata. Per modificare la password, esci e accedi di nuovo con la password attuale.",
     update_password: "Aggiorna password",
     updating: "Aggiornamento...",
     password_change_encrypted_data_warning:

@@ -4038,6 +4038,10 @@ export const pt_br = {
       "Alguns dos seus aliases não terminaram de ser criptografados novamente, por isso sua senha não foi alterada. Tente de novo e entre em contato com o suporte se isso continuar acontecendo.",
     password_change_fingerprint_mismatch:
       "Esta sessão começou em outra rede ou outro navegador, por isso o Aster Mail não alterou sua senha. Para alterá-la, saia da conta, entre novamente e tente de novo.",
+    password_change_identity_continuity_required:
+      "O Aster Mail não alterou sua senha porque a alteração removeria chaves de criptografia de que suas mensagens mais antigas precisam. Para tentar de novo, saia da conta, entre novamente e altere sua senha.",
+    password_change_vault_out_of_date:
+      "Sua senha foi alterada em outro dispositivo, por isso esta sessão está desatualizada. Para alterar sua senha, saia da conta e entre novamente com sua senha atual.",
     update_password: "Atualizar senha",
     updating: "Atualizando...",
     password_change_encrypted_data_warning:

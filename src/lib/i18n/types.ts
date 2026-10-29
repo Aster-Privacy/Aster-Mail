@@ -3017,6 +3017,8 @@ export interface SettingsTranslations {
   password_change_client_upgrade_required: string;
   password_change_reencryption_incomplete: string;
   password_change_fingerprint_mismatch: string;
+  password_change_identity_continuity_required: string;
+  password_change_vault_out_of_date: string;
   update_password: string;
   updating: string;
   password_change_encrypted_data_warning: string;
