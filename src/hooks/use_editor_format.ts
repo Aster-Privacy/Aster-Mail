@@ -38,6 +38,10 @@ import {
   encode_link_url,
   get_selection_anchor,
 } from "@/hooks/editor_utils";
+import {
+  is_inline_toggle_command,
+  toggle_inline_format,
+} from "@/hooks/editor_inline_toggle";
 
 const ZERO_WIDTH_SPACE = "\u200B";
 
@@ -318,7 +322,11 @@ export function use_editor_format(
       }
 
       set_style_with_css(use_css);
-      document.execCommand(command, false, value);
+      if (is_inline_toggle_command(command)) {
+        toggle_inline_format(editor, command);
+      } else {
+        document.execCommand(command, false, value);
+      }
       handle_input();
       requestAnimationFrame(() => {
         save_selection();
