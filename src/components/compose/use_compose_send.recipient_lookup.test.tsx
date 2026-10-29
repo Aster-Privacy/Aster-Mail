@@ -55,7 +55,11 @@ vi.mock("@/services/thread_service", () => ({
   get_or_create_thread_token: vi.fn(),
 }));
 vi.mock("@/services/recipient_classification", () => {
-  class RecipientLookupError extends Error {}
+  class RecipientLookupError extends Error {
+    constructor() {
+      super("lookup failed");
+    }
+  }
 
   return {
     classify_recipients: mocks.classify,
@@ -154,7 +158,7 @@ afterEach(async () => {
 
 it("stops the send and offers a retry when recipients cannot be classified", async () => {
   mocks.classify.mockRejectedValueOnce(
-    new RecipientLookupError("lookup failed"),
+    new RecipientLookupError(),
   );
   await render();
   await act(async () => hook.handle_send());
@@ -179,7 +183,7 @@ it("stops the send and offers a retry when recipients cannot be classified", asy
 
 it("does not retry from the toast after the composer closes", async () => {
   mocks.classify.mockRejectedValueOnce(
-    new RecipientLookupError("lookup failed"),
+    new RecipientLookupError(),
   );
   await render();
   await act(async () => hook.handle_send());
