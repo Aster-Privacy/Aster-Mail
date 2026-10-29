@@ -32,6 +32,7 @@ const h = vi.hoisted(() => ({
     update_preference: vi.fn(),
     is_loading: false,
     has_loaded_from_server: true,
+    preferences_locked: false,
   },
   status: null as {
     inactive_key_sets: number;
@@ -121,6 +122,7 @@ describe("LockedDataBanner", () => {
       update_preference: vi.fn(),
       is_loading: false,
       has_loaded_from_server: true,
+      preferences_locked: false,
     };
     h.status = LOCKED;
     h.status_calls = 0;
@@ -146,12 +148,33 @@ describe("LockedDataBanner", () => {
     expect((await render()).textContent).toBe("");
   });
 
+  it("stays hidden on cached defaults before the server load", async () => {
+    h.preferences.has_loaded_from_server = false;
+
+    expect((await render()).textContent).toBe("");
+  });
+
   it("shows when the saved preferences cannot be read after a password reset", async () => {
     h.preferences.has_loaded_from_server = false;
+    h.preferences.preferences_locked = true;
 
     const view = await render();
 
     expect(view.textContent).toContain("common.locked_data_banner_message");
+  });
+
+  it("hides on dismiss without saving before the server load", async () => {
+    h.preferences.has_loaded_from_server = false;
+    h.preferences.preferences_locked = true;
+
+    const view = await render();
+
+    await act(async () => {
+      find_button(view, "common.locked_data_banner_dismiss")!.click();
+    });
+
+    expect(h.preferences.update_preference).not.toHaveBeenCalled();
+    expect(view.textContent).not.toContain("common.locked_data_banner_message");
   });
 
   it("stays hidden while the vault is locked", async () => {

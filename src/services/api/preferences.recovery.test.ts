@@ -65,6 +65,7 @@ describe("get_preferences recovery when the server blob cannot be decrypted", ()
     const result = await get_preferences(vault);
 
     expect(result.loaded_from_server).toBe(false);
+    expect(result.preferences_locked).toBe(true);
     expect(put_calls.length).toBe(0);
   });
 
@@ -75,6 +76,7 @@ describe("get_preferences recovery when the server blob cannot be decrypted", ()
 
     expect(result.loaded_from_server).toBe(true);
     expect(result.server_blob_unusable).toBe(true);
+    expect(result.preferences_locked).toBe(true);
     expect(put_calls.length).toBe(0);
   });
 

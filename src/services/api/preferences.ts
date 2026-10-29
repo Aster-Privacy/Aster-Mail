@@ -1048,6 +1048,7 @@ export async function get_preferences(
   data: UserPreferences;
   loaded_from_server: boolean;
   server_blob_unusable?: boolean;
+  preferences_locked?: boolean;
 }> {
   if (!vault) {
     return { data: DEFAULT_PREFERENCES, loaded_from_server: false };
@@ -1108,10 +1109,15 @@ export async function get_preferences(
           data: recovered,
           loaded_from_server: true,
           server_blob_unusable: true,
+          preferences_locked: true,
         };
       }
 
-      return { data: DEFAULT_PREFERENCES, loaded_from_server: false };
+      return {
+        data: DEFAULT_PREFERENCES,
+        loaded_from_server: false,
+        preferences_locked: true,
+      };
     }
 
     if (!result) {

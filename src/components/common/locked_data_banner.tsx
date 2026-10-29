@@ -41,7 +41,13 @@ export function LockedDataBanner() {
   const { t } = use_i18n();
   const { vault, user } = use_auth();
   const account_id = user?.id ?? null;
-  const { preferences, update_preference, is_loading } = use_preferences();
+  const {
+    preferences,
+    update_preference,
+    is_loading,
+    has_loaded_from_server,
+    preferences_locked,
+  } = use_preferences();
   const [status, set_status] = useState<LockedDataStatus | null>(null);
   const [dismissed_signature, set_dismissed_signature] = useState<
     string | null
@@ -78,13 +84,18 @@ export function LockedDataBanner() {
     preferences.locked_data_banner_dismissed === signature;
 
   const should_hide =
-    is_loading || !account_id || !has_locked_data(status) || is_dismissed;
+    is_loading ||
+    !(has_loaded_from_server || preferences_locked) ||
+    !account_id ||
+    !has_locked_data(status) ||
+    is_dismissed;
 
   const handle_dismiss = useCallback(() => {
     if (!signature) return;
     set_dismissed_signature(signature);
+    if (!has_loaded_from_server) return;
     update_preference("locked_data_banner_dismissed", signature, true);
-  }, [signature, update_preference]);
+  }, [signature, update_preference, has_loaded_from_server]);
 
   const open_modal = useCallback(() => set_is_modal_open(true), []);
   const close_modal = useCallback(() => set_is_modal_open(false), []);
@@ -93,7 +104,10 @@ export function LockedDataBanner() {
     <>
       <StatusBanner
         actions={[
-          { label: t("common.locked_data_banner_action"), on_click: open_modal },
+          {
+            label: t("common.locked_data_banner_action"),
+            on_click: open_modal,
+          },
           {
             label: t("common.locked_data_banner_dismiss"),
             on_click: handle_dismiss,
