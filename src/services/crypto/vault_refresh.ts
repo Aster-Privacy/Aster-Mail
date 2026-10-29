@@ -27,6 +27,7 @@ import {
   get_passphrase_from_memory,
   store_vault_in_memory,
 } from "./memory_key_store";
+import { carry_displaced_ratchet_keys } from "./ratchet_key_continuity";
 import { with_vault_write_lock } from "./vault_write_lock";
 
 import { ignore_error } from "@/lib/ignore_error";
@@ -170,7 +171,10 @@ export async function adopt_refreshed_vault(
         return true;
       }
 
-      await store_vault_in_memory(refreshed.vault, passphrase);
+      await store_vault_in_memory(
+        carry_displaced_ratchet_keys(refreshed.vault, current),
+        passphrase,
+      );
 
       try {
         localStorage.setItem(
