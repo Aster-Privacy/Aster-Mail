@@ -6856,7 +6856,7 @@ export const nl = {
     domain_purchase_empty_subtitle:
       "Voer een woord, een naam of een volledig domein in. We controleren elke extensie die we verkopen en laten zien wat vrij is.",
     domain_purchase_empty_included:
-      "Elk domein bevat WHOIS-privacy, DNS die voor je is ingesteld en onbeperkte adressen.",
+      "Elk domein bevat DNS die voor je is ingesteld, onbeperkte adressen en WHOIS-privacy als het register dat toestaat.",
     domain_purchase_terms_inline:
       "Domeinen worden geregistreerd via NameSilo. Door te kopen ga je akkoord met de {{aster}}, {{registrar}} en {{icann}}. Registraties zijn definitief zodra het domein is aangemaakt.",
     domain_purchase_empty_title: "Typ iets om te beginnen",
@@ -6897,6 +6897,7 @@ export const nl = {
     domain_purchase_summary_whois: "WHOIS-privacy",
     domain_purchase_summary_dns: "Automatische DNS-instelling",
     domain_purchase_summary_included: "Inbegrepen",
+    domain_purchase_summary_not_available: "Niet beschikbaar",
     domain_purchase_total_today: "Totaal vandaag",
     domain_purchase_years_line: "Registratie voor {{count}} jaar",
     domain_purchase_secure_checkout: "Veilig afrekenen via Stripe",
@@ -6944,7 +6945,7 @@ export const nl = {
     domain_purchase_discount_tooltip:
       "Aanbiedingsprijs voor het eerste jaar van onze registrar. Daarna verlenging voor {{price}} per jaar.",
     domain_purchase_purchased_info:
-      "Dit zijn de domeinen die je via Aster hebt gekocht. We registreren ze voor je met WHOIS privacy, stellen alle mail DNS automatisch in, en je kunt er direct adressen op aanmaken. Elk domein wordt alleen verlengd met jouw goedkeuring. Wil je een domein later naar een andere registrar verhuizen, dan regelt ons supportteam de overdracht. ICANN vergrendelt nieuwe registraties de eerste 60 dagen.",
+      "Dit zijn de domeinen die je via Aster hebt gekocht. We registreren ze voor je met WHOIS privacy als het register dat toestaat, stellen alle mail DNS automatisch in, en je kunt er direct adressen op aanmaken. Elk domein wordt alleen verlengd met jouw goedkeuring. Wil je een domein later naar een andere registrar verhuizen, dan regelt ons supportteam de overdracht. ICANN vergrendelt nieuwe registraties de eerste 60 dagen.",
     domain_purchase_dont_have: "Nog geen domein? Klik hier om er een te kopen.",
     domain_purchase_sort_price: "Laagste prijs",
     domain_purchase_leave_title: "Aster Mail verlaten?",
@@ -6984,6 +6985,9 @@ export const nl = {
     domain_purchase_terms_registrar: "Algemene voorwaarden van NameSilo",
     domain_purchase_terms_icann: "ICANN-rechten en -plichten van houders",
     domain_purchase_detail_privacy_title: "Standaard privé",
+    domain_purchase_detail_public_whois_title: "Openbare WHOIS-gegevens",
+    domain_purchase_whois_public_notice:
+      "Het register van .{{tld}} staat geen WHOIS-privacy toe. Aster registreert het domein met de contactgegevens van het bedrijf, dus je persoonlijke gegevens worden niet gepubliceerd.",
     domain_purchase_detail_setup_title: "Nul instellingen",
     domain_purchase_detail_instant_title: "Klaar in seconden",
     domain_purchase_detail_ownership_title: "Van jou",

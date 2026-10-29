@@ -6386,7 +6386,7 @@ export const en: Translations = {
     domain_purchase_empty_subtitle:
       "Enter a word, a name, or a full domain. We check every ending we sell and show you what is free.",
     domain_purchase_empty_included:
-      "Every domain comes with WHOIS privacy, DNS set up for you, and unlimited addresses.",
+      "Every domain comes with DNS set up for you, unlimited addresses, and WHOIS privacy wherever the registry allows it.",
     domain_purchase_terms_inline:
       "Domains are registered through NameSilo. By buying, you accept the {{aster}}, {{registrar}}, and {{icann}}. Registrations are final once the domain is created.",
     domain_purchase_empty_title: "Type in something to start",
@@ -6429,6 +6429,7 @@ export const en: Translations = {
     domain_purchase_summary_whois: "WHOIS privacy",
     domain_purchase_summary_dns: "Automatic DNS setup",
     domain_purchase_summary_included: "Included",
+    domain_purchase_summary_not_available: "Not available",
     domain_purchase_total_today: "Total today",
     domain_purchase_years_line: "{{count}} year registration",
     domain_purchase_secure_checkout: "Secure checkout by Stripe",
@@ -6476,7 +6477,7 @@ export const en: Translations = {
     domain_purchase_discount_tooltip:
       "First year sale price from our registrar. Renews at {{price}} per year afterwards.",
     domain_purchase_purchased_info:
-      "These are domains you bought through Aster. We register them for you with WHOIS privacy, set up all the mail DNS automatically, and you can create addresses on them right away. Each one renews only when you approve it. If you'd like to move a domain to another registrar later, our support team handles the transfer. ICANN locks new registrations for their first 60 days.",
+      "These are domains you bought through Aster. We register them for you with WHOIS privacy wherever the registry allows it, set up all the mail DNS automatically, and you can create addresses on them right away. Each one renews only when you approve it. If you'd like to move a domain to another registrar later, our support team handles the transfer. ICANN locks new registrations for their first 60 days.",
     domain_purchase_dont_have:
       "Don't have a domain? Click here to purchase one.",
     domain_purchase_sort_price: "Lowest price",
@@ -6509,6 +6510,9 @@ export const en: Translations = {
     domain_purchase_terms_icann:
       "ICANN Registrants' Benefits and Responsibilities",
     domain_purchase_detail_privacy_title: "Private by default",
+    domain_purchase_detail_public_whois_title: "Public WHOIS listing",
+    domain_purchase_whois_public_notice:
+      "The .{{tld}} registry doesn't allow WHOIS privacy. Aster registers the domain with its own company contact details, so your personal information isn't published.",
     domain_purchase_detail_setup_title: "Zero setup",
     domain_purchase_detail_instant_title: "Ready in seconds",
     domain_purchase_detail_ownership_title: "Yours to keep",

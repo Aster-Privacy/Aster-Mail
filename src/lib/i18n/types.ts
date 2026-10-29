@@ -5089,6 +5089,7 @@ export interface SettingsTranslations {
   domain_purchase_summary_whois: string;
   domain_purchase_summary_dns: string;
   domain_purchase_summary_included: string;
+  domain_purchase_summary_not_available: string;
   domain_purchase_total_today: string;
   domain_purchase_years_line: string;
   domain_purchase_secure_checkout: string;
@@ -5156,6 +5157,8 @@ export interface SettingsTranslations {
   domain_purchase_terms_registrar: string;
   domain_purchase_terms_icann: string;
   domain_purchase_detail_privacy_title: string;
+  domain_purchase_detail_public_whois_title: string;
+  domain_purchase_whois_public_notice: string;
   domain_purchase_detail_setup_title: string;
   domain_purchase_detail_instant_title: string;
   domain_purchase_detail_ownership_title: string;

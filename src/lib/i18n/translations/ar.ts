@@ -6850,7 +6850,7 @@ export const ar = {
     domain_purchase_empty_subtitle:
       "أدخل كلمة أو اسمًا أو نطاقًا كاملًا. نتحقق من كل امتداد نبيعه ونعرض لك المتاح.",
     domain_purchase_empty_included:
-      "كل نطاق يشمل خصوصية WHOIS، وإعداد DNS نيابةً عنك، وعناوين غير محدودة.",
+      "كل نطاق يشمل إعداد DNS نيابةً عنك وعناوين غير محدودة، وخصوصية WHOIS حيثما يسمح السجل بذلك.",
     domain_purchase_terms_inline:
       "يتم تسجيل النطاقات عبر NameSilo. بالشراء، فإنك توافق على {{aster}} و{{registrar}} و{{icann}}. يصبح التسجيل نهائيًا بمجرد إنشاء النطاق.",
     domain_purchase_empty_title: "اكتب شيئًا للبدء",
@@ -6888,6 +6888,7 @@ export const ar = {
     domain_purchase_summary_whois: "خصوصية WHOIS",
     domain_purchase_summary_dns: "إعداد DNS تلقائي",
     domain_purchase_summary_included: "مُضمَّن",
+    domain_purchase_summary_not_available: "غير متاح",
     domain_purchase_total_today: "الإجمالي اليوم",
     domain_purchase_years_line: "تسجيل لمدة {{count}} سنة",
     domain_purchase_secure_checkout: "دفع آمن عبر Stripe",
@@ -6935,7 +6936,7 @@ export const ar = {
     domain_purchase_discount_tooltip:
       "سعر السنة الأولى المخفض من المسجّل لدينا. بعد ذلك يتجدد بسعر {{price}} سنويًا.",
     domain_purchase_purchased_info:
-      "هذه هي النطاقات التي اشتريتها عبر Aster. نسجلها لك مع خصوصية WHOIS، ونعد جميع سجلات DNS للبريد تلقائيًا، ويمكنك إنشاء عناوين عليها فورًا. لا يتجدد أي نطاق إلا بموافقتك. إذا أردت لاحقًا نقل نطاق إلى مسجل آخر، يتولى فريق الدعم لدينا عملية النقل. تقفل ICANN التسجيلات الجديدة خلال أول 60 يومًا.",
+      "هذه هي النطاقات التي اشتريتها عبر Aster. نسجلها لك مع خصوصية WHOIS حيثما يسمح السجل بذلك، ونعد جميع سجلات DNS للبريد تلقائيًا، ويمكنك إنشاء عناوين عليها فورًا. لا يتجدد أي نطاق إلا بموافقتك. إذا أردت لاحقًا نقل نطاق إلى مسجل آخر، يتولى فريق الدعم لدينا عملية النقل. تقفل ICANN التسجيلات الجديدة خلال أول 60 يومًا.",
     domain_purchase_dont_have: "لا تملك نطاقًا؟ انقر هنا لشراء واحد.",
     domain_purchase_sort_price: "الأقل سعرًا",
     domain_purchase_leave_title: "هل تريد مغادرة Aster Mail؟",
@@ -6975,6 +6976,9 @@ export const ar = {
     domain_purchase_terms_registrar: "شروط وأحكام NameSilo",
     domain_purchase_terms_icann: "حقوق ومسؤوليات مالكي النطاقات من ICANN",
     domain_purchase_detail_privacy_title: "خاص افتراضيًا",
+    domain_purchase_detail_public_whois_title: "بيانات WHOIS علنية",
+    domain_purchase_whois_public_notice:
+      "لا يسمح سجل .{{tld}} بخصوصية WHOIS. تسجّل Aster النطاق ببيانات الاتصال الخاصة بالشركة، لذلك لا تُنشر معلوماتك الشخصية.",
     domain_purchase_detail_setup_title: "بلا أي إعداد",
     domain_purchase_detail_instant_title: "جاهز خلال ثوانٍ",
     domain_purchase_detail_ownership_title: "ملكك دائمًا",

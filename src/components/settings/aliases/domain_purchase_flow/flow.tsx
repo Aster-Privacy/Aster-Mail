@@ -32,7 +32,9 @@ import { CheckCircleIcon as CheckCircleSolid } from "@heroicons/react/24/solid";
 import { Button, Checkbox, Input } from "@aster/ui";
 
 import {
+  domain_tld,
   filter_results,
+  has_whois_privacy,
   is_purchasable,
   is_unchecked,
   sort_results,
@@ -869,7 +871,9 @@ export function DomainPurchaseFlow({
                   />
                 </li>
                 {[
-                  t("settings.domain_purchase_detail_privacy_title"),
+                  has_whois_privacy(selected)
+                    ? t("settings.domain_purchase_detail_privacy_title")
+                    : t("settings.domain_purchase_detail_public_whois_title"),
                   t("settings.domain_purchase_detail_setup_title"),
                   t("settings.domain_purchase_detail_instant_title"),
                   t("settings.domain_purchase_detail_ownership_title"),
@@ -887,6 +891,13 @@ export function DomainPurchaseFlow({
                   </li>
                 ))}
               </ul>
+              {!has_whois_privacy(selected) && (
+                <p className="mt-3 px-1 text-[11px] leading-snug text-txt-muted">
+                  {t("settings.domain_purchase_whois_public_notice", {
+                    tld: domain_tld(selected.domain),
+                  })}
+                </p>
+              )}
             </div>
 
             {turnstile_required && (
@@ -944,7 +955,11 @@ export function DomainPurchaseFlow({
                   <span className="plan_galaxy_text_muted">
                     {t("settings.domain_purchase_summary_whois")}
                   </span>
-                  <span>{t("settings.domain_purchase_summary_included")}</span>
+                  <span>
+                    {has_whois_privacy(selected)
+                      ? t("settings.domain_purchase_summary_included")
+                      : t("settings.domain_purchase_summary_not_available")}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between gap-2">
                   <span className="plan_galaxy_text_muted">

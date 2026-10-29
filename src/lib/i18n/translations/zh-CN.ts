@@ -6145,7 +6145,7 @@ export const zh_CN = {
     domain_purchase_empty_subtitle:
       "输入一个词、一个名称或完整域名。我们会检查所有在售后缀，并显示哪些还没有被注册。",
     domain_purchase_empty_included:
-      "每个域名都包含 WHOIS 隐私保护、已配置好的 DNS 和无限地址。",
+      "每个域名都包含已配置好的 DNS 和无限地址,并在注册局允许时提供 WHOIS 隐私保护。",
     domain_purchase_terms_inline:
       "域名通过 NameSilo 注册。购买即表示您接受{{aster}}、{{registrar}}以及{{icann}}。域名创建后注册不可撤销。",
     domain_purchase_empty_title: "输入内容即可开始",
@@ -6183,6 +6183,7 @@ export const zh_CN = {
     domain_purchase_summary_whois: "WHOIS 隐私保护",
     domain_purchase_summary_dns: "自动 DNS 配置",
     domain_purchase_summary_included: "已包含",
+    domain_purchase_summary_not_available: "不可用",
     domain_purchase_total_today: "今日合计",
     domain_purchase_years_line: "{{count}} 年注册",
     domain_purchase_secure_checkout: "由 Stripe 提供安全结账",
@@ -6228,7 +6229,7 @@ export const zh_CN = {
     domain_purchase_discount_tooltip:
       "注册商提供的首年优惠价。此后每年以 {{price}} 续费。",
     domain_purchase_purchased_info:
-      "这些是您通过 Aster 购买的域名。我们会以 WHOIS 隐私保护为您注册,自动配置全部邮件 DNS,您可以立即在上面创建地址。每个域名仅在您批准时才会续费。如果您以后想把域名转移到其他注册商，我们的客服团队会协助完成转移。根据 ICANN 规定，新注册的域名在前 60 天内无法转出。",
+      "这些是您通过 Aster 购买的域名。我们会在注册局允许时以 WHOIS 隐私保护为您注册,自动配置全部邮件 DNS,您可以立即在上面创建地址。每个域名仅在您批准时才会续费。如果您以后想把域名转移到其他注册商，我们的客服团队会协助完成转移。根据 ICANN 规定，新注册的域名在前 60 天内无法转出。",
     domain_purchase_dont_have: "还没有域名?点击这里购买。",
     domain_purchase_sort_price: "价格从低到高",
     domain_purchase_leave_title: "离开 Aster Mail？",
@@ -6266,6 +6267,9 @@ export const zh_CN = {
     domain_purchase_terms_registrar: "NameSilo 条款和条件",
     domain_purchase_terms_icann: "ICANN 注册人权利与责任",
     domain_purchase_detail_privacy_title: "默认私密",
+    domain_purchase_detail_public_whois_title: "WHOIS 信息公开",
+    domain_purchase_whois_public_notice:
+      ".{{tld}} 注册局不允许 WHOIS 隐私保护。Aster 使用公司联系信息注册该域名,因此不会公开您的个人信息。",
     domain_purchase_detail_setup_title: "零配置",
     domain_purchase_detail_instant_title: "秒级就绪",
     domain_purchase_detail_ownership_title: "完全归您所有",

@@ -155,6 +155,7 @@ export interface DomainSearchResult {
   renewal_price_cents: number | null;
   currency: string;
   availability_unknown?: boolean;
+  whois_privacy?: boolean;
 }
 
 export interface DomainSearchResponse {

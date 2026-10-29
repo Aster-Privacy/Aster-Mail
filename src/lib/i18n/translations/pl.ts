@@ -7064,7 +7064,7 @@ export const pl = {
     domain_purchase_empty_subtitle:
       "Wpisz słowo, nazwę lub pełną domenę. Sprawdzamy każdą sprzedawaną końcówkę i pokazujemy, co jest wolne.",
     domain_purchase_empty_included:
-      "Każda domena zawiera prywatność WHOIS, skonfigurowany DNS i nieograniczoną liczbę adresów.",
+      "Każda domena zawiera skonfigurowany DNS, nieograniczoną liczbę adresów i prywatność WHOIS, jeśli rejestr na to pozwala.",
     domain_purchase_terms_inline:
       "Domeny są rejestrowane przez NameSilo. Dokonując zakupu, akceptujesz {{aster}}, {{registrar}} oraz {{icann}}. Rejestracja jest ostateczna po utworzeniu domeny.",
     domain_purchase_empty_title: "Wpisz coś, aby zacząć",
@@ -7105,6 +7105,7 @@ export const pl = {
     domain_purchase_summary_whois: "Prywatność WHOIS",
     domain_purchase_summary_dns: "Automatyczna konfiguracja DNS",
     domain_purchase_summary_included: "W zestawie",
+    domain_purchase_summary_not_available: "Niedostępne",
     domain_purchase_total_today: "Razem dzisiaj",
     domain_purchase_years_line: "Rejestracja na {{count}} lat(a)",
     domain_purchase_secure_checkout: "Bezpieczna płatność przez Stripe",
@@ -7152,7 +7153,7 @@ export const pl = {
     domain_purchase_discount_tooltip:
       "Promocyjna cena pierwszego roku od naszego rejestratora. Później odnowienie za {{price}} rocznie.",
     domain_purchase_purchased_info:
-      "To domeny kupione przez Aster. Rejestrujemy je dla Ciebie z prywatnością WHOIS, automatycznie konfigurujemy cały DNS poczty i od razu możesz tworzyć na nich adresy. Każda domena odnawia się tylko za Twoją zgodą. Jeśli później zechcesz przenieść domenę do innego rejestratora, nasz zespół pomocy zajmie się transferem. ICANN blokuje nowe rejestracje przez pierwsze 60 dni.",
+      "To domeny kupione przez Aster. Rejestrujemy je dla Ciebie z prywatnością WHOIS, jeśli rejestr na to pozwala, automatycznie konfigurujemy cały DNS poczty i od razu możesz tworzyć na nich adresy. Każda domena odnawia się tylko za Twoją zgodą. Jeśli później zechcesz przenieść domenę do innego rejestratora, nasz zespół pomocy zajmie się transferem. ICANN blokuje nowe rejestracje przez pierwsze 60 dni.",
     domain_purchase_dont_have: "Nie masz domeny? Kliknij tutaj, aby ją kupić.",
     domain_purchase_sort_price: "Najniższa cena",
     domain_purchase_leave_title: "Opuścić Aster Mail?",
@@ -7191,6 +7192,9 @@ export const pl = {
     domain_purchase_terms_registrar: "Regulamin NameSilo",
     domain_purchase_terms_icann: "Prawa i obowiązki abonenta ICANN",
     domain_purchase_detail_privacy_title: "Domyślnie prywatna",
+    domain_purchase_detail_public_whois_title: "Publiczne dane WHOIS",
+    domain_purchase_whois_public_notice:
+      "Rejestr domen .{{tld}} nie pozwala na prywatność WHOIS. Aster rejestruje domenę z danymi kontaktowymi firmy, więc Twoje dane osobowe nie są publikowane.",
     domain_purchase_detail_setup_title: "Zero konfiguracji",
     domain_purchase_detail_instant_title: "Gotowa w kilka sekund",
     domain_purchase_detail_ownership_title: "Należy do Ciebie",
