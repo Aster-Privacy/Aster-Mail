@@ -68,6 +68,7 @@ export type {
 };
 
 const INPUT_SERIALIZE_DELAY_MS = 150;
+const handled_shortcut_events = new WeakSet<KeyboardEvent>();
 
 export function use_editor({
   editor_ref,
@@ -670,7 +671,9 @@ export function use_editor({
     const handle_keydown = (e: KeyboardEvent) => {
       const mod = e.ctrlKey || e.metaKey;
 
-      if (!mod) return;
+      if (!mod || handled_shortcut_events.has(e)) return;
+
+      handled_shortcut_events.add(e);
 
       const key = e.key.toLowerCase();
 
@@ -688,36 +691,28 @@ export function use_editor({
 
       if (key === "b") {
         e.preventDefault();
-        document.execCommand("bold", false);
-        handle_input();
-        requestAnimationFrame(fmt.check_active_formats);
+        if (!e.repeat) fmt.toggle_bold();
 
         return;
       }
 
       if (key === "i") {
         e.preventDefault();
-        document.execCommand("italic", false);
-        handle_input();
-        requestAnimationFrame(fmt.check_active_formats);
+        if (!e.repeat) fmt.toggle_italic();
 
         return;
       }
 
       if (key === "u") {
         e.preventDefault();
-        document.execCommand("underline", false);
-        handle_input();
-        requestAnimationFrame(fmt.check_active_formats);
+        if (!e.repeat) fmt.toggle_underline();
 
         return;
       }
 
       if (e.shiftKey && key === "x") {
         e.preventDefault();
-        document.execCommand("strikeThrough", false);
-        handle_input();
-        requestAnimationFrame(fmt.check_active_formats);
+        if (!e.repeat) fmt.toggle_strikethrough();
 
         return;
       }
@@ -758,6 +753,10 @@ export function use_editor({
     handle_input,
     fmt.check_active_formats,
     fmt.insert_blockquote,
+    fmt.toggle_bold,
+    fmt.toggle_italic,
+    fmt.toggle_underline,
+    fmt.toggle_strikethrough,
   ]);
 
   return {
