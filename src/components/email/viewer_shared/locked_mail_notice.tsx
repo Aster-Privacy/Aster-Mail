@@ -28,22 +28,40 @@ import { LOCKED_DATA_CHANGED_EVENT } from "@/services/locked_sent_mail_store";
 
 export interface LockedMailNoticeProps {
   error: string;
+  message_created_at?: string | null;
   text_class_name: string;
   button_class_name: string;
   on_recovered?: () => void;
 }
 
-export function use_has_pre_reset_keys(): {
+const RESET_SEAL_GRACE_MS = 10 * 60 * 1000;
+
+export function is_sealed_before_reset(
+  message_created_at: string | null | undefined,
+  latest_retired_at: number | null,
+): boolean {
+  if (latest_retired_at === null || !message_created_at) return false;
+
+  const created = Date.parse(message_created_at);
+
+  if (!Number.isFinite(created)) return false;
+
+  return created <= latest_retired_at + RESET_SEAL_GRACE_MS;
+}
+
+export function use_pre_reset_cutoff(): {
   account_id: string | null;
-  has_pre_reset_keys: boolean;
+  latest_retired_at: number | null;
 } {
   const { vault, user } = use_auth();
   const account_id = user?.id ?? null;
-  const [has_pre_reset_keys, set_has_pre_reset_keys] = useState(false);
+  const [latest_retired_at, set_latest_retired_at] = useState<number | null>(
+    null,
+  );
 
   useEffect(() => {
     if (!vault || !account_id) {
-      set_has_pre_reset_keys(false);
+      set_latest_retired_at(null);
 
       return;
     }
@@ -52,8 +70,12 @@ export function use_has_pre_reset_keys(): {
 
     const refresh = () => {
       void get_locked_data_status(account_id).then((status) => {
-        if (!cancelled)
-          set_has_pre_reset_keys((status?.inactive_key_sets ?? 0) > 0);
+        if (cancelled) return;
+        set_latest_retired_at(
+          status && status.inactive_key_sets > 0
+            ? status.latest_retired_at
+            : null,
+        );
       });
     };
 
@@ -66,17 +88,18 @@ export function use_has_pre_reset_keys(): {
     };
   }, [vault, account_id]);
 
-  return { account_id, has_pre_reset_keys };
+  return { account_id, latest_retired_at };
 }
 
 export function LockedMailNotice({
   error,
+  message_created_at,
   text_class_name,
   button_class_name,
   on_recovered,
 }: LockedMailNoticeProps): React.ReactElement {
   const { t } = use_i18n();
-  const { account_id, has_pre_reset_keys } = use_has_pre_reset_keys();
+  const { account_id, latest_retired_at } = use_pre_reset_cutoff();
   const [is_modal_open, set_is_modal_open] = useState(false);
 
   useEffect(() => {
@@ -91,7 +114,10 @@ export function LockedMailNotice({
   const open_modal = useCallback(() => set_is_modal_open(true), []);
   const close_modal = useCallback(() => set_is_modal_open(false), []);
 
-  if (!account_id || !has_pre_reset_keys) {
+  if (
+    !account_id ||
+    !is_sealed_before_reset(message_created_at, latest_retired_at)
+  ) {
     return <p className={text_class_name}>{error}</p>;
   }
 

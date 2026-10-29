@@ -57,6 +57,7 @@ export interface ViewerErrorStateProps {
   on_retry?: () => void;
   show_back_button?: boolean;
   decrypt_failed?: boolean;
+  message_created_at?: string | null;
 }
 
 export function ViewerErrorState({
@@ -65,6 +66,7 @@ export function ViewerErrorState({
   on_retry,
   show_back_button = false,
   decrypt_failed = false,
+  message_created_at = null,
 }: ViewerErrorStateProps): React.ReactElement {
   const { t } = use_i18n();
 
@@ -76,6 +78,7 @@ export function ViewerErrorState({
           <LockedMailNotice
             button_class_name="mt-4 mx-1 px-4 py-2 text-sm font-medium rounded-[14px] transition-colors bg-brand text-[var(--accent-fg,#ffffff)]"
             error={error}
+            message_created_at={message_created_at}
             on_recovered={on_retry}
             text_class_name="text-sm text-txt-muted max-w-sm mx-auto"
           />

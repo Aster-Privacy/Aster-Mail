@@ -68,6 +68,7 @@ interface PopupEmailBodyProps {
   mail_item: MailItem | null;
   error: string | null;
   decrypt_failed?: boolean;
+  decrypt_failed_created_at?: string | null;
   is_fullscreen: boolean;
   thread_messages: DecryptedThreadMessage[];
   pending_thread_count?: number;
@@ -125,6 +126,7 @@ export function PopupEmailBody({
   mail_item,
   error,
   decrypt_failed = false,
+  decrypt_failed_created_at = null,
   is_fullscreen,
   thread_messages,
   pending_thread_count = 0,
@@ -261,6 +263,7 @@ export function PopupEmailBody({
             <LockedMailNotice
               button_class_name="px-4 py-2 text-sm font-medium rounded-[14px] transition-colors bg-brand text-[var(--accent-fg,#ffffff)]"
               error={error}
+              message_created_at={decrypt_failed_created_at}
               on_recovered={on_close}
               text_class_name="text-sm text-txt-secondary text-center max-w-sm"
             />

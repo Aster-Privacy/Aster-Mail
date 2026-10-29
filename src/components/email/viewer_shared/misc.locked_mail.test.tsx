@@ -28,6 +28,7 @@ const h = vi.hoisted(() => ({
     user: { id: "account-1" } as { id: string } | null,
   },
   inactive_key_sets: 1,
+  latest_retired_at: Date.parse("2026-05-01T12:00:00Z") as number | null,
 }));
 
 vi.mock("@/lib/i18n/context", () => ({
@@ -52,10 +53,12 @@ vi.mock("@/services/locked_data", () => ({
     inactive_key_sets: h.inactive_key_sets,
     locked_sent_mail: 0,
     signature: "a|",
+    latest_retired_at: h.latest_retired_at,
   }),
 }));
 
 const { ViewerErrorState } = await import("./misc");
+const { is_sealed_before_reset } = await import("./locked_mail_notice");
 const { LOCKED_DATA_CHANGED_EVENT } =
   await import("@/services/locked_sent_mail_store");
 
@@ -67,7 +70,14 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 let root: Root | null = null;
 let container: HTMLDivElement | null = null;
 
-async function render(decrypt_failed: boolean, on_retry = vi.fn()) {
+const BEFORE_RESET = "2026-04-20T08:00:00Z";
+const AFTER_RESET = "2026-05-03T08:00:00Z";
+
+async function render(
+  decrypt_failed: boolean,
+  on_retry = vi.fn(),
+  message_created_at: string | null = BEFORE_RESET,
+) {
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
@@ -76,6 +86,7 @@ async function render(decrypt_failed: boolean, on_retry = vi.fn()) {
       <ViewerErrorState
         decrypt_failed={decrypt_failed}
         error="common.failed_to_decrypt_email"
+        message_created_at={message_created_at}
         on_dismiss={() => {}}
         on_retry={on_retry}
       />,
@@ -95,6 +106,7 @@ describe("ViewerErrorState for mail locked by a password reset", () => {
   beforeEach(() => {
     h.auth = { vault: { identity_key: "key" }, user: { id: "account-1" } };
     h.inactive_key_sets = 1;
+    h.latest_retired_at = Date.parse("2026-05-01T12:00:00Z");
   });
 
   afterEach(async () => {
@@ -126,6 +138,32 @@ describe("ViewerErrorState for mail locked by a password reset", () => {
     expect(view.textContent).not.toContain("common.locked_mail_after_reset");
   });
 
+  it("keeps the plain error for mail that arrived after the reset", async () => {
+    const view = await render(true, vi.fn(), AFTER_RESET);
+
+    expect(view.textContent).toContain("common.failed_to_decrypt_email");
+    expect(view.textContent).not.toContain("common.locked_mail_after_reset");
+    expect(
+      find_button(view, "common.locked_data_banner_action"),
+    ).toBeUndefined();
+  });
+
+  it("keeps the plain error when the message date is unknown", async () => {
+    const view = await render(true, vi.fn(), null);
+
+    expect(view.textContent).toContain("common.failed_to_decrypt_email");
+    expect(view.textContent).not.toContain("common.locked_mail_after_reset");
+  });
+
+  it("keeps the plain error when the reset time is unknown", async () => {
+    h.latest_retired_at = null;
+
+    const view = await render(true);
+
+    expect(view.textContent).toContain("common.failed_to_decrypt_email");
+    expect(view.textContent).not.toContain("common.locked_mail_after_reset");
+  });
+
   it("keeps the plain error for failures that are not decryption failures", async () => {
     const view = await render(false);
 
@@ -144,5 +182,24 @@ describe("ViewerErrorState for mail locked by a password reset", () => {
     });
 
     expect(on_retry).toHaveBeenCalled();
+  });
+});
+
+describe("is_sealed_before_reset", () => {
+  const reset = Date.parse("2026-05-01T12:00:00Z");
+
+  it("counts mail delivered before the reset or within the grace window", () => {
+    expect(is_sealed_before_reset("2026-05-01T11:00:00Z", reset)).toBe(true);
+    expect(is_sealed_before_reset("2026-05-01T12:05:00Z", reset)).toBe(true);
+  });
+
+  it("rejects mail delivered after the grace window", () => {
+    expect(is_sealed_before_reset("2026-05-01T12:30:00Z", reset)).toBe(false);
+  });
+
+  it("rejects missing or unreadable inputs", () => {
+    expect(is_sealed_before_reset(null, reset)).toBe(false);
+    expect(is_sealed_before_reset("garbage", reset)).toBe(false);
+    expect(is_sealed_before_reset("2026-04-01T00:00:00Z", null)).toBe(false);
   });
 });

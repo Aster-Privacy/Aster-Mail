@@ -242,9 +242,10 @@ export function use_email_viewer({
   const [mail_item, set_mail_item] = useState<MailItem | null>(null);
   const [is_loading, set_is_loading] = useState(true);
   const [error, set_error] = useState<string | null>(null);
-  const [decrypt_failed_id, set_decrypt_failed_id] = useState<string | null>(
-    null,
-  );
+  const [decrypt_failure, set_decrypt_failure] = useState<{
+    id: string;
+    created_at: string | null;
+  } | null>(null);
   const [is_read, set_is_read] = useState(false);
   const [is_pinned, set_is_pinned] = useState(false);
   const [is_archive_loading, set_is_archive_loading] = useState(false);
@@ -700,7 +701,10 @@ export function use_email_viewer({
       if (!envelope) {
         if (!cancelled && !reloading_same_email) {
           set_error(t("common.failed_to_decrypt_email"));
-          set_decrypt_failed_id(email_id);
+          set_decrypt_failure({
+            id: email_id,
+            created_at: item.created_at ?? null,
+          });
           set_is_loading(false);
         }
 
@@ -1574,7 +1578,11 @@ export function use_email_viewer({
     mail_item,
     is_loading,
     error,
-    decrypt_failed: error !== null && decrypt_failed_id === email_id,
+    decrypt_failed: error !== null && decrypt_failure?.id === email_id,
+    decrypt_failed_created_at:
+      error !== null && decrypt_failure?.id === email_id
+        ? decrypt_failure.created_at
+        : null,
     retry_load,
     is_read,
     is_pinned,
