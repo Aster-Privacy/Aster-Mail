@@ -332,6 +332,27 @@ export async function resend_pending_verification(
   }
 }
 
+export type RecoveryEmailLinkStatus = "verified" | "not_verified" | "unreachable";
+
+export async function get_recovery_email_link_status(
+  token: string,
+): Promise<RecoveryEmailLinkStatus> {
+  try {
+    const response = await api_client.post<{ verified: boolean }>(
+      "/core/v1/recovery/email/link-status",
+      { token },
+    );
+
+    if (response.error || !response.data) {
+      return "unreachable";
+    }
+
+    return response.data.verified === true ? "verified" : "not_verified";
+  } catch {
+    return "unreachable";
+  }
+}
+
 export async function remove_recovery_email(
   credentials: StepUpCredentials,
 ): Promise<{ data: { success: boolean }; code?: string; error?: string }> {
