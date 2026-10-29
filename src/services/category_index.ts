@@ -96,7 +96,11 @@ const NOTIFY_THROTTLE_MS = 350;
 const BUILD_NOTIFY_THROTTLE_MS = 2500;
 const RESYNC_DEBOUNCE_MS = 4000;
 const RESYNC_MIN_INTERVAL_MS = 20000;
-const DELETE_SYNC_TOKEN_PREFIX = "aster_delete_sync_token_";
+const LEGACY_DELETE_SYNC_TOKEN_PREFIX = "aster_delete_sync_token_";
+const CHANGE_SYNC_TOKEN_PREFIX = "aster_change_sync_token_";
+const CHANGE_SYNC_PAGE_SIZE = 100;
+const CHANGE_SYNC_MAX_PAGES = 10;
+const CHANGE_SYNC_OVERLAP_MS = 10_000;
 const INDEX_READY_TIMEOUT_MS = 300000;
 const INDEX_READY_POLL_MS = 500;
 const FUTURE_NEW_SKEW_MS = 15 * 60 * 1000;
@@ -2240,6 +2244,11 @@ export async function build_index(options?: {
   build_progress_ms = now_ms();
   build_processed = 0;
 
+  const change_sync_seed = Promise.all([
+    change_sync_storage_key(),
+    fetch_change_sync_token(),
+  ]).catch(() => [null, null] as const);
+
   try {
     let cursor: string | undefined;
     let processed = 0;
@@ -2341,6 +2350,12 @@ export async function build_index(options?: {
     full_builds_completed += 1;
     void persist_now();
     notify();
+
+    const [seed_key, seed_token] = await change_sync_seed;
+
+    if (seed_key && seed_token && token === build_token) {
+      store_change_sync_token(seed_key, seed_token);
+    }
   } finally {
     build_in_progress = false;
     schedule_persist();
@@ -2523,17 +2538,28 @@ async function run_sync_recent(
       publish_inbox_unread();
     }
 
-    const deletions_pruned = await prune_server_deletions();
+    const server_changes = await apply_server_changes(token);
 
     if (token !== build_token) return;
 
-    if (deletions_pruned) {
+    if (server_changes.changed) {
       schedule_persist();
       notify();
     }
     last_build_ms = now_ms();
     session_reconciled = true;
     publish_inbox_unread();
+
+    if (
+      server_changes.rebuild &&
+      now_ms() - last_gap_rebuild_ms > GAP_REBUILD_MIN_INTERVAL_MS
+    ) {
+      last_gap_rebuild_ms = now_ms();
+      fully_built = false;
+      void build_index({ force: true });
+
+      return;
+    }
 
     if (
       index_had_entries &&
@@ -2598,45 +2624,174 @@ async function rebuild_if_index_lags_server(): Promise<void> {
   void build_index({ force: true });
 }
 
-async function delete_sync_storage_key(): Promise<string | null> {
+async function change_sync_storage_key(): Promise<string | null> {
   const account_id = await get_current_account_id();
 
-  return account_id ? `${DELETE_SYNC_TOKEN_PREFIX}${account_id}` : null;
-}
-
-async function prune_server_deletions(): Promise<boolean> {
-  const storage_key = await delete_sync_storage_key();
-
-  if (!storage_key) return false;
+  if (!account_id) return null;
 
   try {
-    const since = localStorage.getItem(storage_key);
-
-    if (!since) {
-      localStorage.setItem(storage_key, new Date().toISOString());
-
-      return false;
-    }
-
-    const response = await sync_mail_items({ since, limit: 1 });
-    const data = response?.data;
-
-    if (!data) return false;
-
-    let changed = false;
-
-    for (const id of data.deleted_ids ?? []) {
-      if (entries_map.delete(id)) {
-        mark_dirty(id);
-        changed = true;
-      }
-    }
-
-    if (data.sync_token) localStorage.setItem(storage_key, data.sync_token);
-
-    return changed;
+    localStorage.removeItem(`${LEGACY_DELETE_SYNC_TOKEN_PREFIX}${account_id}`);
   } catch {
-    return false;
+    return null;
+  }
+
+  return `${CHANGE_SYNC_TOKEN_PREFIX}${account_id}`;
+}
+
+function rewind_sync_token(
+  sync_token: string | undefined,
+  rewind_ms: number,
+): string | null {
+  if (!sync_token) return null;
+
+  const ts = Date.parse(sync_token);
+
+  if (!Number.isFinite(ts)) return null;
+
+  return new Date(ts - Math.max(0, rewind_ms)).toISOString();
+}
+
+async function fetch_change_sync_token(): Promise<string | null> {
+  try {
+    const started_at = now_ms();
+    const response = await sync_mail_items({ limit: 1 });
+
+    return rewind_sync_token(
+      response?.data?.sync_token,
+      now_ms() - started_at + CHANGE_SYNC_OVERLAP_MS,
+    );
+  } catch {
+    return null;
+  }
+}
+
+function store_change_sync_token(storage_key: string, value: string): void {
+  try {
+    localStorage.setItem(storage_key, value);
+  } catch {
+    return;
+  }
+}
+
+async function apply_changed_items(
+  items: MailItem[],
+  fetched_at: number,
+  token: number,
+): Promise<boolean> {
+  const received = items.filter(
+    (item) => item.item_type === "received" && !is_recently_removed(item.id),
+  );
+  let changed = false;
+
+  for (const item of items) {
+    if (item.item_type !== "received" && entries_map.delete(item.id)) {
+      mark_dirty(item.id);
+      changed = true;
+    }
+  }
+
+  if (received.length === 0) return changed;
+
+  const { upserts, removals } = await entries_from_items(received, "decoded");
+
+  if (token !== build_token) return changed;
+
+  if (apply_upsert(upserts, fetched_at)) changed = true;
+
+  for (const id of removals) {
+    if (entries_map.delete(id)) {
+      mark_dirty(id);
+      changed = true;
+    }
+  }
+
+  return changed;
+}
+
+interface ServerChangeResult {
+  changed: boolean;
+  rebuild: boolean;
+}
+
+async function apply_server_changes(
+  token: number,
+): Promise<ServerChangeResult> {
+  const result: ServerChangeResult = { changed: false, rebuild: false };
+  const storage_key = await change_sync_storage_key();
+
+  if (!storage_key) return result;
+
+  let since: string | null = null;
+
+  try {
+    since = localStorage.getItem(storage_key);
+  } catch {
+    return result;
+  }
+
+  if (!since) {
+    const seeded = await fetch_change_sync_token();
+
+    if (!seeded || token !== build_token) return result;
+    store_change_sync_token(storage_key, seeded);
+    result.rebuild =
+      fully_built && entries_map.size > 0 && full_builds_completed === 0;
+
+    return result;
+  }
+
+  try {
+    const started_at = now_ms();
+    const query_since =
+      rewind_sync_token(since, CHANGE_SYNC_OVERLAP_MS) ?? since;
+    let cursor: string | undefined;
+
+    for (let page = 0; page < CHANGE_SYNC_MAX_PAGES; page += 1) {
+      const fetched_at = now_ms();
+      const response = await sync_mail_items({
+        since: query_since,
+        limit: CHANGE_SYNC_PAGE_SIZE,
+        ...(cursor ? { cursor } : {}),
+      });
+
+      if (token !== build_token) return result;
+
+      const data = response?.data;
+
+      if (!data) return result;
+
+      for (const id of data.deleted_ids ?? []) {
+        if (entries_map.delete(id)) {
+          mark_dirty(id);
+          result.changed = true;
+        }
+      }
+
+      if (await apply_changed_items(data.items ?? [], fetched_at, token)) {
+        result.changed = true;
+      }
+
+      if (token !== build_token) return result;
+
+      if (!data.has_more || !data.next_cursor) {
+        const next = rewind_sync_token(
+          data.sync_token,
+          now_ms() - started_at,
+        );
+
+        if (next) store_change_sync_token(storage_key, next);
+
+        return result;
+      }
+
+      cursor = data.next_cursor;
+    }
+
+    result.rebuild = true;
+
+    return result;
+  } catch {
+    return result;
   }
 }
 
