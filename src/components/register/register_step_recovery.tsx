@@ -46,7 +46,8 @@ interface RegisterStepRecoveryCodesProps {
 export const RegisterStepRecoveryCodes = ({
   reg,
 }: RegisterStepRecoveryCodesProps) => {
-  const has_saved = reg.is_pdf_downloaded || reg.is_text_downloaded;
+  const has_saved =
+    reg.is_pdf_downloaded || reg.is_text_downloaded || reg.has_copied_key;
 
   return (
     <StepShell
