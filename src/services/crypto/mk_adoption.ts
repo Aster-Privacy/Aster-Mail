@@ -23,6 +23,7 @@ import type { EncryptedVault } from "./key_manager";
 import { get_current_account } from "../account_manager";
 import { api_client } from "../api/client";
 
+import { sync_vault_with_server } from "./ensure_ratchet_keys";
 import { collect_vault_key_fingerprints } from "./vault_key_fingerprints";
 import { encrypt_vault, decrypt_vault } from "./key_manager";
 import {
@@ -61,14 +62,22 @@ export function is_mk_adoption_enabled(): boolean {
 }
 
 async function run_adoption(
-  vault: EncryptedVault,
+  local_vault: EncryptedVault,
   passphrase: string,
 ): Promise<boolean> {
   if (!is_mk_adoption_enabled()) return false;
 
-  if (is_master_key_vault(vault)) return false;
+  if (is_master_key_vault(local_vault)) return false;
 
   if (typeof navigator !== "undefined" && !navigator.onLine) return false;
+
+  const freshness = await sync_vault_with_server();
+
+  if (freshness.status === "unverified") return false;
+
+  const vault = freshness.status === "adopted" ? freshness.vault : local_vault;
+
+  if (is_master_key_vault(vault)) return false;
 
   const account = await get_current_account();
   const user_id = account?.user?.id;

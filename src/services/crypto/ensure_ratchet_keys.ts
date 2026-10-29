@@ -46,7 +46,10 @@ import {
 import { clear_all_ratchet_states } from "./ratchet_state_store";
 import { report_envelope_capability_if_due } from "./envelope_capability";
 import { with_vault_write_lock } from "./vault_write_lock";
-import { complete_p256_private_jwk, is_compact_p256_private_jwk } from "./p256_jwk";
+import {
+  complete_p256_private_jwk,
+  is_compact_p256_private_jwk,
+} from "./p256_jwk";
 import { recover_ratchet_keys_from_history_locked } from "./vault_key_recovery";
 import { collect_vault_key_fingerprints } from "./vault_key_fingerprints";
 import { published_bundle_needs_resigning } from "./published_signing_key";
@@ -153,16 +156,18 @@ async function report_capability(): Promise<void> {
 
     if (!result || result.identity_verified) return;
 
-    const freshness = await sync_vault_with_server();
+    await with_vault_write_lock(async () => {
+      const freshness = await sync_vault_with_server();
 
-    if (freshness.status === "unverified") return;
+      if (freshness.status === "unverified") return;
 
-    const vault =
-      freshness.status === "adopted"
-        ? freshness.vault
-        : get_vault_from_memory();
+      const vault =
+        freshness.status === "adopted"
+          ? freshness.vault
+          : get_vault_from_memory();
 
-    if (vault) await upload_prekey_bundle_with_retry(vault);
+      if (vault) await upload_prekey_bundle_with_retry(vault);
+    });
   } catch {
     return;
   }
