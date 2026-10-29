@@ -1144,6 +1144,12 @@ export const zh_CN = {
     locked_data_banner_message: "您的部分较早的加密数据已锁定。",
     locked_data_banner_action: "恢复数据",
     locked_data_banner_dismiss: "关闭",
+    external_account_health_banner_reauth:
+      "{{email}} 已停止同步。请重新登录以恢复。",
+    external_account_health_banner_failing: "{{email}} 已超过一天未同步。",
+    external_account_health_banner_multiple: "部分外部账户已停止同步。",
+    external_account_health_banner_action: "查看",
+    external_account_health_banner_dismiss: "关闭",
     locked_mail_after_reset:
       "此邮件使用您重置密码之前的密钥加密。要阅读此邮件，请使用旧密码或旧恢复码恢复您的旧数据。",
     recover_data_title: "恢复数据",
@@ -5119,6 +5125,10 @@ export const zh_CN = {
     no_external_accounts_description:
       "连接外部邮箱账户以从其他提供商导入和发送邮件",
     external_account_count: "{{count}}个外部账户",
+    external_account_health_summary: "同步状态",
+    external_account_health_ok: "正常",
+    external_account_health_failing: "失败",
+    external_account_health_reauth: "需要登录",
     email_count: "{{count}}封邮件",
     purge_confirm_message:
       "这将永久删除从{{email}}导入的全部{{count}}封邮件。此操作无法撤销。",

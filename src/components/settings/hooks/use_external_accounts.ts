@@ -127,7 +127,6 @@ export function use_external_accounts() {
     useState(false);
   const [show_quota_dialog, set_show_quota_dialog] = useState(false);
   const [quota_sync_message, set_quota_sync_message] = useState("");
-  const [failed_icons, set_failed_icons] = useState<Set<string>>(new Set());
 
   const [, set_sync_tick] = useState(0);
 
@@ -675,8 +674,6 @@ export function use_external_accounts() {
     set_form_label_color: form.set_form_label_color,
     show_password: form.show_password,
     set_show_password: form.set_show_password,
-    failed_icons,
-    set_failed_icons,
     form_smtp_host: form.form_smtp_host,
     form_smtp_port: form.form_smtp_port,
     form_smtp_username: form.form_smtp_username,

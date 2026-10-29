@@ -49,6 +49,10 @@ import {
 
 import { user_facing_error } from "@/utils/user_facing_error";
 import { get_active_translations } from "@/lib/i18n/translations";
+import {
+  get_external_account_health_generation,
+  publish_external_account_health,
+} from "@/stores/external_account_health_store";
 
 export function external_account_error_message(
   server_code: string | undefined,
@@ -73,6 +77,8 @@ export async function list_external_accounts(
   fallback_name = get_active_translations().settings
     .connected_accounts_fallback_name,
 ): Promise<ApiResponse<DecryptedExternalAccount[]>> {
+  const health_generation = get_external_account_health_generation();
+
   try {
     const response = await api_client.get<{
       accounts: ExternalAccountResponse[];
@@ -170,6 +176,8 @@ export async function list_external_accounts(
         }
       }),
     );
+
+    publish_external_account_health(decrypted, Date.now(), health_generation);
 
     return { data: decrypted };
   } catch (err) {

@@ -25,11 +25,10 @@ import { ServerStackIcon } from "@heroicons/react/24/outline";
 import { Island, IslandEmpty } from "@aster/ui";
 
 import { AccountCard } from "@/components/settings/external_accounts/account_card";
+import { AccountHealthSummary } from "@/components/settings/external_accounts/account_health_summary";
 
 interface AccountListProps {
   accounts: DecryptedExternalAccount[];
-  failed_icons: Set<string>;
-  set_failed_icons: React.Dispatch<React.SetStateAction<Set<string>>>;
   expanded_error_ids: Set<string>;
   toggle_error_expand: (account_id: string) => void;
   format_sync_time: (date_string: string | null) => string | null;
@@ -42,8 +41,6 @@ interface AccountListProps {
 
 export function AccountList({
   accounts,
-  failed_icons,
-  set_failed_icons,
   expanded_error_ids,
   toggle_error_expand,
   format_sync_time,
@@ -64,25 +61,24 @@ export function AccountList({
 
   return (
     <Island className="overflow-hidden">
-      <div className="flex items-center px-4 py-2.5 border-b border-[color-mix(in_srgb,var(--text-primary)_8%,transparent)]">
+      <div className="flex items-center justify-between gap-x-4 gap-y-1.5 flex-wrap px-4 py-2.5 border-b border-[color-mix(in_srgb,var(--text-primary)_8%,transparent)]">
         <span className="text-xs font-medium text-txt-muted">
           {t("settings.external_account_count", {
             count: accounts.length,
           })}
         </span>
+        <AccountHealthSummary accounts={accounts} t={t} />
       </div>
       {accounts.map((account, index) => (
         <AccountCard
           key={account.id}
           account={account}
           expanded_error_ids={expanded_error_ids}
-          failed_icons={failed_icons}
           format_sync_time={format_sync_time}
           handle_edit={handle_edit}
           handle_sync={handle_sync}
           handle_toggle={handle_toggle}
           index={index}
-          set_failed_icons={set_failed_icons}
           set_purge_target={set_purge_target}
           t={t}
           toggle_error_expand={toggle_error_expand}

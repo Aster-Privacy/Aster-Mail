@@ -1358,6 +1358,14 @@ export const pl = {
       "Część Twoich starszych zaszyfrowanych danych jest zablokowana.",
     locked_data_banner_action: "Odzyskaj dane",
     locked_data_banner_dismiss: "Zamknij",
+    external_account_health_banner_reauth:
+      "Konto {{email}} przestało się synchronizować. Zaloguj się ponownie, aby wznowić.",
+    external_account_health_banner_failing:
+      "Konto {{email}} nie synchronizuje się od ponad doby.",
+    external_account_health_banner_multiple:
+      "Niektóre konta zewnętrzne przestały się synchronizować.",
+    external_account_health_banner_action: "Sprawdź",
+    external_account_health_banner_dismiss: "Zamknij",
     locked_mail_after_reset:
       "Ten e-mail został zaszyfrowany kluczami sprzed zresetowania hasła. Aby go odczytać, odzyskaj starsze dane za pomocą starego hasła lub starego kodu odzyskiwania.",
     recover_data_title: "Odzyskaj dane",
@@ -5862,6 +5870,10 @@ export const pl = {
     no_external_accounts_description:
       "Połącz zewnętrzne konto e-mail, aby importować i wysyłać e-maile od innych dostawców",
     external_account_count: "{{count}} kont(o) zewnętrznych",
+    external_account_health_summary: "Stan synchronizacji",
+    external_account_health_ok: "Sprawne",
+    external_account_health_failing: "Błędy",
+    external_account_health_reauth: "Wymagane logowanie",
     email_count: "{{count}} e-mail(i)",
     purge_confirm_message:
       "Spowoduje to trwałe usunięcie wszystkich {{count}} zaimportowanych e-mail(i) z {{email}}. Tej operacji nie można cofnąć.",

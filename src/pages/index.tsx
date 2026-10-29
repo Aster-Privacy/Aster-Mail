@@ -137,6 +137,7 @@ import { EmailPopupViewer } from "@/components/email/email_popup_viewer";
 import { ScheduledPopupViewer } from "@/components/scheduled/scheduled_popup_viewer";
 import { LockedDataBanner } from "@/components/common/locked_data_banner";
 import { NotificationBanner } from "@/components/common/notification_banner";
+import { ExternalAccountHealthBanner } from "@/components/common/external_account_health_banner";
 import { PaymentPastDueBanner } from "@/components/common/payment_past_due_banner";
 import { use_payment_past_due } from "@/hooks/use_payment_past_due";
 import { SurveyBanner } from "@/components/survey/survey_banner";
@@ -428,6 +429,7 @@ export default function IndexPage() {
         ) : (
           <NotificationBanner />
         )}
+        {!state.is_settings_route && <ExternalAccountHealthBanner />}
         <SurveyBanner on_visibility_change={set_is_survey_visible} />
         {!is_survey_visible && !payment_past_due.is_past_due && (
           <ReviewPromptBanner />

@@ -1356,6 +1356,14 @@ export const en: Translations = {
     locked_data_banner_message: "Some of your older encrypted data is locked.",
     locked_data_banner_action: "Recover data",
     locked_data_banner_dismiss: "Dismiss",
+    external_account_health_banner_reauth:
+      "{{email}} stopped syncing. Sign in again to resume.",
+    external_account_health_banner_failing:
+      "{{email}} has not synced for over a day.",
+    external_account_health_banner_multiple:
+      "Some external accounts have stopped syncing.",
+    external_account_health_banner_action: "Review",
+    external_account_health_banner_dismiss: "Dismiss",
     locked_mail_after_reset:
       "This email was encrypted with the keys you had before your password reset. To read it, recover your older data with your old password or an old recovery code.",
     recover_data_title: "Recover data",
@@ -6846,6 +6854,10 @@ export const en: Translations = {
     no_external_accounts_description:
       "Connect an external email account to import and send emails from other providers",
     external_account_count: "{{count}} external account(s)",
+    external_account_health_summary: "Sync health",
+    external_account_health_ok: "Healthy",
+    external_account_health_failing: "Failing",
+    external_account_health_reauth: "Sign-in needed",
     email_count: "{{count}} email(s)",
     purge_confirm_message:
       "This will permanently delete all {{count}} imported email(s) from {{email}}. This action cannot be undone.",

@@ -1326,6 +1326,14 @@ export const tr = {
     locked_data_banner_message: "Eski şifreli verilerinizin bir kısmı kilitli.",
     locked_data_banner_action: "Verileri kurtar",
     locked_data_banner_dismiss: "Kapat",
+    external_account_health_banner_reauth:
+      "{{email}} eşitlenmeyi durdurdu. Devam etmek için yeniden oturum açın.",
+    external_account_health_banner_failing:
+      "{{email}} bir günden uzun süredir eşitlenmedi.",
+    external_account_health_banner_multiple:
+      "Bazı harici hesapların eşitlenmesi durdu.",
+    external_account_health_banner_action: "İncele",
+    external_account_health_banner_dismiss: "Kapat",
     locked_mail_after_reset:
       "Bu e-posta, parolanızı sıfırlamadan önceki anahtarlarınızla şifrelendi. Okumak için eski verilerinizi eski parolanızla veya eski bir kurtarma koduyla kurtarın.",
     recover_data_title: "Verileri kurtar",
@@ -5635,6 +5643,10 @@ export const tr = {
     no_external_accounts_description:
       "E-postaları diğer sağlayıcılardan içe aktarmak ve göndermek için harici bir e-posta hesabı bağlayın",
     external_account_count: "{{count}} harici hesap",
+    external_account_health_summary: "Eşitleme durumu",
+    external_account_health_ok: "Sorunsuz",
+    external_account_health_failing: "Hatalı",
+    external_account_health_reauth: "Oturum açılmalı",
     email_count: "{{count}} e-posta",
     purge_confirm_message:
       "Bu, {{email}} adresinden içe aktarılan tüm {{count}} e-postayı kalıcı olarak silecektir. Bu işlem geri alınamaz.",

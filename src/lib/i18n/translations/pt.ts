@@ -1243,6 +1243,14 @@ export const pt = {
       "Alguns dos seus dados encriptados mais antigos estão bloqueados.",
     locked_data_banner_action: "Recuperar dados",
     locked_data_banner_dismiss: "Dispensar",
+    external_account_health_banner_reauth:
+      "{{email}} deixou de sincronizar. Inicie sessão novamente para retomar.",
+    external_account_health_banner_failing:
+      "{{email}} não sincroniza há mais de um dia.",
+    external_account_health_banner_multiple:
+      "Algumas contas externas deixaram de sincronizar.",
+    external_account_health_banner_action: "Rever",
+    external_account_health_banner_dismiss: "Dispensar",
     locked_mail_after_reset:
       "Este e-mail foi encriptado com as chaves que tinha antes de repor a palavra-passe. Para o ler, recupere os seus dados antigos com a palavra-passe antiga ou um código de recuperação antigo.",
     recover_data_title: "Recuperar dados",
@@ -5775,6 +5783,10 @@ export const pt = {
     no_external_accounts_description:
       "Ligue uma conta de e-mail externa para importar e enviar e-mails de outros fornecedores",
     external_account_count: "{{count}} conta(s) externa(s)",
+    external_account_health_summary: "Estado da sincronização",
+    external_account_health_ok: "Em ordem",
+    external_account_health_failing: "Com erros",
+    external_account_health_reauth: "Requer início de sessão",
     email_count: "{{count}} e-mail(s)",
     purge_confirm_message:
       "Isso eliminará permanentemente todos os {{count}} e-mail(s) importados de {{email}}. Esta ação não pode ser desfeita.",

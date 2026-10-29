@@ -41,7 +41,13 @@ import { Button } from "@aster/ui";
 
 import { SettingsGroup, SettingsHeader, chip_selected_style } from "./shared";
 
-import { FaviconImg } from "@/components/ui/favicon_or_initial";
+import { AccountHealthSummary } from "@/components/settings/external_accounts/account_health_summary";
+import { protocol_label } from "@/components/settings/external_accounts/account_card";
+import {
+  SyncErrorDetail,
+  SyncStatusIndicator,
+} from "@/components/settings/external_accounts/sync_status";
+import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { commit_on_enter } from "@/lib/commit_on_enter";
@@ -51,10 +57,7 @@ import {
   use_external_accounts,
   get_folder_depth,
 } from "@/components/settings/hooks/use_external_accounts";
-import {
-  is_syncing as check_is_syncing,
-  get_sync_progress_state,
-} from "@/services/sync_manager";
+import { is_syncing as check_is_syncing } from "@/services/sync_manager";
 import { TAG_COLOR_PRESETS } from "@/components/ui/email_tag";
 
 export function ExternalAccountsSection({
@@ -815,11 +818,16 @@ export function ExternalAccountsSection({
           </div>
         ) : (
           <div className="space-y-3 px-4 pt-4">
+            <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5 ps-1">
+              <span className="text-[13px] font-medium text-[var(--text-muted)]">
+                {state.t("settings.external_account_count", {
+                  count: state.accounts.length,
+                })}
+              </span>
+              <AccountHealthSummary accounts={state.accounts} t={state.t} />
+            </div>
             {state.accounts.map((account) => {
-              const domain = account.email.split("@")[1];
-              const icon_ok = domain && !state.failed_icons.has(domain);
               const syncing = check_is_syncing(account.id);
-              const progress = get_sync_progress_state(account.id);
 
               return (
                 <div
@@ -827,76 +835,26 @@ export function ExternalAccountsSection({
                   className="overflow-hidden rounded-2xl bg-[var(--mobile-bg-card)]"
                 >
                   <div className="flex items-center gap-3 px-4 py-3.5">
-                    {icon_ok ? (
-                      <div
-                        className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full"
-                        style={{
-                          backgroundColor: account.is_enabled
-                            ? `${account.label_color}20`
-                            : "var(--bg-tertiary)",
-                        }}
-                      >
-                        <FaviconImg
-                          alt=""
-                          className="h-full w-full object-cover"
-                          domain={domain}
-                          onError={() =>
-                            state.set_failed_icons(
-                              (prev) => new Set([...prev, domain]),
-                            )
+                    <ProfileAvatar
+                      use_domain_logo
+                      email={account.email}
+                      name={account.display_name || account.email}
+                      size="md"
+                    />
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <span className="block truncate text-[15px] font-medium text-[var(--text-primary)]">
+                        {account.email}
+                      </span>
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <span className="account_menu_badge account_menu_badge_muted uppercase tracking-wide">
+                          {protocol_label(account.protocol)}
+                        </span>
+                        <span
+                          className={
+                            account.is_enabled
+                              ? "account_menu_badge"
+                              : "account_menu_badge account_menu_badge_muted"
                           }
-                        />
-                      </div>
-                    ) : (
-                      <div
-                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
-                        style={{
-                          backgroundColor: account.is_enabled
-                            ? `${account.label_color}20`
-                            : "var(--bg-tertiary)",
-                        }}
-                      >
-                        <EnvelopeIcon
-                          className="h-5 w-5"
-                          style={{
-                            color: account.is_enabled
-                              ? account.label_color
-                              : "var(--text-muted)",
-                          }}
-                        />
-                      </div>
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <span
-                          className="h-2 w-2 shrink-0 rounded-full"
-                          style={{
-                            backgroundColor:
-                              account.last_sync_status === "success"
-                                ? "rgb(34,197,94)"
-                                : account.last_sync_status === "error"
-                                  ? "rgb(239,68,68)"
-                                  : "var(--text-muted)",
-                          }}
-                        />
-                        <span className="truncate text-[15px] font-medium text-[var(--text-primary)]">
-                          {account.email}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1.5 pt-0.5">
-                        <span className="rounded bg-[var(--bg-tertiary)] px-1.5 py-0.5 text-[10px] font-medium uppercase text-[var(--text-muted)]">
-                          {account.protocol}
-                        </span>
-                        <span
-                          className="rounded px-1.5 py-0.5 text-[10px]"
-                          style={{
-                            backgroundColor: account.is_enabled
-                              ? "rgba(34,197,94,0.1)"
-                              : "var(--bg-tertiary)",
-                            color: account.is_enabled
-                              ? "rgb(34,197,94)"
-                              : "var(--text-muted)",
-                          }}
                         >
                           {account.is_enabled
                             ? state.t("common.active")
@@ -910,19 +868,13 @@ export function ExternalAccountsSection({
                           </span>
                         )}
                       </div>
-                      {(syncing || progress) && (
-                        <div className="mt-1.5 flex items-center gap-1.5">
-                          <ArrowPathIcon className="h-3 w-3 animate-spin text-[var(--text-muted)]" />
-                          <span className="text-[11px] text-[var(--text-muted)]">
-                            {state.t("settings.syncing")}
-                          </span>
-                        </div>
-                      )}
-                      {!syncing && !progress && account.last_sync_at && (
-                        <span className="mt-0.5 block text-[11px] text-[var(--text-muted)]">
-                          {state.format_sync_time(account.last_sync_at)}
-                        </span>
-                      )}
+                      <SyncStatusIndicator
+                        account={account}
+                        expanded_error_ids={state.expanded_error_ids}
+                        format_sync_time={state.format_sync_time}
+                        t={state.t}
+                        toggle_error_expand={state.toggle_error_expand}
+                      />
                     </div>
                     <Switch
                       aria-label={account.email}
@@ -930,6 +882,15 @@ export function ExternalAccountsSection({
                       onCheckedChange={() => state.handle_toggle(account)}
                     />
                   </div>
+                  {account.last_sync_status === "error" &&
+                    state.expanded_error_ids.has(account.id) && (
+                      <SyncErrorDetail
+                        account={account}
+                        className="px-4 pb-3.5"
+                        format_sync_time={state.format_sync_time}
+                        t={state.t}
+                      />
+                    )}
                   <div className="flex border-t border-[var(--border-primary)]">
                     <button
                       className="flex flex-1 items-center justify-center gap-1.5 py-2.5 text-[13px] text-[var(--text-secondary)] active:bg-[var(--mobile-bg-card-hover)] disabled:opacity-40"
