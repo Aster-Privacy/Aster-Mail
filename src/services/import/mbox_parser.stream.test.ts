@@ -85,6 +85,40 @@ describe("parse_mbox_file streaming", () => {
     expect(result.emails[0].text_body).toContain("From the desk of A");
   });
 
+  it("keeps unquoted From lines in a body inside the message", async () => {
+    const text =
+      `From sender@example.com Mon Jan 01 00:00:00 2026\n` +
+      `From: A <a@example.com>\n` +
+      `Subject: First\n` +
+      `\n` +
+      `From what I can tell this is still the first message\n` +
+      `and so is this line\n` +
+      `\n` +
+      make_message(2);
+    const result = await parse_mbox_file(as_file(text));
+
+    expect(result.emails.map((e) => e.subject)).toEqual([
+      "First",
+      "Message 2",
+    ]);
+    expect(result.emails[0].text_body).toContain("and so is this line");
+  });
+
+  it("removes one level of mboxrd quoting from body lines", async () => {
+    const text =
+      `From sender@example.com Mon Jan 01 00:00:00 2026\n` +
+      `From: A <a@example.com>\n` +
+      `Subject: Quoted\n` +
+      `\n` +
+      `>>From an already quoted line\n`;
+    const result = await parse_mbox_file(as_file(text));
+
+    expect(result.emails[0].text_body).toContain(
+      ">From an already quoted line",
+    );
+    expect(result.emails[0].text_body).not.toContain(">>From");
+  });
+
   it("falls back to a single message when there is no From separator", async () => {
     const text = `From: A <a@example.com>\nSubject: Lone\n\njust one message\n`;
     const result = await parse_mbox_file(as_file(text));
