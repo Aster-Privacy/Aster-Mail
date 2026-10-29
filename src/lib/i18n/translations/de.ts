@@ -4231,6 +4231,9 @@ export const de = {
     close_to_tray: "Beim Schliessen des Fensters weiterlaufen",
     close_to_tray_description:
       "Aster Mail bleibt im Infobereich, damit neue Mail weiterhin ankommt. Schalte dies aus, um beim Schliessen des Fensters zu beenden.",
+    hide_dock_on_close: "Beim Schließen des Fensters aus dem Dock ausblenden",
+    hide_dock_on_close_description:
+      "Wenn du das Fenster schließt, verschwindet Aster Mail aus dem Dock und dem App-Umschalter und läuft in der Menüleiste weiter. Klicke auf das Symbol in der Menüleiste, um es wieder zu öffnen.",
     time_format: "Zeitformat",
     time_format_description: "Wählen Sie, wie die Uhrzeit angezeigt wird",
     twelve_hours: "12 Stunden",

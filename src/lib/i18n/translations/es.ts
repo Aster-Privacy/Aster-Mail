@@ -4256,6 +4256,9 @@ export const es = {
     close_to_tray: "Seguir en ejecucion al cerrar la ventana",
     close_to_tray_description:
       "Aster Mail permanece en el area de notificaciones para que sigas recibiendo correo nuevo. Desactivalo para salir al cerrar la ventana.",
+    hide_dock_on_close: "Ocultar del Dock al cerrar la ventana",
+    hide_dock_on_close_description:
+      "Al cerrar la ventana, Aster Mail sale del Dock y del selector de apps y sigue funcionando en la barra de menús. Para volver a abrirlo, haz clic en su icono de la barra de menús.",
     time_format: "Formato de hora",
     time_format_description: "Elige cómo se muestra la hora",
     twelve_hours: "12 horas",

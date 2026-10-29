@@ -154,6 +154,71 @@ export async function sync_close_to_tray(): Promise<void> {
   await set_close_to_tray(get_close_to_tray());
 }
 
+const HIDE_DOCK_ON_CLOSE_KEY = "aster_hide_dock_on_close";
+
+let hide_dock_support: Promise<boolean> | null = null;
+
+export function is_hide_dock_on_close_supported(): Promise<boolean> {
+  if (!is_tauri()) return Promise.resolve(false);
+
+  if (hide_dock_support === null) {
+    hide_dock_support = import("@tauri-apps/api/core")
+      .then(({ invoke }) => invoke<boolean>("hide_dock_on_close_supported"))
+      .then((supported) => supported === true)
+      .catch(() => {
+        hide_dock_support = null;
+
+        return false;
+      });
+  }
+
+  return hide_dock_support;
+}
+
+export function get_hide_dock_on_close(): boolean {
+  try {
+    return localStorage.getItem(HIDE_DOCK_ON_CLOSE_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+export async function set_hide_dock_on_close(
+  enabled: boolean,
+): Promise<boolean> {
+  if (!(await is_hide_dock_on_close_supported())) return false;
+
+  const previous = get_hide_dock_on_close();
+
+  try {
+    localStorage.setItem(HIDE_DOCK_ON_CLOSE_KEY, enabled ? "true" : "false");
+  } catch {
+    void 0;
+  }
+
+  try {
+    const { invoke } = await import("@tauri-apps/api/core");
+
+    await invoke("set_hide_dock_on_close", { enabled });
+
+    return true;
+  } catch {
+    try {
+      localStorage.setItem(HIDE_DOCK_ON_CLOSE_KEY, previous ? "true" : "false");
+    } catch {
+      void 0;
+    }
+
+    return false;
+  }
+}
+
+export async function sync_hide_dock_on_close(): Promise<void> {
+  if (!(await is_hide_dock_on_close_supported())) return;
+
+  await set_hide_dock_on_close(get_hide_dock_on_close());
+}
+
 export async function sync_tray_labels(): Promise<void> {
   if (!is_tauri()) return;
 

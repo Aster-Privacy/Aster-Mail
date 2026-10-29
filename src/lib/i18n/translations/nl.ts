@@ -4212,6 +4212,9 @@ export const nl = {
     close_to_tray: "Blijven draaien als je het venster sluit",
     close_to_tray_description:
       "Aster Mail blijft in het meldingengebied staan, zodat nieuwe e-mail binnen blijft komen. Zet dit uit om af te sluiten als je het venster sluit.",
+    hide_dock_on_close: "Verbergen uit het Dock als je het venster sluit",
+    hide_dock_on_close_description:
+      "Als je het venster sluit, verdwijnt Aster Mail uit het Dock en de appkiezer en blijft het actief in de menubalk. Klik op het symbool in de menubalk om het weer te openen.",
     time_format: "Tijdnotatie",
     time_format_description: "Kies hoe de tijd wordt weergegeven",
     twelve_hours: "12 uur",

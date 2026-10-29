@@ -3277,6 +3277,9 @@ export const hi = {
     close_to_tray: "विंडो बंद करने पर भी चलता रहे",
     close_to_tray_description:
       "Aster Mail सूचना क्षेत्र में बना रहता है ताकि नया मेल आता रहे। विंडो बंद करते ही ऐप बंद करने के लिए इसे बंद कर दें।",
+    hide_dock_on_close: "विंडो बंद करने पर Dock से छिपाएँ",
+    hide_dock_on_close_description:
+      "विंडो बंद करने पर Aster Mail, Dock और ऐप स्विचर से हट जाता है और मेनू बार में चलता रहता है। इसे फिर से खोलने के लिए मेनू बार में इसके आइकन पर क्लिक करें।",
     default_email_app: "डिफ़ॉल्ट ईमेल ऐप",
     default_email_app_description:
       "mailto: लिंक अपने डिफ़ॉल्ट ईमेल ऐप के बजाय Aster Mail में खोलें",

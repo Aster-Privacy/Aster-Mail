@@ -3843,6 +3843,9 @@ export const zh_CN = {
     close_to_tray: "关闭窗口后继续运行",
     close_to_tray_description:
       "Aster Mail 会留在通知区域，新邮件仍然可以接收。关闭此选项后，关闭窗口即退出。",
+    hide_dock_on_close: "关闭窗口时从程序坞隐藏",
+    hide_dock_on_close_description:
+      "关闭窗口后，Aster Mail 会从程序坞和应用切换器中消失，并在菜单栏中继续运行。要再次打开，请点按菜单栏中的图标。",
     time_format: "时间格式",
     time_format_description: "选择时间显示方式",
     twelve_hours: "12小时制",

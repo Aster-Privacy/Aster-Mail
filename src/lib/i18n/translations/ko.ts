@@ -4239,6 +4239,9 @@ export const ko = {
     close_to_tray: "창을 닫아도 계속 실행",
     close_to_tray_description:
       "Aster Mail이 알림 영역에 남아 새 메일을 계속 받습니다. 창을 닫을 때 종료하려면 끄세요.",
+    hide_dock_on_close: "창을 닫으면 Dock에서 숨기기",
+    hide_dock_on_close_description:
+      "창을 닫으면 Aster Mail이 Dock과 앱 전환기에서 사라지고 메뉴 막대에서 계속 실행됩니다. 다시 열려면 메뉴 막대의 아이콘을 클릭하세요.",
     time_format: "시간 형식",
     time_format_description: "시간 표시 방식을 선택합니다",
     twelve_hours: "12시간",
